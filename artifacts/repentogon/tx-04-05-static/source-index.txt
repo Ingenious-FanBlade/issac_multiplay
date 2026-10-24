@@ -1,0 +1,29 @@
+IDA static export; input IDB v1.9.7.12 unpacked; imagebase=0x400000; docs addresses are RVA.
+No IDB annotations or types changed.
+t1_odd_helper: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t1_odd_helper.txt ; RVA 0x2f9340..0x2f9708
+t1_player_update: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t1_player_update.txt ; RVA 0x37bd40..0x383340
+t1_nested_player_update_caller: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t1_nested_player_update_caller.txt ; RVA 0x2fc780..0x2fee17
+t2_input_manager_update: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t2_input_manager_update.txt ; RVA 0x5edcc0..0x5ede95
+t3_device_pressed: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t3_device_pressed.txt ; RVA 0x5ecd80..0x5ecddc
+t3_device_triggered: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t3_device_triggered.txt ; RVA 0x5ecde0..0x5ece4c
+t3_device_scalar: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t3_device_scalar.txt ; RVA 0x5ece50..0x5ecec7
+t4_manager_pressed: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t4_manager_pressed.txt ; RVA 0x5ee140..0x5ee1fb
+t4_manager_triggered: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t4_manager_triggered.txt ; RVA 0x5ee200..0x5ee2bb
+t5_console_state: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t5_console_state.txt ; RVA 0x287020..0x287172
+t5_game_update: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t5_game_update.txt ; RVA 0x2f6d30..0x2f7a4a
+t6_room_update: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t6_room_update.txt ; RVA 0x3f7f60..0x3fbdc0
+t8_movement_consumer: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t8_movement_consumer.txt ; RVA 0x372540..0x37393e
+t8_bomb_consumer: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t8_bomb_consumer.txt ; RVA 0x37a210..0x37adc1
+t8_active_consumer: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t8_active_consumer.txt ; RVA 0x389e50..0x38b9ed
+t8_card_pill_consumer: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t8_card_pill_consumer.txt ; RVA 0x39bdd0..0x39c2fd
+t8_shooting_consumer: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t8_shooting_consumer.txt ; RVA 0x373990..0x379585
+t8_drop_consumer: F:\projects_isaac\issac_multiplay\artifacts\repentogon\tx-04-05-static\t8_drop_consumer.txt ; RVA 0x39c300..0x39c7b1
+
+Luna补充导出：
+- `luna_export_ida.py`：只读 IDAPython 导出脚本，RVA 自动换算为 VA，不修改 IDB。
+- `t5_focus_chain-ida-export.txt`：Game/Odd 失焦分支、PauseScreen state 转移、选项 setter/回调候选函数。
+- `t6_callback_order-ida-export.txt`：房间加载、MC_POST_NEW_ROOM 前的实体循环及 caller；位置字段显式位移扫描。
+- `t6_post_load_player_followup.txt`：加载函数返回后 PlayerManager 后处理 `sub_993030` 及其 Player helper `sub_79FD90` 反编译。
+- `t8_query_route-ida-export.txt`：device-id 查找、Manager query wrappers、InputManager scalar、movement scalar helper、T7 字段写入。
+- `luna-findings.md`：逐项 T1–T8 结论、事实/推断/UNKNOWN 与方案修订。
+- `candidacy-corrections.md`：保留并标注此前文件名/地址误配，不将误配候选作为结论依据。

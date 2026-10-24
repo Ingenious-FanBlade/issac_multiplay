@@ -1,0 +1,21 @@
+{
+  "tx": "tx-03-18",
+  "kind": "STATIC_ACQUISITION_NOTES",
+  "date": "2026-10-23",
+  "timezone": "Asia/Shanghai",
+  "actions": [
+    "Read current project conventions and isaac-cs-refactor skill; prior evidence used as context",
+    "Read-only IDA exports to new primary-*.json files, including current IDB input path and imagebase",
+    "Local JSON pseudocode and raw instruction reading; no native function executed",
+    "rg loose .anm2/.png under game resources and resources-dlc3; no matching loose assets returned, resources-dlc3 absent",
+    "Read directory names under game resources: packed, scripts"
+  ],
+  "read_error_preserved": "rg resources-dlc3: The system cannot find the path specified (os error 2)",
+  "not_established": [
+    "Identity of disk executable and IDB input",
+    "An unpacked or runtime-loaded concrete supported asset",
+    "Runtime thread/context, image pixels, GPU state, failure recovery",
+    "Complete ANM parser safety, all image backends, OOM, EH, workers or hot reload"
+  ],
+  "scope": "Static analysis and documentation only; no asset unpacking, IDB mutation, game/debugger input, helper execution, build or intermediate tests. One final unified static document review only. No hash computation or verification."
+}

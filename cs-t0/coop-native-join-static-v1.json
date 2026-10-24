@@ -1,0 +1,700 @@
+{
+  "schemaVersion": 1,
+  "identity": "IsaacCsT0-CoopNativeJoinStatic-v1",
+  "workPackage": "CS-T0-05-04",
+  "createdUtc": "2026-08-31T11:12:12Z",
+  "status": "BLOCKED_BY_EVIDENCE",
+  "createNewOnly": true,
+  "target": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "machine": "0x014C",
+    "preferredImageBase": "0x00400000",
+    "imageSize": "0x008FE000",
+    "addressForm": "RVA_ONLY",
+    "equivalenceSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138"
+  },
+  "method": {
+    "evidenceClass": "STATIC_DISASSEMBLY_READ_ONLY",
+    "databaseTargetHashVerified": true,
+    "idaMcpReadOnly": true,
+    "idbModified": false,
+    "processEnumerationUsed": false,
+    "processOpenUsed": false,
+    "gameStarted": false,
+    "debuggerAttached": false,
+    "hookInstalled": false,
+    "inputInjected": false,
+    "testsExecuted": false,
+    "toolNames": [
+      "mcp__ida_pro_mcp__survey_binary",
+      "mcp__ida_pro_mcp__decompile",
+      "mcp__ida_pro_mcp__py_eval",
+      "mcp__ida_pro_mcp__xrefs_to"
+    ],
+    "rawInstructionSource": "IDA database bytes; instruction windows end at an instruction boundary; EXACT_DWORD identifies data or PUSH-immediate operands.",
+    "scope": "Ordinary local join dispatcher, selector, callback ownership, Player Init and InitPostLevelInitStats persistence counterexamples; not a whole-program no-write proof."
+  },
+  "predecessorSources": [
+    {
+      "path": "cs-t0/coop-static-evidence-v1.json",
+      "sha256": "501B39DEB198E7F1424328069534438ADC73BA665D1E6988AFA4AD7939DB081B"
+    },
+    {
+      "path": "cs-t0/coop-static-graph-v1.json",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    },
+    {
+      "path": "cs-t0/coop-passive-backend-screen-v1.json",
+      "sha256": "9395E0DAD0958E9C517D283F17CE8ADFD24F70E27FADD5D6B4D333C67A233790"
+    },
+    {
+      "path": "cs-t0/coop-passive-decision-v3.json",
+      "sha256": "8793F107C1AF1480A619FAA20572FE851FD099E8CB0344CFF4D78B4AD8007D31"
+    },
+    {
+      "path": "cs-t0/coop-plan-v6.json",
+      "sha256": "820F2F2F8410BE93EEFB98A1E2E3C66A1A9A60D090D901EF22FEDFE932991D59"
+    }
+  ],
+  "anchors": [
+    {
+      "id": "manager-owner-call",
+      "rva": "0x002FADA7",
+      "expectedBytes": "E894FE2B00",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "online-local-body-guard",
+      "rva": "0x005BAC6D",
+      "expectedBytes": "8B159C16C7008B82D8B304003B82DCB304000F85EF080000",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "input-dispatch-vtable-slot",
+      "rva": "0x00782868",
+      "expectedBytes": "B00FA200",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "EXACT_DWORD"
+    },
+    {
+      "id": "query-19-callback-push",
+      "rva": "0x005BB057",
+      "expectedBytes": "68E009A200",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "query-19-callback-operand",
+      "rva": "0x005BB058",
+      "expectedBytes": "E009A200",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "EXACT_DWORD"
+    },
+    {
+      "id": "query-19-action-and-call",
+      "rva": "0x005BB05D",
+      "expectedBytes": "C745E013000000FFD0",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "query-14-callback-push",
+      "rva": "0x005BB38B",
+      "expectedBytes": "68E009A200",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "query-14-callback-operand",
+      "rva": "0x005BB38C",
+      "expectedBytes": "E009A200",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "EXACT_DWORD"
+    },
+    {
+      "id": "query-14-action-and-call",
+      "rva": "0x005BB393",
+      "expectedBytes": "C745DC0E000000FFD0",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "callback-triggered-query",
+      "rva": "0x00620A0A",
+      "expectedBytes": "8B4D088B018B50348B4510FF30FFD28AD8",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "callback-owned-pair-release",
+      "rva": "0x00620A22",
+      "expectedBytes": "8B4D0C85C9741D8B118B520CFFD284C07412A114E8C70085C074098D4D0851FFD0",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "callback-cdecl-return",
+      "rva": "0x00620A57",
+      "expectedBytes": "C3",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "dispatcher-callback-arguments-cleanup",
+      "rva": "0x0062111C",
+      "expectedBytes": "FF75148D45E4FF751083EC088BCC50E8301CEEFFFF550C83C410",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "shared-pair-copy-entry",
+      "rva": "0x00502D60",
+      "expectedBytes": "558BEC8B450853568BF157C70600000000C74604000000008B7804",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "shared-pair-acquire",
+      "rva": "0x00502D78",
+      "expectedBytes": "8B78048B1885FF74338B078BCF8B4004FFD084C07426",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "shared-pair-publish",
+      "rva": "0x00502DAF",
+      "expectedBytes": "897E04891E",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "join-mode-bit",
+      "rva": "0x005BA980",
+      "expectedBytes": "A17816C7008B804865020083E01083C8007403B001C332C0",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "selector-mode-branch",
+      "rva": "0x005BB099",
+      "expectedBytes": "8B0D7816C70083B98465020000753583B93066020000772C",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "selector-set-type-index-autoconfirm",
+      "rva": "0x005BB0BB",
+      "expectedBytes": "C7449F1000000000C7449F1401000000C7449F180000803FC6449F1C00E952010000",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "selector-claim",
+      "rva": "0x005BABDA",
+      "expectedBytes": "8B45088D0C9B89448E0CC7448E14FFFFFFFF",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "selector-loop-guard",
+      "rva": "0x005BB274",
+      "expectedBytes": "8B4BF885C90F88E8020000833B000F8CDF020000E8F3F6FFFF84C00F85CC020000",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "selector-random-type-branch",
+      "rva": "0x005BB3D8",
+      "expectedBytes": "8B53FCC643080083FAFF75248B77748B47702BF0C1FE0283EE01750433D2EB0CE8633BD3FF33D2F7F68B47708B549004",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "ordinary-spawn-call",
+      "rva": "0x005BB415",
+      "expectedBytes": "E8B6E8FFFF",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "ordinary-assignment-call",
+      "rva": "0x005BB424",
+      "expectedBytes": "E827B0DEFF",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "ordinary-hud-call",
+      "rva": "0x005BB4FD",
+      "expectedBytes": "E81ED1FEFF",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "ordinary-tail-initstats-call",
+      "rva": "0x005BB504",
+      "expectedBytes": "E83712E0FF",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "ordinary-tail-state",
+      "rva": "0x005BB509",
+      "expectedBytes": "C786140400000F000000",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "ordinary-tail-effect",
+      "rva": "0x005BB545",
+      "expectedBytes": "E8D6D5A6FF",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "ordinary-tail-min-counter",
+      "rva": "0x005BB54A",
+      "expectedBytes": "8B86BC130000B92D00000083F82D0F4CC18986BC130000",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "selector-retire",
+      "rva": "0x005BB561",
+      "expectedBytes": "C703FFFFFFFF",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "player-init-vtable-slot",
+      "rva": "0x0076BDD4",
+      "expectedBytes": "70547500",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "EXACT_DWORD"
+    },
+    {
+      "id": "ordinary-init-arguments",
+      "rva": "0x005B9F12",
+      "expectedBytes": "FF75088987B80000006A006A01FFD6",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "ordinary-init-basestats-guard",
+      "rva": "0x003577CD",
+      "expectedBytes": "837E2C0075078BCEE8F6430600",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "basestats-p0-lookup",
+      "rva": "0x003BC029",
+      "expectedBytes": "6A00E840B8C5FF",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "basestats-p0-sync-call",
+      "rva": "0x003BC030",
+      "expectedBytes": "6AFF8BC8E8A7D7F9FF",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "p0-achievement-2-condition",
+      "rva": "0x003598A0",
+      "expectedBytes": "8B83681300008BC883F8377C1E8B0D9C16C7006A028D4914E863011D00",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "achievement-readonly-guard",
+      "rva": "0x00529A2A",
+      "expectedBytes": "807E01007560",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "achievement-memory-write",
+      "rva": "0x00529A44",
+      "expectedBytes": "C644373801",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "achievement-platform-call",
+      "rva": "0x00529A61",
+      "expectedBytes": "807E0200740E578BCEE821FDFFFF",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "achievement-dirty-write",
+      "rva": "0x00529A75",
+      "expectedBytes": "8BCEC60601E841FCFFFF",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "tail-captured-run-field",
+      "rva": "0x003BC83B",
+      "expectedBytes": "8B87F8640200",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "tail-persistent-mode-guard",
+      "rva": "0x003BE0B0",
+      "expectedBytes": "83BA84650200000F852103000083BA30660200000F871403000083BD4CFFFFFF000F852B050000",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "tail-local-persistent-owner",
+      "rva": "0x003BE0D7",
+      "expectedBytes": "8B0D9C16C7008B81D8B304008D5114899560FFFFFF3B81DCB30400",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "tail-persistent-counter-read",
+      "rva": "0x003BE18E",
+      "expectedBytes": "8BBA840400008B159C16C700",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "tail-offline-lowword-condition",
+      "rva": "0x003BE1A0",
+      "expectedBytes": "0FB7CFC1EF108B82DCB304003982D8B30400B8020000000F44F93BF80F47F889BD50FFFFFF85FF0F8435040000",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "tail-direct-persistent-counter-write",
+      "rva": "0x003BE393",
+      "expectedBytes": "81E60000FFFF8B8560FFFFFF5389B084040000",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "init-lua-callback-mask",
+      "rva": "0x0046408B",
+      "expectedBytes": "8B42108B4E2C8945D88B02894DE0F700000200007429",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "init-lua-dispatch",
+      "rva": "0x004640B1",
+      "expectedBytes": "E86A000100",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "persistent-dirty-save-dispatch",
+      "rva": "0x00529660",
+      "expectedBytes": "558BEC568BF157803E00744D80BE8C0F000000",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "persistent-cloud-entry",
+      "rva": "0x00528EE0",
+      "expectedBytes": "558BEC83E4F88B159C16C70083EC088B82D8B3040056578BF93B82DCB30400740D",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "persistent-disk-entry",
+      "rva": "0x005294F0",
+      "expectedBytes": "558BEC83E4F8518B159C16C7005356578B82D8B304008BF93B82DCB30400740D",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "gamestate-save-entry",
+      "rva": "0x00558ED0",
+      "expectedBytes": "558BEC83EC2453568B359C16C70057837E08027416688CC5B700",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    },
+    {
+      "id": "steam-achievement-entry",
+      "rva": "0x00529790",
+      "expectedBytes": "558BEC83EC14A1B493BF0033C58945F880790200",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "kind": "INSTRUCTION_WINDOW"
+    }
+  ],
+  "driver": {
+    "evidenceLabel": "STATIC_CONFIRMED",
+    "scope": "ROUTE_AND_ABI_ONLY",
+    "proposedTransactionSlotCount": 55,
+    "baseProfile": "LEGACY_COOP_53",
+    "additionalSlots": [
+      {
+        "ordinal": 53,
+        "id": "ordinary-join-query-callback",
+        "patchKind": "PUSH_IMM32_CALLBACK",
+        "instructionRva": "0x005BB057",
+        "operandRva": "0x005BB058",
+        "originalCallbackRva": "0x006209E0",
+        "action": 19
+      },
+      {
+        "ordinal": 54,
+        "id": "ordinary-confirm-query-callback",
+        "patchKind": "PUSH_IMM32_CALLBACK",
+        "instructionRva": "0x005BB38B",
+        "operandRva": "0x005BB38C",
+        "originalCallbackRva": "0x006209E0",
+        "action": 14
+      }
+    ],
+    "manager": {
+      "callRva": "0x002FADA7",
+      "targetRva": "0x005BAC40",
+      "thisExpression": "gameRoot+0x1BAA8",
+      "abi": "uint32 __thiscall(PlayerManager*)",
+      "threadConstraint": "INHERITED_MAIN_THREAD; natural manager transaction depth exactly one",
+      "extraManagerInvocationAllowed": false
+    },
+    "callback": {
+      "rva": "0x006209E0",
+      "abi": "uint8 __cdecl(void* device, void* sharedControl, uint32* action, uint32 unusedExtra)",
+      "observedStackArgumentBytes": 16,
+      "callerCleanupBytes": 16,
+      "calleeCleanupBytes": 0,
+      "returnRegister": "AL",
+      "unusedExtraValueAtSelectedCallsites": 0,
+      "unusedExtraReadByOriginal": false,
+      "inputManagerDispatchRva": "0x00620FB0",
+      "inputManagerVtableSlotOffset": "0x74",
+      "triggeredDeviceVtableOffset": "0x34",
+      "deviceQueryCallRva": "0x00620A17",
+      "deviceQueryReturnRva": "0x00620A19",
+      "ownership": "Dispatcher copies the two-dword device/control pair through 0x00502D60; original callback invokes control vtable+0x0C and conditional finalizer RVA slot 0x0087E814. Wrapper must preserve exactly one original callback and must not duplicate the release or dereference control after return.",
+      "wrapperRuntimeContractVerified": false
+    },
+    "phases": [
+      "READY_SINGLE: unique P0 keyboard and unique unassigned B concrete gamepad; no pending selector; independent prejoin and persistence evidence required.",
+      "REQUEST_JOIN: selected action19 callback calls original once; synthetic true is eligible only when original returned false; one override in one natural manager pass.",
+      "SELECTOR_OBSERVED: manager returns with one Player; one selector key equals B, type=0, selectionIndex=1, scaleBits=0x3F800000, autoConfirm=0.",
+      "REQUEST_CONFIRM: next natural manager pass rechecks owner/generation/device/selector and overrides only selected B action14 callback, once, after original false.",
+      "JOIN_COMPLETE: require exact ordinary spawn/assignment/HUD chain and full manager return, two unique bound Players, retired selector and consecutive stable mapping samples; no retry."
+    ],
+    "forbiddenAlternatives": [
+      "Calling spawn/assignment/HUD as a substitute for the full manager continuation",
+      "Extra or recursive manager invocation",
+      "Generic GamepadTriggered return-address attribution",
+      "Possessor, native-exit or NetInputDevice routes",
+      "Writing Player, selector, device cache or persistence state",
+      "Extending device-v2 56-slot profile by assumption"
+    ]
+  },
+  "selector": {
+    "evidenceLabel": "STATIC_CONFIRMED",
+    "owner": "gameRoot+0x1BAA8",
+    "count": 4,
+    "baseOffset": "0x0C",
+    "stride": "0x14",
+    "fields": {
+      "controllerKey": "0x00",
+      "playerType": "0x04",
+      "selectionIndex": "0x08",
+      "scale": "0x0C",
+      "autoConfirmByte": "0x10"
+    },
+    "ordinaryFrozenValues": {
+      "playerType": 0,
+      "selectionIndex": 1,
+      "scaleBits": "0x3F800000",
+      "autoConfirmByte": 0
+    },
+    "retiredSelectionIndex": -1,
+    "ordinaryRouteGuards": [
+      {
+        "owner": "gameRoot",
+        "offset": "0x26548",
+        "mask": "0x10",
+        "requiredMaskedValue": 0
+      },
+      {
+        "owner": "gameRoot",
+        "offset": "0x26584",
+        "requiredValue": 0
+      },
+      {
+        "owner": "gameRoot",
+        "offset": "0x26630",
+        "requiredValue": 0
+      }
+    ],
+    "modeNamesForTheseNumericFields": "UNKNOWN; do not infer product-mode names from offsets."
+  },
+  "prejoin": {
+    "status": "UNKNOWN",
+    "localBodyGuard": "STATIC_CONFIRMED",
+    "independentActiveOfflineClassificationComplete": false,
+    "layout": {
+      "gameRootSlotRva": "0x00871678",
+      "onlineRootSlotRva": "0x0087169C",
+      "backendSlotRva": "0x00879A58",
+      "steamBackendVtableRva": "0x007A2440",
+      "onlineRosterOffset": "0x4B3D8",
+      "onlineFrameOffset": "0x4B3E4",
+      "gamepadVtableRva": "0x00782C80",
+      "keyboardVtableRva": "0x007A1678"
+    },
+    "necessaryScreen": [
+      "Stable readable owners and canonical-empty roster begin/end/capacity; onlineFrame zero.",
+      "If backend exists, aligned/readable exact Steam vtable and stable identity; backend presence alone is not an active-online proof.",
+      "Unique native keyboard P0 and unassigned concrete gamepad B; no NetInputDevice or alternate selector mode.",
+      "Current manager/owner/device generation and exact callback provenance; no future ordinary-route witness may authorize prejoin."
+    ],
+    "limitations": [
+      "The existing passive nonzero-backend screen is retrospective and scoped to CS-T0-05-03.",
+      "The roster local-body guard does not prove the complete mode latch, background channel activity or persistent-write isolation.",
+      "No new active Offline contract is published as complete by this evidence file."
+    ]
+  },
+  "persistence": {
+    "status": "UNKNOWN",
+    "nativeNonwritingScenarioProven": false,
+    "zeroPersistenceProven": false,
+    "object": {
+      "ownerExpression": "onlineRoot+0x14",
+      "dirtyByteOffset": "0x00",
+      "readonlyGuardByteOffset": "0x01",
+      "platformAchievementEnabledByteOffset": "0x02",
+      "achievementBytesOffset": "0x38",
+      "directCounterOffset": "0x484",
+      "saveEnabledByteOffset": "0xF8C",
+      "layoutScope": "Observed fields only; not a complete PersistentGameData schema."
+    },
+    "counterexamples": [
+      {
+        "id": "ORDINARY_INIT_CAN_REACH_ACHIEVEMENT",
+        "evidenceLabel": "STATIC_CONFIRMED",
+        "kind": "CONDITIONAL_STATIC_REACHABILITY",
+        "route": [
+          "0x005BB415->0x005B9CD0",
+          "ordinary Init vtable+4 -> 0x00355470",
+          "0x003577D5->0x003BBBD0 when Variant=0",
+          "0x003BC02B->0x00017870(P0)",
+          "0x003BC034->0x003597E0(P0,-1)",
+          "0x003598B8->0x00529A20(persistent,2)"
+        ],
+        "conditions": "P0 ordinal>=0, root+0x26614<2, P0+0x1368>=55; persistent readonly byte is zero and achievement 2 is not already set.",
+        "effects": "0x00529A44 sets the achievement byte; 0x00529A77 sets dirty; when platform-enabled, 0x00529A6A reaches Steam achievement path 0x00529790. Empty roster does not block this."
+      },
+      {
+        "id": "JOIN_TAIL_DIRECT_PERSISTENT_COUNTER_WRITE",
+        "evidenceLabel": "STATIC_CONFIRMED",
+        "kind": "CONDITIONAL_STATIC_REACHABILITY",
+        "route": [
+          "0x005BB504->0x003BC740",
+          "0x003BE18E reads persistent+0x484",
+          "0x003BE3A0 writes persistent+0x484"
+        ],
+        "conditions": "root+0x26584=0, root+0x26630=0, captured root+0x264F8=0, empty roster and low16(persistent+0x484)>0; bounded item-selection loop completes or exhausts its 100-attempt bound.",
+        "effects": "Local low16 counter is cleared by AND 0xFFFF0000 and direct write. This branch does not consult PersistentGameData+1 readonly; readonly alone is insufficient.",
+        "counterProductMeaning": "UNKNOWN; no product statistic name inferred."
+      },
+      {
+        "id": "INIT_CALLBACK_CAN_ESCAPE_NATIVE_WRITE_SET",
+        "evidenceLabel": "STATIC_CONFIRMED",
+        "kind": "CONDITIONAL_STATIC_DISPATCH",
+        "route": [
+          "0x00357959->0x00464050",
+          "0x00464099 tests callback mask 0x200",
+          "0x004640B1->0x00474120"
+        ],
+        "effects": "Registered player-init Lua callbacks can run before the Init return; callback absence/allowed behavior has not been proven for an active run."
+      }
+    ],
+    "sinkCandidates": [
+      {
+        "rva": "0x00528EE0",
+        "role": "PersistentGameData Steam Cloud write",
+        "evidenceLabel": "STATIC_CONFIRMED",
+        "limitation": "No readonly check at this entry; direct join-to-this-sink exclusion not proven."
+      },
+      {
+        "rva": "0x005294F0",
+        "role": "PersistentGameData local disk write",
+        "evidenceLabel": "STATIC_CONFIRMED",
+        "limitation": "Empty roster takes the local write path; no readonly guard at this entry."
+      },
+      {
+        "rva": "0x005292C0",
+        "role": "Persistent save backup path",
+        "evidenceLabel": "STATIC_CONFIRMED",
+        "limitation": "Empty roster permits backup work."
+      },
+      {
+        "rva": "0x00529660",
+        "role": "dirty/save-enabled dispatcher",
+        "evidenceLabel": "STATIC_CONFIRMED",
+        "limitation": "dirty and save-enabled bytes select backup plus Cloud/disk; frame/stop exclusion not established."
+      },
+      {
+        "rva": "0x00529790",
+        "role": "Steam achievement-related interface calls at vtable+0x18 and +0x24",
+        "evidenceLabel": "STATIC_CONFIRMED",
+        "limitation": "Platform-enabled path is separate from disk file comparison."
+      },
+      {
+        "rva": "0x00558ED0",
+        "role": "GameState save plus optional persistent save",
+        "evidenceLabel": "STATIC_CONFIRMED",
+        "limitation": "Active-run and empty-roster path may save; native no-save condition and post-stop quiescence not proven."
+      }
+    ],
+    "rejectedInferences": [
+      "Offline implies no save/achievement/statistics changes.",
+      "Returning from HUD rebuild completes all join mutations.",
+      "PersistentGameData readonly alone blocks all persistent memory writes.",
+      "Disabling Cloud alone blocks local save or Steam achievements.",
+      "Unchanged save-file hashes prove no memory dirty/unlock/statistics or external submissions."
+    ],
+    "minimalFollowup": [
+      "Prove one native, normally reachable experiment scenario excludes all relevant init/tail persistent writes, including direct writes and callback effects; do not write readonly/stat fields to manufacture it.",
+      "Freeze frame-boundary and normal-stop conditions that exclude dirty-save dispatch, GameState save, backups, local writes and Cloud/Steam commits throughout the run.",
+      "Define runtime memory and external-side-effect witnesses that can establish the frozen condition; independent verification is required before arm eligibility."
+    ]
+  },
+  "historicalRuntimeEvidence": [
+    {
+      "evidenceLabel": "RUNTIME_OBSERVED",
+      "sourcePath": "artifacts/cs-t0/20260828T072118Z-t0-05-03-native-join-passive-t0-05-03-native-join-passive-live-06",
+      "scope": "Existing physical native join, passive ordinary-route/mapping/restore evidence only; no synthetic callback, prejoin or persistence proof."
+    }
+  ],
+  "missingEvidence": [
+    "PREJOIN_INDEPENDENT_ACTIVE_OFFLINE_UNPROVEN",
+    "PERSISTENCE_NATIVE_NONWRITING_SCENARIO_UNPROVEN",
+    "PERSISTENCE_INIT_TAIL_WRITE_CLOSURE_UNPROVEN",
+    "PERSISTENCE_DISK_CLOUD_STEAM_EXCLUSION_UNPROVEN"
+  ],
+  "permissions": {
+    "activeInputAllowed": false,
+    "inputMutationAllowed": false,
+    "worldMutationAllowed": false,
+    "runtimeMutationAllowed": false,
+    "overrideAllowed": false,
+    "transportAllowed": false,
+    "schedulerAllowed": false,
+    "applyAllowed": false,
+    "originalOnlinePositiveAllowed": false,
+    "liveAuthorizationCreated": false,
+    "csT00505Unlocked": false,
+    "t005Unlocked": false
+  },
+  "runtimeContractComplete": false,
+  "finalTestAcceptancePerformed": false
+}

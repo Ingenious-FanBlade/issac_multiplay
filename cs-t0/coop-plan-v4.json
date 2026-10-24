@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 4,
+  "planIdentity": "IsaacCsT0-CoopPlan-v4",
+  "workPackage": "CS-T0-05-02",
+  "createdUtc": "2026-08-27T16:23:59.485Z",
+  "status": "C0_COMPLETE_READ_CLOSED",
+  "supersedes": "coop-plan-v3.json",
+  "supersedesSha256": "12BE7D22A1103A57923A1B6894B3D6C3433A165E431B06C44B28CB1DF21C6850",
+  "createNewOnly": true,
+  "artifactBindings": [
+    {
+      "path": "artifacts/cs-t0/20260827T153600Z-t0-05-02-c0-decision-03-final.json",
+      "identity": "IsaacCsT0-CoopC0Decision-v1",
+      "sha256": "46A5F34D5A8FBF1D7E239F1ECB2B572BDD3814B7A4A6AA3216EED57A159DE07D"
+    },
+    {
+      "path": "cs-t0/coop-verification-v4.json",
+      "identity": "IsaacCsT0-CoopVerification-v4",
+      "sha256": "FF667CD7F537EC335487D577AFB3989D6B0D34FF5E806EFE23AF44A22E5C31D4"
+    },
+    {
+      "path": "cs-t0/coop-matrix-v2.json",
+      "identity": "IsaacCsT0-CoopMatrix-v2",
+      "sha256": "BC7BF6A4B4AB1A3733545C1A1530E7E6D046079817EE6AA55B39E304D0EA480D"
+    },
+    {
+      "path": "cs-t0/ledger/isaac-cs-t0-coop-ledger-v3.json",
+      "identity": "IsaacCsT0-CoopLedger-v3",
+      "sha256": "A1F4F464260BF7FE93213840E25411C27495C72CE3BC4AFA5A2436AC3FE10E13"
+    }
+  ],
+  "c0Authorization": {
+    "probe": "control-no-native",
+    "scenarios": [
+      "offline-single-c0",
+      "local-coop-dual-c0",
+      "original-online-dual-disarmed"
+    ],
+    "previousObserverAccessBits": "0x00101410",
+    "observerAccessBits": "0x00000000",
+    "processReadAllowed": false,
+    "runtimeMutationAllowed": false,
+    "hookAllowed": false,
+    "ipcAllowed": false,
+    "mappingAllowed": false,
+    "helperAllowed": false,
+    "nativeLoadAllowed": false,
+    "schedulerAllowed": false,
+    "applyAllowed": false,
+    "completedSourceCount": 3,
+    "furtherC0CaptureAllowed": false
+  },
+  "permissions": {
+    "activeInputAllowed": false,
+    "passiveProbeAllowed": false,
+    "runtimeMutationAllowed": false,
+    "t005Unlocked": false,
+    "csT00503Unlocked": true
+  },
+  "nextWorkPackage": "CS-T0-05-03"
+}

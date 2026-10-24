@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "evidenceIdentity": "IsaacCsT0-CoopDeviceRebindStaticEvidence-v1",
+  "workPackage": "CS-T0-05-03",
+  "status": "STATIC_CONFIRMED_NO_LIVE_AUTHORIZATION",
+  "createNewOnly": true,
+  "target": {
+    "observedApprovedUnpackedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "machine": "0x014C",
+    "runtimeAddressRule": "moduleBase + RVA"
+  },
+  "original": {
+    "rva": "0x003A6450",
+    "nameEvidence": "Entity_Player::SetControllerId() Setting controller ID to %d, (Prev: %d)",
+    "callingConvention": "THISCALL_X86",
+    "returnType": "void",
+    "thisType": "Entity_Player*",
+    "stackArgs": ["int32 controllerId", "uint32 propagate"],
+    "calleeStackBytes": 8,
+    "returnUse": "IGNORED_EAX_OPAQUE",
+    "assignmentWriteRva": "0x003A6598",
+    "assignmentOffset": "0x1618",
+    "ret8Rva": "0x003A6676",
+    "wrapperRule": "Call original exactly once with unchanged self and both 32-bit arguments, including every observation failure; no input or world mutation by observer."
+  },
+  "newSlots": [
+    {
+      "ordinal": 53,
+      "id": "device-menu-unassign",
+      "rva": "0x005B27EB",
+      "expectedBytes": "E8603CDFFF",
+      "targetRva": "0x003A6450",
+      "callerStartRva": "0x005B23A0",
+      "callerLastCodeRva": "0x005B314D",
+      "featureStartRva": "0x005B27E5",
+      "featureBytes": "6A016AFF8BC8E8603CDFFFC687D0AB040001",
+      "maskedFeature": "6A016AFF8BC8E8????????C687D0AB040001",
+      "guardEvidence": ["MenuConfirm triggered and selected menu command 1 (ChangeController)", "offline roster empty", "existing main-vector Player selected by native getter", "controllerId=-1, propagate=1"],
+      "postEvidence": "Native reselect flag +0x4ABD0 is set after original return."
+    },
+    {
+      "ordinal": 54,
+      "id": "device-prompt-unassign",
+      "rva": "0x0055B87F",
+      "expectedBytes": "E8CCABE4FF",
+      "targetRva": "0x003A6450",
+      "callerStartRva": "0x0055B310",
+      "callerEndExclusiveRva": "0x0055BDC4",
+      "featureStartRva": "0x0055B879",
+      "featureBytes": "6A016AFF8BC8E8CCABE4FFC645FC058D8D10FFFFFF",
+      "maskedFeature": "6A016AFF8BC8E8????????C645FC058D8D10FFFFFF",
+      "guardEvidence": ["active run and offline roster empty", "current Player controllerId lookup has no device", "controller-disconnect/reselect prompt created", "same existing main-vector ordinal, controllerId=-1, propagate=1"],
+      "postEvidence": "Following menu slot53, this is a required same-Player idempotent -1 confirmation; after physical disconnect this is the primary unassign."
+    },
+    {
+      "ordinal": 55,
+      "id": "device-prompt-reassign",
+      "rva": "0x0055BCA0",
+      "expectedBytes": "E8ABA7E4FF",
+      "targetRva": "0x003A6450",
+      "callerStartRva": "0x0055B310",
+      "callerEndExclusiveRva": "0x0055BDC4",
+      "featureStartRva": "0x0055BC9B",
+      "featureBytes": "8B0A6A0153E8ABA7E4FFA14494BF0085F60F44C3A34494BF00",
+      "maskedFeature": "8B0A6A0153E8????????A1????????85F60F44C3A3????????",
+      "guardEvidence": ["prompt active and current Player has no assigned device", "candidate active device satisfies native input predicate", "candidate assignment key is not owned by another main-vector Player", "active run and offline roster empty", "same existing main-vector ordinal, candidate key>=0, propagate=1"],
+      "postEvidence": "Observer must verify same self/ordinal and readback controllerId equal to the exact original argument."
+    }
+  ],
+  "identityRule": {
+    "source": "actual wrapper self, never inferred menu ordinal writes",
+    "requirements": ["previously double-BOUND ordinary A and B", "self occurs uniquely in twice-read main vector at ordinal 0 or 1", "self+0x161C agrees with vector index", "same private Player identity as that BOUND endpoint", "known Player vtable/COL, Variant 0, no parent/twin/possessor", "same root, other endpoint and HUD identity, strict offline screen"]
+  },
+  "causalGrammar": {
+    "menu": ["53.begin(old>=0)", "53.end(-1)", "54.begin(-1)", "54.end(-1)", "55.begin(-1)", "55.end(key>=0)"],
+    "disconnect": ["54.begin(old>=0)", "54.end(-1)", "55.begin(-1)", "55.end(key>=0)"],
+    "generation": "Exactly one advance at primary unassign; both UNBOUND precede begin; all cause events share the new generation.",
+    "managerClosure": "After complete original reassign return: first complete coherent manager pass publishes causal relation change and two candidates; next consecutive identical complete pass publishes two bindings.",
+    "sameDeviceReassignmentAllowed": true,
+    "maximumSuccessfulTransactionsPerSource": 1,
+    "pendingReadRule": "A separate twice-read identity check may allow only the target endpoint's expected unassigned/missing-device state; it never produces binding evidence.",
+    "invalidateOn": ["cross-player", "cross-ordinal", "third Player", "wrong generation", "wrong thread", "reentrancy", "read exception", "publication gap or failure", "online signal", "lifecycle transition", "other endpoint change", "unknown type", "nonconsecutive final manager passes", "duplicate or reordered cause", "incomplete or reused transaction"]
+  },
+  "excludedEvidence": [
+    "Legacy slot49 RVA0x005BB424 has self directly returned by preceding new-Player spawn RVA0x005BB415; it cannot prove existing-Player rebind.",
+    "Controller pump call RVA0x00554F84 is after frozen input-sample return RVA0x00554F7D and after alternate-owner return RVA0x00554D5E; no inherited lifecycle bracket proves this rebind.",
+    "Manager-only topology delta is unclassified event32, never causal relation event24.",
+    "Pointer equality, final digest inequality, QPC or user operation time cannot replace the native cause chain."
+  ],
+  "versionBoundary": {
+    "deviceScenario": 5,
+    "deviceIpcVersion": 2,
+    "legacyNonDeviceIpcVersion": 1,
+    "legacySlots": 53,
+    "deviceSlots": 56,
+    "deviceMask": "0x00FFFFFFFFFFFFFF",
+    "installOrder": "0..55",
+    "restoreOrder": "55..0",
+    "rollbackOrder": "last-installed..0",
+    "nativeEventSize": 200,
+    "sharedBlockSize": 3277472,
+    "sharedEventsOffset": 672,
+    "additionalRelativeCapacity": 17,
+    "additionalPointerCapacity": 7,
+    "layoutAndFlagsUnchanged": true,
+    "newEventCodes": {"DeviceUnassignBegin": 28, "DeviceUnassignEnd": 29, "DeviceReassignBegin": 30, "DeviceReassignEnd": 31, "UnclassifiedRelationChange": 32},
+    "devicePhase": 10
+  },
+  "authorization": {"implementationAndAutomaticVerificationOnly": true, "liveInjectionAuthorized": false}
+}

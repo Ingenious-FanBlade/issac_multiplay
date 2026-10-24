@@ -1,0 +1,1787 @@
+{
+  "tx": "tx-01-97",
+  "operation": "T0-07 operation 8 production fault and boundary coverage",
+  "policy": {
+    "sequence": "local source next starts at1; 0 and u64 max are reserved wire-invalid",
+    "queue_capacity": 256,
+    "dedupe_history_capacity": 4096,
+    "timeout_ticks": 120,
+    "no_gate": true
+  },
+  "scenarios": [
+    {
+      "name": "a-conflict-session",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true,
+            "session": "Warmup"
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active",
+            "session_cause": "BindingsReady"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 0 0 123 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted",
+            "a.last_accepted": "1",
+            "a.received_count": "1",
+            "a.retired": false
+          }
+        },
+        {
+          "command": "local 0 1 1 0 0 456 normal",
+          "expect": {
+            "ok": false,
+            "admission": "SequenceConflict",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure",
+            "phase": "Failed",
+            "a.retired": true,
+            "a.generation": "2",
+            "a.sequence_conflict": "1",
+            "a.last_accepted": "1",
+            "a.last_received_decision": "SequenceConflict",
+            "b.retired": false
+          }
+        },
+        {
+          "command": "status",
+          "expect": {
+            "ok": true,
+            "session": "Failed",
+            "session_cause": "RuntimeFailure",
+            "a.retired": true,
+            "b.retired": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "b-conflict-retires",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 123 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 456 normal",
+          "expect": {
+            "ok": false,
+            "admission": "SequenceConflict",
+            "session": "Active",
+            "session_cause": "BindingsReady",
+            "b.retired": true,
+            "b.generation": "2",
+            "b.sequence_conflict": "1",
+            "a.retired": false
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "publications": "1",
+            "session": "Active",
+            "b.retired": true,
+            "a.retired": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "far-future-expired-edge-sequence",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "remote 1 1 64 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "remote 1 2 65 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "TooFar"
+          }
+        },
+        {
+          "command": "remote 1 3 0 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Expired"
+          }
+        },
+        {
+          "command": "remote 1 4 2 1 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "remote 1 5 2 1 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "EdgeConflict"
+          }
+        },
+        {
+          "command": "remote 1 6 18446744073709551615 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "TooFar"
+          }
+        },
+        {
+          "command": "remote 1 0 1 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Invalid"
+          }
+        },
+        {
+          "command": "remote 1 18446744073709551615 1 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Invalid"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "session": "Active",
+            "b.last_accepted": "4",
+            "b.duplicates": "0",
+            "b.too_far": "2",
+            "b.expired": "1",
+            "b.edge_conflict": "1",
+            "b.invalid": "2",
+            "b.last_received_decision": "Invalid"
+          }
+        }
+      ]
+    },
+    {
+      "name": "queue-full",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "fill-queue 0 257 1",
+          "expect": {
+            "ok": true,
+            "fill_attempts": "257",
+            "fill_accepted": "256",
+            "fill_last_decision": "Full",
+            "session": "Active",
+            "a.depth": 256,
+            "a.last_accepted": "256",
+            "a.next_sequence": "258",
+            "a.full": "1"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "session": "Active",
+            "a.depth": 0,
+            "a.last_processed_tick": "1",
+            "a.last_processed_source": "256",
+            "a.full": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "history-eviction-stale",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "history-evict 0 4100",
+          "expect": {
+            "ok": true,
+            "history_count": "4100",
+            "history_last_accepted": "4100",
+            "history_stale_decision": "Stale",
+            "history_new_decision": "Accepted",
+            "session": "Active",
+            "a.last_accepted": "4101",
+            "a.next_sequence": "4102",
+            "a.stale": "1",
+            "a.accepted_count": "4101"
+          }
+        }
+      ]
+    },
+    {
+      "name": "source-sequence-exhaustion",
+      "initial_tick": 0,
+      "sequence_start": 18446744073709551614,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "source-next 0 1",
+          "expect": {
+            "ok": true,
+            "generated_sequence": "18446744073709551614",
+            "generated_target": "1",
+            "source_retired": false,
+            "a.next_sequence": "18446744073709551615",
+            "a.retired": false
+          }
+        },
+        {
+          "command": "source-next 0 1",
+          "expect": {
+            "ok": false,
+            "generated_sequence": "0",
+            "generated_target": "0",
+            "source_retired": true,
+            "a.retired": true,
+            "a.generation": "2",
+            "a.next_sequence": "18446744073709551615"
+          }
+        }
+      ]
+    },
+    {
+      "name": "server-tick-exhaustion",
+      "initial_tick": 18446744073709551551,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": false,
+            "decision": "Exhausted",
+            "phase": "Failed",
+            "completed": "18446744073709551551",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure",
+            "drained": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "accept-outside-phase",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "local 0 1 1 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Invalid",
+            "phase": "Failed",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure",
+            "drained": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "abnormal-return",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating",
+            "current": "1"
+          }
+        },
+        {
+          "command": "returned abnormal",
+          "expect": {
+            "ok": true,
+            "decision": "AbnormalReturn",
+            "phase": "Failed",
+            "completed": "0",
+            "body_calls": "1",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure"
+          }
+        }
+      ]
+    },
+    {
+      "name": "wrong-return",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating"
+          }
+        },
+        {
+          "command": "returned wrong",
+          "expect": {
+            "ok": true,
+            "decision": "WrongReturn",
+            "phase": "Failed",
+            "completed": "0",
+            "body_calls": "1",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure"
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing-return",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "outer",
+          "expect": {
+            "ok": false,
+            "decision": "MissingReturn",
+            "phase": "Failed",
+            "completed": "0",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure"
+          }
+        }
+      ]
+    },
+    {
+      "name": "post-before-body",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "ok": false,
+            "decision": "Reentry",
+            "phase": "Failed",
+            "completed": "0",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure"
+          }
+        }
+      ]
+    },
+    {
+      "name": "publication-failure",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating"
+          }
+        },
+        {
+          "command": "returned normal",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "AwaitPostState",
+            "completed": "0",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "Committed",
+            "completed": "1",
+            "receipt.post": 1,
+            "receipt.capture": "500",
+            "receipt.published": false
+          }
+        },
+        {
+          "command": "publish 0",
+          "expect": {
+            "ok": false,
+            "decision": "Cancelled",
+            "phase": "Failed",
+            "completed": "1",
+            "publications": "0",
+            "session": "Failed",
+            "session_cause": "PublicationFailure",
+            "receipt.post": 1,
+            "receipt.published": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "repeat-publish",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating"
+          }
+        },
+        {
+          "command": "returned normal",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "AwaitPostState",
+            "completed": "0",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "Committed",
+            "completed": "1"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "Published",
+            "publications": "1",
+            "receipt.published": true
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": false,
+            "decision": "Cancelled",
+            "phase": "Failed",
+            "completed": "1",
+            "publications": "1",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure",
+            "receipt.published": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "collector-gaps",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating",
+            "current": "1"
+          }
+        },
+        {
+          "command": "returned normal",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "AwaitPostState"
+          }
+        },
+        {
+          "command": "post 0",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "Committed",
+            "completed": "1",
+            "receipt.post": 0,
+            "receipt.capture": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "receipt.published": true
+          }
+        },
+        {
+          "command": "outer",
+          "expect": {
+            "ok": true,
+            "decision": "Idle",
+            "phase": "Published"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating",
+            "current": "2"
+          }
+        },
+        {
+          "command": "returned normal",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "AwaitPostState"
+          }
+        },
+        {
+          "command": "post 2",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "Committed",
+            "completed": "2",
+            "receipt.post": 2,
+            "receipt.reason": 2,
+            "receipt.capture": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true,
+            "phase": "Published"
+          }
+        },
+        {
+          "command": "outer",
+          "expect": {
+            "ok": true,
+            "decision": "Idle"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating",
+            "current": "3"
+          }
+        },
+        {
+          "command": "returned normal",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "AwaitPostState"
+          }
+        },
+        {
+          "command": "post 3",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "Committed",
+            "completed": "3",
+            "receipt.post": 3,
+            "receipt.reason": 7,
+            "receipt.capture": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true,
+            "phase": "Published"
+          }
+        },
+        {
+          "command": "outer",
+          "expect": {
+            "ok": true,
+            "decision": "Idle"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating",
+            "current": "4"
+          }
+        },
+        {
+          "command": "returned normal",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "AwaitPostState"
+          }
+        },
+        {
+          "command": "post 4",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "Committed",
+            "completed": "4",
+            "receipt.post": 4,
+            "receipt.reason": 9,
+            "receipt.capture": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true,
+            "phase": "Published"
+          }
+        },
+        {
+          "command": "outer",
+          "expect": {
+            "ok": true,
+            "decision": "Idle"
+          }
+        },
+        {
+          "command": "begin odd",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating",
+            "current": "5"
+          }
+        },
+        {
+          "command": "returned normal",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "AwaitPostState"
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "Committed",
+            "completed": "5",
+            "receipt.kind": 2,
+            "receipt.post": 2,
+            "receipt.reason": 2,
+            "receipt.capture": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true,
+            "phase": "Published"
+          }
+        },
+        {
+          "command": "outer",
+          "expect": {
+            "ok": true,
+            "decision": "Idle",
+            "phase": "Published",
+            "completed": "5",
+            "body_calls": "5",
+            "publications": "5",
+            "session": "Active"
+          }
+        }
+      ]
+    },
+    {
+      "name": "client-timeout",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "cycle 121",
+          "expect": {
+            "ok": true,
+            "completed": "121",
+            "body_calls": "121",
+            "publications": "121",
+            "session": "Active",
+            "b.availability.source": "TimedOut",
+            "b.availability.silent_ticks": "120",
+            "b.availability.timeout_entries": "1",
+            "b.retired": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "identity-encoding-generation",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 0 malformed",
+          "expect": {
+            "ok": false,
+            "admission": "Invalid"
+          }
+        },
+        {
+          "command": "remote 1 2 1 0 0 0 wrong-session",
+          "expect": {
+            "ok": false,
+            "admission": "WrongSession"
+          }
+        },
+        {
+          "command": "remote 1 3 1 0 0 0 wrong-client",
+          "expect": {
+            "ok": false,
+            "admission": "WrongClient"
+          }
+        },
+        {
+          "command": "remote 1 4 1 0 0 0 short",
+          "expect": {
+            "ok": false,
+            "admission": "Invalid"
+          }
+        },
+        {
+          "command": "remote 1 5 1 0 0 0 long",
+          "expect": {
+            "ok": false,
+            "admission": "Invalid"
+          }
+        },
+        {
+          "command": "remote 1 8 1 0 0 0 bad-version",
+          "expect": {
+            "ok": false,
+            "admission": "Invalid"
+          }
+        },
+        {
+          "command": "remote 1 9 1 0 0 0 bad-length",
+          "expect": {
+            "ok": false,
+            "admission": "Invalid"
+          }
+        },
+        {
+          "command": "remote 1 10 1 0 0 0 bad-edge",
+          "expect": {
+            "ok": false,
+            "admission": "Invalid"
+          }
+        },
+        {
+          "command": "invalidate 1",
+          "expect": {
+            "ok": true,
+            "b.retired": false,
+            "b.generation": "2"
+          }
+        },
+        {
+          "command": "remote 1 6 1 0 0 0 old-generation",
+          "expect": {
+            "ok": false,
+            "admission": "WrongGeneration"
+          }
+        },
+        {
+          "command": "rebind 1",
+          "expect": {
+            "ok": true,
+            "b.retired": false
+          }
+        },
+        {
+          "command": "remote 1 7 1 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "session": "Active",
+            "b.last_accepted": "7",
+            "b.invalid": "6",
+            "b.wrong_session": "1",
+            "b.wrong_client": "1",
+            "b.wrong_generation": "1",
+            "b.retired": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "duplicate-and-late",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "remote 1 1 1 1 0 123 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "remote 1 1 1 1 0 123 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Duplicate"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining",
+            "completed": "1"
+          }
+        },
+        {
+          "command": "remote 1 1 1 1 0 123 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Duplicate"
+          }
+        },
+        {
+          "command": "remote 1 2 1 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Expired"
+          }
+        },
+        {
+          "command": "status",
+          "expect": {
+            "ok": true,
+            "b.last_accepted": "1",
+            "b.edge0_accepted_tick": "1",
+            "b.edge0_processed": "1",
+            "b.edge0_processed_tick": "1"
+          }
+        },
+        {
+          "command": "remote 1 3 2 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "2",
+            "body_calls": "2",
+            "session": "Active",
+            "b.duplicates": "2",
+            "b.expired": "1",
+            "b.last_accepted": "3",
+            "b.last_processed_tick": "2",
+            "b.last_processed_source": "3",
+            "b.edge0_processed": "1",
+            "b.edge0_processed_tick": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "client-timeout-a-live",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "timeout-a-live 121",
+          "expect": {
+            "ok": true,
+            "completed": "121",
+            "body_calls": "121",
+            "publications": "121",
+            "session": "Active",
+            "a.availability.source": "Active",
+            "a.retired": false,
+            "b.availability.source": "TimedOut",
+            "b.availability.silent_ticks": "120",
+            "b.availability.timeout_entries": "1",
+            "b.availability.valid_arrival_count": "0",
+            "b.retired": false
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining",
+            "completed": "121"
+          }
+        },
+        {
+          "command": "remote 1 0 122 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Invalid"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "122",
+            "body_calls": "122",
+            "session": "Active",
+            "b.availability.source": "TimedOut",
+            "b.availability.timeout_entries": "1",
+            "b.availability.timeout_recoveries": "0",
+            "b.availability.valid_arrival_count": "0"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining",
+            "completed": "122"
+          }
+        },
+        {
+          "command": "remote 1 1 123 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "123",
+            "body_calls": "123",
+            "session": "Active",
+            "b.availability.source": "Active",
+            "b.availability.timeout_entries": "1",
+            "b.availability.timeout_recoveries": "1",
+            "b.availability.valid_arrival_count": "1",
+            "b.last_processed_tick": "123",
+            "b.last_processed_source": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "source-start-zero-invalid",
+      "initial_tick": 0,
+      "sequence_start": 0,
+      "steps": [
+        {
+          "command": "source-next 0 1",
+          "expect": {
+            "ok": false,
+            "generated_sequence": "0",
+            "generated_target": "0",
+            "source_retired": true,
+            "session": "Dormant",
+            "a.retired": true,
+            "a.next_sequence": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "source-start-max-invalid",
+      "initial_tick": 0,
+      "sequence_start": 18446744073709551615,
+      "steps": [
+        {
+          "command": "source-next 0 1",
+          "expect": {
+            "ok": false,
+            "generated_sequence": "0",
+            "generated_target": "0",
+            "source_retired": true,
+            "session": "Dormant",
+            "a.retired": true,
+            "a.next_sequence": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing-return-after-simulation",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating",
+            "current": "1"
+          }
+        },
+        {
+          "command": "outer",
+          "expect": {
+            "ok": false,
+            "decision": "MissingReturn",
+            "phase": "Failed",
+            "completed": "0",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure"
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing-post-after-return",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating",
+            "current": "1"
+          }
+        },
+        {
+          "command": "returned normal",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "AwaitPostState",
+            "completed": "0",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "outer",
+          "expect": {
+            "ok": false,
+            "decision": "MissingReturn",
+            "phase": "Failed",
+            "completed": "0",
+            "body_calls": "1",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure"
+          }
+        }
+      ]
+    },
+    {
+      "name": "wrong-loop-post",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating",
+            "current": "1"
+          }
+        },
+        {
+          "command": "returned normal",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "AwaitPostState",
+            "completed": "0",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "post 1 wrong-loop",
+          "expect": {
+            "ok": false,
+            "decision": "WrongReturn",
+            "phase": "Failed",
+            "completed": "0",
+            "body_calls": "1",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure"
+          }
+        }
+      ]
+    },
+    {
+      "name": "repeat-post",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating",
+            "current": "1"
+          }
+        },
+        {
+          "command": "returned normal",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "AwaitPostState",
+            "completed": "0",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "Committed",
+            "completed": "1",
+            "receipt.post": 1
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "ok": false,
+            "decision": "Reentry",
+            "phase": "Failed",
+            "completed": "1",
+            "body_calls": "1",
+            "session": "Failed",
+            "session_cause": "RuntimeFailure",
+            "receipt.post": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "wrong-tick-sample",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Simulating",
+            "current": "1"
+          }
+        },
+        {
+          "command": "returned normal",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "AwaitPostState",
+            "completed": "0",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "post 1 wrong-tick",
+          "expect": {
+            "ok": true,
+            "decision": "Committed",
+            "phase": "Committed",
+            "completed": "1",
+            "body_calls": "1",
+            "receipt.post": 4,
+            "receipt.reason": 18,
+            "receipt.capture": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "terminal-session-input",
+      "initial_tick": 0,
+      "sequence_start": 1,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "retire-session",
+          "expect": {
+            "ok": true,
+            "session": "Retiring"
+          }
+        },
+        {
+          "command": "direct-local 0 1 2 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Retired",
+            "session": "Retiring",
+            "a.retired": false
+          }
+        }
+      ]
+    }
+  ]
+}

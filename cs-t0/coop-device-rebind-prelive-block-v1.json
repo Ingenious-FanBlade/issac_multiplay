@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "inspectionIdentity": "IsaacCsT0-CoopDeviceRebindPreliveBlock-v1",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-31T04:10:12.2869298Z",
+  "status": "BLOCKED_BEFORE_LIVE",
+  "createNewOnly": true,
+  "scope": {
+    "scenario": "device-rebind-passive",
+    "methods": ["READ_ONLY_STATIC_REVERSE", "PUBLIC_CLI_OFFLINE_MUTATIONS", "READ_ONLY_LOCAL_PREFLIGHT"],
+    "formalCaptureInvoked": false,
+    "formalPreflightInvoked": false,
+    "liveAuthorizationConsumed": false,
+    "productionModified": false,
+    "historicalSourceModified": false,
+    "newHooksAuthorized": false
+  },
+  "lastLiveProgress": {
+    "path": "cs-t0/coop-passive-live-progress-v3.json",
+    "sha256": "148B7E3ED57BFB1ED2FD9A5A2B641FFD4E4FCA2F1BD53FFA9DE8D69501B51EE2",
+    "formalPassCount": 3,
+    "requiredPassCount": 6,
+    "workflowSkippedCount": 1
+  },
+  "blockingFindings": [
+    {
+      "id": "DEVICE_CAUSAL_WITNESS_NOT_ENFORCED",
+      "statement": "The public analyzer accepts relationChanged and assignmentMatches self-reports without an observed frozen assignment or lifecycle cause. Three independent offline cases without any causal event pass, including a case with no opaque digest change."
+    },
+    {
+      "id": "MANAGER_DELTA_PROMOTED_TO_ASSIGNMENT_EVIDENCE",
+      "statement": "ApplyManagerTopology publishes RelationChange with AssignmentMatch after a coherent bound-topology delta without requiring a frozen assignment or lifecycle witness. This violates the plan rule that manager-only changes remain unclassified."
+    },
+    {
+      "id": "FROZEN_SLOT49_IS_JOIN_ONLY",
+      "statement": "Frozen slot49 assigns the freshly created Player returned by the immediately preceding ordinary spawn slot46. Existing-player reassignment uses different, unfrozen callsites."
+    },
+    {
+      "id": "NO_PROVEN_FROZEN_LIFECYCLE_CAUSE",
+      "statement": "The controller-reselect pump runs after the frozen alternate-owner and input-sample calls have returned. No existing frozen lifecycle bracket is proven to enclose or causally identify reassignment."
+    }
+  ],
+  "inspectedImplementations": [
+    {
+      "path": "cs-t0/native/src/coop_passive_runtime.cpp",
+      "sha256": "F7B40C331D0C212324D829C9AF623A37DBDFB09E0F596AE406AD38EB5E5CC13E",
+      "location": "ApplyManagerTopology"
+    },
+    {
+      "path": "cs-t0/src/coop_passive.rs",
+      "sha256": "C182C4A9F590945ACD5957ED001EF181D765BA381851DCF851811E9B7395015C",
+      "location": "validate_scenario_semantics, SCENARIO_DEVICE_REBIND"
+    },
+    {
+      "path": "out/cs-t0/IsaacCsT0.exe",
+      "sha256": "50C934C39FEAECD4D8605862DBA56F0D368B16AF1E6FF3AC3E21BF42D8B213E1"
+    }
+  ],
+  "staticReachability": {
+    "targetSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "frozenAssignmentSlot": 49,
+    "frozenAssignmentCallsiteRva": "0x005BB424",
+    "ordinarySpawnCallsiteRva": "0x005BB415",
+    "assignmentTargetRva": "0x003A6450",
+    "existingPlayerReassignmentCallsitesRva": ["0x005B27EB", "0x0055B87F", "0x0055BCA0"],
+    "reassignmentPumpRva": "0x0055B310",
+    "reassignmentPumpCallsiteRva": "0x00554F84",
+    "newSitesAreFrozen": false,
+    "changeControllerCandidatePreconditions": [
+      "ChangeController menu command 1 is displayed and confirmed by action 14",
+      "the selected main-player ordinal must be 1 to reassign B",
+      "the online roster is empty",
+      "the replacement controller key is not already assigned to another main player"
+    ],
+    "unresolvedPrecondition": "The write that maps a pause action by B to selected menu ordinal 1 has not been independently closed. This candidate route is not an instruction to perform a live test.",
+    "scopeStatement": "These are read-only candidates for a future versioned evidence plan, not authorization to add hooks or invoke native functions."
+  },
+  "offlineAudit": {
+    "evidenceClass": "SYNTHETIC_OFFLINE_CONTRACT_DIAGNOSTIC_ONLY",
+    "eligibleForLiveGate": false,
+    "root": "out/cs-t0/device-rebind-independent-audit-20260831-v1",
+    "report": "out/cs-t0/device-rebind-independent-audit-20260831-v1/audit-report.json",
+    "reportSha256": "A25E7CF719722F9E024FC19F5DD34EE3DE5E79115088D7B4E9E26243129C4B57",
+    "generator": "out/cs-t0/device-rebind-independent-audit-20260831-v1/generate-fixtures.ps1",
+    "generatorSha256": "F3ADA049D2516B390B616D204F6C1FF1096E701C7926B56D95EB7B421C417210",
+    "cases": [
+      {
+        "name": "fixture-parity-no-assignment",
+        "causalEventCount": 0,
+        "eventCount": 23,
+        "expectedResult": "BLOCKED_BY_EVIDENCE",
+        "actualResult": "PASS",
+        "manifestSha256": "181874C28F6B00F36A06102BD4843C8C17E1518577DE852331ABB955C01EB5CB",
+        "eventsSha256": "013D9C5ED2B72D42AED24259669D1CA8FDC3D06C8AD60CEF47334D24856BF2F4",
+        "analysisSha256": "A6D568698FC33AD3FF4E9C6E58551DED5FCB1BD139D4A6403B139C82FBB1601C"
+      },
+      {
+        "name": "unchanged-device-assignment",
+        "causalEventCount": 0,
+        "eventCount": 23,
+        "expectedResult": "BLOCKED_BY_EVIDENCE",
+        "actualResult": "PASS",
+        "manifestSha256": "5F2760DC61E070C295E4A7E9960B58F2D43F84EE0DA98511F8D4B98D09F79876",
+        "eventsSha256": "7403ED705FF6DBCE2C1B5406E7D3254DDE43464DA22893C9B565055A138B1D08",
+        "analysisSha256": "59C8A7CA3D9B3F6D0B8D03F13F5561F013E7FD983C8945CEE97ECD77F1E99E9D"
+      },
+      {
+        "name": "unchanged-all-self-report-only",
+        "causalEventCount": 0,
+        "eventCount": 23,
+        "expectedResult": "BLOCKED_BY_EVIDENCE",
+        "actualResult": "PASS",
+        "manifestSha256": "A11C7C414F4ED8169F6956DAB70CBE66D1A92E90E5C22B57F9A4A9684A0A21D8",
+        "eventsSha256": "A59BC2CD97837BA2EA157323C8924009BA0B4941DED6B7653DF5C020E2082C87",
+        "analysisSha256": "728E2F7F1D705228D3195C6CC2BC5D6D37A05063F08CAA77622810E82E9E7557"
+      },
+      {
+        "name": "assignment-flag-false-control",
+        "causalEventCount": 0,
+        "eventCount": 23,
+        "expectedResult": "BLOCKED_BY_EVIDENCE",
+        "actualResult": "BLOCKED_BY_EVIDENCE",
+        "manifestSha256": "65881B9336DCBF2CD1AFB692F687451B384EBD8B0A4DD98DDFF83B0462D8CEEB",
+        "eventsSha256": "444DD78E061207A5890B5CF77DD738134EB6CFC1302F1BA3CEDBB29C43286214",
+        "analysisSha256": "F30B61CE61E075C1F0B2D4EEE719422785A333E13509D979C7A7666461830322"
+      }
+    ],
+    "limitation": "Unchanged digests alone are not declared invalid for every possible rebind; the reproduced defect is acceptance without any causal witness."
+  },
+  "readOnlyPreflight": {
+    "targetProcessCount": 0,
+    "productionBindingsMatchVerification": true,
+    "deviceCandidateCaseId": "t0-05-03-device-rebind-passive-live-10",
+    "deviceCandidateCollisionCount": 0,
+    "menuCandidateCaseId": "t0-05-03-menu-teardown-passive-live-11",
+    "menuCandidateCollisionCount": 0,
+    "menuLiveStarted": false
+  },
+  "requiredNextAction": "Obtain approval for a versioned device-rebind evidence-plan and production/analyzer correction, rerun the independent automatic gate, then request fresh per-scenario live authorization. No implicit skip, no automatic retry, and no new hook is allowed by this diagnostic."
+}

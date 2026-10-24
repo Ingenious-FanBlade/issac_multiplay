@@ -1,0 +1,441 @@
+{
+  "tx": "tx-03-13",
+  "evidence": "RAW_IDA_MCP_TOOL_CONTENT_STATIC_READ_ONLY",
+  "imagebase": "0x400000",
+  "py_exec_file": {
+    "tool": "mcp__ida_mcp__py_exec_file",
+    "file_path": "F:\\projects_isaac\\issac_multiplay\\artifacts\\cs-t0\\tx-03-13-static\\luna-export-control.py",
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"result\":\"\",\"stdout\":\"{\\\"output\\\": \\\"F:\\\\\\\\projects_isaac\\\\\\\\issac_multiplay\\\\\\\\artifacts\\\\\\\\cs-t0\\\\\\\\tx-03-13-static\\\\\\\\luna-control-core.json\\\", \\\"functions\\\": 19, \\\"tables\\\": 3, \\\"imagebase\\\": \\\"0x400000\\\"}\\n\",\"stderr\":\"\"}"
+      }
+    ]
+  },
+  "decompile_returns": [
+    {
+      "kind": "decompile",
+      "addr": "0x407A60",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x407A60\",\"code\":\"void __thiscall sub_407A60(char *this)\\n{\\n  char *v2; // esi\\n  int v3; // ecx\\n\\n  v2 = this + 152; /*0x407a86*/\\n  v3 = *((_DWORD *)this + 39); /*0x407a93*/\\n  if ( v3 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v3 + 12))(v3) && n2_2 ) /*0x407aac*/\\n    n2_2(v2); /*0x407aaf*/\\n  sub_40D040(this + 8); /*0x407ab7*/\\n}\",\"refs\":[{\"addr\":\"0xc7163c\",\"name\":\"n2_2\"},{\"addr\":\"0x40d040\",\"name\":\"sub_40D040\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0x408640",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x408640\",\"code\":\"int (__cdecl *__thiscall sub_408640(_DWORD *this, _DWORD *a2, int a3))(_DWORD)\\n{\\n  _DWORD *v3; // edx\\n  int (__cdecl *result)(_DWORD); // eax\\n\\n  v3 = a2; /*0x408669*/\\n  if ( a2 ) /*0x40866e*/\\n  {\\n    this[8] = a2[12]; /*0x408673*/\\n    this[9] = v3[13]; /*0x408679*/\\n    this[10] = v3[14]; /*0x40867f*/\\n    this[11] = v3[15]; /*0x408685*/\\n  }\\n  result = (int (__cdecl *)(_DWORD))sub_40C3B0(&a2); /*0x408692*/\\n  if ( a3 ) /*0x4086a3*/\\n  {\\n    result = (int (__cdecl *)(_DWORD))(*(int (__thiscall **)(int))(*(_DWORD *)a3 + 12))(a3); /*0x4086aa*/\\n    if ( (_BYTE)result ) /*0x4086ae*/\\n    {\\n      result = n2_2; /*0x4086b0*/\\n      if ( n2_2 ) /*0x4086b7*/\\n        return (int (__cdecl *)(_DWORD))n2_2(&a2); /*0x4086bd*/\\n    }\\n  }\\n  return result; /*0x4086cd*/\\n}\",\"refs\":[{\"addr\":\"0x40c3b0\",\"name\":\"sub_40C3B0\"},{\"addr\":\"0xc7163c\",\"name\":\"n2_2\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0x40C7F0",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C7F0\",\"code\":\"int (__cdecl *__thiscall sub_40C7F0(_DWORD *this, int a2))(_DWORD)\\n{\\n  int (__cdecl *result)(_DWORD); // eax\\n  _DWORD *v4; // edi\\n  int v5; // ecx\\n\\n  result = (int (__cdecl *)(_DWORD))sub_A0F4C0(24); /*0x40c81c*/\\n  v4 = result; /*0x40c821*/\\n  if ( result ) /*0x40c835*/\\n  {\\n    result = (int (__cdecl *)(_DWORD))sub_40CC10(result); /*0x40c839*/\\n    *v4 = &ReferenceCount<KAGE::Graphics::ImageBase>::`vftable'; /*0x40c83e*/\\n    v4[5] = a2; /*0x40c844*/\\n  }\\n  else\\n  {\\n    v4 = 0; /*0x40c849*/\\n  }\\n  v5 = this[1]; /*0x40c852*/\\n  if ( v5 ) /*0x40c857*/\\n  {\\n    result = (int (__cdecl *)(_DWORD))(*(int (__thiscall **)(int))(*(_DWORD *)v5 + 12))(v5); /*0x40c85e*/\\n    if ( (_BYTE)result ) /*0x40c862*/\\n    {\\n      result = n2_2; /*0x40c864*/\\n      if ( n2_2 ) /*0x40c86b*/\\n        result = (int (__cdecl *)(_DWORD))n2_2(this); /*0x40c86e*/\\n    }\\n  }\\n  *this = a2; /*0x40c873*/\\n  this[1] = v4; /*0x40c875*/\\n  return result; /*0x40c878*/\\n}\",\"refs\":[{\"addr\":\"0xa0f4c0\",\"name\":\"sub_A0F4C0\"},{\"addr\":\"0x40cc10\",\"name\":\"sub_40CC10\"},{\"addr\":\"0xb1a6e0\",\"name\":\"??_7?$ReferenceCount@VImageBase@Graphics@KAGE@@@@6B@\"},{\"addr\":\"0xc7163c\",\"name\":\"n2_2\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0x40CC10",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40CC10\",\"code\":\"_DWORD *__thiscall sub_40CC10(_DWORD *this)\\n{\\n  _DWORD *v2; // ecx\\n\\n  v2 = this + 2; /*0x40cc39*/\\n  *this = &ReferenceCountBase::`vftable'; /*0x40cc3c*/\\n  this[1] = 65537; /*0x40cc42*/\\n  *((_BYTE *)v2 + 4) = 0; /*0x40cc49*/\\n  *v2 = &KAGE::Mutex::`vftable'; /*0x40cc4d*/\\n  v2[2] = 0; /*0x40cc53*/\\n  sub_A15770(); /*0x40cc6d*/\\n  return this; /*0x40cc74*/\\n}\",\"refs\":[{\"addr\":\"0xb1a6fc\",\"name\":\"??_7ReferenceCountBase@@6B@\"},{\"addr\":\"0xb81c0c\",\"name\":\"??_7Mutex@KAGE@@6B@\"},{\"addr\":\"0xa15770\",\"name\":\"sub_A15770\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0x40C3B0",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C3B0\",\"code\":\"int *__thiscall sub_40C3B0(int *this, int a2)\\n{\\n  int *v3; // esi\\n  int v4; // edx\\n  int v5; // eax\\n  int v6; // ecx\\n  _BYTE v8[4]; // [esp+Ch] [ebp-18h] BYREF\\n  int v9; // [esp+10h] [ebp-14h]\\n  int v10; // [esp+20h] [ebp-4h]\\n\\n  v3 = (int *)sub_40C550(a2); /*0x40c3e7*/\\n  v4 = v3[1]; /*0x40c3e9*/\\n  v3[1] = this[1]; /*0x40c3ec*/\\n  v5 = *this; /*0x40c3ef*/\\n  this[1] = v4; /*0x40c3f1*/\\n  v6 = *v3; /*0x40c3f4*/\\n  *v3 = v5; /*0x40c3f6*/\\n  *this = v6; /*0x40c3f8*/\\n  v10 = 0; /*0x40c3fa*/\\n  if ( v9 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v9 + 12))(v9) && n2_2 ) /*0x40c41a*/\\n    n2_2(v8); /*0x40c420*/\\n  return this; /*0x40c427*/\\n}\",\"refs\":[{\"addr\":\"0x40c550\",\"name\":\"sub_40C550\"},{\"addr\":\"0xc7163c\",\"name\":\"n2_2\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0x40C550",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C550\",\"code\":\"_DWORD *__thiscall sub_40C550(_DWORD *this, int *a2)\\n{\\n  int v3; // edi\\n  int v4; // ebx\\n  int v5; // ecx\\n\\n  *this = 0; /*0x40c55b*/\\n  this[1] = 0; /*0x40c561*/\\n  v3 = a2[1]; /*0x40c568*/\\n  v4 = *a2; /*0x40c56b*/\\n  if ( v3 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v3 + 4))(a2[1]) ) /*0x40c578*/\\n  {\\n    v5 = this[1]; /*0x40c57e*/\\n    if ( v5 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v5 + 12))(v5) && n2_2 ) /*0x40c597*/\\n      n2_2(this); /*0x40c59a*/\\n    this[1] = v3; /*0x40c59f*/\\n    *this = v4; /*0x40c5a2*/\\n  }\\n  return this; /*0x40c5a4*/\\n}\",\"refs\":[{\"addr\":\"0xc7163c\",\"name\":\"n2_2\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0x40C630",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C630\",\"code\":\"char __thiscall sub_40C630(_DWORD *this)\\n{\\n  __int16 v2; // ax\\n  __int16 v3; // ax\\n  int v4; // ecx\\n\\n  (*(void (__thiscall **)(_DWORD *, int))(this[2] + 12))(this + 2, -1); /*0x40c63c*/\\n  v2 = *((_WORD *)this + 2); /*0x40c63f*/\\n  if ( !v2 || (v3 = v2 - 1, (*((_WORD *)this + 2) = v3) != 0) ) /*0x40c650*/\\n  {\\n    (*(void (__thiscall **)(_DWORD *))(this[2] + 16))(this + 2); /*0x40c681*/\\n    return 1; /*0x40c685*/\\n  }\\n  else\\n  {\\n    (*(void (__thiscall **)(_DWORD *))(this[2] + 16))(this + 2); /*0x40c658*/\\n    v4 = this[5]; /*0x40c65b*/\\n    if ( v4 ) /*0x40c660*/\\n    {\\n      (*(void (__thiscall **)(int, int))(*(_DWORD *)v4 + 52))(v4, 1); /*0x40c666*/\\n      this[5] = 0; /*0x40c669*/\\n    }\\n    return (*(int (__thiscall **)(_DWORD *))(*this + 20))(this); /*0x40c679*/\\n  }\\n}\"}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0x40C6B0",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C6B0\",\"code\":\"char __thiscall sub_40C6B0(char *this)\\n{\\n  char *v2; // ecx\\n  void (__thiscall **v3)(char *); // eax\\n\\n  (*(void (__thiscall **)(_DWORD *, int))(*((_DWORD *)this + 2) + 12))((_DWORD *)this + 2, -1); /*0x40c6bc*/\\n  v2 = this + 8; /*0x40c6c2*/\\n  v3 = (void (__thiscall **)(char *))(*((_DWORD *)this + 2) + 16); /*0x40c6c5*/\\n  if ( *((_WORD *)this + 2) ) /*0x40c6c8*/\\n  {\\n    (*v3)(v2); /*0x40c6d6*/\\n    (*(void (__thiscall **)(char *))(*(_DWORD *)this + 8))(this); /*0x40c6dc*/\\n    return 1; /*0x40c6e0*/\\n  }\\n  else\\n  {\\n    (*v3)(v2); /*0x40c6cf*/\\n    return 0; /*0x40c6d2*/\\n  }\\n}\"}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0x40C690",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C690\",\"code\":\"int __thiscall sub_40C690(int this)\\n{\\n  (*(void (__thiscall **)(int, int))(*(_DWORD *)(this + 8) + 12))(this + 8, -1); /*0x40c69c*/\\n  ++*(_WORD *)(this + 4); /*0x40c69f*/\\n  return (*(int (__thiscall **)(int))(*(_DWORD *)(this + 8) + 16))(this + 8);\\n}\"}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0x40C610",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C610\",\"code\":\"int __thiscall sub_40C610(int this)\\n{\\n  (*(void (__thiscall **)(int, int))(*(_DWORD *)(this + 8) + 12))(this + 8, -1); /*0x40c61c*/\\n  ++*(_WORD *)(this + 6); /*0x40c61f*/\\n  return (*(int (__thiscall **)(int))(*(_DWORD *)(this + 8) + 16))(this + 8);\\n}\"}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0x40C5C0",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C5C0\",\"code\":\"char __thiscall sub_40C5C0(_DWORD *this)\\n{\\n  __int16 v2; // ax\\n  __int16 v3; // ax\\n\\n  (*(void (__thiscall **)(_DWORD *, int))(this[2] + 12))(this + 2, -1); /*0x40c5cc*/\\n  v2 = *((_WORD *)this + 3); /*0x40c5cf*/\\n  if ( !v2 || (v3 = v2 - 1, (*((_WORD *)this + 3) = v3) != 0) ) /*0x40c5e0*/\\n  {\\n    (*(void (__thiscall **)(_DWORD *))(this[2] + 16))(this + 2); /*0x40c5fe*/\\n    return 1; /*0x40c602*/\\n  }\\n  else\\n  {\\n    (*(void (__thiscall **)(_DWORD *))(this[2] + 16))(this + 2); /*0x40c5e8*/\\n    (*(void (__thiscall **)(_DWORD *, int))*this)(this, 1); /*0x40c5f1*/\\n    return 0; /*0x40c5f4*/\\n  }\\n}\"}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0x40CB50",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40CB50\",\"code\":\"void *__thiscall sub_40CB50(void *this, char a2)\\n{\\n  struct _RTL_CRITICAL_SECTION *lpCriticalSection; // edi\\n\\n  *(_DWORD *)this = &ReferenceCountBase::`vftable'; /*0x40cb57*/\\n  lpCriticalSection = (struct _RTL_CRITICAL_SECTION *)*((_DWORD *)this + 4); /*0x40cb5d*/\\n  *((_DWORD *)this + 2) = &KAGE::Mutex::`vftable'; /*0x40cb60*/\\n  if ( lpCriticalSection ) /*0x40cb69*/\\n  {\\n    DeleteCriticalSection(lpCriticalSection); /*0x40cb6c*/\\n    sub_AEF15C(lpCriticalSection); /*0x40cb75*/\\n    *((_DWORD *)this + 4) = 0; /*0x40cb7d*/\\n  }\\n  *((_BYTE *)this + 12) &= ~1u; /*0x40cb84*/\\n  *((_DWORD *)this + 2) = &KAGE::MutexBase::`vftable'; /*0x40cb8c*/\\n  if ( (a2 & 1) != 0 ) /*0x40cb93*/\\n    sub_AEF15C(this); /*0x40cb98*/\\n  return this; /*0x40cba0*/\\n}\",\"refs\":[{\"addr\":\"0xb1a6fc\",\"name\":\"??_7ReferenceCountBase@@6B@\"},{\"addr\":\"0xb81c0c\",\"name\":\"??_7Mutex@KAGE@@6B@\"},{\"addr\":\"0xb18274\",\"name\":\"DeleteCriticalSection\"},{\"addr\":\"0xaef15c\",\"name\":\"sub_AEF15C\"},{\"addr\":\"0xba04b4\",\"name\":\"??_7MutexBase@KAGE@@6B@\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0xA15770",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0xA15770\",\"code\":\"char __thiscall sub_A15770(int this)\\n{\\n  int lpCriticalSection; // eax\\n  int lpCriticalSection_1; // esi\\n  char v4; // al\\n\\n  if ( (*(_BYTE *)(this + 4) & 1) == 0 ) /*0xa1577e*/\\n  {\\n    lpCriticalSection = sub_A0F4C0(28); /*0xa15782*/\\n    lpCriticalSection_1 = lpCriticalSection; /*0xa15787*/\\n    if ( lpCriticalSection ) /*0xa15791*/\\n    {\\n      *(_BYTE *)(lpCriticalSection + 24) = 0; /*0xa15794*/\\n      InitializeCriticalSection((LPCRITICAL_SECTION)lpCriticalSection); /*0xa15798*/\\n    }\\n    else\\n    {\\n      lpCriticalSection_1 = 0; /*0xa157a0*/\\n    }\\n    v4 = *(_BYTE *)(this + 4) | 1; /*0xa157a6*/\\n    *(_DWORD *)(this + 8) = lpCriticalSection_1; /*0xa157aa*/\\n    *(_BYTE *)(this + 4) = v4; /*0xa157ad*/\\n  }\\n  return 1; /*0xa157b0*/\\n}\",\"refs\":[{\"addr\":\"0xa0f4c0\",\"name\":\"sub_A0F4C0\"},{\"addr\":\"0xb18278\",\"name\":\"InitializeCriticalSection\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0xA157F0",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0xA157F0\",\"code\":\"char __thiscall sub_A157F0(int this, unsigned int a2)\\n{\\n  int v2; // eax\\n  int lpCriticalSection; // esi\\n  __int64 v5; // rax\\n  unsigned __int64 v6; // kr20_8\\n  int lpCriticalSection_1; // esi\\n  BOOL v8; // eax\\n  __int64 v9; // rax\\n  char ArgList; // [esp+0h] [ebp-30h]\\n\\n  v2 = this; /*0xa157f9*/\\n  if ( (*(_BYTE *)(this + 4) & 1) == 0 ) /*0xa15806*/\\n  {\\n    sub_A112C0(16, \\\"Trying to lock mutex that has not been initialized\\\", ArgList); /*0xa1580f*/\\n    v2 = this; /*0xa15814*/\\n  }\\n  if ( a2 == -1 ) /*0xa1581f*/\\n  {\\n    lpCriticalSection = *(_DWORD *)(v2 + 8); /*0xa15821*/\\n    EnterCriticalSection((LPCRITICAL_SECTION)lpCriticalSection); /*0xa15825*/\\n    while ( *(_BYTE *)(lpCriticalSection + 24) ) /*0xa1582b*/\\n      Sleep(0x3E8u); /*0xa1583c*/\\n    *(_BYTE *)(lpCriticalSection + 24) = 1; /*0xa15844*/\\n    return 1; /*0xa15848*/\\n  }\\n  else\\n  {\\n    v5 = sub_A68490(); /*0xa15853*/\\n    v6 = ((1125899906LL * (unsigned int)v5 /*0xa158b6*/\\n         + (unsigned __int64)(unsigned int)(((3619042523u * (unsigned __int64)(unsigned int)v5) >> 32)\\n                                          - 675924773 * HIDWORD(v5))) >> 32)\\n       + ((((3619042523u * (unsigned __int64)(unsigned int)v5) >> 32) + 3619042523LL * HIDWORD(v5)) >> 32)\\n       + 1125899906LL * HIDWORD(v5);\\n    if ( a2 ) /*0xa158cb*/\\n    {\\n      do /*0xa15988*/\\n      {\\n        lpCriticalSection_1 = *(_DWORD *)(this + 8); /*0xa158d5*/\\n        v8 = TryEnterCriticalSection((LPCRITICAL_SECTION)lpCriticalSection_1); /*0xa158d9*/\\n        if ( v8 && *(_BYTE *)(lpCriticalSection_1 + 24) ) /*0xa158e8*/\\n        {\\n          LeaveCriticalSection((LPCRITICAL_SECTION)lpCriticalSection_1); /*0xa158ef*/\\n        }\\n        else if ( v8 ) /*0xa158f9*/\\n        {\\n          return 1; /*0xa158f9*/\\n        }\\n        Sleep(0xAu); /*0xa15901*/\\n        v9 = sub_A68490(); /*0xa15907*/\\n      }\\n      while ( ((((1125899906LL * (unsigned int)v9 /*0xa15988*/\\n                + (unsigned __int64)(unsigned int)(((3619042523u * (unsigned __int64)(unsigned int)v9) >> 32)\\n                                                 - 675924773 * HIDWORD(v9))) >> 32)\\n              + ((((3619042523u * (unsigned __int64)(unsigned int)v9) >> 32) + 3619042523LL * HIDWORD(v9)) >> 32)\\n              + 1125899906LL * HIDWORD(v9)) >> 18)\\n            - (v6 >> 18) < a2 );\\n    }\\n    return 0; /*0xa15990*/\\n  }\\n}\",\"refs\":[{\"addr\":\"0xa112c0\",\"name\":\"sub_A112C0\"},{\"addr\":\"0xb81c58\",\"name\":\"aTryingToLockMu\",\"string\":\"Trying to lock mutex that has not been initialized\"},{\"addr\":\"0xb18270\",\"name\":\"EnterCriticalSection\"},{\"addr\":\"0xb182d8\",\"name\":\"Sleep\"},{\"addr\":\"0xa68490\",\"name\":\"sub_A68490\"},{\"addr\":\"0xb1826c\",\"name\":\"TryEnterCriticalSection\"},{\"addr\":\"0xb18268\",\"name\":\"LeaveCriticalSection\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "decompile",
+      "addr": "0xA159A0",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0xA159A0\",\"code\":\"void __thiscall sub_A159A0(int this)\\n{\\n  int lpCriticalSection; // [esp-4h] [ebp-8h]\\n  char ArgList; // [esp+0h] [ebp-4h]\\n\\n  if ( (*(_BYTE *)(this + 4) & 1) == 0 ) /*0xa159a7*/\\n    sub_A112C0(16, \\\"Trying to unlock mutex that has not been initialized\\\", ArgList); /*0xa159b0*/\\n  lpCriticalSection = *(_DWORD *)(this + 8); /*0xa159bb*/\\n  *(_BYTE *)(lpCriticalSection + 24) = 0; /*0xa159bc*/\\n  LeaveCriticalSection((LPCRITICAL_SECTION)lpCriticalSection); /*0xa159c0*/\\n}\",\"refs\":[{\"addr\":\"0xa112c0\",\"name\":\"sub_A112C0\"},{\"addr\":\"0xb81c20\",\"name\":\"aTryingToUnlock\",\"string\":\"Trying to unlock mutex that has not been initialized\"},{\"addr\":\"0xb18268\",\"name\":\"LeaveCriticalSection\"}]}"
+          }
+        ]
+      }
+    }
+  ],
+  "disasm_returns": [
+    {
+      "kind": "disasm",
+      "addr": "0x407A60",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x407A60\",\"asm\":{\"name\":\"sub_407A60\",\"start_ea\":\"0x407a60\",\"segment\":\".text\",\"lines\":[{\"addr\":\"407a60\",\"instruction\":\"push ebp\",\"label\":\"sub_407A60\"},{\"addr\":\"407a61\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"407a63\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"407a65\",\"instruction\":\"push offset SEH_8CB7A0\",\"refs\":[{\"addr\":\"0xaf09f0\",\"name\":\"SEH_8CB7A0\"}]},{\"addr\":\"407a6a\",\"instruction\":\"mov eax, large fs:0\"},{\"addr\":\"407a70\",\"instruction\":\"push eax\"},{\"addr\":\"407a71\",\"instruction\":\"push esi\"},{\"addr\":\"407a72\",\"instruction\":\"push edi\"},{\"addr\":\"407a73\",\"instruction\":\"mov eax, ___security_cookie\",\"refs\":[{\"addr\":\"0xbf93b4\",\"name\":\"___security_cookie\"}]},{\"addr\":\"407a78\",\"instruction\":\"xor eax, ebp\"},{\"addr\":\"407a7a\",\"instruction\":\"push eax\"},{\"addr\":\"407a7b\",\"instruction\":\"lea eax, [ebp+var_C]\"},{\"addr\":\"407a7e\",\"instruction\":\"mov large fs:0, eax\"},{\"addr\":\"407a84\",\"instruction\":\"mov edi, ecx\"},{\"addr\":\"407a86\",\"instruction\":\"lea esi, [edi+98h]\"},{\"addr\":\"407a8c\",\"instruction\":\"mov [ebp+var_4], 0\"},{\"addr\":\"407a93\",\"instruction\":\"mov ecx, [esi+4]\"},{\"addr\":\"407a96\",\"instruction\":\"test ecx, ecx\"},{\"addr\":\"407a98\",\"instruction\":\"jz short loc_407AB4\",\"refs\":[{\"addr\":\"0x407ab4\",\"name\":\"loc_407AB4\"}]},{\"addr\":\"407a9a\",\"instruction\":\"mov eax, [ecx]\"},{\"addr\":\"407a9c\",\"instruction\":\"mov eax, [eax+0Ch]\"},{\"addr\":\"407a9f\",\"instruction\":\"call eax\"},{\"addr\":\"407aa1\",\"instruction\":\"test al, al\"},{\"addr\":\"407aa3\",\"instruction\":\"jz short loc_407AB4\",\"refs\":[{\"addr\":\"0x407ab4\",\"name\":\"loc_407AB4\"}]},{\"addr\":\"407aa5\",\"instruction\":\"mov eax, n2_2\",\"refs\":[{\"addr\":\"0xc7163c\",\"name\":\"n2_2\"}]},{\"addr\":\"407aaa\",\"instruction\":\"test eax, eax\"},{\"addr\":\"407aac\",\"instruction\":\"jz short loc_407AB4\",\"refs\":[{\"addr\":\"0x407ab4\",\"name\":\"loc_407AB4\"}]},{\"addr\":\"407aae\",\"instruction\":\"push esi\"},{\"addr\":\"407aaf\",\"instruction\":\"call eax ; n2_2\"},{\"addr\":\"407ab1\",\"instruction\":\"add esp, 4\"},{\"addr\":\"407ab4\",\"instruction\":\"lea ecx, [edi+8]\",\"label\":\"loc_407AB4\"},{\"addr\":\"407ab7\",\"instruction\":\"call sub_40D040\",\"refs\":[{\"addr\":\"0x40d040\",\"name\":\"sub_40D040\"}]},{\"addr\":\"407abc\",\"instruction\":\"mov ecx, [ebp+var_C]\"},{\"addr\":\"407abf\",\"instruction\":\"mov large fs:0, ecx\"},{\"addr\":\"407ac6\",\"instruction\":\"pop ecx\"},{\"addr\":\"407ac7\",\"instruction\":\"pop edi\"},{\"addr\":\"407ac8\",\"instruction\":\"pop esi\"},{\"addr\":\"407ac9\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"407acb\",\"instruction\":\"pop ebp\"},{\"addr\":\"407acc\",\"instruction\":\"retn\"}],\"stack_frame\":[{\"name\":\"var_C\",\"offset\":\"0xc\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_4\",\"offset\":\"0x14\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__saved_registers\",\"offset\":\"0x18\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x1c\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"}],\"return_type\":\"void\",\"arguments\":[{\"name\":\"this\",\"type\":\"char *\"}]},\"instruction_count\":40,\"total_instructions\":40,\"cursor\":{\"done\":true}}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0x408640",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x408640\",\"asm\":{\"name\":\"sub_408640\",\"start_ea\":\"0x408640\",\"segment\":\".text\",\"lines\":[{\"addr\":\"408640\",\"instruction\":\"push ebp\",\"label\":\"sub_408640\"},{\"addr\":\"408641\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"408643\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"408645\",\"instruction\":\"push offset SEH_408640\",\"refs\":[{\"addr\":\"0xaf0b1d\",\"name\":\"SEH_408640\"}]},{\"addr\":\"40864a\",\"instruction\":\"mov eax, large fs:0\"},{\"addr\":\"408650\",\"instruction\":\"push eax\"},{\"addr\":\"408651\",\"instruction\":\"mov eax, ___security_cookie\",\"refs\":[{\"addr\":\"0xbf93b4\",\"name\":\"___security_cookie\"}]},{\"addr\":\"408656\",\"instruction\":\"xor eax, ebp\"},{\"addr\":\"408658\",\"instruction\":\"push eax\"},{\"addr\":\"408659\",\"instruction\":\"lea eax, [ebp+var_C]\"},{\"addr\":\"40865c\",\"instruction\":\"mov large fs:0, eax\"},{\"addr\":\"408662\",\"instruction\":\"mov [ebp+var_4], 0\"},{\"addr\":\"408669\",\"instruction\":\"mov edx, [ebp+arg_0]\"},{\"addr\":\"40866c\",\"instruction\":\"test edx, edx\"},{\"addr\":\"40866e\",\"instruction\":\"jz short loc_408688\",\"refs\":[{\"addr\":\"0x408688\",\"name\":\"loc_408688\"}]},{\"addr\":\"408670\",\"instruction\":\"mov eax, [edx+30h]\"},{\"addr\":\"408673\",\"instruction\":\"mov [ecx+20h], eax\"},{\"addr\":\"408676\",\"instruction\":\"mov eax, [edx+34h]\"},{\"addr\":\"408679\",\"instruction\":\"mov [ecx+24h], eax\"},{\"addr\":\"40867c\",\"instruction\":\"mov eax, [edx+38h]\"},{\"addr\":\"40867f\",\"instruction\":\"mov [ecx+28h], eax\"},{\"addr\":\"408682\",\"instruction\":\"mov eax, [edx+3Ch]\"},{\"addr\":\"408685\",\"instruction\":\"mov [ecx+2Ch], eax\"},{\"addr\":\"408688\",\"instruction\":\"lea eax, [ebp+arg_0]\",\"label\":\"loc_408688\"},{\"addr\":\"40868b\",\"instruction\":\"add ecx, 98h\"},{\"addr\":\"408691\",\"instruction\":\"push eax\"},{\"addr\":\"408692\",\"instruction\":\"call sub_40C3B0\",\"refs\":[{\"addr\":\"0x40c3b0\",\"name\":\"sub_40C3B0\"}]},{\"addr\":\"408697\",\"instruction\":\"mov [ebp+var_4], 1\"},{\"addr\":\"40869e\",\"instruction\":\"mov ecx, [ebp+arg_4]\"},{\"addr\":\"4086a1\",\"instruction\":\"test ecx, ecx\"},{\"addr\":\"4086a3\",\"instruction\":\"jz short loc_4086C2\",\"refs\":[{\"addr\":\"0x4086c2\",\"name\":\"loc_4086C2\"}]},{\"addr\":\"4086a5\",\"instruction\":\"mov eax, [ecx]\"},{\"addr\":\"4086a7\",\"instruction\":\"mov eax, [eax+0Ch]\"},{\"addr\":\"4086aa\",\"instruction\":\"call eax\"},{\"addr\":\"4086ac\",\"instruction\":\"test al, al\"},{\"addr\":\"4086ae\",\"instruction\":\"jz short loc_4086C2\",\"refs\":[{\"addr\":\"0x4086c2\",\"name\":\"loc_4086C2\"}]},{\"addr\":\"4086b0\",\"instruction\":\"mov eax, n2_2\",\"refs\":[{\"addr\":\"0xc7163c\",\"name\":\"n2_2\"}]},{\"addr\":\"4086b5\",\"instruction\":\"test eax, eax\"},{\"addr\":\"4086b7\",\"instruction\":\"jz short loc_4086C2\",\"refs\":[{\"addr\":\"0x4086c2\",\"name\":\"loc_4086C2\"}]},{\"addr\":\"4086b9\",\"instruction\":\"lea ecx, [ebp+arg_0]\"},{\"addr\":\"4086bc\",\"instruction\":\"push ecx\"},{\"addr\":\"4086bd\",\"instruction\":\"call eax ; n2_2\"},{\"addr\":\"4086bf\",\"instruction\":\"add esp, 4\"},{\"addr\":\"4086c2\",\"instruction\":\"mov ecx, [ebp+var_C]\",\"label\":\"loc_4086C2\"},{\"addr\":\"4086c5\",\"instruction\":\"mov large fs:0, ecx\"},{\"addr\":\"4086cc\",\"instruction\":\"pop ecx\"},{\"addr\":\"4086cd\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"4086cf\",\"instruction\":\"pop ebp\"},{\"addr\":\"4086d0\",\"instruction\":\"retn 8\"}],\"stack_frame\":[{\"name\":\"var_C\",\"offset\":\"0x4\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_4\",\"offset\":\"0xc\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__saved_registers\",\"offset\":\"0x10\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x14\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"},{\"name\":\"arg_0\",\"offset\":\"0x18\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"arg_4\",\"offset\":\"0x1c\",\"size\":\"0x4\",\"type\":\"_DWORD\"}],\"return_type\":\"int (__cdecl *)(_DWORD)\",\"arguments\":[{\"name\":\"this\",\"type\":\"_DWORD *\"},{\"name\":\"arg1\",\"type\":\"_DWORD *\"},{\"name\":\"arg2\",\"type\":\"int\"}]},\"instruction_count\":49,\"total_instructions\":49,\"cursor\":{\"done\":true}}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0x40C7F0",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C7F0\",\"asm\":{\"name\":\"sub_40C7F0\",\"start_ea\":\"0x40c7f0\",\"segment\":\".text\",\"lines\":[{\"addr\":\"40c7f0\",\"instruction\":\"push ebp\",\"label\":\"sub_40C7F0\"},{\"addr\":\"40c7f1\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"40c7f3\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"40c7f5\",\"instruction\":\"push offset SEH_A7B940\",\"refs\":[{\"addr\":\"0xaf0d44\",\"name\":\"SEH_A7B940\"}]},{\"addr\":\"40c7fa\",\"instruction\":\"mov eax, large fs:0\"},{\"addr\":\"40c800\",\"instruction\":\"push eax\"},{\"addr\":\"40c801\",\"instruction\":\"sub esp, 8\"},{\"addr\":\"40c804\",\"instruction\":\"push ebx\"},{\"addr\":\"40c805\",\"instruction\":\"push esi\"},{\"addr\":\"40c806\",\"instruction\":\"push edi\"},{\"addr\":\"40c807\",\"instruction\":\"mov eax, ___security_cookie\",\"refs\":[{\"addr\":\"0xbf93b4\",\"name\":\"___security_cookie\"}]},{\"addr\":\"40c80c\",\"instruction\":\"xor eax, ebp\"},{\"addr\":\"40c80e\",\"instruction\":\"push eax\"},{\"addr\":\"40c80f\",\"instruction\":\"lea eax, [ebp+var_C]\"},{\"addr\":\"40c812\",\"instruction\":\"mov large fs:0, eax\"},{\"addr\":\"40c818\",\"instruction\":\"mov esi, ecx\"},{\"addr\":\"40c81a\",\"instruction\":\"push 18h\"},{\"addr\":\"40c81c\",\"instruction\":\"call sub_A0F4C0\",\"refs\":[{\"addr\":\"0xa0f4c0\",\"name\":\"sub_A0F4C0\"}]},{\"addr\":\"40c821\",\"instruction\":\"mov edi, eax\"},{\"addr\":\"40c823\",\"instruction\":\"add esp, 4\"},{\"addr\":\"40c826\",\"instruction\":\"mov [ebp+var_10], edi\"},{\"addr\":\"40c829\",\"instruction\":\"mov ebx, [ebp+arg_0]\"},{\"addr\":\"40c82c\",\"instruction\":\"mov [ebp+var_4], 0\"},{\"addr\":\"40c833\",\"instruction\":\"test edi, edi\"},{\"addr\":\"40c835\",\"instruction\":\"jz short loc_40C849\",\"refs\":[{\"addr\":\"0x40c849\",\"name\":\"loc_40C849\"}]},{\"addr\":\"40c837\",\"instruction\":\"mov ecx, edi\"},{\"addr\":\"40c839\",\"instruction\":\"call sub_40CC10\",\"refs\":[{\"addr\":\"0x40cc10\",\"name\":\"sub_40CC10\"}]},{\"addr\":\"40c83e\",\"instruction\":\"mov dword ptr [edi], offset ??_7?$ReferenceCount@VImageBase@Graphics@KAGE@@@@6B@; const ReferenceCount<KAGE::Graphics::ImageBase>::`vftable'\",\"refs\":[{\"addr\":\"0xb1a6e0\",\"name\":\"??_7?$ReferenceCount@VImageBase@Graphics@KAGE@@@@6B@\"}]},{\"addr\":\"40c844\",\"instruction\":\"mov [edi+14h], ebx\"},{\"addr\":\"40c847\",\"instruction\":\"jmp short loc_40C84B\",\"refs\":[{\"addr\":\"0x40c84b\",\"name\":\"loc_40C84B\"}]},{\"addr\":\"40c849\",\"instruction\":\"xor edi, edi\",\"label\":\"loc_40C849\"},{\"addr\":\"40c84b\",\"instruction\":\"mov [ebp+var_4], 0FFFFFFFFh\",\"label\":\"loc_40C84B\"},{\"addr\":\"40c852\",\"instruction\":\"mov ecx, [esi+4]\"},{\"addr\":\"40c855\",\"instruction\":\"test ecx, ecx\"},{\"addr\":\"40c857\",\"instruction\":\"jz short loc_40C873\",\"refs\":[{\"addr\":\"0x40c873\",\"name\":\"loc_40C873\"}]},{\"addr\":\"40c859\",\"instruction\":\"mov eax, [ecx]\"},{\"addr\":\"40c85b\",\"instruction\":\"mov eax, [eax+0Ch]\"},{\"addr\":\"40c85e\",\"instruction\":\"call eax\"},{\"addr\":\"40c860\",\"instruction\":\"test al, al\"},{\"addr\":\"40c862\",\"instruction\":\"jz short loc_40C873\",\"refs\":[{\"addr\":\"0x40c873\",\"name\":\"loc_40C873\"}]},{\"addr\":\"40c864\",\"instruction\":\"mov eax, n2_2\",\"refs\":[{\"addr\":\"0xc7163c\",\"name\":\"n2_2\"}]},{\"addr\":\"40c869\",\"instruction\":\"test eax, eax\"},{\"addr\":\"40c86b\",\"instruction\":\"jz short loc_40C873\",\"refs\":[{\"addr\":\"0x40c873\",\"name\":\"loc_40C873\"}]},{\"addr\":\"40c86d\",\"instruction\":\"push esi\"},{\"addr\":\"40c86e\",\"instruction\":\"call eax ; n2_2\"},{\"addr\":\"40c870\",\"instruction\":\"add esp, 4\"},{\"addr\":\"40c873\",\"instruction\":\"mov [esi], ebx\",\"label\":\"loc_40C873\"},{\"addr\":\"40c875\",\"instruction\":\"mov [esi+4], edi\"},{\"addr\":\"40c878\",\"instruction\":\"mov ecx, [ebp+var_C]\"},{\"addr\":\"40c87b\",\"instruction\":\"mov large fs:0, ecx\"},{\"addr\":\"40c882\",\"instruction\":\"pop ecx\"},{\"addr\":\"40c883\",\"instruction\":\"pop edi\"},{\"addr\":\"40c884\",\"instruction\":\"pop esi\"},{\"addr\":\"40c885\",\"instruction\":\"pop ebx\"},{\"addr\":\"40c886\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"40c888\",\"instruction\":\"pop ebp\"},{\"addr\":\"40c889\",\"instruction\":\"retn 4\"}],\"stack_frame\":[{\"name\":\"var_10\",\"offset\":\"0x14\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_C\",\"offset\":\"0x18\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_4\",\"offset\":\"0x20\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__saved_registers\",\"offset\":\"0x24\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x28\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"},{\"name\":\"arg_0\",\"offset\":\"0x2c\",\"size\":\"0x4\",\"type\":\"_DWORD\"}],\"return_type\":\"int (__cdecl *)(_DWORD)\",\"arguments\":[{\"name\":\"this\",\"type\":\"_DWORD *\"},{\"name\":\"arg1\",\"type\":\"int\"}]},\"instruction_count\":57,\"total_instructions\":57,\"cursor\":{\"done\":true}}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0x40C3B0",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C3B0\",\"asm\":{\"name\":\"sub_40C3B0\",\"start_ea\":\"0x40c3b0\",\"segment\":\".text\",\"lines\":[{\"addr\":\"40c3b0\",\"instruction\":\"push ebp\",\"label\":\"sub_40C3B0\"},{\"addr\":\"40c3b1\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"40c3b3\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"40c3b5\",\"instruction\":\"push offset SEH_A200A0\",\"refs\":[{\"addr\":\"0xaf0cf0\",\"name\":\"SEH_A200A0\"}]},{\"addr\":\"40c3ba\",\"instruction\":\"mov eax, large fs:0\"},{\"addr\":\"40c3c0\",\"instruction\":\"push eax\"},{\"addr\":\"40c3c1\",\"instruction\":\"sub esp, 0Ch\"},{\"addr\":\"40c3c4\",\"instruction\":\"push esi\"},{\"addr\":\"40c3c5\",\"instruction\":\"push edi\"},{\"addr\":\"40c3c6\",\"instruction\":\"mov eax, ___security_cookie\",\"refs\":[{\"addr\":\"0xbf93b4\",\"name\":\"___security_cookie\"}]},{\"addr\":\"40c3cb\",\"instruction\":\"xor eax, ebp\"},{\"addr\":\"40c3cd\",\"instruction\":\"push eax\"},{\"addr\":\"40c3ce\",\"instruction\":\"lea eax, [ebp+var_C]\"},{\"addr\":\"40c3d1\",\"instruction\":\"mov large fs:0, eax\"},{\"addr\":\"40c3d7\",\"instruction\":\"mov edi, ecx\"},{\"addr\":\"40c3d9\",\"instruction\":\"push [ebp+arg_0]\"},{\"addr\":\"40c3dc\",\"instruction\":\"lea ecx, [ebp+var_18]\"},{\"addr\":\"40c3df\",\"instruction\":\"call sub_40C550\",\"refs\":[{\"addr\":\"0x40c550\",\"name\":\"sub_40C550\"}]},{\"addr\":\"40c3e4\",\"instruction\":\"mov ecx, [edi+4]\"},{\"addr\":\"40c3e7\",\"instruction\":\"mov esi, eax\"},{\"addr\":\"40c3e9\",\"instruction\":\"mov edx, [esi+4]\"},{\"addr\":\"40c3ec\",\"instruction\":\"mov [esi+4], ecx\"},{\"addr\":\"40c3ef\",\"instruction\":\"mov eax, [edi]\"},{\"addr\":\"40c3f1\",\"instruction\":\"mov [edi+4], edx\"},{\"addr\":\"40c3f4\",\"instruction\":\"mov ecx, [esi]\"},{\"addr\":\"40c3f6\",\"instruction\":\"mov [esi], eax\"},{\"addr\":\"40c3f8\",\"instruction\":\"mov [edi], ecx\"},{\"addr\":\"40c3fa\",\"instruction\":\"mov [ebp+var_4], 0\"},{\"addr\":\"40c401\",\"instruction\":\"mov ecx, [ebp+var_14]\"},{\"addr\":\"40c404\",\"instruction\":\"test ecx, ecx\"},{\"addr\":\"40c406\",\"instruction\":\"jz short loc_40C425\",\"refs\":[{\"addr\":\"0x40c425\",\"name\":\"loc_40C425\"}]},{\"addr\":\"40c408\",\"instruction\":\"mov eax, [ecx]\"},{\"addr\":\"40c40a\",\"instruction\":\"mov eax, [eax+0Ch]\"},{\"addr\":\"40c40d\",\"instruction\":\"call eax\"},{\"addr\":\"40c40f\",\"instruction\":\"test al, al\"},{\"addr\":\"40c411\",\"instruction\":\"jz short loc_40C425\",\"refs\":[{\"addr\":\"0x40c425\",\"name\":\"loc_40C425\"}]},{\"addr\":\"40c413\",\"instruction\":\"mov eax, n2_2\",\"refs\":[{\"addr\":\"0xc7163c\",\"name\":\"n2_2\"}]},{\"addr\":\"40c418\",\"instruction\":\"test eax, eax\"},{\"addr\":\"40c41a\",\"instruction\":\"jz short loc_40C425\",\"refs\":[{\"addr\":\"0x40c425\",\"name\":\"loc_40C425\"}]},{\"addr\":\"40c41c\",\"instruction\":\"lea ecx, [ebp+var_18]\"},{\"addr\":\"40c41f\",\"instruction\":\"push ecx\"},{\"addr\":\"40c420\",\"instruction\":\"call eax ; n2_2\"},{\"addr\":\"40c422\",\"instruction\":\"add esp, 4\"},{\"addr\":\"40c425\",\"instruction\":\"mov eax, edi\",\"label\":\"loc_40C425\"},{\"addr\":\"40c427\",\"instruction\":\"mov ecx, [ebp+var_C]\"},{\"addr\":\"40c42a\",\"instruction\":\"mov large fs:0, ecx\"},{\"addr\":\"40c431\",\"instruction\":\"pop ecx\"},{\"addr\":\"40c432\",\"instruction\":\"pop edi\"},{\"addr\":\"40c433\",\"instruction\":\"pop esi\"},{\"addr\":\"40c434\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"40c436\",\"instruction\":\"pop ebp\"},{\"addr\":\"40c437\",\"instruction\":\"retn 4\"}],\"stack_frame\":[{\"name\":\"var_18\",\"offset\":\"0xc\",\"size\":\"0x4\",\"type\":\"_BYTE[4]\"},{\"name\":\"var_14\",\"offset\":\"0x10\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_C\",\"offset\":\"0x18\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_4\",\"offset\":\"0x20\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__saved_registers\",\"offset\":\"0x24\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x28\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"},{\"name\":\"arg_0\",\"offset\":\"0x2c\",\"size\":\"0x4\",\"type\":\"_DWORD\"}],\"return_type\":\"int *\",\"arguments\":[{\"name\":\"this\",\"type\":\"int *\"},{\"name\":\"arg1\",\"type\":\"int\"}]},\"instruction_count\":52,\"total_instructions\":52,\"cursor\":{\"done\":true}}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0x40C550",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C550\",\"asm\":{\"name\":\"sub_40C550\",\"start_ea\":\"0x40c550\",\"segment\":\".text\",\"lines\":[{\"addr\":\"40c550\",\"instruction\":\"push ebp\",\"label\":\"sub_40C550\"},{\"addr\":\"40c551\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"40c553\",\"instruction\":\"mov eax, [ebp+arg_0]\"},{\"addr\":\"40c556\",\"instruction\":\"push ebx\"},{\"addr\":\"40c557\",\"instruction\":\"push esi\"},{\"addr\":\"40c558\",\"instruction\":\"mov esi, ecx\"},{\"addr\":\"40c55a\",\"instruction\":\"push edi\"},{\"addr\":\"40c55b\",\"instruction\":\"mov dword ptr [esi], 0\"},{\"addr\":\"40c561\",\"instruction\":\"mov dword ptr [esi+4], 0\"},{\"addr\":\"40c568\",\"instruction\":\"mov edi, [eax+4]\"},{\"addr\":\"40c56b\",\"instruction\":\"mov ebx, [eax]\"},{\"addr\":\"40c56d\",\"instruction\":\"test edi, edi\"},{\"addr\":\"40c56f\",\"instruction\":\"jz short loc_40C5A4\",\"refs\":[{\"addr\":\"0x40c5a4\",\"name\":\"loc_40C5A4\"}]},{\"addr\":\"40c571\",\"instruction\":\"mov eax, [edi]\"},{\"addr\":\"40c573\",\"instruction\":\"mov ecx, edi\"},{\"addr\":\"40c575\",\"instruction\":\"mov eax, [eax+4]\"},{\"addr\":\"40c578\",\"instruction\":\"call eax\"},{\"addr\":\"40c57a\",\"instruction\":\"test al, al\"},{\"addr\":\"40c57c\",\"instruction\":\"jz short loc_40C5A4\",\"refs\":[{\"addr\":\"0x40c5a4\",\"name\":\"loc_40C5A4\"}]},{\"addr\":\"40c57e\",\"instruction\":\"mov ecx, [esi+4]\"},{\"addr\":\"40c581\",\"instruction\":\"test ecx, ecx\"},{\"addr\":\"40c583\",\"instruction\":\"jz short loc_40C59F\",\"refs\":[{\"addr\":\"0x40c59f\",\"name\":\"loc_40C59F\"}]},{\"addr\":\"40c585\",\"instruction\":\"mov eax, [ecx]\"},{\"addr\":\"40c587\",\"instruction\":\"mov eax, [eax+0Ch]\"},{\"addr\":\"40c58a\",\"instruction\":\"call eax\"},{\"addr\":\"40c58c\",\"instruction\":\"test al, al\"},{\"addr\":\"40c58e\",\"instruction\":\"jz short loc_40C59F\",\"refs\":[{\"addr\":\"0x40c59f\",\"name\":\"loc_40C59F\"}]},{\"addr\":\"40c590\",\"instruction\":\"mov eax, n2_2\",\"refs\":[{\"addr\":\"0xc7163c\",\"name\":\"n2_2\"}]},{\"addr\":\"40c595\",\"instruction\":\"test eax, eax\"},{\"addr\":\"40c597\",\"instruction\":\"jz short loc_40C59F\",\"refs\":[{\"addr\":\"0x40c59f\",\"name\":\"loc_40C59F\"}]},{\"addr\":\"40c599\",\"instruction\":\"push esi\"},{\"addr\":\"40c59a\",\"instruction\":\"call eax ; n2_2\"},{\"addr\":\"40c59c\",\"instruction\":\"add esp, 4\"},{\"addr\":\"40c59f\",\"instruction\":\"mov [esi+4], edi\",\"label\":\"loc_40C59F\"},{\"addr\":\"40c5a2\",\"instruction\":\"mov [esi], ebx\"},{\"addr\":\"40c5a4\",\"instruction\":\"pop edi\",\"label\":\"loc_40C5A4\"},{\"addr\":\"40c5a5\",\"instruction\":\"mov eax, esi\"},{\"addr\":\"40c5a7\",\"instruction\":\"pop esi\"},{\"addr\":\"40c5a8\",\"instruction\":\"pop ebx\"},{\"addr\":\"40c5a9\",\"instruction\":\"pop ebp\"},{\"addr\":\"40c5aa\",\"instruction\":\"retn 4\"}],\"stack_frame\":[{\"name\":\"__saved_registers\",\"offset\":\"0xc\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x10\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"},{\"name\":\"arg_0\",\"offset\":\"0x14\",\"size\":\"0x4\",\"type\":\"_DWORD\"}],\"return_type\":\"_DWORD *\",\"arguments\":[{\"name\":\"this\",\"type\":\"_DWORD *\"},{\"name\":\"arg1\",\"type\":\"int *\"}]},\"instruction_count\":41,\"total_instructions\":41,\"cursor\":{\"done\":true}}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0x40C630",
+      "status": "fulfilled",
+      "result": {
+        "isError": true,
+        "content": [
+          {
+            "type": "text",
+            "text": "The automatic permission approval review did not finish before its deadline. Do not assume the action is unsafe based on the timeout alone. You may retry once, or ask the user for guidance or explicit approval."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0x40C6B0",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C6B0\",\"asm\":{\"name\":\"sub_40C6B0\",\"start_ea\":\"0x40c6b0\",\"segment\":\".text\",\"lines\":[{\"addr\":\"40c6b0\",\"instruction\":\"push esi\",\"label\":\"sub_40C6B0\"},{\"addr\":\"40c6b1\",\"instruction\":\"push edi\"},{\"addr\":\"40c6b2\",\"instruction\":\"mov edi, ecx\"},{\"addr\":\"40c6b4\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"40c6b6\",\"instruction\":\"mov eax, [edi+8]\"},{\"addr\":\"40c6b9\",\"instruction\":\"lea ecx, [edi+8]\"},{\"addr\":\"40c6bc\",\"instruction\":\"call dword ptr [eax+0Ch]\"},{\"addr\":\"40c6bf\",\"instruction\":\"mov eax, [edi+8]\"},{\"addr\":\"40c6c2\",\"instruction\":\"lea ecx, [edi+8]\"},{\"addr\":\"40c6c5\",\"instruction\":\"add eax, 10h\"},{\"addr\":\"40c6c8\",\"instruction\":\"cmp word ptr [edi+4], 0\"},{\"addr\":\"40c6cd\",\"instruction\":\"jnz short loc_40C6D6\",\"refs\":[{\"addr\":\"0x40c6d6\",\"name\":\"loc_40C6D6\"}]},{\"addr\":\"40c6cf\",\"instruction\":\"call dword ptr [eax]\"},{\"addr\":\"40c6d1\",\"instruction\":\"pop edi\"},{\"addr\":\"40c6d2\",\"instruction\":\"xor al, al\"},{\"addr\":\"40c6d4\",\"instruction\":\"pop esi\"},{\"addr\":\"40c6d5\",\"instruction\":\"retn\"},{\"addr\":\"40c6d6\",\"instruction\":\"call dword ptr [eax]\",\"label\":\"loc_40C6D6\"},{\"addr\":\"40c6d8\",\"instruction\":\"mov eax, [edi]\"},{\"addr\":\"40c6da\",\"instruction\":\"mov ecx, edi\"},{\"addr\":\"40c6dc\",\"instruction\":\"call dword ptr [eax+8]\"},{\"addr\":\"40c6df\",\"instruction\":\"pop edi\"},{\"addr\":\"40c6e0\",\"instruction\":\"mov al, 1\"},{\"addr\":\"40c6e2\",\"instruction\":\"pop esi\"},{\"addr\":\"40c6e3\",\"instruction\":\"retn\"}],\"stack_frame\":[{\"name\":\"__return_address\",\"offset\":\"0x8\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"}],\"return_type\":\"char\",\"arguments\":[{\"name\":\"this\",\"type\":\"char *\"}]},\"instruction_count\":25,\"total_instructions\":25,\"cursor\":{\"done\":true}}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0x40C690",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C690\",\"asm\":{\"name\":\"sub_40C690\",\"start_ea\":\"0x40c690\",\"segment\":\".text\",\"lines\":[{\"addr\":\"40c690\",\"instruction\":\"push esi\",\"label\":\"sub_40C690\"},{\"addr\":\"40c691\",\"instruction\":\"mov esi, ecx\"},{\"addr\":\"40c693\",\"instruction\":\"push edi\"},{\"addr\":\"40c694\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"40c696\",\"instruction\":\"mov eax, [esi+8]\"},{\"addr\":\"40c699\",\"instruction\":\"lea ecx, [esi+8]\"},{\"addr\":\"40c69c\",\"instruction\":\"call dword ptr [eax+0Ch]\"},{\"addr\":\"40c69f\",\"instruction\":\"inc word ptr [esi+4]\"},{\"addr\":\"40c6a3\",\"instruction\":\"lea ecx, [esi+8]\"},{\"addr\":\"40c6a6\",\"instruction\":\"mov eax, [esi+8]\"},{\"addr\":\"40c6a9\",\"instruction\":\"pop edi\"},{\"addr\":\"40c6aa\",\"instruction\":\"pop esi\"},{\"addr\":\"40c6ab\",\"instruction\":\"jmp dword ptr [eax+10h]\"}],\"stack_frame\":[{\"name\":\"__return_address\",\"offset\":\"0x8\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"}],\"return_type\":\"int\",\"arguments\":[{\"name\":\"this\",\"type\":\"int\"}]},\"instruction_count\":13,\"total_instructions\":13,\"cursor\":{\"done\":true}}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0x40C610",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0x40C610\",\"asm\":{\"name\":\"sub_40C610\",\"start_ea\":\"0x40c610\",\"segment\":\".text\",\"lines\":[{\"addr\":\"40c610\",\"instruction\":\"push esi\",\"label\":\"sub_40C610\"},{\"addr\":\"40c611\",\"instruction\":\"mov esi, ecx\"},{\"addr\":\"40c613\",\"instruction\":\"push edi\"},{\"addr\":\"40c614\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"40c616\",\"instruction\":\"mov eax, [esi+8]\"},{\"addr\":\"40c619\",\"instruction\":\"lea ecx, [esi+8]\"},{\"addr\":\"40c61c\",\"instruction\":\"call dword ptr [eax+0Ch]\"},{\"addr\":\"40c61f\",\"instruction\":\"inc word ptr [esi+6]\"},{\"addr\":\"40c623\",\"instruction\":\"lea ecx, [esi+8]\"},{\"addr\":\"40c626\",\"instruction\":\"mov eax, [esi+8]\"},{\"addr\":\"40c629\",\"instruction\":\"pop edi\"},{\"addr\":\"40c62a\",\"instruction\":\"pop esi\"},{\"addr\":\"40c62b\",\"instruction\":\"jmp dword ptr [eax+10h]\"}],\"stack_frame\":[{\"name\":\"__return_address\",\"offset\":\"0x8\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"}],\"return_type\":\"int\",\"arguments\":[{\"name\":\"this\",\"type\":\"int\"}]},\"instruction_count\":13,\"total_instructions\":13,\"cursor\":{\"done\":true}}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0x40C5C0",
+      "status": "fulfilled",
+      "result": {
+        "isError": true,
+        "content": [
+          {
+            "type": "text",
+            "text": "The automatic permission approval review did not finish before its deadline. Do not assume the action is unsafe based on the timeout alone. You may retry once, or ask the user for guidance or explicit approval."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0xA15770",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0xA15770\",\"asm\":{\"name\":\"sub_A15770\",\"start_ea\":\"0xa15770\",\"segment\":\".text\",\"lines\":[{\"addr\":\"a15770\",\"instruction\":\"push ebp\",\"label\":\"sub_A15770\"},{\"addr\":\"a15771\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"a15773\",\"instruction\":\"sub esp, 8\"},{\"addr\":\"a15776\",\"instruction\":\"push esi\"},{\"addr\":\"a15777\",\"instruction\":\"push edi\"},{\"addr\":\"a15778\",\"instruction\":\"mov edi, ecx\"},{\"addr\":\"a1577a\",\"instruction\":\"test byte ptr [edi+4], 1\"},{\"addr\":\"a1577e\",\"instruction\":\"jnz short loc_A157B0\",\"refs\":[{\"addr\":\"0xa157b0\",\"name\":\"loc_A157B0\"}]},{\"addr\":\"a15780\",\"instruction\":\"push 1Ch\"},{\"addr\":\"a15782\",\"instruction\":\"call sub_A0F4C0\",\"refs\":[{\"addr\":\"0xa0f4c0\",\"name\":\"sub_A0F4C0\"}]},{\"addr\":\"a15787\",\"instruction\":\"mov esi, eax\"},{\"addr\":\"a15789\",\"instruction\":\"add esp, 4\"},{\"addr\":\"a1578c\",\"instruction\":\"mov [ebp+var_4], esi\"},{\"addr\":\"a1578f\",\"instruction\":\"test esi, esi\"},{\"addr\":\"a15791\",\"instruction\":\"jz short loc_A157A0\",\"refs\":[{\"addr\":\"0xa157a0\",\"name\":\"loc_A157A0\"}]},{\"addr\":\"a15793\",\"instruction\":\"push esi; lpCriticalSection\",\"comments\":[\"lpCriticalSection\"]},{\"addr\":\"a15794\",\"instruction\":\"mov byte ptr [esi+18h], 0\"},{\"addr\":\"a15798\",\"instruction\":\"call ds:InitializeCriticalSection\",\"refs\":[{\"addr\":\"0xb18278\",\"name\":\"InitializeCriticalSection\"}]},{\"addr\":\"a1579e\",\"instruction\":\"jmp short loc_A157A2\",\"refs\":[{\"addr\":\"0xa157a2\",\"name\":\"loc_A157A2\"}]},{\"addr\":\"a157a0\",\"instruction\":\"xor esi, esi\",\"label\":\"loc_A157A0\"},{\"addr\":\"a157a2\",\"instruction\":\"movzx eax, byte ptr [edi+4]\",\"label\":\"loc_A157A2\"},{\"addr\":\"a157a6\",\"instruction\":\"bts eax, 0\"},{\"addr\":\"a157aa\",\"instruction\":\"mov [edi+8], esi\"},{\"addr\":\"a157ad\",\"instruction\":\"mov [edi+4], al\"},{\"addr\":\"a157b0\",\"instruction\":\"pop edi\",\"label\":\"loc_A157B0\"},{\"addr\":\"a157b1\",\"instruction\":\"mov al, 1\"},{\"addr\":\"a157b3\",\"instruction\":\"pop esi\"},{\"addr\":\"a157b4\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"a157b6\",\"instruction\":\"pop ebp\"},{\"addr\":\"a157b7\",\"instruction\":\"retn\"}],\"stack_frame\":[{\"name\":\"var_4\",\"offset\":\"0xc\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__saved_registers\",\"offset\":\"0x10\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x14\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"}],\"return_type\":\"char\",\"arguments\":[{\"name\":\"this\",\"type\":\"int\"}]},\"instruction_count\":30,\"total_instructions\":30,\"cursor\":{\"done\":true}}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0xA157F0",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0xA157F0\",\"asm\":{\"name\":\"sub_A157F0\",\"start_ea\":\"0xa157f0\",\"segment\":\".text\",\"lines\":[{\"addr\":\"a157f0\",\"instruction\":\"push ebp\",\"label\":\"sub_A157F0\"},{\"addr\":\"a157f1\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"a157f3\",\"instruction\":\"and esp, 0FFFFFFF8h\"},{\"addr\":\"a157f6\",\"instruction\":\"sub esp, 24h\"},{\"addr\":\"a157f9\",\"instruction\":\"mov eax, ecx\"},{\"addr\":\"a157fb\",\"instruction\":\"push ebx\"},{\"addr\":\"a157fc\",\"instruction\":\"push esi\"},{\"addr\":\"a157fd\",\"instruction\":\"push edi; ArgList\",\"comments\":[\"ArgList\"]},{\"addr\":\"a157fe\",\"instruction\":\"test byte ptr [eax+4], 1\"},{\"addr\":\"a15802\",\"instruction\":\"mov [esp+30h+var_20], eax\"},{\"addr\":\"a15806\",\"instruction\":\"jnz short loc_A1581B\",\"refs\":[{\"addr\":\"0xa1581b\",\"name\":\"loc_A1581B\"}]},{\"addr\":\"a15808\",\"instruction\":\"push offset aTryingToLockMu; \\\"Trying to lock mutex that has not been \\\"...\",\"refs\":[{\"addr\":\"0xb81c58\",\"name\":\"aTryingToLockMu\",\"string\":\"Trying to lock mutex that has not been initialized\"}]},{\"addr\":\"a1580d\",\"instruction\":\"push 10h; int\",\"comments\":[\"int\"]},{\"addr\":\"a1580f\",\"instruction\":\"call sub_A112C0\",\"refs\":[{\"addr\":\"0xa112c0\",\"name\":\"sub_A112C0\"}]},{\"addr\":\"a15814\",\"instruction\":\"mov eax, [esp+38h+var_20]\"},{\"addr\":\"a15818\",\"instruction\":\"add esp, 8\"},{\"addr\":\"a1581b\",\"instruction\":\"cmp [ebp+arg_0], 0FFFFFFFFh\",\"label\":\"loc_A1581B\"},{\"addr\":\"a1581f\",\"instruction\":\"jnz short loc_A15853\",\"refs\":[{\"addr\":\"0xa15853\",\"name\":\"loc_A15853\"}]},{\"addr\":\"a15821\",\"instruction\":\"mov esi, [eax+8]\"},{\"addr\":\"a15824\",\"instruction\":\"push esi; lpCriticalSection\",\"comments\":[\"lpCriticalSection\"]},{\"addr\":\"a15825\",\"instruction\":\"call ds:EnterCriticalSection\",\"refs\":[{\"addr\":\"0xb18270\",\"name\":\"EnterCriticalSection\"}]},{\"addr\":\"a1582b\",\"instruction\":\"cmp byte ptr [esi+18h], 0\"},{\"addr\":\"a1582f\",\"instruction\":\"jz short loc_A15844\",\"refs\":[{\"addr\":\"0xa15844\",\"name\":\"loc_A15844\"}]},{\"addr\":\"a15831\",\"instruction\":\"mov edi, ds:Sleep\",\"refs\":[{\"addr\":\"0xb182d8\",\"name\":\"Sleep\"}]},{\"addr\":\"a15837\",\"instruction\":\"push 3E8h; dwMilliseconds\",\"label\":\"loc_A15837\",\"comments\":[\"dwMilliseconds\"]},{\"addr\":\"a1583c\",\"instruction\":\"call edi ; Sleep\",\"refs\":[{\"addr\":\"0xb182d8\",\"name\":\"Sleep\"}]},{\"addr\":\"a1583e\",\"instruction\":\"cmp byte ptr [esi+18h], 0\"},{\"addr\":\"a15842\",\"instruction\":\"jnz short loc_A15837\",\"refs\":[{\"addr\":\"0xa15837\",\"name\":\"loc_A15837\"}]},{\"addr\":\"a15844\",\"instruction\":\"mov byte ptr [esi+18h], 1\",\"label\":\"loc_A15844\"},{\"addr\":\"a15848\",\"instruction\":\"mov al, 1\",\"label\":\"loc_A15848\"},{\"addr\":\"a1584a\",\"instruction\":\"pop edi\"},{\"addr\":\"a1584b\",\"instruction\":\"pop esi\"},{\"addr\":\"a1584c\",\"instruction\":\"pop ebx\"},{\"addr\":\"a1584d\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"a1584f\",\"instruction\":\"pop ebp\"},{\"addr\":\"a15850\",\"instruction\":\"retn 4\"},{\"addr\":\"a15853\",\"instruction\":\"call sub_A68490\",\"label\":\"loc_A15853\",\"refs\":[{\"addr\":\"0xa68490\",\"name\":\"sub_A68490\"}]},{\"addr\":\"a15858\",\"instruction\":\"mov ebx, edx\"},{\"addr\":\"a1585a\",\"instruction\":\"mov ecx, eax\"},{\"addr\":\"a1585c\",\"instruction\":\"mov edx, 0D7B634DBh\"},{\"addr\":\"a15861\",\"instruction\":\"mov [esp+30h+var_24], ebx\"},{\"addr\":\"a15865\",\"instruction\":\"mul edx\"},{\"addr\":\"a15867\",\"instruction\":\"mov edi, 431BDE82h\"},{\"addr\":\"a1586c\",\"instruction\":\"mov [esp+30h+var_10], eax\"},{\"addr\":\"a15870\",\"instruction\":\"mov esi, edx\"},{\"addr\":\"a15872\",\"instruction\":\"mov eax, ecx\"},{\"addr\":\"a15874\",\"instruction\":\"mov ecx, 0D7B634DBh\"},{\"addr\":\"a15879\",\"instruction\":\"mul edi\"},{\"addr\":\"a1587b\",\"instruction\":\"mov edi, eax\"},{\"addr\":\"a1587d\",\"instruction\":\"mov [esp+30h+var_1C], edx\"},{\"addr\":\"a15881\",\"instruction\":\"mov eax, ebx\"},{\"addr\":\"a15883\",\"instruction\":\"mul ecx\"},{\"addr\":\"a15885\",\"instruction\":\"mov ebx, edx\"},{\"addr\":\"a15887\",\"instruction\":\"mov ecx, eax\"},{\"addr\":\"a15889\",\"instruction\":\"mov eax, [esp+30h+var_24]\"},{\"addr\":\"a1588d\",\"instruction\":\"mov edx, 431BDE82h\"},{\"addr\":\"a15892\",\"instruction\":\"mul edx\"},{\"addr\":\"a15894\",\"instruction\":\"add ecx, esi\"},{\"addr\":\"a15896\",\"instruction\":\"mov [esp+30h+var_24], eax\"},{\"addr\":\"a1589a\",\"instruction\":\"adc ebx, 0\"},{\"addr\":\"a1589d\",\"instruction\":\"add edi, ecx\"},{\"addr\":\"a1589f\",\"instruction\":\"mov ecx, [esp+30h+var_1C]\"},{\"addr\":\"a158a3\",\"instruction\":\"adc ecx, 0\"},{\"addr\":\"a158a6\",\"instruction\":\"mov [esp+30h+var_10], edi\"},{\"addr\":\"a158aa\",\"instruction\":\"xor eax, eax\"},{\"addr\":\"a158ac\",\"instruction\":\"add ebx, ecx\"},{\"addr\":\"a158ae\",\"instruction\":\"mov ecx, [esp+30h+var_24]\"},{\"addr\":\"a158b2\",\"instruction\":\"adc eax, eax\"},{\"addr\":\"a158b4\",\"instruction\":\"add ecx, ebx\"},{\"addr\":\"a158b6\",\"instruction\":\"adc edx, eax\"},{\"addr\":\"a158b8\",\"instruction\":\"shrd ecx, edx, 12h\"},{\"addr\":\"a158bc\",\"instruction\":\"shr edx, 12h\"},{\"addr\":\"a158bf\",\"instruction\":\"cmp [ebp+arg_0], 0\"},{\"addr\":\"a158c3\",\"instruction\":\"mov [esp+30h+var_24], ecx\"},{\"addr\":\"a158c7\",\"instruction\":\"mov [esp+30h+var_10], edx\"},{\"addr\":\"a158cb\",\"instruction\":\"jbe loc_A1598E\",\"refs\":[{\"addr\":\"0xa1598e\",\"name\":\"loc_A1598E\"}]},{\"addr\":\"a158d1\",\"instruction\":\"mov eax, [esp+30h+var_20]\",\"label\":\"loc_A158D1\"},{\"addr\":\"a158d5\",\"instruction\":\"mov esi, [eax+8]\"},{\"addr\":\"a158d8\",\"instruction\":\"push esi; lpCriticalSection\",\"comments\":[\"lpCriticalSection\"]},{\"addr\":\"a158d9\",\"instruction\":\"call ds:TryEnterCriticalSection\",\"refs\":[{\"addr\":\"0xb1826c\",\"name\":\"TryEnterCriticalSection\"}]},{\"addr\":\"a158df\",\"instruction\":\"test eax, eax\"},{\"addr\":\"a158e1\",\"instruction\":\"setnz cl\"},{\"addr\":\"a158e4\",\"instruction\":\"test eax, eax\"},{\"addr\":\"a158e6\",\"instruction\":\"jz short loc_A158F7\",\"refs\":[{\"addr\":\"0xa158f7\",\"name\":\"loc_A158F7\"}]},{\"addr\":\"a158e8\",\"instruction\":\"cmp byte ptr [esi+18h], 0\"},{\"addr\":\"a158ec\",\"instruction\":\"jz short loc_A158F7\",\"refs\":[{\"addr\":\"0xa158f7\",\"name\":\"loc_A158F7\"}]},{\"addr\":\"a158ee\",\"instruction\":\"push esi; lpCriticalSection\",\"comments\":[\"lpCriticalSection\"]},{\"addr\":\"a158ef\",\"instruction\":\"call ds:LeaveCriticalSection\",\"refs\":[{\"addr\":\"0xb18268\",\"name\":\"LeaveCriticalSection\"}]},{\"addr\":\"a158f5\",\"instruction\":\"jmp short loc_A158FF\",\"refs\":[{\"addr\":\"0xa158ff\",\"name\":\"loc_A158FF\"}]},{\"addr\":\"a158f7\",\"instruction\":\"test cl, cl\",\"label\":\"loc_A158F7\"},{\"addr\":\"a158f9\",\"instruction\":\"jnz loc_A15848\",\"refs\":[{\"addr\":\"0xa15848\",\"name\":\"loc_A15848\"}]},{\"addr\":\"a158ff\",\"instruction\":\"push 0Ah; dwMilliseconds\",\"label\":\"loc_A158FF\",\"comments\":[\"dwMilliseconds\"]},{\"addr\":\"a15901\",\"instruction\":\"call ds:Sleep\",\"refs\":[{\"addr\":\"0xb182d8\",\"name\":\"Sleep\"}]},{\"addr\":\"a15907\",\"instruction\":\"call sub_A68490\",\"refs\":[{\"addr\":\"0xa68490\",\"name\":\"sub_A68490\"}]},{\"addr\":\"a1590c\",\"instruction\":\"mov ebx, edx\"},{\"addr\":\"a1590e\",\"instruction\":\"mov ecx, eax\"},{\"addr\":\"a15910\",\"instruction\":\"mov edx, 0D7B634DBh\"},{\"addr\":\"a15915\",\"instruction\":\"mov [esp+30h+var_1C], ebx\"},{\"addr\":\"a15919\",\"instruction\":\"mul edx\"},{\"addr\":\"a1591b\",\"instruction\":\"mov edi, 431BDE82h\"},{\"addr\":\"a15920\",\"instruction\":\"mov [esp+30h+var_18], eax\"},{\"addr\":\"a15924\",\"instruction\":\"mov esi, edx\"},{\"addr\":\"a15926\",\"instruction\":\"mov eax, ecx\"},{\"addr\":\"a15928\",\"instruction\":\"mov ecx, 0D7B634DBh\"},{\"addr\":\"a1592d\",\"instruction\":\"mul edi\"},{\"addr\":\"a1592f\",\"instruction\":\"mov edi, eax\"},{\"addr\":\"a15931\",\"instruction\":\"mov [esp+30h+var_18], edx\"},{\"addr\":\"a15935\",\"instruction\":\"mov eax, ebx\"},{\"addr\":\"a15937\",\"instruction\":\"mul ecx\"},{\"addr\":\"a15939\",\"instruction\":\"mov ebx, edx\"},{\"addr\":\"a1593b\",\"instruction\":\"mov ecx, eax\"},{\"addr\":\"a1593d\",\"instruction\":\"mov eax, [esp+30h+var_1C]\"},{\"addr\":\"a15941\",\"instruction\":\"mov edx, 431BDE82h\"},{\"addr\":\"a15946\",\"instruction\":\"mul edx\"},{\"addr\":\"a15948\",\"instruction\":\"add ecx, esi\"},{\"addr\":\"a1594a\",\"instruction\":\"mov [esp+30h+var_1C], eax\"},{\"addr\":\"a1594e\",\"instruction\":\"adc ebx, 0\"},{\"addr\":\"a15951\",\"instruction\":\"add edi, ecx\"},{\"addr\":\"a15953\",\"instruction\":\"mov ecx, [esp+30h+var_18]\"},{\"addr\":\"a15957\",\"instruction\":\"adc ecx, 0\"},{\"addr\":\"a1595a\",\"instruction\":\"mov [esp+30h+var_8], edi\"},{\"addr\":\"a1595e\",\"instruction\":\"xor eax, eax\"},{\"addr\":\"a15960\",\"instruction\":\"add ebx, ecx\"},{\"addr\":\"a15962\",\"instruction\":\"mov ecx, [esp+30h+var_1C]\"},{\"addr\":\"a15966\",\"instruction\":\"adc eax, eax\"},{\"addr\":\"a15968\",\"instruction\":\"add ecx, ebx\"},{\"addr\":\"a1596a\",\"instruction\":\"adc edx, eax\"},{\"addr\":\"a1596c\",\"instruction\":\"shrd ecx, edx, 12h\"},{\"addr\":\"a15970\",\"instruction\":\"shr edx, 12h\"},{\"addr\":\"a15973\",\"instruction\":\"sub ecx, [esp+30h+var_24]\"},{\"addr\":\"a15977\",\"instruction\":\"sbb edx, [esp+30h+var_10]\"},{\"addr\":\"a1597b\",\"instruction\":\"test edx, edx\"},{\"addr\":\"a1597d\",\"instruction\":\"jb loc_A158D1\",\"refs\":[{\"addr\":\"0xa158d1\",\"name\":\"loc_A158D1\"}]},{\"addr\":\"a15983\",\"instruction\":\"ja short loc_A1598E\",\"refs\":[{\"addr\":\"0xa1598e\",\"name\":\"loc_A1598E\"}]},{\"addr\":\"a15985\",\"instruction\":\"cmp ecx, [ebp+arg_0]\"},{\"addr\":\"a15988\",\"instruction\":\"jb loc_A158D1\",\"refs\":[{\"addr\":\"0xa158d1\",\"name\":\"loc_A158D1\"}]},{\"addr\":\"a1598e\",\"instruction\":\"pop edi\",\"label\":\"loc_A1598E\"},{\"addr\":\"a1598f\",\"instruction\":\"pop esi\"},{\"addr\":\"a15990\",\"instruction\":\"xor al, al\"},{\"addr\":\"a15992\",\"instruction\":\"pop ebx\"},{\"addr\":\"a15993\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"a15995\",\"instruction\":\"pop ebp\"},{\"addr\":\"a15996\",\"instruction\":\"retn 4\"}],\"stack_frame\":[{\"name\":\"var_24\",\"offset\":\"0xc\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_20\",\"offset\":\"0x10\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_1C\",\"offset\":\"0x14\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_18\",\"offset\":\"0x18\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_10\",\"offset\":\"0x20\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_8\",\"offset\":\"0x28\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__saved_registers\",\"offset\":\"0x30\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x34\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"},{\"name\":\"arg_0\",\"offset\":\"0x38\",\"size\":\"0x4\",\"type\":\"_DWORD\"}],\"return_type\":\"char\",\"arguments\":[{\"name\":\"this\",\"type\":\"int\"},{\"name\":\"arg1\",\"type\":\"unsigned int\"}]},\"instruction_count\":143,\"total_instructions\":143,\"cursor\":{\"done\":true}}"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "disasm",
+      "addr": "0xA159A0",
+      "status": "fulfilled",
+      "result": {
+        "isError": false,
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"addr\":\"0xA159A0\",\"asm\":{\"name\":\"sub_A159A0\",\"start_ea\":\"0xa159a0\",\"segment\":\".text\",\"lines\":[{\"addr\":\"a159a0\",\"instruction\":\"push esi; ArgList\",\"label\":\"sub_A159A0\",\"comments\":[\"ArgList\"]},{\"addr\":\"a159a1\",\"instruction\":\"mov esi, ecx\"},{\"addr\":\"a159a3\",\"instruction\":\"test byte ptr [esi+4], 1\"},{\"addr\":\"a159a7\",\"instruction\":\"jnz short loc_A159B8\",\"refs\":[{\"addr\":\"0xa159b8\",\"name\":\"loc_A159B8\"}]},{\"addr\":\"a159a9\",\"instruction\":\"push offset aTryingToUnlock; \\\"Trying to unlock mutex that has not bee\\\"...\",\"refs\":[{\"addr\":\"0xb81c20\",\"name\":\"aTryingToUnlock\",\"string\":\"Trying to unlock mutex that has not been initialized\"}]},{\"addr\":\"a159ae\",\"instruction\":\"push 10h; int\",\"comments\":[\"int\"]},{\"addr\":\"a159b0\",\"instruction\":\"call sub_A112C0\",\"refs\":[{\"addr\":\"0xa112c0\",\"name\":\"sub_A112C0\"}]},{\"addr\":\"a159b5\",\"instruction\":\"add esp, 8\"},{\"addr\":\"a159b8\",\"instruction\":\"mov eax, [esi+8]\",\"label\":\"loc_A159B8\"},{\"addr\":\"a159bb\",\"instruction\":\"push eax; lpCriticalSection\",\"comments\":[\"lpCriticalSection\"]},{\"addr\":\"a159bc\",\"instruction\":\"mov byte ptr [eax+18h], 0\"},{\"addr\":\"a159c0\",\"instruction\":\"call ds:LeaveCriticalSection\",\"refs\":[{\"addr\":\"0xb18268\",\"name\":\"LeaveCriticalSection\"}]},{\"addr\":\"a159c6\",\"instruction\":\"pop esi\"},{\"addr\":\"a159c7\",\"instruction\":\"retn\"}],\"stack_frame\":[{\"name\":\"__return_address\",\"offset\":\"0x4\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"}],\"return_type\":\"void\",\"arguments\":[{\"name\":\"this\",\"type\":\"int\"}]},\"instruction_count\":14,\"total_instructions\":14,\"cursor\":{\"done\":true}}"
+          }
+        ]
+      }
+    }
+  ],
+  "table_bytes_return": {
+    "kind": "get_bytes",
+    "args": {
+      "regions": [
+        {
+          "addr": "0xB1A6E0",
+          "size": 28
+        },
+        {
+          "addr": "0xB1A6FC",
+          "size": 24
+        },
+        {
+          "addr": "0xB81C0C",
+          "size": 20
+        }
+      ]
+    },
+    "status": "fulfilled",
+    "result": {
+      "isError": false,
+      "content": [
+        {
+          "type": "text",
+          "text": "[{\"addr\":\"0xB1A6E0\",\"data\":\"0x50 0xcb 0x40 0x0 0xb0 0xc6 0x40 0x0 0x90 0xc6 0x40 0x0 0x30 0xc6 0x40 0x0 0x10 0xc6 0x40 0x0 0xc0 0xc5 0x40 0x0 0xe0 0xce 0xba 0x0\"},{\"addr\":\"0xB1A6FC\",\"data\":\"0xb0 0xcb 0x40 0x0 0xd3 0x5 0xaf 0x0 0xd3 0x5 0xaf 0x0 0xd3 0x5 0xaf 0x0 0xd3 0x5 0xaf 0x0 0xd3 0x5 0xaf 0x0\"},{\"addr\":\"0xB81C0C\",\"data\":\"0xe0 0x56 0xa1 0x0 0x70 0x57 0xa1 0x0 0xc0 0x57 0xa1 0x0 0xf0 0x57 0xa1 0x0 0xa0 0x59 0xa1 0x0\"}]"
+        }
+      ]
+    }
+  },
+  "failures": []
+}

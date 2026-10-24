@@ -1,0 +1,233 @@
+t1_odd_helper
+RVA=0x2f9340 VA=0x6f9340 END_RVA=0x2f9708
+
+[DECOMPILE]
+None
+
+[DISASSEMBLY]
+0x006f9340 (RVA 0x2f9340): push    ebp
+0x006f9341 (RVA 0x2f9341): mov     ebp, esp
+0x006f9343 (RVA 0x2f9343): sub     esp, 0Ch
+0x006f9346 (RVA 0x2f9346): push    ebx
+0x006f9347 (RVA 0x2f9347): mov     ebx, n2_0
+0x006f934d (RVA 0x2f934d): push    esi
+0x006f934e (RVA 0x2f934e): push    edi
+0x006f934f (RVA 0x2f934f): mov     [ebp+var_4], ebx
+0x006f9352 (RVA 0x2f9352): lea     ecx, [ebx+67FD4h]
+0x006f9358 (RVA 0x2f9358): call    sub_687020
+0x006f935d (RVA 0x2f935d): test    al, al
+0x006f935f (RVA 0x2f935f): jnz     loc_6F9701
+0x006f9365 (RVA 0x2f9365): mov     eax, [ebx+1B83Ch]
+0x006f936b (RVA 0x2f936b): test    eax, eax
+0x006f936d (RVA 0x2f936d): jz      loc_6F943B
+0x006f9373 (RVA 0x2f9373): mov     ecx, [ebx+1B844h]
+0x006f9379 (RVA 0x2f9379): cmp     [ebx+1B840h], ecx
+0x006f937f (RVA 0x2f937f): jz      short loc_6F93A4
+0x006f9381 (RVA 0x2f9381): movss   xmm1, ds:dword_B40178
+0x006f9389 (RVA 0x2f9389): movd    xmm0, ecx
+0x006f938d (RVA 0x2f938d): cvtdq2ps xmm0, xmm0
+0x006f9390 (RVA 0x2f9390): divss   xmm1, xmm0
+0x006f9394 (RVA 0x2f9394): addss   xmm1, dword ptr [ebx+1B848h]
+0x006f939c (RVA 0x2f939c): movss   dword ptr [ebx+1B848h], xmm1
+0x006f93a4 (RVA 0x2f93a4): cmp     eax, 1
+0x006f93a7 (RVA 0x2f93a7): jz      short loc_6F93B2
+0x006f93a9 (RVA 0x2f93a9): cmp     eax, 4
+0x006f93ac (RVA 0x2f93ac): jnz     loc_6F94E7
+0x006f93b2 (RVA 0x2f93b2): mov     eax, n2_0
+0x006f93b7 (RVA 0x2f93b7): xor     edi, edi
+0x006f93b9 (RVA 0x2f93b9): mov     ebx, [eax+18300h]
+0x006f93bf (RVA 0x2f93bf): cmp     [ebx+1264h], edi
+0x006f93c5 (RVA 0x2f93c5): jbe     loc_6F94E4
+0x006f93cb (RVA 0x2f93cb): nop     dword ptr [eax+eax+00h]
+0x006f93d0 (RVA 0x2f93d0): mov     eax, [ebx+125Ch]
+0x006f93d6 (RVA 0x2f93d6): mov     esi, [eax+edi*4]
+0x006f93d9 (RVA 0x2f93d9): cmp     dword ptr [esi+28h], 1
+0x006f93dd (RVA 0x2f93dd): jnz     short loc_6F9414
+0x006f93df (RVA 0x2f93df): mov     eax, [esi+16Ch]
+0x006f93e5 (RVA 0x2f93e5): mov     ecx, esi
+0x006f93e7 (RVA 0x2f93e7): or      dword ptr [esi+168h], 4000h
+0x006f93f1 (RVA 0x2f93f1): mov     [esi+16Ch], eax
+0x006f93f7 (RVA 0x2f93f7): mov     eax, [esi]
+0x006f93f9 (RVA 0x2f93f9): call    dword ptr [eax+0Ch]
+0x006f93fc (RVA 0x2f93fc): mov     eax, [esi+16Ch]
+0x006f9402 (RVA 0x2f9402): and     dword ptr [esi+168h], 0FFFFBFFFh
+0x006f940c (RVA 0x2f940c): mov     [esi+16Ch], eax
+0x006f9412 (RVA 0x2f9412): jmp     short loc_6F942D
+0x006f9414 (RVA 0x2f9414): mov     ecx, [esi+16Ch]
+0x006f941a (RVA 0x2f941a): xor     eax, eax
+0x006f941c (RVA 0x2f941c): and     ecx, 1000h
+0x006f9422 (RVA 0x2f9422): or      eax, ecx
+0x006f9424 (RVA 0x2f9424): jz      short loc_6F942D
+0x006f9426 (RVA 0x2f9426): mov     eax, [esi]
+0x006f9428 (RVA 0x2f9428): mov     ecx, esi
+0x006f942a (RVA 0x2f942a): call    dword ptr [eax+10h]
+0x006f942d (RVA 0x2f942d): inc     edi
+0x006f942e (RVA 0x2f942e): cmp     edi, [ebx+1264h]
+0x006f9434 (RVA 0x2f9434): jb      short loc_6F93D0
+0x006f9436 (RVA 0x2f9436): jmp     loc_6F94E4
+0x006f943b (RVA 0x2f943b): lea     eax, [ebx+1BA78h]
+0x006f9441 (RVA 0x2f9441): mov     [ebp+var_C], eax
+0x006f9444 (RVA 0x2f9444): mov     eax, [eax]
+0x006f9446 (RVA 0x2f9446): test    eax, eax
+0x006f9448 (RVA 0x2f9448): jz      loc_6F94E7
+0x006f944e (RVA 0x2f944e): cmp     eax, 1
+0x006f9451 (RVA 0x2f9451): jz      short loc_6F945C
+0x006f9453 (RVA 0x2f9453): cmp     eax, 4
+0x006f9456 (RVA 0x2f9456): jnz     loc_6F94E7
+0x006f945c (RVA 0x2f945c): mov     eax, n2_0
+0x006f9461 (RVA 0x2f9461): xor     edi, edi
+0x006f9463 (RVA 0x2f9463): mov     eax, [eax+18300h]
+0x006f9469 (RVA 0x2f9469): cmp     [eax+1264h], edi
+0x006f946f (RVA 0x2f946f): jbe     short loc_6F94E7
+0x006f9471 (RVA 0x2f9471): mov     ebx, eax
+0x006f9473 (RVA 0x2f9473): mov     eax, [ebx+125Ch]
+0x006f9479 (RVA 0x2f9479): mov     esi, [eax+edi*4]
+0x006f947c (RVA 0x2f947c): cmp     dword ptr [esi+28h], 1
+0x006f9480 (RVA 0x2f9480): jnz     short loc_6F94C2
+0x006f9482 (RVA 0x2f9482): mov     eax, [esi+16Ch]
+0x006f9488 (RVA 0x2f9488): mov     ecx, esi
+0x006f948a (RVA 0x2f948a): or      dword ptr [esi+168h], 4000h
+0x006f9494 (RVA 0x2f9494): mov     [esi+16Ch], eax
+0x006f949a (RVA 0x2f949a): mov     eax, [esi]
+0x006f949c (RVA 0x2f949c): call    dword ptr [eax+0Ch]
+0x006f949f (RVA 0x2f949f): mov     eax, [esi+16Ch]
+0x006f94a5 (RVA 0x2f94a5): mov     ecx, [ebp+var_C]
+0x006f94a8 (RVA 0x2f94a8): and     dword ptr [esi+168h], 0FFFFBFFFh
+0x006f94b2 (RVA 0x2f94b2): push    1
+0x006f94b4 (RVA 0x2f94b4): push    esi
+0x006f94b5 (RVA 0x2f94b5): mov     [esi+16Ch], eax
+0x006f94bb (RVA 0x2f94bb): call    sub_908F80
+0x006f94c0 (RVA 0x2f94c0): jmp     short loc_6F94DB
+0x006f94c2 (RVA 0x2f94c2): mov     edx, [esi+16Ch]
+0x006f94c8 (RVA 0x2f94c8): xor     eax, eax
+0x006f94ca (RVA 0x2f94ca): and     edx, 1000h
+0x006f94d0 (RVA 0x2f94d0): or      eax, edx
+0x006f94d2 (RVA 0x2f94d2): jz      short loc_6F94DB
+0x006f94d4 (RVA 0x2f94d4): mov     eax, [esi]
+0x006f94d6 (RVA 0x2f94d6): mov     ecx, esi
+0x006f94d8 (RVA 0x2f94d8): call    dword ptr [eax+10h]
+0x006f94db (RVA 0x2f94db): inc     edi
+0x006f94dc (RVA 0x2f94dc): cmp     edi, [ebx+1264h]
+0x006f94e2 (RVA 0x2f94e2): jb      short loc_6F9473
+0x006f94e4 (RVA 0x2f94e4): mov     ebx, [ebp+var_4]
+0x006f94e7 (RVA 0x2f94e7): mov     ecx, ebx
+0x006f94e9 (RVA 0x2f94e9): call    sub_6F92A0
+0x006f94ee (RVA 0x2f94ee): test    al, al
+0x006f94f0 (RVA 0x2f94f0): jnz     loc_6F9701
+0x006f94f6 (RVA 0x2f94f6): mov     ecx, dword_BE4A1C
+0x006f94fc (RVA 0x2f94fc): cmp     [ecx+4AFAAh], al
+0x006f9502 (RVA 0x2f9502): jnz     short loc_6F951E
+0x006f9504 (RVA 0x2f9504): cmp     [ecx+2A1D7h], al
+0x006f950a (RVA 0x2f950a): jz      short loc_6F951E
+0x006f950c (RVA 0x2f950c): mov     eax, [ecx+4AFB8h]
+0x006f9512 (RVA 0x2f9512): cmp     eax, [ecx+4AFBCh]
+0x006f9518 (RVA 0x2f9518): jz      loc_6F9701
+0x006f951e (RVA 0x2f951e): mov     ebx, [ebx+18300h]
+0x006f9524 (RVA 0x2f9524): xor     edi, edi
+0x006f9526 (RVA 0x2f9526): cmp     [ebx+1264h], edi
+0x006f952c (RVA 0x2f952c): jbe     short loc_6F9589
+0x006f952e (RVA 0x2f952e): xchg    ax, ax
+0x006f9530 (RVA 0x2f9530): mov     eax, [ebx+125Ch]
+0x006f9536 (RVA 0x2f9536): mov     esi, [eax+edi*4]
+0x006f9539 (RVA 0x2f9539): mov     ecx, esi
+0x006f953b (RVA 0x2f953b): cmp     dword ptr [esi+28h], 1
+0x006f953f (RVA 0x2f953f): mov     edx, [esi]
+0x006f9541 (RVA 0x2f9541): jnz     short loc_6F957D
+0x006f9543 (RVA 0x2f9543): mov     eax, [esi+16Ch]
+0x006f9549 (RVA 0x2f9549): or      dword ptr [esi+168h], 4000h
+0x006f9553 (RVA 0x2f9553): mov     [esi+16Ch], eax
+0x006f9559 (RVA 0x2f9559): call    dword ptr [edx+0Ch]
+0x006f955c (RVA 0x2f955c): push    0
+0x006f955e (RVA 0x2f955e): mov     ecx, esi
+0x006f9560 (RVA 0x2f9560): call    sub_6A6A40
+0x006f9565 (RVA 0x2f9565): mov     eax, [esi+16Ch]
+0x006f956b (RVA 0x2f956b): and     dword ptr [esi+168h], 0FFFFBFFFh
+0x006f9575 (RVA 0x2f9575): mov     [esi+16Ch], eax
+0x006f957b (RVA 0x2f957b): jmp     short loc_6F9580
+0x006f957d (RVA 0x2f957d): call    dword ptr [edx+10h]
+0x006f9580 (RVA 0x2f9580): inc     edi
+0x006f9581 (RVA 0x2f9581): cmp     edi, [ebx+1264h]
+0x006f9587 (RVA 0x2f9587): jb      short loc_6F9530
+0x006f9589 (RVA 0x2f9589): cmp     byte ptr [ebx+7884h], 0
+0x006f9590 (RVA 0x2f9590): jz      loc_6F9686
+0x006f9596 (RVA 0x2f9596): movss   xmm0, dword ptr [ebx+788Ch]
+0x006f959e (RVA 0x2f959e): xor     edi, edi
+0x006f95a0 (RVA 0x2f95a0): movss   xmm4, ds:dword_B40178
+0x006f95a8 (RVA 0x2f95a8): mov     eax, [ebx+776Ch]
+0x006f95ae (RVA 0x2f95ae): mulss   xmm0, xmm4
+0x006f95b2 (RVA 0x2f95b2): mov     [ebp+var_C], eax
+0x006f95b5 (RVA 0x2f95b5): addss   xmm0, dword ptr [ebx+7888h]
+0x006f95bd (RVA 0x2f95bd): movss   dword ptr [ebx+7888h], xmm0
+0x006f95c5 (RVA 0x2f95c5): cmp     [eax+1264h], edi
+0x006f95cb (RVA 0x2f95cb): jbe     loc_6F9686
+0x006f95d1 (RVA 0x2f95d1): xorps   xmm3, xmm3
+0x006f95d4 (RVA 0x2f95d4): mov     eax, [eax+125Ch]
+0x006f95da (RVA 0x2f95da): mov     esi, [eax+edi*4]
+0x006f95dd (RVA 0x2f95dd): mov     eax, [esi+28h]
+0x006f95e0 (RVA 0x2f95e0): cmp     eax, 1
+0x006f95e3 (RVA 0x2f95e3): jz      short loc_6F9636
+0x006f95e5 (RVA 0x2f95e5): cmp     eax, 3
+0x006f95e8 (RVA 0x2f95e8): jz      short loc_6F9631
+0x006f95ea (RVA 0x2f95ea): movss   xmm0, dword ptr [esi+340h]
+0x006f95f2 (RVA 0x2f95f2): movss   xmm1, dword ptr [ebx+788Ch]
+0x006f95fa (RVA 0x2f95fa): addss   xmm0, xmm3
+0x006f95fe (RVA 0x2f95fe): movss   xmm2, dword ptr [esi+33Ch]
+0x006f9606 (RVA 0x2f9606): cmp     dword ptr [esi+35Ch], 0
+0x006f960d (RVA 0x2f960d): movss   dword ptr [esi+340h], xmm0
+0x006f9615 (RVA 0x2f9615): jnz     short loc_6F9621
+0x006f9617 (RVA 0x2f9617): mulss   xmm1, ds:dword_B3FF80
+0x006f961f (RVA 0x2f961f): jmp     short loc_6F9625
+0x006f9621 (RVA 0x2f9621): mulss   xmm1, xmm4
+0x006f9625 (RVA 0x2f9625): addss   xmm1, xmm2
+0x006f9629 (RVA 0x2f9629): movss   dword ptr [esi+33Ch], xmm1
+0x006f9631 (RVA 0x2f9631): cmp     eax, 1
+0x006f9634 (RVA 0x2f9634): jnz     short loc_6F9676
+0x006f9636 (RVA 0x2f9636): mov     eax, [esi+16Ch]
+0x006f963c (RVA 0x2f963c): mov     ecx, esi
+0x006f963e (RVA 0x2f963e): or      dword ptr [esi+168h], 4000h
+0x006f9648 (RVA 0x2f9648): push    0
+0x006f964a (RVA 0x2f964a): mov     [esi+16Ch], eax
+0x006f9650 (RVA 0x2f9650): call    sub_6A6A40
+0x006f9655 (RVA 0x2f9655): mov     eax, [esi+16Ch]
+0x006f965b (RVA 0x2f965b): xorps   xmm3, xmm3
+0x006f965e (RVA 0x2f965e): and     dword ptr [esi+168h], 0FFFFBFFFh
+0x006f9668 (RVA 0x2f9668): movss   xmm4, ds:dword_B40178
+0x006f9670 (RVA 0x2f9670): mov     [esi+16Ch], eax
+0x006f9676 (RVA 0x2f9676): mov     eax, [ebp+var_C]
+0x006f9679 (RVA 0x2f9679): inc     edi
+0x006f967a (RVA 0x2f967a): cmp     edi, [eax+1264h]
+0x006f9680 (RVA 0x2f9680): jb      loc_6F95D4
+0x006f9686 (RVA 0x2f9686): mov     eax, n2_0
+0x006f968b (RVA 0x2f968b): xor     edi, edi
+0x006f968d (RVA 0x2f968d): mov     byte ptr [ebx+7220h], 1
+0x006f9694 (RVA 0x2f9694): mov     ecx, [eax+1BB78h]
+0x006f969a (RVA 0x2f969a): mov     eax, [eax+1BB7Ch]
+0x006f96a0 (RVA 0x2f96a0): sub     eax, ecx
+0x006f96a2 (RVA 0x2f96a2): sar     eax, 2
+0x006f96a5 (RVA 0x2f96a5): test    eax, eax
+0x006f96a7 (RVA 0x2f96a7): jz      short loc_6F9701
+0x006f96a9 (RVA 0x2f96a9): nop     dword ptr [eax+00000000h]
+0x006f96b0 (RVA 0x2f96b0): mov     esi, [ecx+edi*4]
+0x006f96b3 (RVA 0x2f96b3): mov     ecx, esi
+0x006f96b5 (RVA 0x2f96b5): mov     eax, [esi+16Ch]
+0x006f96bb (RVA 0x2f96bb): or      dword ptr [esi+168h], 4000h
+0x006f96c5 (RVA 0x2f96c5): mov     [esi+16Ch], eax
+0x006f96cb (RVA 0x2f96cb): mov     eax, [esi]
+0x006f96cd (RVA 0x2f96cd): call    dword ptr [eax+0Ch]
+0x006f96d0 (RVA 0x2f96d0): mov     eax, [esi+16Ch]
+0x006f96d6 (RVA 0x2f96d6): inc     edi
+0x006f96d7 (RVA 0x2f96d7): and     dword ptr [esi+168h], 0FFFFBFFFh
+0x006f96e1 (RVA 0x2f96e1): mov     [esi+16Ch], eax
+0x006f96e7 (RVA 0x2f96e7): mov     eax, n2_0
+0x006f96ec (RVA 0x2f96ec): mov     ecx, [eax+1BB78h]
+0x006f96f2 (RVA 0x2f96f2): mov     eax, [eax+1BB7Ch]
+0x006f96f8 (RVA 0x2f96f8): sub     eax, ecx
+0x006f96fa (RVA 0x2f96fa): sar     eax, 2
+0x006f96fd (RVA 0x2f96fd): cmp     edi, eax
+0x006f96ff (RVA 0x2f96ff): jb      short loc_6F96B0
+0x006f9701 (RVA 0x2f9701): pop     edi
+0x006f9702 (RVA 0x2f9702): pop     esi
+0x006f9703 (RVA 0x2f9703): pop     ebx
+0x006f9704 (RVA 0x2f9704): mov     esp, ebp
+0x006f9706 (RVA 0x2f9706): pop     ebp
+0x006f9707 (RVA 0x2f9707): retn

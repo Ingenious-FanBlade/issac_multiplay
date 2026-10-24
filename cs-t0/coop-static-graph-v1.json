@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 1,
+  "graphIdentity": "IsaacCsT0-CoopStaticGraph-v1",
+  "workPackage": "CS-T0-05-01",
+  "createdUtc": "2026-08-27T08:55:00Z",
+  "target": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedApprovedUnpackedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "equivalenceIdentity": "IsaacCsT0-UnpackedTargetEquivalence-v1",
+    "equivalenceSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+    "machine": "0x014C",
+    "preferredImageBase": "0x00400000"
+  },
+  "sourceProvenance": [
+    {
+      "role": "STATIC_EVIDENCE",
+      "path": "coop-static-evidence-v1.json",
+      "identity": "IsaacCsT0-CoopStaticEvidence-v1",
+      "sha256": "501B39DEB198E7F1424328069534438ADC73BA665D1E6988AFA4AD7939DB081B"
+    },
+    {
+      "role": "BOOTSTRAP_DECISION",
+      "path": "coop-bootstrap-decision-v1.json",
+      "identity": "IsaacCsT0-CoopBootstrapDecision-v1",
+      "sha256": "7EB5004E368A478EBB3CC83149BB05E70F7876C4384A511557EEC9188D1D7598"
+    }
+  ],
+  "partitions": [
+    {
+      "id": "OFFLINE_SHARED",
+      "description": "Manager owners and read-only publication helpers shared by offline play.",
+      "positiveRouteAllowed": true
+    },
+    {
+      "id": "LOCAL_COOP_POSITIVE",
+      "description": "Native local join, exit, vector, assignment and HUD lifecycle.",
+      "positiveRouteAllowed": true
+    },
+    {
+      "id": "ORIGINAL_ONLINE_FORBIDDEN",
+      "description": "OriginalOnline and NetInputDevice state excluded from every positive route.",
+      "positiveRouteAllowed": false
+    }
+  ],
+  "nodes": [
+    {
+      "id": "manager-owner-call",
+      "partition": "OFFLINE_SHARED",
+      "role": "LOCAL_COOP_MANAGER",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005AB6F2 direct owner call",
+      "locator": { "kind": "CALL_REL32", "rva": "0x005AB6F2", "expectedBytes": "E8D995FAFF", "targetRva": "0x00554CD0" },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "GameRoot*", "registerArgs": [], "stackArgs": ["uint32 mode=1"], "calleeStackBytes": 4, "returnUse": "IGNORED" },
+      "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+      "preconditions": ["T0-04 main-thread owner binding remains hash-valid"],
+      "postconditions": ["manager core has completed"]
+    },
+    {
+      "id": "manager-core-forward",
+      "partition": "OFFLINE_SHARED",
+      "role": "LOCAL_COOP_MANAGER",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x00554CD0 manager core",
+      "locator": { "kind": "CALL_REL32", "rva": "0x005551BD", "expectedBytes": "E87E53DAFF", "targetRva": "0x002FA540" },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "GameRoot*", "registerArgs": [], "stackArgs": [], "calleeStackBytes": 0, "returnUse": "IGNORED" },
+      "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+      "preconditions": ["manager core owner is active"],
+      "postconditions": ["per-frame Player/co-op orchestration begins"]
+    },
+    {
+      "id": "manager-local-dispatch",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "LOCAL_COOP_MANAGER",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x002FA540 GameRoot Player/co-op orchestration",
+      "locator": { "kind": "CALL_REL32", "rva": "0x002FADA7", "expectedBytes": "E894FE2B00", "targetRva": "0x005BAC40" },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "PlayerManager*", "registerArgs": [], "stackArgs": [], "calleeStackBytes": 0, "returnUse": "IGNORED_EAX_OPAQUE" },
+      "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+      "preconditions": ["ECX is gameRoot+0x1BAA8", "ModeLatch classification precedes any future observation"],
+      "postconditions": ["local body completes only when online vector is empty", "secondary-vector upkeep completes"]
+    },
+    {
+      "id": "ordinary-spawn-call",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "NATIVE_JOIN",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005BAC40 standard local-device join branch",
+      "locator": { "kind": "CALL_REL32", "rva": "0x005BB415", "expectedBytes": "E8B6E8FFFF", "targetRva": "0x005B9CD0" },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "Entity_Player*", "thisType": "PlayerManager*", "registerArgs": [], "stackArgs": ["int32 ePlayerType"], "calleeStackBytes": 4, "returnUse": "REQUIRED_NON_NULL_PLAYER" },
+      "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+      "preconditions": ["online vector is empty", "standard join candidate and controller are selected"],
+      "postconditions": ["Player constructed and published to main vector", "Player+0x161C ordinal assigned"]
+    },
+    {
+      "id": "player-create",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "SECOND_PLAYER_CREATE",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005B9CD0",
+      "locator": { "kind": "FUNCTION_ENTRY", "rva": "0x005B9CD0", "expectedBytes": "558BEC6AFF6889E8B00064A100000000", "targetRva": null },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "Entity_Player*", "thisType": "PlayerManager*", "registerArgs": [], "stackArgs": ["int32 ePlayerType"], "calleeStackBytes": 4, "returnUse": "PLAYER_INSTANCE" },
+      "threadConstraint": "CALLER_SAME_THREAD",
+      "preconditions": ["capacity and allocation checks succeed"],
+      "postconditions": ["Entity_Player construction and initialization complete"]
+    },
+    {
+      "id": "player-vector-insert",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "PLAYER_VECTOR_INSERT",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005B9CD0",
+      "locator": { "kind": "DATA_ACCESS", "rva": "0x005B9CD0", "expectedBytes": null, "targetRva": null },
+      "abi": null,
+      "threadConstraint": "CALLER_SAME_THREAD",
+      "preconditions": ["new Player exists"],
+      "postconditions": ["main-vector end advances", "Player+0x161C equals insertion ordinal"]
+    },
+    {
+      "id": "ordinary-assignment-call",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "CONTROLLER_ASSIGNMENT",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005BAC40 standard spawn continuation",
+      "locator": { "kind": "CALL_REL32", "rva": "0x005BB424", "expectedBytes": "E827B0DEFF", "targetRva": "0x003A6450" },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "Entity_Player*", "registerArgs": [], "stackArgs": ["int32 controllerId", "uint32 propagate=1"], "calleeStackBytes": 8, "returnUse": "IGNORED_EAX_OPAQUE" },
+      "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+      "preconditions": ["ordinary spawn returned non-null Player"],
+      "postconditions": ["Player+0x1618 and linked controller/color mappings are updated"]
+    },
+    {
+      "id": "join-hud-rebuild-call",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "HUD_REGISTER",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005BAC40 standard join finalization",
+      "locator": { "kind": "CALL_REL32", "rva": "0x005BB4FD", "expectedBytes": "E81ED1FEFF", "targetRva": "0x005A8620" },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "HUD*", "registerArgs": [], "stackArgs": [], "calleeStackBytes": 0, "returnUse": "IGNORED_EAX_VOLATILE" },
+      "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+      "preconditions": ["spawn, assignment and initial position writes complete"],
+      "postconditions": ["eight HUD records are rebuilt from current Player vectors"]
+    },
+    {
+      "id": "hud-index-helper",
+      "partition": "OFFLINE_SHARED",
+      "role": "PLAYER_INDEX_UPDATE",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005A64F0",
+      "locator": { "kind": "FUNCTION_ENTRY", "rva": "0x005A64F0", "expectedBytes": "558BEC8B45085685C074518B90681E0000", "targetRva": null },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "uint32", "thisType": "HUD*", "registerArgs": [], "stackArgs": ["Entity_Player*"], "calleeStackBytes": 4, "returnUse": "LOCAL_PLAYER_ORDINAL_OR_MINUS_ONE" },
+      "threadConstraint": "CALLER_SAME_THREAD",
+      "preconditions": ["HUD and Player are valid"],
+      "postconditions": ["returns ordinal 0..3 or -1"]
+    },
+    {
+      "id": "lua-player-publication",
+      "partition": "OFFLINE_SHARED",
+      "role": "LUA_PLAYER_PUBLICATION",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x00494280 registration -> 0x004B84B0 closure -> 0x00017870 lookup",
+      "locator": { "kind": "FUNCTION_ENTRY", "rva": "0x00017870", "expectedBytes": "558BEC5156578BF98B97ACBA01008BC2", "targetRva": null },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "Entity_Player*", "thisType": "GameRoot*", "registerArgs": [], "stackArgs": ["uint32 index"], "calleeStackBytes": 4, "returnUse": "VECTOR_ORDINAL_PLAYER" },
+      "threadConstraint": "CALLER_SAME_THREAD",
+      "preconditions": ["main Player vector is at a stable entry or return boundary"],
+      "postconditions": ["valid index returns main-vector ordinal; out of range falls back to Player 0"]
+    },
+    {
+      "id": "native-exit-call",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "NATIVE_EXIT",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005BAC40 local-device exit branch",
+      "locator": { "kind": "CALL_REL32", "rva": "0x005BB22A", "expectedBytes": "E8D1EDFFFF", "targetRva": "0x005BA000" },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "PlayerManager*", "registerArgs": [], "stackArgs": ["Entity_Player* player", "uint32 ABI_PADDING_UNUSED"], "calleeStackBytes": 8, "returnUse": "IGNORED" },
+      "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+      "preconditions": ["Player is present", "sample only before entry"],
+      "postconditions": ["sample only after complete return", "vector, ordinals, mappings and HUD are stable"]
+    },
+    {
+      "id": "player-vector-remove",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "PLAYER_VECTOR_REMOVE",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005BA000 erase anchor 0x005BA5DB",
+      "locator": { "kind": "DATA_ACCESS", "rva": "0x005BA5DB", "expectedBytes": null, "targetRva": null },
+      "abi": null,
+      "threadConstraint": "CALLER_SAME_THREAD",
+      "preconditions": ["matching vector entry exists"],
+      "postconditions": ["entry erased", "survivors compacted"]
+    },
+    {
+      "id": "survivor-ordinal-rewrite",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "PLAYER_INDEX_UPDATE",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005BA000 rewrite anchor 0x005BA61D",
+      "locator": { "kind": "DATA_ACCESS", "rva": "0x005BA61D", "expectedBytes": null, "targetRva": null },
+      "abi": null,
+      "threadConstraint": "CALLER_SAME_THREAD",
+      "preconditions": ["vector compaction complete"],
+      "postconditions": ["removed ordinal is -1", "survivor ordinals equal compacted positions"]
+    },
+    {
+      "id": "exit-hud-rebuild-call",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "HUD_REMOVE",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005BA000 after HUD record rotation",
+      "locator": { "kind": "CALL_REL32", "rva": "0x005BA752", "expectedBytes": "E8C9DEFEFF", "targetRva": "0x005A8620" },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "HUD*", "registerArgs": [], "stackArgs": [], "calleeStackBytes": 0, "returnUse": "IGNORED_EAX_VOLATILE" },
+      "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+      "preconditions": ["erase, compaction, ordinal rewrite and HUD record rotation complete"],
+      "postconditions": ["HUD slots reflect compacted main vector", "full exit return remains the stable observer boundary"]
+    },
+    {
+      "id": "lua-player-retirement",
+      "partition": "OFFLINE_SHARED",
+      "role": "LUA_PLAYER_RETIREMENT",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x00017870 main-vector ordinal lookup after 0x005BA000 return",
+      "locator": { "kind": "DATA_ACCESS", "rva": "0x00017870", "expectedBytes": null, "targetRva": null },
+      "abi": null,
+      "threadConstraint": "CALLER_SAME_THREAD",
+      "preconditions": ["exit has fully returned"],
+      "postconditions": ["removed Player is unreachable by valid ordinal", "survivors are visible at compacted ordinals"]
+    },
+    {
+      "id": "possessor-spawn-stop",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "STOP_SENTINEL",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005BAC40 possessor branch",
+      "locator": { "kind": "CALL_REL32", "rva": "0x005BAFFA", "expectedBytes": "E8D1ECFFFF", "targetRva": "0x005B9CD0" },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "Entity_Player*", "thisType": "PlayerManager*", "registerArgs": [], "stackArgs": ["int32 ePlayerType=-1"], "calleeStackBytes": 4, "returnUse": "STOP_ONLY" },
+      "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+      "preconditions": ["possessor branch selected"],
+      "postconditions": ["stop positive proof; do not count as ordinary join"]
+    },
+    {
+      "id": "possessor-assignment-stop",
+      "partition": "LOCAL_COOP_POSITIVE",
+      "role": "STOP_SENTINEL",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005BAC40 possessor continuation",
+      "locator": { "kind": "CALL_REL32", "rva": "0x005BB004", "expectedBytes": "E847B4DEFF", "targetRva": "0x003A6450" },
+      "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "Entity_Player*", "registerArgs": [], "stackArgs": ["int32 controllerId", "uint32 propagate=1"], "calleeStackBytes": 8, "returnUse": "STOP_ONLY" },
+      "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+      "preconditions": ["possessor spawn returned Player"],
+      "postconditions": ["stop positive proof; do not count as ordinary assignment"]
+    },
+    {
+      "id": "online-netinput-guard",
+      "partition": "ORIGINAL_ONLINE_FORBIDDEN",
+      "role": "ONLINE_GUARD",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "owner": "RVA 0x005BAC6D",
+      "locator": { "kind": "DATA_ACCESS", "rva": "0x005BAC6D", "expectedBytes": "8B159C16C7008B82D8B304003B82DCB304000F85EF080000", "targetRva": "0x005BB574" },
+      "abi": null,
+      "threadConstraint": "CALLER_SAME_THREAD",
+      "preconditions": ["onlineRoot is readable"],
+      "postconditions": ["nonempty NetInputDevice vector skips local body 0x005BAC85..0x005BB56E"]
+    }
+  ],
+  "edges": [
+    { "id": "owner-to-core", "from": "manager-owner-call", "to": "manager-core-forward", "kind": "CALLS", "positive": true },
+    { "id": "core-to-dispatch", "from": "manager-core-forward", "to": "manager-local-dispatch", "kind": "CALLS", "positive": true },
+    { "id": "dispatch-to-join", "from": "manager-local-dispatch", "to": "ordinary-spawn-call", "kind": "CALLS", "positive": true },
+    { "id": "join-to-create", "from": "ordinary-spawn-call", "to": "player-create", "kind": "CREATES", "positive": true },
+    { "id": "create-to-insert", "from": "player-create", "to": "player-vector-insert", "kind": "INSERTS", "positive": true },
+    { "id": "insert-to-assignment", "from": "player-vector-insert", "to": "ordinary-assignment-call", "kind": "ASSIGNS", "positive": true },
+    { "id": "assignment-to-join-hud", "from": "ordinary-assignment-call", "to": "join-hud-rebuild-call", "kind": "REGISTERS", "positive": true },
+    { "id": "join-hud-to-index", "from": "join-hud-rebuild-call", "to": "hud-index-helper", "kind": "REGISTERS", "positive": true },
+    { "id": "index-to-lua-publication", "from": "hud-index-helper", "to": "lua-player-publication", "kind": "PUBLISHES", "positive": true },
+    { "id": "dispatch-to-exit", "from": "manager-local-dispatch", "to": "native-exit-call", "kind": "CALLS", "positive": true },
+    { "id": "exit-to-remove", "from": "native-exit-call", "to": "player-vector-remove", "kind": "REMOVES", "positive": true },
+    { "id": "remove-to-rewrite", "from": "player-vector-remove", "to": "survivor-ordinal-rewrite", "kind": "INVALIDATES", "positive": true },
+    { "id": "rewrite-to-exit-hud", "from": "survivor-ordinal-rewrite", "to": "exit-hud-rebuild-call", "kind": "REMOVES", "positive": true },
+    { "id": "exit-hud-to-lua-retirement", "from": "exit-hud-rebuild-call", "to": "lua-player-retirement", "kind": "INVALIDATES", "positive": true }
+  ],
+  "requiredRoutes": [
+    {
+      "id": "ordinary-local-join-publication",
+      "nodes": [
+        "manager-owner-call",
+        "manager-core-forward",
+        "manager-local-dispatch",
+        "ordinary-spawn-call",
+        "player-create",
+        "player-vector-insert",
+        "ordinary-assignment-call",
+        "join-hud-rebuild-call",
+        "hud-index-helper",
+        "lua-player-publication"
+      ]
+    },
+    {
+      "id": "ordinary-local-exit-retirement",
+      "nodes": [
+        "manager-local-dispatch",
+        "native-exit-call",
+        "player-vector-remove",
+        "survivor-ordinal-rewrite",
+        "exit-hud-rebuild-call",
+        "lua-player-retirement"
+      ]
+    }
+  ],
+  "unresolvedClaims": [],
+  "designUnknowns": [
+    "0x00554F84->0x0055B310 remains UNKNOWN and is excluded",
+    "virtual-device necessity remains UNKNOWN and is deferred"
+  ],
+  "permissions": {
+    "activeInputAllowed": false,
+    "runtimeMutationAllowed": false,
+    "t005Unlocked": false,
+    "csT00502Unlocked": true
+  }
+}

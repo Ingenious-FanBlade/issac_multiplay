@@ -1,0 +1,685 @@
+{
+  "tx": "tx-03-17",
+  "date": "2026-10-23",
+  "timezone": "Asia/Shanghai",
+  "result": "PASS_STATIC_DOCUMENT_REVIEW_ONLY",
+  "execution": "One final unified static document review after substantive owner research, child review and edits; no other tests/experiments.",
+  "agent": {
+    "reasoning_effort": "max",
+    "model": "gpt-6-luna",
+    "role": "Retirement and Lua GC researched by child and independently reviewed by primary"
+  },
+  "semantic_review": "Primary read constructor, copy, swap field omissions and actual transfer callers, staging and bounded failures, standalone versus wrapper destructors, control release versus optional callback, global defaults and allocation ownership. Candidate publication sequence is a design proposal.",
+  "prior_tx0316": "FAIL result preserved unchanged. New classifier uses explicit labels/table headers; two old documents are classification examples only, not a rerun of the prior review.",
+  "acquisition_anomaly": "Primary initially read one word beyond B73228 vtable into IsBusted string. Raw evidence retained, adjacent word explicitly classified as string data, correct slot-only export supplied.",
+  "limitations": [
+    "No runtime resources, pixels, corruption, crash, thread or context observation",
+    "Normal constructor/helper returns only; OOM, EH, cache topology changes and reentry not closed",
+    "Lua outer allocation freed by Lua; raw native owner allocator not inferred from a destructor",
+    "No adapter, registry, readiness predicate, wire schema or E2E implemented",
+    "No hash computation or verification"
+  ],
+  "checks": [
+    {
+      "name": "document:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->tx-03-17-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->tx-03-17-luna-sprite-retirement.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->../../artifacts/cs-t0/tx-03-17-static/primary-owner-initial.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->../../artifacts/cs-t0/tx-03-17-static/primary-owner-transfer.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->../../artifacts/cs-t0/tx-03-17-static/primary-copy-construction.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->../../artifacts/cs-t0/tx-03-17-static/primary-pose-staging.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->../../artifacts/cs-t0/tx-03-17-static/primary-retirement-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->../../artifacts/cs-t0/tx-03-17-static/primary-userdata-owner.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->../../artifacts/cs-t0/tx-03-17-static/primary-control-retirement.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->../../artifacts/cs-t0/tx-03-17-static/primary-allocation-wrapper.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->../../artifacts/cs-t0/tx-03-17-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->tx-03-17-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md->../../artifacts/cs-t0/tx-03-17-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-17-independent-sprite-owner-lifecycle.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 10. Bare fields/VA lists/flag values are not pairs."
+    },
+    {
+      "name": "document:docs/research/tx-03-17-primary-review.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->tx-03-17-independent-sprite-owner-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->tx-03-17-luna-sprite-retirement.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->../../artifacts/cs-t0/tx-03-17-static/luna-retirement-static.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->../../artifacts/cs-t0/tx-03-17-static/primary-retirement-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->../../artifacts/cs-t0/tx-03-17-static/primary-userdata-owner.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->../../artifacts/cs-t0/tx-03-17-static/primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->../../artifacts/cs-t0/tx-03-17-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->../../artifacts/cs-t0/tx-03-17-static/luna-export-retirement.py",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->../../artifacts/cs-t0/tx-03-16-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->../../artifacts/cs-t0/tx-03-16-static/final-review-failure-notes.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->../../artifacts/cs-t0/tx-03-17-static/review_documents.ps1",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-primary-review.md->../../artifacts/cs-t0/tx-03-17-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-17-primary-review.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 0. Bare fields/VA lists/flag values are not pairs."
+    },
+    {
+      "name": "document:docs/research/tx-03-17-luna-sprite-retirement.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-luna-sprite-retirement.md->../../artifacts/cs-t0/tx-03-17-static/luna-retirement-static.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-luna-sprite-retirement.md->../../artifacts/cs-t0/tx-03-17-static/luna-export-retirement.py",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-luna-sprite-retirement.md->../../artifacts/cs-t0/tx-03-17-static/primary-allocation-wrapper.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-luna-sprite-retirement.md->tx-03-13-sprite-image-resources.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-luna-sprite-retirement.md->../../artifacts/cs-t0/tx-03-17-static/primary-control-retirement.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-luna-sprite-retirement.md->tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-luna-sprite-retirement.md->tx-03-15-sprite-replacement-reload.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-luna-sprite-retirement.md->tx-03-16-independent-sprite-display-fields.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-17-luna-sprite-retirement.md->tx-03-14-renderer-context-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-17-luna-sprite-retirement.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 16. Bare fields/VA lists/flag values are not pairs."
+    },
+    {
+      "name": "document:docs/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/README.md",
+      "pass": true,
+      "detail": "Entry updated; prior tx records retained."
+    },
+    {
+      "name": "link:docs/README.md->research/tx-03-17-independent-sprite-owner-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/README.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 0. Bare fields/VA lists/flag values are not pairs."
+    },
+    {
+      "name": "document:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Entry updated; prior tx records retained."
+    },
+    {
+      "name": "link:docs/hooks/README.md->../research/tx-03-17-independent-sprite-owner-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 0. Bare fields/VA lists/flag values are not pairs."
+    },
+    {
+      "name": "document:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Entry updated; prior tx records retained."
+    },
+    {
+      "name": "link:docs/hooks/entity.md->../research/tx-03-17-independent-sprite-owner-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 0. Bare fields/VA lists/flag values are not pairs."
+    },
+    {
+      "name": "document:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Entry updated; prior tx records retained."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-17-independent-sprite-owner-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-17-independent-sprite-owner-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 0. Bare fields/VA lists/flag values are not pairs."
+    },
+    {
+      "name": "address-classification:docs/research/tx-03-16-independent-sprite-display-fields.md",
+      "pass": true,
+      "detail": "Expected labeled claims=11; observed=11. Prior FAIL remains unchanged."
+    },
+    {
+      "name": "address-classification:docs/research/tx-03-16-luna-sprite-fields.md",
+      "pass": true,
+      "detail": "Expected labeled claims=3; observed=3. Prior FAIL remains unchanged."
+    },
+    {
+      "name": "json:luna-retirement-static.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:luna-retirement-static.json",
+      "pass": true,
+      "detail": "Static function/instruction and explicitly classified pointer-table addresses agree."
+    },
+    {
+      "name": "json:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "json:primary-allocation-wrapper.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-allocation-wrapper.json",
+      "pass": true,
+      "detail": "Static function/instruction and explicitly classified pointer-table addresses agree."
+    },
+    {
+      "name": "json:primary-control-retirement.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-control-retirement.json",
+      "pass": true,
+      "detail": "Static function/instruction and explicitly classified pointer-table addresses agree."
+    },
+    {
+      "name": "json:primary-copy-construction.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-copy-construction.json",
+      "pass": true,
+      "detail": "Static function/instruction and explicitly classified pointer-table addresses agree."
+    },
+    {
+      "name": "json:primary-owner-initial.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-owner-initial.json",
+      "pass": true,
+      "detail": "Static function/instruction and explicitly classified pointer-table addresses agree."
+    },
+    {
+      "name": "json:primary-owner-transfer.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-owner-transfer.json",
+      "pass": true,
+      "detail": "Static function/instruction and explicitly classified pointer-table addresses agree."
+    },
+    {
+      "name": "json:primary-pose-staging.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-pose-staging.json",
+      "pass": true,
+      "detail": "Static function/instruction and explicitly classified pointer-table addresses agree."
+    },
+    {
+      "name": "json:primary-retirement-review.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "classified-vtable-overread:B7322C",
+      "pass": true,
+      "detail": "Adjacent IsBusted string bytes, not a pointer slot. Mechanical target subtraction has no address meaning."
+    },
+    {
+      "name": "addresses:primary-retirement-review.json",
+      "pass": true,
+      "detail": "Static function/instruction and explicitly classified pointer-table addresses agree."
+    },
+    {
+      "name": "json:primary-userdata-owner.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-userdata-owner.json",
+      "pass": true,
+      "detail": "Static function/instruction and explicitly classified pointer-table addresses agree."
+    },
+    {
+      "name": "evidence:primary-owner-initial.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-owner-transfer.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-copy-construction.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-pose-staging.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-retirement-review.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-userdata-owner.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-control-retirement.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-allocation-wrapper.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:luna-retirement-static.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "source:export_static.py",
+      "pass": true,
+      "detail": "Read-only acquisition source supplied, not executed by this review."
+    },
+    {
+      "name": "source:luna-export-retirement.py",
+      "pass": true,
+      "detail": "Read-only acquisition source supplied, not executed by this review."
+    },
+    {
+      "name": "instruction:0x8bb728",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-initial.json."
+    },
+    {
+      "name": "instruction:0x8bb744",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-initial.json."
+    },
+    {
+      "name": "instruction:0x8bb74a",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-initial.json."
+    },
+    {
+      "name": "instruction:0x8bb756",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-initial.json."
+    },
+    {
+      "name": "instruction:0x8bb762",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-initial.json."
+    },
+    {
+      "name": "instruction:0x407539",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-initial.json."
+    },
+    {
+      "name": "instruction:0x407557",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-initial.json."
+    },
+    {
+      "name": "instruction:0x40766d",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-initial.json."
+    },
+    {
+      "name": "instruction:0x407e4a",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-initial.json."
+    },
+    {
+      "name": "instruction:0x407e6f",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-initial.json."
+    },
+    {
+      "name": "instruction:0x407eb8",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-transfer.json."
+    },
+    {
+      "name": "instruction:0x407efc",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-owner-transfer.json."
+    },
+    {
+      "name": "instruction:0x407715",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-copy-construction.json."
+    },
+    {
+      "name": "instruction:0x407767",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-copy-construction.json."
+    },
+    {
+      "name": "instruction:0x407771",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-copy-construction.json."
+    },
+    {
+      "name": "instruction:0x407857",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-copy-construction.json."
+    },
+    {
+      "name": "instruction:0x407866",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-copy-construction.json."
+    },
+    {
+      "name": "instruction:0x408196",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-retirement-review.json."
+    },
+    {
+      "name": "instruction:0x40819e",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-retirement-review.json."
+    },
+    {
+      "name": "instruction:0x4081a6",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-retirement-review.json."
+    },
+    {
+      "name": "instruction:0x8c3207",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-retirement-review.json."
+    },
+    {
+      "name": "instruction:0x8c3209",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-retirement-review.json."
+    },
+    {
+      "name": "instruction:0x8c4d16",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-retirement-review.json."
+    },
+    {
+      "name": "instruction:0x8c4d67",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-retirement-review.json."
+    },
+    {
+      "name": "instruction:0xaef162",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-allocation-wrapper.json."
+    },
+    {
+      "name": "instruction:0xa0f52b",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-allocation-wrapper.json."
+    },
+    {
+      "name": "independent-function:0x4074c0",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "independent-function:0x8bb720",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "independent-function:0x40bd50",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "independent-function:0x40c000",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "independent-function:0x407f10",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "independent-function:0x408170",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "independent-function:0x4087a0",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "independent-function:0x407a60",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "independent-function:0x8c31f0",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "independent-function:0x8c4ce0",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "independent-function:0x8a71b0",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "independent-function:0x85c3e0",
+      "pass": true,
+      "detail": "Independent raw instructions agree directly; no hash. Semantic reasoning reviewed separately."
+    },
+    {
+      "name": "userdata-vtable:slot0",
+      "pass": true,
+      "detail": "Correct one-slot table and entry target."
+    },
+    {
+      "name": "independent-userdata-vtable:slot0",
+      "pass": true,
+      "detail": "Child and primary table evidence agree."
+    },
+    {
+      "name": "userdata-vtable:RVA",
+      "pass": true,
+      "detail": "Child table base and target VA/RVA have explicit pointer meaning."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,51 @@
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"addr\":\"0xA2A390\",\"code\":\"__int16 sub_A2A390()\\n{\\n  int i; // esi\\n  void (__cdecl *v1)(int); // eax\\n  int (__cdecl *n0x8000_2)(int, int, _DWORD, _DWORD, int); // eax\\n  unsigned int v3; // esi\\n  int v4; // edi\\n  int v5; // ebx\\n  int AsyncKeyState; // esi\\n  SHORT v7; // ax\\n  int v8; // ecx\\n  unsigned int n0x8000; // esi\\n  unsigned int n0x8000_1; // edi\\n  int v12; // [esp+10h] [ebp-38h]\\n  int v13; // [esp+14h] [ebp-34h]\\n  struct tagMSG Msg; // [esp+18h] [ebp-30h] BYREF\\n  struct tagRECT Rect; // [esp+34h] [ebp-14h] BYREF\\n\\n  while ( PeekMessageA(&Msg, 0, 0, 0, PM_REMOVE) ) /*0xa2a3ba*/\\n  {\\n    if ( Msg.message == 18 ) /*0xa2a3cb*/\\n    {\\n      for ( i = ::i; i; i = *(_DWORD *)i ) /*0xa2a3d5*/\\n      {\\n        v1 = *(void (__cdecl **)(int))(i + 492); /*0xa2a3e0*/\\n        *(_BYTE *)(i + 8) = 1; /*0xa2a3e6*/\\n        if ( v1 ) /*0xa2a3ec*/\\n          v1(i); /*0xa2a3ef*/\\n      }\\n    }\\n    else\\n    {\\n      TranslateMessage(&Msg); /*0xa2a401*/\\n      DispatchMessageA(&Msg); /*0xa2a408*/\\n    }\\n  }\\n  LOWORD(n0x8000_2) = dword_BE666C; /*0xa2a421*/\\n  v13 = dword_BE666C; /*0xa2a426*/\\n  if ( dword_BE666C )\\n  {\\n    v3 = (unsigned int)GetAsyncKeyState(16) >> 31; /*0xa2a441*/\\n    v4 = v3 | 2; /*0xa2a448*/\\n    if ( GetAsyncKeyState(17) >= 0 ) /*0xa2a450*/\\n      v4 = v3; /*0xa2a450*/\\n    v5 = v4 | 4; /*0xa2a457*/\\n    if ( GetAsyncKeyState(18) >= 0 ) /*0xa2a45f*/\\n      v5 = v4; /*0xa2a45f*/\\n    AsyncKeyState = GetAsyncKeyState(92); /*0xa2a46c*/\\n    v7 = GetAsyncKeyState(91); /*0xa2a46f*/\\n    v8 = v5 | 8; /*0xa2a474*/\\n    if ( (AsyncKeyState | v7) >= 0 ) /*0xa2a47e*/\\n      v8 = v5; /*0xa2a47e*/\\n    v12 = v8; /*0xa2a481*/\\n    n0x8000 = (unsigned __int16)GetAsyncKeyState(160); /*0xa2a48c*/\\n    LOWORD(n0x8000_2) = GetAsyncKeyState(161); /*0xa2a48f*/\\n    n0x8000_1 = (unsigned __int16)n0x8000_2; /*0xa2a49f*/\\n    if ( n0x8000 < 0x8000 && *(_BYTE *)(v13 + 440) == 1 )\\n    {\\n      *(_BYTE *)(v13 + 440) = *(_BYTE *)(v13 + 68) != 0 ? 3 : 0;\\n      n0x8000_2 = *(int (__cdecl **)(int, int, _DWORD, _DWORD, int))(v13 + 528); /*0xa2a4bc*/\\n      if ( n0x8000_2 ) /*0xa2a4c4*/\\n        LOWORD(n0x8000_2) = n0x8000_2(v13, 340, 0, 0, v12); /*0xa2a4d1*/\\n    }\\n    if ( n0x8000_1 < 0x8000 && *(_BYTE *)(v13 + 444) == 1 )\\n    {\\n      *(_BYTE *)(v13 + 444) = *(_BYTE *)(v13 + 68) != 0 ? 3 : 0;\\n      n0x8000_2 = *(int (__cdecl **)(int, int, _DWORD, _DWORD, int))(v13 + 528); /*0xa2a4f6*/\\n      if ( n0x8000_2 ) /*0xa2a4fe*/\\n        LOWORD(n0x8000_2) = n0x8000_2(v13, 344, 0, 0, v12); /*0xa2a50b*/\\n    }\\n    if ( *(_DWORD *)(v13 + 88) == 212995 && !*(_BYTE *)(v13 + 548) ) /*0xa2a519*/\\n    {\\n      GetClientRect(*(HWND *)(v13 + 536), &Rect); /*0xa2a52d*/\\n      LOWORD(n0x8000_2) = sub_A2A580(v13); /*0xa2a559*/\\n      *(_BYTE *)(v13 + 548) = 1; /*0xa2a55e*/\\n    }\\n  }\\n  return (__int16)n0x8000_2; /*0xa2a565*/\\n}\",\"refs\":[{\"addr\":\"0xbe6668\",\"name\":\"i\"},{\"addr\":\"0xaaa408\",\"name\":\"TranslateMessage\"},{\"addr\":\"0xaaa48c\",\"name\":\"DispatchMessageA\"},{\"addr\":\"0xaaa41c\",\"name\":\"PeekMessageA\"},{\"addr\":\"0xbe666c\",\"name\":\"dword_BE666C\"},{\"addr\":\"0xaaa428\",\"name\":\"GetAsyncKeyState\"},{\"addr\":\"0xaaa418\",\"name\":\"GetClientRect\"},{\"addr\":\"0xa2a580\",\"name\":\"sub_A2A580\"}]}"
+      }
+    ],
+    "structuredContent": {
+      "addr": "0xA2A390",
+      "code": "__int16 sub_A2A390()\n{\n  int i; // esi\n  void (__cdecl *v1)(int); // eax\n  int (__cdecl *n0x8000_2)(int, int, _DWORD, _DWORD, int); // eax\n  unsigned int v3; // esi\n  int v4; // edi\n  int v5; // ebx\n  int AsyncKeyState; // esi\n  SHORT v7; // ax\n  int v8; // ecx\n  unsigned int n0x8000; // esi\n  unsigned int n0x8000_1; // edi\n  int v12; // [esp+10h] [ebp-38h]\n  int v13; // [esp+14h] [ebp-34h]\n  struct tagMSG Msg; // [esp+18h] [ebp-30h] BYREF\n  struct tagRECT Rect; // [esp+34h] [ebp-14h] BYREF\n\n  while ( PeekMessageA(&Msg, 0, 0, 0, PM_REMOVE) ) /*0xa2a3ba*/\n  {\n    if ( Msg.message == 18 ) /*0xa2a3cb*/\n    {\n      for ( i = ::i; i; i = *(_DWORD *)i ) /*0xa2a3d5*/\n      {\n        v1 = *(void (__cdecl **)(int))(i + 492); /*0xa2a3e0*/\n        *(_BYTE *)(i + 8) = 1; /*0xa2a3e6*/\n        if ( v1 ) /*0xa2a3ec*/\n          v1(i); /*0xa2a3ef*/\n      }\n    }\n    else\n    {\n      TranslateMessage(&Msg); /*0xa2a401*/\n      DispatchMessageA(&Msg); /*0xa2a408*/\n    }\n  }\n  LOWORD(n0x8000_2) = dword_BE666C; /*0xa2a421*/\n  v13 = dword_BE666C; /*0xa2a426*/\n  if ( dword_BE666C )\n  {\n    v3 = (unsigned int)GetAsyncKeyState(16) >> 31; /*0xa2a441*/\n    v4 = v3 | 2; /*0xa2a448*/\n    if ( GetAsyncKeyState(17) >= 0 ) /*0xa2a450*/\n      v4 = v3; /*0xa2a450*/\n    v5 = v4 | 4; /*0xa2a457*/\n    if ( GetAsyncKeyState(18) >= 0 ) /*0xa2a45f*/\n      v5 = v4; /*0xa2a45f*/\n    AsyncKeyState = GetAsyncKeyState(92); /*0xa2a46c*/\n    v7 = GetAsyncKeyState(91); /*0xa2a46f*/\n    v8 = v5 | 8; /*0xa2a474*/\n    if ( (AsyncKeyState | v7) >= 0 ) /*0xa2a47e*/\n      v8 = v5; /*0xa2a47e*/\n    v12 = v8; /*0xa2a481*/\n    n0x8000 = (unsigned __int16)GetAsyncKeyState(160); /*0xa2a48c*/\n    LOWORD(n0x8000_2) = GetAsyncKeyState(161); /*0xa2a48f*/\n    n0x8000_1 = (unsigned __int16)n0x8000_2; /*0xa2a49f*/\n    if ( n0x8000 < 0x8000 && *(_BYTE *)(v13 + 440) == 1 )\n    {\n      *(_BYTE *)(v13 + 440) = *(_BYTE *)(v13 + 68) != 0 ? 3 : 0;\n      n0x8000_2 = *(int (__cdecl **)(int, int, _DWORD, _DWORD, int))(v13 + 528); /*0xa2a4bc*/\n      if ( n0x8000_2 ) /*0xa2a4c4*/\n        LOWORD(n0x8000_2) = n0x8000_2(v13, 340, 0, 0, v12); /*0xa2a4d1*/\n    }\n    if ( n0x8000_1 < 0x8000 && *(_BYTE *)(v13 + 444) == 1 )\n    {\n      *(_BYTE *)(v13 + 444) = *(_BYTE *)(v13 + 68) != 0 ? 3 : 0;\n      n0x8000_2 = *(int (__cdecl **)(int, int, _DWORD, _DWORD, int))(v13 + 528); /*0xa2a4f6*/\n      if ( n0x8000_2 ) /*0xa2a4fe*/\n        LOWORD(n0x8000_2) = n0x8000_2(v13, 344, 0, 0, v12); /*0xa2a50b*/\n    }\n    if ( *(_DWORD *)(v13 + 88) == 212995 && !*(_BYTE *)(v13 + 548) ) /*0xa2a519*/\n    {\n      GetClientRect(*(HWND *)(v13 + 536), &Rect); /*0xa2a52d*/\n      LOWORD(n0x8000_2) = sub_A2A580(v13); /*0xa2a559*/\n      *(_BYTE *)(v13 + 548) = 1; /*0xa2a55e*/\n    }\n  }\n  return (__int16)n0x8000_2; /*0xa2a565*/\n}",
+      "refs": [
+        {
+          "addr": "0xbe6668",
+          "name": "i"
+        },
+        {
+          "addr": "0xaaa408",
+          "name": "TranslateMessage"
+        },
+        {
+          "addr": "0xaaa48c",
+          "name": "DispatchMessageA"
+        },
+        {
+          "addr": "0xaaa41c",
+          "name": "PeekMessageA"
+        },
+        {
+          "addr": "0xbe666c",
+          "name": "dword_BE666C"
+        },
+        {
+          "addr": "0xaaa428",
+          "name": "GetAsyncKeyState"
+        },
+        {
+          "addr": "0xaaa418",
+          "name": "GetClientRect"
+        },
+        {
+          "addr": "0xa2a580",
+          "name": "sub_A2A580"
+        }
+      ]
+    },
+    "isError": false
+  },
+  "id": 5
+}

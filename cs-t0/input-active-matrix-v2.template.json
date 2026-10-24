@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "matrixIdentity": "IsaacCsT0-ActiveMatrix-v2",
+  "cases": [
+    { "caseName": "control-no-native", "analysisPath": "primary/control-no-native/analysis.json" },
+    { "caseName": "keyboard", "analysisPath": "primary/keyboard/analysis.json" },
+    { "caseName": "controller", "analysisPath": "primary/controller/analysis.json" },
+    { "caseName": "simultaneous", "analysisPath": "primary/simultaneous/analysis.json" },
+    { "caseName": "rapid-tap", "analysisPath": "primary/rapid-tap/analysis.json" },
+    { "caseName": "device-switch", "analysisPath": "primary/device-switch/analysis.json" },
+    { "caseName": "pause", "analysisPath": "primary/pause/analysis.json" },
+    { "caseName": "loading", "analysisPath": "primary/loading/analysis.json" },
+    { "caseName": "room", "analysisPath": "primary/room/analysis.json" },
+    { "caseName": "menu", "analysisPath": "primary/menu/analysis.json" },
+    { "caseName": "queue-full", "analysisPath": "primary/queue-full/analysis.json" },
+    { "caseName": "expired", "analysisPath": "primary/expired/analysis.json" },
+    { "caseName": "too-far", "analysisPath": "primary/too-far/analysis.json" },
+    { "caseName": "stale", "analysisPath": "primary/stale/analysis.json" },
+    { "caseName": "conflict", "analysisPath": "primary/conflict/analysis.json" },
+    { "caseName": "duplicate", "analysisPath": "primary/duplicate/analysis.json" },
+    { "caseName": "original-online-disarmed", "analysisPath": "primary/original-online-disarmed/analysis.json" },
+    { "caseName": "loopback", "analysisPath": "primary/loopback/analysis.json" }
+  ],
+  "repeatabilityAnalyses": [
+    "extra/loopback-a/analysis.json",
+    "extra/loopback-b/analysis.json"
+  ]
+}

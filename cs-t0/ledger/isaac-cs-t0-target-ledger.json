@@ -1,0 +1,298 @@
+{
+  "schemaVersion": 1,
+  "ledgerId": "isaac-cs-t0-01-2026-04-21-x86",
+  "experimentIdentity": "IsaacCsT0-Evidence-v1",
+  "image": {
+    "fileName": "isaac-ng.exe",
+    "machine": "0x014C",
+    "timestamp": "0x69E6E3A7",
+    "imageSize": "0x0092C000",
+    "preferredImageBase": "0x00400000",
+    "sections": [
+      { "name": ".text", "virtualSize": "0x00716134", "rva": "0x00001000", "rawSize": "0x00716200", "rawOffset": "0x00000400", "characteristics": "0x60000020" },
+      { "name": ".rdata", "virtualSize": "0x000DF948", "rva": "0x00718000", "rawSize": "0x000DFA00", "rawOffset": "0x00716600", "characteristics": "0x40000040" },
+      { "name": ".data", "virtualSize": "0x000A4AA4", "rva": "0x007F8000", "rawSize": "0x00069E00", "rawOffset": "0x007F6000", "characteristics": "0xC0000040" },
+      { "name": ".rsrc", "virtualSize": "0x00003B20", "rva": "0x0089D000", "rawSize": "0x00003C00", "rawOffset": "0x0085FE00", "characteristics": "0x40000040" },
+      { "name": ".reloc", "virtualSize": "0x0005C93C", "rva": "0x008A1000", "rawSize": "0x0005CA00", "rawOffset": "0x00863A00", "characteristics": "0x42000040" },
+      { "name": ".bind", "virtualSize": "0x0002D808", "rva": "0x008FE000", "rawSize": "0x0002D808", "rawOffset": "0x008C0400", "characteristics": "0x60000000" }
+    ],
+    "variants": [
+      {
+        "id": "steam-original-2026-04-21",
+        "description": "Exact Steam backup before the two existing online-mod static patches",
+        "staticPatchState": "STEAM_ORIGINAL_UNPATCHED",
+        "fileSha256": "3BDFC8BAE0DC7E334B76009D0AD45DFBB16EE5F00C06FFBC3A0094E34D44616B",
+        "textSha256": "79F75061EAF803CB67F5CA037C5236016506622550626AF7BE040B0E3F98F106"
+      },
+      {
+        "id": "online-mod-patched-2026-04-21",
+        "description": "Exact current installation with the two known online-mod static patches enabled",
+        "staticPatchState": "ONLINE_MOD_TWO_PATCHES_ENABLED",
+        "fileSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+        "textSha256": "197175428117EC352324F22FA44CF42D60511F0A4887BF6DC5FECFBF9A6EE758"
+      }
+    ]
+  },
+  "targets": [
+    {
+      "id": "manager-global-slot",
+      "semantic": "Global manager pointer slot read by the online input path",
+      "kind": "absoluteReference",
+      "section": ".data",
+      "rva": "0x0087169C",
+      "feature": {
+        "section": ".text",
+        "rva": "0x00510855",
+        "bytes": "A19C16C7008B0D589AC700C745D0000000008B802CB104008945D485C9751568",
+        "maskedRanges": [ { "offset": 1, "length": 4 }, { "offset": 7, "length": 4 } ]
+      },
+      "operandOffset": 1,
+      "abi": "void** global slot; pointee layout is not asserted by T0-01",
+      "thread": "main game thread in existing online-path observations",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/custom-sync-runtime-analysis.md:35", "native/include/isaac_sync/runtime_target.hpp" ]
+    },
+    {
+      "id": "network-backend-global-slot",
+      "semantic": "Current network backend object pointer slot",
+      "kind": "absoluteReference",
+      "section": ".data",
+      "rva": "0x00879A58",
+      "feature": {
+        "section": ".text",
+        "rva": "0x00510855",
+        "bytes": "A19C16C7008B0D589AC700C745D0000000008B802CB104008945D485C9751568",
+        "maskedRanges": [ { "offset": 1, "length": 4 }, { "offset": 7, "length": 4 } ]
+      },
+      "operandOffset": 7,
+      "abi": "void** global slot; backend object begins with a vtable pointer",
+      "thread": "main game thread in existing online-path observations",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/custom-sync-runtime-analysis.md:36", "native/include/isaac_sync/runtime_target.hpp" ]
+    },
+    {
+      "id": "steam-networking-context-descriptor",
+      "semantic": "SteamNetworking006 context descriptor initializer",
+      "kind": "pointerValue",
+      "section": ".data",
+      "rva": "0x0085C51C",
+      "feature": {
+        "section": ".data",
+        "rva": "0x0085C51C",
+        "bytes": "9060A7000000000000000000ECA4B100ECA4B100766F7262",
+        "maskedRanges": [ { "offset": 0, "length": 4 }, { "offset": 12, "length": 8 } ]
+      },
+      "expectedBytes": "9060A700",
+      "expectedTargetRva": "0x00676090",
+      "abi": "descriptor[0] is void (__cdecl*)() initializer RVA 0x676090",
+      "thread": "Steam context initialization path; runtime invocation thread not promoted by T0-01",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/custom-sync-runtime-analysis.md:42", "docs/custom-sync-runtime-analysis.md:275", "native/include/isaac_sync/runtime_target.hpp" ]
+    },
+    {
+      "id": "steam-backend-vtable",
+      "semantic": "Steam backend vtable including Receive at +0x08 and Send at +0x14",
+      "kind": "vtable",
+      "section": ".rdata",
+      "rva": "0x007A2440",
+      "feature": {
+        "section": ".rdata",
+        "rva": "0x007A2440",
+        "bytes": "80CC4200B051A7008052A700D053A700F053A7001054A700108EA7006054A700D055A7004057A700",
+        "maskedRanges": []
+      },
+      "vtableTargetRvas": [ "0x0002CC80", "0x006751B0", "0x00675280", "0x006753D0", "0x006753F0", "0x00675410", "0x00678E10", "0x00675460", "0x006755D0", "0x00675740" ],
+      "abi": "x86 C++ backend vtable; exact member prototypes remain limited to existing Send/Receive evidence",
+      "thread": "online networking path; T0-01 does not infer a general thread contract",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/custom-sync-runtime-analysis.md:40", "docs/custom-sync-runtime-analysis.md:41", "docs/custom-sync-runtime-analysis.md:53", "native/include/isaac_sync/runtime_target.hpp" ]
+    },
+    {
+      "id": "eos-backend-vtable",
+      "semantic": "EOS backend vtable retained as a rejected active-backend alternative for the fixed smoke",
+      "kind": "vtable",
+      "section": ".rdata",
+      "rva": "0x007A2530",
+      "feature": {
+        "section": ".rdata",
+        "rva": "0x007A2530",
+        "bytes": "10CA4200F060A7008061A7003063A7001064A7002064A700108EA700A065A7005066A7003068A700",
+        "maskedRanges": []
+      },
+      "vtableTargetRvas": [ "0x0002CA10", "0x006760F0", "0x00676180", "0x00676330", "0x00676410", "0x00676420", "0x00678E10", "0x006765A0", "0x00676650", "0x00676830" ],
+      "abi": "x86 C++ backend vtable; layout identity only",
+      "thread": "not active in the fixed Steam smoke; no runtime thread assertion",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/custom-sync-runtime-analysis.md:43", "docs/custom-sync-runtime-analysis.md:53", "native/include/isaac_sync/runtime_target.hpp" ]
+    },
+    {
+      "id": "input-advance-call",
+      "semantic": "Existing online input advance call",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x0050B8E5",
+      "feature": {
+        "section": ".text",
+        "rva": "0x0050B8CD",
+        "bytes": "32C08B4DF464890D00000000595F5E8BE55D8BE35BC38BCFE8965000008B4DF464890D00000000595F5E8BE55D8BE35BC3",
+        "maskedRanges": []
+      },
+      "expectedBytes": "E896500000",
+      "expectedTargetRva": "0x00510980",
+      "abi": "bool (__thiscall*)(void* inputManager)",
+      "thread": "main game thread, observed in existing online-frame evidence",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/custom-sync-runtime-analysis.md:25", "docs/custom-sync-runtime-analysis.md:37", "native/include/isaac_sync/runtime_target.hpp" ]
+    },
+    {
+      "id": "identity-match-call",
+      "semantic": "Eight-byte online input identity match call",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x0050B754",
+      "feature": {
+        "section": ".text",
+        "rva": "0x0050B730",
+        "bytes": "D016008B45E88945E8C745FC0A0000008B45D08B088B40048945CC8D45C8894DC88BCF50E897F4FFFF8BC8894DDC85C9746183EC088BF4C70600000000C74604",
+        "maskedRanges": []
+      },
+      "expectedBytes": "E897F4FFFF",
+      "expectedTargetRva": "0x0050ABF0",
+      "abi": "bool (__thiscall*)(manager-like object, two-dword identity*)",
+      "thread": "main game thread in existing input-message handling evidence",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/custom-sync-runtime-analysis.md:38", "docs/custom-sync-runtime-analysis.md:155" ]
+    },
+    {
+      "id": "online-dispatch-call-5110ab",
+      "semantic": "Existing online input/update chain dispatch call; not a general gameplay tick boundary",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x005110AB",
+      "feature": {
+        "section": ".text",
+        "rva": "0x005110A7",
+        "bytes": "6A008BCFE890C5FFFF8B8FB01800008BC18B97B41800000B",
+        "maskedRanges": []
+      },
+      "expectedBytes": "E890C5FFFF",
+      "expectedTargetRva": "0x0050D640",
+      "abi": "uint32_t (__thiscall*)(void* manager, uint32_t zero)",
+      "thread": "main game thread; before MC_POST_UPDATE in existing observations",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/custom-sync-runtime-analysis.md:12", "docs/custom-sync-runtime-analysis.md:39", "docs/custom-sync-runtime-analysis.md:204", "docs/refactor/isaac-cs-architecture-plan.md:83" ]
+    },
+    {
+      "id": "lua-class-registration-entry",
+      "semantic": "Lua engine class registration entry used by the existing API binding",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x00466960",
+      "feature": {
+        "section": ".text",
+        "rva": "0x00466960",
+        "bytes": "558BEC6AFF68884AB00064A1000000005081EC44010000535657A1B493BF0033C5508D45F464A3000000008BD98B53188D4DBCE81871FFFF5068E401B7008D4D",
+        "maskedRanges": [ { "offset": 6, "length": 4 }, { "offset": 27, "length": 4 }, { "offset": 58, "length": 4 } ]
+      },
+      "abi": "void (__thiscall*)(LuaEngine*); exact downstream registrations are outside T0-01",
+      "thread": "Lua engine initialization on the main game thread in existing evidence",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/isaac-hook-research.md:1060", "native/include/isaac_sync/runtime_target.hpp" ]
+    },
+    {
+      "id": "lua-newstate-creator-call",
+      "semantic": "Lua root creation path using lua_newstate",
+      "kind": "iatCall",
+      "section": ".text",
+      "rva": "0x0046057B",
+      "feature": {
+        "section": ".text",
+        "rva": "0x0046056C",
+        "bytes": "A18C16C70085C0742E506840048600FF155883B10083C4088944240889461885C07421687004860050FF155483B1008B461883C408EB09FF155083B10089461889442408807D0800",
+        "maskedRanges": [ { "offset": 1, "length": 4 }, { "offset": 11, "length": 4 }, { "offset": 17, "length": 4 }, { "offset": 36, "length": 4 }, { "offset": 43, "length": 4 }, { "offset": 57, "length": 4 } ]
+      },
+      "expectedBytes": "FF155883B100",
+      "importName": "lua_newstate",
+      "expectedOwnerModule": "Lua5.3.3r.dll",
+      "abi": "lua_State* (__cdecl*)(lua_Alloc, void*)",
+      "thread": "Lua engine creation path; existing lifecycle evidence associates root publication with the main thread",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/lua-state-lifecycle-design.md:40", "native/include/isaac_sync/runtime_target.hpp", "native/src/runtime_target.cpp" ]
+    },
+    {
+      "id": "lua-lnewstate-creator-call",
+      "semantic": "Lua root creation path using luaL_newstate",
+      "kind": "iatCall",
+      "section": ".text",
+      "rva": "0x004605A3",
+      "feature": {
+        "section": ".text",
+        "rva": "0x0046056C",
+        "bytes": "A18C16C70085C0742E506840048600FF155883B10083C4088944240889461885C07421687004860050FF155483B1008B461883C408EB09FF155083B10089461889442408807D0800",
+        "maskedRanges": [ { "offset": 1, "length": 4 }, { "offset": 11, "length": 4 }, { "offset": 17, "length": 4 }, { "offset": 36, "length": 4 }, { "offset": 43, "length": 4 }, { "offset": 57, "length": 4 } ]
+      },
+      "expectedBytes": "FF155083B100",
+      "importName": "luaL_newstate",
+      "expectedOwnerModule": "Lua5.3.3r.dll",
+      "abi": "lua_State* (__cdecl*)()",
+      "thread": "Lua engine creation path; existing lifecycle evidence associates root publication with the main thread",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/lua-state-lifecycle-design.md:40", "native/include/isaac_sync/runtime_target.hpp", "native/src/runtime_target.cpp" ]
+    },
+    {
+      "id": "lua-close-call",
+      "semantic": "Lua root teardown call using lua_close",
+      "kind": "iatCall",
+      "section": ".text",
+      "rva": "0x0046E5C0",
+      "feature": {
+        "section": ".text",
+        "rva": "0x0046E594",
+        "bytes": "8B771485F67422FF760468D8B9F0FFFF36FF151C83B1006A0856E8A90B280083C414C7471400000000FF7718FF153C83B10083C404C74718000000005F5E8BE5",
+        "maskedRanges": [ { "offset": 18, "length": 4 }, { "offset": 46, "length": 4 } ]
+      },
+      "expectedBytes": "FF153C83B100",
+      "importName": "lua_close",
+      "expectedOwnerModule": "Lua5.3.3r.dll",
+      "abi": "void (__cdecl*)(lua_State*)",
+      "thread": "Lua engine teardown path; no cross-thread permission is inferred",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/lua-state-lifecycle-design.md:40", "native/include/isaac_sync/runtime_target.hpp", "native/src/runtime_target.cpp" ]
+    },
+    {
+      "id": "lua-simulation-pcall",
+      "semantic": "lua_pcallk used by the existing MC_POST_UPDATE simulation callback path",
+      "kind": "iatCall",
+      "section": ".text",
+      "rva": "0x004729CB",
+      "feature": {
+        "section": ".text",
+        "rva": "0x004729C0",
+        "bytes": "6A006A006A006A016A0253FF15D883B10083C41885C075346AFF53FF15C883B1008B750868D8B9F0FF53891EFF151483",
+        "maskedRanges": [ { "offset": 13, "length": 4 }, { "offset": 27, "length": 4 }, { "offset": 44, "length": 4 } ]
+      },
+      "expectedBytes": "FF15D883B100",
+      "importName": "lua_pcallk",
+      "expectedOwnerModule": "Lua5.3.3r.dll",
+      "abi": "int (__cdecl*)(lua_State*, int nargs, int nresults, int errfunc, lua_KContext, lua_KFunction)",
+      "thread": "main game thread; existing marker evidence gives return RVA 0x4729D1",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/custom-sync-runtime-analysis.md:45", "docs/custom-sync-runtime-analysis.md:254", "native/include/isaac_sync/runtime_target.hpp" ]
+    }
+  ],
+  "candidates": [
+    { "id": "gameplay-tick-boundary", "description": "General gameplay simulation tick boundary is not established by the existing online dispatch call", "evidenceLabel": "UNKNOWN", "evidenceSources": [ "docs/refactor/isaac-cs-t0-task-plan.md:158" ] },
+    { "id": "input-sample-boundary", "description": "Canonical local input sampling boundary remains unknown", "evidenceLabel": "UNKNOWN", "evidenceSources": [ "docs/refactor/isaac-cs-t0-task-plan.md:158" ] },
+    { "id": "entity-update-boundary", "description": "Entity update boundary remains unknown", "evidenceLabel": "UNKNOWN", "evidenceSources": [ "docs/refactor/isaac-cs-t0-task-plan.md:158" ] },
+    { "id": "render-boundary", "description": "Presentation/render boundary remains unknown", "evidenceLabel": "UNKNOWN", "evidenceSources": [ "docs/refactor/isaac-cs-t0-task-plan.md:158" ] },
+    { "id": "local-coop-manager", "description": "Local co-op manager identity and stable layout remain unknown", "evidenceLabel": "UNKNOWN", "evidenceSources": [ "docs/refactor/isaac-cs-t0-task-plan.md:158" ] },
+    { "id": "entity-container", "description": "Authoritative entity container identity and mutation contract remain unknown", "evidenceLabel": "UNKNOWN", "evidenceSources": [ "docs/refactor/isaac-cs-t0-task-plan.md:158" ] },
+    { "id": "old-wide-online-window-is-general-tick", "description": "The older broad online input window is rejected as proof of a general C/S gameplay tick boundary", "evidenceLabel": "REJECTED_HYPOTHESIS", "evidenceSources": [ "docs/isaac-hook-research.md:1098", "docs/custom-sync-runtime-analysis.md:12" ] }
+  ],
+  "diagnostics": [
+    { "id": "framestate-history", "description": "Existing framestate history is registered only as a diagnostic entry; snapshot/apply capability is not claimed", "evidenceLabel": "STATIC_CONFIRMED", "evidenceSources": [ "docs/refactor/isaac-cs-t0-task-plan.md:159" ] },
+    { "id": "checksum-history", "description": "Existing checksum history is registered only as a diagnostic entry", "evidenceLabel": "STATIC_CONFIRMED", "evidenceSources": [ "docs/refactor/isaac-cs-t0-task-plan.md:159" ] },
+    { "id": "rng-history", "description": "Existing RNG history is registered only as a diagnostic entry", "evidenceLabel": "STATIC_CONFIRMED", "evidenceSources": [ "docs/refactor/isaac-cs-t0-task-plan.md:159" ] },
+    { "id": "snapshot-apply", "description": "No safe, complete snapshot/apply operation is established", "evidenceLabel": "UNKNOWN", "evidenceSources": [ "docs/refactor/isaac-cs-t0-task-plan.md:159" ] }
+  ]
+}

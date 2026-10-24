@@ -1,0 +1,49 @@
+{
+  "tx": "tx-03-10",
+  "kind": "PRIMARY_STATIC_ABI_CONTEXT",
+  "image_base": "0x400000",
+  "contexts": [
+    [
+      {
+        "va": "0x80ead7",
+        "bytes": "e8 24 98 20 00",
+        "asm": "call    sub_A18300"
+      },
+      {
+        "va": "0x80eadc",
+        "bytes": "b9 e0 98 c7 00",
+        "asm": "mov     ecx, offset dword_C798E0"
+      },
+      {
+        "va": "0x80eae1",
+        "bytes": "e8 4a 97 20 00",
+        "asm": "call    sub_A18230"
+      },
+      {
+        "va": "0x80eae6",
+        "bytes": "8d 87 04 12 00 00",
+        "asm": "lea     eax, [edi+1204h]"
+      },
+      {
+        "va": "0x80eaec",
+        "bytes": "50",
+        "asm": "push    eax"
+      },
+      {
+        "va": "0x80eaed",
+        "bytes": "8d 8f 18 12 00 00",
+        "asm": "lea     ecx, [edi+1218h]"
+      },
+      {
+        "va": "0x80eaf3",
+        "bytes": "e8 58 b0 c0 ff",
+        "asm": "call    sub_419B50"
+      },
+      {
+        "va": "0x80eaf8",
+        "bytes": "6a 01",
+        "asm": "push    1"
+      }
+    ]
+  ]
+}

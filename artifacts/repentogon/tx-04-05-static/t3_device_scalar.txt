@@ -1,0 +1,73 @@
+t3_device_scalar
+RVA=0x5ece50 VA=0x9ece50 END_RVA=0x5ecec7
+
+[DECOMPILE]
+double __thiscall sub_9ECE50(_BYTE *this, unsigned int a2)
+{
+  unsigned int i; // edi
+  float v5; // xmm1_4
+  float v7; // [esp+8h] [ebp-4h]
+  float v8; // [esp+14h] [ebp+8h]
+
+  if ( !this[13] || a2 >= *((_DWORD *)this + 6) )
+    return 0.0;
+  v8 = 0.0;
+  for ( i = 0; i < 8; i += 4 )
+  {
+    v7 = ((double (__thiscall *)(_BYTE *, _DWORD))*(_DWORD *)(*(_DWORD *)this + 28))(
+           this,
+           *(_DWORD *)(*(_DWORD *)(*((_DWORD *)this + 7) + 4 * a2) + i));
+    v5 = fmaxf(v7, v8);
+    v8 = v5;
+  }
+  return fmaxf(*(float *)(*((_DWORD *)this + 50) + 4 * a2), v5);
+}
+
+
+[DISASSEMBLY]
+0x009ece50 (RVA 0x5ece50): push    ebp
+0x009ece51 (RVA 0x5ece51): mov     ebp, esp
+0x009ece53 (RVA 0x5ece53): push    ecx
+0x009ece54 (RVA 0x5ece54): push    ebx
+0x009ece55 (RVA 0x5ece55): push    esi
+0x009ece56 (RVA 0x5ece56): mov     esi, ecx
+0x009ece58 (RVA 0x5ece58): cmp     byte ptr [esi+0Dh], 0
+0x009ece5c (RVA 0x5ece5c): jz      short loc_9ECEBD
+0x009ece5e (RVA 0x5ece5e): mov     ebx, [ebp+arg_0]
+0x009ece61 (RVA 0x5ece61): cmp     ebx, [esi+18h]
+0x009ece64 (RVA 0x5ece64): jnb     short loc_9ECEBD
+0x009ece66 (RVA 0x5ece66): xorps   xmm0, xmm0
+0x009ece69 (RVA 0x5ece69): push    edi
+0x009ece6a (RVA 0x5ece6a): movss   [ebp+arg_0], xmm0
+0x009ece6f (RVA 0x5ece6f): xor     edi, edi
+0x009ece71 (RVA 0x5ece71): mov     eax, [esi+1Ch]
+0x009ece74 (RVA 0x5ece74): mov     ecx, esi
+0x009ece76 (RVA 0x5ece76): mov     edx, [esi]
+0x009ece78 (RVA 0x5ece78): mov     eax, [eax+ebx*4]
+0x009ece7b (RVA 0x5ece7b): push    dword ptr [eax+edi]
+0x009ece7e (RVA 0x5ece7e): mov     eax, [edx+1Ch]
+0x009ece81 (RVA 0x5ece81): call    eax
+0x009ece83 (RVA 0x5ece83): fstp    [ebp+var_4]
+0x009ece86 (RVA 0x5ece86): movss   xmm1, [ebp+var_4]
+0x009ece8b (RVA 0x5ece8b): add     edi, 4
+0x009ece8e (RVA 0x5ece8e): maxss   xmm1, [ebp+arg_0]
+0x009ece93 (RVA 0x5ece93): movss   [ebp+arg_0], xmm1
+0x009ece98 (RVA 0x5ece98): cmp     edi, 8
+0x009ece9b (RVA 0x5ece9b): jb      short loc_9ECE71
+0x009ece9d (RVA 0x5ece9d): mov     eax, [esi+0C8h]
+0x009ecea3 (RVA 0x5ecea3): pop     edi
+0x009ecea4 (RVA 0x5ecea4): pop     esi
+0x009ecea5 (RVA 0x5ecea5): movss   xmm0, dword ptr [eax+ebx*4]
+0x009eceaa (RVA 0x5eceaa): maxss   xmm0, xmm1
+0x009eceae (RVA 0x5eceae): pop     ebx
+0x009eceaf (RVA 0x5eceaf): movss   [ebp+arg_0], xmm0
+0x009eceb4 (RVA 0x5eceb4): fld     [ebp+arg_0]
+0x009eceb7 (RVA 0x5eceb7): mov     esp, ebp
+0x009eceb9 (RVA 0x5eceb9): pop     ebp
+0x009eceba (RVA 0x5eceba): retn    4
+0x009ecebd (RVA 0x5ecebd): fldz
+0x009ecebf (RVA 0x5ecebf): pop     esi
+0x009ecec0 (RVA 0x5ecec0): pop     ebx
+0x009ecec1 (RVA 0x5ecec1): mov     esp, ebp
+0x009ecec3 (RVA 0x5ecec3): pop     ebp
+0x009ecec4 (RVA 0x5ecec4): retn    4

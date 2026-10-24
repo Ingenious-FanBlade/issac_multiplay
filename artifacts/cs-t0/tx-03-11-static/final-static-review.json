@@ -1,0 +1,568 @@
+{
+  "tx": "tx-03-11",
+  "date": "2026-10-22",
+  "timezone": "Asia/Shanghai",
+  "result": "PASS_STATIC_DOCUMENT_REVIEW_ONLY",
+  "execution": "Single final static document review; no game, build, unit test, E2E, injection or debugger operation.",
+  "agent": {
+    "reasoning_effort": "max",
+    "role": "Render static research, independently reviewed by primary agent",
+    "model": "gpt-6-luna"
+  },
+  "semantic_review": "Primary agent read pseudocode, instruction context, vtable entries and receiver/parameter data; script checks document and evidence consistency only.",
+  "limitations": [
+    "Complete native presentation safety remains UNKNOWN",
+    "Derived render/resource targets and Lua callback effects not closed",
+    "No Replica or baseline/delta adapter implemented",
+    "No runtime observations or restoration claim",
+    "No file or state hashing performed"
+  ],
+  "checks": [
+    {
+      "name": "document:docs/research/tx-03-11-logic-presentation-separation.md",
+      "pass": true,
+      "detail": "Final delivery document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->tx-03-10-replica-update-presentation-boundary.md",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-entity-vtable.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-entity-main-render.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-entity-draw-leaves.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-render-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->tx-03-11-luna-render-findings.md",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-sprite-helpers.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-animation.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-animation-consumers.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-event-gameplay.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-shoot-callee.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-spawn-wrapper.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-room-render.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/primary-render-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->../../artifacts/cs-t0/tx-03-11-static/export_primary_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-logic-presentation-separation.md->tx-03-11-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "document:docs/research/tx-03-11-primary-review.md",
+      "pass": true,
+      "detail": "Final delivery document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->tx-03-11-logic-presentation-separation.md",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->tx-03-11-luna-render-findings.md",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/primary-entity-vtable.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/primary-render-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/primary-room-render.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/primary-entity-main-render.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/primary-entity-draw-leaves.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/primary-sprite-helpers.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/primary-animation.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/primary-animation-consumers.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/primary-event-gameplay.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/primary-shoot-callee.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/primary-spawn-wrapper.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/export_primary_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/luna-render-export.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/review_documents.ps1",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-primary-review.md->../../artifacts/cs-t0/tx-03-11-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "document:docs/research/tx-03-11-luna-render-findings.md",
+      "pass": true,
+      "detail": "Final delivery document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-luna-render-findings.md->../../artifacts/cs-t0/tx-03-11-static/luna-export-tx0311.py",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-luna-render-findings.md->../../artifacts/cs-t0/tx-03-11-static/luna-direct-write-excerpts.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-luna-render-findings.md->../../artifacts/cs-t0/tx-03-11-static/luna-entity-render-vslot-mcp.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-luna-render-findings.md->../../artifacts/cs-t0/tx-03-11-static/luna-direct-write-excerpts.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-luna-render-findings.md->../../artifacts/cs-t0/tx-03-11-static/luna-call-targets-80f200-832850.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-luna-render-findings.md->../../artifacts/cs-t0/tx-03-11-static/luna-indirect-dispatch-contexts-mcp.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-11-luna-render-findings.md->../../artifacts/cs-t0/tx-03-11-static/luna-render-indirect-contexts.json",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "document:docs/README.md",
+      "pass": true,
+      "detail": "Final delivery document exists."
+    },
+    {
+      "name": "index:docs/README.md",
+      "pass": true,
+      "detail": "Contains a tx-03-11 update."
+    },
+    {
+      "name": "link:docs/README.md->research/tx-03-11-logic-presentation-separation.md",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "document:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Final delivery document exists."
+    },
+    {
+      "name": "index:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Contains a tx-03-11 update."
+    },
+    {
+      "name": "link:docs/hooks/README.md->../research/tx-03-11-logic-presentation-separation.md",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "document:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Final delivery document exists."
+    },
+    {
+      "name": "index:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Contains a tx-03-11 update."
+    },
+    {
+      "name": "link:docs/hooks/entity.md->../research/tx-03-11-logic-presentation-separation.md",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "document:docs/hooks/game-loop.md",
+      "pass": true,
+      "detail": "Final delivery document exists."
+    },
+    {
+      "name": "index:docs/hooks/game-loop.md",
+      "pass": true,
+      "detail": "Contains a tx-03-11 update."
+    },
+    {
+      "name": "link:docs/hooks/game-loop.md->../research/tx-03-11-logic-presentation-separation.md",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "document:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Final delivery document exists."
+    },
+    {
+      "name": "index:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Contains a tx-03-11 update."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-11-logic-presentation-separation.md",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-11-logic-presentation-separation.md",
+      "pass": true,
+      "detail": "Local reference resolves; current review output is created at completion."
+    },
+    {
+      "name": "json:luna-call-targets-80f200-832850.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:luna-direct-write-excerpts.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:luna-direct-writes-pseudocode.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:luna-entity-render-vslot-mcp.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:luna-function-entry-and-write-context.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:luna-indirect-dispatch-contexts-mcp.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:luna-initial-mcp.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:luna-render-export.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:luna-render-indirect-contexts.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:luna-room-fsm-render-disasm-mcp.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:luna-vslot-dispatch-mcp.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:luna-vtable-entries-mcp.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "json:primary-animation-consumers.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-animation-consumers.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "json:primary-animation.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-animation.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "json:primary-entity-draw-leaves.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-entity-draw-leaves.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "json:primary-entity-main-render.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-entity-main-render.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "json:primary-entity-vtable.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-entity-vtable.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "json:primary-event-gameplay.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-event-gameplay.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "json:primary-event-readers.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-event-readers.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "json:primary-render-review.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-render-review.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "json:primary-room-render.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-room-render.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "json:primary-shoot-callee.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-shoot-callee.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "json:primary-spawn-wrapper.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-spawn-wrapper.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "json:primary-sprite-helpers.json",
+      "pass": true,
+      "detail": "JSON is readable; historical raw tool errors remain evidence, not target-program outcomes."
+    },
+    {
+      "name": "static-addresses:primary-sprite-helpers.json",
+      "pass": true,
+      "detail": "IDA static label, imagebase, function/VA/RVA data and decompilation status agree."
+    },
+    {
+      "name": "instruction:0x408ce1",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-animation.json."
+    },
+    {
+      "name": "instruction:0x408cf0",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-animation.json."
+    },
+    {
+      "name": "instruction:0x40905e",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-animation-consumers.json."
+    },
+    {
+      "name": "instruction:0x40ae61",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-event-gameplay.json."
+    },
+    {
+      "name": "instruction:0x40af01",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-event-gameplay.json."
+    },
+    {
+      "name": "instruction:0x5584b0",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-event-gameplay.json."
+    },
+    {
+      "name": "instruction:0x55867d",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-event-gameplay.json."
+    },
+    {
+      "name": "instruction:0x6cb394",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-shoot-callee.json."
+    },
+    {
+      "name": "instruction:0x428b3d",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-spawn-wrapper.json."
+    },
+    {
+      "name": "instruction:0x419a2e",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-entity-main-render.json."
+    },
+    {
+      "name": "instruction:0x419b11",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-entity-main-render.json."
+    },
+    {
+      "name": "instruction:0x810d0d",
+      "pass": true,
+      "detail": "Exported instruction supports the reviewed claim in primary-room-render.json."
+    },
+    {
+      "name": "vtable:0x14",
+      "pass": true,
+      "detail": "Base table entry and target are explicitly recorded, not inferred for derived classes."
+    },
+    {
+      "name": "vtable:0x18",
+      "pass": true,
+      "detail": "Base table entry and target are explicitly recorded, not inferred for derived classes."
+    }
+  ],
+  "failures": []
+}

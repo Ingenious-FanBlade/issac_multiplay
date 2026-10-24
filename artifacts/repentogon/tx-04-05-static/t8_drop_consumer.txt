@@ -1,0 +1,605 @@
+t8_drop_consumer
+RVA=0x39c300 VA=0x79c300 END_RVA=0x39c7b1
+
+[DECOMPILE]
+void __thiscall sub_79C300(int this)
+{
+  int v2; // eax
+  int v3; // ecx
+  int v4; // ecx
+  int *v5; // ebx
+  int v6; // edx
+  int v7; // ecx
+  int v8; // esi
+  _DWORD *n2; // eax
+  unsigned int v10; // edx
+  char *n2_1; // eax
+  _DWORD *v12; // eax
+  unsigned int n8; // ecx
+  BOOL v14; // ecx
+  int v15; // eax
+  int v16; // ecx
+  int i_1; // esi
+  int i; // edx
+  int v19; // ecx
+  char v20; // bl
+  _BYTE *v21; // eax
+  unsigned int j; // ecx
+  char v23; // dl
+  int *v24; // ecx
+  int v25; // esi
+  unsigned int v26; // edx
+  _DWORD *n2_2; // eax
+  unsigned int n2_3; // esi
+  char v29; // bl
+  int *v30; // edx
+  int v31; // ecx
+  char v32; // al
+  bool v33; // zf
+  _DWORD *v34; // esi
+  unsigned int v35; // eax
+  _DWORD *n2_4; // ecx
+  int n2_5; // esi
+  int n4; // esi
+  int v39; // eax
+  char v40[8]; // [esp+24h] [ebp-10h] BYREF
+  _DWORD v41[2]; // [esp+2Ch] [ebp-8h] BYREF
+
+  if ( *(_DWORD *)(this + 44) || *(_BYTE *)(this + 8317) || (unsigned __int8)sub_7D1C90(this) )
+    return;
+  v2 = *(_DWORD *)(this + 5640);
+  v3 = *(_DWORD *)(this + 5644);
+  v41[0] = v3;
+  if ( v2 > 0 )
+    *(_DWORD *)(this + 5640) = v2 - 1;
+  if ( (unsigned __int8)sub_92F6D0(11, v3, this, 0) )
+  {
+    if ( !(unsigned __int8)sub_7C2470(0, 0) )
+    {
+      *(_DWORD *)v40 = 0;
+      v5 = (int *)(this + 6040);
+      do
+      {
+        if ( !*v5 )
+          break;
+        v6 = *v5;
+        v7 = *(v5 - 1);
+        v8 = v5[1];
+        *v5 = *(v5 - 2);
+        n2 = n2_0;
+        v5[1] = v7;
+        *(v5 - 2) = v6;
+        *(v5 - 1) = v8;
+        if ( n2[35749] != 2 )
+        {
+          n2[35749] = 1;
+          n2[35751] = 2;
+        }
+        v5 += 2;
+        ++*(_DWORD *)v40;
+      }
+      while ( *(_DWORD *)v40 < 3u );
+      if ( !*(_DWORD *)(this + 5620) )
+      {
+        if ( *(_DWORD *)(this + 5492) != 489 )
+          goto LABEL_21;
+        v10 = ((*(int *)(this + 5520) >> 16) + 1) % 0xAu;
+        n2_1 = (char *)n2_0;
+        *(_DWORD *)(this + 5520) = (unsigned __int16)*(_DWORD *)(this + 5520) | (v10 << 16);
+        v12 = n2_1 + 121260;
+        n8 = 0;
+        while ( *v12 != this )
+        {
+          ++n8;
+          v12 += 440;
+          if ( n8 >= 8 )
+            goto LABEL_20;
+        }
+        v12[100] = 0;
+LABEL_20:
+        if ( !v10 )
+LABEL_21:
+          sub_79C7C0(this);
+      }
+    }
+    if ( *(_DWORD *)(this + 5052) == 21 )
+    {
+      v14 = (unsigned __int8)sub_7699D0(619, 0) != 0;
+      v15 = 0;
+      v16 = 4 * v14 + 8;
+      while ( *(int *)(this + 4 * v15 + 7660) >= 0 )
+      {
+        if ( ++v15 >= v16 )
+          goto LABEL_28;
+      }
+      v16 = v15;
+LABEL_28:
+      if ( (unsigned int)v16 > 1 )
+      {
+        i_1 = v16 - 1;
+        for ( i = 0; i < i_1; ++i )
+        {
+          v19 = *(_DWORD *)(this + 4 * i + 7660);
+          *(_DWORD *)(this + 4 * i + 7660) = *(_DWORD *)(this + 4 * i + 7664);
+          *(_DWORD *)(this + 4 * i + 7664) = v19;
+        }
+        sub_980480(0, 0);
+      }
+    }
+    if ( *(_DWORD *)(this + 5052) == 23 )
+    {
+      v20 = *(_BYTE *)(this + 7968);
+      v21 = (_BYTE *)(this + 7968);
+      if ( v20 && *(_BYTE *)(this + 7969) )
+      {
+        for ( j = 0; j < 7; ++j )
+        {
+          v23 = v21[1];
+          if ( !v23 )
+            break;
+          *v21++ = v23;
+        }
+        *(_BYTE *)(j + this + 7968) = v20;
+      }
+      v24 = *(int **)(this + 8064);
+      if ( (unsigned int)((*(_DWORD *)(this + 8068) - (int)v24) >> 2) > 1 )
+      {
+        v25 = *v24;
+        v26 = 0;
+        do
+        {
+          *(_DWORD *)(*(_DWORD *)(this + 8064) + 4 * v26) = *(_DWORD *)(*(_DWORD *)(this + 8064) + 4 * v26 + 4);
+          ++v26;
+        }
+        while ( v26 < ((*(_DWORD *)(this + 8068) - *(_DWORD *)(this + 8064)) >> 2) - 1 );
+        *(_DWORD *)(*(_DWORD *)(this + 8068) - 4) = v25;
+        sub_980480(0, 0);
+      }
+    }
+    if ( sub_7D1DF0(this) > 0 )
+    {
+      *(_DWORD *)v40 = 828;
+      sub_92FAD0(v40);
+      sub_907C60(v40[0], 1067030938, 1, 0, 1065353216, 0);
+      sub_6FF360(n2_0, 8);
+    }
+  }
+  if ( !(unsigned __int8)sub_92F610(11, v41[0], this, v4) )
+  {
+    *(_DWORD *)(this + 6064) = 0;
+    return;
+  }
+  if ( ++*(_DWORD *)(this + 6064) <= 0x78u || (n2_2 = n2_0, *((_DWORD *)n2_0 + 38637) == 4) )
+  {
+    *(_DWORD *)(this + 6252) = 0;
+    return;
+  }
+  n2_3 = 0;
+  *(_DWORD *)(this + 6064) = 0;
+  v29 = 0;
+  v30 = (int *)(this + 5808);
+  *(_DWORD *)v40 = this + 5808;
+  do
+  {
+    v31 = *v30;
+    if ( !*v30 )
+      goto LABEL_61;
+    if ( (int)n2_2[38627] < 2 )
+    {
+      switch ( v31 )
+      {
+        case 53:
+          goto LABEL_61;
+        case 64:
+          v33 = n2_2[38591] == 28;
+          break;
+        case 16:
+          v33 = n2_2[38637] == 35;
+          break;
+        default:
+LABEL_60:
+          v29 = 1;
+          goto LABEL_61;
+      }
+      if ( v33 )
+        goto LABEL_61;
+      goto LABEL_60;
+    }
+    v32 = (*(int (__thiscall **)(_DWORD, int))(*(_DWORD *)n2_2[38630] + 80))(n2_2[38630], this);
+    v30 = *(int **)v40;
+    v33 = v32 == 0;
+    n2_2 = n2_0;
+    if ( !v33 )
+      goto LABEL_60;
+LABEL_61:
+    ++n2_3;
+    *(_DWORD *)v40 = ++v30;
+  }
+  while ( n2_3 < 2 );
+  *(_DWORD *)v40 = 0;
+  if ( sub_7A4610(this) )
+  {
+    v34 = (_DWORD *)(this + 6036);
+    do
+    {
+      if ( *(v34 - 1) && *v34 != 2 )
+        v29 = 1;
+      ++*(_DWORD *)v40;
+      v34 += 2;
+      v35 = sub_7A4610(this);
+    }
+    while ( *(_DWORD *)v40 < v35 );
+  }
+  if ( v29 )
+  {
+    n2_4 = n2_0;
+    if ( *((_DWORD *)n2_0 + 35749) != 2 )
+    {
+      *((_DWORD *)n2_0 + 35749) = 1;
+      n2_4[35751] = 2;
+    }
+    *(_DWORD *)(this + 4984) |= 0x20u;
+    n2_5 = 2;
+    do
+    {
+      sub_808DC0(v41, this + 828, 0, 0, 0, 0);
+      sub_76A8E0(v41, 0);
+      if ( !*(_DWORD *)(this + 44) && !*(_BYTE *)(this + 8317) )
+        sub_752600(this);
+      --n2_5;
+    }
+    while ( n2_5 );
+    n4 = 4;
+    do
+    {
+      v39 = sub_808DC0(v40, this + 828, 0, 0, 0, 0);
+      sub_79C930(-1, v39);
+      --n4;
+    }
+    while ( n4 );
+  }
+}
+
+
+[DISASSEMBLY]
+0x0079c300 (RVA 0x39c300): push    ebp
+0x0079c301 (RVA 0x39c301): mov     ebp, esp
+0x0079c303 (RVA 0x39c303): and     esp, 0FFFFFFF8h
+0x0079c306 (RVA 0x39c306): sub     esp, 14h
+0x0079c309 (RVA 0x39c309): push    ebx
+0x0079c30a (RVA 0x39c30a): push    esi
+0x0079c30b (RVA 0x39c30b): push    edi
+0x0079c30c (RVA 0x39c30c): mov     edi, ecx
+0x0079c30e (RVA 0x39c30e): cmp     dword ptr [edi+2Ch], 0
+0x0079c312 (RVA 0x39c312): jnz     loc_79C7AA
+0x0079c318 (RVA 0x39c318): cmp     byte ptr [edi+207Dh], 0
+0x0079c31f (RVA 0x39c31f): jnz     loc_79C7AA
+0x0079c325 (RVA 0x39c325): call    sub_7D1C90
+0x0079c32a (RVA 0x39c32a): test    al, al
+0x0079c32c (RVA 0x39c32c): jnz     loc_79C7AA
+0x0079c332 (RVA 0x39c332): mov     eax, [edi+1608h]
+0x0079c338 (RVA 0x39c338): mov     ecx, [edi+160Ch]
+0x0079c33e (RVA 0x39c33e): mov     [esp+20h+var_8], ecx
+0x0079c342 (RVA 0x39c342): test    eax, eax
+0x0079c344 (RVA 0x39c344): jle     short loc_79C34D
+0x0079c346 (RVA 0x39c346): dec     eax
+0x0079c347 (RVA 0x39c347): mov     [edi+1608h], eax
+0x0079c34d (RVA 0x39c34d): push    0
+0x0079c34f (RVA 0x39c34f): push    edi
+0x0079c350 (RVA 0x39c350): push    ecx
+0x0079c351 (RVA 0x39c351): mov     ecx, n4
+0x0079c357 (RVA 0x39c357): push    0Bh
+0x0079c359 (RVA 0x39c359): call    sub_92F6D0
+0x0079c35e (RVA 0x39c35e): test    al, al
+0x0079c360 (RVA 0x39c360): jz      loc_79C5CC
+0x0079c366 (RVA 0x39c366): push    0
+0x0079c368 (RVA 0x39c368): push    0
+0x0079c36a (RVA 0x39c36a): mov     ecx, edi
+0x0079c36c (RVA 0x39c36c): call    sub_7C2470
+0x0079c371 (RVA 0x39c371): test    al, al
+0x0079c373 (RVA 0x39c373): jnz     loc_79C446
+0x0079c379 (RVA 0x39c379): mov     dword ptr [esp+20h+var_10], 0
+0x0079c381 (RVA 0x39c381): lea     ebx, [edi+1798h]
+0x0079c387 (RVA 0x39c387): cmp     dword ptr [ebx], 0
+0x0079c38a (RVA 0x39c38a): jz      short loc_79C3D5
+0x0079c38c (RVA 0x39c38c): mov     eax, [ebx-8]
+0x0079c38f (RVA 0x39c38f): mov     edx, [ebx]
+0x0079c391 (RVA 0x39c391): mov     ecx, [ebx-4]
+0x0079c394 (RVA 0x39c394): mov     esi, [ebx+4]
+0x0079c397 (RVA 0x39c397): mov     [ebx], eax
+0x0079c399 (RVA 0x39c399): mov     eax, n2_0
+0x0079c39e (RVA 0x39c39e): mov     [ebx+4], ecx
+0x0079c3a1 (RVA 0x39c3a1): mov     [ebx-8], edx
+0x0079c3a4 (RVA 0x39c3a4): mov     [ebx-4], esi
+0x0079c3a7 (RVA 0x39c3a7): cmp     dword ptr [eax+22E94h], 2
+0x0079c3ae (RVA 0x39c3ae): jz      short loc_79C3C4
+0x0079c3b0 (RVA 0x39c3b0): mov     dword ptr [eax+22E94h], 1
+0x0079c3ba (RVA 0x39c3ba): mov     dword ptr [eax+22E9Ch], 2
+0x0079c3c4 (RVA 0x39c3c4): mov     eax, dword ptr [esp+20h+var_10]
+0x0079c3c8 (RVA 0x39c3c8): add     ebx, 8
+0x0079c3cb (RVA 0x39c3cb): inc     eax
+0x0079c3cc (RVA 0x39c3cc): mov     dword ptr [esp+20h+var_10], eax
+0x0079c3d0 (RVA 0x39c3d0): cmp     eax, 3
+0x0079c3d3 (RVA 0x39c3d3): jb      short loc_79C387
+0x0079c3d5 (RVA 0x39c3d5): cmp     dword ptr [edi+15F4h], 0
+0x0079c3dc (RVA 0x39c3dc): jnz     short loc_79C446
+0x0079c3de (RVA 0x39c3de): cmp     dword ptr [edi+1574h], 1E9h
+0x0079c3e8 (RVA 0x39c3e8): jnz     short loc_79C43F
+0x0079c3ea (RVA 0x39c3ea): mov     esi, [edi+1590h]
+0x0079c3f0 (RVA 0x39c3f0): xor     edx, edx
+0x0079c3f2 (RVA 0x39c3f2): mov     eax, esi
+0x0079c3f4 (RVA 0x39c3f4): mov     ecx, 0Ah
+0x0079c3f9 (RVA 0x39c3f9): sar     eax, 10h
+0x0079c3fc (RVA 0x39c3fc): inc     eax
+0x0079c3fd (RVA 0x39c3fd): div     ecx
+0x0079c3ff (RVA 0x39c3ff): movzx   eax, si
+0x0079c402 (RVA 0x39c402): mov     ecx, edx
+0x0079c404 (RVA 0x39c404): shl     ecx, 10h
+0x0079c407 (RVA 0x39c407): or      ecx, eax
+0x0079c409 (RVA 0x39c409): mov     eax, n2_0
+0x0079c40e (RVA 0x39c40e): mov     [edi+1590h], ecx
+0x0079c414 (RVA 0x39c414): add     eax, 1D9ACh
+0x0079c419 (RVA 0x39c419): xor     ecx, ecx
+0x0079c41b (RVA 0x39c41b): nop     dword ptr [eax+eax+00h]
+0x0079c420 (RVA 0x39c420): cmp     [eax], edi
+0x0079c422 (RVA 0x39c422): jz      short loc_79C431
+0x0079c424 (RVA 0x39c424): inc     ecx
+0x0079c425 (RVA 0x39c425): add     eax, 6E0h
+0x0079c42a (RVA 0x39c42a): cmp     ecx, 8
+0x0079c42d (RVA 0x39c42d): jb      short loc_79C420
+0x0079c42f (RVA 0x39c42f): jmp     short loc_79C43B
+0x0079c431 (RVA 0x39c431): mov     dword ptr [eax+190h], 0
+0x0079c43b (RVA 0x39c43b): test    edx, edx
+0x0079c43d (RVA 0x39c43d): jnz     short loc_79C446
+0x0079c43f (RVA 0x39c43f): mov     ecx, edi
+0x0079c441 (RVA 0x39c441): call    sub_79C7C0
+0x0079c446 (RVA 0x39c446): cmp     dword ptr [edi+13BCh], 15h
+0x0079c44d (RVA 0x39c44d): jnz     short loc_79C4C7
+0x0079c44f (RVA 0x39c44f): push    0
+0x0079c451 (RVA 0x39c451): push    26Bh
+0x0079c456 (RVA 0x39c456): mov     ecx, edi
+0x0079c458 (RVA 0x39c458): call    sub_7699D0
+0x0079c45d (RVA 0x39c45d): xor     ecx, ecx
+0x0079c45f (RVA 0x39c45f): test    al, al
+0x0079c461 (RVA 0x39c461): setnz   cl
+0x0079c464 (RVA 0x39c464): xor     eax, eax
+0x0079c466 (RVA 0x39c466): lea     ecx, ds:8[ecx*4]
+0x0079c46d (RVA 0x39c46d): nop     dword ptr [eax]
+0x0079c470 (RVA 0x39c470): cmp     dword ptr [edi+eax*4+1DECh], 0
+0x0079c478 (RVA 0x39c478): jl      short loc_79C481
+0x0079c47a (RVA 0x39c47a): inc     eax
+0x0079c47b (RVA 0x39c47b): cmp     eax, ecx
+0x0079c47d (RVA 0x39c47d): jl      short loc_79C470
+0x0079c47f (RVA 0x39c47f): jmp     short loc_79C483
+0x0079c481 (RVA 0x39c481): mov     ecx, eax
+0x0079c483 (RVA 0x39c483): cmp     ecx, 1
+0x0079c486 (RVA 0x39c486): jbe     short loc_79C4C7
+0x0079c488 (RVA 0x39c488): lea     esi, [ecx-1]
+0x0079c48b (RVA 0x39c48b): xor     edx, edx
+0x0079c48d (RVA 0x39c48d): test    esi, esi
+0x0079c48f (RVA 0x39c48f): jle     short loc_79C4B2
+0x0079c491 (RVA 0x39c491): mov     ecx, [edi+edx*4+1DECh]
+0x0079c498 (RVA 0x39c498): mov     eax, [edi+edx*4+1DF0h]
+0x0079c49f (RVA 0x39c49f): mov     [edi+edx*4+1DECh], eax
+0x0079c4a6 (RVA 0x39c4a6): mov     [edi+edx*4+1DF0h], ecx
+0x0079c4ad (RVA 0x39c4ad): inc     edx
+0x0079c4ae (RVA 0x39c4ae): cmp     edx, esi
+0x0079c4b0 (RVA 0x39c4b0): jl      short loc_79C491
+0x0079c4b2 (RVA 0x39c4b2): mov     ecx, n2_0
+0x0079c4b8 (RVA 0x39c4b8): push    0
+0x0079c4ba (RVA 0x39c4ba): push    0
+0x0079c4bc (RVA 0x39c4bc): lea     ecx, [ecx+1D9ACh]
+0x0079c4c2 (RVA 0x39c4c2): call    sub_980480
+0x0079c4c7 (RVA 0x39c4c7): cmp     dword ptr [edi+13BCh], 17h
+0x0079c4ce (RVA 0x39c4ce): jnz     loc_79C570
+0x0079c4d4 (RVA 0x39c4d4): mov     bl, [edi+1F20h]
+0x0079c4da (RVA 0x39c4da): lea     eax, [edi+1F20h]
+0x0079c4e0 (RVA 0x39c4e0): test    bl, bl
+0x0079c4e2 (RVA 0x39c4e2): jz      short loc_79C507
+0x0079c4e4 (RVA 0x39c4e4): cmp     byte ptr [edi+1F21h], 0
+0x0079c4eb (RVA 0x39c4eb): jz      short loc_79C507
+0x0079c4ed (RVA 0x39c4ed): xor     ecx, ecx
+0x0079c4ef (RVA 0x39c4ef): nop
+0x0079c4f0 (RVA 0x39c4f0): mov     dl, [eax+1]
+0x0079c4f3 (RVA 0x39c4f3): test    dl, dl
+0x0079c4f5 (RVA 0x39c4f5): jz      short loc_79C500
+0x0079c4f7 (RVA 0x39c4f7): mov     [eax], dl
+0x0079c4f9 (RVA 0x39c4f9): inc     ecx
+0x0079c4fa (RVA 0x39c4fa): inc     eax
+0x0079c4fb (RVA 0x39c4fb): cmp     ecx, 7
+0x0079c4fe (RVA 0x39c4fe): jb      short loc_79C4F0
+0x0079c500 (RVA 0x39c500): mov     [ecx+edi+1F20h], bl
+0x0079c507 (RVA 0x39c507): mov     eax, [edi+1F84h]
+0x0079c50d (RVA 0x39c50d): mov     ecx, [edi+1F80h]
+0x0079c513 (RVA 0x39c513): sub     eax, ecx
+0x0079c515 (RVA 0x39c515): sar     eax, 2
+0x0079c518 (RVA 0x39c518): cmp     eax, 1
+0x0079c51b (RVA 0x39c51b): jbe     short loc_79C570
+0x0079c51d (RVA 0x39c51d): mov     esi, [ecx]
+0x0079c51f (RVA 0x39c51f): xor     edx, edx
+0x0079c521 (RVA 0x39c521): add     eax, 0FFFFFFFFh
+0x0079c524 (RVA 0x39c524): jz      short loc_79C552
+0x0079c526 (RVA 0x39c526): nop     word ptr [eax+eax+00000000h]
+0x0079c530 (RVA 0x39c530): mov     ecx, [edi+1F80h]
+0x0079c536 (RVA 0x39c536): mov     eax, [ecx+edx*4+4]
+0x0079c53a (RVA 0x39c53a): mov     [ecx+edx*4], eax
+0x0079c53d (RVA 0x39c53d): inc     edx
+0x0079c53e (RVA 0x39c53e): mov     eax, [edi+1F84h]
+0x0079c544 (RVA 0x39c544): sub     eax, [edi+1F80h]
+0x0079c54a (RVA 0x39c54a): sar     eax, 2
+0x0079c54d (RVA 0x39c54d): dec     eax
+0x0079c54e (RVA 0x39c54e): cmp     edx, eax
+0x0079c550 (RVA 0x39c550): jb      short loc_79C530
+0x0079c552 (RVA 0x39c552): mov     ecx, n2_0
+0x0079c558 (RVA 0x39c558): mov     eax, [edi+1F84h]
+0x0079c55e (RVA 0x39c55e): push    0
+0x0079c560 (RVA 0x39c560): push    0
+0x0079c562 (RVA 0x39c562): lea     ecx, [ecx+1D9ACh]
+0x0079c568 (RVA 0x39c568): mov     [eax-4], esi
+0x0079c56b (RVA 0x39c56b): call    sub_980480
+0x0079c570 (RVA 0x39c570): mov     ecx, edi
+0x0079c572 (RVA 0x39c572): call    sub_7D1DF0
+0x0079c577 (RVA 0x39c577): test    eax, eax
+0x0079c579 (RVA 0x39c579): jle     short loc_79C5CC
+0x0079c57b (RVA 0x39c57b): mov     esi, n4
+0x0079c581 (RVA 0x39c581): lea     ecx, [esp+20h+var_10]
+0x0079c585 (RVA 0x39c585): mov     dword ptr [esp+20h+var_10], 33Ch
+0x0079c58d (RVA 0x39c58d): call    sub_92FAD0
+0x0079c592 (RVA 0x39c592): sub     esp, 8
+0x0079c595 (RVA 0x39c595): mov     [esp+28h+var_24], 0
+0x0079c59d (RVA 0x39c59d): mov     [esp+28h+var_28], 3F800000h
+0x0079c5a4 (RVA 0x39c5a4): push    0
+0x0079c5a6 (RVA 0x39c5a6): push    1
+0x0079c5a8 (RVA 0x39c5a8): push    ecx
+0x0079c5a9 (RVA 0x39c5a9): mov     [esp+34h+var_34], 3F99999Ah
+0x0079c5b0 (RVA 0x39c5b0): lea     ecx, [esi+2A160h]
+0x0079c5b6 (RVA 0x39c5b6): push    dword ptr [esp+34h+var_10]
+0x0079c5ba (RVA 0x39c5ba): call    sub_907C60
+0x0079c5bf (RVA 0x39c5bf): mov     ecx, n2_0
+0x0079c5c5 (RVA 0x39c5c5): push    8
+0x0079c5c7 (RVA 0x39c5c7): call    sub_6FF360
+0x0079c5cc (RVA 0x39c5cc): push    ecx
+0x0079c5cd (RVA 0x39c5cd): push    edi
+0x0079c5ce (RVA 0x39c5ce): push    [esp+28h+var_8]
+0x0079c5d2 (RVA 0x39c5d2): push    0Bh
+0x0079c5d4 (RVA 0x39c5d4): call    sub_92F610
+0x0079c5d9 (RVA 0x39c5d9): test    al, al
+0x0079c5db (RVA 0x39c5db): jnz     short loc_79C5EE
+0x0079c5dd (RVA 0x39c5dd): mov     dword ptr [edi+17B0h], 0
+0x0079c5e7 (RVA 0x39c5e7): pop     edi
+0x0079c5e8 (RVA 0x39c5e8): pop     esi
+0x0079c5e9 (RVA 0x39c5e9): pop     ebx
+0x0079c5ea (RVA 0x39c5ea): mov     esp, ebp
+0x0079c5ec (RVA 0x39c5ec): pop     ebp
+0x0079c5ed (RVA 0x39c5ed): retn
+0x0079c5ee (RVA 0x39c5ee): inc     dword ptr [edi+17B0h]
+0x0079c5f4 (RVA 0x39c5f4): cmp     dword ptr [edi+17B0h], 78h ; 'x'
+0x0079c5fb (RVA 0x39c5fb): jbe     loc_79C7A0
+0x0079c601 (RVA 0x39c601): mov     eax, n2_0
+0x0079c606 (RVA 0x39c606): cmp     dword ptr [eax+25BB4h], 4
+0x0079c60d (RVA 0x39c60d): jz      loc_79C7A0
+0x0079c613 (RVA 0x39c613): xor     esi, esi
+0x0079c615 (RVA 0x39c615): mov     dword ptr [edi+17B0h], 0
+0x0079c61f (RVA 0x39c61f): xor     bl, bl
+0x0079c621 (RVA 0x39c621): lea     edx, [edi+16B0h]
+0x0079c627 (RVA 0x39c627): mov     dword ptr [esp+20h+var_10], edx
+0x0079c62b (RVA 0x39c62b): cmp     esi, 2
+0x0079c62e (RVA 0x39c62e): jnb     short loc_79C67F
+0x0079c630 (RVA 0x39c630): mov     ecx, [edx]
+0x0079c632 (RVA 0x39c632): test    ecx, ecx
+0x0079c634 (RVA 0x39c634): jz      short loc_79C67F
+0x0079c636 (RVA 0x39c636): cmp     dword ptr [eax+25B8Ch], 2
+0x0079c63d (RVA 0x39c63d): jl      short loc_79C65C
+0x0079c63f (RVA 0x39c63f): mov     ecx, [eax+25B98h]
+0x0079c645 (RVA 0x39c645): push    edi
+0x0079c646 (RVA 0x39c646): mov     eax, [ecx]
+0x0079c648 (RVA 0x39c648): mov     eax, [eax+50h]
+0x0079c64b (RVA 0x39c64b): call    eax
+0x0079c64d (RVA 0x39c64d): mov     edx, dword ptr [esp+20h+var_10]
+0x0079c651 (RVA 0x39c651): test    al, al
+0x0079c653 (RVA 0x39c653): mov     eax, n2_0
+0x0079c658 (RVA 0x39c658): jnz     short loc_79C67D
+0x0079c65a (RVA 0x39c65a): jmp     short loc_79C67F
+0x0079c65c (RVA 0x39c65c): cmp     ecx, 35h ; '5'
+0x0079c65f (RVA 0x39c65f): jz      short loc_79C67F
+0x0079c661 (RVA 0x39c661): cmp     ecx, 40h ; '@'
+0x0079c664 (RVA 0x39c664): jnz     short loc_79C66F
+0x0079c666 (RVA 0x39c666): cmp     dword ptr [eax+25AFCh], 1Ch
+0x0079c66d (RVA 0x39c66d): jmp     short loc_79C67B
+0x0079c66f (RVA 0x39c66f): cmp     ecx, 10h
+0x0079c672 (RVA 0x39c672): jnz     short loc_79C67D
+0x0079c674 (RVA 0x39c674): cmp     dword ptr [eax+25BB4h], 23h ; '#'
+0x0079c67b (RVA 0x39c67b): jz      short loc_79C67F
+0x0079c67d (RVA 0x39c67d): mov     bl, 1
+0x0079c67f (RVA 0x39c67f): inc     esi
+0x0079c680 (RVA 0x39c680): add     edx, 4
+0x0079c683 (RVA 0x39c683): mov     dword ptr [esp+20h+var_10], edx
+0x0079c687 (RVA 0x39c687): cmp     esi, 2
+0x0079c68a (RVA 0x39c68a): jb      short loc_79C630
+0x0079c68c (RVA 0x39c68c): xor     ecx, ecx
+0x0079c68e (RVA 0x39c68e): mov     dword ptr [esp+20h+var_10], ecx
+0x0079c692 (RVA 0x39c692): mov     ecx, edi
+0x0079c694 (RVA 0x39c694): call    sub_7A4610
+0x0079c699 (RVA 0x39c699): test    eax, eax
+0x0079c69b (RVA 0x39c69b): jz      short loc_79C6D0
+0x0079c69d (RVA 0x39c69d): lea     esi, [edi+1794h]
+0x0079c6a3 (RVA 0x39c6a3): mov     eax, 1
+0x0079c6a8 (RVA 0x39c6a8): cmp     dword ptr [esi-4], 0
+0x0079c6ac (RVA 0x39c6ac): jz      short loc_79C6B7
+0x0079c6ae (RVA 0x39c6ae): cmp     dword ptr [esi], 2
+0x0079c6b1 (RVA 0x39c6b1): movzx   ebx, bl
+0x0079c6b4 (RVA 0x39c6b4): cmovnz  ebx, eax
+0x0079c6b7 (RVA 0x39c6b7): inc     dword ptr [esp+20h+var_10]
+0x0079c6bb (RVA 0x39c6bb): mov     ecx, edi
+0x0079c6bd (RVA 0x39c6bd): add     esi, 8
+0x0079c6c0 (RVA 0x39c6c0): call    sub_7A4610
+0x0079c6c5 (RVA 0x39c6c5): cmp     dword ptr [esp+20h+var_10], eax
+0x0079c6c9 (RVA 0x39c6c9): mov     eax, 1
+0x0079c6ce (RVA 0x39c6ce): jb      short loc_79C6A8
+0x0079c6d0 (RVA 0x39c6d0): test    bl, bl
+0x0079c6d2 (RVA 0x39c6d2): jz      loc_79C7AA
+0x0079c6d8 (RVA 0x39c6d8): mov     ecx, n2_0
+0x0079c6de (RVA 0x39c6de): cmp     dword ptr [ecx+22E94h], 2
+0x0079c6e5 (RVA 0x39c6e5): jz      short loc_79C6FB
+0x0079c6e7 (RVA 0x39c6e7): mov     dword ptr [ecx+22E94h], 1
+0x0079c6f1 (RVA 0x39c6f1): mov     dword ptr [ecx+22E9Ch], 2
+0x0079c6fb (RVA 0x39c6fb): or      dword ptr [edi+1378h], 20h
+0x0079c702 (RVA 0x39c702): lea     ebx, [edi+33Ch]
+0x0079c708 (RVA 0x39c708): mov     esi, 2
+0x0079c70d (RVA 0x39c70d): nop     dword ptr [eax]
+0x0079c710 (RVA 0x39c710): push    0
+0x0079c712 (RVA 0x39c712): push    0
+0x0079c714 (RVA 0x39c714): push    0
+0x0079c716 (RVA 0x39c716): push    ecx
+0x0079c717 (RVA 0x39c717): mov     ecx, [ecx+18300h]
+0x0079c71d (RVA 0x39c71d): lea     eax, [esp+30h+var_8]
+0x0079c721 (RVA 0x39c721): mov     [esp+30h+var_30], 0
+0x0079c728 (RVA 0x39c728): push    ebx
+0x0079c729 (RVA 0x39c729): push    eax
+0x0079c72a (RVA 0x39c72a): call    sub_808DC0
+0x0079c72f (RVA 0x39c72f): push    0
+0x0079c731 (RVA 0x39c731): lea     eax, [esp+24h+var_8]
+0x0079c735 (RVA 0x39c735): mov     ecx, edi
+0x0079c737 (RVA 0x39c737): push    eax
+0x0079c738 (RVA 0x39c738): call    sub_76A8E0
+0x0079c73d (RVA 0x39c73d): cmp     dword ptr [edi+2Ch], 0
+0x0079c741 (RVA 0x39c741): jnz     short loc_79C753
+0x0079c743 (RVA 0x39c743): cmp     byte ptr [edi+207Dh], 0
+0x0079c74a (RVA 0x39c74a): jnz     short loc_79C753
+0x0079c74c (RVA 0x39c74c): mov     ecx, edi
+0x0079c74e (RVA 0x39c74e): call    sub_752600
+0x0079c753 (RVA 0x39c753): sub     esi, 1
+0x0079c756 (RVA 0x39c756): jz      short loc_79C760
+0x0079c758 (RVA 0x39c758): mov     ecx, n2_0
+0x0079c75e (RVA 0x39c75e): jmp     short loc_79C710
+0x0079c760 (RVA 0x39c760): mov     esi, 4
+0x0079c765 (RVA 0x39c765): push    0
+0x0079c767 (RVA 0x39c767): push    0
+0x0079c769 (RVA 0x39c769): push    0
+0x0079c76b (RVA 0x39c76b): push    ecx
+0x0079c76c (RVA 0x39c76c): mov     ecx, n2_0
+0x0079c772 (RVA 0x39c772): lea     eax, [esp+30h+var_10]
+0x0079c776 (RVA 0x39c776): mov     [esp+30h+var_30], 0
+0x0079c77d (RVA 0x39c77d): push    ebx
+0x0079c77e (RVA 0x39c77e): push    eax
+0x0079c77f (RVA 0x39c77f): mov     ecx, [ecx+18300h]
+0x0079c785 (RVA 0x39c785): call    sub_808DC0
+0x0079c78a (RVA 0x39c78a): push    eax
+0x0079c78b (RVA 0x39c78b): push    0FFFFFFFFh
+0x0079c78d (RVA 0x39c78d): mov     ecx, edi
+0x0079c78f (RVA 0x39c78f): call    sub_79C930
+0x0079c794 (RVA 0x39c794): sub     esi, 1
+0x0079c797 (RVA 0x39c797): jnz     short loc_79C765
+0x0079c799 (RVA 0x39c799): pop     edi
+0x0079c79a (RVA 0x39c79a): pop     esi
+0x0079c79b (RVA 0x39c79b): pop     ebx
+0x0079c79c (RVA 0x39c79c): mov     esp, ebp
+0x0079c79e (RVA 0x39c79e): pop     ebp
+0x0079c79f (RVA 0x39c79f): retn
+0x0079c7a0 (RVA 0x39c7a0): mov     dword ptr [edi+186Ch], 0
+0x0079c7aa (RVA 0x39c7aa): pop     edi
+0x0079c7ab (RVA 0x39c7ab): pop     esi
+0x0079c7ac (RVA 0x39c7ac): pop     ebx
+0x0079c7ad (RVA 0x39c7ad): mov     esp, ebp
+0x0079c7af (RVA 0x39c7af): pop     ebp
+0x0079c7b0 (RVA 0x39c7b0): retn

@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "inspectionIdentity": "IsaacCsT0-CoopNativeExitReachability-v1",
+  "workPackage": "CS-T0-05-03",
+  "createdAtUtc": "2026-08-30T16:42:35Z",
+  "result": "BLOCKED_BY_EVIDENCE",
+  "scope": {
+    "scenario": "native-exit-passive",
+    "methods": [
+      "READ_ONLY_IDA_MCP_DECOMPILATION",
+      "READ_ONLY_EXACT_STATIC_DISASSEMBLY",
+      "READ_ONLY_LOCAL_INPUT_CONFIG",
+      "PUBLIC_CLI_LIVE_SOURCE_AND_REPLAY"
+    ],
+    "idbModified": false,
+    "processInjectedForDiagnosis": false,
+    "analyzerModified": false
+  },
+  "target": {
+    "identity": "IsaacCsT0-ApprovedUnpackedPE",
+    "sha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "preferredImageBase": "0x00400000",
+    "runtimeAddressRule": "moduleBase + RVA"
+  },
+  "staticRoute": {
+    "managerOwnerRva": "0x005BAC40",
+    "managerOwnerCallsiteRva": "0x002FADA7",
+    "exitCallsite": {
+      "slotOrdinal": 48,
+      "rva": "0x005BB22A",
+      "targetRva": "0x005BA000",
+      "role": "nonzero-variant-main-player-remove"
+    },
+    "exitHudCallsite": {
+      "slotOrdinal": 52,
+      "rva": "0x005BA752",
+      "targetRva": "0x005A8620",
+      "role": "nested-hud-rebuild-after-remove"
+    },
+    "trigger": {
+      "actionCode": 19,
+      "targetName": "JoinMultiplayer",
+      "predicate": "RISING_EDGE_TRIGGERED",
+      "queriesLeftBumper": false,
+      "queriesRightBumper": false
+    },
+    "requiredConditions": [
+      "online NetInputDevice roster is empty",
+      "device assignment key matches a Player in the main Player vector",
+      "matched Player pointer is non-null",
+      "matched Player +0x3BC equals zero",
+      "JoinMultiplayer action 19 reports triggered for the matched device",
+      "matched Player Variant at +0x2C is non-zero",
+      "when +0x7C and +0x8C enable the pointed-string check, that string is not Appear",
+      "Player 0 exists",
+      "Player 0 +0x1398 and +0x139A both equal zero"
+    ],
+    "removalEffects": [
+      "erase matched Player from the main Player vector",
+      "compact surviving Player ordinals",
+      "clear local slots",
+      "rebuild the HUD through slot 52"
+    ],
+    "possessorIsSeparate": {
+      "spawnRva": "0x005BAFFA",
+      "assignmentRva": "0x005BB004",
+      "requiresUnassociatedDevice": true,
+      "isValidExitWitness": false
+    },
+    "constructorDiscriminator": {
+      "playerInitRva": "0x00355470",
+      "entityInitRva": "0x002A93A0",
+      "variantOffset": "0x0000002C",
+      "ordinaryTrueCoop": {
+        "spawnCallsiteRva": "0x005BB415",
+        "playerInitArguments": [
+          "Type=1",
+          "Variant=0",
+          "Subtype=ePlayerType",
+          "Seed"
+        ],
+        "mainVectorCandidateAvailable": true,
+        "passesNonzeroVariantGuard": false,
+        "canReachSlot48": false
+      },
+      "possessor": {
+        "spawnCallsiteRva": "0x005BAFFA",
+        "playerInitArguments": [
+          "Type=1",
+          "Variant=2",
+          "Subtype=0",
+          "Seed"
+        ],
+        "storedInSecondaryVector": true,
+        "mainVectorCandidateAvailable": false,
+        "canReachSlot48": false
+      },
+      "remainingEligibleShape": "A Player in the main Player vector with a nonzero Variant. The current ordinary true-coop constructor does not produce this shape."
+    }
+  },
+  "localInputMapping": {
+    "sourceBasename": "inputconfigs.dat",
+    "absolutePathPersisted": false,
+    "controllerProfile": "Steam Virtual Gamepad",
+    "bindings": {
+      "Pause": [15, -1],
+      "JoinMultiplayer": [15, -1],
+      "MenuLB": [8, -1],
+      "MenuRB": [11, -1]
+    },
+    "inference": "JoinMultiplayer and Pause share the configured Start/Menu physical code; LB and RB use distinct codes and are not queried by the frozen exit route."
+  },
+  "liveEvidence": {
+    "source": "artifacts/cs-t0/20260830T162513Z-t0-05-03-native-exit-passive-t0-05-03-native-exit-passive-live-07",
+    "sourceResult": "BLOCKED_BY_EVIDENCE",
+    "eventCount": 5394,
+    "manifestSha256": "15AE50FC1A5858C06BAAAE7309C4191FE8E3659E6617A8C7DBFEFAD176C7D262",
+    "eventsSha256": "6322C0F24BEC2406907185BE0E718B96DB3CB16DCC6442137A436F4550243B8D",
+    "analysisSha256": "FCA986F50D05C18F3F8070EE61AB281C7B2CC47292C358010F136D157A70D5B5",
+    "replay": "artifacts/cs-t0/20260830T162513Z-t0-05-03-native-exit-passive-live-07-replay-01.json",
+    "replaySha256": "FCA986F50D05C18F3F8070EE61AB281C7B2CC47292C358010F136D157A70D5B5",
+    "finalGeneration": 1,
+    "finalBoundOrdinals": [0, 1],
+    "observedExitWrapperCount": 0,
+    "observedExitHudWrapperCount": 0,
+    "missingRequiredSequence": [
+      "BINDING_UNBOUND",
+      "EXIT_BEGIN",
+      "EXIT_HUD_BEGIN",
+      "EXIT_HUD_END",
+      "EXIT_RETURN_STABLE"
+    ],
+    "safety": {
+      "installedMask": "0x001FFFFFFFFFFFFF",
+      "restoredMask": "0x001FFFFFFFFFFFFF",
+      "restoredSlotCount": 53,
+      "installOrder": "0..52",
+      "restoreOrder": "52..0",
+      "beforeAfterSnapshotEqual": true,
+      "overwriteCount": 0,
+      "callbacksDrained": true,
+      "producerClosed": true,
+      "unsafe": false
+    }
+  },
+  "conclusion": {
+    "staticExitBranchExists": true,
+    "ordinaryExitHypothesisResult": "FALSIFIED_BY_STATIC_EVIDENCE",
+    "ordinaryTrueCoopExitStaticallyReachable": false,
+    "currentSessionUserReachabilityProven": false,
+    "statement": "The target contains a JoinMultiplayer/Start removal branch for a main-vector Player whose Variant is nonzero. The ordinary true-coop constructor creates a main-vector Player with Variant zero, so it fails the slot48 guard before removal. The possessor constructor uses Variant two but stores the Player in the secondary vector, so it cannot supply the required main-vector candidate. No ordinary true-coop user exit path reaches slot48 in the frozen construction routes.",
+    "authorizationConsumed": true,
+    "automaticRetryAllowed": false,
+    "nextScenarioAllowed": false
+  },
+  "forbiddenSubstitutions": [
+    "LB+RB+Start possessor path",
+    "death or respawn",
+    "device disconnect",
+    "menu teardown",
+    "unfrozen automatic cleanup caller",
+    "pointer equality or topology timing"
+  ]
+}

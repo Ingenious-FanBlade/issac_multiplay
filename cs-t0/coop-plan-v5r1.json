@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 5,
+  "planIdentity": "IsaacCsT0-CoopPlan-v5r1",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-31T00:00:00Z",
+  "status": "PRE_LIVE_DEVICE_V2_IMPLEMENTATION",
+  "createNewOnly": true,
+  "supersedes": "coop-plan-v5.json",
+  "supersedesSha256": "0C39F82309F84EC92951787CE08E404198C5D16E7A165F6F3EDAEC1755612706",
+  "artifactBindings": [
+    {
+      "path": "cs-t0/coop-verification-v5r4.json",
+      "identity": "IsaacCsT0-CoopVerification-v5r4",
+      "sha256": "AA010810FA698CFF9E13ECF29753C7F85D941456BA69D356F7F32AE18017E91E"
+    },
+    {
+      "path": "cs-t0/coop-catalog-v4.json",
+      "identity": "IsaacCsT0-CoopCatalog-v4",
+      "sha256": "00641728411D7BB60B54DA1A58C39E616204729901B8D76433BF51E0748AFE5A"
+    },
+    {
+      "path": "cs-t0/coop-c0-layout-evidence-v1.json",
+      "identity": "IsaacCsT0-CoopC0LayoutEvidence-v1",
+      "sha256": "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059"
+    },
+    {
+      "path": "cs-t0/coop-static-graph-v1.json",
+      "identity": "IsaacCsT0-CoopStaticGraph-v1",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    },
+    {
+      "path": "cs-t0/coop-device-rebind-contract-v2.json",
+      "identity": "IsaacCsT0-CoopDeviceRebindContract-v2",
+      "sha256": "444141651E42886AC6DC9807D41A429A8DA89B8CB12E2855E659E6DFEA01D2E0"
+    },
+    {
+      "path": "cs-t0/coop-device-rebind-static-evidence-v1.json",
+      "identity": "IsaacCsT0-CoopDeviceRebindStaticEvidence-v1",
+      "sha256": "57C8A805488EE28384F04EE7AD959A51B58734A1CEF7768842C39A9A1D491D53"
+    }
+  ],
+  "passiveAuthorizationContract": {
+    "probe": "passive",
+    "scenarios": [
+      "native-join-passive",
+      "native-exit-passive",
+      "death-respawn-passive",
+      "room-rebind-passive",
+      "device-rebind-passive",
+      "menu-teardown-passive"
+    ],
+    "orderedSlotCount": 53,
+    "completeMask": "0x001FFFFFFFFFFFFF",
+    "installOrder": "0..52",
+    "rollbackAndRestoreOrder": "reverse-applied-prefix",
+    "requiresFreshAuthorizationPerScenario": true,
+    "failedAuthorizationMayRetry": false,
+    "existingSourceMayOverwrite": false,
+    "liveAuthorizationCreated": false,
+    "firstAuthorizedScenario": null,
+    "deviceV2": {
+      "orderedSlotCount": 56,
+      "completeMask": "0x00FFFFFFFFFFFFFF",
+      "installOrder": "0..55",
+      "restoreOrder": "55..0",
+      "requiresVerification": "IsaacCsT0-CoopVerification-v5r5"
+    },
+    "legacyNonDeviceOnly": true
+  },
+  "permissions": {
+    "passiveHookTransactionAllowed": true,
+    "passiveObservationAllowed": false,
+    "activeInputAllowed": false,
+    "inputMutationAllowed": false,
+    "worldMutationAllowed": false,
+    "runtimeMutationAllowed": false,
+    "overrideAllowed": false,
+    "transportAllowed": false,
+    "schedulerAllowed": false,
+    "applyAllowed": false,
+    "modeLatchAllowed": false,
+    "originalOnlinePositiveAllowed": false,
+    "t005Unlocked": false,
+    "csT00504Unlocked": false
+  },
+  "postSixSourceTransition": {
+    "create": [
+      "coop-passive-decision-v2",
+      "coop-matrix-v3",
+      "coop-ledger-v4",
+      "coop-hypothesis-revision",
+      "coop-verification-v6",
+      "coop-plan-v6"
+    ],
+    "planV6PassiveHookTransactionAllowed": false,
+    "planV6CsT00504Unlocked": true,
+    "planV6T005Unlocked": false
+  }
+}

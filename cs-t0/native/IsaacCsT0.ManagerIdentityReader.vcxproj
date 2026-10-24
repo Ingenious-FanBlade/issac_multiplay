@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32"><Configuration>Debug</Configuration><Platform>Win32</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32"><Configuration>Release</Configuration><Platform>Win32</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion><Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{EA47AB09-F92C-4F0D-8078-39D55C059E04}</ProjectGuid>
+    <RootNamespace>IsaacCsT0ManagerIdentityReader</RootNamespace><WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType><UseDebugLibraries>true</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType><UseDebugLibraries>false</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><WholeProgramOptimization>true</WholeProgramOptimization><CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(ProjectDir)..\..\out\cs-t0\obj\manager-identity-reader\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)..\..\out\cs-t0\obj\manager-identity-reader-int\$(Configuration)\</IntDir>
+    <TargetName>IsaacCsT0.ManagerIdentityReader</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile><WarningLevel>Level4</WarningLevel><TreatWarningAsError>true</TreatWarningAsError><LanguageStandard>stdcpp20</LanguageStandard><RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary><AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions><AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions></ClCompile>
+    <Link><SubSystem>Windows</SubSystem><ModuleDefinitionFile>$(ProjectDir)IsaacCsT0.ManagerIdentityReader.def</ModuleDefinitionFile><ImportLibrary>$(IntDir)IsaacCsT0.ManagerIdentityReader.lib</ImportLibrary><ProgramDatabaseFile>$(IntDir)IsaacCsT0.ManagerIdentityReader.pdb</ProgramDatabaseFile></Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile><WarningLevel>Level4</WarningLevel><TreatWarningAsError>true</TreatWarningAsError><LanguageStandard>stdcpp20</LanguageStandard><RuntimeLibrary>MultiThreaded</RuntimeLibrary><FunctionLevelLinking>true</FunctionLevelLinking><IntrinsicFunctions>true</IntrinsicFunctions><AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions><AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions></ClCompile>
+    <Link><SubSystem>Windows</SubSystem><EnableCOMDATFolding>true</EnableCOMDATFolding><OptimizeReferences>true</OptimizeReferences><LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration><ModuleDefinitionFile>$(ProjectDir)IsaacCsT0.ManagerIdentityReader.def</ModuleDefinitionFile><ImportLibrary>$(IntDir)IsaacCsT0.ManagerIdentityReader.lib</ImportLibrary><ProgramDatabaseFile>$(IntDir)IsaacCsT0.ManagerIdentityReader.pdb</ProgramDatabaseFile></Link>
+  </ItemDefinitionGroup>
+  <ItemGroup><ClCompile Include="src\manager_identity_reader.cpp" /></ItemGroup>
+  <ItemGroup><ClInclude Include="include\isaac_cs_t0\manager_identity_reader.hpp" /></ItemGroup>
+  <ItemGroup><None Include="IsaacCsT0.ManagerIdentityReader.def" /></ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

@@ -1,0 +1,63 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"addr\":\"0x6A8850\",\"code\":\"int __thiscall sub_6A8850(char *this)\\n{\\n  bool v2; // zf\\n  _DWORD *v3; // esi\\n  _DWORD v5[4]; // [esp+10h] [ebp-10h] BYREF\\n\\n  v2 = this[370] == 0; /*0x6a8879*/\\n  *(_DWORD *)this = &IsaacRepentancePlus::Entity::`vftable'; /*0x6a8880*/\\n  if ( !v2 ) /*0x6a8886*/\\n    sub_6ACB00((int)this); /*0x6a8888*/\\n  v3 = (_DWORD *)*((_DWORD *)this + 258); /*0x6a888d*/\\n  if ( v3 ) /*0x6a8895*/\\n  {\\n    luaL_unref(*v3, -1001000, v3[1]); /*0x6a88a1*/\\n    sub_AEF15C((int)v3); /*0x6a88ad*/\\n    *((_DWORD *)this + 258) = 0; /*0x6a88b5*/\\n  }\\n  if ( *((_DWORD *)this + 246) ) /*0x6a88c5*/\\n  {\\n    v5[0] = this + 984; /*0x6a88ce*/\\n    sub_4CF210(v5); /*0x6a88d8*/\\n    *((_DWORD *)this + 246) = 0; /*0x6a88dd*/\\n  }\\n  if ( *((_DWORD *)this + 245) ) /*0x6a88e9*/\\n  {\\n    v5[0] = this + 980; /*0x6a88f2*/\\n    sub_4CF210(v5); /*0x6a88fc*/\\n    *((_DWORD *)this + 245) = 0; /*0x6a8901*/\\n  }\\n  sub_424540(this + 972, *(_DWORD *)(*((_DWORD *)this + 243) + 4)); /*0x6a8919*/\\n  sub_AEF15C(*((_DWORD *)this + 243)); /*0x6a8922*/\\n  sub_6B7D40(this + 428); /*0x6a8930*/\\n  sub_426980(this + 376); /*0x6a893b*/\\n  v5[3] = 2; /*0x6a8943*/\\n  sub_407F10(this + 72); /*0x6a894a*/\\n  sub_4087A0((_DWORD *)this + 38); /*0x6a8955*/\\n  sub_4087A0((_DWORD *)this + 30); /*0x6a895d*/\\n  sub_40D040(this + 96); /*0x6a8965*/\\n  sub_40D040(this + 72); /*0x6a896d*/\\n  return sub_41C7D0(this + 8); /*0x6a897a*/\\n}\",\"refs\":[{\"addr\":\"0xb6730c\",\"name\":\"??_7Entity@IsaacRepentancePlus@@6B@\"},{\"addr\":\"0x6acb00\",\"name\":\"sub_6ACB00\"},{\"addr\":\"0xb1831c\",\"name\":\"luaL_unref\"},{\"addr\":\"0xaef15c\",\"name\":\"sub_AEF15C\"},{\"addr\":\"0x4cf210\",\"name\":\"sub_4CF210\"},{\"addr\":\"0x424540\",\"name\":\"sub_424540\"},{\"addr\":\"0x6b7d40\",\"name\":\"sub_6B7D40\"},{\"addr\":\"0x426980\",\"name\":\"sub_426980\"},{\"addr\":\"0x407f10\",\"name\":\"sub_407F10\"},{\"addr\":\"0x4087a0\",\"name\":\"sub_4087A0\"},{\"addr\":\"0x40d040\",\"name\":\"sub_40D040\"},{\"addr\":\"0x41c7d0\",\"name\":\"sub_41C7D0\"}]}"
+    }
+  ],
+  "structuredContent": {
+    "addr": "0x6A8850",
+    "code": "int __thiscall sub_6A8850(char *this)\n{\n  bool v2; // zf\n  _DWORD *v3; // esi\n  _DWORD v5[4]; // [esp+10h] [ebp-10h] BYREF\n\n  v2 = this[370] == 0; /*0x6a8879*/\n  *(_DWORD *)this = &IsaacRepentancePlus::Entity::`vftable'; /*0x6a8880*/\n  if ( !v2 ) /*0x6a8886*/\n    sub_6ACB00((int)this); /*0x6a8888*/\n  v3 = (_DWORD *)*((_DWORD *)this + 258); /*0x6a888d*/\n  if ( v3 ) /*0x6a8895*/\n  {\n    luaL_unref(*v3, -1001000, v3[1]); /*0x6a88a1*/\n    sub_AEF15C((int)v3); /*0x6a88ad*/\n    *((_DWORD *)this + 258) = 0; /*0x6a88b5*/\n  }\n  if ( *((_DWORD *)this + 246) ) /*0x6a88c5*/\n  {\n    v5[0] = this + 984; /*0x6a88ce*/\n    sub_4CF210(v5); /*0x6a88d8*/\n    *((_DWORD *)this + 246) = 0; /*0x6a88dd*/\n  }\n  if ( *((_DWORD *)this + 245) ) /*0x6a88e9*/\n  {\n    v5[0] = this + 980; /*0x6a88f2*/\n    sub_4CF210(v5); /*0x6a88fc*/\n    *((_DWORD *)this + 245) = 0; /*0x6a8901*/\n  }\n  sub_424540(this + 972, *(_DWORD *)(*((_DWORD *)this + 243) + 4)); /*0x6a8919*/\n  sub_AEF15C(*((_DWORD *)this + 243)); /*0x6a8922*/\n  sub_6B7D40(this + 428); /*0x6a8930*/\n  sub_426980(this + 376); /*0x6a893b*/\n  v5[3] = 2; /*0x6a8943*/\n  sub_407F10(this + 72); /*0x6a894a*/\n  sub_4087A0((_DWORD *)this + 38); /*0x6a8955*/\n  sub_4087A0((_DWORD *)this + 30); /*0x6a895d*/\n  sub_40D040(this + 96); /*0x6a8965*/\n  sub_40D040(this + 72); /*0x6a896d*/\n  return sub_41C7D0(this + 8); /*0x6a897a*/\n}",
+    "refs": [
+      {
+        "addr": "0xb6730c",
+        "name": "??_7Entity@IsaacRepentancePlus@@6B@"
+      },
+      {
+        "addr": "0x6acb00",
+        "name": "sub_6ACB00"
+      },
+      {
+        "addr": "0xb1831c",
+        "name": "luaL_unref"
+      },
+      {
+        "addr": "0xaef15c",
+        "name": "sub_AEF15C"
+      },
+      {
+        "addr": "0x4cf210",
+        "name": "sub_4CF210"
+      },
+      {
+        "addr": "0x424540",
+        "name": "sub_424540"
+      },
+      {
+        "addr": "0x6b7d40",
+        "name": "sub_6B7D40"
+      },
+      {
+        "addr": "0x426980",
+        "name": "sub_426980"
+      },
+      {
+        "addr": "0x407f10",
+        "name": "sub_407F10"
+      },
+      {
+        "addr": "0x4087a0",
+        "name": "sub_4087A0"
+      },
+      {
+        "addr": "0x40d040",
+        "name": "sub_40D040"
+      },
+      {
+        "addr": "0x41c7d0",
+        "name": "sub_41C7D0"
+      }
+    ]
+  },
+  "isError": false
+}

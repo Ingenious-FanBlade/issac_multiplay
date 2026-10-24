@@ -1,0 +1,1006 @@
+{
+  "tx": "tx-01-56",
+  "evidence": "STATIC_CONFIRMED",
+  "imageBase": "00400000",
+  "inputName": "isaac-ng.exe",
+  "functions": {
+    "0x5ba980": "bool sub_9BA980()\n{\n  return (n60[39250] & 0x10) != 0;\n}\n",
+    "0x5bac40": "unsigned int __thiscall sub_9BAC40(_DWORD *n4)\n{\n  int **n4_1; // edi\n  unsigned int v2; // ebx\n  unsigned int v3; // esi\n  unsigned int ArgList_2; // esi\n  char v5; // bl\n  int *v6; // esi\n  int *v7; // edx\n  unsigned int v8; // ecx\n  int *v9; // eax\n  unsigned int v10; // ecx\n  int *v11; // eax\n  int *v12; // edx\n  int v13; // ecx\n  int v14; // eax\n  char v15; // dl\n  int *v16; // ecx\n  void *v17; // eax\n  _DWORD *n298; // esi\n  void *v19; // eax\n  void *v20; // eax\n  void *v21; // eax\n  int v22; // ecx\n  _DWORD *v23; // eax\n  void *v24; // eax\n  signed int v25; // eax\n  int v26; // ebx\n  int v27; // ebx\n  void *v28; // eax\n  const char *v29; // eax\n  int v30; // eax\n  int *v31; // ecx\n  int v32; // eax\n  float v33; // xmm1_4\n  int v34; // edx\n  int v35; // ecx\n  int *v36; // ebx\n  int v37; // ecx\n  void *v38; // eax\n  int v39; // ecx\n  int *v40; // eax\n  int v41; // eax\n  void *v42; // eax\n  int v43; // ecx\n  int *v44; // edx\n  _DWORD *n298_1; // esi\n  void *v46; // eax\n  int v47; // ecx\n  void *v48; // eax\n  _DWORD *v49; // edx\n  int *v50; // eax\n  unsigned int v51; // esi\n  unsigned int v52; // edx\n  _DWORD *v53; // eax\n  _DWORD *n60; // esi\n  int *v55; // ecx\n  int v56; // eax\n  float v57; // xmm0_4\n  float v58; // xmm0_4\n  float v59; // xmm0_4\n  unsigned int v60; // esi\n  float v61; // xmm0_4\n  char *v62; // ecx\n  int v63; // ecx\n  int v64; // eax\n  float v65; // edx\n  int n45; // eax\n  unsigned int v67; // esi\n  unsigned int result; // eax\n  int v69; // [esp+2Ch] [ebp-5Ch]\n  int v70; // [esp+2Ch] [ebp-5Ch]\n  int v71; // [esp+2Ch] [ebp-5Ch]\n  unsigned int ArgList_3; // [esp+38h] [ebp-50h]\n  char ArgList_1; // [esp+40h] [ebp-48h]\n  float v74; // [esp+54h] [ebp-34h] BYREF\n  float v75; // [esp+58h] [ebp-30h]\n  _DWORD *v76; // [esp+5Ch] [ebp-2Ch] BYREF\n  int v77; // [esp+60h] [ebp-28h]\n  int n19; // [esp+64h] [ebp-24h] BYREF\n  char v79[4]; // [esp+68h] [ebp-20h] BYREF\n  int n4_2; // [esp+6Ch] [ebp-1Ch]\n  char ArgList[4]; // [esp+70h] [ebp-18h] BYREF\n  float v82; // [esp+74h] [ebp-14h]\n  unsigned int v83; // [esp+78h] [ebp-10h]\n  int n3; // [esp+84h] [ebp-4h]\n  int savedregs; // [esp+88h] [ebp+0h] BYREF\n\n  n4_1 = (int **)n4;\n  n4_2 = (int)n4;\n  if ( n298[77046] == n298[77047] )\n  {\n    *(float *)&v2 = 0.0;\n    while ( 1 )\n    {\n      v82 = *(float *)&v2;\n      ((void (__thiscall *)(void ***, int))off_C57B2C[3])(&off_C57B2C, -1);\n      v3 = (dword_C57B24 - dword_C57B20) >> 3;\n      n3 = 0;\n      ((void (__thiscall *)(void ***))off_C57B2C[4])(&off_C57B2C);\n      n3 = -1;\n      if ( v2 >= v3 )\n        break;\n      sub_A20240((int *)&off_C57B18, &v76, v2);\n      n3 = 1;\n      if ( v76 )\n      {\n        ArgList_2 = v76[3];\n        *(float *)v79 = 0.0;\n        v5 = 0;\n        v83 = 0;\n        *(_DWORD *)ArgList = ArgList_2;\n        if ( (n60[28331] - n60[28330]) >> 2 )\n        {\n          v6 = n4_1[1];\n          v7 = *n4_1;\n          do\n          {\n            if ( !(v6 - v7) )\n            {\n              sub_A112C0(16, \"PlayerManager::GetPlayer() : There are no players! \\n\");\n              v6 = n4_1[1];\n              v7 = *n4_1;\n            }\n            v8 = v6 - v7;\n            v9 = &v7[v83];\n            if ( v83 >= v8 )\n              v9 = v7;\n            n4_1 = (int **)n4_2;\n            if ( *(_DWORD *)(*v9 + 5656) == *(_DWORD *)ArgList )\n            {\n              v5 = 1;\n              if ( !v8 )\n              {\n                sub_A112C0(16, \"PlayerManager::GetPlayer() : There are no players! \\n\");\n                v6 = n4_1[1];\n                v7 = *n4_1;\n              }\n              v10 = v83;\n              v11 = &v7[v83];\n              if ( v83 >= v6 - v7 )\n                v11 = v7;\n              *(float *)v79 = *(float *)v11;\n            }\n            else\n            {\n              v10 = v83;\n            }\n            v83 = v10 + 1;\n          }\n          while ( v10 + 1 < (n60[28331] - n60[28330]) >> 2 );\n          ArgList_2 = *(_DWORD *)ArgList;\n        }\n        v12 = n4_1[52];\n        v13 = n4_1[53] - v12;\n        if ( v13 )\n        {\n          do\n          {\n            v14 = *v12++;\n            if ( *(_DWORD *)(v14 + 5656) == ArgList_2 )\n              v5 = 1;\n            --v13;\n          }\n          while ( v13 );\n          n4_1 = (int **)n4_2;\n        }\n        if ( n4_1[3] == (int *)ArgList_2 && (int)n4_1[5] >= 0 )\n          v5 = 1;\n        if ( n4_1[8] == (int *)ArgList_2 && (int)n4_1[10] >= 0 )\n          v5 = 1;\n        if ( n4_1[13] == (int *)ArgList_2 && (int)n4_1[15] >= 0 )\n          v5 = 1;\n        if ( n4_1[18] == (int *)ArgList_2 && (int)n4_1[20] >= 0 )\n        {\n          v5 = 1;\n        }\n        else if ( !v5 )\n        {\n          v19 = off_C57B18[29];\n          *(_DWORD *)ArgList = 19;\n          if ( ((unsigned __int8 (__thiscall *)(void ***, unsigned int, char (__cdecl *)(int, int, _DWORD *), char *, _DWORD, _DWORD))v19)(\n                 &off_C57B18,\n                 ArgList_2,\n                 sub_A209E0,\n                 ArgList,\n                 0,\n                 0) )\n          {\n            v20 = off_C57B18[29];\n            *(_DWORD *)ArgList = 8;\n            if ( ((unsigned __int8 (__thiscall *)(void ***, unsigned int, char (__cdecl *)(int, int, _DWORD *), char *, _DWORD, _DWORD))v20)(\n                   &off_C57B18,\n                   ArgList_2,\n                   sub_A20940,\n                   ArgList,\n                   0,\n                   0) )\n            {\n              v21 = off_C57B18[29];\n              *(_DWORD *)ArgList = 10;\n              if ( ((unsigned __int8 (__thiscall *)(void ***, unsigned int, char (__cdecl *)(int, int, _DWORD *), char *, _DWORD, _DWORD))v21)(\n                     &off_C57B18,\n                     ArgList_2,\n                     sub_A20940,\n                     ArgList,\n                     0,\n                     0) )\n              {\n                if ( n60 )\n                  sub_693090(v22, (int)(n60 + 107358), \"Joining as possessor\\n\", ArgList_1);\n                v23 = sub_9B9CD0(n4_1, (_DWORD *)0xFFFFFFFF);\n                sub_7A6450(v23, ArgList_2, 1);\n                n3 = 3;\n                goto LABEL_86;\n              }\n            }\n          }\n        }\n        *(_DWORD *)ArgList = 1;\n        if ( sub_9BA980() )\n        {\n          v16 = *n4_1;\n          if ( !(n4_1[1] - *n4_1) )\n          {\n            sub_A112C0(16, \"PlayerManager::GetPlayer() : There are no players! \\n\");\n            v16 = *n4_1;\n            v15 = ArgList[0];\n          }\n          if ( (unsigned int)(*(_DWORD *)(*v16 + 4932) + *(_DWORD *)(*v16 + 4940)) < 3 )\n            v15 = 0;\n        }\n        if ( n60[39308] )\n        {\n          if ( v5 )\n            goto LABEL_69;\n          v17 = off_C57B18[29];\n          n19 = 19;\n          if ( ((unsigned __int8 (__thiscall *)(void ***, unsigned int, char (__cdecl *)(int, int, _DWORD *), int *, _DWORD, _DWORD))v17)(\n                 &off_C57B18,\n                 ArgList_2,\n                 sub_A209E0,\n                 &n19,\n                 0,\n                 0) )\n          {\n            n298 = n298;\n            *(_DWORD *)ArgList = 187;\n            sub_956780(ArgList);\n            sub_92DC30(n298 + 43209, *(int *)ArgList, 0.5, 2, 0, 1065353216, 0);\n          }\n        }\n        else\n        {\n          if ( v15 && (unsigned int)((n60[28331] - n60[28330]) >> 2) < 0x40 )\n          {\n            if ( !v5 )\n            {\n              v24 = off_C57B18[29];\n              *(_DWORD *)v79 = 19;\n              if ( ((unsigned __int8 (__thiscall *)(void ***, unsigned int, char (__cdecl *)(int, int, _DWORD *), char *, _DWORD, _DWORD))v24)(\n                     &off_C57B18,\n                     ArgList_2,\n                     sub_A209E0,\n                     v79,\n                     0,\n                     0) )\n              {\n                v25 = sub_9BAAA0(n4_1, ArgList_2);\n                if ( v25 >= 0 )\n                {\n                  v26 = 5 * v25;\n                  if ( sub_9BA980() )\n                  {\n                    sub_9BD3B0(n4_1, (int)&savedregs, -1, ArgList_2);\n                  }\n                  else if ( n60[39265] || n60[39308] )\n                  {\n                    n4_1[v26 + 4] = *(int **)(sub_706940(n60) + 68);\n                    n4_1[v26 + 5] = (int *)1;\n                    n4_1[v26 + 6] = (int *)1065353216;\n                    LOBYTE(n4_1[v26 + 7]) = 1;\n                  }\n                  else\n                  {\n                    (*(void (__thiscall **)(_DWORD *, int))(*v76 + 84))(v76, 19);\n                    n4_1[v26 + 4] = 0;\n                    n4_1[v26 + 5] = (int *)1;\n                    n4_1[v26 + 6] = (int *)1065353216;\n                    LOBYTE(n4_1[v26 + 7]) = 0;\n                  }\n                }\n              }\n              goto LABEL_85;\n            }\nLABEL_69:\n            v27 = *(_DWORD *)v79;\n            if ( *(float *)v79 != 0.0 && !*(_DWORD *)(*(_DWORD *)v79 + 956) )\n            {\n              v28 = off_C57B18[29];\n              *(_DWORD *)v79 = 19;\n              if ( ((unsigned __int8 (__thiscall *)(void ***, unsigned int, char (__cdecl *)(int, int, _DWORD *), char *, _DWORD, _DWORD))v28)(\n                     &off_C57B18,\n                     ArgList_2,\n                     sub_A209E0,\n                     v79,\n                     0,\n                     0) )\n              {\n                if ( *(_DWORD *)(v27 + 44) )\n                {\n                  if ( !*(_DWORD *)(v27 + 124) || !*(_BYTE *)(v27 + 140) )\n                    goto LABEL_80;\n                  v29 = *(const char **)(v27 + 124);\n                  if ( *((_DWORD *)v29 + 5) >= 0x10u )\n                    v29 = *(const char **)v29;\n                  v30 = strcmp(v29, \"Appear\");\n                  if ( v30 )\n                    v30 = v30 < 0 ? -1 : 1;\n                  if ( v30 )\n                  {\nLABEL_80:\n                    v31 = *n4_1;\n                    if ( !(n4_1[1] - *n4_1) )\n                    {\n                      sub_A112C0(16, \"PlayerManager::GetPlayer() : There are no players! \\n\");\n                      v31 = *n4_1;\n                    }\n                    if ( !*(_BYTE *)(*v31 + 5016) && !*(_BYTE *)(*v31 + 5018) )\n                    {\n                      v32 = sub_6EEF60(v31);\n                      v33 = *(float *)(v27 + 832) - 10.0;\n                      v74 = *(float *)(v27 + 828) + 0.0;\n                      v75 = v33;\n                      sub_428B20(n60, 1000, 15, (int)&v74, (int)&a5, 0, 0, v32);\n                      sub_9BA000((unsigned int)n4_1, v34, (char *)v27, v35);\n                    }\n                  }\n                }\n              }\n            }\n            goto LABEL_85;\n          }\n          if ( v5 )\n            goto LABEL_69;\n        }\nLABEL_85:\n        n3 = 4;\nLABEL_86:\n        if ( v77 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v77 + 12))(v77) && n79_0 )\n          n79_0(&v76);\n        *(float *)&v2 = v82;\nLABEL_91:\n        n3 = -1;\n        ++v2;\n      }\n      else\n      {\n        n3 = 2;\n        if ( !v77 || !(*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v77 + 12))(v77) || !n79_0 )\n          goto LABEL_91;\n        n79_0(&v76);\n        n3 = -1;\n        ++v2;\n      }\n    }\n    v36 = (int *)(n4_1 + 5);\n    n4_2 = 4;\n    while ( 1 )\n    {\n      if ( *(v36 - 2) < 0 || *v36 < 0 )\n        goto LABEL_120;\n      if ( sub_9BA980() )\n        goto LABEL_119;\n      v38 = off_C57B18[29];\n      n19 = 20;\n      if ( ((unsigned __int8 (__thiscall *)(void ***, int, char (__cdecl *)(int, int, _DWORD *), int *, _DWORD, _DWORD))v38)(\n             &off_C57B18,\n             v37,\n             sub_A209E0,\n             &n19,\n             0,\n             0) )\n      {\n        break;\n      }\n      v42 = off_C57B18[29];\n      v69 = *(v36 - 2);\n      n19 = 21;\n      if ( ((unsigned __int8 (__thiscall *)(void ***, int, char (__cdecl *)(int, int, _DWORD *), int *, _DWORD, _DWORD))v42)(\n             &off_C57B18,\n             v69,\n             sub_A209E0,\n             &n19,\n             0,\n             0) )\n      {\n        v43 = *v36 + 1;\n        *v36 = v43;\n        v44 = n4_1[28];\n        if ( v43 >= n4_1[29] - v44 )\n        {\n          *v36 = 0;\n          v43 = 0;\n          v44 = n4_1[28];\n        }\n        v41 = v44[v43];\n        *(_DWORD *)v79 = 195;\n        goto LABEL_104;\n      }\n      v46 = off_C57B18[29];\n      v70 = *(v36 - 2);\n      n19 = 14;\n      if ( ((unsigned __int8 (__thiscall *)(void ***, int, char (__cdecl *)(int, int, _DWORD *), int *, _DWORD, _DWORD))v46)(\n             &off_C57B18,\n             v70,\n             sub_A209E0,\n             &n19,\n             0,\n             0)\n        || *((_BYTE *)v36 + 8) )\n      {\n        v49 = (_DWORD *)*(v36 - 1);\n        *((_BYTE *)v36 + 8) = 0;\n        if ( v49 == (_DWORD *)-1 )\n        {\n          v50 = n4_1[28];\n          if ( n4_1[29] - v50 == 1 )\n          {\n            v52 = 0;\n          }\n          else\n          {\n            v51 = n4_1[29] - v50 - 1;\n            v52 = sub_6EEF60(v47) % v51;\n            v50 = n4_1[28];\n          }\n          v49 = (_DWORD *)v50[v52 + 1];\n        }\n        v53 = sub_9B9CD0((int **)n60 + 28330, v49);\n        ArgList_3 = *(v36 - 2);\n        v83 = (unsigned int)v53;\n        sub_7A6450(v53, ArgList_3, 1);\n        n60 = n60;\n        v55 = (int *)n60[28330];\n        if ( !((n60[28331] - (int)v55) >> 2) )\n        {\n          sub_A112C0(16, \"PlayerManager::GetPlayer() : There are no players! \\n\");\n          v55 = (int *)n60[28330];\n        }\n        v56 = *v55;\n        n19 = *(int *)(*v55 + 828);\n        v82 = *(float *)(v56 + 832);\n        v57 = (float)(unsigned int)sub_6EEF60(v55);\n        v58 = (float)((float)(v57 * 2.3283064e-10) * 3.1400001) + (float)((float)(v57 * 2.3283064e-10) * 3.1400001);\n        *(float *)v79 = v58;\n        sub_41D540();\n        *(float *)&n19 = (float)(v58 * 10.0) + *(float *)&n19;\n        v59 = *(float *)v79;\n        sub_41D520();\n        v60 = v83;\n        v61 = (float)(v59 * 10.0) + v82;\n        v62 = (char *)(n60 + 30337);\n        *(float *)(v83 + 828) = *(float *)&n19;\n        *(float *)(v60 + 832) = v61;\n        sub_9A8620(v62);\n        sub_7BC740((_DWORD *)v60);\n        *(_DWORD *)(v60 + 1044) = 15;\n        v64 = sub_6EEF60(v63);\n        v65 = *(float *)(v60 + 832);\n        v74 = *(float *)(v60 + 828);\n        v75 = v65;\n        sub_428B20(n60, 1000, 15, (int)&v74, (int)&a5, 0, 0, v64);\n        n45 = *(_DWORD *)(v60 + 5052);\n        if ( n45 < 45 )\n          n45 = 45;\n        *(_DWORD *)(v60 + 5052) = n45;\nLABEL_119:\n        *v36 = -1;\n        goto LABEL_120;\n      }\n      v48 = off_C57B18[29];\n      v71 = *(v36 - 2);\n      *(_DWORD *)ArgList = 15;\n      if ( ((unsigned __int8 (__thiscall *)(void ***, int, char (__cdecl *)(int, int, _DWORD *), char *, _DWORD, _DWORD))v48)(\n             &off_C57B18,\n             v71,\n             sub_A209E0,\n             ArgList,\n             0,\n             0) )\n      {\n        goto LABEL_119;\n      }\nLABEL_120:\n      v36 += 5;\n      if ( !--n4_2 )\n        goto LABEL_121;\n    }\n    v39 = *v36 - 1;\n    *v36 = v39;\n    if ( v39 < 0 )\n    {\n      v39 = n4_1[29] - n4_1[28] - 1;\n      *v36 = v39;\n    }\n    v40 = n4_1[28];\n    *(_DWORD *)v79 = 194;\n    v41 = v40[v39];\nLABEL_104:\n    n298_1 = n298;\n    *(v36 - 1) = v41;\n    sub_956780(v79);\n    sub_92DC30(n298_1 + 43209, *(int *)v79, 1.0, 2, 0, 1065353216, 0);\n    goto LABEL_120;\n  }\nLABEL_121:\n  v67 = 0;\n  result = n4_1[53] - n4_1[52];\n  if ( result )\n  {\n    do\n    {\n      sub_7585B0(n4_1[52][v67++]);\n      result = n4_1[53] - n4_1[52];\n    }\n    while ( v67 < result );\n  }\n  return result;\n}\n",
+    "0x5bd3b0": "void __userpurge sub_9BD3B0(signed int **n55@<ecx>, int a2@<ebp>, int a3, unsigned int ArgList)\n{\n  signed int *v5; // eax\n  signed int *v6; // ecx\n  int v7; // eax\n  int v8; // esi\n  int v9; // edi\n  int v10; // ecx\n  _DWORD *n60_1; // esi\n  _DWORD *v1065; // edi\n  signed int n2_15; // esi\n  _DWORD *v14; // eax\n  int n2; // eax\n  int v16; // ecx\n  int n2_2; // edx\n  int v18; // ecx\n  int v19; // eax\n  int v20; // eax\n  int v21; // edi\n  int *v22; // ecx\n  int v23; // eax\n  int *v24; // eax\n  int v25; // ecx\n  int v26; // eax\n  int n2_5; // ecx\n  int n2_3; // ecx\n  int v29; // ecx\n  unsigned int n2_6; // eax\n  signed int v31; // edx\n  int v32; // eax\n  _DWORD *n60; // eax\n  int v34; // kr14_4\n  int v35; // eax\n  int *v36; // edx\n  int n2_7; // eax\n  int n2_8; // eax\n  bool v39; // zf\n  int v40; // ecx\n  unsigned int n2_9; // eax\n  unsigned int n2_11; // ecx\n  int v43; // ecx\n  int n67; // eax\n  unsigned int n2_12; // edi\n  int v46; // esi\n  int *v47; // eax\n  int v48; // ecx\n  int v49; // edx\n  int n733; // ecx\n  int v51; // eax\n  int v52; // edi\n  size_t v1065_2; // edi\n  _DWORD *v1065_3; // eax\n  __int128 v55; // xmm0\n  int n2_13; // edx\n  int n12; // edx\n  char **v58; // ecx\n  int *v59; // edx\n  int v60; // eax\n  char *n55_2; // edx\n  unsigned int v62; // eax\n  int v63; // ecx\n  void **v64; // esi\n  int v65; // eax\n  int *v66; // ecx\n  int v67; // edx\n  int v68; // eax\n  void *v69; // ecx\n  unsigned int v70; // edx\n  unsigned int v71; // eax\n  int *v72; // edx\n  void *v73; // ecx\n  unsigned int v74; // eax\n  bool v75; // cf\n  char v76; // [esp-64h] [ebp-70h] BYREF\n  int v77; // [esp-60h] [ebp-6Ch]\n  unsigned int n2_10; // [esp-58h] [ebp-64h]\n  int v79; // [esp-54h] [ebp-60h] BYREF\n  int v80; // [esp-50h] [ebp-5Ch] BYREF\n  int *v81; // [esp-4Ch] [ebp-58h] BYREF\n  int n2_4; // [esp-48h] [ebp-54h] BYREF\n  int v83; // [esp-44h] [ebp-50h] BYREF\n  size_t v1065_1; // [esp-40h] [ebp-4Ch] BYREF\n  signed int n2_14; // [esp-3Ch] [ebp-48h]\n  int n55_1; // [esp-38h] [ebp-44h] BYREF\n  unsigned int n2_1; // [esp-34h] [ebp-40h]\n  int v88; // [esp-30h] [ebp-3Ch]\n  int v89; // [esp-2Ch] [ebp-38h]\n  int v90; // [esp-28h] [ebp-34h]\n  int v91; // [esp-24h] [ebp-30h]\n  int v92; // [esp-20h] [ebp-2Ch]\n  int v93; // [esp-1Ch] [ebp-28h]\n  int v94; // [esp-18h] [ebp-24h]\n  int v95; // [esp-14h] [ebp-20h]\n  int *v96; // [esp-10h] [ebp-1Ch]\n  struct _EXCEPTION_REGISTRATION_RECORD *ExceptionList; // [esp-Ch] [ebp-18h]\n  char *v98; // [esp-8h] [ebp-14h]\n  int v99; // [esp-4h] [ebp-10h]\n  int v100; // [esp+0h] [ebp-Ch]\n  void *v101; // [esp+4h] [ebp-8h]\n  int v102; // [esp+8h] [ebp-4h] BYREF\n  void *retaddr; // [esp+Ch] [ebp+0h]\n\n  v100 = a2;\n  v101 = retaddr;\n  v99 = -1;\n  v98 = byte_B0EADD;\n  ExceptionList = NtCurrentTeb()->NtTib.ExceptionList;\n  v96 = &v102;\n  n55_1 = (int)n55;\n  v5 = n55[1];\n  v6 = *n55;\n  if ( !(v5 - v6) )\n  {\n    sub_A112C0(16, \"PlayerManager::GetPlayer() : There are no players! \\n\");\n    v6 = *n55;\n  }\n  n2_14 = *v6;\n  v7 = *(_DWORD *)(n2_14 + 4932);\n  v8 = *(_DWORD *)(n2_14 + 4940);\n  v9 = *(_DWORD *)(n2_14 + 7560);\n  v10 = *(_DWORD *)(n2_14 + 4928);\n  n2_1 = v9 + v7 + v8;\n  if ( v10 < v7 )\n    v7 = v10;\n  if ( (unsigned int)(v9 + (v7 + 1) / 2 + (v8 + 1) / 2) >= 2\n    || (n60_1 = n60, v1065_1 = 55, sub_4288A0(&v79, &v1065_1), !*((_BYTE *)v81 + 13))\n    && v81[4] <= 55\n    && v81 != (int *)n60_1[28406] )\n  {\n    v1065 = sub_9B98E0((char *)n55_1, -1);\n    v1065_1 = (size_t)v1065;\n    sub_7ABE20((char)\"Appear\");\n    v1065[1263] = 150;\n    sub_7A6450(v1065, ArgList, 1);\n    n2_15 = n2_14;\n    v80 = *(_DWORD *)(n2_14 + 828);\n    v81 = *(int **)(n2_14 + 832);\n    v14 = (_DWORD *)sub_9BC280(&v80, v80, v81);\n    v1065[207] = *v14;\n    v1065[208] = v14[1];\n    sub_7588A0(-v1065[1232], 0);\n    sub_7CB090(v1065);\n    n55_1 = 55;\n    v88 = (int)(n60 + 28406);\n    sub_4288A0(&v79, &n55_1);\n    if ( *((_BYTE *)v81 + 13) || v81[4] > 55 || v81 == *(int **)v88 )\n    {\n      n2 = n2_1 >> 2;\n      if ( n2_1 >> 2 < 2 )\n        n2 = 2;\n      n2_1 = n2;\n      sub_A112C0(1, \"Co-player wants %d HP\\n\", n2);\n      v16 = *(_DWORD *)(n2_15 + 7560);\n      n55_1 = *(_DWORD *)(n2_15 + 4940);\n      v92 = v16;\n      n2_2 = n2_1;\n      v95 = 0;\n      v90 = v16 + (n55_1 + 1) / 2;\n      v88 = 0;\n      v18 = v90 - 1;\n      v19 = 0;\n      v91 = v90 - 1;\n      v94 = 0;\n      v89 = 0;\n      v93 = 0;\n      if ( n2_1 )\n      {\n        v20 = v92;\n        n2_1 = 2 * v92;\n        v21 = *(_DWORD *)(n2_15 + 4932);\n        while ( 1 )\n        {\n          if ( v18 < 0 )\n          {\n            n2_3 = 2 - v21 % 2;\n            v26 = v93;\n            if ( v93 > 0 && n2_2 < n2_3 )\n              goto LABEL_35;\n            v95 += n2_3;\n            v21 -= n2_3;\n            v88 += 2;\n            n2_2 -= n2_3;\n            v18 = v91;\n          }\n          else if ( v20 > 0 && *(int *)(n2_15 + 7560) > 0 && ((1 << v18) & *(_DWORD *)(n2_15 + 7564)) != 0 )\n          {\n            n2_4 = 2;\n            v22 = &v83;\n            v23 = v21 - n2_1 - *(_DWORD *)(n2_15 + 4928);\n            n2_15 = n2_14;\n            v83 = v23 + 2;\n            v81 = 0;\n            if ( v23 + 2 >= 2 )\n              v22 = &n2_4;\n            v24 = (int *)&v81;\n            if ( *v22 > 0 )\n              v24 = v22;\n            v25 = *v24;\n            if ( v93 > 0 && n2_2 < v25 + 1 )\n            {\nLABEL_35:\n              v1065 = (_DWORD *)v1065_1;\n              v19 = v94;\n              break;\n            }\n            v95 += v25;\n            ++v89;\n            --v92;\n            v21 -= v25;\n            n2_2 += -1 - v25;\n            n2_1 -= 2;\n            v18 = v91 - 1;\n            v26 = v93;\n            --v91;\n          }\n          else\n          {\n            n2_5 = 2 - n55_1 % 2;\n            v26 = v93;\n            if ( v93 > 0 && n2_2 < n2_5 )\n              goto LABEL_35;\n            v94 += n2_5;\n            n2_2 -= n2_5;\n            n55_1 -= n2_5;\n            v18 = --v91;\n          }\n          v93 = v26 + 1;\n          v20 = v92;\n          if ( n2_2 <= 0 )\n            goto LABEL_35;\n        }\n      }\n      sub_A112C0(1, \"Taking %d red HP, %d soul HP and %d bone HP\\n\", v95, v19, v89);\n      v29 = v91 + 1;\n      if ( v91 + 1 < v90 )\n      {\n        n2_6 = __ROL4__(1, v29);\n        n2_1 = n2_6;\n        v90 -= v29;\n        do\n        {\n          if ( *(int *)(n2_15 + 7560) > 0 && (n2_6 & *(_DWORD *)(n2_15 + 7564)) != 0 )\n          {\n            sub_7CA840(1);\n          }\n          else\n          {\n            v31 = (v1065[1235] + 1) & 0xFFFFFFFE;\n            v81 = (int *)v31;\n            v32 = v31 + 1;\n            if ( v31 + 1 <= *(_DWORD *)(n2_15 + 4940)\n              && v32 >= 1\n              && (v32 & 1) == 1\n              && (n55_1 = *(_DWORD *)(n2_15 + 4944), ((1 << (v31 / 2)) & n55_1) != 0) )\n            {\n              n60 = n60;\n              *(_DWORD *)(n2_15 + 4944) = n55_1 & ~(1 << (((int)v81 + 1) / 2));\n              if ( (int)n60[39301] < 2 && !*(_BYTE *)(n2_15 + 371) && *(int *)(n2_15 + 6476) > 0 )\n              {\n                v34 = *(_DWORD *)(n2_15 + 4940) + 1;\n                v81 = (int *)(n2_15 + 4 * (*(_DWORD *)(n2_15 + 4928) >= *(_DWORD *)(n2_15 + 4932)) + 4928);\n                v35 = *(_DWORD *)(n2_15 + 6476);\n                v36 = (int *)(*(_DWORD *)(n2_15 + 7560) + v34 / 2 + (*v81 + 1) / 2);\n                v81 = v36;\n                if ( v35 > (int)v36 )\n                {\n                  sub_7CA2D0(v35 - (_DWORD)v36);\n                  *(_DWORD *)(n2_15 + 6476) = v81;\n                }\n              }\n              sub_7CABC0(n2_15);\n              n2_7 = v94 - v1065[1235];\n              if ( n2_7 > 2 )\n                n2_7 = 2;\n              sub_758F90(n2_7);\n            }\n            else\n            {\n              n2_8 = v94 - v1065[1235];\n              if ( n2_8 > 2 )\n                n2_8 = 2;\n              sub_758D00(n2_8, 0);\n            }\n          }\n          n2_6 = __ROL4__(n2_1, 1);\n          v39 = v90-- == 1;\n          n2_1 = n2_6;\n        }\n        while ( !v39 );\n      }\n      sub_7588A0(v88, 0);\n      sub_758A70(v95, 1, 0);\n      sub_758D00(-v94, 0);\n      sub_758A70(-v95, 1, 0);\n      sub_7CA840(-v89);\n      sub_7588A0(-v88, 0);\n    }\n    else\n    {\n      sub_7588A0(2, 0);\n      sub_758A70(2, 1, 0);\n    }\n    v40 = n60[24768] + 4632;\n    n55_1 = 0;\n    sub_41AF60(v40, (int)&v76, 3, -1, -1, 0, 0);\n    v99 = 0;\n    n2_9 = 0;\n    n2_11 = n2_10;\n    n2_1 = 0;\n    if ( n2_10 )\n    {\n      while ( 1 )\n      {\n        v43 = *(_DWORD *)(v77 + 4 * n2_9);\n        n67 = *(_DWORD *)(v43 + 44);\n        if ( n67 != 67\n          && n67 != 62\n          && n67 != 68\n          && n67 != 900\n          && !*(_DWORD *)(*(_DWORD *)(_RTDynamicCast(\n                                        v43,\n                                        0,\n                                        &IsaacRepentancePlus::Entity `RTTI Type Descriptor',\n                                        &IsaacRepentancePlus::Entity_Familiar `RTTI Type Descriptor',\n                                        0)\n                                    + 1040)\n                        + 44)\n          && ++n55_1 == 2 )\n        {\n          break;\n        }\n        n2_11 = n2_10;\n        n2_9 = n2_1 + 1;\n        n2_1 = n2_9;\n        if ( n2_9 >= n2_10 )\n          goto LABEL_68;\n      }\n      sub_62E020(v1065);\n      n2_11 = n2_10;\n    }\nLABEL_68:\n    n2_12 = 0;\n    if ( n2_11 )\n    {\n      v46 = v77;\n      do\n      {\n        v47 = (int *)_RTDynamicCast(\n                       *(_DWORD *)(v46 + 4 * n2_12),\n                       0,\n                       &IsaacRepentancePlus::Entity `RTTI Type Descriptor',\n                       &IsaacRepentancePlus::Entity_Familiar `RTTI Type Descriptor',\n                       0);\n        v48 = *(_DWORD *)(v46 + 4 * n2_12);\n        v81 = v47;\n        v49 = _RTDynamicCast(\n                *(_DWORD *)(v48 + 956),\n                0,\n                &IsaacRepentancePlus::Entity `RTTI Type Descriptor',\n                &IsaacRepentancePlus::Entity_Familiar `RTTI Type Descriptor',\n                0);\n        if ( v81 && v49 && *(_DWORD *)(v49 + 1040) != v81[260] )\n          sub_62E020(v81[260]);\n        ++n2_12;\n      }\n      while ( n2_12 < n2_10 );\n      n2_15 = n2_14;\n    }\n    n733 = 0;\n    n2_14 = 0;\n    do\n    {\n      v51 = *(_DWORD *)(n2_15 + 5832);\n      v52 = 0;\n      v81 = (int *)(4 * n733);\n      if ( *(int *)(v51 + 4 * n733) > 0 )\n      {\n        do\n        {\n          sub_75F0E0(n733, 0, 1, 0, 0, 0);\n          ++v52;\n          n733 = n2_14;\n        }\n        while ( v52 < *(int *)((char *)v81 + *(_DWORD *)(n2_15 + 5832)) );\n      }\n      n2_14 = ++n733;\n    }\n    while ( n733 < 733 );\n    v1065_2 = v1065_1;\n    v1065_3 = (_DWORD *)(n2_15 + 5824);\n    v55 = *(_OWORD *)(n2_15 + 5504);\n    n2_13 = 2;\n    v1065_1 = n2_15 + 5824;\n    n2_14 = 2;\n    *(_OWORD *)(v1065_2 + 5504) = v55;\n    *(_OWORD *)(v1065_2 + 5520) = *(_OWORD *)(n2_15 + 5520);\n    do\n    {\n      if ( *v1065_3 )\n      {\n        sub_771D30(*v1065_3, 1);\n        v1065_3 = (_DWORD *)v1065_1;\n        n2_13 = n2_14;\n      }\n      ++v1065_3;\n      --n2_13;\n      v1065_1 = (size_t)v1065_3;\n      n2_14 = n2_13;\n    }\n    while ( n2_13 );\n    n12 = 12;\n    v1065_1 = 12;\n    do\n    {\n      *(_DWORD *)(n12 + *(_DWORD *)(v1065_2 + 5844) - 12) = *(_DWORD *)(n12 + *(_DWORD *)(n2_15 + 5844) - 12);\n      *(_DWORD *)(*(_DWORD *)(v1065_2 + 5844) + n12 - 8) = *(_DWORD *)(*(_DWORD *)(n2_15 + 5844) + n12 - 8);\n      *(_DWORD *)(n12 + *(_DWORD *)(v1065_2 + 5844) - 4) = *(_DWORD *)(n12 + *(_DWORD *)(n2_15 + 5844) - 4);\n      *(_DWORD *)(n12 + *(_DWORD *)(v1065_2 + 5844)) = *(_DWORD *)(n12 + *(_DWORD *)(n2_15 + 5844));\n      *(_DWORD *)(*(_DWORD *)(v1065_2 + 5844) + n12 + 4) = *(_DWORD *)(*(_DWORD *)(n2_15 + 5844) + n12 + 4);\n      n12 = v1065_1 + 20;\n      v1065_1 = n12;\n    }\n    while ( n12 < 212 );\n    v58 = (char **)(v1065_2 + 5960);\n    if ( v1065_2 + 5960 != n2_15 + 5960 )\n    {\n      v59 = *(int **)(n2_15 + 5960);\n      n2_14 = *(_DWORD *)(n2_15 + 5964) - (_DWORD)v59;\n      v1065_1 = n2_14 >> 2;\n      v60 = *(_DWORD *)(v1065_2 + 5968);\n      v81 = v59;\n      n55_2 = *v58;\n      v62 = (v60 - (int)*v58) >> 2;\n      n55_1 = (int)*v58;\n      if ( n2_14 >> 2 > v62 )\n      {\n        sub_6A0D30(v1065_1);\n        n55_2 = *(char **)(v1065_2 + 5960);\n        n55_1 = (int)n55_2;\n      }\n      memmove(n55_2, v81, n2_14);\n      *(_DWORD *)(v1065_2 + 5964) = n55_1 + n2_14;\n    }\n    v63 = n2_15 + 5972;\n    v64 = (void **)(v1065_2 + 5972);\n    if ( v1065_2 + 5972 != v63 )\n    {\n      v65 = *(_DWORD *)(v63 + 4);\n      v66 = *(int **)v63;\n      v67 = v65 - (_DWORD)v66;\n      v1065_1 = v65 - (_DWORD)v66;\n      v68 = *(_DWORD *)(v1065_2 + 5980);\n      v81 = v66;\n      v69 = *v64;\n      v70 = v67 >> 2;\n      v71 = (v68 - (int)*v64) >> 2;\n      n2_14 = (signed int)*v64;\n      if ( v70 > v71 )\n      {\n        sub_6A0D30(v70);\n        v69 = *v64;\n        n2_14 = (signed int)*v64;\n      }\n      memmove(v69, v81, v1065_1);\n      *(_DWORD *)(v1065_2 + 5976) = n2_14 + v1065_1;\n    }\n    *(_DWORD *)(v1065_2 + 5492) = 0xFFFF;\n    sub_763570((_BYTE *)v1065_2);\n    sub_9A8620((char *)n60 + 121348);\n    if ( !v76 )\n    {\n      if ( dword_C7DE78 )\n        v72 = (int *)(dword_C7DE78 + 48);\n      else\n        v72 = &dword_C7F618;\n      if ( v77 )\n      {\n        v73 = (void *)(v77 - 4);\n        v74 = *(_DWORD *)(v77 - 4);\n        v75 = *v72 < v74;\n        *v72 -= v74;\n        v72[1] -= v75;\n        free(v73);\n      }\n    }\n  }\n}\n",
+    "0x5b98e0": "_DWORD *__thiscall sub_9B98E0(char *n55, int ArgList)\n{\n  char *n55_1; // edi\n  int ArgList_1; // esi\n  int v4; // ecx\n  _DWORD *ArgList_2; // eax\n  int ArgList_3; // ecx\n  int *v8; // eax\n  _DWORD *n298; // ebx\n  int v10; // ebx\n  int v11; // edi\n  int v12; // edx\n  int v13; // ebx\n  _DWORD *ArgList_5; // ebx\n  unsigned int v15; // edx\n  unsigned int v16; // edx\n  _DWORD *n60; // eax\n  int v18; // esi\n  int v19; // edx\n  unsigned int v20; // edx\n  unsigned int v21; // edx\n  _DWORD *n298_2; // eax\n  int v23; // esi\n  int v24; // ecx\n  unsigned int v25; // edi\n  unsigned int v26; // eax\n  __int64 v27; // [esp-4h] [ebp-40h]\n  int v28; // [esp-4h] [ebp-40h]\n  int v30; // [esp+20h] [ebp-1Ch] BYREF\n  _DWORD *n298_1; // [esp+24h] [ebp-18h]\n  unsigned int v32; // [esp+28h] [ebp-14h]\n  int ArgList_4; // [esp+2Ch] [ebp-10h]\n  int v34; // [esp+38h] [ebp-4h]\n\n  n55_1 = n55;\n  ArgList_1 = ArgList;\n  sub_A112C0(1, \"Spawning Co-Op Baby (Skin = %d) \\n\", ArgList);\n  v4 = (*((_DWORD *)n55_1 + 1) - *(_DWORD *)n55_1) >> 2;\n  if ( (unsigned int)(v4 + 1) > 0x40 )\n  {\n    sub_A112C0(\n      8,\n      \"PlayerManager::SpawnCoPlayer() cannot spawn new player. Already at max players. (Count == %d, Max = %d) \\n\",\n      v4,\n      64);\n    return 0;\n  }\n  LODWORD(v27) = 12032;\n  ArgList_2 = sub_A0F4C0(v27);\n  ArgList = (int)ArgList_2;\n  v34 = 0;\n  if ( ArgList_2 )\n    ArgList_3 = (int)sub_753DA0(ArgList_2);\n  else\n    ArgList_3 = 0;\n  v34 = -1;\n  *(_DWORD *)(ArgList_3 + 5660) = (*((_DWORD *)n55_1 + 1) - *(_DWORD *)n55_1) >> 2;\n  v8 = (int *)*((_DWORD *)n55_1 + 1);\n  ArgList_4 = ArgList_3;\n  ArgList = ArgList_3;\n  if ( v8 == *((int **)n55_1 + 2) )\n  {\n    sub_42C920(v8, (int)&ArgList);\n    ArgList_4 = ArgList;\n  }\n  else\n  {\n    *v8 = ArgList_3;\n    *((_DWORD *)n55_1 + 1) += 4;\n  }\n  n298 = n298;\n  n298_1 = n298;\n  if ( ArgList_1 < 0 )\n  {\n    ArgList_1 = 71;\n    ArgList = 71;\n    if ( (sub_6EEF60(ArgList_3) & 3) != 0 )\n      goto LABEL_26;\n    v34 = 1;\n    sub_42C820((n298[43426] - n298[43425]) / 56);\n    v10 = n298[43425];\n    v32 = 0;\n    ArgList_3 = n298_1[43426] - v10;\n    if ( ArgList_3 / 56 )\n    {\n      v11 = 0;\n      do\n      {\n        v12 = v11 + v10;\n        v13 = *(_DWORD *)(v11 + v10 + 52);\n        if ( v13 < 0 || (unsigned __int8)sub_929AA0(v13) )\n        {\n          v30 = v12;\n          sub_42C920(0, (int)&v30);\n        }\n        v11 += 56;\n        ++v32;\n        v10 = n298_1[43425];\n        ArgList_3 = n298_1[43426] - v10;\n      }\n      while ( v32 < ArgList_3 / 56 );\n      n55_1 = n55;\n    }\n    ArgList_1 = ArgList;\n    v34 = -1;\n  }\n  if ( ArgList_1 == 25 )\n  {\n    *((_DWORD *)n55_1 + 42) = sub_6EEF60(ArgList_3);\n    *(_QWORD *)(n55_1 + 172) = 0x900000005LL;\n    *((_DWORD *)n55_1 + 45) = 7;\n    goto LABEL_21;\n  }\nLABEL_26:\n  if ( ArgList_1 == 71 )\n  {\n    ArgList_5 = (_DWORD *)ArgList_4;\n    v20 = *((_DWORD *)n55_1 + 46);\n    ArgList = *(_DWORD *)(*(_DWORD *)ArgList_4 + 4);\n    if ( !v20 )\n    {\n      sub_A112C0(16, \"RNG Seed is zero!\\n\");\n      v20 = *((_DWORD *)n55_1 + 46);\n      if ( !v20 )\n        __debugbreak();\n    }\n    v21 = v20 ^ (v20 >> *((_DWORD *)n55_1 + 47)) ^ ((v20 ^ (v20 >> *((_DWORD *)n55_1 + 47))) << *((_DWORD *)n55_1 + 48));\n    n298_2 = n298_1;\n    v23 = v21 ^ (v21 >> *((_DWORD *)n55_1 + 49));\n    *((_DWORD *)n55_1 + 46) = v23;\n    v24 = n298_2[43426] - n298_2[43425];\n    v25 = ((int)((unsigned __int64)(2454267027LL * v24) >> 32) >> 5)\n        + ((unsigned int)((unsigned __int64)(2454267027LL * v24) >> 32) >> 31)\n        - 71;\n    if ( v25 )\n    {\n      v26 = sub_6EEF60(v24);\n      ((void (__thiscall *)(_DWORD *, int, int, unsigned int, int))ArgList)(ArgList_5, 1, 1, v26 % v25 + 71, v23);\n    }\n    else\n    {\n      ((void (__thiscall *)(_DWORD *, int, int, int, int))ArgList)(ArgList_5, 1, 1, 71, v23);\n    }\n    goto LABEL_25;\n  }\nLABEL_21:\n  ArgList_5 = (_DWORD *)ArgList_4;\n  v15 = *((_DWORD *)n55_1 + 46);\n  ArgList = *(_DWORD *)(*(_DWORD *)ArgList_4 + 4);\n  if ( !v15 )\n  {\n    sub_A112C0(16, \"RNG Seed is zero!\\n\");\n    v15 = *((_DWORD *)n55_1 + 46);\n    if ( !v15 )\n      __debugbreak();\n  }\n  v16 = v15 ^ (v15 >> *((_DWORD *)n55_1 + 47)) ^ ((v15 ^ (v15 >> *((_DWORD *)n55_1 + 47))) << *((_DWORD *)n55_1 + 48));\n  v28 = v16 ^ (v16 >> *((_DWORD *)n55_1 + 49));\n  *((_DWORD *)n55_1 + 46) = v28;\n  ((void (__thiscall *)(_DWORD *, int, int, int, int))ArgList)(ArgList_5, 1, 1, ArgList_1, v28);\nLABEL_25:\n  n60 = n60;\n  v18 = n60[24768];\n  v19 = *(_DWORD *)(v18 + 4628);\n  *(_DWORD *)(v18 + 4628) = v19 + 1;\n  ArgList_5[8] = v19;\n  sub_418500((unsigned int)n60, (_DWORD *)(v18 + 4632), ArgList_5);\n  return ArgList_5;\n}\n",
+    "0x5b9cd0": "_DWORD *__thiscall sub_9B9CD0(int **this, _DWORD *a2)\n{\n  _DWORD *v3; // ebx\n  _DWORD *v4; // eax\n  _DWORD *v5; // ebx\n  int *v6; // eax\n  unsigned int v7; // edx\n  int v8; // eax\n  int v9; // ecx\n  _DWORD *v11; // eax\n  unsigned int n2; // ecx\n  int *v13; // esi\n  int v14; // edx\n  int v15; // eax\n  signed int n2_1; // eax\n  int *v17; // eax\n  unsigned int v18; // edx\n  void (__thiscall *v19)(_DWORD *, int, _DWORD, _DWORD *, int *); // esi\n  unsigned int v20; // edx\n  _DWORD *n60; // eax\n  int v22; // esi\n  int v23; // edx\n  _DWORD *v24; // [esp-8h] [ebp-2Ch]\n  __int64 v25; // [esp-4h] [ebp-28h]\n  int *v26; // [esp-4h] [ebp-28h]\n  int *v27; // [esp-4h] [ebp-28h]\n  int v28; // [esp+14h] [ebp-10h] BYREF\n  int v29; // [esp+20h] [ebp-4h]\n\n  v3 = a2;\n  sub_A112C0(1, \"[Frame: %d] Spawning Co-Op Player (ePlayerType = %d) \\n\", n298[77049], a2);\n  if ( v3 == (_DWORD *)-1 )\n  {\n    LODWORD(v25) = 12032;\n    v4 = sub_A0F4C0(v25);\n    a2 = v4;\n    v29 = 0;\n    if ( v4 )\n      v5 = sub_753DA0(v4);\n    else\n      v5 = 0;\n    v29 = -1;\n    v5[1415] = this[53] - this[52];\n    v6 = this[53];\n    a2 = v5;\n    if ( v6 == this[54] )\n    {\n      sub_42C920(v6, (int)&a2);\n      v5 = a2;\n    }\n    else\n    {\n      *v6 = (int)v5;\n      ++this[53];\n    }\n    v7 = (unsigned int)this[46];\n    a2 = *(_DWORD **)(*v5 + 4);\n    if ( !v7 )\n    {\n      sub_A112C0(16, \"RNG Seed is zero!\\n\");\n      v7 = (unsigned int)this[46];\n      if ( !v7 )\n        __debugbreak();\n    }\n    v8 = v7 ^ (v7 >> (char)this[47]);\n    v26 = (int *)(v8 ^ (v8 << (char)this[48]) ^ ((v8 ^ (unsigned int)(v8 << (char)this[48])) >> (char)this[49]));\n    this[46] = v26;\n    ((void (__thiscall *)(_DWORD *, int, int, _DWORD, int *))a2)(v5, 1, 2, 0, v26);\n  }\n  else\n  {\n    v9 = this[1] - *this;\n    if ( (unsigned int)(v9 + 1) > 0x40 )\n    {\n      sub_A112C0(\n        8,\n        \"PlayerManager::SpawnCoPlayer() cannot spawn new player. Already at max players. (Count == %d, Max = %d) \\n\",\n        v9,\n        64);\n      return 0;\n    }\n    LODWORD(v25) = 12032;\n    v11 = sub_A0F4C0(v25);\n    v28 = (int)v11;\n    v29 = 1;\n    if ( v11 )\n      v5 = sub_753DA0(v11);\n    else\n      v5 = 0;\n    v29 = -1;\n    n2 = -1;\n    v5[1415] = this[1] - *this;\n    v13 = *this;\n    v14 = this[1] - *this;\n    v28 = (int)v5;\n    if ( v14 )\n    {\n      do\n      {\n        v15 = *v13++;\n        n2_1 = *(_DWORD *)(v15 + 5664);\n        if ( (int)n2 < n2_1 )\n          n2 = n2_1;\n        --v14;\n      }\n      while ( v14 );\n      if ( n2 <= 2 )\n        v5[1416] = n2 + 1;\n    }\n    v17 = this[1];\n    if ( v17 == this[2] )\n    {\n      sub_42C920(v17, (int)&v28);\n      v5 = (_DWORD *)v28;\n    }\n    else\n    {\n      *v17 = (int)v5;\n      ++this[1];\n    }\n    v18 = (unsigned int)this[46];\n    v19 = *(void (__thiscall **)(_DWORD *, int, _DWORD, _DWORD *, int *))(*v5 + 4);\n    if ( !v18 )\n    {\n      sub_A112C0(16, \"RNG Seed is zero!\\n\");\n      v18 = (unsigned int)this[46];\n      if ( !v18 )\n        __debugbreak();\n    }\n    v20 = v18 ^ (v18 >> (char)this[47]) ^ ((v18 ^ (v18 >> (char)this[47])) << (char)this[48]);\n    v27 = (int *)(v20 ^ (v20 >> (char)this[49]));\n    v24 = a2;\n    this[46] = v27;\n    v19(v5, 1, 0, v24, v27);\n    n60 = n60;\n    v22 = n60[24768];\n    v23 = *(_DWORD *)(v22 + 4628);\n    *(_DWORD *)(v22 + 4628) = v23 + 1;\n    v5[8] = v23;\n    sub_418500((unsigned int)n60, (_DWORD *)(v22 + 4632), v5);\n  }\n  return v5;\n}\n"
+  },
+  "instructions": [
+    {
+      "rva": "0x5ba980",
+      "bytes": "a1 78 16 c7 00",
+      "asm": "mov     eax, n60"
+    },
+    {
+      "rva": "0x5ba985",
+      "bytes": "8b 80 48 65 02 00",
+      "asm": "mov     eax, [eax+26548h]"
+    },
+    {
+      "rva": "0x5ba98b",
+      "bytes": "83 e0 10",
+      "asm": "and     eax, 10h"
+    },
+    {
+      "rva": "0x5ba98e",
+      "bytes": "83 c8 00",
+      "asm": "or      eax, 0"
+    },
+    {
+      "rva": "0x5ba991",
+      "bytes": "74 03",
+      "asm": "jz      short loc_9BA996"
+    },
+    {
+      "rva": "0x5ba993",
+      "bytes": "b0 01",
+      "asm": "mov     al, 1"
+    },
+    {
+      "rva": "0x5ba995",
+      "bytes": "c3",
+      "asm": "retn"
+    },
+    {
+      "rva": "0x5ba996",
+      "bytes": "32 c0",
+      "asm": "xor     al, al"
+    },
+    {
+      "rva": "0x5ba998",
+      "bytes": "c3",
+      "asm": "retn"
+    },
+    {
+      "rva": "0x5bae74",
+      "bytes": "b3 01",
+      "asm": "mov     bl, 1"
+    },
+    {
+      "rva": "0x5bae76",
+      "bytes": "ba 01 00 00 00",
+      "asm": "mov     edx, 1"
+    },
+    {
+      "rva": "0x5bae7b",
+      "bytes": "89 55 e8",
+      "asm": "mov     dword ptr [ebp+ArgList], edx"
+    },
+    {
+      "rva": "0x5bae7e",
+      "bytes": "e8 fd fa ff ff",
+      "asm": "call    sub_9BA980"
+    },
+    {
+      "rva": "0x5bae83",
+      "bytes": "84 c0",
+      "asm": "test    al, al"
+    },
+    {
+      "rva": "0x5bae85",
+      "bytes": "74 3b",
+      "asm": "jz      short loc_9BAEC2"
+    },
+    {
+      "rva": "0x5bae87",
+      "bytes": "8b 47 04",
+      "asm": "mov     eax, [edi+4]"
+    },
+    {
+      "rva": "0x5bae8a",
+      "bytes": "8b 0f",
+      "asm": "mov     ecx, [edi]"
+    },
+    {
+      "rva": "0x5bae8c",
+      "bytes": "2b c1",
+      "asm": "sub     eax, ecx"
+    },
+    {
+      "rva": "0x5bae8e",
+      "bytes": "c1 f8 02",
+      "asm": "sar     eax, 2"
+    },
+    {
+      "rva": "0x5bae91",
+      "bytes": "85 c0",
+      "asm": "test    eax, eax"
+    },
+    {
+      "rva": "0x5bae93",
+      "bytes": "75 14",
+      "asm": "jnz     short loc_9BAEA9"
+    },
+    {
+      "rva": "0x5bae95",
+      "bytes": "68 bc e6 b7 00",
+      "asm": "push    offset aPlayermanagerG; \"PlayerManager::GetPlayer() : There are \"..."
+    },
+    {
+      "rva": "0x5bae9a",
+      "bytes": "6a 10",
+      "asm": "push    10h; int"
+    },
+    {
+      "rva": "0x5bae9c",
+      "bytes": "e8 1f 64 05 00",
+      "asm": "call    sub_A112C0"
+    },
+    {
+      "rva": "0x5baea1",
+      "bytes": "8b 0f",
+      "asm": "mov     ecx, [edi]"
+    },
+    {
+      "rva": "0x5baea3",
+      "bytes": "83 c4 08",
+      "asm": "add     esp, 8"
+    },
+    {
+      "rva": "0x5baea6",
+      "bytes": "8b 55 e8",
+      "asm": "mov     edx, dword ptr [ebp+ArgList]"
+    },
+    {
+      "rva": "0x5baea9",
+      "bytes": "8b 01",
+      "asm": "mov     eax, [ecx]"
+    },
+    {
+      "rva": "0x5baeab",
+      "bytes": "0f b6 d2",
+      "asm": "movzx   edx, dl"
+    },
+    {
+      "rva": "0x5baeae",
+      "bytes": "8b 88 4c 13 00 00",
+      "asm": "mov     ecx, [eax+134Ch]"
+    },
+    {
+      "rva": "0x5baeb4",
+      "bytes": "03 88 44 13 00 00",
+      "asm": "add     ecx, [eax+1344h]"
+    },
+    {
+      "rva": "0x5baeba",
+      "bytes": "33 c0",
+      "asm": "xor     eax, eax"
+    },
+    {
+      "rva": "0x5baebc",
+      "bytes": "83 f9 03",
+      "asm": "cmp     ecx, 3"
+    },
+    {
+      "rva": "0x5baebf",
+      "bytes": "0f 42 d0",
+      "asm": "cmovb   edx, eax"
+    },
+    {
+      "rva": "0x5baec2",
+      "bytes": "a1 78 16 c7 00",
+      "asm": "mov     eax, n60"
+    },
+    {
+      "rva": "0x5baf4e",
+      "bytes": "84 db",
+      "asm": "test    bl, bl"
+    },
+    {
+      "rva": "0x5baf50",
+      "bytes": "0f 85 20 ff ff ff",
+      "asm": "jnz     loc_9BAE76"
+    },
+    {
+      "rva": "0x5baf56",
+      "bytes": "a1 18 7b c5 00",
+      "asm": "mov     eax, off_C57B18"
+    },
+    {
+      "rva": "0x5baf5b",
+      "bytes": "8d 4d e8",
+      "asm": "lea     ecx, [ebp+ArgList]"
+    },
+    {
+      "rva": "0x5baf5e",
+      "bytes": "6a 00",
+      "asm": "push    0"
+    },
+    {
+      "rva": "0x5baf60",
+      "bytes": "6a 00",
+      "asm": "push    0"
+    },
+    {
+      "rva": "0x5baf62",
+      "bytes": "51",
+      "asm": "push    ecx"
+    },
+    {
+      "rva": "0x5baf63",
+      "bytes": "8b 40 74",
+      "asm": "mov     eax, [eax+74h]"
+    },
+    {
+      "rva": "0x5baf66",
+      "bytes": "b9 18 7b c5 00",
+      "asm": "mov     ecx, offset off_C57B18"
+    },
+    {
+      "rva": "0x5baf6b",
+      "bytes": "68 e0 09 a2 00",
+      "asm": "push    offset sub_A209E0"
+    },
+    {
+      "rva": "0x5baf70",
+      "bytes": "56",
+      "asm": "push    esi"
+    },
+    {
+      "rva": "0x5baf71",
+      "bytes": "c7 45 e8 13 00 00 00",
+      "asm": "mov     dword ptr [ebp+ArgList], 13h"
+    },
+    {
+      "rva": "0x5baf78",
+      "bytes": "ff d0",
+      "asm": "call    eax"
+    },
+    {
+      "rva": "0x5baf7a",
+      "bytes": "84 c0",
+      "asm": "test    al, al"
+    },
+    {
+      "rva": "0x5baf7c",
+      "bytes": "0f 84 f4 fe ff ff",
+      "asm": "jz      loc_9BAE76"
+    },
+    {
+      "rva": "0x5baf82",
+      "bytes": "a1 18 7b c5 00",
+      "asm": "mov     eax, off_C57B18"
+    },
+    {
+      "rva": "0x5baf87",
+      "bytes": "8d 4d e8",
+      "asm": "lea     ecx, [ebp+ArgList]"
+    },
+    {
+      "rva": "0x5baf8a",
+      "bytes": "6a 00",
+      "asm": "push    0"
+    },
+    {
+      "rva": "0x5baf8c",
+      "bytes": "6a 00",
+      "asm": "push    0"
+    },
+    {
+      "rva": "0x5baf8e",
+      "bytes": "51",
+      "asm": "push    ecx"
+    },
+    {
+      "rva": "0x5baf8f",
+      "bytes": "8b 40 74",
+      "asm": "mov     eax, [eax+74h]"
+    },
+    {
+      "rva": "0x5baf92",
+      "bytes": "b9 18 7b c5 00",
+      "asm": "mov     ecx, offset off_C57B18"
+    },
+    {
+      "rva": "0x5baf97",
+      "bytes": "68 40 09 a2 00",
+      "asm": "push    offset sub_A20940"
+    },
+    {
+      "rva": "0x5baf9c",
+      "bytes": "56",
+      "asm": "push    esi"
+    },
+    {
+      "rva": "0x5baf9d",
+      "bytes": "c7 45 e8 08 00 00 00",
+      "asm": "mov     dword ptr [ebp+ArgList], 8"
+    },
+    {
+      "rva": "0x5bafa4",
+      "bytes": "ff d0",
+      "asm": "call    eax"
+    },
+    {
+      "rva": "0x5bafa6",
+      "bytes": "84 c0",
+      "asm": "test    al, al"
+    },
+    {
+      "rva": "0x5bafa8",
+      "bytes": "0f 84 c8 fe ff ff",
+      "asm": "jz      loc_9BAE76"
+    },
+    {
+      "rva": "0x5bafae",
+      "bytes": "a1 18 7b c5 00",
+      "asm": "mov     eax, off_C57B18"
+    },
+    {
+      "rva": "0x5bafb3",
+      "bytes": "8d 4d e8",
+      "asm": "lea     ecx, [ebp+ArgList]"
+    },
+    {
+      "rva": "0x5bafb6",
+      "bytes": "6a 00",
+      "asm": "push    0"
+    },
+    {
+      "rva": "0x5bafb8",
+      "bytes": "6a 00",
+      "asm": "push    0"
+    },
+    {
+      "rva": "0x5bafba",
+      "bytes": "51",
+      "asm": "push    ecx"
+    },
+    {
+      "rva": "0x5bafbb",
+      "bytes": "8b 40 74",
+      "asm": "mov     eax, [eax+74h]"
+    },
+    {
+      "rva": "0x5bafbe",
+      "bytes": "b9 18 7b c5 00",
+      "asm": "mov     ecx, offset off_C57B18"
+    },
+    {
+      "rva": "0x5bafc3",
+      "bytes": "68 40 09 a2 00",
+      "asm": "push    offset sub_A20940"
+    },
+    {
+      "rva": "0x5bafc8",
+      "bytes": "56",
+      "asm": "push    esi"
+    },
+    {
+      "rva": "0x5bafc9",
+      "bytes": "c7 45 e8 0a 00 00 00",
+      "asm": "mov     dword ptr [ebp+ArgList], 0Ah"
+    },
+    {
+      "rva": "0x5bafd0",
+      "bytes": "ff d0",
+      "asm": "call    eax"
+    },
+    {
+      "rva": "0x5bafd2",
+      "bytes": "84 c0",
+      "asm": "test    al, al"
+    },
+    {
+      "rva": "0x5bafd4",
+      "bytes": "0f 84 9c fe ff ff",
+      "asm": "jz      loc_9BAE76"
+    },
+    {
+      "rva": "0x5bafda",
+      "bytes": "a1 78 16 c7 00",
+      "asm": "mov     eax, n60"
+    },
+    {
+      "rva": "0x5bafdf",
+      "bytes": "85 c0",
+      "asm": "test    eax, eax"
+    },
+    {
+      "rva": "0x5bafe1",
+      "bytes": "74 13",
+      "asm": "jz      short loc_9BAFF6"
+    },
+    {
+      "rva": "0x5bafe3",
+      "bytes": "05 78 8d 06 00",
+      "asm": "add     eax, 68D78h"
+    },
+    {
+      "rva": "0x5bafe8",
+      "bytes": "68 e4 e8 b7 00",
+      "asm": "push    offset aJoiningAsPosse; \"Joining as possessor\\n\""
+    },
+    {
+      "rva": "0x5bafed",
+      "bytes": "50",
+      "asm": "push    eax; int"
+    },
+    {
+      "rva": "0x5bafee",
+      "bytes": "e8 9d 80 cd ff",
+      "asm": "call    sub_693090"
+    },
+    {
+      "rva": "0x5baff3",
+      "bytes": "83 c4 08",
+      "asm": "add     esp, 8"
+    },
+    {
+      "rva": "0x5baff6",
+      "bytes": "6a ff",
+      "asm": "push    0FFFFFFFFh"
+    },
+    {
+      "rva": "0x5baff8",
+      "bytes": "8b cf",
+      "asm": "mov     ecx, edi"
+    },
+    {
+      "rva": "0x5baffa",
+      "bytes": "e8 d1 ec ff ff",
+      "asm": "call    sub_9B9CD0"
+    },
+    {
+      "rva": "0x5bafff",
+      "bytes": "6a 01",
+      "asm": "push    1; char"
+    },
+    {
+      "rva": "0x5bb001",
+      "bytes": "56",
+      "asm": "push    esi; ArgList"
+    },
+    {
+      "rva": "0x5bb002",
+      "bytes": "8b c8",
+      "asm": "mov     ecx, eax"
+    },
+    {
+      "rva": "0x5bb004",
+      "bytes": "e8 47 b4 de ff",
+      "asm": "call    sub_7A6450"
+    },
+    {
+      "rva": "0x5bb009",
+      "bytes": "c7 45 fc 03 00 00 00",
+      "asm": "mov     [ebp+var_4], 3"
+    },
+    {
+      "rva": "0x5bb010",
+      "bytes": "e9 21 02 00 00",
+      "asm": "jmp     loc_9BB236"
+    },
+    {
+      "rva": "0x5bb015",
+      "bytes": "84 d2",
+      "asm": "test    dl, dl"
+    },
+    {
+      "rva": "0x5bb017",
+      "bytes": "0f 84 e6 00 00 00",
+      "asm": "jz      loc_9BB103"
+    },
+    {
+      "rva": "0x5bb01d",
+      "bytes": "a1 78 16 c7 00",
+      "asm": "mov     eax, n60"
+    },
+    {
+      "rva": "0x5bb022",
+      "bytes": "8b 88 ac ba 01 00",
+      "asm": "mov     ecx, [eax+1BAACh]"
+    },
+    {
+      "rva": "0x5bb028",
+      "bytes": "2b 88 a8 ba 01 00",
+      "asm": "sub     ecx, [eax+1BAA8h]"
+    },
+    {
+      "rva": "0x5bb02e",
+      "bytes": "c1 f9 02",
+      "asm": "sar     ecx, 2"
+    },
+    {
+      "rva": "0x5bb031",
+      "bytes": "83 f9 40",
+      "asm": "cmp     ecx, 40h ; '@'"
+    },
+    {
+      "rva": "0x5bb034",
+      "bytes": "0f 83 c9 00 00 00",
+      "asm": "jnb     loc_9BB103"
+    },
+    {
+      "rva": "0x5bb03a",
+      "bytes": "84 db",
+      "asm": "test    bl, bl"
+    },
+    {
+      "rva": "0x5bb03c",
+      "bytes": "0f 85 c9 00 00 00",
+      "asm": "jnz     loc_9BB10B"
+    },
+    {
+      "rva": "0x5bb042",
+      "bytes": "a1 18 7b c5 00",
+      "asm": "mov     eax, off_C57B18"
+    },
+    {
+      "rva": "0x5bb047",
+      "bytes": "8d 4d e0",
+      "asm": "lea     ecx, [ebp+var_20]"
+    },
+    {
+      "rva": "0x5bb04a",
+      "bytes": "6a 00",
+      "asm": "push    0"
+    },
+    {
+      "rva": "0x5bb04c",
+      "bytes": "6a 00",
+      "asm": "push    0"
+    },
+    {
+      "rva": "0x5bb04e",
+      "bytes": "51",
+      "asm": "push    ecx"
+    },
+    {
+      "rva": "0x5bb04f",
+      "bytes": "8b 40 74",
+      "asm": "mov     eax, [eax+74h]"
+    },
+    {
+      "rva": "0x5bb052",
+      "bytes": "b9 18 7b c5 00",
+      "asm": "mov     ecx, offset off_C57B18"
+    },
+    {
+      "rva": "0x5bb057",
+      "bytes": "68 e0 09 a2 00",
+      "asm": "push    offset sub_A209E0"
+    },
+    {
+      "rva": "0x5bb05c",
+      "bytes": "56",
+      "asm": "push    esi"
+    },
+    {
+      "rva": "0x5bb05d",
+      "bytes": "c7 45 e0 13 00 00 00",
+      "asm": "mov     dword ptr [ebp+var_20], 13h"
+    },
+    {
+      "rva": "0x5bb064",
+      "bytes": "ff d0",
+      "asm": "call    eax"
+    },
+    {
+      "rva": "0x5bb066",
+      "bytes": "84 c0",
+      "asm": "test    al, al"
+    },
+    {
+      "rva": "0x5bb068",
+      "bytes": "0f 84 c1 01 00 00",
+      "asm": "jz      loc_9BB22F"
+    },
+    {
+      "rva": "0x5bb06e",
+      "bytes": "56",
+      "asm": "push    esi; ArgList"
+    },
+    {
+      "rva": "0x5bb06f",
+      "bytes": "8b cf",
+      "asm": "mov     ecx, edi"
+    },
+    {
+      "rva": "0x5bb071",
+      "bytes": "e8 2a fa ff ff",
+      "asm": "call    sub_9BAAA0"
+    },
+    {
+      "rva": "0x5bb076",
+      "bytes": "85 c0",
+      "asm": "test    eax, eax"
+    },
+    {
+      "rva": "0x5bb078",
+      "bytes": "0f 88 b1 01 00 00",
+      "asm": "js      loc_9BB22F"
+    },
+    {
+      "rva": "0x5bb07e",
+      "bytes": "8d 1c 80",
+      "asm": "lea     ebx, [eax+eax*4]"
+    },
+    {
+      "rva": "0x5bb081",
+      "bytes": "e8 fa f8 ff ff",
+      "asm": "call    sub_9BA980"
+    },
+    {
+      "rva": "0x5bb086",
+      "bytes": "84 c0",
+      "asm": "test    al, al"
+    },
+    {
+      "rva": "0x5bb088",
+      "bytes": "74 0f",
+      "asm": "jz      short loc_9BB099"
+    },
+    {
+      "rva": "0x5bb08a",
+      "bytes": "56",
+      "asm": "push    esi; ArgList"
+    },
+    {
+      "rva": "0x5bb08b",
+      "bytes": "6a ff",
+      "asm": "push    0FFFFFFFFh; a3"
+    },
+    {
+      "rva": "0x5bb08d",
+      "bytes": "8b cf",
+      "asm": "mov     ecx, edi; n55"
+    },
+    {
+      "rva": "0x5bb08f",
+      "bytes": "e8 1c 23 00 00",
+      "asm": "call    sub_9BD3B0"
+    },
+    {
+      "rva": "0x5bb094",
+      "bytes": "e9 96 01 00 00",
+      "asm": "jmp     loc_9BB22F"
+    },
+    {
+      "rva": "0x5bb099",
+      "bytes": "8b 0d 78 16 c7 00",
+      "asm": "mov     ecx, n60"
+    },
+    {
+      "rva": "0x5bb09f",
+      "bytes": "83 b9 84 65 02 00 00",
+      "asm": "cmp     dword ptr [ecx+26584h], 0"
+    },
+    {
+      "rva": "0x5bb0a6",
+      "bytes": "75 35",
+      "asm": "jnz     short loc_9BB0DD"
+    },
+    {
+      "rva": "0x5bb0a8",
+      "bytes": "83 b9 30 66 02 00 00",
+      "asm": "cmp     dword ptr [ecx+26630h], 0"
+    },
+    {
+      "rva": "0x5bb0af",
+      "bytes": "77 2c",
+      "asm": "ja      short loc_9BB0DD"
+    },
+    {
+      "rva": "0x5bb0b1",
+      "bytes": "8b 4d d4",
+      "asm": "mov     ecx, [ebp+var_2C]"
+    },
+    {
+      "rva": "0x5bb0b4",
+      "bytes": "6a 13",
+      "asm": "push    13h"
+    },
+    {
+      "rva": "0x5bb0b6",
+      "bytes": "8b 01",
+      "asm": "mov     eax, [ecx]"
+    },
+    {
+      "rva": "0x5bb0b8",
+      "bytes": "ff 50 54",
+      "asm": "call    dword ptr [eax+54h]"
+    },
+    {
+      "rva": "0x5bb0bb",
+      "bytes": "c7 44 9f 10 00 00 00 00",
+      "asm": "mov     dword ptr [edi+ebx*4+10h], 0"
+    },
+    {
+      "rva": "0x5bb0c3",
+      "bytes": "c7 44 9f 14 01 00 00 00",
+      "asm": "mov     dword ptr [edi+ebx*4+14h], 1"
+    },
+    {
+      "rva": "0x5bb0cb",
+      "bytes": "c7 44 9f 18 00 00 80 3f",
+      "asm": "mov     dword ptr [edi+ebx*4+18h], 3F800000h"
+    },
+    {
+      "rva": "0x5bb0d3",
+      "bytes": "c6 44 9f 1c 00",
+      "asm": "mov     byte ptr [edi+ebx*4+1Ch], 0"
+    },
+    {
+      "rva": "0x5bb0d8",
+      "bytes": "e9 52 01 00 00",
+      "asm": "jmp     loc_9BB22F"
+    },
+    {
+      "rva": "0x5bb0dd",
+      "bytes": "e8 5e b8 d4 ff",
+      "asm": "call    sub_706940"
+    },
+    {
+      "rva": "0x5bb0e2",
+      "bytes": "8b 40 44",
+      "asm": "mov     eax, [eax+44h]"
+    },
+    {
+      "rva": "0x5bb0e5",
+      "bytes": "89 44 9f 10",
+      "asm": "mov     [edi+ebx*4+10h], eax"
+    },
+    {
+      "rva": "0x5bb0e9",
+      "bytes": "c7 44 9f 14 01 00 00 00",
+      "asm": "mov     dword ptr [edi+ebx*4+14h], 1"
+    },
+    {
+      "rva": "0x5bb0f1",
+      "bytes": "c7 44 9f 18 00 00 80 3f",
+      "asm": "mov     dword ptr [edi+ebx*4+18h], 3F800000h"
+    },
+    {
+      "rva": "0x5bb0f9",
+      "bytes": "c6 44 9f 1c 01",
+      "asm": "mov     byte ptr [edi+ebx*4+1Ch], 1"
+    },
+    {
+      "rva": "0x5bb0fe",
+      "bytes": "e9 2c 01 00 00",
+      "asm": "jmp     loc_9BB22F"
+    },
+    {
+      "rva": "0x5bb103",
+      "bytes": "84 db",
+      "asm": "test    bl, bl"
+    },
+    {
+      "rva": "0x5bb105",
+      "bytes": "0f 84 24 01 00 00",
+      "asm": "jz      loc_9BB22F"
+    },
+    {
+      "rva": "0x5bb10b",
+      "bytes": "8b 5d e0",
+      "asm": "mov     ebx, dword ptr [ebp+var_20]"
+    },
+    {
+      "rva": "0x5bb10e",
+      "bytes": "85 db",
+      "asm": "test    ebx, ebx"
+    },
+    {
+      "rva": "0x5bb26a",
+      "bytes": "8d 5f 14",
+      "asm": "lea     ebx, [edi+14h]"
+    },
+    {
+      "rva": "0x5bb26d",
+      "bytes": "c7 45 e4 04 00 00 00",
+      "asm": "mov     [ebp+var_1C], 4"
+    },
+    {
+      "rva": "0x5bb274",
+      "bytes": "8b 4b f8",
+      "asm": "mov     ecx, [ebx-8]"
+    },
+    {
+      "rva": "0x5bb277",
+      "bytes": "85 c9",
+      "asm": "test    ecx, ecx"
+    },
+    {
+      "rva": "0x5bb279",
+      "bytes": "0f 88 e8 02 00 00",
+      "asm": "js      loc_9BB567"
+    },
+    {
+      "rva": "0x5bb27f",
+      "bytes": "83 3b 00",
+      "asm": "cmp     dword ptr [ebx], 0"
+    },
+    {
+      "rva": "0x5bb282",
+      "bytes": "0f 8c df 02 00 00",
+      "asm": "jl      loc_9BB567"
+    },
+    {
+      "rva": "0x5bb288",
+      "bytes": "e8 f3 f6 ff ff",
+      "asm": "call    sub_9BA980"
+    },
+    {
+      "rva": "0x5bb28d",
+      "bytes": "84 c0",
+      "asm": "test    al, al"
+    },
+    {
+      "rva": "0x5bb28f",
+      "bytes": "0f 85 cc 02 00 00",
+      "asm": "jnz     loc_9BB561"
+    },
+    {
+      "rva": "0x5bb3d8",
+      "bytes": "8b 53 fc",
+      "asm": "mov     edx, [ebx-4]"
+    },
+    {
+      "rva": "0x5bb3db",
+      "bytes": "c6 43 08 00",
+      "asm": "mov     byte ptr [ebx+8], 0"
+    },
+    {
+      "rva": "0x5bb3df",
+      "bytes": "83 fa ff",
+      "asm": "cmp     edx, 0FFFFFFFFh"
+    },
+    {
+      "rva": "0x5bb3e2",
+      "bytes": "75 24",
+      "asm": "jnz     short loc_9BB408"
+    },
+    {
+      "rva": "0x5bb3e4",
+      "bytes": "8b 77 74",
+      "asm": "mov     esi, [edi+74h]"
+    },
+    {
+      "rva": "0x5bb3e7",
+      "bytes": "8b 47 70",
+      "asm": "mov     eax, [edi+70h]"
+    },
+    {
+      "rva": "0x5bb3ea",
+      "bytes": "2b f0",
+      "asm": "sub     esi, eax"
+    },
+    {
+      "rva": "0x5bb3ec",
+      "bytes": "c1 fe 02",
+      "asm": "sar     esi, 2"
+    },
+    {
+      "rva": "0x5bb3ef",
+      "bytes": "83 ee 01",
+      "asm": "sub     esi, 1"
+    },
+    {
+      "rva": "0x5bb3f2",
+      "bytes": "75 04",
+      "asm": "jnz     short loc_9BB3F8"
+    },
+    {
+      "rva": "0x5bb3f4",
+      "bytes": "33 d2",
+      "asm": "xor     edx, edx"
+    },
+    {
+      "rva": "0x5bb3f6",
+      "bytes": "eb 0c",
+      "asm": "jmp     short loc_9BB404"
+    },
+    {
+      "rva": "0x5bb3f8",
+      "bytes": "e8 63 3b d3 ff",
+      "asm": "call    sub_6EEF60"
+    },
+    {
+      "rva": "0x5bb3fd",
+      "bytes": "33 d2",
+      "asm": "xor     edx, edx"
+    },
+    {
+      "rva": "0x5bb3ff",
+      "bytes": "f7 f6",
+      "asm": "div     esi"
+    },
+    {
+      "rva": "0x5bb401",
+      "bytes": "8b 47 70",
+      "asm": "mov     eax, [edi+70h]"
+    },
+    {
+      "rva": "0x5bb404",
+      "bytes": "8b 54 90 04",
+      "asm": "mov     edx, [eax+edx*4+4]"
+    },
+    {
+      "rva": "0x5bb408",
+      "bytes": "8b 0d 78 16 c7 00",
+      "asm": "mov     ecx, n60"
+    },
+    {
+      "rva": "0x5bb40e",
+      "bytes": "52",
+      "asm": "push    edx"
+    },
+    {
+      "rva": "0x5bb40f",
+      "bytes": "8d 89 a8 ba 01 00",
+      "asm": "lea     ecx, [ecx+1BAA8h]"
+    },
+    {
+      "rva": "0x5bb415",
+      "bytes": "e8 b6 e8 ff ff",
+      "asm": "call    sub_9B9CD0"
+    },
+    {
+      "rva": "0x5bb41a",
+      "bytes": "6a 01",
+      "asm": "push    1; char"
+    },
+    {
+      "rva": "0x5bb41c",
+      "bytes": "ff 73 f8",
+      "asm": "push    dword ptr [ebx-8]; ArgList"
+    },
+    {
+      "rva": "0x5bb41f",
+      "bytes": "8b c8",
+      "asm": "mov     ecx, eax"
+    },
+    {
+      "rva": "0x5bb421",
+      "bytes": "89 45 f0",
+      "asm": "mov     [ebp+var_10], eax"
+    },
+    {
+      "rva": "0x5bb424",
+      "bytes": "e8 27 b0 de ff",
+      "asm": "call    sub_7A6450"
+    },
+    {
+      "rva": "0x33fcf1",
+      "bytes": "8b 3d 9c 16 c7 00",
+      "asm": "mov     edi, n298"
+    },
+    {
+      "rva": "0x33fcf7",
+      "bytes": "83 c7 14",
+      "asm": "add     edi, 14h"
+    },
+    {
+      "rva": "0x33fcfa",
+      "bytes": "8b 81 4c 65 02 00",
+      "asm": "mov     eax, [ecx+2654Ch]"
+    },
+    {
+      "rva": "0x33fd00",
+      "bytes": "83 89 48 65 02 00 10",
+      "asm": "or      dword ptr [ecx+26548h], 10h"
+    },
+    {
+      "rva": "0x33fd07",
+      "bytes": "89 81 4c 65 02 00",
+      "asm": "mov     [ecx+2654Ch], eax"
+    },
+    {
+      "rva": "0x33fd0d",
+      "bytes": "80 3f 00",
+      "asm": "cmp     byte ptr [edi], 0"
+    },
+    {
+      "rva": "0x33fd10",
+      "bytes": "74 4a",
+      "asm": "jz      short loc_73FD5C"
+    }
+  ],
+  "historicalCause": "tx-01-51 Baby route inferred from query order and unowned Main publication; no historical runtime predicate evidence"
+}

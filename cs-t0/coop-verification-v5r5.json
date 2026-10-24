@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 5,
+  "verificationIdentity": "IsaacCsT0-CoopVerification-v5r5",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-31T05:24:59.5458284Z",
+  "status": "PASS",
+  "phase": "PRE_LIVE_DEVICE_V2_CAUSAL_AUTOMATED_GATE",
+  "createNewOnly": true,
+  "supersedes": "coop-verification-v5r4.json",
+  "supersedesSha256": "AA010810FA698CFF9E13ECF29753C7F85D941456BA69D356F7F32AE18017E91E",
+  "staticContractComplete": true,
+  "runtimeContractComplete": true,
+  "liveEvidenceComplete": false,
+  "completedLiveSourceCount": 3,
+  "offlinePassiveFixtureCount": 6,
+  "sixSourceGateEligible": false,
+  "liveAuthorizationCreated": false,
+  "nextRequiredAuthorization": "device-rebind-passive",
+  "artifactBindings": [
+    {
+      "path": "out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json",
+      "identity": "IsaacCsT0-UnpackedTargetEquivalence-v1",
+      "sha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138"
+    },
+    {
+      "path": "cs-t0/coop-c0-layout-evidence-v1.json",
+      "identity": "IsaacCsT0-CoopC0LayoutEvidence-v1",
+      "sha256": "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059"
+    },
+    {
+      "path": "cs-t0/coop-static-graph-v1.json",
+      "identity": "IsaacCsT0-CoopStaticGraph-v1",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    },
+    {
+      "path": "cs-t0/coop-catalog-v4.json",
+      "identity": "IsaacCsT0-CoopCatalog-v4",
+      "sha256": "00641728411D7BB60B54DA1A58C39E616204729901B8D76433BF51E0748AFE5A"
+    },
+    {
+      "path": "cs-t0/coop-plan-v5r1.json",
+      "identity": "IsaacCsT0-CoopPlan-v5r1",
+      "sha256": "FB446AC397305AB1C5D21CA91BC76D4B0B9B82259E289379028627B55DD6BF6C"
+    },
+    {
+      "path": "cs-t0/coop-passive-backend-screen-v1.json",
+      "identity": "IsaacCsT0-CoopPassiveBackendScreen-v1",
+      "sha256": "9395E0DAD0958E9C517D283F17CE8ADFD24F70E27FADD5D6B4D333C67A233790"
+    },
+    {
+      "path": "cs-t0/verify-coop-passive.ps1",
+      "identity": "IsaacCsT0-CoopPassiveAutomatedGate-v5",
+      "sha256": "F30591DF8A11D28C5E4A2CE26035D117BD252D59BC65FA134965849AAE8F9EDE"
+    }
+  ],
+  "productionBindings": [
+    {
+      "path": "out/cs-t0/IsaacCsT0.exe",
+      "sha256": "98D4DAB57BDFDC4A7B6C47134EFAAE8040D5CF8397DC9898B2973A5318A3A08C"
+    },
+    {
+      "path": "out/cs-t0/IsaacCsT0.Native.dll",
+      "sha256": "545591ABD0135AC1E4EC231477B48F1436C5DD6F5F7FB17F6A29E3966E6645D0"
+    },
+    {
+      "path": "out/cs-t0/IsaacCsT0.Helper.exe",
+      "sha256": "3170D805B6F1F2D0BDE4E4F93D38D982A71AC9F65BC9E973DF00B42F63D03972"
+    }
+  ],
+  "checks": [
+    {
+      "id": "frozen-artifact-bindings",
+      "passed": true
+    },
+    {
+      "id": "rust-test-all-targets",
+      "passed": true
+    },
+    {
+      "id": "rust-fmt-check",
+      "passed": true
+    },
+    {
+      "id": "rust-check-all-targets",
+      "passed": true
+    },
+    {
+      "id": "rust-clippy-deny-warnings",
+      "passed": true
+    },
+    {
+      "id": "rust-release-build",
+      "passed": true
+    },
+    {
+      "id": "legacy-native-debug-release-39",
+      "passed": true
+    },
+    {
+      "id": "active-native-debug-release-262",
+      "passed": true
+    },
+    {
+      "id": "passive-native-debug-release-407",
+      "passed": true
+    },
+    {
+      "id": "device-v2-native-debug-release",
+      "passed": true
+    },
+    {
+      "id": "passive-cross-language-debug-release",
+      "passed": true
+    },
+    {
+      "id": "device-v2-cross-language-debug-release",
+      "passed": true
+    },
+    {
+      "id": "device-v2-causal-contract-and-mutations",
+      "passed": true
+    },
+    {
+      "id": "legacy-device-counterexamples-rejected",
+      "passed": true
+    },
+    {
+      "id": "historical-live-replay-immutable",
+      "passed": true
+    },
+    {
+      "id": "bootstrap-regression",
+      "passed": true
+    },
+    {
+      "id": "static-c0-regression",
+      "passed": true
+    },
+    {
+      "id": "t0-04-active-regression",
+      "passed": true
+    },
+    {
+      "id": "six-offline-passive-fixtures-and-gate",
+      "passed": true
+    }
+  ],
+  "permissions": {
+    "passiveHookTransactionAllowed": true,
+    "passiveObservationAllowed": false,
+    "activeInputAllowed": false,
+    "inputMutationAllowed": false,
+    "worldMutationAllowed": false,
+    "runtimeMutationAllowed": false,
+    "overrideAllowed": false,
+    "transportAllowed": false,
+    "schedulerAllowed": false,
+    "applyAllowed": false,
+    "modeLatchAllowed": false,
+    "originalOnlinePositiveAllowed": false,
+    "t005Unlocked": false,
+    "csT00504Unlocked": false
+  }
+}

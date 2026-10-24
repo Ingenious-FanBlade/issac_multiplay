@@ -1,0 +1,362 @@
+INPUT=C:\Users\114514\AppData\Local\Temp\claude\F--projects-isaac-issac-multiplay\910d48ab-e91d-4daa-b1b5-2a86b9899653\scratchpad\v12\isaac-ng-v1.9.7.12.exe.unpacked.exe
+IMAGEBASE=0x00400000
+地址为RVA，VA=RVA+IMAGEBASE；只读导出，不修改IDB。
+
+FUNCTION VA 0x00993030..0x0099311E RVA 0x00593030..0x0059311E NAME=sub_993030
+[DECOMPILE]
+void __thiscall sub_993030(_DWORD *this)
+{
+  int v2; // eax
+  unsigned int v3; // ebx
+  _DWORD *i; // esi
+  unsigned int v5; // esi
+  unsigned int v6; // ebx
+  _DWORD *j; // edi
+  char ArgList; // [esp+0h] [ebp-30h]
+  _BYTE v9[4]; // [esp+14h] [ebp-1Ch] BYREF
+  void *j_1; // [esp+18h] [ebp-18h]
+  unsigned int v11; // [esp+20h] [ebp-10h]
+  int v12; // [esp+2Ch] [ebp-4h]
+
+  v2 = this[1];
+  v3 = 0;
+  for ( i = (_DWORD *)*this; v3 < (v2 - *this) >> 2; i = (_DWORD *)*this )
+  {
+    if ( !((v2 - (int)i) >> 2) )
+    {
+      sub_9E0DF0(3, "PlayerManager::GetPlayer() : There are no players! \n", ArgList);
+      v2 = this[1];
+      i = (_DWORD *)*this;
+    }
+    if ( v3 < (v2 - (int)i) >> 2 )
+      i += v3;
+    sub_79FD90(*i);
+    v2 = this[1];
+    ++v3;
+  }
+  sub_416820(v9, 3, -1, -1, 1, 0);
+  v12 = 0;
+  v5 = 0;
+  v6 = v11;
+  for ( j = j_1; v5 < v6; ++v5 )
+    sub_626090(j[v5]);
+  if ( !v9[0] )
+    j_j_free(j);
+}
+
+FUNCTION VA 0x0079FD90..0x007A070D RVA 0x0039FD90..0x003A070D NAME=sub_79FD90
+[DECOMPILE]
+bool __thiscall sub_79FD90(_DWORD *Charm)
+{
+  unsigned int v2; // esi
+  unsigned int *v3; // ebx
+  unsigned int v4; // edx
+  unsigned int v5; // edx
+  unsigned int v6; // esi
+  unsigned int v7; // eax
+  unsigned int v8; // esi
+  unsigned int v9; // esi
+  int v10; // ecx
+  int v11; // eax
+  int v12; // esi
+  int v13; // eax
+  int v14; // eax
+  int v15; // eax
+  _DWORD *n4; // esi
+  int v17; // ecx
+  unsigned int v18; // eax
+  int v19; // eax
+  int v20; // ecx
+  int v21; // eax
+  int n2; // eax
+  int v23; // ecx
+  int v24; // eax
+  int v25; // ecx
+  int v26; // eax
+  int v27; // ecx
+  int v28; // eax
+  int v29; // eax
+  int v30; // ecx
+  int v31; // ecx
+  int v32; // eax
+  int v33; // eax
+  unsigned int i; // ebx
+  int *v35; // ebx
+  unsigned int v36; // edx
+  unsigned int v37; // edx
+  int v38; // esi
+  unsigned int *v39; // ebx
+  unsigned int v40; // edx
+  unsigned int v41; // edx
+  unsigned int v42; // esi
+  void *v43; // esi
+  bool result; // al
+  char ArgList; // [esp+28h] [ebp-40h]
+  int n252; // [esp+34h] [ebp-34h] BYREF
+  _QWORD v47[5]; // [esp+38h] [ebp-30h] BYREF
+  int n398; // [esp+60h] [ebp-8h]
+
+  if ( (int)sub_7C19C0(32) > 0 )
+  {
+    v2 = 4 / sub_7C19C0(32);
+    if ( !v2 || !(sub_6EB4B0() % v2) )
+    {
+      v3 = (unsigned int *)(Charm[1499] + 512);
+      *(_OWORD *)((char *)&v47[2] + 4) = xmmword_B41510;
+      HIDWORD(v47[4]) = 342;
+      n398 = 398;
+      v4 = *v3;
+      if ( !*v3 )
+      {
+        sub_9E0DF0(3, "RNG Seed is zero!\n", ArgList);
+        v4 = *v3;
+        if ( !*v3 )
+          __debugbreak();
+      }
+      v5 = v4 ^ (v4 >> v3[1]) ^ ((v4 ^ (v4 >> v3[1])) << v3[2]);
+      v6 = v5 ^ (v5 >> v3[3]);
+      *v3 = v6;
+      v7 = sub_72A400(*((_DWORD *)&v47[2] + v6 % 6 + 1));
+      *(_QWORD *)((char *)&v47[3] + 4) = v7;
+      HIDWORD(v47[4]) = *(_DWORD *)(v7 + 120);
+      n398 = 0;
+      sub_90A090((char *)&v47[3] + 4, 1, 1);
+    }
+  }
+  if ( (int)sub_7C19C0(132) > 0 )
+  {
+    v8 = 4 / sub_7C19C0(132);
+    if ( !v8 || !(sub_6EB4B0() % v8) )
+      sub_7D20F0(Charm);
+  }
+  if ( (int)sub_7C19C0(153) > 0 )
+  {
+    v9 = 4 / sub_7C19C0(153);
+    if ( !v9 || !(sub_6EB4B0() % v9) )
+      sub_7D21E0(Charm);
+  }
+  if ( (unsigned __int8)sub_7699D0(673, 0) )
+  {
+    v10 = *((_DWORD *)n255 + 24768);
+    v11 = *(_DWORD *)(v10 + 4);
+    if ( v11 )
+    {
+      if ( *(_DWORD *)(v11 + 64) == 1
+        && (*(_DWORD *)(v10 + 8) == 14 || (*(_DWORD *)(v11 + 68) & 0x800) != 0)
+        && !(unsigned __int8)sub_90A490(673) )
+      {
+        sub_90A150(673, 1, 1);
+      }
+    }
+  }
+  v12 = Charm[2021];
+  Charm[2021] = 0;
+  if ( v12 )
+  {
+    v13 = sub_72A400(v12);
+    if ( v13 )
+    {
+      Charm[1370] |= *(_DWORD *)(v13 + 84);
+      *((_BYTE *)Charm + 5392) = 1;
+    }
+    sub_7A4500(v12, 0);
+  }
+  if ( (int)sub_7C19C0(166) > 0 )
+  {
+    v14 = *(_DWORD *)(sub_73AD10(*((_DWORD *)n255 + 24769), -1) + 92);
+    if ( v14 )
+    {
+      HIDWORD(v47[3]) = v14;
+      v47[4] = 0x1100000007LL;
+      n398 = 21;
+      v15 = sub_7C19C0(166);
+      if ( !sub_7DF4E0((char *)&v47[3] + 4, 2 / v15) )
+        sub_7D22E0(Charm, (char *)&v47[3] + 4);
+    }
+  }
+  if ( *((_BYTE *)Charm + 5044) )
+  {
+    n4 = n4;
+    v17 = n4[43149];
+    if ( (int)((n4[43150] - v17) & 0xFFFFFFFC) > 1252 )
+    {
+      v18 = *(_DWORD *)(v17 + 1252);
+      if ( v18 )
+      {
+        *(_QWORD *)((char *)&v47[3] + 4) = v18;
+        HIDWORD(v47[4]) = *(_DWORD *)(v18 + 120);
+        n398 = 0;
+        sub_90A290((char *)&v47[3] + 4, 1);
+        n4 = n4;
+      }
+    }
+    if ( *((_BYTE *)Charm + 5393) || (v19 = sub_90A7A0(313)) == 0 || *(int *)(v19 + 4) <= 0 )
+    {
+      v20 = n4[43149];
+      if ( (int)((n4[43150] - v20) & 0xFFFFFFFC) > 1252 )
+        sub_757960(*(_DWORD *)(v20 + 1252));
+      else
+        sub_757960(0);
+    }
+  }
+  else
+  {
+    if ( (unsigned __int8)sub_7699D0(313, 0) && !(unsigned __int8)sub_90A490(313) )
+      sub_90A150(313, 1, 1);
+    if ( (unsigned __int8)sub_7699D0(535, 0) && *(_DWORD *)(*((_DWORD *)n255 + 24768) + 8) == 5 )
+      sub_90A150(313, 1, 1);
+  }
+  if ( (unsigned __int8)sub_7699D0(299, 0) || sub_7BDFD0(Charm) == 299 )
+  {
+    v21 = *Charm;
+    Charm[1366] = 0;
+    memset(&v47[2], 0, 24);
+    n398 = 0;
+    *(_OWORD *)v47 = xmmword_B424D0;
+    (*(void (__thiscall **)(_DWORD *, _QWORD *, int, int, _DWORD, int))(v21 + 60))(Charm, v47, -1, 255, 0, 1);
+    if ( *(_BYTE *)(*((_DWORD *)n255 + 24768) + 1) )
+      sub_90A150(299, 1, 1);
+  }
+  if ( (unsigned __int8)sub_7699D0(122, 0) )
+  {
+    if ( !(unsigned __int8)sub_90A490(122) )
+    {
+      sub_7A4500(122, 0);
+      n2 = Charm[1233];
+      if ( n2 <= 1 || Charm[1263] == 5 && (n2 <= 2 || (unsigned __int8)sub_7699D0(619, 0)) )
+        sub_90A150(122, 1, 1);
+    }
+  }
+  if ( (int)sub_7C19C0(33) > 0 && (int)Charm[1233] <= 1 && !(unsigned __int8)sub_90A490(100) )
+    sub_90A150(100, 1, 1);
+  if ( (unsigned __int8)sub_7699D0(409, 0) && !(unsigned __int8)sub_90A490(409) )
+  {
+    v23 = n4[43155];
+    v24 = (int)((n4[43156] - v23) & 0xFFFFFFFC) > 72 ? *(_DWORD *)(v23 + 72) : 0;
+    sub_757960(v24);
+    if ( (int)Charm[1233] <= 0 )
+    {
+      sub_90A150(409, 1, 1);
+      v25 = n4[43155];
+      if ( (int)((n4[43156] - v25) & 0xFFFFFFFC) > 72 )
+        v26 = *(_DWORD *)(v25 + 72);
+      else
+        v26 = 0;
+      sub_757370(v26, 0);
+    }
+  }
+  if ( (unsigned __int8)sub_7699D0(142, 0) )
+    sub_90A150(142, 1, 1);
+  if ( (unsigned __int8)sub_7699D0(407, 0) && !(unsigned __int8)sub_90A490(407) )
+  {
+    sub_90A150(407, 1, 1);
+    v27 = n4[43155];
+    if ( (int)((n4[43156] - v27) & 0xFFFFFFFC) > 68 )
+      v28 = *(_DWORD *)(v27 + 68);
+    else
+      v28 = 0;
+    sub_757370(v28, 0);
+    sub_7BE2B0(Charm);
+  }
+  if ( (unsigned __int8)sub_7699D0(415, 0) && !(unsigned __int8)sub_90A490(415) )
+  {
+    if ( (unsigned __int8)sub_6D8590(Charm) )
+    {
+      sub_90A150(415, 1, 1);
+      sub_405D00("FloatGlow", 0);
+    }
+    else
+    {
+      sub_405D00("FloatNoGlow", 0);
+    }
+  }
+  if ( (unsigned __int8)sub_7699D0(442, 0) && !(unsigned __int8)sub_90A490(442) )
+  {
+    if ( (unsigned __int8)sub_7D1820(Charm) )
+    {
+      sub_90A150(442, 1, 1);
+      sub_405D00("FloatGlow", 0);
+    }
+    else
+    {
+      sub_405D00("FloatNoGlow", 0);
+    }
+  }
+  if ( (int)sub_7C19C0(121) > 0 && (*((_DWORD *)n255 + 24807) & 0x8000) == 0 )
+  {
+LABEL_98:
+    sub_90A150(313, 1, 1);
+    goto LABEL_99;
+  }
+  if ( !*((_BYTE *)Charm + 5393) )
+  {
+    v29 = Charm[1345];
+    v30 = Charm[1346];
+    if ( v29 != v30 )
+    {
+      while ( **(_DWORD **)v29 || *(_DWORD *)(*(_DWORD *)v29 + 4) != 46 )
+      {
+        v29 += 16;
+        if ( v29 == v30 )
+          goto LABEL_99;
+      }
+      goto LABEL_98;
+    }
+  }
+LABEL_99:
+  if ( !Charm[11] && (unsigned __int8)sub_7699D0(497, 0) )
+    sub_90A150(497, 1, 1);
+  if ( (unsigned __int8)sub_7699D0(588, 0) && !(unsigned __int8)sub_90A520(56) )
+  {
+    v31 = n4[43155];
+    v32 = (int)((n4[43156] - v31) & 0xFFFFFFFC) > 224 ? *(_DWORD *)(v31 + 224) : 0;
+    sub_757960(v32);
+    v33 = *((_DWORD *)n255 + 24773);
+    if ( v33 >= 0 && (*((_BYTE *)n255 + 184 * v33 + 88) & 1) != 0 )
+      sub_90A220(56, 1, 1);
+  }
+  if ( !*((_BYTE *)Charm + 8208) && !*((_BYTE *)Charm + 8317) )
+  {
+    for ( i = 0; i < (Charm[1484] - Charm[1483]) >> 2; ++i )
+      sub_90A150(*(_DWORD *)(Charm[1483] + 4 * i), 1, 1);
+  }
+  if ( (int)sub_7C19C0(154) > 0 && *(_DWORD *)(*(_DWORD *)(*((_DWORD *)n255 + 24768) + 4) + 64) == 1 )
+  {
+    v35 = (int *)(Charm[1499] + 2464);
+    v36 = *v35;
+    if ( !*v35 )
+    {
+      sub_9E0DF0(3, "RNG Seed is zero!\n", ArgList);
+      v36 = *v35;
+      if ( !*v35 )
+        __debugbreak();
+    }
+    v37 = v36 ^ (v36 >> v35[1]) ^ ((v36 ^ (v36 >> v35[1])) << v35[2]);
+    v38 = v37 ^ (v37 >> v35[3]);
+    *v35 = v38;
+    if ( (v38 & 1) < sub_7C19C0(154) )
+    {
+      v39 = (unsigned int *)(Charm[1499] + 2928);
+      v40 = *v39;
+      if ( !*v39 )
+      {
+        sub_9E0DF0(3, "RNG Seed is zero!\n", ArgList);
+        v40 = *v39;
+        if ( !*v39 )
+          __debugbreak();
+      }
+      v41 = v40 ^ (v40 >> v39[1]) ^ ((v40 ^ (v40 >> v39[1])) << v39[2]);
+      v42 = v41 ^ (v41 >> v39[3]);
+      *v39 = v42;
+      v43 = (void *)*((_DWORD *)&dword_AACC74 + v42 % 0xA);
+      sub_7CAD00((int)v43, 3, 1);
+      sub_7A2860(v43, (int)"UseItem", (int)"PlayerPickupSparkle");
+      n252 = 252;
+      sub_92FAD0(&n252);
+      sub_907C60(n252, 1065353216, 2, 0, 1065353216, 0);
+    }
+  }
+  result = *((_BYTE *)Charm + 5044) > 1u;
+  *((_BYTE *)Charm + 5044) = result;
+  return result;
+}

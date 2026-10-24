@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 3,
+  "indexIdentity": "IsaacCsT0-CoopHypothesisIndex-v3",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-31T09:47:26.1825346Z",
+  "status": "PASSIVE_SCOPED_EVIDENCE_COMPLETE",
+  "createNewOnly": true,
+  "supersedes": {
+    "path": "cs-t0/coop-hypothesis-index-v2.json",
+    "sha256": "608D2619F1DA63242D9C60FE0E229244F698C0CC8ADDA8C6908AF70D8F92275C"
+  },
+  "decision": {
+    "path": "cs-t0/coop-passive-decision-v3.json",
+    "sha256": "8793F107C1AF1480A619FAA20572FE851FD099E8CB0344CFF4D78B4AD8007D31"
+  },
+  "ledger": {
+    "path": "cs-t0/ledger/isaac-cs-t0-coop-ledger-v4.json",
+    "sha256": "F3E527E3F831F3ADB0BC5533471340645960A4EE19ADA50605B11C224A2C0A07"
+  },
+  "ordinaryNativeExitHypothesis": "FALSIFIED_FOR_FROZEN_VARIANT0_CONSTRUCTION",
+  "nativeExitApplicability": "NOT_APPLICABLE_NATIVE_ROUTE",
+  "resolvedQuestions": [
+    "stable-and-ephemeral-mapping-with-frozen-lifecycle-provenance"
+  ],
+  "openQuestions": [
+    "native-join-active-safety",
+    "virtual-device-necessity",
+    "dual-endpoint-isolation",
+    "custom-logical-exit",
+    "custom-physical-player-removal",
+    "other-exit-callers-or-variant-changing-states"
+  ],
+  "capabilityLimitations": {
+    "nativeSinglePlayerRemovalVerified": false,
+    "customEndpointExitImplemented": false,
+    "customPlayerRemovalImplemented": false,
+    "activeLiveAuthorized": false,
+    "t006Unlocked": false,
+    "deathRespawnProvenance": "OPERATOR_CONFIRMED_WITH_INHERITED_LIFECYCLE_NOT_DEDICATED_DEATH_HOOK",
+    "menuUiConfirmation": "NOT_RECEIVED",
+    "menuInitialDoubleBoundRequired": true,
+    "legacy53AndDevice56TransactionsUnchanged": true,
+    "virtualDeviceLifetimeNotWaived": true,
+    "unknownExitRouteNotAuthorized": true
+  },
+  "permissions": {
+    "activeInputAllowed": false,
+    "applyAllowed": false,
+    "csT00504Unlocked": true,
+    "inputMutationAllowed": false,
+    "modeLatchAllowed": false,
+    "originalOnlinePositiveAllowed": false,
+    "overrideAllowed": false,
+    "passiveHookTransactionAllowed": false,
+    "passiveObservationAllowed": false,
+    "runtimeMutationAllowed": false,
+    "schedulerAllowed": false,
+    "t005Unlocked": false,
+    "transportAllowed": false,
+    "worldMutationAllowed": false
+  }
+}

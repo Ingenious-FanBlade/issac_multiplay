@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "catalogIdentity": "IsaacCsT0-CoopCatalog-v1",
+  "workPackage": "CS-T0-05-00",
+  "createdUtc": "2026-08-26T18:47:33Z",
+  "status": "DRAFT_BOOTSTRAP",
+  "supersedes": null,
+  "createNewOnly": true,
+  "predecessorBindingPath": "coop-predecessor-binding-v1.json",
+  "predecessorBindingSha256": "5D29826CD9E92E84D4C97C14E511066EF1FD8576B2DA5CC4639861BD9812DB90",
+  "target": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedApprovedUnpackedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "equivalenceDocumentSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+    "machine": "0x014C",
+    "preferredImageBase": "0x00400000",
+    "runtimeAddressRule": "moduleBase + RVA"
+  },
+  "inheritedHookTransaction": {
+    "catalogPath": "input-active-catalog-v2.json",
+    "catalogSha256": "A89A74A251EEAA2510FC0C681247ABD6B0A31A7CC3ED60833C78EF36C9B0DC77",
+    "existingSlotCount": 45,
+    "newSlots": [],
+    "combinedSlotCount": 45,
+    "singleInstallRollbackRestoreOwnerRequired": true
+  },
+  "candidates": [
+    {
+      "id": "local-coop-manager",
+      "evidenceLabel": "UNKNOWN",
+      "rva": null,
+      "expectedBytes": null,
+      "targetRva": null,
+      "vtableRva": null,
+      "colRva": null,
+      "abi": null,
+      "slot": null
+    },
+    {
+      "id": "local-coop-native-join",
+      "evidenceLabel": "UNKNOWN",
+      "rva": null,
+      "expectedBytes": null,
+      "targetRva": null,
+      "vtableRva": null,
+      "colRva": null,
+      "abi": null,
+      "slot": null
+    },
+    {
+      "id": "local-coop-native-exit",
+      "evidenceLabel": "UNKNOWN",
+      "rva": null,
+      "expectedBytes": null,
+      "targetRva": null,
+      "vtableRva": null,
+      "colRva": null,
+      "abi": null,
+      "slot": null
+    },
+    {
+      "id": "local-coop-hud-player-index",
+      "evidenceLabel": "UNKNOWN",
+      "rva": null,
+      "expectedBytes": null,
+      "targetRva": null,
+      "vtableRva": null,
+      "colRva": null,
+      "abi": null,
+      "slot": null
+    },
+    {
+      "id": "local-coop-lua-player-order",
+      "evidenceLabel": "UNKNOWN",
+      "rva": null,
+      "expectedBytes": null,
+      "targetRva": null,
+      "vtableRva": null,
+      "colRva": null,
+      "abi": null,
+      "slot": null
+    },
+    {
+      "id": "local-coop-virtual-device",
+      "evidenceLabel": "UNKNOWN",
+      "rva": null,
+      "expectedBytes": null,
+      "targetRva": null,
+      "vtableRva": null,
+      "colRva": null,
+      "abi": null,
+      "slot": null
+    }
+  ],
+  "knownRuntimeGaps": [
+    {
+      "id": "active-player-vector-singleton",
+      "evidenceLabel": "RUNTIME_CONFIRMED",
+      "currentConstraint": "The inherited active runtime requires the Player vector to contain exactly one entry.",
+      "t005Requirement": "Support exactly two uniquely mapped local co-op Player entries without guessing."
+    },
+    {
+      "id": "active-owner-is-process-global",
+      "evidenceLabel": "RUNTIME_CONFIRMED",
+      "currentConstraint": "The inherited active runtime keeps one process-global current Player, device, and source owner.",
+      "t005Requirement": "Use per-ClientId and per-LocalPlayerOrdinal ownership with generation-local pointer associations."
+    }
+  ],
+  "permissions": {
+    "activeInputAllowed": false,
+    "liveAuthorizationCreated": false,
+    "runtimeMutationAllowed": false,
+    "productionActiveInputAllowed": false
+  }
+}

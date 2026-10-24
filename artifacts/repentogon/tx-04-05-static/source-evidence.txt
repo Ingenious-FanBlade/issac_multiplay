@@ -1,0 +1,387 @@
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\repentogon\LuaInterfaces\Menus\LuaMenuManager.cpp [191..216]
+191: HOOK_METHOD(InputManager, IsActionTriggered, (int btn, int controllerid, int unk)->bool) {
+192: 	if (MainMenuInputBlock::_enabled==true) {
+193: 		return (MainMenuInputBlock::_inputmask & (1 << btn)) && super(btn, controllerid, unk);
+194: 	}
+195: 	else {
+196: 		return super(btn, controllerid, unk);
+197: 	}
+198: };
+199: HOOK_METHOD(InputManager, IsActionPressed, (int btn, int controllerid, int unk)->bool) {
+200: 	if (MainMenuInputBlock::_enabled==true) {
+201: 		return (MainMenuInputBlock::_inputmask & (1 << btn)) && super(btn, controllerid, unk);
+202: 	}
+203: 	else{
+204: 		return super(btn, controllerid, unk);
+205: 	}
+206: };
+207: 
+208: HOOK_STATIC(LuaEngine, PostGameStart, (unsigned int state)->void,__stdcall) {
+209: 	MainMenuInputBlock::ClearInputMask();
+210: 	super(state);
+211: };
+212: 
+213: LUA_FUNCTION(Lua_SetInputMask) {
+214: 	lua::LuaCheckMainMenuExists(L, lua::metatables::MenuManagerMT);
+215: 	unsigned int mask = (int)luaL_checkinteger(L, 1);
+216: 	MainMenuInputBlock::SetInputMask(mask);
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\repentogon\Patches\ModsMenuStuff.cpp [130..136]
+130: HOOK_METHOD(InputManager, IsActionTriggered, (int btnaction, int controllerid, int unk) -> bool) {
+131: 	if (issearching){// && ((btnaction == 17) || (btnaction == 18))) {
+132: 		return false;
+133: 	}
+134: 	return super(btnaction, controllerid, unk);
+135: }
+136: 
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\repentogon\ImGuiFeatures\ImGui.cpp [306..346]
+306: 	if (menuShown && g_Game->GetConsole()->_state != 2) {
+307: 		// Release keys we've tracked as being pressed. Call the game's wndProc to accomplish this
+308: 		std::vector keys = pressedKeys;
+309: 		for (WPARAM key : keys) {
+310: 			CallWindowProc(windowProc, hWnd, WM_KEYUP, key, lParam);
+311: 			// We're working on a copy of the vector, so we don't necessarily care about popping the original one in order
+312: 			pressedKeys.pop_back();
+313: 		}
+314: 
+315: 		// Pop the left mouse button, too, if it was previously clicked.
+316: 		if (leftMouseClicked) {
+317: 			leftMouseClicked = false;
+318: 			CallWindowProc(windowProc, hWnd, WM_LBUTTONUP, 0, lParam);
+319: 		}
+320: 
+321: 
+322: 		// Induce a game pause by setting the debug console's state to 2 (shown). We'll suppress rendering in another hook.
+323: 		g_Game->GetConsole()->_state = 2;
+324: 
+325: 		// Console should steal focus by default, if visible.
+326: 		// Everybody (myself included) has been muscle-memoried into pressing ` and typing a command, we should respect that!
+327: 		console.enabled = true;
+328: 		console.reclaimFocus = true;
+329: 	}
+330: 
+331: 	if (!menuShown && g_Game->GetConsole()->_state != 0) {
+332: 		std::vector keys = pressedKeys;
+333: 		for (WPARAM key : keys) {
+334: 			ImGui_ImplWin32_WndProcHandler(hWnd, WM_KEYUP, key, lParam);
+335: 			pressedKeys.pop_back();
+336: 		}
+337: 
+338: 		if (leftMouseClicked) {
+339: 			leftMouseClicked = false;
+340: 			ImGui_ImplWin32_WndProcHandler(hWnd, WM_LBUTTONUP, 0, lParam);
+341: 		}
+342: 
+343: 		g_Game->GetConsole()->_state = 0;
+344: 	}
+345: 
+346: 	WINMouseWheelMove_Vert = 0;
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\repentogon\LuaInterfaces\CustomCallbacks.cpp [492..534]
+492: 			.push(entity, lua::Metatables::ENTITY)
+493: 			.call(1);
+494: 	}
+495: }
+496: 
+497: // Returns true if the Update logic should be skipped.
+498: bool RunPreUpdateCallback(Entity* entity, const lua::Metatables metatable, const int callbackid) {
+499: 	if (CallbackState.test(callbackid - 1000)) {
+500: 		lua_State* L = g_LuaEngine->_state;
+501: 		lua::LuaStackProtector protector(L);
+502: 
+503: 		lua_rawgeti(L, LUA_REGISTRYINDEX, g_LuaEngine->runCallbackRegistry->key);
+504: 
+505: 		lua::LuaCaller& lua_caller = lua::LuaCaller(L).push(callbackid);
+506: 		if (metatable == lua::Metatables::ENTITY_KNIFE) {
+507: 			lua_caller.push(*entity->GetSubType());
+508: 		}
+509: 		else {
+510: 			lua_caller.push(*entity->GetVariant());
+511: 		}
+512: 		lua::LuaResults result = lua_caller.push(entity, metatable).call(1);
+513: 
+514: 		if (!result && lua_isboolean(L, -1)) {
+515: 			return lua_toboolean(L, -1);
+516: 		}
+517: 	}
+518: 	return false;
+519: }
+520: 
+521: // Still call Entity::Update() if we skip the subclass' update,
+522: // since that aligns with how MC_PRE_NPC_UPDATE works.
+523: #define HOOK_PRE_UPDATE_CALLBACK(_type, _metatable, _callbackid) \
+524: HOOK_METHOD(_type, Update, () -> void) { \
+525: 	if (!RunPreUpdateCallback(this, _metatable, _callbackid)) { \
+526: 		super(); \
+527: 	} else { \
+528: 		((Entity*)this)->Original_Update(); \
+529: 	} \
+530: }
+531: 
+532: // PRE_X_UPDATE (1160 ~ 1168) (PRE_SLOT_UPDATE is 1169)
+533: HOOK_PRE_UPDATE_CALLBACK(Entity_Player, lua::Metatables::ENTITY_PLAYER, 1160)
+534: HOOK_PRE_UPDATE_CALLBACK(Entity_Tear, lua::Metatables::ENTITY_TEAR, 1161)
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\repentogon\Patches\ASMPatches\ASMCallbacks.cpp [737..770]
+737: void ASMPatchInputAction()
+738: {
+739: 	const char* signatures[] = {
+740: 		"837f??0275??833d????????0074??8d45??505351",  // Manager::GetActionValue
+741: 		"8379??0275??833d????????00",  // Console::ProcessInput
+742: 		"837f??0275??833d????????0074??8d45??50536a00",  // Manager::IsActionPressed
+743: 		"837f??0275??833d????????0074??8d45??50536a01",  // Manager::IsActionTriggered
+744: 		"8378??0275??833d????????0074??8d45??506a0e",  // Cutscene::Update (ACTION_MENUCONFIRM)
+745: 		"8378??0275??833d????????0074??8d45??506a0f",  // Cutscene::Update (ACTION_MENUBACK)
+746: 		NULL
+747: 	};
+748: 
+749: 	const char** start = signatures;
+750: 	while (*start) {
+751: 		const char* signature = *start;
+752: 		SigScan scanner(signature);
+753: 		if (!scanner.Scan()) {
+754: 			ZHL::Log("[fatal] ASMPatchInputAction: could not find signature %s\n", signature);
+755: 			throw std::runtime_error("Could not find signature");
+756: 		}
+757: 		else {
+758: 			ZHL::Log("[info] ASMPatchInputAction: found signature at %p\n", scanner.GetAddress());
+759: 		}
+760: 
+761: 		ASMPatch patch(ByteBuffer().AddByte(0x90, 6));
+762: 		sASMPatcher.FlatPatch(scanner.GetAddress(), &patch);
+763: 
+764: 		++start;
+765: 	}
+766: }
+767: 
+768: void __stdcall RunPostNightmareSceneRender(NightmareScene* ns) {
+769: 	const int callbackid = 1102;
+770: 
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\HookSystem.cpp [397..425]
+397: static std::multimap<int, FunctionHook_private*, std::greater<int>> &FuncHooks()
+398: {
+399: 	static std::multimap<int, FunctionHook_private*, std::greater<int>> funcHooks;
+400: 	return funcHooks;
+401: }
+402: 
+403: static char g_hookLastError[1024] = {0};
+404: 
+405: const char *FunctionHook_private::GetLastError() {return g_hookLastError;}
+406: 
+407: void FunctionHook_private::SetName(const char *name, const char *type)
+408: {
+409: 	ConvertToUniqueName(_name, name, type);
+410: 	strcpy_s(_shortName, name);
+411: }
+412: 
+413: int FunctionHook_private::Init()
+414: {
+415: 	for(auto it = FuncHooks().begin() ; it != FuncHooks().end() ; ++it)
+416: 	{
+417: 		if(!it->second->Install()) return 0;
+418: 	}
+419: 	return 1;
+420: }
+421: 
+422: void FunctionHook_private::Add(FunctionHook_private *hook)
+423: {
+424: 	FuncHooks().insert(std::pair<int, FunctionHook_private*>(hook->_priority, hook));
+425: }
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\HookSystem.cpp [576..590]
+576: 	/// Create the hook caller.
+577: 	/// _internalHook will contain the code that will call the hook and place the
+578: 	/// arguments on the stack, minus the this pointer, if any (in ecx).
+579: 	/// Detours will be used to redirect the original function to the hook caller.
+580: 
+581: 	unsigned char* ptr = _internalHook;
+582: 	ptr = EmitPrologue(def, ptr);
+583: 
+584: 	/// Call the hook
+585: 
+586: 	// Compute the size of the stack. Stack arguments must be pushed in reverse order
+587: 	// so we need to find the "bottom" of the call stack for the active frame.
+588: 	uint8_t stackPos = 8;  // Start at 8 because we need to ignore the ebp that was saved in the prologue
+589: 							// and we need to ignore the return address below.
+590: 	for (int i = 0; i < argc; ++i) {
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\HookSystem.cpp [649..675]
+649: 	}
+650: 
+651: 	// Call the hook
+652: 	// Offset = target - offset of next instruction
+653: 	// offset of next instruction = (ptr + 5)
+654: 	// (5 is the length of a relative jump instruction)
+655: 	int offset = (unsigned int)_hook - (unsigned int)ptr - 5;
+656: 	P(0xE8); PL(offset);
+657: 
+658: 	// If the function needs caller cleanup, we clean the stack
+659: 	if (def->NeedsCallerCleanup() && pushed > 0) {
+660: 		ptr = IncrESP(pushed, ptr); // add esp, pushed
+661: 		// Use pushed because the hook takes everything on the stack
+662: 	}
+663: 
+664: 	/// Clean after the hook has been called
+665: 	// Use stackPos - 8 because the calling convention may not have passed all arguments on the stack
+666: 	ptr = EmitEpilogue(def, stackPos - 8, ptr);
+667: 
+668: 	DWORD oldProtect = 0;
+669: 	_hSize = ptr - _internalHook;
+670: 	VirtualProtect(_internalHook, _hSize, PAGE_EXECUTE_READWRITE, &oldProtect);
+671: 
+672: 	/// Detour the original function
+673: 
+674: 	try {
+675: 		_detour = new MologieDetours::Detour<void*>(def->GetAddress(), _internalHook);
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\functions\EntityPlayer.zhl [773..783]
+773: 	int _itemStateCooldown : 0x15f8;
+774: 	uint32_t _vampireCharmKills : 0x15fc;
+775: 	int _bombPlaceDelay : 0x1604;
+776: 	int _forgottenSwapFormCooldown : 0x1608;
+777: 	int _controllerIndex : 0x160c;
+778: 	int _playerIndex : 0x1610;
+779: 	int _moveDirection : 0x1618;
+780: 	int _headDirection: 0x161c;
+781: 	uint32_t _trinketsID[2] : 0x16b0;
+782: 	std_vector_int _collectibleCounts: 0x16b8;
+783: 	vector_SmeltedTrinketDesc _smeltedTrinkets : 0x1738;
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\functions\EntityPlayer.zhl [853..859]
+853: 	int _keepersSackBonus : 0x1f98;
+854: 	ConsumableData _consumablesBackup : 0x2014;
+855: 	uint8_t _wildCardItemType : 0x2064;
+856: 	int _wildCardItem : 0x2068;
+857: 	bool _isCoopGhost : 0x207d;
+858: 	PlayerHUD* _playerHUD : 0x20a8;
+859: 	bool _hasUnlistedRestoreState : 0x20bc; // States if the _unlistedRestoreState is usable
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\functions\Entity.zhl [232..239]
+232:     int _iceCountdown : 0x300;
+233:     int _brimstoneMarkCountdown : 0x304;
+234:     Vector _knockbackDirection : 0x308;
+235: 	int _pauseTimer : 0x31c;
+236:     Vector _pos : 0x33c;
+237: 	Vector _posOffset : 0x34c;
+238:     Vector _velocity : 0x360;
+239:     float _size : 0x370;
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\functions\Manager.zhl [89..96]
+89: 	inline int GetMaxRenderScale() { return this->_optionsConfig._maxRenderScale; }
+90: 	inline ModManager* GetModManager() { return &this->_modManager; }
+91: 	inline DailyChallenge* GetDailyChallenge() { return &this->_dailyChallenge; }
+92: 	inline StringTable* GetStringTable() { return &this->_stringTable; }
+93: 	inline bool GetNetStart() { return this->_networkPlay; }
+94: 	inline Cutscene* GetCutscene() { return &this->_cutsceneManager; }
+95: 	inline OptionsConfig* GetOptions() { return &this->_optionsConfig; }
+96: 	inline AchievementOverlay* GetAchievementOverlay() { return &this->_achievementOverlay; }
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\functions\Manager.zhl [109..114]
+109: 	AchievementOverlay _achievementOverlay : 0x21a8c;
+110: 	Music _musicmanager : 0x29df8;
+111: 	SoundEffects _sfxManager : 0x2a160;
+112: 	OptionsConfig _optionsConfig : 0x2a178;
+113: 	ItemConfig _itemConfig : 0x2a234;
+114: 	EntityConfig _entityConfig : 0x2a36c;
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\functions\OptionsConfig.zhl [40..46]
+40:     int _touchMode : 0x58;
+41:     bool _enableDebugConsole : 0x5c;
+42:     bool _enableVSync : 0x5d;
+43:     bool _enableSteamCloud : 0x5e;
+44:     bool _enablePauseOnFocusLost : 0x5f;
+45:     bool _enableMouseControl : 0x60;
+46:     int _maxScale : 0x64;
+
+SOURCE: F:\projects_isaac\issac_multiplay\cs-t0\native\src\coop_input.cpp [131..154]
+131: bool ConsumerAllows(Consumer consumer, std::uint32_t action) noexcept
+132: {
+133:     switch (consumer) {
+134:     case Consumer::Movement: return action < 4 || action == 11;
+135:     case Consumer::Shooting: return action < 8 || action == 11;
+136:     case Consumer::Bomb: return action == 8;
+137:     case Consumer::Item: return action >= 9 && action <= 11;
+138:     case Consumer::Pill: return action >= 9 && action <= 11;
+139:     case Consumer::Drop: return action == 11;
+140:     default: return false;
+141:     }
+142: }
+143: float Magnitude(const InputStateDraftV2& state, std::uint32_t action) noexcept
+144: {
+145:     if (action < 8) {
+146:         const std::int32_t axes[4]{state.move_x,state.move_y,state.aim_x,state.aim_y};
+147:         const auto component = axes[action/2];
+148:         return static_cast<float>((std::max)((action & 1) ? component : -component,0)) / 32767.0F;
+149:     }
+150:     if (action >= 9 && action <= 11)
+151:         return (state.held_flags & (1u << (action-8))) ? 1.0F : 0.0F;
+152:     return 0.0F;
+153: }
+154: void Participant::StartGeneration(std::uint64_t tick) noexcept
+
+SOURCE: F:\projects_isaac\issac_multiplay\cs-t0\native\src\coop_input.cpp [430..463]
+430: bool Participant::Begin(std::uint64_t tick) noexcept
+431: {
+432:     if(!SessionInputActive()) return false;
+433:     if (scope_pending_ || tick <= last_resolved_ || retired_) return false;
+434:     last_resolved_ = tick; visible_tick_ = tick; current_ = {}; current_sequence_ = 0;
+435:     current_generation_ = generation_;scope_pending_=true;current_edge_sequences_.fill(0);
+436:     UpdateSourceSilence(tick);
+437:     progress_.resolved_contributors=0;
+438:     std::size_t write = 0; std::uint32_t edges = 0;
+439:     for (std::size_t i=0;i<depth_;++i) {
+440:         const auto& queued = pending_[i];
+441:         if (queued.generation != generation_) continue;
+442:         if (queued.cmd.target_tick < tick) {Count(progress_.expired_before_resolve);continue;}
+443:         if (queued.cmd.target_tick == tick) {
+444:             ++progress_.resolved_contributors; // Bounded by pending_.size().
+445:             edges |= queued.cmd.state.edge_flags;
+446:             for(std::uint32_t action=0;action<4;++action) if(queued.cmd.state.edge_flags & (1u<<action)) {
+447:                 current_edge_sequences_[action]=queued.cmd.sequence;
+448:                 auto& edge=progress_.edges[action];edge.resolved_sequence=queued.cmd.sequence;
+449:                 edge.resolved_tick=tick;edge.resolved_generation=generation_;
+450:             }
+451:             if (queued.cmd.sequence > current_sequence_) { current_ = queued.cmd.state; current_sequence_ = queued.cmd.sequence; }
+452:         } else pending_[write++] = queued;
+453:     }
+454:     depth_ = write; current_.edge_flags = edges;
+455:     progress_.last_resolved_sequence=current_sequence_;
+456:     if(current_sequence_) startup_pending_=false;
+457:     // An explicit neutral current is eligible; absence never retains previous edge/held.
+458:     // A fresh binding with no resolved command has invalid current, rather than
+459:     // fabricating a comparable previous. Its queries are still neutral. After a
+460:     // first valid command, ordinary missing-input neutral markers can be committed.
+461:     visible_ = BoundValid() && (current_sequence_!=0 || PreviousComparable());
+462:     FillAvailability(tick,scope_availability_);
+463:     return true;
+
+SOURCE: F:\projects_isaac\issac_multiplay\cs-t0\native\src\coop_active_runtime.cpp [729..754]
+729: }
+730: void PublishPhysical() noexcept
+731: {
+732:     if(!g_authority_session.AcceptsInput()) return;
+733:     auto& participant=g_participants[0];
+734:     const auto context=loop::CurrentObservationContext();
+735:     if(g_authority_clock.Current() || g_pause.BlocksInput() || g_loading.BlocksInput() || g_lifecycle.BlocksInput() ||
+736:        !participant.BoundValid() || !g_observed_valid || context.loop_iteration!=g_observed_loop ||
+737:        !(participant.Bound()==g_observed_binding)) return;
+738:     auto canonical=g_observed_physical;canonical.edge_flags=g_observed_edges&~g_published_edges;
+739:     if(!canonical.edge_flags && g_last_physical_tick==g_authority_clock.Completed() &&
+740:        g_last_physical_generation==participant.Generation() && g_last_physical_device==g_observed_binding.device &&
+741:        std::memcmp(&g_last_physical,&canonical,sizeof(canonical))==0) return;
+742:     std::uint64_t target=0;
+743:     if(!NextInputTarget(g_authority_clock.Completed(),g_input_config,target)) {
+744:         Fail(Error::Protocol);return;
+745:     }
+746:     if(!SubmitFresh(0,canonical,target)) {
+747:         if(g_authority_session.AcceptsInput()) Fail(Error::Protocol);return;
+748:     }
+749:     g_published_edges|=canonical.edge_flags;
+750:     g_last_physical=canonical;g_last_physical.edge_flags=0;g_last_physical_tick=g_authority_clock.Completed();
+751:     g_last_physical_generation=participant.Generation();g_last_physical_device=g_observed_binding.device;
+752: }
+753: void PhysicalExit(void* device,bool result,void* return_address,void*) noexcept
+754: {

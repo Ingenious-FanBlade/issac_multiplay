@@ -1,0 +1,530 @@
+{
+  "schemaVersion": 1,
+  "evidenceIdentity": "IsaacCsT0-CoopC0LayoutEvidence-v1",
+  "workPackage": "CS-T0-05-02",
+  "createdUtc": "2026-08-27T12:14:10Z",
+  "status": "STATIC_CONFIRMED",
+  "evidenceClass": "STATIC_LAYOUT_AND_READ_ONLY_CAPTURE_CONTRACT",
+  "scopeStatement": "Freezes the target-specific C0 object layouts, unique-join predicates, double-collection rules, inherited Authority tick boundary, OriginalOnline isolation and fail-closed conditions. This artifact is not runtime C0 evidence and does not authorize hooks, IPC, remote calls, writes or apply.",
+  "createNewOnly": true,
+  "predecessorDecision": {
+    "path": "coop-static-decision-v1.json",
+    "identity": "IsaacCsT0-CoopStaticDecision-v1",
+    "sha256": "2CA3A9956FEAED6E08BDAA2F89F2A244DE4CF6B6CB0E2AFA0EFAEE7A37C9E459"
+  },
+  "artifactBindings": [
+    {
+      "role": "PREDECESSOR_DECISION",
+      "path": "coop-static-decision-v1.json",
+      "identity": "IsaacCsT0-CoopStaticDecision-v1",
+      "sha256": "2CA3A9956FEAED6E08BDAA2F89F2A244DE4CF6B6CB0E2AFA0EFAEE7A37C9E459"
+    },
+    {
+      "role": "STATIC_EVIDENCE",
+      "path": "coop-static-evidence-v1.json",
+      "identity": "IsaacCsT0-CoopStaticEvidence-v1",
+      "sha256": "501B39DEB198E7F1424328069534438ADC73BA665D1E6988AFA4AD7939DB081B"
+    },
+    {
+      "role": "STATIC_GRAPH",
+      "path": "coop-static-graph-v1.json",
+      "identity": "IsaacCsT0-CoopStaticGraph-v1",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    },
+    {
+      "role": "STATIC_CATALOG",
+      "path": "coop-catalog-v2.json",
+      "identity": "IsaacCsT0-CoopCatalog-v2",
+      "sha256": "1059711778DAD09870D37118571EE7D5E67761EC28FFAB84C7CF5AC5998A0224"
+    },
+    {
+      "role": "STATIC_LEDGER",
+      "path": "ledger/isaac-cs-t0-coop-ledger-v2.json",
+      "identity": "IsaacCsT0-CoopLedger-v2",
+      "sha256": "EA195429231F9CA8575FC6901E792496D6C26AC42984928B1C09504E97B3FCAC"
+    },
+    {
+      "role": "INHERITED_AUTHORITY_CATALOG",
+      "path": "input-active-catalog-v2.json",
+      "identity": "IsaacCsT0-ActiveLoopbackCatalog-v2",
+      "sha256": "A89A74A251EEAA2510FC0C681247ABD6B0A31A7CC3ED60833C78EF36C9B0DC77"
+    },
+    {
+      "role": "INHERITED_AUTHORITY_DECISION",
+      "path": "../out/cs-t0/formal-active-gate-20260827-r1/active-gate-decision.json",
+      "identity": "IsaacCsT0-ActiveGateDecision / schema-4",
+      "sha256": "927561D7DC28FE4DE05680BC68C6FA1841E3C77D76B30A710CE34031072E222C"
+    }
+  ],
+  "target": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedApprovedUnpackedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "equivalenceDocumentSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+    "machine": "0x014C",
+    "pointerWidthBytes": 4,
+    "preferredImageBase": "0x00400000",
+    "runtimeAddressRule": "moduleBase + RVA",
+    "persistentAddressPolicy": "RVA_AND_FIELD_OFFSET_ONLY"
+  },
+  "sourceReview": {
+    "existingRpmImplementation": {
+      "path": "src/input_rpm.rs",
+      "sha256AtReview": "8791096AE310DFE66CA4DBEA90CC3C0E36A668BD910D947C7C4F8117CEDD20A9",
+      "reusedConcepts": [
+        "fixed target validation",
+        "read-only process handle",
+        "bounded vector validation",
+        "double-read stability check",
+        "four-attempt retry ceiling",
+        "separate unstable and read-error outcomes",
+        "OriginalOnline backend and roster read-only validation"
+      ],
+      "implementationStatus": "REFERENCE_ONLY_MAINLINE_EXTENSION_REQUIRED"
+    },
+    "win32Observer": {
+      "path": "src/win32.rs",
+      "sha256AtReview": "DCA5BDCA14975D5DB5CC8A670C8D39D46A5E5A8917C6A922FA156D8513330063",
+      "symbol": "OBSERVER_ACCESS_BITS",
+      "implementationStatus": "EXISTING_READ_ONLY_PRIMITIVE"
+    },
+    "reverseTools": {
+      "staticDisassembler": "IDA_MCP_READ_ONLY",
+      "x32dbgMcpAvailable": true,
+      "x32dbgStateAtReview": "stopped",
+      "x32dbgRuntimeEvidenceProduced": false,
+      "reason": "No active target/debug session existed; no attach, initialization, breakpoint, pause, step, remote call, patch or process write was attempted."
+    }
+  },
+  "layouts": {
+    "inputManager": {
+      "root": {
+        "kind": "FIXED_OBJECT",
+        "rva": "0x00857B18",
+        "addressRule": "moduleBase + 0x00857B18",
+        "mustNotDereferenceAsPointerSlot": true
+      },
+      "activeDeviceVector": {
+        "beginOffset": "0x0008",
+        "endOffset": "0x000C",
+        "capacityEndOffset": "0x0010",
+        "elementWidthBytes": 8,
+        "elementFields": [
+          { "name": "object", "offset": "0x0000", "widthBytes": 4, "persistence": "EPHEMERAL_ONLY" },
+          { "name": "referenceOwner", "offset": "0x0004", "widthBytes": 4, "persistence": "EPHEMERAL_ONLY" }
+        ],
+        "maximumElementCount": 32,
+        "validation": "begin <= end <= capacityEnd; every boundary and object pointer is 4-byte aligned; active byte span is divisible by 8"
+      },
+      "deviceLayout": {
+        "vtableOffset": "0x0000",
+        "enabledByteOffset": "0x0008",
+        "deviceKeyOffset": "0x000C",
+        "deviceKeyPersistence": "EPHEMERAL_JOIN_ONLY",
+        "profiles": [
+          {
+            "kind": "KEYBOARD",
+            "vtableRva": "0x007A1678",
+            "completeObjectLocatorRva": "0x007B191C"
+          },
+          {
+            "kind": "GAMEPAD",
+            "vtableRva": "0x00782C80",
+            "completeObjectLocatorRva": "0x007B0460",
+            "platformControllerIdOffset": "0x0370",
+            "platformControllerIdUse": "DIAGNOSTIC_ONLY_NOT_IDENTITY"
+          }
+        ]
+      },
+      "evidenceSource": "Existing RPM implementation plus T0-04 target-specific static/runtime contracts",
+      "evidenceLabel": "STATIC_CONFIRMED"
+    },
+    "gameRoot": {
+      "pointerSlotRva": "0x00871678",
+      "pointerSlotKind": "MODULE_GLOBAL_POINTER_SLOT",
+      "runActiveLowByteOffset": "0x0002658A",
+      "mainPlayerVector": {
+        "beginOffset": "0x0001BAA8",
+        "endOffset": "0x0001BAAC",
+        "capacityEndOffset": "0x0001BAB0",
+        "elementWidthBytes": 4,
+        "maximumElementCount": 16,
+        "elementType": "Entity_Player*",
+        "validation": "begin <= end <= capacityEnd; boundaries and non-null entries are 4-byte aligned; active byte span is divisible by 4"
+      },
+      "luaGetPlayer": {
+        "registrationRva": "0x00494280",
+        "closureRva": "0x004B84B0",
+        "lookupRva": "0x00017870",
+        "lookupExpectedBytes": "558BEC5156578BF98B97ACBA01008BC2",
+        "validIndexRule": "returns the main Player vector entry at the requested ordinal",
+        "outOfRangeRule": "falls back to Player ordinal 0",
+        "c0EvidenceLabel": "STATIC_VECTOR_EQUIVALENT",
+        "runtimeInvocationAllowed": false
+      },
+      "evidenceSource": "coop-static-evidence-v1 and coop-static-graph-v1",
+      "evidenceLabel": "STATIC_CONFIRMED"
+    },
+    "player": {
+      "objectAlignmentBytes": 4,
+      "vtableOffset": "0x0000",
+      "entityPlayerVtableRva": "0x0076BDD0",
+      "completeObjectLocatorRva": "0x007AE31C",
+      "fields": [
+        {
+          "name": "initSeed",
+          "offset": "0x03EC",
+          "widthBytes": 4,
+          "getterRegistrationRva": "0x00468F61",
+          "getterRva": "0x00105B70",
+          "getterSemantics": "mov eax,[ecx+0x3EC]; ret",
+          "use": "STABILITY_AND_RELATION_SUMMARY_ONLY",
+          "forbiddenUses": ["network identity", "persistent player identity", "unique assignment join"]
+        },
+        {
+          "name": "assignmentKey",
+          "offset": "0x1618",
+          "widthBytes": 4,
+          "use": "EPHEMERAL_PLAYER_TO_ACTIVE_DEVICE_JOIN_ONLY",
+          "persistence": "FORBIDDEN_RAW_VALUE"
+        },
+        {
+          "name": "mainVectorOrdinal",
+          "offset": "0x161C",
+          "widthBytes": 4,
+          "use": "MUST_EQUAL_CURRENT_MAIN_VECTOR_ORDINAL"
+        },
+        {
+          "name": "twinOrParentRelation",
+          "offset": "0x1E68",
+          "widthBytes": 4,
+          "use": "STOP_OR_DIAGNOSTIC_NORMALIZATION_ONLY"
+        }
+      ],
+      "evidenceSource": "05-01 Player/vector/assignment proof plus read-only IDA RTTI and InitSeed getter inspection in CS-T0-05-02",
+      "evidenceLabel": "STATIC_CONFIRMED"
+    },
+    "hud": {
+      "embeddedBaseOffset": "0x0001DA04",
+      "baseDerivationRva": "0x005BB4E7",
+      "baseDerivationSemantics": "lea ecx,[gameRoot+0x1DA04]",
+      "rebuildCallRva": "0x005BB4FD",
+      "rebuildTargetRva": "0x005A8620",
+      "recordCount": 8,
+      "recordStride": "0x06DC",
+      "playerPointerOffsetWithinRecord": "0x0000",
+      "primaryRecordOrdinals": [0, 1, 2, 3],
+      "twinRecordOrdinals": [4, 5, 6, 7],
+      "twinRecordRegionOffset": "0x1B70",
+      "indexHelperRva": "0x005A64F0",
+      "indexHelperExpectedBytes": "558BEC8B45085685C074518B90681E0000",
+      "positiveC0Rule": "For each accepted base Player ordinal, the corresponding primary HUD record must contain the identical Player pointer without requiring twin, possessor or special normalization.",
+      "specialNormalizationRule": "Read Player+0x1E68 only to classify a non-base relation. Any positive join that requires this normalization is blocked for the fixed C0 base scenarios.",
+      "evidenceSource": "coop-static-evidence-v1, coop-static-graph-v1 and read-only IDA data-flow review",
+      "evidenceLabel": "STATIC_CONFIRMED"
+    },
+    "originalOnline": {
+      "partition": "ORIGINAL_ONLINE_FORBIDDEN",
+      "positiveLocalRouteAllowed": false,
+      "managerPointerSlotRva": "0x0087169C",
+      "networkBackendPointerSlotRva": "0x00879A58",
+      "steamBackendVtableRva": "0x007A2440",
+      "netInputVector": {
+        "beginOffset": "0x0004B3D8",
+        "endOffset": "0x0004B3DC",
+        "capacityEndOffset": "0x0004B3E0",
+        "elementWidthBytes": 4,
+        "minimumPositiveCount": 2,
+        "maximumPositiveCount": 4
+      },
+      "onlineFrameOffset": "0x0004B3E4",
+      "netInputDeviceIdentityObjectOffset": "0x0374",
+      "peerIdentityValueOffset": "0x0008",
+      "peerIdentityValueWidthBytes": 8,
+      "staticLocalBodyGuard": {
+        "rva": "0x005BAC6D",
+        "expectedBytes": "8B159C16C7008B82D8B304003B82DCB304000F85EF080000",
+        "nonemptyTargetRva": "0x005BB574",
+        "skippedLocalBodyRange": "0x005BAC85..0x005BB56E"
+      },
+      "c0PositiveControlRule": "Require aligned nonzero game root, manager and Steam backend; active run; 2-4 aligned non-null NetInputDevice entries; 2-4 nonzero distinct sorted peer identities; stable manager/backend/roster; and nonregressing onlineFrame.",
+      "offlineNegativeScreenRule": {
+        "manager": "zero or 4-byte aligned",
+        "networkBackend": "zero",
+        "netInputVectorBegin": "zero",
+        "netInputVectorEnd": "zero",
+        "netInputVectorCapacityEnd": "zero",
+        "onlineFrame": "zero"
+      },
+      "localModeNegativeRule": "Local C0 may pass only when OriginalOnline manager/backend/roster/onlineFrame satisfy the frozen offline negative screen; OriginalOnline objects must never explain the second local Player.",
+      "persistence": "Persist roster count, distinctness and stability only; raw manager, backend, NetInputDevice, identity-object pointers and peer identity values are forbidden.",
+      "evidenceSource": "Existing RPM OriginalOnline screen plus coop-static-evidence-v1 online guard",
+      "evidenceLabel": "STATIC_CONFIRMED"
+    }
+  },
+  "relations": {
+    "localSingleUniqueJoin": {
+      "requiredPlayerOrdinals": [0],
+      "requiredPlayerCount": 1,
+      "assignmentRule": "Player[0]+0x1618 must equal the deviceKey of exactly one accepted active InputDevice.",
+      "hudRule": "HUD primary record 0 points directly to Player[0].",
+      "luaRule": "Isaac.GetPlayer(0) is recorded only as STATIC_VECTOR_EQUIVALENT to Player[0].",
+      "initSeedRule": "Readable and stable across the accepted double collection; raw value is not persisted and does not participate in the join."
+    },
+    "localDualUniqueJoin": {
+      "requiredPlayerOrdinals": [0, 1],
+      "requiredPlayerCount": 2,
+      "playerIdentityRule": "Both vector entries are non-null, aligned, distinct Entity_Player objects and Player+0x161C equals the vector ordinal.",
+      "assignmentRule": "For each ordinal, Player+0x1618 matches exactly one accepted active InputDevice deviceKey; no accepted device matches both Players and no Player has zero or multiple matches.",
+      "requiredSelectedDeviceKinds": ["KEYBOARD", "GAMEPAD"],
+      "extraDeviceRule": "Additional active devices may be retained only as unassigned diagnostics and cannot satisfy or weaken either unique match.",
+      "hudRule": "HUD primary records 0 and 1 point directly to Player[0] and Player[1] respectively.",
+      "luaRule": "Isaac.GetPlayer(i) is recorded only as STATIC_VECTOR_EQUIVALENT to Player[i] for i in {0,1}; no Lua remote call is made.",
+      "initSeedRule": "Each seed is readable and stable across the accepted double collection; persist only SAME_OR_DISTINCT and stability summaries, never raw values or identity claims."
+    },
+    "originalOnlineIsolation": {
+      "assignmentJoinEligible": false,
+      "localPlayerExplanationEligible": false,
+      "requiredClaim": "DISARMED_CONTROL",
+      "rule": "OriginalOnline manager/backend/roster/frame observations form an isolated read-only control graph and cannot be joined to local Player assignment, HUD or Lua publication as positive local evidence."
+    }
+  },
+  "modeContracts": [
+    {
+      "id": "OFFLINE_SINGLE_C0",
+      "requiredModeEvidence": "OFFLINE_NEGATIVE_SCREEN",
+      "requiredOuterGameState": "aligned nonzero gameRoot and active run",
+      "requiredPlayerCount": 1,
+      "requiredOrdinals": [0],
+      "requiredRelation": "localSingleUniqueJoin",
+      "originalOnlineObjectUse": "ZERO_BASELINE_ONLY",
+      "authorityTickClaim": "NOT_REQUIRED_FOR_SINGLE_BASELINE"
+    },
+    {
+      "id": "LOCAL_COOP_DUAL_C0",
+      "requiredModeEvidence": "OFFLINE_NEGATIVE_SCREEN",
+      "requiredOuterGameState": "aligned nonzero gameRoot and active run",
+      "requiredPlayerCount": 2,
+      "requiredOrdinals": [0, 1],
+      "requiredSelectedDeviceKinds": ["KEYBOARD", "GAMEPAD"],
+      "requiredRelation": "localDualUniqueJoin",
+      "originalOnlineObjectUse": "FORBIDDEN_POSITIVE_ROUTE",
+      "authorityTickClaim": "PASS_INHERITED_CONTRACT"
+    },
+    {
+      "id": "ORIGINAL_ONLINE_DUAL_DISARMED",
+      "requiredModeEvidence": "ORIGINAL_ONLINE_POSITIVE_SCREEN",
+      "requiredOuterGameState": "aligned nonzero gameRoot and active run",
+      "requiredRosterCountForThisScenario": 2,
+      "layoutSupportedRosterCountRange": [2, 4],
+      "requiredRelation": "originalOnlineIsolation",
+      "localAssignmentJoinEligible": false,
+      "authorityTickClaim": "NOT_OBSERVED_C0",
+      "sideEffectClaim": "NO_T0_05_HOOK_IPC_MAPPING_SCHEDULER_APPLY_OR_MODULE"
+    }
+  ],
+  "doubleCollectPolicy": {
+    "maximumAttempts": 4,
+    "acceptedStatus": "COHERENT_DOUBLE_COLLECT",
+    "unstableDropStatus": "DROPPED_UNSTABLE",
+    "readErrorDropStatus": "DROPPED_READ_ERROR",
+    "sequence": [
+      "Read outer mode screen A.",
+      "Read InputManager header A, active span A and all required device fields A.",
+      "Read gameRoot slot A, run byte A, Player header/span/fields A, HUD records A and diagnostic game-frame proxy A.",
+      "For OriginalOnline only, read manager/backend/roster/peer summaries and onlineFrame A.",
+      "Repeat the same graph as B without pause, hook, injection or remote call.",
+      "Read outer mode screen B and require the same classified mode."
+    ],
+    "mustMatchExactlyWithinAcceptedPair": [
+      "process identity and creation time",
+      "module base, size and loaded-module set",
+      "mode classification and gameRoot pointer",
+      "InputManager vector header and active span",
+      "device object/reference-owner/vtable/enabled/deviceKey fields",
+      "Player vector header and active span",
+      "Player vtable/initSeed/assignmentKey/ordinal/twinOrParentRelation fields",
+      "HUD primary and twin record Player pointers",
+      "OriginalOnline manager/backend/roster headers and sorted peer-identity relation summary"
+    ],
+    "monotonicExceptions": [
+      "OriginalOnline onlineFrame may increase but must not regress.",
+      "GameRoot+0x264F8 diagnostic frame proxy may increase but must not regress while process, run and mode remain stable; it is excluded from equality and Authority claims."
+    ],
+    "windowRule": "A mode source is accepted only after its required coherent samples preserve one topology for the complete observation window hash-bound by that source manifest. A later coherent topology mismatch is STRUCTURAL_DRIFT, not a disposable unstable read.",
+    "partialPersistenceAllowed": false,
+    "addressPersistenceAllowed": false
+  },
+  "tickContract": {
+    "status": "PASS_INHERITED_CONTRACT",
+    "sourceDecisionPath": "../out/cs-t0/formal-active-gate-20260827-r1/active-gate-decision.json",
+    "sourceDecisionSha256": "927561D7DC28FE4DE05680BC68C6FA1841E3C77D76B30A710CE34031072E222C",
+    "sourceCatalogPath": "input-active-catalog-v2.json",
+    "sourceCatalogSha256": "A89A74A251EEAA2510FC0C681247ABD6B0A31A7CC3ED60833C78EF36C9B0DC77",
+    "supportedPath": "STEADY_STANDARD_ONLY",
+    "anchors": {
+      "conditionalAttemptCallRva": "0x00555231",
+      "conditionalAttemptTargetRva": "0x002FADC0",
+      "standardPredicateCallRva": "0x002FADFA",
+      "standardBodyCallRva": "0x002FAE09",
+      "roomUpdateCallRva": "0x002FBA4D",
+      "roomUpdateTargetRva": "0x00402980",
+      "entityListCallRva": "0x00403E70",
+      "postUpdateTailCallRva": "0x002FBBA5"
+    },
+    "commitRule": "pre candidate is lastCompleted+1 and commits exactly once only after the supported steady-standard Room::Update returns normally; exception, overflow or lifecycle change does not commit",
+    "directPostCommitObservedInC0": false,
+    "c0ClaimBoundary": "The inherited post-commit contract may satisfy topology planning, but this C0 layout artifact does not claim a new runtime observation or a local-coop post-commit count.",
+    "gameFrameProxy": {
+      "fieldOffset": "0x000264F8",
+      "incrementRva": "0x002FBA08",
+      "storeWriterRva": "0x002FBA0B",
+      "relativeOrder": "increment/store occurs before Room::Update call 0x002FBA4D",
+      "knownLifecycleOrResetWriterRvas": ["0x002F43C3", "0x002F8060", "0x002F8321"],
+      "claim": "PRE_ATTEMPT_DIAGNOSTIC_ONLY",
+      "eligibleAsAuthorityTick": false,
+      "eligibleToProveNormalReturnCommit": false,
+      "evidenceSource": "Read-only IDA data-flow and writer-xref review in CS-T0-05-02",
+      "evidenceLabel": "STATIC_CONFIRMED_DIAGNOSTIC"
+    },
+    "failClosedPaths": ["ALTERNATE", "LOADING", "ROOM_LIFECYCLE", "RUN_TEARDOWN", "MENU", "UNKNOWN_OWNER_OR_DEVICE_GENERATION"]
+  },
+  "captureInterface": {
+    "implementationBoundary": "Extend the existing read-only RPM path; do not reuse any hook/IPC/apply path.",
+    "suggestedOperations": [
+      "openValidatedTargetReadOnly",
+      "captureOuterModeScreen",
+      "captureInputManagerGraph",
+      "captureGamePlayerGraph",
+      "captureHudGraph",
+      "captureOriginalOnlineControlGraph",
+      "doubleCollectAndClassify",
+      "deriveUniqueJoinsWithoutPersistingRawIdentity",
+      "verifyAll53FrozenTargetSlotsBeforeAndAfter"
+    ],
+    "suggestedPersistedFields": [
+      "mode",
+      "coherent sample and drop counts",
+      "Player ordinal count and distinctness",
+      "device kind per ordinal",
+      "assignment relation result per ordinal",
+      "HUD relation result per ordinal",
+      "Lua STATIC_VECTOR_EQUIVALENT result per ordinal",
+      "InitSeed stability and SAME_OR_DISTINCT summary",
+      "OriginalOnline roster count/distinctness/stability summary",
+      "diagnostic frame-proxy monotonicity",
+      "inherited Authority contract status",
+      "53-slot before/after equality result"
+    ],
+    "forbiddenPersistedFields": [
+      "module base",
+      "process pointer or object address",
+      "deviceKey raw value",
+      "platform controller id",
+      "Player InitSeed raw value",
+      "OriginalOnline peer identity raw value",
+      "PID or process creation identity as a cross-run player identity"
+    ]
+  },
+  "capabilityBoundary": {
+    "processAccessBits": "0x00101410",
+    "processAccessSymbols": [
+      "PROCESS_QUERY_INFORMATION",
+      "PROCESS_QUERY_LIMITED_INFORMATION",
+      "PROCESS_VM_READ",
+      "SYNCHRONIZE"
+    ],
+    "forbiddenProcessRights": [
+      "PROCESS_CREATE_THREAD",
+      "PROCESS_VM_OPERATION",
+      "PROCESS_VM_WRITE",
+      "PROCESS_SUSPEND_RESUME",
+      "PROCESS_ALL_ACCESS"
+    ],
+    "allowedRuntimeActions": [
+      "query exact process identity and creation time",
+      "enumerate modules",
+      "ReadProcessMemory",
+      "query debugger presence",
+      "snapshot frozen target bytes"
+    ],
+    "forbiddenRuntimeActions": [
+      "debug attach, pause, step or breakpoint",
+      "WriteProcessMemory or VirtualProtectEx",
+      "remote thread or remote function call",
+      "DLL or Native module load",
+      "Hook install or patch",
+      "shared mapping, IPC or helper process",
+      "scheduler, input canonicalization or apply",
+      "keyboard, mouse or controller injection"
+    ],
+    "targetSlotProof": {
+      "inheritedSlotCount": 45,
+      "t005DraftSlotCount": 8,
+      "combinedSlotCount": 53,
+      "requiredResult": "ALL_EXPECTED_BYTES_EQUAL_BEFORE_AND_AFTER",
+      "draftSlotOrdinals": [45, 46, 47, 48, 49, 50, 51, 52]
+    }
+  },
+  "stopConditions": [
+    { "id": "BINDING_MISMATCH", "result": "BLOCKED", "condition": "Any predecessor, target, equivalence, static evidence, catalog, ledger or inherited Authority hash differs." },
+    { "id": "AUTHORITY_OVERCLAIM", "result": "BLOCKED", "condition": "Any C0 result claims direct post-commit observation, equates GameRoot+0x264F8 with authorityTick, or derives normal-return commit from the pre-attempt proxy." },
+    { "id": "AUTHORITY_CONTRACT_NOT_ACCEPTED", "result": "BLOCKED", "condition": "The decision consumer does not explicitly accept PASS_INHERITED_CONTRACT for this C0-only work package." },
+    { "id": "PROCESS_READ_NOT_AUTHORIZED", "result": "BLOCKED", "condition": "The separate C0 process-read authorization is absent or the predecessor still reports processRead=false for this run." },
+    { "id": "DEBUGGER_OR_BLOCKER_PRESENT", "result": "BLOCKED", "condition": "A debugger is attached, x32dbg/x64dbg is open for the target, or any frozen blocker process/forbidden module is present." },
+    { "id": "ACCESS_MASK_EXPANDED", "result": "BLOCKED", "condition": "The process handle requests any bit outside 0x00101410." },
+    { "id": "MUTATION_SURFACE_PRESENT", "result": "BLOCKED", "condition": "Any Hook, patch, Native/helper load, IPC/mapping, scheduler, remote call, write or input apply/injection appears." },
+    { "id": "TARGET_SLOT_MISMATCH", "result": "BLOCKED", "condition": "Any of the 53 frozen target slots differs before collection or after collection." },
+    { "id": "PROCESS_IDENTITY_DRIFT", "result": "BLOCKED", "condition": "PID/creation, module base/size, loaded-module set or gameRoot changes within the source." },
+    { "id": "NO_COHERENT_WINDOW", "result": "BLOCKED", "condition": "The fixed retry/window budget yields no coherent graph, or a later coherent sample has a different topology." },
+    { "id": "PLAYER_SHAPE_INVALID", "result": "BLOCKED", "condition": "The scenario has the wrong Player count, or any required Player is null, misaligned, duplicated, has the wrong vtable, or has Player+0x161C unequal to its vector ordinal." },
+    { "id": "ASSIGNMENT_NOT_UNIQUE", "result": "BLOCKED", "condition": "A required Player has zero or multiple accepted-device matches, one device matches both Players, or the local-dual selected kinds are not exactly Keyboard plus Gamepad." },
+    { "id": "HUD_OR_LUA_NOT_UNIQUE", "result": "BLOCKED", "condition": "Primary HUD pointer and vector ordinal disagree, a base-scenario join requires twin/possessor/special normalization, or Lua evidence is presented as runtime observed rather than STATIC_VECTOR_EQUIVALENT." },
+    { "id": "EPHEMERAL_IDENTITY_LEAK", "result": "BLOCKED", "condition": "A pointer, deviceKey, platform id, InitSeed or OriginalOnline peer identity is persisted as a player, network, command or cross-run identity." },
+    { "id": "ORIGINAL_ONLINE_CROSSED", "result": "BLOCKED", "condition": "OriginalOnline manager/backend/NetInput/roster/channel state explains a local second Player or participates in a positive local assignment route." },
+    { "id": "ORIGINAL_ONLINE_NOT_DISARMED", "result": "BLOCKED", "condition": "The OriginalOnline control contains any T0-05 Hook, IPC/mapping, scheduler, apply or loaded T0-05 module." }
+  ],
+  "unknowns": [
+    {
+      "id": "DIRECT_C0_AUTHORITY_POST_COMMIT",
+      "status": "NOT_OBSERVED_C0",
+      "boundary": "Accepted only as PASS_INHERITED_CONTRACT from the bound T0-04 final decision; a fresh local-coop post-commit count requires a later authorized passive observer."
+    },
+    {
+      "id": "LUA_RUNTIME_INVOCATION",
+      "status": "NOT_OBSERVED_C0",
+      "boundary": "C0 uses the statically proven main-vector-equivalent lookup and performs no remote call or Lua IPC."
+    },
+    {
+      "id": "VIRTUAL_DEVICE_NECESSITY",
+      "status": "DEFERRED_TO_CS_T0_05_05",
+      "boundary": "No vtable, lifecycle, allocation, controller handle or observer slot is inferred by this layout artifact."
+    },
+    {
+      "id": "TWIN_POSSESSOR_SPECIAL_NORMALIZATION",
+      "status": "STOP_ONLY_FOR_BASE_C0",
+      "boundary": "The +0x1E68 relation and HUD twin records are readable only to detect exclusion; they cannot rescue a failed base unique join."
+    },
+    {
+      "id": "RVA_00554F84_TO_0055B310",
+      "status": "UNKNOWN_EXCLUDED",
+      "boundary": "The old controller-assignment candidate remains outside C0 positive routes."
+    },
+    {
+      "id": "C0_OBSERVATION_WINDOW_PARAMETERS",
+      "status": "MAINLINE_MANIFEST_BINDING_REQUIRED",
+      "boundary": "This layout artifact fixes double-collection and retry semantics but does not invent a duration or interval; the create-new C0 source manifest must freeze both before runtime collection."
+    }
+  ],
+  "permissions": {
+    "processReadAllowedByThisArtifact": false,
+    "separateRuntimeAuthorizationRequired": true,
+    "activeInputAllowed": false,
+    "runtimeMutationAllowed": false,
+    "hookAllowed": false,
+    "ipcAllowed": false,
+    "remoteCallAllowed": false,
+    "applyAllowed": false,
+    "t005Unlocked": false,
+    "csT00503Unlocked": false
+  }
+}

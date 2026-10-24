@@ -1,0 +1,2494 @@
+{
+  "tx": "tx-03-13",
+  "evidence": "STATIC_IDB_READ_ONLY",
+  "idb_path": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe.i64",
+  "input_path": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe",
+  "imagebase": "0x400000",
+  "functions": [
+    {
+      "requested_va": "0xa69b30",
+      "name": "sub_A69B30",
+      "va": "0xa69b30",
+      "rva": "0x669b30",
+      "end_va": "0xa69bdf",
+      "type": null,
+      "chunks": [
+        [
+          "0xa69b30",
+          "0xa69bdf"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0xa69b30",
+          "rva": "0x669b30",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b31",
+          "rva": "0x669b31",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b33",
+          "rva": "0x669b33",
+          "bytes": "83 ec 08",
+          "asm": "sub     esp, 8",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b36",
+          "rva": "0x669b36",
+          "bytes": "8b 41 28",
+          "asm": "mov     eax, [ecx+28h]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b39",
+          "rva": "0x669b39",
+          "bytes": "53",
+          "asm": "push    ebx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b3a",
+          "rva": "0x669b3a",
+          "bytes": "56",
+          "asm": "push    esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b3b",
+          "rva": "0x669b3b",
+          "bytes": "57",
+          "asm": "push    edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b3c",
+          "rva": "0x669b3c",
+          "bytes": "33 db",
+          "asm": "xor     ebx, ebx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b3e",
+          "rva": "0x669b3e",
+          "bytes": "89 4d fc",
+          "asm": "mov     [ebp+var_4], ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b41",
+          "rva": "0x669b41",
+          "bytes": "33 ff",
+          "asm": "xor     edi, edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b43",
+          "rva": "0x669b43",
+          "bytes": "2b c3",
+          "asm": "sub     eax, ebx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b45",
+          "rva": "0x669b45",
+          "bytes": "74 40",
+          "asm": "jz      short loc_A69B87",
+          "code_refs": [
+            "0xa69b87"
+          ]
+        },
+        {
+          "va": "0xa69b47",
+          "rva": "0x669b47",
+          "bytes": "83 e8 06",
+          "asm": "sub     eax, 6",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b4a",
+          "rva": "0x669b4a",
+          "bytes": "74 20",
+          "asm": "jz      short loc_A69B6C",
+          "code_refs": [
+            "0xa69b6c"
+          ]
+        },
+        {
+          "va": "0xa69b4c",
+          "rva": "0x669b4c",
+          "bytes": "83 e8 02",
+          "asm": "sub     eax, 2",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b4f",
+          "rva": "0x669b4f",
+          "bytes": "75 3d",
+          "asm": "jnz     short loc_A69B8E",
+          "code_refs": [
+            "0xa69b8e"
+          ]
+        },
+        {
+          "va": "0xa69b51",
+          "rva": "0x669b51",
+          "bytes": "f6 05 e4 98 c7 00 08",
+          "asm": "test    byte ptr dword_C798E4, 8",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b58",
+          "rva": "0x669b58",
+          "bytes": "bf 08 19 00 00",
+          "asm": "mov     edi, 1908h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b5d",
+          "rva": "0x669b5d",
+          "bytes": "b8 42 8c 00 00",
+          "asm": "mov     eax, 8C42h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b62",
+          "rva": "0x669b62",
+          "bytes": "bb 08 19 00 00",
+          "asm": "mov     ebx, 1908h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b67",
+          "rva": "0x669b67",
+          "bytes": "0f 45 f8",
+          "asm": "cmovnz  edi, eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b6a",
+          "rva": "0x669b6a",
+          "bytes": "eb 22",
+          "asm": "jmp     short loc_A69B8E",
+          "code_refs": [
+            "0xa69b8e"
+          ]
+        },
+        {
+          "va": "0xa69b6c",
+          "rva": "0x669b6c",
+          "bytes": "f6 05 e4 98 c7 00 08",
+          "asm": "test    byte ptr dword_C798E4, 8",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b73",
+          "rva": "0x669b73",
+          "bytes": "bf 07 19 00 00",
+          "asm": "mov     edi, 1907h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b78",
+          "rva": "0x669b78",
+          "bytes": "b8 40 8c 00 00",
+          "asm": "mov     eax, 8C40h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b7d",
+          "rva": "0x669b7d",
+          "bytes": "bb 07 19 00 00",
+          "asm": "mov     ebx, 1907h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b82",
+          "rva": "0x669b82",
+          "bytes": "0f 45 f8",
+          "asm": "cmovnz  edi, eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b85",
+          "rva": "0x669b85",
+          "bytes": "eb 07",
+          "asm": "jmp     short loc_A69B8E",
+          "code_refs": [
+            "0xa69b8e"
+          ]
+        },
+        {
+          "va": "0xa69b87",
+          "rva": "0x669b87",
+          "bytes": "bf 03 19 00 00",
+          "asm": "mov     edi, 1903h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b8c",
+          "rva": "0x669b8c",
+          "bytes": "8b df",
+          "asm": "mov     ebx, edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b8e",
+          "rva": "0x669b8e",
+          "bytes": "8d 71 58",
+          "asm": "lea     esi, [ecx+58h]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b91",
+          "rva": "0x669b91",
+          "bytes": "56",
+          "asm": "push    esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b92",
+          "rva": "0x669b92",
+          "bytes": "6a 01",
+          "asm": "push    1",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b94",
+          "rva": "0x669b94",
+          "bytes": "ff 15 78 16 c1 00",
+          "asm": "call    epoxy_glGenTextures",
+          "code_refs": [
+            "0xa38990"
+          ]
+        },
+        {
+          "va": "0xa69b9a",
+          "rva": "0x669b9a",
+          "bytes": "ff 36",
+          "asm": "push    dword ptr [esi]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b9c",
+          "rva": "0x669b9c",
+          "bytes": "68 e1 0d 00 00",
+          "asm": "push    0DE1h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ba1",
+          "rva": "0x669ba1",
+          "bytes": "ff 15 30 0f c1 00",
+          "asm": "call    epoxy_glBindTexture",
+          "code_refs": [
+            "0xa31630"
+          ]
+        },
+        {
+          "va": "0xa69ba7",
+          "rva": "0x669ba7",
+          "bytes": "8b 75 08",
+          "asm": "mov     esi, [ebp+arg_0]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69baa",
+          "rva": "0x669baa",
+          "bytes": "8b 45 fc",
+          "asm": "mov     eax, [ebp+var_4]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bad",
+          "rva": "0x669bad",
+          "bytes": "ff 36",
+          "asm": "push    dword ptr [esi]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69baf",
+          "rva": "0x669baf",
+          "bytes": "68 01 14 00 00",
+          "asm": "push    1401h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bb4",
+          "rva": "0x669bb4",
+          "bytes": "53",
+          "asm": "push    ebx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bb5",
+          "rva": "0x669bb5",
+          "bytes": "6a 00",
+          "asm": "push    0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bb7",
+          "rva": "0x669bb7",
+          "bytes": "ff 70 1c",
+          "asm": "push    dword ptr [eax+1Ch]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bba",
+          "rva": "0x669bba",
+          "bytes": "ff 70 18",
+          "asm": "push    dword ptr [eax+18h]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bbd",
+          "rva": "0x669bbd",
+          "bytes": "57",
+          "asm": "push    edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bbe",
+          "rva": "0x669bbe",
+          "bytes": "6a 00",
+          "asm": "push    0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bc0",
+          "rva": "0x669bc0",
+          "bytes": "68 e1 0d 00 00",
+          "asm": "push    0DE1h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bc5",
+          "rva": "0x669bc5",
+          "bytes": "ff 15 fc 1e c1 00",
+          "asm": "call    epoxy_glTexImage2D",
+          "code_refs": [
+            "0xa49940"
+          ]
+        },
+        {
+          "va": "0xa69bcb",
+          "rva": "0x669bcb",
+          "bytes": "ff 36",
+          "asm": "push    dword ptr [esi]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bcd",
+          "rva": "0x669bcd",
+          "bytes": "6a 02",
+          "asm": "push    2",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bcf",
+          "rva": "0x669bcf",
+          "bytes": "e8 8c 95 fb ff",
+          "asm": "call    sub_A23160",
+          "code_refs": [
+            "0xa23160"
+          ]
+        },
+        {
+          "va": "0xa69bd4",
+          "rva": "0x669bd4",
+          "bytes": "5f",
+          "asm": "pop     edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bd5",
+          "rva": "0x669bd5",
+          "bytes": "5e",
+          "asm": "pop     esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bd6",
+          "rva": "0x669bd6",
+          "bytes": "b0 01",
+          "asm": "mov     al, 1",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bd8",
+          "rva": "0x669bd8",
+          "bytes": "5b",
+          "asm": "pop     ebx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bd9",
+          "rva": "0x669bd9",
+          "bytes": "8b e5",
+          "asm": "mov     esp, ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bdb",
+          "rva": "0x669bdb",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69bdc",
+          "rva": "0x669bdc",
+          "bytes": "c2 04 00",
+          "asm": "retn    4",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0xb9ffdc",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0040",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba00a4",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba01ec",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba02b8",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba031c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0380",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0440",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba068c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba64a0",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        }
+      ],
+      "pseudocode": "char __stdcall sub_A69B30(_DWORD *a1)\n{\n  epoxy_glGenTextures();\n  epoxy_glBindTexture();\n  epoxy_glTexImage2D();\n  sub_A23160(2, *a1);\n  return 1;\n}\n"
+    },
+    {
+      "requested_va": "0xa12ad0",
+      "name": "sub_A12AD0",
+      "va": "0xa12ad0",
+      "rva": "0x612ad0",
+      "end_va": "0xa12b71",
+      "type": "int __thiscall(_DWORD)",
+      "chunks": [
+        [
+          "0xa12ad0",
+          "0xa12b71"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0xa12ad0",
+          "rva": "0x612ad0",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ad1",
+          "rva": "0x612ad1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ad3",
+          "rva": "0x612ad3",
+          "bytes": "6a ff",
+          "asm": "push    0FFFFFFFFh",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ad5",
+          "rva": "0x612ad5",
+          "bytes": "68 c0 81 af 00",
+          "asm": "push    offset SEH_A12AD0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ada",
+          "rva": "0x612ada",
+          "bytes": "64 a1 00 00 00 00",
+          "asm": "mov     eax, large fs:0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ae0",
+          "rva": "0x612ae0",
+          "bytes": "50",
+          "asm": "push    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ae1",
+          "rva": "0x612ae1",
+          "bytes": "56",
+          "asm": "push    esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ae2",
+          "rva": "0x612ae2",
+          "bytes": "a1 b4 93 bf 00",
+          "asm": "mov     eax, ___security_cookie",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ae7",
+          "rva": "0x612ae7",
+          "bytes": "33 c5",
+          "asm": "xor     eax, ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ae9",
+          "rva": "0x612ae9",
+          "bytes": "50",
+          "asm": "push    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12aea",
+          "rva": "0x612aea",
+          "bytes": "8d 45 f4",
+          "asm": "lea     eax, [ebp+var_C]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12aed",
+          "rva": "0x612aed",
+          "bytes": "64 a3 00 00 00 00",
+          "asm": "mov     large fs:0, eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12af3",
+          "rva": "0x612af3",
+          "bytes": "8b f1",
+          "asm": "mov     esi, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12af5",
+          "rva": "0x612af5",
+          "bytes": "8b 56 40",
+          "asm": "mov     edx, [esi+40h]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12af8",
+          "rva": "0x612af8",
+          "bytes": "85 d2",
+          "asm": "test    edx, edx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12afa",
+          "rva": "0x612afa",
+          "bytes": "74 23",
+          "asm": "jz      short loc_A12B1F",
+          "code_refs": [
+            "0xa12b1f"
+          ]
+        },
+        {
+          "va": "0xa12afc",
+          "rva": "0x612afc",
+          "bytes": "6a 00",
+          "asm": "push    0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12afe",
+          "rva": "0x612afe",
+          "bytes": "6a 00",
+          "asm": "push    0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b00",
+          "rva": "0x612b00",
+          "bytes": "b1 01",
+          "asm": "mov     cl, 1",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b02",
+          "rva": "0x612b02",
+          "bytes": "c7 45 fc 00 00 00 00",
+          "asm": "mov     [ebp+var_4], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b09",
+          "rva": "0x612b09",
+          "bytes": "e8 a2 1d 05 00",
+          "asm": "call    sub_A648B0",
+          "code_refs": [
+            "0xa648b0"
+          ]
+        },
+        {
+          "va": "0xa12b0e",
+          "rva": "0x612b0e",
+          "bytes": "c7 45 fc ff ff ff ff",
+          "asm": "mov     [ebp+var_4], 0FFFFFFFFh",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b15",
+          "rva": "0x612b15",
+          "bytes": "83 c4 08",
+          "asm": "add     esp, 8",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b18",
+          "rva": "0x612b18",
+          "bytes": "c7 46 40 00 00 00 00",
+          "asm": "mov     dword ptr [esi+40h], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b1f",
+          "rva": "0x612b1f",
+          "bytes": "8b 56 44",
+          "asm": "mov     edx, [esi+44h]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b22",
+          "rva": "0x612b22",
+          "bytes": "85 d2",
+          "asm": "test    edx, edx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b24",
+          "rva": "0x612b24",
+          "bytes": "74 1c",
+          "asm": "jz      short loc_A12B42",
+          "code_refs": [
+            "0xa12b42"
+          ]
+        },
+        {
+          "va": "0xa12b26",
+          "rva": "0x612b26",
+          "bytes": "6a 00",
+          "asm": "push    0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b28",
+          "rva": "0x612b28",
+          "bytes": "6a 00",
+          "asm": "push    0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b2a",
+          "rva": "0x612b2a",
+          "bytes": "b1 01",
+          "asm": "mov     cl, 1",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b2c",
+          "rva": "0x612b2c",
+          "bytes": "c7 45 fc 01 00 00 00",
+          "asm": "mov     [ebp+var_4], 1",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b33",
+          "rva": "0x612b33",
+          "bytes": "e8 78 1d 05 00",
+          "asm": "call    sub_A648B0",
+          "code_refs": [
+            "0xa648b0"
+          ]
+        },
+        {
+          "va": "0xa12b38",
+          "rva": "0x612b38",
+          "bytes": "83 c4 08",
+          "asm": "add     esp, 8",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b3b",
+          "rva": "0x612b3b",
+          "bytes": "c7 46 44 00 00 00 00",
+          "asm": "mov     dword ptr [esi+44h], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b42",
+          "rva": "0x612b42",
+          "bytes": "8b 4e 2c",
+          "asm": "mov     ecx, [esi+2Ch]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b45",
+          "rva": "0x612b45",
+          "bytes": "85 c9",
+          "asm": "test    ecx, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b47",
+          "rva": "0x612b47",
+          "bytes": "74 0e",
+          "asm": "jz      short loc_A12B57",
+          "code_refs": [
+            "0xa12b57"
+          ]
+        },
+        {
+          "va": "0xa12b49",
+          "rva": "0x612b49",
+          "bytes": "8b 01",
+          "asm": "mov     eax, [ecx]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b4b",
+          "rva": "0x612b4b",
+          "bytes": "6a 01",
+          "asm": "push    1",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b4d",
+          "rva": "0x612b4d",
+          "bytes": "ff 50 34",
+          "asm": "call    dword ptr [eax+34h]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b50",
+          "rva": "0x612b50",
+          "bytes": "c7 46 2c 00 00 00 00",
+          "asm": "mov     dword ptr [esi+2Ch], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b57",
+          "rva": "0x612b57",
+          "bytes": "8b 46 0c",
+          "asm": "mov     eax, [esi+0Ch]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b5a",
+          "rva": "0x612b5a",
+          "bytes": "83 66 08 fe",
+          "asm": "and     dword ptr [esi+8], 0FFFFFFFEh",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b5e",
+          "rva": "0x612b5e",
+          "bytes": "89 46 0c",
+          "asm": "mov     [esi+0Ch], eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b61",
+          "rva": "0x612b61",
+          "bytes": "8b 4d f4",
+          "asm": "mov     ecx, [ebp+var_C]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b64",
+          "rva": "0x612b64",
+          "bytes": "64 89 0d 00 00 00 00",
+          "asm": "mov     large fs:0, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b6b",
+          "rva": "0x612b6b",
+          "bytes": "59",
+          "asm": "pop     ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b6c",
+          "rva": "0x612b6c",
+          "bytes": "5e",
+          "asm": "pop     esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b6d",
+          "rva": "0x612b6d",
+          "bytes": "8b e5",
+          "asm": "mov     esp, ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b6f",
+          "rva": "0x612b6f",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12b70",
+          "rva": "0x612b70",
+          "bytes": "c3",
+          "asm": "retn",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0xa64a10",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_A649D0"
+        },
+        {
+          "va": "0xa65150",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_A65110"
+        },
+        {
+          "va": "0xa65a20",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_A659E0"
+        },
+        {
+          "va": "0xa65d40",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_A65D00"
+        },
+        {
+          "va": "0xa660c0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_A66080"
+        },
+        {
+          "va": "0xa66140",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_A66100"
+        },
+        {
+          "va": "0xa66330",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_A662F0"
+        },
+        {
+          "va": "0xa66c70",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_A66C30"
+        },
+        {
+          "va": "0xa69a42",
+          "type": 19,
+          "iscode": true,
+          "function": "sub_A69A30"
+        },
+        {
+          "va": "0xb81a08",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        }
+      ],
+      "pseudocode": "int __thiscall sub_A12AD0(_DWORD *this)\n{\n  int v2; // ecx\n  int result; // eax\n\n  if ( this[16] )\n  {\n    sub_A648B0(0LL);\n    this[16] = 0;\n  }\n  if ( this[17] )\n  {\n    sub_A648B0(0LL);\n    this[17] = 0;\n  }\n  v2 = this[11];\n  if ( v2 )\n  {\n    (*(void (__thiscall **)(int, int))(*(_DWORD *)v2 + 52))(v2, 1);\n    this[11] = 0;\n  }\n  result = this[3];\n  this[2] &= ~1u;\n  this[3] = result;\n  return result;\n}\n"
+    },
+    {
+      "requested_va": "0xa649d0",
+      "name": "sub_A649D0",
+      "va": "0xa649d0",
+      "rva": "0x6649d0",
+      "end_va": "0xa64a48",
+      "type": null,
+      "chunks": [
+        [
+          "0xa649d0",
+          "0xa64a48"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0xa649d0",
+          "rva": "0x6649d0",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649d1",
+          "rva": "0x6649d1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649d3",
+          "rva": "0x6649d3",
+          "bytes": "6a ff",
+          "asm": "push    0FFFFFFFFh",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649d5",
+          "rva": "0x6649d5",
+          "bytes": "68 a0 12 af 00",
+          "asm": "push    offset SEH_A70380",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649da",
+          "rva": "0x6649da",
+          "bytes": "64 a1 00 00 00 00",
+          "asm": "mov     eax, large fs:0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649e0",
+          "rva": "0x6649e0",
+          "bytes": "50",
+          "asm": "push    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649e1",
+          "rva": "0x6649e1",
+          "bytes": "56",
+          "asm": "push    esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649e2",
+          "rva": "0x6649e2",
+          "bytes": "a1 b4 93 bf 00",
+          "asm": "mov     eax, ___security_cookie",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649e7",
+          "rva": "0x6649e7",
+          "bytes": "33 c5",
+          "asm": "xor     eax, ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649e9",
+          "rva": "0x6649e9",
+          "bytes": "50",
+          "asm": "push    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649ea",
+          "rva": "0x6649ea",
+          "bytes": "8d 45 f4",
+          "asm": "lea     eax, [ebp+var_C]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649ed",
+          "rva": "0x6649ed",
+          "bytes": "64 a3 00 00 00 00",
+          "asm": "mov     large fs:0, eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649f3",
+          "rva": "0x6649f3",
+          "bytes": "8b f1",
+          "asm": "mov     esi, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649f5",
+          "rva": "0x6649f5",
+          "bytes": "8d 46 58",
+          "asm": "lea     eax, [esi+58h]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649f8",
+          "rva": "0x6649f8",
+          "bytes": "c7 45 fc 00 00 00 00",
+          "asm": "mov     [ebp+var_4], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa649ff",
+          "rva": "0x6649ff",
+          "bytes": "50",
+          "asm": "push    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a00",
+          "rva": "0x664a00",
+          "bytes": "6a 01",
+          "asm": "push    1",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a02",
+          "rva": "0x664a02",
+          "bytes": "c7 06 84 ff b9 00",
+          "asm": "mov     dword ptr [esi], offset ??_7ImagePng@Graphics@KAGE@@6B@; const KAGE::Graphics::ImagePng::`vftable'",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a08",
+          "rva": "0x664a08",
+          "bytes": "ff 15 d4 1d c1 00",
+          "asm": "call    epoxy_glDeleteTextures",
+          "code_refs": [
+            "0xa357c0"
+          ]
+        },
+        {
+          "va": "0xa64a0e",
+          "rva": "0x664a0e",
+          "bytes": "8b ce",
+          "asm": "mov     ecx, esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a10",
+          "rva": "0x664a10",
+          "bytes": "e8 bb e0 fa ff",
+          "asm": "call    sub_A12AD0",
+          "code_refs": [
+            "0xa12ad0"
+          ]
+        },
+        {
+          "va": "0xa64a15",
+          "rva": "0x664a15",
+          "bytes": "8d 4e 4c",
+          "asm": "lea     ecx, [esi+4Ch]; void *",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a18",
+          "rva": "0x664a18",
+          "bytes": "c7 06 cc 19 b8 00",
+          "asm": "mov     dword ptr [esi], offset ??_7ImageBase@Graphics@KAGE@@6B@; const KAGE::Graphics::ImageBase::`vftable'",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a1e",
+          "rva": "0x664a1e",
+          "bytes": "e8 ad ff 9a ff",
+          "asm": "call    sub_4149D0",
+          "code_refs": [
+            "0x4149d0"
+          ]
+        },
+        {
+          "va": "0xa64a23",
+          "rva": "0x664a23",
+          "bytes": "f6 45 08 01",
+          "asm": "test    [ebp+arg_0], 1",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a27",
+          "rva": "0x664a27",
+          "bytes": "74 0b",
+          "asm": "jz      short loc_A64A34",
+          "code_refs": [
+            "0xa64a34"
+          ]
+        },
+        {
+          "va": "0xa64a29",
+          "rva": "0x664a29",
+          "bytes": "6a 60",
+          "asm": "push    60h ; '`'",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a2b",
+          "rva": "0x664a2b",
+          "bytes": "56",
+          "asm": "push    esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a2c",
+          "rva": "0x664a2c",
+          "bytes": "e8 2b a7 08 00",
+          "asm": "call    sub_AEF15C",
+          "code_refs": [
+            "0xaef15c"
+          ]
+        },
+        {
+          "va": "0xa64a31",
+          "rva": "0x664a31",
+          "bytes": "83 c4 08",
+          "asm": "add     esp, 8",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a34",
+          "rva": "0x664a34",
+          "bytes": "8b c6",
+          "asm": "mov     eax, esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a36",
+          "rva": "0x664a36",
+          "bytes": "8b 4d f4",
+          "asm": "mov     ecx, [ebp+var_C]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a39",
+          "rva": "0x664a39",
+          "bytes": "64 89 0d 00 00 00 00",
+          "asm": "mov     large fs:0, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a40",
+          "rva": "0x664a40",
+          "bytes": "59",
+          "asm": "pop     ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a41",
+          "rva": "0x664a41",
+          "bytes": "5e",
+          "asm": "pop     esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a42",
+          "rva": "0x664a42",
+          "bytes": "8b e5",
+          "asm": "mov     esp, ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a44",
+          "rva": "0x664a44",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa64a45",
+          "rva": "0x664a45",
+          "bytes": "c2 04 00",
+          "asm": "retn    4",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0xb9ffb8",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        }
+      ],
+      "pseudocode": "_DWORD *__thiscall sub_A649D0(_DWORD *this, char a2)\n{\n  *this = &KAGE::Graphics::ImagePng::`vftable';\n  epoxy_glDeleteTextures();\n  sub_A12AD0(this);\n  *this = &KAGE::Graphics::ImageBase::`vftable';\n  sub_4149D0(this + 19);\n  if ( (a2 & 1) != 0 )\n    sub_AEF15C((int)this);\n  return this;\n}\n"
+    },
+    {
+      "requested_va": "0xa69a50",
+      "name": "sub_A69A50",
+      "va": "0xa69a50",
+      "rva": "0x669a50",
+      "end_va": "0xa69aa1",
+      "type": null,
+      "chunks": [
+        [
+          "0xa69a50",
+          "0xa69aa1"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0xa69a50",
+          "rva": "0x669a50",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a51",
+          "rva": "0x669a51",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a53",
+          "rva": "0x669a53",
+          "bytes": "ff 71 58",
+          "asm": "push    dword ptr [ecx+58h]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a56",
+          "rva": "0x669a56",
+          "bytes": "68 e1 0d 00 00",
+          "asm": "push    0DE1h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a5b",
+          "rva": "0x669a5b",
+          "bytes": "ff 15 30 0f c1 00",
+          "asm": "call    epoxy_glBindTexture",
+          "code_refs": [
+            "0xa31630"
+          ]
+        },
+        {
+          "va": "0xa69a61",
+          "rva": "0x669a61",
+          "bytes": "33 c0",
+          "asm": "xor     eax, eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a63",
+          "rva": "0x669a63",
+          "bytes": "39 45 08",
+          "asm": "cmp     [ebp+arg_0], eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a66",
+          "rva": "0x669a66",
+          "bytes": "0f 95 c0",
+          "asm": "setnz   al",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a69",
+          "rva": "0x669a69",
+          "bytes": "05 00 26 00 00",
+          "asm": "add     eax, 2600h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a6e",
+          "rva": "0x669a6e",
+          "bytes": "50",
+          "asm": "push    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a6f",
+          "rva": "0x669a6f",
+          "bytes": "68 01 28 00 00",
+          "asm": "push    2801h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a74",
+          "rva": "0x669a74",
+          "bytes": "68 e1 0d 00 00",
+          "asm": "push    0DE1h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a79",
+          "rva": "0x669a79",
+          "bytes": "ff 15 c8 02 c1 00",
+          "asm": "call    epoxy_glTexParameteri",
+          "code_refs": [
+            "0xa49cb0"
+          ]
+        },
+        {
+          "va": "0xa69a7f",
+          "rva": "0x669a7f",
+          "bytes": "33 c0",
+          "asm": "xor     eax, eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a81",
+          "rva": "0x669a81",
+          "bytes": "39 45 0c",
+          "asm": "cmp     [ebp+arg_4], eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a84",
+          "rva": "0x669a84",
+          "bytes": "0f 95 c0",
+          "asm": "setnz   al",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a87",
+          "rva": "0x669a87",
+          "bytes": "05 00 26 00 00",
+          "asm": "add     eax, 2600h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a8c",
+          "rva": "0x669a8c",
+          "bytes": "50",
+          "asm": "push    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a8d",
+          "rva": "0x669a8d",
+          "bytes": "68 00 28 00 00",
+          "asm": "push    2800h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a92",
+          "rva": "0x669a92",
+          "bytes": "68 e1 0d 00 00",
+          "asm": "push    0DE1h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a97",
+          "rva": "0x669a97",
+          "bytes": "ff 15 c8 02 c1 00",
+          "asm": "call    epoxy_glTexParameteri",
+          "code_refs": [
+            "0xa49cb0"
+          ]
+        },
+        {
+          "va": "0xa69a9d",
+          "rva": "0x669a9d",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69a9e",
+          "rva": "0x669a9e",
+          "bytes": "c2 08 00",
+          "asm": "retn    8",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0xb9ffc8",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba002c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0090",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba01d8",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba02a4",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0308",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba036c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba042c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0678",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba648c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        }
+      ],
+      "pseudocode": "int __stdcall sub_A69A50(int a1, int a2)\n{\n  epoxy_glBindTexture();\n  epoxy_glTexParameteri();\n  return epoxy_glTexParameteri();\n}\n"
+    },
+    {
+      "requested_va": "0xa69ab0",
+      "name": "sub_A69AB0",
+      "va": "0xa69ab0",
+      "rva": "0x669ab0",
+      "end_va": "0xa69b05",
+      "type": null,
+      "chunks": [
+        [
+          "0xa69ab0",
+          "0xa69b05"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0xa69ab0",
+          "rva": "0x669ab0",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ab1",
+          "rva": "0x669ab1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ab3",
+          "rva": "0x669ab3",
+          "bytes": "56",
+          "asm": "push    esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ab4",
+          "rva": "0x669ab4",
+          "bytes": "57",
+          "asm": "push    edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ab5",
+          "rva": "0x669ab5",
+          "bytes": "ff 71 58",
+          "asm": "push    dword ptr [ecx+58h]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ab8",
+          "rva": "0x669ab8",
+          "bytes": "68 e1 0d 00 00",
+          "asm": "push    0DE1h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69abd",
+          "rva": "0x669abd",
+          "bytes": "ff 15 30 0f c1 00",
+          "asm": "call    epoxy_glBindTexture",
+          "code_refs": [
+            "0xa31630"
+          ]
+        },
+        {
+          "va": "0xa69ac3",
+          "rva": "0x669ac3",
+          "bytes": "83 7d 08 00",
+          "asm": "cmp     [ebp+arg_0], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ac7",
+          "rva": "0x669ac7",
+          "bytes": "be 2f 81 00 00",
+          "asm": "mov     esi, 812Fh",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69acc",
+          "rva": "0x669acc",
+          "bytes": "8b c6",
+          "asm": "mov     eax, esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ace",
+          "rva": "0x669ace",
+          "bytes": "bf 01 29 00 00",
+          "asm": "mov     edi, 2901h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ad3",
+          "rva": "0x669ad3",
+          "bytes": "0f 44 c7",
+          "asm": "cmovz   eax, edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ad6",
+          "rva": "0x669ad6",
+          "bytes": "50",
+          "asm": "push    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ad7",
+          "rva": "0x669ad7",
+          "bytes": "68 02 28 00 00",
+          "asm": "push    2802h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69adc",
+          "rva": "0x669adc",
+          "bytes": "68 e1 0d 00 00",
+          "asm": "push    0DE1h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69ae1",
+          "rva": "0x669ae1",
+          "bytes": "ff 15 c8 02 c1 00",
+          "asm": "call    epoxy_glTexParameteri",
+          "code_refs": [
+            "0xa49cb0"
+          ]
+        },
+        {
+          "va": "0xa69ae7",
+          "rva": "0x669ae7",
+          "bytes": "83 7d 0c 00",
+          "asm": "cmp     [ebp+arg_4], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69aeb",
+          "rva": "0x669aeb",
+          "bytes": "0f 44 f7",
+          "asm": "cmovz   esi, edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69aee",
+          "rva": "0x669aee",
+          "bytes": "56",
+          "asm": "push    esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69aef",
+          "rva": "0x669aef",
+          "bytes": "68 03 28 00 00",
+          "asm": "push    2803h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69af4",
+          "rva": "0x669af4",
+          "bytes": "68 e1 0d 00 00",
+          "asm": "push    0DE1h",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69af9",
+          "rva": "0x669af9",
+          "bytes": "ff 15 c8 02 c1 00",
+          "asm": "call    epoxy_glTexParameteri",
+          "code_refs": [
+            "0xa49cb0"
+          ]
+        },
+        {
+          "va": "0xa69aff",
+          "rva": "0x669aff",
+          "bytes": "5f",
+          "asm": "pop     edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b00",
+          "rva": "0x669b00",
+          "bytes": "5e",
+          "asm": "pop     esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b01",
+          "rva": "0x669b01",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa69b02",
+          "rva": "0x669b02",
+          "bytes": "c2 08 00",
+          "asm": "retn    8",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0xb9ffcc",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0030",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0094",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba01dc",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba02a8",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba030c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0370",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0430",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba067c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba6490",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        }
+      ],
+      "pseudocode": "int __stdcall sub_A69AB0(int a1, int a2)\n{\n  epoxy_glBindTexture();\n  epoxy_glTexParameteri();\n  return epoxy_glTexParameteri();\n}\n"
+    },
+    {
+      "requested_va": "0xa12ea0",
+      "name": "sub_A12EA0",
+      "va": "0xa12ea0",
+      "rva": "0x612ea0",
+      "end_va": "0xa12ed7",
+      "type": null,
+      "chunks": [
+        [
+          "0xa12ea0",
+          "0xa12ed7"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0xa12ea0",
+          "rva": "0x612ea0",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ea1",
+          "rva": "0x612ea1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ea3",
+          "rva": "0x612ea3",
+          "bytes": "56",
+          "asm": "push    esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ea4",
+          "rva": "0x612ea4",
+          "bytes": "57",
+          "asm": "push    edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ea5",
+          "rva": "0x612ea5",
+          "bytes": "8b 7d 08",
+          "asm": "mov     edi, [ebp+arg_0]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ea8",
+          "rva": "0x612ea8",
+          "bytes": "8b f1",
+          "asm": "mov     esi, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12eaa",
+          "rva": "0x612eaa",
+          "bytes": "89 34 bd 28 99 c7 00",
+          "asm": "mov     dword ptr xmmword_C79928[edi*4], esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12eb1",
+          "rva": "0x612eb1",
+          "bytes": "8b 06",
+          "asm": "mov     eax, [esi]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12eb3",
+          "rva": "0x612eb3",
+          "bytes": "8b 40 08",
+          "asm": "mov     eax, [eax+8]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12eb6",
+          "rva": "0x612eb6",
+          "bytes": "ff d0",
+          "asm": "call    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12eb8",
+          "rva": "0x612eb8",
+          "bytes": "84 c0",
+          "asm": "test    al, al",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12eba",
+          "rva": "0x612eba",
+          "bytes": "74 15",
+          "asm": "jz      short loc_A12ED1",
+          "code_refs": [
+            "0xa12ed1"
+          ]
+        },
+        {
+          "va": "0xa12ebc",
+          "rva": "0x612ebc",
+          "bytes": "8b 4e 2c",
+          "asm": "mov     ecx, [esi+2Ch]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ebf",
+          "rva": "0x612ebf",
+          "bytes": "85 c9",
+          "asm": "test    ecx, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ec1",
+          "rva": "0x612ec1",
+          "bytes": "74 0e",
+          "asm": "jz      short loc_A12ED1",
+          "code_refs": [
+            "0xa12ed1"
+          ]
+        },
+        {
+          "va": "0xa12ec3",
+          "rva": "0x612ec3",
+          "bytes": "8b 11",
+          "asm": "mov     edx, [ecx]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ec5",
+          "rva": "0x612ec5",
+          "bytes": "8d 47 01",
+          "asm": "lea     eax, [edi+1]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ec8",
+          "rva": "0x612ec8",
+          "bytes": "5f",
+          "asm": "pop     edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ec9",
+          "rva": "0x612ec9",
+          "bytes": "5e",
+          "asm": "pop     esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12eca",
+          "rva": "0x612eca",
+          "bytes": "89 45 08",
+          "asm": "mov     [ebp+arg_0], eax",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ecd",
+          "rva": "0x612ecd",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ece",
+          "rva": "0x612ece",
+          "bytes": "ff 62 54",
+          "asm": "jmp     dword ptr [edx+54h]",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ed1",
+          "rva": "0x612ed1",
+          "bytes": "5f",
+          "asm": "pop     edi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ed2",
+          "rva": "0x612ed2",
+          "bytes": "5e",
+          "asm": "pop     esi",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ed3",
+          "rva": "0x612ed3",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0xa12ed4",
+          "rva": "0x612ed4",
+          "bytes": "c2 04 00",
+          "asm": "retn    4",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0xb81a20",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xb9ffd8",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba003c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba00a0",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba01e8",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba02b4",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0318",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba037c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba043c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba0688",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        },
+        {
+          "va": "0xba649c",
+          "type": 1,
+          "iscode": false,
+          "function": null
+        }
+      ],
+      "pseudocode": "int __thiscall sub_A12EA0(_DWORD *this, int a2)\n{\n  int result; // eax\n  int v4; // ecx\n\n  *((_DWORD *)&xmmword_C79928 + a2) = this;\n  result = (*(int (__thiscall **)(_DWORD *))(*this + 8))(this);\n  if ( (_BYTE)result )\n  {\n    v4 = this[11];\n    if ( v4 )\n      return (*(int (__thiscall **)(int, int))(*(_DWORD *)v4 + 84))(v4, a2 + 1);\n  }\n  return result;\n}\n"
+    },
+    {
+      "requested_va": "0x414d60",
+      "name": "sub_414D60",
+      "va": "0x414d60",
+      "rva": "0x14d60",
+      "end_va": "0x414df0",
+      "type": "_DWORD __stdcall(const char **p_Source, int i)",
+      "chunks": [
+        [
+          "0x414d60",
+          "0x414df0"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x414d60",
+          "rva": "0x14d60",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d61",
+          "rva": "0x14d61",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d63",
+          "rva": "0x14d63",
+          "bytes": "6a ff",
+          "asm": "push    0FFFFFFFFh",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d65",
+          "rva": "0x14d65",
+          "bytes": "68 60 13 af 00",
+          "asm": "push    offset SEH_9F9930",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d6a",
+          "rva": "0x14d6a",
+          "bytes": "64 a1 00 00 00 00",
+          "asm": "mov     eax, large fs:0",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d70",
+          "rva": "0x14d70",
+          "bytes": "50",
+          "asm": "push    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d71",
+          "rva": "0x14d71",
+          "bytes": "51",
+          "asm": "push    ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d72",
+          "rva": "0x14d72",
+          "bytes": "56",
+          "asm": "push    esi",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d73",
+          "rva": "0x14d73",
+          "bytes": "57",
+          "asm": "push    edi",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d74",
+          "rva": "0x14d74",
+          "bytes": "a1 b4 93 bf 00",
+          "asm": "mov     eax, ___security_cookie",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d79",
+          "rva": "0x14d79",
+          "bytes": "33 c5",
+          "asm": "xor     eax, ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d7b",
+          "rva": "0x14d7b",
+          "bytes": "50",
+          "asm": "push    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d7c",
+          "rva": "0x14d7c",
+          "bytes": "8d 45 f4",
+          "asm": "lea     eax, [ebp+var_C]",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d7f",
+          "rva": "0x14d7f",
+          "bytes": "64 a3 00 00 00 00",
+          "asm": "mov     large fs:0, eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d85",
+          "rva": "0x14d85",
+          "bytes": "8b f9",
+          "asm": "mov     edi, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d87",
+          "rva": "0x14d87",
+          "bytes": "8b 75 0c",
+          "asm": "mov     esi, [ebp+arg_4]",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d8a",
+          "rva": "0x14d8a",
+          "bytes": "8d 4d f0",
+          "asm": "lea     ecx, [ebp+var_10]",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d8d",
+          "rva": "0x14d8d",
+          "bytes": "89 75 f0",
+          "asm": "mov     [ebp+var_10], esi",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d90",
+          "rva": "0x14d90",
+          "bytes": "e8 eb fc ff ff",
+          "asm": "call    sub_414A80",
+          "code_refs": [
+            "0x414a80"
+          ]
+        },
+        {
+          "va": "0x414d95",
+          "rva": "0x14d95",
+          "bytes": "56",
+          "asm": "push    esi",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d96",
+          "rva": "0x14d96",
+          "bytes": "8b cf",
+          "asm": "mov     ecx, edi",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d98",
+          "rva": "0x14d98",
+          "bytes": "e8 83 0f 00 00",
+          "asm": "call    sub_415D20",
+          "code_refs": [
+            "0x415d20"
+          ]
+        },
+        {
+          "va": "0x414d9d",
+          "rva": "0x14d9d",
+          "bytes": "8b f8",
+          "asm": "mov     edi, eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x414d9f",
+          "rva": "0x14d9f",
+          "bytes": "8d 77 14",
+          "asm": "lea     esi, [edi+14h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x414da2",
+          "rva": "0x14da2",
+          "bytes": "c7 45 fc 00 00 00 00",
+          "asm": "mov     [ebp+var_4], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0x414da9",
+          "rva": "0x14da9",
+          "bytes": "8b 4e 04",
+          "asm": "mov     ecx, [esi+4]",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dac",
+          "rva": "0x14dac",
+          "bytes": "85 c9",
+          "asm": "test    ecx, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dae",
+          "rva": "0x14dae",
+          "bytes": "74 1a",
+          "asm": "jz      short loc_414DCA",
+          "code_refs": [
+            "0x414dca"
+          ]
+        },
+        {
+          "va": "0x414db0",
+          "rva": "0x14db0",
+          "bytes": "8b 01",
+          "asm": "mov     eax, [ecx]",
+          "code_refs": []
+        },
+        {
+          "va": "0x414db2",
+          "rva": "0x14db2",
+          "bytes": "8b 40 0c",
+          "asm": "mov     eax, [eax+0Ch]",
+          "code_refs": []
+        },
+        {
+          "va": "0x414db5",
+          "rva": "0x14db5",
+          "bytes": "ff d0",
+          "asm": "call    eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x414db7",
+          "rva": "0x14db7",
+          "bytes": "84 c0",
+          "asm": "test    al, al",
+          "code_refs": []
+        },
+        {
+          "va": "0x414db9",
+          "rva": "0x14db9",
+          "bytes": "74 0f",
+          "asm": "jz      short loc_414DCA",
+          "code_refs": [
+            "0x414dca"
+          ]
+        },
+        {
+          "va": "0x414dbb",
+          "rva": "0x14dbb",
+          "bytes": "a1 3c 16 c7 00",
+          "asm": "mov     eax, n2_2",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dc0",
+          "rva": "0x14dc0",
+          "bytes": "85 c0",
+          "asm": "test    eax, eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dc2",
+          "rva": "0x14dc2",
+          "bytes": "74 06",
+          "asm": "jz      short loc_414DCA",
+          "code_refs": [
+            "0x414dca"
+          ]
+        },
+        {
+          "va": "0x414dc4",
+          "rva": "0x14dc4",
+          "bytes": "56",
+          "asm": "push    esi",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dc5",
+          "rva": "0x14dc5",
+          "bytes": "ff d0",
+          "asm": "call    eax ; n2_2",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dc7",
+          "rva": "0x14dc7",
+          "bytes": "83 c4 04",
+          "asm": "add     esp, 4",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dca",
+          "rva": "0x14dca",
+          "bytes": "6a 1c",
+          "asm": "push    1Ch",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dcc",
+          "rva": "0x14dcc",
+          "bytes": "57",
+          "asm": "push    edi",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dcd",
+          "rva": "0x14dcd",
+          "bytes": "e8 8a a3 6d 00",
+          "asm": "call    sub_AEF15C",
+          "code_refs": [
+            "0xaef15c"
+          ]
+        },
+        {
+          "va": "0x414dd2",
+          "rva": "0x14dd2",
+          "bytes": "8b 45 08",
+          "asm": "mov     eax, [ebp+arg_0]",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dd5",
+          "rva": "0x14dd5",
+          "bytes": "83 c4 08",
+          "asm": "add     esp, 8",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dd8",
+          "rva": "0x14dd8",
+          "bytes": "8b 4d f0",
+          "asm": "mov     ecx, [ebp+var_10]",
+          "code_refs": []
+        },
+        {
+          "va": "0x414ddb",
+          "rva": "0x14ddb",
+          "bytes": "89 08",
+          "asm": "mov     [eax], ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0x414ddd",
+          "rva": "0x14ddd",
+          "bytes": "8b 4d f4",
+          "asm": "mov     ecx, [ebp+var_C]",
+          "code_refs": []
+        },
+        {
+          "va": "0x414de0",
+          "rva": "0x14de0",
+          "bytes": "64 89 0d 00 00 00 00",
+          "asm": "mov     large fs:0, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0x414de7",
+          "rva": "0x14de7",
+          "bytes": "59",
+          "asm": "pop     ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0x414de8",
+          "rva": "0x14de8",
+          "bytes": "5f",
+          "asm": "pop     edi",
+          "code_refs": []
+        },
+        {
+          "va": "0x414de9",
+          "rva": "0x14de9",
+          "bytes": "5e",
+          "asm": "pop     esi",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dea",
+          "rva": "0x14dea",
+          "bytes": "8b e5",
+          "asm": "mov     esp, ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x414dec",
+          "rva": "0x14dec",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x414ded",
+          "rva": "0x14ded",
+          "bytes": "c2 08 00",
+          "asm": "retn    8",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x40e8ee",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_40E740"
+        },
+        {
+          "va": "0x83b681",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_83B280"
+        },
+        {
+          "va": "0xa1221b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_A121B0"
+        },
+        {
+          "va": "0xa12ce5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_A12C00"
+        }
+      ],
+      "pseudocode": "const char **__stdcall sub_414D60(const char **p_Source, int i)\n{\n  int v2; // edi\n  int v3; // ecx\n  const char **p_Source_1; // eax\n  _DWORD v5[4]; // [esp+Ch] [ebp-10h] BYREF\n\n  v5[0] = i;\n  sub_414A80(v5);\n  v2 = sub_415D20(i);\n  v5[3] = 0;\n  v3 = *(_DWORD *)(v2 + 24);\n  if ( v3 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v3 + 12))(v3) && n2_2 )\n    n2_2(v2 + 20);\n  sub_AEF15C(v2);\n  p_Source_1 = p_Source;\n  *p_Source = (const char *)v5[0];\n  return p_Source_1;\n}\n"
+    }
+  ],
+  "tables": [],
+  "ranges": [],
+  "string_terms": [],
+  "strings": [],
+  "xref_records": [],
+  "limitations": [
+    "No runtime observations",
+    "IDB and disk file identity not asserted",
+    "Decompiler types are not a complete ABI",
+    "IDA xrefs do not enumerate all dynamic targets"
+  ]
+}

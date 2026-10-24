@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "indexIdentity": "IsaacCsT0-CoopHypothesisIndex-v1",
+  "workPackage": "CS-T0-05-00",
+  "createdUtc": "2026-08-26T18:47:33Z",
+  "status": "BOOTSTRAP_COMPLETE",
+  "openQuestions": [
+    {
+      "id": "local-coop-join-exit-owner",
+      "question": "What are the native local co-op join and exit entry points, controller-assignment owner, and calling thread?",
+      "evidenceLabel": "UNKNOWN",
+      "nextWorkPackage": "CS-T0-05-01"
+    },
+    {
+      "id": "second-player-creation-chain",
+      "question": "How does the second Entity_Player flow through creation, Player-vector insertion, HUD registration, player index, and Lua Isaac.GetPlayer(index) order?",
+      "evidenceLabel": "UNKNOWN",
+      "nextWorkPackage": "CS-T0-05-01"
+    },
+    {
+      "id": "three-mode-object-graph",
+      "question": "Which manager, Player, and InputDevice relations differ among Offline single-player, local co-op dual-player, and OriginalOnline dual-player modes?",
+      "evidenceLabel": "UNKNOWN",
+      "nextWorkPackage": "CS-T0-05-02"
+    },
+    {
+      "id": "stable-and-ephemeral-mapping",
+      "question": "What are the freeze, rebind, and retire rules for ClientId to LocalPlayerOrdinal to generation-local Player association?",
+      "evidenceLabel": "UNKNOWN",
+      "nextWorkPackage": "CS-T0-05-03"
+    },
+    {
+      "id": "dual-assignment-and-consumer-isolation",
+      "question": "Can two unique assignment keys, selected devices, Player owners, and natural-consumer transactions be proven without cross-routing?",
+      "evidenceLabel": "UNKNOWN",
+      "nextWorkPackage": "CS-T0-05-03"
+    },
+    {
+      "id": "virtual-device-necessity",
+      "question": "Is the game's native local co-op path sufficient, or is a virtual device adapter required and evidence-eligible?",
+      "evidenceLabel": "UNKNOWN",
+      "nextWorkPackage": "CS-T0-05-05"
+    },
+    {
+      "id": "lifecycle-rebinding",
+      "question": "How do death, respawn, room transition, device reassignment, and menu teardown affect Player association, ordinal, HUD, Lua order, and controller ownership?",
+      "evidenceLabel": "UNKNOWN",
+      "nextWorkPackage": "CS-T0-05-03"
+    }
+  ],
+  "rejectedHypotheses": [
+    {
+      "id": "original-online-window-is-gameplay-tick",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "OriginalOnline dispatch is mode and zero-interference evidence only."
+    },
+    {
+      "id": "top-level-loop-is-authority-tick",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "Authority tick commits only after a successful steady-standard Room::Update transaction."
+    },
+    {
+      "id": "rva-554f84-is-physical-sample",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "The site is only a controller-assignment candidate."
+    },
+    {
+      "id": "logical-query-vtable-is-physical-sample",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "The logical query slots are demand-driven pressed, triggered, and scalar queries."
+    },
+    {
+      "id": "device-c0-c4-is-raw-source",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "Raw projection follows the concrete Keyboard or Gamepad physical-poll return."
+    },
+    {
+      "id": "legacy-room-sites-are-ordinary-door-owner",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "Ordinary-door ownership uses the proven room-change owner and nested simulation transaction."
+    },
+    {
+      "id": "room-condition-fields-have-clear-semantics",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "The condition-field semantics remain UNKNOWN."
+    },
+    {
+      "id": "pause-stops-physical-poll",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "Physical polling continues while the steady-standard Authority transaction is absent."
+    },
+    {
+      "id": "two-polls-prove-device-switch",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "Device reassignment requires unique before and after assignment joins plus the loop-local refresh transaction."
+    },
+    {
+      "id": "same-family-candidates-share-witness",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "A same-family multi-candidate transaction is ambiguity-only and earns no proof."
+    },
+    {
+      "id": "player-pointer-or-device-key-is-network-identity",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "Pointers and device keys are generation-local associations; stable identity is ClientId and LocalPlayerOrdinal."
+    },
+    {
+      "id": "offline-run-always-rebuilds-manager-or-lua-root",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "Menu return may reuse roots, so retirement follows explicit lifecycle and generation events."
+    },
+    {
+      "id": "unreliable-send-must-always-be-read",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "An undelivered unreliable send is loss diagnostics, not a gate failure by itself."
+    }
+  ],
+  "forbiddenClaims": [
+    {
+      "id": "rva-5551d8-is-input-apply",
+      "evidenceLabel": "UNKNOWN",
+      "reason": "Only a conditional field copy is established."
+    }
+  ],
+  "policy": {
+    "unknownCannotBePromotedWithoutNewEvidence": true,
+    "rejectedCannotBeReintroducedAsAssumption": true,
+    "sourcePriority": "HASH_BOUND_FORMAL_SOURCE_THEN_CURRENT_CATALOG_THEN_HANDOFF_THEN_HISTORY"
+  }
+}

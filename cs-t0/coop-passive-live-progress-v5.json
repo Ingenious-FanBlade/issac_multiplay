@@ -1,0 +1,337 @@
+{
+  "schemaVersion": 5,
+  "progressIdentity": "IsaacCsT0-CoopPassiveLiveProgress-v5",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-31T06:48:38.4627913Z",
+  "status": "IN_PROGRESS_WITH_EVIDENCE_BLOCK_AND_WORKFLOW_SKIP",
+  "createNewOnly": true,
+  "supersedes": "cs-t0/coop-passive-live-progress-v4.json",
+  "supersedesSha256": "0EA060160A653A2EE270B39D4FE0DEF3AC6C77DBC7104F63C1EB04408DB09421",
+  "evidencePolicy": {
+    "historicalSourcesAreImmutable": true,
+    "workflowSkipChangesSourceResult": false,
+    "workflowSkipCountsAsPass": false,
+    "sixSourceGateStillRequiresSixIndependentPassSources": true,
+    "currentGateEligible": false,
+    "gateBlocker": "native-exit-passive has no PASS source; device-rebind-passive live-10 is BLOCKED_BY_EVIDENCE; menu-teardown-passive has not started"
+  },
+  "progress": {
+    "formalPassCount": 3,
+    "requiredPassCount": 6,
+    "workflowSkippedCount": 1,
+    "nextScenario": "device-rebind-passive",
+    "nextScenarioState": "AWAITING_FRESH_AUTHORIZATION",
+    "liveAuthorizationCreated": false,
+    "lastAttemptCaseId": "t0-05-03-device-rebind-passive-live-10",
+    "lastAttemptResult": "BLOCKED_BY_EVIDENCE",
+    "automaticRetryAllowed": false
+  },
+  "scenarios": [
+    {
+      "ordinal": 1,
+      "scenario": "native-join-passive",
+      "workflowDisposition": "COMPLETE",
+      "formalResult": "PASS",
+      "countsForGate": true,
+      "source": "artifacts/cs-t0/20260828T072118Z-t0-05-03-native-join-passive-t0-05-03-native-join-passive-live-06",
+      "analysisSha256": "BD2A8C6E8EE18B7D2E0B684062193731B39750DE6835403358AE196827B1FD53"
+    },
+    {
+      "ordinal": 2,
+      "scenario": "native-exit-passive",
+      "workflowDisposition": "SKIPPED_NOT_APPLICABLE",
+      "dispositionAuthority": "USER",
+      "formalResult": "BLOCKED_BY_EVIDENCE",
+      "countsForGate": false,
+      "sourceResultPreserved": true,
+      "authorizationConsumed": true,
+      "automaticRetryAllowed": false,
+      "source": "artifacts/cs-t0/20260830T162513Z-t0-05-03-native-exit-passive-t0-05-03-native-exit-passive-live-07",
+      "analysisSha256": "FCA986F50D05C18F3F8070EE61AB281C7B2CC47292C358010F136D157A70D5B5"
+    },
+    {
+      "ordinal": 3,
+      "scenario": "death-respawn-passive",
+      "workflowDisposition": "COMPLETE",
+      "formalResult": "PASS",
+      "countsForGate": true,
+      "source": "artifacts/cs-t0/20260830T182858Z-t0-05-03-death-respawn-passive-t0-05-03-death-respawn-passive-live-08",
+      "analysisSha256": "B4113180004E9F765EE88F117D84D095909D230155DB3BF809A45AF828711C78",
+      "evidenceScope": "operator-confirmed death/respawn with inherited-lifecycle provenance; no dedicated death wrapper observed"
+    },
+    {
+      "ordinal": 4,
+      "scenario": "room-rebind-passive",
+      "workflowDisposition": "COMPLETE",
+      "formalResult": "PASS",
+      "countsForGate": true,
+      "authorizationConsumed": true,
+      "automaticRetryAllowed": false,
+      "caseId": "t0-05-03-room-rebind-passive-live-09",
+      "source": "artifacts/cs-t0/20260830T185508Z-t0-05-03-room-rebind-passive-t0-05-03-room-rebind-passive-live-09",
+      "manifestSha256": "01FE528ABC6BE9C401A1FA5A8785D37D6DED64482C214FE42B6FB9B777882F0E",
+      "eventsSha256": "5F69A683587DCC63DB73CC0C641A76208D90369B620E45B40C3936BA4C093EA3",
+      "analysisSha256": "FABD4445747902C73B73E7907AC2B9F6A290807F6CAC4182795FC62711E7DACA",
+      "replay": "artifacts/cs-t0/20260830T185508Z-t0-05-03-room-rebind-passive-live-09-replay-01.json",
+      "replaySha256": "FABD4445747902C73B73E7907AC2B9F6A290807F6CAC4182795FC62711E7DACA",
+      "eventCount": 20396,
+      "finalOwnerGeneration": 10,
+      "scenarioEvidence": {
+        "lifecycleEnterCount": 10,
+        "lifecycleExitCount": 10,
+        "bindingUnboundCount": 18,
+        "initialBoundGeneration": 1,
+        "finalBoundGeneration": 10,
+        "finalLifecycleEnterSequence": 4386,
+        "finalUnboundSequences": [
+          4387,
+          4388
+        ],
+        "finalLifecycleExitSequence": 4389,
+        "finalCandidateSequences": [
+          4392,
+          4393
+        ],
+        "finalBoundSequences": [
+          4396,
+          4398
+        ],
+        "finalBoundOrdinals": [
+          0,
+          1
+        ],
+        "endpointMappingPreserved": true,
+        "stableRegistryRetired": false,
+        "substituteDeathDeviceOrMenuEventsObserved": false
+      },
+      "safety": {
+        "installedMask": "0x001FFFFFFFFFFFFF",
+        "restoredMask": "0x001FFFFFFFFFFFFF",
+        "restoredSlotCount": 53,
+        "installOrder": "0..52",
+        "restoreOrder": "52..0",
+        "beforeAfterSnapshotEqual": true,
+        "snapshotSha256": "92E90E5E3B953B5BB5C4B3810F2E2997D46F694223EDA2E5D84FAE43F63BCD0D",
+        "overwriteCount": 0,
+        "callbacksDrained": true,
+        "producerClosed": true,
+        "unsafe": false,
+        "residualModuleCount": 0
+      },
+      "zeroCapabilities": {
+        "overrideCount": 0,
+        "applyCount": 0,
+        "worldWriteCount": 0,
+        "schedulerCount": 0,
+        "transportCount": 0,
+        "modeLatchWriteCount": 0,
+        "activeInputAllowed": false,
+        "originalOnlinePositiveAllowed": false
+      },
+      "independentReplay": {
+        "publicCliOnly": true,
+        "result": "PASS",
+        "checkCount": 8,
+        "passedCheckCount": 8,
+        "rawEqualToSourceAnalysis": true,
+        "semanticEqualToSourceAnalysis": true
+      }
+    },
+    {
+      "ordinal": 5,
+      "scenario": "device-rebind-passive",
+      "workflowDisposition": "AWAITING_FRESH_AUTHORIZATION_AFTER_REPAIR",
+      "formalResult": "BLOCKED_BY_EVIDENCE",
+      "countsForGate": false,
+      "sourceResultPreserved": true,
+      "authorizationConsumed": true,
+      "automaticRetryAllowed": false,
+      "caseId": "t0-05-03-device-rebind-passive-live-10",
+      "source": "artifacts/cs-t0/20260831T055322Z-t0-05-03-device-rebind-passive-t0-05-03-device-rebind-passive-live-10",
+      "manifestSha256": "09E3C363E761DD79BC6583817F227321A0B658CBBD6C51655F3C3DAFAF93C8E5",
+      "eventsSha256": "03A88940CE7BCCEAFFDBA84BF0A7163A54A36209710BE50AC75B4151C4BBF489",
+      "analysisSha256": "1E611E206C1DDDC9574CB75F1F5BC76BBBC775B1106F58B417103BB638EF56A1",
+      "replay": "artifacts/cs-t0/20260831T055322Z-t0-05-03-device-rebind-passive-live-10-replay-01.json",
+      "replaySha256": "1E611E206C1DDDC9574CB75F1F5BC76BBBC775B1106F58B417103BB638EF56A1",
+      "eventCount": 23618,
+      "captureTerminalState": "PASS",
+      "finalOwnerGeneration": 3,
+      "failedChecks": [
+        {
+          "id": "generation-ordinal-binding",
+          "passed": false,
+          "detail": "final generation binding cardinality is {}, expected {0, 1}"
+        },
+        {
+          "id": "scenario-contract",
+          "passed": false,
+          "detail": "device v2: transaction generation was invalidated or resurrected"
+        }
+      ],
+      "scenarioEvidence": {
+        "route": "PHYSICAL_DISCONNECT_B_AND_RECONNECT_SAME_GAMEPAD",
+        "operatorConfirmedJoin": true,
+        "operatorConfirmedReconnectPrompt": true,
+        "operatorConfirmedReconnect": true,
+        "initialDoubleBoundGeneration": 2,
+        "initialDoubleBoundSequences": [
+          4747,
+          4749
+        ],
+        "deviceGeneration": 3,
+        "deviceUnboundSequences": [
+          11111,
+          11112
+        ],
+        "unassignSlot": 54,
+        "unassignBeginSequence": 11113,
+        "unassignEndSequence": 11114,
+        "reassignSlot": 55,
+        "reassignBeginSequence": 11115,
+        "reassignEndSequence": 11116,
+        "relationSequence": 11119,
+        "candidateSequences": [
+          11120,
+          11121
+        ],
+        "boundSequences": [
+          11124,
+          11126
+        ],
+        "deviceEndpoint": "ENDPOINT_B",
+        "deviceOrdinal": 1,
+        "unexpectedLifecycleOrFailureEventsAfterRebind": false,
+        "terminalEvents": [
+          {
+            "sequence": 23616,
+            "kind": "HOOKS_RESTORED",
+            "ownerGeneration": 4
+          },
+          {
+            "sequence": 23617,
+            "kind": "PRODUCER_CLOSED",
+            "ownerGeneration": 4
+          }
+        ],
+        "diagnosis": "Native device-v2 Shutdown invalidates private binding and advances it from generation 3 to 4; terminal events use the private generation while shared owner generation and manifest remain 3. Both public analyzer checks correctly reject the inconsistent source.",
+        "diagnosisDoesNotChangeFormalResult": true
+      },
+      "safety": {
+        "installedMask": "0x00FFFFFFFFFFFFFF",
+        "restoredMask": "0x00FFFFFFFFFFFFFF",
+        "restoredSlotCount": 56,
+        "installOrder": "0..55",
+        "restoreOrder": "55..0",
+        "beforeAfterSnapshotEqual": true,
+        "snapshotSha256": "F3405572D4FB6B6261C7C5310DF03222B5ED0F9BFD1972250878E9EE5188534F",
+        "overwriteCount": 0,
+        "callbacksDrained": true,
+        "producerClosed": true,
+        "unsafe": false,
+        "residualModuleCount": 0
+      },
+      "zeroCapabilities": {
+        "overrideCount": 0,
+        "applyCount": 0,
+        "worldWriteCount": 0,
+        "schedulerCount": 0,
+        "transportCount": 0,
+        "modeLatchWriteCount": 0,
+        "inputMutationAllowed": false,
+        "worldMutationAllowed": false,
+        "activeInputAllowed": false,
+        "originalOnlinePositiveAllowed": false
+      },
+      "independentReplay": {
+        "publicCliOnly": true,
+        "result": "BLOCKED_BY_EVIDENCE",
+        "checkCount": 8,
+        "passedCheckCount": 6,
+        "rawEqualToSourceAnalysis": true
+      },
+      "nextRequiredAction": "Obtain a fresh single-run device-rebind-passive authorization using verification v5r6 and a new source/output. The repaired full automated gate passed; live-10 remains BLOCKED_BY_EVIDENCE and its consumed authorization is not reusable. No automatic retry or menu capture."
+    },
+    {
+      "ordinal": 6,
+      "scenario": "menu-teardown-passive",
+      "workflowDisposition": "NOT_STARTED",
+      "formalResult": null,
+      "countsForGate": false
+    }
+  ],
+  "repairCompletion": {
+    "status": "AUTOMATED_GATE_PASS",
+    "repair": {
+      "path": "cs-t0/coop-device-rebind-shutdown-repair-v1.json",
+      "identity": "IsaacCsT0-CoopDeviceRebindShutdownRepair-v1",
+      "sha256": "C1E7A2CD04FED0BEF12D2A1A938E9B610A0F39631D22EA74641FCE874BA0D256"
+    },
+    "verification": {
+      "path": "cs-t0/coop-verification-v5r6.json",
+      "identity": "IsaacCsT0-CoopVerification-v5r6",
+      "sha256": "61DB9BCCE41988AFC1D2723B16012E363B0B2F39064762599B6BF11105827B2B"
+    },
+    "automatedGate": {
+      "exitCode": 0,
+      "checkCount": 22,
+      "passedCheckCount": 22,
+      "log": "out/cs-t0/device-shutdown-automatic-gate-20260831-v1.log",
+      "logSha256": "5343B92B11BC6A36C98D018F91C845B705A1E3392A1D36E21F90E2200371027F",
+      "artifactBindingCount": 8,
+      "productionBindingCount": 3,
+      "allBindingsMatchDisk": true
+    },
+    "independentRegression": {
+      "configurations": [
+        "Debug",
+        "Release"
+      ],
+      "existingDeviceNativeCases": 351,
+      "additionalShutdownBoundaryCases": 24,
+      "completeNativeToPublicCliRoutes": 4,
+      "incompleteNativeToPublicCliRoutes": 2,
+      "incompleteRoutesRemainBlocked": true,
+      "usesRealProductionShutdownAndTerminalPublication": true,
+      "terminalFixtureSynthesisAllowed": false,
+      "generationNormalizationAllowed": false,
+      "rustUnitTests": 285,
+      "deviceContractTests": 7,
+      "deviceCrossLanguageTestsPerConfiguration": 3,
+      "redBeforeFix": {
+        "path": "out/cs-t0/device-shutdown-red-20260831-v1.json",
+        "sha256": "22F9A44BE0337BD8FD922258425E7A648C43D90B3413F0EB70CCC15CD1B354A7"
+      }
+    },
+    "historicalEvidence": {
+      "analyzersUnchanged": true,
+      "catalogAndPlanUnchanged": true,
+      "historicalPassSourceCount": 3,
+      "historicalPassAnalysesByteIdentical": true,
+      "live10SourceAndAnalysisByteIdentical": true,
+      "live10FormalResult": "BLOCKED_BY_EVIDENCE"
+    },
+    "productionBindings": [
+      {
+        "path": "out/cs-t0/IsaacCsT0.exe",
+        "sha256": "360E32C4F0CD2D40D33AC16BA592D2DF28E507AC75B77546D9E3E514C7F52544"
+      },
+      {
+        "path": "out/cs-t0/IsaacCsT0.Native.dll",
+        "sha256": "768CDDEBE490236789F6C542AAA7C9F84B31778EE1A3655DC4F23934AD4F720A"
+      },
+      {
+        "path": "out/cs-t0/IsaacCsT0.Helper.exe",
+        "sha256": "3170D805B6F1F2D0BDE4E4F93D38D982A71AC9F65BC9E973DF00B42F63D03972"
+      }
+    ],
+    "authorization": {
+      "implementationAndAutomaticVerificationOnly": true,
+      "liveAttemptExecuted": false,
+      "liveAuthorizationCreated": false,
+      "automaticLiveRetryAllowed": false,
+      "sixSourceGateEligible": false,
+      "csT00504Unlocked": false,
+      "t005Unlocked": false
+    }
+  }
+}

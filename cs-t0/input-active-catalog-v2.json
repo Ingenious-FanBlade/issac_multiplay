@@ -1,0 +1,460 @@
+{
+  "schemaVersion": 2,
+  "catalogIdentity": "IsaacCsT0-ActiveLoopbackCatalog-v2",
+  "supersedes": "IsaacCsT0-ActiveLoopbackCatalog-v1",
+  "supersedesSha256": "AAB3A81D70BB5F8495C88811E37D6005D5CF9B313D76CDC96ED7F96F2DF0AC83",
+  "targetSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+  "modeGateSha256": "8C882CB0985D55D5FBA379C2BDC118D6280C90B6017A961A7F729E3A281AB185",
+  "loopGateSha256": "CDC0CE89A7393740A775E40FE6E588910038FEC68C40EB6D6F5CDF7BC1F1A1AA",
+  "passiveCatalogSha256": "E22323047082E6289891393DE0B467CA5038E15EBD45310F39B5051FD0EB13D6",
+  "passiveCapturePlanSha256": "203F64825EA24EE4EFA21B731FD2CB8E15AB11DA87145F7654C545B676A45562",
+  "authorityCallRva": "0x002FBA4D",
+  "authorityTargetRva": "0x00402980",
+  "authorityPath": "STEADY_STANDARD_ONLY",
+  "v5SlotCount": 32,
+  "activeOwnedSlotCount": 13,
+  "totalSlotCount": 45,
+  "hookSlots": [
+    {
+      "ordinal": 0,
+      "id": "loop-clock",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00531231",
+      "width": 5,
+      "expectedTargetRva": "0x006266A0"
+    },
+    {
+      "ordinal": 1,
+      "id": "top-level-update",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x005312EC",
+      "width": 5,
+      "expectedTargetRva": "0x005AB6D0"
+    },
+    {
+      "ordinal": 2,
+      "id": "conditional-attempt",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00555231",
+      "width": 5,
+      "expectedTargetRva": "0x002FADC0"
+    },
+    {
+      "ordinal": 3,
+      "id": "standard-tail",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002FBBA5",
+      "width": 5,
+      "expectedTargetRva": "0x004607A0"
+    },
+    {
+      "ordinal": 4,
+      "id": "run-teardown-1",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00559696",
+      "width": 5,
+      "expectedTargetRva": "0x002FA0C0"
+    },
+    {
+      "ordinal": 5,
+      "id": "run-teardown-2",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x005AB84A",
+      "width": 5,
+      "expectedTargetRva": "0x002FA0C0"
+    },
+    {
+      "ordinal": 6,
+      "id": "new-room",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x0033F5B9",
+      "width": 5,
+      "expectedTargetRva": "0x00465180"
+    },
+    {
+      "ordinal": 7,
+      "id": "render-owner",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x005312F1",
+      "width": 5,
+      "expectedTargetRva": "0x005555C0"
+    },
+    {
+      "ordinal": 8,
+      "id": "input-manager-sample",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00554F7D",
+      "width": 5,
+      "expectedTargetRva": "0x0061FC00"
+    },
+    {
+      "ordinal": 9,
+      "id": "input-device-update",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x0061FC97",
+      "width": 5,
+      "expectedTargetRva": "0x0061F280"
+    },
+    {
+      "ordinal": 10,
+      "id": "alternate-owner",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00554D5E",
+      "width": 5,
+      "expectedTargetRva": "0x00559720"
+    },
+    {
+      "ordinal": 11,
+      "id": "alternate-room",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00559B4D",
+      "width": 5,
+      "expectedTargetRva": "0x00402980"
+    },
+    {
+      "ordinal": 12,
+      "id": "alternate-tail",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00559B82",
+      "width": 5,
+      "expectedTargetRva": "0x00464EE0"
+    },
+    {
+      "ordinal": 13,
+      "id": "standard-predicate",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002FADFA",
+      "width": 5,
+      "expectedTargetRva": "0x0028BBA0"
+    },
+    {
+      "ordinal": 14,
+      "id": "standard-body",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002FAE09",
+      "width": 5,
+      "expectedTargetRva": "0x00308630"
+    },
+    {
+      "ordinal": 15,
+      "id": "standard-room-authority",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002FBA4D",
+      "width": 5,
+      "expectedTargetRva": "0x00402980"
+    },
+    {
+      "ordinal": 16,
+      "id": "entity-list",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00403E70",
+      "width": 5,
+      "expectedTargetRva": "0x000186C0"
+    },
+    {
+      "ordinal": 17,
+      "id": "alternate-state-apply",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00559B21",
+      "width": 5,
+      "expectedTargetRva": "0x002F8140"
+    },
+    {
+      "ordinal": 18,
+      "id": "alternate-outcome-0",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002F580B",
+      "width": 5,
+      "expectedTargetRva": "0x00464EE0"
+    },
+    {
+      "ordinal": 19,
+      "id": "alternate-outcome-1",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002F61FF",
+      "width": 5,
+      "expectedTargetRva": "0x00464EE0"
+    },
+    {
+      "ordinal": 20,
+      "id": "alternate-outcome-2",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002F72C9",
+      "width": 5,
+      "expectedTargetRva": "0x00464EE0"
+    },
+    {
+      "ordinal": 21,
+      "id": "alternate-outcome-3",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002F7721",
+      "width": 5,
+      "expectedTargetRva": "0x00464EE0"
+    },
+    {
+      "ordinal": 22,
+      "id": "alternate-outcome-4",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002F7A10",
+      "width": 5,
+      "expectedTargetRva": "0x00464EE0"
+    },
+    {
+      "ordinal": 23,
+      "id": "standard-room-lifecycle-owner",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002FB4F0",
+      "width": 5,
+      "expectedTargetRva": "0x0052F1C0"
+    },
+    {
+      "ordinal": 24,
+      "id": "standard-room-lifecycle-simulation",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x0052FC77",
+      "width": 5,
+      "expectedTargetRva": "0x00402980"
+    },
+    {
+      "ordinal": 25,
+      "id": "room-change-owner",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002FB51C",
+      "width": 5,
+      "expectedTargetRva": "0x004318A0"
+    },
+    {
+      "ordinal": 26,
+      "id": "room-change-simulation",
+      "owner": "V5",
+      "patchKind": "REL32_CALL",
+      "rva": "0x002FE37C",
+      "width": 5,
+      "expectedTargetRva": "0x00402980"
+    },
+    {
+      "ordinal": 27,
+      "id": "keyboard-physical-poll",
+      "owner": "V5",
+      "patchKind": "IMAGE_POINTER",
+      "rva": "0x007A16F0",
+      "width": 4,
+      "expectedTargetRva": "0x0066C650"
+    },
+    {
+      "ordinal": 28,
+      "id": "gamepad-physical-poll",
+      "owner": "V5",
+      "patchKind": "IMAGE_POINTER",
+      "rva": "0x00782CF8",
+      "width": 4,
+      "expectedTargetRva": "0x00622940"
+    },
+    {
+      "ordinal": 29,
+      "id": "peek-message",
+      "owner": "V5",
+      "patchKind": "IMPORT_POINTER",
+      "rva": "0x00718714",
+      "width": 4,
+      "expectedSymbol": "USER32!PeekMessageW"
+    },
+    {
+      "ordinal": 30,
+      "id": "translate-message",
+      "owner": "V5",
+      "patchKind": "IMPORT_POINTER",
+      "rva": "0x00718650",
+      "width": 4,
+      "expectedSymbol": "USER32!TranslateMessage"
+    },
+    {
+      "ordinal": 31,
+      "id": "dispatch-message",
+      "owner": "V5",
+      "patchKind": "IMPORT_POINTER",
+      "rva": "0x007185B8",
+      "width": 4,
+      "expectedSymbol": "USER32!DispatchMessageW"
+    },
+    {
+      "ordinal": 32,
+      "id": "keyboard-logical-pressed",
+      "owner": "ACTIVE",
+      "patchKind": "IMAGE_POINTER",
+      "rva": "0x007A16A8",
+      "width": 4,
+      "expectedTargetRva": "0x0061E8D0"
+    },
+    {
+      "ordinal": 33,
+      "id": "keyboard-logical-triggered",
+      "owner": "ACTIVE",
+      "patchKind": "IMAGE_POINTER",
+      "rva": "0x007A16AC",
+      "width": 4,
+      "expectedTargetRva": "0x0061E970"
+    },
+    {
+      "ordinal": 34,
+      "id": "keyboard-logical-scalar",
+      "owner": "ACTIVE",
+      "patchKind": "IMAGE_POINTER",
+      "rva": "0x007A16B0",
+      "width": 4,
+      "expectedTargetRva": "0x0061EA20"
+    },
+    {
+      "ordinal": 35,
+      "id": "gamepad-logical-pressed",
+      "owner": "ACTIVE",
+      "patchKind": "IMAGE_POINTER",
+      "rva": "0x00782CB0",
+      "width": 4,
+      "expectedTargetRva": "0x0061E8D0"
+    },
+    {
+      "ordinal": 36,
+      "id": "gamepad-logical-triggered",
+      "owner": "ACTIVE",
+      "patchKind": "IMAGE_POINTER",
+      "rva": "0x00782CB4",
+      "width": 4,
+      "expectedTargetRva": "0x0061E970"
+    },
+    {
+      "ordinal": 37,
+      "id": "gamepad-logical-scalar",
+      "owner": "ACTIVE",
+      "patchKind": "IMAGE_POINTER",
+      "rva": "0x00782CB8",
+      "width": 4,
+      "expectedTargetRva": "0x0061EA20"
+    },
+    {
+      "ordinal": 38,
+      "id": "player-update-owner",
+      "owner": "ACTIVE",
+      "patchKind": "IMAGE_POINTER",
+      "rva": "0x0076BDDC",
+      "width": 4,
+      "expectedTargetRva": "0x00382AF0"
+    },
+    {
+      "ordinal": 39,
+      "id": "player-movement-consumer",
+      "owner": "ACTIVE",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00385BC2",
+      "width": 5,
+      "expectedTargetRva": "0x00379B40"
+    },
+    {
+      "ordinal": 40,
+      "id": "player-bomb-consumer",
+      "owner": "ACTIVE",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00385BC9",
+      "width": 5,
+      "expectedTargetRva": "0x00380F40"
+    },
+    {
+      "ordinal": 41,
+      "id": "player-item-slot-consumer",
+      "owner": "ACTIVE",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00385BD2",
+      "width": 5,
+      "expectedTargetRva": "0x00391A40"
+    },
+    {
+      "ordinal": 42,
+      "id": "player-pill-card-consumer",
+      "owner": "ACTIVE",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00385BD9",
+      "width": 5,
+      "expectedTargetRva": "0x003A3D30"
+    },
+    {
+      "ordinal": 43,
+      "id": "player-shooting-consumer",
+      "owner": "ACTIVE",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00385BE0",
+      "width": 5,
+      "expectedTargetRva": "0x0037B020"
+    },
+    {
+      "ordinal": 44,
+      "id": "player-drop-consumer",
+      "owner": "ACTIVE",
+      "patchKind": "REL32_CALL",
+      "rva": "0x00385BE7",
+      "width": 5,
+      "expectedTargetRva": "0x003A42B0"
+    }
+  ],
+  "passiveSources": [
+    {
+      "scenario": "keyboard-held-release",
+      "runPath": "../artifacts/cs-t0/20260822T124555Z-t0-04-input-raw-passive-keyboard-held-release-t0-04-raw-apply-keyboard-held-release-v3-canary-05",
+      "artifactIdentity": "passive-raw-apply-EE4C088F37D1631342FA03FE1A6E1AA3C4D120EDE1D81A27A5FE99A621184B79",
+      "manifestSha256": "DCDE79F430EE5CE99C7C4E28848EC90EC04D25A3B30FF3A5D2F21C3B35473C4F",
+      "eventsSha256": "DC46B2576D6F24E2F78E76BFF078C12A6DA0091D576CAA2026446620AD1DF123",
+      "analysisSha256": "73CCECFF4C1C7435EECA91566F6654F1B3D8435D3A6958B0A4D5063EA6C20753"
+    },
+    {
+      "scenario": "keyboard-edge",
+      "runPath": "../artifacts/cs-t0/20260822T133033Z-t0-04-input-raw-passive-keyboard-edge-t0-04-raw-apply-keyboard-edge-v3-canary-06",
+      "artifactIdentity": "passive-raw-apply-04F9C0CBD7E039613E1F97C12F3694873C2D6952429B88879AE6941BE5E8F90E",
+      "manifestSha256": "8B3A657DB4AA4DD0FCA47DFAD16BE4DE14AC871DB9CA0B4F70C1FA1FA21D419A",
+      "eventsSha256": "C81AF80C2956A0D58FFFCFAFE04D90093CAD86185D95EF030CB59BD60B0C165B",
+      "analysisSha256": "73CCECFF4C1C7435EECA91566F6654F1B3D8435D3A6958B0A4D5063EA6C20753"
+    },
+    {
+      "scenario": "controller-held-release",
+      "runPath": "../artifacts/cs-t0/20260822T165606Z-t0-04-input-raw-passive-controller-held-release-t0-04-raw-apply-controller-held-release-v4-canary-08",
+      "artifactIdentity": "passive-raw-apply-57CE55A39385F05296DA9DA1A211D8FAD502746D779AB6B41981066BD36EED77",
+      "manifestSha256": "03E6BD9FF9346CE791F52A5219D70210C07258FA342624854B99D393E4E763FD",
+      "eventsSha256": "29B576F8904B6613B305E151A337791E4D1416AAD65FA57884E4431B4A6B9B95",
+      "analysisSha256": "73CCECFF4C1C7435EECA91566F6654F1B3D8435D3A6958B0A4D5063EA6C20753"
+    },
+    {
+      "scenario": "controller-edge",
+      "runPath": "../artifacts/cs-t0/20260822T171644Z-t0-04-input-raw-passive-controller-edge-t0-04-raw-apply-controller-edge-v4-canary-09",
+      "artifactIdentity": "passive-raw-apply-6326B40B9EF0208AB08AEAF9A40273AB80761C0660D12EA0A88C28D9C3F9B627",
+      "manifestSha256": "132C6E2E9AC4FE5E8C92B9F13D3E8C25A73B98492D54CA6E81651F568B64A9D7",
+      "eventsSha256": "CC61049B0CD90F39463F26EA2FF65263753419158E6F99B39F4D85AF5A397446",
+      "analysisSha256": "73CCECFF4C1C7435EECA91566F6654F1B3D8435D3A6958B0A4D5063EA6C20753"
+    }
+  ],
+  "productionActiveInputAllowed": false,
+  "experimentRequiresOneTimeArm": true
+}

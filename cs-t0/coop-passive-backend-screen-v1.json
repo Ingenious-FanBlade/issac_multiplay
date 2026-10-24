@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "decisionIdentity": "IsaacCsT0-CoopPassiveBackendScreen-v1",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-27T21:02:00.000Z",
+  "status": "PASS_SCOPED_REPAIR",
+  "createNewOnly": true,
+  "scope": "COOP_PASSIVE_NONZERO_BACKEND_LOCAL_ROUTE",
+  "predecessorLayout": {
+    "path": "cs-t0/coop-c0-layout-evidence-v1.json",
+    "identity": "IsaacCsT0-CoopC0LayoutEvidence-v1",
+    "sha256": "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059",
+    "unchanged": true
+  },
+  "liveEvidence": {
+    "sourceDirectory": "artifacts/cs-t0/20260827T204247Z-t0-05-03-native-join-passive-t0-05-03-native-join-passive-live-04",
+    "manifestSha256": "9DBB82E822BCF91A175B8CE836835F44984ABF532BC1C6A64076BD1784B00B97",
+    "eventsSha256": "22BF8F43D698C6912B53BCB4016D82D7145045E672429194315198A4974A3AF0",
+    "analysisSha256": "2E16F4E0DCDB0AE3040D2332DA01097C044EF9E97E3067DA416188D1C02B4F1F",
+    "analysisResult": "BLOCKED_BY_EVIDENCE",
+    "managerEndCount": 8177,
+    "managerDiagnosticCode": 3,
+    "ordinaryRouteObserved": true,
+    "oldSourceResultImmutable": true
+  },
+  "staticEvidence": {
+    "graphPath": "cs-t0/coop-static-graph-v1.json",
+    "graphIdentity": "IsaacCsT0-CoopStaticGraph-v1",
+    "graphSha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934",
+    "localBodyGuardRva": "0x005BAC6D",
+    "nonemptyRosterTargetRva": "0x005BB574",
+    "localBodyRange": "0x005BAC85..0x005BB56E",
+    "ordinaryRouteSlots": [46, 49, 51],
+    "steamBackendVtableRva": "0x007A2440"
+  },
+  "scopedRule": {
+    "nullBackendAllowedWithoutRouteWitness": true,
+    "nonzeroBackendPresenceAloneIsPositiveOnlineEvidence": false,
+    "nonzeroBackendRequiresAlignedReadablePointer": true,
+    "nonzeroBackendRequiresExactSteamVtable": true,
+    "onlineManagerRosterBeginMustBeZero": true,
+    "onlineManagerRosterEndMustBeZero": true,
+    "onlineManagerRosterCapacityEndMustBeZero": true,
+    "onlineFrameMustBeZero": true,
+    "ordinaryRouteMustBeExact": [
+      "ORDINARY_SPAWN_BEGIN",
+      "ORDINARY_SPAWN_END",
+      "ORDINARY_ASSIGNMENT_BEGIN",
+      "ORDINARY_ASSIGNMENT_END",
+      "JOIN_HUD_BEGIN",
+      "JOIN_HUD_END"
+    ],
+    "ordinaryRouteMustBeInsideOneManagerTransaction": true,
+    "ordinaryRouteMustMatchCurrentGeneration": true,
+    "nextConsecutiveManagerPassMayConfirmSameCandidate": true,
+    "possessorOrExitCannotAuthorizeOrdinaryRoute": true,
+    "staleGenerationRouteRejected": true,
+    "unknownBackendOrAnyOnlineSignalKeepsUnbound": true,
+    "newHookAllowed": false,
+    "analyzerRelaxationAllowed": false
+  },
+  "generationRule": {
+    "ordinaryJoinInvalidatesExactlyOnce": true,
+    "ordinaryAssignmentInsideTheSameJoinRouteDoesNotInvalidateAgain": true,
+    "unrelatedAssignmentStillInvalidates": true
+  },
+  "permissions": {
+    "passiveObservationAllowed": false,
+    "activeInputAllowed": false,
+    "inputMutationAllowed": false,
+    "worldMutationAllowed": false,
+    "runtimeMutationAllowed": false,
+    "overrideAllowed": false,
+    "transportAllowed": false,
+    "schedulerAllowed": false,
+    "applyAllowed": false,
+    "modeLatchAllowed": false,
+    "originalOnlinePositiveAllowed": false,
+    "t005Unlocked": false,
+    "csT00504Unlocked": false
+  }
+}

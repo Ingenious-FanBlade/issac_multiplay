@@ -1,0 +1,21 @@
+{
+  "tx": "tx-01-54",
+  "scene": "Fresh user-started isolated Offline, initial A only, A Azazel ID7 keyboard",
+  "steps": [
+    "Run the unified entry once: build, register one device, attempt native B Join once.",
+    "With normal gameplay in foreground, let B hold/release script complete. Record actual charge observations separately from input evidence.",
+    "A charges while holding one attack direction, crosses an ordinary door without releasing it, keeps holding for at least two seconds in the new room, and returns through the door still holding. Record both crossings and whether any laser fires before release.",
+    "A actually releases the attack key in the destination room; verify one normal release shot, then press again and verify charging still works.",
+    "A holds attack while pausing and resuming, then releases in active gameplay. Record the visual result.",
+    "During crossing, use the controller script command if the prior B script completed, so B has fresh commands before and after the transition. No new injection or test invocation.",
+    "Write manual-room-shooting-observations.json before stop, with string results PASS, FAIL, or NOT_OBSERVED for heldAcrossRoomOutbound, heldAcrossRoomReturn, actualReleaseAfterRoom, chargeAfterRepress, and holdAcrossPause; include readable observations and the actual physical keys.",
+    "Return to the main menu, mark teardown, stop once, retain the game process. Confirm pair absence, root/DLL residency, all 48 Hook restorations, and analyze this capture once."
+  ],
+  "failure": [
+    "Any shot without actual release during held crossings",
+    "Suspension of ordinary missing-input ticks, stale-input resurrection, altered lead or edge replay",
+    "Unpaired executed Shooting or execution outside Authority; native/transport errors or incomplete restoration"
+  ],
+  "missing": "NOT_OBSERVED",
+  "automaticRetry": false
+}

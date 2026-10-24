@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "identity": "IsaacCsT0-CoopNativeJoinCatalog-v1",
+  "workPackage": "CS-T0-05-04",
+  "status": "STATIC_CANDIDATE_NOT_RUNTIME_VERIFIED",
+  "createNewOnly": true,
+  "predecessorPlan": {
+    "path": "cs-t0/coop-plan-v6.json",
+    "sha256": "820F2F2F8410BE93EEFB98A1E2E3C66A1A9A60D090D901EF22FEDFE932991D59"
+  },
+  "target": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "machine": "0x014C",
+    "preferredImageBase": "0x00400000"
+  },
+  "inheritedTransaction": {
+    "path": "cs-t0/coop-catalog-v3.json",
+    "sha256": "29265D6C79C1975E39223C4BCF6DD2D1580352B4E92A442C36CB3E631C309B41",
+    "slotCount": 53,
+    "ordinals": "0..52"
+  },
+  "slotCount": 55,
+  "installOrder": "0..54",
+  "restoreOrder": "54..0",
+  "additionalSlots": [
+    {
+      "ordinal": 53,
+      "id": "ordinary-join-action19-callback",
+      "patchKind": "PUSH_IMM32_CALLBACK",
+      "instructionRva": "0x005BB057",
+      "operandRva": "0x005BB058",
+      "expectedInstructionBytes": "68E009A200",
+      "originalTargetRva": "0x006209E0",
+      "action": 19
+    },
+    {
+      "ordinal": 54,
+      "id": "ordinary-join-action14-callback",
+      "patchKind": "PUSH_IMM32_CALLBACK",
+      "instructionRva": "0x005BB38B",
+      "operandRva": "0x005BB38C",
+      "expectedInstructionBytes": "68E009A200",
+      "originalTargetRva": "0x006209E0",
+      "action": 14
+    }
+  ],
+  "callbackAbi": {
+    "callingConvention": "CDECL_X86",
+    "returnType": "uint8_t",
+    "stackDwords": 4,
+    "arguments": ["device", "shared_control", "action_pointer", "extra_zero"],
+    "originalCallsPerInvocation": 1,
+    "sharedControlReleasedByOriginal": true,
+    "dereferenceControlAfterOriginalAllowed": false
+  },
+  "driver": {
+    "ordinaryPlayerType": 0,
+    "naturalManagerPassOnly": true,
+    "sequence": ["single-player-prejoin", "action19", "selector-readback", "next-pass-action14", "complete-native-join", "consecutive-double-bound"],
+    "originalTrueIsSyntheticEvidence": false,
+    "directSpawnAssignmentHudCompositionAllowed": false,
+    "generalGamepadQueryOverrideAllowed": false
+  },
+  "runtimeImplemented": false,
+  "runtimeComplete": false,
+  "activeJoinEligible": false,
+  "liveAuthorizationCreated": false,
+  "csT00505Unlocked": false,
+  "t005Unlocked": false
+}

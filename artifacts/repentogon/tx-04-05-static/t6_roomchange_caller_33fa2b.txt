@@ -1,0 +1,2166 @@
+t6_roomchange_caller_33fa2b
+NAME=sub_73EB10 RVA=0x33eb10 END_RVA=0x33fc6f
+[DECOMPILE]
+int __userpurge sub_73EB10@<eax>(int *a1@<ecx>, int a2@<ebp>, int a3@<edi>, char a4)
+{
+  int *v4; // edi
+  _DWORD *n255; // ecx
+  int v6; // eax
+  char v7; // al
+  int v8; // esi
+  int v9; // eax
+  int v10; // edi
+  bool v11; // zf
+  int n80_3; // esi
+  int n507; // eax
+  int n13_4; // edi
+  _DWORD *n80_4; // edx
+  _DWORD *v16; // esi
+  int n380; // ecx
+  int v18; // eax
+  _DWORD *n255_1; // esi
+  int n4; // eax
+  bool v21; // cl
+  unsigned int n507_5; // eax
+  _DWORD *n20_4; // ecx
+  unsigned int n507_2; // edx
+  int n507_3; // eax
+  unsigned int n20_5; // ecx
+  unsigned int v27; // edx
+  unsigned int v28; // edx
+  unsigned int v29; // edx
+  unsigned int v30; // edx
+  int n4_1; // eax
+  bool v32; // al
+  int n80; // edx
+  _DWORD *n255_2; // esi
+  int v35; // ecx
+  int v36; // ecx
+  int n13; // ecx
+  int v38; // eax
+  unsigned int v39; // edx
+  unsigned int v40; // edx
+  _DWORD *n255_3; // esi
+  int v42; // eax
+  int v43; // esi
+  unsigned int n20_1; // ecx
+  int v45; // edx
+  int v46; // ecx
+  int v47; // ecx
+  int v48; // ecx
+  int n2; // eax
+  int n13_1; // edx
+  unsigned int n196; // esi
+  char *v52; // eax
+  int n2_1; // ecx
+  BOOL v54; // ecx
+  int v55; // edi
+  unsigned int v56; // esi
+  int n44_4; // edx
+  int v58; // eax
+  _DWORD *n255_4; // edx
+  int n2_3; // eax
+  int n4_2; // esi
+  int n4_3; // eax
+  int v63; // esi
+  int v64; // edi
+  char v65; // al
+  int n2_2; // ecx
+  char *v67; // eax
+  BOOL v68; // esi
+  int n20_2; // ecx
+  unsigned int v70; // edi
+  int n44_5; // edx
+  int v72; // esi
+  int n2_4; // eax
+  int v74; // edi
+  int n9; // esi
+  char *v76; // edi
+  int n44; // eax
+  unsigned int v78; // esi
+  int v79; // edx
+  unsigned int v80; // edx
+  unsigned int v81; // edx
+  _DWORD *n255_5; // ecx
+  int v83; // eax
+  int n2_5; // eax
+  int v85; // eax
+  _DWORD *v86; // eax
+  void **n20_3; // esi
+  int v88; // edi
+  int n168; // esi
+  int v90; // eax
+  void **n_1; // esi
+  int n44_3; // edx
+  void **n_2; // ecx
+  int v94; // eax
+  int v95; // ecx
+  void **n80_2; // esi
+  unsigned int v97; // esi
+  char *v98; // ecx
+  void *v99; // eax
+  char *v100; // eax
+  int v101; // edi
+  int v102; // edx
+  unsigned int v103; // ecx
+  unsigned int n44_2; // edx
+  unsigned int v105; // edi
+  _DWORD *v106; // ecx
+  int v107; // edi
+  void *v108; // eax
+  int v109; // eax
+  int v110; // edi
+  int v111; // ecx
+  unsigned int v112; // edx
+  char n13_3; // cl
+  unsigned int v114; // edi
+  _DWORD *v115; // eax
+  int v116; // esi
+  unsigned int n5; // eax
+  _DWORD *n255_6; // esi
+  int v119; // esi
+  int v120; // edi
+  char v121; // al
+  int n507_4; // ecx
+  int n601; // esi
+  int *v124; // eax
+  int v125; // edx
+  _DWORD *n255_7; // ecx
+  int result; // eax
+  void *v128; // [esp-8Ch] [ebp-98h]
+  int ArgList; // [esp-84h] [ebp-90h]
+  int v130; // [esp-80h] [ebp-8Ch]
+  __int128 v131; // [esp-78h] [ebp-84h]
+  int v132; // [esp-68h] [ebp-74h]
+  void *p_n[2]; // [esp-64h] [ebp-70h] BYREF
+  int n507_1; // [esp-5Ch] [ebp-68h]
+  void **n; // [esp-58h] [ebp-64h] BYREF
+  int v136; // [esp-54h] [ebp-60h]
+  int n44_1; // [esp-50h] [ebp-5Ch]
+  int n13_2; // [esp-4Ch] [ebp-58h]
+  _DWORD *v139; // [esp-48h] [ebp-54h] BYREF
+  _DWORD *v140; // [esp-44h] [ebp-50h]
+  unsigned int v141; // [esp-40h] [ebp-4Ch]
+  int v142; // [esp-3Ch] [ebp-48h]
+  int v143; // [esp-38h] [ebp-44h]
+  int *v144; // [esp-34h] [ebp-40h]
+  char v145; // [esp-2Dh] [ebp-39h]
+  unsigned int n20; // [esp-2Ch] [ebp-38h] BYREF
+  int n80_1; // [esp-28h] [ebp-34h] BYREF
+  unsigned int v148; // [esp-24h] [ebp-30h] BYREF
+  __int64 v149; // [esp-20h] [ebp-2Ch]
+  int n7; // [esp-18h] [ebp-24h]
+  int *v151; // [esp-10h] [ebp-1Ch]
+  struct _EXCEPTION_REGISTRATION_RECORD *ExceptionList; // [esp-Ch] [ebp-18h]
+  void *v153; // [esp-8h] [ebp-14h]
+  int v154; // [esp-4h] [ebp-10h]
+  _DWORD v155[2]; // [esp+0h] [ebp-Ch] BYREF
+  int v156; // [esp+8h] [ebp-4h] BYREF
+  _UNKNOWN *retaddr; // [esp+Ch] [ebp+0h]
+
+  v155[0] = a2;
+  v155[1] = retaddr;
+  v154 = -1;
+  v153 = &loc_A94645;
+  ExceptionList = NtCurrentTeb()->NtTib.ExceptionList;
+  v151 = &v156;
+  v130 = a3;
+  v4 = a1;
+  v144 = a1;
+  n255 = n255;
+  v6 = *((_DWORD *)n255 + 38576);
+  *((_DWORD *)n255 + 38577) &= ~0x1000u;
+  n255[38576] = v6;
+  *((_BYTE *)v4 + 100600) = 0;
+  v7 = sub_4475F0(137);
+  v8 = v4[24809];
+  v145 = v7;
+  v9 = v4[24810];
+  n13_2 = (int)(v4 + 24809);
+  if ( v8 != v9 )
+  {
+    v10 = v9;
+    do
+    {
+      sub_4D0AA0(v8);
+      v8 += 120;
+    }
+    while ( v8 != v10 );
+    v4 = v144;
+    v8 = v144[24809];
+  }
+  v11 = v145 == 0;
+  v4[24810] = v8;
+  if ( !v11 )
+  {
+    n80_3 = (int)(v4 + 35);
+    n507 = 507;
+    n13_4 = n13_2;
+    n80_1 = n80_3;
+    n507_1 = 507;
+    do
+    {
+      if ( *(_DWORD *)(n80_3 - 104) && *(_DWORD *)(n80_3 - 56) )
+      {
+        n80_4 = (_DWORD *)n80_1;
+        v16 = *(_DWORD **)(n80_3 - 4);
+        if ( v16 != *(_DWORD **)n80_1 )
+        {
+          do
+          {
+            if ( *v16 == 5
+              && !v16[5]
+              && !(unsigned __int8)sub_6EAA70(v16[1])
+              && n380 != 380
+              && n380 != 370
+              && n380 != 340
+              && n380 != 41
+              && n380 != 390
+              && n380 != 100
+              && n380 != 150 )
+            {
+              v18 = *(_DWORD *)(n13_4 + 4);
+              if ( v18 == *(_DWORD *)(n13_4 + 8) )
+              {
+                sub_4D1160(v18, v16);
+              }
+              else
+              {
+                sub_4CCE50(v16);
+                *(_DWORD *)(n13_4 + 4) += 120;
+              }
+              n80_4 = (_DWORD *)n80_1;
+            }
+            v16 += 30;
+          }
+          while ( v16 != (_DWORD *)*n80_4 );
+          n507 = n507_1;
+        }
+        n80_3 = n80_1;
+      }
+      n80_3 += 184;
+      --n507;
+      n80_1 = n80_3;
+      n507_1 = n507;
+    }
+    while ( n507 );
+    v4 = v144;
+  }
+  n255_1 = n255;
+  v4[24754] = (int)(v4 + 24247);
+  *((_BYTE *)v4 + 99232) = 1;
+  v4[24771] = 0;
+  v4[24772] = 0;
+  v4[24807] = 0;
+  v4[24801] = -99999;
+  v4[24798] = -99999;
+  v4[24797] = 0;
+  *((_WORD *)v4 + 8) = 0;
+  *((_BYTE *)v4 + 9) = 0;
+  v4[24804] = 0;
+  n255_1[38586] = 0;
+  n4 = v4[1];
+  v21 = n4 == 4 || n4 == 5;
+  n507_5 = *v4;
+  v11 = !v21;
+  n20_4 = n255_1 + 28385;
+  n20 = (unsigned int)(n255_1 + 28385);
+  n507_2 = n507_5 + 1;
+  if ( v11 )
+    n507_2 = n507_5;
+  v11 = n255_1[28386] == 0;
+  n507_1 = n507_2;
+  if ( v11 )
+  {
+    sub_9E0DF0(3, "Error: Game Start Seed was not set.\n", ArgList);
+    n255_1 = n255;
+    n20_4 = (_DWORD *)n20;
+    n507_2 = n507_1;
+  }
+  if ( n507_2 )
+  {
+    n507_3 = n507_2;
+    if ( n507_2 >= 0xD )
+      n507_3 = 13;
+  }
+  else
+  {
+    n507_3 = 0;
+  }
+  n20_5 = n20_4[n507_3 + 6];
+  *((_QWORD *)v4 + 12379) = 0x900000005LL;
+  v4[24760] = 7;
+  v4[24757] = n20_5;
+  *((_QWORD *)v4 + 12381) = 0x500000001LL;
+  v4[24761] = n20_5;
+  v4[24764] = 19;
+  v27 = v4[24757];
+  n20 = n20_5;
+  if ( !v27 )
+  {
+    sub_9E0DF0(3, "RNG Seed is zero!\n", ArgList);
+    v27 = v4[24757];
+    n255_1 = n255;
+    if ( !v27 )
+      __debugbreak();
+  }
+  v28 = v27 ^ (v27 >> v4[24758]) ^ ((v27 ^ (v27 >> v4[24758])) << v4[24759]);
+  v4[24757] = v28 ^ (v28 >> v4[24760]);
+  if ( n255_1[38591] == 44 )
+    sub_749790(v4);
+  sub_732E90(a4);
+  if ( a4 )
+    sub_73FD50(ArgList, v130);
+  sub_9E0DF0(0, "Level::Init m_Stage %d, m_StageType %d Seed %u\n", *v4);
+  v29 = v4[24757];
+  if ( !v29 )
+  {
+    sub_9E0DF0(3, "RNG Seed is zero!\n", ArgList);
+    v29 = v4[24757];
+    if ( !v29 )
+      __debugbreak();
+  }
+  v30 = v29 ^ (v29 >> v4[24758]) ^ ((v29 ^ (v29 >> v4[24758])) << v4[24759]);
+  v4[24757] = v30 ^ (v30 >> v4[24760]);
+  n4_1 = *v4;
+  v32 = *v4 == 2 || n4_1 == 4 || n4_1 == 6 || n4_1 == 8;
+  *((_BYTE *)v4 + 8) = v32;
+  n80 = 80;
+  n255_2 = n255;
+  v4[24775] = -1;
+  v4[24774] = -1;
+  v4[24756] = 84;
+  v4[24780] = -1;
+  v4[24778] = 84;
+  *(_QWORD *)&v131 = 0xFFFFFFFFLL;
+  BYTE8(v131) = 0;
+  HIDWORD(v131) = 0;
+  v4[24776] = 1134559232;
+  v4[24777] = 1133248512;
+  *(_OWORD *)(v4 + 25151) = v131;
+  LOBYTE(v132) = 0;
+  v4[25155] = v132;
+  v4[24781] = 0;
+  v4[24794] = 0;
+  v4[24795] = 0;
+  v4[24796] = -1;
+  v4[24765] = 0;
+  v35 = n255_2[38864];
+  if ( v35 == 1 )
+    n80 = 40;
+  n80_1 = n80;
+  if ( *((_BYTE *)n4 + 80) || n4[2] == 2 && (n255_2[38634] || *((_BYTE *)n255_2 + 154369)) )
+  {
+    n20 = 20;
+    n80 = 30;
+    if ( v35 == 1 )
+      n80 = n20;
+    n80_1 = n80;
+  }
+  v145 = *((_BYTE *)n4 + 109);
+  v36 = n255_2[38864];
+  if ( v145 || n4[2] == 2 && (n255_2[38634] || *((_BYTE *)n255_2 + 154369)) )
+  {
+    n80 = 4 * (v36 != 1) + 6;
+    n80_1 = n80;
+  }
+  if ( n4[191] || n255_2[38634] )
+  {
+    n80 = 2 * (v36 != 1) + 3;
+    n80_1 = n80;
+  }
+  n13 = *v4;
+  if ( *v4 == 1 )
+  {
+    if ( !v145 && (n4[2] != 2 || !n255_2[38634] && !*((_BYTE *)n255_2 + 154369)) )
+    {
+      n80 = 0;
+      n80_1 = 0;
+    }
+    goto LABEL_82;
+  }
+  if ( n13 == 13 )
+    goto LABEL_103;
+  n80_1 = n80;
+  if ( (unsigned int)(n13 - 1) <= 5 )
+  {
+LABEL_82:
+    if ( (n255_2[38577] & 0x10000) == 0 )
+      goto LABEL_83;
+LABEL_103:
+    v148 = v4[24757];
+    v149 = 0x900000005LL;
+    n7 = 7;
+    v4[3] = 0;
+    goto LABEL_104;
+  }
+LABEL_83:
+  v148 = v4[24757];
+  v149 = 0x900000005LL;
+  n7 = 7;
+  v4[3] = 0;
+  if ( n80 > 0 )
+  {
+    v38 = sub_9950B0(260, n255_2 + 28330, 1);
+    n255_2 = n255;
+    if ( !v38 && *((_DWORD *)n255 + 38637) != 18 )
+    {
+      if ( !sub_7DF4E0(&v148, n80_1) )
+      {
+        v39 = v148;
+        if ( !v148 )
+        {
+          sub_9E0DF0(3, "RNG Seed is zero!\n", ArgList);
+          v39 = v148;
+          if ( !v148 )
+            __debugbreak();
+        }
+        v40 = v39 ^ (v39 >> v149) ^ ((v39 ^ (v39 >> v149)) << SBYTE4(v149));
+        v148 = v40 ^ (v40 >> n7);
+        switch ( v148 % 6 )
+        {
+          case 0u:
+            if ( (unsigned __int8)sub_732E00(*v4) )
+            {
+              v4[3] |= 2u;
+              sub_9E0DF0(0, "Curse of the Labyrinth!\n", ArgList);
+            }
+            break;
+          case 1u:
+            n255_3 = n255;
+            if ( !(unsigned __int8)sub_6F4380(n255) && n255_3[38591] != 44 )
+            {
+              v4[3] |= 4u;
+              sub_9E0DF0(0, "Curse of the Lost!\n", ArgList);
+            }
+            break;
+          case 2u:
+            v4[3] |= 1u;
+            sub_9E0DF0(0, "Curse of Darkness!\n", ArgList);
+            break;
+          case 3u:
+            v4[3] |= 8u;
+            sub_9E0DF0(0, "Curse of the Unknown\n", ArgList);
+            break;
+          case 4u:
+            if ( !(unsigned __int8)sub_6F4380(n255) )
+            {
+              v4[3] |= 0x20u;
+              sub_9E0DF0(0, "Curse of Maze\n", ArgList);
+            }
+            break;
+          case 5u:
+            if ( !*((_DWORD *)n255 + 38634) )
+            {
+              v4[3] |= 0x40u;
+              sub_9E0DF0(0, "Curse of Blind\n", ArgList);
+            }
+            break;
+          default:
+            break;
+        }
+      }
+      v42 = sub_84B250(v4[3]);
+      n255_2 = n255;
+      v4[3] = v42;
+    }
+  }
+LABEL_104:
+  if ( n255_2[38637] == 38 )
+    v4[3] |= 0x4Cu;
+  n20 = n255_2[38591];
+  if ( n20 )
+  {
+    v43 = n4[43224];
+    n20_1 = n20;
+    v45 = (int)((unsigned __int64)(1676084799LL * (n4[43225] - v43)) >> 32) >> 6;
+    if ( n20 >= v45 + ((unsigned int)((unsigned __int64)(1676084799LL * (n4[43225] - v43)) >> 32) >> 31) - 1 )
+      n20_1 = v45 + ((unsigned int)((unsigned __int64)(1676084799LL * (n4[43225] - v43)) >> 32) >> 31) - 1;
+    v46 = 164 * n20_1;
+    v4[3] |= *(_DWORD *)(v46 + v43 + 132);
+    v47 = *(_DWORD *)(v46 + v43 + 136);
+    n255_2 = n255;
+    v48 = v4[3] & ~v47;
+    v4[3] = v48;
+    if ( n255_2[38591] == 44 || *v4 % 2 != 1 || *v4 >= 8 || (n2 = n255_2[38864], n2 == 2) || n2 == 3 )
+      v4[3] = v48 & 0xFFFFFFFD;
+  }
+  if ( *v4 == 9 || (int)n255_2[38715] >= 3 )
+    v4[3] &= ~1u;
+  sub_97AFD0(0);
+  sub_821FF0(n255_2 + 25156);
+  if ( *v4 == 12 )
+  {
+    n13_1 = 1;
+    n196 = 196;
+    n13_2 = 1;
+    n80_1 = 196;
+    do
+    {
+      if ( n13_1 != 13 )
+      {
+        n20 = (unsigned int)n255 + 100624;
+        v52 = (char *)n255 + n196 + 100624;
+        v54 = 0;
+        if ( n255 )
+        {
+          n2_1 = *((_DWORD *)n255 + 38864);
+          if ( n2_1 == 2 || n2_1 == 3 )
+            v54 = 1;
+        }
+        v55 = 44 * v54;
+        if ( v52[44 * v54 + 140] )
+        {
+          v56 = 0;
+          if ( *(_DWORD *)&v52[v55 + 128] )
+          {
+            n44_4 = 0;
+            do
+            {
+              ++v56;
+              *(_DWORD *)(n44_4 + *(_DWORD *)&v52[v55 + 124] + 52) = *(_DWORD *)(n44_4 + *(_DWORD *)&v52[v55 + 124] + 48);
+              n44_4 += 92;
+              v52 = (char *)(n20 + n80_1);
+              n44_1 = n44_4;
+            }
+            while ( v56 < *(_DWORD *)(v55 + n20 + n80_1 + 128) );
+            n13_1 = n13_2;
+          }
+          n196 = n80_1;
+        }
+        else
+        {
+          sub_81F740(n13_1, v54);
+          n13_1 = n13_2;
+        }
+      }
+      n196 += 196;
+      n13_2 = ++n13_1;
+      n80_1 = n196;
+    }
+    while ( n196 <= 0xD04 );
+    v4 = v144;
+  }
+  else
+  {
+    v58 = sub_821D00(-1);
+    sub_81F6B0(v58, -1);
+  }
+  n255_4 = n255;
+  n2_3 = *((_DWORD *)n255 + 38864);
+  if ( n2_3 != 2 && n2_3 != 3 )
+  {
+    n4_2 = *v4;
+    if ( (unsigned int)(*v4 - 1) > 5 || (*((_DWORD *)n255 + 38577) & 0x10000) == 0 )
+    {
+      n4_3 = v4[1];
+      if ( n4_3 == 4 || n4_3 == 5 )
+      {
+        if ( n4_2 == 4
+          || n4_2 == 3
+          && (v63 = v4[3] | *((_DWORD *)n255 + 38578),
+              v64 = v63 | sub_6F55C0(),
+              v65 = sub_6F5750(),
+              n255_4 = n255,
+              ((unsigned __int8)v64 & (unsigned __int8)~v65 & 2) != 0) )
+        {
+          n2_2 = n255_4[38864];
+          v67 = (char *)(n255_4 + 25156);
+          n44_1 = (int)(n255_4 + 25156);
+          v68 = n2_2 == 2 || n2_2 == 3;
+          n20_2 = 44 * v68;
+          n20 = 44 * v68;
+          if ( !v67[44 * v68 + 5824] )
+          {
+            sub_81F740(29, v68);
+LABEL_154:
+            n255_4 = n255;
+            goto LABEL_155;
+          }
+          v70 = 0;
+          if ( *(_DWORD *)&v67[n20_2 + 5812] )
+          {
+            n44_5 = n44_1;
+            v72 = 0;
+            do
+            {
+              v72 += 92;
+              ++v70;
+              *(_DWORD *)(v72 + *(_DWORD *)(n20_2 + n44_5 + 5808) - 40) = *(_DWORD *)(v72
+                                                                                    + *(_DWORD *)(n20_2 + n44_5 + 5808)
+                                                                                    - 44);
+              n20_2 = n20;
+            }
+            while ( v70 < *(_DWORD *)(n20 + n44_5 + 5812) );
+            goto LABEL_154;
+          }
+        }
+      }
+    }
+  }
+LABEL_155:
+  n2_4 = n255_4[38864];
+  if ( n2_4 == 2 || n2_4 == 3 )
+  {
+    v76 = (char *)(n255_4 + 25156);
+    n44 = 44;
+    n44_1 = 44;
+    if ( *((_BYTE *)n255_4 + 100808) )
+    {
+      v78 = 0;
+      if ( n255_4[25199] )
+      {
+        v79 = 0;
+        do
+        {
+          v79 += 92;
+          ++v78;
+          *(_DWORD *)(v79 + *(_DWORD *)&v76[n44 + 124] - 40) = *(_DWORD *)(v79 + *(_DWORD *)&v76[n44 + 124] - 44);
+          n44 = n44_1;
+        }
+        while ( v78 < *(_DWORD *)&v76[n44_1 + 128] );
+      }
+    }
+    else
+    {
+      sub_81F740(0, 1);
+    }
+    v74 = (int)v144;
+    sub_73D6F0(ArgList, v130);
+  }
+  else
+  {
+    v74 = (int)v144;
+    n9 = *v144;
+    if ( *v144 == 13 )
+    {
+      sub_747D70(ArgList, v130);
+    }
+    else if ( n9 <= 6 && (n255_4[38577] & 0x10000) != 0 )
+    {
+      sub_73D090(ArgList, v130);
+    }
+    else if ( n255_4[38591] == 44 )
+    {
+      sub_74A7D0(ArgList, v130);
+    }
+    else if ( n9 == 9 )
+    {
+      sub_7444D0(ArgList, v130);
+    }
+    else
+    {
+      sub_81F6B0(0, -1);
+      sub_73AF60(&v148);
+    }
+  }
+  sub_738590(v74);
+  v80 = *(_DWORD *)(v74 + 99028);
+  if ( !v80 )
+  {
+    sub_9E0DF0(3, "RNG Seed is zero!\n", ArgList);
+    v80 = *(_DWORD *)(v74 + 99028);
+    if ( !v80 )
+      __debugbreak();
+  }
+  v81 = v80 ^ (v80 >> *(_DWORD *)(v74 + 99032)) ^ ((v80 ^ (v80 >> *(_DWORD *)(v74 + 99032))) << *(_DWORD *)(v74 + 99036));
+  n255_5 = n255;
+  v83 = v81 ^ (v81 >> *(_DWORD *)(v74 + 99040));
+  *(_DWORD *)(v74 + 99028) = v83;
+  *(_DWORD *)(v74 + 99116) = v83;
+  n2_5 = n255_5[38864];
+  if ( n2_5 != 2 && n2_5 != 3 && *(_DWORD *)v74 == 12 )
+  {
+    v85 = *(_DWORD *)(v74 + 99120);
+    if ( v85 >= 0 )
+    {
+      sub_743670(&n, *(_DWORD *)(184 * v85 + v74 + 20));
+      v154 = 0;
+      v139 = 0;
+      v140 = 0;
+      v141 = 0;
+      v142 = 0;
+      v143 = 0;
+      v86 = operator new(8u);
+      v86[1] = 0;
+      v139 = v86;
+      *v86 = &v139;
+      LOBYTE(v154) = 1;
+      n20_3 = (void **)*n;
+      n20 = (unsigned int)n20_3;
+      if ( n20_3 == n )
+      {
+        v88 = v143;
+      }
+      else
+      {
+        do
+        {
+          *(_DWORD *)(sub_73AD10(n20_3[4], -1) + 176) = 1;
+          v101 = v143;
+          v102 = v142;
+          v103 = v141;
+          if ( (((_BYTE)v143 + (_BYTE)v142) & 3) == 0 && v141 <= (unsigned int)(v143 + 4) >> 2 )
+          {
+            sub_447450(v141);
+            v101 = v143;
+            v102 = v142;
+            v103 = v141;
+          }
+          v142 = (4 * v103 - 1) & v102;
+          n44_2 = v101 + v142;
+          n44_1 = n44_2;
+          v105 = v103 - 1;
+          v106 = v140;
+          v107 = (n44_2 >> 2) & v105;
+          if ( !v140[v107] )
+          {
+            v108 = operator new(0x10u);
+            LOBYTE(n44_2) = n44_1;
+            v140[v107] = v108;
+            v106 = v140;
+          }
+          *(_DWORD *)(v106[v107] + 4 * (n44_2 & 3)) = n20_3[4];
+          v88 = ++v143;
+          sub_410310(&n20);
+          n20_3 = (void **)n20;
+        }
+        while ( (void **)n20 != n );
+      }
+      while ( v88 )
+      {
+        n168 = *(_DWORD *)sub_74C4F0(&v139);
+        v90 = v142;
+        v143 = v88 - 1;
+        if ( v88 == 1 )
+          v90 = 0;
+        v142 = v90;
+        n20 = sub_73AD10(n168, -1);
+        n44_1 = sub_743670(p_n, n168);
+        if ( &n != (void ***)n44_1 )
+        {
+          n_1 = n;
+          sub_41FEE0((int)&n, n[1]);
+          n44_3 = n44_1;
+          n_1[1] = n_1;
+          *n_1 = n_1;
+          n_1[2] = n_1;
+          n_2 = n;
+          v136 = 0;
+          n = *(void ***)n44_3;
+          v94 = *(_DWORD *)(n44_3 + 4);
+          *(_DWORD *)n44_3 = n_2;
+          v95 = v136;
+          v136 = v94;
+          *(_DWORD *)(n44_3 + 4) = v95;
+        }
+        sub_41FEE0((int)p_n, *((void **)p_n[0] + 1));
+        sub_A8717B(p_n[0]);
+        n80_2 = (void **)*n;
+        n80_1 = (int)n80_2;
+        if ( n80_2 == n )
+        {
+          v88 = v143;
+        }
+        else
+        {
+          do
+          {
+            v109 = sub_73AD10(n80_2[4], -1);
+            if ( *(int *)(v109 + 176) > 0 )
+            {
+              v88 = v143;
+            }
+            else
+            {
+              *(_DWORD *)(v109 + 176) = *(_DWORD *)(n20 + 176) + 1;
+              v110 = v143;
+              v111 = v142;
+              v112 = v141;
+              if ( (((_BYTE)v143 + (_BYTE)v142) & 3) == 0 && v141 <= (unsigned int)(v143 + 4) >> 2 )
+              {
+                sub_447450(v142);
+                v110 = v143;
+                v111 = v142;
+                v112 = v141;
+              }
+              v142 = (4 * v112 - 1) & v111;
+              n13_3 = v110 + v142;
+              n13_2 = v110 + v142;
+              v114 = ((unsigned int)(v110 + v142) >> 2) & (v112 - 1);
+              v115 = v140;
+              if ( !v140[v114] )
+              {
+                v140[v114] = operator new(0x10u);
+                v115 = v140;
+                n13_3 = n13_2;
+              }
+              n13_2 = n13_3 & 3;
+              *(_DWORD *)(v115[v114] + 4 * n13_2) = n80_2[4];
+              v88 = ++v143;
+            }
+            sub_410310(&n80_1);
+            n80_2 = (void **)n80_1;
+          }
+          while ( (void **)n80_1 != n );
+        }
+      }
+      LOBYTE(v154) = 0;
+      v97 = v141;
+      v98 = (char *)v140;
+      if ( v141 )
+      {
+        do
+        {
+          v99 = *(void **)&v98[4 * v97-- - 4];
+          if ( v99 )
+          {
+            sub_A8717B(v99);
+            v98 = (char *)v140;
+          }
+        }
+        while ( v97 );
+        v97 = v141;
+      }
+      if ( v98 )
+      {
+        v100 = v98;
+        if ( 4 * v97 >= 0x1000 )
+        {
+          v98 = (char *)*((_DWORD *)v98 - 1);
+          if ( (unsigned int)(v100 - v98 - 4) > 0x1F )
+            invalid_parameter_noinfo_noreturn();
+        }
+        sub_A8717B(v98);
+      }
+      v128 = v139;
+      v141 = 0;
+      v140 = 0;
+      v139 = 0;
+      sub_A8717B(v128);
+      v154 = -1;
+      sub_41FEE0((int)&n, n[1]);
+      sub_A8717B(n);
+      v74 = (int)v144;
+    }
+  }
+  v116 = *(_DWORD *)(v74 + 99024);
+  n5 = *(_DWORD *)v74 - 1;
+  *(_DWORD *)(v74 + 99076) = v116;
+  *(_DWORD *)(v74 + 99080) = v116;
+  if ( n5 <= 5 && (unsigned __int8)sub_41ECD0(48) )
+  {
+    v116 = *(_DWORD *)(184 * *(_DWORD *)(v74 + 99092) + v74 + 24);
+    *(_DWORD *)(v74 + 99112) = v116;
+    *(_DWORD *)(v74 + 99076) = v116;
+    *(_DWORD *)(v74 + 99080) = v116;
+  }
+  sub_73AD10(v116, -1);
+  sub_9E0DF0(0, "CURRENT ROOM INDEX %d %08x\n", *(_DWORD *)(v74 + 99076));
+  if ( *((_DWORD *)n255 + 38591) == 31 && *(_DWORD *)v74 == 11 )
+  {
+    *(_DWORD *)(v74 + 99080) = -7;
+    *(_DWORD *)(v74 + 99076) = -7;
+    sub_7385F0((float *)v74, (int)v155, v74);
+    sub_7F7F60(*(float *)(v74 + 99072), (int)v155, v74);
+  }
+  else
+  {
+    sub_7385F0((float *)v74, (int)v155, v74);
+  }
+  sub_7E16F0(*((_DWORD *)n255 + 24768));
+  n255_6 = n255;
+  if ( *((_DWORD *)n255 + 38591) != 31 || *(_DWORD *)v74 == 11 )
+  {
+    sub_739AA0(v74);
+    n255_6 = n255;
+  }
+  if ( *n255_6 == 11 && *(_BYTE *)(sub_702320(n255_6) + 116) && n255_6[38591] != 31 )
+  {
+    if ( !sub_9950B0(238, n255_6 + 28330, 1) )
+    {
+      sub_4131B0(n255, 0);
+      sub_758F00(238, 0, 1, 0, 0, 0);
+      sub_72E5B0(238, 0, 0);
+    }
+    if ( !sub_9950B0(239, (char *)n255 + 113320, 1) )
+    {
+      sub_4131B0(n255, 0);
+      sub_758F00(239, 0, 1, 0, 0, 0);
+      sub_72E5B0(239, 0, 0);
+    }
+    n255_6 = n255;
+  }
+  if ( (unsigned int)(*(_DWORD *)v74 - 1) <= 5 && (unsigned __int8)sub_41ECD0(48) )
+  {
+    v119 = *(_DWORD *)(v74 + 12) | n255_6[38578];
+    v120 = v119 | sub_6F55C0();
+    v121 = sub_6F5750();
+    n507_4 = n507_1;
+    if ( ((unsigned __int8)v120 & (unsigned __int8)~v121 & 2) != 0 && (n507_1 == 2 || n507_1 == 4) )
+      n507_4 = n507_1 + 1;
+    if ( *((_BYTE *)n4 + 172560) )
+    {
+      switch ( n507_4 )
+      {
+        case 1:
+          n601 = 601;
+          goto LABEL_248;
+        case 3:
+          n601 = 600;
+          goto LABEL_248;
+        case 5:
+          n601 = 599;
+          goto LABEL_248;
+        case 7:
+          n601 = 598;
+LABEL_248:
+          v124 = (int *)sub_6047F0(0, 0);
+          v125 = *v124;
+          v124[276] = n601;
+          (*(void (__thiscall **)(int *))(v125 + 12))(v124);
+          break;
+        default:
+          break;
+      }
+    }
+    v74 = (int)v144;
+  }
+  sub_9929B0((char *)n255 + 113320);
+  n255_7 = n255;
+  *((_DWORD *)n255 + 27501) = *((_DWORD *)n255 + 27502);
+  sub_91D6A0(*(_DWORD *)(n255_7[24768] + 4600));
+  sub_91D650(0);
+  sub_40A140();
+  result = sub_84BA10(ArgList, v130);
+  *(_BYTE *)(v74 + 99232) = 0;
+  return result;
+}
+
+[DISASSEMBLY]
+0x0073eb10 RVA 0x33eb10: push    ebx
+0x0073eb11 RVA 0x33eb11: mov     ebx, esp
+0x0073eb13 RVA 0x33eb13: sub     esp, 8
+0x0073eb16 RVA 0x33eb16: and     esp, 0FFFFFFF8h
+0x0073eb19 RVA 0x33eb19: add     esp, 4
+0x0073eb1c RVA 0x33eb1c: push    ebp
+0x0073eb1d RVA 0x33eb1d: mov     ebp, [ebx+4]
+0x0073eb20 RVA 0x33eb20: mov     [esp+0Ch+var_8], ebp
+0x0073eb24 RVA 0x33eb24: mov     ebp, esp
+0x0073eb26 RVA 0x33eb26: push    0FFFFFFFFh
+0x0073eb28 RVA 0x33eb28: push    offset loc_A94645
+0x0073eb2d RVA 0x33eb2d: mov     eax, large fs:0
+0x0073eb33 RVA 0x33eb33: push    eax
+0x0073eb34 RVA 0x33eb34: push    ebx
+0x0073eb35 RVA 0x33eb35: sub     esp, 68h
+0x0073eb38 RVA 0x33eb38: mov     eax, ___security_cookie
+0x0073eb3d RVA 0x33eb3d: xor     eax, ebp
+0x0073eb3f RVA 0x33eb3f: mov     [ebp-14h], eax
+0x0073eb42 RVA 0x33eb42: push    esi
+0x0073eb43 RVA 0x33eb43: push    edi
+0x0073eb44 RVA 0x33eb44: push    eax; ArgList
+0x0073eb45 RVA 0x33eb45: lea     eax, [ebp-0Ch]
+0x0073eb48 RVA 0x33eb48: mov     large fs:0, eax
+0x0073eb4e RVA 0x33eb4e: mov     edi, ecx
+0x0073eb50 RVA 0x33eb50: mov     [ebp-34h], edi
+0x0073eb53 RVA 0x33eb53: mov     ecx, n255
+0x0073eb59 RVA 0x33eb59: push    89h
+0x0073eb5e RVA 0x33eb5e: mov     eax, [ecx+25AC0h]
+0x0073eb64 RVA 0x33eb64: and     dword ptr [ecx+25AC4h], 0FFFFEFFFh
+0x0073eb6e RVA 0x33eb6e: mov     [ecx+25AC0h], eax
+0x0073eb74 RVA 0x33eb74: add     ecx, 1BAA8h
+0x0073eb7a RVA 0x33eb7a: mov     byte ptr [edi+188F8h], 0
+0x0073eb81 RVA 0x33eb81: call    sub_4475F0
+0x0073eb86 RVA 0x33eb86: mov     esi, [edi+183A4h]
+0x0073eb8c RVA 0x33eb8c: lea     ecx, [edi+183A4h]
+0x0073eb92 RVA 0x33eb92: mov     [ebp-2Dh], al
+0x0073eb95 RVA 0x33eb95: mov     eax, [edi+183A8h]
+0x0073eb9b RVA 0x33eb9b: mov     [ebp-4Ch], ecx
+0x0073eb9e RVA 0x33eb9e: cmp     esi, eax
+0x0073eba0 RVA 0x33eba0: jz      short loc_73EBBB
+0x0073eba2 RVA 0x33eba2: mov     edi, eax
+0x0073eba4 RVA 0x33eba4: mov     ecx, esi
+0x0073eba6 RVA 0x33eba6: call    sub_4D0AA0
+0x0073ebab RVA 0x33ebab: add     esi, 78h ; 'x'
+0x0073ebae RVA 0x33ebae: cmp     esi, edi
+0x0073ebb0 RVA 0x33ebb0: jnz     short loc_73EBA4
+0x0073ebb2 RVA 0x33ebb2: mov     edi, [ebp-34h]
+0x0073ebb5 RVA 0x33ebb5: mov     esi, [edi+183A4h]
+0x0073ebbb RVA 0x33ebbb: cmp     byte ptr [ebp-2Dh], 0
+0x0073ebbf RVA 0x33ebbf: mov     [edi+183A8h], esi
+0x0073ebc5 RVA 0x33ebc5: jz      loc_73EC8F
+0x0073ebcb RVA 0x33ebcb: lea     esi, [edi+8Ch]
+0x0073ebd1 RVA 0x33ebd1: mov     eax, 1FBh
+0x0073ebd6 RVA 0x33ebd6: mov     edi, [ebp-4Ch]
+0x0073ebd9 RVA 0x33ebd9: mov     [ebp-28h], esi
+0x0073ebdc RVA 0x33ebdc: mov     [ebp-5Ch], eax
+0x0073ebdf RVA 0x33ebdf: nop
+0x0073ebe0 RVA 0x33ebe0: cmp     dword ptr [esi-68h], 0
+0x0073ebe4 RVA 0x33ebe4: jz      loc_73EC77
+0x0073ebea RVA 0x33ebea: cmp     dword ptr [esi-38h], 0
+0x0073ebee RVA 0x33ebee: jbe     loc_73EC77
+0x0073ebf4 RVA 0x33ebf4: mov     edx, [ebp-28h]
+0x0073ebf7 RVA 0x33ebf7: mov     esi, [esi-4]
+0x0073ebfa RVA 0x33ebfa: cmp     esi, [edx]
+0x0073ebfc RVA 0x33ebfc: jz      short loc_73EC74
+0x0073ebfe RVA 0x33ebfe: xchg    ax, ax
+0x0073ec00 RVA 0x33ec00: cmp     dword ptr [esi], 5
+0x0073ec03 RVA 0x33ec03: jnz     short loc_73EC6A
+0x0073ec05 RVA 0x33ec05: cmp     dword ptr [esi+14h], 0
+0x0073ec09 RVA 0x33ec09: jnz     short loc_73EC6A
+0x0073ec0b RVA 0x33ec0b: mov     ecx, [esi+4]
+0x0073ec0e RVA 0x33ec0e: call    sub_6EAA70
+0x0073ec13 RVA 0x33ec13: test    al, al
+0x0073ec15 RVA 0x33ec15: jnz     short loc_73EC6A
+0x0073ec17 RVA 0x33ec17: cmp     ecx, 17Ch
+0x0073ec1d RVA 0x33ec1d: jz      short loc_73EC6A
+0x0073ec1f RVA 0x33ec1f: cmp     ecx, 172h
+0x0073ec25 RVA 0x33ec25: jz      short loc_73EC6A
+0x0073ec27 RVA 0x33ec27: cmp     ecx, 154h
+0x0073ec2d RVA 0x33ec2d: jz      short loc_73EC6A
+0x0073ec2f RVA 0x33ec2f: cmp     ecx, 29h ; ')'
+0x0073ec32 RVA 0x33ec32: jz      short loc_73EC6A
+0x0073ec34 RVA 0x33ec34: cmp     ecx, 186h
+0x0073ec3a RVA 0x33ec3a: jz      short loc_73EC6A
+0x0073ec3c RVA 0x33ec3c: cmp     ecx, 64h ; 'd'
+0x0073ec3f RVA 0x33ec3f: jz      short loc_73EC6A
+0x0073ec41 RVA 0x33ec41: cmp     ecx, 96h
+0x0073ec47 RVA 0x33ec47: jz      short loc_73EC6A
+0x0073ec49 RVA 0x33ec49: mov     eax, [edi+4]
+0x0073ec4c RVA 0x33ec4c: push    esi
+0x0073ec4d RVA 0x33ec4d: cmp     eax, [edi+8]
+0x0073ec50 RVA 0x33ec50: jz      short loc_73EC5F
+0x0073ec52 RVA 0x33ec52: mov     ecx, eax
+0x0073ec54 RVA 0x33ec54: call    sub_4CCE50
+0x0073ec59 RVA 0x33ec59: add     dword ptr [edi+4], 78h ; 'x'
+0x0073ec5d RVA 0x33ec5d: jmp     short loc_73EC67
+0x0073ec5f RVA 0x33ec5f: push    eax
+0x0073ec60 RVA 0x33ec60: mov     ecx, edi
+0x0073ec62 RVA 0x33ec62: call    sub_4D1160
+0x0073ec67 RVA 0x33ec67: mov     edx, [ebp-28h]
+0x0073ec6a RVA 0x33ec6a: add     esi, 78h ; 'x'
+0x0073ec6d RVA 0x33ec6d: cmp     esi, [edx]
+0x0073ec6f RVA 0x33ec6f: jnz     short loc_73EC00
+0x0073ec71 RVA 0x33ec71: mov     eax, [ebp-5Ch]
+0x0073ec74 RVA 0x33ec74: mov     esi, [ebp-28h]
+0x0073ec77 RVA 0x33ec77: add     esi, 0B8h
+0x0073ec7d RVA 0x33ec7d: sub     eax, 1
+0x0073ec80 RVA 0x33ec80: mov     [ebp-28h], esi
+0x0073ec83 RVA 0x33ec83: mov     [ebp-5Ch], eax
+0x0073ec86 RVA 0x33ec86: jnz     loc_73EBE0
+0x0073ec8c RVA 0x33ec8c: mov     edi, [ebp-34h]
+0x0073ec8f RVA 0x33ec8f: mov     esi, n255
+0x0073ec95 RVA 0x33ec95: lea     eax, [edi+17ADCh]
+0x0073ec9b RVA 0x33ec9b: mov     [edi+182C8h], eax
+0x0073eca1 RVA 0x33eca1: mov     byte ptr [edi+183A0h], 1
+0x0073eca8 RVA 0x33eca8: mov     dword ptr [edi+1830Ch], 0
+0x0073ecb2 RVA 0x33ecb2: mov     dword ptr [edi+18310h], 0
+0x0073ecbc RVA 0x33ecbc: mov     dword ptr [edi+1839Ch], 0
+0x0073ecc6 RVA 0x33ecc6: mov     dword ptr [edi+18384h], 0FFFE7961h
+0x0073ecd0 RVA 0x33ecd0: mov     dword ptr [edi+18378h], 0FFFE7961h
+0x0073ecda RVA 0x33ecda: mov     dword ptr [edi+18374h], 0
+0x0073ece4 RVA 0x33ece4: mov     word ptr [edi+10h], 0
+0x0073ecea RVA 0x33ecea: mov     byte ptr [edi+9], 0
+0x0073ecee RVA 0x33ecee: mov     dword ptr [edi+18390h], 0
+0x0073ecf8 RVA 0x33ecf8: mov     dword ptr [esi+25AE8h], 0
+0x0073ed02 RVA 0x33ed02: mov     eax, [edi+4]
+0x0073ed05 RVA 0x33ed05: cmp     eax, 4
+0x0073ed08 RVA 0x33ed08: jz      short loc_73ED13
+0x0073ed0a RVA 0x33ed0a: cmp     eax, 5
+0x0073ed0d RVA 0x33ed0d: jz      short loc_73ED13
+0x0073ed0f RVA 0x33ed0f: xor     cl, cl
+0x0073ed11 RVA 0x33ed11: jmp     short loc_73ED15
+0x0073ed13 RVA 0x33ed13: mov     cl, 1
+0x0073ed15 RVA 0x33ed15: mov     eax, [edi]
+0x0073ed17 RVA 0x33ed17: test    cl, cl
+0x0073ed19 RVA 0x33ed19: lea     ecx, [esi+1BB84h]
+0x0073ed1f RVA 0x33ed1f: mov     [ebp-2Ch], ecx
+0x0073ed22 RVA 0x33ed22: lea     edx, [eax+1]
+0x0073ed25 RVA 0x33ed25: cmovz   edx, eax
+0x0073ed28 RVA 0x33ed28: cmp     dword ptr [ecx+4], 0
+0x0073ed2c RVA 0x33ed2c: mov     [ebp-5Ch], edx
+0x0073ed2f RVA 0x33ed2f: jnz     short loc_73ED4C
+0x0073ed31 RVA 0x33ed31: push    offset aErrorGameStart; "Error: Game Start Seed was not set.\n"
+0x0073ed36 RVA 0x33ed36: push    3; int
+0x0073ed38 RVA 0x33ed38: call    sub_9E0DF0
+0x0073ed3d RVA 0x33ed3d: mov     esi, n255
+0x0073ed43 RVA 0x33ed43: add     esp, 8
+0x0073ed46 RVA 0x33ed46: mov     ecx, [ebp-2Ch]
+0x0073ed49 RVA 0x33ed49: mov     edx, [ebp-5Ch]
+0x0073ed4c RVA 0x33ed4c: test    edx, edx
+0x0073ed4e RVA 0x33ed4e: jz      short loc_73ED5E
+0x0073ed50 RVA 0x33ed50: mov     eax, edx
+0x0073ed52 RVA 0x33ed52: cmp     edx, 0Dh
+0x0073ed55 RVA 0x33ed55: jb      short loc_73ED60
+0x0073ed57 RVA 0x33ed57: mov     eax, 0Dh
+0x0073ed5c RVA 0x33ed5c: jmp     short loc_73ED60
+0x0073ed5e RVA 0x33ed5e: xor     eax, eax
+0x0073ed60 RVA 0x33ed60: mov     ecx, [ecx+eax*4+18h]
+0x0073ed64 RVA 0x33ed64: movq    xmm0, ds:qword_AACE4C
+0x0073ed6c RVA 0x33ed6c: mov     eax, ds:dword_AACE54
+0x0073ed71 RVA 0x33ed71: movq    qword ptr [edi+182D8h], xmm0
+0x0073ed79 RVA 0x33ed79: movq    xmm0, ds:qword_AACCC0
+0x0073ed81 RVA 0x33ed81: mov     [edi+182E0h], eax
+0x0073ed87 RVA 0x33ed87: mov     eax, ds:dword_AACCC8
+0x0073ed8c RVA 0x33ed8c: mov     [edi+182D4h], ecx
+0x0073ed92 RVA 0x33ed92: movq    qword ptr [edi+182E8h], xmm0
+0x0073ed9a RVA 0x33ed9a: mov     [edi+182E4h], ecx
+0x0073eda0 RVA 0x33eda0: mov     [edi+182F0h], eax
+0x0073eda6 RVA 0x33eda6: mov     edx, [edi+182D4h]
+0x0073edac RVA 0x33edac: mov     [ebp-2Ch], ecx
+0x0073edaf RVA 0x33edaf: test    edx, edx
+0x0073edb1 RVA 0x33edb1: jnz     short loc_73EDD3
+0x0073edb3 RVA 0x33edb3: push    offset aRngSeedIsZero; "RNG Seed is zero!\n"
+0x0073edb8 RVA 0x33edb8: push    3; int
+0x0073edba RVA 0x33edba: call    sub_9E0DF0
+0x0073edbf RVA 0x33edbf: mov     edx, [edi+182D4h]
+0x0073edc5 RVA 0x33edc5: add     esp, 8
+0x0073edc8 RVA 0x33edc8: mov     esi, n255
+0x0073edce RVA 0x33edce: test    edx, edx
+0x0073edd0 RVA 0x33edd0: jnz     short loc_73EDD3
+0x0073edd2 RVA 0x33edd2: int     3; Trap to Debugger
+0x0073edd3 RVA 0x33edd3: mov     ecx, [edi+182D8h]
+0x0073edd9 RVA 0x33edd9: mov     eax, edx
+0x0073eddb RVA 0x33eddb: shr     eax, cl
+0x0073eddd RVA 0x33eddd: mov     ecx, [edi+182DCh]
+0x0073ede3 RVA 0x33ede3: xor     eax, edx
+0x0073ede5 RVA 0x33ede5: mov     edx, eax
+0x0073ede7 RVA 0x33ede7: shl     edx, cl
+0x0073ede9 RVA 0x33ede9: mov     ecx, [edi+182E0h]
+0x0073edef RVA 0x33edef: xor     edx, eax
+0x0073edf1 RVA 0x33edf1: mov     eax, edx
+0x0073edf3 RVA 0x33edf3: shr     eax, cl
+0x0073edf5 RVA 0x33edf5: xor     eax, edx
+0x0073edf7 RVA 0x33edf7: mov     [edi+182D4h], eax
+0x0073edfd RVA 0x33edfd: cmp     dword ptr [esi+25AFCh], 2Ch ; ','
+0x0073ee04 RVA 0x33ee04: jnz     short loc_73EE0D
+0x0073ee06 RVA 0x33ee06: mov     ecx, edi
+0x0073ee08 RVA 0x33ee08: call    sub_749790
+0x0073ee0d RVA 0x33ee0d: push    dword ptr [ebx+8]
+0x0073ee10 RVA 0x33ee10: mov     ecx, edi
+0x0073ee12 RVA 0x33ee12: call    sub_732E90
+0x0073ee17 RVA 0x33ee17: cmp     byte ptr [ebx+8], 0
+0x0073ee1b RVA 0x33ee1b: jz      short loc_73EE24
+0x0073ee1d RVA 0x33ee1d: mov     ecx, edi
+0x0073ee1f RVA 0x33ee1f: call    sub_73FD50
+0x0073ee24 RVA 0x33ee24: push    dword ptr [ebp-2Ch]
+0x0073ee27 RVA 0x33ee27: push    dword ptr [edi+4]
+0x0073ee2a RVA 0x33ee2a: push    dword ptr [edi]; ArgList
+0x0073ee2c RVA 0x33ee2c: push    offset aLevelInitMStag; "Level::Init m_Stage %d, m_StageType %d "...
+0x0073ee31 RVA 0x33ee31: push    0; int
+0x0073ee33 RVA 0x33ee33: call    sub_9E0DF0
+0x0073ee38 RVA 0x33ee38: mov     edx, [edi+182D4h]
+0x0073ee3e RVA 0x33ee3e: add     esp, 14h
+0x0073ee41 RVA 0x33ee41: test    edx, edx
+0x0073ee43 RVA 0x33ee43: jnz     short loc_73EE5F
+0x0073ee45 RVA 0x33ee45: push    offset aRngSeedIsZero; "RNG Seed is zero!\n"
+0x0073ee4a RVA 0x33ee4a: push    3; int
+0x0073ee4c RVA 0x33ee4c: call    sub_9E0DF0
+0x0073ee51 RVA 0x33ee51: mov     edx, [edi+182D4h]
+0x0073ee57 RVA 0x33ee57: add     esp, 8
+0x0073ee5a RVA 0x33ee5a: test    edx, edx
+0x0073ee5c RVA 0x33ee5c: jnz     short loc_73EE5F
+0x0073ee5e RVA 0x33ee5e: int     3; Trap to Debugger
+0x0073ee5f RVA 0x33ee5f: mov     ecx, [edi+182D8h]
+0x0073ee65 RVA 0x33ee65: mov     eax, edx
+0x0073ee67 RVA 0x33ee67: shr     eax, cl
+0x0073ee69 RVA 0x33ee69: mov     ecx, [edi+182DCh]
+0x0073ee6f RVA 0x33ee6f: xor     eax, edx
+0x0073ee71 RVA 0x33ee71: mov     edx, eax
+0x0073ee73 RVA 0x33ee73: shl     edx, cl
+0x0073ee75 RVA 0x33ee75: mov     ecx, [edi+182E0h]
+0x0073ee7b RVA 0x33ee7b: xor     edx, eax
+0x0073ee7d RVA 0x33ee7d: mov     eax, edx
+0x0073ee7f RVA 0x33ee7f: shr     eax, cl
+0x0073ee81 RVA 0x33ee81: xor     eax, edx
+0x0073ee83 RVA 0x33ee83: mov     [edi+182D4h], eax
+0x0073ee89 RVA 0x33ee89: mov     eax, [edi]
+0x0073ee8b RVA 0x33ee8b: cmp     eax, 2
+0x0073ee8e RVA 0x33ee8e: jz      short loc_73EEA3
+0x0073ee90 RVA 0x33ee90: cmp     eax, 4
+0x0073ee93 RVA 0x33ee93: jz      short loc_73EEA3
+0x0073ee95 RVA 0x33ee95: cmp     eax, 6
+0x0073ee98 RVA 0x33ee98: jz      short loc_73EEA3
+0x0073ee9a RVA 0x33ee9a: cmp     eax, 8
+0x0073ee9d RVA 0x33ee9d: jz      short loc_73EEA3
+0x0073ee9f RVA 0x33ee9f: xor     al, al
+0x0073eea1 RVA 0x33eea1: jmp     short loc_73EEA5
+0x0073eea3 RVA 0x33eea3: mov     al, 1
+0x0073eea5 RVA 0x33eea5: mov     [edi+8], al
+0x0073eea8 RVA 0x33eea8: mov     edx, 50h ; 'P'
+0x0073eead RVA 0x33eead: mov     esi, n255
+0x0073eeb3 RVA 0x33eeb3: mov     dword ptr [edi+1831Ch], 0FFFFFFFFh
+0x0073eebd RVA 0x33eebd: mov     dword ptr [edi+18318h], 0FFFFFFFFh
+0x0073eec7 RVA 0x33eec7: mov     dword ptr [edi+182D0h], 54h ; 'T'
+0x0073eed1 RVA 0x33eed1: mov     dword ptr [edi+18330h], 0FFFFFFFFh
+0x0073eedb RVA 0x33eedb: mov     dword ptr [edi+18328h], 54h ; 'T'
+0x0073eee5 RVA 0x33eee5: mov     dword ptr [ebp-78h], 0FFFFFFFFh
+0x0073eeec RVA 0x33eeec: mov     dword ptr [ebp-74h], 0
+0x0073eef3 RVA 0x33eef3: mov     byte ptr [ebp-70h], 0
+0x0073eef7 RVA 0x33eef7: mov     dword ptr [ebp-6Ch], 0
+0x0073eefe RVA 0x33eefe: movups  xmm0, xmmword ptr [ebp-78h]
+0x0073ef02 RVA 0x33ef02: mov     dword ptr [edi+18320h], 43A00000h
+0x0073ef0c RVA 0x33ef0c: mov     dword ptr [edi+18324h], 438C0000h
+0x0073ef16 RVA 0x33ef16: movups  xmmword ptr [edi+188FCh], xmm0
+0x0073ef1d RVA 0x33ef1d: mov     byte ptr [ebp-68h], 0
+0x0073ef21 RVA 0x33ef21: mov     eax, [ebp-68h]
+0x0073ef24 RVA 0x33ef24: mov     [edi+1890Ch], eax
+0x0073ef2a RVA 0x33ef2a: mov     eax, 28h ; '('
+0x0073ef2f RVA 0x33ef2f: mov     dword ptr [edi+18334h], 0
+0x0073ef39 RVA 0x33ef39: mov     dword ptr [edi+18368h], 0
+0x0073ef43 RVA 0x33ef43: mov     dword ptr [edi+1836Ch], 0
+0x0073ef4d RVA 0x33ef4d: mov     dword ptr [edi+18370h], 0FFFFFFFFh
+0x0073ef57 RVA 0x33ef57: mov     dword ptr [edi+182F4h], 0
+0x0073ef61 RVA 0x33ef61: mov     ecx, [esi+25F40h]
+0x0073ef67 RVA 0x33ef67: cmp     ecx, 1
+0x0073ef6a RVA 0x33ef6a: cmovz   edx, eax
+0x0073ef6d RVA 0x33ef6d: mov     eax, n4
+0x0073ef72 RVA 0x33ef72: mov     [ebp-28h], edx
+0x0073ef75 RVA 0x33ef75: cmp     byte ptr [eax+50h], 0
+0x0073ef79 RVA 0x33ef79: jnz     short loc_73EF93
+0x0073ef7b RVA 0x33ef7b: cmp     dword ptr [eax+8], 2
+0x0073ef7f RVA 0x33ef7f: jnz     short loc_73EFA9
+0x0073ef81 RVA 0x33ef81: cmp     dword ptr [esi+25BA8h], 0
+0x0073ef88 RVA 0x33ef88: ja      short loc_73EF93
+0x0073ef8a RVA 0x33ef8a: cmp     byte ptr [esi+25B01h], 0
+0x0073ef91 RVA 0x33ef91: jz      short loc_73EFA9
+0x0073ef93 RVA 0x33ef93: cmp     ecx, 1
+0x0073ef96 RVA 0x33ef96: mov     dword ptr [ebp-2Ch], 14h
+0x0073ef9d RVA 0x33ef9d: mov     edx, 1Eh
+0x0073efa2 RVA 0x33efa2: cmovz   edx, [ebp-2Ch]
+0x0073efa6 RVA 0x33efa6: mov     [ebp-28h], edx
+0x0073efa9 RVA 0x33efa9: mov     cl, [eax+6Dh]
+0x0073efac RVA 0x33efac: mov     [ebp-2Dh], cl
+0x0073efaf RVA 0x33efaf: test    cl, cl
+0x0073efb1 RVA 0x33efb1: mov     ecx, [esi+25F40h]
+0x0073efb7 RVA 0x33efb7: jnz     short loc_73EFD1
+0x0073efb9 RVA 0x33efb9: cmp     dword ptr [eax+8], 2
+0x0073efbd RVA 0x33efbd: jnz     short loc_73EFE3
+0x0073efbf RVA 0x33efbf: cmp     dword ptr [esi+25BA8h], 0
+0x0073efc6 RVA 0x33efc6: ja      short loc_73EFD1
+0x0073efc8 RVA 0x33efc8: cmp     byte ptr [esi+25B01h], 0
+0x0073efcf RVA 0x33efcf: jz      short loc_73EFE3
+0x0073efd1 RVA 0x33efd1: xor     edx, edx
+0x0073efd3 RVA 0x33efd3: cmp     ecx, 1
+0x0073efd6 RVA 0x33efd6: setnz   dl
+0x0073efd9 RVA 0x33efd9: lea     edx, ds:6[edx*4]
+0x0073efe0 RVA 0x33efe0: mov     [ebp-28h], edx
+0x0073efe3 RVA 0x33efe3: cmp     dword ptr [eax+2FCh], 0
+0x0073efea RVA 0x33efea: ja      short loc_73EFF5
+0x0073efec RVA 0x33efec: cmp     dword ptr [esi+25BA8h], 0
+0x0073eff3 RVA 0x33eff3: jbe     short loc_73F007
+0x0073eff5 RVA 0x33eff5: xor     edx, edx
+0x0073eff7 RVA 0x33eff7: cmp     ecx, 1
+0x0073effa RVA 0x33effa: setnz   dl
+0x0073effd RVA 0x33effd: lea     edx, ds:3[edx*2]
+0x0073f004 RVA 0x33f004: mov     [ebp-28h], edx
+0x0073f007 RVA 0x33f007: mov     ecx, [edi]
+0x0073f009 RVA 0x33f009: cmp     ecx, 1
+0x0073f00c RVA 0x33f00c: jnz     short loc_73F033
+0x0073f00e RVA 0x33f00e: cmp     byte ptr [ebp-2Dh], 0
+0x0073f012 RVA 0x33f012: jnz     short loc_73F047
+0x0073f014 RVA 0x33f014: cmp     dword ptr [eax+8], 2
+0x0073f018 RVA 0x33f018: jnz     short loc_73F02C
+0x0073f01a RVA 0x33f01a: cmp     dword ptr [esi+25BA8h], 0
+0x0073f021 RVA 0x33f021: ja      short loc_73F047
+0x0073f023 RVA 0x33f023: cmp     byte ptr [esi+25B01h], 0
+0x0073f02a RVA 0x33f02a: jnz     short loc_73F047
+0x0073f02c RVA 0x33f02c: xor     edx, edx
+0x0073f02e RVA 0x33f02e: mov     [ebp-28h], edx
+0x0073f031 RVA 0x33f031: jmp     short loc_73F047
+0x0073f033 RVA 0x33f033: cmp     ecx, 0Dh
+0x0073f036 RVA 0x33f036: jz      loc_73F1CD
+0x0073f03c RVA 0x33f03c: lea     eax, [ecx-1]
+0x0073f03f RVA 0x33f03f: mov     [ebp-28h], edx
+0x0073f042 RVA 0x33f042: cmp     eax, 5
+0x0073f045 RVA 0x33f045: ja      short loc_73F05D
+0x0073f047 RVA 0x33f047: mov     ecx, [esi+25AC4h]
+0x0073f04d RVA 0x33f04d: xor     eax, eax
+0x0073f04f RVA 0x33f04f: and     ecx, 10000h
+0x0073f055 RVA 0x33f055: or      eax, ecx
+0x0073f057 RVA 0x33f057: jnz     loc_73F1CD
+0x0073f05d RVA 0x33f05d: mov     eax, [edi+182D4h]
+0x0073f063 RVA 0x33f063: movq    xmm0, ds:qword_AACE4C
+0x0073f06b RVA 0x33f06b: mov     [ebp-24h], eax
+0x0073f06e RVA 0x33f06e: mov     eax, ds:dword_AACE54
+0x0073f073 RVA 0x33f073: movq    qword ptr [ebp-20h], xmm0
+0x0073f078 RVA 0x33f078: mov     [ebp-18h], eax
+0x0073f07b RVA 0x33f07b: mov     dword ptr [edi+0Ch], 0
+0x0073f082 RVA 0x33f082: test    edx, edx
+0x0073f084 RVA 0x33f084: jle     loc_73F1F2
+0x0073f08a RVA 0x33f08a: push    1
+0x0073f08c RVA 0x33f08c: lea     ecx, [esi+1BAA8h]
+0x0073f092 RVA 0x33f092: push    ecx
+0x0073f093 RVA 0x33f093: push    104h
+0x0073f098 RVA 0x33f098: call    sub_9950B0
+0x0073f09d RVA 0x33f09d: mov     esi, n255
+0x0073f0a3 RVA 0x33f0a3: test    eax, eax
+0x0073f0a5 RVA 0x33f0a5: jnz     loc_73F1F2
+0x0073f0ab RVA 0x33f0ab: cmp     dword ptr [esi+25BB4h], 12h
+0x0073f0b2 RVA 0x33f0b2: jz      loc_73F1F2
+0x0073f0b8 RVA 0x33f0b8: push    dword ptr [ebp-28h]
+0x0073f0bb RVA 0x33f0bb: lea     ecx, [ebp-24h]
+0x0073f0be RVA 0x33f0be: call    sub_7DF4E0
+0x0073f0c3 RVA 0x33f0c3: test    eax, eax
+0x0073f0c5 RVA 0x33f0c5: jnz     def_73F121; jumptable 0073F121 default case
+0x0073f0cb RVA 0x33f0cb: mov     edx, [ebp-24h]
+0x0073f0ce RVA 0x33f0ce: test    edx, edx
+0x0073f0d0 RVA 0x33f0d0: jnz     short loc_73F0E9
+0x0073f0d2 RVA 0x33f0d2: push    offset aRngSeedIsZero; "RNG Seed is zero!\n"
+0x0073f0d7 RVA 0x33f0d7: push    3; int
+0x0073f0d9 RVA 0x33f0d9: call    sub_9E0DF0
+0x0073f0de RVA 0x33f0de: mov     edx, [ebp-24h]
+0x0073f0e1 RVA 0x33f0e1: add     esp, 8
+0x0073f0e4 RVA 0x33f0e4: test    edx, edx
+0x0073f0e6 RVA 0x33f0e6: jnz     short loc_73F0E9
+0x0073f0e8 RVA 0x33f0e8: int     3; Trap to Debugger
+0x0073f0e9 RVA 0x33f0e9: mov     ecx, [ebp-20h]
+0x0073f0ec RVA 0x33f0ec: mov     eax, edx
+0x0073f0ee RVA 0x33f0ee: shr     eax, cl
+0x0073f0f0 RVA 0x33f0f0: mov     ecx, [ebp-1Ch]
+0x0073f0f3 RVA 0x33f0f3: xor     eax, edx
+0x0073f0f5 RVA 0x33f0f5: mov     edx, eax
+0x0073f0f7 RVA 0x33f0f7: shl     edx, cl
+0x0073f0f9 RVA 0x33f0f9: mov     ecx, [ebp-18h]
+0x0073f0fc RVA 0x33f0fc: xor     edx, eax
+0x0073f0fe RVA 0x33f0fe: mov     esi, edx
+0x0073f100 RVA 0x33f100: mov     eax, 0AAAAAAABh
+0x0073f105 RVA 0x33f105: shr     esi, cl
+0x0073f107 RVA 0x33f107: xor     esi, edx
+0x0073f109 RVA 0x33f109: mul     esi
+0x0073f10b RVA 0x33f10b: mov     [ebp-24h], esi
+0x0073f10e RVA 0x33f10e: shr     edx, 2
+0x0073f111 RVA 0x33f111: lea     eax, [edx+edx*2]
+0x0073f114 RVA 0x33f114: add     eax, eax
+0x0073f116 RVA 0x33f116: sub     esi, eax
+0x0073f118 RVA 0x33f118: cmp     esi, 5; switch 6 cases
+0x0073f11b RVA 0x33f11b: ja      def_73F121; jumptable 0073F121 default case
+0x0073f121 RVA 0x33f121: jmp     ds:jpt_73F121[esi*4]; switch jump
+0x0073f128 RVA 0x33f128: push    dword ptr [edi]; jumptable 0073F121 case 0
+0x0073f12a RVA 0x33f12a: mov     ecx, edi
+0x0073f12c RVA 0x33f12c: call    sub_732E00
+0x0073f131 RVA 0x33f131: test    al, al
+0x0073f133 RVA 0x33f133: jz      def_73F121; jumptable 0073F121 default case
+0x0073f139 RVA 0x33f139: or      dword ptr [edi+0Ch], 2
+0x0073f13d RVA 0x33f13d: push    offset aCurseOfTheLaby; "Curse of the Labyrinth!\n"
+0x0073f142 RVA 0x33f142: jmp     short loc_73F1B0
+0x0073f144 RVA 0x33f144: mov     esi, n255; jumptable 0073F121 case 1
+0x0073f14a RVA 0x33f14a: mov     ecx, esi
+0x0073f14c RVA 0x33f14c: call    sub_6F4380
+0x0073f151 RVA 0x33f151: test    al, al
+0x0073f153 RVA 0x33f153: jnz     short def_73F121; jumptable 0073F121 default case
+0x0073f155 RVA 0x33f155: cmp     dword ptr [esi+25AFCh], 2Ch ; ','
+0x0073f15c RVA 0x33f15c: jz      short def_73F121; jumptable 0073F121 default case
+0x0073f15e RVA 0x33f15e: or      dword ptr [edi+0Ch], 4
+0x0073f162 RVA 0x33f162: push    offset aCurseOfTheLost; "Curse of the Lost!\n"
+0x0073f167 RVA 0x33f167: jmp     short loc_73F1B0
+0x0073f169 RVA 0x33f169: or      dword ptr [edi+0Ch], 1; jumptable 0073F121 case 2
+0x0073f16d RVA 0x33f16d: push    offset aCurseOfDarknes; "Curse of Darkness!\n"
+0x0073f172 RVA 0x33f172: jmp     short loc_73F1B0
+0x0073f174 RVA 0x33f174: or      dword ptr [edi+0Ch], 8; jumptable 0073F121 case 3
+0x0073f178 RVA 0x33f178: push    offset aCurseOfTheUnkn; "Curse of the Unknown\n"
+0x0073f17d RVA 0x33f17d: jmp     short loc_73F1B0
+0x0073f17f RVA 0x33f17f: mov     ecx, n255; jumptable 0073F121 case 4
+0x0073f185 RVA 0x33f185: call    sub_6F4380
+0x0073f18a RVA 0x33f18a: test    al, al
+0x0073f18c RVA 0x33f18c: jnz     short def_73F121; jumptable 0073F121 default case
+0x0073f18e RVA 0x33f18e: or      dword ptr [edi+0Ch], 20h
+0x0073f192 RVA 0x33f192: push    offset aCurseOfMaze; "Curse of Maze\n"
+0x0073f197 RVA 0x33f197: jmp     short loc_73F1B0
+0x0073f199 RVA 0x33f199: mov     eax, n255; jumptable 0073F121 case 5
+0x0073f19e RVA 0x33f19e: cmp     dword ptr [eax+25BA8h], 0
+0x0073f1a5 RVA 0x33f1a5: ja      short def_73F121; jumptable 0073F121 default case
+0x0073f1a7 RVA 0x33f1a7: or      dword ptr [edi+0Ch], 40h
+0x0073f1ab RVA 0x33f1ab: push    offset aCurseOfBlind; "Curse of Blind\n"
+0x0073f1b0 RVA 0x33f1b0: push    0; int
+0x0073f1b2 RVA 0x33f1b2: call    sub_9E0DF0
+0x0073f1b7 RVA 0x33f1b7: add     esp, 8
+0x0073f1ba RVA 0x33f1ba: push    dword ptr [edi+0Ch]; jumptable 0073F121 default case
+0x0073f1bd RVA 0x33f1bd: call    sub_84B250
+0x0073f1c2 RVA 0x33f1c2: mov     esi, n255
+0x0073f1c8 RVA 0x33f1c8: mov     [edi+0Ch], eax
+0x0073f1cb RVA 0x33f1cb: jmp     short loc_73F1F2
+0x0073f1cd RVA 0x33f1cd: mov     eax, [edi+182D4h]
+0x0073f1d3 RVA 0x33f1d3: movq    xmm0, ds:qword_AACE4C
+0x0073f1db RVA 0x33f1db: mov     [ebp-24h], eax
+0x0073f1de RVA 0x33f1de: mov     eax, ds:dword_AACE54
+0x0073f1e3 RVA 0x33f1e3: movq    qword ptr [ebp-20h], xmm0
+0x0073f1e8 RVA 0x33f1e8: mov     [ebp-18h], eax
+0x0073f1eb RVA 0x33f1eb: mov     dword ptr [edi+0Ch], 0
+0x0073f1f2 RVA 0x33f1f2: cmp     dword ptr [esi+25BB4h], 26h ; '&'
+0x0073f1f9 RVA 0x33f1f9: jnz     short loc_73F1FF
+0x0073f1fb RVA 0x33f1fb: or      dword ptr [edi+0Ch], 4Ch
+0x0073f1ff RVA 0x33f1ff: mov     eax, [esi+25AFCh]
+0x0073f205 RVA 0x33f205: mov     [ebp-2Ch], eax
+0x0073f208 RVA 0x33f208: test    eax, eax
+0x0073f20a RVA 0x33f20a: jz      loc_73F29C
+0x0073f210 RVA 0x33f210: mov     ecx, n4
+0x0073f216 RVA 0x33f216: mov     eax, 63E7063Fh
+0x0073f21b RVA 0x33f21b: mov     esi, [ecx+2A360h]
+0x0073f221 RVA 0x33f221: mov     ecx, [ecx+2A364h]
+0x0073f227 RVA 0x33f227: sub     ecx, esi
+0x0073f229 RVA 0x33f229: imul    ecx
+0x0073f22b RVA 0x33f22b: mov     ecx, [ebp-2Ch]
+0x0073f22e RVA 0x33f22e: sar     edx, 6
+0x0073f231 RVA 0x33f231: mov     eax, edx
+0x0073f233 RVA 0x33f233: shr     eax, 1Fh
+0x0073f236 RVA 0x33f236: dec     eax
+0x0073f237 RVA 0x33f237: add     eax, edx
+0x0073f239 RVA 0x33f239: cmp     ecx, eax
+0x0073f23b RVA 0x33f23b: cmovnb  ecx, eax
+0x0073f23e RVA 0x33f23e: imul    ecx, 0A4h
+0x0073f244 RVA 0x33f244: mov     eax, [ecx+esi+84h]
+0x0073f24b RVA 0x33f24b: or      [edi+0Ch], eax
+0x0073f24e RVA 0x33f24e: mov     ecx, [ecx+esi+88h]
+0x0073f255 RVA 0x33f255: mov     esi, n255
+0x0073f25b RVA 0x33f25b: not     ecx
+0x0073f25d RVA 0x33f25d: and     ecx, [edi+0Ch]
+0x0073f260 RVA 0x33f260: mov     [edi+0Ch], ecx
+0x0073f263 RVA 0x33f263: cmp     dword ptr [esi+25AFCh], 2Ch ; ','
+0x0073f26a RVA 0x33f26a: jz      short loc_73F296
+0x0073f26c RVA 0x33f26c: mov     edx, [edi]
+0x0073f26e RVA 0x33f26e: mov     eax, edx
+0x0073f270 RVA 0x33f270: and     eax, 80000001h
+0x0073f275 RVA 0x33f275: jns     short loc_73F27C
+0x0073f277 RVA 0x33f277: dec     eax
+0x0073f278 RVA 0x33f278: or      eax, 0FFFFFFFEh
+0x0073f27b RVA 0x33f27b: inc     eax
+0x0073f27c RVA 0x33f27c: cmp     eax, 1
+0x0073f27f RVA 0x33f27f: jnz     short loc_73F296
+0x0073f281 RVA 0x33f281: cmp     edx, 8
+0x0073f284 RVA 0x33f284: jge     short loc_73F296
+0x0073f286 RVA 0x33f286: mov     eax, [esi+25F40h]
+0x0073f28c RVA 0x33f28c: cmp     eax, 2
+0x0073f28f RVA 0x33f28f: jz      short loc_73F296
+0x0073f291 RVA 0x33f291: cmp     eax, 3
+0x0073f294 RVA 0x33f294: jnz     short loc_73F29C
+0x0073f296 RVA 0x33f296: and     ecx, 0FFFFFFFDh
+0x0073f299 RVA 0x33f299: mov     [edi+0Ch], ecx
+0x0073f29c RVA 0x33f29c: cmp     dword ptr [edi], 9
+0x0073f29f RVA 0x33f29f: jz      short loc_73F2AA
+0x0073f2a1 RVA 0x33f2a1: cmp     dword ptr [esi+25CECh], 3
+0x0073f2a8 RVA 0x33f2a8: jl      short loc_73F2AE
+0x0073f2aa RVA 0x33f2aa: and     dword ptr [edi+0Ch], 0FFFFFFFEh
+0x0073f2ae RVA 0x33f2ae: push    0
+0x0073f2b0 RVA 0x33f2b0: lea     ecx, [esi+1D9ACh]
+0x0073f2b6 RVA 0x33f2b6: call    sub_97AFD0
+0x0073f2bb RVA 0x33f2bb: lea     ecx, [esi+18910h]
+0x0073f2c1 RVA 0x33f2c1: call    sub_821FF0
+0x0073f2c6 RVA 0x33f2c6: mov     ecx, [edi]
+0x0073f2c8 RVA 0x33f2c8: cmp     ecx, 0Ch
+0x0073f2cb RVA 0x33f2cb: jnz     loc_73F387
+0x0073f2d1 RVA 0x33f2d1: mov     edx, 1
+0x0073f2d6 RVA 0x33f2d6: mov     esi, 0C4h
+0x0073f2db RVA 0x33f2db: mov     [ebp-4Ch], edx
+0x0073f2de RVA 0x33f2de: mov     [ebp-28h], esi
+0x0073f2e1 RVA 0x33f2e1: cmp     edx, 0Dh
+0x0073f2e4 RVA 0x33f2e4: jz      loc_73F369
+0x0073f2ea RVA 0x33f2ea: mov     ecx, n255
+0x0073f2f0 RVA 0x33f2f0: lea     eax, [ecx+18910h]
+0x0073f2f6 RVA 0x33f2f6: mov     [ebp-2Ch], eax
+0x0073f2f9 RVA 0x33f2f9: add     eax, esi
+0x0073f2fb RVA 0x33f2fb: test    ecx, ecx
+0x0073f2fd RVA 0x33f2fd: jz      short loc_73F316
+0x0073f2ff RVA 0x33f2ff: mov     ecx, [ecx+25F40h]
+0x0073f305 RVA 0x33f305: cmp     ecx, 2
+0x0073f308 RVA 0x33f308: jz      short loc_73F30F
+0x0073f30a RVA 0x33f30a: cmp     ecx, 3
+0x0073f30d RVA 0x33f30d: jnz     short loc_73F316
+0x0073f30f RVA 0x33f30f: mov     ecx, 1
+0x0073f314 RVA 0x33f314: jmp     short loc_73F318
+0x0073f316 RVA 0x33f316: xor     ecx, ecx
+0x0073f318 RVA 0x33f318: imul    edi, ecx, 2Ch ; ','
+0x0073f31b RVA 0x33f31b: cmp     byte ptr [edi+eax+8Ch], 0
+0x0073f323 RVA 0x33f323: jnz     short loc_73F334
+0x0073f325 RVA 0x33f325: push    ecx
+0x0073f326 RVA 0x33f326: mov     ecx, [ebp-2Ch]
+0x0073f329 RVA 0x33f329: push    edx
+0x0073f32a RVA 0x33f32a: call    sub_81F740
+0x0073f32f RVA 0x33f32f: mov     edx, [ebp-4Ch]
+0x0073f332 RVA 0x33f332: jmp     short loc_73F369
+0x0073f334 RVA 0x33f334: xor     esi, esi
+0x0073f336 RVA 0x33f336: cmp     [edi+eax+80h], esi
+0x0073f33d RVA 0x33f33d: jbe     short loc_73F366
+0x0073f33f RVA 0x33f33f: xor     edx, edx
+0x0073f341 RVA 0x33f341: mov     ecx, [edi+eax+7Ch]
+0x0073f345 RVA 0x33f345: inc     esi
+0x0073f346 RVA 0x33f346: mov     eax, [edx+ecx+30h]
+0x0073f34a RVA 0x33f34a: mov     [edx+ecx+34h], eax
+0x0073f34e RVA 0x33f34e: add     edx, 5Ch ; '\'
+0x0073f351 RVA 0x33f351: mov     eax, [ebp-28h]
+0x0073f354 RVA 0x33f354: add     eax, [ebp-2Ch]
+0x0073f357 RVA 0x33f357: mov     [ebp-50h], edx
+0x0073f35a RVA 0x33f35a: cmp     esi, [edi+eax+80h]
+0x0073f361 RVA 0x33f361: jb      short loc_73F341
+0x0073f363 RVA 0x33f363: mov     edx, [ebp-4Ch]
+0x0073f366 RVA 0x33f366: mov     esi, [ebp-28h]
+0x0073f369 RVA 0x33f369: add     esi, 0C4h
+0x0073f36f RVA 0x33f36f: inc     edx
+0x0073f370 RVA 0x33f370: mov     [ebp-4Ch], edx
+0x0073f373 RVA 0x33f373: mov     [ebp-28h], esi
+0x0073f376 RVA 0x33f376: cmp     esi, 0D04h
+0x0073f37c RVA 0x33f37c: jbe     loc_73F2E1
+0x0073f382 RVA 0x33f382: mov     edi, [ebp-34h]
+0x0073f385 RVA 0x33f385: jmp     short loc_73F3A8
+0x0073f387 RVA 0x33f387: mov     edx, [edi+4]
+0x0073f38a RVA 0x33f38a: push    0FFFFFFFFh
+0x0073f38c RVA 0x33f38c: push    0FFFFFFFFh
+0x0073f38e RVA 0x33f38e: call    sub_821D00
+0x0073f393 RVA 0x33f393: mov     ecx, n255
+0x0073f399 RVA 0x33f399: add     esp, 4
+0x0073f39c RVA 0x33f39c: push    eax
+0x0073f39d RVA 0x33f39d: lea     ecx, [ecx+18910h]
+0x0073f3a3 RVA 0x33f3a3: call    sub_81F6B0
+0x0073f3a8 RVA 0x33f3a8: mov     edx, n255
+0x0073f3ae RVA 0x33f3ae: mov     eax, [edx+25F40h]
+0x0073f3b4 RVA 0x33f3b4: cmp     eax, 2
+0x0073f3b7 RVA 0x33f3b7: jz      loc_73F4A5
+0x0073f3bd RVA 0x33f3bd: cmp     eax, 3
+0x0073f3c0 RVA 0x33f3c0: jz      loc_73F4A5
+0x0073f3c6 RVA 0x33f3c6: mov     esi, [edi]
+0x0073f3c8 RVA 0x33f3c8: lea     eax, [esi-1]
+0x0073f3cb RVA 0x33f3cb: cmp     eax, 5
+0x0073f3ce RVA 0x33f3ce: ja      short loc_73F3E6
+0x0073f3d0 RVA 0x33f3d0: mov     ecx, [edx+25AC4h]
+0x0073f3d6 RVA 0x33f3d6: xor     eax, eax
+0x0073f3d8 RVA 0x33f3d8: and     ecx, 10000h
+0x0073f3de RVA 0x33f3de: or      eax, ecx
+0x0073f3e0 RVA 0x33f3e0: jnz     loc_73F4A5
+0x0073f3e6 RVA 0x33f3e6: mov     eax, [edi+4]
+0x0073f3e9 RVA 0x33f3e9: cmp     eax, 4
+0x0073f3ec RVA 0x33f3ec: jz      short loc_73F3F7
+0x0073f3ee RVA 0x33f3ee: cmp     eax, 5
+0x0073f3f1 RVA 0x33f3f1: jnz     loc_73F4A5
+0x0073f3f7 RVA 0x33f3f7: cmp     esi, 4
+0x0073f3fa RVA 0x33f3fa: jz      short loc_73F42A
+0x0073f3fc RVA 0x33f3fc: cmp     esi, 3
+0x0073f3ff RVA 0x33f3ff: jnz     loc_73F4A5
+0x0073f405 RVA 0x33f405: mov     esi, [edx+25AC8h]
+0x0073f40b RVA 0x33f40b: or      esi, [edi+0Ch]
+0x0073f40e RVA 0x33f40e: call    sub_6F55C0
+0x0073f413 RVA 0x33f413: mov     edi, eax
+0x0073f415 RVA 0x33f415: or      edi, esi
+0x0073f417 RVA 0x33f417: call    sub_6F5750
+0x0073f41c RVA 0x33f41c: mov     edx, n255
+0x0073f422 RVA 0x33f422: not     eax
+0x0073f424 RVA 0x33f424: and     eax, edi
+0x0073f426 RVA 0x33f426: test    al, 2
+0x0073f428 RVA 0x33f428: jz      short loc_73F4A5
+0x0073f42a RVA 0x33f42a: mov     ecx, [edx+25F40h]
+0x0073f430 RVA 0x33f430: lea     eax, [edx+18910h]
+0x0073f436 RVA 0x33f436: mov     [ebp-50h], eax
+0x0073f439 RVA 0x33f439: cmp     ecx, 2
+0x0073f43c RVA 0x33f43c: jz      short loc_73F447
+0x0073f43e RVA 0x33f43e: cmp     ecx, 3
+0x0073f441 RVA 0x33f441: jz      short loc_73F447
+0x0073f443 RVA 0x33f443: xor     esi, esi
+0x0073f445 RVA 0x33f445: jmp     short loc_73F44C
+0x0073f447 RVA 0x33f447: mov     esi, 1
+0x0073f44c RVA 0x33f44c: imul    ecx, esi, 2Ch ; ','
+0x0073f44f RVA 0x33f44f: mov     [ebp-2Ch], ecx
+0x0073f452 RVA 0x33f452: cmp     byte ptr [ecx+eax+16C0h], 0
+0x0073f45a RVA 0x33f45a: jnz     short loc_73F468
+0x0073f45c RVA 0x33f45c: push    esi
+0x0073f45d RVA 0x33f45d: push    1Dh
+0x0073f45f RVA 0x33f45f: mov     ecx, eax
+0x0073f461 RVA 0x33f461: call    sub_81F740
+0x0073f466 RVA 0x33f466: jmp     short loc_73F49F
+0x0073f468 RVA 0x33f468: xor     edi, edi
+0x0073f46a RVA 0x33f46a: cmp     [ecx+eax+16B4h], edi
+0x0073f471 RVA 0x33f471: jbe     short loc_73F4A5
+0x0073f473 RVA 0x33f473: mov     edx, [ebp-50h]
+0x0073f476 RVA 0x33f476: xor     esi, esi
+0x0073f478 RVA 0x33f478: nop     dword ptr [eax+eax+00000000h]
+0x0073f480 RVA 0x33f480: mov     ecx, [ecx+edx+16B0h]
+0x0073f487 RVA 0x33f487: lea     esi, [esi+5Ch]
+0x0073f48a RVA 0x33f48a: inc     edi
+0x0073f48b RVA 0x33f48b: mov     eax, [esi+ecx-2Ch]
+0x0073f48f RVA 0x33f48f: mov     [esi+ecx-28h], eax
+0x0073f493 RVA 0x33f493: mov     ecx, [ebp-2Ch]
+0x0073f496 RVA 0x33f496: cmp     edi, [ecx+edx+16B4h]
+0x0073f49d RVA 0x33f49d: jb      short loc_73F480
+0x0073f49f RVA 0x33f49f: mov     edx, n255
+0x0073f4a5 RVA 0x33f4a5: mov     eax, [edx+25F40h]
+0x0073f4ab RVA 0x33f4ab: cmp     eax, 2
+0x0073f4ae RVA 0x33f4ae: jz      loc_73F534
+0x0073f4b4 RVA 0x33f4b4: cmp     eax, 3
+0x0073f4b7 RVA 0x33f4b7: jz      short loc_73F534
+0x0073f4b9 RVA 0x33f4b9: mov     edi, [ebp-34h]
+0x0073f4bc RVA 0x33f4bc: mov     esi, [edi]
+0x0073f4be RVA 0x33f4be: cmp     esi, 0Dh
+0x0073f4c1 RVA 0x33f4c1: jnz     short loc_73F4CF
+0x0073f4c3 RVA 0x33f4c3: mov     ecx, edi
+0x0073f4c5 RVA 0x33f4c5: call    sub_747D70
+0x0073f4ca RVA 0x33f4ca: jmp     loc_73F59C
+0x0073f4cf RVA 0x33f4cf: cmp     esi, 6
+0x0073f4d2 RVA 0x33f4d2: jg      short loc_73F4F2
+0x0073f4d4 RVA 0x33f4d4: mov     ecx, [edx+25AC4h]
+0x0073f4da RVA 0x33f4da: xor     eax, eax
+0x0073f4dc RVA 0x33f4dc: and     ecx, 10000h
+0x0073f4e2 RVA 0x33f4e2: or      eax, ecx
+0x0073f4e4 RVA 0x33f4e4: jz      short loc_73F4F2
+0x0073f4e6 RVA 0x33f4e6: mov     ecx, edi
+0x0073f4e8 RVA 0x33f4e8: call    sub_73D090
+0x0073f4ed RVA 0x33f4ed: jmp     loc_73F59C
+0x0073f4f2 RVA 0x33f4f2: cmp     dword ptr [edx+25AFCh], 2Ch ; ','
+0x0073f4f9 RVA 0x33f4f9: jnz     short loc_73F507
+0x0073f4fb RVA 0x33f4fb: mov     ecx, edi
+0x0073f4fd RVA 0x33f4fd: call    sub_74A7D0
+0x0073f502 RVA 0x33f502: jmp     loc_73F59C
+0x0073f507 RVA 0x33f507: cmp     esi, 9
+0x0073f50a RVA 0x33f50a: jnz     short loc_73F518
+0x0073f50c RVA 0x33f50c: mov     ecx, edi
+0x0073f50e RVA 0x33f50e: call    sub_7444D0
+0x0073f513 RVA 0x33f513: jmp     loc_73F59C
+0x0073f518 RVA 0x33f518: push    0FFFFFFFFh
+0x0073f51a RVA 0x33f51a: push    0
+0x0073f51c RVA 0x33f51c: lea     ecx, [edx+18910h]
+0x0073f522 RVA 0x33f522: call    sub_81F6B0
+0x0073f527 RVA 0x33f527: lea     eax, [ebp-24h]
+0x0073f52a RVA 0x33f52a: mov     ecx, edi
+0x0073f52c RVA 0x33f52c: push    eax
+0x0073f52d RVA 0x33f52d: call    sub_73AF60
+0x0073f532 RVA 0x33f532: jmp     short loc_73F59C
+0x0073f534 RVA 0x33f534: lea     edi, [edx+18910h]
+0x0073f53a RVA 0x33f53a: cmp     eax, 2
+0x0073f53d RVA 0x33f53d: jz      short loc_73F548
+0x0073f53f RVA 0x33f53f: cmp     eax, 3
+0x0073f542 RVA 0x33f542: jz      short loc_73F548
+0x0073f544 RVA 0x33f544: xor     ecx, ecx
+0x0073f546 RVA 0x33f546: jmp     short loc_73F54D
+0x0073f548 RVA 0x33f548: mov     ecx, 1
+0x0073f54d RVA 0x33f54d: imul    eax, ecx, 2Ch ; ','
+0x0073f550 RVA 0x33f550: mov     [ebp-50h], eax
+0x0073f553 RVA 0x33f553: cmp     byte ptr [eax+edi+8Ch], 0
+0x0073f55b RVA 0x33f55b: jnz     short loc_73F569
+0x0073f55d RVA 0x33f55d: push    ecx
+0x0073f55e RVA 0x33f55e: push    0
+0x0073f560 RVA 0x33f560: mov     ecx, edi
+0x0073f562 RVA 0x33f562: call    sub_81F740
+0x0073f567 RVA 0x33f567: jmp     short loc_73F592
+0x0073f569 RVA 0x33f569: xor     esi, esi
+0x0073f56b RVA 0x33f56b: cmp     [eax+edi+80h], esi
+0x0073f572 RVA 0x33f572: jbe     short loc_73F592
+0x0073f574 RVA 0x33f574: xor     edx, edx
+0x0073f576 RVA 0x33f576: mov     ecx, [eax+edi+7Ch]
+0x0073f57a RVA 0x33f57a: lea     edx, [edx+5Ch]
+0x0073f57d RVA 0x33f57d: inc     esi
+0x0073f57e RVA 0x33f57e: mov     eax, [edx+ecx-2Ch]
+0x0073f582 RVA 0x33f582: mov     [edx+ecx-28h], eax
+0x0073f586 RVA 0x33f586: mov     eax, [ebp-50h]
+0x0073f589 RVA 0x33f589: cmp     esi, [eax+edi+80h]
+0x0073f590 RVA 0x33f590: jb      short loc_73F576
+0x0073f592 RVA 0x33f592: mov     edi, [ebp-34h]
+0x0073f595 RVA 0x33f595: mov     ecx, edi
+0x0073f597 RVA 0x33f597: call    sub_73D6F0
+0x0073f59c RVA 0x33f59c: mov     ecx, edi
+0x0073f59e RVA 0x33f59e: call    sub_738590
+0x0073f5a3 RVA 0x33f5a3: mov     edx, [edi+182D4h]
+0x0073f5a9 RVA 0x33f5a9: test    edx, edx
+0x0073f5ab RVA 0x33f5ab: jnz     short loc_73F5C7
+0x0073f5ad RVA 0x33f5ad: push    offset aRngSeedIsZero; "RNG Seed is zero!\n"
+0x0073f5b2 RVA 0x33f5b2: push    3; int
+0x0073f5b4 RVA 0x33f5b4: call    sub_9E0DF0
+0x0073f5b9 RVA 0x33f5b9: mov     edx, [edi+182D4h]
+0x0073f5bf RVA 0x33f5bf: add     esp, 8
+0x0073f5c2 RVA 0x33f5c2: test    edx, edx
+0x0073f5c4 RVA 0x33f5c4: jnz     short loc_73F5C7
+0x0073f5c6 RVA 0x33f5c6: int     3; Trap to Debugger
+0x0073f5c7 RVA 0x33f5c7: mov     ecx, [edi+182D8h]
+0x0073f5cd RVA 0x33f5cd: mov     eax, edx
+0x0073f5cf RVA 0x33f5cf: shr     eax, cl
+0x0073f5d1 RVA 0x33f5d1: mov     ecx, [edi+182DCh]
+0x0073f5d7 RVA 0x33f5d7: xor     eax, edx
+0x0073f5d9 RVA 0x33f5d9: mov     edx, eax
+0x0073f5db RVA 0x33f5db: shl     edx, cl
+0x0073f5dd RVA 0x33f5dd: mov     ecx, [edi+182E0h]
+0x0073f5e3 RVA 0x33f5e3: xor     edx, eax
+0x0073f5e5 RVA 0x33f5e5: mov     eax, edx
+0x0073f5e7 RVA 0x33f5e7: shr     eax, cl
+0x0073f5e9 RVA 0x33f5e9: mov     ecx, n255
+0x0073f5ef RVA 0x33f5ef: xor     eax, edx
+0x0073f5f1 RVA 0x33f5f1: mov     [edi+182D4h], eax
+0x0073f5f7 RVA 0x33f5f7: mov     [edi+1832Ch], eax
+0x0073f5fd RVA 0x33f5fd: mov     eax, [ecx+25F40h]
+0x0073f603 RVA 0x33f603: cmp     eax, 2
+0x0073f606 RVA 0x33f606: jz      loc_73F995
+0x0073f60c RVA 0x33f60c: cmp     eax, 3
+0x0073f60f RVA 0x33f60f: jz      loc_73F995
+0x0073f615 RVA 0x33f615: cmp     dword ptr [edi], 0Ch
+0x0073f618 RVA 0x33f618: jnz     loc_73F995
+0x0073f61e RVA 0x33f61e: mov     eax, [edi+18330h]
+0x0073f624 RVA 0x33f624: test    eax, eax
+0x0073f626 RVA 0x33f626: js      loc_73F995
+0x0073f62c RVA 0x33f62c: imul    eax, 0B8h
+0x0073f632 RVA 0x33f632: mov     ecx, edi
+0x0073f634 RVA 0x33f634: push    dword ptr [eax+edi+14h]; int
+0x0073f638 RVA 0x33f638: lea     eax, [ebp-58h]
+0x0073f63b RVA 0x33f63b: push    eax; void *
+0x0073f63c RVA 0x33f63c: call    sub_743670
+0x0073f641 RVA 0x33f641: mov     dword ptr [ebp-4], 0
+0x0073f648 RVA 0x33f648: push    8; Size
+0x0073f64a RVA 0x33f64a: mov     dword ptr [ebp-48h], 0
+0x0073f651 RVA 0x33f651: mov     dword ptr [ebp-44h], 0
+0x0073f658 RVA 0x33f658: mov     dword ptr [ebp-40h], 0
+0x0073f65f RVA 0x33f65f: mov     dword ptr [ebp-3Ch], 0
+0x0073f666 RVA 0x33f666: mov     dword ptr [ebp-38h], 0
+0x0073f66d RVA 0x33f66d: call    ??2@YAPAXI@Z; operator new(uint)
+0x0073f672 RVA 0x33f672: lea     ecx, [ebp-48h]
+0x0073f675 RVA 0x33f675: add     esp, 4
+0x0073f678 RVA 0x33f678: mov     dword ptr [eax+4], 0
+0x0073f67f RVA 0x33f67f: mov     [ebp-48h], eax
+0x0073f682 RVA 0x33f682: mov     [eax], ecx
+0x0073f684 RVA 0x33f684: mov     byte ptr [ebp-4], 1
+0x0073f688 RVA 0x33f688: mov     eax, [ebp-58h]
+0x0073f68b RVA 0x33f68b: mov     esi, [eax]
+0x0073f68d RVA 0x33f68d: mov     [ebp-2Ch], esi
+0x0073f690 RVA 0x33f690: cmp     esi, eax
+0x0073f692 RVA 0x33f692: jnz     loc_73F7C9
+0x0073f698 RVA 0x33f698: mov     edi, [ebp-38h]
+0x0073f69b RVA 0x33f69b: test    edi, edi
+0x0073f69d RVA 0x33f69d: jz      loc_73F756
+0x0073f6a3 RVA 0x33f6a3: lea     ecx, [ebp-48h]
+0x0073f6a6 RVA 0x33f6a6: call    sub_74C4F0
+0x0073f6ab RVA 0x33f6ab: sub     edi, 1
+0x0073f6ae RVA 0x33f6ae: mov     ecx, 0
+0x0073f6b3 RVA 0x33f6b3: push    0FFFFFFFFh
+0x0073f6b5 RVA 0x33f6b5: mov     esi, [eax]
+0x0073f6b7 RVA 0x33f6b7: mov     eax, [ebp-3Ch]
+0x0073f6ba RVA 0x33f6ba: mov     [ebp-38h], edi
+0x0073f6bd RVA 0x33f6bd: cmovz   eax, ecx
+0x0073f6c0 RVA 0x33f6c0: mov     edi, [ebp-34h]
+0x0073f6c3 RVA 0x33f6c3: mov     ecx, edi
+0x0073f6c5 RVA 0x33f6c5: push    esi
+0x0073f6c6 RVA 0x33f6c6: mov     [ebp-3Ch], eax
+0x0073f6c9 RVA 0x33f6c9: call    sub_73AD10
+0x0073f6ce RVA 0x33f6ce: mov     [ebp-2Ch], eax
+0x0073f6d1 RVA 0x33f6d1: mov     ecx, edi
+0x0073f6d3 RVA 0x33f6d3: push    esi; int
+0x0073f6d4 RVA 0x33f6d4: lea     eax, [ebp-64h]
+0x0073f6d7 RVA 0x33f6d7: push    eax; void *
+0x0073f6d8 RVA 0x33f6d8: call    sub_743670
+0x0073f6dd RVA 0x33f6dd: lea     ecx, [ebp-58h]
+0x0073f6e0 RVA 0x33f6e0: mov     [ebp-50h], eax
+0x0073f6e3 RVA 0x33f6e3: cmp     ecx, eax
+0x0073f6e5 RVA 0x33f6e5: jz      short loc_73F71D
+0x0073f6e7 RVA 0x33f6e7: mov     esi, [ebp-58h]
+0x0073f6ea RVA 0x33f6ea: mov     eax, ecx
+0x0073f6ec RVA 0x33f6ec: push    dword ptr [esi+4]; Block
+0x0073f6ef RVA 0x33f6ef: push    eax; int
+0x0073f6f0 RVA 0x33f6f0: call    sub_41FEE0
+0x0073f6f5 RVA 0x33f6f5: mov     edx, [ebp-50h]
+0x0073f6f8 RVA 0x33f6f8: mov     [esi+4], esi
+0x0073f6fb RVA 0x33f6fb: mov     [esi], esi
+0x0073f6fd RVA 0x33f6fd: mov     [esi+8], esi
+0x0073f700 RVA 0x33f700: mov     ecx, [ebp-58h]
+0x0073f703 RVA 0x33f703: mov     dword ptr [ebp-54h], 0
+0x0073f70a RVA 0x33f70a: mov     eax, [edx]
+0x0073f70c RVA 0x33f70c: mov     [ebp-58h], eax
+0x0073f70f RVA 0x33f70f: mov     eax, [edx+4]
+0x0073f712 RVA 0x33f712: mov     [edx], ecx
+0x0073f714 RVA 0x33f714: mov     ecx, [ebp-54h]
+0x0073f717 RVA 0x33f717: mov     [ebp-54h], eax
+0x0073f71a RVA 0x33f71a: mov     [edx+4], ecx
+0x0073f71d RVA 0x33f71d: mov     eax, [ebp-64h]
+0x0073f720 RVA 0x33f720: push    dword ptr [eax+4]; Block
+0x0073f723 RVA 0x33f723: lea     eax, [ebp-64h]
+0x0073f726 RVA 0x33f726: push    eax; int
+0x0073f727 RVA 0x33f727: mov     ecx, eax
+0x0073f729 RVA 0x33f729: call    sub_41FEE0
+0x0073f72e RVA 0x33f72e: push    14h
+0x0073f730 RVA 0x33f730: push    dword ptr [ebp-64h]; Block
+0x0073f733 RVA 0x33f733: call    sub_A8717B
+0x0073f738 RVA 0x33f738: mov     eax, [ebp-58h]
+0x0073f73b RVA 0x33f73b: add     esp, 8
+0x0073f73e RVA 0x33f73e: mov     esi, [eax]
+0x0073f740 RVA 0x33f740: mov     [ebp-28h], esi
+0x0073f743 RVA 0x33f743: cmp     esi, eax
+0x0073f745 RVA 0x33f745: jnz     loc_73F874
+0x0073f74b RVA 0x33f74b: mov     edi, [ebp-38h]
+0x0073f74e RVA 0x33f74e: test    edi, edi
+0x0073f750 RVA 0x33f750: jnz     loc_73F6A3
+0x0073f756 RVA 0x33f756: mov     byte ptr [ebp-4], 0
+0x0073f75a RVA 0x33f75a: test    edi, edi
+0x0073f75c RVA 0x33f75c: jz      short loc_73F76B
+0x0073f75e RVA 0x33f75e: xchg    ax, ax
+0x0073f760 RVA 0x33f760: sub     edi, 1
+0x0073f763 RVA 0x33f763: jnz     short loc_73F760
+0x0073f765 RVA 0x33f765: mov     [ebp-38h], edi
+0x0073f768 RVA 0x33f768: mov     [ebp-3Ch], edi
+0x0073f76b RVA 0x33f76b: mov     esi, [ebp-40h]
+0x0073f76e RVA 0x33f76e: mov     ecx, [ebp-44h]
+0x0073f771 RVA 0x33f771: test    esi, esi
+0x0073f773 RVA 0x33f773: jz      short loc_73F793
+0x0073f775 RVA 0x33f775: mov     eax, [ecx+esi*4-4]
+0x0073f779 RVA 0x33f779: dec     esi
+0x0073f77a RVA 0x33f77a: test    eax, eax
+0x0073f77c RVA 0x33f77c: jz      short loc_73F78C
+0x0073f77e RVA 0x33f77e: push    10h
+0x0073f780 RVA 0x33f780: push    eax; Block
+0x0073f781 RVA 0x33f781: call    sub_A8717B
+0x0073f786 RVA 0x33f786: mov     ecx, [ebp-44h]
+0x0073f789 RVA 0x33f789: add     esp, 8
+0x0073f78c RVA 0x33f78c: test    esi, esi
+0x0073f78e RVA 0x33f78e: jnz     short loc_73F775
+0x0073f790 RVA 0x33f790: mov     esi, [ebp-40h]
+0x0073f793 RVA 0x33f793: test    ecx, ecx
+0x0073f795 RVA 0x33f795: jz      loc_73F944
+0x0073f79b RVA 0x33f79b: shl     esi, 2
+0x0073f79e RVA 0x33f79e: mov     eax, ecx
+0x0073f7a0 RVA 0x33f7a0: cmp     esi, 1000h
+0x0073f7a6 RVA 0x33f7a6: jb      loc_73F93A
+0x0073f7ac RVA 0x33f7ac: mov     ecx, [ecx-4]
+0x0073f7af RVA 0x33f7af: add     esi, 23h ; '#'
+0x0073f7b2 RVA 0x33f7b2: sub     eax, ecx
+0x0073f7b4 RVA 0x33f7b4: add     eax, 0FFFFFFFCh
+0x0073f7b7 RVA 0x33f7b7: cmp     eax, 1Fh
+0x0073f7ba RVA 0x33f7ba: jbe     loc_73F93A
+0x0073f7c0 RVA 0x33f7c0: call    ds:_invalid_parameter_noinfo_noreturn
+0x0073f7c6 RVA 0x33f7c6: mov     edi, [ebp-34h]
+0x0073f7c9 RVA 0x33f7c9: push    0FFFFFFFFh
+0x0073f7cb RVA 0x33f7cb: push    dword ptr [esi+10h]
+0x0073f7ce RVA 0x33f7ce: mov     ecx, edi
+0x0073f7d0 RVA 0x33f7d0: call    sub_73AD10
+0x0073f7d5 RVA 0x33f7d5: mov     dword ptr [eax+0B0h], 1
+0x0073f7df RVA 0x33f7df: mov     edi, [ebp-38h]
+0x0073f7e2 RVA 0x33f7e2: mov     edx, [ebp-3Ch]
+0x0073f7e5 RVA 0x33f7e5: mov     ecx, [ebp-40h]
+0x0073f7e8 RVA 0x33f7e8: lea     eax, [edi+edx]
+0x0073f7eb RVA 0x33f7eb: test    al, 3
+0x0073f7ed RVA 0x33f7ed: jnz     short loc_73F80B
+0x0073f7ef RVA 0x33f7ef: lea     eax, [edi+4]
+0x0073f7f2 RVA 0x33f7f2: shr     eax, 2
+0x0073f7f5 RVA 0x33f7f5: cmp     ecx, eax
+0x0073f7f7 RVA 0x33f7f7: ja      short loc_73F80B
+0x0073f7f9 RVA 0x33f7f9: push    ecx
+0x0073f7fa RVA 0x33f7fa: lea     ecx, [ebp-48h]
+0x0073f7fd RVA 0x33f7fd: call    sub_447450
+0x0073f802 RVA 0x33f802: mov     edi, [ebp-38h]
+0x0073f805 RVA 0x33f805: mov     edx, [ebp-3Ch]
+0x0073f808 RVA 0x33f808: mov     ecx, [ebp-40h]
+0x0073f80b RVA 0x33f80b: lea     eax, ds:0FFFFFFFFh[ecx*4]
+0x0073f812 RVA 0x33f812: and     edx, eax
+0x0073f814 RVA 0x33f814: mov     [ebp-3Ch], edx
+0x0073f817 RVA 0x33f817: add     edx, edi
+0x0073f819 RVA 0x33f819: mov     eax, edx
+0x0073f81b RVA 0x33f81b: mov     [ebp-50h], edx
+0x0073f81e RVA 0x33f81e: lea     edi, [ecx-1]
+0x0073f821 RVA 0x33f821: shr     eax, 2
+0x0073f824 RVA 0x33f824: mov     ecx, [ebp-44h]
+0x0073f827 RVA 0x33f827: and     edi, eax
+0x0073f829 RVA 0x33f829: cmp     dword ptr [ecx+edi*4], 0
+0x0073f82d RVA 0x33f82d: jnz     short loc_73F845
+0x0073f82f RVA 0x33f82f: push    10h; Size
+0x0073f831 RVA 0x33f831: call    ??2@YAPAXI@Z; operator new(uint)
+0x0073f836 RVA 0x33f836: mov     ecx, [ebp-44h]
+0x0073f839 RVA 0x33f839: add     esp, 4
+0x0073f83c RVA 0x33f83c: mov     edx, [ebp-50h]
+0x0073f83f RVA 0x33f83f: mov     [ecx+edi*4], eax
+0x0073f842 RVA 0x33f842: mov     ecx, [ebp-44h]
+0x0073f845 RVA 0x33f845: mov     ecx, [ecx+edi*4]
+0x0073f848 RVA 0x33f848: and     edx, 3
+0x0073f84b RVA 0x33f84b: mov     eax, [esi+10h]
+0x0073f84e RVA 0x33f84e: mov     [ecx+edx*4], eax
+0x0073f851 RVA 0x33f851: lea     ecx, [ebp-2Ch]
+0x0073f854 RVA 0x33f854: mov     edi, [ebp-38h]
+0x0073f857 RVA 0x33f857: inc     edi
+0x0073f858 RVA 0x33f858: mov     [ebp-38h], edi
+0x0073f85b RVA 0x33f85b: call    sub_410310
+0x0073f860 RVA 0x33f860: mov     esi, [ebp-2Ch]
+0x0073f863 RVA 0x33f863: cmp     esi, [ebp-58h]
+0x0073f866 RVA 0x33f866: jnz     loc_73F7C6
+0x0073f86c RVA 0x33f86c: jmp     loc_73F69B
+0x0073f871 RVA 0x33f871: mov     edi, [ebp-34h]
+0x0073f874 RVA 0x33f874: push    0FFFFFFFFh
+0x0073f876 RVA 0x33f876: push    dword ptr [esi+10h]
+0x0073f879 RVA 0x33f879: mov     ecx, edi
+0x0073f87b RVA 0x33f87b: call    sub_73AD10
+0x0073f880 RVA 0x33f880: cmp     dword ptr [eax+0B0h], 0
+0x0073f887 RVA 0x33f887: jg      loc_73F91E
+0x0073f88d RVA 0x33f88d: mov     ecx, [ebp-2Ch]
+0x0073f890 RVA 0x33f890: mov     ecx, [ecx+0B0h]
+0x0073f896 RVA 0x33f896: inc     ecx
+0x0073f897 RVA 0x33f897: mov     [eax+0B0h], ecx
+0x0073f89d RVA 0x33f89d: mov     edi, [ebp-38h]
+0x0073f8a0 RVA 0x33f8a0: mov     ecx, [ebp-3Ch]
+0x0073f8a3 RVA 0x33f8a3: mov     edx, [ebp-40h]
+0x0073f8a6 RVA 0x33f8a6: lea     eax, [edi+ecx]
+0x0073f8a9 RVA 0x33f8a9: test    al, 3
+0x0073f8ab RVA 0x33f8ab: jnz     short loc_73F8C9
+0x0073f8ad RVA 0x33f8ad: lea     eax, [edi+4]
+0x0073f8b0 RVA 0x33f8b0: shr     eax, 2
+0x0073f8b3 RVA 0x33f8b3: cmp     edx, eax
+0x0073f8b5 RVA 0x33f8b5: ja      short loc_73F8C9
+0x0073f8b7 RVA 0x33f8b7: push    ecx
+0x0073f8b8 RVA 0x33f8b8: lea     ecx, [ebp-48h]
+0x0073f8bb RVA 0x33f8bb: call    sub_447450
+0x0073f8c0 RVA 0x33f8c0: mov     edi, [ebp-38h]
+0x0073f8c3 RVA 0x33f8c3: mov     ecx, [ebp-3Ch]
+0x0073f8c6 RVA 0x33f8c6: mov     edx, [ebp-40h]
+0x0073f8c9 RVA 0x33f8c9: lea     eax, ds:0FFFFFFFFh[edx*4]
+0x0073f8d0 RVA 0x33f8d0: and     ecx, eax
+0x0073f8d2 RVA 0x33f8d2: mov     [ebp-3Ch], ecx
+0x0073f8d5 RVA 0x33f8d5: add     ecx, edi
+0x0073f8d7 RVA 0x33f8d7: mov     eax, ecx
+0x0073f8d9 RVA 0x33f8d9: mov     [ebp-4Ch], ecx
+0x0073f8dc RVA 0x33f8dc: shr     eax, 2
+0x0073f8df RVA 0x33f8df: lea     edi, [edx-1]
+0x0073f8e2 RVA 0x33f8e2: and     edi, eax
+0x0073f8e4 RVA 0x33f8e4: mov     eax, [ebp-44h]
+0x0073f8e7 RVA 0x33f8e7: cmp     dword ptr [eax+edi*4], 0
+0x0073f8eb RVA 0x33f8eb: jnz     short loc_73F903
+0x0073f8ed RVA 0x33f8ed: push    10h; Size
+0x0073f8ef RVA 0x33f8ef: call    ??2@YAPAXI@Z; operator new(uint)
+0x0073f8f4 RVA 0x33f8f4: mov     ecx, [ebp-44h]
+0x0073f8f7 RVA 0x33f8f7: add     esp, 4
+0x0073f8fa RVA 0x33f8fa: mov     [ecx+edi*4], eax
+0x0073f8fd RVA 0x33f8fd: mov     eax, [ebp-44h]
+0x0073f900 RVA 0x33f900: mov     ecx, [ebp-4Ch]
+0x0073f903 RVA 0x33f903: and     ecx, 3
+0x0073f906 RVA 0x33f906: mov     [ebp-4Ch], ecx
+0x0073f909 RVA 0x33f909: mov     ecx, [eax+edi*4]
+0x0073f90c RVA 0x33f90c: mov     edx, [ebp-4Ch]
+0x0073f90f RVA 0x33f90f: mov     eax, [esi+10h]
+0x0073f912 RVA 0x33f912: mov     [ecx+edx*4], eax
+0x0073f915 RVA 0x33f915: mov     edi, [ebp-38h]
+0x0073f918 RVA 0x33f918: inc     edi
+0x0073f919 RVA 0x33f919: mov     [ebp-38h], edi
+0x0073f91c RVA 0x33f91c: jmp     short loc_73F921
+0x0073f91e RVA 0x33f91e: mov     edi, [ebp-38h]
+0x0073f921 RVA 0x33f921: lea     ecx, [ebp-28h]
+0x0073f924 RVA 0x33f924: call    sub_410310
+0x0073f929 RVA 0x33f929: mov     esi, [ebp-28h]
+0x0073f92c RVA 0x33f92c: cmp     esi, [ebp-58h]
+0x0073f92f RVA 0x33f92f: jnz     loc_73F871
+0x0073f935 RVA 0x33f935: jmp     loc_73F74E
+0x0073f93a RVA 0x33f93a: push    esi
+0x0073f93b RVA 0x33f93b: push    ecx; Block
+0x0073f93c RVA 0x33f93c: call    sub_A8717B
+0x0073f941 RVA 0x33f941: add     esp, 8
+0x0073f944 RVA 0x33f944: mov     eax, [ebp-48h]
+0x0073f947 RVA 0x33f947: push    8
+0x0073f949 RVA 0x33f949: push    eax; Block
+0x0073f94a RVA 0x33f94a: mov     dword ptr [ebp-40h], 0
+0x0073f951 RVA 0x33f951: mov     dword ptr [ebp-44h], 0
+0x0073f958 RVA 0x33f958: mov     dword ptr [ebp-48h], 0
+0x0073f95f RVA 0x33f95f: call    sub_A8717B
+0x0073f964 RVA 0x33f964: mov     dword ptr [ebp-4], 0FFFFFFFFh
+0x0073f96b RVA 0x33f96b: add     esp, 8
+0x0073f96e RVA 0x33f96e: mov     eax, [ebp-58h]
+0x0073f971 RVA 0x33f971: push    dword ptr [eax+4]; Block
+0x0073f974 RVA 0x33f974: lea     eax, [ebp-58h]
+0x0073f977 RVA 0x33f977: push    eax; int
+0x0073f978 RVA 0x33f978: mov     ecx, eax
+0x0073f97a RVA 0x33f97a: call    sub_41FEE0
+0x0073f97f RVA 0x33f97f: push    14h
+0x0073f981 RVA 0x33f981: push    dword ptr [ebp-58h]; Block
+0x0073f984 RVA 0x33f984: call    sub_A8717B
+0x0073f989 RVA 0x33f989: mov     ecx, n255
+0x0073f98f RVA 0x33f98f: add     esp, 8
+0x0073f992 RVA 0x33f992: mov     edi, [ebp-34h]
+0x0073f995 RVA 0x33f995: mov     eax, [edi]
+0x0073f997 RVA 0x33f997: mov     esi, [edi+182D0h]
+0x0073f99d RVA 0x33f99d: dec     eax
+0x0073f99e RVA 0x33f99e: mov     [edi+18304h], esi
+0x0073f9a4 RVA 0x33f9a4: mov     [edi+18308h], esi
+0x0073f9aa RVA 0x33f9aa: cmp     eax, 5
+0x0073f9ad RVA 0x33f9ad: ja      short loc_73F9E0
+0x0073f9af RVA 0x33f9af: push    30h ; '0'
+0x0073f9b1 RVA 0x33f9b1: add     ecx, 25AC0h
+0x0073f9b7 RVA 0x33f9b7: call    sub_41ECD0
+0x0073f9bc RVA 0x33f9bc: test    al, al
+0x0073f9be RVA 0x33f9be: jz      short loc_73F9E0
+0x0073f9c0 RVA 0x33f9c0: imul    eax, [edi+18314h], 0B8h
+0x0073f9ca RVA 0x33f9ca: mov     esi, [eax+edi+18h]
+0x0073f9ce RVA 0x33f9ce: mov     [edi+18328h], esi
+0x0073f9d4 RVA 0x33f9d4: mov     [edi+18304h], esi
+0x0073f9da RVA 0x33f9da: mov     [edi+18308h], esi
+0x0073f9e0 RVA 0x33f9e0: push    0FFFFFFFFh
+0x0073f9e2 RVA 0x33f9e2: push    esi
+0x0073f9e3 RVA 0x33f9e3: mov     ecx, edi
+0x0073f9e5 RVA 0x33f9e5: call    sub_73AD10
+0x0073f9ea RVA 0x33f9ea: push    dword ptr [eax+10h]
+0x0073f9ed RVA 0x33f9ed: push    dword ptr [edi+18304h]; ArgList
+0x0073f9f3 RVA 0x33f9f3: push    offset aCurrentRoomInd; "CURRENT ROOM INDEX %d %08x\n"
+0x0073f9f8 RVA 0x33f9f8: push    0; int
+0x0073f9fa RVA 0x33f9fa: call    sub_9E0DF0
+0x0073f9ff RVA 0x33f9ff: mov     eax, n255
+0x0073fa04 RVA 0x33fa04: add     esp, 10h
+0x0073fa07 RVA 0x33fa07: cmp     dword ptr [eax+25AFCh], 1Fh
+0x0073fa0e RVA 0x33fa0e: jnz     short loc_73FA3D
+0x0073fa10 RVA 0x33fa10: cmp     dword ptr [edi], 0Bh
+0x0073fa13 RVA 0x33fa13: jnz     short loc_73FA3D
+0x0073fa15 RVA 0x33fa15: mov     ecx, edi
+0x0073fa17 RVA 0x33fa17: mov     dword ptr [edi+18308h], 0FFFFFFF9h
+0x0073fa21 RVA 0x33fa21: mov     dword ptr [edi+18304h], 0FFFFFFF9h
+0x0073fa2b RVA 0x33fa2b: call    sub_7385F0
+0x0073fa30 RVA 0x33fa30: mov     ecx, [edi+18300h]
+0x0073fa36 RVA 0x33fa36: call    sub_7F7F60
+0x0073fa3b RVA 0x33fa3b: jmp     short loc_73FA44
+0x0073fa3d RVA 0x33fa3d: mov     ecx, edi
+0x0073fa3f RVA 0x33fa3f: call    sub_7385F0
+0x0073fa44 RVA 0x33fa44: mov     ecx, n255
+0x0073fa4a RVA 0x33fa4a: mov     ecx, [ecx+18300h]
+0x0073fa50 RVA 0x33fa50: call    sub_7E16F0
+0x0073fa55 RVA 0x33fa55: mov     esi, n255
+0x0073fa5b RVA 0x33fa5b: cmp     dword ptr [esi+25AFCh], 1Fh
+0x0073fa62 RVA 0x33fa62: jnz     short loc_73FA69
+0x0073fa64 RVA 0x33fa64: cmp     dword ptr [edi], 0Bh
+0x0073fa67 RVA 0x33fa67: jnz     short loc_73FA76
+0x0073fa69 RVA 0x33fa69: mov     ecx, edi
+0x0073fa6b RVA 0x33fa6b: call    sub_739AA0
+0x0073fa70 RVA 0x33fa70: mov     esi, n255
+0x0073fa76 RVA 0x33fa76: cmp     dword ptr [esi], 0Bh
+0x0073fa79 RVA 0x33fa79: jnz     loc_73FB47
+0x0073fa7f RVA 0x33fa7f: mov     ecx, esi
+0x0073fa81 RVA 0x33fa81: call    sub_702320
+0x0073fa86 RVA 0x33fa86: cmp     byte ptr [eax+74h], 0
+0x0073fa8a RVA 0x33fa8a: jz      loc_73FB47
+0x0073fa90 RVA 0x33fa90: cmp     dword ptr [esi+25AFCh], 1Fh
+0x0073fa97 RVA 0x33fa97: jz      loc_73FB47
+0x0073fa9d RVA 0x33fa9d: push    1
+0x0073fa9f RVA 0x33fa9f: lea     ecx, [esi+1BAA8h]
+0x0073faa5 RVA 0x33faa5: push    ecx
+0x0073faa6 RVA 0x33faa6: push    0EEh
+0x0073faab RVA 0x33faab: call    sub_9950B0
+0x0073fab0 RVA 0x33fab0: test    eax, eax
+0x0073fab2 RVA 0x33fab2: jnz     short loc_73FAEC
+0x0073fab4 RVA 0x33fab4: mov     ecx, n255
+0x0073faba RVA 0x33faba: push    eax
+0x0073fabb RVA 0x33fabb: push    eax
+0x0073fabc RVA 0x33fabc: push    eax
+0x0073fabd RVA 0x33fabd: push    1
+0x0073fabf RVA 0x33fabf: push    eax
+0x0073fac0 RVA 0x33fac0: push    0EEh
+0x0073fac5 RVA 0x33fac5: push    eax
+0x0073fac6 RVA 0x33fac6: call    sub_4131B0
+0x0073facb RVA 0x33facb: mov     ecx, eax
+0x0073facd RVA 0x33facd: call    sub_758F00
+0x0073fad2 RVA 0x33fad2: mov     ecx, n255
+0x0073fad8 RVA 0x33fad8: push    0
+0x0073fada RVA 0x33fada: push    0
+0x0073fadc RVA 0x33fadc: push    0EEh
+0x0073fae1 RVA 0x33fae1: lea     ecx, [ecx+1A740h]
+0x0073fae7 RVA 0x33fae7: call    sub_72E5B0
+0x0073faec RVA 0x33faec: mov     ecx, n255
+0x0073faf2 RVA 0x33faf2: push    1
+0x0073faf4 RVA 0x33faf4: add     ecx, 1BAA8h
+0x0073fafa RVA 0x33fafa: push    ecx
+0x0073fafb RVA 0x33fafb: push    0EFh
+0x0073fb00 RVA 0x33fb00: call    sub_9950B0
+0x0073fb05 RVA 0x33fb05: test    eax, eax
+0x0073fb07 RVA 0x33fb07: jnz     short loc_73FB41
+0x0073fb09 RVA 0x33fb09: mov     ecx, n255
+0x0073fb0f RVA 0x33fb0f: push    eax
+0x0073fb10 RVA 0x33fb10: push    eax
+0x0073fb11 RVA 0x33fb11: push    eax
+0x0073fb12 RVA 0x33fb12: push    1
+0x0073fb14 RVA 0x33fb14: push    eax
+0x0073fb15 RVA 0x33fb15: push    0EFh
+0x0073fb1a RVA 0x33fb1a: push    eax
+0x0073fb1b RVA 0x33fb1b: call    sub_4131B0
+0x0073fb20 RVA 0x33fb20: mov     ecx, eax
+0x0073fb22 RVA 0x33fb22: call    sub_758F00
+0x0073fb27 RVA 0x33fb27: mov     ecx, n255
+0x0073fb2d RVA 0x33fb2d: push    0
+0x0073fb2f RVA 0x33fb2f: push    0
+0x0073fb31 RVA 0x33fb31: push    0EFh
+0x0073fb36 RVA 0x33fb36: lea     ecx, [ecx+1A740h]
+0x0073fb3c RVA 0x33fb3c: call    sub_72E5B0
+0x0073fb41 RVA 0x33fb41: mov     esi, n255
+0x0073fb47 RVA 0x33fb47: mov     eax, [edi]
+0x0073fb49 RVA 0x33fb49: dec     eax
+0x0073fb4a RVA 0x33fb4a: cmp     eax, 5
+0x0073fb4d RVA 0x33fb4d: ja      loc_73FBF2
+0x0073fb53 RVA 0x33fb53: push    30h ; '0'
+0x0073fb55 RVA 0x33fb55: lea     ecx, [esi+25AC0h]
+0x0073fb5b RVA 0x33fb5b: call    sub_41ECD0
+0x0073fb60 RVA 0x33fb60: test    al, al
+0x0073fb62 RVA 0x33fb62: jz      loc_73FBF2
+0x0073fb68 RVA 0x33fb68: mov     esi, [esi+25AC8h]
+0x0073fb6e RVA 0x33fb6e: or      esi, [edi+0Ch]
+0x0073fb71 RVA 0x33fb71: call    sub_6F55C0
+0x0073fb76 RVA 0x33fb76: mov     edi, eax
+0x0073fb78 RVA 0x33fb78: or      edi, esi
+0x0073fb7a RVA 0x33fb7a: call    sub_6F5750
+0x0073fb7f RVA 0x33fb7f: mov     ecx, [ebp-5Ch]
+0x0073fb82 RVA 0x33fb82: not     eax
+0x0073fb84 RVA 0x33fb84: and     eax, edi
+0x0073fb86 RVA 0x33fb86: test    al, 2
+0x0073fb88 RVA 0x33fb88: jz      short loc_73FB95
+0x0073fb8a RVA 0x33fb8a: cmp     ecx, 2
+0x0073fb8d RVA 0x33fb8d: jz      short loc_73FB94
+0x0073fb8f RVA 0x33fb8f: cmp     ecx, 4
+0x0073fb92 RVA 0x33fb92: jnz     short loc_73FB95
+0x0073fb94 RVA 0x33fb94: inc     ecx
+0x0073fb95 RVA 0x33fb95: mov     eax, n4
+0x0073fb9a RVA 0x33fb9a: cmp     byte ptr [eax+2A210h], 0
+0x0073fba1 RVA 0x33fba1: jz      short def_73FBAB; jumptable 0073FBAB default case, cases 2,4,6
+0x0073fba3 RVA 0x33fba3: lea     eax, [ecx-1]; switch 7 cases
+0x0073fba6 RVA 0x33fba6: cmp     eax, 6
+0x0073fba9 RVA 0x33fba9: ja      short def_73FBAB; jumptable 0073FBAB default case, cases 2,4,6
+0x0073fbab RVA 0x33fbab: jmp     ds:jpt_73FBAB[eax*4]; switch jump
+0x0073fbb2 RVA 0x33fbb2: mov     esi, 259h; jumptable 0073FBAB case 1
+0x0073fbb7 RVA 0x33fbb7: jmp     short loc_73FBCC
+0x0073fbb9 RVA 0x33fbb9: mov     esi, 258h; jumptable 0073FBAB case 3
+0x0073fbbe RVA 0x33fbbe: jmp     short loc_73FBCC
+0x0073fbc0 RVA 0x33fbc0: mov     esi, 257h; jumptable 0073FBAB case 5
+0x0073fbc5 RVA 0x33fbc5: jmp     short loc_73FBCC
+0x0073fbc7 RVA 0x33fbc7: mov     esi, 256h; jumptable 0073FBAB case 7
+0x0073fbcc RVA 0x33fbcc: push    0
+0x0073fbce RVA 0x33fbce: push    0
+0x0073fbd0 RVA 0x33fbd0: mov     edx, 3Ch ; '<'
+0x0073fbd5 RVA 0x33fbd5: mov     ecx, offset sub_73FCB0
+0x0073fbda RVA 0x33fbda: call    sub_6047F0
+0x0073fbdf RVA 0x33fbdf: add     esp, 8
+0x0073fbe2 RVA 0x33fbe2: mov     ecx, eax
+0x0073fbe4 RVA 0x33fbe4: mov     edx, [eax]
+0x0073fbe6 RVA 0x33fbe6: mov     [eax+450h], esi
+0x0073fbec RVA 0x33fbec: call    dword ptr [edx+0Ch]
+0x0073fbef RVA 0x33fbef: mov     edi, [ebp-34h]; jumptable 0073FBAB default case, cases 2,4,6
+0x0073fbf2 RVA 0x33fbf2: mov     ecx, n255
+0x0073fbf8 RVA 0x33fbf8: add     ecx, 1BAA8h
+0x0073fbfe RVA 0x33fbfe: call    sub_9929B0
+0x0073fc03 RVA 0x33fc03: mov     ecx, n255
+0x0073fc09 RVA 0x33fc09: mov     eax, [ecx+1ADB8h]
+0x0073fc0f RVA 0x33fc0f: mov     [ecx+1ADB4h], eax
+0x0073fc15 RVA 0x33fc15: mov     ecx, [ecx+18300h]
+0x0073fc1b RVA 0x33fc1b: mov     ecx, [ecx+11F8h]
+0x0073fc21 RVA 0x33fc21: call    sub_91D6A0
+0x0073fc26 RVA 0x33fc26: mov     eax, n255
+0x0073fc2b RVA 0x33fc2b: push    0
+0x0073fc2d RVA 0x33fc2d: mov     ecx, [eax+18300h]
+0x0073fc33 RVA 0x33fc33: mov     ecx, [ecx+11F8h]
+0x0073fc39 RVA 0x33fc39: call    sub_91D650
+0x0073fc3e RVA 0x33fc3e: call    sub_40A140
+0x0073fc43 RVA 0x33fc43: call    sub_84BA10
+0x0073fc48 RVA 0x33fc48: mov     byte ptr [edi+183A0h], 0
+0x0073fc4f RVA 0x33fc4f: mov     ecx, [ebp-0Ch]
+0x0073fc52 RVA 0x33fc52: mov     large fs:0, ecx
+0x0073fc59 RVA 0x33fc59: pop     ecx
+0x0073fc5a RVA 0x33fc5a: pop     edi
+0x0073fc5b RVA 0x33fc5b: pop     esi
+0x0073fc5c RVA 0x33fc5c: mov     ecx, [ebp-14h]
+0x0073fc5f RVA 0x33fc5f: xor     ecx, ebp; StackCookie
+0x0073fc61 RVA 0x33fc61: call    @__security_check_cookie@4; __security_check_cookie(x)
+0x0073fc66 RVA 0x33fc66: mov     esp, ebp
+0x0073fc68 RVA 0x33fc68: pop     ebp
+0x0073fc69 RVA 0x33fc69: mov     esp, ebx
+0x0073fc6b RVA 0x33fc6b: pop     ebx
+0x0073fc6c RVA 0x33fc6c: retn    4
+0x00a94630 RVA 0x694630: lea     ecx, [ebp-58h]; int
+0x00a94633 RVA 0x694633: jmp     sub_41FDC0
+0x00a94638 RVA 0x694638: lea     ecx, [ebp-48h]
+0x00a9463b RVA 0x69463b: jmp     sub_5554C0
+0x00a94645 RVA 0x694645: nop
+0x00a94646 RVA 0x694646: nop
+0x00a94647 RVA 0x694647: mov     edx, [esp+arg_4]
+0x00a9464b RVA 0x69464b: lea     eax, [edx+0Ch]
+0x00a9464e RVA 0x69464e: mov     ecx, [edx-78h]
+0x00a94651 RVA 0x694651: xor     ecx, eax; StackCookie
+0x00a94653 RVA 0x694653: call    @__security_check_cookie@4; __security_check_cookie(x)
+0x00a94658 RVA 0x694658: mov     ecx, [edx-8]
+0x00a9465b RVA 0x69465b: xor     ecx, eax; StackCookie
+0x00a9465d RVA 0x69465d: call    @__security_check_cookie@4; __security_check_cookie(x)
+0x00a94662 RVA 0x694662: mov     eax, offset stru_B54178
+0x00a94667 RVA 0x694667: jmp     __CxxFrameHandler3

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 3,
+  "planIdentity": "IsaacCsT0-CoopPlan-v3",
+  "workPackage": "CS-T0-05-02",
+  "createdUtc": "2026-08-27T12:30:00Z",
+  "status": "AUTHORIZED_C0_READ_ONLY",
+  "supersedes": "coop-plan-v2.json",
+  "supersedesSha256": "40DB0C0F42AC1DD2B86042633D44357F015459DBDFF276A237946F978706FB34",
+  "createNewOnly": true,
+  "artifactBindings": [
+    {
+      "path": "../out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json",
+      "identity": "IsaacCsT0-UnpackedTargetEquivalence-v1",
+      "sha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138"
+    },
+    {
+      "path": "coop-static-decision-v1.json",
+      "identity": "IsaacCsT0-CoopStaticDecision-v1",
+      "sha256": "2CA3A9956FEAED6E08BDAA2F89F2A244DE4CF6B6CB0E2AFA0EFAEE7A37C9E459"
+    },
+    {
+      "path": "coop-static-graph-v1.json",
+      "identity": "IsaacCsT0-CoopStaticGraph-v1",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    },
+    {
+      "path": "coop-catalog-v2.json",
+      "identity": "IsaacCsT0-CoopCatalog-v2",
+      "sha256": "1059711778DAD09870D37118571EE7D5E67761EC28FFAB84C7CF5AC5998A0224"
+    },
+    {
+      "path": "coop-c0-layout-evidence-v1.json",
+      "identity": "IsaacCsT0-CoopC0LayoutEvidence-v1",
+      "sha256": "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059"
+    }
+  ],
+  "c0Authorization": {
+    "probe": "control-no-native",
+    "scenarios": [
+      "offline-single-c0",
+      "local-coop-dual-c0",
+      "original-online-dual-disarmed"
+    ],
+    "observerAccessBits": "0x00101410",
+    "defaultDurationMilliseconds": 5000,
+    "defaultIntervalMilliseconds": 50,
+    "maxRetries": 4,
+    "processReadAllowed": true,
+    "runtimeMutationAllowed": false,
+    "hookAllowed": false,
+    "ipcAllowed": false,
+    "mappingAllowed": false,
+    "helperAllowed": false,
+    "nativeLoadAllowed": false,
+    "schedulerAllowed": false,
+    "applyAllowed": false,
+    "requiresPerModeConfirmation": true
+  },
+  "permissions": {
+    "activeInputAllowed": false,
+    "passiveProbeAllowed": false,
+    "runtimeMutationAllowed": false,
+    "t005Unlocked": false,
+    "csT00503Unlocked": false
+  }
+}

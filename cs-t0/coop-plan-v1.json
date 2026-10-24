@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "planIdentity": "IsaacCsT0-CoopPlan-v1",
+  "workPackage": "CS-T0-05-00",
+  "createdUtc": "2026-08-26T18:47:33Z",
+  "status": "DRAFT_BOOTSTRAP",
+  "supersedes": null,
+  "createNewOnly": true,
+  "catalogPath": "coop-catalog-v1.json",
+  "catalogIdentity": "IsaacCsT0-CoopCatalog-v1",
+  "catalogSha256": "206C715996B262A7A185E92652D0DC3108DC4E97553B5B7E902C620CD51E109A",
+  "matrixTemplatePath": "coop-matrix-v1.template.json",
+  "matrixTemplateSha256": "C3BB9A97188708E9BCFE9E25E8D9DAFF37EBBA5656CEA52CEFE04F9EEE1D1100",
+  "predecessorBindingPath": "coop-predecessor-binding-v1.json",
+  "predecessorBindingSha256": "5D29826CD9E92E84D4C97C14E511066EF1FD8576B2DA5CC4639861BD9812DB90",
+  "hypothesisIndexPath": "coop-hypothesis-index-v1.json",
+  "hypothesisIndexSha256": "E892F698BFE82F00516B40C6F1DC7354ABA68C7D98B78F37126E2CEB6CB5FC96",
+  "fixedRoles": [
+    {
+      "endpoint": "A",
+      "role": "HOST_LOCAL_CLIENT",
+      "localPlayerOrdinal": 0,
+      "inputSource": "KEYBOARD_OR_SELECTED_LOCAL_PHYSICAL_DEVICE_VIA_LOOPBACK"
+    },
+    {
+      "endpoint": "B",
+      "role": "REMOTE_PLAYER_EXPERIMENT_SUBSTITUTE",
+      "localPlayerOrdinal": 1,
+      "inputSource": "SCRIPTED_OR_FAULT_INJECTION_TRANSPORT"
+    }
+  ],
+  "mappingContract": {
+    "stableLayer": "ClientId -> LocalPlayerOrdinal",
+    "ephemeralLayer": "LocalPlayerOrdinal -> Player association for current ownerGeneration",
+    "pointerIsNetworkIdentity": false,
+    "ordinalCount": 2,
+    "runtimeOrdinalSwapAllowed": false
+  },
+  "scheduler": {
+    "canonicalState": "InputStateDraftV1",
+    "canonicalStateBytes": 24,
+    "canonicalCommand": "InputCmdDraftV1",
+    "canonicalCommandBytes": 64,
+    "inputLeadTicks": 2,
+    "futureWindowTicks": 64,
+    "queueCapacity": 256,
+    "drainBudgetPerTick": 64,
+    "dedupeHistory": 4096,
+    "hostImmediateInputBypassAllowed": false,
+    "directPlayerOrDeviceWriteAllowed": false
+  },
+  "permissionTiers": [
+    {
+      "tier": "STATIC",
+      "bootstrapAllowed": true,
+      "bootstrapMutationAllowed": false
+    },
+    {
+      "tier": "C0_READ_ONLY",
+      "bootstrapAllowed": false,
+      "entryRequirement": "CS-T0-05-01 PASS and a no-mutation preflight",
+      "bootstrapMutationAllowed": false
+    },
+    {
+      "tier": "PASSIVE_HOOK",
+      "bootstrapAllowed": false,
+      "entryRequirement": "Fresh independent authorization for each run",
+      "bootstrapMutationAllowed": false
+    },
+    {
+      "tier": "ACTIVE_LOCAL_COOP",
+      "bootstrapAllowed": false,
+      "entryRequirement": "Fresh independent authorization after static, C0, passive, and automated gates pass",
+      "bootstrapMutationAllowed": false,
+      "authorizedMutationScope": "MINIMAL_SCRIPTED_NATIVE_JOIN_AND_CANONICAL_INPUT_ONLY"
+    }
+  ],
+  "workPackages": [
+    { "id": "CS-T0-05-00", "state": "PASS", "unlocks": "CS-T0-05-01" },
+    { "id": "CS-T0-05-01", "state": "NOT_STARTED", "unlocks": "CS-T0-05-02" },
+    { "id": "CS-T0-05-02", "state": "NOT_STARTED", "unlocks": "CS-T0-05-03" },
+    { "id": "CS-T0-05-03", "state": "NOT_STARTED", "unlocks": "CS-T0-05-04" },
+    { "id": "CS-T0-05-04", "state": "NOT_STARTED", "unlocks": "CS-T0-05-05" },
+    { "id": "CS-T0-05-05", "state": "NOT_STARTED", "unlocks": "CS-T0-05-06" },
+    { "id": "CS-T0-05-06", "state": "NOT_STARTED", "unlocks": "CS-T0-05-07" },
+    { "id": "CS-T0-05-07", "state": "NOT_STARTED", "unlocks": "T0-06" }
+  ],
+  "failClosedScope": [
+    "ORIGINAL_ONLINE",
+    "NET_INPUT_DEVICE",
+    "ALL_CLIENT_READY_GATE",
+    "CHANNEL_0",
+    "ISAAC_SYNC_CHANNEL_0XFD",
+    "UNKNOWN_JOIN_OR_EXIT_OWNER",
+    "UNKNOWN_VTABLE_COL_OR_ABI",
+    "AMBIGUOUS_PLAYER_HUD_INDEX_ASSIGNMENT_OR_LUA_MAPPING",
+    "UNCOORDINATED_HOOK_OWNER",
+    "SAVE_ACHIEVEMENT_UNLOCK_STAT_OR_PERSISTENT_SIDE_EFFECT"
+  ],
+  "artifactPolicy": {
+    "repositoryRelativePathsOnly": true,
+    "absoluteUserPathsAllowed": false,
+    "rawPeerIdentityAllowed": false,
+    "processPointersAllowed": false,
+    "platformHandlesAllowed": false,
+    "sourceOverwriteAllowed": false,
+    "hashBindingRequired": true,
+    "supersedesBindingRequiredForRevision": true
+  },
+  "permissions": {
+    "activeInputAllowed": false,
+    "liveAuthorizationCreated": false,
+    "runtimeMutationAllowed": false,
+    "t005Unlocked": false,
+    "csT00501Unlocked": true
+  }
+}

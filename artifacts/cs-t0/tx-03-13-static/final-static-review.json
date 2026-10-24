@@ -1,0 +1,688 @@
+{
+  "tx": "tx-03-13",
+  "date": "2026-10-22",
+  "timezone": "Asia/Shanghai",
+  "result": "PASS_STATIC_DOCUMENT_REVIEW_ONLY",
+  "execution": "One final unified static document review after research and edits. No game, build, code tests, injection or debugger operation.",
+  "agent": {
+    "role": "Image control research independently reviewed by primary",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max"
+  },
+  "semantic_review": "Primary read pseudocode, raw instructions, receiver-specific tables, control return predicates, caller stack layout, two caches, loader flags and direct PNG GL calls. Script checks artifact consistency only.",
+  "limitations": [
+    "No runtime observation; renderer owner thread and current GL context UNKNOWN",
+    "Concurrency, shutdown, OOM and full EH cleanup not proven",
+    "Other image decoders and all Mods not covered",
+    "Reload and replacement, presentation adapter and Replica not implemented",
+    "No hash computation or verification"
+  ],
+  "checks": [
+    {
+      "name": "document:docs/research/tx-03-13-sprite-image-resources.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->tx-03-13-luna-image-control.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->tx-03-13-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-initial.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-loader.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-gpu.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-control-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/luna-control-core.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-release.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-retire-context.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-gpu.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-tables.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-png-lifecycle.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-gpu.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-sprite-image-resources.md->tx-03-13-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document:docs/research/tx-03-13-primary-review.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->tx-03-13-sprite-image-resources.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->tx-03-13-luna-image-control.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-control-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/luna-control-core.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-initial.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-loader.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-release.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-retire-context.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-tables.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-png-lifecycle.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-gpu.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/luna-export-control.py",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/luna-control-tool-returns.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/review_documents.ps1",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-primary-review.md->../../artifacts/cs-t0/tx-03-13-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document:docs/research/tx-03-13-luna-image-control.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-luna-image-control.md->../../artifacts/cs-t0/tx-03-13-static/luna-control-core.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-luna-image-control.md->../../artifacts/cs-t0/tx-03-13-static/luna-export-control.py",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-luna-image-control.md->../../artifacts/cs-t0/tx-03-13-static/luna-control-tool-returns.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-luna-image-control.md->tx-03-13-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-luna-image-control.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-control-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-luna-image-control.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-retire-context.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-luna-image-control.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-png-lifecycle.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-luna-image-control.md->../../artifacts/cs-t0/tx-03-13-static/primary-image-gpu.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-13-luna-image-control.md->tx-03-13-sprite-image-resources.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document:docs/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/README.md",
+      "pass": true,
+      "detail": "Entry includes this research."
+    },
+    {
+      "name": "link:docs/README.md->research/tx-03-13-sprite-image-resources.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Entry includes this research."
+    },
+    {
+      "name": "link:docs/hooks/README.md->../research/tx-03-13-sprite-image-resources.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Entry includes this research."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-13-sprite-image-resources.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-13-sprite-image-resources.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "json:luna-control-core.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes and tool errors are not target-program test results."
+    },
+    {
+      "name": "json:luna-control-tool-returns.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes and tool errors are not target-program test results."
+    },
+    {
+      "name": "json:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes and tool errors are not target-program test results."
+    },
+    {
+      "name": "json:primary-image-control-review.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes and tool errors are not target-program test results."
+    },
+    {
+      "name": "addresses:primary-image-control-review.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-image-gpu.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes and tool errors are not target-program test results."
+    },
+    {
+      "name": "addresses:primary-image-gpu.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-image-initial.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes and tool errors are not target-program test results."
+    },
+    {
+      "name": "addresses:primary-image-initial.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-image-loader.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes and tool errors are not target-program test results."
+    },
+    {
+      "name": "addresses:primary-image-loader.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-image-png-lifecycle.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes and tool errors are not target-program test results."
+    },
+    {
+      "name": "addresses:primary-image-png-lifecycle.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-image-release.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes and tool errors are not target-program test results."
+    },
+    {
+      "name": "addresses:primary-image-release.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-image-retire-context.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes and tool errors are not target-program test results."
+    },
+    {
+      "name": "addresses:primary-image-retire-context.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-image-tables.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes and tool errors are not target-program test results."
+    },
+    {
+      "name": "addresses:primary-image-tables.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status and VA/RVA conversion agree."
+    },
+    {
+      "name": "evidence:primary-image-initial.json",
+      "pass": true,
+      "detail": "Required independent primary evidence present."
+    },
+    {
+      "name": "evidence:primary-image-loader.json",
+      "pass": true,
+      "detail": "Required independent primary evidence present."
+    },
+    {
+      "name": "evidence:primary-image-release.json",
+      "pass": true,
+      "detail": "Required independent primary evidence present."
+    },
+    {
+      "name": "evidence:primary-image-retire-context.json",
+      "pass": true,
+      "detail": "Required independent primary evidence present."
+    },
+    {
+      "name": "evidence:primary-image-tables.json",
+      "pass": true,
+      "detail": "Required independent primary evidence present."
+    },
+    {
+      "name": "evidence:primary-image-png-lifecycle.json",
+      "pass": true,
+      "detail": "Required independent primary evidence present."
+    },
+    {
+      "name": "evidence:primary-image-gpu.json",
+      "pass": true,
+      "detail": "Required independent primary evidence present."
+    },
+    {
+      "name": "evidence:primary-image-control-review.json",
+      "pass": true,
+      "detail": "Required independent primary evidence present."
+    },
+    {
+      "name": "evidence:luna-control-core.json",
+      "pass": true,
+      "detail": "Child raw evidence present."
+    },
+    {
+      "name": "evidence:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Acquisition diagnostics retained."
+    },
+    {
+      "name": "script:export_static.py",
+      "pass": true,
+      "detail": "Read-only extraction source supplied; not executed by this review."
+    },
+    {
+      "name": "script:luna-export-control.py",
+      "pass": true,
+      "detail": "Read-only extraction source supplied; not executed by this review."
+    },
+    {
+      "name": "instruction:0x40cc42",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-control-review.json."
+    },
+    {
+      "name": "instruction:0x40c81a",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-control-review.json."
+    },
+    {
+      "name": "instruction:0x40c83e",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-control-review.json."
+    },
+    {
+      "name": "instruction:0x40c6d6",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-control-review.json."
+    },
+    {
+      "name": "instruction:0x40c6dc",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-control-review.json."
+    },
+    {
+      "name": "instruction:0x40c649",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-control-review.json."
+    },
+    {
+      "name": "instruction:0x40c666",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-control-review.json."
+    },
+    {
+      "name": "instruction:0x40c5f1",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-control-review.json."
+    },
+    {
+      "name": "instruction:0x4086d0",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-control-review.json."
+    },
+    {
+      "name": "instruction:0xa12269",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-release.json."
+    },
+    {
+      "name": "instruction:0xa12270",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-release.json."
+    },
+    {
+      "name": "instruction:0xa11712",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-release.json."
+    },
+    {
+      "name": "instruction:0xa11741",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-release.json."
+    },
+    {
+      "name": "instruction:0x40c146",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-initial.json."
+    },
+    {
+      "name": "instruction:0x9589bf",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-initial.json."
+    },
+    {
+      "name": "instruction:0xa11c68",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-loader.json."
+    },
+    {
+      "name": "instruction:0xa12b85",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-png-lifecycle.json."
+    },
+    {
+      "name": "instruction:0xa69a39",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-png-lifecycle.json."
+    },
+    {
+      "name": "instruction:0xa69b94",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-gpu.json."
+    },
+    {
+      "name": "instruction:0xa69bc5",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-gpu.json."
+    },
+    {
+      "name": "instruction:0xa69bd6",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-gpu.json."
+    },
+    {
+      "name": "instruction:0xa69bdc",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-gpu.json."
+    },
+    {
+      "name": "instruction:0xa64a08",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-gpu.json."
+    },
+    {
+      "name": "instruction:0x414db2",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-image-gpu.json."
+    },
+    {
+      "name": "table:0xb1a6e0+0x0",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "independent-table:0x0",
+      "pass": true,
+      "detail": "Primary independently re-exported and read the child control table."
+    },
+    {
+      "name": "table:0xb1a6e0+0x4",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "independent-table:0x4",
+      "pass": true,
+      "detail": "Primary independently re-exported and read the child control table."
+    },
+    {
+      "name": "table:0xb1a6e0+0x8",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "independent-table:0x8",
+      "pass": true,
+      "detail": "Primary independently re-exported and read the child control table."
+    },
+    {
+      "name": "table:0xb1a6e0+0xc",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "independent-table:0xc",
+      "pass": true,
+      "detail": "Primary independently re-exported and read the child control table."
+    },
+    {
+      "name": "table:0xb1a6e0+0x10",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "independent-table:0x10",
+      "pass": true,
+      "detail": "Primary independently re-exported and read the child control table."
+    },
+    {
+      "name": "table:0xb1a6e0+0x14",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "independent-table:0x14",
+      "pass": true,
+      "detail": "Primary independently re-exported and read the child control table."
+    },
+    {
+      "name": "table:0xb81c0c+0xc",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "table:0xb81c0c+0x10",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "table:0xb9ff84+0x0",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "table:0xb9ff84+0x34",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "table:0xb9ff84+0x38",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "table:0xb9ff84+0x3c",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "table:0xb9ff84+0x40",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "table:0xb9ff84+0x44",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "table:0xb9ff84+0x48",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "table:0xb9ff84+0x58",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    },
+    {
+      "name": "table:0xb9ff84+0x5c",
+      "pass": true,
+      "detail": "Current receiver-specific table; no cross-version or other-format claim."
+    }
+  ],
+  "failures": []
+}

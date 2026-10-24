@@ -1,0 +1,26 @@
+{
+  "tx": "tx-03-17",
+  "date": "2026-10-23",
+  "timezone": "Asia/Shanghai",
+  "evidence": "ACQUISITION_NOTES_ONLY",
+  "imagebase": "0x400000",
+  "notes": [
+    "Primary overread B73228 as two pointer entries. Slot 0 is 8C4CE0; adjacent B7322C is the IsBusted string, bytes 49 73 42 75. Original mechanical target/RVA preserved but not treated as pointer evidence.",
+    "Correct single-slot vtable and adjacent raw string metadata exported to primary-userdata-owner.json.",
+    "Some terminal outputs truncated; complete raw JSON retained and selected functions/instructions read afterwards.",
+    "Child initially stated no direct code xrefs to 408170, then found tail destructor/unwind jumps and withdrew the absence claim. GC's actual wrapper route is separately established.",
+    "Child Color zero-tail range corrected from B8..C8 to B8..D0. Final report raw DWORD=1 corrected to float 1.0 / bits 3F800000.",
+    "Child layer control offset corrected from +98 to +9C. Image is +98. Control +0C decref runs independently of optional C7163C callback, consistent with tx-03-13.",
+    "Copy/swap preserve or reset specific fields and are not complete pose cloning or concurrent atomic publication.",
+    "ANM decrement looks up filename/key afresh, not an owned-ref token. Failure retirement is bounded to stable non-reentrant normal context.",
+    "tx-03-16 FAIL and source remain untouched. This tx's reviewer classifies only explicitly labeled address claims, using the two old documents as classification examples within the new substantive review.",
+    "No target execution, IDB mutation, identity assertion, hashes, game, build, unit tests, E2E or experiments during analysis."
+  ],
+  "limitations": [
+    "Normal constructor/helper returns only; partial construction, OOM, EH, topology changes and concurrent workers not closed.",
+    "Native payload dtor does not identify an allocation owner. Lua-owned userdata is not manually freed.",
+    "No runtime thread, context, resources, pixels or allocation lifetime observed.",
+    "Publication and cleanup sequence is a design proposal; no adapter, registry or readiness predicate implemented."
+  ],
+  "acceptance": "One final unified static document review after all research and edits; no automatic rerun."
+}

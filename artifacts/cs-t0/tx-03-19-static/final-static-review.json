@@ -1,0 +1,779 @@
+{
+  "tx": "tx-03-19",
+  "date": "2026-10-23",
+  "timezone": "Asia/Shanghai",
+  "result": "PASS_STATIC_DOCUMENT_REVIEW_ONLY",
+  "execution": "One final unified static document review after research, child review and all edits. No intermediate tests, builds or experiments.",
+  "agent": {
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max",
+    "role": "Hook/TLS/WGL guard research independently reviewed by primary"
+  },
+  "semantic_review": "Primary independently read final pre-present callsite and ABI, original exactly-once/source phase and healthy limitations, WGL/TLS versus OS current, distinct cache/renderer init flags, batch cache-derived strong image pair, shader/uniform snapshots, delayed GL submission and bounded default-pass restoration. All hooks and guards remain proposals.",
+  "acquisition_anomalies": [
+    "First child export has an unresolved function request A8FB7F and internal-address duplicate A804B0->A80010; retained and classified, corrected 12-function followup adopted",
+    "A8FB7F is an epoxy pointer resolver write in an instruction range, not a TLS getter",
+    "Windows rg unexpanded wildcard path error retained; exact filename subsequently read",
+    "Mixed parallel-VA table header corrected; real labeled address pairs preserved"
+  ],
+  "limitations": [
+    "No runtime thread/context/API/pass/pixel/GPU or failure observations",
+    "Screen overlay candidate only; room occlusion, arbitrary shaders/backends and external raw-GL changes not covered",
+    "Normal sequence only; OOM, EH, reentry/worker/hot-reload closure incomplete",
+    "No adapter, Hook, runtime guard, registry, asset manifest or E2E implemented",
+    "No hash computation/verification; no prior acceptance rerun"
+  ],
+  "checks": [
+    {
+      "name": "document:docs/research/tx-03-19-sprite-render-entry-window.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->tx-03-18-single-sprite-adapter-contract.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->tx-03-19-luna-render-window-guard.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->tx-03-19-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../artifacts/cs-t0/tx-03-19-static/primary-render-pass.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../artifacts/cs-t0/tx-03-19-static/primary-submit-flush.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../artifacts/cs-t0/tx-03-19-static/primary-batch-ownership.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../artifacts/cs-t0/tx-03-19-static/primary-batch-bind-state.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../artifacts/cs-t0/tx-03-19-static/primary-context-guard-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../artifacts/cs-t0/tx-03-19-static/primary-guard-detail.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../artifacts/cs-t0/tx-03-19-static/primary-loop-source.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../artifacts/cs-t0/tx-03-19-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../cs-t0/native/src/loop_runtime.cpp",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../cs-t0/native/src/loop_runtime.cpp",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../cs-t0/native/src/loop_runtime.cpp",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../cs-t0/native/src/loop_runtime.cpp",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->tx-03-19-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-sprite-render-entry-window.md->../../artifacts/cs-t0/tx-03-19-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-19-sprite-render-entry-window.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 12; bold/code markup supported, bare field/VA lists excluded."
+    },
+    {
+      "name": "document:docs/research/tx-03-19-primary-review.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../refactor/project-conventions.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->tx-03-19-sprite-render-entry-window.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->tx-03-19-luna-render-window-guard.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/primary-context-guard-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/primary-guard-detail.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/primary-render-pass.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/luna-render-window-guard.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/luna-guard-followup.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/primary-submit-flush.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/primary-batch-ownership.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/primary-batch-bind-state.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/primary-loop-source.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/review_documents.ps1",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-primary-review.md->../../artifacts/cs-t0/tx-03-19-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-19-primary-review.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 0; bold/code markup supported, bare field/VA lists excluded."
+    },
+    {
+      "name": "document:docs/research/tx-03-19-luna-render-window-guard.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-luna-render-window-guard.md->../../artifacts/cs-t0/tx-03-19-static/luna-export-render-window.py",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-luna-render-window-guard.md->../../artifacts/cs-t0/tx-03-19-static/luna-guard-followup.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-luna-render-window-guard.md->../../artifacts/cs-t0/tx-03-19-static/luna-render-window-guard.json",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-luna-render-window-guard.md->../../cs-t0/native/src/loop_runtime.cpp",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-luna-render-window-guard.md->tx-03-14-renderer-context-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-19-luna-render-window-guard.md->tx-03-18-single-sprite-adapter-contract.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-19-luna-render-window-guard.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 16; bold/code markup supported, bare field/VA lists excluded."
+    },
+    {
+      "name": "document:docs/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/README.md",
+      "pass": true,
+      "detail": "Current research addition present; historical entries retained."
+    },
+    {
+      "name": "link:docs/README.md->research/tx-03-19-sprite-render-entry-window.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/README.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 0; bold/code markup supported, bare field/VA lists excluded."
+    },
+    {
+      "name": "document:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Current research addition present; historical entries retained."
+    },
+    {
+      "name": "link:docs/hooks/README.md->../research/tx-03-19-sprite-render-entry-window.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 0; bold/code markup supported, bare field/VA lists excluded."
+    },
+    {
+      "name": "document:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Current research addition present; historical entries retained."
+    },
+    {
+      "name": "link:docs/hooks/entity.md->../research/tx-03-19-sprite-render-entry-window.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 0; bold/code markup supported, bare field/VA lists excluded."
+    },
+    {
+      "name": "document:docs/hooks/game-loop.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/game-loop.md",
+      "pass": true,
+      "detail": "Current research addition present; historical entries retained."
+    },
+    {
+      "name": "link:docs/hooks/game-loop.md->../research/tx-03-19-sprite-render-entry-window.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/hooks/game-loop.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 1; bold/code markup supported, bare field/VA lists excluded."
+    },
+    {
+      "name": "document:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Current research addition present; historical entries retained."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-19-sprite-render-entry-window.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-19-sprite-render-entry-window.md",
+      "pass": true,
+      "detail": "Local reference resolves; current result artifact created at completion."
+    },
+    {
+      "name": "document-addresses:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Explicitly labeled VA/RVA claims: 0; bold/code markup supported, bare field/VA lists excluded."
+    },
+    {
+      "name": "json:luna-guard-followup.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "raw-addresses:luna-guard-followup.json",
+      "pass": true,
+      "detail": "Resolved function/instruction/range/data addresses agree; explicitly retained failed request is not claimed as a complete function export."
+    },
+    {
+      "name": "json:luna-render-window-guard.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "classified-internal-address:A804B0",
+      "pass": true,
+      "detail": "Internal request resolves to A80010; not an additional unique function."
+    },
+    {
+      "name": "preserved-acquisition-failure:A8FB7F",
+      "pass": true,
+      "detail": "Failed function request retained; only the followup range is used for instruction evidence."
+    },
+    {
+      "name": "raw-addresses:luna-render-window-guard.json",
+      "pass": true,
+      "detail": "Resolved function/instruction/range/data addresses agree; explicitly retained failed request is not claimed as a complete function export."
+    },
+    {
+      "name": "json:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "json:primary-batch-bind-state.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "raw-addresses:primary-batch-bind-state.json",
+      "pass": true,
+      "detail": "Resolved function/instruction/range/data addresses agree; explicitly retained failed request is not claimed as a complete function export."
+    },
+    {
+      "name": "json:primary-batch-ownership.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "raw-addresses:primary-batch-ownership.json",
+      "pass": true,
+      "detail": "Resolved function/instruction/range/data addresses agree; explicitly retained failed request is not claimed as a complete function export."
+    },
+    {
+      "name": "json:primary-context-guard-review.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "raw-addresses:primary-context-guard-review.json",
+      "pass": true,
+      "detail": "Resolved function/instruction/range/data addresses agree; explicitly retained failed request is not claimed as a complete function export."
+    },
+    {
+      "name": "json:primary-guard-detail.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "raw-addresses:primary-guard-detail.json",
+      "pass": true,
+      "detail": "Resolved function/instruction/range/data addresses agree; explicitly retained failed request is not claimed as a complete function export."
+    },
+    {
+      "name": "json:primary-loop-source.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "json:primary-render-pass.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "raw-addresses:primary-render-pass.json",
+      "pass": true,
+      "detail": "Resolved function/instruction/range/data addresses agree; explicitly retained failed request is not claimed as a complete function export."
+    },
+    {
+      "name": "json:primary-submit-flush.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "raw-addresses:primary-submit-flush.json",
+      "pass": true,
+      "detail": "Resolved function/instruction/range/data addresses agree; explicitly retained failed request is not claimed as a complete function export."
+    },
+    {
+      "name": "evidence:primary-render-pass.json",
+      "pass": true,
+      "detail": "Required static evidence or preserved acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-submit-flush.json",
+      "pass": true,
+      "detail": "Required static evidence or preserved acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-batch-ownership.json",
+      "pass": true,
+      "detail": "Required static evidence or preserved acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-batch-bind-state.json",
+      "pass": true,
+      "detail": "Required static evidence or preserved acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-context-guard-review.json",
+      "pass": true,
+      "detail": "Required static evidence or preserved acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-guard-detail.json",
+      "pass": true,
+      "detail": "Required static evidence or preserved acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-loop-source.json",
+      "pass": true,
+      "detail": "Required static evidence or preserved acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Required static evidence or preserved acquisition record exists."
+    },
+    {
+      "name": "evidence:luna-render-window-guard.json",
+      "pass": true,
+      "detail": "Required static evidence or preserved acquisition record exists."
+    },
+    {
+      "name": "evidence:luna-guard-followup.json",
+      "pass": true,
+      "detail": "Required static evidence or preserved acquisition record exists."
+    },
+    {
+      "name": "source:export_static.py",
+      "pass": true,
+      "detail": "Read-only acquisition source supplied; not executed by this review."
+    },
+    {
+      "name": "source:luna-export-render-window.py",
+      "pass": true,
+      "detail": "Read-only acquisition source supplied; not executed by this review."
+    },
+    {
+      "name": "followup-function-counts",
+      "pass": true,
+      "detail": "Twelve actual unique functions, zero unresolved function requests."
+    },
+    {
+      "name": "followup-other-counts",
+      "pass": true,
+      "detail": "Five ranges, eight xref records, nine symbols, no inferred virtual table."
+    },
+    {
+      "name": "source-excerpt:45-86",
+      "pass": true,
+      "detail": "One-based source excerpt matches current source directly; no hash."
+    },
+    {
+      "name": "source-excerpt:279-294",
+      "pass": true,
+      "detail": "One-based source excerpt matches current source directly; no hash."
+    },
+    {
+      "name": "source-excerpt:385-407",
+      "pass": true,
+      "detail": "One-based source excerpt matches current source directly; no hash."
+    },
+    {
+      "name": "source-excerpt:483-495",
+      "pass": true,
+      "detail": "One-based source excerpt matches current source directly; no hash."
+    },
+    {
+      "name": "source-excerpt:996-1020",
+      "pass": true,
+      "detail": "One-based source excerpt matches current source directly; no hash."
+    },
+    {
+      "name": "source-excerpt:1099-1104",
+      "pass": true,
+      "detail": "One-based source excerpt matches current source directly; no hash."
+    },
+    {
+      "name": "source-excerpt:1626-1657",
+      "pass": true,
+      "detail": "One-based source excerpt matches current source directly; no hash."
+    },
+    {
+      "name": "instruction:0x9312f1",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-guard-review.json."
+    },
+    {
+      "name": "instruction:0x8fc32c",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-guard-review.json."
+    },
+    {
+      "name": "instruction:0x9aaae3",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-guard-detail.json."
+    },
+    {
+      "name": "instruction:0x9560c6",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-pass.json."
+    },
+    {
+      "name": "instruction:0x9560c9",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-pass.json."
+    },
+    {
+      "name": "instruction:0x9560cb",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-pass.json."
+    },
+    {
+      "name": "instruction:0x9560d0",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-pass.json."
+    },
+    {
+      "name": "instruction:0xa191a0",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-pass.json."
+    },
+    {
+      "name": "instruction:0xa1929d",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-pass.json."
+    },
+    {
+      "name": "instruction:0xa19312",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-pass.json."
+    },
+    {
+      "name": "instruction:0xa19319",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-pass.json."
+    },
+    {
+      "name": "instruction:0xa1933c",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-pass.json."
+    },
+    {
+      "name": "instruction:0x40a133",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-pass.json."
+    },
+    {
+      "name": "instruction:0xa7fd99",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-guard-review.json."
+    },
+    {
+      "name": "instruction:0xa7fdab",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-guard-review.json."
+    },
+    {
+      "name": "instruction:0xa7fe68",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-guard-review.json."
+    },
+    {
+      "name": "instruction:0xa7fe71",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-guard-review.json."
+    },
+    {
+      "name": "instruction:0xa190f9",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-guard-review.json."
+    },
+    {
+      "name": "instruction:0xa19102",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-guard-review.json."
+    },
+    {
+      "name": "instruction:0xa66eab",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-batch-bind-state.json."
+    },
+    {
+      "name": "instruction:0xa66ee9",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-batch-bind-state.json."
+    },
+    {
+      "name": "instruction:0xa66f74",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-batch-bind-state.json."
+    },
+    {
+      "name": "instruction:0xa66f77",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-batch-bind-state.json."
+    },
+    {
+      "name": "instruction:0xa6701f",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-batch-bind-state.json."
+    },
+    {
+      "name": "instruction:0xa67024",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-batch-bind-state.json."
+    },
+    {
+      "name": "instruction:0xa13a32",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-submit-flush.json."
+    },
+    {
+      "name": "instruction:0xa13a8b",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-submit-flush.json."
+    },
+    {
+      "name": "instruction:0xa67e41",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-batch-ownership.json."
+    },
+    {
+      "name": "instruction:0xa67e8a",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-batch-ownership.json."
+    },
+    {
+      "name": "instruction:0x409873",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-submit-flush.json."
+    },
+    {
+      "name": "instruction:0xa140a8",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-pass.json."
+    },
+    {
+      "name": "resolver-write:A8FB7F",
+      "pass": true,
+      "detail": "Known instruction range writes epoxy pointer; not claimed as a function."
+    },
+    {
+      "name": "independent-function:0x9555c0",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    },
+    {
+      "name": "independent-function:0x931050",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    },
+    {
+      "name": "independent-function:0x8fb120",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    },
+    {
+      "name": "independent-function:0xa18e90",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    },
+    {
+      "name": "independent-function:0xa19df0",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    },
+    {
+      "name": "independent-function:0xa6bbb0",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    },
+    {
+      "name": "independent-function:0xa7fa50",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    },
+    {
+      "name": "independent-function:0xa7fce0",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    },
+    {
+      "name": "independent-function:0xa80010",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    },
+    {
+      "name": "independent-function:0x9aa040",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    },
+    {
+      "name": "independent-function:0xa6a420",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    },
+    {
+      "name": "independent-function:0xa6b570",
+      "pass": true,
+      "detail": "Independent raw instruction exports compared directly; no hash. Semantic review recorded separately."
+    }
+  ],
+  "failures": []
+}

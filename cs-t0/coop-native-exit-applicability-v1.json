@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 1,
+  "applicabilityIdentity": "IsaacCsT0-CoopNativeExitApplicability-v1",
+  "workPackage": "CS-T0-05-03",
+  "status": "NOT_APPLICABLE_NATIVE_ROUTE",
+  "createNewOnly": true,
+  "scope": {
+    "scenario": "native-exit-passive",
+    "observedTargetSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "canonicalTargetSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "targetEquivalenceSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+    "construction": "ORDINARY_TRUE_COOP_TYPE_1_VARIANT_0_MAIN_VECTOR",
+    "exitCallsiteRva": "0x005BB22A",
+    "exitTargetRva": "0x005BA000",
+    "variantOffset": "0x0000002C",
+    "requiredVariant": "NONZERO",
+    "ordinaryVariant": 0,
+    "possessorVariant": 2,
+    "possessorVector": "SECONDARY",
+    "allGameExitRoutesAbsent": false,
+    "variantLifetimeImmutabilityProven": false,
+    "changedTargetShapeOrCallerRequiresNewEvidence": true,
+    "legacyGraphPositiveIsNotOrdinaryReachability": true
+  },
+  "staticArtifacts": [
+    {
+      "path": "cs-t0/coop-native-exit-applicability-static-v1.json",
+      "sha256": "F53BE5620BA6E881236192B42D4863FFEB8DC829891C1AB7B060E0167652B51A"
+    },
+    {
+      "path": "cs-t0/coop-native-exit-reachability-v1.json",
+      "sha256": "034B28853681C43539F669EC015EF3F9C2F8214F9CC25453E31BA86E751D7483"
+    },
+    {
+      "path": "out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json",
+      "sha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138"
+    },
+    {
+      "path": "cs-t0/coop-c0-layout-evidence-v1.json",
+      "sha256": "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059"
+    },
+    {
+      "path": "cs-t0/coop-static-graph-v1.json",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    },
+    {
+      "path": "cs-t0/coop-catalog-v4.json",
+      "sha256": "00641728411D7BB60B54DA1A58C39E616204729901B8D76433BF51E0748AFE5A"
+    },
+    {
+      "path": "cs-t0/coop-plan-v5r1.json",
+      "sha256": "FB446AC397305AB1C5D21CA91BC76D4B0B9B82259E289379028627B55DD6BF6C"
+    },
+    {
+      "path": "cs-t0/coop-passive-live-progress-v7.json",
+      "sha256": "10968FD428C44BB90280B1E43738D8D161878E88E2C51E4C2EED855038BA58B7"
+    },
+    {
+      "path": "cs-t0/coop-verification-v5r6.json",
+      "sha256": "61DB9BCCE41988AFC1D2723B16012E363B0B2F39064762599B6BF11105827B2B"
+    }
+  ],
+  "baseline": {
+    "path": "cs-t0/coop-passive-applicability-baseline-v1.json",
+    "sha256": "D56C17F366302A84A097EA40276D19B9966511CB168CCFE94B507A11CFD5EBC1"
+  },
+  "predecessorVerification": {
+    "path": "cs-t0/coop-verification-v5r6.json",
+    "sha256": "61DB9BCCE41988AFC1D2723B16012E363B0B2F39064762599B6BF11105827B2B"
+  },
+  "predecessorProgress": {
+    "path": "cs-t0/coop-passive-live-progress-v7.json",
+    "sha256": "10968FD428C44BB90280B1E43738D8D161878E88E2C51E4C2EED855038BA58B7"
+  },
+  "sources": [
+    {
+      "scenario": "native-join-passive",
+      "artifactIdentity": "coop-passive-69B0D27EC4F1F30313058310386AE1D2D8C422CFFB60AD9096A577B4C1274FED",
+      "sourcePath": "artifacts/cs-t0/20260828T072118Z-t0-05-03-native-join-passive-t0-05-03-native-join-passive-live-06",
+      "manifestSha256": "E268ECE2E43FB2F0834E797E9986D0294A67E03FC347CF39D3801D8F5064B991",
+      "eventsSha256": "BE9AEE8A6AE6C96F919563AFA71C0A60A10E9A0762D7E7C12927F3BFC5CBC6B6",
+      "analysisSha256": "BD2A8C6E8EE18B7D2E0B684062193731B39750DE6835403358AE196827B1FD53",
+      "expectedResult": "PASS",
+      "foundation": [
+        "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+        "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+        "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+        "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059",
+        "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+      ],
+      "producer": [
+        "29265D6C79C1975E39223C4BCF6DD2D1580352B4E92A442C36CB3E631C309B41",
+        "0C39F82309F84EC92951787CE08E404198C5D16E7A165F6F3EDAEC1755612706",
+        "AA010810FA698CFF9E13ECF29753C7F85D941456BA69D356F7F32AE18017E91E",
+        "AE692A3163F171159D86A44976D66C480005C0E6EB2F40488EA378BE93212E2E",
+        "3170D805B6F1F2D0BDE4E4F93D38D982A71AC9F65BC9E973DF00B42F63D03972"
+      ]
+    },
+    {
+      "scenario": "death-respawn-passive",
+      "artifactIdentity": "coop-passive-3DF431A7158CC4268C6BB65DDA97D08032C97171544459265237087334AE52D8",
+      "sourcePath": "artifacts/cs-t0/20260830T182858Z-t0-05-03-death-respawn-passive-t0-05-03-death-respawn-passive-live-08",
+      "manifestSha256": "50394427D5217CC7CE7587D8C29AEBB377CA58F0DE7D7EEB5AC0B0BA16E006D2",
+      "eventsSha256": "B7A479B17DE837EB662376220B17FB8207952D2E49A7DF112F98FF48A70154FB",
+      "analysisSha256": "B4113180004E9F765EE88F117D84D095909D230155DB3BF809A45AF828711C78",
+      "expectedResult": "PASS",
+      "foundation": [
+        "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+        "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+        "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+        "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059",
+        "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+      ],
+      "producer": [
+        "29265D6C79C1975E39223C4BCF6DD2D1580352B4E92A442C36CB3E631C309B41",
+        "0C39F82309F84EC92951787CE08E404198C5D16E7A165F6F3EDAEC1755612706",
+        "AA010810FA698CFF9E13ECF29753C7F85D941456BA69D356F7F32AE18017E91E",
+        "AE692A3163F171159D86A44976D66C480005C0E6EB2F40488EA378BE93212E2E",
+        "3170D805B6F1F2D0BDE4E4F93D38D982A71AC9F65BC9E973DF00B42F63D03972"
+      ]
+    },
+    {
+      "scenario": "room-rebind-passive",
+      "artifactIdentity": "coop-passive-578339C0EE89675F861E4EA65C3A9B890DAD87FFAF914D42539CCB949C7D3015",
+      "sourcePath": "artifacts/cs-t0/20260830T185508Z-t0-05-03-room-rebind-passive-t0-05-03-room-rebind-passive-live-09",
+      "manifestSha256": "01FE528ABC6BE9C401A1FA5A8785D37D6DED64482C214FE42B6FB9B777882F0E",
+      "eventsSha256": "5F69A683587DCC63DB73CC0C641A76208D90369B620E45B40C3936BA4C093EA3",
+      "analysisSha256": "FABD4445747902C73B73E7907AC2B9F6A290807F6CAC4182795FC62711E7DACA",
+      "expectedResult": "PASS",
+      "foundation": [
+        "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+        "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+        "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+        "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059",
+        "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+      ],
+      "producer": [
+        "29265D6C79C1975E39223C4BCF6DD2D1580352B4E92A442C36CB3E631C309B41",
+        "0C39F82309F84EC92951787CE08E404198C5D16E7A165F6F3EDAEC1755612706",
+        "AA010810FA698CFF9E13ECF29753C7F85D941456BA69D356F7F32AE18017E91E",
+        "AE692A3163F171159D86A44976D66C480005C0E6EB2F40488EA378BE93212E2E",
+        "3170D805B6F1F2D0BDE4E4F93D38D982A71AC9F65BC9E973DF00B42F63D03972"
+      ]
+    },
+    {
+      "scenario": "device-rebind-passive",
+      "artifactIdentity": "coop-passive-E095D2F2FB836DF235565CFD7B8F9EAEE193F555F61D301E3B31914287C5C085",
+      "sourcePath": "artifacts/cs-t0/20260831T065706Z-t0-05-03-device-rebind-passive-t0-05-03-device-rebind-passive-live-11",
+      "manifestSha256": "53CB7F12A11929CF53DED515F7B2346BCE3EF7AF52CF17442D22FC958074139E",
+      "eventsSha256": "795986B50E0BE59378E20B9CA74C425C3EE49D984A1510C0A45D8BB45DE4F650",
+      "analysisSha256": "E726A3339B539712510BFE9E0676B3AE005496FCBB9F0BB304438DEB5BB8C3F0",
+      "expectedResult": "PASS",
+      "foundation": [
+        "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+        "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+        "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+        "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059",
+        "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+      ],
+      "producer": [
+        "00641728411D7BB60B54DA1A58C39E616204729901B8D76433BF51E0748AFE5A",
+        "FB446AC397305AB1C5D21CA91BC76D4B0B9B82259E289379028627B55DD6BF6C",
+        "61DB9BCCE41988AFC1D2723B16012E363B0B2F39064762599B6BF11105827B2B",
+        "768CDDEBE490236789F6C542AAA7C9F84B31778EE1A3655DC4F23934AD4F720A",
+        "3170D805B6F1F2D0BDE4E4F93D38D982A71AC9F65BC9E973DF00B42F63D03972"
+      ]
+    },
+    {
+      "scenario": "menu-teardown-passive",
+      "artifactIdentity": "coop-passive-E87B5F34DEC3F75F00FDE7A1A11042A8715922074261E57B00FA64B13BD2628C",
+      "sourcePath": "artifacts/cs-t0/20260831T072042Z-t0-05-03-menu-teardown-passive-t0-05-03-menu-teardown-passive-live-12",
+      "manifestSha256": "AD06F8E6AE60F959717EE54C0833DA216F17444B0B72F0B4A74AE45772420F28",
+      "eventsSha256": "8EFF7DD402CFCA959F9586D166D3FEAD0A141E14BE01A0353D584692D982962C",
+      "analysisSha256": "05FC7430983B76B9919CA5F52EE6F497B110BC343D059E3D7C43320B9CDB24AA",
+      "expectedResult": "PASS",
+      "foundation": [
+        "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+        "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+        "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+        "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059",
+        "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+      ],
+      "producer": [
+        "00641728411D7BB60B54DA1A58C39E616204729901B8D76433BF51E0748AFE5A",
+        "FB446AC397305AB1C5D21CA91BC76D4B0B9B82259E289379028627B55DD6BF6C",
+        "61DB9BCCE41988AFC1D2723B16012E363B0B2F39064762599B6BF11105827B2B",
+        "768CDDEBE490236789F6C542AAA7C9F84B31778EE1A3655DC4F23934AD4F720A",
+        "3170D805B6F1F2D0BDE4E4F93D38D982A71AC9F65BC9E973DF00B42F63D03972"
+      ]
+    }
+  ],
+  "historicalExit": {
+    "scenario": "native-exit-passive",
+    "artifactIdentity": "coop-passive-50A4BDA427EE7EEBA0A3699DC5804AD4C6596FBBE959D316DFE6295A91137D74",
+    "sourcePath": "artifacts/cs-t0/20260830T162513Z-t0-05-03-native-exit-passive-t0-05-03-native-exit-passive-live-07",
+    "manifestSha256": "15AE50FC1A5858C06BAAAE7309C4191FE8E3659E6617A8C7DBFEFAD176C7D262",
+    "eventsSha256": "6322C0F24BEC2406907185BE0E718B96DB3CB16DCC6442137A436F4550243B8D",
+    "analysisSha256": "FCA986F50D05C18F3F8070EE61AB281C7B2CC47292C358010F136D157A70D5B5",
+    "expectedResult": "BLOCKED_BY_EVIDENCE",
+    "foundation": [
+      "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+      "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+      "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+      "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059",
+      "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    ],
+    "producer": [
+      "29265D6C79C1975E39223C4BCF6DD2D1580352B4E92A442C36CB3E631C309B41",
+      "0C39F82309F84EC92951787CE08E404198C5D16E7A165F6F3EDAEC1755612706",
+      "AA010810FA698CFF9E13ECF29753C7F85D941456BA69D356F7F32AE18017E91E",
+      "AE692A3163F171159D86A44976D66C480005C0E6EB2F40488EA378BE93212E2E",
+      "3170D805B6F1F2D0BDE4E4F93D38D982A71AC9F65BC9E973DF00B42F63D03972"
+    ]
+  },
+  "capabilityLimitations": {
+    "nativeSinglePlayerRemovalVerified": false,
+    "customEndpointExitImplemented": false,
+    "customPlayerRemovalImplemented": false,
+    "activeLiveAuthorized": false,
+    "t006Unlocked": false,
+    "deathRespawnProvenance": "OPERATOR_CONFIRMED_WITH_INHERITED_LIFECYCLE_NOT_DEDICATED_DEATH_HOOK",
+    "menuUiConfirmation": "NOT_RECEIVED",
+    "menuInitialDoubleBoundRequired": true,
+    "legacy53AndDevice56TransactionsUnchanged": true,
+    "virtualDeviceLifetimeNotWaived": true,
+    "unknownExitRouteNotAuthorized": true
+  },
+  "zeroCapabilities": {
+    "passiveHookTransactionAllowed": false,
+    "passiveObservationAllowed": false,
+    "activeInputAllowed": false,
+    "inputMutationAllowed": false,
+    "worldMutationAllowed": false,
+    "runtimeMutationAllowed": false,
+    "overrideAllowed": false,
+    "transportAllowed": false,
+    "schedulerAllowed": false,
+    "applyAllowed": false,
+    "modeLatchAllowed": false,
+    "originalOnlinePositiveAllowed": false,
+    "t005Unlocked": false,
+    "csT00504Unlocked": false
+  },
+  "requiredAutomaticChecks": [
+    "frozen-artifact-bindings",
+    "rust-test-all-targets",
+    "rust-fmt-check",
+    "rust-check-all-targets",
+    "rust-clippy-deny-warnings",
+    "rust-release-build",
+    "legacy-native-debug-release-39",
+    "active-native-debug-release-262",
+    "passive-native-debug-release-407",
+    "device-v2-native-debug-release",
+    "passive-cross-language-debug-release",
+    "device-v2-cross-language-debug-release",
+    "device-v2-causal-contract-and-mutations",
+    "legacy-device-counterexamples-rejected",
+    "historical-live-replay-immutable",
+    "bootstrap-regression",
+    "static-c0-regression",
+    "t0-04-active-regression",
+    "six-offline-passive-fixtures-and-gate",
+    "device-v2-real-shutdown-native-debug-release",
+    "device-v2-real-shutdown-public-cli-debug-release",
+    "device-live10-replay-remains-blocked",
+    "native-exit-static-target-bytes",
+    "applicability-black-box-contract",
+    "five-passive-source-replay-and-na",
+    "native-exit-replay-remains-blocked",
+    "legacy-six-source-gate-still-blocked",
+    "immutable-migration-baseline"
+  ],
+  "verificationArtifactPaths": [
+    "cs-t0/coop-native-exit-applicability-v1.json",
+    "cs-t0/coop-native-exit-applicability-static-v1.json",
+    "cs-t0/coop-native-exit-reachability-v1.json",
+    "cs-t0/coop-passive-applicability-baseline-v1.json",
+    "out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json",
+    "cs-t0/coop-c0-layout-evidence-v1.json",
+    "cs-t0/coop-static-graph-v1.json",
+    "cs-t0/coop-catalog-v4.json",
+    "cs-t0/coop-plan-v5r1.json",
+    "cs-t0/coop-passive-live-progress-v7.json",
+    "cs-t0/coop-verification-v5r6.json",
+    "cs-t0/src/coop_passive_applicability.rs",
+    "cs-t0/src/commands.rs",
+    "cs-t0/src/lib.rs",
+    "cs-t0/tests/coop_passive_applicability_contract.rs",
+    "cs-t0/tests/support/coop_applicability_fixture.rs",
+    "cs-t0/verify-coop-passive-applicability.ps1",
+    "cs-t0/verify-coop-passive.ps1",
+    "cs-t0/Cargo.toml",
+    "cs-t0/Cargo.lock"
+  ]
+}

@@ -1,0 +1,1884 @@
+{
+  "tx": "tx-01-93",
+  "scenarios": [
+    {
+      "name": "fixed-order",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "a.visible": false,
+            "a.processed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 -32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "read 0 1",
+          "expect": {
+            "value": 0
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "phase": "Simulating",
+            "current": "1",
+            "simulation": "1",
+            "completed": "0",
+            "a.move": 32767,
+            "b.move": -32767
+          }
+        },
+        {
+          "command": "read 0 8",
+          "expect": {
+            "value": 1
+          }
+        },
+        {
+          "command": "read 0 8",
+          "expect": {
+            "value": 1,
+            "a.edge_count": "0"
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "phase": "AwaitPostState",
+            "completed": "0",
+            "current": "1",
+            "simulation": "0",
+            "body_calls": "1",
+            "a.edge_count": "1",
+            "a.processed_tick": "1",
+            "a.visible": false
+          }
+        },
+        {
+          "command": "read 0 1",
+          "expect": {
+            "value": 0
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "phase": "Committed",
+            "completed": "1",
+            "current": "0",
+            "receipt.capture": "501",
+            "receipt.published": false
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "phase": "Published",
+            "publications": "1",
+            "receipt.published": true
+          }
+        },
+        {
+          "command": "outer",
+          "expect": {
+            "decision": "Idle",
+            "completed": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "post-state-disabled",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "completed": "0",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "post 0",
+          "expect": {
+            "completed": "1",
+            "receipt.post": 0,
+            "receipt.capture": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "phase": "Published"
+          }
+        }
+      ]
+    },
+    {
+      "name": "post-state-gap",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "completed": "0",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "post 2",
+          "expect": {
+            "completed": "1",
+            "receipt.post": 2,
+            "receipt.capture": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "phase": "Published"
+          }
+        }
+      ]
+    },
+    {
+      "name": "post-state-backpressure",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "completed": "0",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "post 3",
+          "expect": {
+            "completed": "1",
+            "receipt.post": 3,
+            "receipt.capture": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "phase": "Published"
+          }
+        }
+      ]
+    },
+    {
+      "name": "post-state-unavailable",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "completed": "0",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "post 4",
+          "expect": {
+            "completed": "1",
+            "receipt.post": 4,
+            "receipt.capture": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "phase": "Published"
+          }
+        }
+      ]
+    },
+    {
+      "name": "odd-never-full",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain odd 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "remote 1 1 1 1 32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned odd 1",
+          "expect": {
+            "completed": "0",
+            "b.edge_count": "1"
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "completed": "1",
+            "receipt.post": 2,
+            "receipt.reason": 2,
+            "receipt.capture": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "no-drain-warmup",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "decision": "Inactive",
+            "completed": "0",
+            "drained": 0,
+            "a.submit": "0",
+            "b.submit": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "no-drain-blocked",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1 blocked",
+          "expect": {
+            "decision": "Blocked",
+            "completed": "0",
+            "drained": 0,
+            "a.submit": "0",
+            "b.submit": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "no-drain-wrong-thread",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain wrong-thread 1",
+          "expect": {
+            "decision": "WrongThread",
+            "completed": "0",
+            "drained": 0,
+            "a.submit": "0",
+            "b.submit": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "no-drain-wrong-source",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain wrong-source 1",
+          "expect": {
+            "decision": "InvalidSource",
+            "completed": "0",
+            "drained": 0,
+            "a.submit": "0",
+            "b.submit": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "zero-budget",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Failed",
+            "decision": "DrainBudgetExceeded",
+            "completed": "0"
+          }
+        }
+      ],
+      "budget": 0
+    },
+    {
+      "name": "budget-all-attempts",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "remote 0 1 1 1 32767",
+          "expect": {
+            "admission": 2,
+            "drained": 2,
+            "a.submit": "2",
+            "a.duplicates": "1"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0",
+          "expect": {
+            "admission": 5,
+            "phase": "Failed",
+            "drained": 2,
+            "completed": "0",
+            "b.submit": "0"
+          }
+        }
+      ],
+      "budget": 2
+    },
+    {
+      "name": "accept-outside-drain",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local 0 1 1 0 0",
+          "expect": {
+            "admission": 5,
+            "phase": "Failed",
+            "completed": "0",
+            "a.submit": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "accept-after-resolve",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0",
+          "expect": {
+            "admission": 5,
+            "phase": "Failed",
+            "completed": "0",
+            "simulation": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "malformed-and-identity",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local 0 1 1 0 0 malformed",
+          "expect": {
+            "admission": 5
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 wrong-client",
+          "expect": {
+            "admission": 4
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 wrong-session",
+          "expect": {
+            "admission": 3
+          }
+        },
+        {
+          "command": "local 0 1 1 0 0 old-generation",
+          "expect": {
+            "admission": 12
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "drained": 5,
+            "a.submit": "3",
+            "a.rejected": "2",
+            "b.accepted": "0"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "post 0",
+          "expect": {
+            "completed": "1"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "remote-conflict-only-b",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "remote 1 1 2 0 0",
+          "expect": {
+            "admission": 11,
+            "b.retired": true,
+            "a.retired": false
+          }
+        },
+        {
+          "command": "local 0 1 1 0 32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "post 0",
+          "expect": {
+            "completed": "1",
+            "a.processed": "1",
+            "b.processed": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing-b-no-wait",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "invalidate 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "simulation": "1",
+            "b.visible": false
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 0
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "completed": "0"
+          }
+        },
+        {
+          "command": "post 0",
+          "expect": {
+            "completed": "1",
+            "a.processed_tick": "1",
+            "b.processed_tick": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "generation-in-body",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "a.visible": false,
+            "a.processed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 -32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "invalidate 0",
+          "expect": {
+            "a.generation": "2"
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "completed": "0",
+            "a.edge_count": "0",
+            "a.last_valid": false,
+            "b.processed": "1"
+          }
+        },
+        {
+          "command": "post 2",
+          "expect": {
+            "completed": "1"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "lifecycle-after-return",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "a.visible": false,
+            "a.processed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 -32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "completed": "0",
+            "a.edge_count": "1"
+          }
+        },
+        {
+          "command": "invalidate 0",
+          "expect": {
+            "a.generation": "2"
+          }
+        },
+        {
+          "command": "retire-session",
+          "expect": {
+            "session": "Retiring"
+          }
+        },
+        {
+          "command": "post 2",
+          "expect": {
+            "completed": "1",
+            "session": "Retiring",
+            "a.last_valid": false,
+            "a.processed": "1"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "failure-after-return-still-fact",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "a.visible": false,
+            "a.processed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 -32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "completed": "0"
+          }
+        },
+        {
+          "command": "fail-session",
+          "expect": {
+            "session": "Failed"
+          }
+        },
+        {
+          "command": "post 4",
+          "expect": {
+            "completed": "1",
+            "session": "Failed"
+          }
+        },
+        {
+          "command": "publish 0",
+          "expect": {
+            "ok": false,
+            "completed": "1",
+            "phase": "Failed",
+            "receipt.published": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "wrong-return",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "a.visible": false,
+            "a.processed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 -32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned wrong-owner 1",
+          "expect": {
+            "phase": "Failed",
+            "decision": "WrongReturn",
+            "completed": "0",
+            "a.edge_count": "0",
+            "a.processed": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "wrong-loop",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "a.visible": false,
+            "a.processed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 -32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 2",
+          "expect": {
+            "phase": "Failed",
+            "decision": "WrongReturn",
+            "completed": "0",
+            "a.edge_count": "0",
+            "a.processed": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "abnormal",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "a.visible": false,
+            "a.processed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 -32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1 abnormal",
+          "expect": {
+            "phase": "Failed",
+            "decision": "AbnormalReturn",
+            "completed": "0",
+            "a.edge_count": "0",
+            "a.processed": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing-return",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "a.visible": false,
+            "a.processed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 -32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "outer",
+          "expect": {
+            "phase": "Failed",
+            "decision": "MissingReturn",
+            "completed": "0",
+            "a.edge_count": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "missing-resolve",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "outer",
+          "expect": {
+            "phase": "Failed",
+            "decision": "MissingReturn",
+            "completed": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "post-before-body",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "phase": "Failed",
+            "completed": "0",
+            "body_calls": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "publish-before-commit",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": false,
+            "phase": "Failed",
+            "completed": "0",
+            "publications": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "repeat-post",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "completed": "1"
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "ok": false,
+            "phase": "Failed",
+            "completed": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "repeat-publish",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "post 0",
+          "expect": {
+            "completed": "1"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "publications": "1"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": false,
+            "phase": "Failed",
+            "completed": "1",
+            "publications": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "publication-failure-no-rollback",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "a.visible": false,
+            "a.processed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 -32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "completed": "1"
+          }
+        },
+        {
+          "command": "publish 0",
+          "expect": {
+            "ok": false,
+            "phase": "Failed",
+            "session": "Failed",
+            "completed": "1",
+            "receipt.tick": "1",
+            "receipt.published": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "wrong-sample-is-gap",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "post 1 wrong-tick",
+          "expect": {
+            "completed": "1",
+            "receipt.post": 4,
+            "receipt.reason": 18,
+            "receipt.capture": "0"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "wrong-outer-no-commit",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "a.visible": false,
+            "a.processed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 -32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "post 1 wrong-loop",
+          "expect": {
+            "phase": "Failed",
+            "decision": "WrongReturn",
+            "completed": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "next-tick-and-missing-neutral",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 1 32767",
+          "expect": {
+            "admission": 1,
+            "a.visible": false,
+            "a.processed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 -32767",
+          "expect": {
+            "admission": 1
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "post 1",
+          "expect": {
+            "completed": "1"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain odd 2",
+          "expect": {
+            "phase": "Draining",
+            "candidate": "2",
+            "completed": "1"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "simulation": "2",
+            "a.move": 0,
+            "b.move": 0
+          }
+        },
+        {
+          "command": "read 0 8",
+          "expect": {
+            "value": 0
+          }
+        },
+        {
+          "command": "returned odd 2",
+          "expect": {
+            "completed": "1",
+            "a.edge_count": "1"
+          }
+        },
+        {
+          "command": "post 2",
+          "expect": {
+            "completed": "2"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "publications": "2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "duplicate-loop-no-drain",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "returned normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "post 0",
+          "expect": {
+            "completed": "1"
+          }
+        },
+        {
+          "command": "publish 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "decision": "DuplicateLoop",
+            "phase": "Failed",
+            "completed": "1",
+            "drained": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "clock-overflow-before-production",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "drain normal 1",
+          "expect": {
+            "decision": "Exhausted",
+            "completed": "18446744073709551551",
+            "phase": "Failed",
+            "drained": 0
+          }
+        }
+      ],
+      "initial_tick": "18446744073709551551"
+    },
+    {
+      "name": "continuous-120-without-b",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "cycle 120",
+          "expect": {
+            "phase": "Published",
+            "completed": "120",
+            "body_calls": "120",
+            "publications": "120",
+            "a.accepted": "120",
+            "a.processed": "120",
+            "a.edge_count": "1",
+            "b.submit": "0",
+            "b.processed_tick": "0"
+          }
+        }
+      ],
+      "batch_count": 120
+    }
+  ]
+}

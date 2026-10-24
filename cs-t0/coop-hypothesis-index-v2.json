@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 2,
+  "indexIdentity": "IsaacCsT0-CoopHypothesisIndex-v2",
+  "workPackage": "CS-T0-05-01",
+  "createdUtc": "2026-08-27T08:55:00Z",
+  "status": "STATIC_GRAPH_COMPLETE",
+  "supersedes": "coop-hypothesis-index-v1.json",
+  "supersedesSha256": "E892F698BFE82F00516B40C6F1DC7354ABA68C7D98B78F37126E2CEB6CB5FC96",
+  "artifactBindings": [
+    { "path": "coop-static-evidence-v1.json", "identity": "IsaacCsT0-CoopStaticEvidence-v1", "sha256": "501B39DEB198E7F1424328069534438ADC73BA665D1E6988AFA4AD7939DB081B" },
+    { "path": "coop-static-graph-v1.json", "identity": "IsaacCsT0-CoopStaticGraph-v1", "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934" }
+  ],
+  "resolvedQuestions": [
+    {
+      "id": "local-coop-join-exit-owner",
+      "resolution": "RESOLVED",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "answer": "The 0x2FA540 owner calls 0x5BAC40 on the inherited main-thread runtime path; ordinary join/assignment/HUD and exit/retirement callsites are uniquely frozen."
+    },
+    {
+      "id": "second-player-creation-chain",
+      "resolution": "RESOLVED",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "answer": "0x5B9CD0 constructs and inserts the Player, writes +0x161C, then the ordinary route assigns +0x1618, rebuilds HUD, and publishes through main-vector ordinal lookup."
+    },
+    {
+      "id": "manager-extra-caller",
+      "resolution": "RESOLVED",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "answer": "0x2F8055 belongs to the Victory Lap run-restart lifecycle and is not an Authority tick."
+    },
+    {
+      "id": "exit-second-stack-slot",
+      "resolution": "RESOLVED",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "answer": "The callee never reads the second dword; it is frozen only as ABI_PADDING_UNUSED and ret 8."
+    }
+  ],
+  "openQuestions": [
+    {
+      "id": "three-mode-object-graph",
+      "question": "Which observed manager, Player and InputDevice relations differ among Offline single-player, local co-op dual-player and OriginalOnline dual-player modes?",
+      "evidenceLabel": "UNKNOWN",
+      "nextWorkPackage": "CS-T0-05-02"
+    },
+    {
+      "id": "stable-and-ephemeral-mapping",
+      "question": "What are the runtime freeze, rebind and retire rules for ClientId to LocalPlayerOrdinal to generation-local Player association?",
+      "evidenceLabel": "UNKNOWN",
+      "nextWorkPackage": "CS-T0-05-03"
+    },
+    {
+      "id": "virtual-device-necessity",
+      "question": "Is the native local-coop path sufficient, or is a virtual device adapter required and evidence-eligible?",
+      "evidenceLabel": "UNKNOWN",
+      "nextWorkPackage": "CS-T0-05-05"
+    }
+  ],
+  "rejectedHypotheses": [
+    {
+      "id": "rva-2f8055-is-authority-tick",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "The call is a Victory Lap run-restart lifecycle path."
+    },
+    {
+      "id": "exit-padding-is-reason-or-flag",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "The unread slot is ABI_PADDING_UNUSED without business semantics."
+    },
+    {
+      "id": "exit-clears-player-controller-field",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "Static evidence does not show a write clearing Player+0x1618."
+    },
+    {
+      "id": "exit-is-atomically-lua-invisible",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "Only entry-before and complete-return-after are stable passive observation boundaries."
+    },
+    {
+      "id": "netinput-vector-guard-proves-complete-original-online-mode",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "The guard proves only that a nonempty NetInputDevice vector skips the local body."
+    },
+    {
+      "id": "possessor-sites-are-ordinary-positive-route",
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "replacementBoundary": "Possessor spawn and assignment observers are stop-only sentinels."
+    },
+    {
+      "id": "rva-554f84-is-observer-ready-assignment",
+      "evidenceLabel": "UNKNOWN",
+      "replacementBoundary": "The site remains excluded with no slot or positive route."
+    }
+  ],
+  "policy": {
+    "unknownCannotBePromotedWithoutNewEvidence": true,
+    "rejectedCannotBeReintroducedAsAssumption": true,
+    "sourcePriority": "HASH_BOUND_STATIC_EVIDENCE_THEN_GRAPH_THEN_CATALOG",
+    "unknownMayRemainNonBlockingWhenExcluded": true
+  },
+  "permissions": {
+    "activeInputAllowed": false,
+    "runtimeMutationAllowed": false,
+    "t005Unlocked": false,
+    "csT00502Unlocked": true
+  }
+}

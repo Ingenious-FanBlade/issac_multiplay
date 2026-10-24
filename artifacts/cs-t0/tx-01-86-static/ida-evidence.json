@@ -1,0 +1,928 @@
+{
+  "health": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"status\":\"ok\",\"uptime_sec\":4640.884,\"idb_path\":\"F:\\\\SteamLibrary\\\\steamapps\\\\common\\\\The Binding of Isaac Rebirth\\\\isaac-ng.exe.i64\",\"module\":\"isaac-ng.exe\",\"input_path\":\"F:\\\\SteamLibrary\\\\steamapps\\\\common\\\\The Binding of Isaac Rebirth\\\\isaac-ng.exe\",\"imagebase\":\"0x400000\",\"auto_analysis_ready\":true,\"hexrays_ready\":true,\"strings_cache_ready\":true,\"strings_cache_size\":18481}"
+      }
+    ],
+    "structuredContent": {
+      "status": "ok",
+      "uptime_sec": 4640.884,
+      "idb_path": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe.i64",
+      "module": "isaac-ng.exe",
+      "input_path": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe",
+      "imagebase": "0x400000",
+      "auto_analysis_ready": true,
+      "hexrays_ready": true,
+      "strings_cache_ready": true,
+      "strings_cache_size": 18481
+    },
+    "isError": false
+  },
+  "luaRegistration": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"result\":\"None\",\"stdout\":\"[{'name': 'Remove', 'address': '0xb6f970', 'refs': [{'at': '0x863a1e', 'function': '0x8638d0', 'lines': [{'at': '0x8639fc', 'asm': 'lea     ecx, [ebp+var_38]'}, {'at': '0x8639ff', 'asm': 'mov     esi, eax'}, {'at': '0x863a01', 'asm': 'mov     [ebp+var_30], esi'}, {'at': '0x863a04', 'asm': 'call    sub_8BB130'}, {'at': '0x863a09', 'asm': 'mov     ecx, [ebp+arg_18]'}, {'at': '0x863a0c', 'asm': 'push    esi'}, {'at': '0x863a0d', 'asm': 'push    0FFF0B9D8h'}, {'at': '0x863a12', 'asm': 'push    edi'}, {'at': '0x863a13', 'asm': 'mov     [ecx], al'}, {'at': '0x863a15', 'asm': 'call    ds:luaL_unref'}, {'at': '0x863a1b', 'asm': 'add     esp, 0Ch'}, {'at': '0x863a1e', 'asm': 'push    offset aRemove_0; \\\"Remove\\\"'}, {'at': '0x863a23', 'asm': 'push    edi'}, {'at': '0x863a24', 'asm': 'call    ebx ; lua_pushstring'}, {'at': '0x863a26', 'asm': 'mov     eax, [ebp+var_18]'}, {'at': '0x863a29', 'asm': 'push    0FFF0B9D8h'}, {'at': '0x863a2e', 'asm': 'push    edi'}, {'at': '0x863a2f', 'asm': 'mov     [ebp+var_38], edi'}, {'at': '0x863a32', 'asm': 'mov     [ebp+var_34], eax'}, {'at': '0x863a35', 'asm': 'call    ds:luaL_ref'}, {'at': '0x863a3b', 'asm': 'add     esp, 10h'}]}, {'at': '0x863a61', 'function': '0x8638d0', 'lines': [{'at': '0x863a3e', 'asm': 'lea     ecx, [ebp+var_38]'}, {'at': '0x863a41', 'asm': 'mov     esi, eax'}, {'at': '0x863a43', 'asm': 'mov     [ebp+var_30], esi'}, {'at': '0x863a46', 'asm': 'call    sub_85C2D0'}, {'at': '0x863a4b', 'asm': 'push    esi'}, {'at': '0x863a4c', 'asm': 'push    0FFF0B9D8h'}, {'at': '0x863a51', 'asm': 'push    edi'}, {'at': '0x863a52', 'asm': 'mov     bl, al'}, {'at': '0x863a54', 'asm': 'call    ds:luaL_unref'}, {'at': '0x863a5a', 'asm': 'add     esp, 0Ch'}, {'at': '0x863a5d', 'asm': 'test    bl, bl'}, {'at': '0x863a5f', 'asm': 'jnz     short loc_863AA8'}, {'at': '0x863a61', 'asm': 'push    offset aRemove_0; \\\"Remove\\\"'}, {'at': '0x863a66', 'asm': 'push    edi'}, {'at': '0x863a67', 'asm': 'call    ds:lua_pushstring'}, {'at': '0x863a6d', 'asm': 'mov     eax, [ebp+var_18]'}, {'at': '0x863a70', 'asm': 'push    0FFF0B9D8h'}, {'at': '0x863a75', 'asm': 'push    edi'}, {'at': '0x863a76', 'asm': 'mov     [ebp+var_38], edi'}, {'at': '0x863a79', 'asm': 'mov     [ebp+var_34], eax'}, {'at': '0x863a7c', 'asm': 'call    ds:luaL_ref'}]}, {'at': '0x868a2d', 'function': '0x866960', 'lines': [{'at': '0x868a0b', 'asm': 'push    offset aKillwithsource; \\\"KillWithSource\\\"'}, {'at': '0x868a10', 'asm': 'mov     ecx, eax'}, {'at': '0x868a12', 'asm': 'call    sub_87DC80'}, {'at': '0x868a17', 'asm': 'push    offset sub_444C60'}, {'at': '0x868a1c', 'asm': 'push    offset aDie; \\\"Die\\\"'}, {'at': '0x868a21', 'asm': 'mov     ecx, eax'}, {'at': '0x868a23', 'asm': 'call    sub_87DAA0'}, {'at': '0x868a28', 'asm': 'push    offset sub_8C5D06'}, {'at': '0x868a2d', 'asm': 'push    offset aRemove_0; \\\"Remove\\\"'}, {'at': '0x868a32', 'asm': 'mov     ecx, eax'}, {'at': '0x868a34', 'asm': 'call    sub_87DAA0'}, {'at': '0x868a39', 'asm': 'push    offset sub_6B45C0'}, {'at': '0x868a3e', 'asm': 'push    offset aBloodexplode; \\\"BloodExplode\\\"'}, {'at': '0x868a43', 'asm': 'mov     ecx, eax'}, {'at': '0x868a45', 'asm': 'call    sub_87DAA0'}, {'at': '0x868a4a', 'asm': 'push    offset sub_417260'}]}]}, {'name': 'GetData', 'address': '0xb71038', 'refs': [{'at': '0x868941', 'function': '0x866960', 'lines': [{'at': '0x86891e', 'asm': 'mov     ecx, eax'}, {'at': '0x868920', 'asm': 'call    sub_87D5B0'}, {'at': '0x868925', 'asm': 'push    1'}, {'at': '0x868927', 'asm': 'push    36Ch'}, {'at': '0x86892c', 'asm': 'push    offset aFriction; \\\"Friction\\\"'}, {'at': '0x868931', 'asm': 'mov     ecx, eax'}, {'at': '0x868933', 'asm': \\\"mov     byte ptr [ebp+var_4], 4Bh ; 'K'\\\"}, {'at': '0x868937', 'asm': 'call    sub_87D5D0'}, {'at': '0x86893c', 'asm': 'push    offset sub_6B5E60'}, {'at': '0x868941', 'asm': 'push    offset aGetdata; \\\"GetData\\\"'}, {'at': '0x868946', 'asm': 'mov     ecx, eax'}, {'at': '0x868948', 'asm': 'call    sub_87D750'}, {'at': '0x86894d', 'asm': 'push    offset sub_4288F0'}, {'at': '0x868952', 'asm': 'push    offset sub_417290'}, {'at': '0x868957', 'asm': 'push    offset aPosition; \\\"Position\\\"'}, {'at': '0x86895c', 'asm': 'mov     ecx, eax'}, {'at': '0x86895e', 'asm': 'call    sub_87D7B0'}]}, {'at': '0x87d77d', 'function': '0x87d750', 'lines': [{'at': '0x87d75a', 'asm': 'call    ds:lua_newuserdata'}, {'at': '0x87d760', 'asm': 'push    1'}, {'at': '0x87d762', 'asm': 'push    offset sub_8AB750'}, {'at': '0x87d767', 'asm': 'push    edi'}, {'at': '0x87d768', 'asm': 'mov     dword ptr [eax], offset sub_6B5E60'}, {'at': '0x87d76e', 'asm': 'call    ds:lua_pushcclosure'}, {'at': '0x87d774', 'asm': 'push    0FFFFFFFDh'}, {'at': '0x87d776', 'asm': 'push    edi'}, {'at': '0x87d777', 'asm': 'call    ds:lua_absindex'}, {'at': '0x87d77d', 'asm': 'push    offset aGetdata; \\\"GetData\\\"'}, {'at': '0x87d782', 'asm': 'push    edi'}, {'at': '0x87d783', 'asm': 'mov     esi, eax'}, {'at': '0x87d785', 'asm': 'call    ds:lua_pushstring'}, {'at': '0x87d78b', 'asm': 'push    1'}, {'at': '0x87d78d', 'asm': 'push    0FFFFFFFEh'}, {'at': '0x87d78f', 'asm': 'push    edi'}, {'at': '0x87d790', 'asm': 'call    ds:lua_rotate'}, {'at': '0x87d796', 'asm': 'push    esi'}, {'at': '0x87d797', 'asm': 'push    edi'}, {'at': '0x87d798', 'asm': 'call    ds:lua_rawset'}]}]}, {'name': 'Parent', 'address': '0xb71330', 'refs': [{'at': '0x868ebe', 'function': '0x866960', 'lines': [{'at': '0x868e9c', 'asm': 'mov     ecx, eax'}, {'at': '0x868e9e', 'asm': 'call    sub_87EE90'}, {'at': '0x868ea3', 'asm': 'push    offset sub_7E9130'}, {'at': '0x868ea8', 'asm': 'push    offset aGetbossid; \\\"GetBossID\\\"'}, {'at': '0x868ead', 'asm': 'mov     ecx, eax'}, {'at': '0x868eaf', 'asm': 'call    sub_87F320'}, {'at': '0x868eb4', 'asm': 'push    offset sub_6A92A0'}, {'at': '0x868eb9', 'asm': 'push    offset sub_42A260'}, {'at': '0x868ebe', 'asm': 'push    offset aParent_0; \\\"Parent\\\"'}, {'at': '0x868ec3', 'asm': 'mov     ecx, eax'}, {'at': '0x868ec5', 'asm': 'call    sub_87F3D0'}, {'at': '0x868eca', 'asm': 'push    offset sub_6A92E0'}, {'at': '0x868ecf', 'asm': 'push    offset sub_431560'}, {'at': '0x868ed4', 'asm': 'push    offset aChild; \\\"Child\\\"'}, {'at': '0x868ed9', 'asm': 'mov     ecx, eax'}, {'at': '0x868edb', 'asm': 'call    sub_87F3D0'}]}]}, {'name': 'SpawnerEntity', 'address': '0xb71338', 'refs': [{'at': '0x868f00', 'function': '0x866960', 'lines': [{'at': '0x868ee0', 'asm': 'push    offset sub_6A9320'}, {'at': '0x868ee5', 'asm': 'push    offset sub_4B7080'}, {'at': '0x868eea', 'asm': 'push    offset aTarget; \\\"Target\\\"'}, {'at': '0x868eef', 'asm': 'mov     ecx, eax'}, {'at': '0x868ef1', 'asm': 'call    sub_87F3D0'}, {'at': '0x868ef6', 'asm': 'push    offset sub_6A9360'}, {'at': '0x868efb', 'asm': 'push    offset sub_4174A0'}, {'at': '0x868f00', 'asm': 'push    offset aSpawnerentity; \\\"SpawnerEntity\\\"'}, {'at': '0x868f05', 'asm': 'mov     ecx, eax'}, {'at': '0x868f07', 'asm': 'call    sub_87F3D0'}, {'at': '0x868f0c', 'asm': 'push    offset sub_6A8990'}, {'at': '0x868f11', 'asm': 'push    offset aGetlastparent; \\\"GetLastParent\\\"'}, {'at': '0x868f16', 'asm': 'mov     ecx, eax'}, {'at': '0x868f18', 'asm': 'call    sub_87F540'}, {'at': '0x868f1d', 'asm': 'push    offset sub_6A89B0'}]}]}]\\n\",\"stderr\":\"\"}"
+      }
+    ],
+    "structuredContent": {
+      "result": "None",
+      "stdout": "[{'name': 'Remove', 'address': '0xb6f970', 'refs': [{'at': '0x863a1e', 'function': '0x8638d0', 'lines': [{'at': '0x8639fc', 'asm': 'lea     ecx, [ebp+var_38]'}, {'at': '0x8639ff', 'asm': 'mov     esi, eax'}, {'at': '0x863a01', 'asm': 'mov     [ebp+var_30], esi'}, {'at': '0x863a04', 'asm': 'call    sub_8BB130'}, {'at': '0x863a09', 'asm': 'mov     ecx, [ebp+arg_18]'}, {'at': '0x863a0c', 'asm': 'push    esi'}, {'at': '0x863a0d', 'asm': 'push    0FFF0B9D8h'}, {'at': '0x863a12', 'asm': 'push    edi'}, {'at': '0x863a13', 'asm': 'mov     [ecx], al'}, {'at': '0x863a15', 'asm': 'call    ds:luaL_unref'}, {'at': '0x863a1b', 'asm': 'add     esp, 0Ch'}, {'at': '0x863a1e', 'asm': 'push    offset aRemove_0; \"Remove\"'}, {'at': '0x863a23', 'asm': 'push    edi'}, {'at': '0x863a24', 'asm': 'call    ebx ; lua_pushstring'}, {'at': '0x863a26', 'asm': 'mov     eax, [ebp+var_18]'}, {'at': '0x863a29', 'asm': 'push    0FFF0B9D8h'}, {'at': '0x863a2e', 'asm': 'push    edi'}, {'at': '0x863a2f', 'asm': 'mov     [ebp+var_38], edi'}, {'at': '0x863a32', 'asm': 'mov     [ebp+var_34], eax'}, {'at': '0x863a35', 'asm': 'call    ds:luaL_ref'}, {'at': '0x863a3b', 'asm': 'add     esp, 10h'}]}, {'at': '0x863a61', 'function': '0x8638d0', 'lines': [{'at': '0x863a3e', 'asm': 'lea     ecx, [ebp+var_38]'}, {'at': '0x863a41', 'asm': 'mov     esi, eax'}, {'at': '0x863a43', 'asm': 'mov     [ebp+var_30], esi'}, {'at': '0x863a46', 'asm': 'call    sub_85C2D0'}, {'at': '0x863a4b', 'asm': 'push    esi'}, {'at': '0x863a4c', 'asm': 'push    0FFF0B9D8h'}, {'at': '0x863a51', 'asm': 'push    edi'}, {'at': '0x863a52', 'asm': 'mov     bl, al'}, {'at': '0x863a54', 'asm': 'call    ds:luaL_unref'}, {'at': '0x863a5a', 'asm': 'add     esp, 0Ch'}, {'at': '0x863a5d', 'asm': 'test    bl, bl'}, {'at': '0x863a5f', 'asm': 'jnz     short loc_863AA8'}, {'at': '0x863a61', 'asm': 'push    offset aRemove_0; \"Remove\"'}, {'at': '0x863a66', 'asm': 'push    edi'}, {'at': '0x863a67', 'asm': 'call    ds:lua_pushstring'}, {'at': '0x863a6d', 'asm': 'mov     eax, [ebp+var_18]'}, {'at': '0x863a70', 'asm': 'push    0FFF0B9D8h'}, {'at': '0x863a75', 'asm': 'push    edi'}, {'at': '0x863a76', 'asm': 'mov     [ebp+var_38], edi'}, {'at': '0x863a79', 'asm': 'mov     [ebp+var_34], eax'}, {'at': '0x863a7c', 'asm': 'call    ds:luaL_ref'}]}, {'at': '0x868a2d', 'function': '0x866960', 'lines': [{'at': '0x868a0b', 'asm': 'push    offset aKillwithsource; \"KillWithSource\"'}, {'at': '0x868a10', 'asm': 'mov     ecx, eax'}, {'at': '0x868a12', 'asm': 'call    sub_87DC80'}, {'at': '0x868a17', 'asm': 'push    offset sub_444C60'}, {'at': '0x868a1c', 'asm': 'push    offset aDie; \"Die\"'}, {'at': '0x868a21', 'asm': 'mov     ecx, eax'}, {'at': '0x868a23', 'asm': 'call    sub_87DAA0'}, {'at': '0x868a28', 'asm': 'push    offset sub_8C5D06'}, {'at': '0x868a2d', 'asm': 'push    offset aRemove_0; \"Remove\"'}, {'at': '0x868a32', 'asm': 'mov     ecx, eax'}, {'at': '0x868a34', 'asm': 'call    sub_87DAA0'}, {'at': '0x868a39', 'asm': 'push    offset sub_6B45C0'}, {'at': '0x868a3e', 'asm': 'push    offset aBloodexplode; \"BloodExplode\"'}, {'at': '0x868a43', 'asm': 'mov     ecx, eax'}, {'at': '0x868a45', 'asm': 'call    sub_87DAA0'}, {'at': '0x868a4a', 'asm': 'push    offset sub_417260'}]}]}, {'name': 'GetData', 'address': '0xb71038', 'refs': [{'at': '0x868941', 'function': '0x866960', 'lines': [{'at': '0x86891e', 'asm': 'mov     ecx, eax'}, {'at': '0x868920', 'asm': 'call    sub_87D5B0'}, {'at': '0x868925', 'asm': 'push    1'}, {'at': '0x868927', 'asm': 'push    36Ch'}, {'at': '0x86892c', 'asm': 'push    offset aFriction; \"Friction\"'}, {'at': '0x868931', 'asm': 'mov     ecx, eax'}, {'at': '0x868933', 'asm': \"mov     byte ptr [ebp+var_4], 4Bh ; 'K'\"}, {'at': '0x868937', 'asm': 'call    sub_87D5D0'}, {'at': '0x86893c', 'asm': 'push    offset sub_6B5E60'}, {'at': '0x868941', 'asm': 'push    offset aGetdata; \"GetData\"'}, {'at': '0x868946', 'asm': 'mov     ecx, eax'}, {'at': '0x868948', 'asm': 'call    sub_87D750'}, {'at': '0x86894d', 'asm': 'push    offset sub_4288F0'}, {'at': '0x868952', 'asm': 'push    offset sub_417290'}, {'at': '0x868957', 'asm': 'push    offset aPosition; \"Position\"'}, {'at': '0x86895c', 'asm': 'mov     ecx, eax'}, {'at': '0x86895e', 'asm': 'call    sub_87D7B0'}]}, {'at': '0x87d77d', 'function': '0x87d750', 'lines': [{'at': '0x87d75a', 'asm': 'call    ds:lua_newuserdata'}, {'at': '0x87d760', 'asm': 'push    1'}, {'at': '0x87d762', 'asm': 'push    offset sub_8AB750'}, {'at': '0x87d767', 'asm': 'push    edi'}, {'at': '0x87d768', 'asm': 'mov     dword ptr [eax], offset sub_6B5E60'}, {'at': '0x87d76e', 'asm': 'call    ds:lua_pushcclosure'}, {'at': '0x87d774', 'asm': 'push    0FFFFFFFDh'}, {'at': '0x87d776', 'asm': 'push    edi'}, {'at': '0x87d777', 'asm': 'call    ds:lua_absindex'}, {'at': '0x87d77d', 'asm': 'push    offset aGetdata; \"GetData\"'}, {'at': '0x87d782', 'asm': 'push    edi'}, {'at': '0x87d783', 'asm': 'mov     esi, eax'}, {'at': '0x87d785', 'asm': 'call    ds:lua_pushstring'}, {'at': '0x87d78b', 'asm': 'push    1'}, {'at': '0x87d78d', 'asm': 'push    0FFFFFFFEh'}, {'at': '0x87d78f', 'asm': 'push    edi'}, {'at': '0x87d790', 'asm': 'call    ds:lua_rotate'}, {'at': '0x87d796', 'asm': 'push    esi'}, {'at': '0x87d797', 'asm': 'push    edi'}, {'at': '0x87d798', 'asm': 'call    ds:lua_rawset'}]}]}, {'name': 'Parent', 'address': '0xb71330', 'refs': [{'at': '0x868ebe', 'function': '0x866960', 'lines': [{'at': '0x868e9c', 'asm': 'mov     ecx, eax'}, {'at': '0x868e9e', 'asm': 'call    sub_87EE90'}, {'at': '0x868ea3', 'asm': 'push    offset sub_7E9130'}, {'at': '0x868ea8', 'asm': 'push    offset aGetbossid; \"GetBossID\"'}, {'at': '0x868ead', 'asm': 'mov     ecx, eax'}, {'at': '0x868eaf', 'asm': 'call    sub_87F320'}, {'at': '0x868eb4', 'asm': 'push    offset sub_6A92A0'}, {'at': '0x868eb9', 'asm': 'push    offset sub_42A260'}, {'at': '0x868ebe', 'asm': 'push    offset aParent_0; \"Parent\"'}, {'at': '0x868ec3', 'asm': 'mov     ecx, eax'}, {'at': '0x868ec5', 'asm': 'call    sub_87F3D0'}, {'at': '0x868eca', 'asm': 'push    offset sub_6A92E0'}, {'at': '0x868ecf', 'asm': 'push    offset sub_431560'}, {'at': '0x868ed4', 'asm': 'push    offset aChild; \"Child\"'}, {'at': '0x868ed9', 'asm': 'mov     ecx, eax'}, {'at': '0x868edb', 'asm': 'call    sub_87F3D0'}]}]}, {'name': 'SpawnerEntity', 'address': '0xb71338', 'refs': [{'at': '0x868f00', 'function': '0x866960', 'lines': [{'at': '0x868ee0', 'asm': 'push    offset sub_6A9320'}, {'at': '0x868ee5', 'asm': 'push    offset sub_4B7080'}, {'at': '0x868eea', 'asm': 'push    offset aTarget; \"Target\"'}, {'at': '0x868eef', 'asm': 'mov     ecx, eax'}, {'at': '0x868ef1', 'asm': 'call    sub_87F3D0'}, {'at': '0x868ef6', 'asm': 'push    offset sub_6A9360'}, {'at': '0x868efb', 'asm': 'push    offset sub_4174A0'}, {'at': '0x868f00', 'asm': 'push    offset aSpawnerentity; \"SpawnerEntity\"'}, {'at': '0x868f05', 'asm': 'mov     ecx, eax'}, {'at': '0x868f07', 'asm': 'call    sub_87F3D0'}, {'at': '0x868f0c', 'asm': 'push    offset sub_6A8990'}, {'at': '0x868f11', 'asm': 'push    offset aGetlastparent; \"GetLastParent\"'}, {'at': '0x868f16', 'asm': 'mov     ecx, eax'}, {'at': '0x868f18', 'asm': 'call    sub_87F540'}, {'at': '0x868f1d', 'asm': 'push    offset sub_6A89B0'}]}]}]\n",
+      "stderr": ""
+    },
+    "isError": false
+  },
+  "tx86-ida-initial-0": {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x6ACB00\",\"code\":\"int __thiscall sub_6ACB00(int this)\\n{\\n  bool v2; // zf\\n  int result; // eax\\n  _DWORD *v4; // edi\\n\\n  v2 = *(_BYTE *)(this + 371) == 0; /*0x6acb05*/\\n  *(_BYTE *)(this + 370) = 0; /*0x6acb0c*/\\n  if ( v2 ) /*0x6acb13*/\\n    *(_BYTE *)(this + 371) = 1; /*0x6acb15*/\\n  result = sub_866060(this); /*0x6acb1d*/\\n  v4 = *(_DWORD **)(this + 1032); /*0x6acb22*/\\n  if ( v4 ) /*0x6acb2a*/\\n  {\\n    luaL_unref(*v4, -1001000, v4[1]); /*0x6acb36*/\\n    result = sub_AEF15C((int)v4); /*0x6acb42*/\\n    *(_DWORD *)(this + 1032) = 0; /*0x6acb4a*/\\n  }\\n  return result; /*0x6acb54*/\\n}\",\"refs\":[{\"addr\":\"0x866060\",\"name\":\"sub_866060\"},{\"addr\":\"0xb1831c\",\"name\":\"luaL_unref\"},{\"addr\":\"0xaef15c\",\"name\":\"sub_AEF15C\"}]}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x6ACB00",
+        "code": "int __thiscall sub_6ACB00(int this)\n{\n  bool v2; // zf\n  int result; // eax\n  _DWORD *v4; // edi\n\n  v2 = *(_BYTE *)(this + 371) == 0; /*0x6acb05*/\n  *(_BYTE *)(this + 370) = 0; /*0x6acb0c*/\n  if ( v2 ) /*0x6acb13*/\n    *(_BYTE *)(this + 371) = 1; /*0x6acb15*/\n  result = sub_866060(this); /*0x6acb1d*/\n  v4 = *(_DWORD **)(this + 1032); /*0x6acb22*/\n  if ( v4 ) /*0x6acb2a*/\n  {\n    luaL_unref(*v4, -1001000, v4[1]); /*0x6acb36*/\n    result = sub_AEF15C((int)v4); /*0x6acb42*/\n    *(_DWORD *)(this + 1032) = 0; /*0x6acb4a*/\n  }\n  return result; /*0x6acb54*/\n}",
+        "refs": [
+          {
+            "addr": "0x866060",
+            "name": "sub_866060"
+          },
+          {
+            "addr": "0xb1831c",
+            "name": "luaL_unref"
+          },
+          {
+            "addr": "0xaef15c",
+            "name": "sub_AEF15C"
+          }
+        ]
+      },
+      "isError": false
+    }
+  },
+  "tx86-ida-initial-1": {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x6ACB60\",\"code\":\"char *__thiscall sub_6ACB60(int this)\\n{\\n  _DWORD *v2; // esi\\n  int v3; // ecx\\n  int v4; // ecx\\n  int v5; // ecx\\n  int v6; // ecx\\n  _DWORD *v7; // esi\\n  _DWORD **v8; // ebx\\n  _DWORD *v9; // esi\\n  _DWORD *v10; // eax\\n  char *result; // eax\\n  _DWORD *v12; // [esp+Ch] [ebp-4h] BYREF\\n\\n  v2 = (_DWORD *)(this + 956); /*0x6acb6f*/\\n  if ( *(_DWORD *)(this + 956) ) /*0x6acb69*/\\n  {\\n    v12 = (_DWORD *)(this + 956); /*0x6acb7c*/\\n    sub_4CF210(&v12); /*0x6acb86*/\\n  }\\n  v3 = *(_DWORD *)(this + 960); /*0x6acb8b*/\\n  *v2 = 0; /*0x6acb91*/\\n  if ( v3 ) /*0x6acb9f*/\\n  {\\n    v12 = (_DWORD *)(this + 960); /*0x6acba4*/\\n    sub_4CF210(&v12); /*0x6acbae*/\\n  }\\n  v4 = *(_DWORD *)(this + 964); /*0x6acbb3*/\\n  *(_DWORD *)(this + 960) = 0; /*0x6acbb9*/\\n  if ( v4 ) /*0x6acbc7*/\\n  {\\n    v12 = (_DWORD *)(this + 964); /*0x6acbcc*/\\n    sub_4CF210(&v12); /*0x6acbd6*/\\n  }\\n  v5 = *(_DWORD *)(this + 968); /*0x6acbdb*/\\n  *(_DWORD *)(this + 964) = 0; /*0x6acbe1*/\\n  if ( v5 ) /*0x6acbef*/\\n  {\\n    v12 = (_DWORD *)(this + 968); /*0x6acbf4*/\\n    sub_4CF210(&v12); /*0x6acbfe*/\\n  }\\n  *(_DWORD *)(this + 968) = 0; /*0x6acc03*/\\n  if ( *(_DWORD *)(this + 980) ) /*0x6acc0f*/\\n  {\\n    v12 = (_DWORD *)(this + 980); /*0x6acc18*/\\n    sub_4CF210(&v12); /*0x6acc22*/\\n    *(_DWORD *)(this + 980) = 0; /*0x6acc27*/\\n  }\\n  if ( *(_DWORD *)(this + 984) ) /*0x6acc2d*/\\n  {\\n    v12 = (_DWORD *)(this + 984); /*0x6acc40*/\\n    sub_4CF210(&v12); /*0x6acc4a*/\\n    *(_DWORD *)(this + 984) = 0; /*0x6acc4f*/\\n  }\\n  v6 = *(_DWORD *)(this + 784); /*0x6acc55*/\\n  v7 = (_DWORD *)(this + 784); /*0x6acc5b*/\\n  if ( v6 ) /*0x6acc63*/\\n    (*(void (__thiscall **)(int))(*(_DWORD *)v6 + 40))(v6); /*0x6acc67*/\\n  if ( *v7 ) /*0x6acc6a*/\\n  {\\n    v12 = (_DWORD *)(this + 784); /*0x6acc73*/\\n    sub_4CF210(&v12); /*0x6acc7d*/\\n  }\\n  *v7 = 0; /*0x6acc82*/\\n  v8 = (_DWORD **)(this + 972); /*0x6acc88*/\\n  v9 = *(_DWORD **)(this + 972); /*0x6acc8e*/\\n  v10 = (_DWORD *)*v9; /*0x6acc90*/\\n  v12 = v10; /*0x6acc92*/\\n  if ( v10 != v9 ) /*0x6acc97*/\\n  {\\n    do /*0x6accb8*/\\n    {\\n      *(_DWORD *)v10[4] = 0; /*0x6acca6*/\\n      sub_414A80(&v12); /*0x6accac*/\\n      v9 = *v8; /*0x6accb1*/\\n      v10 = v12; /*0x6accb3*/\\n    }\\n    while ( v12 != *v8 ); /*0x6accb8*/\\n  }\\n  result = (char *)sub_424540(this + 972, v9[1]); /*0x6accc0*/\\n  v9[1] = v9; /*0x6accc5*/\\n  *v9 = v9; /*0x6accc8*/\\n  v9[2] = v9; /*0x6accca*/\\n  *(_DWORD *)(this + 976) = 0; /*0x6acccd*/\\n  if ( *(_BYTE *)(this + 368) ) /*0x6accd4*/\\n  {\\n    *(_DWORD *)(this + 432) = *(_DWORD *)(this + 428); /*0x6acce6*/\\n    *(_DWORD *)(this + 12) = *(_DWORD *)(this + 8); /*0x6accef*/\\n    *(_DWORD *)(this + 380) = *(_DWORD *)(this + 376); /*0x6accf8*/\\n    return sub_407F10((char *)(this + 72)); /*0x6accfe*/\\n  }\\n  return result; /*0x6acd03*/\\n}\",\"refs\":[{\"addr\":\"0x4cf210\",\"name\":\"sub_4CF210\"},{\"addr\":\"0x414a80\",\"name\":\"sub_414A80\"},{\"addr\":\"0x424540\",\"name\":\"sub_424540\"},{\"addr\":\"0x407f10\",\"name\":\"sub_407F10\"}]}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x6ACB60",
+        "code": "char *__thiscall sub_6ACB60(int this)\n{\n  _DWORD *v2; // esi\n  int v3; // ecx\n  int v4; // ecx\n  int v5; // ecx\n  int v6; // ecx\n  _DWORD *v7; // esi\n  _DWORD **v8; // ebx\n  _DWORD *v9; // esi\n  _DWORD *v10; // eax\n  char *result; // eax\n  _DWORD *v12; // [esp+Ch] [ebp-4h] BYREF\n\n  v2 = (_DWORD *)(this + 956); /*0x6acb6f*/\n  if ( *(_DWORD *)(this + 956) ) /*0x6acb69*/\n  {\n    v12 = (_DWORD *)(this + 956); /*0x6acb7c*/\n    sub_4CF210(&v12); /*0x6acb86*/\n  }\n  v3 = *(_DWORD *)(this + 960); /*0x6acb8b*/\n  *v2 = 0; /*0x6acb91*/\n  if ( v3 ) /*0x6acb9f*/\n  {\n    v12 = (_DWORD *)(this + 960); /*0x6acba4*/\n    sub_4CF210(&v12); /*0x6acbae*/\n  }\n  v4 = *(_DWORD *)(this + 964); /*0x6acbb3*/\n  *(_DWORD *)(this + 960) = 0; /*0x6acbb9*/\n  if ( v4 ) /*0x6acbc7*/\n  {\n    v12 = (_DWORD *)(this + 964); /*0x6acbcc*/\n    sub_4CF210(&v12); /*0x6acbd6*/\n  }\n  v5 = *(_DWORD *)(this + 968); /*0x6acbdb*/\n  *(_DWORD *)(this + 964) = 0; /*0x6acbe1*/\n  if ( v5 ) /*0x6acbef*/\n  {\n    v12 = (_DWORD *)(this + 968); /*0x6acbf4*/\n    sub_4CF210(&v12); /*0x6acbfe*/\n  }\n  *(_DWORD *)(this + 968) = 0; /*0x6acc03*/\n  if ( *(_DWORD *)(this + 980) ) /*0x6acc0f*/\n  {\n    v12 = (_DWORD *)(this + 980); /*0x6acc18*/\n    sub_4CF210(&v12); /*0x6acc22*/\n    *(_DWORD *)(this + 980) = 0; /*0x6acc27*/\n  }\n  if ( *(_DWORD *)(this + 984) ) /*0x6acc2d*/\n  {\n    v12 = (_DWORD *)(this + 984); /*0x6acc40*/\n    sub_4CF210(&v12); /*0x6acc4a*/\n    *(_DWORD *)(this + 984) = 0; /*0x6acc4f*/\n  }\n  v6 = *(_DWORD *)(this + 784); /*0x6acc55*/\n  v7 = (_DWORD *)(this + 784); /*0x6acc5b*/\n  if ( v6 ) /*0x6acc63*/\n    (*(void (__thiscall **)(int))(*(_DWORD *)v6 + 40))(v6); /*0x6acc67*/\n  if ( *v7 ) /*0x6acc6a*/\n  {\n    v12 = (_DWORD *)(this + 784); /*0x6acc73*/\n    sub_4CF210(&v12); /*0x6acc7d*/\n  }\n  *v7 = 0; /*0x6acc82*/\n  v8 = (_DWORD **)(this + 972); /*0x6acc88*/\n  v9 = *(_DWORD **)(this + 972); /*0x6acc8e*/\n  v10 = (_DWORD *)*v9; /*0x6acc90*/\n  v12 = v10; /*0x6acc92*/\n  if ( v10 != v9 ) /*0x6acc97*/\n  {\n    do /*0x6accb8*/\n    {\n      *(_DWORD *)v10[4] = 0; /*0x6acca6*/\n      sub_414A80(&v12); /*0x6accac*/\n      v9 = *v8; /*0x6accb1*/\n      v10 = v12; /*0x6accb3*/\n    }\n    while ( v12 != *v8 ); /*0x6accb8*/\n  }\n  result = (char *)sub_424540(this + 972, v9[1]); /*0x6accc0*/\n  v9[1] = v9; /*0x6accc5*/\n  *v9 = v9; /*0x6accc8*/\n  v9[2] = v9; /*0x6accca*/\n  *(_DWORD *)(this + 976) = 0; /*0x6acccd*/\n  if ( *(_BYTE *)(this + 368) ) /*0x6accd4*/\n  {\n    *(_DWORD *)(this + 432) = *(_DWORD *)(this + 428); /*0x6acce6*/\n    *(_DWORD *)(this + 12) = *(_DWORD *)(this + 8); /*0x6accef*/\n    *(_DWORD *)(this + 380) = *(_DWORD *)(this + 376); /*0x6accf8*/\n    return sub_407F10((char *)(this + 72)); /*0x6accfe*/\n  }\n  return result; /*0x6acd03*/\n}",
+        "refs": [
+          {
+            "addr": "0x4cf210",
+            "name": "sub_4CF210"
+          },
+          {
+            "addr": "0x414a80",
+            "name": "sub_414A80"
+          },
+          {
+            "addr": "0x424540",
+            "name": "sub_424540"
+          },
+          {
+            "addr": "0x407f10",
+            "name": "sub_407F10"
+          }
+        ]
+      },
+      "isError": false
+    }
+  },
+  "tx86-ida-initial-2": {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "[{\"addr\":\"0x6ACB00\",\"xrefs\":[{\"addr\":\"0x61047a\",\"type\":\"code\",\"fn\":{\"addr\":\"0x610470\",\"name\":\"sub_610470\",\"size\":\"0xae\"}},{\"addr\":\"0x6a8888\",\"type\":\"code\",\"fn\":{\"addr\":\"0x6a8850\",\"name\":\"sub_6A8850\",\"size\":\"0x13b\"}},{\"addr\":\"0x6b8f24\",\"type\":\"code\",\"fn\":{\"addr\":\"0x6b8f00\",\"name\":\"sub_6B8F00\",\"size\":\"0x29\"}},{\"addr\":\"0x6ee125\",\"type\":\"code\",\"fn\":{\"addr\":\"0x6ee110\",\"name\":\"sub_6EE110\",\"size\":\"0x1a\"}},{\"addr\":\"0x97ea35\",\"type\":\"code\",\"fn\":{\"addr\":\"0x97ea30\",\"name\":\"sub_97EA30\",\"size\":\"0x115\"}},{\"addr\":\"0xb63010\",\"type\":\"data\",\"fn\":null},{\"addr\":\"0xb649b8\",\"type\":\"data\",\"fn\":null},{\"addr\":\"0xb64c78\",\"type\":\"data\",\"fn\":null},{\"addr\":\"0xb64ed4\",\"type\":\"data\",\"fn\":null},{\"addr\":\"0xb6711c\",\"type\":\"data\",\"fn\":null},{\"addr\":\"0xb67188\",\"type\":\"data\",\"fn\":null},{\"addr\":\"0xb67334\",\"type\":\"data\",\"fn\":null},{\"addr\":\"0xb6bdf8\",\"type\":\"data\",\"fn\":null},{\"addr\":\"0xb7cb74\",\"type\":\"data\",\"fn\":null}],\"more\":false,\"xref_count\":14},{\"addr\":\"0x418500\",\"xrefs\":[{\"addr\":\"0x43ff65\",\"type\":\"code\",\"fn\":{\"addr\":\"0x43f0c0\",\"name\":\"sub_43F0C0\",\"size\":\"0x14f0\"}},{\"addr\":\"0x450294\",\"type\":\"code\",\"fn\":{\"addr\":\"0x44f2b0\",\"name\":\"sub_44F2B0\",\"size\":\"0x15c1\"}},{\"addr\":\"0x468c07\",\"type\":\"code\",\"fn\":{\"addr\":\"0x468180\",\"name\":\"sub_468180\",\"size\":\"0x1f29\"}},{\"addr\":\"0x48979b\",\"type\":\"code\",\"fn\":{\"addr\":\"0x4878a0\",\"name\":\"sub_4878A0\",\"size\":\"0x23e0\"}},{\"addr\":\"0x4f9488\",\"type\":\"code\",\"fn\":{\"addr\":\"0x4f8df0\",\"name\":\"sub_4F8DF0\",\"size\":\"0xb2e\"}},{\"addr\":\"0x5293ba\",\"type\":\"code\",\"fn\":{\"addr\":\"0x528ec0\",\"name\":\"sub_528EC0\",\"size\":\"0xedd\"}},{\"addr\":\"0x529b7c\",\"type\":\"code\",\"fn\":{\"addr\":\"0x528ec0\",\"name\":\"sub_528EC0\",\"size\":\"0xedd\"}},{\"addr\":\"0x536549\",\"type\":\"code\",\"fn\":{\"addr\":\"0x535280\",\"name\":\"sub_535280\",\"size\":\"0x1a65\"}},{\"addr\":\"0x5428fc\",\"type\":\"code\",\"fn\":{\"addr\":\"0x541ce0\",\"name\":\"sub_541CE0\",\"size\":\"0xf00\"}},{\"addr\":\"0x545ad9\",\"type\":\"code\",\"fn\":{\"addr\":\"0x5442a0\",\"name\":\"sub_5442A0\",\"size\":\"0x1cb4\"}},{\"addr\":\"0x57a052\",\"type\":\"code\",\"fn\":{\"addr\":\"0x579890\",\"name\":\"sub_579890\",\"size\":\"0x2556\"}},{\"addr\":\"0x580992\",\"type\":\"code\",\"fn\":null},{\"addr\":\"0x581083\",\"type\":\"code\",\"fn\":null},{\"addr\":\"0x585009\",\"type\":\"code\",\"fn\":{\"addr\":\"0x584140\",\"name\":\"sub_584140\",\"size\":\"0x2353\"}},{\"addr\":\"0x58a72b\",\"type\":\"code\",\"fn\":{\"addr\":\"0x58a010\",\"name\":\"sub_58A010\",\"size\":\"0xb4e\"}},{\"addr\":\"0x611c40\",\"type\":\"code\",\"fn\":{\"addr\":\"0x610540\",\"name\":\"sub_610540\",\"size\":\"0x1c5d\"}},{\"addr\":\"0x63cc38\",\"type\":\"code\",\"fn\":{\"addr\":\"0x63c1c0\",\"name\":\"sub_63C1C0\",\"size\":\"0xc56\"}},{\"addr\":\"0x63f34d\",\"type\":\"code\",\"fn\":{\"addr\":\"0x63e180\",\"name\":\"sub_63E180\",\"size\":\"0x1848\"}},{\"addr\":\"0x6457bf\",\"type\":\"code\",\"fn\":{\"addr\":\"0x644e80\",\"name\":\"sub_644E80\",\"size\":\"0xd23\"}},{\"addr\":\"0x6461a1\",\"type\":\"code\",\"fn\":{\"addr\":\"0x645bc0\",\"name\":\"sub_645BC0\",\"size\":\"0xcc2\"}},{\"addr\":\"0x646591\",\"type\":\"code\",\"fn\":{\"addr\":\"0x645bc0\",\"name\":\"sub_645BC0\",\"size\":\"0xcc2\"}},{\"addr\":\"0x65b1fb\",\"type\":\"code\",\"fn\":{\"addr\":\"0x65ad30\",\"name\":\"sub_65AD30\",\"size\":\"0x758\"}},{\"addr\":\"0x664f28\",\"type\":\"code\",\"fn\":{\"addr\":\"0x664560\",\"name\":\"sub_664560\",\"size\":\"0xe02\"}},{\"addr\":\"0x6b02f1\",\"type\":\"code\",\"fn\":{\"addr\":\"0x6ae820\",\"name\":\"sub_6AE820\",\"size\":\"0x2688\"}},{\"addr\":\"0x6b5925\",\"type\":\"code\",\"fn\":{\"addr\":\"0x6b5320\",\"name\":\"sub_6B5320\",\"size\":\"0x828\"}},{\"addr\":\"0x6fe636\",\"type\":\"code\",\"fn\":{\"addr\":\"0x6fe410\",\"name\":\"sub_6FE410\",\"size\":\"0x80a\"}},{\"addr\":\"0x7129a0\",\"type\":\"code\",\"fn\":{\"addr\":\"0x712180\",\"name\":\"sub_712180\",\"size\":\"0x12bb\"}},{\"addr\":\"0x713002\",\"type\":\"code\",\"fn\":{\"addr\":\"0x712180\",\"name\":\"sub_712180\",\"size\":\"0x12bb\"}},{\"addr\":\"0x79f868\",\"type\":\"code\",\"fn\":{\"addr\":\"0x79f3c0\",\"name\":\"sub_79F3C0\",\"size\":\"0xcb8\"}},{\"addr\":\"0x96daf0\",\"type\":\"code\",\"fn\":{\"addr\":\"0x96d3f0\",\"name\":\"sub_96D3F0\",\"size\":\"0x1a02\"}},{\"addr\":\"0x96e184\",\"type\":\"code\",\"fn\":{\"addr\":\"0x96d3f0\",\"name\":\"sub_96D3F0\",\"size\":\"0x1a02\"}},{\"addr\":\"0x9b9076\",\"type\":\"code\",\"fn\":{\"addr\":\"0x9b8f40\",\"name\":\"sub_9B8F40\",\"size\":\"0x207\"}},{\"addr\":\"0x9b9bf6\",\"type\":\"code\",\"fn\":{\"addr\":\"0x9b98e0\",\"name\":\"sub_9B98E0\",\"size\":\"0x3eb\"}},{\"addr\":\"0x9b9f45\",\"type\":\"code\",\"fn\":{\"addr\":\"0x9b9cd0\",\"name\":\"sub_9B9CD0\",\"size\":\"0x290\"}},{\"addr\":\"0x9b9fb6\",\"type\":\"code\",\"fn\":{\"addr\":\"0x9b9f60\",\"name\":\"sub_9B9F60\",\"size\":\"0x60\"}},{\"addr\":\"0x9bf24a\",\"type\":\"code\",\"fn\":{\"addr\":\"0x9bee80\",\"name\":\"sub_9BEE80\",\"size\":\"0x6b0\"}}],\"more\":false,\"xref_count\":36}]"
+        }
+      ],
+      "structuredContent": {
+        "result": [
+          {
+            "addr": "0x6ACB00",
+            "xrefs": [
+              {
+                "addr": "0x61047a",
+                "type": "code",
+                "fn": {
+                  "addr": "0x610470",
+                  "name": "sub_610470",
+                  "size": "0xae"
+                }
+              },
+              {
+                "addr": "0x6a8888",
+                "type": "code",
+                "fn": {
+                  "addr": "0x6a8850",
+                  "name": "sub_6A8850",
+                  "size": "0x13b"
+                }
+              },
+              {
+                "addr": "0x6b8f24",
+                "type": "code",
+                "fn": {
+                  "addr": "0x6b8f00",
+                  "name": "sub_6B8F00",
+                  "size": "0x29"
+                }
+              },
+              {
+                "addr": "0x6ee125",
+                "type": "code",
+                "fn": {
+                  "addr": "0x6ee110",
+                  "name": "sub_6EE110",
+                  "size": "0x1a"
+                }
+              },
+              {
+                "addr": "0x97ea35",
+                "type": "code",
+                "fn": {
+                  "addr": "0x97ea30",
+                  "name": "sub_97EA30",
+                  "size": "0x115"
+                }
+              },
+              {
+                "addr": "0xb63010",
+                "type": "data",
+                "fn": null
+              },
+              {
+                "addr": "0xb649b8",
+                "type": "data",
+                "fn": null
+              },
+              {
+                "addr": "0xb64c78",
+                "type": "data",
+                "fn": null
+              },
+              {
+                "addr": "0xb64ed4",
+                "type": "data",
+                "fn": null
+              },
+              {
+                "addr": "0xb6711c",
+                "type": "data",
+                "fn": null
+              },
+              {
+                "addr": "0xb67188",
+                "type": "data",
+                "fn": null
+              },
+              {
+                "addr": "0xb67334",
+                "type": "data",
+                "fn": null
+              },
+              {
+                "addr": "0xb6bdf8",
+                "type": "data",
+                "fn": null
+              },
+              {
+                "addr": "0xb7cb74",
+                "type": "data",
+                "fn": null
+              }
+            ],
+            "more": false,
+            "xref_count": 14
+          },
+          {
+            "addr": "0x418500",
+            "xrefs": [
+              {
+                "addr": "0x43ff65",
+                "type": "code",
+                "fn": {
+                  "addr": "0x43f0c0",
+                  "name": "sub_43F0C0",
+                  "size": "0x14f0"
+                }
+              },
+              {
+                "addr": "0x450294",
+                "type": "code",
+                "fn": {
+                  "addr": "0x44f2b0",
+                  "name": "sub_44F2B0",
+                  "size": "0x15c1"
+                }
+              },
+              {
+                "addr": "0x468c07",
+                "type": "code",
+                "fn": {
+                  "addr": "0x468180",
+                  "name": "sub_468180",
+                  "size": "0x1f29"
+                }
+              },
+              {
+                "addr": "0x48979b",
+                "type": "code",
+                "fn": {
+                  "addr": "0x4878a0",
+                  "name": "sub_4878A0",
+                  "size": "0x23e0"
+                }
+              },
+              {
+                "addr": "0x4f9488",
+                "type": "code",
+                "fn": {
+                  "addr": "0x4f8df0",
+                  "name": "sub_4F8DF0",
+                  "size": "0xb2e"
+                }
+              },
+              {
+                "addr": "0x5293ba",
+                "type": "code",
+                "fn": {
+                  "addr": "0x528ec0",
+                  "name": "sub_528EC0",
+                  "size": "0xedd"
+                }
+              },
+              {
+                "addr": "0x529b7c",
+                "type": "code",
+                "fn": {
+                  "addr": "0x528ec0",
+                  "name": "sub_528EC0",
+                  "size": "0xedd"
+                }
+              },
+              {
+                "addr": "0x536549",
+                "type": "code",
+                "fn": {
+                  "addr": "0x535280",
+                  "name": "sub_535280",
+                  "size": "0x1a65"
+                }
+              },
+              {
+                "addr": "0x5428fc",
+                "type": "code",
+                "fn": {
+                  "addr": "0x541ce0",
+                  "name": "sub_541CE0",
+                  "size": "0xf00"
+                }
+              },
+              {
+                "addr": "0x545ad9",
+                "type": "code",
+                "fn": {
+                  "addr": "0x5442a0",
+                  "name": "sub_5442A0",
+                  "size": "0x1cb4"
+                }
+              },
+              {
+                "addr": "0x57a052",
+                "type": "code",
+                "fn": {
+                  "addr": "0x579890",
+                  "name": "sub_579890",
+                  "size": "0x2556"
+                }
+              },
+              {
+                "addr": "0x580992",
+                "type": "code",
+                "fn": null
+              },
+              {
+                "addr": "0x581083",
+                "type": "code",
+                "fn": null
+              },
+              {
+                "addr": "0x585009",
+                "type": "code",
+                "fn": {
+                  "addr": "0x584140",
+                  "name": "sub_584140",
+                  "size": "0x2353"
+                }
+              },
+              {
+                "addr": "0x58a72b",
+                "type": "code",
+                "fn": {
+                  "addr": "0x58a010",
+                  "name": "sub_58A010",
+                  "size": "0xb4e"
+                }
+              },
+              {
+                "addr": "0x611c40",
+                "type": "code",
+                "fn": {
+                  "addr": "0x610540",
+                  "name": "sub_610540",
+                  "size": "0x1c5d"
+                }
+              },
+              {
+                "addr": "0x63cc38",
+                "type": "code",
+                "fn": {
+                  "addr": "0x63c1c0",
+                  "name": "sub_63C1C0",
+                  "size": "0xc56"
+                }
+              },
+              {
+                "addr": "0x63f34d",
+                "type": "code",
+                "fn": {
+                  "addr": "0x63e180",
+                  "name": "sub_63E180",
+                  "size": "0x1848"
+                }
+              },
+              {
+                "addr": "0x6457bf",
+                "type": "code",
+                "fn": {
+                  "addr": "0x644e80",
+                  "name": "sub_644E80",
+                  "size": "0xd23"
+                }
+              },
+              {
+                "addr": "0x6461a1",
+                "type": "code",
+                "fn": {
+                  "addr": "0x645bc0",
+                  "name": "sub_645BC0",
+                  "size": "0xcc2"
+                }
+              },
+              {
+                "addr": "0x646591",
+                "type": "code",
+                "fn": {
+                  "addr": "0x645bc0",
+                  "name": "sub_645BC0",
+                  "size": "0xcc2"
+                }
+              },
+              {
+                "addr": "0x65b1fb",
+                "type": "code",
+                "fn": {
+                  "addr": "0x65ad30",
+                  "name": "sub_65AD30",
+                  "size": "0x758"
+                }
+              },
+              {
+                "addr": "0x664f28",
+                "type": "code",
+                "fn": {
+                  "addr": "0x664560",
+                  "name": "sub_664560",
+                  "size": "0xe02"
+                }
+              },
+              {
+                "addr": "0x6b02f1",
+                "type": "code",
+                "fn": {
+                  "addr": "0x6ae820",
+                  "name": "sub_6AE820",
+                  "size": "0x2688"
+                }
+              },
+              {
+                "addr": "0x6b5925",
+                "type": "code",
+                "fn": {
+                  "addr": "0x6b5320",
+                  "name": "sub_6B5320",
+                  "size": "0x828"
+                }
+              },
+              {
+                "addr": "0x6fe636",
+                "type": "code",
+                "fn": {
+                  "addr": "0x6fe410",
+                  "name": "sub_6FE410",
+                  "size": "0x80a"
+                }
+              },
+              {
+                "addr": "0x7129a0",
+                "type": "code",
+                "fn": {
+                  "addr": "0x712180",
+                  "name": "sub_712180",
+                  "size": "0x12bb"
+                }
+              },
+              {
+                "addr": "0x713002",
+                "type": "code",
+                "fn": {
+                  "addr": "0x712180",
+                  "name": "sub_712180",
+                  "size": "0x12bb"
+                }
+              },
+              {
+                "addr": "0x79f868",
+                "type": "code",
+                "fn": {
+                  "addr": "0x79f3c0",
+                  "name": "sub_79F3C0",
+                  "size": "0xcb8"
+                }
+              },
+              {
+                "addr": "0x96daf0",
+                "type": "code",
+                "fn": {
+                  "addr": "0x96d3f0",
+                  "name": "sub_96D3F0",
+                  "size": "0x1a02"
+                }
+              },
+              {
+                "addr": "0x96e184",
+                "type": "code",
+                "fn": {
+                  "addr": "0x96d3f0",
+                  "name": "sub_96D3F0",
+                  "size": "0x1a02"
+                }
+              },
+              {
+                "addr": "0x9b9076",
+                "type": "code",
+                "fn": {
+                  "addr": "0x9b8f40",
+                  "name": "sub_9B8F40",
+                  "size": "0x207"
+                }
+              },
+              {
+                "addr": "0x9b9bf6",
+                "type": "code",
+                "fn": {
+                  "addr": "0x9b98e0",
+                  "name": "sub_9B98E0",
+                  "size": "0x3eb"
+                }
+              },
+              {
+                "addr": "0x9b9f45",
+                "type": "code",
+                "fn": {
+                  "addr": "0x9b9cd0",
+                  "name": "sub_9B9CD0",
+                  "size": "0x290"
+                }
+              },
+              {
+                "addr": "0x9b9fb6",
+                "type": "code",
+                "fn": {
+                  "addr": "0x9b9f60",
+                  "name": "sub_9B9F60",
+                  "size": "0x60"
+                }
+              },
+              {
+                "addr": "0x9bf24a",
+                "type": "code",
+                "fn": {
+                  "addr": "0x9bee80",
+                  "name": "sub_9BEE80",
+                  "size": "0x6b0"
+                }
+              }
+            ],
+            "more": false,
+            "xref_count": 36
+          }
+        ]
+      },
+      "isError": false
+    }
+  },
+  "tx86-ida-initial-3": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "fbf590",
+      "wall_time_seconds": 0.5080831,
+      "exit_code": 0,
+      "original_token_count": 2707,
+      "output": "    short, short_keys, removes = None, [], []\r\n    for offset, _, event in rows(capture / \"world\" / \"lifecycle-events.jsonl\"):\r\n        key = (event[\"local_id\"],event[\"use_generation\"])\r\n        events[f\"{event['hook']}:{event['entering']}\"] += 1\r\n        if event[\"event_kind\"] == 1: births[key] += 1\r\n        if event[\"event_kind\"] == 1 and any(w[\"self\"]==event[\"diagnostics\"][\"address\"] and w[\"outer\"]==event[\"outer_token\"] for w in seed_init.get(\"9730003\",[])):\r\n            short_keys.append({\"key\":key,\"birth\":event,\"offset\":offset})\r\n        if event[\"hook\"]==\"Remove\" and not event[\"entering\"]:removes.append((key,offset,event))\r\n        if event[\"hook\"] == \"Publish\" and not event[\"entering\"]: publishes[key] += 1\r\n        if event[\"event_kind\"] == 7: membership += 1\r\n        if event[\"hook\"] == \"Factory\" and not event[\"entering\"] and event[\"local_id\"]:\r\n            by_address.setdefault(event[\"diagnostics\"][\"address\"],set()).add(key)\r\n        if event[\"hook\"] == \"Remove\" and not event[\"entering\"] and key == tuple(witnesses.get(\"9730003\",{}).get(\"key\",())):\r\n            short = {\"offset\":offset,\"event\":event}\r\n    if len(short_keys)==1:\r\n        key=short_keys[0][\"key\"]\r\n        matching=[{\"offset\":off,\"event\":event} for k,off,event in removes if k==key]\r\n        if matching:short={\"binding\":short_keys[0],\"remove\":matching[0],\"sampled\":key in objects}\r\n    ready_history = collections.defaultdict(list)\r\n    for row in ready: ready_history[(row[\"subject\"],row[\"use_generation\"])].append(row[\"words\"][:2])\r\n    revoked = any([0,3] in values and [3,0] in values and values.index([3,0]) < len(values)-1\r\n                  and [0,3] in values[values.index([3,0])+1:] for values in ready_history.values())\r\n    result = {\"trace_integrity\":probe[\"closed\"] and probe[\"error\"]==0 and probe[\"overflow\"]==\"0\" and probe[\"produced\"]==probe[\"consumed\"],\r\n        \"errors\":errors,\"counts\":dict(counts),\"hooks_covered\":[i for i in range(19) if counts[f\"3:{i}\"]],\r\n        \"ordinary\":ordinary,\"phase_matches\":phase_matches,\"nested_spawn\":nested,\"copy_count\":len(timings),\r\n        \"copy_ms\":{\"min\":min(timings,default=None),\"max\":max(timings,default=None),\"total\":sum(timings)},\r\n        \"literal_reads\":reads,\"object_rng_records\":rng,\"global_rng_windows\":mt,\r\n        \"gap_reasons\":dict(reasons),\"source_field_faults\":dict(source_failures),\"retained\":retained,\"unknown\":unknown,\r\n        \"first_observed_preserved\":first_observed,\"readiness_revoked_reacquired\":revoked,\r\n        \"lifecycle_hooks\":dict(events),\"reuse_groups\":[{\"address\":a,\"uses\":sorted(v)} for a,v in by_address.items() if len(v)>1],\r\n        \"duplicate_births\":[list(k) for k,v in births.items() if v>1],\r\n        \"repeat_publish\":[{\"key\":k,\"count\":v,\"births\":births[k]} for k,v in publishes.items() if v>1],\r\n        \"membership_events\":membership,\"sampled_fixture_witnesses\":witnesses,\"short_remove\":short,\"fixture_init_arguments\":seed_init}\r\n    save(output / \"readiness.json\", ready)\r\n    save(output / \"identity-history.json\", [{\"key\":k,**v,\"sources\":sorted(v[\"sources\"])} for k,v in objects.items()])\r\n    save(output / \"evaluation.json\",result)\r\n    return result\r\ncs-t0/native/src/loop_runtime.cpp:1041:                   EventKind::ConditionalAttemptExit,\r\ncs-t0/native/src/loop_runtime.cpp:1049:    InvokeVoid(g_post_update, EventKind::StandardTailEnter, EventKind::StandardTailExit,\r\ncs-t0/native/src/loop_runtime.cpp:1059:    const bool entered = observe && PublishCall(EventKind::RunTeardownEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1069:        PublishObservedCall(EventKind::RunTeardownExit, Phase::RunLifecycle,\r\ncs-t0/native/src/loop_runtime.cpp:1080:    const bool entered = observe && PublishCall(EventKind::NewRoomEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1091:        PublishObservedCall(EventKind::NewRoomExit, Phase::RoomLifecycle,\r\ncs-t0/native/src/loop_runtime.cpp:1097:    InvokeVoid(g_render, EventKind::RenderEnter, EventKind::RenderExit, Phase::Render,\r\ncs-t0/native/src/loop_runtime.cpp:1103:    InvokeThisVoid(g_input_manager_sample, self, EventKind::InputManagerSampleEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1104:                   EventKind::InputManagerSampleExit, Phase::InputQuery, _ReturnAddress());\r\ncs-t0/native/src/loop_runtime.cpp:1115:        PublishObservedDeviceCall(EventKind::InputDeviceUpdateEnter, Phase::InputQuery,\r\ncs-t0/native/src/loop_runtime.cpp:1124:        PublishObservedDeviceCall(EventKind::InputDeviceUpdateExit, Phase::InputQuery,\r\ncs-t0/native/src/loop_runtime.cpp:1142:        NativeEvent event = Event(EventKind::AlternateOwnerEnter, Phase::GameplayUpdate);\r\ncs-t0/native/src/loop_runtime.cpp:1180:        NativeEvent event = Event(EventKind::AlternateOwnerExit, Phase::GameplayUpdate);\r\ncs-t0/native/src/loop_runtime.cpp:1191:    InvokeThisVoid(g_alternate_room, self, EventKind::AlternateRoomEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1192:                   EventKind::AlternateRoomExit, Phase::EntityMutation, _ReturnAddress());\r\ncs-t0/native/src/loop_runtime.cpp:1201:    const bool entered = observe && PublishCall(EventKind::AlternateStateApplyEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1212:        PublishObservedCall(EventKind::AlternateStateApplyExit, Phase::EntityMutation,\r\ncs-t0/native/src/loop_runtime.cpp:1221:    const bool entered = observe && PublishCall(EventKind::AlternateTailEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1225:        PublishObservedCall(EventKind::AlternateTailExit, Phase::RunLifecycle,\r\ncs-t0/native/src/loop_runtime.cpp:1234:    const bool entered = observe && PublishCall(EventKind::AlternateOutcomeEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1238:        PublishObservedCall(EventKind::AlternateOutcomeExit, Phase::RunLifecycle,\r\ncs-t0/native/src/loop_runtime.cpp:1247:    const bool entered = observe && PublishCall(EventKind::StandardPredicateEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1252:        NativeEvent event = Event(EventKind::StandardPredicateExit, Phase::GameplayUpdate);\r\ncs-t0/native/src/loop_runtime.cpp:1265:    InvokeThisVoid(g_standard_body, self, EventKind::StandardBodyEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1266:                   EventKind::StandardBodyExit, Phase::GameplayUpdate, _ReturnAddress());\r\ncs-t0/native/src/loop_runtime.cpp:1275:    const bool entered = observe && PublishCall(EventKind::StandardRoomEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1290:        PublishObservedCall(EventKind::StandardRoomExit, Phase::EntityMutation,\r\ncs-t0/native/src/loop_runtime.cpp:1301:                         PublishCall(EventKind::StandardRoomLifecycleOwnerEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1311:        PublishObservedCall(EventKind::StandardRoomLifecycleOwnerExit,\r\ncs-t0/native/src/loop_runtime.cpp:1318:                   EventKind::StandardRoomLifecycleSimulationEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1319:                   EventKind::StandardRoomLifecycleSimulationExit, Phase::RoomLifecycle,\r\ncs-t0/native/src/loop_runtime.cpp:1329:    const bool entered = observe && PublishCall(EventKind::RoomChangeOwnerEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1340:        PublishObservedCall(EventKind::RoomChangeOwnerExit, Phase::RoomLifecycle,\r\ncs-t0/native/src/loop_runtime.cpp:1346:    InvokeThisVoid(g_room_change_simulation, self, EventKind::RoomChangeSimulationEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1347:                   EventKind::RoomChangeSimulationExit, Phase::RoomLifecycle,\r\ncs-t0/native/src/loop_runtime.cpp:1356:    const bool entered = observe && PublishCall(EventKind::EntityListEnter,\r\ncs-t0/native/src/loop_runtime.cpp:1360:        PublishObservedCall(EventKind::EntityListExit, Phase::EntityMutation,\r\ncs-t0/native/src/loop_runtime.cpp:1372:        PublishObservedDeviceCall(EventKind::InputPhysicalPollEnter, Phase::InputQuery,\r\ncs-t0/native/src/loop_runtime.cpp:1388:        PublishObservedDeviceCall(EventKind::InputPhysicalPollExit, Phase::InputQuery,\r\ncs-t0/native/src/loop_runtime.cpp:1412:        NativeEvent event = Event(EventKind::PeekMessage, Phase::MessagePump);\r\ncs-t0/native/src/loop_runtime.cpp:1431:        NativeEvent event = Event(EventKind::TranslateMessage, Phase::MessagePump);\r\ncs-t0/native/src/loop_runtime.cpp:1450:        NativeEvent event = Event(EventKind::DispatchMessage, Phase::MessagePump);\r\ncs-t0/native/src/loop_runtime.cpp:1517:    Publish(Event(EventKind::NativeInitialized, Phase::OutsideEnvelope));\r\ncs-t0/native/src/loop_runtime.cpp:1523:        NativeEvent event = Event(EventKind::Failure, Phase::OutsideEnvelope);\r\ncs-t0/native/src/loop_runtime.cpp:1531:    Publish(Event(EventKind::HooksInstalled, Phase::OutsideEnvelope));\r\ncs-t0/native/src/loop_runtime.cpp:1562:    Publish(Event(EventKind::HooksRestored, Phase::OutsideEnvelope));\r\ncs-t0/native/src/world_record.cpp:34:std::array<RngAudit,kObjectBudget> g_rng_audit{};\r\ncs-t0/native/src/world_record.cpp:57:    if(e2e::Copying())e2e::Record(e2e::Kind::Read,0,words,2);\r\ncs-t0/native/src/world_record.cpp:73:    e2e::Record(e2e::Kind::Error,static_cast<std::uint32_t>(reason));\r\ncs-t0/native/src/world_record.cpp:1381:    e2e::Record(e2e::Kind::Entry,hook,registers,9);\r\ncs-t0/native/src/world_record.cpp:1382:    e2e::Record(e2e::Kind::Arguments,hook,frame.args.data(),kArgumentWords[hook],0);\r\ncs-t0/native/src/world_record.cpp:1414:    e2e::Record(e2e::Kind::Returned,hook,words,14);\r\ncs-t0/native/src/world_record.cpp:1530:        if(batch.object_count==kObjectBudget || e2e::Take(e2e::Fault::ObjectBudget)){g_batch_indices[slot]=UINT32_MAX-1;Incomplete(batch,Reason::Budget);return UINT32_MAX;}\r\ncs-t0/native/src/world_record.cpp:1599:            const bool forced_ambiguity=e2e::Take(e2e::Fault::ReferenceAmbiguity);\r\ncs-t0/native/src/world_record.cpp:1630:            e2e::Record(e2e::Kind::GlobalRng,phase,words,14);\r\ncs-t0/native/src/world_record.cpp:1639:        e2e::Record(e2e::Kind::GlobalRng,2,words,5);e2e::EndCopy();\r\ncs-t0/native/src/world_record.cpp:1762:        e2e::Record(e2e::Kind::Rng,(rng.valid && after && !std::memcmp(words+2,words+6,16))?0u:1u,\r\ncs-t0/native/src/world_record.cpp:1831:        e2e::Record(e2e::Kind::Anchor,ordinal,words,3);\r\ncs-t0/native/src/world_record.cpp:1837:        e2e::Record(e2e::Kind::Ready,ordinal,words,4,id.id,id.use);\r\ncs-t0/native/src/world_record.cpp:1870:    e2e::Record(e2e::Kind::Ready,ordinal,words,4,id->id,id->use);\r\ncs-t0/native/src/world_record.cpp:1878:    e2e::Record(e2e::Kind::Commit,kind,words,2);\r\ncs-t0/native/src/world_record.cpp:1885:    e2e::Record(e2e::Kind::Lifecycle,signal,audit,2);\r\ncs-t0/native/src/world_record.cpp:1904:            const std::uint32_t words[]{1};e2e::Record(e2e::Kind::Stage,0,words,1);\r\ncs-t0/native/src/world_record.cpp:1920:            e2e::Record(e2e::Kind::Stage,0,words,3);\r\ncs-t0/native/src/world_record.cpp:1928:    e2e::Record(e2e::Kind::Stage,static_cast<std::uint32_t>(stage),words,2);\r\n"
+    }
+  },
+  "tx86-step2-0": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "d40802",
+      "wall_time_seconds": 0.516848,
+      "exit_code": 0,
+      "original_token_count": 4088,
+      "output": "        const auto& spec=specs[i];auto* field=Append(object,spec.id,spec.encoding,spec.width);\r\n        if(!field){Incomplete(batch,Reason::Budget);return;}\r\n        if(!ready){field->status=FieldStatus::NotReady;Incomplete(batch,Reason::NotReady);continue;}\r\n        const bool own_read_fault=e2e::Take(e2e::Fault::FieldRead);\r\n        const auto read_address=own_read_fault?e2e::ReadFaultAddress():static_cast<std::uint64_t>(object.address)+spec.offset;\r\n        // E2E PAGE_NOACCESS is collector-owned. Exercise the real guarded Read\r\n        // exception path without corrupting or manufacturing a game pointer.\r\n        if(!Read(read_address,field->raw.data(),spec.width)) {\r\n            field->status=FieldStatus::ReadFailed;Incomplete(batch,Reason::ReadFailed);Error(Reason::ReadFailed);continue;\r\n        }\r\n        if(spec.encoding==Encoding::F32) {\r\n            std::uint32_t bits=0;std::memcpy(&bits,field->raw.data(),4);\r\n            if((bits&0x7F800000u)==0x7F800000u)Incomplete(batch,Reason::Nonfinite);\r\n        }\r\n    }\r\n}\r\nvoid RawDerived(Object& object,std::uint16_t id,std::uint32_t bits,Encoding encoding) noexcept\r\n{auto* f=Append(object,id,encoding,4);if(f)std::memcpy(f->raw.data(),&bits,4);}\r\nvoid CopyObject(Batch& batch,Object& object,Identity& identity,std::uint32_t game_frame) noexcept\r\n{\r\n    object.id=identity.id;object.use=identity.use;object.birth=identity.birth;object.revision=identity.revision;\r\n    object.domain=identity.domain;object.address=identity.address;object.origin=identity.origin;\r\n    object.lifecycle=identity.lifecycle;object.init=identity.init;object.ordinal=identity.ordinal;\r\n    object.birth_kind=identity.birth_kind;object.birth_type=identity.type;object.birth_variant=identity.variant;\r\n    object.birth_subtype=identity.subtype;object.birth_seed=identity.seed;object.birth_known=identity.born?1u:0u;\r\n    object.field_count=0;object.kind=static_cast<std::uint32_t>(Class::Unknown);object.vptr=0;object.reserved=UINT32_MAX;\r\n    if(!U32(object.address,object.vptr)){Incomplete(batch,Reason::ReadFailed);Error(Reason::ReadFailed);return;}\r\n    const auto kind=Classify(identity.domain,object.vptr);object.kind=static_cast<std::uint32_t>(kind);\r\n    if(kind==Class::Unknown) {\r\n        Incomplete(batch,Reason::UnknownClass);\r\n        if(identity.domain==0 && HasBase(object.vptr,0x85D5DC))Fields(batch,object,kCommon,4);\r\n        return;\r\n    }\r\n    if(kind==Class::Grid) {Fields(batch,object,kGrid,std::size(kGrid));return;}\r\n    Fields(batch,object,kCommon,std::size(kCommon));\r\n    RawDerived(object,0x1D,game_frame,Encoding::Raw);\r\n    std::uint32_t birth_counter=0;\r\n    if(U32(static_cast<std::uint64_t>(object.address)+0x328,birth_counter))RawDerived(object,0x1E,game_frame-birth_counter,Encoding::Derived);\r\n    else {auto* f=Append(object,0x1E,Encoding::Derived,4);if(f)f->status=FieldStatus::ReadFailed;Incomplete(batch,Reason::ReadFailed);}\r\n    const bool ready=identity.init>=2;\r\n    switch(kind) {\r\n    case Class::Player:Fields(batch,object,kPlayer,std::size(kPlayer),ready);break;\r\n    case Class::NPC:Fields(batch,object,kNpc,std::size(kNpc),ready);break;\r\n    case Class::Tear:Fields(batch,object,kTear,std::size(kTear),ready);break;\r\n    case Class::Projectile:Fields(batch,object,kProjectile,std::size(kProjectile),ready);break;\r\n    case Class::Pickup:Fields(batch,object,kPickup,std::size(kPickup),ready);break;\r\n    case Class::Familiar:Fields(batch,object,kFamiliar,std::size(kFamiliar),ready);break;\r\n    case Class::Effect:Fields(batch,object,kEffect,std::size(kEffect),ready);break;\r\n    default:break;\r\n    }\r\n}\r\nstd::uint32_t Add(Batch& batch,std::uint32_t domain,std::uint32_t address,std::uint32_t source,\r\n                  std::uint32_t index,std::uint32_t game_frame) noexcept\r\n{\r\n    if(!address)return UINT32_MAX;\r\n    ++batch.required_memberships;\r\n    auto* identity=Find(domain,address,true);\r\n    if(!identity){Incomplete(batch,Reason::Budget);return UINT32_MAX;}\r\n    if(!identity->origin)identity->origin=1;\r\n    const auto slot=static_cast<std::size_t>(identity-g_identities.data());\r\n    g_current_memberships[slot]|=1u<<source;\r\n    auto object_index=g_batch_indices[slot];\r\n    if(object_index==UINT32_MAX) {\r\n        ++batch.required_objects;\r\n        if(batch.object_count==kObjectBudget || e2e::Take(e2e::Fault::ObjectBudget)){g_batch_indices[slot]=UINT32_MAX-1;Incomplete(batch,Reason::Budget);return UINT32_MAX;}\r\n        object_index=batch.object_count++;g_batch_indices[slot]=object_index;\r\n#if defined(ISAAC_CS_WORLD_E2E)\r\n        auto& rng=g_rng_audit[object_index];rng.address=address;rng.domain=domain;\r\n        std::uint32_t audit_vptr=0;\r\n        rng.eligible=U32(address,audit_vptr) && (domain==1?HasBase(audit_vptr,0x85D7A4):HasBase(audit_vptr,0x85D5DC));\r\n        rng.valid=rng.eligible && Read(static_cast<std::uint64_t>(address)+(domain==1?0x2Cu:0x3DCu),rng.before.data(),16);\r\n#endif\r\n        CopyObject(batch,batch.objects[object_index],*identity,game_frame);\r\n    }\r\n    if(object_index==UINT32_MAX-1)return UINT32_MAX;\r\n    if(batch.membership_count==kMembershipBudget || e2e::Take(e2e::Fault::MembershipBudget)){Incomplete(batch,Reason::Budget);return object_index;}\r\n    batch.memberships[batch.membership_count++]={object_index,source,index,0};return object_index;\r\n}\r\nvoid CopySource(Batch& batch,std::uint32_t source,std::uint32_t descriptor,\r\n                bool vector,std::uint32_t game_frame) noexcept\r\n{\r\n    auto& out=batch.sources[source];out={};\r\n    const std::uint32_t bytes=vector?12u:16u;\r\n    if(!Read(descriptor,out.descriptor,bytes)){out.status=static_cast<std::uint32_t>(Reason::ReadFailed);Incomplete(batch,Reason::ReadFailed);return;}\r\n    std::uint32_t data=0,count=0;\r\n    if(vector) {\r\n        const auto first=out.descriptor[0],end=out.descriptor[1],cap=out.descriptor[2];\r\n        if(first || end || cap) {\r\n            if(!first || first>end || end>cap || (first|end|cap)&3u) {out.status=static_cast<std::uint32_t>(Reason::ReadFailed);Incomplete(batch,Reason::ReadFailed);return;}\r\n            data=first;count=(end-first)/4;\r\n        }\r\n    } else {\r\n        data=out.descriptor[1];count=out.descriptor[3];\r\n        if(count>out.descriptor[2] || (count && !data) || (data&3u)) {\r\n            out.status=static_cast<std::uint32_t>(Reason::ReadFailed);Incomplete(batch,Reason::ReadFailed);return;\r\n        }\r\n    }\r\n    out.count=count;\r\n    if(count>kMembershipBudget || count>UINT32_MAX/4 || (count && data>UINT32_MAX-count*4)) {\r\n        out.status=static_cast<std::uint32_t>(Reason::Budget);Incomplete(batch,Reason::Budget);return;\r\n    }\r\n    for(std::uint32_t i=0;i<count;++i) {\r\n        std::uint32_t object=0;\r\n        if(!U32(static_cast<std::uint64_t>(data)+i*4,object)){out.status=static_cast<std::uint32_t>(Reason::ReadFailed);Incomplete(batch,Reason::ReadFailed);break;}\r\n        if(!object){out.status=static_cast<std::uint32_t>(Reason::NotReady);Incomplete(batch,Reason::NotReady);continue;}\r\n        g_source_addresses[i]=object;\r\n        Add(batch,0,object,source,i,game_frame);\r\n    }\r\n    if(!out.status)for(std::uint32_t i=0;i<count;++i) {\r\n        std::uint32_t after_pointer=0;\r\n        if(!U32(static_cast<std::uint64_t>(data)+i*4,after_pointer) || after_pointer!=g_source_addresses[i]) {\r\n            out.status=static_cast<std::uint32_t>(Reason::SourceChanged);\r\n            Incomplete(batch,Reason::SourceChanged);break;\r\n        }\r\n    }\r\n    std::uint32_t after[4]{};\r\n    if(e2e::Take(e2e::Fault::SourceChanged) || !Read(descriptor,after,bytes) || std::memcmp(out.descriptor,after,bytes)) {\r\n        out.status=static_cast<std::uint32_t>(Reason::SourceChanged);Incomplete(batch,Reason::SourceChanged);\r\n    }\r\n    if(out.status==static_cast<std::uint32_t>(Reason::SourceChanged))Error(Reason::SourceChanged);\r\n    else if(out.status==static_cast<std::uint32_t>(Reason::ReadFailed))Error(Reason::ReadFailed);\r\n}\r\nvoid ResolveReferences(Batch& batch) noexcept\r\n{\r\n    for(std::uint32_t i=0;i<batch.object_count;++i) {\r\n        auto& object=batch.objects[i];\r\n        for(std::uint32_t j=0;j<object.field_count;++j) {\r\n            auto& field=object.fields[j];\r\n            if(field.encoding!=Encoding::Reference || field.status!=FieldStatus::Value)continue;\r\n            std::uint32_t address=0;std::memcpy(&address,field.raw.data(),4);\r\n            if(!address){field.relation=static_cast<std::uint32_t>(Relation::Null);continue;}\r\n            auto* target=Find(0,address);\r\n            auto state=Relation::Unresolved;\r\n            const bool forced_ambiguity=e2e::Take(e2e::Fault::ReferenceAmbiguity);\r\n            if(target) {\r\n                if(target->destroyed || target->lifecycle>=5)state=Relation::Retired;\r\n                else if(target->reused)state=Relation::AmbiguousReuse;\r\n                else if(object.birth_known && object.init && !object.revision && target->born && target->birth<object.birth &&\r\n                    g_batch_indices[static_cast<std::size_t>(target-g_identities.data())]!=UINT32_MAX) {\r\n                    state=Relation::KnownCurrent;field.target_id=target->id;field.target_use=target->use;\r\n                }\r\n            }\r\n            if(forced_ambiguity){state=Relation::AmbiguousReuse;field.target_id=0;field.target_use=0;}\r\n            field.relation=static_cast<std::uint32_t>(state);\r\n            if(state!=Relation::KnownCurrent)Incomplete(batch,Reason::Continuity);\r\n        }\r\n    }\r\n}\r\n#if defined(ISAAC_CS_WORLD_E2E)\r\n}\r\nvoid Commit(std::uint64_t tick,std::uint32_t kind) noexcept\r\n{\r\n    if(!Enabled() || !MainThread() || !g_token.value)return;\r\n    ++g_token.commits;g_token.tick=tick;g_token.commit_kind=kind;g_token.scope=g_token.value;\r\n    e2e::Context(g_token.value,tick,g_attempt);\r\n    const std::uint32_t words[]{g_token.commits,g_token.room_active?1u:0u};\r\n    e2e::Record(e2e::Kind::Commit,kind,words,2);\r\n    if(g_token.commits!=1 || (kind==1 && !g_token.room_active))g_token.dirty=true;\r\n}\r\nvoid Lifecycle(std::uint32_t signal,bool entering) noexcept\r\n{\r\n    if(!Enabled() || !MainThread())return;\r\n    const std::uint32_t audit[]{entering?1u:0u,g_lifecycle_depth};\r\n    e2e::Record(e2e::Kind::Lifecycle,signal,audit,2);\r\n    if(entering) {\r\n        if(!Next(g_mutation))return;g_token.dirty=true;\r\n        if(!g_lifecycle_depth && signal!=4)Next(g_room);\r\n        if(g_lifecycle_depth==UINT32_MAX){Error(Reason::SequenceExhausted);return;}\r\n        ++g_lifecycle_depth;\r\n        if(signal==4){g_retired=true;Next(g_run);for(auto& id:g_identities)if(id.address){id.destroyed=true;id.born=false;id.ordinal=UINT32_MAX;}}\r\n    } else if(!g_lifecycle_depth) {Error(Reason::UnpairedScope);return;}\r\n    else --g_lifecycle_depth;\r\n    Emit(UINT32_MAX,entering,nullptr,0,signal,Reason::Lifecycle,2);\r\n}\r\nvoid StageEvent(Stage stage,bool entering,void* owner) noexcept\r\n{\r\n    if(!Enabled() || !MainThread())return;\r\n    if(stage==Stage::Outer) {\r\n        if(entering) {\r\n            if(g_token.value){Error(Reason::UnpairedScope);return;}\r\n            if(!Next(g_outer))return;g_token={};g_token.value=g_outer;g_token.mutation=g_mutation;\r\n            e2e::Context(g_token.value,0,g_attempt);\r\n            const std::uint32_t words[]{1};e2e::Record(e2e::Kind::Stage,0,words,1);\r\n            if(g_lifecycle_depth || g_retired)g_token.dirty=true;\r\n        } else {\r\n            if(!g_token.value){Error(Reason::UnpairedScope);return;}\r\n            Reason reason=Reason::None;\r\n            if(g_depth){Error(Reason::Continuity);reason=Reason::Continuity;}\r\n            else if(g_token.dirty || g_mutation!=g_token.mutation || g_lifecycle_depth)reason=Reason::Lifecycle;\r\n            else if(g_token.commit_kind==2)reason=Reason::OddOnly;\r\n            else if(g_token.owner_enter!=1 || g_token.owner_exit!=1 || g_token.room_enter!=1 ||\r\n                g_token.room_exit!=1 || g_token.tail_enter!=1 || g_token.tail_exit!=1 ||\r\n                g_token.owner_active || g_token.room_active || g_token.tail_active)reason=Reason::PhaseIncomplete;\r\n            __declspec(align(16)) std::uint8_t fp[512];\r\n            __asm {fxsave fp}\r\n            Capture(reason);\r\n            __asm {fxrstor fp}\r\n            const std::uint32_t words[]{0,static_cast<std::uint32_t>(reason),g_token.commits};\r\n            e2e::Record(e2e::Kind::Stage,0,words,3);\r\n            g_token={};\r\n        }\r\n        return;\r\n    }\r\n    if(!g_token.value)return;\r\n    e2e::Context(g_token.value,g_token.tick,g_attempt);\r\n    const std::uint32_t words[]{entering?1u:0u,Address(owner)};\r\n    e2e::Record(e2e::Kind::Stage,static_cast<std::uint32_t>(stage),words,2);\r\n    auto& token=g_token;\r\n    if(stage==Stage::Owner) {\r\n        if(entering){if(token.owner_active)token.dirty=true;++token.owner_enter;token.owner_active=true;}\r\n        else {if(!token.owner_active || token.room_active || token.tail_active)token.dirty=true;++token.owner_exit;token.owner_active=false;}\r\n    } else if(stage==Stage::Room) {\r\n        if(entering){if(!token.owner_active || token.room_active || token.tail_enter)token.dirty=true;\r\n            ++token.room_enter;token.room_active=true;token.room_address=Address(owner);}\r\n        else {if(!token.room_active || token.room_address!=Address(owner))token.dirty=true;++token.room_exit;token.room_active=false;}\r\n    } else {\r\n        if(entering){if(!token.owner_active || token.room_active || token.room_exit!=1 || token.tail_active)token.dirty=true;++token.tail_enter;token.tail_active=true;}\r\n#pragma once\r\n#include <Windows.h>\r\n#include <array>\r\n#include <cstdint>\r\n\r\n// Private acceptance instrumentation. Not part of ISCS, Lua, coop or world v2.\r\n// The production build compiles all call sites out.\r\nnamespace isaac_cs_t0::world::e2e {\r\ninline constexpr std::uint64_t kMagic=0x3145324557534349ull;\r\ninline constexpr std::uint32_t kCapacity=65536;\r\nenum class Kind : std::uint32_t { Stage=1,Commit,Entry,Original,Returned,Fx,\r\n    CopyBegin,CopyEnd,Read,Ready,Anchor,Lifecycle,Fault,Error,TopExit,Rng,GlobalRng,Arguments };\r\nenum class Fault : LONG { None,ObjectBudget,MembershipBudget,RelationBudget,\r\n    FieldRead,SourceChanged,EventOverflow,WrongThread,ReferenceAmbiguity,RootChanged };\r\nstruct alignas(8) Event {\r\n    volatile LONG64 published;\r\n    std::uint64_t outer,tick,attempt,subject,use,qpc;\r\n    std::uint32_t kind,tag,thread,count;\r\n    std::array<std::uint32_t,14> words;\r\n};\r\nstruct alignas(8) Shared {\r\n    std::uint64_t magic;\r\n    std::uint32_t version,size,pid,controller;\r\n    std::array<std::uint8_t,32> nonce;\r\n    volatile LONG command,ack,error,closed;\r\n    volatile LONG64 produced,consumed,overflow;\r\n    std::uint64_t frequency;\r\n    volatile LONG worker_main,worker_thread,worker_result;\r\n    std::array<std::uint8_t,12> reserved;\r\n    std::array<Event,kCapacity> events;\r\n};\r\nstatic_assert(sizeof(Event)==128 && offsetof(Shared,events)==128);\r\n#if defined(ISAAC_CS_WORLD_E2E)\r\nbool Prepare(const wchar_t* world_name,std::uint32_t pid,std::uint32_t controller,\r\n             const std::array<std::uint8_t,32>& nonce) noexcept;\r\nvoid Context(std::uint64_t outer,std::uint64_t tick,std::uint64_t attempt) noexcept;\r\nvoid Record(Kind kind,std::uint32_t tag,const std::uint32_t* words=nullptr,\r\n            std::uint32_t count=0,std::uint64_t subject=0,std::uint64_t use=0) noexcept;\r\nvoid Fx(std::uint32_t hook,std::uint32_t phase,const std::uint8_t* fx) noexcept;\r\nvoid BeginCopy() noexcept;\r\nvoid EndCopy() noexcept;\r\nbool Copying() noexcept;\r\nbool Take(Fault fault) noexcept;\r\nvoid Worker(std::uint32_t main,std::uint32_t thread,bool accepted) noexcept;\r\nstd::uint32_t ReadFaultAddress() noexcept;\r\nvoid Close() noexcept;\r\n#else\r\ninline bool Prepare(const wchar_t*,std::uint32_t,std::uint32_t,const std::array<std::uint8_t,32>&) noexcept {return true;}\r\ninline void Context(std::uint64_t,std::uint64_t,std::uint64_t) noexcept {}\r\ninline void Record(Kind,std::uint32_t,const std::uint32_t* =nullptr,std::uint32_t =0,std::uint64_t =0,std::uint64_t =0) noexcept {}\r\ninline void Fx(std::uint32_t,std::uint32_t,const std::uint8_t*) noexcept {}\r\ninline void BeginCopy() noexcept {}\r\ninline void EndCopy() noexcept {}\r\ninline bool Copying() noexcept {return false;}\r\ninline bool Take(Fault) noexcept {return false;}\r\ninline void Worker(std::uint32_t,std::uint32_t,bool) noexcept {}\r\ninline std::uint32_t ReadFaultAddress() noexcept {return 0;}\r\ninline void Close() noexcept {}\r\n#endif\r\n}\r\n"
+    }
+  },
+  "tx86-step2-1": {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x6B8F00\",\"code\":\"int __thiscall sub_6B8F00(_DWORD *this)\\n{\\n  int v2; // ecx\\n\\n  if ( this[10] == 866 && !this[11] ) /*0x6b8f0c*/\\n  {\\n    v2 = this[240]; /*0x6b8f12*/\\n    if ( v2 ) /*0x6b8f1a*/\\n      (*(void (__thiscall **)(int))(*(_DWORD *)v2 + 40))(v2); /*0x6b8f1e*/\\n  }\\n  return sub_6ACB00((int)this); /*0x6b8f23*/\\n}\",\"refs\":[{\"addr\":\"0x6acb00\",\"name\":\"sub_6ACB00\"}]}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x6B8F00",
+        "code": "int __thiscall sub_6B8F00(_DWORD *this)\n{\n  int v2; // ecx\n\n  if ( this[10] == 866 && !this[11] ) /*0x6b8f0c*/\n  {\n    v2 = this[240]; /*0x6b8f12*/\n    if ( v2 ) /*0x6b8f1a*/\n      (*(void (__thiscall **)(int))(*(_DWORD *)v2 + 40))(v2); /*0x6b8f1e*/\n  }\n  return sub_6ACB00((int)this); /*0x6b8f23*/\n}",
+        "refs": [
+          {
+            "addr": "0x6acb00",
+            "name": "sub_6ACB00"
+          }
+        ]
+      },
+      "isError": false
+    }
+  },
+  "tx86-step2-2": {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x6EE110\",\"code\":\"int __thiscall sub_6EE110(_DWORD *this)\\n{\\n  int v2; // ecx\\n\\n  v2 = this[356]; /*0x6ee113*/\\n  if ( v2 ) /*0x6ee11b*/\\n    (*(void (__thiscall **)(int))(*(_DWORD *)v2 + 40))(v2); /*0x6ee11f*/\\n  return sub_6ACB00((int)this); /*0x6ee124*/\\n}\",\"refs\":[{\"addr\":\"0x6acb00\",\"name\":\"sub_6ACB00\"}]}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x6EE110",
+        "code": "int __thiscall sub_6EE110(_DWORD *this)\n{\n  int v2; // ecx\n\n  v2 = this[356]; /*0x6ee113*/\n  if ( v2 ) /*0x6ee11b*/\n    (*(void (__thiscall **)(int))(*(_DWORD *)v2 + 40))(v2); /*0x6ee11f*/\n  return sub_6ACB00((int)this); /*0x6ee124*/\n}",
+        "refs": [
+          {
+            "addr": "0x6acb00",
+            "name": "sub_6ACB00"
+          }
+        ]
+      },
+      "isError": false
+    }
+  },
+  "tx86-step2-3": {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x418500\",\"code\":\"int __userpurge sub_418500@<eax>(unsigned int a1@<eax>, _DWORD *a2@<ecx>, _DWORD *a3)\\n{\\n  int n3; // eax\\n  int v6; // ecx\\n  unsigned int i_1; // edi\\n  int v8; // ecx\\n  unsigned int v9; // edi\\n  unsigned int i_2; // edx\\n  bool v11; // cc\\n  _DWORD *v12; // ecx\\n  int v13; // ecx\\n  int v14; // ecx\\n  unsigned int i; // [esp+14h] [ebp+8h]\\n\\n  if ( *((_BYTE *)a3 + 368) )\\n  {\\n    sub_417670(a1, (int)(a2 + 16), (int)a3); /*0x418518*/\\n  }\\n  else\\n  {\\n    n3 = a3[10]; /*0x418522*/\\n    if ( n3 == 1 || n3 == 3 || n3 == 8 && !a3[12] )\\n    {\\n      v6 = a2[15]; /*0x418545*/\\n      if ( (unsigned int)(v6 + 1) > a2[14] )\\n      {\\n        sub_A112C0(16, \\\"EL: not enough space for push_back\\\\n\\\");\\n        v6 = a2[15]; /*0x41855c*/\\n      }\\n      *(_DWORD *)(a2[13] + 4 * v6) = a3; /*0x418565*/\\n      ++a2[15]; /*0x418568*/\\n    }\\n    else\\n    {\\n      sub_417630(a2 + 8, (int)a3); /*0x41853e*/\\n    }\\n    if ( (*(unsigned __int8 (__thiscall **)(_DWORD *))(*a3 + 72))(a3) ) /*0x418572*/\\n    {\\n      if ( a3[10] != 866 ) /*0x41857f*/\\n      {\\n        ++a2[42]; /*0x418581*/\\n        if ( (*(unsigned __int8 (__thiscall **)(_DWORD *))(*a3 + 76))(a3) ) /*0x41858e*/\\n          ++a2[44]; /*0x418594*/\\n      }\\n    }\\n    i_1 = 0; /*0x41859a*/\\n    *((_BYTE *)a3 + 368) = 1; /*0x41859c*/\\n    for ( i = 0; i_1 < a2[23]; i = i_1 ) /*0x4185a6*/\\n    {\\n      v8 = *(_DWORD *)(a2[21] + 4 * i_1); /*0x4185b3*/\\n      v9 = (*(int (__thiscall **)(int))(*(_DWORD *)v8 + 52))(v8); /*0x4185bf*/\\n      v11 = (*(int (__thiscall **)(_DWORD *))(*a3 + 52))(a3) <= v9; /*0x4185c4*/\\n      i_1 = i; /*0x4185c6*/\\n      if ( v11 ) /*0x4185c9*/\\n        break; /*0x4185c9*/\\n      i_1 = i + 1; /*0x4185cb*/\\n    }\\n    i_2 = a2[23]; /*0x4185d4*/\\n    if ( i_2 + 1 > a2[22] )\\n    {\\n      sub_A112C0(16, \\\"EL: not enough space for insert\\\\n\\\");\\n      i_2 = a2[23]; /*0x4185eb*/\\n    }\\n    v11 = i_2 <= i_1; /*0x4185f1*/\\n    if ( i_2 < i_1 )\\n    {\\n      sub_A112C0(16, \\\"EL: invalid index for insert\\\\n\\\");\\n      i_2 = a2[23]; /*0x418601*/\\n      v11 = i_2 <= i_1; /*0x418607*/\\n    }\\n    if ( !v11 ) /*0x418609*/\\n    {\\n      do /*0x41861e*/\\n      {\\n        v12 = (_DWORD *)(a2[21] + 4 * i_2--); /*0x418613*/\\n        *v12 = *(v12 - 1); /*0x41861a*/\\n      }\\n      while ( i_2 > i_1 ); /*0x41861e*/\\n    }\\n    *(_DWORD *)(a2[21] + 4 * i_1) = a3; /*0x418623*/\\n    ++a2[23]; /*0x418626*/\\n    if ( a3[10] == 3 && a3[11] == 206 )\\n    {\\n      v13 = a2[39]; /*0x418638*/\\n      if ( (unsigned int)(v13 + 1) > a2[38] )\\n      {\\n        sub_A112C0(16, \\\"EL: not enough space for push_back\\\\n\\\");\\n        v13 = a2[39]; /*0x418655*/\\n      }\\n      *(_DWORD *)(a2[37] + 4 * v13) = a3; /*0x418664*/\\n      ++a2[39]; /*0x418667*/\\n    }\\n  }\\n  if ( (a3[90] & 8) == 0 )\\n  {\\n    v14 = a2[19]; /*0x41867b*/\\n    if ( (unsigned int)(v14 + 1) > a2[18] )\\n    {\\n      sub_A112C0(16, \\\"EL: not enough space for push_back\\\\n\\\");\\n      v14 = a2[19]; /*0x418692*/\\n    }\\n    *(_DWORD *)(a2[17] + 4 * v14) = a3; /*0x41869b*/\\n    ++a2[19]; /*0x41869e*/\\n  }\\n  return sub_41B570(a3[10], a3[11], a3[12]); /*0x4186b1*/\\n}\",\"refs\":[{\"addr\":\"0x417670\",\"name\":\"sub_417670\"},{\"addr\":\"0xa112c0\",\"name\":\"sub_A112C0\"},{\"addr\":\"0xb1b740\",\"name\":\"aElNotEnoughSpa\",\"string\":\"EL: not enough space for push_back\\n\"},{\"addr\":\"0x417630\",\"name\":\"sub_417630\"},{\"addr\":\"0xb1b784\",\"name\":\"aElNotEnoughSpa_0\",\"string\":\"EL: not enough space for insert\\n\"},{\"addr\":\"0xb1b7a8\",\"name\":\"aElInvalidIndex_0\",\"string\":\"EL: invalid index for insert\\n\"},{\"addr\":\"0x41b570\",\"name\":\"sub_41B570\"}]}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x418500",
+        "code": "int __userpurge sub_418500@<eax>(unsigned int a1@<eax>, _DWORD *a2@<ecx>, _DWORD *a3)\n{\n  int n3; // eax\n  int v6; // ecx\n  unsigned int i_1; // edi\n  int v8; // ecx\n  unsigned int v9; // edi\n  unsigned int i_2; // edx\n  bool v11; // cc\n  _DWORD *v12; // ecx\n  int v13; // ecx\n  int v14; // ecx\n  unsigned int i; // [esp+14h] [ebp+8h]\n\n  if ( *((_BYTE *)a3 + 368) )\n  {\n    sub_417670(a1, (int)(a2 + 16), (int)a3); /*0x418518*/\n  }\n  else\n  {\n    n3 = a3[10]; /*0x418522*/\n    if ( n3 == 1 || n3 == 3 || n3 == 8 && !a3[12] )\n    {\n      v6 = a2[15]; /*0x418545*/\n      if ( (unsigned int)(v6 + 1) > a2[14] )\n      {\n        sub_A112C0(16, \"EL: not enough space for push_back\\n\");\n        v6 = a2[15]; /*0x41855c*/\n      }\n      *(_DWORD *)(a2[13] + 4 * v6) = a3; /*0x418565*/\n      ++a2[15]; /*0x418568*/\n    }\n    else\n    {\n      sub_417630(a2 + 8, (int)a3); /*0x41853e*/\n    }\n    if ( (*(unsigned __int8 (__thiscall **)(_DWORD *))(*a3 + 72))(a3) ) /*0x418572*/\n    {\n      if ( a3[10] != 866 ) /*0x41857f*/\n      {\n        ++a2[42]; /*0x418581*/\n        if ( (*(unsigned __int8 (__thiscall **)(_DWORD *))(*a3 + 76))(a3) ) /*0x41858e*/\n          ++a2[44]; /*0x418594*/\n      }\n    }\n    i_1 = 0; /*0x41859a*/\n    *((_BYTE *)a3 + 368) = 1; /*0x41859c*/\n    for ( i = 0; i_1 < a2[23]; i = i_1 ) /*0x4185a6*/\n    {\n      v8 = *(_DWORD *)(a2[21] + 4 * i_1); /*0x4185b3*/\n      v9 = (*(int (__thiscall **)(int))(*(_DWORD *)v8 + 52))(v8); /*0x4185bf*/\n      v11 = (*(int (__thiscall **)(_DWORD *))(*a3 + 52))(a3) <= v9; /*0x4185c4*/\n      i_1 = i; /*0x4185c6*/\n      if ( v11 ) /*0x4185c9*/\n        break; /*0x4185c9*/\n      i_1 = i + 1; /*0x4185cb*/\n    }\n    i_2 = a2[23]; /*0x4185d4*/\n    if ( i_2 + 1 > a2[22] )\n    {\n      sub_A112C0(16, \"EL: not enough space for insert\\n\");\n      i_2 = a2[23]; /*0x4185eb*/\n    }\n    v11 = i_2 <= i_1; /*0x4185f1*/\n    if ( i_2 < i_1 )\n    {\n      sub_A112C0(16, \"EL: invalid index for insert\\n\");\n      i_2 = a2[23]; /*0x418601*/\n      v11 = i_2 <= i_1; /*0x418607*/\n    }\n    if ( !v11 ) /*0x418609*/\n    {\n      do /*0x41861e*/\n      {\n        v12 = (_DWORD *)(a2[21] + 4 * i_2--); /*0x418613*/\n        *v12 = *(v12 - 1); /*0x41861a*/\n      }\n      while ( i_2 > i_1 ); /*0x41861e*/\n    }\n    *(_DWORD *)(a2[21] + 4 * i_1) = a3; /*0x418623*/\n    ++a2[23]; /*0x418626*/\n    if ( a3[10] == 3 && a3[11] == 206 )\n    {\n      v13 = a2[39]; /*0x418638*/\n      if ( (unsigned int)(v13 + 1) > a2[38] )\n      {\n        sub_A112C0(16, \"EL: not enough space for push_back\\n\");\n        v13 = a2[39]; /*0x418655*/\n      }\n      *(_DWORD *)(a2[37] + 4 * v13) = a3; /*0x418664*/\n      ++a2[39]; /*0x418667*/\n    }\n  }\n  if ( (a3[90] & 8) == 0 )\n  {\n    v14 = a2[19]; /*0x41867b*/\n    if ( (unsigned int)(v14 + 1) > a2[18] )\n    {\n      sub_A112C0(16, \"EL: not enough space for push_back\\n\");\n      v14 = a2[19]; /*0x418692*/\n    }\n    *(_DWORD *)(a2[17] + 4 * v14) = a3; /*0x41869b*/\n    ++a2[19]; /*0x41869e*/\n  }\n  return sub_41B570(a3[10], a3[11], a3[12]); /*0x4186b1*/\n}",
+        "refs": [
+          {
+            "addr": "0x417670",
+            "name": "sub_417670"
+          },
+          {
+            "addr": "0xa112c0",
+            "name": "sub_A112C0"
+          },
+          {
+            "addr": "0xb1b740",
+            "name": "aElNotEnoughSpa",
+            "string": "EL: not enough space for push_back\n"
+          },
+          {
+            "addr": "0x417630",
+            "name": "sub_417630"
+          },
+          {
+            "addr": "0xb1b784",
+            "name": "aElNotEnoughSpa_0",
+            "string": "EL: not enough space for insert\n"
+          },
+          {
+            "addr": "0xb1b7a8",
+            "name": "aElInvalidIndex_0",
+            "string": "EL: invalid index for insert\n"
+          },
+          {
+            "addr": "0x41b570",
+            "name": "sub_41B570"
+          }
+        ]
+      },
+      "isError": false
+    }
+  },
+  "tx86-step3-0": {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x8C5D06\",\"code\":\"int __thiscall sub_8C5D06(void *this)\\n{\\n  return (*(int (__thiscall **)(void *))(*(_DWORD *)this + 40))(this);\\n}\"}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x8C5D06",
+        "code": "int __thiscall sub_8C5D06(void *this)\n{\n  return (*(int (__thiscall **)(void *))(*(_DWORD *)this + 40))(this);\n}"
+      },
+      "isError": false
+    }
+  },
+  "tx86-step3-1": {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x6A9360\",\"code\":\"int __thiscall sub_6A9360(_DWORD *this, int a2)\\n{\\n  _DWORD *v2; // esi\\n  int result; // eax\\n  _DWORD *v4; // [esp+4h] [ebp-4h] BYREF\\n\\n  v2 = this + 242; /*0x6a9365*/\\n  if ( this[242] ) /*0x6a936b*/\\n  {\\n    v4 = this + 242; /*0x6a9374*/\\n    result = sub_4CF210(&v4); /*0x6a937e*/\\n  }\\n  *v2 = a2; /*0x6a9386*/\\n  if ( a2 ) /*0x6a938a*/\\n    return sub_4CDCF0((char)v2); /*0x6a938d*/\\n  return result; /*0x6a9392*/\\n}\",\"refs\":[{\"addr\":\"0x4cf210\",\"name\":\"sub_4CF210\"},{\"addr\":\"0x4cdcf0\",\"name\":\"sub_4CDCF0\"}]}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x6A9360",
+        "code": "int __thiscall sub_6A9360(_DWORD *this, int a2)\n{\n  _DWORD *v2; // esi\n  int result; // eax\n  _DWORD *v4; // [esp+4h] [ebp-4h] BYREF\n\n  v2 = this + 242; /*0x6a9365*/\n  if ( this[242] ) /*0x6a936b*/\n  {\n    v4 = this + 242; /*0x6a9374*/\n    result = sub_4CF210(&v4); /*0x6a937e*/\n  }\n  *v2 = a2; /*0x6a9386*/\n  if ( a2 ) /*0x6a938a*/\n    return sub_4CDCF0((char)v2); /*0x6a938d*/\n  return result; /*0x6a9392*/\n}",
+        "refs": [
+          {
+            "addr": "0x4cf210",
+            "name": "sub_4CF210"
+          },
+          {
+            "addr": "0x4cdcf0",
+            "name": "sub_4CDCF0"
+          }
+        ]
+      },
+      "isError": false
+    }
+  },
+  "tx86-step3-2": {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x4174A0\",\"code\":\"int __thiscall sub_4174A0(_DWORD *this)\\n{\\n  return this[242]; /*0x4174a6*/\\n}\"}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x4174A0",
+        "code": "int __thiscall sub_4174A0(_DWORD *this)\n{\n  return this[242]; /*0x4174a6*/\n}"
+      },
+      "isError": false
+    }
+  },
+  "tx86-step3-3": {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x6ACB00\",\"asm\":{\"name\":\"sub_6ACB00\",\"start_ea\":\"0x6acb00\",\"segment\":\".text\",\"lines\":[{\"addr\":\"6acb00\",\"instruction\":\"push ecx\",\"label\":\"sub_6ACB00\"},{\"addr\":\"6acb01\",\"instruction\":\"push esi\"},{\"addr\":\"6acb02\",\"instruction\":\"mov esi, ecx\"},{\"addr\":\"6acb04\",\"instruction\":\"push edi\"},{\"addr\":\"6acb05\",\"instruction\":\"cmp byte ptr [esi+173h], 0\"},{\"addr\":\"6acb0c\",\"instruction\":\"mov byte ptr [esi+172h], 0\"},{\"addr\":\"6acb13\",\"instruction\":\"jnz short loc_6ACB1C\",\"refs\":[{\"addr\":\"0x6acb1c\",\"name\":\"loc_6ACB1C\"}]},{\"addr\":\"6acb15\",\"instruction\":\"mov byte ptr [esi+173h], 1\"},{\"addr\":\"6acb1c\",\"instruction\":\"push esi\",\"label\":\"loc_6ACB1C\"},{\"addr\":\"6acb1d\",\"instruction\":\"call sub_866060\",\"refs\":[{\"addr\":\"0x866060\",\"name\":\"sub_866060\"}]},{\"addr\":\"6acb22\",\"instruction\":\"mov edi, [esi+408h]\"},{\"addr\":\"6acb28\",\"instruction\":\"test edi, edi\"},{\"addr\":\"6acb2a\",\"instruction\":\"jz short loc_6ACB54\",\"refs\":[{\"addr\":\"0x6acb54\",\"name\":\"loc_6ACB54\"}]},{\"addr\":\"6acb2c\",\"instruction\":\"push dword ptr [edi+4]\"},{\"addr\":\"6acb2f\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"6acb34\",\"instruction\":\"push dword ptr [edi]\"},{\"addr\":\"6acb36\",\"instruction\":\"call ds:luaL_unref\",\"refs\":[{\"addr\":\"0xb1831c\",\"name\":\"luaL_unref\"}]},{\"addr\":\"6acb3c\",\"instruction\":\"add esp, 0Ch\"},{\"addr\":\"6acb3f\",\"instruction\":\"push 8\"},{\"addr\":\"6acb41\",\"instruction\":\"push edi\"},{\"addr\":\"6acb42\",\"instruction\":\"call sub_AEF15C\",\"refs\":[{\"addr\":\"0xaef15c\",\"name\":\"sub_AEF15C\"}]},{\"addr\":\"6acb47\",\"instruction\":\"add esp, 8\"},{\"addr\":\"6acb4a\",\"instruction\":\"mov dword ptr [esi+408h], 0\"},{\"addr\":\"6acb54\",\"instruction\":\"pop edi\",\"label\":\"loc_6ACB54\"},{\"addr\":\"6acb55\",\"instruction\":\"pop esi\"},{\"addr\":\"6acb56\",\"instruction\":\"pop ecx\"},{\"addr\":\"6acb57\",\"instruction\":\"retn\"}],\"stack_frame\":[{\"name\":\"__return_address\",\"offset\":\"0xc\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"}],\"return_type\":\"int\",\"arguments\":[{\"name\":\"this\",\"type\":\"int\"}]},\"instruction_count\":27,\"total_instructions\":null,\"cursor\":{\"done\":true}}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x6ACB00",
+        "asm": {
+          "name": "sub_6ACB00",
+          "start_ea": "0x6acb00",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "6acb00",
+              "instruction": "push ecx",
+              "label": "sub_6ACB00"
+            },
+            {
+              "addr": "6acb01",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "6acb02",
+              "instruction": "mov esi, ecx"
+            },
+            {
+              "addr": "6acb04",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "6acb05",
+              "instruction": "cmp byte ptr [esi+173h], 0"
+            },
+            {
+              "addr": "6acb0c",
+              "instruction": "mov byte ptr [esi+172h], 0"
+            },
+            {
+              "addr": "6acb13",
+              "instruction": "jnz short loc_6ACB1C",
+              "refs": [
+                {
+                  "addr": "0x6acb1c",
+                  "name": "loc_6ACB1C"
+                }
+              ]
+            },
+            {
+              "addr": "6acb15",
+              "instruction": "mov byte ptr [esi+173h], 1"
+            },
+            {
+              "addr": "6acb1c",
+              "instruction": "push esi",
+              "label": "loc_6ACB1C"
+            },
+            {
+              "addr": "6acb1d",
+              "instruction": "call sub_866060",
+              "refs": [
+                {
+                  "addr": "0x866060",
+                  "name": "sub_866060"
+                }
+              ]
+            },
+            {
+              "addr": "6acb22",
+              "instruction": "mov edi, [esi+408h]"
+            },
+            {
+              "addr": "6acb28",
+              "instruction": "test edi, edi"
+            },
+            {
+              "addr": "6acb2a",
+              "instruction": "jz short loc_6ACB54",
+              "refs": [
+                {
+                  "addr": "0x6acb54",
+                  "name": "loc_6ACB54"
+                }
+              ]
+            },
+            {
+              "addr": "6acb2c",
+              "instruction": "push dword ptr [edi+4]"
+            },
+            {
+              "addr": "6acb2f",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "6acb34",
+              "instruction": "push dword ptr [edi]"
+            },
+            {
+              "addr": "6acb36",
+              "instruction": "call ds:luaL_unref",
+              "refs": [
+                {
+                  "addr": "0xb1831c",
+                  "name": "luaL_unref"
+                }
+              ]
+            },
+            {
+              "addr": "6acb3c",
+              "instruction": "add esp, 0Ch"
+            },
+            {
+              "addr": "6acb3f",
+              "instruction": "push 8"
+            },
+            {
+              "addr": "6acb41",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "6acb42",
+              "instruction": "call sub_AEF15C",
+              "refs": [
+                {
+                  "addr": "0xaef15c",
+                  "name": "sub_AEF15C"
+                }
+              ]
+            },
+            {
+              "addr": "6acb47",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "6acb4a",
+              "instruction": "mov dword ptr [esi+408h], 0"
+            },
+            {
+              "addr": "6acb54",
+              "instruction": "pop edi",
+              "label": "loc_6ACB54"
+            },
+            {
+              "addr": "6acb55",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "6acb56",
+              "instruction": "pop ecx"
+            },
+            {
+              "addr": "6acb57",
+              "instruction": "retn"
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "__return_address",
+              "offset": "0xc",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            }
+          ],
+          "return_type": "int",
+          "arguments": [
+            {
+              "name": "this",
+              "type": "int"
+            }
+          ]
+        },
+        "instruction_count": 27,
+        "total_instructions": null,
+        "cursor": {
+          "done": true
+        }
+      },
+      "isError": false
+    }
+  },
+  "tx86-step3-4": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "544b97",
+      "wall_time_seconds": 0.4522215,
+      "exit_code": 0,
+      "original_token_count": 3521,
+      "output": "    Callback callback;if(!Enabled()) return;\r\n    if(!MainThread() || !loop::CompanionHealthy()) {Fail(Error::Thread);return;}\r\n    if(entering) {\r\n        if(g_tick || g_completed==UINT64_MAX-input::kMaximumFutureTicks) {Fail(Error::Reentry);return;}\r\n        g_authority_seen=true;\r\n        const bool loading_recovery=g_loading.BlocksInput();\r\n        const auto resume=active::detail::AuthorityObservedWithLoadingRecovery(g_pause,g_loading);\r\n        if(loading_recovery) {\r\n            auto recovery=MakeEvent(EventKind::LifecycleWindow);\r\n            recovery.action=static_cast<std::uint32_t>(loop::EmbeddedLifecycleSignal::AlternateEnvelope);\r\n            recovery.query=2;recovery.target=loop::CurrentObservationContext().loop_iteration;\r\n            recovery.decision=g_player_only_scope?2u:1u;\r\n            recovery.after={g_lifecycle.loading_depth,g_lifecycle.room_depth,\r\n                (g_participants[0].BoundValid()?1u:0u)|(g_participants[1].BoundValid()?2u:0u),\r\n                g_loading.BlocksInput()?1u:0u};\r\n            recovery.detail=(g_pause.BlocksInput()?1u:0u)|(g_loading.BlocksInput()?2u:0u)|(g_lifecycle.BlocksInput()?4u:0u);\r\n            recovery.boolean=g_lifecycle.Healthy();Publish(recovery);\r\n        }\r\n        if(resume==active::detail::PauseGapTransition::Exit) {InvalidateBoth(Lifecycle::Resume);}\r\n        if(g_lifecycle.BlocksInput() || g_session_retired) return;\r\n        Topology topology{};\r\n        if(!ReadTopology(topology)) InvalidateBoth(Lifecycle::Rebind);\r\n        else RefreshBindings(topology);\r\n        if(g_ever_registered && !g_device.Detached() && (!g_device.ExactMember() || !g_device.Healthy())) {Fail(Error::Device);return;}\r\n        if(g_participants[0].StartupPending()) PublishPhysical();\r\n        ScriptInput();if(!Enabled()) return;g_tick=g_completed+1;\r\n        for(std::uint32_t i=0;i<2;++i) if(!g_participants[i].Retired()) {\r\n            if(!g_participants[i].Begin(g_tick)) {Fail(Error::Reentry);return;}\r\n            auto event=MakeEvent(EventKind::Resolve,i);event.boolean=g_participants[i].Visible();\r\n            event.detail=g_player_only_scope?2u:1u;Publish(event);\r\n        }\r\n    } else if(g_tick) {\r\n        for(auto& participant:g_participants) participant.End(true);\r\n        g_completed=g_tick;world::Commit(g_completed,g_player_only_scope?2u:1u);\r\n        auto event=MakeEvent(EventKind::AuthorityCommit);\r\n        event.detail=g_player_only_scope?2u:1u;Publish(event);g_tick=0;\r\n        InterlockedExchange64(&g_shared->completed_tick,static_cast<LONG64>(g_completed));\r\n    }\r\n            g_ordered_patches[index] = {\r\n                static_cast<std::uint32_t>(index), &g_relative_patches[index], nullptr};\r\n        for (std::size_t index = 0; index < kPointerHookCount; ++index)\r\n        {\r\n            const std::size_t ordinal = kRelativeHookCount + index;\r\n            g_ordered_patches[ordinal] = {\r\n                static_cast<std::uint32_t>(ordinal), nullptr,\r\n                &g_pointer_patches[index]};\r\n        }\r\n        const auto place_relative = [&](std::size_t index) noexcept {\r\n            const std::uint32_t ordinal = additional.relative_ordinals[index];\r\n            if (ordinal < kHookCount || ordinal >= total ||\r\n                g_ordered_patches[ordinal].relative ||\r\n                g_ordered_patches[ordinal].pointer || g_ordered_patches[ordinal].entry)\r\n                return false;\r\n            g_ordered_patches[ordinal] = {\r\n                ordinal, &g_relative_patches[kRelativeHookCount + index], nullptr};\r\n            return true;\r\n        };\r\n        const auto place_pointer = [&](std::size_t index) noexcept {\r\n            const std::uint32_t ordinal = additional.pointer_ordinals[index];\r\n            if (ordinal < kHookCount || ordinal >= total ||\r\n                g_ordered_patches[ordinal].relative ||\r\n                g_ordered_patches[ordinal].pointer || g_ordered_patches[ordinal].entry)\r\n                return false;\r\n            g_ordered_patches[ordinal] = {\r\n                ordinal, nullptr, &g_pointer_patches[kPointerHookCount + index]};\r\n            return true;\r\n        };\r\n        for (std::size_t index = 0; index < additional.relative_count; ++index)\r\n            if (!place_relative(index))\r\n            {\r\n                g_install_failure = {\r\n                    static_cast<std::uint32_t>(InstallFailureStage::PatchTransactionBase) +\r\n                        static_cast<std::uint32_t>(\r\n                            isaac_cs_t0::mode::PatchFailureStage::InvalidArguments),\r\n                    static_cast<std::uint32_t>(index), ERROR_INVALID_PARAMETER};\r\n                return false;\r\n            }\r\n        for (std::size_t index = 0; index < additional.pointer_count; ++index)\r\n            if (!place_pointer(index))\r\n            {\r\n                g_install_failure = {\r\n                    static_cast<std::uint32_t>(InstallFailureStage::PatchTransactionBase) +\r\n                        static_cast<std::uint32_t>(\r\n                            isaac_cs_t0::mode::PatchFailureStage::InvalidArguments),\r\n                    static_cast<std::uint32_t>(index), ERROR_INVALID_PARAMETER};\r\n                return false;\r\n            }\r\n        for (std::size_t index=0;index<additional.entry_count;++index) {\r\n            const auto ordinal=additional.entry_ordinals[index];\r\n            if(ordinal<kHookCount || ordinal>=total || g_ordered_patches[ordinal].relative ||\r\n                g_ordered_patches[ordinal].pointer || g_ordered_patches[ordinal].entry) return false;\r\n            g_ordered_patches[ordinal]={ordinal,nullptr,nullptr,&additional.entries[index]};\r\n        }\r\n        for (std::size_t ordinal = 0; ordinal < total; ++ordinal)\r\n            if (g_ordered_patches[ordinal].ordinal != ordinal ||\r\n                (int(g_ordered_patches[ordinal].relative!=nullptr)+\r\n                 int(g_ordered_patches[ordinal].pointer!=nullptr)+\r\n                 int(g_ordered_patches[ordinal].entry!=nullptr))!=1)\r\n            {\r\n                g_install_failure = {\r\n                    static_cast<std::uint32_t>(InstallFailureStage::PatchTransactionBase) +\r\n                        static_cast<std::uint32_t>(\r\n                            isaac_cs_t0::mode::PatchFailureStage::InvalidArguments),\r\n                    static_cast<std::uint32_t>(ordinal), ERROR_INVALID_PARAMETER};\r\n                return false;\r\n            }\r\n        g_ordered_patch_count = total;\r\n        if (additional.strict_slot_snapshot_before &&\r\n            !SnapshotOrderedSlots(*additional.strict_slot_snapshot_before))\r\n        {\r\n            g_install_failure = {\r\n                static_cast<std::uint32_t>(InstallFailureStage::PatchTransactionBase) +\r\n                    static_cast<std::uint32_t>(\r\n                        isaac_cs_t0::mode::PatchFailureStage::PrepareRelative),\r\n                UINT32_MAX, ERROR_INVALID_DATA};\r\n            g_ordered_patch_count = 0;\r\n            return false;\r\n        }\r\n        installed = isaac_cs_t0::mode::InstallOrderedPatchTransaction(\r\n            g_ordered_patches.data(), total, &patch_failure);\r\n        if (installed)\r\n        {\r\n            InterlockedExchange(&g_strict_ordered_transaction, 1);\r\n//! Explicitly opted-in acceptance transport; independent of all production IPC.\r\n#![cfg(windows)]\r\nuse crate::error::{AppError,AppResult};\r\nuse serde_json::json;\r\nuse std::collections::BTreeSet;\r\nuse std::fs::{File,OpenOptions};\r\nuse std::io::{BufWriter,Write};\r\nuse std::mem::{offset_of,size_of};\r\nuse std::path::{Path,PathBuf};\r\nuse std::ptr::{NonNull,read_volatile,write_volatile};\r\nuse std::sync::atomic::{AtomicI32,AtomicU64,Ordering,fence};\r\nuse windows::core::PCWSTR;\r\nuse windows::Win32::Foundation::{CloseHandle,ERROR_ALREADY_EXISTS,GetLastError,HANDLE,INVALID_HANDLE_VALUE};\r\nuse windows::Win32::System::Memory::{CreateFileMappingW,MapViewOfFile,UnmapViewOfFile,\r\n    MEMORY_MAPPED_VIEW_ADDRESS,FILE_MAP_ALL_ACCESS,PAGE_READWRITE};\r\n\r\nconst MAGIC:u64=0x3145324557534349;\r\nconst CAPACITY:usize=65536;\r\n#[repr(C,align(8))]\r\nstruct Header {\r\n    magic:u64,version:u32,size:u32,pid:u32,controller:u32,nonce:[u8;32],\r\n    command:AtomicI32,ack:AtomicI32,error:AtomicI32,closed:AtomicI32,\r\n    produced:AtomicU64,consumed:AtomicU64,overflow:AtomicU64,frequency:u64,reserved:[u8;24],\r\n}\r\n#[derive(Clone,Copy)]\r\n#[repr(C,align(8))]\r\nstruct Event {\r\n    published:u64,outer:u64,tick:u64,attempt:u64,subject:u64,use_generation:u64,qpc:u64,\r\n    kind:u32,tag:u32,thread:u32,count:u32,words:[u32;14],\r\n}\r\nconst SIZE:usize=size_of::<Header>()+CAPACITY*size_of::<Event>();\r\nconst _:()=assert!(size_of::<Header>()==128 && offset_of!(Header,produced)==72 && size_of::<Event>()==128);\r\npub struct Probe {\r\n    handle:HANDLE,view:NonNull<u8>,directory:PathBuf,log:BufWriter<File>,next:u64,issued:BTreeSet<i32>,\r\n    pub name:String,\r\n}\r\nfn error(text:impl ToString)->AppError {AppError::evidence(text.to_string())}\r\nimpl Probe {\r\n    pub fn create(world_name:&str,pid:u32,nonce:[u8;32],directory:&Path)->AppResult<Self> {\r\n        let name=format!(\"{world_name}.E2E\");\r\n        let wide:Vec<u16>=name.encode_utf16().chain(Some(0)).collect();\r\n        let handle=unsafe {CreateFileMappingW(INVALID_HANDLE_VALUE,None,PAGE_READWRITE,0,SIZE as u32,PCWSTR(wide.as_ptr()))}.map_err(error)?;\r\n        if unsafe {GetLastError()}==ERROR_ALREADY_EXISTS {let _=unsafe {CloseHandle(handle)};return Err(error(\"E2E mapping already exists\"));}\r\n        let raw=unsafe {MapViewOfFile(handle,FILE_MAP_ALL_ACCESS,0,0,SIZE)};\r\n        let Some(view)=NonNull::new(raw.Value.cast::<u8>()) else {let _=unsafe {CloseHandle(handle)};return Err(error(\"Map E2E probe failed\"));};\r\n        let ptr=view.as_ptr().cast::<Header>();\r\n        unsafe {\r\n            write_volatile(&raw mut (*ptr).magic,MAGIC);write_volatile(&raw mut (*ptr).version,1);\r\n            write_volatile(&raw mut (*ptr).size,SIZE as u32);write_volatile(&raw mut (*ptr).pid,pid);\r\n            write_volatile(&raw mut (*ptr).controller,std::process::id());write_volatile(&raw mut (*ptr).nonce,nonce);\r\n        }\r\n        std::fs::create_dir(directory).map_err(error)?;\r\n        let file=OpenOptions::new().create_new(true).write(true).open(directory.join(\"trace.jsonl\")).map_err(error)?;\r\n        let manifest=json!({\"version\":1,\"purpose\":\"USER_AUTHORIZED_E2E_ONLY\",\"mapping\":name,\r\n            \"pid\":pid,\"controller_pid\":std::process::id(),\"nonce\":hex::encode(nonce),\"record_bytes\":128,\r\n            \"header_bytes\":128,\"capacity\":CAPACITY,\"compiled_native_required\":\"WorldE2E=true\",\r\n            \"production_ipc_changed\":false,\"faults\":\"OBSERVER_OWNED_BRANCH_INJECTION_NOT_GAME_MEMORY_CORRUPTION\"});\r\n        std::fs::write(directory.join(\"manifest.json\"),serde_json::to_vec_pretty(&manifest).map_err(error)?).map_err(error)?;\r\n        Ok(Self {handle,view,directory:directory.to_owned(),log:BufWriter::with_capacity(1024*1024,file),next:0,issued:BTreeSet::new(),name})\r\n    }\r\n    fn header(&self)->&Header {unsafe {&*self.view.as_ptr().cast::<Header>()}}\r\n    pub fn drain(&mut self)->AppResult<()> {\r\n        let end=self.header().produced.load(Ordering::Acquire);\r\n        if end<self.next || end-self.next>CAPACITY as u64 {return Err(error(\"E2E trace sequence/capacity lost\"));}\r\n        while self.next<end {\r\n            let ptr=unsafe {self.view.as_ptr().add(128).cast::<Event>().add(self.next as usize%CAPACITY)};\r\n            let event=unsafe {read_volatile(ptr)};\r\n            fence(Ordering::Acquire);\r\n            if event.published!=self.next+1 || event.count>14 {return Err(error(\"E2E trace publication invalid\"));}\r\n            serde_json::to_writer(&mut self.log,&json!({\"sequence\":event.published.to_string(),\r\n                \"outer\":event.outer.to_string(),\"tick\":event.tick.to_string(),\"attempt\":event.attempt.to_string(),\r\n                \"subject\":event.subject.to_string(),\"use_generation\":event.use_generation.to_string(),\"qpc\":event.qpc.to_string(),\r\n                \"kind\":event.kind,\"tag\":event.tag,\"thread\":event.thread,\"words\":&event.words[..event.count as usize]})).map_err(error)?;\r\n            self.log.write_all(b\"\\n\").map_err(error)?;self.next+=1;\r\n        }\r\n        self.header().consumed.store(self.next,Ordering::Release);\r\n        Ok(())\r\n    }\r\n    pub fn command(&mut self,name:&str)->AppResult<()> {\r\n        let mode=match name {\"object-budget\"=>1,\"membership-budget\"=>2,\"relation-budget\"=>3,\"field-read\"=>4,\r\n            \"source-changed\"=>5,\"event-overflow\"=>6,\"wrong-thread\"=>7,\"reference-ambiguity\"=>8,\"root-changed\"=>9,\r\n            _=>return Err(error(\"Unknown E2E observer fault\"))};\r\n        if self.header().closed.load(Ordering::Acquire)!=0 || self.header().command.load(Ordering::Acquire)!=0 || !self.issued.insert(mode) {\r\n            return Err(error(\"E2E fault pending, repeated, or observer closed; no automatic retry\"));\r\n        }\r\n        self.header().ack.store(0,Ordering::Release);self.header().command.store(mode,Ordering::Release);Ok(())\r\n    }\r\n    pub fn finish(&mut self)->AppResult<()> {\r\n        self.drain()?;self.log.flush().map_err(error)?;\r\n        let header=self.header();\r\n        let value=json!({\"version\":1,\"closed\":header.closed.load(Ordering::Acquire)!=0,\r\n            \"error\":header.error.load(Ordering::Acquire),\"overflow\":header.overflow.load(Ordering::Acquire).to_string(),\r\n            \"produced\":header.produced.load(Ordering::Acquire).to_string(),\"consumed\":self.next.to_string(),\r\n            \"pending_command\":header.command.load(Ordering::Acquire),\"last_ack\":header.ack.load(Ordering::Acquire),\r\n            \"qpc_frequency\":unsafe {read_volatile(&raw const header.frequency)}.to_string(),\"issued_faults\":self.issued});\r\n        let mut file=OpenOptions::new().create_new(true).write(true).open(self.directory.join(\"result.json\")).map_err(error)?;\r\n        serde_json::to_writer_pretty(&mut file,&value).map_err(error)?;file.write_all(b\"\\n\").map_err(error)\r\n    }\r\n}\r\nimpl Drop for Probe {\r\n    fn drop(&mut self) {let _=self.log.flush();unsafe {let _=UnmapViewOfFile(MEMORY_MAPPED_VIEW_ADDRESS{Value:self.view.as_ptr().cast()});let _=CloseHandle(self.handle);}}\r\n}\r\n"
+    }
+  },
+  "tx86-step4-0": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "c92a0b",
+      "wall_time_seconds": 0.4368503,
+      "exit_code": 0,
+      "original_token_count": 3043,
+      "output": "#pragma once\r\n#include <Windows.h>\r\nnamespace isaac_cs_t0::coop_active {\r\nvoid SetModule(HMODULE module) noexcept;\r\nvoid ProcessDetach() noexcept;\r\nextern \"C\" DWORD WINAPI IsaacCsT0CoopActiveInitialize(const wchar_t* mapping);\r\nextern \"C\" DWORD WINAPI IsaacCsT0CoopActiveShutdown(void*);\r\n}\r\n                                      void* owner, void* return_address,\r\n                                      void* context) noexcept;\r\n\r\nstruct EmbeddedObserverHooks {\r\n    isaac_cs_t0::mode::RelativeCallPatch* relative = nullptr;\r\n    std::size_t relative_count = 0;\r\n    // Required for strict_ordered_transaction. Values are catalog-global ordinals.\r\n    const std::uint32_t* relative_ordinals = nullptr;\r\n    isaac_cs_t0::mode::PointerPatch* pointers = nullptr;\r\n    std::size_t pointer_count = 0;\r\n    const std::uint32_t* pointer_ordinals = nullptr;\r\n    // Install V5 0..31 and the caller-owned suffix in one exact ordinal sequence.\r\n    // Embedded restore removes the suffix in reverse; StopEmbeddedObserver then\r\n    // removes the V5 prefix in reverse.\r\n    bool strict_ordered_transaction = false;\r\n    std::array<std::uint8_t, 32>* strict_slot_snapshot_before = nullptr;\r\n    PhysicalPollObservation physical_poll = nullptr;\r\n    void* physical_poll_context = nullptr;\r\n    DeviceUpdateCompleteObservation device_update_complete = nullptr;\r\n    void* device_update_complete_context = nullptr;\r\n    PhysicalExitObservation physical_exit = nullptr;\r\n    void* physical_exit_context = nullptr;\r\n    AuthorityObservation authority = nullptr;\r\n    void* authority_context = nullptr;\r\n    TopUpdateExitObservation top_update_exit = nullptr;\r\n    void* top_update_exit_context = nullptr;\r\n    LifecycleObservation lifecycle = nullptr;\r\n    void* lifecycle_context = nullptr;\r\n    isaac_cs_t0::mode::EntryPatch* entries = nullptr;\r\n    std::size_t entry_count = 0;\r\n    const std::uint32_t* entry_ordinals = nullptr;\r\n};\r\n\r\nnamespace detail {\r\n\r\ninline constexpr std::uint32_t kStandaloneScenarioMaximum = 10;\r\ninline constexpr std::uint32_t kEmbeddedActiveScenarioMaximum = 16;\r\n\r\ninline bool CompanionScenarioAllowed(std::uint32_t scenario,\r\n                                     bool embedded) noexcept\r\n{\r\n    const std::uint32_t maximum =\r\n        embedded ? kEmbeddedActiveScenarioMaximum : kStandaloneScenarioMaximum;\r\n    return scenario >= 1 && scenario <= maximum;\r\n}\r\n\r\nenum class AlternateEnvelopeTransition : std::uint32_t {\r\n    None = 0,\r\n    Open = 1,\r\n    Close = 2,\r\n    Invalid = 3,\r\n};\r\n\r\n// The ordinary frame path calls the alternate owner even when no loading transaction\r\n// exists.  Only a nested state-apply proves that the reverse-confirmed alternate\r\n// owner/state/room/tail envelope is active.\r\nstruct AlternateEnvelopeTracker {\r\n    bool owner_active = false;\r\n    bool envelope_open = false;\r\n\r\n    AlternateEnvelopeTransition BeginOwner() noexcept\r\n    {\r\n        if (owner_active)\r\n            return AlternateEnvelopeTransition::Invalid;\r\n        owner_active = true;\r\n        envelope_open = false;\r\n        return AlternateEnvelopeTransition::None;\r\n    }\r\n\r\n    AlternateEnvelopeTransition ObserveStateApply() noexcept\r\n    {\r\n        if (!owner_active || envelope_open)\r\n            return AlternateEnvelopeTransition::None;\r\n        envelope_open = true;\r\n        return AlternateEnvelopeTransition::Open;\r\n    }\r\n\r\n    AlternateEnvelopeTransition EndOwner() noexcept\r\n    {\r\n        if (!owner_active)\r\n            return AlternateEnvelopeTransition::Invalid;\r\n        const bool close = envelope_open;\r\n        owner_active = false;\r\n        envelope_open = false;\r\n        return close ? AlternateEnvelopeTransition::Close\r\n                     : AlternateEnvelopeTransition::None;\r\n    }\r\n\r\n    void Reset() noexcept\r\n    {\r\n        owner_active = false;\r\n        envelope_open = false;\r\n    }\r\n};\r\n\r\ninline bool CompanionIdentityMatches(\r\n    std::uint32_t target_pid, std::uint32_t scenario,\r\n    const std::array<std::uint8_t, 32>& nonce,\r\n    const EmbeddedObserverIdentity& expected) noexcept\r\n{\r\n    return target_pid == expected.target_pid && scenario == expected.scenario &&\r\n           nonce == expected.nonce;\r\n}\r\n        Raw(1,after);\r\n        const std::uint32_t words[]{valid?1u:0u,readable?1u:0u,\r\n            !std::memcmp(before.data(),after.data(),2504)?1u:0u,before[2500],after[2500]};\r\n        e2e::Record(e2e::Kind::GlobalRng,2,words,5);e2e::EndCopy();\r\n    }\r\n};\r\n#else\r\nstruct CopyAudit {~CopyAudit(){e2e::EndCopy();}};\r\n#endif\r\nvoid Capture(Reason initial) noexcept\r\n{\r\n    if(!Next(g_attempt))return;\r\n    InterlockedExchange64(&g_shared->attempts,static_cast<LONG64>(g_attempt));\r\n    Batch* selected=nullptr;\r\n    for(auto& batch:g_shared->batches)if(InterlockedCompareExchange(&batch.state,1,0)==0){selected=&batch;break;}\r\n    if(!selected){InterlockedIncrement64(&g_shared->backpressure);Emit(UINT32_MAX,false,nullptr,0,0,Reason::Backpressure,3);return;}\r\n    auto& batch=*selected;batch.reason=static_cast<std::uint32_t>(initial);\r\n    batch.run=g_run;batch.room=g_room;batch.mutation=g_mutation;batch.attempt=g_attempt;\r\n    batch.capture=0;batch.outer=g_token.value;batch.tick=g_token.tick;batch.scope=g_token.scope;\r\n    batch.authority=g_token.commits==1?1u:0u;batch.commit_kind=g_token.commit_kind;\r\n    batch.thread=GetCurrentThreadId();batch.complete=initial==Reason::None?1u:0u;\r\n    batch.object_count=0;batch.membership_count=0;batch.required_objects=0;batch.required_memberships=0;\r\n    batch.sources.fill({});\r\n    if(initial!=Reason::None) {MemoryBarrier();InterlockedExchange(&batch.state,2);Notify();return;}\r\n    e2e::Context(g_token.value,g_token.tick,g_attempt);e2e::BeginCopy();\r\n    CopyAudit copy_audit;\r\n#if defined(ISAAC_CS_WORLD_E2E)\r\n    if(e2e::Take(e2e::Fault::WrongThread)) {\r\n        InterlockedIncrement(&g_fault_workers);\r\n        const auto worker=CreateThread(nullptr,0,&WrongThreadFault,nullptr,0,nullptr);\r\n        if(worker)CloseHandle(worker);else {InterlockedDecrement(&g_fault_workers);Error(Reason::WrongThread);}\r\n    }\r\n#endif\r\n    g_batch_indices.fill(UINT32_MAX);g_current_memberships.fill(0);\r\n    std::uint32_t root=0,room=0,game_frame=0,width=0;\r\n    const auto root_slot=Address(g_image)+0x871678;\r\n    if(!U32(root_slot,root) || !root || root>UINT32_MAX-0x26500 || !U32(static_cast<std::uint64_t>(root)+0x18300,room) || !room || room>UINT32_MAX-0x1400 ||\r\n        !U32(static_cast<std::uint64_t>(root)+0x264F8,game_frame) || room!=g_token.room_address || !U32(static_cast<std::uint64_t>(room)+0xC,width)) {\r\n        Incomplete(batch,Reason::ReadFailed);\r\n    } else {\r\n        for(std::uint32_t i=0;i<8;++i)CopySource(batch,i,room+0x1218+0x20+i*0x10,false,game_frame);\r\n        CopySource(batch,8,root+0x1BAA8,true,game_frame);\r\n        auto& esau=batch.sources[9];esau.count=4;\r\n        for(std::uint32_t i=0;i<4;++i) {\r\n            std::uint32_t value=0;\r\n        if(ReadTopology(topology) && topology.count==1) {\r\n            RefreshBindings(topology);\r\n            if(g_participants[0].BoundValid()) {\r\n                Diagnose(DiagnosticStage::DeviceCreate,1,DiagnosticReason::Ready,\r\n                    {static_cast<std::uint32_t>(g_device.State())});\r\n                const bool created=g_device.Create(g_image,g_module,GetCurrentThreadId(),&OwnedReader,nullptr);\r\n                InterlockedExchange(&g_shared->pinned,(world::EntryCount() || g_device.Pinned())?1:0);\r\n                Diagnose(DiagnosticStage::DeviceCreate,1,static_cast<DiagnosticReason>(g_device.Error()),\r\n                    {static_cast<std::uint32_t>(g_device.State()),static_cast<std::uint32_t>(g_device.Key()),g_device.Pinned()?1u:0u},\r\n                    {Address(g_device.Pair().object),Address(g_device.Pair().control),g_device.Strong()});\r\n                if(!created) {Fail(Error::Device);return;}\r\n                const bool registered=g_device.Register();\r\n                Diagnose(DiagnosticStage::DeviceRegister,1,static_cast<DiagnosticReason>(g_device.Error()),\r\n                    {static_cast<std::uint32_t>(g_device.State()),static_cast<std::uint32_t>(g_device.Key()),registered?1u:0u},\r\n                    {Address(g_device.Pair().object),Address(g_device.Pair().control),g_device.Strong()});\r\n                if(!registered) {Fail(Error::Device);return;}\r\n                g_ever_registered=true;auto event=MakeEvent(EventKind::DeviceState,1);\r\n                event.detail=static_cast<std::uint32_t>(g_device.State());event.boolean=1;\r\n                event.before={static_cast<std::uint32_t>(g_device.Key()),Address(g_device.Pair().object),Address(g_device.Pair().control),g_device.Strong()};\r\n                Publish(event);\r\n            }\r\n        }\r\n    }\r\n    const bool stop=InterlockedCompareExchange(&g_shared->stop,0,0)!=0;\r\n    const LONG control=InterlockedExchange(&g_shared->retire_b,0);\r\n    if(control==4 && Enabled() && !g_session_retired) {\r\n        g_repeat_queries=true;g_repeat_budget=256;g_repeat_generation={};g_repeat_used={};\r\n    }\r\n    if(control==2 && !g_participants[1].Retired() && g_script_index>g_shared->script_count) {\r\n        g_script_origin=0;g_script_index=0;g_script_shoot_active=false;\r\n    }\r\n    if(control==3 && g_participants[1].BoundValid()) {\r\n        auto command=g_participants[1].MakeCommand(InputStateDraftV2{},g_completed+input::kInputLeadTicks);\r\n        Submit(1,command,g_participants[1].Generation());\r\n        command.state.move_x=32767;Submit(1,command,g_participants[1].Generation());\r\n    }\r\n    const bool retire=!g_b_retired_done &&\r\n        (control==1 || g_participants[1].Retired());\r\n    if(stop || g_session_retired || g_failed) world::Close();\r\n    if((stop || retire || g_session_retired || g_failed) && !g_stop_handled) {\r\n        if(!g_b_retired_done && !RetireB()) {Fail(Error::Restore);return;}\r\n        if(stop || g_session_retired || g_failed) {\r\n            g_participants[0].Retire();InterlockedExchange(&g_enabled,0);\r\n            InterlockedExchange(&g_stop_handled,1);\r\n        } else InterlockedExchange(&g_shared->retire_b,0);\r\n    }\r\n    if(Enabled() && !g_session_retired && !g_lifecycle.BlocksInput() &&\r\n       active::detail::TopUpdateCompletedWithLoadingRecovery(g_pause,g_loading,g_authority_seen)==\r\n           active::detail::PauseGapTransition::Enter) InvalidateBoth(Lifecycle::Pause);\r\n    g_authority_seen=false;\r\n    if(controller_lost && g_stop_handled && !InterlockedExchange(&g_recovery_started,1)) {\r\n        HANDLE recovery=CreateThread(nullptr,0,&ControllerLostRecovery,nullptr,0,nullptr);\r\n        if(recovery) CloseHandle(recovery); // Resident shutdown only; never unload/reinject.\r\n    }\r\n}\r\nvoid LifecycleCallback(loop::EmbeddedLifecycleSignal signal,bool entering,void*,void* caller,void*) noexcept\r\n{\r\n    world::Lifecycle(static_cast<std::uint32_t>(signal),entering);\r\n    Callback callback;if(!Enabled() || !MainThread()) return;\r\n    auto event=MakeEvent(EventKind::LifecycleWindow);\r\n    event.action=static_cast<std::uint32_t>(signal);event.query=entering?1u:0u;\r\n    event.target=loop::CurrentObservationContext().loop_iteration;\r\n    event.decision=Address(caller)-Address(g_image);\r\n    event.before={g_lifecycle.loading_depth,g_lifecycle.room_depth,\r\n        (g_participants[0].BoundValid()?1u:0u)|(g_participants[1].BoundValid()?2u:0u),\r\n        g_pause.consecutive_missing};\r\n    if(signal==loop::EmbeddedLifecycleSignal::RunTeardown) {\r\n        if(entering) {g_session_retired=true;g_join_scope=false;g_lifecycle.Retire();InvalidateBoth(Lifecycle::Teardown);}\r\n    } else {\r\n        const bool loading=signal==loop::EmbeddedLifecycleSignal::AlternateEnvelope;\r\n        const auto domain=loading?active::detail::LifecycleInputDomain::Loading:active::detail::LifecycleInputDomain::Room;\r\n        if(entering) {\r\n            g_lifecycle.Enter(domain);InvalidateBoth(loading?Lifecycle::Loading:Lifecycle::Room);\r\n            if(loading) g_loading.LoadingEntered();\r\n        } else {\r\n            const auto transition=g_lifecycle.Exit(domain);\r\n            if(loading && transition==active::detail::LifecycleGateTransition::Exited) {\r\n                g_loading.LoadingExited();InvalidateBoth(Lifecycle::LoadingExit);\r\n            }\r\n"
+    }
+  },
+  "tx86-step4-1": {
+    "status": "fulfilled",
+    "value": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"result\":\"None\",\"stdout\":\"[{'slot': '0xb63010', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb649b8', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb64c78', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb64ed4', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb6711c', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb67188', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb67334', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb6bdf8', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb7cb74', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}]\\n{'remove_thunk_bytes': '8b01ff60288b01ff', 'spawner_setter_bytes': '558bec51568db1c80300008b0e85c974128d45fc8975fc5081c1cc030000e88d5ee2ff8b4d08890e85c9740656e85e49e2ff5e8b'}\\n\",\"stderr\":\"\"}"
+        }
+      ],
+      "structuredContent": {
+        "result": "None",
+        "stdout": "[{'slot': '0xb63010', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb649b8', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb64c78', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb64ed4', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb6711c', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb67188', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb67334', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb6bdf8', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}, {'slot': '0xb7cb74', 'around': ['0x6ac920', '0x6acb00', '0x40c200']}]\n{'remove_thunk_bytes': '8b01ff60288b01ff', 'spawner_setter_bytes': '558bec51568db1c80300008b0e85c974128d45fc8975fc5081c1cc030000e88d5ee2ff8b4d08890e85c9740656e85e49e2ff5e8b'}\n",
+        "stderr": ""
+      },
+      "isError": false
+    }
+  }
+}

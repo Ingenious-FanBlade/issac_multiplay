@@ -1,0 +1,1055 @@
+{
+  "imagebase": "0x400000",
+  "ranges": [
+    {
+      "start_rva": "0x5ba960",
+      "end_rva": "0x5ba9d0",
+      "instructions": [
+        {
+          "rva": "0x5ba962",
+          "size": 5,
+          "bytes": "e8 99 f6 ff ff",
+          "instruction": "call    sub_9BA000"
+        },
+        {
+          "rva": "0x5ba967",
+          "size": 3,
+          "bytes": "8b 46 04",
+          "instruction": "mov     eax, [esi+4]"
+        },
+        {
+          "rva": "0x5ba96a",
+          "size": 1,
+          "bytes": "4f",
+          "instruction": "dec     edi"
+        },
+        {
+          "rva": "0x5ba96b",
+          "size": 2,
+          "bytes": "8b 0e",
+          "instruction": "mov     ecx, [esi]"
+        },
+        {
+          "rva": "0x5ba96d",
+          "size": 2,
+          "bytes": "2b c1",
+          "instruction": "sub     eax, ecx"
+        },
+        {
+          "rva": "0x5ba96f",
+          "size": 3,
+          "bytes": "c1 f8 02",
+          "instruction": "sar     eax, 2"
+        },
+        {
+          "rva": "0x5ba972",
+          "size": 2,
+          "bytes": "3b f8",
+          "instruction": "cmp     edi, eax"
+        },
+        {
+          "rva": "0x5ba974",
+          "size": 2,
+          "bytes": "72 aa",
+          "instruction": "jb      short loc_9BA920"
+        },
+        {
+          "rva": "0x5ba976",
+          "size": 1,
+          "bytes": "5f",
+          "instruction": "pop     edi"
+        },
+        {
+          "rva": "0x5ba977",
+          "size": 1,
+          "bytes": "5e",
+          "instruction": "pop     esi"
+        },
+        {
+          "rva": "0x5ba978",
+          "size": 2,
+          "bytes": "8b e5",
+          "instruction": "mov     esp, ebp"
+        },
+        {
+          "rva": "0x5ba97a",
+          "size": 1,
+          "bytes": "5d",
+          "instruction": "pop     ebp"
+        },
+        {
+          "rva": "0x5ba97b",
+          "size": 1,
+          "bytes": "c3",
+          "instruction": "retn"
+        },
+        {
+          "rva": "0x5ba97c",
+          "size": 4,
+          "bytes": "cc cc cc cc",
+          "instruction": "align 10h"
+        },
+        {
+          "rva": "0x5ba980",
+          "size": 5,
+          "bytes": "a1 78 16 c7 00",
+          "instruction": "mov     eax, n4_0"
+        },
+        {
+          "rva": "0x5ba985",
+          "size": 6,
+          "bytes": "8b 80 48 65 02 00",
+          "instruction": "mov     eax, [eax+26548h]"
+        },
+        {
+          "rva": "0x5ba98b",
+          "size": 3,
+          "bytes": "83 e0 10",
+          "instruction": "and     eax, 10h"
+        },
+        {
+          "rva": "0x5ba98e",
+          "size": 3,
+          "bytes": "83 c8 00",
+          "instruction": "or      eax, 0"
+        },
+        {
+          "rva": "0x5ba991",
+          "size": 2,
+          "bytes": "74 03",
+          "instruction": "jz      short loc_9BA996"
+        },
+        {
+          "rva": "0x5ba993",
+          "size": 2,
+          "bytes": "b0 01",
+          "instruction": "mov     al, 1"
+        },
+        {
+          "rva": "0x5ba995",
+          "size": 1,
+          "bytes": "c3",
+          "instruction": "retn"
+        },
+        {
+          "rva": "0x5ba996",
+          "size": 2,
+          "bytes": "32 c0",
+          "instruction": "xor     al, al"
+        },
+        {
+          "rva": "0x5ba998",
+          "size": 1,
+          "bytes": "c3",
+          "instruction": "retn"
+        },
+        {
+          "rva": "0x5ba999",
+          "size": 7,
+          "bytes": "cc cc cc cc cc cc cc",
+          "instruction": "align 10h"
+        },
+        {
+          "rva": "0x5ba9a0",
+          "size": 1,
+          "bytes": "55",
+          "instruction": "push    ebp"
+        },
+        {
+          "rva": "0x5ba9a1",
+          "size": 2,
+          "bytes": "8b ec",
+          "instruction": "mov     ebp, esp"
+        },
+        {
+          "rva": "0x5ba9a3",
+          "size": 2,
+          "bytes": "6a ff",
+          "instruction": "push    0FFFFFFFFh"
+        },
+        {
+          "rva": "0x5ba9a5",
+          "size": 5,
+          "bytes": "68 0d e9 b0 00",
+          "instruction": "push    offset SEH_9BA9A0"
+        },
+        {
+          "rva": "0x5ba9aa",
+          "size": 6,
+          "bytes": "64 a1 00 00 00 00",
+          "instruction": "mov     eax, large fs:0"
+        },
+        {
+          "rva": "0x5ba9b0",
+          "size": 1,
+          "bytes": "50",
+          "instruction": "push    eax"
+        },
+        {
+          "rva": "0x5ba9b1",
+          "size": 3,
+          "bytes": "83 ec 0c",
+          "instruction": "sub     esp, 0Ch"
+        },
+        {
+          "rva": "0x5ba9b4",
+          "size": 1,
+          "bytes": "56",
+          "instruction": "push    esi"
+        },
+        {
+          "rva": "0x5ba9b5",
+          "size": 1,
+          "bytes": "57",
+          "instruction": "push    edi"
+        },
+        {
+          "rva": "0x5ba9b6",
+          "size": 5,
+          "bytes": "a1 b4 93 bf 00",
+          "instruction": "mov     eax, ___security_cookie"
+        },
+        {
+          "rva": "0x5ba9bb",
+          "size": 2,
+          "bytes": "33 c5",
+          "instruction": "xor     eax, ebp"
+        },
+        {
+          "rva": "0x5ba9bd",
+          "size": 1,
+          "bytes": "50",
+          "instruction": "push    eax"
+        },
+        {
+          "rva": "0x5ba9be",
+          "size": 3,
+          "bytes": "8d 45 f4",
+          "instruction": "lea     eax, [ebp+var_C]"
+        },
+        {
+          "rva": "0x5ba9c1",
+          "size": 6,
+          "bytes": "64 a3 00 00 00 00",
+          "instruction": "mov     large fs:0, eax"
+        },
+        {
+          "rva": "0x5ba9c7",
+          "size": 1,
+          "bytes": "51",
+          "instruction": "push    ecx; Size"
+        },
+        {
+          "rva": "0x5ba9c8",
+          "size": 3,
+          "bytes": "8d 4d e8",
+          "instruction": "lea     ecx, [ebp+var_18]"
+        },
+        {
+          "rva": "0x5ba9cb",
+          "size": 5,
+          "bytes": "e8 d0 42 a8 ff",
+          "instruction": "call    sub_43ECA0"
+        }
+      ]
+    },
+    {
+      "start_rva": "0x5bae40",
+      "end_rva": "0x5bae98",
+      "instructions": [
+        {
+          "rva": "0x5bae40",
+          "size": 3,
+          "bytes": "0f 4d d9",
+          "instruction": "cmovge  ebx, ecx"
+        },
+        {
+          "rva": "0x5bae43",
+          "size": 3,
+          "bytes": "39 77 20",
+          "instruction": "cmp     [edi+20h], esi"
+        },
+        {
+          "rva": "0x5bae46",
+          "size": 2,
+          "bytes": "75 0a",
+          "instruction": "jnz     short loc_9BAE52"
+        },
+        {
+          "rva": "0x5bae48",
+          "size": 4,
+          "bytes": "83 7f 28 00",
+          "instruction": "cmp     dword ptr [edi+28h], 0"
+        },
+        {
+          "rva": "0x5bae4c",
+          "size": 3,
+          "bytes": "0f b6 db",
+          "instruction": "movzx   ebx, bl"
+        },
+        {
+          "rva": "0x5bae4f",
+          "size": 3,
+          "bytes": "0f 4d d9",
+          "instruction": "cmovge  ebx, ecx"
+        },
+        {
+          "rva": "0x5bae52",
+          "size": 3,
+          "bytes": "39 77 34",
+          "instruction": "cmp     [edi+34h], esi"
+        },
+        {
+          "rva": "0x5bae55",
+          "size": 2,
+          "bytes": "75 0a",
+          "instruction": "jnz     short loc_9BAE61"
+        },
+        {
+          "rva": "0x5bae57",
+          "size": 4,
+          "bytes": "83 7f 3c 00",
+          "instruction": "cmp     dword ptr [edi+3Ch], 0"
+        },
+        {
+          "rva": "0x5bae5b",
+          "size": 3,
+          "bytes": "0f b6 db",
+          "instruction": "movzx   ebx, bl"
+        },
+        {
+          "rva": "0x5bae5e",
+          "size": 3,
+          "bytes": "0f 4d d9",
+          "instruction": "cmovge  ebx, ecx"
+        },
+        {
+          "rva": "0x5bae61",
+          "size": 3,
+          "bytes": "39 77 48",
+          "instruction": "cmp     [edi+48h], esi"
+        },
+        {
+          "rva": "0x5bae64",
+          "size": 6,
+          "bytes": "0f 85 e4 00 00 00",
+          "instruction": "jnz     loc_9BAF4E"
+        },
+        {
+          "rva": "0x5bae6a",
+          "size": 4,
+          "bytes": "83 7f 50 00",
+          "instruction": "cmp     dword ptr [edi+50h], 0"
+        },
+        {
+          "rva": "0x5bae6e",
+          "size": 6,
+          "bytes": "0f 8c da 00 00 00",
+          "instruction": "jl      loc_9BAF4E"
+        },
+        {
+          "rva": "0x5bae74",
+          "size": 2,
+          "bytes": "b3 01",
+          "instruction": "mov     bl, 1"
+        },
+        {
+          "rva": "0x5bae76",
+          "size": 5,
+          "bytes": "ba 01 00 00 00",
+          "instruction": "mov     edx, 1"
+        },
+        {
+          "rva": "0x5bae7b",
+          "size": 3,
+          "bytes": "89 55 e8",
+          "instruction": "mov     dword ptr [ebp+ArgList], edx"
+        },
+        {
+          "rva": "0x5bae7e",
+          "size": 5,
+          "bytes": "e8 fd fa ff ff",
+          "instruction": "call    sub_9BA980"
+        },
+        {
+          "rva": "0x5bae83",
+          "size": 2,
+          "bytes": "84 c0",
+          "instruction": "test    al, al"
+        },
+        {
+          "rva": "0x5bae85",
+          "size": 2,
+          "bytes": "74 3b",
+          "instruction": "jz      short loc_9BAEC2"
+        },
+        {
+          "rva": "0x5bae87",
+          "size": 3,
+          "bytes": "8b 47 04",
+          "instruction": "mov     eax, [edi+4]"
+        },
+        {
+          "rva": "0x5bae8a",
+          "size": 2,
+          "bytes": "8b 0f",
+          "instruction": "mov     ecx, [edi]"
+        },
+        {
+          "rva": "0x5bae8c",
+          "size": 2,
+          "bytes": "2b c1",
+          "instruction": "sub     eax, ecx"
+        },
+        {
+          "rva": "0x5bae8e",
+          "size": 3,
+          "bytes": "c1 f8 02",
+          "instruction": "sar     eax, 2"
+        },
+        {
+          "rva": "0x5bae91",
+          "size": 2,
+          "bytes": "85 c0",
+          "instruction": "test    eax, eax"
+        },
+        {
+          "rva": "0x5bae93",
+          "size": 2,
+          "bytes": "75 14",
+          "instruction": "jnz     short loc_9BAEA9"
+        },
+        {
+          "rva": "0x5bae95",
+          "size": 5,
+          "bytes": "68 bc e6 b7 00",
+          "instruction": "push    offset aPlayermanagerG; \"PlayerManager::GetPlayer() : There are \"..."
+        }
+      ]
+    },
+    {
+      "start_rva": "0x5bb045",
+      "end_rva": "0x5bb0a0",
+      "instructions": [
+        {
+          "rva": "0x5bb047",
+          "size": 3,
+          "bytes": "8d 4d e0",
+          "instruction": "lea     ecx, [ebp+var_20]"
+        },
+        {
+          "rva": "0x5bb04a",
+          "size": 2,
+          "bytes": "6a 00",
+          "instruction": "push    0"
+        },
+        {
+          "rva": "0x5bb04c",
+          "size": 2,
+          "bytes": "6a 00",
+          "instruction": "push    0"
+        },
+        {
+          "rva": "0x5bb04e",
+          "size": 1,
+          "bytes": "51",
+          "instruction": "push    ecx"
+        },
+        {
+          "rva": "0x5bb04f",
+          "size": 3,
+          "bytes": "8b 40 74",
+          "instruction": "mov     eax, [eax+74h]"
+        },
+        {
+          "rva": "0x5bb052",
+          "size": 5,
+          "bytes": "b9 18 7b c5 00",
+          "instruction": "mov     ecx, offset off_C57B18"
+        },
+        {
+          "rva": "0x5bb057",
+          "size": 5,
+          "bytes": "68 e0 09 a2 00",
+          "instruction": "push    offset sub_A209E0"
+        },
+        {
+          "rva": "0x5bb05c",
+          "size": 1,
+          "bytes": "56",
+          "instruction": "push    esi"
+        },
+        {
+          "rva": "0x5bb05d",
+          "size": 7,
+          "bytes": "c7 45 e0 13 00 00 00",
+          "instruction": "mov     dword ptr [ebp+var_20], 13h"
+        },
+        {
+          "rva": "0x5bb064",
+          "size": 2,
+          "bytes": "ff d0",
+          "instruction": "call    eax"
+        },
+        {
+          "rva": "0x5bb066",
+          "size": 2,
+          "bytes": "84 c0",
+          "instruction": "test    al, al"
+        },
+        {
+          "rva": "0x5bb068",
+          "size": 6,
+          "bytes": "0f 84 c1 01 00 00",
+          "instruction": "jz      loc_9BB22F"
+        },
+        {
+          "rva": "0x5bb06e",
+          "size": 1,
+          "bytes": "56",
+          "instruction": "push    esi; ArgList"
+        },
+        {
+          "rva": "0x5bb06f",
+          "size": 2,
+          "bytes": "8b cf",
+          "instruction": "mov     ecx, edi"
+        },
+        {
+          "rva": "0x5bb071",
+          "size": 5,
+          "bytes": "e8 2a fa ff ff",
+          "instruction": "call    sub_9BAAA0"
+        },
+        {
+          "rva": "0x5bb076",
+          "size": 2,
+          "bytes": "85 c0",
+          "instruction": "test    eax, eax"
+        },
+        {
+          "rva": "0x5bb078",
+          "size": 6,
+          "bytes": "0f 88 b1 01 00 00",
+          "instruction": "js      loc_9BB22F"
+        },
+        {
+          "rva": "0x5bb07e",
+          "size": 3,
+          "bytes": "8d 1c 80",
+          "instruction": "lea     ebx, [eax+eax*4]"
+        },
+        {
+          "rva": "0x5bb081",
+          "size": 5,
+          "bytes": "e8 fa f8 ff ff",
+          "instruction": "call    sub_9BA980"
+        },
+        {
+          "rva": "0x5bb086",
+          "size": 2,
+          "bytes": "84 c0",
+          "instruction": "test    al, al"
+        },
+        {
+          "rva": "0x5bb088",
+          "size": 2,
+          "bytes": "74 0f",
+          "instruction": "jz      short loc_9BB099"
+        },
+        {
+          "rva": "0x5bb08a",
+          "size": 1,
+          "bytes": "56",
+          "instruction": "push    esi"
+        },
+        {
+          "rva": "0x5bb08b",
+          "size": 2,
+          "bytes": "6a ff",
+          "instruction": "push    0FFFFFFFFh"
+        },
+        {
+          "rva": "0x5bb08d",
+          "size": 2,
+          "bytes": "8b cf",
+          "instruction": "mov     ecx, edi"
+        },
+        {
+          "rva": "0x5bb08f",
+          "size": 5,
+          "bytes": "e8 1c 23 00 00",
+          "instruction": "call    sub_9BD3B0"
+        },
+        {
+          "rva": "0x5bb094",
+          "size": 5,
+          "bytes": "e9 96 01 00 00",
+          "instruction": "jmp     loc_9BB22F"
+        },
+        {
+          "rva": "0x5bb099",
+          "size": 6,
+          "bytes": "8b 0d 78 16 c7 00",
+          "instruction": "mov     ecx, n4_0"
+        },
+        {
+          "rva": "0x5bb09f",
+          "size": 7,
+          "bytes": "83 b9 84 65 02 00 00",
+          "instruction": "cmp     dword ptr [ecx+26584h], 0"
+        }
+      ]
+    },
+    {
+      "start_rva": "0x5bb250",
+      "end_rva": "0x5bb2b0",
+      "instructions": [
+        {
+          "rva": "0x5bb251",
+          "size": 3,
+          "bytes": "8d 4d d4",
+          "instruction": "lea     ecx, [ebp+var_2C]"
+        },
+        {
+          "rva": "0x5bb254",
+          "size": 1,
+          "bytes": "51",
+          "instruction": "push    ecx"
+        },
+        {
+          "rva": "0x5bb255",
+          "size": 2,
+          "bytes": "ff d0",
+          "instruction": "call    eax ; dword_C7E814"
+        },
+        {
+          "rva": "0x5bb257",
+          "size": 3,
+          "bytes": "83 c4 04",
+          "instruction": "add     esp, 4"
+        },
+        {
+          "rva": "0x5bb25a",
+          "size": 3,
+          "bytes": "8b 5d ec",
+          "instruction": "mov     ebx, [ebp+var_14]"
+        },
+        {
+          "rva": "0x5bb25d",
+          "size": 7,
+          "bytes": "c7 45 fc ff ff ff ff",
+          "instruction": "mov     [ebp+var_4], 0FFFFFFFFh"
+        },
+        {
+          "rva": "0x5bb264",
+          "size": 1,
+          "bytes": "43",
+          "instruction": "inc     ebx"
+        },
+        {
+          "rva": "0x5bb265",
+          "size": 5,
+          "bytes": "e9 1d fa ff ff",
+          "instruction": "jmp     loc_9BAC87"
+        },
+        {
+          "rva": "0x5bb26a",
+          "size": 3,
+          "bytes": "8d 5f 14",
+          "instruction": "lea     ebx, [edi+14h]"
+        },
+        {
+          "rva": "0x5bb26d",
+          "size": 7,
+          "bytes": "c7 45 e4 04 00 00 00",
+          "instruction": "mov     [ebp+var_1C], 4"
+        },
+        {
+          "rva": "0x5bb274",
+          "size": 3,
+          "bytes": "8b 4b f8",
+          "instruction": "mov     ecx, [ebx-8]"
+        },
+        {
+          "rva": "0x5bb277",
+          "size": 2,
+          "bytes": "85 c9",
+          "instruction": "test    ecx, ecx"
+        },
+        {
+          "rva": "0x5bb279",
+          "size": 6,
+          "bytes": "0f 88 e8 02 00 00",
+          "instruction": "js      loc_9BB567"
+        },
+        {
+          "rva": "0x5bb27f",
+          "size": 3,
+          "bytes": "83 3b 00",
+          "instruction": "cmp     dword ptr [ebx], 0"
+        },
+        {
+          "rva": "0x5bb282",
+          "size": 6,
+          "bytes": "0f 8c df 02 00 00",
+          "instruction": "jl      loc_9BB567"
+        },
+        {
+          "rva": "0x5bb288",
+          "size": 5,
+          "bytes": "e8 f3 f6 ff ff",
+          "instruction": "call    sub_9BA980"
+        },
+        {
+          "rva": "0x5bb28d",
+          "size": 2,
+          "bytes": "84 c0",
+          "instruction": "test    al, al"
+        },
+        {
+          "rva": "0x5bb28f",
+          "size": 6,
+          "bytes": "0f 85 cc 02 00 00",
+          "instruction": "jnz     loc_9BB561"
+        },
+        {
+          "rva": "0x5bb295",
+          "size": 5,
+          "bytes": "a1 18 7b c5 00",
+          "instruction": "mov     eax, off_C57B18"
+        },
+        {
+          "rva": "0x5bb29a",
+          "size": 3,
+          "bytes": "8d 55 dc",
+          "instruction": "lea     edx, [ebp+var_24]"
+        },
+        {
+          "rva": "0x5bb29d",
+          "size": 2,
+          "bytes": "6a 00",
+          "instruction": "push    0"
+        },
+        {
+          "rva": "0x5bb29f",
+          "size": 2,
+          "bytes": "6a 00",
+          "instruction": "push    0"
+        },
+        {
+          "rva": "0x5bb2a1",
+          "size": 1,
+          "bytes": "52",
+          "instruction": "push    edx"
+        },
+        {
+          "rva": "0x5bb2a2",
+          "size": 3,
+          "bytes": "8b 40 74",
+          "instruction": "mov     eax, [eax+74h]"
+        },
+        {
+          "rva": "0x5bb2a5",
+          "size": 5,
+          "bytes": "68 e0 09 a2 00",
+          "instruction": "push    offset sub_A209E0"
+        },
+        {
+          "rva": "0x5bb2aa",
+          "size": 1,
+          "bytes": "51",
+          "instruction": "push    ecx"
+        },
+        {
+          "rva": "0x5bb2ab",
+          "size": 5,
+          "bytes": "b9 18 7b c5 00",
+          "instruction": "mov     ecx, offset off_C57B18"
+        }
+      ]
+    },
+    {
+      "start_rva": "0x5bb3e0",
+      "end_rva": "0x5bb43a",
+      "instructions": [
+        {
+          "rva": "0x5bb3e2",
+          "size": 2,
+          "bytes": "75 24",
+          "instruction": "jnz     short loc_9BB408"
+        },
+        {
+          "rva": "0x5bb3e4",
+          "size": 3,
+          "bytes": "8b 77 74",
+          "instruction": "mov     esi, [edi+74h]"
+        },
+        {
+          "rva": "0x5bb3e7",
+          "size": 3,
+          "bytes": "8b 47 70",
+          "instruction": "mov     eax, [edi+70h]"
+        },
+        {
+          "rva": "0x5bb3ea",
+          "size": 2,
+          "bytes": "2b f0",
+          "instruction": "sub     esi, eax"
+        },
+        {
+          "rva": "0x5bb3ec",
+          "size": 3,
+          "bytes": "c1 fe 02",
+          "instruction": "sar     esi, 2"
+        },
+        {
+          "rva": "0x5bb3ef",
+          "size": 3,
+          "bytes": "83 ee 01",
+          "instruction": "sub     esi, 1"
+        },
+        {
+          "rva": "0x5bb3f2",
+          "size": 2,
+          "bytes": "75 04",
+          "instruction": "jnz     short loc_9BB3F8"
+        },
+        {
+          "rva": "0x5bb3f4",
+          "size": 2,
+          "bytes": "33 d2",
+          "instruction": "xor     edx, edx"
+        },
+        {
+          "rva": "0x5bb3f6",
+          "size": 2,
+          "bytes": "eb 0c",
+          "instruction": "jmp     short loc_9BB404"
+        },
+        {
+          "rva": "0x5bb3f8",
+          "size": 5,
+          "bytes": "e8 63 3b d3 ff",
+          "instruction": "call    sub_6EEF60"
+        },
+        {
+          "rva": "0x5bb3fd",
+          "size": 2,
+          "bytes": "33 d2",
+          "instruction": "xor     edx, edx"
+        },
+        {
+          "rva": "0x5bb3ff",
+          "size": 2,
+          "bytes": "f7 f6",
+          "instruction": "div     esi"
+        },
+        {
+          "rva": "0x5bb401",
+          "size": 3,
+          "bytes": "8b 47 70",
+          "instruction": "mov     eax, [edi+70h]"
+        },
+        {
+          "rva": "0x5bb404",
+          "size": 4,
+          "bytes": "8b 54 90 04",
+          "instruction": "mov     edx, [eax+edx*4+4]"
+        },
+        {
+          "rva": "0x5bb408",
+          "size": 6,
+          "bytes": "8b 0d 78 16 c7 00",
+          "instruction": "mov     ecx, n4_0"
+        },
+        {
+          "rva": "0x5bb40e",
+          "size": 1,
+          "bytes": "52",
+          "instruction": "push    edx"
+        },
+        {
+          "rva": "0x5bb40f",
+          "size": 6,
+          "bytes": "8d 89 a8 ba 01 00",
+          "instruction": "lea     ecx, [ecx+1BAA8h]"
+        },
+        {
+          "rva": "0x5bb415",
+          "size": 5,
+          "bytes": "e8 b6 e8 ff ff",
+          "instruction": "call    sub_9B9CD0"
+        },
+        {
+          "rva": "0x5bb41a",
+          "size": 2,
+          "bytes": "6a 01",
+          "instruction": "push    1; char"
+        },
+        {
+          "rva": "0x5bb41c",
+          "size": 3,
+          "bytes": "ff 73 f8",
+          "instruction": "push    dword ptr [ebx-8]; ArgList"
+        },
+        {
+          "rva": "0x5bb41f",
+          "size": 2,
+          "bytes": "8b c8",
+          "instruction": "mov     ecx, eax"
+        },
+        {
+          "rva": "0x5bb421",
+          "size": 3,
+          "bytes": "89 45 f0",
+          "instruction": "mov     [ebp+var_10], eax"
+        },
+        {
+          "rva": "0x5bb424",
+          "size": 5,
+          "bytes": "e8 27 b0 de ff",
+          "instruction": "call    sub_7A6450"
+        },
+        {
+          "rva": "0x5bb429",
+          "size": 6,
+          "bytes": "8b 35 78 16 c7 00",
+          "instruction": "mov     esi, n4_0"
+        },
+        {
+          "rva": "0x5bb42f",
+          "size": 6,
+          "bytes": "8b 86 ac ba 01 00",
+          "instruction": "mov     eax, [esi+1BAACh]"
+        },
+        {
+          "rva": "0x5bb435",
+          "size": 6,
+          "bytes": "8b 8e a8 ba 01 00",
+          "instruction": "mov     ecx, [esi+1BAA8h]"
+        }
+      ]
+    },
+    {
+      "start_rva": "0x5bb530",
+      "end_rva": "0x5bb580",
+      "instructions": [
+        {
+          "rva": "0x5bb531",
+          "size": 3,
+          "bytes": "89 4d cc",
+          "instruction": "mov     [ebp+var_34], ecx"
+        },
+        {
+          "rva": "0x5bb534",
+          "size": 6,
+          "bytes": "8b 0d 78 16 c7 00",
+          "instruction": "mov     ecx, n4_0"
+        },
+        {
+          "rva": "0x5bb53a",
+          "size": 1,
+          "bytes": "50",
+          "instruction": "push    eax"
+        },
+        {
+          "rva": "0x5bb53b",
+          "size": 2,
+          "bytes": "6a 0f",
+          "instruction": "push    0Fh"
+        },
+        {
+          "rva": "0x5bb53d",
+          "size": 5,
+          "bytes": "68 e8 03 00 00",
+          "instruction": "push    3E8h"
+        },
+        {
+          "rva": "0x5bb542",
+          "size": 3,
+          "bytes": "89 55 d0",
+          "instruction": "mov     [ebp+var_30], edx"
+        },
+        {
+          "rva": "0x5bb545",
+          "size": 5,
+          "bytes": "e8 d6 d5 a6 ff",
+          "instruction": "call    sub_428B20"
+        },
+        {
+          "rva": "0x5bb54a",
+          "size": 6,
+          "bytes": "8b 86 bc 13 00 00",
+          "instruction": "mov     eax, [esi+13BCh]"
+        },
+        {
+          "rva": "0x5bb550",
+          "size": 5,
+          "bytes": "b9 2d 00 00 00",
+          "instruction": "mov     ecx, 2Dh ; '-'"
+        },
+        {
+          "rva": "0x5bb555",
+          "size": 3,
+          "bytes": "83 f8 2d",
+          "instruction": "cmp     eax, 2Dh ; '-'"
+        },
+        {
+          "rva": "0x5bb558",
+          "size": 3,
+          "bytes": "0f 4c c1",
+          "instruction": "cmovl   eax, ecx"
+        },
+        {
+          "rva": "0x5bb55b",
+          "size": 6,
+          "bytes": "89 86 bc 13 00 00",
+          "instruction": "mov     [esi+13BCh], eax"
+        },
+        {
+          "rva": "0x5bb561",
+          "size": 6,
+          "bytes": "c7 03 ff ff ff ff",
+          "instruction": "mov     dword ptr [ebx], 0FFFFFFFFh"
+        },
+        {
+          "rva": "0x5bb567",
+          "size": 3,
+          "bytes": "83 c3 14",
+          "instruction": "add     ebx, 14h"
+        },
+        {
+          "rva": "0x5bb56a",
+          "size": 4,
+          "bytes": "83 6d e4 01",
+          "instruction": "sub     [ebp+var_1C], 1"
+        },
+        {
+          "rva": "0x5bb56e",
+          "size": 6,
+          "bytes": "0f 85 00 fd ff ff",
+          "instruction": "jnz     loc_9BB274"
+        },
+        {
+          "rva": "0x5bb574",
+          "size": 6,
+          "bytes": "8b 87 d4 00 00 00",
+          "instruction": "mov     eax, [edi+0D4h]"
+        },
+        {
+          "rva": "0x5bb57a",
+          "size": 2,
+          "bytes": "33 f6",
+          "instruction": "xor     esi, esi"
+        },
+        {
+          "rva": "0x5bb57c",
+          "size": 6,
+          "bytes": "2b 87 d0 00 00 00",
+          "instruction": "sub     eax, [edi+0D0h]"
+        }
+      ]
+    }
+  ]
+}

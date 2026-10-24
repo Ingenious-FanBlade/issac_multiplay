@@ -1,0 +1,28 @@
+{
+  "tx": "tx-03-14",
+  "evidence": "ACQUISITION_NOTES_NOT_TARGET_TESTS",
+  "date": "2026-10-22",
+  "records": [
+    {
+      "operation": "rg file inventory included .agents and .codex",
+      "result": "Those directories do not exist in this workspace; rg emitted OS error 2 and exited 1 while returning matching docs/artifacts.",
+      "handling": "No inference of absent nested instructions or native code was made from this partial inventory. Applicable user-supplied AGENTS instructions and current project conventions were read."
+    },
+    {
+      "operation": "Generic pointer-table exporter selected B4E880 with two DWORDs",
+      "result": "The first word is platform ID 0x60001, not a VA. The generic field target_rva=-0x39ffff is mechanical subtraction on data and is not a valid RVA. The second word is handler VA A81050.",
+      "handling": "Preserve primary-platform-install.json unchanged as raw acquisition. Treat this record as a mixed platform-ID/handler table, exclude the ID word from pointer VA/RVA checks, and never cite its negative value as an address. The report uses the actual installer function and raw ID bytes."
+    },
+    {
+      "operation": "Interpret decompiler call A9DB50(0) and context-related symbol names",
+      "result": "Raw instructions pass ECX=0x60000, EDX=platform-dispatch destination. Function 40C200 bears a context-related name but its body is only ret.",
+      "handling": "Use register/stack instructions and actual call bodies. Do not infer platform selection or make-current effects from pseudocode arguments or a name."
+    },
+    {
+      "operation": "String and symbol inventory",
+      "result": "The selected default IDA string scan returned no matches. Wide assertion strings are still visible in decompiled functions. Symbol names may be refined by IDA analysis.",
+      "handling": "A zero selected-string result does not prove code or thread checks are absent. Research relies on exported instructions and concrete call chains. No explicit IDB rename or type mutation was requested."
+    }
+  ],
+  "limitations": ["Static analysis only", "No target execution or code tests", "No hash computation or verification"]
+}

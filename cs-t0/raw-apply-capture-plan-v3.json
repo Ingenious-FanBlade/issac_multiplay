@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 3,
+  "identity": "isaac-cs-t0-04-passive-raw-apply-capture-plan-v3",
+  "supersedes": "isaac-cs-t0-04-passive-raw-apply-capture-plan-v2",
+  "evidenceClass": "PASSIVE_RAW_APPLY_RUNTIME",
+  "eligibleForActiveGate": false,
+  "targetSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+  "catalogIdentity": "isaac-cs-t0-04-passive-raw-apply-catalog-v3",
+  "sampleRequirement": "Each proof-bearing logical true result must bind the same device and sample generation to a finite nonzero concrete-state projection emitted after physical-poll original return.",
+  "requiredRuns": [
+    {
+      "scenario": "keyboard-held-release",
+      "owner": "KEYBOARD",
+      "actions": [0, 1, 2, 3, 4, 5, 6, 7],
+      "instruction": "For each action perform neutral, held for at least three complete raw samples, then released for at least three complete raw samples; repeat twice. Every action must show inactive-to-active and active-to-inactive projection transitions."
+    },
+    {
+      "scenario": "keyboard-edge",
+      "owner": "KEYBOARD",
+      "actions": [8, 9, 10, 11],
+      "instruction": "Use separated single activations and rapid taps with an idle window between action groups; require a finite nonzero same-sample projection for each proof-bearing activation."
+    },
+    {
+      "scenario": "controller-held-release",
+      "owner": "GAMEPAD",
+      "actions": [0, 1, 2, 3, 4, 5, 6, 7],
+      "instruction": "Repeat the held/release matrix with controller 0 and a unique Gamepad owner only. Every action must show inactive-to-active and active-to-inactive projection transitions."
+    },
+    {
+      "scenario": "controller-edge",
+      "owner": "GAMEPAD",
+      "actions": [8, 9, 10, 11],
+      "instruction": "Repeat the separated single and rapid edge matrix with controller 0 and a unique Gamepad owner only; require a finite nonzero same-sample projection for each proof-bearing activation."
+    }
+  ],
+  "witnessAllowlist": [
+    {
+      "consumer": "player-movement-consumer",
+      "fields": ["Player+0x1624", "Player+0x0360", "Player+0x0364"],
+      "claim": "movement intent and state-adjusted velocity witness"
+    },
+    {
+      "consumer": "player-shooting-consumer",
+      "fields": ["Player+0x162C", "Player+0x1630", "Player+0x1634", "Player+0x1638"],
+      "claim": "shooting intent witness; not projectile spawn proof"
+    },
+    {
+      "consumer": "player-bomb-consumer",
+      "fields": ["Player+0x1378 bit0"],
+      "claim": "bomb intent bit witness"
+    },
+    {
+      "consumer": "player-drop-consumer",
+      "fields": ["Player+0x17C0"],
+      "claim": "drop hold-counter witness"
+    }
+  ],
+  "consumerOnly": [
+    {
+      "consumer": "player-item-slot-consumer",
+      "reason": "action 9 has no statically frozen universal world field"
+    },
+    {
+      "consumer": "player-pill-card-consumer",
+      "reason": "action 10 has no statically frozen universal world field"
+    }
+  ],
+  "failClosed": [
+    "wrong thread, phase, or physical-poll return RVA",
+    "unstable or invalid binding or concrete-state snapshot",
+    "primitive shared by more than one action0..11",
+    "gamepad structured special primitive 0xCDCC or 0xCDCD",
+    "nonfinite gamepad axis or invalid deadzone"
+  ],
+  "forbiddenClaims": [
+    "canonical input state",
+    "network queue or resolve",
+    "synthetic or active apply",
+    "setter-as-apply",
+    "primitive-as-action",
+    "device+0xC0 or device+0xC4 as physical input",
+    "projectile spawn from shooting intent alone",
+    "universal world witness for actions 9 or 10"
+  ]
+}

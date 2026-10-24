@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 2,
+  "progressIdentity": "IsaacCsT0-CoopPassiveLiveProgress-v2",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-30T18:35:15.9719867Z",
+  "status": "IN_PROGRESS_WITH_WORKFLOW_SKIP",
+  "createNewOnly": true,
+  "supersedes": "cs-t0/coop-passive-live-progress-v1.json",
+  "supersedesSha256": "BCA44D032163E83130F19F0B488D4839A89BB00076A168050FB7ACFF1D455815",
+  "evidencePolicy": {
+    "historicalSourcesAreImmutable": true,
+    "workflowSkipChangesSourceResult": false,
+    "workflowSkipCountsAsPass": false,
+    "sixSourceGateStillRequiresSixIndependentPassSources": true,
+    "currentGateEligible": false,
+    "gateBlocker": "native-exit-passive has no PASS source"
+  },
+  "progress": {
+    "formalPassCount": 2,
+    "requiredPassCount": 6,
+    "workflowSkippedCount": 1,
+    "nextScenario": "room-rebind-passive",
+    "nextScenarioState": "AWAITING_FRESH_AUTHORIZATION",
+    "liveAuthorizationCreated": false
+  },
+  "scenarios": [
+    {
+      "ordinal": 1,
+      "scenario": "native-join-passive",
+      "workflowDisposition": "COMPLETE",
+      "formalResult": "PASS",
+      "countsForGate": true,
+      "source": "artifacts/cs-t0/20260828T072118Z-t0-05-03-native-join-passive-t0-05-03-native-join-passive-live-06",
+      "analysisSha256": "BD2A8C6E8EE18B7D2E0B684062193731B39750DE6835403358AE196827B1FD53"
+    },
+    {
+      "ordinal": 2,
+      "scenario": "native-exit-passive",
+      "workflowDisposition": "SKIPPED_NOT_APPLICABLE",
+      "dispositionAuthority": "USER",
+      "skipReason": "ORDINARY_EXIT_HYPOTHESIS_FALSIFIED_BY_STATIC_EVIDENCE",
+      "formalResult": "BLOCKED_BY_EVIDENCE",
+      "countsForGate": false,
+      "sourceResultPreserved": true,
+      "authorizationConsumed": true,
+      "automaticRetryAllowed": false,
+      "source": "artifacts/cs-t0/20260830T162513Z-t0-05-03-native-exit-passive-t0-05-03-native-exit-passive-live-07",
+      "analysisSha256": "FCA986F50D05C18F3F8070EE61AB281C7B2CC47292C358010F136D157A70D5B5",
+      "reachabilityEvidence": "cs-t0/coop-native-exit-reachability-v1.json",
+      "reachabilityEvidenceSha256": "034B28853681C43539F669EC015EF3F9C2F8214F9CC25453E31BA86E751D7483"
+    },
+    {
+      "ordinal": 3,
+      "scenario": "death-respawn-passive",
+      "workflowDisposition": "COMPLETE",
+      "formalResult": "PASS",
+      "countsForGate": true,
+      "authorizationConsumed": true,
+      "automaticRetryAllowed": false,
+      "caseId": "t0-05-03-death-respawn-passive-live-08",
+      "source": "artifacts/cs-t0/20260830T182858Z-t0-05-03-death-respawn-passive-t0-05-03-death-respawn-passive-live-08",
+      "manifestSha256": "50394427D5217CC7CE7587D8C29AEBB377CA58F0DE7D7EEB5AC0B0BA16E006D2",
+      "eventsSha256": "B7A479B17DE837EB662376220B17FB8207952D2E49A7DF112F98FF48A70154FB",
+      "analysisSha256": "B4113180004E9F765EE88F117D84D095909D230155DB3BF809A45AF828711C78",
+      "replay": "artifacts/cs-t0/20260830T182858Z-t0-05-03-death-respawn-passive-live-08-replay-01.json",
+      "replaySha256": "B4113180004E9F765EE88F117D84D095909D230155DB3BF809A45AF828711C78",
+      "eventCount": 20130,
+      "finalOwnerGeneration": 28,
+      "scenarioEvidence": {
+        "attributionMode": "INHERITED_LIFECYCLE_PLUS_OPERATOR_ATTESTATION",
+        "operatorAttestedDeathAndRespawnDuringCapture": true,
+        "dedicatedDeathWrapperObserved": false,
+        "ordinarySpawnWrapperObserved": false,
+        "nativeExitWrapperObserved": false,
+        "lifecycleEnterCount": 28,
+        "lifecycleExitCount": 28,
+        "bindingUnboundCount": 54,
+        "initialBoundGeneration": 1,
+        "finalBoundGeneration": 28,
+        "finalCandidateSequences": [5420, 5421],
+        "finalBoundSequences": [5424, 5426],
+        "finalBoundOrdinals": [0, 1],
+        "endpointMappingPreserved": true,
+        "scopeStatement": "The source proves inherited lifecycle invalidation and unique A/B rebinding in the user-controlled death/respawn scenario. It does not prove a dedicated death callsite."
+      },
+      "safety": {
+        "installedMask": "0x001FFFFFFFFFFFFF",
+        "restoredMask": "0x001FFFFFFFFFFFFF",
+        "restoredSlotCount": 53,
+        "installOrder": "0..52",
+        "restoreOrder": "52..0",
+        "beforeAfterSnapshotEqual": true,
+        "snapshotSha256": "92E90E5E3B953B5BB5C4B3810F2E2997D46F694223EDA2E5D84FAE43F63BCD0D",
+        "overwriteCount": 0,
+        "callbacksDrained": true,
+        "producerClosed": true,
+        "unsafe": false,
+        "stableRegistryRetired": false,
+        "residualModuleCount": 0
+      },
+      "zeroCapabilities": {
+        "overrideCount": 0,
+        "applyCount": 0,
+        "worldWriteCount": 0,
+        "schedulerCount": 0,
+        "transportCount": 0,
+        "modeLatchWriteCount": 0,
+        "activeInputAllowed": false,
+        "originalOnlinePositiveAllowed": false
+      },
+      "independentReplay": {
+        "publicCliOnly": true,
+        "result": "PASS",
+        "checkCount": 8,
+        "passedCheckCount": 8,
+        "rawEqualToSourceAnalysis": true,
+        "semanticEqualToSourceAnalysis": true
+      }
+    },
+    {
+      "ordinal": 4,
+      "scenario": "room-rebind-passive",
+      "workflowDisposition": "AWAITING_FRESH_AUTHORIZATION",
+      "formalResult": null,
+      "countsForGate": false
+    },
+    {
+      "ordinal": 5,
+      "scenario": "device-rebind-passive",
+      "workflowDisposition": "NOT_STARTED",
+      "formalResult": null,
+      "countsForGate": false
+    },
+    {
+      "ordinal": 6,
+      "scenario": "menu-teardown-passive",
+      "workflowDisposition": "NOT_STARTED",
+      "formalResult": null,
+      "countsForGate": false
+    }
+  ]
+}

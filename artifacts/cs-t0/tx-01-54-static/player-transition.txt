@@ -1,0 +1,149 @@
+
+F:/SteamLibrary/steamapps/common/The Binding of Isaac Rebirth/isaac-ng.exe:     file format pei-i386
+
+
+Disassembly of section .text:
+
+006fd3f0 <.text+0x2fc3f0>:
+  6fd3f0:	55                   	push   ebp
+  6fd3f1:	8b ec                	mov    ebp,esp
+  6fd3f3:	83 ec 0c             	sub    esp,0xc
+  6fd3f6:	53                   	push   ebx
+  6fd3f7:	56                   	push   esi
+  6fd3f8:	8b 35 78 16 c7 00    	mov    esi,DWORD PTR ds:0xc71678
+  6fd3fe:	57                   	push   edi
+  6fd3ff:	89 75 fc             	mov    DWORD PTR [ebp-0x4],esi
+  6fd402:	8d 8e 78 8d 06 00    	lea    ecx,[esi+0x68d78]
+  6fd408:	e8 93 e7 f8 ff       	call   0x68bba0
+  6fd40d:	84 c0                	test   al,al
+  6fd40f:	0f 85 9c 03 00 00    	jne    0x6fd7b1
+  6fd415:	8b 86 3c b8 01 00    	mov    eax,DWORD PTR [esi+0x1b83c]
+  6fd41b:	85 c0                	test   eax,eax
+  6fd41d:	0f 84 c8 00 00 00    	je     0x6fd4eb
+  6fd423:	8b 8e 44 b8 01 00    	mov    ecx,DWORD PTR [esi+0x1b844]
+  6fd429:	39 8e 40 b8 01 00    	cmp    DWORD PTR [esi+0x1b840],ecx
+  6fd42f:	74 23                	je     0x6fd454
+  6fd431:	f3 0f 10 0d d0 a2 ba 	movss  xmm1,DWORD PTR ds:0xbaa2d0
+  6fd438:	00 
+  6fd439:	66 0f 6e c1          	movd   xmm0,ecx
+  6fd43d:	0f 5b c0             	cvtdq2ps xmm0,xmm0
+  6fd440:	f3 0f 5e c8          	divss  xmm1,xmm0
+  6fd444:	f3 0f 58 8e 48 b8 01 	addss  xmm1,DWORD PTR [esi+0x1b848]
+  6fd44b:	00 
+  6fd44c:	f3 0f 11 8e 48 b8 01 	movss  DWORD PTR [esi+0x1b848],xmm1
+  6fd453:	00 
+  6fd454:	83 f8 01             	cmp    eax,0x1
+  6fd457:	74 09                	je     0x6fd462
+  6fd459:	83 f8 04             	cmp    eax,0x4
+  6fd45c:	0f 85 33 01 00 00    	jne    0x6fd595
+  6fd462:	a1 78 16 c7 00       	mov    eax,ds:0xc71678
+  6fd467:	33 ff                	xor    edi,edi
+  6fd469:	8b 98 00 83 01 00    	mov    ebx,DWORD PTR [eax+0x18300]
+  6fd46f:	39 bb 64 12 00 00    	cmp    DWORD PTR [ebx+0x1264],edi
+  6fd475:	0f 86 1a 01 00 00    	jbe    0x6fd595
+  6fd47b:	0f 1f 44 00 00       	nop    DWORD PTR [eax+eax*1+0x0]
+  6fd480:	8b 83 5c 12 00 00    	mov    eax,DWORD PTR [ebx+0x125c]
+  6fd486:	8b 34 b8             	mov    esi,DWORD PTR [eax+edi*4]
+  6fd489:	83 7e 28 01          	cmp    DWORD PTR [esi+0x28],0x1
+  6fd48d:	75 35                	jne    0x6fd4c4
+  6fd48f:	8b 86 6c 01 00 00    	mov    eax,DWORD PTR [esi+0x16c]
+  6fd495:	8b ce                	mov    ecx,esi
+  6fd497:	81 8e 68 01 00 00 00 	or     DWORD PTR [esi+0x168],0x4000
+  6fd49e:	40 00 00 
+  6fd4a1:	89 86 6c 01 00 00    	mov    DWORD PTR [esi+0x16c],eax
+  6fd4a7:	8b 06                	mov    eax,DWORD PTR [esi]
+  6fd4a9:	ff 50 0c             	call   DWORD PTR [eax+0xc]
+  6fd4ac:	8b 86 6c 01 00 00    	mov    eax,DWORD PTR [esi+0x16c]
+  6fd4b2:	81 a6 68 01 00 00 ff 	and    DWORD PTR [esi+0x168],0xffffbfff
+  6fd4b9:	bf ff ff 
+  6fd4bc:	89 86 6c 01 00 00    	mov    DWORD PTR [esi+0x16c],eax
+  6fd4c2:	eb 19                	jmp    0x6fd4dd
+  6fd4c4:	8b 8e 6c 01 00 00    	mov    ecx,DWORD PTR [esi+0x16c]
+  6fd4ca:	33 c0                	xor    eax,eax
+  6fd4cc:	81 e1 00 10 00 00    	and    ecx,0x1000
+  6fd4d2:	0b c1                	or     eax,ecx
+  6fd4d4:	74 07                	je     0x6fd4dd
+  6fd4d6:	8b 06                	mov    eax,DWORD PTR [esi]
+  6fd4d8:	8b ce                	mov    ecx,esi
+  6fd4da:	ff 50 10             	call   DWORD PTR [eax+0x10]
+  6fd4dd:	47                   	inc    edi
+  6fd4de:	3b bb 64 12 00 00    	cmp    edi,DWORD PTR [ebx+0x1264]
+  6fd4e4:	72 9a                	jb     0x6fd480
+  6fd4e6:	e9 a7 00 00 00       	jmp    0x6fd592
+  6fd4eb:	8d 86 78 ba 01 00    	lea    eax,[esi+0x1ba78]
+  6fd4f1:	89 45 f8             	mov    DWORD PTR [ebp-0x8],eax
+  6fd4f4:	8b 00                	mov    eax,DWORD PTR [eax]
+  6fd4f6:	85 c0                	test   eax,eax
+  6fd4f8:	0f 84 97 00 00 00    	je     0x6fd595
+  6fd4fe:	83 f8 01             	cmp    eax,0x1
+  6fd501:	74 09                	je     0x6fd50c
+  6fd503:	83 f8 04             	cmp    eax,0x4
+  6fd506:	0f 85 89 00 00 00    	jne    0x6fd595
+  6fd50c:	a1 78 16 c7 00       	mov    eax,ds:0xc71678
+  6fd511:	33 ff                	xor    edi,edi
+  6fd513:	8b 98 00 83 01 00    	mov    ebx,DWORD PTR [eax+0x18300]
+  6fd519:	39 bb 64 12 00 00    	cmp    DWORD PTR [ebx+0x1264],edi
+  6fd51f:	76 74                	jbe    0x6fd595
+  6fd521:	8b 83 5c 12 00 00    	mov    eax,DWORD PTR [ebx+0x125c]
+  6fd527:	8b 34 b8             	mov    esi,DWORD PTR [eax+edi*4]
+  6fd52a:	83 7e 28 01          	cmp    DWORD PTR [esi+0x28],0x1
+  6fd52e:	75 40                	jne    0x6fd570
+  6fd530:	8b 86 6c 01 00 00    	mov    eax,DWORD PTR [esi+0x16c]
+  6fd536:	8b ce                	mov    ecx,esi
+  6fd538:	81 8e 68 01 00 00 00 	or     DWORD PTR [esi+0x168],0x4000
+  6fd53f:	40 00 00 
+  6fd542:	89 86 6c 01 00 00    	mov    DWORD PTR [esi+0x16c],eax
+  6fd548:	8b 06                	mov    eax,DWORD PTR [esi]
+  6fd54a:	ff 50 0c             	call   DWORD PTR [eax+0xc]
+  6fd54d:	8b 86 6c 01 00 00    	mov    eax,DWORD PTR [esi+0x16c]
+  6fd553:	8b 4d f8             	mov    ecx,DWORD PTR [ebp-0x8]
+  6fd556:	81 a6 68 01 00 00 ff 	and    DWORD PTR [esi+0x168],0xffffbfff
+  6fd55d:	bf ff ff 
+  6fd560:	6a 01                	push   0x1
+  6fd562:	56                   	push   esi
+  6fd563:	89 86 6c 01 00 00    	mov    DWORD PTR [esi+0x16c],eax
+  6fd569:	e8 e2 1a 23 00       	call   0x92f050
+  6fd56e:	eb 19                	jmp    0x6fd589
+  6fd570:	8b 96 6c 01 00 00    	mov    edx,DWORD PTR [esi+0x16c]
+  6fd576:	33 c0                	xor    eax,eax
+  6fd578:	81 e2 00 10 00 00    	and    edx,0x1000
+  6fd57e:	0b c2                	or     eax,edx
+  6fd580:	74 07                	je     0x6fd589
+  6fd582:	8b 06                	mov    eax,DWORD PTR [esi]
+  6fd584:	8b ce                	mov    ecx,esi
+  6fd586:	ff 50 10             	call   DWORD PTR [eax+0x10]
+  6fd589:	47                   	inc    edi
+  6fd58a:	3b bb 64 12 00 00    	cmp    edi,DWORD PTR [ebx+0x1264]
+  6fd590:	72 8f                	jb     0x6fd521
+  6fd592:	8b 75 fc             	mov    esi,DWORD PTR [ebp-0x4]
+  6fd595:	8b ce                	mov    ecx,esi
+  6fd597:	e8 b4 fd ff ff       	call   0x6fd350
+  6fd59c:	84 c0                	test   al,al
+  6fd59e:	0f 85 0d 02 00 00    	jne    0x6fd7b1
+  6fd5a4:	8b 0d 9c 16 c7 00    	mov    ecx,DWORD PTR ds:0xc7169c
+  6fd5aa:	38 81 ca b3 04 00    	cmp    BYTE PTR [ecx+0x4b3ca],al
+  6fd5b0:	75 1a                	jne    0x6fd5cc
+  6fd5b2:	38 81 a5 a3 02 00    	cmp    BYTE PTR [ecx+0x2a3a5],al
+  6fd5b8:	74 12                	je     0x6fd5cc
+  6fd5ba:	8b 81 d8 b3 04 00    	mov    eax,DWORD PTR [ecx+0x4b3d8]
+  6fd5c0:	3b 81 dc b3 04 00    	cmp    eax,DWORD PTR [ecx+0x4b3dc]
+  6fd5c6:	0f 84 e5 01 00 00    	je     0x6fd7b1
+  6fd5cc:	8b 9e 00 83 01 00    	mov    ebx,DWORD PTR [esi+0x18300]
+  6fd5d2:	33 ff                	xor    edi,edi
+  6fd5d4:	39 bb 64 12 00 00    	cmp    DWORD PTR [ebx+0x1264],edi
+  6fd5da:	76 5d                	jbe    0x6fd639
+  6fd5dc:	0f 1f 40 00          	nop    DWORD PTR [eax+0x0]
+  6fd5e0:	8b 83 5c 12 00 00    	mov    eax,DWORD PTR [ebx+0x125c]
+  6fd5e6:	8b 34 b8             	mov    esi,DWORD PTR [eax+edi*4]
+  6fd5e9:	8b ce                	mov    ecx,esi
+  6fd5eb:	83 7e 28 01          	cmp    DWORD PTR [esi+0x28],0x1
+  6fd5ef:	8b 16                	mov    edx,DWORD PTR [esi]
+  6fd5f1:	75 3a                	jne    0x6fd62d
+  6fd5f3:	8b 86 6c 01 00 00    	mov    eax,DWORD PTR [esi+0x16c]
+  6fd5f9:	81 8e 68 01 00 00 00 	or     DWORD PTR [esi+0x168],0x4000
+  6fd600:	40 00 00 
+  6fd603:	89 86 6c 01 00 00    	mov    DWORD PTR [esi+0x16c],eax
+  6fd609:	ff 52 0c             	call   DWORD PTR [edx+0xc]
+  6fd60c:	6a 00                	push   0x0
+  6fd60e:	8b ce                	mov    ecx,esi
+  6fd610:	e8 2b de fa ff       	call   0x6ab440

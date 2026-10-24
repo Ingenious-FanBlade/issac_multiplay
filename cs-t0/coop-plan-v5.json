@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 5,
+  "planIdentity": "IsaacCsT0-CoopPlan-v5",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-27T17:50:00Z",
+  "status": "PRE_LIVE_PASSIVE_IMPLEMENTED",
+  "createNewOnly": true,
+  "supersedes": "coop-plan-v4.json",
+  "supersedesSha256": "553E6676F6DECCA0BC25E1BF7806AEB2AEE8A52AB37F85F08C1DD86E8C5932B2",
+  "artifactBindings": [
+    {
+      "path": "cs-t0/coop-verification-v4.json",
+      "identity": "IsaacCsT0-CoopVerification-v4",
+      "sha256": "FF667CD7F537EC335487D577AFB3989D6B0D34FF5E806EFE23AF44A22E5C31D4"
+    },
+    {
+      "path": "cs-t0/coop-catalog-v3.json",
+      "identity": "IsaacCsT0-CoopCatalog-v3",
+      "sha256": "29265D6C79C1975E39223C4BCF6DD2D1580352B4E92A442C36CB3E631C309B41"
+    },
+    {
+      "path": "cs-t0/coop-c0-layout-evidence-v1.json",
+      "identity": "IsaacCsT0-CoopC0LayoutEvidence-v1",
+      "sha256": "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059"
+    },
+    {
+      "path": "cs-t0/coop-static-graph-v1.json",
+      "identity": "IsaacCsT0-CoopStaticGraph-v1",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    }
+  ],
+  "passiveAuthorizationContract": {
+    "probe": "passive",
+    "scenarios": [
+      "native-join-passive",
+      "native-exit-passive",
+      "death-respawn-passive",
+      "room-rebind-passive",
+      "device-rebind-passive",
+      "menu-teardown-passive"
+    ],
+    "orderedSlotCount": 53,
+    "completeMask": "0x001FFFFFFFFFFFFF",
+    "installOrder": "0..52",
+    "rollbackAndRestoreOrder": "reverse-applied-prefix",
+    "requiresFreshAuthorizationPerScenario": true,
+    "failedAuthorizationMayRetry": false,
+    "existingSourceMayOverwrite": false,
+    "liveAuthorizationCreated": false,
+    "firstAuthorizedScenario": null
+  },
+  "permissions": {
+    "passiveHookTransactionAllowed": true,
+    "passiveObservationAllowed": false,
+    "activeInputAllowed": false,
+    "inputMutationAllowed": false,
+    "worldMutationAllowed": false,
+    "runtimeMutationAllowed": false,
+    "overrideAllowed": false,
+    "transportAllowed": false,
+    "schedulerAllowed": false,
+    "applyAllowed": false,
+    "modeLatchAllowed": false,
+    "originalOnlinePositiveAllowed": false,
+    "t005Unlocked": false,
+    "csT00504Unlocked": false
+  },
+  "postSixSourceTransition": {
+    "create": [
+      "coop-passive-decision-v1",
+      "coop-matrix-v3",
+      "coop-ledger-v4",
+      "coop-hypothesis-revision",
+      "coop-verification-v6",
+      "coop-plan-v6"
+    ],
+    "planV6PassiveHookTransactionAllowed": false,
+    "planV6CsT00504Unlocked": true,
+    "planV6T005Unlocked": false
+  }
+}

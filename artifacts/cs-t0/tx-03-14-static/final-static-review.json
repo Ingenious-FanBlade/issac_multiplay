@@ -1,0 +1,869 @@
+{
+  "tx": "tx-03-14",
+  "date": "2026-10-22",
+  "timezone": "Asia/Shanghai",
+  "result": "PASS_STATIC_DOCUMENT_REVIEW_ONLY",
+  "execution": "One final unified static document review after all research and edits. No game, build, code tests, injection or debugger operation.",
+  "agent": {
+    "model": "gpt-6-luna",
+    "role": "Normal renderer teardown researched by child and independently reviewed by primary",
+    "reasoning_effort": "max"
+  },
+  "semantic_review": "Primary read normal main/init/frame/current-TLS/WGL and shutdown paths, raw register and stack flow, conditional cache drain, other render caller, native source hook scope and manager tables. Script checks static artifact consistency only.",
+  "acquisition_anomaly": "B4E880 first word is a platform ID; raw generic negative target_rva is preserved and explicitly excluded from address claims.",
+  "limitations": [
+    "Actual thread ID, TLS value and HGLRC not observed",
+    "No guarantee of OS GL/WGL/window API success",
+    "Cross-thread detach, outstanding aliases, late object types, EH and OOM not closed",
+    "Replica, resource queue, context guard and generation handling not implemented",
+    "No hash computation or verification"
+  ],
+  "checks": [
+    {
+      "name": "document:docs/research/tx-03-14-renderer-context-lifecycle.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->tx-03-13-sprite-image-resources.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->tx-03-14-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->tx-03-14-luna-renderer-teardown.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/primary-context-initial.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/primary-context-paths.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/primary-wgl-current.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/primary-window-dispatch.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/primary-platform-install.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/primary-wgl-install.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/primary-render-alternate.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/primary-window-dispatch.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../cs-t0/native/src/loop_runtime.cpp",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/primary-teardown-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/primary-cache-drain.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->tx-03-14-luna-renderer-teardown.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->tx-03-14-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-renderer-context-lifecycle.md->../../artifacts/cs-t0/tx-03-14-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-14-renderer-context-lifecycle.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 8. Historical typo descriptions are retained as text, not address claims."
+    },
+    {
+      "name": "document:docs/research/tx-03-14-primary-review.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->tx-03-14-renderer-context-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->tx-03-14-luna-renderer-teardown.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/primary-context-initial.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/primary-context-paths.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/primary-wgl-current.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/primary-wgl-install.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/primary-render-alternate.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/primary-window-dispatch.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/primary-platform-install.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/primary-teardown-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/primary-cache-drain.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/primary-manager-tables-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/luna-renderer-teardown.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/luna-window-close-chain.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/luna-export-teardown.py",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/luna-export-close-chain.py",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/review_documents.ps1",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-primary-review.md->../../artifacts/cs-t0/tx-03-14-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-14-primary-review.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Historical typo descriptions are retained as text, not address claims."
+    },
+    {
+      "name": "document:docs/research/tx-03-14-luna-renderer-teardown.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-luna-renderer-teardown.md->../../artifacts/cs-t0/tx-03-14-static/luna-renderer-teardown.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-luna-renderer-teardown.md->../../artifacts/cs-t0/tx-03-14-static/luna-window-close-chain.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-luna-renderer-teardown.md->../../artifacts/cs-t0/tx-03-14-static/luna-export-teardown.py",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-luna-renderer-teardown.md->../../artifacts/cs-t0/tx-03-14-static/luna-export-close-chain.py",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-luna-renderer-teardown.md->../../artifacts/cs-t0/tx-03-14-static/primary-context-paths.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-14-luna-renderer-teardown.md->../../artifacts/cs-t0/tx-03-14-static/primary-context-initial.json",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-14-luna-renderer-teardown.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 15. Historical typo descriptions are retained as text, not address claims."
+    },
+    {
+      "name": "document:docs/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/README.md",
+      "pass": true,
+      "detail": "Updated entry includes this research."
+    },
+    {
+      "name": "link:docs/README.md->research/tx-03-14-renderer-context-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/README.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Historical typo descriptions are retained as text, not address claims."
+    },
+    {
+      "name": "document:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Updated entry includes this research."
+    },
+    {
+      "name": "link:docs/hooks/README.md->../research/tx-03-14-renderer-context-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Historical typo descriptions are retained as text, not address claims."
+    },
+    {
+      "name": "document:docs/hooks/game-loop.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/game-loop.md",
+      "pass": true,
+      "detail": "Updated entry includes this research."
+    },
+    {
+      "name": "link:docs/hooks/game-loop.md->../research/tx-03-14-renderer-context-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/hooks/game-loop.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 2. Historical typo descriptions are retained as text, not address claims."
+    },
+    {
+      "name": "document:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Updated entry includes this research."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-14-renderer-context-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-14-renderer-context-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; the result is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Historical typo descriptions are retained as text, not address claims."
+    },
+    {
+      "name": "json:luna-renderer-teardown.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "addresses:luna-renderer-teardown.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "json:luna-window-close-chain.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "addresses:luna-window-close-chain.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "json:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "json:primary-cache-drain.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "addresses:primary-cache-drain.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "json:primary-context-initial.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "addresses:primary-context-initial.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "json:primary-context-paths.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "addresses:primary-context-paths.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "json:primary-manager-tables-review.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "addresses:primary-manager-tables-review.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "json:primary-platform-install.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "mixed-platform-data:ID",
+      "pass": true,
+      "detail": "First word is an ID, not a VA. Its mechanically generated negative target_rva is retained as an acquisition-format anomaly, never treated as an address."
+    },
+    {
+      "name": "addresses:primary-platform-install.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "json:primary-render-alternate.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "addresses:primary-render-alternate.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "json:primary-teardown-review.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "addresses:primary-teardown-review.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "json:primary-wgl-current.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "addresses:primary-wgl-current.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "json:primary-wgl-install.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "addresses:primary-wgl-install.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "json:primary-window-dispatch.json",
+      "pass": true,
+      "detail": "Readable JSON; acquisition notes are not target-program tests."
+    },
+    {
+      "name": "addresses:primary-window-dispatch.json",
+      "pass": true,
+      "detail": "Static functions/instructions and pointer-table VA/RVA agree. Child raw data ranges are not assumed to contain only function pointers."
+    },
+    {
+      "name": "evidence:primary-context-initial.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:primary-context-paths.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:primary-wgl-current.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:primary-wgl-install.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:primary-render-alternate.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:primary-window-dispatch.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:primary-platform-install.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:primary-teardown-review.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:primary-cache-drain.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:primary-manager-tables-review.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:luna-renderer-teardown.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "evidence:luna-window-close-chain.json",
+      "pass": true,
+      "detail": "Required raw evidence or acquisition record is present."
+    },
+    {
+      "name": "source:export_static.py",
+      "pass": true,
+      "detail": "Read-only extraction source supplied; not executed by this review."
+    },
+    {
+      "name": "source:luna-export-teardown.py",
+      "pass": true,
+      "detail": "Read-only extraction source supplied; not executed by this review."
+    },
+    {
+      "name": "source:luna-export-close-chain.py",
+      "pass": true,
+      "detail": "Read-only extraction source supplied; not executed by this review."
+    },
+    {
+      "name": "instruction:0x931155",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-paths.json."
+    },
+    {
+      "name": "instruction:0x931206",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-paths.json."
+    },
+    {
+      "name": "instruction:0x9312f1",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-paths.json."
+    },
+    {
+      "name": "instruction:0x9313de",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-paths.json."
+    },
+    {
+      "name": "instruction:0x93140e",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-paths.json."
+    },
+    {
+      "name": "instruction:0xa71284",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-paths.json."
+    },
+    {
+      "name": "instruction:0xa19312",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-paths.json."
+    },
+    {
+      "name": "instruction:0xa1a046",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-initial.json."
+    },
+    {
+      "name": "instruction:0xa1a096",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-context-initial.json."
+    },
+    {
+      "name": "instruction:0xa7fa67",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-wgl-current.json."
+    },
+    {
+      "name": "instruction:0xa7fa96",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-wgl-current.json."
+    },
+    {
+      "name": "instruction:0xa7faaa",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-wgl-current.json."
+    },
+    {
+      "name": "instruction:0xa7fb73",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-wgl-current.json."
+    },
+    {
+      "name": "instruction:0xa6a4be",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-wgl-install.json."
+    },
+    {
+      "name": "instruction:0xa804b0",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-wgl-install.json."
+    },
+    {
+      "name": "instruction:0xa804bf",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-wgl-install.json."
+    },
+    {
+      "name": "instruction:0xa804e7",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-wgl-install.json."
+    },
+    {
+      "name": "instruction:0xa81190",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-platform-install.json."
+    },
+    {
+      "name": "instruction:0x8fc32c",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-render-alternate.json."
+    },
+    {
+      "name": "instruction:0x9aaae3",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-window-dispatch.json."
+    },
+    {
+      "name": "instruction:0xa13182",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa13182",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa13194",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa13194",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa131a1",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa131a1",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa131b3",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa131b3",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa19133",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa19133",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa19169",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa19169",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa71a48",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa71a48",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa71a7a",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa71a7a",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa6afec",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa6afec",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa6b03e",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa6b03e",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa6b04c",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa6b04c",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa5d4fe",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa5d4fe",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa5d4ff",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa5d4ff",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa5d549",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa5d549",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa7fcc2",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa7fcc2",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "instruction:0xa7fcc8",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-teardown-review.json."
+    },
+    {
+      "name": "independent-instruction:0xa7fcc8",
+      "pass": true,
+      "detail": "Primary independently exported and read the same native close instruction."
+    },
+    {
+      "name": "table:0xb82600+0x4",
+      "pass": true,
+      "detail": "Table base and entry address are distinct."
+    },
+    {
+      "name": "independent-table:0xb82604",
+      "pass": true,
+      "detail": "Independent raw manager table entries agree."
+    },
+    {
+      "name": "table:0xb82600+0x8",
+      "pass": true,
+      "detail": "Table base and entry address are distinct."
+    },
+    {
+      "name": "independent-table:0xb82608",
+      "pass": true,
+      "detail": "Independent raw manager table entries agree."
+    },
+    {
+      "name": "table:0xb82600+0x14",
+      "pass": true,
+      "detail": "Table base and entry address are distinct."
+    },
+    {
+      "name": "independent-table:0xb82614",
+      "pass": true,
+      "detail": "Independent raw manager table entries agree."
+    },
+    {
+      "name": "table:0xb818b0+0x8",
+      "pass": true,
+      "detail": "Table base and entry address are distinct."
+    },
+    {
+      "name": "independent-table:0xb818b8",
+      "pass": true,
+      "detail": "Independent raw manager table entries agree."
+    }
+  ],
+  "failures": []
+}

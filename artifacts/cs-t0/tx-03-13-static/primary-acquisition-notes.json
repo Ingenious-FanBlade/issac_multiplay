@@ -1,0 +1,28 @@
+{
+  "tx": "tx-03-13",
+  "evidence": "ACQUISITION_NOTES_NOT_TARGET_TESTS",
+  "date": "2026-10-22",
+  "records": [
+    {
+      "operation": "Read project conventions through a login PowerShell command",
+      "result": "Command exited 0 and returned the document, but profile.ps1 emitted a conda.exe StandardOutputEncoding startup error.",
+      "handling": "Subsequent shell reads use login=false. The startup diagnostic is not an IDA or target-program failure."
+    },
+    {
+      "operation": "Read the pending tx-03-13-luna-image-control.md while listing current artifacts",
+      "result": "The child had not yet written the report; Get-Content returned no report and the command exited 1.",
+      "handling": "No negative research conclusion was inferred. Await the child's completed report and review its actual contents."
+    },
+    {
+      "operation": "Print large exported pseudocode or instruction selections in the terminal",
+      "result": "Some displays were truncated by output limits; the complete create-new JSON exports remain on disk.",
+      "handling": "Research uses complete JSON and smaller selections. Truncation is not absence of code or a game failure."
+    },
+    {
+      "operation": "Child duplicate direct-disassembly batch after the complete core JSON export",
+      "result": "The child reported waiting for this batch. Primary interrupted the child at 2026-10-22 11:16 UTC approximately and resumed report writing from the already complete core JSON.",
+      "handling": "No result is inferred from any unfinished call and no retry is required. The complete exported native instructions are sufficient for the stated static review. This interruption is not a target-program failure."
+    }
+  ],
+  "limitations": ["Static acquisition only", "No game, build, code tests or runtime experiment", "No hashes computed or checked"]
+}

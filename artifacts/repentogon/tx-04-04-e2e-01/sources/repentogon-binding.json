@@ -1,0 +1,1423 @@
+{
+ "tx": "tx-04-03",
+ "date": "2026-10-24",
+ "target": {
+  "game": "Repentance+ v1.9.7.12.J273",
+  "pe_timestamp": "0x68154D8D",
+  "image": "Repentogon/isaac-ng.exe unpacked with Steamless 3.1.0.5 (SteamStub 3.1)",
+  "imagebase": "0x00400000",
+  "size_of_image_unpacked": "0x85F000",
+  "repentogon": "v1.1.3 (installed; rgon_changelog.txt); local source 1.1.2-50-g421c91d08",
+  "runtime_anchor_base": "0x00BA0000 (repentogon.log 2026-10-24 00:40)"
+ },
+ "prototype": {
+  "game": "Repentance+ v1.9.7.17.J460",
+  "pe_timestamp": "0x69E6E3A7"
+ },
+ "address_rule": "All addresses are RVAs (subtract 0x400000 from IDA VA). No hash is computed or verified.",
+ "mechanisms": {
+  "ZHL_REPENTOGON": "ZHL hook on an existing REPENTOGON definition",
+  "ZHL_OWN": "ZHL hook on an own address-constructed definition",
+  "POINTER": "own vtable slot write (deferred install)",
+  "CALLSITE": "own call-site byte patch (deferred install, expected bytes checked)",
+  "DROP": "not installed in the first round",
+  "NONE_IN_V12": "no counterpart exists in v1.9.7.12"
+ },
+ "items": [
+  {
+   "id": "loop.00.clock",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 0,
+    "kind": "REL32_CALL",
+    "site_v17": "0x531231",
+    "target_v17": "0x6266A0"
+   },
+   "v12": {
+    "site": "0x50AE44",
+    "owner": "0x50AC60",
+    "owner_name": "IsaacMain",
+    "target": "0x5F9690",
+    "target_name": null
+   },
+   "mechanism": "DROP",
+   "context": "-",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned call in IsaacMain (owner sim 0.938, target sim 0.774)"
+   ],
+   "notes": "Returns double in XMM0; ZHL flags (THISCALL/CLEANUP/VOID/LONGLONG) cannot express it. 7 callers in v1.9.7.12. Not hooked in the first round; tick comes from inner execution."
+  },
+  {
+   "id": "loop.01.top_update",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 1,
+    "kind": "REL32_CALL",
+    "site_v17": "0x5312EC",
+    "target_v17": "0x5AB6D0"
+   },
+   "v12": {
+    "site": "0x50AF08",
+    "owner": "0x50AC60",
+    "owner_name": "IsaacMain",
+    "target": "0x52E3E0",
+    "target_name": "Manager::Update"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "outer frame: top-level update (priority below -9999)",
+   "repentogon": {
+    "definition": "Manager::Update (static, __stdcall, bool)",
+    "hooks": 3,
+    "priorities": [
+     0,
+     0,
+     -9999
+    ]
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: v1.9.7.12 IsaacMain calls Manager::Update directly; v1.9.7.17 0x5AB6D0 was a 40-byte wrapper around 0x554CD0 (=Manager::Update, sim 0.950)",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: Manager::Update anchor"
+   ],
+   "notes": "2 callers: IsaacMain, Game::NextVictoryLap."
+  },
+  {
+   "id": "loop.02.game_update",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 2,
+    "kind": "REL32_CALL",
+    "site_v17": "0x555231",
+    "target_v17": "0x2FADC0"
+   },
+   "v12": {
+    "site": "0x52E911",
+    "owner": "0x52E3E0",
+    "owner_name": "Manager::Update",
+    "target": "0x2F6D30",
+    "target_name": "Game::Update"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "outer frame: normal gameplay",
+   "repentogon": {
+    "definition": "Game::Update",
+    "hooks": 2,
+    "asm_inside": [
+     "Game_Update_MainUpdate@0x2F77A4",
+     "Game_Update_Return@0x2F7A39"
+    ]
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned site; v1.9.7.17 0x2FADC0 vs Game::Update sim 0.911",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: Game::Update anchor"
+   ],
+   "notes": "1 caller. REPENTOGON ASM patches inside: Game_Update_MainUpdate (0x2F77A4, MC_PRE_UPDATE skip) and Game_Update_Return (0x2F7A39)."
+  },
+  {
+   "id": "loop.03.post_update",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 3,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2FBBA5",
+    "target_v17": "0x4607A0"
+   },
+   "v12": {
+    "site": "0x2F7A34",
+    "owner": "0x2F6D30",
+    "owner_name": "Game::Update",
+    "target": "0x446C90",
+    "target_name": "MC_POST_UPDATE caller (callback id 1)"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Game::Update tail",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned site; target reads g_LuaEngine mask bit 2 and pushes id 1 (decompiled)"
+   ],
+   "notes": "1 caller in both versions, so an entry hook equals the old call-site hook."
+  },
+  {
+   "id": "loop.04.teardown_1",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 4,
+    "kind": "REL32_CALL",
+    "site_v17": "0x559696",
+    "target_v17": "0x2FA0C0"
+   },
+   "v12": {
+    "site": "0x532996",
+    "owner": "0x532970",
+    "owner_name": "Manager::cleanup_current_state",
+    "target": "0x2F6270",
+    "target_name": "Game::Exit"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "teardown",
+   "repentogon": {
+    "definition": "Game::Exit (__stdcall, bool)",
+    "hooks": 3
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: v1.9.7.17 0x2FA0C0 vs Game::Exit sim 0.992",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: Game::Exit anchor"
+   ],
+   "notes": "Game::Exit has exactly the 2 prototype callers."
+  },
+  {
+   "id": "loop.05.teardown_2",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 5,
+    "kind": "REL32_CALL",
+    "site_v17": "0x5AB84A",
+    "target_v17": "0x2FA0C0"
+   },
+   "v12": {
+    "site": "0x582DD8",
+    "owner": "0x582C90",
+    "owner_name": "Isaac::Shutdown",
+    "target": "0x2F6270",
+    "target_name": "Game::Exit"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "teardown",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned site in Isaac::Shutdown (owner sim 0.766)"
+   ],
+   "notes": "Same Game::Exit hook as loop.04."
+  },
+  {
+   "id": "loop.06.new_room",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 6,
+    "kind": "REL32_CALL",
+    "site_v17": "0x33F5B9",
+    "target_v17": "0x465180"
+   },
+   "v12": {
+    "site": "0x339719",
+    "owner": "0x3385F0",
+    "owner_name": null,
+    "target": "0x44B930",
+    "target_name": "MC_POST_NEW_ROOM caller (callback id 19)"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: new room",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: only caller of 0x44B930 is 0x3385F0 (owner sim 0.82 to v1.9.7.17 0x33E0A0); id 19 / mask 0x80000 decompiled"
+   ],
+   "notes": "1 caller."
+  },
+  {
+   "id": "loop.07.render",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 7,
+    "kind": "REL32_CALL",
+    "site_v17": "0x5312F1",
+    "target_v17": "0x5555C0"
+   },
+   "v12": {
+    "site": "0x50AF0D",
+    "owner": "0x50AC60",
+    "owner_name": "IsaacMain",
+    "target": "0x52EC40",
+    "target_name": "Manager::Render"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "render frame (never a tick)",
+   "repentogon": {
+    "definition": "Manager::Render",
+    "hooks": 2,
+    "asm_inside": [
+     "Manager_Render_PreCursorRender@0x52EFAC",
+     "Manager_Render_OnCursorRender@0x52F03C",
+     "ImGui inline@0x52F5CF"
+    ]
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned call position in IsaacMain",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: Manager::Render anchor",
+    "function similarity only 0.519 (render code changed)"
+   ],
+   "notes": "2 callers: IsaacMain and ModManager::UpdateWorkshopMods (loading path). REPENTOGON ASM patches inside (cursor render, ImGui)."
+  },
+  {
+   "id": "loop.08.input_update",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 8,
+    "kind": "REL32_CALL",
+    "site_v17": "0x554F7D",
+    "target_v17": "0x61FC00"
+   },
+   "v12": {
+    "site": "0x52E68B",
+    "owner": "0x52E3E0",
+    "owner_name": "Manager::Update",
+    "target": "0x5EDCC0",
+    "target_name": "InputManager full update"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Manager::Update frame",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned site; decompiled loop over InputManager devices (+4/+8)",
+    "function similarity 0.392 (input subsystem changed)"
+   ],
+   "notes": "4 callers in v1.9.7.12 (Manager::Update, 0x5346B0 x2, 0x62AC40); act only inside the Manager::Update frame."
+  },
+  {
+   "id": "loop.09.device_update",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 9,
+    "kind": "REL32_CALL",
+    "site_v17": "0x61FC97",
+    "target_v17": "0x61F280"
+   },
+   "v12": {
+    "site": "0x5EDD22",
+    "owner": "0x5EDCC0",
+    "owner_name": "InputManager full update",
+    "target": "0x5EC900",
+    "target_name": "device common update"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: input update",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: only call site of 0x5EC900; it calls Poll via vtable +0x8C and checks the bool"
+   ],
+   "notes": "1 caller."
+  },
+  {
+   "id": "loop.10.alt_owner",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 10,
+    "kind": "REL32_CALL",
+    "site_v17": "0x554D5E",
+    "target_v17": "0x559720"
+   },
+   "v12": {
+    "site": "0x52E46E",
+    "owner": "0x52E3E0",
+    "owner_name": "Manager::Update",
+    "target": "0x532A20",
+    "target_name": "Manager::ExecuteStartGame"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "outer frame: alternate/loading",
+   "repentogon": {
+    "definition": "Manager::ExecuteStartGame",
+    "hooks": 0
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned site (owner sim 0.825)",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: anchor"
+   ],
+   "notes": "1 caller; REPENTOGON does not hook it."
+  },
+  {
+   "id": "loop.11.alt_room_update",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 11,
+    "kind": "REL32_CALL",
+    "site_v17": "0x559B4D",
+    "target_v17": "0x402980"
+   },
+   "v12": {
+    "site": "0x532EAA",
+    "owner": "0x532A20",
+    "owner_name": "Manager::ExecuteStartGame",
+    "target": "0x3F7F60",
+    "target_name": "Room::Update"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Room::Update under ExecuteStartGame",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: v1.9.7.17 0x402980 vs 0x3F7F60 sim 0.944"
+   ],
+   "notes": "Room::Update has 10 callers; context decides."
+  },
+  {
+   "id": "loop.12.alt_tail",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 12,
+    "kind": "REL32_CALL",
+    "site_v17": "0x559B82",
+    "target_v17": "0x464EE0"
+   },
+   "v12": {
+    "site": "0x532EDF",
+    "owner": "0x532A20",
+    "owner_name": "Manager::ExecuteStartGame",
+    "target": "0x44B660",
+    "target_name": "LuaEngine::PostGameStart"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "inner: alternate tail/completion",
+   "repentogon": {
+    "definition": "LuaEngine::PostGameStart (__stdcall, unsigned)",
+    "hooks": 1
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; callback id 15",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: LuaEngine::PostGameStart anchor"
+   ],
+   "notes": "The 6 callers are exactly loop.12 and loop.18-22."
+  },
+  {
+   "id": "loop.13.console_pred",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 13,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2FADFA",
+    "target_v17": "0x28BBA0"
+   },
+   "v12": {
+    "site": "0x2F6D69",
+    "owner": "0x2F6D30",
+    "owner_name": "Game::Update",
+    "target": "0x287020",
+    "target_name": "console method on Game::_console (+0x67FD4)"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Game::Update gate",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; `lea ecx,[edi+67FD4h]; call; test al,al; jnz <skip body>`",
+    "SOURCE_REPENTOGON_ZHL: Game::_console @0x67FD4"
+   ],
+   "notes": "NOT Game::IsPaused (sim 0.20). 3 callers: Game::Update, odd helper, Manager::Update. Game::IsPaused is not called by Game::Update in v1.9.7.12."
+  },
+  {
+   "id": "loop.14.standard_anchor",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 14,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2FAE09",
+    "target_v17": "0x308630"
+   },
+   "v12": {
+    "site": null,
+    "owner": "0x2F6D30",
+    "owner_name": "Game::Update",
+    "target": null,
+    "target_name": null
+   },
+   "mechanism": "NONE_IN_V12",
+   "context": "replace with Game::Update frame + console predicate result",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: call sequences compared; v1.9.7.12 goes predicate -> HUD::Update directly; the 0x308630 call exists only in v1.9.7.17"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "loop.15.std_room_update",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 15,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2FBA4D",
+    "target_v17": "0x402980"
+   },
+   "v12": {
+    "site": "0x2F78DF",
+    "owner": "0x2F6D30",
+    "owner_name": "Game::Update",
+    "target": "0x3F7F60",
+    "target_name": "Room::Update"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Room::Update under Game::Update",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned"
+   ],
+   "notes": "Shares the Room::Update hook."
+  },
+  {
+   "id": "loop.16.entitylist_update",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 16,
+    "kind": "REL32_CALL",
+    "site_v17": "0x403E70",
+    "target_v17": "0x186C0"
+   },
+   "v12": {
+    "site": "0x3F93A7",
+    "owner": "0x3F7F60",
+    "owner_name": "Room::Update",
+    "target": "0x13F00",
+    "target_name": "EntityList::Update"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: under Room::Update",
+   "repentogon": {
+    "asm_inside": [
+     "EntityList_Update_PreCommitRemovedEntities@0x14DBE",
+     "EntityList_Update_RemoveEntityMainEL@0x14F11",
+     "EntityList_Update_RemoveEntityPersistentEL@0x14F93"
+    ]
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: v1.9.7.17 0x186C0 vs 0x13F00 sim 0.901"
+   ],
+   "notes": "9 callers; REPENTOGON ASM patches inside (EntityList_Update_*)."
+  },
+  {
+   "id": "loop.17.alt_state_apply",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 17,
+    "kind": "REL32_CALL",
+    "site_v17": "0x559B21",
+    "target_v17": "0x2F8140"
+   },
+   "v12": {
+    "site": "0x532E7E",
+    "owner": "0x532A20",
+    "owner_name": "Manager::ExecuteStartGame",
+    "target": "0x2F43A0",
+    "target_name": "Game::RestoreState"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "inner: alternate",
+   "repentogon": {
+    "definition": "Game::RestoreState",
+    "hooks": 4,
+    "priorities": [
+     -100,
+     0,
+     0,
+     0
+    ]
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: sim 0.886",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: anchor"
+   ],
+   "notes": "3 callers."
+  },
+  {
+   "id": "loop.18.alt_completion_0",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 18,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2F580B",
+    "target_v17": "0x464EE0"
+   },
+   "v12": {
+    "site": "0x2F1BAE",
+    "owner": "0x2F16D0",
+    "owner_name": "Game::Start",
+    "target": "0x44B660",
+    "target_name": "LuaEngine::PostGameStart"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "inner: alternate completion",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; owner is REPENTOGON-named"
+   ],
+   "notes": "Same PostGameStart hook as loop.12."
+  },
+  {
+   "id": "loop.19.alt_completion_1",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 19,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2F61FF",
+    "target_v17": "0x464EE0"
+   },
+   "v12": {
+    "site": "0x2F26A0",
+    "owner": "0x2F1BF0",
+    "owner_name": "Game::NetStart",
+    "target": "0x44B660",
+    "target_name": "LuaEngine::PostGameStart"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "inner: alternate completion",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; owner is REPENTOGON-named"
+   ],
+   "notes": "Same PostGameStart hook as loop.12."
+  },
+  {
+   "id": "loop.20.alt_completion_2",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 20,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2F72C9",
+    "target_v17": "0x464EE0"
+   },
+   "v12": {
+    "site": "0x2F362C",
+    "owner": "0x2F3140",
+    "owner_name": "Game::StartDailyChallenge",
+    "target": "0x44B660",
+    "target_name": "LuaEngine::PostGameStart"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "inner: alternate completion",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; owner is REPENTOGON-named"
+   ],
+   "notes": "Same PostGameStart hook as loop.12."
+  },
+  {
+   "id": "loop.21.alt_completion_3",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 21,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2F7721",
+    "target_v17": "0x464EE0"
+   },
+   "v12": {
+    "site": "0x2F3A70",
+    "owner": "0x2F3650",
+    "owner_name": "Game::StartFromRerunState",
+    "target": "0x44B660",
+    "target_name": "LuaEngine::PostGameStart"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "inner: alternate completion",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; owner is REPENTOGON-named"
+   ],
+   "notes": "Same PostGameStart hook as loop.12."
+  },
+  {
+   "id": "loop.22.alt_completion_4",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 22,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2F7A10",
+    "target_v17": "0x464EE0"
+   },
+   "v12": {
+    "site": "0x2F3D63",
+    "owner": "0x2F3AA0",
+    "owner_name": "Game::StartDebug",
+    "target": "0x44B660",
+    "target_name": "LuaEngine::PostGameStart"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "inner: alternate completion",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; owner is REPENTOGON-named"
+   ],
+   "notes": "Same PostGameStart hook as loop.12."
+  },
+  {
+   "id": "loop.23.room_fsm",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 23,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2FB4F0",
+    "target_v17": "0x52F1C0"
+   },
+   "v12": {
+    "site": "0x2F73F4",
+    "owner": "0x2F6D30",
+    "owner_name": "Game::Update",
+    "target": "0x509100",
+    "target_name": "room lifecycle FSM"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "outer frame: room lifecycle FSM",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: sim 0.928"
+   ],
+   "notes": "1 caller."
+  },
+  {
+   "id": "loop.24.room_fsm_room_update",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 24,
+    "kind": "REL32_CALL",
+    "site_v17": "0x52FC77",
+    "target_v17": "0x402980"
+   },
+   "v12": {
+    "site": "0x509B26",
+    "owner": "0x509100",
+    "owner_name": "room lifecycle FSM",
+    "target": "0x3F7F60",
+    "target_name": "Room::Update"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Room::Update under FSM",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "loop.25.door_fsm",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 25,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2FB51C",
+    "target_v17": "0x4318A0"
+   },
+   "v12": {
+    "site": "0x2F7420",
+    "owner": "0x2F6D30",
+    "owner_name": "Game::Update",
+    "target": "0x426430",
+    "target_name": "RoomTransition::Update"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "outer frame: door room change",
+   "repentogon": {
+    "definition": "RoomTransition::Update",
+    "hooks": 1
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: sim 0.879",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: anchor"
+   ],
+   "notes": "5 callers."
+  },
+  {
+   "id": "loop.26.door_room_update",
+   "group": "loop",
+   "prototype": {
+    "family": "loop_runtime.cpp",
+    "index": 26,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2FE37C",
+    "target_v17": "0x402980"
+   },
+   "v12": {
+    "site": "0x2FA17C",
+    "owner": "0x2FA0F0",
+    "owner_name": null,
+    "target": "0x3F7F60",
+    "target_name": "Room::Update"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Room::Update under 0x2FA0F0",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: v1.9.7.17 owner 0x2FE2F0 vs 0x2FA0F0 sim 0.971"
+   ],
+   "notes": "The context owner 0x2FA0F0 also needs an own-definition frame hook; its callers are to be listed during implementation."
+  },
+  {
+   "id": "loop.poll",
+   "group": "loop",
+   "prototype": {
+    "kind": "VTABLE_SLOT",
+    "keyboard": "0x7A16F0 (slot 30, +0x78) -> 0x66C650",
+    "gamepad": "0x782CF8 (slot 30) -> 0x622940"
+   },
+   "v12": {
+    "keyboard_vtable": "0x73B490",
+    "gamepad_vtable": "0x73B3F0",
+    "slot": 35,
+    "slot_offset": "0x8C",
+    "keyboard_target": "0x633DD0",
+    "gamepad_target": "0x6331B0",
+    "return_after_poll_call": "0x5EC98C"
+   },
+   "mechanism": "POINTER",
+   "context": "inner: device common update",
+   "repentogon": {
+    "hooks": 0
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: common update calls [vtable+0x8C] and tests AL; base slot 35 is _purecall; keyboard slot 35 copies the 0x15C-byte state blocks"
+   ],
+   "notes": "Slot moved from 30 to 35. Return address check: v1.9.7.17 0x61F30C -> v1.9.7.12 0x5EC98C."
+  },
+  {
+   "id": "loop.iat",
+   "group": "loop",
+   "prototype": {
+    "kind": "IAT_SLOT",
+    "slots": [
+     "PeekMessage",
+     "TranslateMessage",
+     "DispatchMessage"
+    ]
+   },
+   "v12": {},
+   "mechanism": "DROP",
+   "context": "-",
+   "repentogon": {},
+   "evidence": [
+    "design tx-04-01 6.1"
+   ],
+   "notes": "Message-pump diagnostics only."
+  },
+  {
+   "id": "coop.queries",
+   "group": "coop",
+   "prototype": {
+    "kind": "VTABLE_SLOT",
+    "slots": "12/13/14 (+0x30/+0x34/+0x38) of Keyboard 0x7A1678 and Gamepad 0x782C80 -> 0x61E8D0/0x61E970/0x61EA20"
+   },
+   "v12": {
+    "keyboard_vtable": "0x73B490",
+    "gamepad_vtable": "0x73B3F0",
+    "slots": [
+     8,
+     9,
+     10
+    ],
+    "slot_offsets": [
+     "0x20",
+     "0x24",
+     "0x28"
+    ],
+    "targets": {
+     "IsActionPressed": "0x5ECD80",
+     "IsActionTriggered": "0x5ECDE0",
+     "GetActionValue": "0x5ECE50"
+    },
+    "abi": "thiscall(action), retn 4; slot 10 returns float in x87 ST0 (fldz path)"
+   },
+   "mechanism": "POINTER",
+   "context": "query resolution for A/B",
+   "repentogon": {
+    "hooks_above": "InputManager::IsActionPressed/IsActionTriggered (menu/ImGui blocking)"
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: InputManager::IsActionPressed (0x5EE140) calls device +0x20, IsActionTriggered (0x5EE200) calls +0x24; slot bodies decompiled",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: InputManager anchors"
+   ],
+   "notes": "v1.9.7.12 slots 12-15 are setters (SetButton/SetState/SetValue). Keyboard and Gamepad share the base implementations."
+  },
+  {
+   "id": "coop.player_update",
+   "group": "coop",
+   "prototype": {
+    "kind": "VTABLE_SLOT",
+    "site_v17": "0x76BDDC (+0x0C)",
+    "target_v17": "0x382AF0"
+   },
+   "v12": {
+    "player_vtable": "0x71BDB4",
+    "slot": 3,
+    "target": "0x37BD40",
+    "target_name": "Entity_Player::Update / Original_Update"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "outer frame: Player update",
+   "repentogon": {
+    "definition": "Entity_Player::Update (__vtable override)",
+    "hooks": 1,
+    "hook_source": "CustomCallbacks.cpp HOOK_PRE_UPDATE_CALLBACK(Entity_Player, ..., 1160)",
+    "asm_inside": [
+     "Player_DeathSoundOverride@0x381C76"
+    ]
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: RTTI .?AVEntity_Player@IsaacRepentancePlus@@ vtable slot 3; sim 0.63 (large function)",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: anchor"
+   ],
+   "notes": "MC_PRE_PLAYER_UPDATE returning true skips the subclass update (consumers do not run)."
+  },
+  {
+   "id": "coop.consumer_0",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 0,
+    "kind": "REL32_CALL",
+    "site_v17": "0x385BC2",
+    "target_v17": "0x379B40"
+   },
+   "v12": {
+    "site": "0x37DDFF",
+    "owner": "0x37BD40",
+    "owner_name": "Entity_Player::Update",
+    "target": "0x372540",
+    "target_name": "movement"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Player::Update frame",
+   "repentogon": {
+    "asm_inside": [
+     "ASMPlayer inline@0x37389B"
+    ],
+    "hooks": 0
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned site in Player update; target agrees with function match"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "coop.consumer_1",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 1,
+    "kind": "REL32_CALL",
+    "site_v17": "0x385BC9",
+    "target_v17": "0x380F40"
+   },
+   "v12": {
+    "site": "0x37DE06",
+    "owner": "0x37BD40",
+    "owner_name": "Entity_Player::Update",
+    "target": "0x37A210",
+    "target_name": "bomb"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Player::Update frame",
+   "repentogon": {
+    "asm_inside": [
+     "MaxBombs_ControlBombs@0x37AC0A",
+     "ASMCallbacks inline@0x37A52E",
+     "@0x37ADA8"
+    ],
+    "hooks": 0
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned site in Player update; target agrees with function match"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "coop.consumer_2",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 2,
+    "kind": "REL32_CALL",
+    "site_v17": "0x385BD2",
+    "target_v17": "0x391A40"
+   },
+   "v12": {
+    "site": "0x37DE0F",
+    "owner": "0x37BD40",
+    "owner_name": "Entity_Player::Update",
+    "target": "0x389E50",
+    "target_name": "active item (Entity_Player::ControlActiveItem)"
+   },
+   "mechanism": "ZHL_REPENTOGON",
+   "context": "inner: Player::Update frame",
+   "repentogon": {
+    "asm_inside": [],
+    "hooks": 1
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned site in Player update; target agrees with function match"
+   ],
+   "notes": "ControlActiveItem has 3 callers (Player::Update + card/pill consumer x2); the others have 1."
+  },
+  {
+   "id": "coop.consumer_3",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 3,
+    "kind": "REL32_CALL",
+    "site_v17": "0x385BD9",
+    "target_v17": "0x3A3D30"
+   },
+   "v12": {
+    "site": "0x37DE16",
+    "owner": "0x37BD40",
+    "owner_name": "Entity_Player::Update",
+    "target": "0x39BDD0",
+    "target_name": "card/pill"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Player::Update frame",
+   "repentogon": {
+    "asm_inside": [],
+    "hooks": 0
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned site in Player update; target agrees with function match"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "coop.consumer_4",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 4,
+    "kind": "REL32_CALL",
+    "site_v17": "0x385BE0",
+    "target_v17": "0x37B020"
+   },
+   "v12": {
+    "site": "0x37DE1D",
+    "owner": "0x37BD40",
+    "owner_name": "Entity_Player::Update",
+    "target": "0x373990",
+    "target_name": "shooting"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Player::Update frame",
+   "repentogon": {
+    "asm_inside": [],
+    "hooks": 0
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned site in Player update; target agrees with function match"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "coop.consumer_5",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 5,
+    "kind": "REL32_CALL",
+    "site_v17": "0x385BE7",
+    "target_v17": "0x3A42B0"
+   },
+   "v12": {
+    "site": "0x37DE24",
+    "owner": "0x37BD40",
+    "owner_name": "Entity_Player::Update",
+    "target": "0x39C300",
+    "target_name": "drop"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "inner: Player::Update frame",
+   "repentogon": {
+    "asm_inside": [
+     "ASMCallbacks inline@0x39C381"
+    ],
+    "hooks": 0
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned site in Player update; target agrees with function match"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "coop.join_pass",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 6,
+    "kind": "REL32_CALL",
+    "site_v17": "0x2FADA7",
+    "target_v17": "0x5BAC40"
+   },
+   "v12": {
+    "site": "0x2F6D21",
+    "owner": "0x2F66E0",
+    "owner_name": "Game::ProcessInput",
+    "target": "0x591360",
+    "target_name": "Join pass (PlayerManager method; ECX = Game+0x1BAA8)"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "outer frame: Join",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; caller does lea ecx,[edi+1BAA8h]"
+   ],
+   "notes": "1 caller. Returns early when NetplayManager (g_Manager+0x4AFB8/+0x4AFBC) is non-empty."
+  },
+  {
+   "id": "coop.create",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 7,
+    "kind": "REL32_CALL",
+    "site_v17": "0x5BB415",
+    "target_v17": "0x5B9CD0"
+   },
+   "v12": {
+    "site": "0x591FE6",
+    "owner": "0x591360",
+    "owner_name": "Join pass",
+    "target": "0x590250",
+    "target_name": "PlayerManager::SpawnCoPlayer2"
+   },
+   "mechanism": "CALLSITE",
+   "context": "inside Join pass",
+   "repentogon": {
+    "definition": "PlayerManager::SpawnCoPlayer2",
+    "hooks": 0
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; ECX = g_Game+0x1BAA8 (PlayerManager), EBX = PlayerManager (+0x70 character table), EDI = row pointer",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: SpawnCoPlayer2 anchor"
+   ],
+   "notes": "Needs caller registers and the stack argument, and denial jumps into the Join loop, so the call-site patch stays. Deny target v1.9.7.17 0x5BB561 -> v1.9.7.12 0x5925E4: EDI unchanged since the loop head 0x591E53, stack depth -268 before the push, same as the native jumps from 0x591E6E/0x591FA4 (IDA spd). The selector register changed: v1.9.7.17 EBX -> v1.9.7.12 EDI."
+  },
+  {
+   "id": "coop.odd_helper",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 8,
+    "kind": "REL32_CALL",
+    "site_v17": "0x555241",
+    "target_v17": "0x2FD3F0"
+   },
+   "v12": {
+    "site": "0x52E921",
+    "owner": "0x52E3E0",
+    "owner_name": "Manager::Update",
+    "target": "0x2F9340",
+    "target_name": "odd-frame Player-only helper"
+   },
+   "mechanism": "ZHL_OWN",
+   "context": "outer frame: odd-only",
+   "repentogon": {},
+   "evidence": [
+    "STATIC_CONFIRMED: sim 0.989"
+   ],
+   "notes": "Returns: helper -> 0x52E926 (v1.9.7.17 0x555246); Player update inside the helper -> 0x2F955C (v1.9.7.17 0x2FD60C)."
+  },
+  {
+   "id": "coop.mode_0",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 9,
+    "kind": "REL32_CALL",
+    "site_v17": "0x5BAE7E",
+    "target_v17": "0x5BA980"
+   },
+   "v12": {
+    "site": "0x5915AE",
+    "owner": "0x591360",
+    "owner_name": "Join pass",
+    "target": "0x5910A0",
+    "target_name": "PlayerManager::CoopBabiesOnly"
+   },
+   "mechanism": "CALLSITE",
+   "context": "inside Join pass",
+   "repentogon": {
+    "definition": "PlayerManager::CoopBabiesOnly",
+    "hooks": 0
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; target sim 1.000",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: CoopBabiesOnly anchor (static, no args, bool)"
+   ],
+   "notes": "Needs caller registers (v1.9.7.12: manager=EBX key=ESI). v1.9.7.17 used EDI=manager, ESI/ECX=key, EBX=row, so the register reads change."
+  },
+  {
+   "id": "coop.mode_1",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 10,
+    "kind": "REL32_CALL",
+    "site_v17": "0x5BB081",
+    "target_v17": "0x5BA980"
+   },
+   "v12": {
+    "site": "0x59174C",
+    "owner": "0x591360",
+    "owner_name": "Join pass",
+    "target": "0x5910A0",
+    "target_name": "PlayerManager::CoopBabiesOnly"
+   },
+   "mechanism": "CALLSITE",
+   "context": "inside Join pass",
+   "repentogon": {
+    "definition": "PlayerManager::CoopBabiesOnly",
+    "hooks": 0
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; target sim 1.000",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: CoopBabiesOnly anchor (static, no args, bool)"
+   ],
+   "notes": "Needs caller registers (v1.9.7.12: manager=EBX key=ESI). v1.9.7.17 used EDI=manager, ESI/ECX=key, EBX=row, so the register reads change."
+  },
+  {
+   "id": "coop.mode_2",
+   "group": "coop",
+   "prototype": {
+    "family": "coop_active_runtime.cpp / active_targets.cpp",
+    "index": 11,
+    "kind": "REL32_CALL",
+    "site_v17": "0x5BB288",
+    "target_v17": "0x5BA980"
+   },
+   "v12": {
+    "site": "0x591E67",
+    "owner": "0x591360",
+    "owner_name": "Join pass",
+    "target": "0x5910A0",
+    "target_name": "PlayerManager::CoopBabiesOnly"
+   },
+   "mechanism": "CALLSITE",
+   "context": "inside Join pass",
+   "repentogon": {
+    "definition": "PlayerManager::CoopBabiesOnly",
+    "hooks": 0
+   },
+   "evidence": [
+    "STATIC_CONFIRMED: aligned; target sim 1.000",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG: CoopBabiesOnly anchor (static, no args, bool)"
+   ],
+   "notes": "Needs caller registers (v1.9.7.12: manager=EBX key=ECX ([edi-8]) row=EDI). v1.9.7.17 used EDI=manager, ESI/ECX=key, EBX=row, so the register reads change."
+  }
+ ],
+ "device": {
+  "base_vtable": {
+   "v17": "0x782758 (COL slot 0x782754)",
+   "v12": "0x732F04",
+   "col": "0x745F4C",
+   "slots": 38,
+   "pure_slots_v12": [
+    3,
+    35
+   ],
+   "pure_slots_v17": [
+    3,
+    30
+   ]
+  },
+  "keyboard_vtable": {
+   "v17": "0x7A1678 (.?AVInputDeviceKeyboard@Input@KAGE@@)",
+   "v12": "0x73B490 (.?AVDeviceKeyboard@Input@KAGE@@)",
+   "col": "0x7470B4"
+  },
+  "gamepad_vtable": {
+   "v17": "0x782C80 (.?AVInputDeviceGamepad@Input@KAGE@@)",
+   "v12": "0x73B3F0 (.?AVDeviceGamepad@Input@KAGE@@)",
+   "col": "0x74704C",
+   "note": "v1.9.7.12 Gamepad has an extra slot 38 (0x633310)"
+  },
+  "input_manager_vtable": {
+   "v17": "0x782950",
+   "v12": "0x732E44 (.?AVManager@Input@KAGE@@)",
+   "col": "0x745ECC"
+  },
+  "base_ctor": {
+   "v17": "0x61E050",
+   "v12": "0x5EC570",
+   "abi": "thiscall, no args",
+   "evidence": "STATIC_CONFIRMED: writes InputDeviceBase vftable; called by keyboard/gamepad creation and NetInputDevice ctor"
+  },
+  "initialize": {
+   "v17": "0x61E210",
+   "v12": "0x5EC6A0 (InputDeviceBase::Initialize, base slot 1)",
+   "abi": "thiscall(void*), returns bool, retn 4",
+   "evidence": "RUNTIME_OBSERVED_REPENTOGON_LOG + STATIC_CONFIRMED"
+  },
+  "register": {
+   "v17": "0x620DF0 (manager, object, control) retn 8",
+   "v12": "InputManager vtable slot 45 (+0xB4) = 0x5EEB40",
+   "abi": "thiscall(device*)",
+   "evidence": "STATIC_CONFIRMED: keyboard creation does push esi; call [eax+0B4h] on g_InputManagerBase"
+  },
+  "remove": {
+   "v17": "0x620EB0",
+   "v12": "InputManager vtable slot 46 (+0xB8) = 0x5EEBB0",
+   "abi": "thiscall(device*)",
+   "evidence": "STATIC_CONFIRMED: removes from vector, then calls device slot 2 and slot 0(1) (deleting destructor)"
+  },
+  "allocator": {
+   "v17": "0x60F4C0 (custom wrapper)",
+   "v12": "operator new 0x686DE5 is what the game uses for devices",
+   "note": "The game frees devices only through device slot 0, which the owned device overrides, so the owned object may use any allocator."
+  },
+  "control_block": {
+   "v17": "0xCC10 control ctor; 6-slot control table",
+   "v12": "NONE: InputManager stores raw device pointers (+4/+8/+0xC vector)",
+   "evidence": "STATIC_CONFIRMED"
+  },
+  "object_size": {
+   "v17_base": "0x370",
+   "v12_base": "0x3F8",
+   "keyboard_alloc": "0x2F98",
+   "gamepad_alloc": "0x568",
+   "evidence": "STATIC_INFERENCE: base writes up to +0x3F0; gamepad's own fields start at +0x3F8"
+  },
+  "fields_v12": {
+   "device_id": "+0x08 (from counter 0x7E65EC; v1.9.7.17 key at +0x0C)",
+   "enabled": "+0x0D (byte)",
+   "template_table": "+0x10 = 0x7888C0, +0x14 = 40 entries x 8 bytes (v1.9.7.17: vector 0x8799E8, 32 x 16)",
+   "mapping_count": "+0x18",
+   "mapping_table": "+0x1C",
+   "state_arrays": "+0xC8/+0xCC (v1.9.7.17 +0xC0/+0xC4)",
+   "deadzone": "+0xD4",
+   "evidence": "STATIC_CONFIRMED (decompiled ctor/Initialize/queries)"
+  },
+  "owned_device_overrides_v12": {
+   "slots": [
+    0,
+    3,
+    8,
+    9,
+    10,
+    35
+   ],
+   "v17_slots": [
+    0,
+    3,
+    12,
+    13,
+    14,
+    30
+   ],
+   "notes": "slot 0 = deleting destructor called by RemoveDevice and by the update-failure path; it must not free (NEVER). slot 35 returning false makes InputManager remove and delete the device."
+  },
+  "keyboard_state": {
+   "v17": "0x878C10",
+   "v12": "0x7E6B08",
+   "evidence": "STATIC_INFERENCE: both Poll routines copy current->previous, then raw->current; the v1.9.7.17 current-state array matches the v1.9.7.12 copy role. The 0x15C-byte blocks are 0x7E6B08 (current), 0x7E6C68 (raw), 0x7E6DC8 (previous)."
+  }
+ },
+ "globals": {
+  "g_Game": {
+   "v17": "0x871678",
+   "v12": "0x7E49F4",
+   "evidence": [
+    "STATIC_CONFIRMED (5 aligned uses)",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG (log value)"
+   ]
+  },
+  "g_Manager": {
+   "v17": "0x87169C (prototype called it 'online')",
+   "v12": "0x7E4A1C",
+   "evidence": [
+    "STATIC_CONFIRMED",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG"
+   ]
+  },
+  "g_LuaEngine": {
+   "v17": "0x871690",
+   "v12": "0x7E4A0C",
+   "evidence": [
+    "STATIC_CONFIRMED",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG"
+   ]
+  },
+  "g_InputManagerBase": {
+   "v17": "0x857B18",
+   "v12": "0x7CE438",
+   "evidence": [
+    "STATIC_CONFIRMED",
+    "RUNTIME_OBSERVED_REPENTOGON_LOG"
+   ]
+  },
+  "device_id_counter": {
+   "v12": "0x7E65EC",
+   "evidence": [
+    "STATIC_CONFIRMED"
+   ]
+  }
+ },
+ "fields": {
+  "Game": {
+   "0x2658A": "0x25B02 (run-active byte; next to _isDebug 0x25B01)",
+   "0x1BAA8": "0x1BAA8 _playerManager",
+   "0x1BAAC": "0x1BAAC",
+   "0x26548": "0x25AC0 _gameStateFlags",
+   "_console": "0x67FD4",
+   "ExecuteCommand output capture": "0x68158"
+  },
+  "Manager": {
+   "0x4B3D8/0x4B3DC": "0x4AFB8/0x4AFBC _netplayManager vector",
+   "0x4B3E4": "0x4AFC4",
+   "0x4B130": "0x4AD10 _starting",
+   "0x2A3C0": "0x2A1FB"
+  },
+  "Player": {
+   "0x161C": "0x1610 _playerIndex",
+   "0x1618": "0x160C _controllerIndex",
+   "0x173": "0x173 _dead",
+   "0x20A9": "0x207D _isCoopGhost",
+   "0x28/0x2C/0x30": "0x28/0x2C/0x30 type/variant/subtype",
+   "0x1340/0x1344/0x134C": "unchanged (_maxHearts/_redHearts/_soulHearts)",
+   "0x1D88": "0x1D74 _boneHearts",
+   "0x360": "0x360 _velocity",
+   "0x1624": "0x1618 _moveDirection",
+   "0x162C/0x1630/0x1634/0x1638": "0x1620/0x1624/0x1628/(0x162C inferred)",
+   "0x1378": "0x1378",
+   "0x1580": "0x1574 _activeDesc",
+   "0x1588": "0x157C",
+   "0x17A0": "0x1790",
+   "0x17C0": "0x17B0 _actionHoldDrop",
+   "0x13BC": "0x13B8 _damageCooldown"
+  },
+  "JoinPass(PlayerManager)": {
+   "rows": "+0x0C key / +0x14 state, stride 0x14, 4 rows (unchanged)",
+   "character_table": "+0x70/+0x74 (unchanged)"
+  },
+  "evidence": [
+   "STATIC_CONFIRMED: aligned instruction votes (v12_fields.json)",
+   "SOURCE_REPENTOGON_ZHL: REPENTOGON EntityPlayer.zhl / Entity.zhl / Game.zhl / Manager.zhl names and offsets"
+  ]
+ },
+ "q10_execute_command": {
+  "execute_command_binding": "0x4567F0 (registered in LuaEngine::RegisterClasses 0x44D340 as Isaac.ExecuteCommand)",
+  "path": "if g_Game == null -> returns an empty string WITHOUT calling RunCommand; else sets g_Game+0x68158 = &result, calls Console::RunCommand(in, nullptr, nullptr), clears it, trims the trailing newline",
+  "flags": "The binding writes only the capture pointer. The console-input caller 0x282240 writes only stack locals. A `cs` command handled before super() never runs the RunCommand body.",
+  "evidence": "STATIC_CONFIRMED",
+  "open": "Whether g_Game is null on the main menu is UNKNOWN (static analysis cannot decide)."
+ },
+ "repentogon_overlap": {
+  "method": "343 REPENTOGON signatures (ASM.zhl + inline SigScan in repentogon/**/*.cpp) scanned on v1.9.7.12; 338 hits",
+  "callsite_patches": "no REPENTOGON patch within 16 bytes of 0x5915AE/0x59174C/0x591E67/0x591FE6/0x5925E4",
+  "entry_hooks": "no REPENTOGON patch inside the first 16 bytes of any function we entry-hook",
+  "data": "artifacts/repentogon/tx-04-03-static/data/v12_overlap.json"
+ }
+}

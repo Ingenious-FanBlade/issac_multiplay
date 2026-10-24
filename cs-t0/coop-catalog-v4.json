@@ -1,0 +1,470 @@
+{
+  "schemaVersion": 4,
+  "catalogIdentity": "IsaacCsT0-CoopCatalog-v4",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-31T00:00:00Z",
+  "status": "PRE_LIVE_DEVICE_V2_FROZEN",
+  "createNewOnly": true,
+  "supersedes": [
+    {
+      "path": "coop-catalog-v3.json",
+      "sha256": "29265D6C79C1975E39223C4BCF6DD2D1580352B4E92A442C36CB3E631C309B41"
+    }
+  ],
+  "target": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedApprovedUnpackedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "equivalenceDocumentSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+    "machine": "0x014C",
+    "runtimeAddressRule": "moduleBase + RVA"
+  },
+  "orderedHookTransaction": {
+    "slotCount": 56,
+    "completeMask": "0x00FFFFFFFFFFFFFF",
+    "installOrder": "0..55",
+    "restoreOrder": "55..0",
+    "rollbackOrder": "last-installed..0",
+    "singleOwner": "coop_passive",
+    "slots": [
+      {
+        "ordinal": 0,
+        "id": "loop-clock",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00531231",
+        "expectedProof": "A0D9DC4474072CC5A31361F4927F269D5E70159FDB36B433162059F725D189CE"
+      },
+      {
+        "ordinal": 1,
+        "id": "top-level-update",
+        "patchKind": "REL32_CALL",
+        "rva": "0x005312EC",
+        "expectedProof": "AAB0D720B4C2B4FA9833F0DD24548CBAF4692D65B44D3772C5BB8B6D0F8FCF14"
+      },
+      {
+        "ordinal": 2,
+        "id": "conditional-attempt",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00555231",
+        "expectedProof": "B59FF10F383173A70F77ECE16174420AD46F35295050444088EBFA7EC611E25F"
+      },
+      {
+        "ordinal": 3,
+        "id": "standard-tail",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002FBBA5",
+        "expectedProof": "C5ACB1A9F7609614D30F9BB0422A9FD360C20CC3A8782C3F5E51331E742E4BF2"
+      },
+      {
+        "ordinal": 4,
+        "id": "run-teardown-1",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00559696",
+        "expectedProof": "624F388DB7D46CC86CD6BF99CE94E00DB81B8703436ACF0457251D468C7CC014"
+      },
+      {
+        "ordinal": 5,
+        "id": "run-teardown-2",
+        "patchKind": "REL32_CALL",
+        "rva": "0x005AB84A",
+        "expectedProof": "225A2DBBA4FC4F2818EBE434B3D1D0C8FB13E5C38F4044D73BD29A145DFC7081"
+      },
+      {
+        "ordinal": 6,
+        "id": "new-room",
+        "patchKind": "REL32_CALL",
+        "rva": "0x0033F5B9",
+        "expectedProof": "D8BB27554F24941F608D0E7A8ABBFC4DCCD20DF977F0A6767A0DD31A06F1EDC4"
+      },
+      {
+        "ordinal": 7,
+        "id": "render-owner",
+        "patchKind": "REL32_CALL",
+        "rva": "0x005312F1",
+        "expectedProof": "276B29763E816ADF7D33316D0133ED26FA1EBAD31B1B9E8E802CA623365154D6"
+      },
+      {
+        "ordinal": 8,
+        "id": "input-manager-sample",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00554F7D",
+        "expectedProof": "DE4E3C3F56EA801473C30591BDF9E4E8992BC3A416FC8414614E38FB21B1A0D8"
+      },
+      {
+        "ordinal": 9,
+        "id": "input-device-update",
+        "patchKind": "REL32_CALL",
+        "rva": "0x0061FC97",
+        "expectedProof": "BBC6A795B08389B96C21E4BADECE537D700FD593362C84167C310597FF0AC7D2"
+      },
+      {
+        "ordinal": 10,
+        "id": "alternate-owner",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00554D5E",
+        "expectedProof": "63BE88C044601B1B541207D59E1038F74420CB876EE61055429F043AC9062064"
+      },
+      {
+        "ordinal": 11,
+        "id": "alternate-room",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00559B4D",
+        "expectedProof": "5A6317509E8A299606C04D1A67E73F5D75C1EE17DDAA96264CB5885913B979DD"
+      },
+      {
+        "ordinal": 12,
+        "id": "alternate-tail",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00559B82",
+        "expectedProof": "270390A5765B415CBFF256CFEDA6C274F380AB7A4269654EA6A83A478CE10D82"
+      },
+      {
+        "ordinal": 13,
+        "id": "standard-predicate",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002FADFA",
+        "expectedProof": "7C7B40D32A237D5C88B3ACB1391E5DE2C5949F85CF3AE00432C0D842A3A259D9"
+      },
+      {
+        "ordinal": 14,
+        "id": "standard-body",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002FAE09",
+        "expectedProof": "E0B9EA5DD0ECDFC2CA46A8BF2C475016A20FC23B181DB081D7707DDE78F176C5"
+      },
+      {
+        "ordinal": 15,
+        "id": "standard-room-authority",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002FBA4D",
+        "expectedProof": "2AE938BCA119EE7F31FE7DBF8E2FCA841C601911E70FE0AF048F481C31FF6FDD"
+      },
+      {
+        "ordinal": 16,
+        "id": "entity-list",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00403E70",
+        "expectedProof": "A33E0F5A728B14E15BE1919F228AB7824105E41E52B1608671021FCB72CEEBA1"
+      },
+      {
+        "ordinal": 17,
+        "id": "alternate-state-apply",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00559B21",
+        "expectedProof": "B9F56BD9B953588ED719A92AB686AC6D47B243DDE7866C73ECA25E6B2FC5E78C"
+      },
+      {
+        "ordinal": 18,
+        "id": "alternate-outcome-0",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002F580B",
+        "expectedProof": "B581B3029837826D0B84066207821543EC2081F7F7B6A068B5F791CF8F36D567"
+      },
+      {
+        "ordinal": 19,
+        "id": "alternate-outcome-1",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002F61FF",
+        "expectedProof": "1DD9223A075502FB0B84B4BBB6B233248B8D4D49F4E2F31C57D2A754E2EDB6AD"
+      },
+      {
+        "ordinal": 20,
+        "id": "alternate-outcome-2",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002F72C9",
+        "expectedProof": "DECBCFB9BBCD949078641B95190B54B6AF0E22594267A0C9D60C4B685C95A227"
+      },
+      {
+        "ordinal": 21,
+        "id": "alternate-outcome-3",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002F7721",
+        "expectedProof": "F1404C8BC83A345A219242B3F8A36EA8C2C77CE5EB1C8D04AC292E8165C00122"
+      },
+      {
+        "ordinal": 22,
+        "id": "alternate-outcome-4",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002F7A10",
+        "expectedProof": "76035D33DAC790939977F6479B0A83D51D13533E1ECB5A0A817DFFD4E0822C98"
+      },
+      {
+        "ordinal": 23,
+        "id": "standard-room-lifecycle-owner",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002FB4F0",
+        "expectedProof": "7553F5D62E97A67071350BF682B157829791FD2785FB88891F53F10D7EC5CFA1"
+      },
+      {
+        "ordinal": 24,
+        "id": "standard-room-lifecycle-simulation",
+        "patchKind": "REL32_CALL",
+        "rva": "0x0052FC77",
+        "expectedProof": "416F2A6727DB3B2B2B68E854CE8B437D3EAD742FE0B01C827DBB98C10F0A197E"
+      },
+      {
+        "ordinal": 25,
+        "id": "room-change-owner",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002FB51C",
+        "expectedProof": "F6E0D8DAA8FBAE239114F3D7CBC23D4C33EC4546F0AB4DAAE5DFDAC0F12D171D"
+      },
+      {
+        "ordinal": 26,
+        "id": "room-change-simulation",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002FE37C",
+        "expectedProof": "019F2AD5588AF8CBCCEE4AD09D8641AD47C0D9B243EFDDA3C4ADFF9C9DAE7746"
+      },
+      {
+        "ordinal": 27,
+        "id": "keyboard-physical-poll",
+        "patchKind": "IMAGE_POINTER",
+        "rva": "0x007A16F0",
+        "expectedProof": "FC5DB8DC4C1DABCB4E4065FE7323D853CBBD5A518F3C8B12B8B40F5F9CF0573C"
+      },
+      {
+        "ordinal": 28,
+        "id": "gamepad-physical-poll",
+        "patchKind": "IMAGE_POINTER",
+        "rva": "0x00782CF8",
+        "expectedProof": "F8143C1D83393B1E916CED835328189553787E3535F895736A71D9C47F3CFB24"
+      },
+      {
+        "ordinal": 29,
+        "id": "peek-message",
+        "patchKind": "IMPORT_POINTER",
+        "rva": "0x00718714",
+        "expectedProof": "6049EFA0B5CE6570B278CE898404BD0D6304647BD76EACA2CFD463D831DD71EC"
+      },
+      {
+        "ordinal": 30,
+        "id": "translate-message",
+        "patchKind": "IMPORT_POINTER",
+        "rva": "0x00718650",
+        "expectedProof": "E1ED2D5A702EEB78FD8EC35233DF68D936E221AA403A54F62131E7D01DD248EA"
+      },
+      {
+        "ordinal": 31,
+        "id": "dispatch-message",
+        "patchKind": "IMPORT_POINTER",
+        "rva": "0x007185B8",
+        "expectedProof": "D68BD89219DE66CE8F394077C0F2834AEFC9418DE8EEF4715AE227CDF2932131"
+      },
+      {
+        "ordinal": 32,
+        "id": "keyboard-logical-pressed",
+        "patchKind": "IMAGE_POINTER",
+        "rva": "0x007A16A8",
+        "expectedProof": "5E342A58545008F6C3DC4E0D2E5CC0126845844F2CD209D801C40E5E54F8D347"
+      },
+      {
+        "ordinal": 33,
+        "id": "keyboard-logical-triggered",
+        "patchKind": "IMAGE_POINTER",
+        "rva": "0x007A16AC",
+        "expectedProof": "6A257B7EF6E4AF7A5C53BE2330B0BC8AB06210D41E9625B87963FB143F33DD11"
+      },
+      {
+        "ordinal": 34,
+        "id": "keyboard-logical-scalar",
+        "patchKind": "IMAGE_POINTER",
+        "rva": "0x007A16B0",
+        "expectedProof": "DDDAED4787CE503BAD43F0D213DDF44B503087E3A9E0B7A632E6930178771C11"
+      },
+      {
+        "ordinal": 35,
+        "id": "gamepad-logical-pressed",
+        "patchKind": "IMAGE_POINTER",
+        "rva": "0x00782CB0",
+        "expectedProof": "CAF2F1477A24DB4EE0253205201D46C85643C36BE20717CE179795B67E2DCF43"
+      },
+      {
+        "ordinal": 36,
+        "id": "gamepad-logical-triggered",
+        "patchKind": "IMAGE_POINTER",
+        "rva": "0x00782CB4",
+        "expectedProof": "D8308BA882200C5F630D303A71A291C2916CD69371CF4EC9E182F1970E5AB6A9"
+      },
+      {
+        "ordinal": 37,
+        "id": "gamepad-logical-scalar",
+        "patchKind": "IMAGE_POINTER",
+        "rva": "0x00782CB8",
+        "expectedProof": "3CA921A9747C9BCA5D5F6BDE9E30690A9FEC9B583A14373B7A6D0110EC974DA0"
+      },
+      {
+        "ordinal": 38,
+        "id": "player-update-owner",
+        "patchKind": "IMAGE_POINTER",
+        "rva": "0x0076BDDC",
+        "expectedProof": "5FEA2E2832E6841A0923A6E948981C9A99E069C44F959AAAFA4B7E67FA29FB56"
+      },
+      {
+        "ordinal": 39,
+        "id": "player-movement-consumer",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00385BC2",
+        "expectedProof": "3185D3365EB89A61CADCDB6BFDB8EA51606BC0FA3494ECE0B49357B3C375C70A"
+      },
+      {
+        "ordinal": 40,
+        "id": "player-bomb-consumer",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00385BC9",
+        "expectedProof": "B2902D8BCB59B22639F3BCEA48F4934585C99378158A084B7131DD2E54FD8A5D"
+      },
+      {
+        "ordinal": 41,
+        "id": "player-item-slot-consumer",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00385BD2",
+        "expectedProof": "002E5058C1B5DBDD1B5DECBC8F7DB90B710F69AF4F3D6698DCF74B297E550AB7"
+      },
+      {
+        "ordinal": 42,
+        "id": "player-pill-card-consumer",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00385BD9",
+        "expectedProof": "C3C796EDF974FE2805AACAE0634FA2671A11622BCA6369931AEBA69085F7778F"
+      },
+      {
+        "ordinal": 43,
+        "id": "player-shooting-consumer",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00385BE0",
+        "expectedProof": "F8DCCF25E1EEFA4FB752C780E69A2AE371D5CBDEF9F16B0D8FBF213F2F961218"
+      },
+      {
+        "ordinal": 44,
+        "id": "player-drop-consumer",
+        "patchKind": "REL32_CALL",
+        "rva": "0x00385BE7",
+        "expectedProof": "3ECAB4BCD6435D24FE8FAFAC6CCD14CFB9D63C091678BDF69F34E81AC07A0321"
+      },
+      {
+        "ordinal": 45,
+        "id": "coop-manager-owner",
+        "patchKind": "REL32_CALL",
+        "rva": "0x002FADA7",
+        "expectedProof": "E0C9BA9886DE538358753CE92A6B6CF6E2AA47249A3FA9BE5AFFA61B61598204"
+      },
+      {
+        "ordinal": 46,
+        "id": "coop-ordinary-spawn",
+        "patchKind": "REL32_CALL",
+        "rva": "0x005BB415",
+        "expectedProof": "3656ADFD5E01AD9344D50B2024C9AED8E7A8766270CF30B17529A7BA8BC28C29"
+      },
+      {
+        "ordinal": 47,
+        "id": "coop-possessor-spawn-stop",
+        "patchKind": "REL32_CALL",
+        "rva": "0x005BAFFA",
+        "expectedProof": "CDB36BE818A75872B9AAB23AD50566815D0FA1E766F0D27352DFA4BA469B597C"
+      },
+      {
+        "ordinal": 48,
+        "id": "coop-native-exit",
+        "patchKind": "REL32_CALL",
+        "rva": "0x005BB22A",
+        "expectedProof": "D1ADDC69AB32D28ACB3121AAA2AF43F83B93D1456E8C3E5A83EF5D3AA3207B78"
+      },
+      {
+        "ordinal": 49,
+        "id": "coop-ordinary-assignment",
+        "patchKind": "REL32_CALL",
+        "rva": "0x005BB424",
+        "expectedProof": "C49DCB64328AE3F75D1C31494792298567B726B5678C4FC1EE75ABFB638ABFBB"
+      },
+      {
+        "ordinal": 50,
+        "id": "coop-possessor-assignment-stop",
+        "patchKind": "REL32_CALL",
+        "rva": "0x005BB004",
+        "expectedProof": "5AAB8342BD248E07C2A9A5FCA28EE34780AA3C75E77E16286B64E2723E58A935"
+      },
+      {
+        "ordinal": 51,
+        "id": "coop-join-hud-rebuild",
+        "patchKind": "REL32_CALL",
+        "rva": "0x005BB4FD",
+        "expectedProof": "3A15D20B2AB2BFE083EA52B21DC55558592E91BB8EA7CDF4913BD52F42F0DAED"
+      },
+      {
+        "ordinal": 52,
+        "id": "coop-exit-hud-rebuild",
+        "patchKind": "REL32_CALL",
+        "rva": "0x005BA752",
+        "expectedProof": "0D56A6CF3C34B7A69A753F08743D1D9DAEDAD99A6EF3AFD4BA0FC36CE6F3B696"
+      },
+      {
+        "ordinal": 53,
+        "id": "coop-menu-device-unassign",
+        "patchKind": "REL32_CALL",
+        "rva": "0x005B27EB",
+        "expectedBytes": "E8603CDFFF"
+      },
+      {
+        "ordinal": 54,
+        "id": "coop-prompt-device-unassign",
+        "patchKind": "REL32_CALL",
+        "rva": "0x0055B87F",
+        "expectedBytes": "E8CCABE4FF"
+      },
+      {
+        "ordinal": 55,
+        "id": "coop-existing-player-device-reassign",
+        "patchKind": "REL32_CALL",
+        "rva": "0x0055BCA0",
+        "expectedBytes": "E8ABA7E4FF"
+      }
+    ]
+  },
+  "profiles": {
+    "device": {
+      "scenario": "device-rebind-passive",
+      "sourceSchemaVersion": 2,
+      "ipcVersion": 2,
+      "slotCount": 56,
+      "mask": "0x00FFFFFFFFFFFFFF"
+    },
+    "legacy": {
+      "scenarios": [
+        "native-join-passive",
+        "native-exit-passive",
+        "death-respawn-passive",
+        "room-rebind-passive",
+        "menu-teardown-passive"
+      ],
+      "sourceSchemaVersion": 1,
+      "ipcVersion": 1,
+      "slotCount": 53,
+      "mask": "0x001FFFFFFFFFFFFF",
+      "slotPrefixUnchanged": true
+    }
+  },
+  "contract": {
+    "path": "cs-t0/coop-device-rebind-contract-v2.json",
+    "identity": "IsaacCsT0-CoopDeviceRebindContract-v2",
+    "sha256": "444141651E42886AC6DC9807D41A429A8DA89B8CB12E2855E659E6DFEA01D2E0"
+  },
+  "permissions": {
+    "passiveHookTransactionAllowed": true,
+    "activeInputAllowed": false,
+    "inputMutationAllowed": false,
+    "worldMutationAllowed": false,
+    "transportAllowed": false,
+    "schedulerAllowed": false,
+    "applyAllowed": false,
+    "modeLatchAllowed": false,
+    "originalOnlinePositiveAllowed": false,
+    "t005Unlocked": false,
+    "csT00504Unlocked": false,
+    "liveAuthorizationCreated": false
+  },
+  "staticEvidence": {
+    "path": "cs-t0/coop-device-rebind-static-evidence-v1.json",
+    "identity": "IsaacCsT0-CoopDeviceRebindStaticEvidence-v1",
+    "sha256": "57C8A805488EE28384F04EE7AD959A51B58734A1CEF7768842C39A9A1D491D53"
+  }
+}

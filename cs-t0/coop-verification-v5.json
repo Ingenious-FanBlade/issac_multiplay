@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 5,
+  "verificationIdentity": "IsaacCsT0-CoopVerification-v5",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-27T18:08:33.878Z",
+  "status": "PASS",
+  "phase": "PRE_LIVE_AUTOMATED_GATE",
+  "createNewOnly": true,
+  "supersedes": "coop-verification-v4.json",
+  "supersedesSha256": "FF667CD7F537EC335487D577AFB3989D6B0D34FF5E806EFE23AF44A22E5C31D4",
+  "staticContractComplete": true,
+  "runtimeContractComplete": true,
+  "liveEvidenceComplete": false,
+  "completedLiveSourceCount": 0,
+  "offlinePassiveFixtureCount": 6,
+  "sixSourceGateEligible": false,
+  "liveAuthorizationCreated": false,
+  "nextRequiredAuthorization": "native-join-passive",
+  "artifactBindings": [
+    {
+      "path": "out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json",
+      "identity": "IsaacCsT0-UnpackedTargetEquivalence-v1",
+      "sha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138"
+    },
+    {
+      "path": "cs-t0/coop-c0-layout-evidence-v1.json",
+      "identity": "IsaacCsT0-CoopC0LayoutEvidence-v1",
+      "sha256": "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059"
+    },
+    {
+      "path": "cs-t0/coop-static-graph-v1.json",
+      "identity": "IsaacCsT0-CoopStaticGraph-v1",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    },
+    {
+      "path": "cs-t0/coop-catalog-v3.json",
+      "identity": "IsaacCsT0-CoopCatalog-v3",
+      "sha256": "29265D6C79C1975E39223C4BCF6DD2D1580352B4E92A442C36CB3E631C309B41"
+    },
+    {
+      "path": "cs-t0/coop-plan-v5.json",
+      "identity": "IsaacCsT0-CoopPlan-v5",
+      "sha256": "0C39F82309F84EC92951787CE08E404198C5D16E7A165F6F3EDAEC1755612706"
+    },
+    {
+      "path": "cs-t0/verify-coop-passive.ps1",
+      "identity": "IsaacCsT0-CoopPassiveAutomatedGate-v1",
+      "sha256": "20CFC0EBAEEF29E15B4720B3363521107E16BD751615E31ADA5E46DEAA270542"
+    }
+  ],
+  "productionBindings": [
+    {
+      "path": "out/cs-t0/IsaacCsT0.exe",
+      "sha256": "FEB36365E551D18812F57B3DB6AF32636DE116E3DF01695268626CA7163C54E2"
+    },
+    {
+      "path": "out/cs-t0/IsaacCsT0.Native.dll",
+      "sha256": "30B942CA0F65DD8C54A0CAA28E7C32B86E695D35AC92DE30969D723823A02DA9"
+    },
+    {
+      "path": "out/cs-t0/IsaacCsT0.Helper.exe",
+      "sha256": "3170D805B6F1F2D0BDE4E4F93D38D982A71AC9F65BC9E973DF00B42F63D03972"
+    }
+  ],
+  "checks": [
+    { "id": "frozen-artifact-bindings", "passed": true },
+    { "id": "rust-test-all-targets-283", "passed": true },
+    { "id": "rust-fmt-check", "passed": true },
+    { "id": "rust-check-all-targets", "passed": true },
+    { "id": "rust-clippy-deny-warnings", "passed": true },
+    { "id": "rust-release-build", "passed": true },
+    { "id": "coop-c0-contract-9", "passed": true },
+    { "id": "passive-contract-and-mutation-7", "passed": true },
+    { "id": "legacy-native-debug-release-39", "passed": true },
+    { "id": "active-native-debug-release-262", "passed": true },
+    { "id": "passive-native-debug-release-262", "passed": true },
+    { "id": "passive-cross-language-debug-release", "passed": true },
+    { "id": "bootstrap-regression", "passed": true },
+    { "id": "static-and-c0-hash-bound-rust-regression", "passed": true },
+    { "id": "t0-04-active-build-and-test-regression", "passed": true },
+    { "id": "six-offline-passive-fixtures", "passed": true }
+  ],
+  "permissions": {
+    "passiveHookTransactionAllowed": true,
+    "passiveObservationAllowed": false,
+    "activeInputAllowed": false,
+    "inputMutationAllowed": false,
+    "worldMutationAllowed": false,
+    "runtimeMutationAllowed": false,
+    "overrideAllowed": false,
+    "transportAllowed": false,
+    "schedulerAllowed": false,
+    "applyAllowed": false,
+    "modeLatchAllowed": false,
+    "originalOnlinePositiveAllowed": false,
+    "t005Unlocked": false,
+    "csT00504Unlocked": false
+  }
+}

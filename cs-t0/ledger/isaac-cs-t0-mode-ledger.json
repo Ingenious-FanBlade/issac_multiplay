@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 2,
+  "ledgerId": "isaac-cs-t0-02-mode-isolation-2026-04-21-x86",
+  "experimentIdentity": "IsaacCsT0-ModeIsolation-v1",
+  "fixedVariant": "online-mod-patched-2026-04-21",
+  "baseline": {
+    "file": "isaac-cs-t0-target-ledger.json",
+    "ledgerId": "isaac-cs-t0-01-2026-04-21-x86",
+    "sha256": "23AB89605DCB41EC63823B4F762B32F93BEBC9BD00B7ECB7BE522ACBC3CCBE32"
+  },
+  "targets": [
+    {
+      "id": "game-global-slot",
+      "semantic": "Global game object slot used by the run lifecycle paths",
+      "kind": "absoluteReference",
+      "section": ".data",
+      "rva": "0x00871678",
+      "feature": {
+        "section": ".text",
+        "rva": "0x002FA0C0",
+        "bytes": "558BEC83EC08538B1D7816C7005657895DF880BB8A650200000F8452040000FF7508E8B9AF16008B0D9C16C7008D8924A30200E8084223008B0D9C16C7006856",
+        "maskedRanges": [
+          { "offset": 9, "length": 4 },
+          { "offset": 27, "length": 4 },
+          { "offset": 35, "length": 4 },
+          { "offset": 41, "length": 4 },
+          { "offset": 58, "length": 4 }
+        ]
+      },
+      "operandOffset": 9,
+      "abi": "void** global slot; pointee +0x2658A is an unknown lifecycle byte/word pair",
+      "thread": "UNKNOWN pending lifecycle wrapper correlation with the simulation thread",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "post-game-start-dispatcher",
+      "semantic": "Callback id 0x0F dispatcher reached by every statically enumerated game-start caller",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x00464EE0",
+      "feature": {
+        "section": ".text",
+        "rva": "0x00464EE0",
+        "bytes": "558BEC6AFF686043B00064A1000000005083EC20535657A1B493BF0033C5508D45F464A3000000008965F08B0D9016C700C745D80F000000C745DCFFFFFFFF8B",
+        "maskedRanges": [
+          { "offset": 6, "length": 4 },
+          { "offset": 24, "length": 4 },
+          { "offset": 45, "length": 4 }
+        ]
+      },
+      "expectedBytes": "558BEC6AFF686043B00064A1000000005083EC20535657A1B493BF0033C5508D45F464A3000000008965F08B0D9016C700C745D80F000000C745DCFFFFFFFF8B",
+      "abi": "void-like callee-clean dispatcher with one dword stack argument; exact typedef UNKNOWN",
+      "thread": "UNKNOWN pending comparison with the trusted simulation thread",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "pre-game-exit-dispatcher",
+      "semantic": "Callback id 0x11 dispatcher invoked once inside the run teardown owner",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x004650A0",
+      "feature": {
+        "section": ".text",
+        "rva": "0x004650A0",
+        "bytes": "558BEC6AFF68A043B00064A1000000005083EC20535657A1B493BF0033C5508D45F464A3000000008965F08B0D9016C700C745D811000000C745DCFFFFFFFF8B",
+        "maskedRanges": [
+          { "offset": 6, "length": 4 },
+          { "offset": 24, "length": 4 },
+          { "offset": 45, "length": 4 }
+        ]
+      },
+      "expectedBytes": "558BEC6AFF68A043B00064A1000000005083EC20535657A1B493BF0033C5508D45F464A3000000008965F08B0D9016C700C745D811000000C745DCFFFFFFFF8B",
+      "abi": "void-like callee-clean dispatcher with one dword stack argument; exact typedef UNKNOWN",
+      "thread": "UNKNOWN pending comparison with the trusted simulation thread",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "pre-game-exit-call",
+      "semantic": "Unique PreGameExit dispatcher call inside the run teardown function",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FA0E2",
+      "feature": {
+        "section": ".text",
+        "rva": "0x002FA0C0",
+        "bytes": "558BEC83EC08538B1D7816C7005657895DF880BB8A650200000F8452040000FF7508E8B9AF16008B",
+        "maskedRanges": [
+          { "offset": 9, "length": 4 },
+          { "offset": 27, "length": 4 },
+          { "offset": 35, "length": 4 }
+        ]
+      },
+      "expectedBytes": "E8B9AF1600",
+      "expectedTargetRva": "0x004650A0",
+      "abi": "callee-clean dispatcher call forwarding the teardown dword argument",
+      "thread": "UNKNOWN pending lifecycle smoke",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "post-game-start-call-new-1",
+      "semantic": "PostGameStart caller passing continued=0, path 1",
+      "kind": "relativeCall", "section": ".text", "rva": "0x002F580B",
+      "feature": { "section": ".text", "rva": "0x002F57FF", "bytes": "6A00C783C065020000000000E8D0F616008B4564FF70048D4564508BC8E81FEDD2FF6A14FF7564E8", "maskedRanges": [{"offset":13,"length":4},{"offset":30,"length":4}] },
+      "expectedBytes": "E8D0F61600", "expectedTargetRva": "0x00464EE0",
+      "abi": "push dword 0; call PostGameStart dispatcher", "thread": "UNKNOWN pending lifecycle smoke", "evidenceLabel": "UNKNOWN", "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "post-game-start-call-new-2",
+      "semantic": "PostGameStart caller passing continued=0, path 2",
+      "kind": "relativeCall", "section": ".text", "rva": "0x002F61FF",
+      "feature": { "section": ".text", "rva": "0x002F61F4", "bytes": "D8B30400E8A38A21006A00E8DCEC16008B4568C683E969020000C783C065020000000000FF70048D", "maskedRanges": [{"offset":5,"length":4},{"offset":13,"length":4}] },
+      "expectedBytes": "E8DCEC1600", "expectedTargetRva": "0x00464EE0",
+      "abi": "push dword 0; call PostGameStart dispatcher", "thread": "UNKNOWN pending lifecycle smoke", "evidenceLabel": "UNKNOWN", "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "post-game-start-call-new-3",
+      "semantic": "PostGameStart caller passing continued=0, path 3",
+      "kind": "relativeCall", "section": ".text", "rva": "0x002F72C9",
+      "feature": { "section": ".text", "rva": "0x002F72BE", "bytes": "743A0200E8E9E92B006A00E812DC16008B4DF464890D00000000595F5E5B8B4DEC33CDE8", "maskedRanges": [{"offset":5,"length":4},{"offset":13,"length":4}] },
+      "expectedBytes": "E812DC1600", "expectedTargetRva": "0x00464EE0",
+      "abi": "push dword 0; call PostGameStart dispatcher", "thread": "UNKNOWN pending lifecycle smoke", "evidenceLabel": "UNKNOWN", "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "post-game-start-call-continued-1",
+      "semantic": "PostGameStart caller passing continued=1, path 1",
+      "kind": "relativeCall", "section": ".text", "rva": "0x002F7721",
+      "feature": { "section": ".text", "rva": "0x002F7715", "bytes": "6A01C783C065020000000000E8BAD716008B4DF464890D00000000595F5E5B8B4DEC33CD", "maskedRanges": [{"offset":13,"length":4}] },
+      "expectedBytes": "E8BAD71600", "expectedTargetRva": "0x00464EE0",
+      "abi": "push dword 1; call PostGameStart dispatcher", "thread": "UNKNOWN pending lifecycle smoke", "evidenceLabel": "UNKNOWN", "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "post-game-start-call-new-4",
+      "semantic": "PostGameStart caller passing continued=0, path 4",
+      "kind": "relativeCall", "section": ".text", "rva": "0x002F7A10",
+      "feature": { "section": ".text", "rva": "0x002F7A05", "bytes": "A8BA0100E8F2452C006A00E8CBD416008B552883FA10722E8B4D14428BC181FA0010000072168B49", "maskedRanges": [{"offset":5,"length":4},{"offset":13,"length":4}] },
+      "expectedBytes": "E8CBD41600", "expectedTargetRva": "0x00464EE0",
+      "abi": "push dword 0; call PostGameStart dispatcher", "thread": "UNKNOWN pending lifecycle smoke", "evidenceLabel": "UNKNOWN", "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "post-game-start-call-continued-2",
+      "semantic": "PostGameStart caller passing continued=1, path 2",
+      "kind": "relativeCall", "section": ".text", "rva": "0x00559B82",
+      "feature": { "section": ".text", "rva": "0x00559B76", "bytes": "6A01C787C065020000000000E859B3F0FFC687E969020000E91801000080BB32B10400000F848200", "maskedRanges": [{"offset":13,"length":4}] },
+      "expectedBytes": "E859B3F0FF", "expectedTargetRva": "0x00464EE0",
+      "abi": "push dword 1; call PostGameStart dispatcher", "thread": "UNKNOWN pending lifecycle smoke", "evidenceLabel": "UNKNOWN", "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "run-teardown-entry",
+      "semantic": "Run teardown convergence point that calls PreGameExit before cleanup and clears active state before return",
+      "kind": "signature", "section": ".text", "rva": "0x002FA0C0",
+      "feature": { "section": ".text", "rva": "0x002FA0C0", "bytes": "558BEC83EC08538B1D7816C7005657895DF880BB8A650200000F8452040000FF7508E8B9AF16008B0D9C16C7008D8924A30200E8084223008B0D9C16C7006856", "maskedRanges": [{"offset":9,"length":4},{"offset":27,"length":4},{"offset":35,"length":4},{"offset":41,"length":4},{"offset":58,"length":4}] },
+      "expectedBytes": "558BEC83EC08538B1D7816C7005657895DF880BB8A650200000F8452040000FF7508E8B9AF16008B0D9C16C7008D8924A30200E8084223008B0D9C16C7006856",
+      "abi": "void-like __stdcall(uint32_t) convergence function; ret 4", "thread": "UNKNOWN pending lifecycle smoke", "evidenceLabel": "UNKNOWN", "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "run-teardown-call-state",
+      "semantic": "State-object caller of the run teardown convergence point",
+      "kind": "relativeCall", "section": ".text", "rva": "0x00559696",
+      "feature": { "section": ".text", "rva": "0x00559684", "bytes": "8B0D7816C70085C9744E0FB68684B2040050E8250ADAFFC68685B2040000F30F108634A30200", "maskedRanges": [{"offset":2,"length":4},{"offset":9,"length":1},{"offset":19,"length":4}] },
+      "expectedBytes": "E8250ADAFF", "expectedTargetRva": "0x002FA0C0",
+      "abi": "push zero-extended byte argument; call __stdcall teardown", "thread": "UNKNOWN pending menu-return smoke", "evidenceLabel": "UNKNOWN", "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "run-teardown-call-shutdown",
+      "semantic": "Global shutdown caller of the run teardown convergence point",
+      "kind": "relativeCall", "section": ".text", "rva": "0x005AB84A",
+      "feature": { "section": ".text", "rva": "0x005AB83C", "bytes": "8B359C16C700837E0802750D6A01E871E8D4FF8B359C16C7008B3D202AC70085FF7425", "maskedRanges": [{"offset":2,"length":4},{"offset":11,"length":1},{"offset":15,"length":4},{"offset":21,"length":4},{"offset":27,"length":4},{"offset":34,"length":1}] },
+      "expectedBytes": "E871E8D4FF", "expectedTargetRva": "0x002FA0C0",
+      "abi": "push dword 1; call __stdcall teardown", "thread": "UNKNOWN pending normal shutdown smoke", "evidenceLabel": "UNKNOWN", "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    }
+  ],
+  "signals": [
+    {
+      "id": "original-online-manager-identity",
+      "classification": "ORIGINAL_ONLINE",
+      "targetIds": ["manager-global-slot", "input-advance-call"],
+      "rule": "frame wrapper self must equal *(module+0x87169C)+0x4B3D8 for two observations",
+      "minimumObservations": 2,
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": ["docs/custom-sync-runtime-analysis.md:35", "docs/custom-sync-runtime-analysis.md:47"]
+    },
+    {
+      "id": "original-online-stable-peer-roster",
+      "classification": "ORIGINAL_ONLINE",
+      "targetIds": ["manager-global-slot", "input-advance-call"],
+      "rule": "sync-manager device vector contains the same 2-4 distinct nonzero identities for two observations",
+      "minimumObservations": 2,
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": ["docs/custom-sync-runtime-analysis.md:155", "native/src/runtime_roster.cpp"]
+    },
+    {
+      "id": "original-online-channel-zero",
+      "classification": "ORIGINAL_ONLINE",
+      "targetIds": ["steam-networking-context-descriptor", "steam-backend-vtable", "network-backend-global-slot"],
+      "rule": "saved SteamNetworking006 Send, Available or Read original is invoked with channel 0",
+      "minimumObservations": 1,
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": ["docs/custom-sync-runtime-analysis.md:55", "docs/custom-sync-runtime-analysis.md:60"]
+    },
+    {
+      "id": "offline-gameplay-callback",
+      "classification": "OFFLINE_POSITIVE",
+      "targetIds": ["lua-simulation-pcall"],
+      "rule": "the exact lua_pcallk callsite returning to RVA 0x4729D1 executes 60 times on one thread",
+      "minimumObservations": 60,
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": ["docs/custom-sync-runtime-analysis.md:45", "docs/refactor/isaac-cs-t0-task-plan.md:197"]
+    },
+    {
+      "id": "offline-lua-generation",
+      "classification": "OFFLINE_POSITIVE",
+      "targetIds": ["lua-newstate-creator-call", "lua-lnewstate-creator-call", "lua-simulation-pcall"],
+      "rule": "a nonzero Lua root token is bound before the offline callback stability window",
+      "minimumObservations": 1,
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": ["docs/lua-state-lifecycle-design.md:40", "docs/refactor/isaac-cs-t0-task-plan.md:217"]
+    },
+    {
+      "id": "generation-retirement",
+      "classification": "LIFECYCLE",
+      "targetIds": ["manager-global-slot", "input-advance-call", "lua-close-call", "game-global-slot", "post-game-start-dispatcher", "run-teardown-entry", "run-teardown-call-state", "run-teardown-call-shutdown"],
+      "rule": "lua_close, the runtime-observed PostGameStart/run-teardown active transition, manager identity replacement or frame regression retires the current token; only the lifecycle transition has established the offline new-run boundary",
+      "minimumObservations": 1,
+      "evidenceLabel": "RUNTIME_OBSERVED",
+      "evidenceSources": ["docs/refactor/isaac-cs-architecture-plan.md:185", "docs/refactor/isaac-cs-t0-task-plan.md:217", "cs-t0/mode-isolation.md", "artifacts/cs-t0/20260819T060151Z-t0-02-c1-offline-lifecycle-fixed-solo/analyzer.json"]
+    },
+    {
+      "id": "offline-run-boundary-manager-rebuild",
+      "classification": "LIFECYCLE",
+      "targetIds": ["manager-global-slot", "lua-simulation-pcall"],
+      "rule": "rejected: the current manager identity and Lua root both remained stable across menu return and a second offline run",
+      "minimumObservations": 1,
+      "evidenceLabel": "REJECTED_HYPOTHESIS",
+      "evidenceSources": ["cs-t0/mode-isolation.md"]
+    },
+    {
+      "id": "offline-run-lifecycle-candidate",
+      "classification": "LIFECYCLE",
+      "targetIds": [
+        "game-global-slot",
+        "post-game-start-dispatcher",
+        "pre-game-exit-dispatcher",
+        "pre-game-exit-call",
+        "post-game-start-call-new-1",
+        "post-game-start-call-new-2",
+        "post-game-start-call-new-3",
+        "post-game-start-call-continued-1",
+        "post-game-start-call-new-4",
+        "post-game-start-call-continued-2",
+        "run-teardown-entry",
+        "run-teardown-call-state",
+        "run-teardown-call-shutdown"
+      ],
+      "rule": "runtime observed in offline C1: PostGameStart with argument 0 and active low byte 1 establishes a run boundary; teardown with the same game object and active word 0 retires it",
+      "minimumObservations": 2,
+      "evidenceLabel": "RUNTIME_OBSERVED",
+      "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md", "artifacts/cs-t0/20260819T060151Z-t0-02-c1-offline-lifecycle-fixed-solo/analyzer.json", "artifacts/cs-t0/20260819T060151Z-t0-02-c1-offline-lifecycle-fixed-solo/mode-comparison.json"]
+    }
+  ],
+  "wrappers": [
+    {
+      "id": "frame-ready-wrapper",
+      "patchKind": "relativeCall",
+      "targetIds": ["input-advance-call"],
+      "runtimeImport": null,
+      "runtimeOwner": "isaac-ng.exe",
+      "abi": "bool (__thiscall*)(void*) via x86 __fastcall wrapper",
+      "thread": "first observed simulation thread; any change retires",
+      "originalCallsRequired": 1,
+      "mutatesArguments": false,
+      "evidenceSources": ["docs/custom-sync-runtime-analysis.md:113"]
+    },
+    {
+      "id": "online-dispatch-wrapper",
+      "patchKind": "relativeCall",
+      "targetIds": ["online-dispatch-call-5110ab"],
+      "runtimeImport": null,
+      "runtimeOwner": "isaac-ng.exe",
+      "abi": "uint32_t (__thiscall*)(void*, uint32_t) via x86 __fastcall wrapper",
+      "thread": "same simulation thread as frame wrapper",
+      "originalCallsRequired": 1,
+      "mutatesArguments": false,
+      "evidenceSources": ["docs/custom-sync-runtime-analysis.md:12"]
+    },
+    {
+      "id": "lua-lifecycle-wrapper",
+      "patchKind": "iat",
+      "targetIds": ["lua-newstate-creator-call", "lua-lnewstate-creator-call", "lua-close-call", "lua-simulation-pcall"],
+      "runtimeImport": "lua_newstate|luaL_newstate|lua_close|lua_pcallk",
+      "runtimeOwner": "Lua5.3.3r.dll",
+      "abi": "exact imported Lua 5.3 C ABI",
+      "thread": "creation/close observed; simulation pcall must match main thread",
+      "originalCallsRequired": 1,
+      "mutatesArguments": false,
+      "evidenceSources": ["docs/lua-state-lifecycle-design.md:40"]
+    },
+    {
+      "id": "steam-context-wrapper",
+      "patchKind": "iat",
+      "targetIds": ["steam-networking-context-descriptor"],
+      "runtimeImport": "SteamInternal_ContextInit",
+      "runtimeOwner": "steam_api.dll",
+      "abi": "void* (__cdecl*)(void*)",
+      "thread": "Steam context initialization thread",
+      "originalCallsRequired": 1,
+      "mutatesArguments": false,
+      "evidenceSources": ["docs/custom-sync-runtime-analysis.md:55"]
+    },
+    {
+      "id": "steam-networking006-wrapper",
+      "patchKind": "vtable",
+      "targetIds": ["steam-backend-vtable", "network-backend-global-slot"],
+      "runtimeImport": null,
+      "runtimeOwner": "steamclient.dll",
+      "abi": "SteamNetworking006 slots 0=SendP2PPacket, 1=IsP2PPacketAvailable, 2=ReadP2PPacket",
+      "thread": "network call thread is recorded; no game object access from a foreign thread",
+      "originalCallsRequired": 1,
+      "mutatesArguments": false,
+      "evidenceSources": ["docs/custom-sync-runtime-analysis.md:55", "docs/custom-sync-runtime-analysis.md:67"]
+    },
+    {
+      "id": "post-game-start-wrapper",
+      "patchKind": "relativeCall",
+      "targetIds": ["post-game-start-call-new-1", "post-game-start-call-new-2", "post-game-start-call-new-3", "post-game-start-call-continued-1", "post-game-start-call-new-4", "post-game-start-call-continued-2"],
+      "runtimeImport": null,
+      "runtimeOwner": "isaac-ng.exe",
+      "abi": "void-like __stdcall(uint32_t continued) wrapper over a shared saved dispatcher",
+      "thread": "candidate lifecycle thread; analyzer must prove equality with the simulation thread",
+      "originalCallsRequired": 1,
+      "mutatesArguments": false,
+      "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    },
+    {
+      "id": "run-teardown-wrapper",
+      "patchKind": "relativeCall",
+      "targetIds": ["run-teardown-call-state", "run-teardown-call-shutdown"],
+      "runtimeImport": null,
+      "runtimeOwner": "isaac-ng.exe",
+      "abi": "void-like __stdcall(uint32_t exitArgument) wrapper over a shared saved teardown",
+      "thread": "candidate lifecycle thread; analyzer must prove equality with the simulation thread",
+      "originalCallsRequired": 1,
+      "mutatesArguments": false,
+      "evidenceSources": ["cs-t0/lifecycle-candidate-evidence.md"]
+    }
+  ],
+  "conflicts": [
+    {"id": "wrong-thread", "action": "RETIRE_AND_DISARM", "reason": "simulation wrapper thread changed"},
+    {"id": "manager-changed", "action": "RETIRE_AND_DISARM", "reason": "manager identity changed within a generation"},
+    {"id": "frame-regressed", "action": "RETIRE_AND_DISARM", "reason": "online frame regressed"},
+    {"id": "lua-close", "action": "RETIRE_AND_DISARM", "reason": "bound Lua root closed"},
+    {"id": "menu-return", "action": "RETIRE_AND_DISARM", "reason": "run teardown preserved g_Game identity while active transitioned from nonzero to zero"},
+    {"id": "nonzero-original-channel", "action": "RETIRE_AND_DISARM", "reason": "observed original Steam call did not use channel zero"},
+    {"id": "custom-live-request", "action": "RETIRE_AND_DISARM", "reason": "T0-02 never arms CustomAuthority modes"}
+  ]
+}

@@ -1,0 +1,255 @@
+{
+  "schemaVersion": 2,
+  "catalogIdentity": "IsaacCsT0-CoopCatalog-v2",
+  "workPackage": "CS-T0-05-01",
+  "createdUtc": "2026-08-27T08:55:00Z",
+  "status": "STATIC_CONFIRMED",
+  "supersedes": "coop-catalog-v1.json",
+  "supersedesSha256": "206C715996B262A7A185E92652D0DC3108DC4E97553B5B7E902C620CD51E109A",
+  "createNewOnly": true,
+  "target": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedApprovedUnpackedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "equivalenceDocumentSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+    "machine": "0x014C",
+    "preferredImageBase": "0x00400000",
+    "runtimeAddressRule": "moduleBase + RVA"
+  },
+  "evidencePath": "coop-static-evidence-v1.json",
+  "evidenceSha256": "501B39DEB198E7F1424328069534438ADC73BA665D1E6988AFA4AD7939DB081B",
+  "graphPath": "coop-static-graph-v1.json",
+  "graphSha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934",
+  "candidates": [
+    {
+      "id": "local-coop-manager",
+      "resolution": "RESOLVED",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "nodeIds": ["manager-owner-call", "manager-core-forward", "manager-local-dispatch"],
+      "reason": "The standard owner route and the Victory Lap restart caller are separately classified."
+    },
+    {
+      "id": "local-coop-native-join",
+      "resolution": "RESOLVED",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "nodeIds": ["ordinary-spawn-call", "player-create", "player-vector-insert", "ordinary-assignment-call"],
+      "reason": "Ordinary create, vector publication and assignment are closed; possessor sites are stop-only."
+    },
+    {
+      "id": "local-coop-native-exit",
+      "resolution": "RESOLVED",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "nodeIds": ["native-exit-call", "player-vector-remove", "survivor-ordinal-rewrite"],
+      "reason": "Both stack slots, ret 8, erase/compaction, reindexing and stable return boundary are closed."
+    },
+    {
+      "id": "local-coop-hud-player-index",
+      "resolution": "RESOLVED",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "nodeIds": ["join-hud-rebuild-call", "exit-hud-rebuild-call", "hud-index-helper"],
+      "reason": "Join and exit rebuild calls and the ordinal helper are statically bound."
+    },
+    {
+      "id": "local-coop-lua-player-order",
+      "resolution": "RESOLVED",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "nodeIds": ["lua-player-publication", "lua-player-retirement"],
+      "reason": "GetPlayer registration, closure and main-vector ordinal lookup are closed at stable boundaries."
+    },
+    {
+      "id": "local-coop-virtual-device",
+      "resolution": "UNKNOWN",
+      "evidenceLabel": "UNKNOWN",
+      "nodeIds": [],
+      "reason": "Deferred to CS-T0-05-05; no RVA, ABI, vtable, COL or observer slot is assigned."
+    }
+  ],
+  "inheritedHookTransaction": {
+    "catalogPath": "input-active-catalog-v2.json",
+    "catalogSha256": "A89A74A251EEAA2510FC0C681247ABD6B0A31A7CC3ED60833C78EF36C9B0DC77",
+    "existingSlotCount": 45,
+    "newSlots": [
+      {
+        "ordinal": 45,
+        "id": "coop-manager-owner",
+        "nodeId": "manager-local-dispatch",
+        "owner": "RVA 0x002FA540 Player/co-op orchestration",
+        "patchKind": "CALL_REL32",
+        "rva": "0x002FADA7",
+        "width": 5,
+        "expectedBytes": "E894FE2B00",
+        "targetRva": "0x005BAC40",
+        "feature": { "section": ".text", "patternHex": "E8000000005F5E5B8BE55DC3CCCCCCCCCCCCCCCCCCCCCCCCCC558BEC6AFF", "maskHex": "FF00000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", "uniqueMatchCount": 1 },
+        "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "PlayerManager*", "registerArgs": [], "stackArgs": [], "calleeStackBytes": 0, "returnUse": "IGNORED_EAX_OPAQUE" },
+        "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+        "observationBoundary": "ENTRY_BEFORE_AND_COMPLETE_RETURN_AFTER",
+        "positiveProofEligible": true,
+        "eventKinds": ["MANAGER_PASS_BEGIN", "MANAGER_PASS_END", "ONLINE_GUARD_SKIP"]
+      },
+      {
+        "ordinal": 46,
+        "id": "coop-ordinary-spawn",
+        "nodeId": "ordinary-spawn-call",
+        "owner": "RVA 0x005BAC40 standard join branch",
+        "patchKind": "CALL_REL32",
+        "rva": "0x005BB415",
+        "width": 5,
+        "expectedBytes": "E8B6E8FFFF",
+        "targetRva": "0x005B9CD0",
+        "feature": { "section": ".text", "patternHex": "E8000000006A01FF73008BC8", "maskHex": "FF00000000FFFFFFFF00FFFF", "uniqueMatchCount": 1 },
+        "abi": { "callingConvention": "THISCALL_X86", "returnType": "Entity_Player*", "thisType": "PlayerManager*", "registerArgs": [], "stackArgs": ["int32 ePlayerType"], "calleeStackBytes": 4, "returnUse": "REQUIRED_NON_NULL_PLAYER" },
+        "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+        "observationBoundary": "ENTRY_BEFORE_AND_COMPLETE_RETURN_AFTER",
+        "positiveProofEligible": true,
+        "eventKinds": ["ORDINARY_SPAWN_BEGIN", "ORDINARY_SPAWN_END"]
+      },
+      {
+        "ordinal": 47,
+        "id": "coop-possessor-spawn-stop",
+        "nodeId": "possessor-spawn-stop",
+        "owner": "RVA 0x005BAC40 possessor branch",
+        "patchKind": "CALL_REL32",
+        "rva": "0x005BAFFA",
+        "width": 5,
+        "expectedBytes": "E8D1ECFFFF",
+        "targetRva": "0x005B9CD0",
+        "feature": { "section": ".text", "patternHex": "E8000000006A01568BC8E800000000C745", "maskHex": "FF00000000FFFFFFFFFFFF00000000FFFF", "uniqueMatchCount": 1 },
+        "abi": { "callingConvention": "THISCALL_X86", "returnType": "Entity_Player*", "thisType": "PlayerManager*", "registerArgs": [], "stackArgs": ["int32 ePlayerType=-1"], "calleeStackBytes": 4, "returnUse": "STOP_ONLY" },
+        "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+        "observationBoundary": "STOP_ON_ENTRY",
+        "positiveProofEligible": false,
+        "eventKinds": ["POSSESSOR_SPAWN_STOP"]
+      },
+      {
+        "ordinal": 48,
+        "id": "coop-native-exit",
+        "nodeId": "native-exit-call",
+        "owner": "RVA 0x005BAC40 local exit branch",
+        "patchKind": "CALL_REL32",
+        "rva": "0x005BB22A",
+        "width": 5,
+        "expectedBytes": "E8D1EDFFFF",
+        "targetRva": "0x005BA000",
+        "feature": { "section": ".text", "patternHex": "E800000000C74500000000008B4D0085C974008B018B4000FFD084C07400A10000000085C074008D4D0051FFD083C4048B5D", "maskHex": "FF00000000FFFF0000000000FFFF00FFFFFF00FFFFFFFF00FFFFFFFFFF00FF00000000FFFFFF00FFFF00FFFFFFFFFFFFFFFF", "uniqueMatchCount": 1 },
+        "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "PlayerManager*", "registerArgs": [], "stackArgs": ["Entity_Player* player", "uint32 ABI_PADDING_UNUSED"], "calleeStackBytes": 8, "returnUse": "IGNORED" },
+        "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+        "observationBoundary": "ENTRY_BEFORE_AND_COMPLETE_FUNCTION_RETURN_AFTER",
+        "positiveProofEligible": true,
+        "eventKinds": ["EXIT_BEGIN", "EXIT_RETURN_STABLE"]
+      },
+      {
+        "ordinal": 49,
+        "id": "coop-ordinary-assignment",
+        "nodeId": "ordinary-assignment-call",
+        "owner": "RVA 0x005BAC40 standard join continuation",
+        "patchKind": "CALL_REL32",
+        "rva": "0x005BB424",
+        "width": 5,
+        "expectedBytes": "E827B0DEFF",
+        "targetRva": "0x003A6450",
+        "feature": { "section": ".text", "patternHex": "E8000000008B35000000008B86000000008B8E000000002BC1C1F80285C0750068BCE6B7006A10E8000000008B8E0000000083C4088B01", "maskHex": "FF00000000FFFF00000000FFFF00000000FFFF00000000FFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFF00000000FFFF00000000FFFFFFFFFF", "uniqueMatchCount": 1 },
+        "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "Entity_Player*", "registerArgs": [], "stackArgs": ["int32 controllerId", "uint32 propagate=1"], "calleeStackBytes": 8, "returnUse": "IGNORED_EAX_OPAQUE" },
+        "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+        "observationBoundary": "ENTRY_BEFORE_AND_COMPLETE_RETURN_AFTER",
+        "positiveProofEligible": true,
+        "eventKinds": ["ORDINARY_ASSIGNMENT_BEGIN", "ORDINARY_ASSIGNMENT_END"]
+      },
+      {
+        "ordinal": 50,
+        "id": "coop-possessor-assignment-stop",
+        "nodeId": "possessor-assignment-stop",
+        "owner": "RVA 0x005BAC40 possessor continuation",
+        "patchKind": "CALL_REL32",
+        "rva": "0x005BB004",
+        "width": 5,
+        "expectedBytes": "E847B4DEFF",
+        "targetRva": "0x003A6450",
+        "feature": { "section": ".text", "patternHex": "E800000000C7450000000000E90000000084D2", "maskHex": "FF00000000FFFF0000000000FF00000000FFFF", "uniqueMatchCount": 1 },
+        "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "Entity_Player*", "registerArgs": [], "stackArgs": ["int32 controllerId", "uint32 propagate=1"], "calleeStackBytes": 8, "returnUse": "STOP_ONLY" },
+        "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+        "observationBoundary": "STOP_ON_ENTRY",
+        "positiveProofEligible": false,
+        "eventKinds": ["POSSESSOR_ASSIGNMENT_STOP"]
+      },
+      {
+        "ordinal": 51,
+        "id": "coop-join-hud-rebuild",
+        "nodeId": "join-hud-rebuild-call",
+        "owner": "RVA 0x005BAC40 standard join finalization",
+        "patchKind": "CALL_REL32",
+        "rva": "0x005BB4FD",
+        "width": 5,
+        "expectedBytes": "E81ED1FEFF",
+        "targetRva": "0x005A8620",
+        "feature": { "section": ".text", "patternHex": "E8000000008BCEE800000000C786", "maskHex": "FF00000000FFFFFF00000000FFFF", "uniqueMatchCount": 1 },
+        "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "HUD*", "registerArgs": [], "stackArgs": [], "calleeStackBytes": 0, "returnUse": "IGNORED_EAX_VOLATILE" },
+        "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+        "observationBoundary": "ENTRY_BEFORE_AND_COMPLETE_RETURN_AFTER",
+        "positiveProofEligible": true,
+        "eventKinds": ["JOIN_HUD_REBUILD_BEGIN", "JOIN_HUD_REBUILD_END"]
+      },
+      {
+        "ordinal": 52,
+        "id": "coop-exit-hud-rebuild",
+        "nodeId": "exit-hud-rebuild-call",
+        "owner": "RVA 0x005BA000 exit HUD finalization",
+        "patchKind": "CALL_REL32",
+        "rva": "0x005BA752",
+        "width": 5,
+        "expectedBytes": "E8C9DEFEFF",
+        "targetRva": "0x005A8620",
+        "feature": { "section": ".text", "patternHex": "E80000000033D233F633DB", "maskHex": "FF00000000FFFFFFFFFFFF", "uniqueMatchCount": 1 },
+        "abi": { "callingConvention": "THISCALL_X86", "returnType": "void", "thisType": "HUD*", "registerArgs": [], "stackArgs": [], "calleeStackBytes": 0, "returnUse": "IGNORED_EAX_VOLATILE" },
+        "threadConstraint": "MAIN_THREAD_RUNTIME_INHERITED",
+        "observationBoundary": "CALL_RETURN_THEN_COMPLETE_EXIT_RETURN",
+        "positiveProofEligible": true,
+        "eventKinds": ["EXIT_HUD_REBUILD_BEGIN", "EXIT_HUD_REBUILD_END"]
+      }
+    ],
+    "combinedSlotCount": 53,
+    "installOrder": [
+      "coop-manager-owner",
+      "coop-ordinary-spawn",
+      "coop-possessor-spawn-stop",
+      "coop-native-exit",
+      "coop-ordinary-assignment",
+      "coop-possessor-assignment-stop",
+      "coop-join-hud-rebuild",
+      "coop-exit-hud-rebuild"
+    ],
+    "restoreOrder": [
+      "coop-exit-hud-rebuild",
+      "coop-join-hud-rebuild",
+      "coop-possessor-assignment-stop",
+      "coop-ordinary-assignment",
+      "coop-native-exit",
+      "coop-possessor-spawn-stop",
+      "coop-ordinary-spawn",
+      "coop-manager-owner"
+    ],
+    "singleInstallRollbackRestoreOwnerRequired": true
+  },
+  "excludedObservations": [
+    {
+      "id": "rva-554f84-controller-assignment-candidate",
+      "evidenceLabel": "UNKNOWN",
+      "rva": null,
+      "abi": null,
+      "reason": "Excluded from positive routes and observer slots until independently closed."
+    },
+    {
+      "id": "virtual-device",
+      "evidenceLabel": "UNKNOWN",
+      "rva": null,
+      "abi": null,
+      "reason": "Deferred to CS-T0-05-05."
+    }
+  ],
+  "permissions": {
+    "activeInputAllowed": false,
+    "liveAuthorizationCreated": false,
+    "runtimeMutationAllowed": false,
+    "productionActiveInputAllowed": false,
+    "t005Unlocked": false,
+    "csT00502Unlocked": true
+  }
+}

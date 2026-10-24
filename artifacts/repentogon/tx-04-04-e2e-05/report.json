@@ -1,0 +1,224 @@
+{
+  "automatic_retry": false,
+  "cases": {
+    "E7": {
+      "detail": {
+        "crash_changes": [],
+        "first_third_slots": "byte changes fail; source may be REPENTOGON synchronization",
+        "intervals": [
+          {
+            "after": "save_mid",
+            "before": "save_before",
+            "changes": [
+              {
+                "after": {
+                  "exists": true,
+                  "modified_ns": "1792827215084664300",
+                  "size": 132
+                },
+                "allowed": true,
+                "before": {
+                  "exists": true,
+                  "modified_ns": "1792826945992371200",
+                  "size": 132
+                },
+                "bytes_changed": false,
+                "path": "documents/Repentogon/imgui.ini",
+                "possible_source": "timestamp only; identical bytes"
+              },
+              {
+                "after": {
+                  "exists": true,
+                  "modified_ns": "1792827295743925200",
+                  "size": 694
+                },
+                "allowed": true,
+                "before": {
+                  "exists": true,
+                  "modified_ns": "1792827026774183000",
+                  "size": 694
+                },
+                "bytes_changed": false,
+                "path": "documents/Repentogon/options.ini",
+                "possible_source": "timestamp only; identical bytes"
+              },
+              {
+                "after": {
+                  "exists": true,
+                  "modified_ns": "1792827295744926400",
+                  "size": 1103
+                },
+                "allowed": true,
+                "before": {
+                  "exists": true,
+                  "modified_ns": "1792827026780693100",
+                  "size": 1103
+                },
+                "bytes_changed": false,
+                "path": "documents/Repentogon/vanilla_options.ini",
+                "possible_source": "timestamp only; identical bytes"
+              },
+              {
+                "after": {
+                  "exists": true,
+                  "modified_ns": "1792827295792742300",
+                  "size": 6678
+                },
+                "allowed": true,
+                "before": {
+                  "exists": true,
+                  "modified_ns": "1792827026830237300",
+                  "size": 6731
+                },
+                "bytes_changed": true,
+                "path": "documents/log.txt",
+                "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+              },
+              {
+                "after": {
+                  "exists": true,
+                  "modified_ns": "1792827295744926400",
+                  "size": 995
+                },
+                "allowed": true,
+                "before": {
+                  "exists": true,
+                  "modified_ns": "1792827026779689300",
+                  "size": 995
+                },
+                "bytes_changed": false,
+                "path": "documents/options.ini",
+                "possible_source": "timestamp only; identical bytes"
+              },
+              {
+                "after": {
+                  "exists": true,
+                  "modified_ns": "1792827295760949900",
+                  "size": 188
+                },
+                "allowed": true,
+                "before": {
+                  "exists": true,
+                  "modified_ns": "1792827026796702300",
+                  "size": 188
+                },
+                "bytes_changed": false,
+                "path": "steam_remote/387111160/rgon_savesyncstatus.json",
+                "possible_source": "timestamp only; identical bytes"
+              }
+            ],
+            "launch": "enabled"
+          },
+          {
+            "after": "save_after",
+            "before": "save_mid",
+            "changes": [],
+            "launch": "disabled_or_cleanup"
+          }
+        ],
+        "normal_exits": false,
+        "repentogon_log_ok": false
+      },
+      "pass": false
+    }
+  },
+  "cleanup_error": null,
+  "crash_before": {},
+  "crash_changes": [],
+  "environment": {
+    "architecture": "i686",
+    "game": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth",
+    "game_running": false,
+    "installed_version_excerpt": "v1.1.3 -\nAdded:\n* ModCallbacks:\n\t- MC_PRE/POST_PLAYERHUD_RENDER_INVENTORY(EntityPlayer, Vector pos, float Scale)\n\t- MC_PRE/POST_PLAYERHUD_RENDER_POOP_SPELL_QUEUE(EntityPlayer, Vector pos, float Scale)\n\t- MC_PRE/POST_PLAYERHUD_RENDER_CRAFTING_TABLE(EntityPlayer, Vector pos, float Scale)\n\t- MC_POST_USE_ITEM(CollectibleType, RNG, EntityPlayer, UseFlags, ActiveSlot, int CustomVarData, bool Discharge, bool Remove)\n\t\tBetter callback for AFTER an active item is used, since MC_USE_ITEM runs earlier, is ",
+    "launcher": "[General]\r\nIsaacExecutable = F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe\r\nRanWizard = 1\r\nHideWindow = 1\r\nStealthMode = 0\r\n[Repentogon]\r\nConsole = 0\r\nUpdate = 0\r\nUnstableUpdates = 0\r\nSkipUpdateMods = 0\r\nSkipWaitModDownloads = 0\r\n[Vanilla]\r\nLuaHeapSize = 1024M\r\nLuaDebug = 0\r\n[Shared]\r\nLaunchMode = 1\r\n",
+    "mods": [
+      {
+        "directory": "better character menu_835236871",
+        "enabled": false
+      },
+      {
+        "directory": "console for online",
+        "enabled": false
+      },
+      {
+        "directory": "external item descriptions_836319872",
+        "enabled": false
+      },
+      {
+        "directory": "goodtrip-controller-input-test",
+        "enabled": false
+      },
+      {
+        "directory": "goodtripfixed for online_3780987561",
+        "enabled": false
+      },
+      {
+        "directory": "goodtrip_1630477831",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-cs-t0-input-witness",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-cs-ui",
+        "enabled": true
+      },
+      {
+        "directory": "isaac-cs-world-e2e",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-k-to-treasure-room",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-k-toggle-debug-10",
+        "enabled": false
+      },
+      {
+        "directory": "isaacscript-watcher",
+        "enabled": false
+      },
+      {
+        "directory": "isaac_socket_3033763718",
+        "enabled": false
+      },
+      {
+        "directory": "repentogonreleasesbackup_3643104060",
+        "enabled": true
+      },
+      {
+        "directory": "specialistforgooditems_2575911103",
+        "enabled": false
+      },
+      {
+        "directory": "the bingo of isaac!_3555711630",
+        "enabled": false
+      },
+      {
+        "directory": "timemachine_2617557401",
+        "enabled": false
+      }
+    ],
+    "pe_timestamp": "0x68154D8D",
+    "save_roots": {
+      "documents": "C:\\Users\\114514\\Documents/My Games/Binding of Isaac Repentance+",
+      "steam_remote": [
+        {
+          "account": "387111160",
+          "path": "D:\\steam\\userdata\\387111160\\250900\\remote"
+        }
+      ]
+    },
+    "save_slot": 2,
+    "steam_running": true
+  },
+  "failure": "startup menu timeout after 90s: {\"calls\": \"25640\", \"capability.control\": \"1\", \"capability.device\": \"1\", \"capability.input\": \"1\", \"capability.join\": \"1\", \"capability.loop\": \"1\", \"capability.player\": \"1\", \"context_faults\": \"0\", \"foreign\": \"0\", \"frame\": \"5128\", \"g_game\": \"1\", \"last_error\": \"\", \"manager_starting\": \"0\", \"menu_id\": \"-1\", \"ok\": \"1\", \"pointers\": \"8\", \"queue_dropped\": \"0\", \"reason.control\": \"\", \"reason.device\": \"\", \"reason.input\": \"\", \"reason.join\": \"\", \"reason.loop\": \"\", \"reason.player\": \"\", \"registered\": \"27\", \"run_active\": \"0\", \"selected_save\": \"-1\", \"state\": \"Idle\", \"status_version\": \"1\", \"trace\": \"isaac-cs/traces/boot-35116.jsonl\", \"trace_dropped\": \"0\"}",
+  "failure_close": {
+    "error": null,
+    "exit_code": 0
+  },
+  "pass": false,
+  "tx": "tx-04-04"
+}

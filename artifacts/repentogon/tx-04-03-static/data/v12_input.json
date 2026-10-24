@@ -1,0 +1,310 @@
+{
+ "poll_calls": [
+  [
+   "0x5EC98A",
+   "call    eax",
+   "0x5EC98C",
+   "test    al, al"
+  ],
+  [
+   "0x5EC9A3",
+   "call    dword ptr [eax+48h]",
+   "0x5EC9A6",
+   "movss   xmm1, dword ptr [edi+0D4h]"
+  ],
+  [
+   "0x5ECA00",
+   "call    dword ptr [eax+48h]",
+   "0x5ECA03",
+   "movss   xmm1, dword ptr [edi+0D4h]"
+  ],
+  [
+   "0x5ECA66",
+   "call    eax",
+   "0x5ECA68",
+   "cmp     eax, 0FFFFFFFFh"
+  ],
+  [
+   "0x5ECB2F",
+   "call    dword ptr [eax+90h]",
+   "0x5ECB35",
+   "call    esi ; __imp_timeGetTime"
+  ],
+  [
+   "0x5ECB67",
+   "call    dword ptr [eax+90h]",
+   "0x5ECB6D",
+   "pop     edi"
+  ]
+ ],
+ "common_update_head": [
+  [
+   "0x5EC900",
+   "push    ebx"
+  ],
+  [
+   "0x5EC901",
+   "mov     ebx, esp"
+  ],
+  [
+   "0x5EC903",
+   "sub     esp, 8"
+  ],
+  [
+   "0x5EC906",
+   "and     esp, 0FFFFFFF8h"
+  ],
+  [
+   "0x5EC909",
+   "add     esp, 4"
+  ],
+  [
+   "0x5EC90C",
+   "push    ebp"
+  ],
+  [
+   "0x5EC90D",
+   "mov     ebp, [ebx+4]"
+  ],
+  [
+   "0x5EC910",
+   "mov     [esp+0Ch+var_8], ebp"
+  ],
+  [
+   "0x5EC914",
+   "mov     ebp, esp"
+  ],
+  [
+   "0x5EC916",
+   "sub     esp, 10h"
+  ],
+  [
+   "0x5EC919",
+   "push    esi"
+  ],
+  [
+   "0x5EC91A",
+   "push    edi"
+  ],
+  [
+   "0x5EC91B",
+   "mov     edi, ecx"
+  ],
+  [
+   "0x5EC91D",
+   "mov     eax, [edi+28h]"
+  ],
+  [
+   "0x5EC920",
+   "mov     edx, [edi+2Ch]"
+  ],
+  [
+   "0x5EC923",
+   "mov     [edi+30h], eax"
+  ],
+  [
+   "0x5EC926",
+   "mov     eax, [edi+38h]"
+  ],
+  [
+   "0x5EC929",
+   "mov     [edi+40h], eax"
+  ],
+  [
+   "0x5EC92C",
+   "mov     eax, [edi+18h]"
+  ],
+  [
+   "0x5EC92F",
+   "shl     eax, 2"
+  ],
+  [
+   "0x5EC932",
+   "push    eax; Size"
+  ],
+  [
+   "0x5EC933",
+   "push    dword ptr [edi+0C8h]; Src"
+  ],
+  [
+   "0x5EC939",
+   "mov     [edi+34h], edx"
+  ],
+  [
+   "0x5EC93C",
+   "mov     edx, [edi+3Ch]"
+  ],
+  [
+   "0x5EC93F",
+   "push    dword ptr [edi+0CCh]; void *"
+  ],
+  [
+   "0x5EC945",
+   "mov     [edi+44h], edx"
+  ],
+  [
+   "0x5EC948",
+   "call    memcpy"
+  ],
+  [
+   "0x5EC94D",
+   "mov     eax, [edi+18h]"
+  ],
+  [
+   "0x5EC950",
+   "shl     eax, 2"
+  ],
+  [
+   "0x5EC953",
+   "push    eax; Size"
+  ],
+  [
+   "0x5EC954",
+   "push    0; Val"
+  ],
+  [
+   "0x5EC956",
+   "push    dword ptr [edi+0C8h]; void *"
+  ],
+  [
+   "0x5EC95C",
+   "mov     dword ptr [edi+28h], 0"
+  ],
+  [
+   "0x5EC963",
+   "mov     dword ptr [edi+2Ch], 0"
+  ],
+  [
+   "0x5EC96A",
+   "mov     dword ptr [edi+38h], 0"
+  ],
+  [
+   "0x5EC971",
+   "mov     dword ptr [edi+3Ch], 0"
+  ],
+  [
+   "0x5EC978",
+   "call    memset"
+  ],
+  [
+   "0x5EC97D",
+   "mov     eax, [edi]"
+  ],
+  [
+   "0x5EC97F",
+   "add     esp, 18h"
+  ],
+  [
+   "0x5EC982",
+   "mov     ecx, edi"
+  ]
+ ],
+ "common_update_callers": [
+  [
+   "0x5EDD22",
+   "0x5EDCC0"
+  ]
+ ],
+ "operator_new": [
+  "??2@YAPAXI@Z",
+  "0x686DE5"
+ ],
+ "alloc_sim": 0.467,
+ "v17_alloc_pattern": "55 8B EC 83 E4 F8 6A 00 FF 75 08 33 D2 32 C9 E8 ?? ?? ?? ?? 83 C4 08 8B E5 5D C3",
+ "opnew_bytes": "55 8b ec eb 0d ff 75 08 e8 7f 12 00 00 59 85 c0 74 0f ff 75 08 e8 60 12",
+ "initialize_refs": [],
+ "initialize_dec": [
+  "char __thiscall sub_9EC6A0(unsigned int *this, int a2)",
+  "{",
+  "  unsigned int v3; // edx",
+  "  unsigned int v4; // ecx",
+  "  unsigned int v5; // edi",
+  "  unsigned int v6; // ebx",
+  "  unsigned int v7; // eax",
+  "  unsigned int i_1; // eax",
+  "  unsigned int i; // edi",
+  "",
+  "  v3 = 0;",
+  "  v4 = 0;",
+  "  v5 = this[5];",
+  "  this[6] = 0;",
+  "  if ( v5 )",
+  "  {",
+  "    v6 = this[4];",
+  "    v7 = 0;",
+  "    do",
+  "    {",
+  "      v3 = *(_DWORD *)(v6 + 8 * v4);",
+  "      if ( v3 <= v7 )",
+  "      {",
+  "        v3 = this[6];",
+  "      }",
+  "      else",
+  "      {",
+  "        v7 = *(_DWORD *)(v6 + 8 * v4);",
+  "        this[6] = v3;",
+  "      }",
+  "      ++v4;",
+  "    }",
+  "    while ( v4 < v5 );",
+  "  }",
+  "  this[6] = v3 + 1;",
+  "  this[7] = unknown_libname_8((unsigned __int64)(v3 + 1) >> 30 != 0 ? -1 : 4 * (v3 + 1));",
+  "  i_1 = this[6];",
+  "  for ( i = 0; i < i_1; i_1 = this[6] )",
+  "    *(_DWORD *)(this[7] + 4 * i++) = unknown_libname_8(8);",
+  "  this[50] = unknown_libname_8((unsigned __int64)i_1 >> 30 != 0 ? -1 : 4 * i_1);",
+  "  this[51] = unknown_libname_8((unsigned __int64)this[6] >> 30 != 0 ? -1 : 4 * this[6]);",
+  "  memset((void *)this[50], 0, 4 * this[6]);",
+  "  memset((void *)this[51], 0, 4 * this[6]);",
+  "  memset(this + 18, 0, 0x80u);",
+  "  memset(this + 54, 0, 0x304u);"
+ ],
+ "kbpoll_refs": [
+  [
+   "0x633DD9",
+   "0x7CE4A5",
+   "cmp     byte ptr word_BCE4A4+1, 0"
+  ],
+  [
+   "0x633DE6",
+   "0x7E6B08",
+   "mov     esi, offset src"
+  ],
+  [
+   "0x633DF8",
+   "0x7E6DC8",
+   "mov     edi, offset dst"
+  ],
+  [
+   "0x633E25",
+   "0x7E6C68",
+   "mov     esi, offset src_0"
+  ],
+  [
+   "0x633E32",
+   "0x7E6B08",
+   "mov     edi, offset src"
+  ],
+  [
+   "0x633E50",
+   "0x7AE270",
+   "mov     ecx, dword_BAE270; ArgList"
+  ],
+  [
+   "0x633E66",
+   "0x7E65A5",
+   "cmp     byte_BE65A5, 0"
+  ],
+  [
+   "0x633E70",
+   "0x7AE270",
+   "mov     eax, dword_BAE270"
+  ],
+  [
+   "0x634041",
+   "0x7CE4A5",
+   "cmp     byte ptr word_BCE4A4+1, 0"
+  ]
+ ]
+}

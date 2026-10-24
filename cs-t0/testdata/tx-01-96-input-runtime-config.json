@@ -1,0 +1,1118 @@
+{
+  "tx": "tx-01-96",
+  "operation": "T0-07 operation 7 CLI/manifest to Native runtime input configuration",
+  "policy": {
+    "ranges": {
+      "input_lead_ticks": [
+        1,
+        256
+      ],
+      "future_window_ticks": [
+        1,
+        256
+      ],
+      "max_input_age_ticks": [
+        0,
+        0
+      ],
+      "script_drain_budget": [
+        1,
+        256
+      ],
+      "admission_attempt_budget": [
+        6,
+        4096
+      ]
+    },
+    "admission_minimum": "2 + 4 * script_drain_budget",
+    "mapping_version": 5,
+    "freeze": "before_hook_publication_and_active"
+  },
+  "rust_cases": [
+    {
+      "name": "defaults",
+      "expect_exit": 0,
+      "expect": {
+        "schemaVersion": 1,
+        "mappingVersion": 5,
+        "freeze": "before_hook_publication_and_active",
+        "effective.input_lead_ticks": 2,
+        "effective.future_window_ticks": 64,
+        "effective.max_input_age_ticks": 0,
+        "effective.script_drain_budget": 64,
+        "effective.admission_attempt_budget": 258,
+        "source.input_lead_ticks": "default",
+        "source.future_window_ticks": "default",
+        "source.max_input_age_ticks": "default",
+        "source.script_drain_budget": "default",
+        "source.admission_attempt_budget": "default",
+        "support.input_lead_ticks.maximum": 256,
+        "support.future_window_ticks.maximum": 256,
+        "support.max_input_age_ticks.only": 0,
+        "support.script_drain_budget.maximum": 256,
+        "support.admission_attempt_budget.maximum": 4096
+      }
+    },
+    {
+      "name": "nondefault-manifest",
+      "manifest": {
+        "schema_version": 1,
+        "input_lead_ticks": 3,
+        "future_window_ticks": 32,
+        "max_input_age_ticks": 0,
+        "script_drain_budget": 8,
+        "admission_attempt_budget": 64
+      },
+      "expect_exit": 0,
+      "expect": {
+        "schemaVersion": 1,
+        "mappingVersion": 5,
+        "effective.input_lead_ticks": 3,
+        "effective.future_window_ticks": 32,
+        "effective.max_input_age_ticks": 0,
+        "effective.script_drain_budget": 8,
+        "effective.admission_attempt_budget": 64,
+        "source.input_lead_ticks": "manifest",
+        "source.future_window_ticks": "manifest",
+        "source.max_input_age_ticks": "manifest",
+        "source.script_drain_budget": "manifest",
+        "source.admission_attempt_budget": "manifest"
+      }
+    },
+    {
+      "name": "tiny-manifest",
+      "manifest": {
+        "schema_version": 1,
+        "input_lead_ticks": 1,
+        "future_window_ticks": 1,
+        "max_input_age_ticks": 0,
+        "script_drain_budget": 1,
+        "admission_attempt_budget": 6
+      },
+      "expect_exit": 0,
+      "expect": {
+        "mappingVersion": 5,
+        "effective.input_lead_ticks": 1,
+        "effective.future_window_ticks": 1,
+        "effective.max_input_age_ticks": 0,
+        "effective.script_drain_budget": 1,
+        "effective.admission_attempt_budget": 6,
+        "source.input_lead_ticks": "manifest",
+        "source.future_window_ticks": "manifest",
+        "source.max_input_age_ticks": "manifest",
+        "source.script_drain_budget": "manifest",
+        "source.admission_attempt_budget": "manifest"
+      }
+    },
+    {
+      "name": "cli-override",
+      "cli": [
+        "--input-lead-ticks",
+        "4",
+        "--future-window-ticks",
+        "48",
+        "--max-input-age-ticks",
+        "0",
+        "--script-drain-budget",
+        "16",
+        "--admission-attempt-budget",
+        "128"
+      ],
+      "expect_exit": 0,
+      "expect": {
+        "mappingVersion": 5,
+        "effective.input_lead_ticks": 4,
+        "effective.future_window_ticks": 48,
+        "effective.max_input_age_ticks": 0,
+        "effective.script_drain_budget": 16,
+        "effective.admission_attempt_budget": 128,
+        "source.input_lead_ticks": "cli",
+        "source.future_window_ticks": "cli",
+        "source.max_input_age_ticks": "cli",
+        "source.script_drain_budget": "cli",
+        "source.admission_attempt_budget": "cli"
+      }
+    },
+    {
+      "name": "unknown-field",
+      "manifest": {
+        "schema_version": 1,
+        "bogus": 1
+      },
+      "expect_exit": 2,
+      "stderr_contains": [
+        "unknown field"
+      ]
+    },
+    {
+      "name": "lead-exceeds-window",
+      "manifest": {
+        "input_lead_ticks": 65,
+        "future_window_ticks": 64
+      },
+      "expect_exit": 2,
+      "stderr_contains": [
+        "input_lead_ticks must not exceed future_window_ticks"
+      ]
+    },
+    {
+      "name": "future-out-of-range",
+      "manifest": {
+        "future_window_ticks": 257
+      },
+      "expect_exit": 2,
+      "stderr_contains": [
+        "future_window_ticks must be in 1..=256"
+      ]
+    },
+    {
+      "name": "script-out-of-range",
+      "manifest": {
+        "script_drain_budget": 257
+      },
+      "expect_exit": 2,
+      "stderr_contains": [
+        "script_drain_budget must be in 1..=256"
+      ]
+    },
+    {
+      "name": "max-age-unsupported",
+      "manifest": {
+        "max_input_age_ticks": 1
+      },
+      "expect_exit": 2,
+      "stderr_contains": [
+        "max_input_age_ticks supports only 0"
+      ]
+    },
+    {
+      "name": "admission-too-small",
+      "manifest": {
+        "script_drain_budget": 1,
+        "admission_attempt_budget": 5
+      },
+      "expect_exit": 2,
+      "stderr_contains": [
+        "admission_attempt_budget must be at least"
+      ]
+    },
+    {
+      "name": "admission-too-large",
+      "manifest": {
+        "script_drain_budget": 1,
+        "admission_attempt_budget": 4097
+      },
+      "expect_exit": 2,
+      "stderr_contains": [
+        "admission_attempt_budget must be at most 4096"
+      ]
+    },
+    {
+      "name": "conflict",
+      "manifest": {
+        "input_lead_ticks": 3
+      },
+      "cli": [
+        "--input-lead-ticks",
+        "4"
+      ],
+      "expect_exit": 2,
+      "stderr_contains": [
+        "conflict",
+        "input_lead_ticks"
+      ]
+    },
+    {
+      "name": "manifest-bad-type",
+      "manifest": {
+        "input_lead_ticks": "three"
+      },
+      "expect_exit": 2,
+      "stderr_contains": [
+        "invalid type"
+      ]
+    },
+    {
+      "name": "schema-version-invalid",
+      "manifest": {
+        "schema_version": 2
+      },
+      "expect_exit": 2,
+      "stderr_contains": [
+        "schema_version must be 1"
+      ]
+    },
+    {
+      "name": "cli-bad-integer",
+      "cli": [
+        "--script-drain-budget",
+        "abc"
+      ],
+      "expect_exit": 2,
+      "stderr_contains": [
+        "requires an unsigned decimal integer"
+      ]
+    },
+    {
+      "name": "maxima-manifest",
+      "manifest": {
+        "schema_version": 1,
+        "input_lead_ticks": 256,
+        "future_window_ticks": 256,
+        "max_input_age_ticks": 0,
+        "script_drain_budget": 256,
+        "admission_attempt_budget": 4096
+      },
+      "expect_exit": 0,
+      "expect": {
+        "mappingVersion": 5,
+        "effective.input_lead_ticks": 256,
+        "effective.future_window_ticks": 256,
+        "effective.max_input_age_ticks": 0,
+        "effective.script_drain_budget": 256,
+        "effective.admission_attempt_budget": 4096,
+        "source.input_lead_ticks": "manifest",
+        "source.future_window_ticks": "manifest",
+        "source.max_input_age_ticks": "manifest",
+        "source.script_drain_budget": "manifest",
+        "source.admission_attempt_budget": "manifest"
+      }
+    },
+    {
+      "name": "unknown-cli",
+      "cli": [
+        "--bogus-field",
+        "1"
+      ],
+      "expect_exit": 2,
+      "stderr_contains": [
+        "unknown option",
+        "--bogus-field"
+      ]
+    },
+    {
+      "name": "duplicate-cli",
+      "cli": [
+        "--input-lead-ticks",
+        "3",
+        "--input-lead-ticks",
+        "4"
+      ],
+      "expect_exit": 2,
+      "stderr_contains": [
+        "duplicate option",
+        "--input-lead-ticks"
+      ]
+    },
+    {
+      "name": "null-field",
+      "manifest": {
+        "input_lead_ticks": null
+      },
+      "expect_exit": 2,
+      "stderr_contains": [
+        "field `input_lead_ticks` cannot be null"
+      ]
+    },
+    {
+      "name": "null-schema",
+      "manifest": {
+        "schema_version": null
+      },
+      "expect_exit": 2,
+      "stderr_contains": [
+        "field `schema_version` cannot be null"
+      ]
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "validation-matrix",
+      "initial_tick": 0,
+      "config_case": "defaults",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true,
+            "session": "Warmup"
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "validate 2 64 0 64 258 1 48 0",
+          "expect": {
+            "ok": true,
+            "validate_decision": "Accepted"
+          }
+        },
+        {
+          "command": "validate 2 64 0 64 258 2 48 0",
+          "expect": {
+            "ok": false,
+            "validate_decision": "InvalidConfigVersion"
+          }
+        },
+        {
+          "command": "validate 2 64 0 64 258 1 47 0",
+          "expect": {
+            "ok": false,
+            "validate_decision": "InvalidConfigSize"
+          }
+        },
+        {
+          "command": "validate 2 64 0 64 258 1 48 1",
+          "expect": {
+            "ok": false,
+            "validate_decision": "ConfigReservedNonzero"
+          }
+        },
+        {
+          "command": "validate 0 64 0 64 258 1 48 0",
+          "expect": {
+            "ok": false,
+            "validate_decision": "LeadOutOfRange"
+          }
+        },
+        {
+          "command": "validate 2 257 0 64 258 1 48 0",
+          "expect": {
+            "ok": false,
+            "validate_decision": "FutureWindowOutOfRange"
+          }
+        },
+        {
+          "command": "validate 65 64 0 64 258 1 48 0",
+          "expect": {
+            "ok": false,
+            "validate_decision": "LeadExceedsFutureWindow"
+          }
+        },
+        {
+          "command": "validate 2 64 1 64 258 1 48 0",
+          "expect": {
+            "ok": false,
+            "validate_decision": "MaxInputAgeUnsupported"
+          }
+        },
+        {
+          "command": "validate 2 64 0 0 258 1 48 0",
+          "expect": {
+            "ok": false,
+            "validate_decision": "ScriptBudgetOutOfRange"
+          }
+        },
+        {
+          "command": "validate 2 64 0 257 4096 1 48 0",
+          "expect": {
+            "ok": false,
+            "validate_decision": "ScriptBudgetOutOfRange"
+          }
+        },
+        {
+          "command": "validate 2 64 0 1 5 1 48 0",
+          "expect": {
+            "ok": false,
+            "validate_decision": "AdmissionBudgetBelowMinimum"
+          }
+        },
+        {
+          "command": "validate 2 64 0 1 4097 1 48 0",
+          "expect": {
+            "ok": false,
+            "validate_decision": "AdmissionBudgetOutOfRange"
+          }
+        },
+        {
+          "command": "validate 2 64 0 1 6 1 48 0",
+          "expect": {
+            "ok": true,
+            "validate_decision": "Accepted"
+          }
+        },
+        {
+          "command": "validate 3 32 0 8 64 1 48 0",
+          "expect": {
+            "ok": true,
+            "validate_decision": "Accepted"
+          }
+        },
+        {
+          "command": "validate 256 256 0 256 4096 1 48 0",
+          "expect": {
+            "ok": true,
+            "validate_decision": "Accepted"
+          }
+        }
+      ]
+    },
+    {
+      "name": "runtime-default",
+      "initial_tick": 0,
+      "config_case": "defaults",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true,
+            "effective_config.input_lead_ticks": "2",
+            "effective_config.future_window_ticks": "64",
+            "effective_config.max_input_age_ticks": "0",
+            "effective_config.script_drain_budget": 64,
+            "effective_config.admission_attempt_budget": 258,
+            "clock_future": "64",
+            "pipeline_budget": 258,
+            "config_ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active",
+            "future_first_tick": "1",
+            "future_last_tick": "64",
+            "future_window_valid": true
+          }
+        },
+        {
+          "command": "next-target 0",
+          "expect": {
+            "ok": true,
+            "next_target_valid": true,
+            "next_target": "2"
+          }
+        },
+        {
+          "command": "next-startup 0",
+          "expect": {
+            "ok": true,
+            "next_target": "1"
+          }
+        },
+        {
+          "command": "next-startup 18446744073709551615",
+          "expect": {
+            "ok": false,
+            "next_target": "0"
+          }
+        },
+        {
+          "command": "script-limit 63",
+          "expect": {
+            "ok": true,
+            "script_allowed": true
+          }
+        },
+        {
+          "command": "script-limit 64",
+          "expect": {
+            "ok": false,
+            "script_allowed": false
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 64 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "remote 1 2 65 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "TooFar"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "session": "Active"
+          }
+        }
+      ]
+    },
+    {
+      "name": "runtime-nondefault",
+      "initial_tick": 0,
+      "config_case": "nondefault-manifest",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true,
+            "effective_config.input_lead_ticks": "3",
+            "effective_config.future_window_ticks": "32",
+            "effective_config.max_input_age_ticks": "0",
+            "effective_config.script_drain_budget": 8,
+            "effective_config.admission_attempt_budget": 64,
+            "clock_future": "32",
+            "pipeline_budget": 64,
+            "config_ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active",
+            "future_first_tick": "1",
+            "future_last_tick": "32",
+            "future_window_valid": true
+          }
+        },
+        {
+          "command": "reconfigure",
+          "expect": {
+            "ok": true,
+            "reconfigure_rejected": true
+          }
+        },
+        {
+          "command": "next-target 0",
+          "expect": {
+            "ok": true,
+            "next_target": "3"
+          }
+        },
+        {
+          "command": "next-startup 0",
+          "expect": {
+            "ok": true,
+            "next_target": "1"
+          }
+        },
+        {
+          "command": "next-target 18446744073709551615",
+          "expect": {
+            "ok": false,
+            "next_target": "0"
+          }
+        },
+        {
+          "command": "next-startup 18446744073709551615",
+          "expect": {
+            "ok": false,
+            "next_target": "0"
+          }
+        },
+        {
+          "command": "script-limit 7",
+          "expect": {
+            "ok": true,
+            "script_allowed": true
+          }
+        },
+        {
+          "command": "script-limit 8",
+          "expect": {
+            "ok": false,
+            "script_allowed": false
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 32 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "remote 1 2 33 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "TooFar"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "session": "Active"
+          }
+        },
+        {
+          "command": "reconfigure",
+          "expect": {
+            "ok": true,
+            "reconfigure_rejected": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "budget-tiny",
+      "initial_tick": 0,
+      "config_case": "tiny-manifest",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true,
+            "effective_config.input_lead_ticks": "1",
+            "effective_config.future_window_ticks": "1",
+            "effective_config.max_input_age_ticks": "0",
+            "effective_config.script_drain_budget": 1,
+            "effective_config.admission_attempt_budget": 6,
+            "clock_future": "1",
+            "pipeline_budget": 6,
+            "config_ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active",
+            "future_first_tick": "1",
+            "future_last_tick": "1",
+            "future_window_valid": true
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining",
+            "completed": "0",
+            "drained": 0,
+            "pipeline_budget": 6
+          }
+        },
+        {
+          "command": "local 0 1 1 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "local 0 2 1 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "local 0 3 1 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "local 0 4 1 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "local 0 5 1 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "local 0 6 1 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "remaining",
+          "expect": {
+            "ok": true,
+            "remaining_attempts": 0
+          }
+        },
+        {
+          "command": "local 0 7 1 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Invalid",
+            "phase": "Failed",
+            "session": "Failed",
+            "drained": 6,
+            "pipeline_budget": 6
+          }
+        }
+      ]
+    },
+    {
+      "name": "clock-boundary-start",
+      "initial_tick": 18446744073709551582,
+      "config_case": "nondefault-manifest",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining",
+            "completed": "18446744073709551582",
+            "effective_config.input_lead_ticks": "3",
+            "effective_config.future_window_ticks": "32",
+            "effective_config.max_input_age_ticks": "0",
+            "effective_config.script_drain_budget": 8,
+            "effective_config.admission_attempt_budget": 64,
+            "clock_future": "32",
+            "pipeline_budget": 64,
+            "config_ok": true
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "18446744073709551583",
+            "body_calls": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "clock-boundary-exhaust",
+      "initial_tick": 18446744073709551583,
+      "config_case": "nondefault-manifest",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": false,
+            "decision": "Exhausted",
+            "phase": "Failed",
+            "completed": "18446744073709551583",
+            "session": "Failed",
+            "effective_config.input_lead_ticks": "3",
+            "effective_config.future_window_ticks": "32",
+            "effective_config.max_input_age_ticks": "0",
+            "effective_config.script_drain_budget": 8,
+            "effective_config.admission_attempt_budget": 64,
+            "clock_future": "32",
+            "pipeline_budget": 64,
+            "config_ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "shared-mapping",
+      "initial_tick": 0,
+      "config_case": "nondefault-manifest",
+      "steps": [
+        {
+          "command": "shared-v3",
+          "expect": {
+            "ok": true,
+            "mapping_decision": "Accepted",
+            "mapping_config.input_lead_ticks": "2",
+            "mapping_config.future_window_ticks": "64",
+            "mapping_config.max_input_age_ticks": "0",
+            "mapping_config.script_drain_budget": 64,
+            "mapping_config.admission_attempt_budget": 258
+          }
+        },
+        {
+          "command": "shared-v4",
+          "expect": {
+            "ok": true,
+            "mapping_decision": "Accepted",
+            "mapping_config.input_lead_ticks": "2",
+            "mapping_config.future_window_ticks": "64",
+            "mapping_config.max_input_age_ticks": "0",
+            "mapping_config.script_drain_budget": 64,
+            "mapping_config.admission_attempt_budget": 258
+          }
+        },
+        {
+          "command": "shared-v5",
+          "expect": {
+            "ok": true,
+            "mapping_decision": "Accepted",
+            "mapping_config.input_lead_ticks": "3",
+            "mapping_config.future_window_ticks": "32",
+            "mapping_config.max_input_age_ticks": "0",
+            "mapping_config.script_drain_budget": 8,
+            "mapping_config.admission_attempt_budget": 64
+          }
+        },
+        {
+          "command": "shared-v5-invalid",
+          "expect": {
+            "ok": false,
+            "mapping_decision": "MaxInputAgeUnsupported"
+          }
+        },
+        {
+          "command": "shared-wrong-size",
+          "expect": {
+            "ok": false,
+            "mapping_decision": "InvalidMappingSize"
+          }
+        },
+        {
+          "command": "shared-wrong-version",
+          "expect": {
+            "ok": false,
+            "mapping_decision": "InvalidMappingVersion"
+          }
+        },
+        {
+          "command": "config-event",
+          "expect": {
+            "ok": true,
+            "event_kind": 36,
+            "event_lead": "3",
+            "event_future": "32",
+            "event_max_age": "0",
+            "event_script": 8,
+            "event_admission": 64,
+            "event_mapping": 5,
+            "event_config_version": 1,
+            "event_boolean": 1,
+            "event_before0": 1,
+            "event_before1": 48
+          }
+        },
+        {
+          "command": "status",
+          "expect": {
+            "ok": true,
+            "effective_config.input_lead_ticks": "3",
+            "effective_config.future_window_ticks": "32",
+            "effective_config.max_input_age_ticks": "0",
+            "effective_config.script_drain_budget": 8,
+            "effective_config.admission_attempt_budget": 64,
+            "clock_future": "32",
+            "pipeline_budget": 64,
+            "config_ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "runtime-maxima",
+      "initial_tick": 0,
+      "config_case": "maxima-manifest",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true,
+            "effective_config.input_lead_ticks": "256",
+            "effective_config.future_window_ticks": "256",
+            "effective_config.max_input_age_ticks": "0",
+            "effective_config.script_drain_budget": 256,
+            "effective_config.admission_attempt_budget": 4096,
+            "clock_future": "256",
+            "pipeline_budget": 4096,
+            "config_ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active",
+            "future_first_tick": "1",
+            "future_last_tick": "256",
+            "future_window_valid": true
+          }
+        },
+        {
+          "command": "next-target 0",
+          "expect": {
+            "ok": true,
+            "next_target": "256"
+          }
+        },
+        {
+          "command": "next-startup 0",
+          "expect": {
+            "ok": true,
+            "next_target": "1"
+          }
+        },
+        {
+          "command": "script-limit 255",
+          "expect": {
+            "ok": true,
+            "script_allowed": true
+          }
+        },
+        {
+          "command": "script-limit 256",
+          "expect": {
+            "ok": false,
+            "script_allowed": false
+          }
+        },
+        {
+          "command": "begin normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 256 0 0 0 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "remote 1 2 257 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "TooFar"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "session": "Active"
+          }
+        }
+      ]
+    },
+    {
+      "name": "shared-defaults",
+      "initial_tick": 0,
+      "config_case": "defaults",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true,
+            "effective_config.input_lead_ticks": "2",
+            "effective_config.future_window_ticks": "64",
+            "effective_config.max_input_age_ticks": "0",
+            "effective_config.script_drain_budget": 64,
+            "effective_config.admission_attempt_budget": 258,
+            "clock_future": "64",
+            "pipeline_budget": 258,
+            "config_ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active",
+            "future_first_tick": "1",
+            "future_last_tick": "64",
+            "future_window_valid": true
+          }
+        },
+        {
+          "command": "shared-v3",
+          "expect": {
+            "ok": true,
+            "mapping_decision": "Accepted",
+            "mapping_config.input_lead_ticks": "2",
+            "mapping_config.future_window_ticks": "64",
+            "mapping_config.max_input_age_ticks": "0",
+            "mapping_config.script_drain_budget": 64,
+            "mapping_config.admission_attempt_budget": 258
+          }
+        },
+        {
+          "command": "shared-v4",
+          "expect": {
+            "ok": true,
+            "mapping_decision": "Accepted",
+            "mapping_config.input_lead_ticks": "2",
+            "mapping_config.future_window_ticks": "64",
+            "mapping_config.max_input_age_ticks": "0",
+            "mapping_config.script_drain_budget": 64,
+            "mapping_config.admission_attempt_budget": 258
+          }
+        },
+        {
+          "command": "status",
+          "expect": {
+            "ok": true,
+            "effective_config.input_lead_ticks": "2",
+            "effective_config.future_window_ticks": "64",
+            "effective_config.max_input_age_ticks": "0",
+            "effective_config.script_drain_budget": 64,
+            "effective_config.admission_attempt_budget": 258,
+            "clock_future": "64",
+            "pipeline_budget": 258,
+            "config_ok": true
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "tx": "tx-01-50",
+  "scene": "Fresh isolated Offline run, only A (Azazel ID 7, keyboard), no enabled TimeMachine",
+  "authorization": "Existing session operation authorization; one final acceptance after the expressly allowed source capture",
+  "steps": [
+    "Build fresh Rust/Native/helper and inject once; observe owned pair registration and native Join",
+    "A: D+RIGHT 1800 ms, A+LEFT 1800 ms, W+UP 1800 ms, S+DOWN 1800 ms, 150 ms release between steps; record actual input tool result",
+    "A: RIGHT held 2500 ms then release; observe native held/aim continuity on both simulation paths; label user-observed charging/beam separately",
+    "Replay B fixture with a fresh sequence; observe both native paths while A physical input remains independent",
+    "User kills only B and leaves A alive; wait for native Death, at least three neutral B steps and continued A/Authority",
+    "User revives B; observe native Respawn and unique same-session identity/owned pair binding; request a fresh B script and observe new input applied, old-generation rejection",
+    "User returns to main menu and leaves process running; confirm native teardown, pair absence and resident root",
+    "Stop once; restore all 48 original Hook targets, drain callbacks, leave DLL resident; produce reports from this capture only"
+  ],
+  "failures": [
+    "Ordinary odd-frame native Player update still has no Authority window",
+    "Eligible held shooting clears native aim, or a windowless native consumer clears a still-bound held aim",
+    "Duplicate Resolve, world commit, accepted sequence or consumer application, inconsistent query",
+    "Dead B accepts or applies input; stale generation/sequence applied after respawn; frozen identity changes",
+    "Native/transport error, incomplete restoration, process loss or missing resident pin"
+  ],
+  "missingScenario": "NOT_OBSERVED; never PASS by absence of errors",
+  "automaticRetry": false,
+  "hashes": "not computed"
+}

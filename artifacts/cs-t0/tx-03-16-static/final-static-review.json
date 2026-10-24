@@ -1,0 +1,670 @@
+{
+  "tx": "tx-03-16",
+  "date": "2026-10-23",
+  "timezone": "Asia/Shanghai",
+  "result": "FAIL_STATIC_DOCUMENT_REVIEW",
+  "execution": "One final unified static document review after all research, child review and edits; no other tests or experiments.",
+  "agent": {
+    "role": "Draw fields and special flags researched by child and independently reviewed by primary",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max"
+  },
+  "semantic_review": "Primary read actual animation/Lua dispatch, reset and non-reset array handling, target-frame events, layer mapping, raw track receiver, draw branches, property accessors and external rendering state; proposed a bounded frozen-pose description rather than implemented schema.",
+  "limitations": [
+    "No runtime resources, draw, pixels, leak, corruption or crash observed",
+    "Interior requests classified at actual enclosing starts; unrelated swap not used as an entry",
+    "Static anomaly paths do not prove actual runtime occurrence",
+    "Indirect targets, constructor defaults, OOM, EH, reentry and complete rendering environment remain limited",
+    "No Replica, wire schema, capture or resource/pose adapter implemented",
+    "No hash computation or verification"
+  ],
+  "checks": [
+    {
+      "name": "document:docs/research/tx-03-16-independent-sprite-display-fields.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->tx-03-16-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->tx-03-16-luna-sprite-fields.md",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->../../artifacts/cs-t0/tx-03-16-static/primary-animation-initial.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->../../artifacts/cs-t0/tx-03-16-static/primary-named-animation.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->../../artifacts/cs-t0/tx-03-16-static/primary-state-selection.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->../../artifacts/cs-t0/tx-03-16-static/primary-animation-rebind.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->../../artifacts/cs-t0/tx-03-16-static/primary-animation-binding.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->../../artifacts/cs-t0/tx-03-16-static/primary-draw-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->../../artifacts/cs-t0/tx-03-16-static/primary-property-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->../../artifacts/cs-t0/tx-03-16-static/primary-color-composition.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->../../artifacts/cs-t0/tx-03-16-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->tx-03-16-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-independent-sprite-display-fields.md->../../artifacts/cs-t0/tx-03-16-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-16-independent-sprite-display-fields.md",
+      "pass": false,
+      "detail": "Explicit VA/RVA pairs checked: 17. Fields/indices are not RVAs."
+    },
+    {
+      "name": "document:docs/research/tx-03-16-primary-review.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-primary-review.md->tx-03-16-independent-sprite-display-fields.md",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-primary-review.md->tx-03-16-luna-sprite-fields.md",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-primary-review.md->../../artifacts/cs-t0/tx-03-16-static/luna-draw-fields.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-primary-review.md->../../artifacts/cs-t0/tx-03-16-static/primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-primary-review.md->../../artifacts/cs-t0/tx-03-16-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-primary-review.md->../../artifacts/cs-t0/tx-03-16-static/luna-export-sprite-fields.py",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-primary-review.md->../../artifacts/cs-t0/tx-03-16-static/review_documents.ps1",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-primary-review.md->../../artifacts/cs-t0/tx-03-16-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-16-primary-review.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Fields/indices are not RVAs."
+    },
+    {
+      "name": "document:docs/research/tx-03-16-luna-sprite-fields.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-luna-sprite-fields.md->../../artifacts/cs-t0/tx-03-16-static/luna-draw-fields.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-luna-sprite-fields.md->../../artifacts/cs-t0/tx-03-16-static/luna-export-sprite-fields.py",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-16-luna-sprite-fields.md->../../artifacts/cs-t0/tx-03-16-static/primary-color-composition.json",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-16-luna-sprite-fields.md",
+      "pass": false,
+      "detail": "Explicit VA/RVA pairs checked: 7. Fields/indices are not RVAs."
+    },
+    {
+      "name": "document:docs/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/README.md",
+      "pass": true,
+      "detail": "Updated entry includes this tx; historical entries retained."
+    },
+    {
+      "name": "link:docs/README.md->research/tx-03-16-independent-sprite-display-fields.md",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/README.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Fields/indices are not RVAs."
+    },
+    {
+      "name": "document:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Updated entry includes this tx; historical entries retained."
+    },
+    {
+      "name": "link:docs/hooks/README.md->../research/tx-03-16-independent-sprite-display-fields.md",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Fields/indices are not RVAs."
+    },
+    {
+      "name": "document:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Updated entry includes this tx; historical entries retained."
+    },
+    {
+      "name": "link:docs/hooks/entity.md->../research/tx-03-16-independent-sprite-display-fields.md",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Fields/indices are not RVAs."
+    },
+    {
+      "name": "document:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Updated entry includes this tx; historical entries retained."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-16-independent-sprite-display-fields.md",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-16-independent-sprite-display-fields.md",
+      "pass": true,
+      "detail": "Local reference resolves; final artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Fields/indices are not RVAs."
+    },
+    {
+      "name": "json:luna-draw-fields.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:luna-draw-fields.json",
+      "pass": true,
+      "detail": "Actual function starts, instructions and child chunks have consistent VA/RVA. Interior requests are classified separately."
+    },
+    {
+      "name": "json:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "json:primary-animation-binding.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-animation-binding.json",
+      "pass": true,
+      "detail": "Actual function starts, instructions and child chunks have consistent VA/RVA. Interior requests are classified separately."
+    },
+    {
+      "name": "json:primary-animation-initial.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-animation-initial.json",
+      "pass": true,
+      "detail": "Actual function starts, instructions and child chunks have consistent VA/RVA. Interior requests are classified separately."
+    },
+    {
+      "name": "json:primary-animation-rebind.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-animation-rebind.json",
+      "pass": true,
+      "detail": "Actual function starts, instructions and child chunks have consistent VA/RVA. Interior requests are classified separately."
+    },
+    {
+      "name": "json:primary-color-composition.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-color-composition.json",
+      "pass": true,
+      "detail": "Actual function starts, instructions and child chunks have consistent VA/RVA. Interior requests are classified separately."
+    },
+    {
+      "name": "json:primary-draw-review.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-draw-review.json",
+      "pass": true,
+      "detail": "Actual function starts, instructions and child chunks have consistent VA/RVA. Interior requests are classified separately."
+    },
+    {
+      "name": "json:primary-named-animation.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-named-animation.json",
+      "pass": true,
+      "detail": "Actual function starts, instructions and child chunks have consistent VA/RVA. Interior requests are classified separately."
+    },
+    {
+      "name": "json:primary-property-review.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-property-review.json",
+      "pass": true,
+      "detail": "Actual function starts, instructions and child chunks have consistent VA/RVA. Interior requests are classified separately."
+    },
+    {
+      "name": "json:primary-state-selection.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-state-selection.json",
+      "pass": true,
+      "detail": "Actual function starts, instructions and child chunks have consistent VA/RVA. Interior requests are classified separately."
+    },
+    {
+      "name": "evidence:primary-animation-initial.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-named-animation.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-state-selection.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-animation-rebind.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-animation-binding.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-draw-review.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-property-review.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-color-composition.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:luna-draw-fields.json",
+      "pass": true,
+      "detail": "Required static evidence/acquisition record exists."
+    },
+    {
+      "name": "source:export_static.py",
+      "pass": true,
+      "detail": "Read-only extraction source supplied; not executed by this review."
+    },
+    {
+      "name": "source:luna-export-sprite-fields.py",
+      "pass": true,
+      "detail": "Read-only extraction source supplied; not executed by this review."
+    },
+    {
+      "name": "classified-interior:0x408930",
+      "pass": true,
+      "detail": "Requested internal address is not a separate callable entry. Actual enclosing function retained in raw evidence."
+    },
+    {
+      "name": "classified-interior:0x407d30",
+      "pass": true,
+      "detail": "Requested internal address is not a separate callable entry. Actual enclosing function retained in raw evidence."
+    },
+    {
+      "name": "instruction:0x40a058",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-state-selection.json."
+    },
+    {
+      "name": "instruction:0x40a05e",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-state-selection.json."
+    },
+    {
+      "name": "instruction:0x40a066",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-state-selection.json."
+    },
+    {
+      "name": "instruction:0x40a06f",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-state-selection.json."
+    },
+    {
+      "name": "instruction:0x40a6c0",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-named-animation.json."
+    },
+    {
+      "name": "instruction:0x40a6cc",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-named-animation.json."
+    },
+    {
+      "name": "instruction:0x40abdf",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-named-animation.json."
+    },
+    {
+      "name": "instruction:0x40a81f",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-named-animation.json."
+    },
+    {
+      "name": "instruction:0x40a837",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-named-animation.json."
+    },
+    {
+      "name": "instruction:0x40a84d",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-named-animation.json."
+    },
+    {
+      "name": "instruction:0x408935",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-initial.json."
+    },
+    {
+      "name": "instruction:0x40893c",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-initial.json."
+    },
+    {
+      "name": "instruction:0x408940",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-initial.json."
+    },
+    {
+      "name": "instruction:0x408947",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-initial.json."
+    },
+    {
+      "name": "instruction:0x408e81",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-initial.json."
+    },
+    {
+      "name": "instruction:0x408ec4",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-initial.json."
+    },
+    {
+      "name": "instruction:0x408ce1",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-initial.json."
+    },
+    {
+      "name": "instruction:0x408cf0",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-initial.json."
+    },
+    {
+      "name": "instruction:0x40a668",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-state-selection.json."
+    },
+    {
+      "name": "instruction:0x40a678",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-state-selection.json."
+    },
+    {
+      "name": "instruction:0x408a62",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-rebind.json."
+    },
+    {
+      "name": "instruction:0x408b2a",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-rebind.json."
+    },
+    {
+      "name": "instruction:0x408b63",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-rebind.json."
+    },
+    {
+      "name": "instruction:0x408b6a",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-animation-rebind.json."
+    },
+    {
+      "name": "instruction:0x409af0",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-draw-review.json."
+    },
+    {
+      "name": "instruction:0x409b7d",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-draw-review.json."
+    },
+    {
+      "name": "independent-function:0x409120",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x4098a0",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x409cb0",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x40a0d0",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x40a140",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x40a030",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x40a080",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x49cb40",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x456340",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x417200",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x420170",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x417210",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x43ee80",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x407410",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x4073d0",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x407420",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x435c60",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x407430",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x505b50",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x4071c0",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    },
+    {
+      "name": "independent-function:0x40c6f0",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only; no hash. Semantic review is separate."
+    }
+  ],
+  "failures": [
+    {
+      "name": "document-addresses:docs/research/tx-03-16-independent-sprite-display-fields.md",
+      "pass": false,
+      "detail": "Explicit VA/RVA pairs checked: 17. Fields/indices are not RVAs."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-16-luna-sprite-fields.md",
+      "pass": false,
+      "detail": "Explicit VA/RVA pairs checked: 7. Fields/indices are not RVAs."
+    }
+  ]
+}

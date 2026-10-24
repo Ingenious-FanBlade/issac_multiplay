@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "verificationIdentity": "IsaacCsT0-CoopVerification-v1",
+  "workPackage": "CS-T0-05-00",
+  "createdUtc": "2026-08-26T18:47:33Z",
+  "status": "BOOTSTRAP_COMPLETE_RUNTIME_NOT_STARTED",
+  "bootstrapDecision": "PASS",
+  "semanticContractComplete": false,
+  "runtimeContractComplete": false,
+  "t005Unlocked": false,
+  "csT00501Unlocked": true,
+  "artifactBindings": [
+    {
+      "path": "ledger/isaac-cs-t0-coop-ledger.json",
+      "identity": "IsaacCsT0-CoopLedger-v1",
+      "sha256": "DC2E8F5B81929B84AB281779CF3F056F96BAE5446B7F3ED2173200A52421227C"
+    },
+    {
+      "path": "coop-predecessor-binding-v1.json",
+      "identity": "IsaacCsT0-CoopPredecessorBinding-v1",
+      "sha256": "5D29826CD9E92E84D4C97C14E511066EF1FD8576B2DA5CC4639861BD9812DB90"
+    },
+    {
+      "path": "coop-catalog-v1.json",
+      "identity": "IsaacCsT0-CoopCatalog-v1",
+      "sha256": "206C715996B262A7A185E92652D0DC3108DC4E97553B5B7E902C620CD51E109A"
+    },
+    {
+      "path": "coop-plan-v1.json",
+      "identity": "IsaacCsT0-CoopPlan-v1",
+      "sha256": "112B551F666E101C1F644B48F7B6B7BCB18F2DAD74A8464574E9A04855CE59A5"
+    },
+    {
+      "path": "coop-matrix-v1.template.json",
+      "identity": "IsaacCsT0-CoopMatrix-v1",
+      "sha256": "C3BB9A97188708E9BCFE9E25E8D9DAFF37EBBA5656CEA52CEFE04F9EEE1D1100"
+    },
+    {
+      "path": "coop-hypothesis-index-v1.json",
+      "identity": "IsaacCsT0-CoopHypothesisIndex-v1",
+      "sha256": "E892F698BFE82F00516B40C6F1DC7354ABA68C7D98B78F37126E2CEB6CB5FC96"
+    }
+  ],
+  "bootstrapChecks": [
+    { "id": "predecessor-binding-count-13", "passed": true },
+    { "id": "predecessor-file-and-field-hashes-match", "passed": true },
+    { "id": "t004-final-decision-pass-and-unlocked", "passed": true },
+    { "id": "artifact-identities-unique", "passed": true },
+    { "id": "evidence-label-set-frozen", "passed": true },
+    { "id": "six-coop-candidates-unknown", "passed": true },
+    { "id": "candidate-rva-bytes-target-vtable-col-abi-slot-null", "passed": true },
+    { "id": "two-inherited-runtime-gaps-recorded", "passed": true },
+    { "id": "matrix-base-primary-20", "passed": true },
+    { "id": "matrix-repeatability-2", "passed": true },
+    { "id": "matrix-conditional-primary-2", "passed": true },
+    { "id": "repository-relative-paths-only", "passed": true },
+    { "id": "raw-peer-identity-absent", "passed": true },
+    { "id": "live-credentials-absent", "passed": true },
+    { "id": "active-input-disabled", "passed": true },
+    { "id": "t004-protected-input-hashes-unchanged", "passed": true }
+  ],
+  "deferredChecks": [
+    { "id": "coop-inspect-static-graph", "state": "NOT_RUN", "workPackage": "CS-T0-05-01" },
+    { "id": "three-mode-c0-comparison", "state": "NOT_RUN", "workPackage": "CS-T0-05-02" },
+    { "id": "passive-owner-lifecycle-mapping", "state": "NOT_RUN", "workPackage": "CS-T0-05-03" },
+    { "id": "native-join-active-proof", "state": "NOT_RUN", "workPackage": "CS-T0-05-04" },
+    { "id": "virtual-device-decision", "state": "NOT_RUN", "workPackage": "CS-T0-05-05" },
+    { "id": "dual-endpoint-isolation", "state": "NOT_RUN", "workPackage": "CS-T0-05-06" },
+    { "id": "formal-replay-and-gate", "state": "NOT_RUN", "workPackage": "CS-T0-05-07" }
+  ],
+  "permissions": {
+    "activeInputAllowed": false,
+    "runtimeMutationAllowed": false,
+    "liveAuthorizationCreated": false,
+    "productionActiveInputAllowed": false
+  }
+}

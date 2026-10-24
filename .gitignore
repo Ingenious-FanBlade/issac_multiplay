@@ -1,0 +1,19 @@
+/out/
+/build/
+/tools/harness/target/
+/.vs/
+/cs-t0/target/
+/cs-t0/vm_share/
+**/__pycache__/
+*.pyc
+*.pyo
+/artifacts/cs-t0/*
+!/artifacts/cs-t0/*-static/
+
+# E2E 存档快照的内容是用户自己的游戏数据（含崩溃转储、在线日志），不进版本管理；
+# 只保留每份快照的 snapshot.json（文件名、大小、修改时间）。对比结果在各次运行的 save-changes.json。
+/artifacts/repentogon/*/save_*/**
+!/artifacts/repentogon/*/save_*/snapshot.json
+
+# 启动失败时的整屏截图可能拍到其他窗口的内容，只留在本地，不进版本管理。
+/artifacts/repentogon/*/*/desktop.bmp

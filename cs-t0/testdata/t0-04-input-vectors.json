@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "stateSize": 24,
+  "commandSize": 64,
+  "deadZoneQ15": 4096,
+  "golden": [
+    {
+      "name": "neutral",
+      "hex": "010018000000000000000000000000000000000000000000"
+    },
+    {
+      "name": "positive-axis-and-all-edges",
+      "hex": "01001800010000000F00000001100000FF7F000000000000"
+    },
+    {
+      "name": "canonical-diagonal",
+      "hex": "0100180001000000000000007FA5815A815A7FA500000000"
+    }
+  ],
+  "mutations": [
+    {
+      "name": "unsupported-version",
+      "hex": "020018000000000000000000000000000000000000000000",
+      "error": "UnsupportedVersion"
+    },
+    {
+      "name": "wrong-declared-length",
+      "hex": "010017000000000000000000000000000000000000000000",
+      "error": "InvalidDeclaredLength"
+    },
+    {
+      "name": "unknown-held-bit",
+      "hex": "010018000200000000000000000000000000000000000000",
+      "error": "UnknownHeldBits"
+    },
+    {
+      "name": "unknown-edge-bit",
+      "hex": "010018000000000010000000000000000000000000000000",
+      "error": "UnknownEdgeBits"
+    },
+    {
+      "name": "tail-reserved-nonzero",
+      "hex": "010018000000000000000000000000000000000001000000",
+      "error": "ReservedNotZero"
+    },
+    {
+      "name": "negative-full-scale-axis",
+      "hex": "010018000000000000000000008000000000000000000000",
+      "error": "AxisIsNegativeFullScale"
+    },
+    {
+      "name": "move-outside-unit-circle",
+      "hex": "010018000000000000000000FF7FFF7F0000000000000000",
+      "error": "AxisPairOutsideUnitCircle"
+    },
+    {
+      "name": "shoot-without-aim",
+      "hex": "010018000100000000000000000000000000000000000000",
+      "error": "ShootAimConflict"
+    },
+    {
+      "name": "aim-without-shoot",
+      "hex": "01001800000000000000000000000000FF7F000000000000",
+      "error": "ShootAimConflict"
+    }
+  ]
+}

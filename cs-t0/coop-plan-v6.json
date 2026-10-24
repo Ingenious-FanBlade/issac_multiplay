@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 6,
+  "planIdentity": "IsaacCsT0-CoopPlan-v6",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-31T09:47:26.1825346Z",
+  "status": "PASSIVE_CLOSED_NEXT_WORK_PACKAGE_ELIGIBLE",
+  "createNewOnly": true,
+  "supersedes": {
+    "path": "cs-t0/coop-plan-v5r1.json",
+    "sha256": "FB446AC397305AB1C5D21CA91BC76D4B0B9B82259E289379028627B55DD6BF6C"
+  },
+  "artifactBindings": [
+    {
+      "path": "cs-t0/coop-passive-decision-v3.json",
+      "sha256": "8793F107C1AF1480A619FAA20572FE851FD099E8CB0344CFF4D78B4AD8007D31"
+    },
+    {
+      "path": "cs-t0/coop-matrix-v3.json",
+      "sha256": "450E6EFB136CA0E6D633F768478FE57E8A643F2D89668FFD3CBFE5DE9C83057A"
+    },
+    {
+      "path": "cs-t0/ledger/isaac-cs-t0-coop-ledger-v4.json",
+      "sha256": "F3E527E3F831F3ADB0BC5533471340645960A4EE19ADA50605B11C224A2C0A07"
+    },
+    {
+      "path": "cs-t0/coop-hypothesis-index-v3.json",
+      "sha256": "7EEEE27E6C5606C9AD6264373AA10766E1E46E3B885974CA6E1C2B0A8073A073"
+    },
+    {
+      "path": "cs-t0/coop-verification-v6.json",
+      "sha256": "6971C6A84867FBC15FBB63BC1F2924B7AB7D1CCF4717750DC95CB90087CC55FF"
+    }
+  ],
+  "nextWorkPackage": "CS-T0-05-04",
+  "permissions": {
+    "activeInputAllowed": false,
+    "applyAllowed": false,
+    "csT00504Unlocked": true,
+    "inputMutationAllowed": false,
+    "modeLatchAllowed": false,
+    "originalOnlinePositiveAllowed": false,
+    "overrideAllowed": false,
+    "passiveHookTransactionAllowed": false,
+    "passiveObservationAllowed": false,
+    "runtimeMutationAllowed": false,
+    "schedulerAllowed": false,
+    "t005Unlocked": false,
+    "transportAllowed": false,
+    "worldMutationAllowed": false
+  },
+  "nextStageRequirements": [
+    "Implement and independently verify native-join-active before live authorization",
+    "Fresh single-run active authorization",
+    "No implicit authority for synthetic input, custom exit or T0-06"
+  ],
+  "passiveCaptureClosed": true,
+  "liveAuthorizationCreated": false,
+  "historicalAuthorizationReusable": false
+}

@@ -1,0 +1,609 @@
+{
+ "Game:0x2658A": {
+  "votes": {
+   "0x25B02": 8
+  },
+  "samples": [
+   [
+    "0x2F5372",
+    "0x2F1722",
+    "mov     byte ptr [ebx+25B02h], 1"
+   ],
+   [
+    "0x2F5944",
+    "0x2F1D0A",
+    "mov     word ptr [edi+25B02h], 101h"
+   ],
+   [
+    "0x2F6E0A",
+    "0x2F317A",
+    "mov     byte ptr [ebx+25B02h], 1"
+   ]
+  ]
+ },
+ "Game:0x1BAA8": {
+  "votes": {
+   "0x1BAA8": 38,
+   "0x1A740": 1
+  },
+  "samples": [
+   [
+    "0x2F5997",
+    "0x2F1D60",
+    "lea     ecx, [edi+1BAA8h]"
+   ],
+   [
+    "0x2F5FEC",
+    "0x2F23E9",
+    "lea     esi, [edi+1BAA8h]"
+   ],
+   [
+    "0x2F767D",
+    "0x2F39CC",
+    "lea     ecx, [ebx+1BAA8h]"
+   ]
+  ]
+ },
+ "Game:0x1BAAC": {
+  "votes": {
+   "0xFFFFFFFFFFFFFFC4": 1,
+   "0xFFFFFFFFFFFFFF20": 1,
+   "0x1BAAC": 19
+  },
+  "samples": [
+   [
+    "0x18E79",
+    "0x146DD",
+    "mov     [ebp-3Ch], edx"
+   ],
+   [
+    "0x2F5F8D",
+    "0x2F2370",
+    "mov     [ebp-0E0h], edx"
+   ],
+   [
+    "0x2F5FE6",
+    "0x2F23E3",
+    "mov     eax, [edi+1BAACh]"
+   ]
+  ]
+ },
+ "Game:0x26548": {
+  "votes": {
+   "0x25AC0": 5
+  },
+  "samples": [
+   [
+    "0x2F827F",
+    "0x2F44D4",
+    "mov     [edi+edx*8+25AC0h], eax"
+   ],
+   [
+    "0x2FA38E",
+    "0x2F652E",
+    "movq    qword ptr [ebx+25AC0h], xmm0"
+   ],
+   [
+    "0x52FBDF",
+    "0x509A93",
+    "mov     eax, [edi+25AC0h]"
+   ]
+  ]
+ },
+ "Manager:0x4B3D8": {
+  "votes": {
+   "0x4AFB8": 28,
+   "0x4AFBC": 1
+  },
+  "samples": [
+   [
+    "0x184B0",
+    "0x13CAC",
+    "mov     eax, [ecx+4AFB8h]"
+   ],
+   [
+    "0x1870C",
+    "0x13F4E",
+    "mov     eax, [esi+4AFBCh]"
+   ],
+   [
+    "0x28B382",
+    "0x286926",
+    "mov     eax, [ecx+4AFB8h]"
+   ]
+  ]
+ },
+ "Manager:0x4B3DC": {
+  "votes": {
+   "0x4AFBC": 17,
+   "0x4AFB8": 1
+  },
+  "samples": [
+   [
+    "0x184B6",
+    "0x13CB2",
+    "cmp     eax, [ecx+4AFBCh]"
+   ],
+   [
+    "0x18712",
+    "0x13F54",
+    "mov     edx, [esi+4AFB8h]"
+   ],
+   [
+    "0x28B388",
+    "0x28692C",
+    "cmp     eax, [ecx+4AFBCh]"
+   ]
+  ]
+ },
+ "Manager:0x4B3E4": {
+  "votes": {
+   "0x4AFC4": 5
+  },
+  "samples": [
+   [
+    "0x184DA",
+    "0x13CD6",
+    "cmp     eax, [ecx+4AFC4h]"
+   ],
+   [
+    "0x18777",
+    "0x13FBE",
+    "mov     eax, [esi+4AFC4h]"
+   ],
+   [
+    "0x403E3E",
+    "0x3F9375",
+    "push    dword ptr [ecx+4AFC4h]; ArgList"
+   ]
+  ]
+ },
+ "Manager:0x4B130": {
+  "votes": {
+   "0x4AD10": 3
+  },
+  "samples": [
+   [
+    "0x5551C2",
+    "0x52E8A4",
+    "cmp     byte ptr [edi+4AD10h], 0"
+   ],
+   [
+    "0x559756",
+    "0x532A69",
+    "cmp     byte ptr [edi+4AD10h], 0"
+   ],
+   [
+    "0x559CCD",
+    "0x53302E",
+    "mov     byte ptr [edi+4AD10h], 0"
+   ]
+  ]
+ },
+ "Manager:0x2A3C0": {
+  "votes": {
+   "0x2A1FB": 4
+  },
+  "samples": [
+   [
+    "0x18DBD",
+    "0x14618",
+    "cmp     byte ptr [eax+2A1FBh], 0"
+   ],
+   [
+    "0x554D0F",
+    "0x52E41F",
+    "cmp     byte ptr [edi+2A1FBh], 0"
+   ],
+   [
+    "0x555238",
+    "0x52E918",
+    "cmp     byte ptr [edi+2A1FBh], 0"
+   ]
+  ]
+ },
+ "Player:0x161C": {
+  "votes": {
+   "0x1610": 10
+  },
+  "samples": [
+   [
+    "0x379D22",
+    "0x372722",
+    "mov     eax, [ecx+1610h]"
+   ],
+   [
+    "0x379D2D",
+    "0x37272D",
+    "cmp     eax, [edi+1610h]"
+   ],
+   [
+    "0x382F6F",
+    "0x37C1D7",
+    "mov     dword ptr [eax+1610h], 0FFFFFFFFh"
+   ]
+  ]
+ },
+ "Player:0x1618": {
+  "votes": {
+   "0x160C": 29,
+   "0x1618": 2
+  },
+  "samples": [
+   [
+    "0x2F5FD4",
+    "0x2F23D2",
+    "push    dword ptr [eax+160Ch]"
+   ],
+   [
+    "0x37AE4E",
+    "0x373880",
+    "push    dword ptr [edi+160Ch]"
+   ],
+   [
+    "0x37B1E5",
+    "0x373C25",
+    "push    dword ptr [edi+160Ch]"
+   ]
+  ]
+ },
+ "Player:0x20A9": {
+  "votes": {
+   "0x207D": 13
+  },
+  "samples": [
+   [
+    "0x379CB7",
+    "0x3726B7",
+    "cmp     byte ptr [edi+207Dh], 0"
+   ],
+   [
+    "0x379FEE",
+    "0x3729EE",
+    "cmp     byte ptr [edi+207Dh], 0"
+   ],
+   [
+    "0x37A207",
+    "0x372C0D",
+    "cmp     [edi+207Dh], al"
+   ]
+  ]
+ },
+ "Player:0x1340": {
+  "votes": {
+   "0x1340": 4
+  },
+  "samples": [
+   [
+    "0x1B652C",
+    "0x1B7195",
+    "cmp     dword ptr [eax+1340h], 2"
+   ],
+   [
+    "0x1B655C",
+    "0x1B71CA",
+    "add     dword ptr [eax+1340h], 0FFFFFFFEh"
+   ],
+   [
+    "0x386B02",
+    "0x37EC8E",
+    "add     eax, [edi+1340h]"
+   ]
+  ]
+ },
+ "Player:0x1344": {
+  "votes": {
+   "0x1344": 9,
+   "0x134C": 1
+  },
+  "samples": [
+   [
+    "0x1B657A",
+    "0x1B71E8",
+    "lea     ecx, [edi+1344h]"
+   ],
+   [
+    "0x1B658D",
+    "0x1B71FB",
+    "mov     [edi+1344h], eax"
+   ],
+   [
+    "0x384197",
+    "0x37D300",
+    "cmp     dword ptr [edi+1344h], 1"
+   ]
+  ]
+ },
+ "Player:0x134C": {
+  "votes": {
+   "0x1D74": 1,
+   "0x134C": 7
+  },
+  "samples": [
+   [
+    "0x39344C",
+    "0x38B6D8",
+    "mov     eax, [edi+1D74h]"
+   ],
+   [
+    "0x3934A0",
+    "0x38B720",
+    "mov     eax, [edi+134Ch]"
+   ],
+   [
+    "0x393539",
+    "0x38B7B5",
+    "cmp     [edi+134Ch], eax"
+   ]
+  ]
+ },
+ "Player:0x1D88": {
+  "votes": {
+   "0x1D74": 4,
+   "0x1344": 1
+  },
+  "samples": [
+   [
+    "0x386AEE",
+    "0x37EC7A",
+    "mov     eax, [edi+1D74h]"
+   ],
+   [
+    "0x393458",
+    "0x38B6E4",
+    "add     eax, [edi+1344h]"
+   ],
+   [
+    "0x3934B1",
+    "0x38B731",
+    "add     eax, [edi+1D74h]"
+   ]
+  ]
+ },
+ "Player:0x360": {
+  "votes": {
+   "0x360": 23
+  },
+  "samples": [
+   [
+    "0x18C7C",
+    "0x144D5",
+    "movss   xmm6, dword ptr [edi+360h]"
+   ],
+   [
+    "0x1B559A",
+    "0x1B62E1",
+    "lea     esi, [eax+360h]"
+   ],
+   [
+    "0x379BB3",
+    "0x3725B3",
+    "movss   dword ptr [edi+360h], xmm0"
+   ]
+  ]
+ },
+ "Player:0x1624": {
+  "votes": {
+   "0x1618": 8
+  },
+  "samples": [
+   [
+    "0x379ED5",
+    "0x3728D5",
+    "mov     dword ptr [edi+1618h], 0FFFFFFFFh"
+   ],
+   [
+    "0x379F1F",
+    "0x37291F",
+    "mov     [edi+1618h], eax"
+   ],
+   [
+    "0x379F2C",
+    "0x37292C",
+    "mov     dword ptr [edi+1618h], 1"
+   ]
+  ]
+ },
+ "Player:0x162C": {
+  "votes": {
+   "0x1620": 8
+  },
+  "samples": [
+   [
+    "0x37C698",
+    "0x3750FA",
+    "mov     dword ptr [edi+1620h], 0FFFFFFFFh"
+   ],
+   [
+    "0x37C6DC",
+    "0x375118",
+    "mov     [edi+1620h], eax"
+   ],
+   [
+    "0x37C8D2",
+    "0x375333",
+    "mov     dword ptr [edi+1620h], 0FFFFFFFFh"
+   ]
+  ]
+ },
+ "Player:0x1630": {
+  "votes": {
+   "0x1624": 2
+  },
+  "samples": [
+   [
+    "0x3813A2",
+    "0x37A6C6",
+    "movss   xmm3, dword ptr [edi+1624h]"
+   ],
+   [
+    "0x385E07",
+    "0x37E02E",
+    "movss   xmm0, dword ptr [edi+1624h]"
+   ]
+  ]
+ },
+ "Player:0x1634": {
+  "votes": {
+   "0x1628": 3
+  },
+  "samples": [
+   [
+    "0x3813B3",
+    "0x37A6D7",
+    "movss   xmm0, dword ptr [edi+1628h]"
+   ],
+   [
+    "0x3813C4",
+    "0x37A6E8",
+    "movss   xmm1, dword ptr [edi+1628h]"
+   ],
+   [
+    "0x385E19",
+    "0x37E040",
+    "movss   xmm0, dword ptr [edi+1628h]"
+   ]
+  ]
+ },
+ "Player:0x1638": {
+  "votes": {},
+  "samples": []
+ },
+ "Player:0x1378": {
+  "votes": {
+   "0x1378": 9
+  },
+  "samples": [
+   [
+    "0x380FCE",
+    "0x37A29E",
+    "or      dword ptr [edi+1378h], 1"
+   ],
+   [
+    "0x3810B8",
+    "0x37A388",
+    "or      dword ptr [edi+1378h], 1"
+   ],
+   [
+    "0x385850",
+    "0x37DAF1",
+    "mov     dword ptr [edi+1378h], 0"
+   ]
+  ]
+ },
+ "Player:0x1580": {
+  "votes": {
+   "0x1574": 3,
+   "0xFFFFFFFFFFFFFFF0": 2
+  },
+  "samples": [
+   [
+    "0x391CA3",
+    "0x38A098",
+    "mov     eax, [edi+1574h]"
+   ],
+   [
+    "0x392454",
+    "0x38A829",
+    "mov     eax, [edi+1574h]"
+   ],
+   [
+    "0x39275B",
+    "0x38AAFB",
+    "push    dword ptr [ebx-10h]"
+   ]
+  ]
+ },
+ "Player:0x1588": {
+  "votes": {
+   "0x157C": 3,
+   "0xFFFFFFFFFFFFFFA4": 1,
+   "0xFFFFFFFFFFFFFFF8": 1
+  },
+  "samples": [
+   [
+    "0x391FAC",
+    "0x38A3A8",
+    "cmp     [ecx+edi+157Ch], eax"
+   ],
+   [
+    "0x39209B",
+    "0x38A495",
+    "mov     esi, [ebp+var_5C]"
+   ],
+   [
+    "0x392308",
+    "0x38A6FC",
+    "cmp     dword ptr [esi+edi+157Ch], 0"
+   ]
+  ]
+ },
+ "Player:0x17A0": {
+  "votes": {
+   "0x1790": 6
+  },
+  "samples": [
+   [
+    "0x3A3EAD",
+    "0x39BF4D",
+    "mov     eax, [esi+1790h]"
+   ],
+   [
+    "0x3A3F2B",
+    "0x39BFB8",
+    "mov     eax, [esi+1790h]"
+   ],
+   [
+    "0x3A3F49",
+    "0x39BFD6",
+    "mov     edi, [esi+1790h]"
+   ]
+  ]
+ },
+ "Player:0x17C0": {
+  "votes": {
+   "0x17B0": 5
+  },
+  "samples": [
+   [
+    "0x379D65",
+    "0x372765",
+    "mov     dword ptr [edi+17B0h], 0"
+   ],
+   [
+    "0x3A458D",
+    "0x39C5DD",
+    "mov     dword ptr [edi+17B0h], 0"
+   ],
+   [
+    "0x3A459E",
+    "0x39C5EE",
+    "inc     dword ptr [edi+17B0h]"
+   ]
+  ]
+ },
+ "Player:0x13BC": {
+  "votes": {
+   "0x13B8": 6,
+   "0xFFFFFFFFFFFFFA34": 1,
+   "0x38": 1
+  },
+  "samples": [
+   [
+    "0x1B5695",
+    "0x1B63E4",
+    "mov     dword ptr [eax+13B8h], 0"
+   ],
+   [
+    "0x1B61A9",
+    "0x1B6E29",
+    "mov     dword ptr [eax+13B8h], 0"
+   ],
+   [
+    "0x1B6349",
+    "0x1B6FA2",
+    "mov     [ebp+var_5CC], 42020h"
+   ]
+  ]
+ }
+}

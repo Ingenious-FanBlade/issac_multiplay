@@ -1,0 +1,23 @@
+{
+  "tx": "tx-03-19",
+  "kind": "STATIC_ACQUISITION_NOTES",
+  "date": "2026-10-23",
+  "timezone": "Asia/Shanghai",
+  "actions": [
+    "Read current project conventions, AGENTS, isaac-cs-refactor skill and prior static reports",
+    "Fresh read-only IDA function/raw instruction exports to new primary-*.json files",
+    "Read and snapshot selected loop_runtime.cpp source ranges with one-based line numbers",
+    "Independently review child Hook/TLS/WGL findings and narrow final pre-present screen-Sprite proposal"
+  ],
+  "read_errors_preserved": [
+    "rg docs/research/tx-03-14* as an explicit Windows path reported invalid filename syntax (os error 123); exact main filename was read successfully",
+    "Child first export requested A804B0, which resolves inside A80010, and A8FB7F, which has no IDA function definition; first JSON retained, corrected followup distinguishes actual functions from instruction ranges"
+  ],
+  "limitations": [
+    "No target or OS API execution, runtime thread/context/image/GPU observation or file identity comparison",
+    "No IDB mutation, production code or Hook edits, asset loading, debugger or game operation",
+    "No full parser, backend, shader, external raw-GL, OOM, EH, worker or hot-reload closure",
+    "One final unified static document review only; no intermediate tests, builds or experiments",
+    "No hash computation or verification; prior failures retained"
+  ]
+}

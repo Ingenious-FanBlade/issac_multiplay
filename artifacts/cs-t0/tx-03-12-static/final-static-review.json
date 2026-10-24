@@ -1,0 +1,763 @@
+{
+  "tx": "tx-03-12",
+  "date": "2026-10-22",
+  "timezone": "Asia/Shanghai",
+  "result": "PASS_STATIC_DOCUMENT_REVIEW_ONLY",
+  "execution": "Single final static document review. No game, build, code tests, injection or debugger operation.",
+  "agent": {
+    "reasoning_effort": "max",
+    "model": "gpt-6-luna",
+    "role": "Derived-render research independently reviewed by primary agent"
+  },
+  "semantic_review": "Primary agent read native pseudocode, machine instructions, table entries, receiver/parameter flow, resource ownership and failures. Script checks delivery consistency only.",
+  "limitations": [
+    "Replica and presentation adapter not implemented",
+    "Actual Lua bindings/effects UNKNOWN",
+    "Image control ABI, release thread, GPU/concurrency and failures not closed",
+    "All variants, Mods and Player composite render not covered",
+    "No runtime observation or hash computation"
+  ],
+  "checks": [
+    {
+      "name": "document:docs/research/tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->tx-03-11-logic-presentation-separation.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->tx-03-12-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->tx-03-12-luna-derived-render.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-derived-tables.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-derived-render.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-npc-geometry.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-sprite-draw-parameters.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-render-callbacks.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-render-lua-chain.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-sprite-bindings.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-sprite-initial.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-sprite-lifetime.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-sprite-resource.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-cache-lifecycle.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-resource-release.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-derived-render-sprite-lifecycle.md->../../artifacts/cs-t0/tx-03-12-static/primary-acquisition-failures.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "document:docs/research/tx-03-12-primary-review.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->tx-03-12-luna-derived-render.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-derived-tables.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-derived-render.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-render-callbacks.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-render-lua-chain.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-npc-geometry.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-sprite-draw-parameters.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-sprite-bindings.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-sprite-initial.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-sprite-lifetime.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-sprite-resource.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-cache-lifecycle.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-resource-release.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/primary-acquisition-failures.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/review_documents.ps1",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-primary-review.md->../../artifacts/cs-t0/tx-03-12-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "document:docs/research/tx-03-12-luna-derived-render.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->tx-03-12-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->../../artifacts/cs-t0/tx-03-12-static/luna-export-static.py",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->../../artifacts/cs-t0/tx-03-12-static/luna-derived-render.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->../../artifacts/cs-t0/tx-03-12-static/luna-py-exec-file-return.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->../../artifacts/cs-t0/tx-03-12-static/luna-export-dependencies.py",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->../../artifacts/cs-t0/tx-03-12-static/luna-derived-dependencies.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->../../artifacts/cs-t0/tx-03-12-static/luna-dependency-export-return.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->../../artifacts/cs-t0/tx-03-12-static/luna-direct-callees-mcp.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->../../artifacts/cs-t0/tx-03-12-static/luna-lua-wrapper-callees-mcp.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->../../artifacts/cs-t0/tx-03-12-static/luna-npc-geometry-mcp.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->../../artifacts/cs-t0/tx-03-12-static/luna-call-bytes-and-lua-disasm-mcp.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-12-luna-derived-render.md->../../artifacts/cs-t0/tx-03-12-static/luna-pcall-geometry-bytes-mcp.json",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "document:docs/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/README.md",
+      "pass": true,
+      "detail": "Contains this research update."
+    },
+    {
+      "name": "link:docs/README.md->research/tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "document:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Contains this research update."
+    },
+    {
+      "name": "link:docs/hooks/README.md->../research/tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "document:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Contains this research update."
+    },
+    {
+      "name": "link:docs/hooks/entity.md->../research/tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "document:docs/hooks/game-loop.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/game-loop.md",
+      "pass": true,
+      "detail": "Contains this research update."
+    },
+    {
+      "name": "link:docs/hooks/game-loop.md->../research/tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "document:docs/hooks/npc.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/npc.md",
+      "pass": true,
+      "detail": "Contains this research update."
+    },
+    {
+      "name": "link:docs/hooks/npc.md->../research/tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "document:docs/hooks/tear.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/tear.md",
+      "pass": true,
+      "detail": "Contains this research update."
+    },
+    {
+      "name": "link:docs/hooks/tear.md->../research/tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "document:docs/hooks/projectile.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/projectile.md",
+      "pass": true,
+      "detail": "Contains this research update."
+    },
+    {
+      "name": "link:docs/hooks/projectile.md->../research/tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "document:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Contains this research update."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-12-derived-render-sprite-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; this result is created at completion."
+    },
+    {
+      "name": "json:luna-call-bytes-and-lua-disasm-mcp.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "json:luna-dependency-export-return.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "json:luna-derived-dependencies.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "json:luna-derived-render.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "json:luna-direct-callees-mcp.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "json:luna-lua-wrapper-callees-mcp.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "json:luna-npc-geometry-mcp.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "json:luna-pcall-geometry-bytes-mcp.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "json:luna-py-exec-file-return.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "json:primary-acquisition-failures.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "json:primary-cache-lifecycle.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-cache-lifecycle.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-derived-render.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-derived-render.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-derived-tables.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-derived-tables.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-discovery.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-discovery.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-npc-geometry.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-npc-geometry.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-render-callbacks.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-render-callbacks.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-render-lua-chain.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-render-lua-chain.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-resource-release.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-resource-release.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-sprite-bindings.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-sprite-bindings.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-sprite-draw-parameters.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-sprite-draw-parameters.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-sprite-initial.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-sprite-initial.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-sprite-lifetime.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-sprite-lifetime.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "json:primary-sprite-resource.json",
+      "pass": true,
+      "detail": "Readable JSON; raw acquisition errors remain evidence, not target-program tests."
+    },
+    {
+      "name": "addresses:primary-sprite-resource.json",
+      "pass": true,
+      "detail": "Static metadata, decompilation status, and VA/RVA conversion agree."
+    },
+    {
+      "name": "evidence:primary-derived-tables.json",
+      "pass": true,
+      "detail": "Required primary evidence present."
+    },
+    {
+      "name": "evidence:primary-derived-render.json",
+      "pass": true,
+      "detail": "Required primary evidence present."
+    },
+    {
+      "name": "evidence:primary-render-callbacks.json",
+      "pass": true,
+      "detail": "Required primary evidence present."
+    },
+    {
+      "name": "evidence:primary-render-lua-chain.json",
+      "pass": true,
+      "detail": "Required primary evidence present."
+    },
+    {
+      "name": "evidence:primary-sprite-initial.json",
+      "pass": true,
+      "detail": "Required primary evidence present."
+    },
+    {
+      "name": "evidence:primary-sprite-resource.json",
+      "pass": true,
+      "detail": "Required primary evidence present."
+    },
+    {
+      "name": "evidence:primary-sprite-lifetime.json",
+      "pass": true,
+      "detail": "Required primary evidence present."
+    },
+    {
+      "name": "evidence:primary-sprite-bindings.json",
+      "pass": true,
+      "detail": "Required primary evidence present."
+    },
+    {
+      "name": "evidence:primary-cache-lifecycle.json",
+      "pass": true,
+      "detail": "Required primary evidence present."
+    },
+    {
+      "name": "evidence:primary-resource-release.json",
+      "pass": true,
+      "detail": "Required primary evidence present."
+    },
+    {
+      "name": "evidence:primary-npc-geometry.json",
+      "pass": true,
+      "detail": "Required primary evidence present."
+    },
+    {
+      "name": "instruction:0x6d4006",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-derived-render.json."
+    },
+    {
+      "name": "instruction:0x6793e7",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-derived-render.json."
+    },
+    {
+      "name": "instruction:0x65cedb",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-derived-render.json."
+    },
+    {
+      "name": "instruction:0x65cb84",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-derived-render.json."
+    },
+    {
+      "name": "instruction:0x65ced1",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-derived-render.json."
+    },
+    {
+      "name": "instruction:0x872c02",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-render-lua-chain.json."
+    },
+    {
+      "name": "instruction:0x873832",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-render-lua-chain.json."
+    },
+    {
+      "name": "instruction:0x862ca5",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-render-callbacks.json."
+    },
+    {
+      "name": "instruction:0x40bdb2",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-sprite-initial.json."
+    },
+    {
+      "name": "instruction:0x40be99",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-sprite-initial.json."
+    },
+    {
+      "name": "instruction:0x420160",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-sprite-lifetime.json."
+    },
+    {
+      "name": "instruction:0x8bb728",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-sprite-lifetime.json."
+    },
+    {
+      "name": "instruction:0x408196",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-sprite-lifetime.json."
+    },
+    {
+      "name": "instruction:0x40e26e",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-sprite-resource.json."
+    },
+    {
+      "name": "instruction:0x40e42c",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-sprite-resource.json."
+    },
+    {
+      "name": "instruction:0x40e4a0",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-cache-lifecycle.json."
+    },
+    {
+      "name": "instruction:0x40e4bb",
+      "pass": true,
+      "detail": "Reviewed instruction in primary-cache-lifecycle.json."
+    },
+    {
+      "name": "table:0xb67468+0x14",
+      "pass": true,
+      "detail": "Current class table; not extrapolated to all variants or other builds."
+    },
+    {
+      "name": "table:0xb67468+0x18",
+      "pass": true,
+      "detail": "Current class table; not extrapolated to all variants or other builds."
+    },
+    {
+      "name": "table:0xb67468+0x34",
+      "pass": true,
+      "detail": "Current class table; not extrapolated to all variants or other builds."
+    },
+    {
+      "name": "table:0xb64eac+0x14",
+      "pass": true,
+      "detail": "Current class table; not extrapolated to all variants or other builds."
+    },
+    {
+      "name": "table:0xb64eac+0x18",
+      "pass": true,
+      "detail": "Current class table; not extrapolated to all variants or other builds."
+    },
+    {
+      "name": "table:0xb64eac+0x34",
+      "pass": true,
+      "detail": "Current class table; not extrapolated to all variants or other builds."
+    },
+    {
+      "name": "table:0xb64990+0x14",
+      "pass": true,
+      "detail": "Current class table; not extrapolated to all variants or other builds."
+    },
+    {
+      "name": "table:0xb64990+0x18",
+      "pass": true,
+      "detail": "Current class table; not extrapolated to all variants or other builds."
+    },
+    {
+      "name": "table:0xb64990+0x34",
+      "pass": true,
+      "detail": "Current class table; not extrapolated to all variants or other builds."
+    }
+  ],
+  "failures": []
+}

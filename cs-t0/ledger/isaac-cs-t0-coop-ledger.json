@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "ledgerIdentity": "IsaacCsT0-CoopLedger-v1",
+  "workPackage": "CS-T0-05-00",
+  "createdUtc": "2026-08-26T18:47:33Z",
+  "status": "PASS",
+  "supersedes": null,
+  "evidenceDomain": "T0-05_LOCAL_COOP",
+  "predecessor": {
+    "reportPath": "../coop-predecessor-binding-v1.json",
+    "reportIdentity": "IsaacCsT0-CoopPredecessorBinding-v1",
+    "reportSha256": "5D29826CD9E92E84D4C97C14E511066EF1FD8576B2DA5CC4639861BD9812DB90",
+    "t004FinalDecisionStatus": "PASS",
+    "t004Unlocked": true
+  },
+  "targetIdentity": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedApprovedUnpackedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "equivalenceDocumentSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+    "canonicalAndObservedMayNotBeMixed": true
+  },
+  "frozenEvidenceLabels": [
+    "RUNTIME_CONFIRMED",
+    "STATIC_CONFIRMED",
+    "EXPERIMENT_CONTRACT",
+    "REJECTED_HYPOTHESIS",
+    "UNKNOWN"
+  ],
+  "candidateInitialState": [
+    { "id": "local-coop-manager", "evidenceLabel": "UNKNOWN" },
+    { "id": "local-coop-native-join", "evidenceLabel": "UNKNOWN" },
+    { "id": "local-coop-native-exit", "evidenceLabel": "UNKNOWN" },
+    { "id": "local-coop-hud-player-index", "evidenceLabel": "UNKNOWN" },
+    { "id": "local-coop-lua-player-order", "evidenceLabel": "UNKNOWN" },
+    { "id": "local-coop-virtual-device", "evidenceLabel": "UNKNOWN" }
+  ],
+  "knownRuntimeGaps": [
+    {
+      "id": "active-player-vector-singleton",
+      "evidenceLabel": "RUNTIME_CONFIRMED",
+      "description": "The inherited active runtime requires the Player vector to have exactly one entry."
+    },
+    {
+      "id": "active-process-global-owner",
+      "evidenceLabel": "RUNTIME_CONFIRMED",
+      "description": "The inherited active runtime has one process-global current Player, device, and source owner."
+    }
+  ],
+  "artifactFamily": [
+    { "path": "../coop-catalog-v1.json", "identity": "IsaacCsT0-CoopCatalog-v1" },
+    { "path": "../coop-plan-v1.json", "identity": "IsaacCsT0-CoopPlan-v1" },
+    { "path": "../coop-verification-v1.json", "identity": "IsaacCsT0-CoopVerification-v1" },
+    { "path": "../coop-matrix-v1.template.json", "identity": "IsaacCsT0-CoopMatrix-v1" },
+    { "path": "../coop-hypothesis-index-v1.json", "identity": "IsaacCsT0-CoopHypothesisIndex-v1" }
+  ],
+  "artifactRules": {
+    "createNewOnly": true,
+    "supersedesAndPriorShaRequiredForRevision": true,
+    "sourceAndAnalysisOverwriteAllowed": false,
+    "allFormalInputsHashBound": true,
+    "repositoryRelativePathsOnly": true,
+    "absoluteUserPathsAllowed": false,
+    "rawPeerIdentityAllowed": false,
+    "peerIdentityPersistence": "NONCE_SALTED_DIGEST_ONLY",
+    "processPointersAllowed": false,
+    "platformHandlesAllowed": false
+  },
+  "permissions": {
+    "activeInputAllowed": false,
+    "runtimeMutationAllowed": false,
+    "liveAuthorizationCreated": false,
+    "productionActiveInputAllowed": false,
+    "t005Unlocked": false,
+    "csT00501Unlocked": true
+  },
+  "exitGate": {
+    "targetEquivalenceAndGatesUnique": true,
+    "predecessorHashesClosed": true,
+    "allNewCandidatesUnknown": true,
+    "fabricatedRvaOrAbiCount": 0,
+    "t004ArtifactsModified": false,
+    "result": "PASS"
+  }
+}

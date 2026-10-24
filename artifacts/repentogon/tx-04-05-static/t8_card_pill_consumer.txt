@@ -1,0 +1,610 @@
+t8_card_pill_consumer
+RVA=0x39bdd0 VA=0x79bdd0 END_RVA=0x39c2fd
+
+[DECOMPILE]
+void __thiscall sub_79BDD0(int Charm_1)
+{
+  int Charm; // ecx
+  int n19; // eax
+  char v4; // bl
+  bool v5; // bh
+  int v6; // eax
+  int n10; // eax
+  int v8; // ecx
+  char v9; // bl
+  int v10; // ecx
+  int v11; // ecx
+  int v12; // eax
+  int n78; // eax
+  unsigned int n2; // ebx
+  int v15; // edi
+  int n80; // edi
+  int v17; // eax
+  int v18; // ecx
+  int v19; // eax
+  int v20; // ecx
+  int v21; // eax
+  int n70; // eax
+  _DWORD *n2_3; // eax
+  unsigned int v24; // edi
+  unsigned int v25; // eax
+  _DWORD *v26; // ebx
+  int v27; // edi
+  int v28; // ecx
+  int v29; // eax
+  int v30; // ecx
+  int v31; // eax
+  int v32; // ecx
+  bool v33; // zf
+  unsigned int n2_2; // eax
+  int v35; // [esp+14h] [ebp-50h]
+  int v36; // [esp+24h] [ebp-40h]
+  int v37; // [esp+24h] [ebp-40h]
+  char ArgList; // [esp+28h] [ebp-3Ch]
+  char v39[4]; // [esp+38h] [ebp-2Ch] BYREF
+  void *Block; // [esp+3Ch] [ebp-28h]
+  unsigned int v41; // [esp+44h] [ebp-20h]
+  char v42[4]; // [esp+48h] [ebp-1Ch] BYREF
+  unsigned int n2_1; // [esp+4Ch] [ebp-18h]
+  int v44; // [esp+50h] [ebp-14h]
+  char v45; // [esp+57h] [ebp-Dh]
+  int v46; // [esp+60h] [ebp-4h]
+
+  if ( *((_DWORD *)n2_0 + 28318) || *((_DWORD *)n2_0 + 28175) || (unsigned __int8)sub_7D1C90(Charm_1) )
+    return;
+  n19 = *(_DWORD *)(Charm_1 + 5052);
+  if ( n19 == 19 || n19 == 20 )
+  {
+    v45 = 1;
+    if ( (unsigned __int8)sub_74DAE0(Charm) )
+    {
+      v4 = 1;
+      goto LABEL_8;
+    }
+  }
+  else
+  {
+    v45 = 0;
+  }
+  v4 = 0;
+LABEL_8:
+  v5 = *((_DWORD *)n4 + 43139) == 0;
+  if ( *((_DWORD *)n4 + 76782) != *((_DWORD *)n4 + 76783) )
+  {
+    v6 = sub_8E7150((char *)n4 + 307128, Charm_1);
+    if ( v6 )
+      v5 = *(_DWORD *)(v6 + 1128) == 0;
+  }
+  n10 = 10;
+  if ( v4 && v5 )
+    n10 = 9;
+  v9 = sub_92F6D0(n10, *(_DWORD *)(Charm_1 + 5644), Charm_1, 0);
+  if ( v45 )
+  {
+    if ( v5 )
+    {
+      if ( *(_DWORD *)(Charm_1 + 7756) && !(unsigned __int8)sub_92F610(11, *(_DWORD *)(Charm_1 + 5644), Charm_1, v8) )
+        v9 = 0;
+    }
+    else if ( (unsigned __int8)sub_74DAE0(Charm_1)
+           && (unsigned __int8)sub_92F610(11, *(_DWORD *)(Charm_1 + 5644), Charm_1, v10) )
+    {
+      v9 = 0;
+    }
+    else if ( (unsigned __int8)sub_6EC4F0(Charm_1) )
+    {
+      v9 = (unsigned __int8)sub_92F610(11, *(_DWORD *)(Charm_1 + 5644), Charm_1, v11) != 0 ? v9 : 0;
+    }
+  }
+  if ( (*(_DWORD *)(Charm_1 + 360) & 0x800) != 0 || *(_BYTE *)(Charm_1 + 8317) )
+    v9 = 0;
+  if ( *(_DWORD *)(Charm_1 + 6036) == 2 )
+  {
+    v12 = *(_DWORD *)(Charm_1 + 6032);
+    if ( v12 > 0 )
+    {
+      sub_789E50((char *)Charm_1, v12 - 1);
+      return;
+    }
+  }
+  if ( *(_BYTE *)(Charm_1 + 1040) )
+  {
+    if ( *(int *)(Charm_1 + 1044) <= 0 )
+    {
+      if ( v9 )
+      {
+        if ( !(unsigned __int8)sub_405E50("UseItem") )
+        {
+          sub_9E0DF0(0, "Action PillCard Triggered\n", ArgList);
+          n78 = *(_DWORD *)(Charm_1 + 6032);
+          if ( n78 )
+          {
+            *(_DWORD *)(Charm_1 + 4984) |= 8u;
+            n2 = *(_DWORD *)(Charm_1 + 6036);
+            v15 = *(_DWORD *)(Charm_1 + 6032);
+            v44 = v15;
+            n2_1 = n2;
+            if ( n2 == 1 )
+            {
+              if ( n78 == 78 && !(unsigned __int8)sub_5CA2C0(580, -1) )
+                return;
+              sub_9041E0(61);
+              sub_903A50(196, 1);
+              n80 = *(_DWORD *)(Charm_1 + 6032);
+              v17 = *(_DWORD *)(Charm_1 + 6040);
+              v36 = v44;
+              *(_DWORD *)(Charm_1 + 6036) = *(_DWORD *)(Charm_1 + 6044);
+              v18 = *(_DWORD *)(Charm_1 + 6052);
+              *(_DWORD *)(Charm_1 + 6032) = v17;
+              v19 = *(_DWORD *)(Charm_1 + 6048);
+              *(_DWORD *)(Charm_1 + 6044) = v18;
+              v20 = *(_DWORD *)(Charm_1 + 6060);
+              *(_DWORD *)(Charm_1 + 6040) = v19;
+              v21 = *(_DWORD *)(Charm_1 + 6056);
+              *(_DWORD *)(Charm_1 + 6052) = v20;
+              *(_DWORD *)(Charm_1 + 6048) = v21;
+              *(_DWORD *)(Charm_1 + 6056) = 0;
+              sub_7D1CD0(1, v36);
+              sub_7A9440(n80, 4);
+              if ( n80 != 80 && n80 != 48 )
+              {
+                *(_BYTE *)(Charm_1 + 8292) = 1;
+                *(_DWORD *)(Charm_1 + 8296) = n80;
+                *(_DWORD *)(Charm_1 + 8300) = 0;
+              }
+            }
+            else
+            {
+              if ( n2 )
+              {
+                if ( n2 == 2 )
+                  sub_789E50((char *)Charm_1, n78 - 1);
+                goto LABEL_44;
+              }
+              sub_416820(v39, 3, -1, -1, 1, 0);
+              v46 = 0;
+              v24 = 0;
+              v25 = v41;
+              if ( v41 )
+              {
+                v26 = Block;
+                do
+                {
+                  if ( *(_DWORD *)(v26[v24] + 1040) == Charm_1 )
+                  {
+                    sub_6260C0();
+                    v25 = v41;
+                  }
+                  ++v24;
+                }
+                while ( v24 < v25 );
+                n2 = n2_1;
+              }
+              sub_903A50(6, 1);
+              sub_9041E0(43);
+              v27 = *(_DWORD *)(Charm_1 + 6032);
+              n2_1 = sub_72F030(v27, Charm_1);
+              if ( (v27 & 0x7FF) != 0xE || (unsigned int)sub_7DF4E0(*(_DWORD *)(Charm_1 + 5984) + 1200, 100) < 5 )
+              {
+                v28 = *(_DWORD *)(Charm_1 + 6044);
+                *(_DWORD *)(Charm_1 + 6032) = *(_DWORD *)(Charm_1 + 6040);
+                v29 = *(_DWORD *)(Charm_1 + 6048);
+                *(_DWORD *)(Charm_1 + 6036) = v28;
+                v30 = *(_DWORD *)(Charm_1 + 6052);
+                *(_DWORD *)(Charm_1 + 6040) = v29;
+                v31 = *(_DWORD *)(Charm_1 + 6056);
+                *(_DWORD *)(Charm_1 + 6044) = v30;
+                v32 = *(_DWORD *)(Charm_1 + 6060);
+                *(_DWORD *)(Charm_1 + 6048) = v31;
+                *(_DWORD *)(Charm_1 + 6052) = v32;
+                *(_DWORD *)(Charm_1 + 6056) = 0;
+              }
+              sub_7D1CD0(n2, v44);
+              sub_7BAC80(n2_1, v27, 0);
+              v33 = *(_DWORD *)(Charm_1 + 5480) == 0;
+              n2_2 = n2_1;
+              *(_BYTE *)(Charm_1 + 8292) = 0;
+              *(_DWORD *)(Charm_1 + 8296) = n2_2;
+              *(_DWORD *)(Charm_1 + 8300) = v27;
+              if ( !v33 )
+              {
+                sub_752600(Charm_1);
+                sub_75D4B0();
+              }
+              v46 = -1;
+              if ( !v39[0] )
+                j_j_free(Block);
+            }
+            v15 = v44;
+LABEL_44:
+            if ( (int)sub_7C19C0(79) > 0 && !sub_7DF4E0(*(_DWORD *)(Charm_1 + 5996) + 1264, 4) && n2 <= 1 )
+            {
+              v37 = sub_6EB4B0();
+              v35 = sub_808DC0(v42, Charm_1 + 828, 1109393408, 0, 0, 0);
+              n70 = 70;
+              if ( n2 == 1 )
+                n70 = 300;
+              sub_424340(5, n70, v35, &qword_BEB900, Charm_1, v15, v37);
+            }
+            n2_3 = n2_0;
+            if ( *((_DWORD *)n2_0 + 35749) != 2 )
+            {
+              *((_DWORD *)n2_0 + 35749) = 1;
+              n2_3[35751] = 2;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+[DISASSEMBLY]
+0x0079bdd0 (RVA 0x39bdd0): push    ebp
+0x0079bdd1 (RVA 0x39bdd1): mov     ebp, esp
+0x0079bdd3 (RVA 0x39bdd3): push    0FFFFFFFFh
+0x0079bdd5 (RVA 0x39bdd5): push    offset SEH_79BDD0
+0x0079bdda (RVA 0x39bdda): mov     eax, large fs:0
+0x0079bde0 (RVA 0x39bde0): push    eax
+0x0079bde1 (RVA 0x39bde1): sub     esp, 20h
+0x0079bde4 (RVA 0x39bde4): push    ebx
+0x0079bde5 (RVA 0x39bde5): push    esi
+0x0079bde6 (RVA 0x39bde6): push    edi
+0x0079bde7 (RVA 0x39bde7): mov     eax, ___security_cookie
+0x0079bdec (RVA 0x39bdec): xor     eax, ebp
+0x0079bdee (RVA 0x39bdee): push    eax; ArgList
+0x0079bdef (RVA 0x39bdef): lea     eax, [ebp+var_C]
+0x0079bdf2 (RVA 0x39bdf2): mov     large fs:0, eax
+0x0079bdf8 (RVA 0x39bdf8): mov     esi, ecx
+0x0079bdfa (RVA 0x39bdfa): mov     eax, n2_0
+0x0079bdff (RVA 0x39bdff): cmp     dword ptr [eax+1BA78h], 0
+0x0079be06 (RVA 0x39be06): jnz     loc_79C161
+0x0079be0c (RVA 0x39be0c): cmp     dword ptr [eax+1B83Ch], 0
+0x0079be13 (RVA 0x39be13): jnz     loc_79C161
+0x0079be19 (RVA 0x39be19): call    sub_7D1C90
+0x0079be1e (RVA 0x39be1e): test    al, al
+0x0079be20 (RVA 0x39be20): jnz     loc_79C161
+0x0079be26 (RVA 0x39be26): mov     eax, [esi+13BCh]
+0x0079be2c (RVA 0x39be2c): cmp     eax, 13h
+0x0079be2f (RVA 0x39be2f): jz      loc_79BED0
+0x0079be35 (RVA 0x39be35): cmp     eax, 14h
+0x0079be38 (RVA 0x39be38): jz      loc_79BED0
+0x0079be3e (RVA 0x39be3e): mov     [ebp+var_D], 0
+0x0079be42 (RVA 0x39be42): xor     bl, bl
+0x0079be44 (RVA 0x39be44): mov     ecx, n4
+0x0079be4a (RVA 0x39be4a): cmp     dword ptr [ecx+2A20Ch], 0
+0x0079be51 (RVA 0x39be51): mov     eax, [ecx+4AFB8h]
+0x0079be57 (RVA 0x39be57): setz    bh
+0x0079be5a (RVA 0x39be5a): cmp     eax, [ecx+4AFBCh]
+0x0079be60 (RVA 0x39be60): jz      short loc_79BE82
+0x0079be62 (RVA 0x39be62): push    esi
+0x0079be63 (RVA 0x39be63): lea     ecx, [ecx+4AFB8h]
+0x0079be69 (RVA 0x39be69): call    sub_8E7150
+0x0079be6e (RVA 0x39be6e): mov     ecx, n4
+0x0079be74 (RVA 0x39be74): test    eax, eax
+0x0079be76 (RVA 0x39be76): jz      short loc_79BE82
+0x0079be78 (RVA 0x39be78): cmp     dword ptr [eax+468h], 0
+0x0079be7f (RVA 0x39be7f): setz    bh
+0x0079be82 (RVA 0x39be82): mov     eax, 0Ah
+0x0079be87 (RVA 0x39be87): test    bl, bl
+0x0079be89 (RVA 0x39be89): jz      short loc_79BE95
+0x0079be8b (RVA 0x39be8b): test    bh, bh
+0x0079be8d (RVA 0x39be8d): mov     edx, 9
+0x0079be92 (RVA 0x39be92): cmovnz  eax, edx
+0x0079be95 (RVA 0x39be95): push    0
+0x0079be97 (RVA 0x39be97): push    esi
+0x0079be98 (RVA 0x39be98): push    dword ptr [esi+160Ch]
+0x0079be9e (RVA 0x39be9e): push    eax
+0x0079be9f (RVA 0x39be9f): call    sub_92F6D0
+0x0079bea4 (RVA 0x39bea4): cmp     [ebp+var_D], 0
+0x0079bea8 (RVA 0x39bea8): mov     bl, al
+0x0079beaa (RVA 0x39beaa): jz      short loc_79BF2A
+0x0079beac (RVA 0x39beac): test    bh, bh
+0x0079beae (RVA 0x39beae): jz      short loc_79BEE8
+0x0079beb0 (RVA 0x39beb0): cmp     dword ptr [esi+1E4Ch], 0
+0x0079beb7 (RVA 0x39beb7): jz      short loc_79BF2A
+0x0079beb9 (RVA 0x39beb9): push    ecx
+0x0079beba (RVA 0x39beba): push    esi
+0x0079bebb (RVA 0x39bebb): push    dword ptr [esi+160Ch]
+0x0079bec1 (RVA 0x39bec1): push    0Bh
+0x0079bec3 (RVA 0x39bec3): call    sub_92F610
+0x0079bec8 (RVA 0x39bec8): test    al, al
+0x0079beca (RVA 0x39beca): jnz     short loc_79BF2A
+0x0079becc (RVA 0x39becc): xor     bl, bl
+0x0079bece (RVA 0x39bece): jmp     short loc_79BF2A
+0x0079bed0 (RVA 0x39bed0): mov     [ebp+var_D], 1
+0x0079bed4 (RVA 0x39bed4): call    sub_74DAE0
+0x0079bed9 (RVA 0x39bed9): test    al, al
+0x0079bedb (RVA 0x39bedb): jz      loc_79BE42
+0x0079bee1 (RVA 0x39bee1): mov     bl, 1
+0x0079bee3 (RVA 0x39bee3): jmp     loc_79BE44
+0x0079bee8 (RVA 0x39bee8): mov     ecx, esi
+0x0079beea (RVA 0x39beea): call    sub_74DAE0
+0x0079beef (RVA 0x39beef): test    al, al
+0x0079bef1 (RVA 0x39bef1): jz      short loc_79BF0A
+0x0079bef3 (RVA 0x39bef3): push    ecx
+0x0079bef4 (RVA 0x39bef4): push    esi
+0x0079bef5 (RVA 0x39bef5): push    dword ptr [esi+160Ch]
+0x0079befb (RVA 0x39befb): push    0Bh
+0x0079befd (RVA 0x39befd): call    sub_92F610
+0x0079bf02 (RVA 0x39bf02): test    al, al
+0x0079bf04 (RVA 0x39bf04): jz      short loc_79BF0A
+0x0079bf06 (RVA 0x39bf06): xor     bl, bl
+0x0079bf08 (RVA 0x39bf08): jmp     short loc_79BF2A
+0x0079bf0a (RVA 0x39bf0a): mov     ecx, esi
+0x0079bf0c (RVA 0x39bf0c): call    sub_6EC4F0
+0x0079bf11 (RVA 0x39bf11): test    al, al
+0x0079bf13 (RVA 0x39bf13): jz      short loc_79BF2A
+0x0079bf15 (RVA 0x39bf15): push    ecx
+0x0079bf16 (RVA 0x39bf16): push    esi
+0x0079bf17 (RVA 0x39bf17): push    dword ptr [esi+160Ch]
+0x0079bf1d (RVA 0x39bf1d): push    0Bh
+0x0079bf1f (RVA 0x39bf1f): call    sub_92F610
+0x0079bf24 (RVA 0x39bf24): neg     al
+0x0079bf26 (RVA 0x39bf26): sbb     al, al
+0x0079bf28 (RVA 0x39bf28): and     bl, al
+0x0079bf2a (RVA 0x39bf2a): mov     eax, [esi+168h]
+0x0079bf30 (RVA 0x39bf30): and     eax, 800h
+0x0079bf35 (RVA 0x39bf35): or      eax, 0
+0x0079bf38 (RVA 0x39bf38): jnz     short loc_79BF42
+0x0079bf3a (RVA 0x39bf3a): cmp     [esi+207Dh], al
+0x0079bf40 (RVA 0x39bf40): jz      short loc_79BF44
+0x0079bf42 (RVA 0x39bf42): xor     bl, bl
+0x0079bf44 (RVA 0x39bf44): cmp     dword ptr [esi+1794h], 2
+0x0079bf4b (RVA 0x39bf4b): jnz     short loc_79BF72
+0x0079bf4d (RVA 0x39bf4d): mov     eax, [esi+1790h]
+0x0079bf53 (RVA 0x39bf53): test    eax, eax
+0x0079bf55 (RVA 0x39bf55): jle     short loc_79BF72
+0x0079bf57 (RVA 0x39bf57): dec     eax
+0x0079bf58 (RVA 0x39bf58): mov     ecx, esi
+0x0079bf5a (RVA 0x39bf5a): push    eax
+0x0079bf5b (RVA 0x39bf5b): call    sub_789E50
+0x0079bf60 (RVA 0x39bf60): mov     ecx, [ebp+var_C]
+0x0079bf63 (RVA 0x39bf63): mov     large fs:0, ecx
+0x0079bf6a (RVA 0x39bf6a): pop     ecx
+0x0079bf6b (RVA 0x39bf6b): pop     edi
+0x0079bf6c (RVA 0x39bf6c): pop     esi
+0x0079bf6d (RVA 0x39bf6d): pop     ebx
+0x0079bf6e (RVA 0x39bf6e): mov     esp, ebp
+0x0079bf70 (RVA 0x39bf70): pop     ebp
+0x0079bf71 (RVA 0x39bf71): retn
+0x0079bf72 (RVA 0x39bf72): cmp     byte ptr [esi+410h], 0
+0x0079bf79 (RVA 0x39bf79): jz      loc_79C161
+0x0079bf7f (RVA 0x39bf7f): cmp     dword ptr [esi+414h], 0
+0x0079bf86 (RVA 0x39bf86): jg      loc_79C161
+0x0079bf8c (RVA 0x39bf8c): test    bl, bl
+0x0079bf8e (RVA 0x39bf8e): jz      loc_79C161
+0x0079bf94 (RVA 0x39bf94): push    offset aUseitem; "UseItem"
+0x0079bf99 (RVA 0x39bf99): lea     ecx, [esi+41Ch]
+0x0079bf9f (RVA 0x39bf9f): call    sub_405E50
+0x0079bfa4 (RVA 0x39bfa4): test    al, al
+0x0079bfa6 (RVA 0x39bfa6): jnz     loc_79C161
+0x0079bfac (RVA 0x39bfac): push    offset aActionPillcard; "Action PillCard Triggered\n"
+0x0079bfb1 (RVA 0x39bfb1): push    0; int
+0x0079bfb3 (RVA 0x39bfb3): call    sub_9E0DF0
+0x0079bfb8 (RVA 0x39bfb8): mov     eax, [esi+1790h]
+0x0079bfbe (RVA 0x39bfbe): add     esp, 8
+0x0079bfc1 (RVA 0x39bfc1): test    eax, eax
+0x0079bfc3 (RVA 0x39bfc3): jz      loc_79C161
+0x0079bfc9 (RVA 0x39bfc9): or      dword ptr [esi+1378h], 8
+0x0079bfd0 (RVA 0x39bfd0): mov     ebx, [esi+1794h]
+0x0079bfd6 (RVA 0x39bfd6): mov     edi, [esi+1790h]
+0x0079bfdc (RVA 0x39bfdc): mov     [ebp+var_14], edi
+0x0079bfdf (RVA 0x39bfdf): mov     [ebp+var_18], ebx
+0x0079bfe2 (RVA 0x39bfe2): cmp     ebx, 1
+0x0079bfe5 (RVA 0x39bfe5): jnz     loc_79C173
+0x0079bfeb (RVA 0x39bfeb): cmp     eax, 4Eh ; 'N'
+0x0079bfee (RVA 0x39bfee): jnz     short loc_79C006
+0x0079bff0 (RVA 0x39bff0): push    0FFFFFFFFh
+0x0079bff2 (RVA 0x39bff2): push    244h
+0x0079bff7 (RVA 0x39bff7): mov     ecx, esi
+0x0079bff9 (RVA 0x39bff9): call    sub_5CA2C0
+0x0079bffe (RVA 0x39bffe): test    al, al
+0x0079c000 (RVA 0x39c000): jz      loc_79C161
+0x0079c006 (RVA 0x39c006): mov     ecx, n4
+0x0079c00c (RVA 0x39c00c): push    3Dh ; '='
+0x0079c00e (RVA 0x39c00e): lea     ecx, [ecx+14h]
+0x0079c011 (RVA 0x39c011): call    sub_9041E0
+0x0079c016 (RVA 0x39c016): mov     ecx, n4
+0x0079c01c (RVA 0x39c01c): push    1
+0x0079c01e (RVA 0x39c01e): push    0C4h
+0x0079c023 (RVA 0x39c023): lea     ecx, [ecx+14h]
+0x0079c026 (RVA 0x39c026): call    sub_903A50
+0x0079c02b (RVA 0x39c02b): mov     edi, [esi+1790h]
+0x0079c031 (RVA 0x39c031): mov     ecx, [esi+179Ch]
+0x0079c037 (RVA 0x39c037): mov     eax, [esi+1798h]
+0x0079c03d (RVA 0x39c03d): push    [ebp+var_14]
+0x0079c040 (RVA 0x39c040): mov     [esi+1794h], ecx
+0x0079c046 (RVA 0x39c046): mov     ecx, [esi+17A4h]
+0x0079c04c (RVA 0x39c04c): mov     [esi+1790h], eax
+0x0079c052 (RVA 0x39c052): mov     eax, [esi+17A0h]
+0x0079c058 (RVA 0x39c058): mov     [esi+179Ch], ecx
+0x0079c05e (RVA 0x39c05e): mov     ecx, [esi+17ACh]
+0x0079c064 (RVA 0x39c064): mov     [esi+1798h], eax
+0x0079c06a (RVA 0x39c06a): mov     eax, [esi+17A8h]
+0x0079c070 (RVA 0x39c070): mov     [esi+17A4h], ecx
+0x0079c076 (RVA 0x39c076): mov     ecx, esi
+0x0079c078 (RVA 0x39c078): mov     [esi+17A0h], eax
+0x0079c07e (RVA 0x39c07e): push    ebx
+0x0079c07f (RVA 0x39c07f): mov     dword ptr [esi+17A8h], 0
+0x0079c089 (RVA 0x39c089): call    sub_7D1CD0
+0x0079c08e (RVA 0x39c08e): push    4
+0x0079c090 (RVA 0x39c090): push    edi
+0x0079c091 (RVA 0x39c091): mov     ecx, esi
+0x0079c093 (RVA 0x39c093): call    sub_7A9440
+0x0079c098 (RVA 0x39c098): cmp     edi, 50h ; 'P'
+0x0079c09b (RVA 0x39c09b): jz      short loc_79C0B9
+0x0079c09d (RVA 0x39c09d): cmp     edi, 30h ; '0'
+0x0079c0a0 (RVA 0x39c0a0): jz      short loc_79C0B9
+0x0079c0a2 (RVA 0x39c0a2): mov     byte ptr [esi+2064h], 1
+0x0079c0a9 (RVA 0x39c0a9): mov     [esi+2068h], edi
+0x0079c0af (RVA 0x39c0af): mov     dword ptr [esi+206Ch], 0
+0x0079c0b9 (RVA 0x39c0b9): mov     edi, [ebp+var_14]
+0x0079c0bc (RVA 0x39c0bc): push    4Fh ; 'O'
+0x0079c0be (RVA 0x39c0be): mov     ecx, esi
+0x0079c0c0 (RVA 0x39c0c0): call    sub_7C19C0
+0x0079c0c5 (RVA 0x39c0c5): test    eax, eax
+0x0079c0c7 (RVA 0x39c0c7): jle     short loc_79C13F
+0x0079c0c9 (RVA 0x39c0c9): mov     ecx, [esi+176Ch]
+0x0079c0cf (RVA 0x39c0cf): add     ecx, 4F0h
+0x0079c0d5 (RVA 0x39c0d5): push    4
+0x0079c0d7 (RVA 0x39c0d7): call    sub_7DF4E0
+0x0079c0dc (RVA 0x39c0dc): test    eax, eax
+0x0079c0de (RVA 0x39c0de): jnz     short loc_79C13F
+0x0079c0e0 (RVA 0x39c0e0): cmp     ebx, 1
+0x0079c0e3 (RVA 0x39c0e3): jz      short loc_79C0E9
+0x0079c0e5 (RVA 0x39c0e5): test    ebx, ebx
+0x0079c0e7 (RVA 0x39c0e7): jnz     short loc_79C13F
+0x0079c0e9 (RVA 0x39c0e9): call    sub_6EB4B0
+0x0079c0ee (RVA 0x39c0ee): push    eax
+0x0079c0ef (RVA 0x39c0ef): push    edi
+0x0079c0f0 (RVA 0x39c0f0): push    esi
+0x0079c0f1 (RVA 0x39c0f1): push    offset qword_BEB900
+0x0079c0f6 (RVA 0x39c0f6): push    0
+0x0079c0f8 (RVA 0x39c0f8): push    0
+0x0079c0fa (RVA 0x39c0fa): push    0
+0x0079c0fc (RVA 0x39c0fc): push    ecx
+0x0079c0fd (RVA 0x39c0fd): mov     ecx, n2_0
+0x0079c103 (RVA 0x39c103): lea     eax, [esi+33Ch]
+0x0079c109 (RVA 0x39c109): mov     [esp+5Ch+var_5C], 42200000h
+0x0079c110 (RVA 0x39c110): push    eax
+0x0079c111 (RVA 0x39c111): lea     eax, [ebp+var_1C]
+0x0079c114 (RVA 0x39c114): mov     ecx, [ecx+18300h]
+0x0079c11a (RVA 0x39c11a): push    eax
+0x0079c11b (RVA 0x39c11b): call    sub_808DC0
+0x0079c120 (RVA 0x39c120): push    eax
+0x0079c121 (RVA 0x39c121): cmp     ebx, 1
+0x0079c124 (RVA 0x39c124): mov     ecx, 12Ch
+0x0079c129 (RVA 0x39c129): mov     eax, 46h ; 'F'
+0x0079c12e (RVA 0x39c12e): cmovz   eax, ecx
+0x0079c131 (RVA 0x39c131): mov     ecx, n2_0
+0x0079c137 (RVA 0x39c137): push    eax
+0x0079c138 (RVA 0x39c138): push    5
+0x0079c13a (RVA 0x39c13a): call    sub_424340
+0x0079c13f (RVA 0x39c13f): mov     eax, n2_0
+0x0079c144 (RVA 0x39c144): cmp     dword ptr [eax+22E94h], 2
+0x0079c14b (RVA 0x39c14b): jz      short loc_79C161
+0x0079c14d (RVA 0x39c14d): mov     dword ptr [eax+22E94h], 1
+0x0079c157 (RVA 0x39c157): mov     dword ptr [eax+22E9Ch], 2
+0x0079c161 (RVA 0x39c161): mov     ecx, [ebp+var_C]
+0x0079c164 (RVA 0x39c164): mov     large fs:0, ecx
+0x0079c16b (RVA 0x39c16b): pop     ecx
+0x0079c16c (RVA 0x39c16c): pop     edi
+0x0079c16d (RVA 0x39c16d): pop     esi
+0x0079c16e (RVA 0x39c16e): pop     ebx
+0x0079c16f (RVA 0x39c16f): mov     esp, ebp
+0x0079c171 (RVA 0x39c171): pop     ebp
+0x0079c172 (RVA 0x39c172): retn
+0x0079c173 (RVA 0x39c173): test    ebx, ebx
+0x0079c175 (RVA 0x39c175): jnz     loc_79C2E6
+0x0079c17b (RVA 0x39c17b): push    ebx
+0x0079c17c (RVA 0x39c17c): push    1
+0x0079c17e (RVA 0x39c17e): push    0FFFFFFFFh
+0x0079c180 (RVA 0x39c180): push    0FFFFFFFFh
+0x0079c182 (RVA 0x39c182): push    3
+0x0079c184 (RVA 0x39c184): lea     eax, [ebp+var_2C]
+0x0079c187 (RVA 0x39c187): push    eax
+0x0079c188 (RVA 0x39c188): mov     eax, n2_0
+0x0079c18d (RVA 0x39c18d): mov     ecx, [eax+18300h]
+0x0079c193 (RVA 0x39c193): add     ecx, 1218h
+0x0079c199 (RVA 0x39c199): call    sub_416820
+0x0079c19e (RVA 0x39c19e): mov     [ebp+var_4], ebx
+0x0079c1a1 (RVA 0x39c1a1): xor     edi, edi
+0x0079c1a3 (RVA 0x39c1a3): mov     eax, [ebp+var_20]
+0x0079c1a6 (RVA 0x39c1a6): test    eax, eax
+0x0079c1a8 (RVA 0x39c1a8): jz      short loc_79C1CB
+0x0079c1aa (RVA 0x39c1aa): mov     ebx, [ebp+Block]
+0x0079c1ad (RVA 0x39c1ad): nop     dword ptr [eax]
+0x0079c1b0 (RVA 0x39c1b0): mov     ecx, [ebx+edi*4]
+0x0079c1b3 (RVA 0x39c1b3): cmp     [ecx+410h], esi
+0x0079c1b9 (RVA 0x39c1b9): jnz     short loc_79C1C3
+0x0079c1bb (RVA 0x39c1bb): call    sub_6260C0
+0x0079c1c0 (RVA 0x39c1c0): mov     eax, [ebp+var_20]
+0x0079c1c3 (RVA 0x39c1c3): inc     edi
+0x0079c1c4 (RVA 0x39c1c4): cmp     edi, eax
+0x0079c1c6 (RVA 0x39c1c6): jb      short loc_79C1B0
+0x0079c1c8 (RVA 0x39c1c8): mov     ebx, [ebp+var_18]
+0x0079c1cb (RVA 0x39c1cb): mov     ecx, n4
+0x0079c1d1 (RVA 0x39c1d1): push    1
+0x0079c1d3 (RVA 0x39c1d3): push    6
+0x0079c1d5 (RVA 0x39c1d5): lea     ecx, [ecx+14h]
+0x0079c1d8 (RVA 0x39c1d8): call    sub_903A50
+0x0079c1dd (RVA 0x39c1dd): mov     ecx, n4
+0x0079c1e3 (RVA 0x39c1e3): push    2Bh ; '+'
+0x0079c1e5 (RVA 0x39c1e5): lea     ecx, [ecx+14h]
+0x0079c1e8 (RVA 0x39c1e8): call    sub_9041E0
+0x0079c1ed (RVA 0x39c1ed): mov     ecx, n2_0
+0x0079c1f3 (RVA 0x39c1f3): mov     edi, [esi+1790h]
+0x0079c1f9 (RVA 0x39c1f9): push    esi
+0x0079c1fa (RVA 0x39c1fa): push    edi
+0x0079c1fb (RVA 0x39c1fb): lea     ecx, [ecx+1A740h]
+0x0079c201 (RVA 0x39c201): call    sub_72F030
+0x0079c206 (RVA 0x39c206): mov     ecx, edi
+0x0079c208 (RVA 0x39c208): mov     [ebp+var_18], eax
+0x0079c20b (RVA 0x39c20b): and     ecx, 7FFh
+0x0079c211 (RVA 0x39c211): cmp     ecx, 0Eh
+0x0079c214 (RVA 0x39c214): jnz     short loc_79C22E
+0x0079c216 (RVA 0x39c216): mov     ecx, [esi+1760h]
+0x0079c21c (RVA 0x39c21c): add     ecx, 4B0h
+0x0079c222 (RVA 0x39c222): push    64h ; 'd'
+0x0079c224 (RVA 0x39c224): call    sub_7DF4E0
+0x0079c229 (RVA 0x39c229): cmp     eax, 5
+0x0079c22c (RVA 0x39c22c): jnb     short loc_79C280
+0x0079c22e (RVA 0x39c22e): mov     eax, [esi+1798h]
+0x0079c234 (RVA 0x39c234): mov     ecx, [esi+179Ch]
+0x0079c23a (RVA 0x39c23a): mov     [esi+1790h], eax
+0x0079c240 (RVA 0x39c240): mov     eax, [esi+17A0h]
+0x0079c246 (RVA 0x39c246): mov     [esi+1794h], ecx
+0x0079c24c (RVA 0x39c24c): mov     ecx, [esi+17A4h]
+0x0079c252 (RVA 0x39c252): mov     [esi+1798h], eax
+0x0079c258 (RVA 0x39c258): mov     eax, [esi+17A8h]
+0x0079c25e (RVA 0x39c25e): mov     [esi+179Ch], ecx
+0x0079c264 (RVA 0x39c264): mov     ecx, [esi+17ACh]
+0x0079c26a (RVA 0x39c26a): mov     [esi+17A0h], eax
+0x0079c270 (RVA 0x39c270): mov     [esi+17A4h], ecx
+0x0079c276 (RVA 0x39c276): mov     dword ptr [esi+17A8h], 0
+0x0079c280 (RVA 0x39c280): push    [ebp+var_14]
+0x0079c283 (RVA 0x39c283): mov     ecx, esi
+0x0079c285 (RVA 0x39c285): push    ebx
+0x0079c286 (RVA 0x39c286): call    sub_7D1CD0
+0x0079c28b (RVA 0x39c28b): push    0
+0x0079c28d (RVA 0x39c28d): push    edi
+0x0079c28e (RVA 0x39c28e): push    [ebp+var_18]
+0x0079c291 (RVA 0x39c291): mov     ecx, esi
+0x0079c293 (RVA 0x39c293): call    sub_7BAC80
+0x0079c298 (RVA 0x39c298): cmp     dword ptr [esi+1568h], 0
+0x0079c29f (RVA 0x39c29f): mov     eax, [ebp+var_18]
+0x0079c2a2 (RVA 0x39c2a2): mov     byte ptr [esi+2064h], 0
+0x0079c2a9 (RVA 0x39c2a9): mov     [esi+2068h], eax
+0x0079c2af (RVA 0x39c2af): mov     [esi+206Ch], edi
+0x0079c2b5 (RVA 0x39c2b5): jz      short loc_79C2C5
+0x0079c2b7 (RVA 0x39c2b7): mov     ecx, esi
+0x0079c2b9 (RVA 0x39c2b9): call    sub_752600
+0x0079c2be (RVA 0x39c2be): mov     ecx, esi
+0x0079c2c0 (RVA 0x39c2c0): call    sub_75D4B0
+0x0079c2c5 (RVA 0x39c2c5): mov     [ebp+var_4], 0FFFFFFFFh
+0x0079c2cc (RVA 0x39c2cc): cmp     [ebp+var_2C], 0
+0x0079c2d0 (RVA 0x39c2d0): jnz     loc_79C0B9
+0x0079c2d6 (RVA 0x39c2d6): push    [ebp+Block]; Block
+0x0079c2d9 (RVA 0x39c2d9): call    j_j_free
+0x0079c2de (RVA 0x39c2de): add     esp, 4
+0x0079c2e1 (RVA 0x39c2e1): jmp     loc_79C0B9
+0x0079c2e6 (RVA 0x39c2e6): cmp     ebx, 2
+0x0079c2e9 (RVA 0x39c2e9): jnz     loc_79C0BC
+0x0079c2ef (RVA 0x39c2ef): dec     eax
+0x0079c2f0 (RVA 0x39c2f0): mov     ecx, esi
+0x0079c2f2 (RVA 0x39c2f2): push    eax
+0x0079c2f3 (RVA 0x39c2f3): call    sub_789E50
+0x0079c2f8 (RVA 0x39c2f8): jmp     loc_79C0BC
+0x00a95850 (RVA 0x695850): lea     ecx, [ebp+var_2C]
+0x00a95853 (RVA 0x695853): jmp     sub_412F50
+0x00a9585d (RVA 0x69585d): nop
+0x00a9585e (RVA 0x69585e): nop
+0x00a9585f (RVA 0x69585f): mov     edx, [esp-4+arg_4]
+0x00a95863 (RVA 0x695863): lea     eax, [edx+0Ch]
+0x00a95866 (RVA 0x695866): mov     ecx, [edx-30h]
+0x00a95869 (RVA 0x695869): xor     ecx, eax; StackCookie
+0x00a9586b (RVA 0x69586b): call    @__security_check_cookie@4; __security_check_cookie(x)
+0x00a95870 (RVA 0x695870): mov     eax, offset stru_B54F28
+0x00a95875 (RVA 0x695875): jmp     __CxxFrameHandler3

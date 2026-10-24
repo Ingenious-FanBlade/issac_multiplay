@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "tx": "tx-01-98",
+  "operation": 9,
+  "title": "Real Authority B source-stop experiment",
+  "source_model": "B script source emits no command for the exact target ticks in each source_stop segment; B remains bound and the session remains active.",
+  "not_claimed": [
+    "real network disconnect or wire ACK failure",
+    "packet loss or transport retry",
+    "all characters/weapons/lifecycles",
+    "snapshot apply or rollback"
+  ],
+  "input_config": {
+    "schema_version": 1,
+    "input_lead_ticks": 2,
+    "future_window_ticks": 64,
+    "max_input_age_ticks": 0,
+    "script_drain_budget": 64,
+    "admission_attempt_budget": 258
+  },
+  "script_file": "tx-01-98-source-stop-script.json",
+  "script_step_count": 200,
+  "segments": [
+    {
+      "name": "prefix",
+      "relative_target_start": 0,
+      "length": 40,
+      "kind": "stable",
+      "b_move_x": -32767,
+      "new_edge_at_first_tick": 8
+    },
+    {
+      "name": "source_stop_1",
+      "relative_target_start": 40,
+      "length": 1,
+      "kind": "source_stop",
+      "b_move_x": 0,
+      "new_edge_at_first_tick": null
+    },
+    {
+      "name": "stable_1",
+      "relative_target_start": 41,
+      "length": 40,
+      "kind": "stable",
+      "b_move_x": 32767,
+      "new_edge_at_first_tick": 8
+    },
+    {
+      "name": "source_stop_5",
+      "relative_target_start": 81,
+      "length": 5,
+      "kind": "source_stop",
+      "b_move_x": 0,
+      "new_edge_at_first_tick": null
+    },
+    {
+      "name": "stable_2",
+      "relative_target_start": 86,
+      "length": 40,
+      "kind": "stable",
+      "b_move_x": -32767,
+      "new_edge_at_first_tick": 8
+    },
+    {
+      "name": "source_stop_30",
+      "relative_target_start": 126,
+      "length": 30,
+      "kind": "source_stop",
+      "b_move_x": 0,
+      "new_edge_at_first_tick": null
+    },
+    {
+      "name": "stable_3",
+      "relative_target_start": 156,
+      "length": 40,
+      "kind": "stable",
+      "b_move_x": 32767,
+      "new_edge_at_first_tick": 8
+    },
+    {
+      "name": "source_stop_120",
+      "relative_target_start": 196,
+      "length": 120,
+      "kind": "source_stop",
+      "b_move_x": 0,
+      "new_edge_at_first_tick": null
+    },
+    {
+      "name": "recovery_4",
+      "relative_target_start": 316,
+      "length": 40,
+      "kind": "stable",
+      "b_move_x": -32767,
+      "new_edge_at_first_tick": 8
+    }
+  ],
+  "expected_source_stop_lengths": [
+    1,
+    5,
+    30,
+    120
+  ],
+  "expected_effective_missing_lengths": [
+    1,
+    5,
+    30,
+    120
+  ],
+  "minimum_stable_prefix_ticks": 40,
+  "minimum_stable_recovery_ticks": 40,
+  "final_script_target": 355,
+  "stop_rule": "Wait for ScriptComplete, require the final accepted B target tick to have an effective B availability row, require one additional committed Authority boundary, then send stop once through controller stdin. Trailing post-script silence is outside the four scheduled windows.",
+  "a_action": "Operator through the authorized physical keyboard tool: bounded W/D/S/A center-square movement around the start room, begun before a delayed controller start; Resolve state and available Player positions in complete-or-explicitly-partial world samples are recorded.",
+  "world_record": "min-read-v1 is enabled so the same run provides A/B Player position fields with explicit complete/partial/reason status and the 70-slot restoration transaction. No incomplete sample is promoted to a complete world snapshot.",
+  "check_boundary": "A single controller session/run and one analysis invocation; no retry.",
+  "expected_effective_missing_reason_shape": "For each gap: NoTargetCommand for all but the final effective missing tick; FutureOnly on the final tick because the resumed command is already queued during that tick. A one-tick gap therefore has one FutureOnly tick."
+}

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "repairIdentity": "IsaacCsT0-CoopDeviceRebindShutdownRepair-v1",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-31T06:08:37.3274855Z",
+  "status": "FROZEN_IMPLEMENTATION_AND_AUTOMATED_VERIFICATION",
+  "createNewOnly": true,
+  "scope": "DEVICE_V2_SHUTDOWN_GENERATION_CONSISTENCY",
+  "predecessorVerification": {
+    "path": "cs-t0/coop-verification-v5r5.json",
+    "identity": "IsaacCsT0-CoopVerification-v5r5",
+    "sha256": "12725A8E38CBDFA6348AF6F97DF3042C335A068623B5272DA513999C0CE5418F"
+  },
+  "historicalFailure": {
+    "source": "artifacts/cs-t0/20260831T055322Z-t0-05-03-device-rebind-passive-t0-05-03-device-rebind-passive-live-10",
+    "manifestSha256": "09E3C363E761DD79BC6583817F227321A0B658CBBD6C51655F3C3DAFAF93C8E5",
+    "eventsSha256": "03A88940CE7BCCEAFFDBA84BF0A7163A54A36209710BE50AC75B4151C4BBF489",
+    "analysisSha256": "1E611E206C1DDDC9574CB75F1F5BC76BBBC775B1106F58B417103BB638EF56A1",
+    "analysisResult": "BLOCKED_BY_EVIDENCE",
+    "observedGeneration": 3,
+    "terminalGeneration": 4,
+    "terminalSequences": [
+      23616,
+      23617
+    ],
+    "resultImmutable": true
+  },
+  "unchangedBindings": [
+    {
+      "path": "cs-t0/src/coop_passive.rs",
+      "sha256": "94F1CAD934548B0E4A468CB14FCA6B54166664657939E8CFB03C0B670C1CBF63"
+    },
+    {
+      "path": "cs-t0/src/coop_device_rebind.rs",
+      "sha256": "91A6D08DC836AD7A2B1AC69832872230100EA2CCB796CBA2EA9488B6ACE5B32F"
+    },
+    {
+      "path": "cs-t0/coop-catalog-v4.json",
+      "sha256": "00641728411D7BB60B54DA1A58C39E616204729901B8D76433BF51E0748AFE5A"
+    },
+    {
+      "path": "cs-t0/coop-plan-v5r1.json",
+      "sha256": "FB446AC397305AB1C5D21CA91BC76D4B0B9B82259E289379028627B55DD6BF6C"
+    },
+    {
+      "path": "cs-t0/coop-device-rebind-contract-v2.json",
+      "sha256": "444141651E42886AC6DC9807D41A429A8DA89B8CB12E2855E659E6DFEA01D2E0"
+    },
+    {
+      "path": "cs-t0/coop-verification-v5r5.json",
+      "sha256": "12725A8E38CBDFA6348AF6F97DF3042C335A068623B5272DA513999C0CE5418F"
+    },
+    {
+      "path": "cs-t0/coop-passive-live-progress-v4.json",
+      "sha256": "0EA060160A653A2EE270B39D4FE0DEF3AC6C77DBC7104F63C1EB04408DB09421"
+    }
+  ],
+  "invariants": {
+    "scopeDeviceV2Only": true,
+    "legacy53Unchanged": true,
+    "ipcAndCodebooksUnchanged": true,
+    "newHooksAllowed": false,
+    "analyzerRelaxationAllowed": false,
+    "runtimeLifecycleInvalidationUnchanged": true,
+    "admissionClosedBeforeDrain": true,
+    "privateIdentityCleanupAfterFirstDrain": true,
+    "cleanupDoesNotAdvanceEvidenceGeneration": true,
+    "candidateAndBoundIdentitiesCleared": true,
+    "deviceAndOrdinaryRouteIdentitiesCleared": true,
+    "terminalAndSharedGenerationEqualLastObserved": true,
+    "incompleteTransactionCannotBecomeCompleteOnShutdown": true,
+    "restoredAndClosedOnlyAfterSuccessfulRestoreAndSecondDrain": true,
+    "unsafeDoesNotPublishSuccessOrAllowUnload": true,
+    "postShutdownCallbacksCannotRepublishOrResurrect": true
+  },
+  "requiredRegressionChecks": [
+    "device-v2-real-shutdown-native-debug-release",
+    "device-v2-real-shutdown-public-cli-debug-release",
+    "device-live10-replay-remains-blocked"
+  ],
+  "regressionRules": {
+    "realProductionShutdownControlFlow": true,
+    "realProductionTerminalEventPublication": true,
+    "terminalEventsMustNotBeFixtureGenerated": true,
+    "generationMustNotBeNormalizedByTests": true,
+    "independentOriginalCountersAndRawStateRequired": true,
+    "restoreAndDrainDependencyInjectionIsOfflineOnly": true,
+    "realPatchMatrixStillRequired": true,
+    "successfulAndIncompleteRoutesRequired": true,
+    "drainRestoreUnsafeAndPostCloseFailuresRequired": true,
+    "redBeforeProductionFixRequired": true
+  },
+  "versionChain": {
+    "catalogUnchanged": "coop-catalog-v4.json",
+    "planUnchanged": "coop-plan-v5r1.json",
+    "nextVerification": "coop-verification-v5r6.json",
+    "nextVerifierIdentity": "IsaacCsT0-CoopPassiveAutomatedGate-v6",
+    "publicationOnlyAfterFullGate": true
+  },
+  "authorization": {
+    "implementationAndAutomaticVerificationOnly": true,
+    "liveInjectionAuthorized": false,
+    "automaticLiveRetryAllowed": false,
+    "completedLiveSourceCount": 3,
+    "sixSourceGateEligible": false,
+    "csT00504Unlocked": false,
+    "t005Unlocked": false
+  }
+}

@@ -1,0 +1,113 @@
+t8_query_helper_52610
+RVA=0x52f610 END_RVA=0x52f6c3
+[DECOMPILE]
+char __stdcall sub_92F610(int a1, int a2, int a3, int a4)
+{
+  int v4; // ebx
+  _DWORD *n4; // edi
+  int v7; // ecx
+  int v8; // eax
+  unsigned int v9; // esi
+
+  v4 = a1;
+  n4 = n4;
+  if ( *((_DWORD *)n4 + 2) == 2 && dword_BE4A0C && (unsigned __int8)sub_84B3A0(a3, 0, a1, (char *)&a1 + 3) )
+    return HIBYTE(a1);
+  v7 = n4[76782];
+  v8 = n4[76783];
+  if ( v7 == v8 || a2 != -1 )
+    return sub_9EE140(&off_BCE438, v4, a2, 0);
+  v9 = 0;
+  if ( !((v8 - v7) >> 2) )
+    return 0;
+  while ( !(*(unsigned __int8 (__thiscall **)(_DWORD, int))(**(_DWORD **)(v7 + 4 * v9) + 32))(
+             *(_DWORD *)(v7 + 4 * v9),
+             v4) )
+  {
+    ++v9;
+    v7 = n4[76782];
+    if ( v9 >= (n4[76783] - v7) >> 2 )
+      return 0;
+  }
+  return 1;
+}
+
+[DISASSEMBLY]
+0x0092f610 RVA 0x52f610: push    ebp
+0x0092f611 RVA 0x52f611: mov     ebp, esp
+0x0092f613 RVA 0x52f613: push    ecx
+0x0092f614 RVA 0x52f614: push    ebx
+0x0092f615 RVA 0x52f615: mov     ebx, [ebp+arg_0]
+0x0092f618 RVA 0x52f618: push    esi
+0x0092f619 RVA 0x52f619: push    edi
+0x0092f61a RVA 0x52f61a: mov     edi, n4
+0x0092f620 RVA 0x52f620: cmp     dword ptr [edi+8], 2
+0x0092f624 RVA 0x52f624: jnz     short loc_92F64E
+0x0092f626 RVA 0x52f626: cmp     dword_BE4A0C, 0
+0x0092f62d RVA 0x52f62d: jz      short loc_92F64E
+0x0092f62f RVA 0x52f62f: lea     eax, [ebp+arg_0+3]
+0x0092f632 RVA 0x52f632: push    eax
+0x0092f633 RVA 0x52f633: push    ebx
+0x0092f634 RVA 0x52f634: push    0
+0x0092f636 RVA 0x52f636: push    [ebp+arg_8]
+0x0092f639 RVA 0x52f639: call    sub_84B3A0
+0x0092f63e RVA 0x52f63e: test    al, al
+0x0092f640 RVA 0x52f640: jz      short loc_92F64E
+0x0092f642 RVA 0x52f642: mov     al, byte ptr [ebp+arg_0+3]
+0x0092f645 RVA 0x52f645: pop     edi
+0x0092f646 RVA 0x52f646: pop     esi
+0x0092f647 RVA 0x52f647: pop     ebx
+0x0092f648 RVA 0x52f648: mov     esp, ebp
+0x0092f64a RVA 0x52f64a: pop     ebp
+0x0092f64b RVA 0x52f64b: retn    10h
+0x0092f64e RVA 0x52f64e: mov     ecx, [edi+4AFB8h]
+0x0092f654 RVA 0x52f654: mov     eax, [edi+4AFBCh]
+0x0092f65a RVA 0x52f65a: mov     edx, [ebp+arg_4]
+0x0092f65d RVA 0x52f65d: cmp     ecx, eax
+0x0092f65f RVA 0x52f65f: jz      short loc_92F6AC
+0x0092f661 RVA 0x52f661: cmp     edx, 0FFFFFFFFh
+0x0092f664 RVA 0x52f664: jnz     short loc_92F6AC
+0x0092f666 RVA 0x52f666: sub     eax, ecx
+0x0092f668 RVA 0x52f668: xor     esi, esi
+0x0092f66a RVA 0x52f66a: sar     eax, 2
+0x0092f66d RVA 0x52f66d: test    eax, eax
+0x0092f66f RVA 0x52f66f: jz      short loc_92F696
+0x0092f671 RVA 0x52f671: mov     ecx, [ecx+esi*4]
+0x0092f674 RVA 0x52f674: push    ebx
+0x0092f675 RVA 0x52f675: mov     eax, [ecx]
+0x0092f677 RVA 0x52f677: mov     eax, [eax+20h]
+0x0092f67a RVA 0x52f67a: call    eax
+0x0092f67c RVA 0x52f67c: test    al, al
+0x0092f67e RVA 0x52f67e: jnz     short loc_92F6A1
+0x0092f680 RVA 0x52f680: mov     eax, [edi+4AFBCh]
+0x0092f686 RVA 0x52f686: inc     esi
+0x0092f687 RVA 0x52f687: mov     ecx, [edi+4AFB8h]
+0x0092f68d RVA 0x52f68d: sub     eax, ecx
+0x0092f68f RVA 0x52f68f: sar     eax, 2
+0x0092f692 RVA 0x52f692: cmp     esi, eax
+0x0092f694 RVA 0x52f694: jb      short loc_92F671
+0x0092f696 RVA 0x52f696: xor     al, al
+0x0092f698 RVA 0x52f698: pop     edi
+0x0092f699 RVA 0x52f699: pop     esi
+0x0092f69a RVA 0x52f69a: pop     ebx
+0x0092f69b RVA 0x52f69b: mov     esp, ebp
+0x0092f69d RVA 0x52f69d: pop     ebp
+0x0092f69e RVA 0x52f69e: retn    10h
+0x0092f6a1 RVA 0x52f6a1: mov     al, 1
+0x0092f6a3 RVA 0x52f6a3: pop     edi
+0x0092f6a4 RVA 0x52f6a4: pop     esi
+0x0092f6a5 RVA 0x52f6a5: pop     ebx
+0x0092f6a6 RVA 0x52f6a6: mov     esp, ebp
+0x0092f6a8 RVA 0x52f6a8: pop     ebp
+0x0092f6a9 RVA 0x52f6a9: retn    10h
+0x0092f6ac RVA 0x52f6ac: push    0
+0x0092f6ae RVA 0x52f6ae: push    edx
+0x0092f6af RVA 0x52f6af: push    ebx
+0x0092f6b0 RVA 0x52f6b0: mov     ecx, offset off_BCE438
+0x0092f6b5 RVA 0x52f6b5: call    sub_9EE140
+0x0092f6ba RVA 0x52f6ba: pop     edi
+0x0092f6bb RVA 0x52f6bb: pop     esi
+0x0092f6bc RVA 0x52f6bc: pop     ebx
+0x0092f6bd RVA 0x52f6bd: mov     esp, ebp
+0x0092f6bf RVA 0x52f6bf: pop     ebp
+0x0092f6c0 RVA 0x52f6c0: retn    10h

@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 2,
+  "planIdentity": "IsaacCsT0-CoopPlan-v2",
+  "workPackage": "CS-T0-05-01",
+  "createdUtc": "2026-08-27T08:55:00Z",
+  "status": "PASS_STATIC_GRAPH",
+  "supersedes": "coop-plan-v1.json",
+  "supersedesSha256": "112B551F666E101C1F644B48F7B6B7BCB18F2DAD74A8464574E9A04855CE59A5",
+  "createNewOnly": true,
+  "artifactBindings": [
+    { "path": "coop-static-evidence-v1.json", "identity": "IsaacCsT0-CoopStaticEvidence-v1", "sha256": "501B39DEB198E7F1424328069534438ADC73BA665D1E6988AFA4AD7939DB081B" },
+    { "path": "coop-static-graph-v1.json", "identity": "IsaacCsT0-CoopStaticGraph-v1", "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934" },
+    { "path": "coop-catalog-v2.json", "identity": "IsaacCsT0-CoopCatalog-v2", "sha256": "1059711778DAD09870D37118571EE7D5E67761EC28FFAB84C7CF5AC5998A0224" },
+    { "path": "ledger/isaac-cs-t0-coop-ledger-v2.json", "identity": "IsaacCsT0-CoopLedger-v2", "sha256": "EA195429231F9CA8575FC6901E792496D6C26AC42984928B1C09504E97B3FCAC" }
+  ],
+  "staticRoutes": {
+    "ordinaryJoin": [
+      "manager-local-dispatch",
+      "ordinary-spawn-call",
+      "player-create",
+      "player-vector-insert",
+      "ordinary-assignment-call",
+      "join-hud-rebuild-call",
+      "hud-index-helper",
+      "lua-player-publication"
+    ],
+    "ordinaryExit": [
+      "manager-local-dispatch",
+      "native-exit-call",
+      "player-vector-remove",
+      "survivor-ordinal-rewrite",
+      "exit-hud-rebuild-call",
+      "lua-player-retirement"
+    ],
+    "stopSentinels": [
+      "possessor-spawn-stop",
+      "possessor-assignment-stop"
+    ],
+    "forbiddenPartition": "ORIGINAL_ONLINE_FORBIDDEN"
+  },
+  "passiveObserverDraft": {
+    "existingSlotCount": 45,
+    "newSlotOrdinals": [45, 46, 47, 48, 49, 50, 51, 52],
+    "combinedSlotCount": 53,
+    "installOrder": "ASCENDING_ORDINAL",
+    "restoreOrder": "STRICT_DESCENDING_ORDINAL",
+    "singleTransactionRequired": true,
+    "authorizedForInstallation": false
+  },
+  "observationPolicy": {
+    "exitIntermediateObservationAllowed": false,
+    "exitStableBoundaries": ["ENTRY_BEFORE", "COMPLETE_FUNCTION_RETURN_AFTER"],
+    "possessorContributesPositiveProof": false,
+    "unknownCandidateCanBecomeObserver": false,
+    "onlineGuardClaimScope": "NET_INPUT_DEVICE_VECTOR_NONEMPTY_SKIPS_LOCAL_BODY_ONLY"
+  },
+  "workPackages": [
+    { "id": "CS-T0-05-00", "state": "PASS", "unlocks": "CS-T0-05-01" },
+    { "id": "CS-T0-05-01", "state": "PASS", "unlocks": "CS-T0-05-02" },
+    { "id": "CS-T0-05-02", "state": "NOT_STARTED", "unlocks": "CS-T0-05-03" },
+    { "id": "CS-T0-05-03", "state": "NOT_STARTED", "unlocks": "CS-T0-05-04" },
+    { "id": "CS-T0-05-04", "state": "NOT_STARTED", "unlocks": "CS-T0-05-05" },
+    { "id": "CS-T0-05-05", "state": "NOT_STARTED", "unlocks": "CS-T0-05-06" },
+    { "id": "CS-T0-05-06", "state": "NOT_STARTED", "unlocks": "CS-T0-05-07" },
+    { "id": "CS-T0-05-07", "state": "NOT_STARTED", "unlocks": "T0-06" }
+  ],
+  "nextWorkPackage": {
+    "id": "CS-T0-05-02",
+    "scope": "THREE_MODE_C0_READ_ONLY_COMPARISON",
+    "processReadAllowed": false,
+    "runtimeMutationAllowed": false,
+    "requiresSeparateAuthorization": true
+  },
+  "permissions": {
+    "activeInputAllowed": false,
+    "liveAuthorizationCreated": false,
+    "runtimeMutationAllowed": false,
+    "t005Unlocked": false,
+    "csT00502Unlocked": true
+  }
+}

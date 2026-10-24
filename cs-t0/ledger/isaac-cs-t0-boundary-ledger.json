@@ -1,0 +1,434 @@
+{
+  "schemaVersion": 1,
+  "ledgerId": "isaac-cs-t0-03-boundaries-2026-04-21-x86",
+  "experimentIdentity": "IsaacCsT0-BoundaryResearch-v1",
+  "fixedVariant": "online-mod-patched-2026-04-21",
+  "baseline": {
+    "file": "isaac-cs-t0-target-ledger.json",
+    "ledgerId": "isaac-cs-t0-01-2026-04-21-x86",
+    "sha256": "23AB89605DCB41EC63823B4F762B32F93BEBC9BD00B7ECB7BE522ACBC3CCBE32"
+  },
+  "modeBaseline": {
+    "file": "isaac-cs-t0-mode-ledger.json",
+    "ledgerId": "isaac-cs-t0-02-mode-isolation-2026-04-21-x86",
+    "sha256": "C6034ED0E2A510852B913AE29F276347809291CCFC993D568CAAF3340F174275"
+  },
+  "gateDecision": {
+    "file": "../../artifacts/cs-t0/20260819T080844Z-t0-02-c2-original-online-a-a/t0-02-gate-decision.json",
+    "sha256": "8C882CB0985D55D5FBA379C2BDC118D6280C90B6017A961A7F729E3A281AB185",
+    "requiredStatus": "PASS",
+    "requiredAnalysisRevision": "t0-02-packet-pairing-v2"
+  },
+  "targets": [
+    {
+      "id": "input-sample-candidate-call",
+      "semantic": "Main-loop call preceding the local input-state copy and gameplay update; physical sampling semantics remain UNKNOWN",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x00554F84",
+      "feature": {
+        "section": ".text",
+        "rva": "0x00554F78",
+        "bytes": "B9187BC500E87EAC0C008BCFE8876300008D8F70D00400E85CE506008D8750A9040089442410E87DF2ACFF8B4C241033FFF30F101DA4A7BA008DB11401000066",
+        "maskedRanges": [
+          { "offset": 1, "length": 4 },
+          { "offset": 6, "length": 4 },
+          { "offset": 13, "length": 4 },
+          { "offset": 24, "length": 4 },
+          { "offset": 39, "length": 4 },
+          { "offset": 55, "length": 4 }
+        ]
+      },
+      "expectedBytes": "E887630000",
+      "expectedTargetRva": "0x0055B310",
+      "abi": "void (__thiscall*)(manager-root*); candidate identity only",
+      "thread": "main game thread hypothesis inherited from the enclosing main-loop owner; runtime proof required",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [
+        "offline .text disassembly 2026-08-19: RVA 0x554F84 precedes RVA 0x5551D8 input-state copy",
+        "docs/refactor/isaac-cs-t0-task-plan.md:248"
+      ]
+    },
+    {
+      "id": "gameplay-update-call",
+      "semantic": "Main-loop call into the candidate gameplay update owner after the local input-state copy",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x00555231",
+      "feature": {
+        "section": ".text",
+        "rva": "0x005551D8",
+        "bytes": "A17816C70033F68B880083010039B16412000076420F1F008B815C1200008B14B080BA7501000000741F8B824403000089823C0300008B8248030000898240030000C6827501000000463BB16412000072C6A17816C7008BC8E88A5BDAFFEB0E80BFC0A30200007405E8AA81DAFF",
+        "maskedRanges": [
+          { "offset": 1, "length": 4 },
+          { "offset": 83, "length": 4 },
+          { "offset": 90, "length": 4 },
+          { "offset": 106, "length": 4 }
+        ]
+      },
+      "expectedBytes": "E88A5BDAFF",
+      "expectedTargetRva": "0x002FADC0",
+      "abi": "void (__thiscall*)(Game*)",
+      "thread": "main game thread hypothesis; runtime equality with the T0-02 confirmed thread is mandatory",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [
+        "offline .text disassembly 2026-08-19: unique caller RVA 0x555231 of RVA 0x2FADC0",
+        "docs/refactor/isaac-cs-t0-task-plan.md:248"
+      ]
+    },
+    {
+      "id": "gameplay-dispatch-suppression-branch",
+      "semantic": "Main-loop bit test that bypasses the gameplay-update call; pause/loading/focus meanings remain UNKNOWN and are distinguished only by independent scenario signals",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x005551C2",
+      "feature": {
+        "section": ".text",
+        "rva": "0x005551C2",
+        "bytes": "80BF30B10400000F8520020000F687BCAB0400017560A17816C70033F68B880083010039B16412000076420F1F008B815C1200008B14B080BA7501000000741F8B824403000089823C0300008B8248030000898240030000C6827501000000463BB16412000072C6A17816C7008BC8E88A5BDAFFEB0E80BFC0A30200007405E8AA81DAFF",
+        "maskedRanges": [
+          { "offset": 9, "length": 4 },
+          { "offset": 23, "length": 4 },
+          { "offset": 105, "length": 4 },
+          { "offset": 112, "length": 4 },
+          { "offset": 128, "length": 4 }
+        ]
+      },
+      "expectedBytes": "80BF30B10400000F8520020000F687BCAB0400017560A17816C70033F68B880083010039B16412000076420F1F008B815C1200008B14B080BA7501000000741F8B824403000089823C0300008B8248030000898240030000C6827501000000463BB16412000072C6A17816C7008BC8E88A5BDAFFEB0E80BFC0A30200007405E8AA81DAFF",
+      "abi": "branch evidence only; verified input-sample wrapper self is the enclosing main-loop root and reads state +0x8 plus bit 0 at +0x4ABBC",
+      "thread": "same confirmed main game thread as input-sample-candidate-call",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "offline .text disassembly 2026-08-20: RVA 0x5551CF branches around gameplay-update-call RVA 0x555231",
+        "offline masked feature scan: full .text uniqueness required"
+      ]
+    },
+    {
+      "id": "entity-update-owner-call",
+      "semantic": "Candidate gameplay-path owner that invokes EntityList update variants",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FB51C",
+      "feature": {
+        "section": ".text",
+        "rva": "0x002FB50D",
+        "bytes": "83BF3CB8010000744B8D8F3CB80100E87F6313008D8FCC5E0200E8742629008BCEE8FD752A008D8F3CB80100E8324BFFFF84C00F8464060000C787C0650200000000008B4DF464890D00000000595F5E8BE55DC383BF34C00100008D8F34C001",
+        "maskedRanges": [
+          { "offset": 16, "length": 4 },
+          { "offset": 27, "length": 4 },
+          { "offset": 34, "length": 4 },
+          { "offset": 45, "length": 4 },
+          { "offset": 54, "length": 4 }
+        ]
+      },
+      "expectedBytes": "E87F631300",
+      "expectedTargetRva": "0x004318A0",
+      "abi": "void (__thiscall*)(gameplay-state-owner*)",
+      "thread": "must be nested on the confirmed main game thread inside gameplay-update-call",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [
+        "offline .text disassembly 2026-08-19: RVA 0x2FB51C lies inside candidate Game update RVA 0x2FADC0",
+        "offline .text call scan: target RVA 0x4318A0 calls EntityList::Update candidate RVA 0x186C0"
+      ]
+    },
+    {
+      "id": "entity-list-update-entry",
+      "semantic": "EntityList update entry; its nine call sites cover multiple state variants and are not conflated",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x000186C0",
+      "feature": {
+        "section": ".text",
+        "rva": "0x000186C0",
+        "bytes": "538BDC83EC0883E4F883C404558B6B04896C24048BEC6AFF687515AF0064A100000000505381ECA00000005657A1B493BF0033C5508D45F464A300000000894DC08B359C16C70033D28955948B86D8B304008BBEDCB304008945AC897D903BC7",
+        "maskedRanges": [
+          { "offset": 25, "length": 4 },
+          { "offset": 46, "length": 4 },
+          { "offset": 67, "length": 4 }
+        ]
+      },
+      "expectedBytes": "538BDC83EC0883E4F883C404558B6B04896C24048BEC6AFF687515AF0064A100000000505381ECA00000005657A1B493BF0033C5508D45F464A300000000894DC08B359C16C70033D28955948B86D8B304008BBEDCB304008945AC897D903BC7",
+      "abi": "void (__thiscall*)(EntityList*, bool stateFilter); ret 4",
+      "thread": "main game thread hypothesis for gameplay caller; all nine call sites are retained as distinct contexts",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [
+        "offline .text string reference: EntityList: e_update is empty! at RVA 0x186C0 owner",
+        "offline full .text rel32 scan 2026-08-19: nine direct callers"
+      ]
+    },
+    {
+      "id": "remove-finalize-call",
+      "semantic": "Per-entry cleanup call inside the delayed-removal list immediately before MC_POST_UPDATE",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FBB66",
+      "feature": {
+        "section": ".text",
+        "rva": "0x002FBB24",
+        "bytes": "8D8F04DA0100E801702A0083BF3077060000746D8B872C7706008B303BF074618B460C85C0754A8B46048B3E89388B0E8B46048941048D4E348B45ECFF8830770600E8858CD1FF8D4E28E80DAED2FF8D4E1CE8A574D2FF8D4E10E8BD36D3FF6A4056E8D1353F008BF783C4088B7DECEB087E044889460C8B363BB72C770600759FE8F64B16008B4DF464890D00000000595F5E8BE55D",
+        "maskedRanges": [
+          { "offset": 7, "length": 4 },
+          { "offset": 67, "length": 4 },
+          { "offset": 75, "length": 4 },
+          { "offset": 83, "length": 4 },
+          { "offset": 91, "length": 4 },
+          { "offset": 99, "length": 4 },
+          { "offset": 130, "length": 4 }
+        ]
+      },
+      "expectedBytes": "E8858CD1FF",
+      "expectedTargetRva": "0x000147F0",
+      "abi": "void (__thiscall*)(remove-entry-field*)",
+      "thread": "must be nested on the confirmed main game thread inside gameplay-update-call",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [
+        "offline .text disassembly 2026-08-19: delayed-removal list RVA 0x2FBB38..0x2FBBA3",
+        "docs/refactor/isaac-cs-t0-task-plan.md:251"
+      ]
+    },
+    {
+      "id": "post-update-dispatch-call",
+      "semantic": "Unique direct call to the MC_POST_UPDATE dispatcher after delayed-removal traversal",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FBBA5",
+      "feature": {
+        "section": ".text",
+        "rva": "0x002FBB24",
+        "bytes": "8D8F04DA0100E801702A0083BF3077060000746D8B872C7706008B303BF074618B460C85C0754A8B46048B3E89388B0E8B46048941048D4E348B45ECFF8830770600E8858CD1FF8D4E28E80DAED2FF8D4E1CE8A574D2FF8D4E10E8BD36D3FF6A4056E8D1353F008BF783C4088B7DECEB087E044889460C8B363BB72C770600759FE8F64B16008B4DF464890D00000000595F5E8BE55D",
+        "maskedRanges": [
+          { "offset": 7, "length": 4 },
+          { "offset": 67, "length": 4 },
+          { "offset": 75, "length": 4 },
+          { "offset": 83, "length": 4 },
+          { "offset": 91, "length": 4 },
+          { "offset": 99, "length": 4 },
+          { "offset": 130, "length": 4 }
+        ]
+      },
+      "expectedBytes": "E8F64B1600",
+      "expectedTargetRva": "0x004607A0",
+      "abi": "void (__cdecl*)(); call site supplies no stack argument and dispatcher returns with plain ret",
+      "thread": "main game thread hypothesis; runtime proof required",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "offline callback-id disassembly 2026-08-19: dispatcher stores id 1 and tests bit 0x2",
+        "offline full .text rel32 scan: dispatcher RVA 0x4607A0 has one direct caller"
+      ]
+    },
+    {
+      "id": "render-call",
+      "semantic": "Main-loop call into the candidate render owner",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x005559C1",
+      "feature": {
+        "section": ".text",
+        "rva": "0x0055599B",
+        "bytes": "C745FCFFFFFFFFE9B60300008B47084883F8040F879E010000FF2485F46095008B0D7816C700E84A62DAFFE987010000E870460300E97D010000B9E098C700E8",
+        "maskedRanges": [
+          { "offset": 8, "length": 4 },
+          { "offset": 21, "length": 4 },
+          { "offset": 28, "length": 4 },
+          { "offset": 34, "length": 4 },
+          { "offset": 39, "length": 4 },
+          { "offset": 44, "length": 4 },
+          { "offset": 49, "length": 4 },
+          { "offset": 54, "length": 4 },
+          { "offset": 60, "length": 4 }
+        ]
+      },
+      "expectedBytes": "E84A62DAFF",
+      "expectedTargetRva": "0x002FBC10",
+      "abi": "void (__thiscall*)(Game*)",
+      "thread": "main render thread hypothesis; must equal the confirmed main game thread before promotion",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [
+        "offline .text disassembly 2026-08-19: unique direct caller RVA 0x5559C1 of render owner RVA 0x2FBC10"
+      ]
+    },
+    {
+      "id": "post-new-room-dispatch-call",
+      "semantic": "Unique direct call to the callback-id 0x13 dispatcher after the room entity rebind loop",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x0033F5B9",
+      "feature": {
+        "section": ".text",
+        "rva": "0x0033F550",
+        "bytes": "6A00E809A40B008B0D7816C7008BB90083010033F639B764120000764C0F1F0083B914660200028B875C1200008B14B07C06837A2801740D8B422883E80A3DDD030000771B8B81F86402002B8228030000750D8B028BCAFF500C8B0D7816C700463BB76412000072B7E8C25B12008B0D7816C70083B914660200027C248B89206602008B01FF5008A17816C700",
+        "maskedRanges": [
+          { "offset": 3, "length": 4 },
+          { "offset": 9, "length": 4 },
+          { "offset": 92, "length": 4 },
+          { "offset": 106, "length": 4 },
+          { "offset": 112, "length": 4 },
+          { "offset": 137, "length": 4 }
+        ]
+      },
+      "expectedBytes": "E8C25B1200",
+      "expectedTargetRva": "0x00465180",
+      "abi": "void (__cdecl*)(); callback dispatcher id 0x13, no stack arguments and plain ret",
+      "thread": "must use the confirmed main game thread; runtime proof required",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "offline callback dispatcher disassembly 2026-08-20: RVA 0x465180 stores id 0x13 and tests bit 0x80000",
+        "offline full .text rel32 scan: dispatcher RVA 0x465180 has one direct caller at RVA 0x33F5B9"
+      ]
+    },
+    {
+      "id": "post-render-dispatch-call",
+      "semantic": "Unique direct call to the MC_POST_RENDER dispatcher inside the candidate render owner",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FC0A6",
+      "feature": {
+        "section": ".text",
+        "rva": "0x002FC074",
+        "bytes": "C7051099C700070000008B873CB8010083F802741283F803740D8B8F00830100E867311100EB0B8D8F3CB80100E8AA671300E8D57516008B873C65020033C983C0EC0F48C13987386502000F8EFA000000384D970F85F1000000390DA497C7000F84E5000000",
+        "maskedRanges": [
+          { "offset": 2, "length": 4 },
+          { "offset": 33, "length": 4 },
+          { "offset": 46, "length": 4 },
+          { "offset": 51, "length": 4 },
+          { "offset": 92, "length": 4 }
+        ]
+      },
+      "expectedBytes": "E8D5751600",
+      "expectedTargetRva": "0x00463680",
+      "abi": "uint32_t (__stdcall*)(); callback dispatcher id 2",
+      "thread": "main render thread hypothesis; runtime proof required",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "offline callback-id disassembly 2026-08-19: dispatcher stores id 2 and tests bit 0x4",
+        "offline full .text rel32 scan: dispatcher RVA 0x463680 has one direct caller"
+      ]
+    },
+    {
+      "id": "spawn-core-call",
+      "semantic": "Unique inner call made by the common seven-argument spawn wrapper; observes wrapper activity without treating its 1807 callers as one drain owner",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x00028B3D",
+      "feature": {
+        "section": ".text",
+        "rva": "0x00028B20",
+        "bytes": "558BEC83E4F86A00FF7520FF751CFF7518FF7514FF7510FF750CFF7508E8CE582D008BE55DC21C00",
+        "maskedRanges": [ { "offset": 30, "length": 4 } ]
+      },
+      "expectedBytes": "E8CE582D00",
+      "expectedTargetRva": "0x002FE410",
+      "abi": "entity* (__thiscall*)(gameOwner*, type, variant, subtype, position*, velocity*, spawner*, seed, zeroSentinel); ECX is the preserved game owner, eight stack arguments, callee ret 0x20; replacement is an __fastcall ECX/EDX bridge",
+      "thread": "game object access is permitted only after main-thread runtime proof",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [
+        "offline .text disassembly 2026-08-19: the wrapper has one inner rel32 call at RVA 0x28B3D",
+        "WER plus offline target disassembly 2026-08-19: target RVA 0x2FE410 begins by preserving ECX as the game owner and returns with ret 0x20",
+        "offline full .text rel32 scan: wrapper entry has 1807 callers, retained without caller conflation"
+      ]
+    },
+    {
+      "id": "spawn-entity-entry",
+      "semantic": "Common seven-argument spawn wrapper; 1807 direct callers prove it is not itself a unique spawn-drain boundary",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x00028B20",
+      "feature": {
+        "section": ".text",
+        "rva": "0x00028B20",
+        "bytes": "558BEC83E4F86A00FF7520FF751CFF7518FF7514FF7510FF750CFF7508E8CE582D008BE55DC21C00",
+        "maskedRanges": [ { "offset": 30, "length": 4 } ]
+      },
+      "expectedBytes": "558BEC83E4F86A00FF7520FF751CFF7518FF7514FF7510FF750CFF7508E8CE582D008BE55DC21C00",
+      "abi": "entity* (__thiscall*)(gameOwner*, type, variant, subtype, position*, velocity*, spawner*, seed); ECX is forwarded unchanged to the inner call, seven stack arguments, ret 0x1C",
+      "thread": "game object access is permitted only after main-thread runtime proof",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [
+        "offline .text disassembly 2026-08-19: wrapper RVA 0x28B20 calls RVA 0x2FE410",
+        "offline full .text rel32 scan: 1807 direct callers; no unique drain inference"
+      ]
+    }
+  ],
+  "probes": [
+    {
+      "id": "input-order-candidate",
+      "classification": "INPUT",
+      "targetIds": [ "input-sample-candidate-call", "gameplay-update-call" ],
+      "hypothesis": "The earlier call samples input and the state-copy immediately before gameplay-update-call is the apply boundary; both roles remain UNKNOWN until input scenarios correlate them.",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [ "offline main-loop ordering 2026-08-19", "docs/refactor/isaac-cs-t0-task-plan.md:250" ]
+    },
+    {
+      "id": "gameplay-tick-candidate",
+      "classification": "GAMEPLAY",
+      "targetIds": [ "gameplay-dispatch-suppression-branch", "gameplay-update-call", "post-update-dispatch-call" ],
+      "hypothesis": "A successful gameplay update contains exactly one MC_POST_UPDATE call, while pause/loading/menu branches must not produce a promoted server tick.",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [ "offline unique caller proof 2026-08-19", "docs/refactor/isaac-cs-t0-task-plan.md:250" ]
+    },
+    {
+      "id": "room-loading-boundary-candidate",
+      "classification": "GAMEPLAY",
+      "targetIds": [ "gameplay-dispatch-suppression-branch", "post-new-room-dispatch-call", "post-update-dispatch-call" ],
+      "hypothesis": "During the constrained one-door scenario, a suppressed main-loop dispatch interval immediately preceding the unique callback-id 0x13 signal is the operational room-loading window and must contain no candidate tick.",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [ "offline main-loop branch and callback-id 0x13 disassembly 2026-08-20" ]
+    },
+    {
+      "id": "entity-mutation-scope-candidate",
+      "classification": "ENTITY",
+      "targetIds": [ "entity-update-owner-call", "entity-list-update-entry", "post-update-dispatch-call" ],
+      "hypothesis": "The gameplay-path owner encloses entity mutation, and MC_POST_UPDATE occurs after that owner returns; the nine EntityList contexts remain distinct.",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [ "offline nested call graph 2026-08-19" ]
+    },
+    {
+      "id": "remove-drain-candidate",
+      "classification": "DRAIN",
+      "targetIds": [ "remove-finalize-call", "post-update-dispatch-call" ],
+      "hypothesis": "Delayed-removal finalization is never active when the post-update callback fires.",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [ "offline delayed-list traversal 0x2FBB38..0x2FBBA3" ]
+    },
+    {
+      "id": "spawn-boundary-candidate",
+      "classification": "DRAIN",
+      "targetIds": [ "spawn-entity-entry", "spawn-core-call", "post-update-dispatch-call" ],
+      "hypothesis": "The common spawn wrapper remains diagnostic rather than a unique drain owner, while its single inner call can prove whether any wrapper invocation is active at MC_POST_UPDATE.",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [ "offline call multiplicity scan 2026-08-19" ]
+    },
+    {
+      "id": "lua-post-update-candidate",
+      "classification": "LUA",
+      "targetIds": [ "post-update-dispatch-call", "lua-simulation-pcall", "lua-close-call" ],
+      "hypothesis": "MC_POST_UPDATE dispatch is ordered before its Lua pcall and is retired by the T0-02 Lua lifecycle generation.",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [ "offline callback dispatcher disassembly 2026-08-19", "cs-t0/lifecycle-candidate-evidence.md" ]
+    },
+    {
+      "id": "render-separation-candidate",
+      "classification": "RENDER",
+      "targetIds": [ "render-call", "post-render-dispatch-call", "post-update-dispatch-call" ],
+      "hypothesis": "Render-only windows are reported separately and never substitute for a gameplay/server tick.",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [ "offline render owner/callback call graph 2026-08-19" ]
+    },
+    {
+      "id": "online-dispatch-order-only",
+      "classification": "DIAGNOSTIC",
+      "targetIds": [ "online-dispatch-call-5110ab", "post-update-dispatch-call" ],
+      "hypothesis": "RVA 0x5110AB is retained only as an OriginalOnline relative-order diagnostic and is not a general gameplay boundary.",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [ "docs/refactor/isaac-cs-architecture-plan.md:83", "docs/custom-sync-runtime-analysis.md:207" ]
+    }
+  ],
+  "constraints": [
+    { "id": "no-original-online", "rule": "Any OriginalOnline manager/backend signal is forbidden in a passive boundary run.", "action": "DISARM_RESTORE" },
+    { "id": "main-thread-only", "rule": "Every game-object event must use the T0-02 confirmed main thread.", "action": "DISARM_RESTORE" },
+    { "id": "no-semantic-mutation", "rule": "Every wrapper calls the original exactly once with unchanged arguments and return value.", "action": "FAIL" },
+    { "id": "ring-overflow", "rule": "Any missing or overwritten event invalidates the run.", "action": "DISARM_RESTORE" },
+    { "id": "lifecycle-retirement", "rule": "lua_close, menu return or generation rebuild retires the boundary token and forbids later events.", "action": "DISARM_RESTORE" },
+    { "id": "replica-separation", "rule": "Render-only evidence cannot prove Replica separation.", "action": "REPORT_UNKNOWN" }
+  ]
+}

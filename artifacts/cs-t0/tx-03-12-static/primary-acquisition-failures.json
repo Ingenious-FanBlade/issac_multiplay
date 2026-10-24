@@ -1,0 +1,9 @@
+{
+  "tx": "tx-03-12",
+  "kind": "Acquisition failure record; no target execution",
+  "failures": [
+    {"tool": "mcp__ida_mcp__py_eval", "operation": "Initial string search with a generator expression", "error": "NameError: name '_text' is not defined. Did you mean: 'next'?", "handling": "Switched to py_exec_file with a single namespace; original failure is preserved here, not used as a negative search result."},
+    {"tool": "rg", "operation": "Path argument docs/refactor/cs-t0/t0-06/tx-01-65*", "error": "Windows path wildcard argument rejected (os error 123)", "handling": "Other requested paths were read; no absence conclusion drawn from the rejected argument."},
+    {"tool": "exec_command / PowerShell", "operation": "Format selected instructions from already-exported JSON", "error": "Exit code 1 with empty output; malformed foreach pipeline in command text", "handling": "Corrected the formatting command; no target execution or change to exported evidence."}
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "matrixIdentity": "IsaacCsT0-CoopMatrix-v1",
+  "workPackage": "CS-T0-05-00",
+  "status": "UNPOPULATED_TEMPLATE",
+  "virtualDeviceDecision": "UNKNOWN",
+  "basePrimaryCases": [
+    { "ordinal": 1, "caseName": "control-no-native", "tier": "C0", "analysisPath": null, "expectedProof": "No Hook, IPC, or apply; target unchanged." },
+    { "ordinal": 2, "caseName": "offline-single-c0", "tier": "C0", "analysisPath": null, "expectedProof": "Single-Player baseline and inherited semantics do not regress." },
+    { "ordinal": 3, "caseName": "local-coop-dual-c0", "tier": "C0", "analysisPath": null, "expectedProof": "Two unique Player, assignment, HUD, and Lua mappings." },
+    { "ordinal": 4, "caseName": "original-online-dual-disarmed", "tier": "C0", "analysisPath": null, "expectedProof": "OriginalOnline is read-only and T0-05 has zero interference." },
+    { "ordinal": 5, "caseName": "native-join-passive", "tier": "PASSIVE", "analysisPath": null, "expectedProof": "Complete native join event chain and original exactly once." },
+    { "ordinal": 6, "caseName": "native-exit-passive", "tier": "PASSIVE", "analysisPath": null, "expectedProof": "Exit retires the old generation permanently." },
+    { "ordinal": 7, "caseName": "death-respawn-passive", "tier": "PASSIVE", "analysisPath": null, "expectedProof": "Binding invalidates and rebinds uniquely." },
+    { "ordinal": 8, "caseName": "room-rebind-passive", "tier": "PASSIVE", "analysisPath": null, "expectedProof": "Room generation clears and rebinds." },
+    { "ordinal": 9, "caseName": "device-rebind-passive", "tier": "PASSIVE", "analysisPath": null, "expectedProof": "Both assignments have unique before and after joins." },
+    { "ordinal": 10, "caseName": "menu-teardown-passive", "tier": "PASSIVE", "analysisPath": null, "expectedProof": "Run teardown clears stable and ephemeral mappings." },
+    { "ordinal": 11, "caseName": "native-join-active", "tier": "ACTIVE", "analysisPath": null, "expectedProof": "Native path creates Player 2 with no online dependency or persistent side effect." },
+    { "ordinal": 12, "caseName": "endpoint-a-only", "tier": "ACTIVE", "analysisPath": null, "expectedProof": "Endpoint A affects only ordinal 0." },
+    { "ordinal": 13, "caseName": "endpoint-b-only", "tier": "ACTIVE", "analysisPath": null, "expectedProof": "Endpoint B affects only ordinal 1." },
+    { "ordinal": 14, "caseName": "simultaneous-move", "tier": "ACTIVE", "analysisPath": null, "expectedProof": "Continuous input states stay isolated." },
+    { "ordinal": 15, "caseName": "simultaneous-shoot", "tier": "ACTIVE", "analysisPath": null, "expectedProof": "Aim and shoot-held states stay isolated." },
+    { "ordinal": 16, "caseName": "same-tick-edge", "tier": "ACTIVE", "analysisPath": null, "expectedProof": "Cross-client edges are independent and same-client collisions reject." },
+    { "ordinal": 17, "caseName": "reject-isolation", "tier": "ACTIVE", "analysisPath": null, "expectedProof": "Full, expired, too-far, stale, conflict, and duplicate outcomes never cross-route." },
+    { "ordinal": 18, "caseName": "pause", "tier": "ACTIVE", "analysisPath": null, "expectedProof": "Pause suppresses apply and resume does not replay stale edges." },
+    { "ordinal": 19, "caseName": "loading", "tier": "ACTIVE", "analysisPath": null, "expectedProof": "Unproven loading and alternate paths fail closed." },
+    { "ordinal": 20, "caseName": "dual-isolation-soak", "tier": "ACTIVE", "analysisPath": null, "expectedProof": "All invariants hold for 1000 consecutive Authority ticks." }
+  ],
+  "conditionalPrimaryCases": [
+    { "caseName": "virtual-device-passive", "tier": "PASSIVE", "condition": "virtualDeviceDecision == REQUIRED_ELIGIBLE", "analysisPath": null },
+    { "caseName": "virtual-device-active", "tier": "ACTIVE", "condition": "virtualDeviceDecision == REQUIRED_ELIGIBLE", "analysisPath": null }
+  ],
+  "repeatabilityCases": [
+    { "caseName": "dual-isolation-soak-extra-a", "analysisPath": null },
+    { "caseName": "dual-isolation-soak-extra-b", "analysisPath": null }
+  ],
+  "comparisonPath": null,
+  "permissions": {
+    "activeInputAllowed": false,
+    "runtimeMutationAllowed": false
+  }
+}

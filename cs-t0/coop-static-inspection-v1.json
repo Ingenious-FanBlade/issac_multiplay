@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "inspectionIdentity": "IsaacCsT0-CoopStaticInspection-v1",
+  "workPackage": "CS-T0-05-01",
+  "result": "PASS",
+  "target": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedApprovedUnpackedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "equivalenceIdentity": null,
+    "equivalenceSha256": null,
+    "equivalenceDocumentSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+    "machine": "0x014C",
+    "preferredImageBase": "0x00400000",
+    "runtimeAddressRule": "moduleBase + RVA"
+  },
+  "artifactBindings": [
+    {
+      "role": "BOOTSTRAP_DECISION",
+      "identity": "IsaacCsT0-CoopBootstrapDecision-v1",
+      "sha256": "7EB5004E368A478EBB3CC83149BB05E70F7876C4384A511557EEC9188D1D7598"
+    },
+    {
+      "role": "CATALOG",
+      "identity": "IsaacCsT0-CoopCatalog-v2",
+      "sha256": "1059711778DAD09870D37118571EE7D5E67761EC28FFAB84C7CF5AC5998A0224"
+    },
+    {
+      "role": "GRAPH",
+      "identity": "IsaacCsT0-CoopStaticGraph-v1",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    },
+    {
+      "role": "LEDGER",
+      "identity": "IsaacCsT0-CoopLedger-v2",
+      "sha256": "EA195429231F9CA8575FC6901E792496D6C26AC42984928B1C09504E97B3FCAC"
+    },
+    {
+      "role": "STATIC_EVIDENCE",
+      "identity": "IsaacCsT0-CoopStaticEvidence-v1",
+      "sha256": "501B39DEB198E7F1424328069534438ADC73BA665D1E6988AFA4AD7939DB081B"
+    },
+    {
+      "role": "TARGET_EQUIVALENCE",
+      "identity": "IsaacCsT0-UnpackedTargetEquivalence-v1",
+      "sha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138"
+    },
+    {
+      "role": "TARGET_PE",
+      "identity": "IsaacCsT0-ApprovedUnpackedPE",
+      "sha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C"
+    }
+  ],
+  "checks": [
+    {
+      "id": "approved-unpacked-equivalence",
+      "passed": true
+    },
+    {
+      "id": "artifact-hash-bindings",
+      "passed": true
+    },
+    {
+      "id": "bootstrap-pass-and-05-01-unlocked",
+      "passed": true
+    },
+    {
+      "id": "bytes-opcode-rel32-targets",
+      "passed": true
+    },
+    {
+      "id": "graph-no-dangling-edges",
+      "passed": true
+    },
+    {
+      "id": "join-and-exit-routes-complete",
+      "passed": true
+    },
+    {
+      "id": "masked-features-unique",
+      "passed": true
+    },
+    {
+      "id": "online-partition-isolated",
+      "passed": true
+    },
+    {
+      "id": "permissions-remain-disabled",
+      "passed": true
+    },
+    {
+      "id": "repository-relative-artifact-policy",
+      "passed": true
+    },
+    {
+      "id": "slot-45-through-52-single-transaction",
+      "passed": true
+    },
+    {
+      "id": "strict-schema-identities",
+      "passed": true
+    },
+    {
+      "id": "supersedes-hashes-match",
+      "passed": true
+    }
+  ],
+  "graphIdentity": "IsaacCsT0-CoopStaticGraph-v1",
+  "catalogIdentity": "IsaacCsT0-CoopCatalog-v2",
+  "graphSummary": {
+    "partitionCount": 3,
+    "nodeCount": 18,
+    "edgeCount": 14,
+    "requiredRouteCount": 2,
+    "newSlotCount": 8,
+    "combinedSlotCount": 53
+  },
+  "featureResults": [
+    {
+      "slotId": "coop-manager-owner",
+      "matchRvas": [
+        "0x002FADA7"
+      ],
+      "observedBytes": "E894FE2B00",
+      "observedTargetRva": "0x005BAC40"
+    },
+    {
+      "slotId": "coop-ordinary-spawn",
+      "matchRvas": [
+        "0x005BB415"
+      ],
+      "observedBytes": "E8B6E8FFFF",
+      "observedTargetRva": "0x005B9CD0"
+    },
+    {
+      "slotId": "coop-possessor-spawn-stop",
+      "matchRvas": [
+        "0x005BAFFA"
+      ],
+      "observedBytes": "E8D1ECFFFF",
+      "observedTargetRva": "0x005B9CD0"
+    },
+    {
+      "slotId": "coop-native-exit",
+      "matchRvas": [
+        "0x005BB22A"
+      ],
+      "observedBytes": "E8D1EDFFFF",
+      "observedTargetRva": "0x005BA000"
+    },
+    {
+      "slotId": "coop-ordinary-assignment",
+      "matchRvas": [
+        "0x005BB424"
+      ],
+      "observedBytes": "E827B0DEFF",
+      "observedTargetRva": "0x003A6450"
+    },
+    {
+      "slotId": "coop-possessor-assignment-stop",
+      "matchRvas": [
+        "0x005BB004"
+      ],
+      "observedBytes": "E847B4DEFF",
+      "observedTargetRva": "0x003A6450"
+    },
+    {
+      "slotId": "coop-join-hud-rebuild",
+      "matchRvas": [
+        "0x005BB4FD"
+      ],
+      "observedBytes": "E81ED1FEFF",
+      "observedTargetRva": "0x005A8620"
+    },
+    {
+      "slotId": "coop-exit-hud-rebuild",
+      "matchRvas": [
+        "0x005BA752"
+      ],
+      "observedBytes": "E8C9DEFEFF",
+      "observedTargetRva": "0x005A8620"
+    }
+  ],
+  "missingEvidence": [],
+  "permissions": {
+    "activeInputAllowed": false,
+    "runtimeMutationAllowed": false,
+    "t005Unlocked": false,
+    "csT00502Unlocked": true
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "tx": "tx-03-15",
+  "date": "2026-10-23",
+  "timezone": "Asia/Shanghai",
+  "evidence": "ACQUISITION_NOTES_ONLY",
+  "idb_input_path": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe",
+  "imagebase": "0x400000",
+  "recorded_limitations": [
+    "Some terminal outputs were truncated, including a large Load xref display. Complete JSON was retained and selected functions/instructions were read afterwards; truncation was not interpreted as absence.",
+    "Luna initially stated that no further Lua wrapper was found. Primary followed 89EF10/89F030 and independently exported actual closures 8A99D0/8A9740, corrected the report and retained a revision note.",
+    "408640's by-value source cleanup and 40C3B0's old destination cleanup are distinct. Wording was corrected before final review.",
+    "Layer +30 comes from a candidate-image check before final pair assignment; it does not validate final retain or all failure states.",
+    "No extraction tool error was observed for this tx. Terminal truncation is an output limitation, not a target-program failure.",
+    "No runtime observation, native helper execution, IDB mutation, identity comparison or hash computation/verification. Addressed input path does not establish disk-file identity.",
+    "Reload accounting and failed Load borrowed-pointer risk are conditional static derivations; no runtime leak, UAF, crash or final pixels were observed.",
+    "Zero-layer, invalid-control, OOM, EH, concurrent workers and full XML failure behavior remain outside the proven normal path."
+  ],
+  "side_effects": "Read-only IDA access plus new repository research documents/artifacts and entry updates; no production changes, game, build, debugger operation or tests during analysis.",
+  "acceptance": "One unified static document review after all research and edits; preserve results and do not rerun automatically."
+}

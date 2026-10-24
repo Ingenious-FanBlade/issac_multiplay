@@ -1,0 +1,930 @@
+{
+  "schemaVersion": 1,
+  "ledgerId": "isaac-cs-t0-03r-loop-envelope-2026-08-20-x86",
+  "experimentIdentity": "IsaacCsT0-LoopEnvelopeResearch-v5",
+  "fixedVariant": {
+    "fileName": "isaac-ng.exe",
+    "fileSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "textSha256": "197175428117EC352324F22FA44CF42D60511F0A4887BF6DC5FECFBF9A6EE758",
+    "machine": "0x014C",
+    "timestamp": "0x69E6E3A7",
+    "imageSize": "0x0092C000",
+    "preferredImageBase": "0x00400000"
+  },
+  "baseline": {
+    "file": "isaac-cs-t0-target-ledger.json",
+    "ledgerId": "isaac-cs-t0-01-2026-04-21-x86",
+    "sha256": "23AB89605DCB41EC63823B4F762B32F93BEBC9BD00B7ECB7BE522ACBC3CCBE32"
+  },
+  "gate": {
+    "status": "BLOCKED_BY_EVIDENCE",
+    "reason": "The V4 room capture preserved a fail-closed result: its proposed RVA 0x2FB226 owner and RVA 0x34584D simulation hooks were armed but never hit, while one NewRoom pair was immediately followed by the only otherwise ownerless EntityList pair. Fixed-build control flow instead places the ordinary-door transaction under RVA 0x2FB51C and its nested Room::Update at RVA 0x2FE37C. V5 replaces only those two disproved slots, keeps the 32-slot u64 mask, and still requires the seven-scenario V5 matrix plus stable XInput ownership before active input.",
+    "activeInputAllowed": false,
+    "requiredEvidence": [
+      "Run the V5 passive probe and correlate InputManager sample, per-device update, concrete physical poll, and the corrected ordinary-door room-change transaction with the confirmed main-thread loop iteration in all seven required scenarios.",
+      "Retain the case04 runtime proof that the generic Win32 pump at RVA 0x65E660 executes once inside each observed top-level update, without treating that 60 Hz loop as an Authority tick.",
+      "Repeat the stable owner-chain snapshot with an XInput gamepad remaining inside the active input-device vector and join its InputDeviceBase +0x0C key to a player +0x1618 assignment; the current stable snapshot proves the keyboard owner only.",
+      "Use the passive MC_INPUT_ACTION witness to correlate actions 0..11 without observing, suppressing, or synthesizing actions 12+.",
+      "Observe coherent steady standard, alternate inline, and room-lifecycle transactions under their explicit owners; classify every active alternate owner attempt including the five run-activation outcomes, and keep conditional or lifecycle-only attempts without a nested simulation distinct from Authority mutation."
+    ]
+  },
+  "corrections": [
+    {
+      "id": "reclassify-rva-554f84",
+      "supersedes": "isaac-cs-t0-boundary-ledger.json#input-sample-candidate-call",
+      "rva": "0x00554F84",
+      "expectedBytes": "E887630000",
+      "expectedTargetRva": "0x0055B310",
+      "previousHypothesis": "physical input sample candidate",
+      "semantic": "Controller-assignment candidate; physical-sample semantics are withdrawn.",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20: RVA 0x554F84 calls RVA 0x55B310.",
+        "GNU objdump 2.44 offline disassembly 2026-08-20: RVA 0x55B310 enumerates controller/platform-owned state and updates assignment-like state, but no concrete gameplay sample ABI is established."
+      ]
+    },
+    {
+      "id": "reclassify-rva-5551d8",
+      "rva": "0x005551D8",
+      "expectedBytes": "A17816C70033F68B880083010039B16412000076420F1F008B815C1200008B14B080BA7501000000741F8B824403000089823C0300008B8248030000898240030000C6827501000000",
+      "previousHypothesis": "local input-state apply copy",
+      "semantic": "Conditional per-entry field copy (+0x344/+0x348 to +0x33C/+0x340, guarded by +0x175); field meaning and input ownership remain unknown.",
+      "evidenceLabel": "UNKNOWN",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20: exact copy loop at RVA 0x5551D8..0x555221.",
+        "No concrete InputDevice vtable, controller identity, or input callback is established by this field copy."
+      ]
+    },
+    {
+      "id": "retire-v4-room-transition-hook-hypothesis",
+      "rvas": [
+        "0x002FB226",
+        "0x0034584D"
+      ],
+      "expectedBytesByRva": {
+        "0x002FB226": "E895C8FFFF",
+        "0x0034584D": "E82ED10B00"
+      },
+      "previousHypothesis": "ordinary-door transition owner and nested Room::Update",
+      "semantic": "Valid fixed-build callsites for a different special branch, but not the ordinary-door room-change path observed by the V4 room artifact; both slots are retired from the V5 passive hook set.",
+      "evidenceLabel": "RUNTIME_ARMED_NONHIT_V4_RETIRED",
+      "evidenceSources": [
+        "V4 artifact 20260820T174153Z: all 32 hooks installed and restored exactly, but event kinds 63..66 were all zero.",
+        "The same artifact contained one NewRoom pair and one otherwise ownerless EntityList pair in loop 1425, proving that the proposed V4 transaction path was not executed.",
+        "Fixed-build disassembly 2026-08-21: 0x34584D is reached only when [root+0x26584] == 0x1F and [owner] == 0x0B; those field semantics remain UNKNOWN and are not monster-count, clear, or visited evidence."
+      ]
+    }
+  ],
+  "runtimeEvidence": [
+    {
+      "id": "v2-keyboard-background-short-circuit",
+      "artifact": "artifacts/cs-t0/20260820T122500Z-t0-03r-loop-passive-keyboard-t0-03r-v2-keyboard-passive-01",
+      "analysisSha256": "669ACC07949EF7E2906D0395B1424BC26FFB3CD991E8FC48E4C5D8D6AA56B6C5",
+      "result": "FAIL_AUTHORITY_EVIDENCE_NONEMPTY",
+      "facts": "74,919 contiguous events and 4,060 complete loops; every one of 2,030 standard attempts reached predicate=false and the body anchor but exited before room simulation; all 4,060 alternate owners were pre=0/post=0; all 28 targets restored exactly.",
+      "interpretation": "Negative short-circuit sample consistent with the user's known focus-loss auto-pause behavior; no event payload identifies the exact gate, so this is not an independent focus or pause PASS."
+    },
+    {
+      "id": "v2-keyboard-foreground-standard-transaction",
+      "artifact": "artifacts/cs-t0/20260820T123537Z-t0-03r-loop-passive-keyboard-t0-03r-v2-keyboard-foreground-02",
+      "analysisSha256": "636CE69BA08E61D0C9B7E7ADBBDF92743F28331240CF7F3540052681861BC7FD",
+      "manifestSha256": "11B7B3440C3C1B27A306C2A9662A554DD4B7067678AE9AAD5D1D94ADB2FD4988",
+      "eventsSha256": "E537AE6789DD8C434A29A084AAE5008C04A3E332C0825E151A09CBAF584FEE99",
+      "result": "PASS_V2_KEYBOARD_FOREGROUND",
+      "facts": "233,460 contiguous events, 10,864 complete loops, 10,864 manager/device/physical-poll envelopes, and 5,432 exact standard predicate=false/body/room/entity-list/MC_POST_UPDATE transactions; all 28 targets restored exactly with no overwrite or failure.",
+      "interpretation": "Runtime confirmation of the steady standard simulation path and keyboard physical-poll envelope. It does not cover the separately discovered room-lifecycle FSM edge or the remaining required scenarios."
+    },
+    {
+      "id": "v3-keyboard-bootstrap-arming-race",
+      "artifact": "artifacts/cs-t0/20260820T131548Z-t0-03r-loop-passive-keyboard-t0-03r-v3-keyboard-foreground-01",
+      "manifestSha256": "ECF16E65D847C9E6ED0641A1C338B2736A07D76FC0CA040A93C60ACB44631154",
+      "eventsSha256": "B70463F11FF30B9A627E0B849CD72681C49828B3496331890362E59E28CE7792",
+      "targetBytesBeforeSha256": "BBFA82704E0A13682BF59C363EB8808C16B2D9F8A07E4E5832ECFC373E35BB9F",
+      "targetBytesAfterSha256": "BBFA82704E0A13682BF59C363EB8808C16B2D9F8A07E4E5832ECFC373E35BB9F",
+      "result": "FAIL_BOOTSTRAP_ARMING_RACE",
+      "facts": "NativeInitialized and HooksInstalled were followed 545 QPC ticks later by errorCode=6 while mainThreadId and loopIteration were still zero; HooksRestored was the final contiguous event, hooksMask was zero, and all 30 targets restored exactly with no overwrite.",
+      "interpretation": "The trace proves only that a required wrapper ran after arming but before the next LoopClock anchor established the main thread. It cannot prove a known-thread mismatch. V3 bootstrap semantics therefore keep pre-anchor non-clock calls as original-once passthroughs with no phase evidence; known mismatches after the first LoopBegin remain fatal."
+    },
+    {
+      "id": "v3-keyboard-foreground-bootstrap-corrected",
+      "artifact": "artifacts/cs-t0/20260820T133127Z-t0-03r-loop-passive-keyboard-t0-03r-v3-keyboard-foreground-02",
+      "manifestSha256": "2CA00B7AB0182BF970031E9FF44BAF3A11242E4AA8DE644E6036722D68A94635",
+      "eventsSha256": "D83515A94399968F94AB70744A56227F1724A9D88CD20510BD01D449101E1AE8",
+      "analysisSha256": "111E34B5A8CC0D1FF4462A4E14B6D75FC24BE6CA83BDE78F3518BAD7C1D2B260",
+      "targetBytesSha256": "BBFA82704E0A13682BF59C363EB8808C16B2D9F8A07E4E5832ECFC373E35BB9F",
+      "result": "PASS_V3_KEYBOARD_FOREGROUND",
+      "facts": "173,964 contiguous events, 7,943 complete loops, 7,943 keyboard physical-poll envelopes, and 3,791 exact steady standard room/entity-list/MC_POST_UPDATE transactions; the first phase event was LoopBegin iteration 1 and all 30 targets restored exactly.",
+      "interpretation": "Runtime confirmation of the bootstrap correction and steady keyboard envelope. The V3 lifecycle FSM edges were armed but did not run in this stable room scenario."
+    },
+    {
+      "id": "v3-room-transition-missing-owner",
+      "artifact": "artifacts/cs-t0/20260820T134130Z-t0-03r-loop-passive-room-t0-03r-v3-room-transition-01",
+      "manifestSha256": "5EF7F8FE08D8020EAF87AB92A25A339514DE13EB6E155561E576B6B3F829970A",
+      "eventsSha256": "0848275CE1F28EEC83B55F501E6DD8D6E8BB7DBEB3A5B0D4312714D4448487DD",
+      "analysisSha256": "26A24015836C2E677C18CC1FD3FA8F0CA8BE8EAE6325DC18B992EB3A91017E9C",
+      "targetBytesSha256": "BBFA82704E0A13682BF59C363EB8808C16B2D9F8A07E4E5832ECFC373E35BB9F",
+      "result": "FAIL_MISSING_TRANSITION_SIMULATION_OWNER",
+      "facts": "64,921 contiguous events and 3,044 complete loops; loop 1,838 contained NewRoom followed by one balanced EntityList pair without a recognized simulation owner. All other checks and exact 30-slot restoration passed.",
+      "interpretation": "Fail-closed evidence for a distinct room-change mutation outside every V3 owner. The 0x2FB226/0x34584D chain was the V4 static hypothesis selected from this trace; the later V4 runtime artifact disproved that hypothesis for the observed ordinary-door path. Analyzer ownership was correctly kept strict."
+    },
+    {
+      "id": "v4-room-transition-proposed-anchors-armed-nonhit",
+      "artifact": "artifacts/cs-t0/20260820T174153Z-t0-03r-loop-passive-room-t0-03r-v4-room-transition-01",
+      "manifestSha256": "DE3A0D9F4215EC989D282A4F3C0F38FAD1EDA414ABBF221AD3605204B87B667C",
+      "eventsSha256": "2702F7508919508A769FB55385071C3DE72F2CE61F3A12D7D281AB3B8D39B1D0",
+      "analysisSha256": "33C2584241C5924B7C0B7B4C2946B03FBB20EFC12D84F651219AF1DE76886DA8",
+      "targetBytesSha256": "4F73B1FE90B405750A8507E848B6ADDE8F76D60DC78D509667FE755258CB8113",
+      "result": "FAIL_V4_ROOM_CHANGE_OWNER_ARMED_NONHIT",
+      "facts": "57,130 contiguous events and 2,768 complete loops; all 32 hooks were installed with a full u64 mask and restored exactly. Loop 1,425 contained predicate=false, body, one NewRoom pair, and one EntityList pair before ConditionalAttemptExit. The V4 transition owner/simulation event kinds 63..66 were all zero; EntityList count was 933 versus 932 standard room/tail pairs.",
+      "interpretation": "The V4 analyzer correctly failed authority-owned, balanced-depth, and room scenario evidence. The trace rules out the proposed 0x2FB226/0x34584D hooks for this ordinary-door event and does not justify accepting a bare EntityList pair. Static follow-up identifies the nested 0x2FB51C -> 0x4318A0 -> 0x430BBF -> 0x2FE2F0 -> NewRoom -> 0x2FE37C -> Room::Update chain for V5."
+    }
+  ],
+  "targets": [
+    {
+      "id": "top-level-app-candidate",
+      "semantic": "CRT-invoked application owner containing initialization, a repeated update/render region, and teardown.",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x00531050",
+      "expectedBytes": "558BEC6AFE6878C1BC0068D0F9AE0064A1000000005081EC3C050000A1B493BF00",
+      "abi": "int-like __cdecl entry with three stack arguments; exact source-level prototype remains unknown",
+      "thread": "startup thread candidate; equality with the confirmed main game thread requires runtime proof",
+      "evidenceLabel": "STATIC_CANDIDATE",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20: CRT-side RVA 0x6EFBB9 directly calls RVA 0x531050 with three arguments.",
+        "GNU objdump 2.44 offline disassembly 2026-08-20: repeated region begins at RVA 0x531231 and has a back edge at RVA 0x53135B."
+      ]
+    },
+    {
+      "id": "crt-to-top-level-call",
+      "semantic": "CRT-side direct caller of the top-level app candidate.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x006EFBB9",
+      "expectedBytes": "E89214E4FF",
+      "expectedTargetRva": "0x00531050",
+      "abi": "caller pushes three stack arguments and cleans 0x0C bytes",
+      "thread": "process startup thread; runtime identity not recorded",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline direct-call disassembly 2026-08-20."
+      ]
+    },
+    {
+      "id": "loop-header-candidate",
+      "semantic": "Timing/sample header of the repeated top-level application region.",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x00531231",
+      "expectedBytes": "E86A540F00F20F1185BCFAFFFFF20F5C85CCFAFFFFF20F1185B4FAFFFF",
+      "abi": "control-flow anchor only",
+      "thread": "top-level app candidate thread; runtime proof required",
+      "evidenceLabel": "STATIC_CANDIDATE",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20: RVA 0x53135B branches back to RVA 0x531231."
+      ]
+    },
+    {
+      "id": "top-level-update-driver-call",
+      "semantic": "Per-iteration call preceding the render-owner call.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x005312EC",
+      "expectedBytes": "E8DFA30700",
+      "expectedTargetRva": "0x005AB6D0",
+      "abi": "void-like __cdecl call with no caller-supplied argument",
+      "thread": "top-level app candidate thread; runtime proof required",
+      "evidenceLabel": "STATIC_CANDIDATE",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20."
+      ]
+    },
+    {
+      "id": "update-owner-call",
+      "semantic": "Update-driver call that pushes 1 and enters the broad update owner.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x005AB6F2",
+      "expectedBytes": "E8D995FAFF",
+      "expectedTargetRva": "0x00554CD0",
+      "abi": "callee returns with ret 4; semantic meaning of the pushed value 1 remains unknown",
+      "thread": "top-level app candidate thread; runtime proof required",
+      "evidenceLabel": "STATIC_CANDIDATE",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20: RVA 0x5AB6F0 pushes 1, RVA 0x5AB6F2 calls RVA 0x554CD0.",
+        "GNU objdump 2.44 offline disassembly 2026-08-20: RVA 0x554CD0 returns at RVA 0x555599 and therefore must not be named as the complete application loop."
+      ]
+    },
+    {
+      "id": "render-owner-call",
+      "semantic": "Per-iteration call immediately following the update driver.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x005312F1",
+      "expectedBytes": "E8CA420200",
+      "expectedTargetRva": "0x005555C0",
+      "abi": "void-like __cdecl call with no caller-supplied argument; exact source-level prototype remains unknown",
+      "thread": "top-level app candidate thread; runtime proof required",
+      "evidenceLabel": "STATIC_CANDIDATE",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20: ordered directly after RVA 0x5312EC."
+      ]
+    },
+    {
+      "id": "loop-back-branch",
+      "semantic": "Conditional edge from the iteration tail back to the loop-header candidate.",
+      "kind": "relativeBranch",
+      "section": ".text",
+      "rva": "0x0053135B",
+      "expectedBytes": "0F85D0FEFFFF",
+      "expectedTargetRva": "0x00531231",
+      "abi": "control-flow edge only",
+      "thread": "top-level app candidate thread; runtime proof required",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline branch-target disassembly 2026-08-20."
+      ]
+    },
+    {
+      "id": "peek-message-w-iat",
+      "semantic": "Imported PeekMessageW slot reached by several independent message-processing candidates.",
+      "kind": "iatSlot",
+      "section": ".rdata",
+      "rva": "0x00718714",
+      "expectedBytes": "945A7F00",
+      "importName": "PeekMessageW",
+      "expectedOwnerModule": "USER32.dll",
+      "abi": "Win32 PeekMessageW ABI",
+      "thread": "unknown; callers are not yet correlated with the top-level app candidate",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "GNU objdump 2.44 PE import-table inspection 2026-08-20."
+      ]
+    },
+    {
+      "id": "translate-message-w-iat",
+      "semantic": "Imported TranslateMessage slot used by the passive message-pump correlation hook.",
+      "kind": "iatSlot",
+      "section": ".rdata",
+      "rva": "0x00718650",
+      "expectedBytes": "B4597F00",
+      "importName": "TranslateMessage",
+      "expectedOwnerModule": "USER32.dll",
+      "abi": "Win32 TranslateMessage ABI",
+      "thread": "runtime correlation required",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "GNU objdump 2.44 PE import-table and exact .rdata inspection 2026-08-20."
+      ]
+    },
+    {
+      "id": "dispatch-message-w-iat",
+      "semantic": "Imported DispatchMessageW slot used by the passive message-pump correlation hook.",
+      "kind": "iatSlot",
+      "section": ".rdata",
+      "rva": "0x007185B8",
+      "expectedBytes": "0A5B7F00",
+      "importName": "DispatchMessageW",
+      "expectedOwnerModule": "USER32.dll",
+      "abi": "Win32 DispatchMessageW ABI",
+      "thread": "runtime correlation required",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "GNU objdump 2.44 PE import-table and exact .rdata inspection 2026-08-20."
+      ]
+    },
+    {
+      "id": "peek-message-w-callers",
+      "semantic": "Three offline PeekMessageW callsites retained as separate candidates; none is promoted to the gameplay-loop message pump.",
+      "kind": "iatCallSet",
+      "section": ".text",
+      "rvas": [
+        "0x0065C101",
+        "0x0068148E",
+        "0x006814C3"
+      ],
+      "expectedBytesByRva": {
+        "0x0065C101": "FF151487B100",
+        "0x0068148E": "FF151487B100",
+        "0x006814C3": "FF151487B100"
+      },
+      "abi": "Win32 PeekMessageW ABI at each callsite",
+      "thread": "unknown",
+      "evidenceLabel": "UNKNOWN_CALLGRAPH",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline IAT-reference disassembly 2026-08-20."
+      ]
+    },
+    {
+      "id": "translate-dispatch-message-candidate",
+      "semantic": "A candidate loop that loads TranslateMessage and DispatchMessageW from the IAT and invokes them after PeekMessageW.",
+      "kind": "dataFlowCandidate",
+      "section": ".text",
+      "rva": "0x00681489",
+      "anchors": {
+        "peekMessageW": "0x0068148E",
+        "translateMessage": "0x006814A9",
+        "dispatchMessageW": "0x006814B0",
+        "loopPeekMessageW": "0x006814C3"
+      },
+      "abi": "Win32 MSG pump shape; containing source-level owner remains unknown",
+      "thread": "unknown; no runtime or direct-call correlation to RVA 0x531050",
+      "evidenceLabel": "UNKNOWN_CALLGRAPH",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20: IAT loads at RVA 0x681498 and 0x68149E, indirect calls at RVA 0x6814A9 and 0x6814B0."
+      ]
+    },
+    {
+      "id": "generic-message-pump-candidate",
+      "semantic": "Generic PeekMessageW loop runtime-correlated with the main-thread top-level update; it is a loop-local pump, not an Authority-tick boundary.",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x0065E660",
+      "anchors": {
+        "body": "0x0065E670",
+        "peekMessageWImportLoad": "0x0065E677",
+        "peekMessageWCall": "0x0065E68A"
+      },
+      "expectedBytes": "558BEC83E4F883EC5CA1B493BF0033C4894424585356578B3D1487B100",
+      "abi": "unknown",
+      "thread": "case04: confirmed main game thread and nested within every observed top-level update",
+      "evidenceLabel": "RUNTIME_CORRELATED_LOOP_LOCAL_GENERIC_PUMP",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20.",
+        "case04 passive artifact: return RVA 0x65E68C occurred 35,988 times, once inside each observed update; TranslateMessage/DispatchMessage/follow-up Peek return RVAs each occurred 5,425 times in order."
+      ]
+    },
+    {
+      "id": "input-manager-sample-call",
+      "semantic": "Per-full-update InputManager traversal owner; this is the outer sample envelope, not a canonical input value.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x00554F7D",
+      "expectedBytes": "E87EAC0C00",
+      "expectedTargetRva": "0x0061FC00",
+      "abi": "void-like __thiscall(InputManager* in ECX)",
+      "thread": "main-thread runtime proof required",
+      "evidenceLabel": "STATIC_CONFIRMED_INPUT_MANAGER_UPDATE",
+      "evidenceSources": ["Full .text caller scan and offline disassembly 2026-08-20."]
+    },
+    {
+      "id": "input-device-update-call",
+      "semantic": "Common per-active-device update that invokes the concrete physical-poll vslot.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x0061FC97",
+      "expectedBytes": "E8E4F5FFFF",
+      "expectedTargetRva": "0x0061F280",
+      "abi": "bool __thiscall(InputDeviceBase* in ECX); result in AL",
+      "thread": "main-thread runtime proof required",
+      "evidenceLabel": "STATIC_CONFIRMED_ACTIVE_DEVICE_UPDATE",
+      "evidenceSources": ["Offline disassembly: unique loop call after loading an active device shared-pointer element."]
+    },
+    {
+      "id": "alternate-transaction-owner-attempt",
+      "semantic": "Per-full-update attempt to enter a gated restore/replay/lifecycle transaction; it may return without applying state.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x00554D5E",
+      "expectedBytes": "E8BD490000",
+      "expectedTargetRva": "0x00559720",
+      "abi": "void-like __thiscall(owner* in ECX)",
+      "thread": "main-thread runtime proof required",
+      "evidenceLabel": "STATIC_CONFIRMED_CONDITIONAL_OWNER",
+      "evidenceSources": ["Offline disassembly: callee gates on owner+0x4B130 and clears it at transaction end."]
+    },
+    {
+      "id": "alternate-room-simulation-call",
+      "semantic": "Room simulation inside the gated alternate restore/replay transaction.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x00559B4D",
+      "expectedBytes": "E82E8EEAFF",
+      "expectedTargetRva": "0x00402980",
+      "abi": "void-like __thiscall(room* in ECX)",
+      "thread": "main-thread runtime proof required",
+      "evidenceLabel": "STATIC_CANDIDATE_ALT_ROOM_SIMULATION",
+      "evidenceSources": ["Offline disassembly: shares target RVA 0x402980 with the standard room-simulation call."]
+    },
+    {
+      "id": "alternate-snapshot-state-apply-call",
+      "semantic": "State-apply candidate inside the gated alternate restore/replay transaction; its runtime occurrence must remain nested under the alternate owner.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x00559B21",
+      "expectedBytes": "E81AE6D9FF",
+      "expectedTargetRva": "0x002F8140",
+      "abi": "void __thiscall(gameRoot* in ECX, state*=owner+0xFA4, uint32 value=1); callee ret 8; caller ignores EAX",
+      "thread": "main-thread runtime proof required",
+      "evidenceLabel": "STATIC_CANDIDATE_ALT_SNAPSHOT_STATE_APPLY",
+      "evidenceSources": ["Offline caller/callee disassembly through the target ret 8 epilogue, 2026-08-20."]
+    },
+    {
+      "id": "alternate-transaction-tail-call",
+      "semantic": "Tail-position PostGameStart-dispatch candidate inside one alternate restore/replay simulation branch; it is not a generic per-tick post-update proof.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x00559B82",
+      "expectedBytes": "E859B3F0FF",
+      "expectedTargetRva": "0x00464EE0",
+      "abi": "void-like __stdcall(uint32 value=1); one stack argument; callee ret 4; caller ignores EAX",
+      "thread": "main-thread runtime proof required",
+      "evidenceLabel": "STATIC_CONFIRMED_CONTROL_FLOW_ALT_INLINE_SIMULATION_RUN_LIFECYCLE_COMPLETION_CANDIDATE",
+      "evidenceSources": ["Offline disassembly 2026-08-20."]
+    },
+    {
+      "id": "alternate-outcome-5850-completion-call",
+      "semantic": "PostGameStart completion edge in target RVA 0x2F5850, whose only direct caller is the alternate-owner outcome at RVA 0x559A70.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002F61FF",
+      "expectedBytes": "E8DCEC1600",
+      "expectedTargetRva": "0x00464EE0",
+      "abi": "void-like __stdcall(uint32 value=0); callee ret 4; return RVA 0x2F6204",
+      "thread": "main-thread runtime proof required; must be nested under alternate owner",
+      "evidenceLabel": "STATIC_CONFIRMED_CONTROL_FLOW_ALT_RUN_ACTIVATION_COMPLETION_5850_CANDIDATE",
+      "evidenceSources": ["Full .text direct-caller scan and caller/callee disassembly 2026-08-20."]
+    },
+    {
+      "id": "alternate-outcome-72f0-completion-call",
+      "semantic": "PostGameStart completion edge in target RVA 0x2F72F0, whose only direct caller is the alternate-owner outcome at RVA 0x559C18.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002F7721",
+      "expectedBytes": "E8BAD71600",
+      "expectedTargetRva": "0x00464EE0",
+      "abi": "void-like __stdcall(uint32 value=1); callee ret 4; return RVA 0x2F7726",
+      "thread": "main-thread runtime proof required; must be nested under alternate owner",
+      "evidenceLabel": "STATIC_CONFIRMED_CONTROL_FLOW_ALT_RUN_ACTIVATION_COMPLETION_72F0_CANDIDATE",
+      "evidenceSources": ["Full .text direct-caller scan and caller/callee disassembly 2026-08-20."]
+    },
+    {
+      "id": "alternate-outcome-6dd0-completion-call",
+      "semantic": "PostGameStart completion edge in target RVA 0x2F6DD0, whose only direct caller is the alternate-owner outcome at RVA 0x559C3E.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002F72C9",
+      "expectedBytes": "E812DC1600",
+      "expectedTargetRva": "0x00464EE0",
+      "abi": "void-like __stdcall(uint32 value=0); callee ret 4; return RVA 0x2F72CE",
+      "thread": "main-thread runtime proof required; must be nested under alternate owner",
+      "evidenceLabel": "STATIC_CONFIRMED_CONTROL_FLOW_ALT_RUN_ACTIVATION_COMPLETION_6DD0_CANDIDATE",
+      "evidenceSources": ["Full .text direct-caller scan and caller/callee disassembly 2026-08-20."]
+    },
+    {
+      "id": "alternate-outcome-7750-completion-call",
+      "semantic": "PostGameStart completion edge in target RVA 0x2F7750, whose only direct caller is the alternate-owner outcome at RVA 0x559C7F.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002F7A10",
+      "expectedBytes": "E8CBD41600",
+      "expectedTargetRva": "0x00464EE0",
+      "abi": "void-like __stdcall(uint32 value=0); callee ret 4; return RVA 0x2F7A15",
+      "thread": "main-thread runtime proof required; must be nested under alternate owner",
+      "evidenceLabel": "STATIC_CONFIRMED_CONTROL_FLOW_ALT_RUN_ACTIVATION_COMPLETION_7750_CANDIDATE",
+      "evidenceSources": ["Full .text direct-caller scan and caller/callee disassembly 2026-08-20."]
+    },
+    {
+      "id": "alternate-outcome-5320-completion-call",
+      "semantic": "PostGameStart completion edge in target RVA 0x2F5320, whose only direct caller is the alternate-owner outcome at RVA 0x559CA6.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002F580B",
+      "expectedBytes": "E8D0F61600",
+      "expectedTargetRva": "0x00464EE0",
+      "abi": "void-like __stdcall(uint32 value=0); callee ret 4; return RVA 0x2F5810",
+      "thread": "main-thread runtime proof required; must be nested under alternate owner",
+      "evidenceLabel": "STATIC_CONFIRMED_CONTROL_FLOW_ALT_RUN_ACTIVATION_COMPLETION_5320_CANDIDATE",
+      "evidenceSources": ["Full .text direct-caller scan and caller/callee disassembly 2026-08-20."]
+    },
+    {
+      "id": "standard-skip-predicate-call",
+      "semantic": "Predicate at the start of the standard conditional attempt; AL=true skips the standard tail call and jumps directly to the function epilogue.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FADFA",
+      "expectedBytes": "E8A10DF9FF",
+      "expectedTargetRva": "0x0028BBA0",
+      "abi": "bool __thiscall(owner* in ECX); result in AL",
+      "thread": "main-thread runtime proof required",
+      "evidenceLabel": "STATIC_CONFIRMED_CONTROL_FLOW",
+      "evidenceSources": ["Offline disassembly: test AL and direct skip branch at RVA 0x2FAE01."]
+    },
+    {
+      "id": "standard-body-begin-call",
+      "semantic": "Control-flow anchor reached after the standard predicate permits entry; distinguishes predicate skip from later early return without claiming that the target is non-mutating.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FAE09",
+      "expectedBytes": "E822D80000",
+      "expectedTargetRva": "0x00308630",
+      "abi": "void-like __thiscall(owner* in ECX)",
+      "thread": "main-thread runtime proof required",
+      "evidenceLabel": "STATIC_CONFIRMED_STANDARD_BODY_ANCHOR",
+      "evidenceSources": ["Offline disassembly 2026-08-20."]
+    },
+    {
+      "id": "standard-room-simulation-call",
+      "semantic": "Standard-path room simulation candidate.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FBA4D",
+      "expectedBytes": "E82E6F1000",
+      "expectedTargetRva": "0x00402980",
+      "abi": "void-like __thiscall(room* in ECX)",
+      "thread": "main-thread runtime proof required",
+      "evidenceLabel": "STATIC_CANDIDATE_STANDARD_ROOM_SIMULATION",
+      "evidenceSources": ["Offline disassembly 2026-08-20."]
+    },
+    {
+      "id": "standard-tail-call",
+      "semantic": "Tail anchor of the standard conditional path; not independently named post-update or Authority apply.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FBBA5",
+      "expectedBytes": "E8F64B1600",
+      "expectedTargetRva": "0x004607A0",
+      "abi": "void-like call; existing passive wrapper ABI retained",
+      "thread": "main-thread runtime proof required",
+      "evidenceLabel": "STATIC_CONFIRMED_STANDARD_TAIL",
+      "evidenceSources": ["Offline disassembly 2026-08-20."]
+    },
+    {
+      "id": "room-entity-list-update-call",
+      "semantic": "Shared inner room entity-list update; only meaningful when nested under a standard or alternate room-simulation owner.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x00403E70",
+      "expectedBytes": "E84B48C1FF",
+      "expectedTargetRva": "0x000186C0",
+      "abi": "void __thiscall(entityList* in ECX, uint32 value=0); one stack argument; callee ret 4",
+      "thread": "main-thread runtime proof required",
+      "evidenceLabel": "STATIC_CANDIDATE_NESTED_ENTITY_LIST_UPDATE",
+      "evidenceSources": ["Offline disassembly 2026-08-20."]
+    },
+    {
+      "id": "standard-room-lifecycle-owner-call",
+      "semantic": "Conditional room-lifecycle FSM owner inside the standard outer attempt; an owner call without the nested room simulation is a legal non-mutating lifecycle attempt.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FB4F0",
+      "expectedBytes": "E8CB3C2300",
+      "expectedTargetRva": "0x0052F1C0",
+      "abi": "void __thiscall(lifecycleState* in ECX); no stack arguments; callee plain ret; return RVA 0x2FB4F5",
+      "thread": "must be main-thread and nested under the standard conditional attempt at runtime",
+      "evidenceLabel": "STATIC_CONFIRMED_ROOM_LIFECYCLE_OWNER",
+      "evidenceSources": ["Full standard-owner control-flow and caller/callee disassembly 2026-08-20."]
+    },
+    {
+      "id": "standard-room-lifecycle-simulation-call",
+      "semantic": "Room::Update edge nested inside the room-lifecycle FSM; it is a lifecycle mutation transaction and must not be promoted to a steady gameplay tick.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x0052FC77",
+      "expectedBytes": "E8042DEDFF",
+      "expectedTargetRva": "0x00402980",
+      "abi": "void __thiscall(room* in ECX); no stack arguments; callee plain ret; return RVA 0x52FC7C",
+      "thread": "must be main-thread and nested under the room-lifecycle owner at runtime",
+      "evidenceLabel": "STATIC_CONFIRMED_ROOM_LIFECYCLE_SIMULATION_CANDIDATE",
+      "evidenceSources": ["Room-lifecycle FSM disassembly and shared Room::Update target comparison 2026-08-20."]
+    },
+    {
+      "id": "ordinary-door-room-change-owner-call",
+      "semantic": "Ordinary-door room-change state-machine owner inside the standard outer attempt. It may run for multiple transition frames; a NewRoom and nested Room::Update must be attributed only when observed inside this owner scope.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FB51C",
+      "expectedBytes": "E87F631300",
+      "expectedTargetRva": "0x004318A0",
+      "abi": "void __thiscall(roomChangeState* in ECX); ECX=root+0x1B83C; no stack arguments; callee plain ret; return RVA 0x2FB521",
+      "thread": "must be main-thread and nested under the standard conditional attempt at runtime",
+      "evidenceLabel": "STATIC_CONFIRMED_ORDINARY_DOOR_ROOM_CHANGE_OWNER",
+      "evidenceSources": [
+        "Fixed-build disassembly 2026-08-21: root+0x1B83C is checked at 0x2FB50D, loaded into ECX at 0x2FB516, and passed to the direct 0x4318A0 call at 0x2FB51C.",
+        "The 0x4318A0 transition state machine reaches helper 0x430950, whose ordinary branch calls 0x2FE2F0 at 0x430BBF.",
+        "V4 room artifact loop 1425 placed the otherwise ownerless NewRoom/EntityList pair in this standard conditional interval while the earlier 0x2FB226 hypothesis was armed non-hit."
+      ]
+    },
+    {
+      "id": "ordinary-door-room-change-simulation-call",
+      "semantic": "Unconditional Room::Update edge in the ordinary-door room-change apply owner, after its NewRoom callback and before the exact entity-list update.",
+      "kind": "relativeCall",
+      "section": ".text",
+      "rva": "0x002FE37C",
+      "expectedBytes": "E8FF451000",
+      "expectedTargetRva": "0x00402980",
+      "abi": "void __thiscall(room* in ECX); ECX=root+0x18300; no stack arguments; callee plain ret; caller ignores EAX; return RVA 0x2FE381",
+      "thread": "must be main-thread and nested under the ordinary-door room-change owner at runtime",
+      "evidenceLabel": "STATIC_CONFIRMED_ORDINARY_DOOR_ROOM_CHANGE_SIMULATION_CANDIDATE",
+      "evidenceSources": [
+        "Fixed-build disassembly 2026-08-21: 0x430BBF calls the ret-8 room-change apply owner 0x2FE2F0; it calls 0x33FC80 at 0x2FE371, then unconditionally loads root+0x18300 and calls Room::Update at 0x2FE37C.",
+        "0x33FC80 calls the unique NewRoom callback owner at 0x3405E8 before returning to the unconditional 0x2FE37C edge.",
+        "Room::Update calls the exact entity-list owner at 0x403E70 unconditionally on the normal path; monster presence changes the inner list contents, not this outer callsite."
+      ]
+    },
+    {
+      "id": "alternate-run-outcome-completion-calls",
+      "semantic": "Five mutually exclusive alternate-transaction outcome completions, each calling the same PostGameStart dispatcher before its unique normal return.",
+      "kind": "relativeCallSet",
+      "section": ".text",
+      "rvas": [
+        "0x002F580B",
+        "0x002F61FF",
+        "0x002F72C9",
+        "0x002F7721",
+        "0x002F7A10"
+      ],
+      "expectedBytesByRva": {
+        "0x002F580B": "E8D0F61600",
+        "0x002F61FF": "E8DCEC1600",
+        "0x002F72C9": "E812DC1600",
+        "0x002F7721": "E8BAD71600",
+        "0x002F7A10": "E8CBD41600"
+      },
+      "commonTargetRva": "0x00464EE0",
+      "returnRvas": [
+        "0x002F5810",
+        "0x002F6204",
+        "0x002F72CE",
+        "0x002F7726",
+        "0x002F7A15"
+      ],
+      "abi": "void __stdcall(uint32); callee ret 4; caller ignores EAX",
+      "thread": "must be main-thread and nested under alternate owner at runtime",
+      "evidenceLabel": "STATIC_CONFIRMED_ALT_RUN_OUTCOME_COMPLETIONS",
+      "evidenceSources": ["Full direct-call scan plus caller/callee disassembly 2026-08-20."]
+    }
+  ],
+  "actionOracles": [
+    {
+      "id": "action-name-oracle",
+      "semantic": "Maps action identifiers 0..31 through a jump table to stable name pointers, with a fallback for out-of-range values.",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x0044D740",
+      "expectedBytes": "83F91F0F87C7000000FF248D28D88400",
+      "abi": "const char* (__fastcall-like register input); ECX carries the action identifier; source-level ABI name remains unknown",
+      "thread": "pure static oracle; no runtime thread contract inferred",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20: bounds check 0x1F and 32-way jump table.",
+        "GNU objdump 2.44 offline .rdata inspection 2026-08-20: returned pointers include Left/Up/Right/Down and ShootLeft/ShootUp/ShootRight/ShootDown names."
+      ]
+    },
+    {
+      "id": "action-to-net-bit-oracle",
+      "semantic": "Maps action identifiers 0..34 to compact online-frame bit indices 0..14 or 0xFF.",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x00500F50",
+      "expectedBytes": "83F92277650FB68100109000FF2485C00F9000",
+      "abi": "uint32_t register-input mapping; ECX carries the action identifier",
+      "thread": "pure static oracle; no runtime thread contract inferred",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20: table maps inputs through return stubs 0..14 and 0xFF.",
+        "GNU objdump 2.44 full .text call scan 2026-08-20: used by RVA 0x500CA0 and RVA 0x510980 paths."
+      ]
+    },
+    {
+      "id": "abstract-device-frame-encode-oracle",
+      "semantic": "Builds the existing 16-byte online input frame by querying an abstract device for actions 0..31 and four scalar axes.",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x00500CA0",
+      "expectedBytes": "558BEC6AFF68FD81B00064A1000000005083EC10535657A1B493BF0033C550",
+      "abi": "ECX is a writable frame-like destination; three stack arguments; ret 0x0C. Exact argument semantics remain unknown. The abstract device is invoked through vtable +0x30 for boolean action queries and +0x38 for scalar queries.",
+      "thread": "online input-frame preparation path; no general offline gameplay-input thread contract inferred",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20: action loop RVA 0x500D30..0x500D81 calls vtable +0x30.",
+        "GNU objdump 2.44 offline disassembly 2026-08-20: scalar queries RVA 0x500D83..0x500EC4 call vtable +0x38.",
+        "GNU objdump 2.44 full .text call scan 2026-08-20: direct caller RVA 0x501E11."
+      ]
+    },
+    {
+      "id": "online-input-consume-oracle",
+      "semantic": "Existing online input advance path that prepares per-device frames, consumes the current frame, maps actions, and writes NetInputDevice current/edge/axis fields.",
+      "kind": "signature",
+      "section": ".text",
+      "rva": "0x00510980",
+      "expectedBytes": "538BDC83EC0883E4F883C404558B6B04896C24048BEC6AFF68C097B00064A100",
+      "abi": "bool (__thiscall*)(online input manager); only AL is the bool result",
+      "thread": "main game thread only in prior OriginalOnline evidence; not a general offline/local-coop input boundary",
+      "evidenceLabel": "STATIC_CONFIRMED",
+      "evidenceSources": [
+        "isaac-cs-t0-target-ledger.json#input-advance-call.",
+        "GNU objdump 2.44 offline disassembly 2026-08-20: per-device preparation calls RVA 0x501CB0 and frame consumption writes NetInputDevice fields beginning at RVA 0x510C07."
+      ]
+    }
+  ],
+  "inputDeviceEvidence": {
+    "classification": "PARTIAL_RUNTIME_CONFIRMED",
+    "globalOwner": {
+      "inputManagerObjectRva": "0x00857B18",
+      "deviceVectorOffsets": {
+        "begin": "0x08",
+        "end": "0x0C",
+        "capacityEnd": "0x10",
+        "elementSize": 8,
+        "elementLayout": "{ InputDeviceBase* object, reference-owner* owner }"
+      },
+      "lockedGetByIndexRva": "0x0061F240",
+      "lockedAppendRva": "0x0061FDF0",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline disassembly 2026-08-20: RVA 0x61F240 checks (end-begin)/8 and copies an 8-byte shared pointer from inputManager+0x08.",
+        "GNU objdump 2.44 offline disassembly 2026-08-20: RVA 0x61FDF0 appends an 8-byte shared pointer to inputManager+0x08/+0x0C/+0x10 under the manager lock."
+      ]
+    },
+    "types": [
+      {
+        "type": "KAGE::Input::InputDeviceBase",
+        "typeDescriptorRva": "0x0085D4C0",
+        "completeObjectLocatorRva": "0x007B02F0",
+        "vtableRva": "0x00782758"
+      },
+      {
+        "type": "KAGE::Input::InputDeviceGamepad",
+        "typeDescriptorRva": "0x0085D4EC",
+        "completeObjectLocatorRva": "0x007B0460",
+        "vtableRva": "0x00782C80",
+        "constructorVtableStoreRva": "0x00621DF7",
+        "objectSize": "0x4F0",
+        "platformControllerIdOffset": "0x370",
+        "deviceNamePointerOffset": "0x374"
+      },
+      {
+        "type": "KAGE::Input::InputDeviceKeyboard",
+        "typeDescriptorRva": "0x00861194",
+        "completeObjectLocatorRva": "0x007B191C",
+        "vtableRva": "0x007A1678",
+        "constructorVtableStoreRva": "0x00621A46",
+        "objectSize": "0x370"
+      }
+    ],
+    "sharedQueryAbi": {
+      "logicalBooleanQuery": {
+        "vtableOffset": "0x30",
+        "targetRva": "0x0061E8D0",
+        "abi": "bool __thiscall(InputDeviceBase* this in ECX, uint32_t logicalAction on stack); result in AL; callee ret 4",
+        "semantic": "Validates the enabled flag and logical-action mapping range, accepts a cached logical magnitude at or above this+0xD4, otherwise tests up to four physical bindings through virtual +0x24."
+      },
+      "logicalTriggeredQuery": {
+        "vtableOffset": "0x34",
+        "targetRva": "0x0061E970",
+        "abi": "bool __thiscall(InputDeviceBase* this in ECX, uint32_t logicalAction on stack); result in AL; callee ret 4",
+        "semantic": "Compares the current and previous cached logical magnitudes against this+0xD4 and falls back to primitive virtual +0x28, matching the logical triggered/rising-transition query slot."
+      },
+      "logicalScalarQuery": {
+        "vtableOffset": "0x38",
+        "targetRva": "0x0061EA20",
+        "abi": "float __thiscall(InputDeviceBase* this in ECX, uint32_t logicalAction on stack); result in x87 ST0; callee ret 4",
+        "semantic": "Validates the enabled flag and logical-action mapping range, starts with the cached logical magnitude and returns the maximum of it and up to four physical-binding scalar values obtained through virtual +0x2C."
+      },
+      "concreteDifference": "Keyboard and Gamepad vtables share +0x30/+0x34/+0x38. Their primitive +0x24/+0x28/+0x2C slots differ: Keyboard reads the keyboard state tables, while Gamepad uses the InputDeviceBase gamepad/button/axis implementations.",
+      "evidenceSources": [
+        "GNU objdump 2.44 offline RTTI, vtable, and function disassembly 2026-08-20.",
+        "x32dbg attach-only module/memory reads on PID 20224, with no breakpoint, pause, step, patch, write, or register modification: relocated Keyboard and Gamepad vtables contained moduleBase+0x61E8D0 at +0x30, moduleBase+0x61E970 at +0x34, and moduleBase+0x61EA20 at +0x38."
+      ]
+    },
+    "physicalPollAbi": {
+      "vtableOffset": "0x78",
+      "virtualLoadRva": "0x0061F307",
+      "indirectCallRva": "0x0061F30A",
+      "returnRva": "0x0061F30C",
+      "abi": "bool __thiscall(InputDeviceBase* this in ECX); result in AL; no stack arguments",
+      "keyboard": {
+        "vtableSlotRva": "0x007A16F0",
+        "targetRva": "0x0066C650",
+        "semantic": "Updates the keyboard physical-state snapshot; no gameplay-action identity is inferred."
+      },
+      "gamepad": {
+        "vtableSlotRva": "0x00782CF8",
+        "targetRva": "0x00622940",
+        "semantic": "Updates gamepad button/axis physical caches; no gameplay-action identity is inferred."
+      },
+      "evidenceLabel": "STATIC_CONFIRMED_CONCRETE_PHYSICAL_POLL",
+      "constraints": [
+        "The passive probe records only hit, vtable-derived device kind, assignment key, loop iteration, and bool return.",
+        "No key, button, axis, action 12+, pointer, or canonical input bytes are emitted."
+      ]
+    },
+    "ownershipJoin": {
+      "deviceKeyOffset": "InputDeviceBase+0x0C",
+      "gameRootPointerSlotRva": "0x00871678",
+      "playerVectorOffsets": {
+        "begin": "gameRoot+0x1BAA8",
+        "end": "gameRoot+0x1BAAC",
+        "capacityEnd": "gameRoot+0x1BAB0",
+        "elementSize": 4
+      },
+      "playerDeviceKeyOffset": "player+0x1618",
+      "staticJoinAnchors": [
+        "RVA 0x55B9CC reads InputDeviceBase+0x0C",
+        "RVA 0x55BA56 compares player+0x1618 with that device key"
+      ],
+      "currentStableSnapshot": {
+        "processId": 20224,
+        "moduleBase": "0x003B0000",
+        "inputVector": {
+          "begin": "0x0D50A36C",
+          "end": "0x0D50A374",
+          "capacityEnd": "0x0D50A37C",
+          "activeCount": 1
+        },
+        "keyboardObject": "0x0D641454",
+        "keyboardReferenceOwner": "0x0AE8E7AC",
+        "keyboardVtable": "0x00B51678",
+        "keyboardDeviceKey": 0,
+        "gameRoot": "0x72E4D01C",
+        "playerVectorBegin": "0x728365E4",
+        "playerVectorEnd": "0x728365E8",
+        "playerCount": 1,
+        "playerObject": "0x8982207C",
+        "playerDeviceKey": 0,
+        "result": "UNIQUE_KEYBOARD_OWNER_MATCH"
+      },
+      "transientXInputObservation": {
+        "classification": "TRANSIENT_NOT_CURRENT_OWNER",
+        "observation": "An earlier read saw end=0x0D50A37C and an active second entry whose object vtable was the confirmed Gamepad vtable, device key was 1, platform controller id was 0, and bounded name string was XInput Controller 1. A later stable header contracted end to 0x0D50A374, so the second capacity slot is stale and must not be treated as active ownership evidence."
+      }
+    },
+    "readOnlyCaptureAssessment": {
+      "safeToImplement": true,
+      "claimableSemantics": "Best-effort coherent snapshots with explicit unstable/retry/drop counters.",
+      "gaplessOrPerTickClaimAllowed": false,
+      "reason": "The remote structures expose no sequence/version field. Double-collecting vector headers, entries, vtables, and ownership keys detects ordinary concurrent mutation but cannot exclude ABA or observe short transitions between polls; it also does not assign samples to loop iterations."
+    }
+  },
+  "loopModel": [
+    {
+      "order": 1,
+      "targetId": "loop-header-candidate",
+      "phase": "LOOP_ITERATION_CANDIDATE_BEGIN",
+      "evidenceLabel": "RUNTIME_CORRELATED_CASE04"
+    },
+    {
+      "order": 2,
+      "targetId": "top-level-update-driver-call",
+      "phase": "UPDATE_DRIVER_CANDIDATE",
+      "evidenceLabel": "RUNTIME_CORRELATED_CASE04"
+    },
+    {
+      "order": 3,
+      "targetId": "update-owner-call",
+      "phase": "BROAD_UPDATE_OWNER_CANDIDATE",
+      "evidenceLabel": "STATIC_CANDIDATE"
+    },
+    {
+      "order": 4,
+      "targetId": "render-owner-call",
+      "phase": "RENDER_OWNER_CANDIDATE",
+      "evidenceLabel": "RUNTIME_CORRELATED_CASE04"
+    },
+    {
+      "order": 5,
+      "targetId": "loop-back-branch",
+      "phase": "LOOP_ITERATION_CANDIDATE_BACK_EDGE",
+      "evidenceLabel": "STATIC_CONFIRMED"
+    }
+  ],
+  "unresolved": [
+    {
+      "id": "v5-complete-runtime-matrix",
+      "description": "V4 preserved a complete fail-closed ordinary-door artifact that disproved its proposed 0x2FB226/0x34584D anchors. V5 must repeat the required seven-scenario matrix with the corrected 0x2FB51C owner and 0x2FE37C nested simulation, both lifecycle owner/simulation pairs, 64-bit hook-mask storage, and exact 32-slot restoration.",
+      "evidenceLabel": "RUNTIME_CONFIRMED_V4_FAILURE_V5_PENDING"
+    },
+    {
+      "id": "stable-xinput-ownership",
+      "description": "Keyboard and Gamepad concrete vtables, the shared +0x30/+0x34/+0x38 ABI, and the current keyboard-to-player ownership join are proved. The observed XInput object left the active device vector before a stable XInput-to-player ownership join was captured, so stable XInput ownership remains unknown.",
+      "evidenceLabel": "UNKNOWN"
+    },
+    {
+      "id": "authority-mutation-envelope",
+      "description": "No runtime proof yet shows that every Authority mutation belongs to a gameplay tick or explicit lifecycle transaction.",
+      "evidenceLabel": "UNKNOWN"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "read-only-before-runtime-gate",
+      "rule": "Offline inspection and passive observation only until this ledger gate is no longer BLOCKED_BY_EVIDENCE.",
+      "action": "FORBID_ACTIVE_INPUT"
+    },
+    {
+      "id": "no-action-12-plus",
+      "rule": "UI, pause, map, and session actions 12+ must not be observed, canonicalized, suppressed, queued, or synthesized by the T0-04 experiment.",
+      "action": "FAIL_CLOSED"
+    },
+    {
+      "id": "no-online-oracle-promotion",
+      "rule": "RVA 0x500CA0 and RVA 0x510980 are OriginalOnline action/frame oracles, not proof of the offline/local-coop sample or apply boundary.",
+      "action": "REPORT_UNKNOWN"
+    },
+    {
+      "id": "focus-scenario-user-override",
+      "rule": "Focus loss is not a required T0-03R or T0-04 gate scenario because the fixed platform build automatically pauses on focus loss; an optional diagnostic capture cannot substitute for the independently required pause scenario.",
+      "action": "SKIPPED_BY_USER_KNOWN_BEHAVIOR"
+    }
+  ]
+}

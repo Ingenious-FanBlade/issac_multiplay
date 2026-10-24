@@ -1,0 +1,39 @@
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"addr\":\"0x9F7FF0\",\"code\":\"void __thiscall sub_9F7FF0(_BYTE *this)\\n{\\n  _DWORD *v1; // esi\\n\\n  if ( this[4] && !this[5] ) /*0x9f8022*/\\n  {\\n    ((void (__thiscall *)(void ***, int))off_BCE5C4[3])(&off_BCE5C4, -1); /*0x9f8038*/\\n    ((void (__thiscall *)(void ***, int))off_BCE5B8[3])(&off_BCE5B8, -1); /*0x9f8047*/\\n    v1 = dword_BCE5AC; /*0x9f805f*/\\n    if ( dword_BCE5AC != dword_BCE5B0 ) /*0x9f806b*/\\n    {\\n      do /*0x9f80a6*/\\n      {\\n        if ( (*(unsigned __int8 (__thiscall **)(_DWORD))(*(_DWORD *)*v1 + 116))(*v1) ) /*0x9f8077*/\\n          sub_4CAE50(0, (int)v1); /*0x9f8092*/\\n        ++v1; /*0x9f809d*/\\n      }\\n      while ( v1 != dword_BCE5B0 ); /*0x9f80a6*/\\n    }\\n    ((void (__thiscall *)(void ***))off_BCE5B8[4])(&off_BCE5B8); /*0x9f80bc*/\\n    ((void (__thiscall *)(void ***))off_BCE5C4[4])(&off_BCE5C4); /*0x9f80db*/\\n  }\\n}\",\"refs\":[{\"addr\":\"0xbce5c4\",\"name\":\"off_BCE5C4\"},{\"addr\":\"0xbce5b8\",\"name\":\"off_BCE5B8\"},{\"addr\":\"0xbce5ac\",\"name\":\"dword_BCE5AC\"},{\"addr\":\"0x4cae50\",\"name\":\"sub_4CAE50\"},{\"addr\":\"0xbce5b0\",\"name\":\"dword_BCE5B0\"}]}"
+      }
+    ],
+    "structuredContent": {
+      "addr": "0x9F7FF0",
+      "code": "void __thiscall sub_9F7FF0(_BYTE *this)\n{\n  _DWORD *v1; // esi\n\n  if ( this[4] && !this[5] ) /*0x9f8022*/\n  {\n    ((void (__thiscall *)(void ***, int))off_BCE5C4[3])(&off_BCE5C4, -1); /*0x9f8038*/\n    ((void (__thiscall *)(void ***, int))off_BCE5B8[3])(&off_BCE5B8, -1); /*0x9f8047*/\n    v1 = dword_BCE5AC; /*0x9f805f*/\n    if ( dword_BCE5AC != dword_BCE5B0 ) /*0x9f806b*/\n    {\n      do /*0x9f80a6*/\n      {\n        if ( (*(unsigned __int8 (__thiscall **)(_DWORD))(*(_DWORD *)*v1 + 116))(*v1) ) /*0x9f8077*/\n          sub_4CAE50(0, (int)v1); /*0x9f8092*/\n        ++v1; /*0x9f809d*/\n      }\n      while ( v1 != dword_BCE5B0 ); /*0x9f80a6*/\n    }\n    ((void (__thiscall *)(void ***))off_BCE5B8[4])(&off_BCE5B8); /*0x9f80bc*/\n    ((void (__thiscall *)(void ***))off_BCE5C4[4])(&off_BCE5C4); /*0x9f80db*/\n  }\n}",
+      "refs": [
+        {
+          "addr": "0xbce5c4",
+          "name": "off_BCE5C4"
+        },
+        {
+          "addr": "0xbce5b8",
+          "name": "off_BCE5B8"
+        },
+        {
+          "addr": "0xbce5ac",
+          "name": "dword_BCE5AC"
+        },
+        {
+          "addr": "0x4cae50",
+          "name": "sub_4CAE50"
+        },
+        {
+          "addr": "0xbce5b0",
+          "name": "dword_BCE5B0"
+        }
+      ]
+    },
+    "isError": false
+  },
+  "id": 5
+}

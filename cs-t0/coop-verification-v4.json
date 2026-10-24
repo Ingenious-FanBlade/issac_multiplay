@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 4,
+  "verificationIdentity": "IsaacCsT0-CoopVerification-v4",
+  "workPackage": "CS-T0-05-02",
+  "createdUtc": "2026-08-27T16:23:59.485Z",
+  "status": "PASS_C0_COMPLETE",
+  "supersedes": "coop-verification-v3.json",
+  "supersedesSha256": "BE6BBC61D37E351C08067B5897F3EE541F862D83F82857C0A6077325F7DD42B6",
+  "staticContractComplete": true,
+  "runtimeContractComplete": true,
+  "completedLiveSourceCount": 3,
+  "finalProcessReadAllowed": false,
+  "finalObserverAccessBits": "0x00000000",
+  "directPostCommitObserved": false,
+  "authorityCommitStatus": "PASS_INHERITED_CONTRACT",
+  "artifactBindings": [
+    {
+      "path": "out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json",
+      "identity": "IsaacCsT0-UnpackedTargetEquivalence-v1",
+      "sha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138"
+    },
+    {
+      "path": "cs-t0/coop-c0-layout-evidence-v1.json",
+      "identity": "IsaacCsT0-CoopC0LayoutEvidence-v1",
+      "sha256": "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059"
+    },
+    {
+      "path": "cs-t0/coop-catalog-v2.json",
+      "identity": "IsaacCsT0-CoopCatalog-v2",
+      "sha256": "1059711778DAD09870D37118571EE7D5E67761EC28FFAB84C7CF5AC5998A0224"
+    },
+    {
+      "path": "cs-t0/coop-static-graph-v1.json",
+      "identity": "IsaacCsT0-CoopStaticGraph-v1",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    },
+    {
+      "path": "cs-t0/coop-plan-v3.json",
+      "identity": "IsaacCsT0-CoopPlan-v3",
+      "sha256": "12BE7D22A1103A57923A1B6894B3D6C3433A165E431B06C44B28CB1DF21C6850"
+    },
+    {
+      "path": "artifacts/cs-t0/20260821-t0-03r-v5-loop-gate-7of7.json",
+      "identity": "IsaacCsT0-LoopGateDecision-v2",
+      "sha256": "CDC0CE89A7393740A775E40FE6E588910038FEC68C40EB6D6F5CDF7BC1F1A1AA"
+    },
+    {
+      "path": "out/cs-t0/formal-active-gate-20260827-r1/active-gate-decision.json",
+      "identity": "IsaacCsT0-ActiveGateDecision-v4",
+      "sha256": "927561D7DC28FE4DE05680BC68C6FA1841E3C77D76B30A710CE34031072E222C"
+    },
+    {
+      "path": "artifacts/cs-t0/20260827T153600Z-t0-05-02-three-mode-c0-comparison-02-final.json",
+      "identity": "IsaacCsT0-CoopC0Comparison-v1",
+      "sha256": "82A83246A5BB850313BAD6974EBCB7C6746AD22722FCD8DD8A04D84F38F028D8"
+    },
+    {
+      "path": "artifacts/cs-t0/20260827T153600Z-t0-05-02-c0-decision-03-final.json",
+      "identity": "IsaacCsT0-CoopC0Decision-v1",
+      "sha256": "46A5F34D5A8FBF1D7E239F1ECB2B572BDD3814B7A4A6AA3216EED57A159DE07D"
+    },
+    {
+      "path": "cs-t0/coop-matrix-v2.json",
+      "identity": "IsaacCsT0-CoopMatrix-v2",
+      "sha256": "BC7BF6A4B4AB1A3733545C1A1530E7E6D046079817EE6AA55B39E304D0EA480D"
+    },
+    {
+      "path": "cs-t0/ledger/isaac-cs-t0-coop-ledger-v3.json",
+      "identity": "IsaacCsT0-CoopLedger-v3",
+      "sha256": "A1F4F464260BF7FE93213840E25411C27495C72CE3BC4AFA5A2436AC3FE10E13"
+    }
+  ],
+  "sourceBindings": [
+    {
+      "role": "OFFLINE_SINGLE",
+      "scenario": "offline-single-c0",
+      "sourcePath": "artifacts/cs-t0/20260827T134838Z-t0-05-02-offline-single-c0-02",
+      "analysisSha256": "F4A455F2E7AAEE1643000A5CDA198AA65032A9551A2F4FD2A550D660E995C947",
+      "manifestSha256": "70AF2BF3CF8C36B9119D797E1A8C029260D26DED557870A1900D04EA85D5461B",
+      "samplesSha256": "B800E4F82C3C2622A23D1EB982D20D9712BB5C2B94029A8F17C169379355CD8C"
+    },
+    {
+      "role": "LOCAL_COOP_DUAL",
+      "scenario": "local-coop-dual-c0",
+      "sourcePath": "artifacts/cs-t0/20260827T140454Z-t0-05-02-local-coop-dual-c0-01",
+      "analysisSha256": "3D82FC022D3201044300D9A58B5CD0327AEC0985CC48927212DC6019F3BE2BB5",
+      "manifestSha256": "15671523ABA5D1F4EDD400E70185058927E5D663CCF36533281AAF7992AF45C9",
+      "samplesSha256": "8122AF6A2C33A43AB61C6EFD933C7487417BE8A14A408D228AFE3495A55DA398"
+    },
+    {
+      "role": "ORIGINAL_ONLINE_DUAL",
+      "scenario": "original-online-dual-disarmed",
+      "sourcePath": "artifacts/cs-t0/20260827T153600Z-t0-05-02-original-online-dual-disarmed-02",
+      "analysisSha256": "254F0DF64D4EBC40B7DB7E2FD9C0BBE1D5AFCA4F32BCAF84FFEE961F4AEF5644",
+      "manifestSha256": "4E8945AB2DD94872B519E944C145BAC96D608D36B660E221B1C5E0A70C4DB143",
+      "samplesSha256": "083C426E1D7808A106EDE32E88C1E3DC239FE6A3A5A99C362FF08BC2F57EA30F"
+    }
+  ],
+  "checks": [
+    {
+      "id": "frozen-artifact-bindings",
+      "passed": true
+    },
+    {
+      "id": "strict-layout-contract",
+      "passed": true
+    },
+    {
+      "id": "three-source-analysis-replay",
+      "passed": true
+    },
+    {
+      "id": "three-mode-comparison-replay",
+      "passed": true
+    },
+    {
+      "id": "composite-no-mutation",
+      "passed": true
+    },
+    {
+      "id": "target-53-slot-stability",
+      "passed": true
+    },
+    {
+      "id": "recursive-artifact-privacy",
+      "passed": true
+    },
+    {
+      "id": "t0-03r-loop-gate-replay",
+      "passed": true
+    },
+    {
+      "id": "t0-04-active-source-replay",
+      "passed": true
+    },
+    {
+      "id": "tick-path-and-pre-attempt-proxy",
+      "passed": true
+    },
+    {
+      "id": "rust-test-all-targets",
+      "passed": true
+    },
+    {
+      "id": "rust-fmt-check",
+      "passed": true
+    },
+    {
+      "id": "rust-check-all-targets",
+      "passed": true
+    },
+    {
+      "id": "rust-clippy-deny-warnings",
+      "passed": true
+    },
+    {
+      "id": "native-debug-release-harness",
+      "passed": true
+    },
+    {
+      "id": "coop-static-regression",
+      "passed": true
+    },
+    {
+      "id": "t0-04-active-regression",
+      "passed": true
+    }
+  ],
+  "permissions": {
+    "activeInputAllowed": false,
+    "passiveProbeAllowed": false,
+    "runtimeMutationAllowed": false,
+    "t005Unlocked": false,
+    "csT00503Unlocked": true
+  }
+}

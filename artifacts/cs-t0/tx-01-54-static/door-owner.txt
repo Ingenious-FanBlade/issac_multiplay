@@ -1,0 +1,125 @@
+
+F:/SteamLibrary/steamapps/common/The Binding of Isaac Rebirth/isaac-ng.exe:     file format pei-i386
+
+
+Disassembly of section .text:
+
+008318a0 <.text+0x4308a0>:
+  8318a0:	55                   	push   ebp
+  8318a1:	8b ec                	mov    ebp,esp
+  8318a3:	6a ff                	push   0xffffffff
+  8318a5:	68 65 21 b0 00       	push   0xb02165
+  8318aa:	64 a1 00 00 00 00    	mov    eax,fs:0x0
+  8318b0:	50                   	push   eax
+  8318b1:	83 ec 5c             	sub    esp,0x5c
+  8318b4:	a1 b4 93 bf 00       	mov    eax,ds:0xbf93b4
+  8318b9:	33 c5                	xor    eax,ebp
+  8318bb:	89 45 f0             	mov    DWORD PTR [ebp-0x10],eax
+  8318be:	53                   	push   ebx
+  8318bf:	56                   	push   esi
+  8318c0:	57                   	push   edi
+  8318c1:	50                   	push   eax
+  8318c2:	8d 45 f4             	lea    eax,[ebp-0xc]
+  8318c5:	64 a3 00 00 00 00    	mov    fs:0x0,eax
+  8318cb:	8b d9                	mov    ebx,ecx
+  8318cd:	33 c0                	xor    eax,eax
+  8318cf:	33 c9                	xor    ecx,ecx
+  8318d1:	89 45 b4             	mov    DWORD PTR [ebp-0x4c],eax
+  8318d4:	a1 78 16 c7 00       	mov    eax,ds:0xc71678
+  8318d9:	89 4d b8             	mov    DWORD PTR [ebp-0x48],ecx
+  8318dc:	8b b8 74 bb 01 00    	mov    edi,DWORD PTR [eax+0x1bb74]
+  8318e2:	8b 83 34 02 00 00    	mov    eax,DWORD PTR [ebx+0x234]
+  8318e8:	89 7d b0             	mov    DWORD PTR [ebp-0x50],edi
+  8318eb:	85 c0                	test   eax,eax
+  8318ed:	74 13                	je     0x831902
+  8318ef:	81 78 28 c5 03 00 00 	cmp    DWORD PTR [eax+0x28],0x3c5
+  8318f6:	75 0a                	jne    0x831902
+  8318f8:	83 78 2c 0a          	cmp    DWORD PTR [eax+0x2c],0xa
+  8318fc:	0f 44 c8             	cmove  ecx,eax
+  8318ff:	89 4d b8             	mov    DWORD PTR [ebp-0x48],ecx
+  831902:	8b 03                	mov    eax,DWORD PTR [ebx]
+  831904:	48                   	dec    eax
+  831905:	83 f8 03             	cmp    eax,0x3
+  831908:	0f 87 93 0d 00 00    	ja     0x8326a1
+  83190e:	ff 24 85 bc 27 83 00 	jmp    DWORD PTR [eax*4+0x8327bc]
+  831915:	a1 78 16 c7 00       	mov    eax,ds:0xc71678
+  83191a:	6a 01                	push   0x1
+  83191c:	c6 45 bf 01          	mov    BYTE PTR [ebp-0x41],0x1
+  831920:	c7 45 98 00 00 00 00 	mov    DWORD PTR [ebp-0x68],0x0
+  831927:	8b 88 00 83 01 00    	mov    ecx,DWORD PTR [eax+0x18300]
+  83192d:	81 c1 18 12 00 00    	add    ecx,0x1218
+  831933:	c7 45 b4 00 00 00 00 	mov    DWORD PTR [ebp-0x4c],0x0
+  83193a:	c7 45 a4 e8 03 00 00 	mov    DWORD PTR [ebp-0x5c],0x3e8
+  831941:	e8 7a 6d be ff       	call   0x4186c0
+  831946:	8b 0d 78 16 c7 00    	mov    ecx,DWORD PTR ds:0xc71678
+  83194c:	8b 89 00 83 01 00    	mov    ecx,DWORD PTR [ecx+0x18300]
+  831952:	e8 a9 eb fc ff       	call   0x800500
+  831957:	8b 4b 1c             	mov    ecx,DWORD PTR [ebx+0x1c]
+  83195a:	83 f9 13             	cmp    ecx,0x13
+  83195d:	75 3c                	jne    0x83199b
+  83195f:	33 ff                	xor    edi,edi
+  831961:	be 24 07 00 00       	mov    esi,0x724
+  831966:	66 66 0f 1f 84 00 00 	data16 nop WORD PTR [eax+eax*1+0x0]
+  83196d:	00 00 00 
+  831970:	a1 78 16 c7 00       	mov    eax,ds:0xc71678
+  831975:	47                   	inc    edi
+  831976:	8b 88 00 83 01 00    	mov    ecx,DWORD PTR [eax+0x18300]
+  83197c:	83 ff 08             	cmp    edi,0x8
+  83197f:	77 0c                	ja     0x83198d
+  831981:	8b 0c 0e             	mov    ecx,DWORD PTR [esi+ecx*1]
+  831984:	85 c9                	test   ecx,ecx
+  831986:	74 05                	je     0x83198d
+  831988:	8b 01                	mov    eax,DWORD PTR [ecx]
+  83198a:	ff 50 08             	call   DWORD PTR [eax+0x8]
+  83198d:	83 c6 04             	add    esi,0x4
+  831990:	81 fe 44 07 00 00    	cmp    esi,0x744
+  831996:	72 d8                	jb     0x831970
+  831998:	8b 4b 1c             	mov    ecx,DWORD PTR [ebx+0x1c]
+  83199b:	a1 78 16 c7 00       	mov    eax,ds:0xc71678
+  8319a0:	8b b0 a8 ba 01 00    	mov    esi,DWORD PTR [eax+0x1baa8]
+  8319a6:	3b b0 ac ba 01 00    	cmp    esi,DWORD PTR [eax+0x1baac]
+  8319ac:	0f 84 64 01 00 00    	je     0x831b16
+  8319b2:	8b 3e                	mov    edi,DWORD PTR [esi]
+  8319b4:	85 ff                	test   edi,edi
+  8319b6:	0f 84 43 01 00 00    	je     0x831aff
+  8319bc:	80 bf 73 01 00 00 00 	cmp    BYTE PTR [edi+0x173],0x0
+  8319c3:	74 0c                	je     0x8319d1
+  8319c5:	8b 07                	mov    eax,DWORD PTR [edi]
+  8319c7:	8b cf                	mov    ecx,edi
+  8319c9:	ff 50 0c             	call   DWORD PTR [eax+0xc]
+  8319cc:	e9 2e 01 00 00       	jmp    0x831aff
+  8319d1:	80 bf 98 13 00 00 00 	cmp    BYTE PTR [edi+0x1398],0x0
+  8319d8:	75 09                	jne    0x8319e3
+  8319da:	80 bf 9a 13 00 00 00 	cmp    BYTE PTR [edi+0x139a],0x0
+  8319e1:	74 0d                	je     0x8319f0
+  8319e3:	8b 47 7c             	mov    eax,DWORD PTR [edi+0x7c]
+  8319e6:	85 c0                	test   eax,eax
+  8319e8:	74 2f                	je     0x831a19
+  8319ea:	80 78 34 00          	cmp    BYTE PTR [eax+0x34],0x0
+  8319ee:	74 29                	je     0x831a19
+  8319f0:	8b 45 98             	mov    eax,DWORD PTR [ebp-0x68]
+  8319f3:	85 c0                	test   eax,eax
+  8319f5:	75 0c                	jne    0x831a03
+  8319f7:	38 87 71 01 00 00    	cmp    BYTE PTR [edi+0x171],al
+  8319fd:	0f 45 c7             	cmovne eax,edi
+  831a00:	89 45 98             	mov    DWORD PTR [ebp-0x68],eax
+  831a03:	83 7b 1c 13          	cmp    DWORD PTR [ebx+0x1c],0x13
+  831a07:	0f 85 f2 00 00 00    	jne    0x831aff
+  831a0d:	8b 07                	mov    eax,DWORD PTR [edi]
+  831a0f:	8b cf                	mov    ecx,edi
+  831a11:	ff 50 0c             	call   DWORD PTR [eax+0xc]
+  831a14:	e9 e6 00 00 00       	jmp    0x831aff
+  831a19:	83 7b 1c 00          	cmp    DWORD PTR [ebx+0x1c],0x0
+  831a1d:	75 0e                	jne    0x831a2d
+  831a1f:	c6 87 98 13 00 00 00 	mov    BYTE PTR [edi+0x1398],0x0
+  831a26:	c6 87 9a 13 00 00 00 	mov    BYTE PTR [edi+0x139a],0x0
+  831a2d:	8b 07                	mov    eax,DWORD PTR [edi]
+  831a2f:	8b cf                	mov    ecx,edi
+  831a31:	ff 50 0c             	call   DWORD PTR [eax+0xc]
+  831a34:	8b 87 00 16 00 00    	mov    eax,DWORD PTR [edi+0x1600]
+  831a3a:	85 c0                	test   eax,eax
+  831a3c:	74 0e                	je     0x831a4c
+  831a3e:	3d 5c 02 00 00       	cmp    eax,0x25c
+  831a43:	74 07                	je     0x831a4c
+  831a45:	8b cf                	mov    ecx,edi
+  831a47:	e8 64 1c f9 ff       	call   0x7c36b0

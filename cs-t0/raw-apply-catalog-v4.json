@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 4,
+  "identity": "isaac-cs-t0-04-passive-raw-apply-catalog-v4",
+  "supersedes": "isaac-cs-t0-04-passive-raw-apply-catalog-v3",
+  "targetSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+  "ipcFamily": "ICSI04V1",
+  "ipcSchemaVersion": 3,
+  "legacyInputHooksMask": "0x00000000000007FF",
+  "rawSourceMask": "0x0000000000000003",
+  "consumerHooksMask": "0x000000000000007F",
+  "sampleBoundary": {
+    "ownerRva": "0x0061F280",
+    "pollCallRva": "0x0061F307",
+    "requiredReturnRva": "0x0061F30C",
+    "phase": "InputQuery",
+    "thread": "main",
+    "timing": "physical-poll-original-return"
+  },
+  "rawSources": [
+    {
+      "index": 0,
+      "id": "keyboard-physical-poll",
+      "patchOwner": "companion-v5",
+      "slotRva": "0x007A16F0",
+      "targetRva": "0x0066C650",
+      "currentStateRva": "0x00878C10",
+      "previousStateRva": "0x00878950",
+      "primitiveCount": 349,
+      "projection": "max concrete digital value over each stable action0..11 binding"
+    },
+    {
+      "index": 1,
+      "id": "gamepad-physical-poll",
+      "patchOwner": "companion-v5",
+      "slotRva": "0x00782CF8",
+      "targetRva": "0x00622940",
+      "buttonBitsOffsets": [32, 36],
+      "directionalAxisOffset": 64,
+      "directionalAxisCount": 32,
+      "deadzoneOffset": 208,
+      "mappingOffset": 904,
+      "mappingCount": 29,
+      "projection": "inline concrete scalar semantics for each stable action0..11 button or directional-axis binding",
+      "redactedPrimitiveClasses": ["structured-special-0xCDCC", "structured-special-0xCDCD"]
+    }
+  ],
+  "bindingLayout": {
+    "beginOffset": 16,
+    "endOffset": 20,
+    "bytesPerAction": 16,
+    "primitivesPerAction": 4,
+    "gameplayActions": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "maximumActionCount": 32,
+    "projectionScope": "each explicit action0..11 slot is projected independently; primitive-to-action inference is forbidden",
+    "outsideGameplayAliasPolicy": "allow action12..31 aliases without reading or persisting an outside-action projection",
+    "crossGameplayAliasPolicy": "redact every action0..11 that shares a primitive with another action0..11",
+    "sameActionDuplicatePolicy": "allow duplicate primitive slots within the same action"
+  },
+  "consumerHooks": [
+    {
+      "index": 0,
+      "id": "player-update-envelope",
+      "role": "owner-envelope-only",
+      "patchKind": "pointer",
+      "siteRva": "0x0076BDDC",
+      "targetRva": "0x00382AF0",
+      "expectedBytesHex": "F02A7800",
+      "abi": "void __thiscall(Entity_Player*)"
+    },
+    {
+      "index": 1,
+      "id": "player-movement-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BC2",
+      "targetRva": "0x00379B40",
+      "expectedBytesHex": "E8793FFFFF",
+      "abi": "void __thiscall(Entity_Player*)",
+      "actions": [0, 1, 2, 3]
+    },
+    {
+      "index": 2,
+      "id": "player-bomb-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BC9",
+      "targetRva": "0x00380F40",
+      "expectedBytesHex": "E872B3FFFF",
+      "abi": "void __thiscall(Entity_Player*)",
+      "actions": [8]
+    },
+    {
+      "index": 3,
+      "id": "player-item-slot-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BD2",
+      "targetRva": "0x00391A40",
+      "expectedBytesHex": "E869BE0000",
+      "abi": "void __thiscall(Entity_Player*, int slot)",
+      "actions": [9]
+    },
+    {
+      "index": 4,
+      "id": "player-pill-card-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BD9",
+      "targetRva": "0x003A3D30",
+      "expectedBytesHex": "E852E10100",
+      "abi": "void __thiscall(Entity_Player*)",
+      "actions": [10]
+    },
+    {
+      "index": 5,
+      "id": "player-shooting-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BE0",
+      "targetRva": "0x0037B020",
+      "expectedBytesHex": "E83B54FFFF",
+      "abi": "void __thiscall(Entity_Player*)",
+      "actions": [4, 5, 6, 7]
+    },
+    {
+      "index": 6,
+      "id": "player-drop-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BE7",
+      "targetRva": "0x003A42B0",
+      "expectedBytesHex": "E8C4E60100",
+      "abi": "void __thiscall(Entity_Player*)",
+      "actions": [11]
+    }
+  ],
+  "offlineProof": {
+    "required": true,
+    "rule": "Each required action must have an exactly-one-candidate consumer transaction containing a nested concrete-device logical true result for the same Player device key and finite nonzero physical-poll projection sample. Same-family multi-candidate transactions are ambiguity-only and contribute no action. Cross-family or consumer-site contradictions fail the complete run. OriginalOnline-only calls and transactions without this proof do not satisfy offline/local closure.",
+    "sameFamilyMultiCandidatePolicy": "ignore the complete transaction and do not attribute its witness to any action",
+    "crossFamilyOrSitePolicy": "fail the complete run",
+    "requiredActionCardinality": "at least one exactly-one-candidate transaction per required action"
+  },
+  "privacy": {
+    "persistActions": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "redactOutsideGameplayActions": true,
+    "persistPrimitiveCodes": false,
+    "persistObjectPointers": false,
+    "persistPlatformHandles": false,
+    "persistFullKeyboardOrGamepadState": false,
+    "transientPrimitiveUse": "stable binding validation, gameplay-owner collision detection, and explicit action0..11 aggregation only"
+  }
+}

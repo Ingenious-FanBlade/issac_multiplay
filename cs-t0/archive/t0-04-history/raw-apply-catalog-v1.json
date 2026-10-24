@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "identity": "isaac-cs-t0-04-passive-raw-apply-catalog-v1",
+  "targetSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+  "ipcFamily": "ICSI04V1",
+  "ipcSchemaVersion": 3,
+  "legacyInputHooksMask": "0x00000000000007FF",
+  "rawSourceMask": "0x0000000000000003",
+  "consumerHooksMask": "0x000000000000007F",
+  "rawSources": [
+    {
+      "index": 0,
+      "id": "keyboard-physical-poll",
+      "patchOwner": "companion-v5",
+      "slotRva": "0x007A16F0",
+      "targetRva": "0x0066C650"
+    },
+    {
+      "index": 1,
+      "id": "gamepad-physical-poll",
+      "patchOwner": "companion-v5",
+      "slotRva": "0x00782CF8",
+      "targetRva": "0x00622940"
+    }
+  ],
+  "consumerHooks": [
+    {
+      "index": 0,
+      "id": "player-update-envelope",
+      "role": "owner-envelope-only",
+      "patchKind": "pointer",
+      "siteRva": "0x0076BDDC",
+      "targetRva": "0x00382AF0",
+      "expectedBytesHex": "F02A7800",
+      "abi": "void __thiscall(Entity_Player*)"
+    },
+    {
+      "index": 1,
+      "id": "player-movement-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BC2",
+      "targetRva": "0x00379B40",
+      "expectedBytesHex": "E8793FFFFF",
+      "abi": "void __thiscall(Entity_Player*)",
+      "actions": [0, 1, 2, 3]
+    },
+    {
+      "index": 2,
+      "id": "player-bomb-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BC9",
+      "targetRva": "0x00380F40",
+      "expectedBytesHex": "E872B3FFFF",
+      "abi": "void __thiscall(Entity_Player*)",
+      "actions": [8]
+    },
+    {
+      "index": 3,
+      "id": "player-item-slot-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BD2",
+      "targetRva": "0x00391A40",
+      "expectedBytesHex": "E869BE0000",
+      "abi": "void __thiscall(Entity_Player*, int slot)",
+      "actions": [9]
+    },
+    {
+      "index": 4,
+      "id": "player-pill-card-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BD9",
+      "targetRva": "0x003A3D30",
+      "expectedBytesHex": "E852E10100",
+      "abi": "void __thiscall(Entity_Player*)",
+      "actions": [10]
+    },
+    {
+      "index": 5,
+      "id": "player-shooting-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BE0",
+      "targetRva": "0x0037B020",
+      "expectedBytesHex": "E83B54FFFF",
+      "abi": "void __thiscall(Entity_Player*)",
+      "actions": [4, 5, 6, 7]
+    },
+    {
+      "index": 6,
+      "id": "player-drop-consumer",
+      "role": "natural-consumer",
+      "patchKind": "relative-call",
+      "siteRva": "0x00385BE7",
+      "targetRva": "0x003A42B0",
+      "expectedBytesHex": "E8C4E60100",
+      "abi": "void __thiscall(Entity_Player*)",
+      "actions": [11]
+    }
+  ],
+  "offlineProof": {
+    "required": true,
+    "rule": "A consumer transaction must contain a nested concrete-device logical query for the same Player device key. OriginalOnline-only calls and transactions without this proof do not satisfy offline/local closure."
+  },
+  "privacy": {
+    "persistActions": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "redactOutsideGameplayActions": true,
+    "persistPrimitiveCodes": false,
+    "persistObjectPointers": false,
+    "persistPlatformHandles": false,
+    "persistFullKeyboardOrGamepadState": false
+  }
+}

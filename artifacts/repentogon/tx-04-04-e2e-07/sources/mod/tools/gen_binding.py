@@ -1,0 +1,69 @@
+"""由唯一清单生成 binding、透传 wrapper 和 E2E 清单。
+
+本脚本只生成构建输入；指令特征来自 v1.9.7.12 IDB 的静态导出。
+"""
+import argparse
+import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+parser = argparse.ArgumentParser()
+parser.add_argument('--out', type=Path, required=True)
+args = parser.parse_args()
+args.out.mkdir(parents=True, exist_ok=True)
+catalog = json.loads((ROOT/'mod/binding/hooks.json').read_text(encoding='utf-8'))['hooks']
+patterns = {int(f['rva'], 16): f['pattern'] for f in json.loads(
+    (ROOT/'mod/binding/v1_9_7_12-static.json').read_text(encoding='utf-8'))['functions']}
+binding = json.loads((ROOT/'docs/hooks/repentogon-binding.json').read_text(encoding='utf-8'))
+source = ['// 由 gen_binding.py 生成，请修改 binding/hooks.json。',
+          '#include "runtime.h"', '#include "IsaacRepentance.h"', '#include "hooks/cs_hook.h"',
+          '#include "binding/offsets.h"',
+          '// 自有定义仅借用类型表达 ABI，不构造这些对象。',
+          'struct CsStatic {};', 'struct CsEntityList {};',
+          'struct CsLifecycle {};', 'struct CsDevice {};']
+manifest = []
+for row in catalog:
+    ident, group, cls, method, ret, params, call, rv, owner, static, conv, own, priority, required = row
+    name = ('IsaacCS::'+method) if own else cls+'::'+method
+    rva = int(rv,16)
+    pattern = patterns.get(rva, '') if own else ''
+    # thiscall 的 this 隐含在 ECX 中，ArgData 只描述显式参数。
+    nargs = 0 if not params else params.count(',')+1
+    flags = (0 if static else 1) | (2 if conv=='cdecl' else 0) | (4 if ret=='void' else 0)
+    macro = 'CS_HOOK_STATIC' if static else 'CS_HOOK_METHOD'
+    source.append(f'{macro}({ident}, {group.title()}, "{name}", {cls}, {method}, {priority}, {hex(rva)}, "{pattern}", {str(own).lower()}, {nargs}, {flags}, {owner}, {"__"+conv if conv else ""}, ({params}), {ret}) {{')
+    source.append(f'    cs::CallScope scope(record);')
+    if ident=='manager_update':
+        source += ['    cs::FrameScope frame(scope.main);', f'    super({call});']
+    elif ident=='console_command':
+        source += ['    if (scope.main && cs::OwnCommand(in)) {',
+                   '        try {',
+                   '            auto* game = static_cast<unsigned char*>(cs::GamePointer());',
+                   '            const bool lua = game && *reinterpret_cast<void**>(game+cs::offset::CommandCapture);',
+                   '            auto response = cs::Command(in, lua ? "lua" : "console");',
+                   '            // 与 REPENTOGON 一致：返回缓冲和控制台输出二选一。',
+                   '            if (out) out->append(response);',
+                   '            // Print 捕获分支直接追加字符串并返回，不写控制台历史。',
+                   '            else Print(response, 0xFFFFFFFFu, 150);',
+                   '        } catch (...) { cs::Trace("command_error", "exception"); }',
+                   '        return;', '    }',f'    super({call});']
+    else:
+        source.append(f'    {"return " if ret!="void" else ""}super({call});')
+        if ident=='game_exit': source.append('    if (scope.main) cs::RunExit();')
+    source.append('}')
+    originals = [i['id'] for i in binding['items'] if int(i.get('v12',{}).get('target') or '0',16)==rva]
+    manifest.append(dict(id=ident, group=group, definition=name, rva=hex(rva), priority=priority,
+                         mechanism='ZHL_OWN' if own else 'ZHL_REPENTOGON', required_nonzero=required,
+                         owner=owner, armed=False, inactive='handle cs; other commands super exactly once' if ident=='console_command' else 'super exactly once', prototype=originals,
+                         evidence='STATIC_CONFIRMED'))
+(args.out/'hooks_generated.cpp').write_text('\n'.join(source)+'\n', encoding='utf-8')
+device = [(r,patterns[r]) for r in [0x5EC570,0x5EC6A0,0x5EEB40,0x5EEBB0]]
+(args.out/'binding_v1_9_7_12.inc').write_text('\n'.join(
+    f'{{0x{r:X}, "{p}"}},' for r,p in device)+'\n', encoding='utf-8')
+(args.out/'hook-manifest.json').write_text(json.dumps({'tx':'tx-04-04','hooks':manifest,
+    'pointer_hooks':[f'{device}_{slot}' for device in ['keyboard','gamepad'] for slot in [8,9,10,35]]},indent=2)+'\n',encoding='utf-8')
+md = ['# tx-04-04 Hook manifest', '', 'Generated from mod/binding/hooks.json. All gameplay hooks remain unarmed.', '',
+      '| id | group | definition | RVA | priority | required nonzero |', '|---|---|---|---|---|---|']
+md += [f"| {h['id']} | {h['group']} | {h['definition']} | {h['rva']} | {h['priority']} | {h['required_nonzero']} |" for h in manifest]
+md += ['', 'Pointer hooks: Keyboard/Gamepad slots 8, 9, 10, 35. Deferred, permanent, transparent.']
+(args.out/'hook-manifest.md').write_text('\n'.join(md)+'\n',encoding='utf-8')

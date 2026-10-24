@@ -1,0 +1,1609 @@
+{
+  "tx": "tx-01-95",
+  "operation": "T0-07 operation 6 missing input, silence timeout and recovery",
+  "policy": {
+    "max_input_age_ticks": 0,
+    "client_silence_timeout_ticks": 120,
+    "timeout_effect": "diagnostic-only; no automatic retire/session end"
+  },
+  "scenarios": [
+    {
+      "name": "fresh-missing-no-history",
+      "initial_tick": 0,
+      "budget": 258,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "0",
+            "current": "0"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "0",
+            "simulation": "1",
+            "a.availability.effective_available": false,
+            "a.availability.missing_reason": "NoTargetCommand",
+            "a.availability.source": "Active",
+            "a.availability.effective_source_tick": "0",
+            "a.availability.effective_age_ticks": "0",
+            "a.availability.valid_arrival_count": "0",
+            "a.availability.has_valid_arrival": false,
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "NoTargetCommand",
+            "b.availability.source": "Active",
+            "b.availability.effective_source_tick": "0",
+            "b.availability.effective_age_ticks": "0",
+            "b.availability.valid_arrival_count": "0",
+            "b.availability.has_valid_arrival": false,
+            "a.visible": false,
+            "b.visible": false,
+            "a.availability.neutral_applied": true,
+            "b.availability.neutral_applied": true
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "read 1 8",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "publications": "1",
+            "a.processed_tick": "0",
+            "a.source": "0",
+            "a.availability.effective_available": false,
+            "a.availability.missing_reason": "NoTargetCommand",
+            "a.availability.neutral_applied": true,
+            "a.availability.source": "Active",
+            "a.availability.valid_arrival_count": "0",
+            "a.availability.has_valid_arrival": false,
+            "b.processed_tick": "0",
+            "b.source": "0",
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "NoTargetCommand",
+            "receipt.tick": "1",
+            "receipt.published": true,
+            "receipt.a.availability.effective_available": false,
+            "receipt.a.availability.missing_reason": "NoTargetCommand",
+            "receipt.b.availability.effective_available": false,
+            "policy.max_input_age_ticks": "0",
+            "policy.client_silence_timeout_ticks": "120",
+            "a.last_valid": false,
+            "b.last_valid": false
+          }
+        },
+        {
+          "command": "read 1 8",
+          "expect": {
+            "value": 0.0
+          }
+        }
+      ],
+      "batch_count": 0,
+      "batch_expect": []
+    },
+    {
+      "name": "held-edge-neutral",
+      "initial_tick": 0,
+      "budget": 258,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 1 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "simulation": "1",
+            "b.availability.effective_available": true,
+            "b.availability.missing_reason": "None",
+            "b.availability.source": "Active",
+            "b.availability.effective_source_tick": "1",
+            "b.availability.effective_source_sequence": "1",
+            "b.availability.effective_age_ticks": "0",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.has_valid_arrival": true,
+            "b.availability.last_valid_arrival_tick": "1",
+            "b.availability.last_valid_arrival_sequence": "1",
+            "b.availability.silent_ticks": "0"
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 1.0
+          }
+        },
+        {
+          "command": "read 1 8",
+          "expect": {
+            "value": 1.0
+          }
+        },
+        {
+          "command": "read 1 8",
+          "expect": {
+            "value": 1.0,
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.silent_ticks": "0",
+            "b.availability.timeout_entries": "0"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "b.processed_tick": "1",
+            "b.source": "1",
+            "b.edge_counts.0": 1,
+            "b.last_valid": true,
+            "b.last_move": "32767",
+            "b.last_edge_flags": "0",
+            "b.availability.effective_available": true,
+            "b.availability.missing_reason": "None",
+            "b.availability.source": "Active",
+            "b.availability.valid_arrival_count": "1"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "1"
+          }
+        },
+        {
+          "command": "remote 1 1 1 1 0 32767 normal",
+          "expect": {
+            "admission": "Duplicate",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.last_valid_arrival_tick": "1"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "1",
+            "simulation": "2",
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "NoTargetCommand",
+            "b.availability.source": "Silent",
+            "b.availability.effective_source_tick": "1",
+            "b.availability.effective_source_sequence": "1",
+            "b.availability.effective_age_ticks": "1",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.has_valid_arrival": true,
+            "b.availability.last_valid_arrival_tick": "1",
+            "b.availability.silent_ticks": "1",
+            "b.availability.silent_entries": "1",
+            "b.availability.timeout_entries": "0",
+            "b.availability.timeout_recoveries": "0"
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "read 1 8",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "read 1 8",
+          "expect": {
+            "value": 0.0,
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.silent_entries": "1",
+            "b.availability.timeout_entries": "0"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "2",
+            "body_calls": "2",
+            "b.processed_tick": "2",
+            "b.source": "0",
+            "b.edge_counts.0": 1,
+            "b.last_valid": true,
+            "b.last_move": "0",
+            "b.last_edge_flags": "0",
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "NoTargetCommand",
+            "b.availability.source": "Silent",
+            "b.availability.effective_source_tick": "1",
+            "b.availability.effective_age_ticks": "1",
+            "b.availability.silent_ticks": "1",
+            "b.availability.valid_arrival_count": "1",
+            "b.processed": "1"
+          }
+        },
+        {
+          "command": "read 1 8",
+          "expect": {
+            "value": 0.0
+          }
+        }
+      ],
+      "batch_count": 0,
+      "batch_expect": []
+    },
+    {
+      "name": "a-b-independent",
+      "initial_tick": 0,
+      "budget": 258,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "local 0 1 1 0 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 -32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "0",
+            "simulation": "1",
+            "a.availability.effective_available": true,
+            "b.availability.effective_available": true,
+            "a.availability.valid_arrival_count": "1",
+            "b.availability.valid_arrival_count": "1"
+          }
+        },
+        {
+          "command": "read 0 1",
+          "expect": {
+            "value": 1.0
+          }
+        },
+        {
+          "command": "read 1 0",
+          "expect": {
+            "value": 1.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "a.processed_tick": "1",
+            "b.processed_tick": "1"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "1"
+          }
+        },
+        {
+          "command": "remote 1 2 2 0 0 -32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "1",
+            "simulation": "2",
+            "a.availability.effective_available": false,
+            "a.availability.missing_reason": "NoTargetCommand",
+            "a.availability.source": "Silent",
+            "a.availability.effective_source_tick": "1",
+            "a.availability.effective_age_ticks": "1",
+            "a.availability.valid_arrival_count": "1",
+            "b.availability.effective_available": true,
+            "b.availability.missing_reason": "None",
+            "b.availability.source": "Active",
+            "b.availability.effective_source_tick": "2",
+            "b.availability.effective_source_sequence": "2",
+            "b.availability.effective_age_ticks": "0",
+            "b.availability.valid_arrival_count": "2"
+          }
+        },
+        {
+          "command": "read 0 1",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "read 1 0",
+          "expect": {
+            "value": 1.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "2",
+            "body_calls": "2",
+            "a.source": "0",
+            "b.source": "2",
+            "a.availability.missing_reason": "NoTargetCommand",
+            "b.availability.missing_reason": "None"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "2"
+          }
+        },
+        {
+          "command": "local 0 2 3 0 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "2",
+            "simulation": "3",
+            "a.availability.effective_available": true,
+            "a.availability.missing_reason": "None",
+            "a.availability.source": "Active",
+            "a.availability.effective_source_tick": "3",
+            "a.availability.effective_source_sequence": "2",
+            "a.availability.effective_age_ticks": "0",
+            "a.availability.valid_arrival_count": "2",
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "NoTargetCommand",
+            "b.availability.source": "Silent",
+            "b.availability.effective_source_tick": "2",
+            "b.availability.effective_age_ticks": "1",
+            "b.availability.valid_arrival_count": "2"
+          }
+        },
+        {
+          "command": "read 0 1",
+          "expect": {
+            "value": 1.0
+          }
+        },
+        {
+          "command": "read 1 0",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "3",
+            "body_calls": "3",
+            "session": "Active",
+            "a.processed_tick": "3",
+            "b.processed_tick": "3",
+            "a.source": "2",
+            "b.source": "0",
+            "a.availability.effective_available": true,
+            "b.availability.effective_available": false,
+            "b.availability.effective_source_tick": "2",
+            "b.availability.effective_age_ticks": "1"
+          }
+        }
+      ],
+      "batch_count": 0,
+      "batch_expect": []
+    },
+    {
+      "name": "future-only",
+      "initial_tick": 0,
+      "budget": 258,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.last_valid_arrival_tick": "1"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "1"
+          }
+        },
+        {
+          "command": "remote 1 2 3 0 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "1",
+            "simulation": "2",
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "FutureOnly",
+            "b.availability.source": "Active",
+            "b.availability.effective_source_tick": "1",
+            "b.availability.effective_age_ticks": "1",
+            "b.availability.valid_arrival_count": "2",
+            "b.availability.has_valid_arrival": true,
+            "b.availability.last_valid_arrival_tick": "2",
+            "b.availability.last_valid_arrival_sequence": "2",
+            "b.availability.last_valid_arrival_target_tick": "3",
+            "b.availability.silent_ticks": "0"
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "2",
+            "body_calls": "2",
+            "b.source": "0",
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "FutureOnly",
+            "b.availability.source": "Active",
+            "b.availability.valid_arrival_count": "2"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "2"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "2",
+            "simulation": "3",
+            "b.availability.effective_available": true,
+            "b.availability.missing_reason": "None",
+            "b.availability.source": "Silent",
+            "b.availability.effective_source_tick": "3",
+            "b.availability.effective_source_sequence": "2",
+            "b.availability.effective_age_ticks": "0",
+            "b.availability.valid_arrival_count": "2",
+            "b.availability.has_valid_arrival": true,
+            "b.availability.last_valid_arrival_tick": "2",
+            "b.availability.silent_ticks": "1"
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 1.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "3",
+            "body_calls": "3",
+            "b.source": "2",
+            "b.availability.effective_available": true,
+            "b.availability.missing_reason": "None",
+            "b.availability.source": "Silent"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "3"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "3",
+            "simulation": "4",
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "NoTargetCommand",
+            "b.availability.source": "Silent",
+            "b.availability.effective_source_tick": "3",
+            "b.availability.effective_source_sequence": "2",
+            "b.availability.effective_age_ticks": "1",
+            "b.availability.valid_arrival_count": "2",
+            "b.availability.has_valid_arrival": true,
+            "b.availability.last_valid_arrival_tick": "2",
+            "b.availability.silent_ticks": "2"
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "4",
+            "body_calls": "4",
+            "b.source": "0",
+            "b.last_move": "0",
+            "b.availability.missing_reason": "NoTargetCommand",
+            "b.availability.source": "Silent",
+            "b.availability.effective_source_tick": "3",
+            "b.availability.effective_age_ticks": "1",
+            "b.availability.silent_ticks": "2"
+          }
+        }
+      ],
+      "batch_count": 0,
+      "batch_expect": []
+    },
+    {
+      "name": "timeout-exact-recovery",
+      "initial_tick": 0,
+      "budget": 258,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "b.availability.source": "Active",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.last_valid_arrival_tick": "1"
+          }
+        },
+        {
+          "command": "cycle 119",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "120",
+            "body_calls": "120",
+            "session": "Active",
+            "b.availability.effective_available": false,
+            "b.availability.source": "Silent",
+            "b.availability.silent_ticks": "119",
+            "b.availability.timeout_entries": "0",
+            "b.availability.timeout_recoveries": "0",
+            "b.availability.valid_arrival_count": "1",
+            "b.retired": false
+          }
+        },
+        {
+          "command": "cycle 1",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "121",
+            "body_calls": "121",
+            "session": "Active",
+            "b.availability.effective_available": false,
+            "b.availability.source": "TimedOut",
+            "b.availability.silent_ticks": "120",
+            "b.availability.timeout_entries": "1",
+            "b.availability.timeout_recoveries": "0",
+            "b.availability.valid_arrival_count": "1",
+            "b.retired": false
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "121",
+            "b.availability.source": "TimedOut",
+            "b.availability.silent_ticks": "120"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 32767 normal",
+          "expect": {
+            "admission": "Duplicate",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.last_valid_arrival_tick": "1",
+            "b.availability.source": "TimedOut",
+            "b.availability.timeout_recoveries": "0"
+          }
+        },
+        {
+          "command": "remote 1 2 122 0 0 0 malformed",
+          "expect": {
+            "admission": "Invalid",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.last_valid_arrival_tick": "1",
+            "b.availability.source": "TimedOut",
+            "b.availability.timeout_recoveries": "0"
+          }
+        },
+        {
+          "command": "remote 1 3 122 0 0 0 old-generation",
+          "expect": {
+            "admission": "WrongGeneration",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.last_valid_arrival_tick": "1",
+            "b.availability.source": "TimedOut",
+            "b.availability.timeout_recoveries": "0"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "121",
+            "simulation": "122",
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "NoTargetCommand",
+            "b.availability.source": "TimedOut",
+            "b.availability.effective_source_tick": "1",
+            "b.availability.effective_age_ticks": "121",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.has_valid_arrival": true,
+            "b.availability.last_valid_arrival_tick": "1",
+            "b.availability.silent_ticks": "121",
+            "b.availability.timeout_entries": "1",
+            "b.availability.timeout_recoveries": "0"
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "122",
+            "body_calls": "122",
+            "session": "Active",
+            "b.source": "0",
+            "b.retired": false,
+            "b.availability.source": "TimedOut",
+            "b.availability.timeout_entries": "1",
+            "b.availability.timeout_recoveries": "0",
+            "b.availability.valid_arrival_count": "1",
+            "b.processed": "1"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "122"
+          }
+        },
+        {
+          "command": "remote 1 4 123 0 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted",
+            "b.availability.valid_arrival_count": "2",
+            "b.availability.last_valid_arrival_tick": "123",
+            "b.availability.source": "Active",
+            "b.availability.silent_ticks": "0",
+            "b.availability.timeout_entries": "1",
+            "b.availability.timeout_recoveries": "1",
+            "b.availability.silence_recoveries": "1"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "122",
+            "simulation": "123",
+            "b.availability.effective_available": true,
+            "b.availability.missing_reason": "None",
+            "b.availability.source": "Active",
+            "b.availability.effective_source_tick": "123",
+            "b.availability.effective_source_sequence": "4",
+            "b.availability.effective_age_ticks": "0",
+            "b.availability.valid_arrival_count": "2",
+            "b.availability.has_valid_arrival": true,
+            "b.availability.last_valid_arrival_tick": "123",
+            "b.availability.silent_ticks": "0",
+            "b.availability.timeout_entries": "1",
+            "b.availability.timeout_recoveries": "1"
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 1.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "123",
+            "body_calls": "123",
+            "session": "Active",
+            "b.source": "4",
+            "b.retired": false,
+            "b.availability.effective_available": true,
+            "b.availability.missing_reason": "None",
+            "b.availability.source": "Active",
+            "b.availability.valid_arrival_count": "2",
+            "b.availability.timeout_entries": "1",
+            "b.availability.timeout_recoveries": "1",
+            "b.availability.silence_recoveries": "1"
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 0.0
+          }
+        }
+      ],
+      "batch_count": 120,
+      "batch_expect": [
+        {
+          "scenario": "timeout-exact-recovery",
+          "sequence": 119,
+          "expect": {
+            "completed": "120",
+            "b.availability.source": "Silent",
+            "b.availability.silent_ticks": "119",
+            "b.availability.timeout_entries": "0",
+            "b.availability.valid_arrival_count": "1"
+          }
+        },
+        {
+          "scenario": "timeout-exact-recovery",
+          "sequence": 120,
+          "expect": {
+            "completed": "121",
+            "b.availability.source": "TimedOut",
+            "b.availability.silent_ticks": "120",
+            "b.availability.timeout_entries": "1",
+            "b.availability.timeout_recoveries": "0",
+            "session": "Active"
+          }
+        }
+      ]
+    },
+    {
+      "name": "blocked-no-age",
+      "initial_tick": 0,
+      "budget": 258,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "cycle 2",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "3",
+            "body_calls": "3",
+            "b.availability.source": "Silent",
+            "b.availability.silent_ticks": "2"
+          }
+        },
+        {
+          "command": "begin normal blocked",
+          "expect": {
+            "ok": true,
+            "decision": "Blocked",
+            "phase": "Published",
+            "completed": "3",
+            "current": "0",
+            "b.availability.source": "Silent",
+            "b.availability.silent_ticks": "2",
+            "b.availability.valid_arrival_count": "1"
+          }
+        },
+        {
+          "command": "begin normal blocked",
+          "expect": {
+            "ok": true,
+            "decision": "Blocked",
+            "phase": "Published",
+            "completed": "3",
+            "b.availability.source": "Silent",
+            "b.availability.silent_ticks": "2"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "decision": "Started",
+            "phase": "Draining",
+            "completed": "3"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "4",
+            "body_calls": "4",
+            "session": "Active",
+            "b.availability.source": "Silent",
+            "b.availability.silent_ticks": "3",
+            "b.availability.effective_source_tick": "1",
+            "b.availability.effective_age_ticks": "3"
+          }
+        }
+      ],
+      "batch_count": 2,
+      "batch_expect": [
+        {
+          "scenario": "blocked-no-age",
+          "sequence": 2,
+          "expect": {
+            "completed": "3",
+            "b.availability.silent_ticks": "2",
+            "b.availability.source": "Silent",
+            "session": "Active"
+          }
+        }
+      ]
+    },
+    {
+      "name": "unbind-rebind-old-generation",
+      "initial_tick": 0,
+      "budget": 258,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 1 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "b.edge_counts.0": 1,
+            "b.source": "1"
+          }
+        },
+        {
+          "command": "invalidate 1",
+          "expect": {
+            "ok": true,
+            "b.bound": false,
+            "b.retired": false,
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "Unbound",
+            "b.availability.source": "Unbound",
+            "b.availability.has_valid_arrival": false,
+            "b.availability.valid_arrival_count": "1"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "1"
+          }
+        },
+        {
+          "command": "remote 1 2 2 0 0 0 normal",
+          "expect": {
+            "admission": "WrongGeneration",
+            "b.availability.source": "Unbound",
+            "b.availability.valid_arrival_count": "1"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "1",
+            "simulation": "2",
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "Unbound",
+            "b.availability.source": "Unbound",
+            "b.availability.effective_source_tick": "0",
+            "b.availability.effective_age_ticks": "0",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.has_valid_arrival": false,
+            "b.visible": false,
+            "b.availability.neutral_applied": false
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "2",
+            "body_calls": "2",
+            "b.source": "1",
+            "b.availability.missing_reason": "Unbound",
+            "b.availability.source": "Unbound"
+          }
+        },
+        {
+          "command": "rebind 1",
+          "expect": {
+            "ok": true,
+            "b.bound": true,
+            "b.retired": false
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "2"
+          }
+        },
+        {
+          "command": "remote 1 3 3 1 0 0 old-generation",
+          "expect": {
+            "admission": "WrongGeneration",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.last_valid_arrival_tick": "0"
+          }
+        },
+        {
+          "command": "remote 1 4 3 0 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted",
+            "b.availability.valid_arrival_count": "2",
+            "b.availability.last_valid_arrival_tick": "3",
+            "b.availability.source": "Active"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "2",
+            "simulation": "3",
+            "b.availability.effective_available": true,
+            "b.availability.missing_reason": "None",
+            "b.availability.source": "Active",
+            "b.availability.effective_source_tick": "3",
+            "b.availability.effective_source_sequence": "4",
+            "b.availability.effective_age_ticks": "0",
+            "b.availability.valid_arrival_count": "2",
+            "b.availability.has_valid_arrival": true,
+            "b.availability.last_valid_arrival_tick": "3",
+            "b.availability.silent_ticks": "0"
+          }
+        },
+        {
+          "command": "read 1 8",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 1.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "3",
+            "body_calls": "3",
+            "session": "Active",
+            "b.source": "4",
+            "b.edge_counts.0": 1,
+            "b.availability.effective_available": true,
+            "b.availability.missing_reason": "None",
+            "b.availability.source": "Active",
+            "b.availability.valid_arrival_count": "2"
+          }
+        }
+      ],
+      "batch_count": 0,
+      "batch_expect": []
+    },
+    {
+      "name": "session-retirement-terminal",
+      "initial_tick": 0,
+      "budget": 258,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "retire-session",
+          "expect": {
+            "ok": true,
+            "session": "Retiring"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": false,
+            "decision": "Inactive",
+            "phase": "Published",
+            "completed": "1",
+            "session": "Retiring",
+            "b.availability.source": "SessionInactive",
+            "b.availability.missing_reason": "SessionInactive"
+          }
+        },
+        {
+          "command": "direct-bytes 1 2 2 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Retired",
+            "session": "Retiring",
+            "b.retired": false,
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "SessionInactive",
+            "b.availability.source": "SessionInactive",
+            "b.availability.valid_arrival_count": "1"
+          }
+        },
+        {
+          "command": "direct-bytes 1 3 2 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Retired",
+            "session": "Retiring",
+            "b.availability.source": "SessionInactive",
+            "b.availability.valid_arrival_count": "1"
+          }
+        }
+      ],
+      "batch_count": 0,
+      "batch_expect": []
+    },
+    {
+      "name": "retired-client-terminal",
+      "initial_tick": 0,
+      "budget": 258,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 0 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1"
+          }
+        },
+        {
+          "command": "retire 1",
+          "expect": {
+            "ok": true,
+            "b.retired": true,
+            "b.bound": false,
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "Retired",
+            "b.availability.source": "Retired"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "1"
+          }
+        },
+        {
+          "command": "local 0 1 2 0 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "1",
+            "simulation": "2",
+            "a.availability.effective_available": true,
+            "a.availability.missing_reason": "None",
+            "a.availability.source": "Active",
+            "a.availability.effective_source_tick": "2",
+            "a.availability.effective_source_sequence": "1",
+            "a.availability.effective_age_ticks": "0",
+            "a.availability.valid_arrival_count": "1",
+            "b.retired": true,
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "Retired",
+            "b.availability.source": "Retired"
+          }
+        },
+        {
+          "command": "read 0 1",
+          "expect": {
+            "value": 1.0
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "2",
+            "body_calls": "2",
+            "session": "Active",
+            "a.processed_tick": "2",
+            "a.source": "1",
+            "b.retired": true,
+            "b.availability.source": "Retired"
+          }
+        },
+        {
+          "command": "direct-bytes 1 2 3 0 0 0 normal",
+          "expect": {
+            "ok": false,
+            "admission": "Retired",
+            "b.retired": true,
+            "b.availability.missing_reason": "Retired",
+            "b.availability.source": "Retired",
+            "b.availability.valid_arrival_count": "1"
+          }
+        }
+      ],
+      "batch_count": 0,
+      "batch_expect": []
+    },
+    {
+      "name": "abnormal-return-no-confirm",
+      "initial_tick": 0,
+      "budget": 258,
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "session": "Active"
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "0"
+          }
+        },
+        {
+          "command": "remote 1 1 1 1 0 32767 normal",
+          "expect": {
+            "ok": true,
+            "admission": "Accepted"
+          }
+        },
+        {
+          "command": "finish",
+          "expect": {
+            "ok": true,
+            "phase": "Published",
+            "completed": "1",
+            "body_calls": "1",
+            "b.processed_tick": "1",
+            "b.source": "1",
+            "b.edge_counts.0": 1
+          }
+        },
+        {
+          "command": "begin normal normal",
+          "expect": {
+            "ok": true,
+            "phase": "Draining",
+            "completed": "1"
+          }
+        },
+        {
+          "command": "resolve",
+          "expect": {
+            "ok": true,
+            "phase": "Simulating",
+            "completed": "1",
+            "simulation": "2",
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "NoTargetCommand",
+            "b.availability.source": "Silent",
+            "b.availability.effective_source_tick": "1",
+            "b.availability.effective_age_ticks": "1",
+            "b.availability.valid_arrival_count": "1",
+            "b.availability.has_valid_arrival": true,
+            "b.availability.silent_ticks": "1"
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "read 1 8",
+          "expect": {
+            "value": 0.0
+          }
+        },
+        {
+          "command": "returned abnormal",
+          "expect": {
+            "ok": true,
+            "decision": "AbnormalReturn",
+            "phase": "Failed",
+            "completed": "1",
+            "body_calls": "2",
+            "session": "Failed",
+            "b.processed_tick": "1",
+            "b.source": "1",
+            "b.edge_counts.0": 1,
+            "b.availability.effective_available": false,
+            "b.availability.missing_reason": "SessionInactive",
+            "b.availability.source": "SessionInactive",
+            "b.availability.valid_arrival_count": "1"
+          }
+        },
+        {
+          "command": "read 1 8",
+          "expect": {
+            "value": 0.0
+          }
+        }
+      ],
+      "batch_count": 0,
+      "batch_expect": []
+    }
+  ]
+}

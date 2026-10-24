@@ -1,0 +1,7463 @@
+{
+  "tx": "tx-01-66",
+  "kind": "PRIMARY_STATIC_REREAD_AND_SUPPLEMENT",
+  "source": {
+    "inputPath": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe",
+    "imageBase": "0x400000",
+    "bannerVa": "0xb7e1b4",
+    "banner": "Binding of Isaac: Repentance+ v1.9.7.17.J460\n"
+  },
+  "originalEvidence": "ida-evidence.json (preserved)",
+  "corrections": [
+    "FSM 92FC77 and RoomChange 6FE37C are callsites; return addresses are 92FC7C and 6FE381 respectively.",
+    "PositionOffset getter is 417310; setter is 4172F0. Original exporter comments had them reversed.",
+    "Player VelocityBeforeUpdate getter returns the address of the inline vector at +1660; it does not load a pointer member.",
+    "Slot4 has a flag-2 path that clears the bit and returns without staging or movement. Staging/movement is conditional.",
+    "The literal argument of Room's 803E70 call is zero. Normal recovered Room return paths cannot bypass that call block.",
+    "Full-room sampling is a proposed observer phase after native update but before the existing mutating TopExit callback; no capture implementation is delivered."
+  ],
+  "functions": {
+    "0x417290": {
+      "va": "0x417290",
+      "rva": "0x17290",
+      "meaning": "Position copy getter, Entity +33C/+340",
+      "pseudocode": "_DWORD *__thiscall sub_417290(_DWORD *this, _DWORD *a2)\n{\n  _DWORD *result; // eax\n  int v3; // edx\n  int v4; // ecx\n\n  result = a2;\n  v3 = this[207];\n  v4 = this[208];\n  *a2 = v3;\n  a2[1] = v4;\n  return result;\n}\n",
+      "instructions": [
+        {
+          "va": "0x417290",
+          "rva": "0x17290",
+          "bytes": "55",
+          "asm": "push    ebp"
+        },
+        {
+          "va": "0x417291",
+          "rva": "0x17291",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp"
+        },
+        {
+          "va": "0x417293",
+          "rva": "0x17293",
+          "bytes": "8b 45 08",
+          "asm": "mov     eax, [ebp+arg_0]"
+        },
+        {
+          "va": "0x417296",
+          "rva": "0x17296",
+          "bytes": "8b 91 3c 03 00 00",
+          "asm": "mov     edx, [ecx+33Ch]"
+        },
+        {
+          "va": "0x41729c",
+          "rva": "0x1729c",
+          "bytes": "8b 89 40 03 00 00",
+          "asm": "mov     ecx, [ecx+340h]"
+        },
+        {
+          "va": "0x4172a2",
+          "rva": "0x172a2",
+          "bytes": "89 10",
+          "asm": "mov     [eax], edx"
+        },
+        {
+          "va": "0x4172a4",
+          "rva": "0x172a4",
+          "bytes": "89 48 04",
+          "asm": "mov     [eax+4], ecx"
+        },
+        {
+          "va": "0x4172a7",
+          "rva": "0x172a7",
+          "bytes": "5d",
+          "asm": "pop     ebp"
+        },
+        {
+          "va": "0x4172a8",
+          "rva": "0x172a8",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        }
+      ]
+    },
+    "0x4172d0": {
+      "va": "0x4172d0",
+      "rva": "0x172d0",
+      "meaning": "Velocity copy getter, Entity +360/+364",
+      "pseudocode": "_DWORD *__thiscall sub_4172D0(_DWORD *this, _DWORD *a2)\n{\n  _DWORD *result; // eax\n  int v3; // edx\n  int v4; // ecx\n\n  result = a2;\n  v3 = this[216];\n  v4 = this[217];\n  *a2 = v3;\n  a2[1] = v4;\n  return result;\n}\n",
+      "instructions": [
+        {
+          "va": "0x4172d0",
+          "rva": "0x172d0",
+          "bytes": "55",
+          "asm": "push    ebp"
+        },
+        {
+          "va": "0x4172d1",
+          "rva": "0x172d1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp"
+        },
+        {
+          "va": "0x4172d3",
+          "rva": "0x172d3",
+          "bytes": "8b 45 08",
+          "asm": "mov     eax, [ebp+arg_0]"
+        },
+        {
+          "va": "0x4172d6",
+          "rva": "0x172d6",
+          "bytes": "8b 91 60 03 00 00",
+          "asm": "mov     edx, [ecx+360h]"
+        },
+        {
+          "va": "0x4172dc",
+          "rva": "0x172dc",
+          "bytes": "8b 89 64 03 00 00",
+          "asm": "mov     ecx, [ecx+364h]"
+        },
+        {
+          "va": "0x4172e2",
+          "rva": "0x172e2",
+          "bytes": "89 10",
+          "asm": "mov     [eax], edx"
+        },
+        {
+          "va": "0x4172e4",
+          "rva": "0x172e4",
+          "bytes": "89 48 04",
+          "asm": "mov     [eax+4], ecx"
+        },
+        {
+          "va": "0x4172e7",
+          "rva": "0x172e7",
+          "bytes": "5d",
+          "asm": "pop     ebp"
+        },
+        {
+          "va": "0x4172e8",
+          "rva": "0x172e8",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        }
+      ]
+    },
+    "0x4288f0": {
+      "va": "0x4288f0",
+      "rva": "0x288f0",
+      "meaning": "Position setter",
+      "pseudocode": "int __thiscall sub_4288F0(_DWORD *this, _DWORD *a2)\n{\n  int result; // eax\n\n  this[207] = *a2;\n  result = a2[1];\n  this[208] = result;\n  return result;\n}\n",
+      "instructions": [
+        {
+          "va": "0x4288f0",
+          "rva": "0x288f0",
+          "bytes": "55",
+          "asm": "push    ebp"
+        },
+        {
+          "va": "0x4288f1",
+          "rva": "0x288f1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp"
+        },
+        {
+          "va": "0x4288f3",
+          "rva": "0x288f3",
+          "bytes": "8b 55 08",
+          "asm": "mov     edx, [ebp+arg_0]"
+        },
+        {
+          "va": "0x4288f6",
+          "rva": "0x288f6",
+          "bytes": "8b 02",
+          "asm": "mov     eax, [edx]"
+        },
+        {
+          "va": "0x4288f8",
+          "rva": "0x288f8",
+          "bytes": "89 81 3c 03 00 00",
+          "asm": "mov     [ecx+33Ch], eax"
+        },
+        {
+          "va": "0x4288fe",
+          "rva": "0x288fe",
+          "bytes": "8b 42 04",
+          "asm": "mov     eax, [edx+4]"
+        },
+        {
+          "va": "0x428901",
+          "rva": "0x28901",
+          "bytes": "89 81 40 03 00 00",
+          "asm": "mov     [ecx+340h], eax"
+        },
+        {
+          "va": "0x428907",
+          "rva": "0x28907",
+          "bytes": "5d",
+          "asm": "pop     ebp"
+        },
+        {
+          "va": "0x428908",
+          "rva": "0x28908",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        }
+      ]
+    },
+    "0x428910": {
+      "va": "0x428910",
+      "rva": "0x28910",
+      "meaning": "Velocity setter",
+      "pseudocode": "int __thiscall sub_428910(_DWORD *this, _DWORD *a2)\n{\n  int result; // eax\n\n  this[216] = *a2;\n  result = a2[1];\n  this[217] = result;\n  return result;\n}\n",
+      "instructions": [
+        {
+          "va": "0x428910",
+          "rva": "0x28910",
+          "bytes": "55",
+          "asm": "push    ebp"
+        },
+        {
+          "va": "0x428911",
+          "rva": "0x28911",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp"
+        },
+        {
+          "va": "0x428913",
+          "rva": "0x28913",
+          "bytes": "8b 55 08",
+          "asm": "mov     edx, [ebp+arg_0]"
+        },
+        {
+          "va": "0x428916",
+          "rva": "0x28916",
+          "bytes": "8b 02",
+          "asm": "mov     eax, [edx]"
+        },
+        {
+          "va": "0x428918",
+          "rva": "0x28918",
+          "bytes": "89 81 60 03 00 00",
+          "asm": "mov     [ecx+360h], eax"
+        },
+        {
+          "va": "0x42891e",
+          "rva": "0x2891e",
+          "bytes": "8b 42 04",
+          "asm": "mov     eax, [edx+4]"
+        },
+        {
+          "va": "0x428921",
+          "rva": "0x28921",
+          "bytes": "89 81 64 03 00 00",
+          "asm": "mov     [ecx+364h], eax"
+        },
+        {
+          "va": "0x428927",
+          "rva": "0x28927",
+          "bytes": "5d",
+          "asm": "pop     ebp"
+        },
+        {
+          "va": "0x428928",
+          "rva": "0x28928",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        }
+      ]
+    },
+    "0x417310": {
+      "va": "0x417310",
+      "rva": "0x17310",
+      "meaning": "PositionOffset address getter, +34C",
+      "pseudocode": "char *__thiscall sub_417310(char *this)\n{\n  return this + 844;\n}\n",
+      "instructions": [
+        {
+          "va": "0x417310",
+          "rva": "0x17310",
+          "bytes": "8d 81 4c 03 00 00",
+          "asm": "lea     eax, [ecx+34Ch]"
+        },
+        {
+          "va": "0x417316",
+          "rva": "0x17316",
+          "bytes": "c3",
+          "asm": "retn"
+        }
+      ]
+    },
+    "0x4172f0": {
+      "va": "0x4172f0",
+      "rva": "0x172f0",
+      "meaning": "PositionOffset two-component setter",
+      "pseudocode": "int __thiscall sub_4172F0(_DWORD *this, _DWORD *a2)\n{\n  int result; // eax\n\n  this[211] = *a2;\n  result = a2[1];\n  this[212] = result;\n  return result;\n}\n",
+      "instructions": [
+        {
+          "va": "0x4172f0",
+          "rva": "0x172f0",
+          "bytes": "55",
+          "asm": "push    ebp"
+        },
+        {
+          "va": "0x4172f1",
+          "rva": "0x172f1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp"
+        },
+        {
+          "va": "0x4172f3",
+          "rva": "0x172f3",
+          "bytes": "8b 55 08",
+          "asm": "mov     edx, [ebp+arg_0]"
+        },
+        {
+          "va": "0x4172f6",
+          "rva": "0x172f6",
+          "bytes": "8b 02",
+          "asm": "mov     eax, [edx]"
+        },
+        {
+          "va": "0x4172f8",
+          "rva": "0x172f8",
+          "bytes": "89 81 4c 03 00 00",
+          "asm": "mov     [ecx+34Ch], eax"
+        },
+        {
+          "va": "0x4172fe",
+          "rva": "0x172fe",
+          "bytes": "8b 42 04",
+          "asm": "mov     eax, [edx+4]"
+        },
+        {
+          "va": "0x417301",
+          "rva": "0x17301",
+          "bytes": "89 81 50 03 00 00",
+          "asm": "mov     [ecx+350h], eax"
+        },
+        {
+          "va": "0x417307",
+          "rva": "0x17307",
+          "bytes": "5d",
+          "asm": "pop     ebp"
+        },
+        {
+          "va": "0x417308",
+          "rva": "0x17308",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        }
+      ]
+    },
+    "0x6dad60": {
+      "va": "0x6dad60",
+      "rva": "0x2dad60",
+      "meaning": "VelocityBeforeUpdate address getter, inline Player+1660",
+      "pseudocode": "char *__thiscall sub_6DAD60(char *this)\n{\n  return this + 5728;\n}\n",
+      "instructions": [
+        {
+          "va": "0x6dad60",
+          "rva": "0x2dad60",
+          "bytes": "8d 81 60 16 00 00",
+          "asm": "lea     eax, [ecx+1660h]"
+        },
+        {
+          "va": "0x6dad66",
+          "rva": "0x2dad66",
+          "bytes": "c3",
+          "asm": "retn"
+        }
+      ]
+    },
+    "0x709df0": {
+      "va": "0x709df0",
+      "rva": "0x309df0",
+      "meaning": "Grid position computed from stored Grid index",
+      "pseudocode": "float *__thiscall sub_709DF0(_DWORD *this, float *a2)\n{\n  int v2; // eax\n  int v3; // ecx\n  int v4; // edx\n  int v5; // ecx\n  float *result; // eax\n\n  v2 = this[9];\n  v3 = n60[24768];\n  v4 = v2 % *(_DWORD *)(v3 + 12);\n  v5 = v2 / *(_DWORD *)(v3 + 12);\n  result = a2;\n  *a2 = (float)((float)v4 * 40.0) + 40.0;\n  a2[1] = (float)((float)v5 * 40.0) + 120.0;\n  return result;\n}\n",
+      "instructions": [
+        {
+          "va": "0x709df0",
+          "rva": "0x309df0",
+          "bytes": "55",
+          "asm": "push    ebp"
+        },
+        {
+          "va": "0x709df1",
+          "rva": "0x309df1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp"
+        },
+        {
+          "va": "0x709df3",
+          "rva": "0x309df3",
+          "bytes": "8b 41 24",
+          "asm": "mov     eax, [ecx+24h]"
+        },
+        {
+          "va": "0x709df6",
+          "rva": "0x309df6",
+          "bytes": "8b 0d 78 16 c7 00",
+          "asm": "mov     ecx, n60"
+        },
+        {
+          "va": "0x709dfc",
+          "rva": "0x309dfc",
+          "bytes": "99",
+          "asm": "cdq"
+        },
+        {
+          "va": "0x709dfd",
+          "rva": "0x309dfd",
+          "bytes": "f3 0f 10 0d 04 a9 ba 00",
+          "asm": "movss   xmm1, ds:dword_BAA904"
+        },
+        {
+          "va": "0x709e05",
+          "rva": "0x309e05",
+          "bytes": "8b 89 00 83 01 00",
+          "asm": "mov     ecx, [ecx+18300h]"
+        },
+        {
+          "va": "0x709e0b",
+          "rva": "0x309e0b",
+          "bytes": "f7 79 0c",
+          "asm": "idiv    dword ptr [ecx+0Ch]"
+        },
+        {
+          "va": "0x709e0e",
+          "rva": "0x309e0e",
+          "bytes": "8b c8",
+          "asm": "mov     ecx, eax"
+        },
+        {
+          "va": "0x709e10",
+          "rva": "0x309e10",
+          "bytes": "8b 45 08",
+          "asm": "mov     eax, [ebp+arg_0]"
+        },
+        {
+          "va": "0x709e13",
+          "rva": "0x309e13",
+          "bytes": "66 0f 6e c2",
+          "asm": "movd    xmm0, edx"
+        },
+        {
+          "va": "0x709e17",
+          "rva": "0x309e17",
+          "bytes": "0f 5b c0",
+          "asm": "cvtdq2ps xmm0, xmm0"
+        },
+        {
+          "va": "0x709e1a",
+          "rva": "0x309e1a",
+          "bytes": "f3 0f 59 c1",
+          "asm": "mulss   xmm0, xmm1"
+        },
+        {
+          "va": "0x709e1e",
+          "rva": "0x309e1e",
+          "bytes": "f3 0f 58 c1",
+          "asm": "addss   xmm0, xmm1"
+        },
+        {
+          "va": "0x709e22",
+          "rva": "0x309e22",
+          "bytes": "f3 0f 11 00",
+          "asm": "movss   dword ptr [eax], xmm0"
+        },
+        {
+          "va": "0x709e26",
+          "rva": "0x309e26",
+          "bytes": "66 0f 6e c1",
+          "asm": "movd    xmm0, ecx"
+        },
+        {
+          "va": "0x709e2a",
+          "rva": "0x309e2a",
+          "bytes": "0f 5b c0",
+          "asm": "cvtdq2ps xmm0, xmm0"
+        },
+        {
+          "va": "0x709e2d",
+          "rva": "0x309e2d",
+          "bytes": "f3 0f 59 c1",
+          "asm": "mulss   xmm0, xmm1"
+        },
+        {
+          "va": "0x709e31",
+          "rva": "0x309e31",
+          "bytes": "f3 0f 58 05 00 aa ba 00",
+          "asm": "addss   xmm0, ds:dword_BAAA00"
+        },
+        {
+          "va": "0x709e39",
+          "rva": "0x309e39",
+          "bytes": "f3 0f 11 40 04",
+          "asm": "movss   dword ptr [eax+4], xmm0"
+        },
+        {
+          "va": "0x709e3e",
+          "rva": "0x309e3e",
+          "bytes": "5d",
+          "asm": "pop     ebp"
+        },
+        {
+          "va": "0x709e3f",
+          "rva": "0x309e3f",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        }
+      ]
+    },
+    "0x812f00": {
+      "va": "0x812f00",
+      "rva": "0x412f00",
+      "meaning": "Grid position computed from Room width and supplied index",
+      "pseudocode": "float *__thiscall sub_812F00(_DWORD *this, float *a2, int a3)\n{\n  int v3; // edx\n  int v4; // ecx\n  float *result; // eax\n\n  v3 = a3 % this[3];\n  v4 = a3 / this[3];\n  result = a2;\n  *a2 = (float)((float)v3 * 40.0) + 40.0;\n  a2[1] = (float)((float)v4 * 40.0) + 120.0;\n  return result;\n}\n",
+      "instructions": [
+        {
+          "va": "0x812f00",
+          "rva": "0x412f00",
+          "bytes": "55",
+          "asm": "push    ebp"
+        },
+        {
+          "va": "0x812f01",
+          "rva": "0x412f01",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp"
+        },
+        {
+          "va": "0x812f03",
+          "rva": "0x412f03",
+          "bytes": "8b 45 0c",
+          "asm": "mov     eax, [ebp+arg_4]"
+        },
+        {
+          "va": "0x812f06",
+          "rva": "0x412f06",
+          "bytes": "99",
+          "asm": "cdq"
+        },
+        {
+          "va": "0x812f07",
+          "rva": "0x412f07",
+          "bytes": "f7 79 0c",
+          "asm": "idiv    dword ptr [ecx+0Ch]"
+        },
+        {
+          "va": "0x812f0a",
+          "rva": "0x412f0a",
+          "bytes": "f3 0f 10 0d 04 a9 ba 00",
+          "asm": "movss   xmm1, ds:dword_BAA904"
+        },
+        {
+          "va": "0x812f12",
+          "rva": "0x412f12",
+          "bytes": "8b c8",
+          "asm": "mov     ecx, eax"
+        },
+        {
+          "va": "0x812f14",
+          "rva": "0x412f14",
+          "bytes": "8b 45 08",
+          "asm": "mov     eax, [ebp+arg_0]"
+        },
+        {
+          "va": "0x812f17",
+          "rva": "0x412f17",
+          "bytes": "66 0f 6e c2",
+          "asm": "movd    xmm0, edx"
+        },
+        {
+          "va": "0x812f1b",
+          "rva": "0x412f1b",
+          "bytes": "0f 5b c0",
+          "asm": "cvtdq2ps xmm0, xmm0"
+        },
+        {
+          "va": "0x812f1e",
+          "rva": "0x412f1e",
+          "bytes": "f3 0f 59 c1",
+          "asm": "mulss   xmm0, xmm1"
+        },
+        {
+          "va": "0x812f22",
+          "rva": "0x412f22",
+          "bytes": "f3 0f 58 c1",
+          "asm": "addss   xmm0, xmm1"
+        },
+        {
+          "va": "0x812f26",
+          "rva": "0x412f26",
+          "bytes": "f3 0f 11 00",
+          "asm": "movss   dword ptr [eax], xmm0"
+        },
+        {
+          "va": "0x812f2a",
+          "rva": "0x412f2a",
+          "bytes": "66 0f 6e c1",
+          "asm": "movd    xmm0, ecx"
+        },
+        {
+          "va": "0x812f2e",
+          "rva": "0x412f2e",
+          "bytes": "0f 5b c0",
+          "asm": "cvtdq2ps xmm0, xmm0"
+        },
+        {
+          "va": "0x812f31",
+          "rva": "0x412f31",
+          "bytes": "f3 0f 59 c1",
+          "asm": "mulss   xmm0, xmm1"
+        },
+        {
+          "va": "0x812f35",
+          "rva": "0x412f35",
+          "bytes": "f3 0f 58 05 00 aa ba 00",
+          "asm": "addss   xmm0, ds:dword_BAAA00"
+        },
+        {
+          "va": "0x812f3d",
+          "rva": "0x412f3d",
+          "bytes": "f3 0f 11 40 04",
+          "asm": "movss   dword ptr [eax+4], xmm0"
+        },
+        {
+          "va": "0x812f42",
+          "rva": "0x412f42",
+          "bytes": "5d",
+          "asm": "pop     ebp"
+        },
+        {
+          "va": "0x812f43",
+          "rva": "0x412f43",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        }
+      ]
+    },
+    "0x9ab6d0": {
+      "va": "0x9ab6d0",
+      "rva": "0x5ab6d0",
+      "meaning": "Outer update wrapper: exactly one direct 954CD0 call",
+      "pseudocode": "char __usercall sub_9AB6D0@<al>(int n298@<ebx>, int a2@<esi>)\n{\n  int n298_1; // edi\n\n  if ( *(_DWORD *)SteamInternal_ContextInit(&off_C5C510) )\n    SteamAPI_RunCallbacks();\n  sub_A714E0(0, n298_1);\n  return sub_954CD0(n298, a2, 1);\n}\n",
+      "instructions": [
+        {
+          "va": "0x9ab6d0",
+          "rva": "0x5ab6d0",
+          "bytes": "68 10 c5 c5 00",
+          "asm": "push    offset off_C5C510"
+        },
+        {
+          "va": "0x9ab6d5",
+          "rva": "0x5ab6d5",
+          "bytes": "ff 15 1c 8a b1 00",
+          "asm": "call    ds:SteamInternal_ContextInit"
+        },
+        {
+          "va": "0x9ab6db",
+          "rva": "0x5ab6db",
+          "bytes": "83 c4 04",
+          "asm": "add     esp, 4"
+        },
+        {
+          "va": "0x9ab6de",
+          "rva": "0x5ab6de",
+          "bytes": "83 38 00",
+          "asm": "cmp     dword ptr [eax], 0"
+        },
+        {
+          "va": "0x9ab6e1",
+          "rva": "0x5ab6e1",
+          "bytes": "74 06",
+          "asm": "jz      short loc_9AB6E9"
+        },
+        {
+          "va": "0x9ab6e3",
+          "rva": "0x5ab6e3",
+          "bytes": "ff 15 04 8a b1 00",
+          "asm": "call    ds:SteamAPI_RunCallbacks"
+        },
+        {
+          "va": "0x9ab6e9",
+          "rva": "0x5ab6e9",
+          "bytes": "32 c9",
+          "asm": "xor     cl, cl; a1"
+        },
+        {
+          "va": "0x9ab6eb",
+          "rva": "0x5ab6eb",
+          "bytes": "e8 f0 5d 0c 00",
+          "asm": "call    sub_A714E0"
+        },
+        {
+          "va": "0x9ab6f0",
+          "rva": "0x5ab6f0",
+          "bytes": "6a 01",
+          "asm": "push    1; a3"
+        },
+        {
+          "va": "0x9ab6f2",
+          "rva": "0x5ab6f2",
+          "bytes": "e8 d9 95 fa ff",
+          "asm": "call    sub_954CD0"
+        },
+        {
+          "va": "0x9ab6f7",
+          "rva": "0x5ab6f7",
+          "bytes": "c3",
+          "asm": "retn"
+        }
+      ]
+    },
+    "0x6b0eb0": {
+      "va": "0x6b0eb0",
+      "rva": "0x2b0eb0",
+      "meaning": "Position slot4: flag2 skip path, otherwise staging and movement",
+      "pseudocode": "__m128 *__thiscall sub_6B0EB0(int this)\n{\n  int v2; // ecx\n  __m128 *result; // eax\n  bool v4; // zf\n  float v5; // xmm3_4\n  float v6; // xmm2_4\n  float v7; // xmm0_4\n  float v8; // xmm1_4\n  float v9; // xmm3_4\n  _DWORD *n60; // esi\n  float v11; // xmm0_4\n  _DWORD v12[2]; // [esp+1Ch] [ebp-8h] BYREF\n\n  v2 = *(_DWORD *)(this + 360);\n  result = (__m128 *)(v2 & 2);\n  if ( (v2 & 2) != 0 )\n  {\n    *(_DWORD *)(this + 364) = *(_DWORD *)(this + 364);\n    *(_DWORD *)(this + 360) = v2 & 0xFFFFFFFD;\n  }\n  else\n  {\n    v4 = *(_DWORD *)(this + 40) == 1;\n    *(_DWORD *)(this + 836) = *(_DWORD *)(this + 828);\n    *(_DWORD *)(this + 840) = *(_DWORD *)(this + 832);\n    v5 = *(float *)(this + 876);\n    v6 = *(float *)(this + 868);\n    v7 = v5 * *(float *)(this + 864);\n    v8 = *(float *)(this + 924);\n    *(_BYTE *)(this + 373) = 1;\n    v9 = (float)((float)((float)(v5 * v6) * v8) * 0.5) + *(float *)(this + 832);\n    *(float *)(this + 828) = (float)((float)(v7 * v8) * 0.5) + *(float *)(this + 828);\n    *(float *)(this + 832) = v9;\n    if ( v4 )\n    {\n      result = (__m128 *)sub_6AB440(1);\n      if ( *(_DWORD *)(this + 44) == 1 )\n      {\n        n60 = n60;\n        sub_812F50(v12, this + 828, *(_DWORD *)(this + 880), *(_DWORD *)(this + 880), *(_DWORD *)(this + 880));\n        *(_DWORD *)(this + 828) = v12[0];\n        *(_DWORD *)(this + 832) = v12[1];\n        v11 = (float)((float)(int)n60[39230] + 0.5) * 0.2;\n        result = sub_41D520();\n        *(float *)(this + 848) = v11 + v11;\n      }\n    }\n    else\n    {\n      return (__m128 *)sub_6A9C90(1);\n    }\n  }\n  return result;\n}\n",
+      "instructions": [
+        {
+          "va": "0x6b0eb0",
+          "rva": "0x2b0eb0",
+          "bytes": "55",
+          "asm": "push    ebp"
+        },
+        {
+          "va": "0x6b0eb1",
+          "rva": "0x2b0eb1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp"
+        },
+        {
+          "va": "0x6b0eb3",
+          "rva": "0x2b0eb3",
+          "bytes": "83 e4 f8",
+          "asm": "and     esp, 0FFFFFFF8h"
+        },
+        {
+          "va": "0x6b0eb6",
+          "rva": "0x2b0eb6",
+          "bytes": "83 ec 0c",
+          "asm": "sub     esp, 0Ch"
+        },
+        {
+          "va": "0x6b0eb9",
+          "rva": "0x2b0eb9",
+          "bytes": "53",
+          "asm": "push    ebx"
+        },
+        {
+          "va": "0x6b0eba",
+          "rva": "0x2b0eba",
+          "bytes": "56",
+          "asm": "push    esi"
+        },
+        {
+          "va": "0x6b0ebb",
+          "rva": "0x2b0ebb",
+          "bytes": "57",
+          "asm": "push    edi"
+        },
+        {
+          "va": "0x6b0ebc",
+          "rva": "0x2b0ebc",
+          "bytes": "8b f9",
+          "asm": "mov     edi, ecx"
+        },
+        {
+          "va": "0x6b0ebe",
+          "rva": "0x2b0ebe",
+          "bytes": "8b 8f 68 01 00 00",
+          "asm": "mov     ecx, [edi+168h]"
+        },
+        {
+          "va": "0x6b0ec4",
+          "rva": "0x2b0ec4",
+          "bytes": "8b c1",
+          "asm": "mov     eax, ecx"
+        },
+        {
+          "va": "0x6b0ec6",
+          "rva": "0x2b0ec6",
+          "bytes": "8b 97 6c 01 00 00",
+          "asm": "mov     edx, [edi+16Ch]"
+        },
+        {
+          "va": "0x6b0ecc",
+          "rva": "0x2b0ecc",
+          "bytes": "83 e0 02",
+          "asm": "and     eax, 2"
+        },
+        {
+          "va": "0x6b0ecf",
+          "rva": "0x2b0ecf",
+          "bytes": "83 c8 00",
+          "asm": "or      eax, 0"
+        },
+        {
+          "va": "0x6b0ed2",
+          "rva": "0x2b0ed2",
+          "bytes": "74 16",
+          "asm": "jz      short loc_6B0EEA"
+        },
+        {
+          "va": "0x6b0ed4",
+          "rva": "0x2b0ed4",
+          "bytes": "83 e1 fd",
+          "asm": "and     ecx, 0FFFFFFFDh"
+        },
+        {
+          "va": "0x6b0ed7",
+          "rva": "0x2b0ed7",
+          "bytes": "89 97 6c 01 00 00",
+          "asm": "mov     [edi+16Ch], edx"
+        },
+        {
+          "va": "0x6b0edd",
+          "rva": "0x2b0edd",
+          "bytes": "89 8f 68 01 00 00",
+          "asm": "mov     [edi+168h], ecx"
+        },
+        {
+          "va": "0x6b0ee3",
+          "rva": "0x2b0ee3",
+          "bytes": "5f",
+          "asm": "pop     edi"
+        },
+        {
+          "va": "0x6b0ee4",
+          "rva": "0x2b0ee4",
+          "bytes": "5e",
+          "asm": "pop     esi"
+        },
+        {
+          "va": "0x6b0ee5",
+          "rva": "0x2b0ee5",
+          "bytes": "5b",
+          "asm": "pop     ebx"
+        },
+        {
+          "va": "0x6b0ee6",
+          "rva": "0x2b0ee6",
+          "bytes": "8b e5",
+          "asm": "mov     esp, ebp"
+        },
+        {
+          "va": "0x6b0ee8",
+          "rva": "0x2b0ee8",
+          "bytes": "5d",
+          "asm": "pop     ebp"
+        },
+        {
+          "va": "0x6b0ee9",
+          "rva": "0x2b0ee9",
+          "bytes": "c3",
+          "asm": "retn"
+        },
+        {
+          "va": "0x6b0eea",
+          "rva": "0x2b0eea",
+          "bytes": "83 7f 28 01",
+          "asm": "cmp     dword ptr [edi+28h], 1"
+        },
+        {
+          "va": "0x6b0eee",
+          "rva": "0x2b0eee",
+          "bytes": "8d 9f 3c 03 00 00",
+          "asm": "lea     ebx, [edi+33Ch]"
+        },
+        {
+          "va": "0x6b0ef4",
+          "rva": "0x2b0ef4",
+          "bytes": "8b 03",
+          "asm": "mov     eax, [ebx]"
+        },
+        {
+          "va": "0x6b0ef6",
+          "rva": "0x2b0ef6",
+          "bytes": "8b cf",
+          "asm": "mov     ecx, edi"
+        },
+        {
+          "va": "0x6b0ef8",
+          "rva": "0x2b0ef8",
+          "bytes": "89 87 44 03 00 00",
+          "asm": "mov     [edi+344h], eax"
+        },
+        {
+          "va": "0x6b0efe",
+          "rva": "0x2b0efe",
+          "bytes": "8b 43 04",
+          "asm": "mov     eax, [ebx+4]"
+        },
+        {
+          "va": "0x6b0f01",
+          "rva": "0x2b0f01",
+          "bytes": "89 87 48 03 00 00",
+          "asm": "mov     [edi+348h], eax"
+        },
+        {
+          "va": "0x6b0f07",
+          "rva": "0x2b0f07",
+          "bytes": "f3 0f 10 9f 6c 03 00 00",
+          "asm": "movss   xmm3, dword ptr [edi+36Ch]"
+        },
+        {
+          "va": "0x6b0f0f",
+          "rva": "0x2b0f0f",
+          "bytes": "f3 0f 10 97 64 03 00 00",
+          "asm": "movss   xmm2, dword ptr [edi+364h]"
+        },
+        {
+          "va": "0x6b0f17",
+          "rva": "0x2b0f17",
+          "bytes": "0f 28 c3",
+          "asm": "movaps  xmm0, xmm3"
+        },
+        {
+          "va": "0x6b0f1a",
+          "rva": "0x2b0f1a",
+          "bytes": "f3 0f 59 87 60 03 00 00",
+          "asm": "mulss   xmm0, dword ptr [edi+360h]"
+        },
+        {
+          "va": "0x6b0f22",
+          "rva": "0x2b0f22",
+          "bytes": "6a 01",
+          "asm": "push    1"
+        },
+        {
+          "va": "0x6b0f24",
+          "rva": "0x2b0f24",
+          "bytes": "f3 0f 10 8f 9c 03 00 00",
+          "asm": "movss   xmm1, dword ptr [edi+39Ch]"
+        },
+        {
+          "va": "0x6b0f2c",
+          "rva": "0x2b0f2c",
+          "bytes": "f3 0f 59 da",
+          "asm": "mulss   xmm3, xmm2"
+        },
+        {
+          "va": "0x6b0f30",
+          "rva": "0x2b0f30",
+          "bytes": "c6 87 75 01 00 00 01",
+          "asm": "mov     byte ptr [edi+175h], 1"
+        },
+        {
+          "va": "0x6b0f37",
+          "rva": "0x2b0f37",
+          "bytes": "f3 0f 59 c1",
+          "asm": "mulss   xmm0, xmm1"
+        },
+        {
+          "va": "0x6b0f3b",
+          "rva": "0x2b0f3b",
+          "bytes": "f3 0f 59 d9",
+          "asm": "mulss   xmm3, xmm1"
+        },
+        {
+          "va": "0x6b0f3f",
+          "rva": "0x2b0f3f",
+          "bytes": "f3 0f 59 05 d0 a2 ba 00",
+          "asm": "mulss   xmm0, ds:dword_BAA2D0"
+        },
+        {
+          "va": "0x6b0f47",
+          "rva": "0x2b0f47",
+          "bytes": "f3 0f 59 1d d0 a2 ba 00",
+          "asm": "mulss   xmm3, ds:dword_BAA2D0"
+        },
+        {
+          "va": "0x6b0f4f",
+          "rva": "0x2b0f4f",
+          "bytes": "f3 0f 58 03",
+          "asm": "addss   xmm0, dword ptr [ebx]"
+        },
+        {
+          "va": "0x6b0f53",
+          "rva": "0x2b0f53",
+          "bytes": "f3 0f 58 5b 04",
+          "asm": "addss   xmm3, dword ptr [ebx+4]"
+        },
+        {
+          "va": "0x6b0f58",
+          "rva": "0x2b0f58",
+          "bytes": "f3 0f 11 03",
+          "asm": "movss   dword ptr [ebx], xmm0"
+        },
+        {
+          "va": "0x6b0f5c",
+          "rva": "0x2b0f5c",
+          "bytes": "f3 0f 11 5b 04",
+          "asm": "movss   dword ptr [ebx+4], xmm3"
+        },
+        {
+          "va": "0x6b0f61",
+          "rva": "0x2b0f61",
+          "bytes": "0f 85 8a 00 00 00",
+          "asm": "jnz     loc_6B0FF1"
+        },
+        {
+          "va": "0x6b0f67",
+          "rva": "0x2b0f67",
+          "bytes": "e8 d4 a4 ff ff",
+          "asm": "call    sub_6AB440"
+        },
+        {
+          "va": "0x6b0f6c",
+          "rva": "0x2b0f6c",
+          "bytes": "83 7f 2c 01",
+          "asm": "cmp     dword ptr [edi+2Ch], 1"
+        },
+        {
+          "va": "0x6b0f70",
+          "rva": "0x2b0f70",
+          "bytes": "0f 85 80 00 00 00",
+          "asm": "jnz     loc_6B0FF6"
+        },
+        {
+          "va": "0x6b0f76",
+          "rva": "0x2b0f76",
+          "bytes": "f3 0f 10 9f 70 03 00 00",
+          "asm": "movss   xmm3, dword ptr [edi+370h]"
+        },
+        {
+          "va": "0x6b0f7e",
+          "rva": "0x2b0f7e",
+          "bytes": "8d 44 24 10",
+          "asm": "lea     eax, [esp+18h+var_8]"
+        },
+        {
+          "va": "0x6b0f82",
+          "rva": "0x2b0f82",
+          "bytes": "8b 35 78 16 c7 00",
+          "asm": "mov     esi, n60"
+        },
+        {
+          "va": "0x6b0f88",
+          "rva": "0x2b0f88",
+          "bytes": "83 ec 0c",
+          "asm": "sub     esp, 0Ch"
+        },
+        {
+          "va": "0x6b0f8b",
+          "rva": "0x2b0f8b",
+          "bytes": "8b 8e 00 83 01 00",
+          "asm": "mov     ecx, [esi+18300h]"
+        },
+        {
+          "va": "0x6b0f91",
+          "rva": "0x2b0f91",
+          "bytes": "f3 0f 11 5c 24 08",
+          "asm": "movss   [esp+24h+var_1C], xmm3"
+        },
+        {
+          "va": "0x6b0f97",
+          "rva": "0x2b0f97",
+          "bytes": "f3 0f 11 5c 24 04",
+          "asm": "movss   [esp+24h+var_20], xmm3"
+        },
+        {
+          "va": "0x6b0f9d",
+          "rva": "0x2b0f9d",
+          "bytes": "f3 0f 11 1c 24",
+          "asm": "movss   [esp+24h+var_24], xmm3"
+        },
+        {
+          "va": "0x6b0fa2",
+          "rva": "0x2b0fa2",
+          "bytes": "53",
+          "asm": "push    ebx"
+        },
+        {
+          "va": "0x6b0fa3",
+          "rva": "0x2b0fa3",
+          "bytes": "50",
+          "asm": "push    eax"
+        },
+        {
+          "va": "0x6b0fa4",
+          "rva": "0x2b0fa4",
+          "bytes": "e8 a7 1f 16 00",
+          "asm": "call    sub_812F50"
+        },
+        {
+          "va": "0x6b0fa9",
+          "rva": "0x2b0fa9",
+          "bytes": "f3 0f 10 44 24 10",
+          "asm": "movss   xmm0, [esp+18h+var_8]"
+        },
+        {
+          "va": "0x6b0faf",
+          "rva": "0x2b0faf",
+          "bytes": "f3 0f 11 03",
+          "asm": "movss   dword ptr [ebx], xmm0"
+        },
+        {
+          "va": "0x6b0fb3",
+          "rva": "0x2b0fb3",
+          "bytes": "f3 0f 10 44 24 14",
+          "asm": "movss   xmm0, [esp+18h+var_4]"
+        },
+        {
+          "va": "0x6b0fb9",
+          "rva": "0x2b0fb9",
+          "bytes": "f3 0f 11 43 04",
+          "asm": "movss   dword ptr [ebx+4], xmm0"
+        },
+        {
+          "va": "0x6b0fbe",
+          "rva": "0x2b0fbe",
+          "bytes": "66 0f 6e 86 f8 64 02 00",
+          "asm": "movd    xmm0, dword ptr [esi+264F8h]"
+        },
+        {
+          "va": "0x6b0fc6",
+          "rva": "0x2b0fc6",
+          "bytes": "0f 5b c0",
+          "asm": "cvtdq2ps xmm0, xmm0"
+        },
+        {
+          "va": "0x6b0fc9",
+          "rva": "0x2b0fc9",
+          "bytes": "f3 0f 58 05 d0 a2 ba 00",
+          "asm": "addss   xmm0, ds:dword_BAA2D0"
+        },
+        {
+          "va": "0x6b0fd1",
+          "rva": "0x2b0fd1",
+          "bytes": "f3 0f 59 05 98 a1 ba 00",
+          "asm": "mulss   xmm0, ds:dword_BAA198"
+        },
+        {
+          "va": "0x6b0fd9",
+          "rva": "0x2b0fd9",
+          "bytes": "e8 42 c5 d6 ff",
+          "asm": "call    sub_41D520"
+        },
+        {
+          "va": "0x6b0fde",
+          "rva": "0x2b0fde",
+          "bytes": "f3 0f 58 c0",
+          "asm": "addss   xmm0, xmm0"
+        },
+        {
+          "va": "0x6b0fe2",
+          "rva": "0x2b0fe2",
+          "bytes": "f3 0f 11 87 50 03 00 00",
+          "asm": "movss   dword ptr [edi+350h], xmm0"
+        },
+        {
+          "va": "0x6b0fea",
+          "rva": "0x2b0fea",
+          "bytes": "5f",
+          "asm": "pop     edi"
+        },
+        {
+          "va": "0x6b0feb",
+          "rva": "0x2b0feb",
+          "bytes": "5e",
+          "asm": "pop     esi"
+        },
+        {
+          "va": "0x6b0fec",
+          "rva": "0x2b0fec",
+          "bytes": "5b",
+          "asm": "pop     ebx"
+        },
+        {
+          "va": "0x6b0fed",
+          "rva": "0x2b0fed",
+          "bytes": "8b e5",
+          "asm": "mov     esp, ebp"
+        },
+        {
+          "va": "0x6b0fef",
+          "rva": "0x2b0fef",
+          "bytes": "5d",
+          "asm": "pop     ebp"
+        },
+        {
+          "va": "0x6b0ff0",
+          "rva": "0x2b0ff0",
+          "bytes": "c3",
+          "asm": "retn"
+        },
+        {
+          "va": "0x6b0ff1",
+          "rva": "0x2b0ff1",
+          "bytes": "e8 9a 8c ff ff",
+          "asm": "call    sub_6A9C90"
+        },
+        {
+          "va": "0x6b0ff6",
+          "rva": "0x2b0ff6",
+          "bytes": "5f",
+          "asm": "pop     edi"
+        },
+        {
+          "va": "0x6b0ff7",
+          "rva": "0x2b0ff7",
+          "bytes": "5e",
+          "asm": "pop     esi"
+        },
+        {
+          "va": "0x6b0ff8",
+          "rva": "0x2b0ff8",
+          "bytes": "5b",
+          "asm": "pop     ebx"
+        },
+        {
+          "va": "0x6b0ff9",
+          "rva": "0x2b0ff9",
+          "bytes": "8b e5",
+          "asm": "mov     esp, ebp"
+        },
+        {
+          "va": "0x6b0ffb",
+          "rva": "0x2b0ffb",
+          "bytes": "5d",
+          "asm": "pop     ebp"
+        },
+        {
+          "va": "0x6b0ffc",
+          "rva": "0x2b0ffc",
+          "bytes": "c3",
+          "asm": "retn"
+        }
+      ]
+    }
+  },
+  "ranges": [
+    {
+      "startVa": "0x9312e7",
+      "endVaExclusive": "0x9312f6",
+      "meaning": "Main call update at 9312EC then render at 9312F1",
+      "instructions": [
+        {
+          "va": "0x9312ec",
+          "rva": "0x5312ec",
+          "bytes": "e8 df a3 07 00",
+          "asm": "call    sub_9AB6D0"
+        },
+        {
+          "va": "0x9312f1",
+          "rva": "0x5312f1",
+          "bytes": "e8 ca 42 02 00",
+          "asm": "call    sub_9555C0"
+        }
+      ]
+    },
+    {
+      "startVa": "0x9551cf",
+      "endVaExclusive": "0x955249",
+      "meaning": "Driver parity, staged restore, standard versus odd call",
+      "instructions": [
+        {
+          "va": "0x9551cf",
+          "rva": "0x5551cf",
+          "bytes": "f6 87 bc ab 04 00 01",
+          "asm": "test    byte ptr [edi+4ABBCh], 1"
+        },
+        {
+          "va": "0x9551d6",
+          "rva": "0x5551d6",
+          "bytes": "75 60",
+          "asm": "jnz     short loc_955238"
+        },
+        {
+          "va": "0x9551d8",
+          "rva": "0x5551d8",
+          "bytes": "a1 78 16 c7 00",
+          "asm": "mov     eax, n60"
+        },
+        {
+          "va": "0x9551dd",
+          "rva": "0x5551dd",
+          "bytes": "33 f6",
+          "asm": "xor     esi, esi"
+        },
+        {
+          "va": "0x9551df",
+          "rva": "0x5551df",
+          "bytes": "8b 88 00 83 01 00",
+          "asm": "mov     ecx, [eax+18300h]"
+        },
+        {
+          "va": "0x9551e5",
+          "rva": "0x5551e5",
+          "bytes": "39 b1 64 12 00 00",
+          "asm": "cmp     [ecx+1264h], esi"
+        },
+        {
+          "va": "0x9551eb",
+          "rva": "0x5551eb",
+          "bytes": "76 42",
+          "asm": "jbe     short loc_95522F"
+        },
+        {
+          "va": "0x9551ed",
+          "rva": "0x5551ed",
+          "bytes": "0f 1f 00",
+          "asm": "nop     dword ptr [eax]"
+        },
+        {
+          "va": "0x9551f0",
+          "rva": "0x5551f0",
+          "bytes": "8b 81 5c 12 00 00",
+          "asm": "mov     eax, [ecx+125Ch]"
+        },
+        {
+          "va": "0x9551f6",
+          "rva": "0x5551f6",
+          "bytes": "8b 14 b0",
+          "asm": "mov     edx, [eax+esi*4]"
+        },
+        {
+          "va": "0x9551f9",
+          "rva": "0x5551f9",
+          "bytes": "80 ba 75 01 00 00 00",
+          "asm": "cmp     byte ptr [edx+175h], 0"
+        },
+        {
+          "va": "0x955200",
+          "rva": "0x555200",
+          "bytes": "74 1f",
+          "asm": "jz      short loc_955221"
+        },
+        {
+          "va": "0x955202",
+          "rva": "0x555202",
+          "bytes": "8b 82 44 03 00 00",
+          "asm": "mov     eax, [edx+344h]"
+        },
+        {
+          "va": "0x955208",
+          "rva": "0x555208",
+          "bytes": "89 82 3c 03 00 00",
+          "asm": "mov     [edx+33Ch], eax"
+        },
+        {
+          "va": "0x95520e",
+          "rva": "0x55520e",
+          "bytes": "8b 82 48 03 00 00",
+          "asm": "mov     eax, [edx+348h]"
+        },
+        {
+          "va": "0x955214",
+          "rva": "0x555214",
+          "bytes": "89 82 40 03 00 00",
+          "asm": "mov     [edx+340h], eax"
+        },
+        {
+          "va": "0x95521a",
+          "rva": "0x55521a",
+          "bytes": "c6 82 75 01 00 00 00",
+          "asm": "mov     byte ptr [edx+175h], 0"
+        },
+        {
+          "va": "0x955221",
+          "rva": "0x555221",
+          "bytes": "46",
+          "asm": "inc     esi"
+        },
+        {
+          "va": "0x955222",
+          "rva": "0x555222",
+          "bytes": "3b b1 64 12 00 00",
+          "asm": "cmp     esi, [ecx+1264h]"
+        },
+        {
+          "va": "0x955228",
+          "rva": "0x555228",
+          "bytes": "72 c6",
+          "asm": "jb      short loc_9551F0"
+        },
+        {
+          "va": "0x95522a",
+          "rva": "0x55522a",
+          "bytes": "a1 78 16 c7 00",
+          "asm": "mov     eax, n60"
+        },
+        {
+          "va": "0x95522f",
+          "rva": "0x55522f",
+          "bytes": "8b c8",
+          "asm": "mov     ecx, eax"
+        },
+        {
+          "va": "0x955231",
+          "rva": "0x555231",
+          "bytes": "e8 8a 5b da ff",
+          "asm": "call    sub_6FADC0"
+        },
+        {
+          "va": "0x955236",
+          "rva": "0x555236",
+          "bytes": "eb 0e",
+          "asm": "jmp     short loc_955246"
+        },
+        {
+          "va": "0x955238",
+          "rva": "0x555238",
+          "bytes": "80 bf c0 a3 02 00 00",
+          "asm": "cmp     byte ptr [edi+2A3C0h], 0"
+        },
+        {
+          "va": "0x95523f",
+          "rva": "0x55523f",
+          "bytes": "74 05",
+          "asm": "jz      short loc_955246"
+        },
+        {
+          "va": "0x955241",
+          "rva": "0x555241",
+          "bytes": "e8 aa 81 da ff",
+          "asm": "call    sub_6FD3F0"
+        },
+        {
+          "va": "0x955246",
+          "rva": "0x555246",
+          "bytes": "8b 35 78 16 c7 00",
+          "asm": "mov     esi, n60"
+        }
+      ]
+    },
+    {
+      "startVa": "0x6fadc0",
+      "endVaExclusive": "0x6fae13",
+      "meaning": "Standard entry and pause/predicate early-return paths",
+      "instructions": [
+        {
+          "va": "0x6fadc0",
+          "rva": "0x2fadc0",
+          "bytes": "55",
+          "asm": "push    ebp"
+        },
+        {
+          "va": "0x6fadc1",
+          "rva": "0x2fadc1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp"
+        },
+        {
+          "va": "0x6fadc3",
+          "rva": "0x2fadc3",
+          "bytes": "6a ff",
+          "asm": "push    0FFFFFFFFh"
+        },
+        {
+          "va": "0x6fadc5",
+          "rva": "0x2fadc5",
+          "bytes": "68 89 c1 af 00",
+          "asm": "push    offset SEH_6FADC0"
+        },
+        {
+          "va": "0x6fadca",
+          "rva": "0x2fadca",
+          "bytes": "64 a1 00 00 00 00",
+          "asm": "mov     eax, large fs:0"
+        },
+        {
+          "va": "0x6fadd0",
+          "rva": "0x2fadd0",
+          "bytes": "50",
+          "asm": "push    eax"
+        },
+        {
+          "va": "0x6fadd1",
+          "rva": "0x2fadd1",
+          "bytes": "83 ec 4c",
+          "asm": "sub     esp, 4Ch"
+        },
+        {
+          "va": "0x6fadd4",
+          "rva": "0x2fadd4",
+          "bytes": "56",
+          "asm": "push    esi"
+        },
+        {
+          "va": "0x6fadd5",
+          "rva": "0x2fadd5",
+          "bytes": "57",
+          "asm": "push    edi"
+        },
+        {
+          "va": "0x6fadd6",
+          "rva": "0x2fadd6",
+          "bytes": "a1 b4 93 bf 00",
+          "asm": "mov     eax, ___security_cookie"
+        },
+        {
+          "va": "0x6faddb",
+          "rva": "0x2faddb",
+          "bytes": "33 c5",
+          "asm": "xor     eax, ebp"
+        },
+        {
+          "va": "0x6faddd",
+          "rva": "0x2faddd",
+          "bytes": "50",
+          "asm": "push    eax"
+        },
+        {
+          "va": "0x6fadde",
+          "rva": "0x2fadde",
+          "bytes": "8d 45 f4",
+          "asm": "lea     eax, [ebp+var_C]"
+        },
+        {
+          "va": "0x6fade1",
+          "rva": "0x2fade1",
+          "bytes": "64 a3 00 00 00 00",
+          "asm": "mov     large fs:0, eax"
+        },
+        {
+          "va": "0x6fade7",
+          "rva": "0x2fade7",
+          "bytes": "8b f9",
+          "asm": "mov     edi, ecx"
+        },
+        {
+          "va": "0x6fade9",
+          "rva": "0x2fade9",
+          "bytes": "89 7d ec",
+          "asm": "mov     [ebp+var_14], edi"
+        },
+        {
+          "va": "0x6fadec",
+          "rva": "0x2fadec",
+          "bytes": "33 c0",
+          "asm": "xor     eax, eax"
+        },
+        {
+          "va": "0x6fadee",
+          "rva": "0x2fadee",
+          "bytes": "8d 8f 78 8d 06 00",
+          "asm": "lea     ecx, [edi+68D78h]"
+        },
+        {
+          "va": "0x6fadf4",
+          "rva": "0x2fadf4",
+          "bytes": "89 45 e0",
+          "asm": "mov     [ebp+var_20], eax"
+        },
+        {
+          "va": "0x6fadf7",
+          "rva": "0x2fadf7",
+          "bytes": "89 45 e8",
+          "asm": "mov     [ebp+var_18], eax"
+        },
+        {
+          "va": "0x6fadfa",
+          "rva": "0x2fadfa",
+          "bytes": "e8 a1 0d f9 ff",
+          "asm": "call    sub_68BBA0"
+        },
+        {
+          "va": "0x6fadff",
+          "rva": "0x2fadff",
+          "bytes": "84 c0",
+          "asm": "test    al, al"
+        },
+        {
+          "va": "0x6fae01",
+          "rva": "0x2fae01",
+          "bytes": "0f 85 a3 0d 00 00",
+          "asm": "jnz     loc_6FBBAA"
+        },
+        {
+          "va": "0x6fae07",
+          "rva": "0x2fae07",
+          "bytes": "8b cf",
+          "asm": "mov     ecx, edi"
+        },
+        {
+          "va": "0x6fae09",
+          "rva": "0x2fae09",
+          "bytes": "e8 22 d8 00 00",
+          "asm": "call    sub_708630"
+        },
+        {
+          "va": "0x6fae0e",
+          "rva": "0x2fae0e",
+          "bytes": "8d b7 04 da 01 00",
+          "asm": "lea     esi, [edi+1DA04h]"
+        }
+      ]
+    },
+    {
+      "startVa": "0x6fba38",
+      "endVaExclusive": "0x6fba85",
+      "meaning": "Normal Room call and post-room calls",
+      "instructions": [
+        {
+          "va": "0x6fba3d",
+          "rva": "0x2fba3d",
+          "bytes": "c7 87 dc 2e 02 00 02 00 00 00",
+          "asm": "mov     dword ptr [edi+22EDCh], 2"
+        },
+        {
+          "va": "0x6fba47",
+          "rva": "0x2fba47",
+          "bytes": "8b 8f 00 83 01 00",
+          "asm": "mov     ecx, [edi+18300h]"
+        },
+        {
+          "va": "0x6fba4d",
+          "rva": "0x2fba4d",
+          "bytes": "e8 2e 6f 10 00",
+          "asm": "call    sub_802980"
+        },
+        {
+          "va": "0x6fba52",
+          "rva": "0x2fba52",
+          "bytes": "e8 79 fb 2b 00",
+          "asm": "call    sub_9BB5D0"
+        },
+        {
+          "va": "0x6fba57",
+          "rva": "0x2fba57",
+          "bytes": "8d 8f e0 bb 01 00",
+          "asm": "lea     ecx, [edi+1BBE0h]"
+        },
+        {
+          "va": "0x6fba5d",
+          "rva": "0x2fba5d",
+          "bytes": "e8 4e 9d d2 ff",
+          "asm": "call    sub_4257B0"
+        },
+        {
+          "va": "0x6fba62",
+          "rva": "0x2fba62",
+          "bytes": "8b 87 14 65 02 00",
+          "asm": "mov     eax, [edi+26514h]"
+        },
+        {
+          "va": "0x6fba68",
+          "rva": "0x2fba68",
+          "bytes": "f3 0f 10 87 18 65 02 00",
+          "asm": "movss   xmm0, dword ptr [edi+26518h]"
+        },
+        {
+          "va": "0x6fba70",
+          "rva": "0x2fba70",
+          "bytes": "85 c0",
+          "asm": "test    eax, eax"
+        },
+        {
+          "va": "0x6fba72",
+          "rva": "0x2fba72",
+          "bytes": "7e 2c",
+          "asm": "jle     short loc_6FBAA0"
+        },
+        {
+          "va": "0x6fba74",
+          "rva": "0x2fba74",
+          "bytes": "f3 0f 58 05 c4 a0 ba 00",
+          "asm": "addss   xmm0, ds:dword_BAA0C4"
+        },
+        {
+          "va": "0x6fba7c",
+          "rva": "0x2fba7c",
+          "bytes": "0f 2f 05 54 a4 ba 00",
+          "asm": "comiss  xmm0, ds:dword_BAA454"
+        },
+        {
+          "va": "0x6fba83",
+          "rva": "0x2fba83",
+          "bytes": "f3 0f 11 87 18 65 02 00",
+          "asm": "movss   dword ptr [edi+26518h], xmm0"
+        }
+      ]
+    },
+    {
+      "startVa": "0x6fbb91",
+      "endVaExclusive": "0x6fbbad",
+      "meaning": "Standard post-update callback and return",
+      "instructions": [
+        {
+          "va": "0x6fbb93",
+          "rva": "0x2fbb93",
+          "bytes": "eb 08",
+          "asm": "jmp     short loc_6FBB9D"
+        },
+        {
+          "va": "0x6fbb95",
+          "rva": "0x2fbb95",
+          "bytes": "7e 04",
+          "asm": "jle     short loc_6FBB9B"
+        },
+        {
+          "va": "0x6fbb97",
+          "rva": "0x2fbb97",
+          "bytes": "48",
+          "asm": "dec     eax"
+        },
+        {
+          "va": "0x6fbb98",
+          "rva": "0x2fbb98",
+          "bytes": "89 46 0c",
+          "asm": "mov     [esi+0Ch], eax"
+        },
+        {
+          "va": "0x6fbb9b",
+          "rva": "0x2fbb9b",
+          "bytes": "8b 36",
+          "asm": "mov     esi, [esi]"
+        },
+        {
+          "va": "0x6fbb9d",
+          "rva": "0x2fbb9d",
+          "bytes": "3b b7 2c 77 06 00",
+          "asm": "cmp     esi, [edi+6772Ch]"
+        },
+        {
+          "va": "0x6fbba3",
+          "rva": "0x2fbba3",
+          "bytes": "75 9f",
+          "asm": "jnz     short loc_6FBB44"
+        },
+        {
+          "va": "0x6fbba5",
+          "rva": "0x2fbba5",
+          "bytes": "e8 f6 4b 16 00",
+          "asm": "call    sub_8607A0"
+        },
+        {
+          "va": "0x6fbbaa",
+          "rva": "0x2fbbaa",
+          "bytes": "8b 4d f4",
+          "asm": "mov     ecx, [ebp+var_C]"
+        }
+      ]
+    },
+    {
+      "startVa": "0x803e62",
+      "endVaExclusive": "0x803e82",
+      "meaning": "Room passes literal zero to EntityList::Update",
+      "instructions": [
+        {
+          "va": "0x803e62",
+          "rva": "0x403e62",
+          "bytes": "6a 00",
+          "asm": "push    0"
+        },
+        {
+          "va": "0x803e64",
+          "rva": "0x403e64",
+          "bytes": "8d 8f 18 12 00 00",
+          "asm": "lea     ecx, [edi+1218h]"
+        },
+        {
+          "va": "0x803e6a",
+          "rva": "0x403e6a",
+          "bytes": "89 b7 24 72 00 00",
+          "asm": "mov     [edi+7224h], esi"
+        },
+        {
+          "va": "0x803e70",
+          "rva": "0x403e70",
+          "bytes": "e8 4b 48 c1 ff",
+          "asm": "call    sub_4186C0"
+        },
+        {
+          "va": "0x803e75",
+          "rva": "0x403e75",
+          "bytes": "8d 8f 18 16 00 00",
+          "asm": "lea     ecx, [edi+1618h]"
+        },
+        {
+          "va": "0x803e7b",
+          "rva": "0x403e7b",
+          "bytes": "6a 00",
+          "asm": "push    0"
+        },
+        {
+          "va": "0x803e7d",
+          "rva": "0x403e7d",
+          "bytes": "e8 ee fb 18 00",
+          "asm": "call    sub_993A70"
+        }
+      ]
+    },
+    {
+      "startVa": "0x41969c",
+      "endVaExclusive": "0x4196b8",
+      "meaning": "EntityList spatial pass then render ordering pass",
+      "instructions": [
+        {
+          "va": "0x41969c",
+          "rva": "0x1969c",
+          "bytes": "3b f1",
+          "asm": "cmp     esi, ecx"
+        },
+        {
+          "va": "0x41969e",
+          "rva": "0x1969e",
+          "bytes": "0f 82 6c ff ff ff",
+          "asm": "jb      loc_419610"
+        },
+        {
+          "va": "0x4196a4",
+          "rva": "0x196a4",
+          "bytes": "80 7b 08 00",
+          "asm": "cmp     byte ptr [ebx+8], 0"
+        },
+        {
+          "va": "0x4196a8",
+          "rva": "0x196a8",
+          "bytes": "75 07",
+          "asm": "jnz     short loc_4196B1"
+        },
+        {
+          "va": "0x4196aa",
+          "rva": "0x196aa",
+          "bytes": "8b cf",
+          "asm": "mov     ecx, edi"
+        },
+        {
+          "va": "0x4196ac",
+          "rva": "0x196ac",
+          "bytes": "e8 bf 07 00 00",
+          "asm": "call    sub_419E70"
+        },
+        {
+          "va": "0x4196b1",
+          "rva": "0x196b1",
+          "bytes": "8b cf",
+          "asm": "mov     ecx, edi"
+        },
+        {
+          "va": "0x4196b3",
+          "rva": "0x196b3",
+          "bytes": "e8 98 00 00 00",
+          "asm": "call    sub_419750"
+        }
+      ]
+    },
+    {
+      "startVa": "0x6fd5e0",
+      "endVaExclusive": "0x6fd647",
+      "meaning": "Odd helper Player Update and slot4 calls",
+      "instructions": [
+        {
+          "va": "0x6fd5e0",
+          "rva": "0x2fd5e0",
+          "bytes": "8b 83 5c 12 00 00",
+          "asm": "mov     eax, [ebx+125Ch]"
+        },
+        {
+          "va": "0x6fd5e6",
+          "rva": "0x2fd5e6",
+          "bytes": "8b 34 b8",
+          "asm": "mov     esi, [eax+edi*4]"
+        },
+        {
+          "va": "0x6fd5e9",
+          "rva": "0x2fd5e9",
+          "bytes": "8b ce",
+          "asm": "mov     ecx, esi"
+        },
+        {
+          "va": "0x6fd5eb",
+          "rva": "0x2fd5eb",
+          "bytes": "83 7e 28 01",
+          "asm": "cmp     dword ptr [esi+28h], 1"
+        },
+        {
+          "va": "0x6fd5ef",
+          "rva": "0x2fd5ef",
+          "bytes": "8b 16",
+          "asm": "mov     edx, [esi]"
+        },
+        {
+          "va": "0x6fd5f1",
+          "rva": "0x2fd5f1",
+          "bytes": "75 3a",
+          "asm": "jnz     short loc_6FD62D"
+        },
+        {
+          "va": "0x6fd5f3",
+          "rva": "0x2fd5f3",
+          "bytes": "8b 86 6c 01 00 00",
+          "asm": "mov     eax, [esi+16Ch]"
+        },
+        {
+          "va": "0x6fd5f9",
+          "rva": "0x2fd5f9",
+          "bytes": "81 8e 68 01 00 00 00 40 00 00",
+          "asm": "or      dword ptr [esi+168h], 4000h"
+        },
+        {
+          "va": "0x6fd603",
+          "rva": "0x2fd603",
+          "bytes": "89 86 6c 01 00 00",
+          "asm": "mov     [esi+16Ch], eax"
+        },
+        {
+          "va": "0x6fd609",
+          "rva": "0x2fd609",
+          "bytes": "ff 52 0c",
+          "asm": "call    dword ptr [edx+0Ch]"
+        },
+        {
+          "va": "0x6fd60c",
+          "rva": "0x2fd60c",
+          "bytes": "6a 00",
+          "asm": "push    0"
+        },
+        {
+          "va": "0x6fd60e",
+          "rva": "0x2fd60e",
+          "bytes": "8b ce",
+          "asm": "mov     ecx, esi"
+        },
+        {
+          "va": "0x6fd610",
+          "rva": "0x2fd610",
+          "bytes": "e8 2b de fa ff",
+          "asm": "call    sub_6AB440"
+        },
+        {
+          "va": "0x6fd615",
+          "rva": "0x2fd615",
+          "bytes": "8b 86 6c 01 00 00",
+          "asm": "mov     eax, [esi+16Ch]"
+        },
+        {
+          "va": "0x6fd61b",
+          "rva": "0x2fd61b",
+          "bytes": "81 a6 68 01 00 00 ff bf ff ff",
+          "asm": "and     dword ptr [esi+168h], 0FFFFBFFFh"
+        },
+        {
+          "va": "0x6fd625",
+          "rva": "0x2fd625",
+          "bytes": "89 86 6c 01 00 00",
+          "asm": "mov     [esi+16Ch], eax"
+        },
+        {
+          "va": "0x6fd62b",
+          "rva": "0x2fd62b",
+          "bytes": "eb 03",
+          "asm": "jmp     short loc_6FD630"
+        },
+        {
+          "va": "0x6fd62d",
+          "rva": "0x2fd62d",
+          "bytes": "ff 52 10",
+          "asm": "call    dword ptr [edx+10h]"
+        },
+        {
+          "va": "0x6fd630",
+          "rva": "0x2fd630",
+          "bytes": "47",
+          "asm": "inc     edi"
+        },
+        {
+          "va": "0x6fd631",
+          "rva": "0x2fd631",
+          "bytes": "3b bb 64 12 00 00",
+          "asm": "cmp     edi, [ebx+1264h]"
+        },
+        {
+          "va": "0x6fd637",
+          "rva": "0x2fd637",
+          "bytes": "72 a7",
+          "asm": "jb      short loc_6FD5E0"
+        },
+        {
+          "va": "0x6fd639",
+          "rva": "0x2fd639",
+          "bytes": "80 bb 84 78 00 00 00",
+          "asm": "cmp     byte ptr [ebx+7884h], 0"
+        },
+        {
+          "va": "0x6fd640",
+          "rva": "0x2fd640",
+          "bytes": "0f 84 f0 00 00 00",
+          "asm": "jz      loc_6FD736"
+        },
+        {
+          "va": "0x6fd646",
+          "rva": "0x2fd646",
+          "bytes": "f3 0f 10 83 8c 78 00 00",
+          "asm": "movss   xmm0, dword ptr [ebx+788Ch]"
+        }
+      ]
+    },
+    {
+      "startVa": "0x92fc6b",
+      "endVaExclusive": "0x92fc81",
+      "meaning": "FSM Room callsite 92FC77, return 92FC7C",
+      "instructions": [
+        {
+          "va": "0x92fc6b",
+          "rva": "0x52fc6b",
+          "bytes": "8b 0d 78 16 c7 00",
+          "asm": "mov     ecx, n60"
+        },
+        {
+          "va": "0x92fc71",
+          "rva": "0x52fc71",
+          "bytes": "8b 89 00 83 01 00",
+          "asm": "mov     ecx, [ecx+18300h]"
+        },
+        {
+          "va": "0x92fc77",
+          "rva": "0x52fc77",
+          "bytes": "e8 04 2d ed ff",
+          "asm": "call    sub_802980"
+        },
+        {
+          "va": "0x92fc7c",
+          "rva": "0x52fc7c",
+          "bytes": "e8 4f 92 02 00",
+          "asm": "call    sub_958ED0"
+        }
+      ]
+    },
+    {
+      "startVa": "0x6fe376",
+      "endVaExclusive": "0x6fe388",
+      "meaning": "RoomChange Room callsite 6FE37C, return 6FE381",
+      "instructions": [
+        {
+          "va": "0x6fe376",
+          "rva": "0x2fe376",
+          "bytes": "8b 8f 00 83 01 00",
+          "asm": "mov     ecx, [edi+18300h]"
+        },
+        {
+          "va": "0x6fe37c",
+          "rva": "0x2fe37c",
+          "bytes": "e8 ff 45 10 00",
+          "asm": "call    sub_802980"
+        },
+        {
+          "va": "0x6fe381",
+          "rva": "0x2fe381",
+          "bytes": "a1 78 16 c7 00",
+          "asm": "mov     eax, n60"
+        },
+        {
+          "va": "0x6fe386",
+          "rva": "0x2fe386",
+          "bytes": "8b b0 00 83 01 00",
+          "asm": "mov     esi, [eax+18300h]"
+        }
+      ]
+    },
+    {
+      "startVa": "0x86894d",
+      "endVaExclusive": "0x868979",
+      "meaning": "Entity Position/Velocity property registration",
+      "instructions": [
+        {
+          "va": "0x86894d",
+          "rva": "0x46894d",
+          "bytes": "68 f0 88 42 00",
+          "asm": "push    offset sub_4288F0"
+        },
+        {
+          "va": "0x868952",
+          "rva": "0x468952",
+          "bytes": "68 90 72 41 00",
+          "asm": "push    offset sub_417290"
+        },
+        {
+          "va": "0x868957",
+          "rva": "0x468957",
+          "bytes": "68 80 50 b6 00",
+          "asm": "push    offset aPosition; \"Position\""
+        },
+        {
+          "va": "0x86895c",
+          "rva": "0x46895c",
+          "bytes": "8b c8",
+          "asm": "mov     ecx, eax"
+        },
+        {
+          "va": "0x86895e",
+          "rva": "0x46895e",
+          "bytes": "e8 4d 4e 01 00",
+          "asm": "call    sub_87D7B0"
+        },
+        {
+          "va": "0x868963",
+          "rva": "0x468963",
+          "bytes": "68 10 89 42 00",
+          "asm": "push    offset sub_428910"
+        },
+        {
+          "va": "0x868968",
+          "rva": "0x468968",
+          "bytes": "68 d0 72 41 00",
+          "asm": "push    offset sub_4172D0"
+        },
+        {
+          "va": "0x86896d",
+          "rva": "0x46896d",
+          "bytes": "68 d8 0f b7 00",
+          "asm": "push    offset aVelocity; \"Velocity\""
+        },
+        {
+          "va": "0x868972",
+          "rva": "0x468972",
+          "bytes": "8b c8",
+          "asm": "mov     ecx, eax"
+        },
+        {
+          "va": "0x868974",
+          "rva": "0x468974",
+          "bytes": "e8 37 4e 01 00",
+          "asm": "call    sub_87D7B0"
+        }
+      ]
+    }
+  ],
+  "roomNormalControlFlow": {
+    "functionVa": "0x802980",
+    "callVa": "0x803e70",
+    "callBlockVa": "0x803e62",
+    "normalReturnBlocks": [
+      "0x806884"
+    ],
+    "returnsReachableWhenCallBlockExcluded": [],
+    "blocks": [
+      {
+        "startVa": "0x802980",
+        "endVaExclusive": "0x8029df",
+        "successors": [
+          "0x8029df",
+          "0x802e25"
+        ]
+      },
+      {
+        "startVa": "0x8029df",
+        "endVaExclusive": "0x8029f4",
+        "successors": [
+          "0x8029f4",
+          "0x802e25"
+        ]
+      },
+      {
+        "startVa": "0x8029f4",
+        "endVaExclusive": "0x8029fe",
+        "successors": [
+          "0x8029fe",
+          "0x802a8d"
+        ]
+      },
+      {
+        "startVa": "0x8029fe",
+        "endVaExclusive": "0x802a0a",
+        "successors": [
+          "0x802a0a",
+          "0x802a8d"
+        ]
+      },
+      {
+        "startVa": "0x802a0a",
+        "endVaExclusive": "0x802a15",
+        "successors": [
+          "0x802a15",
+          "0x802a1a"
+        ]
+      },
+      {
+        "startVa": "0x802a15",
+        "endVaExclusive": "0x802a1a",
+        "successors": [
+          "0x802a1a",
+          "0x802a34"
+        ]
+      },
+      {
+        "startVa": "0x802a1a",
+        "endVaExclusive": "0x802a1f",
+        "successors": [
+          "0x802a1f",
+          "0x802a34"
+        ]
+      },
+      {
+        "startVa": "0x802a1f",
+        "endVaExclusive": "0x802a28",
+        "successors": [
+          "0x802a28",
+          "0x802a34"
+        ]
+      },
+      {
+        "startVa": "0x802a28",
+        "endVaExclusive": "0x802a34",
+        "successors": [
+          "0x802a34",
+          "0x802a8d"
+        ]
+      },
+      {
+        "startVa": "0x802a34",
+        "endVaExclusive": "0x802a3d",
+        "successors": [
+          "0x802a3d",
+          "0x802a8d"
+        ]
+      },
+      {
+        "startVa": "0x802a3d",
+        "endVaExclusive": "0x802a8d",
+        "successors": [
+          "0x802a8d"
+        ]
+      },
+      {
+        "startVa": "0x802a8d",
+        "endVaExclusive": "0x802a9e",
+        "successors": [
+          "0x802a9e",
+          "0x802e25"
+        ]
+      },
+      {
+        "startVa": "0x802a9e",
+        "endVaExclusive": "0x802ab4",
+        "successors": [
+          "0x802ab4",
+          "0x802abe"
+        ]
+      },
+      {
+        "startVa": "0x802ab4",
+        "endVaExclusive": "0x802ab9",
+        "successors": [
+          "0x802ab9",
+          "0x802abe"
+        ]
+      },
+      {
+        "startVa": "0x802ab9",
+        "endVaExclusive": "0x802abe",
+        "successors": [
+          "0x802ac1"
+        ]
+      },
+      {
+        "startVa": "0x802abe",
+        "endVaExclusive": "0x802ac1",
+        "successors": [
+          "0x802ac1"
+        ]
+      },
+      {
+        "startVa": "0x802ac1",
+        "endVaExclusive": "0x802ad4",
+        "successors": [
+          "0x802ad4",
+          "0x802aec"
+        ]
+      },
+      {
+        "startVa": "0x802ad4",
+        "endVaExclusive": "0x802ad8",
+        "successors": [
+          "0x802ad8",
+          "0x802aec"
+        ]
+      },
+      {
+        "startVa": "0x802ad8",
+        "endVaExclusive": "0x802add",
+        "successors": [
+          "0x802add",
+          "0x802aec"
+        ]
+      },
+      {
+        "startVa": "0x802add",
+        "endVaExclusive": "0x802aec",
+        "successors": [
+          "0x802b01"
+        ]
+      },
+      {
+        "startVa": "0x802aec",
+        "endVaExclusive": "0x802b01",
+        "successors": [
+          "0x802b01",
+          "0x802b10"
+        ]
+      },
+      {
+        "startVa": "0x802b01",
+        "endVaExclusive": "0x802b05",
+        "successors": [
+          "0x802b05",
+          "0x802b10"
+        ]
+      },
+      {
+        "startVa": "0x802b05",
+        "endVaExclusive": "0x802b09",
+        "successors": [
+          "0x802b09",
+          "0x802b10"
+        ]
+      },
+      {
+        "startVa": "0x802b09",
+        "endVaExclusive": "0x802b10",
+        "successors": [
+          "0x802b13"
+        ]
+      },
+      {
+        "startVa": "0x802b10",
+        "endVaExclusive": "0x802b13",
+        "successors": [
+          "0x802b13"
+        ]
+      },
+      {
+        "startVa": "0x802b13",
+        "endVaExclusive": "0x802b22",
+        "successors": [
+          "0x802b22",
+          "0x802b3f"
+        ]
+      },
+      {
+        "startVa": "0x802b22",
+        "endVaExclusive": "0x802b2d",
+        "successors": [
+          "0x802b2d",
+          "0x802b3f"
+        ]
+      },
+      {
+        "startVa": "0x802b2d",
+        "endVaExclusive": "0x802b31",
+        "successors": [
+          "0x802b31",
+          "0x802b3f"
+        ]
+      },
+      {
+        "startVa": "0x802b31",
+        "endVaExclusive": "0x802b35",
+        "successors": [
+          "0x802b35",
+          "0x802b3f"
+        ]
+      },
+      {
+        "startVa": "0x802b35",
+        "endVaExclusive": "0x802b3f",
+        "successors": [
+          "0x802b42"
+        ]
+      },
+      {
+        "startVa": "0x802b3f",
+        "endVaExclusive": "0x802b42",
+        "successors": [
+          "0x802b42"
+        ]
+      },
+      {
+        "startVa": "0x802b42",
+        "endVaExclusive": "0x802b59",
+        "successors": [
+          "0x802b59",
+          "0x802e25"
+        ]
+      },
+      {
+        "startVa": "0x802b59",
+        "endVaExclusive": "0x802b8b",
+        "successors": [
+          "0x802b8b",
+          "0x802bab"
+        ]
+      },
+      {
+        "startVa": "0x802b8b",
+        "endVaExclusive": "0x802b9c",
+        "successors": [
+          "0x802b9c",
+          "0x802ba6"
+        ]
+      },
+      {
+        "startVa": "0x802b9c",
+        "endVaExclusive": "0x802ba1",
+        "successors": [
+          "0x802ba1",
+          "0x802bab"
+        ]
+      },
+      {
+        "startVa": "0x802ba1",
+        "endVaExclusive": "0x802ba6",
+        "successors": [
+          "0x802bab"
+        ]
+      },
+      {
+        "startVa": "0x802ba6",
+        "endVaExclusive": "0x802bab",
+        "successors": [
+          "0x802bab"
+        ]
+      },
+      {
+        "startVa": "0x802bab",
+        "endVaExclusive": "0x802c12",
+        "successors": [
+          "0x802c12",
+          "0x802e0d"
+        ]
+      },
+      {
+        "startVa": "0x802c12",
+        "endVaExclusive": "0x802c20",
+        "successors": [
+          "0x802c20"
+        ]
+      },
+      {
+        "startVa": "0x802c20",
+        "endVaExclusive": "0x802c2c",
+        "successors": [
+          "0x802c2c",
+          "0x802c3c"
+        ]
+      },
+      {
+        "startVa": "0x802c2c",
+        "endVaExclusive": "0x802c3c",
+        "successors": [
+          "0x802c3c"
+        ]
+      },
+      {
+        "startVa": "0x802c3c",
+        "endVaExclusive": "0x802c72",
+        "successors": [
+          "0x802c72",
+          "0x802c76"
+        ]
+      },
+      {
+        "startVa": "0x802c72",
+        "endVaExclusive": "0x802c76",
+        "successors": [
+          "0x802c76"
+        ]
+      },
+      {
+        "startVa": "0x802c76",
+        "endVaExclusive": "0x802c83",
+        "successors": [
+          "0x802c83",
+          "0x802cdc"
+        ]
+      },
+      {
+        "startVa": "0x802c83",
+        "endVaExclusive": "0x802cdc",
+        "successors": [
+          "0x802cdc"
+        ]
+      },
+      {
+        "startVa": "0x802cdc",
+        "endVaExclusive": "0x802cf2",
+        "successors": [
+          "0x802cf2",
+          "0x802d02"
+        ]
+      },
+      {
+        "startVa": "0x802cf2",
+        "endVaExclusive": "0x802d02",
+        "successors": [
+          "0x802d02"
+        ]
+      },
+      {
+        "startVa": "0x802d02",
+        "endVaExclusive": "0x802e02",
+        "successors": [
+          "0x802e02",
+          "0x802e0d"
+        ]
+      },
+      {
+        "startVa": "0x802e02",
+        "endVaExclusive": "0x802e0d",
+        "successors": [
+          "0x802c20"
+        ]
+      },
+      {
+        "startVa": "0x802e0d",
+        "endVaExclusive": "0x802e25",
+        "successors": [
+          "0x802e25"
+        ]
+      },
+      {
+        "startVa": "0x802e25",
+        "endVaExclusive": "0x802e33",
+        "successors": [
+          "0x802e33",
+          "0x803327"
+        ]
+      },
+      {
+        "startVa": "0x802e33",
+        "endVaExclusive": "0x802e39",
+        "successors": [
+          "0x802e39",
+          "0x803321"
+        ]
+      },
+      {
+        "startVa": "0x802e39",
+        "endVaExclusive": "0x802e46",
+        "successors": [
+          "0x802e46",
+          "0x803321"
+        ]
+      },
+      {
+        "startVa": "0x802e46",
+        "endVaExclusive": "0x802e68",
+        "successors": [
+          "0x802e68",
+          "0x802e7d"
+        ]
+      },
+      {
+        "startVa": "0x802e68",
+        "endVaExclusive": "0x802e7d",
+        "successors": [
+          "0x802e7d"
+        ]
+      },
+      {
+        "startVa": "0x802e7d",
+        "endVaExclusive": "0x802ef7",
+        "successors": [
+          "0x802ef7"
+        ]
+      },
+      {
+        "startVa": "0x802ef7",
+        "endVaExclusive": "0x802eff",
+        "successors": [
+          "0x802eff",
+          "0x802f60"
+        ]
+      },
+      {
+        "startVa": "0x802eff",
+        "endVaExclusive": "0x802f15",
+        "successors": [
+          "0x802f15",
+          "0x802f23"
+        ]
+      },
+      {
+        "startVa": "0x802f15",
+        "endVaExclusive": "0x802f1e",
+        "successors": [
+          "0x802f1e",
+          "0x802ff8"
+        ]
+      },
+      {
+        "startVa": "0x802f1e",
+        "endVaExclusive": "0x802f23",
+        "successors": [
+          "0x802f15",
+          "0x802f23"
+        ]
+      },
+      {
+        "startVa": "0x802f23",
+        "endVaExclusive": "0x802f2d",
+        "successors": [
+          "0x802f2d",
+          "0x802f53"
+        ]
+      },
+      {
+        "startVa": "0x802f2d",
+        "endVaExclusive": "0x802f45",
+        "successors": [
+          "0x802f45",
+          "0x803015"
+        ]
+      },
+      {
+        "startVa": "0x802f45",
+        "endVaExclusive": "0x802f53",
+        "successors": [
+          "0x802f53"
+        ]
+      },
+      {
+        "startVa": "0x802f53",
+        "endVaExclusive": "0x802f59",
+        "successors": [
+          "0x802f59"
+        ]
+      },
+      {
+        "startVa": "0x802f59",
+        "endVaExclusive": "0x802f60",
+        "successors": [
+          "0x802f60"
+        ]
+      },
+      {
+        "startVa": "0x802f60",
+        "endVaExclusive": "0x802f75",
+        "successors": [
+          "0x802ef7",
+          "0x802f75"
+        ]
+      },
+      {
+        "startVa": "0x802f75",
+        "endVaExclusive": "0x802f88",
+        "successors": [
+          "0x802f88",
+          "0x803045"
+        ]
+      },
+      {
+        "startVa": "0x802f88",
+        "endVaExclusive": "0x802f97",
+        "successors": [
+          "0x802f97",
+          "0x8030f1"
+        ]
+      },
+      {
+        "startVa": "0x802f97",
+        "endVaExclusive": "0x802fad",
+        "successors": [
+          "0x802fad",
+          "0x802fc1"
+        ]
+      },
+      {
+        "startVa": "0x802fad",
+        "endVaExclusive": "0x802fc1",
+        "successors": [
+          "0x802fc1",
+          "0x8030be"
+        ]
+      },
+      {
+        "startVa": "0x802fc1",
+        "endVaExclusive": "0x802ff8",
+        "successors": [
+          "0x803321"
+        ]
+      },
+      {
+        "startVa": "0x802ff8",
+        "endVaExclusive": "0x803008",
+        "successors": [
+          "0x802f53",
+          "0x803008"
+        ]
+      },
+      {
+        "startVa": "0x803008",
+        "endVaExclusive": "0x803015",
+        "successors": [
+          "0x802f53"
+        ]
+      },
+      {
+        "startVa": "0x803015",
+        "endVaExclusive": "0x803045",
+        "successors": [
+          "0x802f59"
+        ]
+      },
+      {
+        "startVa": "0x803045",
+        "endVaExclusive": "0x803099",
+        "successors": [
+          "0x803099",
+          "0x8030ec"
+        ]
+      },
+      {
+        "startVa": "0x803099",
+        "endVaExclusive": "0x8030ae",
+        "successors": [
+          "0x8030ae",
+          "0x8030c4"
+        ]
+      },
+      {
+        "startVa": "0x8030ae",
+        "endVaExclusive": "0x8030be",
+        "successors": [
+          "0x8030be",
+          "0x8030c4"
+        ]
+      },
+      {
+        "startVa": "0x8030be",
+        "endVaExclusive": "0x8030c4",
+        "successors": []
+      },
+      {
+        "startVa": "0x8030c4",
+        "endVaExclusive": "0x8030ec",
+        "successors": [
+          "0x8030ec"
+        ]
+      },
+      {
+        "startVa": "0x8030ec",
+        "endVaExclusive": "0x8030f1",
+        "successors": [
+          "0x8030f1",
+          "0x803100"
+        ]
+      },
+      {
+        "startVa": "0x8030f1",
+        "endVaExclusive": "0x803100",
+        "successors": [
+          "0x803321"
+        ]
+      },
+      {
+        "startVa": "0x803100",
+        "endVaExclusive": "0x80311c",
+        "successors": [
+          "0x80311c",
+          "0x803321"
+        ]
+      },
+      {
+        "startVa": "0x80311c",
+        "endVaExclusive": "0x803122",
+        "successors": [
+          "0x803122"
+        ]
+      },
+      {
+        "startVa": "0x803122",
+        "endVaExclusive": "0x80313a",
+        "successors": [
+          "0x80313a",
+          "0x8032f5"
+        ]
+      },
+      {
+        "startVa": "0x80313a",
+        "endVaExclusive": "0x803146",
+        "successors": [
+          "0x803146",
+          "0x8032f5"
+        ]
+      },
+      {
+        "startVa": "0x803146",
+        "endVaExclusive": "0x803151",
+        "successors": [
+          "0x803151",
+          "0x8032f5"
+        ]
+      },
+      {
+        "startVa": "0x803151",
+        "endVaExclusive": "0x80315c",
+        "successors": [
+          "0x80315c",
+          "0x8032f5"
+        ]
+      },
+      {
+        "startVa": "0x80315c",
+        "endVaExclusive": "0x8031c5",
+        "successors": [
+          "0x8031c5",
+          "0x8031db"
+        ]
+      },
+      {
+        "startVa": "0x8031c5",
+        "endVaExclusive": "0x8031da",
+        "successors": [
+          "0x8031da",
+          "0x8031db"
+        ]
+      },
+      {
+        "startVa": "0x8031da",
+        "endVaExclusive": "0x8031db",
+        "successors": [
+          "0x8031db"
+        ]
+      },
+      {
+        "startVa": "0x8031db",
+        "endVaExclusive": "0x80321c",
+        "successors": [
+          "0x80321c",
+          "0x803232"
+        ]
+      },
+      {
+        "startVa": "0x80321c",
+        "endVaExclusive": "0x803231",
+        "successors": [
+          "0x803231",
+          "0x803232"
+        ]
+      },
+      {
+        "startVa": "0x803231",
+        "endVaExclusive": "0x803232",
+        "successors": [
+          "0x803232"
+        ]
+      },
+      {
+        "startVa": "0x803232",
+        "endVaExclusive": "0x803279",
+        "successors": [
+          "0x803279",
+          "0x80327f"
+        ]
+      },
+      {
+        "startVa": "0x803279",
+        "endVaExclusive": "0x80327f",
+        "successors": [
+          "0x80327f",
+          "0x803281"
+        ]
+      },
+      {
+        "startVa": "0x80327f",
+        "endVaExclusive": "0x803281",
+        "successors": [
+          "0x803281"
+        ]
+      },
+      {
+        "startVa": "0x803281",
+        "endVaExclusive": "0x8032b7",
+        "successors": [
+          "0x8032b7",
+          "0x8032f5"
+        ]
+      },
+      {
+        "startVa": "0x8032b7",
+        "endVaExclusive": "0x8032cd",
+        "successors": [
+          "0x8032cd",
+          "0x8032f5"
+        ]
+      },
+      {
+        "startVa": "0x8032cd",
+        "endVaExclusive": "0x8032f5",
+        "successors": [
+          "0x8032f5"
+        ]
+      },
+      {
+        "startVa": "0x8032f5",
+        "endVaExclusive": "0x803321",
+        "successors": [
+          "0x803122",
+          "0x803321"
+        ]
+      },
+      {
+        "startVa": "0x803321",
+        "endVaExclusive": "0x803327",
+        "successors": [
+          "0x803327"
+        ]
+      },
+      {
+        "startVa": "0x803327",
+        "endVaExclusive": "0x80335f",
+        "successors": [
+          "0x80335f",
+          "0x803374"
+        ]
+      },
+      {
+        "startVa": "0x80335f",
+        "endVaExclusive": "0x803374",
+        "successors": [
+          "0x803374"
+        ]
+      },
+      {
+        "startVa": "0x803374",
+        "endVaExclusive": "0x80337d",
+        "successors": [
+          "0x80337d",
+          "0x8033b6"
+        ]
+      },
+      {
+        "startVa": "0x80337d",
+        "endVaExclusive": "0x80338d",
+        "successors": [
+          "0x80338d",
+          "0x8033b6"
+        ]
+      },
+      {
+        "startVa": "0x80338d",
+        "endVaExclusive": "0x803390",
+        "successors": [
+          "0x803390"
+        ]
+      },
+      {
+        "startVa": "0x803390",
+        "endVaExclusive": "0x803397",
+        "successors": [
+          "0x803397",
+          "0x80339d"
+        ]
+      },
+      {
+        "startVa": "0x803397",
+        "endVaExclusive": "0x80339d",
+        "successors": [
+          "0x80339d",
+          "0x8033a6"
+        ]
+      },
+      {
+        "startVa": "0x80339d",
+        "endVaExclusive": "0x8033a4",
+        "successors": [
+          "0x803390",
+          "0x8033a4"
+        ]
+      },
+      {
+        "startVa": "0x8033a4",
+        "endVaExclusive": "0x8033a6",
+        "successors": [
+          "0x8033b6"
+        ]
+      },
+      {
+        "startVa": "0x8033a6",
+        "endVaExclusive": "0x8033b6",
+        "successors": [
+          "0x8033b6"
+        ]
+      },
+      {
+        "startVa": "0x8033b6",
+        "endVaExclusive": "0x8033c2",
+        "successors": [
+          "0x8033c2",
+          "0x803854"
+        ]
+      },
+      {
+        "startVa": "0x8033c2",
+        "endVaExclusive": "0x8033f4",
+        "successors": [
+          "0x8033f4",
+          "0x803457"
+        ]
+      },
+      {
+        "startVa": "0x8033f4",
+        "endVaExclusive": "0x803457",
+        "successors": [
+          "0x803472"
+        ]
+      },
+      {
+        "startVa": "0x803457",
+        "endVaExclusive": "0x803472",
+        "successors": [
+          "0x803472"
+        ]
+      },
+      {
+        "startVa": "0x803472",
+        "endVaExclusive": "0x80347c",
+        "successors": [
+          "0x80347c",
+          "0x803822"
+        ]
+      },
+      {
+        "startVa": "0x80347c",
+        "endVaExclusive": "0x803493",
+        "successors": [
+          "0x803493",
+          "0x803822"
+        ]
+      },
+      {
+        "startVa": "0x803493",
+        "endVaExclusive": "0x8034de",
+        "successors": [
+          "0x8034de",
+          "0x8034ee"
+        ]
+      },
+      {
+        "startVa": "0x8034de",
+        "endVaExclusive": "0x8034ee",
+        "successors": [
+          "0x8034ee"
+        ]
+      },
+      {
+        "startVa": "0x8034ee",
+        "endVaExclusive": "0x80352d",
+        "successors": [
+          "0x80352d",
+          "0x803539"
+        ]
+      },
+      {
+        "startVa": "0x80352d",
+        "endVaExclusive": "0x803539",
+        "successors": [
+          "0x80357d"
+        ]
+      },
+      {
+        "startVa": "0x803539",
+        "endVaExclusive": "0x80353e",
+        "successors": [
+          "0x80353e",
+          "0x80354a"
+        ]
+      },
+      {
+        "startVa": "0x80353e",
+        "endVaExclusive": "0x80354a",
+        "successors": [
+          "0x80357d"
+        ]
+      },
+      {
+        "startVa": "0x80354a",
+        "endVaExclusive": "0x80354f",
+        "successors": [
+          "0x80354f",
+          "0x80355b"
+        ]
+      },
+      {
+        "startVa": "0x80354f",
+        "endVaExclusive": "0x80355b",
+        "successors": [
+          "0x80357d"
+        ]
+      },
+      {
+        "startVa": "0x80355b",
+        "endVaExclusive": "0x803560",
+        "successors": [
+          "0x803560",
+          "0x80356c"
+        ]
+      },
+      {
+        "startVa": "0x803560",
+        "endVaExclusive": "0x80356c",
+        "successors": [
+          "0x80357d"
+        ]
+      },
+      {
+        "startVa": "0x80356c",
+        "endVaExclusive": "0x80357d",
+        "successors": [
+          "0x80357d"
+        ]
+      },
+      {
+        "startVa": "0x80357d",
+        "endVaExclusive": "0x80360f",
+        "successors": [
+          "0x80360f",
+          "0x80361f"
+        ]
+      },
+      {
+        "startVa": "0x80360f",
+        "endVaExclusive": "0x80361f",
+        "successors": [
+          "0x80361f"
+        ]
+      },
+      {
+        "startVa": "0x80361f",
+        "endVaExclusive": "0x803665",
+        "successors": [
+          "0x803665",
+          "0x803685"
+        ]
+      },
+      {
+        "startVa": "0x803665",
+        "endVaExclusive": "0x80366d",
+        "successors": [
+          "0x80366d"
+        ]
+      },
+      {
+        "startVa": "0x80366d",
+        "endVaExclusive": "0x803685",
+        "successors": [
+          "0x80377c"
+        ]
+      },
+      {
+        "startVa": "0x803685",
+        "endVaExclusive": "0x80368a",
+        "successors": [
+          "0x80368a",
+          "0x8036e6"
+        ]
+      },
+      {
+        "startVa": "0x80368a",
+        "endVaExclusive": "0x803698",
+        "successors": [
+          "0x803698",
+          "0x8036c6"
+        ]
+      },
+      {
+        "startVa": "0x803698",
+        "endVaExclusive": "0x8036a2",
+        "successors": [
+          "0x8036a2",
+          "0x803789"
+        ]
+      },
+      {
+        "startVa": "0x8036a2",
+        "endVaExclusive": "0x8036b0",
+        "successors": [
+          "0x8036b0",
+          "0x803789"
+        ]
+      },
+      {
+        "startVa": "0x8036b0",
+        "endVaExclusive": "0x8036b9",
+        "successors": [
+          "0x8036b9",
+          "0x8036c6"
+        ]
+      },
+      {
+        "startVa": "0x8036b9",
+        "endVaExclusive": "0x8036c6",
+        "successors": [
+          "0x8036c6",
+          "0x803789"
+        ]
+      },
+      {
+        "startVa": "0x8036c6",
+        "endVaExclusive": "0x8036e6",
+        "successors": [
+          "0x80377c"
+        ]
+      },
+      {
+        "startVa": "0x8036e6",
+        "endVaExclusive": "0x8036eb",
+        "successors": [
+          "0x8036eb",
+          "0x80372c"
+        ]
+      },
+      {
+        "startVa": "0x8036eb",
+        "endVaExclusive": "0x8036f9",
+        "successors": [
+          "0x8036f9",
+          "0x80371f"
+        ]
+      },
+      {
+        "startVa": "0x8036f9",
+        "endVaExclusive": "0x803703",
+        "successors": [
+          "0x803703",
+          "0x803789"
+        ]
+      },
+      {
+        "startVa": "0x803703",
+        "endVaExclusive": "0x80370d",
+        "successors": [
+          "0x80370d",
+          "0x803789"
+        ]
+      },
+      {
+        "startVa": "0x80370d",
+        "endVaExclusive": "0x803716",
+        "successors": [
+          "0x803716",
+          "0x80371f"
+        ]
+      },
+      {
+        "startVa": "0x803716",
+        "endVaExclusive": "0x80371f",
+        "successors": [
+          "0x80371f",
+          "0x803789"
+        ]
+      },
+      {
+        "startVa": "0x80371f",
+        "endVaExclusive": "0x80372c",
+        "successors": [
+          "0x80366d"
+        ]
+      },
+      {
+        "startVa": "0x80372c",
+        "endVaExclusive": "0x803731",
+        "successors": [
+          "0x803731",
+          "0x803789"
+        ]
+      },
+      {
+        "startVa": "0x803731",
+        "endVaExclusive": "0x80373f",
+        "successors": [
+          "0x80373f",
+          "0x803761"
+        ]
+      },
+      {
+        "startVa": "0x80373f",
+        "endVaExclusive": "0x803745",
+        "successors": [
+          "0x803745",
+          "0x803789"
+        ]
+      },
+      {
+        "startVa": "0x803745",
+        "endVaExclusive": "0x80374f",
+        "successors": [
+          "0x80374f",
+          "0x803789"
+        ]
+      },
+      {
+        "startVa": "0x80374f",
+        "endVaExclusive": "0x803758",
+        "successors": [
+          "0x803758",
+          "0x803761"
+        ]
+      },
+      {
+        "startVa": "0x803758",
+        "endVaExclusive": "0x803761",
+        "successors": [
+          "0x803761",
+          "0x803789"
+        ]
+      },
+      {
+        "startVa": "0x803761",
+        "endVaExclusive": "0x80377c",
+        "successors": [
+          "0x80377c"
+        ]
+      },
+      {
+        "startVa": "0x80377c",
+        "endVaExclusive": "0x803789",
+        "successors": [
+          "0x803789"
+        ]
+      },
+      {
+        "startVa": "0x803789",
+        "endVaExclusive": "0x80378d",
+        "successors": [
+          "0x80378d",
+          "0x80379d"
+        ]
+      },
+      {
+        "startVa": "0x80378d",
+        "endVaExclusive": "0x80379d",
+        "successors": [
+          "0x80379d"
+        ]
+      },
+      {
+        "startVa": "0x80379d",
+        "endVaExclusive": "0x8037c6",
+        "successors": [
+          "0x8037c6",
+          "0x803822"
+        ]
+      },
+      {
+        "startVa": "0x8037c6",
+        "endVaExclusive": "0x803822",
+        "successors": [
+          "0x803822"
+        ]
+      },
+      {
+        "startVa": "0x803822",
+        "endVaExclusive": "0x803832",
+        "successors": [
+          "0x803832",
+          "0x803854"
+        ]
+      },
+      {
+        "startVa": "0x803832",
+        "endVaExclusive": "0x803854",
+        "successors": [
+          "0x803854"
+        ]
+      },
+      {
+        "startVa": "0x803854",
+        "endVaExclusive": "0x80386d",
+        "successors": [
+          "0x80386d",
+          "0x8068a2"
+        ]
+      },
+      {
+        "startVa": "0x80386d",
+        "endVaExclusive": "0x80388f",
+        "successors": [
+          "0x80388f",
+          "0x803b1d"
+        ]
+      },
+      {
+        "startVa": "0x80388f",
+        "endVaExclusive": "0x8038a7",
+        "successors": [
+          "0x8038a7",
+          "0x803b1d"
+        ]
+      },
+      {
+        "startVa": "0x8038a7",
+        "endVaExclusive": "0x8038b4",
+        "successors": [
+          "0x8038b4",
+          "0x8039a3"
+        ]
+      },
+      {
+        "startVa": "0x8038b4",
+        "endVaExclusive": "0x8038c8",
+        "successors": [
+          "0x8038c8",
+          "0x8039a3"
+        ]
+      },
+      {
+        "startVa": "0x8038c8",
+        "endVaExclusive": "0x8038d0",
+        "successors": [
+          "0x8038d0"
+        ]
+      },
+      {
+        "startVa": "0x8038d0",
+        "endVaExclusive": "0x8038e1",
+        "successors": [
+          "0x8038e1",
+          "0x803980"
+        ]
+      },
+      {
+        "startVa": "0x8038e1",
+        "endVaExclusive": "0x8038ef",
+        "successors": [
+          "0x8038ef",
+          "0x8038f5"
+        ]
+      },
+      {
+        "startVa": "0x8038ef",
+        "endVaExclusive": "0x8038f5",
+        "successors": [
+          "0x8038f5",
+          "0x803902"
+        ]
+      },
+      {
+        "startVa": "0x8038f5",
+        "endVaExclusive": "0x803902",
+        "successors": [
+          "0x803902",
+          "0x803980"
+        ]
+      },
+      {
+        "startVa": "0x803902",
+        "endVaExclusive": "0x803918",
+        "successors": [
+          "0x803918",
+          "0x80398a"
+        ]
+      },
+      {
+        "startVa": "0x803918",
+        "endVaExclusive": "0x803925",
+        "successors": [
+          "0x803925",
+          "0x80398a"
+        ]
+      },
+      {
+        "startVa": "0x803925",
+        "endVaExclusive": "0x80392e",
+        "successors": [
+          "0x80392e",
+          "0x80398a"
+        ]
+      },
+      {
+        "startVa": "0x80392e",
+        "endVaExclusive": "0x803936",
+        "successors": [
+          "0x803936",
+          "0x80398a"
+        ]
+      },
+      {
+        "startVa": "0x803936",
+        "endVaExclusive": "0x80393b",
+        "successors": [
+          "0x80393b",
+          "0x80398a"
+        ]
+      },
+      {
+        "startVa": "0x80393b",
+        "endVaExclusive": "0x803942",
+        "successors": [
+          "0x803942",
+          "0x80398a"
+        ]
+      },
+      {
+        "startVa": "0x803942",
+        "endVaExclusive": "0x803949",
+        "successors": [
+          "0x803949",
+          "0x80398a"
+        ]
+      },
+      {
+        "startVa": "0x803949",
+        "endVaExclusive": "0x80394e",
+        "successors": [
+          "0x80394e",
+          "0x803954"
+        ]
+      },
+      {
+        "startVa": "0x80394e",
+        "endVaExclusive": "0x803954",
+        "successors": [
+          "0x803954",
+          "0x80398a"
+        ]
+      },
+      {
+        "startVa": "0x803954",
+        "endVaExclusive": "0x803961",
+        "successors": [
+          "0x803961",
+          "0x80396c"
+        ]
+      },
+      {
+        "startVa": "0x803961",
+        "endVaExclusive": "0x80396c",
+        "successors": [
+          "0x80398a"
+        ]
+      },
+      {
+        "startVa": "0x80396c",
+        "endVaExclusive": "0x803980",
+        "successors": [
+          "0x80398a"
+        ]
+      },
+      {
+        "startVa": "0x803980",
+        "endVaExclusive": "0x80398a",
+        "successors": [
+          "0x80398a"
+        ]
+      },
+      {
+        "startVa": "0x80398a",
+        "endVaExclusive": "0x8039a3",
+        "successors": [
+          "0x8038d0",
+          "0x8039a3"
+        ]
+      },
+      {
+        "startVa": "0x8039a3",
+        "endVaExclusive": "0x8039b7",
+        "successors": [
+          "0x8039b7",
+          "0x803b1d"
+        ]
+      },
+      {
+        "startVa": "0x8039b7",
+        "endVaExclusive": "0x8039cb",
+        "successors": [
+          "0x8039cb",
+          "0x803b1d"
+        ]
+      },
+      {
+        "startVa": "0x8039cb",
+        "endVaExclusive": "0x8039d0",
+        "successors": [
+          "0x8039d0"
+        ]
+      },
+      {
+        "startVa": "0x8039d0",
+        "endVaExclusive": "0x8039e1",
+        "successors": [
+          "0x8039e1",
+          "0x803afa"
+        ]
+      },
+      {
+        "startVa": "0x8039e1",
+        "endVaExclusive": "0x8039ef",
+        "successors": [
+          "0x8039ef",
+          "0x8039f5"
+        ]
+      },
+      {
+        "startVa": "0x8039ef",
+        "endVaExclusive": "0x8039f5",
+        "successors": [
+          "0x8039f5",
+          "0x803a06"
+        ]
+      },
+      {
+        "startVa": "0x8039f5",
+        "endVaExclusive": "0x803a06",
+        "successors": [
+          "0x803a06",
+          "0x803afa"
+        ]
+      },
+      {
+        "startVa": "0x803a06",
+        "endVaExclusive": "0x803a20",
+        "successors": [
+          "0x803a20",
+          "0x803b04"
+        ]
+      },
+      {
+        "startVa": "0x803a20",
+        "endVaExclusive": "0x803a31",
+        "successors": [
+          "0x803a31",
+          "0x803b04"
+        ]
+      },
+      {
+        "startVa": "0x803a31",
+        "endVaExclusive": "0x803a3e",
+        "successors": [
+          "0x803a3e",
+          "0x803b04"
+        ]
+      },
+      {
+        "startVa": "0x803a3e",
+        "endVaExclusive": "0x803a4f",
+        "successors": [
+          "0x803a4f",
+          "0x803b04"
+        ]
+      },
+      {
+        "startVa": "0x803a4f",
+        "endVaExclusive": "0x803a60",
+        "successors": [
+          "0x803a60"
+        ]
+      },
+      {
+        "startVa": "0x803a60",
+        "endVaExclusive": "0x803a6a",
+        "successors": [
+          "0x803a6a",
+          "0x803a84"
+        ]
+      },
+      {
+        "startVa": "0x803a6a",
+        "endVaExclusive": "0x803a83",
+        "successors": [
+          "0x803a83",
+          "0x803a84"
+        ]
+      },
+      {
+        "startVa": "0x803a83",
+        "endVaExclusive": "0x803a84",
+        "successors": [
+          "0x803a84"
+        ]
+      },
+      {
+        "startVa": "0x803a84",
+        "endVaExclusive": "0x803ab3",
+        "successors": [
+          "0x803ab3",
+          "0x803ae3"
+        ]
+      },
+      {
+        "startVa": "0x803ab3",
+        "endVaExclusive": "0x803ac0",
+        "successors": [
+          "0x803ac0",
+          "0x803acb"
+        ]
+      },
+      {
+        "startVa": "0x803ac0",
+        "endVaExclusive": "0x803acb",
+        "successors": [
+          "0x803ae3"
+        ]
+      },
+      {
+        "startVa": "0x803acb",
+        "endVaExclusive": "0x803ae3",
+        "successors": [
+          "0x803ae3"
+        ]
+      },
+      {
+        "startVa": "0x803ae3",
+        "endVaExclusive": "0x803af8",
+        "successors": [
+          "0x803a60",
+          "0x803af8"
+        ]
+      },
+      {
+        "startVa": "0x803af8",
+        "endVaExclusive": "0x803afa",
+        "successors": [
+          "0x803b04"
+        ]
+      },
+      {
+        "startVa": "0x803afa",
+        "endVaExclusive": "0x803b04",
+        "successors": [
+          "0x803b04"
+        ]
+      },
+      {
+        "startVa": "0x803b04",
+        "endVaExclusive": "0x803b1d",
+        "successors": [
+          "0x8039d0",
+          "0x803b1d"
+        ]
+      },
+      {
+        "startVa": "0x803b1d",
+        "endVaExclusive": "0x803b27",
+        "successors": [
+          "0x803b27",
+          "0x803b2e"
+        ]
+      },
+      {
+        "startVa": "0x803b27",
+        "endVaExclusive": "0x803b2e",
+        "successors": [
+          "0x803b2e"
+        ]
+      },
+      {
+        "startVa": "0x803b2e",
+        "endVaExclusive": "0x803b37",
+        "successors": [
+          "0x803b37",
+          "0x803bb4"
+        ]
+      },
+      {
+        "startVa": "0x803b37",
+        "endVaExclusive": "0x803b4f",
+        "successors": [
+          "0x803b4f",
+          "0x803b99"
+        ]
+      },
+      {
+        "startVa": "0x803b4f",
+        "endVaExclusive": "0x803b50",
+        "successors": [
+          "0x803b50"
+        ]
+      },
+      {
+        "startVa": "0x803b50",
+        "endVaExclusive": "0x803b57",
+        "successors": [
+          "0x803b57",
+          "0x803b78"
+        ]
+      },
+      {
+        "startVa": "0x803b57",
+        "endVaExclusive": "0x803b62",
+        "successors": [
+          "0x803b62",
+          "0x803b78"
+        ]
+      },
+      {
+        "startVa": "0x803b62",
+        "endVaExclusive": "0x803b6a",
+        "successors": [
+          "0x803b6a",
+          "0x803b78"
+        ]
+      },
+      {
+        "startVa": "0x803b6a",
+        "endVaExclusive": "0x803b78",
+        "successors": [
+          "0x803b78"
+        ]
+      },
+      {
+        "startVa": "0x803b78",
+        "endVaExclusive": "0x803b99",
+        "successors": [
+          "0x803b50",
+          "0x803b99"
+        ]
+      },
+      {
+        "startVa": "0x803b99",
+        "endVaExclusive": "0x803bb4",
+        "successors": [
+          "0x803bb4"
+        ]
+      },
+      {
+        "startVa": "0x803bb4",
+        "endVaExclusive": "0x803bcb",
+        "successors": [
+          "0x803bcb",
+          "0x803bfb"
+        ]
+      },
+      {
+        "startVa": "0x803bcb",
+        "endVaExclusive": "0x803bd0",
+        "successors": [
+          "0x803bd0"
+        ]
+      },
+      {
+        "startVa": "0x803bd0",
+        "endVaExclusive": "0x803bd6",
+        "successors": [
+          "0x803bd6",
+          "0x803be1"
+        ]
+      },
+      {
+        "startVa": "0x803bd6",
+        "endVaExclusive": "0x803be1",
+        "successors": [
+          "0x803be1"
+        ]
+      },
+      {
+        "startVa": "0x803be1",
+        "endVaExclusive": "0x803bf8",
+        "successors": [
+          "0x803bd0",
+          "0x803bf8"
+        ]
+      },
+      {
+        "startVa": "0x803bf8",
+        "endVaExclusive": "0x803bfb",
+        "successors": [
+          "0x803bfb"
+        ]
+      },
+      {
+        "startVa": "0x803bfb",
+        "endVaExclusive": "0x803c29",
+        "successors": [
+          "0x803c29",
+          "0x803ce5"
+        ]
+      },
+      {
+        "startVa": "0x803c29",
+        "endVaExclusive": "0x803c3a",
+        "successors": [
+          "0x803c3a",
+          "0x803ce5"
+        ]
+      },
+      {
+        "startVa": "0x803c3a",
+        "endVaExclusive": "0x803c50",
+        "successors": [
+          "0x803c50"
+        ]
+      },
+      {
+        "startVa": "0x803c50",
+        "endVaExclusive": "0x803c63",
+        "successors": [
+          "0x803c63",
+          "0x803c6b"
+        ]
+      },
+      {
+        "startVa": "0x803c63",
+        "endVaExclusive": "0x803c6b",
+        "successors": [
+          "0x803c82"
+        ]
+      },
+      {
+        "startVa": "0x803c6b",
+        "endVaExclusive": "0x803c73",
+        "successors": [
+          "0x803c73",
+          "0x803c82"
+        ]
+      },
+      {
+        "startVa": "0x803c73",
+        "endVaExclusive": "0x803c82",
+        "successors": [
+          "0x803c82"
+        ]
+      },
+      {
+        "startVa": "0x803c82",
+        "endVaExclusive": "0x803c94",
+        "successors": [
+          "0x803c94",
+          "0x803cb7"
+        ]
+      },
+      {
+        "startVa": "0x803c94",
+        "endVaExclusive": "0x803cb7",
+        "successors": [
+          "0x803cbd"
+        ]
+      },
+      {
+        "startVa": "0x803cb7",
+        "endVaExclusive": "0x803cbd",
+        "successors": [
+          "0x803cbd"
+        ]
+      },
+      {
+        "startVa": "0x803cbd",
+        "endVaExclusive": "0x803ce5",
+        "successors": [
+          "0x803c50",
+          "0x803ce5"
+        ]
+      },
+      {
+        "startVa": "0x803ce5",
+        "endVaExclusive": "0x803d06",
+        "successors": [
+          "0x803d06",
+          "0x803dd3"
+        ]
+      },
+      {
+        "startVa": "0x803d06",
+        "endVaExclusive": "0x803d0f",
+        "successors": [
+          "0x803d0f",
+          "0x803dd3"
+        ]
+      },
+      {
+        "startVa": "0x803d0f",
+        "endVaExclusive": "0x803d2a",
+        "successors": [
+          "0x803d2a",
+          "0x803dd9"
+        ]
+      },
+      {
+        "startVa": "0x803d2a",
+        "endVaExclusive": "0x803d3a",
+        "successors": [
+          "0x803d3a",
+          "0x803dd9"
+        ]
+      },
+      {
+        "startVa": "0x803d3a",
+        "endVaExclusive": "0x803d4b",
+        "successors": [
+          "0x803d4b",
+          "0x803dd9"
+        ]
+      },
+      {
+        "startVa": "0x803d4b",
+        "endVaExclusive": "0x803d77",
+        "successors": [
+          "0x803d77",
+          "0x803d88"
+        ]
+      },
+      {
+        "startVa": "0x803d77",
+        "endVaExclusive": "0x803d88",
+        "successors": [
+          "0x803d88"
+        ]
+      },
+      {
+        "startVa": "0x803d88",
+        "endVaExclusive": "0x803d98",
+        "successors": [
+          "0x803d98",
+          "0x803dd3"
+        ]
+      },
+      {
+        "startVa": "0x803d98",
+        "endVaExclusive": "0x803da2",
+        "successors": [
+          "0x803da2",
+          "0x803da7"
+        ]
+      },
+      {
+        "startVa": "0x803da2",
+        "endVaExclusive": "0x803da7",
+        "successors": [
+          "0x803dac"
+        ]
+      },
+      {
+        "startVa": "0x803da7",
+        "endVaExclusive": "0x803dac",
+        "successors": [
+          "0x803dac"
+        ]
+      },
+      {
+        "startVa": "0x803dac",
+        "endVaExclusive": "0x803db6",
+        "successors": [
+          "0x803db6",
+          "0x803dcc"
+        ]
+      },
+      {
+        "startVa": "0x803db6",
+        "endVaExclusive": "0x803dcc",
+        "successors": [
+          "0x803dcc"
+        ]
+      },
+      {
+        "startVa": "0x803dcc",
+        "endVaExclusive": "0x803dd3",
+        "successors": [
+          "0x803dd3"
+        ]
+      },
+      {
+        "startVa": "0x803dd3",
+        "endVaExclusive": "0x803dd9",
+        "successors": [
+          "0x803dd9"
+        ]
+      },
+      {
+        "startVa": "0x803dd9",
+        "endVaExclusive": "0x803de1",
+        "successors": [
+          "0x803de1",
+          "0x803de6"
+        ]
+      },
+      {
+        "startVa": "0x803de1",
+        "endVaExclusive": "0x803de6",
+        "successors": [
+          "0x803de6",
+          "0x803dfa"
+        ]
+      },
+      {
+        "startVa": "0x803de6",
+        "endVaExclusive": "0x803def",
+        "successors": [
+          "0x803def",
+          "0x803dfa"
+        ]
+      },
+      {
+        "startVa": "0x803def",
+        "endVaExclusive": "0x803dfa",
+        "successors": [
+          "0x803dfa"
+        ]
+      },
+      {
+        "startVa": "0x803dfa",
+        "endVaExclusive": "0x803e03",
+        "successors": [
+          "0x803e03",
+          "0x803e0a"
+        ]
+      },
+      {
+        "startVa": "0x803e03",
+        "endVaExclusive": "0x803e0a",
+        "successors": [
+          "0x803e0a"
+        ]
+      },
+      {
+        "startVa": "0x803e0a",
+        "endVaExclusive": "0x803e21",
+        "successors": [
+          "0x803e21",
+          "0x803e62"
+        ]
+      },
+      {
+        "startVa": "0x803e21",
+        "endVaExclusive": "0x803e2a",
+        "successors": [
+          "0x803e2a",
+          "0x803e62"
+        ]
+      },
+      {
+        "startVa": "0x803e2a",
+        "endVaExclusive": "0x803e3e",
+        "successors": [
+          "0x803e3e",
+          "0x803e53"
+        ]
+      },
+      {
+        "startVa": "0x803e3e",
+        "endVaExclusive": "0x803e53",
+        "successors": [
+          "0x803e53"
+        ]
+      },
+      {
+        "startVa": "0x803e53",
+        "endVaExclusive": "0x803e62",
+        "successors": [
+          "0x803e62"
+        ]
+      },
+      {
+        "startVa": "0x803e62",
+        "endVaExclusive": "0x803e91",
+        "successors": [
+          "0x803e91",
+          "0x803ea1"
+        ]
+      },
+      {
+        "startVa": "0x803e91",
+        "endVaExclusive": "0x803ea1",
+        "successors": [
+          "0x803ea1"
+        ]
+      },
+      {
+        "startVa": "0x803ea1",
+        "endVaExclusive": "0x803eaa",
+        "successors": [
+          "0x803eaa",
+          "0x803f16"
+        ]
+      },
+      {
+        "startVa": "0x803eaa",
+        "endVaExclusive": "0x803eb1",
+        "successors": [
+          "0x803eb1",
+          "0x803ef8"
+        ]
+      },
+      {
+        "startVa": "0x803eb1",
+        "endVaExclusive": "0x803eb9",
+        "successors": [
+          "0x803eb9",
+          "0x803ebb"
+        ]
+      },
+      {
+        "startVa": "0x803eb9",
+        "endVaExclusive": "0x803ebb",
+        "successors": [
+          "0x803ebb"
+        ]
+      },
+      {
+        "startVa": "0x803ebb",
+        "endVaExclusive": "0x803ec0",
+        "successors": [
+          "0x803ec0"
+        ]
+      },
+      {
+        "startVa": "0x803ec0",
+        "endVaExclusive": "0x803ec6",
+        "successors": [
+          "0x803ec6",
+          "0x803ee0"
+        ]
+      },
+      {
+        "startVa": "0x803ec6",
+        "endVaExclusive": "0x803eca",
+        "successors": [
+          "0x803eca",
+          "0x803edc"
+        ]
+      },
+      {
+        "startVa": "0x803eca",
+        "endVaExclusive": "0x803ed2",
+        "successors": [
+          "0x803ed2",
+          "0x803ee0"
+        ]
+      },
+      {
+        "startVa": "0x803ed2",
+        "endVaExclusive": "0x803edc",
+        "successors": [
+          "0x803ec0",
+          "0x803edc"
+        ]
+      },
+      {
+        "startVa": "0x803edc",
+        "endVaExclusive": "0x803ee0",
+        "successors": [
+          "0x803ee5"
+        ]
+      },
+      {
+        "startVa": "0x803ee0",
+        "endVaExclusive": "0x803ee5",
+        "successors": [
+          "0x803ee5"
+        ]
+      },
+      {
+        "startVa": "0x803ee5",
+        "endVaExclusive": "0x803ee9",
+        "successors": [
+          "0x803ee9",
+          "0x803ef8"
+        ]
+      },
+      {
+        "startVa": "0x803ee9",
+        "endVaExclusive": "0x803ef2",
+        "successors": [
+          "0x803ef2",
+          "0x803f16"
+        ]
+      },
+      {
+        "startVa": "0x803ef2",
+        "endVaExclusive": "0x803ef8",
+        "successors": [
+          "0x803ef8",
+          "0x803f16"
+        ]
+      },
+      {
+        "startVa": "0x803ef8",
+        "endVaExclusive": "0x803f0a",
+        "successors": [
+          "0x803f0a",
+          "0x803f16"
+        ]
+      },
+      {
+        "startVa": "0x803f0a",
+        "endVaExclusive": "0x803f16",
+        "successors": [
+          "0x803f16"
+        ]
+      },
+      {
+        "startVa": "0x803f16",
+        "endVaExclusive": "0x803f26",
+        "successors": [
+          "0x803f26",
+          "0x803f43"
+        ]
+      },
+      {
+        "startVa": "0x803f26",
+        "endVaExclusive": "0x803f3c",
+        "successors": [
+          "0x803f3c",
+          "0x803f43"
+        ]
+      },
+      {
+        "startVa": "0x803f3c",
+        "endVaExclusive": "0x803f43",
+        "successors": [
+          "0x803f43"
+        ]
+      },
+      {
+        "startVa": "0x803f43",
+        "endVaExclusive": "0x803f50",
+        "successors": [
+          "0x803f50",
+          "0x804101"
+        ]
+      },
+      {
+        "startVa": "0x803f50",
+        "endVaExclusive": "0x803f64",
+        "successors": [
+          "0x803f64",
+          "0x804101"
+        ]
+      },
+      {
+        "startVa": "0x803f64",
+        "endVaExclusive": "0x803f6d",
+        "successors": [
+          "0x803f6d",
+          "0x803f77"
+        ]
+      },
+      {
+        "startVa": "0x803f6d",
+        "endVaExclusive": "0x803f72",
+        "successors": [
+          "0x803f72",
+          "0x803f77"
+        ]
+      },
+      {
+        "startVa": "0x803f72",
+        "endVaExclusive": "0x803f77",
+        "successors": [
+          "0x803f77",
+          "0x803f80"
+        ]
+      },
+      {
+        "startVa": "0x803f77",
+        "endVaExclusive": "0x803f80",
+        "successors": [
+          "0x803f80",
+          "0x803f8c"
+        ]
+      },
+      {
+        "startVa": "0x803f80",
+        "endVaExclusive": "0x803f87",
+        "successors": [
+          "0x803f64",
+          "0x803f87"
+        ]
+      },
+      {
+        "startVa": "0x803f87",
+        "endVaExclusive": "0x803f8c",
+        "successors": [
+          "0x804101"
+        ]
+      },
+      {
+        "startVa": "0x803f8c",
+        "endVaExclusive": "0x803f9e",
+        "successors": [
+          "0x803f9e",
+          "0x803fdc"
+        ]
+      },
+      {
+        "startVa": "0x803f9e",
+        "endVaExclusive": "0x803fdc",
+        "successors": [
+          "0x804101"
+        ]
+      },
+      {
+        "startVa": "0x803fdc",
+        "endVaExclusive": "0x803fec",
+        "successors": [
+          "0x803fec",
+          "0x804023"
+        ]
+      },
+      {
+        "startVa": "0x803fec",
+        "endVaExclusive": "0x804023",
+        "successors": [
+          "0x804058"
+        ]
+      },
+      {
+        "startVa": "0x804023",
+        "endVaExclusive": "0x804058",
+        "successors": [
+          "0x804058"
+        ]
+      },
+      {
+        "startVa": "0x804058",
+        "endVaExclusive": "0x80408f",
+        "successors": [
+          "0x80408f",
+          "0x8040c6"
+        ]
+      },
+      {
+        "startVa": "0x80408f",
+        "endVaExclusive": "0x8040c6",
+        "successors": [
+          "0x8040ce"
+        ]
+      },
+      {
+        "startVa": "0x8040c6",
+        "endVaExclusive": "0x8040ce",
+        "successors": [
+          "0x8040ce"
+        ]
+      },
+      {
+        "startVa": "0x8040ce",
+        "endVaExclusive": "0x804101",
+        "successors": [
+          "0x804101"
+        ]
+      },
+      {
+        "startVa": "0x804101",
+        "endVaExclusive": "0x804128",
+        "successors": [
+          "0x804128",
+          "0x804180"
+        ]
+      },
+      {
+        "startVa": "0x804128",
+        "endVaExclusive": "0x804137",
+        "successors": [
+          "0x804137",
+          "0x804180"
+        ]
+      },
+      {
+        "startVa": "0x804137",
+        "endVaExclusive": "0x804154",
+        "successors": [
+          "0x804154",
+          "0x804180"
+        ]
+      },
+      {
+        "startVa": "0x804154",
+        "endVaExclusive": "0x804163",
+        "successors": [
+          "0x804163",
+          "0x804180"
+        ]
+      },
+      {
+        "startVa": "0x804163",
+        "endVaExclusive": "0x80416c",
+        "successors": [
+          "0x80416c",
+          "0x804186"
+        ]
+      },
+      {
+        "startVa": "0x80416c",
+        "endVaExclusive": "0x804180",
+        "successors": [
+          "0x804186"
+        ]
+      },
+      {
+        "startVa": "0x804180",
+        "endVaExclusive": "0x804186",
+        "successors": [
+          "0x804186"
+        ]
+      },
+      {
+        "startVa": "0x804186",
+        "endVaExclusive": "0x804193",
+        "successors": [
+          "0x804193",
+          "0x804293"
+        ]
+      },
+      {
+        "startVa": "0x804193",
+        "endVaExclusive": "0x8041ae",
+        "successors": [
+          "0x8041ae",
+          "0x804293"
+        ]
+      },
+      {
+        "startVa": "0x8041ae",
+        "endVaExclusive": "0x8041bb",
+        "successors": [
+          "0x8041bb",
+          "0x804293"
+        ]
+      },
+      {
+        "startVa": "0x8041bb",
+        "endVaExclusive": "0x8041c5",
+        "successors": [
+          "0x8041c5",
+          "0x8041d1"
+        ]
+      },
+      {
+        "startVa": "0x8041c5",
+        "endVaExclusive": "0x8041d1",
+        "successors": [
+          "0x8042be"
+        ]
+      },
+      {
+        "startVa": "0x8041d1",
+        "endVaExclusive": "0x8041d7",
+        "successors": [
+          "0x8041d7",
+          "0x804212"
+        ]
+      },
+      {
+        "startVa": "0x8041d7",
+        "endVaExclusive": "0x8041e9",
+        "successors": [
+          "0x8041e9",
+          "0x8042be"
+        ]
+      },
+      {
+        "startVa": "0x8041e9",
+        "endVaExclusive": "0x8041ee",
+        "successors": [
+          "0x8041ee",
+          "0x804212"
+        ]
+      },
+      {
+        "startVa": "0x8041ee",
+        "endVaExclusive": "0x804212",
+        "successors": [
+          "0x8042be"
+        ]
+      },
+      {
+        "startVa": "0x804212",
+        "endVaExclusive": "0x804219",
+        "successors": [
+          "0x804219",
+          "0x80424d"
+        ]
+      },
+      {
+        "startVa": "0x804219",
+        "endVaExclusive": "0x80421e",
+        "successors": [
+          "0x80421e",
+          "0x804235"
+        ]
+      },
+      {
+        "startVa": "0x80421e",
+        "endVaExclusive": "0x804223",
+        "successors": [
+          "0x804223",
+          "0x804235"
+        ]
+      },
+      {
+        "startVa": "0x804223",
+        "endVaExclusive": "0x804235",
+        "successors": [
+          "0x804235",
+          "0x80424d"
+        ]
+      },
+      {
+        "startVa": "0x804235",
+        "endVaExclusive": "0x80424d",
+        "successors": [
+          "0x80424d"
+        ]
+      },
+      {
+        "startVa": "0x80424d",
+        "endVaExclusive": "0x804260",
+        "successors": [
+          "0x804260"
+        ]
+      },
+      {
+        "startVa": "0x804260",
+        "endVaExclusive": "0x804266",
+        "successors": [
+          "0x804266",
+          "0x804271"
+        ]
+      },
+      {
+        "startVa": "0x804266",
+        "endVaExclusive": "0x804271",
+        "successors": [
+          "0x804271"
+        ]
+      },
+      {
+        "startVa": "0x804271",
+        "endVaExclusive": "0x80427f",
+        "successors": [
+          "0x804260",
+          "0x80427f"
+        ]
+      },
+      {
+        "startVa": "0x80427f",
+        "endVaExclusive": "0x804288",
+        "successors": [
+          "0x804288",
+          "0x8042be"
+        ]
+      },
+      {
+        "startVa": "0x804288",
+        "endVaExclusive": "0x804293",
+        "successors": [
+          "0x8042be"
+        ]
+      },
+      {
+        "startVa": "0x804293",
+        "endVaExclusive": "0x8042a3",
+        "successors": [
+          "0x8042a3",
+          "0x8042be"
+        ]
+      },
+      {
+        "startVa": "0x8042a3",
+        "endVaExclusive": "0x8042be",
+        "successors": [
+          "0x8042be"
+        ]
+      },
+      {
+        "startVa": "0x8042be",
+        "endVaExclusive": "0x8042d0",
+        "successors": [
+          "0x8042d0"
+        ]
+      },
+      {
+        "startVa": "0x8042d0",
+        "endVaExclusive": "0x8042d6",
+        "successors": [
+          "0x8042d6",
+          "0x8042e7"
+        ]
+      },
+      {
+        "startVa": "0x8042d6",
+        "endVaExclusive": "0x8042dc",
+        "successors": [
+          "0x8042dc",
+          "0x8042e7"
+        ]
+      },
+      {
+        "startVa": "0x8042dc",
+        "endVaExclusive": "0x8042e7",
+        "successors": [
+          "0x8042e7"
+        ]
+      },
+      {
+        "startVa": "0x8042e7",
+        "endVaExclusive": "0x8042f5",
+        "successors": [
+          "0x8042d0",
+          "0x8042f5"
+        ]
+      },
+      {
+        "startVa": "0x8042f5",
+        "endVaExclusive": "0x804324",
+        "successors": [
+          "0x804324",
+          "0x804329"
+        ]
+      },
+      {
+        "startVa": "0x804324",
+        "endVaExclusive": "0x804329",
+        "successors": [
+          "0x804329",
+          "0x80434e"
+        ]
+      },
+      {
+        "startVa": "0x804329",
+        "endVaExclusive": "0x80432e",
+        "successors": [
+          "0x80432e",
+          "0x804337"
+        ]
+      },
+      {
+        "startVa": "0x80432e",
+        "endVaExclusive": "0x804337",
+        "successors": [
+          "0x804346"
+        ]
+      },
+      {
+        "startVa": "0x804337",
+        "endVaExclusive": "0x804346",
+        "successors": [
+          "0x804346"
+        ]
+      },
+      {
+        "startVa": "0x804346",
+        "endVaExclusive": "0x80434e",
+        "successors": [
+          "0x80434e"
+        ]
+      },
+      {
+        "startVa": "0x80434e",
+        "endVaExclusive": "0x804353",
+        "successors": [
+          "0x804353",
+          "0x804358"
+        ]
+      },
+      {
+        "startVa": "0x804353",
+        "endVaExclusive": "0x804358",
+        "successors": [
+          "0x804358",
+          "0x80435c"
+        ]
+      },
+      {
+        "startVa": "0x804358",
+        "endVaExclusive": "0x80435c",
+        "successors": [
+          "0x80435c",
+          "0x804379"
+        ]
+      },
+      {
+        "startVa": "0x80435c",
+        "endVaExclusive": "0x804361",
+        "successors": [
+          "0x804361",
+          "0x804366"
+        ]
+      },
+      {
+        "startVa": "0x804361",
+        "endVaExclusive": "0x804366",
+        "successors": [
+          "0x804366",
+          "0x80436a"
+        ]
+      },
+      {
+        "startVa": "0x804366",
+        "endVaExclusive": "0x80436a",
+        "successors": [
+          "0x80436a",
+          "0x804379"
+        ]
+      },
+      {
+        "startVa": "0x80436a",
+        "endVaExclusive": "0x80436f",
+        "successors": [
+          "0x80436f",
+          "0x804374"
+        ]
+      },
+      {
+        "startVa": "0x80436f",
+        "endVaExclusive": "0x804374",
+        "successors": [
+          "0x804374",
+          "0x80439a"
+        ]
+      },
+      {
+        "startVa": "0x804374",
+        "endVaExclusive": "0x804379",
+        "successors": [
+          "0x804379",
+          "0x80439a"
+        ]
+      },
+      {
+        "startVa": "0x804379",
+        "endVaExclusive": "0x80438f",
+        "successors": [
+          "0x80438f",
+          "0x804511"
+        ]
+      },
+      {
+        "startVa": "0x80438f",
+        "endVaExclusive": "0x80439a",
+        "successors": [
+          "0x80439a"
+        ]
+      },
+      {
+        "startVa": "0x80439a",
+        "endVaExclusive": "0x80439f",
+        "successors": [
+          "0x80439f",
+          "0x8043a4"
+        ]
+      },
+      {
+        "startVa": "0x80439f",
+        "endVaExclusive": "0x8043a4",
+        "successors": [
+          "0x8043a4",
+          "0x8043d0"
+        ]
+      },
+      {
+        "startVa": "0x8043a4",
+        "endVaExclusive": "0x8043af",
+        "successors": [
+          "0x8043af",
+          "0x8043d6"
+        ]
+      },
+      {
+        "startVa": "0x8043af",
+        "endVaExclusive": "0x8043c5",
+        "successors": [
+          "0x8043c5",
+          "0x804511"
+        ]
+      },
+      {
+        "startVa": "0x8043c5",
+        "endVaExclusive": "0x8043d0",
+        "successors": [
+          "0x8043d0"
+        ]
+      },
+      {
+        "startVa": "0x8043d0",
+        "endVaExclusive": "0x8043d6",
+        "successors": [
+          "0x8043d6"
+        ]
+      },
+      {
+        "startVa": "0x8043d6",
+        "endVaExclusive": "0x8043db",
+        "successors": [
+          "0x8043db",
+          "0x8043e0"
+        ]
+      },
+      {
+        "startVa": "0x8043db",
+        "endVaExclusive": "0x8043e0",
+        "successors": [
+          "0x8043e0",
+          "0x8043fe"
+        ]
+      },
+      {
+        "startVa": "0x8043e0",
+        "endVaExclusive": "0x8043e5",
+        "successors": [
+          "0x8043e5",
+          "0x8043fe"
+        ]
+      },
+      {
+        "startVa": "0x8043e5",
+        "endVaExclusive": "0x8043f3",
+        "successors": [
+          "0x8043f3",
+          "0x804511"
+        ]
+      },
+      {
+        "startVa": "0x8043f3",
+        "endVaExclusive": "0x8043fe",
+        "successors": [
+          "0x8043fe"
+        ]
+      },
+      {
+        "startVa": "0x8043fe",
+        "endVaExclusive": "0x804403",
+        "successors": [
+          "0x804403",
+          "0x80440c"
+        ]
+      },
+      {
+        "startVa": "0x804403",
+        "endVaExclusive": "0x80440c",
+        "successors": [
+          "0x80440c",
+          "0x804594"
+        ]
+      },
+      {
+        "startVa": "0x80440c",
+        "endVaExclusive": "0x804415",
+        "successors": [
+          "0x804415",
+          "0x80442e"
+        ]
+      },
+      {
+        "startVa": "0x804415",
+        "endVaExclusive": "0x804423",
+        "successors": [
+          "0x804423",
+          "0x804511"
+        ]
+      },
+      {
+        "startVa": "0x804423",
+        "endVaExclusive": "0x80442e",
+        "successors": [
+          "0x80442e"
+        ]
+      },
+      {
+        "startVa": "0x80442e",
+        "endVaExclusive": "0x804433",
+        "successors": [
+          "0x804433",
+          "0x80443c"
+        ]
+      },
+      {
+        "startVa": "0x804433",
+        "endVaExclusive": "0x80443c",
+        "successors": [
+          "0x80443c",
+          "0x804594"
+        ]
+      },
+      {
+        "startVa": "0x80443c",
+        "endVaExclusive": "0x804445",
+        "successors": [
+          "0x804445",
+          "0x80445e"
+        ]
+      },
+      {
+        "startVa": "0x804445",
+        "endVaExclusive": "0x804453",
+        "successors": [
+          "0x804453",
+          "0x804511"
+        ]
+      },
+      {
+        "startVa": "0x804453",
+        "endVaExclusive": "0x80445e",
+        "successors": [
+          "0x80445e"
+        ]
+      },
+      {
+        "startVa": "0x80445e",
+        "endVaExclusive": "0x804463",
+        "successors": [
+          "0x804463",
+          "0x80446c"
+        ]
+      },
+      {
+        "startVa": "0x804463",
+        "endVaExclusive": "0x80446c",
+        "successors": [
+          "0x80446c",
+          "0x804594"
+        ]
+      },
+      {
+        "startVa": "0x80446c",
+        "endVaExclusive": "0x804479",
+        "successors": [
+          "0x804479",
+          "0x804594"
+        ]
+      },
+      {
+        "startVa": "0x804479",
+        "endVaExclusive": "0x80448b",
+        "successors": [
+          "0x80448b",
+          "0x804506"
+        ]
+      },
+      {
+        "startVa": "0x80448b",
+        "endVaExclusive": "0x804506",
+        "successors": [
+          "0x804506"
+        ]
+      },
+      {
+        "startVa": "0x804506",
+        "endVaExclusive": "0x804511",
+        "successors": [
+          "0x80459a"
+        ]
+      },
+      {
+        "startVa": "0x804511",
+        "endVaExclusive": "0x804594",
+        "successors": [
+          "0x80459a"
+        ]
+      },
+      {
+        "startVa": "0x804594",
+        "endVaExclusive": "0x80459a",
+        "successors": [
+          "0x80459a"
+        ]
+      },
+      {
+        "startVa": "0x80459a",
+        "endVaExclusive": "0x8045a3",
+        "successors": [
+          "0x8045a3",
+          "0x8045ba"
+        ]
+      },
+      {
+        "startVa": "0x8045a3",
+        "endVaExclusive": "0x8045ba",
+        "successors": [
+          "0x8045cc"
+        ]
+      },
+      {
+        "startVa": "0x8045ba",
+        "endVaExclusive": "0x8045c7",
+        "successors": [
+          "0x8045c7",
+          "0x8046e2"
+        ]
+      },
+      {
+        "startVa": "0x8045c7",
+        "endVaExclusive": "0x8045cc",
+        "successors": [
+          "0x8045cc"
+        ]
+      },
+      {
+        "startVa": "0x8045cc",
+        "endVaExclusive": "0x8045e3",
+        "successors": [
+          "0x8045e3",
+          "0x8046e2"
+        ]
+      },
+      {
+        "startVa": "0x8045e3",
+        "endVaExclusive": "0x8045f0",
+        "successors": [
+          "0x8045f0",
+          "0x8045f7"
+        ]
+      },
+      {
+        "startVa": "0x8045f0",
+        "endVaExclusive": "0x8045f7",
+        "successors": [
+          "0x8045f7"
+        ]
+      },
+      {
+        "startVa": "0x8045f7",
+        "endVaExclusive": "0x8045fd",
+        "successors": [
+          "0x8045fd",
+          "0x8046e2"
+        ]
+      },
+      {
+        "startVa": "0x8045fd",
+        "endVaExclusive": "0x804613",
+        "successors": [
+          "0x804613",
+          "0x8046e2"
+        ]
+      },
+      {
+        "startVa": "0x804613",
+        "endVaExclusive": "0x8046e2",
+        "successors": [
+          "0x8046e2"
+        ]
+      },
+      {
+        "startVa": "0x8046e2",
+        "endVaExclusive": "0x80470c",
+        "successors": [
+          "0x80470c",
+          "0x804746"
+        ]
+      },
+      {
+        "startVa": "0x80470c",
+        "endVaExclusive": "0x804717",
+        "successors": [
+          "0x804717",
+          "0x804728"
+        ]
+      },
+      {
+        "startVa": "0x804717",
+        "endVaExclusive": "0x804728",
+        "successors": [
+          "0x804728",
+          "0x804732"
+        ]
+      },
+      {
+        "startVa": "0x804728",
+        "endVaExclusive": "0x804732",
+        "successors": [
+          "0x804732"
+        ]
+      },
+      {
+        "startVa": "0x804732",
+        "endVaExclusive": "0x804746",
+        "successors": [
+          "0x804746"
+        ]
+      },
+      {
+        "startVa": "0x804746",
+        "endVaExclusive": "0x804754",
+        "successors": [
+          "0x804754",
+          "0x804bb0"
+        ]
+      },
+      {
+        "startVa": "0x804754",
+        "endVaExclusive": "0x80475e",
+        "successors": [
+          "0x80475e",
+          "0x804bb0"
+        ]
+      },
+      {
+        "startVa": "0x80475e",
+        "endVaExclusive": "0x804767",
+        "successors": [
+          "0x804767",
+          "0x804bb0"
+        ]
+      },
+      {
+        "startVa": "0x804767",
+        "endVaExclusive": "0x804785",
+        "successors": [
+          "0x804785",
+          "0x804996"
+        ]
+      },
+      {
+        "startVa": "0x804785",
+        "endVaExclusive": "0x804798",
+        "successors": [
+          "0x804798",
+          "0x80479f"
+        ]
+      },
+      {
+        "startVa": "0x804798",
+        "endVaExclusive": "0x80479f",
+        "successors": [
+          "0x80479f"
+        ]
+      },
+      {
+        "startVa": "0x80479f",
+        "endVaExclusive": "0x8047a5",
+        "successors": [
+          "0x8047a5",
+          "0x804996"
+        ]
+      },
+      {
+        "startVa": "0x8047a5",
+        "endVaExclusive": "0x8047be",
+        "successors": [
+          "0x8047be",
+          "0x804996"
+        ]
+      },
+      {
+        "startVa": "0x8047be",
+        "endVaExclusive": "0x8047c6",
+        "successors": [
+          "0x8047c6"
+        ]
+      },
+      {
+        "startVa": "0x8047c6",
+        "endVaExclusive": "0x8047d4",
+        "successors": [
+          "0x8047d4",
+          "0x8047f4"
+        ]
+      },
+      {
+        "startVa": "0x8047d4",
+        "endVaExclusive": "0x8047f4",
+        "successors": [
+          "0x8047f4"
+        ]
+      },
+      {
+        "startVa": "0x8047f4",
+        "endVaExclusive": "0x8047ff",
+        "successors": [
+          "0x8047ff",
+          "0x804802"
+        ]
+      },
+      {
+        "startVa": "0x8047ff",
+        "endVaExclusive": "0x804802",
+        "successors": [
+          "0x804802"
+        ]
+      },
+      {
+        "startVa": "0x804802",
+        "endVaExclusive": "0x804823",
+        "successors": [
+          "0x804823",
+          "0x804976"
+        ]
+      },
+      {
+        "startVa": "0x804823",
+        "endVaExclusive": "0x804830",
+        "successors": [
+          "0x804830",
+          "0x804976"
+        ]
+      },
+      {
+        "startVa": "0x804830",
+        "endVaExclusive": "0x804976",
+        "successors": [
+          "0x804976"
+        ]
+      },
+      {
+        "startVa": "0x804976",
+        "endVaExclusive": "0x804990",
+        "successors": [
+          "0x8047c6",
+          "0x804990"
+        ]
+      },
+      {
+        "startVa": "0x804990",
+        "endVaExclusive": "0x804996",
+        "successors": [
+          "0x804996"
+        ]
+      },
+      {
+        "startVa": "0x804996",
+        "endVaExclusive": "0x8049a4",
+        "successors": [
+          "0x8049a4",
+          "0x804bb0"
+        ]
+      },
+      {
+        "startVa": "0x8049a4",
+        "endVaExclusive": "0x804b59",
+        "successors": [
+          "0x804b59",
+          "0x804b65"
+        ]
+      },
+      {
+        "startVa": "0x804b59",
+        "endVaExclusive": "0x804b65",
+        "successors": [
+          "0x804ba9"
+        ]
+      },
+      {
+        "startVa": "0x804b65",
+        "endVaExclusive": "0x804ba9",
+        "successors": [
+          "0x804ba9"
+        ]
+      },
+      {
+        "startVa": "0x804ba9",
+        "endVaExclusive": "0x804bb0",
+        "successors": [
+          "0x804bb0"
+        ]
+      },
+      {
+        "startVa": "0x804bb0",
+        "endVaExclusive": "0x804bbe",
+        "successors": [
+          "0x804bbe",
+          "0x804bdd"
+        ]
+      },
+      {
+        "startVa": "0x804bbe",
+        "endVaExclusive": "0x804bdd",
+        "successors": [
+          "0x804bdd"
+        ]
+      },
+      {
+        "startVa": "0x804bdd",
+        "endVaExclusive": "0x804beb",
+        "successors": [
+          "0x804beb",
+          "0x804c0a"
+        ]
+      },
+      {
+        "startVa": "0x804beb",
+        "endVaExclusive": "0x804c0a",
+        "successors": [
+          "0x804c0a"
+        ]
+      },
+      {
+        "startVa": "0x804c0a",
+        "endVaExclusive": "0x804c18",
+        "successors": [
+          "0x804c18",
+          "0x8050b9"
+        ]
+      },
+      {
+        "startVa": "0x804c18",
+        "endVaExclusive": "0x804c72",
+        "successors": [
+          "0x804c72",
+          "0x8050b9"
+        ]
+      },
+      {
+        "startVa": "0x804c72",
+        "endVaExclusive": "0x804c94",
+        "successors": [
+          "0x804c94"
+        ]
+      },
+      {
+        "startVa": "0x804c94",
+        "endVaExclusive": "0x804cda",
+        "successors": [
+          "0x804cda",
+          "0x804d95"
+        ]
+      },
+      {
+        "startVa": "0x804cda",
+        "endVaExclusive": "0x804d95",
+        "successors": [
+          "0x805012"
+        ]
+      },
+      {
+        "startVa": "0x804d95",
+        "endVaExclusive": "0x804daa",
+        "successors": [
+          "0x804daa",
+          "0x804e6d"
+        ]
+      },
+      {
+        "startVa": "0x804daa",
+        "endVaExclusive": "0x804e6d",
+        "successors": [
+          "0x805012"
+        ]
+      },
+      {
+        "startVa": "0x804e6d",
+        "endVaExclusive": "0x804e81",
+        "successors": [
+          "0x804e81",
+          "0x804f4c"
+        ]
+      },
+      {
+        "startVa": "0x804e81",
+        "endVaExclusive": "0x804f4c",
+        "successors": [
+          "0x805012"
+        ]
+      },
+      {
+        "startVa": "0x804f4c",
+        "endVaExclusive": "0x805012",
+        "successors": [
+          "0x805012"
+        ]
+      },
+      {
+        "startVa": "0x805012",
+        "endVaExclusive": "0x805032",
+        "successors": [
+          "0x805032",
+          "0x80503c"
+        ]
+      },
+      {
+        "startVa": "0x805032",
+        "endVaExclusive": "0x805037",
+        "successors": [
+          "0x805037",
+          "0x80503c"
+        ]
+      },
+      {
+        "startVa": "0x805037",
+        "endVaExclusive": "0x80503c",
+        "successors": [
+          "0x80503c",
+          "0x80508b"
+        ]
+      },
+      {
+        "startVa": "0x80503c",
+        "endVaExclusive": "0x805061",
+        "successors": [
+          "0x805061",
+          "0x80508b"
+        ]
+      },
+      {
+        "startVa": "0x805061",
+        "endVaExclusive": "0x80508b",
+        "successors": [
+          "0x80508b"
+        ]
+      },
+      {
+        "startVa": "0x80508b",
+        "endVaExclusive": "0x8050b9",
+        "successors": [
+          "0x804c94",
+          "0x8050b9"
+        ]
+      },
+      {
+        "startVa": "0x8050b9",
+        "endVaExclusive": "0x8050dd",
+        "successors": [
+          "0x8050dd",
+          "0x805236"
+        ]
+      },
+      {
+        "startVa": "0x8050dd",
+        "endVaExclusive": "0x8050e7",
+        "successors": [
+          "0x8050e7",
+          "0x805236"
+        ]
+      },
+      {
+        "startVa": "0x8050e7",
+        "endVaExclusive": "0x80510c",
+        "successors": [
+          "0x80510c",
+          "0x80521b"
+        ]
+      },
+      {
+        "startVa": "0x80510c",
+        "endVaExclusive": "0x80511d",
+        "successors": [
+          "0x80511d",
+          "0x80521b"
+        ]
+      },
+      {
+        "startVa": "0x80511d",
+        "endVaExclusive": "0x805138",
+        "successors": [
+          "0x805138",
+          "0x80521b"
+        ]
+      },
+      {
+        "startVa": "0x805138",
+        "endVaExclusive": "0x805151",
+        "successors": [
+          "0x805151",
+          "0x80521b"
+        ]
+      },
+      {
+        "startVa": "0x805151",
+        "endVaExclusive": "0x80516a",
+        "successors": [
+          "0x80516a",
+          "0x805203"
+        ]
+      },
+      {
+        "startVa": "0x80516a",
+        "endVaExclusive": "0x805170",
+        "successors": [
+          "0x805170"
+        ]
+      },
+      {
+        "startVa": "0x805170",
+        "endVaExclusive": "0x80517a",
+        "successors": [
+          "0x80517a",
+          "0x8051ec"
+        ]
+      },
+      {
+        "startVa": "0x80517a",
+        "endVaExclusive": "0x805181",
+        "successors": [
+          "0x805181",
+          "0x8051ec"
+        ]
+      },
+      {
+        "startVa": "0x805181",
+        "endVaExclusive": "0x805185",
+        "successors": [
+          "0x805185",
+          "0x8051ec"
+        ]
+      },
+      {
+        "startVa": "0x805185",
+        "endVaExclusive": "0x805189",
+        "successors": [
+          "0x805189",
+          "0x8051ec"
+        ]
+      },
+      {
+        "startVa": "0x805189",
+        "endVaExclusive": "0x805196",
+        "successors": [
+          "0x805196",
+          "0x8051ef"
+        ]
+      },
+      {
+        "startVa": "0x805196",
+        "endVaExclusive": "0x8051ab",
+        "successors": [
+          "0x8051ab",
+          "0x8051f1"
+        ]
+      },
+      {
+        "startVa": "0x8051ab",
+        "endVaExclusive": "0x8051b7",
+        "successors": [
+          "0x8051b7",
+          "0x8051f1"
+        ]
+      },
+      {
+        "startVa": "0x8051b7",
+        "endVaExclusive": "0x8051ec",
+        "successors": [
+          "0x8051f1"
+        ]
+      },
+      {
+        "startVa": "0x8051ec",
+        "endVaExclusive": "0x8051ef",
+        "successors": [
+          "0x8051ef"
+        ]
+      },
+      {
+        "startVa": "0x8051ef",
+        "endVaExclusive": "0x8051f1",
+        "successors": [
+          "0x8051f1"
+        ]
+      },
+      {
+        "startVa": "0x8051f1",
+        "endVaExclusive": "0x805203",
+        "successors": [
+          "0x805170",
+          "0x805203"
+        ]
+      },
+      {
+        "startVa": "0x805203",
+        "endVaExclusive": "0x80521b",
+        "successors": [
+          "0x805151",
+          "0x80521b"
+        ]
+      },
+      {
+        "startVa": "0x80521b",
+        "endVaExclusive": "0x80522c",
+        "successors": [
+          "0x80522c",
+          "0x805236"
+        ]
+      },
+      {
+        "startVa": "0x80522c",
+        "endVaExclusive": "0x805236",
+        "successors": [
+          "0x805236"
+        ]
+      },
+      {
+        "startVa": "0x805236",
+        "endVaExclusive": "0x80524a",
+        "successors": [
+          "0x80524a",
+          "0x805378"
+        ]
+      },
+      {
+        "startVa": "0x80524a",
+        "endVaExclusive": "0x80525b",
+        "successors": [
+          "0x80525b",
+          "0x805378"
+        ]
+      },
+      {
+        "startVa": "0x80525b",
+        "endVaExclusive": "0x805282",
+        "successors": [
+          "0x805282",
+          "0x80535a"
+        ]
+      },
+      {
+        "startVa": "0x805282",
+        "endVaExclusive": "0x80528b",
+        "successors": [
+          "0x80528b",
+          "0x80535a"
+        ]
+      },
+      {
+        "startVa": "0x80528b",
+        "endVaExclusive": "0x8052a4",
+        "successors": [
+          "0x8052a4",
+          "0x80535a"
+        ]
+      },
+      {
+        "startVa": "0x8052a4",
+        "endVaExclusive": "0x8052b7",
+        "successors": [
+          "0x8052b7",
+          "0x80533a"
+        ]
+      },
+      {
+        "startVa": "0x8052b7",
+        "endVaExclusive": "0x8052c0",
+        "successors": [
+          "0x8052c0"
+        ]
+      },
+      {
+        "startVa": "0x8052c0",
+        "endVaExclusive": "0x8052ca",
+        "successors": [
+          "0x8052ca",
+          "0x80532d"
+        ]
+      },
+      {
+        "startVa": "0x8052ca",
+        "endVaExclusive": "0x8052d1",
+        "successors": [
+          "0x8052d1",
+          "0x80532d"
+        ]
+      },
+      {
+        "startVa": "0x8052d1",
+        "endVaExclusive": "0x8052d5",
+        "successors": [
+          "0x8052d5",
+          "0x80532d"
+        ]
+      },
+      {
+        "startVa": "0x8052d5",
+        "endVaExclusive": "0x8052d9",
+        "successors": [
+          "0x8052d9",
+          "0x80532d"
+        ]
+      },
+      {
+        "startVa": "0x8052d9",
+        "endVaExclusive": "0x8052e6",
+        "successors": [
+          "0x8052e6",
+          "0x805330"
+        ]
+      },
+      {
+        "startVa": "0x8052e6",
+        "endVaExclusive": "0x8052fb",
+        "successors": [
+          "0x8052fb",
+          "0x805332"
+        ]
+      },
+      {
+        "startVa": "0x8052fb",
+        "endVaExclusive": "0x805307",
+        "successors": [
+          "0x805307",
+          "0x805332"
+        ]
+      },
+      {
+        "startVa": "0x805307",
+        "endVaExclusive": "0x80532d",
+        "successors": [
+          "0x805332"
+        ]
+      },
+      {
+        "startVa": "0x80532d",
+        "endVaExclusive": "0x805330",
+        "successors": [
+          "0x805330"
+        ]
+      },
+      {
+        "startVa": "0x805330",
+        "endVaExclusive": "0x805332",
+        "successors": [
+          "0x805332"
+        ]
+      },
+      {
+        "startVa": "0x805332",
+        "endVaExclusive": "0x80533a",
+        "successors": [
+          "0x8052c0",
+          "0x80533a"
+        ]
+      },
+      {
+        "startVa": "0x80533a",
+        "endVaExclusive": "0x805352",
+        "successors": [
+          "0x8052a4",
+          "0x805352"
+        ]
+      },
+      {
+        "startVa": "0x805352",
+        "endVaExclusive": "0x80535a",
+        "successors": [
+          "0x80535a"
+        ]
+      },
+      {
+        "startVa": "0x80535a",
+        "endVaExclusive": "0x805367",
+        "successors": [
+          "0x805367",
+          "0x805371"
+        ]
+      },
+      {
+        "startVa": "0x805367",
+        "endVaExclusive": "0x805371",
+        "successors": [
+          "0x805371"
+        ]
+      },
+      {
+        "startVa": "0x805371",
+        "endVaExclusive": "0x805378",
+        "successors": [
+          "0x805378"
+        ]
+      },
+      {
+        "startVa": "0x805378",
+        "endVaExclusive": "0x80538a",
+        "successors": [
+          "0x80538a",
+          "0x8053c3"
+        ]
+      },
+      {
+        "startVa": "0x80538a",
+        "endVaExclusive": "0x805396",
+        "successors": [
+          "0x805396",
+          "0x8053c3"
+        ]
+      },
+      {
+        "startVa": "0x805396",
+        "endVaExclusive": "0x80539b",
+        "successors": [
+          "0x80539b",
+          "0x8053c3"
+        ]
+      },
+      {
+        "startVa": "0x80539b",
+        "endVaExclusive": "0x8053ac",
+        "successors": [
+          "0x8053ac",
+          "0x8053c3"
+        ]
+      },
+      {
+        "startVa": "0x8053ac",
+        "endVaExclusive": "0x8053b5",
+        "successors": [
+          "0x8053b5",
+          "0x8053c3"
+        ]
+      },
+      {
+        "startVa": "0x8053b5",
+        "endVaExclusive": "0x8053c3",
+        "successors": [
+          "0x8053c3"
+        ]
+      },
+      {
+        "startVa": "0x8053c3",
+        "endVaExclusive": "0x8053cd",
+        "successors": [
+          "0x8053cd",
+          "0x8053d4"
+        ]
+      },
+      {
+        "startVa": "0x8053cd",
+        "endVaExclusive": "0x8053d4",
+        "successors": [
+          "0x8053d4"
+        ]
+      },
+      {
+        "startVa": "0x8053d4",
+        "endVaExclusive": "0x8053ec",
+        "successors": [
+          "0x8053ec",
+          "0x805408"
+        ]
+      },
+      {
+        "startVa": "0x8053ec",
+        "endVaExclusive": "0x8053f7",
+        "successors": [
+          "0x8053f7",
+          "0x805408"
+        ]
+      },
+      {
+        "startVa": "0x8053f7",
+        "endVaExclusive": "0x805408",
+        "successors": [
+          "0x805408"
+        ]
+      },
+      {
+        "startVa": "0x805408",
+        "endVaExclusive": "0x805412",
+        "successors": [
+          "0x805412",
+          "0x8054ab"
+        ]
+      },
+      {
+        "startVa": "0x805412",
+        "endVaExclusive": "0x80542f",
+        "successors": [
+          "0x80542f",
+          "0x8054ab"
+        ]
+      },
+      {
+        "startVa": "0x80542f",
+        "endVaExclusive": "0x805434",
+        "successors": [
+          "0x805434",
+          "0x8054ab"
+        ]
+      },
+      {
+        "startVa": "0x805434",
+        "endVaExclusive": "0x80544a",
+        "successors": [
+          "0x80544a",
+          "0x8054ab"
+        ]
+      },
+      {
+        "startVa": "0x80544a",
+        "endVaExclusive": "0x805459",
+        "successors": [
+          "0x805459",
+          "0x8054ab"
+        ]
+      },
+      {
+        "startVa": "0x805459",
+        "endVaExclusive": "0x805465",
+        "successors": [
+          "0x805465",
+          "0x80546b"
+        ]
+      },
+      {
+        "startVa": "0x805465",
+        "endVaExclusive": "0x80546b",
+        "successors": [
+          "0x80546b",
+          "0x8054ab"
+        ]
+      },
+      {
+        "startVa": "0x80546b",
+        "endVaExclusive": "0x8054ab",
+        "successors": [
+          "0x8054ab"
+        ]
+      },
+      {
+        "startVa": "0x8054ab",
+        "endVaExclusive": "0x8054b5",
+        "successors": [
+          "0x8054b5",
+          "0x805527"
+        ]
+      },
+      {
+        "startVa": "0x8054b5",
+        "endVaExclusive": "0x8054c3",
+        "successors": [
+          "0x8054c3",
+          "0x80551e"
+        ]
+      },
+      {
+        "startVa": "0x8054c3",
+        "endVaExclusive": "0x80551e",
+        "successors": [
+          "0x80551e"
+        ]
+      },
+      {
+        "startVa": "0x80551e",
+        "endVaExclusive": "0x805527",
+        "successors": [
+          "0x805527"
+        ]
+      },
+      {
+        "startVa": "0x805527",
+        "endVaExclusive": "0x805530",
+        "successors": [
+          "0x805530",
+          "0x8055a7"
+        ]
+      },
+      {
+        "startVa": "0x805530",
+        "endVaExclusive": "0x80553a",
+        "successors": [
+          "0x80553a",
+          "0x8055a0"
+        ]
+      },
+      {
+        "startVa": "0x80553a",
+        "endVaExclusive": "0x805540",
+        "successors": [
+          "0x805540"
+        ]
+      },
+      {
+        "startVa": "0x805540",
+        "endVaExclusive": "0x805551",
+        "successors": [
+          "0x805551",
+          "0x805558"
+        ]
+      },
+      {
+        "startVa": "0x805551",
+        "endVaExclusive": "0x805558",
+        "successors": [
+          "0x805597"
+        ]
+      },
+      {
+        "startVa": "0x805558",
+        "endVaExclusive": "0x805566",
+        "successors": [
+          "0x805566",
+          "0x80556b"
+        ]
+      },
+      {
+        "startVa": "0x805566",
+        "endVaExclusive": "0x80556b",
+        "successors": [
+          "0x80556b",
+          "0x805575"
+        ]
+      },
+      {
+        "startVa": "0x80556b",
+        "endVaExclusive": "0x805575",
+        "successors": [
+          "0x805575",
+          "0x805597"
+        ]
+      },
+      {
+        "startVa": "0x805575",
+        "endVaExclusive": "0x805590",
+        "successors": [
+          "0x805590",
+          "0x805597"
+        ]
+      },
+      {
+        "startVa": "0x805590",
+        "endVaExclusive": "0x805597",
+        "successors": [
+          "0x805597"
+        ]
+      },
+      {
+        "startVa": "0x805597",
+        "endVaExclusive": "0x8055a0",
+        "successors": [
+          "0x805540",
+          "0x8055a0"
+        ]
+      },
+      {
+        "startVa": "0x8055a0",
+        "endVaExclusive": "0x8055a7",
+        "successors": [
+          "0x8055a7"
+        ]
+      },
+      {
+        "startVa": "0x8055a7",
+        "endVaExclusive": "0x8055b4",
+        "successors": [
+          "0x8055b4",
+          "0x80608e"
+        ]
+      },
+      {
+        "startVa": "0x8055b4",
+        "endVaExclusive": "0x80560b",
+        "successors": [
+          "0x80560b",
+          "0x80562c"
+        ]
+      },
+      {
+        "startVa": "0x80560b",
+        "endVaExclusive": "0x805610",
+        "successors": [
+          "0x805610"
+        ]
+      },
+      {
+        "startVa": "0x805610",
+        "endVaExclusive": "0x80562c",
+        "successors": [
+          "0x80562c",
+          "0x805610"
+        ]
+      },
+      {
+        "startVa": "0x80562c",
+        "endVaExclusive": "0x805640",
+        "successors": [
+          "0x805640",
+          "0x805787"
+        ]
+      },
+      {
+        "startVa": "0x805640",
+        "endVaExclusive": "0x805651",
+        "successors": [
+          "0x805651",
+          "0x805764"
+        ]
+      },
+      {
+        "startVa": "0x805651",
+        "endVaExclusive": "0x80565b",
+        "successors": [
+          "0x80565b",
+          "0x805764"
+        ]
+      },
+      {
+        "startVa": "0x80565b",
+        "endVaExclusive": "0x80566b",
+        "successors": [
+          "0x80566b",
+          "0x80576e"
+        ]
+      },
+      {
+        "startVa": "0x80566b",
+        "endVaExclusive": "0x8056b3",
+        "successors": [
+          "0x8056b3",
+          "0x8056d2"
+        ]
+      },
+      {
+        "startVa": "0x8056b3",
+        "endVaExclusive": "0x8056ba",
+        "successors": [
+          "0x8056ba",
+          "0x8056d2"
+        ]
+      },
+      {
+        "startVa": "0x8056ba",
+        "endVaExclusive": "0x8056be",
+        "successors": [
+          "0x8056be",
+          "0x8056d2"
+        ]
+      },
+      {
+        "startVa": "0x8056be",
+        "endVaExclusive": "0x8056c3",
+        "successors": [
+          "0x8056c3",
+          "0x8056d2"
+        ]
+      },
+      {
+        "startVa": "0x8056c3",
+        "endVaExclusive": "0x8056ca",
+        "successors": [
+          "0x8056ca",
+          "0x8056d2"
+        ]
+      },
+      {
+        "startVa": "0x8056ca",
+        "endVaExclusive": "0x8056d2",
+        "successors": [
+          "0x8056d2"
+        ]
+      },
+      {
+        "startVa": "0x8056d2",
+        "endVaExclusive": "0x8056df",
+        "successors": [
+          "0x8056df",
+          "0x80576e"
+        ]
+      },
+      {
+        "startVa": "0x8056df",
+        "endVaExclusive": "0x8056ec",
+        "successors": [
+          "0x8056ec",
+          "0x80576e"
+        ]
+      },
+      {
+        "startVa": "0x8056ec",
+        "endVaExclusive": "0x8056fc",
+        "successors": [
+          "0x8056fc",
+          "0x80576e"
+        ]
+      },
+      {
+        "startVa": "0x8056fc",
+        "endVaExclusive": "0x805712",
+        "successors": [
+          "0x805712",
+          "0x80576e"
+        ]
+      },
+      {
+        "startVa": "0x805712",
+        "endVaExclusive": "0x805736",
+        "successors": [
+          "0x805736",
+          "0x805743"
+        ]
+      },
+      {
+        "startVa": "0x805736",
+        "endVaExclusive": "0x805743",
+        "successors": [
+          "0x80576e"
+        ]
+      },
+      {
+        "startVa": "0x805743",
+        "endVaExclusive": "0x805764",
+        "successors": [
+          "0x80576e"
+        ]
+      },
+      {
+        "startVa": "0x805764",
+        "endVaExclusive": "0x80576e",
+        "successors": [
+          "0x80576e"
+        ]
+      },
+      {
+        "startVa": "0x80576e",
+        "endVaExclusive": "0x805787",
+        "successors": [
+          "0x805640",
+          "0x805787"
+        ]
+      },
+      {
+        "startVa": "0x805787",
+        "endVaExclusive": "0x8058a0",
+        "successors": [
+          "0x8058a0"
+        ]
+      },
+      {
+        "startVa": "0x8058a0",
+        "endVaExclusive": "0x8058c9",
+        "successors": [
+          "0x8058c9",
+          "0x805a5a"
+        ]
+      },
+      {
+        "startVa": "0x8058c9",
+        "endVaExclusive": "0x8058d2",
+        "successors": [
+          "0x8058d2"
+        ]
+      },
+      {
+        "startVa": "0x8058d2",
+        "endVaExclusive": "0x805915",
+        "successors": [
+          "0x805915",
+          "0x80592b"
+        ]
+      },
+      {
+        "startVa": "0x805915",
+        "endVaExclusive": "0x805919",
+        "successors": [
+          "0x805919",
+          "0x80592b"
+        ]
+      },
+      {
+        "startVa": "0x805919",
+        "endVaExclusive": "0x80591d",
+        "successors": [
+          "0x80591d",
+          "0x80592b"
+        ]
+      },
+      {
+        "startVa": "0x80591d",
+        "endVaExclusive": "0x805922",
+        "successors": [
+          "0x805922",
+          "0x80592b"
+        ]
+      },
+      {
+        "startVa": "0x805922",
+        "endVaExclusive": "0x80592b",
+        "successors": [
+          "0x80592e"
+        ]
+      },
+      {
+        "startVa": "0x80592b",
+        "endVaExclusive": "0x80592e",
+        "successors": [
+          "0x80592e"
+        ]
+      },
+      {
+        "startVa": "0x80592e",
+        "endVaExclusive": "0x80596a",
+        "successors": [
+          "0x80596a",
+          "0x805a3f"
+        ]
+      },
+      {
+        "startVa": "0x80596a",
+        "endVaExclusive": "0x805977",
+        "successors": [
+          "0x805977",
+          "0x805a3f"
+        ]
+      },
+      {
+        "startVa": "0x805977",
+        "endVaExclusive": "0x805991",
+        "successors": [
+          "0x805991",
+          "0x8059a5"
+        ]
+      },
+      {
+        "startVa": "0x805991",
+        "endVaExclusive": "0x805995",
+        "successors": [
+          "0x805995",
+          "0x8059a5"
+        ]
+      },
+      {
+        "startVa": "0x805995",
+        "endVaExclusive": "0x805999",
+        "successors": [
+          "0x805999",
+          "0x8059a5"
+        ]
+      },
+      {
+        "startVa": "0x805999",
+        "endVaExclusive": "0x80599e",
+        "successors": [
+          "0x80599e",
+          "0x8059a5"
+        ]
+      },
+      {
+        "startVa": "0x80599e",
+        "endVaExclusive": "0x8059a5",
+        "successors": [
+          "0x8059a8"
+        ]
+      },
+      {
+        "startVa": "0x8059a5",
+        "endVaExclusive": "0x8059a8",
+        "successors": [
+          "0x8059a8"
+        ]
+      },
+      {
+        "startVa": "0x8059a8",
+        "endVaExclusive": "0x8059cd",
+        "successors": [
+          "0x8059cd",
+          "0x8059e9"
+        ]
+      },
+      {
+        "startVa": "0x8059cd",
+        "endVaExclusive": "0x8059d5",
+        "successors": [
+          "0x8059d5",
+          "0x8059e9"
+        ]
+      },
+      {
+        "startVa": "0x8059d5",
+        "endVaExclusive": "0x8059d9",
+        "successors": [
+          "0x8059d9",
+          "0x8059e9"
+        ]
+      },
+      {
+        "startVa": "0x8059d9",
+        "endVaExclusive": "0x8059de",
+        "successors": [
+          "0x8059de",
+          "0x8059e9"
+        ]
+      },
+      {
+        "startVa": "0x8059de",
+        "endVaExclusive": "0x8059e9",
+        "successors": [
+          "0x8059ec"
+        ]
+      },
+      {
+        "startVa": "0x8059e9",
+        "endVaExclusive": "0x8059ec",
+        "successors": [
+          "0x8059ec"
+        ]
+      },
+      {
+        "startVa": "0x8059ec",
+        "endVaExclusive": "0x8059f4",
+        "successors": [
+          "0x8059f4",
+          "0x805bb8"
+        ]
+      },
+      {
+        "startVa": "0x8059f4",
+        "endVaExclusive": "0x8059fc",
+        "successors": [
+          "0x8059fc",
+          "0x805bb8"
+        ]
+      },
+      {
+        "startVa": "0x8059fc",
+        "endVaExclusive": "0x805a0a",
+        "successors": [
+          "0x805a0a",
+          "0x805bb8"
+        ]
+      },
+      {
+        "startVa": "0x805a0a",
+        "endVaExclusive": "0x805a18",
+        "successors": [
+          "0x805a18",
+          "0x805bb8"
+        ]
+      },
+      {
+        "startVa": "0x805a18",
+        "endVaExclusive": "0x805a3f",
+        "successors": [
+          "0x805a3f"
+        ]
+      },
+      {
+        "startVa": "0x805a3f",
+        "endVaExclusive": "0x805a5a",
+        "successors": [
+          "0x8058d2",
+          "0x805a5a"
+        ]
+      },
+      {
+        "startVa": "0x805a5a",
+        "endVaExclusive": "0x805a6e",
+        "successors": [
+          "0x805a6e",
+          "0x806037"
+        ]
+      },
+      {
+        "startVa": "0x805a6e",
+        "endVaExclusive": "0x805a80",
+        "successors": [
+          "0x805a80"
+        ]
+      },
+      {
+        "startVa": "0x805a80",
+        "endVaExclusive": "0x805abb",
+        "successors": [
+          "0x805abb",
+          "0x805ad1"
+        ]
+      },
+      {
+        "startVa": "0x805abb",
+        "endVaExclusive": "0x805ad1",
+        "successors": [
+          "0x805ad1"
+        ]
+      },
+      {
+        "startVa": "0x805ad1",
+        "endVaExclusive": "0x805afd",
+        "successors": [
+          "0x805afd",
+          "0x805b13"
+        ]
+      },
+      {
+        "startVa": "0x805afd",
+        "endVaExclusive": "0x805b13",
+        "successors": [
+          "0x805b13"
+        ]
+      },
+      {
+        "startVa": "0x805b13",
+        "endVaExclusive": "0x805ba1",
+        "successors": [
+          "0x805ba1",
+          "0x805be0"
+        ]
+      },
+      {
+        "startVa": "0x805ba1",
+        "endVaExclusive": "0x805ba8",
+        "successors": [
+          "0x805ba8",
+          "0x805be0"
+        ]
+      },
+      {
+        "startVa": "0x805ba8",
+        "endVaExclusive": "0x805bac",
+        "successors": [
+          "0x805bac",
+          "0x805be0"
+        ]
+      },
+      {
+        "startVa": "0x805bac",
+        "endVaExclusive": "0x805bb1",
+        "successors": [
+          "0x805bb1",
+          "0x805be0"
+        ]
+      },
+      {
+        "startVa": "0x805bb1",
+        "endVaExclusive": "0x805bb8",
+        "successors": [
+          "0x805be3"
+        ]
+      },
+      {
+        "startVa": "0x805bb8",
+        "endVaExclusive": "0x805bd5",
+        "successors": [
+          "0x805a6e",
+          "0x805bd5"
+        ]
+      },
+      {
+        "startVa": "0x805bd5",
+        "endVaExclusive": "0x805be0",
+        "successors": [
+          "0x8058a0"
+        ]
+      },
+      {
+        "startVa": "0x805be0",
+        "endVaExclusive": "0x805be3",
+        "successors": [
+          "0x805be3"
+        ]
+      },
+      {
+        "startVa": "0x805be3",
+        "endVaExclusive": "0x805c04",
+        "successors": [
+          "0x805c04",
+          "0x805cb1"
+        ]
+      },
+      {
+        "startVa": "0x805c04",
+        "endVaExclusive": "0x805c33",
+        "successors": [
+          "0x805c33",
+          "0x805cb1"
+        ]
+      },
+      {
+        "startVa": "0x805c33",
+        "endVaExclusive": "0x805c3c",
+        "successors": [
+          "0x805c3c",
+          "0x805cb1"
+        ]
+      },
+      {
+        "startVa": "0x805c3c",
+        "endVaExclusive": "0x805cb1",
+        "successors": [
+          "0x805db3"
+        ]
+      },
+      {
+        "startVa": "0x805cb1",
+        "endVaExclusive": "0x805d28",
+        "successors": [
+          "0x805d28",
+          "0x805d77"
+        ]
+      },
+      {
+        "startVa": "0x805d28",
+        "endVaExclusive": "0x805d2f",
+        "successors": [
+          "0x805d2f",
+          "0x805d77"
+        ]
+      },
+      {
+        "startVa": "0x805d2f",
+        "endVaExclusive": "0x805d33",
+        "successors": [
+          "0x805d33",
+          "0x805d77"
+        ]
+      },
+      {
+        "startVa": "0x805d33",
+        "endVaExclusive": "0x805d38",
+        "successors": [
+          "0x805d38",
+          "0x805d77"
+        ]
+      },
+      {
+        "startVa": "0x805d38",
+        "endVaExclusive": "0x805d4a",
+        "successors": [
+          "0x805d4a",
+          "0x805d77"
+        ]
+      },
+      {
+        "startVa": "0x805d4a",
+        "endVaExclusive": "0x805d62",
+        "successors": [
+          "0x805d62",
+          "0x805d77"
+        ]
+      },
+      {
+        "startVa": "0x805d62",
+        "endVaExclusive": "0x805d77",
+        "successors": [
+          "0x805d77"
+        ]
+      },
+      {
+        "startVa": "0x805d77",
+        "endVaExclusive": "0x805db3",
+        "successors": [
+          "0x805db3"
+        ]
+      },
+      {
+        "startVa": "0x805db3",
+        "endVaExclusive": "0x805dc1",
+        "successors": [
+          "0x805dc1",
+          "0x805de1"
+        ]
+      },
+      {
+        "startVa": "0x805dc1",
+        "endVaExclusive": "0x805de1",
+        "successors": [
+          "0x805de1"
+        ]
+      },
+      {
+        "startVa": "0x805de1",
+        "endVaExclusive": "0x805deb",
+        "successors": [
+          "0x805deb",
+          "0x805e01"
+        ]
+      },
+      {
+        "startVa": "0x805deb",
+        "endVaExclusive": "0x805e01",
+        "successors": [
+          "0x805e01"
+        ]
+      },
+      {
+        "startVa": "0x805e01",
+        "endVaExclusive": "0x805e6e",
+        "successors": [
+          "0x805e6e",
+          "0x805e82"
+        ]
+      },
+      {
+        "startVa": "0x805e6e",
+        "endVaExclusive": "0x805e7a",
+        "successors": [
+          "0x805e7a",
+          "0x8068db"
+        ]
+      },
+      {
+        "startVa": "0x805e7a",
+        "endVaExclusive": "0x805e82",
+        "successors": [
+          "0x805e82"
+        ]
+      },
+      {
+        "startVa": "0x805e82",
+        "endVaExclusive": "0x805ece",
+        "successors": [
+          "0x805ece",
+          "0x805ee5"
+        ]
+      },
+      {
+        "startVa": "0x805ece",
+        "endVaExclusive": "0x805ed5",
+        "successors": [
+          "0x805ed5",
+          "0x805ee5"
+        ]
+      },
+      {
+        "startVa": "0x805ed5",
+        "endVaExclusive": "0x805ed9",
+        "successors": [
+          "0x805ed9",
+          "0x805ee5"
+        ]
+      },
+      {
+        "startVa": "0x805ed9",
+        "endVaExclusive": "0x805ede",
+        "successors": [
+          "0x805ede",
+          "0x805ee5"
+        ]
+      },
+      {
+        "startVa": "0x805ede",
+        "endVaExclusive": "0x805ee5",
+        "successors": [
+          "0x805ee8"
+        ]
+      },
+      {
+        "startVa": "0x805ee5",
+        "endVaExclusive": "0x805ee8",
+        "successors": [
+          "0x805ee8"
+        ]
+      },
+      {
+        "startVa": "0x805ee8",
+        "endVaExclusive": "0x805f22",
+        "successors": [
+          "0x805f22",
+          "0x805f39"
+        ]
+      },
+      {
+        "startVa": "0x805f22",
+        "endVaExclusive": "0x805f29",
+        "successors": [
+          "0x805f29",
+          "0x805f39"
+        ]
+      },
+      {
+        "startVa": "0x805f29",
+        "endVaExclusive": "0x805f2d",
+        "successors": [
+          "0x805f2d",
+          "0x805f39"
+        ]
+      },
+      {
+        "startVa": "0x805f2d",
+        "endVaExclusive": "0x805f32",
+        "successors": [
+          "0x805f32",
+          "0x805f39"
+        ]
+      },
+      {
+        "startVa": "0x805f32",
+        "endVaExclusive": "0x805f39",
+        "successors": [
+          "0x805f3c"
+        ]
+      },
+      {
+        "startVa": "0x805f39",
+        "endVaExclusive": "0x805f3c",
+        "successors": [
+          "0x805f3c"
+        ]
+      },
+      {
+        "startVa": "0x805f3c",
+        "endVaExclusive": "0x805f40",
+        "successors": [
+          "0x805f40",
+          "0x805f48"
+        ]
+      },
+      {
+        "startVa": "0x805f40",
+        "endVaExclusive": "0x805f48",
+        "successors": [
+          "0x805f48"
+        ]
+      },
+      {
+        "startVa": "0x805f48",
+        "endVaExclusive": "0x805f4c",
+        "successors": [
+          "0x805f4c",
+          "0x805f54"
+        ]
+      },
+      {
+        "startVa": "0x805f4c",
+        "endVaExclusive": "0x805f54",
+        "successors": [
+          "0x805f54"
+        ]
+      },
+      {
+        "startVa": "0x805f54",
+        "endVaExclusive": "0x805f88",
+        "successors": [
+          "0x805f88",
+          "0x80600b"
+        ]
+      },
+      {
+        "startVa": "0x805f88",
+        "endVaExclusive": "0x805fb9",
+        "successors": [
+          "0x805fb9",
+          "0x805fc4"
+        ]
+      },
+      {
+        "startVa": "0x805fb9",
+        "endVaExclusive": "0x805fc4",
+        "successors": [
+          "0x805fc4",
+          "0x805fc6"
+        ]
+      },
+      {
+        "startVa": "0x805fc4",
+        "endVaExclusive": "0x805fc6",
+        "successors": [
+          "0x805fc6"
+        ]
+      },
+      {
+        "startVa": "0x805fc6",
+        "endVaExclusive": "0x805fd0",
+        "successors": [
+          "0x805fd0",
+          "0x805fdb"
+        ]
+      },
+      {
+        "startVa": "0x805fd0",
+        "endVaExclusive": "0x805fdb",
+        "successors": [
+          "0x80600b"
+        ]
+      },
+      {
+        "startVa": "0x805fdb",
+        "endVaExclusive": "0x80600b",
+        "successors": [
+          "0x80600b"
+        ]
+      },
+      {
+        "startVa": "0x80600b",
+        "endVaExclusive": "0x80602f",
+        "successors": [
+          "0x805a80",
+          "0x80602f"
+        ]
+      },
+      {
+        "startVa": "0x80602f",
+        "endVaExclusive": "0x806037",
+        "successors": [
+          "0x80603d"
+        ]
+      },
+      {
+        "startVa": "0x806037",
+        "endVaExclusive": "0x80603d",
+        "successors": [
+          "0x80603d"
+        ]
+      },
+      {
+        "startVa": "0x80603d",
+        "endVaExclusive": "0x80607c",
+        "successors": [
+          "0x80607c",
+          "0x80608e"
+        ]
+      },
+      {
+        "startVa": "0x80607c",
+        "endVaExclusive": "0x80608e",
+        "successors": [
+          "0x80608e"
+        ]
+      },
+      {
+        "startVa": "0x80608e",
+        "endVaExclusive": "0x8060a1",
+        "successors": [
+          "0x8060a1",
+          "0x806884"
+        ]
+      },
+      {
+        "startVa": "0x8060a1",
+        "endVaExclusive": "0x8060e3",
+        "successors": [
+          "0x8060e3",
+          "0x80617c"
+        ]
+      },
+      {
+        "startVa": "0x8060e3",
+        "endVaExclusive": "0x8060ee",
+        "successors": [
+          "0x8060ee",
+          "0x8060ff"
+        ]
+      },
+      {
+        "startVa": "0x8060ee",
+        "endVaExclusive": "0x8060f3",
+        "successors": [
+          "0x8060f3",
+          "0x8060ff"
+        ]
+      },
+      {
+        "startVa": "0x8060f3",
+        "endVaExclusive": "0x8060fa",
+        "successors": [
+          "0x8060fa",
+          "0x8060ff"
+        ]
+      },
+      {
+        "startVa": "0x8060fa",
+        "endVaExclusive": "0x8060ff",
+        "successors": [
+          "0x8060ff",
+          "0x806151"
+        ]
+      },
+      {
+        "startVa": "0x8060ff",
+        "endVaExclusive": "0x806109",
+        "successors": [
+          "0x806109",
+          "0x806116"
+        ]
+      },
+      {
+        "startVa": "0x806109",
+        "endVaExclusive": "0x806116",
+        "successors": [
+          "0x806135"
+        ]
+      },
+      {
+        "startVa": "0x806116",
+        "endVaExclusive": "0x806135",
+        "successors": [
+          "0x806135"
+        ]
+      },
+      {
+        "startVa": "0x806135",
+        "endVaExclusive": "0x806151",
+        "successors": [
+          "0x806151"
+        ]
+      },
+      {
+        "startVa": "0x806151",
+        "endVaExclusive": "0x806170",
+        "successors": [
+          "0x8060e3",
+          "0x806170"
+        ]
+      },
+      {
+        "startVa": "0x806170",
+        "endVaExclusive": "0x80617c",
+        "successors": [
+          "0x80617c"
+        ]
+      },
+      {
+        "startVa": "0x80617c",
+        "endVaExclusive": "0x806196",
+        "successors": [
+          "0x806196",
+          "0x806833"
+        ]
+      },
+      {
+        "startVa": "0x806196",
+        "endVaExclusive": "0x8061a0",
+        "successors": [
+          "0x8061a0"
+        ]
+      },
+      {
+        "startVa": "0x8061a0",
+        "endVaExclusive": "0x806206",
+        "successors": [
+          "0x806206",
+          "0x8064ab"
+        ]
+      },
+      {
+        "startVa": "0x806206",
+        "endVaExclusive": "0x806281",
+        "successors": [
+          "0x806281",
+          "0x80680e"
+        ]
+      },
+      {
+        "startVa": "0x806281",
+        "endVaExclusive": "0x8062e0",
+        "successors": [
+          "0x8062e0"
+        ]
+      },
+      {
+        "startVa": "0x8062e0",
+        "endVaExclusive": "0x806329",
+        "successors": [
+          "0x806329",
+          "0x806336"
+        ]
+      },
+      {
+        "startVa": "0x806329",
+        "endVaExclusive": "0x806336",
+        "successors": [
+          "0x80635b"
+        ]
+      },
+      {
+        "startVa": "0x806336",
+        "endVaExclusive": "0x80635b",
+        "successors": [
+          "0x80635b"
+        ]
+      },
+      {
+        "startVa": "0x80635b",
+        "endVaExclusive": "0x806365",
+        "successors": [
+          "0x806365",
+          "0x80639c"
+        ]
+      },
+      {
+        "startVa": "0x806365",
+        "endVaExclusive": "0x806374",
+        "successors": [
+          "0x806374",
+          "0x80637a"
+        ]
+      },
+      {
+        "startVa": "0x806374",
+        "endVaExclusive": "0x80637a",
+        "successors": [
+          "0x80637a",
+          "0x806387"
+        ]
+      },
+      {
+        "startVa": "0x80637a",
+        "endVaExclusive": "0x806387",
+        "successors": [
+          "0x806387",
+          "0x80639c"
+        ]
+      },
+      {
+        "startVa": "0x806387",
+        "endVaExclusive": "0x80639c",
+        "successors": [
+          "0x8062e0"
+        ]
+      },
+      {
+        "startVa": "0x80639c",
+        "endVaExclusive": "0x8063bf",
+        "successors": [
+          "0x8063bf",
+          "0x80646a"
+        ]
+      },
+      {
+        "startVa": "0x8063bf",
+        "endVaExclusive": "0x8063c5",
+        "successors": [
+          "0x8063c5"
+        ]
+      },
+      {
+        "startVa": "0x8063c5",
+        "endVaExclusive": "0x8063d8",
+        "successors": [
+          "0x8063d8",
+          "0x8063c5"
+        ]
+      },
+      {
+        "startVa": "0x8063d8",
+        "endVaExclusive": "0x8063f0",
+        "successors": [
+          "0x8063f0"
+        ]
+      },
+      {
+        "startVa": "0x8063f0",
+        "endVaExclusive": "0x806410",
+        "successors": [
+          "0x806410",
+          "0x80641f"
+        ]
+      },
+      {
+        "startVa": "0x806410",
+        "endVaExclusive": "0x80641f",
+        "successors": [
+          "0x806444"
+        ]
+      },
+      {
+        "startVa": "0x80641f",
+        "endVaExclusive": "0x806444",
+        "successors": [
+          "0x806444"
+        ]
+      },
+      {
+        "startVa": "0x806444",
+        "endVaExclusive": "0x80645e",
+        "successors": [
+          "0x8063f0",
+          "0x80645e"
+        ]
+      },
+      {
+        "startVa": "0x80645e",
+        "endVaExclusive": "0x80646a",
+        "successors": [
+          "0x80646a"
+        ]
+      },
+      {
+        "startVa": "0x80646a",
+        "endVaExclusive": "0x806476",
+        "successors": [
+          "0x806476",
+          "0x80680e"
+        ]
+      },
+      {
+        "startVa": "0x806476",
+        "endVaExclusive": "0x8064ab",
+        "successors": [
+          "0x80680e"
+        ]
+      },
+      {
+        "startVa": "0x8064ab",
+        "endVaExclusive": "0x8064b4",
+        "successors": [
+          "0x8064b4",
+          "0x806717"
+        ]
+      },
+      {
+        "startVa": "0x8064b4",
+        "endVaExclusive": "0x8064bd",
+        "successors": [
+          "0x8064bd",
+          "0x806717"
+        ]
+      },
+      {
+        "startVa": "0x8064bd",
+        "endVaExclusive": "0x8064c9",
+        "successors": [
+          "0x8064c9",
+          "0x806717"
+        ]
+      },
+      {
+        "startVa": "0x8064c9",
+        "endVaExclusive": "0x8064d2",
+        "successors": [
+          "0x8064d2",
+          "0x806717"
+        ]
+      },
+      {
+        "startVa": "0x8064d2",
+        "endVaExclusive": "0x8064de",
+        "successors": [
+          "0x8064de",
+          "0x806717"
+        ]
+      },
+      {
+        "startVa": "0x8064de",
+        "endVaExclusive": "0x8064ea",
+        "successors": [
+          "0x8064ea",
+          "0x806717"
+        ]
+      },
+      {
+        "startVa": "0x8064ea",
+        "endVaExclusive": "0x8064f3",
+        "successors": [
+          "0x8064f3",
+          "0x806717"
+        ]
+      },
+      {
+        "startVa": "0x8064f3",
+        "endVaExclusive": "0x8064fc",
+        "successors": [
+          "0x8064fc",
+          "0x8065a5"
+        ]
+      },
+      {
+        "startVa": "0x8064fc",
+        "endVaExclusive": "0x8065a5",
+        "successors": [
+          "0x8067bb"
+        ]
+      },
+      {
+        "startVa": "0x8065a5",
+        "endVaExclusive": "0x8065c2",
+        "successors": [
+          "0x8065c2",
+          "0x80668b"
+        ]
+      },
+      {
+        "startVa": "0x8065c2",
+        "endVaExclusive": "0x806649",
+        "successors": [
+          "0x806649"
+        ]
+      },
+      {
+        "startVa": "0x806649",
+        "endVaExclusive": "0x80668b",
+        "successors": [
+          "0x8067e8"
+        ]
+      },
+      {
+        "startVa": "0x80668b",
+        "endVaExclusive": "0x806717",
+        "successors": [
+          "0x806649"
+        ]
+      },
+      {
+        "startVa": "0x806717",
+        "endVaExclusive": "0x8067bb",
+        "successors": [
+          "0x8067bb"
+        ]
+      },
+      {
+        "startVa": "0x8067bb",
+        "endVaExclusive": "0x8067e8",
+        "successors": [
+          "0x8067e8"
+        ]
+      },
+      {
+        "startVa": "0x8067e8",
+        "endVaExclusive": "0x8067ec",
+        "successors": [
+          "0x8067ec",
+          "0x80680e"
+        ]
+      },
+      {
+        "startVa": "0x8067ec",
+        "endVaExclusive": "0x80680e",
+        "successors": [
+          "0x80680e"
+        ]
+      },
+      {
+        "startVa": "0x80680e",
+        "endVaExclusive": "0x806833",
+        "successors": [
+          "0x8061a0",
+          "0x806833"
+        ]
+      },
+      {
+        "startVa": "0x806833",
+        "endVaExclusive": "0x806844",
+        "successors": [
+          "0x806844",
+          "0x80686e"
+        ]
+      },
+      {
+        "startVa": "0x806844",
+        "endVaExclusive": "0x806850",
+        "successors": [
+          "0x806850"
+        ]
+      },
+      {
+        "startVa": "0x806850",
+        "endVaExclusive": "0x80686e",
+        "successors": [
+          "0x80686e",
+          "0x806850"
+        ]
+      },
+      {
+        "startVa": "0x80686e",
+        "endVaExclusive": "0x806872",
+        "successors": [
+          "0x806872",
+          "0x806884"
+        ]
+      },
+      {
+        "startVa": "0x806872",
+        "endVaExclusive": "0x806884",
+        "successors": [
+          "0x806884"
+        ]
+      },
+      {
+        "startVa": "0x806884",
+        "endVaExclusive": "0x8068a2",
+        "successors": []
+      },
+      {
+        "startVa": "0x8068a2",
+        "endVaExclusive": "0x8068bc",
+        "successors": [
+          "0x80386d",
+          "0x8068bc"
+        ]
+      },
+      {
+        "startVa": "0x8068bc",
+        "endVaExclusive": "0x8068db",
+        "successors": [
+          "0x80386d"
+        ]
+      },
+      {
+        "startVa": "0x8068db",
+        "endVaExclusive": "0x8068e0",
+        "successors": []
+      }
+    ],
+    "limitations": "Normal statically recovered CFG only; does not prove arbitrary indirect reentry, exceptional exits or worker behavior."
+  },
+  "floatConstants": [
+    {
+      "va": "0xbaa904",
+      "bytes": "00 00 20 42",
+      "f32": 40.0
+    },
+    {
+      "va": "0xbaaa00",
+      "bytes": "00 00 f0 42",
+      "f32": 120.0
+    },
+    {
+      "va": "0xbaa2d0",
+      "bytes": "00 00 00 3f",
+      "f32": 0.5
+    }
+  ],
+  "limitations": [
+    "Static IDB reading only; no game, test, build, debugger or IDB mutation.",
+    "No hashes are computed or checked.",
+    "No exhaustive Position/Velocity writer or lifecycle-state closure is claimed."
+  ]
+}

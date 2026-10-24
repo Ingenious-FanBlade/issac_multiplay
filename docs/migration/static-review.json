@@ -1,0 +1,136 @@
+{
+  "transaction": "tx-03-09",
+  "time_utc": "2026-10-22T05:54:59.719392+00:00",
+  "status": "STATIC_REVIEW_PASS",
+  "root": "F:\\projects_isaac\\issac_multiplay",
+  "review_entry": "docs\\migration\\review_documentation.py",
+  "checks": [
+    {
+      "name": "source_copy_and_original_files_preserved",
+      "passed": true,
+      "manifest_files": 1019,
+      "copied_bytes": 45144402,
+      "intentionally_adapted": [
+        "AGENTS.md",
+        "cs-t0/accept-t09-b-live.py"
+      ],
+      "missing": [],
+      "different": []
+    },
+    {
+      "name": "destination_existing_git_directory_preserved",
+      "passed": true,
+      "action": "copier excludes .git and refuses overwriting existing files; no Git mutation commands"
+    },
+    {
+      "name": "excluded_cache_and_live_artifacts",
+      "passed": true,
+      "target_cache_copied": false,
+      "vm_live_contents_copied": false,
+      "copied_artifact_directories": [
+        "tx-01-54-static",
+        "tx-01-63-static",
+        "tx-01-64-static",
+        "tx-01-65-static",
+        "tx-01-66-static",
+        "tx-01-67-static",
+        "tx-01-68-static",
+        "tx-01-69-static",
+        "tx-01-71-static",
+        "tx-01-84-static",
+        "tx-01-86-static",
+        "tx-03-04-static"
+      ]
+    },
+    {
+      "name": "new_document_relative_links",
+      "passed": true,
+      "documents": 30,
+      "local_links": 945,
+      "missing": [],
+      "historical_archive_links": "preserved; excluded from new-document link completeness"
+    },
+    {
+      "name": "all_source_installation_families",
+      "passed": true,
+      "expected": {
+        "loop_runtime.cpp": 32,
+        "active_targets.cpp": 13,
+        "active_runtime.cpp": 13,
+        "coop_active_runtime.cpp": 19,
+        "coop_passive_runtime.cpp": 24,
+        "input_runtime.cpp": 11,
+        "raw_apply_runtime.cpp": 18,
+        "runtime.cpp": 18,
+        "boundary_runtime.cpp": 16,
+        "offline_attestation_runtime.cpp": 7,
+        "world_record.cpp": 19
+      },
+      "actual": {
+        "loop_runtime.cpp": 32,
+        "active_targets.cpp": 13,
+        "raw_apply_runtime.cpp": 18,
+        "boundary_runtime.cpp": 16,
+        "coop_passive_runtime.cpp": 24,
+        "coop_active_runtime.cpp": 19,
+        "input_runtime.cpp": 11,
+        "runtime.cpp": 18,
+        "world_record.cpp": 19,
+        "offline_attestation_runtime.cpp": 7,
+        "active_runtime.cpp": 13
+      },
+      "records": 219,
+      "count_semantics": "family occurrences; overlapping sites and dependencies are not simultaneous unique hooks"
+    },
+    {
+      "name": "module_site_tables_and_source_encodings",
+      "passed": true,
+      "problems": [],
+      "note": "Source declarations only; no PE opened or runtime instruction/ABI claim"
+    },
+    {
+      "name": "raw_field_tables_match_current_collector",
+      "passed": true,
+      "fields": 75,
+      "problems": [],
+      "laser_exception": "Laser Timeout is static binding only, explicitly outside collector min-read-v1"
+    },
+    {
+      "name": "reverse_evidence_fields_vtables_and_constants_indexed",
+      "passed": true,
+      "static_functions": 335,
+      "rtti_tables": 32,
+      "named_location_constants": 153,
+      "problems": []
+    },
+    {
+      "name": "adopted_design_and_evidence_boundaries",
+      "passed": true,
+      "missing_topics": [],
+      "reviewed_semantics": [
+        "immutable baseline reconstruction, not patching arbitrary current state",
+        "persistent results are state; events do not replay damage",
+        "native partial apply is not claimed atomic",
+        "unknown replica apply and presentation boundaries retained",
+        "no build/game/test results invented"
+      ]
+    },
+    {
+      "name": "migration_runtime_default_path",
+      "passed": true,
+      "explicit_guest_override": "--vm-guest-share"
+    },
+    {
+      "name": "root_build_and_embedded_source_inputs_present",
+      "passed": true,
+      "claim": "static file availability, not compilation"
+    }
+  ],
+  "failures": [],
+  "hashes_computed": false,
+  "builds_run": false,
+  "game_operations": false,
+  "code_tests_run": false,
+  "automatic_retry": false,
+  "scope": "one final static documentation and copy review; not E2E/runtime/ABI acceptance"
+}

@@ -1,0 +1,7163 @@
+{
+  "tx": "tx-03-16",
+  "evidence": "STATIC_IDB_READ_ONLY",
+  "idb_path": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe.i64",
+  "input_path": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe",
+  "imagebase": "0x400000",
+  "functions": [
+    {
+      "requested_va": "0x49cb40",
+      "name": "sub_49CB40",
+      "va": "0x49cb40",
+      "rva": "0x9cb40",
+      "end_va": "0x49cb47",
+      "type": "char *__thiscall(char *this)",
+      "chunks": [
+        [
+          "0x49cb40",
+          "0x49cb47"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x49cb40",
+          "rva": "0x9cb40",
+          "bytes": "8d 81 94 00 00 00",
+          "asm": "lea     eax, [ecx+94h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x49cb46",
+          "rva": "0x9cb46",
+          "bytes": "c3",
+          "asm": "retn",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x867502",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "char *__thiscall sub_49CB40(char *this)\n{\n  return this + 148;\n}\n"
+    },
+    {
+      "requested_va": "0x456340",
+      "name": "sub_456340",
+      "va": "0x456340",
+      "rva": "0x56340",
+      "end_va": "0x45635b",
+      "type": "int __thiscall(_DWORD *this, _DWORD *)",
+      "chunks": [
+        [
+          "0x456340",
+          "0x45635b"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x456340",
+          "rva": "0x56340",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x456341",
+          "rva": "0x56341",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0x456343",
+          "rva": "0x56343",
+          "bytes": "8b 55 08",
+          "asm": "mov     edx, [ebp+arg_0]",
+          "code_refs": []
+        },
+        {
+          "va": "0x456346",
+          "rva": "0x56346",
+          "bytes": "8b 02",
+          "asm": "mov     eax, [edx]",
+          "code_refs": []
+        },
+        {
+          "va": "0x456348",
+          "rva": "0x56348",
+          "bytes": "89 81 94 00 00 00",
+          "asm": "mov     [ecx+94h], eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x45634e",
+          "rva": "0x5634e",
+          "bytes": "8b 42 04",
+          "asm": "mov     eax, [edx+4]",
+          "code_refs": []
+        },
+        {
+          "va": "0x456351",
+          "rva": "0x56351",
+          "bytes": "89 81 98 00 00 00",
+          "asm": "mov     [ecx+98h], eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x456357",
+          "rva": "0x56357",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x456358",
+          "rva": "0x56358",
+          "bytes": "c2 04 00",
+          "asm": "retn    4",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x5d0b56",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5de51d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5de64c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x797c82",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x8674fd",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "int __thiscall sub_456340(_DWORD *this, _DWORD *a2)\n{\n  int result; // eax\n\n  this[37] = *a2;\n  result = a2[1];\n  this[38] = result;\n  return result;\n}\n"
+    },
+    {
+      "requested_va": "0x417200",
+      "name": "sub_417200",
+      "va": "0x417200",
+      "rva": "0x17200",
+      "end_va": "0x417207",
+      "type": "char *__thiscall(char *this)",
+      "chunks": [
+        [
+          "0x417200",
+          "0x417207"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x417200",
+          "rva": "0x17200",
+          "bytes": "8d 81 9c 00 00 00",
+          "asm": "lea     eax, [ecx+9Ch]",
+          "code_refs": []
+        },
+        {
+          "va": "0x417206",
+          "rva": "0x17206",
+          "bytes": "c3",
+          "asm": "retn",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x5c7124",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5B39D0"
+        },
+        {
+          "va": "0x5d4928",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d4a3f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d4a89",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d6d76",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d6ee3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d7036",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d7d29",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d82a5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d86d8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d87ce",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d889f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da37f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da466",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da4b2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5dbe53",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5dc840",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5de1d5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5de766",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e149e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e14d0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e1bd3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e50a2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e54f0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e7fb3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e83c2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e8af3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e919d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e922c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5eafd4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ec2b9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ec462",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ec62c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ec804",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ecee9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ed093",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ed1dd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ed306",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5edcfb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ef0b2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ef7f5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f1e10",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f486b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f9ef5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f9fb0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5fc554",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5fc66c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ff78d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x60109d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x60456f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x6045c6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x605af3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x605b2c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x605d4a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x606c6d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x662504",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_65D950"
+        },
+        {
+          "va": "0x6c7bad",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x7740db",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7729D0"
+        },
+        {
+          "va": "0x783f4d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x7868b0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x7868c4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x7868d8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x78695b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x787c54",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x7889b8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x808f64",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b07b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b1c3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b323",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x867516",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "char *__thiscall sub_417200(char *this)\n{\n  return this + 156;\n}\n"
+    },
+    {
+      "requested_va": "0x420170",
+      "name": "sub_420170",
+      "va": "0x420170",
+      "rva": "0x20170",
+      "end_va": "0x42018b",
+      "type": "int __thiscall(_DWORD *this, _DWORD *)",
+      "chunks": [
+        [
+          "0x420170",
+          "0x42018b"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x420170",
+          "rva": "0x20170",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x420171",
+          "rva": "0x20171",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0x420173",
+          "rva": "0x20173",
+          "bytes": "8b 55 08",
+          "asm": "mov     edx, [ebp+arg_0]",
+          "code_refs": []
+        },
+        {
+          "va": "0x420176",
+          "rva": "0x20176",
+          "bytes": "8b 02",
+          "asm": "mov     eax, [edx]",
+          "code_refs": []
+        },
+        {
+          "va": "0x420178",
+          "rva": "0x20178",
+          "bytes": "89 81 9c 00 00 00",
+          "asm": "mov     [ecx+9Ch], eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x42017e",
+          "rva": "0x2017e",
+          "bytes": "8b 42 04",
+          "asm": "mov     eax, [edx+4]",
+          "code_refs": []
+        },
+        {
+          "va": "0x420181",
+          "rva": "0x20181",
+          "bytes": "89 81 a0 00 00 00",
+          "asm": "mov     [ecx+0A0h], eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x420187",
+          "rva": "0x20187",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x420188",
+          "rva": "0x20188",
+          "bytes": "c2 04 00",
+          "asm": "retn    4",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x5c712c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5B39D0"
+        },
+        {
+          "va": "0x5cee34",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cf5e0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cf74f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cf81e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d081d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0b38",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d12da",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d145d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d14f3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d1855",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d82b1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d86e4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d87da",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d9d51",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d9e7f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d9fe9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da1ec",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da2d0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da3d0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da50e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5dc963",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5de2ef",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e01c1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e29d4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e50e7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e5508",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e6d91",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e6e4d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e6ffd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e70b9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e8372",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e91d8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e9267",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5eb393",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ed218",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ed3a6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5edd8c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ef100",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ef89e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f48db",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x601006",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x601ac9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x603840",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x604809",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x6057c5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x605d62",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x606e1a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x606e76",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x6537b2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x6538fd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x653ada",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x656106",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x66e5a2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x671bf3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x6c60ca",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c631b",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c966d",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x7868bc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x7868d0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x7868e4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x78691a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x786976",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x787c5c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x7899e9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x799e72",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x799ed5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x807bb2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8084e4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80866a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808834",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808871",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808afb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808c6b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808df4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x809029",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8092be",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8095aa",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8096a9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a2ac",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a381",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a476",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a5cb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a61b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a68f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a995",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80aa93",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80abf9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80ad7c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80ae51",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b0a2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b1ea",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b34a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b3dc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b4b4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b554",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b913",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80ba69",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x867511",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "int __thiscall sub_420170(_DWORD *this, _DWORD *a2)\n{\n  int result; // eax\n\n  this[39] = *a2;\n  result = a2[1];\n  this[40] = result;\n  return result;\n}\n"
+    },
+    {
+      "requested_va": "0x417210",
+      "name": "sub_417210",
+      "va": "0x417210",
+      "rva": "0x17210",
+      "end_va": "0x417217",
+      "type": "double __thiscall(float *this)",
+      "chunks": [
+        [
+          "0x417210",
+          "0x417217"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x417210",
+          "rva": "0x17210",
+          "bytes": "d9 81 a4 00 00 00",
+          "asm": "fld     dword ptr [ecx+0A4h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x417216",
+          "rva": "0x17216",
+          "bytes": "c3",
+          "asm": "retn",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x5d9ded",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da152",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5dc8f1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5dc9d8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5de27d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ee398",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f4761",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f92bb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x6215f5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61DA10"
+        },
+        {
+          "va": "0x622fd1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61DA10"
+        },
+        {
+          "va": "0x65a2f7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x79b2d5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x808f34",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x86752c",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "double __thiscall sub_417210(float *this)\n{\n  return this[41];\n}\n"
+    },
+    {
+      "requested_va": "0x43ee80",
+      "name": "sub_43EE80",
+      "va": "0x43ee80",
+      "rva": "0x3ee80",
+      "end_va": "0x43ee94",
+      "type": "void __thiscall(_DWORD *this, int)",
+      "chunks": [
+        [
+          "0x43ee80",
+          "0x43ee94"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x43ee80",
+          "rva": "0x3ee80",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x43ee81",
+          "rva": "0x3ee81",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0x43ee83",
+          "rva": "0x3ee83",
+          "bytes": "f3 0f 10 45 08",
+          "asm": "movss   xmm0, [ebp+arg_0]",
+          "code_refs": []
+        },
+        {
+          "va": "0x43ee88",
+          "rva": "0x3ee88",
+          "bytes": "f3 0f 11 81 a4 00 00 00",
+          "asm": "movss   dword ptr [ecx+0A4h], xmm0",
+          "code_refs": []
+        },
+        {
+          "va": "0x43ee90",
+          "rva": "0x3ee90",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x43ee91",
+          "rva": "0x3ee91",
+          "bytes": "c2 04 00",
+          "asm": "retn    4",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x5ceed6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cefc7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cf0ae",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cfa01",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0e67",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0eee",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0f24",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d12f5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d1478",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d150e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d4845",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d4c6e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d7ec3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d86bb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d87b1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d9e1f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da184",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5dc92f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5dca1c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5de2bb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5de4eb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5de61a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e54d1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e56e1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e5770",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e930a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ee3d1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f478e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f6135",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f92ef",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f9b7e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5fc4cb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5fcfa4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x600692",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x6054bc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x605d2b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x6215ed",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61DA10"
+        },
+        {
+          "va": "0x653457",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x653815",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x6538d2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x653a00",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x65611c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x65a31e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x66dcd6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x66de5a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x66e089",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x66fbd6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x67047f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x6704a7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x670c55",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x671640",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x6c6097",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x7899b9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x7995e2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x867527",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "void __thiscall sub_43EE80(_DWORD *this, int a2)\n{\n  this[41] = a2;\n}\n"
+    },
+    {
+      "requested_va": "0x407410",
+      "name": "sub_407410",
+      "va": "0x407410",
+      "rva": "0x7410",
+      "end_va": "0x407417",
+      "type": "char *__thiscall(char *this)",
+      "chunks": [
+        [
+          "0x407410",
+          "0x407417"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x407410",
+          "rva": "0x7410",
+          "bytes": "8d 81 a8 00 00 00",
+          "asm": "lea     eax, [ecx+0A8h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x407416",
+          "rva": "0x7416",
+          "bytes": "c3",
+          "asm": "retn",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x5b4441",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5B39D0"
+        },
+        {
+          "va": "0x5cf6d2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cf84b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d042f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0438",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0702",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d08d6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0ae4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d12fd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d1516",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d18dd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d4f06",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d4fcf",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d65ae",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d670d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d67c8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d6859",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d6a49",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d6a68",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d6ae2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d6af6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d6bbf",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d6d2c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d6fcb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d7006",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d7f4e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d93db",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d9d5f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d9e8d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d9ff7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da1fa",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da3de",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da3f2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da54a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5dbe39",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5dc874",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5dc971",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5de205",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5de2fd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e024e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e0285",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e0fea",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e1f66",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e225c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e25f2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e260c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e2620",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e3864",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e3878",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e38fe",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e515d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e57cc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e5858",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e74ea",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e83a1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e85f6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5eb4e2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5eb6ce",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ed226",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ed60d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5eed4a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ef26f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ef736",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ef8ee",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5efa52",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5efa66",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5efada",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f07a4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f4703",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f48e9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f9da9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5fcf30",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ff899",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x603103",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x603dd0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x6047d1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x620dda",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61DA10"
+        },
+        {
+          "va": "0x620def",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61DA10"
+        },
+        {
+          "va": "0x653b38",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x653b55",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x653b5f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x653e9a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x65401e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x655c12",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x655cd1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x655de6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x656066",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x65657a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x656789",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x656b86",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x656f13",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x658021",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x659ec9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x65abdb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x65abe4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x65ac2d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x668765",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x668878",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x668960",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x668aae",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x668b6c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x668c74",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x668e2d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669785",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669a42",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669aa3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669b0b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669b6c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669bd4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669c45",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669cb7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669d2c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669da2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669e25",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669e86",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669ee7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669f8a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x669fe4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x66b3d6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x66b99a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x66bc19",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x66c383",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x66e5d9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x671bfb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x672a72",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x6c6db6",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c73c6",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c95db",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c9c97",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c9ccf",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x76fbb9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_763570"
+        },
+        {
+          "va": "0x787bc9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x787bf1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x787c0d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x799644",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x799655",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x79965f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x79eec0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x8080c9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808421",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80842e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808461",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80846e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8084a3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a648",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b049",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b058",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b1ad",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b2ba",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x867542",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        },
+        {
+          "va": "0x8759c3",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_875960"
+        }
+      ],
+      "pseudocode": "char *__thiscall sub_407410(char *this)\n{\n  return this + 168;\n}\n"
+    },
+    {
+      "requested_va": "0x4073d0",
+      "name": "sub_4073D0",
+      "va": "0x4073d0",
+      "rva": "0x73d0",
+      "end_va": "0x407402",
+      "type": "int __thiscall(char *this, int)",
+      "chunks": [
+        [
+          "0x4073d0",
+          "0x407402"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x4073d0",
+          "rva": "0x73d0",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073d1",
+          "rva": "0x73d1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073d3",
+          "rva": "0x73d3",
+          "bytes": "8b 45 08",
+          "asm": "mov     eax, [ebp+arg_0]",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073d6",
+          "rva": "0x73d6",
+          "bytes": "81 c1 a8 00 00 00",
+          "asm": "add     ecx, 0A8h",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073dc",
+          "rva": "0x73dc",
+          "bytes": "3b c8",
+          "asm": "cmp     ecx, eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073de",
+          "rva": "0x73de",
+          "bytes": "74 1e",
+          "asm": "jz      short loc_4073FE",
+          "code_refs": [
+            "0x4073fe"
+          ]
+        },
+        {
+          "va": "0x4073e0",
+          "rva": "0x73e0",
+          "bytes": "0f 10 00",
+          "asm": "movups  xmm0, xmmword ptr [eax]",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073e3",
+          "rva": "0x73e3",
+          "bytes": "0f 11 01",
+          "asm": "movups  xmmword ptr [ecx], xmm0",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073e6",
+          "rva": "0x73e6",
+          "bytes": "0f 10 40 10",
+          "asm": "movups  xmm0, xmmword ptr [eax+10h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073ea",
+          "rva": "0x73ea",
+          "bytes": "0f 11 41 10",
+          "asm": "movups  xmmword ptr [ecx+10h], xmm0",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073ee",
+          "rva": "0x73ee",
+          "bytes": "f3 0f 7e 40 20",
+          "asm": "movq    xmm0, qword ptr [eax+20h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073f3",
+          "rva": "0x73f3",
+          "bytes": "66 0f d6 41 20",
+          "asm": "movq    qword ptr [ecx+20h], xmm0",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073f8",
+          "rva": "0x73f8",
+          "bytes": "8b 40 28",
+          "asm": "mov     eax, [eax+28h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073fb",
+          "rva": "0x73fb",
+          "bytes": "89 41 28",
+          "asm": "mov     [ecx+28h], eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073fe",
+          "rva": "0x73fe",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x4073ff",
+          "rva": "0x73ff",
+          "bytes": "c2 04 00",
+          "asm": "retn    4",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x438d52",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4386F0"
+        },
+        {
+          "va": "0x43b6c6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_43AA90"
+        },
+        {
+          "va": "0x43ca84",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_43AA90"
+        },
+        {
+          "va": "0x441289",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_440F00"
+        },
+        {
+          "va": "0x44474d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_443E50"
+        },
+        {
+          "va": "0x4a1a6f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4A12F0"
+        },
+        {
+          "va": "0x4b60e7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4B43C0"
+        },
+        {
+          "va": "0x4b6650",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4B43C0"
+        },
+        {
+          "va": "0x517048",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5153B0"
+        },
+        {
+          "va": "0x5334d6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_532CF0"
+        },
+        {
+          "va": "0x53a940",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_539B90"
+        },
+        {
+          "va": "0x55ea97",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_55D230"
+        },
+        {
+          "va": "0x561f3d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_561A20"
+        },
+        {
+          "va": "0x5849c0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_584140"
+        },
+        {
+          "va": "0x58cb54",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_58AED0"
+        },
+        {
+          "va": "0x5a6606",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_0"
+        },
+        {
+          "va": "0x5a6a55",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_0"
+        },
+        {
+          "va": "0x5ced90",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cf6ca",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cf843",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cfe1a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0428",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0492",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d051b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0655",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d06fa",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0757",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d079e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d08ce",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d09f1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0a3d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0ac4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0c97",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0d0b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0dfc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d10e0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d1c8e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d4bfc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d65c6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d93f3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5da332",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e016f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e25fe",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e2dc7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e5083",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e67fc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e6d01",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e6f6d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e8612",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5eb58e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5eb602",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5eb65c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5eb6c0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ed66c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5eed3c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ef34a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ef728",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f07f8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f56d7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f9dc1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5fcf76",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x601a62",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x603162",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x6047a8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x6047dd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x60984e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_607620"
+        },
+        {
+          "va": "0x609867",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_607620"
+        },
+        {
+          "va": "0x60b95b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_60B890"
+        },
+        {
+          "va": "0x60ba62",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_60B9D0"
+        },
+        {
+          "va": "0x610b3d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_610540"
+        },
+        {
+          "va": "0x610bab",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_610540"
+        },
+        {
+          "va": "0x61bc96",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61B8C0"
+        },
+        {
+          "va": "0x63f5db",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_63E180"
+        },
+        {
+          "va": "0x643c08",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6437A0"
+        },
+        {
+          "va": "0x653a6c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x655fcf",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x657d86",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x66e5e1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x671d24",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x67934c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6790C0"
+        },
+        {
+          "va": "0x6aed5d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6AE820"
+        },
+        {
+          "va": "0x6c1201",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6C1100"
+        },
+        {
+          "va": "0x6c6dea",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c74f9",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c75e5",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c7f28",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c82c1",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c993b",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c9a95",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c9d20",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6d3704",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6D2E50"
+        },
+        {
+          "va": "0x6d3852",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6D2E50"
+        },
+        {
+          "va": "0x6e5f76",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6E3940"
+        },
+        {
+          "va": "0x719267",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_718FE0"
+        },
+        {
+          "va": "0x77abc8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_779B40"
+        },
+        {
+          "va": "0x7865fd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x787bf9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x787c31",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x789dd1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x78a48e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x78a534",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x78a5a8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x799e10",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x79ef4d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x807ba6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808133",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808272",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8082d7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80832e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8083e0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8083f7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808623",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8086f6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808766",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8087c9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808c5f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808d6d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808dc6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x808ffe",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x809294",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80943e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x809491",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x809551",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80967b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8098d4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a259",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a33b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a463",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a5a1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a60b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a67f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a755",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a7fe",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a948",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80aa6e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80ab8b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80acb3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80ae27",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b051",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b1b5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b311",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b3d0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b48a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b52a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80b8e5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80ba59",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80bf3d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80BD20"
+        },
+        {
+          "va": "0x80c088",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80BD20"
+        },
+        {
+          "va": "0x80c3a8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80BD20"
+        },
+        {
+          "va": "0x80c4e2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80BD20"
+        },
+        {
+          "va": "0x80c691",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80BD20"
+        },
+        {
+          "va": "0x80ca30",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80cd3d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80ce27",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80cf85",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80d113",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80d26c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80d3c0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80d51a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80d6c8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80d81d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80d974",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80dad0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80dc1c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80dd99",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80dfe9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x80e1a2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80C810"
+        },
+        {
+          "va": "0x8109d0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80F200"
+        },
+        {
+          "va": "0x83ee68",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_83EAE0"
+        },
+        {
+          "va": "0x83efee",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_83EAE0"
+        },
+        {
+          "va": "0x844a63",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_843DF0"
+        },
+        {
+          "va": "0x844de0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_843DF0"
+        },
+        {
+          "va": "0x844e74",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_843DF0"
+        },
+        {
+          "va": "0x8469ba",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846a10",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846a6d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846ac0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846b24",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846b7a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846bee",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846c94",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846d34",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846dd8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846e2e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x8c6a3e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8C66A0"
+        },
+        {
+          "va": "0x8c7220",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8C66A0"
+        },
+        {
+          "va": "0x8c7dfa",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8C66A0"
+        },
+        {
+          "va": "0x8f913b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8F90E0"
+        },
+        {
+          "va": "0x8f923b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8F90E0"
+        },
+        {
+          "va": "0x920dc3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_920940"
+        },
+        {
+          "va": "0x9221d6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_921CE0"
+        },
+        {
+          "va": "0x93bfc5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_93B760"
+        },
+        {
+          "va": "0x93c1fd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_93B760"
+        },
+        {
+          "va": "0x93c4b9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_93B760"
+        },
+        {
+          "va": "0x93c7de",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_93B760"
+        },
+        {
+          "va": "0x93c981",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_93B760"
+        },
+        {
+          "va": "0x93cafd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_93B760"
+        },
+        {
+          "va": "0x93cfa0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_93B760"
+        },
+        {
+          "va": "0x93d10a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_93B760"
+        },
+        {
+          "va": "0x93d28c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_93B760"
+        },
+        {
+          "va": "0x95b107",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_95AF30"
+        },
+        {
+          "va": "0x964ac8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_961B00"
+        },
+        {
+          "va": "0x965368",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_961B00"
+        },
+        {
+          "va": "0x966444",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_965D30"
+        },
+        {
+          "va": "0x97a367",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9785D0"
+        },
+        {
+          "va": "0x97c35a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_97BAA0"
+        },
+        {
+          "va": "0x98e70b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_98E4D0"
+        },
+        {
+          "va": "0x98e79d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_98E4D0"
+        },
+        {
+          "va": "0x999061",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_998880"
+        },
+        {
+          "va": "0x9ee09f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9EDE60"
+        },
+        {
+          "va": "0x9ee0d5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9EDE60"
+        },
+        {
+          "va": "0x9ee10b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9EDE60"
+        },
+        {
+          "va": "0x9ee141",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9EDE60"
+        },
+        {
+          "va": "0x86753d",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        },
+        {
+          "va": "0x875a7e",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_875960"
+        }
+      ],
+      "pseudocode": "int __thiscall sub_4073D0(char *this, int a2)\n{\n  int result; // eax\n  char *v3; // ecx\n\n  result = a2;\n  v3 = this + 168;\n  if ( v3 != (char *)a2 )\n  {\n    *(_OWORD *)v3 = *(_OWORD *)a2;\n    *((_OWORD *)v3 + 1) = *(_OWORD *)(a2 + 16);\n    *((_QWORD *)v3 + 4) = *(_QWORD *)(a2 + 32);\n    result = *(_DWORD *)(a2 + 40);\n    *((_DWORD *)v3 + 10) = result;\n  }\n  return result;\n}\n"
+    },
+    {
+      "requested_va": "0x407420",
+      "name": "sub_407420",
+      "va": "0x407420",
+      "rva": "0x7420",
+      "end_va": "0x407427",
+      "type": "char __thiscall(_BYTE *this)",
+      "chunks": [
+        [
+          "0x407420",
+          "0x407427"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x407420",
+          "rva": "0x7420",
+          "bytes": "8a 81 00 01 00 00",
+          "asm": "mov     al, [ecx+100h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x407426",
+          "rva": "0x7426",
+          "bytes": "c3",
+          "asm": "retn",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x5d47f0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d4c19",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e92b5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x808f7e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x867570",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "char __thiscall sub_407420(_BYTE *this)\n{\n  return this[256];\n}\n"
+    },
+    {
+      "requested_va": "0x435c60",
+      "name": "sub_435C60",
+      "va": "0x435c60",
+      "rva": "0x35c60",
+      "end_va": "0x435c70",
+      "type": "char __thiscall(_BYTE *this, char)",
+      "chunks": [
+        [
+          "0x435c60",
+          "0x435c70"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x435c60",
+          "rva": "0x35c60",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x435c61",
+          "rva": "0x35c61",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0x435c63",
+          "rva": "0x35c63",
+          "bytes": "8a 45 08",
+          "asm": "mov     al, [ebp+arg_0]",
+          "code_refs": []
+        },
+        {
+          "va": "0x435c66",
+          "rva": "0x35c66",
+          "bytes": "88 81 00 01 00 00",
+          "asm": "mov     [ecx+100h], al",
+          "code_refs": []
+        },
+        {
+          "va": "0x435c6c",
+          "rva": "0x35c6c",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x435c6d",
+          "rva": "0x35c6d",
+          "bytes": "c2 04 00",
+          "asm": "retn    4",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x5cf0c9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cf64a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cf711",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5cff36",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d083b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0b6f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0c0e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0d35",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d0d5f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d1280",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d19f8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5d800f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d942c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5dfa95",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e3f0c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e4021",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e4113",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e7c9a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ef234",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f2ba3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f2cbc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f45e8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f5c85",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f99a5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ff1af",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x620d0b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61DA10"
+        },
+        {
+          "va": "0x621911",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61DA10"
+        },
+        {
+          "va": "0x653862",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x6539ea",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x670489",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x6704dc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x670505",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x6c62e7",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x86756b",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "char __thiscall sub_435C60(_BYTE *this, char a2)\n{\n  char result; // al\n\n  result = a2;\n  this[256] = a2;\n  return result;\n}\n"
+    },
+    {
+      "requested_va": "0x407430",
+      "name": "sub_407430",
+      "va": "0x407430",
+      "rva": "0x7430",
+      "end_va": "0x407437",
+      "type": "char __thiscall(_BYTE *this)",
+      "chunks": [
+        [
+          "0x407430",
+          "0x407437"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x407430",
+          "rva": "0x7430",
+          "bytes": "8a 81 01 01 00 00",
+          "asm": "mov     al, [ecx+101h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x407436",
+          "rva": "0x7436",
+          "bytes": "c3",
+          "asm": "retn",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x6537de",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x808fa7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x867584",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "char __thiscall sub_407430(_BYTE *this)\n{\n  return this[257];\n}\n"
+    },
+    {
+      "requested_va": "0x505b50",
+      "name": "sub_505B50",
+      "va": "0x505b50",
+      "rva": "0x105b50",
+      "end_va": "0x505b60",
+      "type": "char __thiscall(_BYTE *this, char)",
+      "chunks": [
+        [
+          "0x505b50",
+          "0x505b60"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x505b50",
+          "rva": "0x105b50",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x505b51",
+          "rva": "0x105b51",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0x505b53",
+          "rva": "0x105b53",
+          "bytes": "8a 45 08",
+          "asm": "mov     al, [ebp+arg_0]",
+          "code_refs": []
+        },
+        {
+          "va": "0x505b56",
+          "rva": "0x105b56",
+          "bytes": "88 81 01 01 00 00",
+          "asm": "mov     [ecx+101h], al",
+          "code_refs": []
+        },
+        {
+          "va": "0x505b5c",
+          "rva": "0x105b5c",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x505b5d",
+          "rva": "0x105b5d",
+          "bytes": "c2 04 00",
+          "asm": "retn    4",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x5ef261",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f2b87",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f2ca0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f5b79",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f5cb2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f99d2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x6536c2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x653755",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x67050f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x86757f",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "char __thiscall sub_505B50(_BYTE *this, char a2)\n{\n  char result; // al\n\n  result = a2;\n  this[257] = a2;\n  return result;\n}\n"
+    },
+    {
+      "requested_va": "0x456360",
+      "name": "sub_456360",
+      "va": "0x456360",
+      "rva": "0x56360",
+      "end_va": "0x456367",
+      "type": null,
+      "chunks": [
+        [
+          "0x456360",
+          "0x456367"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x456360",
+          "rva": "0x56360",
+          "bytes": "d9 81 04 01 00 00",
+          "asm": "fld     dword ptr [ecx+104h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x456366",
+          "rva": "0x56366",
+          "bytes": "c3",
+          "asm": "retn",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x6c61fd",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x86759a",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "double __thiscall sub_456360(float *this)\n{\n  return this[65];\n}\n"
+    },
+    {
+      "requested_va": "0x440e50",
+      "name": "sub_440E50",
+      "va": "0x440e50",
+      "rva": "0x40e50",
+      "end_va": "0x440e64",
+      "type": null,
+      "chunks": [
+        [
+          "0x440e50",
+          "0x440e64"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x440e50",
+          "rva": "0x40e50",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x440e51",
+          "rva": "0x40e51",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0x440e53",
+          "rva": "0x40e53",
+          "bytes": "f3 0f 10 45 08",
+          "asm": "movss   xmm0, [ebp+arg_0]",
+          "code_refs": []
+        },
+        {
+          "va": "0x440e58",
+          "rva": "0x40e58",
+          "bytes": "f3 0f 11 81 04 01 00 00",
+          "asm": "movss   dword ptr [ecx+104h], xmm0",
+          "code_refs": []
+        },
+        {
+          "va": "0x440e60",
+          "rva": "0x40e60",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x440e61",
+          "rva": "0x40e61",
+          "bytes": "c2 04 00",
+          "asm": "retn    4",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x5d0872",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5CDB20"
+        },
+        {
+          "va": "0x5dacd8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e97f8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5e9843",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x620dbc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61DA10"
+        },
+        {
+          "va": "0x654afe",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x66e521",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x789175",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x7891b8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x79a214",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x79a4db",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x867595",
+          "type": 1,
+          "iscode": false,
+          "function": "sub_866960"
+        }
+      ],
+      "pseudocode": "void __thiscall sub_440E50(_DWORD *this, int a2)\n{\n  this[65] = a2;\n}\n"
+    },
+    {
+      "requested_va": "0x407170",
+      "name": "sub_407170",
+      "va": "0x407170",
+      "rva": "0x7170",
+      "end_va": "0x4071bf",
+      "type": "_DWORD *__thiscall(_DWORD *this)",
+      "chunks": [
+        [
+          "0x407170",
+          "0x4071bf"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x407170",
+          "rva": "0x7170",
+          "bytes": "c7 01 00 00 80 3f",
+          "asm": "mov     dword ptr [ecx], 3F800000h",
+          "code_refs": []
+        },
+        {
+          "va": "0x407176",
+          "rva": "0x7176",
+          "bytes": "8b c1",
+          "asm": "mov     eax, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0x407178",
+          "rva": "0x7178",
+          "bytes": "c7 41 04 00 00 80 3f",
+          "asm": "mov     dword ptr [ecx+4], 3F800000h",
+          "code_refs": []
+        },
+        {
+          "va": "0x40717f",
+          "rva": "0x717f",
+          "bytes": "c7 41 08 00 00 80 3f",
+          "asm": "mov     dword ptr [ecx+8], 3F800000h",
+          "code_refs": []
+        },
+        {
+          "va": "0x407186",
+          "rva": "0x7186",
+          "bytes": "c7 41 0c 00 00 80 3f",
+          "asm": "mov     dword ptr [ecx+0Ch], 3F800000h",
+          "code_refs": []
+        },
+        {
+          "va": "0x40718d",
+          "rva": "0x718d",
+          "bytes": "c7 41 10 00 00 00 00",
+          "asm": "mov     dword ptr [ecx+10h], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0x407194",
+          "rva": "0x7194",
+          "bytes": "c7 41 14 00 00 00 00",
+          "asm": "mov     dword ptr [ecx+14h], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0x40719b",
+          "rva": "0x719b",
+          "bytes": "c7 41 18 00 00 00 00",
+          "asm": "mov     dword ptr [ecx+18h], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071a2",
+          "rva": "0x71a2",
+          "bytes": "c7 41 1c 00 00 00 00",
+          "asm": "mov     dword ptr [ecx+1Ch], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071a9",
+          "rva": "0x71a9",
+          "bytes": "c7 41 20 00 00 00 00",
+          "asm": "mov     dword ptr [ecx+20h], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071b0",
+          "rva": "0x71b0",
+          "bytes": "c7 41 24 00 00 00 00",
+          "asm": "mov     dword ptr [ecx+24h], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071b7",
+          "rva": "0x71b7",
+          "bytes": "c7 41 28 00 00 00 00",
+          "asm": "mov     dword ptr [ecx+28h], 0",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071be",
+          "rva": "0x71be",
+          "bytes": "c3",
+          "asm": "retn",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x40fc6e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_40ED50"
+        },
+        {
+          "va": "0x40fcde",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_40ED50"
+        },
+        {
+          "va": "0x40fd4e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_40ED50"
+        },
+        {
+          "va": "0x40fdbe",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_40ED50"
+        },
+        {
+          "va": "0x40fe49",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_40ED50"
+        },
+        {
+          "va": "0x40fed8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_40ED50"
+        },
+        {
+          "va": "0x4120d8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_40ED50"
+        },
+        {
+          "va": "0x41329e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_40ED50"
+        },
+        {
+          "va": "0x42b8f9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_42B7C0"
+        },
+        {
+          "va": "0x4352ef",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_435290"
+        },
+        {
+          "va": "0x435312",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_435290"
+        },
+        {
+          "va": "0x43755c",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_tzdb_get_time_zones@0"
+        },
+        {
+          "va": "0x4375cc",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_tzdb_get_time_zones@0"
+        },
+        {
+          "va": "0x437b93",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_tzdb_get_time_zones@0"
+        },
+        {
+          "va": "0x438298",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_tzdb_get_time_zones@0"
+        },
+        {
+          "va": "0x43838f",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_tzdb_get_time_zones@0"
+        },
+        {
+          "va": "0x438e40",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4386F0"
+        },
+        {
+          "va": "0x43b566",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_43AA90"
+        },
+        {
+          "va": "0x444dd5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_444CC0"
+        },
+        {
+          "va": "0x44a3d9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_44A040"
+        },
+        {
+          "va": "0x44c139",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_44C070"
+        },
+        {
+          "va": "0x44f60f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_44F2B0"
+        },
+        {
+          "va": "0x44fa1e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_44F2B0"
+        },
+        {
+          "va": "0x4651f2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_463100"
+        },
+        {
+          "va": "0x467f00",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_467670"
+        },
+        {
+          "va": "0x467fbd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_467670"
+        },
+        {
+          "va": "0x468056",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_467670"
+        },
+        {
+          "va": "0x4680f0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_467670"
+        },
+        {
+          "va": "0x46dce2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_46C0A0"
+        },
+        {
+          "va": "0x472720",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_471CC0"
+        },
+        {
+          "va": "0x473019",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_472C40"
+        },
+        {
+          "va": "0x4732cb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_472C40"
+        },
+        {
+          "va": "0x4733bd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_472C40"
+        },
+        {
+          "va": "0x47388b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_472C40"
+        },
+        {
+          "va": "0x473b83",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_472C40"
+        },
+        {
+          "va": "0x473dd3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_472C40"
+        },
+        {
+          "va": "0x47dd21",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_47D8A0"
+        },
+        {
+          "va": "0x485f83",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4855B0"
+        },
+        {
+          "va": "0x48f030",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_48EE30"
+        },
+        {
+          "va": "0x4965d9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_495610"
+        },
+        {
+          "va": "0x49bfa8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_499DE0"
+        },
+        {
+          "va": "0x49efd1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_49D130"
+        },
+        {
+          "va": "0x4a0b83",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_49FA10"
+        },
+        {
+          "va": "0x4b3265",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4B1EE0"
+        },
+        {
+          "va": "0x4b3765",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4B3610"
+        },
+        {
+          "va": "0x4b386c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4B3610"
+        },
+        {
+          "va": "0x4be2cf",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4BD2A0"
+        },
+        {
+          "va": "0x4d1f87",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4D1290"
+        },
+        {
+          "va": "0x4d7adb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4D77B0"
+        },
+        {
+          "va": "0x4d97e0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4D9000"
+        },
+        {
+          "va": "0x4e28d8",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_tzdb_get_time_zones@0_0"
+        },
+        {
+          "va": "0x4e66dc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4E6570"
+        },
+        {
+          "va": "0x4e7986",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4E6570"
+        },
+        {
+          "va": "0x4e9c16",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4E9B10"
+        },
+        {
+          "va": "0x4ebb15",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4EA3D0"
+        },
+        {
+          "va": "0x4ebbeb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4EA3D0"
+        },
+        {
+          "va": "0x4f12ed",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4EFB90"
+        },
+        {
+          "va": "0x4f18c6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4EFB90"
+        },
+        {
+          "va": "0x4f62c5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4F5F20"
+        },
+        {
+          "va": "0x4f62e4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4F5F20"
+        },
+        {
+          "va": "0x4f6a86",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4F64E0"
+        },
+        {
+          "va": "0x4f98b4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4F8DF0"
+        },
+        {
+          "va": "0x4fa988",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4F9AD0"
+        },
+        {
+          "va": "0x4fe496",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4FDF80"
+        },
+        {
+          "va": "0x4feae9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4FDF80"
+        },
+        {
+          "va": "0x5055b3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5052A0"
+        },
+        {
+          "va": "0x505e17",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_505D00"
+        },
+        {
+          "va": "0x506569",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_506320"
+        },
+        {
+          "va": "0x509131",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_508F40"
+        },
+        {
+          "va": "0x50bac1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_50AF90"
+        },
+        {
+          "va": "0x50c8d6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_50C370"
+        },
+        {
+          "va": "0x50e571",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_50E4D0"
+        },
+        {
+          "va": "0x50f7f2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_50F280"
+        },
+        {
+          "va": "0x510f5e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_510AE0"
+        },
+        {
+          "va": "0x511e27",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5111B0"
+        },
+        {
+          "va": "0x513032",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_512110"
+        },
+        {
+          "va": "0x513331",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_513080"
+        },
+        {
+          "va": "0x513c44",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5135D0"
+        },
+        {
+          "va": "0x51a143",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_518E20"
+        },
+        {
+          "va": "0x520dc1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_520C60"
+        },
+        {
+          "va": "0x521bf9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_521AB0"
+        },
+        {
+          "va": "0x5229fc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_522430"
+        },
+        {
+          "va": "0x5275c3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_526470"
+        },
+        {
+          "va": "0x527d8e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_526470"
+        },
+        {
+          "va": "0x527f3f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_526470"
+        },
+        {
+          "va": "0x532bf4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5321D0"
+        },
+        {
+          "va": "0x53fe6b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_53E4A0"
+        },
+        {
+          "va": "0x54f55c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_54EB80"
+        },
+        {
+          "va": "0x5529f9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5522D0"
+        },
+        {
+          "va": "0x552c06",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5522D0"
+        },
+        {
+          "va": "0x55ea8e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_55D230"
+        },
+        {
+          "va": "0x56b4e3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_569170"
+        },
+        {
+          "va": "0x56bcbd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_569170"
+        },
+        {
+          "va": "0x56e9c0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_56CD60"
+        },
+        {
+          "va": "0x56f471",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_56CD60"
+        },
+        {
+          "va": "0x580161",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_57E4A0"
+        },
+        {
+          "va": "0x581f02",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_581730"
+        },
+        {
+          "va": "0x585c40",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_584140"
+        },
+        {
+          "va": "0x58d041",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_58AED0"
+        },
+        {
+          "va": "0x59299a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_592460"
+        },
+        {
+          "va": "0x592b98",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_592460"
+        },
+        {
+          "va": "0x596e06",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_596C60"
+        },
+        {
+          "va": "0x599376",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5983F0"
+        },
+        {
+          "va": "0x59a5aa",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_59A2D0"
+        },
+        {
+          "va": "0x59a738",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_59A2D0"
+        },
+        {
+          "va": "0x59bf71",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_59BED0"
+        },
+        {
+          "va": "0x5a0ccc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_59EDB0"
+        },
+        {
+          "va": "0x5a1043",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_59EDB0"
+        },
+        {
+          "va": "0x5a5115",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5A4820"
+        },
+        {
+          "va": "0x5ac7fc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5AB4D0"
+        },
+        {
+          "va": "0x5affc5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5AF800"
+        },
+        {
+          "va": "0x5b1123",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5AF800"
+        },
+        {
+          "va": "0x5b52e5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5B39D0"
+        },
+        {
+          "va": "0x5b62bb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5B39D0"
+        },
+        {
+          "va": "0x5bc211",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5B39D0"
+        },
+        {
+          "va": "0x5c0afc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5B39D0"
+        },
+        {
+          "va": "0x5c20ba",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5B39D0"
+        },
+        {
+          "va": "0x5c2531",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5B39D0"
+        },
+        {
+          "va": "0x5d37a4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D2A70"
+        },
+        {
+          "va": "0x5d3b02",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D2A70"
+        },
+        {
+          "va": "0x5d7641",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5d94c6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f2184",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f55bd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5fa313",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x608854",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_607620"
+        },
+        {
+          "va": "0x60898d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_607620"
+        },
+        {
+          "va": "0x608c52",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_607620"
+        },
+        {
+          "va": "0x608da0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_607620"
+        },
+        {
+          "va": "0x6105aa",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_610540"
+        },
+        {
+          "va": "0x610fee",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_610540"
+        },
+        {
+          "va": "0x613d57",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_613C20"
+        },
+        {
+          "va": "0x61f7f1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61DA10"
+        },
+        {
+          "va": "0x6229e7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61DA10"
+        },
+        {
+          "va": "0x623524",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61DA10"
+        },
+        {
+          "va": "0x639ab6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_639750"
+        },
+        {
+          "va": "0x655fc6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x656045",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x658792",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x6589c5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x660a69",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_65D950"
+        },
+        {
+          "va": "0x663b81",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_663AA0"
+        },
+        {
+          "va": "0x668c53",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x67331d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x67ebff",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_67EA60"
+        },
+        {
+          "va": "0x6aca75",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6AC920"
+        },
+        {
+          "va": "0x6af28d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6AE820"
+        },
+        {
+          "va": "0x6b2184",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6B2000"
+        },
+        {
+          "va": "0x6c108d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6C0F30"
+        },
+        {
+          "va": "0x6c5776",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c5db0",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c75c9",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c7f0c",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c82a2",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6cdb70",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6CD410"
+        },
+        {
+          "va": "0x6d231a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6D18D0"
+        },
+        {
+          "va": "0x6d5f44",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6D5400"
+        },
+        {
+          "va": "0x6d68a6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6D6690"
+        },
+        {
+          "va": "0x6eadd4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6E8AE0"
+        },
+        {
+          "va": "0x6fce68",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6FBC10"
+        },
+        {
+          "va": "0x70c04c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_70C000"
+        },
+        {
+          "va": "0x70c0a4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_70C000"
+        },
+        {
+          "va": "0x70fcb9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_70FB60"
+        },
+        {
+          "va": "0x70fcfb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_70FB60"
+        },
+        {
+          "va": "0x7100c9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_70FB60"
+        },
+        {
+          "va": "0x710167",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_70FB60"
+        },
+        {
+          "va": "0x7101ff",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_70FB60"
+        },
+        {
+          "va": "0x716a93",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_716760"
+        },
+        {
+          "va": "0x716b89",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_716B10"
+        },
+        {
+          "va": "0x716c54",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_716B10"
+        },
+        {
+          "va": "0x71925e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_718FE0"
+        },
+        {
+          "va": "0x7199f5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7197D0"
+        },
+        {
+          "va": "0x71c84d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_71B410"
+        },
+        {
+          "va": "0x7615cd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_75F0E0"
+        },
+        {
+          "va": "0x769c92",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_763570"
+        },
+        {
+          "va": "0x76a3ce",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_763570"
+        },
+        {
+          "va": "0x76fbd7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_763570"
+        },
+        {
+          "va": "0x774641",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7729D0"
+        },
+        {
+          "va": "0x77893c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7729D0"
+        },
+        {
+          "va": "0x77c38a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_77B020"
+        },
+        {
+          "va": "0x77fdc9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_77B020"
+        },
+        {
+          "va": "0x784217",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x785af5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x786239",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x786e6d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x786e78",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x7873fa",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x789b0c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x78a554",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x793c99",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_793970"
+        },
+        {
+          "va": "0x793e78",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_793970"
+        },
+        {
+          "va": "0x794036",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_793970"
+        },
+        {
+          "va": "0x79579d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x795d27",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x796120",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x79623a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x79a56d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x7a1594",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7A1090"
+        },
+        {
+          "va": "0x7a1e8c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7A1090"
+        },
+        {
+          "va": "0x7a1efc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7A1090"
+        },
+        {
+          "va": "0x7a2ccf",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7A23A0"
+        },
+        {
+          "va": "0x7a2d0e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7A23A0"
+        },
+        {
+          "va": "0x7a2e3a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7A23A0"
+        },
+        {
+          "va": "0x7a2e82",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7A23A0"
+        },
+        {
+          "va": "0x7acb52",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7AC7E0"
+        },
+        {
+          "va": "0x7b97fb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7B8CB0"
+        },
+        {
+          "va": "0x7bce48",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7BC740"
+        },
+        {
+          "va": "0x7c4ba8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7C4180"
+        },
+        {
+          "va": "0x7c4ced",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7C4180"
+        },
+        {
+          "va": "0x7c4f54",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7C4180"
+        },
+        {
+          "va": "0x7c55f0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7C4180"
+        },
+        {
+          "va": "0x7c56a5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7C4180"
+        },
+        {
+          "va": "0x7c5734",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7C4180"
+        },
+        {
+          "va": "0x7c57c6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7C4180"
+        },
+        {
+          "va": "0x7c5846",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7C4180"
+        },
+        {
+          "va": "0x7c6308",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7C4180"
+        },
+        {
+          "va": "0x7d74b8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_7D7290"
+        },
+        {
+          "va": "0x81059e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80F200"
+        },
+        {
+          "va": "0x8109c4",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80F200"
+        },
+        {
+          "va": "0x8111a3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80F200"
+        },
+        {
+          "va": "0x811676",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80F200"
+        },
+        {
+          "va": "0x8125eb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_80F200"
+        },
+        {
+          "va": "0x83ed87",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_83EAE0"
+        },
+        {
+          "va": "0x846a08",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846ab8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846b72",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x846e26",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8453C0"
+        },
+        {
+          "va": "0x8470ef",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_846FF0"
+        },
+        {
+          "va": "0x848731",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8471C0"
+        },
+        {
+          "va": "0x84a065",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_849510"
+        },
+        {
+          "va": "0x84a144",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_849510"
+        },
+        {
+          "va": "0x8d5594",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8D5440"
+        },
+        {
+          "va": "0x8d5749",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8D5640"
+        },
+        {
+          "va": "0x8d58f3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8D57F0"
+        },
+        {
+          "va": "0x8d5b88",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_8D5990"
+        },
+        {
+          "va": "0x93ede2",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_93EA00"
+        },
+        {
+          "va": "0x9687a3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_968660"
+        },
+        {
+          "va": "0x96880a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_968660"
+        },
+        {
+          "va": "0x974ff6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_973C60"
+        },
+        {
+          "va": "0x97536e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_973C60"
+        },
+        {
+          "va": "0x976a69",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_973C60"
+        },
+        {
+          "va": "0x978031",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_977CC0"
+        },
+        {
+          "va": "0x982557",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_982100"
+        },
+        {
+          "va": "0x98a5e5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_98A040"
+        },
+        {
+          "va": "0x98e794",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_98E4D0"
+        },
+        {
+          "va": "0x9a7ff8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9A7C90"
+        },
+        {
+          "va": "0x9decad",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9DCC70"
+        },
+        {
+          "va": "0x9df596",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9DCC70"
+        },
+        {
+          "va": "0x9dfa04",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9DCC70"
+        },
+        {
+          "va": "0x9dfc5b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9DCC70"
+        },
+        {
+          "va": "0x9dfe9f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9DFC90"
+        },
+        {
+          "va": "0x9f2669",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9F24B0"
+        },
+        {
+          "va": "0x9f26de",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9F24B0"
+        },
+        {
+          "va": "0x9fd4b5",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9FA450"
+        },
+        {
+          "va": "0x9fd865",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9FA450"
+        },
+        {
+          "va": "0x9fdaca",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9FA450"
+        }
+      ],
+      "pseudocode": "_DWORD *__thiscall sub_407170(_DWORD *this)\n{\n  _DWORD *result; // eax\n\n  *this = 1065353216;\n  result = this;\n  this[1] = 1065353216;\n  this[2] = 1065353216;\n  this[3] = 1065353216;\n  this[4] = 0;\n  this[5] = 0;\n  this[6] = 0;\n  this[7] = 0;\n  this[8] = 0;\n  this[9] = 0;\n  this[10] = 0;\n  return result;\n}\n"
+    },
+    {
+      "requested_va": "0x4071c0",
+      "name": "sub_4071C0",
+      "va": "0x4071c0",
+      "rva": "0x71c0",
+      "end_va": "0x4071ea",
+      "type": "_OWORD *__thiscall(_OWORD *this, int)",
+      "chunks": [
+        [
+          "0x4071c0",
+          "0x4071ea"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x4071c0",
+          "rva": "0x71c0",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071c1",
+          "rva": "0x71c1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071c3",
+          "rva": "0x71c3",
+          "bytes": "8b 45 08",
+          "asm": "mov     eax, [ebp+arg_0]",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071c6",
+          "rva": "0x71c6",
+          "bytes": "0f 10 00",
+          "asm": "movups  xmm0, xmmword ptr [eax]",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071c9",
+          "rva": "0x71c9",
+          "bytes": "0f 11 01",
+          "asm": "movups  xmmword ptr [ecx], xmm0",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071cc",
+          "rva": "0x71cc",
+          "bytes": "0f 10 40 10",
+          "asm": "movups  xmm0, xmmword ptr [eax+10h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071d0",
+          "rva": "0x71d0",
+          "bytes": "0f 11 41 10",
+          "asm": "movups  xmmword ptr [ecx+10h], xmm0",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071d4",
+          "rva": "0x71d4",
+          "bytes": "f3 0f 7e 40 20",
+          "asm": "movq    xmm0, qword ptr [eax+20h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071d9",
+          "rva": "0x71d9",
+          "bytes": "66 0f d6 41 20",
+          "asm": "movq    qword ptr [ecx+20h], xmm0",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071de",
+          "rva": "0x71de",
+          "bytes": "8b 40 28",
+          "asm": "mov     eax, [eax+28h]",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071e1",
+          "rva": "0x71e1",
+          "bytes": "89 41 28",
+          "asm": "mov     [ecx+28h], eax",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071e4",
+          "rva": "0x71e4",
+          "bytes": "8b c1",
+          "asm": "mov     eax, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071e6",
+          "rva": "0x71e6",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x4071e7",
+          "rva": "0x71e7",
+          "bytes": "c2 04 00",
+          "asm": "retn    4",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x409283",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_409120"
+        },
+        {
+          "va": "0x4092c3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_409120"
+        },
+        {
+          "va": "0x4092f7",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_409120"
+        },
+        {
+          "va": "0x409303",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_409120"
+        },
+        {
+          "va": "0x40930c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_409120"
+        },
+        {
+          "va": "0x40baf8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_40B600"
+        },
+        {
+          "va": "0x43ca69",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_43AA90"
+        },
+        {
+          "va": "0x47dfd6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_47D8A0"
+        },
+        {
+          "va": "0x4a4dfa",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4A3040"
+        },
+        {
+          "va": "0x4e6c8b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_4E6570"
+        },
+        {
+          "va": "0x503fd8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_503AF0"
+        },
+        {
+          "va": "0x530689",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_52DB50"
+        },
+        {
+          "va": "0x53a922",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_539B90"
+        },
+        {
+          "va": "0x5ed619",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5ef27b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f07b0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5f17bd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x5fcf3c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x600ba3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x60310f",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_5D4380"
+        },
+        {
+          "va": "0x6080e9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_607620"
+        },
+        {
+          "va": "0x608dcc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_607620"
+        },
+        {
+          "va": "0x6097da",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_607620"
+        },
+        {
+          "va": "0x60a49e",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_607620"
+        },
+        {
+          "va": "0x60a4b8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_607620"
+        },
+        {
+          "va": "0x61bc54",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_61B8C0"
+        },
+        {
+          "va": "0x653ea6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x655cdd",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x65834a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_653070"
+        },
+        {
+          "va": "0x668771",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x6687a6",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x66a040",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x671fbc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6670F0"
+        },
+        {
+          "va": "0x675484",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_673660"
+        },
+        {
+          "va": "0x6754b3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_673660"
+        },
+        {
+          "va": "0x6c6dc2",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c73d2",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6c9ca3",
+          "type": 17,
+          "iscode": true,
+          "function": "___std_fs_get_stats@16_1"
+        },
+        {
+          "va": "0x6d33f9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_6D2E50"
+        },
+        {
+          "va": "0x76fd23",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_763570"
+        },
+        {
+          "va": "0x76ff90",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_763570"
+        },
+        {
+          "va": "0x77d390",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_77B020"
+        },
+        {
+          "va": "0x77e5cc",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_77B020"
+        },
+        {
+          "va": "0x77e7b3",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_77B020"
+        },
+        {
+          "va": "0x787bd1",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x787c15",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_782AF0"
+        },
+        {
+          "va": "0x79484c",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_793970"
+        },
+        {
+          "va": "0x796ba8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_794E50"
+        },
+        {
+          "va": "0x806f79",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x807e41",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x807ed0",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80860a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8086d8",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8087ab",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a085",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a311",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a57d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80a7da",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80aa4a",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80ab6d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x80ac95",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_806C20"
+        },
+        {
+          "va": "0x8210c9",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_820FD0"
+        },
+        {
+          "va": "0x821150",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_820FD0"
+        },
+        {
+          "va": "0x844dcf",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_843DF0"
+        },
+        {
+          "va": "0x964a90",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_961B00"
+        },
+        {
+          "va": "0x97a160",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9785D0"
+        },
+        {
+          "va": "0x97a327",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9785D0"
+        },
+        {
+          "va": "0x97aa1b",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9785D0"
+        },
+        {
+          "va": "0x97ab47",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9785D0"
+        },
+        {
+          "va": "0x97b12d",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_9785D0"
+        }
+      ],
+      "pseudocode": "_OWORD *__thiscall sub_4071C0(_OWORD *this, int a2)\n{\n  *this = *(_OWORD *)a2;\n  this[1] = *(_OWORD *)(a2 + 16);\n  *((_QWORD *)this + 4) = *(_QWORD *)(a2 + 32);\n  *((_DWORD *)this + 10) = *(_DWORD *)(a2 + 40);\n  return this;\n}\n"
+    },
+    {
+      "requested_va": "0x40c6f0",
+      "name": "sub_40C6F0",
+      "va": "0x40c6f0",
+      "rva": "0xc6f0",
+      "end_va": "0x40c71b",
+      "type": "int()",
+      "chunks": [
+        [
+          "0x40c6f0",
+          "0x40c71b"
+        ]
+      ],
+      "instructions": [
+        {
+          "va": "0x40c6f0",
+          "rva": "0xc6f0",
+          "bytes": "55",
+          "asm": "push    ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c6f1",
+          "rva": "0xc6f1",
+          "bytes": "8b ec",
+          "asm": "mov     ebp, esp",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c6f3",
+          "rva": "0xc6f3",
+          "bytes": "83 e4 f8",
+          "asm": "and     esp, 0FFFFFFF8h",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c6f6",
+          "rva": "0xc6f6",
+          "bytes": "8b 0d c0 8d c7 00",
+          "asm": "mov     ecx, dword_C78DC0",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c6fc",
+          "rva": "0xc6fc",
+          "bytes": "83 ec 08",
+          "asm": "sub     esp, 8",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c6ff",
+          "rva": "0xc6ff",
+          "bytes": "03 0d bc 8d c7 00",
+          "asm": "add     ecx, dword_C78DBC",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c705",
+          "rva": "0xc705",
+          "bytes": "8b 15 b8 8d c7 00",
+          "asm": "mov     edx, dword_C78DB8",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c70b",
+          "rva": "0xc70b",
+          "bytes": "49",
+          "asm": "dec     ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c70c",
+          "rva": "0xc70c",
+          "bytes": "a1 b4 8d c7 00",
+          "asm": "mov     eax, Src",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c711",
+          "rva": "0xc711",
+          "bytes": "4a",
+          "asm": "dec     edx",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c712",
+          "rva": "0xc712",
+          "bytes": "23 d1",
+          "asm": "and     edx, ecx",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c714",
+          "rva": "0xc714",
+          "bytes": "8b 04 90",
+          "asm": "mov     eax, [eax+edx*4]",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c717",
+          "rva": "0xc717",
+          "bytes": "8b e5",
+          "asm": "mov     esp, ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c719",
+          "rva": "0xc719",
+          "bytes": "5d",
+          "asm": "pop     ebp",
+          "code_refs": []
+        },
+        {
+          "va": "0x40c71a",
+          "rva": "0xc71a",
+          "bytes": "c3",
+          "asm": "retn",
+          "code_refs": []
+        }
+      ],
+      "xrefs_to": [
+        {
+          "va": "0x4092eb",
+          "type": 17,
+          "iscode": true,
+          "function": "sub_409120"
+        }
+      ],
+      "pseudocode": "int sub_40C6F0()\n{\n  return *((_DWORD *)Src + ((dword_C78DBC + dword_C78DC0 - 1) & (dword_C78DB8 - 1)));\n}\n"
+    }
+  ],
+  "tables": [],
+  "ranges": [],
+  "string_terms": [],
+  "strings": [],
+  "xref_records": [],
+  "symbol_terms": [],
+  "symbols": [],
+  "limitations": [
+    "No runtime observations",
+    "IDB and disk file identity not asserted",
+    "Decompiler types are not a complete ABI",
+    "IDA xrefs do not enumerate all dynamic targets"
+  ]
+}

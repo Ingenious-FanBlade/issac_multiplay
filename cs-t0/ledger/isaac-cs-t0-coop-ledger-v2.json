@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 2,
+  "ledgerIdentity": "IsaacCsT0-CoopLedger-v2",
+  "workPackage": "CS-T0-05-01",
+  "createdUtc": "2026-08-27T08:55:00Z",
+  "status": "PASS",
+  "supersedes": "isaac-cs-t0-coop-ledger.json",
+  "supersedesSha256": "DC2E8F5B81929B84AB281779CF3F056F96BAE5446B7F3ED2173200A52421227C",
+  "evidenceDomain": "T0-05_LOCAL_COOP_STATIC",
+  "predecessor": {
+    "bootstrapDecisionPath": "../coop-bootstrap-decision-v1.json",
+    "bootstrapDecisionIdentity": "IsaacCsT0-CoopBootstrapDecision-v1",
+    "bootstrapDecisionSha256": "7EB5004E368A478EBB3CC83149BB05E70F7876C4384A511557EEC9188D1D7598",
+    "status": "PASS",
+    "csT00501Unlocked": true
+  },
+  "targetIdentity": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedApprovedUnpackedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "equivalenceDocumentSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+    "canonicalAndObservedMayNotBeMixed": true
+  },
+  "artifactBindings": [
+    { "path": "../coop-static-evidence-v1.json", "identity": "IsaacCsT0-CoopStaticEvidence-v1", "sha256": "501B39DEB198E7F1424328069534438ADC73BA665D1E6988AFA4AD7939DB081B" },
+    { "path": "../coop-static-graph-v1.json", "identity": "IsaacCsT0-CoopStaticGraph-v1", "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934" },
+    { "path": "../coop-catalog-v2.json", "identity": "IsaacCsT0-CoopCatalog-v2", "sha256": "1059711778DAD09870D37118571EE7D5E67761EC28FFAB84C7CF5AC5998A0224" }
+  ],
+  "frozenEvidenceLabels": [
+    "RUNTIME_CONFIRMED",
+    "STATIC_CONFIRMED",
+    "EXPERIMENT_CONTRACT",
+    "REJECTED_HYPOTHESIS",
+    "UNKNOWN"
+  ],
+  "candidateResolutions": [
+    { "id": "local-coop-manager", "resolution": "RESOLVED", "evidenceLabel": "STATIC_CONFIRMED" },
+    { "id": "local-coop-native-join", "resolution": "RESOLVED", "evidenceLabel": "STATIC_CONFIRMED" },
+    { "id": "local-coop-native-exit", "resolution": "RESOLVED", "evidenceLabel": "STATIC_CONFIRMED" },
+    { "id": "local-coop-hud-player-index", "resolution": "RESOLVED", "evidenceLabel": "STATIC_CONFIRMED" },
+    { "id": "local-coop-lua-player-order", "resolution": "RESOLVED", "evidenceLabel": "STATIC_CONFIRMED" },
+    { "id": "local-coop-virtual-device", "resolution": "UNKNOWN", "evidenceLabel": "UNKNOWN" }
+  ],
+  "staticContract": {
+    "managerOwnerClosed": true,
+    "victoryLapCallerClassified": true,
+    "ordinaryJoinRouteClosed": true,
+    "ordinaryExitRouteClosed": true,
+    "playerVectorInsertRemoveClosed": true,
+    "assignmentClosed": true,
+    "hudAndIndexClosed": true,
+    "luaPublicationRetirementClosed": true,
+    "onlineVectorGuardClosed": true,
+    "onlinePartitionExcluded": true,
+    "observerSlotCount": 8,
+    "combinedSlotCount": 53,
+    "missingEvidence": []
+  },
+  "artifactRules": {
+    "createNewOnly": true,
+    "supersedesAndPriorShaRequiredForRevision": true,
+    "sourceAndAnalysisOverwriteAllowed": false,
+    "allFormalInputsHashBound": true,
+    "repositoryRelativePathsOnly": true,
+    "absoluteUserPathsAllowed": false,
+    "rawPeerIdentityAllowed": false,
+    "processPointersAllowed": false,
+    "platformHandlesAllowed": false
+  },
+  "permissions": {
+    "activeInputAllowed": false,
+    "runtimeMutationAllowed": false,
+    "liveAuthorizationCreated": false,
+    "productionActiveInputAllowed": false,
+    "t005Unlocked": false,
+    "csT00502Unlocked": true
+  },
+  "exitGate": {
+    "staticEvidenceComplete": true,
+    "graphRoutesComplete": true,
+    "onlinePartitionIsolated": true,
+    "fabricatedUnknownFieldCount": 0,
+    "missingEvidenceCount": 0,
+    "result": "PASS"
+  }
+}

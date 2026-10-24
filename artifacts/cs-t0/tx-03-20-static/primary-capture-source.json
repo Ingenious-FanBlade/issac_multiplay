@@ -1,0 +1,631 @@
+{
+  "tx": "tx-03-20",
+  "evidence": "STATIC_SOURCE_READ_ONLY",
+  "sources": [
+    {
+      "path": "cs-t0/native/src/loop_runtime.cpp",
+      "sections": [
+        {
+          "start_line": 1020,
+          "end_line": null,
+          "lines": []
+        },
+        {
+          "start_line": 1038,
+          "end_line": null,
+          "lines": []
+        }
+      ]
+    },
+    {
+      "path": "cs-t0/native/src/world_record.cpp",
+      "sections": [
+        {
+          "start_line": 1442,
+          "end_line": 1450,
+          "lines": [
+            {
+              "line": 1442,
+              "text": "const Spec kPlayer[]{"
+            },
+            {
+              "line": 1443,
+              "text": "    {0x101,0x13C0,4,Encoding::Raw},{0x102,0x161C,4,Encoding::Raw},{0x103,0x13BC,4,Encoding::Raw},"
+            },
+            {
+              "line": 1444,
+              "text": "    {0x104,0x1340,4,Encoding::Raw},{0x105,0x1344,4,Encoding::Raw},{0x106,0x1348,4,Encoding::Raw},"
+            },
+            {
+              "line": 1445,
+              "text": "    {0x107,0x134C,4,Encoding::Raw},{0x108,0x1350,4,Encoding::Raw},{0x109,0x1D88,4,Encoding::Raw},"
+            },
+            {
+              "line": 1446,
+              "text": "    {0x10A,0x194C,4,Encoding::Raw},{0x10B,0x1DA0,4,Encoding::Raw},{0x10C,0x1DA4,4,Encoding::Raw},"
+            },
+            {
+              "line": 1447,
+              "text": "    {0x10D,0x1D98,4,Encoding::Reference},{0x10E,0x1E68,4,Encoding::Reference},"
+            },
+            {
+              "line": 1448,
+              "text": "    {0x10F,0x1E6C,4,Encoding::Reference},{0x110,0x26C8,4,Encoding::Reference}};"
+            },
+            {
+              "line": 1449,
+              "text": "const Spec kNpc[]{{0x201,0x410,4,Encoding::Raw},{0x202,0xB64,4,Encoding::Raw},"
+            },
+            {
+              "line": 1450,
+              "text": "    {0x203,0xBA0,4,Encoding::Raw},{0x204,0xBA4,4,Encoding::Raw}};"
+            }
+          ]
+        },
+        {
+          "start_line": 1660,
+          "end_line": 1707,
+          "lines": [
+            {
+              "line": 1660,
+              "text": "void FinishBatch(Batch& batch) noexcept"
+            },
+            {
+              "line": 1661,
+              "text": "{"
+            },
+            {
+              "line": 1662,
+              "text": "    if(batch.authority==1) {"
+            },
+            {
+              "line": 1663,
+              "text": "        g_post_state={batch.complete?coop_active::PostStateStatus::Complete:coop_active::PostStateStatus::Gap,"
+            },
+            {
+              "line": 1664,
+              "text": "            batch.reason,batch.tick,batch.attempt,batch.capture};"
+            },
+            {
+              "line": 1665,
+              "text": "        g_pending_batch.store(&batch,std::memory_order_release);"
+            },
+            {
+              "line": 1666,
+              "text": "        return; // Keep WRITING until the Authority completed tick is committed."
+            },
+            {
+              "line": 1667,
+              "text": "    }"
+            },
+            {
+              "line": 1668,
+              "text": "    MemoryBarrier();InterlockedExchange(&batch.state,2);Notify();"
+            },
+            {
+              "line": 1669,
+              "text": "}"
+            },
+            {
+              "line": 1670,
+              "text": "void Capture(Reason initial) noexcept"
+            },
+            {
+              "line": 1671,
+              "text": "{"
+            },
+            {
+              "line": 1672,
+              "text": "    g_post_run=g_run;g_post_room=g_room;g_post_token=g_token.value;"
+            },
+            {
+              "line": 1673,
+              "text": "    g_post_state={coop_active::PostStateStatus::Unavailable,static_cast<std::uint32_t>(Reason::Stopped),g_token.tick,0,0};"
+            },
+            {
+              "line": 1674,
+              "text": "    if(!Next(g_attempt))return;"
+            },
+            {
+              "line": 1675,
+              "text": "    g_post_state.attempt=g_attempt;"
+            },
+            {
+              "line": 1676,
+              "text": "    InterlockedExchange64(&g_shared->attempts,static_cast<LONG64>(g_attempt));"
+            },
+            {
+              "line": 1677,
+              "text": "#if defined(ISAAC_CS_WORLD_E2E)"
+            },
+            {
+              "line": 1678,
+              "text": "    e2e::Context(g_token.value,g_token.tick,g_attempt);"
+            },
+            {
+              "line": 1679,
+              "text": "    const auto window=loop::CurrentObservationContext();"
+            },
+            {
+              "line": 1680,
+              "text": "    std::uint32_t facts[14]{static_cast<std::uint32_t>(window.loop_iteration),static_cast<std::uint32_t>(window.loop_iteration>>32)};"
+            },
+            {
+              "line": 1681,
+              "text": "    coop_active::CopyWorldE2EWindowFacts(facts+2);"
+            },
+            {
+              "line": 1682,
+              "text": "    facts[8]=g_lifecycle_depth;facts[9]=g_retired?1u:0u;facts[10]=g_token.dirty?1u:0u;"
+            },
+            {
+              "line": 1683,
+              "text": "    facts[11]=g_token.owner_enter;facts[12]=g_token.room_enter;facts[13]=g_token.tail_enter;"
+            },
+            {
+              "line": 1684,
+              "text": "    e2e::Record(e2e::Kind::Window,static_cast<std::uint32_t>(initial),facts,14);"
+            },
+            {
+              "line": 1685,
+              "text": "    if(initial==Reason::None && e2e::Pending(e2e::Fault::EventOverflow)) {"
+            },
+            {
+              "line": 1686,
+              "text": "        // Explicit collector-owned diagnostic delivery, not a fabricated game"
+            },
+            {
+              "line": 1687,
+              "text": "        // lifecycle event. Emit's actual capacity-failure branch consumes it."
+            },
+            {
+              "line": 1688,
+              "text": "        const std::uint32_t delivery[]{1,static_cast<std::uint32_t>(e2e::Fault::EventOverflow)};"
+            },
+            {
+              "line": 1689,
+              "text": "        e2e::Record(e2e::Kind::DiagnosticDelivery,0,delivery,2);"
+            },
+            {
+              "line": 1690,
+              "text": "        Emit(UINT32_MAX,false,nullptr,0,0,Reason::None,3);"
+            },
+            {
+              "line": 1691,
+              "text": "        if(!Enabled())return;"
+            },
+            {
+              "line": 1692,
+              "text": "    }"
+            },
+            {
+              "line": 1693,
+              "text": "#endif"
+            },
+            {
+              "line": 1694,
+              "text": "    Batch* selected=nullptr;"
+            },
+            {
+              "line": 1695,
+              "text": "    for(auto& batch:g_shared->batches)if(InterlockedCompareExchange(&batch.state,1,0)==0){selected=&batch;break;}"
+            },
+            {
+              "line": 1696,
+              "text": "    if(!selected){g_post_state.status=coop_active::PostStateStatus::Backpressure;"
+            },
+            {
+              "line": 1697,
+              "text": "        g_post_state.reason=static_cast<std::uint32_t>(Reason::Backpressure);"
+            },
+            {
+              "line": 1698,
+              "text": "        InterlockedIncrement64(&g_shared->backpressure);Emit(UINT32_MAX,false,nullptr,0,0,Reason::Backpressure,3);return;}"
+            },
+            {
+              "line": 1699,
+              "text": "    auto& batch=*selected;batch.reason=static_cast<std::uint32_t>(initial);"
+            },
+            {
+              "line": 1700,
+              "text": "    batch.run=g_run;batch.room=g_room;batch.mutation=g_mutation;batch.attempt=g_attempt;"
+            },
+            {
+              "line": 1701,
+              "text": "    batch.capture=0;batch.outer=g_token.value;batch.tick=g_token.tick;batch.scope=g_token.scope;"
+            },
+            {
+              "line": 1702,
+              "text": "    batch.authority=g_token.commits==1?1u:0u;batch.commit_kind=g_token.commit_kind;"
+            },
+            {
+              "line": 1703,
+              "text": "    batch.thread=GetCurrentThreadId();batch.complete=initial==Reason::None?1u:0u;"
+            },
+            {
+              "line": 1704,
+              "text": "    batch.object_count=0;batch.membership_count=0;batch.required_objects=0;batch.required_memberships=0;"
+            },
+            {
+              "line": 1705,
+              "text": "    batch.sources.fill({});"
+            },
+            {
+              "line": 1706,
+              "text": "    if(initial!=Reason::None) {FinishBatch(batch);return;}"
+            },
+            {
+              "line": 1707,
+              "text": "    e2e::Context(g_token.value,g_token.tick,g_attempt);e2e::BeginCopy();"
+            }
+          ]
+        },
+        {
+          "start_line": 1778,
+          "end_line": 1813,
+          "lines": [
+            {
+              "line": 1778,
+              "text": "        ResolveReferences(batch);"
+            },
+            {
+              "line": 1779,
+              "text": "        std::uint32_t after_root=0,after_room=0;"
+            },
+            {
+              "line": 1780,
+              "text": "        const bool roots_stable=!e2e::Take(e2e::Fault::RootChanged) && U32(root_slot,after_root) && after_root==root &&"
+            },
+            {
+              "line": 1781,
+              "text": "            U32(static_cast<std::uint64_t>(root)+0x18300,after_room) && after_room==room &&"
+            },
+            {
+              "line": 1782,
+              "text": "            g_mutation==g_token.mutation && !g_lifecycle_depth;"
+            },
+            {
+              "line": 1783,
+              "text": "        if(!roots_stable){Incomplete(batch,Reason::RootChanged);Error(Reason::RootChanged);}"
+            },
+            {
+              "line": 1784,
+              "text": "        const bool source_complete=std::all_of(batch.sources.begin(),batch.sources.begin()+13,"
+            },
+            {
+              "line": 1785,
+              "text": "            [](const auto& source){return source.status==0;});"
+            },
+            {
+              "line": 1786,
+              "text": "        if(source_complete && roots_stable) {"
+            },
+            {
+              "line": 1787,
+              "text": "            for(std::uint32_t i=0;i<g_identities_used;++i) {"
+            },
+            {
+              "line": 1788,
+              "text": "                auto& identity=g_identities[i];const auto memberships=g_current_memberships[i];"
+            },
+            {
+              "line": 1789,
+              "text": "                if((identity.membership_attempt || memberships) &&"
+            },
+            {
+              "line": 1790,
+              "text": "                    (!identity.membership_attempt || identity.memberships!=memberships)) {"
+            },
+            {
+              "line": 1791,
+              "text": "                    // This describes source views, not physical destruction."
+            },
+            {
+              "line": 1792,
+              "text": "                    Emit(UINT32_MAX,false,&identity,identity.address,memberships,Reason::None,7);"
+            },
+            {
+              "line": 1793,
+              "text": "                }"
+            },
+            {
+              "line": 1794,
+              "text": "                if(identity.membership_attempt || memberships) {"
+            },
+            {
+              "line": 1795,
+              "text": "                    identity.memberships=memberships;identity.membership_attempt=g_attempt;"
+            },
+            {
+              "line": 1796,
+              "text": "                }"
+            },
+            {
+              "line": 1797,
+              "text": "            }"
+            },
+            {
+              "line": 1798,
+              "text": "        }"
+            },
+            {
+              "line": 1799,
+              "text": "        if(!Next(g_capture)){Incomplete(batch,Reason::SequenceExhausted);}"
+            },
+            {
+              "line": 1800,
+              "text": "        else {batch.capture=g_capture;InterlockedExchange64(&g_shared->captures,static_cast<LONG64>(g_capture));}"
+            },
+            {
+              "line": 1801,
+              "text": "    }"
+            },
+            {
+              "line": 1802,
+              "text": "#if defined(ISAAC_CS_WORLD_E2E)"
+            },
+            {
+              "line": 1803,
+              "text": "    for(std::uint32_t i=0;i<batch.object_count;++i) {"
+            },
+            {
+              "line": 1804,
+              "text": "        const auto& rng=g_rng_audit[i];const auto& object=batch.objects[i];"
+            },
+            {
+              "line": 1805,
+              "text": "        if(!rng.eligible)continue;"
+            },
+            {
+              "line": 1806,
+              "text": "        std::uint32_t words[11]{rng.domain,rng.address};std::memcpy(words+2,rng.before.data(),16);"
+            },
+            {
+              "line": 1807,
+              "text": "        const bool after=Read(static_cast<std::uint64_t>(rng.address)+(rng.domain==1?0x2Cu:0x3DCu),words+6,16);"
+            },
+            {
+              "line": 1808,
+              "text": "        words[10]=(rng.valid?1u:0u)|(after?2u:0u);"
+            },
+            {
+              "line": 1809,
+              "text": "        e2e::Record(e2e::Kind::Rng,(rng.valid && after && !std::memcmp(words+2,words+6,16))?0u:1u,"
+            },
+            {
+              "line": 1810,
+              "text": "                    words,11,object.id,object.use);"
+            },
+            {
+              "line": 1811,
+              "text": "    }"
+            },
+            {
+              "line": 1812,
+              "text": "#endif"
+            },
+            {
+              "line": 1813,
+              "text": "    FinishBatch(batch);"
+            }
+          ]
+        },
+        {
+          "start_line": 1961,
+          "end_line": 1989,
+          "lines": [
+            {
+              "line": 1961,
+              "text": "void StageEvent(Stage stage,bool entering,void* owner) noexcept"
+            },
+            {
+              "line": 1962,
+              "text": "{"
+            },
+            {
+              "line": 1963,
+              "text": "    if(!Enabled() || !MainThread())return;"
+            },
+            {
+              "line": 1964,
+              "text": "    if(stage==Stage::Outer) {"
+            },
+            {
+              "line": 1965,
+              "text": "        if(entering) {"
+            },
+            {
+              "line": 1966,
+              "text": "            if(g_pending_batch.load(std::memory_order_acquire)) {PublishPostState(false);Error(Reason::UnpairedScope);return;}"
+            },
+            {
+              "line": 1967,
+              "text": "            g_post_state={coop_active::PostStateStatus::Unavailable,static_cast<std::uint32_t>(Reason::Stopped),0,0,0};"
+            },
+            {
+              "line": 1968,
+              "text": "            g_post_run=0;g_post_room=0;g_post_token=0;"
+            },
+            {
+              "line": 1969,
+              "text": "            if(g_token.value){Error(Reason::UnpairedScope);return;}"
+            },
+            {
+              "line": 1970,
+              "text": "            if(!Next(g_outer))return;g_token={};g_token.value=g_outer;g_token.mutation=g_mutation;"
+            },
+            {
+              "line": 1971,
+              "text": "            e2e::Context(g_token.value,0,g_attempt);"
+            },
+            {
+              "line": 1972,
+              "text": "            const std::uint32_t words[]{1};e2e::Record(e2e::Kind::Stage,0,words,1);"
+            },
+            {
+              "line": 1973,
+              "text": "            if(g_lifecycle_depth || g_retired)g_token.dirty=true;"
+            },
+            {
+              "line": 1974,
+              "text": "        } else {"
+            },
+            {
+              "line": 1975,
+              "text": "            if(!g_token.value){Error(Reason::UnpairedScope);return;}"
+            },
+            {
+              "line": 1976,
+              "text": "            Reason reason=Reason::None;"
+            },
+            {
+              "line": 1977,
+              "text": "            if(g_depth){Error(Reason::Continuity);reason=Reason::Continuity;}"
+            },
+            {
+              "line": 1978,
+              "text": "            else if(g_token.dirty || g_mutation!=g_token.mutation || g_lifecycle_depth)reason=Reason::Lifecycle;"
+            },
+            {
+              "line": 1979,
+              "text": "            else if(g_token.commit_kind==2)reason=Reason::OddOnly;"
+            },
+            {
+              "line": 1980,
+              "text": "            else if(g_token.owner_enter!=1 || g_token.owner_exit!=1 || g_token.room_enter!=1 ||"
+            },
+            {
+              "line": 1981,
+              "text": "                g_token.room_exit!=1 || g_token.tail_enter!=1 || g_token.tail_exit!=1 ||"
+            },
+            {
+              "line": 1982,
+              "text": "                g_token.owner_active || g_token.room_active || g_token.tail_active)reason=Reason::PhaseIncomplete;"
+            },
+            {
+              "line": 1983,
+              "text": "            __declspec(align(16)) std::uint8_t fp[512];"
+            },
+            {
+              "line": 1984,
+              "text": "            __asm {fxsave fp}"
+            },
+            {
+              "line": 1985,
+              "text": "            Capture(reason);"
+            },
+            {
+              "line": 1986,
+              "text": "            __asm {fxrstor fp}"
+            },
+            {
+              "line": 1987,
+              "text": "            const std::uint32_t words[]{0,static_cast<std::uint32_t>(reason),g_token.commits};"
+            },
+            {
+              "line": 1988,
+              "text": "            e2e::Record(e2e::Kind::Stage,0,words,3);"
+            },
+            {
+              "line": 1989,
+              "text": "            g_token={};"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "cs-t0/native/src/coop_active_runtime.cpp",
+      "sections": [
+        {
+          "start_line": 1373,
+          "end_line": 1387,
+          "lines": [
+            {
+              "line": 1373,
+              "text": "void Authority(bool entering,void* owner,void* return_address,void*) noexcept"
+            },
+            {
+              "line": 1374,
+              "text": "{"
+            },
+            {
+              "line": 1375,
+              "text": "    Callback callback;"
+            },
+            {
+              "line": 1376,
+              "text": "    if(!MainThread()) {if(Enabled()) Fail(Error::Thread);return;}"
+            },
+            {
+              "line": 1377,
+              "text": "    const auto boundary=CurrentTickBoundary(owner,return_address);"
+            },
+            {
+              "line": 1378,
+              "text": "    if(entering) {"
+            },
+            {
+              "line": 1379,
+              "text": "        if(g_tick_call.observed) {RejectTick(TickDecision::Reentry,boundary);return;}"
+            },
+            {
+              "line": 1380,
+              "text": "        g_tick_call={boundary,true};"
+            },
+            {
+              "line": 1381,
+              "text": "    } else {"
+            },
+            {
+              "line": 1382,
+              "text": "        if(!g_tick_call.observed) {"
+            },
+            {
+              "line": 1383,
+              "text": "            if(Enabled() && g_authority_session.AcceptsInput()) RejectTick(TickDecision::WrongReturn,boundary);"
+            },
+            {
+              "line": 1384,
+              "text": "            return;"
+            },
+            {
+              "line": 1385,
+              "text": "        }"
+            },
+            {
+              "line": 1386,
+              "text": "        const auto expected=g_tick_call.boundary;g_tick_call.observed=false;"
+            },
+            {
+              "line": 1387,
+              "text": "        if(!(expected==boundary)) {RejectTick(TickDecision::WrongReturn,boundary);return;}"
+            }
+          ]
+        },
+        {
+          "start_line": 1487,
+          "end_line": 1489,
+          "lines": [
+            {
+              "line": 1487,
+              "text": "        // World Commit is the normal native-return witness, not completed_tick."
+            },
+            {
+              "line": 1488,
+              "text": "        // Outer/tail collection follows; publication waits for TopExit below."
+            },
+            {
+              "line": 1489,
+              "text": "        world::Commit(g_tick_pipeline.Status().candidate,static_cast<std::uint32_t>(boundary.kind));"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Source excerpts only, no execution or installed Hook claim",
+    "No hashes or tests"
+  ]
+}

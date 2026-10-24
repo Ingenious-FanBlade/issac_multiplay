@@ -1,0 +1,15 @@
+{
+  "tx": "tx-01-55",
+  "scene": "Fresh process at main menu, isolated Offline Continue save containing only A; do not Continue before capture starts",
+  "steps": [
+    "Build and install the observer once while still at the main menu. No reinjection or process restart during acceptance.",
+    "Mark before-continue. User clicks Continue exactly once; wait for actual native state apply, Loading/LoadingExit, gameplay recovery and the single B Join.",
+    "Arm bounded read-only repetitions with queries. Wait for that control to be consumed before sending script, since they share one control slot.",
+    "User briefly moves and holds/releases attack in normal gameplay. B freshly replays the fixture in this same capture; observe zero and nonzero Pressed/Scalar plus Triggered repeated reads.",
+    "Record actual loaded/gameplay behavior separately. Do not use extra world updates, repeated consumer execution, or injected lifecycle labels to manufacture evidence.",
+    "Return to main menu and keep the process running. Normal stop once, retain resident root/DLL, restore all 48 Hook targets and analyze this capture once."
+  ],
+  "failure": ["No actual alternate transaction supporting Loading labels", "Nonneutral apply or tick/submit during loading recovery", "Repeated reads change value or any Participant state", "Duplicate world/edge application, transport/native error, incomplete restoration"],
+  "missing": "NOT_OBSERVED",
+  "automaticRetry": false
+}

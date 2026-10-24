@@ -1,0 +1,734 @@
+{
+  "tx": "tx-03-15",
+  "date": "2026-10-23",
+  "timezone": "Asia/Shanghai",
+  "result": "PASS_STATIC_DOCUMENT_REVIEW_ONLY",
+  "execution": "One final unified static document review after all research and edits. No game, build, code tests, injection or debugger operation.",
+  "agent": {
+    "role": "Sprite replacement researched by child and independently reviewed/corrected by primary",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "max"
+  },
+  "semantic_review": "Primary read registration and actual Lua closures, native ABI, bytewise comparison, candidate versus assigned pair state, separate pair owners, ANM bind/parse/count/reset/sweep and normal failure branches, plus bounded draw geometry. Script checks artifact consistency only.",
+  "revisions": [
+    "Actual Lua closures found beyond the initial child scope",
+    "Separate old destination and by-value source cleanup",
+    "Candidate status does not validate final pair retain"
+  ],
+  "limitations": [
+    "No runtime resources, leak, UAF, crash, pixels, thread ID or HGLRC observed",
+    "Conditional count and failed-Load borrowed-state derivations are not universal runtime findings",
+    "Zero-layer, OOM, EH, invalid control, full XML failure and concurrency not closed",
+    "Draw RNG gameplay uses unknown",
+    "No Replica, resource adapter or native rollback implemented",
+    "No hash computation or verification"
+  ],
+  "checks": [
+    {
+      "name": "document:docs/research/tx-03-15-sprite-replacement-reload.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->tx-03-15-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->tx-03-15-luna-sprite-replacement.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->../../artifacts/cs-t0/tx-03-15-static/primary-reload-initial.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->../../artifacts/cs-t0/tx-03-15-static/primary-anm-cache.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->../../artifacts/cs-t0/tx-03-15-static/primary-replacement-flow.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->../../artifacts/cs-t0/tx-03-15-static/primary-loader-failure-context.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->../../artifacts/cs-t0/tx-03-15-static/primary-binding-context.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->../../artifacts/cs-t0/tx-03-15-static/primary-lua-wrappers.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->../../artifacts/cs-t0/tx-03-15-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->tx-03-13-sprite-image-resources.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->tx-03-14-renderer-context-lifecycle.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->tx-03-15-primary-review.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-sprite-replacement-reload.md->../../artifacts/cs-t0/tx-03-15-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-15-sprite-replacement-reload.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 11. Object offsets are not RVAs."
+    },
+    {
+      "name": "document:docs/research/tx-03-15-primary-review.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-primary-review.md->tx-03-15-sprite-replacement-reload.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-primary-review.md->tx-03-15-luna-sprite-replacement.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-primary-review.md->../../artifacts/cs-t0/tx-03-15-static",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-primary-review.md->../../artifacts/cs-t0/tx-03-15-static/luna-sprite-replacement.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-primary-review.md->../../artifacts/cs-t0/tx-03-15-static/luna-sprite-path-compare.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-primary-review.md->../../artifacts/cs-t0/tx-03-15-static/primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-primary-review.md->../../artifacts/cs-t0/tx-03-15-static/export_static.py",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-primary-review.md->../../artifacts/cs-t0/tx-03-15-static/luna-export-sprite-replacement.py",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-primary-review.md->../../artifacts/cs-t0/tx-03-15-static/luna-export-sprite-path-compare.py",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-primary-review.md->../../artifacts/cs-t0/tx-03-15-static/review_documents.ps1",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-primary-review.md->../../artifacts/cs-t0/tx-03-15-static/final-static-review.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-15-primary-review.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Object offsets are not RVAs."
+    },
+    {
+      "name": "document:docs/research/tx-03-15-luna-sprite-replacement.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-luna-sprite-replacement.md->../../artifacts/cs-t0/tx-03-15-static/luna-sprite-replacement.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-luna-sprite-replacement.md->../../artifacts/cs-t0/tx-03-15-static/luna-sprite-path-compare.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-luna-sprite-replacement.md->../../artifacts/cs-t0/tx-03-15-static/luna-export-sprite-replacement.py",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-luna-sprite-replacement.md->../../artifacts/cs-t0/tx-03-15-static/luna-export-sprite-path-compare.py",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-luna-sprite-replacement.md->../../artifacts/cs-t0/tx-03-15-static/primary-binding-context.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/research/tx-03-15-luna-sprite-replacement.md->../../artifacts/cs-t0/tx-03-15-static/primary-lua-wrappers.json",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/research/tx-03-15-luna-sprite-replacement.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 22. Object offsets are not RVAs."
+    },
+    {
+      "name": "document:docs/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/README.md",
+      "pass": true,
+      "detail": "Updated entry includes this research; historical entries are not rewritten."
+    },
+    {
+      "name": "link:docs/README.md->research/tx-03-15-sprite-replacement-reload.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/README.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Object offsets are not RVAs."
+    },
+    {
+      "name": "document:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Updated entry includes this research; historical entries are not rewritten."
+    },
+    {
+      "name": "link:docs/hooks/README.md->../research/tx-03-15-sprite-replacement-reload.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/hooks/README.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Object offsets are not RVAs."
+    },
+    {
+      "name": "document:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Updated entry includes this research; historical entries are not rewritten."
+    },
+    {
+      "name": "link:docs/hooks/entity.md->../research/tx-03-15-sprite-replacement-reload.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/hooks/entity.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Object offsets are not RVAs."
+    },
+    {
+      "name": "document:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Document exists."
+    },
+    {
+      "name": "entry:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Updated entry includes this research; historical entries are not rewritten."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-15-sprite-replacement-reload.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "link:docs/design/state-synchronization.md->../research/tx-03-15-sprite-replacement-reload.md",
+      "pass": true,
+      "detail": "Local reference resolves; result artifact is created at completion."
+    },
+    {
+      "name": "document-addresses:docs/design/state-synchronization.md",
+      "pass": true,
+      "detail": "Explicit VA/RVA pairs checked: 0. Object offsets are not RVAs."
+    },
+    {
+      "name": "json:luna-sprite-path-compare.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:luna-sprite-path-compare.json",
+      "pass": true,
+      "detail": "Static function/instruction and registration-context VA/RVA agree. No pointer-table assumptions needed."
+    },
+    {
+      "name": "json:luna-sprite-replacement.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:luna-sprite-replacement.json",
+      "pass": true,
+      "detail": "Static function/instruction and registration-context VA/RVA agree. No pointer-table assumptions needed."
+    },
+    {
+      "name": "json:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "json:primary-anm-cache.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-anm-cache.json",
+      "pass": true,
+      "detail": "Static function/instruction and registration-context VA/RVA agree. No pointer-table assumptions needed."
+    },
+    {
+      "name": "json:primary-binding-context.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-binding-context.json",
+      "pass": true,
+      "detail": "Static function/instruction and registration-context VA/RVA agree. No pointer-table assumptions needed."
+    },
+    {
+      "name": "json:primary-loader-failure-context.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-loader-failure-context.json",
+      "pass": true,
+      "detail": "Static function/instruction and registration-context VA/RVA agree. No pointer-table assumptions needed."
+    },
+    {
+      "name": "json:primary-lua-wrappers.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-lua-wrappers.json",
+      "pass": true,
+      "detail": "Static function/instruction and registration-context VA/RVA agree. No pointer-table assumptions needed."
+    },
+    {
+      "name": "json:primary-reload-initial.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-reload-initial.json",
+      "pass": true,
+      "detail": "Static function/instruction and registration-context VA/RVA agree. No pointer-table assumptions needed."
+    },
+    {
+      "name": "json:primary-replacement-flow.json",
+      "pass": true,
+      "detail": "Readable JSON."
+    },
+    {
+      "name": "addresses:primary-replacement-flow.json",
+      "pass": true,
+      "detail": "Static function/instruction and registration-context VA/RVA agree. No pointer-table assumptions needed."
+    },
+    {
+      "name": "evidence:primary-reload-initial.json",
+      "pass": true,
+      "detail": "Required evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-anm-cache.json",
+      "pass": true,
+      "detail": "Required evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-replacement-flow.json",
+      "pass": true,
+      "detail": "Required evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-loader-failure-context.json",
+      "pass": true,
+      "detail": "Required evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-binding-context.json",
+      "pass": true,
+      "detail": "Required evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-lua-wrappers.json",
+      "pass": true,
+      "detail": "Required evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:primary-acquisition-notes.json",
+      "pass": true,
+      "detail": "Required evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:luna-sprite-replacement.json",
+      "pass": true,
+      "detail": "Required evidence/acquisition record exists."
+    },
+    {
+      "name": "evidence:luna-sprite-path-compare.json",
+      "pass": true,
+      "detail": "Required evidence/acquisition record exists."
+    },
+    {
+      "name": "source:export_static.py",
+      "pass": true,
+      "detail": "Read-only acquisition source supplied; not executed by this review."
+    },
+    {
+      "name": "source:luna-export-sprite-replacement.py",
+      "pass": true,
+      "detail": "Read-only acquisition source supplied; not executed by this review."
+    },
+    {
+      "name": "source:luna-export-sprite-path-compare.py",
+      "pass": true,
+      "detail": "Read-only acquisition source supplied; not executed by this review."
+    },
+    {
+      "name": "instruction:0x40beab",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40beb1",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40beb9",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40bd60",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40bd83",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40bd89",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40bda1",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40bdab",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40bdb2",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x407f3d",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40dde3",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40ddf9",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40de85",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40df52",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40df91",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40e02e",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40c043",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40c048",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40c0c9",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40c13b",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40c146",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40c14d",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40c1b0",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-reload-initial.json."
+    },
+    {
+      "name": "instruction:0x40bf87",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-anm-cache.json."
+    },
+    {
+      "name": "instruction:0x40bfb3",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-anm-cache.json."
+    },
+    {
+      "name": "instruction:0x40e26e",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-anm-cache.json."
+    },
+    {
+      "name": "instruction:0x40e42c",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-anm-cache.json."
+    },
+    {
+      "name": "instruction:0x40e4a0",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-anm-cache.json."
+    },
+    {
+      "name": "instruction:0x40e4bb",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-anm-cache.json."
+    },
+    {
+      "name": "instruction:0x89ef1f",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-binding-context.json."
+    },
+    {
+      "name": "instruction:0x89ef25",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-binding-context.json."
+    },
+    {
+      "name": "instruction:0x89f048",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-binding-context.json."
+    },
+    {
+      "name": "instruction:0x8a9a40",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-lua-wrappers.json."
+    },
+    {
+      "name": "instruction:0x8a9ac8",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-lua-wrappers.json."
+    },
+    {
+      "name": "instruction:0x8a9b10",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-lua-wrappers.json."
+    },
+    {
+      "name": "instruction:0x8a9b36",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-lua-wrappers.json."
+    },
+    {
+      "name": "instruction:0x8a9788",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-lua-wrappers.json."
+    },
+    {
+      "name": "instruction:0x8a978b",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-lua-wrappers.json."
+    },
+    {
+      "name": "instruction:0x409af0",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-replacement-flow.json."
+    },
+    {
+      "name": "instruction:0x409b7d",
+      "pass": true,
+      "detail": "Reviewed raw instruction in primary-replacement-flow.json."
+    },
+    {
+      "name": "registration:0x86730a",
+      "pass": true,
+      "detail": "Named native binding instruction."
+    },
+    {
+      "name": "independent-registration:0x86730a",
+      "pass": true,
+      "detail": "Independent primary range and child full-function bytes agree."
+    },
+    {
+      "name": "registration:0x86730f",
+      "pass": true,
+      "detail": "Named native binding instruction."
+    },
+    {
+      "name": "independent-registration:0x86730f",
+      "pass": true,
+      "detail": "Independent primary range and child full-function bytes agree."
+    },
+    {
+      "name": "registration:0x86731f",
+      "pass": true,
+      "detail": "Named native binding instruction."
+    },
+    {
+      "name": "independent-registration:0x86731f",
+      "pass": true,
+      "detail": "Independent primary range and child full-function bytes agree."
+    },
+    {
+      "name": "registration:0x867324",
+      "pass": true,
+      "detail": "Named native binding instruction."
+    },
+    {
+      "name": "independent-registration:0x867324",
+      "pass": true,
+      "detail": "Independent primary range and child full-function bytes agree."
+    },
+    {
+      "name": "registration:0x867334",
+      "pass": true,
+      "detail": "Named native binding instruction."
+    },
+    {
+      "name": "independent-registration:0x867334",
+      "pass": true,
+      "detail": "Independent primary range and child full-function bytes agree."
+    },
+    {
+      "name": "registration:0x867339",
+      "pass": true,
+      "detail": "Named native binding instruction."
+    },
+    {
+      "name": "independent-registration:0x867339",
+      "pass": true,
+      "detail": "Independent primary range and child full-function bytes agree."
+    },
+    {
+      "name": "independent-function:0x40bf30",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only, no hash; semantic reasoning was reviewed separately."
+    },
+    {
+      "name": "independent-function:0x40bff0",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only, no hash; semantic reasoning was reviewed separately."
+    },
+    {
+      "name": "independent-function:0x40c000",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only, no hash; semantic reasoning was reviewed separately."
+    },
+    {
+      "name": "independent-function:0x408640",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only, no hash; semantic reasoning was reviewed separately."
+    },
+    {
+      "name": "independent-function:0x408590",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only, no hash; semantic reasoning was reviewed separately."
+    },
+    {
+      "name": "independent-function:0x40c3b0",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only, no hash; semantic reasoning was reviewed separately."
+    },
+    {
+      "name": "independent-function:0x40cae0",
+      "pass": true,
+      "detail": "Direct raw instruction comparison only, no hash; semantic reasoning was reviewed separately."
+    }
+  ],
+  "failures": []
+}

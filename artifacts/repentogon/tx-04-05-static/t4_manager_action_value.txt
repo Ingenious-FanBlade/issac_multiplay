@@ -1,0 +1,21 @@
+t4_manager_action_value
+RVA=0x5ee2c0 END_RVA=0x5ee2dc
+[DECOMPILE]
+bool __thiscall sub_9EE2C0(void *this, int a2, int a3, int a4)
+{
+  return (*(unsigned __int8 (__thiscall **)(void *, int, int, int))(*(_DWORD *)this + 44))(this, a2, a3, a4) == 0;
+}
+
+[DISASSEMBLY]
+0x009ee2c0 RVA 0x5ee2c0: push    ebp
+0x009ee2c1 RVA 0x5ee2c1: mov     ebp, esp
+0x009ee2c3 RVA 0x5ee2c3: push    [ebp+arg_8]
+0x009ee2c6 RVA 0x5ee2c6: mov     eax, [ecx]
+0x009ee2c8 RVA 0x5ee2c8: push    [ebp+arg_4]
+0x009ee2cb RVA 0x5ee2cb: push    [ebp+arg_0]
+0x009ee2ce RVA 0x5ee2ce: mov     eax, [eax+2Ch]
+0x009ee2d1 RVA 0x5ee2d1: call    eax
+0x009ee2d3 RVA 0x5ee2d3: test    al, al
+0x009ee2d5 RVA 0x5ee2d5: setz    al
+0x009ee2d8 RVA 0x5ee2d8: pop     ebp
+0x009ee2d9 RVA 0x5ee2d9: retn    0Ch

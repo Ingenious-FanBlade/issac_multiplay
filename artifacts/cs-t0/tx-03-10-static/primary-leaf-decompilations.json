@@ -1,0 +1,110 @@
+{
+  "tx": "tx-03-10",
+  "kind": "PRIMARY_STATIC_LEAF_REREAD",
+  "image_base": "0x400000",
+  "functions": [
+    {
+      "addr": "0x40A1B0",
+      "code": "int __thiscall sub_40A1B0(_DWORD *this)\n{\n  int result; // eax\n  unsigned int i; // ecx\n  unsigned int j; // ecx\n\n  this[4] = 0; /*0x40a1b3*/\n  this[6] = 0; /*0x40a1ba*/\n  this[7] = 0; /*0x40a1c1*/\n  sub_408C90(); /*0x40a1c8*/\n  result = this[1]; /*0x40a1cd*/\n  for ( i = 0; i < *(_DWORD *)(result + 28); result = this[1] ) /*0x40a1d2*/\n    *(_DWORD *)(this[2] + 4 * i++) = 0; /*0x40a1e3*/\n  for ( j = 0; j < *(_DWORD *)(result + 36); result = this[1] ) /*0x40a1f5*/\n    *(_DWORD *)(this[3] + 4 * j++) = 0; /*0x40a203*/\n  return result; /*0x40a213*/\n}",
+      "refs": [
+        {
+          "addr": "0x408c90",
+          "name": "sub_408C90"
+        }
+      ]
+    },
+    {
+      "addr": "0x40A5D0",
+      "code": "char __thiscall sub_40A5D0(_DWORD *this, const char *ArgList, char a3)\n{\n  const char *ArgList_1; // ecx\n  unsigned int v5; // edi\n  unsigned int v6; // ebx\n  int v7; // esi\n  const char *v8; // eax\n  int v9; // eax\n  int v11; // [esp-4h] [ebp-18h]\n  int v12; // [esp+Ch] [ebp-8h]\n\n  ArgList_1 = ArgList; /*0x40a5d9*/\n  v5 = 0; /*0x40a5de*/\n  v6 = this[30]; /*0x40a5e3*/\n  if ( v6 )\n  {\n    v7 = this[29]; /*0x40a5ed*/\n    v12 = v7; /*0x40a5ef*/\n    while ( 1 )\n    {\n      v8 = (const char *)v7; /*0x40a5f6*/\n      if ( *(_DWORD *)(v7 + 20) >= 0x10u ) /*0x40a5f8*/\n        v8 = *(const char **)v7; /*0x40a5fa*/\n      v9 = strcmp(v8, ArgList_1); /*0x40a604*/\n      if ( v9 )\n        v9 = v9 < 0 ? -1 : 1;\n      if ( !v9 ) /*0x40a627*/\n        break; /*0x40a627*/\n      ArgList_1 = ArgList; /*0x40a629*/\n      ++v5; /*0x40a62c*/\n      v7 += 316; /*0x40a62d*/\n      if ( v5 >= v6 ) /*0x40a635*/\n        goto LABEL_9; /*0x40a635*/\n    }\n    v11 = v12 + 316 * v5; /*0x40a665*/\n    if ( a3 ) /*0x40a666*/\n      sub_408830(v11); /*0x40a668*/\n    else\n      sub_408970(v11); /*0x40a678*/\n    return 1; /*0x40a66d*/\n  }\n  else\n  {\nLABEL_9:\n    sub_A112C0(1, \"[warn] no animation named %s\\n\", (char)ArgList_1); /*0x40a637*/\n    return 0; /*0x40a647*/\n  }\n}",
+      "refs": [
+        {
+          "addr": "0x408830",
+          "name": "sub_408830"
+        },
+        {
+          "addr": "0x408970",
+          "name": "sub_408970"
+        },
+        {
+          "addr": "0xa112c0",
+          "name": "sub_A112C0"
+        },
+        {
+          "addr": "0xb1a614",
+          "name": "aWarnNoAnimatio",
+          "string": "[warn] no animation named %s\n"
+        }
+      ]
+    },
+    {
+      "addr": "0x419B50",
+      "code": "int __thiscall sub_419B50(_DWORD *this, float *a2)\n{\n  float *v3; // esi\n  int v4; // edx\n  unsigned int v5; // eax\n  double v6; // xmm0_8\n  unsigned int v7; // eax\n  double v8; // xmm0_8\n  void *n2; // eax\n  float v10; // xmm0_4\n  int v11; // ecx\n  unsigned int i; // edi\n  float *v13; // esi\n  float v14; // xmm1_4\n  float v15; // xmm1_4\n  double X_1; // st7\n  int n4; // esi\n  float v18; // xmm2_4\n  float v19; // xmm4_4\n  float v20; // xmm3_4\n  float v21; // xmm3_4\n  int v22; // ecx\n  int *v23; // ecx\n  int v24; // eax\n  int X_4; // [esp+4h] [ebp-FCh]\n  int v27; // [esp+8h] [ebp-F8h]\n  _BYTE v28[112]; // [esp+1Ch] [ebp-E4h] BYREF\n  float v29[2]; // [esp+8Ch] [ebp-74h] BYREF\n  float v30[2]; // [esp+94h] [ebp-6Ch] BYREF\n  __int128 v31; // [esp+9Ch] [ebp-64h] BYREF\n  int v32; // [esp+ACh] [ebp-54h]\n  float v33; // [esp+B0h] [ebp-50h]\n  float v34; // [esp+B4h] [ebp-4Ch]\n  float v35; // [esp+B8h] [ebp-48h]\n  float v36; // [esp+BCh] [ebp-44h]\n  float v37; // [esp+C0h] [ebp-40h]\n  float *v38; // [esp+C4h] [ebp-3Ch]\n  float X; // [esp+C8h] [ebp-38h]\n  __int128 v40; // [esp+CCh] [ebp-34h]\n  __int128 v41; // [esp+DCh] [ebp-24h]\n  int v42; // [esp+ECh] [ebp-14h]\n  int v43; // [esp+F0h] [ebp-10h]\n  int v44; // [esp+F4h] [ebp-Ch]\n\n  v3 = a2; /*0x419b67*/\n  v4 = this[54]; /*0x419b6a*/\n  v38 = a2; /*0x419b77*/\n  v42 = 0; /*0x419b7a*/\n  v5 = *(_DWORD *)(v4 + 16); /*0x419b81*/\n  v43 = 0; /*0x419b84*/\n  v44 = 0; /*0x419b8b*/\n  v6 = (double)v5; /*0x419b9d*/\n  v7 = *(_DWORD *)(v4 + 20); /*0x419ba6*/\n  *(float *)&v6 = v6; /*0x419ba9*/\n  v34 = *(float *)&v6; /*0x419bad*/\n  v8 = (double)v7; /*0x419bc4*/\n  n2 = &unk_C79118; /*0x419bcd*/\n  if ( (byte_C7911C & 1) == 0 ) /*0x419bd2*/\n    n2 = (void *)n2; /*0x419bd2*/\n  n2 = (int)n2; /*0x419bde*/\n  v10 = v8; /*0x419be3*/\n  v33 = v10; /*0x419be8*/\n  v40 = xmmword_BAC7B0; /*0x419bf4*/\n  v41 = 0LL; /*0x419bfb*/\n  sub_40C550(this + 54); /*0x419bff*/\n  sub_683060(1, X_4, v27); /*0x419c09*/\n  for ( i = 0; i < this[23]; ++i ) /*0x419c10*/\n  {\n    v11 = *(_DWORD *)(this[21] + 4 * i); /*0x419c23*/\n    if ( *(_BYTE *)(v11 + 369) /*0x419c67*/\n      && (!*(_BYTE *)(v11 + 371)\n       || *(int *)(n4_0 + 157204) >= 2 && *(_DWORD *)(v11 + 40) == 1\n       || (unsigned int)(*(_DWORD *)(v11 + 40) - 10) <= 0x3DD)\n      && !(*(unsigned __int8 (__thiscall **)(int, float *))(*(_DWORD *)v11 + 24))(v11, v3) )\n    {\n      v13 = *(float **)(this[21] + 4 * i); /*0x419c7c*/\n      v35 = v13[87] * v13[57]; /*0x419c92*/\n      if ( v35 >= 0.001 ) /*0x419c97*/\n      {\n        v14 = (float)(v13[207] + v13[88]) - 60.0; /*0x419cd0*/\n        v37 = *(float *)&dword_BF941C * *(float *)&dword_BF93E8; /*0x419ce0*/\n        X = (float)((float)((float)(v14 * 0.64999998) + (float)((float)(*(float *)&dword_C78DC4 - 338.0) * 0.5)) /*0x419cfd*/\n                  * (float)(*(float *)&dword_BF941C * *(float *)&dword_BF93E8))\n          + 0.5;\n        X = floor(X); /*0x419d0d*/\n        v15 = v13[208] + v13[89]; /*0x419d28*/\n        v36 = X / v37; /*0x419d30*/\n        X = (float)((float)((float)((float)(v15 - 140.0) * 0.64999998) /*0x419d6e*/\n                          + (float)((float)(*(float *)&dword_C78EDC - 182.0) * 0.5))\n                  * v37)\n          + 0.5;\n        X_1 = floor(X); /*0x419d79*/\n        n4 = n4_0; /*0x419d86*/\n        v18 = v35 * v34; /*0x419d8f*/\n        v19 = v35 * v33; /*0x419d97*/\n        X = X_1; /*0x419d9c*/\n        v20 = X / v37; /*0x419daa*/\n        v30[0] = v35 * v34; /*0x419db1*/\n        v30[1] = v35 * v33; /*0x419db6*/\n        sub_A0F550(-1); /*0x419dbb*/\n        v21 = (float)((float)(v20 + v38[1]) + *(float *)(n4 + 156944)) - (float)(v19 * 0.5); /*0x419e00*/\n        v29[0] = (float)((float)(v36 + *v38) + *(float *)(n4 + 156940)) - (float)(v18 * 0.5); /*0x419e0a*/\n        v29[1] = v21; /*0x419e0f*/\n        sub_A10E70(v29, v30, v22); /*0x419e14*/\n        v23 = (int *)this[54]; /*0x419e19*/\n        v24 = *v23; /*0x419e27*/\n        v32 = 0; /*0x419e29*/\n        v31 = v40; /*0x419e30*/\n        (*(void (__thiscall **)(int *, _BYTE *, __int128 *))(v24 + 28))(v23, v28, &v31); /*0x419e3b*/\n      }\n      v3 = v38; /*0x419e3e*/\n    }\n  }\n  return sub_A14050(v11); /*0x419e51*/\n}",
+      "refs": [
+        {
+          "addr": "0xc79118",
+          "name": "unk_C79118"
+        },
+        {
+          "addr": "0xc379b8",
+          "name": "n2"
+        },
+        {
+          "addr": "0xc7911c",
+          "name": "byte_C7911C"
+        },
+        {
+          "addr": "0xbac7b0",
+          "name": "xmmword_BAC7B0"
+        },
+        {
+          "addr": "0x40c550",
+          "name": "sub_40C550"
+        },
+        {
+          "addr": "0x683060",
+          "name": "sub_683060"
+        },
+        {
+          "addr": "0xbf941c",
+          "name": "dword_BF941C"
+        },
+        {
+          "addr": "0xbf93e8",
+          "name": "dword_BF93E8"
+        },
+        {
+          "addr": "0xc78dc4",
+          "name": "dword_C78DC4"
+        },
+        {
+          "addr": "0xaf0917",
+          "name": "floor"
+        },
+        {
+          "addr": "0xc78edc",
+          "name": "dword_C78EDC"
+        },
+        {
+          "addr": "0xc71678",
+          "name": "n4_0"
+        },
+        {
+          "addr": "0xa0f550",
+          "name": "sub_A0F550"
+        },
+        {
+          "addr": "0xa10e70",
+          "name": "sub_A10E70"
+        },
+        {
+          "addr": "0xa14050",
+          "name": "sub_A14050"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Decompilation is static evidence, not runtime observation.",
+    "Sprite/UI writes do not by themselves prove gameplay side effects."
+  ]
+}

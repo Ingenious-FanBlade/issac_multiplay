@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "evidenceIdentity": "IsaacCsT0-CoopStaticEvidence-v1",
+  "workPackage": "CS-T0-05-01",
+  "createdUtc": "2026-08-27T08:55:00Z",
+  "evidenceClass": "STATIC_DISASSEMBLY_READ_ONLY",
+  "target": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedApprovedUnpackedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "machine": "0x014C",
+    "preferredImageBase": "0x00400000",
+    "addressForm": "RVA_ONLY"
+  },
+  "method": {
+    "diskPeOnly": true,
+    "idaMcpReadOnly": true,
+    "processEnumerationUsed": false,
+    "processOpenUsed": false,
+    "gameStarted": false,
+    "idbModified": false,
+    "hookInstalled": false,
+    "inputInjected": false
+  },
+  "claims": [
+    {
+      "id": "owner-standard-path",
+      "status": "STATIC_CONFIRMED",
+      "route": [
+        "0x005AB6F2->0x00554CD0",
+        "0x005551BD->0x002FA540",
+        "0x002FADA7->0x005BAC40"
+      ],
+      "constraint": "The manager update reaches the local-coop body on the inherited main-thread runtime path."
+    },
+    {
+      "id": "additional-manager-caller-classified",
+      "status": "STATIC_CONFIRMED",
+      "route": [
+        "0x002FB226->0x002F7AC0",
+        "0x002F8055->0x00554CD0"
+      ],
+      "classification": "VICTORY_LAP_RUN_RESTART_LIFECYCLE",
+      "constraint": "This caller resets persistent run state, RNG/item-pool state and PlayerManager state; it is not an Authority tick."
+    },
+    {
+      "id": "ordinary-join-create-assign-hud",
+      "status": "STATIC_CONFIRMED",
+      "route": [
+        "0x005BB415->0x005B9CD0",
+        "0x005BB424->0x003A6450",
+        "0x005BB4FD->0x005A8620"
+      ],
+      "postconditions": [
+        "Player allocation and construction complete",
+        "Player+0x161C stores the inserted main-vector ordinal",
+        "Player is inserted into the main Player vector",
+        "Player+0x1618 receives the controller assignment key",
+        "HUD records are rebuilt from the current Player vectors"
+      ]
+    },
+    {
+      "id": "possessor-join-stops",
+      "status": "STATIC_CONFIRMED",
+      "route": [
+        "0x005BAFFA->0x005B9CD0",
+        "0x005BB004->0x003A6450"
+      ],
+      "constraint": "These callsites are passive stop sentinels and never contribute to the ordinary local-coop positive route."
+    },
+    {
+      "id": "exit-vector-retirement",
+      "status": "STATIC_CONFIRMED",
+      "route": [
+        "0x005BB22A->0x005BA000",
+        "0x005BA5DB main-vector erase",
+        "0x005BA61D survivor ordinal rewrite",
+        "0x005BA642 local-slot reset",
+        "0x005BA752->0x005A8620"
+      ],
+      "abi": {
+        "callingConvention": "THISCALL_X86",
+        "returnType": "void",
+        "thisType": "PlayerManager*",
+        "stackArgs": [
+          "Entity_Player* player",
+          "uint32 ABI_PADDING_UNUSED"
+        ],
+        "calleeStackBytes": 8,
+        "returnUse": "IGNORED"
+      },
+      "preconditions": [
+        "player is a member of the main or secondary Player vector",
+        "observation is allowed only at function entry before mutation"
+      ],
+      "postconditions": [
+        "matching vector entry is erased and remaining entries are compacted",
+        "removed Player+0x161C is -1",
+        "survivor Player+0x161C values equal compacted ordinals",
+        "matching controller/color and four local-slot records are reset",
+        "HUD records are rebuilt",
+        "observation resumes only after the complete function returns"
+      ],
+      "forbiddenInferences": [
+        "The unused second stack dword has a business reason or flag semantic",
+        "Player+0x1618 is cleared",
+        "Lua callbacks cannot occur during the mutation interval"
+      ]
+    },
+    {
+      "id": "hud-index",
+      "status": "STATIC_CONFIRMED",
+      "functionRva": "0x005A64F0",
+      "constraint": "HUD index lookup returns a local Player ordinal or -1; join and exit rebuild calls target 0x005A8620."
+    },
+    {
+      "id": "lua-get-player-publication-retirement",
+      "status": "STATIC_CONFIRMED",
+      "route": [
+        "0x00494280 registers GetPlayer",
+        "0x004B84B0 closure",
+        "0x00017870 vector ordinal lookup"
+      ],
+      "constraint": "The lookup reads gameRoot+0x1BAA8/+0x1BAAC directly. After exit returns, no valid ordinal returns the removed Player; survivors shift left consistently. Out-of-range lookup falls back to Player 0 rather than nil."
+    },
+    {
+      "id": "online-vector-guard",
+      "status": "STATIC_CONFIRMED",
+      "guardRva": "0x005BAC6D",
+      "guardBytes": "8B159C16C7008B82D8B304003B82DCB304000F85EF080000",
+      "constraint": "When the NetInputDevice vector at onlineRoot+0x4B3D8/+0x4B3DC is nonempty, control jumps to 0x005BB574 and skips the complete 0x005BAC85..0x005BB56E local device/join/exit body.",
+      "forbiddenInference": "This guard alone proves the complete OriginalOnline mode latch, backend, roster or channel state."
+    }
+  ],
+  "functionEntries": [
+    { "rva": "0x002F7AC0", "expectedBytes": "558BEC6AFF684DC0AF0064A10000000000", "abi": "int __thiscall(GameRoot*)" },
+    { "rva": "0x00554CD0", "expectedBytes": "558BEC83E4F081EC78040000A1B493BF", "abi": "manager reset/update owner; detailed return use is not observed" },
+    { "rva": "0x005B9CD0", "expectedBytes": "558BEC6AFF6889E8B00064A100000000", "abi": "Entity_Player* __thiscall(PlayerManager*, int playerType); ret 4" },
+    { "rva": "0x003A6450", "expectedBytes": "558BEC6AFF68BDF9AF0064A100000000", "abi": "void __thiscall(Entity_Player*, uint32 controllerId, bool propagate); ret 8" },
+    { "rva": "0x005BA000", "expectedBytes": "558BEC6AFF68D5E8B00064A100000000", "abi": "void __thiscall(PlayerManager*, Entity_Player*, uint32 ABI_PADDING_UNUSED); ret 8" },
+    { "rva": "0x005A8620", "expectedBytes": "558BEC83E4F883EC0C53568BC157894424", "abi": "HUD rebuild helper" },
+    { "rva": "0x005A64F0", "expectedBytes": "558BEC8B45085685C074518B90681E0000", "abi": "uint32 __thiscall(HUD*, Entity_Player*); ret 4" },
+    { "rva": "0x00017870", "expectedBytes": "558BEC5156578BF98B97ACBA01008BC2", "abi": "Entity_Player* __thiscall(GameRoot*, uint32 index); ret 4" },
+    { "rva": "0x005BAC40", "expectedBytes": "558BEC6AFF683DE9B00064A100000000", "abi": "unsigned int __thiscall(PlayerManager*)" }
+  ],
+  "designUnknowns": [
+    {
+      "id": "controller-assignment-candidate-0x554F84",
+      "status": "UNKNOWN",
+      "constraint": "0x00554F84->0x0055B310 is excluded from the positive route and observer slots."
+    },
+    {
+      "id": "virtual-device-necessity",
+      "status": "UNKNOWN",
+      "constraint": "Deferred to CS-T0-05-05 and not used as a positive-path assumption."
+    }
+  ],
+  "blockingMissingEvidence": [],
+  "permissions": {
+    "activeInputAllowed": false,
+    "runtimeMutationAllowed": false,
+    "t005Unlocked": false
+  }
+}

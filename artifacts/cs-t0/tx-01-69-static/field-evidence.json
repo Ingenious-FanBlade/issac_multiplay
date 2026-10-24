@@ -1,0 +1,465 @@
+{
+  "task": "tx-01-69 field supplement",
+  "input_path": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe",
+  "imagebase": "0x400000",
+  "functions": [
+    {
+      "start_va": "0x4073C0",
+      "name": "sub_4073C0",
+      "instructions": [
+        {
+          "va": "0x4073C0",
+          "rva": "0x73C0",
+          "bytes": "8b 41 04",
+          "text": "mov     eax, [ecx+4]"
+        },
+        {
+          "va": "0x4073C3",
+          "rva": "0x73C3",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __thiscall sub_4073C0(_DWORD *this)\n{\n  return this[1];\n}\n"
+    },
+    {
+      "start_va": "0x43EEC0",
+      "name": "sub_43EEC0",
+      "instructions": [
+        {
+          "va": "0x43EEC0",
+          "rva": "0x3EEC0",
+          "bytes": "8b 41 08",
+          "text": "mov     eax, [ecx+8]"
+        },
+        {
+          "va": "0x43EEC3",
+          "rva": "0x3EEC3",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __thiscall sub_43EEC0(_DWORD *this)\n{\n  return this[2];\n}\n"
+    },
+    {
+      "start_va": "0x8C0620",
+      "name": "sub_8C0620",
+      "instructions": [
+        {
+          "va": "0x8C0620",
+          "rva": "0x4C0620",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x8C0621",
+          "rva": "0x4C0621",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x8C0623",
+          "rva": "0x4C0623",
+          "bytes": "53",
+          "text": "push    ebx"
+        },
+        {
+          "va": "0x8C0624",
+          "rva": "0x4C0624",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8C0625",
+          "rva": "0x4C0625",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8C0626",
+          "rva": "0x4C0626",
+          "bytes": "8b 7d 08",
+          "text": "mov     edi, [ebp+arg_0]"
+        },
+        {
+          "va": "0x8C0629",
+          "rva": "0x4C0629",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8C062B",
+          "rva": "0x4C062B",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8C062C",
+          "rva": "0x4C062C",
+          "bytes": "ff 15 00 84 b1 00",
+          "text": "call    ds:lua_type"
+        },
+        {
+          "va": "0x8C0632",
+          "rva": "0x4C0632",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8C0635",
+          "rva": "0x4C0635",
+          "bytes": "85 c0",
+          "text": "test    eax, eax"
+        },
+        {
+          "va": "0x8C0637",
+          "rva": "0x4C0637",
+          "bytes": "75 04",
+          "text": "jnz     short loc_8C063D"
+        },
+        {
+          "va": "0x8C0639",
+          "rva": "0x4C0639",
+          "bytes": "33 db",
+          "text": "xor     ebx, ebx"
+        },
+        {
+          "va": "0x8C063B",
+          "rva": "0x4C063B",
+          "bytes": "eb 19",
+          "text": "jmp     short loc_8C0656"
+        },
+        {
+          "va": "0x8C063D",
+          "rva": "0x4C063D",
+          "bytes": "6a 00",
+          "text": "push    0"
+        },
+        {
+          "va": "0x8C063F",
+          "rva": "0x4C063F",
+          "bytes": "68 e3 29 c8 00",
+          "text": "push    offset unk_C829E3"
+        },
+        {
+          "va": "0x8C0644",
+          "rva": "0x4C0644",
+          "bytes": "ba 01 00 00 00",
+          "text": "mov     edx, 1"
+        },
+        {
+          "va": "0x8C0649",
+          "rva": "0x4C0649",
+          "bytes": "8b cf",
+          "text": "mov     ecx, edi"
+        },
+        {
+          "va": "0x8C064B",
+          "rva": "0x4C064B",
+          "bytes": "e8 40 bf f9 ff",
+          "text": "call    sub_85C590"
+        },
+        {
+          "va": "0x8C0650",
+          "rva": "0x4C0650",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8C0653",
+          "rva": "0x4C0653",
+          "bytes": "8b 58 04",
+          "text": "mov     ebx, [eax+4]"
+        },
+        {
+          "va": "0x8C0656",
+          "rva": "0x4C0656",
+          "bytes": "68 d7 b9 f0 ff",
+          "text": "push    0FFF0B9D7h"
+        },
+        {
+          "va": "0x8C065B",
+          "rva": "0x4C065B",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8C065C",
+          "rva": "0x4C065C",
+          "bytes": "ff 15 b0 83 b1 00",
+          "text": "call    ds:lua_touserdata"
+        },
+        {
+          "va": "0x8C0662",
+          "rva": "0x4C0662",
+          "bytes": "6a 02",
+          "text": "push    2"
+        },
+        {
+          "va": "0x8C0664",
+          "rva": "0x4C0664",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8C0665",
+          "rva": "0x4C0665",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x8C0667",
+          "rva": "0x4C0667",
+          "bytes": "ff 15 f4 83 b1 00",
+          "text": "call    ds:luaL_checkinteger"
+        },
+        {
+          "va": "0x8C066D",
+          "rva": "0x4C066D",
+          "bytes": "8b 0e",
+          "text": "mov     ecx, [esi]"
+        },
+        {
+          "va": "0x8C066F",
+          "rva": "0x4C066F",
+          "bytes": "83 c4 10",
+          "text": "add     esp, 10h"
+        },
+        {
+          "va": "0x8C0672",
+          "rva": "0x4C0672",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x8C0673",
+          "rva": "0x4C0673",
+          "bytes": "89 04 0b",
+          "text": "mov     [ebx+ecx], eax"
+        },
+        {
+          "va": "0x8C0676",
+          "rva": "0x4C0676",
+          "bytes": "33 c0",
+          "text": "xor     eax, eax"
+        },
+        {
+          "va": "0x8C0678",
+          "rva": "0x4C0678",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x8C0679",
+          "rva": "0x4C0679",
+          "bytes": "5b",
+          "text": "pop     ebx"
+        },
+        {
+          "va": "0x8C067A",
+          "rva": "0x4C067A",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x8C067B",
+          "rva": "0x4C067B",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __cdecl sub_8C0620(int a1)\n{\n  int v1; // ebx\n  _DWORD *v2; // esi\n\n  if ( lua_type(a1, 1) )\n    v1 = *(_DWORD *)(sub_85C590(&unk_C829E3, 0) + 4);\n  else\n    v1 = 0;\n  v2 = (_DWORD *)lua_touserdata(a1, -1001001);\n  *(_DWORD *)(v1 + *v2) = luaL_checkinteger(a1, 2);\n  return 0;\n}\n"
+    }
+  ],
+  "regions": [
+    {
+      "label": "Tear Init four raw flag dwords",
+      "start_va": "0x6661D8",
+      "end_va_exclusive": "0x66620A",
+      "instructions": [
+        {
+          "va": "0x6661D8",
+          "rva": "0x2661D8",
+          "bytes": "c7 87 84 03 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+384h], 0"
+        },
+        {
+          "va": "0x6661E2",
+          "rva": "0x2661E2",
+          "bytes": "c7 87 28 04 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+428h], 0"
+        },
+        {
+          "va": "0x6661EC",
+          "rva": "0x2661EC",
+          "bytes": "c7 87 2c 04 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+42Ch], 0"
+        },
+        {
+          "va": "0x6661F6",
+          "rva": "0x2661F6",
+          "bytes": "c7 87 30 04 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+430h], 0"
+        },
+        {
+          "va": "0x666200",
+          "rva": "0x266200",
+          "bytes": "c7 87 34 04 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+434h], 0"
+        }
+      ]
+    },
+    {
+      "label": "Projectile Init two raw flag dwords",
+      "start_va": "0x652BE0",
+      "end_va_exclusive": "0x652C1F",
+      "instructions": [
+        {
+          "va": "0x652BE8",
+          "rva": "0x252BE8",
+          "bytes": "c7 87 20 04 00 00 00 00 80 3f",
+          "text": "mov     dword ptr [edi+420h], 3F800000h"
+        },
+        {
+          "va": "0x652BF2",
+          "rva": "0x252BF2",
+          "bytes": "c7 87 38 04 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+438h], 0"
+        },
+        {
+          "va": "0x652BFC",
+          "rva": "0x252BFC",
+          "bytes": "66 0f 6e c0",
+          "text": "movd    xmm0, eax"
+        },
+        {
+          "va": "0x652C00",
+          "rva": "0x252C00",
+          "bytes": "f3 0f e6 c0",
+          "text": "cvtdq2pd xmm0, xmm0"
+        },
+        {
+          "va": "0x652C04",
+          "rva": "0x252C04",
+          "bytes": "c1 e8 1f",
+          "text": "shr     eax, 1Fh"
+        },
+        {
+          "va": "0x652C07",
+          "rva": "0x252C07",
+          "bytes": "83 7f 2c 02",
+          "text": "cmp     dword ptr [edi+2Ch], 2"
+        },
+        {
+          "va": "0x652C0B",
+          "rva": "0x252C0B",
+          "bytes": "c7 87 3c 04 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+43Ch], 0"
+        },
+        {
+          "va": "0x652C15",
+          "rva": "0x252C15",
+          "bytes": "c7 87 24 04 00 00 00 00 80 3f",
+          "text": "mov     dword ptr [edi+424h], 3F800000h"
+        }
+      ]
+    },
+    {
+      "label": "Entity Init two raw flag dwords",
+      "start_va": "0x6A96EB",
+      "end_va_exclusive": "0x6A9710",
+      "instructions": [
+        {
+          "va": "0x6A96F1",
+          "rva": "0x2A96F1",
+          "bytes": "c7 86 38 02 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+238h], 0"
+        },
+        {
+          "va": "0x6A96FB",
+          "rva": "0x2A96FB",
+          "bytes": "c7 86 68 01 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+168h], 0"
+        },
+        {
+          "va": "0x6A9705",
+          "rva": "0x2A9705",
+          "bytes": "c7 86 6c 01 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+16Ch], 0"
+        },
+        {
+          "va": "0x6A970F",
+          "rva": "0x2A970F",
+          "bytes": "89 46 0c",
+          "text": "mov     [esi+0Ch], eax"
+        }
+      ]
+    },
+    {
+      "label": "Spawn room ordinal to Entity Index before publication",
+      "start_va": "0x6FE613",
+      "end_va_exclusive": "0x6FE63B",
+      "instructions": [
+        {
+          "va": "0x6FE613",
+          "rva": "0x2FE613",
+          "bytes": "8b 44 24 28",
+          "text": "mov     eax, [esp+68h+var_40]"
+        },
+        {
+          "va": "0x6FE617",
+          "rva": "0x2FE617",
+          "bytes": "53",
+          "text": "push    ebx"
+        },
+        {
+          "va": "0x6FE618",
+          "rva": "0x2FE618",
+          "bytes": "8b 90 00 83 01 00",
+          "text": "mov     edx, [eax+18300h]"
+        },
+        {
+          "va": "0x6FE61E",
+          "rva": "0x2FE61E",
+          "bytes": "8b 8a 14 12 00 00",
+          "text": "mov     ecx, [edx+1214h]"
+        },
+        {
+          "va": "0x6FE624",
+          "rva": "0x2FE624",
+          "bytes": "8d 41 01",
+          "text": "lea     eax, [ecx+1]"
+        },
+        {
+          "va": "0x6FE627",
+          "rva": "0x2FE627",
+          "bytes": "89 82 14 12 00 00",
+          "text": "mov     [edx+1214h], eax"
+        },
+        {
+          "va": "0x6FE62D",
+          "rva": "0x2FE62D",
+          "bytes": "89 4b 20",
+          "text": "mov     [ebx+20h], ecx"
+        },
+        {
+          "va": "0x6FE630",
+          "rva": "0x2FE630",
+          "bytes": "8d 8a 18 12 00 00",
+          "text": "lea     ecx, [edx+1218h]"
+        },
+        {
+          "va": "0x6FE636",
+          "rva": "0x2FE636",
+          "bytes": "e8 c5 9e d1 ff",
+          "text": "call    sub_418500"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Only static IDB reads; all previous evidence retained.",
+    "Initialization stores are narrow anchors, not final values after every derived Init, callback, Morph or restore.",
+    "No code, tests, build, hashing or game actions executed."
+  ]
+}

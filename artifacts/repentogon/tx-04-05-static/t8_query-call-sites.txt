@@ -1,0 +1,139 @@
+IDA direct-call context for input query helpers; docs addresses RVA; imagebase 0x400000.
+[movement] call RVA 0x37388a target=sub_92F6D0
+  0x373877: mov     ecx, n4; this
+  0x37387d: push    0; a5
+  0x37387f: push    edi; a4
+  0x373880: push    dword ptr [edi+160Ch]; a3
+  0x373886: push    [ebp+esi*4+n32]; n32
+[bomb] call RVA 0x37a291 target=sub_92F6D0
+  0x37a280: mov     ecx, n4; this
+  0x37a286: push    0; a5
+  0x37a288: push    edi; a4
+  0x37a289: push    dword ptr [edi+160Ch]; a3
+  0x37a28f: push    8; n32
+[bomb] call RVA 0x37a37b target=sub_92F6D0
+  0x37a36a: mov     ecx, n4; this
+  0x37a370: push    0; a5
+  0x37a372: push    edi; a4
+  0x37a373: push    dword ptr [edi+160Ch]; a3
+  0x37a379: push    8; n32
+[active] call RVA 0x389f3a target=sub_92F610
+  0x389f2c: mov     esi, 0Ah
+  0x389f31: push    ecx
+  0x389f32: push    edi
+  0x389f33: push    dword ptr [edi+160Ch]
+  0x389f39: push    esi
+[active] call RVA 0x389f64 target=sub_92F6D0
+  0x389f54: mov     ecx, n4; this
+  0x389f5a: push    0; a5
+  0x389f5c: push    edi; a4
+  0x389f5d: push    dword ptr [edi+160Ch]; a3
+  0x389f63: push    esi; n32
+[active] call RVA 0x389f94 target=sub_92F610
+  0x389f88: jz      short loc_789FA8
+  0x389f8a: push    ecx
+  0x389f8b: push    edi
+  0x389f8c: push    dword ptr [edi+160Ch]
+  0x389f92: push    0Bh
+[active] call RVA 0x389fbd target=sub_92F610
+  0x389fb1: jz      short loc_789FC6
+  0x389fb3: push    ecx
+  0x389fb4: push    edi
+  0x389fb5: push    dword ptr [edi+160Ch]
+  0x389fbb: push    0Bh
+[active] call RVA 0x389fdb target=sub_92F610
+  0x389fcf: jz      short loc_789FEC
+  0x389fd1: push    ecx
+  0x389fd2: push    edi
+  0x389fd3: push    dword ptr [edi+160Ch]
+  0x389fd9: push    0Bh
+[card_pill] call RVA 0x39be9f target=sub_92F6D0
+  0x39be92: cmovnz  eax, edx
+  0x39be95: push    0; a5
+  0x39be97: push    esi; a4
+  0x39be98: push    dword ptr [esi+160Ch]; a3
+  0x39be9e: push    eax; n32
+[card_pill] call RVA 0x39bec3 target=sub_92F610
+  0x39beb7: jz      short loc_79BF2A
+  0x39beb9: push    ecx
+  0x39beba: push    esi
+  0x39bebb: push    dword ptr [esi+160Ch]
+  0x39bec1: push    0Bh
+[card_pill] call RVA 0x39befd target=sub_92F610
+  0x39bef1: jz      short loc_79BF0A
+  0x39bef3: push    ecx
+  0x39bef4: push    esi
+  0x39bef5: push    dword ptr [esi+160Ch]
+  0x39befb: push    0Bh
+[card_pill] call RVA 0x39bf1f target=sub_92F610
+  0x39bf13: jz      short loc_79BF2A
+  0x39bf15: push    ecx
+  0x39bf16: push    esi
+  0x39bf17: push    dword ptr [esi+160Ch]
+  0x39bf1d: push    0Bh
+[shooting] call RVA 0x373c2d target=sub_92F610
+  0x373c21: jz      short loc_773C9C
+  0x373c23: push    ecx
+  0x373c24: push    edi
+  0x373c25: push    dword ptr [edi+160Ch]
+  0x373c2b: push    0
+[shooting] call RVA 0x373c58 target=sub_92F610
+  0x373c44: push    edi
+  0x373c45: push    dword ptr [edi+160Ch]
+  0x373c4b: mov     dword ptr [ebp+var_168+4], ecx
+  0x373c51: push    eax
+  0x373c52: mov     [ebp+var_146], cl
+[shooting] call RVA 0x373c79 target=sub_92F610
+  0x373c68: mov     byte ptr [ebp+var_168+4], 1
+  0x373c6f: push    ecx
+  0x373c70: push    edi
+  0x373c71: push    dword ptr [edi+160Ch]
+  0x373c77: push    2
+[shooting] call RVA 0x373ca6 target=sub_92F610
+  0x373c9a: jmp     short loc_773D16
+  0x373c9c: push    ecx
+  0x373c9d: push    edi
+  0x373c9e: push    dword ptr [edi+160Ch]
+  0x373ca4: push    4
+[shooting] call RVA 0x373cd4 target=sub_92F610
+  0x373cbe: push    dword ptr [edi+160Ch]
+  0x373cc4: mov     al, cl
+  0x373cc6: push    5
+  0x373cc8: mov     dword ptr [ebp+var_168+4], eax
+  0x373cce: mov     [ebp+var_146], al
+[shooting] call RVA 0x373cf5 target=sub_92F610
+  0x373ce4: mov     byte ptr [ebp+var_168+4], 1
+  0x373ceb: push    ecx
+  0x373cec: push    edi
+  0x373ced: push    dword ptr [edi+160Ch]
+  0x373cf3: push    6
+[shooting] call RVA 0x373d16 target=sub_92F610
+  0x373d05: mov     byte ptr [ebp+var_168+4], 1
+  0x373d0c: push    ecx
+  0x373d0d: push    edi
+  0x373d0e: push    dword ptr [edi+160Ch]
+  0x373d14: push    7
+[shooting] call RVA 0x374514 target=sub_92F6D0
+  0x374503: mov     ecx, n4; this
+  0x374509: push    0; a5
+  0x37450b: push    edi; a4
+  0x37450c: push    dword ptr [edi+160Ch]; a3
+  0x374512: push    0Bh; n32
+[shooting] call RVA 0x376013 target=sub_92F6D0
+  0x376000: mov     ecx, n4; this
+  0x376006: push    0; a5
+  0x376008: push    edi; a4
+  0x376009: push    dword ptr [edi+160Ch]; a3
+  0x37600f: push    [ebp+esi*4+n32+4]; n32
+[drop] call RVA 0x39c359 target=sub_92F6D0
+  0x39c34d: push    0; a5
+  0x39c34f: push    edi; a4
+  0x39c350: push    ecx; a3
+  0x39c351: mov     ecx, n4; this
+  0x39c357: push    0Bh; n32
+[drop] call RVA 0x39c5d4 target=sub_92F610
+  0x39c5c7: call    sub_6FF360
+  0x39c5cc: push    ecx
+  0x39c5cd: push    edi
+  0x39c5ce: push    [esp+28h+var_8]
+  0x39c5d2: push    0Bh

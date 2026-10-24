@@ -1,0 +1,237 @@
+{
+  "tx": "tx-01-52",
+  "scope": "Opposite shooting direction priority; no claim for room charge or unaccepted Join path repair",
+  "scriptMaskBits": {
+    "left": 1,
+    "right": 2,
+    "up": 4,
+    "down": 8
+  },
+  "scriptSegments": [
+    {
+      "name": "neutral-before",
+      "first": 0,
+      "last": 1,
+      "mask": 0,
+      "selected": 0
+    },
+    {
+      "name": "left-then-right-single",
+      "first": 2,
+      "last": 9,
+      "mask": 1,
+      "selected": 1
+    },
+    {
+      "name": "left-then-right-overlap",
+      "first": 10,
+      "last": 29,
+      "mask": 3,
+      "selected": 2
+    },
+    {
+      "name": "left-then-right-release-winner",
+      "first": 30,
+      "last": 37,
+      "mask": 1,
+      "selected": 1
+    },
+    {
+      "name": "left-then-right-release-all",
+      "first": 38,
+      "last": 39,
+      "mask": 0,
+      "selected": 0
+    },
+    {
+      "name": "right-then-left-single",
+      "first": 40,
+      "last": 47,
+      "mask": 2,
+      "selected": 2
+    },
+    {
+      "name": "right-then-left-overlap",
+      "first": 48,
+      "last": 67,
+      "mask": 3,
+      "selected": 1
+    },
+    {
+      "name": "right-then-left-release-winner",
+      "first": 68,
+      "last": 75,
+      "mask": 2,
+      "selected": 2
+    },
+    {
+      "name": "right-then-left-release-all",
+      "first": 76,
+      "last": 77,
+      "mask": 0,
+      "selected": 0
+    },
+    {
+      "name": "up-then-down-single",
+      "first": 78,
+      "last": 85,
+      "mask": 4,
+      "selected": 4
+    },
+    {
+      "name": "up-then-down-overlap",
+      "first": 86,
+      "last": 105,
+      "mask": 12,
+      "selected": 8
+    },
+    {
+      "name": "up-then-down-release-winner",
+      "first": 106,
+      "last": 113,
+      "mask": 4,
+      "selected": 4
+    },
+    {
+      "name": "up-then-down-release-all",
+      "first": 114,
+      "last": 115,
+      "mask": 0,
+      "selected": 0
+    },
+    {
+      "name": "down-then-up-single",
+      "first": 116,
+      "last": 123,
+      "mask": 8,
+      "selected": 8
+    },
+    {
+      "name": "down-then-up-overlap",
+      "first": 124,
+      "last": 143,
+      "mask": 12,
+      "selected": 4
+    },
+    {
+      "name": "down-then-up-release-winner",
+      "first": 144,
+      "last": 151,
+      "mask": 8,
+      "selected": 8
+    },
+    {
+      "name": "down-then-up-release-all",
+      "first": 152,
+      "last": 153,
+      "mask": 0,
+      "selected": 0
+    },
+    {
+      "name": "release-nonwinner-single",
+      "first": 154,
+      "last": 161,
+      "mask": 1,
+      "selected": 1
+    },
+    {
+      "name": "release-nonwinner-overlap",
+      "first": 162,
+      "last": 181,
+      "mask": 3,
+      "selected": 2
+    },
+    {
+      "name": "release-nonwinner",
+      "first": 182,
+      "last": 189,
+      "mask": 2,
+      "selected": 2
+    },
+    {
+      "name": "release-nonwinner-all",
+      "first": 190,
+      "last": 191,
+      "mask": 0,
+      "selected": 0
+    },
+    {
+      "name": "same-sample-first-tie",
+      "first": 192,
+      "last": 203,
+      "mask": 15,
+      "selected": 10
+    },
+    {
+      "name": "same-sample-release-winners",
+      "first": 204,
+      "last": 211,
+      "mask": 5,
+      "selected": 5
+    },
+    {
+      "name": "same-sample-all",
+      "first": 212,
+      "last": 213,
+      "mask": 0,
+      "selected": 0
+    },
+    {
+      "name": "adjacent-left-up",
+      "first": 214,
+      "last": 221,
+      "mask": 5,
+      "selected": 5
+    },
+    {
+      "name": "adjacent-left-down",
+      "first": 222,
+      "last": 229,
+      "mask": 9,
+      "selected": 9
+    },
+    {
+      "name": "final-neutral",
+      "first": 230,
+      "last": 232,
+      "mask": 0,
+      "selected": 0
+    }
+  ],
+  "operations": [
+    {
+      "order": 1,
+      "operation": "Fresh isolated Offline run, initially only A Azazel ID7/keyboard; one unified build/injection."
+    },
+    {
+      "order": 2,
+      "operation": "Keep gameplay in foreground. For each LEFT→LEFT+RIGHT, RIGHT→RIGHT+LEFT, UP→UP+DOWN, DOWN→DOWN+UP: hold the first key ~2s, add the opposite for ~2s without releasing first, release newest while retaining first ~2s, then release all. Report direction and charge separately."
+    },
+    {
+      "order": 3,
+      "operation": "LEFT→LEFT+RIGHT→RIGHT confirms releasing the non-winning LEFT preserves RIGHT; retain both long enough for repeated samples/queries."
+    },
+    {
+      "order": 4,
+      "operation": "Move while overlapping adjacent attack keys; avoid rooms/pause during the focused charge checks."
+    },
+    {
+      "order": 5,
+      "operation": "Observe automatically queued B raw direction script if native B admission succeeds. No extra create attempts or alternate route if it does not."
+    },
+    {
+      "order": 6,
+      "operation": "Record visual observations before stop. Return to main menu, keep game process; normal stop checks pair absence, 48 original Hook bytes restored and pinned DLL."
+    }
+  ],
+  "manualObservationFields": [
+    "leftThenRight",
+    "rightThenLeft",
+    "upThenDown",
+    "downThenUp",
+    "releaseWinnerFallback",
+    "releaseNonwinnerStable",
+    "adjacentOverlap"
+  ],
+  "failureRule": "Unobserved != PASS. One final invocation, no automatic retry or hashes."
+}

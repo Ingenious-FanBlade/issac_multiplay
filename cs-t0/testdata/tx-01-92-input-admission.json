@@ -1,0 +1,2428 @@
+{
+  "tx": "tx-01-92",
+  "scenarios": [
+    {
+      "name": "warmup-terminal",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "session": "Warmup",
+            "a.future_window_valid": false
+          }
+        },
+        {
+          "command": "packet 0 1 1 1 0",
+          "expect": {
+            "ok": false,
+            "decision": "SessionInactive",
+            "a.submit_count": "1",
+            "a.received_count": "1",
+            "a.last_received_tick": "0",
+            "a.rejections.SessionInactive": "1",
+            "a.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "a.future_first_tick": "1",
+            "a.future_last_tick": "64",
+            "a.future_window_valid": true
+          }
+        },
+        {
+          "command": "retire-session",
+          "expect": {
+            "session": "Retiring",
+            "a.future_window_valid": false,
+            "a.last_state_valid": false
+          }
+        },
+        {
+          "command": "packet 0 2 1 1 0",
+          "expect": {
+            "decision": "Retired",
+            "a.received_count": "2",
+            "a.rejected_count": "2",
+            "a.rejections.Retired": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "source-receive-process",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "make 0 1 1 32767",
+          "expect": {
+            "generated_sequence": "1",
+            "generated_target": "1",
+            "a.next_sequence": "2",
+            "a.received_count": "0",
+            "a.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "submit-made 0",
+          "expect": {
+            "decision": "Accepted",
+            "a.last_received_tick": "0",
+            "a.last_received_sequence": "1",
+            "a.last_received_target_tick": "1",
+            "a.last_accepted_sequence": "1",
+            "a.last_processed_tick": "0",
+            "a.edges.0.accepted_sequence": "1",
+            "a.edges.0.resolved_sequence": "0"
+          }
+        },
+        {
+          "command": "submit-made 0",
+          "expect": {
+            "decision": "Duplicate",
+            "a.duplicate_count": "1",
+            "a.accepted_count": "1",
+            "a.rejected_count": "0"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "completed": "0",
+            "current": "1",
+            "a.scope_pending": true,
+            "a.last_resolved_tick": "1",
+            "a.last_resolved_sequence": "1",
+            "a.last_processed_tick": "0",
+            "a.future_first_tick": "2",
+            "a.edges.0.resolved_sequence": "1",
+            "a.edges.0.processed_count": "0"
+          }
+        },
+        {
+          "command": "read 0 8",
+          "expect": {
+            "value": 1,
+            "unchanged": true,
+            "a.edges.0.processed_count": "0"
+          }
+        },
+        {
+          "command": "read 0 1",
+          "expect": {
+            "value": 1,
+            "unchanged": true
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "completed": "1",
+            "a.scope_pending": false,
+            "a.current_valid": false,
+            "a.last_processed_tick": "1",
+            "a.last_processed_sequence": "1",
+            "a.last_processed_source_sequence": "1",
+            "a.last_state_valid": true,
+            "a.last_state.move_x": 32767,
+            "a.last_state.edge_flags": 0,
+            "a.edges.0.processed_tick": "1",
+            "a.edges.0.processed_count": "1"
+          }
+        },
+        {
+          "command": "end-again 0",
+          "expect": {
+            "a.edges.0.processed_count": "1",
+            "a.last_processed_tick": "1"
+          }
+        },
+        {
+          "command": "submit-made 0",
+          "expect": {
+            "decision": "Duplicate",
+            "a.last_received_tick": "1",
+            "a.last_received_target_tick": "1",
+            "a.received_count": "3",
+            "a.duplicate_count": "2",
+            "a.edges.0.processed_count": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "merged-edge-origins",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 1 1 1 1 32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "packet 1 2 1 2 -32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin odd 1",
+          "expect": {
+            "b.current_state.move_x": -32767,
+            "b.current_state.edge_flags": 3,
+            "b.last_resolved_sequence": "2",
+            "b.resolved_contributors": 2,
+            "b.edges.0.resolved_sequence": "1",
+            "b.edges.1.resolved_sequence": "2",
+            "b.last_processed_sequence": "0"
+          }
+        },
+        {
+          "command": "read 1 8",
+          "expect": {
+            "value": 1,
+            "unchanged": true
+          }
+        },
+        {
+          "command": "read 1 9",
+          "expect": {
+            "value": 1,
+            "unchanged": true
+          }
+        },
+        {
+          "command": "return odd 1",
+          "expect": {
+            "b.last_processed_sequence": "2",
+            "b.processed_contributors": 2,
+            "b.edges.0.processed_sequence": "1",
+            "b.edges.1.processed_sequence": "2",
+            "b.edges.0.processed_count": "1",
+            "b.edges.1.processed_count": "1",
+            "b.edges.2.processed_count": "0",
+            "b.last_state.edge_flags": 0
+          }
+        },
+        {
+          "command": "packet 1 1 1 1 32767",
+          "expect": {
+            "decision": "Duplicate",
+            "b.edges.0.processed_count": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "neutral-after-first-input",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0 1 1 15 32767 held-item",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.current_state.edge_flags": 15
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "a.last_processed_tick": "1",
+            "a.edges.3.processed_count": "1",
+            "a.last_state.held_flags": 2
+          }
+        },
+        {
+          "command": "begin odd 2",
+          "expect": {
+            "a.current_valid": true,
+            "a.current_state.move_x": 0,
+            "a.current_state.edge_flags": 0,
+            "a.last_resolved_sequence": "0",
+            "a.resolved_contributors": 0
+          }
+        },
+        {
+          "command": "read 0 8",
+          "expect": {
+            "value": 0,
+            "unchanged": true
+          }
+        },
+        {
+          "command": "return odd 2",
+          "expect": {
+            "a.last_processed_tick": "2",
+            "a.last_processed_sequence": "1",
+            "a.last_processed_source_sequence": "0",
+            "a.last_state.move_x": 0,
+            "a.last_state.held_flags": 0,
+            "a.last_state.edge_flags": 0,
+            "a.edges.0.processed_count": "1",
+            "a.edges.3.processed_count": "1",
+            "a.processed_contributors": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "rejection-classes",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0 1 1 0 0 wrong-session",
+          "expect": {
+            "decision": "WrongSession",
+            "a.has_received": false,
+            "a.received_count": "0",
+            "a.rejections.WrongSession": "1"
+          }
+        },
+        {
+          "command": "packet 0 1 1 0 0 wrong-client",
+          "expect": {
+            "decision": "WrongClient",
+            "a.received_count": "0",
+            "a.rejections.WrongClient": "1"
+          }
+        },
+        {
+          "command": "packet 0 1 1 0 0 old-generation",
+          "expect": {
+            "decision": "WrongGeneration",
+            "a.received_count": "1",
+            "a.last_received_generation": "0",
+            "a.rejections.WrongGeneration": "1"
+          }
+        },
+        {
+          "command": "packet 0 1 1 0 0 malformed",
+          "expect": {
+            "decision": "Invalid",
+            "a.received_count": "2",
+            "a.last_received_decision": "Invalid",
+            "a.rejections.Invalid": "1"
+          }
+        },
+        {
+          "command": "packet 0 0 1 0 0",
+          "expect": {
+            "decision": "Invalid",
+            "a.rejections.Invalid": "2"
+          }
+        },
+        {
+          "command": "packet 0 18446744073709551615 1 0 0",
+          "expect": {
+            "decision": "Invalid",
+            "a.rejections.Invalid": "3"
+          }
+        },
+        {
+          "command": "packet 0 1 0 0 0",
+          "expect": {
+            "decision": "Expired",
+            "a.rejections.Expired": "1"
+          }
+        },
+        {
+          "command": "packet 0 1 65 0 0",
+          "expect": {
+            "decision": "TooFar",
+            "a.rejections.TooFar": "1"
+          }
+        },
+        {
+          "command": "packet 0 10 1 0 0",
+          "expect": {
+            "decision": "Accepted",
+            "a.last_accepted_sequence": "10"
+          }
+        },
+        {
+          "command": "packet 0 9 2 0 0",
+          "expect": {
+            "decision": "Stale",
+            "a.submit_count": "10",
+            "a.received_count": "8",
+            "a.accepted_count": "1",
+            "a.rejected_count": "9",
+            "a.last_accepted_sequence": "10",
+            "a.last_processed_sequence": "0",
+            "a.rejections.Stale": "1",
+            "a.rejections.Accepted": "0",
+            "a.rejections.Duplicate": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "edge-target-monotonic",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0 1 3 1 0",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "packet 0 2 2 1 0",
+          "expect": {
+            "decision": "EdgeConflict",
+            "a.edges.0.accepted_sequence": "1",
+            "a.rejections.EdgeConflict": "1"
+          }
+        },
+        {
+          "command": "packet 0 2 3 1 0",
+          "expect": {
+            "decision": "EdgeConflict",
+            "a.last_accepted_sequence": "1"
+          }
+        },
+        {
+          "command": "packet 0 2 4 1 0",
+          "expect": {
+            "decision": "Accepted",
+            "a.edges.0.accepted_sequence": "2",
+            "a.edges.0.accepted_tick": "4",
+            "a.edges.0.processed_count": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "sequence-conflict-retirement",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 1 1 1 1 0",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "packet 1 1 2 1 0",
+          "expect": {
+            "decision": "SequenceConflict",
+            "b.retired": true,
+            "b.generation": "2",
+            "b.last_received_decision": "SequenceConflict",
+            "b.rejections.SequenceConflict": "1",
+            "b.last_accepted_sequence": "1",
+            "b.discarded_on_invalidate": "1",
+            "b.edges.0.accepted_generation": "1",
+            "b.last_state_valid": false
+          }
+        },
+        {
+          "command": "packet 1 2 2 0 0",
+          "expect": {
+            "decision": "Retired",
+            "b.rejections.Retired": "1",
+            "b.received_count": "3",
+            "b.last_accepted_sequence": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "future-not-processed",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0 7 2 1 32767",
+          "expect": {
+            "decision": "Accepted",
+            "a.last_accepted_target_tick": "2",
+            "a.last_processed_sequence": "0"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.current_valid": false,
+            "a.scope_pending": true,
+            "a.last_resolved_tick": "1",
+            "a.last_resolved_sequence": "0"
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "completed": "1",
+            "a.last_processed_tick": "0",
+            "a.last_state_valid": false
+          }
+        },
+        {
+          "command": "begin odd 2",
+          "expect": {
+            "a.last_resolved_sequence": "7",
+            "a.last_processed_sequence": "0"
+          }
+        },
+        {
+          "command": "return odd 2",
+          "expect": {
+            "completed": "2",
+            "a.last_processed_sequence": "7",
+            "a.last_processed_tick": "2",
+            "a.edges.0.processed_sequence": "7"
+          }
+        }
+      ]
+    },
+    {
+      "name": "invalidate-history-generation",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0 1 2 1 32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "invalidate 0",
+          "expect": {
+            "a.generation": "2",
+            "a.discarded_on_invalidate": "1",
+            "a.last_accepted_sequence": "1",
+            "a.edges.0.accepted_generation": "1",
+            "a.current_state.edge_flags": 0,
+            "a.last_state_valid": false,
+            "a.future_window_valid": false
+          }
+        },
+        {
+          "command": "rebind 0",
+          "expect": {
+            "ok": true,
+            "a.generation": "2"
+          }
+        },
+        {
+          "command": "packet 0 1 2 1 32767",
+          "expect": {
+            "decision": "Duplicate",
+            "a.accepted_count": "1"
+          }
+        },
+        {
+          "command": "packet 0 2 1 1 0 old-generation",
+          "expect": {
+            "decision": "WrongGeneration",
+            "a.last_received_generation": "1",
+            "a.last_accepted_sequence": "1"
+          }
+        },
+        {
+          "command": "packet 0 2 1 1 0",
+          "expect": {
+            "decision": "Accepted",
+            "a.edges.0.accepted_generation": "2",
+            "a.last_accepted_sequence": "2"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.current_state.move_x": 0,
+            "a.last_resolved_sequence": "2"
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "a.last_state_generation": "2",
+            "a.last_state_valid": true,
+            "a.edges.0.processed_generation": "2",
+            "a.edges.0.processed_count": "1",
+            "a.accepted_count": "2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "invalidate-inflight",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0 1 1 1 32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.current_valid": true
+          }
+        },
+        {
+          "command": "invalidate 0",
+          "expect": {
+            "a.scope_pending": false,
+            "a.current_state.edge_flags": 0,
+            "a.current_state.move_x": 0,
+            "a.current_valid": false
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "completed": "1",
+            "a.last_processed_tick": "0",
+            "a.edges.0.resolved_sequence": "1",
+            "a.edges.0.processed_count": "0",
+            "a.last_state_valid": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "abnormal-return",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0 1 1 1 32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.current_valid": true
+          }
+        },
+        {
+          "command": "abort normal 1",
+          "expect": {
+            "ok": false,
+            "completed": "0",
+            "session": "Failed",
+            "a.scope_pending": false,
+            "a.current_state.edge_flags": 0,
+            "a.last_processed_tick": "0",
+            "a.edges.0.processed_count": "0",
+            "a.future_window_valid": false
+          }
+        },
+        {
+          "command": "end-again 0",
+          "expect": {
+            "a.last_processed_tick": "0",
+            "a.edges.0.processed_count": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "failed-session-hides-last-state",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0 1 1 0 32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "a.last_state_valid": true
+          }
+        },
+        {
+          "command": "fail-session",
+          "expect": {
+            "session": "Failed",
+            "a.last_state_valid": false,
+            "a.last_state.move_x": 0,
+            "a.last_processed_tick": "1",
+            "a.last_processed_sequence": "1"
+          }
+        },
+        {
+          "command": "packet 0 2 2 0 0",
+          "expect": {
+            "decision": "Retired",
+            "a.last_received_tick": "1",
+            "a.rejections.Retired": "1",
+            "a.last_processed_sequence": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "invisible-resolve-rejects-late",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.current_valid": false,
+            "a.scope_pending": true,
+            "a.future_first_tick": "2",
+            "a.future_last_tick": "64"
+          }
+        },
+        {
+          "command": "packet 0 1 1 1 0",
+          "expect": {
+            "decision": "Expired",
+            "a.last_accepted_sequence": "0",
+            "a.rejections.Expired": "1"
+          }
+        },
+        {
+          "command": "resolve-only 0 2",
+          "expect": {
+            "ok": false,
+            "a.last_resolved_tick": "1"
+          }
+        },
+        {
+          "command": "read 0 8",
+          "expect": {
+            "value": 0,
+            "unchanged": true
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "completed": "1",
+            "a.last_processed_tick": "0",
+            "a.future_first_tick": "2",
+            "a.future_last_tick": "65"
+          }
+        }
+      ]
+    },
+    {
+      "name": "queue-capacity",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "fill 0 257",
+          "expect": {
+            "ok": false,
+            "decision": "Full",
+            "a.submit_count": "257",
+            "a.received_count": "257",
+            "a.accepted_count": "256",
+            "a.rejections.Full": "1",
+            "a.last_accepted_sequence": "256",
+            "a.last_received_sequence": "257"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.last_resolved_sequence": "256",
+            "a.resolved_contributors": 256
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "a.last_processed_sequence": "256",
+            "a.processed_contributors": 256,
+            "a.last_received_tick": "0"
+          }
+        }
+      ],
+      "batch": {
+        "count": 257,
+        "accepted": 256,
+        "last": {
+          "sequence": "257",
+          "decision": "Full",
+          "completed": "0"
+        }
+      }
+    },
+    {
+      "name": "history-eviction-highwater",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "history-cycle 1 4100",
+          "expect": {
+            "ok": true,
+            "completed": "4100",
+            "b.last_processed_sequence": "4100",
+            "b.accepted_count": "4100",
+            "b.last_received_tick": "4099",
+            "b.last_processed_tick": "4100"
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0",
+          "expect": {
+            "decision": "Stale",
+            "b.received_count": "4101",
+            "b.last_received_tick": "4100",
+            "b.last_received_sequence": "1",
+            "b.last_accepted_sequence": "4100",
+            "b.last_processed_sequence": "4100",
+            "b.duplicate_count": "0",
+            "b.rejections.Stale": "1"
+          }
+        }
+      ],
+      "batch": {
+        "count": 4100,
+        "accepted": 4100,
+        "last": {
+          "sequence": "4100",
+          "decision": "Accepted",
+          "completed": "4100"
+        }
+      }
+    },
+    {
+      "name": "accepted-then-expired-fault",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0 1 1 1 0",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "resolve-only 0 2",
+          "expect": {
+            "ok": true,
+            "completed": "0",
+            "a.expired_before_resolve": "1",
+            "a.accepted_count": "1",
+            "a.rejected_count": "0",
+            "a.rejections.Expired": "0",
+            "a.last_accepted_sequence": "1",
+            "a.edges.0.resolved_sequence": "0"
+          }
+        },
+        {
+          "command": "end-again 0",
+          "expect": {
+            "a.last_processed_sequence": "0",
+            "a.last_processed_tick": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "near-u64-window",
+      "initial_tick": "18446744073709551614",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "a.future_first_tick": "18446744073709551615",
+            "a.future_last_tick": "18446744073709551615",
+            "a.future_window_valid": true
+          }
+        },
+        {
+          "command": "packet 0 1 18446744073709551615 0 0",
+          "expect": {
+            "decision": "Accepted",
+            "a.last_received_tick": "18446744073709551614"
+          }
+        },
+        {
+          "command": "packet 0 2 0 0 0",
+          "expect": {
+            "decision": "Expired",
+            "a.last_accepted_sequence": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "u64-window-exhausted",
+      "initial_tick": "18446744073709551615",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "a.future_window_valid": false,
+            "a.future_first_tick": "0",
+            "a.future_last_tick": "18446744073709551615"
+          }
+        },
+        {
+          "command": "packet 0 1 18446744073709551615 0 0",
+          "expect": {
+            "decision": "Expired",
+            "a.rejections.Expired": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "edge-target-overflow",
+      "initial_tick": "18446744073709551551",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "a.future_last_tick": "18446744073709551615"
+          }
+        },
+        {
+          "command": "packet 0 1 18446744073709551615 1 0",
+          "expect": {
+            "decision": "Accepted",
+            "a.edges.0.accepted_tick": "18446744073709551615"
+          }
+        },
+        {
+          "command": "make 0 18446744073709551552 1 0",
+          "expect": {
+            "ok": false,
+            "generated_sequence": "0",
+            "generated_target": "0",
+            "a.retired": true,
+            "a.next_sequence": "1",
+            "a.discarded_on_invalidate": "1",
+            "a.last_accepted_sequence": "1",
+            "a.counters_saturated": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "processed-highwater-not-prefix",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0 1 2 1 32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "packet 0 2 1 2 -32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.last_resolved_sequence": "2"
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "a.last_processed_sequence": "2",
+            "a.last_processed_source_sequence": "2",
+            "a.edges.0.processed_count": "0",
+            "a.edges.1.processed_sequence": "2"
+          }
+        },
+        {
+          "command": "begin odd 2",
+          "expect": {
+            "a.last_resolved_sequence": "1"
+          }
+        },
+        {
+          "command": "return odd 2",
+          "expect": {
+            "a.last_processed_sequence": "2",
+            "a.last_processed_source_sequence": "1",
+            "a.last_state.move_x": 32767,
+            "a.edges.0.processed_sequence": "1",
+            "a.edges.0.processed_tick": "2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "abort-invalidates-last-state",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0 1 1 1 32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "a.last_state_valid": true
+          }
+        },
+        {
+          "command": "packet 0 2 2 1 -32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin odd 2",
+          "expect": {
+            "a.current_valid": true
+          }
+        },
+        {
+          "command": "abort odd 2",
+          "expect": {
+            "session": "Failed",
+            "completed": "1",
+            "a.last_state_valid": false,
+            "a.last_state.move_x": 0,
+            "a.current_state.move_x": 0,
+            "a.last_processed_tick": "1",
+            "a.last_processed_sequence": "1",
+            "a.edges.0.resolved_sequence": "2",
+            "a.edges.0.processed_sequence": "1",
+            "a.edges.0.processed_count": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "retirement-history",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 1 1 1 8 32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin odd 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "return odd 1",
+          "expect": {
+            "b.last_state_valid": true
+          }
+        },
+        {
+          "command": "retire 1",
+          "expect": {
+            "b.retired": true,
+            "b.last_state_valid": false,
+            "b.last_state.move_x": 0,
+            "b.last_processed_tick": "1",
+            "b.last_processed_sequence": "1",
+            "b.edges.3.processed_generation": "1",
+            "b.edges.3.processed_count": "1",
+            "b.generation": "2"
+          }
+        },
+        {
+          "command": "packet 1 2 2 8 0",
+          "expect": {
+            "decision": "Retired",
+            "b.last_received_tick": "1",
+            "b.rejections.Retired": "1",
+            "b.edges.3.processed_count": "1"
+          }
+        },
+        {
+          "command": "read 1 11",
+          "expect": {
+            "value": 0,
+            "unchanged": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "transport-parity",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "make 0 1 1 32767",
+          "expect": {
+            "generated_sequence": "1"
+          }
+        },
+        {
+          "command": "submit-made 0",
+          "expect": {
+            "decision": "Accepted",
+            "a.current_valid": false,
+            "a.last_processed_tick": "0"
+          }
+        },
+        {
+          "command": "read 0 1",
+          "expect": {
+            "value": 0,
+            "unchanged": true
+          }
+        },
+        {
+          "command": "submit-remote 0",
+          "expect": {
+            "decision": "Duplicate",
+            "a.submit_count": "2",
+            "a.received_count": "2",
+            "a.accepted_count": "1",
+            "a.duplicate_count": "1"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.current_state.move_x": 32767
+          }
+        },
+        {
+          "command": "read 0 8",
+          "expect": {
+            "value": 1,
+            "unchanged": true
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "completed": "1",
+            "a.edges.0.processed_count": "1"
+          }
+        }
+      ],
+      "admission_checks": [
+        {
+          "index": 1,
+          "expect": {
+            "transport": "local-loopback",
+            "length": 64,
+            "decision": "Accepted"
+          }
+        },
+        {
+          "index": 2,
+          "expect": {
+            "transport": "remote-bytes",
+            "length": 64,
+            "decision": "Duplicate"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reverse-transport-duplicate",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "make 1 1 2 -32767",
+          "expect": {
+            "generated_sequence": "1"
+          }
+        },
+        {
+          "command": "submit-remote 1",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "submit-made 1",
+          "expect": {
+            "decision": "Duplicate"
+          }
+        },
+        {
+          "command": "begin odd 1",
+          "expect": {
+            "b.current_state.move_x": -32767
+          }
+        },
+        {
+          "command": "return odd 1",
+          "expect": {
+            "b.edges.1.processed_count": "1",
+            "b.accepted_count": "1",
+            "b.duplicate_count": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "cross-transport-conflict",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local-packet 1 1 1 1 0",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "packet 1 1 2 1 0",
+          "expect": {
+            "decision": "SequenceConflict",
+            "b.retired": true,
+            "b.discarded_on_invalidate": "1",
+            "a.retired": false
+          }
+        },
+        {
+          "command": "local-packet 1 2 2 0 0",
+          "expect": {
+            "decision": "Retired",
+            "b.submit_count": "3",
+            "b.received_count": "3"
+          }
+        }
+      ]
+    },
+    {
+      "name": "independent-client-sequences",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 1 32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "packet 1 1 1 2 -32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.last_resolved_sequence": "1",
+            "b.last_resolved_sequence": "1"
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "a.last_processed_sequence": "1",
+            "b.last_processed_sequence": "1",
+            "a.edges.0.processed_count": "1",
+            "b.edges.1.processed_count": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "no-payload-rerouting-0",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 1 32767 wrong-client",
+          "expect": {
+            "decision": "WrongClient",
+            "a.accepted_count": "0",
+            "a.received_count": "0",
+            "b.submit_count": "0"
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0 wrong-session",
+          "expect": {
+            "decision": "WrongSession",
+            "a.rejected_count": "2"
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 1 32767",
+          "expect": {
+            "decision": "Accepted",
+            "a.submit_count": "3",
+            "b.accepted_count": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "invalid-codec-no-bypass-0",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0 malformed",
+          "expect": {
+            "decision": "Invalid",
+            "a.submit_count": "1",
+            "a.rejected_count": "1",
+            "a.received_count": "1",
+            "a.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0 version",
+          "expect": {
+            "decision": "Invalid",
+            "a.submit_count": "2",
+            "a.rejected_count": "2",
+            "a.received_count": "2",
+            "a.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0 encoded-length",
+          "expect": {
+            "decision": "Invalid",
+            "a.submit_count": "3",
+            "a.rejected_count": "3",
+            "a.received_count": "3",
+            "a.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0 held-flags",
+          "expect": {
+            "decision": "Invalid",
+            "a.submit_count": "4",
+            "a.rejected_count": "4",
+            "a.received_count": "4",
+            "a.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0 edge-flags",
+          "expect": {
+            "decision": "Invalid",
+            "a.submit_count": "5",
+            "a.rejected_count": "5",
+            "a.received_count": "5",
+            "a.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0 axis-min",
+          "expect": {
+            "decision": "Invalid",
+            "a.submit_count": "6",
+            "a.rejected_count": "6",
+            "a.received_count": "6",
+            "a.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0 aim-mismatch",
+          "expect": {
+            "decision": "Invalid",
+            "a.submit_count": "7",
+            "a.rejected_count": "7",
+            "a.received_count": "7",
+            "a.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 1 32767",
+          "expect": {
+            "decision": "Accepted",
+            "a.submit_count": "8",
+            "a.received_count": "8",
+            "a.accepted_count": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "local-remote-lifecycle-0",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0",
+          "expect": {
+            "decision": "SessionInactive"
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "invalidate 0",
+          "expect": {
+            "a.generation": "2"
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0",
+          "expect": {
+            "decision": "WrongGeneration"
+          }
+        },
+        {
+          "command": "rebind 0",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0 old-generation",
+          "expect": {
+            "decision": "WrongGeneration"
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 0 0",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "fail-session",
+          "expect": {
+            "session": "Failed"
+          }
+        },
+        {
+          "command": "local-packet 0 2 2 0 0",
+          "expect": {
+            "decision": "Retired",
+            "a.last_accepted_sequence": "1",
+            "a.rejected_count": "4"
+          }
+        }
+      ]
+    },
+    {
+      "name": "local-remote-time-validator-0",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local-packet 0 0 1 0 0",
+          "expect": {
+            "decision": "Invalid"
+          }
+        },
+        {
+          "command": "local-packet 0 1 0 0 0",
+          "expect": {
+            "decision": "Expired"
+          }
+        },
+        {
+          "command": "local-packet 0 1 65 0 0",
+          "expect": {
+            "decision": "TooFar"
+          }
+        },
+        {
+          "command": "local-packet 0 5 2 0 0",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "local-packet 0 4 1 0 0",
+          "expect": {
+            "decision": "Stale"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local-packet 0 6 1 0 0",
+          "expect": {
+            "decision": "Expired"
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "completed": "1"
+          }
+        },
+        {
+          "command": "begin odd 2",
+          "expect": {
+            "a.last_resolved_sequence": "5"
+          }
+        },
+        {
+          "command": "return odd 2",
+          "expect": {
+            "a.last_processed_sequence": "5"
+          }
+        }
+      ]
+    },
+    {
+      "name": "no-payload-rerouting-1",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 1 1 1 1 32767 wrong-client",
+          "expect": {
+            "decision": "WrongClient",
+            "b.accepted_count": "0",
+            "b.received_count": "0",
+            "a.submit_count": "0"
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0 wrong-session",
+          "expect": {
+            "decision": "WrongSession",
+            "b.rejected_count": "2"
+          }
+        },
+        {
+          "command": "packet 1 1 1 1 32767",
+          "expect": {
+            "decision": "Accepted",
+            "b.submit_count": "3",
+            "a.accepted_count": "0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "invalid-codec-no-bypass-1",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0 malformed",
+          "expect": {
+            "decision": "Invalid",
+            "b.submit_count": "1",
+            "b.rejected_count": "1",
+            "b.received_count": "1",
+            "b.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0 version",
+          "expect": {
+            "decision": "Invalid",
+            "b.submit_count": "2",
+            "b.rejected_count": "2",
+            "b.received_count": "2",
+            "b.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0 encoded-length",
+          "expect": {
+            "decision": "Invalid",
+            "b.submit_count": "3",
+            "b.rejected_count": "3",
+            "b.received_count": "3",
+            "b.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0 held-flags",
+          "expect": {
+            "decision": "Invalid",
+            "b.submit_count": "4",
+            "b.rejected_count": "4",
+            "b.received_count": "4",
+            "b.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0 edge-flags",
+          "expect": {
+            "decision": "Invalid",
+            "b.submit_count": "5",
+            "b.rejected_count": "5",
+            "b.received_count": "5",
+            "b.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0 axis-min",
+          "expect": {
+            "decision": "Invalid",
+            "b.submit_count": "6",
+            "b.rejected_count": "6",
+            "b.received_count": "6",
+            "b.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0 aim-mismatch",
+          "expect": {
+            "decision": "Invalid",
+            "b.submit_count": "7",
+            "b.rejected_count": "7",
+            "b.received_count": "7",
+            "b.last_accepted_sequence": "0"
+          }
+        },
+        {
+          "command": "packet 1 1 1 1 32767",
+          "expect": {
+            "decision": "Accepted",
+            "b.submit_count": "8",
+            "b.received_count": "8",
+            "b.accepted_count": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "local-remote-lifecycle-1",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0",
+          "expect": {
+            "decision": "SessionInactive"
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "invalidate 1",
+          "expect": {
+            "b.generation": "2"
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0",
+          "expect": {
+            "decision": "WrongGeneration"
+          }
+        },
+        {
+          "command": "rebind 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0 old-generation",
+          "expect": {
+            "decision": "WrongGeneration"
+          }
+        },
+        {
+          "command": "packet 1 1 1 0 0",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "fail-session",
+          "expect": {
+            "session": "Failed"
+          }
+        },
+        {
+          "command": "packet 1 2 2 0 0",
+          "expect": {
+            "decision": "Retired",
+            "b.last_accepted_sequence": "1",
+            "b.rejected_count": "4"
+          }
+        }
+      ]
+    },
+    {
+      "name": "local-remote-time-validator-1",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 1 0 1 0 0",
+          "expect": {
+            "decision": "Invalid"
+          }
+        },
+        {
+          "command": "packet 1 1 0 0 0",
+          "expect": {
+            "decision": "Expired"
+          }
+        },
+        {
+          "command": "packet 1 1 65 0 0",
+          "expect": {
+            "decision": "TooFar"
+          }
+        },
+        {
+          "command": "packet 1 5 2 0 0",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "packet 1 4 1 0 0",
+          "expect": {
+            "decision": "Stale"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 1 6 1 0 0",
+          "expect": {
+            "decision": "Expired"
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "completed": "1"
+          }
+        },
+        {
+          "command": "begin odd 2",
+          "expect": {
+            "b.last_resolved_sequence": "5"
+          }
+        },
+        {
+          "command": "return odd 2",
+          "expect": {
+            "b.last_processed_sequence": "5"
+          }
+        }
+      ]
+    },
+    {
+      "name": "strict-payload-lengths",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 1 1 1 1 32767 empty",
+          "expect": {
+            "decision": "Invalid",
+            "b.submit_count": "1",
+            "b.received_count": "0"
+          }
+        },
+        {
+          "command": "packet 1 1 1 1 32767 header-short",
+          "expect": {
+            "decision": "Invalid",
+            "b.submit_count": "2",
+            "b.received_count": "0",
+            "b.has_received": false
+          }
+        },
+        {
+          "command": "packet 1 1 1 1 32767 short",
+          "expect": {
+            "decision": "Invalid",
+            "b.submit_count": "3",
+            "b.received_count": "1",
+            "b.last_received_sequence": "1",
+            "b.last_received_target_tick": "1"
+          }
+        },
+        {
+          "command": "packet 1 1 1 1 32767 trailing",
+          "expect": {
+            "decision": "Invalid",
+            "b.submit_count": "4",
+            "b.received_count": "2",
+            "b.accepted_count": "0",
+            "b.rejections.Invalid": "4"
+          }
+        },
+        {
+          "command": "packet 1 1 1 1 32767",
+          "expect": {
+            "decision": "Accepted",
+            "b.submit_count": "5",
+            "b.received_count": "3",
+            "b.accepted_count": "1"
+          }
+        }
+      ],
+      "admission_checks": [
+        {
+          "index": 1,
+          "expect": {
+            "length": 0,
+            "decision": "Invalid"
+          }
+        },
+        {
+          "index": 2,
+          "expect": {
+            "length": 39,
+            "decision": "Invalid"
+          }
+        },
+        {
+          "index": 3,
+          "expect": {
+            "length": 63,
+            "decision": "Invalid"
+          }
+        },
+        {
+          "index": 4,
+          "expect": {
+            "length": 65,
+            "decision": "Invalid"
+          }
+        },
+        {
+          "index": 5,
+          "expect": {
+            "length": 64,
+            "decision": "Accepted"
+          }
+        }
+      ]
+    },
+    {
+      "name": "malformed-does-not-poison-current",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "local-packet 0 1 1 1 32767",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.current_state.move_x": 32767
+          }
+        },
+        {
+          "command": "packet 0 1 1 0 0 malformed",
+          "expect": {
+            "decision": "Invalid",
+            "a.current_valid": true,
+            "a.current_state.move_x": 32767,
+            "a.last_resolved_sequence": "1",
+            "a.retired": false
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "a.last_state.move_x": 32767,
+            "a.edges.0.processed_count": "1",
+            "a.accepted_count": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "startup-through-common-entry-0",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "make 0 1 1 32767",
+          "expect": {
+            "generated_sequence": "1",
+            "generated_target": "1"
+          }
+        },
+        {
+          "command": "submit-made 0",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "make 0 2 0 32767",
+          "expect": {
+            "generated_sequence": "2",
+            "generated_target": "2"
+          }
+        },
+        {
+          "command": "submit-made 0",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "a.current_state.edge_flags": 1
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "a.edges.0.processed_count": "1"
+          }
+        },
+        {
+          "command": "begin odd 2",
+          "expect": {
+            "a.current_state.move_x": 32767,
+            "a.current_state.edge_flags": 0
+          }
+        },
+        {
+          "command": "return odd 2",
+          "expect": {
+            "a.last_processed_sequence": "2",
+            "a.edges.0.processed_count": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "startup-through-common-entry-1",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "make 1 1 1 32767",
+          "expect": {
+            "generated_sequence": "1",
+            "generated_target": "1"
+          }
+        },
+        {
+          "command": "submit-remote 1",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "make 1 2 0 32767",
+          "expect": {
+            "generated_sequence": "2",
+            "generated_target": "2"
+          }
+        },
+        {
+          "command": "submit-remote 1",
+          "expect": {
+            "decision": "Accepted"
+          }
+        },
+        {
+          "command": "begin normal 1",
+          "expect": {
+            "b.current_state.edge_flags": 1
+          }
+        },
+        {
+          "command": "return normal 1",
+          "expect": {
+            "b.edges.0.processed_count": "1"
+          }
+        },
+        {
+          "command": "begin odd 2",
+          "expect": {
+            "b.current_state.move_x": 32767,
+            "b.current_state.edge_flags": 0
+          }
+        },
+        {
+          "command": "return odd 2",
+          "expect": {
+            "b.last_processed_sequence": "2",
+            "b.edges.0.processed_count": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "local-queue-full-same-validator",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "fill-local 0 257",
+          "expect": {
+            "decision": "Full",
+            "a.submit_count": "257",
+            "a.accepted_count": "256",
+            "a.rejections.Full": "1",
+            "b.submit_count": "0"
+          }
+        }
+      ],
+      "batch": {
+        "count": 257,
+        "accepted": 256,
+        "last": {
+          "sequence": "257",
+          "target": "1",
+          "decision": "Full",
+          "completed": "0"
+        }
+      }
+    },
+    {
+      "name": "local-continues-remote-outage",
+      "steps": [
+        {
+          "command": "warmup",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "outage 0 120",
+          "expect": {
+            "completed": "120",
+            "a.last_processed_tick": "120",
+            "a.accepted_count": "120",
+            "b.submit_count": "0",
+            "b.last_processed_tick": "0",
+            "b.last_state_valid": false
+          }
+        }
+      ],
+      "batch": {
+        "count": 120,
+        "accepted": 120,
+        "last": {
+          "sequence": "120",
+          "target": "120",
+          "decision": "Accepted",
+          "completed": "120"
+        }
+      }
+    }
+  ],
+  "admissions": 4846
+}

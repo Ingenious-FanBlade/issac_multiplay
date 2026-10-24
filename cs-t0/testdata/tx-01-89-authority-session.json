@@ -1,0 +1,2747 @@
+{
+  "tx": "tx-01-89",
+  "scope": "T0-07 operation 1; offline lifecycle scenarios using production FSM, codec and Participant; opaque bindings only",
+  "scenarios": [
+    {
+      "name": "normal_input_and_retirement",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "make 0",
+          "expect": {
+            "ok": true,
+            "sequence": 1
+          }
+        },
+        {
+          "command": "submit 0",
+          "expect": {
+            "decision": 1,
+            "depth": [
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "command": "make 1",
+          "expect": {
+            "sequence": 1
+          }
+        },
+        {
+          "command": "submit 1",
+          "expect": {
+            "decision": 1,
+            "depth": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "command": "resolve 0 1",
+          "expect": {
+            "ok": true,
+            "value": 1,
+            "depth": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "command": "edge 0 1",
+          "expect": {
+            "value": 1
+          }
+        },
+        {
+          "command": "resolve 1 1",
+          "expect": {
+            "ok": true,
+            "value": 1,
+            "depth": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "command": "end 0",
+          "expect": {
+            "previous": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "retire",
+          "expect": {
+            "state": "Retiring",
+            "input_open": false
+          }
+        },
+        {
+          "command": "read 1 1",
+          "expect": {
+            "value": 0
+          }
+        },
+        {
+          "command": "edge 1 1",
+          "expect": {
+            "value": 0
+          }
+        },
+        {
+          "command": "end 1",
+          "expect": {
+            "previous": [
+              false,
+              false
+            ]
+          }
+        },
+        {
+          "command": "make 0",
+          "expect": {
+            "ok": false,
+            "sequence": 0
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        },
+        {
+          "command": "resolve 1 2",
+          "expect": {
+            "ok": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": false
+          }
+        },
+        {
+          "command": "finish 0",
+          "expect": {
+            "state": "Retiring",
+            "ok": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Retired",
+            "ok": true,
+            "cause": "CleanupComplete"
+          }
+        },
+        {
+          "command": "restart",
+          "expect": {
+            "ok": false,
+            "state": "Retired",
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "fail",
+          "expect": {
+            "state": "Retired",
+            "ok": false
+          }
+        },
+        {
+          "command": "packet 1",
+          "expect": {
+            "decision": 13,
+            "ok": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "warmup_allows_join_binding_without_gameplay",
+      "steps": [
+        {
+          "command": "make 0",
+          "expect": {
+            "sequence": 0,
+            "ok": false
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "decision": 14,
+            "ok": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": false
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": false,
+            "state": "Dormant"
+          }
+        },
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": false,
+            "state": "Warmup"
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": false,
+            "state": "Warmup"
+          }
+        },
+        {
+          "command": "make 0",
+          "expect": {
+            "ok": false,
+            "sequence": 0
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 14,
+            "depth": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "command": "resolve 0 1",
+          "expect": {
+            "ok": false,
+            "value": 0
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "state": "Active"
+          }
+        },
+        {
+          "command": "make 0",
+          "expect": {
+            "sequence": 1,
+            "ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "identity_is_frozen",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "restart",
+          "expect": {
+            "ok": false,
+            "state": "Active",
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "wrong-session 0",
+          "expect": {
+            "ok": false,
+            "decision": 3,
+            "depth": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "command": "wrong-client 1",
+          "expect": {
+            "ok": false,
+            "decision": 4,
+            "depth": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": true,
+            "decision": 1
+          }
+        },
+        {
+          "command": "packet 1",
+          "expect": {
+            "ok": true,
+            "decision": 1,
+            "depth": [
+              1,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "active_rebinding_and_b_retirement_do_not_restart_session",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "decision": 1
+          }
+        },
+        {
+          "command": "packet 1",
+          "expect": {
+            "decision": 1
+          }
+        },
+        {
+          "command": "invalidate 1",
+          "expect": {
+            "state": "Active",
+            "input_open": true,
+            "depth": [
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "command": "old-generation 1",
+          "expect": {
+            "ok": false,
+            "decision": 12
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true
+          }
+        },
+        {
+          "command": "old-generation 1",
+          "expect": {
+            "ok": false,
+            "decision": 12
+          }
+        },
+        {
+          "command": "retire-player 1",
+          "expect": {
+            "state": "Active",
+            "input_open": true
+          }
+        },
+        {
+          "command": "packet 1",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        },
+        {
+          "command": "resolve 0 1",
+          "expect": {
+            "ok": true,
+            "value": 1
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": true,
+            "state": "Active"
+          }
+        },
+        {
+          "command": "end 0",
+          "expect": {
+            "previous": [
+              true,
+              false
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "failed_during_active_masks_existing_current",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "decision": 1
+          }
+        },
+        {
+          "command": "resolve 0 1",
+          "expect": {
+            "value": 1
+          }
+        },
+        {
+          "command": "fail",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "read 0 1",
+          "expect": {
+            "value": 0
+          }
+        },
+        {
+          "command": "edge 0 1",
+          "expect": {
+            "value": 0
+          }
+        },
+        {
+          "command": "end 0",
+          "expect": {
+            "previous": [
+              false,
+              false
+            ]
+          }
+        },
+        {
+          "command": "packet 1",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": false
+          }
+        },
+        {
+          "command": "retire",
+          "expect": {
+            "state": "Failed",
+            "ok": false,
+            "cause": "RuntimeFailure"
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "ok": true,
+            "cause": "RuntimeFailure"
+          }
+        },
+        {
+          "command": "restore-fail",
+          "expect": {
+            "state": "Failed",
+            "ok": false,
+            "cause": "RuntimeFailure"
+          }
+        },
+        {
+          "command": "restart",
+          "expect": {
+            "state": "Failed",
+            "ok": false
+          }
+        },
+        {
+          "command": "reinitialize 0",
+          "expect": {
+            "state": "Failed"
+          }
+        },
+        {
+          "command": "make 0",
+          "expect": {
+            "ok": false,
+            "sequence": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "run_teardown_closes_queued_input",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "depth": [
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "command": "packet 1",
+          "expect": {
+            "depth": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "command": "teardown",
+          "expect": {
+            "state": "Retiring",
+            "cause": "RunTeardown"
+          }
+        },
+        {
+          "command": "resolve 0 1",
+          "expect": {
+            "ok": false,
+            "value": 0,
+            "depth": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "command": "packet 1",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        },
+        {
+          "command": "finish 0",
+          "expect": {
+            "state": "Retiring",
+            "ok": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Retired",
+            "ok": true
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Retired",
+            "ok": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "controller_loss_preserves_failure_after_cleanup",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "controller-lost",
+          "expect": {
+            "state": "Failed",
+            "cause": "ControllerLost"
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "ControllerLost",
+            "ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "retirement_failure_is_terminal",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "retire",
+          "expect": {
+            "state": "Retiring"
+          }
+        },
+        {
+          "command": "restore-fail",
+          "expect": {
+            "state": "Failed",
+            "cause": "RestoreFailure"
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "ok": true,
+            "state": "Failed",
+            "cause": "RestoreFailure"
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "ok": false,
+            "state": "Failed"
+          }
+        }
+      ]
+    },
+    {
+      "name": "stop_during_warmup",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "retire",
+          "expect": {
+            "state": "Retiring",
+            "ok": true
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Retired",
+            "ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "premature_prepare_and_finish",
+      "steps": [
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Dormant",
+            "ok": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Dormant",
+            "ok": false
+          }
+        },
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Warmup",
+            "ok": false
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "repeat_initialize_cannot_reset_sequence_or_retire",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "make 0",
+          "expect": {
+            "sequence": 1
+          }
+        },
+        {
+          "command": "submit 0",
+          "expect": {
+            "depth": [
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "command": "reinitialize 0",
+          "expect": {
+            "depth": [
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "command": "make 0",
+          "expect": {
+            "sequence": 2
+          }
+        },
+        {
+          "command": "retire-player 0",
+          "expect": {}
+        },
+        {
+          "command": "reinitialize 0",
+          "expect": {}
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": false
+          }
+        },
+        {
+          "command": "make 0",
+          "expect": {
+            "sequence": 0,
+            "ok": false
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "decision": 13,
+            "ok": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "zero_session",
+      "steps": [
+        {
+          "command": "zero-session",
+          "expect": {
+            "ok": false,
+            "state": "Failed",
+            "cause": "Configuration",
+            "session_byte": 0,
+            "clients": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "command": "start",
+          "expect": {
+            "ok": false,
+            "state": "Failed"
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "ok": false,
+            "state": "Failed"
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "ok": true,
+            "state": "Failed",
+            "cause": "Configuration"
+          }
+        }
+      ]
+    },
+    {
+      "name": "zero_client",
+      "steps": [
+        {
+          "command": "zero-client",
+          "expect": {
+            "ok": false,
+            "state": "Failed",
+            "cause": "Configuration",
+            "session_byte": 0,
+            "clients": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "command": "start",
+          "expect": {
+            "ok": false,
+            "state": "Failed"
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "ok": false,
+            "state": "Failed"
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "ok": true,
+            "state": "Failed",
+            "cause": "Configuration"
+          }
+        }
+      ]
+    },
+    {
+      "name": "same_client",
+      "steps": [
+        {
+          "command": "same-client",
+          "expect": {
+            "ok": false,
+            "state": "Failed",
+            "cause": "Configuration",
+            "session_byte": 0,
+            "clients": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "command": "start",
+          "expect": {
+            "ok": false,
+            "state": "Failed"
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "ok": false,
+            "state": "Failed"
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "ok": true,
+            "state": "Failed",
+            "cause": "Configuration"
+          }
+        }
+      ]
+    },
+    {
+      "name": "failure_in_dormant",
+      "steps": [
+        {
+          "command": "fail",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "retire",
+          "expect": {
+            "state": "Failed",
+            "ok": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "start",
+          "expect": {
+            "state": "Failed",
+            "ok": false
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "decision": 13,
+            "ok": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "failure_in_negotiating",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {}
+        },
+        {
+          "command": "fail",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "retire",
+          "expect": {
+            "state": "Failed",
+            "ok": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "start",
+          "expect": {
+            "state": "Failed",
+            "ok": false
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "decision": 13,
+            "ok": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "failure_in_warmup",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "fail",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "retire",
+          "expect": {
+            "state": "Failed",
+            "ok": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "start",
+          "expect": {
+            "state": "Failed",
+            "ok": false
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "decision": 13,
+            "ok": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_0",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_1",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_2",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_3",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_4",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_5",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_6",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_7",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_8",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_9",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_10",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_11",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_12",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_13",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_14",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    },
+    {
+      "name": "concurrent_failure_and_stop_15",
+      "steps": [
+        {
+          "command": "start",
+          "expect": {
+            "state": "Negotiating",
+            "ok": true,
+            "input_open": false,
+            "clients": [
+              101,
+              202
+            ],
+            "session_byte": 17
+          }
+        },
+        {
+          "command": "prepared",
+          "expect": {
+            "state": "Warmup",
+            "ok": true,
+            "input_open": false
+          }
+        },
+        {
+          "command": "bind 0",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              false
+            ]
+          }
+        },
+        {
+          "command": "bind 1",
+          "expect": {
+            "ok": true,
+            "bound": [
+              true,
+              true
+            ]
+          }
+        },
+        {
+          "command": "activate",
+          "expect": {
+            "state": "Active",
+            "ok": true,
+            "input_open": true
+          }
+        },
+        {
+          "command": "race",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "input_open": false
+          }
+        },
+        {
+          "command": "finish 1",
+          "expect": {
+            "state": "Failed",
+            "cause": "RuntimeFailure",
+            "ok": true
+          }
+        },
+        {
+          "command": "packet 0",
+          "expect": {
+            "ok": false,
+            "decision": 13
+          }
+        }
+      ]
+    }
+  ]
+}

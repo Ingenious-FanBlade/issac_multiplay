@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "progressIdentity": "IsaacCsT0-CoopPassiveLiveProgress-v1",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-30T17:05:36.0827090Z",
+  "status": "IN_PROGRESS_WITH_WORKFLOW_SKIP",
+  "createNewOnly": true,
+  "evidencePolicy": {
+    "historicalSourcesAreImmutable": true,
+    "workflowSkipChangesSourceResult": false,
+    "workflowSkipCountsAsPass": false,
+    "sixSourceGateStillRequiresSixIndependentPassSources": true,
+    "currentGateEligible": false
+  },
+  "progress": {
+    "formalPassCount": 1,
+    "requiredPassCount": 6,
+    "workflowSkippedCount": 1,
+    "nextScenario": "death-respawn-passive",
+    "nextScenarioState": "PREPARED_AWAITING_FRESH_AUTHORIZATION",
+    "liveAuthorizationCreated": false
+  },
+  "scenarios": [
+    {
+      "ordinal": 1,
+      "scenario": "native-join-passive",
+      "workflowDisposition": "COMPLETE",
+      "formalResult": "PASS",
+      "countsForGate": true,
+      "source": "artifacts/cs-t0/20260828T072118Z-t0-05-03-native-join-passive-t0-05-03-native-join-passive-live-06",
+      "manifestSha256": "E268ECE2E43FB2F0834E797E9986D0294A67E03FC347CF39D3801D8F5064B991",
+      "eventsSha256": "BE9AEE8A6AE6C96F919563AFA71C0A60A10E9A0762D7E7C12927F3BFC5CBC6B6",
+      "analysisSha256": "BD2A8C6E8EE18B7D2E0B684062193731B39750DE6835403358AE196827B1FD53"
+    },
+    {
+      "ordinal": 2,
+      "scenario": "native-exit-passive",
+      "workflowDisposition": "SKIPPED_NOT_APPLICABLE",
+      "dispositionAuthority": "USER",
+      "skipReason": "ORDINARY_EXIT_HYPOTHESIS_FALSIFIED_BY_STATIC_EVIDENCE",
+      "formalResult": "BLOCKED_BY_EVIDENCE",
+      "countsForGate": false,
+      "sourceResultPreserved": true,
+      "authorizationConsumed": true,
+      "automaticRetryAllowed": false,
+      "source": "artifacts/cs-t0/20260830T162513Z-t0-05-03-native-exit-passive-t0-05-03-native-exit-passive-live-07",
+      "manifestSha256": "15AE50FC1A5858C06BAAAE7309C4191FE8E3659E6617A8C7DBFEFAD176C7D262",
+      "eventsSha256": "6322C0F24BEC2406907185BE0E718B96DB3CB16DCC6442137A436F4550243B8D",
+      "analysisSha256": "FCA986F50D05C18F3F8070EE61AB281C7B2CC47292C358010F136D157A70D5B5",
+      "reachabilityEvidence": "cs-t0/coop-native-exit-reachability-v1.json",
+      "reachabilityEvidenceSha256": "034B28853681C43539F669EC015EF3F9C2F8214F9CC25453E31BA86E751D7483"
+    },
+    {
+      "ordinal": 3,
+      "scenario": "death-respawn-passive",
+      "workflowDisposition": "PREPARED_AWAITING_FRESH_AUTHORIZATION",
+      "formalResult": null,
+      "countsForGate": false,
+      "intendedCaseId": "t0-05-03-death-respawn-passive-live-08",
+      "sourceExists": false
+    },
+    {
+      "ordinal": 4,
+      "scenario": "room-rebind-passive",
+      "workflowDisposition": "NOT_STARTED",
+      "formalResult": null,
+      "countsForGate": false
+    },
+    {
+      "ordinal": 5,
+      "scenario": "device-rebind-passive",
+      "workflowDisposition": "NOT_STARTED",
+      "formalResult": null,
+      "countsForGate": false
+    },
+    {
+      "ordinal": 6,
+      "scenario": "menu-teardown-passive",
+      "workflowDisposition": "NOT_STARTED",
+      "formalResult": null,
+      "countsForGate": false
+    }
+  ],
+  "nextTestPreparation": {
+    "scenario": "death-respawn-passive",
+    "probe": "passive",
+    "captureDurationMilliseconds": 180000,
+    "intendedCaseId": "t0-05-03-death-respawn-passive-live-08",
+    "caseIdCollisionChecked": true,
+    "sourceOrOutputWillNotBeOverwritten": true,
+    "targetPathPersisted": false,
+    "preparationChecks": {
+      "publicPassiveContractTests": "10/10 PASS",
+      "frozenBundleInputsPresent": true,
+      "productionBindingsMatchVerification": true,
+      "candidateCaseCollisionCount": 0,
+      "technicalPreflightBlockerObserved": false,
+      "atomicLivePreflightStillRequiredAfterAuthorization": true
+    },
+    "publicCliInputs": {
+      "targetEquivalence": "out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json",
+      "layoutEvidence": "cs-t0/coop-c0-layout-evidence-v1.json",
+      "catalog": "cs-t0/coop-catalog-v3.json",
+      "graph": "cs-t0/coop-static-graph-v1.json",
+      "plan": "cs-t0/coop-plan-v5.json",
+      "verification": "cs-t0/coop-verification-v5r4.json",
+      "artifactsRoot": "artifacts/cs-t0"
+    },
+    "requiredStartingState": [
+      "an ordinary local true-coop run is active",
+      "endpoint A and endpoint B are both alive and bound before the death",
+      "the game is not in OriginalOnline and is not entering room, loading, or menu teardown"
+    ],
+    "userActionWindow": [
+      "prepare both players outside an uncleared floor Boss room before capture",
+      "after capture reports Ready and an initial steady interval has elapsed, enter the Boss room and cause endpoint B to die through normal gameplay while endpoint A remains alive",
+      "use the normal Boss-clear co-op path to respawn endpoint B before the capture window ends, then leave both players idle for final rebinding passes",
+      "do not change rooms, disconnect or reassign a device, return to menu, or use a possessor path as a substitute"
+    ],
+    "requiredEvidence": {
+      "orderedStateSequence": [
+        "BINDING_UNBOUND",
+        "BINDING_CANDIDATE",
+        "BINDING_BOUND"
+      ],
+      "requiredFrozenAttributionAnyOf": [
+        "ORDINARY_SPAWN_BEGIN",
+        "EXIT_BEGIN",
+        "LIFECYCLE_ENTER"
+      ],
+      "expectedFinalBoundOrdinals": [
+        0,
+        1
+      ],
+      "pointerOrDigestDeltaAloneIsSufficient": false
+    },
+    "manualWitnessRequired": "The operator must confirm endpoint B actually died, entered the normal dead co-op state, and respawned. A lifecycle event caused only by entering the Boss room is not sufficient attribution by itself.",
+    "stopConditions": [
+      "preflight failure",
+      "source or output already exists",
+      "Native Unsafe",
+      "unknown codebook, gap, overwrite, or producer-close failure",
+      "missing frozen lifecycle attribution",
+      "capture completes without both endpoints rebound"
+    ],
+    "failureConsumesAuthorization": true,
+    "automaticRetryAllowed": false,
+    "liveRunStarted": false
+  }
+}

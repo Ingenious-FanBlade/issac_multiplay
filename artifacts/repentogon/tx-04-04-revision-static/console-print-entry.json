@@ -1,0 +1,379 @@
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"addr\":\"0x68DC60\",\"asm\":{\"name\":\"sub_68DC60\",\"start_ea\":\"0x68dc60\",\"segment\":\".text\",\"lines\":[{\"addr\":\"68dc60\",\"instruction\":\"push ebp\",\"label\":\"sub_68DC60\"},{\"addr\":\"68dc61\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"68dc63\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"68dc65\",\"instruction\":\"push offset SEH_68DC60\",\"refs\":[{\"addr\":\"0xa90475\",\"name\":\"SEH_68DC60\"}]},{\"addr\":\"68dc6a\",\"instruction\":\"mov eax, large fs:0\"},{\"addr\":\"68dc70\",\"instruction\":\"push eax\"},{\"addr\":\"68dc71\",\"instruction\":\"sub esp, 60h\"},{\"addr\":\"68dc74\",\"instruction\":\"mov eax, ___security_cookie\",\"refs\":[{\"addr\":\"0xb883b4\",\"name\":\"___security_cookie\"}]},{\"addr\":\"68dc79\",\"instruction\":\"xor eax, ebp\"},{\"addr\":\"68dc7b\",\"instruction\":\"mov [ebp+var_14], eax\"},{\"addr\":\"68dc7e\",\"instruction\":\"push ebx\"},{\"addr\":\"68dc7f\",\"instruction\":\"push esi\"},{\"addr\":\"68dc80\",\"instruction\":\"push edi\"},{\"addr\":\"68dc81\",\"instruction\":\"push eax\"},{\"addr\":\"68dc82\",\"instruction\":\"lea eax, [ebp+var_C]\"},{\"addr\":\"68dc85\",\"instruction\":\"mov large fs:0, eax\"},{\"addr\":\"68dc8b\",\"instruction\":\"mov edi, ecx\"},{\"addr\":\"68dc8d\",\"instruction\":\"mov ecx, [edi+104h]; Src\",\"comments\":[\"Src\"]},{\"addr\":\"68dc93\",\"instruction\":\"mov ebx, [ebp+i]\"},{\"addr\":\"68dc96\",\"instruction\":\"mov [ebp+var_64], ebx\"},{\"addr\":\"68dc99\",\"instruction\":\"test ecx, ecx\"},{\"addr\":\"68dc9b\",\"instruction\":\"jz short loc_68DCB5\",\"refs\":[{\"addr\":\"0x68dcb5\",\"name\":\"loc_68DCB5\"}]},{\"addr\":\"68dc9d\",\"instruction\":\"cmp dword ptr [ebx+14h], 10h\"},{\"addr\":\"68dca1\",\"instruction\":\"mov eax, ebx\"},{\"addr\":\"68dca3\",\"instruction\":\"jb short loc_68DCA7\",\"refs\":[{\"addr\":\"0x68dca7\",\"name\":\"loc_68DCA7\"}]},{\"addr\":\"68dca5\",\"instruction\":\"mov eax, [ebx]\"},{\"addr\":\"68dca7\",\"instruction\":\"push dword ptr [ebx+10h]; Size\",\"label\":\"loc_68DCA7\",\"comments\":[\"Size\"]},{\"addr\":\"68dcaa\",\"instruction\":\"push eax; void *\",\"comments\":[\"void *\"]},{\"addr\":\"68dcab\",\"instruction\":\"call sub_492C40\",\"refs\":[{\"addr\":\"0x492c40\",\"name\":\"sub_492C40\"}]},{\"addr\":\"68dcb0\",\"instruction\":\"jmp loc_68E0BD\",\"refs\":[{\"addr\":\"0x68e0bd\",\"name\":\"loc_68E0BD\"}]},{\"addr\":\"68dcb5\",\"instruction\":\"mov edx, [edi+50h]\",\"label\":\"loc_68DCB5\"},{\"addr\":\"68dcb8\",\"instruction\":\"test edx, edx\"},{\"addr\":\"68dcba\",\"instruction\":\"jz short loc_68DCD6\",\"refs\":[{\"addr\":\"0x68dcd6\",\"name\":\"loc_68DCD6\"}]},{\"addr\":\"68dcbc\",\"instruction\":\"mov ecx, [edi+48h]\"},{\"addr\":\"68dcbf\",\"instruction\":\"mov eax, [edi+44h]\"},{\"addr\":\"68dcc2\",\"instruction\":\"dec ecx\"}],\"stack_frame\":[{\"name\":\"var_6C\",\"offset\":\"0x10\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_68\",\"offset\":\"0x14\",\"size\":\"0x4\",\"type\":\"char[4]\"},{\"name\":\"var_64\",\"offset\":\"0x18\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_60\",\"offset\":\"0x1c\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_5C\",\"offset\":\"0x20\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_55\",\"offset\":\"0x27\",\"size\":\"0x1\",\"type\":\"_BYTE\"},{\"name\":\"var_54\",\"offset\":\"0x28\",\"size\":\"0x1\",\"type\":\"_BYTE\"},{\"name\":\"var_3C\",\"offset\":\"0x40\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_38\",\"offset\":\"0x44\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"Block\",\"offset\":\"0x48\",\"size\":\"0x4\",\"type\":\"void *\"},{\"name\":\"var_30\",\"offset\":\"0x4c\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"Src\",\"offset\":\"0x50\",\"size\":\"0x4\",\"type\":\"void *\"},{\"name\":\"var_1C\",\"offset\":\"0x60\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_18\",\"offset\":\"0x64\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_14\",\"offset\":\"0x68\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_C\",\"offset\":\"0x70\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_4\",\"offset\":\"0x78\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__saved_registers\",\"offset\":\"0x7c\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x80\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"},{\"name\":\"i\",\"offset\":\"0x84\",\"size\":\"0x4\",\"type\":\"_DWORD *\"},{\"name\":\"a3\",\"offset\":\"0x88\",\"size\":\"0x4\",\"type\":\"int\"},{\"name\":\"a4\",\"offset\":\"0x8c\",\"size\":\"0x4\",\"type\":\"int\"}],\"return_type\":\"int\",\"arguments\":[{\"name\":\"this\",\"type\":\"int *\"},{\"name\":\"i\",\"type\":\"_DWORD *\"},{\"name\":\"a3\",\"type\":\"int\"},{\"name\":\"a4\",\"type\":\"int\"}]},\"instruction_count\":36,\"total_instructions\":null,\"cursor\":{\"next\":36}}"
+      }
+    ],
+    "structuredContent": {
+      "addr": "0x68DC60",
+      "asm": {
+        "name": "sub_68DC60",
+        "start_ea": "0x68dc60",
+        "segment": ".text",
+        "lines": [
+          {
+            "addr": "68dc60",
+            "instruction": "push ebp",
+            "label": "sub_68DC60"
+          },
+          {
+            "addr": "68dc61",
+            "instruction": "mov ebp, esp"
+          },
+          {
+            "addr": "68dc63",
+            "instruction": "push 0FFFFFFFFh"
+          },
+          {
+            "addr": "68dc65",
+            "instruction": "push offset SEH_68DC60",
+            "refs": [
+              {
+                "addr": "0xa90475",
+                "name": "SEH_68DC60"
+              }
+            ]
+          },
+          {
+            "addr": "68dc6a",
+            "instruction": "mov eax, large fs:0"
+          },
+          {
+            "addr": "68dc70",
+            "instruction": "push eax"
+          },
+          {
+            "addr": "68dc71",
+            "instruction": "sub esp, 60h"
+          },
+          {
+            "addr": "68dc74",
+            "instruction": "mov eax, ___security_cookie",
+            "refs": [
+              {
+                "addr": "0xb883b4",
+                "name": "___security_cookie"
+              }
+            ]
+          },
+          {
+            "addr": "68dc79",
+            "instruction": "xor eax, ebp"
+          },
+          {
+            "addr": "68dc7b",
+            "instruction": "mov [ebp+var_14], eax"
+          },
+          {
+            "addr": "68dc7e",
+            "instruction": "push ebx"
+          },
+          {
+            "addr": "68dc7f",
+            "instruction": "push esi"
+          },
+          {
+            "addr": "68dc80",
+            "instruction": "push edi"
+          },
+          {
+            "addr": "68dc81",
+            "instruction": "push eax"
+          },
+          {
+            "addr": "68dc82",
+            "instruction": "lea eax, [ebp+var_C]"
+          },
+          {
+            "addr": "68dc85",
+            "instruction": "mov large fs:0, eax"
+          },
+          {
+            "addr": "68dc8b",
+            "instruction": "mov edi, ecx"
+          },
+          {
+            "addr": "68dc8d",
+            "instruction": "mov ecx, [edi+104h]; Src",
+            "comments": [
+              "Src"
+            ]
+          },
+          {
+            "addr": "68dc93",
+            "instruction": "mov ebx, [ebp+i]"
+          },
+          {
+            "addr": "68dc96",
+            "instruction": "mov [ebp+var_64], ebx"
+          },
+          {
+            "addr": "68dc99",
+            "instruction": "test ecx, ecx"
+          },
+          {
+            "addr": "68dc9b",
+            "instruction": "jz short loc_68DCB5",
+            "refs": [
+              {
+                "addr": "0x68dcb5",
+                "name": "loc_68DCB5"
+              }
+            ]
+          },
+          {
+            "addr": "68dc9d",
+            "instruction": "cmp dword ptr [ebx+14h], 10h"
+          },
+          {
+            "addr": "68dca1",
+            "instruction": "mov eax, ebx"
+          },
+          {
+            "addr": "68dca3",
+            "instruction": "jb short loc_68DCA7",
+            "refs": [
+              {
+                "addr": "0x68dca7",
+                "name": "loc_68DCA7"
+              }
+            ]
+          },
+          {
+            "addr": "68dca5",
+            "instruction": "mov eax, [ebx]"
+          },
+          {
+            "addr": "68dca7",
+            "instruction": "push dword ptr [ebx+10h]; Size",
+            "label": "loc_68DCA7",
+            "comments": [
+              "Size"
+            ]
+          },
+          {
+            "addr": "68dcaa",
+            "instruction": "push eax; void *",
+            "comments": [
+              "void *"
+            ]
+          },
+          {
+            "addr": "68dcab",
+            "instruction": "call sub_492C40",
+            "refs": [
+              {
+                "addr": "0x492c40",
+                "name": "sub_492C40"
+              }
+            ]
+          },
+          {
+            "addr": "68dcb0",
+            "instruction": "jmp loc_68E0BD",
+            "refs": [
+              {
+                "addr": "0x68e0bd",
+                "name": "loc_68E0BD"
+              }
+            ]
+          },
+          {
+            "addr": "68dcb5",
+            "instruction": "mov edx, [edi+50h]",
+            "label": "loc_68DCB5"
+          },
+          {
+            "addr": "68dcb8",
+            "instruction": "test edx, edx"
+          },
+          {
+            "addr": "68dcba",
+            "instruction": "jz short loc_68DCD6",
+            "refs": [
+              {
+                "addr": "0x68dcd6",
+                "name": "loc_68DCD6"
+              }
+            ]
+          },
+          {
+            "addr": "68dcbc",
+            "instruction": "mov ecx, [edi+48h]"
+          },
+          {
+            "addr": "68dcbf",
+            "instruction": "mov eax, [edi+44h]"
+          },
+          {
+            "addr": "68dcc2",
+            "instruction": "dec ecx"
+          }
+        ],
+        "stack_frame": [
+          {
+            "name": "var_6C",
+            "offset": "0x10",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "var_68",
+            "offset": "0x14",
+            "size": "0x4",
+            "type": "char[4]"
+          },
+          {
+            "name": "var_64",
+            "offset": "0x18",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "var_60",
+            "offset": "0x1c",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "var_5C",
+            "offset": "0x20",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "var_55",
+            "offset": "0x27",
+            "size": "0x1",
+            "type": "_BYTE"
+          },
+          {
+            "name": "var_54",
+            "offset": "0x28",
+            "size": "0x1",
+            "type": "_BYTE"
+          },
+          {
+            "name": "var_3C",
+            "offset": "0x40",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "var_38",
+            "offset": "0x44",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "Block",
+            "offset": "0x48",
+            "size": "0x4",
+            "type": "void *"
+          },
+          {
+            "name": "var_30",
+            "offset": "0x4c",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "Src",
+            "offset": "0x50",
+            "size": "0x4",
+            "type": "void *"
+          },
+          {
+            "name": "var_1C",
+            "offset": "0x60",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "var_18",
+            "offset": "0x64",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "var_14",
+            "offset": "0x68",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "var_C",
+            "offset": "0x70",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "var_4",
+            "offset": "0x78",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "__saved_registers",
+            "offset": "0x7c",
+            "size": "0x4",
+            "type": "_DWORD"
+          },
+          {
+            "name": "__return_address",
+            "offset": "0x80",
+            "size": "0x4",
+            "type": "_UNKNOWN *"
+          },
+          {
+            "name": "i",
+            "offset": "0x84",
+            "size": "0x4",
+            "type": "_DWORD *"
+          },
+          {
+            "name": "a3",
+            "offset": "0x88",
+            "size": "0x4",
+            "type": "int"
+          },
+          {
+            "name": "a4",
+            "offset": "0x8c",
+            "size": "0x4",
+            "type": "int"
+          }
+        ],
+        "return_type": "int",
+        "arguments": [
+          {
+            "name": "this",
+            "type": "int *"
+          },
+          {
+            "name": "i",
+            "type": "_DWORD *"
+          },
+          {
+            "name": "a3",
+            "type": "int"
+          },
+          {
+            "name": "a4",
+            "type": "int"
+          }
+        ]
+      },
+      "instruction_count": 36,
+      "total_instructions": null,
+      "cursor": {
+        "next": 36
+      }
+    },
+    "isError": false
+  },
+  "id": 5
+}

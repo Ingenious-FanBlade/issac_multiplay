@@ -1,0 +1,33 @@
+# issac_multiplay
+
+从 `D:\projects\isaac_hook_reserach` 复制出的独立 C/S 研究工程，目标根目录为 `F:\projects_isaac\issac_multiplay`。迁移日期：2026-10-22；tx-03-09。保留 `cs-t0/` 层级以维持现有脚本、Rust嵌入资料、Native项目及文档相对路径。
+
+- [文档入口](docs/README.md)
+- [按功能模块整理的Hook与逆向点位](docs/hooks/README.md)
+- [状态同步设计](docs/design/state-synchronization.md)
+- [REPENTOGON 适配重构设计](docs/design/repentogon-refactor.md)
+- [REPENTOGON mod 源码与构建](mod/README.md)、[tx-04-04 实现与验收结果](docs/design/tx-04-04-results.md)
+- [tx-04-05 静态确认与主审](docs/research/tx-04-05-static-confirmation.md)、[修订后的实现方案](docs/design/tx-04-05-implementation-plan.md)
+- [迁移范围、路径调整与历史产物](docs/migration/README.md)
+- [现行项目规范](docs/refactor/project-conventions.md)
+
+当前代码仍是T0研究原型；新状态同步模型已采纳为设计，尚未实现可玩Replica。迁移不把旧PASS扩大为snapshot apply完成，也不重判历史FAIL。
+
+2026-10-24 tx-04-05：T1–T8 静态审查完成，按用户要求由 GPT-6 Luna / max 子智能体逆向、主智能体独立复核。只更新证据和方案，没有实现功能、构建或测试；tx-04-05 的唯一整体 E2E 尚未执行。tx-04-04 第八次整体 E2E 已 PASS，下文初次失败记录保留。
+
+2026-10-24 tx-04-04 已新增 `mod/`、`ui/`、`tools/harness/`，DLL 和 i686 harness 编译成功。唯一 E2E 在注入启动阶段 Launch 等待 60 秒超时，未进入菜单、未重跑；运行时能力尚未验证。下文的迁移记录保留其当时语境。
+
+## 源码与构建
+
+`cs-t0/src`为Rust控制器/分析器，`cs-t0/native`为Win32 Native/Helper与既有场景源码，`cs-t0/world_e2e`及脚本保存原研究执行器。Cargo.lock、rust-toolchain、catalog/testdata/ledger/archive均已复制。根目录保留原`Directory.Build.props`及其`VERSION`文件依赖。
+
+构建依赖按现有工程：Rust工具链见`cs-t0/rust-toolchain.toml`与Cargo.toml；Native需要Visual Studio 2022/v143及Windows SDK，目标Win32。以下仅是未来纯构建入口，本次未执行：
+
+```powershell
+cargo build --manifest-path .\cs-t0\Cargo.toml --locked --release --bin IsaacCsT0T09
+pwsh -File .\cs-t0\build-t09-b.ps1 -OutputDirectory out/cs-t0/new-build
+```
+
+旧`build.ps1`、`verify-*`和部分历史accept入口可能执行测试或旧哈希流程，使用前必须读实现并遵守现行规范；不能作为迁移后例行命令直接运行。旧编译二进制、Cargo缓存和大体积运行产物未搬入；本次没有构建或运行兼容性结论。
+
+目标目录原有Git元数据保持原样；没有创建提交、推送或迁移原仓库`.git`。本次迁移的源文件清单见[复制manifest](docs/migration/source-copy-manifest.json)。

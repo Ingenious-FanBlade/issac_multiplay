@@ -1,0 +1,6866 @@
+{
+  "task": "tx-01-67 primary static review evidence",
+  "input_path": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe",
+  "imagebase": "0x400000",
+  "banner_va": "0xB7E1B4",
+  "banner": "Binding of Isaac: Repentance+ v1.9.7.17.J460\n",
+  "functions": [
+    {
+      "start_va": "0x6A9C10",
+      "name": "sub_6A9C10",
+      "instructions": [
+        {
+          "va": "0x6A9C10",
+          "rva": "0x2A9C10",
+          "bytes": "a1 78 16 c7 00",
+          "text": "mov     eax, n60"
+        },
+        {
+          "va": "0x6A9C15",
+          "rva": "0x2A9C15",
+          "bytes": "8b 80 f8 64 02 00",
+          "text": "mov     eax, [eax+264F8h]"
+        },
+        {
+          "va": "0x6A9C1B",
+          "rva": "0x2A9C1B",
+          "bytes": "2b 81 28 03 00 00",
+          "text": "sub     eax, [ecx+328h]"
+        },
+        {
+          "va": "0x6A9C21",
+          "rva": "0x2A9C21",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __thiscall sub_6A9C10(_DWORD *this)\n{\n  return *(_DWORD *)(n60 + 156920) - this[202];\n}\n"
+    },
+    {
+      "start_va": "0x5B1940",
+      "name": "sub_5B1940",
+      "instructions": [
+        {
+          "va": "0x5B1940",
+          "rva": "0x1B1940",
+          "bytes": "8b 81 40 05 00 00",
+          "text": "mov     eax, [ecx+540h]"
+        },
+        {
+          "va": "0x5B1946",
+          "rva": "0x1B1946",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __thiscall sub_5B1940(_DWORD *this)\n{\n  return this[336];\n}\n"
+    },
+    {
+      "start_va": "0x85E440",
+      "name": "sub_85E440",
+      "instructions": [
+        {
+          "va": "0x85E440",
+          "rva": "0x45E440",
+          "bytes": "8b 81 44 05 00 00",
+          "text": "mov     eax, [ecx+544h]"
+        },
+        {
+          "va": "0x85E446",
+          "rva": "0x45E446",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __thiscall sub_85E440(_DWORD *this)\n{\n  return this[337];\n}\n"
+    },
+    {
+      "start_va": "0x60D080",
+      "name": "sub_60D080",
+      "instructions": [
+        {
+          "va": "0x60D080",
+          "rva": "0x20D080",
+          "bytes": "8b 81 bc 13 00 00",
+          "text": "mov     eax, [ecx+13BCh]"
+        },
+        {
+          "va": "0x60D086",
+          "rva": "0x20D086",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __thiscall sub_60D080(_DWORD *this)\n{\n  return this[1263];\n}\n"
+    },
+    {
+      "start_va": "0x4176F0",
+      "name": "sub_4176F0",
+      "instructions": [
+        {
+          "va": "0x4176F0",
+          "rva": "0x176F0",
+          "bytes": "8b 41 0c",
+          "text": "mov     eax, [ecx+0Ch]"
+        },
+        {
+          "va": "0x4176F3",
+          "rva": "0x176F3",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __thiscall sub_4176F0(_DWORD *this)\n{\n  return this[3];\n}\n"
+    },
+    {
+      "start_va": "0x85BFD0",
+      "name": "lua_pushinteger_",
+      "instructions": [
+        {
+          "va": "0x85BFD0",
+          "rva": "0x45BFD0",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x85BFD1",
+          "rva": "0x45BFD1",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x85BFD3",
+          "rva": "0x45BFD3",
+          "bytes": "83 e4 f8",
+          "text": "and     esp, 0FFFFFFF8h"
+        },
+        {
+          "va": "0x85BFD6",
+          "rva": "0x45BFD6",
+          "bytes": "8b c2",
+          "text": "mov     eax, edx"
+        },
+        {
+          "va": "0x85BFD8",
+          "rva": "0x45BFD8",
+          "bytes": "99",
+          "text": "cdq"
+        },
+        {
+          "va": "0x85BFD9",
+          "rva": "0x45BFD9",
+          "bytes": "52",
+          "text": "push    edx"
+        },
+        {
+          "va": "0x85BFDA",
+          "rva": "0x45BFDA",
+          "bytes": "50",
+          "text": "push    eax"
+        },
+        {
+          "va": "0x85BFDB",
+          "rva": "0x45BFDB",
+          "bytes": "51",
+          "text": "push    ecx"
+        },
+        {
+          "va": "0x85BFDC",
+          "rva": "0x45BFDC",
+          "bytes": "ff 15 f8 83 b1 00",
+          "text": "call    ds:lua_pushinteger"
+        },
+        {
+          "va": "0x85BFE2",
+          "rva": "0x45BFE2",
+          "bytes": "83 c4 0c",
+          "text": "add     esp, 0Ch"
+        },
+        {
+          "va": "0x85BFE5",
+          "rva": "0x45BFE5",
+          "bytes": "8b e5",
+          "text": "mov     esp, ebp"
+        },
+        {
+          "va": "0x85BFE7",
+          "rva": "0x45BFE7",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x85BFE8",
+          "rva": "0x45BFE8",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __fastcall sub_85BFD0(int a1, int a2)\n{\n  return lua_pushinteger(a1, a2, a2 >> 31);\n}\n"
+    },
+    {
+      "start_va": "0x85BFF0",
+      "name": "lua_pushinteger__0",
+      "instructions": [
+        {
+          "va": "0x85BFF0",
+          "rva": "0x45BFF0",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x85BFF1",
+          "rva": "0x45BFF1",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x85BFF3",
+          "rva": "0x45BFF3",
+          "bytes": "83 e4 f8",
+          "text": "and     esp, 0FFFFFFF8h"
+        },
+        {
+          "va": "0x85BFF6",
+          "rva": "0x45BFF6",
+          "bytes": "6a 00",
+          "text": "push    0"
+        },
+        {
+          "va": "0x85BFF8",
+          "rva": "0x45BFF8",
+          "bytes": "52",
+          "text": "push    edx"
+        },
+        {
+          "va": "0x85BFF9",
+          "rva": "0x45BFF9",
+          "bytes": "51",
+          "text": "push    ecx"
+        },
+        {
+          "va": "0x85BFFA",
+          "rva": "0x45BFFA",
+          "bytes": "ff 15 f8 83 b1 00",
+          "text": "call    ds:lua_pushinteger"
+        },
+        {
+          "va": "0x85C000",
+          "rva": "0x45C000",
+          "bytes": "83 c4 0c",
+          "text": "add     esp, 0Ch"
+        },
+        {
+          "va": "0x85C003",
+          "rva": "0x45C003",
+          "bytes": "8b e5",
+          "text": "mov     esp, ebp"
+        },
+        {
+          "va": "0x85C005",
+          "rva": "0x45C005",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x85C006",
+          "rva": "0x45C006",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __fastcall sub_85BFF0(int a1, int a2)\n{\n  return lua_pushinteger(a1, a2, 0);\n}\n"
+    },
+    {
+      "start_va": "0x8BEDB0",
+      "name": "sub_8BEDB0",
+      "instructions": [
+        {
+          "va": "0x8BEDB0",
+          "rva": "0x4BEDB0",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x8BEDB1",
+          "rva": "0x4BEDB1",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x8BEDB3",
+          "rva": "0x4BEDB3",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BEDB4",
+          "rva": "0x4BEDB4",
+          "bytes": "8b 75 08",
+          "text": "mov     esi, [ebp+arg_0]"
+        },
+        {
+          "va": "0x8BEDB7",
+          "rva": "0x4BEDB7",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8BEDB8",
+          "rva": "0x4BEDB8",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8BEDBA",
+          "rva": "0x4BEDBA",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BEDBB",
+          "rva": "0x4BEDBB",
+          "bytes": "ff 15 00 84 b1 00",
+          "text": "call    ds:lua_type"
+        },
+        {
+          "va": "0x8BEDC1",
+          "rva": "0x4BEDC1",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BEDC4",
+          "rva": "0x4BEDC4",
+          "bytes": "85 c0",
+          "text": "test    eax, eax"
+        },
+        {
+          "va": "0x8BEDC6",
+          "rva": "0x4BEDC6",
+          "bytes": "75 04",
+          "text": "jnz     short loc_8BEDCC"
+        },
+        {
+          "va": "0x8BEDC8",
+          "rva": "0x4BEDC8",
+          "bytes": "33 ff",
+          "text": "xor     edi, edi"
+        },
+        {
+          "va": "0x8BEDCA",
+          "rva": "0x4BEDCA",
+          "bytes": "eb 19",
+          "text": "jmp     short loc_8BEDE5"
+        },
+        {
+          "va": "0x8BEDCC",
+          "rva": "0x4BEDCC",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8BEDCE",
+          "rva": "0x4BEDCE",
+          "bytes": "68 cb 29 c8 00",
+          "text": "push    offset unk_C829CB"
+        },
+        {
+          "va": "0x8BEDD3",
+          "rva": "0x4BEDD3",
+          "bytes": "ba 01 00 00 00",
+          "text": "mov     edx, 1"
+        },
+        {
+          "va": "0x8BEDD8",
+          "rva": "0x4BEDD8",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8BEDDA",
+          "rva": "0x4BEDDA",
+          "bytes": "e8 b1 d7 f9 ff",
+          "text": "call    sub_85C590"
+        },
+        {
+          "va": "0x8BEDDF",
+          "rva": "0x4BEDDF",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BEDE2",
+          "rva": "0x4BEDE2",
+          "bytes": "8b 78 04",
+          "text": "mov     edi, [eax+4]"
+        },
+        {
+          "va": "0x8BEDE5",
+          "rva": "0x4BEDE5",
+          "bytes": "68 d7 b9 f0 ff",
+          "text": "push    0FFF0B9D7h"
+        },
+        {
+          "va": "0x8BEDEA",
+          "rva": "0x4BEDEA",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BEDEB",
+          "rva": "0x4BEDEB",
+          "bytes": "ff 15 b0 83 b1 00",
+          "text": "call    ds:lua_touserdata"
+        },
+        {
+          "va": "0x8BEDF1",
+          "rva": "0x4BEDF1",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BEDF4",
+          "rva": "0x4BEDF4",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8BEDF6",
+          "rva": "0x4BEDF6",
+          "bytes": "8b 10",
+          "text": "mov     edx, [eax]"
+        },
+        {
+          "va": "0x8BEDF8",
+          "rva": "0x4BEDF8",
+          "bytes": "8b 14 3a",
+          "text": "mov     edx, [edx+edi]"
+        },
+        {
+          "va": "0x8BEDFB",
+          "rva": "0x4BEDFB",
+          "bytes": "e8 f0 d1 f9 ff",
+          "text": "call    lua_pushinteger__0"
+        },
+        {
+          "va": "0x8BEE00",
+          "rva": "0x4BEE00",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x8BEE01",
+          "rva": "0x4BEE01",
+          "bytes": "b8 01 00 00 00",
+          "text": "mov     eax, 1"
+        },
+        {
+          "va": "0x8BEE06",
+          "rva": "0x4BEE06",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x8BEE07",
+          "rva": "0x4BEE07",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x8BEE08",
+          "rva": "0x4BEE08",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __cdecl sub_8BEDB0(int a1)\n{\n  int v1; // edi\n  _DWORD *v2; // eax\n\n  if ( lua_type(a1, 1) )\n    v1 = *(_DWORD *)(sub_85C590(&unk_C829CB, 1) + 4);\n  else\n    v1 = 0;\n  v2 = (_DWORD *)lua_touserdata(a1, -1001001);\n  lua_pushinteger__0(a1, *(_DWORD *)(*v2 + v1));\n  return 1;\n}\n"
+    },
+    {
+      "start_va": "0x8BEF40",
+      "name": "sub_8BEF40",
+      "instructions": [
+        {
+          "va": "0x8BEF40",
+          "rva": "0x4BEF40",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x8BEF41",
+          "rva": "0x4BEF41",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x8BEF43",
+          "rva": "0x4BEF43",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BEF44",
+          "rva": "0x4BEF44",
+          "bytes": "8b 75 08",
+          "text": "mov     esi, [ebp+arg_0]"
+        },
+        {
+          "va": "0x8BEF47",
+          "rva": "0x4BEF47",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8BEF48",
+          "rva": "0x4BEF48",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8BEF4A",
+          "rva": "0x4BEF4A",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BEF4B",
+          "rva": "0x4BEF4B",
+          "bytes": "ff 15 00 84 b1 00",
+          "text": "call    ds:lua_type"
+        },
+        {
+          "va": "0x8BEF51",
+          "rva": "0x4BEF51",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BEF54",
+          "rva": "0x4BEF54",
+          "bytes": "85 c0",
+          "text": "test    eax, eax"
+        },
+        {
+          "va": "0x8BEF56",
+          "rva": "0x4BEF56",
+          "bytes": "75 04",
+          "text": "jnz     short loc_8BEF5C"
+        },
+        {
+          "va": "0x8BEF58",
+          "rva": "0x4BEF58",
+          "bytes": "33 ff",
+          "text": "xor     edi, edi"
+        },
+        {
+          "va": "0x8BEF5A",
+          "rva": "0x4BEF5A",
+          "bytes": "eb 19",
+          "text": "jmp     short loc_8BEF75"
+        },
+        {
+          "va": "0x8BEF5C",
+          "rva": "0x4BEF5C",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8BEF5E",
+          "rva": "0x4BEF5E",
+          "bytes": "68 ce 29 c8 00",
+          "text": "push    offset unk_C829CE"
+        },
+        {
+          "va": "0x8BEF63",
+          "rva": "0x4BEF63",
+          "bytes": "ba 01 00 00 00",
+          "text": "mov     edx, 1"
+        },
+        {
+          "va": "0x8BEF68",
+          "rva": "0x4BEF68",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8BEF6A",
+          "rva": "0x4BEF6A",
+          "bytes": "e8 21 d6 f9 ff",
+          "text": "call    sub_85C590"
+        },
+        {
+          "va": "0x8BEF6F",
+          "rva": "0x4BEF6F",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BEF72",
+          "rva": "0x4BEF72",
+          "bytes": "8b 78 04",
+          "text": "mov     edi, [eax+4]"
+        },
+        {
+          "va": "0x8BEF75",
+          "rva": "0x4BEF75",
+          "bytes": "68 d7 b9 f0 ff",
+          "text": "push    0FFF0B9D7h"
+        },
+        {
+          "va": "0x8BEF7A",
+          "rva": "0x4BEF7A",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BEF7B",
+          "rva": "0x4BEF7B",
+          "bytes": "ff 15 b0 83 b1 00",
+          "text": "call    ds:lua_touserdata"
+        },
+        {
+          "va": "0x8BEF81",
+          "rva": "0x4BEF81",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BEF84",
+          "rva": "0x4BEF84",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8BEF86",
+          "rva": "0x4BEF86",
+          "bytes": "8b 10",
+          "text": "mov     edx, [eax]"
+        },
+        {
+          "va": "0x8BEF88",
+          "rva": "0x4BEF88",
+          "bytes": "8b 14 3a",
+          "text": "mov     edx, [edx+edi]"
+        },
+        {
+          "va": "0x8BEF8B",
+          "rva": "0x4BEF8B",
+          "bytes": "e8 40 d0 f9 ff",
+          "text": "call    lua_pushinteger_"
+        },
+        {
+          "va": "0x8BEF90",
+          "rva": "0x4BEF90",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x8BEF91",
+          "rva": "0x4BEF91",
+          "bytes": "b8 01 00 00 00",
+          "text": "mov     eax, 1"
+        },
+        {
+          "va": "0x8BEF96",
+          "rva": "0x4BEF96",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x8BEF97",
+          "rva": "0x4BEF97",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x8BEF98",
+          "rva": "0x4BEF98",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __cdecl sub_8BEF40(int a1)\n{\n  int v1; // edi\n  _DWORD *v2; // eax\n\n  if ( lua_type(a1, 1) )\n    v1 = *(_DWORD *)(sub_85C590(&unk_C829CE, 1) + 4);\n  else\n    v1 = 0;\n  v2 = (_DWORD *)lua_touserdata(a1, -1001001);\n  lua_pushinteger_(a1, *(_DWORD *)(*v2 + v1));\n  return 1;\n}\n"
+    },
+    {
+      "start_va": "0x8BF210",
+      "name": "sub_8BF210",
+      "instructions": [
+        {
+          "va": "0x8BF210",
+          "rva": "0x4BF210",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x8BF211",
+          "rva": "0x4BF211",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x8BF213",
+          "rva": "0x4BF213",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BF214",
+          "rva": "0x4BF214",
+          "bytes": "8b 75 08",
+          "text": "mov     esi, [ebp+arg_0]"
+        },
+        {
+          "va": "0x8BF217",
+          "rva": "0x4BF217",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8BF218",
+          "rva": "0x4BF218",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8BF21A",
+          "rva": "0x4BF21A",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BF21B",
+          "rva": "0x4BF21B",
+          "bytes": "ff 15 00 84 b1 00",
+          "text": "call    ds:lua_type"
+        },
+        {
+          "va": "0x8BF221",
+          "rva": "0x4BF221",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BF224",
+          "rva": "0x4BF224",
+          "bytes": "85 c0",
+          "text": "test    eax, eax"
+        },
+        {
+          "va": "0x8BF226",
+          "rva": "0x4BF226",
+          "bytes": "75 04",
+          "text": "jnz     short loc_8BF22C"
+        },
+        {
+          "va": "0x8BF228",
+          "rva": "0x4BF228",
+          "bytes": "33 ff",
+          "text": "xor     edi, edi"
+        },
+        {
+          "va": "0x8BF22A",
+          "rva": "0x4BF22A",
+          "bytes": "eb 19",
+          "text": "jmp     short loc_8BF245"
+        },
+        {
+          "va": "0x8BF22C",
+          "rva": "0x4BF22C",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8BF22E",
+          "rva": "0x4BF22E",
+          "bytes": "68 d1 29 c8 00",
+          "text": "push    offset unk_C829D1"
+        },
+        {
+          "va": "0x8BF233",
+          "rva": "0x4BF233",
+          "bytes": "ba 01 00 00 00",
+          "text": "mov     edx, 1"
+        },
+        {
+          "va": "0x8BF238",
+          "rva": "0x4BF238",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8BF23A",
+          "rva": "0x4BF23A",
+          "bytes": "e8 51 d3 f9 ff",
+          "text": "call    sub_85C590"
+        },
+        {
+          "va": "0x8BF23F",
+          "rva": "0x4BF23F",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BF242",
+          "rva": "0x4BF242",
+          "bytes": "8b 78 04",
+          "text": "mov     edi, [eax+4]"
+        },
+        {
+          "va": "0x8BF245",
+          "rva": "0x4BF245",
+          "bytes": "68 d7 b9 f0 ff",
+          "text": "push    0FFF0B9D7h"
+        },
+        {
+          "va": "0x8BF24A",
+          "rva": "0x4BF24A",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BF24B",
+          "rva": "0x4BF24B",
+          "bytes": "ff 15 b0 83 b1 00",
+          "text": "call    ds:lua_touserdata"
+        },
+        {
+          "va": "0x8BF251",
+          "rva": "0x4BF251",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BF254",
+          "rva": "0x4BF254",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8BF256",
+          "rva": "0x4BF256",
+          "bytes": "8b 10",
+          "text": "mov     edx, [eax]"
+        },
+        {
+          "va": "0x8BF258",
+          "rva": "0x4BF258",
+          "bytes": "8b 14 3a",
+          "text": "mov     edx, [edx+edi]"
+        },
+        {
+          "va": "0x8BF25B",
+          "rva": "0x4BF25B",
+          "bytes": "e8 70 cd f9 ff",
+          "text": "call    lua_pushinteger_"
+        },
+        {
+          "va": "0x8BF260",
+          "rva": "0x4BF260",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x8BF261",
+          "rva": "0x4BF261",
+          "bytes": "b8 01 00 00 00",
+          "text": "mov     eax, 1"
+        },
+        {
+          "va": "0x8BF266",
+          "rva": "0x4BF266",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x8BF267",
+          "rva": "0x4BF267",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x8BF268",
+          "rva": "0x4BF268",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __cdecl sub_8BF210(int a1)\n{\n  int v1; // edi\n  _DWORD *v2; // eax\n\n  if ( lua_type(a1, 1) )\n    v1 = *(_DWORD *)(sub_85C590(&unk_C829D1, 1) + 4);\n  else\n    v1 = 0;\n  v2 = (_DWORD *)lua_touserdata(a1, -1001001);\n  lua_pushinteger_(a1, *(_DWORD *)(*v2 + v1));\n  return 1;\n}\n"
+    },
+    {
+      "start_va": "0x8BF5B0",
+      "name": "sub_8BF5B0",
+      "instructions": [
+        {
+          "va": "0x8BF5B0",
+          "rva": "0x4BF5B0",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x8BF5B1",
+          "rva": "0x4BF5B1",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x8BF5B3",
+          "rva": "0x4BF5B3",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BF5B4",
+          "rva": "0x4BF5B4",
+          "bytes": "8b 75 08",
+          "text": "mov     esi, [ebp+arg_0]"
+        },
+        {
+          "va": "0x8BF5B7",
+          "rva": "0x4BF5B7",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8BF5B8",
+          "rva": "0x4BF5B8",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8BF5BA",
+          "rva": "0x4BF5BA",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BF5BB",
+          "rva": "0x4BF5BB",
+          "bytes": "ff 15 00 84 b1 00",
+          "text": "call    ds:lua_type"
+        },
+        {
+          "va": "0x8BF5C1",
+          "rva": "0x4BF5C1",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BF5C4",
+          "rva": "0x4BF5C4",
+          "bytes": "85 c0",
+          "text": "test    eax, eax"
+        },
+        {
+          "va": "0x8BF5C6",
+          "rva": "0x4BF5C6",
+          "bytes": "75 04",
+          "text": "jnz     short loc_8BF5CC"
+        },
+        {
+          "va": "0x8BF5C8",
+          "rva": "0x4BF5C8",
+          "bytes": "33 ff",
+          "text": "xor     edi, edi"
+        },
+        {
+          "va": "0x8BF5CA",
+          "rva": "0x4BF5CA",
+          "bytes": "eb 19",
+          "text": "jmp     short loc_8BF5E5"
+        },
+        {
+          "va": "0x8BF5CC",
+          "rva": "0x4BF5CC",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8BF5CE",
+          "rva": "0x4BF5CE",
+          "bytes": "68 d7 29 c8 00",
+          "text": "push    offset unk_C829D7"
+        },
+        {
+          "va": "0x8BF5D3",
+          "rva": "0x4BF5D3",
+          "bytes": "ba 01 00 00 00",
+          "text": "mov     edx, 1"
+        },
+        {
+          "va": "0x8BF5D8",
+          "rva": "0x4BF5D8",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8BF5DA",
+          "rva": "0x4BF5DA",
+          "bytes": "e8 b1 cf f9 ff",
+          "text": "call    sub_85C590"
+        },
+        {
+          "va": "0x8BF5DF",
+          "rva": "0x4BF5DF",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BF5E2",
+          "rva": "0x4BF5E2",
+          "bytes": "8b 78 04",
+          "text": "mov     edi, [eax+4]"
+        },
+        {
+          "va": "0x8BF5E5",
+          "rva": "0x4BF5E5",
+          "bytes": "68 d7 b9 f0 ff",
+          "text": "push    0FFF0B9D7h"
+        },
+        {
+          "va": "0x8BF5EA",
+          "rva": "0x4BF5EA",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BF5EB",
+          "rva": "0x4BF5EB",
+          "bytes": "ff 15 b0 83 b1 00",
+          "text": "call    ds:lua_touserdata"
+        },
+        {
+          "va": "0x8BF5F1",
+          "rva": "0x4BF5F1",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BF5F4",
+          "rva": "0x4BF5F4",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8BF5F6",
+          "rva": "0x4BF5F6",
+          "bytes": "8b 10",
+          "text": "mov     edx, [eax]"
+        },
+        {
+          "va": "0x8BF5F8",
+          "rva": "0x4BF5F8",
+          "bytes": "8b 14 3a",
+          "text": "mov     edx, [edx+edi]"
+        },
+        {
+          "va": "0x8BF5FB",
+          "rva": "0x4BF5FB",
+          "bytes": "e8 d0 c9 f9 ff",
+          "text": "call    lua_pushinteger_"
+        },
+        {
+          "va": "0x8BF600",
+          "rva": "0x4BF600",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x8BF601",
+          "rva": "0x4BF601",
+          "bytes": "b8 01 00 00 00",
+          "text": "mov     eax, 1"
+        },
+        {
+          "va": "0x8BF606",
+          "rva": "0x4BF606",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x8BF607",
+          "rva": "0x4BF607",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x8BF608",
+          "rva": "0x4BF608",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __cdecl sub_8BF5B0(int a1)\n{\n  int v1; // edi\n  _DWORD *v2; // eax\n\n  if ( lua_type(a1, 1) )\n    v1 = *(_DWORD *)(sub_85C590(&unk_C829D7, 1) + 4);\n  else\n    v1 = 0;\n  v2 = (_DWORD *)lua_touserdata(a1, -1001001);\n  lua_pushinteger_(a1, *(_DWORD *)(*v2 + v1));\n  return 1;\n}\n"
+    },
+    {
+      "start_va": "0x8BF920",
+      "name": "sub_8BF920",
+      "instructions": [
+        {
+          "va": "0x8BF920",
+          "rva": "0x4BF920",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x8BF921",
+          "rva": "0x4BF921",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x8BF923",
+          "rva": "0x4BF923",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BF924",
+          "rva": "0x4BF924",
+          "bytes": "8b 75 08",
+          "text": "mov     esi, [ebp+arg_0]"
+        },
+        {
+          "va": "0x8BF927",
+          "rva": "0x4BF927",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8BF928",
+          "rva": "0x4BF928",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8BF92A",
+          "rva": "0x4BF92A",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BF92B",
+          "rva": "0x4BF92B",
+          "bytes": "ff 15 00 84 b1 00",
+          "text": "call    ds:lua_type"
+        },
+        {
+          "va": "0x8BF931",
+          "rva": "0x4BF931",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BF934",
+          "rva": "0x4BF934",
+          "bytes": "85 c0",
+          "text": "test    eax, eax"
+        },
+        {
+          "va": "0x8BF936",
+          "rva": "0x4BF936",
+          "bytes": "75 04",
+          "text": "jnz     short loc_8BF93C"
+        },
+        {
+          "va": "0x8BF938",
+          "rva": "0x4BF938",
+          "bytes": "33 ff",
+          "text": "xor     edi, edi"
+        },
+        {
+          "va": "0x8BF93A",
+          "rva": "0x4BF93A",
+          "bytes": "eb 19",
+          "text": "jmp     short loc_8BF955"
+        },
+        {
+          "va": "0x8BF93C",
+          "rva": "0x4BF93C",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8BF93E",
+          "rva": "0x4BF93E",
+          "bytes": "68 d7 29 c8 00",
+          "text": "push    offset unk_C829D7"
+        },
+        {
+          "va": "0x8BF943",
+          "rva": "0x4BF943",
+          "bytes": "ba 01 00 00 00",
+          "text": "mov     edx, 1"
+        },
+        {
+          "va": "0x8BF948",
+          "rva": "0x4BF948",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8BF94A",
+          "rva": "0x4BF94A",
+          "bytes": "e8 41 cc f9 ff",
+          "text": "call    sub_85C590"
+        },
+        {
+          "va": "0x8BF94F",
+          "rva": "0x4BF94F",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BF952",
+          "rva": "0x4BF952",
+          "bytes": "8b 78 04",
+          "text": "mov     edi, [eax+4]"
+        },
+        {
+          "va": "0x8BF955",
+          "rva": "0x4BF955",
+          "bytes": "68 d7 b9 f0 ff",
+          "text": "push    0FFF0B9D7h"
+        },
+        {
+          "va": "0x8BF95A",
+          "rva": "0x4BF95A",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8BF95B",
+          "rva": "0x4BF95B",
+          "bytes": "ff 15 b0 83 b1 00",
+          "text": "call    ds:lua_touserdata"
+        },
+        {
+          "va": "0x8BF961",
+          "rva": "0x4BF961",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8BF964",
+          "rva": "0x4BF964",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8BF966",
+          "rva": "0x4BF966",
+          "bytes": "8b 10",
+          "text": "mov     edx, [eax]"
+        },
+        {
+          "va": "0x8BF968",
+          "rva": "0x4BF968",
+          "bytes": "8b 14 3a",
+          "text": "mov     edx, [edx+edi]"
+        },
+        {
+          "va": "0x8BF96B",
+          "rva": "0x4BF96B",
+          "bytes": "e8 80 c6 f9 ff",
+          "text": "call    lua_pushinteger__0"
+        },
+        {
+          "va": "0x8BF970",
+          "rva": "0x4BF970",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x8BF971",
+          "rva": "0x4BF971",
+          "bytes": "b8 01 00 00 00",
+          "text": "mov     eax, 1"
+        },
+        {
+          "va": "0x8BF976",
+          "rva": "0x4BF976",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x8BF977",
+          "rva": "0x4BF977",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x8BF978",
+          "rva": "0x4BF978",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __cdecl sub_8BF920(int a1)\n{\n  int v1; // edi\n  _DWORD *v2; // eax\n\n  if ( lua_type(a1, 1) )\n    v1 = *(_DWORD *)(sub_85C590(&unk_C829D7, 1) + 4);\n  else\n    v1 = 0;\n  v2 = (_DWORD *)lua_touserdata(a1, -1001001);\n  lua_pushinteger__0(a1, *(_DWORD *)(*v2 + v1));\n  return 1;\n}\n"
+    },
+    {
+      "start_va": "0x8C05C0",
+      "name": "sub_8C05C0",
+      "instructions": [
+        {
+          "va": "0x8C05C0",
+          "rva": "0x4C05C0",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x8C05C1",
+          "rva": "0x4C05C1",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x8C05C3",
+          "rva": "0x4C05C3",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8C05C4",
+          "rva": "0x4C05C4",
+          "bytes": "8b 75 08",
+          "text": "mov     esi, [ebp+arg_0]"
+        },
+        {
+          "va": "0x8C05C7",
+          "rva": "0x4C05C7",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8C05C8",
+          "rva": "0x4C05C8",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8C05CA",
+          "rva": "0x4C05CA",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8C05CB",
+          "rva": "0x4C05CB",
+          "bytes": "ff 15 00 84 b1 00",
+          "text": "call    ds:lua_type"
+        },
+        {
+          "va": "0x8C05D1",
+          "rva": "0x4C05D1",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8C05D4",
+          "rva": "0x4C05D4",
+          "bytes": "85 c0",
+          "text": "test    eax, eax"
+        },
+        {
+          "va": "0x8C05D6",
+          "rva": "0x4C05D6",
+          "bytes": "75 04",
+          "text": "jnz     short loc_8C05DC"
+        },
+        {
+          "va": "0x8C05D8",
+          "rva": "0x4C05D8",
+          "bytes": "33 ff",
+          "text": "xor     edi, edi"
+        },
+        {
+          "va": "0x8C05DA",
+          "rva": "0x4C05DA",
+          "bytes": "eb 19",
+          "text": "jmp     short loc_8C05F5"
+        },
+        {
+          "va": "0x8C05DC",
+          "rva": "0x4C05DC",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8C05DE",
+          "rva": "0x4C05DE",
+          "bytes": "68 e3 29 c8 00",
+          "text": "push    offset unk_C829E3"
+        },
+        {
+          "va": "0x8C05E3",
+          "rva": "0x4C05E3",
+          "bytes": "ba 01 00 00 00",
+          "text": "mov     edx, 1"
+        },
+        {
+          "va": "0x8C05E8",
+          "rva": "0x4C05E8",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8C05EA",
+          "rva": "0x4C05EA",
+          "bytes": "e8 a1 bf f9 ff",
+          "text": "call    sub_85C590"
+        },
+        {
+          "va": "0x8C05EF",
+          "rva": "0x4C05EF",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8C05F2",
+          "rva": "0x4C05F2",
+          "bytes": "8b 78 04",
+          "text": "mov     edi, [eax+4]"
+        },
+        {
+          "va": "0x8C05F5",
+          "rva": "0x4C05F5",
+          "bytes": "68 d7 b9 f0 ff",
+          "text": "push    0FFF0B9D7h"
+        },
+        {
+          "va": "0x8C05FA",
+          "rva": "0x4C05FA",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8C05FB",
+          "rva": "0x4C05FB",
+          "bytes": "ff 15 b0 83 b1 00",
+          "text": "call    ds:lua_touserdata"
+        },
+        {
+          "va": "0x8C0601",
+          "rva": "0x4C0601",
+          "bytes": "83 c4 08",
+          "text": "add     esp, 8"
+        },
+        {
+          "va": "0x8C0604",
+          "rva": "0x4C0604",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x8C0606",
+          "rva": "0x4C0606",
+          "bytes": "8b 10",
+          "text": "mov     edx, [eax]"
+        },
+        {
+          "va": "0x8C0608",
+          "rva": "0x4C0608",
+          "bytes": "8b 14 3a",
+          "text": "mov     edx, [edx+edi]"
+        },
+        {
+          "va": "0x8C060B",
+          "rva": "0x4C060B",
+          "bytes": "e8 c0 b9 f9 ff",
+          "text": "call    lua_pushinteger_"
+        },
+        {
+          "va": "0x8C0610",
+          "rva": "0x4C0610",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x8C0611",
+          "rva": "0x4C0611",
+          "bytes": "b8 01 00 00 00",
+          "text": "mov     eax, 1"
+        },
+        {
+          "va": "0x8C0616",
+          "rva": "0x4C0616",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x8C0617",
+          "rva": "0x4C0617",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x8C0618",
+          "rva": "0x4C0618",
+          "bytes": "c3",
+          "text": "retn"
+        }
+      ],
+      "pseudocode": "int __cdecl sub_8C05C0(int a1)\n{\n  int v1; // edi\n  _DWORD *v2; // eax\n\n  if ( lua_type(a1, 1) )\n    v1 = *(_DWORD *)(sub_85C590(&unk_C829E3, 1) + 4);\n  else\n    v1 = 0;\n  v2 = (_DWORD *)lua_touserdata(a1, -1001001);\n  lua_pushinteger_(a1, *(_DWORD *)(*v2 + v1));\n  return 1;\n}\n"
+    },
+    {
+      "start_va": "0x884EA0",
+      "name": "sub_884EA0",
+      "instructions": [
+        {
+          "va": "0x884EA0",
+          "rva": "0x484EA0",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x884EA1",
+          "rva": "0x484EA1",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x884EA3",
+          "rva": "0x484EA3",
+          "bytes": "51",
+          "text": "push    ecx"
+        },
+        {
+          "va": "0x884EA4",
+          "rva": "0x484EA4",
+          "bytes": "53",
+          "text": "push    ebx"
+        },
+        {
+          "va": "0x884EA5",
+          "rva": "0x484EA5",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x884EA6",
+          "rva": "0x484EA6",
+          "bytes": "8b c1",
+          "text": "mov     eax, ecx"
+        },
+        {
+          "va": "0x884EA8",
+          "rva": "0x484EA8",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884EA9",
+          "rva": "0x484EA9",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x884EAB",
+          "rva": "0x484EAB",
+          "bytes": "89 45 fc",
+          "text": "mov     [ebp+var_4], eax"
+        },
+        {
+          "va": "0x884EAE",
+          "rva": "0x484EAE",
+          "bytes": "8b 38",
+          "text": "mov     edi, [eax]"
+        },
+        {
+          "va": "0x884EB0",
+          "rva": "0x484EB0",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884EB1",
+          "rva": "0x484EB1",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x884EB7",
+          "rva": "0x484EB7",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x884EBC",
+          "rva": "0x484EBC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884EBD",
+          "rva": "0x484EBD",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x884EBF",
+          "rva": "0x484EBF",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x884EC5",
+          "rva": "0x484EC5",
+          "bytes": "8b 1d 10 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawget"
+        },
+        {
+          "va": "0x884ECB",
+          "rva": "0x484ECB",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x884ECC",
+          "rva": "0x484ECC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884ECD",
+          "rva": "0x484ECD",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x884ECF",
+          "rva": "0x484ECF",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x884ED2",
+          "rva": "0x484ED2",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x884ED4",
+          "rva": "0x484ED4",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x884ED6",
+          "rva": "0x484ED6",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884ED7",
+          "rva": "0x484ED7",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x884EDD",
+          "rva": "0x484EDD",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x884EE2",
+          "rva": "0x484EE2",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884EE3",
+          "rva": "0x484EE3",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x884EE5",
+          "rva": "0x484EE5",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x884EEB",
+          "rva": "0x484EEB",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x884EEC",
+          "rva": "0x484EEC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884EED",
+          "rva": "0x484EED",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x884EEF",
+          "rva": "0x484EEF",
+          "bytes": "8b 5d fc",
+          "text": "mov     ebx, [ebp+var_4]"
+        },
+        {
+          "va": "0x884EF2",
+          "rva": "0x484EF2",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x884EF4",
+          "rva": "0x484EF4",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x884EF6",
+          "rva": "0x484EF6",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x884EFC",
+          "rva": "0x484EFC",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x884EFE",
+          "rva": "0x484EFE",
+          "bytes": "68 b0 ed 8b 00",
+          "text": "push    offset sub_8BEDB0"
+        },
+        {
+          "va": "0x884F03",
+          "rva": "0x484F03",
+          "bytes": "c7 00 84 05 00 00",
+          "text": "mov     dword ptr [eax], 584h"
+        },
+        {
+          "va": "0x884F09",
+          "rva": "0x484F09",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x884F0B",
+          "rva": "0x484F0B",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x884F11",
+          "rva": "0x484F11",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x884F14",
+          "rva": "0x484F14",
+          "bytes": "6a ff",
+          "text": "push    0FFFFFFFFh"
+        },
+        {
+          "va": "0x884F16",
+          "rva": "0x484F16",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x884F18",
+          "rva": "0x484F18",
+          "bytes": "ff 15 c8 83 b1 00",
+          "text": "call    ds:lua_pushvalue"
+        },
+        {
+          "va": "0x884F1E",
+          "rva": "0x484F1E",
+          "bytes": "8b 3b",
+          "text": "mov     edi, [ebx]"
+        },
+        {
+          "va": "0x884F20",
+          "rva": "0x484F20",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x884F22",
+          "rva": "0x484F22",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884F23",
+          "rva": "0x484F23",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x884F29",
+          "rva": "0x484F29",
+          "bytes": "68 e4 27 b7 00",
+          "text": "push    offset aState; \"State\""
+        },
+        {
+          "va": "0x884F2E",
+          "rva": "0x484F2E",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884F2F",
+          "rva": "0x484F2F",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x884F31",
+          "rva": "0x484F31",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x884F37",
+          "rva": "0x484F37",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x884F39",
+          "rva": "0x484F39",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x884F3B",
+          "rva": "0x484F3B",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884F3C",
+          "rva": "0x484F3C",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x884F42",
+          "rva": "0x484F42",
+          "bytes": "8b 1d 08 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawset"
+        },
+        {
+          "va": "0x884F48",
+          "rva": "0x484F48",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x884F49",
+          "rva": "0x484F49",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884F4A",
+          "rva": "0x484F4A",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x884F4C",
+          "rva": "0x484F4C",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x884F4F",
+          "rva": "0x484F4F",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x884F51",
+          "rva": "0x484F51",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x884F53",
+          "rva": "0x484F53",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884F54",
+          "rva": "0x484F54",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x884F5A",
+          "rva": "0x484F5A",
+          "bytes": "68 e4 27 b7 00",
+          "text": "push    offset aState; \"State\""
+        },
+        {
+          "va": "0x884F5F",
+          "rva": "0x484F5F",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884F60",
+          "rva": "0x484F60",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x884F62",
+          "rva": "0x484F62",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x884F68",
+          "rva": "0x484F68",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x884F6A",
+          "rva": "0x484F6A",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x884F6C",
+          "rva": "0x484F6C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884F6D",
+          "rva": "0x484F6D",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x884F73",
+          "rva": "0x484F73",
+          "bytes": "83 c4 48",
+          "text": "add     esp, 48h"
+        },
+        {
+          "va": "0x884F76",
+          "rva": "0x484F76",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x884F77",
+          "rva": "0x484F77",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884F78",
+          "rva": "0x484F78",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x884F7A",
+          "rva": "0x484F7A",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x884F7D",
+          "rva": "0x484F7D",
+          "bytes": "8b 1d 28 83 b1 00",
+          "text": "mov     ebx, ds:lua_settop"
+        },
+        {
+          "va": "0x884F83",
+          "rva": "0x484F83",
+          "bytes": "6a fd",
+          "text": "push    0FFFFFFFDh"
+        },
+        {
+          "va": "0x884F85",
+          "rva": "0x484F85",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x884F87",
+          "rva": "0x484F87",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x884F89",
+          "rva": "0x484F89",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x884F8B",
+          "rva": "0x484F8B",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x884F8D",
+          "rva": "0x484F8D",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884F8E",
+          "rva": "0x484F8E",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x884F94",
+          "rva": "0x484F94",
+          "bytes": "68 38 ea b6 00",
+          "text": "push    offset aPropset; \"__propset\""
+        },
+        {
+          "va": "0x884F99",
+          "rva": "0x484F99",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884F9A",
+          "rva": "0x484F9A",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x884F9C",
+          "rva": "0x484F9C",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x884FA2",
+          "rva": "0x484FA2",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x884FA3",
+          "rva": "0x484FA3",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884FA4",
+          "rva": "0x484FA4",
+          "bytes": "ff 15 10 84 b1 00",
+          "text": "call    ds:lua_rawget"
+        },
+        {
+          "va": "0x884FAA",
+          "rva": "0x484FAA",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x884FAD",
+          "rva": "0x484FAD",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x884FAF",
+          "rva": "0x484FAF",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x884FB1",
+          "rva": "0x484FB1",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x884FB7",
+          "rva": "0x484FB7",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x884FB9",
+          "rva": "0x484FB9",
+          "bytes": "68 10 ee 8b 00",
+          "text": "push    offset sub_8BEE10"
+        },
+        {
+          "va": "0x884FBE",
+          "rva": "0x484FBE",
+          "bytes": "c7 00 84 05 00 00",
+          "text": "mov     dword ptr [eax], 584h"
+        },
+        {
+          "va": "0x884FC4",
+          "rva": "0x484FC4",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x884FC6",
+          "rva": "0x484FC6",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x884FCC",
+          "rva": "0x484FCC",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x884FCE",
+          "rva": "0x484FCE",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x884FD0",
+          "rva": "0x484FD0",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884FD1",
+          "rva": "0x484FD1",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x884FD7",
+          "rva": "0x484FD7",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x884FDA",
+          "rva": "0x484FDA",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x884FDC",
+          "rva": "0x484FDC",
+          "bytes": "68 e4 27 b7 00",
+          "text": "push    offset aState; \"State\""
+        },
+        {
+          "va": "0x884FE1",
+          "rva": "0x484FE1",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884FE2",
+          "rva": "0x484FE2",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x884FE8",
+          "rva": "0x484FE8",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x884FEA",
+          "rva": "0x484FEA",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x884FEC",
+          "rva": "0x484FEC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884FED",
+          "rva": "0x484FED",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x884FF3",
+          "rva": "0x484FF3",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x884FF4",
+          "rva": "0x484FF4",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x884FF5",
+          "rva": "0x484FF5",
+          "bytes": "ff 15 08 84 b1 00",
+          "text": "call    ds:lua_rawset"
+        },
+        {
+          "va": "0x884FFB",
+          "rva": "0x484FFB",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x884FFE",
+          "rva": "0x484FFE",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x885000",
+          "rva": "0x485000",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x885002",
+          "rva": "0x485002",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x885004",
+          "rva": "0x485004",
+          "bytes": "83 c4 24",
+          "text": "add     esp, 24h"
+        },
+        {
+          "va": "0x885007",
+          "rva": "0x485007",
+          "bytes": "8b c6",
+          "text": "mov     eax, esi"
+        },
+        {
+          "va": "0x885009",
+          "rva": "0x485009",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x88500A",
+          "rva": "0x48500A",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x88500B",
+          "rva": "0x48500B",
+          "bytes": "5b",
+          "text": "pop     ebx"
+        },
+        {
+          "va": "0x88500C",
+          "rva": "0x48500C",
+          "bytes": "8b e5",
+          "text": "mov     esp, ebp"
+        },
+        {
+          "va": "0x88500E",
+          "rva": "0x48500E",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x88500F",
+          "rva": "0x48500F",
+          "bytes": "c2 0c 00",
+          "text": "retn    0Ch"
+        }
+      ],
+      "pseudocode": "_DWORD *__thiscall sub_884EA0(_DWORD *this, const char *State, int n1412, int a4)\n{\n  int v4; // edi\n  int v5; // esi\n  int v6; // edi\n  int v7; // esi\n  int v8; // edi\n  int v9; // esi\n  int v10; // edi\n  int v11; // esi\n  int v12; // edi\n  int v13; // esi\n  int v14; // edi\n  int v15; // esi\n\n  v4 = *this;\n  v5 = lua_absindex(*this, -2);\n  lua_pushstring(v4, \"__propget\");\n  lua_rawget(v4, v5);\n  v6 = *this;\n  v7 = lua_absindex(*this, -4);\n  lua_pushstring(v6, \"__propget\");\n  lua_rawget(v6, v7);\n  *(_DWORD *)lua_newuserdata(*this, 4) = 1412;\n  lua_pushcclosure(*this, sub_8BEDB0, 1);\n  lua_pushvalue(*this, -1);\n  v8 = *this;\n  v9 = lua_absindex(*this, -4);\n  lua_pushstring(v8, \"State\");\n  lua_rotate(v8, -2, 1);\n  lua_rawset(v8, v9);\n  v10 = *this;\n  v11 = lua_absindex(*this, -2);\n  lua_pushstring(v10, \"State\");\n  lua_rotate(v10, -2, 1);\n  lua_rawset(v10, v11);\n  lua_settop(*this, -3);\n  v12 = *this;\n  v13 = lua_absindex(*this, -2);\n  lua_pushstring(v12, \"__propset\");\n  lua_rawget(v12, v13);\n  *(_DWORD *)lua_newuserdata(*this, 4) = 1412;\n  lua_pushcclosure(*this, sub_8BEE10, 1);\n  v14 = *this;\n  v15 = lua_absindex(*this, -2);\n  lua_pushstring(v14, \"State\");\n  lua_rotate(v14, -2, 1);\n  lua_rawset(v14, v15);\n  lua_settop(*this, -2);\n  return this;\n}\n"
+    },
+    {
+      "start_va": "0x8854A0",
+      "name": "sub_8854A0",
+      "instructions": [
+        {
+          "va": "0x8854A0",
+          "rva": "0x4854A0",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x8854A1",
+          "rva": "0x4854A1",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x8854A3",
+          "rva": "0x4854A3",
+          "bytes": "51",
+          "text": "push    ecx"
+        },
+        {
+          "va": "0x8854A4",
+          "rva": "0x4854A4",
+          "bytes": "53",
+          "text": "push    ebx"
+        },
+        {
+          "va": "0x8854A5",
+          "rva": "0x4854A5",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8854A6",
+          "rva": "0x4854A6",
+          "bytes": "8b c1",
+          "text": "mov     eax, ecx"
+        },
+        {
+          "va": "0x8854A8",
+          "rva": "0x4854A8",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8854A9",
+          "rva": "0x4854A9",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x8854AB",
+          "rva": "0x4854AB",
+          "bytes": "89 45 fc",
+          "text": "mov     [ebp+var_4], eax"
+        },
+        {
+          "va": "0x8854AE",
+          "rva": "0x4854AE",
+          "bytes": "8b 38",
+          "text": "mov     edi, [eax]"
+        },
+        {
+          "va": "0x8854B0",
+          "rva": "0x4854B0",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8854B1",
+          "rva": "0x4854B1",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x8854B7",
+          "rva": "0x4854B7",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x8854BC",
+          "rva": "0x4854BC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8854BD",
+          "rva": "0x4854BD",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x8854BF",
+          "rva": "0x4854BF",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x8854C5",
+          "rva": "0x4854C5",
+          "bytes": "8b 1d 10 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawget"
+        },
+        {
+          "va": "0x8854CB",
+          "rva": "0x4854CB",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8854CC",
+          "rva": "0x4854CC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8854CD",
+          "rva": "0x4854CD",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x8854CF",
+          "rva": "0x4854CF",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x8854D2",
+          "rva": "0x4854D2",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x8854D4",
+          "rva": "0x4854D4",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x8854D6",
+          "rva": "0x4854D6",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8854D7",
+          "rva": "0x4854D7",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x8854DD",
+          "rva": "0x4854DD",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x8854E2",
+          "rva": "0x4854E2",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8854E3",
+          "rva": "0x4854E3",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x8854E5",
+          "rva": "0x4854E5",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x8854EB",
+          "rva": "0x4854EB",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8854EC",
+          "rva": "0x4854EC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8854ED",
+          "rva": "0x4854ED",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x8854EF",
+          "rva": "0x4854EF",
+          "bytes": "8b 5d fc",
+          "text": "mov     ebx, [ebp+var_4]"
+        },
+        {
+          "va": "0x8854F2",
+          "rva": "0x4854F2",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x8854F4",
+          "rva": "0x4854F4",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x8854F6",
+          "rva": "0x4854F6",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x8854FC",
+          "rva": "0x4854FC",
+          "bytes": "8b 4d 0c",
+          "text": "mov     ecx, [ebp+arg_4]"
+        },
+        {
+          "va": "0x8854FF",
+          "rva": "0x4854FF",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x885501",
+          "rva": "0x485501",
+          "bytes": "68 40 ef 8b 00",
+          "text": "push    offset sub_8BEF40"
+        },
+        {
+          "va": "0x885506",
+          "rva": "0x485506",
+          "bytes": "89 08",
+          "text": "mov     [eax], ecx"
+        },
+        {
+          "va": "0x885508",
+          "rva": "0x485508",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x88550A",
+          "rva": "0x48550A",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x885510",
+          "rva": "0x485510",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x885513",
+          "rva": "0x485513",
+          "bytes": "6a ff",
+          "text": "push    0FFFFFFFFh"
+        },
+        {
+          "va": "0x885515",
+          "rva": "0x485515",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x885517",
+          "rva": "0x485517",
+          "bytes": "ff 15 c8 83 b1 00",
+          "text": "call    ds:lua_pushvalue"
+        },
+        {
+          "va": "0x88551D",
+          "rva": "0x48551D",
+          "bytes": "8b 3b",
+          "text": "mov     edi, [ebx]"
+        },
+        {
+          "va": "0x88551F",
+          "rva": "0x48551F",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x885521",
+          "rva": "0x485521",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885522",
+          "rva": "0x485522",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x885528",
+          "rva": "0x485528",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x88552B",
+          "rva": "0x48552B",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88552D",
+          "rva": "0x48552D",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88552E",
+          "rva": "0x48552E",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x885534",
+          "rva": "0x485534",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x885536",
+          "rva": "0x485536",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x885538",
+          "rva": "0x485538",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885539",
+          "rva": "0x485539",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x88553F",
+          "rva": "0x48553F",
+          "bytes": "8b 1d 08 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawset"
+        },
+        {
+          "va": "0x885545",
+          "rva": "0x485545",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x885546",
+          "rva": "0x485546",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885547",
+          "rva": "0x485547",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x885549",
+          "rva": "0x485549",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x88554C",
+          "rva": "0x48554C",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88554E",
+          "rva": "0x48554E",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x885550",
+          "rva": "0x485550",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885551",
+          "rva": "0x485551",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x885557",
+          "rva": "0x485557",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x88555A",
+          "rva": "0x48555A",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88555C",
+          "rva": "0x48555C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88555D",
+          "rva": "0x48555D",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x885563",
+          "rva": "0x485563",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x885565",
+          "rva": "0x485565",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x885567",
+          "rva": "0x485567",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885568",
+          "rva": "0x485568",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x88556E",
+          "rva": "0x48556E",
+          "bytes": "83 c4 48",
+          "text": "add     esp, 48h"
+        },
+        {
+          "va": "0x885571",
+          "rva": "0x485571",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x885572",
+          "rva": "0x485572",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885573",
+          "rva": "0x485573",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x885575",
+          "rva": "0x485575",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x885578",
+          "rva": "0x485578",
+          "bytes": "8b 1d 28 83 b1 00",
+          "text": "mov     ebx, ds:lua_settop"
+        },
+        {
+          "va": "0x88557E",
+          "rva": "0x48557E",
+          "bytes": "6a fd",
+          "text": "push    0FFFFFFFDh"
+        },
+        {
+          "va": "0x885580",
+          "rva": "0x485580",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x885582",
+          "rva": "0x485582",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x885584",
+          "rva": "0x485584",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x885586",
+          "rva": "0x485586",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x885588",
+          "rva": "0x485588",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885589",
+          "rva": "0x485589",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x88558F",
+          "rva": "0x48558F",
+          "bytes": "68 38 ea b6 00",
+          "text": "push    offset aPropset; \"__propset\""
+        },
+        {
+          "va": "0x885594",
+          "rva": "0x485594",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885595",
+          "rva": "0x485595",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x885597",
+          "rva": "0x485597",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x88559D",
+          "rva": "0x48559D",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88559E",
+          "rva": "0x48559E",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88559F",
+          "rva": "0x48559F",
+          "bytes": "ff 15 10 84 b1 00",
+          "text": "call    ds:lua_rawget"
+        },
+        {
+          "va": "0x8855A5",
+          "rva": "0x4855A5",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x8855A8",
+          "rva": "0x4855A8",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x8855AA",
+          "rva": "0x4855AA",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x8855AC",
+          "rva": "0x4855AC",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x8855B2",
+          "rva": "0x4855B2",
+          "bytes": "8b 4d 0c",
+          "text": "mov     ecx, [ebp+arg_4]"
+        },
+        {
+          "va": "0x8855B5",
+          "rva": "0x4855B5",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8855B7",
+          "rva": "0x4855B7",
+          "bytes": "68 a0 ef 8b 00",
+          "text": "push    offset sub_8BEFA0"
+        },
+        {
+          "va": "0x8855BC",
+          "rva": "0x4855BC",
+          "bytes": "89 08",
+          "text": "mov     [eax], ecx"
+        },
+        {
+          "va": "0x8855BE",
+          "rva": "0x4855BE",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x8855C0",
+          "rva": "0x4855C0",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x8855C6",
+          "rva": "0x4855C6",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x8855C8",
+          "rva": "0x4855C8",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x8855CA",
+          "rva": "0x4855CA",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8855CB",
+          "rva": "0x4855CB",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x8855D1",
+          "rva": "0x4855D1",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x8855D4",
+          "rva": "0x4855D4",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x8855D6",
+          "rva": "0x4855D6",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x8855D9",
+          "rva": "0x4855D9",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8855DA",
+          "rva": "0x4855DA",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x8855E0",
+          "rva": "0x4855E0",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8855E2",
+          "rva": "0x4855E2",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x8855E4",
+          "rva": "0x4855E4",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8855E5",
+          "rva": "0x4855E5",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x8855EB",
+          "rva": "0x4855EB",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8855EC",
+          "rva": "0x4855EC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8855ED",
+          "rva": "0x4855ED",
+          "bytes": "ff 15 08 84 b1 00",
+          "text": "call    ds:lua_rawset"
+        },
+        {
+          "va": "0x8855F3",
+          "rva": "0x4855F3",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x8855F6",
+          "rva": "0x4855F6",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x8855F8",
+          "rva": "0x4855F8",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x8855FA",
+          "rva": "0x4855FA",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x8855FC",
+          "rva": "0x4855FC",
+          "bytes": "83 c4 24",
+          "text": "add     esp, 24h"
+        },
+        {
+          "va": "0x8855FF",
+          "rva": "0x4855FF",
+          "bytes": "8b c6",
+          "text": "mov     eax, esi"
+        },
+        {
+          "va": "0x885601",
+          "rva": "0x485601",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x885602",
+          "rva": "0x485602",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x885603",
+          "rva": "0x485603",
+          "bytes": "5b",
+          "text": "pop     ebx"
+        },
+        {
+          "va": "0x885604",
+          "rva": "0x485604",
+          "bytes": "8b e5",
+          "text": "mov     esp, ebp"
+        },
+        {
+          "va": "0x885606",
+          "rva": "0x485606",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x885607",
+          "rva": "0x485607",
+          "bytes": "c2 0c 00",
+          "text": "retn    0Ch"
+        }
+      ],
+      "pseudocode": "_DWORD *__thiscall sub_8854A0(_DWORD *this, const char *State, int n1104, int a4)\n{\n  int v4; // edi\n  int v5; // esi\n  int v6; // edi\n  int v7; // esi\n  int v8; // edi\n  int v9; // esi\n  int v10; // edi\n  int v11; // esi\n  int v12; // edi\n  int v13; // esi\n  int v14; // edi\n  int v15; // esi\n\n  v4 = *this;\n  v5 = lua_absindex(*this, -2);\n  lua_pushstring(v4, \"__propget\");\n  lua_rawget(v4, v5);\n  v6 = *this;\n  v7 = lua_absindex(*this, -4);\n  lua_pushstring(v6, \"__propget\");\n  lua_rawget(v6, v7);\n  *(_DWORD *)lua_newuserdata(*this, 4) = n1104;\n  lua_pushcclosure(*this, sub_8BEF40, 1);\n  lua_pushvalue(*this, -1);\n  v8 = *this;\n  v9 = lua_absindex(*this, -4);\n  lua_pushstring(v8, State);\n  lua_rotate(v8, -2, 1);\n  lua_rawset(v8, v9);\n  v10 = *this;\n  v11 = lua_absindex(*this, -2);\n  lua_pushstring(v10, State);\n  lua_rotate(v10, -2, 1);\n  lua_rawset(v10, v11);\n  lua_settop(*this, -3);\n  v12 = *this;\n  v13 = lua_absindex(*this, -2);\n  lua_pushstring(v12, \"__propset\");\n  lua_rawget(v12, v13);\n  *(_DWORD *)lua_newuserdata(*this, 4) = n1104;\n  lua_pushcclosure(*this, sub_8BEFA0, 1);\n  v14 = *this;\n  v15 = lua_absindex(*this, -2);\n  lua_pushstring(v14, State);\n  lua_rotate(v14, -2, 1);\n  lua_rawset(v14, v15);\n  lua_settop(*this, -2);\n  return this;\n}\n"
+    },
+    {
+      "start_va": "0x885F80",
+      "name": "sub_885F80",
+      "instructions": [
+        {
+          "va": "0x885F80",
+          "rva": "0x485F80",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x885F81",
+          "rva": "0x485F81",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x885F83",
+          "rva": "0x485F83",
+          "bytes": "51",
+          "text": "push    ecx"
+        },
+        {
+          "va": "0x885F84",
+          "rva": "0x485F84",
+          "bytes": "53",
+          "text": "push    ebx"
+        },
+        {
+          "va": "0x885F85",
+          "rva": "0x485F85",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x885F86",
+          "rva": "0x485F86",
+          "bytes": "8b c1",
+          "text": "mov     eax, ecx"
+        },
+        {
+          "va": "0x885F88",
+          "rva": "0x485F88",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885F89",
+          "rva": "0x485F89",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x885F8B",
+          "rva": "0x485F8B",
+          "bytes": "89 45 fc",
+          "text": "mov     [ebp+var_4], eax"
+        },
+        {
+          "va": "0x885F8E",
+          "rva": "0x485F8E",
+          "bytes": "8b 38",
+          "text": "mov     edi, [eax]"
+        },
+        {
+          "va": "0x885F90",
+          "rva": "0x485F90",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885F91",
+          "rva": "0x485F91",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x885F97",
+          "rva": "0x485F97",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x885F9C",
+          "rva": "0x485F9C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885F9D",
+          "rva": "0x485F9D",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x885F9F",
+          "rva": "0x485F9F",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x885FA5",
+          "rva": "0x485FA5",
+          "bytes": "8b 1d 10 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawget"
+        },
+        {
+          "va": "0x885FAB",
+          "rva": "0x485FAB",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x885FAC",
+          "rva": "0x485FAC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885FAD",
+          "rva": "0x485FAD",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x885FAF",
+          "rva": "0x485FAF",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x885FB2",
+          "rva": "0x485FB2",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x885FB4",
+          "rva": "0x485FB4",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x885FB6",
+          "rva": "0x485FB6",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885FB7",
+          "rva": "0x485FB7",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x885FBD",
+          "rva": "0x485FBD",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x885FC2",
+          "rva": "0x485FC2",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885FC3",
+          "rva": "0x485FC3",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x885FC5",
+          "rva": "0x485FC5",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x885FCB",
+          "rva": "0x485FCB",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x885FCC",
+          "rva": "0x485FCC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x885FCD",
+          "rva": "0x485FCD",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x885FCF",
+          "rva": "0x485FCF",
+          "bytes": "8b 5d fc",
+          "text": "mov     ebx, [ebp+var_4]"
+        },
+        {
+          "va": "0x885FD2",
+          "rva": "0x485FD2",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x885FD4",
+          "rva": "0x485FD4",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x885FD6",
+          "rva": "0x485FD6",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x885FDC",
+          "rva": "0x485FDC",
+          "bytes": "8b 4d 0c",
+          "text": "mov     ecx, [ebp+arg_4]"
+        },
+        {
+          "va": "0x885FDF",
+          "rva": "0x485FDF",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x885FE1",
+          "rva": "0x485FE1",
+          "bytes": "68 10 f2 8b 00",
+          "text": "push    offset sub_8BF210"
+        },
+        {
+          "va": "0x885FE6",
+          "rva": "0x485FE6",
+          "bytes": "89 08",
+          "text": "mov     [eax], ecx"
+        },
+        {
+          "va": "0x885FE8",
+          "rva": "0x485FE8",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x885FEA",
+          "rva": "0x485FEA",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x885FF0",
+          "rva": "0x485FF0",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x885FF3",
+          "rva": "0x485FF3",
+          "bytes": "6a ff",
+          "text": "push    0FFFFFFFFh"
+        },
+        {
+          "va": "0x885FF5",
+          "rva": "0x485FF5",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x885FF7",
+          "rva": "0x485FF7",
+          "bytes": "ff 15 c8 83 b1 00",
+          "text": "call    ds:lua_pushvalue"
+        },
+        {
+          "va": "0x885FFD",
+          "rva": "0x485FFD",
+          "bytes": "8b 3b",
+          "text": "mov     edi, [ebx]"
+        },
+        {
+          "va": "0x885FFF",
+          "rva": "0x485FFF",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x886001",
+          "rva": "0x486001",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x886002",
+          "rva": "0x486002",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x886008",
+          "rva": "0x486008",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x88600B",
+          "rva": "0x48600B",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88600D",
+          "rva": "0x48600D",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88600E",
+          "rva": "0x48600E",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x886014",
+          "rva": "0x486014",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x886016",
+          "rva": "0x486016",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x886018",
+          "rva": "0x486018",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x886019",
+          "rva": "0x486019",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x88601F",
+          "rva": "0x48601F",
+          "bytes": "8b 1d 08 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawset"
+        },
+        {
+          "va": "0x886025",
+          "rva": "0x486025",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x886026",
+          "rva": "0x486026",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x886027",
+          "rva": "0x486027",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x886029",
+          "rva": "0x486029",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x88602C",
+          "rva": "0x48602C",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88602E",
+          "rva": "0x48602E",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x886030",
+          "rva": "0x486030",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x886031",
+          "rva": "0x486031",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x886037",
+          "rva": "0x486037",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x88603A",
+          "rva": "0x48603A",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88603C",
+          "rva": "0x48603C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88603D",
+          "rva": "0x48603D",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x886043",
+          "rva": "0x486043",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x886045",
+          "rva": "0x486045",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x886047",
+          "rva": "0x486047",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x886048",
+          "rva": "0x486048",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x88604E",
+          "rva": "0x48604E",
+          "bytes": "83 c4 48",
+          "text": "add     esp, 48h"
+        },
+        {
+          "va": "0x886051",
+          "rva": "0x486051",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x886052",
+          "rva": "0x486052",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x886053",
+          "rva": "0x486053",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x886055",
+          "rva": "0x486055",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x886058",
+          "rva": "0x486058",
+          "bytes": "8b 1d 28 83 b1 00",
+          "text": "mov     ebx, ds:lua_settop"
+        },
+        {
+          "va": "0x88605E",
+          "rva": "0x48605E",
+          "bytes": "6a fd",
+          "text": "push    0FFFFFFFDh"
+        },
+        {
+          "va": "0x886060",
+          "rva": "0x486060",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x886062",
+          "rva": "0x486062",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x886064",
+          "rva": "0x486064",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x886066",
+          "rva": "0x486066",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x886068",
+          "rva": "0x486068",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x886069",
+          "rva": "0x486069",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x88606F",
+          "rva": "0x48606F",
+          "bytes": "68 38 ea b6 00",
+          "text": "push    offset aPropset; \"__propset\""
+        },
+        {
+          "va": "0x886074",
+          "rva": "0x486074",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x886075",
+          "rva": "0x486075",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x886077",
+          "rva": "0x486077",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x88607D",
+          "rva": "0x48607D",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88607E",
+          "rva": "0x48607E",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88607F",
+          "rva": "0x48607F",
+          "bytes": "ff 15 10 84 b1 00",
+          "text": "call    ds:lua_rawget"
+        },
+        {
+          "va": "0x886085",
+          "rva": "0x486085",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x886088",
+          "rva": "0x486088",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x88608A",
+          "rva": "0x48608A",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x88608C",
+          "rva": "0x48608C",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x886092",
+          "rva": "0x486092",
+          "bytes": "8b 4d 0c",
+          "text": "mov     ecx, [ebp+arg_4]"
+        },
+        {
+          "va": "0x886095",
+          "rva": "0x486095",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x886097",
+          "rva": "0x486097",
+          "bytes": "68 70 f2 8b 00",
+          "text": "push    offset sub_8BF270"
+        },
+        {
+          "va": "0x88609C",
+          "rva": "0x48609C",
+          "bytes": "89 08",
+          "text": "mov     [eax], ecx"
+        },
+        {
+          "va": "0x88609E",
+          "rva": "0x48609E",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x8860A0",
+          "rva": "0x4860A0",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x8860A6",
+          "rva": "0x4860A6",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x8860A8",
+          "rva": "0x4860A8",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x8860AA",
+          "rva": "0x4860AA",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8860AB",
+          "rva": "0x4860AB",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x8860B1",
+          "rva": "0x4860B1",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x8860B4",
+          "rva": "0x4860B4",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x8860B6",
+          "rva": "0x4860B6",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x8860B9",
+          "rva": "0x4860B9",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8860BA",
+          "rva": "0x4860BA",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x8860C0",
+          "rva": "0x4860C0",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8860C2",
+          "rva": "0x4860C2",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x8860C4",
+          "rva": "0x4860C4",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8860C5",
+          "rva": "0x4860C5",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x8860CB",
+          "rva": "0x4860CB",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8860CC",
+          "rva": "0x4860CC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8860CD",
+          "rva": "0x4860CD",
+          "bytes": "ff 15 08 84 b1 00",
+          "text": "call    ds:lua_rawset"
+        },
+        {
+          "va": "0x8860D3",
+          "rva": "0x4860D3",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x8860D6",
+          "rva": "0x4860D6",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x8860D8",
+          "rva": "0x4860D8",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x8860DA",
+          "rva": "0x4860DA",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x8860DC",
+          "rva": "0x4860DC",
+          "bytes": "83 c4 24",
+          "text": "add     esp, 24h"
+        },
+        {
+          "va": "0x8860DF",
+          "rva": "0x4860DF",
+          "bytes": "8b c6",
+          "text": "mov     eax, esi"
+        },
+        {
+          "va": "0x8860E1",
+          "rva": "0x4860E1",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x8860E2",
+          "rva": "0x4860E2",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x8860E3",
+          "rva": "0x4860E3",
+          "bytes": "5b",
+          "text": "pop     ebx"
+        },
+        {
+          "va": "0x8860E4",
+          "rva": "0x4860E4",
+          "bytes": "8b e5",
+          "text": "mov     esp, ebp"
+        },
+        {
+          "va": "0x8860E6",
+          "rva": "0x4860E6",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x8860E7",
+          "rva": "0x4860E7",
+          "bytes": "c2 0c 00",
+          "text": "retn    0Ch"
+        }
+      ],
+      "pseudocode": "_DWORD *__thiscall sub_885F80(_DWORD *this, int a2, int a3, int a4)\n{\n  int v4; // edi\n  int v5; // esi\n  int v6; // edi\n  int v7; // esi\n  int v8; // edi\n  int v9; // esi\n  int v10; // edi\n  int v11; // esi\n  int v12; // edi\n  int v13; // esi\n  int v14; // edi\n  int v15; // esi\n\n  v4 = *this;\n  v5 = lua_absindex(*this, -2);\n  lua_pushstring(v4, \"__propget\");\n  lua_rawget(v4, v5);\n  v6 = *this;\n  v7 = lua_absindex(*this, -4);\n  lua_pushstring(v6, \"__propget\");\n  lua_rawget(v6, v7);\n  *(_DWORD *)lua_newuserdata(*this, 4) = a3;\n  lua_pushcclosure(*this, sub_8BF210, 1);\n  lua_pushvalue(*this, -1);\n  v8 = *this;\n  v9 = lua_absindex(*this, -4);\n  lua_pushstring(v8, a2);\n  lua_rotate(v8, -2, 1);\n  lua_rawset(v8, v9);\n  v10 = *this;\n  v11 = lua_absindex(*this, -2);\n  lua_pushstring(v10, a2);\n  lua_rotate(v10, -2, 1);\n  lua_rawset(v10, v11);\n  lua_settop(*this, -3);\n  v12 = *this;\n  v13 = lua_absindex(*this, -2);\n  lua_pushstring(v12, \"__propset\");\n  lua_rawget(v12, v13);\n  *(_DWORD *)lua_newuserdata(*this, 4) = a3;\n  lua_pushcclosure(*this, sub_8BF270, 1);\n  v14 = *this;\n  v15 = lua_absindex(*this, -2);\n  lua_pushstring(v14, a2);\n  lua_rotate(v14, -2, 1);\n  lua_rawset(v14, v15);\n  lua_settop(*this, -2);\n  return this;\n}\n"
+    },
+    {
+      "start_va": "0x8877E0",
+      "name": "sub_8877E0",
+      "instructions": [
+        {
+          "va": "0x8877E0",
+          "rva": "0x4877E0",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x8877E1",
+          "rva": "0x4877E1",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x8877E3",
+          "rva": "0x4877E3",
+          "bytes": "51",
+          "text": "push    ecx"
+        },
+        {
+          "va": "0x8877E4",
+          "rva": "0x4877E4",
+          "bytes": "53",
+          "text": "push    ebx"
+        },
+        {
+          "va": "0x8877E5",
+          "rva": "0x4877E5",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8877E6",
+          "rva": "0x4877E6",
+          "bytes": "8b c1",
+          "text": "mov     eax, ecx"
+        },
+        {
+          "va": "0x8877E8",
+          "rva": "0x4877E8",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8877E9",
+          "rva": "0x4877E9",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x8877EB",
+          "rva": "0x4877EB",
+          "bytes": "89 45 fc",
+          "text": "mov     [ebp+var_4], eax"
+        },
+        {
+          "va": "0x8877EE",
+          "rva": "0x4877EE",
+          "bytes": "8b 38",
+          "text": "mov     edi, [eax]"
+        },
+        {
+          "va": "0x8877F0",
+          "rva": "0x4877F0",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8877F1",
+          "rva": "0x4877F1",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x8877F7",
+          "rva": "0x4877F7",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x8877FC",
+          "rva": "0x4877FC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8877FD",
+          "rva": "0x4877FD",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x8877FF",
+          "rva": "0x4877FF",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x887805",
+          "rva": "0x487805",
+          "bytes": "8b 1d 10 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawget"
+        },
+        {
+          "va": "0x88780B",
+          "rva": "0x48780B",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88780C",
+          "rva": "0x48780C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88780D",
+          "rva": "0x48780D",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x88780F",
+          "rva": "0x48780F",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x887812",
+          "rva": "0x487812",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x887814",
+          "rva": "0x487814",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x887816",
+          "rva": "0x487816",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887817",
+          "rva": "0x487817",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x88781D",
+          "rva": "0x48781D",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x887822",
+          "rva": "0x487822",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887823",
+          "rva": "0x487823",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x887825",
+          "rva": "0x487825",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x88782B",
+          "rva": "0x48782B",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88782C",
+          "rva": "0x48782C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88782D",
+          "rva": "0x48782D",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x88782F",
+          "rva": "0x48782F",
+          "bytes": "8b 5d fc",
+          "text": "mov     ebx, [ebp+var_4]"
+        },
+        {
+          "va": "0x887832",
+          "rva": "0x487832",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x887834",
+          "rva": "0x487834",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x887836",
+          "rva": "0x487836",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x88783C",
+          "rva": "0x48783C",
+          "bytes": "8b 4d 0c",
+          "text": "mov     ecx, [ebp+arg_4]"
+        },
+        {
+          "va": "0x88783F",
+          "rva": "0x48783F",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x887841",
+          "rva": "0x487841",
+          "bytes": "68 b0 f5 8b 00",
+          "text": "push    offset sub_8BF5B0"
+        },
+        {
+          "va": "0x887846",
+          "rva": "0x487846",
+          "bytes": "89 08",
+          "text": "mov     [eax], ecx"
+        },
+        {
+          "va": "0x887848",
+          "rva": "0x487848",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x88784A",
+          "rva": "0x48784A",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x887850",
+          "rva": "0x487850",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x887853",
+          "rva": "0x487853",
+          "bytes": "6a ff",
+          "text": "push    0FFFFFFFFh"
+        },
+        {
+          "va": "0x887855",
+          "rva": "0x487855",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x887857",
+          "rva": "0x487857",
+          "bytes": "ff 15 c8 83 b1 00",
+          "text": "call    ds:lua_pushvalue"
+        },
+        {
+          "va": "0x88785D",
+          "rva": "0x48785D",
+          "bytes": "8b 3b",
+          "text": "mov     edi, [ebx]"
+        },
+        {
+          "va": "0x88785F",
+          "rva": "0x48785F",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x887861",
+          "rva": "0x487861",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887862",
+          "rva": "0x487862",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x887868",
+          "rva": "0x487868",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x88786B",
+          "rva": "0x48786B",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88786D",
+          "rva": "0x48786D",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88786E",
+          "rva": "0x48786E",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x887874",
+          "rva": "0x487874",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x887876",
+          "rva": "0x487876",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x887878",
+          "rva": "0x487878",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887879",
+          "rva": "0x487879",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x88787F",
+          "rva": "0x48787F",
+          "bytes": "8b 1d 08 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawset"
+        },
+        {
+          "va": "0x887885",
+          "rva": "0x487885",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x887886",
+          "rva": "0x487886",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887887",
+          "rva": "0x487887",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x887889",
+          "rva": "0x487889",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x88788C",
+          "rva": "0x48788C",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88788E",
+          "rva": "0x48788E",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x887890",
+          "rva": "0x487890",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887891",
+          "rva": "0x487891",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x887897",
+          "rva": "0x487897",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x88789A",
+          "rva": "0x48789A",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88789C",
+          "rva": "0x48789C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88789D",
+          "rva": "0x48789D",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x8878A3",
+          "rva": "0x4878A3",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8878A5",
+          "rva": "0x4878A5",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x8878A7",
+          "rva": "0x4878A7",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8878A8",
+          "rva": "0x4878A8",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x8878AE",
+          "rva": "0x4878AE",
+          "bytes": "83 c4 48",
+          "text": "add     esp, 48h"
+        },
+        {
+          "va": "0x8878B1",
+          "rva": "0x4878B1",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8878B2",
+          "rva": "0x4878B2",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8878B3",
+          "rva": "0x4878B3",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x8878B5",
+          "rva": "0x4878B5",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x8878B8",
+          "rva": "0x4878B8",
+          "bytes": "8b 1d 28 83 b1 00",
+          "text": "mov     ebx, ds:lua_settop"
+        },
+        {
+          "va": "0x8878BE",
+          "rva": "0x4878BE",
+          "bytes": "6a fd",
+          "text": "push    0FFFFFFFDh"
+        },
+        {
+          "va": "0x8878C0",
+          "rva": "0x4878C0",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x8878C2",
+          "rva": "0x4878C2",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x8878C4",
+          "rva": "0x4878C4",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x8878C6",
+          "rva": "0x4878C6",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x8878C8",
+          "rva": "0x4878C8",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8878C9",
+          "rva": "0x4878C9",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x8878CF",
+          "rva": "0x4878CF",
+          "bytes": "68 38 ea b6 00",
+          "text": "push    offset aPropset; \"__propset\""
+        },
+        {
+          "va": "0x8878D4",
+          "rva": "0x4878D4",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8878D5",
+          "rva": "0x4878D5",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x8878D7",
+          "rva": "0x4878D7",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x8878DD",
+          "rva": "0x4878DD",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x8878DE",
+          "rva": "0x4878DE",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x8878DF",
+          "rva": "0x4878DF",
+          "bytes": "ff 15 10 84 b1 00",
+          "text": "call    ds:lua_rawget"
+        },
+        {
+          "va": "0x8878E5",
+          "rva": "0x4878E5",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x8878E8",
+          "rva": "0x4878E8",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x8878EA",
+          "rva": "0x4878EA",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x8878EC",
+          "rva": "0x4878EC",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x8878F2",
+          "rva": "0x4878F2",
+          "bytes": "8b 4d 0c",
+          "text": "mov     ecx, [ebp+arg_4]"
+        },
+        {
+          "va": "0x8878F5",
+          "rva": "0x4878F5",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x8878F7",
+          "rva": "0x4878F7",
+          "bytes": "68 10 f6 8b 00",
+          "text": "push    offset sub_8BF610"
+        },
+        {
+          "va": "0x8878FC",
+          "rva": "0x4878FC",
+          "bytes": "89 08",
+          "text": "mov     [eax], ecx"
+        },
+        {
+          "va": "0x8878FE",
+          "rva": "0x4878FE",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x887900",
+          "rva": "0x487900",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x887906",
+          "rva": "0x487906",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x887908",
+          "rva": "0x487908",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88790A",
+          "rva": "0x48790A",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88790B",
+          "rva": "0x48790B",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x887911",
+          "rva": "0x487911",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x887914",
+          "rva": "0x487914",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x887916",
+          "rva": "0x487916",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x887919",
+          "rva": "0x487919",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88791A",
+          "rva": "0x48791A",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x887920",
+          "rva": "0x487920",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x887922",
+          "rva": "0x487922",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x887924",
+          "rva": "0x487924",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887925",
+          "rva": "0x487925",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x88792B",
+          "rva": "0x48792B",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88792C",
+          "rva": "0x48792C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88792D",
+          "rva": "0x48792D",
+          "bytes": "ff 15 08 84 b1 00",
+          "text": "call    ds:lua_rawset"
+        },
+        {
+          "va": "0x887933",
+          "rva": "0x487933",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x887936",
+          "rva": "0x487936",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x887938",
+          "rva": "0x487938",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x88793A",
+          "rva": "0x48793A",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x88793C",
+          "rva": "0x48793C",
+          "bytes": "83 c4 24",
+          "text": "add     esp, 24h"
+        },
+        {
+          "va": "0x88793F",
+          "rva": "0x48793F",
+          "bytes": "8b c6",
+          "text": "mov     eax, esi"
+        },
+        {
+          "va": "0x887941",
+          "rva": "0x487941",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x887942",
+          "rva": "0x487942",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x887943",
+          "rva": "0x487943",
+          "bytes": "5b",
+          "text": "pop     ebx"
+        },
+        {
+          "va": "0x887944",
+          "rva": "0x487944",
+          "bytes": "8b e5",
+          "text": "mov     esp, ebp"
+        },
+        {
+          "va": "0x887946",
+          "rva": "0x487946",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x887947",
+          "rva": "0x487947",
+          "bytes": "c2 0c 00",
+          "text": "retn    0Ch"
+        }
+      ],
+      "pseudocode": "_DWORD *__thiscall sub_8877E0(_DWORD *this, int a2, int a3, int a4)\n{\n  int v4; // edi\n  int v5; // esi\n  int v6; // edi\n  int v7; // esi\n  int v8; // edi\n  int v9; // esi\n  int v10; // edi\n  int v11; // esi\n  int v12; // edi\n  int v13; // esi\n  int v14; // edi\n  int v15; // esi\n\n  v4 = *this;\n  v5 = lua_absindex(*this, -2);\n  lua_pushstring(v4, \"__propget\");\n  lua_rawget(v4, v5);\n  v6 = *this;\n  v7 = lua_absindex(*this, -4);\n  lua_pushstring(v6, \"__propget\");\n  lua_rawget(v6, v7);\n  *(_DWORD *)lua_newuserdata(*this, 4) = a3;\n  lua_pushcclosure(*this, sub_8BF5B0, 1);\n  lua_pushvalue(*this, -1);\n  v8 = *this;\n  v9 = lua_absindex(*this, -4);\n  lua_pushstring(v8, a2);\n  lua_rotate(v8, -2, 1);\n  lua_rawset(v8, v9);\n  v10 = *this;\n  v11 = lua_absindex(*this, -2);\n  lua_pushstring(v10, a2);\n  lua_rotate(v10, -2, 1);\n  lua_rawset(v10, v11);\n  lua_settop(*this, -3);\n  v12 = *this;\n  v13 = lua_absindex(*this, -2);\n  lua_pushstring(v12, \"__propset\");\n  lua_rawget(v12, v13);\n  *(_DWORD *)lua_newuserdata(*this, 4) = a3;\n  lua_pushcclosure(*this, sub_8BF610, 1);\n  v14 = *this;\n  v15 = lua_absindex(*this, -2);\n  lua_pushstring(v14, a2);\n  lua_rotate(v14, -2, 1);\n  lua_rawset(v14, v15);\n  lua_settop(*this, -2);\n  return this;\n}\n"
+    },
+    {
+      "start_va": "0x887AD0",
+      "name": "sub_887AD0",
+      "instructions": [
+        {
+          "va": "0x887AD0",
+          "rva": "0x487AD0",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x887AD1",
+          "rva": "0x487AD1",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x887AD3",
+          "rva": "0x487AD3",
+          "bytes": "51",
+          "text": "push    ecx"
+        },
+        {
+          "va": "0x887AD4",
+          "rva": "0x487AD4",
+          "bytes": "53",
+          "text": "push    ebx"
+        },
+        {
+          "va": "0x887AD5",
+          "rva": "0x487AD5",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x887AD6",
+          "rva": "0x487AD6",
+          "bytes": "8b c1",
+          "text": "mov     eax, ecx"
+        },
+        {
+          "va": "0x887AD8",
+          "rva": "0x487AD8",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887AD9",
+          "rva": "0x487AD9",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x887ADB",
+          "rva": "0x487ADB",
+          "bytes": "89 45 fc",
+          "text": "mov     [ebp+var_4], eax"
+        },
+        {
+          "va": "0x887ADE",
+          "rva": "0x487ADE",
+          "bytes": "8b 38",
+          "text": "mov     edi, [eax]"
+        },
+        {
+          "va": "0x887AE0",
+          "rva": "0x487AE0",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887AE1",
+          "rva": "0x487AE1",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x887AE7",
+          "rva": "0x487AE7",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x887AEC",
+          "rva": "0x487AEC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887AED",
+          "rva": "0x487AED",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x887AEF",
+          "rva": "0x487AEF",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x887AF5",
+          "rva": "0x487AF5",
+          "bytes": "8b 1d 10 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawget"
+        },
+        {
+          "va": "0x887AFB",
+          "rva": "0x487AFB",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x887AFC",
+          "rva": "0x487AFC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887AFD",
+          "rva": "0x487AFD",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x887AFF",
+          "rva": "0x487AFF",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x887B02",
+          "rva": "0x487B02",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x887B04",
+          "rva": "0x487B04",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x887B06",
+          "rva": "0x487B06",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887B07",
+          "rva": "0x487B07",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x887B0D",
+          "rva": "0x487B0D",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x887B12",
+          "rva": "0x487B12",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887B13",
+          "rva": "0x487B13",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x887B15",
+          "rva": "0x487B15",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x887B1B",
+          "rva": "0x487B1B",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x887B1C",
+          "rva": "0x487B1C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887B1D",
+          "rva": "0x487B1D",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x887B1F",
+          "rva": "0x487B1F",
+          "bytes": "8b 5d fc",
+          "text": "mov     ebx, [ebp+var_4]"
+        },
+        {
+          "va": "0x887B22",
+          "rva": "0x487B22",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x887B24",
+          "rva": "0x487B24",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x887B26",
+          "rva": "0x487B26",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x887B2C",
+          "rva": "0x487B2C",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x887B2E",
+          "rva": "0x487B2E",
+          "bytes": "68 20 f9 8b 00",
+          "text": "push    offset sub_8BF920"
+        },
+        {
+          "va": "0x887B33",
+          "rva": "0x487B33",
+          "bytes": "c7 00 64 0b 00 00",
+          "text": "mov     dword ptr [eax], 0B64h"
+        },
+        {
+          "va": "0x887B39",
+          "rva": "0x487B39",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x887B3B",
+          "rva": "0x487B3B",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x887B41",
+          "rva": "0x487B41",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x887B44",
+          "rva": "0x487B44",
+          "bytes": "6a ff",
+          "text": "push    0FFFFFFFFh"
+        },
+        {
+          "va": "0x887B46",
+          "rva": "0x487B46",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x887B48",
+          "rva": "0x487B48",
+          "bytes": "ff 15 c8 83 b1 00",
+          "text": "call    ds:lua_pushvalue"
+        },
+        {
+          "va": "0x887B4E",
+          "rva": "0x487B4E",
+          "bytes": "8b 3b",
+          "text": "mov     edi, [ebx]"
+        },
+        {
+          "va": "0x887B50",
+          "rva": "0x487B50",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x887B52",
+          "rva": "0x487B52",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887B53",
+          "rva": "0x487B53",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x887B59",
+          "rva": "0x487B59",
+          "bytes": "68 e4 27 b7 00",
+          "text": "push    offset aState; \"State\""
+        },
+        {
+          "va": "0x887B5E",
+          "rva": "0x487B5E",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887B5F",
+          "rva": "0x487B5F",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x887B61",
+          "rva": "0x487B61",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x887B67",
+          "rva": "0x487B67",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x887B69",
+          "rva": "0x487B69",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x887B6B",
+          "rva": "0x487B6B",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887B6C",
+          "rva": "0x487B6C",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x887B72",
+          "rva": "0x487B72",
+          "bytes": "8b 1d 08 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawset"
+        },
+        {
+          "va": "0x887B78",
+          "rva": "0x487B78",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x887B79",
+          "rva": "0x487B79",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887B7A",
+          "rva": "0x487B7A",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x887B7C",
+          "rva": "0x487B7C",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x887B7F",
+          "rva": "0x487B7F",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x887B81",
+          "rva": "0x487B81",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x887B83",
+          "rva": "0x487B83",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887B84",
+          "rva": "0x487B84",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x887B8A",
+          "rva": "0x487B8A",
+          "bytes": "68 e4 27 b7 00",
+          "text": "push    offset aState; \"State\""
+        },
+        {
+          "va": "0x887B8F",
+          "rva": "0x487B8F",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887B90",
+          "rva": "0x487B90",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x887B92",
+          "rva": "0x487B92",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x887B98",
+          "rva": "0x487B98",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x887B9A",
+          "rva": "0x487B9A",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x887B9C",
+          "rva": "0x487B9C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887B9D",
+          "rva": "0x487B9D",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x887BA3",
+          "rva": "0x487BA3",
+          "bytes": "83 c4 48",
+          "text": "add     esp, 48h"
+        },
+        {
+          "va": "0x887BA6",
+          "rva": "0x487BA6",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x887BA7",
+          "rva": "0x487BA7",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887BA8",
+          "rva": "0x487BA8",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x887BAA",
+          "rva": "0x487BAA",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x887BAD",
+          "rva": "0x487BAD",
+          "bytes": "8b 1d 28 83 b1 00",
+          "text": "mov     ebx, ds:lua_settop"
+        },
+        {
+          "va": "0x887BB3",
+          "rva": "0x487BB3",
+          "bytes": "6a fd",
+          "text": "push    0FFFFFFFDh"
+        },
+        {
+          "va": "0x887BB5",
+          "rva": "0x487BB5",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x887BB7",
+          "rva": "0x487BB7",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x887BB9",
+          "rva": "0x487BB9",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x887BBB",
+          "rva": "0x487BBB",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x887BBD",
+          "rva": "0x487BBD",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887BBE",
+          "rva": "0x487BBE",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x887BC4",
+          "rva": "0x487BC4",
+          "bytes": "68 38 ea b6 00",
+          "text": "push    offset aPropset; \"__propset\""
+        },
+        {
+          "va": "0x887BC9",
+          "rva": "0x487BC9",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887BCA",
+          "rva": "0x487BCA",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x887BCC",
+          "rva": "0x487BCC",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x887BD2",
+          "rva": "0x487BD2",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x887BD3",
+          "rva": "0x487BD3",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887BD4",
+          "rva": "0x487BD4",
+          "bytes": "ff 15 10 84 b1 00",
+          "text": "call    ds:lua_rawget"
+        },
+        {
+          "va": "0x887BDA",
+          "rva": "0x487BDA",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x887BDD",
+          "rva": "0x487BDD",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x887BDF",
+          "rva": "0x487BDF",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x887BE1",
+          "rva": "0x487BE1",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x887BE7",
+          "rva": "0x487BE7",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x887BE9",
+          "rva": "0x487BE9",
+          "bytes": "68 10 f6 8b 00",
+          "text": "push    offset sub_8BF610"
+        },
+        {
+          "va": "0x887BEE",
+          "rva": "0x487BEE",
+          "bytes": "c7 00 64 0b 00 00",
+          "text": "mov     dword ptr [eax], 0B64h"
+        },
+        {
+          "va": "0x887BF4",
+          "rva": "0x487BF4",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x887BF6",
+          "rva": "0x487BF6",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x887BFC",
+          "rva": "0x487BFC",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x887BFE",
+          "rva": "0x487BFE",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x887C00",
+          "rva": "0x487C00",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887C01",
+          "rva": "0x487C01",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x887C07",
+          "rva": "0x487C07",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x887C0A",
+          "rva": "0x487C0A",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x887C0C",
+          "rva": "0x487C0C",
+          "bytes": "68 e4 27 b7 00",
+          "text": "push    offset aState; \"State\""
+        },
+        {
+          "va": "0x887C11",
+          "rva": "0x487C11",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887C12",
+          "rva": "0x487C12",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x887C18",
+          "rva": "0x487C18",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x887C1A",
+          "rva": "0x487C1A",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x887C1C",
+          "rva": "0x487C1C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887C1D",
+          "rva": "0x487C1D",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x887C23",
+          "rva": "0x487C23",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x887C24",
+          "rva": "0x487C24",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x887C25",
+          "rva": "0x487C25",
+          "bytes": "ff 15 08 84 b1 00",
+          "text": "call    ds:lua_rawset"
+        },
+        {
+          "va": "0x887C2B",
+          "rva": "0x487C2B",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x887C2E",
+          "rva": "0x487C2E",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x887C30",
+          "rva": "0x487C30",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x887C32",
+          "rva": "0x487C32",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x887C34",
+          "rva": "0x487C34",
+          "bytes": "83 c4 24",
+          "text": "add     esp, 24h"
+        },
+        {
+          "va": "0x887C37",
+          "rva": "0x487C37",
+          "bytes": "8b c6",
+          "text": "mov     eax, esi"
+        },
+        {
+          "va": "0x887C39",
+          "rva": "0x487C39",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x887C3A",
+          "rva": "0x487C3A",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x887C3B",
+          "rva": "0x487C3B",
+          "bytes": "5b",
+          "text": "pop     ebx"
+        },
+        {
+          "va": "0x887C3C",
+          "rva": "0x487C3C",
+          "bytes": "8b e5",
+          "text": "mov     esp, ebp"
+        },
+        {
+          "va": "0x887C3E",
+          "rva": "0x487C3E",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x887C3F",
+          "rva": "0x487C3F",
+          "bytes": "c2 0c 00",
+          "text": "retn    0Ch"
+        }
+      ],
+      "pseudocode": "_DWORD *__thiscall sub_887AD0(_DWORD *this, const char *State, int n2916, int a4)\n{\n  int v4; // edi\n  int v5; // esi\n  int v6; // edi\n  int v7; // esi\n  int v8; // edi\n  int v9; // esi\n  int v10; // edi\n  int v11; // esi\n  int v12; // edi\n  int v13; // esi\n  int v14; // edi\n  int v15; // esi\n\n  v4 = *this;\n  v5 = lua_absindex(*this, -2);\n  lua_pushstring(v4, \"__propget\");\n  lua_rawget(v4, v5);\n  v6 = *this;\n  v7 = lua_absindex(*this, -4);\n  lua_pushstring(v6, \"__propget\");\n  lua_rawget(v6, v7);\n  *(_DWORD *)lua_newuserdata(*this, 4) = 2916;\n  lua_pushcclosure(*this, sub_8BF920, 1);\n  lua_pushvalue(*this, -1);\n  v8 = *this;\n  v9 = lua_absindex(*this, -4);\n  lua_pushstring(v8, \"State\");\n  lua_rotate(v8, -2, 1);\n  lua_rawset(v8, v9);\n  v10 = *this;\n  v11 = lua_absindex(*this, -2);\n  lua_pushstring(v10, \"State\");\n  lua_rotate(v10, -2, 1);\n  lua_rawset(v10, v11);\n  lua_settop(*this, -3);\n  v12 = *this;\n  v13 = lua_absindex(*this, -2);\n  lua_pushstring(v12, \"__propset\");\n  lua_rawget(v12, v13);\n  *(_DWORD *)lua_newuserdata(*this, 4) = 2916;\n  lua_pushcclosure(*this, sub_8BF610, 1);\n  v14 = *this;\n  v15 = lua_absindex(*this, -2);\n  lua_pushstring(v14, \"State\");\n  lua_rotate(v14, -2, 1);\n  lua_rawset(v14, v15);\n  lua_settop(*this, -2);\n  return this;\n}\n"
+    },
+    {
+      "start_va": "0x88A100",
+      "name": "sub_88A100",
+      "instructions": [
+        {
+          "va": "0x88A100",
+          "rva": "0x48A100",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x88A101",
+          "rva": "0x48A101",
+          "bytes": "8b ec",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x88A103",
+          "rva": "0x48A103",
+          "bytes": "51",
+          "text": "push    ecx"
+        },
+        {
+          "va": "0x88A104",
+          "rva": "0x48A104",
+          "bytes": "53",
+          "text": "push    ebx"
+        },
+        {
+          "va": "0x88A105",
+          "rva": "0x48A105",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88A106",
+          "rva": "0x48A106",
+          "bytes": "8b c1",
+          "text": "mov     eax, ecx"
+        },
+        {
+          "va": "0x88A108",
+          "rva": "0x48A108",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A109",
+          "rva": "0x48A109",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88A10B",
+          "rva": "0x48A10B",
+          "bytes": "89 45 fc",
+          "text": "mov     [ebp+var_4], eax"
+        },
+        {
+          "va": "0x88A10E",
+          "rva": "0x48A10E",
+          "bytes": "8b 38",
+          "text": "mov     edi, [eax]"
+        },
+        {
+          "va": "0x88A110",
+          "rva": "0x48A110",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A111",
+          "rva": "0x48A111",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x88A117",
+          "rva": "0x48A117",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x88A11C",
+          "rva": "0x48A11C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A11D",
+          "rva": "0x48A11D",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88A11F",
+          "rva": "0x48A11F",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x88A125",
+          "rva": "0x48A125",
+          "bytes": "8b 1d 10 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawget"
+        },
+        {
+          "va": "0x88A12B",
+          "rva": "0x48A12B",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88A12C",
+          "rva": "0x48A12C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A12D",
+          "rva": "0x48A12D",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x88A12F",
+          "rva": "0x48A12F",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x88A132",
+          "rva": "0x48A132",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x88A134",
+          "rva": "0x48A134",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x88A136",
+          "rva": "0x48A136",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A137",
+          "rva": "0x48A137",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x88A13D",
+          "rva": "0x48A13D",
+          "bytes": "68 94 e9 b6 00",
+          "text": "push    offset aPropget; \"__propget\""
+        },
+        {
+          "va": "0x88A142",
+          "rva": "0x48A142",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A143",
+          "rva": "0x48A143",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88A145",
+          "rva": "0x48A145",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x88A14B",
+          "rva": "0x48A14B",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88A14C",
+          "rva": "0x48A14C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A14D",
+          "rva": "0x48A14D",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawget"
+        },
+        {
+          "va": "0x88A14F",
+          "rva": "0x48A14F",
+          "bytes": "8b 5d fc",
+          "text": "mov     ebx, [ebp+var_4]"
+        },
+        {
+          "va": "0x88A152",
+          "rva": "0x48A152",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x88A154",
+          "rva": "0x48A154",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x88A156",
+          "rva": "0x48A156",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x88A15C",
+          "rva": "0x48A15C",
+          "bytes": "8b 4d 0c",
+          "text": "mov     ecx, [ebp+arg_4]"
+        },
+        {
+          "va": "0x88A15F",
+          "rva": "0x48A15F",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x88A161",
+          "rva": "0x48A161",
+          "bytes": "68 c0 05 8c 00",
+          "text": "push    offset sub_8C05C0"
+        },
+        {
+          "va": "0x88A166",
+          "rva": "0x48A166",
+          "bytes": "89 08",
+          "text": "mov     [eax], ecx"
+        },
+        {
+          "va": "0x88A168",
+          "rva": "0x48A168",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x88A16A",
+          "rva": "0x48A16A",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x88A170",
+          "rva": "0x48A170",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x88A173",
+          "rva": "0x48A173",
+          "bytes": "6a ff",
+          "text": "push    0FFFFFFFFh"
+        },
+        {
+          "va": "0x88A175",
+          "rva": "0x48A175",
+          "bytes": "ff 33",
+          "text": "push    dword ptr [ebx]"
+        },
+        {
+          "va": "0x88A177",
+          "rva": "0x48A177",
+          "bytes": "ff 15 c8 83 b1 00",
+          "text": "call    ds:lua_pushvalue"
+        },
+        {
+          "va": "0x88A17D",
+          "rva": "0x48A17D",
+          "bytes": "8b 3b",
+          "text": "mov     edi, [ebx]"
+        },
+        {
+          "va": "0x88A17F",
+          "rva": "0x48A17F",
+          "bytes": "6a fc",
+          "text": "push    0FFFFFFFCh"
+        },
+        {
+          "va": "0x88A181",
+          "rva": "0x48A181",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A182",
+          "rva": "0x48A182",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x88A188",
+          "rva": "0x48A188",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x88A18B",
+          "rva": "0x48A18B",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88A18D",
+          "rva": "0x48A18D",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A18E",
+          "rva": "0x48A18E",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x88A194",
+          "rva": "0x48A194",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x88A196",
+          "rva": "0x48A196",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88A198",
+          "rva": "0x48A198",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A199",
+          "rva": "0x48A199",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x88A19F",
+          "rva": "0x48A19F",
+          "bytes": "8b 1d 08 84 b1 00",
+          "text": "mov     ebx, ds:lua_rawset"
+        },
+        {
+          "va": "0x88A1A5",
+          "rva": "0x48A1A5",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88A1A6",
+          "rva": "0x48A1A6",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A1A7",
+          "rva": "0x48A1A7",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x88A1A9",
+          "rva": "0x48A1A9",
+          "bytes": "8b 7d fc",
+          "text": "mov     edi, [ebp+var_4]"
+        },
+        {
+          "va": "0x88A1AC",
+          "rva": "0x48A1AC",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88A1AE",
+          "rva": "0x48A1AE",
+          "bytes": "8b 3f",
+          "text": "mov     edi, [edi]"
+        },
+        {
+          "va": "0x88A1B0",
+          "rva": "0x48A1B0",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A1B1",
+          "rva": "0x48A1B1",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x88A1B7",
+          "rva": "0x48A1B7",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x88A1BA",
+          "rva": "0x48A1BA",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88A1BC",
+          "rva": "0x48A1BC",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A1BD",
+          "rva": "0x48A1BD",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x88A1C3",
+          "rva": "0x48A1C3",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x88A1C5",
+          "rva": "0x48A1C5",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88A1C7",
+          "rva": "0x48A1C7",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A1C8",
+          "rva": "0x48A1C8",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x88A1CE",
+          "rva": "0x48A1CE",
+          "bytes": "83 c4 48",
+          "text": "add     esp, 48h"
+        },
+        {
+          "va": "0x88A1D1",
+          "rva": "0x48A1D1",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88A1D2",
+          "rva": "0x48A1D2",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A1D3",
+          "rva": "0x48A1D3",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_rawset"
+        },
+        {
+          "va": "0x88A1D5",
+          "rva": "0x48A1D5",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x88A1D8",
+          "rva": "0x48A1D8",
+          "bytes": "8b 1d 28 83 b1 00",
+          "text": "mov     ebx, ds:lua_settop"
+        },
+        {
+          "va": "0x88A1DE",
+          "rva": "0x48A1DE",
+          "bytes": "6a fd",
+          "text": "push    0FFFFFFFDh"
+        },
+        {
+          "va": "0x88A1E0",
+          "rva": "0x48A1E0",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x88A1E2",
+          "rva": "0x48A1E2",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x88A1E4",
+          "rva": "0x48A1E4",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x88A1E6",
+          "rva": "0x48A1E6",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88A1E8",
+          "rva": "0x48A1E8",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A1E9",
+          "rva": "0x48A1E9",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x88A1EF",
+          "rva": "0x48A1EF",
+          "bytes": "68 38 ea b6 00",
+          "text": "push    offset aPropset; \"__propset\""
+        },
+        {
+          "va": "0x88A1F4",
+          "rva": "0x48A1F4",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A1F5",
+          "rva": "0x48A1F5",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88A1F7",
+          "rva": "0x48A1F7",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x88A1FD",
+          "rva": "0x48A1FD",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88A1FE",
+          "rva": "0x48A1FE",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A1FF",
+          "rva": "0x48A1FF",
+          "bytes": "ff 15 10 84 b1 00",
+          "text": "call    ds:lua_rawget"
+        },
+        {
+          "va": "0x88A205",
+          "rva": "0x48A205",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x88A208",
+          "rva": "0x48A208",
+          "bytes": "6a 04",
+          "text": "push    4"
+        },
+        {
+          "va": "0x88A20A",
+          "rva": "0x48A20A",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x88A20C",
+          "rva": "0x48A20C",
+          "bytes": "ff 15 9c 83 b1 00",
+          "text": "call    ds:lua_newuserdata"
+        },
+        {
+          "va": "0x88A212",
+          "rva": "0x48A212",
+          "bytes": "8b 4d 0c",
+          "text": "mov     ecx, [ebp+arg_4]"
+        },
+        {
+          "va": "0x88A215",
+          "rva": "0x48A215",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x88A217",
+          "rva": "0x48A217",
+          "bytes": "68 20 06 8c 00",
+          "text": "push    offset sub_8C0620"
+        },
+        {
+          "va": "0x88A21C",
+          "rva": "0x48A21C",
+          "bytes": "89 08",
+          "text": "mov     [eax], ecx"
+        },
+        {
+          "va": "0x88A21E",
+          "rva": "0x48A21E",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x88A220",
+          "rva": "0x48A220",
+          "bytes": "ff 15 fc 83 b1 00",
+          "text": "call    ds:lua_pushcclosure"
+        },
+        {
+          "va": "0x88A226",
+          "rva": "0x48A226",
+          "bytes": "8b 3e",
+          "text": "mov     edi, [esi]"
+        },
+        {
+          "va": "0x88A228",
+          "rva": "0x48A228",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88A22A",
+          "rva": "0x48A22A",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A22B",
+          "rva": "0x48A22B",
+          "bytes": "ff 15 18 84 b1 00",
+          "text": "call    ds:lua_absindex"
+        },
+        {
+          "va": "0x88A231",
+          "rva": "0x48A231",
+          "bytes": "83 c4 44",
+          "text": "add     esp, 44h"
+        },
+        {
+          "va": "0x88A234",
+          "rva": "0x48A234",
+          "bytes": "8b f0",
+          "text": "mov     esi, eax"
+        },
+        {
+          "va": "0x88A236",
+          "rva": "0x48A236",
+          "bytes": "ff 75 08",
+          "text": "push    [ebp+arg_0]"
+        },
+        {
+          "va": "0x88A239",
+          "rva": "0x48A239",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A23A",
+          "rva": "0x48A23A",
+          "bytes": "ff 15 14 84 b1 00",
+          "text": "call    ds:lua_pushstring"
+        },
+        {
+          "va": "0x88A240",
+          "rva": "0x48A240",
+          "bytes": "6a 01",
+          "text": "push    1"
+        },
+        {
+          "va": "0x88A242",
+          "rva": "0x48A242",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88A244",
+          "rva": "0x48A244",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A245",
+          "rva": "0x48A245",
+          "bytes": "ff 15 0c 84 b1 00",
+          "text": "call    ds:lua_rotate"
+        },
+        {
+          "va": "0x88A24B",
+          "rva": "0x48A24B",
+          "bytes": "56",
+          "text": "push    esi"
+        },
+        {
+          "va": "0x88A24C",
+          "rva": "0x48A24C",
+          "bytes": "57",
+          "text": "push    edi"
+        },
+        {
+          "va": "0x88A24D",
+          "rva": "0x48A24D",
+          "bytes": "ff 15 08 84 b1 00",
+          "text": "call    ds:lua_rawset"
+        },
+        {
+          "va": "0x88A253",
+          "rva": "0x48A253",
+          "bytes": "8b 75 fc",
+          "text": "mov     esi, [ebp+var_4]"
+        },
+        {
+          "va": "0x88A256",
+          "rva": "0x48A256",
+          "bytes": "6a fe",
+          "text": "push    0FFFFFFFEh"
+        },
+        {
+          "va": "0x88A258",
+          "rva": "0x48A258",
+          "bytes": "ff 36",
+          "text": "push    dword ptr [esi]"
+        },
+        {
+          "va": "0x88A25A",
+          "rva": "0x48A25A",
+          "bytes": "ff d3",
+          "text": "call    ebx ; lua_settop"
+        },
+        {
+          "va": "0x88A25C",
+          "rva": "0x48A25C",
+          "bytes": "83 c4 24",
+          "text": "add     esp, 24h"
+        },
+        {
+          "va": "0x88A25F",
+          "rva": "0x48A25F",
+          "bytes": "8b c6",
+          "text": "mov     eax, esi"
+        },
+        {
+          "va": "0x88A261",
+          "rva": "0x48A261",
+          "bytes": "5f",
+          "text": "pop     edi"
+        },
+        {
+          "va": "0x88A262",
+          "rva": "0x48A262",
+          "bytes": "5e",
+          "text": "pop     esi"
+        },
+        {
+          "va": "0x88A263",
+          "rva": "0x48A263",
+          "bytes": "5b",
+          "text": "pop     ebx"
+        },
+        {
+          "va": "0x88A264",
+          "rva": "0x48A264",
+          "bytes": "8b e5",
+          "text": "mov     esp, ebp"
+        },
+        {
+          "va": "0x88A266",
+          "rva": "0x48A266",
+          "bytes": "5d",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x88A267",
+          "rva": "0x48A267",
+          "bytes": "c2 0c 00",
+          "text": "retn    0Ch"
+        }
+      ],
+      "pseudocode": "_DWORD *__thiscall sub_88A100(_DWORD *this, const char *Type, int n8, int a4)\n{\n  int v4; // edi\n  int v5; // esi\n  int v6; // edi\n  int v7; // esi\n  int v8; // edi\n  int v9; // esi\n  int v10; // edi\n  int v11; // esi\n  int v12; // edi\n  int v13; // esi\n  int v14; // edi\n  int v15; // esi\n\n  v4 = *this;\n  v5 = lua_absindex(*this, -2);\n  lua_pushstring(v4, \"__propget\");\n  lua_rawget(v4, v5);\n  v6 = *this;\n  v7 = lua_absindex(*this, -4);\n  lua_pushstring(v6, \"__propget\");\n  lua_rawget(v6, v7);\n  *(_DWORD *)lua_newuserdata(*this, 4) = n8;\n  lua_pushcclosure(*this, sub_8C05C0, 1);\n  lua_pushvalue(*this, -1);\n  v8 = *this;\n  v9 = lua_absindex(*this, -4);\n  lua_pushstring(v8, Type);\n  lua_rotate(v8, -2, 1);\n  lua_rawset(v8, v9);\n  v10 = *this;\n  v11 = lua_absindex(*this, -2);\n  lua_pushstring(v10, Type);\n  lua_rotate(v10, -2, 1);\n  lua_rawset(v10, v11);\n  lua_settop(*this, -3);\n  v12 = *this;\n  v13 = lua_absindex(*this, -2);\n  lua_pushstring(v12, \"__propset\");\n  lua_rawget(v12, v13);\n  *(_DWORD *)lua_newuserdata(*this, 4) = n8;\n  lua_pushcclosure(*this, sub_8C0620, 1);\n  v14 = *this;\n  v15 = lua_absindex(*this, -2);\n  lua_pushstring(v14, Type);\n  lua_rotate(v14, -2, 1);\n  lua_rawset(v14, v15);\n  lua_settop(*this, -2);\n  return this;\n}\n"
+    }
+  ],
+  "regions": [
+    {
+      "label": "Entity Init start-frame baseline",
+      "start_va": "0x6A9490",
+      "end_va_exclusive": "0x6A94C5",
+      "instructions": [
+        {
+          "va": "0x6A9493",
+          "rva": "0x2A9493",
+          "bytes": "c7 86 1c 03 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+31Ch], 0"
+        },
+        {
+          "va": "0x6A949D",
+          "rva": "0x2A949D",
+          "bytes": "c7 46 20 00 00 00 00",
+          "text": "mov     dword ptr [esi+20h], 0"
+        },
+        {
+          "va": "0x6A94A4",
+          "rva": "0x2A94A4",
+          "bytes": "c7 46 24 00 00 00 00",
+          "text": "mov     dword ptr [esi+24h], 0"
+        },
+        {
+          "va": "0x6A94AB",
+          "rva": "0x2A94AB",
+          "bytes": "8b 80 f8 64 02 00",
+          "text": "mov     eax, [eax+264F8h]"
+        },
+        {
+          "va": "0x6A94B1",
+          "rva": "0x2A94B1",
+          "bytes": "89 86 28 03 00 00",
+          "text": "mov     [esi+328h], eax"
+        },
+        {
+          "va": "0x6A94B7",
+          "rva": "0x2A94B7",
+          "bytes": "8b 86 84 03 00 00",
+          "text": "mov     eax, [esi+384h]"
+        },
+        {
+          "va": "0x6A94BD",
+          "rva": "0x2A94BD",
+          "bytes": "89 86 80 03 00 00",
+          "text": "mov     [esi+380h], eax"
+        },
+        {
+          "va": "0x6A94C3",
+          "rva": "0x2A94C3",
+          "bytes": "8d 45 d4",
+          "text": "lea     eax, [ebp+var_2C]"
+        }
+      ]
+    },
+    {
+      "label": "Player Init damage-cooldown baseline",
+      "start_va": "0x755C40",
+      "end_va_exclusive": "0x755C80",
+      "instructions": [
+        {
+          "va": "0x755C49",
+          "rva": "0x355C49",
+          "bytes": "c7 87 74 13 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+1374h], 0"
+        },
+        {
+          "va": "0x755C53",
+          "rva": "0x355C53",
+          "bytes": "c7 87 78 13 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+1378h], 0"
+        },
+        {
+          "va": "0x755C5D",
+          "rva": "0x355C5D",
+          "bytes": "89 87 7c 13 00 00",
+          "text": "mov     [edi+137Ch], eax"
+        },
+        {
+          "va": "0x755C63",
+          "rva": "0x355C63",
+          "bytes": "89 87 bc 13 00 00",
+          "text": "mov     [edi+13BCh], eax"
+        },
+        {
+          "va": "0x755C69",
+          "rva": "0x355C69",
+          "bytes": "0f 11 87 f0 13 00 00",
+          "text": "movups  xmmword ptr [edi+13F0h], xmm0"
+        },
+        {
+          "va": "0x755C70",
+          "rva": "0x355C70",
+          "bytes": "88 87 00 14 00 00",
+          "text": "mov     [edi+1400h], al"
+        },
+        {
+          "va": "0x755C76",
+          "rva": "0x355C76",
+          "bytes": "c6 87 f1 13 00 00 01",
+          "text": "mov     byte ptr [edi+13F1h], 1"
+        },
+        {
+          "va": "0x755C7D",
+          "rva": "0x355C7D",
+          "bytes": "89 87 e0 13 00 00",
+          "text": "mov     [edi+13E0h], eax"
+        }
+      ]
+    },
+    {
+      "label": "NPC Init State and StateFrame",
+      "start_va": "0x6B8D20",
+      "end_va_exclusive": "0x6B8D60",
+      "instructions": [
+        {
+          "va": "0x6B8D20",
+          "rva": "0x2B8D20",
+          "bytes": "8b 86 6c 01 00 00",
+          "text": "mov     eax, [esi+16Ch]"
+        },
+        {
+          "va": "0x6B8D26",
+          "rva": "0x2B8D26",
+          "bytes": "0f 57 c9",
+          "text": "xorps   xmm1, xmm1"
+        },
+        {
+          "va": "0x6B8D29",
+          "rva": "0x2B8D29",
+          "bytes": "89 86 6c 01 00 00",
+          "text": "mov     [esi+16Ch], eax"
+        },
+        {
+          "va": "0x6B8D2F",
+          "rva": "0x2B8D2F",
+          "bytes": "33 c0",
+          "text": "xor     eax, eax"
+        },
+        {
+          "va": "0x6B8D31",
+          "rva": "0x2B8D31",
+          "bytes": "c7 86 64 0b 00 00 01 00 00 00",
+          "text": "mov     dword ptr [esi+0B64h], 1"
+        },
+        {
+          "va": "0x6B8D3B",
+          "rva": "0x2B8D3B",
+          "bytes": "c7 86 68 0b 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+0B68h], 0"
+        },
+        {
+          "va": "0x6B8D45",
+          "rva": "0x2B8D45",
+          "bytes": "c7 86 74 0b 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+0B74h], 0"
+        },
+        {
+          "va": "0x6B8D4F",
+          "rva": "0x2B8D4F",
+          "bytes": "c7 86 10 04 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+410h], 0"
+        },
+        {
+          "va": "0x6B8D59",
+          "rva": "0x2B8D59",
+          "bytes": "c7 86 6c 0b 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+0B6Ch], 0"
+        }
+      ]
+    },
+    {
+      "label": "NPC Init projectile timers",
+      "start_va": "0x6B8E20",
+      "end_va_exclusive": "0x6B8E55",
+      "instructions": [
+        {
+          "va": "0x6B8E21",
+          "rva": "0x2B8E21",
+          "bytes": "c7 86 c4 0b 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+0BC4h], 0"
+        },
+        {
+          "va": "0x6B8E2B",
+          "rva": "0x2B8E2B",
+          "bytes": "c7 86 ec 0b 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+0BECh], 0"
+        },
+        {
+          "va": "0x6B8E35",
+          "rva": "0x2B8E35",
+          "bytes": "c7 86 a0 0b 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+0BA0h], 0"
+        },
+        {
+          "va": "0x6B8E3F",
+          "rva": "0x2B8E3F",
+          "bytes": "c7 86 a4 0b 00 00 ff ff ff ff",
+          "text": "mov     dword ptr [esi+0BA4h], 0FFFFFFFFh"
+        },
+        {
+          "va": "0x6B8E49",
+          "rva": "0x2B8E49",
+          "bytes": "c7 86 a8 0b 00 00 00 00 00 00",
+          "text": "mov     dword ptr [esi+0BA8h], 0"
+        },
+        {
+          "va": "0x6B8E53",
+          "rva": "0x2B8E53",
+          "bytes": "f3 0f 10 05 40 b6 c7 00",
+          "text": "movss   xmm0, dword ptr a5"
+        }
+      ]
+    },
+    {
+      "label": "Pickup initial Timeout and Wait",
+      "start_va": "0x6E0340",
+      "end_va_exclusive": "0x6E0375",
+      "instructions": [
+        {
+          "va": "0x6E0342",
+          "rva": "0x2E0342",
+          "bytes": "0f 57 d2",
+          "text": "xorps   xmm2, xmm2"
+        },
+        {
+          "va": "0x6E0345",
+          "rva": "0x2E0345",
+          "bytes": "c7 87 34 05 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+534h], 0"
+        },
+        {
+          "va": "0x6E034F",
+          "rva": "0x2E034F",
+          "bytes": "c7 87 3c 05 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+53Ch], 0"
+        },
+        {
+          "va": "0x6E0359",
+          "rva": "0x2E0359",
+          "bytes": "c7 87 40 05 00 00 ff ff ff ff",
+          "text": "mov     dword ptr [edi+540h], 0FFFFFFFFh"
+        },
+        {
+          "va": "0x6E0363",
+          "rva": "0x2E0363",
+          "bytes": "c7 87 44 05 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+544h], 0"
+        },
+        {
+          "va": "0x6E036D",
+          "rva": "0x2E036D",
+          "bytes": "c7 87 48 05 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+548h], 0"
+        }
+      ]
+    },
+    {
+      "label": "Pickup initial State",
+      "start_va": "0x6E03B0",
+      "end_va_exclusive": "0x6E03E0",
+      "instructions": [
+        {
+          "va": "0x6E03B3",
+          "rva": "0x2E03B3",
+          "bytes": "8b 45 ac",
+          "text": "mov     eax, [ebp+var_54]"
+        },
+        {
+          "va": "0x6E03B6",
+          "rva": "0x2E03B6",
+          "bytes": "66 0f d6 41 20",
+          "text": "movq    qword ptr [ecx+20h], xmm0"
+        },
+        {
+          "va": "0x6E03BB",
+          "rva": "0x2E03BB",
+          "bytes": "0f 11 11",
+          "text": "movups  xmmword ptr [ecx], xmm2"
+        },
+        {
+          "va": "0x6E03BE",
+          "rva": "0x2E03BE",
+          "bytes": "89 41 28",
+          "text": "mov     [ecx+28h], eax"
+        },
+        {
+          "va": "0x6E03C1",
+          "rva": "0x2E03C1",
+          "bytes": "0f 11 49 10",
+          "text": "movups  xmmword ptr [ecx+10h], xmm1"
+        },
+        {
+          "va": "0x6E03C5",
+          "rva": "0x2E03C5",
+          "bytes": "8d b7 8c 05 00 00",
+          "text": "lea     esi, [edi+58Ch]"
+        },
+        {
+          "va": "0x6E03CB",
+          "rva": "0x2E03CB",
+          "bytes": "c7 87 84 05 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+584h], 0"
+        },
+        {
+          "va": "0x6E03D5",
+          "rva": "0x2E03D5",
+          "bytes": "c6 87 38 05 00 00 01",
+          "text": "mov     byte ptr [edi+538h], 1"
+        },
+        {
+          "va": "0x6E03DC",
+          "rva": "0x2E03DC",
+          "bytes": "8b 0e",
+          "text": "mov     ecx, [esi]"
+        },
+        {
+          "va": "0x6E03DE",
+          "rva": "0x2E03DE",
+          "bytes": "85 c9",
+          "text": "test    ecx, ecx"
+        }
+      ]
+    },
+    {
+      "label": "Familiar initial FireCooldown",
+      "start_va": "0x60DFB0",
+      "end_va_exclusive": "0x60DFE0",
+      "instructions": [
+        {
+          "va": "0x60DFB4",
+          "rva": "0x20DFB4",
+          "bytes": "84 c0",
+          "text": "test    al, al"
+        },
+        {
+          "va": "0x60DFB6",
+          "rva": "0x20DFB6",
+          "bytes": "74 14",
+          "text": "jz      short loc_60DFCC"
+        },
+        {
+          "va": "0x60DFB8",
+          "rva": "0x20DFB8",
+          "bytes": "8d 47 48",
+          "text": "lea     eax, [edi+48h]"
+        },
+        {
+          "va": "0x60DFBB",
+          "rva": "0x20DFBB",
+          "bytes": "8d 70 30",
+          "text": "lea     esi, [eax+30h]"
+        },
+        {
+          "va": "0x60DFBE",
+          "rva": "0x20DFBE",
+          "bytes": "8b ce",
+          "text": "mov     ecx, esi"
+        },
+        {
+          "va": "0x60DFC0",
+          "rva": "0x20DFC0",
+          "bytes": "e8 eb c1 df ff",
+          "text": "call    sub_40A1B0"
+        },
+        {
+          "va": "0x60DFC5",
+          "rva": "0x20DFC5",
+          "bytes": "c6 46 14 01",
+          "text": "mov     byte ptr [esi+14h], 1"
+        },
+        {
+          "va": "0x60DFC9",
+          "rva": "0x20DFC9",
+          "bytes": "8b 75 0c",
+          "text": "mov     esi, [ebp+a3]"
+        },
+        {
+          "va": "0x60DFCC",
+          "rva": "0x20DFCC",
+          "bytes": "c7 87 4c 0d 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+0D4Ch], 0"
+        },
+        {
+          "va": "0x60DFD6",
+          "rva": "0x20DFD6",
+          "bytes": "c7 87 50 0d 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+0D50h], 0"
+        }
+      ]
+    },
+    {
+      "label": "Familiar initial State",
+      "start_va": "0x60E290",
+      "end_va_exclusive": "0x60E2C5",
+      "instructions": [
+        {
+          "va": "0x60E299",
+          "rva": "0x20E299",
+          "bytes": "c7 87 5c 0d 00 00 ff ff ff ff",
+          "text": "mov     dword ptr [edi+0D5Ch], 0FFFFFFFFh"
+        },
+        {
+          "va": "0x60E2A3",
+          "rva": "0x20E2A3",
+          "bytes": "c7 87 a8 0d 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+0DA8h], 0"
+        },
+        {
+          "va": "0x60E2AD",
+          "rva": "0x20E2AD",
+          "bytes": "c7 87 88 0d 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+0D88h], 0"
+        },
+        {
+          "va": "0x60E2B7",
+          "rva": "0x20E2B7",
+          "bytes": "c7 87 b8 0d 00 00 05 00 00 00",
+          "text": "mov     dword ptr [edi+0DB8h], 5"
+        },
+        {
+          "va": "0x60E2C1",
+          "rva": "0x20E2C1",
+          "bytes": "83 fe 11",
+          "text": "cmp     esi, 11h"
+        },
+        {
+          "va": "0x60E2C4",
+          "rva": "0x20E2C4",
+          "bytes": "74 20",
+          "text": "jz      short loc_60E2E6"
+        }
+      ]
+    },
+    {
+      "label": "Effect initial State Timeout LifeSpan",
+      "start_va": "0x5CDB90",
+      "end_va_exclusive": "0x5CDBE0",
+      "instructions": [
+        {
+          "va": "0x5CDB93",
+          "rva": "0x1CDB93",
+          "bytes": "85 c0",
+          "text": "test    eax, eax"
+        },
+        {
+          "va": "0x5CDB95",
+          "rva": "0x1CDB95",
+          "bytes": "74 21",
+          "text": "jz      short loc_5CDBB8"
+        },
+        {
+          "va": "0x5CDB97",
+          "rva": "0x1CDB97",
+          "bytes": "6a 00",
+          "text": "push    0; int"
+        },
+        {
+          "va": "0x5CDB99",
+          "rva": "0x1CDB99",
+          "bytes": "83 c0 74",
+          "text": "add     eax, 74h ; 't'"
+        },
+        {
+          "va": "0x5CDB9C",
+          "rva": "0x1CDB9C",
+          "bytes": "8d 4f 48",
+          "text": "lea     ecx, [edi+48h]; void *"
+        },
+        {
+          "va": "0x5CDB9F",
+          "rva": "0x1CDB9F",
+          "bytes": "50",
+          "text": "push    eax; Src"
+        },
+        {
+          "va": "0x5CDBA0",
+          "rva": "0x1CDBA0",
+          "bytes": "e8 ab e1 e3 ff",
+          "text": "call    sub_40BD50"
+        },
+        {
+          "va": "0x5CDBA5",
+          "rva": "0x1CDBA5",
+          "bytes": "8d 4f 60",
+          "text": "lea     ecx, [edi+60h]"
+        },
+        {
+          "va": "0x5CDBA8",
+          "rva": "0x1CDBA8",
+          "bytes": "e8 13 f5 e3 ff",
+          "text": "call    sub_40D0C0"
+        },
+        {
+          "va": "0x5CDBAD",
+          "rva": "0x1CDBAD",
+          "bytes": "6a 00",
+          "text": "push    0; char"
+        },
+        {
+          "va": "0x5CDBAF",
+          "rva": "0x1CDBAF",
+          "bytes": "50",
+          "text": "push    eax; ArgList"
+        },
+        {
+          "va": "0x5CDBB0",
+          "rva": "0x1CDBB0",
+          "bytes": "8d 4f 48",
+          "text": "lea     ecx, [edi+48h]"
+        },
+        {
+          "va": "0x5CDBB3",
+          "rva": "0x1CDBB3",
+          "bytes": "e8 c8 c7 e3 ff",
+          "text": "call    sub_40A380"
+        },
+        {
+          "va": "0x5CDBB8",
+          "rva": "0x1CDBB8",
+          "bytes": "c7 87 50 04 00 00 00 00 00 00",
+          "text": "mov     dword ptr [edi+450h], 0"
+        },
+        {
+          "va": "0x5CDBC2",
+          "rva": "0x1CDBC2",
+          "bytes": "c7 87 5c 04 00 00 ff ff ff ff",
+          "text": "mov     dword ptr [edi+45Ch], 0FFFFFFFFh"
+        },
+        {
+          "va": "0x5CDBCC",
+          "rva": "0x1CDBCC",
+          "bytes": "c7 87 60 04 00 00 01 00 00 00",
+          "text": "mov     dword ptr [edi+460h], 1"
+        },
+        {
+          "va": "0x5CDBD6",
+          "rva": "0x1CDBD6",
+          "bytes": "f3 0f 10 05 40 b6 c7 00",
+          "text": "movss   xmm0, dword ptr a5"
+        },
+        {
+          "va": "0x5CDBDE",
+          "rva": "0x1CDBDE",
+          "bytes": "f3 0f 11 87 68 04 00 00",
+          "text": "movss   dword ptr [edi+468h], xmm0"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Current-IDB static reads only; no target execution or runtime observation.",
+    "Initialization anchors are limited observations, not exhaustive reset or writer coverage.",
+    "Raw 32-bit storage is separate from Lua signed/unsigned presentation and gameplay meaning."
+  ]
+}

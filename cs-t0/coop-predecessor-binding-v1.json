@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "reportIdentity": "IsaacCsT0-CoopPredecessorBinding-v1",
+  "workPackage": "CS-T0-05-00",
+  "createdUtc": "2026-08-26T18:47:33Z",
+  "status": "PASS",
+  "bindingPolicy": {
+    "repositoryRelativePathsOnly": true,
+    "targetBinariesCopiedIntoRepository": false,
+    "binaryIdentityBinding": "HASH_FIELD_IN_HASH_BOUND_MACHINE_RECORD",
+    "directArtifacts": "FILE_SHA256",
+    "createNewOnly": true
+  },
+  "bindings": [
+    {
+      "id": "canonical-target",
+      "bindingKind": "JSON_FIELD",
+      "path": "cs-t0/ledger/isaac-cs-t0-target-ledger.json",
+      "schemaVersion": 1,
+      "schemaIdentity": "isaac-cs-t0-01-2026-04-21-x86 / IsaacCsT0-Evidence-v1",
+      "selector": "/image/variants/1/fileSha256",
+      "containerSha256": "23AB89605DCB41EC63823B4F762B32F93BEBC9BD00B7ECB7BE522ACBC3CCBE32",
+      "expectedSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+      "actualSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+      "status": "PASS"
+    },
+    {
+      "id": "observed-approved-unpacked-target",
+      "bindingKind": "JSON_FIELD",
+      "path": "out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json",
+      "schemaVersion": 1,
+      "schemaIdentity": "IsaacCsT0-UnpackedTargetEquivalence-v1",
+      "selector": "/observedTargetSha256",
+      "containerSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+      "expectedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+      "actualSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+      "status": "PASS"
+    },
+    {
+      "id": "target-equivalence-document",
+      "bindingKind": "FILE_SHA256",
+      "path": "out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json",
+      "schemaVersion": 1,
+      "schemaIdentity": "IsaacCsT0-UnpackedTargetEquivalence-v1",
+      "expectedSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+      "actualSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+      "status": "PASS"
+    },
+    {
+      "id": "t0-02-mode-gate",
+      "bindingKind": "FILE_SHA256",
+      "path": "artifacts/cs-t0/20260819T080844Z-t0-02-c2-original-online-a-a/t0-02-gate-decision.json",
+      "schemaVersion": 1,
+      "schemaIdentity": "T0-02-mode-isolation / t0-02-packet-pairing-v2",
+      "expectedSha256": "8C882CB0985D55D5FBA379C2BDC118D6280C90B6017A961A7F729E3A281AB185",
+      "actualSha256": "8C882CB0985D55D5FBA379C2BDC118D6280C90B6017A961A7F729E3A281AB185",
+      "status": "PASS"
+    },
+    {
+      "id": "t0-03-scoped-gate",
+      "bindingKind": "FILE_SHA256",
+      "path": "artifacts/cs-t0/20260819T185814Z-t0-03-gate-decision/t0-03-gate-decision.json",
+      "schemaVersion": 1,
+      "schemaIdentity": "t0-03-gate-v1-boundary-v4-user-revised-matrix",
+      "expectedSha256": "3481AE6EC15930D993FBDC047D5A0E5B9E8EBE78BC4D4A8CCEE709F57CDE21DB",
+      "actualSha256": "3481AE6EC15930D993FBDC047D5A0E5B9E8EBE78BC4D4A8CCEE709F57CDE21DB",
+      "status": "PASS"
+    },
+    {
+      "id": "t0-03r-v5-loop-gate",
+      "bindingKind": "FILE_SHA256",
+      "path": "artifacts/cs-t0/20260821-t0-03r-v5-loop-gate-7of7.json",
+      "schemaVersion": 2,
+      "schemaIdentity": "T0-03R-V5-LoopGate-7of7",
+      "expectedSha256": "CDC0CE89A7393740A775E40FE6E588910038FEC68C40EB6D6F5CDF7BC1F1A1AA",
+      "actualSha256": "CDC0CE89A7393740A775E40FE6E588910038FEC68C40EB6D6F5CDF7BC1F1A1AA",
+      "status": "PASS"
+    },
+    {
+      "id": "t0-04-raw-prerequisite",
+      "bindingKind": "FILE_SHA256",
+      "path": "artifacts/cs-t0/20260823-t0-04-input-raw-prerequisite-4of4.json",
+      "schemaVersion": 1,
+      "schemaIdentity": "IsaacCsT0-RawPrerequisite-v1",
+      "expectedSha256": "99BA518991FEA36FE78D91AEA6D91D80634D4FD3B314399C4C4203C1BA27D5AC",
+      "actualSha256": "99BA518991FEA36FE78D91AEA6D91D80634D4FD3B314399C4C4203C1BA27D5AC",
+      "status": "PASS"
+    },
+    {
+      "id": "t0-04-active-catalog-v2",
+      "bindingKind": "FILE_SHA256",
+      "path": "cs-t0/input-active-catalog-v2.json",
+      "schemaVersion": 2,
+      "schemaIdentity": "IsaacCsT0-ActiveLoopbackCatalog-v2",
+      "expectedSha256": "A89A74A251EEAA2510FC0C681247ABD6B0A31A7CC3ED60833C78EF36C9B0DC77",
+      "actualSha256": "A89A74A251EEAA2510FC0C681247ABD6B0A31A7CC3ED60833C78EF36C9B0DC77",
+      "status": "PASS"
+    },
+    {
+      "id": "t0-04-active-plan-v2",
+      "bindingKind": "FILE_SHA256",
+      "path": "cs-t0/input-active-plan-v2.json",
+      "schemaVersion": 2,
+      "schemaIdentity": "IsaacCsT0-ActiveLoopbackPlan-v2",
+      "expectedSha256": "FE4FC7ABDE09CBB280DA342BD384AB50107CA948A052AC02BA6ADE37BB1DF3BA",
+      "actualSha256": "FE4FC7ABDE09CBB280DA342BD384AB50107CA948A052AC02BA6ADE37BB1DF3BA",
+      "status": "PASS"
+    },
+    {
+      "id": "t0-04-formal-matrix",
+      "bindingKind": "FILE_SHA256",
+      "path": "out/cs-t0/formal-active-gate-20260827-r1/active-matrix-v2.json",
+      "schemaVersion": 2,
+      "schemaIdentity": "IsaacCsT0-ActiveMatrix-v2",
+      "expectedSha256": "54BDD4F7E0070D14DA913C6993C97272D97A91B193BDA5C04E2FCAE3E9C6889D",
+      "actualSha256": "54BDD4F7E0070D14DA913C6993C97272D97A91B193BDA5C04E2FCAE3E9C6889D",
+      "status": "PASS"
+    },
+    {
+      "id": "t0-04-repeatability",
+      "bindingKind": "FILE_SHA256",
+      "path": "out/cs-t0/formal-active-gate-20260827-r1/repeatability.json",
+      "schemaVersion": 4,
+      "schemaIdentity": "PIPELINE_RUNTIME / schema-4",
+      "expectedSha256": "AFA254C0E06BAFC53728F9D4CCCF42C1999B9B5CD68533449DBF2E92B57775CC",
+      "actualSha256": "AFA254C0E06BAFC53728F9D4CCCF42C1999B9B5CD68533449DBF2E92B57775CC",
+      "status": "PASS"
+    },
+    {
+      "id": "t0-04-verification-v2",
+      "bindingKind": "FILE_SHA256",
+      "path": "out/cs-t0/formal-active-gate-20260827-r1/verification-v2.json",
+      "schemaVersion": 2,
+      "schemaIdentity": "IsaacCsT0-ActiveVerification-v2",
+      "expectedSha256": "2ABBA008B319C973E8424C740BCCE00CE6D9002B913B7ABB3C2DA1C790243317",
+      "actualSha256": "2ABBA008B319C973E8424C740BCCE00CE6D9002B913B7ABB3C2DA1C790243317",
+      "status": "PASS"
+    },
+    {
+      "id": "t0-04-final-decision",
+      "bindingKind": "FILE_SHA256",
+      "path": "out/cs-t0/formal-active-gate-20260827-r1/active-gate-decision.json",
+      "schemaVersion": 4,
+      "schemaIdentity": "IsaacCsT0-ActiveGateDecision / schema-4",
+      "expectedSha256": "927561D7DC28FE4DE05680BC68C6FA1841E3C77D76B30A710CE34031072E222C",
+      "actualSha256": "927561D7DC28FE4DE05680BC68C6FA1841E3C77D76B30A710CE34031072E222C",
+      "status": "PASS"
+    }
+  ],
+  "uniqueness": {
+    "bindingCount": 13,
+    "uniqueBindingIds": true,
+    "uniqueArtifactPathsWithinIdentityClass": true,
+    "canonicalAndObservedIdentitiesDistinct": true
+  },
+  "conclusion": {
+    "allBindingsPassed": true,
+    "t004FinalDecisionPass": true,
+    "t004Unlocked": true,
+    "predecessorClosed": true
+  }
+}

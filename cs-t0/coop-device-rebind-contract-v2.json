@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 2,
+  "contractIdentity": "IsaacCsT0-CoopDeviceRebindContract-v2",
+  "workPackage": "CS-T0-05-03",
+  "status": "FROZEN_PENDING_AUTOMATED_GATE",
+  "createNewOnly": true,
+  "scope": "device-rebind-passive",
+  "sourceIdentity": "IsaacCsT0-CoopPassiveObserver-v2",
+  "analysisIdentity": "IsaacCsT0-CoopPassiveAnalysis-v2",
+  "decisionIdentity": "IsaacCsT0-CoopPassiveDecision-v2",
+  "ipc": {
+    "version": 2, "scenario": 5, "alignment": 8,
+    "eventSize": 200, "blockSize": 3277472,
+    "offsets": {"processCreationTime100ns": 24, "nonce": 32, "loopMappingName": 288, "state": 480, "events": 672},
+    "knownFlagsMask": 4095,
+    "eventAppend": {"DEVICE_UNASSIGN_BEGIN": 28, "DEVICE_UNASSIGN_END": 29, "DEVICE_REASSIGN_BEGIN": 30, "DEVICE_REASSIGN_END": 31, "UNCLASSIFIED_RELATION_CHANGE": 32},
+    "devicePhase": 10,
+    "stateCodebookUnchanged": true,
+    "legacyOtherScenariosVersion": 1
+  },
+  "transaction": {
+    "slotCount": 56, "mask": "0x00FFFFFFFFFFFFFF", "installOrder": "0..55", "restoreOrder": "55..0",
+    "legacyPrefixCount": 53, "legacyPrefixUnchanged": true,
+    "manifestSlotRule": "id/rva/patchKind exact catalog slot; expected/before/after proof all equal uppercase SHA256(ASCII slot || ordinal-byte repeated32 || ASCII catalog expectedProof, otherwise expectedBytes); no length or NUL",
+    "newSlots": [
+      {"ordinal": 53, "role": "menu-unassign", "rva": "0x005B27EB", "expectedBytes": "E8603CDFFF"},
+      {"ordinal": 54, "role": "disconnect-prompt-unassign", "rva": "0x0055B87F", "expectedBytes": "E8CCABE4FF"},
+      {"ordinal": 55, "role": "existing-player-reassign", "rva": "0x0055BCA0", "expectedBytes": "E8ABA7E4FF"}
+    ],
+    "originalRva": "0x003A6450",
+    "abi": "void __thiscall(Player*, int32 controllerId, uint32 propagate); ret 8",
+    "propagate": 1,
+    "originalExactlyOnceInAllObservationStates": true,
+    "eaxReturnValueClaimed": false
+  },
+  "causality": {
+    "menuGrammar": [53, 53, 54, 54, 55, 55],
+    "disconnectGrammar": [54, 54, 55, 55],
+    "eachPair": "BEGIN before original, END after complete original and actual assignment readback",
+    "initialState": "both ordinary endpoints BOUND; self uniquely equals one prior Player and index equals its stored ordinal",
+    "invalidation": "save baseline; advance generation exactly once; emit UNBOUND A then B immediately before primary unassign BEGIN",
+    "unassign": "native assignment old>=0 -> -1; exact one menu prompt confirmation -1 -> -1 permitted only after slot53",
+    "reassign": "slot55, same Player/endpoint/ordinal/generation, -1 -> requested key>=0, actual stored key equals request",
+    "partialEventFields": "same player/endpoint; assignment digest only; topology and device null; no coherent/unique/assignment/HUD/Lua/relation flags; depth0; original0 BEGIN/original1 END",
+    "primaryBegin": "full baseline relation, phase10, depth0, original0",
+    "relationPublication": "after the first complete coherent manager return, RELATION_CHANGE slot55 phase10 includes full new relation matching reassign END assignment digest; that manager END topology digest must equal relation topology digest",
+    "confirmation": "same manager pass candidates A,B then exactly one next consecutive complete manager pass bounds A,B with identical full topology and manager END topology digest",
+    "otherEndpoint": "same Player/device/assignment as baseline; global topology may change",
+    "pending": "strict structural identity double-read may retain expected target -1/missing-device only; never publish a binding",
+    "ordinaryRouteWitness": "only previously qualified local route may be transferred to this generation-local transaction; offline/roster/backend checks remain mandatory",
+    "sameDeviceReattachmentAllowed": true,
+    "digestDifferenceSufficient": false,
+    "managerOnlyDeltaClassification": "UNCLASSIFIED_RELATION_CHANGE; never positive device evidence",
+    "successfulTransactionsPerSource": 1,
+    "invalidationCauses": ["lifecycle", "menu/run teardown", "spawn/exit", "wrong-thread", "reentrancy", "read failure", "online guard", "third/duplicate Player or device", "other endpoint change", "unknown type", "gap", "ring failure", "stale generation", "out-of-order or repeated witness"]
+  },
+  "legacyPolicy": {
+    "nonDeviceReplayByteStable": true,
+    "legacyDeviceNewAnalysis": "BLOCKED_BY_EVIDENCE",
+    "historicalFilesNeverRewritten": true,
+    "mixedGate": "common target/equivalence/layout/graph hashes; new sources share exact catalog/plan/verification/producer hashes; only exact approved historical manifest/events/analysis triples exempt from producer revision equality",
+    "approvedHistoricalSourceCases": ["native-join-passive-live-06", "death-respawn-passive-live-08", "room-rebind-passive-live-09"],
+    "nativeExitSkipWaivesGate": false
+  },
+  "permissions": {
+    "passiveHookTransactionAllowed": true,
+    "activeInputAllowed": false, "inputMutationAllowed": false, "worldMutationAllowed": false,
+    "overrideAllowed": false, "transportAllowed": false, "schedulerAllowed": false, "applyAllowed": false,
+    "modeLatchAllowed": false, "originalOnlinePositiveAllowed": false,
+    "csT00504Unlocked": false, "t005Unlocked": false,
+    "liveAuthorizationCreated": false, "automaticLiveRetryAllowed": false
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 2,
+  "verificationIdentity": "IsaacCsT0-CoopVerification-v2",
+  "workPackage": "CS-T0-05-01",
+  "createdUtc": "2026-08-27T08:55:00Z",
+  "status": "PASS",
+  "supersedes": "coop-verification-v1.json",
+  "supersedesSha256": "A894867D5B5388C9540B024083F659D1EDBC1CB461D362301519FB18E48ABB48",
+  "staticContractComplete": true,
+  "runtimeContractComplete": false,
+  "t005Unlocked": false,
+  "csT00502Unlocked": true,
+  "artifactBindings": [
+    { "path": "coop-bootstrap-decision-v1.json", "identity": "IsaacCsT0-CoopBootstrapDecision-v1", "sha256": "7EB5004E368A478EBB3CC83149BB05E70F7876C4384A511557EEC9188D1D7598" },
+    { "path": "../out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json", "identity": "IsaacCsT0-UnpackedTargetEquivalence-v1", "sha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138" },
+    { "path": "coop-static-evidence-v1.json", "identity": "IsaacCsT0-CoopStaticEvidence-v1", "sha256": "501B39DEB198E7F1424328069534438ADC73BA665D1E6988AFA4AD7939DB081B" },
+    { "path": "coop-static-graph-v1.json", "identity": "IsaacCsT0-CoopStaticGraph-v1", "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934" },
+    { "path": "coop-static-inspection-v1.json", "identity": "IsaacCsT0-CoopStaticInspection-v1", "sha256": "7E76A04E39F2C6AADD16ADC2EEBFB96F3438FA3D06B06E28716B5ACB97B3BBAB" },
+    { "path": "ledger/isaac-cs-t0-coop-ledger-v2.json", "identity": "IsaacCsT0-CoopLedger-v2", "sha256": "EA195429231F9CA8575FC6901E792496D6C26AC42984928B1C09504E97B3FCAC" },
+    { "path": "coop-catalog-v2.json", "identity": "IsaacCsT0-CoopCatalog-v2", "sha256": "1059711778DAD09870D37118571EE7D5E67761EC28FFAB84C7CF5AC5998A0224" },
+    { "path": "coop-plan-v2.json", "identity": "IsaacCsT0-CoopPlan-v2", "sha256": "40DB0C0F42AC1DD2B86042633D44357F015459DBDFF276A237946F978706FB34" },
+    { "path": "coop-hypothesis-index-v2.json", "identity": "IsaacCsT0-CoopHypothesisIndex-v2", "sha256": "608D2619F1DA63242D9C60FE0E229244F698C0CC8ADDA8C6908AF70D8F92275C" },
+    { "path": "verify-coop-static.ps1", "identity": "CS-T0-05-01-StaticVerifier", "sha256": "3E08D7F2B3CE6536C1AEBD61EE8A6FF0D4ECB3873D28597A513A3C064153FD66" }
+  ],
+  "checks": [
+    { "id": "bootstrap-verifier-pass", "passed": true },
+    { "id": "approved-unpacked-equivalence-pass", "passed": true },
+    { "id": "strict-graph-catalog-ledger-schema", "passed": true },
+    { "id": "masked-feature-unique-eight-of-eight", "passed": true },
+    { "id": "expected-bytes-opcode-rel32-target-eight-of-eight", "passed": true },
+    { "id": "graph-no-dangling-edges", "passed": true },
+    { "id": "join-route-complete", "passed": true },
+    { "id": "exit-route-complete", "passed": true },
+    { "id": "online-partition-isolated", "passed": true },
+    { "id": "observer-slots-45-through-52", "passed": true },
+    { "id": "restore-order-strict-reverse", "passed": true },
+    { "id": "unknown-candidates-not-guessed", "passed": true },
+    { "id": "missing-evidence-empty", "passed": true },
+    { "id": "coop-static-tests-fourteen", "passed": true },
+    { "id": "cargo-all-targets", "passed": true },
+    { "id": "existing-output-refused", "passed": true },
+    { "id": "permissions-remain-disabled", "passed": true }
+  ],
+  "permissions": {
+    "activeInputAllowed": false,
+    "runtimeMutationAllowed": false,
+    "liveAuthorizationCreated": false,
+    "productionActiveInputAllowed": false,
+    "t005Unlocked": false,
+    "csT00502Unlocked": true
+  }
+}

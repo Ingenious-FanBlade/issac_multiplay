@@ -1,0 +1,681 @@
+{
+  "tx": "tx-03-19",
+  "evidence": "STATIC_SOURCE_READ_ONLY",
+  "source": "cs-t0/native/src/loop_runtime.cpp",
+  "sections": [
+    {
+      "start_line": 45,
+      "end_line": 86,
+      "lines": [
+        {
+          "line": 45,
+          "text": "constexpr std::array<std::uint32_t, kRelativeHookCount> kCallRvas{{"
+        },
+        {
+          "line": 46,
+          "text": "    0x00531231u, // loop header clock"
+        },
+        {
+          "line": 47,
+          "text": "    0x005312ECu, // top-level update driver"
+        },
+        {
+          "line": 48,
+          "text": "    0x00555231u, // standard-or-post-conditional attempt"
+        },
+        {
+          "line": 49,
+          "text": "    0x002FBBA5u, // standard tail"
+        },
+        {
+          "line": 50,
+          "text": "    0x00559696u, // run teardown caller 1"
+        },
+        {
+          "line": 51,
+          "text": "    0x005AB84Au, // run teardown caller 2"
+        },
+        {
+          "line": 52,
+          "text": "    0x0033F5B9u, // new-room callback"
+        },
+        {
+          "line": 53,
+          "text": "    0x005312F1u, // top-level render owner"
+        },
+        {
+          "line": 54,
+          "text": "    0x00554F7Du, // InputManager per-full-update sample owner"
+        },
+        {
+          "line": 55,
+          "text": "    0x0061FC97u, // common per-device update"
+        },
+        {
+          "line": 56,
+          "text": "    0x00554D5Eu, // alternate transaction owner attempt"
+        },
+        {
+          "line": 57,
+          "text": "    0x00559B4Du, // alternate room simulation"
+        },
+        {
+          "line": 58,
+          "text": "    0x00559B82u, // alternate transaction tail"
+        },
+        {
+          "line": 59,
+          "text": "    0x002FADFAu, // standard-path predicate"
+        },
+        {
+          "line": 60,
+          "text": "    0x002FAE09u, // standard body begin anchor"
+        },
+        {
+          "line": 61,
+          "text": "    0x002FBA4Du, // standard room simulation"
+        },
+        {
+          "line": 62,
+          "text": "    0x00403E70u, // room entity-list update"
+        },
+        {
+          "line": 63,
+          "text": "    0x00559B21u, // alternate snapshot state apply"
+        },
+        {
+          "line": 64,
+          "text": "    0x002F580Bu, // alternate outcome completion 0"
+        },
+        {
+          "line": 65,
+          "text": "    0x002F61FFu, // alternate outcome completion 1"
+        },
+        {
+          "line": 66,
+          "text": "    0x002F72C9u, // alternate outcome completion 2"
+        },
+        {
+          "line": 67,
+          "text": "    0x002F7721u, // alternate outcome completion 3"
+        },
+        {
+          "line": 68,
+          "text": "    0x002F7A10u, // alternate outcome completion 4"
+        },
+        {
+          "line": 69,
+          "text": "    0x002FB4F0u, // standard room-lifecycle FSM owner"
+        },
+        {
+          "line": 70,
+          "text": "    0x0052FC77u, // standard room-lifecycle nested simulation"
+        },
+        {
+          "line": 71,
+          "text": "    0x002FB51Cu, // ordinary-door room-change state-machine owner"
+        },
+        {
+          "line": 72,
+          "text": "    0x002FE37Cu, // ordinary-door room-change nested Room::Update"
+        },
+        {
+          "line": 73,
+          "text": "}};"
+        },
+        {
+          "line": 74,
+          "text": ""
+        },
+        {
+          "line": 75,
+          "text": "constexpr std::array<std::uint32_t, kRelativeHookCount> kTargetRvas{{"
+        },
+        {
+          "line": 76,
+          "text": "    0x006266A0u, 0x005AB6D0u, 0x002FADC0u, 0x004607A0u,"
+        },
+        {
+          "line": 77,
+          "text": "    0x002FA0C0u, 0x002FA0C0u, 0x00465180u, 0x005555C0u,"
+        },
+        {
+          "line": 78,
+          "text": "    0x0061FC00u, 0x0061F280u, 0x00559720u, 0x00402980u,"
+        },
+        {
+          "line": 79,
+          "text": "    0x00464EE0u, 0x0028BBA0u, 0x00308630u, 0x00402980u,"
+        },
+        {
+          "line": 80,
+          "text": "    0x000186C0u,"
+        },
+        {
+          "line": 81,
+          "text": "    0x002F8140u,"
+        },
+        {
+          "line": 82,
+          "text": "    0x00464EE0u, 0x00464EE0u, 0x00464EE0u, 0x00464EE0u,"
+        },
+        {
+          "line": 83,
+          "text": "    0x00464EE0u,"
+        },
+        {
+          "line": 84,
+          "text": "    0x0052F1C0u, 0x00402980u,"
+        },
+        {
+          "line": 85,
+          "text": "    0x004318A0u, 0x00402980u,"
+        },
+        {
+          "line": 86,
+          "text": "}};"
+        }
+      ]
+    },
+    {
+      "start_line": 279,
+      "end_line": 294,
+      "lines": [
+        {
+          "line": 279,
+          "text": "class PhaseScope final {"
+        },
+        {
+          "line": 280,
+          "text": "public:"
+        },
+        {
+          "line": 281,
+          "text": "    explicit PhaseScope(Phase phase) noexcept"
+        },
+        {
+          "line": 282,
+          "text": "        : previous_phase_(g_tls_phase), previous_depth_(g_tls_phase_depth)"
+        },
+        {
+          "line": 283,
+          "text": "    {"
+        },
+        {
+          "line": 284,
+          "text": "        g_tls_phase = phase;"
+        },
+        {
+          "line": 285,
+          "text": "        g_tls_phase_depth = previous_depth_ + 1;"
+        },
+        {
+          "line": 286,
+          "text": "    }"
+        },
+        {
+          "line": 287,
+          "text": ""
+        },
+        {
+          "line": 288,
+          "text": "    ~PhaseScope()"
+        },
+        {
+          "line": 289,
+          "text": "    {"
+        },
+        {
+          "line": 290,
+          "text": "        g_tls_phase = previous_phase_;"
+        },
+        {
+          "line": 291,
+          "text": "        g_tls_phase_depth = previous_depth_;"
+        },
+        {
+          "line": 292,
+          "text": "    }"
+        },
+        {
+          "line": 293,
+          "text": ""
+        },
+        {
+          "line": 294,
+          "text": "private:"
+        }
+      ]
+    },
+    {
+      "start_line": 385,
+      "end_line": 407,
+      "lines": [
+        {
+          "line": 385,
+          "text": "bool EstablishOrCheckMainThread(bool establish, bool required) noexcept"
+        },
+        {
+          "line": 386,
+          "text": "{"
+        },
+        {
+          "line": 387,
+          "text": "    if (!g_shared)"
+        },
+        {
+          "line": 388,
+          "text": "        return false;"
+        },
+        {
+          "line": 389,
+          "text": "    const LONG thread = static_cast<LONG>(GetCurrentThreadId());"
+        },
+        {
+          "line": 390,
+          "text": "    LONG main_thread = InterlockedCompareExchange(&g_shared->main_thread_id, 0, 0);"
+        },
+        {
+          "line": 391,
+          "text": "    if (!main_thread && establish)"
+        },
+        {
+          "line": 392,
+          "text": "    {"
+        },
+        {
+          "line": 393,
+          "text": "        InterlockedCompareExchange(&g_shared->main_thread_id, thread, 0);"
+        },
+        {
+          "line": 394,
+          "text": "        main_thread = InterlockedCompareExchange(&g_shared->main_thread_id, 0, 0);"
+        },
+        {
+          "line": 395,
+          "text": "    }"
+        },
+        {
+          "line": 396,
+          "text": "    // Installation can finish in the middle of an existing loop iteration.  Until the"
+        },
+        {
+          "line": 397,
+          "text": "    // next clock anchor freezes the main thread, non-clock hooks are bootstrap"
+        },
+        {
+          "line": 398,
+          "text": "    // passthroughs: they must neither fabricate iteration-zero evidence nor classify"
+        },
+        {
+          "line": 399,
+          "text": "    // an as-yet unknown thread as a mismatch."
+        },
+        {
+          "line": 400,
+          "text": "    if (!main_thread)"
+        },
+        {
+          "line": 401,
+          "text": "        return false;"
+        },
+        {
+          "line": 402,
+          "text": "    const bool matches = main_thread && main_thread == thread;"
+        },
+        {
+          "line": 403,
+          "text": "    if (required && !matches)"
+        },
+        {
+          "line": 404,
+          "text": "        ReportUnsafe(ErrorCode::WrongThread);"
+        },
+        {
+          "line": 405,
+          "text": "    return matches;"
+        },
+        {
+          "line": 406,
+          "text": "}"
+        },
+        {
+          "line": 407,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "start_line": 483,
+      "end_line": 495,
+      "lines": [
+        {
+          "line": 483,
+          "text": "template <typename Function>"
+        },
+        {
+          "line": 484,
+          "text": "void InvokeVoid(Function original, EventKind enter, EventKind exit, Phase phase,"
+        },
+        {
+          "line": 485,
+          "text": "                void* return_address) noexcept"
+        },
+        {
+          "line": 486,
+          "text": "{"
+        },
+        {
+          "line": 487,
+          "text": "    HookScope scope;"
+        },
+        {
+          "line": 488,
+          "text": "    PhaseScope phase_scope(phase);"
+        },
+        {
+          "line": 489,
+          "text": "    const bool observe = Armed() && EstablishOrCheckMainThread(false, true);"
+        },
+        {
+          "line": 490,
+          "text": "    const bool entered = observe && PublishCall(enter, phase, return_address, 0);"
+        },
+        {
+          "line": 491,
+          "text": "    original();"
+        },
+        {
+          "line": 492,
+          "text": "    if (entered)"
+        },
+        {
+          "line": 493,
+          "text": "        PublishObservedCall(exit, phase, return_address, 1);"
+        },
+        {
+          "line": 494,
+          "text": "}"
+        },
+        {
+          "line": 495,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "start_line": 996,
+      "end_line": 1020,
+      "lines": [
+        {
+          "line": 996,
+          "text": ""
+        },
+        {
+          "line": 997,
+          "text": "extern \"C\" __m128d __cdecl LoopClockHook()"
+        },
+        {
+          "line": 998,
+          "text": "{"
+        },
+        {
+          "line": 999,
+          "text": "    HookScope scope;"
+        },
+        {
+          "line": 1000,
+          "text": "    PhaseScope phase_scope(Phase::LoopBoundary);"
+        },
+        {
+          "line": 1001,
+          "text": "    const bool observe = Armed();"
+        },
+        {
+          "line": 1002,
+          "text": "    bool entered = false;"
+        },
+        {
+          "line": 1003,
+          "text": "    if (observe)"
+        },
+        {
+          "line": 1004,
+          "text": "    {"
+        },
+        {
+          "line": 1005,
+          "text": "        EstablishOrCheckMainThread(true, true);"
+        },
+        {
+          "line": 1006,
+          "text": "        if (Armed())"
+        },
+        {
+          "line": 1007,
+          "text": "        {"
+        },
+        {
+          "line": 1008,
+          "text": "            InterlockedIncrement64(&g_shared->current_loop_iteration);"
+        },
+        {
+          "line": 1009,
+          "text": "            entered = PublishCall(EventKind::LoopBegin, Phase::LoopBoundary,"
+        },
+        {
+          "line": 1010,
+          "text": "                                  _ReturnAddress(), 0);"
+        },
+        {
+          "line": 1011,
+          "text": "        }"
+        },
+        {
+          "line": 1012,
+          "text": "    }"
+        },
+        {
+          "line": 1013,
+          "text": "    const __m128d result = g_clock();"
+        },
+        {
+          "line": 1014,
+          "text": "    if (entered)"
+        },
+        {
+          "line": 1015,
+          "text": "        PublishObservedCall(EventKind::LoopClockExit, Phase::LoopBoundary,"
+        },
+        {
+          "line": 1016,
+          "text": "                            _ReturnAddress(), 1);"
+        },
+        {
+          "line": 1017,
+          "text": "    return result;"
+        },
+        {
+          "line": 1018,
+          "text": "}"
+        },
+        {
+          "line": 1019,
+          "text": ""
+        },
+        {
+          "line": 1020,
+          "text": "void __cdecl UpdateHook()"
+        }
+      ]
+    },
+    {
+      "start_line": 1099,
+      "end_line": 1104,
+      "lines": [
+        {
+          "line": 1099,
+          "text": "void __cdecl RenderHook()"
+        },
+        {
+          "line": 1100,
+          "text": "{"
+        },
+        {
+          "line": 1101,
+          "text": "    InvokeVoid(g_render, EventKind::RenderEnter, EventKind::RenderExit, Phase::Render,"
+        },
+        {
+          "line": 1102,
+          "text": "               _ReturnAddress());"
+        },
+        {
+          "line": 1103,
+          "text": "}"
+        },
+        {
+          "line": 1104,
+          "text": ""
+        }
+      ]
+    },
+    {
+      "start_line": 1626,
+      "end_line": 1657,
+      "lines": [
+        {
+          "line": 1626,
+          "text": "ObservationContext CurrentObservationContext() noexcept"
+        },
+        {
+          "line": 1627,
+          "text": "{"
+        },
+        {
+          "line": 1628,
+          "text": "    ObservationContext context{};"
+        },
+        {
+          "line": 1629,
+          "text": "    context.thread_id = GetCurrentThreadId();"
+        },
+        {
+          "line": 1630,
+          "text": "    context.phase = g_tls_phase;"
+        },
+        {
+          "line": 1631,
+          "text": "    context.phase_depth = g_tls_phase_depth;"
+        },
+        {
+          "line": 1632,
+          "text": "    if (g_shared)"
+        },
+        {
+          "line": 1633,
+          "text": "    {"
+        },
+        {
+          "line": 1634,
+          "text": "        context.loop_iteration = static_cast<std::uint64_t>("
+        },
+        {
+          "line": 1635,
+          "text": "            InterlockedCompareExchange64(&g_shared->current_loop_iteration, 0, 0));"
+        },
+        {
+          "line": 1636,
+          "text": "        context.main_thread_id = static_cast<std::uint32_t>("
+        },
+        {
+          "line": 1637,
+          "text": "            InterlockedCompareExchange(&g_shared->main_thread_id, 0, 0));"
+        },
+        {
+          "line": 1638,
+          "text": "    }"
+        },
+        {
+          "line": 1639,
+          "text": "    return context;"
+        },
+        {
+          "line": 1640,
+          "text": "}"
+        },
+        {
+          "line": 1641,
+          "text": ""
+        },
+        {
+          "line": 1642,
+          "text": "bool CompanionHealthy() noexcept"
+        },
+        {
+          "line": 1643,
+          "text": "{"
+        },
+        {
+          "line": 1644,
+          "text": "    if (!g_shared || InterlockedCompareExchange(&g_embedded, 0, 0) == 0 ||"
+        },
+        {
+          "line": 1645,
+          "text": "        InterlockedCompareExchange(&g_armed, 0, 0) == 0 ||"
+        },
+        {
+          "line": 1646,
+          "text": "        InterlockedCompareExchange(&g_unloading, 0, 0) != 0 ||"
+        },
+        {
+          "line": 1647,
+          "text": "        InterlockedCompareExchange(&g_unsafe_reported, 0, 0) != 0)"
+        },
+        {
+          "line": 1648,
+          "text": "        return false;"
+        },
+        {
+          "line": 1649,
+          "text": "    return InterlockedCompareExchange(&g_shared->state, 0, 0) =="
+        },
+        {
+          "line": 1650,
+          "text": "               static_cast<LONG>(NativeState::Ready) &&"
+        },
+        {
+          "line": 1651,
+          "text": "           InterlockedCompareExchange64(&g_shared->hooks_mask, 0, 0) =="
+        },
+        {
+          "line": 1652,
+          "text": "               static_cast<LONG64>(kCompleteHookMask) &&"
+        },
+        {
+          "line": 1653,
+          "text": "           InterlockedCompareExchange64(&g_shared->overwritten_events, 0, 0) == 0;"
+        },
+        {
+          "line": 1654,
+          "text": "}"
+        },
+        {
+          "line": 1655,
+          "text": ""
+        },
+        {
+          "line": 1656,
+          "text": "DWORD StartEmbeddedObserver(const wchar_t* mapping_name,"
+        },
+        {
+          "line": 1657,
+          "text": "                            isaac_cs_t0::mode::PointerPatch* additional_pointers,"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Source reading only; installed Hook/runtime thread/context not observed",
+    "No source/file/state hashes computed or verified"
+  ]
+}

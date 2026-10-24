@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <IsaacSyncVersion>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)VERSION').Trim())</IsaacSyncVersion>
+    <IsaacSyncOutputRoot>$(MSBuildThisFileDirectory)out\$(IsaacSyncVersion)\</IsaacSyncOutputRoot>
+  </PropertyGroup>
+</Project>

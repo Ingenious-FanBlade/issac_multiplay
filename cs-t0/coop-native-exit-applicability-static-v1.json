@@ -1,0 +1,474 @@
+{
+  "schemaVersion": 1,
+  "evidenceIdentity": "IsaacCsT0-CoopNativeExitApplicabilityStatic-v1",
+  "workPackage": "CS-T0-05-03",
+  "status": "STATIC_CONSTRUCTOR_GUARD_MISMATCH_CONFIRMED",
+  "createNewOnly": true,
+  "methods": [
+    "READ_ONLY_EXACT_STATIC_DISASSEMBLY",
+    "READ_ONLY_PE_FILE_HASH_AND_RVA_BYTES",
+    "HASH_BOUND_HISTORICAL_STATIC_REVIEW"
+  ],
+  "target": {
+    "canonicalSha256": "C4118519BA5C051826FE16507715DE602B51BE4F2CD71534EA13037A0F9BAE30",
+    "observedApprovedUnpackedSha256": "1FBA9A37BCEBF9276C9A80372E8C4DCAD59C8F652D2FD41727B396DCDCD6B89C",
+    "machine": "0x014C",
+    "preferredImageBase": "0x00400000",
+    "observedImageSize": "0x008FE000",
+    "textSha256": "197175428117EC352324F22FA44CF42D60511F0A4887BF6DC5FECFBF9A6EE758",
+    "equivalenceIdentity": "IsaacCsT0-UnpackedTargetEquivalence-v1",
+    "equivalenceSha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138",
+    "addressRule": "Instruction locators are RVAs. Map RVA through PE sections to disk raw offsets; runtime addresses would be moduleBase + RVA.",
+    "imagePointerRule": "IMAGE_POINTER32 expected bytes are preferred-image-base pointers in the approved disk PE, not live process addresses."
+  },
+  "provenance": [
+    {
+      "role": "TARGET_EQUIVALENCE",
+      "path": "out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json",
+      "identity": "IsaacCsT0-UnpackedTargetEquivalence-v1",
+      "sha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138"
+    },
+    {
+      "role": "REACHABILITY_REVIEW",
+      "path": "cs-t0/coop-native-exit-reachability-v1.json",
+      "identity": "IsaacCsT0-CoopNativeExitReachability-v1",
+      "sha256": "034B28853681C43539F669EC015EF3F9C2F8214F9CC25453E31BA86E751D7483"
+    },
+    {
+      "role": "HISTORICAL_STATIC_GRAPH",
+      "path": "cs-t0/coop-static-graph-v1.json",
+      "identity": "IsaacCsT0-CoopStaticGraph-v1",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    },
+    {
+      "role": "FROZEN_HOOK_CATALOG",
+      "path": "cs-t0/coop-catalog-v4.json",
+      "identity": "IsaacCsT0-CoopCatalog-v4",
+      "sha256": "00641728411D7BB60B54DA1A58C39E616204729901B8D76433BF51E0748AFE5A"
+    }
+  ],
+  "scope": {
+    "scenario": "native-exit-passive",
+    "endpoint": "ENDPOINT_B",
+    "localOrdinal": 1,
+    "construction": "ordinary true-coop branch of RVA 0x005B9CD0 with ePlayerType != -1, called from frozen slot46 RVA 0x005BB415",
+    "vector": "main Player vector at PlayerManager + 0x00; ordinary insertion ordinal is Player + 0x161C",
+    "objectType": 1,
+    "objectVariantAtExitGuard": 0,
+    "exitOwnerRva": "0x005BAC40",
+    "exitSlotOrdinal": 48,
+    "exitCallsiteRva": "0x005BB22A",
+    "exitFunctionRva": "0x005BA000",
+    "statement": "The ordinary constructor supplies Variant 0. A matched main-vector Player whose Variant is 0 cannot pass the nonzero-Variant guard to the frozen slot48 call. The possessor constructor supplies Variant 2 but publishes to the secondary vector and therefore is not a substitute main-vector candidate from this construction path.",
+    "exclusions": [
+      "other target builds or different PE equivalence classes",
+      "other constructors, morphs, future Variant-changing states or unreviewed callers",
+      "nonzero-Variant main-vector Players",
+      "secondary-vector possessors or twins",
+      "OriginalOnline routes",
+      "death, respawn, device disconnect or full-run menu teardown as substitutes for ordinary single-Player removal"
+    ],
+    "revalidationTriggers": [
+      "target or equivalence identity/hash changes",
+      "guard, callsite, vtable target, constructor arguments or vector publication changes",
+      "a new reachable caller or Variant-changing construction/state is established"
+    ]
+  },
+  "anchors": [
+    {
+      "id": "owner-local-dispatch",
+      "kind": "CALL_REL32",
+      "rva": "0x002FADA7",
+      "expectedBytes": "E894FE2B00",
+      "targetRva": "0x005BAC40",
+      "instructions": [
+        "call RVA 0x005BAC40"
+      ],
+      "meaning": "Frozen slot45 owner enters PlayerManager local co-op body."
+    },
+    {
+      "id": "online-roster-excludes-local-body",
+      "kind": "CODE_BYTES",
+      "rva": "0x005BAC6D",
+      "expectedBytes": "8B159C16C7008B82D8B304003B82DCB304000F85EF080000",
+      "instructions": [
+        "mov edx,[preferred VA 0x00C7169C]",
+        "mov eax,[edx+0x4B3D8]",
+        "cmp eax,[edx+0x4B3DC]",
+        "jne RVA 0x005BB574"
+      ],
+      "meaning": "A nonempty online NetInputDevice roster bypasses the local body."
+    },
+    {
+      "id": "main-vector-bounds",
+      "kind": "CODE_BYTES",
+      "rva": "0x005BAD58",
+      "expectedBytes": "8B77048B17",
+      "instructions": [
+        "mov esi,[edi+4]",
+        "mov edx,[edi]"
+      ],
+      "meaning": "The candidate search uses the main vector at PlayerManager + 0, not its secondary vector."
+    },
+    {
+      "id": "main-candidate-assignment-match",
+      "kind": "CODE_BYTES",
+      "rva": "0x005BAD97",
+      "expectedBytes": "39B818160000",
+      "instructions": [
+        "cmp [eax+0x1618],edi"
+      ],
+      "meaning": "The current device assignment key is compared to a main-vector Player's native assignment."
+    },
+    {
+      "id": "main-candidate-capture",
+      "kind": "CODE_BYTES",
+      "rva": "0x005BADCF",
+      "expectedBytes": "8B008945E0",
+      "instructions": [
+        "mov eax,[eax]",
+        "mov [ebp-0x20],eax"
+      ],
+      "meaning": "The matched main-vector Player is saved as the candidate later loaded by the exit branch."
+    },
+    {
+      "id": "exit-nonnull-candidate",
+      "kind": "CODE_BYTES",
+      "rva": "0x005BB10B",
+      "expectedBytes": "8B5DE085DB0F8419010000",
+      "instructions": [
+        "mov ebx,[ebp-0x20]",
+        "test ebx,ebx",
+        "je RVA 0x005BB22F"
+      ],
+      "meaning": "A null saved main-vector candidate bypasses slot48."
+    },
+    {
+      "id": "exit-parent-field-zero",
+      "kind": "CODE_BYTES",
+      "rva": "0x005BB116",
+      "expectedBytes": "83BBBC030000000F850C010000",
+      "instructions": [
+        "cmp dword ptr [ebx+0x3BC],0",
+        "jne RVA 0x005BB22F"
+      ],
+      "meaning": "The matched candidate must have zero at +0x3BC."
+    },
+    {
+      "id": "exit-triggered-query-callback",
+      "kind": "CODE_BYTES",
+      "rva": "0x005BB138",
+      "expectedBytes": "68E009A200",
+      "instructions": [
+        "push preferred VA 0x00A209E0"
+      ],
+      "meaning": "The action query uses the Triggered callback at RVA 0x006209E0, not the separate held callback."
+    },
+    {
+      "id": "exit-action19",
+      "kind": "CODE_BYTES",
+      "rva": "0x005BB13E",
+      "expectedBytes": "C745E013000000FFD084C00F84E0000000",
+      "instructions": [
+        "mov dword ptr [ebp-0x20],19",
+        "call eax",
+        "test al,al",
+        "je RVA 0x005BB22F"
+      ],
+      "meaning": "JoinMultiplayer action19 must report triggered; false bypasses slot48."
+    },
+    {
+      "id": "triggered-callback-vslot",
+      "kind": "CODE_BYTES",
+      "rva": "0x00620A0F",
+      "expectedBytes": "8B50348B4510FF30FFD2",
+      "instructions": [
+        "mov edx,[eax+0x34]",
+        "mov eax,[ebp+0x10]",
+        "push dword ptr [eax]",
+        "call edx"
+      ],
+      "meaning": "The frozen Triggered callback dispatches through the device triggered vtable slot +0x34."
+    },
+    {
+      "id": "exit-nonzero-variant-guard",
+      "kind": "CODE_BYTES",
+      "rva": "0x005BB14F",
+      "expectedBytes": "837B2C000F84D6000000",
+      "instructions": [
+        "cmp dword ptr [ebx+0x2C],0",
+        "je RVA 0x005BB22F"
+      ],
+      "meaning": "Variant 0 branches to the instruction after slot48; passing to removal requires Variant != 0."
+    },
+    {
+      "id": "exit-player0-field-guards",
+      "kind": "CODE_BYTES",
+      "rva": "0x005BB1C6",
+      "expectedBytes": "80B89813000000756080B89A130000007557",
+      "instructions": [
+        "cmp byte ptr [eax+0x1398],0",
+        "jne RVA 0x005BB22F",
+        "cmp byte ptr [eax+0x139A],0",
+        "jne RVA 0x005BB22F"
+      ],
+      "meaning": "Both frozen Player0 fields must be zero; their wider gameplay semantics are not inferred."
+    },
+    {
+      "id": "exit-callsite48",
+      "kind": "CALL_REL32",
+      "rva": "0x005BB22A",
+      "expectedBytes": "E8D1EDFFFF",
+      "targetRva": "0x005BA000",
+      "instructions": [
+        "call RVA 0x005BA000"
+      ],
+      "meaning": "The frozen native-remove callsite is skipped by the Variant-zero branch."
+    },
+    {
+      "id": "exit-hud-callsite52",
+      "kind": "CALL_REL32",
+      "rva": "0x005BA752",
+      "expectedBytes": "E8C9DEFEFF",
+      "targetRva": "0x005A8620",
+      "instructions": [
+        "call RVA 0x005A8620"
+      ],
+      "meaning": "Nested HUD rebuilding belongs to the remove function; it does not independently prove ordinary removal reachability."
+    },
+    {
+      "id": "ordinary-spawn-callsite46",
+      "kind": "CALL_REL32",
+      "rva": "0x005BB415",
+      "expectedBytes": "E8B6E8FFFF",
+      "targetRva": "0x005B9CD0",
+      "instructions": [
+        "call RVA 0x005B9CD0"
+      ],
+      "meaning": "The frozen ordinary join invokes the discriminator constructor."
+    },
+    {
+      "id": "possessor-spawn-callsite47",
+      "kind": "CALL_REL32",
+      "rva": "0x005BAFFA",
+      "expectedBytes": "E8D1ECFFFF",
+      "targetRva": "0x005B9CD0",
+      "instructions": [
+        "call RVA 0x005B9CD0"
+      ],
+      "meaning": "The possessor path calls the same constructor with its distinct -1 discriminator."
+    },
+    {
+      "id": "constructor-discriminator",
+      "kind": "CODE_BYTES",
+      "rva": "0x005B9D18",
+      "expectedBytes": "83FBFF0F85D0000000",
+      "instructions": [
+        "cmp ebx,-1",
+        "jne RVA 0x005B9DF1"
+      ],
+      "meaning": "ePlayerType != -1 selects the ordinary branch; -1 takes the possessor branch."
+    },
+    {
+      "id": "ordinary-main-vector-ordinal",
+      "kind": "CODE_BYTES",
+      "rva": "0x005B9E5B",
+      "expectedBytes": "8B47042B07C1F80289831C160000",
+      "instructions": [
+        "mov eax,[edi+4]",
+        "sub eax,[edi]",
+        "sar eax,2",
+        "mov [ebx+0x161C],eax"
+      ],
+      "meaning": "Ordinary ordinal is derived from the main Player vector size."
+    },
+    {
+      "id": "ordinary-main-vector-insert",
+      "kind": "CODE_BYTES",
+      "rva": "0x005B9EAB",
+      "expectedBytes": "891883470404",
+      "instructions": [
+        "mov [eax],ebx",
+        "add dword ptr [edi+4],4"
+      ],
+      "meaning": "The ordinary in-capacity insertion writes the new Player to the main vector and advances its end."
+    },
+    {
+      "id": "ordinary-init-vtable-load",
+      "kind": "CODE_BYTES",
+      "rva": "0x005B9EC2",
+      "expectedBytes": "8B038B97B80000008B7004",
+      "instructions": [
+        "mov eax,[ebx]",
+        "mov edx,[edi+0xB8]",
+        "mov esi,[eax+4]"
+      ],
+      "meaning": "The constructor loads the allocated Player's vtable+4 initializer."
+    },
+    {
+      "id": "ordinary-init-arguments",
+      "kind": "CODE_BYTES",
+      "rva": "0x005B9F11",
+      "expectedBytes": "50FF75088987B80000006A006A01FFD6",
+      "instructions": [
+        "push eax (Seed)",
+        "push dword ptr [ebp+8] (ePlayerType)",
+        "mov [edi+0xB8],eax",
+        "push 0 (Variant)",
+        "push 1 (Type)",
+        "call esi"
+      ],
+      "meaning": "Ordinary initialization receives Type=1, Variant=0, Subtype=ePlayerType, Seed."
+    },
+    {
+      "id": "possessor-secondary-vector-ordinal",
+      "kind": "CODE_BYTES",
+      "rva": "0x005B9D50",
+      "expectedBytes": "8D8FD00000008B41042B01C1F80289831C160000",
+      "instructions": [
+        "lea ecx,[edi+0xD0]",
+        "mov eax,[ecx+4]",
+        "sub eax,[ecx]",
+        "sar eax,2",
+        "mov [ebx+0x161C],eax"
+      ],
+      "meaning": "Possessor ordinal is derived from the secondary vector at PlayerManager+0xD0, not the main vector."
+    },
+    {
+      "id": "possessor-secondary-vector-insert",
+      "kind": "CODE_BYTES",
+      "rva": "0x005B9D75",
+      "expectedBytes": "891883410404",
+      "instructions": [
+        "mov [eax],ebx",
+        "add dword ptr [ecx+4],4"
+      ],
+      "meaning": "The possessor in-capacity insertion publishes only to that secondary vector."
+    },
+    {
+      "id": "possessor-init-arguments",
+      "kind": "CODE_BYTES",
+      "rva": "0x005B9DDC",
+      "expectedBytes": "526A006A026A018997B8000000FF5508",
+      "instructions": [
+        "push edx (Seed)",
+        "push 0 (Subtype)",
+        "push 2 (Variant)",
+        "push 1 (Type)",
+        "mov [edi+0xB8],edx",
+        "call dword ptr [ebp+8]"
+      ],
+      "meaning": "Possessor initialization receives Type=1, Variant=2, Subtype=0, Seed."
+    },
+    {
+      "id": "player-init-vtable-target",
+      "kind": "IMAGE_POINTER32",
+      "rva": "0x0076BDD4",
+      "expectedBytes": "70547500",
+      "targetRva": "0x00355470",
+      "instructions": [
+        "Player vtable+4 contains preferred VA 0x00755470"
+      ],
+      "meaning": "The approved Player vtable binds both constructor calls to PlayerInit RVA 0x00355470."
+    },
+    {
+      "id": "player-init-forwards-variant",
+      "kind": "CODE_BYTES",
+      "rva": "0x00355B05",
+      "expectedBytes": "FF750C",
+      "instructions": [
+        "push dword ptr [ebp+0x0C]"
+      ],
+      "meaning": "PlayerInit forwards its unchanged Variant argument as the second EntityInit argument."
+    },
+    {
+      "id": "player-init-forwards-type",
+      "kind": "CODE_BYTES",
+      "rva": "0x00355B0E",
+      "expectedBytes": "FF7508",
+      "instructions": [
+        "push dword ptr [ebp+8]"
+      ],
+      "meaning": "PlayerInit forwards Type as the first EntityInit argument."
+    },
+    {
+      "id": "player-init-to-entity-init",
+      "kind": "CALL_REL32",
+      "rva": "0x00355B11",
+      "expectedBytes": "E88A38F5FF",
+      "targetRva": "0x002A93A0",
+      "instructions": [
+        "call RVA 0x002A93A0"
+      ],
+      "meaning": "The exact initializer chain reaches the native EntityInit write."
+    },
+    {
+      "id": "entity-init-writes-variant",
+      "kind": "CODE_BYTES",
+      "rva": "0x002A93B8",
+      "expectedBytes": "8B450C89462C",
+      "instructions": [
+        "mov eax,[ebp+0x0C]",
+        "mov [esi+0x2C],eax"
+      ],
+      "meaning": "The second initializer argument is stored at Entity+0x2C, the field read by the exit guard."
+    }
+  ],
+  "discriminator": {
+    "variantOffset": "0x0000002C",
+    "guardAnchor": "exit-nonzero-variant-guard",
+    "zeroVariantBranchTargetRva": "0x005BB22F",
+    "skippedCallsiteAnchor": "exit-callsite48",
+    "ordinaryConstructorAnchors": [
+      "constructor-discriminator",
+      "ordinary-main-vector-ordinal",
+      "ordinary-main-vector-insert",
+      "ordinary-init-vtable-load",
+      "ordinary-init-arguments",
+      "player-init-vtable-target",
+      "player-init-forwards-variant",
+      "player-init-forwards-type",
+      "player-init-to-entity-init",
+      "entity-init-writes-variant"
+    ],
+    "ordinaryVariant": 0,
+    "ordinaryVector": "MAIN",
+    "possessorConstructorAnchors": [
+      "constructor-discriminator",
+      "possessor-secondary-vector-ordinal",
+      "possessor-secondary-vector-insert",
+      "possessor-init-arguments",
+      "player-init-vtable-target",
+      "entity-init-writes-variant"
+    ],
+    "possessorVariant": 2,
+    "possessorVector": "SECONDARY",
+    "statement": "Constructor output Variant 0 contradicts the necessary Variant != 0 condition at slot48. Variant 2 alone does not replace the separate main-vector-candidate condition."
+  },
+  "historicalGraphInterpretation": {
+    "graphRouteId": "ordinary-local-exit-retirement",
+    "historicalPositiveEdge": "dispatch-to-exit",
+    "staticConfirmedMeans": "The functions, calls and post-remove relationships exist in this exact binary.",
+    "staticConfirmedDoesNotMean": "The ordinary Variant0 constructor output can reach every statically present exit branch.",
+    "graphRetainedUnchanged": true,
+    "statement": "This record narrows applicability of the historical positive exit label; it neither deletes the graph edge nor makes the native removal function safe to call on ordinary B."
+  },
+  "notEstablished": [
+    "that the whole game has no other exit path",
+    "that Variant can never change in any future gameplay state",
+    "that any unreviewed caller or alternate constructor is unreachable",
+    "that slot48's removal target is safe to invoke directly for ordinary Variant0 B",
+    "that endpoint logical exit or individual world-entity destruction has been implemented or verified",
+    "that a possessor, death, device detach or full-run retirement is ordinary single-Player exit evidence"
+  ],
+  "inspectionBoundary": {
+    "processRead": false,
+    "processInjected": false,
+    "gameControlled": false,
+    "idbModified": false,
+    "historicalArtifactsModified": false,
+    "newHooksCreated": false,
+    "finalGateDecisionCreated": false,
+    "liveAuthorizationCreated": false
+  }
+}

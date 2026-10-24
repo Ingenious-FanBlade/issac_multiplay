@@ -1,0 +1,183 @@
+{
+  "task": "tx-01-67-state-timer",
+  "collection_mode": "read-only current-IDB extraction",
+  "binary": {
+    "idb_path": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe.i64",
+    "input_path": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe",
+    "imagebase": "0x400000",
+    "processor": "metapc",
+    "build_banner": "Binding of Isaac: Repentance+ v1.9.7.17.J460"
+  },
+  "functions": [
+    {
+      "name": "lua_pushinteger_",
+      "start_va": "0x85BFD0",
+      "start_rva": "0x45BFD0",
+      "end_va_exclusive": "0x85BFE9",
+      "size": "0x19",
+      "pseudocode": "int __fastcall sub_85BFD0(int a1, int a2)\n{\n  return lua_pushinteger(a1, a2, a2 >> 31);\n}\n",
+      "raw_instructions": [
+        {
+          "va": "0x85BFD0",
+          "rva": "0x45BFD0",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x85BFD1",
+          "rva": "0x45BFD1",
+          "bytes": "8B EC",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x85BFD3",
+          "rva": "0x45BFD3",
+          "bytes": "83 E4 F8",
+          "text": "and     esp, 0FFFFFFF8h"
+        },
+        {
+          "va": "0x85BFD6",
+          "rva": "0x45BFD6",
+          "bytes": "8B C2",
+          "text": "mov     eax, edx"
+        },
+        {
+          "va": "0x85BFD8",
+          "rva": "0x45BFD8",
+          "bytes": "99",
+          "text": "cdq"
+        },
+        {
+          "va": "0x85BFD9",
+          "rva": "0x45BFD9",
+          "bytes": "52",
+          "text": "push    edx"
+        },
+        {
+          "va": "0x85BFDA",
+          "rva": "0x45BFDA",
+          "bytes": "50",
+          "text": "push    eax"
+        },
+        {
+          "va": "0x85BFDB",
+          "rva": "0x45BFDB",
+          "bytes": "51",
+          "text": "push    ecx"
+        },
+        {
+          "va": "0x85BFDC",
+          "rva": "0x45BFDC",
+          "bytes": "FF 15 F8 83 B1 00",
+          "text": "call    ds:lua_pushinteger"
+        },
+        {
+          "va": "0x85BFE2",
+          "rva": "0x45BFE2",
+          "bytes": "83 C4 0C",
+          "text": "add     esp, 0Ch"
+        },
+        {
+          "va": "0x85BFE5",
+          "rva": "0x45BFE5",
+          "bytes": "8B E5",
+          "text": "mov     esp, ebp"
+        },
+        {
+          "va": "0x85BFE7",
+          "rva": "0x45BFE7",
+          "bytes": "5D",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x85BFE8",
+          "rva": "0x45BFE8",
+          "bytes": "C3",
+          "text": "retn"
+        }
+      ]
+    },
+    {
+      "name": "lua_pushinteger__0",
+      "start_va": "0x85BFF0",
+      "start_rva": "0x45BFF0",
+      "end_va_exclusive": "0x85C007",
+      "size": "0x17",
+      "pseudocode": "int __fastcall sub_85BFF0(int a1, int a2)\n{\n  return lua_pushinteger(a1, a2, 0);\n}\n",
+      "raw_instructions": [
+        {
+          "va": "0x85BFF0",
+          "rva": "0x45BFF0",
+          "bytes": "55",
+          "text": "push    ebp"
+        },
+        {
+          "va": "0x85BFF1",
+          "rva": "0x45BFF1",
+          "bytes": "8B EC",
+          "text": "mov     ebp, esp"
+        },
+        {
+          "va": "0x85BFF3",
+          "rva": "0x45BFF3",
+          "bytes": "83 E4 F8",
+          "text": "and     esp, 0FFFFFFF8h"
+        },
+        {
+          "va": "0x85BFF6",
+          "rva": "0x45BFF6",
+          "bytes": "6A 00",
+          "text": "push    0"
+        },
+        {
+          "va": "0x85BFF8",
+          "rva": "0x45BFF8",
+          "bytes": "52",
+          "text": "push    edx"
+        },
+        {
+          "va": "0x85BFF9",
+          "rva": "0x45BFF9",
+          "bytes": "51",
+          "text": "push    ecx"
+        },
+        {
+          "va": "0x85BFFA",
+          "rva": "0x45BFFA",
+          "bytes": "FF 15 F8 83 B1 00",
+          "text": "call    ds:lua_pushinteger"
+        },
+        {
+          "va": "0x85C000",
+          "rva": "0x45C000",
+          "bytes": "83 C4 0C",
+          "text": "add     esp, 0Ch"
+        },
+        {
+          "va": "0x85C003",
+          "rva": "0x45C003",
+          "bytes": "8B E5",
+          "text": "mov     esp, ebp"
+        },
+        {
+          "va": "0x85C005",
+          "rva": "0x45C005",
+          "bytes": "5D",
+          "text": "pop     ebp"
+        },
+        {
+          "va": "0x85C006",
+          "rva": "0x45C006",
+          "bytes": "C3",
+          "text": "retn"
+        }
+      ]
+    }
+  ],
+  "purpose": "Disambiguate the Lua integer bridge signed-extension behavior used by registered raw32 field accessors.",
+  "scope_notes": [
+    "The two helper bodies are exported in full pseudocode and raw code instructions.",
+    "This file supplements ida-evidence.json; it does not replace or overwrite that initial snapshot.",
+    "No IDB names, comments, bytes, types, structures, or other database state are modified."
+  ]
+}

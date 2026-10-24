@@ -1,0 +1,160 @@
+{
+  "0x872B10": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"addr\":\"0x872B10\",\"code\":\"int *__thiscall sub_872B10(int **this, int *a2, int a3, int a4, int a5, int a6)\\n{\\n  int v7; // ebx\\n  _DWORD *v8; // eax\\n  _DWORD *v9; // esi\\n  _DWORD *v10; // eax\\n  char v12; // [esp-28h] [ebp-40h] BYREF\\n  int v13; // [esp-20h] [ebp-38h]\\n  int n4; // [esp-1Ch] [ebp-34h]\\n  int v15; // [esp-18h] [ebp-30h]\\n  int v16; // [esp-14h] [ebp-2Ch]\\n  int v17; // [esp-10h] [ebp-28h]\\n  int v18; // [esp-Ch] [ebp-24h]\\n  int v19; // [esp+10h] [ebp-8h]\\n  int v20; // [esp+14h] [ebp-4h]\\n\\n  v7 = **this; /*0x872b20*/\\n  lua_rawgeti(v7, -1001000, (*this)[1], (*this)[1] >> 31); /*0x872b2e*/\\n  lua_pushinteger(v7, this[1], (int)this[1] >> 31); /*0x872b41*/\\n  lua_pushinteger(v7, this[2], (int)this[2] >> 31); /*0x872b4d*/\\n  if ( a4 ) /*0x872b62*/\\n  {\\n    v8 = (_DWORD *)lua_newuserdata(v7, 8); /*0x872b67*/\\n    v18 = (int)&unk_C829D7; /*0x872b6c*/\\n    v17 = -1001000; /*0x872b71*/\\n    v16 = v7; /*0x872b76*/\\n    *v8 = &luabridge::UserdataPtr::`vftable'; /*0x872b77*/\\n    v8[1] = a4; /*0x872b7d*/\\n    lua_rawgetp(v16, v17, v18); /*0x872b80*/\\n    lua_setmetatable(v7, -2); /*0x872b88*/\\n  }\\n  else\\n  {\\n    lua_pushnil(v7); /*0x872b94*/\\n  }\\n  v19 = a5; /*0x872ba2*/\\n  v20 = a6; /*0x872bb0*/\\n  v9 = (_DWORD *)lua_newuserdata(v7, 16); /*0x872bb8*/\\n  v18 = (int)&unk_C82980; /*0x872bba*/\\n  v17 = -1001000; /*0x872bbf*/\\n  v16 = v7; /*0x872bc4*/\\n  *v9 = &luabridge::UserdataValue<KAGE::Math::Vector2>::`vftable'; /*0x872bc8*/\\n  v9[1] = v9 + 2; /*0x872bce*/\\n  lua_rawgetp(v16, v17, v18); /*0x872bd1*/\\n  lua_setmetatable(v7, -2); /*0x872bd9*/\\n  v10 = (_DWORD *)v9[1]; /*0x872bdf*/\\n  v18 = 0; /*0x872be8*/\\n  v17 = 0; /*0x872bea*/\\n  v16 = 0; /*0x872bec*/\\n  v15 = 1; /*0x872bee*/\\n  *v10 = v19; /*0x872bf0*/\\n  n4 = 4; /*0x872bfa*/\\n  v13 = v7; /*0x872bfc*/\\n  v10[1] = v20; /*0x872bfd*/\\n  if ( lua_pcallk(v13, n4, v15, v16, v17, v18) ) /*0x872c02*/\\n  {\\n    sub_85C080(v7, &v12); /*0x872c4a*/\\n    sub_8727D0(v12); /*0x872c4f*/\\n  }\\n  lua_pushvalue(v7, -1); /*0x872c12*/\\n  v18 = -1001000; /*0x872c1b*/\\n  v17 = v7; /*0x872c20*/\\n  *a2 = v7; /*0x872c21*/\\n  v16 = -2; /*0x872c29*/\\n  v15 = v7; /*0x872c2b*/\\n  a2[1] = luaL_ref(v17, v18); /*0x872c2c*/\\n  lua_settop(v15, v16); /*0x872c2f*/\\n  return a2; /*0x872c3a*/\\n}\",\"refs\":[{\"addr\":\"0xb18318\",\"name\":\"lua_rawgeti\"},{\"addr\":\"0xb183f8\",\"name\":\"lua_pushinteger\"},{\"addr\":\"0xb1839c\",\"name\":\"lua_newuserdata\"},{\"addr\":\"0xc829d7\",\"name\":\"unk_C829D7\"},{\"addr\":\"0xb753c8\",\"name\":\"??_7UserdataPtr@luabridge@@6B@\"},{\"addr\":\"0xb183bc\",\"name\":\"lua_rawgetp\"},{\"addr\":\"0xb18398\",\"name\":\"lua_setmetatable\"},{\"addr\":\"0xb183e0\",\"name\":\"lua_pushnil\"},{\"addr\":\"0xc82980\",\"name\":\"unk_C82980\"},{\"addr\":\"0xb73574\",\"name\":\"??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@\"},{\"addr\":\"0x85c080\",\"name\":\"sub_85C080\"},{\"addr\":\"0x8727d0\",\"name\":\"sub_8727D0\"},{\"addr\":\"0xb183d8\",\"name\":\"lua_pcallk\"},{\"addr\":\"0xb183c8\",\"name\":\"lua_pushvalue\"},{\"addr\":\"0xb18314\",\"name\":\"luaL_ref\"},{\"addr\":\"0xb18328\",\"name\":\"lua_settop\"}]}"
+      }
+    ],
+    "structuredContent": {
+      "addr": "0x872B10",
+      "code": "int *__thiscall sub_872B10(int **this, int *a2, int a3, int a4, int a5, int a6)\n{\n  int v7; // ebx\n  _DWORD *v8; // eax\n  _DWORD *v9; // esi\n  _DWORD *v10; // eax\n  char v12; // [esp-28h] [ebp-40h] BYREF\n  int v13; // [esp-20h] [ebp-38h]\n  int n4; // [esp-1Ch] [ebp-34h]\n  int v15; // [esp-18h] [ebp-30h]\n  int v16; // [esp-14h] [ebp-2Ch]\n  int v17; // [esp-10h] [ebp-28h]\n  int v18; // [esp-Ch] [ebp-24h]\n  int v19; // [esp+10h] [ebp-8h]\n  int v20; // [esp+14h] [ebp-4h]\n\n  v7 = **this; /*0x872b20*/\n  lua_rawgeti(v7, -1001000, (*this)[1], (*this)[1] >> 31); /*0x872b2e*/\n  lua_pushinteger(v7, this[1], (int)this[1] >> 31); /*0x872b41*/\n  lua_pushinteger(v7, this[2], (int)this[2] >> 31); /*0x872b4d*/\n  if ( a4 ) /*0x872b62*/\n  {\n    v8 = (_DWORD *)lua_newuserdata(v7, 8); /*0x872b67*/\n    v18 = (int)&unk_C829D7; /*0x872b6c*/\n    v17 = -1001000; /*0x872b71*/\n    v16 = v7; /*0x872b76*/\n    *v8 = &luabridge::UserdataPtr::`vftable'; /*0x872b77*/\n    v8[1] = a4; /*0x872b7d*/\n    lua_rawgetp(v16, v17, v18); /*0x872b80*/\n    lua_setmetatable(v7, -2); /*0x872b88*/\n  }\n  else\n  {\n    lua_pushnil(v7); /*0x872b94*/\n  }\n  v19 = a5; /*0x872ba2*/\n  v20 = a6; /*0x872bb0*/\n  v9 = (_DWORD *)lua_newuserdata(v7, 16); /*0x872bb8*/\n  v18 = (int)&unk_C82980; /*0x872bba*/\n  v17 = -1001000; /*0x872bbf*/\n  v16 = v7; /*0x872bc4*/\n  *v9 = &luabridge::UserdataValue<KAGE::Math::Vector2>::`vftable'; /*0x872bc8*/\n  v9[1] = v9 + 2; /*0x872bce*/\n  lua_rawgetp(v16, v17, v18); /*0x872bd1*/\n  lua_setmetatable(v7, -2); /*0x872bd9*/\n  v10 = (_DWORD *)v9[1]; /*0x872bdf*/\n  v18 = 0; /*0x872be8*/\n  v17 = 0; /*0x872bea*/\n  v16 = 0; /*0x872bec*/\n  v15 = 1; /*0x872bee*/\n  *v10 = v19; /*0x872bf0*/\n  n4 = 4; /*0x872bfa*/\n  v13 = v7; /*0x872bfc*/\n  v10[1] = v20; /*0x872bfd*/\n  if ( lua_pcallk(v13, n4, v15, v16, v17, v18) ) /*0x872c02*/\n  {\n    sub_85C080(v7, &v12); /*0x872c4a*/\n    sub_8727D0(v12); /*0x872c4f*/\n  }\n  lua_pushvalue(v7, -1); /*0x872c12*/\n  v18 = -1001000; /*0x872c1b*/\n  v17 = v7; /*0x872c20*/\n  *a2 = v7; /*0x872c21*/\n  v16 = -2; /*0x872c29*/\n  v15 = v7; /*0x872c2b*/\n  a2[1] = luaL_ref(v17, v18); /*0x872c2c*/\n  lua_settop(v15, v16); /*0x872c2f*/\n  return a2; /*0x872c3a*/\n}",
+      "refs": [
+        {
+          "addr": "0xb18318",
+          "name": "lua_rawgeti"
+        },
+        {
+          "addr": "0xb183f8",
+          "name": "lua_pushinteger"
+        },
+        {
+          "addr": "0xb1839c",
+          "name": "lua_newuserdata"
+        },
+        {
+          "addr": "0xc829d7",
+          "name": "unk_C829D7"
+        },
+        {
+          "addr": "0xb753c8",
+          "name": "??_7UserdataPtr@luabridge@@6B@"
+        },
+        {
+          "addr": "0xb183bc",
+          "name": "lua_rawgetp"
+        },
+        {
+          "addr": "0xb18398",
+          "name": "lua_setmetatable"
+        },
+        {
+          "addr": "0xb183e0",
+          "name": "lua_pushnil"
+        },
+        {
+          "addr": "0xc82980",
+          "name": "unk_C82980"
+        },
+        {
+          "addr": "0xb73574",
+          "name": "??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@"
+        },
+        {
+          "addr": "0x85c080",
+          "name": "sub_85C080"
+        },
+        {
+          "addr": "0x8727d0",
+          "name": "sub_8727D0"
+        },
+        {
+          "addr": "0xb183d8",
+          "name": "lua_pcallk"
+        },
+        {
+          "addr": "0xb183c8",
+          "name": "lua_pushvalue"
+        },
+        {
+          "addr": "0xb18314",
+          "name": "luaL_ref"
+        },
+        {
+          "addr": "0xb18328",
+          "name": "lua_settop"
+        }
+      ]
+    },
+    "isError": false
+  },
+  "0x873740": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"addr\":\"0x873740\",\"code\":\"int *__thiscall sub_873740(int **this, int *a2, int a3, int a4, int a5, int a6)\\n{\\n  int v7; // ebx\\n  _DWORD *v8; // eax\\n  _DWORD *v9; // esi\\n  _DWORD *v10; // eax\\n  char v12; // [esp-28h] [ebp-40h] BYREF\\n  int v13; // [esp-20h] [ebp-38h]\\n  int n4; // [esp-1Ch] [ebp-34h]\\n  int v15; // [esp-18h] [ebp-30h]\\n  int v16; // [esp-14h] [ebp-2Ch]\\n  int v17; // [esp-10h] [ebp-28h]\\n  int v18; // [esp-Ch] [ebp-24h]\\n  int v19; // [esp+10h] [ebp-8h]\\n  int v20; // [esp+14h] [ebp-4h]\\n\\n  v7 = **this; /*0x873750*/\\n  lua_rawgeti(v7, -1001000, (*this)[1], (*this)[1] >> 31); /*0x87375e*/\\n  lua_pushinteger(v7, this[1], (int)this[1] >> 31); /*0x873771*/\\n  lua_pushinteger(v7, this[2], (int)this[2] >> 31); /*0x87377d*/\\n  if ( a4 ) /*0x873792*/\\n  {\\n    v8 = (_DWORD *)lua_newuserdata(v7, 8); /*0x873797*/\\n    v18 = (int)&unk_C829D4; /*0x87379c*/\\n    v17 = -1001000; /*0x8737a1*/\\n    v16 = v7; /*0x8737a6*/\\n    *v8 = &luabridge::UserdataPtr::`vftable'; /*0x8737a7*/\\n    v8[1] = a4; /*0x8737ad*/\\n    lua_rawgetp(v16, v17, v18); /*0x8737b0*/\\n    lua_setmetatable(v7, -2); /*0x8737b8*/\\n  }\\n  else\\n  {\\n    lua_pushnil(v7); /*0x8737c4*/\\n  }\\n  v19 = a5; /*0x8737d2*/\\n  v20 = a6; /*0x8737e0*/\\n  v9 = (_DWORD *)lua_newuserdata(v7, 16); /*0x8737e8*/\\n  v18 = (int)&unk_C82980; /*0x8737ea*/\\n  v17 = -1001000; /*0x8737ef*/\\n  v16 = v7; /*0x8737f4*/\\n  *v9 = &luabridge::UserdataValue<KAGE::Math::Vector2>::`vftable'; /*0x8737f8*/\\n  v9[1] = v9 + 2; /*0x8737fe*/\\n  lua_rawgetp(v16, v17, v18); /*0x873801*/\\n  lua_setmetatable(v7, -2); /*0x873809*/\\n  v10 = (_DWORD *)v9[1]; /*0x87380f*/\\n  v18 = 0; /*0x873818*/\\n  v17 = 0; /*0x87381a*/\\n  v16 = 0; /*0x87381c*/\\n  v15 = 1; /*0x87381e*/\\n  *v10 = v19; /*0x873820*/\\n  n4 = 4; /*0x87382a*/\\n  v13 = v7; /*0x87382c*/\\n  v10[1] = v20; /*0x87382d*/\\n  if ( lua_pcallk(v13, n4, v15, v16, v17, v18) ) /*0x873832*/\\n  {\\n    sub_85C080(v7, &v12); /*0x87387a*/\\n    sub_8727D0(v12); /*0x87387f*/\\n  }\\n  lua_pushvalue(v7, -1); /*0x873842*/\\n  v18 = -1001000; /*0x87384b*/\\n  v17 = v7; /*0x873850*/\\n  *a2 = v7; /*0x873851*/\\n  v16 = -2; /*0x873859*/\\n  v15 = v7; /*0x87385b*/\\n  a2[1] = luaL_ref(v17, v18); /*0x87385c*/\\n  lua_settop(v15, v16); /*0x87385f*/\\n  return a2; /*0x87386a*/\\n}\",\"refs\":[{\"addr\":\"0xb18318\",\"name\":\"lua_rawgeti\"},{\"addr\":\"0xb183f8\",\"name\":\"lua_pushinteger\"},{\"addr\":\"0xb1839c\",\"name\":\"lua_newuserdata\"},{\"addr\":\"0xc829d4\",\"name\":\"unk_C829D4\"},{\"addr\":\"0xb753c8\",\"name\":\"??_7UserdataPtr@luabridge@@6B@\"},{\"addr\":\"0xb183bc\",\"name\":\"lua_rawgetp\"},{\"addr\":\"0xb18398\",\"name\":\"lua_setmetatable\"},{\"addr\":\"0xb183e0\",\"name\":\"lua_pushnil\"},{\"addr\":\"0xc82980\",\"name\":\"unk_C82980\"},{\"addr\":\"0xb73574\",\"name\":\"??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@\"},{\"addr\":\"0x85c080\",\"name\":\"sub_85C080\"},{\"addr\":\"0x8727d0\",\"name\":\"sub_8727D0\"},{\"addr\":\"0xb183d8\",\"name\":\"lua_pcallk\"},{\"addr\":\"0xb183c8\",\"name\":\"lua_pushvalue\"},{\"addr\":\"0xb18314\",\"name\":\"luaL_ref\"},{\"addr\":\"0xb18328\",\"name\":\"lua_settop\"}]}"
+      }
+    ],
+    "structuredContent": {
+      "addr": "0x873740",
+      "code": "int *__thiscall sub_873740(int **this, int *a2, int a3, int a4, int a5, int a6)\n{\n  int v7; // ebx\n  _DWORD *v8; // eax\n  _DWORD *v9; // esi\n  _DWORD *v10; // eax\n  char v12; // [esp-28h] [ebp-40h] BYREF\n  int v13; // [esp-20h] [ebp-38h]\n  int n4; // [esp-1Ch] [ebp-34h]\n  int v15; // [esp-18h] [ebp-30h]\n  int v16; // [esp-14h] [ebp-2Ch]\n  int v17; // [esp-10h] [ebp-28h]\n  int v18; // [esp-Ch] [ebp-24h]\n  int v19; // [esp+10h] [ebp-8h]\n  int v20; // [esp+14h] [ebp-4h]\n\n  v7 = **this; /*0x873750*/\n  lua_rawgeti(v7, -1001000, (*this)[1], (*this)[1] >> 31); /*0x87375e*/\n  lua_pushinteger(v7, this[1], (int)this[1] >> 31); /*0x873771*/\n  lua_pushinteger(v7, this[2], (int)this[2] >> 31); /*0x87377d*/\n  if ( a4 ) /*0x873792*/\n  {\n    v8 = (_DWORD *)lua_newuserdata(v7, 8); /*0x873797*/\n    v18 = (int)&unk_C829D4; /*0x87379c*/\n    v17 = -1001000; /*0x8737a1*/\n    v16 = v7; /*0x8737a6*/\n    *v8 = &luabridge::UserdataPtr::`vftable'; /*0x8737a7*/\n    v8[1] = a4; /*0x8737ad*/\n    lua_rawgetp(v16, v17, v18); /*0x8737b0*/\n    lua_setmetatable(v7, -2); /*0x8737b8*/\n  }\n  else\n  {\n    lua_pushnil(v7); /*0x8737c4*/\n  }\n  v19 = a5; /*0x8737d2*/\n  v20 = a6; /*0x8737e0*/\n  v9 = (_DWORD *)lua_newuserdata(v7, 16); /*0x8737e8*/\n  v18 = (int)&unk_C82980; /*0x8737ea*/\n  v17 = -1001000; /*0x8737ef*/\n  v16 = v7; /*0x8737f4*/\n  *v9 = &luabridge::UserdataValue<KAGE::Math::Vector2>::`vftable'; /*0x8737f8*/\n  v9[1] = v9 + 2; /*0x8737fe*/\n  lua_rawgetp(v16, v17, v18); /*0x873801*/\n  lua_setmetatable(v7, -2); /*0x873809*/\n  v10 = (_DWORD *)v9[1]; /*0x87380f*/\n  v18 = 0; /*0x873818*/\n  v17 = 0; /*0x87381a*/\n  v16 = 0; /*0x87381c*/\n  v15 = 1; /*0x87381e*/\n  *v10 = v19; /*0x873820*/\n  n4 = 4; /*0x87382a*/\n  v13 = v7; /*0x87382c*/\n  v10[1] = v20; /*0x87382d*/\n  if ( lua_pcallk(v13, n4, v15, v16, v17, v18) ) /*0x873832*/\n  {\n    sub_85C080(v7, &v12); /*0x87387a*/\n    sub_8727D0(v12); /*0x87387f*/\n  }\n  lua_pushvalue(v7, -1); /*0x873842*/\n  v18 = -1001000; /*0x87384b*/\n  v17 = v7; /*0x873850*/\n  *a2 = v7; /*0x873851*/\n  v16 = -2; /*0x873859*/\n  v15 = v7; /*0x87385b*/\n  a2[1] = luaL_ref(v17, v18); /*0x87385c*/\n  lua_settop(v15, v16); /*0x87385f*/\n  return a2; /*0x87386a*/\n}",
+      "refs": [
+        {
+          "addr": "0xb18318",
+          "name": "lua_rawgeti"
+        },
+        {
+          "addr": "0xb183f8",
+          "name": "lua_pushinteger"
+        },
+        {
+          "addr": "0xb1839c",
+          "name": "lua_newuserdata"
+        },
+        {
+          "addr": "0xc829d4",
+          "name": "unk_C829D4"
+        },
+        {
+          "addr": "0xb753c8",
+          "name": "??_7UserdataPtr@luabridge@@6B@"
+        },
+        {
+          "addr": "0xb183bc",
+          "name": "lua_rawgetp"
+        },
+        {
+          "addr": "0xb18398",
+          "name": "lua_setmetatable"
+        },
+        {
+          "addr": "0xb183e0",
+          "name": "lua_pushnil"
+        },
+        {
+          "addr": "0xc82980",
+          "name": "unk_C82980"
+        },
+        {
+          "addr": "0xb73574",
+          "name": "??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@"
+        },
+        {
+          "addr": "0x85c080",
+          "name": "sub_85C080"
+        },
+        {
+          "addr": "0x8727d0",
+          "name": "sub_8727D0"
+        },
+        {
+          "addr": "0xb183d8",
+          "name": "lua_pcallk"
+        },
+        {
+          "addr": "0xb183c8",
+          "name": "lua_pushvalue"
+        },
+        {
+          "addr": "0xb18314",
+          "name": "luaL_ref"
+        },
+        {
+          "addr": "0xb18328",
+          "name": "lua_settop"
+        }
+      ]
+    },
+    "isError": false
+  }
+}

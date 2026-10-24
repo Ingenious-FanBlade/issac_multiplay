@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 5,
+  "verificationIdentity": "IsaacCsT0-CoopVerification-v5r7",
+  "workPackage": "CS-T0-05-03",
+  "createdUtc": "2026-08-31T09:47:25.2356005Z",
+  "status": "PASS",
+  "phase": "PASSIVE_APPLICABILITY_MIGRATION_AUTOMATED_GATE",
+  "createNewOnly": true,
+  "fullGate": true,
+  "predecessorVerification": {
+    "path": "cs-t0/coop-verification-v5r6.json",
+    "sha256": "61DB9BCCE41988AFC1D2723B16012E363B0B2F39064762599B6BF11105827B2B"
+  },
+  "artifactBindings": [
+    {
+      "path": "cs-t0/coop-native-exit-applicability-v1.json",
+      "sha256": "23B6E5659B6060A437483831C0C02A37A00EAE11F86CDF972EF980101AB29A6B"
+    },
+    {
+      "path": "cs-t0/coop-native-exit-applicability-static-v1.json",
+      "sha256": "F53BE5620BA6E881236192B42D4863FFEB8DC829891C1AB7B060E0167652B51A"
+    },
+    {
+      "path": "cs-t0/coop-native-exit-reachability-v1.json",
+      "sha256": "034B28853681C43539F669EC015EF3F9C2F8214F9CC25453E31BA86E751D7483"
+    },
+    {
+      "path": "cs-t0/coop-passive-applicability-baseline-v1.json",
+      "sha256": "D56C17F366302A84A097EA40276D19B9966511CB168CCFE94B507A11CFD5EBC1"
+    },
+    {
+      "path": "out/cs-t0/target-equivalence-inspect/unpacked-target-equivalence-v1-release-final.json",
+      "sha256": "8B3FB097ED32B18DE6A78F535045ACD525185569ACA029A6370494511851F138"
+    },
+    {
+      "path": "cs-t0/coop-c0-layout-evidence-v1.json",
+      "sha256": "921EE4C4AA1FDCE86E21F1CFF1B38D5802E13E715242EC6006FA79B5F6316059"
+    },
+    {
+      "path": "cs-t0/coop-static-graph-v1.json",
+      "sha256": "F87DA1DF383B7B1AE3724A4DB4EAAE791B9F42B68AF9210AD1727F71D9458934"
+    },
+    {
+      "path": "cs-t0/coop-catalog-v4.json",
+      "sha256": "00641728411D7BB60B54DA1A58C39E616204729901B8D76433BF51E0748AFE5A"
+    },
+    {
+      "path": "cs-t0/coop-plan-v5r1.json",
+      "sha256": "FB446AC397305AB1C5D21CA91BC76D4B0B9B82259E289379028627B55DD6BF6C"
+    },
+    {
+      "path": "cs-t0/coop-passive-live-progress-v7.json",
+      "sha256": "10968FD428C44BB90280B1E43738D8D161878E88E2C51E4C2EED855038BA58B7"
+    },
+    {
+      "path": "cs-t0/coop-verification-v5r6.json",
+      "sha256": "61DB9BCCE41988AFC1D2723B16012E363B0B2F39064762599B6BF11105827B2B"
+    },
+    {
+      "path": "cs-t0/src/coop_passive_applicability.rs",
+      "sha256": "550DD68A8CDC3BD5F484DD85E8DEADF161F352A5025363391C95FE13E5ED9F9B"
+    },
+    {
+      "path": "cs-t0/src/commands.rs",
+      "sha256": "D4FC130D773990B70700734B03BAC087B9B8764574CFA85D6C14D8EA4B7EE6AF"
+    },
+    {
+      "path": "cs-t0/src/lib.rs",
+      "sha256": "14DE7022755EAE96DFA08C63DAB58F1973627FB5239B147EC637F83D9FA04B16"
+    },
+    {
+      "path": "cs-t0/tests/coop_passive_applicability_contract.rs",
+      "sha256": "92374ADA8E0BBA45773BF64590E40F18412AB6088300D07285BB1F4504F7D800"
+    },
+    {
+      "path": "cs-t0/tests/support/coop_applicability_fixture.rs",
+      "sha256": "A363B987429BF7D0F5775F218010A62D6DCEA8EE27F77BC37FFD58245B08C3EB"
+    },
+    {
+      "path": "cs-t0/verify-coop-passive-applicability.ps1",
+      "sha256": "389040FED891CB18F78B7A92691312B16E41062BA5DDA86F9568BCE6104CF343"
+    },
+    {
+      "path": "cs-t0/verify-coop-passive.ps1",
+      "sha256": "05D2700AA8453998630B5532828FB610FC1E9246682DD40D65E233AF6CCFF172"
+    },
+    {
+      "path": "cs-t0/Cargo.toml",
+      "sha256": "604EA0F98C78BD08AE45AD08F70A7042DF9239F38BFDCA20E749251A6AACEB88"
+    },
+    {
+      "path": "cs-t0/Cargo.lock",
+      "sha256": "C443B730C91F9D1727FC56AF1FB67DC3525921FEEF37C7F0717BEC1D00644288"
+    }
+  ],
+  "productionBindings": [
+    {
+      "path": "out/cs-t0/IsaacCsT0.exe",
+      "sha256": "3DD239729F1D36F1236E16A5392266273944A837D1825628A519862ECD74F365"
+    },
+    {
+      "path": "out/cs-t0/IsaacCsT0.Native.dll",
+      "sha256": "768CDDEBE490236789F6C542AAA7C9F84B31778EE1A3655DC4F23934AD4F720A"
+    },
+    {
+      "path": "out/cs-t0/IsaacCsT0.Helper.exe",
+      "sha256": "3170D805B6F1F2D0BDE4E4F93D38D982A71AC9F65BC9E973DF00B42F63D03972"
+    }
+  ],
+  "checks": [
+    {
+      "id": "frozen-artifact-bindings",
+      "passed": true
+    },
+    {
+      "id": "rust-test-all-targets",
+      "passed": true
+    },
+    {
+      "id": "rust-fmt-check",
+      "passed": true
+    },
+    {
+      "id": "rust-check-all-targets",
+      "passed": true
+    },
+    {
+      "id": "rust-clippy-deny-warnings",
+      "passed": true
+    },
+    {
+      "id": "rust-release-build",
+      "passed": true
+    },
+    {
+      "id": "legacy-native-debug-release-39",
+      "passed": true
+    },
+    {
+      "id": "active-native-debug-release-262",
+      "passed": true
+    },
+    {
+      "id": "passive-native-debug-release-407",
+      "passed": true
+    },
+    {
+      "id": "device-v2-native-debug-release",
+      "passed": true
+    },
+    {
+      "id": "passive-cross-language-debug-release",
+      "passed": true
+    },
+    {
+      "id": "device-v2-cross-language-debug-release",
+      "passed": true
+    },
+    {
+      "id": "device-v2-causal-contract-and-mutations",
+      "passed": true
+    },
+    {
+      "id": "legacy-device-counterexamples-rejected",
+      "passed": true
+    },
+    {
+      "id": "historical-live-replay-immutable",
+      "passed": true
+    },
+    {
+      "id": "bootstrap-regression",
+      "passed": true
+    },
+    {
+      "id": "static-c0-regression",
+      "passed": true
+    },
+    {
+      "id": "t0-04-active-regression",
+      "passed": true
+    },
+    {
+      "id": "six-offline-passive-fixtures-and-gate",
+      "passed": true
+    },
+    {
+      "id": "device-v2-real-shutdown-native-debug-release",
+      "passed": true
+    },
+    {
+      "id": "device-v2-real-shutdown-public-cli-debug-release",
+      "passed": true
+    },
+    {
+      "id": "device-live10-replay-remains-blocked",
+      "passed": true
+    },
+    {
+      "id": "native-exit-static-target-bytes",
+      "passed": true
+    },
+    {
+      "id": "applicability-black-box-contract",
+      "passed": true
+    },
+    {
+      "id": "five-passive-source-replay-and-na",
+      "passed": true
+    },
+    {
+      "id": "native-exit-replay-remains-blocked",
+      "passed": true
+    },
+    {
+      "id": "legacy-six-source-gate-still-blocked",
+      "passed": true
+    },
+    {
+      "id": "immutable-migration-baseline",
+      "passed": true
+    }
+  ],
+  "completedLiveSourceCount": 5,
+  "notApplicableCount": 1,
+  "historicalExitResult": "BLOCKED_BY_EVIDENCE",
+  "sixSourceGateEligible": false,
+  "liveAuthorizationCreated": false,
+  "permissions": {
+    "passiveHookTransactionAllowed": false,
+    "passiveObservationAllowed": false,
+    "activeInputAllowed": false,
+    "inputMutationAllowed": false,
+    "worldMutationAllowed": false,
+    "runtimeMutationAllowed": false,
+    "overrideAllowed": false,
+    "transportAllowed": false,
+    "schedulerAllowed": false,
+    "applyAllowed": false,
+    "modeLatchAllowed": false,
+    "originalOnlinePositiveAllowed": false,
+    "t005Unlocked": false,
+    "csT00504Unlocked": false
+  }
+}

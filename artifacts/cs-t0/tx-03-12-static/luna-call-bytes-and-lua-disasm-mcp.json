@@ -1,0 +1,3121 @@
+{
+  "disasm": {
+    "0x860BA0": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x860BA0\",\"asm\":{\"name\":\"sub_860BA0\",\"start_ea\":\"0x860ba0\",\"segment\":\".text\",\"lines\":[{\"addr\":\"860ba0\",\"instruction\":\"push ebp\",\"label\":\"sub_860BA0\"},{\"addr\":\"860ba1\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"860ba3\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"860ba5\",\"instruction\":\"push offset SEH_860BA0\",\"refs\":[{\"addr\":\"0xb03d00\",\"name\":\"SEH_860BA0\"}]},{\"addr\":\"860baa\",\"instruction\":\"mov eax, large fs:0\"},{\"addr\":\"860bb0\",\"instruction\":\"push eax\"},{\"addr\":\"860bb1\",\"instruction\":\"sub esp, 1Ch\"},{\"addr\":\"860bb4\",\"instruction\":\"push ebx\"},{\"addr\":\"860bb5\",\"instruction\":\"push esi\"},{\"addr\":\"860bb6\",\"instruction\":\"push edi\"},{\"addr\":\"860bb7\",\"instruction\":\"mov eax, ___security_cookie\",\"refs\":[{\"addr\":\"0xbf93b4\",\"name\":\"___security_cookie\"}]},{\"addr\":\"860bbc\",\"instruction\":\"xor eax, ebp\"},{\"addr\":\"860bbe\",\"instruction\":\"push eax\"},{\"addr\":\"860bbf\",\"instruction\":\"lea eax, [ebp+var_C]\"},{\"addr\":\"860bc2\",\"instruction\":\"mov large fs:0, eax\"},{\"addr\":\"860bc8\",\"instruction\":\"mov [ebp+var_10], esp\"},{\"addr\":\"860bcb\",\"instruction\":\"mov edx, dword_C71690\",\"refs\":[{\"addr\":\"0xc71690\",\"name\":\"dword_C71690\"}]},{\"addr\":\"860bd1\",\"instruction\":\"mov esi, [ebp+arg_0]\"},{\"addr\":\"860bd4\",\"instruction\":\"mov [ebp+var_24], 1Ch\"},{\"addr\":\"860bdb\",\"instruction\":\"mov eax, [edx+10h]\"},{\"addr\":\"860bde\",\"instruction\":\"mov ecx, [esi+28h]\"},{\"addr\":\"860be1\",\"instruction\":\"mov [ebp+var_28], eax\"},{\"addr\":\"860be4\",\"instruction\":\"mov eax, [edx]\"},{\"addr\":\"860be6\",\"instruction\":\"mov [ebp+var_20], ecx\"},{\"addr\":\"860be9\",\"instruction\":\"test dword ptr [eax], 10000000h\"},{\"addr\":\"860bef\",\"instruction\":\"jz short loc_860C22\",\"refs\":[{\"addr\":\"0x860c22\",\"name\":\"loc_860C22\"}]},{\"addr\":\"860bf1\",\"instruction\":\"mov eax, [ebp+arg_4]\"},{\"addr\":\"860bf4\",\"instruction\":\"mov [ebp+var_4], 0\"},{\"addr\":\"860bfb\",\"instruction\":\"push dword ptr [eax+4]\"},{\"addr\":\"860bfe\",\"instruction\":\"push dword ptr [eax]\"},{\"addr\":\"860c00\",\"instruction\":\"lea eax, [ebp+var_18]\"},{\"addr\":\"860c03\",\"instruction\":\"push esi\"},{\"addr\":\"860c04\",\"instruction\":\"push ecx\"},{\"addr\":\"860c05\",\"instruction\":\"push eax\"},{\"addr\":\"860c06\",\"instruction\":\"lea ecx, [ebp+var_28]\"},{\"addr\":\"860c09\",\"instruction\":\"call sub_872B10\",\"refs\":[{\"addr\":\"0x872b10\",\"name\":\"sub_872B10\"}]},{\"addr\":\"860c0e\",\"instruction\":\"push [ebp+var_14]\"},{\"addr\":\"860c11\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"860c16\",\"instruction\":\"push [ebp+var_18]\"},{\"addr\":\"860c19\",\"instruction\":\"call ds:luaL_unref\",\"refs\":[{\"addr\":\"0xb1831c\",\"name\":\"luaL_unref\"}]},{\"addr\":\"860c1f\",\"instruction\":\"add esp, 0Ch\"},{\"addr\":\"860c22\",\"instruction\":\"mov ecx, [ebp+var_C]\",\"label\":\"loc_860C22\"},{\"addr\":\"860c25\",\"instruction\":\"mov large fs:0, ecx\"},{\"addr\":\"860c2c\",\"instruction\":\"pop ecx\"},{\"addr\":\"860c2d\",\"instruction\":\"pop edi\"},{\"addr\":\"860c2e\",\"instruction\":\"pop esi\"},{\"addr\":\"860c2f\",\"instruction\":\"pop ebx\"},{\"addr\":\"860c30\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"860c32\",\"instruction\":\"pop ebp\"},{\"addr\":\"860c33\",\"instruction\":\"retn 8\"}],\"stack_frame\":[{\"name\":\"var_28\",\"offset\":\"0x10\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_24\",\"offset\":\"0x14\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_20\",\"offset\":\"0x18\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_18\",\"offset\":\"0x20\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_14\",\"offset\":\"0x24\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_10\",\"offset\":\"0x28\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_C\",\"offset\":\"0x2c\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_4\",\"offset\":\"0x34\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__saved_registers\",\"offset\":\"0x38\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x3c\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"},{\"name\":\"arg_0\",\"offset\":\"0x40\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"arg_4\",\"offset\":\"0x44\",\"size\":\"0x4\",\"type\":\"_DWORD\"}],\"return_type\":\"_DWORD *\",\"arguments\":[{\"name\":\"arg0\",\"type\":\"int\"},{\"name\":\"arg1\",\"type\":\"_DWORD *\"}]},\"instruction_count\":50,\"total_instructions\":50,\"cursor\":{\"done\":true}}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x860BA0",
+        "asm": {
+          "name": "sub_860BA0",
+          "start_ea": "0x860ba0",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "860ba0",
+              "instruction": "push ebp",
+              "label": "sub_860BA0"
+            },
+            {
+              "addr": "860ba1",
+              "instruction": "mov ebp, esp"
+            },
+            {
+              "addr": "860ba3",
+              "instruction": "push 0FFFFFFFFh"
+            },
+            {
+              "addr": "860ba5",
+              "instruction": "push offset SEH_860BA0",
+              "refs": [
+                {
+                  "addr": "0xb03d00",
+                  "name": "SEH_860BA0"
+                }
+              ]
+            },
+            {
+              "addr": "860baa",
+              "instruction": "mov eax, large fs:0"
+            },
+            {
+              "addr": "860bb0",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "860bb1",
+              "instruction": "sub esp, 1Ch"
+            },
+            {
+              "addr": "860bb4",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "860bb5",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "860bb6",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "860bb7",
+              "instruction": "mov eax, ___security_cookie",
+              "refs": [
+                {
+                  "addr": "0xbf93b4",
+                  "name": "___security_cookie"
+                }
+              ]
+            },
+            {
+              "addr": "860bbc",
+              "instruction": "xor eax, ebp"
+            },
+            {
+              "addr": "860bbe",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "860bbf",
+              "instruction": "lea eax, [ebp+var_C]"
+            },
+            {
+              "addr": "860bc2",
+              "instruction": "mov large fs:0, eax"
+            },
+            {
+              "addr": "860bc8",
+              "instruction": "mov [ebp+var_10], esp"
+            },
+            {
+              "addr": "860bcb",
+              "instruction": "mov edx, dword_C71690",
+              "refs": [
+                {
+                  "addr": "0xc71690",
+                  "name": "dword_C71690"
+                }
+              ]
+            },
+            {
+              "addr": "860bd1",
+              "instruction": "mov esi, [ebp+arg_0]"
+            },
+            {
+              "addr": "860bd4",
+              "instruction": "mov [ebp+var_24], 1Ch"
+            },
+            {
+              "addr": "860bdb",
+              "instruction": "mov eax, [edx+10h]"
+            },
+            {
+              "addr": "860bde",
+              "instruction": "mov ecx, [esi+28h]"
+            },
+            {
+              "addr": "860be1",
+              "instruction": "mov [ebp+var_28], eax"
+            },
+            {
+              "addr": "860be4",
+              "instruction": "mov eax, [edx]"
+            },
+            {
+              "addr": "860be6",
+              "instruction": "mov [ebp+var_20], ecx"
+            },
+            {
+              "addr": "860be9",
+              "instruction": "test dword ptr [eax], 10000000h"
+            },
+            {
+              "addr": "860bef",
+              "instruction": "jz short loc_860C22",
+              "refs": [
+                {
+                  "addr": "0x860c22",
+                  "name": "loc_860C22"
+                }
+              ]
+            },
+            {
+              "addr": "860bf1",
+              "instruction": "mov eax, [ebp+arg_4]"
+            },
+            {
+              "addr": "860bf4",
+              "instruction": "mov [ebp+var_4], 0"
+            },
+            {
+              "addr": "860bfb",
+              "instruction": "push dword ptr [eax+4]"
+            },
+            {
+              "addr": "860bfe",
+              "instruction": "push dword ptr [eax]"
+            },
+            {
+              "addr": "860c00",
+              "instruction": "lea eax, [ebp+var_18]"
+            },
+            {
+              "addr": "860c03",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "860c04",
+              "instruction": "push ecx"
+            },
+            {
+              "addr": "860c05",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "860c06",
+              "instruction": "lea ecx, [ebp+var_28]"
+            },
+            {
+              "addr": "860c09",
+              "instruction": "call sub_872B10",
+              "refs": [
+                {
+                  "addr": "0x872b10",
+                  "name": "sub_872B10"
+                }
+              ]
+            },
+            {
+              "addr": "860c0e",
+              "instruction": "push [ebp+var_14]"
+            },
+            {
+              "addr": "860c11",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "860c16",
+              "instruction": "push [ebp+var_18]"
+            },
+            {
+              "addr": "860c19",
+              "instruction": "call ds:luaL_unref",
+              "refs": [
+                {
+                  "addr": "0xb1831c",
+                  "name": "luaL_unref"
+                }
+              ]
+            },
+            {
+              "addr": "860c1f",
+              "instruction": "add esp, 0Ch"
+            },
+            {
+              "addr": "860c22",
+              "instruction": "mov ecx, [ebp+var_C]",
+              "label": "loc_860C22"
+            },
+            {
+              "addr": "860c25",
+              "instruction": "mov large fs:0, ecx"
+            },
+            {
+              "addr": "860c2c",
+              "instruction": "pop ecx"
+            },
+            {
+              "addr": "860c2d",
+              "instruction": "pop edi"
+            },
+            {
+              "addr": "860c2e",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "860c2f",
+              "instruction": "pop ebx"
+            },
+            {
+              "addr": "860c30",
+              "instruction": "mov esp, ebp"
+            },
+            {
+              "addr": "860c32",
+              "instruction": "pop ebp"
+            },
+            {
+              "addr": "860c33",
+              "instruction": "retn 8"
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "var_28",
+              "offset": "0x10",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_24",
+              "offset": "0x14",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_20",
+              "offset": "0x18",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_18",
+              "offset": "0x20",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_14",
+              "offset": "0x24",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_10",
+              "offset": "0x28",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_C",
+              "offset": "0x2c",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_4",
+              "offset": "0x34",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__saved_registers",
+              "offset": "0x38",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__return_address",
+              "offset": "0x3c",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            },
+            {
+              "name": "arg_0",
+              "offset": "0x40",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "arg_4",
+              "offset": "0x44",
+              "size": "0x4",
+              "type": "_DWORD"
+            }
+          ],
+          "return_type": "_DWORD *",
+          "arguments": [
+            {
+              "name": "arg0",
+              "type": "int"
+            },
+            {
+              "name": "arg1",
+              "type": "_DWORD *"
+            }
+          ]
+        },
+        "instruction_count": 50,
+        "total_instructions": 50,
+        "cursor": {
+          "done": true
+        }
+      },
+      "isError": false
+    },
+    "0x862670": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x862670\",\"asm\":{\"name\":\"sub_862670\",\"start_ea\":\"0x862670\",\"segment\":\".text\",\"lines\":[{\"addr\":\"862670\",\"instruction\":\"push ebp\",\"label\":\"sub_862670\"},{\"addr\":\"862671\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"862673\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"862675\",\"instruction\":\"push offset SEH_862670\",\"refs\":[{\"addr\":\"0xb03fc0\",\"name\":\"SEH_862670\"}]},{\"addr\":\"86267a\",\"instruction\":\"mov eax, large fs:0\"},{\"addr\":\"862680\",\"instruction\":\"push eax\"},{\"addr\":\"862681\",\"instruction\":\"sub esp, 1Ch\"},{\"addr\":\"862684\",\"instruction\":\"push ebx\"},{\"addr\":\"862685\",\"instruction\":\"push esi\"},{\"addr\":\"862686\",\"instruction\":\"push edi\"},{\"addr\":\"862687\",\"instruction\":\"mov eax, ___security_cookie\",\"refs\":[{\"addr\":\"0xbf93b4\",\"name\":\"___security_cookie\"}]},{\"addr\":\"86268c\",\"instruction\":\"xor eax, ebp\"},{\"addr\":\"86268e\",\"instruction\":\"push eax\"},{\"addr\":\"86268f\",\"instruction\":\"lea eax, [ebp+var_C]\"},{\"addr\":\"862692\",\"instruction\":\"mov large fs:0, eax\"},{\"addr\":\"862698\",\"instruction\":\"mov [ebp+var_10], esp\"},{\"addr\":\"86269b\",\"instruction\":\"mov edx, dword_C71690\",\"refs\":[{\"addr\":\"0xc71690\",\"name\":\"dword_C71690\"}]},{\"addr\":\"8626a1\",\"instruction\":\"mov esi, [ebp+arg_0]\"},{\"addr\":\"8626a4\",\"instruction\":\"mov [ebp+var_24], 2Dh ; '-'\"},{\"addr\":\"8626ab\",\"instruction\":\"mov eax, [edx+10h]\"},{\"addr\":\"8626ae\",\"instruction\":\"mov ecx, [esi+2Ch]\"},{\"addr\":\"8626b1\",\"instruction\":\"mov [ebp+var_28], eax\"},{\"addr\":\"8626b4\",\"instruction\":\"mov eax, [edx]\"},{\"addr\":\"8626b6\",\"instruction\":\"mov [ebp+var_20], ecx\"},{\"addr\":\"8626b9\",\"instruction\":\"test dword ptr [eax+4], 2000h\"},{\"addr\":\"8626c0\",\"instruction\":\"jz short loc_8626F3\",\"refs\":[{\"addr\":\"0x8626f3\",\"name\":\"loc_8626F3\"}]},{\"addr\":\"8626c2\",\"instruction\":\"mov eax, [ebp+arg_4]\"},{\"addr\":\"8626c5\",\"instruction\":\"mov [ebp+var_4], 0\"},{\"addr\":\"8626cc\",\"instruction\":\"push dword ptr [eax+4]\"},{\"addr\":\"8626cf\",\"instruction\":\"push dword ptr [eax]\"},{\"addr\":\"8626d1\",\"instruction\":\"lea eax, [ebp+var_18]\"},{\"addr\":\"8626d4\",\"instruction\":\"push esi\"},{\"addr\":\"8626d5\",\"instruction\":\"push ecx\"},{\"addr\":\"8626d6\",\"instruction\":\"push eax\"},{\"addr\":\"8626d7\",\"instruction\":\"lea ecx, [ebp+var_28]\"},{\"addr\":\"8626da\",\"instruction\":\"call sub_873740\",\"refs\":[{\"addr\":\"0x873740\",\"name\":\"sub_873740\"}]},{\"addr\":\"8626df\",\"instruction\":\"push [ebp+var_14]\"},{\"addr\":\"8626e2\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"8626e7\",\"instruction\":\"push [ebp+var_18]\"},{\"addr\":\"8626ea\",\"instruction\":\"call ds:luaL_unref\",\"refs\":[{\"addr\":\"0xb1831c\",\"name\":\"luaL_unref\"}]},{\"addr\":\"8626f0\",\"instruction\":\"add esp, 0Ch\"},{\"addr\":\"8626f3\",\"instruction\":\"mov ecx, [ebp+var_C]\",\"label\":\"loc_8626F3\"},{\"addr\":\"8626f6\",\"instruction\":\"mov large fs:0, ecx\"},{\"addr\":\"8626fd\",\"instruction\":\"pop ecx\"},{\"addr\":\"8626fe\",\"instruction\":\"pop edi\"},{\"addr\":\"8626ff\",\"instruction\":\"pop esi\"},{\"addr\":\"862700\",\"instruction\":\"pop ebx\"},{\"addr\":\"862701\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"862703\",\"instruction\":\"pop ebp\"},{\"addr\":\"862704\",\"instruction\":\"retn 8\"}],\"stack_frame\":[{\"name\":\"var_28\",\"offset\":\"0x10\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_24\",\"offset\":\"0x14\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_20\",\"offset\":\"0x18\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_18\",\"offset\":\"0x20\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_14\",\"offset\":\"0x24\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_10\",\"offset\":\"0x28\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_C\",\"offset\":\"0x2c\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_4\",\"offset\":\"0x34\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__saved_registers\",\"offset\":\"0x38\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x3c\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"},{\"name\":\"arg_0\",\"offset\":\"0x40\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"arg_4\",\"offset\":\"0x44\",\"size\":\"0x4\",\"type\":\"_DWORD\"}],\"return_type\":\"int\",\"arguments\":[{\"name\":\"arg0\",\"type\":\"int\"},{\"name\":\"arg1\",\"type\":\"_DWORD *\"}]},\"instruction_count\":50,\"total_instructions\":50,\"cursor\":{\"done\":true}}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x862670",
+        "asm": {
+          "name": "sub_862670",
+          "start_ea": "0x862670",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "862670",
+              "instruction": "push ebp",
+              "label": "sub_862670"
+            },
+            {
+              "addr": "862671",
+              "instruction": "mov ebp, esp"
+            },
+            {
+              "addr": "862673",
+              "instruction": "push 0FFFFFFFFh"
+            },
+            {
+              "addr": "862675",
+              "instruction": "push offset SEH_862670",
+              "refs": [
+                {
+                  "addr": "0xb03fc0",
+                  "name": "SEH_862670"
+                }
+              ]
+            },
+            {
+              "addr": "86267a",
+              "instruction": "mov eax, large fs:0"
+            },
+            {
+              "addr": "862680",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "862681",
+              "instruction": "sub esp, 1Ch"
+            },
+            {
+              "addr": "862684",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "862685",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "862686",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862687",
+              "instruction": "mov eax, ___security_cookie",
+              "refs": [
+                {
+                  "addr": "0xbf93b4",
+                  "name": "___security_cookie"
+                }
+              ]
+            },
+            {
+              "addr": "86268c",
+              "instruction": "xor eax, ebp"
+            },
+            {
+              "addr": "86268e",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "86268f",
+              "instruction": "lea eax, [ebp+var_C]"
+            },
+            {
+              "addr": "862692",
+              "instruction": "mov large fs:0, eax"
+            },
+            {
+              "addr": "862698",
+              "instruction": "mov [ebp+var_10], esp"
+            },
+            {
+              "addr": "86269b",
+              "instruction": "mov edx, dword_C71690",
+              "refs": [
+                {
+                  "addr": "0xc71690",
+                  "name": "dword_C71690"
+                }
+              ]
+            },
+            {
+              "addr": "8626a1",
+              "instruction": "mov esi, [ebp+arg_0]"
+            },
+            {
+              "addr": "8626a4",
+              "instruction": "mov [ebp+var_24], 2Dh ; '-'"
+            },
+            {
+              "addr": "8626ab",
+              "instruction": "mov eax, [edx+10h]"
+            },
+            {
+              "addr": "8626ae",
+              "instruction": "mov ecx, [esi+2Ch]"
+            },
+            {
+              "addr": "8626b1",
+              "instruction": "mov [ebp+var_28], eax"
+            },
+            {
+              "addr": "8626b4",
+              "instruction": "mov eax, [edx]"
+            },
+            {
+              "addr": "8626b6",
+              "instruction": "mov [ebp+var_20], ecx"
+            },
+            {
+              "addr": "8626b9",
+              "instruction": "test dword ptr [eax+4], 2000h"
+            },
+            {
+              "addr": "8626c0",
+              "instruction": "jz short loc_8626F3",
+              "refs": [
+                {
+                  "addr": "0x8626f3",
+                  "name": "loc_8626F3"
+                }
+              ]
+            },
+            {
+              "addr": "8626c2",
+              "instruction": "mov eax, [ebp+arg_4]"
+            },
+            {
+              "addr": "8626c5",
+              "instruction": "mov [ebp+var_4], 0"
+            },
+            {
+              "addr": "8626cc",
+              "instruction": "push dword ptr [eax+4]"
+            },
+            {
+              "addr": "8626cf",
+              "instruction": "push dword ptr [eax]"
+            },
+            {
+              "addr": "8626d1",
+              "instruction": "lea eax, [ebp+var_18]"
+            },
+            {
+              "addr": "8626d4",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "8626d5",
+              "instruction": "push ecx"
+            },
+            {
+              "addr": "8626d6",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "8626d7",
+              "instruction": "lea ecx, [ebp+var_28]"
+            },
+            {
+              "addr": "8626da",
+              "instruction": "call sub_873740",
+              "refs": [
+                {
+                  "addr": "0x873740",
+                  "name": "sub_873740"
+                }
+              ]
+            },
+            {
+              "addr": "8626df",
+              "instruction": "push [ebp+var_14]"
+            },
+            {
+              "addr": "8626e2",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "8626e7",
+              "instruction": "push [ebp+var_18]"
+            },
+            {
+              "addr": "8626ea",
+              "instruction": "call ds:luaL_unref",
+              "refs": [
+                {
+                  "addr": "0xb1831c",
+                  "name": "luaL_unref"
+                }
+              ]
+            },
+            {
+              "addr": "8626f0",
+              "instruction": "add esp, 0Ch"
+            },
+            {
+              "addr": "8626f3",
+              "instruction": "mov ecx, [ebp+var_C]",
+              "label": "loc_8626F3"
+            },
+            {
+              "addr": "8626f6",
+              "instruction": "mov large fs:0, ecx"
+            },
+            {
+              "addr": "8626fd",
+              "instruction": "pop ecx"
+            },
+            {
+              "addr": "8626fe",
+              "instruction": "pop edi"
+            },
+            {
+              "addr": "8626ff",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "862700",
+              "instruction": "pop ebx"
+            },
+            {
+              "addr": "862701",
+              "instruction": "mov esp, ebp"
+            },
+            {
+              "addr": "862703",
+              "instruction": "pop ebp"
+            },
+            {
+              "addr": "862704",
+              "instruction": "retn 8"
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "var_28",
+              "offset": "0x10",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_24",
+              "offset": "0x14",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_20",
+              "offset": "0x18",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_18",
+              "offset": "0x20",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_14",
+              "offset": "0x24",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_10",
+              "offset": "0x28",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_C",
+              "offset": "0x2c",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_4",
+              "offset": "0x34",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__saved_registers",
+              "offset": "0x38",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__return_address",
+              "offset": "0x3c",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            },
+            {
+              "name": "arg_0",
+              "offset": "0x40",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "arg_4",
+              "offset": "0x44",
+              "size": "0x4",
+              "type": "_DWORD"
+            }
+          ],
+          "return_type": "int",
+          "arguments": [
+            {
+              "name": "arg0",
+              "type": "int"
+            },
+            {
+              "name": "arg1",
+              "type": "_DWORD *"
+            }
+          ]
+        },
+        "instruction_count": 50,
+        "total_instructions": 50,
+        "cursor": {
+          "done": true
+        }
+      },
+      "isError": false
+    },
+    "0x862B80": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x862B80\",\"asm\":{\"name\":\"sub_862B80\",\"start_ea\":\"0x862b80\",\"segment\":\".text\",\"lines\":[{\"addr\":\"862b80\",\"instruction\":\"push ebx\",\"label\":\"sub_862B80\"},{\"addr\":\"862b81\",\"instruction\":\"mov ebx, esp\"},{\"addr\":\"862b83\",\"instruction\":\"sub esp, 8\"},{\"addr\":\"862b86\",\"instruction\":\"and esp, 0FFFFFFF8h\"},{\"addr\":\"862b89\",\"instruction\":\"add esp, 4\"},{\"addr\":\"862b8c\",\"instruction\":\"push ebp\"},{\"addr\":\"862b8d\",\"instruction\":\"mov ebp, [ebx+4]\"},{\"addr\":\"862b90\",\"instruction\":\"mov [esp+0Ch+var_8], ebp\"},{\"addr\":\"862b94\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"862b96\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"862b98\",\"instruction\":\"push offset byte_B04040\",\"refs\":[{\"addr\":\"0xb04040\",\"name\":\"byte_B04040\"}]},{\"addr\":\"862b9d\",\"instruction\":\"mov eax, large fs:0\"},{\"addr\":\"862ba3\",\"instruction\":\"push eax\"},{\"addr\":\"862ba4\",\"instruction\":\"push ecx\"},{\"addr\":\"862ba5\",\"instruction\":\"push ebx\"},{\"addr\":\"862ba6\",\"instruction\":\"sub esp, 20h\"},{\"addr\":\"862ba9\",\"instruction\":\"push esi\"},{\"addr\":\"862baa\",\"instruction\":\"push edi\"},{\"addr\":\"862bab\",\"instruction\":\"mov eax, ___security_cookie\",\"refs\":[{\"addr\":\"0xbf93b4\",\"name\":\"___security_cookie\"}]},{\"addr\":\"862bb0\",\"instruction\":\"xor eax, ebp\"},{\"addr\":\"862bb2\",\"instruction\":\"push eax\"},{\"addr\":\"862bb3\",\"instruction\":\"lea eax, [ebp-0Ch]\"},{\"addr\":\"862bb6\",\"instruction\":\"mov large fs:0, eax\"},{\"addr\":\"862bbc\",\"instruction\":\"mov [ebp-10h], esp\"},{\"addr\":\"862bbf\",\"instruction\":\"mov ecx, [ebx+8]\"},{\"addr\":\"862bc2\",\"instruction\":\"mov eax, dword_C71690\",\"refs\":[{\"addr\":\"0xc71690\",\"name\":\"dword_C71690\"}]},{\"addr\":\"862bc7\",\"instruction\":\"mov esi, [ecx+2Ch]\"},{\"addr\":\"862bca\",\"instruction\":\"mov ecx, [eax+10h]\"},{\"addr\":\"862bcd\",\"instruction\":\"mov eax, [eax]\"},{\"addr\":\"862bcf\",\"instruction\":\"test dword ptr [eax+4], 200h\"},{\"addr\":\"862bd6\",\"instruction\":\"jz loc_862D3A\",\"refs\":[{\"addr\":\"0x862d3a\",\"name\":\"loc_862D3A\"}]},{\"addr\":\"862bdc\",\"instruction\":\"mov eax, [ebx+0Ch]\"},{\"addr\":\"862bdf\",\"instruction\":\"mov dword ptr [ebp-4], 0\"},{\"addr\":\"862be6\",\"instruction\":\"mov edi, [ecx]\"},{\"addr\":\"862be8\",\"instruction\":\"push edi\"},{\"addr\":\"862be9\",\"instruction\":\"movss xmm0, dword ptr [eax]\"},{\"addr\":\"862bed\",\"instruction\":\"movss dword ptr [ebp-28h], xmm0\"},{\"addr\":\"862bf2\",\"instruction\":\"movss xmm0, dword ptr [eax+4]\"},{\"addr\":\"862bf7\",\"instruction\":\"movss dword ptr [ebp-2Ch], xmm0\"},{\"addr\":\"862bfc\",\"instruction\":\"mov [ebp-1Ch], edi\"},{\"addr\":\"862bff\",\"instruction\":\"call lua_rawgeti_\",\"refs\":[{\"addr\":\"0x6a80f0\",\"name\":\"lua_rawgeti_\"}]},{\"addr\":\"862c04\",\"instruction\":\"mov edx, 29h ; ')'\"},{\"addr\":\"862c09\",\"instruction\":\"mov ecx, edi\"},{\"addr\":\"862c0b\",\"instruction\":\"call sub_85BFD0\",\"refs\":[{\"addr\":\"0x85bfd0\",\"name\":\"sub_85BFD0\"}]},{\"addr\":\"862c10\",\"instruction\":\"mov edx, esi\"},{\"addr\":\"862c12\",\"instruction\":\"mov ecx, edi\"},{\"addr\":\"862c14\",\"instruction\":\"call sub_85BFD0\",\"refs\":[{\"addr\":\"0x85bfd0\",\"name\":\"sub_85BFD0\"}]},{\"addr\":\"862c19\",\"instruction\":\"mov esi, ds:lua_newuserdata\",\"refs\":[{\"addr\":\"0xb1839c\",\"name\":\"lua_newuserdata\"}]},{\"addr\":\"862c1f\",\"instruction\":\"push 8\"},{\"addr\":\"862c21\",\"instruction\":\"push edi\"},{\"addr\":\"862c22\",\"instruction\":\"call esi ; lua_newuserdata\",\"refs\":[{\"addr\":\"0xb1839c\",\"name\":\"lua_newuserdata\"}]},{\"addr\":\"862c24\",\"instruction\":\"mov ecx, [ebx+8]\"},{\"addr\":\"862c27\",\"instruction\":\"push offset unk_C829C5\",\"refs\":[{\"addr\":\"0xc829c5\",\"name\":\"unk_C829C5\"}]},{\"addr\":\"862c2c\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"862c31\",\"instruction\":\"push edi\"},{\"addr\":\"862c32\",\"instruction\":\"mov dword ptr [eax], offset ??_7UserdataPtr@luabridge@@6B@; const luabridge::UserdataPtr::`vftable'\",\"refs\":[{\"addr\":\"0xb753c8\",\"name\":\"??_7UserdataPtr@luabridge@@6B@\"}]},{\"addr\":\"862c38\",\"instruction\":\"mov [eax+4], ecx\"},{\"addr\":\"862c3b\",\"instruction\":\"call ds:lua_rawgetp\",\"refs\":[{\"addr\":\"0xb183bc\",\"name\":\"lua_rawgetp\"}]},{\"addr\":\"862c41\",\"instruction\":\"add esp, 14h\"},{\"addr\":\"862c44\",\"instruction\":\"push 0FFFFFFFEh\"},{\"addr\":\"862c46\",\"instruction\":\"push edi\"},{\"addr\":\"862c47\",\"instruction\":\"mov edi, ds:lua_setmetatable\",\"refs\":[{\"addr\":\"0xb18398\",\"name\":\"lua_setmetatable\"}]},{\"addr\":\"862c4d\",\"instruction\":\"call edi ; lua_setmetatable\",\"refs\":[{\"addr\":\"0xb18398\",\"name\":\"lua_setmetatable\"}]},{\"addr\":\"862c4f\",\"instruction\":\"push 10h\"},{\"addr\":\"862c51\",\"instruction\":\"push dword ptr [ebp-1Ch]\"},{\"addr\":\"862c54\",\"instruction\":\"call esi ; lua_newuserdata\",\"refs\":[{\"addr\":\"0xb1839c\",\"name\":\"lua_newuserdata\"}]},{\"addr\":\"862c56\",\"instruction\":\"mov esi, eax\"},{\"addr\":\"862c58\",\"instruction\":\"push offset unk_C82980\",\"refs\":[{\"addr\":\"0xc82980\",\"name\":\"unk_C82980\"}]},{\"addr\":\"862c5d\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"862c62\",\"instruction\":\"push dword ptr [ebp-1Ch]\"},{\"addr\":\"862c65\",\"instruction\":\"lea ecx, [esi+8]\"},{\"addr\":\"862c68\",\"instruction\":\"mov dword ptr [esi], offset ??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@; const luabridge::UserdataValue<KAGE::Math::Vector2>::`vftable'\",\"refs\":[{\"addr\":\"0xb73574\",\"name\":\"??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@\"}]},{\"addr\":\"862c6e\",\"instruction\":\"mov [esi+4], ecx\"},{\"addr\":\"862c71\",\"instruction\":\"call ds:lua_rawgetp\",\"refs\":[{\"addr\":\"0xb183bc\",\"name\":\"lua_rawgetp\"}]},{\"addr\":\"862c77\",\"instruction\":\"add esp, 1Ch\"},{\"addr\":\"862c7a\",\"instruction\":\"push 0FFFFFFFEh\"},{\"addr\":\"862c7c\",\"instruction\":\"push dword ptr [ebp-1Ch]\"},{\"addr\":\"862c7f\",\"instruction\":\"call edi ; lua_setmetatable\",\"refs\":[{\"addr\":\"0xb18398\",\"name\":\"lua_setmetatable\"}]},{\"addr\":\"862c81\",\"instruction\":\"mov eax, [esi+4]\"},{\"addr\":\"862c84\",\"instruction\":\"movss xmm0, dword ptr [ebp-28h]\"},{\"addr\":\"862c89\",\"instruction\":\"mov edi, [ebp-1Ch]\"},{\"addr\":\"862c8c\",\"instruction\":\"push 0\"},{\"addr\":\"862c8e\",\"instruction\":\"push 0\"},{\"addr\":\"862c90\",\"instruction\":\"push 0\"},{\"addr\":\"862c92\",\"instruction\":\"push 1\"},{\"addr\":\"862c94\",\"instruction\":\"movss dword ptr [eax], xmm0\"},{\"addr\":\"862c98\",\"instruction\":\"movss xmm0, dword ptr [ebp-2Ch]\"},{\"addr\":\"862c9d\",\"instruction\":\"push 4\"},{\"addr\":\"862c9f\",\"instruction\":\"push edi\"},{\"addr\":\"862ca0\",\"instruction\":\"movss dword ptr [eax+4], xmm0\"},{\"addr\":\"862ca5\",\"instruction\":\"call ds:lua_pcallk\",\"refs\":[{\"addr\":\"0xb183d8\",\"name\":\"lua_pcallk\"}]},{\"addr\":\"862cab\",\"instruction\":\"add esp, 20h\"},{\"addr\":\"862cae\",\"instruction\":\"test eax, eax\"},{\"addr\":\"862cb0\",\"instruction\":\"jnz loc_862D53\",\"refs\":[{\"addr\":\"0x862d53\",\"name\":\"loc_862D53\"}]},{\"addr\":\"862cb6\",\"instruction\":\"jmp short loc_862D0A\",\"refs\":[{\"addr\":\"0x862d0a\",\"name\":\"loc_862D0A\"}]},{\"addr\":\"862cb8\",\"instruction\":\"mov ebx, [ebp-14h]\",\"label\":\"loc_862CB8\"},{\"addr\":\"862cbb\",\"instruction\":\"mov edi, [ebp-30h]\"},{\"addr\":\"862cbe\",\"instruction\":\"mov ecx, edi\"},{\"addr\":\"862cc0\",\"instruction\":\"mov eax, [edi]\"},{\"addr\":\"862cc2\",\"instruction\":\"mov eax, [eax+4]\"},{\"addr\":\"862cc5\",\"instruction\":\"call eax\"},{\"addr\":\"862cc7\",\"instruction\":\"push eax; ArgList\",\"comments\":[\"ArgList\"]},{\"addr\":\"862cc8\",\"instruction\":\"push offset aErrorInPosttea_1; \\\"Error in \\\\\\\"PostTearRender\\\\\\\" call: %s\\\\n\\\"\",\"refs\":[{\"addr\":\"0xb6f5a8\",\"name\":\"aErrorInPosttea_1\",\"string\":\"Error in \\\"PostTearRender\\\" call: %s\\n\"}]},{\"addr\":\"862ccd\",\"instruction\":\"push 1; int\",\"comments\":[\"int\"]},{\"addr\":\"862ccf\",\"instruction\":\"call sub_A112C0\",\"refs\":[{\"addr\":\"0xa112c0\",\"name\":\"sub_A112C0\"}]},{\"addr\":\"862cd4\",\"instruction\":\"mov esi, n4_0\",\"refs\":[{\"addr\":\"0xc71678\",\"name\":\"n4_0\"}]},{\"addr\":\"862cda\",\"instruction\":\"add esp, 0Ch\"},{\"addr\":\"862cdd\",\"instruction\":\"test esi, esi\"},{\"addr\":\"862cdf\",\"instruction\":\"jz short loc_862D04\",\"refs\":[{\"addr\":\"0x862d04\",\"name\":\"loc_862D04\"}]},{\"addr\":\"862ce1\",\"instruction\":\"mov eax, [edi]\"},{\"addr\":\"862ce3\",\"instruction\":\"mov ecx, edi\"},{\"addr\":\"862ce5\",\"instruction\":\"add esi, 68D78h\"},{\"addr\":\"862ceb\",\"instruction\":\"mov eax, [eax+4]\"},{\"addr\":\"862cee\",\"instruction\":\"call eax\"},{\"addr\":\"862cf0\",\"instruction\":\"push eax; ArgList\",\"comments\":[\"ArgList\"]},{\"addr\":\"862cf1\",\"instruction\":\"push offset aPosttearrender; \\\"\\\\\\\"PostTearRender\\\\\\\" failed: %s\\\\n\\\"\",\"refs\":[{\"addr\":\"0xb6f5cc\",\"name\":\"aPosttearrender\",\"string\":\"\\\"PostTearRender\\\" failed: %s\\n\"}]},{\"addr\":\"862cf6\",\"instruction\":\"push 0FFF08080h; int\",\"comments\":[\"int\"]},{\"addr\":\"862cfb\",\"instruction\":\"push esi; int\",\"comments\":[\"int\"]},{\"addr\":\"862cfc\",\"instruction\":\"call sub_693180\",\"refs\":[{\"addr\":\"0x693180\",\"name\":\"sub_693180\"}]},{\"addr\":\"862d01\",\"instruction\":\"add esp, 10h\"},{\"addr\":\"862d04\",\"instruction\":\"mov eax, offset loc_862D3A\",\"label\":\"loc_862D04\",\"refs\":[{\"addr\":\"0x862d3a\",\"name\":\"loc_862D3A\"}]},{\"addr\":\"862d09\",\"instruction\":\"retn\"},{\"addr\":\"862d0a\",\"instruction\":\"push 0FFFFFFFFh\",\"label\":\"loc_862D0A\"},{\"addr\":\"862d0c\",\"instruction\":\"push edi\"},{\"addr\":\"862d0d\",\"instruction\":\"call ds:lua_pushvalue\",\"refs\":[{\"addr\":\"0xb183c8\",\"name\":\"lua_pushvalue\"}]},{\"addr\":\"862d13\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"862d18\",\"instruction\":\"push edi\"},{\"addr\":\"862d19\",\"instruction\":\"call ds:luaL_ref\",\"refs\":[{\"addr\":\"0xb18314\",\"name\":\"luaL_ref\"}]},{\"addr\":\"862d1f\",\"instruction\":\"push 0FFFFFFFEh\"},{\"addr\":\"862d21\",\"instruction\":\"push edi\"},{\"addr\":\"862d22\",\"instruction\":\"mov esi, eax\"},{\"addr\":\"862d24\",\"instruction\":\"call ds:lua_settop\",\"refs\":[{\"addr\":\"0xb18328\",\"name\":\"lua_settop\"}]},{\"addr\":\"862d2a\",\"instruction\":\"push esi\"},{\"addr\":\"862d2b\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"862d30\",\"instruction\":\"push edi\"},{\"addr\":\"862d31\",\"instruction\":\"call ds:luaL_unref\",\"refs\":[{\"addr\":\"0xb1831c\",\"name\":\"luaL_unref\"}]},{\"addr\":\"862d37\",\"instruction\":\"add esp, 24h\"},{\"addr\":\"862d3a\",\"instruction\":\"mov ebx, [ebp-14h]\",\"label\":\"loc_862D3A\"},{\"addr\":\"862d3d\",\"instruction\":\"mov ecx, [ebp-0Ch]\"},{\"addr\":\"862d40\",\"instruction\":\"mov large fs:0, ecx\"},{\"addr\":\"862d47\",\"instruction\":\"pop ecx\"},{\"addr\":\"862d48\",\"instruction\":\"pop edi\"},{\"addr\":\"862d49\",\"instruction\":\"pop esi\"},{\"addr\":\"862d4a\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"862d4c\",\"instruction\":\"pop ebp\"},{\"addr\":\"862d4d\",\"instruction\":\"mov esp, ebx\"},{\"addr\":\"862d4f\",\"instruction\":\"pop ebx\"},{\"addr\":\"862d50\",\"instruction\":\"retn 8\"},{\"addr\":\"862d53\",\"instruction\":\"sub esp, 28h\",\"label\":\"loc_862D53\"},{\"addr\":\"862d56\",\"instruction\":\"mov ecx, esp\"},{\"addr\":\"862d58\",\"instruction\":\"push ecx\"},{\"addr\":\"862d59\",\"instruction\":\"push edi\"},{\"addr\":\"862d5a\",\"instruction\":\"call sub_85C080\",\"refs\":[{\"addr\":\"0x85c080\",\"name\":\"sub_85C080\"}]},{\"addr\":\"862d5f\",\"instruction\":\"call sub_8727D0\",\"refs\":[{\"addr\":\"0x8727d0\",\"name\":\"sub_8727D0\"}]}],\"stack_frame\":[{\"name\":\"var_C\",\"offset\":\"0x0\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_8\",\"offset\":\"0x4\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0xc\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"}],\"return_type\":\"int\",\"arguments\":[{\"name\":\"arg0\",\"type\":\"int\"},{\"name\":\"arg1\",\"type\":\"int\"},{\"name\":\"arg2\",\"type\":\"int *\"}]},\"instruction_count\":154,\"total_instructions\":154,\"cursor\":{\"done\":true}}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x862B80",
+        "asm": {
+          "name": "sub_862B80",
+          "start_ea": "0x862b80",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "862b80",
+              "instruction": "push ebx",
+              "label": "sub_862B80"
+            },
+            {
+              "addr": "862b81",
+              "instruction": "mov ebx, esp"
+            },
+            {
+              "addr": "862b83",
+              "instruction": "sub esp, 8"
+            },
+            {
+              "addr": "862b86",
+              "instruction": "and esp, 0FFFFFFF8h"
+            },
+            {
+              "addr": "862b89",
+              "instruction": "add esp, 4"
+            },
+            {
+              "addr": "862b8c",
+              "instruction": "push ebp"
+            },
+            {
+              "addr": "862b8d",
+              "instruction": "mov ebp, [ebx+4]"
+            },
+            {
+              "addr": "862b90",
+              "instruction": "mov [esp+0Ch+var_8], ebp"
+            },
+            {
+              "addr": "862b94",
+              "instruction": "mov ebp, esp"
+            },
+            {
+              "addr": "862b96",
+              "instruction": "push 0FFFFFFFFh"
+            },
+            {
+              "addr": "862b98",
+              "instruction": "push offset byte_B04040",
+              "refs": [
+                {
+                  "addr": "0xb04040",
+                  "name": "byte_B04040"
+                }
+              ]
+            },
+            {
+              "addr": "862b9d",
+              "instruction": "mov eax, large fs:0"
+            },
+            {
+              "addr": "862ba3",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "862ba4",
+              "instruction": "push ecx"
+            },
+            {
+              "addr": "862ba5",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "862ba6",
+              "instruction": "sub esp, 20h"
+            },
+            {
+              "addr": "862ba9",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "862baa",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862bab",
+              "instruction": "mov eax, ___security_cookie",
+              "refs": [
+                {
+                  "addr": "0xbf93b4",
+                  "name": "___security_cookie"
+                }
+              ]
+            },
+            {
+              "addr": "862bb0",
+              "instruction": "xor eax, ebp"
+            },
+            {
+              "addr": "862bb2",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "862bb3",
+              "instruction": "lea eax, [ebp-0Ch]"
+            },
+            {
+              "addr": "862bb6",
+              "instruction": "mov large fs:0, eax"
+            },
+            {
+              "addr": "862bbc",
+              "instruction": "mov [ebp-10h], esp"
+            },
+            {
+              "addr": "862bbf",
+              "instruction": "mov ecx, [ebx+8]"
+            },
+            {
+              "addr": "862bc2",
+              "instruction": "mov eax, dword_C71690",
+              "refs": [
+                {
+                  "addr": "0xc71690",
+                  "name": "dword_C71690"
+                }
+              ]
+            },
+            {
+              "addr": "862bc7",
+              "instruction": "mov esi, [ecx+2Ch]"
+            },
+            {
+              "addr": "862bca",
+              "instruction": "mov ecx, [eax+10h]"
+            },
+            {
+              "addr": "862bcd",
+              "instruction": "mov eax, [eax]"
+            },
+            {
+              "addr": "862bcf",
+              "instruction": "test dword ptr [eax+4], 200h"
+            },
+            {
+              "addr": "862bd6",
+              "instruction": "jz loc_862D3A",
+              "refs": [
+                {
+                  "addr": "0x862d3a",
+                  "name": "loc_862D3A"
+                }
+              ]
+            },
+            {
+              "addr": "862bdc",
+              "instruction": "mov eax, [ebx+0Ch]"
+            },
+            {
+              "addr": "862bdf",
+              "instruction": "mov dword ptr [ebp-4], 0"
+            },
+            {
+              "addr": "862be6",
+              "instruction": "mov edi, [ecx]"
+            },
+            {
+              "addr": "862be8",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862be9",
+              "instruction": "movss xmm0, dword ptr [eax]"
+            },
+            {
+              "addr": "862bed",
+              "instruction": "movss dword ptr [ebp-28h], xmm0"
+            },
+            {
+              "addr": "862bf2",
+              "instruction": "movss xmm0, dword ptr [eax+4]"
+            },
+            {
+              "addr": "862bf7",
+              "instruction": "movss dword ptr [ebp-2Ch], xmm0"
+            },
+            {
+              "addr": "862bfc",
+              "instruction": "mov [ebp-1Ch], edi"
+            },
+            {
+              "addr": "862bff",
+              "instruction": "call lua_rawgeti_",
+              "refs": [
+                {
+                  "addr": "0x6a80f0",
+                  "name": "lua_rawgeti_"
+                }
+              ]
+            },
+            {
+              "addr": "862c04",
+              "instruction": "mov edx, 29h ; ')'"
+            },
+            {
+              "addr": "862c09",
+              "instruction": "mov ecx, edi"
+            },
+            {
+              "addr": "862c0b",
+              "instruction": "call sub_85BFD0",
+              "refs": [
+                {
+                  "addr": "0x85bfd0",
+                  "name": "sub_85BFD0"
+                }
+              ]
+            },
+            {
+              "addr": "862c10",
+              "instruction": "mov edx, esi"
+            },
+            {
+              "addr": "862c12",
+              "instruction": "mov ecx, edi"
+            },
+            {
+              "addr": "862c14",
+              "instruction": "call sub_85BFD0",
+              "refs": [
+                {
+                  "addr": "0x85bfd0",
+                  "name": "sub_85BFD0"
+                }
+              ]
+            },
+            {
+              "addr": "862c19",
+              "instruction": "mov esi, ds:lua_newuserdata",
+              "refs": [
+                {
+                  "addr": "0xb1839c",
+                  "name": "lua_newuserdata"
+                }
+              ]
+            },
+            {
+              "addr": "862c1f",
+              "instruction": "push 8"
+            },
+            {
+              "addr": "862c21",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862c22",
+              "instruction": "call esi ; lua_newuserdata",
+              "refs": [
+                {
+                  "addr": "0xb1839c",
+                  "name": "lua_newuserdata"
+                }
+              ]
+            },
+            {
+              "addr": "862c24",
+              "instruction": "mov ecx, [ebx+8]"
+            },
+            {
+              "addr": "862c27",
+              "instruction": "push offset unk_C829C5",
+              "refs": [
+                {
+                  "addr": "0xc829c5",
+                  "name": "unk_C829C5"
+                }
+              ]
+            },
+            {
+              "addr": "862c2c",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "862c31",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862c32",
+              "instruction": "mov dword ptr [eax], offset ??_7UserdataPtr@luabridge@@6B@; const luabridge::UserdataPtr::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb753c8",
+                  "name": "??_7UserdataPtr@luabridge@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "862c38",
+              "instruction": "mov [eax+4], ecx"
+            },
+            {
+              "addr": "862c3b",
+              "instruction": "call ds:lua_rawgetp",
+              "refs": [
+                {
+                  "addr": "0xb183bc",
+                  "name": "lua_rawgetp"
+                }
+              ]
+            },
+            {
+              "addr": "862c41",
+              "instruction": "add esp, 14h"
+            },
+            {
+              "addr": "862c44",
+              "instruction": "push 0FFFFFFFEh"
+            },
+            {
+              "addr": "862c46",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862c47",
+              "instruction": "mov edi, ds:lua_setmetatable",
+              "refs": [
+                {
+                  "addr": "0xb18398",
+                  "name": "lua_setmetatable"
+                }
+              ]
+            },
+            {
+              "addr": "862c4d",
+              "instruction": "call edi ; lua_setmetatable",
+              "refs": [
+                {
+                  "addr": "0xb18398",
+                  "name": "lua_setmetatable"
+                }
+              ]
+            },
+            {
+              "addr": "862c4f",
+              "instruction": "push 10h"
+            },
+            {
+              "addr": "862c51",
+              "instruction": "push dword ptr [ebp-1Ch]"
+            },
+            {
+              "addr": "862c54",
+              "instruction": "call esi ; lua_newuserdata",
+              "refs": [
+                {
+                  "addr": "0xb1839c",
+                  "name": "lua_newuserdata"
+                }
+              ]
+            },
+            {
+              "addr": "862c56",
+              "instruction": "mov esi, eax"
+            },
+            {
+              "addr": "862c58",
+              "instruction": "push offset unk_C82980",
+              "refs": [
+                {
+                  "addr": "0xc82980",
+                  "name": "unk_C82980"
+                }
+              ]
+            },
+            {
+              "addr": "862c5d",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "862c62",
+              "instruction": "push dword ptr [ebp-1Ch]"
+            },
+            {
+              "addr": "862c65",
+              "instruction": "lea ecx, [esi+8]"
+            },
+            {
+              "addr": "862c68",
+              "instruction": "mov dword ptr [esi], offset ??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@; const luabridge::UserdataValue<KAGE::Math::Vector2>::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb73574",
+                  "name": "??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "862c6e",
+              "instruction": "mov [esi+4], ecx"
+            },
+            {
+              "addr": "862c71",
+              "instruction": "call ds:lua_rawgetp",
+              "refs": [
+                {
+                  "addr": "0xb183bc",
+                  "name": "lua_rawgetp"
+                }
+              ]
+            },
+            {
+              "addr": "862c77",
+              "instruction": "add esp, 1Ch"
+            },
+            {
+              "addr": "862c7a",
+              "instruction": "push 0FFFFFFFEh"
+            },
+            {
+              "addr": "862c7c",
+              "instruction": "push dword ptr [ebp-1Ch]"
+            },
+            {
+              "addr": "862c7f",
+              "instruction": "call edi ; lua_setmetatable",
+              "refs": [
+                {
+                  "addr": "0xb18398",
+                  "name": "lua_setmetatable"
+                }
+              ]
+            },
+            {
+              "addr": "862c81",
+              "instruction": "mov eax, [esi+4]"
+            },
+            {
+              "addr": "862c84",
+              "instruction": "movss xmm0, dword ptr [ebp-28h]"
+            },
+            {
+              "addr": "862c89",
+              "instruction": "mov edi, [ebp-1Ch]"
+            },
+            {
+              "addr": "862c8c",
+              "instruction": "push 0"
+            },
+            {
+              "addr": "862c8e",
+              "instruction": "push 0"
+            },
+            {
+              "addr": "862c90",
+              "instruction": "push 0"
+            },
+            {
+              "addr": "862c92",
+              "instruction": "push 1"
+            },
+            {
+              "addr": "862c94",
+              "instruction": "movss dword ptr [eax], xmm0"
+            },
+            {
+              "addr": "862c98",
+              "instruction": "movss xmm0, dword ptr [ebp-2Ch]"
+            },
+            {
+              "addr": "862c9d",
+              "instruction": "push 4"
+            },
+            {
+              "addr": "862c9f",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862ca0",
+              "instruction": "movss dword ptr [eax+4], xmm0"
+            },
+            {
+              "addr": "862ca5",
+              "instruction": "call ds:lua_pcallk",
+              "refs": [
+                {
+                  "addr": "0xb183d8",
+                  "name": "lua_pcallk"
+                }
+              ]
+            },
+            {
+              "addr": "862cab",
+              "instruction": "add esp, 20h"
+            },
+            {
+              "addr": "862cae",
+              "instruction": "test eax, eax"
+            },
+            {
+              "addr": "862cb0",
+              "instruction": "jnz loc_862D53",
+              "refs": [
+                {
+                  "addr": "0x862d53",
+                  "name": "loc_862D53"
+                }
+              ]
+            },
+            {
+              "addr": "862cb6",
+              "instruction": "jmp short loc_862D0A",
+              "refs": [
+                {
+                  "addr": "0x862d0a",
+                  "name": "loc_862D0A"
+                }
+              ]
+            },
+            {
+              "addr": "862cb8",
+              "instruction": "mov ebx, [ebp-14h]",
+              "label": "loc_862CB8"
+            },
+            {
+              "addr": "862cbb",
+              "instruction": "mov edi, [ebp-30h]"
+            },
+            {
+              "addr": "862cbe",
+              "instruction": "mov ecx, edi"
+            },
+            {
+              "addr": "862cc0",
+              "instruction": "mov eax, [edi]"
+            },
+            {
+              "addr": "862cc2",
+              "instruction": "mov eax, [eax+4]"
+            },
+            {
+              "addr": "862cc5",
+              "instruction": "call eax"
+            },
+            {
+              "addr": "862cc7",
+              "instruction": "push eax; ArgList",
+              "comments": [
+                "ArgList"
+              ]
+            },
+            {
+              "addr": "862cc8",
+              "instruction": "push offset aErrorInPosttea_1; \"Error in \\\"PostTearRender\\\" call: %s\\n\"",
+              "refs": [
+                {
+                  "addr": "0xb6f5a8",
+                  "name": "aErrorInPosttea_1",
+                  "string": "Error in \"PostTearRender\" call: %s\n"
+                }
+              ]
+            },
+            {
+              "addr": "862ccd",
+              "instruction": "push 1; int",
+              "comments": [
+                "int"
+              ]
+            },
+            {
+              "addr": "862ccf",
+              "instruction": "call sub_A112C0",
+              "refs": [
+                {
+                  "addr": "0xa112c0",
+                  "name": "sub_A112C0"
+                }
+              ]
+            },
+            {
+              "addr": "862cd4",
+              "instruction": "mov esi, n4_0",
+              "refs": [
+                {
+                  "addr": "0xc71678",
+                  "name": "n4_0"
+                }
+              ]
+            },
+            {
+              "addr": "862cda",
+              "instruction": "add esp, 0Ch"
+            },
+            {
+              "addr": "862cdd",
+              "instruction": "test esi, esi"
+            },
+            {
+              "addr": "862cdf",
+              "instruction": "jz short loc_862D04",
+              "refs": [
+                {
+                  "addr": "0x862d04",
+                  "name": "loc_862D04"
+                }
+              ]
+            },
+            {
+              "addr": "862ce1",
+              "instruction": "mov eax, [edi]"
+            },
+            {
+              "addr": "862ce3",
+              "instruction": "mov ecx, edi"
+            },
+            {
+              "addr": "862ce5",
+              "instruction": "add esi, 68D78h"
+            },
+            {
+              "addr": "862ceb",
+              "instruction": "mov eax, [eax+4]"
+            },
+            {
+              "addr": "862cee",
+              "instruction": "call eax"
+            },
+            {
+              "addr": "862cf0",
+              "instruction": "push eax; ArgList",
+              "comments": [
+                "ArgList"
+              ]
+            },
+            {
+              "addr": "862cf1",
+              "instruction": "push offset aPosttearrender; \"\\\"PostTearRender\\\" failed: %s\\n\"",
+              "refs": [
+                {
+                  "addr": "0xb6f5cc",
+                  "name": "aPosttearrender",
+                  "string": "\"PostTearRender\" failed: %s\n"
+                }
+              ]
+            },
+            {
+              "addr": "862cf6",
+              "instruction": "push 0FFF08080h; int",
+              "comments": [
+                "int"
+              ]
+            },
+            {
+              "addr": "862cfb",
+              "instruction": "push esi; int",
+              "comments": [
+                "int"
+              ]
+            },
+            {
+              "addr": "862cfc",
+              "instruction": "call sub_693180",
+              "refs": [
+                {
+                  "addr": "0x693180",
+                  "name": "sub_693180"
+                }
+              ]
+            },
+            {
+              "addr": "862d01",
+              "instruction": "add esp, 10h"
+            },
+            {
+              "addr": "862d04",
+              "instruction": "mov eax, offset loc_862D3A",
+              "label": "loc_862D04",
+              "refs": [
+                {
+                  "addr": "0x862d3a",
+                  "name": "loc_862D3A"
+                }
+              ]
+            },
+            {
+              "addr": "862d09",
+              "instruction": "retn"
+            },
+            {
+              "addr": "862d0a",
+              "instruction": "push 0FFFFFFFFh",
+              "label": "loc_862D0A"
+            },
+            {
+              "addr": "862d0c",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862d0d",
+              "instruction": "call ds:lua_pushvalue",
+              "refs": [
+                {
+                  "addr": "0xb183c8",
+                  "name": "lua_pushvalue"
+                }
+              ]
+            },
+            {
+              "addr": "862d13",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "862d18",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862d19",
+              "instruction": "call ds:luaL_ref",
+              "refs": [
+                {
+                  "addr": "0xb18314",
+                  "name": "luaL_ref"
+                }
+              ]
+            },
+            {
+              "addr": "862d1f",
+              "instruction": "push 0FFFFFFFEh"
+            },
+            {
+              "addr": "862d21",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862d22",
+              "instruction": "mov esi, eax"
+            },
+            {
+              "addr": "862d24",
+              "instruction": "call ds:lua_settop",
+              "refs": [
+                {
+                  "addr": "0xb18328",
+                  "name": "lua_settop"
+                }
+              ]
+            },
+            {
+              "addr": "862d2a",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "862d2b",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "862d30",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862d31",
+              "instruction": "call ds:luaL_unref",
+              "refs": [
+                {
+                  "addr": "0xb1831c",
+                  "name": "luaL_unref"
+                }
+              ]
+            },
+            {
+              "addr": "862d37",
+              "instruction": "add esp, 24h"
+            },
+            {
+              "addr": "862d3a",
+              "instruction": "mov ebx, [ebp-14h]",
+              "label": "loc_862D3A"
+            },
+            {
+              "addr": "862d3d",
+              "instruction": "mov ecx, [ebp-0Ch]"
+            },
+            {
+              "addr": "862d40",
+              "instruction": "mov large fs:0, ecx"
+            },
+            {
+              "addr": "862d47",
+              "instruction": "pop ecx"
+            },
+            {
+              "addr": "862d48",
+              "instruction": "pop edi"
+            },
+            {
+              "addr": "862d49",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "862d4a",
+              "instruction": "mov esp, ebp"
+            },
+            {
+              "addr": "862d4c",
+              "instruction": "pop ebp"
+            },
+            {
+              "addr": "862d4d",
+              "instruction": "mov esp, ebx"
+            },
+            {
+              "addr": "862d4f",
+              "instruction": "pop ebx"
+            },
+            {
+              "addr": "862d50",
+              "instruction": "retn 8"
+            },
+            {
+              "addr": "862d53",
+              "instruction": "sub esp, 28h",
+              "label": "loc_862D53"
+            },
+            {
+              "addr": "862d56",
+              "instruction": "mov ecx, esp"
+            },
+            {
+              "addr": "862d58",
+              "instruction": "push ecx"
+            },
+            {
+              "addr": "862d59",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "862d5a",
+              "instruction": "call sub_85C080",
+              "refs": [
+                {
+                  "addr": "0x85c080",
+                  "name": "sub_85C080"
+                }
+              ]
+            },
+            {
+              "addr": "862d5f",
+              "instruction": "call sub_8727D0",
+              "refs": [
+                {
+                  "addr": "0x8727d0",
+                  "name": "sub_8727D0"
+                }
+              ]
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "var_C",
+              "offset": "0x0",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_8",
+              "offset": "0x4",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__return_address",
+              "offset": "0xc",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            }
+          ],
+          "return_type": "int",
+          "arguments": [
+            {
+              "name": "arg0",
+              "type": "int"
+            },
+            {
+              "name": "arg1",
+              "type": "int"
+            },
+            {
+              "name": "arg2",
+              "type": "int *"
+            }
+          ]
+        },
+        "instruction_count": 154,
+        "total_instructions": 154,
+        "cursor": {
+          "done": true
+        }
+      },
+      "isError": false
+    },
+    "0x872B10": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x872B10\",\"asm\":{\"name\":\"sub_872B10\",\"start_ea\":\"0x872b10\",\"segment\":\".text\",\"lines\":[{\"addr\":\"872b10\",\"instruction\":\"push ebp\",\"label\":\"sub_872B10\"},{\"addr\":\"872b11\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"872b13\",\"instruction\":\"and esp, 0FFFFFFF8h\"},{\"addr\":\"872b16\",\"instruction\":\"sub esp, 0Ch\"},{\"addr\":\"872b19\",\"instruction\":\"push ebx\"},{\"addr\":\"872b1a\",\"instruction\":\"push esi\"},{\"addr\":\"872b1b\",\"instruction\":\"push edi\"},{\"addr\":\"872b1c\",\"instruction\":\"mov edi, ecx\"},{\"addr\":\"872b1e\",\"instruction\":\"mov eax, [edi]\"},{\"addr\":\"872b20\",\"instruction\":\"mov ebx, [eax]\"},{\"addr\":\"872b22\",\"instruction\":\"mov eax, [eax+4]\"},{\"addr\":\"872b25\",\"instruction\":\"cdq\"},{\"addr\":\"872b26\",\"instruction\":\"push edx\"},{\"addr\":\"872b27\",\"instruction\":\"push eax\"},{\"addr\":\"872b28\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"872b2d\",\"instruction\":\"push ebx\"},{\"addr\":\"872b2e\",\"instruction\":\"call ds:lua_rawgeti\",\"refs\":[{\"addr\":\"0xb18318\",\"name\":\"lua_rawgeti\"}]},{\"addr\":\"872b34\",\"instruction\":\"mov eax, [edi+4]\"},{\"addr\":\"872b37\",\"instruction\":\"mov esi, ds:lua_pushinteger\",\"refs\":[{\"addr\":\"0xb183f8\",\"name\":\"lua_pushinteger\"}]},{\"addr\":\"872b3d\",\"instruction\":\"cdq\"},{\"addr\":\"872b3e\",\"instruction\":\"push edx\"},{\"addr\":\"872b3f\",\"instruction\":\"push eax\"},{\"addr\":\"872b40\",\"instruction\":\"push ebx\"},{\"addr\":\"872b41\",\"instruction\":\"call esi ; lua_pushinteger\",\"refs\":[{\"addr\":\"0xb183f8\",\"name\":\"lua_pushinteger\"}]},{\"addr\":\"872b43\",\"instruction\":\"mov eax, [edi+8]\"},{\"addr\":\"872b46\",\"instruction\":\"add esp, 1Ch\"},{\"addr\":\"872b49\",\"instruction\":\"cdq\"},{\"addr\":\"872b4a\",\"instruction\":\"push edx\"},{\"addr\":\"872b4b\",\"instruction\":\"push eax\"},{\"addr\":\"872b4c\",\"instruction\":\"push ebx\"},{\"addr\":\"872b4d\",\"instruction\":\"call esi ; lua_pushinteger\",\"refs\":[{\"addr\":\"0xb183f8\",\"name\":\"lua_pushinteger\"}]},{\"addr\":\"872b4f\",\"instruction\":\"mov esi, ds:lua_newuserdata\",\"refs\":[{\"addr\":\"0xb1839c\",\"name\":\"lua_newuserdata\"}]},{\"addr\":\"872b55\",\"instruction\":\"add esp, 0Ch\"},{\"addr\":\"872b58\",\"instruction\":\"cmp [ebp+arg_8], 0\"},{\"addr\":\"872b5c\",\"instruction\":\"mov edi, ds:lua_rawgetp\",\"refs\":[{\"addr\":\"0xb183bc\",\"name\":\"lua_rawgetp\"}]},{\"addr\":\"872b62\",\"instruction\":\"jz short loc_872B93\",\"refs\":[{\"addr\":\"0x872b93\",\"name\":\"loc_872B93\"}]},{\"addr\":\"872b64\",\"instruction\":\"push 8\"},{\"addr\":\"872b66\",\"instruction\":\"push ebx\"},{\"addr\":\"872b67\",\"instruction\":\"call esi ; lua_newuserdata\",\"refs\":[{\"addr\":\"0xb1839c\",\"name\":\"lua_newuserdata\"}]},{\"addr\":\"872b69\",\"instruction\":\"mov ecx, [ebp+arg_8]\"},{\"addr\":\"872b6c\",\"instruction\":\"push offset unk_C829D7\",\"refs\":[{\"addr\":\"0xc829d7\",\"name\":\"unk_C829D7\"}]},{\"addr\":\"872b71\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"872b76\",\"instruction\":\"push ebx\"},{\"addr\":\"872b77\",\"instruction\":\"mov dword ptr [eax], offset ??_7UserdataPtr@luabridge@@6B@; const luabridge::UserdataPtr::`vftable'\",\"refs\":[{\"addr\":\"0xb753c8\",\"name\":\"??_7UserdataPtr@luabridge@@6B@\"}]},{\"addr\":\"872b7d\",\"instruction\":\"mov [eax+4], ecx\"},{\"addr\":\"872b80\",\"instruction\":\"call edi ; lua_rawgetp\",\"refs\":[{\"addr\":\"0xb183bc\",\"name\":\"lua_rawgetp\"}]},{\"addr\":\"872b82\",\"instruction\":\"add esp, 14h\"},{\"addr\":\"872b85\",\"instruction\":\"push 0FFFFFFFEh\"},{\"addr\":\"872b87\",\"instruction\":\"push ebx\"},{\"addr\":\"872b88\",\"instruction\":\"call ds:lua_setmetatable\",\"refs\":[{\"addr\":\"0xb18398\",\"name\":\"lua_setmetatable\"}]},{\"addr\":\"872b8e\",\"instruction\":\"add esp, 8\"},{\"addr\":\"872b91\",\"instruction\":\"jmp short loc_872B9D\",\"refs\":[{\"addr\":\"0x872b9d\",\"name\":\"loc_872B9D\"}]},{\"addr\":\"872b93\",\"instruction\":\"push ebx\",\"label\":\"loc_872B93\"},{\"addr\":\"872b94\",\"instruction\":\"call ds:lua_pushnil\",\"refs\":[{\"addr\":\"0xb183e0\",\"name\":\"lua_pushnil\"}]},{\"addr\":\"872b9a\",\"instruction\":\"add esp, 4\"},{\"addr\":\"872b9d\",\"instruction\":\"movss xmm0, [ebp+arg_C]\",\"label\":\"loc_872B9D\"},{\"addr\":\"872ba2\",\"instruction\":\"movss [esp+18h+var_8], xmm0\"},{\"addr\":\"872ba8\",\"instruction\":\"movss xmm0, [ebp+arg_10]\"},{\"addr\":\"872bad\",\"instruction\":\"push 10h\"},{\"addr\":\"872baf\",\"instruction\":\"push ebx\"},{\"addr\":\"872bb0\",\"instruction\":\"movss [esp+20h+var_4], xmm0\"},{\"addr\":\"872bb6\",\"instruction\":\"call esi ; lua_newuserdata\",\"refs\":[{\"addr\":\"0xb1839c\",\"name\":\"lua_newuserdata\"}]},{\"addr\":\"872bb8\",\"instruction\":\"mov esi, eax\"},{\"addr\":\"872bba\",\"instruction\":\"push offset unk_C82980\",\"refs\":[{\"addr\":\"0xc82980\",\"name\":\"unk_C82980\"}]},{\"addr\":\"872bbf\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"872bc4\",\"instruction\":\"push ebx\"},{\"addr\":\"872bc5\",\"instruction\":\"lea ecx, [esi+8]\"},{\"addr\":\"872bc8\",\"instruction\":\"mov dword ptr [esi], offset ??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@; const luabridge::UserdataValue<KAGE::Math::Vector2>::`vftable'\",\"refs\":[{\"addr\":\"0xb73574\",\"name\":\"??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@\"}]},{\"addr\":\"872bce\",\"instruction\":\"mov [esi+4], ecx\"},{\"addr\":\"872bd1\",\"instruction\":\"call edi ; lua_rawgetp\",\"refs\":[{\"addr\":\"0xb183bc\",\"name\":\"lua_rawgetp\"}]},{\"addr\":\"872bd3\",\"instruction\":\"add esp, 14h\"},{\"addr\":\"872bd6\",\"instruction\":\"push 0FFFFFFFEh\"},{\"addr\":\"872bd8\",\"instruction\":\"push ebx\"},{\"addr\":\"872bd9\",\"instruction\":\"call ds:lua_setmetatable\",\"refs\":[{\"addr\":\"0xb18398\",\"name\":\"lua_setmetatable\"}]},{\"addr\":\"872bdf\",\"instruction\":\"mov eax, [esi+4]\"},{\"addr\":\"872be2\",\"instruction\":\"movss xmm0, [esp+20h+var_8]\"},{\"addr\":\"872be8\",\"instruction\":\"push 0\"},{\"addr\":\"872bea\",\"instruction\":\"push 0\"},{\"addr\":\"872bec\",\"instruction\":\"push 0\"},{\"addr\":\"872bee\",\"instruction\":\"push 1\"},{\"addr\":\"872bf0\",\"instruction\":\"movss dword ptr [eax], xmm0\"},{\"addr\":\"872bf4\",\"instruction\":\"movss xmm0, [esp+30h+var_4]\"},{\"addr\":\"872bfa\",\"instruction\":\"push 4\"},{\"addr\":\"872bfc\",\"instruction\":\"push ebx\"},{\"addr\":\"872bfd\",\"instruction\":\"movss dword ptr [eax+4], xmm0\"},{\"addr\":\"872c02\",\"instruction\":\"call ds:lua_pcallk\",\"refs\":[{\"addr\":\"0xb183d8\",\"name\":\"lua_pcallk\"}]},{\"addr\":\"872c08\",\"instruction\":\"add esp, 20h\"},{\"addr\":\"872c0b\",\"instruction\":\"test eax, eax\"},{\"addr\":\"872c0d\",\"instruction\":\"jnz short loc_872C43\",\"refs\":[{\"addr\":\"0x872c43\",\"name\":\"loc_872C43\"}]},{\"addr\":\"872c0f\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"872c11\",\"instruction\":\"push ebx\"},{\"addr\":\"872c12\",\"instruction\":\"call ds:lua_pushvalue\",\"refs\":[{\"addr\":\"0xb183c8\",\"name\":\"lua_pushvalue\"}]},{\"addr\":\"872c18\",\"instruction\":\"mov esi, [ebp+arg_0]\"},{\"addr\":\"872c1b\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"872c20\",\"instruction\":\"push ebx\"},{\"addr\":\"872c21\",\"instruction\":\"mov [esi], ebx\"},{\"addr\":\"872c23\",\"instruction\":\"call ds:luaL_ref\",\"refs\":[{\"addr\":\"0xb18314\",\"name\":\"luaL_ref\"}]},{\"addr\":\"872c29\",\"instruction\":\"push 0FFFFFFFEh\"},{\"addr\":\"872c2b\",\"instruction\":\"push ebx\"},{\"addr\":\"872c2c\",\"instruction\":\"mov [esi+4], eax\"},{\"addr\":\"872c2f\",\"instruction\":\"call ds:lua_settop\",\"refs\":[{\"addr\":\"0xb18328\",\"name\":\"lua_settop\"}]},{\"addr\":\"872c35\",\"instruction\":\"add esp, 18h\"},{\"addr\":\"872c38\",\"instruction\":\"mov eax, esi\"},{\"addr\":\"872c3a\",\"instruction\":\"pop edi\"},{\"addr\":\"872c3b\",\"instruction\":\"pop esi\"},{\"addr\":\"872c3c\",\"instruction\":\"pop ebx\"},{\"addr\":\"872c3d\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"872c3f\",\"instruction\":\"pop ebp\"},{\"addr\":\"872c40\",\"instruction\":\"retn 14h\"},{\"addr\":\"872c43\",\"instruction\":\"sub esp, 28h\",\"label\":\"loc_872C43\"},{\"addr\":\"872c46\",\"instruction\":\"mov ecx, esp\"},{\"addr\":\"872c48\",\"instruction\":\"push ecx\"},{\"addr\":\"872c49\",\"instruction\":\"push ebx\"},{\"addr\":\"872c4a\",\"instruction\":\"call sub_85C080\",\"refs\":[{\"addr\":\"0x85c080\",\"name\":\"sub_85C080\"}]},{\"addr\":\"872c4f\",\"instruction\":\"call sub_8727D0\",\"refs\":[{\"addr\":\"0x8727d0\",\"name\":\"sub_8727D0\"}]}],\"stack_frame\":[{\"name\":\"var_8\",\"offset\":\"0x10\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_4\",\"offset\":\"0x14\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__saved_registers\",\"offset\":\"0x18\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x1c\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"},{\"name\":\"arg_0\",\"offset\":\"0x20\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"arg_8\",\"offset\":\"0x28\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"arg_C\",\"offset\":\"0x2c\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"arg_10\",\"offset\":\"0x30\",\"size\":\"0x4\",\"type\":\"_DWORD\"}],\"return_type\":\"int *\",\"arguments\":[{\"name\":\"this\",\"type\":\"int **\"},{\"name\":\"arg1\",\"type\":\"int *\"},{\"name\":\"arg2\",\"type\":\"int\"},{\"name\":\"arg3\",\"type\":\"int\"},{\"name\":\"arg4\",\"type\":\"int\"},{\"name\":\"arg5\",\"type\":\"int\"}]},\"instruction_count\":115,\"total_instructions\":115,\"cursor\":{\"done\":true}}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x872B10",
+        "asm": {
+          "name": "sub_872B10",
+          "start_ea": "0x872b10",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "872b10",
+              "instruction": "push ebp",
+              "label": "sub_872B10"
+            },
+            {
+              "addr": "872b11",
+              "instruction": "mov ebp, esp"
+            },
+            {
+              "addr": "872b13",
+              "instruction": "and esp, 0FFFFFFF8h"
+            },
+            {
+              "addr": "872b16",
+              "instruction": "sub esp, 0Ch"
+            },
+            {
+              "addr": "872b19",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872b1a",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "872b1b",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "872b1c",
+              "instruction": "mov edi, ecx"
+            },
+            {
+              "addr": "872b1e",
+              "instruction": "mov eax, [edi]"
+            },
+            {
+              "addr": "872b20",
+              "instruction": "mov ebx, [eax]"
+            },
+            {
+              "addr": "872b22",
+              "instruction": "mov eax, [eax+4]"
+            },
+            {
+              "addr": "872b25",
+              "instruction": "cdq"
+            },
+            {
+              "addr": "872b26",
+              "instruction": "push edx"
+            },
+            {
+              "addr": "872b27",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "872b28",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "872b2d",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872b2e",
+              "instruction": "call ds:lua_rawgeti",
+              "refs": [
+                {
+                  "addr": "0xb18318",
+                  "name": "lua_rawgeti"
+                }
+              ]
+            },
+            {
+              "addr": "872b34",
+              "instruction": "mov eax, [edi+4]"
+            },
+            {
+              "addr": "872b37",
+              "instruction": "mov esi, ds:lua_pushinteger",
+              "refs": [
+                {
+                  "addr": "0xb183f8",
+                  "name": "lua_pushinteger"
+                }
+              ]
+            },
+            {
+              "addr": "872b3d",
+              "instruction": "cdq"
+            },
+            {
+              "addr": "872b3e",
+              "instruction": "push edx"
+            },
+            {
+              "addr": "872b3f",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "872b40",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872b41",
+              "instruction": "call esi ; lua_pushinteger",
+              "refs": [
+                {
+                  "addr": "0xb183f8",
+                  "name": "lua_pushinteger"
+                }
+              ]
+            },
+            {
+              "addr": "872b43",
+              "instruction": "mov eax, [edi+8]"
+            },
+            {
+              "addr": "872b46",
+              "instruction": "add esp, 1Ch"
+            },
+            {
+              "addr": "872b49",
+              "instruction": "cdq"
+            },
+            {
+              "addr": "872b4a",
+              "instruction": "push edx"
+            },
+            {
+              "addr": "872b4b",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "872b4c",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872b4d",
+              "instruction": "call esi ; lua_pushinteger",
+              "refs": [
+                {
+                  "addr": "0xb183f8",
+                  "name": "lua_pushinteger"
+                }
+              ]
+            },
+            {
+              "addr": "872b4f",
+              "instruction": "mov esi, ds:lua_newuserdata",
+              "refs": [
+                {
+                  "addr": "0xb1839c",
+                  "name": "lua_newuserdata"
+                }
+              ]
+            },
+            {
+              "addr": "872b55",
+              "instruction": "add esp, 0Ch"
+            },
+            {
+              "addr": "872b58",
+              "instruction": "cmp [ebp+arg_8], 0"
+            },
+            {
+              "addr": "872b5c",
+              "instruction": "mov edi, ds:lua_rawgetp",
+              "refs": [
+                {
+                  "addr": "0xb183bc",
+                  "name": "lua_rawgetp"
+                }
+              ]
+            },
+            {
+              "addr": "872b62",
+              "instruction": "jz short loc_872B93",
+              "refs": [
+                {
+                  "addr": "0x872b93",
+                  "name": "loc_872B93"
+                }
+              ]
+            },
+            {
+              "addr": "872b64",
+              "instruction": "push 8"
+            },
+            {
+              "addr": "872b66",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872b67",
+              "instruction": "call esi ; lua_newuserdata",
+              "refs": [
+                {
+                  "addr": "0xb1839c",
+                  "name": "lua_newuserdata"
+                }
+              ]
+            },
+            {
+              "addr": "872b69",
+              "instruction": "mov ecx, [ebp+arg_8]"
+            },
+            {
+              "addr": "872b6c",
+              "instruction": "push offset unk_C829D7",
+              "refs": [
+                {
+                  "addr": "0xc829d7",
+                  "name": "unk_C829D7"
+                }
+              ]
+            },
+            {
+              "addr": "872b71",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "872b76",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872b77",
+              "instruction": "mov dword ptr [eax], offset ??_7UserdataPtr@luabridge@@6B@; const luabridge::UserdataPtr::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb753c8",
+                  "name": "??_7UserdataPtr@luabridge@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "872b7d",
+              "instruction": "mov [eax+4], ecx"
+            },
+            {
+              "addr": "872b80",
+              "instruction": "call edi ; lua_rawgetp",
+              "refs": [
+                {
+                  "addr": "0xb183bc",
+                  "name": "lua_rawgetp"
+                }
+              ]
+            },
+            {
+              "addr": "872b82",
+              "instruction": "add esp, 14h"
+            },
+            {
+              "addr": "872b85",
+              "instruction": "push 0FFFFFFFEh"
+            },
+            {
+              "addr": "872b87",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872b88",
+              "instruction": "call ds:lua_setmetatable",
+              "refs": [
+                {
+                  "addr": "0xb18398",
+                  "name": "lua_setmetatable"
+                }
+              ]
+            },
+            {
+              "addr": "872b8e",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "872b91",
+              "instruction": "jmp short loc_872B9D",
+              "refs": [
+                {
+                  "addr": "0x872b9d",
+                  "name": "loc_872B9D"
+                }
+              ]
+            },
+            {
+              "addr": "872b93",
+              "instruction": "push ebx",
+              "label": "loc_872B93"
+            },
+            {
+              "addr": "872b94",
+              "instruction": "call ds:lua_pushnil",
+              "refs": [
+                {
+                  "addr": "0xb183e0",
+                  "name": "lua_pushnil"
+                }
+              ]
+            },
+            {
+              "addr": "872b9a",
+              "instruction": "add esp, 4"
+            },
+            {
+              "addr": "872b9d",
+              "instruction": "movss xmm0, [ebp+arg_C]",
+              "label": "loc_872B9D"
+            },
+            {
+              "addr": "872ba2",
+              "instruction": "movss [esp+18h+var_8], xmm0"
+            },
+            {
+              "addr": "872ba8",
+              "instruction": "movss xmm0, [ebp+arg_10]"
+            },
+            {
+              "addr": "872bad",
+              "instruction": "push 10h"
+            },
+            {
+              "addr": "872baf",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872bb0",
+              "instruction": "movss [esp+20h+var_4], xmm0"
+            },
+            {
+              "addr": "872bb6",
+              "instruction": "call esi ; lua_newuserdata",
+              "refs": [
+                {
+                  "addr": "0xb1839c",
+                  "name": "lua_newuserdata"
+                }
+              ]
+            },
+            {
+              "addr": "872bb8",
+              "instruction": "mov esi, eax"
+            },
+            {
+              "addr": "872bba",
+              "instruction": "push offset unk_C82980",
+              "refs": [
+                {
+                  "addr": "0xc82980",
+                  "name": "unk_C82980"
+                }
+              ]
+            },
+            {
+              "addr": "872bbf",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "872bc4",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872bc5",
+              "instruction": "lea ecx, [esi+8]"
+            },
+            {
+              "addr": "872bc8",
+              "instruction": "mov dword ptr [esi], offset ??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@; const luabridge::UserdataValue<KAGE::Math::Vector2>::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb73574",
+                  "name": "??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "872bce",
+              "instruction": "mov [esi+4], ecx"
+            },
+            {
+              "addr": "872bd1",
+              "instruction": "call edi ; lua_rawgetp",
+              "refs": [
+                {
+                  "addr": "0xb183bc",
+                  "name": "lua_rawgetp"
+                }
+              ]
+            },
+            {
+              "addr": "872bd3",
+              "instruction": "add esp, 14h"
+            },
+            {
+              "addr": "872bd6",
+              "instruction": "push 0FFFFFFFEh"
+            },
+            {
+              "addr": "872bd8",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872bd9",
+              "instruction": "call ds:lua_setmetatable",
+              "refs": [
+                {
+                  "addr": "0xb18398",
+                  "name": "lua_setmetatable"
+                }
+              ]
+            },
+            {
+              "addr": "872bdf",
+              "instruction": "mov eax, [esi+4]"
+            },
+            {
+              "addr": "872be2",
+              "instruction": "movss xmm0, [esp+20h+var_8]"
+            },
+            {
+              "addr": "872be8",
+              "instruction": "push 0"
+            },
+            {
+              "addr": "872bea",
+              "instruction": "push 0"
+            },
+            {
+              "addr": "872bec",
+              "instruction": "push 0"
+            },
+            {
+              "addr": "872bee",
+              "instruction": "push 1"
+            },
+            {
+              "addr": "872bf0",
+              "instruction": "movss dword ptr [eax], xmm0"
+            },
+            {
+              "addr": "872bf4",
+              "instruction": "movss xmm0, [esp+30h+var_4]"
+            },
+            {
+              "addr": "872bfa",
+              "instruction": "push 4"
+            },
+            {
+              "addr": "872bfc",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872bfd",
+              "instruction": "movss dword ptr [eax+4], xmm0"
+            },
+            {
+              "addr": "872c02",
+              "instruction": "call ds:lua_pcallk",
+              "refs": [
+                {
+                  "addr": "0xb183d8",
+                  "name": "lua_pcallk"
+                }
+              ]
+            },
+            {
+              "addr": "872c08",
+              "instruction": "add esp, 20h"
+            },
+            {
+              "addr": "872c0b",
+              "instruction": "test eax, eax"
+            },
+            {
+              "addr": "872c0d",
+              "instruction": "jnz short loc_872C43",
+              "refs": [
+                {
+                  "addr": "0x872c43",
+                  "name": "loc_872C43"
+                }
+              ]
+            },
+            {
+              "addr": "872c0f",
+              "instruction": "push 0FFFFFFFFh"
+            },
+            {
+              "addr": "872c11",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872c12",
+              "instruction": "call ds:lua_pushvalue",
+              "refs": [
+                {
+                  "addr": "0xb183c8",
+                  "name": "lua_pushvalue"
+                }
+              ]
+            },
+            {
+              "addr": "872c18",
+              "instruction": "mov esi, [ebp+arg_0]"
+            },
+            {
+              "addr": "872c1b",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "872c20",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872c21",
+              "instruction": "mov [esi], ebx"
+            },
+            {
+              "addr": "872c23",
+              "instruction": "call ds:luaL_ref",
+              "refs": [
+                {
+                  "addr": "0xb18314",
+                  "name": "luaL_ref"
+                }
+              ]
+            },
+            {
+              "addr": "872c29",
+              "instruction": "push 0FFFFFFFEh"
+            },
+            {
+              "addr": "872c2b",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872c2c",
+              "instruction": "mov [esi+4], eax"
+            },
+            {
+              "addr": "872c2f",
+              "instruction": "call ds:lua_settop",
+              "refs": [
+                {
+                  "addr": "0xb18328",
+                  "name": "lua_settop"
+                }
+              ]
+            },
+            {
+              "addr": "872c35",
+              "instruction": "add esp, 18h"
+            },
+            {
+              "addr": "872c38",
+              "instruction": "mov eax, esi"
+            },
+            {
+              "addr": "872c3a",
+              "instruction": "pop edi"
+            },
+            {
+              "addr": "872c3b",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "872c3c",
+              "instruction": "pop ebx"
+            },
+            {
+              "addr": "872c3d",
+              "instruction": "mov esp, ebp"
+            },
+            {
+              "addr": "872c3f",
+              "instruction": "pop ebp"
+            },
+            {
+              "addr": "872c40",
+              "instruction": "retn 14h"
+            },
+            {
+              "addr": "872c43",
+              "instruction": "sub esp, 28h",
+              "label": "loc_872C43"
+            },
+            {
+              "addr": "872c46",
+              "instruction": "mov ecx, esp"
+            },
+            {
+              "addr": "872c48",
+              "instruction": "push ecx"
+            },
+            {
+              "addr": "872c49",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "872c4a",
+              "instruction": "call sub_85C080",
+              "refs": [
+                {
+                  "addr": "0x85c080",
+                  "name": "sub_85C080"
+                }
+              ]
+            },
+            {
+              "addr": "872c4f",
+              "instruction": "call sub_8727D0",
+              "refs": [
+                {
+                  "addr": "0x8727d0",
+                  "name": "sub_8727D0"
+                }
+              ]
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "var_8",
+              "offset": "0x10",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_4",
+              "offset": "0x14",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__saved_registers",
+              "offset": "0x18",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__return_address",
+              "offset": "0x1c",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            },
+            {
+              "name": "arg_0",
+              "offset": "0x20",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "arg_8",
+              "offset": "0x28",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "arg_C",
+              "offset": "0x2c",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "arg_10",
+              "offset": "0x30",
+              "size": "0x4",
+              "type": "_DWORD"
+            }
+          ],
+          "return_type": "int *",
+          "arguments": [
+            {
+              "name": "this",
+              "type": "int **"
+            },
+            {
+              "name": "arg1",
+              "type": "int *"
+            },
+            {
+              "name": "arg2",
+              "type": "int"
+            },
+            {
+              "name": "arg3",
+              "type": "int"
+            },
+            {
+              "name": "arg4",
+              "type": "int"
+            },
+            {
+              "name": "arg5",
+              "type": "int"
+            }
+          ]
+        },
+        "instruction_count": 115,
+        "total_instructions": 115,
+        "cursor": {
+          "done": true
+        }
+      },
+      "isError": false
+    },
+    "0x873740": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"addr\":\"0x873740\",\"asm\":{\"name\":\"sub_873740\",\"start_ea\":\"0x873740\",\"segment\":\".text\",\"lines\":[{\"addr\":\"873740\",\"instruction\":\"push ebp\",\"label\":\"sub_873740\"},{\"addr\":\"873741\",\"instruction\":\"mov ebp, esp\"},{\"addr\":\"873743\",\"instruction\":\"and esp, 0FFFFFFF8h\"},{\"addr\":\"873746\",\"instruction\":\"sub esp, 0Ch\"},{\"addr\":\"873749\",\"instruction\":\"push ebx\"},{\"addr\":\"87374a\",\"instruction\":\"push esi\"},{\"addr\":\"87374b\",\"instruction\":\"push edi\"},{\"addr\":\"87374c\",\"instruction\":\"mov edi, ecx\"},{\"addr\":\"87374e\",\"instruction\":\"mov eax, [edi]\"},{\"addr\":\"873750\",\"instruction\":\"mov ebx, [eax]\"},{\"addr\":\"873752\",\"instruction\":\"mov eax, [eax+4]\"},{\"addr\":\"873755\",\"instruction\":\"cdq\"},{\"addr\":\"873756\",\"instruction\":\"push edx\"},{\"addr\":\"873757\",\"instruction\":\"push eax\"},{\"addr\":\"873758\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"87375d\",\"instruction\":\"push ebx\"},{\"addr\":\"87375e\",\"instruction\":\"call ds:lua_rawgeti\",\"refs\":[{\"addr\":\"0xb18318\",\"name\":\"lua_rawgeti\"}]},{\"addr\":\"873764\",\"instruction\":\"mov eax, [edi+4]\"},{\"addr\":\"873767\",\"instruction\":\"mov esi, ds:lua_pushinteger\",\"refs\":[{\"addr\":\"0xb183f8\",\"name\":\"lua_pushinteger\"}]},{\"addr\":\"87376d\",\"instruction\":\"cdq\"},{\"addr\":\"87376e\",\"instruction\":\"push edx\"},{\"addr\":\"87376f\",\"instruction\":\"push eax\"},{\"addr\":\"873770\",\"instruction\":\"push ebx\"},{\"addr\":\"873771\",\"instruction\":\"call esi ; lua_pushinteger\",\"refs\":[{\"addr\":\"0xb183f8\",\"name\":\"lua_pushinteger\"}]},{\"addr\":\"873773\",\"instruction\":\"mov eax, [edi+8]\"},{\"addr\":\"873776\",\"instruction\":\"add esp, 1Ch\"},{\"addr\":\"873779\",\"instruction\":\"cdq\"},{\"addr\":\"87377a\",\"instruction\":\"push edx\"},{\"addr\":\"87377b\",\"instruction\":\"push eax\"},{\"addr\":\"87377c\",\"instruction\":\"push ebx\"},{\"addr\":\"87377d\",\"instruction\":\"call esi ; lua_pushinteger\",\"refs\":[{\"addr\":\"0xb183f8\",\"name\":\"lua_pushinteger\"}]},{\"addr\":\"87377f\",\"instruction\":\"mov esi, ds:lua_newuserdata\",\"refs\":[{\"addr\":\"0xb1839c\",\"name\":\"lua_newuserdata\"}]},{\"addr\":\"873785\",\"instruction\":\"add esp, 0Ch\"},{\"addr\":\"873788\",\"instruction\":\"cmp [ebp+arg_8], 0\"},{\"addr\":\"87378c\",\"instruction\":\"mov edi, ds:lua_rawgetp\",\"refs\":[{\"addr\":\"0xb183bc\",\"name\":\"lua_rawgetp\"}]},{\"addr\":\"873792\",\"instruction\":\"jz short loc_8737C3\",\"refs\":[{\"addr\":\"0x8737c3\",\"name\":\"loc_8737C3\"}]},{\"addr\":\"873794\",\"instruction\":\"push 8\"},{\"addr\":\"873796\",\"instruction\":\"push ebx\"},{\"addr\":\"873797\",\"instruction\":\"call esi ; lua_newuserdata\",\"refs\":[{\"addr\":\"0xb1839c\",\"name\":\"lua_newuserdata\"}]},{\"addr\":\"873799\",\"instruction\":\"mov ecx, [ebp+arg_8]\"},{\"addr\":\"87379c\",\"instruction\":\"push offset unk_C829D4\",\"refs\":[{\"addr\":\"0xc829d4\",\"name\":\"unk_C829D4\"}]},{\"addr\":\"8737a1\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"8737a6\",\"instruction\":\"push ebx\"},{\"addr\":\"8737a7\",\"instruction\":\"mov dword ptr [eax], offset ??_7UserdataPtr@luabridge@@6B@; const luabridge::UserdataPtr::`vftable'\",\"refs\":[{\"addr\":\"0xb753c8\",\"name\":\"??_7UserdataPtr@luabridge@@6B@\"}]},{\"addr\":\"8737ad\",\"instruction\":\"mov [eax+4], ecx\"},{\"addr\":\"8737b0\",\"instruction\":\"call edi ; lua_rawgetp\",\"refs\":[{\"addr\":\"0xb183bc\",\"name\":\"lua_rawgetp\"}]},{\"addr\":\"8737b2\",\"instruction\":\"add esp, 14h\"},{\"addr\":\"8737b5\",\"instruction\":\"push 0FFFFFFFEh\"},{\"addr\":\"8737b7\",\"instruction\":\"push ebx\"},{\"addr\":\"8737b8\",\"instruction\":\"call ds:lua_setmetatable\",\"refs\":[{\"addr\":\"0xb18398\",\"name\":\"lua_setmetatable\"}]},{\"addr\":\"8737be\",\"instruction\":\"add esp, 8\"},{\"addr\":\"8737c1\",\"instruction\":\"jmp short loc_8737CD\",\"refs\":[{\"addr\":\"0x8737cd\",\"name\":\"loc_8737CD\"}]},{\"addr\":\"8737c3\",\"instruction\":\"push ebx\",\"label\":\"loc_8737C3\"},{\"addr\":\"8737c4\",\"instruction\":\"call ds:lua_pushnil\",\"refs\":[{\"addr\":\"0xb183e0\",\"name\":\"lua_pushnil\"}]},{\"addr\":\"8737ca\",\"instruction\":\"add esp, 4\"},{\"addr\":\"8737cd\",\"instruction\":\"movss xmm0, [ebp+arg_C]\",\"label\":\"loc_8737CD\"},{\"addr\":\"8737d2\",\"instruction\":\"movss [esp+18h+var_8], xmm0\"},{\"addr\":\"8737d8\",\"instruction\":\"movss xmm0, [ebp+arg_10]\"},{\"addr\":\"8737dd\",\"instruction\":\"push 10h\"},{\"addr\":\"8737df\",\"instruction\":\"push ebx\"},{\"addr\":\"8737e0\",\"instruction\":\"movss [esp+20h+var_4], xmm0\"},{\"addr\":\"8737e6\",\"instruction\":\"call esi ; lua_newuserdata\",\"refs\":[{\"addr\":\"0xb1839c\",\"name\":\"lua_newuserdata\"}]},{\"addr\":\"8737e8\",\"instruction\":\"mov esi, eax\"},{\"addr\":\"8737ea\",\"instruction\":\"push offset unk_C82980\",\"refs\":[{\"addr\":\"0xc82980\",\"name\":\"unk_C82980\"}]},{\"addr\":\"8737ef\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"8737f4\",\"instruction\":\"push ebx\"},{\"addr\":\"8737f5\",\"instruction\":\"lea ecx, [esi+8]\"},{\"addr\":\"8737f8\",\"instruction\":\"mov dword ptr [esi], offset ??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@; const luabridge::UserdataValue<KAGE::Math::Vector2>::`vftable'\",\"refs\":[{\"addr\":\"0xb73574\",\"name\":\"??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@\"}]},{\"addr\":\"8737fe\",\"instruction\":\"mov [esi+4], ecx\"},{\"addr\":\"873801\",\"instruction\":\"call edi ; lua_rawgetp\",\"refs\":[{\"addr\":\"0xb183bc\",\"name\":\"lua_rawgetp\"}]},{\"addr\":\"873803\",\"instruction\":\"add esp, 14h\"},{\"addr\":\"873806\",\"instruction\":\"push 0FFFFFFFEh\"},{\"addr\":\"873808\",\"instruction\":\"push ebx\"},{\"addr\":\"873809\",\"instruction\":\"call ds:lua_setmetatable\",\"refs\":[{\"addr\":\"0xb18398\",\"name\":\"lua_setmetatable\"}]},{\"addr\":\"87380f\",\"instruction\":\"mov eax, [esi+4]\"},{\"addr\":\"873812\",\"instruction\":\"movss xmm0, [esp+20h+var_8]\"},{\"addr\":\"873818\",\"instruction\":\"push 0\"},{\"addr\":\"87381a\",\"instruction\":\"push 0\"},{\"addr\":\"87381c\",\"instruction\":\"push 0\"},{\"addr\":\"87381e\",\"instruction\":\"push 1\"},{\"addr\":\"873820\",\"instruction\":\"movss dword ptr [eax], xmm0\"},{\"addr\":\"873824\",\"instruction\":\"movss xmm0, [esp+30h+var_4]\"},{\"addr\":\"87382a\",\"instruction\":\"push 4\"},{\"addr\":\"87382c\",\"instruction\":\"push ebx\"},{\"addr\":\"87382d\",\"instruction\":\"movss dword ptr [eax+4], xmm0\"},{\"addr\":\"873832\",\"instruction\":\"call ds:lua_pcallk\",\"refs\":[{\"addr\":\"0xb183d8\",\"name\":\"lua_pcallk\"}]},{\"addr\":\"873838\",\"instruction\":\"add esp, 20h\"},{\"addr\":\"87383b\",\"instruction\":\"test eax, eax\"},{\"addr\":\"87383d\",\"instruction\":\"jnz short loc_873873\",\"refs\":[{\"addr\":\"0x873873\",\"name\":\"loc_873873\"}]},{\"addr\":\"87383f\",\"instruction\":\"push 0FFFFFFFFh\"},{\"addr\":\"873841\",\"instruction\":\"push ebx\"},{\"addr\":\"873842\",\"instruction\":\"call ds:lua_pushvalue\",\"refs\":[{\"addr\":\"0xb183c8\",\"name\":\"lua_pushvalue\"}]},{\"addr\":\"873848\",\"instruction\":\"mov esi, [ebp+arg_0]\"},{\"addr\":\"87384b\",\"instruction\":\"push 0FFF0B9D8h\"},{\"addr\":\"873850\",\"instruction\":\"push ebx\"},{\"addr\":\"873851\",\"instruction\":\"mov [esi], ebx\"},{\"addr\":\"873853\",\"instruction\":\"call ds:luaL_ref\",\"refs\":[{\"addr\":\"0xb18314\",\"name\":\"luaL_ref\"}]},{\"addr\":\"873859\",\"instruction\":\"push 0FFFFFFFEh\"},{\"addr\":\"87385b\",\"instruction\":\"push ebx\"},{\"addr\":\"87385c\",\"instruction\":\"mov [esi+4], eax\"},{\"addr\":\"87385f\",\"instruction\":\"call ds:lua_settop\",\"refs\":[{\"addr\":\"0xb18328\",\"name\":\"lua_settop\"}]},{\"addr\":\"873865\",\"instruction\":\"add esp, 18h\"},{\"addr\":\"873868\",\"instruction\":\"mov eax, esi\"},{\"addr\":\"87386a\",\"instruction\":\"pop edi\"},{\"addr\":\"87386b\",\"instruction\":\"pop esi\"},{\"addr\":\"87386c\",\"instruction\":\"pop ebx\"},{\"addr\":\"87386d\",\"instruction\":\"mov esp, ebp\"},{\"addr\":\"87386f\",\"instruction\":\"pop ebp\"},{\"addr\":\"873870\",\"instruction\":\"retn 14h\"},{\"addr\":\"873873\",\"instruction\":\"sub esp, 28h\",\"label\":\"loc_873873\"},{\"addr\":\"873876\",\"instruction\":\"mov ecx, esp\"},{\"addr\":\"873878\",\"instruction\":\"push ecx\"},{\"addr\":\"873879\",\"instruction\":\"push ebx\"},{\"addr\":\"87387a\",\"instruction\":\"call sub_85C080\",\"refs\":[{\"addr\":\"0x85c080\",\"name\":\"sub_85C080\"}]},{\"addr\":\"87387f\",\"instruction\":\"call sub_8727D0\",\"refs\":[{\"addr\":\"0x8727d0\",\"name\":\"sub_8727D0\"}]}],\"stack_frame\":[{\"name\":\"var_8\",\"offset\":\"0x10\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"var_4\",\"offset\":\"0x14\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__saved_registers\",\"offset\":\"0x18\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"__return_address\",\"offset\":\"0x1c\",\"size\":\"0x4\",\"type\":\"_UNKNOWN *\"},{\"name\":\"arg_0\",\"offset\":\"0x20\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"arg_8\",\"offset\":\"0x28\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"arg_C\",\"offset\":\"0x2c\",\"size\":\"0x4\",\"type\":\"_DWORD\"},{\"name\":\"arg_10\",\"offset\":\"0x30\",\"size\":\"0x4\",\"type\":\"_DWORD\"}],\"return_type\":\"int *\",\"arguments\":[{\"name\":\"this\",\"type\":\"int **\"},{\"name\":\"arg1\",\"type\":\"int *\"},{\"name\":\"arg2\",\"type\":\"int\"},{\"name\":\"arg3\",\"type\":\"int\"},{\"name\":\"arg4\",\"type\":\"int\"},{\"name\":\"arg5\",\"type\":\"int\"}]},\"instruction_count\":115,\"total_instructions\":115,\"cursor\":{\"done\":true}}"
+        }
+      ],
+      "structuredContent": {
+        "addr": "0x873740",
+        "asm": {
+          "name": "sub_873740",
+          "start_ea": "0x873740",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "873740",
+              "instruction": "push ebp",
+              "label": "sub_873740"
+            },
+            {
+              "addr": "873741",
+              "instruction": "mov ebp, esp"
+            },
+            {
+              "addr": "873743",
+              "instruction": "and esp, 0FFFFFFF8h"
+            },
+            {
+              "addr": "873746",
+              "instruction": "sub esp, 0Ch"
+            },
+            {
+              "addr": "873749",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "87374a",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "87374b",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "87374c",
+              "instruction": "mov edi, ecx"
+            },
+            {
+              "addr": "87374e",
+              "instruction": "mov eax, [edi]"
+            },
+            {
+              "addr": "873750",
+              "instruction": "mov ebx, [eax]"
+            },
+            {
+              "addr": "873752",
+              "instruction": "mov eax, [eax+4]"
+            },
+            {
+              "addr": "873755",
+              "instruction": "cdq"
+            },
+            {
+              "addr": "873756",
+              "instruction": "push edx"
+            },
+            {
+              "addr": "873757",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "873758",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "87375d",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "87375e",
+              "instruction": "call ds:lua_rawgeti",
+              "refs": [
+                {
+                  "addr": "0xb18318",
+                  "name": "lua_rawgeti"
+                }
+              ]
+            },
+            {
+              "addr": "873764",
+              "instruction": "mov eax, [edi+4]"
+            },
+            {
+              "addr": "873767",
+              "instruction": "mov esi, ds:lua_pushinteger",
+              "refs": [
+                {
+                  "addr": "0xb183f8",
+                  "name": "lua_pushinteger"
+                }
+              ]
+            },
+            {
+              "addr": "87376d",
+              "instruction": "cdq"
+            },
+            {
+              "addr": "87376e",
+              "instruction": "push edx"
+            },
+            {
+              "addr": "87376f",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "873770",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "873771",
+              "instruction": "call esi ; lua_pushinteger",
+              "refs": [
+                {
+                  "addr": "0xb183f8",
+                  "name": "lua_pushinteger"
+                }
+              ]
+            },
+            {
+              "addr": "873773",
+              "instruction": "mov eax, [edi+8]"
+            },
+            {
+              "addr": "873776",
+              "instruction": "add esp, 1Ch"
+            },
+            {
+              "addr": "873779",
+              "instruction": "cdq"
+            },
+            {
+              "addr": "87377a",
+              "instruction": "push edx"
+            },
+            {
+              "addr": "87377b",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "87377c",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "87377d",
+              "instruction": "call esi ; lua_pushinteger",
+              "refs": [
+                {
+                  "addr": "0xb183f8",
+                  "name": "lua_pushinteger"
+                }
+              ]
+            },
+            {
+              "addr": "87377f",
+              "instruction": "mov esi, ds:lua_newuserdata",
+              "refs": [
+                {
+                  "addr": "0xb1839c",
+                  "name": "lua_newuserdata"
+                }
+              ]
+            },
+            {
+              "addr": "873785",
+              "instruction": "add esp, 0Ch"
+            },
+            {
+              "addr": "873788",
+              "instruction": "cmp [ebp+arg_8], 0"
+            },
+            {
+              "addr": "87378c",
+              "instruction": "mov edi, ds:lua_rawgetp",
+              "refs": [
+                {
+                  "addr": "0xb183bc",
+                  "name": "lua_rawgetp"
+                }
+              ]
+            },
+            {
+              "addr": "873792",
+              "instruction": "jz short loc_8737C3",
+              "refs": [
+                {
+                  "addr": "0x8737c3",
+                  "name": "loc_8737C3"
+                }
+              ]
+            },
+            {
+              "addr": "873794",
+              "instruction": "push 8"
+            },
+            {
+              "addr": "873796",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "873797",
+              "instruction": "call esi ; lua_newuserdata",
+              "refs": [
+                {
+                  "addr": "0xb1839c",
+                  "name": "lua_newuserdata"
+                }
+              ]
+            },
+            {
+              "addr": "873799",
+              "instruction": "mov ecx, [ebp+arg_8]"
+            },
+            {
+              "addr": "87379c",
+              "instruction": "push offset unk_C829D4",
+              "refs": [
+                {
+                  "addr": "0xc829d4",
+                  "name": "unk_C829D4"
+                }
+              ]
+            },
+            {
+              "addr": "8737a1",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "8737a6",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "8737a7",
+              "instruction": "mov dword ptr [eax], offset ??_7UserdataPtr@luabridge@@6B@; const luabridge::UserdataPtr::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb753c8",
+                  "name": "??_7UserdataPtr@luabridge@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "8737ad",
+              "instruction": "mov [eax+4], ecx"
+            },
+            {
+              "addr": "8737b0",
+              "instruction": "call edi ; lua_rawgetp",
+              "refs": [
+                {
+                  "addr": "0xb183bc",
+                  "name": "lua_rawgetp"
+                }
+              ]
+            },
+            {
+              "addr": "8737b2",
+              "instruction": "add esp, 14h"
+            },
+            {
+              "addr": "8737b5",
+              "instruction": "push 0FFFFFFFEh"
+            },
+            {
+              "addr": "8737b7",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "8737b8",
+              "instruction": "call ds:lua_setmetatable",
+              "refs": [
+                {
+                  "addr": "0xb18398",
+                  "name": "lua_setmetatable"
+                }
+              ]
+            },
+            {
+              "addr": "8737be",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "8737c1",
+              "instruction": "jmp short loc_8737CD",
+              "refs": [
+                {
+                  "addr": "0x8737cd",
+                  "name": "loc_8737CD"
+                }
+              ]
+            },
+            {
+              "addr": "8737c3",
+              "instruction": "push ebx",
+              "label": "loc_8737C3"
+            },
+            {
+              "addr": "8737c4",
+              "instruction": "call ds:lua_pushnil",
+              "refs": [
+                {
+                  "addr": "0xb183e0",
+                  "name": "lua_pushnil"
+                }
+              ]
+            },
+            {
+              "addr": "8737ca",
+              "instruction": "add esp, 4"
+            },
+            {
+              "addr": "8737cd",
+              "instruction": "movss xmm0, [ebp+arg_C]",
+              "label": "loc_8737CD"
+            },
+            {
+              "addr": "8737d2",
+              "instruction": "movss [esp+18h+var_8], xmm0"
+            },
+            {
+              "addr": "8737d8",
+              "instruction": "movss xmm0, [ebp+arg_10]"
+            },
+            {
+              "addr": "8737dd",
+              "instruction": "push 10h"
+            },
+            {
+              "addr": "8737df",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "8737e0",
+              "instruction": "movss [esp+20h+var_4], xmm0"
+            },
+            {
+              "addr": "8737e6",
+              "instruction": "call esi ; lua_newuserdata",
+              "refs": [
+                {
+                  "addr": "0xb1839c",
+                  "name": "lua_newuserdata"
+                }
+              ]
+            },
+            {
+              "addr": "8737e8",
+              "instruction": "mov esi, eax"
+            },
+            {
+              "addr": "8737ea",
+              "instruction": "push offset unk_C82980",
+              "refs": [
+                {
+                  "addr": "0xc82980",
+                  "name": "unk_C82980"
+                }
+              ]
+            },
+            {
+              "addr": "8737ef",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "8737f4",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "8737f5",
+              "instruction": "lea ecx, [esi+8]"
+            },
+            {
+              "addr": "8737f8",
+              "instruction": "mov dword ptr [esi], offset ??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@; const luabridge::UserdataValue<KAGE::Math::Vector2>::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb73574",
+                  "name": "??_7?$UserdataValue@VVector2@Math@KAGE@@@luabridge@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "8737fe",
+              "instruction": "mov [esi+4], ecx"
+            },
+            {
+              "addr": "873801",
+              "instruction": "call edi ; lua_rawgetp",
+              "refs": [
+                {
+                  "addr": "0xb183bc",
+                  "name": "lua_rawgetp"
+                }
+              ]
+            },
+            {
+              "addr": "873803",
+              "instruction": "add esp, 14h"
+            },
+            {
+              "addr": "873806",
+              "instruction": "push 0FFFFFFFEh"
+            },
+            {
+              "addr": "873808",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "873809",
+              "instruction": "call ds:lua_setmetatable",
+              "refs": [
+                {
+                  "addr": "0xb18398",
+                  "name": "lua_setmetatable"
+                }
+              ]
+            },
+            {
+              "addr": "87380f",
+              "instruction": "mov eax, [esi+4]"
+            },
+            {
+              "addr": "873812",
+              "instruction": "movss xmm0, [esp+20h+var_8]"
+            },
+            {
+              "addr": "873818",
+              "instruction": "push 0"
+            },
+            {
+              "addr": "87381a",
+              "instruction": "push 0"
+            },
+            {
+              "addr": "87381c",
+              "instruction": "push 0"
+            },
+            {
+              "addr": "87381e",
+              "instruction": "push 1"
+            },
+            {
+              "addr": "873820",
+              "instruction": "movss dword ptr [eax], xmm0"
+            },
+            {
+              "addr": "873824",
+              "instruction": "movss xmm0, [esp+30h+var_4]"
+            },
+            {
+              "addr": "87382a",
+              "instruction": "push 4"
+            },
+            {
+              "addr": "87382c",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "87382d",
+              "instruction": "movss dword ptr [eax+4], xmm0"
+            },
+            {
+              "addr": "873832",
+              "instruction": "call ds:lua_pcallk",
+              "refs": [
+                {
+                  "addr": "0xb183d8",
+                  "name": "lua_pcallk"
+                }
+              ]
+            },
+            {
+              "addr": "873838",
+              "instruction": "add esp, 20h"
+            },
+            {
+              "addr": "87383b",
+              "instruction": "test eax, eax"
+            },
+            {
+              "addr": "87383d",
+              "instruction": "jnz short loc_873873",
+              "refs": [
+                {
+                  "addr": "0x873873",
+                  "name": "loc_873873"
+                }
+              ]
+            },
+            {
+              "addr": "87383f",
+              "instruction": "push 0FFFFFFFFh"
+            },
+            {
+              "addr": "873841",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "873842",
+              "instruction": "call ds:lua_pushvalue",
+              "refs": [
+                {
+                  "addr": "0xb183c8",
+                  "name": "lua_pushvalue"
+                }
+              ]
+            },
+            {
+              "addr": "873848",
+              "instruction": "mov esi, [ebp+arg_0]"
+            },
+            {
+              "addr": "87384b",
+              "instruction": "push 0FFF0B9D8h"
+            },
+            {
+              "addr": "873850",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "873851",
+              "instruction": "mov [esi], ebx"
+            },
+            {
+              "addr": "873853",
+              "instruction": "call ds:luaL_ref",
+              "refs": [
+                {
+                  "addr": "0xb18314",
+                  "name": "luaL_ref"
+                }
+              ]
+            },
+            {
+              "addr": "873859",
+              "instruction": "push 0FFFFFFFEh"
+            },
+            {
+              "addr": "87385b",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "87385c",
+              "instruction": "mov [esi+4], eax"
+            },
+            {
+              "addr": "87385f",
+              "instruction": "call ds:lua_settop",
+              "refs": [
+                {
+                  "addr": "0xb18328",
+                  "name": "lua_settop"
+                }
+              ]
+            },
+            {
+              "addr": "873865",
+              "instruction": "add esp, 18h"
+            },
+            {
+              "addr": "873868",
+              "instruction": "mov eax, esi"
+            },
+            {
+              "addr": "87386a",
+              "instruction": "pop edi"
+            },
+            {
+              "addr": "87386b",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "87386c",
+              "instruction": "pop ebx"
+            },
+            {
+              "addr": "87386d",
+              "instruction": "mov esp, ebp"
+            },
+            {
+              "addr": "87386f",
+              "instruction": "pop ebp"
+            },
+            {
+              "addr": "873870",
+              "instruction": "retn 14h"
+            },
+            {
+              "addr": "873873",
+              "instruction": "sub esp, 28h",
+              "label": "loc_873873"
+            },
+            {
+              "addr": "873876",
+              "instruction": "mov ecx, esp"
+            },
+            {
+              "addr": "873878",
+              "instruction": "push ecx"
+            },
+            {
+              "addr": "873879",
+              "instruction": "push ebx"
+            },
+            {
+              "addr": "87387a",
+              "instruction": "call sub_85C080",
+              "refs": [
+                {
+                  "addr": "0x85c080",
+                  "name": "sub_85C080"
+                }
+              ]
+            },
+            {
+              "addr": "87387f",
+              "instruction": "call sub_8727D0",
+              "refs": [
+                {
+                  "addr": "0x8727d0",
+                  "name": "sub_8727D0"
+                }
+              ]
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "var_8",
+              "offset": "0x10",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_4",
+              "offset": "0x14",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__saved_registers",
+              "offset": "0x18",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__return_address",
+              "offset": "0x1c",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            },
+            {
+              "name": "arg_0",
+              "offset": "0x20",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "arg_8",
+              "offset": "0x28",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "arg_C",
+              "offset": "0x2c",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "arg_10",
+              "offset": "0x30",
+              "size": "0x4",
+              "type": "_DWORD"
+            }
+          ],
+          "return_type": "int *",
+          "arguments": [
+            {
+              "name": "this",
+              "type": "int **"
+            },
+            {
+              "name": "arg1",
+              "type": "int *"
+            },
+            {
+              "name": "arg2",
+              "type": "int"
+            },
+            {
+              "name": "arg3",
+              "type": "int"
+            },
+            {
+              "name": "arg4",
+              "type": "int"
+            },
+            {
+              "name": "arg5",
+              "type": "int"
+            }
+          ]
+        },
+        "instruction_count": 115,
+        "total_instructions": 115,
+        "cursor": {
+          "done": true
+        }
+      },
+      "isError": false
+    }
+  },
+  "get_bytes": {
+    "content": [
+      {
+        "type": "text",
+        "text": "[{\"addr\":\"0x4199F5\",\"data\":\"0xff 0xd0\"},{\"addr\":\"0x419A2E\",\"data\":\"0xff 0x50 0x14\"},{\"addr\":\"0x419B11\",\"data\":\"0xff 0x50 0x14\"},{\"addr\":\"0x419C67\",\"data\":\"0xff 0xd0\"},{\"addr\":\"0x6D3217\",\"data\":\"0xe8 0x24 0x6f 0xd3 0xff\"},{\"addr\":\"0x6D3C74\",\"data\":\"0xe8 0x77 0xd4 0xfd 0xff\"},{\"addr\":\"0x679356\",\"data\":\"0xe8 0x95 0x7d 0x3 0x0\"},{\"addr\":\"0x65CEB3\",\"data\":\"0xe8 0x38 0x42 0x5 0x0\"},{\"addr\":\"0x6D4006\",\"data\":\"0xe8 0x95 0xcb 0x18 0x0\"},{\"addr\":\"0x6793E7\",\"data\":\"0xe8 0x94 0x97 0x1e 0x0\"},{\"addr\":\"0x65CEDB\",\"data\":\"0xe8 0x90 0x57 0x20 0x0\"},{\"addr\":\"0x860C09\",\"data\":\"0xe8 0x2 0x1f 0x1 0x0\"},{\"addr\":\"0x862CA5\",\"data\":\"0xff 0x15 0xd8 0x83 0xb1\"},{\"addr\":\"0x873832\",\"data\":\"0xff 0x15 0xd8 0x83 0xb1\"},{\"addr\":\"0x872C02\",\"data\":\"0xff 0x15 0xd8 0x83 0xb1\"}]"
+      }
+    ],
+    "structuredContent": {
+      "result": [
+        {
+          "addr": "0x4199F5",
+          "data": "0xff 0xd0"
+        },
+        {
+          "addr": "0x419A2E",
+          "data": "0xff 0x50 0x14"
+        },
+        {
+          "addr": "0x419B11",
+          "data": "0xff 0x50 0x14"
+        },
+        {
+          "addr": "0x419C67",
+          "data": "0xff 0xd0"
+        },
+        {
+          "addr": "0x6D3217",
+          "data": "0xe8 0x24 0x6f 0xd3 0xff"
+        },
+        {
+          "addr": "0x6D3C74",
+          "data": "0xe8 0x77 0xd4 0xfd 0xff"
+        },
+        {
+          "addr": "0x679356",
+          "data": "0xe8 0x95 0x7d 0x3 0x0"
+        },
+        {
+          "addr": "0x65CEB3",
+          "data": "0xe8 0x38 0x42 0x5 0x0"
+        },
+        {
+          "addr": "0x6D4006",
+          "data": "0xe8 0x95 0xcb 0x18 0x0"
+        },
+        {
+          "addr": "0x6793E7",
+          "data": "0xe8 0x94 0x97 0x1e 0x0"
+        },
+        {
+          "addr": "0x65CEDB",
+          "data": "0xe8 0x90 0x57 0x20 0x0"
+        },
+        {
+          "addr": "0x860C09",
+          "data": "0xe8 0x2 0x1f 0x1 0x0"
+        },
+        {
+          "addr": "0x862CA5",
+          "data": "0xff 0x15 0xd8 0x83 0xb1"
+        },
+        {
+          "addr": "0x873832",
+          "data": "0xff 0x15 0xd8 0x83 0xb1"
+        },
+        {
+          "addr": "0x872C02",
+          "data": "0xff 0x15 0xd8 0x83 0xb1"
+        }
+      ]
+    },
+    "isError": false
+  }
+}
