@@ -1,0 +1,449 @@
+{
+  "automatic_retry": false,
+  "cases": {
+    "V1": {
+      "detail": {
+        "expected_registered": 28,
+        "odd_install_observed": true,
+        "status": null
+      },
+      "pass": false
+    },
+    "V10": {
+      "detail": "missing required evidence; see failure/evaluation_error",
+      "pass": false,
+      "status": "NOT_RUN"
+    },
+    "V2": {
+      "detail": [
+        {
+          "observations": [],
+          "pass": false,
+          "scene": "S1"
+        },
+        {
+          "observations": [],
+          "pass": false,
+          "scene": "S10"
+        }
+      ],
+      "pass": false
+    },
+    "V3": {
+      "detail": {
+        "generations": [
+          null,
+          null
+        ],
+        "tick_reject": [],
+        "transitions": []
+      },
+      "pass": false
+    },
+    "V4": {
+      "detail": {
+        "both_stable_kinds": false,
+        "faults": [],
+        "no_orphan_phases": true,
+        "nonordinary_no_ticks": true,
+        "nonordinary_observations": 0,
+        "odd_exact_once": false,
+        "odd_pairs": 0,
+        "special_odd_observations": 0,
+        "ticks": 0
+      },
+      "pass": false
+    },
+    "V5": {
+      "detail": [
+        {
+          "consumer_nonzero": false,
+          "neutral_by_lead_plus_one": false,
+          "observations": [],
+          "pass": false,
+          "resolved_nonzero": 0,
+          "scene": "S3.right"
+        },
+        {
+          "consumer_nonzero": false,
+          "neutral_by_lead_plus_one": false,
+          "observations": [],
+          "pass": false,
+          "resolved_nonzero": 0,
+          "scene": "S3.up"
+        }
+      ],
+      "pass": false
+    },
+    "V6": {
+      "detail": {
+        "aim": [
+          {
+            "from": "S4.begin",
+            "pass": false,
+            "sign": 1,
+            "to": "S4.right"
+          },
+          {
+            "from": "S4.right",
+            "pass": false,
+            "sign": -1,
+            "to": "S4.left"
+          },
+          {
+            "from": "S4.left",
+            "pass": false,
+            "sign": 1,
+            "to": "S4.fallback"
+          }
+        ],
+        "dispatch_valid": false,
+        "no_tick_suppression_observed": false,
+        "normal_shooting": true,
+        "tears_increased": false
+      },
+      "pass": false
+    },
+    "V7": {
+      "detail": {
+        "accepted_edges": 0,
+        "bombs_decreased_by_one": false,
+        "observations": [],
+        "query_rule": "same-tick repeated reads allowed; mismatches must be zero",
+        "resolved_edges": []
+      },
+      "pass": false
+    },
+    "V8": {
+      "detail": {
+        "blocking": [
+          {
+            "blocked_ticks": 0,
+            "pass": false,
+            "resumed_ticks": 0,
+            "scene": "S6"
+          },
+          {
+            "blocked_ticks": 0,
+            "pass": false,
+            "resumed_ticks": 0,
+            "scene": "S7"
+          }
+        ],
+        "odd_ticks_during_skip": 0,
+        "pause_rebound": false,
+        "skip": [],
+        "skip_valid": false
+      },
+      "pass": false
+    },
+    "V9": {
+      "detail": {
+        "binding_events": [],
+        "final_position_order": "UNKNOWN; arrival log does not assert final native placement",
+        "loading_intervals": [],
+        "loading_no_standard_ticks": false,
+        "nonordinary_room_calls": 0,
+        "post_room_movement": false,
+        "transition": []
+      },
+      "pass": false
+    }
+  },
+  "cleanup_error": null,
+  "crash_before": {},
+  "crash_changes": [],
+  "environment": {
+    "architecture": "i686",
+    "game": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth",
+    "game_running": false,
+    "installed_version_excerpt": "v1.1.3 -\nAdded:\n* ModCallbacks:\n\t- MC_PRE/POST_PLAYERHUD_RENDER_INVENTORY(EntityPlayer, Vector pos, float Scale)\n\t- MC_PRE/POST_PLAYERHUD_RENDER_POOP_SPELL_QUEUE(EntityPlayer, Vector pos, float Scale)\n\t- MC_PRE/POST_PLAYERHUD_RENDER_CRAFTING_TABLE(EntityPlayer, Vector pos, float Scale)\n\t- MC_POST_USE_ITEM(CollectibleType, RNG, EntityPlayer, UseFlags, ActiveSlot, int CustomVarData, bool Discharge, bool Remove)\n\t\tBetter callback for AFTER an active item is used, since MC_USE_ITEM runs earlier, is ",
+    "launcher": "[General]\r\nIsaacExecutable = F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe\r\nRanWizard = 1\r\nHideWindow = 1\r\nStealthMode = 0\r\n[Repentogon]\r\nConsole = 0\r\nUpdate = 0\r\nUnstableUpdates = 0\r\nSkipUpdateMods = 0\r\nSkipWaitModDownloads = 0\r\n[Vanilla]\r\nLuaHeapSize = 1024M\r\nLuaDebug = 0\r\n[Shared]\r\nLaunchMode = 1\r\n",
+    "mods": [
+      {
+        "directory": "better character menu_835236871",
+        "enabled": false
+      },
+      {
+        "directory": "console for online",
+        "enabled": false
+      },
+      {
+        "directory": "external item descriptions_836319872",
+        "enabled": false
+      },
+      {
+        "directory": "goodtrip-controller-input-test",
+        "enabled": false
+      },
+      {
+        "directory": "goodtripfixed for online_3780987561",
+        "enabled": false
+      },
+      {
+        "directory": "goodtrip_1630477831",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-cs-t0-input-witness",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-cs-ui",
+        "enabled": true
+      },
+      {
+        "directory": "isaac-cs-world-e2e",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-k-to-treasure-room",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-k-toggle-debug-10",
+        "enabled": false
+      },
+      {
+        "directory": "isaacscript-watcher",
+        "enabled": false
+      },
+      {
+        "directory": "isaac_socket_3033763718",
+        "enabled": false
+      },
+      {
+        "directory": "repentogonreleasesbackup_3643104060",
+        "enabled": false
+      },
+      {
+        "directory": "specialistforgooditems_2575911103",
+        "enabled": false
+      },
+      {
+        "directory": "the bingo of isaac!_3555711630",
+        "enabled": false
+      },
+      {
+        "directory": "timemachine_2617557401",
+        "enabled": false
+      }
+    ],
+    "pe_timestamp": "0x68154D8D",
+    "repentogon_skip_intro": "1",
+    "save_roots": {
+      "documents": "C:\\Users\\114514\\Documents/My Games/Binding of Isaac Repentance+",
+      "steam_remote": [
+        {
+          "account": "387111160",
+          "path": "D:\\steam\\userdata\\387111160\\250900\\remote"
+        }
+      ]
+    },
+    "save_slot": 2,
+    "steam_running": true
+  },
+  "evaluation_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-05-e2e-01\\counters.json: 系统找不到指定的文件。 (os error 2)",
+  "failure": "game focus could not be acquired",
+  "failure_close": {
+    "error": null,
+    "exit": 0
+  },
+  "keyboard_environment": [
+    {
+      "file": "inputconfigs.dat",
+      "mismatches": []
+    },
+    {
+      "file": "inputconfigs_rgon.dat",
+      "mismatches": []
+    }
+  ],
+  "launches": 1,
+  "pass": false,
+  "recorded_baseline": {
+    "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+    "fresh_disabled_launch": false,
+    "matched": []
+  },
+  "save_changes": [
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792854208693618000",
+        "size": 694
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792830017437998500",
+        "size": 694
+      },
+      "bytes_changed": false,
+      "path": "documents/Repentogon/options.ini",
+      "possible_source": "timestamp only; identical bytes"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792854208698725400",
+        "size": 1103
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792830017439999800",
+        "size": 1103
+      },
+      "bytes_changed": false,
+      "path": "documents/Repentogon/vanilla_options.ini",
+      "possible_source": "timestamp only; identical bytes"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792854208757165300",
+        "size": 17174
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792830017492046800",
+        "size": 17174
+      },
+      "bytes_changed": true,
+      "path": "documents/log.txt",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792854208698725400",
+        "size": 1018
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792830017439001300",
+        "size": 1018
+      },
+      "bytes_changed": false,
+      "path": "documents/options.ini",
+      "possible_source": "timestamp only; identical bytes"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792854208250353000",
+        "size": 17187
+      },
+      "allowed": false,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792830017044391600",
+        "size": 17187
+      },
+      "bytes_changed": true,
+      "path": "documents/save_backups/20261024.rgon_steam_persistentgamedata1.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792854208283923000",
+        "size": 16931
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792830017062906200",
+        "size": 16931
+      },
+      "bytes_changed": true,
+      "path": "documents/save_backups/20261024.rgon_steam_persistentgamedata2.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792854208302451000",
+        "size": 16235
+      },
+      "allowed": false,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792830017080433600",
+        "size": 16235
+      },
+      "bytes_changed": true,
+      "path": "documents/save_backups/20261024.rgon_steam_persistentgamedata3.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792854208713539400",
+        "size": 188
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792830017454015600",
+        "size": 188
+      },
+      "bytes_changed": false,
+      "path": "steam_remote/387111160/rgon_savesyncstatus.json",
+      "possible_source": "timestamp only; identical bytes"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792854208250856200",
+        "size": 17187
+      },
+      "allowed": false,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792830017044391600",
+        "size": 17187
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792854208284927100",
+        "size": 16931
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792830017063408800",
+        "size": 16931
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rgon_steam_persistentgamedata2.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792854208302451000",
+        "size": 16235
+      },
+      "allowed": false,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792830017080433600",
+        "size": 16235
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rgon_steam_persistentgamedata3.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    }
+  ],
+  "token": "tx05-41164-1792854200202",
+  "tx": "tx-04-05"
+}

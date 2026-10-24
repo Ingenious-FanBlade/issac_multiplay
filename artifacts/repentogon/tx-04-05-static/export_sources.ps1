@@ -25,6 +25,8 @@ Add-Excerpt (Join-Path $SdkRoot 'libzhl/functions/Entity.zhl') 232 239
 Add-Excerpt (Join-Path $SdkRoot 'libzhl/functions/Manager.zhl') 89 96
 Add-Excerpt (Join-Path $SdkRoot 'libzhl/functions/Manager.zhl') 109 114
 Add-Excerpt (Join-Path $SdkRoot 'libzhl/functions/OptionsConfig.zhl') 40 46
+Add-Excerpt (Join-Path $SdkRoot 'libzhl/functions/Game.zhl') 285 290
+Add-Excerpt (Join-Path $SdkRoot 'libzhl/functions/RoomTransition.zhl') 13 30
 Add-Excerpt (Join-Path $repoRoot 'cs-t0/native/src/coop_input.cpp') 131 154
 Add-Excerpt (Join-Path $repoRoot 'cs-t0/native/src/coop_input.cpp') 430 463
 Add-Excerpt (Join-Path $repoRoot 'cs-t0/native/src/coop_active_runtime.cpp') 729 754

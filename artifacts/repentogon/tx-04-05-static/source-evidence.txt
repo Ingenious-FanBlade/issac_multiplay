@@ -296,6 +296,34 @@ SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\functions\OptionsConfig.zhl [4
 45:     bool _enableMouseControl : 0x60;
 46:     int _maxScale : 0x64;
 
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\functions\Game.zhl [285..290]
+285: 	RoomConfig _roomConfig : 0x18910;
+286: 	ItemPool _itemPool : 0x1a740;
+287: 	BossPool _bossPool: 0x1af70;
+288: 	RoomTransition _roomTransition : 0x1b83c;
+289: 	StageTransition _stageTransition : 0x1ba78;
+290: 	PlayerManager _playerManager : 0x1baa8;
+
+SOURCE: F:\projects_isaac\REPENTOGON-1.1.3\libzhl\functions\RoomTransition.zhl [13..30]
+13: struct RoomTransition depends (ANM2) { {{
+14: 	inline int GetTransitionMode() { return this->_mode; }
+15: 	inline ANM2* GetVersusScreenSprite() { return &this->_versusScreenANM2; }
+16: 	inline bool IsRenderingBossIntro() {
+17: 		return GetTransitionMode() == 2 && _unkStartRoomTransitionCond != 0;
+18: 	}
+19: 	inline std::map<int, ANM2>* GetExtraLayerANM2s() { return &this->_extraLayerANM2s; }
+20: }}
+21: 	int _mode : 0x0;
+22: 	int _direction : 0x10;
+23: 	int _roomIndex : 0x14;
+24: 	int _roomDimension : 0x18;
+25: 	ANM2 _versusScreenANM2: 0x38;
+26: 	// _playerExtraPortraitANM2 replaced by this std::map in REP+
+27: 	// Maps layerID to ANM2. Used for player extra portraits but will work for any layer.
+28: 	std_map_int_ANM2 _extraLayerANM2s : 0x224;
+29: 	int _unkStartRoomTransitionCond : 0x238;
+30: } : 0x23c;
+
 SOURCE: F:\projects_isaac\issac_multiplay\cs-t0\native\src\coop_input.cpp [131..154]
 131: bool ConsumerAllows(Consumer consumer, std::uint32_t action) noexcept
 132: {
