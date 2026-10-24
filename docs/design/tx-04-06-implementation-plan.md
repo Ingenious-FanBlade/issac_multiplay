@@ -240,7 +240,7 @@ pass 返回后：Player 数为 2；A 的指针与关键状态未变；B 是完�
 
 - 暂停、浮层（D7）、加载、切房对 A、B 同时生效：无 tick，输入不生效，事后不补发、不重放边沿。
 - 新房间、从实际暂停/加载恢复后，A 与 B 各自失效并在后续稳定 Authority 入口重绑（tx-04-05 第 6.1 节）。
-- B 的死亡与 ghost 只做失效与中性；复活后的重绑与完整场景留给 tx-04-07。
+- B 的死亡与 ghost 只做失效与中性，沿用 tx-04-05 的健康判定（valid、exists，且不是 dead、removed、ghost）；复活后的重绑与完整场景留给 tx-04-07。
 
 ### 9.4 退休序列
 
@@ -282,9 +282,9 @@ run teardown（`Game::Exit`）时 Player 已由原生清理，跳过第 4 步；
 | ST2 | 第 45/46 槽注册与移除：vector 位置、id 分配、是否触发“控制器已连接”提示或其他 UI；run 切换与回到菜单时设备是否保留 | 第 7.4 节，创建时机与退休路径 |
 | ST3 | Join pass `0x591360` 在 v1.9.7.12 上的流程：按设备查询的动作编号与查询类型、选人状态机、跨几帧完成、提前返回条件 | 第 7.3、8.1 节，K 在 scope 内的最小报告序列 |
 | ST4 | 三处 mode predicate 调用点的完整指令、可搬移长度与寄存器使用 | 第 8.2 节，thunk 布局 |
-| ST5 | 创建点参数（栈上角色类型的位置）、可选角色的判断数据（原型为 manager `+0x70/+0x74`）在 v1.9.7.12 上的对应 | 第 8.3、8.4 节 |
+| ST5 | 2026-10-25 收窄为两项。已有结论不再重查：调用点 `0x591FE6 → 0x590250`、ECX 与 EBX 为 PlayerManager、EDI 为行指针、调用前压栈 8 字节、拒绝路径的栈深度（[点位核对](../hooks/repentogon-binding.md)第 5 节），以及 `+0x70/+0x74` 偏移未变（同上第 7 节）。待确认：① `0x591FE6` 之前的两次 push 各来自哪里，哪一个是角色参数，call 时它相对 ESP 的位置；② Join pass 在 v1.9.7.12 上是否仍用行 `+0x14` 的 selected index 去取 `+0x70/+0x74` 数组，元素是否为 int32 的 PlayerType。②的原型依据是 v1.9.7.17 的 `0x5BB32A/0x5BB33D`（[tx-01-58](../refactor/cs-t0/t0-05/07-virtual-device/tx-01-58-character-selection.md)），只当索引用 | 第 8.3、8.4 节 |
 | ST6 | 原生移除 co-player 在 v1.9.7.12 上的地址、ABI 与副作用（掉落、实体移除、设备解绑） | 第 9.4 节 |
-| ST7 | B 的 Player 字段：`_playerIndex`、`_controllerIndex`、Type/Variant、死亡与 ghost 字段 | 第 8.5、9.3 节 |
+| ST7 | 2026-10-25 收窄为写入时机。字段偏移不再重查：`_playerIndex +0x1610`、`_controllerIndex +0x160C`、Type/Variant/SubType `+0x28/+0x2C/+0x30`、`_dead +0x173`、`_isCoopGhost +0x207D` 已在点位核对第 7 节映射；它们与 valid/exists/removed `+0x170/+0x172/+0x177` 已由 tx-04-05 的 `game/topology.cpp` 用于 A 的健康判定。待确认：`SpawnCoPlayer2` 返回 Join pass 之前，B 的 Type/Variant、角色（原型核对的是 SubType）、`_playerIndex`、`_controllerIndex` 是否都已写好；第二个 Player 的 `_playerIndex` 按什么规则分配。死亡与 ghost 不再列入，见第 9.3 节 | 第 8.5 节 |
 | ST8 | co-player 加入与退出的持久副作用：存档、成就、统计、解锁写入；REPENTOGON 在这些路径上的回调 | 第 14 节 V12，副作用判定 |
 | ST9 | K 在非 gameplay 上下文中被查询的情形（暂停菜单、其他菜单、按任意设备的确认），中性返回是否会产生意外行为 | 第 7.3 节 |
 
