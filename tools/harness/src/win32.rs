@@ -648,7 +648,8 @@ impl Drop for Game {
         }
     }
 }
-// 启动等待也必须先获取焦点，不能等到发出第一条菜单按键时才激活游戏。
+// 激活游戏窗口并确认其成为前台。发键和截图前必须成功；
+// tx-04-05 的启动等待只尽力调用并记录失败，加载中的未响应窗口不判失败（D20）。
 pub fn focus(window: usize) -> Result<(), String> {
     unsafe {
         ShowWindow(window as _, 9);
@@ -664,7 +665,10 @@ pub fn focus(window: usize) -> Result<(), String> {
 }
 fn scan(window: usize, code: u16, up: bool, extended: bool) -> Result<(), String> {
     unsafe {
-        focus(window)?;
+        // 释放按键必须在失焦和异常收尾时也能执行，避免遗留系统级 held 状态。
+        if !up {
+            focus(window)?;
+        }
         let event = Input {
             kind: 1,
             data: InputData {
@@ -683,7 +687,7 @@ fn scan(window: usize, code: u16, up: bool, extended: bool) -> Result<(), String
         Ok(())
     }
 }
-pub fn key(window: usize, name: &str) -> Result<(), String> {
+fn key_code(name: &str) -> Result<(u16, bool), String> {
     let (code, extended) = match name {
         "ENTER" => (0x1C, false),
         "ESC" => (1, false),
@@ -692,11 +696,62 @@ pub fn key(window: usize, name: &str) -> Result<(), String> {
         "UP" => (0x48, true),
         "DOWN" => (0x50, true),
         "CONSOLE" => (0x29, false),
+        "A" => (0x1E, false),
+        "D" => (0x20, false),
+        "W" => (0x11, false),
+        "S" => (0x1F, false),
+        "E" => (0x12, false),
+        "F8" => (0x42, false),
+        "F9" => (0x43, false),
         _ => return Err(format!("unknown key {name}")),
     };
-    scan(window, code, false, extended)?;
+    Ok((code, extended))
+}
+// 场景记录自己发送的按下事件；提前返回或 panic 时仅对这份记录逐项释放。
+pub struct HeldKeys {
+    window: usize,
+    down: Vec<(String, u16, bool)>,
+}
+impl HeldKeys {
+    pub fn new(window: usize) -> Self {
+        Self {
+            window,
+            down: vec![],
+        }
+    }
+    pub fn press(&mut self, name: &str) -> Result<(), String> {
+        if self.down.iter().any(|(n, _, _)| n == name) {
+            return Err(format!("key already held: {name}"));
+        }
+        let (code, extended) = key_code(name)?;
+        scan(self.window, code, false, extended)?;
+        self.down.push((name.into(), code, extended));
+        Ok(())
+    }
+    pub fn release(&mut self, name: &str) -> Result<(), String> {
+        let index = self
+            .down
+            .iter()
+            .position(|(n, _, _)| n == name)
+            .ok_or("key not held")?;
+        let (_, code, extended) = &self.down[index];
+        scan(self.window, *code, true, *extended)?;
+        self.down.remove(index);
+        Ok(())
+    }
+}
+impl Drop for HeldKeys {
+    fn drop(&mut self) {
+        for (_, code, extended) in self.down.iter().rev() {
+            let _ = scan(self.window, *code, true, *extended);
+        }
+    }
+}
+pub fn key(window: usize, name: &str) -> Result<(), String> {
+    let mut held = HeldKeys::new(window);
+    held.press(name)?;
     thread::sleep(Duration::from_millis(100));
-    scan(window, code, true, extended)
+    held.release(name)
 }
 pub fn text(window: usize, text: &str) -> Result<(), String> {
     for c in text.encode_utf16() {

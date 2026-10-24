@@ -1,5 +1,5 @@
 {
-  "comment": "Single registration manifest, tx-04-04. All gameplay wrappers only forward. Signature strings omit noexcept to match libzhl RTTI.",
+  "comment": "tx-04-05：唯一 Hook 清单；常驻入口、设备槽及 Odd 普通调用点，未激活时透传。",
   "hooks": [
     ["manager_update","loop","Manager","Update","void","bool value","value","0x52E3E0","Manager",true,"stdcall",false,-10000,true],
     ["game_update","loop","Game","Update","void","","","0x2F6D30","Game",false,"",false,0,true],
@@ -17,9 +17,10 @@
     ["door_update","loop","RoomTransition","Update","void","","","0x426430","Door",false,"",false,0,false],
     ["door_nested","loop","Game","DoorNestedOwner","int","int room, int dimension","room, dimension","0x2FA0F0","NestedDoor",false,"",true,0,false],
     ["odd_helper","loop","CsStatic","OddHelper","int","","","0x2F9340","Odd",true,"cdecl",true,0,false],
-    ["input_update","input","InputManager","InputManagerUpdate","int","","","0x5EDCC0","None",false,"",true,0,true],
-    ["device_update","input","CsDevice","DeviceCommonUpdate","bool","","","0x5EC900","None",false,"",true,0,true],
-    ["player_update","player","Entity_Player","Update","void","","","0x37BD40","None",false,"",false,0,true],
+    ["input_update","input","InputManager","InputManagerUpdate","int","","","0x5EDCC0","Input",false,"",true,0,true],
+    ["device_update","input","CsDevice","DeviceCommonUpdate","bool","","","0x5EC900","Device",false,"",true,0,true],
+    ["player_update","player","Entity_Player","Update","void","","","0x37BD40","None",false,"",false,-10000,true],
+    ["player_native","player","Entity_Player","Update","void","","","0x37BD40","None",false,"",false,10000,true],
     ["move","player","Entity_Player","ConsumerMove","void","","","0x372540","None",false,"",true,0,true],
     ["bomb","player","Entity_Player","ConsumerBomb","void","","","0x37A210","None",false,"",true,0,false],
     ["active_item","player","Entity_Player","ControlActiveItem","void","int slot","slot","0x389E50","None",false,"",false,0,false],
@@ -28,5 +29,7 @@
     ["drop","player","Entity_Player","ConsumerDrop","void","","","0x39C300","None",false,"",true,0,true],
     ["join_pass","join","PlayerManager","JoinPass","unsigned int","","","0x591360","Join",false,"",true,0,true],
     ["console_command","control","Console","RunCommand","void","std_string& in, std_string* out, Entity_Player* player","in, out, player","0x288100","Console",false,"",false,-10000,true]
-  ]
+  ],
+  "byte_patches": [{"id":"odd_normal","group":"player","rva":"0x2F9559","expected":"FF 52 0C 6A 00","resume":"0x2F955E"}],
+  "pointer_hooks": ["keyboard_8","keyboard_9","keyboard_10","keyboard_35","gamepad_8","gamepad_9","gamepad_10","gamepad_35"]
 }

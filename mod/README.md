@@ -1,6 +1,10 @@
-# REPENTOGON mod (tx-04-04)
+# REPENTOGON mod
 
-2026-10-24 tx-04-05：`src/core/` 的五个原型模块已移植到 `cs::core`，独立 C++20 静态库与现有 DLL 已纯构建成功。`PlaceholderSession` 已移到 `ops/command.cpp`；真实 core 尚未接入 Hook/solo 命令，当前 DLL 仍执行原有透传行为。接线顺序、生命周期和剩余范围见[core 移植记录](../docs/design/tx-04-05-core-port.md)。没有运行测试或游戏，tx-04-05 的唯一整体 E2E 尚未执行。以下为 tx-04-04 历史记录。
+2026-10-24 tx-04-05 后续：剩余 Lua 夹具和 Rust 单启动 S0–S11 / V1–V10 harness 已编写，并补充 tick 提交、Odd 配对、射击分派及炸弹同 tick 查询的只读诊断，见[实现记录](../docs/design/tx-04-05-test-harness.md)。没有部署或执行测试，唯一整体 E2E 尚未执行。以下阶段记录保留其当时语境。
+
+2026-10-24 tx-04-05 当前：`src/game/` 七个主线程适配模块及必要 Hook/Odd shim、`cs solo start/stop`、状态与 trace 已编写并纯编译链接成功，见[game 实现记录](../docs/design/tx-04-05-game-adapter.md)。构建清单为 28 个入口、8 个设备槽、1 个 Odd 普通调用点补丁；它们尚未在游戏进程中安装或验收。本次没有部署、启动游戏或运行测试；测试夹具和 harness 场景待完成，唯一整体 E2E 尚未执行。下段保留 core 阶段的原始状态。
+
+2026-10-24 tx-04-05 core 阶段记录：`src/core/` 的五个原型模块已移植到 `cs::core`，独立 C++20 静态库与现有 DLL 已纯构建成功。`PlaceholderSession` 已移到 `ops/command.cpp`；真实 core 尚未接入 Hook/solo 命令，当前 DLL 仍执行原有透传行为。接线顺序、生命周期和剩余范围见[core 移植记录](../docs/design/tx-04-05-core-port.md)。没有运行测试或游戏，tx-04-05 的唯一整体 E2E 尚未执行。以下为 tx-04-04 历史记录。
 
 目标为官方 REPENTOGON 1.1.3 + Repentance+ v1.9.7.12.J273。实现范围与原始失败情况见 [实现方案](../docs/design/tx-04-04-implementation-plan.md)。
 

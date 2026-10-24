@@ -11,7 +11,7 @@
 #include <winsock2.h>
 
 namespace cs {
-inline constexpr char Version[] = "0.1.0-tx-04-04";
+inline constexpr char Version[] = "0.2.0-tx-04-05";
 enum class Group { Loop, Input, Player, Join, Control, Device, Count };
 inline constexpr const char *GroupNames[] = {"loop", "input",   "player",
                                              "join", "control", "device"};
@@ -27,7 +27,10 @@ enum class Owner {
   NestedDoor,
   Odd,
   Join,
-  Console
+  Console,
+  Input,
+  Device,
+  OddNormal
 };
 // schema=1 配置；log_level 在 tx-04-04 中仅记录，不过滤 trace。
 struct Config {
@@ -125,6 +128,8 @@ bool PrepareBindings();
 std::string MenuStatus(bool run_active);
 void RegisterHooks();
 void InstallPointers() noexcept;
+void InstallRuntimePatches() noexcept;
+bool OddPatchInstalled() noexcept;
 unsigned PointerCount() noexcept;
 std::string PointerCounters();
 bool PatternMatches(uintptr_t rva, const char *pattern) noexcept;
@@ -161,6 +166,7 @@ struct CallScope {
   Hook &hook;
   bool main, pushed = false;
   int exceptions;
+  uint64_t token = 0;
   explicit CallScope(Hook &) noexcept;
   ~CallScope() noexcept;
 };

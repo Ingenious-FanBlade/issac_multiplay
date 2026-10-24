@@ -1,6 +1,8 @@
-//! 单次入口覆盖 E1–E7 和两次启动；失败保留产物，不自动重试。
+//! tx-04-04 覆盖 E1–E7 / 两次启动，tx-04-05 覆盖 V1–V10 / 单次启动。
+//! 失败保留产物，不自动重试；夹具和按键由各次运行管理。
 //! 构建脚本不执行本程序，存档只快照、不恢复。
 mod saves;
+mod tx05;
 mod win32;
 use serde_json::{Value, json};
 use std::{
@@ -210,7 +212,12 @@ impl Control {
             if let Some(code) = game.exited() {
                 return Err(format!("game exited during startup: {code}"));
             }
-            win32::focus(window)?;
+            // 启动加载时主线程可能超过 5 s 不处理窗口消息，系统将窗口判为未响应后无法设为前台。
+            // 启动等待只尽力激活并记录；发键和截图前的 focus 仍必须成功（D20）。
+            if let Err(error) = win32::focus(window) {
+                self.record(json!({"event":"startup_focus_pending","error":error,
+                    "elapsed_ms":self.clock.elapsed().as_millis()}))?;
+            }
             last = self.request("cs status")?;
             match last.get("ok").map(String::as_str) {
                 Some("1") => {
@@ -348,6 +355,21 @@ impl Run {
                 .push(json!({"operation":"copy","source":s,"destination":d}));
         }
         self.deployed = true;
+        if self.report["tx"] == "tx-04-05" {
+            let config = format!(
+                "-- 本次临时 E2E 配置，不写回源码。\nreturn {{ tx = \"tx-04-05\", token = \"{}\" }}\n",
+                self.report["token"]
+                    .as_str()
+                    .ok_or("missing fixture token")?
+            );
+            fs::write(
+                self.game.join("mods/isaac-cs-test/harness_config.lua"),
+                &config,
+            )
+            .map_err(|e| e.to_string())?;
+            self.deployment
+                .push(json!({"operation":"fixture_config","content":config}));
+        }
         self.config(true)?;
         self.step("deployment", json!(self.deployment))
     }
@@ -965,6 +987,9 @@ impl Run {
     }
     // 所有场景在一个入口中顺序执行，不重试失败启动或失败验收。
     fn execute(&mut self) -> Result<()> {
+        if self.report["tx"] == "tx-04-05" {
+            return self.execute_tx05();
+        }
         self.environment()?;
         self.capture_sources()?;
         self.report["crash_before"] = self.crash_files()?;
@@ -984,6 +1009,9 @@ impl Run {
     }
     // 清理先于报告分析，失败也关闭测试口并移除自己部署的夹具。
     fn finish(&mut self, result: Result<()>) -> Result<()> {
+        if self.report["tx"] == "tx-04-05" {
+            return self.finish_tx05(result);
+        }
         self.report["failure"] = result.err().map(Value::String).unwrap_or(Value::Null);
         if let Err(e) = self.cleanup() {
             self.report["cleanup_error"] = json!(e);
@@ -1118,9 +1146,12 @@ fn main() {
 fn entry() -> Result<()> {
     let args = env::args().skip(1).collect::<Vec<_>>();
     if args.get(0).map(String::as_str) != Some("e2e")
-        || args.get(1).map(String::as_str) != Some("tx-04-04")
+        || !matches!(
+            args.get(1).map(String::as_str),
+            Some("tx-04-04" | "tx-04-05")
+        )
     {
-        return Err("usage: harness e2e tx-04-04 --game <game-root> --out <new-artifact-directory> [--scenario <json>]".into());
+        return Err("usage: harness e2e <tx-04-04|tx-04-05> --game <game-root> --out <new-artifact-directory> [--scenario <json>]".into());
     }
     let option = |key: &str| {
         args.iter()
@@ -1143,7 +1174,7 @@ fn entry() -> Result<()> {
         .to_path_buf();
     let scenario_path = option("--scenario")
         .map(PathBuf::from)
-        .unwrap_or_else(|| repo.join("tools/harness/scenarios/tx-04-04.json"));
+        .unwrap_or_else(|| repo.join(format!("tools/harness/scenarios/{}.json", args[1])));
     let scenario: Value =
         serde_json::from_str(&read(&scenario_path)?).map_err(|e| e.to_string())?;
     write_json(&out.join("scenario.json"), &scenario)?;
@@ -1155,7 +1186,8 @@ fn entry() -> Result<()> {
         out: out.clone(),
         save,
         scenario,
-        report: json!({"tx":"tx-04-04","cases":{},"cleanup_error":null}),
+        report: json!({"tx":args[1],"cases":{},"cleanup_error":null,
+            "token":format!("tx05-{}-{}",std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(|e|e.to_string())?.as_millis())}),
         steps: fs::File::create(out.join("steps.jsonl")).map_err(|e| e.to_string())?,
         deployed: false,
         fixture_owned: false,

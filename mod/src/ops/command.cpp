@@ -1,4 +1,7 @@
 #include "binding/offsets.h"
+#include "game/context.h"
+#include "game/tick.h"
+#include "game/topology.h"
 #include "runtime.h"
 #include <charconv>
 #include <cstring>
@@ -9,7 +12,7 @@ namespace {
 // 状态变更只排队，在下一次最外层 Manager 入口统一执行。
 struct Mutation {
   uint64_t id;
-  bool host;
+  enum class Kind { Host, StopHost, SoloStart, SoloStop } kind;
   unsigned port;
 };
 Ring<Mutation, 64> mutations;
@@ -18,7 +21,7 @@ Ring<PortReply, 32> port_replies;
 std::atomic<uint64_t> next_id{1}, queue_dropped{};
 uint64_t frame = 0;
 unsigned frame_depth = 0;
-// tx-04-04 的 host/stop 仍为占位命令；真实 Solo 会话由后续 game 适配层接线。
+// tx-04-04 的 host/stop 仍为占位命令；真实 Solo 会话交给 game 适配层。
 // 占位状态留在 ops 内，core/session 专用于真实会话，不混用两种生命周期。
 struct PlaceholderSession {
   bool hosting = false;
@@ -31,6 +34,7 @@ struct PlaceholderSession {
   void Stop() noexcept { hosting = false; }
 };
 PlaceholderSession session;
+bool pending_host_start = false, pending_solo_start = false;
 bool started = false;
 std::mutex snapshot_lock;
 std::string status_snapshot =
@@ -41,7 +45,9 @@ std::string state() {
   for (auto c : Capabilities)
     if (!c)
       return "Disabled";
-  return session.hosting ? "Hosting" : "Idle";
+  return game::SoloBusy()  ? game::StateName()
+         : session.hosting ? "Hosting"
+                           : "Idle";
 }
 // 所有来源共用参数解析；变更入队，查询读取上一帧快照。
 std::string Execute(std::string_view text, const char *source) {
@@ -58,27 +64,45 @@ std::string Execute(std::string_view text, const char *source) {
     in >> arg >> extra;
     result = arg.empty() || !extra.empty() ? "ok=0\nerror=arguments\n"
                                            : "ok=1\necho=" + arg + "\n";
-  } else if (verb == "host" || verb == "stop") {
+  } else if (verb == "host" || verb == "stop" || verb == "solo") {
     in >> arg >> extra;
     unsigned port = Settings.host_port;
     bool valid = extra.empty();
+    const bool solo = verb == "solo";
+    const bool start_solo = solo && arg == "start";
     if (verb == "host") {
       auto parsed = std::from_chars(arg.data(), arg.data() + arg.size(), port);
       valid = valid && !arg.empty() && parsed.ec == std::errc{} &&
               parsed.ptr == arg.data() + arg.size() && port > 0 &&
               port <= 65535;
-    } else
+    } else if (solo)
+      valid = valid && (arg == "start" || arg == "stop");
+    else
       valid = valid && arg.empty();
     if (!valid)
       result = "ok=0\nerror=arguments\n";
     else if (state() == "Disabled")
       result = "ok=0\nerror=capabilities_unavailable\n";
+    else if ((solo && (session.hosting || pending_host_start)) ||
+             (!solo && (game::SoloBusy() || pending_solo_start)) ||
+             (start_solo && (game::SoloBusy() || pending_solo_start)))
+      result = "ok=0\nerror=busy\n";
+    else if (start_solo && !game::RunActive())
+      result = "ok=0\nerror=not_in_run\n";
     else {
-      Mutation mutation{next_id.fetch_add(1), verb == "host", port};
-      if (mutations.Push(mutation))
+      const auto kind = solo ? (start_solo ? Mutation::Kind::SoloStart
+                                           : Mutation::Kind::SoloStop)
+                             : (verb == "host" ? Mutation::Kind::Host
+                                               : Mutation::Kind::StopHost);
+      Mutation mutation{next_id.fetch_add(1), kind, port};
+      if (mutations.Push(mutation)) {
+        if (kind == Mutation::Kind::Host)
+          pending_host_start = true;
+        if (kind == Mutation::Kind::SoloStart)
+          pending_solo_start = true;
         result = "ok=1\nqueued=" + std::to_string(mutation.id) +
                  "\nframe=" + std::to_string(frame) + "\n";
-      else {
+      } else {
         ++queue_dropped;
         result = "ok=0\nerror=queue_full\n";
       }
@@ -158,6 +182,7 @@ void PublishStatus() noexcept {
         "\ncontext_faults=" + std::to_string(ContextFaults()) +
         "\ntrace=" + TracePath() + "\nlast_error=" + last_error + "\n";
     s += MenuStatus(run);
+    s += game::StatusFields();
     for (size_t i = 0; i < Capabilities.size(); ++i) {
       s += "capability." + std::string(GroupNames[i]) + "=" +
            (Capabilities[i] ? "1" : "0") + "\n";
@@ -174,6 +199,7 @@ void PublishStatus() noexcept {
 // Manager 帧只是观测编号，不代表 Authority tick。
 void FrameBegin() noexcept {
   if (frame_depth++ != 0) {
+    game::ContextFault("reentrant_manager");
     Trace("context_error", "reentrant_manager");
     return;
   }
@@ -183,24 +209,43 @@ void FrameBegin() noexcept {
   if (!started) {
     started = true;
     RefreshVersion();
-    InstallPointers();
+    InstallRuntimePatches();
     Trace("runtime_version", "repentogon=%s", RepentogonVersion.c_str());
   }
+  game::BeginManager(frame);
   try {
     // N 帧收到的变更在 N+1 帧入口执行，下面取出的端口请求不能抢跑。
     Mutation m{};
     for (unsigned i = 0; i < 64 && mutations.Pop(m); ++i) {
-      const char *before = session.hosting ? "Hosting" : "Idle";
-      if (m.host && !session.Host())
-        last_error = "already_hosting";
-      else {
-        if (!m.host)
+      const std::string before = state();
+      last_error.clear();
+      switch (m.kind) {
+      case Mutation::Kind::Host:
+        pending_host_start = false;
+        if (game::SoloBusy())
+          last_error = "busy";
+        else if (!session.Host())
+          last_error = "already_hosting";
+        break;
+      case Mutation::Kind::StopHost:
+        if (game::SoloBusy())
+          last_error = "busy";
+        else
           session.Stop();
-        last_error.clear();
+        break;
+      case Mutation::Kind::SoloStart:
+        pending_solo_start = false;
+        last_error = session.hosting ? "busy" : game::StartSolo();
+        break;
+      case Mutation::Kind::SoloStop:
+        if (session.hosting)
+          last_error = "busy";
+        else
+          game::StopSolo();
+        break;
       }
       Trace("state", "id=%llu from=%s to=%s port=%u frame=%llu error=%s", m.id,
-            before, session.hosting ? "Hosting" : "Idle", m.port, frame,
-            last_error.c_str());
+            before.c_str(), state().c_str(), m.port, frame, last_error.c_str());
     }
     PortRequest request{};
     for (unsigned i = 0; i < 32 && port_requests.Pop(request); ++i) {
@@ -230,6 +275,7 @@ void FrameEnd(bool completed) noexcept {
   if (!frame_depth || --frame_depth != 0)
     return;
   // 原生异常展开只归还深度，不发布未完成帧的状态快照。
+  game::EndManager(completed);
   if (!completed)
     return;
   PublishStatus();
@@ -245,12 +291,15 @@ void FrameEnd(bool completed) noexcept {
   }
 }
 void RunExit() noexcept {
+  game::StopSolo(core::SessionCause::RunTeardown);
   session.Stop();
   // 清掉旧 run 的排队变更，避免返回菜单后旧 host 命令复活会话。
   Mutation ignored{};
   while (mutations.Pop(ignored)) {
   }
-  Trace("state", "to=Idle reason=run_exit frame=%llu", frame);
-  Trace("run_exit", "state=Idle pending_mutations=0 resident=1");
+  pending_host_start = pending_solo_start = false;
+  Trace("state", "to=%s reason=run_exit frame=%llu", game::StateName(), frame);
+  Trace("run_exit", "state=%s pending_mutations=0 resident=1",
+        game::StateName());
 }
 } // namespace cs

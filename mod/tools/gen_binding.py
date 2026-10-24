@@ -11,13 +11,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--out', type=Path, required=True)
 args = parser.parse_args()
 args.out.mkdir(parents=True, exist_ok=True)
-catalog = json.loads((ROOT/'mod/binding/hooks.json').read_text(encoding='utf-8'))['hooks']
+catalog_document = json.loads((ROOT/'mod/binding/hooks.json').read_text(encoding='utf-8'))
+catalog = catalog_document['hooks']
 patterns = {int(f['rva'], 16): f['pattern'] for f in json.loads(
     (ROOT/'mod/binding/v1_9_7_12-static.json').read_text(encoding='utf-8'))['functions']}
 binding = json.loads((ROOT/'docs/hooks/repentogon-binding.json').read_text(encoding='utf-8'))
 source = ['// 由 gen_binding.py 生成，请修改 binding/hooks.json。',
           '#include "runtime.h"', '#include "IsaacRepentance.h"', '#include "hooks/cs_hook.h"',
-          '#include "binding/offsets.h"',
+          '#include "binding/offsets.h"', '#include "game/bridge.h"',
           '// 自有定义仅借用类型表达 ABI，不构造这些对象。',
           'struct CsStatic {};', 'struct CsEntityList {};',
           'struct CsLifecycle {};', 'struct CsDevice {};']
@@ -48,22 +49,56 @@ for row in catalog:
                    '        } catch (...) { cs::Trace("command_error", "exception"); }',
                    '        return;', '    }',f'    super({call});']
     else:
-        source.append(f'    {"return " if ret!="void" else ""}super({call});')
+        # 此处只桥接主线程适配；原生异常由各层 RAII 观察后继续传播。
+        if ident=='room_update':
+            source.append('    cs::game::SimulationScope simulation(cs::game::SimulationKind::Room, this);')
+        elif ident=='odd_helper':
+            source.append('    cs::game::SimulationScope simulation(cs::game::SimulationKind::Odd);')
+        elif ident=='player_update':
+            source.append('    cs::game::PlayerScope player_scope(this);')
+        elif ident=='player_native':
+            source.append('    cs::game::PlayerNativeReached(this);')
+        elif ident=='device_update':
+            source.append('    cs::game::DeviceScope device_scope(this);')
+        elif ident=='restore':
+            source += ['    if (scope.main) { cs::game::RestoreBeginning(); cs::RunExit(); }']
+        consumers={'move':'Movement','bomb':'Bomb','active_item':'Item',
+                   'card_pill':'Pill','shoot':'Shooting','drop':'Drop'}
+        if ident in consumers:
+            source.append(f'    cs::game::ConsumerScope consumer(this, cs::game::ConsumerKind::{consumers[ident]});')
+            if ident=='shoot': source.append('    if (!consumer.CallOriginal()) return;')
+        source.append(f'    {"auto result = " if ret!="void" else ""}super({call});')
+        if ident=='device_update': source.append('    device_scope.Returned(result);')
+        if ident=='input_update': source.append('    if (scope.main) cs::game::InputFrameFinished();')
+        if ident=='console_check': source.append('    if (scope.main) cs::game::ObserveConsole(result);')
+        if ident=='new_room': source.append('    if (scope.main) cs::game::NewRoomReturned();')
         if ident=='game_exit': source.append('    if (scope.main) cs::RunExit();')
+        if ret!='void': source.append('    return result;')
     source.append('}')
     originals = [i['id'] for i in binding['items'] if int(i.get('v12',{}).get('target') or '0',16)==rva]
     manifest.append(dict(id=ident, group=group, definition=name, rva=hex(rva), priority=priority,
                          mechanism='ZHL_OWN' if own else 'ZHL_REPENTOGON', required_nonzero=required,
-                         owner=owner, armed=False, inactive='handle cs; other commands super exactly once' if ident=='console_command' else 'super exactly once', prototype=originals,
+                         owner=owner, armed='session', inactive='handle cs; other commands super exactly once' if ident=='console_command' else 'super exactly once', prototype=originals,
                          evidence='STATIC_CONFIRMED'))
 (args.out/'hooks_generated.cpp').write_text('\n'.join(source)+'\n', encoding='utf-8')
 device = [(r,patterns[r]) for r in [0x5EC570,0x5EC6A0,0x5EEB40,0x5EEBB0]]
 (args.out/'binding_v1_9_7_12.inc').write_text('\n'.join(
     f'{{0x{r:X}, "{p}"}},' for r,p in device)+'\n', encoding='utf-8')
-(args.out/'hook-manifest.json').write_text(json.dumps({'tx':'tx-04-04','hooks':manifest,
-    'pointer_hooks':[f'{device}_{slot}' for device in ['keyboard','gamepad'] for slot in [8,9,10,35]]},indent=2)+'\n',encoding='utf-8')
-md = ['# tx-04-04 Hook manifest', '', 'Generated from mod/binding/hooks.json. All gameplay hooks remain unarmed.', '',
+# 字节补丁的地址与完整指令预算同样只来自这一张清单。
+patch = catalog_document['byte_patches'][0]
+expected = [int(value,16) for value in patch['expected'].split()]
+(args.out/'permanent_patches.inc').write_text(
+    '// 由唯一 Hook 清单生成，勿手改。\n' +
+    f'inline constexpr uintptr_t OddCallRva = {patch["rva"]};\n' +
+    f'inline constexpr uintptr_t OddResumeRva = {patch["resume"]};\n' +
+    f'inline constexpr const char* OddPattern = "{patch["expected"]}";\n' +
+    'inline constexpr unsigned char OddExpected[] = {' + ','.join(hex(value) for value in expected) + '};\n', encoding='utf-8')
+(args.out/'hook-manifest.json').write_text(json.dumps({'tx':'tx-04-05','hooks':manifest,
+    'pointer_hooks':catalog_document['pointer_hooks'],
+    'byte_patches':catalog_document['byte_patches']},indent=2)+'\n',encoding='utf-8')
+md = ['# tx-04-05 Hook manifest', '', 'Generated from mod/binding/hooks.json. Session controls gameplay activation.', '',
       '| id | group | definition | RVA | priority | required nonzero |', '|---|---|---|---|---|---|']
 md += [f"| {h['id']} | {h['group']} | {h['definition']} | {h['rva']} | {h['priority']} | {h['required_nonzero']} |" for h in manifest]
-md += ['', 'Pointer hooks: Keyboard/Gamepad slots 8, 9, 10, 35. Deferred, permanent, transparent.']
+md += ['', 'Pointer hooks: Keyboard/Gamepad slots 8, 9, 10, 35. Permanent.',
+       f'OddNormal: {patch["rva"]}, expected {patch["expected"]}, resume {patch["resume"]}. Permanent.']
 (args.out/'hook-manifest.md').write_text('\n'.join(md)+'\n',encoding='utf-8')
