@@ -1,6 +1,6 @@
 # tx-04-05 实现方案：循环阶段、tick 判定、A 的统一输入与单人会话
 
-日期：2026-10-24。状态：U1–U4 已由用户按建议确认（设计 D19）；第 10 节 T1–T8 的静态审查和主智能体审阅已完成，事实、修正和保留的 UNKNOWN 见[静态确认报告](../research/tx-04-05-static-confirmation.md)。随后按用户限定范围完成第 3.1 节 core 原型移植及纯编译/链接，见[代码与接线记录](tx-04-05-core-port.md)。game 适配、solo 命令与测试夹具仍待实现，唯一整体 E2E 尚未执行。依据：
+日期：2026-10-24。状态：U1–U4 已由用户按建议确认（设计 D19）；第 10 节 T1–T8 的静态审查和主智能体审阅已完成，事实、修正和保留的 UNKNOWN 见[静态确认报告](../research/tx-04-05-static-confirmation.md)。随后完成第 3.1 节 [core 原型移植](tx-04-05-core-port.md)与第 3.2 节 [game 适配及必要 Hook/solo 接线](tx-04-05-game-adapter.md)，均纯编译链接成功。第 11、12 节的 Lua 夹具、单启动 S0–S11 harness 与 V1–V10 归约也已编写，见[实现记录](tx-04-05-test-harness.md)。第一次整体 E2E（2026-10-24）在 S0 启动阶段因 harness focus 时序 FAIL，未重跑；按 D20 修正 harness 后执行的第二次 E2E 跑完 S0–S11，V1、V3–V9 PASS，V2（S1 时游戏尚未开始模拟）与 V10（F9 触发原版截图）FAIL，未重跑；按 D21 修正后的第三次 E2E 中 V1、V3–V10 PASS，只有 V2 因 S10 向右被随机房间的岩石挡住而 FAIL，未重跑；按 D22 修正后的第四次 E2E 中 V1、V3–V10 PASS，V2 因 S10 改向左移动而判定仍要求向右（D22 修改遗漏）FAIL，未重跑。D23：用户决定将第四次 E2E 算作验收通过，tx-04-05 完成（用户接受），见[结果](tx-04-05-results.md)。依据：
 
 - [REPENTOGON 适配重构设计](repentogon-refactor.md)（下称“设计”），尤其是第 5.4、7 节；
 - [tx-04-04 实现方案](tx-04-04-implementation-plan.md)与[实现与结果](tx-04-04-results.md)（第八次 E2E 的计数与观察）；
@@ -103,11 +103,11 @@ core 只用 C++20 标准库，不包含 REPENTOGON 或游戏头文件（设计 3
 | `game/consumers.*` | consumer 上下文与射击分派（第 6.5 节） |
 | `game/lifecycle.*` | 阻断状态与作废（第 7 节） |
 
-`ops/command.cpp` 中的占位 `PlaceholderSession` 换成 `core/session`；`cs host/stop` 的占位语义不变。
+真实 Solo 已接入 `game` 持有的 `core::Session`；`ops/command.cpp` 调用主线程适配并发布状态。`cs host/stop` 保留单独的占位对象与原有语义，和 Solo 互斥。七个模块及必要接线已编写并纯构建成功，见[实现记录](tx-04-05-game-adapter.md)，尚未实机验收。
 
 ### 3.3 Hook 清单的变化
 
-- 现有入口绑定继续使用；新增点仍只经统一 Hook 清单注册，常驻并按会话逻辑启停。本次没有安装或修改任何 Hook。
+- 现有入口绑定继续使用；新增点仍只经统一 Hook 清单注册，常驻并按会话逻辑启停。静态阶段没有安装或修改 Hook；随后已完成本节代码接线并构建，但没有在游戏进程中安装或观察。
 - `Entity_Player::Update` 的 priority 从 0 改为 -10000，排在 REPENTOGON 的 MC_PRE_PLAYER_UPDATE Hook 之外；另在同一已有定义上加 priority=+10000 的只观测内层 Hook，记录是否到达原生 Player 子类更新。外层正常返回但内层未到达时记录链路跳过，不能由“consumer 次数为零”推断 Lua 返回了真（第 5.5 节）。
 - T1 确认奇数帧 helper 中有三处 Player 虚调用。采用方式 4：只在普通调用点 `0x2F9559` 建立 `OddNormal` 标记；两处特殊调用不产生 tick。ZHL 在 wrapper 前另发出 `call`，不在 C++ wrapper 中用 `_ReturnAddress()` 判断原生调用点，也不依赖未约定的桩帧布局。指令搬移与异常清理约定见静态报告 T1。
 - T4 确认 REPENTOGON 会在调用 `super()` 前短路返回。首版采用已观察的控制台与暂停区间，不新增用于“设备为真、最终为假”差值比较的两个 InputManager Hook；内层未执行不能被记成设备返回假。
@@ -301,10 +301,12 @@ T8 已确认三类 consumer 查询经 Manager 包装层到 InputManager，再进
 
 ### 11.1 测试 mod（只在 E2E 期间部署，D9）
 
+第 11、12 节已编码，尚未运行。具体实现、少量只读诊断和单启动下 D18 历史基线的严格字节比较规则见[测试代码记录](tx-04-05-test-harness.md)。本节场景与验收目标保持不变。
+
 在 tx-04-04 夹具基础上增加（U2，已确认）：
 - **跳帧触发。** 在 `MC_POST_RENDER` 中检测 F8 键（`Input.IsButtonTriggered`），之后让 `MC_PRE_UPDATE` 连续返回真 30 次，起止各写一条 `[isaac-cs-test] skip-update` 日志。这是 gameplay 回调，只作测试夹具。
 - **只读观测。** 在 `MC_POST_RENDER` 中，当 A 的位置、炸弹数、泪弹实体数变化时写日志（`Isaac.GetPlayer(0).Position`、`GetNumBombs()`、`Isaac.CountEntities(nil, EntityType.ENTITY_TEAR)`），作为输入生效的游戏侧证据。
-- **切房触发（U3，已确认）。** 在 `MC_POST_RENDER` 中检测 F9 键，以全参数 `Game():StartRoomTransition(targetRoom, direction, 0, nil, -1)` 发起一次相邻房间过渡，显式使用 animation=0、当前维度。T6 已静态对齐 animation 参数到 RoomTransition `+0x1C` 的写入链；该字段不是 `_mode`。目标取当前房间的可通行门对应房间，具体 Lua 选门读取在实现时完成。记录请求参数和实际房间身份；原生可能拒绝或改写目标，不能用“调用返回”代替切房成功。前后各写一条 `[isaac-cs-test] room-transition` 日志，之后按生命周期重新绑定。
+- **切房触发（U3，已确认）。** 在 `MC_POST_RENDER` 中检测 F9 键（D21 起改为第二次 F8，F9 是原版手动截图热键），以全参数 `Game():StartRoomTransition(targetRoom, direction, 0, nil, -1)` 发起一次相邻房间过渡，显式使用 animation=0、当前维度。T6 已静态对齐 animation 参数到 RoomTransition `+0x1C` 的写入链；该字段不是 `_mode`。目标取当前房间的可通行门对应房间，具体 Lua 选门读取在实现时完成。记录请求参数和实际房间身份；原生可能拒绝或改写目标，不能用“调用返回”代替切房成功。前后各写一条 `[isaac-cs-test] room-transition` 日志，之后按生命周期重新绑定。
 
 ### 11.2 harness 场景（一次执行，单次启动）
 
@@ -321,7 +323,7 @@ T8 已确认三类 consumer 查询经 Manager 包装层到 InputManager，再进
 | S6 浮层 | 打开浮层 1 秒再关闭 | 浮层期间 completed 不变；关闭后 tick 恢复；物理历史可继续更新，期间输入不进入 Submit/Resolve，edge 不跨屏蔽区间重放 |
 | S7 暂停菜单 | ESC 打开暂停 1 秒，期间按住 D，再 ESC 恢复 | 暂停期间无 tick；恢复后 held 的 D 不产生新边沿；A 重新绑定 |
 | S8 跳帧 | 按 F8 | 跳帧窗口内 `ticks_standard` 不增加；OddPlayer tick 如实记录 |
-| S9 切房 | 按 F9，由测试 mod 切换到相邻房间（U3） | 加载期间无 StandardRoom tick；A 作废并重新绑定；之后移动仍生效 |
+| S9 切房 | 按 F9（D21 起为第二次 F8），由测试 mod 切换到相邻房间（U3） | 加载期间无 StandardRoom tick；A 作废并重新绑定；之后移动仍生效 |
 | S10 停止 | `cs solo stop`，再按住 D | `Retiring → Idle`；查询回到原值；玩家仍能原生移动 |
 | S11 teardown | 再次 `cs solo start`，然后退回主菜单 | `Game::Exit` 使会话退休；状态为 Idle；旧输入不复活 |
 

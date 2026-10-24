@@ -1,6 +1,20 @@
 # C/S研究与状态同步文档
 
-> tx-04-05 core 移植（2026-10-24）：第 3.1 节的 Session、TickClock、TickPipeline、input_core、Participant 已编写，Win32 Release 纯构建成功。代码、Solo 适配和后续接线见[移植记录](design/tx-04-05-core-port.md)。game/命令/测试夹具尚未实现；没有运行测试，唯一整体 E2E 尚未执行。下方静态报告与 tx-04-04 内容保留历史语境。
+> **tx-04-05 完成（用户接受，D23，2026-10-24）**：用户决定将第四次 E2E 算作验收通过（V1、V3–V10 PASS；V2 的判定方向缺陷不修复，原报告保持 FAIL）。见[结果](design/tx-04-05-results.md)。
+>
+> tx-04-05 第四次 E2E（2026-10-24）：**FAIL**，V1、V3–V10 PASS；V2 的 S10 已按 D22 向左原生移动约 198 px，但判定仍要求向右（D22 修改遗漏），未重跑。见[结果](design/tx-04-05-results.md)。
+>
+> tx-04-05 第三次 E2E（2026-10-24）：**FAIL**，V1、V3–V10 PASS；只有 V2 的 S10 因 harness 固定向右移动、被随机房间的岩石挡住而失败，DLL 没有接管输入，未重跑。见[结果](design/tx-04-05-results.md)。
+>
+> tx-04-05 第二次 E2E（2026-10-24）：**FAIL**，S0–S11 全部执行，V1、V3–V9 PASS；V2 因 S1 落在开局约 3 秒的未模拟区间、V10 因 F9 触发原版手动截图而失败，均为 harness/夹具问题，未重跑。见[结果](design/tx-04-05-results.md)。
+>
+> tx-04-05 第一次 E2E（2026-10-24）：**FAIL**，S0 启动加载超过 5 s 时 harness 强制 focus 失败，未进入 run，未重跑；DLL 侧能力、28 个 Hook、8 个槽补丁与 Odd shim 安装正常。另发现 V10 的 D18 历史基线规则无法匹配。见[结果](design/tx-04-05-results.md)。
+>
+> tx-04-05 测试代码（2026-10-24）：剩余 Lua F8/F9/只读夹具、Rust 单启动 S0–S11 编排与 V1–V10 归约已编写，见[实现记录](design/tx-04-05-test-harness.md)。未部署或启动游戏，没有执行测试，唯一整体 E2E 尚未执行。下方各阶段记录保留其当时状态。
+
+> tx-04-05 game 适配（2026-10-24）：第 3.2 节七个主线程适配模块、必要的常驻 Hook/Odd shim 接线、solo 命令与状态/trace 已编写并纯构建成功，见[实现记录](design/tx-04-05-game-adapter.md)。测试 mod/harness 场景尚待实现，没有部署或运行测试，唯一整体 E2E 尚未执行。
+
+> tx-04-05 core 阶段记录（2026-10-24）：第 3.1 节的 Session、TickClock、TickPipeline、input_core、Participant 已编写，Win32 Release 纯构建成功。代码、Solo 适配和后续接线见[移植记录](design/tx-04-05-core-port.md)。该阶段尚未接入 game/命令；后续实现见上方最新记录。没有运行测试，唯一整体 E2E 尚未执行。下方静态报告与 tx-04-04 内容保留历史语境。
 
 > tx-04-05 静态工作完成（2026-10-24）：T1–T8 已由 GPT-6 Luna / max 逆向并经主智能体独立取证审阅；修正了 Odd 分类、设备 id 映射、采样时点、屏蔽观察、持续 held 提交和字段宽度等方案。T6 不把 new-room 回调当作所有路径最终位置稳定的证明。见[静态报告](research/tx-04-05-static-confirmation.md)；功能尚未实现，没有构建、实机操作或测试。下列 tx-04-04 记录保留历史语境，其第八次整体 E2E 已 PASS。
 
@@ -27,6 +41,6 @@
 17. [tx-04-01／02：REPENTOGON 适配重构设计](design/repentogon-refactor.md)：把原型改为由 REPENTOGON 加载的 `zhlIsaacCS.dll`。Hook 常驻、会话逻辑启停；网络放入 DLL，Rust 只做测试与中继；旧 ISCS／Isaac Sync 兼容约束不延续；会话通过 REPENTOGON ImGui 界面发起。tx-04-02 定下目标为官方 REPENTOGON 与 v1.9.7.12.J273，并修订了现行规范。目前只有设计，没有代码。
 18. [tx-04-03：REPENTOGON 目标版本点位核对](hooks/repentogon-binding.md)：在 v1.9.7.12.J273（从 `Repentogon\` 子目录的 exe 复制一份，用 Steamless 脱壳）上静态核对原型首轮点位，产出 43 项 [binding 清单](hooks/repentogon-binding.json)。37/39 个调用点有对应；输入设备子系统变化较大，自有虚拟设备要重做；4 处调用点补丁要按新寄存器分工重写；字段偏移已用 REPENTOGON `.zhl` 印证。只做了静态分析，脚本和中间数据见 `artifacts/repentogon/tx-04-03-static/`。
 19. [tx-04-04：实现与结果](design/tx-04-04-results.md)：开发包与[项目代码](../mod/README.md)已实现并编译；27 个入口 Hook、8 个设备槽补丁、`cs` 命令桥、有界命令队列与测试控制口、纯界面 mod 和 Rust i686 harness。唯一 E2E 在注入启动阶段因 Launch 等待 60 秒超时失败，未进入菜单，未重跑。存档无变化，临时测试 mod 已移除、配置已关闭。tick、输入接管和网络不在本轮范围。之后做了静态审阅，并修订了[实现方案](design/tx-04-04-implementation-plan.md)和设计文档；修复沿用 tx-04-04（D16），已实现并编译；第二次 E2E 仍启动超时 FAIL，新增诊断捕获 Use The Launcher! 对话框。两类存档均无变化，未自动重跑；Lua 捕获偏移经 IDA 更正为 Game+0x680D8。 按 D18 修正后，第八次 E2E E1–E7 全部通过。
-20. [tx-04-05：实现方案](design/tx-04-05-implementation-plan.md)：循环阶段与 tick 判定、本地玩家 A 经统一队列输入、生命周期和单人会话。U1–U4 已确认（D19）；T1–T8 的[静态确认与主审](research/tx-04-05-static-confirmation.md)完成，原始资料见[artifact](../artifacts/repentogon/tx-04-05-static/README.md)。第 3.1 节 [core 移植](design/tx-04-05-core-port.md)已编写并纯构建成功，game/solo 命令/测试夹具仍待实现；没有运行测试，唯一整体 E2E 尚未执行。
+20. [tx-04-05：实现方案](design/tx-04-05-implementation-plan.md)：循环阶段与 tick 判定、本地玩家 A 经统一队列输入、生命周期和单人会话。U1–U4 已确认（D19）；T1–T8 的[静态确认与主审](research/tx-04-05-static-confirmation.md)完成，原始资料见[artifact](../artifacts/repentogon/tx-04-05-static/README.md)。第 3.1 节 [core 移植](design/tx-04-05-core-port.md)已编写并纯构建成功，[game 主线程适配](design/tx-04-05-game-adapter.md)及必要 Hook/solo 命令也已编写并纯构建成功；[Lua 夹具与 Rust 单启动 S0–S11 / V1–V10](design/tx-04-05-test-harness.md)也已编写并纯构建成功。共执行四次整体 E2E（D20–D22 修正 harness），第四次 V1、V3–V10 PASS；按 D23 由用户接受为验收通过，tx-04-05 完成，见[结果](design/tx-04-05-results.md)。
 
 `refactor/`与`isaac-sync/`为迁入的历史资料；旧gate、哈希、独立角色与重复验收条款已由现行规范覆盖。新增`hooks/`与`design/`用于后续状态同步研究，不表示对应Replica生产功能已经实现。

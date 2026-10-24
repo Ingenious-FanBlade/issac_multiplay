@@ -1,6 +1,6 @@
 # REPENTOGON 适配重构设计
 
-> 2026-10-24 tx-04-05：T1–T8 静态审查与主审完成，事实、修正及保留的 UNKNOWN 见[实现方案](tx-04-05-implementation-plan.md)和[静态报告](../research/tx-04-05-static-confirmation.md)。静态阶段只处理证据与方案；随后按用户范围完成 [core 五个模块移植](tx-04-05-core-port.md)及纯编译/链接。game/solo 命令/测试夹具仍待实现，没有实机操作或测试；历史 tx-04-04 结果保留。
+> 2026-10-24 tx-04-05：T1–T8 静态审查与主审、[core 移植](tx-04-05-core-port.md)、[game 主线程适配与必要 Hook/solo 命令接线](tx-04-05-game-adapter.md)已完成相应代码与纯构建；[Lua 夹具、Rust 单启动 S0–S11 与 V1–V10 归约](tx-04-05-test-harness.md)也已编写，Rust/DLL 纯构建成功。没有实机操作或测试，唯一整体 E2E 尚未执行；历史 tx-04-04 结果保留。
 
 > 2026-10-24 tx-04-04 后续：第七次 E2E 已验证暂停状态导航可正确返回主菜单，Game::Exit 计数 0→1，两次进程正常退出。整体仍 FAIL：Lua run 回应和 UI 渲染标记缺失；启用及关闭配置两次均发现第一、三槽存档字节变化。菜单 g_Game/MC_MAIN_MENU_RENDER 中的 Lua 命令桥继续已观察，详见结果文档，不表示整轮已完成。
 
@@ -58,6 +58,10 @@
 | D17 | 第二次 E2E 失败后的启动方式与验收 | 采用方式 A：harness 继续自行注入，给游戏进程设置启动器标记 `LAUNCHED_BY_RGONLAUNCHER=1`，只在 `Launch` 返回 0 后才恢复主线程。修正后执行 tx-04-04 的第三次 E2E，仍然只执行一次、不自动重跑；前两次的 FAIL 和 artifact 原样保留 | `USER_DECISION`（tx-04-04） |
 | D18 | 第七次 E2E 之后的修正 | 测试 mod 改用 `Game():GetNumPlayers()`，并在主菜单渲染时重新显示界面窗口；第二个存档的 REPENTOGON 附属文件列入允许范围；第一、三个存档按基线对比（同一文件在关闭配置启动中也变化，则记为 REPENTOGON 自身行为）；开场动画由用户自行开启 REPENTOGON 的 `SkipIntro` 选项，harness 只读检查、未开启则不注入。修正后再执行一次 E2E，不自动重跑 | `USER_DECISION`（tx-04-04） |
 | D19 | tx-04-05 方案中的四项决定 | U1：单人会话用新命令 `cs solo start/stop`，`cs host` 留给 tx-04-06；U2：测试 mod 可注册 `MC_PRE_UPDATE` 制造跳帧并读取玩家状态，只作 E2E 夹具；U3：切房由测试 mod 调用 `Game():StartRoomTransition` 触发；U4：MC_PRE_PLAYER_UPDATE 跳过的帧计为 tick、边沿不补发，本轮只记录。见 [tx-04-05 实现方案](tx-04-05-implementation-plan.md)第 13 节 | `USER_DECISION`（tx-04-05） |
+| D20 | tx-04-05 第一次 E2E 之后的修正 | harness 启动等待期间的 focus 只尽力激活并记录，失败不致命，发键和截图前仍必须成功；V10 对第一、三档只放行文件末尾 Counter/Checksum 两个 u32 字段的变化，且须落在历史关闭配置启动（e2e-08）改动过的字段内，长度和其余字节不得变化；第三方纯资源 mod（REPENTOGON Download Helper）每次运行前临时禁用、运行后恢复，S0 规则不变。保留 tx-04-05 编号，修正后执行第二次 E2E，不自动重跑。见 [结果](tx-04-05-results.md) | `USER_DECISION`（tx-04-05） |
+| D21 | tx-04-05 第二次 E2E 之后的修正 | harness 在 S0 结束前须观测到两个不同的正 `game_frame`（游戏已开始模拟）才开始 S1，等待期间不发键；切房触发键由 F9 改为第二次 F8（F9 是原版手动截图热键），第一次 F8 仍为跳帧；第二次运行留下的 `ManualScreenshot-20.png` 先存入 e2e-02 artifact 再从用户 Documents 删除。保留 tx-04-05 编号执行第三次 E2E，不自动重跑。见 [结果](tx-04-05-results.md) | `USER_DECISION`（tx-04-05） |
+| D22 | tx-04-05 第三次 E2E 之后的修正 | S10 的原生移动改为沿 S9.move 的反方向走（玩家刚走过的路径已知可通行），不再固定按 D；只改 harness。保留 tx-04-05 编号执行第四次 E2E，不自动重跑。见 [结果](tx-04-05-results.md) | `USER_DECISION`（tx-04-05） |
+| D23 | tx-04-05 验收结论 | 用户决定：不修复第四次 E2E 中 V2 的判定方向问题，也不重跑，直接将第四次 E2E（`tx-04-05-e2e-04`）算作 tx-04-05 的验收通过。harness 原报告保持 FAIL，不改写；该次 V1、V3–V10 PASS，V2 的 S10 中玩家在会话 Idle、计数不变时原生左移约 198 px，失败来自判定写死向右。`moved(&obs, "x", 1.0)` 的方向缺陷保留为已知问题，未修复。见 [结果](tx-04-05-results.md) | `USER_DECISION`（tx-04-05） |
 
 本文覆盖：
 - 目标架构、启动与 Hook 机制；
@@ -584,7 +588,7 @@ cs-t0/               冻结，只作历史资料和代码来源
 | tx-04-02 | 吸收用户决定；ImGui 界面与命令桥设计；重新核对方法；修订现行规范与入口文档 | 一次静态文档审阅 | 完成 |
 | tx-04-03 | 在 v1.9.7.12 上静态核对首轮点位、虚拟设备依赖、硬编码地址、字段偏移和命令路径（Q10）；产出 binding 清单 | 一次静态文档审阅 | 完成，见[点位核对](../hooks/repentogon-binding.md) |
 | tx-04-04 | REPENTOGON 1.1.3 开发包；工程骨架；bootstrap、binding、Hook 框架（首轮 Hook 全部注册，只透传和计数）；命令桥、测试控制口和界面 mod；harness 自行注入和使用第二个存档。实现方案见 [tx-04-04-implementation-plan.md](tx-04-04-implementation-plan.md) | 一次 E2E：加载、Hook、命令桥（包括 Q14）、命令队列、界面、关闭配置、副作用。D16：首次失败后，修复完成再执行一次 | 实现与编译完成；第一次 E2E 启动超时 FAIL，未重跑，见[结果](tx-04-04-results.md)。静态审阅修订已实现并编译（D16）；第二次 E2E 仍启动超时 FAIL，诊断捕获 Use The Launcher! 错误框，未再重跑。根因静态确认为 REPENTOGON 的启动器环境变量检查，按 D17 补上标记后执行第三次 E2E。D18 修正后第八次 E2E E1–E7 全部 PASS（`artifacts/repentogon/tx-04-04-e2e-08/`），tx-04-04 完成 |
-| tx-04-05 | 循环阶段与 tick 判定；本地 A 经统一队列输入；生命周期；会话真实状态（单人）。实现方案见 [tx-04-05-implementation-plan.md](tx-04-05-implementation-plan.md) | 一次 E2E：A 的输入；tick、暂停、控制台屏蔽、加载、跳帧、teardown 的判定 | U1–U4 已确认（D19）；T1–T8 静态审查与主审完成，方案已修订；全路径最终位置次序仍 UNKNOWN，采用后续稳定边界重绑；core 五个模块已移植并纯构建成功，game/命令/夹具仍待实现，唯一整体 E2E 未执行 |
+| tx-04-05 | 循环阶段与 tick 判定；本地 A 经统一队列输入；生命周期；会话真实状态（单人）。实现方案见 [tx-04-05-implementation-plan.md](tx-04-05-implementation-plan.md) | 一次 E2E：A 的输入；tick、暂停、控制台屏蔽、加载、跳帧、teardown 的判定 | U1–U4 已确认（D19）；T1–T8 静态审查与主审完成；全路径最终位置次序仍 UNKNOWN，采用后续稳定边界重绑；core/game、必要 Hook/solo、Lua 夹具与 Rust 单启动 S0–S11 / V1–V10 均已编写并完成相应纯构建；第一次整体 E2E 在 S0 启动阶段因 harness focus 时序 FAIL，未进入 run，未重跑，另发现 V10 历史基线规则无法匹配；按 D20 修正后第二次 E2E 跑完 S0–S11，V1、V3–V9 PASS，V2、V10 因 harness 时序与 F9 截图热键 FAIL；按 D21 修正后第三次 E2E 中 V1、V3–V10 PASS，V2 因 S10 移动被随机房间的岩石挡住 FAIL；按 D22 修正后第四次 E2E 中 V1、V3–V10 PASS，V2 因判定方向未随 S10 反向同步 FAIL，未重跑。D23：用户决定将第四次 E2E 算作验收通过，**tx-04-05 完成（用户接受）**，见[结果](tx-04-05-results.md) |
 | tx-04-06 | net；按 v1.9.7.12 重做的虚拟设备 B；Join（含调用点补丁）；远端模拟客户端和 relay | 一次 E2E：首轮完整场景集 | |
 | tx-04-07 | 迁移 world_record | 一次 E2E | |
 | 之后 | 按状态同步方案第 17 节的次序，包括 Client 角色与界面“加入”页 | 每次各一次 E2E | |
