@@ -1,5 +1,4 @@
 #include "binding/offsets.h"
-#include "core/session.h"
 #include "runtime.h"
 #include <charconv>
 #include <cstring>
@@ -19,6 +18,18 @@ Ring<PortReply, 32> port_replies;
 std::atomic<uint64_t> next_id{1}, queue_dropped{};
 uint64_t frame = 0;
 unsigned frame_depth = 0;
+// tx-04-04 的 host/stop 仍为占位命令；真实 Solo 会话由后续 game 适配层接线。
+// 占位状态留在 ops 内，core/session 专用于真实会话，不混用两种生命周期。
+struct PlaceholderSession {
+  bool hosting = false;
+  bool Host() noexcept {
+    if (hosting)
+      return false;
+    hosting = true;
+    return true;
+  }
+  void Stop() noexcept { hosting = false; }
+};
 PlaceholderSession session;
 bool started = false;
 std::mutex snapshot_lock;

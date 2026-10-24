@@ -1,5 +1,7 @@
 # REPENTOGON mod (tx-04-04)
 
+2026-10-24 tx-04-05：`src/core/` 的五个原型模块已移植到 `cs::core`，独立 C++20 静态库与现有 DLL 已纯构建成功。`PlaceholderSession` 已移到 `ops/command.cpp`；真实 core 尚未接入 Hook/solo 命令，当前 DLL 仍执行原有透传行为。接线顺序、生命周期和剩余范围见[core 移植记录](../docs/design/tx-04-05-core-port.md)。没有运行测试或游戏，tx-04-05 的唯一整体 E2E 尚未执行。以下为 tx-04-04 历史记录。
+
 目标为官方 REPENTOGON 1.1.3 + Repentance+ v1.9.7.12.J273。实现范围与原始失败情况见 [实现方案](../docs/design/tx-04-04-implementation-plan.md)。
 
 首次 E2E 在注入启动阶段等待 Launch 返回超过 60 秒而失败，原始结果保留。按静态审阅修订的代码已编译；第二轮唯一一次 E2E 的结论见[结果](../docs/design/tx-04-04-results.md)。下列命令仅说明入口，不表示应重复验收。
@@ -26,7 +28,7 @@ Harness 的两次启动属于同一个 E2E：启用配置与关闭配置。它�
 
 SDK 生成头在 C++20 下不兼容，因此 SDK-facing 的 definitions.cpp 和生成 wrapper 使用 C++17，其余源使用 C++20、/MD、v143/Win32。SDK 构建使用 MSVC 19.44.35217。
 
-本轮未实现 tick、A 输入、网络、虚拟设备、Join 调用点补丁、world_record 或 Replica。`core/session.h` 是明确的占位状态。
+tx-04-04 当时未实现 tick、A 输入、网络、虚拟设备、Join 调用点补丁、world_record 或 Replica；当时的 `core/session.h` 是占位状态，现已由上方 tx-04-05 core 实现替换。
 
 第三次 E2E 已走通启动与首帧，失败在第二条状态请求 main_thread_timeout。本次候选修订在启动等待前确认焦点，按场景截止等待真实菜单，仅对启动阶段的只读 status 超时继续查询；变更不重发。主线程丢弃执行前已过期的端口请求。control.jsonl、DLL 请求时间/首次返回记录和关闭进程前的窗口截图用于继续定位，具体根因尚未由运行时证据确认。第四次 E2E 由用户本会话明确授权，结果见结果文档；入口采用新的 tx-04-04-e2e-04 目录。
 

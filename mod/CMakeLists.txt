@@ -7,6 +7,12 @@ set(REPENTOGON_ROOT "F:/projects_isaac/REPENTOGON-1.1.3" CACHE PATH "REPENTOGON 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
+# core 独立使用 C++20 标准库；不继承 SDK include、Win32 宏或游戏绑定依赖。
+add_library(isaac_cs_core STATIC src/core/session.cpp src/core/tick_clock.cpp
+  src/core/tick_pipeline.cpp src/core/input_core.cpp src/core/participant.cpp)
+target_include_directories(isaac_cs_core PUBLIC src)
+target_compile_features(isaac_cs_core PUBLIC cxx_std_20)
+target_compile_options(isaac_cs_core PRIVATE /W4 /Zi /utf-8)
 set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
 add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/binding_v1_9_7_12.inc" "${GENERATED}/hook-manifest.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_binding.py" --out "${GENERATED}"
@@ -21,6 +27,6 @@ target_include_directories(zhlIsaacCS PRIVATE src "${GENERATED}" "${REPENTOGON_R
   "${REPENTOGON_ROOT}/libs/rapidjson/include" "${REPENTOGON_ROOT}/libs/rapidxml" "${REPENTOGON_ROOT}/libs/lua")
 target_compile_definitions(zhlIsaacCS PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
 target_compile_options(zhlIsaacCS PRIVATE /EHs /W4 /Zi /utf-8 /wd4251 /wd4996)
-target_link_libraries(zhlIsaacCS PRIVATE "${REPENTOGON_ROOT}/build/Release/libzhl.lib" ws2_32)
+target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core "${REPENTOGON_ROOT}/build/Release/libzhl.lib" ws2_32)
 target_link_options(zhlIsaacCS PRIVATE /DEBUG)
 set_target_properties(zhlIsaacCS PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")
