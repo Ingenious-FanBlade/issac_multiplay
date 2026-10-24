@@ -11,6 +11,8 @@
 - `STATIC_CONFIRMED` 表示所列二进制控制流/指令；`SOURCE` 表示官方源码或原型的具体行为；`DESIGN` 表示根据这些事实选择的实现办法。均不等于运行时观察。
 - [原始证据目录](../../artifacts/repentogon/tx-04-05-static/README.md)保存子智能体导出、结论及更正记录、主智能体[独立 IDA 证据](../../artifacts/repentogon/tx-04-05-static/primary-ida-evidence.txt)和[源码片段](../../artifacts/repentogon/tx-04-05-static/source-evidence.txt)。Hex-Rays 的错误类型、`None` 或 bad-SP 警告不用于确定 ABI；关键判断回到汇编。
 
+主审结论：采纳经修正的 T1–T4、T7、T8 事实；T5 由主审补齐 Windows 事件来源；T6 按具体路径保留已证明的前后关系，不采纳“回调即所有玩家最终定位完成”的推断。候选文件误配、宏搜索遗漏和草稿中的错误归属均保留更正记录。
+
 | 项目 | 静态结论 | 实现落点 |
 | --- | --- | --- |
 | T1 | Odd helper 有三处 Player 更新，只有 `0x2F9559` 是普通模拟点 | 使用该调用点 shim 标记，不能只看 Odd owner |
@@ -18,7 +20,7 @@
 | T3 | action 查询不消费边沿；Poll 之后还有方向派生 | 保存原 query；设备公共更新成功返回后采样 |
 | T4 | 菜单输入 Hook 可以短路，内层观察可能缺席 | 使用控制台原调用区间；不伪造设备差值 |
 | T5 | Console、PauseScreen、失焦有不同分支，均可阻断普通模拟 | 分开记原因；实际普通入口决定 tick |
-| T6 | new-room 回调在加载 owner 尾部，但回调返回后仍可能有原生更新 | 回调只失效绑定；不得当成最终位置或可立即 apply 的证明 |
+| T6 | 已对齐切房 API 的 animation→过渡对象 `+0x1C`；特殊分支确有回调后 Player 定位 | 普通场景显式选 animation=0；回调只失效绑定，不证明最终位置或可立即 apply |
 | T7 | `+0x162C` 为 byte；`+0x1618` 为方向 int；速度为两个 float | 按真实宽度只读观测 |
 | T8 | 移动 Scalar、射击 Pressed、炸弹 Triggered 走三条不同查询链 | 三种 query 均保留；边沿按 tick 唯一，重复查询幂等 |
 
@@ -96,6 +98,19 @@ REPENTOGON 的 `CustomCallbacks.cpp:523–534` 经宏生成真实的 Player Upda
 
 主审还追到一条确定的回调前位置写入链：`0x3395A7` 检查 `Game+0x25B8C < 2` 时，`0x3395B6` 调 PlayerManager `0x592A80`；它在 `0x592C8D` 逐个调用 Player `0x39EA20`。后者在 `0x39ED5A/0x39ED66` 写 Player `+0x33C/+0x340`，随后 `0x39ED73` 清速度；PlayerManager 的 `0x592EEB/0x592EF3` 还可能按相对偏移调整其他 Player 位置。该**有条件路径**在 `0x339719` 回调之前，不能扩大为普通门切房、恢复等全部路径的最终位置契约。这个补充比子智能体草稿中“尚未找到位置写入”的范围更具体，旧草稿保留。
 
+`STATIC_CONFIRMED`：主审对齐了公开 API 的完整参数链。Lua 注册 `0x47AD08/0x47AD0E` 将原生 `Game::StartRoomTransition=0x2F9710` 交给桥接函数 `0x49EEB0`；桥接按 Lua 第 2–6 个栈参数读取 room、direction、animation、player、dimension。正常发起分支在 `0x2F9AD4` 调 `0x423990`，ECX 为 `Game+0x1B83C` 的 RoomTransition，第三个栈实参为 animation。setter 在 `0x4239D5` 读取该实参，在 `0x423B05` 写 `this+0x1C`。因此该字段是本链的 animation/type，和官方 `RoomTransition::_mode=+0` 分开。IDA 将 setter 误命名为 std stacktrace 函数，其名称和 bad-SP 伪代码签名不能用于判断真实功能或 ABI。
+
+| animation / `this+0x1C` | 回调/加载 owner 返回后的定位事实 |
+| --- | --- |
+| `0` | `RoomTransition::ChangeRoom=0x4254B0` 本体的该分支没有直接 Player 坐标 store；DoorNestedOwner 仍在回调后调用 Room update，不能排除间接改变 Player 位置 |
+| `11` | 从 PlayerManager 列表取得 Player，并在 `0x425B75/0x425B7F` 直接写其坐标 |
+| `20` | 维度 2 条件路径从 PlayerManager 列表取得 Player，在 `0x425E8A/0x425E92` 写坐标；之后 `0x425F26/0x425F2E` 的另一批写入来自 type=3、variant=238 的实体查询，不是 Player 列表 |
+| `3` | 条件路径在 `0x42601A` 对选定 Player 调坐标 helper `0x3C3C40`，该 helper 有直接坐标 store；之后 `0x426144/0x42614C` 的批量写入同样来自 type=3、variant=238 查询，不能称为批量 Player 定位 |
+
+`RoomTransition::Update=0x426430` 本体没有直接 `+0x33C/+0x340` 访问，这只描述本体，不穷举它的间接调用。子智能体补充中把两批 type=3 实体写入归给 PlayerManager 的说法由主审撤回，更正与原始推导分别保存在 [T6 补充](../../artifacts/repentogon/tx-04-05-static/T6-supplement.md)和[更正记录](../../artifacts/repentogon/tx-04-05-static/candidacy-corrections.md)。
+
+`DESIGN`：S9 测试夹具显式传全参数 `Game():StartRoomTransition(targetRoom, direction, 0, nil, -1)`，使正常发起的过渡选择 animation=0；setter 将负 dimension 取为当前维度。原生仍可因状态拒绝过渡，或在 animation=0 的特定目标判断下将 room 改为 -16，因此记录请求值与实际房间身份，不把函数调用本身当成切房成功。这里没有调用 API 或运行夹具。
+
 `UNKNOWN`：尚无证据把所有出生、门切房、恢复与特殊房间路径的最终 Player 位置写入统一归到回调前或后。报告不以函数/回调命名补造这个契约；本轮实现不依赖它。
 
 `DESIGN`：回调正常返回只做失效标记，撤销当前 A 绑定、清旧输入，不在回调内重绑或 apply。其所在 Manager 轮次内继续中性；至少等该轮 owner 退出、后续 Manager 轮次出现无阻断的普通 Authority 入口，再以新房间身份、唯一 exact pair 和该轮新鲜采样重绑。实际 loading 状态未退出时继续中性。这样即使后续原生重新定位，也不会用旧 generation 修改中途对象。
@@ -134,7 +149,7 @@ REPENTOGON 的 `CustomCallbacks.cpp:523–534` 经宏生成真实的 Player Upda
 
 主审除复核 T1–T8 外，还从原型 `Participant::Begin` 确认：它只取当前 target tick 的命令，没有命令立即中性。原方案“值不变且没有 edge 就不再提交”会让持续 held 断续，已改为每个有本轮新鲜采样的 Authority-pre 生成相应 target 的命令，只对同一轮重复发布去重。`sample` 日志仍可按变化降采样。
 
-屏蔽时继续更新物理 held 历史，但不缓存待重放 edge；恢复时要求新轮次、新鲜样本。周期性 owner 不触发每帧重绑；死亡/复活不能只比指针。以上均维护既有统一输入和生命周期语义。
+屏蔽时继续更新物理 held 历史，但不缓存待重放 edge；恢复时要求新轮次、新鲜样本。候选物理采样与可 apply 的绑定分开，Warmup/重绑前可收集唯一候选的新鲜样本，必须重新确认 exact pair/generation 后才允许 Submit；绑定无效的 A gameplay 查询保持中性，不能退回物理输入旁路。周期性 owner 不触发每帧重绑；死亡/复活不能只比指针。以上均维护既有统一输入和生命周期语义。
 
 审阅纠正的候选误认包括：宏生成的 Player Update Hook 被字面搜索漏掉；Room 实体列表误称 PlayerManager；`0x5EE2C0` 被误标 Scalar（实际是 bool 取反 wrapper，Scalar 为 `0x5EE2E0`）；`0x5EED00` 被误标设备名/类型函数；一个 `0x341A45` caller 文件实际导出别的函数。原始文件保留，最终结论采用重新确认的地址与主审证据，见 artifact 更正记录。
 

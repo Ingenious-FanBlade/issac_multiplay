@@ -22,7 +22,8 @@
   "device_identity": "0x5EEC40 compares controller id with device+0x08 while enumerating InputManager+4/+8. It is not a vector index.",
   "sampling": "Known device action queries do not consume edges. Sample only after DeviceCommonUpdate 0x5EC900 returns true, after Poll and derived direction state.",
   "player_field_q16": "0x3794C0 writes one byte to Player+0x162C in shooting consumer 0x373990. 0x3794B0/0x3794B8 write float components +0x1624/+0x1628. The inferred entry below is the original tx-04-03 record.",
-  "room_callback": "0x339719 calls 0x44B930 within 0x3385F0. A conditional pre-callback path writes Player position; a universal ordering of final relocation relative to the callback remains UNKNOWN. Invalidate there; rebind at a later stable Authority boundary."
+  "room_callback": "0x339719 calls 0x44B930 within 0x3385F0. Conditional pre-callback and specific animation 11/20/3 post-callback Player positioning paths are confirmed; a universal ordering of final relocation remains UNKNOWN. Invalidate there; rebind at a later stable Authority boundary.",
+  "room_transition": "Lua registration 0x47AD08/0x47AD0E -> bridge 0x49EEB0 -> Game native 0x2F9710 -> setter 0x423990. The third native stack argument, animation, is stored at RoomTransition+0x1C by 0x423B05; it is distinct from _mode at +0. S9 explicitly requests animation=0. Batch stores 0x425F26/0x425F2E and 0x426144/0x42614C target type=3 variant=238 entities, not PlayerManager lists."
  },
  "mechanisms": {
   "ZHL_REPENTOGON": "ZHL hook on an existing REPENTOGON definition",

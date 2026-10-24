@@ -1,6 +1,6 @@
 # REPENTOGON 适配重构设计
 
-> 2026-10-24 tx-04-05：T1–T8 静态审查与主审完成，事实、修正及保留的 UNKNOWN 见[实现方案](tx-04-05-implementation-plan.md)和[静态报告](../research/tx-04-05-static-confirmation.md)。本次只处理静态证据与方案，没有实现功能、构建、实机操作或测试；历史 tx-04-04 结果保留。
+> 2026-10-24 tx-04-05：T1–T8 静态审查与主审完成，事实、修正及保留的 UNKNOWN 见[实现方案](tx-04-05-implementation-plan.md)和[静态报告](../research/tx-04-05-static-confirmation.md)。静态阶段只处理证据与方案；随后按用户范围完成 [core 五个模块移植](tx-04-05-core-port.md)及纯编译/链接。game/solo 命令/测试夹具仍待实现，没有实机操作或测试；历史 tx-04-04 结果保留。
 
 > 2026-10-24 tx-04-04 后续：第七次 E2E 已验证暂停状态导航可正确返回主菜单，Game::Exit 计数 0→1，两次进程正常退出。整体仍 FAIL：Lua run 回应和 UI 渲染标记缺失；启用及关闭配置两次均发现第一、三槽存档字节变化。菜单 g_Game/MC_MAIN_MENU_RENDER 中的 Lua 命令桥继续已观察，详见结果文档，不表示整轮已完成。
 
@@ -584,7 +584,7 @@ cs-t0/               冻结，只作历史资料和代码来源
 | tx-04-02 | 吸收用户决定；ImGui 界面与命令桥设计；重新核对方法；修订现行规范与入口文档 | 一次静态文档审阅 | 完成 |
 | tx-04-03 | 在 v1.9.7.12 上静态核对首轮点位、虚拟设备依赖、硬编码地址、字段偏移和命令路径（Q10）；产出 binding 清单 | 一次静态文档审阅 | 完成，见[点位核对](../hooks/repentogon-binding.md) |
 | tx-04-04 | REPENTOGON 1.1.3 开发包；工程骨架；bootstrap、binding、Hook 框架（首轮 Hook 全部注册，只透传和计数）；命令桥、测试控制口和界面 mod；harness 自行注入和使用第二个存档。实现方案见 [tx-04-04-implementation-plan.md](tx-04-04-implementation-plan.md) | 一次 E2E：加载、Hook、命令桥（包括 Q14）、命令队列、界面、关闭配置、副作用。D16：首次失败后，修复完成再执行一次 | 实现与编译完成；第一次 E2E 启动超时 FAIL，未重跑，见[结果](tx-04-04-results.md)。静态审阅修订已实现并编译（D16）；第二次 E2E 仍启动超时 FAIL，诊断捕获 Use The Launcher! 错误框，未再重跑。根因静态确认为 REPENTOGON 的启动器环境变量检查，按 D17 补上标记后执行第三次 E2E。D18 修正后第八次 E2E E1–E7 全部 PASS（`artifacts/repentogon/tx-04-04-e2e-08/`），tx-04-04 完成 |
-| tx-04-05 | 循环阶段与 tick 判定；本地 A 经统一队列输入；生命周期；会话真实状态（单人）。实现方案见 [tx-04-05-implementation-plan.md](tx-04-05-implementation-plan.md) | 一次 E2E：A 的输入；tick、暂停、控制台屏蔽、加载、跳帧、teardown 的判定 | U1–U4 已确认（D19）；T1–T8 静态审查与主审完成，方案已修订；全路径最终位置次序仍 UNKNOWN，采用后续稳定边界重绑；功能未实现，唯一整体 E2E 未执行 |
+| tx-04-05 | 循环阶段与 tick 判定；本地 A 经统一队列输入；生命周期；会话真实状态（单人）。实现方案见 [tx-04-05-implementation-plan.md](tx-04-05-implementation-plan.md) | 一次 E2E：A 的输入；tick、暂停、控制台屏蔽、加载、跳帧、teardown 的判定 | U1–U4 已确认（D19）；T1–T8 静态审查与主审完成，方案已修订；全路径最终位置次序仍 UNKNOWN，采用后续稳定边界重绑；core 五个模块已移植并纯构建成功，game/命令/夹具仍待实现，唯一整体 E2E 未执行 |
 | tx-04-06 | net；按 v1.9.7.12 重做的虚拟设备 B；Join（含调用点补丁）；远端模拟客户端和 relay | 一次 E2E：首轮完整场景集 | |
 | tx-04-07 | 迁移 world_record | 一次 E2E | |
 | 之后 | 按状态同步方案第 17 节的次序，包括 Client 角色与界面“加入”页 | 每次各一次 E2E | |

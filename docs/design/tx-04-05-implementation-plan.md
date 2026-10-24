@@ -1,6 +1,6 @@
 # tx-04-05 实现方案：循环阶段、tick 判定、A 的统一输入与单人会话
 
-日期：2026-10-24。状态：U1–U4 已由用户按建议确认（设计 D19）；第 10 节 T1–T8 的静态审查和主智能体审阅已完成，事实、修正和保留的 UNKNOWN 见[静态确认报告](../research/tx-04-05-static-confirmation.md)。本次只完成静态工作，功能实现和整体验收尚未执行。依据：
+日期：2026-10-24。状态：U1–U4 已由用户按建议确认（设计 D19）；第 10 节 T1–T8 的静态审查和主智能体审阅已完成，事实、修正和保留的 UNKNOWN 见[静态确认报告](../research/tx-04-05-static-confirmation.md)。随后按用户限定范围完成第 3.1 节 core 原型移植及纯编译/链接，见[代码与接线记录](tx-04-05-core-port.md)。game 适配、solo 命令与测试夹具仍待实现，唯一整体 E2E 尚未执行。依据：
 
 - [REPENTOGON 适配重构设计](repentogon-refactor.md)（下称“设计”），尤其是第 5.4、7 节；
 - [tx-04-04 实现方案](tx-04-04-implementation-plan.md)与[实现与结果](tx-04-04-results.md)（第八次 E2E 的计数与观察）；
@@ -137,6 +137,7 @@ Active --cs solo stop / run teardown / 失败--> Retiring --在途 tick 收尾�
 | owner | 压栈的 Hook | 说明 |
 | --- | --- | --- |
 | `Manager` | `Manager::Update` | 顶层；入口执行命令队列，出口为 TopExit |
+| `Input`、`Device` | InputManager 完整更新 `0x5EDCC0`、设备公共更新 `0x5EC900` | 标识采样来源与同一设备的 Poll 结果；只作线程局部上下文，不进入 canonical 身份 |
 | `Start` | `Manager::ExecuteStartGame` | 每帧都会进入；其中的 `Room::Update` 是 alternate/loading 路径 |
 | `Game` | `Game::Update` | 普通 gameplay owner |
 | `Odd` | 奇数帧 helper `0x2F9340` | Player-only 模拟 |
@@ -188,7 +189,7 @@ REPENTOGON 的 Lua 回调返回真时，Player 子类更新被跳过，仍调用
 
 ### 6.2 采样（只采样，不写快照）
 
-- **位置。** 第 35 槽 wrapper 只记录本次 Poll 是否成功；在同一设备的公共更新 `0x5EC900` 正常返回 true、且本层 Poll 成功后完成采样。只处理 A 当前绑定的设备，要求调用栈处于 `Manager → InputManager 更新 → 设备公共更新` 内。T3 的主审确认 Poll 之后公共更新还生成方向 mask，不能把 Poll 刚返回时的状态当成最终 action 状态。采样始终不写 Authority 的 current/previous。
+- **位置。** 第 35 槽 wrapper 只记录本次 Poll 是否成功；在同一设备的公共更新 `0x5EC900` 正常返回 true、且本层 Poll 成功后完成采样。只处理拓扑确认的 A 唯一候选物理设备，要求调用栈处于 `Manager → InputManager 更新 → 设备公共更新` 内。候选采样与可 apply 的绑定分开：Warmup/重绑前也能取得本轮新鲜物理样本，但须在后续 Authority 入口重新确认 exact pair 和 generation 后才允许 Submit；已失效设备的旧样本不能因此恢复资格。T3 的主审确认 Poll 之后公共更新还生成方向 mask，不能把 Poll 刚返回时的状态当成最终 action 状态。采样始终不写 Authority 的 current/previous。
 - **读取方式。** 调用该设备第 8/9/10 槽保存的原函数（不经我们的 wrapper），读出 12 个 gameplay action。T3 已核对这些函数及 Keyboard/Gamepad 下层 button 查询：不消费边沿，不改设备状态；下层状态描述函数只写调用方的输出缓冲。`+0xC8/+0xCC` 只是 action float 状态的一部分，查询还合并映射按钮；不能只读取两个数组替代完整查询。原型依赖 v1.9.7.17 设备布局的 `sampler` 不移植。
 - **canonical。** 移动轴 = 右减左、下减上；射击方向经 `ShootingDirections` 按 tx-01-52 投影；炸弹、主动道具、卡牌药丸、丢弃取上升沿；按住的射击为 held。
 - **边沿历史。** 跟随实际设备而不是 generation；即使绑定暂时失效，也继续维护已知物理设备的 held 历史。屏蔽期间只更新历史，不缓存待提交 edge；恢复时丢弃旧样本与旧 edge，要求同一 Manager 轮次的新鲜采样。暂停或切房期间一直按住的键不因重绑生成新边沿。设备移除或身份不明时先中性，首次重见只建立 held 基线。
@@ -209,10 +210,12 @@ REPENTOGON 的 Lua 回调返回真时，Player 子类更新被跳过，仍调用
 | --- | --- |
 | 会话未 armed，或不在主线程 | 原值（tx-04-04 行为） |
 | 处于 consumer 上下文，且该 consumer 的 Player 是 A、设备是 A 的设备、当前有 SimulationTick | `Participant::Read(action, query, consumer, exact, tick)`，即 Resolve 结果 |
-| 处于 consumer 上下文，但没有 SimulationTick | 0（中性） |
+| armed 的 A gameplay consumer 内，但没有 SimulationTick、绑定无效、设备不匹配或生命周期阻断 | 0（中性）；不能回退到物理输入 |
 | 不在 consumer 上下文（菜单、暂停菜单导航、UI 等） | 原值 |
 
 只覆写 12 个 gameplay action（原型 `action < 12`）；其他 action 一律原值。consumer 上下文由 consumer wrapper 写入线程局部状态（Player、ordinal、consumer 种类）。
+
+上表只接管本轮 A 的 gameplay consumer；其他 Player 的非目标查询原样透传。A 的临时绑定失效时仍保留本轮受控对象的失效标记以输出中性，撤销 apply 资格不等于给 A 开启原生输入旁路。候选样本只有在重绑条件满足后才能进入第 6.3 节。
 
 T8 已确认三类 consumer 查询经 Manager 包装层到 InputManager，再进入设备槽；设备层 Scalar 为 x87 返回，高层 Manager Scalar 为 XMM0，不能混用 ABI。Manager 的 Lua 输入回调替代分支可能不进入设备层；本轮支持范围没有 gameplay 输入 Lua mod，自带 UI 与测试夹具也不注册输入重写回调。继续使用设备槽覆写，不额外 Hook ABI 不同的 Manager Scalar，不把设备计数外推为任意 Lua 输入覆写均被接管。
 
@@ -229,7 +232,7 @@ T8 已确认三类 consumer 查询经 Manager 包装层到 InputManager，再进
 
 | 事件 | 识别 | 处理 |
 | --- | --- | --- |
-| 进入新房间 | MC_POST_NEW_ROOM 调用函数返回 | 作废 A 的绑定，下一次 Authority 入口重新绑定 |
+| 进入新房间 | MC_POST_NEW_ROOM 调用函数返回 | 作废 A 的绑定；本 Manager 轮次中性，后续轮次的稳定 Authority 入口再重绑（第 6.1 节） |
 | 暂停菜单、失焦、浮层 | 普通 `Room::Update` 不执行；`pause_state` 只用于 trace | 无 tick；恢复后作废绑定（held 键不产生新边沿） |
 | 加载与切房 | 非普通 Room/Player 调用、房间身份或原生加载状态改变，结合 `Lifecycle`、`Door`、`NestedDoor`、`Start` 上下文 | 特殊调用不推进 tick；发生真实生命周期变化后作废，稳定且无阻断的 Authority 入口才重绑 |
 | 死亡/复活 | 拓扑、Player 配对或死亡/ghost 等生命周期状态变化 | 作废并重新绑定，覆盖同一指针状态变化 |
@@ -250,7 +253,9 @@ T8 已确认三类 consumer 查询经 Manager 包装层到 InputManager，再进
 | 控制台判断 | 计数 | 记录返回值，形成 `paused` 区间 |
 | `Room::Update` | 计数 | 栈顶为 `Game` 时开始/提交 StandardRoom tick |
 | 奇数帧 helper | 计数、压栈 | OddPlayer 作用域 |
-| `Entity_Player::Update`（priority 改为 -10000） | 计数 | 设置 Player/ordinal 上下文；OddPlayer 的 Authority-pre；记录被跳过的更新 |
+| `Entity_Player::Update` 外层（priority -10000） | 计数、原样传递 | 设置 Player/ordinal 上下文；OddPlayer 的 Authority-pre；记录外层到达与正常返回 |
+| `Entity_Player::Update` 内层（priority +10000） | 只观测、原样传递 | 记录原生 body 到达，结合外层结果区分已知链路跳过 |
+| Odd 普通调用点 shim `0x2F9559` | 搬移原虚调用与 push 0 | 设置 `OddNormal` 标记；虚调用仍恰好一次，不直接 Submit 或改快照 |
 | 六个 consumer | 计数、恰好一次原调用 | consumer 上下文；射击按第 6.5 节分派 |
 | 第 8/9/10 槽 | 原值 | 第 6.4 节 |
 | 第 35 槽（Poll）、设备公共更新 | 原值 | Poll 记本层成功；公共更新正常返回后采样最终 action 状态 |
@@ -286,7 +291,7 @@ T8 已确认三类 consumer 查询经 Manager 包装层到 InputManager，再进
 | T3 | 三槽查询及已知下层不消费状态；数组只是一部分；键盘源有指令实证 | 第 6.2 节，公共更新成功返回后调用保存的原 query |
 | T4 | 菜单 mask/搜索 Hook 在 super 前短路，查询链已确认 | 第 6.6 节，选择控制台区间；不新增差值观测 Hook |
 | T5 | Console、PauseScreen、失焦分支及普通 Room/Odd 的跳过关系 | 第 5.4、7 节，分开记原因；实际运行值留 E2E |
-| T6 | 回调在 `0x3385F0` 尾部，caller 后续仍有原生工作；不提供全路径最终位置契约 | 第 6.1、7 节，回调失效、后续 Manager 轮次再稳定重绑；所有路径最终位置写入次序仍 UNKNOWN |
+| T6 | 回调前有条件定位，部分 animation 分支有回调后 Player 定位；已对齐 Lua animation→过渡对象 `+0x1C` | 第 6.1、7 节，回调失效、后续 Manager 轮次再稳定重绑；S9 显式 animation=0；所有路径最终位置写入次序仍 UNKNOWN |
 | T7 | `+0x162C` 为 byte，`+0x1618` 为 int，`+0x360/+0x364` 为速度 float | Player 观测按实际宽度；不把 byte 当方向 float 或蓄力值 |
 | T8 | 移动 Scalar 0–3/辅助查询、射击 Pressed 0–7、炸弹 Triggered 8；其余 consumer 9–11 交叉查询 | 第 6.4 节与静态报告；同 tick 重复查询幂等，不以固定查询次数定义 exactly-once |
 
@@ -299,7 +304,7 @@ T8 已确认三类 consumer 查询经 Manager 包装层到 InputManager，再进
 在 tx-04-04 夹具基础上增加（U2，已确认）：
 - **跳帧触发。** 在 `MC_POST_RENDER` 中检测 F8 键（`Input.IsButtonTriggered`），之后让 `MC_PRE_UPDATE` 连续返回真 30 次，起止各写一条 `[isaac-cs-test] skip-update` 日志。这是 gameplay 回调，只作测试夹具。
 - **只读观测。** 在 `MC_POST_RENDER` 中，当 A 的位置、炸弹数、泪弹实体数变化时写日志（`Isaac.GetPlayer(0).Position`、`GetNumBombs()`、`Isaac.CountEntities(nil, EntityType.ENTITY_TEAR)`），作为输入生效的游戏侧证据。
-- **切房触发（U3，已确认）。** 在 `MC_POST_RENDER` 中检测 F9 键，调用一次 `Game():StartRoomTransition` 切到相邻房间，前后各写一条 `[isaac-cs-test] room-transition` 日志。目标房间的选取方式（例如取当前房间的某个可通行门对应的房间）在实现时按 Lua API 确定。
+- **切房触发（U3，已确认）。** 在 `MC_POST_RENDER` 中检测 F9 键，以全参数 `Game():StartRoomTransition(targetRoom, direction, 0, nil, -1)` 发起一次相邻房间过渡，显式使用 animation=0、当前维度。T6 已静态对齐 animation 参数到 RoomTransition `+0x1C` 的写入链；该字段不是 `_mode`。目标取当前房间的可通行门对应房间，具体 Lua 选门读取在实现时完成。记录请求参数和实际房间身份；原生可能拒绝或改写目标，不能用“调用返回”代替切房成功。前后各写一条 `[isaac-cs-test] room-transition` 日志，之后按生命周期重新绑定。
 
 ### 11.2 harness 场景（一次执行，单次启动）
 
@@ -313,7 +318,7 @@ T8 已确认三类 consumer 查询经 Manager 包装层到 InputManager，再进
 | S3 移动 | 按住 D 1 秒再松开；按住 W 1 秒再松开 | A 的 sample/submit/tick 中 move 轴非零，松开后在 lead 内回到中性；位置变化方向正确 |
 | S4 射击优先 | 按住 → 1 秒，再加按 ← 0.5 秒，松开 ←，再松开 → | aim_x 依次为正、负、正、0（tx-01-52）；泪弹数增加 |
 | S5 炸弹 exactly-once | 轻按 E 一次 | 一个 bomb edge 仅归属一个被接受/Resolve 的目标 tick；允许同 tick 的只读重复查询，炸弹数减一 |
-| S6 浮层 | 打开浮层 1 秒再关闭 | 浮层期间 completed 不变；关闭后 tick 恢复；期间按键不进入样本 |
+| S6 浮层 | 打开浮层 1 秒再关闭 | 浮层期间 completed 不变；关闭后 tick 恢复；物理历史可继续更新，期间输入不进入 Submit/Resolve，edge 不跨屏蔽区间重放 |
 | S7 暂停菜单 | ESC 打开暂停 1 秒，期间按住 D，再 ESC 恢复 | 暂停期间无 tick；恢复后 held 的 D 不产生新边沿；A 重新绑定 |
 | S8 跳帧 | 按 F8 | 跳帧窗口内 `ticks_standard` 不增加；OddPlayer tick 如实记录 |
 | S9 切房 | 按 F9，由测试 mod 切换到相邻房间（U3） | 加载期间无 StandardRoom tick；A 作废并重新绑定；之后移动仍生效 |
@@ -326,10 +331,10 @@ T8 已确认三类 consumer 查询经 Manager 包装层到 InputManager，再进
 
 | 编号 | 判定 |
 | --- | --- |
-| V1 加载 | 能力组全部通过；Hook 注册数与清单一致；设备槽补丁 8 个已写入 |
+| V1 加载 | 能力组全部通过；入口 Hook 注册数（含 Player 内外层）与清单一致；设备槽补丁 8 个及 Odd 普通调用点 shim 已安装 |
 | V2 透传 | S1 与 S10 期间查询覆写次数为 0，tick 计数不变，玩家原生可控 |
 | V3 会话 | 状态迁移顺序为 `Idle → Warmup → Active → Retiring → Idle`（两次：stop 与 teardown），generation 递增，无 `tick_reject` |
-| V4 tick | 每个 StandardRoom tick 恰好一次 Authority-pre 与一次提交，栈顶均为 `Game`；completed 单调递增；同一 `Manager::Update` 内没有第二个 StandardRoom tick；非 `Game` 栈顶的 `Room::Update` 都没有开始 tick |
+| V4 tick | 每个 StandardRoom/OddPlayer tick 恰好一次 Authority-pre、一次正常提交和一次发布；StandardRoom 栈顶为 `Game`，OddPlayer 来源为 `OddNormal`，稳定未阻断的输入场景须实际观察到两种 tick；completed 单调递增，同一 Manager 轮次没有重复 tick；非普通 Room 与两处特殊 Odd Player 点不开始 tick，shim 的原虚调用恰好一次 |
 | V5 移动 | S3 中 Resolve 的移动轴、移动 consumer 的非零读数、Lua 位置变化三者一致；松开后不超过 lead+1 个 tick 回到中性 |
 | V6 射击 | S4 的 aim 序列符合 tx-01-52；无 tick 时射击 consumer 原调用为 0（tx-01-54） |
 | V7 炸弹 | S5 中 bomb edge 恰好一次被接受，只在一个目标 tick 中 Resolve，不跨 tick 重放；consumer 同 tick 的重复查询结果幂等，炸弹数恰好减一 |

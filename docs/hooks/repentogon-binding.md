@@ -1,6 +1,6 @@
 # REPENTOGON 目标版本点位核对（tx-04-03）
 
-> 2026-10-24 tx-04-05 静态补充：[T1–T8 与主审](../research/tx-04-05-static-confirmation.md)确认 Odd 普通调用点、设备 id/查询/最终采样时点、PauseScreen/失焦分支和字段宽度。本文及 JSON 的 tx-04-03 主表保留历史快照，后续更正单独标注；新增候选均未安装。
+> 2026-10-24 tx-04-05 静态补充：[T1–T8 与主审](../research/tx-04-05-static-confirmation.md)确认 Odd 普通调用点、设备 id/查询/最终采样时点、PauseScreen/失焦分支、切房 animation 参数链和字段宽度。本文及 JSON 的 tx-04-03 主表保留历史快照，后续更正单独标注；新增候选均未安装。
 
 > 2026-10-24 tx-04-04 实现修订：IDA 原始指令确认 Lua 捕获字段为 `Game+0x680D8`（即 `Console+0x104`），类型为 MSVC `std::string*`；此前记为 `0x68158` 的资料与实现有误。`Console::Print` 捕获时直接追加后返回，不写控制台历史，继续使用 Print。静态记录见 `artifacts/repentogon/tx-04-04-revision-static/`。
 
