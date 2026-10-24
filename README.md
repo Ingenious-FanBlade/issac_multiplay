@@ -10,6 +10,7 @@
 - [tx-04-05 静态确认与主审](docs/research/tx-04-05-static-confirmation.md)、[修订后的实现方案](docs/design/tx-04-05-implementation-plan.md)
 - [tx-04-05 core 移植与接线记录](docs/design/tx-04-05-core-port.md)、[game 主线程适配](docs/design/tx-04-05-game-adapter.md)
 - [tx-04-05 Lua 夹具与 Rust harness](docs/design/tx-04-05-test-harness.md)、[E2E 结果](docs/design/tx-04-05-results.md)
+- [tx-04-06 实现方案](docs/design/tx-04-06-implementation-plan.md)（网络、虚拟设备 K、Join；方案草稿）
 - [迁移范围、路径调整与历史产物](docs/migration/README.md)
 - [现行项目规范](docs/refactor/project-conventions.md)
 

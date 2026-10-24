@@ -62,6 +62,8 @@
 | D21 | tx-04-05 第二次 E2E 之后的修正 | harness 在 S0 结束前须观测到两个不同的正 `game_frame`（游戏已开始模拟）才开始 S1，等待期间不发键；切房触发键由 F9 改为第二次 F8（F9 是原版手动截图热键），第一次 F8 仍为跳帧；第二次运行留下的 `ManualScreenshot-20.png` 先存入 e2e-02 artifact 再从用户 Documents 删除。保留 tx-04-05 编号执行第三次 E2E，不自动重跑。见 [结果](tx-04-05-results.md) | `USER_DECISION`（tx-04-05） |
 | D22 | tx-04-05 第三次 E2E 之后的修正 | S10 的原生移动改为沿 S9.move 的反方向走（玩家刚走过的路径已知可通行），不再固定按 D；只改 harness。保留 tx-04-05 编号执行第四次 E2E，不自动重跑。见 [结果](tx-04-05-results.md) | `USER_DECISION`（tx-04-05） |
 | D23 | tx-04-05 验收结论 | 用户决定：不修复第四次 E2E 中 V2 的判定方向问题，也不重跑，直接将第四次 E2E（`tx-04-05-e2e-04`）算作 tx-04-05 的验收通过。harness 原报告保持 FAIL，不改写；该次 V1、V3–V10 PASS，V2 的 S10 中玩家在会话 Idle、计数不变时原生左移约 198 px，失败来自判定写死向右。`moved(&obs, "x", 1.0)` 的方向缺陷保留为已知问题，未修复。见 [结果](tx-04-05-results.md) | `USER_DECISION`（tx-04-05） |
+| D24 | tx-04-06 的拆分与三项决定 | tx-04-06 只做网络、握手、设备 K、Join、B 的远端输入与断开退休；relay 故障注入、B 死亡复活、异常 Join、跨房射击、loading 查询与完整场景集移到 tx-04-07；world_record 顺延到 tx-04-08。B 的角色由房主经 `cs host <port> [character]` 指定，默认 Isaac。对端断开、B 退休后整个会话结束（回到 Idle，不回到 Hosting）。实现前的静态确认沿用 tx-04-05 做法（GPT-6 Luna / max 子智能体逆向，主智能体独立审阅）。见 [tx-04-06 实现方案](tx-04-06-implementation-plan.md) | `USER_DECISION`（tx-04-06） |
+| D25 | tx-04-06 方案中的四项决定 | U1：配置项 `host.bind_address` 默认 `0.0.0.0`，E2E 部署配置写 `127.0.0.1`；U2：对端超时默认 3000 ms（`host.peer_timeout_ms`）；U3：界面首版不提供角色选择，只经 `cs host` 参数指定；U4：主菜单 Hosting 由测试 mod 执行 `cs host` 发起，同时覆盖 Lua 命令桥。用户要求暂不开始正式工程任务（静态确认与实现）。见 [tx-04-06 实现方案](tx-04-06-implementation-plan.md)第 15 节 | `USER_DECISION`（tx-04-06） |
 
 本文覆盖：
 - 目标架构、启动与 Hook 机制；
@@ -574,7 +576,7 @@ cs-t0/               冻结，只作历史资料和代码来源
   - 失败项与未覆盖项。
 
   不计算任何哈希。
-- **首轮场景。** 沿用原型已有 E2E 的覆盖面：启动输入、普通移动与射击、跨房射击、射击优先、B 死亡与复活、异常 Join、loading 查询、对端断开与回到透传。另外新增：
+- **首轮场景。**（D24：由 tx-04-06、tx-04-07 两次推进分别覆盖，见第 14 节。）沿用原型已有 E2E 的覆盖面：启动输入、普通移动与射击、跨房射击、射击优先、B 死亡与复活、异常 Join、loading 查询、对端断开与回到透传。另外新增：
   - 命令桥（控制台、Lua、测试控制口三种来源）；
   - 主菜单进入 `Hosting`；
   - 房主打开 REPENTOGON 菜单或控制台时的屏蔽行为（D7）；
@@ -589,8 +591,9 @@ cs-t0/               冻结，只作历史资料和代码来源
 | tx-04-03 | 在 v1.9.7.12 上静态核对首轮点位、虚拟设备依赖、硬编码地址、字段偏移和命令路径（Q10）；产出 binding 清单 | 一次静态文档审阅 | 完成，见[点位核对](../hooks/repentogon-binding.md) |
 | tx-04-04 | REPENTOGON 1.1.3 开发包；工程骨架；bootstrap、binding、Hook 框架（首轮 Hook 全部注册，只透传和计数）；命令桥、测试控制口和界面 mod；harness 自行注入和使用第二个存档。实现方案见 [tx-04-04-implementation-plan.md](tx-04-04-implementation-plan.md) | 一次 E2E：加载、Hook、命令桥（包括 Q14）、命令队列、界面、关闭配置、副作用。D16：首次失败后，修复完成再执行一次 | 实现与编译完成；第一次 E2E 启动超时 FAIL，未重跑，见[结果](tx-04-04-results.md)。静态审阅修订已实现并编译（D16）；第二次 E2E 仍启动超时 FAIL，诊断捕获 Use The Launcher! 错误框，未再重跑。根因静态确认为 REPENTOGON 的启动器环境变量检查，按 D17 补上标记后执行第三次 E2E。D18 修正后第八次 E2E E1–E7 全部 PASS（`artifacts/repentogon/tx-04-04-e2e-08/`），tx-04-04 完成 |
 | tx-04-05 | 循环阶段与 tick 判定；本地 A 经统一队列输入；生命周期；会话真实状态（单人）。实现方案见 [tx-04-05-implementation-plan.md](tx-04-05-implementation-plan.md) | 一次 E2E：A 的输入；tick、暂停、控制台屏蔽、加载、跳帧、teardown 的判定 | U1–U4 已确认（D19）；T1–T8 静态审查与主审完成；全路径最终位置次序仍 UNKNOWN，采用后续稳定边界重绑；core/game、必要 Hook/solo、Lua 夹具与 Rust 单启动 S0–S11 / V1–V10 均已编写并完成相应纯构建；第一次整体 E2E 在 S0 启动阶段因 harness focus 时序 FAIL，未进入 run，未重跑，另发现 V10 历史基线规则无法匹配；按 D20 修正后第二次 E2E 跑完 S0–S11，V1、V3–V9 PASS，V2、V10 因 harness 时序与 F9 截图热键 FAIL；按 D21 修正后第三次 E2E 中 V1、V3–V10 PASS，V2 因 S10 移动被随机房间的岩石挡住 FAIL；按 D22 修正后第四次 E2E 中 V1、V3–V10 PASS，V2 因判定方向未随 S10 反向同步 FAIL，未重跑。D23：用户决定将第四次 E2E 算作验收通过，**tx-04-05 完成（用户接受）**，见[结果](tx-04-05-results.md) |
-| tx-04-06 | net；按 v1.9.7.12 重做的虚拟设备 B；Join（含调用点补丁）；远端模拟客户端和 relay | 一次 E2E：首轮完整场景集 | |
-| tx-04-07 | 迁移 world_record | 一次 E2E | |
+| tx-04-06 | net（DLL 内 UDP 线程与新协议）；按 v1.9.7.12 重做的虚拟设备 K；Join（含调用点补丁）；B 的远端输入；断开与退休；Rust 远端模拟客户端（D24）。实现方案见 [tx-04-06-implementation-plan.md](tx-04-06-implementation-plan.md) | 一次 E2E：主菜单 Hosting、握手、Join、B 输入、A/B 同 tick、炸弹、浮层、切房、stop/超时/teardown 三种结束 | 方案已起草，U1–U4 已确认（D25）；按用户要求暂不开始静态确认 ST1–ST9 与实现 |
+| tx-04-07 | relay 与故障注入；B 死亡与复活；异常 Join；B 的跨房射击；loading 查询；补齐首轮完整场景集（D24） | 一次 E2E：首轮完整场景集 | |
+| tx-04-08 | 迁移 world_record（D24 起由 tx-04-07 顺延） | 一次 E2E | |
 | 之后 | 按状态同步方案第 17 节的次序，包括 Client 角色与界面“加入”页 | 每次各一次 E2E | |
 
 ## 15. 未决问题
