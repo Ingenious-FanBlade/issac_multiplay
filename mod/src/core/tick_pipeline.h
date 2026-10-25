@@ -26,8 +26,8 @@ enum class PostStateStatus : std::uint32_t { Disabled };
 struct TickPostState {
   PostStateStatus status = PostStateStatus::Disabled;
 };
-// 只记录存在的参与者；Solo 的 clients[1] 全零且 present=false，不表示缺输入的
-// B。
+// 只记录存在的参与者；Host 同时记录 A/B，缺输入仍是 present=true 的中性样本。
+// Solo 的 clients[1] 全零且 present=false，不表示缺输入的 B。
 struct TickClientReceipt {
   std::uint64_t client = 0, generation = 0, processed_generation = 0;
   std::uint64_t accepted = 0, processed = 0, processed_tick = 0, source = 0;
@@ -92,7 +92,7 @@ public:
 
 private:
   bool Admit(std::uint32_t ordinal) noexcept;
-  Decision AfterAdmission(std::uint32_t ordinal, Decision decision) noexcept;
+  Decision AfterAdmission(Decision decision) noexcept;
   Session &session_;
   TickClock &clock_;
   std::array<Participant, 2> &players_;

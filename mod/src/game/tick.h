@@ -2,15 +2,21 @@
 #include "core/session.h"
 #include "core/tick_clock.h"
 #include "game/bridge.h"
+#include "net/worker.h"
 #include <string>
 namespace cs::game {
-struct SoloRuntime;
-SoloRuntime *Runtime() noexcept;
+struct SessionRuntime;
+SessionRuntime *Runtime() noexcept;
 uint64_t ManagerLoop() noexcept;
 bool SoloBusy() noexcept;
+bool Busy() noexcept;
 bool Armed() noexcept;
 bool RuntimeHealthy() noexcept;
 const char *StartSolo() noexcept;
+// 后续命令层只负责校验与排队；这里是唯一主线程 Host 创建/停止入口。
+const char *StartHost(const net::WorkerConfig &config,
+                      int character = 0) noexcept;
+void StopSession(core::SessionCause cause = core::SessionCause::Stop) noexcept;
 void StopSolo(core::SessionCause cause = core::SessionCause::Stop) noexcept;
 void BeginManager(uint64_t loop) noexcept;
 void EndManager(bool normal) noexcept;

@@ -26,15 +26,15 @@ ImGui.AddButton(panel, "isaac-cs-host", "Start host", function()
     if lastState == "Idle" then command("cs host " .. tostring(port)) end
 end)
 ImGui.AddButton(panel, "isaac-cs-stop", "Stop", function()
-    if lastState == "Hosting" then command("cs stop") end
+    if lastState == "Hosting" or lastState == "Warmup" or lastState == "Active" then command("cs stop") end
 end)
-ImGui.AddElement(panel, "isaac-cs-trust", ImGuiElement.Text, "No authentication. Trusted networks only.\ntx-04-04: placeholder hosting; no network or input takeover.")
+ImGui.AddElement(panel, "isaac-cs-peer", ImGuiElement.Text, "Peer: none")
+ImGui.AddElement(panel, "isaac-cs-trust", ImGuiElement.Text, "No authentication. Trusted networks only.")
 -- 状态只影响界面可见性，host/stop 由 DLL 队列执行。
 local function controls(state)
-    local available = state == "Idle" or state == "Hosting"
-    ImGui.SetVisible("isaac-cs-port", available)
+    ImGui.SetVisible("isaac-cs-port", state == "Idle")
     ImGui.SetVisible("isaac-cs-host", state == "Idle")
-    ImGui.SetVisible("isaac-cs-stop", state == "Hosting")
+    ImGui.SetVisible("isaac-cs-stop", state == "Hosting" or state == "Warmup" or state == "Active")
 end
 controls("Disabled")
 ImGui.AddCallback(panel, ImGuiCallback.Render, function()
@@ -50,6 +50,10 @@ ImGui.AddCallback(panel, ImGuiCallback.Render, function()
         return
     end
     local state = status.state or "Disabled"
+    ImGui.UpdateText("isaac-cs-peer", "Peer: " .. (status.peer_address or "none")
+        .. "  " .. (status.peer_state or "Dormant") .. "\nRTT: " .. (status.peer_rtt_ms or "0")
+        .. " ms  B bound: " .. (status.b_bound or "0") .. "  Join: " .. (status.join_state or "Waiting")
+        .. "\nSession error: " .. (status.session_error or "") .. "  Terminal: " .. (status.peer_terminal or "None"))
     ImGui.UpdateText("isaac-cs-state", "State: " .. state .. "\nDLL: " .. (version.dll_version or "?") .. "\nREPENTOGON: " .. (version.repentogon_version or "?"))
     local groups = {}
     for _, name in ipairs({"loop", "input", "player", "join", "control", "device"}) do

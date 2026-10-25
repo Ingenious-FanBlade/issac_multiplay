@@ -1,5 +1,9 @@
 # REPENTOGON 目标版本点位核对（tx-04-03）
 
+> 2026-10-25 tx-04-06 3.4/3.5 编写补充：Join/K 兼容分派和命令/界面/远端已接入，统一清单新增 5 个 ST8 持久写入入口的只读观测，当前共 33 入口、8 设备槽与 12 字节补丁；纯编译链接成功，见[编写记录](../design/tx-04-06-ops-harness.md)。未部署、安装或运行测试，下方静态阶段的“尚未实现”保留原时点。
+
+> 2026-10-25 tx-04-06 静态补充：[ST1–ST9 与主审](../research/tx-04-06-static-confirmation.md)已完成指定静态研究。[ST2–ST9](../research/tx-04-06-static-remaining.md)确认 Join 的唯一角色参数、CALL shim 清栈来源、RemoveCoPlayer ABI 与初始化时序，并发现输入设备通知触及原版联机、UI 直接读派生尾部、退出保存 dirty PGD 的风险。兼容分派尚未实现，未运行测试。
+
 > 2026-10-24 tx-04-05 静态补充：[T1–T8 与主审](../research/tx-04-05-static-confirmation.md)确认 Odd 普通调用点、设备 id/查询/最终采样时点、PauseScreen/失焦分支、切房 animation 参数链和字段宽度。本文及 JSON 的 tx-04-03 主表保留历史快照，后续更正单独标注；新增候选均未安装。
 
 > 2026-10-24 tx-04-04 实现修订：IDA 原始指令确认 Lua 捕获字段为 `Game+0x680D8`（即 `Console+0x104`），类型为 MSVC `std::string*`；此前记为 `0x68158` 的资料与实现有误。`Console::Print` 捕获时直接追加后返回，不写控制台历史，继续使用 Print。静态记录见 `artifacts/repentogon/tx-04-04-revision-static/`。
@@ -115,7 +119,9 @@
 | mode 2 | `0x5BB081→0x5BA980` | `0x59174C→0x5910A0` | C | manager=EBX，key=ESI |
 | mode 3 | `0x5BB288→0x5BA980` | `0x591E67→0x5910A0` | C | manager=EBX，key=ECX（`[edi-8]`），行指针=EDI |
 
-**创建点拒绝路径的复核。** 从循环头 `0x591E53` 到创建调用 `0x591FE6`，EDI 一直没被改写。push 参数之前栈深度是 -268，和原生跳往 `0x5925E4` 的两处来源（`0x591E6E`、`0x591FA4`）相同。因此拒绝时 `add esp,8` 再跳到 `0x5925E4`，状态和原生的“放弃本行”路径一致。
+**创建点拒绝路径的复核（ST5 补全解释）。** 从循环头 `0x591E53` 到创建调用 `0x591FE6`，EDI 一直没被改写。push 参数之前栈深度是 -268，和原生跳往 `0x5925E4` 的两处来源（`0x591E6E`、`0x591FA4`）相同。实际只有 `0x591FDF push eax` 一个 int32 role，工厂 `retn 4`；不能把 8 字节解释为两个工厂参数。沿用原型 E8 CALL shim 时，shim 入口 `[esp]=0x591FEB`、`[esp+4]=role`；恢复私有保存区后拒绝 `add esp,8` 清这两项再跳 `0x5925E4`，与原生放弃路径栈深度一致。若改成 E9/JMP shim，入口没有额外返回地址，只能清 role 的 4 字节。
+
+**ST3/4/6/7 补充。** 普通 K 的设计序列为两个合格 pass（19 Triggered，再 14 Triggered），每个 pass 内查询结果一致；不是固定两个渲染帧，特殊配置可能自动确认。三处 mode E8 字节分别是 `E8 ED FA FF FF`、`E8 4F F9 FF FF`、`E8 34 F2 FF FF`，每处完整 5 字节；第三处后续继续用 ECX 作 key，shim 须保留。`RemoveCoPlayer=0x590560`，thiscall，`Player*` 与 unused bool，`retn 8`，有掉落/实体清理/重编号等副作用。工厂在 append 前按现有 Player 数写 index，Init 内写类型/角色及初始 controller，Join 在工厂返回后 `0x591FFB` 才写 K 的 controller id；exact pair 放到整个 pass 返回后确认。
 
 ## 6. 自有虚拟设备（v1.9.7.12 需要重新设计）
 
@@ -137,9 +143,13 @@
 | 模板表 | 全局 vector `0x8799E8`，32 项 × 16 字节 | 构造函数把 `+0x10` 设为 `0x7888C0`、`+0x14` 设为 40，表项 8 字节 |
 | 状态数组 | `+0xC0/+0xC4` | `+0xC8/+0xCC`；`+0x18` 是数量，`+0x1C` 是映射表 |
 | 键盘状态源 | `0x878C10` | `0x7E6B08`（推断；还有 `0x7E6C68` 原始数据、`0x7E6DC8` 前一帧，各 `0x15C` 字节） |
-| 自有设备要覆写的槽 | 0/3/12/13/14/30 | 0/3/8/9/10/35 |
+| 自有设备覆写候选（tx-04-03 当时记录） | 0/3/12/13/14/30 | 当时为 0/3/8/9/10/35；当前修订见下方 ST1 补充 |
 
 结论：原型的 owned device ABI（对象布局、control block、注册/移除方式）不能照搬，要在实现推进中按 v1.9.7.12 重新实现。第 0 槽必须遵守 NEVER 策略：被调用时不释放内存，只标记退休。退休可以走“Poll 返回假”或“调用 RemoveDevice”两条路，两条最终都会调到我们的第 0 槽。
+
+**tx-04-06 ST1 补充（2026-10-25）：** [静态确认与主审](../research/tx-04-06-static-confirmation.md)确认第 2 槽会释放映射表与 current/previous，所以 NEVER 也必须覆写该槽保留有效基类状态；第 3 槽返回 `const char*` 名称，不能当整数类型码。K 当前设计覆写集合为 **0/2/3/5/6/7/8/9/10/11/26/27/35**，新增 raw/触发键/活动中性。主审另发现官方 1.1.3 `MiscFixes.cpp:268` 确实 Hook 了 `InputDeviceBase::Initialize`，读取 `+0x3FC` 名称；K 布局须预留并在 Initialize 前初始化。第 8 节旧“设备函数没有 Hook”的概括不适用于该入口，原调查遗漏在此更正。以上仅静态事实与设计修订，尚无 K 实现或运行时观察。
+
+**ST2/9 补充。** InputManager 正好 47 个函数槽（0–46），后续项是 RTTI COL；注册会调用映射 profile 回调，主动移除/Poll=false 会调用已由 Manager 初始化安装的原版 Lobby/Netplay 断连回调。因此 K 不能无条件透传这些通知。物理确认在 `0x4AF870` 可以选中高亮 K，`0x4AFAED` 将 id 写全局 `0x788A14`；KeyConfig `0x4B8C70` 和暂停断连处理 `0x5346B0` 可直接读 `+0x48C/+0x498`，物理断连还读 `+0x3F8`。13 槽中性和 `0x400` 名称预留区均不足以证明安全。K 需通用输入通知隔离、本地 UI 列表排除和读取前分支，尚未实现；不通过进入原版联机模块修复。
 
 ## 7. 全局变量与字段
 
@@ -182,7 +192,7 @@
   | `ControlActiveItem` | 1 |
   | `Entity_Player::Update` | 1（宏生成） |
 
-  其余函数 REPENTOGON 都没有 Hook：`CoopBabiesOnly`、`SpawnCoPlayer2`、`RemoveCoPlayer`、`ExecuteStartGame`、`Room::Update`、`EntityList::Update`，以及各个回调调用函数和设备函数。
+  tx-04-03 当时未找到入口 Hook 的项目包括 `CoopBabiesOnly`、`SpawnCoPlayer2`、`RemoveCoPlayer`、`ExecuteStartGame`、`Room::Update`、`EntityList::Update`；这不代表它们的下游没有 Hook/回调。旧“各个回调调用函数和设备函数也都没有 Hook”的概括已被 ST1/ST8 更正：官方 Hook InputDeviceBase::Initialize、Player Init/构造、PostPlayerInit、Entity Remove 及初始化 stats helper，并改断连重分配内部路径。详见静态报告，不能将原调查空结果当完整兼容证明。
 - **函数内部的补丁**（不影响入口 Hook，但会改变行为）：
   - `Game::Update`：MC_PRE_UPDATE 跳帧；
   - `EntityList::Update`：3 处；

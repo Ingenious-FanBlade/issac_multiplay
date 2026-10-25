@@ -1,0 +1,997 @@
+{
+  "automatic_retry": false,
+  "cases": {
+    "V1": {
+      "detail": {
+        "all_installations_observed": true,
+        "expected_hooks": 33,
+        "patches": [
+          {
+            "expected": "FF 52 0C 6A 00",
+            "group": "player",
+            "id": "odd_normal",
+            "resume": "0x2F955E",
+            "rva": "0x2F9559"
+          },
+          {
+            "alternate": "0x0",
+            "expected": "E8 ED FA FF FF",
+            "group": "join",
+            "id": "join_mode_1",
+            "kind": "call",
+            "resume": "0x5915b3",
+            "rva": "0x5915ae",
+            "size": 5
+          },
+          {
+            "alternate": "0x0",
+            "expected": "E8 4F F9 FF FF",
+            "group": "join",
+            "id": "join_mode_2",
+            "kind": "call",
+            "resume": "0x591751",
+            "rva": "0x59174c",
+            "size": 5
+          },
+          {
+            "alternate": "0x0",
+            "expected": "E8 34 F2 FF FF",
+            "group": "join",
+            "id": "join_mode_3",
+            "kind": "call",
+            "resume": "0x591e6c",
+            "rva": "0x591e67",
+            "size": 5
+          },
+          {
+            "alternate": "0x5925e4",
+            "expected": "E8 65 E2 FF FF",
+            "group": "join",
+            "id": "join_create",
+            "kind": "call",
+            "resume": "0x591feb",
+            "rva": "0x591fe6",
+            "size": 5
+          },
+          {
+            "alternate": "0x5eeb9a",
+            "expected": "8B 77 14 8B 5B 08",
+            "group": "join",
+            "id": "k_register_notify",
+            "kind": "jump",
+            "resume": "0x5eeb82",
+            "rva": "0x5eeb7c",
+            "size": 6
+          },
+          {
+            "alternate": "0x5eebe6",
+            "expected": "8B 73 20 3B 73 24",
+            "group": "join",
+            "id": "k_remove_notify",
+            "kind": "jump",
+            "resume": "0x5eebc9",
+            "rva": "0x5eebc3",
+            "size": 6
+          },
+          {
+            "alternate": "0x5edd58",
+            "expected": "8B 73 20 8B 41 08",
+            "group": "join",
+            "id": "k_poll_notify",
+            "kind": "jump",
+            "resume": "0x5edd33",
+            "rva": "0x5edd2d",
+            "size": 6
+          },
+          {
+            "alternate": "0x5ec389",
+            "expected": "8B 4D 08 8B 87 F8 03 00 00",
+            "group": "join",
+            "id": "k_physical_disconnect",
+            "kind": "jump",
+            "resume": "0x5ec385",
+            "rva": "0x5ec37c",
+            "size": 9
+          },
+          {
+            "alternate": "0x4afa4d",
+            "expected": "85 C0 0F 84 D5 00 00 00",
+            "group": "join",
+            "id": "k_controller_list",
+            "kind": "jump",
+            "resume": "0x4af978",
+            "rva": "0x4af970",
+            "size": 8
+          },
+          {
+            "alternate": "0x4b9aa7",
+            "expected": "83 B8 8C 04 00 00 00",
+            "group": "join",
+            "id": "k_keyconfig_draw",
+            "kind": "jump",
+            "resume": "0x4b8d44",
+            "rva": "0x4b8d3d",
+            "size": 7
+          },
+          {
+            "alternate": "0x5347a9",
+            "expected": "83 B8 8C 04 00 00 00",
+            "group": "join",
+            "id": "k_pause_disconnect",
+            "kind": "jump",
+            "resume": "0x53476f",
+            "rva": "0x534768",
+            "size": 7
+          }
+        ]
+      },
+      "pass": false
+    },
+    "V10": {
+      "detail": "missing required evidence; see failure/evaluation_error",
+      "pass": false,
+      "status": "NOT_RUN"
+    },
+    "V11": {
+      "detail": "missing required evidence; see failure/evaluation_error",
+      "pass": false,
+      "status": "NOT_RUN"
+    },
+    "V12": {
+      "detail": "missing required evidence; see failure/evaluation_error",
+      "pass": false,
+      "status": "NOT_RUN"
+    },
+    "V2": {
+      "detail": [
+        {
+          "direction": -1.0,
+          "pass": false,
+          "scene": "S9.raw",
+          "state": "Idle"
+        },
+        {
+          "direction": 1.0,
+          "pass": false,
+          "scene": "S10.raw",
+          "state": "Hosting"
+        }
+      ],
+      "pass": false
+    },
+    "V3": {
+      "detail": {
+        "generations": [
+          null,
+          null,
+          null
+        ],
+        "transitions": [
+          {
+            "detail": "from=Idle to=Hosting mode=Host generation=1 port=27090 role=0",
+            "ev": "session",
+            "seq": 2180,
+            "t": 93766330486
+          },
+          {
+            "detail": "from=Hosting to=Warmup mode=Host generation=1 loop=42",
+            "ev": "session",
+            "seq": 2231,
+            "t": 93766996459
+          },
+          {
+            "detail": "from=Warmup to=Active mode=Host reason=BindingsReady generation=1 loop=559",
+            "ev": "session",
+            "seq": 3056,
+            "t": 93775730004
+          }
+        ]
+      },
+      "pass": false
+    },
+    "V4": {
+      "detail": "missing required evidence; see failure/evaluation_error",
+      "pass": false,
+      "status": "NOT_RUN"
+    },
+    "V5": {
+      "detail": "missing required evidence; see failure/evaluation_error",
+      "pass": false,
+      "status": "NOT_RUN"
+    },
+    "V6": {
+      "detail": "missing required evidence; see failure/evaluation_error",
+      "pass": false,
+      "status": "NOT_RUN"
+    },
+    "V7": {
+      "detail": "missing required evidence; see failure/evaluation_error",
+      "pass": false,
+      "status": "NOT_RUN"
+    },
+    "V8": {
+      "detail": "missing required evidence; see failure/evaluation_error",
+      "pass": false,
+      "status": "NOT_RUN"
+    },
+    "V9": {
+      "detail": "missing required evidence; see failure/evaluation_error",
+      "pass": false,
+      "status": "NOT_RUN"
+    }
+  },
+  "checkpoints": {
+    "S1.begin": {
+      "observation": null,
+      "status": {
+        "a_bound": "0",
+        "a_generation": "1",
+        "armed": "0",
+        "b_bound": "0",
+        "b_character": "0",
+        "b_generation": "1",
+        "blocks": "0",
+        "calls": "1061",
+        "capability.control": "1",
+        "capability.device": "1",
+        "capability.input": "1",
+        "capability.join": "1",
+        "capability.loop": "1",
+        "capability.player": "1",
+        "cleanup_failed": "0",
+        "completed_tick": "0",
+        "context_faults": "0",
+        "current_tick": "0",
+        "device_k_id": "0",
+        "device_k_state": "Empty",
+        "foreign": "0",
+        "frame": "3",
+        "g_game": "1",
+        "generation": "1",
+        "host_patches_installed": "1",
+        "join_baby_overrides": "0",
+        "join_creations": "0",
+        "join_mode_calls": "0",
+        "join_passes": "0",
+        "join_state": "Waiting",
+        "last_error": "",
+        "last_tick_decision": "Idle",
+        "manager_starting": "0",
+        "menu_game_selection": "0",
+        "menu_id": "1",
+        "net_bye_attempts": "0",
+        "net_bye_sent": "0",
+        "net_dropped": "0",
+        "net_duplicate": "0",
+        "net_error.Configuration": "0",
+        "net_error.Crc": "0",
+        "net_error.Duplicate": "0",
+        "net_error.Flags": "0",
+        "net_error.Handshake": "0",
+        "net_error.Header": "0",
+        "net_error.Identity": "0",
+        "net_error.Incompatible": "0",
+        "net_error.Kind": "0",
+        "net_error.Length": "0",
+        "net_error.Magic": "0",
+        "net_error.None": "0",
+        "net_error.Payload": "0",
+        "net_error.Pending": "0",
+        "net_error.PendingMismatch": "0",
+        "net_error.Phase": "0",
+        "net_error.Reserved": "0",
+        "net_error.Role": "0",
+        "net_error.Sequence": "0",
+        "net_error.Stale": "0",
+        "net_error.Terminal": "0",
+        "net_error.Version": "0",
+        "net_foreign": "0",
+        "net_last_send_error": "0",
+        "net_native_error": "0",
+        "net_rx": "0",
+        "net_rx_bytes": "0",
+        "net_rx_dropped": "0",
+        "net_rx_errors": "0",
+        "net_stale": "0",
+        "net_tx": "0",
+        "net_tx_bytes": "0",
+        "net_tx_dropped": "0",
+        "net_tx_errors": "0",
+        "net_valid": "0",
+        "odd_patch_installed": "1",
+        "ok": "1",
+        "pause_selection": "-1",
+        "pause_state": "-1",
+        "peer_ack_dropped": "0",
+        "peer_address": "0.0.0.0:0",
+        "peer_admitted_commands": "0",
+        "peer_discarded_commands": "0",
+        "peer_locked": "0",
+        "peer_rtt_ms": "0",
+        "peer_running": "1",
+        "peer_state": "Negotiating",
+        "peer_stop_finished": "0",
+        "peer_terminal": "None",
+        "players": "0",
+        "pointers": "8",
+        "query_overrides": "0",
+        "queue_depth_a": "0",
+        "queue_depth_b": "0",
+        "queue_dropped": "0",
+        "reason.control": "",
+        "reason.device": "",
+        "reason.input": "",
+        "reason.join": "",
+        "reason.loop": "",
+        "reason.player": "",
+        "registered": "33",
+        "retirement_cause": "None",
+        "run_active": "0",
+        "selected_save": "0",
+        "session_error": "",
+        "session_mode": "Host",
+        "session_state": "Hosting",
+        "shooting_suppressed": "0",
+        "state": "Hosting",
+        "status_version": "1",
+        "ticks_odd": "0",
+        "ticks_standard": "0",
+        "trace": "isaac-cs/traces/boot-23536.jsonl",
+        "trace_dropped": "0"
+      }
+    },
+    "S1.end": {
+      "observation": null,
+      "status": {
+        "a_bound": "0",
+        "a_generation": "1",
+        "armed": "0",
+        "b_bound": "0",
+        "b_character": "0",
+        "b_generation": "1",
+        "blocks": "0",
+        "calls": "1246",
+        "capability.control": "1",
+        "capability.device": "1",
+        "capability.input": "1",
+        "capability.join": "1",
+        "capability.loop": "1",
+        "capability.player": "1",
+        "cleanup_failed": "0",
+        "completed_tick": "0",
+        "context_faults": "0",
+        "current_tick": "0",
+        "device_k_id": "0",
+        "device_k_state": "Empty",
+        "foreign": "0",
+        "frame": "40",
+        "g_game": "1",
+        "generation": "1",
+        "host_patches_installed": "1",
+        "join_baby_overrides": "0",
+        "join_creations": "0",
+        "join_mode_calls": "0",
+        "join_passes": "0",
+        "join_state": "Waiting",
+        "last_error": "",
+        "last_tick_decision": "Idle",
+        "manager_starting": "0",
+        "menu_game_selection": "0",
+        "menu_id": "1",
+        "net_bye_attempts": "0",
+        "net_bye_sent": "0",
+        "net_dropped": "0",
+        "net_duplicate": "0",
+        "net_error.Configuration": "0",
+        "net_error.Crc": "0",
+        "net_error.Duplicate": "0",
+        "net_error.Flags": "0",
+        "net_error.Handshake": "0",
+        "net_error.Header": "0",
+        "net_error.Identity": "0",
+        "net_error.Incompatible": "0",
+        "net_error.Kind": "0",
+        "net_error.Length": "0",
+        "net_error.Magic": "0",
+        "net_error.None": "0",
+        "net_error.Payload": "0",
+        "net_error.Pending": "0",
+        "net_error.PendingMismatch": "0",
+        "net_error.Phase": "0",
+        "net_error.Reserved": "0",
+        "net_error.Role": "0",
+        "net_error.Sequence": "0",
+        "net_error.Stale": "0",
+        "net_error.Terminal": "0",
+        "net_error.Version": "0",
+        "net_foreign": "0",
+        "net_last_send_error": "0",
+        "net_native_error": "0",
+        "net_rx": "0",
+        "net_rx_bytes": "0",
+        "net_rx_dropped": "0",
+        "net_rx_errors": "0",
+        "net_stale": "0",
+        "net_tx": "0",
+        "net_tx_bytes": "0",
+        "net_tx_dropped": "0",
+        "net_tx_errors": "0",
+        "net_valid": "0",
+        "odd_patch_installed": "1",
+        "ok": "1",
+        "pause_selection": "-1",
+        "pause_state": "-1",
+        "peer_ack_dropped": "0",
+        "peer_address": "0.0.0.0:0",
+        "peer_admitted_commands": "0",
+        "peer_discarded_commands": "0",
+        "peer_locked": "0",
+        "peer_rtt_ms": "0",
+        "peer_running": "1",
+        "peer_state": "Negotiating",
+        "peer_stop_finished": "0",
+        "peer_terminal": "None",
+        "players": "0",
+        "pointers": "8",
+        "query_overrides": "0",
+        "queue_depth_a": "0",
+        "queue_depth_b": "0",
+        "queue_dropped": "0",
+        "reason.control": "",
+        "reason.device": "",
+        "reason.input": "",
+        "reason.join": "",
+        "reason.loop": "",
+        "reason.player": "",
+        "registered": "33",
+        "retirement_cause": "None",
+        "run_active": "0",
+        "selected_save": "0",
+        "session_error": "",
+        "session_mode": "Host",
+        "session_state": "Hosting",
+        "shooting_suppressed": "0",
+        "state": "Hosting",
+        "status_version": "1",
+        "ticks_odd": "0",
+        "ticks_standard": "0",
+        "trace": "isaac-cs/traces/boot-23536.jsonl",
+        "trace_dropped": "0"
+      }
+    },
+    "S2.end": {
+      "observation": null,
+      "status": {
+        "a_bound": "0",
+        "a_generation": "1",
+        "armed": "1",
+        "b_bound": "0",
+        "b_character": "0",
+        "b_generation": "1",
+        "blocks": "4",
+        "calls": "1306",
+        "capability.control": "1",
+        "capability.device": "1",
+        "capability.input": "1",
+        "capability.join": "1",
+        "capability.loop": "1",
+        "capability.player": "1",
+        "cleanup_failed": "0",
+        "completed_tick": "0",
+        "context_faults": "0",
+        "current_tick": "0",
+        "device_k_id": "0",
+        "device_k_state": "Empty",
+        "foreign": "0",
+        "frame": "52",
+        "g_game": "1",
+        "generation": "1",
+        "host_patches_installed": "1",
+        "join_baby_overrides": "0",
+        "join_creations": "0",
+        "join_mode_calls": "0",
+        "join_passes": "0",
+        "join_state": "Waiting",
+        "last_error": "",
+        "last_tick_decision": "Idle",
+        "manager_starting": "0",
+        "menu_game_selection": "0",
+        "menu_id": "1",
+        "net_bye_attempts": "0",
+        "net_bye_sent": "0",
+        "net_dropped": "0",
+        "net_duplicate": "0",
+        "net_error.Configuration": "0",
+        "net_error.Crc": "0",
+        "net_error.Duplicate": "0",
+        "net_error.Flags": "0",
+        "net_error.Handshake": "0",
+        "net_error.Header": "0",
+        "net_error.Identity": "0",
+        "net_error.Incompatible": "0",
+        "net_error.Kind": "0",
+        "net_error.Length": "0",
+        "net_error.Magic": "0",
+        "net_error.None": "0",
+        "net_error.Payload": "0",
+        "net_error.Pending": "0",
+        "net_error.PendingMismatch": "0",
+        "net_error.Phase": "0",
+        "net_error.Reserved": "0",
+        "net_error.Role": "0",
+        "net_error.Sequence": "0",
+        "net_error.Stale": "0",
+        "net_error.Terminal": "0",
+        "net_error.Version": "0",
+        "net_foreign": "0",
+        "net_last_send_error": "0",
+        "net_native_error": "0",
+        "net_rx": "2",
+        "net_rx_bytes": "312",
+        "net_rx_dropped": "0",
+        "net_rx_errors": "0",
+        "net_stale": "0",
+        "net_tx": "11",
+        "net_tx_bytes": "2728",
+        "net_tx_dropped": "0",
+        "net_tx_errors": "0",
+        "net_valid": "2",
+        "odd_patch_installed": "1",
+        "ok": "1",
+        "pause_selection": "-1",
+        "pause_state": "-1",
+        "peer_ack_dropped": "0",
+        "peer_address": "127.0.0.1:50441",
+        "peer_admitted_commands": "0",
+        "peer_discarded_commands": "1",
+        "peer_locked": "1",
+        "peer_rtt_ms": "0",
+        "peer_running": "1",
+        "peer_state": "Established",
+        "peer_stop_finished": "0",
+        "peer_terminal": "None",
+        "players": "0",
+        "pointers": "8",
+        "query_overrides": "0",
+        "queue_depth_a": "0",
+        "queue_depth_b": "0",
+        "queue_dropped": "0",
+        "reason.control": "",
+        "reason.device": "",
+        "reason.input": "",
+        "reason.join": "",
+        "reason.loop": "",
+        "reason.player": "",
+        "registered": "33",
+        "retirement_cause": "None",
+        "run_active": "0",
+        "selected_save": "0",
+        "session_error": "",
+        "session_mode": "Host",
+        "session_state": "Warmup",
+        "shooting_suppressed": "0",
+        "state": "Warmup",
+        "status_version": "1",
+        "ticks_odd": "0",
+        "ticks_standard": "0",
+        "trace": "isaac-cs/traces/boot-23536.jsonl",
+        "trace_dropped": "0"
+      }
+    }
+  },
+  "cleanup_error": null,
+  "crash_before": {},
+  "crash_changes": [],
+  "environment": {
+    "architecture": "i686",
+    "game": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth",
+    "game_running": false,
+    "installed_version_excerpt": "v1.1.3 -\nAdded:\n* ModCallbacks:\n\t- MC_PRE/POST_PLAYERHUD_RENDER_INVENTORY(EntityPlayer, Vector pos, float Scale)\n\t- MC_PRE/POST_PLAYERHUD_RENDER_POOP_SPELL_QUEUE(EntityPlayer, Vector pos, float Scale)\n\t- MC_PRE/POST_PLAYERHUD_RENDER_CRAFTING_TABLE(EntityPlayer, Vector pos, float Scale)\n\t- MC_POST_USE_ITEM(CollectibleType, RNG, EntityPlayer, UseFlags, ActiveSlot, int CustomVarData, bool Discharge, bool Remove)\n\t\tBetter callback for AFTER an active item is used, since MC_USE_ITEM runs earlier, is ",
+    "launcher": "[General]\r\nIsaacExecutable = F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe\r\nRanWizard = 1\r\nHideWindow = 1\r\nStealthMode = 0\r\n[Repentogon]\r\nConsole = 0\r\nUpdate = 0\r\nUnstableUpdates = 0\r\nSkipUpdateMods = 0\r\nSkipWaitModDownloads = 0\r\n[Vanilla]\r\nLuaHeapSize = 1024M\r\nLuaDebug = 0\r\n[Shared]\r\nLaunchMode = 1\r\n",
+    "mods": [
+      {
+        "directory": "better character menu_835236871",
+        "enabled": false
+      },
+      {
+        "directory": "console for online",
+        "enabled": false
+      },
+      {
+        "directory": "external item descriptions_836319872",
+        "enabled": false
+      },
+      {
+        "directory": "goodtrip-controller-input-test",
+        "enabled": false
+      },
+      {
+        "directory": "goodtripfixed for online_3780987561",
+        "enabled": false
+      },
+      {
+        "directory": "goodtrip_1630477831",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-cs-t0-input-witness",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-cs-ui",
+        "enabled": true
+      },
+      {
+        "directory": "isaac-cs-world-e2e",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-k-to-treasure-room",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-k-toggle-debug-10",
+        "enabled": false
+      },
+      {
+        "directory": "isaacscript-watcher",
+        "enabled": false
+      },
+      {
+        "directory": "isaac_socket_3033763718",
+        "enabled": false
+      },
+      {
+        "directory": "repentogonreleasesbackup_3643104060",
+        "enabled": false
+      },
+      {
+        "directory": "specialistforgooditems_2575911103",
+        "enabled": false
+      },
+      {
+        "directory": "the bingo of isaac!_3555711630",
+        "enabled": false
+      },
+      {
+        "directory": "timemachine_2617557401",
+        "enabled": false
+      }
+    ],
+    "pe_timestamp": "0x68154D8D",
+    "repentogon_skip_intro": "1",
+    "save_roots": {
+      "documents": "C:\\Users\\114514\\Documents/My Games/Binding of Isaac Repentance+",
+      "steam_remote": [
+        {
+          "account": "387111160",
+          "path": "D:\\steam\\userdata\\387111160\\250900\\remote"
+        }
+      ]
+    },
+    "save_slot": 2,
+    "steam_running": true
+  },
+  "evaluation_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-06-e2e-01\\remote-2.jsonl: 系统找不到指定的文件。 (os error 2)",
+  "failure": "远程主机强迫关闭了一个现有的连接。 (os error 10054)",
+  "failure_close": {
+    "error": null,
+    "exit": 3
+  },
+  "keyboard_environment": [
+    {
+      "file": "inputconfigs.dat",
+      "mismatches": []
+    },
+    {
+      "file": "inputconfigs_rgon.dat",
+      "mismatches": []
+    }
+  ],
+  "launches": 1,
+  "pass": false,
+  "recorded_baseline": {
+    "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+    "fresh_disabled_launch": false,
+    "matched": [
+      "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+      "steam_remote/387111160/rgon_steam_persistentgamedata3.dat"
+    ]
+  },
+  "save_changes": [
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912684041525100",
+        "size": 58
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856033313881700",
+        "size": 59
+      },
+      "bytes_changed": true,
+      "path": "documents/Repentogon/EntitySaveStateManagement/ex_remote_gamestate2.json",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912684040524800",
+        "size": 28
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856033313881700",
+        "size": 28
+      },
+      "bytes_changed": true,
+      "path": "documents/Repentogon/EntitySaveStateManagement/remote_gamestate2.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912684043030100",
+        "size": 746
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856033314884200",
+        "size": 747
+      },
+      "bytes_changed": true,
+      "path": "documents/Repentogon/ItemPoolManager/remote_gamestate2.json",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912684042027600",
+        "size": 47
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856033314884200",
+        "size": 48
+      },
+      "bytes_changed": true,
+      "path": "documents/Repentogon/VirtualRoomSetManager/remote_gamestate2.json",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912679704816600",
+        "size": 457
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856025568181300",
+        "size": 457
+      },
+      "bytes_changed": true,
+      "path": "documents/Repentogon/imgui.ini",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912678717791900",
+        "size": 694
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856035095579400",
+        "size": 694
+      },
+      "bytes_changed": false,
+      "path": "documents/Repentogon/options.ini",
+      "possible_source": "timestamp only; identical bytes"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912672623031900",
+        "size": 1103
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856035097579800",
+        "size": 1103
+      },
+      "bytes_changed": false,
+      "path": "documents/Repentogon/vanilla_options.ini",
+      "possible_source": "timestamp only; identical bytes"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912684599375700",
+        "size": 19184911
+      },
+      "allowed": false,
+      "before": null,
+      "bytes_changed": true,
+      "path": "documents/crash_dumps/isaacv1.9.7.12.J273-20261025-151804-23536-31432.dmp",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912684604890600",
+        "size": 21407
+      },
+      "allowed": false,
+      "before": null,
+      "bytes_changed": true,
+      "path": "documents/crash_dumps/isaacv1.9.7.12.J273-20261025-151804-23536-31432.txt",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912684247698700",
+        "size": 21407
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856035164462400",
+        "size": 297756
+      },
+      "bytes_changed": true,
+      "path": "documents/log.txt",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912674269786600",
+        "size": 17187
+      },
+      "allowed": true,
+      "before": null,
+      "bytes_changed": true,
+      "path": "documents/save_backups/20261025.rgon_steam_persistentgamedata1.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912684049049200",
+        "size": 16931
+      },
+      "allowed": true,
+      "before": null,
+      "bytes_changed": true,
+      "path": "documents/save_backups/20261025.rgon_steam_persistentgamedata2.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912674329796900",
+        "size": 16235
+      },
+      "allowed": true,
+      "before": null,
+      "bytes_changed": true,
+      "path": "documents/save_backups/20261025.rgon_steam_persistentgamedata3.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912684043030100",
+        "size": 52021
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856033315882800",
+        "size": 62675
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rep+gamestate2.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912674224742200",
+        "size": 185
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856035129108700",
+        "size": 185
+      },
+      "bytes_changed": false,
+      "path": "steam_remote/387111160/rgon_savesyncstatus.json",
+      "possible_source": "timestamp only; identical bytes"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912674269786600",
+        "size": 17187
+      },
+      "allowed": true,
+      "baseline": {
+        "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+        "fields": [
+          "checksum",
+          "counter"
+        ],
+        "historical_fields": [
+          "checksum",
+          "counter"
+        ],
+        "rule": "D20: only trailing Counter/Checksum u32 fields changed, within the fields changed by the historical disabled launch"
+      },
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856033360919900",
+        "size": 17187
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912684049049200",
+        "size": 16931
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856035098578600",
+        "size": 16931
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rgon_steam_persistentgamedata2.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792912674330796800",
+        "size": 16235
+      },
+      "allowed": true,
+      "baseline": {
+        "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+        "fields": [
+          "checksum",
+          "counter"
+        ],
+        "historical_fields": [
+          "checksum",
+          "counter"
+        ],
+        "rule": "D20: only trailing Counter/Checksum u32 fields changed, within the fields changed by the historical disabled launch"
+      },
+      "before": {
+        "exists": true,
+        "modified_ns": "1792856033399392700",
+        "size": 16235
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rgon_steam_persistentgamedata3.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    }
+  ],
+  "token": "tx-04-06-29608-1792912666034",
+  "tx": "tx-04-06"
+}

@@ -3,6 +3,8 @@
 //! 构建脚本不执行本程序，存档只快照、不恢复。
 mod saves;
 mod tx05;
+mod tx06;
+mod remote;
 mod win32;
 use serde_json::{Value, json};
 use std::{
@@ -304,7 +306,8 @@ impl Run {
         let p = self.game.join("Repentogon/isaac-cs");
         mkdir(&p)?;
         let content = json!({"schema":1,"enabled":enabled,"log_level":"info","trace_dir":"isaac-cs/traces",
-            "control_port":{"enabled":enabled,"port":self.scenario["control_port"]},"host":{"default_port":27090}});
+            "control_port":{"enabled":enabled,"port":self.scenario["control_port"]},"host":{"default_port":self.scenario["host_port"].as_u64().unwrap_or(27090),
+                "bind_address":"127.0.0.1","peer_timeout_ms":self.scenario["peer_timeout_ms"].as_u64().unwrap_or(3000)}});
         write_json(&p.join("config.json"), &content)?;
         self.deployment.push(json!({"operation":"write_config","destination":p.join("config.json"),"content":content}));
         write_json(&self.out.join("deployment.json"), &json!(self.deployment))?;
@@ -355,12 +358,14 @@ impl Run {
                 .push(json!({"operation":"copy","source":s,"destination":d}));
         }
         self.deployed = true;
-        if self.report["tx"] == "tx-04-05" {
+        if self.report["tx"] == "tx-04-05" || self.report["tx"] == "tx-04-06" {
             let config = format!(
-                "-- 本次临时 E2E 配置，不写回源码。\nreturn {{ tx = \"tx-04-05\", token = \"{}\" }}\n",
+                "-- 本次临时 E2E 配置，不写回源码。\nreturn {{ tx = \"{}\", token = \"{}\", host_port = {} }}\n",
+                self.report["tx"].as_str().ok_or("missing tx")?,
                 self.report["token"]
                     .as_str()
-                    .ok_or("missing fixture token")?
+                    .ok_or("missing fixture token")?,
+                self.scenario["host_port"].as_u64().unwrap_or(27090)
             );
             fs::write(
                 self.game.join("mods/isaac-cs-test/harness_config.lua"),
@@ -983,10 +988,20 @@ impl Run {
         }
         let mut found = BTreeMap::new();
         walk(&self.game, &self.game, &mut found)?;
+        // 游戏实际把转储写在存档根的 crash_dumps，不在游戏目录（tx-04-06 第一次 E2E 漏记）。
+        let dumps = self.save.join("crash_dumps");
+        if dumps.is_dir() {
+            let mut documents = BTreeMap::new();
+            walk(&dumps, &dumps, &mut documents)?;
+            for (name, state) in documents {
+                found.insert(format!("documents/crash_dumps/{name}"), state);
+            }
+        }
         Ok(json!(found))
     }
     // 所有场景在一个入口中顺序执行，不重试失败启动或失败验收。
     fn execute(&mut self) -> Result<()> {
+        if self.report["tx"] == "tx-04-06" { return self.execute_tx06(); }
         if self.report["tx"] == "tx-04-05" {
             return self.execute_tx05();
         }
@@ -1009,6 +1024,7 @@ impl Run {
     }
     // 清理先于报告分析，失败也关闭测试口并移除自己部署的夹具。
     fn finish(&mut self, result: Result<()>) -> Result<()> {
+        if self.report["tx"] == "tx-04-06" { return self.finish_tx06(result); }
         if self.report["tx"] == "tx-04-05" {
             return self.finish_tx05(result);
         }
@@ -1145,13 +1161,14 @@ fn main() {
 }
 fn entry() -> Result<()> {
     let args = env::args().skip(1).collect::<Vec<_>>();
+    if args.first().map(String::as_str)==Some("remote"){return remote::run_cli(&args);}
     if args.get(0).map(String::as_str) != Some("e2e")
         || !matches!(
             args.get(1).map(String::as_str),
-            Some("tx-04-04" | "tx-04-05")
+            Some("tx-04-04" | "tx-04-05" | "tx-04-06")
         )
     {
-        return Err("usage: harness e2e <tx-04-04|tx-04-05> --game <game-root> --out <new-artifact-directory> [--scenario <json>]".into());
+        return Err("usage: harness e2e <tx-04-04|tx-04-05|tx-04-06> --game <game-root> --out <new-artifact-directory> [--scenario <json>]".into());
     }
     let option = |key: &str| {
         args.iter()
@@ -1187,7 +1204,7 @@ fn entry() -> Result<()> {
         save,
         scenario,
         report: json!({"tx":args[1],"cases":{},"cleanup_error":null,
-            "token":format!("tx05-{}-{}",std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(|e|e.to_string())?.as_millis())}),
+            "token":format!("{}-{}-{}",args[1],std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_err(|e|e.to_string())?.as_millis())}),
         steps: fs::File::create(out.join("steps.jsonl")).map_err(|e| e.to_string())?,
         deployed: false,
         fixture_owned: false,

@@ -114,30 +114,25 @@ fn repentogon_sidecar(name: &str, slot: u8) -> bool {
     let stem = stem.strip_prefix("remote_").unwrap_or(stem);
     stem == format!("gamestate{slot}.dat") || stem == format!("gamestate{slot}.json")
 }
-// 第一、三槽的文件：主存档、附属文件和每日备份（D18 基线对比只作用于这些文件）。
+// 第一、三槽的文件：主存档与附属文件（D18/D20 基线对比只作用于这些文件）。
 pub fn other_slot(name: &str) -> bool {
     let base = Path::new(name)
         .file_name()
         .unwrap()
         .to_string_lossy()
         .to_lowercase();
-    let tail = if name.starts_with("documents/save_backups/") {
-        base.split_once('.').map(|(_, t)| t.to_string()).unwrap_or_default()
-    } else {
-        base.clone()
-    };
-    [1u8, 3].iter().any(|&slot| slot_file(&tail, slot) || repentogon_sidecar(name, slot))
+    [1u8, 3].iter().any(|&slot| slot_file(&base, slot) || repentogon_sidecar(name, slot))
 }
-fn allowed_change(name: &str, added: bool) -> bool {
+// 每日备份目录；D27 起由 changes 整体排除，不进入白名单或基线判定。
+fn is_daily_backup(name: &str) -> bool {
+    name.starts_with("documents/save_backups/")
+}
+fn allowed_change(name: &str) -> bool {
     let base = Path::new(name)
         .file_name()
         .unwrap()
         .to_string_lossy()
         .to_lowercase();
-    if name.starts_with("documents/save_backups/") {
-        // 每日备份可新增任意槽；已有备份只允许第二槽改变。
-        return added || base.split_once('.').is_some_and(|(_, tail)| slot_two(tail));
-    }
     if slot_two(&base) || base == "rgon_savesyncstatus.json" || base == "savesyncstatus.json" {
         return true;
     }
@@ -191,6 +186,7 @@ pub fn apply_slot_baseline(intervals: &mut [Value], disabled_ran: bool) {
 }
 
 // 直接比较内容，不计算摘要；附带时间变化，按每次启动独立归因。
+// D27（用户决定）：判定不看每日备份 save_backups 中的任何存档，快照仍原样复制作原始证据。
 pub fn changes(before: &Path, after: &Path) -> Result<Value> {
     let mut a = files(before)?;
     let mut b = files(after)?;
@@ -207,12 +203,15 @@ pub fn changes(before: &Path, after: &Path) -> Result<Value> {
     let names: std::collections::BTreeSet<_> = a.keys().chain(b.keys()).collect();
     let mut changed = vec![];
     for name in names {
+        if is_daily_backup(name) {
+            continue;
+        }
         let bytes_changed = a.get(name) != b.get(name);
         let before_state = &am["files"][name];
         let after_state = &bm["files"][name];
         if bytes_changed || before_state != after_state {
             changed.push(json!({"path":name,"bytes_changed":bytes_changed,
-                "allowed":!bytes_changed || allowed_change(name,!a.contains_key(name)),
+                "allowed":!bytes_changed || allowed_change(name),
                 "before":before_state,"after":after_state,
                 "possible_source":if bytes_changed {"game or REPENTOGON save synchronization; attribution UNKNOWN"}
                     else {"timestamp only; identical bytes"}}));

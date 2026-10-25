@@ -4,5 +4,5 @@
   "log_level": "info",
   "trace_dir": "isaac-cs/traces",
   "control_port": { "enabled": false, "port": 27091 },
-  "host": { "default_port": 27090 }
+  "host": { "default_port": 27090, "bind_address": "0.0.0.0", "peer_timeout_ms": 3000 }
 }

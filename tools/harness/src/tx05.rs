@@ -1,5 +1,5 @@
 //! tx-04-05 单进程 S0–S11 编排；所有判定只在这次整体 E2E 收尾执行。
-mod evidence;
+pub(super) mod evidence;
 use crate::{Control, Result, Run, read, saves, win32, write_json};
 use serde_json::{Value, json};
 use std::{
@@ -21,7 +21,7 @@ fn number(s: &Status, key: &str) -> Result<u64> {
 fn fixture_records(text: &str, token: &str) -> Result<Vec<Value>> {
     let mut out = vec![];
     for line in text.lines() {
-        if let Some((_, payload)) = line.split_once("[isaac-cs-test] tx05 ") {
+        if let Some((_, payload)) = line.split_once("[isaac-cs-test] tx05 ").or_else(||line.split_once("[isaac-cs-test] tx06 ")) {
             let v: Value = serde_json::from_str(payload)
                 .map_err(|e| format!("malformed fixture record: {e}"))?;
             if v["token"].as_str() == Some(token) {
@@ -33,7 +33,7 @@ fn fixture_records(text: &str, token: &str) -> Result<Vec<Value>> {
 }
 
 impl Run {
-    fn live_fixture(&self) -> Result<Vec<Value>> {
+    pub(super) fn live_fixture(&self) -> Result<Vec<Value>> {
         let text = read(&self.save.join("log.txt"))?;
         // 游戏可能正追加最后一行；实时等待只读完整行，退出后的归约仍严格读取原始日志。
         let complete = text.rfind('\n').map(|n| &text[..=n]).unwrap_or("");
@@ -43,7 +43,7 @@ impl Run {
         )
     }
     // 场景在控制口等待时仍检查子进程与失败状态，物理输入从不重发。
-    fn watch_tx05(&mut self, game: &win32::Game, control: &mut Control, ms: u64) -> Result<Status> {
+    pub(super) fn watch_tx05(&mut self, game: &win32::Game, control: &mut Control, ms: u64) -> Result<Status> {
         let end = Instant::now() + Duration::from_millis(ms);
         loop {
             if let Some(code) = game.exited() {
@@ -62,7 +62,7 @@ impl Run {
         }
     }
     // 状态字段来自上一 Manager 出口，保存原值和 Lua 当前记录以供事后对齐。
-    fn checkpoint_tx05(&mut self, control: &mut Control, label: &str) -> Result<Status> {
+    pub(super) fn checkpoint_tx05(&mut self, control: &mut Control, label: &str) -> Result<Status> {
         let s = control.command("cs status")?;
         let observations = self.live_fixture()?;
         if observations.iter().any(|v| v["event"] == "fixture-error") {
@@ -79,7 +79,7 @@ impl Run {
         )?;
         Ok(s)
     }
-    fn wait_ticks_tx05(
+    pub(super) fn wait_ticks_tx05(
         &mut self,
         game: &win32::Game,
         control: &mut Control,
@@ -102,7 +102,7 @@ impl Run {
             }
         }
     }
-    fn wait_fixture_tx05(
+    pub(super) fn wait_fixture_tx05(
         &mut self,
         game: &win32::Game,
         control: &mut Control,
@@ -166,7 +166,7 @@ impl Run {
         Ok(())
     }
     // S0 在任何部署前检查默认键位和原始配置，避免输入脚本在未知映射下改变世界。
-    fn input_environment_tx05(&mut self) -> Result<()> {
+    pub(super) fn input_environment_tx05(&mut self) -> Result<()> {
         let expected = [
             ("Left-0", "65"),
             ("Right-0", "68"),
@@ -248,7 +248,7 @@ impl Run {
         Ok(())
     }
     // 选档与 New Run 均基于已观测菜单状态，不进入 Online，也不通过 Lua 改写游戏资源。
-    fn enter_run_tx05(
+    pub(super) fn enter_run_tx05(
         &mut self,
         game: &win32::Game,
         w: usize,
@@ -550,6 +550,15 @@ impl Run {
                     .filter(|(k, v)| self.report["crash_before"][*k] != **v)
                     .map(|(k, v)| json!({"path":k,"state":v}))
                     .collect::<Vec<_>>();
+                // 新增转储说明进程已崩溃；控制口 10054 等只是崩溃的后果，原始错误保留在 failure。
+                let dumps = changed
+                    .iter()
+                    .filter_map(|c| c["path"].as_str())
+                    .filter(|p| p.to_ascii_lowercase().ends_with(".dmp"))
+                    .collect::<Vec<_>>();
+                if !dumps.is_empty() {
+                    self.report["failure_cause"] = json!({"kind":"game_crash","dumps":dumps});
+                }
                 self.report["crash_changes"] = json!(changed);
             }
             Err(e) => self.report["crash_scan_error"] = json!(e),
@@ -568,10 +577,13 @@ impl Run {
                 }
             }
         }
-        if let Err(e) = self.evaluate_tx05() {
+        let tx06 = self.report["tx"] == "tx-04-06";
+        let evaluation = if tx06 { self.evaluate_tx06() } else { self.evaluate_tx05() };
+        if let Err(e) = evaluation {
             self.report["evaluation_error"] = json!(e);
         }
-        for id in CASES {
+        let cases: Vec<&str> = if tx06 { vec!["V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11","V12"] } else { CASES.to_vec() };
+        for &id in &cases {
             if self.report["cases"][id].is_null() {
                 self.report["cases"][id] = json!({"pass":false,"status":"NOT_RUN","detail":"missing required evidence; see failure/evaluation_error"});
             }
@@ -586,17 +598,18 @@ impl Run {
             "evaluation_error",
         ];
         let pass = errors.iter().all(|k| self.report[*k].is_null())
-            && CASES
+            && cases
                 .iter()
                 .all(|id| self.report["cases"][id]["pass"] == true);
         self.report["pass"] = json!(pass);
         self.report["automatic_retry"] = json!(false);
         write_json(&self.out.join("report.json"), &self.report)?;
         let mut md = format!(
-            "# tx-04-05 E2E\n\nResult: **{}**\n\nSingle launch; no automatic retry; no save restoration.\n\n",
+            "# {} E2E\n\nResult: **{}**\n\nSingle launch; no automatic retry; no save restoration.\n\n",
+            self.report["tx"].as_str().unwrap_or("unknown"),
             if pass { "PASS" } else { "FAIL" }
         );
-        for id in CASES {
+        for &id in &cases {
             md += &format!(
                 "- {id}: {}\n",
                 if self.report["cases"][id]["pass"] == true {
@@ -608,10 +621,11 @@ impl Run {
                 }
             );
         }
-        md += &format!(
-            "\nFailure: {}\n\nArtifacts actually generated:\n\n",
-            self.report["failure"]
-        );
+        md += &format!("\nFailure: {}\n", self.report["failure"]);
+        if !self.report["failure_cause"].is_null() {
+            md += &format!("\nFailure cause: {}\n", self.report["failure_cause"]);
+        }
+        md += "\nArtifacts actually generated:\n\n";
         let mut actual = fs::read_dir(&self.out)
             .map_err(|e| e.to_string())?
             .map(|e| e.map(|v| v.file_name().to_string_lossy().to_string()))

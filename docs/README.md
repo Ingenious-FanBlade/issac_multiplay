@@ -1,6 +1,22 @@
 # C/S研究与状态同步文档
 
-> tx-04-06 方案（2026-10-24）：D24 确认拆分与三项决定，D25 确认 U1–U4，[实现方案](design/tx-04-06-implementation-plan.md)已起草。按用户要求暂不开始静态确认 ST1–ST9 与实现；没有代码、构建或测试。
+> **tx-04-06 完成（用户接受，D28，2026-10-25）**：用户决定不再执行第三次 E2E，将第二次 E2E 算作验收通过（V1–V11 PASS；V12 只因第一、三档当日备份找不到历史基线而失败，D27 起每日备份不参与判定；原报告保持 FAIL）。见[结果](design/tx-04-06-results.md)。
+
+> tx-04-06 第二次 E2E（2026-10-25）：**FAIL**，S0–S11 全部执行，V1–V11 PASS。V12 的唯一失败来自 harness：当日备份文件名带日期，按名字找不到 e2e-08 的 D20 基线；这两份文件只改了 Counter/Checksum 字段。未重跑。用户随后决定 D27：存档判定不看每日备份，harness 已修改并纯构建。见[结果](design/tx-04-06-results.md)。
+
+> tx-04-06 第一次 E2E（2026-10-25）：**FAIL**。S0–S3 已执行：握手、K 注册、Join 产生 B（Isaac）、Active，并完成第一个 tick；随后游戏在原生 `dynamic_cast<NetInputDevice*>`（`0x52F880`）处因 K 的 vtable 前没有 RTTI COL 而抛出 `__non_rtti_object` 崩溃，S4–S11 未执行，未重跑。用户决定 D26：按原型自建 COL、修正 harness 崩溃记录、删除转储原件、保留编号；修复已纯构建，第二次 E2E 待执行。见[结果](design/tx-04-06-results.md)。
+
+> tx-04-06 3.4/3.5 编写（2026-10-25）：真实 Host/stop、配置/状态/trace、主机 UI、Rust 独立协议/脚本远端与 S0–S11 / V1–V12 harness 已编写，V2 方向判定已修正；Hook 清单增加 ST8 只读持久入口观测。Win32 DLL 与 i686 Rust harness 纯编译链接成功，见[实现记录](design/tx-04-06-ops-harness.md)、[构建日志](../artifacts/repentogon/tx-04-06-ops/README.md)。尚未部署、启动游戏或执行测试。下方各阶段记录保留其原始时点。
+
+> tx-04-06 game 编写（2026-10-25）：K、Join、主线程 peer、双 ordinal 拓扑/consumer/lifecycle 与必要的 11 处常驻补丁已编写，Win32 Release 纯编译链接成功。见[实现记录](design/tx-04-06-game.md)、[构建记录](../artifacts/repentogon/tx-04-06-game/README.md)。Host API 已有，ops Host/stop 仍占位，配置/UI/Rust/harness 待接入；没有部署、运行游戏或测试，整体 E2E 待 tx-04-06 全目标完成。以下保留阶段原始记录。
+
+> tx-04-06 core 编写（2026-10-25）：第 3.2 节 Host 双参与者会话、双绑定激活与 PeerBye/PeerTimeout/PeerProtocol 有序退休已编写，A/B 共用输入与 tick 流水线，Win32 Release 纯编译链接成功。见[实现与接线约定](design/tx-04-06-core.md)、[构建记录](../artifacts/repentogon/tx-04-06-core/README.md)。尚未接入 game/K/Join、Host 命令与 Rust 远端，没有部署或运行测试；整体 E2E 留待 tx-04-06 全目标完成。下方阶段记录保留原始时点。
+
+> tx-04-06 网络规则同步（2026-10-25）：Authority 已修改为旧包 stale 丢弃、独立重复/迟到计数、Bye 原字节三次发送及接收端有界副本计数，Win32 Release 纯编译链接成功。见[同步说明](design/tx-04-06-net.md)、[构建记录](../artifacts/repentogon/tx-04-06-net/build-04-network-rules.log)。未部署或运行测试；Rust 远端握手重发和 First Ack 专用副本缓存仍待第 13.2 节实现。
+
+> tx-04-06 net 编写（2026-10-25）：第 3.1 节 `mod/src/net/` 的协议、Endpoint、UDP worker 与 SPSC 队列已编写，独立静态库及 DLL 纯编译链接成功；[实现与线格式](design/tx-04-06-net.md)、[构建记录](../artifacts/repentogon/tx-04-06-net/README.md)。未接入 Host/core/game/命令/trace，没有部署或运行测试，整体 E2E 留待 tx-04-06 全目标完成。下段静态阶段记录保留原始时点。
+
+> tx-04-06 静态工作（2026-10-25）：按用户指示，GPT-6 Luna / max 子智能体使用 IDA MCP 完成指定逆向，主智能体独立取证审阅；[ST1](research/tx-04-06-static-confirmation.md) 与 [ST2–ST9](research/tx-04-06-static-remaining.md) 均已研究并审阅。已明确唯一角色参数/CALL shim 栈、Join 后绑定及移除 ABI，发现设备通知隔离、UI 直接尾部读取与持久副作用风险；[实现方案](design/tx-04-06-implementation-plan.md)已同步，兼容处理与功能尚未实现，没有构建或测试。D24/D25 既有决定保留。
 >
 > **tx-04-05 完成（用户接受，D23，2026-10-24）**：用户决定将第四次 E2E 算作验收通过（V1、V3–V10 PASS；V2 的判定方向缺陷不修复，原报告保持 FAIL）。见[结果](design/tx-04-05-results.md)。
 >
@@ -44,6 +60,6 @@
 18. [tx-04-03：REPENTOGON 目标版本点位核对](hooks/repentogon-binding.md)：在 v1.9.7.12.J273（从 `Repentogon\` 子目录的 exe 复制一份，用 Steamless 脱壳）上静态核对原型首轮点位，产出 43 项 [binding 清单](hooks/repentogon-binding.json)。37/39 个调用点有对应；输入设备子系统变化较大，自有虚拟设备要重做；4 处调用点补丁要按新寄存器分工重写；字段偏移已用 REPENTOGON `.zhl` 印证。只做了静态分析，脚本和中间数据见 `artifacts/repentogon/tx-04-03-static/`。
 19. [tx-04-04：实现与结果](design/tx-04-04-results.md)：开发包与[项目代码](../mod/README.md)已实现并编译；27 个入口 Hook、8 个设备槽补丁、`cs` 命令桥、有界命令队列与测试控制口、纯界面 mod 和 Rust i686 harness。唯一 E2E 在注入启动阶段因 Launch 等待 60 秒超时失败，未进入菜单，未重跑。存档无变化，临时测试 mod 已移除、配置已关闭。tick、输入接管和网络不在本轮范围。之后做了静态审阅，并修订了[实现方案](design/tx-04-04-implementation-plan.md)和设计文档；修复沿用 tx-04-04（D16），已实现并编译；第二次 E2E 仍启动超时 FAIL，新增诊断捕获 Use The Launcher! 对话框。两类存档均无变化，未自动重跑；Lua 捕获偏移经 IDA 更正为 Game+0x680D8。 按 D18 修正后，第八次 E2E E1–E7 全部通过。
 20. [tx-04-05：实现方案](design/tx-04-05-implementation-plan.md)：循环阶段与 tick 判定、本地玩家 A 经统一队列输入、生命周期和单人会话。U1–U4 已确认（D19）；T1–T8 的[静态确认与主审](research/tx-04-05-static-confirmation.md)完成，原始资料见[artifact](../artifacts/repentogon/tx-04-05-static/README.md)。第 3.1 节 [core 移植](design/tx-04-05-core-port.md)已编写并纯构建成功，[game 主线程适配](design/tx-04-05-game-adapter.md)及必要 Hook/solo 命令也已编写并纯构建成功；[Lua 夹具与 Rust 单启动 S0–S11 / V1–V10](design/tx-04-05-test-harness.md)也已编写并纯构建成功。共执行四次整体 E2E（D20–D22 修正 harness），第四次 V1、V3–V10 PASS；按 D23 由用户接受为验收通过，tx-04-05 完成，见[结果](design/tx-04-05-results.md)。
-21. [tx-04-06：实现方案](design/tx-04-06-implementation-plan.md)：DLL 内网络与新协议、按 v1.9.7.12 重做的虚拟设备 K、原生 Join（含 4 处调用点补丁）、B 的远端输入与断开退休、Rust 远端客户端。D24 已确认拆分（relay、B 死亡复活、异常 Join 等移到 tx-04-07，world_record 顺延到 tx-04-08）；U1–U4 已确认（D25）；按用户要求暂不开始静态确认 ST1–ST9 与实现，没有代码或测试。
+21. [tx-04-06：实现方案](design/tx-04-06-implementation-plan.md)：DLL 内网络与新协议、按 v1.9.7.12 重做的虚拟设备 K、原生 Join、B 的远端输入与断开退休、Rust 远端客户端。D24 已确认拆分（relay、B 死亡复活、异常 Join 等移到 tx-04-07，world_record 顺延到 tx-04-08）；U1–U4 已确认（D25）。2026-10-25 完成 [ST1](research/tx-04-06-static-confirmation.md) 和 [ST2–ST9](research/tx-04-06-static-remaining.md) 静态研究与主审。Join 四处调用点之外还需 K 通知/UI 兼容处理。后续第 3.1 节 [net 代码](design/tx-04-06-net.md)已编写并纯构建成功，尚未接入主线程 Host 会话；其余工程及整体 E2E 待完成，没有执行测试。
 
 `refactor/`与`isaac-sync/`为迁入的历史资料；旧gate、哈希、独立角色与重复验收条款已由现行规范覆盖。新增`hooks/`与`design/`用于后续状态同步研究，不表示对应Replica生产功能已经实现。

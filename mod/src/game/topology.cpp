@@ -1,5 +1,7 @@
 #include "game/topology.h"
 #include "binding/offsets.h"
+#include "game/bridge.h"
+#include "game/device_k.h"
 #include "runtime.h"
 #include <limits>
 
@@ -26,7 +28,6 @@ bool ReadMemory(const void *source, void *output, std::size_t size) noexcept {
   std::memcpy(output, source, size);
   return true;
 }
-namespace {
 // 只枚举已知 vector 的活动区间，容量终点不作为额外设备读取。
 bool VectorRange(const void *object, size_t offset, size_t maximum,
                  uintptr_t &begin, size_t &count) noexcept {
@@ -39,14 +40,16 @@ bool VectorRange(const void *object, size_t offset, size_t maximum,
   begin = range[0];
   return count <= maximum && (!count || begin);
 }
-} // namespace
 bool RunActive() noexcept {
   bool run = false;
   return ReadAt(GamePointer(), offset::RunActive, run) && run;
 }
-Topology ReadTopology() noexcept {
+Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
   Topology out;
   if (!IsMain() || !Base)
+    return out;
+  InputLease lease(HostBusy());
+  if (!lease.Ready() || ordinal > 1)
     return out;
   out.room.game = GamePointer();
   if (!ReadAt(out.room.game, offset::RunActive, out.run))
@@ -76,17 +79,23 @@ Topology ReadTopology() noexcept {
   size_t player_count = 0;
   if (!VectorRange(out.room.game, offset::PlayerManager, 16, players,
                    player_count) ||
-      !player_count) {
+      player_count <= ordinal) {
+    out.player_count = static_cast<unsigned>(player_count);
     out.reason = "player_list_unknown";
     return out;
   }
-  if (!ReadMemory(reinterpret_cast<void *>(players), &out.pair.player,
-                  sizeof(void *)))
+  out.player_count = static_cast<unsigned>(player_count);
+  if (!ReadMemory(reinterpret_cast<void *>(players + ordinal * sizeof(void *)),
+                  &out.pair.player, sizeof(void *)))
     return out;
   int index = -1;
   unsigned type = 0;
-  if (!ReadAt(out.pair.player, offset::PlayerIndex, index) || index != 0 ||
+  if (!ReadAt(out.pair.player, offset::PlayerIndex, index) ||
+      index != int(ordinal) ||
       !ReadAt(out.pair.player, offset::EntityType, type) || type != 1 ||
+      !ReadAt(out.pair.player, offset::EntityVariant, out.variant) ||
+      out.variant != 0 ||
+      !ReadAt(out.pair.player, offset::PlayerType, out.character) ||
       !ReadAt(out.pair.player, offset::ControllerIndex, out.pair.key) ||
       !ReadAt(out.pair.player, offset::EntityValid, out.valid) ||
       !ReadAt(out.pair.player, offset::EntityExists, out.exists) ||
@@ -97,13 +106,15 @@ Topology ReadTopology() noexcept {
     out.reason = "player_identity_unknown";
     return out;
   }
-  for (size_t i = 1; i < player_count; ++i) {
+  for (size_t i = 0; i < player_count; ++i) {
+    if (i == ordinal)
+      continue;
     void *other = nullptr;
     int other_index = -1;
     if (!ReadMemory(reinterpret_cast<void *>(players + i * sizeof(void *)),
                     &other, sizeof(other)) ||
-        !ReadAt(other, offset::PlayerIndex, other_index) || other_index == 0 ||
-        other == out.pair.player) {
+        !ReadAt(other, offset::PlayerIndex, other_index) ||
+        other_index == int(ordinal) || other == out.pair.player) {
       out.reason = "ambiguous_player";
       return out;
     }
@@ -134,8 +145,10 @@ Topology ReadTopology() noexcept {
   uintptr_t vtable = 0;
   bool enabled = false;
   if (matches != 1 || !ReadAt(out.pair.device, 0, vtable) ||
-      (vtable != Base + offset::KeyboardVtable &&
-       vtable != Base + offset::GamepadVtable) ||
+      (ordinal == 0 ? (vtable != Base + offset::KeyboardVtable &&
+                       vtable != Base + offset::GamepadVtable)
+                    : (!owned_device || out.pair.device != owned_device ||
+                       !IsDeviceK(out.pair.device))) ||
       !ReadAt(out.pair.device, offset::DeviceEnabled, enabled) || !enabled) {
     out.reason = matches > 1 ? "ambiguous_device" : "device_unavailable";
     return out;
@@ -144,9 +157,52 @@ Topology ReadTopology() noexcept {
   out.reason = out.unique ? "unique" : "room_unknown";
   return out;
 }
+int DeviceOccurrences(const void *device) noexcept {
+  if (!IsMain() || !device)
+    return -1;
+  InputLease lease(true);
+  uintptr_t begin = 0;
+  size_t count = 0;
+  if (!lease.Ready() ||
+      !VectorRange(reinterpret_cast<void *>(Base + offset::InputManager),
+                   offset::DeviceVector, 256, begin, count))
+    return -1;
+  int matches = 0;
+  for (size_t i = 0; i < count; ++i) {
+    void *p = nullptr;
+    if (!ReadMemory(reinterpret_cast<void *>(begin + i * 4), &p, sizeof(p)))
+      return -1;
+    if (p == device)
+      ++matches;
+  }
+  return matches;
+}
 bool SameLife(const Topology &a, const Topology &b) noexcept {
   return a.pair.player == b.pair.player && a.valid == b.valid &&
          a.exists == b.exists && a.dead == b.dead && a.removed == b.removed &&
          a.ghost == b.ghost;
+}
+// 构造取得的原生 id 必须在注册前空闲，注册后恰好出现一次；不是 vector 下标。
+int DeviceIdOccurrences(int id) noexcept {
+  if (!IsMain() || id < 0)
+    return -1;
+  InputLease lease(true);
+  uintptr_t begin = 0;
+  size_t count = 0;
+  if (!lease.Ready() ||
+      !VectorRange(reinterpret_cast<void *>(Base + offset::InputManager),
+                   offset::DeviceVector, 256, begin, count))
+    return -1;
+  int matches = 0;
+  for (size_t i = 0; i < count; ++i) {
+    void *device = nullptr;
+    int current = -1;
+    if (!ReadMemory(reinterpret_cast<void *>(begin + i * 4), &device, 4) ||
+        !ReadAt(device, offset::DeviceId, current))
+      return -1;
+    if (current == id)
+      ++matches;
+  }
+  return matches;
 }
 } // namespace cs::game

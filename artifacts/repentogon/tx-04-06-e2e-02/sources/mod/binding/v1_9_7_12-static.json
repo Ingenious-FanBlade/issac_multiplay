@@ -1,0 +1,400 @@
+{
+  "evidence": "STATIC_CONFIRMED",
+  "base": "0x400000",
+  "functions": [
+    {
+      "rva": "0x42ac90",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 B8 6C 04 01 00",
+      "type": "int __thiscall()",
+      "entry": ["ST8: st2-st9-primary-ida.json / 0x42acd5 / start_rva=0x42ac90; 只读持久配置写入观测"]
+    },
+    {
+      "rva": "0x446c90",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 1C 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D",
+      "type": "int __cdecl()",
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "push    0FFFFFFFFh",
+        "push    offset SEH_846C90",
+        "mov     eax, large fs:0",
+        "push    eax",
+        "sub     esp, 1Ch",
+        "push    ebx",
+        "push    esi",
+        "push    edi",
+        "mov     eax, ___security_cookie",
+        "xor     eax, ebp",
+        "push    eax",
+        "lea     eax, [ebp+var_C]"
+      ]
+    },
+    {
+      "rva": "0x44b930",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 1C 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D",
+      "type": "int()",
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "push    0FFFFFFFFh",
+        "push    offset SEH_84B930",
+        "mov     eax, large fs:0",
+        "push    eax",
+        "sub     esp, 1Ch",
+        "push    ebx",
+        "push    esi",
+        "push    edi",
+        "mov     eax, ___security_cookie",
+        "xor     eax, ebp",
+        "push    eax",
+        "lea     eax, [ebp+var_C]"
+      ]
+    },
+    {
+      "rva": "0x287020",
+      "pattern": "8B D1 56 57 8B 7A 4C 8B 72 40 66 0F 1F 44 00 00 8B 42 50 03 42 4C 3B F8 74 38 85 F6 74 04 8B 06",
+      "type": "char __thiscall(int *this)",
+      "entry": [
+        "mov     edx, ecx",
+        "push    esi",
+        "push    edi",
+        "mov     edi, [edx+4Ch]",
+        "mov     esi, [edx+40h]",
+        "nop     word ptr [eax+eax+00h]",
+        "mov     eax, [edx+50h]",
+        "add     eax, [edx+4Ch]",
+        "cmp     edi, eax",
+        "jz      short loc_687072",
+        "test    esi, esi",
+        "jz      short loc_687042",
+        "mov     eax, [esi]"
+      ]
+    },
+    {
+      "rva": "0x3f7f60",
+      "pattern": "53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04 89 6C 24 04 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00",
+      "type": "_DWORD __cdecl()",
+      "entry": [
+        "push    ebx",
+        "mov     ebx, esp",
+        "sub     esp, 8",
+        "and     esp, 0FFFFFFF8h",
+        "add     esp, 4",
+        "push    ebp",
+        "mov     ebp, [ebx+4]",
+        "mov     [esp+0Ch+var_8], ebp",
+        "mov     ebp, esp",
+        "push    0FFFFFFFFh",
+        "push    offset loc_A97838",
+        "mov     eax, large fs:0"
+      ]
+    },
+    {
+      "rva": "0x13f00",
+      "pattern": "53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04 89 6C 24 04 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00",
+      "type": "int __userpurge@<eax>(int@<ecx>, int@<ebp>, char)",
+      "entry": [
+        "push    ebx",
+        "mov     ebx, esp",
+        "sub     esp, 8",
+        "and     esp, 0FFFFFFF8h",
+        "add     esp, 4",
+        "push    ebp",
+        "mov     ebp, [ebx+4]",
+        "mov     [esp+0Ch+var_8], ebp",
+        "mov     ebp, esp",
+        "push    0FFFFFFFFh",
+        "push    offset loc_A88E45",
+        "mov     eax, large fs:0"
+      ]
+    },
+    {
+      "rva": "0x5edcc0",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 1C 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D",
+      "type": "int __thiscall(_DWORD *this)",
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "push    0FFFFFFFFh",
+        "push    offset SEH_9EDCC0",
+        "mov     eax, large fs:0",
+        "push    eax",
+        "sub     esp, 1Ch",
+        "push    ebx",
+        "push    esi",
+        "push    edi",
+        "mov     eax, ___security_cookie",
+        "xor     eax, ebp",
+        "push    eax",
+        "lea     eax, [ebp+var_C]"
+      ]
+    },
+    {
+      "rva": "0x5ec900",
+      "pattern": "53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04 89 6C 24 04 8B EC 83 EC 10 56 57 8B F9 8B 47 28",
+      "type": "char __usercall@<al>(int *@<ecx>, int@<ebp>, int@<edi>, int@<esi>)",
+      "entry": [
+        "push    ebx",
+        "mov     ebx, esp",
+        "sub     esp, 8",
+        "and     esp, 0FFFFFFF8h",
+        "add     esp, 4",
+        "push    ebp",
+        "mov     ebp, [ebx+4]",
+        "mov     [esp+0Ch+var_8], ebp",
+        "mov     ebp, esp",
+        "sub     esp, 10h",
+        "push    esi",
+        "push    edi",
+        "mov     edi, ecx",
+        "mov     eax, [edi+28h]"
+      ]
+    },
+    {
+      "rva": "0x509100",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 58 A1 ?? ?? ?? ?? 33 C5 89 45 F0 53 56",
+      "type": "_DWORD *__thiscall(float *this)",
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "push    0FFFFFFFFh",
+        "push    offset SEH_909100",
+        "mov     eax, large fs:0",
+        "push    eax",
+        "sub     esp, 58h",
+        "mov     eax, ___security_cookie",
+        "xor     eax, ebp",
+        "mov     [ebp+var_10], eax",
+        "push    ebx",
+        "push    esi"
+      ]
+    },
+    {
+      "rva": "0x2fa0f0",
+      "pattern": "55 8B EC 51 53 56 8B F1 57 33 FF 8B 86 AC BA 01 00 8B D0 8B 9E A8 BA 01 00 2B D3 C1 FA 02 85 D2",
+      "type": "int __thiscall(_DWORD *this, int, int)",
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "push    ecx",
+        "push    ebx",
+        "push    esi",
+        "mov     esi, ecx",
+        "push    edi; ArgList",
+        "xor     edi, edi",
+        "mov     eax, [esi+1BAACh]",
+        "mov     edx, eax",
+        "mov     ebx, [esi+1BAA8h]",
+        "sub     edx, ebx",
+        "sar     edx, 2",
+        "test    edx, edx"
+      ]
+    },
+    {
+      "rva": "0x2f9340",
+      "pattern": "55 8B EC 83 EC 0C 53 8B 1D ?? ?? ?? ?? 56 57 89 5D FC 8D 8B D4 7F 06 00 E8 ?? ?? ?? ?? 84 C0 0F",
+      "type": null,
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "sub     esp, 0Ch",
+        "push    ebx",
+        "mov     ebx, n2_0",
+        "push    esi",
+        "push    edi",
+        "mov     [ebp+var_4], ebx",
+        "lea     ecx, [ebx+67FD4h]",
+        "call    sub_687020",
+        "test    al, al",
+        "jnz     loc_6F9701"
+      ]
+    },
+    {
+      "rva": "0x591360",
+      "pattern": "55 8B EC 83 E4 F8 81 EC FC 00 00 00 A1 ?? ?? ?? ?? 33 C4 89 84 24 F8 00 00 00 8B 15 ?? ?? ?? ??",
+      "type": "unsigned int __thiscall(_DWORD *this)",
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "and     esp, 0FFFFFFF8h",
+        "sub     esp, 0FCh",
+        "mov     eax, ___security_cookie",
+        "xor     eax, esp",
+        "mov     [esp+0FCh+var_4], eax",
+        "mov     edx, dword_BE4A1C"
+      ]
+    },
+    {
+      "rva": "0x372540",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 5C A1 ?? ?? ?? ?? 33 C5 89 45 F0 56 57",
+      "type": null,
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "push    0FFFFFFFFh",
+        "push    offset SEH_772540",
+        "mov     eax, large fs:0",
+        "push    eax",
+        "sub     esp, 5Ch",
+        "mov     eax, ___security_cookie",
+        "xor     eax, ebp",
+        "mov     [ebp+var_10], eax",
+        "push    esi",
+        "push    edi"
+      ]
+    },
+    {
+      "rva": "0x37a210",
+      "pattern": "55 8B EC 83 E4 F0 81 EC B8 00 00 00 56 57 8B F9 80 BF 7D 20 00 00 00 0F 85 8E 0B 00 00 E8 ?? ??",
+      "type": null,
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "and     esp, 0FFFFFFF0h",
+        "sub     esp, 0B8h",
+        "push    esi",
+        "push    edi; ArgList",
+        "mov     edi, ecx",
+        "cmp     byte ptr [edi+207Dh], 0",
+        "jnz     loc_77ADBB",
+        "call    sub_7D1C90"
+      ]
+    },
+    {
+      "rva": "0x39bdd0",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 20 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D",
+      "type": null,
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "push    0FFFFFFFFh",
+        "push    offset SEH_79BDD0",
+        "mov     eax, large fs:0",
+        "push    eax",
+        "sub     esp, 20h",
+        "push    ebx",
+        "push    esi",
+        "push    edi",
+        "mov     eax, ___security_cookie",
+        "xor     eax, ebp",
+        "push    eax; ArgList",
+        "lea     eax, [ebp+var_C]"
+      ]
+    },
+    {
+      "rva": "0x373990",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 81 EC D4 01 00 00 A1 ?? ?? ?? ?? 33 C5 89 45",
+      "type": null,
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "push    0FFFFFFFFh",
+        "push    offset SEH_773990",
+        "mov     eax, large fs:0",
+        "push    eax",
+        "sub     esp, 1D4h",
+        "mov     eax, ___security_cookie",
+        "xor     eax, ebp",
+        "mov     [ebp+var_10], eax"
+      ]
+    },
+    {
+      "rva": "0x39c300",
+      "pattern": "55 8B EC 83 E4 F8 83 EC 14 53 56 57 8B F9 83 7F 2C 00 0F 85 92 04 00 00 80 BF 7D 20 00 00 00 0F",
+      "type": null,
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "and     esp, 0FFFFFFF8h",
+        "sub     esp, 14h",
+        "push    ebx",
+        "push    esi",
+        "push    edi",
+        "mov     edi, ecx",
+        "cmp     dword ptr [edi+2Ch], 0",
+        "jnz     loc_79C7AA",
+        "cmp     byte ptr [edi+207Dh], 0",
+        "jnz     loc_79C7AA"
+      ]
+    },
+    {
+      "rva": "0x5ec570",
+      "pattern": "56 8B F1 8D 8E D8 00 00 00 C7 06 ?? ?? ?? ?? 66 C7 46 0C 00 01 C7 46 18 00 00 00 00 C7 46 1C 00",
+      "type": "_WORD *__thiscall(_WORD *this)",
+      "entry": [
+        "push    esi",
+        "mov     esi, ecx",
+        "lea     ecx, [esi+0D8h]; void *",
+        "mov     dword ptr [esi], offset ??_7InputDeviceBase@Input@KAGE@@6B@; const KAGE::Input::InputDeviceBase::`vftable'",
+        "mov     word ptr [esi+0Ch], 100h",
+        "mov     dword ptr [esi+18h], 0",
+        "mov     dword ptr [esi+1Ch], 0"
+      ]
+    },
+    {
+      "rva": "0x5ec6a0",
+      "pattern": "53 56 8B F1 33 D2 57 33 C9 8B 7E 14 C7 46 18 00 00 00 00 85 FF 74 1F 8B 5E 10 33 C0 0F 1F 40 00",
+      "type": "char __thiscall(unsigned int *this, int)",
+      "entry": [
+        "push    ebx",
+        "push    esi",
+        "mov     esi, ecx",
+        "xor     edx, edx",
+        "push    edi",
+        "xor     ecx, ecx",
+        "mov     edi, [esi+14h]",
+        "mov     dword ptr [esi+18h], 0",
+        "test    edi, edi",
+        "jz      short loc_9EC6D6",
+        "mov     ebx, [esi+10h]",
+        "xor     eax, eax",
+        "nop     dword ptr [eax+00h]"
+      ]
+    },
+    {
+      "rva": "0x5eeb40",
+      "pattern": "55 8B EC 53 56 57 8B F9 6A FF 8B 47 48 8D 4F 48 FF 50 0C 8B 47 08 8D 4F 04 8B 5D 08 3B 41 08 74",
+      "type": "int __thiscall(_DWORD *this, int)",
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "push    ebx",
+        "push    esi",
+        "push    edi",
+        "mov     edi, ecx",
+        "push    0FFFFFFFFh",
+        "mov     eax, [edi+48h]",
+        "lea     ecx, [edi+48h]",
+        "call    dword ptr [eax+0Ch]",
+        "mov     eax, [edi+8]",
+        "lea     ecx, [edi+4]",
+        "mov     ebx, [ebp+arg_0]",
+        "cmp     eax, [ecx+8]",
+        "jz      short loc_9EEB69"
+      ]
+    },
+    {
+      "rva": "0x5eebb0",
+      "pattern": "55 8B EC 51 53 57 8B 7D 08 8B D9 85 FF 74 70 8B 47 08 56 8B 73 20 3B 73 24 74 1B 8B F8 0F 1F 00",
+      "type": "void __thiscall(_DWORD *this, int)",
+      "entry": [
+        "push    ebp",
+        "mov     ebp, esp",
+        "push    ecx",
+        "push    ebx",
+        "push    edi",
+        "mov     edi, [ebp+arg_0]",
+        "mov     ebx, ecx",
+        "test    edi, edi",
+        "jz      short loc_9EEC2F",
+        "mov     eax, [edi+8]",
+        "push    esi",
+        "mov     esi, [ebx+20h]",
+        "cmp     esi, [ebx+24h]",
+        "jz      short loc_9EEBE6",
+        "mov     edi, eax",
+        "nop     dword ptr [eax]"
+      ]
+    }
+  ]
+}

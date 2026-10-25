@@ -11,7 +11,7 @@
 #include <winsock2.h>
 
 namespace cs {
-inline constexpr char Version[] = "0.2.0-tx-04-05";
+inline constexpr char Version[] = "0.3.0-tx-04-06";
 enum class Group { Loop, Input, Player, Join, Control, Device, Count };
 inline constexpr const char *GroupNames[] = {"loop", "input",   "player",
                                              "join", "control", "device"};
@@ -36,6 +36,9 @@ enum class Owner {
 struct Config {
   bool enabled = false, control = false;
   unsigned control_port = 27091, host_port = 27090;
+  // Host 网络参数只在会话创建前复制，不提供运行中热修改。
+  std::string host_bind_address = "0.0.0.0";
+  unsigned peer_timeout_ms = 3000;
   std::string trace_dir = "isaac-cs/traces", log_level = "info", reason;
 };
 extern DWORD MainThread;

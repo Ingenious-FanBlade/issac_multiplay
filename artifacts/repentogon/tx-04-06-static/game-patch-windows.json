@@ -1,0 +1,112 @@
+[
+  {
+    "id": "join_mode_1",
+    "group": "join",
+    "rva": "0x5915ae",
+    "expected": "E8 ED FA FF FF",
+    "resume": "0x5915b3",
+    "alternate": "0x0",
+    "kind": "call",
+    "size": 5
+  },
+  {
+    "id": "join_mode_2",
+    "group": "join",
+    "rva": "0x59174c",
+    "expected": "E8 4F F9 FF FF",
+    "resume": "0x591751",
+    "alternate": "0x0",
+    "kind": "call",
+    "size": 5
+  },
+  {
+    "id": "join_mode_3",
+    "group": "join",
+    "rva": "0x591e67",
+    "expected": "E8 34 F2 FF FF",
+    "resume": "0x591e6c",
+    "alternate": "0x0",
+    "kind": "call",
+    "size": 5
+  },
+  {
+    "id": "join_create",
+    "group": "join",
+    "rva": "0x591fe6",
+    "expected": "E8 65 E2 FF FF",
+    "resume": "0x591feb",
+    "alternate": "0x5925e4",
+    "kind": "call",
+    "size": 5
+  },
+  {
+    "id": "k_register_notify",
+    "group": "join",
+    "rva": "0x5eeb7c",
+    "expected": "8B 77 14 8B 5B 08",
+    "resume": "0x5eeb82",
+    "alternate": "0x5eeb9a",
+    "kind": "jump",
+    "size": 6
+  },
+  {
+    "id": "k_remove_notify",
+    "group": "join",
+    "rva": "0x5eebc3",
+    "expected": "8B 73 20 3B 73 24",
+    "resume": "0x5eebc9",
+    "alternate": "0x5eebe6",
+    "kind": "jump",
+    "size": 6
+  },
+  {
+    "id": "k_poll_notify",
+    "group": "join",
+    "rva": "0x5edd2d",
+    "expected": "8B 73 20 8B 41 08",
+    "resume": "0x5edd33",
+    "alternate": "0x5edd58",
+    "kind": "jump",
+    "size": 6
+  },
+  {
+    "id": "k_physical_disconnect",
+    "group": "join",
+    "rva": "0x5ec37c",
+    "expected": "8B 4D 08 8B 87 F8 03 00 00",
+    "resume": "0x5ec385",
+    "alternate": "0x5ec389",
+    "kind": "jump",
+    "size": 9
+  },
+  {
+    "id": "k_controller_list",
+    "group": "join",
+    "rva": "0x4af970",
+    "expected": "85 C0 0F 84 D5 00 00 00",
+    "resume": "0x4af978",
+    "alternate": "0x4afa4d",
+    "kind": "jump",
+    "size": 8
+  },
+  {
+    "id": "k_keyconfig_draw",
+    "group": "join",
+    "rva": "0x4b8d3d",
+    "expected": "83 B8 8C 04 00 00 00",
+    "resume": "0x4b8d44",
+    "alternate": "0x4b9aa7",
+    "kind": "jump",
+    "size": 7
+  },
+  {
+    "id": "k_pause_disconnect",
+    "group": "join",
+    "rva": "0x534768",
+    "expected": "83 B8 8C 04 00 00 00",
+    "resume": "0x53476f",
+    "alternate": "0x5347a9",
+    "kind": "jump",
+    "size": 7
+  }
+]

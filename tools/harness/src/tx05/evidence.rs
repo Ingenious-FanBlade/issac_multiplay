@@ -3,8 +3,8 @@ use super::*;
 use std::collections::{BTreeMap, BTreeSet};
 
 // 解析 DLL 的 key=value 诊断，只在已知结构的事件中读取字段。
-struct Event {
-    raw: Value,
+pub(crate) struct Event {
+    pub(crate) raw: Value,
     fields: BTreeMap<String, String>,
 }
 // 第一、三档存档末尾依次为 Counter、Checksum 两个 u32（REPENTOGON SaveFile 日志的值与之相同）。
@@ -28,20 +28,20 @@ fn trailer_fields(before: &[u8], after: &[u8]) -> Option<BTreeSet<&'static str>>
     Some(fields)
 }
 impl Event {
-    fn kind(&self) -> &str {
+    pub(crate) fn kind(&self) -> &str {
         self.raw["ev"].as_str().unwrap_or("")
     }
-    fn text(&self, k: &str) -> &str {
+    pub(crate) fn text(&self, k: &str) -> &str {
         self.fields.get(k).map(String::as_str).unwrap_or("")
     }
-    fn n(&self, k: &str) -> Option<u64> {
+    pub(crate) fn n(&self, k: &str) -> Option<u64> {
         self.text(k).parse().ok()
     }
-    fn pair(&self, k: &str) -> Option<(i64, i64)> {
+    pub(crate) fn pair(&self, k: &str) -> Option<(i64, i64)> {
         let (x, y) = self.text(k).split_once(',')?;
         Some((x.parse().ok()?, y.parse().ok()?))
     }
-    fn triple(&self, k: &str) -> Option<[u64; 3]> {
+    pub(crate) fn triple(&self, k: &str) -> Option<[u64; 3]> {
         let v = self
             .text(k)
             .split(',')
@@ -50,14 +50,14 @@ impl Event {
             .ok()?;
         v.try_into().ok()
     }
-    fn seq(&self) -> u64 {
+    pub(crate) fn seq(&self) -> u64 {
         self.raw["seq"].as_u64().unwrap_or(0)
     }
-    fn key(&self) -> Option<(u64, u64)> {
+    pub(crate) fn key(&self) -> Option<(u64, u64)> {
         Some((self.n("generation")?, self.n("tick")?))
     }
 }
-fn parse_events(path: &std::path::Path) -> Result<Vec<Event>> {
+pub(crate) fn parse_events(path: &std::path::Path) -> Result<Vec<Event>> {
     let mut events = vec![];
     let mut sequence = BTreeSet::new();
     for line in read(path)?.lines() {
@@ -87,20 +87,20 @@ fn parse_events(path: &std::path::Path) -> Result<Vec<Event>> {
     events.sort_by_key(Event::seq);
     Ok(events)
 }
-fn checkpoint<'a>(r: &'a Value, label: &str) -> &'a Value {
+pub(crate) fn checkpoint<'a>(r: &'a Value, label: &str) -> &'a Value {
     &r["checkpoints"][label]["status"]
 }
-fn value_n(v: &Value, k: &str) -> Option<u64> {
+pub(crate) fn value_n(v: &Value, k: &str) -> Option<u64> {
     v[k].as_str()?.parse().ok()
 }
-fn bounds(r: &Value, a: &str, b: &str) -> Option<(u64, u64)> {
+pub(crate) fn bounds(r: &Value, a: &str, b: &str) -> Option<(u64, u64)> {
     let (a, b) = (
         value_n(checkpoint(r, a), "frame")?,
         value_n(checkpoint(r, b), "frame")?,
     );
     (b > a).then_some((a, b))
 }
-fn in_bounds(loop_id: Option<u64>, window: Option<(u64, u64)>) -> bool {
+pub(crate) fn in_bounds(loop_id: Option<u64>, window: Option<(u64, u64)>) -> bool {
     matches!((loop_id,window),(Some(l),Some((a,b))) if a<l && l<=b)
 }
 fn ticks_in<'a>(ticks: &[&'a Event], r: &Value, a: &str, b: &str) -> Vec<&'a Event> {
@@ -110,7 +110,7 @@ fn ticks_in<'a>(ticks: &[&'a Event], r: &Value, a: &str, b: &str) -> Vec<&'a Eve
         .filter(|e| in_bounds(e.n("loop"), bounds(r, a, b)))
         .collect()
 }
-fn unchanged(r: &Value, a: &str, b: &str, key: &str) -> bool {
+pub(crate) fn unchanged(r: &Value, a: &str, b: &str, key: &str) -> bool {
     let (a, b) = (checkpoint(r, a), checkpoint(r, b));
     value_n(a, key)
         .zip(value_n(b, key))
@@ -304,7 +304,11 @@ impl Run {
         for label in ["S1", "S10"] {
             let (a, b) = (format!("{label}.begin"), format!("{label}.end"));
             let obs = observations(&lua, bounds(&r, &a, &b));
-            let ok = [
+            // S10 沿已知可通行路径回走，方向由场景记录，不能固定为正 X。
+            let sign = if label == "S10" {
+                match r["s10_key"].as_str() { Some("A") => -1.0, Some("D") => 1.0, _ => 0.0 }
+            } else { 1.0 };
+            let ok = sign != 0.0 && [
                 "query_overrides",
                 "ticks_standard",
                 "ticks_odd",
@@ -314,7 +318,7 @@ impl Run {
             .all(|k| unchanged(&r, &a, &b, k))
                 && checkpoint(&r, &a)["session_state"] == "Idle"
                 && checkpoint(&r, &b)["session_state"] == "Idle"
-                && moved(&obs, "x", 1.0);
+                && moved(&obs, "x", sign);
             passthrough.push(json!({"scene":label,"pass":ok,"observations":obs}));
         }
         self.case(

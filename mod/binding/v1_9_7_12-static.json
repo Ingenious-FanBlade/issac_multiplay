@@ -3,6 +3,12 @@
   "base": "0x400000",
   "functions": [
     {
+      "rva": "0x42ac90",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 B8 6C 04 01 00",
+      "type": "int __thiscall()",
+      "entry": ["ST8: st2-st9-primary-ida.json / 0x42acd5 / start_rva=0x42ac90; 只读持久配置写入观测"]
+    },
+    {
       "rva": "0x446c90",
       "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 1C 53 56 57 A1 ?? ?? ?? ?? 33 C5 50 8D",
       "type": "int __cdecl()",

@@ -18,3 +18,6 @@
 # 启动失败时的整屏截图可能拍到其他窗口的内容，只留在本地，不进版本管理。
 /artifacts/repentogon/*/*/desktop.bmp
 /cs-t0/
+
+# 崩溃 minidump 含进程内存，与存档快照中的崩溃转储同样只留在本地；同名 .txt 日志保留。
+/artifacts/repentogon/*/crash/*.dmp

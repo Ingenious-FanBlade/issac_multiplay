@@ -1,0 +1,854 @@
+unsigned int __thiscall sub_991360(int **this)
+{
+  int **v1; // ebx
+  int v2; // eax
+  unsigned int v3; // edi
+  int v4; // esi
+  int _1_1; // edx
+  int n187_3; // edx
+  int *v7; // esi
+  int n187_4; // eax
+  int *v9; // ecx
+  unsigned int n7_7; // edi
+  int *v11; // eax
+  unsigned int n7_8; // edi
+  int *v13; // eax
+  int v14; // esi
+  int *v15; // edi
+  int v16; // ecx
+  int v17; // eax
+  char n4_1; // dl
+  int *v19; // ecx
+  int v20; // ecx
+  int v21; // eax
+  int v22; // edi
+  int v23; // eax
+  _DWORD *v24; // eax
+  int v25; // esi
+  unsigned int v26; // eax
+  _DWORD *n3_1; // edi
+  const char *v28; // eax
+  int v29; // eax
+  int *v30; // ecx
+  int v31; // eax
+  float v32; // xmm0_4
+  float v33; // xmm1_4
+  unsigned int n15_1; // edi
+  unsigned int ArgList_2; // esi
+  int i; // edi
+  bool v37; // al
+  int v38; // esi
+  int v39; // eax
+  unsigned int v40; // eax
+  unsigned int v41; // edx
+  int v42; // eax
+  int v43; // ecx
+  int n4_3; // esi
+  DWORD Time; // eax
+  int v46; // ecx
+  _DWORD *v47; // eax
+  int n1000_1; // ecx
+  int v49; // eax
+  int v50; // edx
+  int v51; // ecx
+  int v52; // ecx
+  int v53; // eax
+  int v54; // edi
+  _DWORD *v55; // esi
+  unsigned int v56; // edi
+  _DWORD *v57; // esi
+  unsigned int v58; // esi
+  int *Time_2; // edi
+  int v60; // ecx
+  int v61; // ecx
+  int *v62; // eax
+  int v63; // ecx
+  int *v64; // edx
+  void *v65; // eax
+  int *v66; // eax
+  unsigned int v67; // esi
+  unsigned int v68; // edx
+  float *v69; // ebx
+  float v70; // xmm0_4
+  float v71; // xmm0_4
+  _DWORD *n187_2; // esi
+  float v73; // xmm1_4
+  int v74; // ecx
+  int v75; // eax
+  float v76; // xmm1_4
+  int v77; // eax
+  int v78; // xmm0_4
+  _DWORD *n3_2; // edi
+  _DWORD *n7_3; // esi
+  unsigned int v81; // ebx
+  int j; // edi
+  int v83; // ebx
+  bool v84; // al
+  int v85; // esi
+  int v86; // eax
+  unsigned int v87; // eax
+  int v88; // eax
+  unsigned int v89; // edx
+  int v90; // eax
+  int v91; // ebx
+  DWORD v92; // eax
+  int v93; // ecx
+  int v94; // eax
+  int ArgList_5; // ecx
+  float v96; // esi
+  int v97; // edx
+  int v98; // ecx
+  int v99; // ecx
+  int v100; // edi
+  unsigned int v101; // edi
+  _DWORD *k; // esi
+  int n45; // eax
+  bool v104; // zf
+  unsigned int v105; // esi
+  unsigned int result; // eax
+  int n15_2; // [esp+24h] [ebp-114h]
+  _DWORD *n3_3; // [esp+24h] [ebp-114h]
+  int ArgList_4; // [esp+28h] [ebp-110h]
+  int v110; // [esp+2Ch] [ebp-10Ch]
+  int v111; // [esp+2Ch] [ebp-10Ch]
+  char ArgList; // [esp+30h] [ebp-108h]
+  unsigned int j_1; // [esp+40h] [ebp-F8h] BYREF
+  int ArgList_1; // [esp+44h] [ebp-F4h] BYREF
+  int n4; // [esp+48h] [ebp-F0h]
+  unsigned int i_1; // [esp+4Ch] [ebp-ECh] BYREF
+  unsigned int n7; // [esp+50h] [ebp-E8h]
+  int n187_1; // [esp+54h] [ebp-E4h] BYREF
+  _DWORD *n3; // [esp+58h] [ebp-E0h] BYREF
+  float v120; // [esp+5Ch] [ebp-DCh]
+  int n194; // [esp+60h] [ebp-D8h] BYREF
+  int n1000; // [esp+64h] [ebp-D4h] BYREF
+  int **v123; // [esp+68h] [ebp-D0h]
+  int n7_4; // [esp+6Ch] [ebp-CCh]
+  int *Time_1; // [esp+70h] [ebp-C8h]
+  int n15; // [esp+74h] [ebp-C4h] BYREF
+  unsigned int v127; // [esp+78h] [ebp-C0h]
+  int n187; // [esp+7Ch] [ebp-BCh] BYREF
+  int v129; // [esp+80h] [ebp-B8h] BYREF
+  int v130; // [esp+84h] [ebp-B4h] BYREF
+  int v131; // [esp+88h] [ebp-B0h] BYREF
+  int v132; // [esp+8Ch] [ebp-ACh] BYREF
+  float v133; // [esp+90h] [ebp-A8h] BYREF
+  float v134; // [esp+94h] [ebp-A4h]
+  int v135; // [esp+98h] [ebp-A0h] BYREF
+  int v136; // [esp+9Ch] [ebp-9Ch]
+  unsigned int i_2; // [esp+A0h] [ebp-98h] BYREF
+  int v138; // [esp+A4h] [ebp-94h] BYREF
+  float *v139; // [esp+A8h] [ebp-90h]
+  int v140; // [esp+ACh] [ebp-8Ch] BYREF
+  unsigned int _1; // [esp+B0h] [ebp-88h] BYREF
+  _DWORD v142[2]; // [esp+B4h] [ebp-84h] BYREF
+  _DWORD v143[2]; // [esp+BCh] [ebp-7Ch] BYREF
+  _DWORD v144[2]; // [esp+C4h] [ebp-74h] BYREF
+  _DWORD v145[3]; // [esp+CCh] [ebp-6Ch] BYREF
+  __int64 v146; // [esp+D8h] [ebp-60h]
+  int n7_1; // [esp+E0h] [ebp-58h]
+  __int64 v148; // [esp+E8h] [ebp-50h]
+  int n7_5; // [esp+F0h] [ebp-48h]
+  int v150; // [esp+F4h] [ebp-44h] BYREF
+  char v151[4]; // [esp+F8h] [ebp-40h] BYREF
+  int v152; // [esp+FCh] [ebp-3Ch] BYREF
+  int n4_2; // [esp+104h] [ebp-34h]
+  __int64 v154; // [esp+108h] [ebp-30h] BYREF
+  int v155; // [esp+110h] [ebp-28h]
+  unsigned int ArgList_3; // [esp+114h] [ebp-24h] BYREF
+  __int64 v157; // [esp+118h] [ebp-20h]
+  int n7_2; // [esp+120h] [ebp-18h]
+  unsigned int v159; // [esp+124h] [ebp-14h] BYREF
+  __int64 v160; // [esp+128h] [ebp-10h]
+  int n7_6; // [esp+130h] [ebp-8h]
+
+  v1 = this;
+  v2 = n4[76782];
+  v123 = this;
+  if ( v2 == n4[76783] )
+  {
+    v3 = 0;
+    n194 = 0;
+    ((void (__thiscall *)(void ***, int))off_BCE480[3])(&off_BCE480, -1);
+    v4 = ((_BYTE *)i_4 - (_BYTE *)i_3) >> 2;
+    ((void (__thiscall *)(void ***))off_BCE480[4])(&off_BCE480);
+    if ( v4 )
+    {
+      while ( 1 )
+      {
+        ((void (__thiscall *)(void ***, int))off_BCE480[3])(&off_BCE480, -1);
+        if ( v3 >= ((_BYTE *)i_4 - (_BYTE *)i_3) >> 2 )
+          break;
+        v14 = *((_DWORD *)i_3 + v3);
+        ((void (__thiscall *)(void ***))off_BCE480[4])(&off_BCE480);
+        if ( !v14 )
+          goto LABEL_5;
+        ArgList_1 = *(_DWORD *)(v14 + 8);
+LABEL_6:
+        n3 = 0;
+        LOBYTE(_1_1) = 0;
+        n7 = 0;
+        j_1 = _1_1;
+        if ( (n187[28331] - n187[28330]) >> 2 )
+        {
+          n187_3 = (int)v1[1];
+          v7 = *v1;
+          do
+          {
+            n187_4 = n187_3;
+            n187_1 = n187_3;
+            v9 = v7;
+            if ( !((n187_3 - (int)v7) >> 2) )
+            {
+              sub_9E0DF0(3, "PlayerManager::GetPlayer() : There are no players! \n", ArgList);
+              n187_4 = (int)v1[1];
+              v9 = *v1;
+              n187_1 = n187_4;
+            }
+            n7_7 = (n187_4 - (int)v9) >> 2;
+            v11 = &v9[n7];
+            if ( n7 >= n7_7 )
+              v11 = v9;
+            v7 = v9;
+            n187_3 = n187_1;
+            v1 = v123;
+            if ( *(_DWORD *)(*v11 + 5644) == ArgList_1 )
+            {
+              LOBYTE(j_1) = 1;
+              if ( !n7_7 )
+              {
+                sub_9E0DF0(3, "PlayerManager::GetPlayer() : There are no players! \n", ArgList);
+                n187_3 = (int)v1[1];
+                v7 = *v1;
+              }
+              n7_8 = n7;
+              v13 = &v7[n7];
+              if ( n7 >= (n187_3 - (int)v7) >> 2 )
+                v13 = v7;
+              n3 = (_DWORD *)*v13;
+            }
+            else
+            {
+              n7_8 = n7;
+            }
+            n7 = n7_8 + 1;
+          }
+          while ( n7_8 + 1 < (n187[28331] - n187[28330]) >> 2 );
+          LOBYTE(_1_1) = j_1;
+        }
+        v15 = v1[52];
+        v16 = v1[53] - v15;
+        if ( v16 )
+        {
+          do
+          {
+            v17 = *v15++;
+            _1_1 = (unsigned __int8)_1_1;
+            if ( *(_DWORD *)(v17 + 5644) == ArgList_1 )
+              _1_1 = 1;
+            --v16;
+          }
+          while ( v16 );
+          v1 = v123;
+          j_1 = _1_1;
+        }
+        if ( v1[3] == (int *)ArgList_1 )
+        {
+          _1_1 = (unsigned __int8)_1_1;
+          if ( (int)v1[5] >= 0 )
+            _1_1 = 1;
+          j_1 = _1_1;
+        }
+        if ( v1[8] == (int *)ArgList_1 )
+        {
+          _1_1 = (unsigned __int8)_1_1;
+          if ( (int)v1[10] >= 0 )
+            _1_1 = 1;
+          j_1 = _1_1;
+        }
+        if ( v1[13] == (int *)ArgList_1 )
+        {
+          _1_1 = (unsigned __int8)_1_1;
+          if ( (int)v1[15] >= 0 )
+            _1_1 = 1;
+          j_1 = _1_1;
+        }
+        if ( v1[18] == (int *)ArgList_1 && (int)v1[20] >= 0 )
+        {
+          LOBYTE(j_1) = 1;
+        }
+        else if ( !(_BYTE)_1_1
+               && sub_9EE200(&off_BCE438, 19, ArgList_1, 0)
+               && sub_9EE140(&off_BCE438, 8, ArgList_1, 0)
+               && sub_9EE140(&off_BCE438, 10, ArgList_1, 0) )
+        {
+          if ( n187 )
+            sub_68E280(v20, (int)(n187 + 106485), "Joining as possessor\n", ArgList);
+          sub_990250(v1, (void *)0xFFFFFFFF);
+          sub_79E1B0(ArgList_1, 1);
+          goto LABEL_143;
+        }
+        n4 = 1;
+        if ( sub_9910A0() )
+        {
+          v19 = *v1;
+          if ( !(v1[1] - *v1) )
+          {
+            sub_9E0DF0(3, "PlayerManager::GetPlayer() : There are no players! \n", ArgList);
+            v19 = *v1;
+            n4_1 = n4;
+          }
+          if ( (unsigned int)(*(_DWORD *)(*v19 + 4932) + *(_DWORD *)(*v19 + 4940)) < 3 )
+            n4_1 = 0;
+        }
+        if ( n187[38634] )
+        {
+          if ( (_BYTE)j_1 )
+            goto LABEL_78;
+          if ( sub_9EE200(&off_BCE438, 19, ArgList_1, 0) )
+          {
+            n187 = 187;
+            sub_92FAD0(&n187);
+            sub_907C60(n187, 1056964608, 2, 0, 1065353216, 0);
+          }
+        }
+        else if ( n4_1 && (unsigned int)((n187[28331] - n187[28330]) >> 2) < 0x40 )
+        {
+          if ( (_BYTE)j_1 )
+            goto LABEL_78;
+          if ( sub_9EE200(&off_BCE438, 19, ArgList_1, 0) )
+          {
+            v21 = sub_9911C0(ArgList_1);
+            if ( v21 >= 0 )
+            {
+              v22 = 5 * v21;
+              if ( !sub_9910A0() )
+              {
+                n4 = n187[38591];
+                if ( n4 )
+                {
+                  if ( n187[38634] )
+                    goto LABEL_72;
+                  v25 = n4[43224];
+                  v26 = n4 != 0 ? n4 : 0;
+                  if ( v26 >= ((int)((unsigned __int64)(1676084799LL * (n4[43225] - v25)) >> 32) >> 6)
+                            - 1
+                            + ((unsigned int)((unsigned __int64)(1676084799LL * (n4[43225] - v25)) >> 32) >> 31) )
+                    v26 = ((int)((unsigned __int64)(1676084799LL * (n4[43225] - v25)) >> 32) >> 6)
+                        - 1
+                        + ((unsigned int)((unsigned __int64)(1676084799LL * (n4[43225] - v25)) >> 32) >> 31);
+                  v24 = (_DWORD *)(v25 + 164 * v26);
+                }
+                else
+                {
+                  if ( !n187[38634] )
+                  {
+                    v23 = sub_9EEC40(&off_BCE438, ArgList_1);
+                    if ( v23 )
+                      (*(void (__thiscall **)(int, int))(*(_DWORD *)v23 + 68))(v23, 19);
+                    v1[v22 + 4] = 0;
+                    v1[v22 + 5] = (int *)1;
+                    v1[v22 + 6] = (int *)1065353216;
+                    LOBYTE(v1[v22 + 7]) = 0;
+                    goto LABEL_143;
+                  }
+LABEL_72:
+                  v24 = n187 + 38638;
+                }
+                v1[v22 + 4] = (int *)v24[17];
+                v1[v22 + 5] = (int *)1;
+                v1[v22 + 6] = (int *)1065353216;
+                LOBYTE(v1[v22 + 7]) = 1;
+                goto LABEL_143;
+              }
+              sub_994340(-1, ArgList_1);
+            }
+          }
+        }
+        else if ( (_BYTE)j_1 )
+        {
+LABEL_78:
+          n3_1 = n3;
+          if ( !n3 || n3[239] || !sub_9EE200(&off_BCE438, 19, ArgList_1, 0) || !n3_1[11] )
+            goto LABEL_143;
+          if ( n3_1[31] && *((_BYTE *)n3_1 + 140) )
+          {
+            v28 = (const char *)n3_1[31];
+            if ( *((_DWORD *)v28 + 5) >= 0x10u )
+              v28 = *(const char **)v28;
+            v29 = strcmp(v28, "Appear");
+            if ( v29 )
+              v29 = v29 < 0 ? -1 : 1;
+            if ( !v29 )
+              goto LABEL_143;
+          }
+          v30 = *v1;
+          if ( !(v1[1] - *v1) )
+          {
+            sub_9E0DF0(3, "PlayerManager::GetPlayer() : There are no players! \n", ArgList);
+            v30 = *v1;
+          }
+          if ( *(_BYTE *)(*v30 + 5016) || *(_BYTE *)(*v30 + 5018) )
+            goto LABEL_143;
+          v31 = sub_6EB4B0();
+          v32 = *((float *)n3_1 + 207) + 0.0;
+          v33 = *((float *)n3_1 + 208) - 10.0;
+          v129 = v31;
+          v133 = v32;
+          v134 = v33;
+          n187_1 = (int)n187;
+          i_1 = 0;
+          n15 = 15;
+          n1000 = 1000;
+          sub_84AE90(&n1000, &n15, &v133, &a4, 0, &i_1, &v129);
+          n15_1 = n15;
+          if ( (int)n187[38627] < 2 )
+            goto LABEL_126;
+          j_1 = n187[38630];
+          ArgList_2 = sub_6EB4B0();
+          ArgList_1 = ArgList_2;
+          v146 = 0x900000005LL;
+          n7 = 7;
+          n7_1 = 7;
+          if ( n1000 != 5 )
+            goto LABEL_126;
+          if ( n15_1 > 0x12C )
+          {
+            if ( n15_1 != 350 )
+              goto LABEL_126;
+            for ( i = i_1;
+                  !i || (*(unsigned __int8 (__thiscall **)(unsigned int, int))(*(_DWORD *)j_1 + 44))(j_1, i);
+                  i_1 = i )
+            {
+              i = sub_72E260(n187 + 27088, 0);
+            }
+          }
+          else
+          {
+            switch ( n15_1 )
+            {
+              case 0x12Cu:
+                for ( i = i_1;
+                      !i || (*(unsigned __int8 (__thiscall **)(unsigned int, int))(*(_DWORD *)j_1 + 36))(j_1, i);
+                      i_1 = i )
+                {
+                  if ( !ArgList_2 )
+                  {
+                    sub_9E0DF0(3, "RNG Seed is zero!\n", ArgList);
+                    __debugbreak();
+                  }
+                  v41 = ArgList_2 ^ (ArgList_2 >> v146) ^ ((ArgList_2 ^ (ArgList_2 >> v146)) << SBYTE4(v146));
+                  ArgList_2 = v41 ^ (v41 >> n7);
+                  v42 = sub_72E740(ArgList_2, 25, 10, 10, 1);
+                  ArgList_3 = ArgList_2;
+                  v157 = 0x900000005LL;
+                  n7_2 = 7;
+                  i = sub_84BAF0(&ArgList_3, v42, 1, 1, 0);
+                }
+                goto LABEL_127;
+              case 0x46u:
+                i = i_1;
+                n4 = i_1 >> 11;
+                while ( 1 )
+                {
+                  if ( i )
+                  {
+                    v38 = *(_DWORD *)j_1;
+                    v39 = sub_72F030(i, 0);
+                    if ( !(*(unsigned __int8 (__thiscall **)(unsigned int, int))(v38 + 40))(j_1, v39) )
+                      goto LABEL_127;
+                    ArgList_2 = ArgList_1;
+                  }
+                  if ( !ArgList_2 )
+                  {
+                    sub_9E0DF0(3, "RNG Seed is zero!\n", ArgList);
+                    __debugbreak();
+                  }
+                  v40 = ArgList_2 ^ (ArgList_2 >> v146) ^ ((ArgList_2 ^ (ArgList_2 >> v146)) << SBYTE4(v146));
+                  ArgList_2 = v40 ^ (v40 >> n7);
+                  ArgList_1 = ArgList_2;
+                  i = ((n4 & 1) << 11) | sub_72EEB0(n187 + 27088, ArgList_2);
+                  i_1 = i;
+                }
+              case 0x64u:
+                i = i_1;
+                v37 = 0;
+                if ( i_1 != 25 )
+                {
+                  n4 = *(_DWORD *)(j_1 + 32);
+                  i_2 = i_1;
+                  sub_4240B0(&v152, &i_2);
+                  if ( *(_BYTE *)(n4_2 + 13) || i < *(_DWORD *)(n4_2 + 16) || n4_2 == n4 )
+                    v37 = 1;
+                }
+                if ( !i || v37 )
+                {
+                  i = (*(int (__thiscall **)(unsigned int, _DWORD))(*(_DWORD *)j_1 + 132))(j_1, 0);
+                  i_1 = i;
+                }
+                goto LABEL_127;
+            }
+LABEL_126:
+            i = i_1;
+          }
+LABEL_127:
+          n4_3 = sub_6EC540(*(_DWORD *)(n187_1 + 154360), n1000, 0);
+          n4 = n4_3;
+          if ( n4_3 )
+          {
+            Time = timeGetTime();
+            v46 = *(_DWORD *)(n4_3 + 968);
+            Time_1 = (int *)Time;
+            v47 = (_DWORD *)(n4_3 + 968);
+            *(_DWORD *)(n4_3 + 52) = 0;
+            *(_DWORD *)(n4_3 + 56) = 0;
+            if ( v46 )
+            {
+              v140 = n4_3 + 968;
+              sub_4C8EE0(&v140);
+              v47 = (_DWORD *)(n4_3 + 968);
+            }
+            v110 = v129;
+            n1000_1 = n1000;
+            *v47 = 0;
+            v49 = *(_DWORD *)n4_3;
+            *(float *)(n4_3 + 828) = v133;
+            n15_2 = n15;
+            *(float *)(n4_3 + 832) = v134;
+            *(_QWORD *)(n4_3 + 864) = *(_QWORD *)&a4;
+            (*(void (__thiscall **)(int, int, int, int, int))(v49 + 4))(n4_3, n1000_1, n15_2, i, v110);
+            v50 = *(_DWORD *)(n187_1 + 99072);
+            v51 = *(_DWORD *)(v50 + 4628);
+            *(_DWORD *)(v50 + 4628) = v51 + 1;
+            *(_DWORD *)(n4_3 + 32) = v51;
+            sub_413D00(v50 + 4632, n4_3);
+            if ( (unsigned __int8)sub_703280(n4_3) )
+              sub_703350(n4_3, v52);
+            if ( *(_BYTE *)(n4_3 + 370) )
+            {
+              if ( *(_DWORD *)(n187_1 + 420284) != *(_DWORD *)(n187_1 + 420288) )
+              {
+                v53 = *(_DWORD *)(n4_3 + 44);
+                v54 = *(_DWORD *)(n4_3 + 40);
+                v55 = (_DWORD *)(n187_1 + 420324);
+                v142[1] = v53;
+                v142[0] = v54;
+                sub_9B7240(&v130, v142);
+                if ( v130 != *v55
+                  || (v143[0] = v54, v143[1] = -1, v130 = *(_DWORD *)sub_9B7240(&v150, v143), v130 != *v55) )
+                {
+                  v56 = 0;
+                  v57 = n187 + 28330;
+                  if ( (n187[28331] - n187[28330]) >> 2 )
+                  {
+                    do
+                    {
+                      if ( !((v57[1] - *v57) >> 2) )
+                        sub_9E0DF0(3, "PlayerManager::GetPlayer() : There are no players! \n", ArgList);
+                      sub_9B5570(6, n4, &v133, &a4);
+                      ++v56;
+                      v57 = n187 + 28330;
+                    }
+                    while ( v56 < (n187[28331] - n187[28330]) >> 2 );
+                    v1 = v123;
+                  }
+                }
+              }
+            }
+            dword_BE90E0 += timeGetTime() - (_DWORD)Time_1;
+          }
+          sub_990560((int *)v1, n3, v43);
+        }
+LABEL_143:
+        v3 = ++n194;
+        ((void (__thiscall *)(void ***, int))off_BCE480[3])(&off_BCE480, -1);
+        v58 = ((_BYTE *)i_4 - (_BYTE *)i_3) >> 2;
+        ((void (__thiscall *)(void ***))off_BCE480[4])(&off_BCE480);
+        if ( v3 >= v58 )
+          goto LABEL_144;
+      }
+      ((void (__thiscall *)(void ***))off_BCE480[4])(&off_BCE480);
+LABEL_5:
+      ArgList_1 = -1;
+      goto LABEL_6;
+    }
+LABEL_144:
+    Time_2 = (int *)(v1 + 5);
+    n4 = 4;
+    Time_1 = (int *)(v1 + 5);
+    while ( 1 )
+    {
+      if ( *(Time_2 - 2) < 0 || *Time_2 < 0 )
+        goto LABEL_219;
+      if ( sub_9910A0() )
+        goto LABEL_218;
+      if ( sub_9EE200(&off_BCE438, 20, v60, 0) )
+      {
+        v61 = *Time_2 - 1;
+        *Time_2 = v61;
+        if ( v61 < 0 )
+        {
+          v61 = v1[29] - v1[28] - 1;
+          *Time_2 = v61;
+        }
+        v62 = v1[28];
+        n194 = 194;
+        *(Time_2 - 1) = v62[v61];
+        sub_92FAD0(&n194);
+        sub_907C60(n194, 1065353216, 2, 0, 1065353216, 0);
+        goto LABEL_219;
+      }
+      if ( sub_9EE200(&off_BCE438, 21, *(Time_2 - 2), 0) )
+      {
+        v63 = *Time_2 + 1;
+        *Time_2 = v63;
+        v64 = v1[28];
+        if ( v63 >= v1[29] - v64 )
+        {
+          *Time_2 = 0;
+          v63 = 0;
+          v64 = v1[28];
+        }
+        *(Time_2 - 1) = v64[v63];
+        n187_1 = 195;
+        sub_92FAD0(&n187_1);
+        sub_907C60(n187_1, 1065353216, 2, 0, 1065353216, 0);
+        goto LABEL_219;
+      }
+      if ( sub_9EE200(&off_BCE438, 14, *(Time_2 - 2), 0) || *((_BYTE *)Time_2 + 8) )
+        break;
+      if ( sub_9EE200(&off_BCE438, 15, *(Time_2 - 2), 0) )
+        goto LABEL_218;
+LABEL_219:
+      Time_2 += 5;
+      v104 = n4-- == 1;
+      Time_1 = Time_2;
+      if ( v104 )
+        goto LABEL_220;
+    }
+    v65 = (void *)*(Time_2 - 1);
+    *((_BYTE *)Time_2 + 8) = 0;
+    if ( v65 == (void *)-1 )
+    {
+      v66 = v1[28];
+      if ( v1[29] - v66 == 1 )
+      {
+        v68 = 0;
+      }
+      else
+      {
+        v67 = v1[29] - v66 - 1;
+        v68 = sub_6EB4B0() % v67;
+        v66 = v1[28];
+      }
+      v65 = (void *)v66[v68 + 1];
+    }
+    v69 = (float *)sub_990250((int **)n187 + 28330, v65);
+    ArgList_4 = *(Time_2 - 2);
+    v139 = v69;
+    sub_79E1B0(ArgList_4, 1);
+    v70 = (float)(unsigned int)sub_6EB4B0();
+    v120 = (float)((float)(v70 * 2.3283064e-10) * 3.1400001) + (float)((float)(v70 * 2.3283064e-10) * 3.1400001);
+    *(float *)&n7_4 = sub_412A90().m128_f32[0] * 10.0;
+    v71 = sub_412AC0().m128_f32[0];
+    n187_2 = n187;
+    v73 = v71 * 10.0;
+    v74 = n187[28330];
+    v75 = (n187[28331] - v74) >> 2;
+    v120 = v71 * 10.0;
+    if ( !v75 )
+    {
+      sub_9E0DF0(3, "PlayerManager::GetPlayer() : There are no players! \n", ArgList);
+      v74 = n187_2[28330];
+      n187_2 = n187;
+      v73 = v120;
+    }
+    v76 = v73 + *(float *)(*(_DWORD *)v74 + 832);
+    v69[207] = *(float *)&n7_4 + *(float *)(*(_DWORD *)v74 + 828);
+    v69[208] = v76;
+    sub_980130(n187_2 + 30315);
+    sub_7B3980();
+    *((_DWORD *)v69 + 261) = 15;
+    v77 = sub_6EB4B0();
+    v78 = *((_DWORD *)v69 + 207);
+    v131 = v77;
+    v135 = v78;
+    v136 = *((_DWORD *)v69 + 208);
+    v120 = *(float *)&n187;
+    j_1 = 0;
+    n3 = (_DWORD *)15;
+    ArgList_1 = 1000;
+    sub_84AE90(&ArgList_1, &n3, &v135, &a4, 0, &j_1, &v131);
+    n3_2 = n3;
+    if ( (int)n187[38627] >= 2 )
+    {
+      n7_3 = (_DWORD *)n187[38630];
+      n7 = (unsigned int)n7_3;
+      v81 = sub_6EB4B0();
+      v148 = 0x900000005LL;
+      n7_4 = 7;
+      n7_5 = 7;
+      if ( ArgList_1 == 5 )
+      {
+        if ( (unsigned int)n3_2 > 0x12C )
+        {
+          if ( n3_2 == (_DWORD *)350 )
+          {
+            for ( j = j_1; !j || (*(unsigned __int8 (__thiscall **)(_DWORD *, int))(*n7_3 + 44))(n7_3, j); j_1 = j )
+              j = sub_72E260(n187 + 27088, 0);
+            goto LABEL_201;
+          }
+        }
+        else
+        {
+          if ( n3_2 == (_DWORD *)300 )
+          {
+            for ( j = j_1; !j || (*(unsigned __int8 (__thiscall **)(_DWORD *, int))(*n7_3 + 36))(n7_3, j); j_1 = j )
+            {
+              if ( !v81 )
+              {
+                sub_9E0DF0(3, "RNG Seed is zero!\n", ArgList);
+                __debugbreak();
+              }
+              v89 = v81 ^ (v81 >> v148) ^ ((v81 ^ (v81 >> v148)) << SBYTE4(v148));
+              v81 = v89 ^ (v89 >> n7_4);
+              v90 = sub_72E740(v81, 25, 10, 10, 1);
+              v159 = v81;
+              v160 = 0x900000005LL;
+              n7_6 = 7;
+              j = sub_84BAF0(&v159, v90, 1, 1, 0);
+            }
+            goto LABEL_201;
+          }
+          if ( n3_2 == (_DWORD *)70 )
+          {
+            j = j_1;
+            v127 = j_1 >> 11;
+            while ( 1 )
+            {
+              if ( j )
+              {
+                v85 = *n7_3;
+                v86 = sub_72F030(j, 0);
+                if ( !(*(unsigned __int8 (__thiscall **)(unsigned int, int))(v85 + 40))(n7, v86) )
+                  goto LABEL_201;
+                n7_3 = (_DWORD *)n7;
+              }
+              if ( !v81 )
+              {
+                sub_9E0DF0(3, "RNG Seed is zero!\n", ArgList);
+                __debugbreak();
+              }
+              v87 = v81 ^ (v81 >> v148) ^ ((v81 ^ (v81 >> v148)) << SBYTE4(v148));
+              v81 = v87 ^ (v87 >> n7_4);
+              v88 = sub_72EEB0(n187 + 27088, v81);
+              j = ((v127 & 1) << 11) | v88;
+              j_1 = j;
+            }
+          }
+          if ( n3_2 == (_DWORD *)100 )
+          {
+            j = j_1;
+            v84 = 0;
+            if ( j_1 != 25 )
+            {
+              v83 = n7_3[8];
+              _1 = j_1;
+              sub_4240B0(&v154, &_1);
+              if ( *(_BYTE *)(v155 + 13) || j < *(_DWORD *)(v155 + 16) || v155 == v83 )
+                v84 = 1;
+            }
+            if ( !j || v84 )
+            {
+              j = (*(int (__thiscall **)(_DWORD *, _DWORD))(*n7_3 + 132))(n7_3, 0);
+              j_1 = j;
+            }
+            goto LABEL_201;
+          }
+        }
+      }
+    }
+    j = j_1;
+LABEL_201:
+    v91 = sub_6EC540(*(_DWORD *)(LODWORD(v120) + 154360), ArgList_1, 0);
+    if ( v91 )
+    {
+      v92 = timeGetTime();
+      v93 = *(_DWORD *)(v91 + 968);
+      v127 = v92;
+      *(_DWORD *)(v91 + 52) = 0;
+      *(_DWORD *)(v91 + 56) = 0;
+      if ( v93 )
+      {
+        v138 = v91 + 968;
+        sub_4C8EE0(&v138);
+      }
+      v111 = v131;
+      v94 = *(_DWORD *)v91;
+      ArgList_5 = ArgList_1;
+      *(_DWORD *)(v91 + 968) = 0;
+      *(_DWORD *)(v91 + 828) = v135;
+      n3_3 = n3;
+      *(_DWORD *)(v91 + 832) = v136;
+      *(_QWORD *)(v91 + 864) = *(_QWORD *)&a4;
+      (*(void (__thiscall **)(int, int, _DWORD *, int, int))(v94 + 4))(v91, ArgList_5, n3_3, j, v111);
+      v96 = v120;
+      v97 = *(_DWORD *)(LODWORD(v120) + 99072);
+      v98 = *(_DWORD *)(v97 + 4628);
+      *(_DWORD *)(v97 + 4628) = v98 + 1;
+      *(_DWORD *)(v91 + 32) = v98;
+      sub_413D00(v97 + 4632, v91);
+      if ( (unsigned __int8)sub_703280(v91) )
+        sub_703350(v91, v99);
+      if ( *(_BYTE *)(v91 + 370) )
+      {
+        if ( *(_DWORD *)(LODWORD(v96) + 420284) != *(_DWORD *)(LODWORD(v96) + 420288) )
+        {
+          v100 = *(_DWORD *)(v91 + 40);
+          v144[1] = *(_DWORD *)(v91 + 44);
+          v144[0] = v100;
+          sub_9B7240(&v132, v144);
+          if ( v132 != *(_DWORD *)(LODWORD(v96) + 420324)
+            || (v145[0] = v100,
+                v145[1] = -1,
+                v132 = *(_DWORD *)sub_9B7240(v151, v145),
+                v132 != *(_DWORD *)(LODWORD(v96) + 420324)) )
+          {
+            v101 = 0;
+            for ( k = n187 + 28330; v101 < (n187[28331] - n187[28330]) >> 2; k = n187 + 28330 )
+            {
+              if ( !((k[1] - *k) >> 2) )
+                sub_9E0DF0(3, "PlayerManager::GetPlayer() : There are no players! \n", ArgList);
+              sub_9B5570(6, v91, &v135, &a4);
+              ++v101;
+            }
+          }
+        }
+      }
+      dword_BE90E0 += timeGetTime() - v127;
+    }
+    Time_2 = Time_1;
+    v1 = v123;
+    n45 = *((_DWORD *)v139 + 1262);
+    if ( n45 < 45 )
+      n45 = 45;
+    *((_DWORD *)v139 + 1262) = n45;
+LABEL_218:
+    *Time_2 = -1;
+    goto LABEL_219;
+  }
+LABEL_220:
+  v105 = 0;
+  result = v1[53] - v1[52];
+  if ( result )
+  {
+    do
+    {
+      sub_752700(v1[52][v105++]);
+      result = v1[53] - v1[52];
+    }
+    while ( v105 < result );
+  }
+  return result;
+}
+

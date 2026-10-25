@@ -47,7 +47,8 @@ fixture:AddCallback(ModCallbacks.MC_POST_RENDER, function()
     observe("lua-run", "run")
 end)
 
-if config.tx ~= "tx-04-05" then return end
+if config.tx ~= "tx-04-05" and config.tx ~= "tx-04-06" then return end
+local logPrefix = config.tx == "tx-04-06" and "tx06" or "tx05"
 
 -- 每条结构化记录带本次部署标识和 Manager 快照轮次，拒绝沿用旧 log.txt 的记录。
 local render, serial, skipRemaining, skipCount = 0, 0, 0, 0
@@ -61,7 +62,20 @@ local function emit(event, data)
     local response = Isaac.ExecuteCommand("cs status")
     data.loop = tonumber(tostring(response):match("\nframe=(%d+)"))
     data.game_frame = Game():GetFrameCount()
-    Isaac.DebugString("[isaac-cs-test] tx05 " .. json.encode(data))
+    Isaac.DebugString("[isaac-cs-test] " .. logPrefix .. " " .. json.encode(data))
+end
+
+-- tx-04-06 首轮只从实际主菜单发起一次 Host，覆盖 Lua 到排队命令的完整路径。
+local hostRequested = false
+if config.tx == "tx-04-06" then
+    fixture:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, function()
+        if hostRequested then return end
+        local response = tostring(Isaac.ExecuteCommand("cs status"))
+        if not response:find("\nstate=Idle\n", 1, true) then return end
+        hostRequested = true
+        local result = Isaac.ExecuteCommand("cs host " .. tostring(config.host_port))
+        emit("menu-host", { response = tostring(result) })
+    end)
 end
 
 -- 房间身份包含楼层和 seed；房间变化不是最终 Player 位置稳定的证明。
@@ -118,7 +132,8 @@ end)
 -- 所有观测均为只读，变化时记录位置、资源和实体计数；静止时每 30 render 留心跳。
 local function renderFixture()
     render = render + 1
-    if playerCount() ~= 1 then return end
+    local count = playerCount()
+    if count < 1 then return end
     local player = Isaac.GetPlayer(0)
     -- F8 按次序复用（D21）：第一次触发跳帧，第二次触发切房，之后的按键记为夹具错误。
     -- F9 是原版手动截图热键，会在用户 Documents 中留下截图，不再使用。
@@ -151,6 +166,14 @@ local function renderFixture()
         bombs = player:GetNumBombs(), tears = Isaac.CountEntities(nil, EntityType.ENTITY_TEAR, -1, -1),
         bomb_entities = Isaac.CountEntities(nil, EntityType.ENTITY_BOMB, -1, -1),
         controller = player.ControllerIndex, player_type = player:GetPlayerType() }
+    -- A 的旧字段保持供 tx-04-05 使用；tx-04-06 每次同时复制所有 Player 的只读状态。
+    observation.players, observation.player_count = {}, count
+    for i = 0, count - 1 do
+        local p = Isaac.GetPlayer(i)
+        observation.players[#observation.players + 1] = { ordinal = i, x = p.Position.X, y = p.Position.Y,
+            controller = p.ControllerIndex, player_type = p:GetPlayerType(), type = p.Type, variant = p.Variant,
+            ghost = p:IsCoopGhost(), dead = p:IsDead(), bombs = p:GetNumBombs() }
+    end
     local encoded = json.encode(observation)
     if encoded ~= previousObservation or render % 30 == 0 then
         previousObservation = encoded
@@ -162,7 +185,7 @@ fixture:AddCallback(ModCallbacks.MC_POST_RENDER, function()
     local ok, err = pcall(renderFixture)
     if not ok then
         failed = true
-        Isaac.DebugString("[isaac-cs-test] tx05 " .. json.encode({ event = "fixture-error",
+        Isaac.DebugString("[isaac-cs-test] " .. logPrefix .. " " .. json.encode({ event = "fixture-error",
             token = config.token, error = tostring(err), render = render }))
     end
 end)

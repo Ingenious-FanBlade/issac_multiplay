@@ -65,7 +65,7 @@ TickDecision TickPipeline::BeginDrain(const TickBoundary &boundary,
     return Abort(decision);
   if (!budget_ || budget_ > kMaximumAdmissionAttemptBudget)
     return Abort(TickDecision::DrainBudgetExceeded);
-  // Solo 只读取 A；不配置、不 Begin、不记录尚不存在的第二个 Participant。
+  // 只遍历当前模式的参与者；Host 的 A/B 共用检查，Solo 不触碰不存在的 B。
   for (std::size_t i = 0; i < session_.ParticipantCount(); ++i) {
     if (!players_[i].BelongsTo(session_, static_cast<std::uint32_t>(i)) ||
         players_[i].Retired() ||
@@ -93,10 +93,10 @@ bool TickPipeline::Admit(std::uint32_t ordinal) noexcept {
   ++drained_;
   return true;
 }
-// A 的 sequence 冲突按原型退休整个会话，两种 admission 重载使用同一规则。
-Decision TickPipeline::AfterAdmission(std::uint32_t ordinal,
-                                      Decision decision) noexcept {
-  if (decision == Decision::SequenceConflict && ordinal == 0)
+// 任一参与者的 sequence 冲突都中止整个会话；两种 admission 重载共用处理，
+// 不留下 B 已退休、A 仍推进的窗口，也不给任一 ordinal 单独的冲突旁路。
+Decision TickPipeline::AfterAdmission(Decision decision) noexcept {
+  if (decision == Decision::SequenceConflict)
     Abort(TickDecision::Cancelled);
   return decision;
 }
@@ -105,16 +105,16 @@ Decision TickPipeline::AcceptInput(std::uint32_t ordinal,
                                    std::uint64_t generation) noexcept {
   if (!Admit(ordinal))
     return Decision::Invalid;
-  return AfterAdmission(ordinal, players_[ordinal].AcceptInput(
-                                     command, generation, clock_.Completed()));
+  return AfterAdmission(players_[ordinal].AcceptInput(
+      command, generation, clock_.Completed()));
 }
 Decision TickPipeline::AcceptInput(std::uint32_t ordinal,
                                    std::span<const std::uint8_t> bytes,
                                    std::uint64_t generation) noexcept {
   if (!Admit(ordinal))
     return Decision::Invalid;
-  return AfterAdmission(ordinal, players_[ordinal].AcceptInput(
-                                     bytes, generation, clock_.Completed()));
+  return AfterAdmission(players_[ordinal].AcceptInput(
+      bytes, generation, clock_.Completed()));
 }
 // drain 完成才预留时钟 candidate 并发布 Resolve 的 current；缺输入仍是中性
 // tick。

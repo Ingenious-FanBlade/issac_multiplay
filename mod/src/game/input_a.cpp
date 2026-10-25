@@ -68,7 +68,7 @@ void DeviceScope::Returned(bool success) {
     const bool tracked = source.known && source.pair.device == device;
     const bool bound = r && !r->finished &&
                        (r->players[0].Bound().device == device ||
-                        r->topology.pair.device == device);
+                        r->topology[0].pair.device == device);
     if (tracked || bound) {
       ForgetInputDevice();
       if (r && !r->finished)
@@ -169,7 +169,7 @@ void InputFrameFinished() noexcept {
     ForgetInputDevice();
 }
 // 所有本地样本先 MakeCommand，再走流水线统一字节 admission，绝不直接写快照。
-bool SubmitInput(SoloRuntime &r) noexcept {
+bool SubmitInput(SessionRuntime &r) noexcept {
   auto &player = r.players[0];
   if (!source.fresh || !source.known || source.frame != r.loop ||
       !(source.pair == player.Bound()) || !player.BoundValid())

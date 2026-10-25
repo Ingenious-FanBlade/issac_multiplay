@@ -1,0 +1,802 @@
+生成启动时间为 2026/10/25 12:03:41。
+日志记录详细程度设置为: Normal。
+     1>节点 1 上的项目“F:\projects_isaac\issac_multiplay\build\repentogon\zhlIsaacCS.vcxproj”(默认目标)。
+     1>项目“F:\projects_isaac\issac_multiplay\build\repentogon\zhlIsaacCS.vcxproj”(1)正在节点 1 上生成“F:\projects_isaac\issac_multiplay\build\repentogon\ZERO_CHECK.vcxproj”(2) (默认目标)。
+     2>PrepareForBuild:
+         已启用结构化输出。编译器诊断的格式设置将反映错误层次结构。有关详细信息，请参阅 https://aka.ms/cpp/structured-output。
+       InitializeBuildStatus:
+         正在创建“Win32\Release\ZERO_CHECK\ZERO_CHECK.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+         正在对“Win32\Release\ZERO_CHECK\ZERO_CHECK.tlog\unsuccessfulbuild”执行 Touch 任务。
+       CustomBuild:
+         所有输出均为最新。
+       FinalizeBuildStatus:
+         正在删除文件“Win32\Release\ZERO_CHECK\ZERO_CHECK.tlog\unsuccessfulbuild”。
+         正在对“Win32\Release\ZERO_CHECK\ZERO_CHECK.tlog\ZERO_CHECK.lastbuildstate”执行 Touch 任务。
+     2>已完成生成项目“F:\projects_isaac\issac_multiplay\build\repentogon\ZERO_CHECK.vcxproj”(默认目标)的操作。
+     1>项目“F:\projects_isaac\issac_multiplay\build\repentogon\zhlIsaacCS.vcxproj”(1)正在节点 1 上生成“F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_core.vcxproj”(3) (默认目标)。
+     3>PrepareForBuild:
+         已启用结构化输出。编译器诊断的格式设置将反映错误层次结构。有关详细信息，请参阅 https://aka.ms/cpp/structured-output。
+       InitializeBuildStatus:
+         正在创建“isaac_cs_core.dir\Release\isaac_cs_core.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+         正在对“isaac_cs_core.dir\Release\isaac_cs_core.tlog\unsuccessfulbuild”执行 Touch 任务。
+       CustomBuild:
+         所有输出均为最新。
+       ClCompile:
+         所有输出均为最新。
+       Lib:
+         所有输出均为最新。
+         isaac_cs_core.vcxproj -> F:\projects_isaac\issac_multiplay\build\repentogon\Release\isaac_cs_core.lib
+       FinalizeBuildStatus:
+         正在删除文件“isaac_cs_core.dir\Release\isaac_cs_core.tlog\unsuccessfulbuild”。
+         正在对“isaac_cs_core.dir\Release\isaac_cs_core.tlog\isaac_cs_core.lastbuildstate”执行 Touch 任务。
+     3>已完成生成项目“F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_core.vcxproj”(默认目标)的操作。
+     1>项目“F:\projects_isaac\issac_multiplay\build\repentogon\zhlIsaacCS.vcxproj”(1)正在节点 2 上生成“F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj”(4) (默认目标)。
+     4>PrepareForBuild:
+         已启用结构化输出。编译器诊断的格式设置将反映错误层次结构。有关详细信息，请参阅 https://aka.ms/cpp/structured-output。
+         正在创建目录“isaac_cs_net.dir\Release\isaac_cs_net.tlog\”。
+       InitializeBuildStatus:
+         正在创建“isaac_cs_net.dir\Release\isaac_cs_net.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+         正在对“isaac_cs_net.dir\Release\isaac_cs_net.tlog\unsuccessfulbuild”执行 Touch 任务。
+       CustomBuild:
+         Building Custom Rule F:/projects_isaac/issac_multiplay/mod/CMakeLists.txt
+       ClCompile:
+         D:\VisualStudio2022\VC\Tools\MSVC\14.44.35207\bin\HostX64\x86\CL.exe /c /IF:\projects_isaac\issac_multiplay\mod\src /Zi /nologo /W4 /WX- /diagnostics:column /O2 /Ob2 /Oy- /D _MBCS /D WIN32 /D _WINDOWS /D NDEBUG /D WIN32_LEAN_AND_MEAN /D NOMINMAX /D "CMAKE_INTDIR=\"Release\"" /EHsc /MD /std:c++20 /Fo"isaac_cs_net.dir\Release\\" /Fd"F:\projects_isaac\issac_multiplay\build\repentogon\Release\isaac_cs_net.pdb" /external:W4 /TP /analyze- /errorReport:queue  /utf-8 F:\projects_isaac\issac_multiplay\mod\src\net\protocol.cpp F:\projects_isaac\issac_multiplay\mod\src\net\endpoint.cpp F:\projects_isaac\issac_multiplay\mod\src\net\worker.cpp
+         protocol.cpp
+         endpoint.cpp
+         worker.cpp
+         正在生成代码...
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(39,44): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(39,49): error C2146: 语法错误: 缺少“;”(在标识符“NTSTATUS”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(39,49): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(40,18): error C2143: 语法错误: 缺少“;”(在“*”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(40,9): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(40,9): error C2378: “NTSTATUS”: 重定义；符号不能由 typedef 重载 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+             C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(39,49):
+             参见“NTSTATUS”的声明
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(40,19): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(198,13): error C3646: “dwMinLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(198,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(199,13): error C3646: “dwMaxLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(199,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(200,13): error C3646: “dwIncrement”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(200,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(207,13): error C3646: “cbOID”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(207,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(208,13): error C3646: “pbOID”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(208,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(213,17): error C3646: “dwOIDCount”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(213,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(219,13): error C3646: “pszAlgId”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(219,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(224,13): error C3646: “pszAlgId”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(224,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(225,13): error C3646: “cbSalt”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(225,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(230,13): error C3646: “pszAlgId”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(230,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(231,14): error C3646: “pbLabel”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(231,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(232,13): error C3646: “cbLabel”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(232,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(237,13): error C3646: “pbCtx”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(237,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(238,13): error C3646: “cbCtx”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(238,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(239,13): error C3646: “pszPrehashAlgId”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(239,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(250,17): error C3646: “cbSize”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(250,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(251,17): error C3646: “dwInfoVersion”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(251,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(252,17): error C3646: “pbNonce”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(252,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(253,17): error C3646: “cbNonce”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(253,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(254,17): error C3646: “pbAuthData”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(254,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(255,17): error C3646: “cbAuthData”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(255,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(256,17): error C3646: “pbTag”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(256,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(257,17): error C3646: “cbTag”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(257,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(258,17): error C3646: “pbMacContext”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(258,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(259,17): error C3646: “cbMacContext”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(259,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(260,17): error C3646: “cbAAD”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(260,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(261,17): error C3646: “cbData”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(261,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(262,17): error C3646: “dwFlags”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(262,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(288,11): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(288,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(289,11): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(289,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(290,11): error C3646: “cbPaddingAlgId”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(290,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(291,11): error C3646: “cbPaddingLabel”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(291,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(436,13): error C3646: “cbBuffer”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(436,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(437,13): error C3646: “BufferType”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(437,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(438,13): error C3646: “pvBuffer”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(438,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(442,13): error C3646: “ulVersion”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(442,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(443,13): error C3646: “cBuffers”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(443,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(451,9): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(451,15): error C2146: 语法错误: 缺少“;”(在标识符“BCRYPT_HANDLE”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(451,15): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(466,13): error C3646: “Magic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(466,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(488,13): error C3646: “Magic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(488,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(489,13): error C3646: “BitLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(489,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(490,13): error C3646: “cbPublicExp”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(490,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(491,13): error C3646: “cbModulus”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(491,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(492,13): error C3646: “cbPrime1”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(492,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(493,13): error C3646: “cbPrime2”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(493,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(555,13): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(555,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(556,13): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(556,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(563,13): error C3646: “dwCurveType”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(563,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(564,13): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(564,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(586,29): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(586,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(587,29): error C3646: “dwVersion”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(587,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(590,29): error C3646: “cbFieldLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(590,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(591,29): error C3646: “cbSubgroupOrder”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(591,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(592,29): error C3646: “cbCofactor”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(592,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(593,29): error C3646: “cbSeed”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(593,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(621,13): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(621,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(622,13): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(622,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(632,21): error C3646: “cbLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(632,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(633,21): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(633,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(634,21): error C3646: “cbKeyLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(634,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(658,13): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(658,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(659,13): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(659,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(660,13): error C3646: “Count”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(660,18): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(660,21): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(661,13): error C3646: “Seed”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(661,17): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(661,21): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(662,13): error C3646: “q”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(662,14): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(662,18): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(681,45): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(681,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(682,45): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(682,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(685,45): error C3646: “cbSeedLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(685,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(686,45): error C3646: “cbGroupSize”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(686,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(687,45): error C3646: “Count”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(687,50): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(687,53): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(693,13): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(693,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(694,13): error C3646: “dwVersion”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(694,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(695,13): error C3646: “cbKeyData”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(695,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(718,11): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(718,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(719,11): error C3646: “cbParameterSet”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(719,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(720,11): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(720,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(737,13): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(737,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(738,13): error C3646: “cbParameterSet”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(738,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(739,13): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(739,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(756,21): error C3646: “cbLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(756,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(757,21): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(757,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(758,21): error C3646: “cbKeyLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(758,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(759,21): error C3646: “Count”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(759,26): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(759,29): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(760,21): error C3646: “Seed”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(760,25): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(760,29): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(761,21): error C3646: “q”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(761,22): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(761,22): error C1003: 错误计数超过 100；正在停止编译 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         (编译源文件“../../mod/src/net/worker.cpp”)
+         
+     4>已完成生成项目“F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj”(默认目标)的操作 - 失败。
+     1>已完成生成项目“F:\projects_isaac\issac_multiplay\build\repentogon\zhlIsaacCS.vcxproj”(默认目标)的操作 - 失败。
+
+生成失败。
+
+       “F:\projects_isaac\issac_multiplay\build\repentogon\zhlIsaacCS.vcxproj”(默认目标) (1) ->
+       “F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj”(默认目标) (4) ->
+       (ClCompile 目标) -> 
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(39,44): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(39,49): error C2146: 语法错误: 缺少“;”(在标识符“NTSTATUS”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(39,49): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(40,18): error C2143: 语法错误: 缺少“;”(在“*”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(40,9): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(40,9): error C2378: “NTSTATUS”: 重定义；符号不能由 typedef 重载 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(40,19): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(198,13): error C3646: “dwMinLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(198,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(199,13): error C3646: “dwMaxLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(199,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(200,13): error C3646: “dwIncrement”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(200,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(207,13): error C3646: “cbOID”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(207,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(208,13): error C3646: “pbOID”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(208,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(213,17): error C3646: “dwOIDCount”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(213,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(219,13): error C3646: “pszAlgId”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(219,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(224,13): error C3646: “pszAlgId”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(224,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(225,13): error C3646: “cbSalt”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(225,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(230,13): error C3646: “pszAlgId”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(230,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(231,14): error C3646: “pbLabel”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(231,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(232,13): error C3646: “cbLabel”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(232,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(237,13): error C3646: “pbCtx”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(237,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(238,13): error C3646: “cbCtx”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(238,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(239,13): error C3646: “pszPrehashAlgId”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(239,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(250,17): error C3646: “cbSize”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(250,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(251,17): error C3646: “dwInfoVersion”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(251,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(252,17): error C3646: “pbNonce”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(252,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(253,17): error C3646: “cbNonce”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(253,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(254,17): error C3646: “pbAuthData”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(254,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(255,17): error C3646: “cbAuthData”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(255,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(256,17): error C3646: “pbTag”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(256,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(257,17): error C3646: “cbTag”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(257,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(258,17): error C3646: “pbMacContext”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(258,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(259,17): error C3646: “cbMacContext”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(259,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(260,17): error C3646: “cbAAD”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(260,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(261,17): error C3646: “cbData”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(261,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(262,17): error C3646: “dwFlags”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(262,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(288,11): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(288,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(289,11): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(289,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(290,11): error C3646: “cbPaddingAlgId”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(290,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(291,11): error C3646: “cbPaddingLabel”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(291,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(436,13): error C3646: “cbBuffer”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(436,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(437,13): error C3646: “BufferType”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(437,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(438,13): error C3646: “pvBuffer”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(438,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(442,13): error C3646: “ulVersion”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(442,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(443,13): error C3646: “cBuffers”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(443,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(451,9): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(451,15): error C2146: 语法错误: 缺少“;”(在标识符“BCRYPT_HANDLE”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(451,15): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(466,13): error C3646: “Magic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(466,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(488,13): error C3646: “Magic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(488,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(489,13): error C3646: “BitLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(489,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(490,13): error C3646: “cbPublicExp”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(490,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(491,13): error C3646: “cbModulus”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(491,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(492,13): error C3646: “cbPrime1”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(492,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(493,13): error C3646: “cbPrime2”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(493,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(555,13): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(555,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(556,13): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(556,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(563,13): error C3646: “dwCurveType”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(563,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(564,13): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(564,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(586,29): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(586,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(587,29): error C3646: “dwVersion”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(587,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(590,29): error C3646: “cbFieldLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(590,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(591,29): error C3646: “cbSubgroupOrder”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(591,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(592,29): error C3646: “cbCofactor”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(592,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(593,29): error C3646: “cbSeed”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(593,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(621,13): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(621,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(622,13): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(622,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(632,21): error C3646: “cbLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(632,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(633,21): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(633,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(634,21): error C3646: “cbKeyLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(634,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(658,13): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(658,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(659,13): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(659,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(660,13): error C3646: “Count”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(660,18): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(660,21): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(661,13): error C3646: “Seed”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(661,17): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(661,21): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(662,13): error C3646: “q”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(662,14): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(662,18): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(681,45): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(681,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(682,45): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(682,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(685,45): error C3646: “cbSeedLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(685,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(686,45): error C3646: “cbGroupSize”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(686,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(687,45): error C3646: “Count”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(687,50): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(687,53): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(693,13): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(693,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(694,13): error C3646: “dwVersion”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(694,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(695,13): error C3646: “cbKeyData”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(695,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(718,11): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(718,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(719,11): error C3646: “cbParameterSet”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(719,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(720,11): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(720,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(737,13): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(737,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(738,13): error C3646: “cbParameterSet”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(738,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(739,13): error C3646: “cbKey”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(739,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(756,21): error C3646: “cbLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(756,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(757,21): error C3646: “dwMagic”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(757,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(758,21): error C3646: “cbKeyLength”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(758,5): error C4430: 缺少类型说明符 - 假定为 int。注意: C++ 不支持默认 int [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(759,21): error C3646: “Count”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(759,26): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(759,29): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(760,21): error C3646: “Seed”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(760,25): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(760,29): error C2238: 意外的标记位于“;”之前 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(761,21): error C3646: “q”: 未知重写说明符 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(761,22): error C2143: 语法错误: 缺少“,”(在“[”的前面) [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+         C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\bcrypt.h(761,22): error C1003: 错误计数超过 100；正在停止编译 [F:\projects_isaac\issac_multiplay\build\repentogon\isaac_cs_net.vcxproj]
+
+    0 个警告
+    185 个错误
+
+已用时间 00:00:04.16

@@ -1,7 +1,9 @@
 #include "game/tick.h"
 #include "game/context.h"
 #include "game/input_a.h"
+#include "game/join.h"
 #include "game/lifecycle.h"
+#include "game/peer.h"
 #include "game/state.h"
 #include "runtime.h"
 #include <bcrypt.h>
@@ -12,11 +14,11 @@
 
 namespace cs::game {
 namespace {
-std::unique_ptr<SoloRuntime> solo;
+std::unique_ptr<SessionRuntime> solo;
 uint64_t manager_loop = 0, generation = 0;
 std::atomic<bool> armed_public{false}, foreign_seen{false};
 
-void Reject(SoloRuntime &r, core::TickDecision reason,
+void Reject(SessionRuntime &r, core::TickDecision reason,
             const char *detail) noexcept {
   r.last_decision = reason;
   Trace("tick_reject",
@@ -26,7 +28,8 @@ void Reject(SoloRuntime &r, core::TickDecision reason,
 }
 // Authority-pre 的唯一入口：先绑定与激活，再 drain、统一 Submit、Resolve
 // current。
-bool BeginTick(SoloRuntime &r, core::TickKind kind, uint64_t token) noexcept {
+bool BeginTick(SessionRuntime &r, core::TickKind kind,
+               uint64_t token) noexcept {
   if (!RuntimeHealthy() || InBlockedContext())
     return false;
   if (!ReadyForAuthority(r))
@@ -55,15 +58,20 @@ bool BeginTick(SoloRuntime &r, core::TickKind kind, uint64_t token) noexcept {
   }
   r.boundary = boundary;
   r.last_decision = decision;
-  r.metrics = {};
-  r.metrics.authority_pre = 1;
-  r.metrics.input_sequence = r.players[0].CurrentSequence();
-  r.tick_input = r.players[0].Current();
-  Trace("tick_phase", "phase=pre tick=%llu loop=%llu owner_token=%llu generation=%llu owner=%s", r.clock.Current(), r.loop, token, r.session.Identity().generation,
-        boundary.owner_kind == core::TickOwnerKind::Game ? "Game" : "OddNormal");
+  for (unsigned i = 0; i < r.session.ParticipantCount(); ++i) {
+    r.metrics[i] = {};
+    r.metrics[i].authority_pre = 1;
+    r.metrics[i].input_sequence = r.players[i].CurrentSequence();
+    r.tick_input[i] = r.players[i].Current();
+  }
+  Trace(
+      "tick_phase",
+      "phase=pre tick=%llu loop=%llu owner_token=%llu generation=%llu owner=%s",
+      r.clock.Current(), r.loop, token, r.session.Identity().generation,
+      boundary.owner_kind == core::TickOwnerKind::Game ? "Game" : "OddNormal");
   return true;
 }
-void NativeReturn(SoloRuntime &r, bool normal) noexcept {
+void NativeReturn(SessionRuntime &r, bool normal) noexcept {
   if (!normal) {
     FailRuntime("abnormal_native_return", core::TickDecision::AbnormalReturn);
     return;
@@ -73,56 +81,76 @@ void NativeReturn(SoloRuntime &r, bool normal) noexcept {
   if (decision != core::TickDecision::Committed) {
     FailRuntime("native_return_rejected", decision);
   } else {
-    ++r.metrics.native_commit;
-    Trace("tick_phase", "phase=commit tick=%llu loop=%llu owner_token=%llu generation=%llu", r.clock.Current(), r.loop, r.boundary.scope_token, r.session.Identity().generation);
+    for (unsigned i = 0; i < r.session.ParticipantCount(); ++i)
+      ++r.metrics[i].native_commit;
+    Trace("tick_phase",
+          "phase=commit tick=%llu loop=%llu owner_token=%llu generation=%llu",
+          r.clock.Current(), r.loop, r.boundary.scope_token,
+          r.session.Identity().generation);
   }
 }
 // 一条 tick 事件汇总六种 consumer 的三类查询，避免逐查询填满日志队列。
-void PublishTick(SoloRuntime &r) noexcept {
+void PublishTick(SessionRuntime &r, unsigned ordinal) noexcept {
   char reads[900]{};
   size_t used = 0;
   for (unsigned i = 0; i < 6; ++i) {
-    const auto &a = r.metrics.reads[i];
-    const auto &b = r.metrics.nonzero[i];
-    int n = _snprintf_s(
-        reads + used, sizeof(reads) - used, _TRUNCATE,
-        " c%u=%llu reads%u=%llu,%llu,%llu nonzero%u=%llu,%llu,%llu", i,
-        r.metrics.consumers[i], i, a[0], a[1], a[2], i, b[0], b[1], b[2]);
+    const auto &a = r.metrics[ordinal].reads[i];
+    const auto &b = r.metrics[ordinal].nonzero[i];
+    int n =
+        _snprintf_s(reads + used, sizeof(reads) - used, _TRUNCATE,
+                    " c%u=%llu reads%u=%llu,%llu,%llu nonzero%u=%llu,%llu,%llu",
+                    i, r.metrics[ordinal].consumers[i], i, a[0], a[1], a[2], i,
+                    b[0], b[1], b[2]);
     if (n < 0)
       break;
     used += size_t(n);
   }
-  Trace("tick",
-        "tick=%llu kind=%s loop=%llu owner_token=%llu generation=%llu "
-        "a_generation=%llu "
-        "move=%d,%d aim=%d,%d held=%u edge=%u player_update_entered=%llu "
-        "player_native_reached=%llu "
-        "player_skipped_by_chain=%llu shooting_suppressed=%llu fields_known=%u "
-        "move_direction=%d "
-        "velocity=%g,%g shoot_components=%g,%g shoot_flag=%u published=1 "
-        "authority_pre=%llu native_commit=%llu owner=%s bomb_queries=%llu "
-        "bomb_query_value=%g bomb_query_mismatches=%llu input_sequence=%llu%s",
-        r.clock.Completed(),
-        r.boundary.kind == core::TickKind::StandardRoom ? "StandardRoom"
-                                                        : "OddPlayer",
-        r.loop, r.boundary.scope_token, r.session.Identity().generation,
-        r.players[0].Generation(), r.tick_input.move_x, r.tick_input.move_y,
-        r.tick_input.aim_x, r.tick_input.aim_y, r.tick_input.held_flags,
-        r.tick_input.edge_flags, r.metrics.player_entered,
-        r.metrics.native_reached, r.metrics.chain_skipped,
-        r.metrics.shooting_suppressed, r.metrics.player_fields_known,
-        r.metrics.move_direction, r.metrics.velocity_x, r.metrics.velocity_y,
-        r.metrics.shoot_x, r.metrics.shoot_y, unsigned(r.metrics.shoot_flag),
-        r.metrics.authority_pre, r.metrics.native_commit,
-        r.boundary.owner_kind == core::TickOwnerKind::Game ? "Game" : "OddNormal",
-        r.metrics.bomb_queries, r.metrics.first_bomb_query,
-        r.metrics.bomb_query_mismatches, r.metrics.input_sequence, reads);
+  Trace(
+      "tick",
+      "ordinal=%u tick=%llu kind=%s loop=%llu owner_token=%llu generation=%llu "
+      "participant_generation=%llu a_generation=%llu b_generation=%llu "
+      "move=%d,%d aim=%d,%d held=%u edge=%u player_update_entered=%llu "
+      "player_native_reached=%llu "
+      "player_skipped_by_chain=%llu shooting_suppressed=%llu fields_known=%u "
+      "move_direction=%d "
+      "velocity=%g,%g shoot_components=%g,%g shoot_flag=%u published=1 "
+      "authority_pre=%llu native_commit=%llu owner=%s bomb_queries=%llu "
+      "bomb_query_value=%g bomb_query_mismatches=%llu input_sequence=%llu%s",
+      ordinal, r.clock.Completed(),
+      r.boundary.kind == core::TickKind::StandardRoom ? "StandardRoom"
+                                                      : "OddPlayer",
+      r.loop, r.boundary.scope_token, r.session.Identity().generation,
+      r.players[ordinal].Generation(), r.players[0].Generation(),
+      r.mode == core::SessionMode::Host ? r.players[1].Generation() : 0,
+      r.tick_input[ordinal].move_x, r.tick_input[ordinal].move_y,
+      r.tick_input[ordinal].aim_x, r.tick_input[ordinal].aim_y,
+      r.tick_input[ordinal].held_flags, r.tick_input[ordinal].edge_flags,
+      r.metrics[ordinal].player_entered, r.metrics[ordinal].native_reached,
+      r.metrics[ordinal].chain_skipped, r.metrics[ordinal].shooting_suppressed,
+      r.metrics[ordinal].player_fields_known, r.metrics[ordinal].move_direction,
+      r.metrics[ordinal].velocity_x, r.metrics[ordinal].velocity_y,
+      r.metrics[ordinal].shoot_x, r.metrics[ordinal].shoot_y,
+      unsigned(r.metrics[ordinal].shoot_flag), r.metrics[ordinal].authority_pre,
+      r.metrics[ordinal].native_commit,
+      r.boundary.owner_kind == core::TickOwnerKind::Game ? "Game" : "OddNormal",
+      r.metrics[ordinal].bomb_queries, r.metrics[ordinal].first_bomb_query,
+      r.metrics[ordinal].bomb_query_mismatches,
+      r.metrics[ordinal].input_sequence, reads);
 }
 } // namespace
-SoloRuntime *Runtime() noexcept { return IsMain() ? solo.get() : nullptr; }
+SessionRuntime *Runtime() noexcept { return IsMain() ? solo.get() : nullptr; }
 uint64_t ManagerLoop() noexcept { return IsMain() ? manager_loop : 0; }
-bool SoloBusy() noexcept { return IsMain() && solo && !solo->finished; }
-bool Armed() noexcept { return SoloBusy(); }
+bool Busy() noexcept { return IsMain() && solo && !solo->finished; }
+bool SoloBusy() noexcept {
+  return Busy() && solo->mode == core::SessionMode::Solo;
+}
+bool HostBusy() noexcept {
+  return Busy() && solo->mode == core::SessionMode::Host;
+}
+bool Armed() noexcept {
+  return Busy() &&
+         (solo->mode == core::SessionMode::Solo || solo->peer.established);
+}
 bool RuntimeHealthy() noexcept {
   if (!IsMain())
     return false;
@@ -139,6 +167,8 @@ const char *StateName() noexcept {
     return "Idle";
   if (r->retiring)
     return "Retiring";
+  if (r->mode == core::SessionMode::Host && !r->peer.established)
+    return "Hosting";
   return core::SessionStateName(r->session.Status().state);
 }
 void ForeignCall() noexcept {
@@ -150,7 +180,7 @@ void ForeignCall() noexcept {
 const char *StartSolo() noexcept {
   if (!IsMain() || TopOwner() != Owner::Manager)
     return "wrong_boundary";
-  if (SoloBusy())
+  if (Busy())
     return "busy";
   if (!RunActive())
     return "not_in_run";
@@ -159,7 +189,8 @@ const char *StartSolo() noexcept {
   if (generation == (std::numeric_limits<uint64_t>::max)())
     return "generation_exhausted";
   try {
-    auto next = std::make_unique<SoloRuntime>();
+    auto next = std::make_unique<SessionRuntime>();
+    next->mode = core::SessionMode::Solo;
     core::SessionIdentity identity;
     if (BCryptGenRandom(nullptr, identity.session.data(),
                         ULONG(identity.session.size()),
@@ -172,9 +203,9 @@ const char *StartSolo() noexcept {
     next->players[0].Initialize(identity.session, identity.clients[0], 0,
                                 &next->session);
     next->loop = manager_loop;
-    next->topology = ReadTopology();
-    next->observed = next->topology.known;
-    next->controlled_player = next->topology.pair.player;
+    next->topology[0] = ReadTopology();
+    next->observed = next->topology[0].known;
+    next->controlled_player[0] = next->topology[0].pair.player;
     solo = std::move(next);
     generation = identity.generation;
     DiscardInputEdges();
@@ -189,12 +220,51 @@ const char *StartSolo() noexcept {
     return "session_allocation_failed";
   }
 }
+// 主菜单也可监听；只有传输握手成功后才准备 core 并接管 A。
+const char *StartHost(const net::WorkerConfig &config, int character) noexcept {
+  if (!IsMain() || TopOwner() != Owner::Manager)
+    return "wrong_boundary";
+  if (Busy())
+    return "busy";
+  if (!ContextHealthy() || PointerCount() != 8 || !OddPatchInstalled() ||
+      !HostPatchesInstalled() || !Capabilities[size_t(Group::Join)])
+    return "adaptation_unavailable";
+  if (generation == (std::numeric_limits<uint64_t>::max)())
+    return "generation_exhausted";
+  try {
+    auto next = std::make_unique<SessionRuntime>();
+    next->mode = core::SessionMode::Host;
+    next->join.character = character;
+    next->peer.session_generation = ++generation;
+    next->loop = manager_loop;
+    const auto started = next->peer.worker.Start(config);
+    if (!started)
+      return net::StartErrorName(started.error);
+    next->peer.identity = started.identity;
+    solo = std::move(next);
+    foreign_seen = false;
+    Trace("session",
+          "from=Idle to=Hosting mode=Host generation=%llu port=%u role=%d",
+          generation, config.port, character);
+    return "";
+  } catch (...) {
+    return "session_allocation_failed";
+  }
+}
 void StopSolo(core::SessionCause cause) noexcept {
+  if (SoloBusy())
+    StopSession(cause);
+}
+void StopSession(core::SessionCause cause) noexcept {
   auto *r = Runtime();
   if (!r || r->finished || r->retiring)
     return;
   const auto *before = core::SessionStateName(r->session.Status().state);
-  r->session.BeginRetirement(cause);
+  if (r->mode == core::SessionMode::Host && !r->peer.established) {
+    // Hosting 尚未启动 core，也要退休 worker；不伪造 Warmup/绑定。
+  } else if (!r->session.BeginRetirement(cause))
+    return;
+  r->retirement_cause = cause;
   r->retiring = true;
   DiscardInputEdges();
   Trace("session", "from=%s to=Retiring reason=%s generation=%llu loop=%llu",
@@ -208,6 +278,8 @@ void FailRuntime(const char *reason, core::TickDecision decision) noexcept {
   r->failure = true;
   r->retiring = true;
   r->last_error = reason;
+  if (r->retirement_cause == core::SessionCause::None)
+    r->retirement_cause = core::SessionCause::RuntimeFailure;
   Reject(*r, decision, reason);
   r->pipeline.Abort(decision);
   r->session.Fail(core::SessionCause::RuntimeFailure);
@@ -223,8 +295,13 @@ void BeginManager(uint64_t loop) noexcept {
     r->loop = loop;
     if (foreign_seen.exchange(false))
       FailRuntime("foreign_callback");
-    if (!r->finished)
-      RefreshLifecycle(*r, false);
+    if (!r->finished) {
+      PollPeer(*r);
+      armed_public = Armed();
+      if (Armed())
+        RefreshLifecycle(*r, false);
+      DrainPeer(*r);
+    }
   }
 }
 // NativeReturned 与 TopExit 分离；Disabled 的 post-state 仍必须提交 completed。
@@ -244,29 +321,48 @@ void EndManager(bool normal) noexcept {
         ++r->ticks_standard;
       else
         ++r->ticks_odd;
-      PublishTick(*r);
+      for (unsigned i = 0; i < r->session.ParticipantCount(); ++i)
+        PublishTick(*r, i);
     } else
       FailRuntime("tick_publication_failed");
   }
   const auto end = r->pipeline.EndOuter(r->loop);
   if (end != core::TickDecision::Idle)
     FailRuntime("missing_native_return", end);
-  if (r->retiring) {
+  if (normal)
+    PublishPeer(*r);
+  if (r->retiring && !r->cleanup_failed) {
     if (HasOwner(Owner::Odd) || HasOwner(Owner::Device) ||
+        HasOwner(Owner::Join) || HasOwner(Owner::Input) ||
         HasOwner(Owner::Game)) {
       ContextFault("retirement_callback_pending");
       return;
     }
-    r->players[0].Retire();
-    r->session.CompleteRetirement(true);
+    r->device.Neutralize();
+    const bool device_ok =
+        r->mode != core::SessionMode::Host || r->device.RemoveOnce();
+    const bool player_ok = device_ok && (r->mode != core::SessionMode::Host ||
+                                         RetireJoinedPlayer(*r));
+    const bool peer_ok = StopPeer(*r);
+    if (!device_ok || !player_ok || !peer_ok) {
+      r->cleanup_failed = true;
+      Trace("retirement_error", "device=%u player=%u peer=%u loop=%llu",
+            device_ok, player_ok, peer_ok, r->loop);
+      return; // 保留未知现场及常驻对象，不重复原生移除，不把失败报告为 Idle。
+    }
+    for (unsigned i = 0; i < r->session.ParticipantCount(); ++i)
+      r->players[i].Retire();
+    if (r->peer.established || r->mode == core::SessionMode::Solo)
+      r->session.CompleteRetirement(true);
     r->finished = true;
-    r->controlled_player = nullptr;
+    r->controlled_player.fill(nullptr);
     r->blocks = 0;
     armed_public = false;
     Trace("session",
           "from=Retiring to=Idle reason=%s generation=%llu core_state=%s "
           "loop=%llu",
-          r->failure ? r->last_error : "CleanupComplete",
+          r->failure ? r->last_error
+                     : core::SessionCauseName(r->retirement_cause),
           r->session.Identity().generation,
           core::SessionStateName(r->session.Status().state), r->loop);
   }
@@ -292,7 +388,8 @@ SimulationScope::SimulationScope(SimulationKind kind, void *object) noexcept
     }
     started_ = BeginTick(r, core::TickKind::StandardRoom, token_);
   } else {
-    Trace("room_scope", "loop=%llu owner=%u owner_token=%llu eligible=0", r.loop, unsigned(TopOwner()), OwnerToken(TopOwner()));
+    Trace("room_scope", "loop=%llu owner=%u owner_token=%llu eligible=0",
+          r.loop, unsigned(TopOwner()), OwnerToken(TopOwner()));
   }
 }
 SimulationScope::~SimulationScope() noexcept {
@@ -339,16 +436,21 @@ bool BeginOddPlayer(void *player) noexcept {
 }
 std::string StatusFields() {
   auto *r = Runtime();
-  std::string out = "session_state=" + std::string(StateName()) +
-                    "\nsession_mode=" + (r ? "Solo" : "None") + "\n";
+  std::string out =
+      "session_state=" + std::string(StateName()) +
+      "\nsession_mode=" + (r ? core::SessionModeName(r->mode) : "None") + "\n";
   const auto n = [&](const char *key, uint64_t value) {
     out += key;
     out += '=';
     out += std::to_string(value);
     out += '\n';
   };
-  n("generation", r ? r->session.Identity().generation : 0);
+  n("generation",
+    r ? (r->mode == core::SessionMode::Host ? r->peer.session_generation
+                                            : r->session.Identity().generation)
+      : 0);
   n("completed_tick", r ? r->clock.Completed() : 0);
+  n("armed", Armed());
   n("current_tick", r ? r->pipeline.SimulationTick() : 0);
   n("ticks_standard", r ? r->ticks_standard : 0);
   n("ticks_odd", r ? r->ticks_odd : 0);
@@ -359,6 +461,75 @@ std::string StatusFields() {
   n("query_overrides", r ? r->overrides : 0);
   n("shooting_suppressed", r ? r->suppressed : 0);
   n("odd_patch_installed", OddPatchInstalled());
+  n("b_bound", r && !r->finished && r->mode == core::SessionMode::Host &&
+                   r->players[1].BoundValid());
+  n("b_generation",
+    r && r->mode == core::SessionMode::Host ? r->players[1].Generation() : 0);
+  n("queue_depth_b", r ? r->players[1].Depth() : 0);
+  // 已退休时保留最后一轮诊断，但 Player 数必须来自当前世界，不能沿用移除前的 2。
+  n("players", ReadTopology().player_count);
+  n("device_k_id", r && r->device.Object() ? r->device.Id() : 0);
+  n("host_patches_installed", HostPatchesInstalled());
+  n("peer_discarded_commands", r ? r->peer.discarded : 0);
+  n("peer_admitted_commands", r ? r->peer.admitted : 0);
+  n("peer_ack_dropped", r ? r->peer.ack_dropped : 0);
+  n("cleanup_failed", r && r->cleanup_failed);
+  const auto network = r ? r->peer.worker.Status() : net::WorkerStatus{};
+  n("net_rx", network.received_packets);
+  n("net_tx", network.sent_packets);
+  n("net_duplicate", network.duplicate_packets);
+  n("net_stale", network.stale_packets);
+  n("net_rx_dropped", network.receive_queue_dropped);
+  n("net_tx_dropped", network.send_queue_dropped);
+  n("net_foreign", network.foreign_packets);
+  n("net_rx_errors", network.receive_errors);
+  n("net_tx_errors", network.send_errors);
+  n("net_dropped", network.foreign_packets + network.stale_packets +
+                   network.receive_queue_dropped + network.send_queue_dropped);
+  n("net_valid", network.valid_packets);
+  n("net_rx_bytes", network.received_bytes);
+  n("net_tx_bytes", network.sent_bytes);
+  n("net_bye_attempts", network.bye_send_attempts);
+  n("net_bye_sent", network.bye_sent_packets);
+  n("net_native_error", network.native_error);
+  n("net_last_send_error", network.last_send_error);
+  n("peer_locked", network.peer_locked);
+  n("peer_running", network.running);
+  n("peer_stop_finished", r && r->peer.stop_finished);
+  for (size_t i = 0; i < network.errors.size(); ++i) {
+    const auto key = std::string("net_error.") + net::protocol::ErrorName(net::protocol::Error(i));
+    n(key.c_str(), network.errors[i]);
+  }
+  n("peer_rtt_ms", network.rtt_last_ms);
+  n("join_passes", r ? r->join.passes : 0);
+  n("join_mode_calls", r ? r->join.mode_calls : 0);
+  n("join_baby_overrides", r ? r->join.baby_overrides : 0);
+  n("join_creations", r ? r->join.creation_calls : 0);
+  out +=
+      "peer_state=" + std::string(net::protocol::PeerStateName(network.state)) +
+      "\n";
+  out += "peer_terminal=" +
+         std::string(net::TerminalReasonName(network.terminal)) + "\n";
+  out += "peer_address=" + std::to_string(network.peer_address[0]) + "." +
+         std::to_string(network.peer_address[1]) + "." +
+         std::to_string(network.peer_address[2]) + "." +
+         std::to_string(network.peer_address[3]) + ":" +
+         std::to_string(network.peer_port) + "\n";
+  out += "device_k_state=" +
+         std::string(
+             DeviceKStateName(r ? r->device.State() : DeviceKState::Empty)) +
+         "\n";
+  out += "join_state=" +
+         std::string(JoinStateName(r ? r->join.state : JoinState::Waiting)) +
+         "\n";
+  out += "b_character=" +
+         std::to_string(
+             r && r->mode == core::SessionMode::Host ? r->join.character : -1) +
+         "\n";
+  out += "retirement_cause=" +
+         std::string(core::SessionCauseName(r ? r->retirement_cause
+                                              : core::SessionCause::None)) +
+         "\n";
   out += "last_tick_decision=" +
          std::string(core::TickDecisionName(r ? r->last_decision
                                               : core::TickDecision::Idle)) +

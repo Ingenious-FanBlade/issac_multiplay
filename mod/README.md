@@ -1,5 +1,15 @@
 # REPENTOGON mod
 
+2026-10-25 tx-04-06 3.4/3.5：Host/stop 已接入真实会话，包含 IPv4/timeout 配置、完整诊断、主机 UI、Rust codec/Endpoint/脚本远端与单启动 E2E 场景，V2 方向缺陷已修正。统一清单为 33 入口（含 5 个只读 ST8 观测）、8 个设备槽、12 个字节补丁。Win32 DLL 与 i686 Rust harness 纯编译链接成功，见[编写/使用记录](../docs/design/tx-04-06-ops-harness.md)、[原始构建日志](../artifacts/repentogon/tx-04-06-ops/README.md)。未部署或运行游戏/测试；下方占位与旧计数说明均为阶段历史。
+
+2026-10-25 tx-04-06 game：第 3.3 节 K/Join/peer、A/B 拓扑/consumer/lifecycle、主线程 Host API 和必要的 11 处 Join/K 常驻补丁已编写并纯编译、链接成功，见[实现与接线记录](../docs/design/tx-04-06-game.md)、[构建日志](../artifacts/repentogon/tx-04-06-game/README.md)。入口仍为 28 个、设备槽 8 个，字节补丁连同原有 Odd 共 12 处。ops 的 `cs host/stop` 仍为占位，配置/UI/Rust 远端与 harness 待接入；没有部署、启动游戏、运行网络或测试，整体 E2E 留待全目标完成。以下保留各阶段原始记录。
+
+2026-10-25 tx-04-06 core：第 3.2 节已编写并纯编译、链接成功。`SessionMode::Host` 使用两个参与者，首次激活要求 A/B 双绑定；新增 PeerBye/PeerTimeout/PeerProtocol 有序退休原因，A/B 复用同一 admission/queue/Resolve，序号冲突统一中止整个会话。见[实现与接线约定](../docs/design/tx-04-06-core.md)、[构建记录](../artifacts/repentogon/tx-04-06-core/README.md)。尚未接入 game/peer/K/Join 或 Host 命令，没有部署或执行测试；tx-04-06 全目标与唯一整体 E2E 仍待完成。下方保留各阶段原始记录。
+
+2026-10-25 tx-04-06 网络规则修订：Authority 已同步 stale 丢弃、独立重复/迟到计数、Bye 原字节三次发送和接收端有界副本计数；发送失败不覆盖原结束原因。[同步说明](../docs/design/tx-04-06-net.md)、[build-04](../artifacts/repentogon/tx-04-06-net/build-04-network-rules.log)。Win32 Release 纯编译链接成功，仍未接入主线程 Host 会话或运行测试；Rust 远端规则留待第 13.2 节实现。
+
+2026-10-25 tx-04-06：第 3.1 节 `src/net/` 四个模块已编写并加入独立 `isaac_cs_net` 静态库，Win32 Release 纯编译与 DLL 链接成功。包括 ICSN v1 codec/Endpoint、Winsock UDP worker、有界 SPSC、心跳/超时/Bye 与统计；[线格式和主线程接口](../docs/design/tx-04-06-net.md)、[构建记录](../artifacts/repentogon/tx-04-06-net/README.md)。尚未接入 `cs host` 或 game/peer，没有部署、运行游戏或执行测试，tx-04-06 整体 E2E 尚未执行。以下阶段记录保留其当时语境。
+
 2026-10-24 tx-04-05 后续：剩余 Lua 夹具和 Rust 单启动 S0–S11 / V1–V10 harness 已编写，并补充 tick 提交、Odd 配对、射击分派及炸弹同 tick 查询的只读诊断，见[实现记录](../docs/design/tx-04-05-test-harness.md)。没有部署或执行测试，唯一整体 E2E 尚未执行。以下阶段记录保留其当时语境。
 
 2026-10-24 tx-04-05 当前：`src/game/` 七个主线程适配模块及必要 Hook/Odd shim、`cs solo start/stop`、状态与 trace 已编写并纯编译链接成功，见[game 实现记录](../docs/design/tx-04-05-game-adapter.md)。构建清单为 28 个入口、8 个设备槽、1 个 Odd 普通调用点补丁；它们尚未在游戏进程中安装或验收。本次没有部署、启动游戏或运行测试；测试夹具和 harness 场景待完成，唯一整体 E2E 尚未执行。下段保留 core 阶段的原始状态。

@@ -19,6 +19,32 @@ struct PhysicalActions {
   std::array<float, 12> values{};
   std::array<bool, 12> pressed{}, triggered{};
 };
+// 主线程按“物理后端锁 -> 原生 vector 锁”顺序访问设备；本线程嵌套只增加深度。
+// 使用同一原生 Mutex，不在公共更新已持 vector 锁后首次反向取得后端锁。
+class InputLease final {
+public:
+  explicit InputLease(bool required) noexcept;
+  ~InputLease() noexcept;
+  bool Ready() const noexcept { return ready_; }
+  InputLease(const InputLease &) = delete;
+  InputLease &operator=(const InputLease &) = delete;
+
+private:
+  bool joined_ = false, ready_ = false;
+};
+bool HostBusy() noexcept;
+void InputLeaseUnavailable() noexcept;
+// Join 的整个原生 pass 必须在同一固定动作快照中完成，异常只观察并收尾。
+class JoinScope final {
+public:
+  explicit JoinScope(void *manager) noexcept;
+  ~JoinScope() noexcept;
+
+private:
+  InputLease lease_;
+  bool active_ = false;
+  int exceptions_ = 0;
+};
 // 观测作用域不拥有原函数；异常由调用方自然向上展开。
 class SimulationScope final {
 public:
@@ -39,6 +65,7 @@ public:
   void *player = nullptr;
   PlayerScope *previous = nullptr;
   uint64_t tick = 0, generation = 0;
+  int ordinal = -1;
   bool native_reached = false, controlled = false, main = false;
   int exceptions = 0;
 };
@@ -54,6 +81,7 @@ public:
   ConsumerScope *previous = nullptr;
 
 private:
+  InputLease lease_;
   bool main_ = false, call_original_ = true;
   int exceptions_ = 0;
 };
@@ -78,5 +106,25 @@ bool OverrideQuery(void *device, int action, QueryKind kind,
 void ObserveConsole(bool blocked) noexcept;
 void NewRoomReturned() noexcept;
 void RestoreBeginning() noexcept;
+void RunTeardownBeginning() noexcept;
 void ForeignCall() noexcept;
+// 持久写入只读观测：记录原生入口、条件和前后值；不修改 readonly/dirty。
+class PersistenceOperation final {
+public:
+  explicit PersistenceOperation(const char *name) noexcept;
+  ~PersistenceOperation() noexcept;
+private:
+  const char *previous_;
+};
+class PersistenceScope final {
+public:
+  PersistenceScope(const char *entry, void *data, int index = -1, int amount = 0) noexcept;
+  ~PersistenceScope() noexcept;
+private:
+  const char *entry_, *operation_;
+  void *data_;
+  int index_, amount_, before_ = 0, exceptions_;
+  unsigned char dirty_ = 0, readonly_ = 0, loaded_ = 0;
+  bool known_ = false;
+};
 } // namespace cs::game

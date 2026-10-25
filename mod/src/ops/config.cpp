@@ -3,6 +3,7 @@
 #include <iterator>
 #include <rapidjson/document.h>
 #include <stdexcept>
+#include <ws2tcpip.h>
 namespace cs {
 // 配置缺失、格式错误或未知 schema 均默认关闭，不注册任何 Hook。
 Config ReadConfig() {
@@ -45,8 +46,25 @@ Config ReadConfig() {
         throw std::runtime_error("port");
       return v[key].GetUint();
     };
-    if (d.HasMember("host"))
+    if (d.HasMember("host")) {
       c.host_port = port(d["host"], "default_port");
+      auto &host = d["host"];
+      if (host.HasMember("bind_address")) {
+        const auto &v = host["bind_address"];
+        IN_ADDR address{};
+        if (!v.IsString() || v.GetStringLength() == 0 ||
+            std::strlen(v.GetString()) != v.GetStringLength() ||
+            InetPtonA(AF_INET, v.GetString(), &address) != 1)
+          throw std::runtime_error("host.bind_address");
+        c.host_bind_address = v.GetString();
+      }
+      if (host.HasMember("peer_timeout_ms")) {
+        const auto &v = host["peer_timeout_ms"];
+        if (!v.IsUint() || v.GetUint() < 500 || v.GetUint() > 60000)
+          throw std::runtime_error("host.peer_timeout_ms");
+        c.peer_timeout_ms = v.GetUint();
+      }
+    }
     if (d.HasMember("control_port")) {
       auto &v = d["control_port"];
       if (!v.IsObject() || !v.HasMember("enabled") || !v["enabled"].IsBool())

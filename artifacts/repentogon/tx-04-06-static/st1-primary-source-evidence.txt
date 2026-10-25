@@ -1,0 +1,50 @@
+SOURCE F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Input.zhl:16
+16: "558bec53568bf18b46":
+17: __thiscall int InputManager::GetDeviceType(int controlleridx);
+18: 
+19: "558becff75??e8????????85c074??8b108bc8ff52??5dc2040033c05dc20400558becff75??e8????????85c074??8b10":
+20: __thiscall char* InputManager::GetDeviceNameByIdx(int cidx);
+21: 
+22: struct InputManager {
+23: };
+24: 
+25: "b9(????????)32ffe8":
+26: reference InputManager g_InputManagerBase;
+27: 
+28: 
+29: "53568bf133d2":
+30: __thiscall bool InputDeviceBase::Initialize(void* unk);
+31: 
+32: struct InputDeviceBase {
+33: 	char* _deviceName : 0x3fc;
+34: };
+
+SOURCE F:/projects_isaac/REPENTOGON-1.1.3/repentogon/Patches/MiscFixes.cpp:268
+268: HOOK_METHOD(InputDeviceBase, Initialize, (void* unk) -> bool) {
+269: 	if (repentogonOptions.blockUnknownDevices && this->_deviceName && std::string(this->_deviceName) == "Unknown Device") {
+270: 		return false;
+271: 	}
+272: 	return super(unk);
+273: }
+274: 
+275: // SubType 1 knives crash during Update if the HomingLaser stuff isn't initialized (like if a mod spawns one).
+276: // This initializes it to a basic straight line solely to prevent crashes.
+277: // If something calls InitHomingPath again later on this gets cleanly overwritten.
+
+SOURCE F:/projects_isaac/REPENTOGON-1.1.3/repentogon/Patches/ModsMenuStuff.cpp:130
+130: HOOK_METHOD(InputManager, IsActionTriggered, (int btnaction, int controllerid, int unk) -> bool) {
+131: 	if (issearching){// && ((btnaction == 17) || (btnaction == 18))) {
+132: 		return false;
+133: 	}
+134: 	return super(btnaction, controllerid, unk);
+135: }
+136: 
+137: HOOK_METHOD(Menu_Mods, Render, () -> void) {
+
+SOURCE F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/MenuManager.zhl:16
+16: 
+17: "538bdc83ec0883e4f883c404558b6b??896c24??8bec83ec1856578b3d":
+18: __thiscall void MenuManager::Update();
+19: 
+20: // Inlined in Rep+. Seems to start at 807e??0074??8b46??48
+

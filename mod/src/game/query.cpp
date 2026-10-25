@@ -6,20 +6,21 @@
 #include "game/tick.h"
 
 namespace cs::game {
-// 返回 true 表示本次属于受控 A gameplay 查询，即使资格不足也必须输出中性。
+// 返回 true 表示本次属于受控 A/B gameplay 查询，即使资格不足也必须输出中性。
 bool OverrideQuery(void *device, int action, QueryKind kind,
                    float &result) noexcept {
   if (!IsMain() || !Armed() || action < 0 || action >= 12)
     return false;
   auto *context = CurrentConsumer();
-  if (!context || !ControlledPlayer(context->player))
+  const auto ordinal = context ? ControlledOrdinal(context->player) : -1;
+  if (ordinal < 0)
     return false;
   auto &r = *Runtime();
   RuntimeHealthy();
   ++r.overrides;
   result = 0;
   const auto tick = r.pipeline.SimulationTick();
-  auto &p = r.players[0];
+  auto &p = r.players[ordinal];
   int device_id = -1, controller = -1;
   if (tick && !r.blocks && !r.failure && ContextHealthy() &&
       !InBlockedContext() && p.BoundValid() &&
@@ -31,7 +32,7 @@ bool OverrideQuery(void *device, int action, QueryKind kind,
         p.Read(unsigned(action), static_cast<core::Query>(kind),
                static_cast<core::Consumer>(context->kind), p.Bound(), tick);
   }
-  RecordQuery(context->kind, kind, action, result);
+  RecordQuery(unsigned(ordinal), context->kind, kind, action, result);
   return true;
 }
 } // namespace cs::game

@@ -21,7 +21,7 @@ source = ['// 由 gen_binding.py 生成，请修改 binding/hooks.json。',
           '#include "binding/offsets.h"', '#include "game/bridge.h"',
           '// 自有定义仅借用类型表达 ABI，不构造这些对象。',
           'struct CsStatic {};', 'struct CsEntityList {};',
-          'struct CsLifecycle {};', 'struct CsDevice {};']
+          'struct CsLifecycle {};', 'struct CsDevice {};', 'struct CsButtonMaps {};']
 manifest = []
 for row in catalog:
     ident, group, cls, method, ret, params, call, rv, owner, static, conv, own, priority, required = row
@@ -50,6 +50,9 @@ for row in catalog:
                    '        return;', '    }',f'    super({call});']
     else:
         # 此处只桥接主线程适配；原生异常由各层 RAII 观察后继续传播。
+        if ident.startswith('pgd_') or ident == 'button_maps':
+            persistence_args = ', achievementID' if ident == 'pgd_unlock' else ', eEventCounters, num' if ident == 'pgd_counter' else ''
+            source.append(f'    cs::game::PersistenceScope persistence("{ident}", this{persistence_args});')
         if ident=='room_update':
             source.append('    cs::game::SimulationScope simulation(cs::game::SimulationKind::Room, this);')
         elif ident=='odd_helper':
@@ -58,6 +61,13 @@ for row in catalog:
             source.append('    cs::game::PlayerScope player_scope(this);')
         elif ident=='player_native':
             source.append('    cs::game::PlayerNativeReached(this);')
+        elif ident=='join_pass':
+            source.append('    cs::game::JoinScope join_scope(this);')
+        elif ident=='input_update':
+            source += ['    cs::game::InputLease input_lease(cs::game::HostBusy());',
+                       '    if (!input_lease.Ready()) cs::game::InputLeaseUnavailable();']
+        elif ident=='game_exit':
+            source.append('    if (scope.main) cs::game::RunTeardownBeginning();')
         elif ident=='device_update':
             source.append('    cs::game::DeviceScope device_scope(this);')
         elif ident=='restore':
@@ -93,12 +103,33 @@ expected = [int(value,16) for value in patch['expected'].split()]
     f'inline constexpr uintptr_t OddResumeRva = {patch["resume"]};\n' +
     f'inline constexpr const char* OddPattern = "{patch["expected"]}";\n' +
     'inline constexpr unsigned char OddExpected[] = {' + ','.join(hex(value) for value in expected) + '};\n', encoding='utf-8')
-(args.out/'hook-manifest.json').write_text(json.dumps({'tx':'tx-04-05','hooks':manifest,
+# Host 补丁同样只从 hooks.json 生成，shim 顺序与此表一一对应。
+host_patches = catalog_document['byte_patches'][1:]
+host_lines = ['// 由唯一 Hook 清单生成，勿手改。',
+    'struct HostPatchSpec { const char* id; uintptr_t rva, resume, alternate; const char* expected; unsigned size; bool call; };',
+    'inline constexpr HostPatchSpec HostPatches[] = {']
+for row in host_patches:
+    host_lines.append('  {"%s", %s, %s, %s, "%s", %s, %s},' % (
+        row['id'], row['rva'], row['resume'], row['alternate'], row['expected'],
+        row['size'], 'true' if row['kind']=='call' else 'false'))
+host_lines.append('};')
+host_lines += ['struct HostDependencySpec { const char* id; uintptr_t rva; const char* expected; };',
+               'inline constexpr HostDependencySpec HostDependencies[] = {']
+for row in catalog_document.get('native_dependencies', []):
+    host_lines.append('  {"%s", %s, "%s"},' % (row['id'], row['rva'], row['expected']))
+host_lines.append('};')
+(args.out/'host_patches.inc').write_text('\n'.join(host_lines)+'\n', encoding='utf-8')
+(args.out/'hook-manifest.json').write_text(json.dumps({'tx':'tx-04-06','hooks':manifest,
     'pointer_hooks':catalog_document['pointer_hooks'],
+    'native_dependencies':catalog_document.get('native_dependencies', []),
     'byte_patches':catalog_document['byte_patches']},indent=2)+'\n',encoding='utf-8')
-md = ['# tx-04-05 Hook manifest', '', 'Generated from mod/binding/hooks.json. Session controls gameplay activation.', '',
+md = ['# tx-04-06 Hook manifest', '', 'Generated from mod/binding/hooks.json. Session controls gameplay activation.', '',
       '| id | group | definition | RVA | priority | required nonzero |', '|---|---|---|---|---|---|']
 md += [f"| {h['id']} | {h['group']} | {h['definition']} | {h['rva']} | {h['priority']} | {h['required_nonzero']} |" for h in manifest]
 md += ['', 'Pointer hooks: Keyboard/Gamepad slots 8, 9, 10, 35. Permanent.',
        f'OddNormal: {patch["rva"]}, expected {patch["expected"]}, resume {patch["resume"]}. Permanent.']
 (args.out/'hook-manifest.md').write_text('\n'.join(md)+'\n',encoding='utf-8')
+
+with (args.out/'hook-manifest.md').open('a', encoding='utf-8') as handle:
+    for row in host_patches:
+        handle.write('\nHost/K: %s @ %s, expected %s, resume %s. Permanent.\n' % (row['id'], row['rva'], row['expected'], row['resume']))

@@ -50,6 +50,12 @@ const char *SessionCauseName(SessionCause cause) noexcept {
     return "HookFailure";
   case SessionCause::CleanupComplete:
     return "CleanupComplete";
+  case SessionCause::PeerBye:
+    return "PeerBye";
+  case SessionCause::PeerTimeout:
+    return "PeerTimeout";
+  case SessionCause::PeerProtocol:
+    return "PeerProtocol";
   }
   return "UNKNOWN";
 }
@@ -59,6 +65,8 @@ const char *SessionModeName(SessionMode mode) noexcept {
     return "None";
   case SessionMode::Solo:
     return "Solo";
+  case SessionMode::Host:
+    return "Host";
   }
   return "UNKNOWN";
 }
@@ -81,13 +89,18 @@ bool Session::Move(SessionState from, SessionState to,
       return true;
   }
 }
-// Solo 没有网络协商与 Rust 控制器，合法身份直接进入 Warmup。
+// 网络监听与握手不放入 core；Host 在外层确认握手后与 Solo 共用 Warmup。
+// 启动前校验完整身份，失败不发布半份身份，也不允许重试一次性 Session。
 bool Session::Start(const SessionIdentity &identity,
                     SessionMode mode) noexcept {
   if (Status().state != SessionState::Dormant)
     return false;
-  if (mode != SessionMode::Solo || !identity.generation ||
-      !identity.clients[0] || identity.clients[1] ||
+  const bool valid_clients =
+      mode == SessionMode::Solo
+          ? identity.clients[1] == 0
+          : mode == SessionMode::Host && identity.clients[1] != 0 &&
+                identity.clients[0] != identity.clients[1];
+  if (!valid_clients || !identity.generation || !identity.clients[0] ||
       std::all_of(identity.session.begin(), identity.session.end(),
                   [](auto byte) { return byte == 0; })) {
     Fail(SessionCause::Configuration);
@@ -99,16 +112,22 @@ bool Session::Start(const SessionIdentity &identity,
               SessionCause::Prepared);
 }
 bool Session::Activate(bool host_bound, bool remote_bound) noexcept {
-  (void)remote_bound; // 保留原型调用形状；Solo 不创建或等待 B。
   if (AcceptsInput())
     return true;
-  return mode_ == SessionMode::Solo && host_bound &&
+  const bool bindings_ready =
+      host_bound && (mode_ == SessionMode::Solo ||
+                     (mode_ == SessionMode::Host && remote_bound));
+  return bindings_ready &&
          Move(SessionState::Warmup, SessionState::Active,
               SessionCause::BindingsReady);
 }
 // 退休立即关闭新的 admission；已经开始的模拟仍可正常返回并完成发布。
 bool Session::BeginRetirement(SessionCause cause) noexcept {
-  if (cause != SessionCause::Stop && cause != SessionCause::RunTeardown)
+  const bool peer_cause = cause == SessionCause::PeerBye ||
+                         cause == SessionCause::PeerTimeout ||
+                         cause == SessionCause::PeerProtocol;
+  if (cause != SessionCause::Stop && cause != SessionCause::RunTeardown &&
+      !(mode_ == SessionMode::Host && peer_cause))
     return false;
   auto status = status_.load(std::memory_order_acquire);
   for (;;) {
@@ -133,6 +152,7 @@ bool Session::CompleteRetirement(bool callbacks_drained) noexcept {
 }
 bool Session::Fail(SessionCause cause) noexcept {
   // ControllerLost/RestoreFailure 仅保留枚举；常驻 Hook 路线没有这些生效路径。
+  // Peer 原因走 BeginRetirement，不把在途 tick 直接变成失败窗口。
   if (cause != SessionCause::Configuration &&
       cause != SessionCause::RuntimeFailure &&
       cause != SessionCause::PublicationFailure &&

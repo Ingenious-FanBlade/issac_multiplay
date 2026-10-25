@@ -26,4 +26,13 @@ inline constexpr uintptr_t VelocityX = 0x360, VelocityY = 0x364;
 inline constexpr uintptr_t ShootX = 0x1624, ShootY = 0x1628, ShootFlag = 0x162C;
 inline constexpr uintptr_t DeviceId = 8, DeviceEnabled = 0xD;
 inline constexpr uintptr_t DeviceVector = 4;
+// tx-04-06：ST1–ST9 及本轮物理 worker/Mutex 指令确认；均为目标版本 RVA。
+inline constexpr uintptr_t DeviceBaseVtable = 0x732F04, DeviceCtor = 0x5EC570;
+inline constexpr uintptr_t DeviceName = 0x3FC, InputBackendMutex = 0x7CE498;
+inline constexpr uintptr_t MutexLock = 0x5E60E0, RemoveCoPlayer = 0x590560;
+inline constexpr uintptr_t MutexUnlock = 0x5E61A0;
+inline constexpr uintptr_t EntityVariant = 0x2C, PlayerType = 0x13BC;
+inline constexpr uintptr_t JoinRowKey = 0xC, JoinRowCursor = 0x14,
+                           JoinRowStride = 0x14, JoinRows = 4;
+inline constexpr uintptr_t CharacterBegin = 0x70, CharacterEnd = 0x74;
 } // namespace cs::offset
