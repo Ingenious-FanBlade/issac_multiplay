@@ -1,0 +1,236 @@
+[
+  {
+    "va": "0x705020",
+    "rva": "0x305020",
+    "pseudocode": "_DWORD *__thiscall sub_705020(_DWORD *Block, char a2)\n{\n  *Block = &IsaacRepentancePlus::GridEntity::`vftable';\n  sub_403790(Block + 16);\n  if ( (a2 & 1) != 0 )\n    sub_A8717B(Block);\n  return Block;\n}\n",
+    "instructions": [
+      {
+        "va": "0x705020",
+        "bytes": "55",
+        "asm": "push    ebp"
+      },
+      {
+        "va": "0x705021",
+        "bytes": "8b ec",
+        "asm": "mov     ebp, esp"
+      },
+      {
+        "va": "0x705023",
+        "bytes": "56",
+        "asm": "push    esi"
+      },
+      {
+        "va": "0x705024",
+        "bytes": "8b f1",
+        "asm": "mov     esi, ecx"
+      },
+      {
+        "va": "0x705026",
+        "bytes": "8d 4e 40",
+        "asm": "lea     ecx, [esi+40h]; void *"
+      },
+      {
+        "va": "0x705029",
+        "bytes": "c7 06 5c 97 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity::`vftable'"
+      },
+      {
+        "va": "0x70502f",
+        "bytes": "e8 5c e7 cf ff",
+        "asm": "call    sub_403790"
+      },
+      {
+        "va": "0x705034",
+        "bytes": "f6 45 08 01",
+        "asm": "test    [ebp+arg_0], 1"
+      },
+      {
+        "va": "0x705038",
+        "bytes": "74 0e",
+        "asm": "jz      short loc_705048"
+      },
+      {
+        "va": "0x70503a",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h"
+      },
+      {
+        "va": "0x70503f",
+        "bytes": "56",
+        "asm": "push    esi; Block"
+      },
+      {
+        "va": "0x705040",
+        "bytes": "e8 36 21 38 00",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0x705045",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0x705048",
+        "bytes": "8b c6",
+        "asm": "mov     eax, esi"
+      },
+      {
+        "va": "0x70504a",
+        "bytes": "5e",
+        "asm": "pop     esi"
+      },
+      {
+        "va": "0x70504b",
+        "bytes": "5d",
+        "asm": "pop     ebp"
+      },
+      {
+        "va": "0x70504c",
+        "bytes": "c2 04 00",
+        "asm": "retn    4"
+      }
+    ]
+  },
+  {
+    "va": "0x706730",
+    "rva": "0x306730",
+    "pseudocode": "_DWORD *__thiscall sub_706730(_DWORD *Block, char a2)\n{\n  sub_4085F0(Block + 182);\n  sub_4085F0(Block + 176);\n  sub_4085F0(Block + 170);\n  sub_4085F0(Block + 164);\n  sub_403790(Block + 90);\n  *Block = &IsaacRepentancePlus::GridEntity::`vftable';\n  sub_403790(Block + 16);\n  if ( (a2 & 1) != 0 )\n    sub_A8717B(Block);\n  return Block;\n}\n",
+    "instructions": [
+      {
+        "va": "0x706730",
+        "bytes": "55",
+        "asm": "push    ebp"
+      },
+      {
+        "va": "0x706731",
+        "bytes": "8b ec",
+        "asm": "mov     ebp, esp"
+      },
+      {
+        "va": "0x706733",
+        "bytes": "56",
+        "asm": "push    esi"
+      },
+      {
+        "va": "0x706734",
+        "bytes": "8b f1",
+        "asm": "mov     esi, ecx"
+      },
+      {
+        "va": "0x706736",
+        "bytes": "8d 8e d8 02 00 00",
+        "asm": "lea     ecx, [esi+2D8h]"
+      },
+      {
+        "va": "0x70673c",
+        "bytes": "e8 af 1e d0 ff",
+        "asm": "call    sub_4085F0"
+      },
+      {
+        "va": "0x706741",
+        "bytes": "8d 8e c0 02 00 00",
+        "asm": "lea     ecx, [esi+2C0h]"
+      },
+      {
+        "va": "0x706747",
+        "bytes": "e8 a4 1e d0 ff",
+        "asm": "call    sub_4085F0"
+      },
+      {
+        "va": "0x70674c",
+        "bytes": "8d 8e a8 02 00 00",
+        "asm": "lea     ecx, [esi+2A8h]"
+      },
+      {
+        "va": "0x706752",
+        "bytes": "e8 99 1e d0 ff",
+        "asm": "call    sub_4085F0"
+      },
+      {
+        "va": "0x706757",
+        "bytes": "8d 8e 90 02 00 00",
+        "asm": "lea     ecx, [esi+290h]"
+      },
+      {
+        "va": "0x70675d",
+        "bytes": "e8 8e 1e d0 ff",
+        "asm": "call    sub_4085F0"
+      },
+      {
+        "va": "0x706762",
+        "bytes": "8d 8e 68 01 00 00",
+        "asm": "lea     ecx, [esi+168h]; void *"
+      },
+      {
+        "va": "0x706768",
+        "bytes": "e8 23 d0 cf ff",
+        "asm": "call    sub_403790"
+      },
+      {
+        "va": "0x70676d",
+        "bytes": "8d 4e 40",
+        "asm": "lea     ecx, [esi+40h]; void *"
+      },
+      {
+        "va": "0x706770",
+        "bytes": "c7 06 5c 97 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity::`vftable'"
+      },
+      {
+        "va": "0x706776",
+        "bytes": "e8 15 d0 cf ff",
+        "asm": "call    sub_403790"
+      },
+      {
+        "va": "0x70677b",
+        "bytes": "f6 45 08 01",
+        "asm": "test    [ebp+arg_0], 1"
+      },
+      {
+        "va": "0x70677f",
+        "bytes": "74 0e",
+        "asm": "jz      short loc_70678F"
+      },
+      {
+        "va": "0x706781",
+        "bytes": "68 f0 02 00 00",
+        "asm": "push    2F0h"
+      },
+      {
+        "va": "0x706786",
+        "bytes": "56",
+        "asm": "push    esi; Block"
+      },
+      {
+        "va": "0x706787",
+        "bytes": "e8 ef 09 38 00",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0x70678c",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0x70678f",
+        "bytes": "8b c6",
+        "asm": "mov     eax, esi"
+      },
+      {
+        "va": "0x706791",
+        "bytes": "5e",
+        "asm": "pop     esi"
+      },
+      {
+        "va": "0x706792",
+        "bytes": "5d",
+        "asm": "pop     ebp"
+      },
+      {
+        "va": "0x706793",
+        "bytes": "c2 04 00",
+        "asm": "retn    4"
+      }
+    ]
+  }
+]

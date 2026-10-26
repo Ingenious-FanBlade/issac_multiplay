@@ -1,0 +1,414 @@
+{
+ "kind": "read_only_static_export",
+ "task": "tx-04-07 ST4",
+ "idb": "C:\\Users\\114514\\AppData\\Local\\Temp\\claude\\F--projects-isaac-issac-multiplay\\910d48ab-e91d-4daa-b1b5-2a86b9899653\\scratchpad\\v12\\isaac-ng-v1.9.7.12.exe.unpacked.exe.i64",
+ "input": "C:\\Users\\114514\\AppData\\Local\\Temp\\claude\\F--projects-isaac-issac-multiplay\\910d48ab-e91d-4daa-b1b5-2a86b9899653\\scratchpad\\v12\\isaac-ng-v1.9.7.12.exe.unpacked.exe",
+ "imagebase": "0x400000",
+ "functions": [
+  {
+   "label": "Manager_ExecuteStartGame",
+   "rva": "0x532a20",
+   "func_start_rva": "0x532a20",
+   "func_end_rva": "0x53305c",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "Manager::ExecuteStartGame；zhl 签名吻合；Continue 分支 0x532DD9-0x532EF1"
+  },
+  {
+   "label": "Manager_Update",
+   "rva": "0x52e3e0",
+   "func_start_rva": "0x52e3e0",
+   "func_end_rva": "0x52ec25",
+   "partial": true,
+   "instruction_ranges_rva": [
+    [
+     "0x52e3fc",
+     "0x52e4c9"
+    ],
+    [
+     "0x52e65c",
+     "0x52e6ac"
+    ],
+    [
+     "0x52e78b",
+     "0x52e930"
+    ],
+    [
+     "0x52ea90",
+     "0x52eab8"
+    ],
+    [
+     "0x52ec00",
+     "0x52ec15"
+    ]
+   ],
+   "label_kind": "zhl",
+   "note": "Manager::Update(bool)；仅导出奇偶帧/ExecuteStartGame/输入轮询/断连处理/状态 switch 相关块"
+  },
+  {
+   "label": "Menu_Game_Update",
+   "rva": "0x559590",
+   "func_start_rva": "0x559590",
+   "func_end_rva": "0x559ea7",
+   "partial": true,
+   "instruction_ranges_rva": [
+    [
+     "0x5595be",
+     "0x559740"
+    ],
+    [
+     "0x5597b0",
+     "0x559890"
+    ],
+    [
+     "0x5599a3",
+     "0x559a50"
+    ]
+   ],
+   "label_kind": "zhl",
+   "note": "Menu_Game::Update；淡出完成后置 starting 与 Continue/Rerun 选择；case 1 为 Continue 确认"
+  },
+  {
+   "label": "MenuManager_Update_pages",
+   "rva": "0x561cb0",
+   "func_start_rva": "0x561cb0",
+   "func_end_rva": "0x56235f",
+   "partial": true,
+   "instruction_ranges_rva": [
+    [
+     "0x5620f0",
+     "0x562270"
+    ]
+   ],
+   "label_kind": "descriptive",
+   "note": "MenuManager::Update 页面 switch；case3=Menu_Game::Update，case11=controller list 宿主 0x4AF870"
+  },
+  {
+   "label": "Manager_cleanup_current_state",
+   "rva": "0x532970",
+   "func_start_rva": "0x532970",
+   "func_end_rva": "0x532a1c",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "Manager::cleanup_current_state；state==2 时调用 Game::Exit"
+  },
+  {
+   "label": "Manager_ExecuteGoToMenu",
+   "rva": "0x533060",
+   "func_start_rva": "0x533060",
+   "func_end_rva": "0x5331b9",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "descriptive",
+   "note": "Manager+0x4AE68 回菜单请求的执行体（描述性标签）"
+  },
+  {
+   "label": "Game_RestoreState",
+   "rva": "0x2f43a0",
+   "func_start_rva": "0x2f43a0",
+   "func_end_rva": "0x2f4bf3",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "Game::RestoreState(GameState*, bool startGame)"
+  },
+  {
+   "label": "Level_RestoreGameState",
+   "rva": "0x3415e0",
+   "func_start_rva": "0x3415e0",
+   "func_end_rva": "0x341de9",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "Level::RestoreGameState(GameState*)；zhl 签名吻合"
+  },
+  {
+   "label": "Room_EnterSetup_tail",
+   "rva": "0x3385f0",
+   "func_start_rva": "0x3385f0",
+   "func_end_rva": "0x339774",
+   "partial": true,
+   "instruction_ranges_rva": [
+    [
+     "0x3396c0",
+     "0x339774"
+    ]
+   ],
+   "label_kind": "descriptive",
+   "note": "Level::RestoreGameState 普通分支调用的房间进入设置函数，尾部 0x339719 调 NewRoomCaller"
+  },
+  {
+   "label": "PlayerManager_RestoreGameState",
+   "rva": "0x593a90",
+   "func_start_rva": "0x593a90",
+   "func_end_rva": "0x593f72",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "PlayerManager::RestoreGameState(GameState*)"
+  },
+  {
+   "label": "PlayerManager_SyncPlayersFromGameState",
+   "rva": "0x593780",
+   "func_start_rva": "0x593780",
+   "func_end_rva": "0x593a83",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "descriptive",
+   "note": "按存档 controller 匹配现有 Player；a4=1 时多余者 RemoveCoPlayer、缺者 SpawnCoPlayer2"
+  },
+  {
+   "label": "PlayerManager_RestoreGameState_PostLevelInit",
+   "rva": "0x593fa0",
+   "func_start_rva": "0x593fa0",
+   "func_end_rva": "0x5940da",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "PlayerManager::RestoreGameState_PostLevelInit(GameState*)"
+  },
+  {
+   "label": "PlayerManager_SpawnCoPlayer2",
+   "rva": "0x590250",
+   "func_start_rva": "0x590250",
+   "func_end_rva": "0x5904bb",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "PlayerManager::SpawnCoPlayer2(playerType)"
+  },
+  {
+   "label": "PlayerManager_AutoReassignControllers",
+   "rva": "0x5964a0",
+   "func_start_rva": "0x5964a0",
+   "func_end_rva": "0x596926",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "PlayerManager::AutoReassignControllers；官方 ASM 补丁点 0x596511/0x5967C7"
+  },
+  {
+   "label": "PlayerManager_Clear",
+   "rva": "0x58f7c0",
+   "func_start_rva": "0x58f7c0",
+   "func_end_rva": "0x58f927",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "descriptive",
+   "note": "Game::Exit 0x2F65D7 调用的 PlayerManager 清空（描述性标签）"
+  },
+  {
+   "label": "PlayerManager_CoopBabiesOnly",
+   "rva": "0x5910a0",
+   "func_start_rva": "0x5910a0",
+   "func_end_rva": "0x5910b9",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "读 Game+0x25AC0 bit4"
+  },
+  {
+   "label": "Player_SetControllerId",
+   "rva": "0x39e1b0",
+   "func_start_rva": "0x39e1b0",
+   "func_end_rva": "0x39e3d9",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "string",
+   "note": "日志串 Entity_Player::SetControllerId()；写 +0x160C 于 0x39E2F8"
+  },
+  {
+   "label": "Player_RestoreGameState",
+   "rva": "0x3a5660",
+   "func_start_rva": "0x3a5660",
+   "func_end_rva": "0x3a6d4a",
+   "partial": true,
+   "instruction_ranges_rva": [
+    [
+     "0x3a5660",
+     "0x3a56e1"
+    ],
+    [
+     "0x3a61ff",
+     "0x3a62e5"
+    ]
+   ],
+   "label_kind": "zhl",
+   "note": "Entity_Player::RestoreGameState；仅导出开头 SetControllerId 与 +0x380 子玩家循环"
+  },
+  {
+   "label": "Player_Constructor_ids",
+   "rva": "0x34dc70",
+   "func_start_rva": "0x34dc70",
+   "func_end_rva": "0x34e969",
+   "partial": true,
+   "instruction_ranges_rva": [
+    [
+     "0x34e080",
+     "0x34e0a5"
+    ]
+   ],
+   "label_kind": "descriptive",
+   "note": "Entity_Player 构造（SpawnCoPlayer2 调用）；仅导出 +0x160C/+0x1610/+0x1614 初始化"
+  },
+  {
+   "label": "Manager_SelectPrimaryController",
+   "rva": "0x52e260",
+   "func_start_rva": "0x52e260",
+   "func_end_rva": "0x52e3da",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "descriptive",
+   "note": "写 Manager+0x4A8D0 与全局 0xB88A14（描述性标签）"
+  },
+  {
+   "label": "Manager_ControllerDisconnectHandling_partial",
+   "rva": "0x5346b0",
+   "func_start_rva": "0x5346b0",
+   "func_end_rva": "0x535266",
+   "partial": true,
+   "instruction_ranges_rva": [
+    [
+     "0x5346b0",
+     "0x5347c0"
+    ],
+    [
+     "0x534c50",
+     "0x534c80"
+    ],
+    [
+     "0x535120",
+     "0x535145"
+    ],
+    [
+     "0x535200",
+     "0x535225"
+    ]
+   ],
+   "label_kind": "official_comment",
+   "note": "官方注释称 ControllerDisconnectHandling；pause disconnect shim 0x534768；官方补丁 0x534C6A/0x535133/0x535212"
+  },
+  {
+   "label": "Game_Update_transition_and_room",
+   "rva": "0x2f6d30",
+   "func_start_rva": "0x2f6d30",
+   "func_end_rva": "0x2f7a4a",
+   "partial": true,
+   "instruction_ranges_rva": [
+    [
+     "0x2f73c0",
+     "0x2f7445"
+    ],
+    [
+     "0x2f7880",
+     "0x2f78f0"
+    ]
+   ],
+   "label_kind": "zhl",
+   "note": "Game::Update；导出 stage/room transition 分支与 Room::Update 调用"
+  },
+  {
+   "label": "Game_Start_tail",
+   "rva": "0x2f16d0",
+   "func_start_rva": "0x2f16d0",
+   "func_end_rva": "0x2f1bef",
+   "partial": true,
+   "instruction_ranges_rva": [
+    [
+     "0x2f1b37",
+     "0x2f1bb6"
+    ]
+   ],
+   "label_kind": "zhl",
+   "note": "Game::Start 尾部：SaveGameState、Room::Update、PostGameStart(0)"
+  },
+  {
+   "label": "Game_Exit",
+   "rva": "0x2f6270",
+   "func_start_rva": "0x2f6270",
+   "func_end_rva": "0x2f66da",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "Game::Exit(bool ShouldSave)"
+  },
+  {
+   "label": "Manager_SaveGameState",
+   "rva": "0x532160",
+   "func_start_rva": "0x532160",
+   "func_end_rva": "0x53249d",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "descriptive",
+   "note": "含 Game::SaveState、GameState::DeleteRerun、GameState::write、PGD 保存"
+  },
+  {
+   "label": "Manager_DeleteGameState",
+   "rva": "0x5324a0",
+   "func_start_rva": "0x5324a0",
+   "func_end_rva": "0x5324ec",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "descriptive",
+   "note": "Game::Exit(false) 分支：GameState::Delete"
+  },
+  {
+   "label": "Game_SaveState",
+   "rva": "0x2f51c0",
+   "func_start_rva": "0x2f51c0",
+   "func_end_rva": "0x2f55b9",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "Game::SaveState；0x2F51FB 调 GameState::Clear"
+  },
+  {
+   "label": "GameState_Delete",
+   "rva": "0x59e7b0",
+   "func_start_rva": "0x59e7b0",
+   "func_end_rva": "0x59e86a",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "GameState::Delete（remove/Steam FileDelete）"
+  },
+  {
+   "label": "GameState_DeleteRerun",
+   "rva": "0x59e870",
+   "func_start_rva": "0x59e870",
+   "func_end_rva": "0x59e91b",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "GameState::DeleteRerun"
+  },
+  {
+   "label": "GameState_Clear",
+   "rva": "0x59de10",
+   "func_start_rva": "0x59de10",
+   "func_end_rva": "0x59e7a9",
+   "partial": true,
+   "instruction_ranges_rva": [
+    [
+     "0x59de10",
+     "0x59de80"
+    ]
+   ],
+   "label_kind": "zhl_partial",
+   "note": "疑为 GameState::Clear；0x59DE5E 清 +0x1FC64"
+  },
+  {
+   "label": "Manager_LoadGameState",
+   "rva": "0x5332f0",
+   "func_start_rva": "0x5332f0",
+   "func_end_rva": "0x533a26",
+   "partial": false,
+   "instruction_ranges_rva": null,
+   "label_kind": "zhl",
+   "note": "Manager::LoadGameState(slot)；置 GameState+0x1FC64/0x1FC65"
+  }
+ ],
+ "note": "标签为人工解释，不写回 IDB；Hex-Rays 自动类型/变量名不作 ABI 证据。没有修改 IDB、没有调试、没有测试、没有哈希校验。"
+}

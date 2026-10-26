@@ -1,0 +1,112 @@
+[
+  {
+    "va": "0x990cdc",
+    "rva": "0x590cdc",
+    "instruction": "mov     eax, [ebx+4]"
+  },
+  {
+    "va": "0x990cdf",
+    "rva": "0x590cdf",
+    "instruction": "mov     edx, [ebx]"
+  },
+  {
+    "va": "0x990ce1",
+    "rva": "0x590ce1",
+    "instruction": "cmp     edx, eax"
+  },
+  {
+    "va": "0x990ce3",
+    "rva": "0x590ce3",
+    "instruction": "jz      short loc_990CF0"
+  },
+  {
+    "va": "0x990ce5",
+    "rva": "0x590ce5",
+    "instruction": "cmp     [edx], esi"
+  },
+  {
+    "va": "0x990ce7",
+    "rva": "0x590ce7",
+    "instruction": "jz      short loc_990CF0"
+  },
+  {
+    "va": "0x990ce9",
+    "rva": "0x590ce9",
+    "instruction": "add     edx, 4"
+  },
+  {
+    "va": "0x990cec",
+    "rva": "0x590cec",
+    "instruction": "cmp     edx, eax"
+  },
+  {
+    "va": "0x990cee",
+    "rva": "0x590cee",
+    "instruction": "jnz     short loc_990CE5"
+  },
+  {
+    "va": "0x990cf0",
+    "rva": "0x590cf0",
+    "instruction": "mov     ecx, eax"
+  },
+  {
+    "va": "0x990cf2",
+    "rva": "0x590cf2",
+    "instruction": "lea     eax, [edx+4]"
+  },
+  {
+    "va": "0x990cf5",
+    "rva": "0x590cf5",
+    "instruction": "sub     ecx, eax"
+  },
+  {
+    "va": "0x990cf7",
+    "rva": "0x590cf7",
+    "instruction": "push    ecx; Size"
+  },
+  {
+    "va": "0x990cf8",
+    "rva": "0x590cf8",
+    "instruction": "push    eax; Src"
+  },
+  {
+    "va": "0x990cf9",
+    "rva": "0x590cf9",
+    "instruction": "push    edx; void *"
+  },
+  {
+    "va": "0x990cfa",
+    "rva": "0x590cfa",
+    "instruction": "call    memmove"
+  },
+  {
+    "va": "0x990cff",
+    "rva": "0x590cff",
+    "instruction": "add     dword ptr [ebx+4], 0FFFFFFFCh"
+  },
+  {
+    "va": "0x990d03",
+    "rva": "0x590d03",
+    "instruction": "add     esp, 0Ch"
+  },
+  {
+    "va": "0x990d06",
+    "rva": "0x590d06",
+    "instruction": "mov     eax, [esi]"
+  },
+  {
+    "va": "0x990d08",
+    "rva": "0x590d08",
+    "instruction": "mov     ecx, esi"
+  },
+  {
+    "va": "0x990d0a",
+    "rva": "0x590d0a",
+    "instruction": "call    dword ptr [eax+28h]"
+  },
+  {
+    "va": "0x990d0d",
+    "rva": "0x590d0d",
+    "instruction": "mov     dword ptr [esi+1610h], 0FFFFFFFFh"
+  }
+]

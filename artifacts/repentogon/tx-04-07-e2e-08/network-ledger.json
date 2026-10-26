@@ -1,0 +1,422 @@
+[
+  {
+    "codec": true,
+    "exact_relay_peer": true,
+    "host": {
+      "detail": "event=stop generation=1 stopped=1 terminal=Stop rx=2247 tx=3880 duplicate=9 stale=52 foreign=0 rx_drop=0 tx_drop=0 bye_attempts=3 bye_sent=3 terminal_at_ms=173202812 last_receive_ms=173202796 terminal_rx=0",
+      "ev": "net",
+      "seq": 40508,
+      "t": 173202942526,
+      "truncated": false
+    },
+    "ledger": [
+      {
+        "destination_difference": 0,
+        "destination_rx": 2247,
+        "direction": 0,
+        "pass": true,
+        "relay_received": 2265,
+        "relay_send_ok": 2247,
+        "source_difference": 0,
+        "source_tx": 2265,
+        "summary": {
+          "copies_scheduled": 2247,
+          "duplicate": 9,
+          "pending": 0,
+          "policy_drop": 27,
+          "received": 2265,
+          "reorder": 9,
+          "send_error": 0,
+          "send_ok": 2247,
+          "shutdown_drop": 0
+        }
+      },
+      {
+        "destination_difference": 0,
+        "destination_rx": 3810,
+        "direction": 1,
+        "pass": true,
+        "relay_received": 3880,
+        "relay_send_ok": 3810,
+        "source_difference": 0,
+        "source_tx": 3880,
+        "summary": {
+          "copies_scheduled": 3810,
+          "duplicate": 16,
+          "pending": 0,
+          "policy_drop": 86,
+          "received": 3880,
+          "reorder": 14,
+          "send_error": 0,
+          "send_ok": 3810,
+          "shutdown_drop": 0
+        }
+      }
+    ],
+    "pass": true,
+    "relay": {
+      "directions": [
+        {
+          "copies_scheduled": 2247,
+          "duplicate": 9,
+          "pending": 0,
+          "policy_drop": 27,
+          "received": 2265,
+          "reorder": 9,
+          "send_error": 0,
+          "send_ok": 2247,
+          "shutdown_drop": 0
+        },
+        {
+          "copies_scheduled": 3810,
+          "duplicate": 16,
+          "pending": 0,
+          "policy_drop": 86,
+          "received": 3880,
+          "reorder": 14,
+          "send_error": 0,
+          "send_ok": 3810,
+          "shutdown_drop": 0
+        }
+      ],
+      "foreign": 0,
+      "host": "127.0.0.1:27090",
+      "peer": "127.0.0.1:60214",
+      "udp_notices": [
+        0,
+        0
+      ]
+    },
+    "relay_healthy": true,
+    "remote": {
+      "bye": 1,
+      "duplicate": 18,
+      "elapsed_us": 64907925,
+      "error": null,
+      "establishments": 1,
+      "event": "summary",
+      "expected_timeout": false,
+      "rx": 3810,
+      "stale": 35,
+      "terminal_cause": "peer_bye",
+      "tx": 2265
+    },
+    "round": 1,
+    "terminal": true
+  },
+  {
+    "codec": true,
+    "exact_relay_peer": true,
+    "host": {
+      "detail": "event=stop generation=2 stopped=1 terminal=PeerBye rx=669 tx=683 duplicate=0 stale=0 foreign=0 rx_drop=0 tx_drop=0 bye_attempts=0 bye_sent=0 terminal_at_ms=173216406 last_receive_ms=173216406 terminal_rx=2",
+      "ev": "net",
+      "seq": 51128,
+      "t": 173216537187,
+      "truncated": false
+    },
+    "ledger": [
+      {
+        "destination_difference": 0,
+        "destination_rx": 669,
+        "direction": 0,
+        "pass": true,
+        "relay_received": 669,
+        "relay_send_ok": 669,
+        "source_difference": 0,
+        "source_tx": 669,
+        "summary": {
+          "copies_scheduled": 669,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 669,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 669,
+          "shutdown_drop": 0
+        }
+      },
+      {
+        "destination_difference": 0,
+        "destination_rx": 683,
+        "direction": 1,
+        "pass": true,
+        "relay_received": 683,
+        "relay_send_ok": 683,
+        "source_difference": 0,
+        "source_tx": 683,
+        "summary": {
+          "copies_scheduled": 683,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 683,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 683,
+          "shutdown_drop": 0
+        }
+      }
+    ],
+    "pass": true,
+    "relay": {
+      "directions": [
+        {
+          "copies_scheduled": 669,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 669,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 669,
+          "shutdown_drop": 0
+        },
+        {
+          "copies_scheduled": 683,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 683,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 683,
+          "shutdown_drop": 0
+        }
+      ],
+      "foreign": 0,
+      "host": "127.0.0.1:27090",
+      "peer": "127.0.0.1:61316",
+      "udp_notices": [
+        0,
+        0
+      ]
+    },
+    "relay_healthy": true,
+    "remote": {
+      "bye": null,
+      "duplicate": 0,
+      "elapsed_us": 11508608,
+      "error": null,
+      "establishments": 1,
+      "event": "summary",
+      "expected_timeout": false,
+      "rx": 683,
+      "stale": 0,
+      "terminal_cause": "local_bye",
+      "tx": 669
+    },
+    "round": 2,
+    "terminal": true
+  },
+  {
+    "codec": true,
+    "exact_relay_peer": true,
+    "host": {
+      "detail": "event=stop generation=3 stopped=1 terminal=PeerTimeout rx=41 tx=226 duplicate=0 stale=0 foreign=0 rx_drop=0 tx_drop=0 bye_attempts=3 bye_sent=3 terminal_at_ms=173220734 last_receive_ms=173217734 terminal_rx=0",
+      "ev": "net",
+      "seq": 53873,
+      "t": 173220865701,
+      "truncated": false
+    },
+    "ledger": [
+      {
+        "destination_difference": 0,
+        "destination_rx": 41,
+        "direction": 0,
+        "pass": true,
+        "relay_received": 53,
+        "relay_send_ok": 41,
+        "source_difference": 0,
+        "source_tx": 53,
+        "summary": {
+          "copies_scheduled": 41,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 12,
+          "received": 53,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 41,
+          "shutdown_drop": 0
+        }
+      },
+      {
+        "destination_difference": 0,
+        "destination_rx": 42,
+        "direction": 1,
+        "pass": true,
+        "relay_received": 226,
+        "relay_send_ok": 42,
+        "source_difference": 0,
+        "source_tx": 226,
+        "summary": {
+          "copies_scheduled": 42,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 184,
+          "received": 226,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 42,
+          "shutdown_drop": 0
+        }
+      }
+    ],
+    "pass": true,
+    "relay": {
+      "directions": [
+        {
+          "copies_scheduled": 41,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 12,
+          "received": 53,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 41,
+          "shutdown_drop": 0
+        },
+        {
+          "copies_scheduled": 42,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 184,
+          "received": 226,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 42,
+          "shutdown_drop": 0
+        }
+      ],
+      "foreign": 0,
+      "host": "127.0.0.1:27090",
+      "peer": "127.0.0.1:64450",
+      "udp_notices": [
+        0,
+        0
+      ]
+    },
+    "relay_healthy": true,
+    "remote": {
+      "bye": null,
+      "duplicate": 0,
+      "elapsed_us": 3716078,
+      "error": "peer_timeout",
+      "establishments": 1,
+      "event": "summary",
+      "expected_timeout": true,
+      "rx": 42,
+      "stale": 0,
+      "terminal_cause": "peer_timeout",
+      "tx": 53
+    },
+    "round": 3,
+    "terminal": true
+  },
+  {
+    "codec": true,
+    "exact_relay_peer": false,
+    "host": {
+      "detail": "event=stop generation=4 stopped=1 terminal=PeerBye rx=74 tx=1056 duplicate=0 stale=0 foreign=0 rx_drop=0 tx_drop=0 bye_attempts=0 bye_sent=0 terminal_at_ms=173245312 last_receive_ms=173245312 terminal_rx=2",
+      "ev": "net",
+      "seq": 58606,
+      "t": 173245444051,
+      "truncated": false
+    },
+    "ledger": [
+      {
+        "destination_difference": 0,
+        "destination_rx": 74,
+        "direction": 0,
+        "pass": true,
+        "relay_received": 74,
+        "relay_send_ok": 74,
+        "source_difference": 0,
+        "source_tx": 74,
+        "summary": {
+          "copies_scheduled": 74,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 74,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 74,
+          "shutdown_drop": 0
+        }
+      },
+      {
+        "destination_difference": -1,
+        "destination_rx": 1055,
+        "direction": 1,
+        "pass": false,
+        "relay_received": 1056,
+        "relay_send_ok": 1056,
+        "source_difference": 0,
+        "source_tx": 1056,
+        "summary": {
+          "copies_scheduled": 1056,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 1056,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 1056,
+          "shutdown_drop": 0
+        }
+      }
+    ],
+    "pass": false,
+    "relay": {
+      "directions": [
+        {
+          "copies_scheduled": 74,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 74,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 74,
+          "shutdown_drop": 0
+        },
+        {
+          "copies_scheduled": 1056,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 1056,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 1056,
+          "shutdown_drop": 0
+        }
+      ],
+      "foreign": 0,
+      "host": "127.0.0.1:27090",
+      "peer": "127.0.0.1:55961",
+      "udp_notices": [
+        0,
+        0
+      ]
+    },
+    "relay_healthy": true,
+    "remote": {
+      "bye": null,
+      "duplicate": 0,
+      "elapsed_us": 17591799,
+      "error": null,
+      "establishments": 1,
+      "event": "summary",
+      "expected_timeout": false,
+      "rx": 1055,
+      "stale": 0,
+      "terminal_cause": null,
+      "tx": 74
+    },
+    "round": 4,
+    "terminal": false
+  }
+]

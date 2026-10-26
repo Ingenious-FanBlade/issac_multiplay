@@ -1,0 +1,344 @@
+[
+  {
+    "start": "0x86d190",
+    "pseudocode": "_DWORD *__thiscall sub_86D190(_DWORD *this, int Morph, int sub_6BD0C0)\n{\n  int v4; // edi\n  int v5; // esi\n\n  v4 = *this;\n  *(_DWORD *)lua_newuserdata(*this, 4) = ::sub_6BD0C0;\n  lua_pushcclosure(v4, sub_897480, 1);\n  v5 = lua_absindex(v4, -3);\n  lua_pushstring(v4, \"Morph\");\n  lua_rotate(v4, -2, 1);\n  lua_rawset(v4, v5);\n  return this;\n}\n",
+    "instructions": [
+      {
+        "ea": "0x86d190",
+        "asm": "push    ebx",
+        "bytes": "53"
+      },
+      {
+        "ea": "0x86d191",
+        "asm": "push    esi",
+        "bytes": "56"
+      },
+      {
+        "ea": "0x86d192",
+        "asm": "mov     ebx, ecx",
+        "bytes": "8bd9"
+      },
+      {
+        "ea": "0x86d194",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86d195",
+        "asm": "push    4",
+        "bytes": "6a04"
+      },
+      {
+        "ea": "0x86d197",
+        "asm": "mov     edi, [ebx]",
+        "bytes": "8b3b"
+      },
+      {
+        "ea": "0x86d199",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86d19a",
+        "asm": "call    ds:lua_newuserdata",
+        "bytes": "ff1528a2aa00"
+      },
+      {
+        "ea": "0x86d1a0",
+        "asm": "push    1",
+        "bytes": "6a01"
+      },
+      {
+        "ea": "0x86d1a2",
+        "asm": "push    offset sub_897480",
+        "bytes": "6880748900"
+      },
+      {
+        "ea": "0x86d1a7",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86d1a8",
+        "asm": "mov     dword ptr [eax], offset sub_6BD0C0",
+        "bytes": "c700c0d06b00"
+      },
+      {
+        "ea": "0x86d1ae",
+        "asm": "call    ds:lua_pushcclosure",
+        "bytes": "ff15a0a1aa00"
+      },
+      {
+        "ea": "0x86d1b4",
+        "asm": "push    0FFFFFFFDh",
+        "bytes": "6afd"
+      },
+      {
+        "ea": "0x86d1b6",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86d1b7",
+        "asm": "call    ds:lua_absindex",
+        "bytes": "ff1560a2aa00"
+      },
+      {
+        "ea": "0x86d1bd",
+        "asm": "push    offset aMorph; \"Morph\"",
+        "bytes": "68d032b200"
+      },
+      {
+        "ea": "0x86d1c2",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86d1c3",
+        "asm": "mov     esi, eax",
+        "bytes": "8bf0"
+      },
+      {
+        "ea": "0x86d1c5",
+        "asm": "call    ds:lua_pushstring",
+        "bytes": "ff15eca1aa00"
+      },
+      {
+        "ea": "0x86d1cb",
+        "asm": "push    1",
+        "bytes": "6a01"
+      },
+      {
+        "ea": "0x86d1cd",
+        "asm": "push    0FFFFFFFEh",
+        "bytes": "6afe"
+      },
+      {
+        "ea": "0x86d1cf",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86d1d0",
+        "asm": "call    ds:lua_rotate",
+        "bytes": "ff1554a2aa00"
+      },
+      {
+        "ea": "0x86d1d6",
+        "asm": "push    esi",
+        "bytes": "56"
+      },
+      {
+        "ea": "0x86d1d7",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86d1d8",
+        "asm": "call    ds:lua_rawset",
+        "bytes": "ff15c8a1aa00"
+      },
+      {
+        "ea": "0x86d1de",
+        "asm": "add     esp, 38h",
+        "bytes": "83c438"
+      },
+      {
+        "ea": "0x86d1e1",
+        "asm": "mov     eax, ebx",
+        "bytes": "8bc3"
+      },
+      {
+        "ea": "0x86d1e3",
+        "asm": "pop     edi",
+        "bytes": "5f"
+      },
+      {
+        "ea": "0x86d1e4",
+        "asm": "pop     esi",
+        "bytes": "5e"
+      },
+      {
+        "ea": "0x86d1e5",
+        "asm": "pop     ebx",
+        "bytes": "5b"
+      },
+      {
+        "ea": "0x86d1e6",
+        "asm": "retn    8",
+        "bytes": "c20800"
+      }
+    ]
+  },
+  {
+    "start": "0x86b040",
+    "pseudocode": "_DWORD *__thiscall sub_86B040(\n        _DWORD *this,\n        const char *Morph,\n        int (__stdcall *sub_6DFF30)(int, int, int, char, int, int))\n{\n  int v4; // edi\n  int v5; // esi\n\n  v4 = *this;\n  *(_DWORD *)lua_newuserdata(*this, 4) = ::sub_6DFF30;\n  lua_pushcclosure(v4, sub_896C30, 1);\n  v5 = lua_absindex(v4, -3);\n  lua_pushstring(v4, \"Morph\");\n  lua_rotate(v4, -2, 1);\n  lua_rawset(v4, v5);\n  return this;\n}\n",
+    "instructions": [
+      {
+        "ea": "0x86b040",
+        "asm": "push    ebx",
+        "bytes": "53"
+      },
+      {
+        "ea": "0x86b041",
+        "asm": "push    esi",
+        "bytes": "56"
+      },
+      {
+        "ea": "0x86b042",
+        "asm": "mov     ebx, ecx",
+        "bytes": "8bd9"
+      },
+      {
+        "ea": "0x86b044",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86b045",
+        "asm": "push    4",
+        "bytes": "6a04"
+      },
+      {
+        "ea": "0x86b047",
+        "asm": "mov     edi, [ebx]",
+        "bytes": "8b3b"
+      },
+      {
+        "ea": "0x86b049",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86b04a",
+        "asm": "call    ds:lua_newuserdata",
+        "bytes": "ff1528a2aa00"
+      },
+      {
+        "ea": "0x86b050",
+        "asm": "push    1",
+        "bytes": "6a01"
+      },
+      {
+        "ea": "0x86b052",
+        "asm": "push    offset sub_896C30",
+        "bytes": "68306c8900"
+      },
+      {
+        "ea": "0x86b057",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86b058",
+        "asm": "mov     dword ptr [eax], offset sub_6DFF30",
+        "bytes": "c70030ff6d00"
+      },
+      {
+        "ea": "0x86b05e",
+        "asm": "call    ds:lua_pushcclosure",
+        "bytes": "ff15a0a1aa00"
+      },
+      {
+        "ea": "0x86b064",
+        "asm": "push    0FFFFFFFDh",
+        "bytes": "6afd"
+      },
+      {
+        "ea": "0x86b066",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86b067",
+        "asm": "call    ds:lua_absindex",
+        "bytes": "ff1560a2aa00"
+      },
+      {
+        "ea": "0x86b06d",
+        "asm": "push    offset aMorph; \"Morph\"",
+        "bytes": "68d032b200"
+      },
+      {
+        "ea": "0x86b072",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86b073",
+        "asm": "mov     esi, eax",
+        "bytes": "8bf0"
+      },
+      {
+        "ea": "0x86b075",
+        "asm": "call    ds:lua_pushstring",
+        "bytes": "ff15eca1aa00"
+      },
+      {
+        "ea": "0x86b07b",
+        "asm": "push    1",
+        "bytes": "6a01"
+      },
+      {
+        "ea": "0x86b07d",
+        "asm": "push    0FFFFFFFEh",
+        "bytes": "6afe"
+      },
+      {
+        "ea": "0x86b07f",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86b080",
+        "asm": "call    ds:lua_rotate",
+        "bytes": "ff1554a2aa00"
+      },
+      {
+        "ea": "0x86b086",
+        "asm": "push    esi",
+        "bytes": "56"
+      },
+      {
+        "ea": "0x86b087",
+        "asm": "push    edi",
+        "bytes": "57"
+      },
+      {
+        "ea": "0x86b088",
+        "asm": "call    ds:lua_rawset",
+        "bytes": "ff15c8a1aa00"
+      },
+      {
+        "ea": "0x86b08e",
+        "asm": "add     esp, 38h",
+        "bytes": "83c438"
+      },
+      {
+        "ea": "0x86b091",
+        "asm": "mov     eax, ebx",
+        "bytes": "8bc3"
+      },
+      {
+        "ea": "0x86b093",
+        "asm": "pop     edi",
+        "bytes": "5f"
+      },
+      {
+        "ea": "0x86b094",
+        "asm": "pop     esi",
+        "bytes": "5e"
+      },
+      {
+        "ea": "0x86b095",
+        "asm": "pop     ebx",
+        "bytes": "5b"
+      },
+      {
+        "ea": "0x86b096",
+        "asm": "retn    8",
+        "bytes": "c20800"
+      }
+    ]
+  }
+]

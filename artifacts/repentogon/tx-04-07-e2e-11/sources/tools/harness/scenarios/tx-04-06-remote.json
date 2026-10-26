@@ -1,0 +1,10 @@
+{
+  "description": "Independent ICSN client script; offsets use Ack.completed, target lead=2. Requires an already listening Host and a run for Active.",
+  "steps": [
+    { "after": 0, "move": [32767, 0], "aim": [0, 0], "edge": 0 },
+    { "after": 24, "move": [0, 0], "aim": [32767, 0], "edge": 0 },
+    { "after": 48, "move": [0, 0], "aim": [0, 0], "edge": 0 }
+  ],
+  "duration_ticks": 60,
+  "finish": "bye"
+}

@@ -1,0 +1,35 @@
+{
+  "dead_observation": "OBSERVED",
+  "generation": true,
+  "ghost_observed": true,
+  "invalidate_bind_ack_fresh": true,
+  "invalidations": [
+    {
+      "detail": "ordinal=1 bound=0 generation=6 reason=remote_life_lost epoch=48 loop=2917 reason_class=life session_generation=1 participant_generation=6",
+      "ev": "binding",
+      "seq": 33157,
+      "t": 176362224628,
+      "truncated": false
+    }
+  ],
+  "lost_window": {
+    "accepted": 0,
+    "complete_ticks": 18,
+    "pass": true
+  },
+  "movement": true,
+  "no_recreation": true,
+  "old_generation_rejected": true,
+  "old_probe": {
+    "bytes": "4943534e01000200400002000000000052067a11b0be1803b4b3cba95071bfa50200000000000000f00700000000000050000000000000004e908efd000000000100000000000000ff0b00000000000052067a11b0be1803b4b3cba95071bfa50200000000000000f5070000000000003c08000000000000020018000000000000000000ff7f00000000000000000000",
+    "command_sequence": 2037,
+    "current_generation": 6,
+    "elapsed_us": 51578680,
+    "event": "old_generation_sample",
+    "last_ack": 3071,
+    "old_generation": 5,
+    "target": 2108
+  },
+  "revive_and_animation": true,
+  "same_K": true
+}

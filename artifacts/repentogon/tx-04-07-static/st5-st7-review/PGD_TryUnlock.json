@@ -1,0 +1,1543 @@
+{
+  "label": "PGD_TryUnlock",
+  "va": "0x903930",
+  "rva": "0x503930",
+  "func_start_va": "0x903930",
+  "func_end_va": "0x9039aa",
+  "decompile": "char __thiscall sub_903930(_BYTE *this, int ArgList)\n{\n  _DWORD *n4; // ecx\n\n  if ( this[1] || !ArgList || this[ArgList + 56] )\n    return 0;\n  n4 = n4;\n  this[ArgList + 56] = 1;\n  if ( n4[76782] == n4[76783] || !sub_9328C0((int)n4) )\n  {\n    if ( this[2] )\n    {\n      sub_9036D0(ArgList);\n      sub_931C60(ArgList);\n    }\n  }\n  *this = 1;\n  sub_903600(this);\n  sub_904260(this);\n  return 1;\n}\n",
+  "instructions": [
+    {
+      "va": "0x903930",
+      "rva": "0x503930",
+      "bytes": "55",
+      "text": "push    ebp"
+    },
+    {
+      "va": "0x903931",
+      "rva": "0x503931",
+      "bytes": "8b ec",
+      "text": "mov     ebp, esp"
+    },
+    {
+      "va": "0x903933",
+      "rva": "0x503933",
+      "bytes": "83 e4 f8",
+      "text": "and     esp, 0FFFFFFF8h"
+    },
+    {
+      "va": "0x903936",
+      "rva": "0x503936",
+      "bytes": "56",
+      "text": "push    esi"
+    },
+    {
+      "va": "0x903937",
+      "rva": "0x503937",
+      "bytes": "8b f1",
+      "text": "mov     esi, ecx"
+    },
+    {
+      "va": "0x903939",
+      "rva": "0x503939",
+      "bytes": "57",
+      "text": "push    edi"
+    },
+    {
+      "va": "0x90393a",
+      "rva": "0x50393a",
+      "bytes": "80 7e 01 00",
+      "text": "cmp     byte ptr [esi+1], 0"
+    },
+    {
+      "va": "0x90393e",
+      "rva": "0x50393e",
+      "bytes": "75 60",
+      "text": "jnz     short loc_9039A0"
+    },
+    {
+      "va": "0x903940",
+      "rva": "0x503940",
+      "bytes": "8b 7d 08",
+      "text": "mov     edi, dword ptr [ebp+ArgList]"
+    },
+    {
+      "va": "0x903943",
+      "rva": "0x503943",
+      "bytes": "85 ff",
+      "text": "test    edi, edi"
+    },
+    {
+      "va": "0x903945",
+      "rva": "0x503945",
+      "bytes": "74 59",
+      "text": "jz      short loc_9039A0"
+    },
+    {
+      "va": "0x903947",
+      "rva": "0x503947",
+      "bytes": "80 7c 37 38 00",
+      "text": "cmp     byte ptr [edi+esi+38h], 0"
+    },
+    {
+      "va": "0x90394c",
+      "rva": "0x50394c",
+      "bytes": "75 52",
+      "text": "jnz     short loc_9039A0"
+    },
+    {
+      "va": "0x90394e",
+      "rva": "0x50394e",
+      "bytes": "8b 0d 1c 4a be 00",
+      "text": "mov     ecx, n4"
+    },
+    {
+      "va": "0x903954",
+      "rva": "0x503954",
+      "bytes": "c6 44 37 38 01",
+      "text": "mov     byte ptr [edi+esi+38h], 1"
+    },
+    {
+      "va": "0x903959",
+      "rva": "0x503959",
+      "bytes": "8b 81 b8 af 04 00",
+      "text": "mov     eax, [ecx+4AFB8h]"
+    },
+    {
+      "va": "0x90395f",
+      "rva": "0x50395f",
+      "bytes": "3b 81 bc af 04 00",
+      "text": "cmp     eax, [ecx+4AFBCh]"
+    },
+    {
+      "va": "0x903965",
+      "rva": "0x503965",
+      "bytes": "74 0a",
+      "text": "jz      short loc_903971"
+    },
+    {
+      "va": "0x903967",
+      "rva": "0x503967",
+      "bytes": "51",
+      "text": "push    ecx"
+    },
+    {
+      "va": "0x903968",
+      "rva": "0x503968",
+      "bytes": "e8 53 ef 02 00",
+      "text": "call    sub_9328C0"
+    },
+    {
+      "va": "0x90396d",
+      "rva": "0x50396d",
+      "bytes": "84 c0",
+      "text": "test    al, al"
+    },
+    {
+      "va": "0x90396f",
+      "rva": "0x50396f",
+      "bytes": "75 14",
+      "text": "jnz     short loc_903985"
+    },
+    {
+      "va": "0x903971",
+      "rva": "0x503971",
+      "bytes": "80 7e 02 00",
+      "text": "cmp     byte ptr [esi+2], 0"
+    },
+    {
+      "va": "0x903975",
+      "rva": "0x503975",
+      "bytes": "74 0e",
+      "text": "jz      short loc_903985"
+    },
+    {
+      "va": "0x903977",
+      "rva": "0x503977",
+      "bytes": "57",
+      "text": "push    edi; ArgList"
+    },
+    {
+      "va": "0x903978",
+      "rva": "0x503978",
+      "bytes": "8b ce",
+      "text": "mov     ecx, esi"
+    },
+    {
+      "va": "0x90397a",
+      "rva": "0x50397a",
+      "bytes": "e8 51 fd ff ff",
+      "text": "call    sub_9036D0"
+    },
+    {
+      "va": "0x90397f",
+      "rva": "0x50397f",
+      "bytes": "57",
+      "text": "push    edi"
+    },
+    {
+      "va": "0x903980",
+      "rva": "0x503980",
+      "bytes": "e8 db e2 02 00",
+      "text": "call    sub_931C60"
+    },
+    {
+      "va": "0x903985",
+      "rva": "0x503985",
+      "bytes": "8b ce",
+      "text": "mov     ecx, esi"
+    },
+    {
+      "va": "0x903987",
+      "rva": "0x503987",
+      "bytes": "c6 06 01",
+      "text": "mov     byte ptr [esi], 1"
+    },
+    {
+      "va": "0x90398a",
+      "rva": "0x50398a",
+      "bytes": "e8 71 fc ff ff",
+      "text": "call    sub_903600"
+    },
+    {
+      "va": "0x90398f",
+      "rva": "0x50398f",
+      "bytes": "8b ce",
+      "text": "mov     ecx, esi"
+    },
+    {
+      "va": "0x903991",
+      "rva": "0x503991",
+      "bytes": "e8 ca 08 00 00",
+      "text": "call    sub_904260"
+    },
+    {
+      "va": "0x903996",
+      "rva": "0x503996",
+      "bytes": "b0 01",
+      "text": "mov     al, 1"
+    },
+    {
+      "va": "0x903998",
+      "rva": "0x503998",
+      "bytes": "5f",
+      "text": "pop     edi"
+    },
+    {
+      "va": "0x903999",
+      "rva": "0x503999",
+      "bytes": "5e",
+      "text": "pop     esi"
+    },
+    {
+      "va": "0x90399a",
+      "rva": "0x50399a",
+      "bytes": "8b e5",
+      "text": "mov     esp, ebp"
+    },
+    {
+      "va": "0x90399c",
+      "rva": "0x50399c",
+      "bytes": "5d",
+      "text": "pop     ebp"
+    },
+    {
+      "va": "0x90399d",
+      "rva": "0x50399d",
+      "bytes": "c2 04 00",
+      "text": "retn    4"
+    },
+    {
+      "va": "0x9039a0",
+      "rva": "0x5039a0",
+      "bytes": "5f",
+      "text": "pop     edi"
+    },
+    {
+      "va": "0x9039a1",
+      "rva": "0x5039a1",
+      "bytes": "32 c0",
+      "text": "xor     al, al"
+    },
+    {
+      "va": "0x9039a3",
+      "rva": "0x5039a3",
+      "bytes": "5e",
+      "text": "pop     esi"
+    },
+    {
+      "va": "0x9039a4",
+      "rva": "0x5039a4",
+      "bytes": "8b e5",
+      "text": "mov     esp, ebp"
+    },
+    {
+      "va": "0x9039a6",
+      "rva": "0x5039a6",
+      "bytes": "5d",
+      "text": "pop     ebp"
+    },
+    {
+      "va": "0x9039a7",
+      "rva": "0x5039a7",
+      "bytes": "c2 04 00",
+      "text": "retn    4"
+    }
+  ],
+  "xrefs_to": [
+    {
+      "from_va": "0x59143e",
+      "from_rva": "0x19143e",
+      "type": 17
+    },
+    {
+      "from_va": "0x5b4f44",
+      "from_rva": "0x1b4f44",
+      "type": 17
+    },
+    {
+      "from_va": "0x5b5060",
+      "from_rva": "0x1b5060",
+      "type": 17
+    },
+    {
+      "from_va": "0x5b9c30",
+      "from_rva": "0x1b9c30",
+      "type": 17
+    },
+    {
+      "from_va": "0x5bc060",
+      "from_rva": "0x1bc060",
+      "type": 17
+    },
+    {
+      "from_va": "0x5bc097",
+      "from_rva": "0x1bc097",
+      "type": 17
+    },
+    {
+      "from_va": "0x5fecef",
+      "from_rva": "0x1fecef",
+      "type": 17
+    },
+    {
+      "from_va": "0x5fed06",
+      "from_rva": "0x1fed06",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e486",
+      "from_rva": "0x25e486",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e49b",
+      "from_rva": "0x25e49b",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e4b0",
+      "from_rva": "0x25e4b0",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e4c5",
+      "from_rva": "0x25e4c5",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e4dd",
+      "from_rva": "0x25e4dd",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e4f5",
+      "from_rva": "0x25e4f5",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e50d",
+      "from_rva": "0x25e50d",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e525",
+      "from_rva": "0x25e525",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e53a",
+      "from_rva": "0x25e53a",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e552",
+      "from_rva": "0x25e552",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e8b6",
+      "from_rva": "0x25e8b6",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e8cb",
+      "from_rva": "0x25e8cb",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e8e0",
+      "from_rva": "0x25e8e0",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e8f5",
+      "from_rva": "0x25e8f5",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e911",
+      "from_rva": "0x25e911",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e9a4",
+      "from_rva": "0x25e9a4",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e9bc",
+      "from_rva": "0x25e9bc",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e9d4",
+      "from_rva": "0x25e9d4",
+      "type": 17
+    },
+    {
+      "from_va": "0x65e9ec",
+      "from_rva": "0x25e9ec",
+      "type": 17
+    },
+    {
+      "from_va": "0x65ea04",
+      "from_rva": "0x25ea04",
+      "type": 17
+    },
+    {
+      "from_va": "0x65ea1c",
+      "from_rva": "0x25ea1c",
+      "type": 17
+    },
+    {
+      "from_va": "0x65ea38",
+      "from_rva": "0x25ea38",
+      "type": 17
+    },
+    {
+      "from_va": "0x6a904e",
+      "from_rva": "0x2a904e",
+      "type": 17
+    },
+    {
+      "from_va": "0x6e3e18",
+      "from_rva": "0x2e3e18",
+      "type": 17
+    },
+    {
+      "from_va": "0x6e91f1",
+      "from_rva": "0x2e91f1",
+      "type": 17
+    },
+    {
+      "from_va": "0x6f617a",
+      "from_rva": "0x2f617a",
+      "type": 17
+    },
+    {
+      "from_va": "0x70058a",
+      "from_rva": "0x30058a",
+      "type": 17
+    },
+    {
+      "from_va": "0x752b7f",
+      "from_rva": "0x352b7f",
+      "type": 17
+    },
+    {
+      "from_va": "0x75306f",
+      "from_rva": "0x35306f",
+      "type": 17
+    },
+    {
+      "from_va": "0x7539f8",
+      "from_rva": "0x3539f8",
+      "type": 17
+    },
+    {
+      "from_va": "0x753a6b",
+      "from_rva": "0x353a6b",
+      "type": 17
+    },
+    {
+      "from_va": "0x75850c",
+      "from_rva": "0x35850c",
+      "type": 17
+    },
+    {
+      "from_va": "0x758526",
+      "from_rva": "0x358526",
+      "type": 17
+    },
+    {
+      "from_va": "0x758539",
+      "from_rva": "0x358539",
+      "type": 17
+    },
+    {
+      "from_va": "0x75925c",
+      "from_rva": "0x35925c",
+      "type": 17
+    },
+    {
+      "from_va": "0x759294",
+      "from_rva": "0x359294",
+      "type": 17
+    },
+    {
+      "from_va": "0x7592c9",
+      "from_rva": "0x3592c9",
+      "type": 17
+    },
+    {
+      "from_va": "0x759301",
+      "from_rva": "0x359301",
+      "type": 17
+    },
+    {
+      "from_va": "0x759339",
+      "from_rva": "0x359339",
+      "type": 17
+    },
+    {
+      "from_va": "0x7593ac",
+      "from_rva": "0x3593ac",
+      "type": 17
+    },
+    {
+      "from_va": "0x75cc42",
+      "from_rva": "0x35cc42",
+      "type": 17
+    },
+    {
+      "from_va": "0x767520",
+      "from_rva": "0x367520",
+      "type": 17
+    },
+    {
+      "from_va": "0x767637",
+      "from_rva": "0x367637",
+      "type": 17
+    },
+    {
+      "from_va": "0x7679b6",
+      "from_rva": "0x3679b6",
+      "type": 17
+    },
+    {
+      "from_va": "0x7679cd",
+      "from_rva": "0x3679cd",
+      "type": 17
+    },
+    {
+      "from_va": "0x768610",
+      "from_rva": "0x368610",
+      "type": 17
+    },
+    {
+      "from_va": "0x768ebd",
+      "from_rva": "0x368ebd",
+      "type": 17
+    },
+    {
+      "from_va": "0x76ae6c",
+      "from_rva": "0x36ae6c",
+      "type": 17
+    },
+    {
+      "from_va": "0x770d7c",
+      "from_rva": "0x370d7c",
+      "type": 17
+    },
+    {
+      "from_va": "0x782e45",
+      "from_rva": "0x382e45",
+      "type": 17
+    },
+    {
+      "from_va": "0x79941b",
+      "from_rva": "0x39941b",
+      "type": 17
+    },
+    {
+      "from_va": "0x7a9b70",
+      "from_rva": "0x3a9b70",
+      "type": 17
+    },
+    {
+      "from_va": "0x7bb573",
+      "from_rva": "0x3bb573",
+      "type": 17
+    },
+    {
+      "from_va": "0x7cf415",
+      "from_rva": "0x3cf415",
+      "type": 17
+    },
+    {
+      "from_va": "0x7e99ec",
+      "from_rva": "0x3e99ec",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f1a3d",
+      "from_rva": "0x3f1a3d",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f1a4d",
+      "from_rva": "0x3f1a4d",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f1a5d",
+      "from_rva": "0x3f1a5d",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f1eb0",
+      "from_rva": "0x3f1eb0",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f1ec0",
+      "from_rva": "0x3f1ec0",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f1ed0",
+      "from_rva": "0x3f1ed0",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f1f45",
+      "from_rva": "0x3f1f45",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f1f69",
+      "from_rva": "0x3f1f69",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f1f8d",
+      "from_rva": "0x3f1f8d",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f1fc8",
+      "from_rva": "0x3f1fc8",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2021",
+      "from_rva": "0x3f2021",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f207a",
+      "from_rva": "0x3f207a",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f21b4",
+      "from_rva": "0x3f21b4",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f22a1",
+      "from_rva": "0x3f22a1",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f22b4",
+      "from_rva": "0x3f22b4",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2757",
+      "from_rva": "0x3f2757",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f28fb",
+      "from_rva": "0x3f28fb",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2937",
+      "from_rva": "0x3f2937",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2990",
+      "from_rva": "0x3f2990",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2a6c",
+      "from_rva": "0x3f2a6c",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2aa7",
+      "from_rva": "0x3f2aa7",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2f3c",
+      "from_rva": "0x3f2f3c",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2f4e",
+      "from_rva": "0x3f2f4e",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2f60",
+      "from_rva": "0x3f2f60",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2f8d",
+      "from_rva": "0x3f2f8d",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2fce",
+      "from_rva": "0x3f2fce",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2fe1",
+      "from_rva": "0x3f2fe1",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f2fff",
+      "from_rva": "0x3f2fff",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f3012",
+      "from_rva": "0x3f3012",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f3030",
+      "from_rva": "0x3f3030",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f3043",
+      "from_rva": "0x3f3043",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f3061",
+      "from_rva": "0x3f3061",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f3074",
+      "from_rva": "0x3f3074",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f3092",
+      "from_rva": "0x3f3092",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f4abd",
+      "from_rva": "0x3f4abd",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f4e3c",
+      "from_rva": "0x3f4e3c",
+      "type": 17
+    },
+    {
+      "from_va": "0x7f55f6",
+      "from_rva": "0x3f55f6",
+      "type": 17
+    },
+    {
+      "from_va": "0x8e93b2",
+      "from_rva": "0x4e93b2",
+      "type": 17
+    },
+    {
+      "from_va": "0x8e93c5",
+      "from_rva": "0x4e93c5",
+      "type": 17
+    },
+    {
+      "from_va": "0x8e943b",
+      "from_rva": "0x4e943b",
+      "type": 17
+    },
+    {
+      "from_va": "0x9036b6",
+      "from_rva": "0x5036b6",
+      "type": 17
+    },
+    {
+      "from_va": "0x90377b",
+      "from_rva": "0x50377b",
+      "type": 17
+    },
+    {
+      "from_va": "0x903799",
+      "from_rva": "0x503799",
+      "type": 17
+    },
+    {
+      "from_va": "0x903808",
+      "from_rva": "0x503808",
+      "type": 17
+    },
+    {
+      "from_va": "0x903846",
+      "from_rva": "0x503846",
+      "type": 17
+    },
+    {
+      "from_va": "0x90385b",
+      "from_rva": "0x50385b",
+      "type": 17
+    },
+    {
+      "from_va": "0x903870",
+      "from_rva": "0x503870",
+      "type": 17
+    },
+    {
+      "from_va": "0x903882",
+      "from_rva": "0x503882",
+      "type": 17
+    },
+    {
+      "from_va": "0x903894",
+      "from_rva": "0x503894",
+      "type": 17
+    },
+    {
+      "from_va": "0x9038a6",
+      "from_rva": "0x5038a6",
+      "type": 17
+    },
+    {
+      "from_va": "0x9038b8",
+      "from_rva": "0x5038b8",
+      "type": 17
+    },
+    {
+      "from_va": "0x9038cd",
+      "from_rva": "0x5038cd",
+      "type": 17
+    },
+    {
+      "from_va": "0x903aa8",
+      "from_rva": "0x503aa8",
+      "type": 17
+    },
+    {
+      "from_va": "0x903abf",
+      "from_rva": "0x503abf",
+      "type": 17
+    },
+    {
+      "from_va": "0x903ad4",
+      "from_rva": "0x503ad4",
+      "type": 17
+    },
+    {
+      "from_va": "0x903ae9",
+      "from_rva": "0x503ae9",
+      "type": 17
+    },
+    {
+      "from_va": "0x903afd",
+      "from_rva": "0x503afd",
+      "type": 17
+    },
+    {
+      "from_va": "0x903b16",
+      "from_rva": "0x503b16",
+      "type": 17
+    },
+    {
+      "from_va": "0x903b2a",
+      "from_rva": "0x503b2a",
+      "type": 17
+    },
+    {
+      "from_va": "0x903b3e",
+      "from_rva": "0x503b3e",
+      "type": 17
+    },
+    {
+      "from_va": "0x903b50",
+      "from_rva": "0x503b50",
+      "type": 17
+    },
+    {
+      "from_va": "0x903b62",
+      "from_rva": "0x503b62",
+      "type": 17
+    },
+    {
+      "from_va": "0x903b77",
+      "from_rva": "0x503b77",
+      "type": 17
+    },
+    {
+      "from_va": "0x903b8c",
+      "from_rva": "0x503b8c",
+      "type": 17
+    },
+    {
+      "from_va": "0x903ba0",
+      "from_rva": "0x503ba0",
+      "type": 17
+    },
+    {
+      "from_va": "0x903bb4",
+      "from_rva": "0x503bb4",
+      "type": 17
+    },
+    {
+      "from_va": "0x903bc6",
+      "from_rva": "0x503bc6",
+      "type": 17
+    },
+    {
+      "from_va": "0x903be1",
+      "from_rva": "0x503be1",
+      "type": 17
+    },
+    {
+      "from_va": "0x903bf3",
+      "from_rva": "0x503bf3",
+      "type": 17
+    },
+    {
+      "from_va": "0x903c07",
+      "from_rva": "0x503c07",
+      "type": 17
+    },
+    {
+      "from_va": "0x903c1e",
+      "from_rva": "0x503c1e",
+      "type": 17
+    },
+    {
+      "from_va": "0x903c32",
+      "from_rva": "0x503c32",
+      "type": 17
+    },
+    {
+      "from_va": "0x903c49",
+      "from_rva": "0x503c49",
+      "type": 17
+    },
+    {
+      "from_va": "0x903c5d",
+      "from_rva": "0x503c5d",
+      "type": 17
+    },
+    {
+      "from_va": "0x903c74",
+      "from_rva": "0x503c74",
+      "type": 17
+    },
+    {
+      "from_va": "0x903c8b",
+      "from_rva": "0x503c8b",
+      "type": 17
+    },
+    {
+      "from_va": "0x903c9f",
+      "from_rva": "0x503c9f",
+      "type": 17
+    },
+    {
+      "from_va": "0x903cb3",
+      "from_rva": "0x503cb3",
+      "type": 17
+    },
+    {
+      "from_va": "0x903cc7",
+      "from_rva": "0x503cc7",
+      "type": 17
+    },
+    {
+      "from_va": "0x903cd3",
+      "from_rva": "0x503cd3",
+      "type": 17
+    },
+    {
+      "from_va": "0x903ce7",
+      "from_rva": "0x503ce7",
+      "type": 17
+    },
+    {
+      "from_va": "0x903cfe",
+      "from_rva": "0x503cfe",
+      "type": 17
+    },
+    {
+      "from_va": "0x903d15",
+      "from_rva": "0x503d15",
+      "type": 17
+    },
+    {
+      "from_va": "0x903d2c",
+      "from_rva": "0x503d2c",
+      "type": 17
+    },
+    {
+      "from_va": "0x903d43",
+      "from_rva": "0x503d43",
+      "type": 17
+    },
+    {
+      "from_va": "0x903d55",
+      "from_rva": "0x503d55",
+      "type": 17
+    },
+    {
+      "from_va": "0x903d67",
+      "from_rva": "0x503d67",
+      "type": 17
+    },
+    {
+      "from_va": "0x903d7b",
+      "from_rva": "0x503d7b",
+      "type": 17
+    },
+    {
+      "from_va": "0x903d92",
+      "from_rva": "0x503d92",
+      "type": 17
+    },
+    {
+      "from_va": "0x903da9",
+      "from_rva": "0x503da9",
+      "type": 17
+    },
+    {
+      "from_va": "0x903dc0",
+      "from_rva": "0x503dc0",
+      "type": 17
+    },
+    {
+      "from_va": "0x903dd7",
+      "from_rva": "0x503dd7",
+      "type": 17
+    },
+    {
+      "from_va": "0x903dec",
+      "from_rva": "0x503dec",
+      "type": 17
+    },
+    {
+      "from_va": "0x903e01",
+      "from_rva": "0x503e01",
+      "type": 17
+    },
+    {
+      "from_va": "0x903e21",
+      "from_rva": "0x503e21",
+      "type": 17
+    },
+    {
+      "from_va": "0x903e36",
+      "from_rva": "0x503e36",
+      "type": 17
+    },
+    {
+      "from_va": "0x903e4b",
+      "from_rva": "0x503e4b",
+      "type": 17
+    },
+    {
+      "from_va": "0x903e60",
+      "from_rva": "0x503e60",
+      "type": 17
+    },
+    {
+      "from_va": "0x903e75",
+      "from_rva": "0x503e75",
+      "type": 17
+    },
+    {
+      "from_va": "0x903e8a",
+      "from_rva": "0x503e8a",
+      "type": 17
+    },
+    {
+      "from_va": "0x903e9f",
+      "from_rva": "0x503e9f",
+      "type": 17
+    },
+    {
+      "from_va": "0x903eb4",
+      "from_rva": "0x503eb4",
+      "type": 17
+    },
+    {
+      "from_va": "0x903ec9",
+      "from_rva": "0x503ec9",
+      "type": 17
+    },
+    {
+      "from_va": "0x903ede",
+      "from_rva": "0x503ede",
+      "type": 17
+    },
+    {
+      "from_va": "0x903ef3",
+      "from_rva": "0x503ef3",
+      "type": 17
+    },
+    {
+      "from_va": "0x903f08",
+      "from_rva": "0x503f08",
+      "type": 17
+    },
+    {
+      "from_va": "0x90407b",
+      "from_rva": "0x50407b",
+      "type": 17
+    },
+    {
+      "from_va": "0x9040a2",
+      "from_rva": "0x5040a2",
+      "type": 17
+    },
+    {
+      "from_va": "0x9040b1",
+      "from_rva": "0x5040b1",
+      "type": 17
+    },
+    {
+      "from_va": "0x904175",
+      "from_rva": "0x504175",
+      "type": 17
+    },
+    {
+      "from_va": "0x90418c",
+      "from_rva": "0x50418c",
+      "type": 17
+    },
+    {
+      "from_va": "0x9041a1",
+      "from_rva": "0x5041a1",
+      "type": 17
+    },
+    {
+      "from_va": "0x9041b2",
+      "from_rva": "0x5041b2",
+      "type": 17
+    },
+    {
+      "from_va": "0x9041c3",
+      "from_rva": "0x5041c3",
+      "type": 17
+    },
+    {
+      "from_va": "0x904236",
+      "from_rva": "0x504236",
+      "type": 17
+    },
+    {
+      "from_va": "0x904254",
+      "from_rva": "0x504254",
+      "type": 17
+    },
+    {
+      "from_va": "0x904394",
+      "from_rva": "0x504394",
+      "type": 17
+    },
+    {
+      "from_va": "0x9043ac",
+      "from_rva": "0x5043ac",
+      "type": 17
+    },
+    {
+      "from_va": "0x90441c",
+      "from_rva": "0x50441c",
+      "type": 17
+    },
+    {
+      "from_va": "0x904430",
+      "from_rva": "0x504430",
+      "type": 17
+    },
+    {
+      "from_va": "0x90444c",
+      "from_rva": "0x50444c",
+      "type": 17
+    },
+    {
+      "from_va": "0x9044f7",
+      "from_rva": "0x5044f7",
+      "type": 17
+    },
+    {
+      "from_va": "0x904591",
+      "from_rva": "0x504591",
+      "type": 17
+    },
+    {
+      "from_va": "0x9045d0",
+      "from_rva": "0x5045d0",
+      "type": 17
+    },
+    {
+      "from_va": "0x904606",
+      "from_rva": "0x504606",
+      "type": 17
+    },
+    {
+      "from_va": "0x904618",
+      "from_rva": "0x504618",
+      "type": 17
+    },
+    {
+      "from_va": "0x904651",
+      "from_rva": "0x504651",
+      "type": 17
+    },
+    {
+      "from_va": "0x904681",
+      "from_rva": "0x504681",
+      "type": 17
+    },
+    {
+      "from_va": "0x9046b1",
+      "from_rva": "0x5046b1",
+      "type": 17
+    },
+    {
+      "from_va": "0x9046d8",
+      "from_rva": "0x5046d8",
+      "type": 17
+    },
+    {
+      "from_va": "0x90472a",
+      "from_rva": "0x50472a",
+      "type": 19
+    },
+    {
+      "from_va": "0x904737",
+      "from_rva": "0x504737",
+      "type": 19
+    },
+    {
+      "from_va": "0x904744",
+      "from_rva": "0x504744",
+      "type": 19
+    },
+    {
+      "from_va": "0x904751",
+      "from_rva": "0x504751",
+      "type": 19
+    },
+    {
+      "from_va": "0x90475e",
+      "from_rva": "0x50475e",
+      "type": 19
+    },
+    {
+      "from_va": "0x90476b",
+      "from_rva": "0x50476b",
+      "type": 19
+    },
+    {
+      "from_va": "0x904778",
+      "from_rva": "0x504778",
+      "type": 19
+    },
+    {
+      "from_va": "0x904785",
+      "from_rva": "0x504785",
+      "type": 19
+    },
+    {
+      "from_va": "0x904792",
+      "from_rva": "0x504792",
+      "type": 19
+    },
+    {
+      "from_va": "0x90479f",
+      "from_rva": "0x50479f",
+      "type": 19
+    },
+    {
+      "from_va": "0x9047ac",
+      "from_rva": "0x5047ac",
+      "type": 19
+    },
+    {
+      "from_va": "0x9047b9",
+      "from_rva": "0x5047b9",
+      "type": 19
+    },
+    {
+      "from_va": "0x9047c6",
+      "from_rva": "0x5047c6",
+      "type": 19
+    },
+    {
+      "from_va": "0x9047d3",
+      "from_rva": "0x5047d3",
+      "type": 19
+    },
+    {
+      "from_va": "0x9047e0",
+      "from_rva": "0x5047e0",
+      "type": 19
+    },
+    {
+      "from_va": "0x9047ed",
+      "from_rva": "0x5047ed",
+      "type": 19
+    },
+    {
+      "from_va": "0x9047fa",
+      "from_rva": "0x5047fa",
+      "type": 19
+    },
+    {
+      "from_va": "0x904807",
+      "from_rva": "0x504807",
+      "type": 19
+    },
+    {
+      "from_va": "0x904814",
+      "from_rva": "0x504814",
+      "type": 19
+    },
+    {
+      "from_va": "0x904821",
+      "from_rva": "0x504821",
+      "type": 19
+    },
+    {
+      "from_va": "0x90482e",
+      "from_rva": "0x50482e",
+      "type": 19
+    },
+    {
+      "from_va": "0x90483b",
+      "from_rva": "0x50483b",
+      "type": 19
+    },
+    {
+      "from_va": "0x904848",
+      "from_rva": "0x504848",
+      "type": 19
+    },
+    {
+      "from_va": "0x904855",
+      "from_rva": "0x504855",
+      "type": 19
+    },
+    {
+      "from_va": "0x904862",
+      "from_rva": "0x504862",
+      "type": 19
+    },
+    {
+      "from_va": "0x90486f",
+      "from_rva": "0x50486f",
+      "type": 19
+    },
+    {
+      "from_va": "0x90487c",
+      "from_rva": "0x50487c",
+      "type": 19
+    },
+    {
+      "from_va": "0x904889",
+      "from_rva": "0x504889",
+      "type": 19
+    },
+    {
+      "from_va": "0x904896",
+      "from_rva": "0x504896",
+      "type": 19
+    },
+    {
+      "from_va": "0x9048a3",
+      "from_rva": "0x5048a3",
+      "type": 19
+    },
+    {
+      "from_va": "0x9048b0",
+      "from_rva": "0x5048b0",
+      "type": 19
+    },
+    {
+      "from_va": "0x9048bd",
+      "from_rva": "0x5048bd",
+      "type": 19
+    },
+    {
+      "from_va": "0x9048ca",
+      "from_rva": "0x5048ca",
+      "type": 19
+    },
+    {
+      "from_va": "0x9048d7",
+      "from_rva": "0x5048d7",
+      "type": 19
+    },
+    {
+      "from_va": "0x9048e4",
+      "from_rva": "0x5048e4",
+      "type": 19
+    },
+    {
+      "from_va": "0x9048f1",
+      "from_rva": "0x5048f1",
+      "type": 19
+    },
+    {
+      "from_va": "0x9048fe",
+      "from_rva": "0x5048fe",
+      "type": 19
+    },
+    {
+      "from_va": "0x90490b",
+      "from_rva": "0x50490b",
+      "type": 19
+    },
+    {
+      "from_va": "0x904918",
+      "from_rva": "0x504918",
+      "type": 19
+    },
+    {
+      "from_va": "0x904925",
+      "from_rva": "0x504925",
+      "type": 19
+    },
+    {
+      "from_va": "0x904932",
+      "from_rva": "0x504932",
+      "type": 19
+    },
+    {
+      "from_va": "0x90493f",
+      "from_rva": "0x50493f",
+      "type": 19
+    },
+    {
+      "from_va": "0x90494c",
+      "from_rva": "0x50494c",
+      "type": 19
+    },
+    {
+      "from_va": "0x904959",
+      "from_rva": "0x504959",
+      "type": 19
+    },
+    {
+      "from_va": "0x904966",
+      "from_rva": "0x504966",
+      "type": 19
+    },
+    {
+      "from_va": "0x904ccd",
+      "from_rva": "0x504ccd",
+      "type": 17
+    },
+    {
+      "from_va": "0x904ce9",
+      "from_rva": "0x504ce9",
+      "type": 17
+    },
+    {
+      "from_va": "0x904d25",
+      "from_rva": "0x504d25",
+      "type": 17
+    },
+    {
+      "from_va": "0x90520b",
+      "from_rva": "0x50520b",
+      "type": 17
+    },
+    {
+      "from_va": "0x9099ff",
+      "from_rva": "0x5099ff",
+      "type": 17
+    },
+    {
+      "from_va": "0x909a39",
+      "from_rva": "0x509a39",
+      "type": 17
+    },
+    {
+      "from_va": "0x909a80",
+      "from_rva": "0x509a80",
+      "type": 17
+    },
+    {
+      "from_va": "0x93207a",
+      "from_rva": "0x53207a",
+      "type": 17
+    },
+    {
+      "from_va": "0x933b78",
+      "from_rva": "0x533b78",
+      "type": 17
+    },
+    {
+      "from_va": "0x933f96",
+      "from_rva": "0x533f96",
+      "type": 17
+    },
+    {
+      "from_va": "0x933fb0",
+      "from_rva": "0x533fb0",
+      "type": 17
+    },
+    {
+      "from_va": "0x934027",
+      "from_rva": "0x534027",
+      "type": 17
+    },
+    {
+      "from_va": "0x9340f8",
+      "from_rva": "0x5340f8",
+      "type": 17
+    }
+  ]
+}

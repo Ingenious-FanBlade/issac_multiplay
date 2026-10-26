@@ -1,0 +1,233 @@
+{
+ "label": "NightmareScene_Show",
+ "va": "0x8fbe00",
+ "rva": "0x4fbe00",
+ "note": "libzhl；仅导出入口与 state=1 写入块",
+ "func_start_va": "0x8fbe00",
+ "func_end_va": "0x8fd3ac",
+ "func_start_rva": "0x4fbe00",
+ "func_end_rva": "0x4fd3ac",
+ "decompile_hexrays_raw": "int __userpurge sub_8FBE00@<eax>(int a1@<ecx>, int a2@<ebp>, char a3)\n{\n  _DWORD *n187; // esi\n  unsigned int *v5; // edx\n  int v6; // ecx\n  int v7; // esi\n  const char *Str1; // eax\n  char *gfx_promo_gfuel_ui_stage_nightmareg; // eax\n  _DWORD *Str1_2; // eax\n  char *gfx_promo_gfuel_ui_stage_nightmareg_2; // ecx\n  _DWORD *v12; // eax\n  void *v13; // ecx\n  _DWORD *v14; // eax\n  _DWORD **v15; // edx\n  _DWORD *v16; // ecx\n  _DWORD *v17; // eax\n  int v18; // ecx\n  int v19; // ecx\n  int v20; // ecx\n  int v21; // ecx\n  _DWORD *n187_1; // edx\n  char *gfx_ui_Death_Screen.anm2; // eax\n  char *gfx_ui_Death_Screen.anm2_2; // ecx\n  int v25; // eax\n  _DWORD *n7_4; // ecx\n  _DWORD *v27; // edi\n  _DWORD *v28; // esi\n  unsigned int v29; // edi\n  int n2; // eax\n  int n3; // eax\n  _DWORD *v32; // eax\n  int n2_1; // edi\n  unsigned int n15_2; // ecx\n  unsigned int TreasureRoom_2; // esi\n  bool v36; // zf\n  int v37; // eax\n  char n15_5; // cl\n  unsigned int n15_6; // edx\n  int v40; // eax\n  unsigned int v41; // esi\n  _BYTE *v42; // esi\n  unsigned int n15_7; // edi\n  void **v44; // esi\n  unsigned int v45; // ecx\n  int n15_8; // esi\n  char *TreasureRoom; // eax\n  _BYTE *v48; // esi\n  unsigned int v49; // ecx\n  int n31; // esi\n  void *v51; // ecx\n  unsigned int v52; // edx\n  int n31_1; // esi\n  char *TreasureRoomPoop; // eax\n  unsigned int n15_9; // ecx\n  char *TreasureRoomPoop_1; // edi\n  unsigned int n0x1000; // edx\n  void *v58; // ecx\n  _DWORD *v59; // edi\n  int v60; // ecx\n  unsigned int v61; // esi\n  int v62; // esi\n  int v63; // eax\n  int v64; // esi\n  int v65; // ecx\n  void *v66; // ecx\n  signed int v67; // edi\n  _DWORD *v68; // esi\n  int v69; // ecx\n  int n2_2; // eax\n  unsigned int v71; // edi\n  int v72; // esi\n  int v73; // esi\n  int v74; // ecx\n  int v75; // eax\n  unsigned int v76; // edx\n  int n16_2; // eax\n  _DWORD *v78; // edx\n  _DWORD *v79; // ecx\n  _DWORD *n4; // esi\n  int n16_4; // esi\n  int v82; // eax\n  char *BossDoubleTrouble; // eax\n  void *v85; // ecx\n  void *v86; // ecx\n  unsigned int **v87; // esi\n  unsigned int n16_6; // edi\n  int v89; // eax\n  unsigned int *v90; // ecx\n  unsigned int *v91; // edx\n  unsigned int v92; // esi\n  int v93; // edx\n  int v94; // eax\n  unsigned int n7_3; // ecx\n  int n16_5; // edi\n  int n47185920_1; // edi\n  int n16_7; // esi\n  void *v99; // esi\n  int n16_8; // esi\n  int v101; // ecx\n  void *v102; // eax\n  int v103; // esi\n  _DWORD *v104; // eax\n  int v105; // eax\n  int ArgList_1; // esi\n  int v107; // ecx\n  int v108; // esi\n  float v109; // xmm0_4\n  float v110; // xmm0_4\n  int *n187_2; // ecx\n  int v112; // edx\n  int n4_1; // eax\n  _DWORD *n4_2; // ecx\n  char n96; // al\n  char ArgList; // [esp+4h] [ebp-340h]\n  _OWORD v118[2]; // [esp+14h] [ebp-330h] BYREF\n  int v119; // [esp+34h] [ebp-310h]\n  int v120; // [esp+38h] [ebp-30Ch]\n  int v121; // [esp+3Ch] [ebp-308h]\n  int v122; // [esp+40h] [ebp-304h] BYREF\n  int v123; // [esp+48h] [ebp-2FCh]\n  __int128 v124; // [esp+4Ch] [ebp-2F8h]\n  __int128 v125; // [esp+5Ch] [ebp-2E8h]\n  __int64 v126; // [esp+70h] [ebp-2D4h]\n  int n7_2; // [esp+78h] [ebp-2CCh]\n  __int64 v128; // [esp+80h] [ebp-2C4h]\n  int n7; // [esp+88h] [ebp-2BCh]\n  __int64 v130; // [esp+90h] [ebp-2B4h]\n  int n16_1; // [esp+98h] [ebp-2ACh]\n  __int128 v132; // [esp+9Ch] [ebp-2A8h] BYREF\n  int n79; // [esp+ACh] [ebp-298h] BYREF\n  __int128 v134; // [esp+B0h] [ebp-294h]\n  __int128 v135; // [esp+C0h] [ebp-284h] BYREF\n  int v136; // [esp+D0h] [ebp-274h]\n  unsigned int v137; // [esp+D4h] [ebp-270h]\n  int v138; // [esp+D8h] [ebp-26Ch]\n  unsigned int n7_1; // [esp+DCh] [ebp-268h]\n  int n47185920; // [esp+E0h] [ebp-264h] BYREF\n  unsigned int v141; // [esp+E4h] [ebp-260h]\n  _DWORD *v142; // [esp+E8h] [ebp-25Ch]\n  _DWORD *v143; // [esp+ECh] [ebp-258h]\n  int TreasureRoom_1; // [esp+F0h] [ebp-254h]\n  int n16; // [esp+F4h] [ebp-250h]\n  int n16_3; // [esp+F8h] [ebp-24Ch]\n  int n15_3; // [esp+FCh] [ebp-248h]\n  int v148; // [esp+100h] [ebp-244h]\n  __int64 v149; // [esp+104h] [ebp-240h] BYREF\n  int v150; // [esp+10Ch] [ebp-238h]\n  _BYTE v151[280]; // [esp+110h] [ebp-234h] BYREF\n  _DWORD v152[8]; // [esp+228h] [ebp-11Ch] BYREF\n  _DWORD v153[8]; // [esp+248h] [ebp-FCh] BYREF\n  _DWORD v154[4]; // [esp+268h] [ebp-DCh] BYREF\n  size_t Size; // [esp+278h] [ebp-CCh]\n  unsigned int n0x10_1; // [esp+27Ch] [ebp-C8h]\n  _DWORD v157[4]; // [esp+280h] [ebp-C4h] BYREF\n  int v158; // [esp+290h] [ebp-B4h]\n  unsigned int n15_10; // [esp+294h] [ebp-B0h]\n  _DWORD v160[4]; // [esp+298h] [ebp-ACh] BYREF\n  int n17; // [esp+2A8h] [ebp-9Ch]\n  unsigned int n31_2; // [esp+2ACh] [ebp-98h]\n  __int64 n5; // [esp+2B0h] [ebp-94h] BYREF\n  int v164; // [esp+2B8h] [ebp-8Ch]\n  _DWORD Str1_1[5]; // [esp+2BCh] [ebp-88h] BYREF\n  unsigned int n0x10; // [esp+2D0h] [ebp-74h]\n  char *gfx_promo_gfuel_ui_stage_nightmareg_1; // [esp+2D4h] [ebp-70h]\n  int n35; // [esp+2E4h] [ebp-60h]\n  unsigned int n15; // [esp+2E8h] [ebp-5Ch]\n  char *gfx_ui_Death_Screen.anm2_1; // [esp+2ECh] [ebp-58h] BYREF\n  int n24; // [esp+2FCh] [ebp-48h]\n  unsigned int n15_1; // [esp+300h] [ebp-44h]\n  void *v173[4]; // [esp+304h] [ebp-40h] BYREF\n  int n12; // [esp+314h] [ebp-30h]\n  unsigned int n15_4; // [esp+318h] [ebp-2Ch]\n  int v176; // [esp+31Ch] [ebp-28h]\n  int v177; // [esp+320h] [ebp-24h]\n  int *v178; // [esp+328h] [ebp-1Ch]\n  struct _EXCEPTION_REGISTRATION_RECORD *ExceptionList; // [esp+32Ch] [ebp-18h]\n  void *v180; // [esp+330h] [ebp-14h]\n  int v181; // [esp+334h] [ebp-10h]\n  int v182; // [esp+338h] [ebp-Ch]\n  void *v183; // [esp+33Ch] [ebp-8h]\n  int v184; // [esp+340h] [ebp-4h] BYREF\n  void *retaddr; // [esp+344h] [ebp+0h]\n\n  v182 = a2;\n  v183 = retaddr;\n  v181 = -1;\n  v180 = &loc_A9F03D;\n  ExceptionList = NtCurrentTeb()->NtTib.ExceptionList;\n  v178 = &v184;\n  v148 = a1;\n  n187 = n187;\n  v5 = (unsigned int *)n187[28330];\n  if ( !((n187[28331] - (int)v5) >> 2) )\n  {\n    sub_9E0DF0(3, \"PlayerManager::GetPlayer() : There are no players! \\n\", ArgList);\n    v5 = (unsigned int *)n187[28330];\n  }\n  v6 = *(_DWORD *)(a1 + 864);\n  v137 = *v5;\n  sub_408400((void *)(*(_DWORD *)(a1 + 8) + 24 * *(_DWORD *)(*(_DWORD *)(a1 + 20) + 4 * v6)));\n  v181 = 0;\n  n79 = 79;\n  v7 = n187[28406];\n  sub_4240B0(&v122, &n79);\n  if ( !*(_BYTE *)(v123 + 13) && *(int *)(v123 + 16) <= 79 && v123 != v7 )\n  {\n    Str1 = (const char *)Str1_1;\n    if ( n0x10 >= 0x10 )\n      Str1 = (const char *)Str1_1[0];\n    if ( !strncmp(Str1, \"gfx/ui/stage/nightmare\", 0x16u) )\n    {\n      gfx_promo_gfuel_ui_stage_nightmareg_1 = 0;\n      n35 = 0;\n      n15 = 15;\n      gfx_promo_gfuel_ui_stage_nightmareg = (char *)sub_408830(0x30u);\n      n35 = 35;\n      n15 = 47;\n      strcpy(gfx_promo_gfuel_ui_stage_nightmareg, \"gfx/promo/gfuel/ui/stage/nightmareg\");\n      gfx_promo_gfuel_ui_stage_nightmareg_1 = gfx_promo_gfuel_ui_stage_nightmareg;\n      LOBYTE(v181) = 1;\n      Str1_2 = Str1_1;\n      if ( n0x10 >= 0x10 )\n        Str1_2 = (_DWORD *)Str1_1[0];\n      sub_606480((char *)Str1_2 + 22);\n      LOBYTE(v181) = 3;\n      if ( n15 >= 0x10 )\n      {\n        gfx_promo_gfuel_ui_stage_nightmareg_2 = gfx_promo_gfuel_ui_stage_nightmareg_1;\n        if ( n15 + 1 >= 0x1000 )\n        {\n          gfx_promo_gfuel_ui_stage_nightmareg_2 = (char *)*((_DWORD *)gfx_promo_gfuel_ui_stage_nightmareg_1 - 1);\n          if ( (unsigned int)(gfx_promo_gfuel_ui_stage_nightmareg_1 - gfx_promo_gfuel_ui_stage_nightmareg_2 - 4) > 0x1F )\nLABEL_14:\n            invalid_parameter_noinfo_noreturn();\n        }\n        sub_A8717B(gfx_promo_gfuel_ui_stage_nightmareg_2);\n      }\n      n35 = 0;\n      n15 = 15;\n      LOBYTE(gfx_promo_gfuel_ui_stage_nightmareg_1) = 0;\n      sub_402B00(v151);\n      LOBYTE(v181) = 4;\n      sub_407AF0(v151, v154, 1);\n      if ( v151[265] )\n      {\n        v12 = v154;\n        if ( n0x10_1 >= 0x10 )\n          v12 = (_DWORD *)v154[0];\n        sub_408660(Str1_1, v12, Size);\n      }\n      sub_403790(v151);\n      LOBYTE(v181) = 0;\n      if ( n0x10_1 >= 0x10 )\n      {\n        v13 = (void *)v154[0];\n        if ( n0x10_1 + 1 >= 0x1000 )\n        {\n          v13 = *(void **)(v154[0] - 4);\n          if ( (unsigned int)(v154[0] - (_DWORD)v13 - 4) > 0x1F )\n            invalid_parameter_noinfo_noreturn();\n        }\n        sub_A8717B(v13);\n      }\n      Size = 0;\n      n0x10_1 = 15;\n      LOBYTE(v154[0]) = 0;\n    }\n  }\n  *(_DWORD *)(a1 + 932) = 40;\n  *(_BYTE *)(a1 + 1212) = 0;\n  LOBYTE(v181) = 5;\n  v135 = 0LL;\n  v136 = 0;\n  v14 = operator new(8u);\n  v14[1] = 0;\n  LODWORD(v135) = v14;\n  *v14 = &v135;\n  v15 = (_DWORD **)(a1 + 1216);\n  LOBYTE(v181) = 6;\n  if ( (__int128 *)(a1 + 1216) != &v135 )\n  {\n    v16 = (_DWORD *)v135;\n    v17 = *v15;\n    *v15 = (_DWORD *)v135;\n    LODWORD(v135) = v17;\n    if ( v16 )\n    {\n      *v16 = v15;\n      v17 = (_DWORD *)v135;\n    }\n    if ( v17 )\n      *v17 = &v135;\n    v18 = *(_DWORD *)(a1 + 1220);\n    *(_DWORD *)(a1 + 1220) = DWORD1(v135);\n    DWORD1(v135) = v18;\n    v19 = *(_DWORD *)(a1 + 1224);\n    *(_DWORD *)(a1 + 1224) = DWORD2(v135);\n    DWORD2(v135) = v19;\n    v20 = *(_DWORD *)(a1 + 1228);\n    *(_DWORD *)(a1 + 1228) = HIDWORD(v135);\n    HIDWORD(v135) = v20;\n    v21 = *(_DWORD *)(a1 + 1232);\n    *(_DWORD *)(a1 + 1232) = v136;\n    v136 = v21;\n  }\n  if ( *(_BYTE *)(a1 + 1512) )\n  {\n    sub_408660(Str1_1, \"gfx/ui/stage/nightmare_dogma.anm2\", 0x21u);\nLABEL_174:\n    n187_1 = n187;\n    goto LABEL_175;\n  }\n  if ( !sub_9950B0(566, n187 + 28330, 1) )\n    goto LABEL_174;\n  n187_1 = n187;\n  if ( *n187 != 13 )\n  {\n    if ( !*(_BYTE *)(a1 + 1201) )\n    {\n      gfx_ui_Death_Screen.anm2_1 = 0;\n      n24 = 0;\n      n15_1 = 15;\n      gfx_ui_Death_Screen.anm2 = (char *)sub_408830(0x20u);\n      n24 = 24;\n      n15_1 = 31;\n      strcpy(gfx_ui_Death_Screen.anm2, \"gfx/ui/Death Screen.anm2\");\n      gfx_ui_Death_Screen.anm2_1 = gfx_ui_Death_Screen.anm2;\n      LOBYTE(v181) = 7;\n      sub_407AF0((void *)(a1 + 936), &gfx_ui_Death_Screen.anm2_1, 1);\n      LOBYTE(v181) = 6;\n      if ( n15_1 >= 0x10 )\n      {\n        gfx_ui_Death_Screen.anm2_2 = gfx_ui_Death_Screen.anm2_1;\n        if ( n15_1 + 1 >= 0x1000 )\n        {\n          gfx_ui_Death_Screen.anm2_2 = (char *)*((_DWORD *)gfx_ui_Death_Screen.anm2_1 - 1);\n          if ( (unsigned int)(gfx_ui_Death_Screen.anm2_1 - gfx_ui_Death_Screen.anm2_2 - 4) > 0x1F )\n            invalid_parameter_noinfo_noreturn();\n        }\n        sub_A8717B(gfx_ui_Death_Screen.anm2_2);\n      }\n      n24 = 0;\n      n15_1 = 15;\n      LOBYTE(gfx_ui_Death_Screen.anm2_1) = 0;\n      sub_405D00(\"Diary\", 0);\n      v119 = -1107074797;\n      v118[1] = 0LL;\n      v120 = -1107229147;\n      v118[0] = xmmword_B425E0;\n      v121 = -1104665589;\n      sub_4029B0(v118);\n      n187_1 = n187;\n    }\n    v25 = 0;\n    *(_BYTE *)(a1 + 1212) = 1;\n    *(_DWORD *)(a1 + 932) = 10;\n    n7_4 = n187_1 + 5;\n    n7_1 = (unsigned int)(n187_1 + 5);\n    v138 = 0;\n    if ( (int)n187_1[24755] > 0 )\n    {\n      v27 = n187_1 + 9;\n      v143 = n187_1 + 9;\n      while ( 1 )\n      {\n        if ( !*(v27 - 1) )\n        {\n          v142 = (_DWORD *)*v27;\n          v28 = v142;\n          if ( v142 )\n          {\n            if ( v142[2] == 4 && v27[41] == -1 )\n              break;\n          }\n        }\nLABEL_117:\n        ++v25;\n        v27 += 46;\n        v138 = v25;\n        v143 = v27;\n        if ( v25 >= n187_1[24755] )\n        {\n          n7_4 = (_DWORD *)n7_1;\n          goto LABEL_119;\n        }\n      }\n      if ( sub_9950B0(414, n187_1 + 28330, 1) )\n      {\n        v29 = v27[19];\n        v130 = 0x500000001LL;\n        n16 = 16;\n        n16_1 = 16;\n        if ( !v29 )\n        {\n          sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n          __debugbreak();\n        }\n        n2 = v28[4];\n        if ( n2 )\n        {\n          if ( n2 != 2 )\n            goto LABEL_59;\n          n3 = 3;\n        }\n        else\n        {\n          n3 = 1;\n        }\n        v32 = (_DWORD *)sub_8214C0(\n                          v29 ^ (v29 >> v130) ^ ((v29 ^ (v29 >> v130)) << SBYTE4(v130)) ^ ((v29 ^ (v29 >> v130) ^ ((v29 ^ (v29 >> v130)) << SBYTE4(v130))) >> n16),\n                          0,\n                          0,\n                          4,\n                          v28[18],\n                          0,\n                          -1,\n                          1,\n                          10,\n                          v28 + 14,\n                          n3,\n                          -1);\n        if ( v32 )\n          v28 = v32;\n        v142 = v28;\n      }\nLABEL_59:\n      n2_1 = 0;\n      n15_2 = 15;\n      v173[0] = 0;\n      n12 = 0;\n      n15_3 = 15;\n      n15_4 = 15;\n      v176 = 0;\n      v177 = 0;\n      LOBYTE(v181) = 8;\n      TreasureRoom_2 = v143[19];\n      n16 = 7;\n      n7 = 7;\n      v128 = 0x700000002LL;\n      v141 = 0;\n      if ( *((_WORD *)v142 + 34) )\n      {\n        n16_3 = 0;\n        do\n        {\n          if ( n2_1 >= 2 )\n            break;\n          if ( !TreasureRoom_2 )\n          {\n            sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n            __debugbreak();\n          }\n          TreasureRoom_2 ^= (TreasureRoom_2 >> v128) ^ ((TreasureRoom_2 ^ (TreasureRoom_2 >> v128)) << SBYTE4(v128)) ^ ((TreasureRoom_2 ^ (TreasureRoom_2 >> v128) ^ ((TreasureRoom_2 ^ (TreasureRoom_2 >> v128)) << SBYTE4(v128))) >> n16);\n          TreasureRoom_1 = TreasureRoom_2;\n          n15_3 = n16_3 + v142[16];\n          v36 = *(_BYTE *)(n15_3 + 8) == 0;\n          n15_3 = *((unsigned __int8 *)v142 + 70) * (*(__int16 *)(n15_3 + 2) + 1) + *(__int16 *)n15_3 + 1;\n          if ( !v36 )\n          {\n            v37 = sub_821F60(COERCE_INT((float)TreasureRoom_2 * 2.3283062e-10));\n            n5 = *(_QWORD *)v37;\n            v164 = *(_DWORD *)(v37 + 8);\n            sub_7E25F0(n187[24768], &n5, n15_3, TreasureRoom_2);\n            *(_QWORD *)((char *)&v134 + 4) = 0x900000005LL;\n            n15_3 = 7;\n            if ( !TreasureRoom_2 )\n            {\n              sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n              __debugbreak();\n            }\n            *(_QWORD *)((char *)&v132 + 4) = 0x900000005LL;\n            n15_5 = n15_3;\n            n15_6 = TreasureRoom_2 ^ (TreasureRoom_2 >> SBYTE4(v134)) ^ ((TreasureRoom_2 ^ (TreasureRoom_2 >> SBYTE4(v134))) << SBYTE8(v134));\n            n15_3 = n15_6 >> n15_3;\n            LODWORD(v132) = n15_6 ^ (n15_6 >> n15_5);\n            HIDWORD(v132) = 7;\n            v134 = v132;\n            if ( (_DWORD)n5 == 5 && WORD2(n5) == 100 )\n            {\n              v40 = HIWORD(n5);\n              if ( !HIWORD(n5) )\n              {\n                if ( n15_3 == n15_6 )\n                {\n                  sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n                  __debugbreak();\n                }\n                v41 = v134 ^ ((unsigned int)v134 >> SBYTE4(v134)) ^ (((unsigned int)v134 ^ ((unsigned int)v134 >> SBYTE4(v134))) << SBYTE8(v134));\n                LODWORD(v134) = v41 ^ (v41 >> SBYTE12(v134));\n                v40 = sub_7E25A0(v143 - 4);\n                TreasureRoom_2 = TreasureRoom_1;\n              }\n              *(&v176 + n2_1++) = sub_72A400(v40);\n            }\n          }\n          n16_3 += 16;\n          ++v141;\n        }\n        while ( v141 < *((unsigned __int16 *)v142 + 34) );\n        if ( n2_1 )\n        {\n          v36 = n2_1 == 1;\n          n15_7 = n15_4;\n          if ( v36 )\n          {\n            if ( n15_4 >= 0xC )\n            {\n              n12 = 12;\n              v44 = v173;\n              if ( n15_4 >= 0x10 )\n                v44 = (void **)v173[0];\n              memmove(v44, \"TreasureRoom\", 0xCu);\n              *((_BYTE *)v44 + 12) = 0;\n              goto LABEL_108;\n            }\n            v45 = n15_4 >> 1;\n            if ( n15_4 <= 0x7FFFFFFF - (n15_4 >> 1) )\n            {\n              n15_8 = 15;\n              if ( n15_4 + v45 > 0xF )\n                n15_8 = n15_4 + v45;\n            }\n            else\n            {\n              n15_8 = 0x7FFFFFFF;\n            }\n            TreasureRoom = (char *)sub_408830(n15_8 + 1);\n            TreasureRoom_1 = (int)TreasureRoom;\n            n12 = 12;\n            strcpy(TreasureRoom, \"TreasureRoom\");\n            n15_4 = n15_8;\n          }\n          else\n          {\n            if ( n15_4 >= 0x12 )\n            {\n              n12 = 18;\n              v48 = v173[0];\n              memmove(v173[0], \"TreasureRoomDouble\", 0x12u);\n              v48[18] = 0;\n              goto LABEL_108;\n            }\n            v49 = n15_4 >> 1;\n            if ( n15_4 <= 0x7FFFFFFF - (n15_4 >> 1) )\n            {\n              n31 = 31;\n              if ( n15_4 + v49 > 0x1F )\n                n31 = n15_4 + v49;\n            }\n            else\n            {\n              n31 = 0x7FFFFFFF;\n            }\n            TreasureRoom = (char *)sub_408830(n31 + 1);\n            TreasureRoom_1 = (int)TreasureRoom;\n            n12 = 18;\n            n15_4 = n31;\n            strcpy(TreasureRoom, \"TreasureRoomDouble\");\n            if ( n15_7 >= 0x10 )\n            {\n              v51 = v173[0];\n              if ( n15_7 + 1 >= 0x1000 )\n              {\n                v51 = (void *)*((_DWORD *)v173[0] - 1);\n                if ( (unsigned int)((char *)v173[0] - (char *)v51 - 4) > 0x1F )\n                  goto LABEL_14;\n              }\n              sub_A8717B(v51);\n              TreasureRoom = (char *)TreasureRoom_1;\n            }\n          }\n          v173[0] = TreasureRoom;\n          goto LABEL_108;\n        }\n        n15_2 = n15_4;\n        n15_3 = n15_4;\n        if ( n15_4 >= 0x10 )\n        {\n          v42 = v173[0];\n          n12 = 16;\n          memmove(v173[0], \"TreasureRoomPoop\", 0x10u);\n          v42[16] = 0;\nLABEL_108:\n          v59 = (_DWORD *)(v148 + 1216);\n          v60 = *(_DWORD *)(v148 + 1232);\n          v61 = *(_DWORD *)(v148 + 1224);\n          if ( v61 <= v60 + 1 )\n          {\n            sub_8FD660(*(_DWORD *)(v148 + 1232));\n            v61 = v59[2];\n            v60 = v59[4];\n          }\n          v59[3] &= v61 - 1;\n          v62 = (v60 + v59[3]) & (v61 - 1);\n          v63 = v59[1];\n          if ( !*(_DWORD *)(v63 + 4 * v62) )\n          {\n            *(_DWORD *)(v59[1] + 4 * v62) = operator new(0x20u);\n            v63 = v59[1];\n          }\n          v64 = *(_DWORD *)(v63 + 4 * v62);\n          sub_408400(v173);\n          v65 = v177;\n          *(_DWORD *)(v64 + 24) = v176;\n          *(_DWORD *)(v64 + 28) = v65;\n          ++v59[4];\n          LOBYTE(v181) = 6;\n          if ( n15_4 >= 0x10 )\n          {\n            v66 = v173[0];\n            if ( n15_4 + 1 >= 0x1000 )\n            {\n              v66 = (void *)*((_DWORD *)v173[0] - 1);\n              if ( (unsigned int)((char *)v173[0] - (char *)v66 - 4) > 0x1F )\n                goto LABEL_14;\n            }\n            sub_A8717B(v66);\n          }\n          n187_1 = n187;\n          v27 = v143;\n          v25 = v138;\n          n12 = 0;\n          n15_4 = 15;\n          LOBYTE(v173[0]) = 0;\n          goto LABEL_117;\n        }\n      }\n      v52 = n15_2 >> 1;\n      if ( n15_2 <= 0x7FFFFFFF - (n15_2 >> 1) )\n      {\n        n31_1 = 31;\n        if ( n15_2 + v52 > 0x1F )\n          n31_1 = n15_2 + v52;\n      }\n      else\n      {\n        n31_1 = 0x7FFFFFFF;\n      }\n      TreasureRoomPoop = (char *)sub_408830(n31_1 + 1);\n      n15_9 = n15_3;\n      TreasureRoomPoop_1 = TreasureRoomPoop;\n      n12 = 16;\n      n15_4 = n31_1;\n      strcpy(TreasureRoomPoop, \"TreasureRoomPoop\");\n      if ( n15_9 >= 0x10 )\n      {\n        n0x1000 = n15_9 + 1;\n        v58 = v173[0];\n        if ( n0x1000 >= 0x1000 )\n        {\n          v58 = (void *)*((_DWORD *)v173[0] - 1);\n          if ( (unsigned int)((char *)v173[0] - (char *)v58 - 4) > 0x1F )\n            goto LABEL_14;\n        }\n        sub_A8717B(v58);\n      }\n      v173[0] = TreasureRoomPoop_1;\n      goto LABEL_108;\n    }\nLABEL_119:\n    v67 = 0;\n    v141 = 0;\n    if ( (int)n187_1[24755] <= 0 )\n    {\nLABEL_173:\n      sub_408660(Str1_1, \"gfx/ui/stage/nightmare_dc.anm2\", 0x1Eu);\n      goto LABEL_174;\n    }\n    v68 = n7_4 + 45;\n    v142 = n7_4 + 45;\n    while ( 1 )\n    {\n      if ( *(v68 - 42) )\n        goto LABEL_172;\n      v69 = *(v68 - 41);\n      if ( !v69 || *(_DWORD *)(v69 + 8) != 5 || *v68 != -1 )\n        goto LABEL_172;\n      n2_2 = n187_1[38864];\n      if ( (n2_2 == 2 || n2_2 == 3) && n187_1[24773] != *(v68 - 43) )\n        goto LABEL_172;\n      v71 = *(v68 - 22);\n      v72 = *(unsigned __int16 *)(v69 + 68);\n      n7_1 = 7;\n      n7_2 = 7;\n      v73 = v72 - 1;\n      v126 = 0x700000002LL;\n      v143 = 0;\n      v138 = 0;\n      n16_3 = 0;\n      n16 = 0;\n      if ( v73 >= 0 )\n      {\n        n15_3 = 16 * v73;\n        do\n        {\n          if ( !v71 )\n          {\n            sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n            __debugbreak();\n          }\n          v71 ^= (v71 >> v126) ^ ((v71 ^ (v71 >> v126)) << SBYTE4(v126)) ^ ((v71 ^ (v71 >> v126) ^ ((v71 ^ (v71 >> v126)) << SBYTE4(v126))) >> n7_1);\n          v74 = *(v142 - 41);\n          TreasureRoom_1 = n15_3 + *(_DWORD *)(v74 + 64);\n          v36 = *(_BYTE *)(TreasureRoom_1 + 8) == 0;\n          TreasureRoom_1 = *(unsigned __int8 *)(v74 + 70) * (*(__int16 *)(TreasureRoom_1 + 2) + 1)\n                         + *(__int16 *)TreasureRoom_1\n                         + 1;\n          if ( v36 )\n          {\n            v78 = v143;\n          }\n          else\n          {\n            v75 = sub_821F60(COERCE_INT((float)v71 * 2.3283062e-10));\n            v149 = *(_QWORD *)v75;\n            v150 = *(_DWORD *)(v75 + 8);\n            sub_7E25F0(n187[24768], &v149, TreasureRoom_1, v71);\n            *(_QWORD *)((char *)&v124 + 4) = 0x900000005LL;\n            TreasureRoom_1 = 7;\n            if ( !v71 )\n            {\n              sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n              __debugbreak();\n            }\n            *(_QWORD *)((char *)&v125 + 4) = 0x900000005LL;\n            v76 = v71 ^ (v71 >> SBYTE4(v124)) ^ ((v71 ^ (v71 >> SBYTE4(v124))) << SBYTE8(v124));\n            LODWORD(v125) = v76 ^ (v76 >> TreasureRoom_1);\n            HIDWORD(v125) = 7;\n            v124 = v125;\n            n16_2 = sub_6902A0(v149, WORD2(v149), HIWORD(v149));\n            v78 = v143;\n            if ( n16_2 )\n            {\n              v79 = *(_DWORD **)(n16_2 + 48);\n              if ( v79 )\n              {\n                if ( v143 )\n                {\n                  if ( v79 != v143 )\n                  {\n                    v138 = *(_DWORD *)(n16_2 + 48);\n                    n16 = n16_2;\n                  }\n                }\n                else\n                {\n                  v78 = *(_DWORD **)(n16_2 + 48);\n                  n16_3 = n16_2;\n                  v143 = v79;\n                }\n              }\n            }\n          }\n          n15_3 -= 16;\n          --v73;\n        }\n        while ( v73 >= 0 );\n        if ( v78 )\n          goto LABEL_153;\n        n187_1 = n187;\n      }\n      if ( (n187_1[38577] & 0x8000) != 0 && *n187_1 == 6 )\n      {\n        n4 = n4;\n        n47185920 = 47185920;\n        sub_411DE0((char *)&v132 + 4, &n47185920);\n        if ( !*(_BYTE *)(HIDWORD(v132) + 13) && *(_DWORD *)(HIDWORD(v132) + 16) <= 0x2D00000u )\n        {\n          v36 = HIDWORD(v132) == n4[43227];\n          n16_4 = n16_3;\n          if ( !v36 && HIDWORD(v132) != -24 && *(_DWORD *)(HIDWORD(v132) + 72) )\n            n16_4 = HIDWORD(v132) + 24;\n          goto LABEL_154;\n        }\n      }\nLABEL_153:\n      n16_4 = n16_3;\nLABEL_154:\n      v82 = *(v142 - 41);\n      if ( *(_DWORD *)(v82 + 8) == 5 && (unsigned int)(*(_DWORD *)(v82 + 12) - 3700) <= 0x95 )\n      {\n        BossDoubleTrouble = (char *)sub_408830(0x20u);\n        n17 = 17;\n        n31_2 = 31;\n        strcpy(BossDoubleTrouble, \"BossDoubleTrouble\");\n        v160[0] = BossDoubleTrouble;\n        LOBYTE(v181) = 9;\n        sub_408400(v160);\n        v152[6] = n16_4;\n        if ( v138 )\n          n16_4 = n16;\n        v152[7] = n16_4;\n        LOBYTE(v181) = 10;\n        sub_8FD4F0(v152);\n        sub_4085F0(v152);\n        LOBYTE(v181) = 6;\n        if ( n31_2 >= 0x10 )\n        {\n          v85 = (void *)v160[0];\n          if ( n31_2 + 1 >= 0x1000 )\n          {\n            v85 = *(void **)(v160[0] - 4);\n            if ( (unsigned int)(v160[0] - (_DWORD)v85 - 4) > 0x1F )\n              goto LABEL_14;\n          }\n          sub_A8717B(v85);\n        }\n        n17 = 0;\n        n31_2 = 15;\n        LOBYTE(v160[0]) = 0;\n      }\n      else\n      {\n        v157[0] = 0;\n        v158 = 0;\n        n15_10 = 15;\n        sub_408660(v157, \"Boss\", 4u);\n        LOBYTE(v181) = 11;\n        sub_408400(v157);\n        v153[6] = n16_4;\n        v153[7] = 0;\n        LOBYTE(v181) = 12;\n        sub_8FD4F0(v153);\n        sub_4085F0(v153);\n        LOBYTE(v181) = 6;\n        if ( n15_10 >= 0x10 )\n        {\n          v86 = (void *)v157[0];\n          if ( n15_10 + 1 >= 0x1000 )\n          {\n            v86 = *(void **)(v157[0] - 4);\n            if ( (unsigned int)(v157[0] - (_DWORD)v86 - 4) > 0x1F )\n              goto LABEL_14;\n          }\n          sub_A8717B(v86);\n        }\n        v158 = 0;\n        n15_10 = 15;\n        LOBYTE(v157[0]) = 0;\n      }\n      v67 = v141;\n      v68 = v142;\n      n187_1 = n187;\nLABEL_172:\n      ++v67;\n      v68 += 46;\n      v141 = v67;\n      v142 = v68;\n      if ( v67 >= n187_1[24755] )\n        goto LABEL_173;\n    }\n  }\nLABEL_175:\n  if ( n4[76782] == n4[76783]\n    || (v87 = (unsigned int **)(n187_1 + 28330), n16_6 = 0, v89 = (n187_1[28331] - n187_1[28330]) >> 2, n16 = 0, !v89) )\n  {\nLABEL_188:\n    v92 = v137;\n  }\n  else\n  {\n    while ( 1 )\n    {\n      v90 = v87[1];\n      v91 = *v87;\n      if ( !(v90 - *v87) )\n      {\n        sub_9E0DF0(3, \"PlayerManager::GetPlayer() : There are no players! \\n\", ArgList);\n        v90 = v87[1];\n        v91 = *v87;\n      }\n      if ( n16_6 < v90 - v91 )\n        v91 += n16_6;\n      v92 = *v91;\n      v141 = *v91;\n      v93 = n4[76783];\n      v94 = n4[76782];\n      if ( v94 == v93 )\n        break;\n      n7_3 = 0;\n      n7_1 = (v93 - v94) >> 2;\n      if ( !n7_1 )\n        break;\n      while ( 1 )\n      {\n        n16_5 = n16;\n        if ( *(_DWORD *)(*(_DWORD *)v94 + 8) == *(_DWORD *)(v141 + 5644) )\n          break;\n        ++n7_3;\n        v94 += 4;\n        if ( n7_3 >= n7_1 )\n          goto LABEL_185;\n      }\n      if ( (*(unsigned __int8 (__fastcall **)(int, unsigned int))(*(_DWORD *)(*(_DWORD *)v94 + 1016) + 20))(\n             *(_DWORD *)v94 + 1016,\n             n7_1) )\n      {\nLABEL_185:\n        v92 = v141;\n        break;\n      }\n      n16_6 = n16_5 + 1;\n      v87 = (unsigned int **)(n187 + 28330);\n      n16 = n16_6;\n      if ( n16_6 >= (n187[28331] - n187[28330]) >> 2 )\n        goto LABEL_188;\n    }\n  }\n  n47185920_1 = *(_DWORD *)(v92 + 5052);\n  n47185920 = n47185920_1;\n  if ( n47185920_1 < 0 || n47185920_1 >= (n4[43230] - n4[43229]) / 328 )\n  {\n    n16_8 = 0;\n  }\n  else\n  {\n    v36 = n4[43229] + 328 * n47185920_1 == 0;\n    n16_7 = n4[43229] + 328 * n47185920_1;\n    n16 = n16_7;\n    if ( !v36 )\n    {\n      v99 = (void *)(n16_7 + 76);\n      sub_407CD0(2u, v99);\n      sub_407CD0(6u, v99);\n      n47185920_1 = n47185920;\n      n16_8 = n16;\n      goto LABEL_196;\n    }\n    n16_8 = n16;\n  }\n  sub_9E0DF0(0, \"[warn] could not load player config for type %d.\\n\", n47185920_1);\nLABEL_196:\n  sub_403530();\n  if ( *(_DWORD *)(n16_8 + 140) )\n  {\n    v102 = (void *)(n16_8 + 124);\n    v103 = v148;\n    sub_407AF0((void *)(v148 + 1236), v102, 1);\n    v104 = (_DWORD *)(v103 + 1260);\n    if ( *(_DWORD *)(v103 + 1280) >= 0x10u )\n      v104 = (_DWORD *)*v104;\n    sub_405D00(v104, 0);\n  }\n  v105 = sub_732CC0(v101);\n  sub_408400(&n187[49 * v105 + 25169]);\n  ArgList_1 = v148 + 32;\n  LOBYTE(v181) = 13;\n  sub_407CD0(3u, v160);\n  LOBYTE(v181) = 6;\n  sub_4085F0(v160);\n  sub_407DA0(v107);\n  if ( (unsigned __int8)sub_405F50((char)\"Intro\", 1) )\n  {\n    sub_405B30(ArgList_1 + 48);\n    *(_BYTE *)(ArgList_1 + 68) = 1;\n  }\n  sub_403530();\n  sub_407AF0((void *)(v148 + 308), Str1_1, 1);\n  if ( (unsigned __int8)sub_405F50((char)\"Scene\", 1) )\n  {\n    if ( *(_DWORD *)(v148 + 360) )\n    {\n      sub_4042A0(v148 + 356);\n      if ( *(_DWORD *)(v148 + 360) )\n        *(_BYTE *)(v148 + 376) = 0;\n    }\n  }\n  if ( n47185920_1 == 4\n    || n47185920_1 == 16\n    || n47185920_1 == 17\n    || n47185920_1 == 14\n    || n47185920_1 == 25\n    || n47185920_1 == 35\n    || n47185920_1 == 33 )\n  {\n    *(_BYTE *)(sub_406B60(ArgList_1, 2) + 116) = 0;\n    *(_BYTE *)(sub_406B60(ArgList_1, 6) + 116) = 1;\n  }\n  else\n  {\n    *(_BYTE *)(sub_406B60(ArgList_1, 2) + 116) = 1;\n    *(_BYTE *)(sub_406B60(ArgList_1, 6) + 116) = 0;\n  }\n  v108 = v148;\n  *(_DWORD *)v148 = 1;\n  *(_DWORD *)(v108 + 4) = 0;\n  v109 = *(float *)&dword_BE7298 * 0.5;\n  *(float *)(v108 + 180) = *(float *)&dword_BE6F2C * 0.5;\n  *(float *)(v108 + 184) = v109;\n  v110 = *(float *)&dword_BE7298 * 0.5;\n  *(float *)(v108 + 456) = *(float *)&dword_BE6F2C * 0.5;\n  *(float *)(v108 + 460) = v110;\n  n187_2 = n187;\n  *(_DWORD *)(v108 + 864) = (*(_DWORD *)(v108 + 864) + 1)\n                          % (unsigned int)((*(_DWORD *)(v108 + 12) - *(_DWORD *)(v108 + 8)) / 24);\n  v112 = *n187_2;\n  *(_DWORD *)(v108 + 868) = *n187_2 - 1;\n  n4_1 = n187_2[1];\n  if ( n4_1 == 4 || n4_1 == 5 )\n    *(_DWORD *)(v108 + 868) = v112;\n  v36 = *(_BYTE *)(v108 + 1512) == 0;\n  n4_2 = n4;\n  *(_BYTE *)(v108 + 872) = a3;\n  n96 = 96;\n  if ( !v36 )\n    n96 = 65;\n  sub_7D8360(n96, n4_2[43108]);\n  if ( *n187 == 12 )\n    *(_DWORD *)(v108 + 868) = 9;\n  sub_8FD5A0(&v135);\n  return sub_4085F0(Str1_1);\n}\n",
+ "exported_ranges_rva": [
+  [
+   "0x4fbe00",
+   "0x4fbe50"
+  ],
+  [
+   "0x4fd271",
+   "0x4fd2a0"
+  ]
+ ],
+ "instructions": [
+  {
+   "va": "0x8fbe00",
+   "rva": "0x4fbe00",
+   "bytes": "53",
+   "asm": "push    ebx"
+  },
+  {
+   "va": "0x8fbe01",
+   "rva": "0x4fbe01",
+   "bytes": "8b dc",
+   "asm": "mov     ebx, esp"
+  },
+  {
+   "va": "0x8fbe03",
+   "rva": "0x4fbe03",
+   "bytes": "83 ec 08",
+   "asm": "sub     esp, 8"
+  },
+  {
+   "va": "0x8fbe06",
+   "rva": "0x4fbe06",
+   "bytes": "83 e4 f8",
+   "asm": "and     esp, 0FFFFFFF8h"
+  },
+  {
+   "va": "0x8fbe09",
+   "rva": "0x4fbe09",
+   "bytes": "83 c4 04",
+   "asm": "add     esp, 4"
+  },
+  {
+   "va": "0x8fbe0c",
+   "rva": "0x4fbe0c",
+   "bytes": "55",
+   "asm": "push    ebp"
+  },
+  {
+   "va": "0x8fbe0d",
+   "rva": "0x4fbe0d",
+   "bytes": "8b 6b 04",
+   "asm": "mov     ebp, [ebx+4]"
+  },
+  {
+   "va": "0x8fbe10",
+   "rva": "0x4fbe10",
+   "bytes": "89 6c 24 04",
+   "asm": "mov     [esp+0Ch+var_8], ebp"
+  },
+  {
+   "va": "0x8fbe14",
+   "rva": "0x4fbe14",
+   "bytes": "8b ec",
+   "asm": "mov     ebp, esp"
+  },
+  {
+   "va": "0x8fbe16",
+   "rva": "0x4fbe16",
+   "bytes": "6a ff",
+   "asm": "push    0FFFFFFFFh"
+  },
+  {
+   "va": "0x8fbe18",
+   "rva": "0x4fbe18",
+   "bytes": "68 3d f0 a9 00",
+   "asm": "push    offset loc_A9F03D"
+  },
+  {
+   "va": "0x8fbe1d",
+   "rva": "0x4fbe1d",
+   "bytes": "64 a1 00 00 00 00",
+   "asm": "mov     eax, large fs:0"
+  },
+  {
+   "va": "0x8fbe23",
+   "rva": "0x4fbe23",
+   "bytes": "50",
+   "asm": "push    eax"
+  },
+  {
+   "va": "0x8fbe24",
+   "rva": "0x4fbe24",
+   "bytes": "53",
+   "asm": "push    ebx"
+  },
+  {
+   "va": "0x8fbe25",
+   "rva": "0x4fbe25",
+   "bytes": "81 ec 18 03 00 00",
+   "asm": "sub     esp, 318h"
+  },
+  {
+   "va": "0x8fbe2b",
+   "rva": "0x4fbe2b",
+   "bytes": "a1 b4 83 b8 00",
+   "asm": "mov     eax, ___security_cookie"
+  },
+  {
+   "va": "0x8fbe30",
+   "rva": "0x4fbe30",
+   "bytes": "33 c5",
+   "asm": "xor     eax, ebp"
+  },
+  {
+   "va": "0x8fbe32",
+   "rva": "0x4fbe32",
+   "bytes": "89 45 ec",
+   "asm": "mov     [ebp-14h], eax"
+  },
+  {
+   "va": "0x8fbe35",
+   "rva": "0x4fbe35",
+   "bytes": "56",
+   "asm": "push    esi"
+  },
+  {
+   "va": "0x8fbe36",
+   "rva": "0x4fbe36",
+   "bytes": "57",
+   "asm": "push    edi"
+  },
+  {
+   "va": "0x8fbe37",
+   "rva": "0x4fbe37",
+   "bytes": "50",
+   "asm": "push    eax; ArgList"
+  },
+  {
+   "va": "0x8fbe38",
+   "rva": "0x4fbe38",
+   "bytes": "8d 45 f4",
+   "asm": "lea     eax, [ebp-0Ch]"
+  },
+  {
+   "va": "0x8fbe3b",
+   "rva": "0x4fbe3b",
+   "bytes": "64 a3 00 00 00 00",
+   "asm": "mov     large fs:0, eax"
+  },
+  {
+   "va": "0x8fbe41",
+   "rva": "0x4fbe41",
+   "bytes": "8b f9",
+   "asm": "mov     edi, ecx"
+  },
+  {
+   "va": "0x8fbe43",
+   "rva": "0x4fbe43",
+   "bytes": "89 bd c8 fd ff ff",
+   "asm": "mov     [ebp-238h], edi"
+  },
+  {
+   "va": "0x8fbe49",
+   "rva": "0x4fbe49",
+   "bytes": "8b 35 f4 49 be 00",
+   "asm": "mov     esi, n187"
+  },
+  {
+   "va": "0x8fbe4f",
+   "rva": "0x4fbe4f",
+   "bytes": "8b 86 ac ba 01 00",
+   "asm": "mov     eax, [esi+1BAACh]"
+  },
+  {
+   "va": "0x8fd271",
+   "rva": "0x4fd271",
+   "bytes": "8b b5 c8 fd ff ff",
+   "asm": "mov     esi, [ebp-238h]"
+  },
+  {
+   "va": "0x8fd277",
+   "rva": "0x4fd277",
+   "bytes": "b8 ab aa aa 2a",
+   "asm": "mov     eax, 2AAAAAABh"
+  },
+  {
+   "va": "0x8fd27c",
+   "rva": "0x4fd27c",
+   "bytes": "f3 0f 10 15 78 01 b4 00",
+   "asm": "movss   xmm2, ds:dword_B40178"
+  },
+  {
+   "va": "0x8fd284",
+   "rva": "0x4fd284",
+   "bytes": "c7 06 01 00 00 00",
+   "asm": "mov     dword ptr [esi], 1"
+  },
+  {
+   "va": "0x8fd28a",
+   "rva": "0x4fd28a",
+   "bytes": "c7 46 04 00 00 00 00",
+   "asm": "mov     dword ptr [esi+4], 0"
+  },
+  {
+   "va": "0x8fd291",
+   "rva": "0x4fd291",
+   "bytes": "f3 0f 10 0d 2c 6f be 00",
+   "asm": "movss   xmm1, dword_BE6F2C"
+  },
+  {
+   "va": "0x8fd299",
+   "rva": "0x4fd299",
+   "bytes": "f3 0f 10 05 98 72 be 00",
+   "asm": "movss   xmm0, dword_BE7298"
+  }
+ ],
+ "xrefs_to_func": [
+  {
+   "from_rva": "0x52e4e0",
+   "type": 17
+  }
+ ]
+}

@@ -1,0 +1,142 @@
+{
+ "label": "Game_IsAscentLike_348FF0",
+ "va": "0x748ff0",
+ "rva": "0x348ff0",
+ "note": "描述性标签；stage 1..6 且 Game+0x25AC4 bit 0x10000 时跳过 Nightmare",
+ "func_start_va": "0x748ff0",
+ "func_end_va": "0x749015",
+ "func_start_rva": "0x348ff0",
+ "func_end_rva": "0x349015",
+ "decompile_hexrays_raw": "bool __thiscall sub_748FF0(_DWORD *this)\n{\n  return (unsigned int)(*this - 1) <= 5 && (n187[38577] & 0x10000) != 0;\n}\n",
+ "exported_ranges_rva": "whole_function",
+ "instructions": [
+  {
+   "va": "0x748ff0",
+   "rva": "0x348ff0",
+   "bytes": "8b 01",
+   "asm": "mov     eax, [ecx]"
+  },
+  {
+   "va": "0x748ff2",
+   "rva": "0x348ff2",
+   "bytes": "48",
+   "asm": "dec     eax"
+  },
+  {
+   "va": "0x748ff3",
+   "rva": "0x348ff3",
+   "bytes": "83 f8 05",
+   "asm": "cmp     eax, 5"
+  },
+  {
+   "va": "0x748ff6",
+   "rva": "0x348ff6",
+   "bytes": "77 1a",
+   "asm": "ja      short loc_749012",
+   "target_rva": [
+    "0x349012"
+   ]
+  },
+  {
+   "va": "0x748ff8",
+   "rva": "0x348ff8",
+   "bytes": "a1 f4 49 be 00",
+   "asm": "mov     eax, n187"
+  },
+  {
+   "va": "0x748ffd",
+   "rva": "0x348ffd",
+   "bytes": "8b 88 c4 5a 02 00",
+   "asm": "mov     ecx, [eax+25AC4h]"
+  },
+  {
+   "va": "0x749003",
+   "rva": "0x349003",
+   "bytes": "33 c0",
+   "asm": "xor     eax, eax"
+  },
+  {
+   "va": "0x749005",
+   "rva": "0x349005",
+   "bytes": "81 e1 00 00 01 00",
+   "asm": "and     ecx, 10000h"
+  },
+  {
+   "va": "0x74900b",
+   "rva": "0x34900b",
+   "bytes": "0b c1",
+   "asm": "or      eax, ecx"
+  },
+  {
+   "va": "0x74900d",
+   "rva": "0x34900d",
+   "bytes": "74 03",
+   "asm": "jz      short loc_749012",
+   "target_rva": [
+    "0x349012"
+   ]
+  },
+  {
+   "va": "0x74900f",
+   "rva": "0x34900f",
+   "bytes": "b0 01",
+   "asm": "mov     al, 1"
+  },
+  {
+   "va": "0x749011",
+   "rva": "0x349011",
+   "bytes": "c3",
+   "asm": "retn"
+  },
+  {
+   "va": "0x749012",
+   "rva": "0x349012",
+   "bytes": "32 c0",
+   "asm": "xor     al, al"
+  },
+  {
+   "va": "0x749014",
+   "rva": "0x349014",
+   "bytes": "c3",
+   "asm": "retn"
+  }
+ ],
+ "xrefs_to_func": [
+  {
+   "from_rva": "0x340d73",
+   "type": 17
+  },
+  {
+   "from_rva": "0x35c547",
+   "type": 17
+  },
+  {
+   "from_rva": "0x36cb36",
+   "type": 17
+  },
+  {
+   "from_rva": "0x39cc98",
+   "type": 17
+  },
+  {
+   "from_rva": "0x39cd78",
+   "type": 17
+  },
+  {
+   "from_rva": "0x50994b",
+   "type": 17
+  },
+  {
+   "from_rva": "0x509d07",
+   "type": 17
+  },
+  {
+   "from_rva": "0x51183e",
+   "type": 17
+  },
+  {
+   "from_rva": "0x4534c5",
+   "type": 1
+  }
+ ]
+}

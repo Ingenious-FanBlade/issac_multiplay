@@ -1,0 +1,129 @@
+{
+  "addr": "0x6A3EC0",
+  "asm": {
+    "name": "sub_6A3EC0",
+    "start_ea": "0x6a3ec0",
+    "segment": ".text",
+    "lines": [
+      {
+        "addr": "6a3ec0",
+        "instruction": "push ebp",
+        "label": "sub_6A3EC0"
+      },
+      {
+        "addr": "6a3ec1",
+        "instruction": "mov ebp, esp"
+      },
+      {
+        "addr": "6a3ec3",
+        "instruction": "push esi"
+      },
+      {
+        "addr": "6a3ec4",
+        "instruction": "mov esi, ecx"
+      },
+      {
+        "addr": "6a3ec6",
+        "instruction": "call sub_6A3EF0",
+        "refs": [
+          {
+            "addr": "0x6a3ef0",
+            "name": "sub_6A3EF0"
+          }
+        ]
+      },
+      {
+        "addr": "6a3ecb",
+        "instruction": "test [ebp+arg_0], 1"
+      },
+      {
+        "addr": "6a3ecf",
+        "instruction": "jz short loc_6A3EDF",
+        "refs": [
+          {
+            "addr": "0x6a3edf",
+            "name": "loc_6A3EDF"
+          }
+        ]
+      },
+      {
+        "addr": "6a3ed1",
+        "instruction": "push 410h"
+      },
+      {
+        "addr": "6a3ed6",
+        "instruction": "push esi; Block",
+        "comments": [
+          "Block"
+        ]
+      },
+      {
+        "addr": "6a3ed7",
+        "instruction": "call sub_A8717B",
+        "refs": [
+          {
+            "addr": "0xa8717b",
+            "name": "sub_A8717B"
+          }
+        ]
+      },
+      {
+        "addr": "6a3edc",
+        "instruction": "add esp, 8"
+      },
+      {
+        "addr": "6a3edf",
+        "instruction": "mov eax, esi",
+        "label": "loc_6A3EDF"
+      },
+      {
+        "addr": "6a3ee1",
+        "instruction": "pop esi"
+      },
+      {
+        "addr": "6a3ee2",
+        "instruction": "pop ebp"
+      },
+      {
+        "addr": "6a3ee3",
+        "instruction": "retn 4"
+      }
+    ],
+    "stack_frame": [
+      {
+        "name": "__saved_registers",
+        "offset": "0x4",
+        "size": "0x4",
+        "type": "_DWORD"
+      },
+      {
+        "name": "__return_address",
+        "offset": "0x8",
+        "size": "0x4",
+        "type": "_UNKNOWN *"
+      },
+      {
+        "name": "arg_0",
+        "offset": "0xc",
+        "size": "0x1",
+        "type": "char"
+      }
+    ],
+    "return_type": "void *",
+    "arguments": [
+      {
+        "name": "Block",
+        "type": "void *"
+      },
+      {
+        "name": "arg1",
+        "type": "char"
+      }
+    ]
+  },
+  "instruction_count": 15,
+  "total_instructions": null,
+  "cursor": {
+    "done": true
+  }
+}

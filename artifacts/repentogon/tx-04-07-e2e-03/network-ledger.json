@@ -1,0 +1,218 @@
+[
+  {
+    "codec": true,
+    "exact_relay_peer": true,
+    "host": {
+      "detail": "event=stop generation=1 stopped=1 terminal=Stop rx=2220 tx=3912 duplicate=9 stale=48 foreign=0 rx_drop=0 tx_drop=0 bye_attempts=3 bye_sent=3 terminal_at_ms=134490515 last_receive_ms=134490500",
+      "ev": "net",
+      "seq": 39856,
+      "t": 134490538130,
+      "truncated": false
+    },
+    "ledger": [
+      {
+        "destination_difference": 0,
+        "destination_rx": 2220,
+        "direction": 0,
+        "pass": true,
+        "relay_received": 2239,
+        "relay_send_ok": 2220,
+        "source_difference": 0,
+        "source_tx": 2239,
+        "summary": {
+          "copies_scheduled": 2220,
+          "duplicate": 9,
+          "pending": 0,
+          "policy_drop": 28,
+          "received": 2239,
+          "reorder": 8,
+          "send_error": 0,
+          "send_ok": 2220,
+          "shutdown_drop": 0
+        }
+      },
+      {
+        "destination_difference": 0,
+        "destination_rx": 3840,
+        "direction": 1,
+        "pass": true,
+        "relay_received": 3912,
+        "relay_send_ok": 3840,
+        "source_difference": 0,
+        "source_tx": 3912,
+        "summary": {
+          "copies_scheduled": 3840,
+          "duplicate": 16,
+          "pending": 0,
+          "policy_drop": 88,
+          "received": 3912,
+          "reorder": 15,
+          "send_error": 0,
+          "send_ok": 3840,
+          "shutdown_drop": 0
+        }
+      }
+    ],
+    "pass": true,
+    "relay": {
+      "directions": [
+        {
+          "copies_scheduled": 2220,
+          "duplicate": 9,
+          "pending": 0,
+          "policy_drop": 28,
+          "received": 2239,
+          "reorder": 8,
+          "send_error": 0,
+          "send_ok": 2220,
+          "shutdown_drop": 0
+        },
+        {
+          "copies_scheduled": 3840,
+          "duplicate": 16,
+          "pending": 0,
+          "policy_drop": 88,
+          "received": 3912,
+          "reorder": 15,
+          "send_error": 0,
+          "send_ok": 3840,
+          "shutdown_drop": 0
+        }
+      ],
+      "foreign": 0,
+      "host": "127.0.0.1:27090",
+      "peer": "127.0.0.1:61838"
+    },
+    "relay_healthy": true,
+    "remote": {
+      "bye": 1,
+      "duplicate": 18,
+      "elapsed_us": 65439419,
+      "error": null,
+      "establishments": 1,
+      "event": "summary",
+      "expected_timeout": false,
+      "rx": 3840,
+      "stale": 32,
+      "terminal_cause": "peer_bye",
+      "tx": 2239
+    },
+    "round": 1,
+    "terminal": true
+  },
+  {
+    "codec": true,
+    "exact_relay_peer": true,
+    "host": {
+      "detail": "event=stop generation=2 stopped=1 terminal=PeerBye rx=908 tx=908 duplicate=0 stale=0 foreign=0 rx_drop=0 tx_drop=0 bye_attempts=0 bye_sent=0 terminal_at_ms=134507875 last_receive_ms=134507875",
+      "ev": "net",
+      "seq": 53552,
+      "t": 134507918963,
+      "truncated": false
+    },
+    "ledger": [
+      {
+        "destination_difference": -2,
+        "destination_rx": 908,
+        "direction": 0,
+        "pass": false,
+        "relay_received": 910,
+        "relay_send_ok": 910,
+        "source_difference": 0,
+        "source_tx": 910,
+        "summary": {
+          "copies_scheduled": 910,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 910,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 910,
+          "shutdown_drop": 0
+        }
+      },
+      {
+        "destination_difference": 0,
+        "destination_rx": 908,
+        "direction": 1,
+        "pass": true,
+        "relay_received": 908,
+        "relay_send_ok": 908,
+        "source_difference": 0,
+        "source_tx": 908,
+        "summary": {
+          "copies_scheduled": 908,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 908,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 908,
+          "shutdown_drop": 0
+        }
+      }
+    ],
+    "pass": false,
+    "relay": {
+      "directions": [
+        {
+          "copies_scheduled": 910,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 910,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 910,
+          "shutdown_drop": 0
+        },
+        {
+          "copies_scheduled": 908,
+          "duplicate": 0,
+          "pending": 0,
+          "policy_drop": 0,
+          "received": 908,
+          "reorder": 0,
+          "send_error": 0,
+          "send_ok": 908,
+          "shutdown_drop": 0
+        }
+      ],
+      "foreign": 0,
+      "host": "127.0.0.1:27090",
+      "peer": "127.0.0.1:58213"
+    },
+    "relay_healthy": false,
+    "remote": {
+      "bye": null,
+      "duplicate": 0,
+      "elapsed_us": 15134827,
+      "error": null,
+      "establishments": 1,
+      "event": "summary",
+      "expected_timeout": false,
+      "rx": 908,
+      "stale": 0,
+      "terminal_cause": null,
+      "tx": 910
+    },
+    "round": 2,
+    "terminal": false
+  },
+  {
+    "pass": false,
+    "relay_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-03\\relay-3.jsonl: 系统找不到指定的文件。 (os error 2)",
+    "remote_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-03\\remote-3.jsonl: 系统找不到指定的文件。 (os error 2)",
+    "round": 3,
+    "status": "NOT_RUN"
+  },
+  {
+    "pass": false,
+    "relay_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-03\\relay-4.jsonl: 系统找不到指定的文件。 (os error 2)",
+    "remote_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-03\\remote-4.jsonl: 系统找不到指定的文件。 (os error 2)",
+    "round": 4,
+    "status": "NOT_RUN"
+  }
+]

@@ -1,0 +1,432 @@
+{
+  "tx": "tx-04-08",
+  "kind": "STATIC_REVIEW",
+  "target": "Repentance+ v1.9.7.12.J273",
+  "imagebase": "0x400000",
+  "method": "主智能体独立读取本地完整 ZHL 特征，在 IDB 搜索并读原始入口/正常主块 retn；不执行目标程序",
+  "sdk_entries": [
+    {
+      "semantic": "Factory",
+      "zhl": "EntityFactory.zhl",
+      "decl_line": 2,
+      "declaration": "__thiscall Entity* EntityFactory::Create(unsigned int type, bool force);",
+      "signature": "558bec518b45??535657",
+      "matches": [
+        "0x6ec540"
+      ],
+      "rva": "0x2ec540",
+      "bytes32": "55 8b ec 51 8b 45 08 53 56 57 8b f9 3d e8 03 00 00 0f 8f 64 0c 00 00 0f 84 ff 0a 00 00 48 83 f8",
+      "normal_chunk_returns": [
+        {
+          "va": "0x6ec584",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        },
+        {
+          "va": "0x6ec6d4",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        },
+        {
+          "va": "0x6ec828",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        },
+        {
+          "va": "0x6ec988",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        },
+        {
+          "va": "0x6ecae8",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        },
+        {
+          "va": "0x6ecc46",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        },
+        {
+          "va": "0x6ecda8",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        },
+        {
+          "va": "0x6ecf06",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        },
+        {
+          "va": "0x6ed059",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        },
+        {
+          "va": "0x6ed1b8",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        },
+        {
+          "va": "0x6ed328",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        },
+        {
+          "va": "0x6ed486",
+          "bytes": "c2 08 00",
+          "asm": "retn    8"
+        }
+      ]
+    },
+    {
+      "semantic": "Init",
+      "zhl": "Entity.zhl",
+      "decl_line": 259,
+      "declaration": "void Init(unsigned int type, unsigned int variant, unsigned int subtype, unsigned int initSeed);",
+      "signature": "558bec83ec308b45??f30f7e05",
+      "matches": [
+        "0x6a4a20"
+      ],
+      "rva": "0x2a4a20",
+      "bytes32": "55 8b ec 83 ec 30 8b 45 08 f3 0f 7e 05 10 ce aa 00 56 8b f1 57 89 46 28 8b 45 0c 89 46 2c 8b 45",
+      "normal_chunk_returns": [
+        {
+          "va": "0x6a4f25",
+          "bytes": "c2 10 00",
+          "asm": "retn    10h"
+        }
+      ]
+    },
+    {
+      "semantic": "Remove",
+      "zhl": "Entity.zhl",
+      "decl_line": 278,
+      "declaration": "void Remove();",
+      "signature": "51568bf15780be????????00c686????????007507",
+      "matches": [
+        "0x6a8000"
+      ],
+      "rva": "0x2a8000",
+      "bytes32": "51 56 8b f1 57 80 be 73 01 00 00 00 c6 86 72 01 00 00 00 75 07 c6 86 73 01 00 00 01 56 e8 2e 4a",
+      "normal_chunk_returns": [
+        {
+          "va": "0x6a8057",
+          "bytes": "c3",
+          "asm": "retn"
+        }
+      ]
+    },
+    {
+      "semantic": "ClearReferences",
+      "zhl": "Entity.zhl",
+      "decl_line": 291,
+      "declaration": "void ClearReferences();",
+      "signature": "558bec515356578bf98b8f",
+      "matches": [
+        "0x6a8060"
+      ],
+      "rva": "0x2a8060",
+      "bytes32": "55 8b ec 51 53 56 57 8b f9 8b 8f bc 03 00 00 8d b7 bc 03 00 00 85 c9 74 12 8d 45 fc 89 75 fc 50",
+      "normal_chunk_returns": [
+        {
+          "va": "0x6a8209",
+          "bytes": "c3",
+          "asm": "retn"
+        }
+      ]
+    },
+    {
+      "semantic": "Destroy",
+      "zhl": "Entity.zhl",
+      "decl_line": 5,
+      "declaration": "__thiscall void Entity::destructor();",
+      "signature": "558bec6aff68????????64a1????????5083ec085657a1????????33c5508d45??64a3????????8bf980bf????????00",
+      "matches": [
+        "0x6a3ef0"
+      ],
+      "rva": "0x2a3ef0",
+      "bytes32": "55 8b ec 6a ff 68 20 10 a9 00 64 a1 00 00 00 00 50 83 ec 08 56 57 a1 b4 83 b8 00 33 c5 50 8d 45",
+      "normal_chunk_returns": [
+        {
+          "va": "0x6a4000",
+          "bytes": "c3",
+          "asm": "retn"
+        }
+      ]
+    },
+    {
+      "semantic": "PlayerCtor",
+      "zhl": "EntityPlayer.zhl",
+      "decl_line": 9,
+      "declaration": "__thiscall void Entity_Player::constructor();",
+      "signature": "538bdc83ec0883e4f883c404558b6b??896c24??8bec6aff68????????64a1????????505383ec085657a1????????33c5508d45??64a3????????8bf9",
+      "matches": [
+        "0x74dc70"
+      ],
+      "rva": "0x34dc70",
+      "bytes32": "53 8b dc 83 ec 08 83 e4 f8 83 c4 04 55 8b 6b 04 89 6c 24 04 8b ec 6a ff 68 54 52 a9 00 64 a1 00",
+      "normal_chunk_returns": [
+        {
+          "va": "0x74e968",
+          "bytes": "c3",
+          "asm": "retn"
+        }
+      ]
+    },
+    {
+      "semantic": "PlayerCreate",
+      "zhl": "PlayerManager.zhl",
+      "decl_line": 5,
+      "declaration": "__thiscall Entity_Player* PlayerManager::SpawnCoPlayer2(int playerType); //big baby",
+      "signature": "558bec6aff68????????64a1????????5083ec08535657a1????????33c5508d45??64a3????????8bf9a1",
+      "matches": [
+        "0x990250"
+      ],
+      "rva": "0x590250",
+      "bytes32": "55 8b ec 6a ff 68 69 2a aa 00 64 a1 00 00 00 00 50 83 ec 08 53 56 57 a1 b4 83 b8 00 33 c5 50 8d",
+      "normal_chunk_returns": [
+        {
+          "va": "0x990392",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        },
+        {
+          "va": "0x9904b8",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        }
+      ]
+    },
+    {
+      "semantic": "ManagerRestore",
+      "zhl": "PlayerManager.zhl",
+      "decl_line": 57,
+      "declaration": "__thiscall void PlayerManager::RestoreGameState(GameState * state);",
+      "signature": "558bec6aff68????????64a1????????5083ec28535657a1????????33c5508d45??64a3????????8bc1",
+      "matches": [
+        "0x993a90"
+      ],
+      "rva": "0x593a90",
+      "bytes32": "55 8b ec 6a ff 68 41 2c aa 00 64 a1 00 00 00 00 50 83 ec 28 53 56 57 a1 b4 83 b8 00 33 c5 50 8d",
+      "normal_chunk_returns": [
+        {
+          "va": "0x993e08",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        }
+      ]
+    },
+    {
+      "semantic": "PlayerRestore",
+      "zhl": "EntityPlayer.zhl",
+      "decl_line": 602,
+      "declaration": "__thiscall void Entity_Player::RestoreGameState(GameStatePlayer* saveState);",
+      "signature": "538bdc83ec0883e4f883c404558b6b??896c24??8bec6aff68????????64a1????????505383ec40a1????????33c58945??5657508d45??64a3????????8bf9897d??83bf????????00",
+      "matches": [
+        "0x7a5660"
+      ],
+      "rva": "0x3a5660",
+      "bytes32": "53 8b dc 83 ec 08 83 e4 f8 83 c4 04 55 8b 6b 04 89 6c 24 04 8b ec 6a ff 68 8d 61 a9 00 64 a1 00",
+      "normal_chunk_returns": [
+        {
+          "va": "0x7a6d3d",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        }
+      ]
+    },
+    {
+      "semantic": "NpcMorph",
+      "zhl": "EntityNPC.zhl",
+      "decl_line": 2,
+      "declaration": "__thiscall void Entity_NPC::Morph(int EntityType,int Variant,int SubType,int Championid);",
+      "signature": "558bec83e4f883ec30a1????????33c4894424??8b45",
+      "matches": [
+        "0x6bd0c0"
+      ],
+      "rva": "0x2bd0c0",
+      "bytes32": "55 8b ec 83 e4 f8 83 ec 30 a1 b4 83 b8 00 33 c4 89 44 24 2c 8b 45 14 8b 55 0c 56 8b f1 8b 4d 10",
+      "normal_chunk_returns": [
+        {
+          "va": "0x6bd111",
+          "bytes": "c2 10 00",
+          "asm": "retn    10h"
+        },
+        {
+          "va": "0x6bd27e",
+          "bytes": "c2 10 00",
+          "asm": "retn    10h"
+        }
+      ]
+    },
+    {
+      "semantic": "PickupMorph",
+      "zhl": "EntityPickup.zhl",
+      "decl_line": 2,
+      "declaration": "__thiscall void Entity_Pickup::Morph(int EntityType,int Variant,int SubType,bool KeepPrice,bool KeepSeed,bool IgnoreModifiers);",
+      "signature": "558bec6aff68????????64a1????????5083ec74535657a1????????33c5508d45??64a3????????8bf9",
+      "matches": [
+        "0x6dff30"
+      ],
+      "rva": "0x2dff30",
+      "bytes32": "55 8b ec 6a ff 68 2d 1c a9 00 64 a1 00 00 00 00 50 83 ec 74 53 56 57 a1 b4 83 b8 00 33 c5 50 8d",
+      "normal_chunk_returns": [
+        {
+          "va": "0x6e0500",
+          "bytes": "c2 18 00",
+          "asm": "retn    18h"
+        }
+      ]
+    },
+    {
+      "semantic": "GridFactory",
+      "zhl": "Isaac.zhl",
+      "decl_line": 4,
+      "declaration": "static cleanup GridEntity* Isaac::CreateGridEntity(int Type<ecx>, unsigned int Index<edx>);",
+      "signature": "558bec6aff68????????64a1????????5051535657a1????????33c5508d45??64a3????????8bda",
+      "matches": [
+        "0x706100"
+      ],
+      "rva": "0x306100",
+      "bytes32": "55 8b ec 6a ff 68 3b 31 a9 00 64 a1 00 00 00 00 50 51 53 56 57 a1 b4 83 b8 00 33 c5 50 8d 45 f4",
+      "normal_chunk_returns": [
+        {
+          "va": "0x70664d",
+          "bytes": "c3",
+          "asm": "retn"
+        },
+        {
+          "va": "0x706661",
+          "bytes": "c3",
+          "asm": "retn"
+        }
+      ]
+    },
+    {
+      "semantic": "GridInit",
+      "zhl": "GridEntity.zhl",
+      "decl_line": 5,
+      "declaration": "__thiscall void GridEntity::Init(unsigned int Seed);",
+      "signature": "558bec8b45??568bf18946??8b06",
+      "matches": [
+        "0x705070"
+      ],
+      "rva": "0x305070",
+      "bytes32": "55 8b ec 8b 45 08 56 8b f1 89 46 14 8b 06 c7 46 3c 00 00 00 00 ff 50 28 a1 f4 49 be 00 ff 46 10",
+      "normal_chunk_returns": [
+        {
+          "va": "0x70509f",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        }
+      ]
+    },
+    {
+      "semantic": "GridSpawn",
+      "zhl": "Room.zhl",
+      "decl_line": 32,
+      "declaration": "__thiscall bool Room::SpawnGridEntity(int GridIndex, unsigned int Type, unsigned int Variant, unsigned int Seed, int VarData);",
+      "signature": "558bec53568b75??8bd95785f6",
+      "matches": [
+        "0x7e21d0"
+      ],
+      "rva": "0x3e21d0",
+      "bytes32": "55 8b ec 53 56 8b 75 08 8b d9 57 85 f6 78 08 81 fe c0 01 00 00 7c 0f 68 28 d3 b1 00 6a 03 e8 fd",
+      "normal_chunk_returns": [
+        {
+          "va": "0x7e226b",
+          "bytes": "c2 14 00",
+          "asm": "retn    14h"
+        },
+        {
+          "va": "0x7e2274",
+          "bytes": "c2 14 00",
+          "asm": "retn    14h"
+        }
+      ]
+    },
+    {
+      "semantic": "Door",
+      "zhl": "Room.zhl",
+      "decl_line": 92,
+      "declaration": "__thiscall void Room::MakeDoor(int slot);",
+      "signature": "558bec6aff68????????64a1????????5083ec20a1????????33c58945??535657508d45??64a3????????8bf98b5d",
+      "matches": [
+        "0x7e4de0"
+      ],
+      "rva": "0x3e4de0",
+      "bytes32": "55 8b ec 6a ff 68 cf 72 a9 00 64 a1 00 00 00 00 50 83 ec 20 a1 b4 83 b8 00 33 c5 89 45 f0 53 56",
+      "normal_chunk_returns": [
+        {
+          "va": "0x7e5009",
+          "bytes": "c2 04 00",
+          "asm": "retn    4"
+        }
+      ]
+    },
+    {
+      "semantic": "GridFree",
+      "zhl": "Room.zhl",
+      "decl_line": 38,
+      "declaration": "__thiscall void Room::RemoveGridEntityImmediate(int GridIndex, int PathTrail, bool KeepDecoration);",
+      "signature": "558bec8b55??568bf181fabf010000",
+      "matches": [
+        "0x813bd0"
+      ],
+      "rva": "0x413bd0",
+      "bytes32": "55 8b ec 8b 55 08 56 8b f1 81 fa bf 01 00 00 77 2c 8b 4c 96 24 85 c9 74 24 83 79 04 01 75 06 80",
+      "normal_chunk_returns": [
+        {
+          "va": "0x813c0f",
+          "bytes": "c2 0c 00",
+          "asm": "retn    0Ch"
+        }
+      ]
+    },
+    {
+      "semantic": "Spawn",
+      "zhl": "Game.zhl",
+      "decl_line": 29,
+      "declaration": "__thiscall Entity* Game::Spawn(unsigned int type, unsigned int variant, const Vector& position, const Vector& velocity, Entity* spawner, unsigned int subtype, unsigned int seed, unsigned int unk);",
+      "signature": "558bec83e4f883ec448b45??53",
+      "matches": [
+        "0x6fa210"
+      ],
+      "rva": "0x2fa210",
+      "bytes32": "55 8b ec 83 e4 f8 83 ec 44 8b 45 08 53 56 8b 75 18 57 89 44 24 10 8b f9 8d 45 20 89 7c 24 1c 50",
+      "normal_chunk_returns": [
+        {
+          "va": "0x6fa2f4",
+          "bytes": "c2 20 00",
+          "asm": "retn    20h ; ' '"
+        },
+        {
+          "va": "0x6fa91a",
+          "bytes": "c2 20 00",
+          "asm": "retn    20h ; ' '"
+        }
+      ]
+    }
+  ],
+  "other_entries": [
+    {
+      "semantic": "Publish",
+      "va": "0x413D00",
+      "rva": "0x13D00",
+      "entry_bytes": "55 8B EC 53 8B 5D 08",
+      "return_site": "0x413EB5",
+      "return_bytes": "C2 04 00",
+      "evidence": "main-owner-decompile.json"
+    },
+    {
+      "semantic": "Replace",
+      "va": "0x995E10",
+      "rva": "0x595E10",
+      "entry_bytes": "53 8B DC 83 EC 08",
+      "return_site": "0x995F74",
+      "return_bytes": "C2 08 00",
+      "evidence": "main-replace-and-grid.json"
+    }
+  ]
+}

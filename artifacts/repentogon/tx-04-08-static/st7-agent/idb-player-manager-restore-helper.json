@@ -1,0 +1,43 @@
+{
+  "addr": "0x993780",
+  "code": "void **__thiscall sub_993780(int *this, void **a2, int a3, char a4)\n{\n  unsigned int n0x3FFFFFFF; // edi\n  char *v6; // eax\n  bool v7; // cf\n  int v8; // eax\n  void *v9; // ecx\n  int v10; // edx\n  void **v11; // esi\n  unsigned int v12; // edi\n  int i; // ecx\n  void ***v14; // ecx\n  void **v15; // eax\n  void **v16; // eax\n  int v17; // edx\n  int v18; // ebx\n  int v19; // ecx\n  int v20; // edi\n  void **v21; // eax\n  int v22; // ecx\n  _DWORD *v23; // edx\n  void **v24; // eax\n  int *v25; // edi\n  void ***v26; // esi\n  int v27; // edi\n  int v28; // esi\n  _DWORD *v29; // ebx\n  _DWORD *v30; // eax\n  _DWORD *v31; // eax\n  _DWORD *v32; // esi\n  void *Block; // [esp+14h] [ebp-30h] BYREF\n  int n357913941; // [esp+18h] [ebp-2Ch]\n  int v36; // [esp+1Ch] [ebp-28h]\n  size_t Size; // [esp+20h] [ebp-24h]\n  void **p_Block; // [esp+24h] [ebp-20h]\n  int v39; // [esp+28h] [ebp-1Ch]\n  int v40; // [esp+2Ch] [ebp-18h]\n  int *v41; // [esp+30h] [ebp-14h]\n  int v42; // [esp+40h] [ebp-4h]\n\n  v41 = this; /*0x9937aa*/\n  v42 = 0; /*0x9937b0*/\n  v36 = 0; /*0x9937b7*/\n  n0x3FFFFFFF = *(_DWORD *)(a3 + 105840); /*0x9937c1*/\n  v40 = 0; /*0x9937c7*/\n  *a2 = 0; /*0x9937ce*/\n  a2[1] = 0; /*0x9937d4*/\n  a2[2] = 0; /*0x9937db*/\n  if ( n0x3FFFFFFF )\n  {\n    if ( n0x3FFFFFFF > 0x3FFFFFFF ) /*0x9937f0*/\n      sub_411620(); /*0x993a7e*/\n    v6 = (char *)sub_418830(n0x3FFFFFFF); /*0x9937f7*/\n    *a2 = v6; /*0x9937fc*/\n    a2[1] = v6; /*0x993805*/\n    Size = 4 * n0x3FFFFFFF; /*0x99380d*/\n    a2[2] = &v6[4 * n0x3FFFFFFF]; /*0x993813*/\n    v39 = 0; /*0x993818*/\n    if ( !v40\n      || (v7 = (unsigned __int8)v40 < (unsigned __int8)v39, (_BYTE)v40 == (_BYTE)v39)\n      && (v7 = BYTE1(v40) < BYTE1(v39), BYTE1(v40) == BYTE1(v39))\n      && (v7 = BYTE2(v40) < BYTE2(v39), BYTE2(v40) == BYTE2(v39))\n      && (v7 = HIBYTE(v40) < HIBYTE(v39), HIBYTE(v40) == HIBYTE(v39)) )\n    {\n      v8 = 0; /*0x99383f*/\n    }\n    else\n    {\n      v8 = v7 ? -1 : 1;\n    }\n    v9 = *a2; /*0x993848*/\n    v10 = (int)*a2 + 4 * n0x3FFFFFFF; /*0x99384a*/\n    v39 = v10; /*0x99384d*/\n    if ( v8 ) /*0x993852*/\n    {\n      memset(*a2, 0, 4 * n0x3FFFFFFF); /*0x99386c*/\n    }\n    else\n    {\n      memset(v9, 0, Size); /*0x993859*/\n      v10 = v39; /*0x99385e*/\n    }\n    a2[1] = (void *)v10; /*0x99386e*/\n  }\n  v36 = 1; /*0x99387a*/\n  n357913941 = 0; /*0x993888*/\n  v11 = (void **)operator new(0xCu); /*0x993894*/\n  *v11 = v11; /*0x993899*/\n  v11[1] = v11; /*0x99389b*/\n  Block = v11; /*0x99389e*/\n  v42 = 1; /*0x9938a1*/\n  v12 = 0; /*0x9938a8*/\n  for ( i = *this; v12 < (this[1] - *this) >> 2; i = *this ) /*0x9938b1*/\n  {\n    Size = i + 4 * v12; /*0x9938bb*/\n    if ( !*(_DWORD *)(*(_DWORD *)Size + 44) ) /*0x9938c0*/\n    {\n      if ( n357913941 == 357913941 ) /*0x9938cd*/\n        std::_Xlength_error(\"list too long\"); /*0x993978*/\n      p_Block = &Block; /*0x9938d6*/\n      LOBYTE(v42) = 2; /*0x9938d9*/\n      v39 = 0; /*0x9938df*/\n      v14 = (void ***)operator new(0xCu); /*0x9938eb*/\n      v15 = *(void ***)Size; /*0x9938f3*/\n      LOBYTE(v42) = 1; /*0x9938f5*/\n      v14[2] = v15; /*0x9938f9*/\n      ++n357913941; /*0x9938fc*/\n      v16 = (void **)v11[1]; /*0x9938ff*/\n      *v14 = v11; /*0x993902*/\n      v14[1] = v16; /*0x993904*/\n      v11[1] = v14; /*0x993907*/\n      *v16 = v14; /*0x99390a*/\n      v11 = (void **)Block; /*0x99390c*/\n      v39 = 0; /*0x99390f*/\n    }\n    ++v12; /*0x993919*/\n  }\n  v17 = a3; /*0x993925*/\n  v18 = 0; /*0x993928*/\n  v19 = *(_DWORD *)(a3 + 105840); /*0x99392a*/\n  if ( v19 > 0 ) /*0x993932*/\n  {\n    v20 = 0; /*0x993938*/\n    do /*0x9939b8*/\n    {\n      if ( !*(_DWORD *)(v17 + v20 + 107152) ) /*0x993942*/\n      {\n        v21 = (void **)*v11; /*0x99394c*/\n        if ( *v11 != v11 ) /*0x993950*/\n        {\n          v22 = *(_DWORD *)(v20 + v17 + 107148); /*0x993952*/\n          while ( 1 ) /*0x993960*/\n          {\n            v23 = v21[2]; /*0x993960*/\n            if ( v23[1411] == v22 ) /*0x993969*/\n              break; /*0x993969*/\n            v21 = (void **)*v21; /*0x99396b*/\n            if ( v21 == v11 ) /*0x99396f*/\n              goto LABEL_29; /*0x99396f*/\n          }\n          *((_DWORD *)*a2 + v18) = v23; /*0x993986*/\n          *(_DWORD *)v21[1] = *v21; /*0x99398e*/\n          *((_DWORD *)*v21 + 1) = v21[1]; /*0x993995*/\n          --n357913941; /*0x993998*/\n          sub_A8717B(v21); /*0x99399b*/\n          v11 = (void **)Block; /*0x9939a0*/\n        }\n      }\nLABEL_29:\n      v17 = a3; /*0x9939a6*/\n      ++v18; /*0x9939a9*/\n      v20 += 1468; /*0x9939aa*/\n      v19 = *(_DWORD *)(a3 + 105840); /*0x9939b0*/\n    }\n    while ( v18 < v19 ); /*0x9939b8*/\n  }\n  if ( a4 ) /*0x9939be*/\n  {\n    v24 = v11; /*0x9939c0*/\n    if ( v11 != *v11 ) /*0x9939c4*/\n    {\n      v25 = v41; /*0x9939c6*/\n      do /*0x9939e7*/\n      {\n        v26 = (void ***)(v24 + 1); /*0x9939d0*/\n        sub_990560(v25, *((_DWORD **)v24[1] + 2), v19); /*0x9939db*/\n        v24 = *v26; /*0x9939e0*/\n        v11 = (void **)Block; /*0x9939e2*/\n      }\n      while ( v24 != *(void ***)Block ); /*0x9939e7*/\n      v17 = a3; /*0x9939e9*/\n      v19 = *(_DWORD *)(a3 + 105840); /*0x9939ec*/\n    }\n    v27 = 0; /*0x9939f2*/\n    if ( v19 > 0 ) /*0x9939f6*/\n    {\n      v28 = v17 + 105844; /*0x9939f8*/\n      do /*0x993a33*/\n      {\n        if ( !*(_DWORD *)(v28 + 1308) ) /*0x993a00*/\n        {\n          v29 = (char *)*a2 + 4 * v27; /*0x993a12*/\n          if ( !*v29 ) /*0x993a0e*/\n          {\n            v30 = sub_990250((int **)v41, *(void **)v28); /*0x993a1c*/\n            v17 = a3; /*0x993a21*/\n            *v29 = v30; /*0x993a24*/\n          }\n        }\n        ++v27; /*0x993a26*/\n        v28 += 1468; /*0x993a27*/\n      }\n      while ( v27 < *(_DWORD *)(v17 + 105840) ); /*0x993a33*/\n      v11 = (void **)Block; /*0x993a35*/\n    }\n  }\n  *(_DWORD *)v11[1] = 0; /*0x993a3b*/\n  v31 = *v11; /*0x993a41*/\n  if ( *v11 ) /*0x993a41*/\n  {\n    do /*0x993a58*/\n    {\n      v32 = (_DWORD *)*v31; /*0x993a47*/\n      sub_A8717B(v31); /*0x993a4c*/\n      v31 = v32; /*0x993a54*/\n    }\n    while ( v32 ); /*0x993a58*/\n  }\n  sub_A8717B(Block); /*0x993a5f*/\n  return a2; /*0x993a6a*/\n}",
+  "refs": [
+    {
+      "addr": "0x411620",
+      "name": "sub_411620"
+    },
+    {
+      "addr": "0x418830",
+      "name": "sub_418830"
+    },
+    {
+      "addr": "0xa88035",
+      "name": "memset"
+    },
+    {
+      "addr": "0xa86de5",
+      "name": "??2@YAPAXI@Z"
+    },
+    {
+      "addr": "0xaaa31c",
+      "name": "?_Xlength_error@std@@YAXPBD@Z"
+    },
+    {
+      "addr": "0xb0e7f0",
+      "name": "aListTooLong",
+      "string": "list too long"
+    },
+    {
+      "addr": "0xa8717b",
+      "name": "sub_A8717B"
+    },
+    {
+      "addr": "0x990560",
+      "name": "sub_990560"
+    },
+    {
+      "addr": "0x990250",
+      "name": "sub_990250"
+    }
+  ]
+}

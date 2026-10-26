@@ -1,0 +1,32 @@
+{
+  "task": "tx-04-07 ST4 static reverse engineering",
+  "date": "2026-10-25",
+  "official_source_repository": "F:\\projects_isaac\\REPENTOGON-1.1.3",
+  "official_source_readme_version": "v1.9.7.12.J273",
+  "ida": {
+    "module": "isaac-ng-v1.9.7.12.exe.unpacked.exe",
+    "input_path": "C:\\Users\\114514\\AppData\\Local\\Temp\\claude\\F--projects-isaac-issac-multiplay\\910d48ab-e91d-4daa-b1b5-2a86b9899653\\scratchpad\\v12\\isaac-ng-v1.9.7.12.exe.unpacked.exe",
+    "idb_path": "C:\\Users\\114514\\AppData\\Local\\Temp\\claude\\F--projects-isaac-issac-multiplay\\910d48ab-e91d-4daa-b1b5-2a86b9899653\\scratchpad\\v12\\isaac-ng-v1.9.7.12.exe.unpacked.exe.i64",
+    "imagebase": "0x400000",
+    "auto_analysis_ready": true,
+    "hexrays_ready": true,
+    "export_tool": "mcp__ida_mcp__py_exec_file; explicit RVA allowlist; read-only IDA APIs"
+  },
+  "export": {
+    "script": "export_st4_readonly.py",
+    "evidence": "ida-evidence.json",
+    "target_function_count": 26,
+    "missing_targets": [],
+    "address_rule": "VA = imagebase + RVA"
+  },
+  "constraints_observed": {
+    "idb_modified": false,
+    "game_started": false,
+    "dynamic_debugging": false,
+    "build_or_test_run": false,
+    "hashes_checked": false,
+    "gate_used": false,
+    "production_code_modified": false,
+    "shared_documents_modified": false
+  }
+}

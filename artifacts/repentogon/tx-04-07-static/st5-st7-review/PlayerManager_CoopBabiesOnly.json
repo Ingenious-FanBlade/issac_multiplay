@@ -1,0 +1,81 @@
+{
+  "label": "PlayerManager_CoopBabiesOnly",
+  "va": "0x9910a0",
+  "rva": "0x5910a0",
+  "func_start_va": "0x9910a0",
+  "func_end_va": "0x9910b9",
+  "decompile": "bool sub_9910A0()\n{\n  return (n187[38576] & 0x10) != 0;\n}\n",
+  "instructions": [
+    {
+      "va": "0x9910a0",
+      "rva": "0x5910a0",
+      "bytes": "a1 f4 49 be 00",
+      "text": "mov     eax, n187"
+    },
+    {
+      "va": "0x9910a5",
+      "rva": "0x5910a5",
+      "bytes": "8b 80 c0 5a 02 00",
+      "text": "mov     eax, [eax+25AC0h]"
+    },
+    {
+      "va": "0x9910ab",
+      "rva": "0x5910ab",
+      "bytes": "83 e0 10",
+      "text": "and     eax, 10h"
+    },
+    {
+      "va": "0x9910ae",
+      "rva": "0x5910ae",
+      "bytes": "83 c8 00",
+      "text": "or      eax, 0"
+    },
+    {
+      "va": "0x9910b1",
+      "rva": "0x5910b1",
+      "bytes": "74 03",
+      "text": "jz      short loc_9910B6"
+    },
+    {
+      "va": "0x9910b3",
+      "rva": "0x5910b3",
+      "bytes": "b0 01",
+      "text": "mov     al, 1"
+    },
+    {
+      "va": "0x9910b5",
+      "rva": "0x5910b5",
+      "bytes": "c3",
+      "text": "retn"
+    },
+    {
+      "va": "0x9910b6",
+      "rva": "0x5910b6",
+      "bytes": "32 c0",
+      "text": "xor     al, al"
+    },
+    {
+      "va": "0x9910b8",
+      "rva": "0x5910b8",
+      "bytes": "c3",
+      "text": "retn"
+    }
+  ],
+  "xrefs_to": [
+    {
+      "from_va": "0x9915ae",
+      "from_rva": "0x5915ae",
+      "type": 17
+    },
+    {
+      "from_va": "0x99174c",
+      "from_rva": "0x59174c",
+      "type": 17
+    },
+    {
+      "from_va": "0x991e67",
+      "from_rva": "0x591e67",
+      "type": 17
+    }
+  ]
+}

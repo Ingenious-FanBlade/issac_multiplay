@@ -1,0 +1,3338 @@
+{
+  "query": {
+    "decompile_addrs": [
+      "0x6A3EF0",
+      "0x74F260",
+      "0x6B48A0",
+      "0x6070F0",
+      "0x6DD6A0",
+      "0x662E20"
+    ],
+    "direct_disasm_addrs": [
+      "0x6B48A0",
+      "0x6070F0",
+      "0x6DD6A0",
+      "0x662E20",
+      "0x5CCF30",
+      "0x64F470"
+    ],
+    "player_targeted_instruction": "0x74F67F call sub_6A3EF0 (direct disasm excerpt from mcp__ida_mcp__disasm)"
+  },
+  "decompile_results": [
+    {
+      "addr": "0x6A3EF0",
+      "code": "int __thiscall sub_6A3EF0(char *this)\n{\n  bool v2; // zf\n  _DWORD *v3; // esi\n  char *v5; // [esp+10h] [ebp-10h] BYREF\n\n  v2 = this[370] == 0; /*0x6a3f19*/\n  *(_DWORD *)this = &IsaacRepentancePlus::Entity::`vftable'; /*0x6a3f20*/\n  if ( !v2 ) /*0x6a3f26*/\n    sub_6A8000((int)this); /*0x6a3f28*/\n  v3 = (_DWORD *)*((_DWORD *)this + 258); /*0x6a3f2d*/\n  if ( v3 ) /*0x6a3f35*/\n  {\n    luaL_unref(*v3, -1001000, v3[1]); /*0x6a3f41*/\n    sub_A8717B(v3); /*0x6a3f4d*/\n    *((_DWORD *)this + 258) = 0; /*0x6a3f55*/\n  }\n  if ( *((_DWORD *)this + 246) ) /*0x6a3f65*/\n  {\n    v5 = this + 984; /*0x6a3f6e*/\n    sub_4C8EE0(&v5); /*0x6a3f78*/\n    *((_DWORD *)this + 246) = 0; /*0x6a3f7d*/\n  }\n  if ( *((_DWORD *)this + 245) ) /*0x6a3f89*/\n  {\n    v5 = this + 980; /*0x6a3f92*/\n    sub_4C8EE0(&v5); /*0x6a3f9c*/\n    *((_DWORD *)this + 245) = 0; /*0x6a3fa1*/\n  }\n  sub_41FEE0((int)(this + 972), *(void **)(*((_DWORD *)this + 243) + 4)); /*0x6a3fb9*/\n  sub_A8717B(*((void **)this + 243)); /*0x6a3fc2*/\n  sub_6B3D80(this + 428); /*0x6a3fd0*/\n  sub_421F70(this + 376); /*0x6a3fdb*/\n  sub_403790(this + 72); /*0x6a3fe3*/\n  return sub_417EB0(this + 8); /*0x6a3ff0*/\n}",
+      "refs": [
+        {
+          "addr": "0xb18224",
+          "name": "??_7Entity@IsaacRepentancePlus@@6B@"
+        },
+        {
+          "addr": "0x6a8000",
+          "name": "sub_6A8000"
+        },
+        {
+          "addr": "0xaaa19c",
+          "name": "luaL_unref"
+        },
+        {
+          "addr": "0xa8717b",
+          "name": "sub_A8717B"
+        },
+        {
+          "addr": "0x4c8ee0",
+          "name": "sub_4C8EE0"
+        },
+        {
+          "addr": "0x41fee0",
+          "name": "sub_41FEE0"
+        },
+        {
+          "addr": "0x6b3d80",
+          "name": "sub_6B3D80"
+        },
+        {
+          "addr": "0x421f70",
+          "name": "sub_421F70"
+        },
+        {
+          "addr": "0x403790",
+          "name": "sub_403790"
+        },
+        {
+          "addr": "0x417eb0",
+          "name": "sub_417EB0"
+        }
+      ]
+    },
+    {
+      "addr": "0x74F260",
+      "code": "int __thiscall sub_74F260(int this)\n{\n  int v2; // ecx\n  _DWORD *v3; // ebx\n  _BYTE *v4; // ecx\n  void (__thiscall ***v5)(_DWORD, int); // ecx\n  _DWORD *n187; // eax\n  int v7; // ecx\n  int v8; // ecx\n  int v9; // ecx\n  void *v11; // [esp-8h] [ebp-28h]\n  void *v12; // [esp-8h] [ebp-28h]\n  void *v13; // [esp-8h] [ebp-28h]\n  int v14; // [esp+10h] [ebp-10h] BYREF\n  int n2; // [esp+1Ch] [ebp-4h]\n\n  v2 = *(_DWORD *)(this + 7756); /*0x74f288*/\n  v3 = (_DWORD *)(this + 7756); /*0x74f28e*/\n  *(_DWORD *)this = &IsaacRepentancePlus::Entity_Player::`vftable'; /*0x74f294*/\n  if ( v2 ) /*0x74f29c*/\n  {\n    (*(void (__thiscall **)(int))(*(_DWORD *)v2 + 68))(v2); /*0x74f2a0*/\n    if ( *v3 ) /*0x74f2a3*/\n    {\n      v14 = this + 7756; /*0x74f2ac*/\n      sub_4C8EE0(&v14); /*0x74f2b6*/\n      *v3 = 0; /*0x74f2bb*/\n    }\n  }\n  v4 = *(_BYTE **)(this + 7556); /*0x74f2c1*/\n  if ( v4 && !v4[368] ) /*0x74f2cb*/\n  {\n    (*(void (__thiscall **)(_BYTE *))(*(_DWORD *)v4 + 68))(v4); /*0x74f2d6*/\n    v5 = *(void (__thiscall ****)(_DWORD, int))(this + 7556); /*0x74f2d9*/\n    if ( v5 ) /*0x74f2e1*/\n      (**v5)(v5, 1); /*0x74f2e7*/\n    *(_DWORD *)(this + 7556) = 0; /*0x74f2e9*/\n  }\n  n187 = n187; /*0x74f2f3*/\n  if ( n187 ) /*0x74f2fa*/\n  {\n    if ( n187[28380] == this ) /*0x74f302*/\n      n187[28380] = 0; /*0x74f304*/\n    if ( n187[28381] == this ) /*0x74f314*/\n      n187[28381] = 0; /*0x74f316*/\n  }\n  sub_4101E0((void *)(this + 11924)); /*0x74f326*/\n  sub_42C040(); /*0x74f331*/\n  sub_74F130((void *)(this + 8384)); /*0x74f33c*/\n  sub_4101E0((void *)(this + 8368)); /*0x74f347*/\n  n2 = 0; /*0x74f352*/\n  v7 = *(_DWORD *)(this + 8364); /*0x74f359*/\n  if ( v7 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v7 + 12))(v7) && dword_BECA10 ) /*0x74f372*/\n    dword_BECA10(this + 8360); /*0x74f375*/\n  n2 = 1; /*0x74f380*/\n  v8 = *(_DWORD *)(this + 8196); /*0x74f387*/\n  if ( v8 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v8 + 12))(v8) && dword_BE49B4 ) /*0x74f3a0*/\n    dword_BE49B4(this + 0x2000); /*0x74f3a3*/\n  n2 = 2; /*0x74f3ae*/\n  v9 = *(_DWORD *)(this + 8188); /*0x74f3b5*/\n  if ( v9 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v9 + 12))(v9) && dword_BE49B4 ) /*0x74f3ce*/\n    dword_BE49B4(this + 8184); /*0x74f3d1*/\n  sub_4101E0((void *)(this + 8172)); /*0x74f3dc*/\n  sub_7D3340(this + 8124); /*0x74f3e7*/\n  sub_7D3340(this + 8112); /*0x74f3f2*/\n  sub_428CD0(this + 8104, *(void **)(*(_DWORD *)(this + 8104) + 4)); /*0x74f409*/\n  sub_A8717B(*(void **)(this + 8104)); /*0x74f412*/\n  sub_428CD0(this + 8076, *(void **)(*(_DWORD *)(this + 8076) + 4)); /*0x74f42c*/\n  sub_A8717B(*(void **)(this + 8076)); /*0x74f435*/\n  sub_4101E0((void *)(this + 8064)); /*0x74f443*/\n  sub_428CD0(this + 8028, *(void **)(*(_DWORD *)(this + 8028) + 4)); /*0x74f45a*/\n  sub_A8717B(*(void **)(this + 8028)); /*0x74f463*/\n  sub_4927C0(this + 7924); /*0x74f471*/\n  v11 = *(void **)(this + 7924); /*0x74f47e*/\n  *(_DWORD *)(this + 7924) = 0; /*0x74f47f*/\n  sub_A8717B(v11); /*0x74f489*/\n  if ( *(_DWORD *)(this + 7784) ) /*0x74f497*/\n  {\n    v14 = this + 7784; /*0x74f4a0*/\n    sub_4C8EE0(&v14); /*0x74f4aa*/\n    *(_DWORD *)(this + 7784) = 0; /*0x74f4af*/\n  }\n  if ( *v3 ) /*0x74f4b5*/\n  {\n    v14 = this + 7756; /*0x74f4be*/\n    sub_4C8EE0(&v14); /*0x74f4c8*/\n    *v3 = 0; /*0x74f4cd*/\n  }\n  n2 = -1; /*0x74f4d9*/\n  sub_7D3410(this + 7736); /*0x74f4e0*/\n  v12 = *(void **)(this + 7736); /*0x74f4ed*/\n  *(_DWORD *)(this + 7736) = 0; /*0x74f4ee*/\n  sub_A8717B(v12); /*0x74f4f8*/\n  sub_4101E0((void *)(this + 7724)); /*0x74f506*/\n  sub_71C5C0(this + 7640); /*0x74f511*/\n  sub_4101E0((void *)(this + 7624)); /*0x74f51c*/\n  sub_7043B0(this + 7528); /*0x74f527*/\n  sub_403790((void *)(this + 7248)); /*0x74f532*/\n  sub_82E740(this + 7236); /*0x74f53d*/\n  sub_403790((void *)(this + 6956)); /*0x74f548*/\n  sub_82E740(this + 6944); /*0x74f553*/\n  sub_4AC9F0(this + 6020); /*0x74f55e*/\n  sub_4AC9F0(this + 6008); /*0x74f569*/\n  sub_4AC9F0(this + 5996); /*0x74f574*/\n  sub_4AC9F0(this + 5984); /*0x74f57f*/\n  sub_421F70(this + 5968); /*0x74f58a*/\n  sub_4101E0((void *)(this + 5956)); /*0x74f595*/\n  sub_4101E0((void *)(this + 5944)); /*0x74f5a0*/\n  sub_4101E0((void *)(this + 5932)); /*0x74f5ab*/\n  sub_4101E0((void *)(this + 5828)); /*0x74f5b6*/\n  sub_4101E0((void *)(this + 5816)); /*0x74f5c1*/\n  sub_4927C0(this + 5724); /*0x74f5cc*/\n  v13 = *(void **)(this + 5724); /*0x74f5d9*/\n  *(_DWORD *)(this + 5724) = 0; /*0x74f5da*/\n  sub_A8717B(v13); /*0x74f5e4*/\n  sub_4AC9F0(this + 5380); /*0x74f5f2*/\n  sub_4085F0(this + 5056); /*0x74f5fd*/\n  sub_4085F0(this + 5020); /*0x74f608*/\n  sub_4085F0(this + 4896); /*0x74f613*/\n  sub_7D2DD0(this + 4640); /*0x74f61e*/\n  sub_403790((void *)(this + 4364)); /*0x74f629*/\n  sub_403790((void *)(this + 4088)); /*0x74f634*/\n  sub_403790((void *)(this + 3812)); /*0x74f63f*/\n  `eh vector destructor iterator'((void *)(this + 1880), 0x114u, 7u, sub_403790); /*0x74f657*/\n  sub_403790((void *)(this + 1604)); /*0x74f662*/\n  sub_403790((void *)(this + 1328)); /*0x74f66d*/\n  sub_403790((void *)(this + 1052)); /*0x74f678*/\n  return sub_6A3EF0((char *)this); /*0x74f684*/\n}",
+      "refs": [
+        {
+          "addr": "0xb1bdb4",
+          "name": "??_7Entity_Player@IsaacRepentancePlus@@6B@"
+        },
+        {
+          "addr": "0x4c8ee0",
+          "name": "sub_4C8EE0"
+        },
+        {
+          "addr": "0xbe49f4",
+          "name": "n187"
+        },
+        {
+          "addr": "0x4101e0",
+          "name": "sub_4101E0"
+        },
+        {
+          "addr": "0x42c040",
+          "name": "sub_42C040"
+        },
+        {
+          "addr": "0x74f130",
+          "name": "sub_74F130"
+        },
+        {
+          "addr": "0xbeca10",
+          "name": "dword_BECA10"
+        },
+        {
+          "addr": "0xbe49b4",
+          "name": "dword_BE49B4"
+        },
+        {
+          "addr": "0x7d3340",
+          "name": "sub_7D3340"
+        },
+        {
+          "addr": "0x428cd0",
+          "name": "sub_428CD0"
+        },
+        {
+          "addr": "0xa8717b",
+          "name": "sub_A8717B"
+        },
+        {
+          "addr": "0x4927c0",
+          "name": "sub_4927C0"
+        },
+        {
+          "addr": "0x7d3410",
+          "name": "sub_7D3410"
+        },
+        {
+          "addr": "0x71c5c0",
+          "name": "sub_71C5C0"
+        },
+        {
+          "addr": "0x7043b0",
+          "name": "sub_7043B0"
+        },
+        {
+          "addr": "0x403790",
+          "name": "sub_403790"
+        },
+        {
+          "addr": "0x82e740",
+          "name": "sub_82E740"
+        },
+        {
+          "addr": "0x4ac9f0",
+          "name": "sub_4AC9F0"
+        },
+        {
+          "addr": "0x421f70",
+          "name": "sub_421F70"
+        },
+        {
+          "addr": "0x4085f0",
+          "name": "sub_4085F0"
+        },
+        {
+          "addr": "0x7d2dd0",
+          "name": "sub_7D2DD0"
+        },
+        {
+          "addr": "0xa86e15",
+          "name": "??_M@YGXPAXIIP6EX0@Z@Z"
+        },
+        {
+          "addr": "0x6a3ef0",
+          "name": "sub_6A3EF0"
+        }
+      ]
+    },
+    {
+      "addr": "0x6B48A0",
+      "code": "void __thiscall sub_6B48A0(char *this)\n{\n  _DWORD *v2; // esi\n  void *v3; // [esp-8h] [ebp-24h]\n  void *v4; // [esp-8h] [ebp-24h]\n  void *v5; // [esp-8h] [ebp-24h]\n  void *v6; // [esp-8h] [ebp-24h]\n  char *v7; // [esp+Ch] [ebp-10h] BYREF\n\n  *(_DWORD *)this = &IsaacRepentancePlus::Entity_NPC::`vftable'; /*0x6b48c7*/\n  v2 = this + 3928; /*0x6b48cd*/\n  if ( *((_DWORD *)this + 982) ) /*0x6b48d3*/\n  {\n    v7 = this + 3928; /*0x6b48dc*/\n    sub_4C8EE0(&v7); /*0x6b48e6*/\n    *v2 = 0; /*0x6b48eb*/\n  }\n  if ( *((_DWORD *)this + 981) ) /*0x6b48f7*/\n  {\n    v7 = this + 3924; /*0x6b4900*/\n    sub_4C8EE0(&v7); /*0x6b490a*/\n    *((_DWORD *)this + 981) = 0; /*0x6b490f*/\n  }\n  if ( *((_DWORD *)this + 980) ) /*0x6b491b*/\n  {\n    v7 = this + 3920; /*0x6b4924*/\n    sub_4C8EE0(&v7); /*0x6b492e*/\n    *((_DWORD *)this + 980) = 0; /*0x6b4933*/\n  }\n  sub_4101E0(this + 3852); /*0x6b493f*/\n  sub_4101E0(this + 3840); /*0x6b494a*/\n  sub_403790(this + 3564); /*0x6b4955*/\n  sub_403790(this + 3288); /*0x6b4960*/\n  sub_4927C0(this + 3144); /*0x6b496b*/\n  v3 = (void *)*((_DWORD *)this + 786); /*0x6b4978*/\n  *((_DWORD *)this + 786) = 0; /*0x6b4979*/\n  sub_A8717B(v3); /*0x6b4983*/\n  sub_4927C0(this + 3096); /*0x6b4991*/\n  v4 = (void *)*((_DWORD *)this + 774); /*0x6b499e*/\n  *((_DWORD *)this + 774) = 0; /*0x6b499f*/\n  sub_A8717B(v4); /*0x6b49a9*/\n  sub_4927C0(this + 3076); /*0x6b49b7*/\n  v5 = (void *)*((_DWORD *)this + 769); /*0x6b49c4*/\n  *((_DWORD *)this + 769) = 0; /*0x6b49c5*/\n  sub_A8717B(v5); /*0x6b49cf*/\n  sub_4927C0(this + 3056); /*0x6b49dd*/\n  v6 = (void *)*((_DWORD *)this + 764); /*0x6b49ea*/\n  *((_DWORD *)this + 764) = 0; /*0x6b49eb*/\n  sub_A8717B(v6); /*0x6b49f5*/\n  sub_417EB0(this + 2952); /*0x6b4a03*/\n  sub_41FEE0((int)(this + 2908), *(void **)(*((_DWORD *)this + 727) + 4)); /*0x6b4a1a*/\n  sub_A8717B(*((void **)this + 727)); /*0x6b4a23*/\n  sub_6A3EF0(this); /*0x6b4a2d*/\n}",
+      "refs": [
+        {
+          "addr": "0xb187d0",
+          "name": "??_7Entity_NPC@IsaacRepentancePlus@@6B@"
+        },
+        {
+          "addr": "0x4c8ee0",
+          "name": "sub_4C8EE0"
+        },
+        {
+          "addr": "0x4101e0",
+          "name": "sub_4101E0"
+        },
+        {
+          "addr": "0x403790",
+          "name": "sub_403790"
+        },
+        {
+          "addr": "0x4927c0",
+          "name": "sub_4927C0"
+        },
+        {
+          "addr": "0xa8717b",
+          "name": "sub_A8717B"
+        },
+        {
+          "addr": "0x417eb0",
+          "name": "sub_417EB0"
+        },
+        {
+          "addr": "0x41fee0",
+          "name": "sub_41FEE0"
+        },
+        {
+          "addr": "0x6a3ef0",
+          "name": "sub_6A3EF0"
+        }
+      ]
+    },
+    {
+      "addr": "0x6070F0",
+      "code": "void __thiscall sub_6070F0(char *this)\n{\n  void **v2; // esi\n  int v3; // ecx\n  _DWORD v4[4]; // [esp+Ch] [ebp-10h] BYREF\n\n  v2 = (void **)(this + 3880); /*0x607117*/\n  *(_DWORD *)this = &IsaacRepentancePlus::Entity_Familiar::`vftable'; /*0x60711d*/\n  sub_428CD0((int)(this + 3880), *(void **)(*((_DWORD *)this + 970) + 4)); /*0x60712b*/\n  sub_A8717B(*v2); /*0x607134*/\n  if ( *((_DWORD *)this + 950) ) /*0x607142*/\n  {\n    v4[0] = this + 3800; /*0x60714b*/\n    sub_4C8EE0(v4); /*0x607155*/\n    *((_DWORD *)this + 950) = 0; /*0x60715a*/\n  }\n  v4[3] = 1; /*0x607166*/\n  v3 = *((_DWORD *)this + 948); /*0x60716d*/\n  if ( v3 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v3 + 12))(v3) && dword_BEBDB4 ) /*0x607186*/\n    dword_BEBDB4(this + 3788); /*0x607189*/\n  sub_403790(this + 3512); /*0x607194*/\n  sub_4101E0(this + 3484); /*0x60719f*/\n  sub_41FEE0((int)(this + 3396), *(void **)(*((_DWORD *)this + 849) + 4)); /*0x6071b6*/\n  sub_A8717B(*((void **)this + 849)); /*0x6071bf*/\n  sub_6A3EF0(this); /*0x6071c9*/\n}",
+      "refs": [
+        {
+          "addr": "0xb15090",
+          "name": "??_7Entity_Familiar@IsaacRepentancePlus@@6B@"
+        },
+        {
+          "addr": "0x428cd0",
+          "name": "sub_428CD0"
+        },
+        {
+          "addr": "0xa8717b",
+          "name": "sub_A8717B"
+        },
+        {
+          "addr": "0x4c8ee0",
+          "name": "sub_4C8EE0"
+        },
+        {
+          "addr": "0xbebdb4",
+          "name": "dword_BEBDB4"
+        },
+        {
+          "addr": "0x403790",
+          "name": "sub_403790"
+        },
+        {
+          "addr": "0x4101e0",
+          "name": "sub_4101E0"
+        },
+        {
+          "addr": "0x41fee0",
+          "name": "sub_41FEE0"
+        },
+        {
+          "addr": "0x6a3ef0",
+          "name": "sub_6A3EF0"
+        }
+      ]
+    },
+    {
+      "addr": "0x6DD6A0",
+      "code": "void __thiscall sub_6DD6A0(char *this)\n{\n  int v2; // ecx\n  _DWORD v3[4]; // [esp+Ch] [ebp-10h] BYREF\n\n  *(_DWORD *)this = &IsaacRepentancePlus::Entity_Pickup::`vftable'; /*0x6dd6cd*/\n  sub_403790(this + 1488); /*0x6dd6d3*/\n  v3[3] = 0; /*0x6dd6de*/\n  v2 = *((_DWORD *)this + 371); /*0x6dd6e5*/\n  if ( v2 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v2 + 12))(v2) && dword_BEBDE0 ) /*0x6dd6fe*/\n    dword_BEBDE0(this + 1480); /*0x6dd701*/\n  if ( *((_DWORD *)this + 358) ) /*0x6dd70c*/\n  {\n    v3[0] = this + 1432; /*0x6dd715*/\n    sub_4C8EE0(v3); /*0x6dd71f*/\n    *((_DWORD *)this + 358) = 0; /*0x6dd724*/\n  }\n  if ( *((_DWORD *)this + 357) ) /*0x6dd730*/\n  {\n    v3[0] = this + 1428; /*0x6dd739*/\n    sub_4C8EE0(v3); /*0x6dd743*/\n    *((_DWORD *)this + 357) = 0; /*0x6dd748*/\n  }\n  if ( *((_DWORD *)this + 356) ) /*0x6dd754*/\n  {\n    v3[0] = this + 1424; /*0x6dd75d*/\n    sub_4C8EE0(v3); /*0x6dd767*/\n    *((_DWORD *)this + 356) = 0; /*0x6dd76c*/\n  }\n  if ( *((_DWORD *)this + 355) ) /*0x6dd778*/\n  {\n    v3[0] = this + 1420; /*0x6dd781*/\n    sub_4C8EE0(v3); /*0x6dd78b*/\n    *((_DWORD *)this + 355) = 0; /*0x6dd790*/\n  }\n  sub_403790(this + 1040); /*0x6dd79c*/\n  sub_6A3EF0(this); /*0x6dd7a3*/\n}",
+      "refs": [
+        {
+          "addr": "0xb18e8c",
+          "name": "??_7Entity_Pickup@IsaacRepentancePlus@@6B@"
+        },
+        {
+          "addr": "0x403790",
+          "name": "sub_403790"
+        },
+        {
+          "addr": "0xbebde0",
+          "name": "dword_BEBDE0"
+        },
+        {
+          "addr": "0x4c8ee0",
+          "name": "sub_4C8EE0"
+        },
+        {
+          "addr": "0x6a3ef0",
+          "name": "sub_6A3EF0"
+        }
+      ]
+    },
+    {
+      "addr": "0x662E20",
+      "code": "void __thiscall sub_662E20(char *this)\n{\n  char *v2; // [esp+Ch] [ebp-10h] BYREF\n\n  *(_DWORD *)this = &IsaacRepentancePlus::Entity_Tear::`vftable'; /*0x662e4d*/\n  sub_403790(this + 1748); /*0x662e53*/\n  sub_403790(this + 1472); /*0x662e5e*/\n  sub_403790(this + 1196); /*0x662e69*/\n  if ( *((_DWORD *)this + 297) ) /*0x662e74*/\n  {\n    v2 = this + 1188; /*0x662e7d*/\n    sub_4C8EE0(&v2); /*0x662e87*/\n    *((_DWORD *)this + 297) = 0; /*0x662e8c*/\n  }\n  if ( *((_DWORD *)this + 296) ) /*0x662e98*/\n  {\n    v2 = this + 1184; /*0x662ea1*/\n    sub_4C8EE0(&v2); /*0x662eab*/\n    *((_DWORD *)this + 296) = 0; /*0x662eb0*/\n  }\n  if ( *((_DWORD *)this + 295) ) /*0x662ebc*/\n  {\n    v2 = this + 1180; /*0x662ec5*/\n    sub_4C8EE0(&v2); /*0x662ecf*/\n    *((_DWORD *)this + 295) = 0; /*0x662ed4*/\n  }\n  if ( *((_DWORD *)this + 294) ) /*0x662ee0*/\n  {\n    v2 = this + 1176; /*0x662ee9*/\n    sub_4C8EE0(&v2); /*0x662ef3*/\n    *((_DWORD *)this + 294) = 0; /*0x662ef8*/\n  }\n  if ( *((_DWORD *)this + 293) ) /*0x662f04*/\n  {\n    v2 = this + 1172; /*0x662f0d*/\n    sub_4C8EE0(&v2); /*0x662f17*/\n    *((_DWORD *)this + 293) = 0; /*0x662f1c*/\n  }\n  sub_4101E0(this + 1092); /*0x662f28*/\n  sub_6A3EF0(this); /*0x662f2f*/\n}",
+      "refs": [
+        {
+          "addr": "0xb15fb8",
+          "name": "??_7Entity_Tear@IsaacRepentancePlus@@6B@"
+        },
+        {
+          "addr": "0x403790",
+          "name": "sub_403790"
+        },
+        {
+          "addr": "0x4c8ee0",
+          "name": "sub_4C8EE0"
+        },
+        {
+          "addr": "0x4101e0",
+          "name": "sub_4101E0"
+        },
+        {
+          "addr": "0x6a3ef0",
+          "name": "sub_6A3EF0"
+        }
+      ]
+    }
+  ],
+  "direct_disasm_results": [
+    {
+      "addr": "0x6B48A0",
+      "data": {
+        "addr": "0x6B48A0",
+        "asm": {
+          "name": "sub_6B48A0",
+          "start_ea": "0x6b48a0",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "6b48a0",
+              "instruction": "push ebp",
+              "label": "sub_6B48A0"
+            },
+            {
+              "addr": "6b48a1",
+              "instruction": "mov ebp, esp"
+            },
+            {
+              "addr": "6b48a3",
+              "instruction": "push 0FFFFFFFFh"
+            },
+            {
+              "addr": "6b48a5",
+              "instruction": "push offset SEH_945C50",
+              "refs": [
+                {
+                  "addr": "0xa91160",
+                  "name": "SEH_945C50"
+                }
+              ]
+            },
+            {
+              "addr": "6b48aa",
+              "instruction": "mov eax, large fs:0"
+            },
+            {
+              "addr": "6b48b0",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "6b48b1",
+              "instruction": "push ecx"
+            },
+            {
+              "addr": "6b48b2",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "6b48b3",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "6b48b4",
+              "instruction": "mov eax, ___security_cookie",
+              "refs": [
+                {
+                  "addr": "0xb883b4",
+                  "name": "___security_cookie"
+                }
+              ]
+            },
+            {
+              "addr": "6b48b9",
+              "instruction": "xor eax, ebp"
+            },
+            {
+              "addr": "6b48bb",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "6b48bc",
+              "instruction": "lea eax, [ebp+var_C]"
+            },
+            {
+              "addr": "6b48bf",
+              "instruction": "mov large fs:0, eax"
+            },
+            {
+              "addr": "6b48c5",
+              "instruction": "mov edi, ecx"
+            },
+            {
+              "addr": "6b48c7",
+              "instruction": "mov dword ptr [edi], offset ??_7Entity_NPC@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_NPC::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb187d0",
+                  "name": "??_7Entity_NPC@IsaacRepentancePlus@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "6b48cd",
+              "instruction": "lea esi, [edi+0F58h]"
+            },
+            {
+              "addr": "6b48d3",
+              "instruction": "mov ecx, [esi]"
+            },
+            {
+              "addr": "6b48d5",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "6b48d7",
+              "instruction": "jz short loc_6B48F1",
+              "refs": [
+                {
+                  "addr": "0x6b48f1",
+                  "name": "loc_6B48F1"
+                }
+              ]
+            },
+            {
+              "addr": "6b48d9",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "6b48dc",
+              "instruction": "mov [ebp+var_10], esi"
+            },
+            {
+              "addr": "6b48df",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "6b48e0",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "6b48e6",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "6b48eb",
+              "instruction": "mov dword ptr [esi], 0"
+            },
+            {
+              "addr": "6b48f1",
+              "instruction": "lea esi, [edi+0F54h]",
+              "label": "loc_6B48F1"
+            },
+            {
+              "addr": "6b48f7",
+              "instruction": "mov ecx, [esi]"
+            },
+            {
+              "addr": "6b48f9",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "6b48fb",
+              "instruction": "jz short loc_6B4915",
+              "refs": [
+                {
+                  "addr": "0x6b4915",
+                  "name": "loc_6B4915"
+                }
+              ]
+            },
+            {
+              "addr": "6b48fd",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "6b4900",
+              "instruction": "mov [ebp+var_10], esi"
+            },
+            {
+              "addr": "6b4903",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "6b4904",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "6b490a",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "6b490f",
+              "instruction": "mov dword ptr [esi], 0"
+            },
+            {
+              "addr": "6b4915",
+              "instruction": "lea esi, [edi+0F50h]",
+              "label": "loc_6B4915"
+            },
+            {
+              "addr": "6b491b",
+              "instruction": "mov ecx, [esi]"
+            },
+            {
+              "addr": "6b491d",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "6b491f",
+              "instruction": "jz short loc_6B4939",
+              "refs": [
+                {
+                  "addr": "0x6b4939",
+                  "name": "loc_6B4939"
+                }
+              ]
+            },
+            {
+              "addr": "6b4921",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "6b4924",
+              "instruction": "mov [ebp+var_10], esi"
+            },
+            {
+              "addr": "6b4927",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "6b4928",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "6b492e",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "6b4933",
+              "instruction": "mov dword ptr [esi], 0"
+            },
+            {
+              "addr": "6b4939",
+              "instruction": "lea ecx, [edi+0F0Ch]; void *",
+              "label": "loc_6B4939",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "6b493f",
+              "instruction": "call sub_4101E0",
+              "refs": [
+                {
+                  "addr": "0x4101e0",
+                  "name": "sub_4101E0"
+                }
+              ]
+            },
+            {
+              "addr": "6b4944",
+              "instruction": "lea ecx, [edi+0F00h]; void *",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "6b494a",
+              "instruction": "call sub_4101E0",
+              "refs": [
+                {
+                  "addr": "0x4101e0",
+                  "name": "sub_4101E0"
+                }
+              ]
+            },
+            {
+              "addr": "6b494f",
+              "instruction": "lea ecx, [edi+0DECh]; void *",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "6b4955",
+              "instruction": "call sub_403790",
+              "refs": [
+                {
+                  "addr": "0x403790",
+                  "name": "sub_403790"
+                }
+              ]
+            },
+            {
+              "addr": "6b495a",
+              "instruction": "lea ecx, [edi+0CD8h]; void *",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "6b4960",
+              "instruction": "call sub_403790",
+              "refs": [
+                {
+                  "addr": "0x403790",
+                  "name": "sub_403790"
+                }
+              ]
+            },
+            {
+              "addr": "6b4965",
+              "instruction": "lea ecx, [edi+0C48h]"
+            },
+            {
+              "addr": "6b496b",
+              "instruction": "call sub_4927C0",
+              "refs": [
+                {
+                  "addr": "0x4927c0",
+                  "name": "sub_4927C0"
+                }
+              ]
+            },
+            {
+              "addr": "6b4970",
+              "instruction": "mov eax, [edi+0C48h]"
+            },
+            {
+              "addr": "6b4976",
+              "instruction": "push 8"
+            },
+            {
+              "addr": "6b4978",
+              "instruction": "push eax; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "6b4979",
+              "instruction": "mov dword ptr [edi+0C48h], 0"
+            },
+            {
+              "addr": "6b4983",
+              "instruction": "call sub_A8717B",
+              "refs": [
+                {
+                  "addr": "0xa8717b",
+                  "name": "sub_A8717B"
+                }
+              ]
+            },
+            {
+              "addr": "6b4988",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "6b498b",
+              "instruction": "lea ecx, [edi+0C18h]"
+            },
+            {
+              "addr": "6b4991",
+              "instruction": "call sub_4927C0",
+              "refs": [
+                {
+                  "addr": "0x4927c0",
+                  "name": "sub_4927C0"
+                }
+              ]
+            },
+            {
+              "addr": "6b4996",
+              "instruction": "mov eax, [edi+0C18h]"
+            },
+            {
+              "addr": "6b499c",
+              "instruction": "push 8"
+            },
+            {
+              "addr": "6b499e",
+              "instruction": "push eax; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "6b499f",
+              "instruction": "mov dword ptr [edi+0C18h], 0"
+            },
+            {
+              "addr": "6b49a9",
+              "instruction": "call sub_A8717B",
+              "refs": [
+                {
+                  "addr": "0xa8717b",
+                  "name": "sub_A8717B"
+                }
+              ]
+            },
+            {
+              "addr": "6b49ae",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "6b49b1",
+              "instruction": "lea ecx, [edi+0C04h]"
+            },
+            {
+              "addr": "6b49b7",
+              "instruction": "call sub_4927C0",
+              "refs": [
+                {
+                  "addr": "0x4927c0",
+                  "name": "sub_4927C0"
+                }
+              ]
+            },
+            {
+              "addr": "6b49bc",
+              "instruction": "mov eax, [edi+0C04h]"
+            },
+            {
+              "addr": "6b49c2",
+              "instruction": "push 8"
+            },
+            {
+              "addr": "6b49c4",
+              "instruction": "push eax; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "6b49c5",
+              "instruction": "mov dword ptr [edi+0C04h], 0"
+            },
+            {
+              "addr": "6b49cf",
+              "instruction": "call sub_A8717B",
+              "refs": [
+                {
+                  "addr": "0xa8717b",
+                  "name": "sub_A8717B"
+                }
+              ]
+            },
+            {
+              "addr": "6b49d4",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "6b49d7",
+              "instruction": "lea ecx, [edi+0BF0h]"
+            },
+            {
+              "addr": "6b49dd",
+              "instruction": "call sub_4927C0",
+              "refs": [
+                {
+                  "addr": "0x4927c0",
+                  "name": "sub_4927C0"
+                }
+              ]
+            },
+            {
+              "addr": "6b49e2",
+              "instruction": "mov eax, [edi+0BF0h]"
+            },
+            {
+              "addr": "6b49e8",
+              "instruction": "push 8"
+            },
+            {
+              "addr": "6b49ea",
+              "instruction": "push eax; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "6b49eb",
+              "instruction": "mov dword ptr [edi+0BF0h], 0"
+            },
+            {
+              "addr": "6b49f5",
+              "instruction": "call sub_A8717B",
+              "refs": [
+                {
+                  "addr": "0xa8717b",
+                  "name": "sub_A8717B"
+                }
+              ]
+            },
+            {
+              "addr": "6b49fa",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "6b49fd",
+              "instruction": "lea ecx, [edi+0B88h]"
+            },
+            {
+              "addr": "6b4a03",
+              "instruction": "call sub_417EB0",
+              "refs": [
+                {
+                  "addr": "0x417eb0",
+                  "name": "sub_417EB0"
+                }
+              ]
+            },
+            {
+              "addr": "6b4a08",
+              "instruction": "mov eax, [edi+0B5Ch]"
+            },
+            {
+              "addr": "6b4a0e",
+              "instruction": "lea esi, [edi+0B5Ch]"
+            },
+            {
+              "addr": "6b4a14",
+              "instruction": "mov ecx, esi"
+            },
+            {
+              "addr": "6b4a16",
+              "instruction": "push dword ptr [eax+4]; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "6b4a19",
+              "instruction": "push esi; int",
+              "comments": [
+                "int"
+              ]
+            },
+            {
+              "addr": "6b4a1a",
+              "instruction": "call sub_41FEE0",
+              "refs": [
+                {
+                  "addr": "0x41fee0",
+                  "name": "sub_41FEE0"
+                }
+              ]
+            },
+            {
+              "addr": "6b4a1f",
+              "instruction": "push 14h"
+            },
+            {
+              "addr": "6b4a21",
+              "instruction": "push dword ptr [esi]; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "6b4a23",
+              "instruction": "call sub_A8717B",
+              "refs": [
+                {
+                  "addr": "0xa8717b",
+                  "name": "sub_A8717B"
+                }
+              ]
+            },
+            {
+              "addr": "6b4a28",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "6b4a2b",
+              "instruction": "mov ecx, edi"
+            },
+            {
+              "addr": "6b4a2d",
+              "instruction": "call sub_6A3EF0",
+              "refs": [
+                {
+                  "addr": "0x6a3ef0",
+                  "name": "sub_6A3EF0"
+                }
+              ]
+            },
+            {
+              "addr": "6b4a32",
+              "instruction": "mov ecx, [ebp+var_C]"
+            },
+            {
+              "addr": "6b4a35",
+              "instruction": "mov large fs:0, ecx"
+            },
+            {
+              "addr": "6b4a3c",
+              "instruction": "pop ecx"
+            },
+            {
+              "addr": "6b4a3d",
+              "instruction": "pop edi"
+            },
+            {
+              "addr": "6b4a3e",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "6b4a3f",
+              "instruction": "mov esp, ebp"
+            },
+            {
+              "addr": "6b4a41",
+              "instruction": "pop ebp"
+            },
+            {
+              "addr": "6b4a42",
+              "instruction": "retn"
+            },
+            {
+              "addr": "a88023",
+              "instruction": "jmp ds:__std_terminate",
+              "label": "loc_A88023",
+              "refs": [
+                {
+                  "addr": "0xaaa51c",
+                  "name": "__std_terminate"
+                }
+              ]
+            },
+            {
+              "addr": "a91160",
+              "instruction": "nop",
+              "label": "SEH_945C50"
+            },
+            {
+              "addr": "a91161",
+              "instruction": "nop"
+            },
+            {
+              "addr": "a91162",
+              "instruction": "mov edx, [esp-4+arg_4]"
+            },
+            {
+              "addr": "a91166",
+              "instruction": "lea eax, [edx+0Ch]"
+            },
+            {
+              "addr": "a91169",
+              "instruction": "mov ecx, [edx-10h]"
+            },
+            {
+              "addr": "a9116c",
+              "instruction": "xor ecx, eax; StackCookie",
+              "comments": [
+                "StackCookie"
+              ]
+            },
+            {
+              "addr": "a9116e",
+              "instruction": "call @__security_check_cookie@4; __security_check_cookie(x)",
+              "refs": [
+                {
+                  "addr": "0xa86bbb",
+                  "name": "@__security_check_cookie@4"
+                }
+              ]
+            },
+            {
+              "addr": "a91173",
+              "instruction": "mov eax, offset stru_B512F8",
+              "refs": [
+                {
+                  "addr": "0xb512f8",
+                  "name": "stru_B512F8"
+                }
+              ]
+            },
+            {
+              "addr": "a91178",
+              "instruction": "jmp __CxxFrameHandler3",
+              "refs": [
+                {
+                  "addr": "0xa88017",
+                  "name": "__CxxFrameHandler3"
+                }
+              ]
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "var_10",
+              "offset": "0xc",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_C",
+              "offset": "0x10",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__saved_registers",
+              "offset": "0x1c",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__return_address",
+              "offset": "0x20",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            },
+            {
+              "name": "arg_4",
+              "offset": "0x28",
+              "size": "0x4",
+              "type": "_DWORD"
+            }
+          ],
+          "return_type": "void",
+          "arguments": [
+            {
+              "name": "this",
+              "type": "char *"
+            }
+          ]
+        },
+        "instruction_count": 118,
+        "total_instructions": 118,
+        "cursor": {
+          "done": true
+        }
+      }
+    },
+    {
+      "addr": "0x6070F0",
+      "data": {
+        "addr": "0x6070F0",
+        "asm": {
+          "name": "sub_6070F0",
+          "start_ea": "0x6070f0",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "6070f0",
+              "instruction": "push ebp",
+              "label": "sub_6070F0"
+            },
+            {
+              "addr": "6070f1",
+              "instruction": "mov ebp, esp"
+            },
+            {
+              "addr": "6070f3",
+              "instruction": "push 0FFFFFFFFh"
+            },
+            {
+              "addr": "6070f5",
+              "instruction": "push offset SEH_9CB410",
+              "refs": [
+                {
+                  "addr": "0xa88e10",
+                  "name": "SEH_9B1940"
+                }
+              ]
+            },
+            {
+              "addr": "6070fa",
+              "instruction": "mov eax, large fs:0"
+            },
+            {
+              "addr": "607100",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "607101",
+              "instruction": "push ecx"
+            },
+            {
+              "addr": "607102",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "607103",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "607104",
+              "instruction": "mov eax, ___security_cookie",
+              "refs": [
+                {
+                  "addr": "0xb883b4",
+                  "name": "___security_cookie"
+                }
+              ]
+            },
+            {
+              "addr": "607109",
+              "instruction": "xor eax, ebp"
+            },
+            {
+              "addr": "60710b",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "60710c",
+              "instruction": "lea eax, [ebp+var_C]"
+            },
+            {
+              "addr": "60710f",
+              "instruction": "mov large fs:0, eax"
+            },
+            {
+              "addr": "607115",
+              "instruction": "mov edi, ecx"
+            },
+            {
+              "addr": "607117",
+              "instruction": "lea esi, [edi+0F28h]"
+            },
+            {
+              "addr": "60711d",
+              "instruction": "mov dword ptr [edi], offset ??_7Entity_Familiar@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_Familiar::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb15090",
+                  "name": "??_7Entity_Familiar@IsaacRepentancePlus@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "607123",
+              "instruction": "mov eax, [esi]"
+            },
+            {
+              "addr": "607125",
+              "instruction": "mov ecx, esi"
+            },
+            {
+              "addr": "607127",
+              "instruction": "push dword ptr [eax+4]; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "60712a",
+              "instruction": "push esi; int",
+              "comments": [
+                "int"
+              ]
+            },
+            {
+              "addr": "60712b",
+              "instruction": "call sub_428CD0",
+              "refs": [
+                {
+                  "addr": "0x428cd0",
+                  "name": "sub_428CD0"
+                }
+              ]
+            },
+            {
+              "addr": "607130",
+              "instruction": "push 18h"
+            },
+            {
+              "addr": "607132",
+              "instruction": "push dword ptr [esi]; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "607134",
+              "instruction": "call sub_A8717B",
+              "refs": [
+                {
+                  "addr": "0xa8717b",
+                  "name": "sub_A8717B"
+                }
+              ]
+            },
+            {
+              "addr": "607139",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "60713c",
+              "instruction": "lea esi, [edi+0ED8h]"
+            },
+            {
+              "addr": "607142",
+              "instruction": "mov ecx, [esi]"
+            },
+            {
+              "addr": "607144",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "607146",
+              "instruction": "jz short loc_607160",
+              "refs": [
+                {
+                  "addr": "0x607160",
+                  "name": "loc_607160"
+                }
+              ]
+            },
+            {
+              "addr": "607148",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "60714b",
+              "instruction": "mov [ebp+var_10], esi"
+            },
+            {
+              "addr": "60714e",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "60714f",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "607155",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "60715a",
+              "instruction": "mov dword ptr [esi], 0"
+            },
+            {
+              "addr": "607160",
+              "instruction": "lea esi, [edi+0ECCh]",
+              "label": "loc_607160"
+            },
+            {
+              "addr": "607166",
+              "instruction": "mov [ebp+var_4], 1"
+            },
+            {
+              "addr": "60716d",
+              "instruction": "mov ecx, [esi+4]"
+            },
+            {
+              "addr": "607170",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "607172",
+              "instruction": "jz short loc_60718E",
+              "refs": [
+                {
+                  "addr": "0x60718e",
+                  "name": "loc_60718E"
+                }
+              ]
+            },
+            {
+              "addr": "607174",
+              "instruction": "mov eax, [ecx]"
+            },
+            {
+              "addr": "607176",
+              "instruction": "mov eax, [eax+0Ch]"
+            },
+            {
+              "addr": "607179",
+              "instruction": "call eax"
+            },
+            {
+              "addr": "60717b",
+              "instruction": "test al, al"
+            },
+            {
+              "addr": "60717d",
+              "instruction": "jz short loc_60718E",
+              "refs": [
+                {
+                  "addr": "0x60718e",
+                  "name": "loc_60718E"
+                }
+              ]
+            },
+            {
+              "addr": "60717f",
+              "instruction": "mov eax, dword_BEBDB4",
+              "refs": [
+                {
+                  "addr": "0xbebdb4",
+                  "name": "dword_BEBDB4"
+                }
+              ]
+            },
+            {
+              "addr": "607184",
+              "instruction": "test eax, eax"
+            },
+            {
+              "addr": "607186",
+              "instruction": "jz short loc_60718E",
+              "refs": [
+                {
+                  "addr": "0x60718e",
+                  "name": "loc_60718E"
+                }
+              ]
+            },
+            {
+              "addr": "607188",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "607189",
+              "instruction": "call eax ; dword_BEBDB4"
+            },
+            {
+              "addr": "60718b",
+              "instruction": "add esp, 4"
+            },
+            {
+              "addr": "60718e",
+              "instruction": "lea ecx, [edi+0DB8h]; void *",
+              "label": "loc_60718E",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "607194",
+              "instruction": "call sub_403790",
+              "refs": [
+                {
+                  "addr": "0x403790",
+                  "name": "sub_403790"
+                }
+              ]
+            },
+            {
+              "addr": "607199",
+              "instruction": "lea ecx, [edi+0D9Ch]; void *",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "60719f",
+              "instruction": "call sub_4101E0",
+              "refs": [
+                {
+                  "addr": "0x4101e0",
+                  "name": "sub_4101E0"
+                }
+              ]
+            },
+            {
+              "addr": "6071a4",
+              "instruction": "mov eax, [edi+0D44h]"
+            },
+            {
+              "addr": "6071aa",
+              "instruction": "lea esi, [edi+0D44h]"
+            },
+            {
+              "addr": "6071b0",
+              "instruction": "mov ecx, esi"
+            },
+            {
+              "addr": "6071b2",
+              "instruction": "push dword ptr [eax+4]; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "6071b5",
+              "instruction": "push esi; int",
+              "comments": [
+                "int"
+              ]
+            },
+            {
+              "addr": "6071b6",
+              "instruction": "call sub_41FEE0",
+              "refs": [
+                {
+                  "addr": "0x41fee0",
+                  "name": "sub_41FEE0"
+                }
+              ]
+            },
+            {
+              "addr": "6071bb",
+              "instruction": "push 14h"
+            },
+            {
+              "addr": "6071bd",
+              "instruction": "push dword ptr [esi]; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "6071bf",
+              "instruction": "call sub_A8717B",
+              "refs": [
+                {
+                  "addr": "0xa8717b",
+                  "name": "sub_A8717B"
+                }
+              ]
+            },
+            {
+              "addr": "6071c4",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "6071c7",
+              "instruction": "mov ecx, edi"
+            },
+            {
+              "addr": "6071c9",
+              "instruction": "call sub_6A3EF0",
+              "refs": [
+                {
+                  "addr": "0x6a3ef0",
+                  "name": "sub_6A3EF0"
+                }
+              ]
+            },
+            {
+              "addr": "6071ce",
+              "instruction": "mov ecx, [ebp+var_C]"
+            },
+            {
+              "addr": "6071d1",
+              "instruction": "mov large fs:0, ecx"
+            },
+            {
+              "addr": "6071d8",
+              "instruction": "pop ecx"
+            },
+            {
+              "addr": "6071d9",
+              "instruction": "pop edi"
+            },
+            {
+              "addr": "6071da",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "6071db",
+              "instruction": "mov esp, ebp"
+            },
+            {
+              "addr": "6071dd",
+              "instruction": "pop ebp"
+            },
+            {
+              "addr": "6071de",
+              "instruction": "retn"
+            },
+            {
+              "addr": "a88023",
+              "instruction": "jmp ds:__std_terminate",
+              "label": "loc_A88023",
+              "refs": [
+                {
+                  "addr": "0xaaa51c",
+                  "name": "__std_terminate"
+                }
+              ]
+            },
+            {
+              "addr": "a88e10",
+              "instruction": "nop",
+              "label": "SEH_9B1940"
+            },
+            {
+              "addr": "a88e11",
+              "instruction": "nop"
+            },
+            {
+              "addr": "a88e12",
+              "instruction": "mov edx, [esp-4+arg_4]"
+            },
+            {
+              "addr": "a88e16",
+              "instruction": "lea eax, [edx+0Ch]"
+            },
+            {
+              "addr": "a88e19",
+              "instruction": "mov ecx, [edx-10h]"
+            },
+            {
+              "addr": "a88e1c",
+              "instruction": "xor ecx, eax; StackCookie",
+              "comments": [
+                "StackCookie"
+              ]
+            },
+            {
+              "addr": "a88e1e",
+              "instruction": "call @__security_check_cookie@4; __security_check_cookie(x)",
+              "refs": [
+                {
+                  "addr": "0xa86bbb",
+                  "name": "@__security_check_cookie@4"
+                }
+              ]
+            },
+            {
+              "addr": "a88e23",
+              "instruction": "mov eax, offset stru_B4A1B8",
+              "refs": [
+                {
+                  "addr": "0xb4a1b8",
+                  "name": "stru_B4A1B8"
+                }
+              ]
+            },
+            {
+              "addr": "a88e28",
+              "instruction": "jmp __CxxFrameHandler3",
+              "refs": [
+                {
+                  "addr": "0xa88017",
+                  "name": "__CxxFrameHandler3"
+                }
+              ]
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "var_10",
+              "offset": "0xc",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_C",
+              "offset": "0x10",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_4",
+              "offset": "0x18",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__saved_registers",
+              "offset": "0x1c",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__return_address",
+              "offset": "0x20",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            }
+          ],
+          "return_type": "void",
+          "arguments": [
+            {
+              "name": "this",
+              "type": "char *"
+            }
+          ]
+        },
+        "instruction_count": 86,
+        "total_instructions": 86,
+        "cursor": {
+          "done": true
+        }
+      }
+    },
+    {
+      "addr": "0x6DD6A0",
+      "data": {
+        "addr": "0x6DD6A0",
+        "asm": {
+          "name": "sub_6DD6A0",
+          "start_ea": "0x6dd6a0",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "6dd6a0",
+              "instruction": "push ebp",
+              "label": "sub_6DD6A0"
+            },
+            {
+              "addr": "6dd6a1",
+              "instruction": "mov ebp, esp"
+            },
+            {
+              "addr": "6dd6a3",
+              "instruction": "push 0FFFFFFFFh"
+            },
+            {
+              "addr": "6dd6a5",
+              "instruction": "push offset SEH_6DD6A0",
+              "refs": [
+                {
+                  "addr": "0xa8e950",
+                  "name": "SEH_6DD6A0"
+                }
+              ]
+            },
+            {
+              "addr": "6dd6aa",
+              "instruction": "mov eax, large fs:0"
+            },
+            {
+              "addr": "6dd6b0",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "6dd6b1",
+              "instruction": "push ecx"
+            },
+            {
+              "addr": "6dd6b2",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "6dd6b3",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "6dd6b4",
+              "instruction": "mov eax, ___security_cookie",
+              "refs": [
+                {
+                  "addr": "0xb883b4",
+                  "name": "___security_cookie"
+                }
+              ]
+            },
+            {
+              "addr": "6dd6b9",
+              "instruction": "xor eax, ebp"
+            },
+            {
+              "addr": "6dd6bb",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "6dd6bc",
+              "instruction": "lea eax, [ebp+var_C]"
+            },
+            {
+              "addr": "6dd6bf",
+              "instruction": "mov large fs:0, eax"
+            },
+            {
+              "addr": "6dd6c5",
+              "instruction": "mov esi, ecx"
+            },
+            {
+              "addr": "6dd6c7",
+              "instruction": "lea ecx, [esi+5D0h]; void *",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "6dd6cd",
+              "instruction": "mov dword ptr [esi], offset ??_7Entity_Pickup@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_Pickup::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb18e8c",
+                  "name": "??_7Entity_Pickup@IsaacRepentancePlus@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "6dd6d3",
+              "instruction": "call sub_403790",
+              "refs": [
+                {
+                  "addr": "0x403790",
+                  "name": "sub_403790"
+                }
+              ]
+            },
+            {
+              "addr": "6dd6d8",
+              "instruction": "lea edi, [esi+5C8h]"
+            },
+            {
+              "addr": "6dd6de",
+              "instruction": "mov [ebp+var_4], 0"
+            },
+            {
+              "addr": "6dd6e5",
+              "instruction": "mov ecx, [edi+4]"
+            },
+            {
+              "addr": "6dd6e8",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "6dd6ea",
+              "instruction": "jz short loc_6DD706",
+              "refs": [
+                {
+                  "addr": "0x6dd706",
+                  "name": "loc_6DD706"
+                }
+              ]
+            },
+            {
+              "addr": "6dd6ec",
+              "instruction": "mov eax, [ecx]"
+            },
+            {
+              "addr": "6dd6ee",
+              "instruction": "mov eax, [eax+0Ch]"
+            },
+            {
+              "addr": "6dd6f1",
+              "instruction": "call eax"
+            },
+            {
+              "addr": "6dd6f3",
+              "instruction": "test al, al"
+            },
+            {
+              "addr": "6dd6f5",
+              "instruction": "jz short loc_6DD706",
+              "refs": [
+                {
+                  "addr": "0x6dd706",
+                  "name": "loc_6DD706"
+                }
+              ]
+            },
+            {
+              "addr": "6dd6f7",
+              "instruction": "mov eax, dword_BEBDE0",
+              "refs": [
+                {
+                  "addr": "0xbebde0",
+                  "name": "dword_BEBDE0"
+                }
+              ]
+            },
+            {
+              "addr": "6dd6fc",
+              "instruction": "test eax, eax"
+            },
+            {
+              "addr": "6dd6fe",
+              "instruction": "jz short loc_6DD706",
+              "refs": [
+                {
+                  "addr": "0x6dd706",
+                  "name": "loc_6DD706"
+                }
+              ]
+            },
+            {
+              "addr": "6dd700",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "6dd701",
+              "instruction": "call eax ; dword_BEBDE0"
+            },
+            {
+              "addr": "6dd703",
+              "instruction": "add esp, 4"
+            },
+            {
+              "addr": "6dd706",
+              "instruction": "lea edi, [esi+598h]",
+              "label": "loc_6DD706"
+            },
+            {
+              "addr": "6dd70c",
+              "instruction": "mov ecx, [edi]"
+            },
+            {
+              "addr": "6dd70e",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "6dd710",
+              "instruction": "jz short loc_6DD72A",
+              "refs": [
+                {
+                  "addr": "0x6dd72a",
+                  "name": "loc_6DD72A"
+                }
+              ]
+            },
+            {
+              "addr": "6dd712",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "6dd715",
+              "instruction": "mov [ebp+var_10], edi"
+            },
+            {
+              "addr": "6dd718",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "6dd719",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "6dd71f",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "6dd724",
+              "instruction": "mov dword ptr [edi], 0"
+            },
+            {
+              "addr": "6dd72a",
+              "instruction": "lea edi, [esi+594h]",
+              "label": "loc_6DD72A"
+            },
+            {
+              "addr": "6dd730",
+              "instruction": "mov ecx, [edi]"
+            },
+            {
+              "addr": "6dd732",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "6dd734",
+              "instruction": "jz short loc_6DD74E",
+              "refs": [
+                {
+                  "addr": "0x6dd74e",
+                  "name": "loc_6DD74E"
+                }
+              ]
+            },
+            {
+              "addr": "6dd736",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "6dd739",
+              "instruction": "mov [ebp+var_10], edi"
+            },
+            {
+              "addr": "6dd73c",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "6dd73d",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "6dd743",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "6dd748",
+              "instruction": "mov dword ptr [edi], 0"
+            },
+            {
+              "addr": "6dd74e",
+              "instruction": "lea edi, [esi+590h]",
+              "label": "loc_6DD74E"
+            },
+            {
+              "addr": "6dd754",
+              "instruction": "mov ecx, [edi]"
+            },
+            {
+              "addr": "6dd756",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "6dd758",
+              "instruction": "jz short loc_6DD772",
+              "refs": [
+                {
+                  "addr": "0x6dd772",
+                  "name": "loc_6DD772"
+                }
+              ]
+            },
+            {
+              "addr": "6dd75a",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "6dd75d",
+              "instruction": "mov [ebp+var_10], edi"
+            },
+            {
+              "addr": "6dd760",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "6dd761",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "6dd767",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "6dd76c",
+              "instruction": "mov dword ptr [edi], 0"
+            },
+            {
+              "addr": "6dd772",
+              "instruction": "lea edi, [esi+58Ch]",
+              "label": "loc_6DD772"
+            },
+            {
+              "addr": "6dd778",
+              "instruction": "mov ecx, [edi]"
+            },
+            {
+              "addr": "6dd77a",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "6dd77c",
+              "instruction": "jz short loc_6DD796",
+              "refs": [
+                {
+                  "addr": "0x6dd796",
+                  "name": "loc_6DD796"
+                }
+              ]
+            },
+            {
+              "addr": "6dd77e",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "6dd781",
+              "instruction": "mov [ebp+var_10], edi"
+            },
+            {
+              "addr": "6dd784",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "6dd785",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "6dd78b",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "6dd790",
+              "instruction": "mov dword ptr [edi], 0"
+            },
+            {
+              "addr": "6dd796",
+              "instruction": "lea ecx, [esi+410h]; void *",
+              "label": "loc_6DD796",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "6dd79c",
+              "instruction": "call sub_403790",
+              "refs": [
+                {
+                  "addr": "0x403790",
+                  "name": "sub_403790"
+                }
+              ]
+            },
+            {
+              "addr": "6dd7a1",
+              "instruction": "mov ecx, esi"
+            },
+            {
+              "addr": "6dd7a3",
+              "instruction": "call sub_6A3EF0",
+              "refs": [
+                {
+                  "addr": "0x6a3ef0",
+                  "name": "sub_6A3EF0"
+                }
+              ]
+            },
+            {
+              "addr": "6dd7a8",
+              "instruction": "mov ecx, [ebp+var_C]"
+            },
+            {
+              "addr": "6dd7ab",
+              "instruction": "mov large fs:0, ecx"
+            },
+            {
+              "addr": "6dd7b2",
+              "instruction": "pop ecx"
+            },
+            {
+              "addr": "6dd7b3",
+              "instruction": "pop edi"
+            },
+            {
+              "addr": "6dd7b4",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "6dd7b5",
+              "instruction": "mov esp, ebp"
+            },
+            {
+              "addr": "6dd7b7",
+              "instruction": "pop ebp"
+            },
+            {
+              "addr": "6dd7b8",
+              "instruction": "retn"
+            },
+            {
+              "addr": "a88023",
+              "instruction": "jmp ds:__std_terminate",
+              "label": "loc_A88023",
+              "refs": [
+                {
+                  "addr": "0xaaa51c",
+                  "name": "__std_terminate"
+                }
+              ]
+            },
+            {
+              "addr": "a8e950",
+              "instruction": "nop",
+              "label": "SEH_6DD6A0"
+            },
+            {
+              "addr": "a8e951",
+              "instruction": "nop"
+            },
+            {
+              "addr": "a8e952",
+              "instruction": "mov edx, [esp-4+arg_4]"
+            },
+            {
+              "addr": "a8e956",
+              "instruction": "lea eax, [edx+0Ch]"
+            },
+            {
+              "addr": "a8e959",
+              "instruction": "mov ecx, [edx-10h]"
+            },
+            {
+              "addr": "a8e95c",
+              "instruction": "xor ecx, eax; StackCookie",
+              "comments": [
+                "StackCookie"
+              ]
+            },
+            {
+              "addr": "a8e95e",
+              "instruction": "call @__security_check_cookie@4; __security_check_cookie(x)",
+              "refs": [
+                {
+                  "addr": "0xa86bbb",
+                  "name": "@__security_check_cookie@4"
+                }
+              ]
+            },
+            {
+              "addr": "a8e963",
+              "instruction": "mov eax, offset stru_B4EF80",
+              "refs": [
+                {
+                  "addr": "0xb4ef80",
+                  "name": "stru_B4EF80"
+                }
+              ]
+            },
+            {
+              "addr": "a8e968",
+              "instruction": "jmp __CxxFrameHandler3",
+              "refs": [
+                {
+                  "addr": "0xa88017",
+                  "name": "__CxxFrameHandler3"
+                }
+              ]
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "var_10",
+              "offset": "0xc",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_C",
+              "offset": "0x10",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_4",
+              "offset": "0x18",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__saved_registers",
+              "offset": "0x1c",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__return_address",
+              "offset": "0x20",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            }
+          ],
+          "return_type": "void",
+          "arguments": [
+            {
+              "name": "this",
+              "type": "char *"
+            }
+          ]
+        },
+        "instruction_count": 96,
+        "total_instructions": 96,
+        "cursor": {
+          "done": true
+        }
+      }
+    },
+    {
+      "addr": "0x662E20",
+      "data": {
+        "addr": "0x662E20",
+        "asm": {
+          "name": "sub_662E20",
+          "start_ea": "0x662e20",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "662e20",
+              "instruction": "push ebp",
+              "label": "sub_662E20"
+            },
+            {
+              "addr": "662e21",
+              "instruction": "mov ebp, esp"
+            },
+            {
+              "addr": "662e23",
+              "instruction": "push 0FFFFFFFFh"
+            },
+            {
+              "addr": "662e25",
+              "instruction": "push offset SEH_6DD6A0",
+              "refs": [
+                {
+                  "addr": "0xa8e950",
+                  "name": "SEH_6DD6A0"
+                }
+              ]
+            },
+            {
+              "addr": "662e2a",
+              "instruction": "mov eax, large fs:0"
+            },
+            {
+              "addr": "662e30",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "662e31",
+              "instruction": "push ecx"
+            },
+            {
+              "addr": "662e32",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "662e33",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "662e34",
+              "instruction": "mov eax, ___security_cookie",
+              "refs": [
+                {
+                  "addr": "0xb883b4",
+                  "name": "___security_cookie"
+                }
+              ]
+            },
+            {
+              "addr": "662e39",
+              "instruction": "xor eax, ebp"
+            },
+            {
+              "addr": "662e3b",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "662e3c",
+              "instruction": "lea eax, [ebp+var_C]"
+            },
+            {
+              "addr": "662e3f",
+              "instruction": "mov large fs:0, eax"
+            },
+            {
+              "addr": "662e45",
+              "instruction": "mov esi, ecx"
+            },
+            {
+              "addr": "662e47",
+              "instruction": "lea ecx, [esi+6D4h]; void *",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "662e4d",
+              "instruction": "mov dword ptr [esi], offset ??_7Entity_Tear@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_Tear::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb15fb8",
+                  "name": "??_7Entity_Tear@IsaacRepentancePlus@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "662e53",
+              "instruction": "call sub_403790",
+              "refs": [
+                {
+                  "addr": "0x403790",
+                  "name": "sub_403790"
+                }
+              ]
+            },
+            {
+              "addr": "662e58",
+              "instruction": "lea ecx, [esi+5C0h]; void *",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "662e5e",
+              "instruction": "call sub_403790",
+              "refs": [
+                {
+                  "addr": "0x403790",
+                  "name": "sub_403790"
+                }
+              ]
+            },
+            {
+              "addr": "662e63",
+              "instruction": "lea ecx, [esi+4ACh]; void *",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "662e69",
+              "instruction": "call sub_403790",
+              "refs": [
+                {
+                  "addr": "0x403790",
+                  "name": "sub_403790"
+                }
+              ]
+            },
+            {
+              "addr": "662e6e",
+              "instruction": "lea edi, [esi+4A4h]"
+            },
+            {
+              "addr": "662e74",
+              "instruction": "mov ecx, [edi]"
+            },
+            {
+              "addr": "662e76",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "662e78",
+              "instruction": "jz short loc_662E92",
+              "refs": [
+                {
+                  "addr": "0x662e92",
+                  "name": "loc_662E92"
+                }
+              ]
+            },
+            {
+              "addr": "662e7a",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "662e7d",
+              "instruction": "mov [ebp+var_10], edi"
+            },
+            {
+              "addr": "662e80",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "662e81",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "662e87",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "662e8c",
+              "instruction": "mov dword ptr [edi], 0"
+            },
+            {
+              "addr": "662e92",
+              "instruction": "lea edi, [esi+4A0h]",
+              "label": "loc_662E92"
+            },
+            {
+              "addr": "662e98",
+              "instruction": "mov ecx, [edi]"
+            },
+            {
+              "addr": "662e9a",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "662e9c",
+              "instruction": "jz short loc_662EB6",
+              "refs": [
+                {
+                  "addr": "0x662eb6",
+                  "name": "loc_662EB6"
+                }
+              ]
+            },
+            {
+              "addr": "662e9e",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "662ea1",
+              "instruction": "mov [ebp+var_10], edi"
+            },
+            {
+              "addr": "662ea4",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "662ea5",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "662eab",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "662eb0",
+              "instruction": "mov dword ptr [edi], 0"
+            },
+            {
+              "addr": "662eb6",
+              "instruction": "lea edi, [esi+49Ch]",
+              "label": "loc_662EB6"
+            },
+            {
+              "addr": "662ebc",
+              "instruction": "mov ecx, [edi]"
+            },
+            {
+              "addr": "662ebe",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "662ec0",
+              "instruction": "jz short loc_662EDA",
+              "refs": [
+                {
+                  "addr": "0x662eda",
+                  "name": "loc_662EDA"
+                }
+              ]
+            },
+            {
+              "addr": "662ec2",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "662ec5",
+              "instruction": "mov [ebp+var_10], edi"
+            },
+            {
+              "addr": "662ec8",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "662ec9",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "662ecf",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "662ed4",
+              "instruction": "mov dword ptr [edi], 0"
+            },
+            {
+              "addr": "662eda",
+              "instruction": "lea edi, [esi+498h]",
+              "label": "loc_662EDA"
+            },
+            {
+              "addr": "662ee0",
+              "instruction": "mov ecx, [edi]"
+            },
+            {
+              "addr": "662ee2",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "662ee4",
+              "instruction": "jz short loc_662EFE",
+              "refs": [
+                {
+                  "addr": "0x662efe",
+                  "name": "loc_662EFE"
+                }
+              ]
+            },
+            {
+              "addr": "662ee6",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "662ee9",
+              "instruction": "mov [ebp+var_10], edi"
+            },
+            {
+              "addr": "662eec",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "662eed",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "662ef3",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "662ef8",
+              "instruction": "mov dword ptr [edi], 0"
+            },
+            {
+              "addr": "662efe",
+              "instruction": "lea edi, [esi+494h]",
+              "label": "loc_662EFE"
+            },
+            {
+              "addr": "662f04",
+              "instruction": "mov ecx, [edi]"
+            },
+            {
+              "addr": "662f06",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "662f08",
+              "instruction": "jz short loc_662F22",
+              "refs": [
+                {
+                  "addr": "0x662f22",
+                  "name": "loc_662F22"
+                }
+              ]
+            },
+            {
+              "addr": "662f0a",
+              "instruction": "lea eax, [ebp+var_10]"
+            },
+            {
+              "addr": "662f0d",
+              "instruction": "mov [ebp+var_10], edi"
+            },
+            {
+              "addr": "662f10",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "662f11",
+              "instruction": "add ecx, 3CCh"
+            },
+            {
+              "addr": "662f17",
+              "instruction": "call sub_4C8EE0",
+              "refs": [
+                {
+                  "addr": "0x4c8ee0",
+                  "name": "sub_4C8EE0"
+                }
+              ]
+            },
+            {
+              "addr": "662f1c",
+              "instruction": "mov dword ptr [edi], 0"
+            },
+            {
+              "addr": "662f22",
+              "instruction": "lea ecx, [esi+444h]; void *",
+              "label": "loc_662F22",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "662f28",
+              "instruction": "call sub_4101E0",
+              "refs": [
+                {
+                  "addr": "0x4101e0",
+                  "name": "sub_4101E0"
+                }
+              ]
+            },
+            {
+              "addr": "662f2d",
+              "instruction": "mov ecx, esi"
+            },
+            {
+              "addr": "662f2f",
+              "instruction": "call sub_6A3EF0",
+              "refs": [
+                {
+                  "addr": "0x6a3ef0",
+                  "name": "sub_6A3EF0"
+                }
+              ]
+            },
+            {
+              "addr": "662f34",
+              "instruction": "mov ecx, [ebp+var_C]"
+            },
+            {
+              "addr": "662f37",
+              "instruction": "mov large fs:0, ecx"
+            },
+            {
+              "addr": "662f3e",
+              "instruction": "pop ecx"
+            },
+            {
+              "addr": "662f3f",
+              "instruction": "pop edi"
+            },
+            {
+              "addr": "662f40",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "662f41",
+              "instruction": "mov esp, ebp"
+            },
+            {
+              "addr": "662f43",
+              "instruction": "pop ebp"
+            },
+            {
+              "addr": "662f44",
+              "instruction": "retn"
+            },
+            {
+              "addr": "a88023",
+              "instruction": "jmp ds:__std_terminate",
+              "label": "loc_A88023",
+              "refs": [
+                {
+                  "addr": "0xaaa51c",
+                  "name": "__std_terminate"
+                }
+              ]
+            },
+            {
+              "addr": "a8e950",
+              "instruction": "nop",
+              "label": "SEH_6DD6A0"
+            },
+            {
+              "addr": "a8e951",
+              "instruction": "nop"
+            },
+            {
+              "addr": "a8e952",
+              "instruction": "mov edx, [esp-4+arg_4]"
+            },
+            {
+              "addr": "a8e956",
+              "instruction": "lea eax, [edx+0Ch]"
+            },
+            {
+              "addr": "a8e959",
+              "instruction": "mov ecx, [edx-10h]"
+            },
+            {
+              "addr": "a8e95c",
+              "instruction": "xor ecx, eax; StackCookie",
+              "comments": [
+                "StackCookie"
+              ]
+            },
+            {
+              "addr": "a8e95e",
+              "instruction": "call @__security_check_cookie@4; __security_check_cookie(x)",
+              "refs": [
+                {
+                  "addr": "0xa86bbb",
+                  "name": "@__security_check_cookie@4"
+                }
+              ]
+            },
+            {
+              "addr": "a8e963",
+              "instruction": "mov eax, offset stru_B4EF80",
+              "refs": [
+                {
+                  "addr": "0xb4ef80",
+                  "name": "stru_B4EF80"
+                }
+              ]
+            },
+            {
+              "addr": "a8e968",
+              "instruction": "jmp __CxxFrameHandler3",
+              "refs": [
+                {
+                  "addr": "0xa88017",
+                  "name": "__CxxFrameHandler3"
+                }
+              ]
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "var_10",
+              "offset": "0xc",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_C",
+              "offset": "0x10",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__saved_registers",
+              "offset": "0x1c",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__return_address",
+              "offset": "0x20",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            },
+            {
+              "name": "arg_4",
+              "offset": "0x28",
+              "size": "0x4",
+              "type": "_DWORD"
+            }
+          ],
+          "return_type": "void",
+          "arguments": [
+            {
+              "name": "this",
+              "type": "char *"
+            }
+          ]
+        },
+        "instruction_count": 94,
+        "total_instructions": 94,
+        "cursor": {
+          "done": true
+        }
+      }
+    },
+    {
+      "addr": "0x5CCF30",
+      "data": {
+        "addr": "0x5CCF30",
+        "asm": {
+          "name": "sub_5CCF30",
+          "start_ea": "0x5ccf30",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "5ccf30",
+              "instruction": "push ebp",
+              "label": "sub_5CCF30"
+            },
+            {
+              "addr": "5ccf31",
+              "instruction": "mov ebp, esp"
+            },
+            {
+              "addr": "5ccf33",
+              "instruction": "push 0FFFFFFFFh"
+            },
+            {
+              "addr": "5ccf35",
+              "instruction": "push offset SEH_A5AE60",
+              "refs": [
+                {
+                  "addr": "0xa883f0",
+                  "name": "SEH_9F8C00"
+                }
+              ]
+            },
+            {
+              "addr": "5ccf3a",
+              "instruction": "mov eax, large fs:0"
+            },
+            {
+              "addr": "5ccf40",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "5ccf41",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "5ccf42",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "5ccf43",
+              "instruction": "mov eax, ___security_cookie",
+              "refs": [
+                {
+                  "addr": "0xb883b4",
+                  "name": "___security_cookie"
+                }
+              ]
+            },
+            {
+              "addr": "5ccf48",
+              "instruction": "xor eax, ebp"
+            },
+            {
+              "addr": "5ccf4a",
+              "instruction": "push eax"
+            },
+            {
+              "addr": "5ccf4b",
+              "instruction": "lea eax, [ebp+var_C]"
+            },
+            {
+              "addr": "5ccf4e",
+              "instruction": "mov large fs:0, eax"
+            },
+            {
+              "addr": "5ccf54",
+              "instruction": "mov esi, ecx"
+            },
+            {
+              "addr": "5ccf56",
+              "instruction": "mov dword ptr [esi], offset ??_7Entity_Effect@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_Effect::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb14d00",
+                  "name": "??_7Entity_Effect@IsaacRepentancePlus@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "5ccf5c",
+              "instruction": "lea edi, [esi+4B4h]"
+            },
+            {
+              "addr": "5ccf62",
+              "instruction": "mov [ebp+var_4], 0"
+            },
+            {
+              "addr": "5ccf69",
+              "instruction": "mov ecx, [edi+4]"
+            },
+            {
+              "addr": "5ccf6c",
+              "instruction": "test ecx, ecx"
+            },
+            {
+              "addr": "5ccf6e",
+              "instruction": "jz short loc_5CCF8A",
+              "refs": [
+                {
+                  "addr": "0x5ccf8a",
+                  "name": "loc_5CCF8A"
+                }
+              ]
+            },
+            {
+              "addr": "5ccf70",
+              "instruction": "mov eax, [ecx]"
+            },
+            {
+              "addr": "5ccf72",
+              "instruction": "mov eax, [eax+0Ch]"
+            },
+            {
+              "addr": "5ccf75",
+              "instruction": "call eax"
+            },
+            {
+              "addr": "5ccf77",
+              "instruction": "test al, al"
+            },
+            {
+              "addr": "5ccf79",
+              "instruction": "jz short loc_5CCF8A",
+              "refs": [
+                {
+                  "addr": "0x5ccf8a",
+                  "name": "loc_5CCF8A"
+                }
+              ]
+            },
+            {
+              "addr": "5ccf7b",
+              "instruction": "mov eax, dword_BEBDE8",
+              "refs": [
+                {
+                  "addr": "0xbebde8",
+                  "name": "dword_BEBDE8"
+                }
+              ]
+            },
+            {
+              "addr": "5ccf80",
+              "instruction": "test eax, eax"
+            },
+            {
+              "addr": "5ccf82",
+              "instruction": "jz short loc_5CCF8A",
+              "refs": [
+                {
+                  "addr": "0x5ccf8a",
+                  "name": "loc_5CCF8A"
+                }
+              ]
+            },
+            {
+              "addr": "5ccf84",
+              "instruction": "push edi"
+            },
+            {
+              "addr": "5ccf85",
+              "instruction": "call eax ; dword_BEBDE8"
+            },
+            {
+              "addr": "5ccf87",
+              "instruction": "add esp, 4"
+            },
+            {
+              "addr": "5ccf8a",
+              "instruction": "lea ecx, [esi+4A8h]; void *",
+              "label": "loc_5CCF8A",
+              "comments": [
+                "void *"
+              ]
+            },
+            {
+              "addr": "5ccf90",
+              "instruction": "call sub_4101E0",
+              "refs": [
+                {
+                  "addr": "0x4101e0",
+                  "name": "sub_4101E0"
+                }
+              ]
+            },
+            {
+              "addr": "5ccf95",
+              "instruction": "mov ecx, esi"
+            },
+            {
+              "addr": "5ccf97",
+              "instruction": "call sub_6A3EF0",
+              "refs": [
+                {
+                  "addr": "0x6a3ef0",
+                  "name": "sub_6A3EF0"
+                }
+              ]
+            },
+            {
+              "addr": "5ccf9c",
+              "instruction": "test [ebp+arg_0], 1"
+            },
+            {
+              "addr": "5ccfa0",
+              "instruction": "jz short loc_5CCFB0",
+              "refs": [
+                {
+                  "addr": "0x5ccfb0",
+                  "name": "loc_5CCFB0"
+                }
+              ]
+            },
+            {
+              "addr": "5ccfa2",
+              "instruction": "push 4C0h"
+            },
+            {
+              "addr": "5ccfa7",
+              "instruction": "push esi; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "5ccfa8",
+              "instruction": "call sub_A8717B",
+              "refs": [
+                {
+                  "addr": "0xa8717b",
+                  "name": "sub_A8717B"
+                }
+              ]
+            },
+            {
+              "addr": "5ccfad",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "5ccfb0",
+              "instruction": "mov eax, esi",
+              "label": "loc_5CCFB0"
+            },
+            {
+              "addr": "5ccfb2",
+              "instruction": "mov ecx, [ebp+var_C]"
+            },
+            {
+              "addr": "5ccfb5",
+              "instruction": "mov large fs:0, ecx"
+            },
+            {
+              "addr": "5ccfbc",
+              "instruction": "pop ecx"
+            },
+            {
+              "addr": "5ccfbd",
+              "instruction": "pop edi"
+            },
+            {
+              "addr": "5ccfbe",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "5ccfbf",
+              "instruction": "mov esp, ebp"
+            },
+            {
+              "addr": "5ccfc1",
+              "instruction": "pop ebp"
+            },
+            {
+              "addr": "5ccfc2",
+              "instruction": "retn 4"
+            },
+            {
+              "addr": "a88023",
+              "instruction": "jmp ds:__std_terminate",
+              "label": "loc_A88023",
+              "refs": [
+                {
+                  "addr": "0xaaa51c",
+                  "name": "__std_terminate"
+                }
+              ]
+            },
+            {
+              "addr": "a883f0",
+              "instruction": "nop",
+              "label": "SEH_9F8C00"
+            },
+            {
+              "addr": "a883f1",
+              "instruction": "nop"
+            },
+            {
+              "addr": "a883f2",
+              "instruction": "mov edx, [esp-4+arg_4]"
+            },
+            {
+              "addr": "a883f6",
+              "instruction": "lea eax, [edx+0Ch]"
+            },
+            {
+              "addr": "a883f9",
+              "instruction": "mov ecx, [edx-0Ch]"
+            },
+            {
+              "addr": "a883fc",
+              "instruction": "xor ecx, eax; StackCookie",
+              "comments": [
+                "StackCookie"
+              ]
+            },
+            {
+              "addr": "a883fe",
+              "instruction": "call @__security_check_cookie@4",
+              "refs": [
+                {
+                  "addr": "0xa86bbb",
+                  "name": "@__security_check_cookie@4"
+                }
+              ]
+            },
+            {
+              "addr": "a88403",
+              "instruction": "mov eax, offset stru_B49A40",
+              "refs": [
+                {
+                  "addr": "0xb49a40",
+                  "name": "stru_B49A40"
+                }
+              ]
+            },
+            {
+              "addr": "a88408",
+              "instruction": "jmp __CxxFrameHandler3",
+              "refs": [
+                {
+                  "addr": "0xa88017",
+                  "name": "__CxxFrameHandler3"
+                }
+              ]
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "var_C",
+              "offset": "0xc",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "var_4",
+              "offset": "0x14",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__saved_registers",
+              "offset": "0x18",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__return_address",
+              "offset": "0x1c",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            },
+            {
+              "name": "arg_0",
+              "offset": "0x20",
+              "size": "0x1",
+              "type": "char"
+            }
+          ],
+          "return_type": "char *",
+          "arguments": [
+            {
+              "name": "Block",
+              "type": "char *"
+            },
+            {
+              "name": "arg1",
+              "type": "char"
+            }
+          ]
+        },
+        "instruction_count": 60,
+        "total_instructions": 60,
+        "cursor": {
+          "done": true
+        }
+      }
+    },
+    {
+      "addr": "0x64F470",
+      "data": {
+        "addr": "0x64F470",
+        "asm": {
+          "name": "sub_64F470",
+          "start_ea": "0x64f470",
+          "segment": ".text",
+          "lines": [
+            {
+              "addr": "64f470",
+              "instruction": "push ebp",
+              "label": "sub_64F470"
+            },
+            {
+              "addr": "64f471",
+              "instruction": "mov ebp, esp"
+            },
+            {
+              "addr": "64f473",
+              "instruction": "push esi"
+            },
+            {
+              "addr": "64f474",
+              "instruction": "mov esi, ecx"
+            },
+            {
+              "addr": "64f476",
+              "instruction": "mov dword ptr [esi], offset ??_7Entity_Projectile@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_Projectile::`vftable'",
+              "refs": [
+                {
+                  "addr": "0xb15b1c",
+                  "name": "??_7Entity_Projectile@IsaacRepentancePlus@@6B@"
+                }
+              ]
+            },
+            {
+              "addr": "64f47c",
+              "instruction": "call sub_6A3EF0",
+              "refs": [
+                {
+                  "addr": "0x6a3ef0",
+                  "name": "sub_6A3EF0"
+                }
+              ]
+            },
+            {
+              "addr": "64f481",
+              "instruction": "test [ebp+arg_0], 1"
+            },
+            {
+              "addr": "64f485",
+              "instruction": "jz short loc_64F495",
+              "refs": [
+                {
+                  "addr": "0x64f495",
+                  "name": "loc_64F495"
+                }
+              ]
+            },
+            {
+              "addr": "64f487",
+              "instruction": "push 478h"
+            },
+            {
+              "addr": "64f48c",
+              "instruction": "push esi; Block",
+              "comments": [
+                "Block"
+              ]
+            },
+            {
+              "addr": "64f48d",
+              "instruction": "call sub_A8717B",
+              "refs": [
+                {
+                  "addr": "0xa8717b",
+                  "name": "sub_A8717B"
+                }
+              ]
+            },
+            {
+              "addr": "64f492",
+              "instruction": "add esp, 8"
+            },
+            {
+              "addr": "64f495",
+              "instruction": "mov eax, esi",
+              "label": "loc_64F495"
+            },
+            {
+              "addr": "64f497",
+              "instruction": "pop esi"
+            },
+            {
+              "addr": "64f498",
+              "instruction": "pop ebp"
+            },
+            {
+              "addr": "64f499",
+              "instruction": "retn 4"
+            }
+          ],
+          "stack_frame": [
+            {
+              "name": "__saved_registers",
+              "offset": "0x4",
+              "size": "0x4",
+              "type": "_DWORD"
+            },
+            {
+              "name": "__return_address",
+              "offset": "0x8",
+              "size": "0x4",
+              "type": "_UNKNOWN *"
+            },
+            {
+              "name": "arg_0",
+              "offset": "0xc",
+              "size": "0x1",
+              "type": "char"
+            }
+          ],
+          "return_type": "char *",
+          "arguments": [
+            {
+              "name": "Block",
+              "type": "char *"
+            },
+            {
+              "name": "arg1",
+              "type": "char"
+            }
+          ]
+        },
+        "instruction_count": 16,
+        "total_instructions": 16,
+        "cursor": {
+          "done": true
+        }
+      }
+    }
+  ],
+  "player_targeted_instruction": {
+    "addr": "0x74f67f",
+    "instruction": "call sub_6A3EF0",
+    "refs": [
+      {
+        "addr": "0x6a3ef0",
+        "name": "sub_6A3EF0"
+      }
+    ]
+  }
+}

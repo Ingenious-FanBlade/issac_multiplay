@@ -1,0 +1,33 @@
+{
+  "description": "tx-04-07 S0-S21 / V1-V16; single launch, four Host sessions; no automatic rerun. Stop manual input before launch (SkipIntro=1).",
+  "control_port": 27091,
+  "host_port": 27090,
+  "peer_timeout_ms": 3000,
+  "remote_lead": 2,
+  "startup_timeout_seconds": 90,
+  "to_file_select": ["ENTER"],
+  "open_character_menu": ["ENTER"],
+  "start_run": ["ENTER"],
+  "key_settle_ms": 1400,
+  "save_baseline": "artifacts/repentogon/tx-04-04-e2e-08",
+  "relay_seed": 682179,
+  "relay_capacity": 4096,
+  "clean_baseline_ms": 10000,
+  "moderate_ms": 10000,
+  "fault_rate_min": 0.8,
+  "fault_rate_max": 1.2,
+  "action_timeout_ms": 30000,
+  "animation_timeout_ms": 15000,
+  "charge_ticks": 60,
+  "laser_release_ticks": 30,
+  "laser_event_cap": 4096,
+  "observation_heartbeat": 15,
+  "actions": ["skip", "room", "kill_b", "revive_b", "stage", "room"],
+  "profiles": {
+    "clean": {"loss_ppm":0,"duplicate_ppm":0,"reorder_ppm":0,"delay_ms":0,"jitter_ms":0},
+    "moderate": {"loss_ppm":50000,"duplicate_ppm":20000,"reorder_ppm":20000,"reorder_extra_ms":60,"delay_ms":20,"jitter_ms":10},
+    "outage_short": {"outage_ms":1000},
+    "handshake_loss": {"loss_ppm":300000},
+    "outage_long": {"until":"host_and_remote_peer_timeout"}
+  }
+}

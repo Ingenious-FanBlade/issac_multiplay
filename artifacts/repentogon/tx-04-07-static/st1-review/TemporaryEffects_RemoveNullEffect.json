@@ -1,0 +1,372 @@
+{
+  "label": "TemporaryEffects_RemoveNullEffect",
+  "va": "0x90a3f0",
+  "rva": "0x50a3f0",
+  "decompile": "void __stdcall sub_90A3F0(int a1, int a2)\n{\n  int v2; // esi\n  int v3; // eax\n  _DWORD v4[4]; // [esp+8h] [ebp-10h] BYREF\n\n  if ( a1 >= 0 )\n  {\n    v2 = n4[43155];\n    if ( a1 < (n4[43156] - v2) >> 2 )\n    {\n      v3 = *(_DWORD *)(v2 + 4 * a1);\n      if ( v3 )\n      {\n        v4[0] = *(_DWORD *)(v2 + 4 * a1);\n        v4[2] = *(_DWORD *)(v3 + 120);\n        v4[1] = 0;\n        v4[3] = 0;\n        sub_90A290(v4, a2);\n      }\n    }\n  }\n}\n",
+  "instructions": [
+    {
+      "va": "0x90a3f0",
+      "rva": "0x50a3f0",
+      "bytes": "55",
+      "text": "push    ebp"
+    },
+    {
+      "va": "0x90a3f1",
+      "rva": "0x50a3f1",
+      "bytes": "8b ec",
+      "text": "mov     ebp, esp"
+    },
+    {
+      "va": "0x90a3f3",
+      "rva": "0x50a3f3",
+      "bytes": "83 e4 f8",
+      "text": "and     esp, 0FFFFFFF8h"
+    },
+    {
+      "va": "0x90a3f6",
+      "rva": "0x50a3f6",
+      "bytes": "8b 55 08",
+      "text": "mov     edx, [ebp+arg_0]"
+    },
+    {
+      "va": "0x90a3f9",
+      "rva": "0x50a3f9",
+      "bytes": "83 ec 14",
+      "text": "sub     esp, 14h"
+    },
+    {
+      "va": "0x90a3fc",
+      "rva": "0x50a3fc",
+      "bytes": "56",
+      "text": "push    esi"
+    },
+    {
+      "va": "0x90a3fd",
+      "rva": "0x50a3fd",
+      "bytes": "85 d2",
+      "text": "test    edx, edx"
+    },
+    {
+      "va": "0x90a3ff",
+      "rva": "0x50a3ff",
+      "bytes": "78 49",
+      "text": "js      short loc_90A44A"
+    },
+    {
+      "va": "0x90a401",
+      "rva": "0x50a401",
+      "bytes": "a1 1c 4a be 00",
+      "text": "mov     eax, n4"
+    },
+    {
+      "va": "0x90a406",
+      "rva": "0x50a406",
+      "bytes": "8b b0 4c a2 02 00",
+      "text": "mov     esi, [eax+2A24Ch]"
+    },
+    {
+      "va": "0x90a40c",
+      "rva": "0x50a40c",
+      "bytes": "8b 80 50 a2 02 00",
+      "text": "mov     eax, [eax+2A250h]"
+    },
+    {
+      "va": "0x90a412",
+      "rva": "0x50a412",
+      "bytes": "2b c6",
+      "text": "sub     eax, esi"
+    },
+    {
+      "va": "0x90a414",
+      "rva": "0x50a414",
+      "bytes": "c1 f8 02",
+      "text": "sar     eax, 2"
+    },
+    {
+      "va": "0x90a417",
+      "rva": "0x50a417",
+      "bytes": "3b d0",
+      "text": "cmp     edx, eax"
+    },
+    {
+      "va": "0x90a419",
+      "rva": "0x50a419",
+      "bytes": "7d 2f",
+      "text": "jge     short loc_90A44A"
+    },
+    {
+      "va": "0x90a41b",
+      "rva": "0x50a41b",
+      "bytes": "8b 04 96",
+      "text": "mov     eax, [esi+edx*4]"
+    },
+    {
+      "va": "0x90a41e",
+      "rva": "0x50a41e",
+      "bytes": "85 c0",
+      "text": "test    eax, eax"
+    },
+    {
+      "va": "0x90a420",
+      "rva": "0x50a420",
+      "bytes": "74 28",
+      "text": "jz      short loc_90A44A"
+    },
+    {
+      "va": "0x90a422",
+      "rva": "0x50a422",
+      "bytes": "ff 75 0c",
+      "text": "push    [ebp+arg_4]"
+    },
+    {
+      "va": "0x90a425",
+      "rva": "0x50a425",
+      "bytes": "89 44 24 0c",
+      "text": "mov     [esp+1Ch+var_10], eax"
+    },
+    {
+      "va": "0x90a429",
+      "rva": "0x50a429",
+      "bytes": "8b 40 78",
+      "text": "mov     eax, [eax+78h]"
+    },
+    {
+      "va": "0x90a42c",
+      "rva": "0x50a42c",
+      "bytes": "89 44 24 14",
+      "text": "mov     [esp+1Ch+var_8], eax"
+    },
+    {
+      "va": "0x90a430",
+      "rva": "0x50a430",
+      "bytes": "8d 44 24 0c",
+      "text": "lea     eax, [esp+1Ch+var_10]"
+    },
+    {
+      "va": "0x90a434",
+      "rva": "0x50a434",
+      "bytes": "50",
+      "text": "push    eax"
+    },
+    {
+      "va": "0x90a435",
+      "rva": "0x50a435",
+      "bytes": "c7 44 24 14 00 00 00 00",
+      "text": "mov     [esp+20h+var_C], 0"
+    },
+    {
+      "va": "0x90a43d",
+      "rva": "0x50a43d",
+      "bytes": "c7 44 24 1c 00 00 00 00",
+      "text": "mov     [esp+20h+var_4], 0"
+    },
+    {
+      "va": "0x90a445",
+      "rva": "0x50a445",
+      "bytes": "e8 46 fe ff ff",
+      "text": "call    sub_90A290"
+    },
+    {
+      "va": "0x90a44a",
+      "rva": "0x50a44a",
+      "bytes": "5e",
+      "text": "pop     esi"
+    },
+    {
+      "va": "0x90a44b",
+      "rva": "0x50a44b",
+      "bytes": "8b e5",
+      "text": "mov     esp, ebp"
+    },
+    {
+      "va": "0x90a44d",
+      "rva": "0x50a44d",
+      "bytes": "5d",
+      "text": "pop     ebp"
+    },
+    {
+      "va": "0x90a44e",
+      "rva": "0x50a44e",
+      "bytes": "c2 08 00",
+      "text": "retn    8"
+    }
+  ],
+  "xrefs_to": [
+    {
+      "from_va": "0x63578f",
+      "type": 17
+    },
+    {
+      "from_va": "0x6357a9",
+      "type": 17
+    },
+    {
+      "from_va": "0x63aa90",
+      "type": 17
+    },
+    {
+      "from_va": "0x6d2594",
+      "type": 17
+    },
+    {
+      "from_va": "0x752ec9",
+      "type": 17
+    },
+    {
+      "from_va": "0x76cf5b",
+      "type": 17
+    },
+    {
+      "from_va": "0x77dcf0",
+      "type": 17
+    },
+    {
+      "from_va": "0x788de8",
+      "type": 17
+    },
+    {
+      "from_va": "0x788e32",
+      "type": 17
+    },
+    {
+      "from_va": "0x78b8f3",
+      "type": 17
+    },
+    {
+      "from_va": "0x79018e",
+      "type": 17
+    },
+    {
+      "from_va": "0x790275",
+      "type": 17
+    },
+    {
+      "from_va": "0x791a70",
+      "type": 17
+    },
+    {
+      "from_va": "0x79240b",
+      "type": 17
+    },
+    {
+      "from_va": "0x793b7a",
+      "type": 17
+    },
+    {
+      "from_va": "0x793d26",
+      "type": 17
+    },
+    {
+      "from_va": "0x793ed1",
+      "type": 17
+    },
+    {
+      "from_va": "0x793f74",
+      "type": 17
+    },
+    {
+      "from_va": "0x794323",
+      "type": 17
+    },
+    {
+      "from_va": "0x796e05",
+      "type": 17
+    },
+    {
+      "from_va": "0x799824",
+      "type": 17
+    },
+    {
+      "from_va": "0x79d163",
+      "type": 17
+    },
+    {
+      "from_va": "0x79d172",
+      "type": 17
+    },
+    {
+      "from_va": "0x79d236",
+      "type": 17
+    },
+    {
+      "from_va": "0x79d29c",
+      "type": 17
+    },
+    {
+      "from_va": "0x79e78d",
+      "type": 17
+    },
+    {
+      "from_va": "0x7a0ce9",
+      "type": 17
+    },
+    {
+      "from_va": "0x7a427c",
+      "type": 17
+    },
+    {
+      "from_va": "0x7ad03d",
+      "type": 17
+    },
+    {
+      "from_va": "0x7ad066",
+      "type": 17
+    },
+    {
+      "from_va": "0x7ad0c8",
+      "type": 17
+    },
+    {
+      "from_va": "0x7ad76d",
+      "type": 17
+    },
+    {
+      "from_va": "0x7ae68c",
+      "type": 17
+    },
+    {
+      "from_va": "0x7ae7e8",
+      "type": 17
+    },
+    {
+      "from_va": "0x7ae842",
+      "type": 17
+    },
+    {
+      "from_va": "0x7af166",
+      "type": 17
+    },
+    {
+      "from_va": "0x7af23d",
+      "type": 17
+    },
+    {
+      "from_va": "0x7b57a6",
+      "type": 17
+    },
+    {
+      "from_va": "0x7bbcd3",
+      "type": 17
+    },
+    {
+      "from_va": "0x7ce2de",
+      "type": 17
+    },
+    {
+      "from_va": "0x7d004d",
+      "type": 17
+    },
+    {
+      "from_va": "0x9d16f4",
+      "type": 17
+    },
+    {
+      "from_va": "0x84f027",
+      "type": 1
+    },
+    {
+      "from_va": "0x862e58",
+      "type": 1
+    }
+  ]
+}

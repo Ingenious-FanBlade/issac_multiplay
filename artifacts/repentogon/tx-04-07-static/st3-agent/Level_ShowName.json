@@ -1,0 +1,109 @@
+{
+ "label": "Level_ShowName",
+ "va": "0x740740",
+ "rva": "0x340740",
+ "note": "Lua 注册名 ShowName；state 3→4 时调用；只导出入口",
+ "func_start_va": "0x740740",
+ "func_end_va": "0x7408a8",
+ "func_start_rva": "0x340740",
+ "func_end_rva": "0x3408a8",
+ "decompile_hexrays_raw": "int __thiscall sub_740740(void *n9, unsigned __int8 a2)\n{\n  _DWORD *n187; // esi\n  void *v4; // eax\n  void **v5; // edx\n  void **v6; // ecx\n  int result; // eax\n  void *v8; // ecx\n  void *v9; // ecx\n  void *v10[5]; // [esp+8h] [ebp-44h] BYREF\n  unsigned int n0x10_1; // [esp+1Ch] [ebp-30h]\n  void *Block[4]; // [esp+20h] [ebp-2Ch] BYREF\n  int v13; // [esp+30h] [ebp-1Ch]\n  unsigned int n0x10; // [esp+34h] [ebp-18h]\n  int v15; // [esp+48h] [ebp-4h]\n  int savedregs; // [esp+4Ch] [ebp+0h] BYREF\n\n  sub_740290((int)v10);\n  v15 = 0;\n  sub_740440((int)n9, (int)&savedregs, Block);\n  LOBYTE(v15) = 1;\n  n187 = n187;\n  if ( (int)n187[38627] >= 2 )\n  {\n    v4 = (void *)sub_9319D0(n4 + 76167, \"#Online/DEATHMATCH_NAME\");\n    sub_408660(v10, v4, strlen((const char *)v4));\n    sub_408660(Block, (void *)ArgList_2, 0);\n    n187 = n187;\n  }\n  v5 = Block;\n  v6 = v10;\n  if ( n0x10 >= 0x10 )\n    v5 = (void **)Block[0];\n  if ( n0x10_1 >= 0x10 )\n    v6 = (void **)v10[0];\n  result = sub_831620(n187 + 34218, v6, v5, a2 ^ 1, v13 != 0);\n  if ( n0x10 >= 0x10 )\n  {\n    v8 = Block[0];\n    if ( n0x10 + 1 >= 0x1000 )\n    {\n      v8 = (void *)*((_DWORD *)Block[0] - 1);\n      if ( (unsigned int)((char *)Block[0] - (char *)v8 - 4) > 0x1F )\nLABEL_14:\n        invalid_parameter_noinfo_noreturn();\n    }\n    result = sub_A8717B(v8);\n  }\n  v13 = 0;\n  n0x10 = 15;\n  LOBYTE(Block[0]) = 0;\n  if ( n0x10_1 >= 0x10 )\n  {\n    v9 = v10[0];\n    if ( n0x10_1 + 1 >= 0x1000 )\n    {\n      v9 = (void *)*((_DWORD *)v10[0] - 1);\n      if ( (unsigned int)((char *)v10[0] - (char *)v9 - 4) > 0x1F )\n        goto LABEL_14;\n    }\n    return sub_A8717B(v9);\n  }\n  return result;\n}\n",
+ "exported_ranges_rva": [
+  [
+   "0x340740",
+   "0x340760"
+  ]
+ ],
+ "instructions": [
+  {
+   "va": "0x740740",
+   "rva": "0x340740",
+   "bytes": "55",
+   "asm": "push    ebp"
+  },
+  {
+   "va": "0x740741",
+   "rva": "0x340741",
+   "bytes": "8b ec",
+   "asm": "mov     ebp, esp; a2"
+  },
+  {
+   "va": "0x740743",
+   "rva": "0x340743",
+   "bytes": "6a ff",
+   "asm": "push    0FFFFFFFFh"
+  },
+  {
+   "va": "0x740745",
+   "rva": "0x340745",
+   "bytes": "68 55 47 a9 00",
+   "asm": "push    offset SEH_740740"
+  },
+  {
+   "va": "0x74074a",
+   "rva": "0x34074a",
+   "bytes": "64 a1 00 00 00 00",
+   "asm": "mov     eax, large fs:0"
+  },
+  {
+   "va": "0x740750",
+   "rva": "0x340750",
+   "bytes": "50",
+   "asm": "push    eax"
+  },
+  {
+   "va": "0x740751",
+   "rva": "0x340751",
+   "bytes": "83 ec 38",
+   "asm": "sub     esp, 38h"
+  },
+  {
+   "va": "0x740754",
+   "rva": "0x340754",
+   "bytes": "a1 b4 83 b8 00",
+   "asm": "mov     eax, ___security_cookie"
+  },
+  {
+   "va": "0x740759",
+   "rva": "0x340759",
+   "bytes": "33 c5",
+   "asm": "xor     eax, ebp"
+  },
+  {
+   "va": "0x74075b",
+   "rva": "0x34075b",
+   "bytes": "89 45 ec",
+   "asm": "mov     [ebp+var_14], eax"
+  },
+  {
+   "va": "0x74075e",
+   "rva": "0x34075e",
+   "bytes": "56",
+   "asm": "push    esi"
+  },
+  {
+   "va": "0x74075f",
+   "rva": "0x34075f",
+   "bytes": "50",
+   "asm": "push    eax"
+  }
+ ],
+ "xrefs_to_func": [
+  {
+   "from_rva": "0x2f7654",
+   "type": 17
+  },
+  {
+   "from_rva": "0x509d6e",
+   "type": 17
+  },
+  {
+   "from_rva": "0x565ff9",
+   "type": 17
+  },
+  {
+   "from_rva": "0x45370e",
+   "type": 1
+  }
+ ]
+}

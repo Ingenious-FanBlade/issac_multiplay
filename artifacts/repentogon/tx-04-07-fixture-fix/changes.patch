@@ -1,0 +1,168 @@
+--- e2e-03/tests/e2e-mods/isaac-cs-test/main.lua
++++ fixture-fix/tests/e2e-mods/isaac-cs-test/main.lua
+@@ -227,7 +227,6 @@
+ -- 复活后的动画观察器（独立于动作终态，避免把 Appear 未完成当作重绑完成）。
+ local animationWatch = nil
+ -- 同一游戏帧内只查询一次 cs status，减少激光密集出生时的命令桥负载。
+-local cachedLoopFrame, cachedLoop = nil, nil
+ -- 主菜单自动 Host 只做一次；第 4 轮 Continue 仍由控制口 Host。
+ local hostRequested = false
+ local lastObservation = nil
+@@ -273,14 +272,12 @@
+     return 0
+ end
+ 
+--- 当前 Manager loop：来自 cs status 的 frame 字段；同帧事件复用缓存值。
++-- 每次事件读取当前 Manager loop；暂停/跳帧时 Game frame 不变而 Manager 仍推进，
++-- 因此不能用 Game frame 缓存 loop，更不能让旧值冒充动作结束时刻。
+ local function currentLoop()
+-    local frame = gameFrame()
+-    if cachedLoopFrame == frame then return cachedLoop end
+-    cachedLoopFrame = frame
+     local ok, response = pcall(Isaac.ExecuteCommand, "cs status")
+-    if ok then cachedLoop = tonumber(tostring(response):match("\nframe=(%d+)")) end
+-    return cachedLoop
++    if ok then return tonumber(tostring(response):match("\nframe=(%d+)")) end
++    return nil
+ end
+ 
+ -- 所有 tx-04-07 结构化记录统一前缀，harness 按 token 过滤本次部署。
+@@ -330,9 +327,12 @@
+ local function playerView(player, ordinal)
+     if player == nil then return { ordinal = ordinal, present = false } end
+     local ok, view = pcall(function()
+-        -- 索引未使用时 Isaac.GetPlayer 会回退到最后一个 Player；先核对 Index 再读其它字段。
+-        if player.Index ~= ordinal then
+-            return { ordinal = ordinal, present = false, resolved_ordinal = player.Index }
++        -- GetPlayer 缺席时可能回退；用 PlayerManager 中的 player index 复核 ordinal。
++        -- Entity.Index 是实体编号，多轮新建 B 可为 17 等值，不能用于玩家槽判断。
++        local playerIndex = player:GetPlayerIndex()
++        if playerIndex ~= ordinal then
++            return { ordinal = ordinal, present = false, resolved_ordinal = playerIndex,
++                entity_index = player.Index }
+         end
+         -- harness 只从当前实际可通行的方向选择移动；逐点检查路径，不修改格子或玩家。
+         local movementOptions = {}
+@@ -351,6 +351,7 @@
+         return {
+             ordinal = ordinal, present = true, exists = player:Exists(),
+             type = player.Type, variant = player.Variant, index = player.Index,
++            entity_index = player.Index, player_index = playerIndex,
+             init_seed = player.InitSeed, ptr_hash = GetPtrHash(player),
+             controller = player.ControllerIndex, player_type = player:GetPlayerType(),
+             dead = player:IsDead(), ghost = player:IsCoopGhost(),
+@@ -387,11 +388,14 @@
+     local player = Isaac.GetPlayer(ordinal)
+     if player == nil then return { ordinal = ordinal, present = false } end
+     local ok, view = pcall(function()
+-        -- Isaac.GetPlayer 在索引未使用时返回最后一个 Player；必须核对 Index，不能把 A 当 B。
+-        if player.Index ~= ordinal then
+-            return { ordinal = ordinal, present = false, resolved_ordinal = player.Index }
++        -- 玩家槽与实体编号分开；回退到 A 时拒绝，不把新 B 的 Entity.Index 当缺席。
++        local playerIndex = player:GetPlayerIndex()
++        if playerIndex ~= ordinal then
++            return { ordinal = ordinal, present = false, resolved_ordinal = playerIndex,
++                entity_index = player.Index }
+         end
+         return { ordinal = ordinal, present = true, exists = player:Exists(),
++            player_index = playerIndex, entity_index = player.Index,
+             dead = player:IsDead(), ghost = player:IsCoopGhost(),
+             player_type = player:GetPlayerType(), controller = player.ControllerIndex,
+             animation_finished = player:IsExtraAnimationFinished() }
+@@ -472,7 +476,7 @@
+     local ok, reason = pcall(function()
+         if not player:Exists() then error("not_exists") end
+         if player.Type ~= EntityType.ENTITY_PLAYER or player.Variant ~= 0 then error("not_full_player") end
+-        if player.Index ~= 0 then error("wrong_index") end
++        if player:GetPlayerIndex() ~= 0 then error("wrong_player_index") end
+         if player:IsDead() then error("dead") end
+         if player:IsCoopGhost() then error("ghost") end
+     end)
+@@ -485,7 +489,7 @@
+     local player = Isaac.GetPlayer(1)
+     if player == nil then return nil, "missing" end
+     local ok, reason = pcall(function()
+-        if player.Index ~= 1 then error("wrong_index") end
++        if player:GetPlayerIndex() ~= 1 then error("wrong_player_index") end
+         if not player:Exists() then error("not_exists") end
+         if player.Type ~= EntityType.ENTITY_PLAYER or player.Variant ~= 0 then error("not_full_player") end
+         if player:IsDead() then error("dead") end
+@@ -501,7 +505,7 @@
+     local player = Isaac.GetPlayer(1)
+     if player == nil then return nil, "missing" end
+     local ok, reason = pcall(function()
+-        if player.Index ~= 1 then error("wrong_index") end
++        if player:GetPlayerIndex() ~= 1 then error("wrong_player_index") end
+         -- ghost 可能已被原生标记为死亡；Exists 不作为 ghost 资格的唯一依据。
+         if player.Type ~= EntityType.ENTITY_PLAYER or player.Variant ~= 0 then error("not_full_player") end
+         if not player:IsCoopGhost() then error("not_ghost") end
+@@ -516,7 +520,7 @@
+     local player = Isaac.GetPlayer(1)
+     if player == nil then return nil, "missing" end
+     local ok, reason = pcall(function()
+-        if player.Index ~= 1 then error("wrong_index") end
++        if player:GetPlayerIndex() ~= 1 then error("wrong_player_index") end
+         -- 复活后的短暂帧可能仍带 dead/exists 过渡；以生命字段与身份判断，不只看 Exists。
+         if player.Type ~= EntityType.ENTITY_PLAYER or player.Variant ~= 0 then error("not_full_player") end
+         if player:IsDead() then error("dead") end
+@@ -781,7 +785,7 @@
+     current.data.last = view
+     if view.read_error then return end
+     -- 死亡窗口内不用 Exists 单次结果判定移除：先看人数/对象身份；移除会在人数或读取上体现。
+-    if view.type ~= EntityType.ENTITY_PLAYER or view.variant ~= 0 or view.index ~= 1 then
++    if view.type ~= EntityType.ENTITY_PLAYER or view.variant ~= 0 or view.player_index ~= 1 then
+         finishAction("rejected", { reason = "b_identity_changed", after = view })
+         return
+     end
+@@ -973,13 +977,15 @@
+ local function roleFor(entity)
+     local hash = ptrHash(entity)
+     if hash == nil then return nil end
++    if playerCount() == 0 then return nil end
+     local a = Isaac.GetPlayer(0)
++    if a ~= nil and a:GetPlayerIndex() ~= 0 then a = nil end
+     local aHash = ptrHash(a)
+-    -- Isaac.GetPlayer 在索引缺失时返回最后一个 Player；只有 index=1 才算 B。
++    -- GetPlayer 的回退不能冒充 B；只认当前 PlayerManager ordinal，不认实体编号。
+     local b = nil
+     if playerCount() > 1 then
+         b = Isaac.GetPlayer(1)
+-        if b ~= nil and b.Index ~= 1 then b = nil end
++        if b ~= nil and b:GetPlayerIndex() ~= 1 then b = nil end
+     end
+     local bHash = ptrHash(b)
+     if aHash ~= nil and hash == aHash then return "A" end
+--- e2e-03/tools/harness/src/tx07.rs
++++ fixture-fix/tools/harness/src/tx07.rs
+@@ -491,7 +491,12 @@
+         self.checkpoint_tx07(&mut c, "S4.priority.end")?;
+         self.report["scenes"]["S4"] = json!("COMPLETE");
+         self.checkpoint_tx07(&mut c, "S5.begin")?;
++        // 两次边沿分别采样资源窗口，避免共享炸弹库存把两次消耗合并成各减二。
++        // 不补发边沿、不增补资源；每个 ordinal 仍须恰好一次 Accepted/Resolve 和减一。
++        self.checkpoint_tx07(&mut c, "S5.A.begin")?;
+         win32::key(w, "E")?;
++        self.watch_tx07(g, &mut c, &r, 250)?;
++        self.checkpoint_tx07(&mut c, "S5.A.end")?;
+         self.play_tx07(
+             g,
+             &mut c,
+--- e2e-03/tools/harness/src/tx07/evidence.rs
++++ fixture-fix/tools/harness/src/tx07/evidence.rs
+@@ -1705,10 +1705,13 @@
+         let bombs=(0..2).map(|ordinal| {
+             let resolved=window(&events,&r,"S5.begin","S5.end","tick",Some(ordinal)).into_iter().filter(|e|e.n("edge").is_some_and(|n|n&1!=0)).collect::<Vec<_>>();
+             let accepted=window(&events,&r,"S5.begin","S5.end","submit",Some(ordinal)).into_iter().filter(|e|e.n("decision")==Some(1) && e.n("edge").is_some_and(|n|n&1!=0)).collect::<Vec<_>>();
+-            let before=&r["checkpoints"]["S5.begin"]["observation"]["players"][ordinal as usize]["bombs"];
+-            let after=&r["checkpoints"]["S5.end"]["observation"]["players"][ordinal as usize]["bombs"];
++            // 总窗口约束每个 ordinal 的唯一边沿；独立动作窗口分别验证实际资源减一。
++            let label=if ordinal==0 {"S5.A"} else {"S5.bomb"};
++            let before=&r["checkpoints"][format!("{label}.begin")]["observation"]["players"][ordinal as usize]["bombs"];
++            let after=&r["checkpoints"][format!("{label}.end")]["observation"]["players"][ordinal as usize]["bombs"];
+             let resource=before.as_i64().zip(after.as_i64()).is_some_and(|(a,b)|a-b==1);
+-            json!({"ordinal":ordinal,"resolved":resolved.len(),"accepted":accepted.len(),"bombs_delta_one":resource,
++            json!({"ordinal":ordinal,"resolved":resolved.len(),"accepted":accepted.len(),"resource_window":label,
++                "bombs_before":before,"bombs_after":after,"bombs_delta_one":resource,
+                 "pass":resource && accepted.len()==1 && resolved.len()==1 && matches_command(resolved[0],&events)
+                     && resolved[0].n("bomb_queries").is_some_and(|n|n>0) && resolved[0].text("bomb_query_value")=="1"})
+         }).collect::<Vec<_>>();

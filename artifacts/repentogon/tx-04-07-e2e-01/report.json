@@ -1,0 +1,3072 @@
+{
+  "automatic_retry": false,
+  "cases": {
+    "V1": {
+      "detail": {
+        "byte_patches_once": false,
+        "capabilities": false,
+        "hooks_once": false,
+        "pointers_from_manifest": false
+      },
+      "pass": false,
+      "required_scenes": [
+        0
+      ],
+      "status": "NOT_OBSERVED"
+    },
+    "V10": {
+      "detail": {
+        "S17": {
+          "pass": false,
+          "status": "NOT_OBSERVED"
+        },
+        "S18": {
+          "host_age_ms": null,
+          "host_bye_outage_occurrences": 0,
+          "pass": false,
+          "remote_age_ms": null
+        },
+        "S7": {
+          "actual_hits": [
+            [
+              "drop",
+              0
+            ],
+            [
+              "duplicate",
+              0
+            ],
+            [
+              "reorder",
+              0
+            ]
+          ],
+          "actual_hits_status": "NOT_OBSERVED",
+          "clean": null,
+          "fault": null,
+          "non_waiting_input_invariants": false,
+          "rate_pass": false,
+          "ratio": null,
+          "tolerance": [
+            0.8,
+            1.2
+          ]
+        },
+        "S8": {
+          "pass": false
+        },
+        "missing_neutral_ticks": 0,
+        "protocol_clean": false
+      },
+      "pass": false,
+      "required_scenes": [
+        7,
+        8,
+        17,
+        18
+      ],
+      "status": "NOT_RUN"
+    },
+    "V11": {
+      "detail": {
+        "dead_observation": "NOT_OBSERVED",
+        "generation": false,
+        "ghost_observed": false,
+        "invalidate_bind_ack_fresh": false,
+        "invalidations": [],
+        "lost_window": {
+          "accepted": 0,
+          "complete_ticks": 0,
+          "pass": false
+        },
+        "movement": false,
+        "no_recreation": false,
+        "old_generation_rejected": false,
+        "old_probe": null,
+        "revive_and_animation": false,
+        "same_K": false
+      },
+      "pass": false,
+      "required_scenes": [
+        10,
+        11
+      ],
+      "status": "NOT_RUN"
+    },
+    "V12": {
+      "detail": {
+        "after_release": [],
+        "armed_new_source": false,
+        "before_release": [],
+        "blocked_dispatch": [],
+        "fresh_held_continuity": false,
+        "release_window_ticks": 30,
+        "unknown_attribution": 0
+      },
+      "pass": false,
+      "required_scenes": [
+        15
+      ],
+      "status": "NOT_RUN"
+    },
+    "V13": {
+      "detail": {
+        "continue_preserved": false,
+        "coverage": [
+          {
+            "actions": [
+              {
+                "action": 0,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 0,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 0,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 0,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 0,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 0,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              }
+            ],
+            "invariants_pass": false,
+            "keys": [],
+            "rows_complete": false,
+            "scene": 12
+          },
+          {
+            "actions": [
+              {
+                "action": 0,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 0,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 0,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 0,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 0,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 0,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 0,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 0,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 0,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 1,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 2,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 3,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 4,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 5,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 6,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 7,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 8,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 9,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 10,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 1,
+                "query": 1,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 1,
+                "query": 2,
+                "status": "NOT_OBSERVED"
+              },
+              {
+                "action": 11,
+                "ordinal": 1,
+                "query": 3,
+                "status": "NOT_OBSERVED"
+              }
+            ],
+            "invariants_pass": false,
+            "keys": [],
+            "rows_complete": false,
+            "scene": 20
+          }
+        ],
+        "coverage_complete": false,
+        "encoded_saved_records": "UNKNOWN; request and actual loaded topology are separate observations",
+        "invariants_pass": false,
+        "loaded_before_join": null,
+        "loading": [
+          {
+            "episodes": [],
+            "observed": false,
+            "scene": 12
+          },
+          {
+            "episodes": [],
+            "observed": false,
+            "scene": 20
+          }
+        ],
+        "save_load_topology": false,
+        "save_request": null
+      },
+      "pass": false,
+      "required_scenes": [
+        12,
+        20
+      ],
+      "status": "NOT_RUN"
+    },
+    "V14": {
+      "detail": {
+        "devices": [],
+        "rounds": [
+          {
+            "pass": false,
+            "round": 1,
+            "status": null
+          },
+          {
+            "pass": false,
+            "round": 2,
+            "status": null
+          },
+          {
+            "pass": false,
+            "round": 3,
+            "status": null
+          },
+          {
+            "pass": false,
+            "round": 4,
+            "status": null
+          }
+        ],
+        "safe_current_ownership": false
+      },
+      "pass": false,
+      "required_scenes": [
+        13,
+        16,
+        18,
+        21
+      ],
+      "status": "NOT_RUN"
+    },
+    "V15": {
+      "detail": {
+        "both_kinds": false,
+        "faults": [],
+        "nonordinary": true,
+        "odd_pairs": 0,
+        "odd_pairs_valid": false,
+        "ticks": 0
+      },
+      "pass": false,
+      "required_scenes": [
+        3
+      ],
+      "status": "NOT_RUN"
+    },
+    "V16": {
+      "detail": {
+        "calls": [],
+        "entry_integrity": false,
+        "file_notifications": true,
+        "file_windows": [
+          {
+            "after": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S10.after\\snapshot",
+            "baseline": {
+              "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+              "fresh_disabled_launch": false,
+              "matched": [
+                "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+                "steam_remote/387111160/rgon_steam_persistentgamedata3.dat"
+              ]
+            },
+            "before": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S10.before\\snapshot",
+            "causal_attribution": "UNKNOWN; see native window IDs and raw notifications",
+            "changes": null,
+            "error": "系统找不到指定的路径。 (os error 3)",
+            "pass": false,
+            "scene": 10
+          },
+          {
+            "after": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S11.after\\snapshot",
+            "baseline": {
+              "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+              "fresh_disabled_launch": false,
+              "matched": [
+                "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+                "steam_remote/387111160/rgon_steam_persistentgamedata3.dat"
+              ]
+            },
+            "before": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S11.before\\snapshot",
+            "causal_attribution": "UNKNOWN; see native window IDs and raw notifications",
+            "changes": null,
+            "error": "系统找不到指定的路径。 (os error 3)",
+            "pass": false,
+            "scene": 11
+          },
+          {
+            "after": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S12.after\\snapshot",
+            "baseline": {
+              "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+              "fresh_disabled_launch": false,
+              "matched": [
+                "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+                "steam_remote/387111160/rgon_steam_persistentgamedata3.dat"
+              ]
+            },
+            "before": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S12.before\\snapshot",
+            "causal_attribution": "UNKNOWN; see native window IDs and raw notifications",
+            "changes": null,
+            "error": "系统找不到指定的路径。 (os error 3)",
+            "pass": false,
+            "scene": 12
+          },
+          {
+            "after": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S19.after\\snapshot",
+            "baseline": {
+              "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+              "fresh_disabled_launch": false,
+              "matched": [
+                "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+                "steam_remote/387111160/rgon_steam_persistentgamedata3.dat"
+              ]
+            },
+            "before": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S19.before\\snapshot",
+            "causal_attribution": "UNKNOWN; see native window IDs and raw notifications",
+            "changes": null,
+            "error": "系统找不到指定的路径。 (os error 3)",
+            "pass": false,
+            "scene": 19
+          },
+          {
+            "after": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S20.after\\snapshot",
+            "baseline": {
+              "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+              "fresh_disabled_launch": false,
+              "matched": [
+                "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+                "steam_remote/387111160/rgon_steam_persistentgamedata3.dat"
+              ]
+            },
+            "before": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S20.before\\snapshot",
+            "causal_attribution": "UNKNOWN; see native window IDs and raw notifications",
+            "changes": null,
+            "error": "系统找不到指定的路径。 (os error 3)",
+            "pass": false,
+            "scene": 20
+          },
+          {
+            "after": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S21.after\\snapshot",
+            "baseline": {
+              "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+              "fresh_disabled_launch": false,
+              "matched": [
+                "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+                "steam_remote/387111160/rgon_steam_persistentgamedata3.dat"
+              ]
+            },
+            "before": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\file-windows\\S21.before\\snapshot",
+            "causal_attribution": "UNKNOWN; see native window IDs and raw notifications",
+            "changes": null,
+            "error": "系统找不到指定的路径。 (os error 3)",
+            "pass": false,
+            "scene": 21
+          }
+        ],
+        "lua": false,
+        "no_new_dump": true,
+        "note": "Notifications do not prove caller/success; unchanged final bytes do not exclude intermediate writes. No readonly changes, rollback, hash or new file permission.",
+        "operation_results": {
+          "ESSM_binary": "UNKNOWN unless original bool/log/file evidence resolves it",
+          "ESSM_ex_JSON": "UNKNOWN; independent child write result not inferred from parent success",
+          "ItemPool": "UNKNOWN unless official log and exact file change resolve it",
+          "VirtualRoom": "UNKNOWN unless official log and exact file change resolve it",
+          "achievements_JSON": "observed file changes retain existing permission rules; no new whitelist",
+          "cloud_commit": "UNKNOWN; local cache is not remote commit"
+        },
+        "recorded_baseline": {
+          "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+          "fresh_disabled_launch": false,
+          "matched": [
+            "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+            "steam_remote/387111160/rgon_steam_persistentgamedata3.dat"
+          ]
+        },
+        "repentogon_errors": [],
+        "runtime": false,
+        "save_changes": [
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925127838000",
+              "size": 58
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913479864894900",
+              "size": 59
+            },
+            "bytes_changed": true,
+            "path": "documents/Repentogon/EntitySaveStateManagement/ex_remote_gamestate2.json",
+            "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925127838000",
+              "size": 76
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913479864894900",
+              "size": 252
+            },
+            "bytes_changed": true,
+            "path": "documents/Repentogon/EntitySaveStateManagement/remote_gamestate2.dat",
+            "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925129844700",
+              "size": 746
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913479866397700",
+              "size": 747
+            },
+            "bytes_changed": true,
+            "path": "documents/Repentogon/ItemPoolManager/remote_gamestate2.json",
+            "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925128842200",
+              "size": 47
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913479866397700",
+              "size": 48
+            },
+            "bytes_changed": true,
+            "path": "documents/Repentogon/VirtualRoomSetManager/remote_gamestate2.json",
+            "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951919914163500",
+              "size": 457
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913469958805300",
+              "size": 457
+            },
+            "bytes_changed": true,
+            "path": "documents/Repentogon/imgui.ini",
+            "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925115826800",
+              "size": 694
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913481115467800",
+              "size": 694
+            },
+            "bytes_changed": false,
+            "path": "documents/Repentogon/options.ini",
+            "possible_source": "timestamp only; identical bytes"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925121332900",
+              "size": 1103
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913481120975600",
+              "size": 1103
+            },
+            "bytes_changed": false,
+            "path": "documents/Repentogon/vanilla_options.ini",
+            "possible_source": "timestamp only; identical bytes"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925224998200",
+              "size": 25772
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913481200129400",
+              "size": 354090
+            },
+            "bytes_changed": true,
+            "path": "documents/log.txt",
+            "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925121332900",
+              "size": 1018
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913481119974700",
+              "size": 1018
+            },
+            "bytes_changed": false,
+            "path": "documents/options.ini",
+            "possible_source": "timestamp only; identical bytes"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925130844800",
+              "size": 53628
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913479867907000",
+              "size": 65328
+            },
+            "bytes_changed": true,
+            "path": "steam_remote/387111160/rep+gamestate2.dat",
+            "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925178154800",
+              "size": 16932
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913481147501300",
+              "size": 16932
+            },
+            "bytes_changed": true,
+            "path": "steam_remote/387111160/rep+persistentgamedata2.dat",
+            "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925187757600",
+              "size": 185
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913481156511100",
+              "size": 185
+            },
+            "bytes_changed": false,
+            "path": "steam_remote/387111160/rgon_savesyncstatus.json",
+            "possible_source": "timestamp only; identical bytes"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951914450795800",
+              "size": 17187
+            },
+            "allowed": true,
+            "baseline": {
+              "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+              "fields": [
+                "checksum",
+                "counter"
+              ],
+              "historical_fields": [
+                "checksum",
+                "counter"
+              ],
+              "rule": "D20: only trailing Counter/Checksum u32 fields changed, within the fields changed by the historical disabled launch"
+            },
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913479918780000",
+              "size": 17187
+            },
+            "bytes_changed": true,
+            "path": "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+            "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951925153870500",
+              "size": 16931
+            },
+            "allowed": true,
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913481121976400",
+              "size": 16931
+            },
+            "bytes_changed": true,
+            "path": "steam_remote/387111160/rgon_steam_persistentgamedata2.dat",
+            "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+          },
+          {
+            "after": {
+              "exists": true,
+              "modified_ns": "1792951914519374000",
+              "size": 16235
+            },
+            "allowed": true,
+            "baseline": {
+              "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+              "fields": [
+                "checksum",
+                "counter"
+              ],
+              "historical_fields": [
+                "checksum",
+                "counter"
+              ],
+              "rule": "D20: only trailing Counter/Checksum u32 fields changed, within the fields changed by the historical disabled launch"
+            },
+            "before": {
+              "exists": true,
+              "modified_ns": "1792913479966941400",
+              "size": 16235
+            },
+            "bytes_changed": true,
+            "path": "steam_remote/387111160/rgon_steam_persistentgamedata3.dat",
+            "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+          }
+        ],
+        "save_changes_allowed": true,
+        "unattributed_or_void_result": [],
+        "window_association": false,
+        "window_snapshots": false,
+        "windows": []
+      },
+      "pass": false,
+      "required_scenes": [
+        21
+      ],
+      "status": "NOT_RUN"
+    },
+    "V2": {
+      "detail": {
+        "menu": false,
+        "raw_windows": [
+          {
+            "pass": false,
+            "scene": "S13.raw"
+          },
+          {
+            "pass": false,
+            "scene": "S14.raw"
+          }
+        ]
+      },
+      "pass": false,
+      "required_scenes": [
+        1,
+        13,
+        14,
+        20
+      ],
+      "status": "NOT_RUN"
+    },
+    "V3": {
+      "detail": {
+        "session_generations": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "transitions": []
+      },
+      "pass": false,
+      "required_scenes": [
+        3,
+        13,
+        14,
+        16,
+        17,
+        18,
+        20,
+        21
+      ],
+      "status": "NOT_RUN"
+    },
+    "V4": {
+      "detail": [
+        {
+          "codec": true,
+          "exact_relay_peer": false,
+          "host": null,
+          "ledger": [
+            {
+              "destination_difference": null,
+              "destination_rx": null,
+              "direction": 0,
+              "pass": false,
+              "relay_received": 36,
+              "relay_send_ok": 36,
+              "source_difference": 0,
+              "source_tx": 36,
+              "summary": {
+                "copies_scheduled": 36,
+                "duplicate": 0,
+                "pending": 0,
+                "policy_drop": 0,
+                "received": 36,
+                "reorder": 0,
+                "send_error": 0,
+                "send_ok": 36,
+                "shutdown_drop": 0
+              }
+            },
+            {
+              "destination_difference": 0,
+              "destination_rx": 517,
+              "direction": 1,
+              "pass": false,
+              "relay_received": 517,
+              "relay_send_ok": 517,
+              "source_difference": null,
+              "source_tx": null,
+              "summary": {
+                "copies_scheduled": 517,
+                "duplicate": 0,
+                "pending": 0,
+                "policy_drop": 0,
+                "received": 517,
+                "reorder": 0,
+                "send_error": 0,
+                "send_ok": 517,
+                "shutdown_drop": 0
+              }
+            }
+          ],
+          "pass": false,
+          "relay": {
+            "directions": [
+              {
+                "copies_scheduled": 36,
+                "duplicate": 0,
+                "pending": 0,
+                "policy_drop": 0,
+                "received": 36,
+                "reorder": 0,
+                "send_error": 0,
+                "send_ok": 36,
+                "shutdown_drop": 0
+              },
+              {
+                "copies_scheduled": 517,
+                "duplicate": 0,
+                "pending": 0,
+                "policy_drop": 0,
+                "received": 517,
+                "reorder": 0,
+                "send_error": 0,
+                "send_ok": 517,
+                "shutdown_drop": 0
+              }
+            ],
+            "foreign": 0,
+            "host": "127.0.0.1:27090",
+            "peer": "127.0.0.1:52959"
+          },
+          "relay_healthy": true,
+          "remote": {
+            "bye": 6,
+            "duplicate": 2,
+            "elapsed_us": 8815412,
+            "error": null,
+            "establishments": 1,
+            "event": "summary",
+            "expected_timeout": false,
+            "rx": 517,
+            "stale": 0,
+            "terminal_cause": "peer_bye",
+            "tx": 36
+          },
+          "round": 1,
+          "terminal": false
+        },
+        {
+          "pass": false,
+          "relay_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\relay-2.jsonl: 系统找不到指定的文件。 (os error 2)",
+          "remote_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\remote-2.jsonl: 系统找不到指定的文件。 (os error 2)",
+          "round": 2,
+          "status": "NOT_RUN"
+        },
+        {
+          "pass": false,
+          "relay_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\relay-3.jsonl: 系统找不到指定的文件。 (os error 2)",
+          "remote_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\remote-3.jsonl: 系统找不到指定的文件。 (os error 2)",
+          "round": 3,
+          "status": "NOT_RUN"
+        },
+        {
+          "pass": false,
+          "relay_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\relay-4.jsonl: 系统找不到指定的文件。 (os error 2)",
+          "remote_error": "\\\\?\\F:\\projects_isaac\\issac_multiplay\\artifacts\\repentogon\\tx-04-07-e2e-01\\remote-4.jsonl: 系统找不到指定的文件。 (os error 2)",
+          "round": 4,
+          "status": "NOT_RUN"
+        }
+      ],
+      "pass": false,
+      "required_scenes": [
+        2,
+        13,
+        16,
+        17,
+        18,
+        20,
+        21
+      ],
+      "status": "FAIL"
+    },
+    "V5": {
+      "detail": {
+        "creation_by_round": [
+          {
+            "allocated": 0,
+            "created": 0,
+            "joined": 0,
+            "pass": false,
+            "registered": 0,
+            "round": 1
+          },
+          {
+            "allocated": 0,
+            "created": 0,
+            "joined": 0,
+            "pass": false,
+            "registered": 0,
+            "round": 2
+          },
+          {
+            "allocated": 0,
+            "created": 0,
+            "joined": 0,
+            "pass": false,
+            "registered": 0,
+            "round": 3
+          },
+          {
+            "allocated": 0,
+            "created": 0,
+            "joined": 0,
+            "pass": false,
+            "registered": 0,
+            "round": 4
+          }
+        ],
+        "factory_once_per_round": false,
+        "mode_calls_by_pass_and_site": [],
+        "rounds": [
+          {
+            "b": null,
+            "pass": false,
+            "round": 1
+          },
+          {
+            "b": null,
+            "pass": false,
+            "round": 2
+          },
+          {
+            "b": null,
+            "pass": false,
+            "round": 3
+          },
+          {
+            "b": null,
+            "pass": false,
+            "round": 4
+          }
+        ]
+      },
+      "pass": false,
+      "required_scenes": [
+        3,
+        14,
+        17,
+        20
+      ],
+      "status": "NOT_RUN"
+    },
+    "V6": {
+      "detail": {
+        "all_non_neutral_matches_accepted": true,
+        "expected_startup_generations": [],
+        "movement": [
+          {
+            "label": "S9.move",
+            "pass": false,
+            "status": "NOT_RUN"
+          },
+          {
+            "label": "S12.move",
+            "pass": false,
+            "status": "NOT_RUN"
+          },
+          {
+            "label": "S20.move",
+            "pass": false,
+            "status": "NOT_RUN"
+          },
+          {
+            "label": "S4.right",
+            "pass": false,
+            "release_by_lead_plus_one": false
+          },
+          {
+            "label": "S4.up",
+            "pass": false,
+            "release_by_lead_plus_one": false
+          }
+        ],
+        "startup_coverage": false,
+        "startup_samples": []
+      },
+      "pass": false,
+      "required_scenes": [
+        3,
+        4,
+        9,
+        11,
+        12,
+        20
+      ],
+      "status": "NOT_RUN"
+    },
+    "V7": {
+      "detail": {
+        "priority": [
+          {
+            "end": "right",
+            "pass": false,
+            "sign": 1
+          },
+          {
+            "end": "left",
+            "pass": false,
+            "sign": -1
+          },
+          {
+            "end": "fallback",
+            "pass": false,
+            "sign": 1
+          },
+          {
+            "end": "end",
+            "pass": false,
+            "sign": 0
+          }
+        ],
+        "simultaneous": false
+      },
+      "pass": false,
+      "required_scenes": [
+        4
+      ],
+      "status": "NOT_RUN"
+    },
+    "V8": {
+      "detail": {
+        "S5": [
+          {
+            "accepted": 0,
+            "bombs_delta_one": false,
+            "ordinal": 0,
+            "pass": false,
+            "resolved": 0
+          },
+          {
+            "accepted": 0,
+            "bombs_delta_one": false,
+            "ordinal": 1,
+            "pass": false,
+            "resolved": 0
+          }
+        ],
+        "S7_applied": 0
+      },
+      "pass": false,
+      "required_scenes": [
+        5,
+        7
+      ],
+      "status": "NOT_RUN"
+    },
+    "V9": {
+      "detail": {
+        "actions": false,
+        "blocks": [
+          {
+            "label": "S6.console",
+            "pass": false
+          },
+          {
+            "label": "S6.pause",
+            "pass": false
+          }
+        ],
+        "both_rebound": false,
+        "command_sources": [
+          {
+            "pass": false,
+            "source": "lua"
+          },
+          {
+            "pass": false,
+            "source": "console"
+          },
+          {
+            "pass": false,
+            "source": "port"
+          }
+        ],
+        "no_standard_tick_in_room_transition": false,
+        "room_intervals_by_sequence": [],
+        "skip": false
+      },
+      "pass": false,
+      "required_scenes": [
+        1,
+        6,
+        9
+      ],
+      "status": "NOT_RUN"
+    }
+  },
+  "checkpoints": {
+    "S1.begin": {
+      "observation": null,
+      "query": {
+        "ok": "1",
+        "query_checkpoint": "S1.begin",
+        "query_snapshot": "1",
+        "session_generation": "1"
+      },
+      "status": {
+        "a_bound": "0",
+        "a_generation": "1",
+        "armed": "0",
+        "b_awaiting_rebind": "0",
+        "b_bound": "0",
+        "b_character": "0",
+        "b_conflict_reason": "",
+        "b_conflicts": "0",
+        "b_death_event": "0",
+        "b_deaths": "0",
+        "b_generation": "1",
+        "b_life": "None",
+        "b_lost_loop": "0",
+        "b_lost_tick": "0",
+        "b_ownership_confirmed": "0",
+        "b_ownership_generation": "0",
+        "b_pending_reason": "",
+        "b_rebinds": "0",
+        "b_revived_loop": "0",
+        "b_revived_tick": "0",
+        "b_revives": "0",
+        "b_unreadable": "0",
+        "blocks": "0",
+        "calls": "1069",
+        "capability.control": "1",
+        "capability.device": "1",
+        "capability.input": "1",
+        "capability.join": "1",
+        "capability.loop": "1",
+        "capability.observe": "1",
+        "capability.player": "1",
+        "cleanup_failed": "0",
+        "completed_tick": "0",
+        "context_faults": "0",
+        "current_tick": "0",
+        "device_k_id": "0",
+        "device_k_state": "Empty",
+        "foreign": "0",
+        "frame": "3",
+        "g_game": "1",
+        "generation": "1",
+        "host_patches_installed": "1",
+        "join_baby_overrides": "0",
+        "join_creations": "0",
+        "join_last": "None",
+        "join_mode_calls": "0",
+        "join_passes": "0",
+        "join_state": "Waiting",
+        "last_error": "",
+        "last_tick_decision": "Idle",
+        "loading.a.generation_end": "0",
+        "loading.a.generation_start": "0",
+        "loading.a.queue_end": "0",
+        "loading.a.queue_start": "0",
+        "loading.a.resolved_tick_end": "0",
+        "loading.a.resolved_tick_start": "0",
+        "loading.a.submit_end": "0",
+        "loading.a.submit_start": "0",
+        "loading.b.generation_end": "0",
+        "loading.b.generation_start": "0",
+        "loading.b.queue_end": "0",
+        "loading.b.queue_start": "0",
+        "loading.b.resolved_tick_end": "0",
+        "loading.b.resolved_tick_start": "0",
+        "loading.b.submit_end": "0",
+        "loading.b.submit_start": "0",
+        "loading_active": "0",
+        "loading_admitted_current": "0",
+        "loading_admitted_end": "0",
+        "loading_admitted_start": "0",
+        "loading_completed_end": "0",
+        "loading_completed_start": "0",
+        "loading_end_known": "0",
+        "loading_end_loop": "0",
+        "loading_end_reason": "open",
+        "loading_episode": "0",
+        "loading_episodes": "0",
+        "loading_first_menu": "0",
+        "loading_invalidations": "0",
+        "loading_owners": "0",
+        "loading_queries": "0",
+        "loading_queries_nonzero": "0",
+        "loading_queries_unknown": "0",
+        "loading_reasons": "0",
+        "loading_source": "loading_enter",
+        "loading_start_loop": "0",
+        "manager_starting": "0",
+        "menu_game_selection": "0",
+        "menu_id": "1",
+        "net_bye_attempts": "0",
+        "net_bye_sent": "0",
+        "net_dropped": "0",
+        "net_duplicate": "0",
+        "net_error.Configuration": "0",
+        "net_error.Crc": "0",
+        "net_error.Duplicate": "0",
+        "net_error.Flags": "0",
+        "net_error.Handshake": "0",
+        "net_error.Header": "0",
+        "net_error.Identity": "0",
+        "net_error.Incompatible": "0",
+        "net_error.Kind": "0",
+        "net_error.Length": "0",
+        "net_error.Magic": "0",
+        "net_error.None": "0",
+        "net_error.Payload": "0",
+        "net_error.Pending": "0",
+        "net_error.PendingMismatch": "0",
+        "net_error.Phase": "0",
+        "net_error.Reserved": "0",
+        "net_error.Role": "0",
+        "net_error.Sequence": "0",
+        "net_error.Stale": "0",
+        "net_error.Terminal": "0",
+        "net_error.Version": "0",
+        "net_foreign": "0",
+        "net_last_send_error": "0",
+        "net_native_error": "0",
+        "net_rx": "0",
+        "net_rx_bytes": "0",
+        "net_rx_dropped": "0",
+        "net_rx_errors": "0",
+        "net_stale": "0",
+        "net_tx": "0",
+        "net_tx_bytes": "0",
+        "net_tx_dropped": "0",
+        "net_tx_errors": "0",
+        "net_valid": "0",
+        "odd_patch_installed": "1",
+        "ok": "1",
+        "pause_selection": "-1",
+        "pause_state": "-1",
+        "peer_accepted_commands": "0",
+        "peer_accepted_sequence": "0",
+        "peer_ack_dropped": "0",
+        "peer_ack_unknown": "0",
+        "peer_address": "0.0.0.0:0",
+        "peer_admitted_commands": "0",
+        "peer_advertised_generation": "0",
+        "peer_discard.inactive": "0",
+        "peer_discard.life_lost": "0",
+        "peer_discard.loading_or_blocked": "0",
+        "peer_discard.old_generation": "0",
+        "peer_discard.old_window": "0",
+        "peer_discard.sequence_floor": "0",
+        "peer_discard.unbound": "0",
+        "peer_discarded_commands": "0",
+        "peer_duplicate_commands": "0",
+        "peer_locked": "0",
+        "peer_processed_sequence": "0",
+        "peer_rejected_commands": "0",
+        "peer_rtt_ms": "0",
+        "peer_running": "1",
+        "peer_state": "Negotiating",
+        "peer_stop_finished": "0",
+        "peer_terminal": "None",
+        "persist.b_death.abnormal": "0",
+        "persist.b_death.close": "0",
+        "persist.b_death.open": "0",
+        "persist.b_revive.abnormal": "0",
+        "persist.b_revive.close": "0",
+        "persist.b_revive.open": "0",
+        "persist.continue.abnormal": "0",
+        "persist.continue.close": "0",
+        "persist.continue.open": "1",
+        "persist.run_exit.abnormal": "0",
+        "persist.run_exit.close": "0",
+        "persist.run_exit.open": "0",
+        "persist.stage_change.abnormal": "0",
+        "persist.stage_change.close": "0",
+        "persist.stage_change.open": "0",
+        "persist_current_call": "0",
+        "persist_entries": "1053",
+        "persist_last_load_slot": "3",
+        "persist_load_reads": "6",
+        "persist_load_slot_known": "1",
+        "persist_open_windows": "1",
+        "persist_return_errors": "0",
+        "persist_returns": "1053",
+        "persist_window.1.call_normal": "1",
+        "persist_window.1.call_returned": "1",
+        "persist_window.1.caller": "1053",
+        "persist_window.1.death_event": "0",
+        "persist_window.1.kind": "continue",
+        "persist_window.1.loading_episode": "0",
+        "persist_window.1.session_generation": "1",
+        "persist_window.1.source": "first_menu_start",
+        "persist_window.1.start_loop": "2",
+        "persist_window_overflow": "0",
+        "players": "0",
+        "pointers": "8",
+        "query_epoch": "1",
+        "query_keys_observed": "0",
+        "query_keys_repeated": "0",
+        "query_mismatch_known": "0",
+        "query_mismatches": "0",
+        "query_nonfinite": "0",
+        "query_overflow": "0",
+        "query_overrides": "0",
+        "query_reads": "0",
+        "query_repeats": "0",
+        "query_snapshots": "0",
+        "queue_depth_a": "0",
+        "queue_depth_b": "0",
+        "queue_dropped": "0",
+        "reason.control": "",
+        "reason.device": "",
+        "reason.input": "",
+        "reason.join": "",
+        "reason.loop": "",
+        "reason.observe": "",
+        "reason.player": "",
+        "registered": "41",
+        "retirement_cause": "None",
+        "run_active": "0",
+        "selected_save": "0",
+        "session_error": "",
+        "session_generation": "1",
+        "session_mode": "Host",
+        "session_state": "Hosting",
+        "shooting_suppressed": "0",
+        "start_qualified": "0",
+        "state": "Hosting",
+        "status_version": "1",
+        "ticks_odd": "0",
+        "ticks_standard": "0",
+        "trace": "isaac-cs/traces/boot-35640.jsonl",
+        "trace_dropped": "63",
+        "trace_truncated": "0"
+      }
+    },
+    "S1.end": {
+      "observation": null,
+      "query": {
+        "ok": "1",
+        "query_checkpoint": "S1.end",
+        "query_snapshot": "2",
+        "session_generation": "1"
+      },
+      "status": {
+        "a_bound": "0",
+        "a_generation": "1",
+        "armed": "0",
+        "b_awaiting_rebind": "0",
+        "b_bound": "0",
+        "b_character": "0",
+        "b_conflict_reason": "",
+        "b_conflicts": "0",
+        "b_death_event": "0",
+        "b_deaths": "0",
+        "b_generation": "1",
+        "b_life": "None",
+        "b_lost_loop": "0",
+        "b_lost_tick": "0",
+        "b_ownership_confirmed": "0",
+        "b_ownership_generation": "0",
+        "b_pending_reason": "",
+        "b_rebinds": "0",
+        "b_revived_loop": "0",
+        "b_revived_tick": "0",
+        "b_revives": "0",
+        "b_unreadable": "0",
+        "blocks": "0",
+        "calls": "1239",
+        "capability.control": "1",
+        "capability.device": "1",
+        "capability.input": "1",
+        "capability.join": "1",
+        "capability.loop": "1",
+        "capability.observe": "1",
+        "capability.player": "1",
+        "cleanup_failed": "0",
+        "completed_tick": "0",
+        "context_faults": "0",
+        "current_tick": "0",
+        "device_k_id": "0",
+        "device_k_state": "Empty",
+        "foreign": "0",
+        "frame": "37",
+        "g_game": "1",
+        "generation": "1",
+        "host_patches_installed": "1",
+        "join_baby_overrides": "0",
+        "join_creations": "0",
+        "join_last": "None",
+        "join_mode_calls": "0",
+        "join_passes": "0",
+        "join_state": "Waiting",
+        "last_error": "",
+        "last_tick_decision": "Idle",
+        "loading.a.generation_end": "0",
+        "loading.a.generation_start": "0",
+        "loading.a.queue_end": "0",
+        "loading.a.queue_start": "0",
+        "loading.a.resolved_tick_end": "0",
+        "loading.a.resolved_tick_start": "0",
+        "loading.a.submit_end": "0",
+        "loading.a.submit_start": "0",
+        "loading.b.generation_end": "0",
+        "loading.b.generation_start": "0",
+        "loading.b.queue_end": "0",
+        "loading.b.queue_start": "0",
+        "loading.b.resolved_tick_end": "0",
+        "loading.b.resolved_tick_start": "0",
+        "loading.b.submit_end": "0",
+        "loading.b.submit_start": "0",
+        "loading_active": "0",
+        "loading_admitted_current": "0",
+        "loading_admitted_end": "0",
+        "loading_admitted_start": "0",
+        "loading_completed_end": "0",
+        "loading_completed_start": "0",
+        "loading_end_known": "0",
+        "loading_end_loop": "0",
+        "loading_end_reason": "open",
+        "loading_episode": "0",
+        "loading_episodes": "0",
+        "loading_first_menu": "0",
+        "loading_invalidations": "0",
+        "loading_owners": "0",
+        "loading_queries": "0",
+        "loading_queries_nonzero": "0",
+        "loading_queries_unknown": "0",
+        "loading_reasons": "0",
+        "loading_source": "loading_enter",
+        "loading_start_loop": "0",
+        "manager_starting": "0",
+        "menu_game_selection": "0",
+        "menu_id": "1",
+        "net_bye_attempts": "0",
+        "net_bye_sent": "0",
+        "net_dropped": "0",
+        "net_duplicate": "0",
+        "net_error.Configuration": "0",
+        "net_error.Crc": "0",
+        "net_error.Duplicate": "0",
+        "net_error.Flags": "0",
+        "net_error.Handshake": "0",
+        "net_error.Header": "0",
+        "net_error.Identity": "0",
+        "net_error.Incompatible": "0",
+        "net_error.Kind": "0",
+        "net_error.Length": "0",
+        "net_error.Magic": "0",
+        "net_error.None": "0",
+        "net_error.Payload": "0",
+        "net_error.Pending": "0",
+        "net_error.PendingMismatch": "0",
+        "net_error.Phase": "0",
+        "net_error.Reserved": "0",
+        "net_error.Role": "0",
+        "net_error.Sequence": "0",
+        "net_error.Stale": "0",
+        "net_error.Terminal": "0",
+        "net_error.Version": "0",
+        "net_foreign": "0",
+        "net_last_send_error": "0",
+        "net_native_error": "0",
+        "net_rx": "0",
+        "net_rx_bytes": "0",
+        "net_rx_dropped": "0",
+        "net_rx_errors": "0",
+        "net_stale": "0",
+        "net_tx": "0",
+        "net_tx_bytes": "0",
+        "net_tx_dropped": "0",
+        "net_tx_errors": "0",
+        "net_valid": "0",
+        "odd_patch_installed": "1",
+        "ok": "1",
+        "pause_selection": "-1",
+        "pause_state": "-1",
+        "peer_accepted_commands": "0",
+        "peer_accepted_sequence": "0",
+        "peer_ack_dropped": "0",
+        "peer_ack_unknown": "0",
+        "peer_address": "0.0.0.0:0",
+        "peer_admitted_commands": "0",
+        "peer_advertised_generation": "0",
+        "peer_discard.inactive": "0",
+        "peer_discard.life_lost": "0",
+        "peer_discard.loading_or_blocked": "0",
+        "peer_discard.old_generation": "0",
+        "peer_discard.old_window": "0",
+        "peer_discard.sequence_floor": "0",
+        "peer_discard.unbound": "0",
+        "peer_discarded_commands": "0",
+        "peer_duplicate_commands": "0",
+        "peer_locked": "0",
+        "peer_processed_sequence": "0",
+        "peer_rejected_commands": "0",
+        "peer_rtt_ms": "0",
+        "peer_running": "1",
+        "peer_state": "Negotiating",
+        "peer_stop_finished": "0",
+        "peer_terminal": "None",
+        "persist.b_death.abnormal": "0",
+        "persist.b_death.close": "0",
+        "persist.b_death.open": "0",
+        "persist.b_revive.abnormal": "0",
+        "persist.b_revive.close": "0",
+        "persist.b_revive.open": "0",
+        "persist.continue.abnormal": "0",
+        "persist.continue.close": "0",
+        "persist.continue.open": "1",
+        "persist.run_exit.abnormal": "0",
+        "persist.run_exit.close": "0",
+        "persist.run_exit.open": "0",
+        "persist.stage_change.abnormal": "0",
+        "persist.stage_change.close": "0",
+        "persist.stage_change.open": "0",
+        "persist_current_call": "0",
+        "persist_entries": "1087",
+        "persist_last_load_slot": "3",
+        "persist_load_reads": "6",
+        "persist_load_slot_known": "1",
+        "persist_open_windows": "1",
+        "persist_return_errors": "0",
+        "persist_returns": "1087",
+        "persist_window.1.call_normal": "1",
+        "persist_window.1.call_returned": "1",
+        "persist_window.1.caller": "1087",
+        "persist_window.1.death_event": "0",
+        "persist_window.1.kind": "continue",
+        "persist_window.1.loading_episode": "0",
+        "persist_window.1.session_generation": "1",
+        "persist_window.1.source": "first_menu_start",
+        "persist_window.1.start_loop": "2",
+        "persist_window_overflow": "0",
+        "players": "0",
+        "pointers": "8",
+        "query_epoch": "1",
+        "query_keys_observed": "0",
+        "query_keys_repeated": "0",
+        "query_mismatch_known": "0",
+        "query_mismatches": "0",
+        "query_nonfinite": "0",
+        "query_overflow": "0",
+        "query_overrides": "0",
+        "query_reads": "0",
+        "query_repeats": "0",
+        "query_snapshots": "1",
+        "queue_depth_a": "0",
+        "queue_depth_b": "0",
+        "queue_dropped": "0",
+        "reason.control": "",
+        "reason.device": "",
+        "reason.input": "",
+        "reason.join": "",
+        "reason.loop": "",
+        "reason.observe": "",
+        "reason.player": "",
+        "registered": "41",
+        "retirement_cause": "None",
+        "run_active": "0",
+        "selected_save": "0",
+        "session_error": "",
+        "session_generation": "1",
+        "session_mode": "Host",
+        "session_state": "Hosting",
+        "shooting_suppressed": "0",
+        "start_qualified": "0",
+        "state": "Hosting",
+        "status_version": "1",
+        "ticks_odd": "0",
+        "ticks_standard": "0",
+        "trace": "isaac-cs/traces/boot-35640.jsonl",
+        "trace_dropped": "63",
+        "trace_truncated": "0"
+      }
+    },
+    "S2.end": {
+      "observation": null,
+      "query": {
+        "ok": "1",
+        "query_checkpoint": "S2.end",
+        "query_snapshot": "3",
+        "session_generation": "1"
+      },
+      "status": {
+        "a_bound": "0",
+        "a_generation": "1",
+        "armed": "1",
+        "b_awaiting_rebind": "0",
+        "b_bound": "0",
+        "b_character": "0",
+        "b_conflict_reason": "",
+        "b_conflicts": "0",
+        "b_death_event": "0",
+        "b_deaths": "0",
+        "b_generation": "1",
+        "b_life": "None",
+        "b_lost_loop": "0",
+        "b_lost_tick": "0",
+        "b_ownership_confirmed": "0",
+        "b_ownership_generation": "0",
+        "b_pending_reason": "",
+        "b_rebinds": "0",
+        "b_revived_loop": "0",
+        "b_revived_tick": "0",
+        "b_revives": "0",
+        "b_unreadable": "0",
+        "blocks": "4",
+        "calls": "1304",
+        "capability.control": "1",
+        "capability.device": "1",
+        "capability.input": "1",
+        "capability.join": "1",
+        "capability.loop": "1",
+        "capability.observe": "1",
+        "capability.player": "1",
+        "cleanup_failed": "0",
+        "completed_tick": "0",
+        "context_faults": "0",
+        "current_tick": "0",
+        "device_k_id": "0",
+        "device_k_state": "Empty",
+        "foreign": "0",
+        "frame": "50",
+        "g_game": "1",
+        "generation": "1",
+        "host_patches_installed": "1",
+        "join_baby_overrides": "0",
+        "join_creations": "0",
+        "join_last": "None",
+        "join_mode_calls": "0",
+        "join_passes": "0",
+        "join_state": "Waiting",
+        "last_error": "",
+        "last_tick_decision": "Idle",
+        "loading.a.generation_end": "0",
+        "loading.a.generation_start": "0",
+        "loading.a.queue_end": "0",
+        "loading.a.queue_start": "0",
+        "loading.a.resolved_tick_end": "0",
+        "loading.a.resolved_tick_start": "0",
+        "loading.a.submit_end": "0",
+        "loading.a.submit_start": "0",
+        "loading.b.generation_end": "0",
+        "loading.b.generation_start": "0",
+        "loading.b.queue_end": "0",
+        "loading.b.queue_start": "0",
+        "loading.b.resolved_tick_end": "0",
+        "loading.b.resolved_tick_start": "0",
+        "loading.b.submit_end": "0",
+        "loading.b.submit_start": "0",
+        "loading_active": "0",
+        "loading_admitted_current": "0",
+        "loading_admitted_end": "0",
+        "loading_admitted_start": "0",
+        "loading_completed_end": "0",
+        "loading_completed_start": "0",
+        "loading_end_known": "0",
+        "loading_end_loop": "0",
+        "loading_end_reason": "open",
+        "loading_episode": "0",
+        "loading_episodes": "0",
+        "loading_first_menu": "0",
+        "loading_invalidations": "0",
+        "loading_owners": "0",
+        "loading_queries": "0",
+        "loading_queries_nonzero": "0",
+        "loading_queries_unknown": "0",
+        "loading_reasons": "0",
+        "loading_source": "loading_enter",
+        "loading_start_loop": "0",
+        "manager_starting": "0",
+        "menu_game_selection": "0",
+        "menu_id": "1",
+        "net_bye_attempts": "0",
+        "net_bye_sent": "0",
+        "net_dropped": "0",
+        "net_duplicate": "0",
+        "net_error.Configuration": "0",
+        "net_error.Crc": "0",
+        "net_error.Duplicate": "0",
+        "net_error.Flags": "0",
+        "net_error.Handshake": "0",
+        "net_error.Header": "0",
+        "net_error.Identity": "0",
+        "net_error.Incompatible": "0",
+        "net_error.Kind": "0",
+        "net_error.Length": "0",
+        "net_error.Magic": "0",
+        "net_error.None": "0",
+        "net_error.Payload": "0",
+        "net_error.Pending": "0",
+        "net_error.PendingMismatch": "0",
+        "net_error.Phase": "0",
+        "net_error.Reserved": "0",
+        "net_error.Role": "0",
+        "net_error.Sequence": "0",
+        "net_error.Stale": "0",
+        "net_error.Terminal": "0",
+        "net_error.Version": "0",
+        "net_foreign": "0",
+        "net_last_send_error": "0",
+        "net_native_error": "0",
+        "net_rx": "2",
+        "net_rx_bytes": "312",
+        "net_rx_dropped": "0",
+        "net_rx_errors": "0",
+        "net_stale": "0",
+        "net_tx": "11",
+        "net_tx_bytes": "2728",
+        "net_tx_dropped": "0",
+        "net_tx_errors": "0",
+        "net_valid": "2",
+        "odd_patch_installed": "1",
+        "ok": "1",
+        "pause_selection": "-1",
+        "pause_state": "-1",
+        "peer_accepted_commands": "0",
+        "peer_accepted_sequence": "0",
+        "peer_ack_dropped": "0",
+        "peer_ack_unknown": "0",
+        "peer_address": "127.0.0.1:52958",
+        "peer_admitted_commands": "0",
+        "peer_advertised_generation": "0",
+        "peer_discard.inactive": "1",
+        "peer_discard.life_lost": "0",
+        "peer_discard.loading_or_blocked": "0",
+        "peer_discard.old_generation": "0",
+        "peer_discard.old_window": "0",
+        "peer_discard.sequence_floor": "0",
+        "peer_discard.unbound": "0",
+        "peer_discarded_commands": "1",
+        "peer_duplicate_commands": "0",
+        "peer_locked": "1",
+        "peer_processed_sequence": "0",
+        "peer_rejected_commands": "0",
+        "peer_rtt_ms": "0",
+        "peer_running": "1",
+        "peer_state": "Established",
+        "peer_stop_finished": "0",
+        "peer_terminal": "None",
+        "persist.b_death.abnormal": "0",
+        "persist.b_death.close": "0",
+        "persist.b_death.open": "0",
+        "persist.b_revive.abnormal": "0",
+        "persist.b_revive.close": "0",
+        "persist.b_revive.open": "0",
+        "persist.continue.abnormal": "0",
+        "persist.continue.close": "0",
+        "persist.continue.open": "1",
+        "persist.run_exit.abnormal": "0",
+        "persist.run_exit.close": "0",
+        "persist.run_exit.open": "0",
+        "persist.stage_change.abnormal": "0",
+        "persist.stage_change.close": "0",
+        "persist.stage_change.open": "0",
+        "persist_current_call": "0",
+        "persist_entries": "1100",
+        "persist_last_load_slot": "3",
+        "persist_load_reads": "6",
+        "persist_load_slot_known": "1",
+        "persist_open_windows": "1",
+        "persist_return_errors": "0",
+        "persist_returns": "1100",
+        "persist_window.1.call_normal": "1",
+        "persist_window.1.call_returned": "1",
+        "persist_window.1.caller": "1100",
+        "persist_window.1.death_event": "0",
+        "persist_window.1.kind": "continue",
+        "persist_window.1.loading_episode": "0",
+        "persist_window.1.session_generation": "1",
+        "persist_window.1.source": "first_menu_start",
+        "persist_window.1.start_loop": "2",
+        "persist_window_overflow": "0",
+        "players": "0",
+        "pointers": "8",
+        "query_epoch": "1",
+        "query_keys_observed": "0",
+        "query_keys_repeated": "0",
+        "query_mismatch_known": "0",
+        "query_mismatches": "0",
+        "query_nonfinite": "0",
+        "query_overflow": "0",
+        "query_overrides": "0",
+        "query_reads": "0",
+        "query_repeats": "0",
+        "query_snapshots": "2",
+        "queue_depth_a": "0",
+        "queue_depth_b": "0",
+        "queue_dropped": "0",
+        "reason.control": "",
+        "reason.device": "",
+        "reason.input": "",
+        "reason.join": "",
+        "reason.loop": "",
+        "reason.observe": "",
+        "reason.player": "",
+        "registered": "41",
+        "retirement_cause": "None",
+        "run_active": "0",
+        "selected_save": "0",
+        "session_error": "",
+        "session_generation": "1",
+        "session_mode": "Host",
+        "session_state": "Warmup",
+        "shooting_suppressed": "0",
+        "start_qualified": "0",
+        "state": "Warmup",
+        "status_version": "1",
+        "ticks_odd": "0",
+        "ticks_standard": "0",
+        "trace": "isaac-cs/traces/boot-35640.jsonl",
+        "trace_dropped": "63",
+        "trace_truncated": "0"
+      }
+    }
+  },
+  "cleanup_error": null,
+  "crash_before": {
+    "documents/crash_dumps/isaacv1.9.7.17.J460-20260812-161403-28492-28496.dmp": {
+      "exists": true,
+      "modified_ns": "1786522444255797700",
+      "size": 16840036
+    },
+    "documents/crash_dumps/isaacv1.9.7.17.J460-20260817-000733-7344-21124.dmp": {
+      "exists": true,
+      "modified_ns": "1786896454080203100",
+      "size": 17104788
+    },
+    "documents/crash_dumps/isaacv1.9.7.17.J460-20260817-000935-27496-4588.dmp": {
+      "exists": true,
+      "modified_ns": "1786896576087131500",
+      "size": 16854374
+    },
+    "documents/crash_dumps/isaacv1.9.7.17.J460-20260817-001135-36600-34312.dmp": {
+      "exists": true,
+      "modified_ns": "1786896695686725600",
+      "size": 16839402
+    },
+    "documents/crash_dumps/isaacv1.9.7.17.J460-20260817-214903-30668-34092.dmp": {
+      "exists": true,
+      "modified_ns": "1786974543956672400",
+      "size": 17101644
+    },
+    "documents/crash_dumps/isaacv1.9.7.17.J460-20260819-185141-24700-28184.dmp": {
+      "exists": true,
+      "modified_ns": "1787136701328715400",
+      "size": 16846474
+    },
+    "documents/crash_dumps/isaacv1.9.7.17.J460-20260820-130932-29864-13204.dmp": {
+      "exists": true,
+      "modified_ns": "1787202572803971100",
+      "size": 16828954
+    },
+    "documents/crash_dumps/isaacv1.9.7.17.J460-20260820-131238-31540-5500.dmp": {
+      "exists": true,
+      "modified_ns": "1787202758644071900",
+      "size": 16823374
+    },
+    "documents/crash_dumps/isaacv1.9.7.17.J460-20260823-151727-16004-15824.dmp": {
+      "exists": true,
+      "modified_ns": "1787469447624128000",
+      "size": 16826462
+    },
+    "documents/crash_dumps/isaacv1.9.7.17.J460-20260928-152206-48548-47740.dmp": {
+      "exists": true,
+      "modified_ns": "1790580126675226500",
+      "size": 17097967
+    },
+    "documents/crash_dumps/isaacv1.9.7.17.J460-20261016-221444-47276-19180.dmp": {
+      "exists": true,
+      "modified_ns": "1792160087213117000",
+      "size": 17914213
+    }
+  },
+  "crash_changes": [],
+  "environment": {
+    "architecture": "i686",
+    "game": "F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth",
+    "game_running": false,
+    "installed_version_excerpt": "v1.1.3 -\nAdded:\n* ModCallbacks:\n\t- MC_PRE/POST_PLAYERHUD_RENDER_INVENTORY(EntityPlayer, Vector pos, float Scale)\n\t- MC_PRE/POST_PLAYERHUD_RENDER_POOP_SPELL_QUEUE(EntityPlayer, Vector pos, float Scale)\n\t- MC_PRE/POST_PLAYERHUD_RENDER_CRAFTING_TABLE(EntityPlayer, Vector pos, float Scale)\n\t- MC_POST_USE_ITEM(CollectibleType, RNG, EntityPlayer, UseFlags, ActiveSlot, int CustomVarData, bool Discharge, bool Remove)\n\t\tBetter callback for AFTER an active item is used, since MC_USE_ITEM runs earlier, is ",
+    "launcher": "[General]\r\nIsaacExecutable = F:\\SteamLibrary\\steamapps\\common\\The Binding of Isaac Rebirth\\isaac-ng.exe\r\nRanWizard = 1\r\nHideWindow = 1\r\nStealthMode = 0\r\n[Repentogon]\r\nConsole = 0\r\nUpdate = 0\r\nUnstableUpdates = 0\r\nSkipUpdateMods = 0\r\nSkipWaitModDownloads = 0\r\n[Vanilla]\r\nLuaHeapSize = 1024M\r\nLuaDebug = 0\r\n[Shared]\r\nLaunchMode = 1\r\n",
+    "mods": [
+      {
+        "directory": "better character menu_835236871",
+        "enabled": false
+      },
+      {
+        "directory": "console for online",
+        "enabled": false
+      },
+      {
+        "directory": "external item descriptions_836319872",
+        "enabled": false
+      },
+      {
+        "directory": "goodtrip-controller-input-test",
+        "enabled": false
+      },
+      {
+        "directory": "goodtripfixed for online_3780987561",
+        "enabled": false
+      },
+      {
+        "directory": "goodtrip_1630477831",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-cs-t0-input-witness",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-cs-ui",
+        "enabled": true
+      },
+      {
+        "directory": "isaac-cs-world-e2e",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-k-to-treasure-room",
+        "enabled": false
+      },
+      {
+        "directory": "isaac-k-toggle-debug-10",
+        "enabled": false
+      },
+      {
+        "directory": "isaacscript-watcher",
+        "enabled": false
+      },
+      {
+        "directory": "isaac_socket_3033763718",
+        "enabled": false
+      },
+      {
+        "directory": "repentogonreleasesbackup_3643104060",
+        "enabled": false
+      },
+      {
+        "directory": "specialistforgooditems_2575911103",
+        "enabled": false
+      },
+      {
+        "directory": "the bingo of isaac!_3555711630",
+        "enabled": false
+      },
+      {
+        "directory": "timemachine_2617557401",
+        "enabled": false
+      }
+    ],
+    "pe_timestamp": "0x68154D8D",
+    "repentogon_skip_intro": "1",
+    "save_roots": {
+      "documents": "C:\\Users\\114514\\Documents/My Games/Binding of Isaac Repentance+",
+      "steam_remote": [
+        {
+          "account": "387111160",
+          "path": "D:\\steam\\userdata\\387111160\\250900\\remote"
+        }
+      ]
+    },
+    "save_slot": 2,
+    "steam_running": true
+  },
+  "failure": "runtime failure: {\"a_bound\": \"0\", \"a_generation\": \"2\", \"armed\": \"0\", \"b_awaiting_rebind\": \"0\", \"b_bound\": \"0\", \"b_character\": \"0\", \"b_conflict_reason\": \"\", \"b_conflicts\": \"0\", \"b_death_event\": \"0\", \"b_deaths\": \"0\", \"b_generation\": \"2\", \"b_life\": \"None\", \"b_lost_loop\": \"0\", \"b_lost_tick\": \"0\", \"b_ownership_confirmed\": \"0\", \"b_ownership_generation\": \"0\", \"b_pending_reason\": \"lifecycle_leave\", \"b_rebinds\": \"0\", \"b_revived_loop\": \"0\", \"b_revived_tick\": \"0\", \"b_revives\": \"0\", \"b_unreadable\": \"0\", \"blocks\": \"0\", \"calls\": \"4676\", \"capability.control\": \"1\", \"capability.device\": \"1\", \"capability.input\": \"1\", \"capability.join\": \"1\", \"capability.loop\": \"1\", \"capability.observe\": \"1\", \"capability.player\": \"1\", \"cleanup_failed\": \"0\", \"completed_tick\": \"0\", \"context_faults\": \"0\", \"current_tick\": \"0\", \"device_k_id\": \"0\", \"device_k_state\": \"Empty\", \"foreign\": \"0\", \"frame\": \"594\", \"g_game\": \"1\", \"generation\": \"1\", \"host_patches_installed\": \"1\", \"join_baby_overrides\": \"0\", \"join_creations\": \"0\", \"join_last\": \"None\", \"join_mode_calls\": \"0\", \"join_passes\": \"0\", \"join_state\": \"None\", \"last_error\": \"\", \"last_tick_decision\": \"Cancelled\", \"loading.a.generation_end\": \"2\", \"loading.a.generation_start\": \"1\", \"loading.a.queue_end\": \"0\", \"loading.a.queue_start\": \"0\", \"loading.a.resolved_tick_end\": \"0\", \"loading.a.resolved_tick_start\": \"0\", \"loading.a.submit_end\": \"0\", \"loading.a.submit_start\": \"0\", \"loading.b.generation_end\": \"2\", \"loading.b.generation_start\": \"1\", \"loading.b.queue_end\": \"0\", \"loading.b.queue_start\": \"0\", \"loading.b.resolved_tick_end\": \"0\", \"loading.b.resolved_tick_start\": \"0\", \"loading.b.submit_end\": \"0\", \"loading.b.submit_start\": \"0\", \"loading_active\": \"0\", \"loading_admitted_current\": \"0\", \"loading_admitted_end\": \"0\", \"loading_admitted_start\": \"0\", \"loading_completed_end\": \"0\", \"loading_completed_start\": \"0\", \"loading_end_known\": \"1\", \"loading_end_loop\": \"553\", \"loading_end_reason\": \"session_retired\", \"loading_episode\": \"1\", \"loading_episodes\": \"1\", \"loading_first_menu\": \"1\", \"loading_invalidations\": \"2\", \"loading_owners\": \"1\", \"loading_queries\": \"6\", \"loading_queries_nonzero\": \"0\", \"loading_queries_unknown\": \"1\", \"loading_reasons\": \"1\", \"loading_source\": \"starting_enter\", \"loading_start_loop\": \"553\", \"manager_starting\": \"0\", \"menu_game_selection\": \"-1\", \"menu_id\": \"-1\", \"net_bye_attempts\": \"3\", \"net_bye_sent\": \"3\", \"net_dropped\": \"0\", \"net_duplicate\": \"0\", \"net_error.Configuration\": \"0\", \"net_error.Crc\": \"0\", \"net_error.Duplicate\": \"0\", \"net_error.Flags\": \"0\", \"net_error.Handshake\": \"0\", \"net_error.Header\": \"0\", \"net_error.Identity\": \"0\", \"net_error.Incompatible\": \"0\", \"net_error.Kind\": \"0\", \"net_error.Length\": \"0\", \"net_error.Magic\": \"0\", \"net_error.None\": \"0\", \"net_error.Payload\": \"0\", \"net_error.Pending\": \"0\", \"net_error.PendingMismatch\": \"0\", \"net_error.Phase\": \"0\", \"net_error.Reserved\": \"0\", \"net_error.Role\": \"0\", \"net_error.Sequence\": \"0\", \"net_error.Stale\": \"0\", \"net_error.Terminal\": \"0\", \"net_error.Version\": \"0\", \"net_foreign\": \"0\", \"net_last_send_error\": \"0\", \"net_native_error\": \"0\", \"net_rx\": \"36\", \"net_rx_bytes\": \"5208\", \"net_rx_dropped\": \"0\", \"net_rx_errors\": \"0\", \"net_stale\": \"0\", \"net_tx\": \"517\", \"net_tx_bytes\": \"127712\", \"net_tx_dropped\": \"0\", \"net_tx_errors\": \"0\", \"net_valid\": \"36\", \"odd_patch_installed\": \"1\", \"ok\": \"1\", \"pause_selection\": \"1\", \"pause_state\": \"0\", \"peer_accepted_commands\": \"0\", \"peer_accepted_sequence\": \"0\", \"peer_ack_dropped\": \"0\", \"peer_ack_unknown\": \"0\", \"peer_address\": \"127.0.0.1:52958\", \"peer_admitted_commands\": \"0\", \"peer_advertised_generation\": \"0\", \"peer_discard.inactive\": \"35\", \"peer_discard.life_lost\": \"0\", \"peer_discard.loading_or_blocked\": \"0\", \"peer_discard.old_generation\": \"0\", \"peer_discard.old_window\": \"0\", \"peer_discard.sequence_floor\": \"0\", \"peer_discard.unbound\": \"0\", \"peer_discarded_commands\": \"35\", \"peer_duplicate_commands\": \"0\", \"peer_locked\": \"1\", \"peer_processed_sequence\": \"0\", \"peer_rejected_commands\": \"0\", \"peer_rtt_ms\": \"16\", \"peer_running\": \"0\", \"peer_state\": \"Failed\", \"peer_stop_finished\": \"1\", \"peer_terminal\": \"InternalFailure\", \"persist.b_death.abnormal\": \"0\", \"persist.b_death.close\": \"0\", \"persist.b_death.open\": \"0\", \"persist.b_revive.abnormal\": \"0\", \"persist.b_revive.close\": \"0\", \"persist.b_revive.open\": \"0\", \"persist.continue.abnormal\": \"1\", \"persist.continue.close\": \"1\", \"persist.continue.open\": \"1\", \"persist.run_exit.abnormal\": \"0\", \"persist.run_exit.close\": \"0\", \"persist.run_exit.open\": \"0\", \"persist.stage_change.abnormal\": \"0\", \"persist.stage_change.close\": \"0\", \"persist.stage_change.open\": \"0\", \"persist_current_call\": \"0\", \"persist_entries\": \"1989\", \"persist_last_load_slot\": \"2\", \"persist_load_reads\": \"7\", \"persist_load_slot_known\": \"1\", \"persist_open_windows\": \"0\", \"persist_return_errors\": \"0\", \"persist_returns\": \"1989\", \"persist_window_overflow\": \"0\", \"players\": \"1\", \"pointers\": \"8\", \"query_epoch\": \"4\", \"query_keys_observed\": \"0\", \"query_keys_repeated\": \"0\", \"query_mismatch_known\": \"0\", \"query_mismatches\": \"0\", \"query_nonfinite\": \"0\", \"query_overflow\": \"0\", \"query_overrides\": \"5\", \"query_reads\": \"0\", \"query_repeats\": \"0\", \"query_snapshots\": \"4\", \"queue_depth_a\": \"0\", \"queue_depth_b\": \"0\", \"queue_dropped\": \"0\", \"reason.control\": \"\", \"reason.device\": \"\", \"reason.input\": \"\", \"reason.join\": \"\", \"reason.loop\": \"\", \"reason.observe\": \"\", \"reason.player\": \"\", \"registered\": \"41\", \"retirement_cause\": \"RuntimeFailure\", \"run_active\": \"1\", \"selected_save\": \"-1\", \"session_error\": \"trace_event_lost\", \"session_generation\": \"1\", \"session_mode\": \"Host\", \"session_state\": \"Idle\", \"shooting_suppressed\": \"1\", \"start_qualified\": \"0\", \"state\": \"Idle\", \"status_version\": \"1\", \"ticks_odd\": \"0\", \"ticks_standard\": \"0\", \"trace\": \"isaac-cs/traces/boot-35640.jsonl\", \"trace_dropped\": \"63\", \"trace_truncated\": \"0\"}",
+  "failure_close": {
+    "error": null,
+    "exit": 0
+  },
+  "invocation": [
+    "F:\\projects_isaac\\issac_multiplay\\out\\repentogon\\harness.exe",
+    "e2e",
+    "tx-04-07",
+    "--game",
+    "F:/SteamLibrary/steamapps/common/The Binding of Isaac Rebirth",
+    "--out",
+    "F:/projects_isaac/issac_multiplay/artifacts/repentogon/tx-04-07-e2e-01"
+  ],
+  "keyboard_environment": [
+    {
+      "file": "inputconfigs.dat",
+      "mismatches": []
+    },
+    {
+      "file": "inputconfigs_rgon.dat",
+      "mismatches": []
+    }
+  ],
+  "launches": 1,
+  "pass": false,
+  "recorded_baseline": {
+    "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+    "fresh_disabled_launch": false,
+    "matched": [
+      "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+      "steam_remote/387111160/rgon_steam_persistentgamedata3.dat"
+    ]
+  },
+  "save_changes": [
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925127838000",
+        "size": 58
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913479864894900",
+        "size": 59
+      },
+      "bytes_changed": true,
+      "path": "documents/Repentogon/EntitySaveStateManagement/ex_remote_gamestate2.json",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925127838000",
+        "size": 76
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913479864894900",
+        "size": 252
+      },
+      "bytes_changed": true,
+      "path": "documents/Repentogon/EntitySaveStateManagement/remote_gamestate2.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925129844700",
+        "size": 746
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913479866397700",
+        "size": 747
+      },
+      "bytes_changed": true,
+      "path": "documents/Repentogon/ItemPoolManager/remote_gamestate2.json",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925128842200",
+        "size": 47
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913479866397700",
+        "size": 48
+      },
+      "bytes_changed": true,
+      "path": "documents/Repentogon/VirtualRoomSetManager/remote_gamestate2.json",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951919914163500",
+        "size": 457
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913469958805300",
+        "size": 457
+      },
+      "bytes_changed": true,
+      "path": "documents/Repentogon/imgui.ini",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925115826800",
+        "size": 694
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913481115467800",
+        "size": 694
+      },
+      "bytes_changed": false,
+      "path": "documents/Repentogon/options.ini",
+      "possible_source": "timestamp only; identical bytes"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925121332900",
+        "size": 1103
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913481120975600",
+        "size": 1103
+      },
+      "bytes_changed": false,
+      "path": "documents/Repentogon/vanilla_options.ini",
+      "possible_source": "timestamp only; identical bytes"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925224998200",
+        "size": 25772
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913481200129400",
+        "size": 354090
+      },
+      "bytes_changed": true,
+      "path": "documents/log.txt",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925121332900",
+        "size": 1018
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913481119974700",
+        "size": 1018
+      },
+      "bytes_changed": false,
+      "path": "documents/options.ini",
+      "possible_source": "timestamp only; identical bytes"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925130844800",
+        "size": 53628
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913479867907000",
+        "size": 65328
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rep+gamestate2.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925178154800",
+        "size": 16932
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913481147501300",
+        "size": 16932
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rep+persistentgamedata2.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925187757600",
+        "size": 185
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913481156511100",
+        "size": 185
+      },
+      "bytes_changed": false,
+      "path": "steam_remote/387111160/rgon_savesyncstatus.json",
+      "possible_source": "timestamp only; identical bytes"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951914450795800",
+        "size": 17187
+      },
+      "allowed": true,
+      "baseline": {
+        "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+        "fields": [
+          "checksum",
+          "counter"
+        ],
+        "historical_fields": [
+          "checksum",
+          "counter"
+        ],
+        "rule": "D20: only trailing Counter/Checksum u32 fields changed, within the fields changed by the historical disabled launch"
+      },
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913479918780000",
+        "size": 17187
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rgon_steam_persistentgamedata1.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951925153870500",
+        "size": 16931
+      },
+      "allowed": true,
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913481121976400",
+        "size": 16931
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rgon_steam_persistentgamedata2.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    },
+    {
+      "after": {
+        "exists": true,
+        "modified_ns": "1792951914519374000",
+        "size": 16235
+      },
+      "allowed": true,
+      "baseline": {
+        "artifact": "artifacts/repentogon/tx-04-04-e2e-08",
+        "fields": [
+          "checksum",
+          "counter"
+        ],
+        "historical_fields": [
+          "checksum",
+          "counter"
+        ],
+        "rule": "D20: only trailing Counter/Checksum u32 fields changed, within the fields changed by the historical disabled launch"
+      },
+      "before": {
+        "exists": true,
+        "modified_ns": "1792913479966941400",
+        "size": 16235
+      },
+      "bytes_changed": true,
+      "path": "steam_remote/387111160/rgon_steam_persistentgamedata3.dat",
+      "possible_source": "game or REPENTOGON save synchronization; attribution UNKNOWN"
+    }
+  ],
+  "scenes": {
+    "S0": "COMPLETE",
+    "S1": "COMPLETE",
+    "S10": "NOT_RUN",
+    "S11": "NOT_RUN",
+    "S12": "NOT_RUN",
+    "S13": "NOT_RUN",
+    "S14": "NOT_RUN",
+    "S15": "NOT_RUN",
+    "S16": "NOT_RUN",
+    "S17": "NOT_RUN",
+    "S18": "NOT_RUN",
+    "S19": "NOT_RUN",
+    "S2": "COMPLETE",
+    "S20": "NOT_RUN",
+    "S21": "NOT_RUN",
+    "S3": "NOT_RUN",
+    "S4": "NOT_RUN",
+    "S5": "NOT_RUN",
+    "S6": "NOT_RUN",
+    "S7": "NOT_RUN",
+    "S8": "NOT_RUN",
+    "S9": "NOT_RUN"
+  },
+  "token": "tx-04-07-37644-1792951906691",
+  "trace_parse_error": "trace sequence gap",
+  "tx": "tx-04-07"
+}

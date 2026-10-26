@@ -1,0 +1,159 @@
+[
+  {
+    "start": "0x424340",
+    "pseudocode": "int __thiscall sub_424340(_DWORD *this, int n1000, int n46_1, _DWORD *a4, _DWORD *a5, _DWORD *a6, int a7, int a8)\n{\n  return sub_6FA210(this, n1000, n46_1, a4, a5, a6, a7, a8, 0);\n}\n",
+    "instructions": [
+      {
+        "ea": "0x424340",
+        "asm": "push    ebp",
+        "bytes": "55"
+      },
+      {
+        "ea": "0x424341",
+        "asm": "mov     ebp, esp",
+        "bytes": "8bec"
+      },
+      {
+        "ea": "0x424343",
+        "asm": "and     esp, 0FFFFFFF8h",
+        "bytes": "83e4f8"
+      },
+      {
+        "ea": "0x424346",
+        "asm": "push    0; a9",
+        "bytes": "6a00"
+      },
+      {
+        "ea": "0x424348",
+        "asm": "push    [ebp+a8]; a8",
+        "bytes": "ff7520"
+      },
+      {
+        "ea": "0x42434b",
+        "asm": "push    [ebp+a7]; a7",
+        "bytes": "ff751c"
+      },
+      {
+        "ea": "0x42434e",
+        "asm": "push    [ebp+a6]; a6",
+        "bytes": "ff7518"
+      },
+      {
+        "ea": "0x424351",
+        "asm": "push    [ebp+a5]; a5",
+        "bytes": "ff7514"
+      },
+      {
+        "ea": "0x424354",
+        "asm": "push    [ebp+a4]; a4",
+        "bytes": "ff7510"
+      },
+      {
+        "ea": "0x424357",
+        "asm": "push    [ebp+n46_1]; n46_1",
+        "bytes": "ff750c"
+      },
+      {
+        "ea": "0x42435a",
+        "asm": "push    [ebp+n1000]; n1000",
+        "bytes": "ff7508"
+      },
+      {
+        "ea": "0x42435d",
+        "asm": "call    sub_6FA210",
+        "bytes": "e8ae5e2d00"
+      },
+      {
+        "ea": "0x424362",
+        "asm": "mov     esp, ebp",
+        "bytes": "8be5"
+      },
+      {
+        "ea": "0x424364",
+        "asm": "pop     ebp",
+        "bytes": "5d"
+      },
+      {
+        "ea": "0x424365",
+        "asm": "retn    1Ch",
+        "bytes": "c21c00"
+      }
+    ]
+  },
+  {
+    "start": "0x8559d0",
+    "pseudocode": "int __cdecl sub_8559D0(int n1000, int n46, int a3, _DWORD *a4, _DWORD *a5, _DWORD *a6)\n{\n  int v6; // eax\n\n  v6 = sub_6EB4B0();\n  return sub_424340(n187, n1000, n46, a4, a5, a6, a3, v6);\n}\n",
+    "instructions": [
+      {
+        "ea": "0x8559d0",
+        "asm": "push    ebp",
+        "bytes": "55"
+      },
+      {
+        "ea": "0x8559d1",
+        "asm": "mov     ebp, esp",
+        "bytes": "8bec"
+      },
+      {
+        "ea": "0x8559d3",
+        "asm": "call    sub_6EB4B0",
+        "bytes": "e8d85ae9ff"
+      },
+      {
+        "ea": "0x8559d8",
+        "asm": "mov     ecx, n187",
+        "bytes": "8b0df449be00"
+      },
+      {
+        "ea": "0x8559de",
+        "asm": "push    eax",
+        "bytes": "50"
+      },
+      {
+        "ea": "0x8559df",
+        "asm": "push    [ebp+a3]",
+        "bytes": "ff7510"
+      },
+      {
+        "ea": "0x8559e2",
+        "asm": "push    [ebp+a6]",
+        "bytes": "ff751c"
+      },
+      {
+        "ea": "0x8559e5",
+        "asm": "push    [ebp+a5]",
+        "bytes": "ff7518"
+      },
+      {
+        "ea": "0x8559e8",
+        "asm": "push    [ebp+a4]",
+        "bytes": "ff7514"
+      },
+      {
+        "ea": "0x8559eb",
+        "asm": "push    [ebp+a2]",
+        "bytes": "ff750c"
+      },
+      {
+        "ea": "0x8559ee",
+        "asm": "push    [ebp+n1000]",
+        "bytes": "ff7508"
+      },
+      {
+        "ea": "0x8559f1",
+        "asm": "call    sub_424340",
+        "bytes": "e84ae9bcff"
+      },
+      {
+        "ea": "0x8559f6",
+        "asm": "pop     ebp",
+        "bytes": "5d"
+      },
+      {
+        "ea": "0x8559f7",
+        "asm": "retn",
+        "bytes": "c3"
+      }
+    ]
+  }
+]

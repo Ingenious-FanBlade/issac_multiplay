@@ -1,0 +1,146 @@
+{
+  "scope": "tx-04-08 ST2 read-only static evidence",
+  "target": {
+    "idb": "isaac-ng-v1.9.7.12.exe.unpacked.exe.i64",
+    "image_base": "0x400000",
+    "architecture": "x86",
+    "note": "当前 IDB 只读读取；未记录或计算任何哈希。地址同时给 VA/RVA 时 RVA=VA-image_base。"
+  },
+  "manager_game_odd": {
+    "classification": "STATIC_CONFIRMED",
+    "manager_update": { "va": "0x92E3E0", "rva": "0x52E3E0", "normal_returns": ["0x92E45A", "0x92E80D", "0x92EC22"] },
+    "ordinary_branch": [
+      ["0x92E8B1", "test byte ptr [edi+4A8B8h], 1"],
+      ["0x92E8B8", "jnz 0x92E918"],
+      ["0x92E911", "call sub_6F6D30"],
+      ["0x92E916", "jmp 0x92E926"]
+    ],
+    "odd_branch": [
+      ["0x92E918", "cmp byte ptr [edi+2A1FBh], 0"],
+      ["0x92E91F", "jz 0x92E926"],
+      ["0x92E921", "call sub_6F9340"]
+    ],
+    "manager_main_return": ["0x92EC1F mov esp, ebp", "0x92EC21 pop ebp", "0x92EC22 retn 4"],
+    "other_manager_caller": {
+      "callsite": "0x6F42AD",
+      "caller_function": "0x6F3E10",
+      "instruction_context": ["0x6F4298 call sub_993030", "0x6F429D mov eax, n4", "0x6F42A2 push 0", "0x6F42A4 mov word ptr [eax+4AE84h], 101h", "0x6F42AD call sub_92E3E0"],
+      "implication": "嵌套 Manager 调用不是新的顶层 world 样本。"
+    },
+    "odd_helper": {
+      "va": "0x6F9340",
+      "rva": "0x2F9340",
+      "caller": "0x92E921",
+      "finding": "读取的函数体为 Odd/player 更新帮助路径；未见 Room::Update 或标准尾部 0x846C90 调用。"
+    }
+  },
+  "game_ordinary_and_short_circuits": {
+    "classification": "STATIC_CONFIRMED",
+    "game_update": { "va": "0x6F6D30", "rva": "0x2F6D30", "function_range": ["0x6F6D30", "0x6F7A4A"] },
+    "pre_main_update_exit": [
+      ["0x6F775B", "call sub_98ED50"],
+      ["0x6F7760", "test al, al"],
+      ["0x6F7762", "jnz 0x6F7A39"],
+      ["0x6F77A3", "retn"]
+    ],
+    "repentogon_main_update_marker": { "va": "0x6F77A4", "rva": "0x2F77A4", "instruction": "inc dword ptr [edi+25B38h]" },
+    "ordinary_stage_calls": [
+      ["0x6F78D9", "mov ecx, [edi+18300h]"],
+      ["0x6F78DF", "call sub_7F7F60"],
+      ["0x6F78E4", "call sub_992650"],
+      ["0x6F7A34", "call sub_846C90"],
+      ["0x6F7A39", "mov ecx, [ebp+var_C]"],
+      ["0x6F7A49", "retn"]
+    ],
+    "repentogon_mc_pre_update": {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/repentogon/Patches/ASMPatches/ASMCallbacks.cpp:41-113; libzhl/functions/ASM.zhl:289-290",
+      "effect": "在 Game_Update_MainUpdate 运行 callback；真时条件跳到 0x6F7A39，跳过 Game 主模拟段（包含 Room call 与 0x6F7A34 标准尾部）。",
+      "skipped_update_side_effects": "官方 handle_skipped_update 仍调用 CommitRemovedEntities、render_sort 与 HUD::PostUpdate；HUD 尾处理不是 0x846C90。"
+    }
+  },
+  "room_entity_list_and_normal_return": {
+    "classification": "STATIC_CONFIRMED",
+    "room_update": { "va": "0x7F7F60", "rva": "0x3F7F60", "function_range": ["0x7F7F60", "0x7FBDC0"] },
+    "room_entity_list_call": [
+      ["0x7F9399", "push 0"],
+      ["0x7F939B", "lea ecx, [edi+1218h]"],
+      ["0x7F93A1", "mov [edi+7224h], esi"],
+      ["0x7F93A7", "call sub_413F00"]
+    ],
+    "control_flow": {
+      "normal_ret": "0x7FBD81",
+      "ret_count": 1,
+      "direct_calls_to_0x413F00_in_room": ["0x7F93A7"],
+      "call_block": "0x7F9399",
+      "call_block_dominates_all_normal_returns": true,
+      "preceding_branches": [
+        ["0x7F9354", "test esi, esi"],
+        ["0x7F9356", "jg 0x7F9399"],
+        ["0x7F9358", "cmp dword ptr [edi+7224h], 0"],
+        ["0x7F935F", "jle 0x7F9399"]
+      ],
+      "interpretation": "所选条件块及 warning 路径会汇入 0x7F9399；正常 native ret 前必经该 Room 内唯一 EL 调用。条件分支本身不绕过它。该结论不覆盖外部 Hook 不调用 super、异常、SEH 或 callback 副作用。"
+    },
+    "argument_semantics": "本次静态能确认实参为 0。当前绑定参数名 partial；官方 REPENTOGON EntityManager.cpp 对相应 transition 参数使用 isTransition 命名，因此记作 isTransition=false。该单值不证明完整世界字段 profile。"
+  },
+  "standard_tail": {
+    "classification": "STATIC_CONFIRMED",
+    "post_update": { "va": "0x846C90", "rva": "0x446C90", "function_range": ["0x846C90", "0x846D64"] },
+    "normal_path": [
+      ["0x846CD7", "test byte ptr [eax], 2"],
+      ["0x846CDA", "jz 0x846D04"],
+      ["0x846D04", "normal cleanup entry"],
+      ["0x846D15", "retn"]
+    ],
+    "exception_funclet": [
+      ["0x846D16", "mov esi, [ebp+var_1C]"],
+      ["0x846D21", "push \"Error in \\\"PostUpdate\\\" call: %s\\n\""],
+      ["0x846D28", "call sub_9E0DF0"],
+      ["0x846D5E", "mov eax, offset loc_846D04"],
+      ["0x846D63", "retn"]
+    ],
+    "interpretation": "0x846D63 是 EH funclet 返回恢复地址 0x846D04，不是第二个普通尾部 ret。尾部 wrapper 正常返回不证明每个 Lua callback 成功或全部被分派。"
+  },
+  "hook_priority_and_current_source": {
+    "classification": "CURRENT_SOURCE",
+    "binding_priorities": [
+      ["mod/binding/hooks.json:4", "Manager::Update -10000"],
+      ["mod/binding/hooks.json:5-6", "Game::Update 0; standard tail hook 0"],
+      ["mod/binding/hooks.json:13-14", "Room::Update 0; EntityList update 0"],
+      ["mod/binding/hooks.json:19", "Odd helper 0"],
+      ["mod/binding/hooks.json:22-23", "Player::Update outer -10000, inner marker +10000"]
+    ],
+    "official_source": [
+      "libzhl/HookSystem.cpp:397-424 stores hooks in multimap<int,...,greater<int>> and installs in descending priority order.",
+      "libzhl/HookSystem.cpp:558 onward installs detours; generated _internalSuper calls the prior original/trampoline; because higher values install first, lower values installed later wrap outside and enter first.",
+      "repentogon/dllmain.cpp:69-76 documents lower numeric priority runs first, higher runs last before original.",
+      "loader/loader.cpp:130-190 loads/initializes DLLs, then calls ZHL::Init at line 190."
+    ],
+    "short_circuit_callbacks": [
+      "repentogon/Patches/ASMPatches/ASMCallbacks.cpp:30-34 has Game::Update priority-0 Hook that clears s_callbackPause before super().",
+      "repentogon/Patches/ASMPatches/ASMGridEntityCollision.cpp:28-31 has priority-0 Game::Update Hook whose work follows super().",
+      "repentogon/Patches/ASMPatches/ASMCallbacks.cpp:41-113 implements MC_PRE_UPDATE; true skips the target body between marker and return.",
+      "repentogon/LuaInterfaces/CustomCallbacks.cpp:499-541 callback 1160 can avoid the normal Player super chain and call Entity::Original_Update instead."
+    ],
+    "unknown": "Game::Update 同优先级 C/S 与两个官方 0 Hook 的相对注册顺序本次静态未定；实际进程 DLL 列表、callback 状态、Hook 是否成功安装及可能更内层的未知 Hook 未动态验证。Manager -10000 wrapper 收束处在这些下游 Hook 返回之后。"
+  },
+  "current_source_top_exit": {
+    "classification": "CURRENT_SOURCE",
+    "evidence": [
+      "mod/tools/gen_binding.py:37-42 generates CallScope then Manager FrameScope and exactly one super call.",
+      "mod/src/hooks/context.cpp:38-45 FrameScope calls FrameBegin on entry and FrameEnd(completed) on destruction.",
+      "mod/src/ops/command.cpp:237-252 rejects reentrant manager via frame_depth, then calls game::BeginManager.",
+      "mod/src/game/tick.cpp:317-332 BeginManager sets loop, polls/drains peer, and refreshes lifecycle before later queued mutations.",
+      "mod/src/game/tick.cpp:334-418 EndManager finishes pending post-state, closes outer pipeline, publishes peer, then performs retirement/removal.",
+      "mod/src/game/tick.cpp:419-470 Room SimulationScope only begins standard tick under Game+Manager owner and observes normal return; current code has no world stage witness/copy.",
+      "mod/src/core/tick_pipeline.h:24-26 currently defines only PostStateStatus::Disabled; :73-78 separates NativeReturned, FinishPostState, and EndOuter; implementation is tick_pipeline.cpp:133-180."
+    ],
+    "design_implication": "如新增 outer token，应在 BeginManager 的 PollPeer/RefreshLifecycle 之前创建；完整样本只可在 Manager super 整链正常返回后、EndManager 的提交/退休动作前准备复制，并须等待 pipeline 的 completed 提交后发布。现有 TickPostState 仅 Disabled，静态阶段证据不表示工程已有 world capture。"
+  },
+  "unknowns": [
+    "没有在实际运行进程中确认 REPENTOGON/其他 DLL 的有效 hook 注册链、相同 priority 的相对顺序或 ASM patch 安装状态。",
+    "普通 Game/Room/tail 的静态控制流不证明每个 callback 成功、每个派生 Player 更新到达或数据 profile 完整。",
+    "异常、SEH、终止路径与未知内层 Hook 对完整性/副作用的影响未作动态闭包。",
+    "ST2 只核对本次列出的当前 blocker/TopExit 顺序；不重新验收当前 Continue/Restore 生命周期，也不把 tx-04-07 历史记录中的失败表述转作当前状态结论。"
+  ]
+}

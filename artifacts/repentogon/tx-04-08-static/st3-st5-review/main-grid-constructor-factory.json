@@ -1,0 +1,2191 @@
+[
+  {
+    "va": "0x704fb0",
+    "rva": "0x304fb0",
+    "pseudocode": "_DWORD *__thiscall sub_704FB0(_DWORD *this)\n{\n  *this = &IsaacRepentancePlus::GridEntity::`vftable';\n  this[1] = 0;\n  this[2] = 0;\n  this[3] = 0;\n  this[4] = 0;\n  this[5] = 380231297;\n  this[6] = 0;\n  *((_BYTE *)this + 28) = 0;\n  this[8] = 380231297;\n  *((_QWORD *)this + 6) = 0x900000005LL;\n  this[11] = -1441316529;\n  this[14] = 7;\n  sub_402B00(this + 16);\n  return this;\n}\n",
+    "instructions": [
+      {
+        "va": "0x704fb0",
+        "bytes": "55",
+        "asm": "push    ebp"
+      },
+      {
+        "va": "0x704fb1",
+        "bytes": "8b ec",
+        "asm": "mov     ebp, esp"
+      },
+      {
+        "va": "0x704fb3",
+        "bytes": "51",
+        "asm": "push    ecx"
+      },
+      {
+        "va": "0x704fb4",
+        "bytes": "f3 0f 7e 05 4c ce aa 00",
+        "asm": "movq    xmm0, ds:qword_AACE4C"
+      },
+      {
+        "va": "0x704fbc",
+        "bytes": "a1 54 ce aa 00",
+        "asm": "mov     eax, ds:dword_AACE54"
+      },
+      {
+        "va": "0x704fc1",
+        "bytes": "56",
+        "asm": "push    esi"
+      },
+      {
+        "va": "0x704fc2",
+        "bytes": "8b f1",
+        "asm": "mov     esi, ecx"
+      },
+      {
+        "va": "0x704fc4",
+        "bytes": "89 75 fc",
+        "asm": "mov     [ebp+var_4], esi"
+      },
+      {
+        "va": "0x704fc7",
+        "bytes": "c7 06 5c 97 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity::`vftable'"
+      },
+      {
+        "va": "0x704fcd",
+        "bytes": "8d 4e 40",
+        "asm": "lea     ecx, [esi+40h]; void *"
+      },
+      {
+        "va": "0x704fd0",
+        "bytes": "c7 46 04 00 00 00 00",
+        "asm": "mov     dword ptr [esi+4], 0"
+      },
+      {
+        "va": "0x704fd7",
+        "bytes": "c7 46 08 00 00 00 00",
+        "asm": "mov     dword ptr [esi+8], 0"
+      },
+      {
+        "va": "0x704fde",
+        "bytes": "c7 46 0c 00 00 00 00",
+        "asm": "mov     dword ptr [esi+0Ch], 0"
+      },
+      {
+        "va": "0x704fe5",
+        "bytes": "c7 46 10 00 00 00 00",
+        "asm": "mov     dword ptr [esi+10h], 0"
+      },
+      {
+        "va": "0x704fec",
+        "bytes": "c7 46 14 81 de a9 16",
+        "asm": "mov     dword ptr [esi+14h], 16A9DE81h"
+      },
+      {
+        "va": "0x704ff3",
+        "bytes": "c7 46 18 00 00 00 00",
+        "asm": "mov     dword ptr [esi+18h], 0"
+      },
+      {
+        "va": "0x704ffa",
+        "bytes": "c6 46 1c 00",
+        "asm": "mov     byte ptr [esi+1Ch], 0"
+      },
+      {
+        "va": "0x704ffe",
+        "bytes": "c7 46 20 81 de a9 16",
+        "asm": "mov     dword ptr [esi+20h], 16A9DE81h"
+      },
+      {
+        "va": "0x705005",
+        "bytes": "66 0f d6 46 30",
+        "asm": "movq    qword ptr [esi+30h], xmm0"
+      },
+      {
+        "va": "0x70500a",
+        "bytes": "c7 46 2c 4f 41 17 aa",
+        "asm": "mov     dword ptr [esi+2Ch], 0AA17414Fh"
+      },
+      {
+        "va": "0x705011",
+        "bytes": "89 46 38",
+        "asm": "mov     [esi+38h], eax"
+      },
+      {
+        "va": "0x705014",
+        "bytes": "e8 e7 da cf ff",
+        "asm": "call    sub_402B00"
+      },
+      {
+        "va": "0x705019",
+        "bytes": "8b c6",
+        "asm": "mov     eax, esi"
+      },
+      {
+        "va": "0x70501b",
+        "bytes": "5e",
+        "asm": "pop     esi"
+      },
+      {
+        "va": "0x70501c",
+        "bytes": "8b e5",
+        "asm": "mov     esp, ebp"
+      },
+      {
+        "va": "0x70501e",
+        "bytes": "5d",
+        "asm": "pop     ebp"
+      },
+      {
+        "va": "0x70501f",
+        "bytes": "c3",
+        "asm": "retn"
+      }
+    ]
+  },
+  {
+    "va": "0x706100",
+    "rva": "0x306100",
+    "pseudocode": "char *__fastcall sub_706100(int a1, int a2)\n{\n  char *v4; // esi\n  char *result; // eax\n\n  switch ( a1 )\n  {\n    case 1:\n      v4 = (char *)operator new(0x154u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Decoration::`vftable';\n      goto LABEL_19;\n    case 2:\n    case 3:\n    case 4:\n    case 5:\n    case 6:\n    case 22:\n    case 24:\n    case 25:\n    case 26:\n    case 27:\n      v4 = (char *)operator new(0x198u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Rock::`vftable';\n      *((_DWORD *)v4 + 85) = 0;\n      *((_DWORD *)v4 + 89) = 0;\n      *((_DWORD *)v4 + 90) = 15;\n      v4[340] = 0;\n      *((_DWORD *)v4 + 91) = 0;\n      *((_DWORD *)v4 + 95) = 0;\n      *((_DWORD *)v4 + 96) = 15;\n      v4[364] = 0;\n      *((_DWORD *)v4 + 97) = 0;\n      *((_DWORD *)v4 + 98) = 0;\n      *((_DWORD *)v4 + 99) = 0;\n      goto LABEL_19;\n    case 7:\n      v4 = (char *)operator new(0x158u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Pit::`vftable';\n      goto LABEL_19;\n    case 8:\n    case 9:\n      v4 = (char *)operator new(0x158u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Spikes::`vftable';\n      goto LABEL_19;\n    case 10:\n      v4 = (char *)operator new(0x154u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Web::`vftable';\n      goto LABEL_19;\n    case 11:\n      v4 = (char *)operator new(0x158u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Lock::`vftable';\n      goto LABEL_19;\n    case 12:\n      v4 = (char *)operator new(0x158u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_TNT::`vftable';\n      goto LABEL_19;\n    case 13:\n      v4 = (char *)operator new(0x390u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Fire::`vftable';\n      sub_402B00(v4 + 340);\n      *((_DWORD *)v4 + 156) = 0;\n      *((_DWORD *)v4 + 157) = 0;\n      *((_DWORD *)v4 + 158) = 0;\n      sub_402B00(v4 + 636);\n      goto LABEL_19;\n    case 14:\n      v4 = (char *)operator new(0x19Cu);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Poop::`vftable';\n      *((_DWORD *)v4 + 86) = 0;\n      *((_DWORD *)v4 + 90) = 0;\n      *((_DWORD *)v4 + 91) = 15;\n      v4[344] = 0;\n      *((_DWORD *)v4 + 93) = 0;\n      *((_DWORD *)v4 + 94) = 0;\n      *((_DWORD *)v4 + 95) = 0;\n      *((_DWORD *)v4 + 96) = 0;\n      *(_QWORD *)(v4 + 388) = *(_QWORD *)&a4;\n      *((_DWORD *)v4 + 99) = a4;\n      *((_QWORD *)v4 + 50) = (unsigned int)*(&a4 + 1);\n      *((_DWORD *)v4 + 102) = 0;\n      goto LABEL_19;\n    case 15:\n      v4 = (char *)operator new(0x154u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Wall::`vftable';\n      goto LABEL_19;\n    case 16:\n      v4 = (char *)operator new(0x2F0u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Door::`vftable';\n      sub_402B00(v4 + 360);\n      *((_DWORD *)v4 + 164) = 0;\n      *((_DWORD *)v4 + 168) = 0;\n      *((_DWORD *)v4 + 169) = 15;\n      v4[656] = 0;\n      *((_DWORD *)v4 + 170) = 0;\n      *((_DWORD *)v4 + 174) = 0;\n      *((_DWORD *)v4 + 175) = 15;\n      v4[680] = 0;\n      *((_DWORD *)v4 + 176) = 0;\n      *((_DWORD *)v4 + 180) = 0;\n      *((_DWORD *)v4 + 181) = 15;\n      v4[704] = 0;\n      *((_DWORD *)v4 + 182) = 0;\n      *((_DWORD *)v4 + 186) = 0;\n      *((_DWORD *)v4 + 187) = 15;\n      v4[728] = 0;\n      goto LABEL_19;\n    case 17:\n      v4 = (char *)operator new(0x158u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_TrapDoor::`vftable';\n      *((_DWORD *)v4 + 85) = 0;\n      goto LABEL_19;\n    case 18:\n      v4 = (char *)operator new(0x154u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Stairs::`vftable';\n      goto LABEL_19;\n    case 19:\n      v4 = (char *)operator new(0x154u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Gravity::`vftable';\n      goto LABEL_19;\n    case 20:\n      v4 = (char *)operator new(0x27Cu);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_PressurePlate::`vftable';\n      sub_402B00(v4 + 340);\n      *((_QWORD *)v4 + 78) = 0x900000005LL;\n      *((_DWORD *)v4 + 155) = -1441316529;\n      *((_DWORD *)v4 + 158) = 7;\n      goto LABEL_19;\n    case 21:\n      v4 = (char *)operator new(0x158u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Statue::`vftable';\n      goto LABEL_19;\n    case 23:\n      v4 = (char *)operator new(0x154u);\n      sub_704FB0(v4);\n      *(_DWORD *)v4 = &IsaacRepentancePlus::GridEntity_Teleporter::`vftable';\nLABEL_19:\n      result = v4;\n      if ( v4 )\n      {\n        *((_DWORD *)v4 + 1) = a1;\n        *((_DWORD *)v4 + 9) = a2;\n      }\n      break;\n    default:\n      result = 0;\n      break;\n  }\n  return result;\n}\n",
+    "instructions": [
+      {
+        "va": "0x706100",
+        "bytes": "55",
+        "asm": "push    ebp"
+      },
+      {
+        "va": "0x706101",
+        "bytes": "8b ec",
+        "asm": "mov     ebp, esp"
+      },
+      {
+        "va": "0x706103",
+        "bytes": "6a ff",
+        "asm": "push    0FFFFFFFFh"
+      },
+      {
+        "va": "0x706105",
+        "bytes": "68 3b 31 a9 00",
+        "asm": "push    offset SEH_706100"
+      },
+      {
+        "va": "0x70610a",
+        "bytes": "64 a1 00 00 00 00",
+        "asm": "mov     eax, large fs:0"
+      },
+      {
+        "va": "0x706110",
+        "bytes": "50",
+        "asm": "push    eax"
+      },
+      {
+        "va": "0x706111",
+        "bytes": "51",
+        "asm": "push    ecx"
+      },
+      {
+        "va": "0x706112",
+        "bytes": "53",
+        "asm": "push    ebx"
+      },
+      {
+        "va": "0x706113",
+        "bytes": "56",
+        "asm": "push    esi"
+      },
+      {
+        "va": "0x706114",
+        "bytes": "57",
+        "asm": "push    edi"
+      },
+      {
+        "va": "0x706115",
+        "bytes": "a1 b4 83 b8 00",
+        "asm": "mov     eax, ___security_cookie"
+      },
+      {
+        "va": "0x70611a",
+        "bytes": "33 c5",
+        "asm": "xor     eax, ebp"
+      },
+      {
+        "va": "0x70611c",
+        "bytes": "50",
+        "asm": "push    eax"
+      },
+      {
+        "va": "0x70611d",
+        "bytes": "8d 45 f4",
+        "asm": "lea     eax, [ebp+var_C]"
+      },
+      {
+        "va": "0x706120",
+        "bytes": "64 a3 00 00 00 00",
+        "asm": "mov     large fs:0, eax"
+      },
+      {
+        "va": "0x706126",
+        "bytes": "8b da",
+        "asm": "mov     ebx, edx"
+      },
+      {
+        "va": "0x706128",
+        "bytes": "8b f9",
+        "asm": "mov     edi, ecx"
+      },
+      {
+        "va": "0x70612a",
+        "bytes": "83 ff 1b",
+        "asm": "cmp     edi, 1Bh; switch 28 cases"
+      },
+      {
+        "va": "0x70612d",
+        "bytes": "0f 87 1b 05 00 00",
+        "asm": "ja      def_706133; jumptable 00706133 default case, case 0"
+      },
+      {
+        "va": "0x706133",
+        "bytes": "ff 24 bd 64 66 70 00",
+        "asm": "jmp     ds:jpt_706133[edi*4]; switch jump"
+      },
+      {
+        "va": "0x70613a",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h; jumptable 00706133 case 1"
+      },
+      {
+        "va": "0x70613f",
+        "bytes": "e8 a1 0c 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x706144",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x706146",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x706149",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x70614c",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x70614e",
+        "bytes": "c7 45 fc 00 00 00 00",
+        "asm": "mov     [ebp+var_4], 0"
+      },
+      {
+        "va": "0x706155",
+        "bytes": "e8 56 ee ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x70615a",
+        "bytes": "c7 06 cc 96 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Decoration@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Decoration::`vftable'"
+      },
+      {
+        "va": "0x706160",
+        "bytes": "e9 cb 04 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x706165",
+        "bytes": "68 98 01 00 00",
+        "asm": "push    198h; jumptable 00706133 cases 2-6,22,24-27"
+      },
+      {
+        "va": "0x70616a",
+        "bytes": "e8 76 0c 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x70616f",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x706171",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x706174",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x706177",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x706179",
+        "bytes": "c7 45 fc 01 00 00 00",
+        "asm": "mov     [ebp+var_4], 1"
+      },
+      {
+        "va": "0x706180",
+        "bytes": "e8 2b ee ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x706185",
+        "bytes": "c7 06 9c 96 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Rock@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Rock::`vftable'"
+      },
+      {
+        "va": "0x70618b",
+        "bytes": "c7 86 54 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+154h], 0"
+      },
+      {
+        "va": "0x706195",
+        "bytes": "c7 86 64 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+164h], 0"
+      },
+      {
+        "va": "0x70619f",
+        "bytes": "c7 86 68 01 00 00 0f 00 00 00",
+        "asm": "mov     dword ptr [esi+168h], 0Fh"
+      },
+      {
+        "va": "0x7061a9",
+        "bytes": "c6 86 54 01 00 00 00",
+        "asm": "mov     byte ptr [esi+154h], 0"
+      },
+      {
+        "va": "0x7061b0",
+        "bytes": "c7 86 6c 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+16Ch], 0"
+      },
+      {
+        "va": "0x7061ba",
+        "bytes": "c7 86 7c 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+17Ch], 0"
+      },
+      {
+        "va": "0x7061c4",
+        "bytes": "c7 86 80 01 00 00 0f 00 00 00",
+        "asm": "mov     dword ptr [esi+180h], 0Fh"
+      },
+      {
+        "va": "0x7061ce",
+        "bytes": "c6 86 6c 01 00 00 00",
+        "asm": "mov     byte ptr [esi+16Ch], 0"
+      },
+      {
+        "va": "0x7061d5",
+        "bytes": "c7 86 84 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+184h], 0"
+      },
+      {
+        "va": "0x7061df",
+        "bytes": "c7 86 88 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+188h], 0"
+      },
+      {
+        "va": "0x7061e9",
+        "bytes": "c7 86 8c 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+18Ch], 0"
+      },
+      {
+        "va": "0x7061f3",
+        "bytes": "e9 38 04 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x7061f8",
+        "bytes": "68 f0 02 00 00",
+        "asm": "push    2F0h; jumptable 00706133 case 16"
+      },
+      {
+        "va": "0x7061fd",
+        "bytes": "e8 e3 0b 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x706202",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x706204",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x706207",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x70620a",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x70620c",
+        "bytes": "c7 45 fc 02 00 00 00",
+        "asm": "mov     [ebp+var_4], 2"
+      },
+      {
+        "va": "0x706213",
+        "bytes": "e8 98 ed ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x706218",
+        "bytes": "c6 45 fc 03",
+        "asm": "mov     byte ptr [ebp+var_4], 3"
+      },
+      {
+        "va": "0x70621c",
+        "bytes": "8d 8e 68 01 00 00",
+        "asm": "lea     ecx, [esi+168h]; void *"
+      },
+      {
+        "va": "0x706222",
+        "bytes": "c7 06 6c 96 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Door@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Door::`vftable'"
+      },
+      {
+        "va": "0x706228",
+        "bytes": "e8 d3 c8 cf ff",
+        "asm": "call    sub_402B00"
+      },
+      {
+        "va": "0x70622d",
+        "bytes": "c7 86 90 02 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+290h], 0"
+      },
+      {
+        "va": "0x706237",
+        "bytes": "c7 86 a0 02 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+2A0h], 0"
+      },
+      {
+        "va": "0x706241",
+        "bytes": "c7 86 a4 02 00 00 0f 00 00 00",
+        "asm": "mov     dword ptr [esi+2A4h], 0Fh"
+      },
+      {
+        "va": "0x70624b",
+        "bytes": "c6 86 90 02 00 00 00",
+        "asm": "mov     byte ptr [esi+290h], 0"
+      },
+      {
+        "va": "0x706252",
+        "bytes": "c7 86 a8 02 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+2A8h], 0"
+      },
+      {
+        "va": "0x70625c",
+        "bytes": "c7 86 b8 02 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+2B8h], 0"
+      },
+      {
+        "va": "0x706266",
+        "bytes": "c7 86 bc 02 00 00 0f 00 00 00",
+        "asm": "mov     dword ptr [esi+2BCh], 0Fh"
+      },
+      {
+        "va": "0x706270",
+        "bytes": "c6 86 a8 02 00 00 00",
+        "asm": "mov     byte ptr [esi+2A8h], 0"
+      },
+      {
+        "va": "0x706277",
+        "bytes": "c7 86 c0 02 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+2C0h], 0"
+      },
+      {
+        "va": "0x706281",
+        "bytes": "c7 86 d0 02 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+2D0h], 0"
+      },
+      {
+        "va": "0x70628b",
+        "bytes": "c7 86 d4 02 00 00 0f 00 00 00",
+        "asm": "mov     dword ptr [esi+2D4h], 0Fh"
+      },
+      {
+        "va": "0x706295",
+        "bytes": "c6 86 c0 02 00 00 00",
+        "asm": "mov     byte ptr [esi+2C0h], 0"
+      },
+      {
+        "va": "0x70629c",
+        "bytes": "c7 86 d8 02 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+2D8h], 0"
+      },
+      {
+        "va": "0x7062a6",
+        "bytes": "c7 86 e8 02 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+2E8h], 0"
+      },
+      {
+        "va": "0x7062b0",
+        "bytes": "c7 86 ec 02 00 00 0f 00 00 00",
+        "asm": "mov     dword ptr [esi+2ECh], 0Fh"
+      },
+      {
+        "va": "0x7062ba",
+        "bytes": "c6 86 d8 02 00 00 00",
+        "asm": "mov     byte ptr [esi+2D8h], 0"
+      },
+      {
+        "va": "0x7062c1",
+        "bytes": "e9 6a 03 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x7062c6",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h; jumptable 00706133 case 15"
+      },
+      {
+        "va": "0x7062cb",
+        "bytes": "e8 15 0b 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x7062d0",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x7062d2",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x7062d5",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x7062d8",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x7062da",
+        "bytes": "c7 45 fc 04 00 00 00",
+        "asm": "mov     [ebp+var_4], 4"
+      },
+      {
+        "va": "0x7062e1",
+        "bytes": "e8 ca ec ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x7062e6",
+        "bytes": "c7 06 2c 97 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Wall@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Wall::`vftable'"
+      },
+      {
+        "va": "0x7062ec",
+        "bytes": "e9 3f 03 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x7062f1",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h; jumptable 00706133 case 7"
+      },
+      {
+        "va": "0x7062f6",
+        "bytes": "e8 ea 0a 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x7062fb",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x7062fd",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x706300",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x706303",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x706305",
+        "bytes": "c7 45 fc 05 00 00 00",
+        "asm": "mov     [ebp+var_4], 5"
+      },
+      {
+        "va": "0x70630c",
+        "bytes": "e8 9f ec ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x706311",
+        "bytes": "c7 06 04 a0 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Pit@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Pit::`vftable'"
+      },
+      {
+        "va": "0x706317",
+        "bytes": "e9 14 03 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x70631c",
+        "bytes": "68 9c 01 00 00",
+        "asm": "push    19Ch; jumptable 00706133 case 14"
+      },
+      {
+        "va": "0x706321",
+        "bytes": "e8 bf 0a 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x706326",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x706328",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x70632b",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x70632e",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x706330",
+        "bytes": "c7 45 fc 06 00 00 00",
+        "asm": "mov     [ebp+var_4], 6"
+      },
+      {
+        "va": "0x706337",
+        "bytes": "e8 74 ec ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x70633c",
+        "bytes": "c7 06 0c 96 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Poop@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Poop::`vftable'"
+      },
+      {
+        "va": "0x706342",
+        "bytes": "c7 86 58 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+158h], 0"
+      },
+      {
+        "va": "0x70634c",
+        "bytes": "c7 86 68 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+168h], 0"
+      },
+      {
+        "va": "0x706356",
+        "bytes": "c7 86 6c 01 00 00 0f 00 00 00",
+        "asm": "mov     dword ptr [esi+16Ch], 0Fh"
+      },
+      {
+        "va": "0x706360",
+        "bytes": "c6 86 58 01 00 00 00",
+        "asm": "mov     byte ptr [esi+158h], 0"
+      },
+      {
+        "va": "0x706367",
+        "bytes": "c7 86 74 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+174h], 0"
+      },
+      {
+        "va": "0x706371",
+        "bytes": "c7 86 78 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+178h], 0"
+      },
+      {
+        "va": "0x70637b",
+        "bytes": "c7 86 7c 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+17Ch], 0"
+      },
+      {
+        "va": "0x706385",
+        "bytes": "c7 86 80 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+180h], 0"
+      },
+      {
+        "va": "0x70638f",
+        "bytes": "f3 0f 10 05 00 b9 be 00",
+        "asm": "movss   xmm0, dword ptr a4"
+      },
+      {
+        "va": "0x706397",
+        "bytes": "f3 0f 11 86 84 01 00 00",
+        "asm": "movss   dword ptr [esi+184h], xmm0"
+      },
+      {
+        "va": "0x70639f",
+        "bytes": "f3 0f 10 05 04 b9 be 00",
+        "asm": "movss   xmm0, dword ptr a4+4"
+      },
+      {
+        "va": "0x7063a7",
+        "bytes": "f3 0f 11 86 88 01 00 00",
+        "asm": "movss   dword ptr [esi+188h], xmm0"
+      },
+      {
+        "va": "0x7063af",
+        "bytes": "f3 0f 10 05 00 b9 be 00",
+        "asm": "movss   xmm0, dword ptr a4"
+      },
+      {
+        "va": "0x7063b7",
+        "bytes": "f3 0f 11 86 8c 01 00 00",
+        "asm": "movss   dword ptr [esi+18Ch], xmm0"
+      },
+      {
+        "va": "0x7063bf",
+        "bytes": "f3 0f 10 05 04 b9 be 00",
+        "asm": "movss   xmm0, dword ptr a4+4"
+      },
+      {
+        "va": "0x7063c7",
+        "bytes": "f3 0f 11 86 90 01 00 00",
+        "asm": "movss   dword ptr [esi+190h], xmm0"
+      },
+      {
+        "va": "0x7063cf",
+        "bytes": "c7 86 94 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+194h], 0"
+      },
+      {
+        "va": "0x7063d9",
+        "bytes": "c7 86 98 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+198h], 0"
+      },
+      {
+        "va": "0x7063e3",
+        "bytes": "e9 48 02 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x7063e8",
+        "bytes": "68 90 03 00 00",
+        "asm": "push    390h; jumptable 00706133 case 13"
+      },
+      {
+        "va": "0x7063ed",
+        "bytes": "e8 f3 09 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x7063f2",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x7063f4",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x7063f7",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x7063fa",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x7063fc",
+        "bytes": "c7 45 fc 07 00 00 00",
+        "asm": "mov     [ebp+var_4], 7"
+      },
+      {
+        "va": "0x706403",
+        "bytes": "e8 a8 eb ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x706408",
+        "bytes": "c6 45 fc 08",
+        "asm": "mov     byte ptr [ebp+var_4], 8"
+      },
+      {
+        "va": "0x70640c",
+        "bytes": "8d 8e 54 01 00 00",
+        "asm": "lea     ecx, [esi+154h]; void *"
+      },
+      {
+        "va": "0x706412",
+        "bytes": "c7 06 8c 97 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Fire@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Fire::`vftable'"
+      },
+      {
+        "va": "0x706418",
+        "bytes": "e8 e3 c6 cf ff",
+        "asm": "call    sub_402B00"
+      },
+      {
+        "va": "0x70641d",
+        "bytes": "c7 86 70 02 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+270h], 0"
+      },
+      {
+        "va": "0x706427",
+        "bytes": "c7 86 74 02 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+274h], 0"
+      },
+      {
+        "va": "0x706431",
+        "bytes": "c7 86 78 02 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+278h], 0"
+      },
+      {
+        "va": "0x70643b",
+        "bytes": "8d 8e 7c 02 00 00",
+        "asm": "lea     ecx, [esi+27Ch]; void *"
+      },
+      {
+        "va": "0x706441",
+        "bytes": "c6 45 fc 0a",
+        "asm": "mov     byte ptr [ebp+var_4], 0Ah"
+      },
+      {
+        "va": "0x706445",
+        "bytes": "e8 b6 c6 cf ff",
+        "asm": "call    sub_402B00"
+      },
+      {
+        "va": "0x70644a",
+        "bytes": "e9 e1 01 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x70644f",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h; jumptable 00706133 case 12"
+      },
+      {
+        "va": "0x706454",
+        "bytes": "e8 8c 09 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x706459",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x70645b",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x70645e",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x706461",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x706463",
+        "bytes": "c7 45 fc 0b 00 00 00",
+        "asm": "mov     [ebp+var_4], 0Bh"
+      },
+      {
+        "va": "0x70646a",
+        "bytes": "e8 41 eb ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x70646f",
+        "bytes": "c7 06 2c a3 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_TNT@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_TNT::`vftable'"
+      },
+      {
+        "va": "0x706475",
+        "bytes": "e9 b6 01 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x70647a",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h; jumptable 00706133 cases 8,9"
+      },
+      {
+        "va": "0x70647f",
+        "bytes": "e8 61 09 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x706484",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x706486",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x706489",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x70648c",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x70648e",
+        "bytes": "c7 45 fc 0c 00 00 00",
+        "asm": "mov     [ebp+var_4], 0Ch"
+      },
+      {
+        "va": "0x706495",
+        "bytes": "e8 16 eb ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x70649a",
+        "bytes": "c7 06 e4 a2 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Spikes@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Spikes::`vftable'"
+      },
+      {
+        "va": "0x7064a0",
+        "bytes": "e9 8b 01 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x7064a5",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h; jumptable 00706133 case 10"
+      },
+      {
+        "va": "0x7064aa",
+        "bytes": "e8 36 09 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x7064af",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x7064b1",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x7064b4",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x7064b7",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x7064b9",
+        "bytes": "c7 45 fc 0d 00 00 00",
+        "asm": "mov     [ebp+var_4], 0Dh"
+      },
+      {
+        "va": "0x7064c0",
+        "bytes": "e8 eb ea ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x7064c5",
+        "bytes": "c7 06 78 a5 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Web@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Web::`vftable'"
+      },
+      {
+        "va": "0x7064cb",
+        "bytes": "e9 60 01 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x7064d0",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h; jumptable 00706133 case 11"
+      },
+      {
+        "va": "0x7064d5",
+        "bytes": "e8 0b 09 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x7064da",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x7064dc",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x7064df",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x7064e2",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x7064e4",
+        "bytes": "c7 45 fc 0e 00 00 00",
+        "asm": "mov     [ebp+var_4], 0Eh"
+      },
+      {
+        "va": "0x7064eb",
+        "bytes": "e8 c0 ea ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x7064f0",
+        "bytes": "c7 06 14 9f b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Lock@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Lock::`vftable'"
+      },
+      {
+        "va": "0x7064f6",
+        "bytes": "e9 35 01 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x7064fb",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h; jumptable 00706133 case 17"
+      },
+      {
+        "va": "0x706500",
+        "bytes": "e8 e0 08 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x706505",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x706507",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x70650a",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x70650d",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x70650f",
+        "bytes": "c7 45 fc 0f 00 00 00",
+        "asm": "mov     [ebp+var_4], 0Fh"
+      },
+      {
+        "va": "0x706516",
+        "bytes": "e8 95 ea ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x70651b",
+        "bytes": "c7 06 84 a4 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_TrapDoor@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_TrapDoor::`vftable'"
+      },
+      {
+        "va": "0x706521",
+        "bytes": "c7 86 54 01 00 00 00 00 00 00",
+        "asm": "mov     dword ptr [esi+154h], 0"
+      },
+      {
+        "va": "0x70652b",
+        "bytes": "e9 00 01 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x706530",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h; jumptable 00706133 case 18"
+      },
+      {
+        "va": "0x706535",
+        "bytes": "e8 ab 08 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x70653a",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x70653c",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x70653f",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x706542",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x706544",
+        "bytes": "c7 45 fc 10 00 00 00",
+        "asm": "mov     [ebp+var_4], 10h"
+      },
+      {
+        "va": "0x70654b",
+        "bytes": "e8 60 ea ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x706550",
+        "bytes": "c7 06 58 e7 b2 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Stairs@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Stairs::`vftable'"
+      },
+      {
+        "va": "0x706556",
+        "bytes": "e9 d5 00 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x70655b",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h; jumptable 00706133 case 19"
+      },
+      {
+        "va": "0x706560",
+        "bytes": "e8 80 08 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x706565",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x706567",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x70656a",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x70656d",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x70656f",
+        "bytes": "c7 45 fc 11 00 00 00",
+        "asm": "mov     [ebp+var_4], 11h"
+      },
+      {
+        "va": "0x706576",
+        "bytes": "e8 35 ea ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x70657b",
+        "bytes": "c7 06 dc e6 b2 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Gravity@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Gravity::`vftable'"
+      },
+      {
+        "va": "0x706581",
+        "bytes": "e9 aa 00 00 00",
+        "asm": "jmp     loc_706630"
+      },
+      {
+        "va": "0x706586",
+        "bytes": "68 7c 02 00 00",
+        "asm": "push    27Ch; jumptable 00706133 case 20"
+      },
+      {
+        "va": "0x70658b",
+        "bytes": "e8 55 08 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x706590",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x706592",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x706595",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x706598",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x70659a",
+        "bytes": "c7 45 fc 12 00 00 00",
+        "asm": "mov     [ebp+var_4], 12h"
+      },
+      {
+        "va": "0x7065a1",
+        "bytes": "e8 0a ea ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x7065a6",
+        "bytes": "c6 45 fc 13",
+        "asm": "mov     byte ptr [ebp+var_4], 13h"
+      },
+      {
+        "va": "0x7065aa",
+        "bytes": "8d 8e 54 01 00 00",
+        "asm": "lea     ecx, [esi+154h]; void *"
+      },
+      {
+        "va": "0x7065b0",
+        "bytes": "c7 06 dc 95 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_PressurePlate@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_PressurePlate::`vftable'"
+      },
+      {
+        "va": "0x7065b6",
+        "bytes": "e8 45 c5 cf ff",
+        "asm": "call    sub_402B00"
+      },
+      {
+        "va": "0x7065bb",
+        "bytes": "f3 0f 7e 05 4c ce aa 00",
+        "asm": "movq    xmm0, ds:qword_AACE4C"
+      },
+      {
+        "va": "0x7065c3",
+        "bytes": "a1 54 ce aa 00",
+        "asm": "mov     eax, ds:dword_AACE54"
+      },
+      {
+        "va": "0x7065c8",
+        "bytes": "66 0f d6 86 70 02 00 00",
+        "asm": "movq    qword ptr [esi+270h], xmm0"
+      },
+      {
+        "va": "0x7065d0",
+        "bytes": "c7 86 6c 02 00 00 4f 41 17 aa",
+        "asm": "mov     dword ptr [esi+26Ch], 0AA17414Fh"
+      },
+      {
+        "va": "0x7065da",
+        "bytes": "89 86 78 02 00 00",
+        "asm": "mov     [esi+278h], eax"
+      },
+      {
+        "va": "0x7065e0",
+        "bytes": "eb 4e",
+        "asm": "jmp     short loc_706630"
+      },
+      {
+        "va": "0x7065e2",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h; jumptable 00706133 case 21"
+      },
+      {
+        "va": "0x7065e7",
+        "bytes": "e8 f9 07 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x7065ec",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x7065ee",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x7065f1",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x7065f4",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x7065f6",
+        "bytes": "c7 45 fc 14 00 00 00",
+        "asm": "mov     [ebp+var_4], 14h"
+      },
+      {
+        "va": "0x7065fd",
+        "bytes": "e8 ae e9 ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x706602",
+        "bytes": "c7 06 3c 96 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Statue@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Statue::`vftable'"
+      },
+      {
+        "va": "0x706608",
+        "bytes": "eb 26",
+        "asm": "jmp     short loc_706630"
+      },
+      {
+        "va": "0x70660a",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h; jumptable 00706133 case 23"
+      },
+      {
+        "va": "0x70660f",
+        "bytes": "e8 d1 07 38 00",
+        "asm": "call    ??2@YAPAXI@Z; operator new(uint)"
+      },
+      {
+        "va": "0x706614",
+        "bytes": "8b f0",
+        "asm": "mov     esi, eax"
+      },
+      {
+        "va": "0x706616",
+        "bytes": "83 c4 04",
+        "asm": "add     esp, 4"
+      },
+      {
+        "va": "0x706619",
+        "bytes": "89 75 f0",
+        "asm": "mov     [ebp+Block], esi"
+      },
+      {
+        "va": "0x70661c",
+        "bytes": "8b ce",
+        "asm": "mov     ecx, esi"
+      },
+      {
+        "va": "0x70661e",
+        "bytes": "c7 45 fc 15 00 00 00",
+        "asm": "mov     [ebp+var_4], 15h"
+      },
+      {
+        "va": "0x706625",
+        "bytes": "e8 86 e9 ff ff",
+        "asm": "call    sub_704FB0"
+      },
+      {
+        "va": "0x70662a",
+        "bytes": "c7 06 fc 96 b1 00",
+        "asm": "mov     dword ptr [esi], offset ??_7GridEntity_Teleporter@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity_Teleporter::`vftable'"
+      },
+      {
+        "va": "0x706630",
+        "bytes": "8b c6",
+        "asm": "mov     eax, esi"
+      },
+      {
+        "va": "0x706632",
+        "bytes": "85 f6",
+        "asm": "test    esi, esi"
+      },
+      {
+        "va": "0x706634",
+        "bytes": "74 1a",
+        "asm": "jz      short loc_706650"
+      },
+      {
+        "va": "0x706636",
+        "bytes": "89 7e 04",
+        "asm": "mov     [esi+4], edi"
+      },
+      {
+        "va": "0x706639",
+        "bytes": "89 5e 24",
+        "asm": "mov     [esi+24h], ebx"
+      },
+      {
+        "va": "0x70663c",
+        "bytes": "8b 4d f4",
+        "asm": "mov     ecx, [ebp+var_C]"
+      },
+      {
+        "va": "0x70663f",
+        "bytes": "64 89 0d 00 00 00 00",
+        "asm": "mov     large fs:0, ecx"
+      },
+      {
+        "va": "0x706646",
+        "bytes": "59",
+        "asm": "pop     ecx"
+      },
+      {
+        "va": "0x706647",
+        "bytes": "5f",
+        "asm": "pop     edi"
+      },
+      {
+        "va": "0x706648",
+        "bytes": "5e",
+        "asm": "pop     esi"
+      },
+      {
+        "va": "0x706649",
+        "bytes": "5b",
+        "asm": "pop     ebx"
+      },
+      {
+        "va": "0x70664a",
+        "bytes": "8b e5",
+        "asm": "mov     esp, ebp"
+      },
+      {
+        "va": "0x70664c",
+        "bytes": "5d",
+        "asm": "pop     ebp"
+      },
+      {
+        "va": "0x70664d",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0x70664e",
+        "bytes": "33 c0",
+        "asm": "xor     eax, eax; jumptable 00706133 default case, case 0"
+      },
+      {
+        "va": "0x706650",
+        "bytes": "8b 4d f4",
+        "asm": "mov     ecx, [ebp+var_C]"
+      },
+      {
+        "va": "0x706653",
+        "bytes": "64 89 0d 00 00 00 00",
+        "asm": "mov     large fs:0, ecx"
+      },
+      {
+        "va": "0x70665a",
+        "bytes": "59",
+        "asm": "pop     ecx"
+      },
+      {
+        "va": "0x70665b",
+        "bytes": "5f",
+        "asm": "pop     edi"
+      },
+      {
+        "va": "0x70665c",
+        "bytes": "5e",
+        "asm": "pop     esi"
+      },
+      {
+        "va": "0x70665d",
+        "bytes": "5b",
+        "asm": "pop     ebx"
+      },
+      {
+        "va": "0x70665e",
+        "bytes": "8b e5",
+        "asm": "mov     esp, ebp"
+      },
+      {
+        "va": "0x706660",
+        "bytes": "5d",
+        "asm": "pop     ebp"
+      },
+      {
+        "va": "0x706661",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0x705050",
+        "bytes": "51",
+        "asm": "push    ecx"
+      },
+      {
+        "va": "0x705051",
+        "bytes": "c7 01 5c 97 b1 00",
+        "asm": "mov     dword ptr [ecx], offset ??_7GridEntity@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity::`vftable'"
+      },
+      {
+        "va": "0x705057",
+        "bytes": "83 c1 40",
+        "asm": "add     ecx, 40h ; '@'; void *"
+      },
+      {
+        "va": "0x70505a",
+        "bytes": "e8 31 e7 cf ff",
+        "asm": "call    sub_403790"
+      },
+      {
+        "va": "0x70505f",
+        "bytes": "59",
+        "asm": "pop     ecx"
+      },
+      {
+        "va": "0x705060",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa92fd0",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h"
+      },
+      {
+        "va": "0xa92fd5",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa92fd8",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa92fd9",
+        "bytes": "e8 9d 41 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa92fde",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa92fe1",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa92fe2",
+        "bytes": "68 98 01 00 00",
+        "asm": "push    198h"
+      },
+      {
+        "va": "0xa92fe7",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa92fea",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa92feb",
+        "bytes": "e8 8b 41 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa92ff0",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa92ff3",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa92ff4",
+        "bytes": "68 f0 02 00 00",
+        "asm": "push    2F0h"
+      },
+      {
+        "va": "0xa92ff9",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa92ffc",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa92ffd",
+        "bytes": "e8 79 41 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa93002",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa93005",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa93006",
+        "bytes": "8b 4d f0",
+        "asm": "mov     ecx, [ebp+Block]"
+      },
+      {
+        "va": "0xa93009",
+        "bytes": "e9 42 20 c7 ff",
+        "asm": "jmp     loc_705050"
+      },
+      {
+        "va": "0xa9300e",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h"
+      },
+      {
+        "va": "0xa93013",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa93016",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa93017",
+        "bytes": "e8 5f 41 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa9301c",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa9301f",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa93020",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h"
+      },
+      {
+        "va": "0xa93025",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa93028",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa93029",
+        "bytes": "e8 4d 41 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa9302e",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa93031",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa93032",
+        "bytes": "68 9c 01 00 00",
+        "asm": "push    19Ch"
+      },
+      {
+        "va": "0xa93037",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa9303a",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa9303b",
+        "bytes": "e8 3b 41 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa93040",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa93043",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa93044",
+        "bytes": "68 90 03 00 00",
+        "asm": "push    390h"
+      },
+      {
+        "va": "0xa93049",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa9304c",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa9304d",
+        "bytes": "e8 29 41 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa93052",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa93055",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa93056",
+        "bytes": "8b 4d f0",
+        "asm": "mov     ecx, [ebp+Block]"
+      },
+      {
+        "va": "0xa93059",
+        "bytes": "e9 f2 1f c7 ff",
+        "asm": "jmp     loc_705050"
+      },
+      {
+        "va": "0xa9305e",
+        "bytes": "8b 4d f0",
+        "asm": "mov     ecx, [ebp+Block]"
+      },
+      {
+        "va": "0xa93061",
+        "bytes": "81 c1 54 01 00 00",
+        "asm": "add     ecx, 154h; void *"
+      },
+      {
+        "va": "0xa93067",
+        "bytes": "e9 24 07 97 ff",
+        "asm": "jmp     sub_403790"
+      },
+      {
+        "va": "0xa9306c",
+        "bytes": "8b 4d f0",
+        "asm": "mov     ecx, [ebp+Block]"
+      },
+      {
+        "va": "0xa9306f",
+        "bytes": "81 c1 70 02 00 00",
+        "asm": "add     ecx, 270h"
+      },
+      {
+        "va": "0xa93075",
+        "bytes": "e9 a6 80 b3 ff",
+        "asm": "jmp     sub_5CB120"
+      },
+      {
+        "va": "0xa9307a",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h"
+      },
+      {
+        "va": "0xa9307f",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa93082",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa93083",
+        "bytes": "e8 f3 40 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa93088",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa9308b",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa9308c",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h"
+      },
+      {
+        "va": "0xa93091",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa93094",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa93095",
+        "bytes": "e8 e1 40 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa9309a",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa9309d",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa9309e",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h"
+      },
+      {
+        "va": "0xa930a3",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa930a6",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa930a7",
+        "bytes": "e8 cf 40 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa930ac",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa930af",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa930b0",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h"
+      },
+      {
+        "va": "0xa930b5",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa930b8",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa930b9",
+        "bytes": "e8 bd 40 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa930be",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa930c1",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa930c2",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h"
+      },
+      {
+        "va": "0xa930c7",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa930ca",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa930cb",
+        "bytes": "e8 ab 40 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa930d0",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa930d3",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa930d4",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h"
+      },
+      {
+        "va": "0xa930d9",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa930dc",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa930dd",
+        "bytes": "e8 99 40 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa930e2",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa930e5",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa930e6",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h"
+      },
+      {
+        "va": "0xa930eb",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa930ee",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa930ef",
+        "bytes": "e8 87 40 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa930f4",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa930f7",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa930f8",
+        "bytes": "68 7c 02 00 00",
+        "asm": "push    27Ch"
+      },
+      {
+        "va": "0xa930fd",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa93100",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa93101",
+        "bytes": "e8 75 40 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa93106",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa93109",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa9310a",
+        "bytes": "8b 4d f0",
+        "asm": "mov     ecx, [ebp+Block]"
+      },
+      {
+        "va": "0xa9310d",
+        "bytes": "e9 3e 1f c7 ff",
+        "asm": "jmp     loc_705050"
+      },
+      {
+        "va": "0xa93112",
+        "bytes": "68 58 01 00 00",
+        "asm": "push    158h"
+      },
+      {
+        "va": "0xa93117",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa9311a",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa9311b",
+        "bytes": "e8 5b 40 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa93120",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa93123",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa93124",
+        "bytes": "68 54 01 00 00",
+        "asm": "push    154h"
+      },
+      {
+        "va": "0xa93129",
+        "bytes": "8b 45 f0",
+        "asm": "mov     eax, [ebp+Block]"
+      },
+      {
+        "va": "0xa9312c",
+        "bytes": "50",
+        "asm": "push    eax; Block"
+      },
+      {
+        "va": "0xa9312d",
+        "bytes": "e8 49 40 ff ff",
+        "asm": "call    sub_A8717B"
+      },
+      {
+        "va": "0xa93132",
+        "bytes": "83 c4 08",
+        "asm": "add     esp, 8"
+      },
+      {
+        "va": "0xa93135",
+        "bytes": "c3",
+        "asm": "retn"
+      },
+      {
+        "va": "0xa9313b",
+        "bytes": "90",
+        "asm": "nop"
+      },
+      {
+        "va": "0xa9313c",
+        "bytes": "90",
+        "asm": "nop"
+      },
+      {
+        "va": "0xa9313d",
+        "bytes": "8b 54 24 08",
+        "asm": "mov     edx, [esp-4+arg_4]"
+      },
+      {
+        "va": "0xa93141",
+        "bytes": "8d 42 0c",
+        "asm": "lea     eax, [edx+0Ch]"
+      },
+      {
+        "va": "0xa93144",
+        "bytes": "8b 4a ec",
+        "asm": "mov     ecx, [edx-14h]"
+      },
+      {
+        "va": "0xa93147",
+        "bytes": "33 c8",
+        "asm": "xor     ecx, eax; StackCookie"
+      },
+      {
+        "va": "0xa93149",
+        "bytes": "e8 6d 3a ff ff",
+        "asm": "call    @__security_check_cookie@4; __security_check_cookie(x)"
+      },
+      {
+        "va": "0xa9314e",
+        "bytes": "b8 20 2c b5 00",
+        "asm": "mov     eax, offset stru_B52C20"
+      },
+      {
+        "va": "0xa93153",
+        "bytes": "e9 bf 4e ff ff",
+        "asm": "jmp     __CxxFrameHandler3"
+      }
+    ]
+  }
+]

@@ -1,0 +1,440 @@
+{
+ "label": "PGD_SaveLocally",
+ "va": "0x903460",
+ "rva": "0x503460",
+ "note": "libzhl；只导出入口段",
+ "func_start_va": "0x903460",
+ "func_end_va": "0x903589",
+ "func_start_rva": "0x503460",
+ "func_end_rva": "0x503589",
+ "decompile_hexrays_raw": "int __thiscall sub_903460(_DWORD *this)\n{\n  int result; // eax\n  void (__thiscall ***v3)(_DWORD, int); // ecx\n  _DWORD *ArgList; // esi\n  _DWORD *v5; // eax\n  int v6; // eax\n  int v7; // ebx\n  int FileHandle; // eax\n  FILE **v9; // esi\n  int FileHandle_1; // eax\n  char ArgList_1; // [esp+0h] [ebp-10h]\n  _DWORD *v12; // [esp+Ch] [ebp-4h]\n\n  if ( n4[76782] == n4[76783] || (result = sub_8F41F0(), (_BYTE)result) )\n  {\n    if ( this[6] )\n    {\n      v3 = (void (__thiscall ***)(_DWORD, int))this[1];\n      if ( v3 )\n        (**v3)(v3, 1);\n      ArgList = this + 2;\n      v12 = operator new(0x10u);\n      v12[1] = 2;\n      v12[2] = 0;\n      *v12 = &KAGE::Filesys::File::`vftable';\n      v12[3] = 0;\n      this[1] = v12;\n      v5 = this + 2;\n      if ( this[7] >= 0x10u )\n        v5 = (_DWORD *)*ArgList;\n      v6 = sub_9F2190(&off_BCE42C, v5);\n      v7 = v6;\n      this[1] = v6;\n      if ( v6 )\n      {\n        if ( (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v6 + 48))(v6) )\n        {\n          FileHandle = fileno(*(FILE **)(v7 + 12));\n          if ( FileHandle >= 0 )\n            sub_A1FB00(FileHandle);\n        }\n        sub_902160(this);\n        v9 = (FILE **)this[1];\n        if ( ((unsigned __int8 (__thiscall *)(FILE **))(*v9)[1]._file)(v9) )\n        {\n          FileHandle_1 = fileno(v9[3]);\n          if ( FileHandle_1 >= 0 )\n            sub_A1FB00(FileHandle_1);\n        }\n        return (*(int (__thiscall **)(_DWORD))(*(_DWORD *)this[1] + 52))(this[1]);\n      }\n      else\n      {\n        if ( this[7] >= 0x10u )\n          ArgList = (_DWORD *)*ArgList;\n        return sub_9E0DF0(0, \"Could not open %s for writing!\\n\", (char)ArgList);\n      }\n    }\n    else\n    {\n      return sub_9E0DF0(0, \"PersistentGameData no filename supplied\\n\", ArgList_1);\n    }\n  }\n  return result;\n}\n",
+ "exported_ranges_rva": [
+  [
+   "0x503460",
+   "0x5034f8"
+  ]
+ ],
+ "instructions": [
+  {
+   "va": "0x903460",
+   "rva": "0x503460",
+   "bytes": "55",
+   "asm": "push    ebp"
+  },
+  {
+   "va": "0x903461",
+   "rva": "0x503461",
+   "bytes": "8b ec",
+   "asm": "mov     ebp, esp"
+  },
+  {
+   "va": "0x903463",
+   "rva": "0x503463",
+   "bytes": "51",
+   "asm": "push    ecx"
+  },
+  {
+   "va": "0x903464",
+   "rva": "0x503464",
+   "bytes": "8b 15 1c 4a be 00",
+   "asm": "mov     edx, n4"
+  },
+  {
+   "va": "0x90346a",
+   "rva": "0x50346a",
+   "bytes": "53",
+   "asm": "push    ebx"
+  },
+  {
+   "va": "0x90346b",
+   "rva": "0x50346b",
+   "bytes": "56",
+   "asm": "push    esi"
+  },
+  {
+   "va": "0x90346c",
+   "rva": "0x50346c",
+   "bytes": "57",
+   "asm": "push    edi; ArgList"
+  },
+  {
+   "va": "0x90346d",
+   "rva": "0x50346d",
+   "bytes": "8b 82 b8 af 04 00",
+   "asm": "mov     eax, [edx+4AFB8h]"
+  },
+  {
+   "va": "0x903473",
+   "rva": "0x503473",
+   "bytes": "8b f9",
+   "asm": "mov     edi, ecx"
+  },
+  {
+   "va": "0x903475",
+   "rva": "0x503475",
+   "bytes": "3b 82 bc af 04 00",
+   "asm": "cmp     eax, [edx+4AFBCh]"
+  },
+  {
+   "va": "0x90347b",
+   "rva": "0x50347b",
+   "bytes": "74 0d",
+   "asm": "jz      short loc_90348A",
+   "target_rva": [
+    "0x50348a"
+   ]
+  },
+  {
+   "va": "0x90347d",
+   "rva": "0x50347d",
+   "bytes": "e8 6e 0d ff ff",
+   "asm": "call    sub_8F41F0",
+   "target_rva": [
+    "0x4f41f0"
+   ]
+  },
+  {
+   "va": "0x903482",
+   "rva": "0x503482",
+   "bytes": "84 c0",
+   "asm": "test    al, al"
+  },
+  {
+   "va": "0x903484",
+   "rva": "0x503484",
+   "bytes": "0f 84 f8 00 00 00",
+   "asm": "jz      loc_903582",
+   "target_rva": [
+    "0x503582"
+   ]
+  },
+  {
+   "va": "0x90348a",
+   "rva": "0x50348a",
+   "bytes": "83 7f 18 00",
+   "asm": "cmp     dword ptr [edi+18h], 0"
+  },
+  {
+   "va": "0x90348e",
+   "rva": "0x50348e",
+   "bytes": "75 16",
+   "asm": "jnz     short loc_9034A6",
+   "target_rva": [
+    "0x5034a6"
+   ]
+  },
+  {
+   "va": "0x903490",
+   "rva": "0x503490",
+   "bytes": "68 58 b7 b2 00",
+   "asm": "push    offset aPersistentgame_0; \"PersistentGameData no filename supplied\"..."
+  },
+  {
+   "va": "0x903495",
+   "rva": "0x503495",
+   "bytes": "6a 00",
+   "asm": "push    0; int"
+  },
+  {
+   "va": "0x903497",
+   "rva": "0x503497",
+   "bytes": "e8 54 d9 0d 00",
+   "asm": "call    sub_9E0DF0",
+   "target_rva": [
+    "0x5e0df0"
+   ]
+  },
+  {
+   "va": "0x90349c",
+   "rva": "0x50349c",
+   "bytes": "83 c4 08",
+   "asm": "add     esp, 8"
+  },
+  {
+   "va": "0x90349f",
+   "rva": "0x50349f",
+   "bytes": "5f",
+   "asm": "pop     edi"
+  },
+  {
+   "va": "0x9034a0",
+   "rva": "0x5034a0",
+   "bytes": "5e",
+   "asm": "pop     esi"
+  },
+  {
+   "va": "0x9034a1",
+   "rva": "0x5034a1",
+   "bytes": "5b",
+   "asm": "pop     ebx"
+  },
+  {
+   "va": "0x9034a2",
+   "rva": "0x5034a2",
+   "bytes": "8b e5",
+   "asm": "mov     esp, ebp"
+  },
+  {
+   "va": "0x9034a4",
+   "rva": "0x5034a4",
+   "bytes": "5d",
+   "asm": "pop     ebp"
+  },
+  {
+   "va": "0x9034a5",
+   "rva": "0x5034a5",
+   "bytes": "c3",
+   "asm": "retn"
+  },
+  {
+   "va": "0x9034a6",
+   "rva": "0x5034a6",
+   "bytes": "8b 4f 04",
+   "asm": "mov     ecx, [edi+4]"
+  },
+  {
+   "va": "0x9034a9",
+   "rva": "0x5034a9",
+   "bytes": "85 c9",
+   "asm": "test    ecx, ecx"
+  },
+  {
+   "va": "0x9034ab",
+   "rva": "0x5034ab",
+   "bytes": "74 06",
+   "asm": "jz      short loc_9034B3",
+   "target_rva": [
+    "0x5034b3"
+   ]
+  },
+  {
+   "va": "0x9034ad",
+   "rva": "0x5034ad",
+   "bytes": "8b 01",
+   "asm": "mov     eax, [ecx]"
+  },
+  {
+   "va": "0x9034af",
+   "rva": "0x5034af",
+   "bytes": "6a 01",
+   "asm": "push    1"
+  },
+  {
+   "va": "0x9034b1",
+   "rva": "0x5034b1",
+   "bytes": "ff 10",
+   "asm": "call    dword ptr [eax]"
+  },
+  {
+   "va": "0x9034b3",
+   "rva": "0x5034b3",
+   "bytes": "6a 10",
+   "asm": "push    10h; Size"
+  },
+  {
+   "va": "0x9034b5",
+   "rva": "0x5034b5",
+   "bytes": "e8 2b 39 18 00",
+   "asm": "call    ??2@YAPAXI@Z; operator new(uint)",
+   "target_rva": [
+    "0x686de5"
+   ]
+  },
+  {
+   "va": "0x9034ba",
+   "rva": "0x5034ba",
+   "bytes": "8d 77 08",
+   "asm": "lea     esi, [edi+8]"
+  },
+  {
+   "va": "0x9034bd",
+   "rva": "0x5034bd",
+   "bytes": "89 45 fc",
+   "asm": "mov     [ebp+var_4], eax"
+  },
+  {
+   "va": "0x9034c0",
+   "rva": "0x5034c0",
+   "bytes": "83 c4 04",
+   "asm": "add     esp, 4"
+  },
+  {
+   "va": "0x9034c3",
+   "rva": "0x5034c3",
+   "bytes": "c7 40 04 02 00 00 00",
+   "asm": "mov     dword ptr [eax+4], 2"
+  },
+  {
+   "va": "0x9034ca",
+   "rva": "0x5034ca",
+   "bytes": "c7 40 08 00 00 00 00",
+   "asm": "mov     dword ptr [eax+8], 0"
+  },
+  {
+   "va": "0x9034d1",
+   "rva": "0x5034d1",
+   "bytes": "c7 00 ac 96 b3 00",
+   "asm": "mov     dword ptr [eax], offset ??_7File@Filesys@KAGE@@6B@; const KAGE::Filesys::File::`vftable'"
+  },
+  {
+   "va": "0x9034d7",
+   "rva": "0x5034d7",
+   "bytes": "c7 40 0c 00 00 00 00",
+   "asm": "mov     dword ptr [eax+0Ch], 0"
+  },
+  {
+   "va": "0x9034de",
+   "rva": "0x5034de",
+   "bytes": "89 47 04",
+   "asm": "mov     [edi+4], eax"
+  },
+  {
+   "va": "0x9034e1",
+   "rva": "0x5034e1",
+   "bytes": "8b c6",
+   "asm": "mov     eax, esi"
+  },
+  {
+   "va": "0x9034e3",
+   "rva": "0x5034e3",
+   "bytes": "83 7e 14 10",
+   "asm": "cmp     dword ptr [esi+14h], 10h"
+  },
+  {
+   "va": "0x9034e7",
+   "rva": "0x5034e7",
+   "bytes": "72 02",
+   "asm": "jb      short loc_9034EB",
+   "target_rva": [
+    "0x5034eb"
+   ]
+  },
+  {
+   "va": "0x9034e9",
+   "rva": "0x5034e9",
+   "bytes": "8b 06",
+   "asm": "mov     eax, [esi]"
+  },
+  {
+   "va": "0x9034eb",
+   "rva": "0x5034eb",
+   "bytes": "50",
+   "asm": "push    eax"
+  },
+  {
+   "va": "0x9034ec",
+   "rva": "0x5034ec",
+   "bytes": "b9 2c e4 bc 00",
+   "asm": "mov     ecx, offset off_BCE42C"
+  },
+  {
+   "va": "0x9034f1",
+   "rva": "0x5034f1",
+   "bytes": "e8 9a ec 0e 00",
+   "asm": "call    sub_9F2190",
+   "target_rva": [
+    "0x5f2190"
+   ]
+  },
+  {
+   "va": "0x9034f6",
+   "rva": "0x5034f6",
+   "bytes": "8b d8",
+   "asm": "mov     ebx, eax"
+  }
+ ],
+ "xrefs_to_func": [
+  {
+   "from_rva": "0x2f63a3",
+   "type": 17
+  },
+  {
+   "from_rva": "0x339eb7",
+   "type": 17
+  },
+  {
+   "from_rva": "0x4b38bb",
+   "type": 17
+  },
+  {
+   "from_rva": "0x4cbf00",
+   "type": 17
+  },
+  {
+   "from_rva": "0x4e911b",
+   "type": 17
+  },
+  {
+   "from_rva": "0x4e963c",
+   "type": 17
+  },
+  {
+   "from_rva": "0x4f50f4",
+   "type": 17
+  },
+  {
+   "from_rva": "0x5003e2",
+   "type": 17
+  },
+  {
+   "from_rva": "0x5009d1",
+   "type": 17
+  },
+  {
+   "from_rva": "0x500ac9",
+   "type": 17
+  },
+  {
+   "from_rva": "0x500af0",
+   "type": 17
+  },
+  {
+   "from_rva": "0x500d8f",
+   "type": 17
+  },
+  {
+   "from_rva": "0x5035e6",
+   "type": 17
+  },
+  {
+   "from_rva": "0x505718",
+   "type": 17
+  },
+  {
+   "from_rva": "0x505b9a",
+   "type": 17
+  },
+  {
+   "from_rva": "0x523ab9",
+   "type": 17
+  },
+  {
+   "from_rva": "0x526c36",
+   "type": 17
+  },
+  {
+   "from_rva": "0x52e244",
+   "type": 17
+  },
+  {
+   "from_rva": "0x53248a",
+   "type": 17
+  },
+  {
+   "from_rva": "0x582d5c",
+   "type": 17
+  },
+  {
+   "from_rva": "0x582dc6",
+   "type": 17
+  },
+  {
+   "from_rva": "0x5af130",
+   "type": 17
+  },
+  {
+   "from_rva": "0x5af8d0",
+   "type": 17
+  }
+ ]
+}

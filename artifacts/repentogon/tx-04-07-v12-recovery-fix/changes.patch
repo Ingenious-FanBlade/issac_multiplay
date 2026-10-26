@@ -1,0 +1,310 @@
+--- e2e-09/sources/mod/src/game/state.h
++++ mod/src/game/state.h
+@@ -9,6 +9,12 @@
+ #include "game/topology.h"
+ 
+ namespace cs::game {
++// 用户采纳的重绑射击恢复窗口：最多六个有效 Authority tick，不缓存或补写旧 held。
++inline constexpr uint64_t kShootingRecoveryTicks = 6;
++struct ShootingRecovery {
++  uint64_t generation = 0, first_tick = 0;
++  bool source_seen = false; // 首条可消费的新命令（包括中性）出现后，本代次永久退出窗口。
++};
+ // 每 tick 汇总查询及实际 Player 调用链，不用 consumer 缺席推断 Lua 跳过。
+ struct TickMetrics {
+   // E2E 逐窗口顺序及炸弹查询幂等性证据，不参与输入判定。
+@@ -26,7 +32,7 @@
+   uint32_t query_read_mask = 0, query_repeat_mask = 0,
+            query_mismatch_mask = 0;
+   uint64_t player_entered = 0, native_reached = 0, chain_skipped = 0,
+-           shooting_suppressed = 0;
++           shooting_suppressed = 0, shooting_startup_deferred = 0;
+   int move_direction = -1;
+   float velocity_x = 0, velocity_y = 0, shoot_x = 0, shoot_y = 0;
+   unsigned char shoot_flag = 0;
+@@ -41,6 +47,8 @@
+   core::TickBoundary boundary{};
+   std::array<core::InputStateDraftV2, 2> tick_input{};
+   std::array<TickMetrics, 2> metrics{};
++  // 只记录恢复时序；不保存旧输入，不读取或写入武器蓄力，A/B 使用相同上限。
++  std::array<ShootingRecovery, 2> shooting_recovery{};
+   std::array<Topology, 2> topology{};
+   std::array<void *, 2> controlled_player{};
+   core::SessionMode mode = core::SessionMode::None;
+--- e2e-09/sources/mod/src/game/tick.cpp
++++ mod/src/game/tick.cpp
+@@ -64,6 +64,14 @@
+     r.metrics[i] = {};
+     r.metrics[i].authority_pre = 1;
+     r.metrics[i].input_sequence = r.players[i].CurrentSequence();
++    // 以实际 Authority tick 起算，consumer 缺席也不能延长恢复窗口。
++    auto &recovery = r.shooting_recovery[i];
++    if (!r.players[i].BoundValid())
++      recovery = {};
++    else if (recovery.generation != r.players[i].Generation())
++      recovery = {r.players[i].Generation(), r.clock.Current(), false};
++    if (r.players[i].BoundValid() && r.metrics[i].input_sequence)
++      recovery.source_seen = true;
+     r.metrics[i].input_generation = r.players[i].Generation();
+     r.metrics[i].input_epoch = r.query_epoch;
+     r.tick_input[i] = r.players[i].Current();
+@@ -117,7 +125,7 @@
+       "query_epoch=%llu b_life=%s b_bound=%u death=%llu "
+       "move=%d,%d aim=%d,%d held=%u edge=%u player_update_entered=%llu "
+       "player_native_reached=%llu "
+-      "player_skipped_by_chain=%llu shooting_suppressed=%llu fields_known=%u "
++      "player_skipped_by_chain=%llu shooting_suppressed=%llu shooting_startup_deferred=%llu fields_known=%u "
+       "move_direction=%d "
+       "velocity=%g,%g shoot_components=%g,%g shoot_flag=%u published=1 "
+       "authority_pre=%llu native_commit=%llu owner=%s bomb_queries=%llu "
+@@ -140,6 +148,7 @@
+       r.tick_input[ordinal].held_flags, r.tick_input[ordinal].edge_flags,
+       r.metrics[ordinal].player_entered, r.metrics[ordinal].native_reached,
+       r.metrics[ordinal].chain_skipped, r.metrics[ordinal].shooting_suppressed,
++      r.metrics[ordinal].shooting_startup_deferred,
+       r.metrics[ordinal].player_fields_known, r.metrics[ordinal].move_direction,
+       r.metrics[ordinal].velocity_x, r.metrics[ordinal].velocity_y,
+       r.metrics[ordinal].shoot_x, r.metrics[ordinal].shoot_y,
+--- e2e-09/sources/mod/src/game/consumers.cpp
++++ mod/src/game/consumers.cpp
+@@ -60,6 +60,18 @@
+     call_original_ = tick && !r.blocks && r.players[ordinal].BoundValid() &&
+                      r.players[ordinal].Bound().player == player &&
+                      ContextHealthy() && !InBlockedContext() && !r.failure;
++    // 新代次尚无可消费命令时，短暂暂停 Shooting，避免把握手空档变成武器松键。
++    // Authority 不等待远端；首条命令（包括真实中性）或六 tick 上限均结束例外。
++    const auto &recovery = r.shooting_recovery[ordinal];
++    const bool startup_deferred = call_original_ &&
++        recovery.generation == r.players[ordinal].Generation() &&
++        !recovery.source_seen && !r.players[ordinal].CurrentSequence() &&
++        tick >= recovery.first_tick &&
++        tick - recovery.first_tick < kShootingRecoveryTicks;
++    if (startup_deferred) {
++      call_original_ = false;
++      ++r.metrics[ordinal].shooting_startup_deferred;
++    }
+     if (!call_original_) {
+       ++r.suppressed;
+       if (tick)
+@@ -72,12 +84,15 @@
+     Trace("shooting_dispatch",
+           "ordinal=%u original=%u tick=%llu blocks=%u loop=%llu generation=%llu "
+           "session_generation=%llu owner=%u owner_token=%llu room=%p index=%u "
+-          "loading_episode=%llu participant_generation=%llu",
++          "loading_episode=%llu participant_generation=%llu startup_deferred=%u "
++          "recovery_first_tick=%llu recovery_limit=%llu input_sequence=%llu recovery_source_seen=%u",
+           unsigned(ordinal), call_original_, tick, r.blocks, r.loop,
+           r.players[ordinal].Generation(), r.session.Identity().generation,
+           unsigned(owner), OwnerToken(owner), r.topology[ordinal].room.room,
+           r.topology[ordinal].room.index,
+-          r.loading.active ? r.loading.id : 0, r.players[ordinal].Generation());
++          r.loading.active ? r.loading.id : 0, r.players[ordinal].Generation(),
++          startup_deferred, recovery.first_tick, kShootingRecoveryTicks,
++          r.players[ordinal].CurrentSequence(), recovery.source_seen);
+     r.last_dispatch_suppressed[ordinal] = !call_original_;
+   }
+ }
+--- e2e-09/sources/mod/src/ops/command.cpp
++++ mod/src/ops/command.cpp
+@@ -41,7 +41,7 @@
+       return "Disabled";
+   return game::StateName();
+ }
+-// 所有来源共用参数解析；变更入队，查询读取上一帧快照。
++// 所有来源共用参数解析；变更入队，status/counters 读帧尾快照，witness 只读当前主线程边界。
+ std::string Execute(std::string_view text, const char *source) {
+   if (text.size() > 512 ||
+       text.find_first_of("\r\n\0", 0, 3) != std::string_view::npos)
+@@ -132,6 +132,19 @@
+     else if (verb == "status" || verb == "counters") {
+       std::lock_guard lock(snapshot_lock);
+       result = verb == "status" ? status_snapshot : counter_snapshot;
++    } else if (verb == "witness") {
++      // Lua 在 Shooting 内观测激光时不能使用上一轮 status_snapshot 的 frame。
++      // 此接口只复制当前主线程的编号/代次/阻断值，不读取蓄力或写入任何游戏状态。
++      const auto *r = game::Runtime();
++      const auto owner = game::TopOwner();
++      result = "ok=1\nwitness_version=1\nframe=" + std::to_string(frame) +
++          "\nsimulation_tick=" + std::to_string(r ? r->pipeline.SimulationTick() : 0) +
++          "\nsession_generation=" + std::to_string(r ? game::SessionGeneration(*r) : 0) +
++          "\na_generation=" + std::to_string(r ? r->players[0].Generation() : 0) +
++          "\nb_generation=" + std::to_string(r ? r->players[1].Generation() : 0) +
++          "\nblocks=" + std::to_string(r ? r->blocks : 0) +
++          "\nowner=" + std::to_string(unsigned(owner)) +
++          "\nowner_token=" + std::to_string(game::OwnerToken(owner)) + "\n";
+     } else
+       result = "ok=0\nerror=unknown_verb\n";
+   }
+--- e2e-09/sources/tests/e2e-mods/isaac-cs-test/main.lua
++++ tests/e2e-mods/isaac-cs-test/main.lua
+@@ -272,12 +272,19 @@
+     return 0
+ end
+ 
+--- 每次事件读取当前 Manager loop；暂停/跳帧时 Game frame 不变而 Manager 仍推进，
+--- 因此不能用 Game frame 缓存 loop，更不能让旧值冒充动作结束时刻。
+-local function currentLoop()
+-    local ok, response = pcall(Isaac.ExecuteCommand, "cs status")
+-    if ok then return tonumber(tostring(response):match("\nframe=(%d+)")) end
+-    return nil
++-- status 是帧尾缓存，模拟内回调会落后一轮；witness 只读当前主线程的实际边界。
++-- 缺失接口时保留空 witness，归约不能把旧快照或 Game frame 补成有效证据。
++local function currentWitness()
++    local ok, response = pcall(Isaac.ExecuteCommand, "cs witness")
++    local witness = {}
++    if ok then
++        response = tostring(response)
++        for _, key in ipairs({ "witness_version", "frame", "simulation_tick", "session_generation",
++            "a_generation", "b_generation", "blocks", "owner", "owner_token" }) do
++            witness[key] = tonumber(response:match("\n" .. key .. "=(%d+)"))
++        end
++    end
++    return witness
+ end
+ 
+ -- 所有 tx-04-07 结构化记录统一前缀，harness 按 token 过滤本次部署。
+@@ -289,7 +296,8 @@
+     data.serial = serial
+     data.render = render
+     data.game_frame = gameFrame()
+-    data.loop = currentLoop()
++    data.witness = currentWitness()
++    data.loop = data.witness.frame
+     Isaac.DebugString("[isaac-cs-test] " .. logPrefix .. " " .. json.encode(data))
+ end
+ 
+--- e2e-09/sources/tools/harness/src/tx07/evidence.rs
++++ tools/harness/src/tx07/evidence.rs
+@@ -383,20 +383,38 @@
+             .iter()
+             .filter(|v| v["event"] == "laser-spawn")
+             .collect::<Vec<_>>();
++        // 激光回调必须带实时主线程 witness；旧 status 的帧尾编号不能参与新判定。
++        let laser_witnesses = !lasers.is_empty()
++            && lasers.iter().all(|v| {
++                v["witness"]["witness_version"] == 1
++                    && v["loop"].as_u64().is_some()
++                    && v["loop"] == v["witness"]["frame"]
++            });
+         let attributed = |v: &&Value| v["attribution"] == "B" || v["laser"]["attribution"] == "B";
++        let after_actual_release = |v: &Value| {
++            first_release.is_some_and(|t| {
++                v["witness"]["session_generation"].as_u64() == t.n("session_generation")
++                    && v["witness"]["b_generation"].as_u64() == t.n("input_generation")
++                    && v["witness"]["simulation_tick"]
++                        .as_u64()
++                        .zip(t.n("tick"))
++                        .is_some_and(|(laser_tick, release_tick)| laser_tick >= release_tick)
++            })
++        };
+         let early = lasers
+             .iter()
+             .copied()
+             .filter(attributed)
+-            .filter(|v| in_bounds(v["loop"].as_u64(), held) && v["loop"].as_u64() != release_loop)
++            .filter(|v| in_bounds(v["loop"].as_u64(), held) && !after_actual_release(v))
+             .collect::<Vec<_>>();
+         let late = lasers
+             .iter()
+             .copied()
+             .filter(attributed)
+             .filter(|v| {
+-                (v["loop"].as_u64() == release_loop && release_loop.is_some())
+-                    || in_bounds(v["loop"].as_u64(), released)
++                ((v["loop"].as_u64() == release_loop && release_loop.is_some())
++                    || in_bounds(v["loop"].as_u64(), released))
++                    && after_actual_release(v)
+             })
+             .collect::<Vec<_>>();
+         let unknown = lasers
+@@ -432,8 +450,67 @@
+                     && e.n("loop") != release_loop
+             })
+             .collect();
+-        // 首个重绑 tick 缺输入也必须如实失败，不能排除或改成保持旧攻击。
+-        let gaps: Vec<_> = continuity.iter().copied().filter(|e| !is_held(e)).collect();
++        // 用户采纳的六 tick 恢复例外必须由 tick + 每次实际分派双向证明。
++        // 首条新命令之后的丢包、真实松键、超过上限或未暂停的空档仍是失败。
++        let raw_gaps: Vec<_> = continuity.iter().copied().filter(|e| !is_held(e)).collect();
++        let recovery_paused = |e: &Event| {
++            let first = events
++                .iter()
++                .filter(|t| {
++                    t.kind() == "tick"
++                        && t.n("ordinal") == Some(1)
++                        && t.n("b_bound") == Some(1)
++                        && t.n("session_generation") == e.n("session_generation")
++                        && t.n("input_generation") == e.n("input_generation")
++                })
++                .filter_map(|t| t.n("tick"))
++                .min();
++            let within = e
++                .n("tick")
++                .zip(first)
++                .is_some_and(|(t, b)| t >= b && t - b < 6);
++            let earlier_source = events.iter().any(|t| {
++                t.kind() == "tick"
++                    && t.n("ordinal") == Some(1)
++                    && t.n("session_generation") == e.n("session_generation")
++                    && t.n("input_generation") == e.n("input_generation")
++                    && t.n("tick").zip(e.n("tick")).is_some_and(|(a, b)| a < b)
++                    && t.n("input_sequence").is_some_and(|s| s != 0)
++            });
++            let calls: Vec<_> = dispatch
++                .iter()
++                .copied()
++                .filter(|d| {
++                    d.n("tick") == e.n("tick")
++                        && d.n("session_generation") == e.n("session_generation")
++                        && d.n("generation") == e.n("input_generation")
++                })
++                .collect();
++            neutral(e)
++                && e.n("input_sequence") == Some(0)
++                && within
++                && !earlier_source
++                && e.n("shooting_startup_deferred").is_some_and(|n| n > 0)
++                && e.n("shooting_startup_deferred") == e.n("shooting_suppressed")
++                && !calls.is_empty()
++                && calls.iter().all(|d| {
++                    d.n("original") == Some(0)
++                        && d.n("startup_deferred") == Some(1)
++                        && d.n("input_sequence") == Some(0)
++                        && d.n("recovery_limit") == Some(6)
++                        && d.n("recovery_first_tick") == first
++                })
++        };
++        let deferred: Vec<_> = raw_gaps
++            .iter()
++            .copied()
++            .filter(|e| recovery_paused(e))
++            .collect();
++        let gaps: Vec<_> = raw_gaps
++            .iter()
++            .copied()
++            .filter(|e| !recovery_paused(e))
++            .collect();
+         let continuous = !continuity.is_empty() && gaps.is_empty();
+         let required = self.scenario["charge_ticks"].as_u64().unwrap_or(u64::MAX);
+         // 从首次真正消费 held 开始计时，安装前的中性 tick 不冒充持续按住。
+@@ -509,13 +586,19 @@
+             && precharge["pass"] == true
+             && postcharge["pass"] == true
+             && first_release.is_some()
++            && laser_witnesses
+             && control_ok;
+         let detail = json!({"before_release":early,"after_release":late,"unknown_attribution":unknown,
+             "blocked_dispatch":suppressed.iter().map(|e|&e.raw).collect::<Vec<_>>(),
+-            "fresh_held_continuity":continuous,"continuity_gaps":gaps.iter().map(|e|&e.raw).collect::<Vec<_>>(),
++            "fresh_held_continuity":!continuity.is_empty() && raw_gaps.is_empty(),
++            "effective_shooting_continuity":continuous,"continuity_gaps":gaps.iter().map(|e|&e.raw).collect::<Vec<_>>(),
++            "neutral_startup_gaps":raw_gaps.iter().map(|e|&e.raw).collect::<Vec<_>>(),
++            "verified_startup_pauses":deferred.iter().map(|e|&e.raw).collect::<Vec<_>>(),
++            "continuity_rule":"held from Accepted, or proven neutral Shooting pause before first command within six bound Authority ticks",
+             "precharge":precharge,"postcharge":postcharge,"actual_release":first_release.map(|e| &e.raw),
+             "control":{"pass":control_ok,"charge":control_charge,"lasers":control_lasers},
+             "laser_release_status":if !late.is_empty(){"OBSERVED"}else{"NOT_OBSERVED"},
++            "realtime_laser_witnesses":laser_witnesses,
+             "armed_new_source":armed,"release_window_ticks":self.scenario["laser_release_ticks"]});
+         write_json(&self.out.join("laser-evidence.json"), &detail)?;
+         // 已观测到实际违例就 FAIL；缺激光不能再把可证实的连续性错误掩盖为未观测。

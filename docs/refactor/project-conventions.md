@@ -80,6 +80,7 @@
 - tx-01-52 用户确认射击相反方向后按者优先；源转换按每条轴保存胜出方向，释放胜出键后回退仍按住的方向，全部释放才归零。无法区分同次采样先后时保留仍按住的旧胜出方向；没有历史时固定右／下。A/B 原始方向源共用转换、各自保存历史，再经相同 canonical/queue/Resolve；不修改移动相消语义或 V1 接口。
 - tx-01-45 的交付限定为有效分配、对象/缓冲和主线程正常顺序路径；完整 OOM、EH、worker 并发及计数镜像的并发闭包不在本次范围。可识别的异常中性停用，不能据此声称这些异常已安全恢复。
 - tx-01-54 跨房射击修复：无 Authority tick 或 pause/loading/lifecycle 阻断时，C/S 主动分派暂停原生 Shooting consumer，避免把中性查询当作武器松键；停用时同样暂停。正常无阻断 tick 的真实松键与缺输入仍执行中性消费，不保持旧攻击。A/B 共用，不改武器蓄力字段；观测 wrapper 和其他原生更新保持原调用，主动暂停的 Shooting original 调用次数为零。本次一次专项18/18 PASS，覆盖普通门往返及暂停恢复，不外推所有武器或 loading/换层。
+- 2026-10-26 用户在 tx-04-07 采纳重绑恢复例外：唯一绑定后，从首个有效 Authority tick 起最多六个 tick，尚无可消费的新代次命令时可暂停 Shooting original；Authority 与其他更新正常推进，canonical 查询仍中性，不等待全员、不复用旧 held、不读写蓄力字段。首条新代次命令用于 current（包括真实中性/松键）立即结束恢复窗口，本代次不再重新开启；六 tick 到期也恢复中性消费。consumer 缺席不延长窗口，A/B 同规则。此例外只覆盖首条新命令前的握手空档，其余正常缺输入与真实松键仍按前述规则消费；原 tx-01-54 验收记录不追溯改变。
 - tx-01-56 异常 Join 分支实现：自有 B 为完整 Type=1/Variant=0 Player；在同一 Game/manager/A、主线程和唯一 exact pair 的两 pass Join 内，三处原生 Baby 判断仅对自有 K 选择普通角色路径。原 predicate 各调用一次，其他设备保留原值，不改全局 run flags；普通工厂仍为唯一创建 owner，不接纳未经 owner 的 Baby/possessor。新增三处 Hook 纳入统一51槽事务；本轮唯一E2E专项21/21 PASS，实际Baby=true路径、完整B、宿主健康与51槽恢复已覆盖，旧tx-01-51具体来源仍为静态推断。
 - 回收策略为 `NEVER`：进入 `BASE_CONSTRUCTED` 后，对象、control block 及其有效基类状态在进程生命周期内不释放。只有未执行原生构造的 raw allocation 可以回滚释放。
 - 首次调用原生 base ctor 前固定 DLL；恢复后 DLL 常驻。退休输出中性，设备从 InputManager vector 移除，B 解绑或退出；每个 session 至多一次创建，失败不自动重试。
@@ -107,6 +108,7 @@
 - tx-01-74（2026-10-18）用户明确采纳：W07 的 10,000 次指同一稳定 run/room 内连续的普通完整采集。明确的 odd-only gap 必须保留原记录，不计入次数，也不打断该区间。
 - 只有原因与 Authority kind 均明确为 odd-only、且同 run/room、mutation、线程及递增 token/tick/连续 attempt 的记录适用该例外；odd 仍为 gap，不获得完整世界样本或普通跨进程对齐资格。
 - 其它缺口、读失败、字段/来源不完整、背压导致的缺号或生命周期变化均打断区间。完整扫描和交互进度使用同一规则；报告保留完整样本数、跳过的 odd-only 数量和区间边界。
+- 2026-10-26，用户为 tx-04-08 的 REPENTOGON world_record 迁移明确将稳定区间目标改为 **2,000 次**完整普通采集，沿用上述 odd-only 与中断规则；该专项决定不改写历史 W07 的 10,000 次要求或结果。范围与两次顺序启动的整体 E2E 见[迁移设计](../design/tx-04-08/tx-04-08-implementation-plan.md)。
 
 ## 13. 已移除的原版联机实机测试
 

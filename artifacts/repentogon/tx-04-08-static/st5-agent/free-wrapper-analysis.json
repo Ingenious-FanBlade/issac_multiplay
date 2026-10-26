@@ -1,0 +1,1508 @@
+{
+  "query": {
+    "tool": "mcp__ida_mcp__analyze_batch",
+    "targets": [
+      "0x6a3ec0",
+      "0x74e970",
+      "0x6b4870",
+      "0x6070c0",
+      "0x5ccf30",
+      "0x6dd670",
+      "0x662df0",
+      "0x64f470",
+      "0x705020",
+      "0x706730",
+      "0x69d5a0",
+      "0x659a30",
+      "0x939bb0",
+      "0x945c20",
+      "0x6a3590"
+    ],
+    "scope": "vtable slot-0 Free wrappers; selected unsupported Entity subclasses included"
+  },
+  "result": {
+    "result": [
+      {
+        "target": "0x6A3EC0",
+        "addr": "0x6a3ec0",
+        "name": "sub_6A3EC0",
+        "analysis": {
+          "size": "0x26",
+          "prototype": "void *__thiscall(void *Block, char)",
+          "decompile": "void *__thiscall sub_6A3EC0(void *Block, char a2)\n{\n  sub_6A3EF0(); /*0x6a3ec6*/\n  if ( (a2 & 1) != 0 ) /*0x6a3ecf*/\n    sub_A8717B(Block); /*0x6a3ed7*/\n  return Block; /*0x6a3ee1*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "6a3ec0  push ebp",
+              "6a3ec1  mov ebp, esp",
+              "6a3ec3  push esi",
+              "6a3ec4  mov esi, ecx",
+              "6a3ec6  call sub_6A3EF0",
+              "6a3ecb  test [ebp+arg_0], 1",
+              "6a3ecf  jz short loc_6A3EDF",
+              "6a3ed1  push 410h",
+              "6a3ed6  push esi; Block",
+              "6a3ed7  call sub_A8717B",
+              "6a3edc  add esp, 8",
+              "6a3edf  mov eax, esi",
+              "6a3ee1  pop esi",
+              "6a3ee2  pop ebp",
+              "6a3ee3  retn 4"
+            ],
+            "instruction_count": 15,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x6a3ec0",
+              "end": "0x6a3ed1",
+              "size": 17,
+              "type": 0,
+              "successors": [
+                "0x6a3ed1",
+                "0x6a3edf"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x6a3ed1",
+              "end": "0x6a3edf",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x6a3edf"
+              ],
+              "predecessors": [
+                "0x6a3ec0"
+              ]
+            },
+            {
+              "start": "0x6a3edf",
+              "end": "0x6a3ee6",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x6a3ec0",
+                "0x6a3ed1"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x74E970",
+        "addr": "0x74e970",
+        "name": "sub_74E970",
+        "analysis": {
+          "size": "0x26",
+          "prototype": "void *__thiscall(void *Block, char)",
+          "decompile": "void *__thiscall sub_74E970(void *Block, char a2)\n{\n  sub_74F260(); /*0x74e976*/\n  if ( (a2 & 1) != 0 ) /*0x74e97f*/\n    sub_A8717B(Block); /*0x74e987*/\n  return Block; /*0x74e991*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "74e970  push ebp",
+              "74e971  mov ebp, esp",
+              "74e973  push esi",
+              "74e974  mov esi, ecx",
+              "74e976  call sub_74F260",
+              "74e97b  test [ebp+arg_0], 1",
+              "74e97f  jz short loc_74E98F",
+              "74e981  push 2EA0h",
+              "74e986  push esi; Block",
+              "74e987  call sub_A8717B",
+              "74e98c  add esp, 8",
+              "74e98f  mov eax, esi",
+              "74e991  pop esi",
+              "74e992  pop ebp",
+              "74e993  retn 4"
+            ],
+            "instruction_count": 15,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x74e970",
+              "end": "0x74e981",
+              "size": 17,
+              "type": 0,
+              "successors": [
+                "0x74e981",
+                "0x74e98f"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x74e981",
+              "end": "0x74e98f",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x74e98f"
+              ],
+              "predecessors": [
+                "0x74e970"
+              ]
+            },
+            {
+              "start": "0x74e98f",
+              "end": "0x74e996",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x74e970",
+                "0x74e981"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x6B4870",
+        "addr": "0x6b4870",
+        "name": "sub_6B4870",
+        "analysis": {
+          "size": "0x26",
+          "prototype": "void *__thiscall(void *Block, char)",
+          "decompile": "void *__thiscall sub_6B4870(void *Block, char a2)\n{\n  sub_6B48A0(Block); /*0x6b4876*/\n  if ( (a2 & 1) != 0 ) /*0x6b487f*/\n    sub_A8717B(Block); /*0x6b4887*/\n  return Block; /*0x6b4891*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "6b4870  push ebp",
+              "6b4871  mov ebp, esp",
+              "6b4873  push esi",
+              "6b4874  mov esi, ecx",
+              "6b4876  call sub_6B48A0",
+              "6b487b  test [ebp+arg_0], 1",
+              "6b487f  jz short loc_6B488F",
+              "6b4881  push 0F60h",
+              "6b4886  push esi; Block",
+              "6b4887  call sub_A8717B",
+              "6b488c  add esp, 8",
+              "6b488f  mov eax, esi",
+              "6b4891  pop esi",
+              "6b4892  pop ebp",
+              "6b4893  retn 4"
+            ],
+            "instruction_count": 15,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x6b4870",
+              "end": "0x6b4881",
+              "size": 17,
+              "type": 0,
+              "successors": [
+                "0x6b4881",
+                "0x6b488f"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x6b4881",
+              "end": "0x6b488f",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x6b488f"
+              ],
+              "predecessors": [
+                "0x6b4870"
+              ]
+            },
+            {
+              "start": "0x6b488f",
+              "end": "0x6b4896",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x6b4870",
+                "0x6b4881"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x6070C0",
+        "addr": "0x6070c0",
+        "name": "sub_6070C0",
+        "analysis": {
+          "size": "0x26",
+          "prototype": "void *__thiscall(void *Block, char)",
+          "decompile": "void *__thiscall sub_6070C0(void *Block, char a2)\n{\n  sub_6070F0(Block); /*0x6070c6*/\n  if ( (a2 & 1) != 0 ) /*0x6070cf*/\n    sub_A8717B(Block); /*0x6070d7*/\n  return Block; /*0x6070e1*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "6070c0  push ebp",
+              "6070c1  mov ebp, esp",
+              "6070c3  push esi",
+              "6070c4  mov esi, ecx",
+              "6070c6  call sub_6070F0",
+              "6070cb  test [ebp+arg_0], 1",
+              "6070cf  jz short loc_6070DF",
+              "6070d1  push 0F30h",
+              "6070d6  push esi; Block",
+              "6070d7  call sub_A8717B",
+              "6070dc  add esp, 8",
+              "6070df  mov eax, esi",
+              "6070e1  pop esi",
+              "6070e2  pop ebp",
+              "6070e3  retn 4"
+            ],
+            "instruction_count": 15,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x6070c0",
+              "end": "0x6070d1",
+              "size": 17,
+              "type": 0,
+              "successors": [
+                "0x6070d1",
+                "0x6070df"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x6070d1",
+              "end": "0x6070df",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x6070df"
+              ],
+              "predecessors": [
+                "0x6070c0"
+              ]
+            },
+            {
+              "start": "0x6070df",
+              "end": "0x6070e6",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x6070c0",
+                "0x6070d1"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x5CCF30",
+        "addr": "0x5ccf30",
+        "name": "sub_5CCF30",
+        "analysis": {
+          "size": "0x95",
+          "prototype": "char *__thiscall(char *Block, char)",
+          "decompile": "char *__thiscall sub_5CCF30(char *Block, char a2)\n{\n  char *v3; // edi\n  int v4; // ecx\n\n  *(_DWORD *)Block = &IsaacRepentancePlus::Entity_Effect::`vftable'; /*0x5ccf56*/\n  v3 = Block + 1204; /*0x5ccf5c*/\n  v4 = *((_DWORD *)Block + 302); /*0x5ccf69*/\n  if ( v4 && (*(unsigned __int8 (__thiscall **)(int))(*(_DWORD *)v4 + 12))(v4) && dword_BEBDE8 ) /*0x5ccf82*/\n    dword_BEBDE8(v3); /*0x5ccf85*/\n  sub_4101E0(Block + 1192); /*0x5ccf90*/\n  sub_6A3EF0(Block); /*0x5ccf97*/\n  if ( (a2 & 1) != 0 ) /*0x5ccfa0*/\n    sub_A8717B(Block); /*0x5ccfa8*/\n  return Block; /*0x5ccfb2*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "5ccf30  push ebp",
+              "5ccf31  mov ebp, esp",
+              "5ccf33  push 0FFFFFFFFh",
+              "5ccf35  push offset SEH_A5AE60",
+              "5ccf3a  mov eax, large fs:0",
+              "5ccf40  push eax",
+              "5ccf41  push esi",
+              "5ccf42  push edi",
+              "5ccf43  mov eax, ___security_cookie",
+              "5ccf48  xor eax, ebp",
+              "5ccf4a  push eax",
+              "5ccf4b  lea eax, [ebp+var_C]",
+              "5ccf4e  mov large fs:0, eax",
+              "5ccf54  mov esi, ecx",
+              "5ccf56  mov dword ptr [esi], offset ??_7Entity_Effect@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_Effect::`vftable'",
+              "5ccf5c  lea edi, [esi+4B4h]",
+              "5ccf62  mov [ebp+var_4], 0",
+              "5ccf69  mov ecx, [edi+4]",
+              "5ccf6c  test ecx, ecx",
+              "5ccf6e  jz short loc_5CCF8A",
+              "5ccf70  mov eax, [ecx]",
+              "5ccf72  mov eax, [eax+0Ch]",
+              "5ccf75  call eax",
+              "5ccf77  test al, al",
+              "5ccf79  jz short loc_5CCF8A",
+              "5ccf7b  mov eax, dword_BEBDE8",
+              "5ccf80  test eax, eax",
+              "5ccf82  jz short loc_5CCF8A",
+              "5ccf84  push edi",
+              "5ccf85  call eax ; dword_BEBDE8",
+              "5ccf87  add esp, 4",
+              "5ccf8a  lea ecx, [esi+4A8h]; void *",
+              "5ccf90  call sub_4101E0",
+              "5ccf95  mov ecx, esi",
+              "5ccf97  call sub_6A3EF0",
+              "5ccf9c  test [ebp+arg_0], 1",
+              "5ccfa0  jz short loc_5CCFB0",
+              "5ccfa2  push 4C0h",
+              "5ccfa7  push esi; Block",
+              "5ccfa8  call sub_A8717B",
+              "5ccfad  add esp, 8",
+              "5ccfb0  mov eax, esi",
+              "5ccfb2  mov ecx, [ebp+var_C]",
+              "5ccfb5  mov large fs:0, ecx",
+              "5ccfbc  pop ecx",
+              "5ccfbd  pop edi",
+              "5ccfbe  pop esi",
+              "5ccfbf  mov esp, ebp",
+              "5ccfc1  pop ebp",
+              "5ccfc2  retn 4",
+              "a88023  jmp ds:__std_terminate",
+              "a883f0  nop",
+              "a883f1  nop",
+              "a883f2  mov edx, [esp-4+arg_4]",
+              "a883f6  lea eax, [edx+0Ch]",
+              "a883f9  mov ecx, [edx-0Ch]",
+              "a883fc  xor ecx, eax; StackCookie",
+              "a883fe  call @__security_check_cookie@4",
+              "a88403  mov eax, offset stru_B49A40",
+              "a88408  jmp __CxxFrameHandler3"
+            ],
+            "instruction_count": 60,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x5ccf30",
+              "end": "0x5ccf70",
+              "size": 64,
+              "type": 0,
+              "successors": [
+                "0x5ccf70",
+                "0x5ccf8a"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x5ccf70",
+              "end": "0x5ccf7b",
+              "size": 11,
+              "type": 0,
+              "successors": [
+                "0x5ccf7b",
+                "0x5ccf8a"
+              ],
+              "predecessors": [
+                "0x5ccf30"
+              ]
+            },
+            {
+              "start": "0x5ccf7b",
+              "end": "0x5ccf84",
+              "size": 9,
+              "type": 0,
+              "successors": [
+                "0x5ccf84",
+                "0x5ccf8a"
+              ],
+              "predecessors": [
+                "0x5ccf70"
+              ]
+            },
+            {
+              "start": "0x5ccf84",
+              "end": "0x5ccf8a",
+              "size": 6,
+              "type": 0,
+              "successors": [
+                "0x5ccf8a"
+              ],
+              "predecessors": [
+                "0x5ccf7b"
+              ]
+            },
+            {
+              "start": "0x5ccf8a",
+              "end": "0x5ccfa2",
+              "size": 24,
+              "type": 0,
+              "successors": [
+                "0x5ccfa2",
+                "0x5ccfb0"
+              ],
+              "predecessors": [
+                "0x5ccf30",
+                "0x5ccf70",
+                "0x5ccf7b",
+                "0x5ccf84"
+              ]
+            },
+            {
+              "start": "0x5ccfa2",
+              "end": "0x5ccfb0",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x5ccfb0"
+              ],
+              "predecessors": [
+                "0x5ccf8a"
+              ]
+            },
+            {
+              "start": "0x5ccfb0",
+              "end": "0x5ccfc5",
+              "size": 21,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x5ccf8a",
+                "0x5ccfa2"
+              ]
+            },
+            {
+              "start": "0xa88023",
+              "end": "0xa88029",
+              "size": 6,
+              "type": 1,
+              "successors": [],
+              "predecessors": []
+            },
+            {
+              "start": "0xa883f0",
+              "end": "0xa8840d",
+              "size": 29,
+              "type": 0,
+              "successors": [
+                "0xa88017"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0xa88017",
+              "end": "0xa88017",
+              "size": 0,
+              "type": 6,
+              "successors": [],
+              "predecessors": [
+                "0xa883f0"
+              ]
+            }
+          ],
+          "basic_block_count": 10,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x6DD670",
+        "addr": "0x6dd670",
+        "name": "sub_6DD670",
+        "analysis": {
+          "size": "0x26",
+          "prototype": "void *__thiscall(void *Block, char)",
+          "decompile": "void *__thiscall sub_6DD670(void *Block, char a2)\n{\n  sub_6DD6A0(Block); /*0x6dd676*/\n  if ( (a2 & 1) != 0 ) /*0x6dd67f*/\n    sub_A8717B(Block); /*0x6dd687*/\n  return Block; /*0x6dd691*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "6dd670  push ebp",
+              "6dd671  mov ebp, esp",
+              "6dd673  push esi",
+              "6dd674  mov esi, ecx",
+              "6dd676  call sub_6DD6A0",
+              "6dd67b  test [ebp+arg_0], 1",
+              "6dd67f  jz short loc_6DD68F",
+              "6dd681  push 6F0h",
+              "6dd686  push esi; Block",
+              "6dd687  call sub_A8717B",
+              "6dd68c  add esp, 8",
+              "6dd68f  mov eax, esi",
+              "6dd691  pop esi",
+              "6dd692  pop ebp",
+              "6dd693  retn 4"
+            ],
+            "instruction_count": 15,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x6dd670",
+              "end": "0x6dd681",
+              "size": 17,
+              "type": 0,
+              "successors": [
+                "0x6dd681",
+                "0x6dd68f"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x6dd681",
+              "end": "0x6dd68f",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x6dd68f"
+              ],
+              "predecessors": [
+                "0x6dd670"
+              ]
+            },
+            {
+              "start": "0x6dd68f",
+              "end": "0x6dd696",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x6dd670",
+                "0x6dd681"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x662DF0",
+        "addr": "0x662df0",
+        "name": "sub_662DF0",
+        "analysis": {
+          "size": "0x26",
+          "prototype": "void *__thiscall(void *Block, char)",
+          "decompile": "void *__thiscall sub_662DF0(void *Block, char a2)\n{\n  sub_662E20(Block); /*0x662df6*/\n  if ( (a2 & 1) != 0 ) /*0x662dff*/\n    sub_A8717B(Block); /*0x662e07*/\n  return Block; /*0x662e11*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "662df0  push ebp",
+              "662df1  mov ebp, esp",
+              "662df3  push esi",
+              "662df4  mov esi, ecx",
+              "662df6  call sub_662E20",
+              "662dfb  test [ebp+arg_0], 1",
+              "662dff  jz short loc_662E0F",
+              "662e01  push 848h",
+              "662e06  push esi; Block",
+              "662e07  call sub_A8717B",
+              "662e0c  add esp, 8",
+              "662e0f  mov eax, esi",
+              "662e11  pop esi",
+              "662e12  pop ebp",
+              "662e13  retn 4"
+            ],
+            "instruction_count": 15,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x662df0",
+              "end": "0x662e01",
+              "size": 17,
+              "type": 0,
+              "successors": [
+                "0x662e01",
+                "0x662e0f"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x662e01",
+              "end": "0x662e0f",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x662e0f"
+              ],
+              "predecessors": [
+                "0x662df0"
+              ]
+            },
+            {
+              "start": "0x662e0f",
+              "end": "0x662e16",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x662df0",
+                "0x662e01"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x64F470",
+        "addr": "0x64f470",
+        "name": "sub_64F470",
+        "analysis": {
+          "size": "0x2c",
+          "prototype": "char *__thiscall(char *Block, char)",
+          "decompile": "char *__thiscall sub_64F470(char *Block, char a2)\n{\n  *(_DWORD *)Block = &IsaacRepentancePlus::Entity_Projectile::`vftable'; /*0x64f476*/\n  sub_6A3EF0(Block); /*0x64f47c*/\n  if ( (a2 & 1) != 0 ) /*0x64f485*/\n    sub_A8717B(Block); /*0x64f48d*/\n  return Block; /*0x64f497*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "64f470  push ebp",
+              "64f471  mov ebp, esp",
+              "64f473  push esi",
+              "64f474  mov esi, ecx",
+              "64f476  mov dword ptr [esi], offset ??_7Entity_Projectile@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_Projectile::`vftable'",
+              "64f47c  call sub_6A3EF0",
+              "64f481  test [ebp+arg_0], 1",
+              "64f485  jz short loc_64F495",
+              "64f487  push 478h",
+              "64f48c  push esi; Block",
+              "64f48d  call sub_A8717B",
+              "64f492  add esp, 8",
+              "64f495  mov eax, esi",
+              "64f497  pop esi",
+              "64f498  pop ebp",
+              "64f499  retn 4"
+            ],
+            "instruction_count": 16,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x64f470",
+              "end": "0x64f487",
+              "size": 23,
+              "type": 0,
+              "successors": [
+                "0x64f487",
+                "0x64f495"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x64f487",
+              "end": "0x64f495",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x64f495"
+              ],
+              "predecessors": [
+                "0x64f470"
+              ]
+            },
+            {
+              "start": "0x64f495",
+              "end": "0x64f49c",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x64f470",
+                "0x64f487"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x705020",
+        "addr": "0x705020",
+        "name": "sub_705020",
+        "analysis": {
+          "size": "0x2f",
+          "prototype": "int __thiscall(void *Block, char)",
+          "decompile": "_DWORD *__thiscall sub_705020(_DWORD *Block, char a2)\n{\n  *Block = &IsaacRepentancePlus::GridEntity::`vftable'; /*0x705029*/\n  sub_403790(Block + 16); /*0x70502f*/\n  if ( (a2 & 1) != 0 ) /*0x705038*/\n    sub_A8717B(Block); /*0x705040*/\n  return Block; /*0x70504a*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "705020  push ebp",
+              "705021  mov ebp, esp",
+              "705023  push esi",
+              "705024  mov esi, ecx",
+              "705026  lea ecx, [esi+40h]; void *",
+              "705029  mov dword ptr [esi], offset ??_7GridEntity@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity::`vftable'",
+              "70502f  call sub_403790",
+              "705034  test [ebp+arg_0], 1",
+              "705038  jz short loc_705048",
+              "70503a  push 154h",
+              "70503f  push esi; Block",
+              "705040  call sub_A8717B",
+              "705045  add esp, 8",
+              "705048  mov eax, esi",
+              "70504a  pop esi",
+              "70504b  pop ebp",
+              "70504c  retn 4"
+            ],
+            "instruction_count": 17,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x705020",
+              "end": "0x70503a",
+              "size": 26,
+              "type": 0,
+              "successors": [
+                "0x70503a",
+                "0x705048"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x70503a",
+              "end": "0x705048",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x705048"
+              ],
+              "predecessors": [
+                "0x705020"
+              ]
+            },
+            {
+              "start": "0x705048",
+              "end": "0x70504f",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x705020",
+                "0x70503a"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x706730",
+        "addr": "0x706730",
+        "name": "sub_706730",
+        "analysis": {
+          "size": "0x66",
+          "prototype": "int __thiscall(void *Block, char)",
+          "decompile": "_DWORD *__thiscall sub_706730(_DWORD *Block, char a2)\n{\n  sub_4085F0(Block + 182); /*0x70673c*/\n  sub_4085F0(Block + 176); /*0x706747*/\n  sub_4085F0(Block + 170); /*0x706752*/\n  sub_4085F0(Block + 164); /*0x70675d*/\n  sub_403790(Block + 90); /*0x706768*/\n  *Block = &IsaacRepentancePlus::GridEntity::`vftable'; /*0x706770*/\n  sub_403790(Block + 16); /*0x706776*/\n  if ( (a2 & 1) != 0 ) /*0x70677f*/\n    sub_A8717B(Block); /*0x706787*/\n  return Block; /*0x706791*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "706730  push ebp",
+              "706731  mov ebp, esp",
+              "706733  push esi",
+              "706734  mov esi, ecx",
+              "706736  lea ecx, [esi+2D8h]",
+              "70673c  call sub_4085F0",
+              "706741  lea ecx, [esi+2C0h]",
+              "706747  call sub_4085F0",
+              "70674c  lea ecx, [esi+2A8h]",
+              "706752  call sub_4085F0",
+              "706757  lea ecx, [esi+290h]",
+              "70675d  call sub_4085F0",
+              "706762  lea ecx, [esi+168h]; void *",
+              "706768  call sub_403790",
+              "70676d  lea ecx, [esi+40h]; void *",
+              "706770  mov dword ptr [esi], offset ??_7GridEntity@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::GridEntity::`vftable'",
+              "706776  call sub_403790",
+              "70677b  test [ebp+arg_0], 1",
+              "70677f  jz short loc_70678F",
+              "706781  push 2F0h",
+              "706786  push esi; Block",
+              "706787  call sub_A8717B",
+              "70678c  add esp, 8",
+              "70678f  mov eax, esi",
+              "706791  pop esi",
+              "706792  pop ebp",
+              "706793  retn 4"
+            ],
+            "instruction_count": 27,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x706730",
+              "end": "0x706781",
+              "size": 81,
+              "type": 0,
+              "successors": [
+                "0x706781",
+                "0x70678f"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x706781",
+              "end": "0x70678f",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x70678f"
+              ],
+              "predecessors": [
+                "0x706730"
+              ]
+            },
+            {
+              "start": "0x70678f",
+              "end": "0x706796",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x706730",
+                "0x706781"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x69D5A0",
+        "addr": "0x69d5a0",
+        "name": "sub_69D5A0",
+        "analysis": {
+          "size": "0x84",
+          "prototype": "int __thiscall(void *Block, char)",
+          "decompile": "char *__thiscall sub_69D5A0(char *Block, char a2)\n{\n  *(_DWORD *)Block = &IsaacRepentancePlus::Entity_Bomb::`vftable'; /*0x69d5d2*/\n  sub_4101E0(Block + 2504); /*0x69d5d8*/\n  `eh vector destructor iterator'(Block + 1124, 0x114u, 5u, sub_403790); /*0x69d5f0*/\n  sub_6A3EF0(Block); /*0x69d5f7*/\n  if ( (a2 & 1) != 0 ) /*0x69d600*/\n    sub_A8717B(Block); /*0x69d608*/\n  return Block; /*0x69d612*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "69d5a0  push ebp",
+              "69d5a1  mov ebp, esp",
+              "69d5a3  push 0FFFFFFFFh",
+              "69d5a5  push offset SEH_A35640",
+              "69d5aa  mov eax, large fs:0",
+              "69d5b0  push eax",
+              "69d5b1  push esi",
+              "69d5b2  mov eax, ___security_cookie",
+              "69d5b7  xor eax, ebp",
+              "69d5b9  push eax",
+              "69d5ba  lea eax, [ebp+var_C]",
+              "69d5bd  mov large fs:0, eax",
+              "69d5c3  mov esi, ecx",
+              "69d5c5  mov [ebp+var_4], 0",
+              "69d5cc  lea ecx, [esi+9C8h]; void *",
+              "69d5d2  mov dword ptr [esi], offset ??_7Entity_Bomb@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_Bomb::`vftable'",
+              "69d5d8  call sub_4101E0",
+              "69d5dd  push offset sub_403790; void (__thiscall *)(void *)",
+              "69d5e2  push 5; unsigned int",
+              "69d5e4  push 114h; unsigned int",
+              "69d5e9  lea eax, [esi+464h]",
+              "69d5ef  push eax; void *",
+              "69d5f0  call ??_M@YGXPAXIIP6EX0@Z@Z; `eh vector destructor iterator'(void *,uint,uint,void (*)(void *))",
+              "69d5f5  mov ecx, esi",
+              "69d5f7  call sub_6A3EF0",
+              "69d5fc  test [ebp+arg_0], 1",
+              "69d600  jz short loc_69D610",
+              "69d602  push 9D8h",
+              "69d607  push esi; Block",
+              "69d608  call sub_A8717B",
+              "69d60d  add esp, 8",
+              "69d610  mov eax, esi",
+              "69d612  mov ecx, [ebp+var_C]",
+              "69d615  mov large fs:0, ecx",
+              "69d61c  pop ecx",
+              "69d61d  pop esi",
+              "69d61e  mov esp, ebp",
+              "69d620  pop ebp",
+              "69d621  retn 4",
+              "a88023  jmp ds:__std_terminate",
+              "a88b60  nop",
+              "a88b61  nop",
+              "a88b62  mov edx, [esp-4+arg_4]",
+              "a88b66  lea eax, [edx+0Ch]",
+              "a88b69  mov ecx, [edx-8]",
+              "a88b6c  xor ecx, eax; StackCookie",
+              "a88b6e  call @__security_check_cookie@4",
+              "a88b73  mov eax, offset stru_B49A40",
+              "a88b78  jmp __CxxFrameHandler3"
+            ],
+            "instruction_count": 49,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x69d5a0",
+              "end": "0x69d602",
+              "size": 98,
+              "type": 0,
+              "successors": [
+                "0x69d602",
+                "0x69d610"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x69d602",
+              "end": "0x69d610",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x69d610"
+              ],
+              "predecessors": [
+                "0x69d5a0"
+              ]
+            },
+            {
+              "start": "0x69d610",
+              "end": "0x69d624",
+              "size": 20,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x69d5a0",
+                "0x69d602"
+              ]
+            },
+            {
+              "start": "0xa88023",
+              "end": "0xa88029",
+              "size": 6,
+              "type": 1,
+              "successors": [],
+              "predecessors": []
+            },
+            {
+              "start": "0xa88b60",
+              "end": "0xa88b7d",
+              "size": 29,
+              "type": 0,
+              "successors": [
+                "0xa88017"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0xa88017",
+              "end": "0xa88017",
+              "size": 0,
+              "type": 6,
+              "successors": [],
+              "predecessors": [
+                "0xa88b60"
+              ]
+            }
+          ],
+          "basic_block_count": 6,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x659A30",
+        "addr": "0x659a30",
+        "name": "sub_659A30",
+        "analysis": {
+          "size": "0x39",
+          "prototype": "int __thiscall(void *Block, char)",
+          "decompile": "char *__thiscall sub_659A30(char *Block, char a2)\n{\n  *(_DWORD *)Block = &IsaacRepentancePlus::Entity_Slot::`vftable'; /*0x659a3c*/\n  sub_403790(Block + 1068); /*0x659a42*/\n  sub_6A3EF0(Block); /*0x659a49*/\n  if ( (a2 & 1) != 0 ) /*0x659a52*/\n    sub_A8717B(Block); /*0x659a5a*/\n  return Block; /*0x659a64*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "659a30  push ebp",
+              "659a31  mov ebp, esp",
+              "659a33  push esi",
+              "659a34  mov esi, ecx",
+              "659a36  lea ecx, [esi+42Ch]; void *",
+              "659a3c  mov dword ptr [esi], offset ??_7Entity_Slot@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_Slot::`vftable'",
+              "659a42  call sub_403790",
+              "659a47  mov ecx, esi",
+              "659a49  call sub_6A3EF0",
+              "659a4e  test [ebp+arg_0], 1",
+              "659a52  jz short loc_659A62",
+              "659a54  push 550h",
+              "659a59  push esi; Block",
+              "659a5a  call sub_A8717B",
+              "659a5f  add esp, 8",
+              "659a62  mov eax, esi",
+              "659a64  pop esi",
+              "659a65  pop ebp",
+              "659a66  retn 4"
+            ],
+            "instruction_count": 19,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x659a30",
+              "end": "0x659a54",
+              "size": 36,
+              "type": 0,
+              "successors": [
+                "0x659a54",
+                "0x659a62"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x659a54",
+              "end": "0x659a62",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x659a62"
+              ],
+              "predecessors": [
+                "0x659a30"
+              ]
+            },
+            {
+              "start": "0x659a62",
+              "end": "0x659a69",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x659a30",
+                "0x659a54"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x939BB0",
+        "addr": "0x939bb0",
+        "name": "sub_939BB0",
+        "analysis": {
+          "size": "0x65",
+          "prototype": "int __thiscall(void *Block, char)",
+          "decompile": "char *__thiscall sub_939BB0(char *Block, char a2)\n{\n  *(_DWORD *)Block = &IsaacRepentancePlus::Entity_Knife::`vftable'; /*0x939bbc*/\n  sub_4101E0(Block + 1240); /*0x939bc2*/\n  sub_5CB120(Block + 1200); /*0x939bcd*/\n  sub_421F70(Block + 1180); /*0x939bd8*/\n  sub_421F70(Block + 1168); /*0x939be3*/\n  sub_421F70(Block + 1156); /*0x939bee*/\n  sub_6A3EF0(Block); /*0x939bf5*/\n  if ( (a2 & 1) != 0 ) /*0x939bfe*/\n    sub_A8717B(Block); /*0x939c06*/\n  return Block; /*0x939c10*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "939bb0  push ebp",
+              "939bb1  mov ebp, esp",
+              "939bb3  push esi",
+              "939bb4  mov esi, ecx",
+              "939bb6  lea ecx, [esi+4D8h]; void *",
+              "939bbc  mov dword ptr [esi], offset ??_7Entity_Knife@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_Knife::`vftable'",
+              "939bc2  call sub_4101E0",
+              "939bc7  lea ecx, [esi+4B0h]",
+              "939bcd  call sub_5CB120",
+              "939bd2  lea ecx, [esi+49Ch]",
+              "939bd8  call sub_421F70",
+              "939bdd  lea ecx, [esi+490h]",
+              "939be3  call sub_421F70",
+              "939be8  lea ecx, [esi+484h]",
+              "939bee  call sub_421F70",
+              "939bf3  mov ecx, esi",
+              "939bf5  call sub_6A3EF0",
+              "939bfa  test [ebp+arg_0], 1",
+              "939bfe  jz short loc_939C0E",
+              "939c00  push 520h",
+              "939c05  push esi; Block",
+              "939c06  call sub_A8717B",
+              "939c0b  add esp, 8",
+              "939c0e  mov eax, esi",
+              "939c10  pop esi",
+              "939c11  pop ebp",
+              "939c12  retn 4"
+            ],
+            "instruction_count": 27,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x939bb0",
+              "end": "0x939c00",
+              "size": 80,
+              "type": 0,
+              "successors": [
+                "0x939c00",
+                "0x939c0e"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x939c00",
+              "end": "0x939c0e",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x939c0e"
+              ],
+              "predecessors": [
+                "0x939bb0"
+              ]
+            },
+            {
+              "start": "0x939c0e",
+              "end": "0x939c15",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x939bb0",
+                "0x939c00"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x945C20",
+        "addr": "0x945c20",
+        "name": "sub_945C20",
+        "analysis": {
+          "size": "0x26",
+          "prototype": "int __thiscall(void *Block, char)",
+          "decompile": "void *__thiscall sub_945C20(void *Block, char a2)\n{\n  sub_945C50(Block); /*0x945c26*/\n  if ( (a2 & 1) != 0 ) /*0x945c2f*/\n    sub_A8717B(Block); /*0x945c37*/\n  return Block; /*0x945c41*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "945c20  push ebp",
+              "945c21  mov ebp, esp",
+              "945c23  push esi",
+              "945c24  mov esi, ecx",
+              "945c26  call sub_945C50",
+              "945c2b  test [ebp+arg_0], 1",
+              "945c2f  jz short loc_945C3F",
+              "945c31  push 568h",
+              "945c36  push esi; Block",
+              "945c37  call sub_A8717B",
+              "945c3c  add esp, 8",
+              "945c3f  mov eax, esi",
+              "945c41  pop esi",
+              "945c42  pop ebp",
+              "945c43  retn 4"
+            ],
+            "instruction_count": 15,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x945c20",
+              "end": "0x945c31",
+              "size": 17,
+              "type": 0,
+              "successors": [
+                "0x945c31",
+                "0x945c3f"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x945c31",
+              "end": "0x945c3f",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x945c3f"
+              ],
+              "predecessors": [
+                "0x945c20"
+              ]
+            },
+            {
+              "start": "0x945c3f",
+              "end": "0x945c46",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x945c20",
+                "0x945c31"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      },
+      {
+        "target": "0x6A3590",
+        "addr": "0x6a3590",
+        "name": "sub_6A3590",
+        "analysis": {
+          "size": "0x2c",
+          "prototype": "int __thiscall(void *Block, char)",
+          "decompile": "char *__thiscall sub_6A3590(char *Block, char a2)\n{\n  *(_DWORD *)Block = &IsaacRepentancePlus::Entity_Dummy::`vftable'; /*0x6a3596*/\n  sub_6A3EF0(Block); /*0x6a359c*/\n  if ( (a2 & 1) != 0 ) /*0x6a35a5*/\n    sub_A8717B(Block); /*0x6a35ad*/\n  return Block; /*0x6a35b7*/\n}",
+          "decompile_error": null,
+          "disasm": {
+            "lines": [
+              "6a3590  push ebp",
+              "6a3591  mov ebp, esp",
+              "6a3593  push esi",
+              "6a3594  mov esi, ecx",
+              "6a3596  mov dword ptr [esi], offset ??_7Entity_Dummy@IsaacRepentancePlus@@6B@; const IsaacRepentancePlus::Entity_Dummy::`vftable'",
+              "6a359c  call sub_6A3EF0",
+              "6a35a1  test [ebp+arg_0], 1",
+              "6a35a5  jz short loc_6A35B5",
+              "6a35a7  push 410h",
+              "6a35ac  push esi; Block",
+              "6a35ad  call sub_A8717B",
+              "6a35b2  add esp, 8",
+              "6a35b5  mov eax, esi",
+              "6a35b7  pop esi",
+              "6a35b8  pop ebp",
+              "6a35b9  retn 4"
+            ],
+            "instruction_count": 16,
+            "truncated": false
+          },
+          "xrefs": null,
+          "callers": null,
+          "caller_count": 0,
+          "callers_truncated": false,
+          "callees": null,
+          "callee_count": 0,
+          "callees_truncated": false,
+          "strings": [],
+          "string_ref_count": 0,
+          "strings_truncated": false,
+          "constants": null,
+          "constant_count": 0,
+          "constants_truncated": false,
+          "basic_blocks": [
+            {
+              "start": "0x6a3590",
+              "end": "0x6a35a7",
+              "size": 23,
+              "type": 0,
+              "successors": [
+                "0x6a35a7",
+                "0x6a35b5"
+              ],
+              "predecessors": []
+            },
+            {
+              "start": "0x6a35a7",
+              "end": "0x6a35b5",
+              "size": 14,
+              "type": 0,
+              "successors": [
+                "0x6a35b5"
+              ],
+              "predecessors": [
+                "0x6a3590"
+              ]
+            },
+            {
+              "start": "0x6a35b5",
+              "end": "0x6a35bc",
+              "size": 7,
+              "type": 2,
+              "successors": [],
+              "predecessors": [
+                "0x6a3590",
+                "0x6a35a7"
+              ]
+            }
+          ],
+          "basic_block_count": 3,
+          "basic_blocks_truncated": false
+        },
+        "error": null
+      }
+    ]
+  }
+}

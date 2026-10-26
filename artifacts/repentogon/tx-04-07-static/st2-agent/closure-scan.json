@@ -1,0 +1,1725 @@
+{
+  "kind": "bounded_callgraph_scan_st2",
+  "note": "从 RevivePlayerGhost(RVA 0x3CFC60) 出发的直接调用 BFS，深度<=4；跳过 EvaluateItems(0x35D4B0)、Game::Spawn(0x2FA210)、InitTwin(0x3C8370)、InitPostLevelInitStats(0x3B3980)、AddBoneHearts(0x3C0B30)、KAGE::LogMessage(0x5E0DF0)。前四/五个为单独分析或非普通 Isaac 分支，LogMessage 经日志/消息泵边扩散到整个游戏循环。只看直接 call/jmp 目标，间接调用另列，不构成全映像闭包。",
+  "targets": {
+    "0x5eeb40": "InputMgr_Register(slot45)",
+    "0x5eebb0": "InputMgr_Remove(slot46)",
+    "0x591360": "JoinPass",
+    "0x5910a0": "CoopBabiesOnly",
+    "0x590250": "SpawnCoPlayer2",
+    "0x590560": "RemoveCoPlayer",
+    "0x503a50": "IncreaseEventCounter",
+    "0x503930": "TryUnlock",
+    "0x39e1b0": "SetControllerIndex",
+    "0x34f6a0": "Player_Init",
+    "0x34dc70": "Player_ctor",
+    "0x3cffa0": "MorphToCoopGhost",
+    "0x39a400": "Player_Revive",
+    "0x35d4b0": "EvaluateItems",
+    "0x2fa210": "Game_Spawn",
+    "0x3c8370": "InitTwin"
+  },
+  "functions": [
+    {
+      "rva": "0x3cfc60",
+      "depth": 0
+    },
+    {
+      "rva": "0x11de0",
+      "depth": 1
+    },
+    {
+      "rva": "0x2eb4b0",
+      "depth": 1
+    },
+    {
+      "rva": "0x3530",
+      "depth": 1
+    },
+    {
+      "rva": "0x3560c0",
+      "depth": 1
+    },
+    {
+      "rva": "0x3a3340",
+      "depth": 1
+    },
+    {
+      "rva": "0x3b5cf0",
+      "depth": 1
+    },
+    {
+      "rva": "0x3c12c0",
+      "depth": 1
+    },
+    {
+      "rva": "0x3de0",
+      "depth": 1
+    },
+    {
+      "rva": "0x507c60",
+      "depth": 1
+    },
+    {
+      "rva": "0x52fad0",
+      "depth": 1
+    },
+    {
+      "rva": "0x5b30",
+      "depth": 1
+    },
+    {
+      "rva": "0x5f50",
+      "depth": 1
+    },
+    {
+      "rva": "0x7af0",
+      "depth": 1
+    },
+    {
+      "rva": "0x240b0",
+      "depth": 2
+    },
+    {
+      "rva": "0x2900d0",
+      "depth": 2
+    },
+    {
+      "rva": "0x2eb470",
+      "depth": 2
+    },
+    {
+      "rva": "0x302320",
+      "depth": 2
+    },
+    {
+      "rva": "0x355670",
+      "depth": 2
+    },
+    {
+      "rva": "0x357370",
+      "depth": 2
+    },
+    {
+      "rva": "0x357960",
+      "depth": 2
+    },
+    {
+      "rva": "0x3d03c0",
+      "depth": 2
+    },
+    {
+      "rva": "0x3d2cb0",
+      "depth": 2
+    },
+    {
+      "rva": "0x3d8d40",
+      "depth": 2
+    },
+    {
+      "rva": "0x3ec0",
+      "depth": 2
+    },
+    {
+      "rva": "0x4130",
+      "depth": 2
+    },
+    {
+      "rva": "0x42a0",
+      "depth": 2
+    },
+    {
+      "rva": "0x506ef0",
+      "depth": 2
+    },
+    {
+      "rva": "0x52120",
+      "depth": 2
+    },
+    {
+      "rva": "0x5f7920",
+      "depth": 2
+    },
+    {
+      "rva": "0x5f7970",
+      "depth": 2
+    },
+    {
+      "rva": "0x5f7b20",
+      "depth": 2
+    },
+    {
+      "rva": "0x5f8170",
+      "depth": 2
+    },
+    {
+      "rva": "0x6280",
+      "depth": 2
+    },
+    {
+      "rva": "0x686bbb",
+      "depth": 2
+    },
+    {
+      "rva": "0x686bc9",
+      "depth": 2
+    },
+    {
+      "rva": "0x686bce",
+      "depth": 2
+    },
+    {
+      "rva": "0x686cc5",
+      "depth": 2
+    },
+    {
+      "rva": "0x686d0f",
+      "depth": 2
+    },
+    {
+      "rva": "0x686de5",
+      "depth": 2
+    },
+    {
+      "rva": "0x686e15",
+      "depth": 2
+    },
+    {
+      "rva": "0x687166",
+      "depth": 2
+    },
+    {
+      "rva": "0x68717b",
+      "depth": 2
+    },
+    {
+      "rva": "0x687189",
+      "depth": 2
+    },
+    {
+      "rva": "0x688017",
+      "depth": 2
+    },
+    {
+      "rva": "0x688035",
+      "depth": 2
+    },
+    {
+      "rva": "0x6b60",
+      "depth": 2
+    },
+    {
+      "rva": "0x6c50",
+      "depth": 2
+    },
+    {
+      "rva": "0x7a70",
+      "depth": 2
+    },
+    {
+      "rva": "0x7cc0",
+      "depth": 2
+    },
+    {
+      "rva": "0x7cd0",
+      "depth": 2
+    },
+    {
+      "rva": "0x7da0",
+      "depth": 2
+    },
+    {
+      "rva": "0x8400",
+      "depth": 2
+    },
+    {
+      "rva": "0x85f0",
+      "depth": 2
+    },
+    {
+      "rva": "0x8660",
+      "depth": 2
+    },
+    {
+      "rva": "0x8830",
+      "depth": 2
+    },
+    {
+      "rva": "0x9680",
+      "depth": 2
+    },
+    {
+      "rva": "0x9a40",
+      "depth": 2
+    },
+    {
+      "rva": "0x9bb0",
+      "depth": 2
+    },
+    {
+      "rva": "0x101e0",
+      "depth": 3
+    },
+    {
+      "rva": "0x1b3260",
+      "depth": 3
+    },
+    {
+      "rva": "0x1b3280",
+      "depth": 3
+    },
+    {
+      "rva": "0x1ce30",
+      "depth": 3
+    },
+    {
+      "rva": "0x1ef40",
+      "depth": 3
+    },
+    {
+      "rva": "0x24e5e0",
+      "depth": 3
+    },
+    {
+      "rva": "0x24e8b0",
+      "depth": 3
+    },
+    {
+      "rva": "0x24efa0",
+      "depth": 3
+    },
+    {
+      "rva": "0x2590",
+      "depth": 3
+    },
+    {
+      "rva": "0x2630",
+      "depth": 3
+    },
+    {
+      "rva": "0x28f420",
+      "depth": 3
+    },
+    {
+      "rva": "0x2902a0",
+      "depth": 3
+    },
+    {
+      "rva": "0x2a33e0",
+      "depth": 3
+    },
+    {
+      "rva": "0x2b00",
+      "depth": 3
+    },
+    {
+      "rva": "0x2cd0",
+      "depth": 3
+    },
+    {
+      "rva": "0x2ef0e0",
+      "depth": 3
+    },
+    {
+      "rva": "0x3160",
+      "depth": 3
+    },
+    {
+      "rva": "0x32a5b0",
+      "depth": 3
+    },
+    {
+      "rva": "0x369e90",
+      "depth": 3
+    },
+    {
+      "rva": "0x3790",
+      "depth": 3
+    },
+    {
+      "rva": "0x3840",
+      "depth": 3
+    },
+    {
+      "rva": "0x3970",
+      "depth": 3
+    },
+    {
+      "rva": "0x3c40",
+      "depth": 3
+    },
+    {
+      "rva": "0x3d3f40",
+      "depth": 3
+    },
+    {
+      "rva": "0x3d3fe0",
+      "depth": 3
+    },
+    {
+      "rva": "0x3d4150",
+      "depth": 3
+    },
+    {
+      "rva": "0x3d4640",
+      "depth": 3
+    },
+    {
+      "rva": "0x4030",
+      "depth": 3
+    },
+    {
+      "rva": "0x40b0",
+      "depth": 3
+    },
+    {
+      "rva": "0x4d2ab0",
+      "depth": 3
+    },
+    {
+      "rva": "0x531b30",
+      "depth": 3
+    },
+    {
+      "rva": "0x5e61d0",
+      "depth": 3
+    },
+    {
+      "rva": "0x5e6c70",
+      "depth": 3
+    },
+    {
+      "rva": "0x5e7590",
+      "depth": 3
+    },
+    {
+      "rva": "0x5f2ba0",
+      "depth": 3
+    },
+    {
+      "rva": "0x5f7c10",
+      "depth": 3
+    },
+    {
+      "rva": "0x5f7ca0",
+      "depth": 3
+    },
+    {
+      "rva": "0x5f8920",
+      "depth": 3
+    },
+    {
+      "rva": "0x6430",
+      "depth": 3
+    },
+    {
+      "rva": "0x686ca1",
+      "depth": 3
+    },
+    {
+      "rva": "0x686d97",
+      "depth": 3
+    },
+    {
+      "rva": "0x686e9a",
+      "depth": 3
+    },
+    {
+      "rva": "0x687139",
+      "depth": 3
+    },
+    {
+      "rva": "0x6871b5",
+      "depth": 3
+    },
+    {
+      "rva": "0x687251",
+      "depth": 3
+    },
+    {
+      "rva": "0x687c74",
+      "depth": 3
+    },
+    {
+      "rva": "0x687e46",
+      "depth": 3
+    },
+    {
+      "rva": "0x687e70",
+      "depth": 3
+    },
+    {
+      "rva": "0x68802f",
+      "depth": 3
+    },
+    {
+      "rva": "0x68805f",
+      "depth": 3
+    },
+    {
+      "rva": "0x688071",
+      "depth": 3
+    },
+    {
+      "rva": "0x688268",
+      "depth": 3
+    },
+    {
+      "rva": "0x81a0",
+      "depth": 3
+    },
+    {
+      "rva": "0x8200",
+      "depth": 3
+    },
+    {
+      "rva": "0x82b0",
+      "depth": 3
+    },
+    {
+      "rva": "0x8c30",
+      "depth": 3
+    },
+    {
+      "rva": "0x92c40",
+      "depth": 3
+    },
+    {
+      "rva": "0x92da0",
+      "depth": 3
+    },
+    {
+      "rva": "0x9df0",
+      "depth": 3
+    },
+    {
+      "rva": "0x9fc0",
+      "depth": 3
+    },
+    {
+      "rva": "0xa5f0",
+      "depth": 3
+    },
+    {
+      "rva": "0xf650",
+      "depth": 3
+    },
+    {
+      "rva": "0x10600",
+      "depth": 4
+    },
+    {
+      "rva": "0x106a0",
+      "depth": 4
+    },
+    {
+      "rva": "0x109f0",
+      "depth": 4
+    },
+    {
+      "rva": "0x10e30",
+      "depth": 4
+    },
+    {
+      "rva": "0x11620",
+      "depth": 4
+    },
+    {
+      "rva": "0x155560",
+      "depth": 4
+    },
+    {
+      "rva": "0x1cf10",
+      "depth": 4
+    },
+    {
+      "rva": "0x2570",
+      "depth": 4
+    },
+    {
+      "rva": "0x2670",
+      "depth": 4
+    },
+    {
+      "rva": "0x2760",
+      "depth": 4
+    },
+    {
+      "rva": "0x27ce60",
+      "depth": 4
+    },
+    {
+      "rva": "0x27e0",
+      "depth": 4
+    },
+    {
+      "rva": "0x27e940",
+      "depth": 4
+    },
+    {
+      "rva": "0x32a400",
+      "depth": 4
+    },
+    {
+      "rva": "0x32af00",
+      "depth": 4
+    },
+    {
+      "rva": "0x3699d0",
+      "depth": 4
+    },
+    {
+      "rva": "0x36a3d0",
+      "depth": 4
+    },
+    {
+      "rva": "0x3bdfd0",
+      "depth": 4
+    },
+    {
+      "rva": "0x3c41b0",
+      "depth": 4
+    },
+    {
+      "rva": "0x3ce0",
+      "depth": 4
+    },
+    {
+      "rva": "0x3d1e60",
+      "depth": 4
+    },
+    {
+      "rva": "0x3d36a0",
+      "depth": 4
+    },
+    {
+      "rva": "0x3d3870",
+      "depth": 4
+    },
+    {
+      "rva": "0x3d3910",
+      "depth": 4
+    },
+    {
+      "rva": "0x3d3990",
+      "depth": 4
+    },
+    {
+      "rva": "0x3d39f0",
+      "depth": 4
+    },
+    {
+      "rva": "0x3d4750",
+      "depth": 4
+    },
+    {
+      "rva": "0x50a490",
+      "depth": 4
+    },
+    {
+      "rva": "0x50a7a0",
+      "depth": 4
+    },
+    {
+      "rva": "0x50a890",
+      "depth": 4
+    },
+    {
+      "rva": "0x5e6230",
+      "depth": 4
+    },
+    {
+      "rva": "0x5e6360",
+      "depth": 4
+    },
+    {
+      "rva": "0x5e7da0",
+      "depth": 4
+    },
+    {
+      "rva": "0x5eee80",
+      "depth": 4
+    },
+    {
+      "rva": "0x5f3680",
+      "depth": 4
+    },
+    {
+      "rva": "0x5f3ad0",
+      "depth": 4
+    },
+    {
+      "rva": "0x5f7bb0",
+      "depth": 4
+    },
+    {
+      "rva": "0x61f860",
+      "depth": 4
+    },
+    {
+      "rva": "0x62a5d0",
+      "depth": 4
+    },
+    {
+      "rva": "0x630780",
+      "depth": 4
+    },
+    {
+      "rva": "0x67d770",
+      "depth": 4
+    },
+    {
+      "rva": "0x687229",
+      "depth": 4
+    },
+    {
+      "rva": "0x687990",
+      "depth": 4
+    },
+    {
+      "rva": "0x68803b",
+      "depth": 4
+    },
+    {
+      "rva": "0x688047",
+      "depth": 4
+    },
+    {
+      "rva": "0x68804d",
+      "depth": 4
+    },
+    {
+      "rva": "0x688059",
+      "depth": 4
+    },
+    {
+      "rva": "0x68806b",
+      "depth": 4
+    },
+    {
+      "rva": "0x688089",
+      "depth": 4
+    },
+    {
+      "rva": "0x68808f",
+      "depth": 4
+    },
+    {
+      "rva": "0x8110",
+      "depth": 4
+    },
+    {
+      "rva": "0x8340",
+      "depth": 4
+    },
+    {
+      "rva": "0x8950",
+      "depth": 4
+    },
+    {
+      "rva": "0x8bc0",
+      "depth": 4
+    },
+    {
+      "rva": "0x93c0",
+      "depth": 4
+    },
+    {
+      "rva": "0xcae50",
+      "depth": 4
+    },
+    {
+      "rva": "0xf450",
+      "depth": 4
+    },
+    {
+      "rva": "0xf4b0",
+      "depth": 4
+    },
+    {
+      "rva": "0xf5c0",
+      "depth": 4
+    },
+    {
+      "rva": "0xf640",
+      "depth": 4
+    },
+    {
+      "rva": "0xfdf0",
+      "depth": 4
+    },
+    {
+      "rva": "0xfe10",
+      "depth": 4
+    }
+  ],
+  "target_hits": [
+    {
+      "target": "EvaluateItems",
+      "in_func_rva": "0x3cfc60",
+      "site_rva": "0x3cfdb4",
+      "depth": 0
+    },
+    {
+      "target": "Game_Spawn",
+      "in_func_rva": "0x3cfc60",
+      "site_rva": "0x3cfef1",
+      "depth": 0
+    },
+    {
+      "target": "InitTwin",
+      "in_func_rva": "0x3cfc60",
+      "site_rva": "0x3cff03",
+      "depth": 0
+    }
+  ],
+  "indirect_calls": [
+    {
+      "func_rva": "0x507c60",
+      "site_rva": "0x507dd1",
+      "text": "call    eax",
+      "depth": 1
+    },
+    {
+      "func_rva": "0x507c60",
+      "site_rva": "0x507e2b",
+      "text": "call    dword ptr [eax+40h]",
+      "depth": 1
+    },
+    {
+      "func_rva": "0x507c60",
+      "site_rva": "0x507e47",
+      "text": "call    dword ptr [eax+58h]",
+      "depth": 1
+    },
+    {
+      "func_rva": "0x507c60",
+      "site_rva": "0x507e8f",
+      "text": "call    dword ptr [eax+48h]",
+      "depth": 1
+    },
+    {
+      "func_rva": "0x507c60",
+      "site_rva": "0x507e9d",
+      "text": "call    dword ptr [eax+2Ch]",
+      "depth": 1
+    },
+    {
+      "func_rva": "0x7da0",
+      "site_rva": "0x7e2b",
+      "text": "call    eax",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x7da0",
+      "site_rva": "0x7e6e",
+      "text": "call    dword ptr [eax+3Ch]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x7da0",
+      "site_rva": "0x7eaf",
+      "text": "call    dword ptr [eax+40h]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x7da0",
+      "site_rva": "0x7ece",
+      "text": "call    dword ptr [eax+44h]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x7da0",
+      "site_rva": "0x7f31",
+      "text": "call    eax",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x7da0",
+      "site_rva": "0x7f43",
+      "text": "call    eax",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x7da0",
+      "site_rva": "0x7f53",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x7da0",
+      "site_rva": "0x7f8f",
+      "text": "call    eax",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x7da0",
+      "site_rva": "0x7fa2",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x7da0",
+      "site_rva": "0x7fba",
+      "text": "call    eax",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x7da0",
+      "site_rva": "0x7fcd",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x686cc5",
+      "site_rva": "0x686d79",
+      "text": "call    esi ; dword_BE464C",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x506ef0",
+      "site_rva": "0x506fd2",
+      "text": "call    dword ptr [eax+20h]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x506ef0",
+      "site_rva": "0x506ff4",
+      "text": "call    eax",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x506ef0",
+      "site_rva": "0x507007",
+      "text": "call    eax ; dword_BECA14",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x5f8170",
+      "site_rva": "0x5f8199",
+      "text": "call    dword ptr [eax+20h]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x5f7b20",
+      "site_rva": "0x5f7b63",
+      "text": "call    dword ptr [edx+40h]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x5f7b20",
+      "site_rva": "0x5f7b75",
+      "text": "call    dword ptr [eax+48h]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x5f7b20",
+      "site_rva": "0x5f7b87",
+      "text": "call    dword ptr [eax+50h]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x5f7b20",
+      "site_rva": "0x5f7b99",
+      "text": "call    dword ptr [eax+58h]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x3d8d40",
+      "site_rva": "0x3d8d71",
+      "text": "call    eax",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x3d8d40",
+      "site_rva": "0x3d8d81",
+      "text": "call    eax ; dword_BECA14",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x5f7970",
+      "site_rva": "0x5f798c",
+      "text": "call    dword ptr [eax+60h]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x5f7970",
+      "site_rva": "0x5f79c9",
+      "text": "call    dword ptr [eax+50h]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0x686e15",
+      "site_rva": "0x686e56",
+      "text": "call    [ebp+arg_C]",
+      "depth": 2
+    },
+    {
+      "func_rva": "0xa5f0",
+      "site_rva": "0xa71d",
+      "text": "call    edx",
+      "depth": 3
+    },
+    {
+      "func_rva": "0xa5f0",
+      "site_rva": "0xa73e",
+      "text": "call    edx",
+      "depth": 3
+    },
+    {
+      "func_rva": "0xa5f0",
+      "site_rva": "0xa752",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0xa5f0",
+      "site_rva": "0xa7a7",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x6871b5",
+      "site_rva": "0x6871dd",
+      "text": "call    [ebp+arg_C]",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x82b0",
+      "site_rva": "0x82d8",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x82b0",
+      "site_rva": "0x82ea",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x82b0",
+      "site_rva": "0x82fa",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x9df0",
+      "site_rva": "0x9e5a",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x9df0",
+      "site_rva": "0x9e6d",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x8200",
+      "site_rva": "0x8271",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x8200",
+      "site_rva": "0x8281",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x3c40",
+      "site_rva": "0x3caa",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x3c40",
+      "site_rva": "0x3cbd",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x9fc0",
+      "site_rva": "0xa0eb",
+      "text": "call    dword ptr [eax+0Ch]",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x9fc0",
+      "site_rva": "0xa0fd",
+      "text": "call    dword ptr [eax+10h]",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x81a0",
+      "site_rva": "0x81d1",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x81a0",
+      "site_rva": "0x81e1",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x2cd0",
+      "site_rva": "0x2f6e",
+      "text": "call    dword ptr [eax+40h]",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x2cd0",
+      "site_rva": "0x2f8d",
+      "text": "call    dword ptr [eax+44h]",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x2cd0",
+      "site_rva": "0x2fc2",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x2cd0",
+      "site_rva": "0x2fd5",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x686ca1",
+      "site_rva": "0x686d79",
+      "text": "call    esi ; dword_BE464C",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x686d97",
+      "site_rva": "0x686dba",
+      "text": "call    esi ; dword_BE4648",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x5f8920",
+      "site_rva": "0x5f8991",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x5f8920",
+      "site_rva": "0x5f89a1",
+      "text": "call    eax ; dword_BECA14",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x5f7ca0",
+      "site_rva": "0x5f7d04",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x5f7ca0",
+      "site_rva": "0x5f7d14",
+      "text": "call    eax ; dword_BECA14",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x5f7c10",
+      "site_rva": "0x5f7c6d",
+      "text": "call    eax",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x5f7c10",
+      "site_rva": "0x5f7c80",
+      "text": "call    eax ; dword_BECA14",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x686e9a",
+      "site_rva": "0x686ec7",
+      "text": "call    [ebp+arg_C]",
+      "depth": 3
+    },
+    {
+      "func_rva": "0x5e6360",
+      "site_rva": "0x5e63f1",
+      "text": "call    dword ptr [eax]",
+      "depth": 4
+    },
+    {
+      "func_rva": "0xf4b0",
+      "site_rva": "0xf4f5",
+      "text": "call    ecx",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x8950",
+      "site_rva": "0x89b4",
+      "text": "call    eax",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x8950",
+      "site_rva": "0x89c4",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5eef3e",
+      "text": "call    dword ptr [edx+0Ch]",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5eef9e",
+      "text": "call    dword ptr [eax+10h]",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5ef005",
+      "text": "call    eax",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5ef018",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5ef078",
+      "text": "call    dword ptr [eax+10h]",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5ef0a2",
+      "text": "call    eax",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5ef0bd",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5ef1ea",
+      "text": "call    eax",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5ef1fc",
+      "text": "call    dword ptr [eax+0Ch]",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5ef22b",
+      "text": "call    dword ptr [eax+10h]",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5ef291",
+      "text": "call    eax",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5eee80",
+      "site_rva": "0x5ef2a4",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x8110",
+      "site_rva": "0x816d",
+      "text": "call    eax",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x8110",
+      "site_rva": "0x8180",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x2670",
+      "site_rva": "0x26e4",
+      "text": "call    eax ; sub_9E6070",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x10600",
+      "site_rva": "0x10655",
+      "text": "call    eax",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x10600",
+      "site_rva": "0x10665",
+      "text": "call    eax ; dword_BE49B4",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5f7bb0",
+      "site_rva": "0x5f7bd8",
+      "text": "call    eax",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5f7bb0",
+      "site_rva": "0x5f7bea",
+      "text": "call    eax",
+      "depth": 4
+    },
+    {
+      "func_rva": "0x5f7bb0",
+      "site_rva": "0x5f7bfa",
+      "text": "call    eax ; dword_BECA14",
+      "depth": 4
+    }
+  ],
+  "field_write_scan_depth3": {
+    "fields": [
+      "0x160C",
+      "0x1610",
+      "0x13BC",
+      "0x170",
+      "0x171",
+      "0x172",
+      "0x173",
+      "0x177",
+      "0x207D",
+      "0x410",
+      "0x414"
+    ],
+    "scope": "st2_r6 深度<=3 闭包（120 个函数，除根函数外），只匹配 [reg+disp] 形式的写操作数",
+    "hits": []
+  },
+  "evaluateitems_body_write_scan": {
+    "fields": [
+      "0x160C",
+      "0x1610",
+      "0x13BC",
+      "0x170",
+      "0x171",
+      "0x172",
+      "0x173",
+      "0x177",
+      "0x207D",
+      "0x410",
+      "0x414",
+      "0x28",
+      "0x2C"
+    ],
+    "hits": []
+  },
+  "evaluateitems_depth1_target_hits": [
+    {
+      "target": "TryUnlock",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x367520"
+    },
+    {
+      "target": "TryUnlock",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x367637"
+    },
+    {
+      "target": "TryUnlock",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x3679b6"
+    },
+    {
+      "target": "TryUnlock",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x3679cd"
+    },
+    {
+      "target": "RemoveCoPlayer",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x3682fc"
+    },
+    {
+      "target": "SetControllerIndex",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x368354"
+    },
+    {
+      "target": "EvaluateItems",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x3683bb"
+    },
+    {
+      "target": "RemoveCoPlayer",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x36843c"
+    },
+    {
+      "target": "SpawnCoPlayer2",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x36847f"
+    },
+    {
+      "target": "SetControllerIndex",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x368494"
+    },
+    {
+      "target": "TryUnlock",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x368610"
+    },
+    {
+      "target": "TryUnlock",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x368ebd"
+    },
+    {
+      "target": "EvaluateItems",
+      "in_func_rva": "0x35d4b0",
+      "site_rva": "0x369646"
+    }
+  ],
+  "isaac_path_movement_shooting_reads": {
+    "note": "consumer 函数内对 +0x1398/+0x139A/+0x410/+0x414/+0x207D 的访问（读写均列），地址为 RVA",
+    "hits": [
+      {
+        "func_rva": "0x372540",
+        "site_rva": "0x3725e0",
+        "text": "cmp     byte ptr [edi+410h], 0"
+      },
+      {
+        "func_rva": "0x372540",
+        "site_rva": "0x372611",
+        "text": "cmp     dword ptr [edi+414h], 0"
+      },
+      {
+        "func_rva": "0x372540",
+        "site_rva": "0x3726b7",
+        "text": "cmp     byte ptr [edi+207Dh], 0"
+      },
+      {
+        "func_rva": "0x372540",
+        "site_rva": "0x3729ee",
+        "text": "cmp     byte ptr [edi+207Dh], 0"
+      },
+      {
+        "func_rva": "0x372540",
+        "site_rva": "0x372c0d",
+        "text": "cmp     [edi+207Dh], al"
+      },
+      {
+        "func_rva": "0x372540",
+        "site_rva": "0x37385d",
+        "text": "cmp     byte ptr [edi+410h], 0"
+      },
+      {
+        "func_rva": "0x371d70",
+        "site_rva": "0x371dc3",
+        "text": "cmp     byte ptr [esi+410h], 0"
+      },
+      {
+        "func_rva": "0x371d70",
+        "site_rva": "0x371dcc",
+        "text": "cmp     dword ptr [esi+414h], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x373a0f",
+        "text": "cmp     [edi+410h], al"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x373a17",
+        "text": "cmp     [edi+414h], eax"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x373acc",
+        "text": "cmp     byte ptr [edi+1398h], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x373ad5",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x373b4f",
+        "text": "cmp     byte ptr [edi+207Dh], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x374157",
+        "text": "cmp     byte ptr [edi+1398h], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x374168",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x37447c",
+        "text": "cmp     byte ptr [edi+207Dh], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x374e0a",
+        "text": "mov     dword ptr [esi+414h], 0C0400000h"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x37511e",
+        "text": "cmp     byte ptr [edi+1398h], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x37512b",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x375fdb",
+        "text": "cmp     byte ptr [edi+410h], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x376143",
+        "text": "cmp     [eax+410h], edi"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x376fa8",
+        "text": "movss   xmm0, dword ptr [esi+414h]"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x376fcc",
+        "text": "movss   dword ptr [esi+414h], xmm0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x3772ff",
+        "text": "cmp     byte ptr [edi+1398h], 0; jumptable 0077708C case 47"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x377308",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x377372",
+        "text": "cmp     byte ptr [edi+1398h], 0; jumptable 0077708C case 42"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x37737b",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x377821",
+        "text": "movss   dword ptr [esi+414h], xmm0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x377a20",
+        "text": "cmp     byte ptr [edi+1398h], 0; jumptable 0077736B case 352"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x377a29",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x377c91",
+        "text": "cmp     byte ptr [edi+1398h], 0; jumptable 0077736B case 382"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x377c9a",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x377ea8",
+        "text": "cmp     byte ptr [edi+1398h], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x377eb1",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378117",
+        "text": "cmp     byte ptr [edi+1398h], 0; jumptable 00778110 case 512"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378120",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378249",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378252",
+        "text": "cmp     byte ptr [edi+1398h], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378417",
+        "text": "cmp     byte ptr [edi+1398h], 0; jumptable 00778110 cases 623,638"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378420",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x37874a",
+        "text": "cmp     byte ptr [edi+1398h], 0; jumptable 00778110 case 710"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378753",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378948",
+        "text": "cmp     byte ptr [edi+1398h], 0; jumptable 00778110 case 728"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378951",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378b04",
+        "text": "cmp     byte ptr [edi+1398h], 0; jumptable 00778110 case 729"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378b0d",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x378e85",
+        "text": "cmp     [edi+207Dh], al"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x37926b",
+        "text": "cmp     byte ptr [edi+1398h], 0"
+      },
+      {
+        "func_rva": "0x373990",
+        "site_rva": "0x379278",
+        "text": "cmp     byte ptr [edi+139Ah], 0"
+      },
+      {
+        "func_rva": "0x37a210",
+        "site_rva": "0x37a220",
+        "text": "cmp     byte ptr [edi+207Dh], 0"
+      },
+      {
+        "func_rva": "0x37a210",
+        "site_rva": "0x37a252",
+        "text": "cmp     byte ptr [edi+410h], 0"
+      },
+      {
+        "func_rva": "0x37a210",
+        "site_rva": "0x37a25f",
+        "text": "cmp     dword ptr [edi+414h], 0"
+      },
+      {
+        "func_rva": "0x37a210",
+        "site_rva": "0x37abd2",
+        "text": "mov     dword ptr [esi+410h], 2Dh ; '-'"
+      },
+      {
+        "func_rva": "0x37a210",
+        "site_rva": "0x37abdc",
+        "text": "mov     dword ptr [esi+414h], 2Dh ; '-'"
+      },
+      {
+        "func_rva": "0x37a210",
+        "site_rva": "0x37ac6d",
+        "text": "mov     dword ptr [esi+410h], 16h"
+      },
+      {
+        "func_rva": "0x37a210",
+        "site_rva": "0x37ac77",
+        "text": "mov     dword ptr [esi+414h], 16h"
+      },
+      {
+        "func_rva": "0x389e50",
+        "site_rva": "0x389e90",
+        "text": "cmp     byte ptr [edi+207Dh], 0"
+      },
+      {
+        "func_rva": "0x389e50",
+        "site_rva": "0x38a006",
+        "text": "cmp     [edi+207Dh], al"
+      },
+      {
+        "func_rva": "0x389e50",
+        "site_rva": "0x38af57",
+        "text": "cmp     [eax+410h], edi"
+      },
+      {
+        "func_rva": "0x389e50",
+        "site_rva": "0x38b06f",
+        "text": "cmp     [ecx+410h], edi"
+      },
+      {
+        "func_rva": "0x39bdd0",
+        "site_rva": "0x39bf3a",
+        "text": "cmp     [esi+207Dh], al"
+      },
+      {
+        "func_rva": "0x39bdd0",
+        "site_rva": "0x39bf72",
+        "text": "cmp     byte ptr [esi+410h], 0"
+      },
+      {
+        "func_rva": "0x39bdd0",
+        "site_rva": "0x39bf7f",
+        "text": "cmp     dword ptr [esi+414h], 0"
+      },
+      {
+        "func_rva": "0x39bdd0",
+        "site_rva": "0x39c1b3",
+        "text": "cmp     [ecx+410h], esi"
+      },
+      {
+        "func_rva": "0x39c300",
+        "site_rva": "0x39c318",
+        "text": "cmp     byte ptr [edi+207Dh], 0"
+      },
+      {
+        "func_rva": "0x39c300",
+        "site_rva": "0x39c743",
+        "text": "cmp     byte ptr [edi+207Dh], 0"
+      }
+    ]
+  }
+}

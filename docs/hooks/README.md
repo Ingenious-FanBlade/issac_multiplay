@@ -34,6 +34,14 @@ tx-04-05补充（2026-10-24）：[循环、输入与生命周期静态确认](..
 
 ## 范围与证据口径
 
+tx-04-08 ST6–ST8 补充（2026-10-26）：[owner、生命周期与工程边界核验](../research/tx-04-08-st6-st8-static-confirmation.md)已按每项一个 GPT-6 Luna / max 子智能体逆向、主智能体独立取证审阅完成。确认公开 Spawn/Morph/Grid 桥、恢复/替换完成边界及当前 Player witness 接线不足；主审纠正 Replace 分支倒置、补齐 Morph Lua 路由。41 行/40 RVA、pending64 与同址 GridFactory 定义已核对，注册不等于安装；Shutdown 在 Manager 循环后，完整退出协调仍待实现。具体 UNKNOWN 与 B 部分撤销分支缺口保留。ST1–ST8 静态工作完成；未改生产绑定或 IDB，未构建/运行游戏/测试，实现和整体 E2E 待完成。下方旧说明保留当时范围。
+
+tx-04-08 ST3–ST5 补充（2026-10-26）：[字段、来源与分类身份静态核验](../research/tx-04-08-st3-st5-static-confirmation.md)已按每项一个 GPT-6 Luna / max 子智能体逆向、主智能体独立回读审阅完成。[78 项字段表](../research/tx-04-08-st3-agent-notes.md)逐项登记 J273 偏移/宽度/初始化；确认 448 Grid/8 门及其别名、SubPlayer 等保留关系、原生格点公式、七类 RTTI/COL 和非析构池复用。主审补正代理漏项与过强的坐标限制；具体读取资格/owner/Hook UNKNOWN 保留。未修改绑定/安装 Hook，未构建或测试；ST6–ST8、实现及整体 E2E 待完成。下方 ST1/ST2 说明保留当时范围。
+
+tx-04-08 ST2 补充（2026-10-26）：[完整采样阶段、Hook 次序与短路静态核验](../research/tx-04-08-st2-static-confirmation.md)已由 GPT-6 Luna / max 子智能体逆向、主智能体独立取证审阅。确认普通 Game→Room→标准尾部→Manager 收束顺序，区分 1026 的整轮短路、1160 的派生 Player 短路及 tail 内部错误处理；完整复制位置在 Manager 下游整链返回后、EndManager 发布/退休前。未改绑定/安装 Hook，ST3–ST8、实现及整体 E2E 待完成。下方 ST1 说明保留当时范围。
+
+tx-04-08 ST1 补充（2026-10-26）：[world_record 入口/ABI 静态核验与主审](../research/tx-04-08-st1-static-confirmation.md)登记 v1.9.7.12 的 19 项观察语义。GPT-6 Luna / max 子智能体逆向，主智能体独立读取 IDB/源码并审阅；已区分 Publish/Replace 的缺定义、GridFactory 的寄存器 ABI/同址定义差异及析构/删除包装。没有修改现有绑定或安装新 Hook，ST2–ST8 和实现/整体 E2E 尚未完成。
+
 收录全部当前Native安装家族、直接原生调用依赖、自有device/control覆写表、已收集静态函数入口、32张当前RTTI/虚表及最小读取字段。派生类没有独立Hook时明确写出共享Entity路径，不凭类名编造安装点。原始反汇编中的每条指令不当成一个Hook；未确认地址/外部动态目标明确UNKNOWN。
 
 - `CURRENT_SOURCE / SOURCE_INSTALLABLE`：源码可安装的声明；不等于本次运行安装，也不等于所有模式同时启用。

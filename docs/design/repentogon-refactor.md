@@ -1,5 +1,23 @@
 # REPENTOGON 适配重构设计
 
+> **tx-04-07 已完成（用户正式接受，D31，2026-10-26）**。用户明确将 e2e-11 的整体 E2E 正式视为全部通过；原始自动 FAIL、S17 停止及未执行项保留，不再安排本轮补测。见[验收记录](../../artifacts/repentogon/tx-04-07-e2e-11/acceptance.md)和[结果](tx-04-07-results.md)。下方历史状态不追溯改写。
+
+> tx-04-07 e2e-08（2026-10-26）：S0–S19 执行、S20 因 A 死亡后无法 Continue 失败；中继第二轮收尾与前三轮对账通过，V12 仍有实际提前发射/输入空档及 Lua 快照时序问题。见[结果](../../artifacts/repentogon/tx-04-07-e2e-08/README.md)。已按用户后续要求为下一次开局加入 debug 10 并纯构建，未再启动游戏；下方历史保留。
+
+> tx-04-07 修复编写（2026-10-26）：中继收尾错误分类与有界收包、V12 时长/对照/证据边界已修复并统一纯构建。实际缺输入仍中性消费，跨房功能尚未验证；没有运行新 E2E。见[修复说明](tx-04-07-relay-v12-fix.md)。下方历史结果保留。
+
+> tx-04-07 最新e2e-06（2026-10-26）：**FAIL**，S6回归修复、V9/V11通过，S0–S15已执行；第二轮Bye后UDP中继报10054，第三/四轮未执行，V12缺激光证据。游戏正常退出、无新dump、trace错误为0、环境已恢复，无自动重跑。见[结果](tx-04-07-results.md)与[修复](tx-04-07-pause-wait-fix.md)。下方记录保持原时点。
+
+> tx-04-07 最新 e2e-05（2026-10-26）**FAIL**：焦点维护修改后，S6 预期退出暂停被新增 harness 检查过早终止；无失焦/恢复实机样本。S4 移动、skip 与 V8 投弹的局部检查已通过；游戏正常退出、无新 dump、环境已清理，未自动重跑。见[结果](tx-04-07-results.md)与[修改/回归说明](tx-04-07-focus-fix.md)。下方历次记录保持原样。
+
+> tx-04-07 退休修复后第三次 E2E（2026-10-25）：**FAIL**。S13 Stop 的错误 this 已修复，两次 B 原生移除均正常返回，无新崩溃，shutdown trace 丢失为 0。S0–S14 完成；随后 Lua 夹具混淆实体 Index 与 ordinal，缺失动画字段而超时，S15–S21 未执行。本轮未自动重跑，清理完成。见[修复](tx-04-07-retirement-fix.md)与[结果](tx-04-07-results.md)。下方历次记录保持原样。
+
+> tx-04-07 实质修复后第二次 E2E（2026-10-25）：**FAIL**。启动 trace 丢失未重现，S0–S12 完成、V11 死亡/复活 PASS；S13 Stop 退休时游戏崩溃（0xC0000005），S14–S21 未执行。此次仅一次启动、无自动重跑，清理与 Download Helper 恢复已完成。见[修复](tx-04-07-trace-fix.md)与[结果](tx-04-07-results.md)。以下首次运行与编码阶段记录保留原时点。
+
+> tx-04-07 首次整体 E2E（2026-10-25，America/Los_Angeles）：**FAIL**，启动 trace 丢失 63 条，首轮开局因 trace_event_lost 退休，尚未 Join B；只启动一次、未重跑，已正常退出与清理。见[结果](tx-04-07-results.md)。后续未执行项保持未验证，下方编码阶段记录保留原时点。
+
+> 2026-10-26 tx-04-07 第 3.4 节已编写，relay、远端、四轮 S0–S21、V1–V16 和文件窗口证据已接入；3.1–3.4 已统一纯编译链接。见[编写记录](tx-04-07-harness.md)。没有部署、启动游戏或运行测试，唯一整体 E2E 待执行；下方各阶段的待编写/未构建表述保留历史时点。
+
 > 2026-10-24 tx-04-05：T1–T8 静态审查与主审、[core 移植](tx-04-05-core-port.md)、[game 主线程适配与必要 Hook/solo 命令接线](tx-04-05-game-adapter.md)已完成相应代码与纯构建；[Lua 夹具、Rust 单启动 S0–S11 与 V1–V10 归约](tx-04-05-test-harness.md)也已编写，Rust/DLL 纯构建成功。没有实机操作或测试，唯一整体 E2E 尚未执行；历史 tx-04-04 结果保留。
 
 > 2026-10-24 tx-04-04 后续：第七次 E2E 已验证暂停状态导航可正确返回主菜单，Game::Exit 计数 0→1，两次进程正常退出。整体仍 FAIL：Lua run 回应和 UI 渲染标记缺失；启用及关闭配置两次均发现第一、三槽存档字节变化。菜单 g_Game/MC_MAIN_MENU_RENDER 中的 Lua 命令桥继续已观察，详见结果文档，不表示整轮已完成。
@@ -67,6 +85,10 @@
 | D26 | tx-04-06 第一次 E2E 之后的修正 | K 的 vtable 表头按原型 `BuildTables` 自建 MSVC RTTI：类型 `.?AVRemoteInputDevice@IsaacCs@@`，层次为自身 + 设备基类 COL（`0x745F4C`，`InputDeviceBase`，单继承）的 `bases[0]`，基类 COL 与静态核对不符时失败关闭、不注册 K；harness 的崩溃扫描加入存档根的 `crash_dumps`，新增转储时记录 `failure_cause=game_crash`，某轮远端日志或 `counters.json` 缺失时只让相应 V 项不通过，不再中止归约；第一次运行的崩溃转储存入 e2e-01 artifact 后从用户 Documents 删除。保留 tx-04-06 编号执行第二次 E2E，不自动重跑。见 [结果](tx-04-06-results.md) | `USER_DECISION`（tx-04-06） |
 | D27 | 存档判定排除每日备份 | harness 的存档判定不看每日备份 `documents/save_backups/` 中的任何存档：这些文件不进入白名单判定，也不进入 D18/D20 基线判定，不出现在 `save-changes.json`；快照仍原样复制，作为原始证据。其他规则不变，第一、三档的云端/本地主存档与附属文件仍按 D20 判定。适用于此后所有使用该 harness 的推进；已生成的报告不改写。见 [tx-04-06 结果](tx-04-06-results.md) | `USER_DECISION`（tx-04-06） |
 | D28 | tx-04-06 验收结论 | 用户决定：不再执行第三次 E2E，直接将第二次 E2E（`tx-04-06-e2e-02`）算作 tx-04-06 的验收通过。harness 原报告保持 FAIL，不改写。该次 S0–S11 全部执行，V1–V11 由 harness 判为 PASS；V12 只有存档项失败，失败的是第一、三档当日备份：它们只改了 D20 规定的 Counter/Checksum 字段，因为文件名带日期而找不到历史基线；D27 起每日备份已不参与判定。D27 的新规则尚未经过实际运行。见 [tx-04-06 结果](tx-04-06-results.md) | `USER_DECISION`（tx-04-06） |
+| D29 | tx-04-07 方案中的六项决定 | U1：故障注入只放在专门的场景段，按不变量判定，强度按方案第 4.3 节的建议；U2：允许测试 mod 修改世界（令 B 死亡、复活、换层）；U3：跨房射击时 B 为阿萨泻勒（`cs host <port> 7`）；U4：Continue 与 B 已加入后的换层两种加载都做；U5：一次启动、多轮 Host；U6：静态确认沿用 tx-04-05/06 的做法（子智能体用 IDA 逆向，主智能体独立审阅）。见 [tx-04-07 实现方案](tx-04-07-implementation-plan.md) | `USER_DECISION`（tx-04-07） |
+| D30 | tx-04-07 方案起草中新增的五项决定 | U7：第 3 轮握手期间施加 30% 双向丢包，以验证 Hello 重发与 First Ack 副本规则；U8：夹具动作沿用 F8 触发，按配置中的动作序列依次执行，不新增按键；U9：会话退休时 `join_state` 复位为 `None`，最近一次 Join 结果另用 `join_last` 保留；U10：B 被原生移除或复活后身份不匹配时，新增原因码 `PeerLost` 并有序退休，如果静态确认不会出现则只保留防御分支；U11：四轮分别以 Stop、PeerBye、PeerTimeout、RunTeardown 结束。用户另确认第二个存档已解锁阿萨泻勒。见 [tx-04-07 实现方案](tx-04-07-implementation-plan.md)第 13.2 节 | `USER_DECISION`（tx-04-07） |
+| D31 | tx-04-07 正式验收结论 | 2026-10-26，用户指示“正式视为此e2e测试全部通过”，将 e2e-11 整体 E2E（V1–V16）正式记为验收通过，tx-04-07 按用户接受完成，不再补测。原自动 FAIL、S17 停止、S18–S21 未运行和 V12 实测 PASS 等实际记录保留，不改写报告或补造观测。见[验收记录](../../artifacts/repentogon/tx-04-07-e2e-11/acceptance.md) | `USER_DECISION`（tx-04-07） |
+| D32 | tx-04-08 设计范围与验收安排 | 2026-10-26，用户确认完整迁移 min-read-v1 的七类 Entity、Grid/门、生命周期/身份/只读字段及离线重放/比较；仅 DLL 本地采集和 artifact，不增加世界状态下行或 Replica。稳定采集目标改为 2,000 次，沿用明确 odd-only 例外，不改写历史 10,000 次要求。一次整体 E2E 内顺序启动两个游戏进程，第一进程覆盖稳定段/生命周期，第二进程采集较短的同 seed/input 对照，最后离线比较；每次启动分别提示。本次只编写设计，见[迁移方案](tx-04-08/tx-04-08-implementation-plan.md)与[E2E 方案](tx-04-08/tx-04-08-e2e-plan.md) | `USER_DECISION`（tx-04-08） |
 
 本文覆盖：
 - 目标架构、启动与 Hook 机制；
@@ -594,9 +616,9 @@ cs-t0/               冻结，只作历史资料和代码来源
 | tx-04-03 | 在 v1.9.7.12 上静态核对首轮点位、虚拟设备依赖、硬编码地址、字段偏移和命令路径（Q10）；产出 binding 清单 | 一次静态文档审阅 | 完成，见[点位核对](../hooks/repentogon-binding.md) |
 | tx-04-04 | REPENTOGON 1.1.3 开发包；工程骨架；bootstrap、binding、Hook 框架（首轮 Hook 全部注册，只透传和计数）；命令桥、测试控制口和界面 mod；harness 自行注入和使用第二个存档。实现方案见 [tx-04-04-implementation-plan.md](tx-04-04-implementation-plan.md) | 一次 E2E：加载、Hook、命令桥（包括 Q14）、命令队列、界面、关闭配置、副作用。D16：首次失败后，修复完成再执行一次 | 实现与编译完成；第一次 E2E 启动超时 FAIL，未重跑，见[结果](tx-04-04-results.md)。静态审阅修订已实现并编译（D16）；第二次 E2E 仍启动超时 FAIL，诊断捕获 Use The Launcher! 错误框，未再重跑。根因静态确认为 REPENTOGON 的启动器环境变量检查，按 D17 补上标记后执行第三次 E2E。D18 修正后第八次 E2E E1–E7 全部 PASS（`artifacts/repentogon/tx-04-04-e2e-08/`），tx-04-04 完成 |
 | tx-04-05 | 循环阶段与 tick 判定；本地 A 经统一队列输入；生命周期；会话真实状态（单人）。实现方案见 [tx-04-05-implementation-plan.md](tx-04-05-implementation-plan.md) | 一次 E2E：A 的输入；tick、暂停、控制台屏蔽、加载、跳帧、teardown 的判定 | U1–U4 已确认（D19）；T1–T8 静态审查与主审完成；全路径最终位置次序仍 UNKNOWN，采用后续稳定边界重绑；core/game、必要 Hook/solo、Lua 夹具与 Rust 单启动 S0–S11 / V1–V10 均已编写并完成相应纯构建；第一次整体 E2E 在 S0 启动阶段因 harness focus 时序 FAIL，未进入 run，未重跑，另发现 V10 历史基线规则无法匹配；按 D20 修正后第二次 E2E 跑完 S0–S11，V1、V3–V9 PASS，V2、V10 因 harness 时序与 F9 截图热键 FAIL；按 D21 修正后第三次 E2E 中 V1、V3–V10 PASS，V2 因 S10 移动被随机房间的岩石挡住 FAIL；按 D22 修正后第四次 E2E 中 V1、V3–V10 PASS，V2 因判定方向未随 S10 反向同步 FAIL，未重跑。D23：用户决定将第四次 E2E 算作验收通过，**tx-04-05 完成（用户接受）**，见[结果](tx-04-05-results.md) |
-| tx-04-06 | net（DLL 内 UDP 线程与新协议）；按 v1.9.7.12 重做的虚拟设备 K；Join（含调用点补丁）；B 的远端输入；断开与退休；Rust 远端模拟客户端（D24）。实现方案见 [tx-04-06-implementation-plan.md](tx-04-06-implementation-plan.md) | 一次 E2E：主菜单 Hosting、握手、Join、B 输入、A/B 同 tick、炸弹、浮层、切房、stop/超时/teardown 三种结束 | 方案已起草，U1–U4 已确认（D25）；按用户要求暂不开始静态确认 ST1–ST9 与实现 |
-| tx-04-07 | relay 与故障注入；B 死亡与复活；异常 Join；B 的跨房射击；loading 查询；补齐首轮完整场景集（D24） | 一次 E2E：首轮完整场景集 | |
-| tx-04-08 | 迁移 world_record（D24 起由 tx-04-07 顺延） | 一次 E2E | |
+| tx-04-06 | net（DLL 内 UDP 线程与新协议）；按 v1.9.7.12 重做的虚拟设备 K；Join（含调用点补丁）；B 的远端输入；断开与退休；Rust 远端模拟客户端（D24）。实现方案见 [tx-04-06-implementation-plan.md](tx-04-06-implementation-plan.md) | 一次 E2E：主菜单 Hosting、握手、Join、B 输入、A/B 同 tick、炸弹、浮层、切房、stop/超时/teardown 三种结束 | U1–U4 已确认（D25）；ST1–ST9 静态确认与实现完成；第一次 E2E 因 K 缺少 RTTI COL 崩溃，按 D26 修复；第二次 E2E 中 V1–V11 PASS，V12 只因每日备份的基线匹配失败（D27 起不判定每日备份）。D28：用户决定将第二次 E2E 算作验收通过，**tx-04-06 完成（用户接受）**，见[结果](tx-04-06-results.md) |
+| tx-04-07 | relay 与故障注入；B 死亡与复活；异常 Join；B 的跨房射击；loading 查询；补齐首轮完整场景集（D24）。实现方案见 [tx-04-07-implementation-plan.md](tx-04-07-implementation-plan.md) | 一次 E2E：首轮完整场景集 | **已完成（用户正式接受，D31，2026-10-26）**。e2e-11 整体 E2E 正式验收通过；原自动 FAIL、停止/未执行与实测事实保留，不再补测。见[验收记录](../../artifacts/repentogon/tx-04-07-e2e-11/acceptance.md)与[历次结果](tx-04-07-results.md) |
+| tx-04-08 | 完整迁移 world_record（D24 起由 tx-04-07 顺延）；[迁移设计](tx-04-08/tx-04-08-implementation-plan.md)、[E2E 方案](tx-04-08/tx-04-08-e2e-plan.md) | 设计任务一次静态文档审阅；功能完成后一次整体 E2E：2,000 次稳定采集、生命周期、两个顺序进程和离线工具 | D32 已确认；设计完成，[ST1](../research/tx-04-08-st1-static-confirmation.md)、[ST2](../research/tx-04-08-st2-static-confirmation.md)、[ST3–ST5](../research/tx-04-08-st3-st5-static-confirmation.md)及[ST6–ST8 owner/生命周期/工程边界](../research/tx-04-08-st6-st8-static-confirmation.md)静态核验与主审完成；具体 UNKNOWN、B 部分撤销分支和完整退出协调缺口保留。工程实现与运行验收尚未完成。未构建或执行功能测试，ST2 额外 JSON 校验偏差见报告 |
 | 之后 | 按状态同步方案第 17 节的次序，包括 Client 角色与界面“加入”页 | 每次各一次 E2E | |
 
 ## 15. 未决问题

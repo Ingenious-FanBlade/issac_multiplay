@@ -1,0 +1,871 @@
+{
+ "label": "Player_TriggerRoomExit",
+ "va": "0x79e3e0",
+ "rva": "0x39e3e0",
+ "note": "libzhl；0x39EA0F RemoveCoPlayer 受 +0x3BC 与 null effect 120/121 门控",
+ "func_start_va": "0x79e3e0",
+ "func_end_va": "0x79ea1c",
+ "func_start_rva": "0x39e3e0",
+ "func_end_rva": "0x39ea1c",
+ "decompile_hexrays_raw": "void __thiscall sub_79E3E0(char *Charm, char a2)\n{\n  char *n3_1; // esi\n  int v3; // ecx\n  int v4; // edx\n  unsigned int v5; // eax\n  int v6; // eax\n  int v7; // ecx\n  int v8; // ecx\n  int v9; // eax\n  int v10; // eax\n  char *v11; // esi\n  int v12; // edi\n  unsigned int v13; // edi\n  bool v14; // zf\n  unsigned int v15; // eax\n  _DWORD *v16; // edx\n  _DWORD *v17; // eax\n  _OWORD *v18; // eax\n  int v19; // ecx\n  int v20; // eax\n  int v21; // eax\n  int v22; // ecx\n  int v23; // edx\n  int v24; // ecx\n  int v25; // eax\n  int *v26; // ecx\n  int v27; // edi\n  int v28; // eax\n  int *v29; // edi\n  int n4; // eax\n  int n49; // edi\n  int **v32; // eax\n  int **v33; // ecx\n  int n3; // edx\n  int v35; // edx\n  int v36; // eax\n  int v37; // ecx\n  _DWORD ***v38; // ecx\n  _DWORD **v39; // edx\n  _DWORD *v40; // ecx\n  _DWORD *v41; // eax\n  void *v42; // edx\n  _DWORD **v43; // eax\n  _DWORD *v44; // ecx\n  _DWORD **v45; // edx\n  int v46; // [esp+8h] [ebp-158h]\n  int v47; // [esp+8h] [ebp-158h]\n  int n4_1; // [esp+8h] [ebp-158h]\n  int v49; // [esp+Ch] [ebp-154h]\n  int v50; // [esp+10h] [ebp-150h]\n  unsigned int v51; // [esp+10h] [ebp-150h]\n  char *v52; // [esp+10h] [ebp-150h]\n  char *Charm_1; // [esp+1Ch] [ebp-144h]\n  __int128 v54; // [esp+20h] [ebp-140h] BYREF\n  _DWORD v55[4]; // [esp+38h] [ebp-128h] BYREF\n  char v56[280]; // [esp+48h] [ebp-118h] BYREF\n\n  n3_1 = Charm;\n  Charm_1 = Charm;\n  sub_7582B0(Charm);\n  if ( !a2 )\n    n3_1[5044] = 0;\n  *(_WORD *)(n3_1 + 5045) = 0;\n  *((_DWORD *)n3_1 + 1448) = 0;\n  *((_DWORD *)n3_1 + 1450) = 0;\n  if ( (unsigned __int8)sub_90A490(21) && !(unsigned __int8)sub_7699D0(21, 0) )\n    sub_742AB0(n187);\n  v3 = *((_DWORD *)n3_1 + 1250);\n  v46 = v3;\n  if ( v3 )\n  {\n    v4 = n4[43149];\n    if ( (int)((n4[43150] - v4) & 0xFFFFFFFC) > 1952 )\n    {\n      v5 = *(_DWORD *)(v4 + 1952);\n      v46 = *((_DWORD *)n3_1 + 1250);\n      if ( v5 )\n      {\n        *(_QWORD *)&v54 = v5;\n        *((_QWORD *)&v54 + 1) = *(unsigned int *)(v5 + 120);\n        sub_90A290(&v54, 1);\n        v3 = *((_DWORD *)n3_1 + 1250);\n        v46 = v3;\n      }\n    }\n    v50 = sub_72A400(v3);\n    *((_DWORD *)n3_1 + 1250) = 0;\n    if ( *((_DWORD *)n3_1 + 1373) != v46 && !(unsigned __int8)sub_7699D0(v46, 0) )\n      sub_757960(v50);\n  }\n  if ( !n3_1[5393] )\n  {\n    v6 = *((_DWORD *)n3_1 + 1345);\n    v7 = *((_DWORD *)n3_1 + 1346);\n    if ( v6 != v7 )\n    {\n      while ( **(_DWORD **)v6 != 2 || *(_DWORD *)(*(_DWORD *)v6 + 4) != 118 )\n      {\n        v6 += 16;\n        if ( v6 == v7 )\n          goto LABEL_23;\n      }\n      v8 = n4[43155];\n      if ( (int)((n4[43156] - v8) & 0xFFFFFFFC) > 160 )\n        v9 = *(_DWORD *)(v8 + 160);\n      else\n        v9 = 0;\n      sub_757960(v9);\n    }\n  }\nLABEL_23:\n  if ( !n3_1[5393] )\n  {\n    v10 = sub_90A7A0(582);\n    if ( v10 )\n    {\n      v47 = *(_DWORD *)(v10 + 4);\n      if ( v47 > 0 )\n      {\n        v11 = n3_1 + 5376;\n        do\n        {\n          v12 = n4[43155];\n          if ( (int)((n4[43156] - v12) & 0xFFFFFFFC) > 284 )\n          {\n            v13 = *(_DWORD *)(v12 + 284);\n            if ( v13 )\n            {\n              v14 = v11[17] == 0;\n              v15 = *(_DWORD *)(v13 + 120);\n              *(_QWORD *)&v54 = v13;\n              v51 = v15;\n              *((_QWORD *)&v54 + 1) = v15;\n              if ( v14 )\n              {\n                v16 = (_DWORD *)*((_DWORD *)v11 + 2);\n                v17 = (_DWORD *)*((_DWORD *)v11 + 1);\n                if ( v17 == v16 )\n                  goto LABEL_33;\n                while ( *v17 != v13 )\n                {\n                  v17 += 4;\n                  if ( v17 == v16 )\n                    goto LABEL_33;\n                }\n                if ( v17 == v16 )\n                {\nLABEL_33:\n                  v18 = (_OWORD *)*((_DWORD *)v11 + 2);\n                  if ( v18 == *((_OWORD **)v11 + 3) )\n                  {\n                    sub_5CBAD0(v18, &v54);\n                  }\n                  else\n                  {\n                    *v18 = v54;\n                    *((_DWORD *)v11 + 2) += 16;\n                  }\n                  *(_DWORD *)(((*((_DWORD *)v11 + 2) - *((_DWORD *)v11 + 1)) & 0xFFFFFFF0) + *((_DWORD *)v11 + 1) - 12) = 1;\n                }\n                else\n                {\n                  ++v17[1];\n                  v17[2] += v51;\n                }\n                *(_DWORD *)v11 |= *(_DWORD *)(v13 + 84);\n                v11[16] = 1;\n              }\n            }\n          }\n          v19 = n4[43149];\n          if ( (int)((n4[43150] - v19) & 0xFFFFFFFC) > 2328 )\n          {\n            v20 = *(_DWORD *)(v19 + 2328);\n            if ( v20 )\n            {\n              v55[0] = *(_DWORD *)(v19 + 2328);\n              v55[2] = *(_DWORD *)(v20 + 120);\n              v55[1] = 0;\n              v55[3] = 0;\n              sub_90A290(v55, 1);\n            }\n          }\n          --v47;\n        }\n        while ( v47 );\n        n3_1 = Charm_1;\n      }\n    }\n  }\n  if ( !n3_1[5393] )\n  {\n    v21 = *((_DWORD *)n3_1 + 1345);\n    v22 = *((_DWORD *)n3_1 + 1346);\n    if ( v21 != v22 )\n    {\n      while ( **(_DWORD **)v21 || *(_DWORD *)(*(_DWORD *)v21 + 4) != 110 )\n      {\n        v21 += 16;\n        if ( v21 == v22 )\n          goto LABEL_65;\n      }\n      if ( *((_DWORD *)n3_1 + 1263) != 26\n        || *((_DWORD *)n3_1 + 1233)\n         + *((_DWORD *)n3_1 + 1234)\n         + *((_DWORD *)n3_1 + 1235)\n         + *((_DWORD *)n3_1 + 1614)\n         + *((_DWORD *)n3_1 + 1885) != 1 )\n      {\n        goto LABEL_64;\n      }\n      v23 = 0;\n      v24 = n187[24768];\n      v25 = *(_DWORD *)(v24 + 4692);\n      if ( v25 )\n      {\n        v26 = *(int **)(v24 + 4684);\n        v27 = v25;\n        do\n        {\n          v28 = *v26;\n          if ( *v26\n            && *(_DWORD *)(v28 + 40) == 3\n            && *(char **)(v28 + 1040) == n3_1\n            && *(_DWORD *)(v28 + 44) == 238\n            && *(_DWORD *)(v28 + 48) != 7\n            && !*(_BYTE *)(v28 + 371) )\n          {\n            ++v23;\n          }\n          ++v26;\n          --v27;\n        }\n        while ( v27 );\n        if ( v23 )\nLABEL_64:\n          sub_90A3F0(110, -1);\n      }\n    }\n  }\nLABEL_65:\n  sub_788C90(n3_1);\n  v29 = (int *)(n3_1 + 5492);\n  n4 = 4;\n  v52 = n3_1 + 5492;\n  n4_1 = 4;\n  do\n  {\n    n49 = *v29;\n    if ( !n49 )\n      goto LABEL_91;\n    if ( !n3_1[5393] )\n    {\n      v32 = (int **)*((_DWORD *)n3_1 + 1345);\n      v33 = (int **)*((_DWORD *)n3_1 + 1346);\n      if ( v32 != v33 )\n      {\n        while ( 1 )\n        {\n          n3 = **v32;\n          if ( (n3 == 1 || n3 == 3 || n3 == 4) && (*v32)[1] == n49 )\n            break;\n          v32 += 4;\n          if ( v32 == v33 )\n            goto LABEL_76;\n        }\n        if ( n49 != 49 )\n          goto LABEL_90;\n      }\n    }\nLABEL_76:\n    if ( !n187 )\n    {\n      if ( n49 >= 0 )\n      {\nLABEL_82:\n        v37 = n4[43149];\n        if ( n49 < (n4[43150] - v37) >> 2 )\n        {\n          v36 = *(_DWORD *)(v37 + 4 * n49);\nLABEL_85:\n          v49 = v36;\n          goto LABEL_86;\n        }\n      }\n      v36 = 0;\n      goto LABEL_85;\n    }\n    if ( n49 >= 0 )\n      goto LABEL_82;\n    v35 = n187[105071];\n    if ( ~n49 >= (n187[105072] - v35) >> 2 )\n    {\n      v49 = 0;\n      v36 = 0;\n    }\n    else\n    {\n      v36 = **(_DWORD **)(v35 + 4 * ~n49);\n      v49 = v36;\n    }\nLABEL_86:\n    if ( !*(_BYTE *)(v36 + 178) )\n      goto LABEL_89;\n    if ( !(unsigned __int8)sub_7699D0(n49, 0) )\n    {\n      v36 = v49;\nLABEL_89:\n      sub_757960(v36);\n    }\nLABEL_90:\n    n4 = n4_1;\nLABEL_91:\n    v29 = (int *)(v52 + 32);\n    --n4;\n    v52 += 32;\n    n4_1 = n4;\n  }\n  while ( n4 );\n  if ( *((_DWORD *)n3_1 + 1405) != 604 || n187[28318] )\n  {\n    sub_403530();\n    n3_1[5018] = 0;\n    sub_7BA2A0(n3_1);\n    *((_DWORD *)n3_1 + 1406) = 0;\n  }\n  if ( *((float *)n3_1 + 1808) > *((float *)n3_1 + 1881) )\n  {\n    v38 = (_DWORD ***)(n3_1 + 6944);\n    if ( n3_1 + 7236 != n3_1 + 6944 )\n    {\n      LOBYTE(Charm_1) = 0;\n      sub_82E780(n3_1 + 6944, Charm_1);\n      v38 = (_DWORD ***)(n3_1 + 6944);\n    }\n    v39 = *v38;\n    v40 = (_DWORD *)*((_DWORD *)n3_1 + 1809);\n    v41 = *v39;\n    if ( *((_DWORD **)n3_1 + 1738) == *v39 )\n    {\n      *((_DWORD *)n3_1 + 1811) = *v40;\n      goto LABEL_106;\n    }\n    if ( *((_DWORD ***)n3_1 + 1738) == v39 )\n    {\nLABEL_105:\n      *((_DWORD *)n3_1 + 1811) = v40;\n    }\n    else\n    {\n      v40 = (_DWORD *)*v40;\n      if ( v41 != v39 )\n      {\n        while ( v41 != *((_DWORD **)n3_1 + 1738) )\n        {\n          v41 = (_DWORD *)*v41;\n          v40 = (_DWORD *)*v40;\n          if ( v41 == v39 )\n            goto LABEL_106;\n        }\n        goto LABEL_105;\n      }\n    }\nLABEL_106:\n    sub_402CD0(n3_1 + 6956);\n    sub_403160(n3_1 + 7248, v56);\n    sub_403790(v42);\n    *((_DWORD *)n3_1 + 1881) = *((_DWORD *)n3_1 + 1808);\n  }\n  if ( *((_DWORD *)n3_1 + 1810) )\n    *((_DWORD *)n3_1 + 1811) = **((_DWORD **)n3_1 + 1809);\n  sub_7D3410(n3_1 + 7736);\n  if ( *((_DWORD *)n3_1 + 239) )\n  {\n    if ( !n3_1[5393] )\n    {\n      v43 = (_DWORD **)*((_DWORD *)n3_1 + 1345);\n      v44 = v43;\n      v45 = (_DWORD **)*((_DWORD *)n3_1 + 1346);\n      if ( v43 != v45 )\n      {\n        while ( *(_DWORD *)*v44 || *(_DWORD *)(*v44 + 4) != 120 )\n        {\n          v44 += 4;\n          if ( v44 == v45 )\n          {\n            while ( 1 )\n            {\n              v44 = *v43;\n              if ( !**v43 && v44[1] == 121 )\n                break;\n              v43 += 4;\n              if ( v43 == v45 )\n                return;\n            }\n            break;\n          }\n        }\n        sub_990560(n187 + 28330, n3_1, (int)v44);\n      }\n    }\n  }\n}\n",
+ "exported_ranges_rva": [
+  [
+   "0x39e3e0",
+   "0x39e420"
+  ],
+  [
+   "0x39e8a5",
+   "0x39ea1c"
+  ]
+ ],
+ "instructions": [
+  {
+   "va": "0x79e3e0",
+   "rva": "0x39e3e0",
+   "bytes": "55",
+   "asm": "push    ebp"
+  },
+  {
+   "va": "0x79e3e1",
+   "rva": "0x39e3e1",
+   "bytes": "8b ec",
+   "asm": "mov     ebp, esp"
+  },
+  {
+   "va": "0x79e3e3",
+   "rva": "0x39e3e3",
+   "bytes": "83 e4 f0",
+   "asm": "and     esp, 0FFFFFFF0h"
+  },
+  {
+   "va": "0x79e3e6",
+   "rva": "0x39e3e6",
+   "bytes": "81 ec 58 01 00 00",
+   "asm": "sub     esp, 158h"
+  },
+  {
+   "va": "0x79e3ec",
+   "rva": "0x39e3ec",
+   "bytes": "56",
+   "asm": "push    esi"
+  },
+  {
+   "va": "0x79e3ed",
+   "rva": "0x39e3ed",
+   "bytes": "8b f1",
+   "asm": "mov     esi, ecx"
+  },
+  {
+   "va": "0x79e3ef",
+   "rva": "0x39e3ef",
+   "bytes": "57",
+   "asm": "push    edi"
+  },
+  {
+   "va": "0x79e3f0",
+   "rva": "0x39e3f0",
+   "bytes": "89 74 24 1c",
+   "asm": "mov     [esp+160h+var_144], esi"
+  },
+  {
+   "va": "0x79e3f4",
+   "rva": "0x39e3f4",
+   "bytes": "e8 b7 9e fb ff",
+   "asm": "call    sub_7582B0",
+   "target_rva": [
+    "0x3582b0"
+   ]
+  },
+  {
+   "va": "0x79e3f9",
+   "rva": "0x39e3f9",
+   "bytes": "80 7d 08 00",
+   "asm": "cmp     [ebp+a2], 0"
+  },
+  {
+   "va": "0x79e3fd",
+   "rva": "0x39e3fd",
+   "bytes": "75 07",
+   "asm": "jnz     short loc_79E406",
+   "target_rva": [
+    "0x39e406"
+   ]
+  },
+  {
+   "va": "0x79e3ff",
+   "rva": "0x39e3ff",
+   "bytes": "c6 86 b4 13 00 00 00",
+   "asm": "mov     byte ptr [esi+13B4h], 0"
+  },
+  {
+   "va": "0x79e406",
+   "rva": "0x39e406",
+   "bytes": "8d be 00 15 00 00",
+   "asm": "lea     edi, [esi+1500h]"
+  },
+  {
+   "va": "0x79e40c",
+   "rva": "0x39e40c",
+   "bytes": "66 c7 86 b5 13 00 00 00 00",
+   "asm": "mov     word ptr [esi+13B5h], 0"
+  },
+  {
+   "va": "0x79e415",
+   "rva": "0x39e415",
+   "bytes": "6a 15",
+   "asm": "push    15h"
+  },
+  {
+   "va": "0x79e417",
+   "rva": "0x39e417",
+   "bytes": "8b cf",
+   "asm": "mov     ecx, edi"
+  },
+  {
+   "va": "0x79e419",
+   "rva": "0x39e419",
+   "bytes": "c7 86 a0 16 00 00 00 00 00 00",
+   "asm": "mov     dword ptr [esi+16A0h], 0"
+  },
+  {
+   "va": "0x79e8a5",
+   "rva": "0x39e8a5",
+   "bytes": "0f 85 05 ff ff ff",
+   "asm": "jnz     loc_79E7B0",
+   "target_rva": [
+    "0x39e7b0"
+   ]
+  },
+  {
+   "va": "0x79e8ab",
+   "rva": "0x39e8ab",
+   "bytes": "81 be f4 15 00 00 5c 02 00 00",
+   "asm": "cmp     dword ptr [esi+15F4h], 25Ch"
+  },
+  {
+   "va": "0x79e8b5",
+   "rva": "0x39e8b5",
+   "bytes": "75 0e",
+   "asm": "jnz     short loc_79E8C5",
+   "target_rva": [
+    "0x39e8c5"
+   ]
+  },
+  {
+   "va": "0x79e8b7",
+   "rva": "0x39e8b7",
+   "bytes": "a1 f4 49 be 00",
+   "asm": "mov     eax, n187"
+  },
+  {
+   "va": "0x79e8bc",
+   "rva": "0x39e8bc",
+   "bytes": "83 b8 78 ba 01 00 00",
+   "asm": "cmp     dword ptr [eax+1BA78h], 0"
+  },
+  {
+   "va": "0x79e8c3",
+   "rva": "0x39e8c3",
+   "bytes": "74 23",
+   "asm": "jz      short loc_79E8E8",
+   "target_rva": [
+    "0x39e8e8"
+   ]
+  },
+  {
+   "va": "0x79e8c5",
+   "rva": "0x39e8c5",
+   "bytes": "8d 8e 1c 04 00 00",
+   "asm": "lea     ecx, [esi+41Ch]"
+  },
+  {
+   "va": "0x79e8cb",
+   "rva": "0x39e8cb",
+   "bytes": "e8 60 4c c6 ff",
+   "asm": "call    sub_403530",
+   "target_rva": [
+    "0x3530"
+   ]
+  },
+  {
+   "va": "0x79e8d0",
+   "rva": "0x39e8d0",
+   "bytes": "8b ce",
+   "asm": "mov     ecx, esi"
+  },
+  {
+   "va": "0x79e8d2",
+   "rva": "0x39e8d2",
+   "bytes": "c6 86 9a 13 00 00 00",
+   "asm": "mov     byte ptr [esi+139Ah], 0"
+  },
+  {
+   "va": "0x79e8d9",
+   "rva": "0x39e8d9",
+   "bytes": "e8 c2 b9 01 00",
+   "asm": "call    sub_7BA2A0",
+   "target_rva": [
+    "0x3ba2a0"
+   ]
+  },
+  {
+   "va": "0x79e8de",
+   "rva": "0x39e8de",
+   "bytes": "c7 86 f8 15 00 00 00 00 00 00",
+   "asm": "mov     dword ptr [esi+15F8h], 0"
+  },
+  {
+   "va": "0x79e8e8",
+   "rva": "0x39e8e8",
+   "bytes": "f3 0f 10 86 40 1c 00 00",
+   "asm": "movss   xmm0, dword ptr [esi+1C40h]"
+  },
+  {
+   "va": "0x79e8f0",
+   "rva": "0x39e8f0",
+   "bytes": "0f 2f 86 64 1d 00 00",
+   "asm": "comiss  xmm0, dword ptr [esi+1D64h]"
+  },
+  {
+   "va": "0x79e8f7",
+   "rva": "0x39e8f7",
+   "bytes": "0f 86 8e 00 00 00",
+   "asm": "jbe     loc_79E98B",
+   "target_rva": [
+    "0x39e98b"
+   ]
+  },
+  {
+   "va": "0x79e8fd",
+   "rva": "0x39e8fd",
+   "bytes": "8d 8e 20 1b 00 00",
+   "asm": "lea     ecx, [esi+1B20h]"
+  },
+  {
+   "va": "0x79e903",
+   "rva": "0x39e903",
+   "bytes": "8d be 44 1c 00 00",
+   "asm": "lea     edi, [esi+1C44h]"
+  },
+  {
+   "va": "0x79e909",
+   "rva": "0x39e909",
+   "bytes": "3b f9",
+   "asm": "cmp     edi, ecx"
+  },
+  {
+   "va": "0x79e90b",
+   "rva": "0x39e90b",
+   "bytes": "74 17",
+   "asm": "jz      short loc_79E924",
+   "target_rva": [
+    "0x39e924"
+   ]
+  },
+  {
+   "va": "0x79e90d",
+   "rva": "0x39e90d",
+   "bytes": "c6 44 24 1c 00",
+   "asm": "mov     byte ptr [esp+160h+var_144], 0"
+  },
+  {
+   "va": "0x79e912",
+   "rva": "0x39e912",
+   "bytes": "ff 74 24 1c",
+   "asm": "push    [esp+160h+var_144]"
+  },
+  {
+   "va": "0x79e916",
+   "rva": "0x39e916",
+   "bytes": "51",
+   "asm": "push    ecx"
+  },
+  {
+   "va": "0x79e917",
+   "rva": "0x39e917",
+   "bytes": "8b cf",
+   "asm": "mov     ecx, edi"
+  },
+  {
+   "va": "0x79e919",
+   "rva": "0x39e919",
+   "bytes": "e8 62 fe 08 00",
+   "asm": "call    sub_82E780",
+   "target_rva": [
+    "0x42e780"
+   ]
+  },
+  {
+   "va": "0x79e91e",
+   "rva": "0x39e91e",
+   "bytes": "8d 8e 20 1b 00 00",
+   "asm": "lea     ecx, [esi+1B20h]"
+  },
+  {
+   "va": "0x79e924",
+   "rva": "0x39e924",
+   "bytes": "8b 11",
+   "asm": "mov     edx, [ecx]"
+  },
+  {
+   "va": "0x79e926",
+   "rva": "0x39e926",
+   "bytes": "8b 0f",
+   "asm": "mov     ecx, [edi]"
+  },
+  {
+   "va": "0x79e928",
+   "rva": "0x39e928",
+   "bytes": "8b 02",
+   "asm": "mov     eax, [edx]"
+  },
+  {
+   "va": "0x79e92a",
+   "rva": "0x39e92a",
+   "bytes": "39 86 28 1b 00 00",
+   "asm": "cmp     [esi+1B28h], eax"
+  },
+  {
+   "va": "0x79e930",
+   "rva": "0x39e930",
+   "bytes": "75 07",
+   "asm": "jnz     short loc_79E939",
+   "target_rva": [
+    "0x39e939"
+   ]
+  },
+  {
+   "va": "0x79e932",
+   "rva": "0x39e932",
+   "bytes": "8b 01",
+   "asm": "mov     eax, [ecx]"
+  },
+  {
+   "va": "0x79e934",
+   "rva": "0x39e934",
+   "bytes": "89 47 08",
+   "asm": "mov     [edi+8], eax"
+  },
+  {
+   "va": "0x79e937",
+   "rva": "0x39e937",
+   "bytes": "eb 23",
+   "asm": "jmp     short loc_79E95C",
+   "target_rva": [
+    "0x39e95c"
+   ]
+  },
+  {
+   "va": "0x79e939",
+   "rva": "0x39e939",
+   "bytes": "39 96 28 1b 00 00",
+   "asm": "cmp     [esi+1B28h], edx"
+  },
+  {
+   "va": "0x79e93f",
+   "rva": "0x39e93f",
+   "bytes": "74 18",
+   "asm": "jz      short loc_79E959",
+   "target_rva": [
+    "0x39e959"
+   ]
+  },
+  {
+   "va": "0x79e941",
+   "rva": "0x39e941",
+   "bytes": "8b 09",
+   "asm": "mov     ecx, [ecx]"
+  },
+  {
+   "va": "0x79e943",
+   "rva": "0x39e943",
+   "bytes": "3b c2",
+   "asm": "cmp     eax, edx"
+  },
+  {
+   "va": "0x79e945",
+   "rva": "0x39e945",
+   "bytes": "74 15",
+   "asm": "jz      short loc_79E95C",
+   "target_rva": [
+    "0x39e95c"
+   ]
+  },
+  {
+   "va": "0x79e947",
+   "rva": "0x39e947",
+   "bytes": "3b 86 28 1b 00 00",
+   "asm": "cmp     eax, [esi+1B28h]"
+  },
+  {
+   "va": "0x79e94d",
+   "rva": "0x39e94d",
+   "bytes": "74 0a",
+   "asm": "jz      short loc_79E959",
+   "target_rva": [
+    "0x39e959"
+   ]
+  },
+  {
+   "va": "0x79e94f",
+   "rva": "0x39e94f",
+   "bytes": "8b 00",
+   "asm": "mov     eax, [eax]"
+  },
+  {
+   "va": "0x79e951",
+   "rva": "0x39e951",
+   "bytes": "8b 09",
+   "asm": "mov     ecx, [ecx]"
+  },
+  {
+   "va": "0x79e953",
+   "rva": "0x39e953",
+   "bytes": "3b c2",
+   "asm": "cmp     eax, edx"
+  },
+  {
+   "va": "0x79e955",
+   "rva": "0x39e955",
+   "bytes": "75 f0",
+   "asm": "jnz     short loc_79E947",
+   "target_rva": [
+    "0x39e947"
+   ]
+  },
+  {
+   "va": "0x79e957",
+   "rva": "0x39e957",
+   "bytes": "eb 03",
+   "asm": "jmp     short loc_79E95C",
+   "target_rva": [
+    "0x39e95c"
+   ]
+  },
+  {
+   "va": "0x79e959",
+   "rva": "0x39e959",
+   "bytes": "89 4f 08",
+   "asm": "mov     [edi+8], ecx"
+  },
+  {
+   "va": "0x79e95c",
+   "rva": "0x39e95c",
+   "bytes": "8d 86 2c 1b 00 00",
+   "asm": "lea     eax, [esi+1B2Ch]"
+  },
+  {
+   "va": "0x79e962",
+   "rva": "0x39e962",
+   "bytes": "50",
+   "asm": "push    eax"
+  },
+  {
+   "va": "0x79e963",
+   "rva": "0x39e963",
+   "bytes": "8d 4c 24 4c",
+   "asm": "lea     ecx, [esp+164h+var_118]"
+  },
+  {
+   "va": "0x79e967",
+   "rva": "0x39e967",
+   "bytes": "e8 64 43 c6 ff",
+   "asm": "call    sub_402CD0",
+   "target_rva": [
+    "0x2cd0"
+   ]
+  },
+  {
+   "va": "0x79e96c",
+   "rva": "0x39e96c",
+   "bytes": "8d 4f 0c",
+   "asm": "lea     ecx, [edi+0Ch]"
+  },
+  {
+   "va": "0x79e96f",
+   "rva": "0x39e96f",
+   "bytes": "8d 54 24 48",
+   "asm": "lea     edx, [esp+160h+var_118]"
+  },
+  {
+   "va": "0x79e973",
+   "rva": "0x39e973",
+   "bytes": "e8 e8 47 c6 ff",
+   "asm": "call    sub_403160",
+   "target_rva": [
+    "0x3160"
+   ]
+  },
+  {
+   "va": "0x79e978",
+   "rva": "0x39e978",
+   "bytes": "8b ca",
+   "asm": "mov     ecx, edx; void *"
+  },
+  {
+   "va": "0x79e97a",
+   "rva": "0x39e97a",
+   "bytes": "e8 11 4e c6 ff",
+   "asm": "call    sub_403790",
+   "target_rva": [
+    "0x3790"
+   ]
+  },
+  {
+   "va": "0x79e97f",
+   "rva": "0x39e97f",
+   "bytes": "8b 86 40 1c 00 00",
+   "asm": "mov     eax, [esi+1C40h]"
+  },
+  {
+   "va": "0x79e985",
+   "rva": "0x39e985",
+   "bytes": "89 87 20 01 00 00",
+   "asm": "mov     [edi+120h], eax"
+  },
+  {
+   "va": "0x79e98b",
+   "rva": "0x39e98b",
+   "bytes": "83 be 48 1c 00 00 00",
+   "asm": "cmp     dword ptr [esi+1C48h], 0"
+  },
+  {
+   "va": "0x79e992",
+   "rva": "0x39e992",
+   "bytes": "74 0e",
+   "asm": "jz      short loc_79E9A2",
+   "target_rva": [
+    "0x39e9a2"
+   ]
+  },
+  {
+   "va": "0x79e994",
+   "rva": "0x39e994",
+   "bytes": "8b 86 44 1c 00 00",
+   "asm": "mov     eax, [esi+1C44h]"
+  },
+  {
+   "va": "0x79e99a",
+   "rva": "0x39e99a",
+   "bytes": "8b 00",
+   "asm": "mov     eax, [eax]"
+  },
+  {
+   "va": "0x79e99c",
+   "rva": "0x39e99c",
+   "bytes": "89 86 4c 1c 00 00",
+   "asm": "mov     [esi+1C4Ch], eax"
+  },
+  {
+   "va": "0x79e9a2",
+   "rva": "0x39e9a2",
+   "bytes": "8d 8e 38 1e 00 00",
+   "asm": "lea     ecx, [esi+1E38h]"
+  },
+  {
+   "va": "0x79e9a8",
+   "rva": "0x39e9a8",
+   "bytes": "e8 63 4a 03 00",
+   "asm": "call    sub_7D3410",
+   "target_rva": [
+    "0x3d3410"
+   ]
+  },
+  {
+   "va": "0x79e9ad",
+   "rva": "0x39e9ad",
+   "bytes": "83 be bc 03 00 00 00",
+   "asm": "cmp     dword ptr [esi+3BCh], 0"
+  },
+  {
+   "va": "0x79e9b4",
+   "rva": "0x39e9b4",
+   "bytes": "74 5e",
+   "asm": "jz      short loc_79EA14",
+   "target_rva": [
+    "0x39ea14"
+   ]
+  },
+  {
+   "va": "0x79e9b6",
+   "rva": "0x39e9b6",
+   "bytes": "80 be 11 15 00 00 00",
+   "asm": "cmp     byte ptr [esi+1511h], 0"
+  },
+  {
+   "va": "0x79e9bd",
+   "rva": "0x39e9bd",
+   "bytes": "75 55",
+   "asm": "jnz     short loc_79EA14",
+   "target_rva": [
+    "0x39ea14"
+   ]
+  },
+  {
+   "va": "0x79e9bf",
+   "rva": "0x39e9bf",
+   "bytes": "8b 86 04 15 00 00",
+   "asm": "mov     eax, [esi+1504h]"
+  },
+  {
+   "va": "0x79e9c5",
+   "rva": "0x39e9c5",
+   "bytes": "8b c8",
+   "asm": "mov     ecx, eax"
+  },
+  {
+   "va": "0x79e9c7",
+   "rva": "0x39e9c7",
+   "bytes": "8b 96 08 15 00 00",
+   "asm": "mov     edx, [esi+1508h]"
+  },
+  {
+   "va": "0x79e9cd",
+   "rva": "0x39e9cd",
+   "bytes": "3b ca",
+   "asm": "cmp     ecx, edx"
+  },
+  {
+   "va": "0x79e9cf",
+   "rva": "0x39e9cf",
+   "bytes": "74 43",
+   "asm": "jz      short loc_79EA14",
+   "target_rva": [
+    "0x39ea14"
+   ]
+  },
+  {
+   "va": "0x79e9d1",
+   "rva": "0x39e9d1",
+   "bytes": "8b 39",
+   "asm": "mov     edi, [ecx]"
+  },
+  {
+   "va": "0x79e9d3",
+   "rva": "0x39e9d3",
+   "bytes": "83 3f 00",
+   "asm": "cmp     dword ptr [edi], 0"
+  },
+  {
+   "va": "0x79e9d6",
+   "rva": "0x39e9d6",
+   "bytes": "75 06",
+   "asm": "jnz     short loc_79E9DE",
+   "target_rva": [
+    "0x39e9de"
+   ]
+  },
+  {
+   "va": "0x79e9d8",
+   "rva": "0x39e9d8",
+   "bytes": "83 7f 04 78",
+   "asm": "cmp     dword ptr [edi+4], 78h ; 'x'"
+  },
+  {
+   "va": "0x79e9dc",
+   "rva": "0x39e9dc",
+   "bytes": "74 23",
+   "asm": "jz      short loc_79EA01",
+   "target_rva": [
+    "0x39ea01"
+   ]
+  },
+  {
+   "va": "0x79e9de",
+   "rva": "0x39e9de",
+   "bytes": "83 c1 10",
+   "asm": "add     ecx, 10h"
+  },
+  {
+   "va": "0x79e9e1",
+   "rva": "0x39e9e1",
+   "bytes": "3b ca",
+   "asm": "cmp     ecx, edx"
+  },
+  {
+   "va": "0x79e9e3",
+   "rva": "0x39e9e3",
+   "bytes": "75 ec",
+   "asm": "jnz     short loc_79E9D1",
+   "target_rva": [
+    "0x39e9d1"
+   ]
+  },
+  {
+   "va": "0x79e9e5",
+   "rva": "0x39e9e5",
+   "bytes": "8b 08",
+   "asm": "mov     ecx, [eax]"
+  },
+  {
+   "va": "0x79e9e7",
+   "rva": "0x39e9e7",
+   "bytes": "83 39 00",
+   "asm": "cmp     dword ptr [ecx], 0"
+  },
+  {
+   "va": "0x79e9ea",
+   "rva": "0x39e9ea",
+   "bytes": "75 06",
+   "asm": "jnz     short loc_79E9F2",
+   "target_rva": [
+    "0x39e9f2"
+   ]
+  },
+  {
+   "va": "0x79e9ec",
+   "rva": "0x39e9ec",
+   "bytes": "83 79 04 79",
+   "asm": "cmp     dword ptr [ecx+4], 79h ; 'y'"
+  },
+  {
+   "va": "0x79e9f0",
+   "rva": "0x39e9f0",
+   "bytes": "74 0f",
+   "asm": "jz      short loc_79EA01",
+   "target_rva": [
+    "0x39ea01"
+   ]
+  },
+  {
+   "va": "0x79e9f2",
+   "rva": "0x39e9f2",
+   "bytes": "83 c0 10",
+   "asm": "add     eax, 10h"
+  },
+  {
+   "va": "0x79e9f5",
+   "rva": "0x39e9f5",
+   "bytes": "3b c2",
+   "asm": "cmp     eax, edx"
+  },
+  {
+   "va": "0x79e9f7",
+   "rva": "0x39e9f7",
+   "bytes": "75 ec",
+   "asm": "jnz     short loc_79E9E5",
+   "target_rva": [
+    "0x39e9e5"
+   ]
+  },
+  {
+   "va": "0x79e9f9",
+   "rva": "0x39e9f9",
+   "bytes": "5f",
+   "asm": "pop     edi"
+  },
+  {
+   "va": "0x79e9fa",
+   "rva": "0x39e9fa",
+   "bytes": "5e",
+   "asm": "pop     esi"
+  },
+  {
+   "va": "0x79e9fb",
+   "rva": "0x39e9fb",
+   "bytes": "8b e5",
+   "asm": "mov     esp, ebp"
+  },
+  {
+   "va": "0x79e9fd",
+   "rva": "0x39e9fd",
+   "bytes": "5d",
+   "asm": "pop     ebp"
+  },
+  {
+   "va": "0x79e9fe",
+   "rva": "0x39e9fe",
+   "bytes": "c2 04 00",
+   "asm": "retn    4"
+  },
+  {
+   "va": "0x79ea01",
+   "rva": "0x39ea01",
+   "bytes": "51",
+   "asm": "push    ecx; a3"
+  },
+  {
+   "va": "0x79ea02",
+   "rva": "0x39ea02",
+   "bytes": "8b 0d f4 49 be 00",
+   "asm": "mov     ecx, n187"
+  },
+  {
+   "va": "0x79ea08",
+   "rva": "0x39ea08",
+   "bytes": "56",
+   "asm": "push    esi; n3"
+  },
+  {
+   "va": "0x79ea09",
+   "rva": "0x39ea09",
+   "bytes": "8d 89 a8 ba 01 00",
+   "asm": "lea     ecx, [ecx+1BAA8h]; this"
+  },
+  {
+   "va": "0x79ea0f",
+   "rva": "0x39ea0f",
+   "bytes": "e8 4c 1b 1f 00",
+   "asm": "call    sub_990560",
+   "target_rva": [
+    "0x590560"
+   ]
+  },
+  {
+   "va": "0x79ea14",
+   "rva": "0x39ea14",
+   "bytes": "5f",
+   "asm": "pop     edi"
+  },
+  {
+   "va": "0x79ea15",
+   "rva": "0x39ea15",
+   "bytes": "5e",
+   "asm": "pop     esi"
+  },
+  {
+   "va": "0x79ea16",
+   "rva": "0x39ea16",
+   "bytes": "8b e5",
+   "asm": "mov     esp, ebp"
+  },
+  {
+   "va": "0x79ea18",
+   "rva": "0x39ea18",
+   "bytes": "5d",
+   "asm": "pop     ebp"
+  },
+  {
+   "va": "0x79ea19",
+   "rva": "0x39ea19",
+   "bytes": "c2 04 00",
+   "asm": "retn    4"
+  }
+ ],
+ "xrefs_to_func": [
+  {
+   "from_rva": "0x2f9f36",
+   "type": 17
+  },
+  {
+   "from_rva": "0x2fa14a",
+   "type": 17
+  },
+  {
+   "from_rva": "0x37c1a2",
+   "type": 17
+  },
+  {
+   "from_rva": "0x59415f",
+   "type": 17
+  },
+  {
+   "from_rva": "0x5941f9",
+   "type": 17
+  },
+  {
+   "from_rva": "0x595f7d",
+   "type": 17
+  }
+ ]
+}

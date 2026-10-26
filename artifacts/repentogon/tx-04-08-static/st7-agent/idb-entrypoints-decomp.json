@@ -1,0 +1,356 @@
+{
+  "idb": "isaac-ng-v1.9.7.12.exe.unpacked.exe.i64",
+  "imagebase": "0x400000",
+  "evidence": "IDA MCP decompile, read-only",
+  "functions": {
+    "Manager_ExecuteStartGame": {
+      "addr": "0x932A20",
+      "code": "int __usercall sub_932A20@<eax>(int a1@<ecx>, int a2@<ebp>, int a3@<edi>)\n{\n  int result; // eax\n  int v4; // edi\n  int v5; // eax\n  _DWORD *n187; // eax\n  int v7; // eax\n  int v8; // ecx\n  _DWORD *v9; // eax\n  _DWORD *v10; // eax\n  int v11; // esi\n  _DWORD *v12; // edi\n  _DWORD *i; // esi\n  int n9; // eax\n  int v15; // eax\n  int n5489; // ecx\n  char v17; // al\n  _DWORD *n187_1; // eax\n  int v19; // esi\n  int v20; // eax\n  _DWORD *n187_2; // edi\n  int v22; // ecx\n  int v23; // eax\n  int v24; // ecx\n  int v25; // [esp-58h] [ebp-184h]\n  int v26; // [esp-54h] [ebp-180h]\n  int v27; // [esp-50h] [ebp-17Ch]\n  int v28; // [esp-4Ch] [ebp-178h]\n  int v29; // [esp-48h] [ebp-174h]\n  int v30; // [esp-44h] [ebp-170h]\n  int v31; // [esp-40h] [ebp-16Ch]\n  int v32; // [esp-3Ch] [ebp-168h]\n  int v33; // [esp-38h] [ebp-164h]\n  int v34; // [esp-34h] [ebp-160h]\n  int v35; // [esp-30h] [ebp-15Ch]\n  int v36; // [esp-2Ch] [ebp-158h]\n  int v37; // [esp-28h] [ebp-154h]\n  int v38; // [esp-24h] [ebp-150h]\n  int v39; // [esp-20h] [ebp-14Ch]\n  int v40; // [esp-1Ch] [ebp-148h]\n  int v41; // [esp-18h] [ebp-144h]\n  int v42; // [esp-14h] [ebp-140h]\n  int v43; // [esp-10h] [ebp-13Ch]\n  void *v44; // [esp-Ch] [ebp-138h]\n  int v45; // [esp-8h] [ebp-134h]\n  int v46; // [esp-4h] [ebp-130h]\n  void *v47; // [esp+0h] [ebp-12Ch]\n  int v48; // [esp+4h] [ebp-128h]\n  int v49; // [esp+4h] [ebp-128h]\n  int n88; // [esp+8h] [ebp-124h]\n  int v51; // [esp+8h] [ebp-124h]\n  int v52; // [esp+8h] [ebp-124h]\n  int ArgList; // [esp+Ch] [ebp-120h]\n  int v54; // [esp+Ch] [ebp-120h]\n  int v56; // [esp+10h] [ebp-11Ch]\n  int v57; // [esp+24h] [ebp-108h] BYREF\n  int v58; // [esp+2Ch] [ebp-100h]\n  int v59; // [esp+30h] [ebp-FCh]\n  _DWORD *v60; // [esp+34h] [ebp-F8h]\n  __int64 v61; // [esp+38h] [ebp-F4h] BYREF\n  _DWORD *v62; // [esp+44h] [ebp-E8h]\n  void **v63; // [esp+9Ch] [ebp-90h] BYREF\n  void *v64[6]; // [esp+FCh] [ebp-30h] BYREF\n  _DWORD v65[2]; // [esp+114h] [ebp-18h] BYREF\n  int n2; // [esp+11Ch] [ebp-10h]\n  _DWORD v67[2]; // [esp+120h] [ebp-Ch] BYREF\n  int v68; // [esp+128h] [ebp-4h] BYREF\n  _UNKNOWN *retaddr; // [esp+12Ch] [ebp+0h]\n\n  v67[0] = a2; /*0x932a2c*/\n  v67[1] = retaddr; /*0x932a30*/\n  n2 = -1; /*0x932a36*/\n  v65[1] = &loc_AA09DD; /*0x932a38*/\n  v65[0] = NtCurrentTeb()->NtTib.ExceptionList; /*0x932a43*/\n  v64[5] = &v68; /*0x932a44*/\n  result = (int)v65; /*0x932a58*/\n  v4 = a1; /*0x932a61*/\n  v59 = a1; /*0x932a63*/\n  if ( *(_BYTE *)(a1 + 306448) )\n  {\n    if ( !*(_BYTE *)(a1 + 306772) || (result = sub_8E88F0(a1 + 307128), (_BYTE)result) )\n    {\n      v5 = *(_DWORD *)(v4 + 305336); /*0x932a92*/\n      if ( (v5 & 1) != 0 ) /*0x932a9a*/\n        *(_DWORD *)(v4 + 305336) = v5 + 1; /*0x932a9d*/\n      sub_932970(v4); /*0x932aa5*/\n      if ( !n187 ) /*0x932ab1*/\n      {\n        v62 = operator new(0x680E8u); /*0x932ac0*/\n        n2 = 0; /*0x932ac8*/\n        n187 = (_DWORD *)sub_6ED4B0(v62); /*0x932acf*/\n        n2 = -1; /*0x932ad4*/\n        n187 = n187; /*0x932adb*/\n        sub_6F0AF0(); /*0x932ae0*/\n      }\n      v7 = *(_DWORD *)(v4 + 307128); /*0x932ae5*/\n      v8 = v4 + 307128; /*0x932aeb*/\n      v62 = (_DWORD *)(v4 + 307128); /*0x932af1*/\n      if ( v7 != *(_DWORD *)(v4 + 307132) ) /*0x932afa*/\n        sub_8E6E60(0); /*0x932b0a*/\n      if ( *(_BYTE *)(v4 + 306772) )\n      {\n        v9 = n4 + 77946; /*0x932b21*/\n        v60 = n4 + 77946; /*0x932b26*/\n        n4[77974] = 0; /*0x932b2c*/\n        v9[27] = 0; /*0x932b33*/\n        v10 = (_DWORD *)*v9; /*0x932b3a*/\n        HIDWORD(v61) = *v10; /*0x932b3e*/\n        v11 = HIDWORD(v61); /*0x932b3c*/\n        if ( (_DWORD *)HIDWORD(v61) != v10 ) /*0x932b46*/\n        {\n          do /*0x932bc1*/\n          {\n            if ( ((__int64 (__thiscall *)(int))*(_DWORD *)(*(_DWORD *)(v11 + 32) + 4))(v11 + 32) ) /*0x932b59*/\n            {\n              sub_410310((char *)&v61 + 4); /*0x932bae*/\n            }\n            else\n            {\n              HIDWORD(v61) = v11; /*0x932b65*/\n              sub_410310((char *)&v61 + 4); /*0x932b6b*/\n              v12 = (_DWORD *)sub_81D190(v11); /*0x932b7c*/\n              sub_A20200(v12 + 14); /*0x932b81*/\n              sub_698FF0(v12 + 15); /*0x932b89*/\n              n88 = 88; /*0x932b8e*/\n              v12[8] = &KAGE::System::UserProfileBase::`vftable'; /*0x932b91*/\n              sub_A8717B(v12); /*0x932b98*/\n            }\n            v11 = HIDWORD(v61); /*0x932b9d*/\n          }\n          while ( HIDWORD(v61) != *v60 ); /*0x932bc1*/\n          v4 = v59; /*0x932bc3*/\n        }\n        for ( i = *(_DWORD **)(v4 + 306776); i != *(_DWORD **)(v4 + 306780); i += 10 ) /*0x932bd5*/\n        {\n          n9 = i[7]; /*0x932be0*/\n          if ( n9 == 9 || n9 == 30 ) /*0x932beb*/\n          {\n            v61 = ((__int64 (__thiscall *)(_DWORD *))*(_DWORD *)(*i + 4))(i); /*0x932bfa*/\n            v60 = (_DWORD *)v62[1050]; /*0x932c12*/\n            sub_72C4C0(&v57, &v61); /*0x932c2c*/\n            if ( !*(_BYTE *)(v58 + 13) ) /*0x932c37*/\n            {\n              v8 = HIDWORD(v61); /*0x932c3d*/\n              if ( HIDWORD(v61) >= *(_DWORD *)(v58 + 20) ) /*0x932c46*/\n              {\n                if ( HIDWORD(v61) > *(_DWORD *)(v58 + 20) || (v8 = v61, (unsigned int)v61 >= *(_DWORD *)(v58 + 16)) ) /*0x932c53*/\n                {\n                  if ( (_DWORD *)v58 != v60 ) /*0x932c5b*/\n                  {\n                    v15 = sub_8EF3A0(&v61); /*0x932c6a*/\n                    if ( v15 ) /*0x932c71*/\n                    {\n                      if ( !*(_DWORD *)(v15 + 784) ) /*0x932c73*/\n                        i[7] = 0; /*0x932c7c*/\n                    }\n                  }\n                }\n              }\n            }\n          }\n        }\n        if ( *(_BYTE *)(v4 + 306772) && *(_DWORD *)(v4 + 306464) && !*(_DWORD *)(v4 + 307140) )\n        {\n          n5489 = *(_DWORD *)(v4 + 306464); /*0x932cad*/\n          if ( !n5489 )\n          {\n            sub_9E0DF0(3, \"Error: Game Start Seed was not set.\\n\", ArgList);\n            n5489 = *(_DWORD *)(v4 + 306464); /*0x932cc3*/\n          }\n          sub_6EB470(n5489); /*0x932ccc*/\n          sub_8F73C0(); /*0x932cd1*/\n        }\n      }\n      v17 = *(_BYTE *)(v4 + 306772); /*0x932cd6*/\n      *(_DWORD *)(v4 + 8) = 2; /*0x932cdc*/\n      if ( !v17 || !*(_BYTE *)(v4 + 306449) ) /*0x932ce7*/\n      {\n        *(_OWORD *)(v4 + 137220) = xmmword_B412E0; /*0x932cfd*/\n        *(_OWORD *)(v4 + 137236) = xmmword_B412E0; /*0x932d05*/\n        *(_OWORD *)(v4 + 137252) = xmmword_B412E0; /*0x932d0e*/\n        *(_QWORD *)(v4 + 137268) = 0x1100000011LL; /*0x932d15*/\n        sub_8FA7A0(v8); /*0x932d1d*/\n        *(_DWORD *)(v4 + 137208) = 0; /*0x932d22*/\n        v17 = *(_BYTE *)(v4 + 306772); /*0x932d2c*/\n      }\n      if ( v17 ) /*0x932d34*/\n      {\n        if ( *(_BYTE *)(v4 + 306449) ) /*0x932d3a*/\n        {\n          n187_1 = n187; /*0x932d49*/\n          *(_BYTE *)(v4 + 306449) = 0; /*0x932d4e*/\n          n187_1[28318] = 2; /*0x932d55*/\n          n187_1[28320] = 50; /*0x932d5f*/\n          n187_1[28319] = 49; /*0x932d69*/\n          *((_BYTE *)n187_1 + 113284) = 0; /*0x932d73*/\n          v51 = v4 + 4004; /*0x932d80*/\n        }\n        else\n        {\n          sub_424980(n187 + 38627); /*0x932d8f*/\n          sub_8E6E60(0); /*0x932d9c*/\n          v51 = 0; /*0x932da1*/\n        }\n        v49 = *(_DWORD *)(v4 + 306552); /*0x932da3*/\n        sub_9BE320(v4 + 306460); /*0x932daf*/\n        sub_6F1BF0( /*0x932dc8*/\n          v4 + 306776,\n          v4 + 306592,\n          *(_DWORD *)(v4 + 306456),\n          v25,\n          v26,\n          v27,\n          v28,\n          v29,\n          v30,\n          v31,\n          v32,\n          v33,\n          v34,\n          v35,\n          v36,\n          v37,\n          v38,\n          v39,\n          v40,\n          v41,\n          v42,\n          v43,\n          v44,\n          v45,\n          v46,\n          v47,\n          v49,\n          v51);\n        sub_932810(v4); /*0x932dcf*/\n      }\n      else if ( *(_BYTE *)(v4 + 306449) ) /*0x932dd9*/\n      {\n        v19 = v4 + 4004; /*0x932dec*/\n        *(_DWORD *)(v4 + 306452) = *(_DWORD *)(v4 + 109836); /*0x932df2*/\n        *(_DWORD *)(v4 + 306456) = *(_DWORD *)(v4 + 4004); /*0x932dfd*/\n        *(_DWORD *)(v4 + 306552) = *(_DWORD *)(v4 + 4012); /*0x932e09*/\n        *(_BYTE *)(v4 + 306449) = 0; /*0x932e16*/\n        v20 = sub_9BE320(v4 + 128320); /*0x932e1d*/\n        n2 = 1; /*0x932e29*/\n        sub_9BE430(v20); /*0x932e30*/\n        n2 = -1; /*0x932e35*/\n        sub_41FEE0((int)v64, *((void **)v64[0] + 1)); /*0x932e48*/\n        sub_A8717B(v64[0]); /*0x932e52*/\n        n187_2 = n187; /*0x932e57*/\n        *((_BYTE *)n187 + 154370) = 1; /*0x932e66*/\n        *((_BYTE *)n187_2 + 155489) = 1; /*0x932e6d*/\n        sub_979E10(ArgList, a3); /*0x932e74*/\n        sub_6F43A0(v19, 1); /*0x932e7e*/\n        sub_9964A0(v54, v56); /*0x932e89*/\n        sub_992A80((unsigned int **)n187_2 + 28330); /*0x932e94*/\n        sub_993030(n187_2 + 28330); /*0x932e9f*/\n        sub_7F7F60(*((float *)n187_2 + 24768), (int)v67, (int)n187_2); /*0x932eaa*/\n        sub_9E35B0(-16777216); /*0x932eba*/\n        sub_6F15C0(1025758986, 1, v22); /*0x932ece*/\n        n187_2[38606] = 0; /*0x932ed5*/\n        sub_84B660(1); /*0x932edf*/\n        *((_BYTE *)n187_2 + 155489) = 0; /*0x932ee4*/\n        v4 = v59; /*0x932eeb*/\n      }\n      else if ( *(_BYTE *)(v4 + 306450) ) /*0x932ef6*/\n      {\n        *(_DWORD *)(v4 + 306452) = *(_DWORD *)(v4 + 109836); /*0x932f0f*/\n        *(_DWORD *)(v4 + 306456) = *(_DWORD *)(v4 + 4004); /*0x932f1d*/\n        *(_DWORD *)(v4 + 306552) = *(_DWORD *)(v4 + 4012); /*0x932f29*/\n        *(_BYTE *)(v4 + 306450) = 0; /*0x932f36*/\n        v23 = sub_9BE320(v4 + 128320); /*0x932f3d*/\n        n2 = 2; /*0x932f49*/\n        sub_9BE430(v23); /*0x932f50*/\n        n2 = -1; /*0x932f55*/\n        sub_41FEE0((int)&v63, v63[1]); /*0x932f6e*/\n        sub_A8717B(v63); /*0x932f7b*/\n        sub_6F3650(v4 + 4004); /*0x932f84*/\n      }\n      else if ( *(_DWORD *)(v4 + 306592) ) /*0x932f8e*/\n      {\n        *(_DWORD *)(v4 + 306452) = *(_DWORD *)(v4 + 306676); /*0x932fa4*/\n        sub_6F3140(v4 + 306592); /*0x932faa*/\n      }\n      else if ( *(_BYTE *)(v4 + 306556) ) /*0x932fb1*/\n      {\n        sub_408400((void *)(v4 + 306568)); /*0x932fc6*/\n        sub_6F3AA0( /*0x932fdd*/\n          *(_DWORD *)(v4 + 306560),\n          *(_DWORD *)(v4 + 306564),\n          *(_DWORD *)(v4 + 306552),\n          v44,\n          v45,\n          v46,\n          (int)v47,\n          v48,\n          n88);\n      }\n      else\n      {\n        v52 = *(_DWORD *)(v4 + 306552); /*0x932fe4*/\n        sub_9BE320(v4 + 306460); /*0x932ff6*/\n        sub_6F16D0( /*0x933007*/\n          *(_DWORD *)(v4 + 306452),\n          *(_DWORD *)(v4 + 306456),\n          v26,\n          v27,\n          v28,\n          v29,\n          v30,\n          v31,\n          v32,\n          v33,\n          v34,\n          v35,\n          v36,\n          v37,\n          v38,\n          v39,\n          v40,\n          v41,\n          v42,\n          v43,\n          (int)v44,\n          v45,\n          v46,\n          v47,\n          v48,\n          v52);\n      }\n      v24 = *(_DWORD *)(v4 + 305336); /*0x93300c*/\n      result = v24 % 2; /*0x93301f*/\n      if ( v24 % 2 == 1 ) /*0x933023*/\n      {\n        result = v24 + 1; /*0x933025*/\n        *(_DWORD *)(v4 + 305336) = v24 + 1; /*0x933028*/\n      }\n      *(_BYTE *)(v4 + 306448) = 0; /*0x93302e*/\n      *(_WORD *)(v4 + 306788) = 1; /*0x933035*/\n    }\n  }\n  return result; /*0x933058*/\n}",
+      "refs": [
+        {
+          "addr": "0xaa09dd",
+          "name": "loc_AA09DD"
+        },
+        {
+          "addr": "0x932970",
+          "name": "sub_932970"
+        },
+        {
+          "addr": "0xa86de5",
+          "name": "??2@YAPAXI@Z"
+        },
+        {
+          "addr": "0x6ed4b0",
+          "name": "sub_6ED4B0"
+        },
+        {
+          "addr": "0xbe49f4",
+          "name": "n187"
+        },
+        {
+          "addr": "0x6f0af0",
+          "name": "sub_6F0AF0"
+        },
+        {
+          "addr": "0x8e6e60",
+          "name": "sub_8E6E60"
+        },
+        {
+          "addr": "0xbe4a1c",
+          "name": "n4"
+        },
+        {
+          "addr": "0x410310",
+          "name": "sub_410310"
+        },
+        {
+          "addr": "0x81d190",
+          "name": "sub_81D190"
+        },
+        {
+          "addr": "0xa20200",
+          "name": "sub_A20200"
+        },
+        {
+          "addr": "0x698ff0",
+          "name": "sub_698FF0"
+        },
+        {
+          "addr": "0xb39778",
+          "name": "??_7UserProfileBase@System@KAGE@@6B@"
+        },
+        {
+          "addr": "0xa8717b",
+          "name": "sub_A8717B"
+        },
+        {
+          "addr": "0x72c4c0",
+          "name": "sub_72C4C0"
+        },
+        {
+          "addr": "0x8ef3a0",
+          "name": "sub_8EF3A0"
+        },
+        {
+          "addr": "0x9e0df0",
+          "name": "sub_9E0DF0"
+        },
+        {
+          "addr": "0xb0e800",
+          "name": "aErrorGameStart",
+          "string": "Error: Game Start Seed was not set.\n"
+        },
+        {
+          "addr": "0x6eb470",
+          "name": "sub_6EB470"
+        },
+        {
+          "addr": "0x8f73c0",
+          "name": "sub_8F73C0"
+        },
+        {
+          "addr": "0xb412e0",
+          "name": "xmmword_B412E0"
+        },
+        {
+          "addr": "0x8fa7a0",
+          "name": "sub_8FA7A0"
+        },
+        {
+          "addr": "0x424980",
+          "name": "sub_424980"
+        },
+        {
+          "addr": "0x9be320",
+          "name": "sub_9BE320"
+        },
+        {
+          "addr": "0x6f1bf0",
+          "name": "sub_6F1BF0"
+        },
+        {
+          "addr": "0x932810",
+          "name": "sub_932810"
+        },
+        {
+          "addr": "0x9be430",
+          "name": "sub_9BE430"
+        },
+        {
+          "addr": "0x41fee0",
+          "name": "sub_41FEE0"
+        },
+        {
+          "addr": "0x979e10",
+          "name": "sub_979E10"
+        },
+        {
+          "addr": "0x6f43a0",
+          "name": "sub_6F43A0"
+        },
+        {
+          "addr": "0x9964a0",
+          "name": "sub_9964A0"
+        },
+        {
+          "addr": "0x992a80",
+          "name": "sub_992A80"
+        },
+        {
+          "addr": "0x993030",
+          "name": "sub_993030"
+        },
+        {
+          "addr": "0x7f7f60",
+          "name": "sub_7F7F60"
+        },
+        {
+          "addr": "0x9e35b0",
+          "name": "sub_9E35B0"
+        },
+        {
+          "addr": "0x6f15c0",
+          "name": "sub_6F15C0"
+        },
+        {
+          "addr": "0x84b660",
+          "name": "sub_84B660"
+        },
+        {
+          "addr": "0x6f3650",
+          "name": "sub_6F3650"
+        },
+        {
+          "addr": "0x6f3140",
+          "name": "sub_6F3140"
+        },
+        {
+          "addr": "0x408400",
+          "name": "sub_408400"
+        },
+        {
+          "addr": "0x6f3aa0",
+          "name": "sub_6F3AA0"
+        },
+        {
+          "addr": "0x6f16d0",
+          "name": "sub_6F16D0"
+        },
+        {
+          "addr": "0x8e88f0",
+          "name": "sub_8E88F0"
+        }
+      ]
+    },
+    "Game_Exit": {
+      "addr": "0x6F6270",
+      "code": "void __stdcall sub_6F6270(int a1)\n{\n  _DWORD *n2; // ebx\n  _DWORD *v2; // ecx\n  int v3; // eax\n  _BYTE *v4; // esi\n  char *v5; // ecx\n  _BYTE *v6; // edi\n  int v7; // edi\n  int v8; // esi\n  _BYTE *v9; // esi\n  _DWORD *n2_2; // eax\n  char *v11; // eax\n  char *v12; // edi\n  int n2_3; // ebx\n  unsigned int v14; // esi\n  int v15; // edx\n  bool v16; // zf\n  char *n2_4; // ebx\n  _DWORD *n37_3; // edi\n  _DWORD *i_1; // esi\n  _DWORD **v20; // ebx\n  int n37_1; // eax\n  int v22; // edi\n  int n37_2; // esi\n  int **i_3; // eax\n  int i; // eax\n  int *j; // ecx\n  char *n2_1; // [esp+Ch] [ebp-8h]\n  int n37; // [esp+10h] [ebp-4h] BYREF\n  char *v29; // [esp+1Ch] [ebp+8h]\n  _DWORD *i_2; // [esp+1Ch] [ebp+8h]\n\n  n2 = n2_0; /*0x6f6277*/\n  n2_1 = (char *)n2_0; /*0x6f627f*/\n  if ( *((_BYTE *)n2_0 + 154370) ) /*0x6f6282*/\n  {\n    sub_84B840(a1); /*0x6f6292*/\n    sub_908210((char *)dword_BE4A1C + 172384); /*0x6f62a3*/\n    sub_908140(86); /*0x6f62b9*/\n    sub_908140(87); /*0x6f62cf*/\n    sub_908140(88); /*0x6f62e5*/\n    sub_908140(89); /*0x6f62fb*/\n    if ( n2[28685] == 2 ) /*0x6f630e*/\n      sub_984110(n2 + 28685, 1); /*0x6f6317*/\n    v2 = dword_BE4A1C; /*0x6f631c*/\n    v3 = 97 * *((_DWORD *)dword_BE4A1C + 42878); /*0x6f632a*/\n    *((_DWORD *)dword_BE4A1C + 43075) = 1065353216; /*0x6f6334*/\n    v2[43076] = 1065353216; /*0x6f633e*/\n    sub_7D5C40(&v2[v3 + 42879]); /*0x6f6350*/\n    v4 = (char *)dword_BE4A1C + 20; /*0x6f635b*/\n    if ( *((_BYTE *)dword_BE4A1C + 20) && *((_BYTE *)dword_BE4A1C + 4000) ) /*0x6f6363*/\n    {\n      v5 = (char *)dword_BE4A1C + 20; /*0x6f636c*/\n      *v4 = 0; /*0x6f636e*/\n      sub_9032A0(v5); /*0x6f6371*/\n      v6 = dword_BE4A1C; /*0x6f6376*/\n      if ( *(_DWORD *)SteamInternal_ContextInit(&off_BD00B4) && v6[172502] ) /*0x6f638f*/\n        sub_902F00(v4); /*0x6f639a*/\n      else\n        sub_903460(v4); /*0x6f63a3*/\n    }\n    if ( !*((_BYTE *)n2 + 154371) ) /*0x6f63a8*/\n    {\n      if ( (_BYTE)a1 ) /*0x6f63b5*/\n        sub_932160(); /*0x6f63b7*/\n      else\n        sub_9324A0(); /*0x6f63be*/\n    }\n    n2[37281] = 0; /*0x6f63cd*/\n    n2[37805] = 0; /*0x6f63d7*/\n    sub_8B80A0(0, 0); /*0x6f63e1*/\n    n2[37808] = 0; /*0x6f63e6*/\n    n2[37793] = 0; /*0x6f63f6*/\n    n2[30002] = 0; /*0x6f6400*/\n    sub_403530(); /*0x6f640a*/\n    n2[30079] = 0; /*0x6f640f*/\n    v7 = n2[38158]; /*0x6f6419*/\n    v8 = n2[38157]; /*0x6f641f*/\n    if ( v8 != v7 ) /*0x6f6427*/\n    {\n      do /*0x6f643d*/\n      {\n        sub_4085F0(v8 + 8); /*0x6f6433*/\n        v8 += 56; /*0x6f6438*/\n      }\n      while ( v8 != v7 ); /*0x6f643d*/\n      v8 = n2[38157]; /*0x6f643f*/\n    }\n    n2[38158] = v8; /*0x6f6445*/\n    *((_BYTE *)n2 + 151244) = 0; /*0x6f644d*/\n    sub_6F0770(n2); /*0x6f6454*/\n    v9 = dword_BE4A1C; /*0x6f6459*/\n    sub_9E0DF0(0, \"Setting PersistentGameData ReadOnly to %s\\n\", (char)\"False\"); /*0x6f646b*/\n    n2_2 = n2_0; /*0x6f6470*/\n    v9[21] = 0; /*0x6f647b*/\n    n2_2[28380] = 0; /*0x6f6482*/\n    n2[28318] = 0; /*0x6f648c*/\n    n2[28319] = 0; /*0x6f6496*/\n    *((_BYTE *)n2 + 113284) = 0; /*0x6f64a0*/\n    n2[28322] = 0; /*0x6f64a7*/\n    n2[28324] = dword_BEB900; /*0x6f64b9*/\n    n2[28325] = n1101004800; /*0x6f64c9*/\n    n2[28320] = 50; /*0x6f64d4*/\n    n2[28176] = 0; /*0x6f64de*/\n    n2[28178] = 0; /*0x6f64e8*/\n    n2[28175] = 0; /*0x6f64f2*/\n    n2[28179] = 0; /*0x6f64fc*/\n    n2[28182] = 0; /*0x6f6506*/\n    n2[28183] = 0; /*0x6f6510*/\n    n2[28184] = 0; /*0x6f651a*/\n    n2_2[28381] = 0; /*0x6f6524*/\n    *((_QWORD *)n2 + 19288) = 0LL; /*0x6f652e*/\n    sub_403530(); /*0x6f6536*/\n    sub_403530(); /*0x6f6541*/\n    n2[28685] = 0; /*0x6f654c*/\n    n2[28686] = 0; /*0x6f6556*/\n    sub_41CAE0(n2 + 29861); /*0x6f6560*/\n    v11 = (char *)(n2 + 25188); /*0x6f6565*/\n    n37 = 37; /*0x6f656b*/\n    v29 = (char *)(n2 + 25188); /*0x6f6572*/\n    do /*0x6f65ba*/\n    {\n      v12 = v11; /*0x6f6575*/\n      n2_3 = 2; /*0x6f6577*/\n      do /*0x6f65a9*/\n      {\n        if ( v12[12] ) /*0x6f6580*/\n        {\n          v14 = 0; /*0x6f6586*/\n          if ( *(_DWORD *)v12 ) /*0x6f6588*/\n          {\n            v15 = 0; /*0x6f658c*/\n            do /*0x6f65a1*/\n            {\n              v15 += 92; /*0x6f6593*/\n              ++v14; /*0x6f6596*/\n              *(_DWORD *)(v15 + *((_DWORD *)v12 - 1) - 40) = *(_DWORD *)(v15 + *((_DWORD *)v12 - 1) - 44); /*0x6f659b*/\n            }\n            while ( v14 < *(_DWORD *)v12 ); /*0x6f65a1*/\n          }\n        }\n        v12 += 44; /*0x6f65a3*/\n        --n2_3; /*0x6f65a6*/\n      }\n      while ( n2_3 ); /*0x6f65a9*/\n      v11 = v29 + 196; /*0x6f65ae*/\n      v16 = n37-- == 1; /*0x6f65b3*/\n      v29 += 196; /*0x6f65b7*/\n    }\n    while ( !v16 ); /*0x6f65ba*/\n    n2_4 = n2_1; /*0x6f65bc*/\n    sub_682030(n2_1 + 425940); /*0x6f65c5*/\n    sub_732D20(); /*0x6f65cc*/\n    sub_98F7C0(n2_1 + 113320); /*0x6f65d7*/\n    sub_97AB10(n2_1 + 121260); /*0x6f65e2*/\n    sub_979D80(n2_1 + 121260); /*0x6f65ed*/\n    sub_40A140(); /*0x6f65f2*/\n    n37_3 = (_DWORD *)*((_DWORD *)n2_1 + 27086); /*0x6f65f7*/\n    i_1 = (_DWORD *)*n37_3; /*0x6f6603*/\n    i_2 = (_DWORD *)*n37_3; /*0x6f6605*/\n    if ( (_DWORD *)*n37_3 != n37_3 ) /*0x6f660a*/\n    {\n      v20 = (_DWORD **)(n2_1 + 108344); /*0x6f6610*/\n      do /*0x6f66aa*/\n      {\n        sub_698BC0(&n37, i_1 + 4); /*0x6f661c*/\n        n37_1 = n37; /*0x6f6621*/\n        if ( (_DWORD *)n37 != n37_3 && *(_BYTE *)(n37 + 40) ) /*0x6f6628*/\n        {\n          v22 = *(_DWORD *)(n37 + 68); /*0x6f662e*/\n          if ( v22 != *(_DWORD *)(n37 + 72) ) /*0x6f6634*/\n          {\n            n37_2 = n37; /*0x6f6636*/\n            do /*0x6f6650*/\n            {\n              sub_408950(0); /*0x6f6645*/\n              v22 += 32; /*0x6f664a*/\n            }\n            while ( v22 != *(_DWORD *)(n37_2 + 72) ); /*0x6f6650*/\n            i_1 = i_2; /*0x6f6652*/\n            n37_1 = n37; /*0x6f6655*/\n          }\n          *(_BYTE *)(n37_1 + 40) = 0; /*0x6f6658*/\n        }\n        sub_40A140(); /*0x6f665c*/\n        i_3 = (int **)i_1[2]; /*0x6f6661*/\n        if ( *((_BYTE *)i_3 + 13) ) /*0x6f6664*/\n        {\n          for ( i = i_1[1]; !*(_BYTE *)(i + 13); i = *(_DWORD *)(i + 4) ) /*0x6f666d*/\n          {\n            if ( i_1 != *(_DWORD **)(i + 8) ) /*0x6f6676*/\n              break; /*0x6f6676*/\n            i_1 = (_DWORD *)i; /*0x6f6678*/\n          }\n          i_1 = (_DWORD *)i; /*0x6f6683*/\n          i_2 = (_DWORD *)i; /*0x6f6685*/\n        }\n        else\n        {\n          i_1 = (_DWORD *)i_1[2]; /*0x6f668a*/\n          i_2 = i_3; /*0x6f668c*/\n          for ( j = *i_3; !*((_BYTE *)j + 13); j = (int *)*j ) /*0x6f6691*/\n          {\n            i_1 = j; /*0x6f6699*/\n            i_2 = j; /*0x6f669b*/\n          }\n        }\n        n37_3 = *v20; /*0x6f66a6*/\n      }\n      while ( i_1 != *v20 ); /*0x6f66aa*/\n      n2_4 = n2_1; /*0x6f66b0*/\n    }\n    sub_98CC60(n2_4 + 144956); /*0x6f66b9*/\n    *((_DWORD *)n2_4 + 38606) = 0; /*0x6f66be*/\n    *((_WORD *)n2_4 + 77185) = 0; /*0x6f66c8*/\n  }\n}",
+      "refs": [
+        {
+          "addr": "0xbe49f4",
+          "name": "n187"
+        },
+        {
+          "addr": "0x84b840",
+          "name": "sub_84B840"
+        },
+        {
+          "addr": "0x908210",
+          "name": "sub_908210"
+        },
+        {
+          "addr": "0xbe4a1c",
+          "name": "n4"
+        },
+        {
+          "addr": "0x908140",
+          "name": "sub_908140"
+        },
+        {
+          "addr": "0x984110",
+          "name": "sub_984110"
+        },
+        {
+          "addr": "0x7d5c40",
+          "name": "sub_7D5C40"
+        },
+        {
+          "addr": "0x9032a0",
+          "name": "sub_9032A0"
+        },
+        {
+          "addr": "0x902f00",
+          "name": "sub_902F00"
+        },
+        {
+          "addr": "0x903460",
+          "name": "sub_903460"
+        },
+        {
+          "addr": "0xaaa7c0",
+          "name": "SteamInternal_ContextInit"
+        },
+        {
+          "addr": "0xbd00b4",
+          "name": "off_BD00B4"
+        },
+        {
+          "addr": "0x932160",
+          "name": "sub_932160"
+        },
+        {
+          "addr": "0x9324a0",
+          "name": "sub_9324A0"
+        },
+        {
+          "addr": "0x8b80a0",
+          "name": "sub_8B80A0"
+        },
+        {
+          "addr": "0x403530",
+          "name": "sub_403530"
+        },
+        {
+          "addr": "0x4085f0",
+          "name": "sub_4085F0"
+        },
+        {
+          "addr": "0x6f0770",
+          "name": "sub_6F0770"
+        },
+        {
+          "addr": "0x9e0df0",
+          "name": "sub_9E0DF0"
+        },
+        {
+          "addr": "0xb2b9bc",
+          "name": "aSettingPersist",
+          "string": "Setting PersistentGameData ReadOnly to %s\n"
+        },
+        {
+          "addr": "0xb2b73c",
+          "name": "aFalse",
+          "string": "False"
+        },
+        {
+          "addr": "0xbeb900",
+          "name": "a4"
+        },
+        {
+          "addr": "0x41cae0",
+          "name": "sub_41CAE0"
+        },
+        {
+          "addr": "0x682030",
+          "name": "sub_682030"
+        },
+        {
+          "addr": "0x732d20",
+          "name": "sub_732D20"
+        },
+        {
+          "addr": "0x98f7c0",
+          "name": "sub_98F7C0"
+        },
+        {
+          "addr": "0x97ab10",
+          "name": "sub_97AB10"
+        },
+        {
+          "addr": "0x979d80",
+          "name": "sub_979D80"
+        },
+        {
+          "addr": "0x40a140",
+          "name": "sub_40A140"
+        },
+        {
+          "addr": "0x698bc0",
+          "name": "sub_698BC0"
+        },
+        {
+          "addr": "0x408950",
+          "name": "sub_408950"
+        },
+        {
+          "addr": "0x98cc60",
+          "name": "sub_98CC60"
+        }
+      ]
+    },
+    "PlayerManager_PostLevelInitRestore": {
+      "addr": "0x993FA0",
+      "code": "void __thiscall sub_993FA0(int *this, int a2)\n{\n  int *v2; // edi\n  int v3; // esi\n  int v4; // edi\n  int v5; // ecx\n  _DWORD *n187; // ecx\n  void *v7[3]; // [esp+10h] [ebp-1Ch] BYREF\n  int *v8; // [esp+1Ch] [ebp-10h]\n  int v9; // [esp+28h] [ebp-4h]\n\n  v2 = this; /*0x993fc8*/\n  v8 = this; /*0x993fca*/\n  sub_993780(this, v7, a2, 0); /*0x993fd7*/\n  v3 = 0; /*0x993fdc*/\n  v9 = 0; /*0x993fde*/\n  if ( *(int *)(a2 + 105840) > 0 ) /*0x993feb*/\n  {\n    v4 = a2 + 105844; /*0x993fed*/\n    do /*0x994010*/\n    {\n      v5 = *((_DWORD *)v7[0] + v3); /*0x993ff6*/\n      if ( v5 ) /*0x993ffb*/\n        sub_7A71C0(v5, v4); /*0x993ffe*/\n      ++v3; /*0x994003*/\n      v4 += 1468; /*0x994004*/\n    }\n    while ( v3 < *(_DWORD *)(a2 + 105840) ); /*0x994010*/\n    v2 = v8; /*0x994012*/\n  }\n  n187 = n187; /*0x994015*/\n  v2[3] = -1; /*0x99401b*/\n  v2[8] = -1; /*0x994022*/\n  v2[5] = -1; /*0x994029*/\n  v2[6] = 0; /*0x994030*/\n  v2[4] = 0; /*0x99403d*/\n  v2[10] = -1; /*0x994044*/\n  v2[11] = 0; /*0x99404b*/\n  v2[9] = 0; /*0x994052*/\n  v2[13] = -1; /*0x994059*/\n  v2[15] = -1; /*0x994060*/\n  v2[16] = 0; /*0x994067*/\n  v2[14] = 0; /*0x99406e*/\n  v2[18] = -1; /*0x994075*/\n  v2[20] = -1; /*0x99407c*/\n  v2[21] = 0; /*0x994083*/\n  v2[19] = 0; /*0x99408a*/\n  sub_980130(n187 + 30315); /*0x994091*/\n  sub_980480((_BYTE *)n187 + 121260, 0, 0); /*0x9940a6*/\n  sub_97AFD0(0); /*0x9940b9*/\n  sub_4101E0(v7); /*0x9940c1*/\n}",
+      "refs": [
+        {
+          "addr": "0x993780",
+          "name": "sub_993780"
+        },
+        {
+          "addr": "0x7a71c0",
+          "name": "sub_7A71C0"
+        },
+        {
+          "addr": "0xbe49f4",
+          "name": "n187"
+        },
+        {
+          "addr": "0x980130",
+          "name": "sub_980130"
+        },
+        {
+          "addr": "0x980480",
+          "name": "sub_980480"
+        },
+        {
+          "addr": "0x97afd0",
+          "name": "sub_97AFD0"
+        },
+        {
+          "addr": "0x4101e0",
+          "name": "sub_4101E0"
+        }
+      ]
+    }
+  }
+}

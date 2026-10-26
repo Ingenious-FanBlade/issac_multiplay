@@ -1,0 +1,21 @@
+-- 默认保持 tx-04-04 行为；tx-04-05/06/07 harness 在临时部署目录写入本次运行配置。
+-- tx-04-07 的生成配置示例（正式运行由 tools/harness 的 tx07 部署写入）：
+-- return {
+--     tx = "tx-04-07",
+--     token = "本次运行标识",
+--     host_port = 27090,
+--     menu_host = true,                 -- 首轮主菜单自动 Host；第 4 轮由控制口 Host
+--     expected_b_player_type = 0,       -- 普通 Isaac；其他角色按 PlayerType 覆盖
+--     observation_heartbeat = 30,       -- 静止时每 N 次渲染留一条 observation
+--     laser_event_cap = 512,            -- 激光出生事件上限；达到上限写一次 laser-overflow
+--     animation_timeout_ms = 30000,     -- 复活后等待 Appear 完成的观察上限
+--     actions = {
+--         { name = "skip", timeout_ms = 10000 },
+--         { name = "room", timeout_ms = 30000 },
+--         { name = "kill_b", timeout_ms = 30000 },
+--         { name = "revive_b", timeout_ms = 40000 },
+--         { name = "stage", timeout_ms = 60000 },
+--         { name = "room", timeout_ms = 30000 },
+--     },
+-- }
+return { tx = "tx-04-04", token = "legacy" }

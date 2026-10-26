@@ -1,0 +1,146 @@
+{
+  "label": "Lua_EntityKill",
+  "va": "0x844230",
+  "rva": "0x444230",
+  "decompile": "int __thiscall sub_844230(int *this)\n{\n  int v1; // eax\n  _DWORD v3[4]; // [esp+0h] [ebp-28h] BYREF\n  __int64 v4; // [esp+10h] [ebp-18h]\n  __int64 v5; // [esp+18h] [ebp-10h]\n  int v6; // [esp+20h] [ebp-8h]\n  int v7; // [esp+24h] [ebp-4h]\n\n  v1 = *this;\n  memset(v3, 0, sizeof(v3));\n  v4 = *(_QWORD *)&a4;\n  v5 = *(_QWORD *)&a4;\n  v6 = 0;\n  v7 = 0;\n  return (*(int (__thiscall **)(int *, _DWORD *))(v1 + 36))(this, v3);\n}\n",
+  "instructions": [
+    {
+      "va": "0x844230",
+      "rva": "0x444230",
+      "bytes": "55",
+      "text": "push    ebp"
+    },
+    {
+      "va": "0x844231",
+      "rva": "0x444231",
+      "bytes": "8b ec",
+      "text": "mov     ebp, esp"
+    },
+    {
+      "va": "0x844233",
+      "rva": "0x444233",
+      "bytes": "83 ec 28",
+      "text": "sub     esp, 28h"
+    },
+    {
+      "va": "0x844236",
+      "rva": "0x444236",
+      "bytes": "f3 0f 10 0d 00 b9 be 00",
+      "text": "movss   xmm1, dword ptr a4"
+    },
+    {
+      "va": "0x84423e",
+      "rva": "0x44423e",
+      "bytes": "8d 55 d8",
+      "text": "lea     edx, [ebp+var_28]"
+    },
+    {
+      "va": "0x844241",
+      "rva": "0x444241",
+      "bytes": "f3 0f 10 05 04 b9 be 00",
+      "text": "movss   xmm0, dword ptr a4+4"
+    },
+    {
+      "va": "0x844249",
+      "rva": "0x444249",
+      "bytes": "8b 01",
+      "text": "mov     eax, [ecx]"
+    },
+    {
+      "va": "0x84424b",
+      "rva": "0x44424b",
+      "bytes": "52",
+      "text": "push    edx"
+    },
+    {
+      "va": "0x84424c",
+      "rva": "0x44424c",
+      "bytes": "c7 45 d8 00 00 00 00",
+      "text": "mov     [ebp+var_28], 0"
+    },
+    {
+      "va": "0x844253",
+      "rva": "0x444253",
+      "bytes": "c7 45 dc 00 00 00 00",
+      "text": "mov     [ebp+var_24], 0"
+    },
+    {
+      "va": "0x84425a",
+      "rva": "0x44425a",
+      "bytes": "c7 45 e0 00 00 00 00",
+      "text": "mov     [ebp+var_20], 0"
+    },
+    {
+      "va": "0x844261",
+      "rva": "0x444261",
+      "bytes": "c7 45 e4 00 00 00 00",
+      "text": "mov     [ebp+var_1C], 0"
+    },
+    {
+      "va": "0x844268",
+      "rva": "0x444268",
+      "bytes": "f3 0f 11 4d e8",
+      "text": "movss   dword ptr [ebp+var_18], xmm1"
+    },
+    {
+      "va": "0x84426d",
+      "rva": "0x44426d",
+      "bytes": "f3 0f 11 45 ec",
+      "text": "movss   dword ptr [ebp+var_18+4], xmm0"
+    },
+    {
+      "va": "0x844272",
+      "rva": "0x444272",
+      "bytes": "f3 0f 11 4d f0",
+      "text": "movss   dword ptr [ebp+var_10], xmm1"
+    },
+    {
+      "va": "0x844277",
+      "rva": "0x444277",
+      "bytes": "f3 0f 11 45 f4",
+      "text": "movss   dword ptr [ebp+var_10+4], xmm0"
+    },
+    {
+      "va": "0x84427c",
+      "rva": "0x44427c",
+      "bytes": "c7 45 f8 00 00 00 00",
+      "text": "mov     [ebp+var_8], 0"
+    },
+    {
+      "va": "0x844283",
+      "rva": "0x444283",
+      "bytes": "c7 45 fc 00 00 00 00",
+      "text": "mov     [ebp+var_4], 0"
+    },
+    {
+      "va": "0x84428a",
+      "rva": "0x44428a",
+      "bytes": "ff 50 24",
+      "text": "call    dword ptr [eax+24h]"
+    },
+    {
+      "va": "0x84428d",
+      "rva": "0x44428d",
+      "bytes": "8b e5",
+      "text": "mov     esp, ebp"
+    },
+    {
+      "va": "0x84428f",
+      "rva": "0x44428f",
+      "bytes": "5d",
+      "text": "pop     ebp"
+    },
+    {
+      "va": "0x844290",
+      "rva": "0x444290",
+      "bytes": "c3",
+      "text": "retn"
+    }
+  ],
+  "xrefs_to": [
+    {
+      "from_va": "0x84f6d2",
+      "type": 1
+    }
+  ]
+}

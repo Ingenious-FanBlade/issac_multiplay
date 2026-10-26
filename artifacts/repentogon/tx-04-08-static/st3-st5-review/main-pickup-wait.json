@@ -1,0 +1,54 @@
+[
+  {
+    "va": "0x844a60",
+    "pseudocode": "int __thiscall sub_844A60(_DWORD *this)\n{\n  return this[337];\n}\n",
+    "instructions": [
+      {
+        "va": "0x844a60",
+        "bytes": "8b 81 44 05 00 00",
+        "asm": "mov     eax, [ecx+544h]"
+      },
+      {
+        "va": "0x844a66",
+        "bytes": "c3",
+        "asm": "retn"
+      }
+    ]
+  },
+  {
+    "va": "0x4318c0",
+    "pseudocode": "int __thiscall sub_4318C0(_DWORD *this, int a2)\n{\n  int result; // eax\n\n  result = a2;\n  this[337] = a2;\n  return result;\n}\n",
+    "instructions": [
+      {
+        "va": "0x4318c0",
+        "bytes": "55",
+        "asm": "push    ebp"
+      },
+      {
+        "va": "0x4318c1",
+        "bytes": "8b ec",
+        "asm": "mov     ebp, esp"
+      },
+      {
+        "va": "0x4318c3",
+        "bytes": "8b 45 08",
+        "asm": "mov     eax, [ebp+arg_0]"
+      },
+      {
+        "va": "0x4318c6",
+        "bytes": "89 81 44 05 00 00",
+        "asm": "mov     [ecx+544h], eax"
+      },
+      {
+        "va": "0x4318cc",
+        "bytes": "5d",
+        "asm": "pop     ebp"
+      },
+      {
+        "va": "0x4318cd",
+        "bytes": "c2 04 00",
+        "asm": "retn    4"
+      }
+    ]
+  }
+]

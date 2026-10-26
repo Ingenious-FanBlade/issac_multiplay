@@ -1,0 +1,264 @@
+{
+ "label": "Player_TriggerNewStage",
+ "va": "0x79cbe0",
+ "rva": "0x39cbe0",
+ "note": "libzhl；ghost 读取与 AddEternalHearts 条件",
+ "func_start_va": "0x79cbe0",
+ "func_end_va": "0x79e043",
+ "func_start_rva": "0x39cbe0",
+ "func_end_rva": "0x39e043",
+ "decompile_hexrays_raw": "void __userpurge sub_79CBE0(int i_1@<ecx>, int a2@<ebp>, char a3)\n{\n  int i_2; // edi\n  int *n187; // esi\n  int n2; // eax\n  int v6; // ecx\n  _DWORD *v7; // eax\n  int v8; // eax\n  float v9; // xmm0_4\n  int v10; // eax\n  int v11; // esi\n  int v12; // esi\n  char v13; // di\n  char v14; // al\n  _DWORD *n187_1; // esi\n  char v16; // al\n  int n6; // edi\n  float v18; // xmm0_4\n  unsigned int n7; // edi\n  float v20; // xmm1_4\n  unsigned int n1828; // ecx\n  unsigned int n8; // eax\n  int v23; // eax\n  int n0x1BF; // edx\n  int v25; // ecx\n  int n36; // eax\n  unsigned int n1136525312_1; // eax\n  int v28; // ecx\n  float v29; // xmm0_4\n  int v30; // ecx\n  float v31; // xmm0_4\n  _DWORD *v32; // eax\n  int v33; // eax\n  _DWORD *n187_2; // esi\n  unsigned int v35; // edx\n  unsigned int v36; // edx\n  unsigned int n71; // eax\n  int v38; // eax\n  int v39; // xmm1_4\n  _DWORD *n4; // ecx\n  int v41; // edx\n  int v42; // eax\n  int v43; // edx\n  int v44; // eax\n  unsigned int j_2; // esi\n  unsigned int j; // eax\n  _DWORD *v47; // ecx\n  int n11; // eax\n  int v49; // edx\n  int i_3; // eax\n  unsigned int v51; // esi\n  bool v52; // zf\n  _OWORD *v53; // eax\n  _DWORD *v54; // edx\n  _DWORD *v55; // ecx\n  unsigned int n1136525312_2; // eax\n  _DWORD *n1136525312_3; // ecx\n  int *v58; // eax\n  int n3; // ecx\n  int v60; // ecx\n  int v61; // eax\n  int v62; // ecx\n  int v63; // eax\n  int *v64; // esi\n  unsigned int v65; // edx\n  unsigned int v66; // edx\n  _DWORD *v67; // eax\n  int v68; // eax\n  int v69; // eax\n  int n46; // edx\n  int n12; // eax\n  int v72; // eax\n  int n46_1; // edx\n  int v74; // ecx\n  int n12_1; // eax\n  unsigned int v76; // esi\n  int v77; // eax\n  int v78; // esi\n  int v79; // eax\n  _DWORD *n187_3; // esi\n  int v81; // eax\n  unsigned int k; // esi\n  int v83; // ecx\n  int v84; // edx\n  int v85; // eax\n  int v86; // eax\n  int v87; // esi\n  int v88; // eax\n  int v89; // eax\n  int **v90; // eax\n  int **v91; // ecx\n  int n3_1; // edx\n  int v93; // ecx\n  int v94; // eax\n  int n2_1; // eax\n  int v96; // eax\n  int v97; // ecx\n  int v98; // eax\n  int v99; // esi\n  int v100; // ecx\n  int v101; // eax\n  int i_4; // ecx\n  int v103; // ecx\n  int v104; // edx\n  unsigned int n1136525312_4; // eax\n  unsigned int v106; // eax\n  unsigned int n1136525312_5; // edx\n  int v108; // eax\n  unsigned int v109; // edx\n  int v110; // eax\n  unsigned int v111; // edx\n  unsigned int v112; // edx\n  int v113; // eax\n  unsigned int v114; // edx\n  unsigned int v115; // edx\n  int v116; // eax\n  unsigned int v117; // edx\n  int v118; // esi\n  char i_5; // cl\n  unsigned int v120; // edx\n  _DWORD *v121; // eax\n  int *v122; // edx\n  int v123; // ecx\n  _DWORD *n4_1; // ecx\n  int v125; // edx\n  int v126; // edx\n  int v127; // edx\n  int v128; // esi\n  int v129; // eax\n  unsigned int v130; // esi\n  unsigned int n1136525312_6; // eax\n  int v132; // ecx\n  int v133; // [esp+1Ch] [ebp-FCh]\n  int ArgList; // [esp+20h] [ebp-F8h]\n  int v135; // [esp+2Ch] [ebp-ECh] BYREF\n  int v136; // [esp+38h] [ebp-E0h] BYREF\n  int v137; // [esp+40h] [ebp-D8h] BYREF\n  int v138; // [esp+48h] [ebp-D0h] BYREF\n  int v139; // [esp+50h] [ebp-C8h] BYREF\n  __int64 v140; // [esp+5Ch] [ebp-BCh]\n  _DWORD v141[4]; // [esp+68h] [ebp-B0h] BYREF\n  _DWORD v142[4]; // [esp+78h] [ebp-A0h] BYREF\n  _DWORD v143[4]; // [esp+88h] [ebp-90h] BYREF\n  char v144[4]; // [esp+98h] [ebp-80h] BYREF\n  _DWORD *v145; // [esp+9Ch] [ebp-7Ch]\n  unsigned int j_1; // [esp+A4h] [ebp-74h]\n  char v147[4]; // [esp+A8h] [ebp-70h] BYREF\n  _DWORD *v148; // [esp+ACh] [ebp-6Ch]\n  unsigned int v149; // [esp+B4h] [ebp-64h]\n  __int128 v150; // [esp+B8h] [ebp-60h] BYREF\n  float v151; // [esp+C8h] [ebp-50h]\n  float v152; // [esp+CCh] [ebp-4Ch]\n  __int64 v153; // [esp+D4h] [ebp-44h]\n  unsigned __int64 v154; // [esp+E0h] [ebp-38h]\n  int n1134559232_1; // [esp+E8h] [ebp-30h] BYREF\n  unsigned int n1136525312; // [esp+ECh] [ebp-2Ch]\n  int n1134559232; // [esp+F0h] [ebp-28h] BYREF\n  int i; // [esp+F4h] [ebp-24h]\n  _DWORD v159[4]; // [esp+F8h] [ebp-20h] BYREF\n  int v160; // [esp+108h] [ebp-10h]\n  int v161; // [esp+10Ch] [ebp-Ch]\n  void *v162; // [esp+110h] [ebp-8h]\n  int v163; // [esp+114h] [ebp-4h] BYREF\n  void *retaddr; // [esp+118h] [ebp+0h]\n\n  v161 = a2;\n  v162 = retaddr;\n  v160 = -1;\n  v159[3] = &loc_A95FA5;\n  v159[2] = NtCurrentTeb()->NtTib.ExceptionList;\n  v159[1] = &v163;\n  i_2 = i_1;\n  i = i_1;\n  *(_DWORD *)(i_1 + 6928) = 0;\n  *(_DWORD *)(i_1 + 6936) = 0;\n  *(_QWORD *)(i_1 + 6920) = *(_QWORD *)&a4;\n  if ( !*(_DWORD *)(i_1 + 44) && !a3 )\n  {\n    n187 = n187;\n    n2 = n187[38864];\n    if ( n2 == 2 || n2 == 3 )\n    {\n      n1134559232 = 1134559232;\n      i = 1133248512;\n      v32 = (_DWORD *)sub_993680(&v137, i_1, &n1134559232, i_1);\n      *(_DWORD *)(i_2 + 828) = *v32;\n      *(_DWORD *)(i_2 + 832) = v32[1];\n    }\n    else\n    {\n      if ( sub_4317A0(n187) == 1 && !sub_748FF0(n187) )\n      {\n        n1134559232_1 = 1134559232;\n        n1136525312 = 1136525312;\n        v7 = (_DWORD *)sub_993680(&v139, i_2, &n1134559232_1, v6);\n        *(_DWORD *)(i_2 + 828) = *v7;\n        *(_DWORD *)(i_2 + 832) = v7[1];\n        goto LABEL_48;\n      }\n      v8 = sub_993680(&v138, i_2, &a4, v6);\n      v9 = *(float *)v8;\n      *(_DWORD *)(i_2 + 828) = *(_DWORD *)v8;\n      *(_DWORD *)(i_2 + 832) = *(_DWORD *)(v8 + 4);\n      if ( n187[38591] == 31 && *n187 == 11 )\n      {\n        *(float *)(i_2 + 828) = v9 + 0.0;\n        *(float *)(i_2 + 832) = *(float *)(i_2 + 832) + 100.0;\n      }\n      v10 = *n187;\n      v11 = n187[38578];\n      v159[0] = v10;\n      v12 = n187[3] | v11;\n      v13 = v12 | sub_6F55C0();\n      v14 = sub_6F5750();\n      n187_1 = n187;\n      v16 = v13 & ~v14;\n      n6 = v159[0] + 1;\n      if ( (v16 & 2) == 0 )\n        n6 = v159[0];\n      if ( !sub_748FF0(n187) || n6 == 6 && (unsigned __int8)sub_745AF0(n187_1) )\n      {\n        i_2 = i;\n      }\n      else\n      {\n        LODWORD(v18) = a4;\n        n7 = 0;\n        v20 = *((float *)&a4 + 1);\n        n1828 = 1828;\n        v154 = *(_QWORD *)&a4;\n        while ( n7 + 1 > 8 || !*(_DWORD *)(n1828 + n187_1[24768]) )\n        {\n          n1828 += 4;\n          ++n7;\n          if ( n1828 >= 0x744 )\n            goto LABEL_22;\n        }\n        if ( n7 != -1 )\n          goto LABEL_28;\nLABEL_22:\n        n7 = sub_6EB4B0() & 7;\n        n8 = 0;\n        v159[0] = 0;\n        do\n        {\n          if ( n7 <= 7 )\n          {\n            if ( ((1 << (n7 & 0x1F)) & *(_DWORD *)(*(_DWORD *)(*(_DWORD *)(n187[24768] + 4) + 16) + 4 * (n7 >> 5) + 56)) != 0 )\n              break;\n            n8 = v159[0];\n          }\n          n7 = (int)(n7 + 1) % 8;\n          v159[0] = ++n8;\n        }\n        while ( n8 < 8 );\n        v20 = *((float *)&a4 + 1);\n        LODWORD(v18) = a4;\n        n187_1 = n187;\nLABEL_28:\n        v23 = n187_1[24768];\n        if ( n7 <= 7 )\n        {\n          v18 = (float)((float)(*(_DWORD *)(v23 + 4 * n7 + 1860) % *(_DWORD *)(v23 + 12)) * 40.0) + 40.0;\n          v20 = (float)((float)(*(_DWORD *)(v23 + 4 * n7 + 1860) / *(_DWORD *)(v23 + 12)) * 40.0) + 120.0;\n        }\n        v154 = __PAIR64__(LODWORD(v20), LODWORD(v18));\n        switch ( (int)n7 % 4 )\n        {\n          case 0:\n            v18 = v18 + 40.0;\n            v20 = v20 + 0.0;\n            goto LABEL_35;\n          case 1:\n            v20 = v20 + 40.0;\n            v18 = v18 + 0.0;\n            goto LABEL_35;\n          case 2:\n            v18 = v18 - 40.0;\n            v20 = v20 - 0.0;\n            goto LABEL_35;\n          case 3:\n            v20 = v20 - 40.0;\n            v18 = v18 - 0.0;\nLABEL_35:\n            v154 = __PAIR64__(LODWORD(v20), LODWORD(v18));\n            break;\n          default:\n            break;\n        }\n        i_2 = i;\n        n0x1BF = 0;\n        v159[0] = 0;\n        *(float *)(i + 828) = v18;\n        *(float *)(i_2 + 832) = v20;\n        v25 = n187_1[24768];\n        if ( *(_DWORD *)(v25 + 12) * *(_DWORD *)(v25 + 16) > 0 )\n        {\n          n36 = 36;\n          for ( i = 36; ; n36 = i )\n          {\n            if ( (unsigned int)n0x1BF <= 0x1BF )\n            {\n              n1136525312_1 = *(_DWORD *)(v25 + n36);\n              n1136525312 = n1136525312_1;\n              if ( n1136525312_1 )\n              {\n                if ( *(_DWORD *)(n1136525312_1 + 4) == 17 )\n                {\n                  v28 = *(_DWORD *)(v25 + 12);\n                  v29 = (float)((float)(*(_DWORD *)(n1136525312_1 + 36) / v28) * 40.0) + 120.0;\n                  v151 = (float)((float)(*(_DWORD *)(n1136525312_1 + 36) % v28) * 40.0) + 40.0;\n                  v152 = v29;\n                  if ( (unsigned __int8)sub_7DDD70(v28, ArgList) )\n                  {\n                    v30 = *(_DWORD *)(n187[24768] + 12);\n                    v31 = (float)((float)(*(_DWORD *)(n1136525312 + 36) / v30) * 40.0) + 120.0;\n                    *(float *)(i_2 + 828) = (float)((float)(*(_DWORD *)(n1136525312 + 36) % v30) * 40.0) + 40.0;\n                    *(float *)(i_2 + 832) = v31;\n                    break;\n                  }\n                  n187_1 = n187;\n                  n0x1BF = v159[0];\n                }\n              }\n            }\n            v25 = n187_1[24768];\n            ++n0x1BF;\n            i += 4;\n            v159[0] = n0x1BF;\n            if ( n0x1BF >= *(_DWORD *)(v25 + 12) * *(_DWORD *)(v25 + 16) )\n              break;\n          }\n        }\n      }\n    }\n  }\nLABEL_48:\n  if ( !*(_BYTE *)(i_2 + 6160) )\n    return;\n  sub_79CA20(i_2);\n  v33 = *(_DWORD *)(i_2 + 44);\n  *(_DWORD *)(i_2 + 6860) = 0;\n  if ( v33 == 1 )\n  {\n    if ( !*(_BYTE *)(i_2 + 6916) )\n      goto LABEL_57;\n    *(_DWORD *)(i_2 + 6872) = 25;\n    sub_7B6170(i_2);\n    n187_2 = n187;\n    v35 = n187[28372];\n    if ( !v35 )\n    {\n      sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n      v35 = n187_2[28372];\n      if ( !v35 )\n        __debugbreak();\n    }\n    v36 = v35 ^ (v35 >> n187_2[28373]) ^ ((v35 ^ (v35 >> n187_2[28373])) << n187_2[28374]);\n    n187_2[28372] = v36 ^ (v36 >> n187_2[28375]);\n    n71 = sub_7B9A50(ArgList);\n    *(_DWORD *)(i_2 + 48) = n71;\n    if ( n71 >= 0x47 )\n      n71 = 71;\n    *(_DWORD *)(i_2 + 6872) = n71;\n    sub_7A3340(i_2, (char)\"Glitch\");\n    if ( *(_DWORD *)(i_2 + 44) == 1 )\n    {\nLABEL_57:\n      v38 = *(_DWORD *)(i_2 + 956);\n      if ( v38 )\n      {\n        v39 = *(_DWORD *)(v38 + 832);\n        *(_DWORD *)(i_2 + 828) = *(_DWORD *)(v38 + 828);\n        *(_DWORD *)(i_2 + 832) = v39;\n      }\n    }\n  }\n  *(_BYTE *)(i_2 + 8096) = 0;\n  sub_90A3F0(66, -1);\n  sub_90A3F0(74, -1);\n  n4 = n4;\n  v41 = n4[43149];\n  if ( (n4[43150] - v41) >> 2 > 696 )\n  {\n    v42 = *(_DWORD *)(v41 + 2784);\n    if ( v42 )\n    {\n      v143[0] = *(_DWORD *)(v41 + 2784);\n      v143[2] = *(_DWORD *)(v42 + 120);\n      v143[1] = 0;\n      v143[3] = 0;\n      sub_90A290(v143, -1);\n      n4 = n4;\n    }\n  }\n  v43 = n4[43152];\n  if ( (n4[43153] - v43) >> 2 > 180 )\n  {\n    v44 = *(_DWORD *)(v43 + 720);\n    if ( v44 )\n    {\n      v142[0] = *(_DWORD *)(v43 + 720);\n      v142[2] = *(_DWORD *)(v44 + 120);\n      v142[1] = 0;\n      v142[3] = 0;\n      sub_90A290(v142, -1);\n    }\n  }\n  sub_90A3F0(109, -1);\n  sub_416820(n187[24768] + 4632, (int)v144, 866, -1, -1, 0, 0);\n  v160 = 0;\n  j_2 = 0;\n  for ( j = j_1; j_2 < j; ++j_2 )\n  {\n    v47 = (_DWORD *)v145[j_2];\n    if ( v47[242] == i_2 )\n    {\n      (*(void (__thiscall **)(_DWORD *))(*v47 + 40))(v47);\n      j = j_1;\n    }\n  }\n  sub_90A3F0(129, 1);\n  n11 = *(_DWORD *)(i_2 + 5052);\n  if ( n11 == 39 )\n  {\n    sub_7C4620(37, 0);\n  }\n  else if ( n11 == 11 )\n  {\n    sub_7C4620(8, 0);\n  }\n  if ( *(_DWORD *)(i_2 + 5052) == 37 && n187[38591] != 44 )\n  {\n    v49 = n4[43155];\n    if ( (n4[43156] - v49) >> 2 > 109 )\n      i_3 = *(_DWORD *)(v49 + 436);\n    else\n      i_3 = 0;\n    v51 = n187[24761];\n    i = i_3;\n    *(_QWORD *)&v150 = (unsigned int)i_3;\n    HIDWORD(v150) = 0;\n    v140 = 0x70000000BLL;\n    n1136525312 = 12;\n    if ( !v51 )\n    {\n      sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n      __debugbreak();\n    }\n    n1136525312 = 30\n                * ((v51 ^ (v51 >> v140) ^ ((v51 ^ (v51 >> v140)) << SBYTE4(v140)) ^ ((v51 ^ (v51 >> v140) ^ ((v51 ^ (v51 >> v140)) << SBYTE4(v140))) >> n1136525312))\n                 % 0x14);\n    v52 = *(_BYTE *)(i_2 + 5393) == 0;\n    DWORD2(v150) = n1136525312 + 610;\n    if ( v52 )\n    {\n      v53 = *(_OWORD **)(i_2 + 5384);\n      v54 = (_DWORD *)(i_2 + 5380);\n      v55 = *(_DWORD **)(i_2 + 5380);\n      if ( v55 == (_DWORD *)v53 )\n      {\nLABEL_85:\n        if ( v53 == (_OWORD *)v54[2] )\n        {\n          sub_5CBAD0(v53, &v150);\n          v54 = (_DWORD *)(i_2 + 5380);\n        }\n        else\n        {\n          *v53 = v150;\n          v54[1] += 16;\n        }\n        *(_DWORD *)(((v54[1] - *v54) & 0xFFFFFFF0) + *v54 - 12) = 1;\n        if ( *(_DWORD *)(i_2 + 5396) )\n          sub_757370(i, 0);\n      }\n      else\n      {\n        while ( *v55 != i )\n        {\n          v55 += 4;\n          if ( v55 == (_DWORD *)v53 )\n          {\n            v54 = (_DWORD *)(i_2 + 5380);\n            goto LABEL_85;\n          }\n        }\n        n1136525312_2 = n1136525312;\n        ++v55[1];\n        v55[2] += n1136525312_2 + 610;\n      }\n      *(_DWORD *)(i_2 + 5376) |= *(_DWORD *)(i + 84);\n      *(_BYTE *)(i_2 + 5392) = 1;\n    }\n  }\n  if ( (unsigned __int8)sub_7699D0(676, 0) )\n  {\n    if ( !sub_7C12C0((_DWORD *)i_2) && *(_DWORD *)(i_2 + 4928) < sub_7C1150(0) && *(int *)(i_2 + 4932) <= 2 )\n    {\n      sub_7529F0(2, 0);\n      sub_9848B0(41, 0, 0);\n    }\n    n1136525312_3 = *(_DWORD **)(i_2 + 7556);\n    n1136525312 = (unsigned int)n1136525312_3;\n    if ( n1136525312_3\n      && !sub_7C12C0(n1136525312_3)\n      && *(_DWORD *)(n1136525312 + 4928) < sub_7C1150(0)\n      && *(int *)(n1136525312 + 4932) <= 2 )\n    {\n      sub_7529F0(2, 0);\n      sub_9848B0(41, 0, 0);\n    }\n  }\n  if ( !*(_BYTE *)(i_2 + 5393) )\n  {\n    v58 = *(int **)(i_2 + 5380);\n    if ( v58 != *(int **)(i_2 + 5384) )\n    {\n      while ( 1 )\n      {\n        n3 = *(_DWORD *)*v58;\n        if ( (n3 == 1 || n3 == 3 || n3 == 4) && *(_DWORD *)(*v58 + 4) == 673 )\n          break;\n        v58 += 4;\n        if ( v58 == *(int **)(i_2 + 5384) )\n          goto LABEL_118;\n      }\n      v60 = v58[1];\n      if ( v60 > 0 )\n      {\n        v61 = *(_DWORD *)(i_2 + 7904);\n        if ( v61 && *(_DWORD *)(v61 + 40) == 1000 && v60 == 1 )\n          *(_DWORD *)(v61 + 1104) = 2;\n        v62 = n4[43149];\n        if ( (n4[43150] - v62) >> 2 > 673 )\n        {\n          v63 = *(_DWORD *)(v62 + 2692);\n          if ( v63 )\n          {\n            v141[0] = *(_DWORD *)(v62 + 2692);\n            v141[2] = *(_DWORD *)(v63 + 120);\n            v141[1] = 0;\n            v141[3] = 0;\n            sub_90A290(v141, -1);\n          }\n        }\n      }\n    }\n  }\nLABEL_118:\n  *(_DWORD *)(i_2 + 7908) = -99999;\n  if ( (int)sub_7C19C0(160) > 0 )\n  {\n    i = sub_7C19C0(160);\n    if ( i > 0 )\n    {\n      do\n      {\n        v64 = (int *)(*(_DWORD *)(i_2 + 5996) + 2560);\n        v65 = *v64;\n        if ( !*v64 )\n        {\n          sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n          v65 = *v64;\n          if ( !*v64 )\n            __debugbreak();\n        }\n        v66 = v65 ^ (v65 >> v64[1]) ^ ((v65 ^ (v65 >> v64[1])) << v64[2]);\n        v133 = v66 ^ (v66 >> v64[3]);\n        *v64 = v133;\n        v67 = (_DWORD *)sub_808DC0(&v136, i_2 + 828, 1109393408, 0, 0, 0);\n        sub_424340(n187, 5, 69, v67, &a4, (_DWORD *)i_2, 0, v133);\n        --i;\n      }\n      while ( i );\n    }\n  }\n  if ( !a3 )\n  {\n    v68 = *(_DWORD *)(i_2 + 7760);\n    if ( v68 )\n    {\n      *(_BYTE *)(v68 + 8096) = 1;\n      v69 = *(_DWORD *)(i_2 + 7760);\n      if ( *(_BYTE *)(v69 + 8380) )\n        *(_BYTE *)(v69 + 9704) = 1;\n    }\n  }\n  if ( *(int *)(i_2 + 4936) > 0 )\n  {\n    *(_DWORD *)(i_2 + 4936) = 0;\n    if ( sub_7C12C0((_DWORD *)i_2) == 1 )\n    {\n      n12 = *(_DWORD *)(i_2 + 5052);\n      if ( n12 == 12 || (n46 = 6, n12 == 24) )\n        n46 = 46;\n    }\n    sub_9848B0(n46, 1, 0);\n    sub_7529F0(2, 0);\n    sub_752BC0(2, 0, 0);\n  }\n  v72 = *(_DWORD *)(i_2 + 7556);\n  if ( v72 && *(int *)(v72 + 4936) > 0 )\n  {\n    *(_DWORD *)(v72 + 4936) = 0;\n    if ( sub_7C12C0(*(_DWORD **)(i_2 + 7556)) == 1 )\n    {\n      n12_1 = *(_DWORD *)(v74 + 5052);\n      if ( n12_1 == 12 || (n46_1 = 6, n12_1 == 24) )\n        n46_1 = 46;\n    }\n    sub_9848B0(n46_1, 1, 0);\n    sub_7529F0(2, 0);\n    sub_752BC0(2, 0, 0);\n  }\n  if ( !*(_BYTE *)(i_2 + 8317) )\n  {\n    sub_416820(n187[24768] + 4632, (int)v147, 3, 232, 1, 0, 0);\n    v76 = 0;\n    for ( LOBYTE(v160) = 1; v76 < v149; ++v76 )\n    {\n      v77 = _RTDynamicCast(\n              v148[v76],\n              0,\n              &IsaacRepentancePlus::Entity `RTTI Type Descriptor',\n              &IsaacRepentancePlus::Entity_Familiar `RTTI Type Descriptor',\n              0);\n      if ( v77 && *(_DWORD *)(v77 + 1040) == i_2 )\n        *(_DWORD *)(v77 + 48) = 0;\n    }\n    LOBYTE(v160) = 0;\n    if ( !v147[0] )\n      j_j_free(v148);\n  }\n  if ( (unsigned __int8)sub_7699D0(54, 0) || (unsigned __int8)sub_7699D0(333, 0) )\n    sub_742830(n187);\n  if ( (unsigned __int8)sub_7699D0(246, 0) || (unsigned __int8)sub_7699D0(333, 0) )\n    sub_7428A0(n187);\n  if ( (unsigned __int8)sub_7699D0(21, 0) || (unsigned __int8)sub_7699D0(333, 0) )\n    goto LABEL_161;\n  if ( (int)sub_7C19C0(59) > 0 )\n  {\n    v78 = 4 - (int)*(float *)(i_2 + 5472);\n    if ( v78 < 1 )\n      v78 = 1;\n    if ( !(sub_6EB4B0() % (unsigned int)v78) )\nLABEL_161:\n      sub_742910(1);\n  }\n  if ( (int)sub_7C19C0(55) > 0 )\n  {\n    v79 = sub_7C19C0(55);\n    sub_752D70(i_2, v79);\n  }\n  if ( (unsigned __int8)sub_7699D0(588, 0) )\n  {\n    n187_3 = n187;\n    v81 = n187[24773];\n    if ( v81 >= 0 )\n      n187[46 * v81 + 20] |= 4u;\n    sub_965D60(n187_3 + 38161);\n    n187_3[24807] |= 0x40000u;\n  }\n  if ( (unsigned __int8)sub_7699D0(589, 0) )\n    sub_742A40(n187);\n  if ( (unsigned __int8)sub_7699D0(566, 0) )\n    sub_752E50(i_2, 1, 0);\n  for ( k = 0; k < 4; ++k )\n  {\n    v83 = *(_DWORD *)(32 * k + i_2 + 5492);\n    switch ( v83 )\n    {\n      case 147:\n        if ( k == 3\n          || k == 2 && *(_DWORD *)(i_2 + 5556) == 580 && n187[38591] == 44\n          || (v84 = n4[43149], (n4[43150] - v84) >> 2 <= 147)\n          || (v85 = *(_DWORD *)(v84 + 588)) == 0 )\n        {\n          v86 = 0;\n        }\n        else\n        {\n          v86 = *(_DWORD *)(v85 + 116);\n        }\n        sub_7899A0((_DWORD *)i_2, v86, k, 0, 0, 1);\n        break;\n      case 422:\n        *(_DWORD *)(32 * k + i_2 + 5520) = 0;\n        sub_789880(0, k);\n        break;\n      case 638:\n        sub_7899A0((_DWORD *)i_2, 1, k, 0, 0, 1);\n        break;\n    }\n  }\n  if ( (int)sub_7C19C0(142) > 0 )\n  {\n    v87 = 4 * sub_7C19C0(142);\n    if ( v87 )\n    {\n      v88 = i_2 + 828;\n      do\n      {\n        sub_5C90E0(584, v88, 0, 0);\n        v88 = i_2 + 828;\n        --v87;\n      }\n      while ( v87 );\n    }\n  }\n  if ( (int)sub_7C19C0(168) > 0 )\n  {\n    v89 = sub_7C19C0(168);\n    sub_7C0B30(v89);\n  }\n  if ( (unsigned __int8)sub_7699D0(258, 0) )\n  {\n    sub_5B4A60((char *)v159 + 2, 284, 1, -1, 0);\n    *(_BYTE *)(i_2 + 5018) = 0;\n    sub_403530();\n    *(_DWORD *)(i_2 + 332) = 1065353216;\n    sub_403DE0(0);\n    if ( (unsigned __int8)sub_405F50((char)\"Glitch\", 1) )\n    {\n      sub_405B30(i_2 + 120);\n      *(_BYTE *)(i_2 + 140) = 1;\n    }\n    *(_BYTE *)(i_2 + 5016) = 1;\n    *(_BYTE *)(i_2 + 5018) = 0;\n  }\n  if ( (unsigned __int8)sub_7699D0(392, 0) )\n  {\n    if ( !(unsigned __int8)sub_7699D0(299, 0) )\n    {\n      if ( *(_BYTE *)(i_2 + 5393) || (v90 = *(int ***)(i_2 + 5380), v91 = *(int ***)(i_2 + 5384), v90 == v91) )\n      {\nLABEL_207:\n        v93 = n4[43149];\n        if ( (int)((n4[43150] - v93) & 0xFFFFFFFC) > 1196 )\n          v94 = *(_DWORD *)(v93 + 1196);\n        else\n          v94 = 0;\n        sub_757960(v94);\n      }\n      else\n      {\n        while ( 1 )\n        {\n          n3_1 = **v90;\n          if ( (n3_1 == 1 || n3_1 == 3 || n3_1 == 4) && (*v90)[1] == 299 )\n            break;\n          v90 += 4;\n          if ( v90 == v91 )\n            goto LABEL_207;\n        }\n      }\n    }\n    *(_DWORD *)(i_2 + 5480) |= 0xFFFFu;\n  }\n  if ( (int)sub_7C19C0(119) > 0 )\n  {\n    n2_1 = sub_7C12C0((_DWORD *)i_2);\n    if ( n2_1 == 1 || n2_1 == 2 )\n      v96 = *(_DWORD *)(i_2 + 4928);\n    else\n      v96 = *(_DWORD *)(i_2 + 4928) + 2 * *(_DWORD *)(i_2 + 7540);\n    v97 = 1;\n    v98 = (v96 - *(_DWORD *)(i_2 + 4932)) / 2;\n    if ( v98 > 1 )\n      v97 = v98;\n    sub_752BC0(v97, 0, 0);\n  }\n  if ( n187[38591] != 31 )\n    goto LABEL_233;\n  v99 = *(_DWORD *)(i_2 + 7640);\n  v100 = *(_DWORD *)(i_2 + 7644) - v99;\n  i = 0;\n  if ( !(v100 / 28) )\n    goto LABEL_229;\n  v101 = 0;\n  i_4 = 0;\n  for ( v159[0] = 0; ; v101 = v159[0] )\n  {\n    if ( *(_BYTE *)(v101 + v99 + 4) )\n      goto LABEL_226;\n    if ( (unsigned __int8)sub_7699D0(*(_DWORD *)(v101 + v99 + 8), 0) )\n      break;\n    v101 = v159[0];\n    i_4 = i;\nLABEL_226:\n    v99 = *(_DWORD *)(i_2 + 7640);\n    i = i_4 + 1;\n    v103 = *(_DWORD *)(i_2 + 7644);\n    v159[0] = v101 + 28;\n    v104 = (unsigned __int64)(2454267027LL * (v103 - v99)) >> 32;\n    i_4 = i;\n    if ( i >= (v104 >> 4) + ((unsigned int)v104 >> 31) )\n      goto LABEL_229;\n  }\n  sub_787E40(*(_DWORD *)(*(_DWORD *)(i_2 + 7640) + 28 * i + 8), 0, 0, 1);\nLABEL_229:\n  sub_7529F0(-2, 0);\n  if ( *(int *)(i_2 + 4932) <= 0 && *(int *)(i_2 + 4940) <= 0 && *(int *)(i_2 + 7540) <= 0 )\n    sub_752E50(i_2, 1, 0);\nLABEL_233:\n  v153 = 0x500000001LL;\n  n1136525312_4 = n187[24779];\n  n1136525312 = n1136525312_4;\n  i = 19;\n  if ( !n1136525312_4 )\n  {\n    sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n    __debugbreak();\n    n1136525312_4 = n1136525312;\n  }\n  v106 = n1136525312_4 ^ (n1136525312_4 >> v153) ^ ((n1136525312_4 ^ (n1136525312_4 >> v153)) << SBYTE4(v153));\n  n1136525312_5 = v106 ^ (v106 >> 19);\n  v108 = *(_DWORD *)(i_2 + 5984);\n  n1136525312 = n1136525312_5;\n  *(_QWORD *)(v108 + 708) = 0x700000002LL;\n  *(_DWORD *)(v108 + 704) = n1136525312_5;\n  *(_DWORD *)(v108 + 716) = 9;\n  if ( !n1136525312_5 )\n  {\n    sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n    __debugbreak();\n    n1136525312_5 = n1136525312;\n  }\n  v109 = n1136525312_5 ^ (n1136525312_5 >> v153) ^ ((n1136525312_5 ^ (n1136525312_5 >> v153)) << SBYTE4(v153));\n  v52 = v109 == v109 >> i;\n  v159[0] = v109 ^ (v109 >> i);\n  v110 = *(_DWORD *)(i_2 + 5984);\n  v111 = v159[0];\n  *(_QWORD *)(v110 + 5188) = 0x700000002LL;\n  *(_DWORD *)(v110 + 5184) = v111;\n  *(_DWORD *)(v110 + 5196) = 9;\n  if ( v52 )\n  {\n    sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n    __debugbreak();\n    v111 = v159[0];\n  }\n  v112 = v111 ^ (v111 >> v153) ^ ((v111 ^ (v111 >> v153)) << SBYTE4(v153));\n  v52 = v112 == v112 >> i;\n  v159[0] = v112 ^ (v112 >> i);\n  v113 = *(_DWORD *)(i_2 + 5984);\n  v114 = v159[0];\n  *(_QWORD *)(v113 + 5060) = 0x700000002LL;\n  *(_DWORD *)(v113 + 5056) = v114;\n  *(_DWORD *)(v113 + 5068) = 9;\n  if ( v52 )\n  {\n    sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n    __debugbreak();\n    v114 = v159[0];\n  }\n  v115 = v114 ^ (v114 >> v153) ^ ((v114 ^ (v114 >> v153)) << SBYTE4(v153));\n  v52 = v115 == v115 >> i;\n  v159[0] = v115 ^ (v115 >> i);\n  v116 = *(_DWORD *)(i_2 + 5996);\n  v117 = v159[0];\n  *(_QWORD *)(v116 + 692) = 0x700000002LL;\n  *(_DWORD *)(v116 + 688) = v117;\n  *(_DWORD *)(v116 + 700) = 9;\n  if ( v52 )\n  {\n    sub_9E0DF0(3, \"RNG Seed is zero!\\n\", ArgList);\n    __debugbreak();\n    v117 = v159[0];\n  }\n  v118 = *(_DWORD *)(i_2 + 6008);\n  i_5 = i;\n  v120 = v117 ^ (v117 >> v153) ^ ((v117 ^ (v117 >> v153)) << SBYTE4(v153));\n  *(_QWORD *)(v118 + 308) = 0x700000002LL;\n  *(_DWORD *)(v118 + 304) = v120 ^ (v120 >> i_5);\n  *(_DWORD *)(v118 + 316) = 9;\n  if ( !a3 )\n    *(_WORD *)(i_2 + 4960) = 0;\n  v121 = *(_DWORD **)(i_2 + 5932);\n  v122 = (int *)(i_2 + 5932);\n  if ( v121 != *(_DWORD **)(i_2 + 5936) && &v135 != v122 )\n  {\n    v123 = *(_DWORD *)(i_2 + 5940);\n    *v122 = 0;\n    *(_DWORD *)(i_2 + 5936) = 0;\n    *(_DWORD *)(i_2 + 5940) = 0;\n    if ( v121 )\n    {\n      if ( ((v123 - (_DWORD)v121) & 0xFFFFFFFC) >= 0x1000 )\n      {\n        if ( (unsigned int)v121 - *(v121 - 1) - 4 > 0x1F )\n          invalid_parameter_noinfo_noreturn();\n        v121 = (_DWORD *)*(v121 - 1);\n      }\n      sub_A8717B(v121);\n    }\n  }\n  n4_1 = n4;\n  *(_WORD *)(i_2 + 4988) = 0;\n  v125 = n4_1[43149];\n  if ( (int)((n4_1[43150] - v125) & 0xFFFFFFFC) > 628 )\n    v126 = *(_DWORD *)(v125 + 628);\n  else\n    v126 = 0;\n  v127 = *(_DWORD *)(i_2 + 5480) | *(_DWORD *)(v126 + 84);\n  *(_DWORD *)(i_2 + 5480) = v127;\n  v128 = n4_1[43149];\n  if ( (int)((n4_1[43150] - v128) & 0xFFFFFFFC) > 2780 )\n    v129 = *(_DWORD *)(v128 + 2780);\n  else\n    v129 = 0;\n  *(_DWORD *)(i_2 + 5480) = v127 | *(_DWORD *)(v129 + 84);\n  sub_75D4B0((_BYTE *)i_2);\n  if ( a3 )\n  {\n    v130 = 0;\n    n1136525312_6 = n187[24768];\n    n1136525312 = n1136525312_6;\n    if ( *(_DWORD *)(n1136525312_6 + 4708) )\n    {\n      do\n      {\n        v132 = *(_DWORD *)(*(_DWORD *)(n1136525312_6 + 4700) + 4 * v130);\n        if ( v132 && *(_DWORD *)(v132 + 40) == 3 && *(_DWORD *)(v132 + 1040) == i_2 )\n          sub_624790();\n        n1136525312_6 = n1136525312;\n        ++v130;\n      }\n      while ( v130 < *(_DWORD *)(n1136525312 + 4708) );\n    }\n  }\n  if ( !v144[0] )\n    j_j_free(v145);\n}\n",
+ "exported_ranges_rva": [
+  [
+   "0x39d770",
+   "0x39d7b0"
+  ],
+  [
+   "0x39d8b8",
+   "0x39d8e9"
+  ]
+ ],
+ "instructions": [
+  {
+   "va": "0x79d775",
+   "rva": "0x39d775",
+   "bytes": "6a 00",
+   "asm": "push    0"
+  },
+  {
+   "va": "0x79d777",
+   "rva": "0x39d777",
+   "bytes": "6a 00",
+   "asm": "push    0"
+  },
+  {
+   "va": "0x79d779",
+   "rva": "0x39d779",
+   "bytes": "6a 02",
+   "asm": "push    2"
+  },
+  {
+   "va": "0x79d77b",
+   "rva": "0x39d77b",
+   "bytes": "e8 40 54 fb ff",
+   "asm": "call    sub_752BC0",
+   "target_rva": [
+    "0x352bc0"
+   ]
+  },
+  {
+   "va": "0x79d780",
+   "rva": "0x39d780",
+   "bytes": "80 bf 7d 20 00 00 00",
+   "asm": "cmp     byte ptr [edi+207Dh], 0"
+  },
+  {
+   "va": "0x79d787",
+   "rva": "0x39d787",
+   "bytes": "0f 85 7d 00 00 00",
+   "asm": "jnz     loc_79D80A",
+   "target_rva": [
+    "0x39d80a"
+   ]
+  },
+  {
+   "va": "0x79d78d",
+   "rva": "0x39d78d",
+   "bytes": "6a 00",
+   "asm": "push    0; a7"
+  },
+  {
+   "va": "0x79d78f",
+   "rva": "0x39d78f",
+   "bytes": "6a 00",
+   "asm": "push    0; a6"
+  },
+  {
+   "va": "0x79d791",
+   "rva": "0x39d791",
+   "bytes": "6a 01",
+   "asm": "push    1; a5"
+  },
+  {
+   "va": "0x79d793",
+   "rva": "0x39d793",
+   "bytes": "68 e8 00 00 00",
+   "asm": "push    0E8h; n206"
+  },
+  {
+   "va": "0x79d798",
+   "rva": "0x39d798",
+   "bytes": "6a 03",
+   "asm": "push    3; n3"
+  },
+  {
+   "va": "0x79d79a",
+   "rva": "0x39d79a",
+   "bytes": "8d 45 9c",
+   "asm": "lea     eax, [ebp-64h]"
+  },
+  {
+   "va": "0x79d79d",
+   "rva": "0x39d79d",
+   "bytes": "50",
+   "asm": "push    eax; a2"
+  },
+  {
+   "va": "0x79d79e",
+   "rva": "0x39d79e",
+   "bytes": "a1 f4 49 be 00",
+   "asm": "mov     eax, n187"
+  },
+  {
+   "va": "0x79d7a3",
+   "rva": "0x39d7a3",
+   "bytes": "8b 88 00 83 01 00",
+   "asm": "mov     ecx, [eax+18300h]"
+  },
+  {
+   "va": "0x79d7a9",
+   "rva": "0x39d7a9",
+   "bytes": "81 c1 18 12 00 00",
+   "asm": "add     ecx, 1218h; this"
+  },
+  {
+   "va": "0x79d7af",
+   "rva": "0x39d7af",
+   "bytes": "e8 6c 90 c7 ff",
+   "asm": "call    sub_416820",
+   "target_rva": [
+    "0x16820"
+   ]
+  },
+  {
+   "va": "0x79d8b8",
+   "rva": "0x39d8b8",
+   "bytes": "f7 f6",
+   "asm": "div     esi"
+  },
+  {
+   "va": "0x79d8ba",
+   "rva": "0x39d8ba",
+   "bytes": "85 d2",
+   "asm": "test    edx, edx"
+  },
+  {
+   "va": "0x79d8bc",
+   "rva": "0x39d8bc",
+   "bytes": "75 0d",
+   "asm": "jnz     short loc_79D8CB",
+   "target_rva": [
+    "0x39d8cb"
+   ]
+  },
+  {
+   "va": "0x79d8be",
+   "rva": "0x39d8be",
+   "bytes": "8b 0d f4 49 be 00",
+   "asm": "mov     ecx, n187"
+  },
+  {
+   "va": "0x79d8c4",
+   "rva": "0x39d8c4",
+   "bytes": "6a 01",
+   "asm": "push    1"
+  },
+  {
+   "va": "0x79d8c6",
+   "rva": "0x39d8c6",
+   "bytes": "e8 45 50 fa ff",
+   "asm": "call    sub_742910",
+   "target_rva": [
+    "0x342910"
+   ]
+  },
+  {
+   "va": "0x79d8cb",
+   "rva": "0x39d8cb",
+   "bytes": "6a 37",
+   "asm": "push    37h ; '7'"
+  },
+  {
+   "va": "0x79d8cd",
+   "rva": "0x39d8cd",
+   "bytes": "8b cf",
+   "asm": "mov     ecx, edi"
+  },
+  {
+   "va": "0x79d8cf",
+   "rva": "0x39d8cf",
+   "bytes": "e8 ec 40 02 00",
+   "asm": "call    sub_7C19C0",
+   "target_rva": [
+    "0x3c19c0"
+   ]
+  },
+  {
+   "va": "0x79d8d4",
+   "rva": "0x39d8d4",
+   "bytes": "85 c0",
+   "asm": "test    eax, eax"
+  },
+  {
+   "va": "0x79d8d6",
+   "rva": "0x39d8d6",
+   "bytes": "7e 11",
+   "asm": "jle     short loc_79D8E9",
+   "target_rva": [
+    "0x39d8e9"
+   ]
+  },
+  {
+   "va": "0x79d8d8",
+   "rva": "0x39d8d8",
+   "bytes": "6a 37",
+   "asm": "push    37h ; '7'"
+  },
+  {
+   "va": "0x79d8da",
+   "rva": "0x39d8da",
+   "bytes": "8b cf",
+   "asm": "mov     ecx, edi"
+  },
+  {
+   "va": "0x79d8dc",
+   "rva": "0x39d8dc",
+   "bytes": "e8 df 40 02 00",
+   "asm": "call    sub_7C19C0",
+   "target_rva": [
+    "0x3c19c0"
+   ]
+  },
+  {
+   "va": "0x79d8e1",
+   "rva": "0x39d8e1",
+   "bytes": "50",
+   "asm": "push    eax; a2"
+  },
+  {
+   "va": "0x79d8e2",
+   "rva": "0x39d8e2",
+   "bytes": "8b cf",
+   "asm": "mov     ecx, edi; v1212"
+  },
+  {
+   "va": "0x79d8e4",
+   "rva": "0x39d8e4",
+   "bytes": "e8 87 54 fb ff",
+   "asm": "call    sub_752D70",
+   "target_rva": [
+    "0x352d70"
+   ]
+  }
+ ],
+ "xrefs_to_func": [
+  {
+   "from_rva": "0x37c32a",
+   "type": 17
+  },
+  {
+   "from_rva": "0x5929ff",
+   "type": 17
+  }
+ ]
+}
