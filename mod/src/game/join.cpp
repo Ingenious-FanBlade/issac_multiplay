@@ -2,8 +2,10 @@
 #include "binding/offsets.h"
 #include "game/context.h"
 #include "game/lifecycle.h"
+#include "game/remote_life.h"
 #include "game/state.h"
 #include "game/tick.h"
+#include "runtime.h"
 #include <exception>
 
 namespace cs::game {
@@ -33,11 +35,15 @@ bool CharacterAvailable(void *manager, int character) noexcept {
 }
 void FailJoin(SessionRuntime &r, const char *reason) noexcept {
   r.join.state = JoinState::Failed;
+  r.join.last = JoinState::Failed;
+  r.join.last_loop = r.loop;
   FailRuntime(reason);
 }
 } // namespace
 const char *JoinStateName(JoinState state) noexcept {
   switch (state) {
+  case JoinState::None:
+    return "None";
   case JoinState::Waiting:
     return "Waiting";
   case JoinState::Request:
@@ -138,8 +144,12 @@ JoinScope::~JoinScope() noexcept {
     }
     j.complete = true;
     j.state = JoinState::Joined;
+    j.last = JoinState::Joined;
+    j.last_loop = r->loop;
     r->topology[1] = b;
     r->controlled_player[1] = b.pair.player;
+    // 首次 Join 建立生命记录与当前归属；之后的重绑都走同一 ordinal。
+    NoteRemoteJoined(*r, b);
     DiscardPeerWindow(*r);
     Trace("binding",
           "ordinal=1 bound=1 generation=%llu reason=join_return loop=%llu",
@@ -234,39 +244,79 @@ bool JoinCreate(void *manager, void *row, int *role) noexcept {
         r->join.creation_calls, r->loop);
   return true;
 }
-// 仅用当前 Game/manager/完整 B 的再次观察调用一次原生移除；teardown 不读旧 B。
+// 只用“当前已确认归属”的只读快照和受限读取调用一次原生移除：
+// 已确认被原生移除时跳过；身份矛盾时不删除未知 Player，保留 cleanup_failed。
 bool RetireJoinedPlayer(SessionRuntime &r) noexcept {
   PersistenceOperation persistence("player_remove");
-  if (r.run_torn_down || !r.join.joined_player)
+  if (r.run_torn_down)
     return true;
   if (r.join.remove_attempted)
+    return false;
+  // 未 Join 过（或从未确认自有关联）时没有需要移除的 Player。
+  if (!r.life.joined && !r.life.retire_ready) {
+    Trace("retirement", "event=player_remove result=none joined=0 loop=%llu",
+          r.loop);
+    return true;
+  }
+  if (!r.life.retire_ready) {
+    // 没有可用快照：只有确认列表已不含 B（人数回到 1 且 A 仍可读）时才算
+    // 清理完成，否则保留现场并报告残留。
+    const auto host = ReadTopology();
+    const bool removed = host.known && host.unique && host.player_count == 1;
+    Trace("retirement",
+          "event=player_remove result=%s joined=%u count=%u loop=%llu",
+          removed ? "absent" : "unconfirmed", unsigned(r.life.joined),
+          host.player_count, r.loop);
+    return removed;
+  }
+  void *player = nullptr;
+  const auto confirm = ConfirmRetirementPlayer(r, player);
+  if (confirm == RetirementConfirm::Absent) {
+    // 已确认被原生移除：跳过 RemoveCoPlayer，但清理视为完成。
+    r.life.retire_ready = false;
+    Trace("join", "event=retired skipped=absent loop=%llu", r.loop);
+    return true;
+  }
+  if (confirm != RetirementConfirm::Ready)
     return false;
   InputLease lease(true);
   if (!lease.Ready())
     return false;
-  const auto a = ReadTopology(), b = ReadTopology(1, r.device.Object());
-  if (!a.run || a.room.game != r.join.room.game ||
-      a.pair.player != r.join.host.player ||
-      b.pair.player != r.join.joined_player || b.pair.key != r.device.Id() ||
-      b.variant != 0 || a.player_count != 2)
-    return false;
+  const RetirementPlayerSnapshot snapshot = r.life.retirement;
   r.players[1].Invalidate();
   r.join.remove_attempted = true;
   try {
+    // ABI 已静态确认：this 指向当前 Game 内嵌 PlayerManager，两个栈参数。
+    // 全局 Manager 具有不同布局，传入会让原生 erase 遍历无关字段并越界。
     reinterpret_cast<void(__thiscall *)(void *, void *, bool)>(
-        Base + offset::RemoveCoPlayer)(r.join.manager, r.join.joined_player,
-                                       false);
+        Base + offset::RemoveCoPlayer)(snapshot.player_manager, player, false);
   } catch (...) {
     return false;
   }
+  // K 已离开设备 vector：不再要求 B 仍返回 Registered/unique，只按 A 的稳定
+  // 读取确认人数回到 1 且 A 身份未变。
   const auto after = ReadTopology();
-  if (!after.unique || after.player_count != 1 ||
-      after.pair.player != r.join.host.player ||
-      after.character != a.character || !(after.pair == a.pair))
+  if (!after.known || !after.unique || after.player_count != 1 ||
+      after.pair.player != snapshot.host) {
+    Trace("retirement",
+          "event=player_remove result=unverified count=%u known=%u unique=%u",
+          after.player_count, unsigned(after.known), unsigned(after.unique));
     return false;
+  }
+  r.life.retire_ready = false;
   r.join.joined_player = nullptr;
-  Trace("join", "event=retired players=1 key=%d loop=%llu", r.device.Id(),
+  Trace("join", "event=retired players=1 key=%d loop=%llu", snapshot.remote_key,
         r.loop);
   return true;
+}
+void ResetJoinStateAfterRetirement(SessionRuntime &r) noexcept {
+  if (r.join.state == JoinState::None)
+    return;
+  // 退休完成后 join_state 复位为 None，最近一次业务结果保留在 join_last。
+  if (r.join.state != JoinState::Waiting)
+    r.join.last = r.join.state;
+  r.join.state = JoinState::None;
+  Trace("join", "event=state_reset to=None last=%s loop=%llu",
+        JoinStateName(r.join.last), r.loop);
 }
 } // namespace cs::game

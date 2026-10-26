@@ -27,7 +27,7 @@ add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/bindi
 add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions.cpp
   src/hooks/registry.cpp src/hooks/context.cpp src/hooks/pointer_patch.cpp src/hooks/odd_patch.cpp src/hooks/host_patch.cpp
   src/game/context.cpp src/game/topology.cpp src/game/tick.cpp src/game/input_a.cpp
-  src/game/query.cpp src/game/consumers.cpp src/game/lifecycle.cpp
+  src/game/query.cpp src/game/consumers.cpp src/game/lifecycle.cpp src/game/remote_life.cpp
   src/game/device_k.cpp src/game/join.cpp src/game/peer.cpp src/game/input_lease.cpp src/game/persistence.cpp
   src/ops/config.cpp src/ops/trace.cpp src/ops/command.cpp src/ops/control_port.cpp
   "${GENERATED}/hooks_generated.cpp")
@@ -35,6 +35,9 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
 set_source_files_properties(src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp" PROPERTIES COMPILE_OPTIONS "/std:c++17")
 target_include_directories(zhlIsaacCS PRIVATE src "${GENERATED}" "${REPENTOGON_ROOT}/include" "${REPENTOGON_ROOT}/libzhl"
   "${REPENTOGON_ROOT}/libs/rapidjson/include" "${REPENTOGON_ROOT}/libs/rapidxml" "${REPENTOGON_ROOT}/libs/lua")
+# 官方 ASMPatcher 公共头引用 Zydis/Zycore 类型；实现仍从 libzhl 导入，不另编译补丁库。
+target_include_directories(zhlIsaacCS PRIVATE "${REPENTOGON_ROOT}/libs/zydis/include"
+  "${REPENTOGON_ROOT}/libs/zydis/dependencies/zycore/include")
 target_compile_definitions(zhlIsaacCS PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
 target_compile_options(zhlIsaacCS PRIVATE /EHs /W4 /Zi /utf-8 /wd4251 /wd4996)
 target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net "${REPENTOGON_ROOT}/build/Release/libzhl.lib" ws2_32 bcrypt)

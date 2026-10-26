@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include <string>
 
 namespace cs::game {
 // 此头只用 C++17 可表达的值类型，供 SDK-facing 的生成 wrapper 调用。
@@ -105,26 +106,118 @@ bool OverrideQuery(void *device, int action, QueryKind kind,
                    float &result) noexcept;
 void ObserveConsole(bool blocked) noexcept;
 void NewRoomReturned() noexcept;
-void RestoreBeginning() noexcept;
-void RunTeardownBeginning() noexcept;
+// native_exit 只在真正的 Game::Exit 观察点为 true，用于打开 run_exit 持久窗口；
+// Restore 的退休分支复用同一停止请求但不伪造退出窗口。
+void RunTeardownBeginning(bool native_exit = false) noexcept;
 void ForeignCall() noexcept;
+// tx-04-07：一次 Restore 决策处理两个停止点。构造时决定保留首次菜单 Host 还是
+// 退休已有 run，并完成停止/排队清理；析构观察 original 的正常返回与异常。
+// 整个 original 处于 Restore owner。
+class RestoreScope final {
+public:
+  RestoreScope(void *game, void *state, bool start_game) noexcept;
+  ~RestoreScope() noexcept;
+  bool Preserved() const noexcept { return preserve_; }
+  bool Active() const noexcept { return active_; }
+
+private:
+  void *game_ = nullptr;
+  void *state_ = nullptr;
+  bool start_game_ = false, preserve_ = false, active_ = false,
+       main_ = false;
+  int exceptions_ = 0;
+};
+// Start/Lifecycle owner 的观测作用域：构造时记录进入（Start 上固定首次菜单
+// 加载资格），析构记录正常/异常返回并把稳定入口延后到后续 loop。
+// ExecuteStartGame 每帧可空调用；只有 Manager.starting 非零才构成启动操作。
+bool StartGameRequested(void *manager) noexcept;
+class LoadingOwnerScope final {
+public:
+  explicit LoadingOwnerScope(bool start_owner, bool enabled = true) noexcept;
+  ~LoadingOwnerScope() noexcept;
+
+private:
+  unsigned bit_ = 0;
+  bool main_ = false;
+  int exceptions_ = 0;
+};
+// 跨 loop 持久操作窗口；固定容量、允许嵌套，只记录值，不写世界。
+enum class PersistenceWindowKind : unsigned {
+  None,
+  BDeath,
+  BRevive,
+  StageChange,
+  Continue,
+  RunExit,
+  Count
+};
+const char *PersistenceWindowKindName(PersistenceWindowKind kind) noexcept;
+struct PersistenceWindow {
+  uint64_t id = 0, parent = 0, caller = 0;
+  PersistenceWindowKind kind = PersistenceWindowKind::None;
+  uint64_t start_loop = 0, end_loop = 0, session_generation = 0;
+  uint64_t loading_episode = 0, death_event = 0;
+  const char *source = "", *end_reason = "open";
+  bool active = false, normal = false;
+  bool call_returned = false, call_normal = false;
+};
+uint64_t OpenPersistenceWindow(PersistenceWindowKind kind, const char *source,
+                               uint64_t death_event = 0) noexcept;
+bool ClosePersistenceWindow(PersistenceWindowKind kind, const char *reason,
+                            bool normal) noexcept;
+bool PersistenceWindowActive(PersistenceWindowKind kind) noexcept;
+// 该窗口的同步原生调用是否已正常返回；只读诊断，不改窗口状态。
+bool PersistenceWindowCallNormal(PersistenceWindowKind kind) noexcept;
+// 该窗口的同步原生调用是否已经返回（正常或异常）。ST2 要求复活动作正常返回
+// 前不得仅凭 ghost=false 推进代次。
+bool PersistenceWindowCallReturned(PersistenceWindowKind kind) noexcept;
+void CloseAllPersistenceWindows(const char *reason, bool normal) noexcept;
+// 同步持久入口：记录 call_id/parent_call_id、同步 operation 与有效 window ids。
+class PersistenceCallScope final {
+public:
+  PersistenceCallScope(const char *entry, void *object, bool enabled = true) noexcept;
+  ~PersistenceCallScope() noexcept;
+  void Returned(bool value) noexcept; // 有 bool 返回值的入口
+  void Returned() noexcept;           // void 入口
+
+private:
+  const char *entry_ = "";
+  void *object_ = nullptr;
+  uint64_t call_ = 0, parent_ = 0;
+  bool main_ = false, recorded_ = false;
+  int exceptions_ = 0;
+};
 // 持久写入只读观测：记录原生入口、条件和前后值；不修改 readonly/dirty。
 class PersistenceOperation final {
 public:
   explicit PersistenceOperation(const char *name) noexcept;
   ~PersistenceOperation() noexcept;
+
 private:
   const char *previous_;
 };
 class PersistenceScope final {
 public:
-  PersistenceScope(const char *entry, void *data, int index = -1, int amount = 0) noexcept;
+  PersistenceScope(const char *entry, void *data, int index = -1,
+                   int amount = 0) noexcept;
   ~PersistenceScope() noexcept;
+  // TryUnlock 等 bool 入口的正常返回值；不虚构异常路径的返回值。
+  void Returned(bool value) noexcept;
+
 private:
   const char *entry_, *operation_;
   void *data_;
   int index_, amount_, before_ = 0, exceptions_;
   unsigned char dirty_ = 0, readonly_ = 0, loaded_ = 0;
-  bool known_ = false;
+  uint64_t call_ = 0, parent_ = 0;
+  bool known_ = false, recorded_ = false;
 };
+// tx-04-07 统一清单新增入口的只读观察；original 仍 exactly-once。
+void ObserveEntityKill(void *entity, void *source) noexcept;
+void ObserveReviveGhost(void *player) noexcept;
+void ObserveStageTransition(void *game, bool same_stage, int param2,
+                            void *player) noexcept;
+void ObserveLoadGameState(void *manager, int saveslot) noexcept;
+std::string PersistenceFields();
+std::string PersistenceWindowFields();
 } // namespace cs::game

@@ -1,10 +1,16 @@
 #include "binding/offsets.h"
+#include "game/bridge.h"
 #include "game/context.h"
+#include "game/lifecycle.h"
+#include "game/persistence.h"
+#include "game/state.h"
 #include "game/tick.h"
 #include "game/topology.h"
 #include "runtime.h"
+#include <algorithm>
 #include <charconv>
 #include <cstring>
+#include <exception>
 #include <mutex>
 #include <sstream>
 namespace cs {
@@ -35,7 +41,7 @@ std::string state() {
       return "Disabled";
   return game::StateName();
 }
-// 所有来源共用参数解析；变更入队，查询读取上一帧快照。
+// 所有来源共用参数解析；变更入队，status/counters 读帧尾快照，witness 只读当前主线程边界。
 std::string Execute(std::string_view text, const char *source) {
   if (text.size() > 512 ||
       text.find_first_of("\r\n\0", 0, 3) != std::string_view::npos)
@@ -50,6 +56,21 @@ std::string Execute(std::string_view text, const char *source) {
     in >> arg >> extra;
     result = arg.empty() || !extra.empty() ? "ok=0\nerror=arguments\n"
                                            : "ok=1\necho=" + arg + "\n";
+  } else if (verb == "query_checkpoint") {
+    in >> arg >> extra;
+    // 场景标签限制为短的单个词；只发布主线程已有统计，不发起原生查询、
+    // Submit/Resolve，不清桶、不改变输入或参与者状态。
+    const bool label_ok = !arg.empty() && arg.size() <= 64 && extra.empty() &&
+        arg.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-") == std::string::npos;
+    if (!label_ok)
+      result = "ok=0\nerror=arguments\n";
+    else if (auto *r = game::Runtime()) {
+      game::PublishQueryCoverage(*r, arg.c_str());
+      result = "ok=1\nquery_checkpoint=" + arg + "\nquery_snapshot=" +
+          std::to_string(r->query_snapshots) + "\nsession_generation=" +
+          std::to_string(game::SessionGeneration(*r)) + "\n";
+    } else
+      result = "ok=0\nerror=no_session\n";
   } else if (verb == "host" || verb == "stop" || verb == "solo") {
     std::string trailing;
     in >> arg >> extra >> trailing;
@@ -111,12 +132,32 @@ std::string Execute(std::string_view text, const char *source) {
     else if (verb == "status" || verb == "counters") {
       std::lock_guard lock(snapshot_lock);
       result = verb == "status" ? status_snapshot : counter_snapshot;
+    } else if (verb == "witness") {
+      // Lua 在 Shooting 内观测激光时不能使用上一轮 status_snapshot 的 frame。
+      // 此接口只复制当前主线程的编号/代次/阻断值，不读取蓄力或写入任何游戏状态。
+      const auto *r = game::Runtime();
+      const auto owner = game::TopOwner();
+      result = "ok=1\nwitness_version=1\nframe=" + std::to_string(frame) +
+          "\nsimulation_tick=" + std::to_string(r ? r->pipeline.SimulationTick() : 0) +
+          "\nsession_generation=" + std::to_string(r ? game::SessionGeneration(*r) : 0) +
+          "\na_generation=" + std::to_string(r ? r->players[0].Generation() : 0) +
+          "\nb_generation=" + std::to_string(r ? r->players[1].Generation() : 0) +
+          "\nblocks=" + std::to_string(r ? r->blocks : 0) +
+          "\nowner=" + std::to_string(unsigned(owner)) +
+          "\nowner_token=" + std::to_string(game::OwnerToken(owner)) + "\n";
     } else
       result = "ok=0\nerror=unknown_verb\n";
   }
   // 记录所有命令来源及 Q14 的 Game 指针；cs 不进入原生命令分支。
-  Trace("command", "source=%s text=%.*s result=%s g_game=%p frame=%llu", source,
-        int(text.size()), text.data(), result.c_str(), GamePointer(), frame);
+  // status/counters 的完整响应走控制口；trace 只保留响应长度与结果，避免
+  // 大快照挤入单个 3500 字节事件被截断。其它命令继续保留原始结果。
+  if (verb == "status" || verb == "counters")
+    Trace("command", "source=%s text=%.*s result_logged=0 result_bytes=%zu "
+          "result_ok=%u g_game=%p frame=%llu", source, int(text.size()), text.data(),
+          result.size(), unsigned(result.rfind("ok=1\n", 0) == 0), GamePointer(), frame);
+  else
+    Trace("command", "source=%s text=%.*s result=%s g_game=%p frame=%llu", source,
+          int(text.size()), text.data(), result.c_str(), GamePointer(), frame);
   return result;
 }
 } // namespace
@@ -173,8 +214,10 @@ void PublishStatus() noexcept {
         "\ncalls=" + std::to_string(total) +
         "\nqueue_dropped=" + std::to_string(queue_dropped.load()) +
         "\ntrace_dropped=" + std::to_string(TraceDropped()) +
+        "\ntrace_truncated=" + std::to_string(TraceTruncated()) +
         "\ncontext_faults=" + std::to_string(ContextFaults()) +
         "\ntrace=" + TracePath() + "\nlast_error=" + last_error + "\n";
+    s += TraceFields();
     s += MenuStatus(run);
     s += game::StatusFields();
     for (size_t i = 0; i < Capabilities.size(); ++i) {
@@ -255,7 +298,13 @@ void FrameBegin() noexcept {
       PortReply reply{};
       reply.id = request.id;
       auto text = Execute(request.text, "port");
-      strncpy_s(reply.text, text.c_str(), _TRUNCATE);
+      // 有界控制口响应不能静默截断；超长时回显式错误并留下实际长度。
+      if (text.size() >= sizeof(reply.text)) {
+        Trace("command_error", "response_too_large id=%llu bytes=%zu capacity=%zu",
+              request.id, text.size(), sizeof(reply.text));
+        strcpy_s(reply.text, "ok=0\nerror=response_too_large\n");
+      } else
+        strcpy_s(reply.text, text.c_str());
       if (!port_replies.Push(reply)) {
         ++queue_dropped;
         Trace("command_error", "completion_queue_full");
@@ -278,21 +327,108 @@ void FrameEnd(bool completed) noexcept {
   if (frame % 60 == 0) {
     try {
       std::lock_guard lock(snapshot_lock);
-      Trace("counters", "%s", counter_snapshot.c_str());
+      // 按换行分片，每片最多 2500 字节；frame/part/last/total_bytes 可重组快照。
+      constexpr size_t chunk_limit = 2500;
+      size_t offset = 0;
+      unsigned part = 0;
+      while (offset < counter_snapshot.size()) {
+        size_t length = (std::min)(chunk_limit, counter_snapshot.size() - offset);
+        if (offset + length < counter_snapshot.size()) {
+          const auto newline = counter_snapshot.rfind('\n', offset + length - 1);
+          if (newline != std::string::npos && newline >= offset)
+            length = newline - offset + 1;
+        }
+        Trace("counters", "frame=%llu part=%u last=%u total_bytes=%zu\n%.*s",
+              frame, ++part, unsigned(offset + length == counter_snapshot.size()),
+              counter_snapshot.size(), int(length), counter_snapshot.data() + offset);
+        offset += length;
+      }
     } catch (...) {
       Trace("status_error", "counter_exception");
     }
   }
 }
-void RunExit() noexcept {
-  game::StopSession(core::SessionCause::RunTeardown);
-  // 清掉旧 run 的排队变更，避免返回菜单后旧 host 命令复活会话。
+// 只清掉旧 run 的排队变更与 pending 标记，不改变已经生效的会话。
+// Restore 的保留分支与真实退出共用这一个辅助函数。
+void ClearPendingRunMutations() noexcept {
   Mutation ignored{};
   while (mutations.Pop(ignored)) {
   }
   pending_host_start = pending_solo_start = false;
+}
+void RunExit() noexcept {
+  game::StopSession(core::SessionCause::RunTeardown);
+  // 清掉旧 run 的排队变更，避免返回菜单后旧 host 命令复活会话。
+  ClearPendingRunMutations();
+  game::ClosePersistenceWindow(game::PersistenceWindowKind::RunExit,
+                               "native_return", true);
   Trace("state", "to=%s reason=run_exit frame=%llu", game::StateName(), frame);
   Trace("run_exit", "state=%s pending_mutations=0 resident=1",
         game::StateName());
 }
+namespace game {
+// tx-04-07：一次 Restore 决策同时处理两个停止点。保留条件必须同时满足，
+// 不能只凭 Warmup 或 startGame 豁免已有 run。
+RestoreScope::RestoreScope(void *game_object, void *state, bool start_game) noexcept
+    : game_(game_object), state_(state), start_game_(start_game),
+      main_(cs::IsMain()), exceptions_(std::uncaught_exceptions()) {
+  if (!main_)
+    return;
+  auto *r = Runtime();
+  if (!r || r->finished)
+    return;
+  active_ = true;
+  NoteLoadingOwnerEntered(RestoreOwner);
+  const bool host_mode = r->mode == core::SessionMode::Host;
+  // ExecuteStartGame 在调用 RestoreState 之前就已把 Game+0x25B02 置 1，因此这里
+  // 不能再用“当前 RunActive”判断首次加载；资格在外层 Start 进入时已经固定。
+  const bool identified_start =
+      r->start_qualified && HasOwner(cs::Owner::Start);
+  const bool clean = !r->join.complete &&
+                     r->device.State() == DeviceKState::Empty &&
+                     !r->players[0].BoundValid() &&
+                     !r->players[1].BoundValid() && !r->retiring && !r->failure;
+  // 首次菜单加载：Host 从主菜单等待首个 run，尚未创建 K、未 Join、无旧绑定。
+  preserve_ = host_mode && start_game_ && identified_start && clean &&
+              !r->run_observed &&
+              (!r->peer.established ||
+               r->session.Status().state == core::SessionState::Warmup);
+  if (preserve_) {
+    // 本轮资格只用于这一次加载；保留 worker、握手/session identity 与菜单 Host。
+    r->start_qualified = false;
+    InvalidateBinding(*r, "restore_preserve", false);
+    ClearPendingRunMutations();
+    Trace("restore",
+          "event=preserve game=%p state=%p start=1 run_observed=0 device=%s "
+          "joined=0 loop=%llu",
+          game_, state_, DeviceKStateName(r->device.State()), r->loop);
+    return;
+  }
+  // 已有 run 的恢复与实际退出：两个停止点合并为一次退休请求。
+  RunTeardownBeginning();
+  ClearPendingRunMutations();
+  Trace("restore",
+        "event=retire game=%p state=%p start=%u run_observed=%u device=%s "
+        "joined=%u retiring=%u loop=%llu",
+        game_, state_, unsigned(start_game_), unsigned(r->run_observed),
+        DeviceKStateName(r->device.State()), unsigned(r->join.complete),
+        unsigned(r->retiring), r->loop);
+}
+RestoreScope::~RestoreScope() noexcept {
+  if (!main_ || !active_)
+    return;
+  const bool normal = exceptions_ == std::uncaught_exceptions();
+  auto *r = Runtime();
+  // 记录 owner 正常/异常返回，并把稳定入口延后到后续 loop。
+  NoteLoadingOwnerReturned(RestoreOwner, normal);
+  Trace("restore", "event=return preserve=%u normal=%u game=%p state=%p loop=%llu",
+        unsigned(preserve_), unsigned(normal), game_, state_,
+        r ? r->loop : 0);
+  if (!normal || !r || r->finished)
+    return;
+  // 只延后稳定入口；不在 Restore owner 仍在内层时做绑定/生命观察。
+  if (r->defer_through < r->loop)
+    r->defer_through = r->loop;
+}
+} // namespace game
 } // namespace cs

@@ -21,7 +21,10 @@ source = ['// 由 gen_binding.py 生成，请修改 binding/hooks.json。',
           '#include "binding/offsets.h"', '#include "game/bridge.h"',
           '// 自有定义仅借用类型表达 ABI，不构造这些对象。',
           'struct CsStatic {};', 'struct CsEntityList {};',
-          'struct CsLifecycle {};', 'struct CsDevice {};', 'struct CsButtonMaps {};']
+          'struct CsLifecycle {};', 'struct CsDevice {};', 'struct CsButtonMaps {};',
+          '// tx-04-07 只读观察组的 ABI 替身：只用于成员指针类型，不构造对象。',
+          'struct CsEntity {};', 'struct CsGame {};', 'struct CsManager {};',
+          'struct CsGameState {};']
 manifest = []
 for row in catalog:
     ident, group, cls, method, ret, params, call, rv, owner, static, conv, own, priority, required = row
@@ -67,17 +70,47 @@ for row in catalog:
             source += ['    cs::game::InputLease input_lease(cs::game::HostBusy());',
                        '    if (!input_lease.Ready()) cs::game::InputLeaseUnavailable();']
         elif ident=='game_exit':
-            source.append('    if (scope.main) cs::game::RunTeardownBeginning();')
+            source.append('    if (scope.main) cs::game::RunTeardownBeginning(true);')
         elif ident=='device_update':
             source.append('    cs::game::DeviceScope device_scope(this);')
         elif ident=='restore':
-            source += ['    if (scope.main) { cs::game::RestoreBeginning(); cs::RunExit(); }']
+            # 一次 Restore 决策处理两个停止点；析构观察 normal/异常并延后稳定入口。
+            source.append('    cs::game::RestoreScope restore_scope(this, state, start);')
+        elif ident=='start_game':
+            # ST4：原函数每帧调用，starting=0 时只有早退；不为该空调用开启
+            # 持久窗口或更新 defer_through。原 super 仍每次 exactly-once。
+            source += ['    const bool requested = cs::game::StartGameRequested(this);',
+                       '    cs::game::PersistenceCallScope call("start_game", this, requested);',
+                       '    cs::game::LoadingOwnerScope loading_owner(true, requested);']
+        elif ident=='room_lifecycle':
+            source.append('    cs::game::LoadingOwnerScope loading_owner(false);')
+        elif ident=='entity_kill':
+            source += ['    cs::game::PersistenceCallScope call("entity_kill", this);',
+                       '    cs::game::ObserveEntityKill(this, source);']
+        elif ident=='revive_ghost':
+            source += ['    cs::game::PersistenceCallScope call("revive_ghost", this);',
+                       '    cs::game::ObserveReviveGhost(this);']
+        elif ident=='stage_transition':
+            source += ['    cs::game::PersistenceCallScope call("stage_transition", this);',
+                       '    cs::game::ObserveStageTransition(this, sameStage, param2, player);']
+        elif ident=='load_game_state':
+            source += ['    cs::game::PersistenceCallScope call("load_game_state", this);',
+                       '    cs::game::ObserveLoadGameState(this, saveslot);']
+        elif ident in ('gamestate_write','gamestate_read','gamestate_delete','gamestate_delete_rerun'):
+            source.append(f'    cs::game::PersistenceCallScope call("{ident}", this);')
         consumers={'move':'Movement','bomb':'Bomb','active_item':'Item',
                    'card_pill':'Pill','shoot':'Shooting','drop':'Drop'}
         if ident in consumers:
             source.append(f'    cs::game::ConsumerScope consumer(this, cs::game::ConsumerKind::{consumers[ident]});')
             if ident=='shoot': source.append('    if (!consumer.CallOriginal()) return;')
         source.append(f'    {"auto result = " if ret!="void" else ""}super({call});')
+        # 持久入口的正常返回与返回值只在这里记录；异常由 RAII 观察，不虚构返回值。
+        if ident=='pgd_unlock': source.append('    persistence.Returned(result);')
+        if ident in ('entity_kill','revive_ghost','stage_transition','load_game_state',
+                     'gamestate_delete','gamestate_delete_rerun','start_game'):
+            source.append('    call.Returned();')
+        if ident in ('gamestate_write','gamestate_read'):
+            source.append('    call.Returned(result);')
         if ident=='device_update': source.append('    device_scope.Returned(result);')
         if ident=='input_update': source.append('    if (scope.main) cs::game::InputFrameFinished();')
         if ident=='console_check': source.append('    if (scope.main) cs::game::ObserveConsole(result);')
@@ -119,11 +152,11 @@ for row in catalog_document.get('native_dependencies', []):
     host_lines.append('  {"%s", %s, "%s"},' % (row['id'], row['rva'], row['expected']))
 host_lines.append('};')
 (args.out/'host_patches.inc').write_text('\n'.join(host_lines)+'\n', encoding='utf-8')
-(args.out/'hook-manifest.json').write_text(json.dumps({'tx':'tx-04-06','hooks':manifest,
+(args.out/'hook-manifest.json').write_text(json.dumps({'tx':'tx-04-07','hooks':manifest,
     'pointer_hooks':catalog_document['pointer_hooks'],
     'native_dependencies':catalog_document.get('native_dependencies', []),
     'byte_patches':catalog_document['byte_patches']},indent=2)+'\n',encoding='utf-8')
-md = ['# tx-04-06 Hook manifest', '', 'Generated from mod/binding/hooks.json. Session controls gameplay activation.', '',
+md = ['# tx-04-07 Hook manifest', '', 'Generated from mod/binding/hooks.json. Session controls gameplay activation.', '',
       '| id | group | definition | RVA | priority | required nonzero |', '|---|---|---|---|---|---|']
 md += [f"| {h['id']} | {h['group']} | {h['definition']} | {h['rva']} | {h['priority']} | {h['required_nonzero']} |" for h in manifest]
 md += ['', 'Pointer hooks: Keyboard/Gamepad slots 8, 9, 10, 35. Permanent.',

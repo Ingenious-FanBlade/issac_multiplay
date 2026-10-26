@@ -19,6 +19,7 @@ using namespace protocol;
 constexpr std::uint32_t kPollMs = 10, kReceiveBudget = 64, kSendBudget = 64;
 constexpr std::size_t kRttHistory = 64;
 constexpr std::uint32_t kByeCopies = 3;
+constexpr std::uint32_t kTerminalDrainMs = 100;
 TerminalReason TerminalFor(ByeReason reason) noexcept {
   switch (reason) {
   case ByeReason::Stop:
@@ -33,6 +34,8 @@ TerminalReason TerminalFor(ByeReason reason) noexcept {
     return TerminalReason::RunTeardown;
   case ByeReason::InternalFailure:
     return TerminalReason::InternalFailure;
+  case ByeReason::PeerLost:
+    return TerminalReason::PeerLost;
   }
   return TerminalReason::InternalFailure;
 }
@@ -60,6 +63,8 @@ struct Worker::State {
   std::atomic<PeerState> published_state{PeerState::Dormant};
   std::atomic<TerminalReason> terminal{TerminalReason::None};
   std::atomic<Error> protocol_error{Error::None};
+  // 先写诊断时刻、再 release 终态；只复制值给主线程。
+  std::atomic<std::uint64_t> terminal_at_ms{0};
   std::atomic<ByeReason> peer_bye{ByeReason::Stop};
   std::atomic<std::uint32_t> native_error{0}, last_send_error{0}, peer_ip{0},
       peer_port{0};
@@ -68,6 +73,7 @@ struct Worker::State {
       stale_packets{0}, bye_send_attempts{0}, bye_sent_packets{0},
       foreign_packets{0}, receive_errors{0}, send_errors{0}, last_receive_ms{0},
       rtt_samples{0}, rtt_last_ms{0}, rtt_max_ms{0}, wait_timeouts{0};
+  std::atomic<std::uint64_t> terminal_received_packets{0};
   std::array<std::atomic<std::uint64_t>, static_cast<std::size_t>(Error::Count)>
       errors{};
   struct AckStamp {
@@ -108,6 +114,7 @@ struct Worker::State {
       return;
     protocol_error.store(error, std::memory_order_relaxed);
     native_error.store(native, std::memory_order_relaxed);
+    terminal_at_ms.store(GetTickCount64(), std::memory_order_relaxed);
     terminal.store(TerminalFor(reason), std::memory_order_release);
   }
   void StampAck(std::uint64_t sequence, std::uint64_t now,
@@ -286,6 +293,8 @@ struct Worker::State {
         if (stamp.sequence && stamp.sequence == m.input.last_ack) {
           received.acknowledged_generation = stamp.generation;
           received.acknowledged_state = stamp.state;
+          // 命中成功发送的 Ack 记录；generation=0 仍是合法值（Warmup/未公布）。
+          received.ack_stamp_known = true;
           break;
         }
       }
@@ -385,6 +394,38 @@ struct Worker::State {
     }
   }
 
+  // 逻辑终止后只保留短暂传输收包窗口，接收迟到 Bye/在途包供真实计数。
+  // 不调用 Endpoint::Receive、不刷新存活时间、不入输入队列、不发布 Ack 或回 Bye。
+  void DrainTerminal() noexcept {
+    if (!locked || socket == INVALID_SOCKET)
+      return;
+    const auto end = GetTickCount64() + kTerminalDrainMs;
+    std::array<std::uint8_t, kMaximumPacket + 1> bytes{};
+    do {
+      for (std::uint32_t i = 0; i < kReceiveBudget; ++i) {
+        sockaddr_in source{};
+        int size = sizeof(source);
+        const int n = recvfrom(socket, reinterpret_cast<char *>(bytes.data()),
+                               static_cast<int>(bytes.size()), 0,
+                               reinterpret_cast<sockaddr *>(&source), &size);
+        if (n == SOCKET_ERROR) {
+          const auto error = WSAGetLastError();
+          if (error != WSAEWOULDBLOCK) {
+            receive_errors.fetch_add(1, std::memory_order_relaxed);
+            native_error.store(error, std::memory_order_relaxed);
+          }
+          break;
+        }
+        received_packets.fetch_add(1, std::memory_order_relaxed);
+        received_bytes.fetch_add(static_cast<std::uint64_t>(n), std::memory_order_relaxed);
+        terminal_received_packets.fetch_add(1, std::memory_order_relaxed);
+        if (size != sizeof(source) || !SameAddress(source, peer))
+          foreign_packets.fetch_add(1, std::memory_order_relaxed);
+      }
+      if (GetTickCount64() < end)
+        Sleep(2);
+    } while (GetTickCount64() < end);
+  }
   // 不等待全员输入；select 最长 10ms，每轮收发工作量有界，可及时响应停止。
   void Run() noexcept {
     while (terminal.load(std::memory_order_acquire) == TerminalReason::None) {
@@ -429,6 +470,8 @@ struct Worker::State {
       endpoint.Fail();
     else
       endpoint.Retire();
+    if (cause != TerminalReason::PeerProtocol && cause != TerminalReason::InternalFailure)
+      DrainTerminal();
     CloseTransport();
     published_state.store(endpoint.State(), std::memory_order_release);
     running.store(false, std::memory_order_release);
@@ -479,6 +522,8 @@ const char *TerminalReasonName(TerminalReason reason) noexcept {
     return "RunTeardown";
   case TerminalReason::InternalFailure:
     return "InternalFailure";
+  case TerminalReason::PeerLost:
+    return "PeerLost";
   }
   return "UNKNOWN";
 }
@@ -639,6 +684,8 @@ WorkerStatus Worker::Status() const noexcept {
   CS_NET_COUNTER(receive_errors);
   CS_NET_COUNTER(send_errors);
   CS_NET_COUNTER(last_receive_ms);
+  CS_NET_COUNTER(terminal_at_ms);
+  CS_NET_COUNTER(terminal_received_packets);
   CS_NET_COUNTER(rtt_samples);
   CS_NET_COUNTER(rtt_last_ms);
   CS_NET_COUNTER(rtt_max_ms);

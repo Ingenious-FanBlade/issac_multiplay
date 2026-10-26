@@ -11,10 +11,13 @@
 #include <winsock2.h>
 
 namespace cs {
-inline constexpr char Version[] = "0.3.0-tx-04-06";
-enum class Group { Loop, Input, Player, Join, Control, Device, Count };
-inline constexpr const char *GroupNames[] = {"loop", "input",   "player",
-                                             "join", "control", "device"};
+inline constexpr char Version[] = "0.4.0-tx-04-07";
+// Observe 是 tx-04-07 新增的只读观察组：入口特征不符时只关闭这些观察记录，
+// 不影响 loop/input/player/join/control/device 的既有能力。
+enum class Group { Loop, Input, Player, Join, Control, Device, Observe, Count };
+inline constexpr const char *GroupNames[] = {"loop",    "input",  "player",
+                                             "join",    "control", "device",
+                                             "observe"};
 enum class Owner {
   None,
   Manager,
@@ -55,6 +58,10 @@ void StartTrace(const std::string &directory);
 // 生产者只格式化到固定栈缓冲，不分配内存、不等待磁盘。
 void Trace(const char *ev, const char *format = "", ...) noexcept;
 uint64_t TraceDropped() noexcept;
+// 格式化超长单列计数，同时计入 dropped；不把截断文本当作完整证据。
+uint64_t TraceTruncated() noexcept;
+// 区分队列、写入和唤醒错误，供状态与唯一 E2E 的失败归因。
+std::string TraceFields();
 const std::string &TracePath() noexcept;
 void FinishTrace() noexcept;
 void FinishTraceOnProcessExit() noexcept;
@@ -147,6 +154,9 @@ struct FrameScope {
   ~FrameScope() noexcept;
 };
 void RunExit() noexcept;
+// 只清掉旧 run 的排队变更与 pending 标记，不改变已经生效的会话。
+// 供 Restore 的保留分支与真实退出共用（tx-04-07）。
+void ClearPendingRunMutations() noexcept;
 void StartControlPort();
 void StopControlPort() noexcept;
 bool OwnCommand(std::string_view text) noexcept;

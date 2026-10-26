@@ -67,13 +67,15 @@ enum class Error : std::uint32_t {
 };
 enum class AckPurpose : std::uint16_t { First = 1, Progress = 2 };
 // 传输层结束原因独立于 core 原因码，后续由 game/peer 在主线程映射。
+// tx-04-07 在末尾追加 PeerLost，既有数值不变；Rust 远端须接受该合法值。
 enum class ByeReason : std::uint16_t {
   Stop = 1,
   PeerBye,
   PeerTimeout,
   PeerProtocol,
   RunTeardown,
-  InternalFailure
+  InternalFailure,
+  PeerLost
 };
 const char *ErrorName(Error error) noexcept;
 const char *PeerStateName(PeerState state) noexcept;

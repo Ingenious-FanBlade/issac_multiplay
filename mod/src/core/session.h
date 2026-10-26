@@ -34,7 +34,10 @@ enum class SessionCause : std::uint32_t {
   CleanupComplete,
   PeerBye,
   PeerTimeout,
-  PeerProtocol
+  PeerProtocol,
+  // tx-04-07：远端 Player 被原生移除或归属矛盾（U10）。追加在末尾，保留既有数值；
+  // 只在 Host 上作为有序退休原因，不作为网络线程的探测结果。
+  PeerLost
 };
 enum class SessionMode : std::uint32_t { None, Solo, Host };
 

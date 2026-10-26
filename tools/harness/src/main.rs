@@ -1,10 +1,12 @@
 //! tx-04-04 覆盖 E1–E7 / 两次启动，tx-04-05 覆盖 V1–V10 / 单次启动。
 //! 失败保留产物，不自动重试；夹具和按键由各次运行管理。
 //! 构建脚本不执行本程序，存档只快照、不恢复。
+mod relay;
+mod remote;
 mod saves;
 mod tx05;
 mod tx06;
-mod remote;
+mod tx07;
 mod win32;
 use serde_json::{Value, json};
 use std::{
@@ -117,6 +119,9 @@ struct Control {
     transcript: fs::File,
     clock: Instant,
     sequence: u64,
+    // 仅显式启用的 tx07 会维护本次游戏窗口；其它入口沿用原行为。
+    focus_window: Option<usize>,
+    focus_restored_at: Option<Instant>,
 }
 impl Control {
     fn connect(port: u16, game: &win32::Game, seconds: u64, transcript: &Path) -> Result<Self> {
@@ -142,6 +147,8 @@ impl Control {
                         .map_err(|e| e.to_string())?,
                     clock: Instant::now(),
                     sequence: 0,
+                    focus_window: None,
+                    focus_restored_at: None,
                 });
             }
             thread::sleep(Duration::from_millis(100));
@@ -154,6 +161,19 @@ impl Control {
         self.transcript.flush().map_err(|e| e.to_string())
     }
     fn request(&mut self, text: &str) -> Result<BTreeMap<String, String>> {
+        if let Some(window) = self.focus_window {
+            let before = win32::focus_state(window);
+            if before["active"] != true {
+                self.record(json!({"event":"focus_lost","elapsed_ms":self.clock.elapsed().as_millis(),"state":before}))?;
+                let result = win32::focus(window);
+                self.record(
+                    json!({"event":"focus_restore","elapsed_ms":self.clock.elapsed().as_millis(),
+                    "state":win32::focus_state(window),"error":result.as_ref().err()}),
+                )?;
+                result?;
+                self.focus_restored_at = Some(Instant::now());
+            }
+        }
         self.sequence += 1;
         let id = self.sequence;
         let started = Instant::now();
@@ -173,7 +193,7 @@ impl Control {
                     return Err("control disconnected".into());
                 }
                 count += line.len();
-                if count > 16000 {
+                if count > 65536 {
                     return Err("oversize response".into());
                 }
                 let line = line.trim_end();
@@ -358,15 +378,22 @@ impl Run {
                 .push(json!({"operation":"copy","source":s,"destination":d}));
         }
         self.deployed = true;
-        if self.report["tx"] == "tx-04-05" || self.report["tx"] == "tx-04-06" {
-            let config = format!(
-                "-- 本次临时 E2E 配置，不写回源码。\nreturn {{ tx = \"{}\", token = \"{}\", host_port = {} }}\n",
-                self.report["tx"].as_str().ok_or("missing tx")?,
-                self.report["token"]
-                    .as_str()
-                    .ok_or("missing fixture token")?,
-                self.scenario["host_port"].as_u64().unwrap_or(27090)
-            );
+        if matches!(
+            self.report["tx"].as_str(),
+            Some("tx-04-05" | "tx-04-06" | "tx-04-07")
+        ) {
+            let config = if self.report["tx"] == "tx-04-07" {
+                self.fixture_config_tx07()?
+            } else {
+                format!(
+                    "-- 本次临时 E2E 配置，不写回源码。\nreturn {{ tx = \"{}\", token = \"{}\", host_port = {} }}\n",
+                    self.report["tx"].as_str().ok_or("missing tx")?,
+                    self.report["token"]
+                        .as_str()
+                        .ok_or("missing fixture token")?,
+                    self.scenario["host_port"].as_u64().unwrap_or(27090)
+                )
+            };
             fs::write(
                 self.game.join("mods/isaac-cs-test/harness_config.lua"),
                 &config,
@@ -1001,7 +1028,12 @@ impl Run {
     }
     // 所有场景在一个入口中顺序执行，不重试失败启动或失败验收。
     fn execute(&mut self) -> Result<()> {
-        if self.report["tx"] == "tx-04-06" { return self.execute_tx06(); }
+        if self.report["tx"] == "tx-04-07" {
+            return self.execute_tx07();
+        }
+        if self.report["tx"] == "tx-04-06" {
+            return self.execute_tx06();
+        }
         if self.report["tx"] == "tx-04-05" {
             return self.execute_tx05();
         }
@@ -1024,7 +1056,12 @@ impl Run {
     }
     // 清理先于报告分析，失败也关闭测试口并移除自己部署的夹具。
     fn finish(&mut self, result: Result<()>) -> Result<()> {
-        if self.report["tx"] == "tx-04-06" { return self.finish_tx06(result); }
+        if self.report["tx"] == "tx-04-07" {
+            return self.finish_tx07(result);
+        }
+        if self.report["tx"] == "tx-04-06" {
+            return self.finish_tx06(result);
+        }
         if self.report["tx"] == "tx-04-05" {
             return self.finish_tx05(result);
         }
@@ -1161,14 +1198,16 @@ fn main() {
 }
 fn entry() -> Result<()> {
     let args = env::args().skip(1).collect::<Vec<_>>();
-    if args.first().map(String::as_str)==Some("remote"){return remote::run_cli(&args);}
+    if args.first().map(String::as_str) == Some("remote") {
+        return remote::run_cli(&args);
+    }
     if args.get(0).map(String::as_str) != Some("e2e")
         || !matches!(
             args.get(1).map(String::as_str),
-            Some("tx-04-04" | "tx-04-05" | "tx-04-06")
+            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07")
         )
     {
-        return Err("usage: harness e2e <tx-04-04|tx-04-05|tx-04-06> --game <game-root> --out <new-artifact-directory> [--scenario <json>]".into());
+        return Err("usage: harness e2e <tx-04-04|tx-04-05|tx-04-06|tx-04-07> --game <game-root> --out <new-artifact-directory> [--scenario <json>]".into());
     }
     let option = |key: &str| {
         args.iter()

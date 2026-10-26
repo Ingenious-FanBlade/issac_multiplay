@@ -1,7 +1,7 @@
 //! ICSN v1 的独立 Rust 线格式；只处理稳定值，不读取游戏或 C++ 结构。
 use crate::Result;
 use serde_json::{Value, json};
-pub const BUILD: &[u8] = b"isaac.cs.tx-04-06";
+pub const BUILD: &[u8] = b"isaac.cs.tx-04-07";
 pub const MAX_PACKET: usize = 1200;
 pub type Id = [u8; 16];
 const LIMIT: u64 = u64::MAX;
@@ -307,7 +307,7 @@ pub fn encode(m: &Message) -> Result<Vec<u8>> {
             p
         }
         Body::Bye { reason, last_ack } => {
-            need((1..=6).contains(reason) && *last_ack < LIMIT, "bye")?;
+            need((1..=7).contains(reason) && *last_ack < LIMIT, "bye")?;
             let mut p = vec![0; 16];
             put(&mut p, 0, (*reason).into(), 2);
             put(&mut p, 8, *last_ack, 8);
@@ -474,7 +474,7 @@ pub fn decode(b: &[u8]) -> Result<Message> {
             let reason = u16_at(p, 0);
             let last_ack = u64_at(p, 8);
             need(
-                (1..=6).contains(&reason)
+                (1..=7).contains(&reason)
                     && last_ack < LIMIT
                     && u16_at(p, 2) == 0
                     && u32_at(p, 4) == 0,

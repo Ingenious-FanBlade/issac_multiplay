@@ -56,6 +56,8 @@ const char *SessionCauseName(SessionCause cause) noexcept {
     return "PeerTimeout";
   case SessionCause::PeerProtocol:
     return "PeerProtocol";
+  case SessionCause::PeerLost:
+    return "PeerLost";
   }
   return "UNKNOWN";
 }
@@ -123,9 +125,11 @@ bool Session::Activate(bool host_bound, bool remote_bound) noexcept {
 }
 // 退休立即关闭新的 admission；已经开始的模拟仍可正常返回并完成发布。
 bool Session::BeginRetirement(SessionCause cause) noexcept {
+  // PeerLost 与其它 Peer 原因一样只属于 Host 的有序退休；Solo 不接受。
   const bool peer_cause = cause == SessionCause::PeerBye ||
                          cause == SessionCause::PeerTimeout ||
-                         cause == SessionCause::PeerProtocol;
+                         cause == SessionCause::PeerProtocol ||
+                         cause == SessionCause::PeerLost;
   if (cause != SessionCause::Stop && cause != SessionCause::RunTeardown &&
       !(mode_ == SessionMode::Host && peer_cause))
     return false;

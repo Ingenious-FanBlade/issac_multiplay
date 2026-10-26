@@ -1,5 +1,31 @@
 # REPENTOGON mod
 
+tx-04-07 已完成（用户正式接受，D31，2026-10-26）：e2e-11 整体 E2E 验收正式通过。原自动报告及失败/未执行事实不改写，不再补测。见[验收记录](../artifacts/repentogon/tx-04-07-e2e-11/acceptance.md)。下方保留历史状态。
+
+tx-04-07 e2e-11：V12实际PASS，恢复暂停与实时激光松键归属均有证据；整体仍因S17移动净空选择停止而FAIL。S0–S16完成、环境恢复，无自动重跑。见[结果](../artifacts/repentogon/tx-04-07-e2e-11/README.md)与[V12修复](../docs/design/tx-04-07-v12-recovery-fix.md)。
+
+tx-04-07 e2e-09：debug 10 控制台启用，S20 Continue 已走通，S0–S20 完成；S21 暂停等待超时，整体仍 FAIL。前三轮严格网络对账通过，V12 输入空档/早期激光与部分采证问题仍在。游戏正常退出、环境恢复，无自动重跑，见[记录](../artifacts/repentogon/tx-04-07-e2e-09/README.md)。
+
+tx-04-07 e2e-08（2026-10-26）：单启动已走到 S20；第二轮收尾及前三轮严格对账通过，V12 仍有重绑空档和提前发射；S20 因 A 死亡、无法 Continue 而失败。游戏正常退出、环境恢复，见[结果](../artifacts/repentogon/tx-04-07-e2e-08/README.md)。用户要求下次开局 debug 10，已修改并纯构建 harness，尚未实测；下方保留历史结果。
+
+tx-04-07 修复编写（2026-10-26）：native Worker 逻辑退休后增加 100 ms 有界收包与 terminal_rx 诊断，relay 单列 UDP 重置通知；V12 采证已修正。统一纯构建成功，没有部署或新 E2E，详见[说明与限制](../docs/design/tx-04-07-relay-v12-fix.md)。
+
+tx-04-07 最新e2e-06（2026-10-26）：S6等待回归修复，S0–S15已执行，V9/V11通过；第二轮Bye后UDP中继报10054，整体仍FAIL。V12缺激光证据，第三/四轮未执行。游戏正常退出、无新dump、环境恢复，无自动重跑。见[结果](../docs/design/tx-04-07-results.md)与[修复说明](../docs/design/tx-04-07-pause-wait-fix.md)。下方保留原时点。
+
+tx-04-07 最新 E2E（2026-10-26）：e2e-05 **FAIL**，S6 退出预期暂停时新增 harness 检查过早终止；DLL/Lua 未修改，本轮没有新增崩溃，环境已清理。焦点恢复未获得实机样本，完整场景仍未完成。见[结果](../docs/design/tx-04-07-results.md)与[修改/回归说明](../docs/design/tx-04-07-focus-fix.md)。下方保留历史时点。
+
+tx-04-07 退休修复后第三次 E2E（2026-10-25）：**FAIL**。RemoveCoPlayer 已改传 Game 内嵌 PlayerManager，S13 Stop 及失败收尾的第二轮 B 均正常退休，无新增崩溃。S0–S14 完成，随后因 Lua 夹具把 Entity Index 当作 ordinal 导致 b_animation_timeout；未自动重跑，环境已清理。见[修复](../docs/design/tx-04-07-retirement-fix.md)与[结果](../docs/design/tx-04-07-results.md)。下方保留各次原始记录。
+
+tx-04-07 实质修复后第二次 E2E（2026-10-25）：**FAIL**。启动 trace 丢失未重现，S0–S12 完成、V11 死亡/复活 PASS；S13 `cs stop` 的退休/原生 B 移除流程崩溃（0xC0000005），根因尚未确定，未自动重跑。测试 mod/C/S 配置已清理，Download Helper 恢复。见[修复](../docs/design/tx-04-07-trace-fix.md)与[结果](../docs/design/tx-04-07-results.md)。下方首次失败记录保持原样。
+
+tx-04-07 唯一整体 E2E 已执行（2026-10-25，America/Los_Angeles），结果 **FAIL**：启动 trace 丢失 63 条导致首轮开局 trace_event_lost 退休，尚未创建 K/Join B，未重跑。游戏已正常退出、测试 mod/C/S 配置已清理，Download Helper 恢复。见[结果](../docs/design/tx-04-07-results.md)；下方未测试说明保留编码时点。
+
+2026-10-26 tx-04-07 3.4 harness：relay、远端换代/超时、四轮 S0–S21、V1–V16 与文件窗口已编写；网络层配对补只读终态发布时间。3.1–3.4 的 Win32 DLL 与 i686 Rust harness 已统一纯编译链接，见[编写记录](../docs/design/tx-04-07-harness.md)与[构建日志](../artifacts/repentogon/tx-04-07-harness/README.md)。未部署、启动游戏或运行测试；下方未构建描述保留各阶段时点。
+
+2026-10-26 tx-04-07 3.2 状态与 trace：已补齐退休状态/Join 结果、完整分类查询覆盖与 `cs query_checkpoint <label>` 场景累计快照、生命归属、丢弃/Ack、加载/持久窗口与原返回值，增加日志分片和显式截断/响应超长记录。见[接线记录](../docs/design/tx-04-07-state-trace.md)。**未构建、部署或测试**；统一整体验收留到 tx-04-07 全部实现完成后。
+
+2026-10-26 tx-04-07 3.1 `game/`：B 生命状态/当前归属（新增 `game/remote_life.h/.cpp`）、加载优先的生命周期判断、一次 Restore 决策（首次菜单 Host 保留 vs 已有 run 退休）、按原因的远端丢弃、完整键查询重复读取、`join_state=None`/`join_last`、跨 loop 持久窗口与 Kill/Revive/Stage/GameState 只读入口已编写。统一清单增至 41 入口（新增 8 个 `observe` 组只读入口），设备槽 8 个、字节补丁 12 处不变；ByeReason/SessionCause 末尾追加 `PeerLost`，协商 build 标识改为 `isaac.cs.tx-04-07`（Rust 侧同步接受合法值与 build 字符串）。**尚未构建、编译、部署或运行游戏**；按规范，tx-04-07 的纯构建与唯一整体 E2E 留到全部实现完成后执行。以下保留各阶段原始记录。
+
 2026-10-25 tx-04-06 3.4/3.5：Host/stop 已接入真实会话，包含 IPv4/timeout 配置、完整诊断、主机 UI、Rust codec/Endpoint/脚本远端与单启动 E2E 场景，V2 方向缺陷已修正。统一清单为 33 入口（含 5 个只读 ST8 观测）、8 个设备槽、12 个字节补丁。Win32 DLL 与 i686 Rust harness 纯编译链接成功，见[编写/使用记录](../docs/design/tx-04-06-ops-harness.md)、[原始构建日志](../artifacts/repentogon/tx-04-06-ops/README.md)。未部署或运行游戏/测试；下方占位与旧计数说明均为阶段历史。
 
 2026-10-25 tx-04-06 game：第 3.3 节 K/Join/peer、A/B 拓扑/consumer/lifecycle、主线程 Host API 和必要的 11 处 Join/K 常驻补丁已编写并纯编译、链接成功，见[实现与接线记录](../docs/design/tx-04-06-game.md)、[构建日志](../artifacts/repentogon/tx-04-06-game/README.md)。入口仍为 28 个、设备槽 8 个，字节补丁连同原有 Odd 共 12 处。ops 的 `cs host/stop` 仍为占位，配置/UI/Rust 远端与 harness 待接入；没有部署、启动游戏、运行网络或测试，整体 E2E 留待全目标完成。以下保留各阶段原始记录。

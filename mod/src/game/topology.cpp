@@ -28,6 +28,29 @@ bool ReadMemory(const void *source, void *output, std::size_t size) noexcept {
   std::memcpy(output, source, size);
   return true;
 }
+const char *TopologyFaultName(TopologyFault fault) noexcept {
+  switch (fault) {
+  case TopologyFault::None:
+    return "none";
+  case TopologyFault::NotRun:
+    return "not_run";
+  case TopologyFault::PlayerList:
+    return "player_list";
+  case TopologyFault::Unreadable:
+    return "unreadable";
+  case TopologyFault::Identity:
+    return "identity";
+  case TopologyFault::Ambiguous:
+    return "ambiguous";
+  case TopologyFault::Room:
+    return "room";
+  case TopologyFault::Device:
+    return "device";
+  case TopologyFault::Ownership:
+    return "ownership";
+  }
+  return "UNKNOWN";
+}
 // 只枚举已知 vector 的活动区间，容量终点不作为额外设备读取。
 bool VectorRange(const void *object, size_t offset, size_t maximum,
                  uintptr_t &begin, size_t &count) noexcept {
@@ -44,6 +67,72 @@ bool RunActive() noexcept {
   bool run = false;
   return ReadAt(GamePointer(), offset::RunActive, run) && run;
 }
+// 受限读取：不检查设备注册，只确认 Player vector 与该 slot 的实体身份。
+// 读取失败时区分不可读与身份不符，调用方据此决定中性或 PeerLost。
+bool ReadPlayerSlot(unsigned ordinal, PlayerSlot &out) noexcept {
+  out = {};
+  if (!IsMain() || !Base || ordinal > 1)
+    return false;
+  InputLease lease(HostBusy());
+  if (!lease.Ready())
+    return false;
+  auto *game = GamePointer();
+  bool run = false;
+  if (!ReadAt(game, offset::RunActive, run)) {
+    out.fault = TopologyFault::Unreadable;
+    out.reason = "run_unreadable";
+    return false;
+  }
+  out.known = true;
+  if (!run) {
+    out.fault = TopologyFault::NotRun;
+    out.reason = "not_in_run";
+    return true;
+  }
+  uintptr_t players = 0;
+  size_t count = 0;
+  if (!VectorRange(game, offset::PlayerManager, 16, players, count)) {
+    out.fault = TopologyFault::PlayerList;
+    out.reason = "player_list_unknown";
+    return false;
+  }
+  out.count = static_cast<unsigned>(count);
+  if (count <= ordinal) {
+    out.fault = TopologyFault::PlayerList;
+    out.reason = "player_slot_missing";
+    return false;
+  }
+  if (!ReadMemory(reinterpret_cast<void *>(players + ordinal * sizeof(void *)),
+                  &out.player, sizeof(void *)) ||
+      !out.player) {
+    out.fault = TopologyFault::Unreadable;
+    out.reason = "player_pointer_unreadable";
+    return false;
+  }
+  if (!ReadAt(out.player, offset::PlayerIndex, out.index) ||
+      !ReadAt(out.player, offset::EntityType, out.type) ||
+      !ReadAt(out.player, offset::EntityVariant, out.variant) ||
+      !ReadAt(out.player, offset::PlayerType, out.character) ||
+      !ReadAt(out.player, offset::ControllerIndex, out.controller) ||
+      !ReadAt(out.player, offset::EntityValid, out.valid) ||
+      !ReadAt(out.player, offset::EntityExists, out.exists) ||
+      !ReadAt(out.player, offset::EntityDead, out.dead) ||
+      !ReadAt(out.player, offset::EntityRemoved, out.removed) ||
+      !ReadAt(out.player, offset::CoopGhost, out.ghost)) {
+    out.fault = TopologyFault::Unreadable;
+    out.reason = "player_fields_unreadable";
+    return false;
+  }
+  if (out.index != int(ordinal) || out.type != 1 || out.variant != 0) {
+    out.fault = TopologyFault::Identity;
+    out.reason = "player_slot_identity";
+    return false;
+  }
+  out.identity = true;
+  out.fault = TopologyFault::None;
+  out.reason = "slot_known";
+  return true;
+}
 Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
   Topology out;
   if (!IsMain() || !Base)
@@ -56,6 +145,7 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
     return out;
   if (!out.run) {
     out.known = true;
+    out.fault = TopologyFault::NotRun;
     out.reason = "not_in_run";
     return out;
   }
@@ -72,8 +162,11 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
       !ReadAt(out.room.game, offset::Dimension, out.room.dimension) ||
       !ReadAt(out.room.game, offset::PauseScreen, out.pause) ||
       !ReadAt(out.room.game, offset::RoomTransition, out.room_transition) ||
-      !ReadAt(out.room.game, offset::StageTransition, out.stage_transition))
+      !ReadAt(out.room.game, offset::StageTransition, out.stage_transition)) {
+    out.fault = TopologyFault::Unreadable;
+    out.reason = "game_fields_unreadable";
     return out;
+  }
   out.known = true;
   uintptr_t players = 0;
   size_t player_count = 0;
@@ -81,13 +174,17 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
                    player_count) ||
       player_count <= ordinal) {
     out.player_count = static_cast<unsigned>(player_count);
+    out.fault = TopologyFault::PlayerList;
     out.reason = "player_list_unknown";
     return out;
   }
   out.player_count = static_cast<unsigned>(player_count);
   if (!ReadMemory(reinterpret_cast<void *>(players + ordinal * sizeof(void *)),
-                  &out.pair.player, sizeof(void *)))
+                  &out.pair.player, sizeof(void *))) {
+    out.fault = TopologyFault::Unreadable;
+    out.reason = "player_pointer_unreadable";
     return out;
+  }
   int index = -1;
   unsigned type = 0;
   if (!ReadAt(out.pair.player, offset::PlayerIndex, index) ||
@@ -103,6 +200,8 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
       !ReadAt(out.pair.player, offset::EntityRemoved, out.removed) ||
       !ReadAt(out.pair.player, offset::CoopGhost, out.ghost)) {
     out.pair.player = nullptr;
+    // 已读到对象但字段/身份不成立：属于身份矛盾，而不是暂时不可读。
+    out.fault = TopologyFault::Identity;
     out.reason = "player_identity_unknown";
     return out;
   }
@@ -113,8 +212,15 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
     int other_index = -1;
     if (!ReadMemory(reinterpret_cast<void *>(players + i * sizeof(void *)),
                     &other, sizeof(other)) ||
-        !ReadAt(other, offset::PlayerIndex, other_index) ||
-        other_index == int(ordinal) || other == out.pair.player) {
+        !ReadAt(other, offset::PlayerIndex, other_index)) {
+      out.pair.player = nullptr;
+      out.fault = TopologyFault::Unreadable;
+      out.reason = "player_pointer_unreadable";
+      return out;
+    }
+    if (other_index == int(ordinal) || other == out.pair.player) {
+      out.pair.player = nullptr;
+      out.fault = TopologyFault::Ambiguous;
       out.reason = "ambiguous_player";
       return out;
     }
@@ -124,6 +230,8 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
   if (out.pair.key < 0 ||
       !VectorRange(reinterpret_cast<void *>(Base + offset::InputManager),
                    offset::DeviceVector, 256, devices, device_count)) {
+    out.pair.player = nullptr;
+    out.fault = TopologyFault::Device;
     out.reason = "device_list_unknown";
     return out;
   }
@@ -134,6 +242,8 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
     if (!ReadMemory(reinterpret_cast<void *>(devices + i * sizeof(void *)),
                     &device, sizeof(device)) ||
         !ReadAt(device, offset::DeviceId, id)) {
+      out.pair.player = nullptr;
+      out.fault = TopologyFault::Device;
       out.reason = "device_identity_unknown";
       return out;
     }
@@ -144,16 +254,36 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
   }
   uintptr_t vtable = 0;
   bool enabled = false;
-  if (matches != 1 || !ReadAt(out.pair.device, 0, vtable) ||
-      (ordinal == 0 ? (vtable != Base + offset::KeyboardVtable &&
-                       vtable != Base + offset::GamepadVtable)
-                    : (!owned_device || out.pair.device != owned_device ||
-                       !IsDeviceK(out.pair.device))) ||
-      !ReadAt(out.pair.device, offset::DeviceEnabled, enabled) || !enabled) {
-    out.reason = matches > 1 ? "ambiguous_device" : "device_unavailable";
+  const bool readable = matches == 1 &&
+                        ReadAt(out.pair.device, 0, vtable) &&
+                        ReadAt(out.pair.device, offset::DeviceEnabled, enabled);
+  // A 只接受键盘/手柄后端；B 只接受构造时记录的自有 K。归属不符与
+  // 设备暂时不可用必须分开：前者允许进入 PeerLost 防御，后者只表示不可绑定。
+  const bool ownership_ok =
+      readable &&
+      (ordinal == 0 ? (vtable == Base + offset::KeyboardVtable ||
+                       vtable == Base + offset::GamepadVtable)
+                    : (owned_device && out.pair.device == owned_device &&
+                       IsDeviceK(out.pair.device)));
+  if (!ownership_ok || !enabled) {
+    out.pair.player = nullptr;
+    if (matches > 1) {
+      out.fault = TopologyFault::Ambiguous;
+      out.reason = "ambiguous_device";
+    } else if (ordinal == 1 && matches != 1) {
+      out.fault = TopologyFault::Ownership;
+      out.reason = "device_missing";
+    } else if (ordinal == 1 && readable && !ownership_ok) {
+      out.fault = TopologyFault::Ownership;
+      out.reason = "device_ownership_mismatch";
+    } else {
+      out.fault = TopologyFault::Device;
+      out.reason = "device_unavailable";
+    }
     return out;
   }
   out.unique = out.room.room != nullptr;
+  out.fault = out.unique ? TopologyFault::None : TopologyFault::Room;
   out.reason = out.unique ? "unique" : "room_unknown";
   return out;
 }

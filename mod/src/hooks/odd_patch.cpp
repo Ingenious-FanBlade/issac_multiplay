@@ -1,6 +1,8 @@
 #include "game/context.h"
 #include "game/device_k.h"
 #include "runtime.h"
+#include <cstdio>
+#include "ASMPatcher.hpp"
 #include <cstring>
 
 namespace cs {
@@ -64,28 +66,37 @@ void InstallRuntimePatches() noexcept {
     Trace("byte_patch", "id=odd_normal ok=0 reason=instruction_mismatch");
     return;
   }
-  unsigned char jump[5]{0xE9};
-  const uint32_t displacement = uint32_t(
-      reinterpret_cast<uintptr_t>(&OddNormalShim) - (Base + OddCallRva + 5));
-  std::memcpy(jump + 1, &displacement, 4);
-  resume = Base + OddResumeRva;
-  DWORD protection = 0;
-  if (!VirtualProtect(target, 5, PAGE_EXECUTE_READWRITE, &protection)) {
+  try {
+    // 官方 ASMPatch 按原调用点地址编码相对跳转；FlatPatch 原位安装，不增加
+    // trampoline 或返回地址，裸 shim 的寄存器、栈与完整指令重放约定保持不变。
+    ASMPatch patch;
+    patch.AddRelativeJump(reinterpret_cast<void *>(&OddNormalShim));
+    if (patch.Length() != sizeof(OddExpected)) {
+      Capabilities[size_t(Group::Player)] = false;
+      Trace("byte_patch", "id=odd_normal ok=0 reason=patch_size_mismatch");
+      return;
+    }
+    resume = Base + OddResumeRva;
+    sASMPatcher.FlatPatch(target, &patch);
+    // SDK 1.1.3 的 FlatPatch 对缓存刷新失败只记日志；保留显式结果检查，
+    // 失败时停用能力，已经写入的常驻补丁不回滚、不自动重试。
+    installed = FlushInstructionCache(GetCurrentProcess(), target,
+                                      sizeof(OddExpected)) != FALSE;
+    if (!installed) {
+      Capabilities[size_t(Group::Player)] = false;
+      Trace("byte_patch", "id=odd_normal ok=0 reason=flush error=%lu",
+            GetLastError());
+      return;
+    }
+    Trace("byte_patch", "id=odd_normal ok=1 resident=1 backend=repentogon rva=%x resume=%x",
+          unsigned(OddCallRva), unsigned(OddResumeRva));
+  } catch (const std::exception &error) {
     Capabilities[size_t(Group::Player)] = false;
-    Trace("byte_patch", "id=odd_normal ok=0 reason=protect error=%lu",
-          GetLastError());
-    return;
+    Trace("byte_patch", "id=odd_normal ok=0 reason=asm_patch_exception message=%s",
+          error.what());
+  } catch (...) {
+    Capabilities[size_t(Group::Player)] = false;
+    Trace("byte_patch", "id=odd_normal ok=0 reason=asm_patch_exception message=unknown");
   }
-  std::memcpy(target, jump, 5);
-  const bool flushed =
-      FlushInstructionCache(GetCurrentProcess(), target, 5) != FALSE;
-  DWORD unused = 0;
-  const bool protected_again =
-      VirtualProtect(target, 5, protection, &unused) != FALSE;
-  installed = flushed && protected_again;
-  if (!installed)
-    Capabilities[size_t(Group::Player)] = false;
-  Trace("byte_patch", "id=odd_normal ok=%u resident=1 rva=%x resume=%x",
-        installed, unsigned(OddCallRva), unsigned(OddResumeRva));
 }
 } // namespace cs

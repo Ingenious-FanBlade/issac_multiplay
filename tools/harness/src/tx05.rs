@@ -21,7 +21,7 @@ fn number(s: &Status, key: &str) -> Result<u64> {
 fn fixture_records(text: &str, token: &str) -> Result<Vec<Value>> {
     let mut out = vec![];
     for line in text.lines() {
-        if let Some((_, payload)) = line.split_once("[isaac-cs-test] tx05 ").or_else(||line.split_once("[isaac-cs-test] tx06 ")) {
+        if let Some((_, payload)) = line.split_once("[isaac-cs-test] tx05 ").or_else(||line.split_once("[isaac-cs-test] tx06 ")).or_else(||line.split_once("[isaac-cs-test] tx07 ")) {
             let v: Value = serde_json::from_str(payload)
                 .map_err(|e| format!("malformed fixture record: {e}"))?;
             if v["token"].as_str() == Some(token) {
@@ -50,6 +50,8 @@ impl Run {
                 return Err(format!("game exited during scenario: {code}"));
             }
             let s = control.command("cs status")?;
+            // 提前失败也保留最后一次真实主线程快照，不把运行时错误变成“未观察”。
+            self.report["last_observed_status"]=json!(s);
             if s.get("session_error").is_some_and(|v| !v.is_empty())
                 || s.get("last_error").is_some_and(|v| !v.is_empty())
             {
@@ -336,9 +338,10 @@ impl Run {
             .rev()
             .find(|v| v["event"] == "observation")
             .unwrap();
-        if observation["player_type"] != 0
-            || observation["controller"] != 0
-            || observation["bombs"].as_i64().unwrap_or(0) < 1
+        let player=if self.report["tx"]=="tx-04-07" {&observation["players"][0]}else{&observation};
+        if player["player_type"] != 0
+            || player["controller"] != 0
+            || player["bombs"].as_i64().unwrap_or(0) < 1
         {
             return Err(format!(
                 "S0 requires Isaac, keyboard controller 0 and a starting bomb: {observation}"
@@ -569,7 +572,9 @@ impl Run {
             } else {
                 match saves::changes(&self.out.join("save_before"), &self.out.join("save_after")) {
                     Ok(mut changes) => {
-                        self.apply_recorded_baseline_tx05(&mut changes)?;
+                        if let Err(error)=self.apply_recorded_baseline_tx05(&mut changes) {
+                            self.report["save_compare_error"]=json!(error);
+                        }
                         write_json(&self.out.join("save-changes.json"), &changes)?;
                         self.report["save_changes"] = changes;
                     }
@@ -578,11 +583,12 @@ impl Run {
             }
         }
         let tx06 = self.report["tx"] == "tx-04-06";
-        let evaluation = if tx06 { self.evaluate_tx06() } else { self.evaluate_tx05() };
+        let tx07 = self.report["tx"] == "tx-04-07";
+        let evaluation = if tx07 {self.evaluate_tx07()}else if tx06 { self.evaluate_tx06() } else { self.evaluate_tx05() };
         if let Err(e) = evaluation {
             self.report["evaluation_error"] = json!(e);
         }
-        let cases: Vec<&str> = if tx06 { vec!["V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11","V12"] } else { CASES.to_vec() };
+        let cases: Vec<&str> = if tx07 {vec!["V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11","V12","V13","V14","V15","V16"]}else if tx06 { vec!["V1","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11","V12"] } else { CASES.to_vec() };
         for &id in &cases {
             if self.report["cases"][id].is_null() {
                 self.report["cases"][id] = json!({"pass":false,"status":"NOT_RUN","detail":"missing required evidence; see failure/evaluation_error"});
@@ -596,6 +602,8 @@ impl Run {
             "save_backup_error",
             "save_compare_error",
             "evaluation_error",
+            "file_monitor_error",
+            "crash_scan_error",
         ];
         let pass = errors.iter().all(|k| self.report[*k].is_null())
             && cases
@@ -616,6 +624,8 @@ impl Run {
                     "PASS"
                 } else if self.report["cases"][id]["status"] == "NOT_RUN" {
                     "NOT_RUN"
+                } else if self.report["cases"][id]["status"] == "NOT_OBSERVED" {
+                    "NOT_OBSERVED"
                 } else {
                     "FAIL"
                 }

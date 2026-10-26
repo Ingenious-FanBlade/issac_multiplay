@@ -156,7 +156,8 @@ bool ValidHello(const Hello &h, bool agreement) noexcept {
                    : h.role == Role::Remote && !Nonzero(h.peer_nonce);
 }
 bool ValidByeReason(ByeReason reason) noexcept {
-  return reason >= ByeReason::Stop && reason <= ByeReason::InternalFailure;
+  // 追加 PeerLost 后仍按连续区间校验，旧的 1..6 保持合法。
+  return reason >= ByeReason::Stop && reason <= ByeReason::PeerLost;
 }
 bool AckAdvances(const Ack &old, const Ack &next) noexcept {
   return next.server_tick >= old.server_tick && next.accepted >= old.accepted &&
@@ -229,6 +230,8 @@ const char *ByeReasonName(ByeReason reason) noexcept {
     return "RunTeardown";
   case ByeReason::InternalFailure:
     return "InternalFailure";
+  case ByeReason::PeerLost:
+    return "PeerLost";
   }
   return "UNKNOWN";
 }

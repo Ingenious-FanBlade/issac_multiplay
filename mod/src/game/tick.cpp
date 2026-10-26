@@ -4,6 +4,8 @@
 #include "game/join.h"
 #include "game/lifecycle.h"
 #include "game/peer.h"
+#include "game/persistence.h"
+#include "game/remote_life.h"
 #include "game/state.h"
 #include "runtime.h"
 #include <bcrypt.h>
@@ -24,7 +26,7 @@ void Reject(SessionRuntime &r, core::TickDecision reason,
   Trace("tick_reject",
         "decision=%s reason=%s loop=%llu current=%llu generation=%llu",
         core::TickDecisionName(reason), detail, r.loop, r.clock.Current(),
-        r.session.Identity().generation);
+        SessionGeneration(r));
 }
 // Authority-pre 的唯一入口：先绑定与激活，再 drain、统一 Submit、Resolve
 // current。
@@ -62,6 +64,16 @@ bool BeginTick(SessionRuntime &r, core::TickKind kind,
     r.metrics[i] = {};
     r.metrics[i].authority_pre = 1;
     r.metrics[i].input_sequence = r.players[i].CurrentSequence();
+    // 以实际 Authority tick 起算，consumer 缺席也不能延长恢复窗口。
+    auto &recovery = r.shooting_recovery[i];
+    if (!r.players[i].BoundValid())
+      recovery = {};
+    else if (recovery.generation != r.players[i].Generation())
+      recovery = {r.players[i].Generation(), r.clock.Current(), false};
+    if (r.players[i].BoundValid() && r.metrics[i].input_sequence)
+      recovery.source_seen = true;
+    r.metrics[i].input_generation = r.players[i].Generation();
+    r.metrics[i].input_epoch = r.query_epoch;
     r.tick_input[i] = r.players[i].Current();
   }
   Trace(
@@ -109,24 +121,34 @@ void PublishTick(SessionRuntime &r, unsigned ordinal) noexcept {
       "tick",
       "ordinal=%u tick=%llu kind=%s loop=%llu owner_token=%llu generation=%llu "
       "participant_generation=%llu a_generation=%llu b_generation=%llu "
+      "session_generation=%llu input_generation=%llu input_epoch=%llu "
+      "query_epoch=%llu b_life=%s b_bound=%u death=%llu "
       "move=%d,%d aim=%d,%d held=%u edge=%u player_update_entered=%llu "
       "player_native_reached=%llu "
-      "player_skipped_by_chain=%llu shooting_suppressed=%llu fields_known=%u "
+      "player_skipped_by_chain=%llu shooting_suppressed=%llu shooting_startup_deferred=%llu fields_known=%u "
       "move_direction=%d "
       "velocity=%g,%g shoot_components=%g,%g shoot_flag=%u published=1 "
       "authority_pre=%llu native_commit=%llu owner=%s bomb_queries=%llu "
-      "bomb_query_value=%g bomb_query_mismatches=%llu input_sequence=%llu%s",
+      "bomb_query_value=%g bomb_query_mismatches=%llu input_sequence=%llu "
+      "query_reads=%llu query_repeats=%llu query_mismatches=%llu "
+      "query_read_mask=%x query_repeat_mask=%x query_mismatch_mask=%x%s",
       ordinal, r.clock.Completed(),
       r.boundary.kind == core::TickKind::StandardRoom ? "StandardRoom"
                                                       : "OddPlayer",
       r.loop, r.boundary.scope_token, r.session.Identity().generation,
       r.players[ordinal].Generation(), r.players[0].Generation(),
       r.mode == core::SessionMode::Host ? r.players[1].Generation() : 0,
+      SessionGeneration(r), r.metrics[ordinal].input_generation,
+      r.metrics[ordinal].input_epoch, r.query_epoch,
+      RemoteLifeStatusName(r.life.status),
+      unsigned(r.mode == core::SessionMode::Host && r.players[1].BoundValid()),
+      r.life.death_event,
       r.tick_input[ordinal].move_x, r.tick_input[ordinal].move_y,
       r.tick_input[ordinal].aim_x, r.tick_input[ordinal].aim_y,
       r.tick_input[ordinal].held_flags, r.tick_input[ordinal].edge_flags,
       r.metrics[ordinal].player_entered, r.metrics[ordinal].native_reached,
       r.metrics[ordinal].chain_skipped, r.metrics[ordinal].shooting_suppressed,
+      r.metrics[ordinal].shooting_startup_deferred,
       r.metrics[ordinal].player_fields_known, r.metrics[ordinal].move_direction,
       r.metrics[ordinal].velocity_x, r.metrics[ordinal].velocity_y,
       r.metrics[ordinal].shoot_x, r.metrics[ordinal].shoot_y,
@@ -135,7 +157,11 @@ void PublishTick(SessionRuntime &r, unsigned ordinal) noexcept {
       r.boundary.owner_kind == core::TickOwnerKind::Game ? "Game" : "OddNormal",
       r.metrics[ordinal].bomb_queries, r.metrics[ordinal].first_bomb_query,
       r.metrics[ordinal].bomb_query_mismatches,
-      r.metrics[ordinal].input_sequence, reads);
+      r.metrics[ordinal].input_sequence, r.metrics[ordinal].query_reads,
+      r.metrics[ordinal].query_repeats, r.metrics[ordinal].query_mismatches,
+      r.metrics[ordinal].query_read_mask,
+      r.metrics[ordinal].query_repeat_mask,
+      r.metrics[ordinal].query_mismatch_mask, reads);
 }
 } // namespace
 SessionRuntime *Runtime() noexcept { return IsMain() ? solo.get() : nullptr; }
@@ -259,7 +285,7 @@ void StopSession(core::SessionCause cause) noexcept {
   auto *r = Runtime();
   if (!r || r->finished || r->retiring)
     return;
-  const auto *before = core::SessionStateName(r->session.Status().state);
+  const auto *before = StateName();
   if (r->mode == core::SessionMode::Host && !r->peer.established) {
     // Hosting 尚未启动 core，也要退休 worker；不伪造 Warmup/绑定。
   } else if (!r->session.BeginRetirement(cause))
@@ -268,7 +294,7 @@ void StopSession(core::SessionCause cause) noexcept {
   r->retiring = true;
   DiscardInputEdges();
   Trace("session", "from=%s to=Retiring reason=%s generation=%llu loop=%llu",
-        before, core::SessionCauseName(cause), r->session.Identity().generation,
+        before, core::SessionCauseName(cause), SessionGeneration(*r),
         r->loop);
 }
 void FailRuntime(const char *reason, core::TickDecision decision) noexcept {
@@ -286,7 +312,7 @@ void FailRuntime(const char *reason, core::TickDecision decision) noexcept {
   DiscardInputEdges();
   Trace("session",
         "to=Retiring core_state=Failed reason=%s generation=%llu loop=%llu",
-        reason, r->session.Identity().generation, r->loop);
+        reason, SessionGeneration(*r), r->loop);
 }
 void BeginManager(uint64_t loop) noexcept {
   manager_loop = loop;
@@ -338,6 +364,11 @@ void EndManager(bool normal) noexcept {
       ContextFault("retirement_callback_pending");
       return;
     }
+    // 在移出 K 之前保存当前 Game/PlayerManager/A/B/controller 的只读关联；
+    // 移出后只能重新从列表确认，才能调用原生移除。
+    if (r->mode == core::SessionMode::Host && r->life.joined &&
+        !r->life.retire_ready)
+      CaptureRetirementSnapshot(*r);
     r->device.Neutralize();
     const bool device_ok =
         r->mode != core::SessionMode::Host || r->device.RemoveOnce();
@@ -346,6 +377,10 @@ void EndManager(bool normal) noexcept {
     const bool peer_ok = StopPeer(*r);
     if (!device_ok || !player_ok || !peer_ok) {
       r->cleanup_failed = true;
+      EndLoadingEpisode(*r, "retirement_incomplete");
+      FinishPersistenceWindows("retirement_incomplete");
+      // 清理未完成也要输出已收集的查询覆盖，避免证据随 Retiring 丢失。
+      PublishQueryCoverage(*r);
       Trace("retirement_error", "device=%u player=%u peer=%u loop=%llu",
             device_ok, player_ok, peer_ok, r->loop);
       return; // 保留未知现场及常驻对象，不重复原生移除，不把失败报告为 Idle。
@@ -355,6 +390,20 @@ void EndManager(bool normal) noexcept {
     if (r->peer.established || r->mode == core::SessionMode::Solo)
       r->session.CompleteRetirement(true);
     r->finished = true;
+    // 退休完成后 join_state 复位为 None，最终业务结果保留在 join_last。
+    ResetJoinStateAfterRetirement(*r);
+    if (r->mode == core::SessionMode::Host)
+      Trace("life", "event=retired status=None last_status=%s deaths=%llu "
+            "revives=%llu rebinds=%llu session_generation=%llu "
+            "participant_generation=%llu join_state=%s join_last=%s loop=%llu",
+            RemoteLifeStatusName(r->life.status), r->life.deaths, r->life.revives,
+            r->life.rebinds, SessionGeneration(*r), r->players[1].Generation(),
+            JoinStateName(r->join.state), JoinStateName(r->join.last), r->loop);
+    // 未收口的持久窗口按残留记录，不把未观测当成“无副作用”。
+    EndLoadingEpisode(*r, "session_retired");
+    FinishPersistenceWindows("session_retired");
+    // 分键查询覆盖在会话结束时输出一次，供 V13 逐键归约。
+    PublishQueryCoverage(*r);
     r->controlled_player.fill(nullptr);
     r->blocks = 0;
     armed_public = false;
@@ -363,7 +412,7 @@ void EndManager(bool normal) noexcept {
           "loop=%llu",
           r->failure ? r->last_error
                      : core::SessionCauseName(r->retirement_cause),
-          r->session.Identity().generation,
+          SessionGeneration(*r),
           core::SessionStateName(r->session.Status().state), r->loop);
   }
 }
@@ -445,10 +494,8 @@ std::string StatusFields() {
     out += std::to_string(value);
     out += '\n';
   };
-  n("generation",
-    r ? (r->mode == core::SessionMode::Host ? r->peer.session_generation
-                                            : r->session.Identity().generation)
-      : 0);
+  n("generation", r ? SessionGeneration(*r) : 0);
+  n("session_generation", r ? SessionGeneration(*r) : 0);
   n("completed_tick", r ? r->clock.Completed() : 0);
   n("armed", Armed());
   n("current_tick", r ? r->pipeline.SimulationTick() : 0);
@@ -466,6 +513,35 @@ std::string StatusFields() {
   n("b_generation",
     r && r->mode == core::SessionMode::Host ? r->players[1].Generation() : 0);
   n("queue_depth_b", r ? r->players[1].Depth() : 0);
+  // B 的生命状态与重绑计数：Alive 只表示生命可用，是否绑定由 b_bound 表达。
+  n("b_deaths", r ? r->life.deaths : 0);
+  n("b_revives", r ? r->life.revives : 0);
+  n("b_rebinds", r ? r->life.rebinds : 0);
+  n("b_death_event", r ? r->life.death_event : 0);
+  n("b_lost_loop", r ? r->life.lost_loop : 0);
+  n("b_revived_loop", r ? r->life.revived_loop : 0);
+  n("b_unreadable", r ? r->life.unreadable : 0);
+  n("b_conflicts", r ? r->life.conflicts : 0);
+  n("b_awaiting_rebind", r && !r->finished && r->life.awaiting_rebind);
+  // 当前归属只在有效会话内展示；历史地址不解引用，退休后不冒充仍有 B。
+  const bool current_b = r && !r->finished &&
+                         r->mode == core::SessionMode::Host && r->life.joined;
+  n("b_ownership_confirmed", current_b && r->life.current.confirmed);
+  n("b_ownership_generation", current_b ? r->life.current.generation : 0);
+  n("b_lost_tick", r ? r->life.lost_tick : 0);
+  n("b_revived_tick", r ? r->life.revived_tick : 0);
+  out += "b_pending_reason=" + std::string(r ? r->life.pending_reason : "") + "\n";
+  out += "b_conflict_reason=" + std::string(r ? r->life.conflict_reason : "") + "\n";
+  // admission、接受、Resolve/正常返回进度分别计数，不拿 attempted 代替 Accepted。
+  const auto progress = r && r->mode == core::SessionMode::Host
+                            ? r->players[1].Progress(r->clock.Completed())
+                            : core::ClientInputProgress{};
+  n("peer_accepted_commands", progress.accepted_count);
+  n("peer_duplicate_commands", progress.duplicate_count);
+  n("peer_rejected_commands", progress.rejected_count);
+  n("peer_accepted_sequence", progress.last_accepted_sequence);
+  n("peer_processed_sequence", progress.last_processed_sequence);
+  n("peer_advertised_generation", r ? r->peer.advertised_generation : 0);
   // 已退休时保留最后一轮诊断，但 Player 数必须来自当前世界，不能沿用移除前的 2。
   n("players", ReadTopology().player_count);
   n("device_k_id", r && r->device.Object() ? r->device.Id() : 0);
@@ -473,6 +549,15 @@ std::string StatusFields() {
   n("peer_discarded_commands", r ? r->peer.discarded : 0);
   n("peer_admitted_commands", r ? r->peer.admitted : 0);
   n("peer_ack_dropped", r ? r->peer.ack_dropped : 0);
+  n("peer_ack_unknown", r ? r->peer.ack_unknown : 0);
+  // 按原因的远端丢弃：与 Accepted 分开，admitted 仍只是尝试数。
+  for (std::size_t i = 0;
+       i < static_cast<std::size_t>(DiscardReason::Count); ++i) {
+    const auto key =
+        std::string("peer_discard.") +
+        DiscardReasonName(static_cast<DiscardReason>(i));
+    n(key.c_str(), r ? r->peer.discards[i] : 0);
+  }
   n("cleanup_failed", r && r->cleanup_failed);
   const auto network = r ? r->peer.worker.Status() : net::WorkerStatus{};
   n("net_rx", network.received_packets);
@@ -519,13 +604,60 @@ std::string StatusFields() {
          std::string(
              DeviceKStateName(r ? r->device.State() : DeviceKState::Empty)) +
          "\n";
+  // 无会话时 join_state 显示 None；会话内保留实际业务状态，退休后由
+  // ResetJoinStateAfterRetirement 复位为 None。
   out += "join_state=" +
-         std::string(JoinStateName(r ? r->join.state : JoinState::Waiting)) +
+         std::string(JoinStateName(r && r->mode == core::SessionMode::Host
+                                      ? r->join.state : JoinState::None)) +
+         "\n";
+  out += "join_last=" +
+         std::string(JoinStateName(r && r->mode == core::SessionMode::Host
+                                      ? r->join.last : JoinState::None)) + "\n";
+  out += "b_life=" +
+         std::string(current_b ? RemoteLifeStatusName(r->life.status)
+                       : RemoteLifeStatusName(RemoteLifeStatus::None)) +
          "\n";
   out += "b_character=" +
          std::to_string(
              r && r->mode == core::SessionMode::Host ? r->join.character : -1) +
          "\n";
+  // 重复查询按场景累计；逐键细节在 query_repeat/query_coverage trace。
+  n("query_reads", r ? r->query.reads : 0);
+  n("query_repeats", r ? r->query.repeats : 0);
+  n("query_mismatches", r ? r->query.mismatches : 0);
+  n("query_overflow", r ? r->query.overflow : 0);
+  n("query_nonfinite", r ? r->query.nonfinite : 0);
+  n("query_epoch", r ? r->query_epoch : 0);
+  n("query_snapshots", r ? r->query_snapshots : 0);
+  n("query_mismatch_known", r && r->query.mismatch_known);
+  {
+    // 完整分类覆盖：按 ordinal/consumer/action/query 统计实际出现的键。
+    unsigned observed = 0, repeated = 0;
+    if (r)
+      for (const auto &participant : r->query.coverage)
+        for (const auto &consumer : participant)
+          for (const auto &action : consumer)
+            for (const auto &value : action) {
+              observed += value.reads != 0;
+              repeated += value.repeats != 0;
+            }
+    n("query_keys_observed", observed);
+    n("query_keys_repeated", repeated);
+  }
+  if (r && r->query.mismatch_known) {
+    n("query_mismatch_ordinal", r->query.mismatch_key.ordinal);
+    n("query_mismatch_consumer", r->query.mismatch_key.consumer);
+    n("query_mismatch_kind", r->query.mismatch_key.query);
+    n("query_mismatch_action", r->query.mismatch_key.action);
+    n("query_mismatch_tick", r->query.mismatch_key.tick);
+    n("query_mismatch_generation", r->query.mismatch_key.generation);
+    n("query_mismatch_epoch", r->query.mismatch_key.epoch);
+    out += "query_mismatch_first=" + std::to_string(r->query.mismatch_first) + "\n";
+    out += "query_mismatch_last=" + std::to_string(r->query.mismatch_last) + "\n";
+  }
+  out += LoadingFields(r);
+  out += PersistenceFields();
+  out += PersistenceWindowFields();
   out += "retirement_cause=" +
          std::string(core::SessionCauseName(r ? r->retirement_cause
                                               : core::SessionCause::None)) +

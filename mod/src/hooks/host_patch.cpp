@@ -2,7 +2,8 @@
 #include "game/bridge.h"
 #include "game/join.h"
 #include "runtime.h"
-#include <cstring>
+#include <cstdio>
+#include "ASMPatcher.hpp"
 
 namespace cs::game {
 namespace {
@@ -358,20 +359,44 @@ void InstallHostPatches() noexcept {
     resumes[i] = Base + patch.resume;
     alternatives[i] = Base + patch.alternate;
     auto *target = reinterpret_cast<unsigned char *>(Base + patch.rva);
-    unsigned char bytes[16];
-    std::memset(bytes, 0x90, sizeof(bytes));
-    bytes[0] = patch.call ? 0xE8 : 0xE9;
-    const auto displacement = uint32_t(reinterpret_cast<uintptr_t>(shims[i]) - (Base + patch.rva + 5));
-    std::memcpy(bytes + 1, &displacement, 4);
-    DWORD protection = 0, unused = 0;
-    if (!VirtualProtect(target, patch.size, PAGE_EXECUTE_READWRITE, &protection)) {
-      Capabilities[size_t(Group::Join)] = false; return;
+    try {
+      // 由官方编码器区分 CALL/JMP，再用 FlatPatch 原位写入。尤其不能把
+      // Join 的 CALL 换成经 PatchAt 建立的 JMP 桥，否则 Create 的返回地址
+      // 与拒绝路径 add esp,8 的栈约定会改变。
+      ASMPatch assembly;
+      if (patch.call)
+        assembly.AddInternalCall(shims[i]);
+      else
+        assembly.AddRelativeJump(shims[i]);
+      if (assembly.Length() > patch.size) {
+        Capabilities[size_t(Group::Join)] = false;
+        Trace("byte_patch", "id=%s ok=0 reason=patch_size_mismatch", patch.id);
+        return;
+      }
+      // 清单已经给出完整指令长度；显式补齐 NOP，不让安装器扩大覆盖范围。
+      if (assembly.Length() < patch.size)
+        assembly.AddBytes(std::string(patch.size - assembly.Length(), '\x90'));
+      sASMPatcher.FlatPatch(target, &assembly);
+      // SDK 对刷新失败只记日志；显式检查后才报告安装成功，失败不回滚。
+      if (!FlushInstructionCache(GetCurrentProcess(), target, patch.size)) {
+        Capabilities[size_t(Group::Join)] = false;
+        Trace("byte_patch", "id=%s ok=0 reason=flush error=%lu", patch.id,
+              GetLastError());
+        return;
+      }
+      Trace("byte_patch", "id=%s ok=1 resident=1 backend=repentogon rva=%x",
+            patch.id, unsigned(patch.rva));
+    } catch (const std::exception &error) {
+      Capabilities[size_t(Group::Join)] = false;
+      Trace("byte_patch", "id=%s ok=0 reason=asm_patch_exception message=%s",
+            patch.id, error.what());
+      return;
+    } catch (...) {
+      Capabilities[size_t(Group::Join)] = false;
+      Trace("byte_patch", "id=%s ok=0 reason=asm_patch_exception message=unknown",
+            patch.id);
+      return;
     }
-    std::memcpy(target, bytes, patch.size);
-    const bool flushed = FlushInstructionCache(GetCurrentProcess(), target, patch.size) != FALSE;
-    const bool restored = VirtualProtect(target, patch.size, protection, &unused) != FALSE;
-    Trace("byte_patch", "id=%s ok=%u resident=1 rva=%x", patch.id, flushed && restored, unsigned(patch.rva));
-    if (!flushed || !restored) { Capabilities[size_t(Group::Join)] = false; return; }
   }
   installed = true;
 }

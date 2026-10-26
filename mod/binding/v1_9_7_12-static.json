@@ -395,6 +395,54 @@
         "mov     edi, eax",
         "nop     dword ptr [eax]"
       ]
+    },
+    {
+      "rva": "0x2a7ed0",
+      "pattern": "55 8B EC 83 E4 F8 56 8B F1 57 80 BE 73 01 00 00 00 0F 85 ?? ?? ?? ?? 8B 4D 08",
+      "type": "void __thiscall(EntityRef *)",
+      "entry": ["ST1: Entity::Kill；写 Player+0x173=1 后走原生死亡回调，不改写死亡结果；唯一命中"]
+    },
+    {
+      "rva": "0x3cfc60",
+      "pattern": "55 8B EC 83 E4 F8 83 EC 14 53 56 57 8B F9 C7 44 24 10 ?? ?? ?? ?? BB 03 00 00 00",
+      "type": "void __thiscall()",
+      "entry": ["ST2: Entity_Player::RevivePlayerGhost；清 ghost 后重算并恢复生命；唯一命中"]
+    },
+    {
+      "rva": "0x2f9b30",
+      "pattern": "55 8B EC 83 E4 F8 83 EC 24 53 56 8B 75 0C 8B D9 57 83 FE 06 0F 87 ?? ?? ?? ??",
+      "type": "void __thiscall(bool, int, Entity_Player *)",
+      "entry": ["ST3: Game::StartStageTransition；transition>6 拒绝，写 Game+0x1BA78=1；唯一命中"]
+    },
+    {
+      "rva": "0x5332f0",
+      "pattern": "55 8B EC 83 E4 F8 81 EC 34 04 00 00 A1 ?? ?? ?? ?? 33 C4 89 84 24 30 04 00 00",
+      "type": "void __thiscall(int)",
+      "entry": ["ST4: Manager::LoadGameState(slot)；菜单预读存档，独立 read 记录；唯一命中"]
+    },
+    {
+      "rva": "0x59f7a0",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 81 EC 60 04 00 00 A1 ?? ?? ?? ??",
+      "type": "bool __thiscall(GameStateIO **)",
+      "entry": ["ST7: GameState::write；保存实际写入入口，由 Manager_SaveGameState 调用；唯一命中"]
+    },
+    {
+      "rva": "0x5a2240",
+      "pattern": "53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04 89 6C 24 04 8B EC 6A FF 68 ?? ?? ?? ??",
+      "type": "bool __thiscall(GameStateIO **, bool)",
+      "entry": ["ST7: GameState::read；读回存档并校验 header/checksum；唯一命中"]
+    },
+    {
+      "rva": "0x59e7b0",
+      "pattern": "53 8B 1D ?? ?? ?? ?? 56 57 8B 3D ?? ?? ?? ?? 8B F1 68 ?? ?? ?? ?? FF D3 83 C4 04",
+      "type": "void __thiscall()",
+      "entry": ["ST7: GameState::Delete；删除当前 slot 的存档文件；唯一命中"]
+    },
+    {
+      "rva": "0x59e870",
+      "pattern": "53 8B 1D ?? ?? ?? ?? 56 57 8B 3D ?? ?? ?? ?? 8B F1 68 ?? ?? ?? ?? FF D7 83 C4 04",
+      "type": "void __thiscall()",
+      "entry": ["ST7: GameState::DeleteRerun；删除 rerun 存档文件；唯一命中"]
     }
   ]
 }

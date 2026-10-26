@@ -132,10 +132,17 @@ impl Endpoint {
         Ok(Reception::Delivered(m))
     }
     pub fn input(&mut self, commands: Vec<Command>) -> Result<Vec<u8>> {
-        self.prepare(Body::Input {
-            last_ack: self.last_ack,
-            commands,
-        })
+        self.input_referencing(self.last_ack, commands)
+    }
+    // 仅测试客户端使用：新包序号、合法编码，引用本会话已收到的旧 Ack。
+    pub fn input_referencing(&mut self, last_ack: u64, commands: Vec<Command>) -> Result<Vec<u8>> {
+        self.prepare(Body::Input { last_ack, commands })
+    }
+    pub fn timeout_ms(&self) -> u128 {
+        self.timeout.as_millis()
+    }
+    pub fn receive_age_ms(&self) -> u128 {
+        self.last_receive.elapsed().as_millis()
     }
     pub fn bye(&mut self, reason: u16) -> Result<Vec<u8>> {
         self.prepare(Body::Bye {

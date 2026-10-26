@@ -14,7 +14,7 @@ struct WorkerConfig {
   std::string bind_address = "0.0.0.0";
   std::uint16_t port = 27090;
   std::uint32_t peer_timeout_ms = 3000, heartbeat_ms = 250;
-  protocol::Text build = protocol::TextId("isaac.cs.tx-04-06");
+  protocol::Text build = protocol::TextId("isaac.cs.tx-04-07");
 };
 // 系统随机数生成的会话身份；主线程据此构造 Session，不能用对象地址替代。
 struct HostIdentity {
@@ -48,7 +48,9 @@ enum class TerminalReason : std::uint32_t {
   PeerTimeout,
   PeerProtocol,
   RunTeardown,
-  InternalFailure
+  InternalFailure,
+  // tx-04-07：主线程因远端 Player 被确认移除/归属矛盾而主动结束（U10）。
+  PeerLost
 };
 const char *TerminalReasonName(TerminalReason reason) noexcept;
 
@@ -59,6 +61,8 @@ struct ReceivedInput {
   // 由成功发送 Ack 的本地记录查得，不从 Input payload 解码或访问游戏对象。
   std::uint64_t acknowledged_generation = 0;
   core::SessionState acknowledged_state = core::SessionState::Warmup;
+  // 区分“未命中 Ack 记录”和“命中的合法 Warmup generation=0”；两者都不读游戏对象。
+  bool ack_stamp_known = false;
 };
 // 原子字段的独立快照，计数可能相差一个工作线程迭代，不承诺整结构同一瞬间。
 // terminal 是粘性状态，不经过可丢弃队列；停止后也必须让主线程读到真实原因。
@@ -78,6 +82,10 @@ struct WorkerStatus {
                 receive_queue_dropped = 0, send_queue_dropped = 0,
                 last_receive_ms = 0, rtt_samples = 0, rtt_last_ms = 0,
                 rtt_max_ms = 0, wait_timeouts = 0;
+  // 网络线程发布终态的真实时刻，用于超时 E2E；不使用主线程稍后的观察时刻。
+  std::uint64_t terminal_at_ms = 0;
+  // 终止后短暂排空实际收到的报文数；已包含在 received_packets，不作有效输入。
+  std::uint64_t terminal_received_packets = 0;
   std::array<std::uint64_t, static_cast<std::size_t>(protocol::Error::Count)>
       errors{};
 };

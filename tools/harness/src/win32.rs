@@ -650,6 +650,17 @@ impl Drop for Game {
 }
 // 激活游戏窗口并确认其成为前台。发键和截图前必须成功；
 // tx-04-05 的启动等待只尽力调用并记录失败，加载中的未响应窗口不判失败（D20）。
+// 只读当前前台归属；记录句柄/PID，不采集其它程序的窗口标题或内容。
+pub fn focus_state(window: usize) -> Value {
+    unsafe {
+        let foreground = GetForegroundWindow();
+        let mut pid = 0;
+        GetWindowThreadProcessId(foreground, &mut pid);
+        json!({"window":window,"foreground":foreground as usize,
+            "foreground_pid":pid,"active":foreground==window as Handle,
+            "minimized":IsIconic(window as Handle)!=0})
+    }
+}
 pub fn focus(window: usize) -> Result<(), String> {
     unsafe {
         ShowWindow(window as _, 9);

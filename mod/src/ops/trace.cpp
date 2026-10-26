@@ -9,11 +9,19 @@ namespace {
 struct Event {
   uint64_t t, seq;
   char ev[40], detail[3500];
+  bool truncated;
 };
-Ring<Event, 512> events;
-std::atomic<uint64_t> sequence{}, dropped{};
+// 启动时可在一个主线程调用内产生数千条持久入口记录；容量覆盖已观察的
+// 突发，仍保持有界、逐事件保存，不采样或清除丢失计数（约 14 MiB 常驻）。
+constexpr unsigned kTraceCapacity = 4096;
+Ring<Event, kTraceCapacity> events;
+std::atomic<uint64_t> sequence{}, dropped{}, truncated{};
+std::atomic<uint64_t> queue_dropped{}, write_errors{}, wake_errors{};
+std::atomic<DWORD> last_error{};
 std::atomic<bool> stopping{};
 HANDLE worker = nullptr;
+// 自动复位事件：生产者只通知，文件写入始终留在后台线程。
+HANDLE wake = nullptr;
 HANDLE output = INVALID_HANDLE_VALUE;
 std::string path;
 LARGE_INTEGER frequency{};
@@ -21,8 +29,12 @@ LARGE_INTEGER frequency{};
 // 最坏每个字节转为六字节转义，缓冲容量覆盖整个 Event。
 // 不使用 CRT 文件锁、堆分配或 ZHL，允许在进程终止通知中尽力落盘。
 void WriteEvent(const Event &e) noexcept {
-  if (output == INVALID_HANDLE_VALUE)
+  if (output == INVALID_HANDLE_VALUE) {
+    last_error.store(ERROR_INVALID_HANDLE);
+    ++write_errors;
+    ++dropped;
     return;
+  }
   char line[24000];
   char *p = line;
   auto literal = [&](const char *s) noexcept {
@@ -65,10 +77,16 @@ void WriteEvent(const Event &e) noexcept {
   quoted(e.ev);
   literal(",\"detail\":");
   quoted(e.detail);
+  literal(",\"truncated\":");
+  literal(e.truncated ? "true" : "false");
   literal("}\n");
   DWORD written = 0;
-  if (!WriteFile(output, line, DWORD(p - line), &written, nullptr) || written != DWORD(p - line))
+  const bool written_ok = WriteFile(output, line, DWORD(p - line), &written, nullptr) != 0;
+  if (!written_ok || written != DWORD(p - line)) {
+    last_error.store(written_ok ? ERROR_WRITE_FAULT : GetLastError());
+    ++write_errors;
     ++dropped;
+  }
 }
 
 // 运行期间只有后台线程消费队列并写文件。
@@ -80,7 +98,15 @@ DWORD WINAPI WriteLoop(void *) noexcept {
     } else if (stopping.load()) {
       break;
     } else {
-      Sleep(10);
+      // Push 完整发布后 SetEvent；即使通知先于等待发生，自动复位事件也保留
+      // 信号，不再固定睡眠 10 ms 才发现启动突发。超时只作退出兜底。
+      const auto waited = WaitForSingleObject(wake, 100);
+      if (waited != WAIT_OBJECT_0 && waited != WAIT_TIMEOUT) {
+        last_error.store(GetLastError());
+        ++wake_errors;
+        ++dropped;
+        return 1;
+      }
     }
   }
   return 0;
@@ -109,8 +135,16 @@ void StartTrace(const std::string &directory) {
                        FILE_ATTRIBUTE_NORMAL, nullptr);
   if (output == INVALID_HANDLE_VALUE)
     throw std::runtime_error("trace_open_failed");
+  wake = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+  if (!wake) {
+    CloseHandle(output);
+    output = INVALID_HANDLE_VALUE;
+    throw std::runtime_error("trace_event_failed");
+  }
   worker = CreateThread(nullptr, 0, WriteLoop, nullptr, 0, nullptr);
   if (!worker) {
+    CloseHandle(wake);
+    wake = nullptr;
     CloseHandle(output);
     output = INVALID_HANDLE_VALUE;
     throw std::runtime_error("trace_thread_failed");
@@ -122,13 +156,35 @@ void Trace(const char *ev, const char *format, ...) noexcept {
   Event e = MakeEvent(ev);
   va_list args;
   va_start(args, format);
-  _vsnprintf_s(e.detail, sizeof(e.detail), _TRUNCATE, format, args);
+  const auto formatted = _vsnprintf_s(e.detail, sizeof(e.detail), _TRUNCATE, format, args);
   va_end(args);
-  if (!events.Push(e))
+  if (formatted < 0) {
+    e.truncated = true;
+    ++truncated;
     ++dropped;
+  }
+  if (!events.Push(e)) {
+    ++queue_dropped;
+    ++dropped;
+  } else if (!SetEvent(wake)) {
+    last_error.store(GetLastError());
+    ++wake_errors;
+    ++dropped;
+  }
 }
 uint64_t TraceDropped() noexcept {
   return dropped.load();
+}
+uint64_t TraceTruncated() noexcept {
+  return truncated.load();
+}
+// 只读诊断区分队列容量、磁盘和唤醒失败；不改变 TraceDropped 的失败语义。
+std::string TraceFields() {
+  return "trace_capacity=" + std::to_string(kTraceCapacity) +
+      "\ntrace_queue_dropped=" + std::to_string(queue_dropped.load()) +
+      "\ntrace_write_errors=" + std::to_string(write_errors.load()) +
+      "\ntrace_wake_errors=" + std::to_string(wake_errors.load()) +
+      "\ntrace_native_error=" + std::to_string(last_error.load()) + "\n";
 }
 const std::string &TracePath() noexcept {
   return path;
@@ -137,11 +193,17 @@ const std::string &TracePath() noexcept {
 // 关闭配置时只留下 boot；正常线程环境下等待后台写完后关闭句柄。
 void FinishTrace() noexcept {
   stopping = true;
+  if (wake)
+    SetEvent(wake);
   if (worker) {
     if (WaitForSingleObject(worker, 2000) != WAIT_OBJECT_0)
       return;
     CloseHandle(worker);
     worker = nullptr;
+  }
+  if (wake) {
+    CloseHandle(wake);
+    wake = nullptr;
   }
   if (output != INVALID_HANDLE_VALUE) {
     CloseHandle(output);
@@ -159,8 +221,19 @@ void FinishTraceOnProcessExit() noexcept {
   while (events.Pop(e))
     WriteEvent(e);
   e = MakeEvent("shutdown");
+  _snprintf_s(e.detail, sizeof(e.detail), _TRUNCATE,
+              "trace_dropped=%llu trace_truncated=%llu trace_capacity=%u "
+              "trace_queue_dropped=%llu trace_write_errors=%llu "
+              "trace_wake_errors=%llu trace_native_error=%lu",
+              dropped.load(), truncated.load(), kTraceCapacity,
+              queue_dropped.load(), write_errors.load(), wake_errors.load(),
+              last_error.load());
   WriteEvent(e);
   CloseHandle(output);
   output = INVALID_HANDLE_VALUE;
+  if (wake) {
+    CloseHandle(wake);
+    wake = nullptr;
+  }
 }
 } // namespace cs

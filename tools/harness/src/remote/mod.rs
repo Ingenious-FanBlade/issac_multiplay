@@ -27,6 +27,9 @@ pub struct Step {
 }
 enum Request {
     Script(String, Vec<Step>),
+    ArmNextGeneration(String, Vec<Step>, u64, Duration),
+    OldGeneration(u64, u64),
+    ExpectTimeout,
     Silence,
     Bye,
     Shutdown,
@@ -46,6 +49,9 @@ pub struct Snapshot {
     pub script_label: String,
     pub script_base: u64,
     pub script_generation: u64,
+    pub last_ack: u64,
+    pub terminal_cause: Option<String>,
+    pub expected_timeout: bool,
 }
 // 主线程使用有界消息切换脚本；Drop 确保错误路径也关闭并回收远端线程。
 pub struct Remote {
@@ -55,6 +61,16 @@ pub struct Remote {
 }
 impl Remote {
     pub fn start(address: SocketAddr, path: &Path, timeout_ms: u64, lead: u64) -> Result<Self> {
+        Self::start_locked(address, path, timeout_ms, lead, |_| Ok(()))
+    }
+    // socket 已绑定、尚未发送 Hello 时先登记 relay 远端地址，避免“首包抢占”或丢首包。
+    pub fn start_locked(
+        address: SocketAddr,
+        path: &Path,
+        timeout_ms: u64,
+        lead: u64,
+        ready: impl FnOnce(SocketAddr) -> Result<()>,
+    ) -> Result<Self> {
         if !(1..=64).contains(&lead) || !(500..=60000).contains(&timeout_ms) || !address.is_ipv4() {
             return Err("invalid_remote_config".into());
         }
@@ -66,6 +82,7 @@ impl Remote {
         let socket = UdpSocket::bind(bind).map_err(|e| e.to_string())?;
         socket.connect(address).map_err(|e| e.to_string())?;
         socket.set_nonblocking(true).map_err(|e| e.to_string())?;
+        ready(socket.local_addr().map_err(|e| e.to_string())?)?;
         let log = OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -95,7 +112,8 @@ impl Remote {
             worker.state.finished=true;
             if let Err(e)=worker.record(json!({"event":"summary","tx":worker.state.tx,"rx":worker.state.rx,
                 "duplicate":worker.state.duplicates,"stale":worker.state.stale,"establishments":worker.state.establishments,
-                "bye":worker.state.bye,"error":worker.state.error})) {worker.state.error=Some(e);}
+                "bye":worker.state.bye,"error":worker.state.error,"terminal_cause":worker.state.terminal_cause,
+                "expected_timeout":worker.state.expected_timeout})) {worker.state.error=Some(e);}
             *shared.lock().unwrap_or_else(|p|p.into_inner())=worker.state;
         }).map_err(|e|e.to_string())?;
         Ok(Self {
@@ -109,6 +127,7 @@ impl Remote {
     }
     pub fn script(&self, label: &str, steps: Vec<Step>) -> Result<()> {
         if steps.is_empty()
+            || steps.len() > 128
             || steps[0].after != 0
             || steps.windows(2).any(|s| s[0].after >= s[1].after)
         {
@@ -121,6 +140,42 @@ impl Remote {
     pub fn silence(&self) -> Result<()> {
         self.tx
             .try_send(Request::Silence)
+            .map_err(|e| e.to_string())
+    }
+    // 下一代次源是一次性脚本，不能携带旧命令、target 或边沿。
+    pub fn arm_next_generation(&self, label: &str, steps: Vec<Step>, ttl_ms: u64) -> Result<()> {
+        if steps.is_empty()
+            || steps.len() > 128
+            || steps[0].after != 0
+            || steps.windows(2).any(|s| s[0].after >= s[1].after)
+            || steps.iter().any(|s| s.state.edge != 0)
+            || !(100..=60000).contains(&ttl_ms)
+        {
+            return Err("invalid_arm_next_generation".into());
+        }
+        let generation = self
+            .snapshot()
+            .ack
+            .as_ref()
+            .map(|a| a.generation)
+            .unwrap_or(0);
+        self.tx
+            .try_send(Request::ArmNextGeneration(
+                label.into(),
+                steps,
+                generation,
+                Duration::from_millis(ttl_ms),
+            ))
+            .map_err(|e| e.to_string())
+    }
+    pub fn old_generation_sample(&self, last_ack: u64, generation: u64) -> Result<()> {
+        self.tx
+            .try_send(Request::OldGeneration(last_ack, generation))
+            .map_err(|e| e.to_string())
+    }
+    pub fn expect_timeout(&self) -> Result<()> {
+        self.tx
+            .try_send(Request::ExpectTimeout)
             .map_err(|e| e.to_string())
     }
     pub fn bye(&self) -> Result<()> {
@@ -198,6 +253,10 @@ impl Worker {
         let mut script_base = 0;
         let mut desired = State::default();
         let mut silent = false;
+        let mut armed: Option<(String, Vec<Step>, u64, Instant)> = None;
+        let mut bootstrap = true;
+        let mut received_stamps: VecDeque<(u64, u64)> = VecDeque::new();
+        let mut ending: Option<Instant> = None;
         loop {
             for _ in 0..32 {
                 match rx.try_recv() {
@@ -207,7 +266,48 @@ impl Worker {
                     }
                     Ok(Request::Bye) => {
                         self.end()?;
-                        return Ok(());
+                        self.state.terminal_cause = Some("local_bye".into());
+                        ending = Some(Instant::now() + Duration::from_millis(100));
+                    }
+                    Ok(Request::ExpectTimeout) => {
+                        self.state.expected_timeout = true;
+                        self.record(json!({"event":"expect_timeout","scene":"S18"}))?;
+                    }
+                    Ok(Request::ArmNextGeneration(label, steps, old, ttl)) => {
+                        if armed.is_some() {
+                            return Err("next_generation_already_armed".into());
+                        }
+                        self.record(json!({"event":"arm_generation","label":label,"old_generation":old,"ttl_ms":ttl.as_millis(),"session":protocol::hex(&self.endpoint.session)}))?;
+                        armed = Some((label, steps, old, Instant::now() + ttl));
+                    }
+                    Ok(Request::OldGeneration(last_ack, old)) => {
+                        let ack = self.endpoint.ack.clone().ok_or("old_sample_before_ack")?;
+                        if !received_stamps.contains(&(last_ack, old))
+                            || old >= ack.generation
+                            || ack.state != 3
+                        {
+                            return Err("old_sample_not_known_prior_generation".into());
+                        }
+                        sequence = sequence
+                            .checked_add(1)
+                            .filter(|n| *n < u64::MAX)
+                            .ok_or("command_sequence_exhausted")?;
+                        let command = Command {
+                            sequence,
+                            target: ack.tick.checked_add(self.lead).ok_or("target_overflow")?,
+                            state: State {
+                                movement: [32767, 0],
+                                ..State::default()
+                            },
+                        };
+                        let bytes = self
+                            .endpoint
+                            .input_referencing(last_ack, vec![command.clone()])?;
+                        self.record(json!({"event":"old_generation_sample","last_ack":last_ack,"old_generation":old,
+                            "current_generation":ack.generation,"command_sequence":sequence,"target":command.target,"bytes":protocol::hex(&bytes)}))?;
+                        if self.send(&bytes, "old_generation_input")? {
+                            self.endpoint.sent(false)?;
+                        }
                     }
                     Ok(Request::Silence) => {
                         silent = true;
@@ -259,8 +359,16 @@ impl Worker {
                         self.record(json!({"event":"receive","classification":classification,"bytes":protocol::hex(&bytes[..n]),
                             "packet":protocol::decode(&bytes[..n]).ok().map(|m|m.value()),"error":result.as_ref().err()}))?;
                         if let Reception::Delivered(m) = result? {
+                            if let Body::Ack(a) = &m.body {
+                                received_stamps.push_back((m.sequence, a.generation));
+                                while received_stamps.len() > 4096 {
+                                    received_stamps.pop_front();
+                                }
+                            }
                             if let Body::Bye { reason, .. } = m.body {
                                 self.state.bye = Some(reason);
+                                self.state.terminal_cause = Some("peer_bye".into());
+                                ending.get_or_insert(Instant::now() + Duration::from_millis(100));
                             }
                         }
                     }
@@ -270,11 +378,26 @@ impl Worker {
             }
             self.state.ack = self.endpoint.ack.clone();
             self.state.establishments = self.endpoint.establishments;
+            self.state.last_ack = self.endpoint.last_ack;
             *shared.lock().unwrap_or_else(|p| p.into_inner()) = self.state.clone();
-            if self.endpoint.retired {
-                return Ok(());
+            if let Some(deadline) = ending {
+                if Instant::now() >= deadline {
+                    return Ok(());
+                }
+                thread::sleep(Duration::from_millis(2));
+                continue;
             }
             if self.endpoint.timed_out() {
+                self.state.terminal_cause = Some(
+                    if self.endpoint.established {
+                        "peer_timeout"
+                    } else {
+                        "handshake_timeout"
+                    }
+                    .into(),
+                );
+                self.record(json!({"event":"timeout","established":self.endpoint.established,"expected":self.state.expected_timeout,
+                    "timeout_ms":self.endpoint.timeout_ms(),"last_receive_elapsed_ms":self.endpoint.receive_age_ms()}))?;
                 return Err(if self.endpoint.established {
                     "peer_timeout"
                 } else {
@@ -294,7 +417,32 @@ impl Worker {
                     script.clear();
                     desired = State::default();
                     last_sample = None;
+                    // 新代次 Ack 即使 completed 未变也代表新的可用采样边界；
+                    // 不能沿用加载前的进度计时，把刚消费的预置源当作停帧旧状态清掉。
+                    previous_tick = None;
+                    last_progress = Instant::now();
+                    self.state.script_label.clear();
+                    self.state.script_base = 0;
+                    self.state.script_generation = 0;
+                    bootstrap = true;
                     self.record(json!({"event":"generation","generation":generation,"tick":ack.tick,"sequence_preserved":sequence}))?;
+                }
+                if armed.as_ref().is_some_and(|a| Instant::now() >= a.3) {
+                    let (label, _, old, _) = armed.take().unwrap();
+                    self.record(json!({"event":"arm_expired","label":label,"old_generation":old}))?;
+                    return Err("arm_generation_timeout".into());
+                }
+                if ack.state == 3 && armed.as_ref().is_some_and(|a| generation > a.2) {
+                    let (label, steps, old, _) = armed.take().unwrap();
+                    script_base = ack.tick;
+                    script = steps.into();
+                    desired = State::default();
+                    last_sample = None;
+                    self.state.script_label = label.clone();
+                    self.state.script_base = script_base;
+                    self.state.script_generation = generation;
+                    self.record(json!({"event":"arm_consumed","label":label,"old_generation":old,"generation":generation,
+                        "base":script_base,"ack_sequence":self.endpoint.last_ack,"history_cleared":true}))?;
                 }
                 if previous_tick != Some(ack.tick) {
                     previous_tick = Some(ack.tick);
@@ -325,24 +473,49 @@ impl Worker {
                     }
                     let mut state = if active { desired } else { State::default() };
                     state.edge = edge;
+                    let startup = bootstrap && active && fresh;
                     sequence = sequence
                         .checked_add(1)
                         .filter(|n| *n < u64::MAX)
                         .ok_or("command_sequence_exhausted")?;
                     let command = Command {
                         sequence,
-                        target: ack.tick.checked_add(self.lead).ok_or("target_overflow")?,
+                        target: ack
+                            .tick
+                            .checked_add(if startup { 1 } else { self.lead })
+                            .ok_or("target_overflow")?,
                         state,
                     };
-                    history.push_back(command);
+                    history.push_back(command.clone());
+                    let mut sampled = vec![command];
+                    if startup && self.lead != 1 {
+                        sequence = sequence
+                            .checked_add(1)
+                            .filter(|n| *n < u64::MAX)
+                            .ok_or("command_sequence_exhausted")?;
+                        state.edge = 0;
+                        let continuation = Command {
+                            sequence,
+                            target: ack.tick.checked_add(self.lead).ok_or("target_overflow")?,
+                            state,
+                        };
+                        history.push_back(continuation.clone());
+                        sampled.push(continuation);
+                    }
                     while history.len() > 4 {
                         history.pop_front();
                     }
                     let packet = self.endpoint.input(history.iter().cloned().collect())?;
+                    self.record(json!({"event":"sample","sample_id":sequence,"generation":generation,"ack_sequence":self.endpoint.last_ack,
+                        "ack_tick":ack.tick,"startup":startup,"active":active,"label":self.state.script_label,
+                        "commands":sampled.iter().map(|c|json!({"sequence":c.sequence,"target":c.target,"state":c.state.value()})).collect::<Vec<_>>()}))?;
                     if self.send(&packet, "input")? {
                         self.endpoint.sent(false)?;
                         last_send = Instant::now();
                         last_sample = Some((generation, ack.tick));
+                        if startup {
+                            bootstrap = false;
+                        }
                     }
                 }
             }
