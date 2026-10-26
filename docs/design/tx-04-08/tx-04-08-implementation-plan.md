@@ -1,6 +1,6 @@
 # tx-04-08：world_record 迁移设计
 
-日期：2026-10-26，Asia/Shanghai。状态：设计完成；**ST1–ST8 静态核验及主审完成，功能实现和整体 E2E 尚未完成**。见[ST1 主审报告](../../research/tx-04-08-st1-static-confirmation.md)、[ST2 主审报告](../../research/tx-04-08-st2-static-confirmation.md)、[ST3–ST5 字段/来源/分类身份报告](../../research/tx-04-08-st3-st5-static-confirmation.md)及[ST6–ST8 owner/生命周期/工程边界报告](../../research/tx-04-08-st6-st8-static-confirmation.md)。具体初始化、保留资格、Replace 夹具、B 失效通知和退出协调的缺口与运行 UNKNOWN 按各报告保留，不以静态工作完成代替功能完成。本文中的新文件、接口、命令和格式均为 `DESIGN`；引用当前源码的行为标为 `CURRENT_SOURCE`。初始设计任务采用一次整体静态文档审阅；后续静态研究没有构建、运行离线工具或游戏，ST2 的额外格式校验偏差另记。
+日期：2026-10-26，Asia/Shanghai。状态：设计完成；**ST1–ST8 静态核验及主审完成；第一项代码改动（纯值模型/身份/缓冲和 writer）已编写并在临时构建目录完成纯编译，其余功能实现和整体 E2E 尚未完成**。见[ST1 主审报告](../../research/tx-04-08-st1-static-confirmation.md)、[ST2 主审报告](../../research/tx-04-08-st2-static-confirmation.md)、[ST3–ST5 字段/来源/分类身份报告](../../research/tx-04-08-st3-st5-static-confirmation.md)、[ST6–ST8 owner/生命周期/工程边界报告](../../research/tx-04-08-st6-st8-static-confirmation.md)及[world 核心实现说明](tx-04-08-world-core.md)。具体初始化、保留资格、Replace 夹具、B 失效通知和退出协调的缺口与运行 UNKNOWN 按各报告保留，不以静态工作或纯编译代替功能完成。本文中的新文件、接口、命令和格式均为 `DESIGN`；引用当前源码的行为标为 `CURRENT_SOURCE`。初始设计任务采用一次整体静态文档审阅；后续静态研究没有构建、运行离线工具或游戏，ST2 的额外格式校验偏差另记；第一项代码改动只做了纯编译，没有运行测试或启动游戏。
 
 执行要求见[现行规范](../../refactor/project-conventions.md)。上层范围来自 [REPENTOGON 适配设计](../repentogon-refactor.md) D6、D24；tx-04-07 已按 D31 由用户正式接受完成，其原始自动失败、未执行项和限定实测事实保持原样。
 
@@ -297,6 +297,8 @@ ST8 静态补充：`Isaac::Shutdown VA 0x982C90 / RVA 0x582C90` 在 main 离开 
 本轮交付是本文、[E2E 方案](tx-04-08-e2e-plan.md)、入口/决定同步和一次[静态文档审阅记录](tx-04-08-design-review.md)。它不等于整个 tx-04-08 功能完成。
 
 后续实现按同一个 tx-04-08 完整目标推进：ST1–ST8 与 layout/Hook 清单 → 纯值模型/身份/缓冲和 writer → 主线程桥与 post-state → 命令/离线工具 → Lua 夹具与统一 E2E 归约 → 必要纯编译链接 → 一次整体 E2E。分析、逆向、修改期间不运行测试，不新增实现后的单元测试，不先跑 replay、probe 或局部场景。核心函数、数据结构和功能注释用中文。
+
+2026-10-27 按用户指示先完成第二项代码改动（`mod/src/world/` 的纯值模型、身份表、槽/队列/事件环与 writer）。实现范围、值布局、线程与关闭契约、文件格式、失败归属和给后续项的接口约定见[world 核心实现说明](tx-04-08-world-core.md)；`binding/world_layout` 的字段偏移/证据表、主线程桥、命令、harness 与 E2E 仍未实现，布局声明在 manifest 中明确记为 `UNDECLARED`。本轮只做新静态库的纯编译，没有运行测试、没有启动游戏，也没有完成 DLL 整体链接（原因见实现说明第 7 节）。
 
 一次 E2E 可以包含两个顺序进程、同进程内多个录制上下文和离线 CLI 子命令，但都由一个统一入口执行并汇总；失败保留已采证据，不自动重启、补测或重跑。2,000 次仅属于 U3 的新目标，绝不把历史阈值改成通过。本次静态文档审阅与未来实现完成后的 E2E 类型、对象不同，不在设计期间消耗或预记运行结果。
 

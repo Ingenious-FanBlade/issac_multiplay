@@ -20,6 +20,14 @@ target_compile_features(isaac_cs_net PUBLIC cxx_std_20)
 target_compile_definitions(isaac_cs_net PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 target_compile_options(isaac_cs_net PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_link_libraries(isaac_cs_net PUBLIC isaac_cs_core PRIVATE ws2_32 bcrypt)
+# world 采集：纯值模型/身份/存储/写入。不依赖 SDK、游戏头或 runtime.h，
+# 也不调用任何原生函数；SDK-facing 接线在后续 game/world_bridge。
+add_library(isaac_cs_world STATIC src/world/model.cpp src/world/identity.cpp
+  src/world/storage.cpp src/world/writer.cpp)
+target_include_directories(isaac_cs_world PUBLIC src)
+target_compile_features(isaac_cs_world PUBLIC cxx_std_20)
+target_compile_definitions(isaac_cs_world PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
+target_compile_options(isaac_cs_world PRIVATE /W4 /Zi /utf-8 /EHsc)
 set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
 add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/binding_v1_9_7_12.inc" "${GENERATED}/hook-manifest.json" "${GENERATED}/permanent_patches.inc" "${GENERATED}/host_patches.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_binding.py" --out "${GENERATED}"
@@ -40,6 +48,6 @@ target_include_directories(zhlIsaacCS PRIVATE "${REPENTOGON_ROOT}/libs/zydis/inc
   "${REPENTOGON_ROOT}/libs/zydis/dependencies/zycore/include")
 target_compile_definitions(zhlIsaacCS PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
 target_compile_options(zhlIsaacCS PRIVATE /EHs /W4 /Zi /utf-8 /wd4251 /wd4996)
-target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net "${REPENTOGON_ROOT}/build/Release/libzhl.lib" ws2_32 bcrypt)
+target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net isaac_cs_world "${REPENTOGON_ROOT}/build/Release/libzhl.lib" ws2_32 bcrypt)
 target_link_options(zhlIsaacCS PRIVATE /DEBUG)
 set_target_properties(zhlIsaacCS PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")

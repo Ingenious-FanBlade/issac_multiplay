@@ -1,5 +1,7 @@
 # C/S研究与状态同步文档
 
+> **tx-04-08 world 核心代码（2026-10-27，D32）**：按用户指示完成“实际工程改动的第一项”——纯值模型、身份表、槽/队列/事件环缓冲与 writer 的代码编写，见[world 核心实现说明](design/tx-04-08/tx-04-08-world-core.md)。新增独立静态库 `isaac_cs_world`（不依赖 SDK/游戏头，`/W4` 无警告），包含 78 项 `min-read-v1` 字段声明、33 位 radix 本地身份、三槽 `FREE→WRITING→PREPARED→READY→READING→FREE` 状态机、64 MiB/64 项双上限值队列、gap 控制环、`isaac.cs.world-record` v1 的 manifest/captures/lifecycle-events/diagnostics/result 编码与两个后台线程的有界收口。本轮只做纯编译，未运行测试、未启动游戏；DLL 整体链接被既有 `ASMPatch` 头的 `friend static` 与当前 MSVC C++20 组合挡住（非本次改动引入，留给“必要纯编译链接”项）。主线程桥、layout/Hook 清单、命令、离线工具、harness 与统一 E2E 仍待继续，下方历史记录保留当时状态。
+
 > **tx-04-08 ST6–ST8 静态工作（2026-10-26，D32）**：每项各由一个 GPT-6 Luna / max 子智能体逆向，主智能体独立取证并逐项审阅，完成[owner/生命周期/工程边界报告](research/tx-04-08-st6-st8-static-confirmation.md)。核对 Spawn/Morph/Restore/Replace/Grid 嵌套完成、公开夹具参数、Player 读取依据与撤销、41 行/40 RVA 的注册与容量、内存预算和 Shutdown 窗口。主审纠正 Replace 分支倒置、补齐 Morph Lua 注册，并确认 B 部分 Invalidate 返回未统一撤销及退出后无 Manager drain 窗口。ST1–ST8 静态工作完成，具体 UNKNOWN 和实现缺口保留；功能实现与整体 E2E 待继续。未构建、测试、启动游戏或修改 IDB。
 
 > **tx-04-08 ST3–ST5 静态工作（2026-10-26，D32）**：每项分别由一个 GPT-6 Luna / max 子智能体逆向，主智能体独立取证、逐项审阅，完成[字段/来源/分类身份报告](research/tx-04-08-st3-st5-static-confirmation.md)与[78 项字段对照](research/tx-04-08-st3-agent-notes.md)。确认 Player 多项偏移重排、Game frame `+25A70`、448 Grid 槽与门别名、四类保留 Player 关系和只读 RTTI/池复用规则；主审补齐漏命中与原生字段/坐标注册证据。ST1–ST5 静态工作完成，具体 UNKNOWN 保留；ST6–ST8、实现与整体 E2E 待继续。本轮未构建、测试、运行游戏或修改 IDB；下方旧记录保留当时状态。
@@ -106,5 +108,7 @@
 
 22. [tx-04-07：实现方案](design/tx-04-07/tx-04-07-implementation-plan.md)与[结果](design/tx-04-07/tx-04-07-results.md)：按 D31 用户正式接受 e2e-11 整体通过，tx-04-07 完成；原自动失败和未执行项保留，不再补测。
 23. [tx-04-08：world_record 迁移设计](design/tx-04-08/tx-04-08-implementation-plan.md)：D32 的完整迁移范围、本地 artifact、2,000 次稳定段、只读时序/身份/有界缓冲；[ST1 入口/ABI](research/tx-04-08-st1-static-confirmation.md)、[ST2 采样阶段/短路](research/tx-04-08-st2-static-confirmation.md)、[ST3–ST5 字段/来源/分类身份](research/tx-04-08-st3-st5-static-confirmation.md)及[ST6–ST8 owner/生命周期/工程边界](research/tx-04-08-st6-st8-static-confirmation.md)静态核验和主审已完成，具体 UNKNOWN 与实现缺口保留，功能实现待继续。[E2E 方案](design/tx-04-08/tx-04-08-e2e-plan.md)覆盖两次顺序启动和离线比较，尚未执行；没有构建或执行功能测试，ST2 的额外 JSON 校验偏差见报告。
+
+24. [tx-04-08：world 核心实现说明](design/tx-04-08/tx-04-08-world-core.md)：第一项代码改动（`mod/src/world/`）的值布局与预算、线程与槽状态机、身份规则、`isaac.cs.world-record` v1 五个文件的格式、失败归属、故障开关、构建状态与给后续项的接口约定。新增 `isaac_cs_world` 静态库完成一次纯编译，未运行测试、未启动游戏，DLL 整体链接受既有 SDK 头与当前工具链组合影响，留给“必要纯编译链接”项。
 
 `refactor/`与`isaac-sync/`为迁入的历史资料；旧gate、哈希、独立角色与重复验收条款已由现行规范覆盖。新增`hooks/`与`design/`用于后续状态同步研究，不表示对应Replica生产功能已经实现。

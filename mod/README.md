@@ -1,5 +1,7 @@
 # REPENTOGON mod
 
+2026-10-27 tx-04-08 world 核心（第一项工程改动）：新增独立静态库 `isaac_cs_world`（`src/world/model|identity|storage|writer`，C++20、不依赖 SDK/游戏头），实现纯值模型与 78 项 profile、33 位 radix 本地身份、三槽所有权状态机、64 MiB/64 项双上限值队列、gap 控制环、`isaac.cs.world-record` v1 的 manifest/captures/lifecycle-events/diagnostics/result 编码与 reader/writer 两个后台线程的有界收口。**只做了一次纯编译（`/W4` 无警告），没有运行测试、没有启动游戏**；DLL 整体链接被既有 `libzhl/ASMPatcher.hpp:302` 的 `friend static` 与当前 MSVC C++20 组合挡住（既有 `hooks/odd_patch.cpp`、`host_patch.cpp` 受影响，非本次改动引入），留给“必要纯编译链接”项。主线程桥、layout/Hook 清单、命令、离线工具、harness 与整体 E2E 仍未实现；见[实现说明](../docs/design/tx-04-08/tx-04-08-world-core.md)与[设计](../docs/design/tx-04-08/tx-04-08-implementation-plan.md)。下方保留历史状态。
+
 tx-04-07 已完成（用户正式接受，D31，2026-10-26）：e2e-11 整体 E2E 验收正式通过。原自动报告及失败/未执行事实不改写，不再补测。见[验收记录](../artifacts/repentogon/tx-04-07-e2e-11/acceptance.md)。下方保留历史状态。
 
 tx-04-07 e2e-11：V12实际PASS，恢复暂停与实时激光松键归属均有证据；整体仍因S17移动净空选择停止而FAIL。S0–S16完成、环境恢复，无自动重跑。见[结果](../artifacts/repentogon/tx-04-07-e2e-11/README.md)与[V12修复](../docs/design/tx-04-07-v12-recovery-fix.md)。
