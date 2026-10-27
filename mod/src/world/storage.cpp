@@ -348,6 +348,7 @@ struct StorageCore final {
   std::vector<std::unique_ptr<Slot>> slots;
   std::unique_ptr<SpscRing<LifecycleEvent>> events;
   std::unique_ptr<SpscRing<GapRecord>> gaps;
+  std::unique_ptr<SpscRing<CheckpointRecord>> checkpoints;
   HANDLE wake = nullptr;
   HANDLE reader_thread = nullptr;
   std::atomic<bool> stop{false};
@@ -421,7 +422,8 @@ bool StorageCore::Prepare(const StorageConfig &options) noexcept {
       std::uint64_t(limits.event_capacity) * sizeof(LifecycleEvent);
   const auto gap_bytes =
       std::uint64_t(limits.gap_capacity) * sizeof(GapRecord);
-  if (!LedgerCharged(event_bytes) || !LedgerCharged(gap_bytes))
+  if (!LedgerCharged(event_bytes) || !LedgerCharged(gap_bytes) ||
+      !LedgerCharged(std::uint64_t(kCheckpointCapacity) * sizeof(CheckpointRecord)))
     return false;
   try {
     events = std::make_unique<SpscRing<LifecycleEvent>>(
@@ -430,6 +432,8 @@ bool StorageCore::Prepare(const StorageConfig &options) noexcept {
     gaps = std::make_unique<SpscRing<GapRecord>>(
         std::make_unique<GapRecord[]>(limits.gap_capacity),
         limits.gap_capacity);
+    checkpoints = std::make_unique<SpscRing<CheckpointRecord>>(
+        std::make_unique<CheckpointRecord[]>(kCheckpointCapacity), kCheckpointCapacity);
   } catch (...) {
     Fail(Reason::Budget, FailSource::Prepare, 0, "rings");
     return false;
@@ -451,6 +455,7 @@ void StorageCore::Release() noexcept {
   slots.clear();
   events.reset();
   gaps.reset();
+  checkpoints.reset();
   queue.reset();
   if (wake) {
     CloseHandle(wake);
@@ -769,6 +774,30 @@ ReadOutcome ReadGapChunk(StorageCore &core) noexcept {
   return ReadOutcome::Copied;
 }
 
+// 控制标记复制到自有值队列后再归还环槽，队列预占同样包含 writer 在途项。
+ReadOutcome ReadCheckpointChunk(StorageCore &core) noexcept {
+  if (!core.checkpoints->Distance()) return ReadOutcome::Empty;
+  const auto bytes = std::uint64_t(sizeof(QueueItem)) + sizeof(CheckpointRecord);
+  if (!core.queue->Reserve(bytes, kReserveWaitMs)) return ReadOutcome::Blocked;
+  QueueItem item;
+  item.kind = ItemKind::Checkpoints; item.bytes = bytes;
+  try { item.checkpoints.resize(1); }
+  catch (...) {
+    core.queue->Release(bytes);
+    core.Fail(Reason::Budget, FailSource::Reader, 0, "checkpoint_copy");
+    return ReadOutcome::Stop;
+  }
+  if (!core.checkpoints->TryPop(item.checkpoints[0])) {
+    core.queue->Release(bytes); return ReadOutcome::Empty;
+  }
+  if (!core.queue->Push(std::move(item))) {
+    core.queue->Release(bytes);
+    core.Fail(Reason::Budget, FailSource::Queue, 0, "checkpoint_queue");
+    return ReadOutcome::Stop;
+  }
+  return ReadOutcome::Copied;
+}
+
 bool AnyReadySlot(const StorageCore &core) noexcept {
   for (const auto &slot : core.slots)
     if (slot->state.load(std::memory_order_acquire) ==
@@ -785,10 +814,14 @@ void ReaderLoop(const std::shared_ptr<StorageCore> &core) noexcept {
   for (;;) {
     const auto faults = core->config.faults;
     // E2E 背压：只暂停本 DLL 的 raw reader，不暂停游戏线程。
-    if (!draining && faults && faults->pause_reader.load(std::memory_order_acquire)) {
+    if (!draining && !core->stop.load(std::memory_order_acquire) &&
+        core->FaultReason() == Reason::None && faults && faults->pause_reader.load(std::memory_order_acquire) &&
+        GetTickCount64() < faults->pause_until.load(std::memory_order_acquire)) {
+      faults->reader_paused.store(true, std::memory_order_release);
       WaitForSingleObject(core->wake, 10);
       continue;
     }
+    if (faults) faults->reader_paused.store(false, std::memory_order_release);
     if (!draining && core->stop.load(std::memory_order_acquire)) {
       draining = true;
       core->diag.reader_state.store(
@@ -840,12 +873,18 @@ void ReaderLoop(const std::shared_ptr<StorageCore> &core) noexcept {
         }
       }
     }
+    if (!blocked) {
+      const auto outcome = ReadCheckpointChunk(*core);
+      if (outcome == ReadOutcome::Stop) goto finish;
+      progress = progress || outcome == ReadOutcome::Copied;
+      blocked = outcome == ReadOutcome::Blocked;
+    }
     if (progress)
       continue;
     if (draining) {
       // 排空完成条件：没有 READY 槽、事件环与 gap 环都空。
       if (!blocked && !AnyReadySlot(*core) && core->events->Distance() == 0 &&
-          core->gaps->Distance() == 0)
+          core->gaps->Distance() == 0 && core->checkpoints->Distance() == 0)
         break;
       if (GetTickCount64() >= drain_deadline) {
         // 超时不是“已完整交付”，终态保留 incomplete。
@@ -1101,6 +1140,18 @@ bool WorldStorage::PublishGap(const GapRecord &record) noexcept {
 
 std::uint64_t WorldStorage::EventWatermark() const noexcept {
   return core_ ? core_->event_sequence.load(std::memory_order_acquire) : 0;
+}
+
+bool WorldStorage::PublishCheckpoint(const CheckpointRecord &checkpoint) noexcept {
+  if (!Ready() || core_->FaultReason() != Reason::None) return false;
+  auto marker = checkpoint;
+  marker.sequence = core_->diag.checkpoints_produced.load() + 1;
+  if (!marker.sequence || !core_->checkpoints->TryPush(marker)) {
+    core_->Fail(Reason::EventOverflow, FailSource::Producer, 0, "checkpoint_ring");
+    return false;
+  }
+  core_->diag.checkpoints_produced.store(marker.sequence);
+  return core_->Notify();
 }
 
 void WorldStorage::RequestStop(Reason reason) noexcept {

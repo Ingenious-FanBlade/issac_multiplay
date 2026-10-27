@@ -50,17 +50,7 @@ std::uint64_t NowMilliseconds() noexcept { return GetTickCount64(); }
 
 // 受限 ASCII label：只允许字母数字和 . _ -，且禁止 "."/".."。
 bool SafeLabel(std::string_view label) noexcept {
-  if (label.empty() || label.size() > 64)
-    return false;
-  if (label == "." || label == "..")
-    return false;
-  for (const char c : label) {
-    const bool ok = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-                    (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.';
-    if (!ok)
-      return false;
-  }
-  return true;
+  return ValidWorldLabel(label);
 }
 bool SafeSession(std::string_view session) noexcept {
   if (session.empty() || session.size() > 128)
@@ -72,7 +62,7 @@ bool SafeSession(std::string_view session) noexcept {
   }
   return true;
 }
-std::wstring WidenAscii(std::string_view text) noexcept {
+std::wstring WidenAscii(std::string_view text) {
   std::wstring out;
   out.reserve(text.size());
   for (const char c : text)
@@ -82,7 +72,7 @@ std::wstring WidenAscii(std::string_view text) noexcept {
 
 // 逐级创建目录；已存在且仍是目录时继续。最终输出目录另行 create-new。
 // 只支持本地路径（含相对游戏工作目录的路径）；UNC 共享路径不在本轮范围。
-bool EnsureDirectory(const std::wstring &path) noexcept {
+bool EnsureDirectory(const std::wstring &path) {
   if (path.empty())
     return false;
   std::wstring partial;
@@ -156,7 +146,10 @@ public:
   bool Write(const char *data, std::size_t bytes) noexcept {
     if (handle_ == INVALID_HANDLE_VALUE) {
       // 句柄已被关闭（含 E2E 故障注入）：保留真实错误码而不是伪造成功。
-      last_error_ = ERROR_INVALID_HANDLE;
+      DWORD written = 0;
+      write_calls_.fetch_add(1, std::memory_order_relaxed);
+      WriteFile(INVALID_HANDLE_VALUE, data, static_cast<DWORD>((std::min)(bytes, std::size_t(4096))), &written, nullptr);
+      last_error_ = GetLastError();
       ok_.store(false, std::memory_order_relaxed);
       return false;
     }
@@ -395,6 +388,7 @@ struct WriterState final {
   std::atomic<std::uint32_t> thread_state{
       static_cast<std::uint32_t>(ThreadState::NotStarted)};
   std::atomic<bool> done{false}, flushed{false}, drain_complete{false};
+  std::atomic<bool> result_written{false};
   std::atomic<bool> write_failed{false};
   std::atomic<std::uint64_t> records_written{0}, events_written{0},
       gaps_written{0}, diagnostics_written{0}, discarded{0};
@@ -537,7 +531,7 @@ void WriteStringArray(JsonOut &j, const char *key, const char *const *values,
   j.Lit("],\n");
 }
 
-bool WriteManifest(WriterState &state) noexcept {
+bool WriteManifest(WriterState &state) {
   const auto path = state.directory + L"\\manifest.json";
   if (!state.small.Open(path, kDiagnosticBufferBytes))
     return false;
@@ -640,6 +634,10 @@ bool WriteManifest(WriterState &state) noexcept {
   j.Num(status.limits.event_capacity);
   j.Lit(",\"gap_records\":");
   j.Num(status.limits.gap_capacity);
+  j.Lit(",\"checkpoints\":");
+  j.Num(kCheckpointCapacity);
+  j.Lit(",\"close_timeout_ms\":");
+  j.Num(state.config.close_timeout_ms);
   j.Lit(",\"queue_bytes\":");
   j.Num(status.limits.queue_bytes);
   j.Lit(",\"queue_items\":");
@@ -1020,6 +1018,17 @@ bool WriteCapture(WriterState &state, const OwnedBatch &batch) noexcept {
   j.Num(header.required_memberships);
   j.Lit(",\"diagnostics\":{\"thread\":");
   j.Num(header.thread);
+  j.Lit(",\"loop\":"); j.Dec(header.loop);
+  j.Lit(",\"phase_witness\":[");
+  for (std::size_t i = 0; i < header.phase_scopes.size(); ++i) {
+    if (i) j.Lit(",");
+    j.Lit("{\"stage\":"); j.Num(static_cast<std::uint32_t>(i + 1));
+    j.Lit(",\"scope\":"); j.Dec(header.phase_scopes[i]);
+    j.Lit(",\"entered\":"); j.Num(header.phase_entered[i]);
+    j.Lit(",\"returned\":"); j.Num(header.phase_returned[i]);
+    j.Lit("}");
+  }
+  j.Lit("]");
   j.Lit("}}\n");
   if (!j.Ok()) {
     state.Fail(Reason::FileError, state.captures.LastError(), "captures_write");
@@ -1070,6 +1079,8 @@ bool WriteGap(WriterState &state, const GapRecord &gap) noexcept {
   j.Lit(",\"sources\":[],\"objects\":[],\"required_objects\":0,"
         "\"required_memberships\":0,\"diagnostics\":{\"candidate_tick\":");
   j.Dec(gap.tick);
+  j.Lit(",\"thread\":");
+  j.Num(gap.thread);
   j.Lit("}}\n");
   if (!j.Ok()) {
     state.Fail(Reason::FileError, state.captures.LastError(), "gap_write");
@@ -1153,6 +1164,25 @@ bool WriteEvent(WriterState &state, const LifecycleEvent &event) noexcept {
   j.Hex(event.address, 8);
   j.Lit(",\"result\":");
   j.Hex(event.result, 8);
+  j.Lit(",\"mutation\":"); j.Dec(event.mutation);
+  j.Lit(",\"candidate_tick\":"); j.Dec(event.tick);
+  j.Lit(",\"thread\":"); j.Num(event.thread);
+  j.Lit(",\"domain\":"); j.Num(event.domain);
+  j.Lit(",\"lifecycle\":"); j.Num(event.lifecycle);
+  j.Lit(",\"readiness\":"); j.Num(event.readiness);
+  j.Lit(",\"ordinal\":"); j.Num(event.ordinal);
+  j.Lit(",\"session\":"); j.Dec(event.session);
+  j.Lit(",\"participant_generation\":"); j.Dec(event.participant_generation);
+  j.Lit(",\"assignment_key\":");
+  if (event.assignment_key < 0) j.Lit("-1"); else j.Num(static_cast<std::uint32_t>(event.assignment_key));
+  j.Lit(",\"device\":"); j.Hex(event.device, 8);
+  j.Lit(",\"slot_before\":"); j.Hex(event.slot_before, 8);
+  j.Lit(",\"slot_after\":"); j.Hex(event.slot_after, 8);
+  j.Lit(",\"args\":[");
+  for (std::uint32_t i = 0; i < event.arg_count && i < event.args.size(); ++i) {
+    if (i) j.Lit(","); j.Hex(event.args[i], 8);
+  }
+  j.Lit("]");
   j.Lit("}}\n");
   if (!j.Ok()) {
     state.Fail(Reason::FileError, state.events.LastError(), "events_write");
@@ -1204,7 +1234,7 @@ void WriteReadiness(JsonOut &j, const WriterState &state,
   j.Lit("}");
 }
 
-bool WriteResult(WriterState &state, WriterOutcome outcome) noexcept {
+bool WriteResult(WriterState &state, WriterOutcome outcome) {
   const auto path = state.directory + L"\\result.json";
   if (!state.small.Open(path, kDiagnosticBufferBytes))
     return false;
@@ -1282,6 +1312,10 @@ bool WriteResult(WriterState &state, WriterOutcome outcome) noexcept {
   j.Dec(status.budget_waits);
   j.Lit(",\"callbacks\":");
   j.Dec(status.callbacks);
+  j.Lit(",\"checkpoints_produced\":");
+  j.Dec(state.storage->Diag().checkpoints_produced.load());
+  j.Lit(",\"checkpoints_written\":");
+  j.Dec(state.storage->Diag().checkpoints_written.load());
   j.Lit(",\"callback_faults\":");
   j.Dec(status.callback_faults);
   j.Lit(",\"discarded_items\":");
@@ -1331,6 +1365,9 @@ bool WriteResult(WriterState &state, WriterOutcome outcome) noexcept {
             ? status.batches_copied -
                   state.records_written.load(std::memory_order_relaxed)
             : 0);
+  j.Lit(",\"checkpoints_not_written\":");
+  j.Dec(state.storage->Diag().checkpoints_produced.load() -
+        state.storage->Diag().checkpoints_written.load());
   j.Lit(",\"queue_items\":");
   j.Dec(queue.held_items);
   j.Lit(",\"queue_bytes\":");
@@ -1479,7 +1516,8 @@ void FlushFaultAt(WriterState &state) noexcept {
     j.Num(fault.code);
     j.Lit(",\"stage\":");
     j.Str(fault.stage ? fault.stage : "");
-    j.Lit(",\"at_ms\":");
+    // 外层 diagnostic 已有数值 at_ms；首因时间另列，避免重复 JSON 键丢事实。
+    j.Lit(",\"fault_at_ms\":");
     j.Dec(fault.at_ms);
     j.Lit(",\"write_error\":");
     j.Num(state.LastError());
@@ -1499,6 +1537,26 @@ bool WriteItem(WriterState &state, const QueueItem &item) noexcept {
     for (const auto &gap : item.gaps)
       if (!WriteGap(state, gap))
         return false;
+    return true;
+  case ItemKind::Checkpoints:
+    for (const auto &marker : item.checkpoints) {
+      if (!WriteDiagnostic(state, "checkpoint", [&](JsonOut &j) {
+        j.Lit(",\"label\":"); j.Str(marker.label);
+        j.Lit(",\"request\":"); j.Dec(marker.request);
+        j.Lit(",\"sequence\":"); j.Dec(marker.sequence);
+        j.Lit(",\"run\":"); j.Dec(marker.run);
+        j.Lit(",\"room\":"); j.Dec(marker.room);
+        j.Lit(",\"outer\":"); j.Dec(marker.outer);
+        j.Lit(",\"mutation\":"); j.Dec(marker.mutation);
+        j.Lit(",\"attempt\":"); j.Dec(marker.attempt);
+        j.Lit(",\"capture\":"); j.Dec(marker.capture);
+        j.Lit(",\"event_watermark\":"); j.Dec(marker.event_watermark);
+      })) {
+        state.Fail(Reason::FileError, state.diagnostics.LastError(), "checkpoint_write");
+        return false;
+      }
+      state.storage->Diag().checkpoints_written.fetch_add(1);
+    }
     return true;
   }
   return false;
@@ -1554,7 +1612,7 @@ struct WriterRuntime final {
   }
 };
 
-void WriterLoop(WriterRuntime &impl) noexcept {
+void WriterLoop(WriterRuntime &impl) {
   WriterState &state = impl.state;
   state.thread_state.store(static_cast<std::uint32_t>(ThreadState::Running),
                            std::memory_order_release);
@@ -1567,6 +1625,7 @@ void WriterLoop(WriterRuntime &impl) noexcept {
     if (auto *faults = state.storage->Faults()) {
       if (faults->drop_capture_file.exchange(false)) {
         state.captures.DropHandleForTest();
+        faults->applied.store(1);
         WriteDiagnostic(state, "fault", [](JsonOut &j) {
           j.Lit(",\"injected\":\"TEST_INJECTED\"");
           j.Lit(",\"target\":\"captures.jsonl\"");
@@ -1622,10 +1681,27 @@ void WriterLoop(WriterRuntime &impl) noexcept {
   // 收尾顺序：先写背压/故障/关闭诊断，再 flush/sync 数据文件，最后 result。
   FlushBackpressureAt(state);
   FlushFaultAt(state);
+  if (const auto *f = state.storage->Faults(); f && f->mode.load()) {
+    WriteDiagnostic(state, "test_injection", [&](JsonOut &j) {
+      j.Lit(",\"injected\":\"TEST_INJECTED\",\"mode\":"); j.Num(f->mode.load());
+      j.Lit(",\"session\":"); j.Str(state.config.session);
+      j.Lit(",\"value\":"); j.Num(f->value.load());
+      j.Lit(",\"applied\":"); j.Num(f->applied.load());
+      j.Lit(",\"rejection\":"); j.Str(ReasonName(static_cast<Reason>(f->rejection.load())));
+      j.Lit(",\"before\":"); j.Num(f->before.load());
+      j.Lit(",\"after\":"); j.Num(f->after.load());
+      j.Lit(",\"attempt\":"); j.Dec(f->attempt.load());
+      j.Lit(",\"event_watermark\":"); j.Dec(f->watermark.load());
+    });
+  }
   FlushDiagnosticsAt(state, "close");
   CloseArtifacts(state);
-  const auto outcome = TerminalOutcome(state);
-  WriteResult(state, outcome);
+  auto outcome = TerminalOutcome(state);
+  if (WriteResult(state, outcome)) state.result_written.store(true);
+  else {
+    state.Fail(Reason::FileError, state.small.LastError(), "result_write");
+    outcome = WriterOutcome::Error;
+  }
   impl.outcome.store(outcome, std::memory_order_release);
   state.thread_state.store(
       static_cast<std::uint32_t>(outcome == WriterOutcome::Error
@@ -1686,7 +1762,7 @@ WorldWriter::~WorldWriter() {
 }
 
 bool WorldWriter::Open(const WriterConfig &config, const ManifestInput &manifest,
-                       WorldStorage &storage) noexcept {
+                       WorldStorage &storage) noexcept try {
   if (impl_)
     return false;
   std::shared_ptr<WriterRuntime> impl;
@@ -1796,6 +1872,12 @@ bool WorldWriter::Open(const WriterConfig &config, const ManifestInput &manifest
   impl->thread = handle;
   state.opened.store(true, std::memory_order_release);
   return true;
+} catch (...) {
+  if (impl_) {
+    impl_->state.Fail(Reason::Budget, ERROR_NOT_ENOUGH_MEMORY, "writer_prepare_exception");
+    impl_->state.done.store(true, std::memory_order_release);
+  }
+  return false;
 }
 
 void WorldWriter::RequestStop() noexcept {
@@ -1836,6 +1918,7 @@ WriterStatus WorldWriter::Status() const noexcept {
   status.producer_done = state.queue && state.queue->ProducerDone();
   status.drain_complete = state.drain_complete.load(std::memory_order_acquire);
   status.write_failed = state.write_failed.load(std::memory_order_acquire);
+  status.result_written = state.result_written.load(std::memory_order_acquire);
   status.records_written =
       state.records_written.load(std::memory_order_relaxed);
   status.events_written = state.events_written.load(std::memory_order_relaxed);

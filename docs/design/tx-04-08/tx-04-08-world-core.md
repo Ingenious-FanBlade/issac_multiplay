@@ -1,5 +1,7 @@
 # tx-04-08：纯值模型、身份、缓冲与 writer（第一项工程改动）
 
+> 后续[ABC续作](tx-04-08-abc-implementation.md)已将LifecycleEvent扩为208字节，增加原生episode/Player代次诊断；内存仍按sizeof和同一ledger计账，编译期256 MiB预算断言成立，E2E不可读页另按64 KiB记账。下方104字节和原预算总量保留本项首次交付的原时点，不能作为当前事件单价。
+
 日期：2026-10-27，Asia/Singapore。状态：**代码已编写；新静态库完成一次纯编译（Release Win32，`/W4` 无警告）；未执行测试、未启动游戏、未构建 DLL**。范围见[迁移设计第 10 节](tx-04-08-implementation-plan.md#10-工程顺序与验收边界)所列实现顺序的第一项。
 
 本轮只做“纯值模型/身份/缓冲和 writer”的代码编写，不包含主线程桥、post-state、Hook 清单、命令、harness 或统一 E2E；这些仍是后续推进项。下文 `CURRENT_SOURCE` 指本次新增源码，`DESIGN` 指沿用迁移设计的目标行为，`UNKNOWN` 指尚未取得运行证据的部分。

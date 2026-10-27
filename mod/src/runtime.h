@@ -58,6 +58,7 @@ struct Config {
   bool world_record_enabled = false;
   std::string world_output_dir = "isaac-cs/world";
   unsigned world_close_timeout_ms = 10000;
+  std::string world_e2e_token; // 专用本地 E2E 配置；空串关闭所有测试入口。
 };
 extern DWORD MainThread;
 extern uintptr_t Base;

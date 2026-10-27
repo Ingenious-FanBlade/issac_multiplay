@@ -8,20 +8,25 @@
 #include "game/topology.h"
 #include "game/world_bridge.h"
 #include "runtime.h"
+#include "ops/world_commands.h"
 #include <algorithm>
 #include <charconv>
 #include <cstring>
 #include <exception>
 #include <mutex>
+#include <limits>
 #include <sstream>
 namespace cs {
 namespace {
 // 状态变更只排队，在下一次最外层 Manager 入口统一执行。
 struct Mutation {
   uint64_t id;
-  enum class Kind { Host, StopHost, SoloStart, SoloStop } kind;
+  enum class Kind { Host, StopHost, SoloStart, SoloStop,
+                    WorldStart, WorldStop, WorldCheckpoint } kind;
   unsigned port;
   int character;
+  std::uint32_t generation = 0;
+  char label[65]{};
 };
 Ring<Mutation, 64> mutations;
 Ring<PortRequest, 32> port_requests;
@@ -30,6 +35,9 @@ std::atomic<uint64_t> next_id{1}, queue_dropped{};
 uint64_t frame = 0;
 unsigned frame_depth = 0;
 bool pending_host_start = false, pending_solo_start = false;
+bool pending_world_start = false;
+std::uint32_t world_generation = 0;
+std::uint64_t pending_world_request = 0;
 bool started = false;
 std::mutex snapshot_lock;
 std::string status_snapshot =
@@ -57,6 +65,62 @@ std::string Execute(std::string_view text, const char *source) {
     in >> arg >> extra;
     result = arg.empty() || !extra.empty() ? "ok=0\nerror=arguments\n"
                                            : "ok=1\necho=" + arg + "\n";
+  } else if (verb == "world_test") {
+    std::string token, mode, generation_text, value_text, trailing;
+    in >> token >> generation_text >> mode >> value_text >> trailing;
+    std::uint32_t generation = 0, value = 0;
+    const auto parse = [](const std::string &s, std::uint32_t &v) {
+      const auto r = std::from_chars(s.data(), s.data() + s.size(), v);
+      return !s.empty() && r.ec == std::errc{} && r.ptr == s.data() + s.size();
+    };
+    result = !trailing.empty() || !parse(generation_text, generation) || !parse(value_text, value)
+        ? "ok=0\nerror=arguments\n" : TestWorldCommand(source, token, generation, mode, value);
+  } else if (verb == "world") {
+    std::string action, label, trailing;
+    in >> action >> label >> trailing;
+    const bool labeled = action == "start" || action == "checkpoint";
+    // label 是目录叶子/场景名，拒绝路径、控制字符及 Windows 尾部点别名。
+    const bool label_ok = world::ValidWorldLabel(label);
+    if (!trailing.empty() || (labeled ? !label_ok : !label.empty()))
+      result = "ok=0\nerror=arguments\n";
+    else if (action == "status") {
+      result = pending_world_start
+          ? "ok=1\nworld_status_version=1\nworld_state=Preparing\nphase=Queued\nrequest=" +
+                std::to_string(pending_world_request) + "\ngeneration=" + std::to_string(world_generation) +
+                "\nrecording=" + WorldRecordingId(world_generation) + "\n"
+          : WorldCommandStatus();
+    } else if (action != "start" && action != "stop" && action != "checkpoint")
+      result = "ok=0\nerror=unknown_world_verb\n";
+    else if (action == "start" && (WorldCommandBusy() || pending_world_start))
+      result = "ok=0\nerror=busy\n";
+    else if (action == "start" && WorldStartError())
+      result = "ok=0\nerror=" + std::string(WorldStartError()) + "\n";
+    else if (action == "start" && world_generation == (std::numeric_limits<std::uint32_t>::max)())
+      result = "ok=0\nerror=recording_generation_exhausted\n";
+    else if (action == "checkpoint" && !WorldCanCheckpoint())
+      result = "ok=0\nerror=world_not_recording\n";
+    else {
+      Mutation mutation{};
+      mutation.id = next_id.fetch_add(1);
+      mutation.kind = action == "start" ? Mutation::Kind::WorldStart
+          : action == "stop" ? Mutation::Kind::WorldStop : Mutation::Kind::WorldCheckpoint;
+      mutation.generation = world_generation + (action == "start" ? 1u : 0u);
+      if (labeled) strcpy_s(mutation.label, label.c_str());
+      if (mutations.Push(mutation)) {
+        if (action == "start") {
+          pending_world_start = true; world_generation = mutation.generation;
+          pending_world_request = mutation.id;
+        }
+        // queued 只是 admission；录制启动/标记落盘必须从后续快照与 artifact 确认。
+        result = "ok=1\nqueued=" + std::to_string(mutation.id) +
+            "\nrequest=" + std::to_string(mutation.id) +
+            "\ngeneration=" + std::to_string(mutation.generation) +
+            "\nrecording=" + WorldRecordingId(mutation.generation) +
+            "\nworld_state=" + (action == "start" ? std::string("Preparing")
+                : action == "stop" ? std::string(WorldCommandBusy() || pending_world_start ? "Closing" : "Closed")
+                : std::string("Recording")) + "\n";
+      } else { ++queue_dropped; result = "ok=0\nerror=queue_full\n"; }
+    }
   } else if (verb == "query_checkpoint") {
     in >> arg >> extra;
     // 场景标签限制为短的单个词；只发布主线程已有统计，不发起原生查询、
@@ -253,6 +317,7 @@ void FrameBegin() noexcept {
   // world 窗口必须先于 BeginManager 的网络/lifecycle 和排队命令建立。
   game::WorldFrameBegin(frame);
   game::BeginManager(frame);
+  PumpWorldCommands();
   try {
     // N 帧收到的变更在 N+1 帧入口执行，下面取出的端口请求不能抢跑。
     Mutation m{};
@@ -282,6 +347,16 @@ void FrameBegin() noexcept {
           last_error = "busy";
         else
           game::StopSolo();
+        break;
+      case Mutation::Kind::WorldStart:
+        pending_world_start = false;
+        StartWorldCommand(m.id, m.generation, m.label);
+        break;
+      case Mutation::Kind::WorldStop:
+        StopWorldCommand(m.id, m.generation);
+        break;
+      case Mutation::Kind::WorldCheckpoint:
+        CheckpointWorldCommand(m.id, m.generation, m.label);
         break;
       }
       Trace("state", "id=%llu from=%s to=%s port=%u character=%d frame=%llu error=%s", m.id,
@@ -324,6 +399,7 @@ void FrameEnd(bool completed) noexcept {
   game::WorldPreparePostState(completed);
   game::EndManager(completed);
   game::WorldFrameEnd();
+  PumpWorldCommands();
   if (!completed)
     return;
   PublishStatus();
@@ -356,9 +432,17 @@ void FrameEnd(bool completed) noexcept {
 // 只清掉旧 run 的排队变更与 pending 标记，不改变已经生效的会话。
 // Restore 的保留分支与真实退出共用这一个辅助函数。
 void ClearPendingRunMutations() noexcept {
+  // world 独立于 run/Host；保存其队列顺序，run teardown 只清会话命令。
+  std::array<Mutation, 64> world_pending{};
+  size_t count = 0;
   Mutation ignored{};
   while (mutations.Pop(ignored)) {
+    if (ignored.kind == Mutation::Kind::WorldStart ||
+        ignored.kind == Mutation::Kind::WorldStop ||
+        ignored.kind == Mutation::Kind::WorldCheckpoint)
+      world_pending[count++] = ignored;
   }
+  for (size_t i = 0; i < count; ++i) mutations.Push(world_pending[i]);
   pending_host_start = pending_solo_start = false;
 }
 void RunExit() noexcept {

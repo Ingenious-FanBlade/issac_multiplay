@@ -18,10 +18,10 @@ fn number(s: &Status, key: &str) -> Result<u64> {
 }
 
 // 严格解析同一次部署的 Lua 记录；缺失、损坏和重复序号不会变成空集合通过。
-fn fixture_records(text: &str, token: &str) -> Result<Vec<Value>> {
+pub(super) fn fixture_records(text: &str, token: &str) -> Result<Vec<Value>> {
     let mut out = vec![];
     for line in text.lines() {
-        if let Some((_, payload)) = line.split_once("[isaac-cs-test] tx05 ").or_else(||line.split_once("[isaac-cs-test] tx06 ")).or_else(||line.split_once("[isaac-cs-test] tx07 ")) {
+        if let Some((_, payload)) = line.split_once("[isaac-cs-test] tx05 ").or_else(||line.split_once("[isaac-cs-test] tx06 ")).or_else(||line.split_once("[isaac-cs-test] tx07 ")).or_else(||line.split_once("[isaac-cs-test] tx08 ")) {
             let v: Value = serde_json::from_str(payload)
                 .map_err(|e| format!("malformed fixture record: {e}"))?;
             if v["token"].as_str() == Some(token) {
@@ -39,7 +39,7 @@ impl Run {
         let complete = text.rfind('\n').map(|n| &text[..=n]).unwrap_or("");
         fixture_records(
             complete,
-            self.report["token"].as_str().ok_or("missing token")?,
+            self.report["active_fixture_token"].as_str().or_else(||self.report["token"].as_str()).ok_or("missing token")?,
         )
     }
     // 场景在控制口等待时仍检查子进程与失败状态，物理输入从不重发。

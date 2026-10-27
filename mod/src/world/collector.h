@@ -38,6 +38,7 @@ public:
   bool Drained() const noexcept;
   void Stop(Reason reason = Reason::Stopped) noexcept;
   void Fault(Reason reason, const char *stage) noexcept;
+  bool Checkpoint(std::uint64_t request, const char *label) noexcept;
   // Manager 最外层进入（在 BeginManager/命令之前）；阶段只能在同 outer 配对。
   void BeginOuter(std::uint64_t loop, std::uint64_t outer, bool run) noexcept;
   void EnterStage(Stage stage, std::uint64_t scope,
@@ -103,7 +104,8 @@ private:
   Identity *Find(ObjectDomain domain, std::uint32_t address) noexcept;
   bool Event(EventKind kind, Reason reason, Identity *identity = nullptr,
              const Call *call = nullptr, bool entering = false,
-             bool exceptional = false, std::uint32_t result = 0) noexcept;
+             bool exceptional = false, std::uint32_t result = 0,
+             std::uint64_t candidate_tick = 0) noexcept;
   std::uint32_t CreationOwner(ObjectDomain domain) const noexcept;
   void CompleteOwner(std::uint32_t call, Observation kind,
                      std::uint32_t result) noexcept;

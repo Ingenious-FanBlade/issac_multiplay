@@ -7,7 +7,9 @@ mod saves;
 mod tx05;
 mod tx06;
 mod tx07;
+mod tx08;
 mod win32;
+mod world;
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -325,9 +327,14 @@ impl Run {
     fn config(&mut self, enabled: bool) -> Result<()> {
         let p = self.game.join("Repentogon/isaac-cs");
         mkdir(&p)?;
-        let content = json!({"schema":1,"enabled":enabled,"log_level":"info","trace_dir":"isaac-cs/traces",
+        let mut content = json!({"schema":1,"enabled":enabled,"log_level":"info","trace_dir":"isaac-cs/traces",
             "control_port":{"enabled":enabled,"port":self.scenario["control_port"]},"host":{"default_port":self.scenario["host_port"].as_u64().unwrap_or(27090),
                 "bind_address":"127.0.0.1","peer_timeout_ms":self.scenario["peer_timeout_ms"].as_u64().unwrap_or(3000)}});
+        if self.report["tx"] == "tx-04-08" {
+            content["world_record"] = json!({"enabled":enabled,
+                "output_dir":self.out.join("runtime-world"),"close_timeout_ms":self.scenario["close_timeout_ms"],
+                "e2e_token":self.report["token"]});
+        }
         write_json(&p.join("config.json"), &content)?;
         self.deployment.push(json!({"operation":"write_config","destination":p.join("config.json"),"content":content}));
         write_json(&self.out.join("deployment.json"), &json!(self.deployment))?;
@@ -341,7 +348,10 @@ impl Run {
         if fixture.exists() {
             return Err("existing test mod must be preserved; deployment refused".into());
         }
-        mkdir(&self.out.join("deployment_before"))?;
+        let backup_root=if self.report["tx"]=="tx-04-08" {
+            self.out.join(format!("deployment-before-p{}",self.report["deploy_process"].as_u64().unwrap_or(1)))
+        }else{self.out.join("deployment_before")};
+        mkdir(&backup_root)?;
         let targets = [
             ("out/repentogon/zhlIsaacCS.dll", "Repentogon/zhlIsaacCS.dll"),
             ("ui/isaac-cs-ui", "mods/isaac-cs-ui"),
@@ -349,17 +359,18 @@ impl Run {
         ];
         let existing = self.game.join("Repentogon/isaac-cs/config.json");
         if existing.exists() {
-            fs::copy(&existing, self.out.join("deployment_before/config.json"))
+            fs::copy(&existing, backup_root.join("config.json"))
                 .map_err(|e| e.to_string())?;
         }
         for (src, dst) in targets {
-            let s = self.repo.join(src);
+            // tx08 始终部署本次 artifact 已冻结的源码/二进制，人工等待期间不改用后来变化的工作区。
+            let s = if self.report["tx"]=="tx-04-08" {
+                if dst.ends_with("zhlIsaacCS.dll"){self.out.join("binaries/zhlIsaacCS.dll")}
+                else{self.out.join("sources").join(src)}
+            }else{self.repo.join(src)};
             let d = self.game.join(dst);
             if d.exists() {
-                let backup = self
-                    .out
-                    .join("deployment_before")
-                    .join(d.file_name().unwrap());
+                let backup = backup_root.join(d.file_name().unwrap());
                 if d.is_dir() {
                     copy_tree(&d, &backup)?;
                 } else {
@@ -380,9 +391,11 @@ impl Run {
         self.deployed = true;
         if matches!(
             self.report["tx"].as_str(),
-            Some("tx-04-05" | "tx-04-06" | "tx-04-07")
+            Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08")
         ) {
-            let config = if self.report["tx"] == "tx-04-07" {
+            let config = if self.report["tx"] == "tx-04-08" {
+                self.fixture_config_tx08(self.report["deploy_process"].as_u64().unwrap_or(1))?
+            } else if self.report["tx"] == "tx-04-07" {
                 self.fixture_config_tx07()?
             } else {
                 format!(
@@ -1028,6 +1041,7 @@ impl Run {
     }
     // 所有场景在一个入口中顺序执行，不重试失败启动或失败验收。
     fn execute(&mut self) -> Result<()> {
+        if self.report["tx"] == "tx-04-08" { return self.execute_tx08(); }
         if self.report["tx"] == "tx-04-07" {
             return self.execute_tx07();
         }
@@ -1056,6 +1070,7 @@ impl Run {
     }
     // 清理先于报告分析，失败也关闭测试口并移除自己部署的夹具。
     fn finish(&mut self, result: Result<()>) -> Result<()> {
+        if self.report["tx"] == "tx-04-08" { return self.finish_tx08(result); }
         if self.report["tx"] == "tx-04-07" {
             return self.finish_tx07(result);
         }
@@ -1198,16 +1213,19 @@ fn main() {
 }
 fn entry() -> Result<()> {
     let args = env::args().skip(1).collect::<Vec<_>>();
+    if matches!(args.first().map(String::as_str), Some("world-replay" | "world-compare")) {
+        return world::run_cli(&args);
+    }
     if args.first().map(String::as_str) == Some("remote") {
         return remote::run_cli(&args);
     }
     if args.get(0).map(String::as_str) != Some("e2e")
         || !matches!(
             args.get(1).map(String::as_str),
-            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07")
+            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08")
         )
     {
-        return Err("usage: harness e2e <tx-04-04|tx-04-05|tx-04-06|tx-04-07> --game <game-root> --out <new-artifact-directory> [--scenario <json>]".into());
+        return Err("usage: harness e2e <tx-04-04|tx-04-05|tx-04-06|tx-04-07|tx-04-08> --game <game-root> --artifact-dir <new-directory> [--scenario <json>]".into());
     }
     let option = |key: &str| {
         args.iter()
@@ -1215,12 +1233,26 @@ fn entry() -> Result<()> {
             .and_then(|i| args.get(i + 1))
             .cloned()
     };
+    if args[1] == "tx-04-08" {
+        let mut seen=std::collections::BTreeSet::new();
+        let mut at=2;
+        while at<args.len() {
+            let key=args[at].as_str();
+            let canonical=if key=="--out" {"--artifact-dir"}else{key};
+            if !["--game","--artifact-dir","--scenario"].contains(&canonical) || !seen.insert(canonical)
+                || at+1>=args.len() || args[at+1].starts_with("--") {return Err("tx08 requires unique known key/value options".into());}
+            at+=2;
+        }
+    }
     let game = win32::ordinary_path(&PathBuf::from(option("--game").ok_or("--game required")?))?;
-    let out = PathBuf::from(option("--out").ok_or("--out required")?);
+    let out = PathBuf::from(option("--artifact-dir").or_else(|| option("--out")).ok_or("--artifact-dir required")?);
     if out.exists() {
         return Err("artifact directory already exists; no automatic rerun".into());
     }
-    mkdir(&out)?;
+    if args[1] == "tx-04-08" {
+        if let Some(parent)=out.parent().filter(|p|!p.as_os_str().is_empty()){mkdir(parent)?;}
+        fs::create_dir(&out).map_err(|e|format!("new artifact directory: {e}"))?;
+    } else { mkdir(&out)?; }
     let out = out.canonicalize().map_err(|e| e.to_string())?;
     let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()

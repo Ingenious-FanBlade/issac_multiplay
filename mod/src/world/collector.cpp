@@ -80,6 +80,23 @@ bool Collector::Read(std::uint64_t address, void *value, std::size_t size) noexc
          address <= UINT32_MAX && size <= UINT32_MAX - address &&
          memory_.copy(static_cast<std::uint32_t>(address), value, size);
 }
+bool Collector::Checkpoint(std::uint64_t request, const char *label) noexcept {
+  if (!Recording() || GetCurrentThreadId() != memory_.main_thread || !label)
+    return false;
+  CheckpointRecord marker{};
+  marker.request = request; marker.run = run_; marker.room = room_;
+  marker.outer = outer_active_ ? outer_ : 0; marker.mutation = mutation_;
+  marker.recording_generation = generation_;
+  marker.attempt = storage_.Diag().last_attempt.load();
+  marker.capture = storage_.Diag().last_capture.load();
+  marker.event_watermark = storage_.EventWatermark();
+  const auto length = std::strlen(label);
+  if (!ValidWorldLabel(label)) return false;
+  std::memcpy(marker.label, label, length);
+  if (storage_.PublishCheckpoint(marker)) return true;
+  Fault(Reason::EventOverflow, "checkpoint_publish");
+  return false;
+}
 bool Collector::Image(std::uint32_t address, std::size_t bytes) const noexcept {
   return address >= memory_.image_base && bytes <= memory_.image_size &&
          address - memory_.image_base <= memory_.image_size - bytes;
@@ -102,20 +119,33 @@ Identity *Collector::Find(ObjectDomain domain, std::uint32_t address) noexcept {
 }
 bool Collector::Event(EventKind kind, Reason reason, Identity *id,
                        const Call *call, bool entering, bool exceptional,
-                       std::uint32_t result) noexcept {
+                       std::uint32_t result, std::uint64_t candidate_tick) noexcept {
   LifecycleEvent event{};
   event.run = run_; event.room = room_; event.outer = outer_active_ ? outer_ : 0;
   event.kind = kind; event.reason = reason; event.entering = entering;
   event.exceptional = exceptional; event.result = result;
+  event.mutation = mutation_; event.tick = candidate_tick ? candidate_tick : authority_.tick;
+  event.thread = GetCurrentThreadId();
   if (id) {
     event.local_id = id->local_id; event.use = id->use; event.birth = id->birth;
     event.revision = id->revision; event.address = id->address;
     event.memberships = kind == EventKind::SourceMembershipSnapshot ? result : id->memberships;
+    event.domain = id->domain; event.lifecycle = id->lifecycle; event.readiness = id->readiness;
+    event.ordinal = id->ordinal;
+    if (id->ordinal < anchors_.size()) {
+      const auto &anchor = anchors_[id->ordinal];
+      event.session = anchor.session; event.participant_generation = anchor.generation;
+      event.assignment_key = anchor.key; event.device = anchor.device;
+    }
   }
   if (call) {
     event.call = call->id; event.parent = call->parent;
     event.observation = static_cast<std::uint32_t>(call->observation);
     if (!id) event.address = call->object;
+    event.args = call->args; event.arg_count = call->count;
+    event.slot_before = call->before; event.slot_after = call->body_after;
+  } else if (id && kind == EventKind::SourceMembershipSnapshot) {
+    event.slot_before = id->memberships; event.slot_after = result;
   }
   if (!storage_.PublishEvent(event)) {
     Fault(storage_.Diag().FaultReason() == Reason::None ? Reason::EventOverflow
@@ -126,6 +156,16 @@ bool Collector::Event(EventKind kind, Reason reason, Identity *id,
 }
 void Collector::Incomplete(Reason reason) noexcept {
   if (!pending_) return;
+  if (auto *f = storage_.Faults(); f && f->applied.load()) {
+    const auto mode = f->mode.load();
+    if (((mode == 2 || mode == 3) && reason == Reason::Budget) ||
+        (mode == 4 && reason == Reason::RelationBudget) ||
+        (mode == 5 && reason == Reason::ReadFailed) ||
+        (mode == 6 && reason == Reason::SourceChanged) ||
+        (mode == 7 && reason == Reason::RootChanged) ||
+        (mode == 8 && reason == Reason::NotReady))
+      f->rejection.store(static_cast<std::uint32_t>(reason));
+  }
   auto &header = pending_.Header();
   header.complete = 0;
   if (!header.reason) header.reason = static_cast<std::uint32_t>(reason);
@@ -263,8 +303,8 @@ void Collector::LifecycleLeave(bool normal) noexcept {
 void Collector::RevokePlayer(std::uint32_t ordinal) noexcept {
   if (!active_ || ordinal >= anchors_.size()) return;
   auto *id = identities_.RevokeCurrentWitness(ordinal);
-  identities_.AnchorPlayer(ordinal, 0); anchors_[ordinal] = {};
   if (id) Event(EventKind::CurrentPlayerReadWitness, Reason::NotReady, id);
+  identities_.AnchorPlayer(ordinal, 0); anchors_[ordinal] = {};
 }
 void Collector::AnchorPlayer(std::uint32_t ordinal, const PlayerAnchor &value) noexcept {
   if (!Recording() || ordinal >= anchors_.size()) return;
@@ -289,8 +329,15 @@ void Collector::PlayerReturned(std::uint32_t ordinal, const PlayerAnchor &before
       !before.valid || before != after || anchors_[ordinal] != before) {
     RevokePlayer(ordinal); return;
   }
-  if (auto *id = identities_.MarkCurrentWitness(ordinal))
-    Event(EventKind::CurrentPlayerReadWitness, Reason::None, id);
+  // 依据 2 的 Player 也须在重绑后重建 +177 当前值资格，不把原出生当作本代次 witness。
+  auto *id = identities_.Find(ObjectDomain::Entity, before.player);
+  const bool rebuilt = id && !id->current_public_ready;
+  auto *witness = identities_.MarkCurrentWitness(ordinal);
+  if (id && !id->Retired()) {
+    id->current_public_ready = true;
+    if (witness || rebuilt) Event(EventKind::CurrentPlayerReadWitness, Reason::None, id,
+        nullptr, false, false, 0, tick);
+  }
 }
 
 // RTTI 只读分类：验证 COL/CHD/每个 BCD 的地址、签名与非虚单继承形状。
@@ -350,7 +397,12 @@ std::int32_t Collector::Add(ObjectDomain domain, std::uint32_t address,
   if (object_index == -2) return -1;
   if (object_index < 0) {
     ++h.required_objects;
-    if (h.object_count == kObjectBudget) {
+    const auto *faults = storage_.Faults();
+    if (h.object_count >= (faults ? faults->object_limit : kObjectBudget)) {
+      if (faults && faults->mode.load() == 2) {
+        auto *f = storage_.Faults(); f->before.store(f->object_limit); f->after.store(h.required_objects); f->applied.store(1);
+      }
+      h.sources[source].status = static_cast<std::uint32_t>(Reason::Budget);
       identities_.SetBatchObjectIndex(*id, -2); Incomplete(Reason::Budget); return -1;
     }
     object_index = static_cast<std::int32_t>(h.object_count++);
@@ -358,7 +410,13 @@ std::int32_t Collector::Add(ObjectDomain domain, std::uint32_t address,
     auto &object = pending_.Objects()[object_index];
     object.Reset(); object.address = address; object.domain = static_cast<std::uint32_t>(domain);
   }
-  if (h.membership_count == kMembershipBudget) { Incomplete(Reason::Budget); return object_index; }
+  if (h.membership_count >= (storage_.Faults() ? storage_.Faults()->membership_limit : kMembershipBudget)) {
+    if (auto *f = storage_.Faults(); f && f->mode.load() == 3) {
+      f->before.store(f->membership_limit); f->after.store(h.required_memberships); f->applied.store(1);
+    }
+    h.sources[source].status = static_cast<std::uint32_t>(Reason::Budget);
+    Incomplete(Reason::Budget); return object_index;
+  }
   pending_.Memberships()[h.membership_count++] = {
       static_cast<std::uint32_t>(object_index), source, index, 0};
   return object_index;
@@ -446,7 +504,12 @@ void Collector::CopySources() noexcept {
     if (!id || pending_.Objects()[i].domain != 0) continue;
     std::uint32_t vptr = 0; bool base = false;
     if (Classify(ObjectDomain::Entity, address, vptr, base) != Class::Player) continue;
-    if (count == kRelationNodes) { relations.status = static_cast<std::uint32_t>(Reason::RelationBudget); Incomplete(Reason::RelationBudget); break; }
+    if (count >= (storage_.Faults() ? storage_.Faults()->relation_limit : kRelationNodes)) {
+      if (auto *f = storage_.Faults(); f && f->mode.load() == 4) {
+        f->before.store(f->relation_limit); f->after.store(count + 1); f->applied.store(1);
+      }
+      relations.status = static_cast<std::uint32_t>(Reason::RelationBudget); Incomplete(Reason::RelationBudget); break;
+    }
     relation_nodes_[count++] = address;
     if (id->readiness < 2 || id->Retired()) {
       relations.status = static_cast<std::uint32_t>(Reason::NotReady); Incomplete(Reason::NotReady); continue;
@@ -482,6 +545,11 @@ void Collector::CopyFields(RawObject &object, const Identity &identity, bool rea
     if (spec->status == layout::FieldStatus::InitUnknown) {
       field.status = FieldStatus::Unconfirmed; Incomplete(Reason::NotReady); continue;
     }
+    // 用户于 2026-10-27 采纳：初始化写入与本代当前字节的读取资格分别表达。
+    // FIRST_OBSERVED 本身无资格；最终来源/root 复核失败仍撤销整批完整性。
+    if (id == 0x000a && (!identity.current_public_ready || identity.readiness < 2 || polluted_)) {
+      field.status = FieldStatus::NotReady; Incomplete(Reason::NotReady); continue;
+    }
     bool ok = true;
     if (spec->base == layout::FieldBase::Derived) {
       if (id == 0x001e) {
@@ -501,7 +569,13 @@ void Collector::CopyFields(RawObject &object, const Identity &identity, bool rea
       } else ok = false;
     } else {
       const auto base = spec->base == layout::FieldBase::Game ? roots_.game : object.address;
-      ok = Read(std::uint64_t(base) + spec->offset, field.raw.data(), field.width);
+      auto address = std::uint64_t(base) + spec->offset;
+      if (auto *f = storage_.Faults(); f && f->pending == 5) {
+        // 只替换本次读取的源为自有不可读页，SEH 路径与正常 Read 完全相同。
+        f->before.store(static_cast<std::uint32_t>(address)); f->after.store(f->unreadable);
+        address = f->unreadable; f->pending = 0;
+        ok = Read(address, field.raw.data(), field.width); f->applied.store(!ok);
+      } else ok = Read(address, field.raw.data(), field.width);
     }
     if (!ok) { field.raw = {}; field.status = FieldStatus::ReadFailed; Incomplete(Reason::ReadFailed); }
     else if (field.encoding == Encoding::F32 && !Finite(field)) Incomplete(Reason::Nonfinite);
@@ -545,6 +619,12 @@ void Collector::ResolveReferences() noexcept {
       std::uint32_t address = 0; std::memcpy(&address, field.raw.data(), 4);
       const auto result = identities_.ResolveReference(address, *requester);
       field.relation = result.relation; field.target_id = result.local_id; field.target_use = result.use;
+      if (auto *f = storage_.Faults(); address && f && f->pending == 8) {
+        f->before.store(static_cast<std::uint32_t>(result.relation));
+        field.relation = Relation::AmbiguousReuse; field.target_id = 0; field.target_use = 0;
+        f->after.store(static_cast<std::uint32_t>(field.relation)); f->pending = 0; f->applied.store(1);
+        Incomplete(Reason::NotReady);
+      }
     }
   }
 }
@@ -567,6 +647,7 @@ void Collector::Gap(Reason reason, bool authority) noexcept {
   gap.outer = outer_; gap.tick = authority ? authority_.tick : 0;
   gap.scope = authority ? authority_.scope : 0; gap.event_watermark = storage_.EventWatermark();
   gap.recording_generation = generation_; gap.reason = reason;
+  gap.thread = GetCurrentThreadId();
   gap.authority_kind = authority ? static_cast<std::uint32_t>(authority_.kind) : 0;
   if (!storage_.PublishGap(gap)) Fault(Reason::EventOverflow, "gap_publish");
 }
@@ -610,6 +691,12 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
     return post_;
   }
   auto &h = pending_.Header(); h.complete = 1;
+  h.loop = loop_;
+  for (std::size_t i = 1; i < phases_.size(); ++i) {
+    h.phase_scopes[i - 1] = phases_[i].scope;
+    h.phase_entered[i - 1] = phases_[i].entered;
+    h.phase_returned[i - 1] = phases_[i].returned;
+  }
   if (capture_ == UINT64_MAX) { Fault(Reason::SequenceExhausted, "capture"); Incomplete(Reason::SequenceExhausted); }
   else h.capture = ++capture_;
   identities_.BeginBatch(attempt_);
@@ -617,6 +704,9 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
   if (!Value(std::uint64_t(roots_.game) + c.game_frame_offset, game_frame_) ||
       !Value(std::uint64_t(roots_.room) + c.room_grid_width_offset, grid_width_)) Incomplete(Reason::ReadFailed);
   CopySources();
+  bool stable_sources = true;
+  for (const auto &source : h.sources)
+    if (source.status && source.status != kSourceNotApplicable) stable_sources = false;
   for (std::uint32_t i = 0; i < h.object_count && Recording(); ++i) {
     auto &object = pending_.Objects()[i];
     auto *id = identities_.Find(static_cast<ObjectDomain>(object.domain), object.address);
@@ -633,26 +723,52 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
     if (spec->kind == layout::SourceKind::EntityList || spec->kind == layout::SourceKind::Roster) {
       std::uint32_t descriptor[4]{};
       const std::size_t bytes = spec->kind == layout::SourceKind::Roster ? 12 : 16;
+      auto expected = saved.descriptor;
+      if (auto *f = storage_.Faults(); f && f->pending == 6) {
+        f->before.store(expected[0]); expected[0] ^= 1u; f->after.store(expected[0]);
+        f->pending = 0; f->applied.store(1);
+      }
       if (!Read(std::uint64_t(base) + spec->offset, descriptor, bytes) ||
-          std::memcmp(descriptor, saved.descriptor.data(), bytes)) Incomplete(Reason::SourceChanged);
+          std::memcmp(descriptor, expected.data(), bytes)) {
+        stable_sources = false; Incomplete(Reason::SourceChanged);
+      }
     } else {
       for (std::uint32_t i = 0; i < spec->count; ++i) {
         std::uint32_t now = 0;
-        if (!Value(std::uint64_t(base) + spec->offset + i * 4, now)) { Incomplete(Reason::ReadFailed); continue; }
+        if (!Value(std::uint64_t(base) + spec->offset + i * 4, now)) { stable_sources = false; Incomplete(Reason::ReadFailed); continue; }
         const auto original = fixed_addresses_[(source == 9 ? 0u : source == 11 ? 4u : 452u) + i];
-        if (original != now) Incomplete(Reason::SourceChanged);
+        if (original != now) { stable_sources = false; Incomplete(Reason::SourceChanged); }
         if (source == 12 && now) {
           std::uint32_t index = 0;
           auto *id = identities_.Find(ObjectDomain::Grid, now);
           const auto slot = id ? identities_.BatchObjectIndex(*id) : -1;
           if (!Value(std::uint64_t(base) + spec->index_map_offset + i * 4, index) || slot < 0 ||
-              pending_.Objects()[slot].grid_index != index) Incomplete(Reason::SourceChanged);
+              pending_.Objects()[slot].grid_index != index) { stable_sources = false; Incomplete(Reason::SourceChanged); }
         }
       }
     }
   }
   Roots after{};
-  if (!ReadRoots(after) || after != roots_ || polluted_) Incomplete(Reason::RootChanged);
+  auto expected = roots_;
+  if (auto *f = storage_.Faults(); f && f->pending == 7) {
+    f->before.store(expected.index); expected.index ^= 1u; f->after.store(expected.index);
+    f->pending = 0; f->applied.store(1);
+  }
+  if (!ReadRoots(after) || after != expected || polluted_) {
+    stable_sources = false; Incomplete(Reason::RootChanged);
+  }
+  if (!stable_sources) {
+    // 前后复核拒绝时撤销本批 +177 的当前值资格，原始读取不冒充可用字段。
+    RevokePlayer(0); RevokePlayer(1);
+    for (std::uint32_t i = 0; i < h.object_count; ++i) {
+      auto &object = pending_.Objects()[i];
+      if (auto *id = identities_.Find(static_cast<ObjectDomain>(object.domain), object.address))
+        id->current_public_ready = false;
+      for (std::uint32_t f = 0; f < object.field_count; ++f)
+        if (object.fields[f].id == 0x000a && object.fields[f].status == FieldStatus::Value)
+          object.fields[f].status = FieldStatus::NotReady;
+    }
+  }
   Memberships(false);
   h.event_watermark = storage_.EventWatermark();
   if (!Recording()) Incomplete(storage_.Diag().FaultReason());
@@ -722,12 +838,15 @@ bool Collector::Birth(Identity &id, Observation owner) noexcept {
   }
   // 本次取得和完整创建 owner 均被观察；它不授予 FIRST_OBSERVED 对象出生历史。
   id.readiness = static_cast<std::uint32_t>(Readiness::CreationOwnerCompleted);
+  const Call *owner_call = nullptr;
+  for (std::uint32_t i = 0; i < depth_; ++i)
+    if (calls_[i].id == id.owner_scope) owner_call = &calls_[i];
   if (!identities_.ConfirmBirth(id, values, owner)) {
     if (identities_.LastError() != IdentityTable::Error::None)
       Fault(Reason::SequenceExhausted, "birth_sequence");
     return false;
   }
-  return Event(EventKind::BirthConfirmed, Reason::None, &id);
+  return Event(EventKind::BirthConfirmed, Reason::None, &id, owner_call);
 }
 void Collector::CompleteOwner(std::uint32_t call, Observation kind,
                               std::uint32_t result) noexcept {
@@ -783,6 +902,7 @@ std::uint32_t Collector::ObserveEnter(Observation kind, std::uint32_t object,
           Classify(ObjectDomain::Entity, value.address, vptr, base) != Class::Player) return;
       if (value.revision == UINT64_MAX) { Fault(Reason::SequenceExhausted, "restore_revision"); return; }
       ++value.revision; value.readiness = 0; value.birth = 0; value.born = false;
+      value.current_public_ready = false;
       value.candidate = false; value.owner_scope = 0;
       value.origin = static_cast<std::uint32_t>(Origin::FirstObserved);
       Event(EventKind::GapOrUnknown, Reason::Continuity, &value, &call, true);
@@ -791,6 +911,7 @@ std::uint32_t Collector::ObserveEnter(Observation kind, std::uint32_t object,
   if (id && Morph(kind)) {
     // 内层 Init 只给基类依据；外层 Morph 正常返回才恢复派生配置读取。
     id->readiness = 0;
+    id->current_public_ready = false;
   }
   if (id && (kind == Observation::Init || kind == Observation::GridInit)) {
     bool known_owner = CreationOwner(domain) != 0;
@@ -805,6 +926,7 @@ std::uint32_t Collector::ObserveEnter(Observation kind, std::uint32_t object,
       Event(EventKind::GapOrUnknown, Reason::Continuity, id, &call, true);
     }
     id->readiness = 0;
+    id->current_public_ready = false;
   }
   Event(EventKind::NativeHook, Reason::None, id, &call, true);
   return call.id;
@@ -911,7 +1033,10 @@ void Collector::ObserveLeave(std::uint32_t call_id, std::uint32_t result, bool n
       id = identities_.Find(domain, call.object);
       if (id) {
         if (kind == Observation::Init || kind == Observation::GridInit) id->MarkInitReturned();
-        if (Morph(kind)) id->readiness = static_cast<std::uint32_t>(Readiness::CreationOwnerCompleted);
+        if (Morph(kind)) {
+          id->readiness = static_cast<std::uint32_t>(Readiness::CreationOwnerCompleted);
+          id->current_public_ready = true;
+        }
         if (kind == Observation::Destroy) id->MarkDestroyed();
       }
     }

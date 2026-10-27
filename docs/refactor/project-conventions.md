@@ -102,6 +102,7 @@
 - tx-01-73（2026-10-18）用户明确采纳：已有 exact-pair 绑定的 A/B 在有效 Authority 模拟窗口内完成一次原生 PlayerUpdate，正常返回后 generation 与绑定仍一致时，可以将其当前专用字段标为可读。
 - 记录为 `USER_ACCEPTED_CURRENT_PLAYER_UPDATE_WITNESS`（读取依据值 3）；它不是已观察的构造或 Init，也不补造 FIRST_OBSERVED 的出生、复用或成员历史。绑定失效时撤销该依据，重新满足相同条件后才能恢复。
 - 完整世界样本仍只在同 token 的普通 owner、Room 和标准尾部正常完成后、coop TopExit 前复制。Player-only 更新不因此获得完整世界样本资格；未知身份、引用和非有限值仍不能宣称相等。
+- 2026-10-27，用户在 tx-04-08 A 项采纳 `USER_ACCEPTED_CURRENT_ENTITY_BYTE`：Entity 公共字节 `removed_by_factory +0x177` 的当前原值，只对已观察创建 owner 正常完成的受支持 Entity，或已满足本节 PlayerUpdate 规则的 exact-pair A/B，在无生命周期污染且来源/root 前后稳定的完整采集窗口可读。Init、Restore、owner 或绑定失效撤销该资格；Player 重新正常更新后可重建。初始化历史、当前资格与出生分开，不补零、不补出生。随后补证的基 Init 跨字段清零不扩大此授权，也不覆盖未观察历史。
 
 ## 12. 已采纳的 T0-06 E2E 连续计数规则
 

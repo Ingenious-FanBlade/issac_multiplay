@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <span>
+#include <string_view>
 
 // 19 项观察语义单独放在 C++17 兼容的头里：生成的 SDK-facing wrapper 也要用。
 #include "world/observation.h"
@@ -270,9 +271,13 @@ struct BatchHeader final {
   std::uint32_t required_memberships = 0;
   std::uint32_t recording_generation = 0;
   std::uint32_t reason = 0;             // Reason
+  // 实际阶段值随批次交付，供统一 E2E 关联 native pre/commit；不额外调用游戏查询。
+  std::uint64_t loop = 0;
+  std::array<std::uint64_t, 3> phase_scopes{};
+  std::array<std::uint32_t, 3> phase_entered{}, phase_returned{};
   std::array<RawSource, kSourceCount> sources{};
 };
-static_assert(sizeof(BatchHeader) == 472, "BatchHeader 布局必须是 472 字节");
+static_assert(sizeof(BatchHeader) == 528, "BatchHeader 布局必须是 528 字节");
 
 // 原始批次：槽内一次性写满的有效前缀，不把固定容量写成有效数据。
 // objects/memberships 故意不带初始化器，分配时不触碰这两块大数组；
@@ -285,8 +290,8 @@ struct RawBatch final {
   // 清头、来源与计数；对象/成员数组保留旧字节但不再被读取。
   void Reset() noexcept;
 };
-static_assert(sizeof(RawBatch) == 43516376,
-              "RawBatch 布局必须是 43516376 字节，预算表按此计算");
+static_assert(sizeof(RawBatch) == 43516432,
+              "RawBatch 布局必须是 43516432 字节，预算表按此计算");
 
 // 生命周期事件。sequence 由 storage 分配；call/parent 是观察调用编号，
 // 由主线程桥分配，0 表示没有（例如成员关系快照）。
@@ -306,9 +311,16 @@ struct LifecycleEvent final {
   std::uint32_t address = 0;   // 仅诊断
   std::uint32_t result = 0;    // 原生返回值/成员位集，仅诊断
   std::uint32_t memberships = 0;
+  // episode 原始上下文：全部是主线程已观察值，后台不再次读取游戏。
+  std::uint64_t mutation = 0, tick = 0, session = 0, participant_generation = 0;
+  std::uint32_t domain = 0, lifecycle = 0, readiness = 0, ordinal = kNoOrdinal;
+  std::int32_t assignment_key = -1;
+  std::uint32_t device = 0;
+  std::array<std::uint32_t, 8> args{};
+  std::uint32_t arg_count = 0, slot_before = 0, slot_after = 0, thread = 0;
 };
-static_assert(sizeof(LifecycleEvent) == 104,
-              "LifecycleEvent 布局必须是 104 字节，预算表按此计算");
+static_assert(sizeof(LifecycleEvent) == 208,
+              "LifecycleEvent 布局必须是 208 字节，预算通过 sizeof 自动计入");
 
 // 没有数据槽时仍要交付的控制记录：保留 attempt、原因与范围。
 // 它不携带对象/字段，因此不能改写成“完整样本”。
@@ -318,8 +330,21 @@ struct GapRecord final {
   Reason reason = Reason::None;
   std::uint32_t recording_generation = 0;
   std::uint32_t authority_kind = 0; // AuthorityKind
+  std::uint32_t thread = 0; // 实际生产线程，仅用于 odd-only 连续段证据，不参与比较 key。
 };
 static_assert(sizeof(GapRecord) == 80, "GapRecord 布局必须是 80 字节");
+
+// 场景标记只携带主线程已有序号，不触发采样，也不改变身份或连续计数。
+inline constexpr std::uint32_t kCheckpointCapacity = 128;
+// 同一目录/场景标签规则供命令 admission 与 writer 使用，避免 Win32 别名越界。
+bool ValidWorldLabel(std::string_view label) noexcept;
+struct CheckpointRecord final {
+  std::uint64_t request = 0, sequence = 0;
+  std::uint64_t run = 0, room = 0, outer = 0, mutation = 0;
+  std::uint64_t attempt = 0, capture = 0, event_watermark = 0;
+  std::uint32_t recording_generation = 0;
+  char label[65]{};
+};
 
 // ===========================================================================
 // 4. 预算登记
@@ -337,6 +362,7 @@ constexpr std::uint64_t PlannedWorldBytes() noexcept {
   return std::uint64_t(kBatchSlots) * sizeof(RawBatch) + kQueueBytes +
          std::uint64_t(kEventCapacity) * sizeof(LifecycleEvent) +
          std::uint64_t(kGapCapacity) * sizeof(GapRecord) +
+         std::uint64_t(kCheckpointCapacity) * sizeof(CheckpointRecord) +
          kIdentityRecordBytes * kIdentityBudget +
          kRadixNodeBytes * kRadixNodes +
          2 * std::uint64_t(kIoBufferBytes) + kManagementBytes;
@@ -516,7 +542,7 @@ struct LayoutClass final {
   const char *evidence = "";
 };
 
-// writer 需要的 manifest 输入。所有字符串必须是静态生命周期，不复制、不释放；
+// writer 需要的 manifest 输入。表和字符串不复制，owner 必须持有到 writer 真正结束；
 // 未提供布局时 manifest 明确记录布局未声明，而不是伪造偏移。
 struct ManifestInput final {
   const char *session = "";

@@ -59,6 +59,7 @@ struct Identity final {
   bool reused = false;   // 同址被再次取得，跨进程引用因此有歧义风险
   bool published = false;
   bool candidate = false; // 已取得、等待外层 owner 确认出生
+  bool current_public_ready = false; // +177 当前值资格，独立于初始化历史和出生。
   std::uint64_t owner_scope = 0; // 外层创建 owner 的观察作用域（0=未知）
 
   // —— 来源成员关系：committed 是上次已提交快照，pending 是本批累积 ——
@@ -79,6 +80,7 @@ struct Identity final {
   // 基础 Init 正常返回：readiness 降到 1，2/3 的更弱依据被覆盖。
   // 这是保守选择：Morph 内层 Init 之后必须重新等到外层 owner 完成。
   void MarkInitReturned() noexcept {
+    current_public_ready = false;
     readiness = static_cast<std::uint32_t>(Readiness::BaseInitReturned);
   }
   // 加入实体列表只是成员关系观察，不确认出生；首次发布推进 lifecycle。
@@ -92,12 +94,14 @@ struct Identity final {
   }
   // 物理析构：与 allocator 释放分开记录。
   void MarkDestroyed() noexcept {
+    current_public_ready = false;
     destroyed = true;
     published = false;
     lifecycle = static_cast<std::uint32_t>(Lifecycle::Destroyed);
   }
   // 撤销“当前 Player 读取依据”；创建 owner 依据（2）不受影响。
   void RevokeCurrentWitness() noexcept {
+    current_public_ready = false;
     if (readiness ==
         static_cast<std::uint32_t>(Readiness::CurrentPlayerUpdateWitness))
       readiness = static_cast<std::uint32_t>(Readiness::NoObservedInit);

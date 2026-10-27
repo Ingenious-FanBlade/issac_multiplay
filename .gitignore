@@ -15,6 +15,13 @@
 /artifacts/repentogon/*/save_*/**
 !/artifacts/repentogon/*/save_*/snapshot.json
 
+# tx07 窗口内的存档字节只留本地；保留采样窗口和文件元数据供复查。
+/artifacts/repentogon/*/file-windows/**
+!/artifacts/repentogon/*/file-windows/*/
+!/artifacts/repentogon/*/file-windows/*/window.json
+!/artifacts/repentogon/*/file-windows/*/snapshot/
+!/artifacts/repentogon/*/file-windows/*/snapshot/snapshot.json
+
 # 启动失败时的整屏截图可能拍到其他窗口的内容，只留在本地，不进版本管理。
 /artifacts/repentogon/*/*/desktop.bmp
 /cs-t0/

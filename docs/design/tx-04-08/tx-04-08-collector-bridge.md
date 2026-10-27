@@ -72,7 +72,7 @@ Collector 固定工作表位于堆上，并将本体实际大小计入 storage �
 4. 在 Manager 命令边界调用 `AttachPreparedWorld`。成功表示已接收上下文；**下一次最外层 Manager 入口才 Activate**，避免补造当前半个窗口。不能在 Preparing/Recording/Closing 时替换未收口的上下文。
 5. stop 调用 `StopWorldRecording`；主线程只做配对收束，最后一个 outer/观察作用域/pending 归还后才向 storage 发停止信号。后续读取 writer/storage 原子状态确认 drain/flush，不能在 DllMain join 或提前销毁上下文。
 
-配置 `world_record.enabled=false`、`output_dir="isaac-cs/world"`、`close_timeout_ms=10000` 已可解析；顶层 C/S 关闭不注册 Hook，world 允许注册也不自动开始录制。此次尚未增加 `cs world start/stop/status/checkpoint` 命令或后台 Preparing worker。直接窗口关闭的完整退出协调仍按 ST8 保留 UNKNOWN，没有新增 Shutdown Hook，也没有声称自动获得十秒排空窗口。
+配置 `world_record.enabled=false`、`output_dir="isaac-cs/world"`、`close_timeout_ms=10000` 已可解析；顶层 C/S 关闭不注册 Hook，world 允许注册也不自动开始录制。此次 collector 编写时尚未增加 `cs world start/stop/status/checkpoint` 命令或后台 Preparing worker；2026-10-27 后续已完成[命令与准备编排](tx-04-08-world-commands.md)的代码编写和纯编译链接，未运行测试。直接窗口关闭的完整退出协调仍按 ST8 保留 UNKNOWN，没有新增 Shutdown Hook，也没有声称自动获得十秒排空窗口。
 
 ## 7. 构建与验收状态
 

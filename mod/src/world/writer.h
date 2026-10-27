@@ -45,6 +45,7 @@ struct WriterStatus final {
   bool producer_done = false;   // reader 已关闭队列生产端
   bool drain_complete = false;  // writer 看到队列排空且生产端已结束
   bool write_failed = false;
+  bool result_written = false; // result.json 自身也必须成功写入并刷盘。
   std::uint64_t records_written = 0, events_written = 0, gaps_written = 0,
                 diagnostics_written = 0, discarded_items = 0;
   std::uint64_t write_calls = 0, bytes_written = 0;

@@ -298,7 +298,7 @@
     {"id": "0x0007", "name": "visible", "width": 1, "encoding": "Raw", "base": "entity", "owner": "Entity", "offset": "0x171", "status": "InitConfirmed", "sdk_member": "_visible", "evidence": "Entity Init 0x6A4BCC: mov dword [esi+171h],101h（物理写宽为 4）"},
     {"id": "0x0008", "name": "exists", "width": 1, "encoding": "Raw", "base": "entity", "owner": "Entity", "offset": "0x172", "status": "InitConfirmed", "sdk_member": "_exists", "evidence": "Entity Init 0x6A4BCC 的 dword 0x101 覆盖此 byte，最终为 1"},
     {"id": "0x0009", "name": "dead", "width": 1, "encoding": "Raw", "base": "entity", "owner": "Entity", "offset": "0x173", "status": "InitConfirmed", "sdk_member": "_dead", "evidence": "Entity Init 0x6A4BCC 的 dword 0x101 覆盖此 byte，最终为 0"},
-    {"id": "0x000A", "name": "removed_by_factory", "width": 1, "encoding": "Raw", "base": "entity", "owner": "Entity", "offset": "0x177", "status": "InitUnknown", "sdk_member": "_removedByFactory", "evidence": "SDK 宽度确认；本轮所读 ctor/Init 未见明确初始化写入，不补默认零（ST3 §2.2）"},
+    {"id": "0x000A", "name": "removed_by_factory", "width": 1, "encoding": "Raw", "base": "entity", "owner": "Entity", "offset": "0x177", "status": "InitConfirmed", "sdk_member": "_removedByFactory", "evidence": "tx-04-08 A 补正：基 Init 0x6A4BD6 mov word ptr [esi+176h],0 覆盖 +176/+177（旧 ST3 漏跨字段宽写）；Factory reuse 临时置位/清位不是恒零保证。当前值另按 2026-10-27 USER_ACCEPTED_CURRENT_ENTITY_BYTE：已完成创建 owner 或 exact-pair PlayerUpdate、无污染且来源/root前后稳定；Init/Restore/重绑失效撤销，不补出生。"},
     {"id": "0x000B", "name": "position.x", "width": 4, "encoding": "F32", "base": "entity", "owner": "Entity", "offset": "0x33C", "status": "InitDefault", "sdk_member": "_pos.x", "evidence": "Entity ctor 0x6A3D76 写 dword 0；Init 0x6A4E37 读取，不是位置恒为 0"},
     {"id": "0x000C", "name": "position.y", "width": 4, "encoding": "F32", "base": "entity", "owner": "Entity", "offset": "0x340", "status": "InitDefault", "sdk_member": "_pos.y", "evidence": "Entity ctor 0x6A3D6C 写 dword 0；Init 0x6A4E45 读取"},
     {"id": "0x000D", "name": "velocity.x", "width": 4, "encoding": "F32", "base": "entity", "owner": "Entity", "offset": "0x360", "status": "InitDefault", "sdk_member": "_velocity.x", "evidence": "Entity ctor 0x6A3DB2 写 dword 0；Init 0x6A4E51 读取"},
@@ -392,7 +392,7 @@
     "world 观察入口按 -10000 优先级登记（比 REPENTOGON 默认层更外层），单层观察到的是本层进入/返回；原生 body 是否到达仍为 UNKNOWN。"
   ],
   "unknowns": [
-    "removed_by_factory +0x177 在本轮所读 ctor/Init 内的初值来源。",
+    "removed_by_factory +0x177 的基 Init 清零已补证；构造前/未观察 Init 的历史与所有写入方闭包仍未知，不由当前位置补造。",
     "Player/Tear/Projectile 的额外 State/Timeout 字段：未确认，不补零、不套用其他类别布局。",
     "Grid +0x3C 在 GridInit 虚调 0x705085 返回后的最终值。",
     "Bomb/Laser/Knife/Slot/Text/Dummy 等派生类不属于七类专用 schema；只输出 UnknownEntity 头部与原因。",

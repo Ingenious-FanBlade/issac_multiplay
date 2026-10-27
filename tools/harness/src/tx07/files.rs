@@ -271,7 +271,7 @@ fn watch(
 }
 impl Run {
     // 与运行首尾采用相同冻结根集合；读取期间元数据变化单列，不拿快照当原子文件事务。
-    pub(super) fn files_tx07(&mut self, label: &str) -> Result<()> {
+    pub(crate) fn files_tx07(&mut self, label: &str) -> Result<()> {
         let start = std::time::SystemTime::now();
         let root = self.out.join("file-windows").join(label);
         let saves = self.saves.as_ref().ok_or("save_roots_not_discovered")?;

@@ -84,6 +84,7 @@ struct Diagnostics final {
   std::atomic<std::uint64_t> gaps_produced{0}, gaps_consumed{0},
       gaps_written{0};
   std::atomic<std::uint64_t> batches_copied{0}, batches_written{0};
+  std::atomic<std::uint64_t> checkpoints_produced{0}, checkpoints_written{0};
   std::atomic<std::uint64_t> backpressure{0}, budget_waits{0};
   std::atomic<std::uint64_t> callbacks{0}, callback_faults{0};
   std::atomic<std::uint64_t> copy_max_ns{0};
@@ -127,7 +128,7 @@ struct OwnedBatch final {
   OwnedBatch &operator=(const OwnedBatch &) = delete;
 };
 
-enum class ItemKind : std::uint32_t { Batch, Events, Gaps };
+enum class ItemKind : std::uint32_t { Batch, Events, Gaps, Checkpoints };
 
 // 队列项：一次复制或一段事件/控制记录，计费字节含其自身管理开销。
 struct QueueItem final {
@@ -136,6 +137,7 @@ struct QueueItem final {
   OwnedBatch batch{};
   std::vector<LifecycleEvent> events{};
   std::vector<GapRecord> gaps{};
+  std::vector<CheckpointRecord> checkpoints{};
 
   QueueItem() noexcept = default;
   QueueItem(QueueItem &&) noexcept = default;
@@ -210,6 +212,17 @@ struct FaultSwitches final {
   std::atomic<bool> pause_reader{false};
   // 作家关闭自有 captures 句柄，使下一次真实 WriteFile 失败。
   std::atomic<bool> drop_capture_file{false};
+  // 自动恢复期限；stop/fault 路径忽略暂停，绝不暂停游戏线程。
+  std::atomic<std::uint64_t> pause_until{0};
+  std::atomic<std::uint32_t> mode{0}, value{0}, applied{0}, before{0}, after{0};
+  std::atomic<std::uint32_t> rejection{0}; // 实际 Incomplete 分支，不被较早的首因遮蔽。
+  std::atomic<std::uint64_t> attempt{0}, watermark{0};
+  std::atomic<bool> worker_done{true};
+  std::atomic<bool> reader_paused{false};
+  // 以下字段只有主线程访问，录制 owner 在后台准备与释放不可读页。
+  std::uint32_t object_limit = kObjectBudget, membership_limit = kMembershipBudget,
+                relation_limit = kRelationNodes, unreadable = 0;
+  std::uint32_t pending = 0;
 };
 
 struct StorageConfig final {
@@ -309,6 +322,8 @@ public:
   bool PublishEvent(LifecycleEvent event) noexcept;
   // gap 控制记录：独立固定容量；交付失败即停用录制。
   bool PublishGap(const GapRecord &gap) noexcept;
+  // 独立有界控制环；满或通知失败只使 world 故障，不能静默丢场景标记。
+  bool PublishCheckpoint(const CheckpointRecord &checkpoint) noexcept;
   // 最近一次已发布的事件序号；用于批次 event_watermark。
   std::uint64_t EventWatermark() const noexcept;
 

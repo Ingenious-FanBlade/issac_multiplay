@@ -48,11 +48,12 @@ fixture:AddCallback(ModCallbacks.MC_POST_RENDER, function()
     observe("lua-run", "run")
 end)
 
-local knownMode = config.tx == "tx-04-05" or config.tx == "tx-04-06" or config.tx == "tx-04-07"
+local worldMode = config.tx == "tx-04-08"
+local knownMode = config.tx == "tx-04-05" or config.tx == "tx-04-06" or config.tx == "tx-04-07" or worldMode
 if not knownMode then return end
 
 -- tx-04-05/06：保留既有行为（F8 第一次跳帧、第二次切房），供旧场景使用。
-if config.tx ~= "tx-04-07" then
+if config.tx ~= "tx-04-07" and not worldMode then
     local logPrefix = config.tx == "tx-04-06" and "tx06" or "tx05"
 
     -- 每条结构化记录带本次部署标识和 Manager 快照轮次，拒绝沿用旧 log.txt 的记录。
@@ -204,7 +205,7 @@ end
 -- 每次 F8 只接受一个动作；完成前再次按下记为 rejected，不推进动作序号。
 -- 本夹具不重试动作，也不把 Lua 返回值当作 DLL 绑定或 generation 证据。
 -- ============================================================================
-local logPrefix = "tx07"
+local logPrefix = worldMode and "tx08" or "tx07"
 -- 主线程渲染计数；用于超时、心跳与日志关联，不等同于 Authority tick。
 local render, serial = 0, 0
 local failed = false
@@ -245,6 +246,14 @@ local ACTION_NAMES = {
     revive_b = true,
     stage = true,
 }
+-- world 扩展复用单一 F8 队列；不建立第二个会消费同一次按键的回调。
+local worldFixture = worldMode and include("world_fixture") or nil
+if worldFixture then
+    for name in pairs(worldFixture.names) do
+        ACTION_NAMES[name] = true
+        ACTION_TIMEOUTS[name] = 30000
+    end
+end
 -- 配置未提供动作表时使用与场景一致的默认序列；正式 harness 必须写出显式动作表。
 local DEFAULT_ACTIONS = { "skip", "room", "kill_b", "revive_b", "stage", "room" }
 
@@ -440,7 +449,13 @@ local function normalizeActions()
         if timeout ~= nil and (type(timeout) ~= "number" or timeout <= 0) then
             return nil, "invalid timeout at " .. index
         end
-        result[#result + 1] = { name = name, timeout_ms = timeout or ACTION_TIMEOUTS[name] }
+        local spec = { name = name, timeout_ms = timeout or ACTION_TIMEOUTS[name] }
+        if type(item) == "table" then
+            for key, value in pairs(item) do
+                if key ~= "name" and key ~= "timeout_ms" then spec[key] = value end
+            end
+        end
+        result[#result + 1] = spec
     end
     return result
 end
@@ -702,6 +717,10 @@ local ACTION_HANDLERS = {
     revive_b = requestReviveB,
     stage = requestStage,
 }
+if worldFixture then
+    worldFixture.install(fixture, config, emit, finishAction, currentWitness)
+    for name in pairs(worldFixture.names) do ACTION_HANDLERS[name] = worldFixture.request end
+end
 
 -- 一个新动作：先记录 request，再调用对应处理器；处理器失败即夹具错误，不重试。
 local function startAction(requestId)
@@ -725,6 +744,7 @@ local function startAction(requestId)
         phase = "requested",
         before = before,
         data = {},
+        spec = spec,
     }
     nextIndex = nextIndex + 1
     emit("action", { phase = "request", action = spec.name, action_id = pending.action_id,
@@ -902,6 +922,10 @@ end
 local function pollPending()
     local current = pending
     if current == nil or current.name == "skip" then return end
+    if worldFixture and worldFixture.names[current.name] then
+        worldFixture.poll(current)
+        return
+    end
     if current.phase == "waiting_room" then
         pollRoom(current)
     elseif current.phase == "waiting_ghost" then

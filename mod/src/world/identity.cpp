@@ -211,6 +211,7 @@ void IdentityTable::ResetAssociations() noexcept {
   for (std::uint32_t i = 0; i < used_; ++i) {
     identities_[i].lifecycle = static_cast<std::uint32_t>(Lifecycle::Retiring);
     identities_[i].readiness = 0;
+    identities_[i].current_public_ready = false;
     identities_[i].ordinal = kNoOrdinal;
     identities_[i].memberships = 0;
   }
@@ -263,6 +264,7 @@ Identity *IdentityTable::MarkCurrentWitness(std::uint32_t ordinal) noexcept {
     return nullptr;
   identity->readiness =
       static_cast<std::uint32_t>(Readiness::CurrentPlayerUpdateWitness);
+  identity->current_public_ready = true;
   return identity;
 }
 
@@ -271,7 +273,7 @@ Identity *IdentityTable::RevokeCurrentWitness(std::uint32_t ordinal) noexcept {
     auto &identity = identities_[i];
     if (identity.ordinal != ordinal)
       continue;
-    if (identity.readiness !=
+    if (!identity.current_public_ready && identity.readiness !=
         static_cast<std::uint32_t>(Readiness::CurrentPlayerUpdateWitness))
       continue;
     identity.RevokeCurrentWitness();
@@ -300,6 +302,7 @@ bool IdentityTable::Acquire(Identity &id, Observation kind, bool physical,
   id.origin = static_cast<std::uint32_t>(Origin::ObservedCreation);
   id.lifecycle = static_cast<std::uint32_t>(Lifecycle::Acquired);
   id.readiness = static_cast<std::uint32_t>(Readiness::NoObservedInit);
+  id.current_public_ready = false;
   id.birth = 0;
   id.born = false;
   id.revision = 0;
@@ -333,6 +336,7 @@ bool IdentityTable::ConfirmBirth(Identity &id, const BirthValues &values,
     return false;
   id.birth = birth;
   id.born = true;
+  id.current_public_ready = true;
   id.candidate = false;
   if (IsCreationOwner(kind))
     id.readiness =

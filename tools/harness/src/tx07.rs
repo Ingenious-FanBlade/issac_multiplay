@@ -1,6 +1,6 @@
 //! tx-04-07 单启动四轮：Stop、PeerBye、PeerTimeout、RunTeardown；失败保留现场且不重跑。
 mod evidence;
-mod files;
+pub(crate) mod files;
 use crate::{
     Control, Result, Run,
     relay::{Profile, Relay},
@@ -440,7 +440,7 @@ impl Run {
         Ok(())
     }
     // Continue 根据实际菜单 ID/选项推进，只在选中 Continue(1) 后发确认键。
-    fn continue_tx07(&mut self, g: &win32::Game, w: usize, c: &mut Control) -> Result<()> {
+    pub(super) fn continue_tx07(&mut self, g: &win32::Game, w: usize, c: &mut Control) -> Result<()> {
         let s = c.command("cs status")?;
         match s.get("menu_id").map(String::as_str) {
             Some("1") => {

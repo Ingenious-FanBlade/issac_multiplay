@@ -1,5 +1,7 @@
 # isaac-cs-test（临时 E2E 夹具）
 
+tx-04-08 扩展及后续[ABC实现](../../../docs/design/tx-04-08/tx-04-08-abc-implementation.md)：复用同一F8队列，world_fixture已接具体七类Entity/Grid参数和原始episode索引。特殊Player Replace资格仍UNKNOWN/默认禁用，具体参数与原生覆盖均未实机验收。tx08关闭自动菜单Host，world真正Recording后才由harness Host/Join创建B；两次启动使用不同fixture token。下文tx07约定保持原范围。
+
 本目录是 tx-04-05/06/07 的临时测试夹具，不是产品 gameplay mod。tx-04-07 的公共入口、屏幕日志和事件只由
 [`tools/harness`](../../../tools/harness) 的部署流程启用；harness 每次运行都会复制本目录到游戏 `mods/isaac-cs-test`，
 写入本次 `harness_config.lua`，结束后删除。
@@ -76,3 +78,7 @@
 
 所有记录都是只读观测加显式测试动作（Kill/Revive/Stage/Room）；夹具不写 Player 字段、不修改 Door、
 不终止或跳过 Appear、不调用 `MorphToCoopGhost`。
+## tx-04-08 ABC 后续实现
+
+world_fixture 的具体参数、位置/空格/标签保护、PathTrail作用域、真实MC_POST_RENDER视图和原生episode归约见[ABC实现说明](../../../docs/design/tx-04-08/tx-04-08-abc-implementation.md)。默认scenario已启用七类Entity（Player仍由原生新局/Host/Join）和Grid覆盖/移除；特殊Player Replace仍UNKNOWN/禁用。只编译，未运行Lua或游戏；上方早先通用夹具记录按原时点保留。
+

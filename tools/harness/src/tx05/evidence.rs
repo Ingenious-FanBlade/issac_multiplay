@@ -164,7 +164,7 @@ fn neutral_by_lead(ticks: &[&Event], r: &Value, release: &str, end: &str, axis: 
 
 impl Run {
     // 单启动不制造新的关闭配置样本；历史 D18 仅对同源、完全相同的字节变化放行。
-    pub(super) fn apply_recorded_baseline_tx05(&mut self, changes: &mut Value) -> Result<()> {
+    pub(crate) fn apply_recorded_baseline_tx05(&mut self, changes: &mut Value) -> Result<()> {
         let before=self.out.join("save_before");let after=self.out.join("save_after");
         self.apply_recorded_baseline_between(changes,&before,&after)
     }

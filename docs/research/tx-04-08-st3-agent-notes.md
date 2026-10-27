@@ -1,5 +1,7 @@
 # tx-04-08 ST3 静态逆向代理笔记
 
+> 2026-10-27 A项补正：原字段表的 `removed_by_factory +0x177` InitUnknown 漏掉基 Init VA0x6A4BD6的16位清零。后续[原始证据与主审](../design/tx-04-08/tx-04-08-abc-implementation.md)已将layout改为InitConfirmed，并独立接入用户采纳的当前值资格。下面保留原ST3记录，不将旧UNKNOWN继续作为当前结论。
+
 日期：2026-10-26  
 目标：`isaac-ng-v1.9.7.12.exe.unpacked.exe`，IDA imagebase `0x400000`；SDK `F:/projects_isaac/REPENTOGON-1.1.3`。  
 范围：旧 `min-read-v1` 的七类 Entity、Grid（共 78 个字段 ID）逐字段布局、宽度、初始化依据。这里只记录静态证据，不运行游戏、调试器、构建、测试、校验或哈希工具，也不修改 IDB。

@@ -7,6 +7,22 @@
 #include <cstring>
 
 namespace cs::world {
+bool ValidWorldLabel(std::string_view label) noexcept {
+  if (label.empty() || label.size() > 64 || label.back() == '.' ||
+      label.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-") != std::string_view::npos)
+    return false;
+  const auto stem = label.substr(0, label.find('.'));
+  char upper[5]{};
+  if (stem.size() <= 4) {
+    for (size_t i = 0; i < stem.size(); ++i)
+      upper[i] = stem[i] >= 'a' && stem[i] <= 'z' ? char(stem[i] - 'a' + 'A') : stem[i];
+    const std::string_view name(upper, stem.size());
+    if (name == "CON" || name == "PRN" || name == "AUX" || name == "NUL" ||
+        (name.size() == 4 && (name.substr(0, 3) == "COM" || name.substr(0, 3) == "LPT") &&
+         name[3] >= '1' && name[3] <= '9')) return false;
+  }
+  return label != "." && label != "..";
+}
 namespace {
 
 // 把 0 起始的连续 ID 展开成定长数组，供类别允许集合拼接使用。

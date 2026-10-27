@@ -1,5 +1,15 @@
 # C/S研究与状态同步文档
 
+> **tx-04-08 A/B/C 工程续作（2026-10-27，D32）**：[实现、静态主审与未覆盖项](design/tx-04-08/tx-04-08-abc-implementation.md)。A 修正 +177 跨字段初始化漏项并接入本轮用户采纳的当前值/撤销规则；B 接通受token/generation限定的11类故障、独立录制编排和实际证据归约；C 加入七类Entity/Grid具体参数、真实覆盖/移除与episode索引。特殊Player Replace资格仍UNKNOWN/默认禁用，复用与重复发布须实际观察。Rust及完整DLL纯编译成功，未部署、启动游戏或测试。D–G与唯一整体E2E仍未完成。
+
+> **tx-04-08 工程任务索引（2026-10-27，D32）**：[A–G任务清单](design/tx-04-08/tx-04-08-current-engineering-tasks.md)保留本轮前缺口与交付要求，以上方ABC续作更新为当前状态；仍不是“只剩运行验收”。下方代码交付/纯编译记录保留原时点。
+
+> **tx-04-08 Lua 夹具与统一 E2E harness（2026-10-27，D32）**：已编写 F8 世界动作扩展、两次启动独立确认、2,000/256 次文件归约、真实关闭/Continue、L1–L7 CLI 编排及环境恢复，见[实现说明与未覆盖项](design/tx-04-08/tx-04-08-harness.md)。仅纯编译，未部署、启动游戏或测试；具体世界动作参数、故障注入入口、RNG 前后见证和直接退出等限制如实保留，整个 tx-04-08 未验收。下方历史进度保留其原时点。
+
+> **tx-04-08 离线 replay／compare（2026-10-27，D32）**：已接入 harness 的两个独立文件命令，完成严格模型、全量 canonical 重编码、生命周期/checkpoint 读取、显式 legacy 导入、构建/布局兼容检查、对齐证据和分层比较，见[实现、命令与 alignment 格式](design/tx-04-08/tx-04-08-world-offline.md)。Rust Release 纯编译成功；未运行 replay/compare、测试或游戏，L1–L7 与唯一整体 E2E 仍未执行。下方历史未实现记录保留原时点。
+
+> **tx-04-08 cs world 命令（2026-10-27，D32）**：已编写 `start/stop/status/checkpoint`、异步 Preparing/关闭、Manager 边界接收与独立 checkpoint 产物。见[命令、线程和范围说明](design/tx-04-08/tx-04-08-world-commands.md)及[纯编译链接记录](../artifacts/repentogon/tx-04-08-world-commands/README.md)。完整 DLL 编译链接成功；未测试、未启动游戏、未部署，完整 tx-04-08 的唯一整体 E2E、2,000 次及双进程比较仍未执行。下方历史“命令未实现”与构建失败记录保留原时点。
+
 > **tx-04-08 SDK 构建兼容修复（2026-10-27，D32）**：已修复完整 DLL 的 `friend static` 编译阻断。`JoinMode/JoinCreate` 声明移到 C++17 `bridge.h`，Host 补丁移除 C++20 状态头依赖，Host/Odd 两个 SDK 适配单元单独用 C++17；核心继续 C++20，SDK、汇编与补丁行为未修改。在全新构建目录完成全部 DLL 单元及 core/net/world 的编译和链接，产物 `out/repentogon/zhlIsaacCS.dll`。见[修改与完整构建日志](../artifacts/repentogon/tx-04-08-sdk-build-fix/README.md)。仅纯构建，未测试、未启动游戏；下方构建失败记录保留其原时点。
 
 > **tx-04-08 collector、主线程桥与 post-state（2026-10-27，D32）**：已完成本项代码编写，见[实现说明与保守范围](design/tx-04-08/tx-04-08-collector-bridge.md)。新增主线程只读 collector、Manager/阶段/生命周期与 A/B witness 桥、六种本地 post-state、clock 提交后匹配批次发布；19 项观察由同一清单派生内层 native witness，待注册 **79/96**（distinct RVA 59）。world 能力由独立配置允许注册，录制仍需后续命令/后台准备编排。`InitUnknown` 字段保留 UNCONFIRMED，含该字段的批次不冒称完整，2,000 次仍未达成。仅代码生成与纯编译，未测试、未启动游戏；整 DLL 仍有既有 SDK `friend static` 编译错误。命令/离线工具/夹具/统一整体 E2E 待继续，下方记录保留原时点。

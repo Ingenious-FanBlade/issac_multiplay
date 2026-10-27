@@ -77,12 +77,24 @@ Config ReadConfig() {
       if (!v.IsObject() || !v.HasMember("enabled") || !v["enabled"].IsBool())
         throw std::runtime_error("world_record.enabled");
       c.world_record_enabled = v["enabled"].GetBool();
+      if (v.HasMember("e2e_token")) {
+        const auto &token = v["e2e_token"];
+        if (!token.IsString() || !token.GetStringLength() || token.GetStringLength() > 96 ||
+            std::strlen(token.GetString()) != token.GetStringLength())
+          throw std::runtime_error("world_record.e2e_token");
+        c.world_e2e_token = token.GetString();
+        if (c.world_e2e_token.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-") != std::string::npos)
+          throw std::runtime_error("world_record.e2e_token_chars");
+      }
       if (v.HasMember("output_dir")) {
         if (!v["output_dir"].IsString() || !v["output_dir"].GetStringLength() ||
             v["output_dir"].GetStringLength() > 240 ||
             std::strlen(v["output_dir"].GetString()) != v["output_dir"].GetStringLength())
           throw std::runtime_error("world_record.output_dir");
         c.world_output_dir = v["output_dir"].GetString();
+        for (const unsigned char byte : c.world_output_dir)
+          if (byte < 0x20 || byte == 0x7f)
+            throw std::runtime_error("world_record.output_dir_control");
       }
       if (v.HasMember("close_timeout_ms")) {
         if (!v["close_timeout_ms"].IsUint() || !v["close_timeout_ms"].GetUint() ||

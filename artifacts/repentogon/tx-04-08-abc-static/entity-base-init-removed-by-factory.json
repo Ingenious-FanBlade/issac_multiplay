@@ -1,0 +1,45 @@
+{
+  "target": {
+    "module": "isaac-ng-v1.9.7.12.exe.unpacked.exe",
+    "imagebase": "0x400000",
+    "ida_path": "C:\\Users\\114514\\AppData\\Local\\Temp\\claude\\F--projects-isaac-issac-multiplay\\910d48ab-e91d-4daa-b1b5-2a86b9899653\\scratchpad\\v12\\isaac-ng-v1.9.7.12.exe.unpacked.exe.i64",
+    "analysis_ready": true
+  },
+  "method": "只读 IDA disassembly/bytes 查询；没有改动 IDB、运行游戏、测试、构建或校验。",
+  "entity_base_constructor": {
+    "va": "0x6A3940",
+    "rva": "0x2A3940",
+    "instruction_count": 201,
+    "result": "本次逐条读取的 base constructor 中未见显式 [this+0x174..0x177] 成员写，也未见 memset/rep movs/stos 形式的对象块清零；这不是全程序或间接别名写入闭包。"
+  },
+  "entity_base_init": {
+    "va": "0x6A4A20",
+    "rva": "0x2A4A20",
+    "instruction_count": 201,
+    "relevant_instructions": [
+      {
+        "va": "0x6A4BCC",
+        "instruction": "mov dword ptr [esi+171h], 101h",
+        "bytes": "C7 86 71 01 00 00 01 01 00 00",
+        "note": "相邻的宽写；用于精确定位后续指令。"
+      },
+      {
+        "va": "0x6A4BD6",
+        "instruction": "mov word ptr [esi+176h], 0",
+        "bytes": "66 C7 86 76 01 00 00 00 00",
+        "write_width": 2,
+        "covered_offsets": ["+0x176", "+0x177"],
+        "note": "little-endian word zero 明确把 Entity._removedByFactory (+0x177) 初始化为 0。"
+      },
+      {
+        "va": "0x6A4DAE",
+        "instruction": "mov byte ptr [esi+175h], 0",
+        "note": "独立邻近字段写；不替代前述 +0x176 word store 的覆盖范围。"
+      }
+    ]
+  },
+  "limits": [
+    "证据只证明 Entity base Init 中存在覆盖 +0x177 的零写；不证明任意派生 Init、Hook 或之后的 owner 不会再写该字节。",
+    "初始化历史与样本当前值读取资格是不同问题；读取资格按本次会话已采纳的 current-public-ready 规则另行判定。"
+  ]
+}
