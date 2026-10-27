@@ -15,3 +15,5 @@ if($LASTEXITCODE) { throw 'Harness build failed' }
 Copy-Item -LiteralPath (Join-Path $repoRoot 'build/harness/i686-pc-windows-msvc/release/harness.exe') -Destination (Join-Path $repoRoot 'out/repentogon/harness.exe')
 Copy-Item -LiteralPath (Join-Path $repoRoot 'build/repentogon/generated/hook-manifest.json') -Destination (Join-Path $repoRoot 'out/repentogon/hook-manifest.json')
 Copy-Item -LiteralPath (Join-Path $repoRoot 'build/repentogon/generated/hook-manifest.md') -Destination (Join-Path $repoRoot 'out/repentogon/hook-manifest.md')
+# tx-04-08：布局清单（字段偏移/来源/RTTI/常量）与 Hook 清单一同落到产物目录。
+Copy-Item -LiteralPath (Join-Path $repoRoot 'build/repentogon/generated/world-layout.json') -Destination (Join-Path $repoRoot 'out/repentogon/world-layout.json')

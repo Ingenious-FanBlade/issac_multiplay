@@ -24,6 +24,12 @@ void RefreshVersion() noexcept {
 void *GamePointer() noexcept {
   return Base ? *reinterpret_cast<void **>(Base + offset::Game) : nullptr;
 }
+bool WorldObservationArmed() noexcept {
+  // tx-04-08：world 观察清单已生成并参与 binding 校验，但主线程桥、录制命令
+  // 与配置 world_record.enabled 尚未实现。该项完成前不安装，避免在没有消费
+  // 者的情况下留下常驻 detour；桥接项只需把这里改为读取配置。
+  return false;
+}
 } // namespace cs
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID reserved) {
   // 加载阶段只关闭线程通知；进程终止时只用 Win32 句柄尽力补写 trace。

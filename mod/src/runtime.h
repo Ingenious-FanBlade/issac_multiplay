@@ -11,13 +11,24 @@
 #include <winsock2.h>
 
 namespace cs {
-inline constexpr char Version[] = "0.4.0-tx-04-07";
-// Observe 是 tx-04-07 新增的只读观察组：入口特征不符时只关闭这些观察记录，
-// 不影响 loop/input/player/join/control/device 的既有能力。
-enum class Group { Loop, Input, Player, Join, Control, Device, Observe, Count };
-inline constexpr const char *GroupNames[] = {"loop",    "input",  "player",
+inline constexpr char Version[] = "0.4.0-tx-04-08";
+// Group 决定能力组：某组 binding 不符时只关闭该组。
+// Observe 是 tx-04-07 新增的只读观察组；World 是 tx-04-08 的 world_record
+// 观察组（19 项观察语义），它有独立的 world 故障策略，不进入会话失败路径。
+enum class Group {
+  Loop,
+  Input,
+  Player,
+  Join,
+  Control,
+  Device,
+  Observe,
+  World,
+  Count
+};
+inline constexpr const char *GroupNames[] = {"loop",    "input", "player",
                                              "join",    "control", "device",
-                                             "observe"};
+                                             "observe", "world"};
 enum class Owner {
   None,
   Manager,
@@ -116,6 +127,22 @@ public:
   }
 };
 
+// 单个原生参数的 ABI 描述（tx-04-08）。
+//
+// ZHL 的 ArgData 用 `_size == 0` 表示"值在寄存器里"，非零表示占用的栈
+// word 数。旧生成器按逗号数推断参数个数并一律给 `{NoRegister, 1}`，无法
+// 表达 GridFactory 的 ECX/EDX。本结构把两种形态分开表达，寄存器编号与
+// HookSystem::GPRegisters / XMMRegisters 的枚举值一致。
+struct HookArg {
+  enum class Kind : std::uint8_t { Stack = 0, GpRegister = 1, XmmRegister = 2 };
+  Kind kind = Kind::Stack;
+  std::uint8_t reg = 0;    // 寄存器编号；Stack 时不使用
+  std::uint16_t size = 1;  // Stack 时的栈 word 数；寄存器参数为 0
+};
+
+// 非 world 观察入口的 sentinel。
+inline constexpr std::uint32_t kHookObservationNone = 0xFFFFFFFFu;
+
 // 单个常驻 Hook 的 ABI、注册状态与只增计数。
 struct Hook {
   const char *id;
@@ -129,9 +156,27 @@ struct Hook {
   bool own;
   int args, flags, priority;
   Owner owner;
+  // tx-04-08：world 观察入口的显式 ABI 表与语义编号；其他记录保持默认。
+  // 自有定义按 arg_spec 构造真实 ArgData；官方定义仍复用 REPENTOGON 的
+  // ArgData，这里的 arg_spec 只作清单/校验用途。
+  const HookArg *arg_spec = nullptr;
+  std::uint32_t observation = kHookObservationNone;
+  bool world = false;
   std::atomic<uint64_t> calls{}, foreign{}, completed{};
   bool registered = false;
 };
+
+// 待注册表的容量报告。容量与行数来自生成清单（binding/hook_capacity.h），
+// 注册阶段必须显式报告，不能像旧实现那样静默丢弃超限记录。
+struct HookCapacity final {
+  std::size_t capacity = 0, used = 0, rejected = 0;
+};
+HookCapacity PendingHookCapacity() noexcept;
+// 被容量拒绝的记录（最多保留 8 项用于停用对应能力组）。
+Hook *const *RejectedHooks(std::size_t &count) noexcept;
+// tx-04-08：world 观察组是否允许安装。主线程桥与录制命令尚未实现时保持
+// false；桥接项完成、配置 world_record.enabled 生效后由该配置决定。
+bool WorldObservationArmed() noexcept;
 void AddPending(Hook *) noexcept;
 Hook *const *Hooks(size_t &count) noexcept;
 bool PrepareBindings();

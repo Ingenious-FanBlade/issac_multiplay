@@ -18,6 +18,9 @@
 #include <cstdint>
 #include <span>
 
+// 19 项观察语义单独放在 C++17 兼容的头里：生成的 SDK-facing wrapper 也要用。
+#include "world/observation.h"
+
 namespace cs::world {
 
 // ===========================================================================
@@ -40,8 +43,6 @@ inline constexpr std::uint32_t kGapCapacity = 4096;
 inline constexpr std::uint32_t kSourceCount = 15;
 // 类别数：七类 Entity、Grid、UnknownEntity。
 inline constexpr std::uint32_t kClassCount = 9;
-// 原型 19 项观察语义；它们是观察范围，不是 19 个独立安装器。
-inline constexpr std::uint32_t kObservationCount = 19;
 // 原始复制后的紧凑值队列：字节与项数两个条件同时成立。
 inline constexpr std::uint64_t kQueueBytes = 64ull << 20;
 inline constexpr std::uint32_t kQueueItems = 64;
@@ -52,7 +53,6 @@ inline constexpr std::uint64_t kWorldBudgetBytes = 256ull << 20;
 // 未逐项记账的管理/编码余量，明确计入总预算而不是当作免费。
 inline constexpr std::uint64_t kManagementBytes = 8ull << 20;
 // 生命周期事件环使用 sequence 关联，事件与批次各自保留 watermark。
-inline constexpr std::uint32_t kNoObservation = 0xFFFFFFFFu;
 inline constexpr std::uint32_t kNoOrdinal = 0xFFFFFFFFu;
 inline constexpr std::uint32_t kNoGridIndex = 0xFFFFFFFFu;
 // 单个原生函数的观察调用编号从 1 开始，0 表示“无”。
@@ -132,28 +132,6 @@ enum class Relation : std::uint32_t {
 };
 // 同一观察窗口内的阶段。Outer 是 Manager 最外层，其余是普通 owner/Room/尾部。
 enum class Stage : std::uint32_t { Outer = 0, Owner = 1, Room = 2, Tail = 3 };
-// 原型 19 项观察语义。名称同时用于 lifecycle-events 的 hook 列。
-enum class Observation : std::uint32_t {
-  Factory = 0,
-  Init = 1,
-  Publish = 2,
-  Remove = 3,
-  ClearReferences = 4,
-  Destroy = 5,
-  PlayerCtor = 6,
-  PlayerCreate = 7,
-  ManagerRestore = 8,
-  Replace = 9,
-  PlayerRestore = 10,
-  NpcMorph = 11,
-  PickupMorph = 12,
-  GridFactory = 13,
-  GridInit = 14,
-  GridSpawn = 15,
-  Door = 16,
-  GridFree = 17,
-  Spawn = 18
-};
 // 生命周期事件类别。5 在原型中未使用，保留空号以免旧记录换义。
 enum class EventKind : std::uint32_t {
   NativeHook = 0,
@@ -195,7 +173,6 @@ const char *FieldStatusName(FieldStatus value) noexcept;
 const char *EncodingName(Encoding value) noexcept;
 const char *RelationName(Relation value) noexcept;
 const char *StageName(Stage value) noexcept;
-const char *ObservationName(Observation value) noexcept;
 const char *EventKindName(EventKind value) noexcept;
 const char *OriginName(Origin value) noexcept;
 const char *LifecycleName(Lifecycle value) noexcept;
@@ -402,6 +379,107 @@ struct FieldDeclaration final {
   Encoding encoding = Encoding::Raw;
 };
 
+constexpr FieldDeclaration FieldDecl(std::uint16_t id, const char *name,
+                                     std::uint8_t width,
+                                     Encoding encoding) noexcept {
+  return FieldDeclaration{id, name, width, encoding};
+}
+
+// min-read-v1 的 78 项字段声明（按 ID 升序）。
+//
+// 放在头里保持 constexpr 可比较：binding/world_layout 生成的偏移表必须与
+// 这里的 ID/宽度/编码逐项一致，否则编译期 static_assert 直接失败，避免
+// 文件模型与目标版本布局清单各自漂移。
+inline constexpr std::array<FieldDeclaration, 78> kProfileFieldTable{{
+    // Entity 公共 0001–001E
+    FieldDecl(0x0001, "index", 4, Encoding::Raw),
+    FieldDecl(0x0002, "type", 4, Encoding::Raw),
+    FieldDecl(0x0003, "variant", 4, Encoding::Raw),
+    FieldDecl(0x0004, "subtype", 4, Encoding::Raw),
+    FieldDecl(0x0005, "flags", 8, Encoding::Raw),
+    FieldDecl(0x0006, "valid", 1, Encoding::Raw),
+    FieldDecl(0x0007, "visible", 1, Encoding::Raw),
+    FieldDecl(0x0008, "exists", 1, Encoding::Raw),
+    FieldDecl(0x0009, "dead", 1, Encoding::Raw),
+    FieldDecl(0x000A, "removed_by_factory", 1, Encoding::Raw),
+    FieldDecl(0x000B, "position.x", 4, Encoding::F32),
+    FieldDecl(0x000C, "position.y", 4, Encoding::F32),
+    FieldDecl(0x000D, "velocity.x", 4, Encoding::F32),
+    FieldDecl(0x000E, "velocity.y", 4, Encoding::F32),
+    FieldDecl(0x000F, "hp", 4, Encoding::F32),
+    FieldDecl(0x0010, "max_hp", 4, Encoding::F32),
+    FieldDecl(0x0011, "init_seed", 4, Encoding::Raw),
+    FieldDecl(0x0012, "drop_rng.word0", 4, Encoding::Raw),
+    FieldDecl(0x0013, "drop_rng.word1", 4, Encoding::Raw),
+    FieldDecl(0x0014, "drop_rng.word2", 4, Encoding::Raw),
+    FieldDecl(0x0015, "drop_rng.word3", 4, Encoding::Raw),
+    FieldDecl(0x0016, "parent", 4, Encoding::Reference),
+    FieldDecl(0x0017, "child", 4, Encoding::Reference),
+    FieldDecl(0x0018, "target", 4, Encoding::Reference),
+    FieldDecl(0x0019, "spawner", 4, Encoding::Reference),
+    FieldDecl(0x001A, "spawner_type", 4, Encoding::Raw),
+    FieldDecl(0x001B, "spawner_variant", 4, Encoding::Raw),
+    FieldDecl(0x001C, "birth_counter", 4, Encoding::Raw),
+    FieldDecl(0x001D, "game_frame_counter", 4, Encoding::Raw),
+    FieldDecl(0x001E, "frame_count", 4, Encoding::Derived),
+    // Player 0101–0110
+    FieldDecl(0x0101, "player_type", 4, Encoding::Raw),
+    FieldDecl(0x0102, "player_index", 4, Encoding::Raw),
+    FieldDecl(0x0103, "damage_cooldown", 4, Encoding::Raw),
+    FieldDecl(0x0104, "max_hearts", 4, Encoding::Raw),
+    FieldDecl(0x0105, "red_hearts", 4, Encoding::Raw),
+    FieldDecl(0x0106, "eternal_hearts", 4, Encoding::Raw),
+    FieldDecl(0x0107, "soul_hearts", 4, Encoding::Raw),
+    FieldDecl(0x0108, "black_hearts", 4, Encoding::Raw),
+    FieldDecl(0x0109, "bone_hearts", 4, Encoding::Raw),
+    FieldDecl(0x010A, "golden_hearts", 4, Encoding::Raw),
+    FieldDecl(0x010B, "broken_hearts", 4, Encoding::Raw),
+    FieldDecl(0x010C, "rotten_hearts", 4, Encoding::Raw),
+    FieldDecl(0x010D, "sub_player", 4, Encoding::Reference),
+    FieldDecl(0x010E, "twin", 4, Encoding::Reference),
+    FieldDecl(0x010F, "backup", 4, Encoding::Reference),
+    FieldDecl(0x0110, "replaced", 4, Encoding::Reference),
+    // NPC 0201–0204
+    FieldDecl(0x0201, "state_frame", 4, Encoding::Raw),
+    FieldDecl(0x0202, "state", 4, Encoding::Raw),
+    FieldDecl(0x0203, "projectile_cooldown", 4, Encoding::Raw),
+    FieldDecl(0x0204, "projectile_delay", 4, Encoding::Raw),
+    // Familiar 0301–0303
+    FieldDecl(0x0301, "player", 4, Encoding::Reference),
+    FieldDecl(0x0302, "fire_cooldown", 4, Encoding::Raw),
+    FieldDecl(0x0303, "state", 4, Encoding::Raw),
+    // Effect 0401–0403
+    FieldDecl(0x0401, "state", 4, Encoding::Raw),
+    FieldDecl(0x0402, "timeout", 4, Encoding::Raw),
+    FieldDecl(0x0403, "lifespan", 4, Encoding::Raw),
+    // Pickup 0501–0503
+    FieldDecl(0x0501, "timeout", 4, Encoding::Raw),
+    FieldDecl(0x0502, "wait", 4, Encoding::Raw),
+    FieldDecl(0x0503, "state", 4, Encoding::Raw),
+    // Tear 0601：完整 128 位
+    FieldDecl(0x0601, "tear_flags", 16, Encoding::Raw),
+    // Projectile 0701：完整 64 位
+    FieldDecl(0x0701, "projectile_flags", 8, Encoding::Raw),
+    // Grid 0801–0811；0810/0811 为已确认公式的派生格点坐标
+    FieldDecl(0x0801, "type", 4, Encoding::Raw),
+    FieldDecl(0x0802, "variant", 4, Encoding::Raw),
+    FieldDecl(0x0803, "state", 4, Encoding::Raw),
+    FieldDecl(0x0804, "spawn_count", 4, Encoding::Raw),
+    FieldDecl(0x0805, "spawn_seed", 4, Encoding::Raw),
+    FieldDecl(0x0806, "var_data", 4, Encoding::Raw),
+    FieldDecl(0x0807, "initialized", 1, Encoding::Raw),
+    FieldDecl(0x0808, "variable_seed", 4, Encoding::Raw),
+    FieldDecl(0x0809, "grid_index", 4, Encoding::Raw),
+    FieldDecl(0x080A, "spawn_frame", 4, Encoding::Raw),
+    FieldDecl(0x080B, "rng.word0", 4, Encoding::Raw),
+    FieldDecl(0x080C, "rng.word1", 4, Encoding::Raw),
+    FieldDecl(0x080D, "rng.word2", 4, Encoding::Raw),
+    FieldDecl(0x080E, "rng.word3", 4, Encoding::Raw),
+    FieldDecl(0x080F, "collision_class", 4, Encoding::Raw),
+    FieldDecl(0x0810, "position.x", 4, Encoding::F32),
+    FieldDecl(0x0811, "position.y", 4, Encoding::F32),
+}};
+
 // 全部 78 个字段，按 ID 升序。
 std::span<const FieldDeclaration> ProfileFields() noexcept;
 // 按 ID 查找；未登记返回 nullptr。
@@ -422,6 +500,8 @@ struct LayoutField final {
   const char *evidence = "";
 };
 // 目标版本来源：原生位置、固定容量和证据出处。
+// capacity 只表示固定来源的容量；0 表示由运行期 descriptor（EL/roster）决定，
+// 具体形状见 binding/world_layout.h 的 SourceSpec。
 struct LayoutSource final {
   std::uint32_t source = 0;
   const char *location = "";

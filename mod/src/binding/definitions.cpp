@@ -1,6 +1,7 @@
 #include "HookSystem_private.h"
 #include "IsaacRepentance.h"
 #include "binding/offsets.h"
+#include "hook_capacity.h"
 #include "runtime.h"
 #include <cctype>
 namespace cs {
@@ -55,6 +56,23 @@ bool PrepareBindings() {
       Trace("binding_error", "%s rva=%x", h.id, unsigned(h.rva));
     }
   }
+  // 清单容量：生成期已保证行数不超限；运行时如仍出现拒收，必须显式停用
+  // 受影响的能力组，不能像旧实现那样静默丢弃。
+  size_t rejected_count = 0;
+  auto rejected = RejectedHooks(rejected_count);
+  for (size_t i = 0; i < rejected_count; ++i) {
+    auto &h = *rejected[i];
+    Capabilities[size_t(h.group)] = false;
+    CapabilityReasons[size_t(h.group)] += std::string(h.id) + ":capacity_exceeded;";
+    Trace("hook_capacity_error", "%s group=%s", h.id,
+          GroupNames[size_t(h.group)]);
+  }
+  const auto capacity = PendingHookCapacity();
+  if (capacity.rejected) {
+    Trace("hook_capacity", "capacity=%u rows=%u used=%u rejected=%u",
+          unsigned(capacity.capacity), unsigned(kHookManifestRows),
+          unsigned(capacity.used), unsigned(capacity.rejected));
+  }
   // 命令桥调用 Print，必须同时确认其定义。
   auto *print = FunctionDefinition::Find(
       "Console::Print", typeid(void (Console::*)(const std_string &,
@@ -77,13 +95,33 @@ bool PrepareBindings() {
       CapabilityReasons[size_t(Group::Device)] += "native_device_dependency;";
     }
   // ZHL 保留这些指针，地址定义和 ArgData 必须常驻。
+  // 自有定义的每个参数按清单的 HookArg 表构造真实 ArgData：栈参数给 word 数，
+  // 寄存器参数给寄存器编号（tx-04-08；旧实现一律 NoRegister,1）。
   for (size_t i = 0; i < n; ++i) {
     auto &h = *hooks[i];
     if (!h.own || !Capabilities[size_t(h.group)])
       continue;
     auto *args = new HookSystem::ArgData[h.args]{};
-    for (int a = 0; a < h.args; ++a)
-      args[a] = {HookSystem::NoRegister{}, 1};
+    for (int a = 0; a < h.args; ++a) {
+      if (!h.arg_spec) {
+        args[a] = {HookSystem::NoRegister{}, 1};
+        continue;
+      }
+      const auto &spec = h.arg_spec[a];
+      switch (spec.kind) {
+      case HookArg::Kind::GpRegister:
+        args[a] = {HookSystem::GPRegisters(spec.reg), 0};
+        break;
+      case HookArg::Kind::XmmRegister:
+        args[a] = {HookSystem::XMMRegisters(spec.reg), 0};
+        break;
+      case HookArg::Kind::Stack:
+      default:
+        args[a] = {HookSystem::NoRegister{},
+                   static_cast<size_t>(spec.size ? spec.size : 1)};
+        break;
+      }
+    }
     char internal[HookSystem::FUNCTION_INTERNAL_NAME_MAX_LEN]{};
     // REPENTOGON 可能再次初始化定义，Load 总会解引用 outfunc。
     auto *resolved = new void *(reinterpret_cast<void *>(Base + h.rva));

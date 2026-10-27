@@ -298,7 +298,9 @@ ST8 静态补充：`Isaac::Shutdown VA 0x982C90 / RVA 0x582C90` 在 main 离开 
 
 后续实现按同一个 tx-04-08 完整目标推进：ST1–ST8 与 layout/Hook 清单 → 纯值模型/身份/缓冲和 writer → 主线程桥与 post-state → 命令/离线工具 → Lua 夹具与统一 E2E 归约 → 必要纯编译链接 → 一次整体 E2E。分析、逆向、修改期间不运行测试，不新增实现后的单元测试，不先跑 replay、probe 或局部场景。核心函数、数据结构和功能注释用中文。
 
-2026-10-27 按用户指示先完成第二项代码改动（`mod/src/world/` 的纯值模型、身份表、槽/队列/事件环与 writer）。实现范围、值布局、线程与关闭契约、文件格式、失败归属和给后续项的接口约定见[world 核心实现说明](tx-04-08-world-core.md)；`binding/world_layout` 的字段偏移/证据表、主线程桥、命令、harness 与 E2E 仍未实现，布局声明在 manifest 中明确记为 `UNDECLARED`。本轮只做新静态库的纯编译，没有运行测试、没有启动游戏，也没有完成 DLL 整体链接（原因见实现说明第 7 节）。
+2026-10-27 按用户指示先完成第二项代码改动（`mod/src/world/` 的纯值模型、身份表、槽/队列/事件环与 writer）。实现范围、值布局、线程与关闭契约、文件格式、失败归属和给后续项的接口约定见[world 核心实现说明](tx-04-08-world-core.md)；主线程桥、命令、harness 与 E2E 仍未实现。本轮只做新静态库的纯编译，没有运行测试、没有启动游戏，也没有完成 DLL 整体链接（原因见实现说明第 7 节）。
+
+2026-10-27 同一目标内继续完成 layout/Hook 清单与生成器（实现顺序的“ST1–ST8 与 layout/Hook 清单”项）。唯一清单 `mod/binding/hooks.json` 升级为 schema 2：41 条既有行不变，新增 19 项 `world_observations`（逐参数 ABI、完成含义、SDK 元数据交叉校验）；新增 `mod/binding/world_layout.json` 登记 78 项字段偏移/证据、15 个来源、10 个 RTTI 类与目标版本常量。`mod/tools/gen_binding.py` 生成 wrapper、容量常量、布局表与 machine-readable 清单，生成期与编译期都会拒绝 ABI、容量、字段或几何关系不一致；`mod/src/binding/world_layout.*` 提供只读访问，`mod/src/world/observe.*` 提供 world 专用观察策略（不进入会话失败路径）。待注册行数 **60/64**（既有 41 + world 19，distinct RVA 59）。world 组当前**不安装**（`WorldObservationArmed()` 固定 false），桥接项接入配置后再启用。本轮只做纯编译与一次临时目录生成，没有运行测试、没有启动游戏；DLL 整体链接仍被既有 `ASMPatch` 头的 `friend static` 与 C++20 组合挡住，且本轮确认 `host_patch.cpp` 不能整体降级到 C++17，留给“必要纯编译链接”项。详见[布局与 Hook 清单实现说明](tx-04-08-layout-hook-manifest.md)。
 
 一次 E2E 可以包含两个顺序进程、同进程内多个录制上下文和离线 CLI 子命令，但都由一个统一入口执行并汇总；失败保留已采证据，不自动重启、补测或重跑。2,000 次仅属于 U3 的新目标，绝不把历史阈值改成通过。本次静态文档审阅与未来实现完成后的 E2E 类型、对象不同，不在设计期间消耗或预记运行结果。
 

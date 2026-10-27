@@ -113,3 +113,7 @@ writer            只消费队列 → 编码 → 写入并周期 flush → 收�
 - E2E 注入的 `drop_capture_file` 与真实磁盘错误的组合路径（未运行；仅实现开关与真实失败路径）。
 - 生命周期事件的 `call/parent` 编号与事件 watermark 的最终接线（属于后续桥接项）。
 - 布局声明（字段偏移/证据、RVA）尚未填入，manifest 会明确记录 `UNDECLARED`（等 `binding/world_layout` 提供）。
+
+## 10. 后续进展补充（不改写上文事实）
+
+2026-10-27 的下一项改动已补齐上文第 9 节最后一项与第 5 节的布局输入：`mod/binding/world_layout.json` 登记 78 项字段偏移/证据、15 个来源、10 个 RTTI 类与目标版本常量，由 `mod/tools/gen_binding.py` 生成 `world_layout.inc`，并经 `cs::world::layout`（`binding/world_layout.h`）提供 `ManifestFields/Sources/Classes`、观察掩码与编译期一致性校验。上文“布局声明尚未填入”“manifest 记 `UNDECLARED`”保留为本文件成稿时的状态；现在的 writer 在构造 `ManifestInput` 时可以直接使用这些表。本文件其余事实与 UNKNOWN 不变。详见[布局与 Hook 清单实现说明](tx-04-08-layout-hook-manifest.md)。

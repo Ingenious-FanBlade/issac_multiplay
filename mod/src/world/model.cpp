@@ -41,100 +41,8 @@ constexpr auto kGridIds = IdRange<17>(0x0801);
 // UnknownEntity 只允许 Entity 头部 0001–0004；其余字段不得伪装成受支持类别。
 constexpr auto kUnknownIds = IdRange<4>(0x0001);
 
-// 78 项字段声明，按 ID 升序。宽度与编码来自 min-read-v1 文件模型。
-constexpr FieldDeclaration F(std::uint16_t id, const char *name,
-                            std::uint8_t width, Encoding encoding) noexcept {
-  return FieldDeclaration{id, name, width, encoding};
-}
-constexpr std::array<FieldDeclaration, 78> kFields{{
-    // Entity 公共 0001–001E
-    F(0x0001, "index", 4, Encoding::Raw),
-    F(0x0002, "type", 4, Encoding::Raw),
-    F(0x0003, "variant", 4, Encoding::Raw),
-    F(0x0004, "subtype", 4, Encoding::Raw),
-    F(0x0005, "flags", 8, Encoding::Raw),
-    F(0x0006, "valid", 1, Encoding::Raw),
-    F(0x0007, "visible", 1, Encoding::Raw),
-    F(0x0008, "exists", 1, Encoding::Raw),
-    F(0x0009, "dead", 1, Encoding::Raw),
-    F(0x000A, "removed_by_factory", 1, Encoding::Raw),
-    F(0x000B, "position.x", 4, Encoding::F32),
-    F(0x000C, "position.y", 4, Encoding::F32),
-    F(0x000D, "velocity.x", 4, Encoding::F32),
-    F(0x000E, "velocity.y", 4, Encoding::F32),
-    F(0x000F, "hp", 4, Encoding::F32),
-    F(0x0010, "max_hp", 4, Encoding::F32),
-    F(0x0011, "init_seed", 4, Encoding::Raw),
-    F(0x0012, "drop_rng.word0", 4, Encoding::Raw),
-    F(0x0013, "drop_rng.word1", 4, Encoding::Raw),
-    F(0x0014, "drop_rng.word2", 4, Encoding::Raw),
-    F(0x0015, "drop_rng.word3", 4, Encoding::Raw),
-    F(0x0016, "parent", 4, Encoding::Reference),
-    F(0x0017, "child", 4, Encoding::Reference),
-    F(0x0018, "target", 4, Encoding::Reference),
-    F(0x0019, "spawner", 4, Encoding::Reference),
-    F(0x001A, "spawner_type", 4, Encoding::Raw),
-    F(0x001B, "spawner_variant", 4, Encoding::Raw),
-    F(0x001C, "birth_counter", 4, Encoding::Raw),
-    F(0x001D, "game_frame_counter", 4, Encoding::Raw),
-    F(0x001E, "frame_count", 4, Encoding::Derived),
-    // Player 0101–0110
-    F(0x0101, "player_type", 4, Encoding::Raw),
-    F(0x0102, "player_index", 4, Encoding::Raw),
-    F(0x0103, "damage_cooldown", 4, Encoding::Raw),
-    F(0x0104, "max_hearts", 4, Encoding::Raw),
-    F(0x0105, "red_hearts", 4, Encoding::Raw),
-    F(0x0106, "eternal_hearts", 4, Encoding::Raw),
-    F(0x0107, "soul_hearts", 4, Encoding::Raw),
-    F(0x0108, "black_hearts", 4, Encoding::Raw),
-    F(0x0109, "bone_hearts", 4, Encoding::Raw),
-    F(0x010A, "golden_hearts", 4, Encoding::Raw),
-    F(0x010B, "broken_hearts", 4, Encoding::Raw),
-    F(0x010C, "rotten_hearts", 4, Encoding::Raw),
-    F(0x010D, "sub_player", 4, Encoding::Reference),
-    F(0x010E, "twin", 4, Encoding::Reference),
-    F(0x010F, "backup", 4, Encoding::Reference),
-    F(0x0110, "replaced", 4, Encoding::Reference),
-    // NPC 0201–0204
-    F(0x0201, "state_frame", 4, Encoding::Raw),
-    F(0x0202, "state", 4, Encoding::Raw),
-    F(0x0203, "projectile_cooldown", 4, Encoding::Raw),
-    F(0x0204, "projectile_delay", 4, Encoding::Raw),
-    // Familiar 0301–0303
-    F(0x0301, "player", 4, Encoding::Reference),
-    F(0x0302, "fire_cooldown", 4, Encoding::Raw),
-    F(0x0303, "state", 4, Encoding::Raw),
-    // Effect 0401–0403
-    F(0x0401, "state", 4, Encoding::Raw),
-    F(0x0402, "timeout", 4, Encoding::Raw),
-    F(0x0403, "lifespan", 4, Encoding::Raw),
-    // Pickup 0501–0503
-    F(0x0501, "timeout", 4, Encoding::Raw),
-    F(0x0502, "wait", 4, Encoding::Raw),
-    F(0x0503, "state", 4, Encoding::Raw),
-    // Tear 0601：完整 128 位
-    F(0x0601, "tear_flags", 16, Encoding::Raw),
-    // Projectile 0701：完整 64 位
-    F(0x0701, "projectile_flags", 8, Encoding::Raw),
-    // Grid 0801–0811；0810/0811 为已确认公式的派生格点坐标
-    F(0x0801, "type", 4, Encoding::Raw),
-    F(0x0802, "variant", 4, Encoding::Raw),
-    F(0x0803, "state", 4, Encoding::Raw),
-    F(0x0804, "spawn_count", 4, Encoding::Raw),
-    F(0x0805, "spawn_seed", 4, Encoding::Raw),
-    F(0x0806, "var_data", 4, Encoding::Raw),
-    F(0x0807, "initialized", 1, Encoding::Raw),
-    F(0x0808, "variable_seed", 4, Encoding::Raw),
-    F(0x0809, "grid_index", 4, Encoding::Raw),
-    F(0x080A, "spawn_frame", 4, Encoding::Raw),
-    F(0x080B, "rng.word0", 4, Encoding::Raw),
-    F(0x080C, "rng.word1", 4, Encoding::Raw),
-    F(0x080D, "rng.word2", 4, Encoding::Raw),
-    F(0x080E, "rng.word3", 4, Encoding::Raw),
-    F(0x080F, "collision_class", 4, Encoding::Raw),
-    F(0x0810, "position.x", 4, Encoding::F32),
-    F(0x0811, "position.y", 4, Encoding::F32),
-}};
+// 78 项字段声明表在 model.h 的 kProfileFieldTable，保持 constexpr 可比较，
+// 使 binding/world_layout 生成的偏移表能与文件模型在编译期互相校验。
 
 constexpr const char *kClassNames[kClassCount] = {
     "Player", "NPC",   "Tear",   "Projectile", "Pickup",
@@ -230,16 +138,18 @@ static_assert(std::size(kFieldStatusNames) == 5 &&
                   std::size(kSourceNames) == kSourceCount,
               "名称表长度与枚举上限不符");
 
-static_assert(kFields.size() == 78, "min-read-v1 必须登记 78 个字段");
+static_assert(kProfileFieldTable.size() == 78,
+              "min-read-v1 必须登记 78 个字段");
 // 表必须严格升序且无重复，离线严格模型按此顺序校验。
 constexpr bool FieldsSorted() noexcept {
-  for (std::size_t i = 1; i < kFields.size(); ++i)
-    if (kFields[i - 1].id >= kFields[i].id)
+  for (std::size_t i = 1; i < kProfileFieldTable.size(); ++i)
+    if (kProfileFieldTable[i - 1].id >= kProfileFieldTable[i].id)
       return false;
   return true;
 }
 static_assert(FieldsSorted(), "字段表必须按 ID 严格升序");
-static_assert(kFields.front().id == 0x0001 && kFields.back().id == 0x0811,
+static_assert(kProfileFieldTable.front().id == 0x0001 &&
+                  kProfileFieldTable.back().id == 0x0811,
               "字段表必须覆盖 0001–0811 的完整 profile，不能少登记首尾项");
 
 } // namespace
@@ -311,10 +221,11 @@ bool ParseReason(std::uint32_t value, Reason &out) noexcept {
 }
 
 std::span<const FieldDeclaration> ProfileFields() noexcept {
-  return std::span<const FieldDeclaration>(kFields.data(), kFields.size());
+  return std::span<const FieldDeclaration>(kProfileFieldTable.data(),
+                                           kProfileFieldTable.size());
 }
 const FieldDeclaration *ProfileField(std::uint16_t id) noexcept {
-  for (const auto &field : kFields)
+  for (const auto &field : kProfileFieldTable)
     if (field.id == id)
       return &field;
   return nullptr;
