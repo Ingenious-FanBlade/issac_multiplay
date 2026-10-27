@@ -4,6 +4,19 @@
 #include <string>
 
 namespace cs::game {
+// SDK-facing 的 world 作用域只传值，不包含 C++20 核心或 SDK 对象方法。
+enum class WorldBoundary : unsigned { Owner, Room, Tail, Lifecycle, RunEnd, RunStart };
+class WorldBoundaryScope final {
+public:
+  WorldBoundaryScope(WorldBoundary kind, const void *object = nullptr,
+                     bool enabled = true) noexcept;
+  ~WorldBoundaryScope() noexcept;
+private:
+  WorldBoundary kind_;
+  std::uint64_t scope_ = 0;
+  bool active_ = false;
+  int exceptions_ = 0;
+};
 // 此头只用 C++17 可表达的值类型，供 SDK-facing 的生成 wrapper 调用。
 enum class ConsumerKind : unsigned {
   None,
@@ -46,6 +59,11 @@ private:
   bool active_ = false;
   int exceptions_ = 0;
 };
+// 常驻汇编补丁只传递原生地址、整数和 bool；决策实现在 C++20 的 join.cpp。
+// SDK-facing 单元经此接口调用，不包含带 Binding/Topology 状态的 join.h。
+bool JoinMode(bool original, void *manager, int key, void *row,
+              unsigned site) noexcept;
+bool JoinCreate(void *manager, void *row, int *role) noexcept;
 // 观测作用域不拥有原函数；异常由调用方自然向上展开。
 class SimulationScope final {
 public:
@@ -67,6 +85,11 @@ public:
   PlayerScope *previous = nullptr;
   uint64_t tick = 0, generation = 0;
   int ordinal = -1;
+  // world 读取依据的前快照；SDK-facing 头只保存 C++17 值，不包含 collector。
+  void *world_device = nullptr;
+  std::int32_t world_key = -1;
+  std::uint64_t world_session = 0;
+  bool world_valid = false;
   bool native_reached = false, controlled = false, main = false;
   int exceptions = 0;
 };

@@ -6,6 +6,7 @@
 #include "game/persistence.h"
 #include "game/remote_life.h"
 #include "game/state.h"
+#include "game/world_bridge.h"
 #include "game/tick.h"
 #include "runtime.h"
 #include <algorithm>
@@ -64,6 +65,7 @@ void InvalidateBinding(SessionRuntime &r, const char *reason,
   if (r.loading.active)
     ++r.loading.invalidations;
   for (unsigned i = 0; i < r.session.ParticipantCount(); ++i) {
+    WorldRevokePlayer(i);
     if (r.players[i].BoundValid()) {
       r.controlled_player[i] = r.players[i].Bound().player;
       r.players[i].Invalidate();
@@ -378,6 +380,7 @@ void RefreshLifecycle(SessionRuntime &r, bool authority) noexcept {
         BindRevivedRemote(r, revived);
     }
   }
+  WorldRefreshAnchors();
   ObservePersistenceWindows(r);
 }
 // Warmup 的稳定 Authority 只负责 K 的一次创建/等待 Join，不分配输入或推进

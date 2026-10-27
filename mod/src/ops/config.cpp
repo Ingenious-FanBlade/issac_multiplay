@@ -72,6 +72,25 @@ Config ReadConfig() {
       c.control = v["enabled"].GetBool();
       c.control_port = port(v, "port");
     }
+    if (d.HasMember("world_record")) {
+      const auto &v = d["world_record"];
+      if (!v.IsObject() || !v.HasMember("enabled") || !v["enabled"].IsBool())
+        throw std::runtime_error("world_record.enabled");
+      c.world_record_enabled = v["enabled"].GetBool();
+      if (v.HasMember("output_dir")) {
+        if (!v["output_dir"].IsString() || !v["output_dir"].GetStringLength() ||
+            v["output_dir"].GetStringLength() > 240 ||
+            std::strlen(v["output_dir"].GetString()) != v["output_dir"].GetStringLength())
+          throw std::runtime_error("world_record.output_dir");
+        c.world_output_dir = v["output_dir"].GetString();
+      }
+      if (v.HasMember("close_timeout_ms")) {
+        if (!v["close_timeout_ms"].IsUint() || !v["close_timeout_ms"].GetUint() ||
+            v["close_timeout_ms"].GetUint() > 60000)
+          throw std::runtime_error("world_record.close_timeout_ms");
+        c.world_close_timeout_ms = v["close_timeout_ms"].GetUint();
+      }
+    }
     if (!c.enabled)
       c.reason = "config_disabled";
   } catch (const std::exception &e) {

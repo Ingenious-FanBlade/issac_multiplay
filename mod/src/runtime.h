@@ -54,6 +54,10 @@ struct Config {
   std::string host_bind_address = "0.0.0.0";
   unsigned peer_timeout_ms = 3000;
   std::string trace_dir = "isaac-cs/traces", log_level = "info", reason;
+  // 允许注册独立 world 能力；不自动开始录制，目录和期限供命令层准备上下文。
+  bool world_record_enabled = false;
+  std::string world_output_dir = "isaac-cs/world";
+  unsigned world_close_timeout_ms = 10000;
 };
 extern DWORD MainThread;
 extern uintptr_t Base;
@@ -174,8 +178,7 @@ struct HookCapacity final {
 HookCapacity PendingHookCapacity() noexcept;
 // 被容量拒绝的记录（最多保留 8 项用于停用对应能力组）。
 Hook *const *RejectedHooks(std::size_t &count) noexcept;
-// tx-04-08：world 观察组是否允许安装。主线程桥与录制命令尚未实现时保持
-// false；桥接项完成、配置 world_record.enabled 生效后由该配置决定。
+// tx-04-08：由独立 world_record.enabled 决定是否登记 world 常驻 Hook。
 bool WorldObservationArmed() noexcept;
 void AddPending(Hook *) noexcept;
 Hook *const *Hooks(size_t &count) noexcept;

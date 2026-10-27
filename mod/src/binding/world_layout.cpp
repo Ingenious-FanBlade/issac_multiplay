@@ -244,13 +244,14 @@ std::size_t ObservationMask(bool *mask, std::size_t capacity) noexcept {
   // 这里不获取任何锁，也不修改 Hook 记录。
   std::size_t hook_count = 0;
   auto hooks = cs::Hooks(hook_count);
+  std::uint32_t registered[kObservationCount]{};
   for (std::size_t i = 0; i < hook_count; ++i) {
     const auto &hook = *hooks[i];
     if (!hook.world || !hook.registered)
       continue;
     const auto index = std::size_t(hook.observation);
     if (index < limit)
-      mask[index] = true;
+      mask[index] = ++registered[index] == 2;
   }
   return limit;
 }

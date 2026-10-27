@@ -488,6 +488,16 @@ def legacy_body(row):
         ]
     else:
         # 此处只桥接主线程适配；原生异常由各层 RAII 观察后继续传播。
+        world_stage = {'game_update': 'Owner', 'room_update': 'Room',
+                       'post_update': 'Tail'}.get(ident)
+        if world_stage:
+            obj = 'nullptr' if row['static'] else 'this'
+            lines.append('    cs::game::WorldBoundaryScope world_stage(cs::game::WorldBoundary::%s, %s);'
+                         % (world_stage, obj))
+        if ident in ('restore', 'room_lifecycle', 'door_update', 'door_nested',
+                     'new_room', 'game_exit'):
+            boundary = 'RunEnd' if ident == 'game_exit' else 'Lifecycle'
+            lines.append('    cs::game::WorldBoundaryScope world_lifecycle(cs::game::WorldBoundary::%s);' % boundary)
         if ident.startswith('pgd_') or ident == 'button_maps':
             persistence_args = (', achievementID' if ident == 'pgd_unlock'
                                 else ', eEventCounters, num' if ident == 'pgd_counter'
@@ -517,6 +527,7 @@ def legacy_body(row):
             # ST4：原函数每帧调用，starting=0 时只有早退；不为该空调用开启
             # 持久窗口或更新 defer_through。原 super 仍每次 exactly-once。
             lines += ['    const bool requested = cs::game::StartGameRequested(this);',
+                      '    cs::game::WorldBoundaryScope world_start(cs::game::WorldBoundary::RunStart, this, requested);',
                       '    cs::game::PersistenceCallScope call("start_game", this, requested);',
                       '    cs::game::LoadingOwnerScope loading_owner(true, requested);']
         elif ident == 'room_lifecycle':
@@ -604,7 +615,7 @@ def world_body(row):
         '    cs::world::ObservationScope observation(',
         '        cs::world::Observation::%s, cs::IsMain(), %s,' % (row['observation'], obj),
         '        {&record.calls, &record.foreign, &record.completed},',
-        '        {%s});' % ', '.join(words),
+        '        {%s}%s);' % (', '.join(words), ', true' if row.get('native_witness') else ''),
     ]
     if row['ret'] == 'void':
         lines.append('    super(%s);' % call if call else '    super();')
@@ -636,7 +647,10 @@ def emit_hooks(legacy, world, patterns):
                   '// tx-04-08 world 观察入口：清单见 binding/hooks.json 的',
                   '// world_observations；完成含义与原生 body 到达证据见各行。',
                   '// ===================================================================']
-    for row in world:
+    # 同一清单派生内层 witness，复用相同 ZHL 定义和 ABI，不建立第二套补丁 owner。
+    native_rows = [dict(row, id=row['id'] + '_native', priority=row['native_priority'],
+                        native_witness=True) for row in world]
+    for row in world + native_rows:
         table_lines, table_name = world_arg_table(row)
         if table_lines:
             lines += table_lines
@@ -1172,12 +1186,18 @@ def main():
     legacy = parse_legacy_rows(document.get('hooks'), problems)
     world = parse_world_rows(document, problems)
     check_unique(legacy, world, problems)
+    native_priority = parse_int(schema.get('world_native_witness_priority'),
+                                'schema.world_native_witness_priority', problems)
+    for row in world:
+        row['native_priority'] = native_priority
+        if native_priority is None or native_priority <= row['priority']:
+            problems.add(row['id'], 'native witness priority 必须严格位于外层观察之内')
 
     capacity = {
         'pending': pending_capacity if pending_capacity is not None else 0,
-        'rows': len(legacy) + len(world),
+        'rows': len(legacy) + 2 * len(world),
         'legacy': len(legacy),
-        'world': len(world),
+        'world': 2 * len(world),
         'distinct_rva': len({row['rva'] for row in legacy + world}),
     }
     capacity['headroom'] = capacity['pending'] - capacity['rows']
@@ -1280,12 +1300,19 @@ def main():
             'reach': row['reach'], 'evidence': row['evidence'],
             'flags': row['flags'],
             'native_body_reach': 'OWN_ENTRY' if row['own'] else 'UNKNOWN'})
+        world_manifest[-1]['native_witness'] = dict(
+            id=row['id'] + '_native', priority=row['native_priority'],
+            definition=row['definition'], rva=hex(row['rva']),
+            completion='内层进入且 super 正常返回，再与外层同 call 配对；运行证据仍待整体 E2E')
     total = dict(
         tx='tx-04-08', schema=2,
         generated_from=['mod/binding/hooks.json',
                         'mod/binding/world_layout.json'],
         capacity=capacity, hooks=legacy_manifest,
         world_observations=world_manifest,
+        world_native_witnesses=[dict(row, id=row['native_witness']['id'],
+                                    priority=row['native_witness']['priority'], role='native_witness')
+                                for row in world_manifest],
         layout=dict(manifest='binding/world_layout.json',
                     fields=len(layout['fields']), sources=len(layout['sources']),
                     classes=len(layout['classes']),
@@ -1320,6 +1347,8 @@ def main():
                   % (row['observation'], row['id'], row['definition'],
                      row['rva'], row['priority'], abi or '(none)',
                      row['completion']))
+    md += ['', '每项 world 观察另由同清单派生 `_native` 内层（priority=%s），'
+           '相同定义/ABI、原调用一次；原生到达与正常返回均需同 call 配对。' % native_priority]
     md += ['', '## 布局', '',
            '字段 %d 项、来源 %d 项、类别 %d 项（schema: %s）。'
            % (len(layout['fields']), len(layout['sources']),

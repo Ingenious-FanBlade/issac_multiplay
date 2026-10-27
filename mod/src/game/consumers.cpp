@@ -4,6 +4,7 @@
 #include "game/lifecycle.h"
 #include "game/state.h"
 #include "game/tick.h"
+#include "game/world_bridge.h"
 #include <cmath>
 #include <exception>
 
@@ -230,6 +231,11 @@ PlayerScope::PlayerScope(void *value) noexcept
   controlled = ordinal >= 0;
   tick = r.pipeline.SimulationTick();
   generation = controlled ? r.players[ordinal].Generation() : 0;
+  if (controlled) {
+    const auto before = WorldPlayerAnchor(unsigned(ordinal));
+    world_device = reinterpret_cast<void *>(uintptr_t(before.device));
+    world_key = before.key; world_session = before.session; world_valid = before.valid;
+  }
   if (controlled && tick)
     ++r.metrics[ordinal].player_entered;
 }
@@ -279,5 +285,11 @@ PlayerScope::~PlayerScope() noexcept {
     }
   }
   RefreshLifecycle(*r, false);
+  if (controlled) {
+    const world::PlayerAnchor before{static_cast<std::uint32_t>(uintptr_t(player)),
+        static_cast<std::uint32_t>(uintptr_t(world_device)), world_key,
+        world_session, generation, world_valid};
+    WorldPlayerReturned(unsigned(ordinal), before, tick, normal, native_reached);
+  }
 }
 } // namespace cs::game

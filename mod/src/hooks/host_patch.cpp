@@ -1,6 +1,6 @@
 #include "game/device_k.h"
 #include "game/bridge.h"
-#include "game/join.h"
+// 本单元作为 C++17 SDK 适配层；Join 决策仅经 bridge.h 的值接口进入核心。
 #include "runtime.h"
 #include <cstdio>
 #include "ASMPatcher.hpp"

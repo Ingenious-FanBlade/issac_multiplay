@@ -6,6 +6,7 @@
 #include "game/lifecycle.h"
 #include "game/peer.h"
 #include "game/state.h"
+#include "game/world_bridge.h"
 #include "game/tick.h"
 #include "runtime.h"
 #include <algorithm>
@@ -105,6 +106,7 @@ bool RemoteHealthEligible(const SessionRuntime &r,
 // 撤销 B 的绑定一次：Participant::Invalidate 已递增 generation，这里不再加一。
 // 重复调用在未绑定时不产生第二次失效，也不清空当前归属。
 void InvalidateRemoteBinding(SessionRuntime &r, const char *reason) noexcept {
+  WorldRevokePlayer(1);
   // 先推进观测 epoch：失效前后的查询不进入同一比较段。
   ++r.query_epoch;
   if (r.loading.active)

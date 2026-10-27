@@ -140,7 +140,8 @@ enum class EventKind : std::uint32_t {
   GapOrUnknown = 3,
   GridPhysicalRetired = 4,
   CurrentPlayerReadWitness = 6,
-  SourceMembershipSnapshot = 7
+  SourceMembershipSnapshot = 7,
+  NativeBody = 8 // 本轮追加：内层原生到达/正常返回，沿用同 call/parent。
 };
 // 对象所在域：Entity 与 Grid 的地址空间不合并。
 enum class ObjectDomain : std::uint32_t { Entity = 0, Grid = 1 };

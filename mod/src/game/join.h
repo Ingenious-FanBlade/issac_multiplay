@@ -25,8 +25,6 @@ struct JoinData {
 const char *JoinStateName(JoinState state) noexcept;
 bool JoinQuery(void *device, int action, QueryKind query,
                float &result) noexcept;
-bool JoinMode(bool original, void *manager, int key, void *row, unsigned site) noexcept;
-bool JoinCreate(void *manager, void *row, int *role) noexcept;
 // 只按当前已确认归属调用一次原生移除；已确认被移除时跳过，身份矛盾时报告残留。
 bool RetireJoinedPlayer(SessionRuntime &runtime) noexcept;
 // 退休完成后复位 join_state，并把最终业务结果保存到 join_last。

@@ -658,7 +658,7 @@ bool WriteManifest(WriterState &state) noexcept {
   j.Lit("\"event_kinds\":{");
   {
     bool first = true;
-    for (std::uint32_t i = 0; i < 8; ++i) {
+    for (std::uint32_t i = 0; i <= static_cast<std::uint32_t>(EventKind::NativeBody); ++i) {
       if (i == 5)
         continue; // 原型保留空号，不登记为有效类别
       if (!first)
@@ -1091,7 +1091,7 @@ bool WriteEvent(WriterState &state, const LifecycleEvent &event) noexcept {
     return false;
   }
   const auto kind = static_cast<std::uint32_t>(event.kind);
-  if (kind > static_cast<std::uint32_t>(EventKind::SourceMembershipSnapshot)) {
+  if (kind > static_cast<std::uint32_t>(EventKind::NativeBody)) {
     state.Fail(Reason::InvalidRecord, 0, "event_kind");
     return false;
   }

@@ -49,6 +49,15 @@ enum class ObservationFault : std::uint32_t {
 };
 inline constexpr std::uint32_t kObservationFaultCount = 2;
 
+// 永久的值通知接线。只在主线程调用 sink；非主线程只递增故障序号。
+// 回调地址常驻 DLL，不携带可被后台释放的录制上下文。
+struct ObservationSink final {
+  std::uint32_t (*enter)(Observation, std::uint32_t, const std::uint32_t *, std::uint32_t, bool) noexcept;
+  void (*leave)(std::uint32_t, std::uint32_t, bool, bool) noexcept;
+};
+void SetObservationSink(const ObservationSink *sink) noexcept;
+std::uint64_t ObservationFailureSequence() noexcept;
+
 const char *ObservationFaultName(std::uint32_t bit) noexcept;
 
 // 单个观察语义的只读快照。地址与实参只用于诊断，不进入比较 key。
@@ -76,7 +85,8 @@ class ObservationScope final {
 public:
   ObservationScope(Observation observation, bool main_thread,
                    const void *object, HookCounters counters,
-                   std::initializer_list<std::uint32_t> args) noexcept;
+                   std::initializer_list<std::uint32_t> args,
+                   bool native_witness = false) noexcept;
   ~ObservationScope() noexcept;
   ObservationScope(const ObservationScope &) = delete;
   ObservationScope &operator=(const ObservationScope &) = delete;
@@ -94,6 +104,9 @@ private:
   const void *object_ = nullptr;
   bool main_ = false, returned_ = false;
   int exceptions_ = 0;
+  const ObservationSink *sink_ = nullptr;
+  std::uint32_t call_ = 0;
+  bool native_ = false;
 };
 
 // 读取一个观察语义的累计快照；越界编号返回全零，不猜测最近值。

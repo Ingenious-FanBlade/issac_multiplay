@@ -24,15 +24,25 @@ struct ObservationCell final {
 
 // 19 项固定容量；不做动态分配，索引越界一律忽略。
 std::array<ObservationCell, kObservationCount> cells{};
+std::atomic<const ObservationSink *> sink{nullptr};
+std::atomic<std::uint64_t> failure_sequence{0};
 
 void RaiseFault(std::uint32_t index, ObservationFault fault) noexcept {
   if (index >= kObservationCount)
     return;
   cells[index].faults.fetch_or(static_cast<std::uint32_t>(fault),
                                std::memory_order_relaxed);
+  failure_sequence.fetch_add(1, std::memory_order_release);
 }
 
 } // namespace
+
+void SetObservationSink(const ObservationSink *value) noexcept {
+  sink.store(value, std::memory_order_release);
+}
+std::uint64_t ObservationFailureSequence() noexcept {
+  return failure_sequence.load(std::memory_order_acquire);
+}
 
 const char *ObservationFaultName(std::uint32_t bit) noexcept {
   switch (bit) {
@@ -54,9 +64,11 @@ std::uint32_t ObservationIndex(Observation observation) noexcept {
 
 ObservationScope::ObservationScope(
     Observation observation, bool main_thread, const void *object,
-    HookCounters counters, std::initializer_list<std::uint32_t> args) noexcept
+    HookCounters counters, std::initializer_list<std::uint32_t> args,
+    bool native_witness) noexcept
     : observation_(observation), counters_(counters), object_(object),
       main_(main_thread), exceptions_(std::uncaught_exceptions()) {
+  native_ = native_witness;
   const auto index = ObservationIndex(observation);
   if (index >= kObservationCount)
     return;
@@ -87,6 +99,9 @@ ObservationScope::ObservationScope(
   cell.last_arg_count.store(arg_count_, std::memory_order_relaxed);
   for (std::uint32_t i = 0; i < arg_count_; ++i)
     cell.last_args[i].store(args_[i], std::memory_order_relaxed);
+  sink_ = sink.load(std::memory_order_acquire);
+  if (sink_ && sink_->enter)
+    call_ = sink_->enter(observation_, PackWord(object_), args_, arg_count_, native_);
 }
 
 ObservationScope::~ObservationScope() noexcept {
@@ -97,6 +112,8 @@ ObservationScope::~ObservationScope() noexcept {
     // 原生异常展开：只撤销本次观察资格并保留失败事实，不伪造正常返回。
     cells[index].exceptional.fetch_add(1, std::memory_order_relaxed);
     RaiseFault(index, ObservationFault::NativeException);
+    if (call_ && sink_ && sink_->leave)
+      sink_->leave(call_, 0, false, native_);
     return;
   }
   // 正常返回却没有显式调用 Returned 时按"无值正常返回"收口，避免漏计；
@@ -118,6 +135,10 @@ void ObservationScope::Returned(std::uint32_t value) noexcept {
     cell.last_value.store(value, std::memory_order_relaxed);
   if (counters_.completed)
     counters_.completed->fetch_add(1, std::memory_order_relaxed);
+  if (call_ && sink_ && sink_->leave) {
+    sink_->leave(call_, value, true, native_);
+    call_ = 0;
+  }
 }
 
 void ObservationScope::Returned() noexcept { Returned(0); }

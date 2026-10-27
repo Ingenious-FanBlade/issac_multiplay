@@ -2,7 +2,8 @@
   "comment": "tx-04-07/tx-04-08：唯一 Hook 清单。hooks 为常驻入口/设备槽/Odd/Join/K/持久与只读观察组（栈参数 ABI）；world_observations 为 tx-04-08 的 19 项 world 观察入口，带显式参数 ABI、完成含义与证据。",
   "schema": {
     "version": 2,
-    "pending_capacity": 64,
+    "pending_capacity": 96,
+    "world_native_witness_priority": 10000,
     "layout_manifest": "binding/world_layout.json",
     "notes": [
       "hooks 行是既有位置式 schema：ident/group/class/method/返回/参数/调用实参/RVA/owner/static/conv/own/priority/required。它按“每个显式参数占一个栈 word”表达 ABI，适用于这 41 个已核对入口。",

@@ -21,10 +21,14 @@ enum class TickPipelinePhase : std::uint32_t {
   Published,
   Failed
 };
-// 本轮只保留收束阶段，不包含世界采集、gap、capture 或 post-state 发布路径。
-enum class PostStateStatus : std::uint32_t { Disabled };
+// 世界记录只提供本地收束事实；任何采集故障都不能撤销真实完成的模拟。
+enum class PostStateStatus : std::uint32_t {
+  Disabled, Complete, Gap, Backpressure, Unavailable, Faulted
+};
 struct TickPostState {
   PostStateStatus status = PostStateStatus::Disabled;
+  std::uint32_t reason = 0, recording_generation = 0;
+  std::uint64_t tick = 0, attempt_seq = 0, capture_seq = 0, outer_token = 0;
 };
 // 只记录存在的参与者；Host 同时记录 A/B，缺输入仍是 present=true 的中性样本。
 // Solo 的 clients[1] 全零且 present=false，不表示缺输入的 B。

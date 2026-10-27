@@ -45,9 +45,7 @@ void RegisterHooks() {
     if (!Capabilities[size_t(h.group)])
       continue;
     if (h.world && !WorldObservationArmed()) {
-      // tx-04-08：world 清单已登记并通过 binding 校验，但主线程桥与录制命令
-      // 尚未实现，本项完成前不安装，避免留下没有消费者的 detour。Hook 一旦
-      // 安装即常驻到进程结束，不能先装后卸。
+      // 未配置 world 能力时不注册；注册后常驻，录制 stop 只关闭逻辑观察。
       ++deferred;
       Trace("world_hook_deferred", "%s rva=%x", h.id, unsigned(h.rva));
       continue;

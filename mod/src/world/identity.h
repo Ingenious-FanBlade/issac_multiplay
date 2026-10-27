@@ -154,6 +154,8 @@ public:
   void Release() noexcept;
   bool Ready() const noexcept { return identities_ != nullptr; }
   Error LastError() const noexcept { return error_; }
+  // run 域退休后断开地址关联；历史身份保留，序号不重置，旧引用不能在新 run 复活。
+  void ResetAssociations() noexcept;
   std::uint32_t Count() const noexcept { return used_; }
   static constexpr std::uint32_t Capacity() noexcept { return kIdentityBudget; }
 

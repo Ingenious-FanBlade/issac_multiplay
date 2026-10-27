@@ -101,6 +101,9 @@ bool PrepareBindings() {
     auto &h = *hooks[i];
     if (!h.own || !Capabilities[size_t(h.group)])
       continue;
+    // world 外层/内层共享同一自有定义键，只构造一次 ABI 元数据。
+    if (FunctionDefinition::Find(h.name, *h.type))
+      continue;
     auto *args = new HookSystem::ArgData[h.args]{};
     for (int a = 0; a < h.args; ++a) {
       if (!h.arg_spec) {

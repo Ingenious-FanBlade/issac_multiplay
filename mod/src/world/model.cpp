@@ -85,10 +85,10 @@ constexpr const char *kObservationNames[kObservationCount] = {
     "Destroy",   "PlayerCtor", "PlayerCreate", "ManagerRestore", "Replace",
     "PlayerRestore", "NpcMorph", "PickupMorph", "GridFactory", "GridInit",
     "GridSpawn", "Door",       "GridFree",    "Spawn"};
-constexpr const char *kEventKindNames[8] = {
+constexpr const char *kEventKindNames[9] = {
     "NATIVE_HOOK", "BIRTH_CONFIRMED", "LIFECYCLE_BOUNDARY", "GAP_OR_UNKNOWN",
     "GRID_PHYSICAL_RETIRED", "UNUSED_5", "CURRENT_PLAYER_READ_WITNESS",
-    "SOURCE_MEMBERSHIP_SNAPSHOT"};
+    "SOURCE_MEMBERSHIP_SNAPSHOT", "NATIVE_BODY"};
 constexpr const char *kOriginNames[3] = {"UNSET", "FIRST_OBSERVED",
                                          "OBSERVED_CREATION"};
 constexpr const char *kLifecycleNames[7] = {
@@ -130,7 +130,7 @@ static_assert(std::size(kFieldStatusNames) == 5 &&
                   std::size(kRelationNames) == 5 &&
                   std::size(kStageNames) == 4 &&
                   std::size(kObservationNames) == kObservationCount &&
-                  std::size(kEventKindNames) == 8 &&
+                  std::size(kEventKindNames) == 9 &&
                   std::size(kOriginNames) == 3 &&
                   std::size(kLifecycleNames) == 7 &&
                   std::size(kReadinessNames) == 4 &&

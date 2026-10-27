@@ -4,6 +4,7 @@
 #include "world/identity.h"
 
 #include <new>
+#include <algorithm>
 
 namespace cs::world {
 namespace {
@@ -200,6 +201,19 @@ void IdentityTable::CommitMembership(Identity &id, std::uint32_t mask) noexcept 
     return;
   id.memberships = mask;
   id.membership_attempt = batch_attempt_;
+}
+
+void IdentityTable::ResetAssociations() noexcept {
+  if (!Ready()) return;
+  std::fill_n(nodes_.get(), nodes_used_, Node{});
+  nodes_used_ = 1;
+  player_address_ = {};
+  for (std::uint32_t i = 0; i < used_; ++i) {
+    identities_[i].lifecycle = static_cast<std::uint32_t>(Lifecycle::Retiring);
+    identities_[i].readiness = 0;
+    identities_[i].ordinal = kNoOrdinal;
+    identities_[i].memberships = 0;
+  }
 }
 
 IdentityTable::AnchorResult

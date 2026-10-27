@@ -1,6 +1,7 @@
 #include "binding/offsets.h"
 #include "libzhl.h"
 #include "runtime.h"
+#include "game/world_bridge.h"
 namespace cs {
 DWORD MainThread = 0;
 uintptr_t Base = 0;
@@ -25,10 +26,7 @@ void *GamePointer() noexcept {
   return Base ? *reinterpret_cast<void **>(Base + offset::Game) : nullptr;
 }
 bool WorldObservationArmed() noexcept {
-  // tx-04-08：world 观察清单已生成并参与 binding 校验，但主线程桥、录制命令
-  // 与配置 world_record.enabled 尚未实现。该项完成前不安装，避免在没有消费
-  // 者的情况下留下常驻 detour；桥接项只需把这里改为读取配置。
-  return false;
+  return Settings.enabled && Settings.world_record_enabled;
 }
 } // namespace cs
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID reserved) {
@@ -66,6 +64,7 @@ MOD_EXPORT int ModInit() noexcept {
           Settings.control, Settings.control_port, Settings.host_port,
           Settings.log_level.c_str());
     PrepareBindings();
+    game::InitializeWorldBridge();
     RegisterHooks();
     PublishStatus();
     if (Settings.control && Capabilities[size_t(Group::Loop)] &&

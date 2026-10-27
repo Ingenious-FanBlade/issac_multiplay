@@ -1,5 +1,9 @@
 # tx-04-08：world_record 迁移设计
 
+> **2026-10-27 后续构建修复**：Host/Odd 的 SDK 依赖通过现有 C++17 桥接接口隔离，完整 DLL 已在新构建树完成编译与链接，见[修复及构建记录](../../../artifacts/repentogon/tx-04-08-sdk-build-fix/README.md)。旧 `friend static` 失败和局部纯编译记录保留，整体 E2E 仍未执行。
+
+> **2026-10-27 工程进度更新**：collector、主线程桥与 post-state 已编写，见[实现说明](tx-04-08-collector-bridge.md)。同清单新增 19 个内层 body witness 后为 79/96 行；配置已接通但命令与后台准备编排仍未实现。仅纯编译，没有整体 E2E；`InitUnknown` 保持 UNCONFIRMED，完整样本限制和剩余事项见说明。下文早先阶段的状态与计数保留其历史语境。
+
 日期：2026-10-26，Asia/Shanghai。状态：设计完成；**ST1–ST8 静态核验及主审完成；第一项代码改动（纯值模型/身份/缓冲和 writer）已编写并在临时构建目录完成纯编译，其余功能实现和整体 E2E 尚未完成**。见[ST1 主审报告](../../research/tx-04-08-st1-static-confirmation.md)、[ST2 主审报告](../../research/tx-04-08-st2-static-confirmation.md)、[ST3–ST5 字段/来源/分类身份报告](../../research/tx-04-08-st3-st5-static-confirmation.md)、[ST6–ST8 owner/生命周期/工程边界报告](../../research/tx-04-08-st6-st8-static-confirmation.md)及[world 核心实现说明](tx-04-08-world-core.md)。具体初始化、保留资格、Replace 夹具、B 失效通知和退出协调的缺口与运行 UNKNOWN 按各报告保留，不以静态工作或纯编译代替功能完成。本文中的新文件、接口、命令和格式均为 `DESIGN`；引用当前源码的行为标为 `CURRENT_SOURCE`。初始设计任务采用一次整体静态文档审阅；后续静态研究没有构建、运行离线工具或游戏，ST2 的额外格式校验偏差另记；第一项代码改动只做了纯编译，没有运行测试或启动游戏。
 
 执行要求见[现行规范](../../refactor/project-conventions.md)。上层范围来自 [REPENTOGON 适配设计](../repentogon-refactor.md) D6、D24；tx-04-07 已按 D31 由用户正式接受完成，其原始自动失败、未执行项和限定实测事实保持原样。

@@ -7,6 +7,7 @@
 #include "game/persistence.h"
 #include "game/remote_life.h"
 #include "game/state.h"
+#include "game/world_bridge.h"
 #include "runtime.h"
 #include <bcrypt.h>
 #include <cstdio>
@@ -93,6 +94,7 @@ void NativeReturn(SessionRuntime &r, bool normal) noexcept {
   if (decision != core::TickDecision::Committed) {
     FailRuntime("native_return_rejected", decision);
   } else {
+    WorldNativeReturned(r.boundary, r.clock.Current());
     for (unsigned i = 0; i < r.session.ParticipantCount(); ++i)
       ++r.metrics[i].native_commit;
     Trace("tick_phase",
@@ -292,6 +294,7 @@ void StopSession(core::SessionCause cause) noexcept {
     return;
   r->retirement_cause = cause;
   r->retiring = true;
+  WorldRevokePlayer(0); WorldRevokePlayer(1);
   DiscardInputEdges();
   Trace("session", "from=%s to=Retiring reason=%s generation=%llu loop=%llu",
         before, core::SessionCauseName(cause), SessionGeneration(*r),
@@ -302,6 +305,7 @@ void FailRuntime(const char *reason, core::TickDecision decision) noexcept {
   if (!r || r->finished || r->failure)
     return;
   r->failure = true;
+  WorldRevokePlayer(0); WorldRevokePlayer(1);
   r->retiring = true;
   r->last_error = reason;
   if (r->retirement_cause == core::SessionCause::None)
@@ -339,7 +343,10 @@ void EndManager(bool normal) noexcept {
     FailRuntime("manager_exception");
   if (normal &&
       r->pipeline.Status().phase == core::TickPipelinePhase::AwaitPostState) {
-    auto result = r->pipeline.FinishPostState(r->loop);
+    const auto post = WorldPostState(r->clock.Current());
+    auto result = r->pipeline.FinishPostState(r->loop, post);
+    // 世界 publication 只由 clock 提交决定，文件/通知失败不参与输入 Ack 成败。
+    WorldPublishPostState(result == core::TickDecision::Committed, r->pipeline.Receipt().post);
     r->last_decision = result;
     if (result == core::TickDecision::Committed &&
         r->pipeline.PublishCompleted(TraceDropped() == 0)) {

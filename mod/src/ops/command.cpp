@@ -6,6 +6,7 @@
 #include "game/state.h"
 #include "game/tick.h"
 #include "game/topology.h"
+#include "game/world_bridge.h"
 #include "runtime.h"
 #include <algorithm>
 #include <charconv>
@@ -249,6 +250,8 @@ void FrameBegin() noexcept {
     InstallRuntimePatches();
     Trace("runtime_version", "repentogon=%s", RepentogonVersion.c_str());
   }
+  // world 窗口必须先于 BeginManager 的网络/lifecycle 和排队命令建立。
+  game::WorldFrameBegin(frame);
   game::BeginManager(frame);
   try {
     // N 帧收到的变更在 N+1 帧入口执行，下面取出的端口请求不能抢跑。
@@ -318,7 +321,9 @@ void FrameEnd(bool completed) noexcept {
   if (!frame_depth || --frame_depth != 0)
     return;
   // 原生异常展开只归还深度，不发布未完成帧的状态快照。
+  game::WorldPreparePostState(completed);
   game::EndManager(completed);
+  game::WorldFrameEnd();
   if (!completed)
     return;
   PublishStatus();

@@ -2,6 +2,7 @@
 #include "game/device_k.h"
 #include "runtime.h"
 #include <cstdio>
+// SDK 补丁编码器留在 C++17 单元；Odd owner 通知经 context.h 的值接口传递。
 #include "ASMPatcher.hpp"
 #include <cstring>
 

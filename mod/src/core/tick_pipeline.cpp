@@ -151,8 +151,22 @@ TickPipeline::FinishPostState(std::uint64_t loop,
     return Abort(TickDecision::Reentry);
   if (loop != boundary_.loop)
     return Abort(TickDecision::WrongReturn);
-  if (observed.status != PostStateStatus::Disabled)
-    return Abort(TickDecision::InvalidSource);
+  auto post = observed;
+  // 桥凭据错误只降为本 tick 的 Unavailable，不走输入/会话 Abort 路径。
+  // 真正的 loop、clock 和原生返回错误仍沿既有逻辑处理。
+  if (post.status != PostStateStatus::Disabled &&
+      (post.tick != candidate_ || !post.outer_token ||
+       !post.recording_generation || !post.attempt_seq ||
+       static_cast<std::uint32_t>(post.status) >
+           static_cast<std::uint32_t>(PostStateStatus::Faulted) ||
+       (post.status == PostStateStatus::Complete &&
+        (!post.capture_seq || post.reason ||
+         boundary_.kind != TickKind::StandardRoom)))) {
+    post = {};
+    post.status = PostStateStatus::Unavailable;
+    post.reason = 18; // world::Reason::UnpairedScope，核心不依赖 world 类型。
+    post.tick = candidate_;
+  }
   // NativeReturned 已确认正常模拟；随后绑定失效或请求退休不撤销已完成的事实。
   const auto decision = clock_.Complete(boundary_, true, true);
   if (decision != TickDecision::Committed)
@@ -161,6 +175,7 @@ TickPipeline::FinishPostState(std::uint64_t loop,
   receipt_.loop = loop;
   receipt_.kind = boundary_.kind;
   receipt_.boundary = boundary_;
+  receipt_.post = post;
   receipt_.participant_count = session_.ParticipantCount();
   for (std::size_t i = 0; i < receipt_.participant_count; ++i) {
     const auto progress = players_[i].Progress(clock_.Completed());
