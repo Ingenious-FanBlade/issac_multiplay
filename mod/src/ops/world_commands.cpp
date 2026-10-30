@@ -98,7 +98,7 @@ bool OpenRecorder(WorldJob &j,RecordingRequest &q) {
   std::ofstream manifest(directory/L"manifest.json",std::ios::binary|std::ios::out);
   manifest<<"{\"format\":\"isaac.cs.observation\",\"version\":2,\"session\":\""<<r.session_key
     <<"\",\"observation_epoch\":\""<<r.epoch<<"\",\"recording_generation\":"<<q.generation
-    <<",\"catalog\":\"entity-catalog.json\",\"grid_catalog\":\"grid-catalog.json\",\"schemas\":[\"isaac.cs.entity\",\"isaac.cs.entity.native-v1\",\"isaac.cs.entity.lifecycle\",\"isaac.cs.entity.lua-event\",\"isaac.cs.entity.query\",\"isaac.cs.entity.actual-call\",\"isaac.cs.entity.render\",\"isaac.cs.entity.coverage\",\"isaac.cs.grid.legacy\",\"isaac.cs.grid.lifecycle\",\"isaac.cs.grid\",\"isaac.cs.grid.lua-event\",\"isaac.cs.grid.query\",\"isaac.cs.grid.render\"],\"enabled_domains\":[1,2],\"unsupported_domains\":[3,4,5,6,7,8,9,10,11],\"capture_plan\":{\"ordinary_interval\":30,\"lifecycle\":true,\"explicit_queries\":true},\"budgets\":{\"total_bytes\":"<<world::kWorldBudgetBytes<<",\"publication_bytes\":33554432,\"scope_bytes\":16777216,\"nodes\":262144,\"depth\":12},\"legacy_grid_range\":\"min-read-v1-only\",\"v1_identity_mapping\":\"same-observation-epoch-local-id-and-use\",\"v1_history_complete\":"<<(q.historical_gap?"false":"true")<<"}";
+    <<",\"catalog\":\"entity-catalog.json\",\"grid_catalog\":\"grid-catalog.json\",\"room_level_catalog\":\"room-level-catalog.json\",\"schemas\":[\"isaac.cs.entity\",\"isaac.cs.entity.native-v1\",\"isaac.cs.entity.lifecycle\",\"isaac.cs.entity.lua-event\",\"isaac.cs.entity.query\",\"isaac.cs.entity.actual-call\",\"isaac.cs.entity.render\",\"isaac.cs.entity.coverage\",\"isaac.cs.grid.legacy\",\"isaac.cs.grid.lifecycle\",\"isaac.cs.grid\",\"isaac.cs.grid.lua-event\",\"isaac.cs.grid.query\",\"isaac.cs.grid.render\",\"isaac.cs.room\",\"isaac.cs.level\",\"isaac.cs.level.transition\",\"isaac.cs.room.event\",\"isaac.cs.room.render\",\"isaac.cs.room.query\",\"isaac.cs.level.query\",\"isaac.cs.level.event\"],\"enabled_domains\":[1,2,3,4],\"unsupported_domains\":[5,6,7,8,9,10,11],\"capture_plan\":{\"ordinary_interval\":30,\"lifecycle\":true,\"explicit_queries\":true},\"budgets\":{\"total_bytes\":"<<world::kWorldBudgetBytes<<",\"publication_bytes\":33554432,\"scope_bytes\":16777216,\"nodes\":262144,\"depth\":12},\"legacy_grid_range\":\"min-read-v1-only\",\"v1_identity_mapping\":\"same-observation-epoch-local-id-and-use\",\"v1_history_complete\":"<<(q.historical_gap?"false":"true")<<"}";
   // REPENTOGON 进程工作目录位于游戏的 Repentogon 子目录，资源在其兄弟 mods 目录。
   wchar_t executable[32768]{};
   const auto length=GetModuleFileNameW(nullptr,executable,DWORD(std::size(executable)));
@@ -106,6 +106,7 @@ bool OpenRecorder(WorldJob &j,RecordingRequest &q) {
   const auto catalog=std::filesystem::path(executable).parent_path().parent_path()/L"mods"/L"isaac-cs-observation"/L"entity-catalog.json";
   std::filesystem::copy_file(catalog,directory/L"entity-catalog.json");
   std::filesystem::copy_file(catalog.parent_path()/L"grid-catalog.json",directory/L"grid-catalog.json");
+  std::filesystem::copy_file(catalog.parent_path()/L"room-level-catalog.json",directory/L"room-level-catalog.json");
   manifest.flush(); q.start_loss=r.publications.LossSequence(); q.start_capture_loss=r.observation.LossSequence();
   return q.v2.good()&&manifest.good();
 }
@@ -322,7 +323,7 @@ std::string ObservationCommand(const std::string &action) {
     "\nloss_sequence="+std::to_string(ready?r.observation.LossSequence():0)+"\nrecord_loss_sequence="+std::to_string(r.publications.LossSequence())+
     "\nlua_attempts="+std::to_string(ready?r.lua_attempts:0)+"\nlua_complete="+std::to_string(ready?r.lua_complete:0)+
     "\nlua_partial="+std::to_string(ready?r.lua_partial:0)+"\nentity_scope="+std::to_string(ready?r.latest_entity.context.scope:0)+
-    "\ngrid_scope="+std::to_string(ready?r.latest_grid.context.scope:0)+"\ngrid_coverage="+(ready?world::observation::CoverageName(r.latest_grid.result.coverage):"NotScheduled")+"\nentity_coverage="+(ready?world::observation::CoverageName(r.latest_entity.result.coverage):"NotScheduled")+"\n";
+    "\nroom_scope="+std::to_string(ready?r.latest_room.context.scope:0)+"\nroom_coverage="+(ready?world::observation::CoverageName(r.latest_room.result.coverage):"NotScheduled")+"\nlevel_scope="+std::to_string(ready?r.latest_level.context.scope:0)+"\nlevel_coverage="+(ready?world::observation::CoverageName(r.latest_level.result.coverage):"NotScheduled")+"\ngrid_scope="+std::to_string(ready?r.latest_grid.context.scope:0)+"\ngrid_coverage="+(ready?world::observation::CoverageName(r.latest_grid.result.coverage):"NotScheduled")+"\nentity_coverage="+(ready?world::observation::CoverageName(r.latest_entity.result.coverage):"NotScheduled")+"\n";
 }
 bool WorldProcessExitPending() noexcept { return process_exit_pending; }
 bool WorldProcessExitDecision() noexcept {

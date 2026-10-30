@@ -17,3 +17,6 @@ Grid 域由 `domains/grid/collect.lua` 组织全部17个公开派生转换、运
 `IsaacCSGridObservation.Query(owner, class, member, args)` 仅允许目录只读查询。门 `IsRoomType` 和岩石 `GetAltRockType` 自动枚举有限公开枚举；RNG 复制 seed／shift 并以当前主体和成员限定所属流，不推进随机数，统一随机目录仍归tx-04-14。GridGetRenderPosition 使用已声明SDK的栈缓冲，规避官方Lua包装的临时Vector泄漏。真实post-update复制运行变化，render每30次回调独立复制姿态；spawn与rock-destroy保留实际回调，原调用及GridFree仍由统一native Hook清单观察。不声称拦截所有Lua玩法方法。
 
 Grid逐成员、类型／变体枚举与回调目录由`mod/tools/gen_grid_catalog.py`从本地Wiki转换，录制v2附带`grid-catalog.json`，新schema不改变min-read-v1的旧字段编号和判据。floor／dimension／room descriptor规范身份由后续room/level域建立前明确Unknown，当前run／room instance归属沿现有观察器代次，不以房号冒充跨时间身份。
+
+
+tx-04-12增加room/level两域：当前Room与Descriptor/Config/环境、全部维度的楼层描述及连接、具名种子、分层身份与过渡失效；目录为room-level-catalog.json。只在同一native窗口复制，独立事件不借用旧tick；详细合同及实机范围见docs/design/observation-expansion/tx-04-12-implementation.md。

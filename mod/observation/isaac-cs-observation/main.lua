@@ -53,3 +53,41 @@ for _,name in ipairs({"MC_POST_GRID_ENTITY_SPAWN","MC_POST_GRID_ROCK_DESTROY","M
     end
   end) end
 end
+
+-- Room/Level仅在实际边界通知中撤销分层上下文；回调始终返回nil，不干预玩法选择。
+local room=include("domains/room/collect")
+IsaacCSRoomObservation=room
+IsaacCSLevelObservation=include("domains/level/collect")
+for _,name in ipairs({"MC_PRE_CHANGE_ROOM","MC_PRE_NEW_ROOM","MC_PRE_LEVEL_INIT","MC_POST_NEW_ROOM","MC_POST_NEW_LEVEL","MC_PRE_GAME_EXIT","MC_POST_GAME_END","MC_POST_SWAP_ROOMS"}) do
+  if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function()
+    local n=IsaacCSObservationNative
+    if n and n.LocationNeeded() then n.LocationBoundary(name,name=="MC_PRE_LEVEL_INIT" or name=="MC_PRE_GAME_EXIT" or name=="MC_POST_GAME_END") end
+  end) end
+end
+for _,name in ipairs({"MC_POST_ROOM_TRIGGER_CLEAR","MC_POST_START_AMBUSH_WAVE","MC_POST_START_GREED_WAVE","MC_PRE_SPAWN_CLEAN_AWARD","MC_POST_PLAYER_TRIGGER_ROOM_CLEAR"}) do
+  if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function(_, ...)
+    local n=IsaacCSObservationNative
+    if n and n.LocationNeeded() then
+      local ok,err=pcall(room.Event,name,false,...)
+      if not ok then room.Error(name,err) end
+    end
+  end) end
+end
+local roomRender=0
+if ModCallbacks.MC_POST_ROOM_TRANSITION_RENDER then mod:AddCallback(ModCallbacks.MC_POST_ROOM_TRANSITION_RENDER,function()
+  local n=IsaacCSObservationNative
+  if n and n.LocationNeeded() then
+    roomRender=roomRender+1
+    if roomRender%30==0 then local ok,err=pcall(room.Event,"MC_POST_ROOM_TRANSITION_RENDER",true); if not ok then room.Error("MC_POST_ROOM_TRANSITION_RENDER",err) end end
+  end
+end) end
+
+for _,name in ipairs({"MC_PRE_LEVEL_PLACE_ROOM","MC_PRE_LEVEL_SELECT","MC_POST_LEVEL_LAYOUT_GENERATED"}) do
+  if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function(_, ...)
+    local n=IsaacCSObservationNative
+    if n and n.LocationNeeded() then
+      local ok,err=pcall(IsaacCSLevelObservation.Event,name,...)
+      if not ok then room.Error(name,err) end
+    end
+  end) end
+end

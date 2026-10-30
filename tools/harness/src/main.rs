@@ -14,6 +14,7 @@ mod world;
 mod observation;
 mod tx10;
 mod tx11;
+mod tx12;
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -339,7 +340,7 @@ impl Run {
         let mut content = json!({"schema":1,"enabled":enabled,"log_level":"info","trace_dir":"isaac-cs/traces",
             "control_port":{"enabled":enabled,"port":self.scenario["control_port"]},"host":{"default_port":self.scenario["host_port"].as_u64().unwrap_or(27090),
                 "bind_address":"127.0.0.1","peer_timeout_ms":self.scenario["peer_timeout_ms"].as_u64().unwrap_or(3000)}});
-        if self.report["tx"] == "tx-04-08" || self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" {
+        if self.report["tx"] == "tx-04-08" || self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" {
             content["world_record"] = json!({"enabled":enabled,
                 "output_dir":self.out.join("runtime-world"),"close_timeout_ms":self.scenario["close_timeout_ms"],
                 "e2e_token":self.report["token"]});
@@ -370,7 +371,7 @@ impl Run {
             ("ui/isaac-cs-ui", "mods/isaac-cs-ui"),
             ("tests/e2e-mods/isaac-cs-test", "mods/isaac-cs-test"),
         ];
-        if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" { targets.push(("mod/observation/isaac-cs-observation","mods/isaac-cs-observation")); }
+        if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" { targets.push(("mod/observation/isaac-cs-observation","mods/isaac-cs-observation")); }
         let existing = self.game.join("Repentogon/isaac-cs/config.json");
         if existing.exists() {
             fs::copy(&existing, backup_root.join("config.json"))
@@ -405,9 +406,11 @@ impl Run {
         self.deployed = true;
         if matches!(
             self.report["tx"].as_str(),
-            Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11")
+            Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12")
         ) {
-            let config = if self.report["tx"] == "tx-04-11" {
+            let config = if self.report["tx"] == "tx-04-12" {
+                format!("return {{tx=\"tx-04-12\",token=\"{}\"}}\n",self.report["token"].as_str().ok_or("token")?)
+            } else if self.report["tx"] == "tx-04-11" {
                 format!("return {{tx=\"tx-04-11\",token=\"{}\"}}\n",self.report["token"].as_str().ok_or("token")?)
             } else if self.report["tx"] == "tx-04-10" {
                 format!("return {{tx=\"tx-04-10\",token=\"{}\"}}\n",self.report["token"].as_str().ok_or("token")?)
@@ -1061,7 +1064,7 @@ impl Run {
     }
     // 所有场景在一个入口中顺序执行，不重试失败启动或失败验收。
     fn execute(&mut self) -> Result<()> {
-        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" { return self.execute_tx09(); }
+        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" { return self.execute_tx09(); }
         if self.report["tx"] == "tx-04-08" { return self.execute_tx08(); }
         if self.report["tx"] == "tx-04-07" {
             return self.execute_tx07();
@@ -1091,7 +1094,7 @@ impl Run {
     }
     // 清理先于报告分析，失败也关闭测试口并移除自己部署的夹具。
     fn finish(&mut self, result: Result<()>) -> Result<()> {
-        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" { return self.finish_tx09(result); }
+        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" { return self.finish_tx09(result); }
         if self.report["tx"] == "tx-04-08" { return self.finish_tx08(result); }
         if self.report["tx"] == "tx-04-07" {
             return self.finish_tx07(result);
@@ -1245,7 +1248,7 @@ fn entry() -> Result<()> {
     if args.get(0).map(String::as_str) != Some("e2e")
         || !matches!(
             args.get(1).map(String::as_str),
-            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11")
+            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12")
         )
     {
         return Err("usage: harness e2e <tx-04-04|tx-04-05|tx-04-06|tx-04-07|tx-04-08> --game <game-root> --artifact-dir <new-directory> [--scenario <json>]".into());

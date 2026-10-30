@@ -29,7 +29,15 @@ void ObservationGridMemberships(void *grid,void *owner,void (*visit)(void *,std:
 bool ObservationValidGrid(void *grid) noexcept;
 void EnsureObservationLuaBridge() noexcept;
 LuaEntityResult CaptureLuaEntity(std::uint32_t objects=16384,std::uint32_t nodes=262144,
-                                 std::uint32_t depth=12,std::uint32_t bytes=16u<<20,bool grid=false) noexcept;
+                                 std::uint32_t depth=12,std::uint32_t bytes=16u<<20,unsigned domain=0) noexcept;
+// 楼层上下文只传递公开逻辑键与自有值；SDK侧不包含游戏对象身份状态机。
+struct LocationValue final { std::uint64_t session=0,epoch=0,floor=0,dimension=0,descriptor=0,run=0,room=0; };
+LocationValue ObservationLocation(int stage,int type,std::uint32_t seed,int dimension,int list,int grid) noexcept;
+std::uint64_t ObservationDescriptor(int dimension,int list,int grid) noexcept;
+std::uint64_t ObservationDimension(int index) noexcept;
+void ObservationLocationBoundary(const char *name,bool floor) noexcept;
+bool ObservationLocationNeeded() noexcept;
+bool ObservationPublishLocation(const char *payload,std::size_t bytes,bool complete,std::uint32_t nodes,const char *reason,unsigned domain,unsigned phase) noexcept;
 bool ObservationLuaNeeded(const char *phase,bool grid=false) noexcept;
 ObservationSubjectValue ObservationSubject(void *object,bool register_subject,bool grid=false) noexcept;
 bool ObservationPublishLua(const char *payload,std::size_t bytes,bool complete,

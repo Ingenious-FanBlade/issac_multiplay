@@ -52,7 +52,7 @@ inline constexpr std::size_t kIoBufferBytes = 1u << 20;
 // world 自有动态存储总预算，含批次、队列、身份/radix、控制记录、I/O 与管理。
 inline constexpr std::uint64_t kWorldBudgetBytes = 512ull << 20;
 // tx-04-10 扩展域和可选录制共同计账，不把每个模块都当成独享旧预算。
-inline constexpr std::uint64_t kObservationReserveBytes=128ull<<20, kPublicationBytes=32ull<<20, kRecorderQueueBytes=kQueueBytes;
+inline constexpr std::uint64_t kObservationReserveBytes=160ull<<20, kPublicationBytes=32ull<<20, kRecorderQueueBytes=kQueueBytes;
 // 未逐项记账的管理/编码余量，明确计入总预算而不是当作免费。
 inline constexpr std::uint64_t kManagementBytes = 8ull << 20;
 // 生命周期事件环使用 sequence 关联，事件与批次各自保留 watermark。

@@ -5,6 +5,7 @@
 #include "world/common/service.h"
 #include "world/common/publication.h"
 #include <memory>
+#include "world/domains/level/model.h"
 
 namespace cs::game {
 // 采集 owner 不拥有文件录制器；即使没有 Recorder，也保持同一身份 epoch 和值消费。
@@ -19,8 +20,11 @@ struct WorldCapture final {
   world::observation::Service observation;
   world::observation::PublicationQueue publications{ledger};
   std::uint64_t session_key=0,epoch=0;
-  std::array<std::uint64_t,4> pending_scopes{};
-  world::observation::ObservationEnvelope latest_entity{},latest_grid{};
+  std::array<std::uint64_t,6> pending_scopes{};
+  world::observation::ObservationEnvelope latest_entity{},latest_grid{},latest_room{},latest_level{};
+  world::level::Hierarchy hierarchy{};
+  std::uint64_t lua_run=0,lua_room=0;
+  bool location_window=false;
   bool formal_consumer=false,recorder_consumer=false;
   std::uint64_t lua_attempts=0,lua_complete=0,lua_partial=0;
   std::uint64_t formal_loss=0;

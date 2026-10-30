@@ -28,7 +28,7 @@ private:
   void MergePlan();
   void Publish(const ObservationEnvelope &) noexcept;
   std::array<Consumer,4> consumers_{};
-  std::array<std::optional<ObservationEnvelope>,4> pending_{};
+  std::array<std::optional<ObservationEnvelope>,6> pending_{};
   CapturePlan plan_{};
   std::uint64_t session_=0, epoch_=0, scope_=0, sequence_=0;
   std::atomic<std::uint64_t> published_{0}, loss_{0};

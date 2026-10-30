@@ -13,6 +13,8 @@ obs::CapturePlan Plan() {
   obs::CapturePlan p;
   p.domains.push_back({obs::DomainId::Entity,1u|4u|16u|32u,30,{}});
   p.domains.push_back({obs::DomainId::Grid,1u|4u|16u|32u,30,{}});
+  p.domains.push_back({obs::DomainId::Room,53u,30,{16384,262144,12,4ull<<20}});
+  p.domains.push_back({obs::DomainId::Level,45u,30,{16384,262144,12,4ull<<20}});
   return p;
 }
 void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
@@ -21,6 +23,8 @@ void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
     if(e.kind!=obs::RecordKind::State) return;
     if(e.schema=="isaac.cs.entity") c.latest_entity=e;
     else if(e.schema=="isaac.cs.grid") c.latest_grid=e;
+    else if(e.schema=="isaac.cs.room") c.latest_room=e;
+    else if(e.schema=="isaac.cs.level") c.latest_level=e;
   } catch(...) { ++c.formal_loss; }
 }
 void Record(void *owner,const obs::ObservationEnvelope &e) noexcept {
@@ -33,6 +37,15 @@ bool Scheduled(const WorldCapture &c,obs::DomainId domain,std::uint64_t capture)
   for(const auto &d:c.observation.Plan().domains) if(d.domain==domain) return capture%(d.interval?d.interval:1)==0;
   return false;
 }
+// 只有相同run/room的稳定窗口可继承维度与描述；独立事件不能借用过时代次。
+void LocationContext(WorldCapture &c,obs::ObservationContext &out,std::uint64_t run,std::uint64_t room) noexcept {
+  const auto &h=c.hierarchy;
+  out.floor={}; out.dimension={}; out.descriptor={};
+  if(h.run!=run||!run) return;
+  if(h.floor.local) out.floor={obs::Presence::Known,h.floor};
+  if(!h.valid||h.room!=room||!room) return;
+  out.dimension={obs::Presence::Known,h.dimension}; out.descriptor={obs::Presence::Known,h.descriptor};
+}
 obs::ObservationEnvelope Base(WorldCapture &c,obs::DomainId domain,const char *schema,const world::BatchHeader &h) {
   obs::ObservationEnvelope e;
   e.domain=domain; e.schema=schema;
@@ -43,30 +56,37 @@ obs::ObservationEnvelope Base(WorldCapture &c,obs::DomainId domain,const char *s
   e.context.event_watermark=h.event_watermark;
   if(h.run) e.context.run={obs::Presence::Known,{c.session_key,c.epoch,h.run,obs::IdentitySpace::Run}};
   if(h.room) e.context.room={obs::Presence::Known,{c.session_key,c.epoch,h.room,obs::IdentitySpace::RoomInstance}};
+  LocationContext(c,e.context,h.run,h.room);
   return e;
 }
 // 同一 native 复制窗口内顺序调用各域；任一最终来源变化由统一 Commit 撤销。
 void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects,const world::RawMembership *members) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
-  for(unsigned grid=0;grid<2;++grid) {
-    const auto domain=grid?obs::DomainId::Grid:obs::DomainId::Entity;
+  // 先读取room建立分层上下文，再由level与Entity/Grid在同批次引用。
+  for(const unsigned index : {2u,3u,0u,1u}) {
+    const auto domain=static_cast<obs::DomainId>(index+1);
+    const bool grid=index==1;
     if(!Scheduled(c,domain,h.capture)) continue;
     try {
       EnsureObservationLuaBridge();
-      auto e=Base(c,domain,grid?"isaac.cs.grid":"isaac.cs.entity",h); e.context.source=2;
-      c.lua_objects=objects; c.lua_object_count=h.object_count; c.lua_members=members; c.lua_members_count=h.membership_count; c.lua_scope=e.context.scope;
+      const char *schemas[]={"isaac.cs.entity","isaac.cs.grid","isaac.cs.room","isaac.cs.level"};
+      auto e=Base(c,domain,schemas[index],h); e.context.source=2;
+      c.lua_objects=objects; c.lua_object_count=h.object_count; c.lua_members=members; c.lua_members_count=h.membership_count; c.lua_scope=e.context.scope; c.lua_run=h.run; c.lua_room=h.room; c.location_window=true;
       for(const auto &d:c.observation.Plan().domains) if(d.domain==domain) e.result.budget=d.budget;
       const auto budget=e.result.budget;
-      auto result=CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,std::uint32_t(budget.bytes),grid!=0);
-      if(!grid) { ++c.lua_attempts; if(result.available&&result.complete) ++c.lua_complete; else ++c.lua_partial; }
-      c.lua_objects=nullptr; c.lua_object_count=0; c.lua_members=nullptr; c.lua_members_count=0;
+      auto result=CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,std::uint32_t(budget.bytes),index);
+      if(index==0) { ++c.lua_attempts; if(result.available&&result.complete) ++c.lua_complete; else ++c.lua_partial; }
+      c.lua_objects=nullptr; c.lua_object_count=0; c.lua_members=nullptr; c.lua_members_count=0; c.location_window=false;
+      LocationContext(c,e.context,h.run,h.room);
       e.result.coverage=result.available?(result.complete?obs::Coverage::Complete:obs::Coverage::Partial):obs::Coverage::Failed;
-      e.result.range=grid?"public-grid-v2:all-derived-save-sprite-rng;finite-enums-and-explicit-queries":"public-entity-v2:state-and-finite-queries;unbounded-derived-queries:on-request;external-domains:explicit-references";
+      e.result.range=index>=2?"public-room-level-v2:identity-config-progress-environment-structure;explicit-query-parameters":grid?"public-grid-v2:all-derived-save-sprite-rng;finite-enums-and-explicit-queries":"public-entity-v2:state-and-finite-queries;unbounded-derived-queries:on-request;external-domains:explicit-references";
       if(!result.reason.empty()) e.result.reasons.push_back(result.reason);
       e.result.objects=result.objects; e.result.nodes=result.nodes; e.result.bytes=result.payload.size(); e.payload=std::move(result.payload);
+      if(index>=2&&!e.payload.empty()&&e.payload.front()=='{') e.payload.insert(1,"\"sample_revision\":\""+std::to_string(e.context.scope)+"\",");
+      e.result.bytes=e.payload.size();
       const auto scope=e.context.scope;
-      if(c.observation.PrepareScope(std::move(e)).accepted) c.pending_scopes[grid?3:0]=scope;
-    } catch(...) { c.lua_objects=nullptr; c.lua_object_count=0; c.lua_members=nullptr; c.lua_members_count=0; c.observation.Invalidate("lua_scope_budget"); }
+      if(c.observation.PrepareScope(std::move(e)).accepted) c.pending_scopes[index>=2?index+2:grid?3:0]=scope;
+    } catch(...) { c.location_window=false; c.hierarchy.Invalidate(false); c.lua_objects=nullptr; c.lua_object_count=0; c.lua_members=nullptr; c.lua_members_count=0; c.observation.Invalidate("lua_scope_budget"); }
   }
 }
 void Native(void *owner,const world::BatchHeader &h,const world::RawObject *objects,const world::RawMembership *members) noexcept {
@@ -107,6 +127,7 @@ void Native(void *owner,const world::BatchHeader &h,const world::RawObject *obje
 }
 void Commit(void *owner,bool committed,bool stable) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
+  if(!stable||!committed) { c.hierarchy.Invalidate(false); c.latest_room={}; c.latest_level={}; }
   for(auto &scope:c.pending_scopes) if(scope) {
     c.observation.CommitScope(scope,!stable?obs::Outcome::Invalidated:committed?obs::Outcome::AuthorityCommitted:obs::Outcome::Cancelled); scope=0;
   }
@@ -122,6 +143,7 @@ void Event(void *owner,const world::LifecycleEvent &event) noexcept {
     if(event.run) e.context.run={obs::Presence::Known,{c.session_key,c.epoch,event.run,obs::IdentitySpace::Run}};
     // native 事件记录真实观察时的room代次；Lua回调只在稳定room上下文内补归属。
     if(event.room) e.context.room={obs::Presence::Known,{c.session_key,c.epoch,event.room,obs::IdentitySpace::RoomInstance}};
+    LocationContext(c,e.context,event.run,event.room);
     e.context.mutation_before=e.context.mutation_after=event.mutation;
     e.result.coverage=event.exceptional?obs::Coverage::Partial:obs::Coverage::Complete; e.result.range="native-observed-lifecycle-and-call-pair";
     e.payload="{\"local_id\":\""+std::to_string(event.local_id)+"\",\"use\":\""+std::to_string(event.use)+"\",\"revision\":\""+std::to_string(event.revision)+"\",\"origin_readiness\":"+std::to_string(event.readiness)+",\"kind\":"+std::to_string(unsigned(event.kind))+",\"observation\":"+std::to_string(event.observation)+",\"call\":"+std::to_string(event.call)+",\"parent_call\":"+std::to_string(event.parent)+",\"entering\":"+std::to_string(event.entering)+",\"exceptional\":"+std::to_string(event.exceptional)+",\"candidate_tick\":\""+std::to_string(event.tick)+"\",\"memberships\":"+std::to_string(event.memberships)+"}";
@@ -327,6 +349,7 @@ bool ObservationPublishLua(const char *payload,std::size_t bytes,bool complete,s
     e.context.mutation_before=e.context.mutation_after=c->collector->CurrentMutation();
     if(const auto run=c->collector->CurrentRunToken()) e.context.run={obs::Presence::Known,{c->session_key,c->epoch,run,obs::IdentitySpace::Run}};
     if(const auto room=c->collector->CurrentRoomToken()) e.context.room={obs::Presence::Known,{c->session_key,c->epoch,room,obs::IdentitySpace::RoomInstance}};
+    LocationContext(*c,e.context,c->collector->CurrentRunToken(),c->collector->CurrentRoomToken());
     e.result.coverage=complete?obs::Coverage::Complete:obs::Coverage::Partial;
     e.result.range=grid?"actual-grid-callback-or-explicit-query":phase==3?"original-loot-call-return":phase==2?"entity-owned-sprite-at-actual-render":phase==1?"explicit-readonly-query":"actual-public-lifecycle-callback";
     e.result.objects=objects; e.result.nodes=nodes; e.result.bytes=bytes;
@@ -335,4 +358,80 @@ bool ObservationPublishLua(const char *payload,std::size_t bytes,bool complete,s
     return c->observation.PrepareScope(std::move(e)).accepted&&c->observation.CommitScope(scope,obs::Outcome::IndependentPublished).accepted;
   } catch(...) { c->observation.Invalidate("lua_event_budget"); return false; }
 }
+// 公开逻辑位置只在同一完整native复制窗口建立；FIRST_OBSERVED不补造楼层生成历史。
+LocationValue ObservationLocation(int stage,int type,std::uint32_t seed,int dimension,int list,int grid) noexcept {
+  auto c=CurrentWorldRecording();
+  if(!IsMain()||!c||!c->location_window||dimension<0||dimension>2||list<0||list>=1024) return {};
+  auto &h=c->hierarchy;
+  if(h.run!=c->lua_run||h.stage!=stage||h.type!=type||h.seed!=seed) h.Invalidate(true);
+  h.run=c->lua_run; h.room=c->lua_room; h.stage=stage; h.type=type; h.seed=seed;
+  if(!h.floor.local) h.floor=c->observation.AllocateRelatedSubject(obs::IdentitySpace::Floor);
+  if(!h.dimensions[dimension].local) h.dimensions[dimension]=c->observation.AllocateRelatedSubject(obs::IdentitySpace::Dimension);
+  h.dimension=h.dimensions[dimension]; h.dimension_index=dimension;
+  const auto id=ObservationDescriptor(dimension,list,grid);
+  h.descriptor={c->session_key,c->epoch,id,obs::IdentitySpace::RoomDescriptor};
+  h.valid=h.floor.local&&h.dimension.local&&id;
+  return {c->session_key,c->epoch,h.floor.local,h.dimension.local,id,h.run,h.room};
+}
+std::uint64_t ObservationDescriptor(int dimension,int list,int grid) noexcept {
+  auto c=CurrentWorldRecording();
+  if(!IsMain()||!c||(!c->location_window&&!c->hierarchy.valid)||dimension<0||dimension>2||list<0||list>=1024||!c->hierarchy.floor.local) return 0;
+  auto &h=c->hierarchy;
+  if(!h.dimensions[dimension].local) h.dimensions[dimension]=c->observation.AllocateRelatedSubject(obs::IdentitySpace::Dimension);
+  for(auto &d:h.descriptors) if(d.used&&d.dimension==dimension&&d.list==list) {
+    // 列表槽换成不同网格位置时退休旧描述，不借地址延续身份。
+    if(d.grid==grid) return d.subject.local;
+    d.used=false;
+  }
+  if(!c->location_window) return 0;
+  for(auto &d:h.descriptors) if(!d.used) {
+    d.used=true; d.dimension=dimension; d.list=list; d.grid=grid;
+    d.subject=c->observation.AllocateRelatedSubject(obs::IdentitySpace::RoomDescriptor); return d.subject.local;
+  }
+  return 0;
+}
+std::uint64_t ObservationDimension(int index) noexcept {
+  auto c=CurrentWorldRecording(); if(!IsMain()||!c||index<0||index>2) return 0;
+  return c->hierarchy.dimensions[index].local;
+}
+bool ObservationLocationNeeded() noexcept {
+  auto c=CurrentWorldRecording(); return IsMain()&&c&&c->observation.Active()&&
+    (c->observation.Needed(obs::DomainId::Room,obs::Phase::Lifecycle)||c->observation.Needed(obs::DomainId::Level,obs::Phase::Transition));
+}
+void ObservationLocationBoundary(const char *name,bool floor) noexcept {
+  auto c=CurrentWorldRecording(); if(!ObservationLocationNeeded()||!c) return;
+  try {
+    obs::ObservationEnvelope e; e.domain=obs::DomainId::Level; e.schema="isaac.cs.level.transition"; e.kind=obs::RecordKind::Event;
+    e.context=c->observation.BeginScope(obs::Phase::Transition,2);
+    const auto &h=c->hierarchy;
+    e.payload="{\"event\":\""+std::string(name)+"\",\"previous\":{\"run\":\""+std::to_string(h.run)+"\",\"floor\":\""+std::to_string(h.floor.local)+"\",\"dimension\":\""+std::to_string(h.dimension.local)+"\",\"descriptor\":\""+std::to_string(h.descriptor.local)+"\",\"room_instance\":\""+std::to_string(h.room)+"\"},\"new_context\":\"UnknownUntilOrdinaryPost\"}";
+    c->hierarchy.Invalidate(floor); c->latest_room={}; c->latest_level={};
+    e.result.coverage=obs::Coverage::Complete; e.result.range="actual-public-boundary;previous-location-only"; e.result.bytes=e.payload.size();
+    const auto scope=e.context.scope;
+    if(c->observation.PrepareScope(std::move(e)).accepted) c->observation.CommitScope(scope,obs::Outcome::IndependentPublished);
+  } catch(...) { c->hierarchy.Invalidate(floor); c->observation.Invalidate("location_boundary_budget"); }
+}
+bool ObservationPublishLocation(const char *payload,std::size_t bytes,bool complete,std::uint32_t nodes,const char *reason,unsigned domain,unsigned phase) noexcept {
+  auto c=CurrentWorldRecording(); if(!ObservationLocationNeeded()||!c||bytes>(16u<<20)||nodes>262144||domain>1||phase>2) return false;
+  try {
+    obs::ObservationEnvelope e; e.domain=domain?obs::DomainId::Level:obs::DomainId::Room;
+    e.schema=domain?(phase==1?"isaac.cs.level.query":"isaac.cs.level.event"):(phase==1?"isaac.cs.room.query":phase==2?"isaac.cs.room.render":"isaac.cs.room.event");
+    e.kind=phase?obs::RecordKind::State:obs::RecordKind::Event;
+    e.context=c->observation.BeginScope(phase==1?obs::Phase::ActualCall:phase==2?obs::Phase::Render:obs::Phase::Lifecycle,2);
+    const auto run=c->collector->CurrentRunToken(),room=c->collector->CurrentRoomToken();
+    if(run) e.context.run={obs::Presence::Known,{c->session_key,c->epoch,run,obs::IdentitySpace::Run}};
+    // 过渡期间不关联旧room；完整上下文由下一次普通采集恢复。
+    if(c->hierarchy.valid&&c->hierarchy.room==room&&c->hierarchy.run==run) {
+      e.context.room={obs::Presence::Known,{c->session_key,c->epoch,room,obs::IdentitySpace::RoomInstance}};
+      LocationContext(*c,e.context,run,room);
+    }
+    e.context.outer=c->collector->CurrentOuterToken();
+    e.payload.assign(payload,bytes); e.result.coverage=complete?obs::Coverage::Complete:obs::Coverage::Partial;
+    e.result.range="actual-room-level-callback-or-explicit-readonly-query"; e.result.bytes=bytes; e.result.nodes=nodes;
+    if(reason&&*reason) e.result.reasons.emplace_back(reason);
+    const auto scope=e.context.scope;
+    return c->observation.PrepareScope(std::move(e)).accepted&&c->observation.CommitScope(scope,obs::Outcome::IndependentPublished).accepted;
+  } catch(...) { c->observation.Invalidate("location_event_budget"); return false; }
+}
+
 }

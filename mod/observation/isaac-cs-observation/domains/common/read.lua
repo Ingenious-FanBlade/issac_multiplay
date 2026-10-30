@@ -43,6 +43,10 @@ local function parameterSets(object, spec, ctx)
     end
     table.sort(out,function(a,b) return a[1]<b[1] end); return out
   end
+  if ctx.parameter_sets then
+    local sets=ctx.parameter_sets(object,spec)
+    if sets~=nil then return sets end
+  end
   local name=spec.member
   if spec.owner=="Sprite" and (name=="GetNullFrame" or name=="GetOverlayNullFrame" or name:find("EventTriggered")) then
     local overlay=name:find("Overlay")~=nil
@@ -161,6 +165,20 @@ value=function(object, typ, ctx, depth)
     for i=0,size-1 do out[#out+1]=value(object:Get(i),typ=="VectorList" and "Vector" or typ=="EntityList" and "Entity" or "TemporaryEffect",ctx,depth+1) end
     return array(out)
   end
+  -- 房间配置容器只复制已经存在的条目，不调用PickEntry或加载房间集。
+  if typ=="RoomConfigSpawns" or typ=="RoomConfigEntries" then
+    local out={}; local size=object.Size
+    if not size or size<0 or size>LIMIT.nodes then fail(ctx,"room_config_container_budget"); return missing("Truncated","size") end
+    for i=0,size-1 do
+      if ctx.nodes>=LIMIT.nodes then fail(ctx,"room_config_container_budget"); break end
+      out[#out+1]=value(object:Get(i),typ=="RoomConfigSpawns" and "RoomConfigSpawn" or "RoomConfigEntry",ctx,depth+1)
+    end
+    return array(out)
+  end
+  if ctx.domain_value then
+    local handled,result=ctx.domain_value(object,typ,ctx,depth)
+    if handled then return result end
+  end
   if schemas[typ] then return collect(object,typ,ctx,depth+1) end
   -- 基础 C++ 结构在 Wiki 中使用不同的显示名。
   -- Wiki 未公开 HomingLaser 的私有成员；完整公开曲线由 Laser 两个 Samples Getter 表达。
@@ -189,7 +207,7 @@ query=function(object,spec,args,ctx,depth)
   if not ok then fail(ctx,"read:"..spec.id); return missing("ReadFailed",textError(v)) end
   local copied,out=pcall(value,v,spec.returns,ctx,depth+1)
   if not copied then fail(ctx,"value_copy:"..spec.id); return missing("ReadFailed",textError(out)) end
-  if extra~=nil then return {returns={out,value(extra,nil,ctx,depth+1)}} end
+  if extra~=nil then return {returns={out,value(extra,spec.returns:match(",%s*([%w_]+)"),ctx,depth+1)}} end
   return out
 end
 
@@ -219,6 +237,8 @@ collect=function(object,class,ctx,depth)
           end
           out.fields[spec.id]={kind="parameter_results",values=results}
         else out.fields[spec.id]={status="NotScheduled",reason="derived_query_requires_explicit_parameters",signature=spec.parameters} end
+      elseif spec.category=="domain_value" and ctx.domain_member then
+        out.fields[spec.id]=ctx.domain_member(object,spec,ctx,depth)
       elseif spec.category=="external_reference" then
         out.fields[spec.id]=missing("NotCaptured",spec.reason)
       elseif spec.category=="actual_call" then

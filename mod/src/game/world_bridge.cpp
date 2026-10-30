@@ -251,6 +251,12 @@ void WorldFrameBegin(std::uint64_t loop) noexcept {
     return;
   }
   collector->BeginOuter(loop, OwnerToken(Owner::Manager), RunActive());
+  // 原生run/room撤销即取消活动上下文，不等待可选Lua回调或下一次30tick采集。
+  auto &location=recording->hierarchy;
+  if(location.valid&&(location.run!=collector->CurrentRunToken()||location.room!=collector->CurrentRoomToken())) {
+    location.Invalidate(location.run!=collector->CurrentRunToken());
+    recording->latest_room={}; recording->latest_level={};
+  }
   WorldRefreshAnchors();
 }
 world::PlayerAnchor WorldPlayerAnchor(unsigned ordinal, void *player) noexcept {
