@@ -101,7 +101,7 @@
 
 ### tx-04-17：客户端玩法隔离与资源／展示运行时
 
-- 专项入口：[工作流程与先行静态核验清单](tx-04-17/tx-04-17-workflow.md)。ST1—ST8归同一17，优先复用既有J273研究与公开接口；协议无关的静态核验可在15／16前进行。2026-10-31已完成[ST1接口目录](tx-04-17/tx-04-17-public-interface-catalog.md)、[ST2场景根与生命周期](tx-04-17/tx-04-17-client-scene-lifecycle.md)、[ST3更新隔离](tx-04-17/tx-04-17-update-isolation.md)、[ST4展示边界](tx-04-17/tx-04-17-render-presentation-boundary.md)的指定静态研究与主审，ST2—ST4各用一个GPT-6 Luna／max子智能体，ST2／ST3另经互核。Manager完整隔离候选、菜单等待UI及世界根缺口反馈16；ST4补齐J273动画事件→共享RNG／弹体Spawn、派生render／HUD／Game Lua及声音／shader时间边界，向15／18—20／27明确状态、事件、pass及表现时钟适配需求；ST5—ST8待执行。未修改运行代码、构建或测试，Client世界壳与完整接线仍待实现，统一E2E仍依赖15／16，不增加分项验收。
+- 专项入口：[工作流程与先行静态核验清单](tx-04-17/tx-04-17-workflow.md)。ST1—ST8归同一17，优先复用J273研究与公开接口；协议无关的静态核验可在15／16前进行。2026-10-31已完成[ST1接口目录](tx-04-17/tx-04-17-public-interface-catalog.md)、[ST2场景根](tx-04-17/tx-04-17-client-scene-lifecycle.md)、[ST3更新隔离](tx-04-17/tx-04-17-update-isolation.md)、[ST4展示边界](tx-04-17/tx-04-17-render-presentation-boundary.md)、[ST5资源与完整姿态](tx-04-17/tx-04-17-resource-pose-runtime.md)、[ST6线程／context](tx-04-17/tx-04-17-thread-context-lifetime.md)、[ST7 Lua与借用寿命](tx-04-17/tx-04-17-lua-borrow-lifetime.md)的指定静态研究与主审；本轮ST5—ST7各用一个GPT-6 Luna／max子智能体并来回互核。向15反馈资源／姿态／shader／代次与错误语义，向16反馈主线程及OS-current检查、加载旁路、候选发布和有界退休；normal CPU queue清理与最后strong→GL删除分别核定，运行命中／像素／全部在途owner及可控LuaImage释放仍未完成。ST8待执行；未改运行代码、构建或测试，Client世界壳及完整接线和统一E2E仍依赖15／16，不增加分项验收。
 - 实现：普通／odd／FSM／loading／render等真实路径的客户端边界，隔离AI、碰撞与伤害裁决、物品使用、拾取、掉落、gameplay RNG／Lua及存档副作用，保留必要相机／动画／HUD／渲染；为仍有状态写入的展示路径提供明确适配。
 - 落地资源加载／缓存／动态换图／姿态／图层／context／Lua寿命与正常退休，处理准备失败／部分应用；保持Hook常驻、主线程原生操作与后台有界自有数据。
 - 整体验收：真实Client在正常／加载／暂停等路径持续展示受控资源，不产生第二份战斗、随机、奖励或保存；失败不渲染半套世界。不能用输入清零或只绘制一个屏幕Sprite代替完整边界。

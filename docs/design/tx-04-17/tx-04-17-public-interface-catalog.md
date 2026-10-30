@@ -1,6 +1,6 @@
 # tx-04-17 ST1：公开接口选型、既有事实与具体缺口
 
-> 后续进度（2026-10-31）：[ST2场景根与生命周期](tx-04-17-client-scene-lifecycle.md)、[ST3更新隔离](tx-04-17-update-isolation.md)及[ST4展示边界](tx-04-17-render-presentation-boundary.md)已完成指定静态研究与主审，ST2／ST3另经互核；[工作流程](tx-04-17-workflow.md)记录纠错与接受范围。ST4已核对J273帧事件到玩法Spawn、派生绘制／Game／HUD的Lua、声音与表现时钟依赖，并给出隔离和适配责任；不代表原生render整树安全。下文“ST2—ST8未执行／本轮未调用IDA”及缺口表保留ST1资料归并当时事实，不代表后续进度。ST5—ST8、世界壳、运行隔离及统一E2E仍未完成。
+> 后续进度（2026-10-31）：[ST2场景根](tx-04-17-client-scene-lifecycle.md)、[ST3更新隔离](tx-04-17-update-isolation.md)、[ST4展示边界](tx-04-17-render-presentation-boundary.md)、[ST5资源与完整姿态](tx-04-17-resource-pose-runtime.md)、[ST6线程／context／在途绘制](tx-04-17-thread-context-lifetime.md)、[ST7 Lua与借用寿命](tx-04-17-lua-borrow-lifetime.md)已完成指定静态研究与主审，ST2／ST3及ST5—ST7另经来回互核；[工作流程](tx-04-17-workflow.md)记录纠错与接受范围。最新结果补正BlendMode可写属性、shader描述、J273 raw队列／最后引用、Lua GC与分段关闭合同；不是原生render整树安全或资源运行时完成。下文“ST2—ST8未执行／本轮未调用IDA”及缺口表保留ST1资料归并当时事实，不代表后续进度。ST8、世界壳、可控LuaImage释放、运行隔离及统一E2E仍未完成。
 
 日期：2026-10-31，Asia/Singapore。状态：**ST1 资料归并与源码审阅完成；ST2—ST8 未执行，Client 隔离与资源运行时尚未实现。** 本目录是[工作流程 ST1](tx-04-17-workflow.md#st1-公开接口和既有事实归并)的设计输入，归同一 tx-04-17，不另设研究 tx 或分项验收。
 

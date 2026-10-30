@@ -256,7 +256,7 @@ gameplay预测、rollback、host migration和Dedicated Server保持可选；若�
 
 完整执行入口为[整局可玩联机模组推进流程](state-synchronization-roadmap.md)，包括每个tx的目标、直接交付、依赖、整体验收及跨域责任表。
 
-tx-04-17另有[客户端玩法隔离与资源展示运行时工作流程](tx-04-17/tx-04-17-workflow.md)，单列ST1—ST8先行静态核验、研究复用／公开接口／必要逆向、完整实现及统一E2E。2026-10-31后续启动的[ST1接口选型与既有事实归并](tx-04-17/tx-04-17-public-interface-catalog.md)已完成：构造器层数bool、换图bool、图像准备、姿态和世界发布分别建模，精确层姿态／借用代次及失败退休缺口反馈15／16。ST2—ST8待执行，未新增逆向、实现或测试。协议无关的静态研究可先于15／16，功能接线与整体验收仍依赖其实际交付。
+tx-04-17另有[客户端玩法隔离与资源展示运行时工作流程](tx-04-17/tx-04-17-workflow.md)，单列ST1—ST8先行静态核验、研究复用／公开接口／必要逆向、完整实现及统一E2E。2026-10-31已完成ST1—ST7指定静态研究与主审，本轮[ST5资源与完整姿态](tx-04-17/tx-04-17-resource-pose-runtime.md)、[ST6线程／context／在途引用](tx-04-17/tx-04-17-thread-context-lifetime.md)、[ST7 Lua与借用寿命](tx-04-17/tx-04-17-lua-borrow-lifetime.md)各由一个GPT-6 Luna／max子智能体推进并来回互核。资源描述与姿态含图层身份、shader／BlendMode及必要phase缺口；实例、资源、Lua与context分别换代。逻辑发布不等于旧资源释放、图像关联不等于World Applied，正常CPU queue reset／remove与最后strong到GL删除分列；实际context、全部在途owner及可控LuaImage释放仍是实现／运行留项。ST8、Client世界壳及运行实现待完成；本轮没有构建或测试。协议无关的静态研究可先于15／16，功能接线与整体验收仍依赖其实际交付。
 
 | 编号 | 完整交付范围 |
 | --- | --- |

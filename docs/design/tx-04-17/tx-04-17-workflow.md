@@ -1,6 +1,6 @@
 # tx-04-17 客户端玩法隔离与资源展示运行时工作流程
 
-日期：2026-10-31，Asia/Singapore。状态：**ST1资料归并、ST2／ST3指定范围的J273静态研究及互核、ST4展示边界静态研究与主审完成**，见[接口目录](tx-04-17-public-interface-catalog.md)、[场景根与生命周期](tx-04-17-client-scene-lifecycle.md)、[更新隔离](tx-04-17-update-isolation.md)、[render／HUD／动画事件与Lua边界](tx-04-17-render-presentation-boundary.md)。ST5—ST8待执行；Client世界壳及隔离运行时仍未实现，具体构造／展示／退休缺口保留，未构建或测试。
+日期：2026-10-31，Asia/Singapore。状态：**ST1—ST7指定范围的静态研究与主审完成；ST2／ST3及ST5—ST7已完成来回互核**。成果见[接口目录](tx-04-17-public-interface-catalog.md)、[场景根与生命周期](tx-04-17-client-scene-lifecycle.md)、[更新隔离](tx-04-17-update-isolation.md)、[展示边界](tx-04-17-render-presentation-boundary.md)、[资源与完整姿态](tx-04-17-resource-pose-runtime.md)、[线程／context／在途绘制](tx-04-17-thread-context-lifetime.md)、[Lua与借用寿命](tx-04-17-lua-borrow-lifetime.md)。ST8待执行；Client世界壳及隔离运行时仍未实现，具体构造／展示／可控释放缺口和运行UNKNOWN保留，未构建或测试。
 
 本tx为真实游戏Client建立不执行权威玩法的运行环境，并交付资源准备、姿态应用、正常展示与退休的公共运行时。**与协议无关的静态核验可以先于tx-04-15／16进行；角色接线和完整功能验收仍依赖15／16。** 静态结果应及时反馈15的资源、姿态、引用和错误模型，避免协议定稿后才发现表达缺口。
 
@@ -44,7 +44,7 @@
 | 正式角色控制、输入与消息接线、资源发布实现 | 按实际依赖接入 | 需要15的模型和16的真实Client入口，不另起旁路或第二套协议 |
 | 实际命中、线程／context、资源显示及副作用判断 | 留给17全目标统一E2E | 不在静态核验期间运行游戏、probe、试验、校验器或分项测试 |
 
-初始请求只建立工作流程；2026-10-31后续用户启动ST1，随后要求继续ST2／ST3，各由一个子智能体推进并来回核对，必要逆向使用GPT-6 Luna／max，主智能体审阅。ST1通过文档和源码归并完成；ST2／ST3已分别由指定模型完成只读J273研究，并交换初步事实、交叉回读草稿和纠错，主智能体独立重读关键指令与源码。随后用户根据ST2／ST3启动ST4，明确每个ST各用一个GPT-6 Luna／max子智能体，由主智能体审阅后直接提交；本次只分派ST4，不重新执行已完成的ST2／ST3。未启动实现或实机操作。先行静态核验属于同一tx-04-17，不新增仅研究的tx，也不恢复gate、哈希、预封或项目层强制独立角色流程。
+初始请求只建立工作流程；2026-10-31后续用户启动ST1，随后要求继续ST2／ST3，各由一个子智能体推进并来回核对，必要逆向使用GPT-6 Luna／max，主智能体审阅。ST1通过文档和源码归并完成；ST2／ST3已分别由指定模型完成只读J273研究，并交换初步事实、交叉回读草稿和纠错，主智能体独立重读关键指令与源码。随后用户根据ST2／ST3启动ST4，明确每个ST各用一个GPT-6 Luna／max子智能体，由主智能体审阅后直接提交；该轮只分派ST4，未重新执行ST2／ST3。用户随后要求继续ST5／ST6／ST7，每项各开一个子智能体并来回核对，必要逆向指定GPT-6 Luna／max；本轮三项均由各自指定模型完成，交换初步事实、互读草稿、按主审及互核意见修订，主智能体另行回读源码与J273关键指令。未启动实现或实机操作。先行静态核验属于同一tx-04-17，不新增仅研究的tx，也不恢复gate、哈希、预封或项目层强制独立角色流程。
 
 ## 3 可复用研究和公开接口
 
@@ -101,6 +101,7 @@ ST1—ST8是内部工作索引，不是单独推进编号或分项验收。每�
 
 ### ST5 资源准备 动态换图与完整姿态
 
+- **2026-10-31静态研究、ST6／ST7互核及主审完成**：[资源准备与完整姿态合同](tx-04-17-resource-pose-runtime.md)。区分ANM、图像关联、姿态、发布及实际像素；核对J273 Load／Reload／换图失败后态、帧setter映射与事件位。补齐BlendMode、Sprite／逐层custom与champion shader、三个main SetFrame入口；分数phase／无有效帧需求保留具体缺口。候选始终私有至完整发布，逻辑切换与旧引用退休分开，不以布尔值或getter的clamp结果冒充完整成功。
 - 资料：03-13、15—18、20，公开Sprite／LayerState／AnimationData／AnimationFrame及相关绑定源码。
 - 核验：构造和加载结果、ANM及图像的成功语义、换图和Reload区别、main／overlay及独立层姿态、颜色／变换／flags；明确缺失资源、无效动画、层越界和准备部分失败的后态。
 - 补充逆向：仅对具体不足补J273核验，例如公开整数帧无法表达的必要相位、特殊几何依赖或不清楚的setter副作用。不以旧原地写key向量方案要求所有资源重新走native内存适配。
@@ -109,6 +110,7 @@ ST1—ST8是内部工作索引，不是单独推进编号或分项验收。每�
 
 ### ST6 主线程 context加载旁路与在途绘制
 
+- **2026-10-31静态研究、ST5／ST7互核及主审完成**：[线程／context与引用寿命](tx-04-17-thread-context-lifetime.md)。核对Manager正常与启动加载双caller、J273 WGL创建／切换／删除和TLS无返回值检查，补齐raw image／batch、正常CPU队列reset／remove与最后strong到GL删除的分别路径。旧J460批次强引用和window布局不移植；OS current、实际安装、全部异常／在途owner和GPU完成仍未知。正常退出按Game／ANM cache、Lua、ImageManager／context分别退休。
 - 资料：03-13／14／19，J273 Manager::Render及初始化／Shutdown链，现有主线程记录和owner栈。
 - 核验：资源加载、图像引用变化、绘制提交及最后释放各自要求的线程和context；确认正常render、启动／加载旁路以及退出是否经过同一接入位置。
 - 补充逆向：仅补当前版本中必要且未解释的入口、context切换、共享绘制批次和退出顺序。不因处于render回调或TLS有值，就推断任意时刻OS current context均有效。
@@ -117,6 +119,7 @@ ST1—ST8是内部工作索引，不是单独推进编号或分项验收。每�
 
 ### ST7 Lua与借用对象寿命
 
+- **2026-10-31静态研究、ST5／ST6互核及主审完成**：[Lua、Sprite与借用寿命](tx-04-17-lua-borrow-lifetime.md)。区分自有UserdataValue与原生UserdataPtr、Layer／Animation／BlendMode裸借用及Image强引用；核对Reset／原生析构／GC／外层Lua存储和Shutdown顺序。registry只保对应Lua值，unref不立即GC；显式Reset只限本方自有Sprite。LuaImage缺可控释放公开接口、关闭／异常／重入和旧代次raw引用退尽仍是具体实现或运行留项。
 - 资料：03-15／17的owner及GC研究、[`LuaSprite.cpp`](F:/projects_isaac/REPENTOGON-1.1.3/repentogon/LuaInterfaces/LuaSprite.cpp)、当前Lua桥与生命周期管理。
 - 核验：自有Sprite、原生对象、Lua userdata、内部Layer／Animation借用、Lua registry引用的分别归属；哪些Load／Reload／资源替换／场景退休／lua_close操作会撤销借用。
 - 补充逆向：只对公开接口和源码未解释的有效期、析构／外层存储释放及最后图像释放补必要点位，不把原生析构、userdata GC和内存释放当成同一个delete。
@@ -133,7 +136,7 @@ ST1—ST8是内部工作索引，不是单独推进编号或分项验收。每�
 
 ### 静态结果的记录与推进顺序
 
-当前**ST1资料归并、ST2／ST3指定静态研究及互核、ST4展示边界静态研究与主审完成，ST5—ST8待执行**。后续按ST4的允许／隔离／适配责任继续ST5—ST7，并将ST8贯穿启动到退出。已知无法安全直接复用的路径不留待运行时碰运气；世界壳的具体适配、资源context及最终退休尚未成立。这里是工作依赖，不另设分项验收；ST2／ST3原两名子智能体与本次ST4的一名子智能体及其模型均来自用户明确指定。
+当前**ST1—ST7指定静态研究及主审完成，ST5—ST7另经三方来回互核；ST8待执行**。后续按既有允许／隔离／适配责任继续访客持久副作用研究，再随15／16落实完整实现。世界壳、可控LuaImage释放、实际context与在途退休尚未实现；已知不能安全复用的路径不能留待实机碰运气。这里是工作依赖，不另设分项验收；本轮ST5／ST6／ST7各一个GPT-6 Luna／max子智能体及互核安排均来自用户明确指定。
 
 每项执行后在对应条目续记：实际范围、可读源码文件／函数位置、必要的J273 RVA／ABI／字节或布局、结论类型、拟采用方式、具体UNKNOWN和反馈任务。不要求每项单独报告包；不计算或校验任何哈希，不将静态结论登记成运行PASS。静态核验过程中不启动游戏或调试实机，不安装Hook、不做注入或运行时补丁，不执行功能／语法／离线校验脚本。
 
@@ -162,6 +165,19 @@ ST4由用户指定的一个GPT-6 Luna／max子智能体研究；主智能体独�
 - **公开Sprite仍依赖展示环境**：`InterpolV2.cpp`在条件成立时临时修改AnimationFrame的颜色、scale、pos和rotation，原调用正常返回后恢复，并用全局字段标记当前Game／AnimationState绘制；未证明重入或异常恢复。`Anm2Extras.cpp::RenderFrameEx`还依赖light pass、图像／shader和blend状态；Dogma／Gold分支按flag读取Game帧或Manager帧。Client需要独立表现时钟和pass适配，不能推进全局游戏帧伪造Authority tick，也不能清除特殊flags来声称完整显示。资源/context和在途寿命分别由ST5—ST7继续解释。
 
 主审接受范围为本段直接核对的静态事实，以及[ST4正文](tx-04-17-render-presentation-boundary.md)的允许／隔离矩阵、事件归属和后续适配责任；纠错重点是区分帧置位与消费者、callsite与伪码行尾地址、表现随机与玩法随机、普通返回恢复与异常保证。原生整树没有获得安全透传结论；正常／暂停／加载展示、Host／Off无影响、真实回调顺序和无重复副作用仍留完整实现后的统一E2E。本次仅人工回读文档和依据，不为ST4另行安排测试，不表示整个tx-04-17完成。
+
+### ST5—ST7交叉核对与主审记录（2026-10-31）
+
+三项各由一个GPT-6 Luna／max子智能体负责，只编辑各自专题文档；三方交换资源后态、借用／引用和context约束后互读草稿，并再次核对修订。主智能体独立读取公开绑定、官方辅助源码、当前工程线程／owner实现和同一J273 IDB；以下地址均为VA，imagebase为`0x400000`。接受的是具体静态事实和设计约束，不是运行时保证。
+
+- **资源与姿态**：重读`main_ex.lua`、`LuaSprite.cpp`、`LuaAnimationData.cpp`、`LuaAnimationLayer.cpp`及`LuaBlendMode`，区分构造器层数bool、换路径bool、图像关联及像素。J273 `Load 0x407AF0`先减旧filename引用再bind／addref，`Reload 0x407C40`没有同样的先减步骤；bind miss只警告，不能宣称旧画面已回滚。`LoadGraphics 0x407DA0`的中间loaded witness与最终pair分开。主审纠正首版漏掉BlendMode可写属性，补齐Sprite／逐层custom与champion shader的路径／有无／错误前缀；官方extras按ANM2 owner及layer ID保存，Reset／destructor清副表不等于销毁全局shader。
+- **帧setter与无效输入**：独立回读`0x406010`的`std_string*` named、`0x406060`的`const char*` named及`0x4060A0`的无名int入口；两种named清playing，无名不清。`0x4042A0`有浮点时间及上界处理，公开整数帧不自动表达任意phase。`0x4043E0`／`0x4061B7`的映射错误诊断之后仍写selector并推进，不把日志当安全拒绝；先按当前动画／layer身份验证，不把时间帧、绘制order和selected-key混用。分数phase与无有效帧的实际必要表达继续反馈15／18—20，不借公开接口缺口缩小完整内容。
+- **加载与context**：复核`Manager::Render 0x92EC40`的主循环caller `0x90AF0D`和启动加载caller `0x8D9228`，不能只覆盖外层主循环callsite。J273 renderer window为`+0xE0`，窗口HWND／HDC／HGLRC分别为`+0x218/+0x234/+0x238`；`0x9E4B63`调用MakeCurrent后未经返回值判断就在`0x9E4B70`写TLS，TLS不等于OS current。`0xA29FFE`删除context后同样直接清字段。官方ImGui多视口还直接切换／恢复context；现有`IsMain()`和owner栈不提供OS检查。主审纠正源码路径与伪码callsite，保留实际句柄、安装链和异常恢复未知。
+- **CPU队列与最后引用**：独立回读`0x9E2170→0x9E2460`、`0x9E2EC0`、`0x9EFA70`及对应ZHL，J273队列持raw image／batch指针，不能移植J460的batch强引用。补证普通queue clear `0x9EFA10`清bit4、`0x9EFA47`令end=begin；renderer Present `0x9E4170`的apply→reset→renderer→条件SwapBuffers局部序列与Manager::Render分列。`0x9EFE60→0x9EF7C0`是计数条件下cache／queue移除，不是图像析构。正常最后强引用另由`DecrRef 0x4081A0→counter 0x408500`的1→0分支，经`0x408536`调用image vslot `+0x60(1)`，PNG／PCX析构进入`0xA4C360`，在`0xA4C369/0xA4C375`请求GL纹理删除。已读六槽表与原始指令；CPU清队列、图像删除请求、OS成功和GPU完成分别记录，不外推全异常／全raw owner覆盖。
+- **Lua与退休分工**：主审复核裸指针Layer／Animation／BlendMode wrapper和Image值关联／显式GC DecrRef，区分自有Sprite与原生内嵌Sprite的UserdataPtr借用。`0xB25964→0x8AAF70`的owned thunk对payload+8调`0x403790`，`0x8A9480`以flag=0调用它；原生析构先`Reset 0x403530`，不释放外层userdata。显式Reset只限本方自有Sprite，不手调析构或GC；registry unref不立即GC，LuaImage缺可控释放公开接口仍需实现。关闭admission后应在当前回调返回后的主线程边界退休，不能在回调栈内阻塞等自己归零。
+- **关闭顺序及纠错**：`Isaac::Shutdown 0x982C90`内条件`0x982DD8 Exit(1)`之后，原始`0x982DDD`字节`B9 78 6F BE 00`对应官方early-unload源码目标签名；不是当前已安装证明或保存否决。Game／Manager在`0x982E1C/0x982E45`销毁，`0x982E67`先处理ANM cache及随后部分资源，`0x98300B`才在Shutdown内调LuaEngine destroy，`0x854FA0`执行lua_close。主审纠正把`0x98300B`归到main及把全部graphics写成lua_close前清理的初稿表述：main `0x90AFCE`调Shutdown，`0x90AFD3→0xA2AD80`随后在`0xA39A39`处理ImageManager cache，再删FBO／RBO、`0xA39A6B→0xA2F440→0xA29FF0`拆context／窗口。依赖Game／ANM的资源、Lua state与最终Image／context各有自己的截止条件。
+
+三项合同统一为未发布候选准备、完整描述检查、主线程注册关联切换、有界保留旧引用、停止新使用后按owner退休；session／scene、资源修订、实例、Lua和context代次分别失效。实际失败候选不发布，资源准备不等于World Applied，失败或stop不提前解除Client隔离。ST8访客持久副作用、世界壳、可控释放及15／16接线仍未完成；实际Hook／context、正常与异常在途覆盖、GC时点、像素和GPU结果均留完整实现后的统一E2E。本轮仅资料与源码阅读、只读逆向、文档编辑和人工整体回读，无构建、测试、实机或artifact包。
 
 ## 5 完整实现工作
 

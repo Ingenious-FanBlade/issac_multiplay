@@ -1,5 +1,7 @@
 # Hook 与逆向点位总入口
 
+tx-04-17 ST5—ST7补充（2026-10-31）：[资源／姿态](../design/tx-04-17/tx-04-17-resource-pose-runtime.md)、[线程／context／在途绘制](../design/tx-04-17/tx-04-17-thread-context-lifetime.md)、[Lua与借用寿命](../design/tx-04-17/tx-04-17-lua-borrow-lifetime.md)已按每项一个GPT-6 Luna／max子智能体、三方来回互核及主审完成J273静态研究。补齐Load／Reload、帧setter、启动加载render旁路、WGL/TLS、raw image queue reset／remove、最后strong→Image析构→GL删除，以及Lua GC／原生借用和分段关闭顺序。正常静态链不代表实机context、全部在途引用或GPU完成；ST8、可控释放、世界壳与完整实现／统一E2E仍待完成。本轮未构建、运行、安装新Hook或改机器点位索引，具体接受范围见[工作流程内的主审记录](../design/tx-04-17/tx-04-17-workflow.md)。
+
 tx-04-05 game 代码（2026-10-24）：[主线程适配与 Hook 接线](../design/tx-04-05-game-adapter.md)已编写并纯构建成功，清单为 28 个入口、8 个设备槽和 Odd 普通点 shim。没有在游戏进程中安装或测试，不改写下方历史运行观察与静态证据等级。
 
 日期：2026-10-22；tx-03-09。用户确认覆盖全部已知点位，并按功能模块一模块一文档。此目录是整理后的阅读入口；原始研究、失败和既有源码保留。
