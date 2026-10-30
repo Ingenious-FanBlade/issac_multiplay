@@ -2,11 +2,38 @@
 local read=include("domains/common/read")
 read.AddSchemas(include("domains/room/schema")); read.AddSchemas(include("domains/level/schema"))
 local M={}
-function M.Reference(d)
+-- 构建见证只复制具名种子与实际Data/Override逻辑值，不计算摘要或把variant当身份。
+function M.Construction(d)
+  local values={d.SpawnSeed,d.DecorationSeed,d.AwardSeed}
+  for _,config in ipairs({{d.Data},{d.OverrideData}}) do
+    local x=config[1]
+    if x then for _,k in ipairs({"StageID","Mode","Type","Variant","Subtype","Shape","Name"}) do values[#values+1]=tostring(x[k]) end
+    else values[#values+1]="nil" end
+  end
+  return table.concat(values,"|")
+end
+-- 离图描述原值可不等于实际房号（Genesis：room=-12/Grid=-1/List=-12）。
+-- 身份键使用已知读取来源的槽位，原值仍独立输出，不能由单个负索引猜测全局身份。
+function M.IdentityLocation(d,sourceIndex)
+  if sourceIndex and sourceIndex<0 then return sourceIndex,sourceIndex end
+  return d.ListIndex,d.GridIndex
+end
+function M.Reference(d,sourceIndex)
   if not d then return {resolution="Null"} end
+  if not d.Data then return {resolution="NotApplicable",reason="uninitialized_descriptor"} end
   local dimension=d:GetDimension()
-  local id=IsaacCSObservationNative.Descriptor(dimension,d.ListIndex,d.GridIndex)
-  return {space=6,local_id=id,resolution=id=="0" and "Unresolved" or "KnownCurrent",dimension_index=dimension,list_index=d.ListIndex,grid_index=d.GridIndex,safe_grid_index=d.SafeGridIndex}
+  local list,grid=M.IdentityLocation(d,sourceIndex)
+  local id,revision=IsaacCSObservationNative.Descriptor(dimension,list,grid,M.Construction(d))
+  return {space=6,local_id=id,construction_revision=revision,source_room_index=sourceIndex,identity_basis=sourceIndex and sourceIndex<0 and "known_off_grid_source_slot" or "map_descriptor_location",construction_basis="current_config_and_named_seed_values;not_birth_history",resolution=id=="0" and "Unresolved" or "KnownCurrent",dimension_index=dimension,list_index=d.ListIndex,grid_index=d.GridIndex,safe_grid_index=d.SafeGridIndex}
+end
+-- 离图槽与路由哨兵具有不同语义；-100/-101不能送入GetRoomByIdx。
+function M.Target(level,index,dimension,shapeCandidate)
+  if shapeCandidate and index<0 then return {kind="ShapeDisallowsSlot",index=index} end
+  if index==-100 or index==-101 then return {kind="DimensionRoute",index=index,route=index==-100 and "Mirror" or "Mineshaft",target_dimension_index=1} end
+  if index==-19 then return {kind="ExcludedOriginalOnline",index=index} end
+  if index<-20 or index>168 then return {kind="NoTargetOrUnsupported",index=index} end
+  local d=level:GetRoomByIdx(index,dimension)
+  return {kind=index<0 and "OffGridSlot" or "MapRoom",index=index,target=M.Reference(d,index)}
 end
 function M.Context()
   local c=read.Context(); c.grid=true -- 具名owner RNG仅复制seed/shift，不调用Next。
@@ -28,12 +55,12 @@ function M.Context()
     end
     if spec.member=="Doors" then return read.Value(object.Doors,"int",ctx,depth+1) end
     if spec.member=="GetNeighboringRooms" and spec.owner=="RoomDescriptor" then
-      if not object.Data then return read.Missing("NotApplicable","no_layout") end
+      if not object.Data or object.GridIndex<0 then return read.Missing("NotApplicable","no_map_adjacency_for_off_grid_descriptor") end
       local out={}
       for slot,d in pairs(object:GetNeighboringRooms()) do out[#out+1]={slot=slot,target=M.Reference(d)} end
       table.sort(out,function(a,b) return a.slot<b.slot end); return out
     end
-    if spec.member=="GetCurrentRoomDesc" or spec.member=="GetLastRoomDesc" then return M.Reference(object[spec.member](object)) end
+    if spec.member=="GetCurrentRoomDesc" or spec.member=="GetLastRoomDesc" then return M.Reference(object[spec.member](object),spec.member=="GetCurrentRoomDesc" and object:GetCurrentRoomIndex() or object:GetPreviousRoomIndex()) end
     return {status="NotScheduled",reason="explicit_membership_or_query",signature=spec.parameters}
   end
   c.parameter_sets=function(object,spec)

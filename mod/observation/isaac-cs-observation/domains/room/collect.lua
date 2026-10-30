@@ -5,7 +5,8 @@ local M={SchemaVersion=2}
 function M.Capture(limits)
   read.Limits(limits); local c=model.Context(); c.objects=1
   local level=Game():GetLevel(); local room=Game():GetRoom(); local d=level:GetCurrentRoomDesc()
-  local location=IsaacCSObservationNative.Location(level:GetStage(),level:GetStageType(),level:GetDungeonPlacementSeed(),level:GetDimension(),d.ListIndex,d.GridIndex)
+  local identityList,identityGrid=model.IdentityLocation(d,level:GetCurrentRoomIndex())
+  local location=IsaacCSObservationNative.Location(level:GetStage(),level:GetStageType(),level:GetDungeonPlacementSeed(),level:GetDimension(),identityList,identityGrid,model.Construction(d))
   if location.floor=="0" or location.descriptor=="0" then read.Fail(c,"location_identity_unavailable") end
   c.owner={space=7,local_id=location.room_instance}
   -- 引用先登记在本scope，Door沿用Grid唯一主体，不制造第二份门状态。
@@ -13,10 +14,10 @@ function M.Capture(limits)
   local grids,gap=IsaacCSObservationNative.GridSources()
   for _,e in ipairs(sources) do IsaacCSObservationNative.Subject(e.entity) end
   for _,g in ipairs(grids) do IsaacCSObservationNative.GridSubject(g.grid) end
-  local out={location=location,descriptor=model.Reference(d),state=read.Collect(room,"Room",c,0),doors={},entities={},grids={},seeds={spawn=room:GetSpawnSeed(),decoration=room:GetDecorationSeed(),award=room:GetAwardSeed()},sampling={freshness="ReadInCurrentNativeWindow",cache_reused=false},config=read.Value(d.Data,"RoomConfigRoom",c,0),override_config=read.Value(d.OverrideData,"RoomConfigRoom",c,0)}
+  local out={room_index=level:GetCurrentRoomIndex(),dimension_index=level:GetDimension(),location=location,descriptor=model.Reference(d,level:GetCurrentRoomIndex()),state=read.Collect(room,"Room",c,0),doors={},entities={},grids={},seeds={spawn=room:GetSpawnSeed(),decoration=room:GetDecorationSeed(),award=room:GetAwardSeed()},sampling={freshness="ReadInCurrentNativeWindow",cache_reused=false},config=read.Value(d.Data,"RoomConfigRoom",c,0),override_config=read.Value(d.OverrideData,"RoomConfigRoom",c,0)}
   for slot=0,7 do
     local g=room:GetDoor(slot)
-    out.doors[#out.doors+1]={slot=slot,shape_allowed=room:IsDoorSlotAllowed(slot),descriptor_enabled=(d.AllowedDoors&(1<<slot))~=0,shape_target_grid_index=d.Doors[slot],actual=g and IsaacCSObservationNative.GridReference(g) or {resolution="Null"},actual_target=g and g.TargetRoomIndex or nil}
+    out.doors[#out.doors+1]={slot=slot,shape_allowed=room:IsDoorSlotAllowed(slot),descriptor_enabled=(d.AllowedDoors&(1<<slot))~=0,shape_target_grid_index=d.Doors[slot],actual=g and IsaacCSObservationNative.GridReference(g) or {resolution="Null"},actual_target=g and g.TargetRoomIndex or nil,actual_connection=g and model.Target(level,g.TargetRoomIndex,level:GetDimension(),false) or {kind="NoActualDoor"}}
   end
   if unavailable>0 then read.Fail(c,"room_entity_membership_unavailable") end
   for _,e in ipairs(sources) do out.entities[#out.entities+1]=IsaacCSObservationNative.Subject(e.entity) end

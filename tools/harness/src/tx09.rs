@@ -700,6 +700,7 @@ impl Run {
         Ok(())
     }
     pub(super) fn execute_tx09(&mut self) -> Result<()> {
+        if self.report["tx"]=="tx-04-12" { self.prepare_resume_tx12()?; }
         self.environment()?;
         self.report["crash_before"] = self.crash_files()?;
         self.snapshot("save_before")?;
@@ -834,9 +835,7 @@ impl Run {
             // steps仍打开时Windows不允许递归删除；关闭文件由统一入口随后处理。
             self.report["remove_temporary_output"] = json!(true);
             if let Some(pid) = self.report["pid"].as_u64() {
-                let boot = self
-                    .game
-                    .join(format!("Repentogon/isaac-cs/traces/boot-{pid}.jsonl"));
+                let boot = self.trace_file(pid as u32);
                 if boot.exists() {
                     fs::remove_file(boot).map_err(|e| e.to_string())?;
                 }

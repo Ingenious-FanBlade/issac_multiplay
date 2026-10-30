@@ -191,4 +191,4 @@
 
 - tx-04-10 当前实现与统一 E2E：[公共接口、Entity／Grid 拆分及完整 Entity 来源](design/observation-expansion/tx-04-10-implementation.md)。
 
-- tx-04-12 已完成：[房间身份/构建、进度、环境及楼层结构观测与统一E2E 5/5 PASS](design/observation-expansion/tx-04-12-implementation.md)，包含分层身份/过渡、配置与楼层连接及完整公开成员目录；实际覆盖和未观察项见结果。
+- tx-04-12 已完成：[房间身份/构建、进度、环境及楼层结构观测](design/observation-expansion/tx-04-12-implementation.md)及[206项特殊房间/Greed补全](design/observation-expansion/tx-04-12-supplement.md)，同tx统一E2E 7/7 PASS，实际覆盖与边界见结果。

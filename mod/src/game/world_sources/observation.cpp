@@ -359,35 +359,49 @@ bool ObservationPublishLua(const char *payload,std::size_t bytes,bool complete,s
   } catch(...) { c->observation.Invalidate("lua_event_budget"); return false; }
 }
 // 公开逻辑位置只在同一完整native复制窗口建立；FIRST_OBSERVED不补造楼层生成历史。
-LocationValue ObservationLocation(int stage,int type,std::uint32_t seed,int dimension,int list,int grid) noexcept {
+LocationValue ObservationLocation(int stage,int type,std::uint32_t seed,int dimension,int list,int grid,const char *construction) noexcept {
   auto c=CurrentWorldRecording();
-  if(!IsMain()||!c||!c->location_window||dimension<0||dimension>2||list<0||list>=1024) return {};
+  if(!IsMain()||!c||!c->location_window||dimension<0||dimension>2||grid==-19||grid==-100||grid==-101||(list<0&&(grid>=0||grid<-20||grid==-19))||list>=1024) return {};
   auto &h=c->hierarchy;
   if(h.run!=c->lua_run||h.stage!=stage||h.type!=type||h.seed!=seed) h.Invalidate(true);
   h.run=c->lua_run; h.room=c->lua_room; h.stage=stage; h.type=type; h.seed=seed;
   if(!h.floor.local) h.floor=c->observation.AllocateRelatedSubject(obs::IdentitySpace::Floor);
   if(!h.dimensions[dimension].local) h.dimensions[dimension]=c->observation.AllocateRelatedSubject(obs::IdentitySpace::Dimension);
   h.dimension=h.dimensions[dimension]; h.dimension_index=dimension;
-  const auto id=ObservationDescriptor(dimension,list,grid);
+  const auto id=ObservationDescriptor(dimension,list,grid,construction);
   h.descriptor={c->session_key,c->epoch,id,obs::IdentitySpace::RoomDescriptor};
   h.valid=h.floor.local&&h.dimension.local&&id;
   return {c->session_key,c->epoch,h.floor.local,h.dimension.local,id,h.run,h.room};
 }
-std::uint64_t ObservationDescriptor(int dimension,int list,int grid) noexcept {
+std::uint64_t ObservationDescriptor(int dimension,int list,int grid,const char *construction) noexcept {
   auto c=CurrentWorldRecording();
-  if(!IsMain()||!c||(!c->location_window&&!c->hierarchy.valid)||dimension<0||dimension>2||list<0||list>=1024||!c->hierarchy.floor.local) return 0;
+  if(!IsMain()||!c||(!c->location_window&&!c->hierarchy.valid)||dimension<0||dimension>2||grid==-19||grid==-100||grid==-101||(list<0&&(grid>=0||grid<-20||grid==-19))||list>=1024||!c->hierarchy.floor.local) return 0;
+  if(!construction||std::strlen(construction)>=384) return 0;
   auto &h=c->hierarchy;
   if(!h.dimensions[dimension].local) h.dimensions[dimension]=c->observation.AllocateRelatedSubject(obs::IdentitySpace::Dimension);
-  for(auto &d:h.descriptors) if(d.used&&d.dimension==dimension&&d.list==list) {
+  for(auto &d:h.descriptors) if(d.used&&d.dimension==dimension&&d.list==list&&(list>=0||d.grid==grid)) {
     // 列表槽换成不同网格位置时退休旧描述，不借地址延续身份。
-    if(d.grid==grid) return d.subject.local;
+    if(d.grid==grid) {
+      // 同一描述槽保持主体，配置/具名种子变化产生独立构建修订；不补造出生历史。
+      if(std::strcmp(d.construction.data(),construction)) {
+        if(!c->location_window||d.construction_revision==UINT64_MAX) return 0;
+        std::strcpy(d.construction.data(),construction); ++d.construction_revision;
+      }
+      return d.subject.local;
+    }
     d.used=false;
   }
   if(!c->location_window) return 0;
   for(auto &d:h.descriptors) if(!d.used) {
-    d.used=true; d.dimension=dimension; d.list=list; d.grid=grid;
+    d.used=true; d.dimension=dimension; d.list=list; d.grid=grid; d.construction_revision=1; std::strcpy(d.construction.data(),construction);
     d.subject=c->observation.AllocateRelatedSubject(obs::IdentitySpace::RoomDescriptor); return d.subject.local;
   }
+  return 0;
+}
+// 修订是当前配置/种子见证的版本，不能当作原生Init调用次数。
+std::uint64_t ObservationDescriptorRevision(std::uint64_t id) noexcept {
+  auto c=CurrentWorldRecording(); if(!IsMain()||!c||!id) return 0;
+  for(const auto &d:c->hierarchy.descriptors) if(d.used&&d.subject.local==id) return d.construction_revision;
   return 0;
 }
 std::uint64_t ObservationDimension(int index) noexcept {
@@ -404,7 +418,7 @@ void ObservationLocationBoundary(const char *name,bool floor) noexcept {
     obs::ObservationEnvelope e; e.domain=obs::DomainId::Level; e.schema="isaac.cs.level.transition"; e.kind=obs::RecordKind::Event;
     e.context=c->observation.BeginScope(obs::Phase::Transition,2);
     const auto &h=c->hierarchy;
-    e.payload="{\"event\":\""+std::string(name)+"\",\"previous\":{\"run\":\""+std::to_string(h.run)+"\",\"floor\":\""+std::to_string(h.floor.local)+"\",\"dimension\":\""+std::to_string(h.dimension.local)+"\",\"descriptor\":\""+std::to_string(h.descriptor.local)+"\",\"room_instance\":\""+std::to_string(h.room)+"\"},\"new_context\":\"UnknownUntilOrdinaryPost\"}";
+    e.payload="{\"event\":\""+std::string(name)+"\",\"previous\":{\"run\":\""+std::to_string(h.run)+"\",\"floor\":\""+std::to_string(h.floor.local)+"\",\"dimension\":\""+std::to_string(h.dimension.local)+"\",\"descriptor\":\""+std::to_string(h.descriptor.local)+"\",\"construction_revision\":\""+std::to_string(ObservationDescriptorRevision(h.descriptor.local))+"\",\"room_instance\":\""+std::to_string(h.room)+"\"},\"new_context\":\"UnknownUntilOrdinaryPost\"}";
     c->hierarchy.Invalidate(floor); c->latest_room={}; c->latest_level={};
     e.result.coverage=obs::Coverage::Complete; e.result.range="actual-public-boundary;previous-location-only"; e.result.bytes=e.payload.size();
     const auto scope=e.context.scope;

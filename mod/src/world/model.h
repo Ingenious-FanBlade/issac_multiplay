@@ -47,6 +47,8 @@ inline constexpr std::uint32_t kClassCount = 9;
 // 原始复制后的紧凑值队列：字节与项数两个条件同时成立。
 inline constexpr std::uint64_t kQueueBytes = 64ull << 20;
 inline constexpr std::uint32_t kQueueItems = 64;
+// 可选Recorder容纳切房事件突发；仍共享64MiB字节预算，附加节点归管理预算。
+inline constexpr std::uint32_t kRecorderQueueItems = 256;
 // 每个 JSONL 文件 1 MiB 缓冲。
 inline constexpr std::size_t kIoBufferBytes = 1u << 20;
 // world 自有动态存储总预算，含批次、队列、身份/radix、控制记录、I/O 与管理。

@@ -3,7 +3,8 @@
 #include "world/common/contracts.h"
 #include <array>
 namespace cs::world::level {
-struct Descriptor final { bool used=false; int dimension=0,list=0,grid=0; observation::SubjectKey subject{}; };
+// 同一逻辑描述槽保留主体；配置/具名种子纯值变化递增构建修订，不借用原生地址或补造Init历史。
+struct Descriptor final { bool used=false; int dimension=0,list=0,grid=0; observation::SubjectKey subject{}; std::uint64_t construction_revision=0; std::array<char,384> construction{}; };
 struct Hierarchy final {
   std::uint64_t run=0,room=0;
   int stage=0,type=0,dimension_index=-1;

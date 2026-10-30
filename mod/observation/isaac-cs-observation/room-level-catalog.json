@@ -9542,7 +9542,13 @@
       "units": "API原单位；时钟保留局部作用域；种子按用途命名"
     }
   ],
-  "identity": "run/floor/dimension/descriptor/room-instance; bounded native service allocation; no addresses",
+  "identity": "run/floor/dimension/descriptor/room-instance; descriptor construction_revision is current config/seed witness, not native birth; bounded allocation; no addresses",
+  "domain_fields": {
+    "level.off_grid": "19 applicable initialized/uninitialized native off-grid slots; excludes Online -19; SDK total=527",
+    "room.descriptor.construction_revision": "decimal u64; actual Data/Override config and named-seed revision",
+    "room.doors.actual_connection": "map/off-grid/DimensionRoute/no-target; -100/-101 are not descriptor indices",
+    "room.room_index": "actual Level.GetCurrentRoomIndex; independent of GridIndex/ListIndex"
+  },
   "shared_resources": "entity-catalog.json",
   "unexposed": [
     {

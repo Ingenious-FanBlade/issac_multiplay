@@ -3,14 +3,30 @@ local mod=RegisterMod("Isaac CS Room Level E2E",1)
 local config=include("harness_config"); local json=require("json")
 local action,serial,render=0,0,0
 local running=false; local origin; local originDimension
+local special=include("tx12_special")
 local actions={"seed","initial","progress_dirty","progress_clear","environment","queries","leave","revisit","shape2","shapeL","sacrifice","shop","challenge","downpour","mirror","normal","mines","death_certificate","death_return","ascent"}
+-- 续测仅执行未完成/受修复影响项；原回归结果由harness读取先前正式录制统一归约。
+if config.resume then actions={"seed"} end
 local function emit(event,data)
  serial=serial+1; data=data or {}; data.event=event; data.token=config.token; data.action=action; data.serial=serial; data.render=render
  Isaac.DebugString("[isaac-cs-test] tx12 "..json.encode(data))
 end
+-- 一个入口顺序执行原回归和完整覆盖清单；每项退出/回访单独保留实际结果。
+local coverage=special.Start(emit)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM,special.NewRoom)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL,special.NewLevel)
+actions[#actions+1]="coverage_reset"
+for _,c in ipairs(coverage) do
+ if not config.pending or config.pending[c.id] then
+ actions[#actions+1]="case:"..c.id
+ if c.return_required then actions[#actions+1]="return:"..c.id end
+ if c.reenter_required then actions[#actions+1]="reenter:"..c.id; actions[#actions+1]="return2:"..c.id end
+ end
+end
+actions[#actions+1]="coverage_finish"
 local function actual(event)
  local l=Game():GetLevel(); local r=Game():GetRoom(); local d=l:GetCurrentRoomDesc()
- emit(event or "actual",{stage=l:GetStage(),stage_type=l:GetStageType(),dimension=l:GetDimension(),list=d.ListIndex,grid=d.GridIndex,safe=d.SafeGridIndex,shape=r:GetRoomShape(),type=r:GetType(),clear=r:IsClear(),clear_count=d.ClearCount,sacrifice=r:IsSacrificeDone(),water=r:GetWaterAmount(),current={r:GetWaterCurrent().X,r:GetWaterCurrent().Y},ascent=l:IsAscent(),wave=l.GreedModeWave})
+ emit(event or "actual",{room=l:GetCurrentRoomIndex(),stage=l:GetStage(),stage_type=l:GetStageType(),dimension=l:GetDimension(),list=d.ListIndex,grid=d.GridIndex,safe=d.SafeGridIndex,shape=r:GetRoomShape(),type=r:GetType(),clear=r:IsClear(),clear_count=d.ClearCount,sacrifice=r:IsSacrificeDone(),water=r:GetWaterAmount(),current={r:GetWaterCurrent().X,r:GetWaterCurrent().Y},ascent=l:IsAscent(),wave=l.GreedModeWave})
 end
 local function prepare()
  for _,e in ipairs(Isaac.GetRoomEntities()) do if e:ToNPC() then e:Remove() end end
@@ -64,6 +80,7 @@ local function perform(name)
   prepare(); Isaac.GetPlayer(0):UseActiveItem(CollectibleType.COLLECTIBLE_DEATH_CERTIFICATE,UseFlag.USE_NOANIM|UseFlag.USE_NOCOSTUME)
  elseif name=="death_return" then l:ChangeRoom(l:GetStartingRoomIndex(),0)
  elseif name=="ascent" then Game():SetStateFlag(GameStateFlag.STATE_BACKWARDS_PATH,true); Isaac.ExecuteCommand("stage 3")
+ elseif (name=="coverage_reset" or name=="coverage_finish") or name:find(":",1,true) then special.Perform(name)
  else error("unknown action:"..tostring(name)) end
 end
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED,function() running=true end)
@@ -74,5 +91,6 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER,function()
   action=action+1; local name=actions[action]; emit("action_begin",{name=name})
   local ok,err=pcall(perform,name); emit(ok and "action_return" or "fixture_error",{name=name,error=not ok and tostring(err) or nil})
  end
+ local ok,err=pcall(special.Update); if not ok then emit("fixture_error",{name="coverage_update",error=tostring(err)}) end
  if render%30==0 then actual() end
 end)

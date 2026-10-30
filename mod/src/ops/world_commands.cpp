@@ -89,7 +89,7 @@ bool Prepare(WorldJob &j,game::WorldRecording &r) {
 bool OpenRecorder(WorldJob &j,RecordingRequest &q) {
   auto &r=*j.recording;
   if(!r.ledger.Charge(world::kQueueBytes)) return false;
-  q.charged=true; q.queue=std::make_unique<world::ValueQueue>(world::kQueueBytes,world::kQueueItems);
+  q.charged=true; q.queue=std::make_unique<world::ValueQueue>(world::kQueueBytes,world::kRecorderQueueItems);
   world::WriterConfig config; config.root=RootPath(q.root); config.label=q.label; config.session=q.session; config.close_timeout_ms=j.timeout;
   if(!q.writer.Open(config,Manifest(j,q),r.storage,q.queue.get())) return false;
   const auto directory=std::filesystem::path(q.writer.Directory())/L"observation-v2";
@@ -98,7 +98,7 @@ bool OpenRecorder(WorldJob &j,RecordingRequest &q) {
   std::ofstream manifest(directory/L"manifest.json",std::ios::binary|std::ios::out);
   manifest<<"{\"format\":\"isaac.cs.observation\",\"version\":2,\"session\":\""<<r.session_key
     <<"\",\"observation_epoch\":\""<<r.epoch<<"\",\"recording_generation\":"<<q.generation
-    <<",\"catalog\":\"entity-catalog.json\",\"grid_catalog\":\"grid-catalog.json\",\"room_level_catalog\":\"room-level-catalog.json\",\"schemas\":[\"isaac.cs.entity\",\"isaac.cs.entity.native-v1\",\"isaac.cs.entity.lifecycle\",\"isaac.cs.entity.lua-event\",\"isaac.cs.entity.query\",\"isaac.cs.entity.actual-call\",\"isaac.cs.entity.render\",\"isaac.cs.entity.coverage\",\"isaac.cs.grid.legacy\",\"isaac.cs.grid.lifecycle\",\"isaac.cs.grid\",\"isaac.cs.grid.lua-event\",\"isaac.cs.grid.query\",\"isaac.cs.grid.render\",\"isaac.cs.room\",\"isaac.cs.level\",\"isaac.cs.level.transition\",\"isaac.cs.room.event\",\"isaac.cs.room.render\",\"isaac.cs.room.query\",\"isaac.cs.level.query\",\"isaac.cs.level.event\"],\"enabled_domains\":[1,2,3,4],\"unsupported_domains\":[5,6,7,8,9,10,11],\"capture_plan\":{\"ordinary_interval\":30,\"lifecycle\":true,\"explicit_queries\":true},\"budgets\":{\"total_bytes\":"<<world::kWorldBudgetBytes<<",\"publication_bytes\":33554432,\"scope_bytes\":16777216,\"nodes\":262144,\"depth\":12},\"legacy_grid_range\":\"min-read-v1-only\",\"v1_identity_mapping\":\"same-observation-epoch-local-id-and-use\",\"v1_history_complete\":"<<(q.historical_gap?"false":"true")<<"}";
+    <<",\"catalog\":\"entity-catalog.json\",\"grid_catalog\":\"grid-catalog.json\",\"room_level_catalog\":\"room-level-catalog.json\",\"schemas\":[\"isaac.cs.entity\",\"isaac.cs.entity.native-v1\",\"isaac.cs.entity.lifecycle\",\"isaac.cs.entity.lua-event\",\"isaac.cs.entity.query\",\"isaac.cs.entity.actual-call\",\"isaac.cs.entity.render\",\"isaac.cs.entity.coverage\",\"isaac.cs.grid.legacy\",\"isaac.cs.grid.lifecycle\",\"isaac.cs.grid\",\"isaac.cs.grid.lua-event\",\"isaac.cs.grid.query\",\"isaac.cs.grid.render\",\"isaac.cs.room\",\"isaac.cs.level\",\"isaac.cs.level.transition\",\"isaac.cs.room.event\",\"isaac.cs.room.render\",\"isaac.cs.room.query\",\"isaac.cs.level.query\",\"isaac.cs.level.event\"],\"enabled_domains\":[1,2,3,4],\"unsupported_domains\":[5,6,7,8,9,10,11],\"capture_plan\":{\"ordinary_interval\":30,\"lifecycle\":true,\"explicit_queries\":true},\"budgets\":{\"total_bytes\":"<<world::kWorldBudgetBytes<<",\"publication_bytes\":33554432,\"recorder_queue_items\":256,\"scope_bytes\":16777216,\"nodes\":262144,\"depth\":12},\"legacy_grid_range\":\"min-read-v1-only\",\"v1_identity_mapping\":\"same-observation-epoch-local-id-and-use\",\"v1_history_complete\":"<<(q.historical_gap?"false":"true")<<"}";
   // REPENTOGON 进程工作目录位于游戏的 Repentogon 子目录，资源在其兄弟 mods 目录。
   wchar_t executable[32768]{};
   const auto length=GetModuleFileNameW(nullptr,executable,DWORD(std::size(executable)));
@@ -126,7 +126,7 @@ void Forward(RecordingRequest &q,world::QueueItem &item) {
   }
   MapRecording(q,item);
   const auto bytes=item.bytes;
-  if(!q.queue->Reserve(bytes,0)) { q.fault.store(world::Reason::Backpressure); return; }
+  if(!q.queue->Reserve(bytes,10)) { q.fault.store(world::Reason::Backpressure); return; }
   if(!q.queue->Push(std::move(item))) { q.queue->Release(bytes); q.fault.store(world::Reason::Backpressure); }
 }
 void CloseRecorder(WorldJob &j,RecordingRequest &q) {
@@ -171,14 +171,16 @@ DWORD WINAPI Work(void *parameter) noexcept {
       }
     }
     world::QueueItem item;
-    bool got=r.storage.HasQueue() ? r.storage.Queue().Pop(item,1) : false;
-    if(got) {
-      const auto bytes=item.bytes;
+    bool got=false;
+    // 有界轮转：高密度v2事件不能让legacy值流长期得不到分派，反之亦然。
+    for(unsigned batch=0;batch<4&&r.storage.HasQueue()&&r.storage.Queue().Pop(item,batch?0:1);++batch) {
+      got=true; const auto bytes=item.bytes;
       if(current&&current->fault.load()==world::Reason::None) Forward(*current,item);
       item={}; r.storage.Queue().Release(bytes);
     }
     std::string value;
-    while(r.publications.Pop(value)) {
+    unsigned values=0;
+    while(values++<128&&r.publications.Pop(value)) {
       if(current&&current->ready.load()&&current->fault.load()==world::Reason::None) {
         current->v2<<value<<'\n';
         if(!current->v2.good()) current->fault.store(world::Reason::FileError);

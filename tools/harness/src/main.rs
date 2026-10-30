@@ -345,6 +345,11 @@ impl Run {
                 "output_dir":self.out.join("runtime-world"),"close_timeout_ms":self.scenario["close_timeout_ms"],
                 "e2e_token":self.report["token"]});
         }
+        // tx12连续多次启动时PID可能复用；诊断文件放本次临时目录，不能覆盖/误收历史trace。
+        if self.report["tx"]=="tx-04-12" {
+            let trace=self.out.join("runtime-trace").to_string_lossy().trim_start_matches(r"\\?\").replace('\\',"/");
+            content["trace_dir"]=json!(trace);
+        }
         // E2E显式启用明细；仍使用生产的拓扑复用路径，不强制逐consumer重读全图。
         let production = self.report["tx"] == "tx-04-09" && self.scenario["production"] == true;
         content["diagnostics"] = json!({"enabled":enabled && !production,"repeat_topology_reads":false});
@@ -409,7 +414,8 @@ impl Run {
             Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12")
         ) {
             let config = if self.report["tx"] == "tx-04-12" {
-                format!("return {{tx=\"tx-04-12\",token=\"{}\"}}\n",self.report["token"].as_str().ok_or("token")?)
+                let ids=self.scenario["tx12_pending_ids"].as_array().map(|ids|ids.iter().map(|id|format!("[{}]=true",id)).collect::<Vec<_>>().join(","));
+                format!("return {{tx=\"tx-04-12\",token=\"{}\",resume={},pending={}}}\n",self.report["token"].as_str().ok_or("token")?,ids.is_some(),ids.map(|s|format!("{{{s}}}")).unwrap_or("nil".into()))
             } else if self.report["tx"] == "tx-04-11" {
                 format!("return {{tx=\"tx-04-11\",token=\"{}\"}}\n",self.report["token"].as_str().ok_or("token")?)
             } else if self.report["tx"] == "tx-04-10" {
@@ -576,6 +582,11 @@ impl Run {
         self.step("overlay_closed", json!({"token":token,"status":status}))?;
         Ok(status)
     }
+    // 读取和清理使用同一归属路径；测试不能因PID重用删除历史记录。
+    fn trace_file(&self,pid:u32)->PathBuf {
+        if self.report["tx"]=="tx-04-12" { self.out.join("runtime-trace").join(format!("boot-{pid}.jsonl")) }
+        else { self.game.join(format!("Repentogon/isaac-cs/traces/boot-{pid}.jsonl")) }
+    }
     fn collect(&self, pid: u32, label: &str) -> Result<()> {
         let dest = self.out.join(label);
         mkdir(&dest)?;
@@ -586,8 +597,7 @@ impl Run {
             ),
             (self.save.join("log.txt"), dest.join("log.txt")),
             (
-                self.game
-                    .join(format!("Repentogon/isaac-cs/traces/boot-{pid}.jsonl")),
+                self.trace_file(pid),
                 dest.join("trace.jsonl"),
             ),
         ] {
@@ -1291,6 +1301,10 @@ fn entry() -> Result<()> {
         .unwrap_or_else(|| repo.join(format!("tools/harness/scenarios/{}.json", args[1])));
     let mut scenario: Value =
         serde_json::from_str(&read(&scenario_path)?).map_err(|e| e.to_string())?;
+    if args[1]=="tx-04-12" {
+        if let Some(paths)=option("--resume-from") { scenario["resume_from"]=json!(paths.split(';').filter(|s|!s.is_empty()).collect::<Vec<_>>()); }
+        if let Some(ids)=option("--retest-ids") { scenario["retest_ids"]=json!(ids.split(',').filter(|s|!s.is_empty()).collect::<Vec<_>>()); }
+    }
     if args[1] == "tx-04-09" {
         let profile=option("--profile").unwrap_or_else(||"diagnostic".into());
         if !["diagnostic","production"].contains(&profile.as_str()) { return Err("unknown tx09 profile".into()); }
