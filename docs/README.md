@@ -6,7 +6,7 @@
 
 # C/S研究与状态同步文档
 
-> **tx-04-17专项工作流程与ST1（2026-10-31）**：[客户端玩法隔离与资源展示运行时](design/tx-04-17/tx-04-17-workflow.md)明确完整目标、8项先行静态核验、实现接线及统一E2E；后续启动的[ST1接口目录与事实归并](design/tx-04-17/tx-04-17-public-interface-catalog.md)已完成，记录公开接口选型、源码限制、J273复用／J460索引及15／16反馈。ST2—ST8仍待执行；未新增逆向、运行代码修改或测试。静态研究可先于15／16，完整实现和验收仍依赖其实际交付。
+> **tx-04-17 ST1—ST3静态工作（2026-10-31）**：[专项工作流程](design/tx-04-17/tx-04-17-workflow.md)中的[ST1接口目录](design/tx-04-17/tx-04-17-public-interface-catalog.md)、[ST2场景根与生命周期](design/tx-04-17/tx-04-17-client-scene-lifecycle.md)、[ST3更新隔离](design/tx-04-17/tx-04-17-update-isolation.md)已完成指定静态研究；ST2／ST3各由GPT-6 Luna／max子智能体推进，交叉核对并经主审纠错。确认Manager前置启动、外层位置／相机RNG及Exit(false)保存风险，菜单Sprite仅为等待UI候选，完整Replica世界壳仍待适配。ST4—ST8、运行实现及统一E2E未完成；本轮无构建或测试，完整接线仍依赖15／16。
 
 > **按观测域拆分设计（2026-10-30）**：[详细设计与迁移边界](design/observation-expansion/domain-observation-architecture.md)确定公共接口、各域职责、scope／采样时序、跨域引用、采集与录制分离及 Entity/Grid 迁移。已同步 tx-04-10—14 观测计划；公共拆分纳入 10 的完整实现，其他域依次接入。本次只修改设计和计划，未修改运行代码、构建或测试。
 
