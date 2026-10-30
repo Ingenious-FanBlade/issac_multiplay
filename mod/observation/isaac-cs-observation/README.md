@@ -1,10 +1,10 @@
-# 正式只读 Entity／Grid 来源
+# 正式只读世界观测来源
 
 目标为 REPENTOGON 1.1.3／J273。随 `zhlIsaacCS.dll` 安装到游戏 `mods/isaac-cs-observation`，与 `mods/isaac-cs-ui`、测试夹具分开。默认没有消费需求，不枚举世界。
 
 `cs observe start|status|stop` 管理正式纯值消费；`cs world start <label>|status|stop` 管理可选录制。关闭或失败的录制器不重置仍活动的 observation epoch。纯值消费者在主线程借用不可变 envelope；若要后台使用，必须复制到自己的有界出口，不持有 Entity userdata。`world_record.enabled=false` 仅禁用录制命令，不禁止正式采集。
 
-普通 Entity 完整来源合并同一 native 窗口内的实际成员与公开 `Isaac.GetRoomEntities()`；先登记主体再复制字段。原生身体身份、创建／Init／出生历史与公开字段来源分别表达。Player 不获得第二套对象 ID。公共作用域的 Entity 与旧 Grid 每 30 次普通采集取一次扩展样本；旧 v1 需要的 native 样本仍沿原时序采集。生命周期及短命对象按实际回调记录；Entity-owned Sprite 每个主体 30 次真实 render 回调单独采样，render 没有 Authority tick，不与后态拼成原子快照。
+普通 Entity 完整来源合并同一 native 窗口内的实际成员、公开 `Isaac.GetRoomEntities()` 和PlayerManager/twin/sub/四备份槽的公开来源；公开roots/关系边在窗口尾部复核；先登记主体再复制字段。原生身体身份、创建／Init／出生历史与公开字段来源分别表达。Player 不获得第二套对象 ID。公共作用域的 Entity 与旧 Grid 每 30 次普通采集取一次扩展样本；旧 v1 需要的 native 样本仍沿原时序采集。生命周期及短命对象按实际回调记录；Entity-owned Sprite 每个主体 30 次真实 render 回调单独采样，render 没有 Authority tick，不与后态拼成原子快照。
 
 逐成员目录由 `mod/tools/gen_entity_catalog.py` 生成到 `domains/entity/schema.lua`、本目录 `entity-catalog.json` 和设计目录的 JSON／Markdown。继承和明确同义 Getter 共用规范字段 ID，保留来源。只读本体字段和无参状态查询自动采集；主动／口袋／武器／袋子等有限槽域分别记录参数与实际结果；无界几何、字符串、物品条件等派生查询由 `IsaacCSObservation.Query(owner, class, member, arguments, associatedObject)` 显式调用并记录。参数目录完整不表示所有参数组合均已实际调用。
 
@@ -20,3 +20,8 @@ Grid逐成员、类型／变体枚举与回调目录由`mod/tools/gen_grid_catal
 
 
 tx-04-12增加room/level两域：当前Room与Descriptor/Config/环境、全部维度的楼层描述及连接、具名种子、分层身份与过渡失效；目录为room-level-catalog.json。只在同一native窗口复制，独立事件不借用旧tick；详细合同及实机范围见docs/design/observation-expansion/tx-04-12-implementation.md。
+
+
+tx-04-13增加exploration/room_save/player三域与continuity-catalog.json。地图知识与Minimap本地显示分开；所有已初始化描述的保存三容器、Moving Box/Myosotis有独立集合修订/SaveEntry，不借seed认同活动对象。Grid采用八列紧凑编码并保留每槽身份/全部公开值；采集预算按保存容器与行值分别计算。真实保存/恢复、Ascent及Hourglass公开回调使用独立scope。
+
+Player复用同窗口Entity规范scope，另外保存History、控制关系和跨房历史。`control_relation`仅为当前输入锚点，`control_group_membership`另含非活动身体/备份的已核定拓扑归属和角色；Esau Jr备份归属来自703关联元数据，不能按ordinal猜全局槽。私有v1字段NOT_READY不冒充源变化，不因此授予字段读取资格。当前七个域支持正式纯值消费/可选录制，world_complete仍为false。详细范围和5/5统一E2E见docs/design/observation-expansion/tx-04-13-implementation.md。

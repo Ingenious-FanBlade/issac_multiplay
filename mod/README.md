@@ -89,3 +89,5 @@ tx-04-04 当时未实现 tick、A 输入、网络、虚拟设备、Join 调用�
 第七次已在用户确认后执行一次，退菜单及 Game::Exit 计数增长已通过，两次进程均正常退出；整体仍 FAIL，E3/E5/E7 细节见结果文档。最终配置关闭、临时测试夹具清理，不自动恢复存档或重跑。
 
 - tx-04-11：正式Grid全量观测、全部17派生接口、保存／资源／真实变化事件与v2 reader，见[实现及统一E2E结果](../docs/design/observation-expansion/tx-04-11-implementation.md)。默认关闭时不枚举世界；采集与录制独立。
+
+- tx-04-13：探索、全楼层离房保存容器、控制关系/非活动备份和玩家跨房历史，见[实现及统一E2E 5/5结果](../docs/design/observation-expansion/tx-04-13-implementation.md)。正式采集与录制分离；E2E复用不受影响的已完成项目，仅续测修复影响与剩余场景。

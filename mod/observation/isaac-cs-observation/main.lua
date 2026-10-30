@@ -54,6 +54,27 @@ for _,name in ipairs({"MC_POST_GRID_ENTITY_SPAWN","MC_POST_GRID_ROCK_DESTROY","M
   end) end
 end
 
+-- 三个跨房域与Entity共用协调器；主线程回调不保留借用对象。
+IsaacCSExplorationObservation=include("domains/exploration/collect")
+IsaacCSRoomSaveObservation=include("domains/room_save/collect")
+IsaacCSPlayerObservation=include("domains/player/collect")
+for _,name in ipairs({"MC_POST_PLAYER_INIT","MC_POST_PLAYER_NEW_ROOM_TEMP_EFFECTS","MC_POST_PLAYER_NEW_LEVEL","MC_PRE_TRIGGER_PLAYER_DEATH","MC_TRIGGER_PLAYER_DEATH_POST_CHECK_REVIVES","MC_POST_PLAYER_REVIVE","MC_PLAYER_HEALTH_TYPE_CHANGE","MC_POST_PLAYER_ADD_CARD","MC_POST_PLAYER_ADD_PILL"}) do
+  if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function(_,p,...)
+    local n=IsaacCSObservationNative
+    if n and n.LocationNeeded() then IsaacCSPlayerObservation.Event(name,p,...) end
+  end) end
+end
+if ModCallbacks.MC_POST_ADD_COLLECTIBLE then mod:AddCallback(ModCallbacks.MC_POST_ADD_COLLECTIBLE,function(_,id,charge,first,slot,var,p)
+  local n=IsaacCSObservationNative
+  if n and n.LocationNeeded() then IsaacCSPlayerObservation.Event("MC_POST_ADD_COLLECTIBLE",p,id,charge,first,slot,var) end
+end) end
+for _,name in ipairs({"MC_PRE_ROOM_RESTORE_STATE","MC_POST_ROOM_SAVE_STATE","MC_POST_BACKWARDS_ROOM_SAVE","MC_POST_BACKWARDS_ROOM_RESTORE","MC_POST_GLOWING_HOURGLASS_SAVE","MC_POST_GLOWING_HOURGLASS_LOAD"}) do
+  if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function(_,first,descriptor,key)
+    local n=IsaacCSObservationNative
+    if n and n.LocationNeeded() then IsaacCSRoomSaveObservation.Event(name,first,descriptor,key) end
+  end) end
+end
+
 -- Room/Level仅在实际边界通知中撤销分层上下文；回调始终返回nil，不干预玩法选择。
 local room=include("domains/room/collect")
 IsaacCSRoomObservation=room
@@ -61,7 +82,10 @@ IsaacCSLevelObservation=include("domains/level/collect")
 for _,name in ipairs({"MC_PRE_CHANGE_ROOM","MC_PRE_NEW_ROOM","MC_PRE_LEVEL_INIT","MC_POST_NEW_ROOM","MC_POST_NEW_LEVEL","MC_PRE_GAME_EXIT","MC_POST_GAME_END","MC_POST_SWAP_ROOMS"}) do
   if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function()
     local n=IsaacCSObservationNative
-    if n and n.LocationNeeded() then n.LocationBoundary(name,name=="MC_PRE_LEVEL_INIT" or name=="MC_PRE_GAME_EXIT" or name=="MC_POST_GAME_END") end
+    if n and n.LocationNeeded() then
+      IsaacCSExplorationObservation.Boundary(name); IsaacCSRoomSaveObservation.Boundary(name); IsaacCSPlayerObservation.Boundary(name)
+      n.LocationBoundary(name,name=="MC_PRE_LEVEL_INIT" or name=="MC_PRE_GAME_EXIT" or name=="MC_POST_GAME_END")
+    end
   end) end
 end
 for _,name in ipairs({"MC_POST_ROOM_TRIGGER_CLEAR","MC_POST_START_AMBUSH_WAVE","MC_POST_START_GREED_WAVE","MC_PRE_SPAWN_CLEAN_AWARD","MC_POST_PLAYER_TRIGGER_ROOM_CLEAR"}) do

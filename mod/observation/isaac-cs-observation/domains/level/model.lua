@@ -48,6 +48,12 @@ function M.Context()
     end
     return false
   end
+  c.external_reference=function(object,spec)
+    if spec.reason=="room_save:tx-04-13" then
+      return {type="owner_qualified_domain_reference",schema="isaac.cs.room_save",owner=spec.owner=="RoomDescriptor" and M.Reference(object) or {relation="current_floor",source="envelope.context.floor"},field=spec.member,scope_rule="same_committed_native_window;target_coverage_applies"}
+    end
+    return read.Missing("NotCaptured",spec.reason)
+  end
   c.domain_member=function(object,spec,ctx,depth)
     if spec.member=="Doors" and spec.owner=="RoomDescriptor" then
       local out={}; for slot=0,7 do out[#out+1]={slot=slot,target_grid_index=object.Doors[slot]} end

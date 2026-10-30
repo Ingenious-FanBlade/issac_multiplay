@@ -20,8 +20,11 @@ struct WorldCapture final {
   world::observation::Service observation;
   world::observation::PublicationQueue publications{ledger};
   std::uint64_t session_key=0,epoch=0;
-  std::array<std::uint64_t,6> pending_scopes{};
+  std::array<std::uint64_t,9> pending_scopes{};
   world::observation::ObservationEnvelope latest_entity{},latest_grid{},latest_room{},latest_level{};
+  // 新三域只有自有值；Player本体引用同批Entity scope，不重复采集。
+  std::array<world::observation::ObservationEnvelope,3> latest_continuity{};
+  std::uint64_t current_entity_scope=0;
   world::level::Hierarchy hierarchy{};
   std::uint64_t lua_run=0,lua_room=0;
   bool location_window=false;
@@ -38,6 +41,7 @@ struct WorldCapture final {
   std::uint64_t lua_scope=0;
   std::array<std::uint64_t,world::kIdentityBudget+1> lua_subject_scopes{};
   std::array<std::uint64_t,4> control_sessions{};
+  std::array<std::uint64_t,4> device_relation_revisions{};
   std::array<world::observation::SubjectKey,4> participant_keys{},control_group_keys{};
   void ConnectSources() noexcept;
   void SetConsumers(bool formal,bool recorder) noexcept;
@@ -66,4 +70,5 @@ world::PlayerAnchor WorldPlayerAnchor(unsigned ordinal, void *player = nullptr) 
 void WorldPlayerReturned(unsigned ordinal, const world::PlayerAnchor &before,
                          std::uint64_t tick, bool normal, bool body) noexcept;
 void WorldRevokePlayer(unsigned ordinal) noexcept;
+void ObservationControlChange(unsigned slot,const world::PlayerAnchor &before,const world::PlayerAnchor &after,const char *reason) noexcept;
 } // namespace cs::game

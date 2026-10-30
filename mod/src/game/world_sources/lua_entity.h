@@ -12,7 +12,10 @@ struct ObservationSubjectValue final {
   std::uint64_t session=0,epoch=0,local=0,use=0,revision=0;
   std::uint32_t status=3,origin=0,readiness=0;
   std::uint32_t ordinal=UINT32_MAX;
-  std::uint64_t participant=0,group=0,control_session=0,binding_revision=0;
+  std::uint64_t participant=0,group=0,control_session=0,binding_revision=0,device_revision=0;
+  bool control_active=false,group_known=false,body_active=false,can_consume=false;
+  std::uint32_t body_role=6;
+  std::uint32_t body_slot=UINT32_MAX;
 };
 struct EntitySupplementValue final {
   const char *class_name="UnknownEntity";
@@ -30,6 +33,10 @@ bool ObservationValidGrid(void *grid) noexcept;
 void EnsureObservationLuaBridge() noexcept;
 LuaEntityResult CaptureLuaEntity(std::uint32_t objects=16384,std::uint32_t nodes=262144,
                                  std::uint32_t depth=12,std::uint32_t bytes=16u<<20,unsigned domain=0) noexcept;
+// 最终原生来源复核/Authority提交后才更新Lua纯值历史；取消窗口不得污染后继。
+void FinishLuaObservation(unsigned domain,std::uint64_t scope,bool committed) noexcept;
+std::string ObservationCaptureContext() noexcept;
+std::uint64_t ObservationSaveEntry() noexcept;
 // 楼层上下文只传递公开逻辑键与自有值；SDK侧不包含游戏对象身份状态机。
 struct LocationValue final { std::uint64_t session=0,epoch=0,floor=0,dimension=0,descriptor=0,run=0,room=0; };
 LocationValue ObservationLocation(int stage,int type,std::uint32_t seed,int dimension,int list,int grid,const char *construction) noexcept;
@@ -41,6 +48,8 @@ bool ObservationLocationNeeded() noexcept;
 bool ObservationPublishLocation(const char *payload,std::size_t bytes,bool complete,std::uint32_t nodes,const char *reason,unsigned domain,unsigned phase) noexcept;
 bool ObservationLuaNeeded(const char *phase,bool grid=false) noexcept;
 ObservationSubjectValue ObservationSubject(void *object,bool register_subject,bool grid=false) noexcept;
+// 复用tx-04-09已核定拓扑，备份归属不按ordinal/ControllerIndex猜测。
+void ObservationPlayerMembership(void *object,ObservationSubjectValue &value) noexcept;
 bool ObservationPublishLua(const char *payload,std::size_t bytes,bool complete,
                            std::uint32_t objects,std::uint32_t nodes,const char *reason,unsigned phase,bool grid=false) noexcept;
 }

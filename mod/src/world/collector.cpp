@@ -849,9 +849,14 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
   BeginRngWindow();
   CopySources();
   bool stable_sources = true;
-  for (const auto &source : h.sources)
-    if (source.status && source.status != kSourceNotApplicable)
+  for (std::size_t i=0;i<h.sources.size();++i) {
+    const auto &source=h.sources[i];
+    // 旧v1关系私有字段未获读取资格仍保留NOT_READY/不完整；它不是源指针变化。
+    // 正式Lua以公开PlayerManager/twin/sub/备份Getter闭合并复核自己的成员来源。
+    const bool unavailable_private_relation=i==10&&source.status==static_cast<std::uint32_t>(Reason::NotReady);
+    if (source.status && source.status != kSourceNotApplicable&&!unavailable_private_relation)
       stable_sources = false;
+  }
   for (std::uint32_t i = 0; i < h.object_count && Recording(); ++i) {
     auto &object = pending_.Objects()[i];
     auto *id = identities_.Find(static_cast<ObjectDomain>(object.domain),

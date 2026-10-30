@@ -15,6 +15,7 @@ mod observation;
 mod tx10;
 mod tx11;
 mod tx12;
+mod tx13;
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -340,13 +341,13 @@ impl Run {
         let mut content = json!({"schema":1,"enabled":enabled,"log_level":"info","trace_dir":"isaac-cs/traces",
             "control_port":{"enabled":enabled,"port":self.scenario["control_port"]},"host":{"default_port":self.scenario["host_port"].as_u64().unwrap_or(27090),
                 "bind_address":"127.0.0.1","peer_timeout_ms":self.scenario["peer_timeout_ms"].as_u64().unwrap_or(3000)}});
-        if self.report["tx"] == "tx-04-08" || self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" {
+        if self.report["tx"] == "tx-04-08" || self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" || self.report["tx"] == "tx-04-13" {
             content["world_record"] = json!({"enabled":enabled,
                 "output_dir":self.out.join("runtime-world"),"close_timeout_ms":self.scenario["close_timeout_ms"],
                 "e2e_token":self.report["token"]});
         }
         // tx12连续多次启动时PID可能复用；诊断文件放本次临时目录，不能覆盖/误收历史trace。
-        if self.report["tx"]=="tx-04-12" {
+        if self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" {
             let trace=self.out.join("runtime-trace").to_string_lossy().trim_start_matches(r"\\?\").replace('\\',"/");
             content["trace_dir"]=json!(trace);
         }
@@ -376,7 +377,7 @@ impl Run {
             ("ui/isaac-cs-ui", "mods/isaac-cs-ui"),
             ("tests/e2e-mods/isaac-cs-test", "mods/isaac-cs-test"),
         ];
-        if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" { targets.push(("mod/observation/isaac-cs-observation","mods/isaac-cs-observation")); }
+        if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" { targets.push(("mod/observation/isaac-cs-observation","mods/isaac-cs-observation")); }
         let existing = self.game.join("Repentogon/isaac-cs/config.json");
         if existing.exists() {
             fs::copy(&existing, backup_root.join("config.json"))
@@ -411,9 +412,12 @@ impl Run {
         self.deployed = true;
         if matches!(
             self.report["tx"].as_str(),
-            Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12")
+            Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13")
         ) {
-            let config = if self.report["tx"] == "tx-04-12" {
+            let config = if self.report["tx"] == "tx-04-13" {
+                let pending=self.scenario["tx13_pending"].as_array().map(|a|format!("{{{}}}",a.iter().map(|n|format!("[{:?}]=true",n.as_str().unwrap())).collect::<Vec<_>>().join(","))).unwrap_or("nil".into());
+                format!("return {{tx=\"tx-04-13\",token=\"{}\",resume={},resume_start=\"{}\",pending={}}}\n",self.report["token"].as_str().ok_or("token")?,self.report["continuity_resume_sources"].is_array(),self.scenario["tx13_pending"][0].as_str().unwrap_or(""),pending)
+            } else if self.report["tx"] == "tx-04-12" {
                 let ids=self.scenario["tx12_pending_ids"].as_array().map(|ids|ids.iter().map(|id|format!("[{}]=true",id)).collect::<Vec<_>>().join(","));
                 format!("return {{tx=\"tx-04-12\",token=\"{}\",resume={},pending={}}}\n",self.report["token"].as_str().ok_or("token")?,ids.is_some(),ids.map(|s|format!("{{{s}}}")).unwrap_or("nil".into()))
             } else if self.report["tx"] == "tx-04-11" {
@@ -584,7 +588,7 @@ impl Run {
     }
     // 读取和清理使用同一归属路径；测试不能因PID重用删除历史记录。
     fn trace_file(&self,pid:u32)->PathBuf {
-        if self.report["tx"]=="tx-04-12" { self.out.join("runtime-trace").join(format!("boot-{pid}.jsonl")) }
+        if self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" { self.out.join("runtime-trace").join(format!("boot-{pid}.jsonl")) }
         else { self.game.join(format!("Repentogon/isaac-cs/traces/boot-{pid}.jsonl")) }
     }
     fn collect(&self, pid: u32, label: &str) -> Result<()> {
@@ -1074,7 +1078,7 @@ impl Run {
     }
     // 所有场景在一个入口中顺序执行，不重试失败启动或失败验收。
     fn execute(&mut self) -> Result<()> {
-        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" { return self.execute_tx09(); }
+        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" || self.report["tx"] == "tx-04-13" { return self.execute_tx09(); }
         if self.report["tx"] == "tx-04-08" { return self.execute_tx08(); }
         if self.report["tx"] == "tx-04-07" {
             return self.execute_tx07();
@@ -1104,7 +1108,7 @@ impl Run {
     }
     // 清理先于报告分析，失败也关闭测试口并移除自己部署的夹具。
     fn finish(&mut self, result: Result<()>) -> Result<()> {
-        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" { return self.finish_tx09(result); }
+        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" || self.report["tx"] == "tx-04-13" { return self.finish_tx09(result); }
         if self.report["tx"] == "tx-04-08" { return self.finish_tx08(result); }
         if self.report["tx"] == "tx-04-07" {
             return self.finish_tx07(result);
@@ -1248,6 +1252,7 @@ fn main() {
 }
 fn entry() -> Result<()> {
     let args = env::args().skip(1).collect::<Vec<_>>();
+    if args.first().map(String::as_str)==Some("tx13-reduce") { if args.len()!=2 {return Err("tx13-reduce <completed-tx-directory>".into());} return tx13::reduce_existing(std::path::Path::new(&args[1])); }
     if args.first().map(String::as_str)==Some("observation-read") { return observation::run_cli(&args); }
     if matches!(args.first().map(String::as_str), Some("world-replay" | "world-compare")) {
         return world::run_cli(&args);
@@ -1258,7 +1263,7 @@ fn entry() -> Result<()> {
     if args.get(0).map(String::as_str) != Some("e2e")
         || !matches!(
             args.get(1).map(String::as_str),
-            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12")
+            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13")
         )
     {
         return Err("usage: harness e2e <tx-04-04|tx-04-05|tx-04-06|tx-04-07|tx-04-08> --game <game-root> --artifact-dir <new-directory> [--scenario <json>]".into());
@@ -1301,7 +1306,7 @@ fn entry() -> Result<()> {
         .unwrap_or_else(|| repo.join(format!("tools/harness/scenarios/{}.json", args[1])));
     let mut scenario: Value =
         serde_json::from_str(&read(&scenario_path)?).map_err(|e| e.to_string())?;
-    if args[1]=="tx-04-12" {
+    if args[1]=="tx-04-12" || args[1]=="tx-04-13" {
         if let Some(paths)=option("--resume-from") { scenario["resume_from"]=json!(paths.split(';').filter(|s|!s.is_empty()).collect::<Vec<_>>()); }
         if let Some(ids)=option("--retest-ids") { scenario["retest_ids"]=json!(ids.split(',').filter(|s|!s.is_empty()).collect::<Vec<_>>()); }
     }

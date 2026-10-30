@@ -8,6 +8,7 @@
 #include "game/tick.h"
 #include "world/observe.h"
 #include "game/world_sources/value_source.h"
+#include "game/world_sources/lua_entity.h"
 #include <algorithm>
 #include <exception>
 
@@ -255,7 +256,7 @@ void WorldFrameBegin(std::uint64_t loop) noexcept {
   auto &location=recording->hierarchy;
   if(location.valid&&(location.run!=collector->CurrentRunToken()||location.room!=collector->CurrentRoomToken())) {
     location.Invalidate(location.run!=collector->CurrentRunToken());
-    recording->latest_room={}; recording->latest_level={};
+    recording->latest_room={}; recording->latest_level={}; recording->latest_continuity={};
   }
   WorldRefreshAnchors();
 }
@@ -324,19 +325,49 @@ void WorldRefreshAnchors() noexcept {
           true};
     }
   }
+  std::array<world::PlayerAnchor,world::kControlAnchorCapacity> previous{};
+  for(unsigned slot=0;slot<values.size();++slot) previous[slot]=collector->CurrentAnchor(slot);
   // 根切换会重排身体槽；先撤销全部变化槽，再赋新值，避免同一个Entity身份被旧槽清掉。
   for (unsigned slot = 0; slot < values.size(); ++slot)
     if (!(collector->CurrentAnchor(slot) == values[slot]))
       collector->RevokePlayer(slot);
   for (unsigned slot = 0; slot < values.size(); ++slot)
     collector->AnchorPlayer(slot, values[slot]);
+  for(unsigned slot=0;slot<values.size();++slot) if(!(previous[slot]==values[slot]))
+    ObservationControlChange(slot,previous[slot],values[slot],"observed_topology_or_lifecycle_refresh");
+}
+// 纯值来源只在已复核的普通窗口使用缓存拓扑；不额外全图扫描，不扩大输入消费资格。
+void ObservationPlayerMembership(void *object,ObservationSubjectValue &value) noexcept {
+  auto c=CurrentWorldRecording();auto *r=Runtime();
+  if(!IsMain()||!c||!c->location_window||!r||r->finished||r->retiring||r->failure||r->blocks) return;
+  for(unsigned ordinal=0;ordinal<r->session.ParticipantLimit();++ordinal) {
+    if(!r->session.HasParticipant(ordinal)||!r->players[ordinal].BoundValid()) continue;
+    const auto &topology=r->topology[ordinal];
+    if(!topology.known||!topology.unique||topology.pair!=r->players[ordinal].Bound()) continue;
+    for(unsigned i=0;i<topology.body_count;++i) if(topology.bodies[i].player==object) {
+      if(value.ordinal<4&&value.ordinal!=ordinal) return;
+      const auto session=SessionGeneration(*r);
+      if(c->control_sessions[ordinal]!=session) {
+        c->control_sessions[ordinal]=session;
+        c->participant_keys[ordinal]=c->observation.AllocateRelatedSubject(world::observation::IdentitySpace::Participant);
+        c->control_group_keys[ordinal]=c->observation.AllocateRelatedSubject(world::observation::IdentitySpace::ControlGroup);
+      }
+      value.ordinal=ordinal;value.participant=c->participant_keys[ordinal].local;value.group=c->control_group_keys[ordinal].local;
+      value.control_session=session;value.binding_revision=r->players[ordinal].Generation();value.device_revision=c->device_relation_revisions[ordinal];
+      value.group_known=true;value.body_role=unsigned(topology.bodies[i].role);value.body_active=topology.bodies[i].active;value.can_consume=topology.bodies[i].CanConsume();return;
+    }
+  }
 }
 void WorldRevokePlayer(unsigned ordinal) noexcept {
   if (ordinal >= core::kMaximumParticipants)
     return;
   if (auto *collector = Collector())
-    for (unsigned b = 0; b < kMaximumGroupBodies; ++b)
-      collector->RevokePlayer(ordinal * kMaximumGroupBodies + b);
+    for (unsigned b = 0; b < kMaximumGroupBodies; ++b) {
+      const auto slot=ordinal*kMaximumGroupBodies+b;
+      const auto before=collector->CurrentAnchor(slot);
+      collector->RevokePlayer(slot);
+      if(before.valid) ObservationControlChange(slot,before,{},"explicit_binding_revocation");
+    }
 }
 void WorldPlayerReturned(unsigned ordinal, const world::PlayerAnchor &before,
                          std::uint64_t tick, bool normal, bool body) noexcept {

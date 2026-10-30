@@ -50,6 +50,8 @@ function M.Capture(limits)
   local nativeSources,unavailable=native().Sources()
   if unavailable>0 then fail(ctx,"native_source_unavailable"); enumerationComplete=false end
   for _,entry in ipairs(nativeSources) do list[#list+1]=entry.entity end
+  local publicPlayers,verifyPlayers=read.PlayerSources(ctx)
+  for _,entry in ipairs(publicPlayers) do list[#list+1]=entry.player end
   for _,e in ipairs(list) do
     local id=native().Subject(e)
     if id.local_id=="0" then fail(ctx,"subject_registry_budget"); enumerationComplete=false; subjects[#subjects+1]=e
@@ -60,6 +62,7 @@ function M.Capture(limits)
     if i>LIMIT.objects then fail(ctx,"object_budget"); out.membership.complete=false; break end
     ctx.objects=ctx.objects+1; out.objects[#out.objects+1]=snapshot(e,ctx)
   end
+  verifyPlayers()
   return finish(out,ctx)
 end
 function M.Event(name,class,object,...)

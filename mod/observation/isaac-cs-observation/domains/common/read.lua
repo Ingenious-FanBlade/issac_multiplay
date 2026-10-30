@@ -31,6 +31,7 @@ local normalize={ ["ItemConfig Item"]="ItemConfigItem", ["ItemConfig_Item"]="Ite
 local collect, value, query
 -- 原版文档的显示别名仍指向 REPENTOGON 的同一只读关联结构。
 normalize.PlayerPocketItem="PocketItem"
+normalize.HistoryItems="HistoryItem"
 normalize.Costume="ItemConfigCostume"
 
 -- 参数域与默认调用分开；有限槽和枚举可以完整轮询，无界几何／字符串查询走显式请求。
@@ -240,7 +241,10 @@ collect=function(object,class,ctx,depth)
       elseif spec.category=="domain_value" and ctx.domain_member then
         out.fields[spec.id]=ctx.domain_member(object,spec,ctx,depth)
       elseif spec.category=="external_reference" then
-        out.fields[spec.id]=missing("NotCaptured",spec.reason)
+        if spec.owner=="EntityPlayer" and (spec.member=="GetHistory" or spec.member=="GetMovingBoxContents") then
+          out.fields[spec.id]={type="owner_qualified_domain_reference",schema=spec.member=="GetHistory" and "isaac.cs.player" or "isaac.cs.room_save",owner=native().Reference(object),field=spec.member=="GetHistory" and "bodies.history" or "carried.moving_box",scope_rule="same_committed_native_window;target_coverage_applies"}
+        elseif ctx.external_reference then out.fields[spec.id]=ctx.external_reference(object,spec)
+        else out.fields[spec.id]=missing("NotCaptured",spec.reason) end
       elseif spec.category=="actual_call" then
         out.fields[spec.id]={status="NotScheduled",reason=spec.reason,source="actual_call_event"}
       elseif spec.category=="derived_query" then
@@ -326,8 +330,41 @@ end
 
 -- 两域共用相同的有界值语义，schema 注册只合并声明，不执行 Getter。
 function M.AddSchemas(extra) for k,v in pairs(extra) do schemas[k]=v end end
+M.Encode=encode
 M.Collect=collect; M.Value=value; M.QueryValue=query; M.Finish=finish; M.Fail=fail; M.Missing=missing; M.Protected=protected
 function M.Context() return {complete=true,nodes=0,queries=0,objects=0,reasons={},seen={},config_seen={},sprite_names={},graph=0} end
 function M.Limits(limits) if limits then for k,v in pairs(limits) do LIMIT[k]=v end end return LIMIT end
+-- 官方只读根返回的Player可使用公开Getter；不为旧native私有字段补造Init/更新见证。
+-- 所有借用仅在此窗口局部存在，采集结束重新核对公开root和关系边。
+function M.PlayerSources(ctx)
+  local out,seen,witnesses={},{},{}
+  local function add(p)
+    if not p then return end
+    local id=native().Subject(p)
+    if id.local_id=="0" or id.resolution=="Retired" then fail(ctx,"public_player_identity");return end
+    if not seen[id.local_id] then
+      if #out>=256 then fail(ctx,"public_player_source_budget");return end
+      seen[id.local_id]=true;out[#out+1]={player=p,subject=id}
+    end
+  end
+  local function roots()
+    local ids={}
+    for _,p in ipairs(PlayerManager.GetPlayers()) do add(p);ids[#ids+1]=native().Subject(p).local_id end
+    ids[#ids+1]="backups"
+    for i=0,3 do local p=PlayerManager.GetEsauJrState(i);add(p);ids[#ids+1]=p and native().Subject(p).local_id or "Null" end
+    return table.concat(ids,"|")
+  end
+  local root=roots();local cursor=1
+  while cursor<=#out do
+    local p=out[cursor].player;cursor=cursor+1
+    for _,name in ipairs({"GetMainTwin","GetOtherTwin","GetSubPlayer"}) do
+      local target=p[name](p);add(target);witnesses[#witnesses+1]={owner=p,member=name,id=target and native().Subject(target).local_id or "Null"}
+    end
+  end
+  return out,function()
+    if roots()~=root then fail(ctx,"public_player_roots_changed") end
+    for _,w in ipairs(witnesses) do local p=w.owner[w.member](w.owner);if (p and native().Subject(p).local_id or "Null")~=w.id then fail(ctx,"public_player_relation_changed") end end
+  end
+end
 IsaacCSObservationValues=M
 return M

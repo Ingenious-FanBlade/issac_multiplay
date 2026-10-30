@@ -4,6 +4,7 @@ use serde_json::{Value, json};
 use std::{collections::{BTreeMap, BTreeSet}, fs, io::{BufRead, BufReader}, path::Path};
 
 const SCHEMAS: &[&str] = &[
+    "isaac.cs.exploration", "isaac.cs.exploration.transition", "isaac.cs.room_save", "isaac.cs.room_save.transition", "isaac.cs.room_save.event", "isaac.cs.player", "isaac.cs.player.transition", "isaac.cs.player.event", "isaac.cs.player.query", "isaac.cs.player.control",
     "isaac.cs.room", "isaac.cs.level", "isaac.cs.level.transition", "isaac.cs.room.event", "isaac.cs.room.render", "isaac.cs.room.query", "isaac.cs.level.query", "isaac.cs.level.event",
     "isaac.cs.entity", "isaac.cs.entity.native-v1", "isaac.cs.entity.lifecycle",
     "isaac.cs.entity.lua-event", "isaac.cs.entity.query", "isaac.cs.entity.actual-call", "isaac.cs.entity.render", "isaac.cs.entity.coverage",

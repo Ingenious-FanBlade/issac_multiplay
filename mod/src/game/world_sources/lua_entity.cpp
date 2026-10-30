@@ -26,7 +26,15 @@ int Subject(lua_State *L,bool registering,bool grid=false) {
     lua_newtable(L); lua_pushinteger(L,subject.ordinal); lua_setfield(L,-2,"ordinal");
     Decimal(L,"participant_local_id",subject.participant); Decimal(L,"control_group_local_id",subject.group);
     Decimal(L,"control_session",subject.control_session); Decimal(L,"binding_revision",subject.binding_revision);
-    lua_setfield(L,-2,"control_relation");
+    Decimal(L,"device_relation_revision",subject.device_revision);
+    if(subject.control_active) { lua_pushinteger(L,subject.body_slot); lua_setfield(L,-2,"body_slot"); }
+    if(subject.group_known) {
+      lua_pushinteger(L,subject.body_role); lua_setfield(L,-2,"body_role");
+      lua_pushboolean(L,subject.body_active); lua_setfield(L,-2,"active");
+      lua_pushboolean(L,subject.can_consume); lua_setfield(L,-2,"can_consume");
+      lua_pushvalue(L,-1); lua_setfield(L,-3,"control_group_membership");
+    }
+    if(subject.control_active) lua_setfield(L,-2,"control_relation"); else lua_pop(L,1);
   }
   return 1;
 }
@@ -114,6 +122,8 @@ int PublishLocation(lua_State *L) {
   std::size_t bytes=0; const auto *p=luaL_checklstring(L,1,&bytes);
   lua_pushboolean(L,ObservationPublishLocation(p,bytes,lua_toboolean(L,2)!=0,std::uint32_t(luaL_checkinteger(L,4)),luaL_optstring(L,5,""),unsigned(luaL_checkinteger(L,6)),unsigned(luaL_checkinteger(L,7)))); return 1;
 }
+int CaptureContext(lua_State *L) { const auto s=ObservationCaptureContext(); lua_pushlstring(L,s.data(),s.size()); return 1; }
+int SaveEntry(lua_State *L) { const auto s=std::to_string(ObservationSaveEntry()); lua_pushlstring(L,s.data(),s.size()); return 1; }
 int Needed(lua_State *L) {
   lua_pushboolean(L,IsMain()&&ObservationLuaNeeded(luaL_checkstring(L,1))); return 1;
 }
@@ -139,7 +149,7 @@ void EnsureObservationLuaBridge() noexcept {
   const bool exists=lua_istable(L,-1); lua_settop(L,top);
   if(exists) return;
   lua_newtable(L);
-  const luaL_Reg funcs[]={{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
+  const luaL_Reg funcs[]={{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
   luaL_setfuncs(L,funcs,0); lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
 }
 // Coordinator 在复制窗口内部调用一次；错误返回自有原因，不让 Lua 异常越过 Authority。
@@ -147,7 +157,9 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
   LuaEntityResult result; auto *L=State(); if(!L) { result.reason="lua_state_unavailable"; return result; }
   const auto top=lua_gettop(L);
   try {
-    lua_getglobal(L,domain==3?"IsaacCSLevelObservation":domain==2?"IsaacCSRoomObservation":domain==1?"IsaacCSGridObservation":"IsaacCSObservation");
+    const char *modules[]={"IsaacCSObservation","IsaacCSGridObservation","IsaacCSRoomObservation","IsaacCSLevelObservation","IsaacCSExplorationObservation","IsaacCSRoomSaveObservation","IsaacCSPlayerObservation"};
+    if(domain>=7) { result.reason="unsupported_domain"; return result; }
+    lua_getglobal(L,modules[domain]);
     if(!lua_istable(L,-1)) { lua_settop(L,top); result.reason="formal_observation_module_unavailable"; return result; }
     lua_getfield(L,-1,"Capture");
     lua_newtable(L);
@@ -155,6 +167,7 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
     lua_pushinteger(L,nodes); lua_setfield(L,-2,"nodes");
     lua_pushinteger(L,depth); lua_setfield(L,-2,"depth");
     lua_pushinteger(L,limit); lua_setfield(L,-2,"bytes");
+    lua_pushinteger(L,domain==5?262144:131072); lua_setfield(L,-2,"queries");
     if(!lua_isfunction(L,-2)||lua_pcall(L,1,6,0)!=LUA_OK) {
       const auto *error=lua_tostring(L,-1); result.reason=error?std::string(error).substr(0,256):"lua_capture_failed";
       lua_settop(L,top); return result;
@@ -170,5 +183,17 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
     } else result.reason="lua_payload_budget";
   } catch(...) { result.complete=false; result.reason="lua_owned_value_budget"; }
   lua_settop(L,top); return result;
+}
+}
+
+namespace cs::game {
+void FinishLuaObservation(unsigned domain,std::uint64_t scope,bool committed) noexcept {
+  auto *L=State(); if(!L||domain<4||domain>6) return;
+  const auto top=lua_gettop(L); const char *names[]={"IsaacCSExplorationObservation","IsaacCSRoomSaveObservation","IsaacCSPlayerObservation"};
+  lua_getglobal(L,names[domain-4]);
+  if(lua_istable(L,-1)) { lua_getfield(L,-1,"Outcome"); if(lua_isfunction(L,-1)) {
+    const auto s=std::to_string(scope); lua_pushlstring(L,s.data(),s.size()); lua_pushboolean(L,committed); lua_pcall(L,2,0,0);
+  } }
+  lua_settop(L,top);
 }
 }
