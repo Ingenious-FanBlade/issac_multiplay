@@ -20,10 +20,10 @@ struct WorldCapture final {
   world::observation::Service observation;
   world::observation::PublicationQueue publications{ledger};
   std::uint64_t session_key=0,epoch=0;
-  std::array<std::uint64_t,9> pending_scopes{};
+  std::array<std::uint64_t,13> pending_scopes{};
   world::observation::ObservationEnvelope latest_entity{},latest_grid{},latest_room{},latest_level{};
-  // 新三域只有自有值；Player本体引用同批Entity scope，不重复采集。
-  std::array<world::observation::ObservationEnvelope,3> latest_continuity{};
+  // 跨房三域及新增四域只保存自有值；Player本体引用同批Entity scope，不重复采集。
+  std::array<world::observation::ObservationEnvelope,7> latest_continuity{};
   std::uint64_t current_entity_scope=0;
   world::level::Hierarchy hierarchy{};
   std::uint64_t lua_run=0,lua_room=0;

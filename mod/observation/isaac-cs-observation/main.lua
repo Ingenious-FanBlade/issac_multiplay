@@ -1,5 +1,6 @@
 -- 正式只读来源独立于 UI 和 E2E 夹具。停用时只检查原生需求，不枚举世界。
 local mod = RegisterMod("Isaac CS Observation", 1)
+local calls=include("domains/common/calls")
 local entity = include("domains/entity/collect")
 IsaacCSObservation = entity
 
@@ -68,6 +69,52 @@ if ModCallbacks.MC_POST_ADD_COLLECTIBLE then mod:AddCallback(ModCallbacks.MC_POS
   local n=IsaacCSObservationNative
   if n and n.LocationNeeded() then IsaacCSPlayerObservation.Event("MC_POST_ADD_COLLECTIBLE",p,id,charge,first,slot,var) end
 end) end
+
+-- tx-04-14四域与既有来源共用提交窗口；调用wrapper常驻，停用时直接透传。
+IsaacCSRunObservation=include("domains/run/collect")
+IsaacCSRandomObservation=include("domains/random/collect")
+IsaacCSPresentationObservation=include("domains/presentation/collect")
+IsaacCSModObservation=include("domains/mod/collect")
+IsaacCSRandomObservation.Install()
+IsaacCSPresentationObservation.Install()
+local stageapi=include("domains/mod/stageapi")
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE,function() stageapi.Install() end)
+for _,module in ipairs({IsaacCSRunObservation,IsaacCSRandomObservation,IsaacCSModObservation}) do
+  local capture=module.Capture
+  module.Capture=function(...) return calls.Silent(capture,...) end
+end
+for _,name in ipairs({"MC_POST_GAME_STARTED","MC_PRE_GAME_EXIT","MC_POST_GAME_END","MC_POST_NEW_ROOM","MC_POST_NEW_LEVEL"}) do
+  if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function(_, ...)
+    local n=IsaacCSObservationNative
+    if n and n.LocationNeeded() then
+      IsaacCSRunObservation.Event(name,...)
+      IsaacCSRunObservation.Boundary(name);IsaacCSModObservation.Boundary(name)
+    end
+  end) end
+end
+for _,name in ipairs({"MC_POST_GET_COLLECTIBLE","MC_POST_GET_CARD","MC_POST_GET_PILL","MC_POST_GET_TRINKET","MC_POST_PICKUP_SELECTION"}) do
+  if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function(_, ...)
+    local n=IsaacCSObservationNative
+    if n and n.LocationNeeded() then IsaacCSRandomObservation.Event(name,...) end
+  end) end
+end
+for _,name in ipairs({"MC_POST_SFX_PLAY","MC_PRE_MUSIC_PLAY","MC_PRE_MUSIC_PLAY_JINGLE","MC_PRE_MUSIC_LAYER_TOGGLE"}) do
+  if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function(_, ...)
+    local n=IsaacCSObservationNative
+    if n and n.LocationNeeded() then IsaacCSPresentationObservation.Event(name,...) end
+  end) end
+end
+local presentationRender=0
+mod:AddCallback(ModCallbacks.MC_POST_RENDER,function()
+  local n=IsaacCSObservationNative
+  if n and n.LocationNeeded() then
+    presentationRender=presentationRender+1
+    if presentationRender%30==0 then
+      local ok,err=pcall(IsaacCSPresentationObservation.Render)
+      if not ok then calls.failures.presentation_render=type(err)=="string" and err:sub(1,256) or "render_failed" end
+    end
+  end
+end)
 for _,name in ipairs({"MC_PRE_ROOM_RESTORE_STATE","MC_POST_ROOM_SAVE_STATE","MC_POST_BACKWARDS_ROOM_SAVE","MC_POST_BACKWARDS_ROOM_RESTORE","MC_POST_GLOWING_HOURGLASS_SAVE","MC_POST_GLOWING_HOURGLASS_LOAD"}) do
   if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function(_,first,descriptor,key)
     local n=IsaacCSObservationNative

@@ -4,7 +4,7 @@ namespace cs::world::observation {
 namespace {
 bool Valid(const CapturePlan &plan) noexcept {
   for(const auto &d:plan.domains) {
-    if(d.domain<DomainId::Entity||d.domain>DomainId::Player) return false;
+    if(d.domain<DomainId::Entity||d.domain>DomainId::Mod) return false;
     if(!d.interval||!d.phases||(d.phases&~SupportedPhases(d.domain))||!d.budget.objects||d.budget.objects>16384||
        !d.budget.nodes||d.budget.nodes>262144||!d.budget.depth||d.budget.depth>12||!d.budget.bytes||d.budget.bytes>(16ull<<20)) return false;
   }

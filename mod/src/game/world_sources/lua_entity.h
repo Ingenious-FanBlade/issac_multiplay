@@ -44,6 +44,7 @@ std::uint64_t ObservationDescriptor(int dimension,int list,int grid,const char *
 std::uint64_t ObservationDimension(int index) noexcept;
 std::uint64_t ObservationDescriptorRevision(std::uint64_t id) noexcept;
 void ObservationLocationBoundary(const char *name,bool floor) noexcept;
+std::uint64_t ObservationRelatedSubject(unsigned space) noexcept;
 bool ObservationLocationNeeded() noexcept;
 bool ObservationPublishLocation(const char *payload,std::size_t bytes,bool complete,std::uint32_t nodes,const char *reason,unsigned domain,unsigned phase) noexcept;
 bool ObservationLuaNeeded(const char *phase,bool grid=false) noexcept;

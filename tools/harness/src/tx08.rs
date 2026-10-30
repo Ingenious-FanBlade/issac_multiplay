@@ -1092,12 +1092,19 @@ impl Run {
         let root = self.out.join(format!("environment-before-p{process}"));
         mkdir(&root)?;
         let mut journal = vec![];
-        for (name, relative) in [
+        let mut targets=vec![
             ("dll", "Repentogon/zhlIsaacCS.dll"),
             ("ui", "mods/isaac-cs-ui"),
             ("observation", "mods/isaac-cs-observation"),
             ("config", "Repentogon/isaac-cs/config.json"),
-        ] {
+        ];
+        // REPENTOGON用模组目录名保存数据；只备份本tx真正部署的框架及夹具命名空间。
+        if self.report["tx"]=="tx-04-14" {targets.extend([
+            ("stageapi", "mods/stageapi15"),
+            ("stageapi_data", "data/stageapi15"),
+            ("tx14_data", "data/isaac-cs-test"),
+        ]);}
+        for (name,relative) in targets {
             let target = self.game.join(relative);
             let backup = root.join(name);
             let exists = target.exists();

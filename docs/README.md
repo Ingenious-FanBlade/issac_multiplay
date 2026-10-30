@@ -1,3 +1,5 @@
+> **tx-04-14 已完成（2026-10-31）**：[整局、随机选择、HUD/独立表现、Mod及真实StageAPI实现与统一验收](design/observation-expansion/tx-04-14-implementation.md)。6/6 PASS、21/21场景、84个指定四域scope；[记录/适配合同](design/observation-expansion/run-mod-schema.md)。下方早期计划状态保留原时点。
+
 > **tx-04-13已完成（2026-10-31）**：[探索、离房保存与玩家跨房观测](design/observation-expansion/tx-04-13-implementation.md)已通过统一E2E 5/5，31/31场景、124个指定正式scope；不受影响的已完成项目复用，失败和边界如实保留，临时材料已清理。
 
 > **tx-04-11 已完成（2026-10-30）**：[完整Grid实现与统一E2E结果](design/observation-expansion/tx-04-11-implementation.md)。27种非空类型、17个派生接口及保存／资源／变化／生命周期观测已交付；最终5/5 PASS，25条完整Grid后态，Grid Partial为0，临时材料已清理。下方历史计划保留原时点。

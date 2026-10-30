@@ -15,7 +15,7 @@ obs::CapturePlan Plan() {
   p.domains.push_back({obs::DomainId::Grid,1u|4u|16u|32u,30,{}});
   p.domains.push_back({obs::DomainId::Room,53u,30,{16384,262144,12,4ull<<20}});
   p.domains.push_back({obs::DomainId::Level,45u,30,{16384,262144,12,4ull<<20}});
-  for(unsigned d=5;d<=7;++d) p.domains.push_back({static_cast<obs::DomainId>(d),obs::SupportedPhases(static_cast<obs::DomainId>(d)),30,{16384,262144,12,(d==6?8ull:1ull)<<20}});
+  for(unsigned d=5;d<=11;++d) p.domains.push_back({static_cast<obs::DomainId>(d),obs::SupportedPhases(static_cast<obs::DomainId>(d)),30,{16384,262144,12,(d==6||d>=8?8ull:1ull)<<20}});
   return p;
 }
 void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
@@ -26,7 +26,7 @@ void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
     else if(e.schema=="isaac.cs.grid") c.latest_grid=e;
     else if(e.schema=="isaac.cs.room") c.latest_room=e;
     else if(e.schema=="isaac.cs.level") c.latest_level=e;
-    else if(e.schema=="isaac.cs.exploration"||e.schema=="isaac.cs.room_save"||e.schema=="isaac.cs.player") c.latest_continuity[unsigned(e.domain)-5]=e;
+    else if(unsigned(e.domain)>=5&&unsigned(e.domain)<=11&&e.schema.find(".",9)==std::string::npos) c.latest_continuity[unsigned(e.domain)-5]=e;
   } catch(...) { ++c.formal_loss; }
 }
 void Record(void *owner,const obs::ObservationEnvelope &e) noexcept {
@@ -66,13 +66,13 @@ void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects
   auto &c=*static_cast<WorldCapture *>(owner);
   // 先读取room建立分层上下文，再由level与Entity/Grid在同批次引用。
   c.current_entity_scope=0;
-  for(const unsigned index : {2u,3u,0u,1u,4u,5u,6u}) {
+  for(const unsigned index : {2u,3u,0u,1u,4u,5u,6u,7u,8u,9u,10u}) {
     const auto domain=static_cast<obs::DomainId>(index+1);
     const bool grid=index==1;
     if(!Scheduled(c,domain,h.capture)) continue;
     try {
       EnsureObservationLuaBridge();
-      const char *schemas[]={"isaac.cs.entity","isaac.cs.grid","isaac.cs.room","isaac.cs.level","isaac.cs.exploration","isaac.cs.room_save","isaac.cs.player"};
+      const char *schemas[]={"isaac.cs.entity","isaac.cs.grid","isaac.cs.room","isaac.cs.level","isaac.cs.exploration","isaac.cs.room_save","isaac.cs.player","isaac.cs.run","isaac.cs.random","isaac.cs.presentation","isaac.cs.mod"};
       auto e=Base(c,domain,schemas[index],h); e.context.source=2;
       c.lua_objects=objects; c.lua_object_count=h.object_count; c.lua_members=members; c.lua_members_count=h.membership_count; c.lua_scope=e.context.scope; c.lua_run=h.run; c.lua_room=h.room; c.location_window=true;
       for(const auto &d:c.observation.Plan().domains) if(d.domain==domain) e.result.budget=d.budget;
@@ -82,7 +82,7 @@ void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects
       c.lua_objects=nullptr; c.lua_object_count=0; c.lua_members=nullptr; c.lua_members_count=0; c.location_window=false;
       LocationContext(c,e.context,h.run,h.room);
       e.result.coverage=result.available?(result.complete?obs::Coverage::Complete:obs::Coverage::Partial):obs::Coverage::Failed;
-      e.result.range=index>=4?"public-continuity-v2:scoped-history-save-collections-and-canonical-player-references":index>=2?"public-room-level-v2:identity-config-progress-environment-structure;explicit-query-parameters":grid?"public-grid-v2:all-derived-save-sprite-rng;finite-enums-and-explicit-queries":"public-entity-v2:state-and-finite-queries;unbounded-derived-queries:on-request;external-domains:explicit-references";
+      e.result.range=index>=7?"public-run-random-presentation-mod-v2;actual-call-and-render-separate;adapter-coverage-explicit":index>=4?"public-continuity-v2:scoped-history-save-collections-and-canonical-player-references":index>=2?"public-room-level-v2:identity-config-progress-environment-structure;explicit-query-parameters":grid?"public-grid-v2:all-derived-save-sprite-rng;finite-enums-and-explicit-queries":"public-entity-v2:state-and-finite-queries;unbounded-derived-queries:on-request;external-domains:explicit-references";
       if(!result.reason.empty()) e.result.reasons.push_back(result.reason);
       e.result.objects=result.objects; e.result.nodes=result.nodes; e.result.bytes=result.payload.size(); e.payload=std::move(result.payload);
       if(index>=2&&!e.payload.empty()&&e.payload.front()=='{') e.payload.insert(1,"\"sample_revision\":\""+std::to_string(e.context.scope)+"\",");
@@ -444,13 +444,13 @@ void ObservationLocationBoundary(const char *name,bool floor) noexcept {
   } catch(...) { c->hierarchy.Invalidate(floor); c->observation.Invalidate("location_boundary_budget"); }
 }
 bool ObservationPublishLocation(const char *payload,std::size_t bytes,bool complete,std::uint32_t nodes,const char *reason,unsigned domain,unsigned phase) noexcept {
-  auto c=CurrentWorldRecording(); if(!ObservationLocationNeeded()||!c||bytes>(16u<<20)||nodes>262144||domain>4||phase>3) return false;
-  if(!c->observation.Needed(static_cast<obs::DomainId>(domain+3),phase==3?obs::Phase::Transition:phase==1?obs::Phase::ActualCall:phase==2?obs::Phase::Render:obs::Phase::Lifecycle)) return false;
+  auto c=CurrentWorldRecording(); if(!ObservationLocationNeeded()||!c||bytes>(16u<<20)||nodes>262144||domain>8||phase>4) return false;
+  if(!c->observation.Needed(static_cast<obs::DomainId>(domain+3),phase==4?obs::Phase::ActualCall:phase==3?obs::Phase::Transition:phase==1?obs::Phase::ActualCall:phase==2?obs::Phase::Render:obs::Phase::Lifecycle)) return false;
   try {
     obs::ObservationEnvelope e; e.domain=static_cast<obs::DomainId>(domain+3);
-    e.schema=domain>=2?(std::string(domain==2?"isaac.cs.exploration":domain==3?"isaac.cs.room_save":"isaac.cs.player")+(phase==3?".transition":phase==1?".query":".event")):domain?(phase==1?"isaac.cs.level.query":"isaac.cs.level.event"):(phase==1?"isaac.cs.room.query":phase==2?"isaac.cs.room.render":"isaac.cs.room.event");
+    e.schema=domain>=5?(std::string(domain==5?"isaac.cs.run":domain==6?"isaac.cs.random":domain==7?"isaac.cs.presentation":"isaac.cs.mod")+(phase==4?".actual-call":phase==3?".transition":phase==2?".render":phase==1?".query":".event")):domain>=2?(std::string(domain==2?"isaac.cs.exploration":domain==3?"isaac.cs.room_save":"isaac.cs.player")+(phase==3?".transition":phase==1?".query":".event")):domain?(phase==1?"isaac.cs.level.query":"isaac.cs.level.event"):(phase==1?"isaac.cs.room.query":phase==2?"isaac.cs.room.render":"isaac.cs.room.event");
     e.kind=phase==1||phase==2?obs::RecordKind::State:obs::RecordKind::Event;
-    e.context=c->observation.BeginScope(phase==3?obs::Phase::Transition:phase==1?obs::Phase::ActualCall:phase==2?obs::Phase::Render:obs::Phase::Lifecycle,2);
+    e.context=c->observation.BeginScope(phase==4?obs::Phase::ActualCall:phase==3?obs::Phase::Transition:phase==1?obs::Phase::ActualCall:phase==2?obs::Phase::Render:obs::Phase::Lifecycle,2);
     const auto run=c->collector->CurrentRunToken(),room=c->collector->CurrentRoomToken();
     if(run) e.context.run={obs::Presence::Known,{c->session_key,c->epoch,run,obs::IdentitySpace::Run}};
     // 过渡期间不关联旧room；完整上下文由下一次普通采集恢复。
@@ -510,5 +510,13 @@ void ObservationControlChange(unsigned slot,const world::PlayerAnchor &before,co
     e.result.coverage=obs::Coverage::Complete; e.result.range="actual-control-anchor-change"; e.result.bytes=e.payload.size();
     const auto scope=e.context.scope; if(c->observation.PrepareScope(std::move(e)).accepted) c->observation.CommitScope(scope,obs::Outcome::IndependentPublished);
   } catch(...) { ++c->formal_loss; }
+}
+}
+
+namespace cs::game {
+// Lua关联主体经统一主线程服务分配，不以地址、格号或种子作为身份。
+std::uint64_t ObservationRelatedSubject(unsigned space) noexcept {
+ auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->observation.Active()||space<11||space>14) return 0;
+ return c->observation.AllocateRelatedSubject(static_cast<world::observation::IdentitySpace>(space)).local;
 }
 }

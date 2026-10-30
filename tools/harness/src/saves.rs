@@ -1,9 +1,10 @@
 //! 存档只读快照与逐字节对比；覆盖 Documents 和全部 Steam 云存储账户。
-use crate::{Result, copy_tree, files, mkdir, win32};
+use crate::{Result, copy_tree, mkdir, win32};
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
     fs,
+    io::Read,
     path::{Path, PathBuf},
 };
 
@@ -193,25 +194,38 @@ pub fn apply_slot_baseline(intervals: &mut [Value], disabled_ran: bool) {
 // 直接比较内容，不计算摘要；附带时间变化，按每次启动独立归因。
 // D27（用户决定）：判定不看每日备份 save_backups 中的任何存档，快照仍原样复制作原始证据。
 pub fn changes(before: &Path, after: &Path) -> Result<Value> {
-    let mut a = files(before)?;
-    let mut b = files(after)?;
-    let am: Value = serde_json::from_slice(
-        &a.remove("snapshot.json")
-            .ok_or("missing before snapshot metadata")?,
-    )
-    .map_err(|e| e.to_string())?;
-    let bm: Value = serde_json::from_slice(
-        &b.remove("snapshot.json")
-            .ok_or("missing after snapshot metadata")?,
-    )
-    .map_err(|e| e.to_string())?;
-    let names: std::collections::BTreeSet<_> = a.keys().chain(b.keys()).collect();
+    // 失败情形：单边缺失、长度不同、任意字节不同、读取失败或符号链接；空文件相等。
+    // 快照可能含数百MiB历史转储，i686不能把两棵树的全部内容同时载入内存。
+    fn names(root:&Path,path:&Path,out:&mut std::collections::BTreeSet<String>)->Result<()> {
+        for entry in fs::read_dir(path).map_err(|e|e.to_string())? {
+            let entry=entry.map_err(|e|e.to_string())?;let kind=entry.file_type().map_err(|e|e.to_string())?;
+            if kind.is_symlink(){return Err("symlink in snapshot".into());}
+            if kind.is_dir(){names(root,&entry.path(),out)?;}else{
+                let name=entry.path().strip_prefix(root).unwrap().to_string_lossy().replace('\\',"/");
+                if name!="snapshot.json"{out.insert(name);}
+            }
+        } Ok(())
+    }
+    fn equal(a:&Path,b:&Path)->Result<bool> {
+        if !a.exists()||!b.exists(){return Ok(false);}
+        let mut a=fs::File::open(a).map_err(|e|e.to_string())?;let mut b=fs::File::open(b).map_err(|e|e.to_string())?;
+        let mut remaining=a.metadata().map_err(|e|e.to_string())?.len();if remaining!=b.metadata().map_err(|e|e.to_string())?.len(){return Ok(false);}
+        let mut left=[0u8;65536];let mut right=[0u8;65536];
+        while remaining>0 {let bytes=remaining.min(left.len() as u64) as usize;
+            a.read_exact(&mut left[..bytes]).map_err(|e|e.to_string())?;b.read_exact(&mut right[..bytes]).map_err(|e|e.to_string())?;
+            if left[..bytes]!=right[..bytes]{return Ok(false);}remaining-=bytes as u64;
+        } Ok(true)
+    }
+    let am:Value=serde_json::from_slice(&fs::read(before.join("snapshot.json")).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+    let bm:Value=serde_json::from_slice(&fs::read(after.join("snapshot.json")).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+    let mut a_names=std::collections::BTreeSet::new();let mut b_names=std::collections::BTreeSet::new();names(before,before,&mut a_names)?;names(after,after,&mut b_names)?;
+    let names_set:std::collections::BTreeSet<_>=a_names.union(&b_names).cloned().collect();
     let mut changed = vec![];
-    for name in names {
+    for name in &names_set {
         if is_daily_backup(name) {
             continue;
         }
-        let bytes_changed = a.get(name) != b.get(name);
+        let bytes_changed = !a_names.contains(name)||!b_names.contains(name)||!equal(&before.join(name),&after.join(name))?;
         let before_state = &am["files"][name];
         let after_state = &bm["files"][name];
         if bytes_changed || before_state != after_state {

@@ -10,8 +10,8 @@ local function protected(object, name, args, field, static)
     if field then return object[name] end
     local fn=object[name]
     if type(fn)~="function" then error("interface_unavailable:"..name) end
-    if static then return fn(table.unpack(args or {})) end
-    return fn(object, table.unpack(args or {}))
+    if static then return fn(table.unpack(args or {},1,args and (args.n or #args) or 0)) end
+    return fn(object, table.unpack(args or {},1,args and (args.n or #args) or 0))
   end)
 end
 local function textError(value)
@@ -122,7 +122,7 @@ value=function(object, typ, ctx, depth)
   local s,err=scalar(object)
   if s~=nil then return s end
   if err then fail(ctx,err); return {status=err,representation=object~=object and "nan" or object>0 and "positive_infinity" or "negative_infinity"} end
-  typ=normalize[typ] or typ
+  typ=normalize[typ] or typ or typeName(object)
   if typ then typ=typ:gsub("%?","") end
   if typ and typ:find("^Entity") and not typ:find("^EntityConfig") and typ~="EntityDesc" and typ~="EntityRef" and typ~="EntityList" then
     local reference=native().Reference(object)
@@ -131,7 +131,8 @@ value=function(object, typ, ctx, depth)
   end
   if typ=="EntityRef" then return native().Reference(object.Entity) end
   if typ=="RNG" then
-    if not ctx.grid then return missing("NotCaptured","owner_qualified_random_reference:tx-04-14") end
+    if IsaacCSRandomObservation then return IsaacCSRandomObservation.State(object) end
+    if not ctx.grid then return missing("NotCaptured","random_module_unavailable") end
     return {type="random_state",owner=ctx.owner,member=ctx.member,seed=value(object:GetSeed(),"int",ctx,depth+1),shift=value(object:GetShiftIdx(),"int",ctx,depth+1),registry="random:tx-04-14"}
   end
   if typ and typ:find("^GridEntity") and typ~="GridEntityDesc" then return native().GridReference(object) end
@@ -150,7 +151,7 @@ value=function(object, typ, ctx, depth)
     if ctx.seen[object] then return {type="graph_ref",node=ctx.seen[object]} end
     ctx.graph=ctx.graph+1; ctx.seen[object]=ctx.graph
     local node={type="table",node=ctx.graph,entries={}}
-    local keys={}; for k in pairs(object) do keys[#keys+1]=k end
+    local keys={}; for k in pairs(object) do if #keys>=LIMIT.nodes-ctx.nodes then fail(ctx,"table_key_budget");break end;keys[#keys+1]=k end
     table.sort(keys,function(a,b) return type(a)==type(b) and tostring(a)<tostring(b) or type(a)<type(b) end)
     for _,k in ipairs(keys) do
       if ctx.nodes>=LIMIT.nodes then fail(ctx,"table_budget"); node.truncated=true; break end
@@ -204,6 +205,17 @@ query=function(object,spec,args,ctx,depth)
   if ctx.grid and spec.owner=="GridEntity" and spec.member=="GetRenderPosition" then
     return native().GridRenderPosition(object)
   end
+  if spec.owner=="Game" and spec.member=="GetGenericPrompt" then
+    local p=native().PromptState()
+    if not p then fail(ctx,"prompt_root_unavailable");return missing("Unavailable","prompt_root") end
+    return {type="GenericPrompt",source="direct_live_root;no_cpp_object_copy",fields={["GenericPrompt.GetCurrentSelection"]=value(p.selection,"int",ctx,depth+1),["GenericPrompt.GetSubmittedSelection"]=value(p.submitted,"int",ctx,depth+1),["GenericPrompt.IsActive"]=p.active,["GenericPrompt.GetSprite"]=collect(p.sprite,"Sprite",ctx,depth+1)}}
+  end
+  -- 本地1.1.3绑定已将旧Sprite入口迁移到HUDMessage，读取同一真实消息对象。
+  if spec.owner=="HUD" and (spec.member=="GetPlayerStreakSprite" or spec.member=="GetStackedStreakSprite") and not object[spec.member] then
+    local ok,v=pcall(function() return (spec.member=="GetPlayerStreakSprite" and object:GetCoopPlayerMessage(args[1]) or object:GetStackedMessage(args[1])):GetSprite() end)
+    if ok then return {source="REPENTOGON1.1.3.HUDMessage.GetSprite",value=value(v,"Sprite",ctx,depth+1)} end
+    fail(ctx,"hud_message_sprite");return missing("ReadFailed",textError(v))
+  end
   local ok,v,extra=protected(spec.static and _G[spec.owner] or object,spec.member,args,spec.category=="field",spec.static)
   if not ok then fail(ctx,"read:"..spec.id); return missing("ReadFailed",textError(v)) end
   local copied,out=pcall(value,v,spec.returns,ctx,depth+1)
@@ -241,8 +253,11 @@ collect=function(object,class,ctx,depth)
       elseif spec.category=="domain_value" and ctx.domain_member then
         out.fields[spec.id]=ctx.domain_member(object,spec,ctx,depth)
       elseif spec.category=="external_reference" then
-        if spec.owner=="EntityPlayer" and (spec.member=="GetHistory" or spec.member=="GetMovingBoxContents") then
+        if spec.reason=="random:tx-04-14" and IsaacCSRandomObservation then
+          out.fields[spec.id]={type="owner_qualified_domain_reference",schema="isaac.cs.random",member=spec.id,owner=ctx.owner or native().Reference(object),semantics="actual_getter_registers_stream;lazy_item_RNG_not_polled"}
+        elseif spec.owner=="EntityPlayer" and (spec.member=="GetHistory" or spec.member=="GetMovingBoxContents") then
           out.fields[spec.id]={type="owner_qualified_domain_reference",schema=spec.member=="GetHistory" and "isaac.cs.player" or "isaac.cs.room_save",owner=native().Reference(object),field=spec.member=="GetHistory" and "bodies.history" or "carried.moving_box",scope_rule="same_committed_native_window;target_coverage_applies"}
+        elseif spec.member=="GetPlayerHUD" then out.fields[spec.id]={type="owner_qualified_domain_reference",schema="isaac.cs.presentation",owner=native().Reference(object)}
         elseif ctx.external_reference then out.fields[spec.id]=ctx.external_reference(object,spec)
         else out.fields[spec.id]=missing("NotCaptured",spec.reason) end
       elseif spec.category=="actual_call" then

@@ -117,12 +117,23 @@ int Location(lua_State *L) {
 int Descriptor(lua_State *L) { const auto v=ObservationDescriptor(int(luaL_checkinteger(L,1)),int(luaL_checkinteger(L,2)),int(luaL_checkinteger(L,3)),luaL_checkstring(L,4)); const auto s=std::to_string(v); lua_pushlstring(L,s.data(),s.size()); const auto rev=std::to_string(ObservationDescriptorRevision(v)); lua_pushlstring(L,rev.data(),rev.size()); return 2; }
 int Dimension(lua_State *L) { const auto s=std::to_string(ObservationDimension(int(luaL_checkinteger(L,1)))); lua_pushlstring(L,s.data(),s.size()); return 1; }
 int LocationBoundary(lua_State *L) { ObservationLocationBoundary(luaL_checkstring(L,1),lua_toboolean(L,2)!=0); return 0; }
+int RelatedSubject(lua_State *L) { const auto s=std::to_string(ObservationRelatedSubject(unsigned(luaL_checkinteger(L,1)))); lua_pushlstring(L,s.data(),s.size()); return 1; }
 int LocationNeeded(lua_State *L) { lua_pushboolean(L,ObservationLocationNeeded()); return 1; }
 int PublishLocation(lua_State *L) {
   std::size_t bytes=0; const auto *p=luaL_checklstring(L,1,&bytes);
   lua_pushboolean(L,ObservationPublishLocation(p,bytes,lua_toboolean(L,2)!=0,std::uint32_t(luaL_checkinteger(L,4)),luaL_optstring(L,5,""),unsigned(luaL_checkinteger(L,6)),unsigned(luaL_checkinteger(L,7)))); return 1;
 }
 int CaptureContext(lua_State *L) { const auto s=ObservationCaptureContext(); lua_pushlstring(L,s.data(),s.size()); return 1; }
+// 官方GetGenericPrompt对未构造userdata赋值复制ANM2；只借用活根，复制公开纯值，不复制C++对象。
+int PromptState(lua_State *L) {
+  if(!IsMain()||!g_Game) { lua_pushnil(L); return 1; }
+  auto *p=g_Game->GetGenericPrompt(); lua_newtable(L);
+  lua_pushinteger(L,p->_currentSelection); lua_setfield(L,-2,"selection");
+  lua_pushinteger(L,p->_submittedSelection); lua_setfield(L,-2,"submitted");
+  lua_pushboolean(L,p->IsActive()); lua_setfield(L,-2,"active");
+  lua::luabridge::UserdataPtr::push(L,&p->_anm2,lua::Metatables::SPRITE); lua_setfield(L,-2,"sprite");
+  return 1;
+}
 int SaveEntry(lua_State *L) { const auto s=std::to_string(ObservationSaveEntry()); lua_pushlstring(L,s.data(),s.size()); return 1; }
 int Needed(lua_State *L) {
   lua_pushboolean(L,IsMain()&&ObservationLuaNeeded(luaL_checkstring(L,1))); return 1;
@@ -149,7 +160,7 @@ void EnsureObservationLuaBridge() noexcept {
   const bool exists=lua_istable(L,-1); lua_settop(L,top);
   if(exists) return;
   lua_newtable(L);
-  const luaL_Reg funcs[]={{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
+  const luaL_Reg funcs[]={{"PromptState",PromptState},{"RelatedSubject",RelatedSubject},{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
   luaL_setfuncs(L,funcs,0); lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
 }
 // Coordinator 在复制窗口内部调用一次；错误返回自有原因，不让 Lua 异常越过 Authority。
@@ -157,8 +168,8 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
   LuaEntityResult result; auto *L=State(); if(!L) { result.reason="lua_state_unavailable"; return result; }
   const auto top=lua_gettop(L);
   try {
-    const char *modules[]={"IsaacCSObservation","IsaacCSGridObservation","IsaacCSRoomObservation","IsaacCSLevelObservation","IsaacCSExplorationObservation","IsaacCSRoomSaveObservation","IsaacCSPlayerObservation"};
-    if(domain>=7) { result.reason="unsupported_domain"; return result; }
+    const char *modules[]={"IsaacCSObservation","IsaacCSGridObservation","IsaacCSRoomObservation","IsaacCSLevelObservation","IsaacCSExplorationObservation","IsaacCSRoomSaveObservation","IsaacCSPlayerObservation","IsaacCSRunObservation","IsaacCSRandomObservation","IsaacCSPresentationObservation","IsaacCSModObservation"};
+    if(domain>=11) { result.reason="unsupported_domain"; return result; }
     lua_getglobal(L,modules[domain]);
     if(!lua_istable(L,-1)) { lua_settop(L,top); result.reason="formal_observation_module_unavailable"; return result; }
     lua_getfield(L,-1,"Capture");
@@ -188,8 +199,8 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
 
 namespace cs::game {
 void FinishLuaObservation(unsigned domain,std::uint64_t scope,bool committed) noexcept {
-  auto *L=State(); if(!L||domain<4||domain>6) return;
-  const auto top=lua_gettop(L); const char *names[]={"IsaacCSExplorationObservation","IsaacCSRoomSaveObservation","IsaacCSPlayerObservation"};
+  auto *L=State(); if(!L||domain<4||domain>10) return;
+  const auto top=lua_gettop(L); const char *names[]={"IsaacCSExplorationObservation","IsaacCSRoomSaveObservation","IsaacCSPlayerObservation","IsaacCSRunObservation","IsaacCSRandomObservation","IsaacCSPresentationObservation","IsaacCSModObservation"};
   lua_getglobal(L,names[domain-4]);
   if(lua_istable(L,-1)) { lua_getfield(L,-1,"Outcome"); if(lua_isfunction(L,-1)) {
     const auto s=std::to_string(scope); lua_pushlstring(L,s.data(),s.size()); lua_pushboolean(L,committed); lua_pcall(L,2,0,0);
