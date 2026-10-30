@@ -11,7 +11,7 @@ enum class Presence : std::uint8_t { Known, Unknown, NotApplicable };
 enum class Phase : std::uint8_t { OrdinaryPost, PlayerPost, Lifecycle, Transition, Render, ActualCall };
 // 当前接入来源的阶段能力；尚未接线的 PlayerPost/Transition 请求须明确拒绝。
 constexpr std::uint32_t SupportedPhases(DomainId domain) noexcept {
-  return domain==DomainId::Entity ? 53u : domain==DomainId::Grid ? 5u : 0u;
+  return domain==DomainId::Entity ? 53u : domain==DomainId::Grid ? 53u : 0u;
 }
 enum class RecordKind : std::uint8_t { State, Event, Relation, Coverage, Gap, Catalog };
 enum class Outcome : std::uint8_t { AuthorityCommitted, IndependentPublished, Cancelled, Invalidated };

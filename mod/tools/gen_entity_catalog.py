@@ -12,7 +12,7 @@ ALIASES={'renderer/Image':'Image','renderer/BlendMode':'BlendMode','renderer/Sha
 ACTUAL={'GetData':'mod_namespace:tx-04-14','GetRandomPickupVelocity':'rng_consuming_call','GetRandomWisp':'rng_consuming_call','RandomCoinJamAnim':'rng_consuming_call','GetGlyphOfBalanceDrop':'gameplay_drop_selection','GetTearHitParams':'gameplay_attack_parameters','GetBombVariant':'gameplay_bomb_selection','GetMultiShotParams':'gameplay_attack_parameters','GetMultiShotPositionVelocity':'gameplay_attack_parameters','GetLootList':'gameplay_loot_generation','GetFireplaceLoot':'gameplay_loot_generation','GetShopkeeperLoot':'gameplay_loot_generation'}
 ACTUAL['GetBombFlags']='gameplay_attack_flags_and_rng_even_when_false:J273-779880'
 DERIVED={'ComputeStatusEffectDuration','IgnoreEffectFromFriendly','CalculateEndPoint','CalcTargetPosition','QueryNPCsGroup','QueryNPCsSpawnerType','QueryNPCsType','VoidHasCollectible'}
-DEFER={'IsLocalPlayer':'isolated_original_online_locality;use_cs_control_relation','GetPlayerHUD':'presentation:tx-04-14','GetMovingBoxContents':'room_save:tx-04-13','GetHistory':'player_history:tx-04-13','GetGridEntityDesc':'grid:tx-04-11'}
+DEFER={'IsLocalPlayer':'isolated_original_online_locality;use_cs_control_relation','GetPlayerHUD':'presentation:tx-04-14','GetMovingBoxContents':'room_save:tx-04-13','GetHistory':'player_history:tx-04-13','GetGridEntityDesc':'grid:isaac.cs.grid.lifted_descriptors'}
 
 def clean(s):
     return re.sub(r'\[([^]]+)\]\([^)]*\)',r'\1',s).split('{')[0].strip()

@@ -860,7 +860,7 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
       CopyObject(object, *id);
   }
   ResolveReferences();
-  if(sink_.lua) sink_.lua(sink_.owner,h,pending_.Objects());
+  if(sink_.lua) sink_.lua(sink_.owner,h,pending_.Objects(),pending_.Memberships());
   // 在整个复制尾部再复读所有动态 descriptor 和固定槽/door 映射。
   // 源内的两遍指针检查之外，再覆盖复制其他来源/字段期间的描述变化。
   for (std::uint32_t source = 0; source < kSourceCount && Recording();

@@ -28,3 +28,28 @@ for _,name in ipairs({"MC_POST_PLAYER_RENDER","MC_POST_NPC_RENDER","MC_POST_TEAR
     if native and native.Needed("Render") then entity.Render(object) end
   end) end
 end
+
+-- Grid 共用原生身份及唯一协调器，不从 Lua 回调另建身份表。
+local grid=include("domains/grid/collect")
+IsaacCSGridObservation=grid
+for _,kind in ipairs({"DECORATION","DOOR","FIRE","GRAVITY","LOCK","PIT","POOP","PRESSUREPLATE","ROCK","SPIKES","STAIRCASE","STATUE","TELEPORTER","TNT","TRAPDOOR","WALL","WEB"}) do
+  for _,phase in ipairs({"UPDATE","RENDER"}) do
+    local name="MC_POST_GRID_ENTITY_"..kind.."_"..phase
+    if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function(_,object)
+      local n=IsaacCSObservationNative
+      if n and n.GridNeeded(phase=="RENDER" and "Render" or "Lifecycle") then
+        local ok,err=pcall(grid.Event,name,object,phase=="RENDER")
+        if not ok then grid.Error(name,err,phase=="RENDER") end
+      end
+    end) end
+  end
+end
+for _,name in ipairs({"MC_POST_GRID_ENTITY_SPAWN","MC_POST_GRID_ROCK_DESTROY","MC_POST_GRID_HURT","MC_POST_GRID_HURT_DAMAGE"}) do
+  if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function(_,object,...)
+    local n=IsaacCSObservationNative
+    if n and n.GridNeeded("Lifecycle") then
+      local ok,err=pcall(grid.Event,name,object,false,...)
+      if not ok then grid.Error(name,err,false) end
+    end
+  end) end
+end

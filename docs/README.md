@@ -1,3 +1,5 @@
+> **tx-04-11 已完成（2026-10-30）**：[完整Grid实现与统一E2E结果](design/observation-expansion/tx-04-11-implementation.md)。27种非空类型、17个派生接口及保存／资源／变化／生命周期观测已交付；最终5/5 PASS，25条完整Grid后态，Grid Partial为0，临时材料已清理。下方历史计划保留原时点。
+
 > **tx-04-10 已完成（2026-10-30）**：[公共接口、域拆分、完整 Entity 观测与统一 E2E 结果](design/observation-expansion/tx-04-10-implementation.md)。最终 5/5 PASS，14 条完整 Entity 后态含 4 条四组八身体后态；采集与录制独立，v1/v2 同读取投影通过，测试临时材料已清理。Grid 全量及其他域仍待 tx-04-11—14，下方历史时点不改判。
 
 # C/S研究与状态同步文档

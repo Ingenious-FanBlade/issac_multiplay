@@ -9,15 +9,15 @@ lua_State *State() noexcept { return IsMain()&&g_LuaEngine ? g_LuaEngine->_state
 void Decimal(lua_State *L,const char *key,std::uint64_t value) {
   const auto s=std::to_string(value); lua_pushlstring(L,s.data(),s.size()); lua_setfield(L,-2,key);
 }
-int Subject(lua_State *L,bool registering) {
+int Subject(lua_State *L,bool registering,bool grid=false) {
   if(!IsMain()) { lua_pushnil(L); return 1; }
   if(lua_isnil(L,1)) { lua_newtable(L); lua_pushstring(L,"Null"); lua_setfield(L,-2,"resolution"); return 1; }
-  auto *entity=lua::GetLuabridgeUserdata<Entity *>(L,1,lua::Metatables::ENTITY,"Entity");
-  const auto subject=ObservationSubject(entity,registering);
+  void *entity=grid?static_cast<void *>(lua::GetLuabridgeUserdata<GridEntity *>(L,1,lua::Metatables::GRID_ENTITY,"GridEntity")):static_cast<void *>(lua::GetLuabridgeUserdata<Entity *>(L,1,lua::Metatables::ENTITY,"Entity"));
+  const auto subject=ObservationSubject(entity,registering,grid);
   lua_newtable(L);
   Decimal(L,"session",subject.session); Decimal(L,"epoch",subject.epoch);
   Decimal(L,"local_id",subject.local); Decimal(L,"use",subject.use); Decimal(L,"revision",subject.revision);
-  lua_pushinteger(L,1); lua_setfield(L,-2,"space");
+  lua_pushinteger(L,grid?2:1); lua_setfield(L,-2,"space");
   constexpr const char *names[]={"Null","KnownCurrent","KnownHistorical","Unresolved","NotCaptured","UnsupportedTarget","Retired","AmbiguousReuse","CrossEpoch"};
   lua_pushstring(L,subject.status<9?names[subject.status]:"Unresolved"); lua_setfield(L,-2,"resolution");
   lua_pushinteger(L,subject.origin); lua_setfield(L,-2,"origin");
@@ -32,6 +32,41 @@ int Subject(lua_State *L,bool registering) {
 }
 int RegisterSubject(lua_State *L) { return Subject(L,true); }
 int Reference(lua_State *L) { return Subject(L,false); }
+int GridSubject(lua_State *L) { return Subject(L,true,true); }
+int GridReference(lua_State *L) { return Subject(L,false,true); }
+// 官方 Lua 包装每次 new Vector 未回收；此处使用已声明 SDK Getter 的栈缓冲。
+int GridRenderPosition(lua_State *L) {
+  auto *grid=lua::GetLuabridgeUserdata<GridEntity *>(L,1,lua::Metatables::GRID_ENTITY,"GridEntity");
+  Vector buffer(0,0); grid->GetRenderPosition(&buffer);
+  lua_newtable(L); lua_pushstring(L,"vector"); lua_setfield(L,-2,"type");
+  lua_pushnumber(L,buffer.x); lua_setfield(L,-2,"x"); lua_pushnumber(L,buffer.y); lua_setfield(L,-2,"y"); return 1;
+}
+int GridSources(lua_State *L) {
+  lua_newtable(L);
+  struct Sink { lua_State *L; int index=0; } sink{L};
+  const auto unavailable=ObservationGrids(&sink,[](void *owner,void *grid,std::uint32_t memberships) noexcept {
+    auto &s=*static_cast<Sink *>(owner); lua_newtable(s.L);
+    lua::luabridge::UserdataPtr::push(s.L,grid,lua::Metatables::GRID_ENTITY); lua_setfield(s.L,-2,"grid");
+    lua_pushinteger(s.L,memberships); lua_setfield(s.L,-2,"membership_mask");
+    lua_newtable(s.L);
+    struct Members { lua_State *L; int index=0; } ms{s.L};
+    ObservationGridMemberships(grid,&ms,[](void *owner,std::uint32_t source,std::uint32_t index) noexcept {
+      auto &m=*static_cast<Members *>(owner); lua_newtable(m.L);
+      lua_pushinteger(m.L,source); lua_setfield(m.L,-2,"source"); lua_pushinteger(m.L,index); lua_setfield(m.L,-2,"index");
+      lua_rawseti(m.L,-2,++m.index);
+    });
+    lua_setfield(s.L,-2,"memberships"); lua_rawseti(s.L,-2,++s.index);
+  });
+  lua_pushinteger(L,unavailable); return 2;
+}
+// 不更改回调传入userdata的元表；构造经保护读取验证过的借用基类视图。
+int GridCallbackView(lua_State *L) {
+  if(!IsMain()||lua_type(L,1)!=LUA_TUSERDATA||lua_rawlen(L,1)!=sizeof(lua::luabridge::UserdataPtr)) { lua_pushnil(L); return 1; }
+  auto *grid=lua::UserdataToData<GridEntity *>(lua_touserdata(L,1));
+  if(!ObservationValidGrid(grid)) { lua_pushnil(L); return 1; }
+  lua::luabridge::UserdataPtr::push(L,grid,lua::Metatables::GRID_ENTITY); return 1;
+}
+int GridNeeded(lua_State *L) { lua_pushboolean(L,IsMain()&&ObservationLuaNeeded(luaL_checkstring(L,1),true)); return 1; }
 int Supplement(lua_State *L) {
   auto *entity=lua::GetLuabridgeUserdata<Entity *>(L,1,lua::Metatables::ENTITY,"Entity");
   const auto v=EntitySupplement(entity);
@@ -69,18 +104,20 @@ int SpriteNames(lua_State *L) {
 int Needed(lua_State *L) {
   lua_pushboolean(L,IsMain()&&ObservationLuaNeeded(luaL_checkstring(L,1))); return 1;
 }
-int Publish(lua_State *L,unsigned phase) {
+int Publish(lua_State *L,unsigned phase,bool grid=false) {
   std::size_t bytes=0; const auto *json=luaL_checklstring(L,1,&bytes);
   const auto complete=lua_toboolean(L,2)!=0;
   const auto objects=luaL_checkinteger(L,3),nodes=luaL_checkinteger(L,4);
   const auto *reason=luaL_optstring(L,5,"");
   const bool valid=bytes<=(16u<<20)&&objects>=0&&objects<=16384&&nodes>=0&&nodes<=262144;
-  lua_pushboolean(L,valid&&ObservationPublishLua(json,bytes,complete,unsigned(objects),unsigned(nodes),reason,phase));
+  lua_pushboolean(L,valid&&ObservationPublishLua(json,bytes,complete,unsigned(objects),unsigned(nodes),reason,phase,grid));
   return 1;
 }
 int PublishEvent(lua_State *L) { return Publish(L,false); }
 int PublishQuery(lua_State *L) { return Publish(L,true); }
 int PublishRender(lua_State *L) { return Publish(L,2); }
+int PublishGridEvent(lua_State *L) { return Publish(L,lua_toboolean(L,6)?2:0,true); }
+int PublishGridQuery(lua_State *L) { return Publish(L,1,true); }
 }
 void EnsureObservationLuaBridge() noexcept {
   auto *L=State(); if(!L) return;
@@ -89,15 +126,15 @@ void EnsureObservationLuaBridge() noexcept {
   const bool exists=lua_istable(L,-1); lua_settop(L,top);
   if(exists) return;
   lua_newtable(L);
-  const luaL_Reg funcs[]={{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
+  const luaL_Reg funcs[]={{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
   luaL_setfuncs(L,funcs,0); lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
 }
 // Coordinator 在复制窗口内部调用一次；错误返回自有原因，不让 Lua 异常越过 Authority。
-LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::uint32_t depth,std::uint32_t limit) noexcept {
+LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::uint32_t depth,std::uint32_t limit,bool grid) noexcept {
   LuaEntityResult result; auto *L=State(); if(!L) { result.reason="lua_state_unavailable"; return result; }
   const auto top=lua_gettop(L);
   try {
-    lua_getglobal(L,"IsaacCSObservation");
+    lua_getglobal(L,grid?"IsaacCSGridObservation":"IsaacCSObservation");
     if(!lua_istable(L,-1)) { lua_settop(L,top); result.reason="formal_observation_module_unavailable"; return result; }
     lua_getfield(L,-1,"Capture");
     lua_newtable(L);

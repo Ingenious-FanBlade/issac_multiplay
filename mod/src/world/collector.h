@@ -31,7 +31,7 @@ struct PlayerAnchor final {
 // 采集服务的窄提交通知；录制器不拥有 Collector，也不能决定 Authority 是否提交。
 struct CaptureSink final {
   void *owner=nullptr;
-  void (*lua)(void *,const BatchHeader &,const RawObject *) noexcept=nullptr;
+  void (*lua)(void *,const BatchHeader &,const RawObject *,const RawMembership *) noexcept=nullptr;
   void (*native)(void *,const BatchHeader &,const RawObject *,const RawMembership *) noexcept=nullptr;
   void (*commit)(void *,bool,bool) noexcept=nullptr;
   void (*event)(void *,const LifecycleEvent &) noexcept=nullptr;
@@ -75,6 +75,11 @@ public:
     auto *identity = identities_.Find(ObjectDomain::Entity, address);
     return identity && !identity->Retired() ? identity->local_id : 0;
   }
+  // 事件只借用观察器已确认的上下文；加载中的旧 room 不能当作当前归属。
+  std::uint64_t CurrentRunToken() const noexcept { return run_active_?run_:0; }
+  std::uint64_t CurrentRoomToken() const noexcept { return run_active_&&!lifecycle_depth_&&!lifecycle_episode_?room_:0; }
+  std::uint64_t CurrentOuterToken() const noexcept { return outer_active_?outer_:0; }
+  std::uint64_t CurrentMutation() const noexcept { return mutation_; }
   PlayerAnchor CurrentAnchor(std::uint32_t slot) const noexcept {
     return slot < anchors_.size() ? anchors_[slot] : PlayerAnchor{};
   }

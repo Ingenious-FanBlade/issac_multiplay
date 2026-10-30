@@ -483,7 +483,7 @@
 | `EntityEffect.FallingAcceleration` | `float FallingAcceleration` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityEffect.md)（行52） |
 | `EntityEffect.FallingSpeed` | `float FallingSpeed` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityEffect.md)（行57） |
 | `EntityEffect.FollowParent` | `void FollowParent ( Entity Parent )` | actual_event_only  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityEffect.md)（行21） |
-| `EntityEffect.GetGridEntityDesc` | `GridEntityDesc GetGridEntityDesc ( )` | owner_qualified_reference grid:tx-04-11 | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityEffect.md)（行34） |
+| `EntityEffect.GetGridEntityDesc` | `GridEntityDesc GetGridEntityDesc ( )` | owner_qualified_reference grid:isaac.cs.grid.lifted_descriptors | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityEffect.md)（行34） |
 | `EntityEffect.GetTearFlags` | `TearFlags GetTearFlags ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityEffect.md)（行40） |
 | `EntityEffect.HasTearFlags` | `boolean HasTearFlags ( TearFlags )` | bounded_parameter_query  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityEffect.md)（行46） |
 | `EntityEffect.IsFollowing` | `boolean IsFollowing` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityEffect.md)（行62） |

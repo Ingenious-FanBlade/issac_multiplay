@@ -24,11 +24,14 @@ EntitySupplementValue EntitySupplement(void *object) noexcept;
 std::uint32_t ObservationEntities(void *owner,void (*visit)(void *,void *,std::uint32_t) noexcept) noexcept;
 const char *ObservationSpriteNames(void *sprite,void *owner,
     void (*visit)(void *,bool,const char *,std::size_t) noexcept) noexcept;
+std::uint32_t ObservationGrids(void *owner,void (*visit)(void *,void *,std::uint32_t) noexcept) noexcept;
+void ObservationGridMemberships(void *grid,void *owner,void (*visit)(void *,std::uint32_t,std::uint32_t) noexcept) noexcept;
+bool ObservationValidGrid(void *grid) noexcept;
 void EnsureObservationLuaBridge() noexcept;
 LuaEntityResult CaptureLuaEntity(std::uint32_t objects=16384,std::uint32_t nodes=262144,
-                                 std::uint32_t depth=12,std::uint32_t bytes=16u<<20) noexcept;
-bool ObservationLuaNeeded(const char *phase) noexcept;
-ObservationSubjectValue ObservationSubject(void *object,bool register_subject) noexcept;
+                                 std::uint32_t depth=12,std::uint32_t bytes=16u<<20,bool grid=false) noexcept;
+bool ObservationLuaNeeded(const char *phase,bool grid=false) noexcept;
+ObservationSubjectValue ObservationSubject(void *object,bool register_subject,bool grid=false) noexcept;
 bool ObservationPublishLua(const char *payload,std::size_t bytes,bool complete,
-                           std::uint32_t objects,std::uint32_t nodes,const char *reason,unsigned phase) noexcept;
+                           std::uint32_t objects,std::uint32_t nodes,const char *reason,unsigned phase,bool grid=false) noexcept;
 }

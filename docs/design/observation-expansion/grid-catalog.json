@@ -1,0 +1,3273 @@
+{
+  "shared_resources": {
+    "catalog": "entity-catalog.json",
+    "canonical_classes": [
+      "Sprite",
+      "LayerState",
+      "AnimationData",
+      "AnimationLayer",
+      "AnimationFrame",
+      "NullFrame",
+      "Image",
+      "BlendMode",
+      "Shape",
+      "Vector",
+      "Color",
+      "KColor"
+    ],
+    "semantics": "same canonical resource fields; current Grid owns the copied resource state; no second identity"
+  },
+  "associated": [
+    {
+      "owner": "EntityEffect",
+      "member": "GetGridEntityDesc",
+      "applicability": "EffectVariant.GRID_ENTITY_PROJECTILE_HELPER=136",
+      "implementation": "grid.lifted_descriptors; Entity identity; does not imply active Grid membership",
+      "sources": [
+        "REPENTOGON/docs/EntityEffect.md:34",
+        "repentogon/LuaInterfaces/Entities/LuaEntityEffect.cpp:52"
+      ]
+    }
+  ],
+  "format": "isaac.cs.grid.catalog",
+  "version": 2,
+  "classes": [
+    "GridEntity",
+    "GridEntityDecoration",
+    "GridEntityDoor",
+    "GridEntityFire",
+    "GridEntityGravity",
+    "GridEntityLock",
+    "GridEntityPit",
+    "GridEntityPoop",
+    "GridEntityPressurePlate",
+    "GridEntityRock",
+    "GridEntitySpikes",
+    "GridEntityStairs",
+    "GridEntityStatue",
+    "GridEntityTeleporter",
+    "GridEntityTNT",
+    "GridEntityTrapDoor",
+    "GridEntityWall",
+    "GridEntityWeb",
+    "GridEntityDesc"
+  ],
+  "members": [
+    {
+      "id": "GridEntity.CollisionClass",
+      "owner": "GridEntity",
+      "member": "CollisionClass",
+      "returns": "GridCollisionClass",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 158
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntity.GetSaveState",
+      "owner": "GridEntity",
+      "member": "Desc",
+      "returns": "GridEntityDesc",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 163
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "alias:GridEntity.GetSaveState"
+    },
+    {
+      "id": "GridEntity.Destroy",
+      "owner": "GridEntity",
+      "member": "Destroy",
+      "returns": "boolean",
+      "parameters": " boolean Immediate ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 23
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.DestroyWithSource",
+      "owner": "GridEntity",
+      "member": "DestroyWithSource",
+      "returns": "boolean",
+      "parameters": " boolean Immediate, EntityRef Source ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 28
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.GetGridIndex",
+      "owner": "GridEntity",
+      "member": "GetGridIndex",
+      "returns": "int",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 33
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntity.GetRNG",
+      "owner": "GridEntity",
+      "member": "GetRNG",
+      "returns": "RNG",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 38
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntity.GetRenderPosition",
+      "owner": "GridEntity",
+      "member": "GetRenderPosition",
+      "returns": "Vector",
+      "parameters": " ",
+      "category": "query",
+      "reason": "official Lua wrapper leaks temporary Vector; native stack-buffer adapter",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 16
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntity.GetSaveState",
+      "owner": "GridEntity",
+      "member": "GetSaveState",
+      "returns": "GridEntityDesc",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 46
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntity.GetSprite",
+      "owner": "GridEntity",
+      "member": "GetSprite",
+      "returns": "Sprite",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 53
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntity.GetType",
+      "owner": "GridEntity",
+      "member": "GetType",
+      "returns": "GridEntityType",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 58
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntity.GetVariant",
+      "owner": "GridEntity",
+      "member": "GetVariant",
+      "returns": "int",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 63
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntity.GetWaterClipFlags",
+      "owner": "GridEntity",
+      "member": "GetWaterClipFlags",
+      "returns": "WaterClipFlag",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 20
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntity.Hurt",
+      "owner": "GridEntity",
+      "member": "Hurt",
+      "returns": "boolean",
+      "parameters": " int Damage ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 68
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.HurtDamage",
+      "owner": "GridEntity",
+      "member": "HurtDamage",
+      "returns": "void",
+      "parameters": " Entity Entity, int PlayerDamage, int DamageFlags, float Damage, boolean ignoreGridCollision ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 27
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.HurtSurroundings",
+      "owner": "GridEntity",
+      "member": "HurtSurroundings",
+      "returns": "void",
+      "parameters": "float enemyDistance, float playerDistance, float enemyDamage, int playerDamage, int damageFlags, boolean ignoreGridCollision",
+      "category": "operation",
+      "reason": "official public binding; absent from local Wiki; actual event only",
+      "sources": [
+        {
+          "wiki": "official-binding",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/repentogon/LuaInterfaces/GridEntities/LuaGridEntity.cpp",
+          "line": 18
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.HurtWithSource",
+      "owner": "GridEntity",
+      "member": "HurtWithSource",
+      "returns": "boolean",
+      "parameters": " int Damage, EntityRef Source ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 73
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.Init",
+      "owner": "GridEntity",
+      "member": "Init",
+      "returns": "void",
+      "parameters": " int Seed ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 78
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.IsBreakableRock",
+      "owner": "GridEntity",
+      "member": "IsBreakableRock",
+      "returns": "boolean",
+      "parameters": " ",
+      "category": "query",
+      "reason": "Wiki void typo; official LuaGridEntity.cpp returns boolean",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 31
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntity.Position",
+      "owner": "GridEntity",
+      "member": "Position",
+      "returns": "Vector",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 171
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntity.PostInit",
+      "owner": "GridEntity",
+      "member": "PostInit",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 83
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.Render",
+      "owner": "GridEntity",
+      "member": "Render",
+      "returns": "void",
+      "parameters": " Vector Offset ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 88
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.ResetWaterClipFlags",
+      "owner": "GridEntity",
+      "member": "ResetWaterClipFlags",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 35
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.SetType",
+      "owner": "GridEntity",
+      "member": "SetType",
+      "returns": "void",
+      "parameters": " GridEntityType Type ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 93
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.SetVariant",
+      "owner": "GridEntity",
+      "member": "SetVariant",
+      "returns": "void",
+      "parameters": " int Variant ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 98
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.SetWaterClipFlags",
+      "owner": "GridEntity",
+      "member": "SetWaterClipFlags",
+      "returns": "void",
+      "parameters": " WaterClipFlag Flags ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 40
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.State",
+      "owner": "GridEntity",
+      "member": "State",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 176
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntity.ToDecoration",
+      "owner": "GridEntity",
+      "member": "ToDecoration",
+      "returns": "GridEntityDecoration",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 49
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToDoor",
+      "owner": "GridEntity",
+      "member": "ToDoor",
+      "returns": "GridEntityDoor",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 103
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToFire",
+      "owner": "GridEntity",
+      "member": "ToFire",
+      "returns": "GridEntityFire",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 58
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToGravity",
+      "owner": "GridEntity",
+      "member": "ToGravity",
+      "returns": "GridEntityGravity",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 67
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToLock",
+      "owner": "GridEntity",
+      "member": "ToLock",
+      "returns": "GridEntityLock",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 76
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToPit",
+      "owner": "GridEntity",
+      "member": "ToPit",
+      "returns": "GridEntityPit",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 110
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToPoop",
+      "owner": "GridEntity",
+      "member": "ToPoop",
+      "returns": "GridEntityPoop",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 117
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToPressurePlate",
+      "owner": "GridEntity",
+      "member": "ToPressurePlate",
+      "returns": "GridEntityPressurePlate",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 124
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToRock",
+      "owner": "GridEntity",
+      "member": "ToRock",
+      "returns": "GridEntityRock",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 131
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToSpikes",
+      "owner": "GridEntity",
+      "member": "ToSpikes",
+      "returns": "GridEntitySpikes",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 138
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToStairs",
+      "owner": "GridEntity",
+      "member": "ToStairs",
+      "returns": "GridEntityStairs",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 84
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToStatue",
+      "owner": "GridEntity",
+      "member": "ToStatue",
+      "returns": "GridEntityStatue",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 93
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToTNT",
+      "owner": "GridEntity",
+      "member": "ToTNT",
+      "returns": "GridEntityTNT",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 145
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 9
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToTeleporter",
+      "owner": "GridEntity",
+      "member": "ToTeleporter",
+      "returns": "GridEntityTeleporter",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 102
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToTrapDoor",
+      "owner": "GridEntity",
+      "member": "ToTrapDoor",
+      "returns": "GridEntityTrapDoor",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 109
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToWall",
+      "owner": "GridEntity",
+      "member": "ToWall",
+      "returns": "GridEntityWall",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 118
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.ToWeb",
+      "owner": "GridEntity",
+      "member": "ToWeb",
+      "returns": "GridEntityWeb",
+      "parameters": " ",
+      "category": "cast",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md",
+          "line": 127
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "all_cast_results"
+    },
+    {
+      "id": "GridEntity.Update",
+      "owner": "GridEntity",
+      "member": "Update",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 152
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntity.VarData",
+      "owner": "GridEntity",
+      "member": "VarData",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntity.md",
+          "line": 186
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDesc.Initialized",
+      "owner": "GridEntityDesc",
+      "member": "Initialized",
+      "returns": "boolean",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDesc.md",
+          "line": 21
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDesc.SpawnCount",
+      "owner": "GridEntityDesc",
+      "member": "SpawnCount",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDesc.md",
+          "line": 26
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDesc.SpawnSeed",
+      "owner": "GridEntityDesc",
+      "member": "SpawnSeed",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDesc.md",
+          "line": 31
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDesc.State",
+      "owner": "GridEntityDesc",
+      "member": "State",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDesc.md",
+          "line": 36
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDesc.Type",
+      "owner": "GridEntityDesc",
+      "member": "Type",
+      "returns": "GridEntityType",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDesc.md",
+          "line": 41
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDesc.VarData",
+      "owner": "GridEntityDesc",
+      "member": "VarData",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDesc.md",
+          "line": 46
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDesc.VariableSeed",
+      "owner": "GridEntityDesc",
+      "member": "VariableSeed",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDesc.md",
+          "line": 51
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDesc.Variant",
+      "owner": "GridEntityDesc",
+      "member": "Variant",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDesc.md",
+          "line": 56
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.Bar",
+      "owner": "GridEntityDoor",
+      "member": "Bar",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 21
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityDoor.Busted",
+      "owner": "GridEntityDoor",
+      "member": "Busted",
+      "returns": "boolean",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 102
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.CanBlowOpen",
+      "owner": "GridEntityDoor",
+      "member": "CanBlowOpen",
+      "returns": "boolean",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 26
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntityDoor.Close",
+      "owner": "GridEntityDoor",
+      "member": "Close",
+      "returns": "void",
+      "parameters": " boolean Force ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 31
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityDoor.CloseAnimation",
+      "owner": "GridEntityDoor",
+      "member": "CloseAnimation",
+      "returns": "string",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 107
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.CurrentRoomType",
+      "owner": "GridEntityDoor",
+      "member": "CurrentRoomType",
+      "returns": "RoomType",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 112
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.Direction",
+      "owner": "GridEntityDoor",
+      "member": "Direction",
+      "returns": "Direction",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 117
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.ExtraSprite",
+      "owner": "GridEntityDoor",
+      "member": "ExtraSprite",
+      "returns": "Sprite",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 122
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.ExtraVisible",
+      "owner": "GridEntityDoor",
+      "member": "ExtraVisible",
+      "returns": "boolean",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 127
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.ExtraSprite",
+      "owner": "GridEntityDoor",
+      "member": "GetExtraSprite",
+      "returns": "Sprite",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityDoor.md",
+          "line": 30
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntityDoor.GetSpriteOffset",
+      "owner": "GridEntityDoor",
+      "member": "GetSpriteOffset",
+      "returns": "Vector",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 36
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntityDoor.IsBusted",
+      "owner": "GridEntityDoor",
+      "member": "IsBusted",
+      "returns": "boolean",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 41
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntityDoor.IsKeyFamiliarTarget",
+      "owner": "GridEntityDoor",
+      "member": "IsKeyFamiliarTarget",
+      "returns": "boolean",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 46
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntityDoor.IsLocked",
+      "owner": "GridEntityDoor",
+      "member": "IsLocked",
+      "returns": "boolean",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 51
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntityDoor.IsOpen",
+      "owner": "GridEntityDoor",
+      "member": "IsOpen",
+      "returns": "boolean",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 56
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntityDoor.IsRoomType",
+      "owner": "GridEntityDoor",
+      "member": "IsRoomType",
+      "returns": "boolean",
+      "parameters": " RoomType Type ",
+      "category": "parameter_query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 61
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "finite_enum_or_explicit_query"
+    },
+    {
+      "id": "GridEntityDoor.IsTargetRoomArcade",
+      "owner": "GridEntityDoor",
+      "member": "IsTargetRoomArcade",
+      "returns": "boolean",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 66
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntityDoor.LockedAnimation",
+      "owner": "GridEntityDoor",
+      "member": "LockedAnimation",
+      "returns": "string",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 132
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.Open",
+      "owner": "GridEntityDoor",
+      "member": "Open",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 71
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityDoor.OpenAnimation",
+      "owner": "GridEntityDoor",
+      "member": "OpenAnimation",
+      "returns": "string",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 137
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.OpenLockedAnimation",
+      "owner": "GridEntityDoor",
+      "member": "OpenLockedAnimation",
+      "returns": "string",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 142
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.PlayAnimation",
+      "owner": "GridEntityDoor",
+      "member": "PlayAnimation",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityDoor.md",
+          "line": 35
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityDoor.PreviousState",
+      "owner": "GridEntityDoor",
+      "member": "PreviousState",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 147
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityDoor.md",
+          "line": 10
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.PreviousVariant",
+      "owner": "GridEntityDoor",
+      "member": "PreviousVariant",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 154
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityDoor.md",
+          "line": 18
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.SetLocked",
+      "owner": "GridEntityDoor",
+      "member": "SetLocked",
+      "returns": "void",
+      "parameters": " boolean Locked ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 76
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityDoor.SetRoomTypes",
+      "owner": "GridEntityDoor",
+      "member": "SetRoomTypes",
+      "returns": "void",
+      "parameters": " RoomType CurrentRoomType, RoomType TargetRoomType ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 81
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityDoor.Slot",
+      "owner": "GridEntityDoor",
+      "member": "Slot",
+      "returns": "DoorSlot",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 161
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.SpawnDust",
+      "owner": "GridEntityDoor",
+      "member": "SpawnDust",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 86
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityDoor.TargetRoomIndex",
+      "owner": "GridEntityDoor",
+      "member": "TargetRoomIndex",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 166
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.TargetRoomType",
+      "owner": "GridEntityDoor",
+      "member": "TargetRoomType",
+      "returns": "RoomType",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 172
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityDoor.TryBlowOpen",
+      "owner": "GridEntityDoor",
+      "member": "TryBlowOpen",
+      "returns": "boolean",
+      "parameters": " boolean FromExplosion, Entity source ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 91
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityDoor.TryUnlock",
+      "owner": "GridEntityDoor",
+      "member": "TryUnlock",
+      "returns": "boolean",
+      "parameters": "EntityPlayer player, boolean Force ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityDoor.md",
+          "line": 96
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityLock.TryUnlock",
+      "owner": "GridEntityLock",
+      "member": "TryUnlock",
+      "returns": "void",
+      "parameters": " EntityPlayer Player, boolean TryPayToPlay ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityLock.md",
+          "line": 15
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityPit.HasLadder",
+      "owner": "GridEntityPit",
+      "member": "HasLadder",
+      "returns": "boolean",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPit.md",
+          "line": 36
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityPit.MakeBridge",
+      "owner": "GridEntityPit",
+      "member": "MakeBridge",
+      "returns": "void",
+      "parameters": " GridEntity parentEntity",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPit.md",
+          "line": 20
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityPit.SetLadder",
+      "owner": "GridEntityPit",
+      "member": "SetLadder",
+      "returns": "void",
+      "parameters": " boolean Value ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPit.md",
+          "line": 25
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityPit.UpdateCollision",
+      "owner": "GridEntityPit",
+      "member": "UpdateCollision",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPit.md",
+          "line": 30
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityPoop.ReduceSpawnRate",
+      "owner": "GridEntityPoop",
+      "member": "ReduceSpawnRate",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPoop.md",
+          "line": 20
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityPoop.ReducedSpawnRate",
+      "owner": "GridEntityPoop",
+      "member": "ReducedSpawnRate",
+      "returns": "boolean",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPoop.md",
+          "line": 31
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityPoop.RespawnRedPoop",
+      "owner": "GridEntityPoop",
+      "member": "RespawnRedPoop",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPoop.md",
+          "line": 25
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityPoop.ReviveTimer",
+      "owner": "GridEntityPoop",
+      "member": "ReviveTimer",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPoop.md",
+          "line": 36
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityPoop.StateAnimation",
+      "owner": "GridEntityPoop",
+      "member": "StateAnimation",
+      "returns": "string",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPoop.md",
+          "line": 41
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityPoop.UnderPlayer",
+      "owner": "GridEntityPoop",
+      "member": "UnderPlayer",
+      "returns": "boolean",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPoop.md",
+          "line": 46
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityPressurePlate.GreedModeRNG",
+      "owner": "GridEntityPressurePlate",
+      "member": "GreedModeRNG",
+      "returns": "RNG",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPressurePlate.md",
+          "line": 34
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityPressurePlate.NextGreedAnimation",
+      "owner": "GridEntityPressurePlate",
+      "member": "NextGreedAnimation",
+      "returns": "string",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPressurePlate.md",
+          "line": 40
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityPressurePlate.Reward",
+      "owner": "GridEntityPressurePlate",
+      "member": "Reward",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPressurePlate.md",
+          "line": 20
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityPressurePlate.TimerPlate",
+      "owner": "GridEntityPressurePlate",
+      "member": "TimerPlate",
+      "returns": "Sprite",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityPressurePlate.md",
+          "line": 48
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityRock.Anim",
+      "owner": "GridEntityRock",
+      "member": "Anim",
+      "returns": "string",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityRock.md",
+          "line": 47
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityRock.FrameCnt",
+      "owner": "GridEntityRock",
+      "member": "FrameCnt",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityRock.md",
+          "line": 52
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityRock.GetAltRockType",
+      "owner": "GridEntityRock",
+      "member": "GetAltRockType",
+      "returns": "int",
+      "parameters": " BackdropType Backdrop = 0 ",
+      "category": "parameter_query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityRock.md",
+          "line": 10
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "finite_enum_or_explicit_query"
+    },
+    {
+      "id": "GridEntityRock.GetBigRockFrame",
+      "owner": "GridEntityRock",
+      "member": "GetBigRockFrame",
+      "returns": "int",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityRock.md",
+          "line": 20
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntityRock.RubbleAnim",
+      "owner": "GridEntityRock",
+      "member": "GetRubbleAnim",
+      "returns": "string",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityRock.md",
+          "line": 25
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntityRock.GetSprite",
+      "owner": "GridEntityRock",
+      "member": "GetSprite",
+      "returns": "Sprite",
+      "parameters": " ",
+      "category": "query",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityRock.md",
+          "line": 30
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "readonly_query"
+    },
+    {
+      "id": "GridEntityRock.PlayBreakSound",
+      "owner": "GridEntityRock",
+      "member": "PlayBreakSound",
+      "returns": "void",
+      "parameters": " GridEntityType Type, BackdropType Backdrop = 0 ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityRock.md",
+          "line": 14
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityRock.RegisterRockDestroyed",
+      "owner": "GridEntityRock",
+      "member": "RegisterRockDestroyed",
+      "returns": "void",
+      "parameters": " GridEntityType Type ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityRock.md",
+          "line": 18
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityRock.RenderTop",
+      "owner": "GridEntityRock",
+      "member": "RenderTop",
+      "returns": "void",
+      "parameters": " Vector Offset ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityRock.md",
+          "line": 22
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityRock.RubbleAnim",
+      "owner": "GridEntityRock",
+      "member": "RubbleAnim",
+      "returns": "string",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityRock.md",
+          "line": 57
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityRock.SetBigRockFrame",
+      "owner": "GridEntityRock",
+      "member": "SetBigRockFrame",
+      "returns": "void",
+      "parameters": " int Frame ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityRock.md",
+          "line": 36
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityRock.SpawnDrops",
+      "owner": "GridEntityRock",
+      "member": "SpawnDrops",
+      "returns": "void",
+      "parameters": " Vector Position, GridEntityType Type, int GridVariant, int Seed, boolean Unknown, BackdropType Backdrop = 0 ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityRock.md",
+          "line": 26
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityRock.TrySpawnLadder",
+      "owner": "GridEntityRock",
+      "member": "TrySpawnLadder",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityRock.md",
+          "line": 30
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityRock.TrySpawnWorms",
+      "owner": "GridEntityRock",
+      "member": "TrySpawnWorms",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityRock.md",
+          "line": 34
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityRock.UpdateAnimFrame",
+      "owner": "GridEntityRock",
+      "member": "UpdateAnimFrame",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityRock.md",
+          "line": 41
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityRock.UpdateCollision",
+      "owner": "GridEntityRock",
+      "member": "UpdateCollision",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityRock.md",
+          "line": 38
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntityRock.UpdateNeighbors",
+      "owner": "GridEntityRock",
+      "member": "UpdateNeighbors",
+      "returns": "void",
+      "parameters": " ",
+      "category": "operation",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityRock.md",
+          "line": 42
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "actual_callback_event_only"
+    },
+    {
+      "id": "GridEntitySpikes.Timeout",
+      "owner": "GridEntitySpikes",
+      "member": "Timeout",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntitySpikes.md",
+          "line": 20
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    },
+    {
+      "id": "GridEntityTNT.FrameCnt",
+      "owner": "GridEntityTNT",
+      "member": "FrameCnt",
+      "returns": "int",
+      "parameters": null,
+      "category": "field",
+      "reason": "",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/GridEntityTNT.md",
+          "line": 20
+        }
+      ],
+      "schema": "isaac.cs.grid",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / independent callback / explicit query",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；计时为游戏更新帧；查询保留参数与默认值",
+      "implementation": "public_lua_copy"
+    }
+  ],
+  "enums": [
+    {
+      "wiki": "vanilla",
+      "path": "F:/projects_isaac/IsaacDocs/docs/enums/BackdropType.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"BackdropType\"\n|DLC|Value|Enumerator|Comment|\n|:--|:--|:--|:--|\n|[ ](#){: .reporplus .tooltip .badge }|0 |BACKDROP_NULL {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|1 |BASEMENT {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|2 |CELLAR {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|3 |BURNT_BASEMENT {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|4 |CAVES {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|5 |CATACOMBS {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|6 |FLOODED_CAVES {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|7 |DEPTHS {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|8 |NECROPOLIS {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|9 |DANK_DEPTHS {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|10 |WOMB {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|11 |UTERO {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|12 |SCARRED_WOMB {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|13 |BLUE_WOMB {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|14 |SHEOL {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|15 |CATHEDRAL {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|16 |DARKROOM {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|17 |CHEST {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|18 |MEGA_SATAN {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|19 |LIBRARY {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|20 |SHOP {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|21 |ISAAC {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|22 |BARREN {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|23 |SECRET {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|24 |DICE {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|25 |ARCADE {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|26 |ERROR_ROOM {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|27 |BLUE_WOMB_PASS {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|28 |GREED_SHOP {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|29 |DUNGEON {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|30 |SACRIFICE {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|31 |DOWNPOUR {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|32 |MINES {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|33 |MAUSOLEUM {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|34 |CORPSE {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|35 |PLANETARIUM {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|36 |DOWNPOUR_ENTRANCE {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|37 |MINES_ENTRANCE {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|38 |MAUSOLEUM_ENTRANCE {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|39 |CORPSE_ENTRANCE {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|40 |MAUSOLEUM2 {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|41 |MAUSOLEUM3 {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|42 |MAUSOLEUM4 {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|43 |CORPSE2 {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|44 |CORPSE3 {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|45 |DROSS {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|46 |ASHPIT {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|47 |GEHENNA {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|48 |MORTIS {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|49 |ISAACS_BEDROOM {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|50 |HALLWAY {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|51 |MOMS_BEDROOM {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|52 |CLOSET {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|53 |CLOSET_B {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|54 |DOGMA {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|55 |DUNGEON_GIDEON {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|56 |DUNGEON_ROTGUT {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|57 |DUNGEON_BEAST {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|58 |MINES_SHAFT {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|59 |ASHPIT_SHAFT {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|60 |DARK_CLOSET {: .copyable } |  |\n|[ ](#){: .abrep .tooltip .badge }|61 |NUM_BACKDROPS {: .copyable } |  |\n|[ ](#){: .repplus .tooltip .badge }|61 |DEATHMATCH {: .copyable } |  |\n|[ ](#){: .repplus .tooltip .badge }|62 |LIL_PORTAL {: .copyable } |  |\n|[ ](#){: .repplus .tooltip .badge }|63 |NUM_BACKDROPS {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "vanilla",
+      "path": "F:/projects_isaac/IsaacDocs/docs/enums/DoorSlot.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"DoorSlot\"\n|DLC|Value|Enumerator|Info|\n|:--|:--|:--|:--|\n|[ ](#){: .alldlc .tooltip .badge }|-1 |NO_DOOR_SLOT {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|0 |LEFT0 {: .copyable } | ![img](../images/doorslot/LEFT0.png) |\n|[ ](#){: .alldlc .tooltip .badge }|1 |UP0 {: .copyable } | ![img](../images/doorslot/UP0.png) |\n|[ ](#){: .alldlc .tooltip .badge }|2 |RIGHT0 {: .copyable } | ![img](../images/doorslot/RIGHT0.png) |\n|[ ](#){: .alldlc .tooltip .badge }|3 |DOWN0 {: .copyable } | ![img](../images/doorslot/DOWN0.png) |\n|[ ](#){: .alldlc .tooltip .badge }|4 |LEFT1 {: .copyable } | ![img](../images/doorslot/LEFT1.png) |\n|[ ](#){: .alldlc .tooltip .badge }|5 |UP1 {: .copyable } | ![img](../images/doorslot/UP1.png) |\n|[ ](#){: .alldlc .tooltip .badge }|6 |RIGHT1 {: .copyable } | ![img](../images/doorslot/RIGHT1.png) |\n|[ ](#){: .alldlc .tooltip .badge }|7 |DOWN1 {: .copyable } | ![img](../images/doorslot/DOWN1.png) |\n|[ ](#){: .alldlc .tooltip .badge }|8 |NUM_DOOR_SLOTS {: .copyable } |  |"
+    },
+    {
+      "wiki": "vanilla",
+      "path": "F:/projects_isaac/IsaacDocs/docs/enums/DoorState.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"DoorState\"\n|DLC|Value|Enumerator|Comment|\n|:--|:--|:--|:--|\n|[ ](#){: .alldlc .tooltip .badge }|0 |STATE_INIT {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|1 |STATE_CLOSED {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|2 |STATE_OPEN {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|3 |STATE_ONE_CHAIN {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|4 |STATE_HALF_CRACKED {: .copyable } |  |"
+    },
+    {
+      "wiki": "vanilla",
+      "path": "F:/projects_isaac/IsaacDocs/docs/enums/DoorVariant.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"DoorVariant\"\n|DLC|Value|Enumerator|Comment|\n|:--|:--|:--|:--|\n|[ ](#){: .alldlc .tooltip .badge }|0 |DOOR_UNSPECIFIED {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|1 |DOOR_LOCKED {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|2 |DOOR_LOCKED_DOUBLE {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|3 |DOOR_LOCKED_CRACKED {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|4 |DOOR_LOCKED_BARRED {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|5 |DOOR_LOCKED_KEYFAMILIAR {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|6 |DOOR_LOCKED_GREED {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|7 |DOOR_HIDDEN {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|8 |DOOR_UNLOCKED {: .copyable } |  |"
+    },
+    {
+      "wiki": "vanilla",
+      "path": "F:/projects_isaac/IsaacDocs/docs/enums/EntityGridCollisionClass.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"EntityGridCollisionClass\"\n|DLC|Value|Enumerator|Comment|\n|:--|:--|:--|:--|\n|[ ](#){: .alldlc .tooltip .badge }|0 |GRIDCOLL_NONE {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|1 |GRIDCOLL_WALLS_X {: .copyable } | only collide with vertical walls |\n|[ ](#){: .alldlc .tooltip .badge }|2 |GRIDCOLL_WALLS_Y {: .copyable } | only collide with horizontal walls |\n|[ ](#){: .alldlc .tooltip .badge }|3 |GRIDCOLL_WALLS {: .copyable } | only collide with walls |\n|[ ](#){: .alldlc .tooltip .badge }|4 |GRIDCOLL_BULLET {: .copyable } | detect collision with solids (no pits), don't correct position |\n|[ ](#){: .alldlc .tooltip .badge }|5 |GRIDCOLL_GROUND {: .copyable } | collide with all grid entities (rocks, pits, ..), correct position |\n|[ ](#){: .alldlc .tooltip .badge }|6 |GRIDCOLL_NOPITS {: .copyable } | collide with all grid entities except pits and correct position |\n|[ ](#){: .reporplus .tooltip .badge }|7 |GRIDCOLL_PITSONLY {: .copyable } | moving inside a pit, collide with everything else, correct position |"
+    },
+    {
+      "wiki": "vanilla",
+      "path": "F:/projects_isaac/IsaacDocs/docs/enums/GridCollisionClass.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"GridCollisionClass\"\n|DLC|Value|Enumerator|Comment|\n|:--|:--|:--|:--|\n|[ ](#){: .alldlc .tooltip .badge }|0 |COLLISION_NONE {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|1 |COLLISION_PIT {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|2 |COLLISION_OBJECT {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|3 |COLLISION_SOLID {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|4 |COLLISION_WALL {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|5 |COLLISION_WALL_EXCEPT_PLAYER {: .copyable } |  |"
+    },
+    {
+      "wiki": "vanilla",
+      "path": "F:/projects_isaac/IsaacDocs/docs/enums/GridEntityType.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"GridEntityType\"\n|DLC|Value|Enumerator|Comment|\n|:--|:--|:--|:--|\n|[ ](#){: .alldlc .tooltip .badge }|0 |GRID_NULL {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|1 |GRID_DECORATION {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|2 |GRID_ROCK {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|3 |GRID_ROCKB {: .copyable } | A block. |\n|[ ](#){: .alldlc .tooltip .badge }|4 |GRID_ROCKT {: .copyable } | A tinted rock. |\n|[ ](#){: .alldlc .tooltip .badge }|5 |GRID_ROCK_BOMB {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|6 |GRID_ROCK_ALT {: .copyable } | A pot, mushroom, or skull, depending on the stage and room type. |\n|[ ](#){: .alldlc .tooltip .badge }|7 |GRID_PIT {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|8 |GRID_SPIKES {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|9 |GRID_SPIKES_ONOFF {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|10 |GRID_SPIDERWEB {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|11 |GRID_LOCK {: .copyable } | A key block. |\n|[ ](#){: .alldlc .tooltip .badge }|12 |GRID_TNT {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|13 |GRID_FIREPLACE {: .copyable } | not used! |\n|[ ](#){: .alldlc .tooltip .badge }|14 |GRID_POOP {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|15 |GRID_WALL {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|16 |GRID_DOOR {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|17 |GRID_TRAPDOOR {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|18 |GRID_STAIRS {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|19 |GRID_GRAVITY {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|20 |GRID_PRESSURE_PLATE {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|21 |GRID_STATUE {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|22 |GRID_ROCK_SS {: .copyable } | A super tinted rock that yields double rewards. |\n|[ ](#){: .reporplus .tooltip .badge }|23 |GRID_TELEPORTER {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|24 |GRID_PILLAR {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|25 |GRID_ROCK_SPIKED {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|26 |GRID_ROCK_ALT2 {: .copyable } | A tinted skull (that always drops a Fool card). |\n|[ ](#){: .reporplus .tooltip .badge }|27 |GRID_ROCK_GOLD {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "vanilla",
+      "path": "F:/projects_isaac/IsaacDocs/docs/enums/GridRooms.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"GridRooms\"\n\n## Example\n???- example \"Example Code\"\n    This code checks if the player is inside an \"I Am Error\" room.\n\n    ```lua\n    local level = Game():GetLevel()\n    local curRoom = level:GetCurrentRoomDesc()\n    if curRoom.GridIndex == GridRooms.ROOM_ERROR_IDX then\n      print(\"Success\")\n    end\n    ```\n\n|DLC|Value|Enumerator|Comment|\n|:--|:--|:--|:--|\n|[ ](#){: .reporplus .tooltip .badge }|-99999 |NO_ROOM_IDX {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|-1 |ROOM_DEVIL_IDX {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|-2 |ROOM_ERROR_IDX {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|-3 |ROOM_DEBUG_IDX {: .copyable } | Rooms visited via `goto` command |\n|[ ](#){: .alldlc .tooltip .badge }|-4 |ROOM_DUNGEON_IDX {: .copyable } | |\n|[ ](#){: .alldlc .tooltip .badge }|-5 |ROOM_BOSSRUSH_IDX {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|-6 |ROOM_BLACK_MARKET_IDX {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|-7 |ROOM_MEGA_SATAN_IDX {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|-8 |ROOM_BLUE_WOOM_IDX {: .copyable } |  |\n|[ ](#){: .alldlc .tooltip .badge }|-9 |ROOM_THE_VOID_IDX {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|-10 |ROOM_SECRET_EXIT_IDX {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|-11 |ROOM_GIDEON_DUNGEON_IDX {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|-12 |ROOM_GENESIS_IDX {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|-13 |ROOM_SECRET_SHOP_IDX {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|-14 |ROOM_ROTGUT_DUNGEON1_IDX {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|-15 |ROOM_ROTGUT_DUNGEON2_IDX {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|-16 |ROOM_BLUE_ROOM_IDX {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|-17 |ROOM_EXTRA_BOSS_IDX {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|-18 |ROOM_ANGEL_SHOP_IDX {: .copyable } | Stairway room |\n|[ ](#){: .repplus .tooltip .badge }|-19 |ROOM_DEATHMATCH_IDX {: .copyable } |  |\n|[ ](#){: .repplus .tooltip .badge }|-20 |ROOM_LIL_PORTAL_IDX {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|-100 |ROOM_MIRROR_IDX {: .copyable } | Not real room index, doors that point to this have special behavior |\n|[ ](#){: .reporplus .tooltip .badge }|-101 |ROOM_MINESHAFT_IDX {: .copyable } | Not real room index, doors that point to this have special behavior |\n|[ ](#){: .rep .tooltip .badge }|18 |NUM_OFF_GRID_ROOMS {: .copyable } |  |\n|[ ](#){: .repplus .tooltip .badge }|20 |NUM_OFF_GRID_ROOMS {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|507 |MAX_GRID_ROOMS {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|525 |MAX_ROOMS {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "vanilla",
+      "path": "F:/projects_isaac/IsaacDocs/docs/enums/PoopPickupSubType.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"PoopPickupSubType\"\n|DLC|Value|Enumerator|Comment|\n|:--|:--|:--|:--|\n|[ ](#){: .reporplus .tooltip .badge }|0 |POOP_SMALL {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|1 |POOP_BIG {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "vanilla",
+      "path": "F:/projects_isaac/IsaacDocs/docs/enums/PoopSpellType.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"PoopSpellType\"\n|DLC|Value|Enumerator|Comment|\n|:--|:--|:--|:--|\n|[ ](#){: .reporplus .tooltip .badge }|0 |SPELL_NONE {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|1 |SPELL_POOP {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|2 |SPELL_CORNY {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|3 |SPELL_BURNING {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|4 |SPELL_STONE {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|5 |SPELL_STINKY {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|6 |SPELL_BLACK {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|7 |SPELL_HOLY {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|8 |SPELL_LIQUID {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|9 |SPELL_FART {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|10 |SPELL_BOMB {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|11 |SPELL_DIARRHEA {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|12 |NUM_POOP_SPELLS {: .copyable } |  |\n\n|DLC|Value|Enumerator|Comment|\n|:--|:--|:--|:--|\n|[ ](#){: .reporplus .tooltip .badge }|20 |SPELL_BAG_SIZE {: .copyable } |  |\n|[ ](#){: .reporplus .tooltip .badge }|6 |SPELL_QUEUE_SIZE {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "vanilla",
+      "path": "F:/projects_isaac/IsaacDocs/docs/enums/RoomType.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"RoomType\"\n|DLC|Value|Enumerator|Icon|Comment|\n|:--|:--|:--|:--|:--|\n|[ ](#){: .alldlc .tooltip .badge }|0 |ROOM_NULL {: .copyable } | |  |\n|[ ](#){: .alldlc .tooltip .badge }|1 |ROOM_DEFAULT {: .copyable } | ![img](../images/roomshapes/1.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|2 |ROOM_SHOP {: .copyable } | ![img](../images/roomtypes/2.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|3 |ROOM_ERROR {: .copyable } |  |  |\n|[ ](#){: .alldlc .tooltip .badge }|4 |ROOM_TREASURE {: .copyable } | ![img](../images/roomtypes/4.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|5 |ROOM_BOSS {: .copyable } | ![img](../images/roomtypes/5.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|6 |ROOM_MINIBOSS {: .copyable } | ![img](../images/roomtypes/6.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|7 |ROOM_SECRET {: .copyable } | ![img](../images/roomtypes/7.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|8 |ROOM_SUPERSECRET {: .copyable } | ![img](../images/roomtypes/8.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|9 |ROOM_ARCADE {: .copyable } | ![img](../images/roomtypes/9.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|10 |ROOM_CURSE {: .copyable } | ![img](../images/roomtypes/10.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|11 |ROOM_CHALLENGE {: .copyable } | ![img](../images/roomtypes/11.png) | Normal Challenge: ![img](../images/roomtypes/11.png) Boss Challenge: ![img](../images/roomtypes/17.png) |\n|[ ](#){: .alldlc .tooltip .badge }|12 |ROOM_LIBRARY {: .copyable } | ![img](../images/roomtypes/12.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|13 |ROOM_SACRIFICE {: .copyable } | ![img](../images/roomtypes/13.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|14 |ROOM_DEVIL {: .copyable } | ![img](../images/roomtypes/14.png) | |\n|[ ](#){: .alldlc .tooltip .badge }|15 |ROOM_ANGEL {: .copyable } | ![img](../images/roomtypes/15.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|16 |ROOM_DUNGEON {: .copyable } |  | a.k.a. Crawlspaces |\n|[ ](#){: .alldlc .tooltip .badge }|17 |ROOM_BOSSRUSH {: .copyable } |  |  |\n|[ ](#){: .alldlc .tooltip .badge }|18 |ROOM_ISAACS {: .copyable } | ![img](../images/roomtypes/18.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|19 |ROOM_BARREN {: .copyable } | ![img](../images/roomtypes/19.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|20 |ROOM_CHEST {: .copyable } | ![img](../images/roomtypes/20.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|21 |ROOM_DICE {: .copyable } | ![img](../images/roomtypes/21.png) |  |\n|[ ](#){: .alldlc .tooltip .badge }|22 |ROOM_BLACK_MARKET {: .copyable } |  |  |\n|[ ](#){: .alldlc .tooltip .badge }|23 |ROOM_GREED_EXIT {: .copyable } |  |  |\n|[ ](#){: .reporplus .tooltip .badge }|24 |ROOM_PLANETARIUM {: .copyable } | ![img](../images/roomtypes/24.png) |  |\n|[ ](#){: .reporplus .tooltip .badge }|25 |ROOM_TELEPORTER {: .copyable } | ![img](../images/roomtypes/25.png) | Mausoleum teleporter entrance, currently unused |\n|[ ](#){: .reporplus .tooltip .badge }|26 |ROOM_TELEPORTER_EXIT {: .copyable } |  | Mausoleum teleporter exit, currently unused |\n|[ ](#){: .reporplus .tooltip .badge }|27 |ROOM_SECRET_EXIT {: .copyable } |  | Trapdoor room to the alt path floors |\n|[ ](#){: .reporplus .tooltip .badge }|28 |ROOM_BLUE {: .copyable } |  | Blue Womb rooms spawned by Blue Key |\n|[ ](#){: .reporplus .tooltip .badge }|29 |ROOM_ULTRASECRET {: .copyable } | ![img](../images/roomtypes/29.png) | Red secret rooms |\n|[ ](#){: .rep .tooltip .badge }|30 |NUM_ROOMTYPES {: .copyable } |  |  |\n|[ ](#){: .repplus .tooltip .badge }|30 |ROOM_DEATHMATCH {: .copyable } |  |  |\n|[ ](#){: .repplus .tooltip .badge }|31 |NUM_ROOMTYPES {: .copyable } |  |  |\n"
+    },
+    {
+      "wiki": "repentogon",
+      "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/DoorMask.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"DoorMask\"\n???+ tip \"Bitset Calculator\"\n    [](#){: .bitsetCalculator }\n|Value|Enumerator|Comment|\n|:--|:--|:--|\n|1 << 0 |LEFT0 {: .copyable } |  |\n|1 << 1 |UP0 {: .copyable } |  |\n|1 << 2 |RIGHT0 {: .copyable } |  |\n|1 << 3 |DOWN0 {: .copyable } |  |\n|1 << 4 |LEFT1 {: .copyable } |  |\n|1 << 5 |UP1 {: .copyable } |  |\n|1 << 6 |RIGHT1 {: .copyable } |  |\n|1 << 7 |DOWN1 {: .copyable } |  |"
+    },
+    {
+      "wiki": "repentogon",
+      "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/EntityPoopVariant.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"EntityPoopVariant\"\n|Value|Enumerator|Comment|\n|:--|:--|:--|\n|0 |NORMAL {: .copyable } |  |\n|1 |GOLDEN {: .copyable } |  |\n|11 |STONE {: .copyable } |  |\n|11 |PETRIFIED {: .copyable } |  |\n|12 |CHUNKY {: .copyable } |  |\n|12 |CORN {: .copyable } |  |\n|13 |FLAMING {: .copyable } |  |\n|14 |STINKY {: .copyable } |  |\n|14 |POISON {: .copyable } |  |\n|15 |BLACK {: .copyable } |  |\n|16 |HOLY {: .copyable } |  |\n|16 |WHITE {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "repentogon",
+      "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/GridPoopVariant.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"GridPoopVariant\"\n|Value|Enumerator|Comment|\n|:--|:--|:--|\n|0 |NORMAL {: .copyable } |  |\n|1 |RED {: .copyable } |  |\n|2 |CHUNKY {: .copyable } |  |\n|2 |CORN {: .copyable } |  |\n|3 |GOLDEN {: .copyable } |  |\n|4 |RAINBOW {: .copyable } |  |\n|5 |BLACK {: .copyable } |  |\n|6 |HOLY {: .copyable } |  |\n|6 |WHITE {: .copyable } |  |\n|7 |GIANT_TL {: .copyable } |  |\n|8 |GIANT_TR {: .copyable } |  |\n|9 |GIANT_BL {: .copyable } |  |\n|10 |GIANT_BR {: .copyable } |  |\n|11 |CHARMING {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "repentogon",
+      "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/PressurePlateVariant.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"PressurePlateVariant\"\n|Value|Enumerator|Comment|\n|:--|:--|:--|\n|0 |ROOM_CLEAR {: .copyable } |  |\n|1 |REWARD {: .copyable } |  |\n|2 |GREED_MODE {: .copyable } |  |\n|3 |MINES_PUZZLE {: .copyable } |  |\n|3 |RAIL_PLATE {: .copyable } |  |\n|9 |KILL_SWITCH {: .copyable } |  |\n|10 |EVENT_GROUP_0 {: .copyable } |  |\n|10 |EVENT_0 {: .copyable } |  |\n|11 |EVENT_GROUP_1 {: .copyable } |  |\n|11 |EVENT_1 {: .copyable } |  |\n|12 |EVENT_GROUP_2 {: .copyable } |  |\n|12 |EVENT_2 {: .copyable } |  |\n|13 |EVENT_GROUP_3 {: .copyable } |  |\n|13 |EVENT_3 {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "repentogon",
+      "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/RetractingSpikesVariant.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"RetractingSpikesVariant\"\n|Value|Enumerator|Comment|\n|:--|:--|:--|\n|0 |NORMAL {: .copyable } |  |\n|1 |DOWN_1 {: .copyable } |  |\n|2 |DOWN_2 {: .copyable } |  |\n|3 |DOWN_3 {: .copyable } |  |\n|4 |DOWN_4 {: .copyable } |  |\n|5 |DOWN_5 {: .copyable } |  |\n|6 |UP_1 {: .copyable } |  |\n|7 |UP_2 {: .copyable } |  |\n|8 |UP_3 {: .copyable } |  |\n|9 |UP_4 {: .copyable } |  |\n|10 |UP_5 {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "repentogon",
+      "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/StbGridType.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"StbGridType\"\n|Value|Enumerator|Comment|\n|:--|:--|:--|\n|0 |DECORATION {: .copyable } |  |\n|1000 |ROCK {: .copyable } |  |\n|1001 |BOMB_ROCK {: .copyable } |  |\n|1002 |ALT_ROCK {: .copyable } |  |\n|1003 |MARKED_ROCK {: .copyable } |  |\n|1003 |TINTED_ROCK {: .copyable } |  |\n|1008 |ALT_ROCK_MARKED {: .copyable } |  |\n|1008 |MARKED_SKULL {: .copyable } |  |\n|1009 |EVENT_ROCK {: .copyable } |  |\n|1010 |SPIKE_ROCK {: .copyable } |  |\n|1011 |FOOLS_GOLD_ROCK {: .copyable } |  |\n|1300 |TNT {: .copyable } |  |\n|1490 |RED_POOP {: .copyable } |  |\n|1494 |RAINBOW_POOP {: .copyable } |  |\n|1495 |CHUNKY_POOP {: .copyable } |  |\n|1495 |CORN_POOP {: .copyable } |  |\n|1496 |GOLDEN_POOP {: .copyable } |  |\n|1497 |BLACK_POOP {: .copyable } |  |\n|1498 |HOLY_POOP {: .copyable } |  |\n|1498 |WHITE_POOP {: .copyable } |  |\n|1499 |GIANT_POOP {: .copyable } |  |\n|1500 |POOP {: .copyable } |  |\n|1501 |CHARMING_POOP {: .copyable } |  |\n|1900 |BLOCK {: .copyable } |  |\n|1901 |PILLAR {: .copyable } |  |\n|1901 |TALL_BLOCK {: .copyable } |  |\n|1930 |SPIKES {: .copyable } |  |\n|1931 |RETRACTING_SPIKES {: .copyable } |  |\n|1940 |COBWEB {: .copyable } |  |\n|1999 |INVISIBLE_BLOCK {: .copyable } |  |\n|3000 |PIT {: .copyable } |  |\n|3002 |BUTTON_RAIL {: .copyable } |  |\n|3002 |EVENT_RAIL {: .copyable } |  |\n|3009 |EVENT_PIT {: .copyable } |  |\n|4000 |KEY_BLOCK {: .copyable } |  |\n|4000 |LOCK {: .copyable } |  |\n|4500 |PRESSURE_PLATE {: .copyable } |  |\n|4500 |BUTTON {: .copyable } |  |\n|5000 |DEVIL_STATUE {: .copyable } |  |\n|5001 |ANGEL_STATUE {: .copyable } |  |\n|6000 |RAIL {: .copyable } |  |\n|6001 |RAIL_PIT {: .copyable } |  |\n|6100 |TELEPORTER {: .copyable } |  |\n|9000 |TRAP_DOOR {: .copyable } |  |\n|9000 |LEVEL_EXIT {: .copyable } |  |\n|9100 |CRAWLSPACE {: .copyable } |  |\n|9100 |STAIRCASE {: .copyable } |  |\n|10000 |GRAVITY {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "repentogon",
+      "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/StbPoopSubType.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"StbPoopSubType\"\n|Value|Enumerator|Comment|\n|:--|:--|:--|\n|0 |NORMAL {: .copyable } |  |\n|1 |NON_REPLACEABLE {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "repentogon",
+      "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/StbRockSubType.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"StbRockSubType\"\n|Value|Enumerator|Comment|\n|:--|:--|:--|\n|0 |NORMAL {: .copyable } |  |\n|1 |NON_REPLACEABLE {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "repentogon",
+      "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/StbTeleporterSubType.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"StbTeleporterSubType\"\n|Value|Enumerator|Comment|\n|:--|:--|:--|\n|0 |ACTIVE {: .copyable } |  |\n|1 |INNACTIVE {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "repentogon",
+      "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/TeleporterVariant.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"TeleporterVariant\"\n|Value|Enumerator|Comment|\n|:--|:--|:--|\n|0 |SQUARE {: .copyable } |  |\n|1 |MOON {: .copyable } |  |\n|2 |RHOMBUS {: .copyable } |  |\n|2 |DIAMOND {: .copyable } |  |\n|3 |M {: .copyable } |  |\n|3 |HAGALAZ {: .copyable } |  |\n|4 |PENTAGRAM {: .copyable } |  |\n|5 |CROSS {: .copyable } |  |\n|6 |TRIANGLE {: .copyable } |  |\n"
+    },
+    {
+      "wiki": "repentogon",
+      "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/WaterClipFlag.md",
+      "text": "---\ntags:\n  - Enum\n---\n# Enum \"WaterClipFlag\"\n???+ tip \"Bitset Calculator\"\n    [](#){: .bitsetCalculator }\n|Value|Enumerator|Comment|\n|:--|:--|:--|\n|1 << 0 |  | (Unused) |\n|1 << 1 |DISABLE_RENDER_ABOVE_WATER {: .copyable } | When set on an Entity, also enables rendering below water. |\n|1 << 2 |ENABLE_RENDER_BELOW_WATER {: .copyable } | Entity only. Allows the \"below water\" rendering to happen at the same time as \"above water\". |\n|1 << 3 |DISABLE_RENDER_BELOW_WATER {: .copyable } | Takes priority over other flags. |\n|1 << 4 |  | (Unused) |\n|1 << 5 |DISABLE_RENDER_REFLECTION {: .copyable } | Entity only (GridEntities can't have reflections). |\n|1 << 6 |IGNORE_WATER_RENDERING {: .copyable } | Entity only. Overrides other flags so the entity renders above water only, with no reflection. |\n|1 << 7 |FORCE_WATER_RIPPLE_WHEN_MOVING {: .copyable } | Allows Entities with no collision to still spawn water ripples when moving. |\n"
+    }
+  ],
+  "callbacks": [
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 606,
+      "signature": "|1444 |MC_PRE_GRID_ENTITY_DECORATION_RENDER {: .copyable } | ([GridEntityDecoration](../GridEntityDecoration.md) Decoration, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 613,
+      "signature": "|1445 |MC_POST_GRID_ENTITY_DECORATION_RENDER {: .copyable } | ([GridEntityDecoration](../GridEntityDecoration.md) Decoration) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 620,
+      "signature": "|1400 |MC_PRE_GRID_ENTITY_DECORATION_UPDATE {: .copyable } | ([GridEntityDecoration](../GridEntityDecoration.md) Decoration) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 627,
+      "signature": "|1401 |MC_POST_GRID_ENTITY_DECORATION_UPDATE {: .copyable } | ([GridEntityDecoration](../GridEntityDecoration.md) Decoration) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 634,
+      "signature": "|1446 |MC_PRE_GRID_ENTITY_DOOR_RENDER {: .copyable } | ([GridEntityDoor](../GridEntityDoor.md) Door, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 641,
+      "signature": "|1447 |MC_POST_GRID_ENTITY_DOOR_RENDER {: .copyable } | ([GridEntityDoor](../GridEntityDoor.md) Door) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 648,
+      "signature": "|1402 |MC_PRE_GRID_ENTITY_DOOR_UPDATE {: .copyable } | ([GridEntityDoor](../GridEntityDoor.md) Door) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 655,
+      "signature": "|1403 |MC_POST_GRID_ENTITY_DOOR_UPDATE {: .copyable } | ([GridEntityDoor](../GridEntityDoor.md) Door) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 665,
+      "signature": "|1448 |MC_PRE_GRID_ENTITY_FIRE_RENDER {: .copyable } | ([GridEntityFire](../GridEntityFire.md) Fire, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 672,
+      "signature": "|1449 |MC_POST_GRID_ENTITY_FIRE_RENDER {: .copyable } | ([GridEntityFire](../GridEntityFire.md) Fire) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 683,
+      "signature": "|1404 |MC_PRE_GRID_ENTITY_FIRE_UPDATE {: .copyable } | ([GridEntityFire](../GridEntityFire.md) Fire) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 690,
+      "signature": "|1405 |MC_POST_GRID_ENTITY_FIRE_UPDATE {: .copyable } | ([GridEntityFire](../GridEntityFire.md) Fire) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 697,
+      "signature": "|1406 |MC_PRE_GRID_ENTITY_GRAVITY_UPDATE {: .copyable } | ([GridEntityGravity](../GridEntityGravity.md) Gravity) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 704,
+      "signature": "|1407 |MC_POST_GRID_ENTITY_GRAVITY_UPDATE {: .copyable } | ([GridEntityGravity](../GridEntityGravity.md) Gravity) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 711,
+      "signature": "|1450 |MC_PRE_GRID_ENTITY_LOCK_RENDER {: .copyable } | ([GridEntityLock](https://wofsauge.github.io/IsaacDocs/rep/GridEntityLock.html) Lock, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 718,
+      "signature": "|1451 |MC_POST_GRID_ENTITY_LOCK_RENDER {: .copyable } | ([GridEntityLock](https://wofsauge.github.io/IsaacDocs/rep/GridEntityLock.html) Lock) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 725,
+      "signature": "|1408 |MC_PRE_GRID_ENTITY_LOCK_UPDATE {: .copyable } | ([GridEntityLock](https://wofsauge.github.io/IsaacDocs/rep/GridEntityLock.html) Lock) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 732,
+      "signature": "|1409 |MC_POST_GRID_ENTITY_LOCK_UPDATE {: .copyable } | ([GridEntityLock](https://wofsauge.github.io/IsaacDocs/rep/GridEntityLock.html) Lock) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 739,
+      "signature": "|1454 |MC_PRE_GRID_ENTITY_PIT_RENDER {: .copyable } | ([GridEntityPit](https://wofsauge.github.io/IsaacDocs/rep/GridEntityPit.html) Pit, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 746,
+      "signature": "|1455 |MC_POST_GRID_ENTITY_PIT_RENDER {: .copyable } | ([GridEntityPit](https://wofsauge.github.io/IsaacDocs/rep/GridEntityPit.html) Pit) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 753,
+      "signature": "|1410 |MC_PRE_GRID_ENTITY_PIT_UPDATE {: .copyable } | ([GridEntityPit](https://wofsauge.github.io/IsaacDocs/rep/GridEntityPit.html) Pit) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 760,
+      "signature": "|1411 |MC_POST_GRID_ENTITY_PIT_UPDATE {: .copyable } | ([GridEntityPit](https://wofsauge.github.io/IsaacDocs/rep/GridEntityPit.html) Pit) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 770,
+      "signature": "|1456 |MC_PRE_GRID_ENTITY_POOP_RENDER {: .copyable } | ([GridEntityPoop](https://wofsauge.github.io/IsaacDocs/rep/GridEntityPoop.html) Poop, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 777,
+      "signature": "|1457 |MC_POST_GRID_ENTITY_POOP_RENDER {: .copyable } | ([GridEntityPoop](https://wofsauge.github.io/IsaacDocs/rep/GridEntityPoop.html) Poop) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 784,
+      "signature": "|1412 |MC_PRE_GRID_ENTITY_POOP_UPDATE {: .copyable } | ([GridEntityPoop](https://wofsauge.github.io/IsaacDocs/rep/GridEntityPoop.html) Poop) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 791,
+      "signature": "|1413 |MC_POST_GRID_ENTITY_POOP_UPDATE {: .copyable } | ([GridEntityPoop](https://wofsauge.github.io/IsaacDocs/rep/GridEntityPoop.html) Poop) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 798,
+      "signature": "|1460 |MC_PRE_GRID_ENTITY_PRESSUREPLATE_RENDER {: .copyable } | ([GridEntityPressurePlate](../GridEntityPressurePlate.md) PressurePlate, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 805,
+      "signature": "|1461 |MC_POST_GRID_ENTITY_PRESSUREPLATE_RENDER {: .copyable } | ([GridEntityPressurePlate](../GridEntityPressurePlate.md) PressurePlate) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 812,
+      "signature": "|1414 |MC_PRE_GRID_ENTITY_PRESSUREPLATE_UPDATE {: .copyable } | ([GridEntityPressurePlate](../GridEntityPressurePlate.md) PressurePlate) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 819,
+      "signature": "|1415 |MC_POST_GRID_ENTITY_PRESSUREPLATE_UPDATE {: .copyable } | ([GridEntityPressurePlate](../GridEntityPressurePlate.md) PressurePlate) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 826,
+      "signature": "|1458 |MC_PRE_GRID_ENTITY_ROCK_RENDER {: .copyable } | ([GridEntityRock](../GridEntityRock.md) Rock, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 833,
+      "signature": "|1459 |MC_POST_GRID_ENTITY_ROCK_RENDER {: .copyable } | ([GridEntityRock](../GridEntityRock.md) Rock) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 840,
+      "signature": "|1416 |MC_PRE_GRID_ENTITY_ROCK_UPDATE {: .copyable } | ([GridEntityRock](../GridEntityRock.md) Rock) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 847,
+      "signature": "|1417 |MC_POST_GRID_ENTITY_ROCK_UPDATE {: .copyable } | ([GridEntityRock](../GridEntityRock.md) Rock) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 859,
+      "signature": "|1100 |MC_PRE_GRID_ENTITY_SPAWN {: .copyable } | ([GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) Type, <br>int Variant, <br>int VarData, <br>int GridIdx, <br>int SpawnSeed, <br>[GridEntityDesc](https://wofsauge.github.io/IsaacDocs/rep/GridEntityDesc.html) Desc) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) Type | boolean, table, or [GridEntityDesc](https://wofsauge.github.io/IsaacDocs/rep/GridEntityDesc.html) |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 866,
+      "signature": "|1101 |MC_POST_GRID_ENTITY_SPAWN {: .copyable } | ([GridEntity](../GridEntity.md) Grid) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) Type | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 873,
+      "signature": "|1432 |MC_PRE_GRID_ENTITY_SPIKES_RENDER {: .copyable } | ([GridEntitySpikes](https://wofsauge.github.io/IsaacDocs/rep/GridEntitySpikes.html) Grid, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 880,
+      "signature": "|1433 |MC_POST_GRID_ENTITY_SPIKES_RENDER {: .copyable } | ([GridEntitySpikes](https://wofsauge.github.io/IsaacDocs/rep/GridEntitySpikes.html) Grid) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 887,
+      "signature": "|1418 |MC_PRE_GRID_ENTITY_SPIKES_UPDATE {: .copyable } | ([GridEntitySpikes](https://wofsauge.github.io/IsaacDocs/rep/GridEntitySpikes.html) Spikes) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 894,
+      "signature": "|1419 |MC_POST_GRID_ENTITY_SPIKES_UPDATE {: .copyable } | ([GridEntitySpikes](https://wofsauge.github.io/IsaacDocs/rep/GridEntitySpikes.html) Spikes) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 901,
+      "signature": "|1440 |MC_PRE_GRID_ENTITY_STAIRCASE_RENDER {: .copyable } | ([GridEntityStairs](../GridEntityStairs.md) Staircase, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 908,
+      "signature": "|1441 |MC_POST_GRID_ENTITY_STAIRCASE_RENDER {: .copyable } | ([GridEntityStairs](../GridEntityStairs.md) Staircase) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 915,
+      "signature": "|1420 |MC_PRE_GRID_ENTITY_STAIRCASE_UPDATE {: .copyable } | ([GridEntityStairs](../GridEntityStairs.md) Staircase) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 922,
+      "signature": "|1421 |MC_POST_GRID_ENTITY_STAIRCASE_UPDATE {: .copyable } | ([GridEntityStairs](../GridEntityStairs.md) Staircase) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 929,
+      "signature": "|1422 |MC_PRE_GRID_ENTITY_STATUE_UPDATE {: .copyable } | ([GridEntityStatue](../GridEntityStatue.md) Statue) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 936,
+      "signature": "|1423 |MC_POST_GRID_ENTITY_STATUE_UPDATE {: .copyable } | ([GridEntityStatue](../GridEntityStatue.md) Statue) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 943,
+      "signature": "|1452 |MC_PRE_GRID_ENTITY_TELEPORTER_RENDER {: .copyable } | ([GridEntityTeleporter](https://wofsauge.github.io/IsaacDocs/rep/GridEntityTeleporter.html) Teleporter, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 950,
+      "signature": "|1453 |MC_POST_GRID_ENTITY_TELEPORTER_RENDER {: .copyable } | ([GridEntityTeleporter](https://wofsauge.github.io/IsaacDocs/rep/GridEntityTeleporter.html) Teleporter) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 957,
+      "signature": "|1424 |MC_PRE_GRID_ENTITY_TELEPORTER_UPDATE {: .copyable } | ([GridEntityTeleporter](../GridEntityTeleporter.md) Teleporter) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 964,
+      "signature": "|1425 |MC_POST_GRID_ENTITY_TELEPORTER_UPDATE {: .copyable } | ([GridEntityTeleporter](../GridEntityTeleporter.md) Teleporter) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 971,
+      "signature": "|1436 |MC_PRE_GRID_ENTITY_TNT_RENDER {: .copyable } | ([GridEntityTNT](https://wofsauge.github.io/IsaacDocs/rep/GridEntityTNT.html) TNT, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 978,
+      "signature": "|1437 |MC_POST_GRID_ENTITY_TNT_RENDER {: .copyable } | ([GridEntityTNT](https://wofsauge.github.io/IsaacDocs/rep/GridEntityTNT.html) TNT) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 985,
+      "signature": "|1430 |MC_PRE_GRID_ENTITY_TNT_UPDATE {: .copyable } | ([GridEntityTNT](https://wofsauge.github.io/IsaacDocs/rep/GridEntityTNT.html) TNT) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 992,
+      "signature": "|1431 |MC_POST_GRID_ENTITY_TNT_UPDATE {: .copyable } | ([GridEntityTNT](https://wofsauge.github.io/IsaacDocs/rep/GridEntityTNT.html) TNT) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 999,
+      "signature": "|1438 |MC_PRE_GRID_ENTITY_TRAPDOOR_RENDER {: .copyable } | ([GridEntityTrapDoor](../GridEntityTrapDoor.md) TrapDoor, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1006,
+      "signature": "|1439 |MC_POST_GRID_ENTITY_TRAPDOOR_RENDER {: .copyable } | ([GridEntityTrapDoor](../GridEntityTrapDoor.md) TrapDoor) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1013,
+      "signature": "|1426 |MC_PRE_GRID_ENTITY_TRAPDOOR_UPDATE {: .copyable } | ([GridEntityTrapDoor](../GridEntityTrapDoor.md) TrapDoor) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1020,
+      "signature": "|1427 |MC_POST_GRID_ENTITY_TRAPDOOR_UPDATE {: .copyable } | ([GridEntityTrapDoor](../GridEntityTrapDoor.md) TrapDoor) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1027,
+      "signature": "|1462 |MC_PRE_GRID_ENTITY_WALL_RENDER {: .copyable } | ([GridEntityWall](../GridEntityWall.md) Wall, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1034,
+      "signature": "|1463 |MC_POST_GRID_ENTITY_WALL_RENDER {: .copyable } | ([GridEntityWall](../GridEntityWall.md) Wall) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1041,
+      "signature": "|1434 |MC_PRE_GRID_ENTITY_WEB_RENDER {: .copyable } | ([GridEntityWeb](../GridEntityWeb.md) Web, <br>[Vector](../Vector.md) Offset) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | [Vector](../Vector.md) or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1048,
+      "signature": "|1435 |MC_POST_GRID_ENTITY_WEB_RENDER {: .copyable } | ([GridEntityWeb](../GridEntityWeb.md) Web) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1055,
+      "signature": "|1428 |MC_PRE_GRID_ENTITY_WEB_UPDATE {: .copyable } | ([GridEntityWeb](../GridEntityWeb.md) Web) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1062,
+      "signature": "|1429 |MC_POST_GRID_ENTITY_WEB_UPDATE {: .copyable } | ([GridEntityWeb](../GridEntityWeb.md) Web) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1071,
+      "signature": "|1012 |MC_GRID_HURT_DAMAGE {: .copyable } | ([GridEntity](../GridEntity.md) GridEntity, <br>[Entity](../Entity.md) Entity, <br>int PlayerDamageAmount, <br>[DamageFlags](https://wofsauge.github.io/IsaacDocs/rep/enums/DamageFlag.html) DamageFlags, <br>float DamageAmount, boolean IgnoreGridCollisionClass) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1080,
+      "signature": "|1013 |MC_POST_GRID_HURT_DAMAGE {: .copyable } | ([GridEntity](../GridEntity.md) GridEntity, <br>[Entity](../Entity.md) Entity, <br>int PlayerDamageAmount, <br>[DamageFlags](https://wofsauge.github.io/IsaacDocs/rep/enums/DamageFlag.html) DamageFlags, <br>float DamageAmount, boolean IgnoreGridCollisionClass) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1089,
+      "signature": "|1017 |MC_PRE_GRID_HURT {: .copyable } | ([GridEntity](../GridEntity.md) GridEntity, <br>int Damage, <br>[EntityRef](https://wofsauge.github.io/IsaacDocs/rep/EntityRef.html) Source | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | int or boolean |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1096,
+      "signature": "|1018 |MC_POST_GRID_HURT {: .copyable } | ([GridEntity](../GridEntity.md) GridEntity, <br>int Damage, <br>[EntityRef](https://wofsauge.github.io/IsaacDocs/rep/EntityRef.html) Source | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 1106,
+      "signature": "|1011 |MC_POST_GRID_ROCK_DESTROY {: .copyable } | ([GridEntityRock](https://wofsauge.github.io/IsaacDocs/rep/GridEntityRock.html) Rock, <br>[GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) Type, <br>boolean Immediate, <br>[EntityRef](https://wofsauge.github.io/IsaacDocs/rep/EntityRef.html) Source) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) | void |"
+    },
+    {
+      "source": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/enums/ModCallbacks.md",
+      "line": 2108,
+      "signature": "|1192 |MC_PRE_ROOM_GRID_ENTITY_SPAWN {: .copyable } | ([GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) Type, <br>int Variant, <br>int VarData, <br>int GridIdx, <br>int SpawnSeed) | [GridEntityType](https://wofsauge.github.io/IsaacDocs/rep/enums/GridEntityType.html) Type | boolean or table |"
+    }
+  ]
+}

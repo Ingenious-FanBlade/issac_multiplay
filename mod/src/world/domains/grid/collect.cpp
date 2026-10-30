@@ -3,8 +3,8 @@
 #include "binding/world_layout.h"
 namespace cs::world::grid {
 const observation::DomainDescriptor &DescribeDomain() noexcept {
-  static const observation::DomainDescriptor value{observation::DomainId::Grid,"isaac.cs.grid.legacy",2,
-    "min-read-v1:public-grid-and-door-only;full-grid:tx-04-11",observation::SupportedPhases(observation::DomainId::Grid),{}};
+  static const observation::DomainDescriptor value{observation::DomainId::Grid,"isaac.cs.grid",2,
+    "public-grid-v2:all-derived-save-sprite-rng;native-v1:compatibility",observation::SupportedPhases(observation::DomainId::Grid),{}};
   return value;
 }
 bool ObservationFor(Observation kind) noexcept {

@@ -19,7 +19,7 @@ struct WorldCapture final {
   world::observation::Service observation;
   world::observation::PublicationQueue publications{ledger};
   std::uint64_t session_key=0,epoch=0;
-  std::array<std::uint64_t,3> pending_scopes{};
+  std::array<std::uint64_t,4> pending_scopes{};
   world::observation::ObservationEnvelope latest_entity{},latest_grid{};
   bool formal_consumer=false,recorder_consumer=false;
   std::uint64_t lua_attempts=0,lua_complete=0,lua_partial=0;
@@ -28,6 +28,8 @@ struct WorldCapture final {
   world::MemoryReader source_memory{};
   // 只在同步 Lua 调用期间有效，均为本批自有 RawObject 值，不交给后台。
   const world::RawObject *lua_objects=nullptr;
+  const world::RawMembership *lua_members=nullptr;
+  std::uint32_t lua_members_count=0;
   std::uint32_t lua_object_count=0;
   std::uint64_t lua_scope=0;
   std::array<std::uint64_t,world::kIdentityBudget+1> lua_subject_scopes{};

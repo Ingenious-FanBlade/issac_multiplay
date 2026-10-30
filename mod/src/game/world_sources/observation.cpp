@@ -12,7 +12,7 @@ namespace obs=world::observation;
 obs::CapturePlan Plan() {
   obs::CapturePlan p;
   p.domains.push_back({obs::DomainId::Entity,1u|4u|16u|32u,30,{}});
-  p.domains.push_back({obs::DomainId::Grid,1u|4u,30,{}});
+  p.domains.push_back({obs::DomainId::Grid,1u|4u|16u|32u,30,{}});
   return p;
 }
 void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
@@ -20,7 +20,7 @@ void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
   try {
     if(e.kind!=obs::RecordKind::State) return;
     if(e.schema=="isaac.cs.entity") c.latest_entity=e;
-    else if(e.domain==obs::DomainId::Grid) c.latest_grid=e;
+    else if(e.schema=="isaac.cs.grid") c.latest_grid=e;
   } catch(...) { ++c.formal_loss; }
 }
 void Record(void *owner,const obs::ObservationEnvelope &e) noexcept {
@@ -45,27 +45,29 @@ obs::ObservationEnvelope Base(WorldCapture &c,obs::DomainId domain,const char *s
   if(h.room) e.context.room={obs::Presence::Known,{c.session_key,c.epoch,h.room,obs::IdentitySpace::RoomInstance}};
   return e;
 }
-void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects) noexcept {
+// 同一 native 复制窗口内顺序调用各域；任一最终来源变化由统一 Commit 撤销。
+void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects,const world::RawMembership *members) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
-  if(!Scheduled(c,obs::DomainId::Entity,h.capture)) return;
-  try {
-    EnsureObservationLuaBridge();
-    auto e=Base(c,obs::DomainId::Entity,"isaac.cs.entity",h);
-    e.context.source=2;
-    c.lua_objects=objects; c.lua_object_count=h.object_count; c.lua_scope=e.context.scope;
-    for(const auto &d:c.observation.Plan().domains) if(d.domain==obs::DomainId::Entity) e.result.budget=d.budget;
-    const auto budget=e.result.budget;
-    auto result=CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,std::uint32_t(budget.bytes)); ++c.lua_attempts;
-    c.lua_objects=nullptr; c.lua_object_count=0;
-    if(result.available&&result.complete) ++c.lua_complete; else ++c.lua_partial;
-    e.result.coverage=result.available?(result.complete?obs::Coverage::Complete:obs::Coverage::Partial):obs::Coverage::Failed;
-    e.result.range="public-entity-v2:state-and-finite-queries;unbounded-derived-queries:on-request;external-domains:explicit-references";
-    if(!result.reason.empty()) e.result.reasons.push_back(result.reason);
-    e.result.objects=result.objects; e.result.nodes=result.nodes; e.result.bytes=result.payload.size();
-    e.payload=std::move(result.payload);
-    const auto scope=e.context.scope;
-    if(c.observation.PrepareScope(std::move(e)).accepted) c.pending_scopes[0]=scope;
-  } catch(...) { c.lua_objects=nullptr; c.lua_object_count=0; c.observation.Invalidate("lua_scope_budget"); }
+  for(unsigned grid=0;grid<2;++grid) {
+    const auto domain=grid?obs::DomainId::Grid:obs::DomainId::Entity;
+    if(!Scheduled(c,domain,h.capture)) continue;
+    try {
+      EnsureObservationLuaBridge();
+      auto e=Base(c,domain,grid?"isaac.cs.grid":"isaac.cs.entity",h); e.context.source=2;
+      c.lua_objects=objects; c.lua_object_count=h.object_count; c.lua_members=members; c.lua_members_count=h.membership_count; c.lua_scope=e.context.scope;
+      for(const auto &d:c.observation.Plan().domains) if(d.domain==domain) e.result.budget=d.budget;
+      const auto budget=e.result.budget;
+      auto result=CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,std::uint32_t(budget.bytes),grid!=0);
+      if(!grid) { ++c.lua_attempts; if(result.available&&result.complete) ++c.lua_complete; else ++c.lua_partial; }
+      c.lua_objects=nullptr; c.lua_object_count=0; c.lua_members=nullptr; c.lua_members_count=0;
+      e.result.coverage=result.available?(result.complete?obs::Coverage::Complete:obs::Coverage::Partial):obs::Coverage::Failed;
+      e.result.range=grid?"public-grid-v2:all-derived-save-sprite-rng;finite-enums-and-explicit-queries":"public-entity-v2:state-and-finite-queries;unbounded-derived-queries:on-request;external-domains:explicit-references";
+      if(!result.reason.empty()) e.result.reasons.push_back(result.reason);
+      e.result.objects=result.objects; e.result.nodes=result.nodes; e.result.bytes=result.payload.size(); e.payload=std::move(result.payload);
+      const auto scope=e.context.scope;
+      if(c.observation.PrepareScope(std::move(e)).accepted) c.pending_scopes[grid?3:0]=scope;
+    } catch(...) { c.lua_objects=nullptr; c.lua_object_count=0; c.lua_members=nullptr; c.lua_members_count=0; c.observation.Invalidate("lua_scope_budget"); }
+  }
 }
 void Native(void *owner,const world::BatchHeader &h,const world::RawObject *objects,const world::RawMembership *members) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
@@ -92,7 +94,7 @@ void Native(void *owner,const world::BatchHeader &h,const world::RawObject *obje
         }
       }
       e.result.coverage=complete?obs::Coverage::Complete:obs::Coverage::Partial;
-      e.result.range=d?"min-read-v1:grid-public-and-door-only;full-grid:tx-04-11":"min-read-v1:entity-public-and-seven-derived-classes";
+      e.result.range=d?"min-read-v1:grid-public-and-door-only":"min-read-v1:entity-public-and-seven-derived-classes";
       if(!complete) e.result.reasons.push_back("native_domain_fields_sources_or_rng_incomplete");
       for(unsigned i=0;i<h.object_count;++i) if(objects[i].domain==d) ++e.result.objects;
       bool truncated=false;
@@ -117,9 +119,30 @@ void Event(void *owner,const world::LifecycleEvent &event) noexcept {
     obs::ObservationEnvelope e; e.domain=domain; e.schema=event.domain?"isaac.cs.grid.lifecycle":"isaac.cs.entity.lifecycle";
     e.kind=obs::RecordKind::Event; e.context=c.observation.BeginScope(obs::Phase::Lifecycle,1);
     e.context.outer=event.outer; e.context.event_watermark=event.sequence;
+    if(event.run) e.context.run={obs::Presence::Known,{c.session_key,c.epoch,event.run,obs::IdentitySpace::Run}};
+    // native 事件记录真实观察时的room代次；Lua回调只在稳定room上下文内补归属。
+    if(event.room) e.context.room={obs::Presence::Known,{c.session_key,c.epoch,event.room,obs::IdentitySpace::RoomInstance}};
     e.context.mutation_before=e.context.mutation_after=event.mutation;
     e.result.coverage=event.exceptional?obs::Coverage::Partial:obs::Coverage::Complete; e.result.range="native-observed-lifecycle-and-call-pair";
     e.payload="{\"local_id\":\""+std::to_string(event.local_id)+"\",\"use\":\""+std::to_string(event.use)+"\",\"revision\":\""+std::to_string(event.revision)+"\",\"origin_readiness\":"+std::to_string(event.readiness)+",\"kind\":"+std::to_string(unsigned(event.kind))+",\"observation\":"+std::to_string(event.observation)+",\"call\":"+std::to_string(event.call)+",\"parent_call\":"+std::to_string(event.parent)+",\"entering\":"+std::to_string(event.entering)+",\"exceptional\":"+std::to_string(event.exceptional)+",\"candidate_tick\":\""+std::to_string(event.tick)+"\",\"memberships\":"+std::to_string(event.memberships)+"}";
+    if(event.domain) {
+      // 请求值、实际返回与已观察出生分别编码；不将请求variant/seed覆盖实际描述。
+      std::string detail;
+      const auto request=static_cast<world::Observation>(event.observation);
+      if(request==world::Observation::GridSpawn&&event.arg_count>=5)
+        detail=",\"request\":{\"index\":"+std::to_string(event.args[0])+",\"type\":"+std::to_string(event.args[1])+",\"variant\":"+std::to_string(event.args[2])+",\"seed\":"+std::to_string(event.args[3])+",\"var_data\":"+std::to_string(event.args[4])+"}";
+      else if(request==world::Observation::GridFree&&event.arg_count>=3)
+        detail=",\"request\":{\"index\":"+std::to_string(event.args[0])+",\"path_trail\":"+std::to_string(event.args[1])+",\"keep_decoration\":"+std::to_string(event.args[2])+"}";
+      else if(request==world::Observation::GridInit&&event.arg_count)
+        detail=",\"request\":{\"seed\":"+std::to_string(event.args[0])+"}";
+      if(request==world::Observation::GridSpawn&&(event.kind==world::EventKind::NativeHook||event.kind==world::EventKind::NativeBody)&&!event.entering&&!event.exceptional)
+        detail+=",\"returned\":"+std::string(event.result?"true":"false");
+      if(const auto *id=c.identities.Find(world::ObjectDomain::Grid,event.address);
+         id&&id->local_id==event.local_id&&id->use==event.use&&id->born) {
+        detail+=",\"observed_birth\":{\"sequence\":\""+std::to_string(id->birth)+"\",\"owner\":"+std::to_string(id->birth_kind)+",\"type\":"+std::to_string(id->birth_type)+",\"variant\":"+std::to_string(id->birth_variant)+",\"seed\":"+std::to_string(id->birth_seed)+"}";
+      }
+      if(!detail.empty()) e.payload.insert(e.payload.size()-1,detail);
+    }
     e.result.bytes=e.payload.size(); const auto scope=e.context.scope;
     if(c.observation.PrepareScope(std::move(e)).accepted) c.observation.CommitScope(scope,obs::Outcome::IndependentPublished);
   } catch(...) { c.observation.Invalidate("event_budget"); }
@@ -152,20 +175,21 @@ void WorldCapture::SetConsumers(bool formal,bool recorder) noexcept {
   }
   ArmObservationValueSources(observation.Active()&&(formal_consumer||recorder_consumer));
 }
-bool ObservationLuaNeeded(const char *phase) noexcept {
+bool ObservationLuaNeeded(const char *phase,bool grid) noexcept {
   auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->observation.Active()) return false;
-  return c->observation.Needed(world::observation::DomainId::Entity,phase&&!std::strcmp(phase,"Lifecycle")?world::observation::Phase::Lifecycle:phase&&!std::strcmp(phase,"Render")?world::observation::Phase::Render:world::observation::Phase::ActualCall);
+  return c->observation.Needed(grid?world::observation::DomainId::Grid:world::observation::DomainId::Entity,phase&&!std::strcmp(phase,"Lifecycle")?world::observation::Phase::Lifecycle:phase&&!std::strcmp(phase,"Render")?world::observation::Phase::Render:world::observation::Phase::ActualCall);
 }
-ObservationSubjectValue ObservationSubject(void *object,bool registering) noexcept {
+ObservationSubjectValue ObservationSubject(void *object,bool registering,bool grid) noexcept {
   ObservationSubjectValue result;
   auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->observation.Active()||!object) return result;
   const auto address=static_cast<std::uint32_t>(reinterpret_cast<uintptr_t>(object));
-  auto *id=registering?c->identities.FindOrCreate(world::ObjectDomain::Entity,address):c->identities.Find(world::ObjectDomain::Entity,address);
+  const auto domain=grid?world::ObjectDomain::Grid:world::ObjectDomain::Entity;
+  auto *id=registering?c->identities.FindOrCreate(domain,address):c->identities.Find(domain,address);
   result.session=c->session_key; result.epoch=c->epoch;
   if(!id) return result;
   if(registering) id->MarkFirstObserved();
   result.local=id->local_id; result.use=id->use; result.revision=id->revision; result.origin=id->origin; result.readiness=id->readiness;
-  for(std::uint32_t slot=0;slot<world::kControlAnchorCapacity;++slot) {
+  for(std::uint32_t slot=0;!grid&&slot<world::kControlAnchorCapacity;++slot) {
     const auto anchor=c->collector->CurrentAnchor(slot);
     if(!anchor.valid||anchor.player!=address) continue;
     const auto ordinal=slot/world::kControlBodiesPerParticipant;
@@ -181,7 +205,7 @@ ObservationSubjectValue ObservationSubject(void *object,bool registering) noexce
   const bool current=c->lua_objects&&id->local_id<c->lua_subject_scopes.size()&&c->lua_subject_scopes[id->local_id]==c->lua_scope;
   // v2 当前 Lua 引用还需本 scope 的主体登记；复用地址仅在真实创建 owner 已完成且
   // 本 use 没有 Morph/未知 Init 修订时恢复当前资格。旧 v1 的强出生排序规则保持原样。
-  const bool reuse_current=id->born&&id->readiness>=2&&id->revision==0&&id->current_public_ready;
+  const bool reuse_current=id->born&&id->readiness>=2&&id->revision==0&&(grid||id->current_public_ready);
   result.status=id->Retired()?6:registering?1:current&&(!id->reused||reuse_current)?1:id->reused?7:3;
   return result;
 }
@@ -197,6 +221,51 @@ std::uint32_t ObservationEntities(void *owner,void (*visit)(void *,void *,std::u
     visit(owner,reinterpret_cast<void *>(uintptr_t(o.address)),o.readiness);
   }
   return unavailable;
+}
+// 枚举同一批次的 Grid 主体，保留所有固定槽及门槽别名，不按逻辑尺寸缩减来源。
+std::uint32_t ObservationGrids(void *owner,void (*visit)(void *,void *,std::uint32_t) noexcept) noexcept {
+  auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->lua_objects||!visit) return 1;
+  std::uint32_t unavailable=0;
+  for(std::uint32_t i=0;i<c->lua_object_count;++i) {
+    const auto &o=c->lua_objects[i]; if(o.domain!=unsigned(world::ObjectDomain::Grid)) continue;
+    auto *id=c->identities.Find(world::ObjectDomain::Grid,o.address);
+    if(!id||id->Retired()) continue;
+    // 仅初始化／实际index／membership同时成立才允许公开派生读取。
+    bool ready=o.vptr&&o.field_count;
+    for(unsigned f=0;f<o.field_count;++f) if(o.fields[f].status==world::FieldStatus::NotReady||o.fields[f].status==world::FieldStatus::ReadFailed) ready=false;
+    if(!ready) { ++unavailable; continue; }
+    visit(owner,reinterpret_cast<void *>(uintptr_t(o.address)),id->pending_memberships);
+  }
+  return unavailable;
+}
+// 部分官方回调按字符串注册名包装TNT等userdata，可能缺少vanilla元表。
+// 只接纳已核定RTTI、已初始化、索引有界且未退休的当前Grid，绝不猜测未知ABI。
+bool ObservationValidGrid(void *grid) noexcept {
+  auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->observation.Active()||!grid) return false;
+  const auto address=std::uint32_t(reinterpret_cast<uintptr_t>(grid));
+  if(const auto *id=c->identities.Find(world::ObjectDomain::Grid,address);id&&id->Retired()) return false;
+  auto memory=c->source_memory;
+  world::NativeSource reader; reader.owner=&memory;
+  reader.copy=[](void *owner,std::uint64_t at,void *out,std::size_t bytes) noexcept {
+    auto &m=*static_cast<world::MemoryReader *>(owner);
+    return at&&at<=UINT32_MAX&&bytes<=UINT32_MAX-at&&m.copy&&m.copy(std::uint32_t(at),out,bytes);
+  };
+  reader.image_base=memory.image_base; reader.image_size=memory.image_size;
+  std::uint32_t vptr=0,index=UINT32_MAX,type=0; std::uint8_t initialized=0; bool base=false;
+  if(world::ClassifyNative(reader,world::ObjectDomain::Grid,address,vptr,base)!=world::Class::Grid) return false;
+  return reader.Value(std::uint64_t(address)+4,type)&&type>=1&&type<=27&&
+    reader.Value(std::uint64_t(address)+0x1c,initialized)&&initialized&&
+    reader.Value(std::uint64_t(address)+0x24,index)&&index<world::layout::LayoutConstants().room_grid_slot_count;
+}
+// 纯值membership来自同一批，不另调Room或重读整个世界。
+void ObservationGridMemberships(void *grid,void *owner,void (*visit)(void *,std::uint32_t,std::uint32_t) noexcept) noexcept {
+  auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->lua_members||!c->lua_objects||!visit) return;
+  const auto address=std::uint32_t(reinterpret_cast<uintptr_t>(grid));
+  for(std::uint32_t i=0;i<c->lua_members_count;++i) {
+    const auto &m=c->lua_members[i]; if(m.object>=c->lua_object_count) continue;
+    const auto &o=c->lua_objects[m.object];
+    if(o.domain==unsigned(world::ObjectDomain::Grid)&&o.address==address) visit(owner,m.source,m.index);
+  }
 }
 // 公开 Wiki 没有 Text/Dummy 派生接口；只补 J273 已解释字段，未知私有内存不推断。
 EntitySupplementValue EntitySupplement(void *object) noexcept {
@@ -248,14 +317,18 @@ const char *ObservationSpriteNames(void *sprite,void *owner,void (*visit)(void *
   }
   return "Value";
 }
-bool ObservationPublishLua(const char *payload,std::size_t bytes,bool complete,std::uint32_t objects,std::uint32_t nodes,const char *reason,unsigned phase) noexcept {
+bool ObservationPublishLua(const char *payload,std::size_t bytes,bool complete,std::uint32_t objects,std::uint32_t nodes,const char *reason,unsigned phase,bool grid) noexcept {
   auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->observation.Active()||!payload||bytes>(16u<<20)) return false;
   try {
     namespace obs=world::observation;
-    obs::ObservationEnvelope e; e.schema=phase==3?"isaac.cs.entity.actual-call":phase==2?"isaac.cs.entity.render":phase==1?"isaac.cs.entity.query":"isaac.cs.entity.lua-event"; e.kind=phase==1||phase==2?obs::RecordKind::State:obs::RecordKind::Event;
+    obs::ObservationEnvelope e; e.domain=grid?obs::DomainId::Grid:obs::DomainId::Entity; e.schema=grid?(phase==2?"isaac.cs.grid.render":phase==1?"isaac.cs.grid.query":"isaac.cs.grid.lua-event"):phase==3?"isaac.cs.entity.actual-call":phase==2?"isaac.cs.entity.render":phase==1?"isaac.cs.entity.query":"isaac.cs.entity.lua-event"; e.kind=phase==1||phase==2?obs::RecordKind::State:obs::RecordKind::Event;
     e.context=c->observation.BeginScope(phase==2?obs::Phase::Render:phase==1||phase==3?obs::Phase::ActualCall:obs::Phase::Lifecycle,phase==3?1:2);
+    e.context.outer=c->collector->CurrentOuterToken();
+    e.context.mutation_before=e.context.mutation_after=c->collector->CurrentMutation();
+    if(const auto run=c->collector->CurrentRunToken()) e.context.run={obs::Presence::Known,{c->session_key,c->epoch,run,obs::IdentitySpace::Run}};
+    if(const auto room=c->collector->CurrentRoomToken()) e.context.room={obs::Presence::Known,{c->session_key,c->epoch,room,obs::IdentitySpace::RoomInstance}};
     e.result.coverage=complete?obs::Coverage::Complete:obs::Coverage::Partial;
-    e.result.range=phase==3?"original-loot-call-return":phase==2?"entity-owned-sprite-at-actual-render":phase==1?"explicit-readonly-query":"actual-public-lifecycle-callback";
+    e.result.range=grid?"actual-grid-callback-or-explicit-query":phase==3?"original-loot-call-return":phase==2?"entity-owned-sprite-at-actual-render":phase==1?"explicit-readonly-query":"actual-public-lifecycle-callback";
     e.result.objects=objects; e.result.nodes=nodes; e.result.bytes=bytes;
     if(reason&&*reason) e.result.reasons.emplace_back(reason);
     e.payload.assign(payload,bytes); const auto scope=e.context.scope;
