@@ -405,6 +405,8 @@
 
 ## 当前绑定补充
 
+原版全局Random补充：J273公共入口RVA 0x2EB4B0，种子入口0x2EB470（ECX整数种子）；完整MT19937为624×uint32状态字（0x7E8720）、index（0x7AB814）及模式字节（0x7E72FF）。普通Random域增加native_global_random；独立native-global-block/native-global-call覆盖原生C++和Lua缓存Random调用。达摩克里斯取模10000判定call RVA 0x241A00。索引625保持Uninitialized，CRT分支完整状态标UnsupportedCRTState。其他RNG类内部消费及REPENTOGON独立全局RandomFloat不属于此MT流。
+
 HUD旧Sprite别名由当前HUDMessage的真实Getter提供；通用Prompt通过安全纯值桥接读取，不复制C++对象。
 
 - `HUD.GetMainMessage`：domains/presentation/collect.lua:messages；来源 F:/projects_isaac/REPENTOGON-1.1.3/repentogon/LuaInterfaces/HUD/LuaHUD.cpp

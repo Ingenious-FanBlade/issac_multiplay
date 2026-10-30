@@ -1,6 +1,18 @@
 {
   "format": "isaac.cs.run-random-presentation-mod.catalog",
   "version": 2,
+  "native_global_random": {
+    "target": "v1.9.7.12.J273",
+    "entry_rva": "0x2EB4B0",
+    "seed_entry_rva": "0x2EB470",
+    "seed_abi": "ECX uint32; no stack parameters; returns 624",
+    "state": {"algorithm":"MT19937","words":624,"words_rva":"0x7E8720","index_rva":"0x7AB814","mode_rva":"0x7E72FF","uninitialized_index":625},
+    "schemas": ["isaac.cs.random.native-global-block","isaac.cs.random.native-global-call"],
+    "ordinary_field": "native_global_random",
+    "coverage": "native common entry includes C++ and cached Lua Random; CRT branch state UnsupportedCRTState",
+    "damocles_draw_rva": "0x241A00",
+    "remaining_gaps": ["other native RNG-class consumers","REPENTOGON separate global RandomFloat engine","calls before observation activation","external state restore provenance"]
+  },
   "members": [
     {
       "id": "Ambush.GetCurrentWave",

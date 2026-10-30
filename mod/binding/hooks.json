@@ -12,6 +12,8 @@
     ]
   },
   "hooks": [
+    ["native_global_random","world","CsStatic","GlobalRandom","unsigned int","","","0x2EB4B0","None",true,"cdecl",true,-10000,true],
+    ["native_global_seed","world","CsMtSeed","ApplySeed","int","","","0x2EB470","None",false,"",true,-10000,true],
     ["actual_pickup_loot","world","Entity_Pickup","GetLootList","LootList","bool advance, Entity_Player* player","advance, player","0x2D8700","None",false,"",false,-10000,true],
     ["actual_fireplace_loot","world","Entity_NPC","fireplace_get_loot","LootList","bool advance","advance","0x2CD630","None",false,"",false,-10000,true],
     ["actual_shopkeeper_loot","world","Entity_NPC","shopkeeper_get_loot","LootList","bool advance","advance","0x2BDC70","None",false,"",false,-10000,true],

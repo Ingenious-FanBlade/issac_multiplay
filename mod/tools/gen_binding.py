@@ -459,10 +459,13 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "binding/offsets.h"
 #include "game/bridge.h"
 #include "game/world_sources/loot.h"
+#include "game/world_sources/global_random.h"
+#include <intrin.h>
 // tx-04-08 world 观察入口的专用作用域与 19 项观察编号（C++17 兼容头）。
 #include "world/observe.h"
 // 自有定义仅借用类型表达 ABI，不构造这些对象。
 struct CsStatic {};
+struct CsMtSeed {};
 struct CsEntityList {};
 struct CsLifecycle {};
 struct CsDevice {};
@@ -483,6 +486,13 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    if ident in ('native_global_random','native_global_seed'):
+        return ['    cs::game::GlobalRandomCall observation(%s, _AddressOfReturnAddress());' % ('true, std::uint32_t(reinterpret_cast<uintptr_t>(this))' if ident=='native_global_seed' else 'false, 0'),
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    auto result=super();',
+                '    observation.Returned(result);',
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);',
+                '    return result;']
     if ident.startswith('actual_') and ident.endswith('_loot'):
         member={'actual_pickup_loot':'EntityPickup.GetLootList',
                 'actual_fireplace_loot':'EntityNPC.GetFireplaceLoot',

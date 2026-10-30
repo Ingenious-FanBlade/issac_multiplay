@@ -46,7 +46,13 @@ function M.Install()
 end
 function M.Capture(limits)
   R.Limits(limits);local x=scope();local c=X.Context();local pool=Game():GetItemPool()
+  -- 原生公共入口覆盖Lua缓存函数和游戏C++调用；完整MT状态不冒充RNG类seed/shift。
+  local nativeGlobal=require("json").decode(IsaacCSObservationNative.GlobalRandomState())
   local out={location=x,streams={},pools={},removed=R.Value(pool:GetRemovedCollectibles(),nil,c,0),blacklist=R.Value(pool:GetRoomBlacklistedCollectibles(),nil,c,0),pills={},num_available_trinkets=pool:GetNumAvailableTrinkets(),last_pool=pool:GetLastPool(),source_gaps={"native_generation_AI_combat_drop_consumption_bypasses_Lua;current_state_only","cached_Lua_functions_obtained_before_wrapper_installation","player_item_RNG_not_requested_until_real_getter;lazy_creation_not_polled"},instrumentation={installed=Calls.installed,failures=Calls.failures}}
+  out.native_global_random=nativeGlobal;c.nodes=c.nodes+624
+  if not nativeGlobal.complete then R.Fail(c,"native_global_random_incomplete") end
+  out.source_gaps[1]="RNG_class_native_generation_AI_combat_drop_consumption_not_hooked;global_Random_native_entry_observed"
+  out.source_gaps[2]="cached_Lua_functions_except_global_Random;native_global_entry_covers_cached_Random"
   for _,e in ipairs(Isaac.GetRoomEntities()) do
     local owner=IsaacCSObservationNative.Reference(e)
     M.Register(e:GetDropRNG(),owner,"Entity.GetDropRNG",{},owner.use)

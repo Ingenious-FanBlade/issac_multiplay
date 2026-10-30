@@ -443,6 +443,18 @@
       "pattern": "53 8B 1D ?? ?? ?? ?? 56 57 8B 3D ?? ?? ?? ?? 8B F1 68 ?? ?? ?? ?? FF D7 83 C4 04",
       "type": "void __thiscall()",
       "entry": ["ST7: GameState::DeleteRerun；删除 rerun 存档文件；唯一命中"]
+    },
+    {
+      "rva": "0x2eb4b0",
+      "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 81 EC 1C 01 00 00 56",
+      "type": "unsigned int __cdecl()",
+      "entry": ["tx-04-14原版全局Random：MT19937或CRT分支；无参ret；所有原生调用共用入口。"]
+    },
+    {
+      "rva": "0x2eb470",
+      "pattern": "89 0D ?? ?? ?? ?? B8 01 00 00 00 0F 1F 44 00 00 8B 0C 85 ?? ?? ?? ?? 8B D1",
+      "type": "int __thiscall()",
+      "entry": ["tx-04-14全局MT种子入口：ECX为uint32种子；写624字并置index=624；不解引用this。"]
     }
   ]
 }

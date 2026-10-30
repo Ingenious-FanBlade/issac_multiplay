@@ -4,6 +4,7 @@ use serde_json::{Value, json};
 use std::{collections::{BTreeMap, BTreeSet}, fs, io::{BufRead, BufReader}, path::Path};
 
 const SCHEMAS: &[&str] = &[
+    "isaac.cs.random.native-global-block","isaac.cs.random.native-global-call",
     "isaac.cs.exploration", "isaac.cs.exploration.transition", "isaac.cs.room_save", "isaac.cs.room_save.transition", "isaac.cs.room_save.event", "isaac.cs.player", "isaac.cs.player.transition", "isaac.cs.player.event", "isaac.cs.player.query", "isaac.cs.player.control",
 "isaac.cs.run","isaac.cs.run.event","isaac.cs.run.transition","isaac.cs.run.query","isaac.cs.run.render","isaac.cs.run.actual-call","isaac.cs.random","isaac.cs.random.event","isaac.cs.random.transition","isaac.cs.random.query","isaac.cs.random.render","isaac.cs.random.actual-call","isaac.cs.presentation","isaac.cs.presentation.event","isaac.cs.presentation.transition","isaac.cs.presentation.query","isaac.cs.presentation.render","isaac.cs.presentation.actual-call","isaac.cs.mod","isaac.cs.mod.event","isaac.cs.mod.transition","isaac.cs.mod.query","isaac.cs.mod.render","isaac.cs.mod.actual-call",
     "isaac.cs.room", "isaac.cs.level", "isaac.cs.level.transition", "isaac.cs.room.event", "isaac.cs.room.render", "isaac.cs.room.query", "isaac.cs.level.query", "isaac.cs.level.event",

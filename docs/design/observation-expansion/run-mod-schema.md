@@ -27,7 +27,11 @@ Entity/Grid复用已有规范subject/use；Player不是另一套身体ID。rando
 
 流记录包含subject、owner、purpose、parameters、lifetime、first_observation、state和freshness。seed和shift是状态，不是流ID。固定Entity Drop、Grid及Level RNG只在当前资格来源重新取得时读取；原生RNG指针不会跨生命周期缓存解引用。物品RNG不为遍历ID空间而懒创建，只记录真实Getter或具名Mod reader交付的对象。历史状态保留实际source_scope/应用帧，不换成当前采样时刻。
 
-真实Lua调用包含call/parent_call、member、完整参数数目和nil洞、成功/异常、多返回值、可获得的before/after。wrapper原调用一次；观测内部读取静默，不制造消费。池抽取方法不进入轮询器。原生内部消费和wrapper安装前缓存的函数单列来源缺口。
+真实Lua调用包含call/parent_call、member、完整参数数目和nil洞、成功/异常、多返回值、可获得的before/after。wrapper原调用一次；观测内部读取静默，不制造消费。池抽取方法不进入轮询器。全局Random由原生公共入口额外覆盖，其他RNG类原生内部消费和此前缓存函数仍列来源缺口。
+
+原版全局Random使用独立RandomStream主体，寿命为process；观测epoch内分配主体，不以种子、指针或原版联机字段命名。普通字段native_global_random包含624字完整MT状态、index、mode、状态块版本、实际calls/seeds和故障计数。index=625表示原生未初始化，不主动播种；index=624表示下次取值需要twist。mode切到CRT时明确UnsupportedCRTState/Partial，不声称MT能重现CRT输出。
+
+独立schema isaac.cs.random.native-global-block保存stream/block/words；624字仅在真实内容变化或新Recorder接入时发布。native-global-call保存member（::Random或::SeedGlobalRandom）、stream、call/parent_call、真实before/after块号与index/mode/status、原始返回值、seed_argument及game_callers_rva。两个schema均source=1、phase=ActualCall、authority_tick=null；直接调用者只输出游戏模块RVA，来源为ZHL 1.1.3无参adapter返回槽且E8目标已检查。只读快照不额外取随机值，原始入口恰好调用一次。新录制从完整状态块开始，不依赖旧文件；Formal仍可在停录后消费纯值镜像。主线程读取，错误线程仅原样透传并增加故障计数，不读取游戏状态。未启用期间及外部恢复来源不补造调用历史。
 
 | 时钟/概率 | 记录含义 |
 | --- | --- |

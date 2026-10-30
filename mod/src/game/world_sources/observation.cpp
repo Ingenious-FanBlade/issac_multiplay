@@ -22,6 +22,7 @@ void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
   try {
     if(e.kind!=obs::RecordKind::State) return;
+    if(e.schema=="isaac.cs.random.native-global-call") c.latest_global_random=e;
     if(e.schema=="isaac.cs.entity") c.latest_entity=e;
     else if(e.schema=="isaac.cs.grid") c.latest_grid=e;
     else if(e.schema=="isaac.cs.room") c.latest_room=e;
@@ -210,9 +211,10 @@ void WorldCapture::SetConsumers(bool formal,bool recorder) noexcept {
   }
   if(recorder!=recorder_consumer) {
     const auto result=recorder?observation.AttachConsumer({2,this,Record,Plan()}):observation.DetachConsumer(2);
-    if(result.accepted) recorder_consumer=recorder;
+    if(result.accepted) { recorder_consumer=recorder; if(recorder) GlobalRandomCheckpoint(); }
   }
   ArmObservationValueSources(observation.Active()&&(formal_consumer||recorder_consumer));
+  ArmGlobalRandom(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));
 }
 bool ObservationLuaNeeded(const char *phase,bool grid) noexcept {
   auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->observation.Active()) return false;
