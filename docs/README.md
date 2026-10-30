@@ -8,7 +8,7 @@
 
 # C/S研究与状态同步文档
 
-> **tx-04-17 ST1—ST7静态工作（2026-10-31）**：[专项工作流程](design/tx-04-17/tx-04-17-workflow.md)中的[ST1接口目录](design/tx-04-17/tx-04-17-public-interface-catalog.md)、[ST2场景根](design/tx-04-17/tx-04-17-client-scene-lifecycle.md)、[ST3更新隔离](design/tx-04-17/tx-04-17-update-isolation.md)、[ST4展示边界](design/tx-04-17/tx-04-17-render-presentation-boundary.md)、[ST5资源与完整姿态](design/tx-04-17/tx-04-17-resource-pose-runtime.md)、[ST6线程／context／在途绘制](design/tx-04-17/tx-04-17-thread-context-lifetime.md)、[ST7 Lua与借用寿命](design/tx-04-17/tx-04-17-lua-borrow-lifetime.md)已完成指定静态研究与主审。本轮ST5—ST7各由一个GPT-6 Luna／max子智能体推进并来回互核；主审独立回读源码与J273指令，补正成功语义、BlendMode／shader、raw队列／最后引用和分段关闭顺序。候选发布与旧资源释放分开，保留phase、可控LuaImage释放及运行UNKNOWN。ST8、Client世界壳、运行实现及统一E2E未完成；本轮无构建或测试，完整接线仍依赖15／16。
+> **tx-04-17 ST1—ST8静态工作完成（2026-10-31）**：[专项工作流程](design/tx-04-17/tx-04-17-workflow.md)及[接口目录](design/tx-04-17/tx-04-17-public-interface-catalog.md)已汇总场景、更新、展示、资源、线程／context、Lua寿命与持久归属合同。本轮[ST8访客持久副作用与正常退出](design/tx-04-17/tx-04-17-persistence-exit-isolation.md)的必要逆向由一个GPT-6 Luna／max子智能体执行，主智能体独立回读指令／源码并审阅、纠错和补证。确认Exit(false)、Shutdown直接计数写入与保存、官方进度JSON、GameState／Mod附加保存以及Manager析构PGD版本同步的边界；Client准备至安全退休全程保持必要隔离。本轮仅文档编辑及统一人工静态审阅，无构建或测试；Client世界壳、隔离运行实现及统一E2E仍未完成，完整接线依赖15／16，持久归属反馈31。
 
 > **按观测域拆分设计（2026-10-30）**：[详细设计与迁移边界](design/observation-expansion/domain-observation-architecture.md)确定公共接口、各域职责、scope／采样时序、跨域引用、采集与录制分离及 Entity/Grid 迁移。已同步 tx-04-10—14 观测计划；公共拆分纳入 10 的完整实现，其他域依次接入。本次只修改设计和计划，未修改运行代码、构建或测试。
 

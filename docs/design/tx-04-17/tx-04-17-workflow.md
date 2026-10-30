@@ -1,6 +1,6 @@
 # tx-04-17 客户端玩法隔离与资源展示运行时工作流程
 
-日期：2026-10-31，Asia/Singapore。状态：**ST1—ST7指定范围的静态研究与主审完成；ST2／ST3及ST5—ST7已完成来回互核**。成果见[接口目录](tx-04-17-public-interface-catalog.md)、[场景根与生命周期](tx-04-17-client-scene-lifecycle.md)、[更新隔离](tx-04-17-update-isolation.md)、[展示边界](tx-04-17-render-presentation-boundary.md)、[资源与完整姿态](tx-04-17-resource-pose-runtime.md)、[线程／context／在途绘制](tx-04-17-thread-context-lifetime.md)、[Lua与借用寿命](tx-04-17-lua-borrow-lifetime.md)。ST8待执行；Client世界壳及隔离运行时仍未实现，具体构造／展示／可控释放缺口和运行UNKNOWN保留，未构建或测试。
+日期：2026-10-31，Asia/Singapore。状态：**ST1—ST8指定范围的静态研究与主审完成；ST2／ST3及ST5—ST7已完成来回互核**。成果见[接口目录](tx-04-17-public-interface-catalog.md)、[场景根与生命周期](tx-04-17-client-scene-lifecycle.md)、[更新隔离](tx-04-17-update-isolation.md)、[展示边界](tx-04-17-render-presentation-boundary.md)、[资源与完整姿态](tx-04-17-resource-pose-runtime.md)、[线程／context／在途绘制](tx-04-17-thread-context-lifetime.md)、[Lua与借用寿命](tx-04-17-lua-borrow-lifetime.md)、[访客持久副作用与退出隔离](tx-04-17-persistence-exit-isolation.md)。Client世界壳及隔离运行时仍未实现，具体构造／展示／可控释放与持久隔离缺口和运行UNKNOWN保留，未构建或测试。
 
 本tx为真实游戏Client建立不执行权威玩法的运行环境，并交付资源准备、姿态应用、正常展示与退休的公共运行时。**与协议无关的静态核验可以先于tx-04-15／16进行；角色接线和完整功能验收仍依赖15／16。** 静态结果应及时反馈15的资源、姿态、引用和错误模型，避免协议定稿后才发现表达缺口。
 
@@ -128,6 +128,7 @@ ST1—ST8是内部工作索引，不是单独推进编号或分项验收。每�
 
 ### ST8 访客持久副作用与正常退出
 
+- **2026-10-31指定静态研究与主审完成**：[访客持久副作用与退出隔离](tx-04-17-persistence-exit-isolation.md)。必要逆向由一个GPT-6 Luna／max子智能体完成，主智能体独立回读关键J273指令和官方源码。确认Exit(false)先有条件保存PGD、后可条件删除run；Shutdown更早含直接counter[192]清零、IncreaseEventCounter(522,1)及本地保存，另有备份／云或本地保存分支，均不能靠early unload或readonly兜底。官方成就／挑战／完成标记、GameState附加文件及Lua Mod保存分别处理；允许设置按本地来源和字段定义。Client准备前至安全退休后保持必要隔离，不因失败／断连／stop提前Off；当前只有观测而无Client阻断实现，实际调用和进度归属仍待完整实现与统一E2E。
 - 资料：已有J273的TryUnlock、IncreaseEventCounter、SaveLocally／SaveToSteamCloud、GameState读写／删除、Game::Exit及Shutdown研究和当前观察实现。
 - 核验：从Client准备、加载、render／HUD到stop、返回菜单及进程退出的实际可达路径；区分内存进度修改、run保存、文件写入、本地设置和Lua Mod保存。
 - 补充逆向：确认尚未解释且确实可达的进度／写入调用和返回合同；复用已有入口，不为整套存档系统无差别重做逆向。阻断文件写入不能代替阻断不该发生的内存进度修改。
@@ -136,7 +137,7 @@ ST1—ST8是内部工作索引，不是单独推进编号或分项验收。每�
 
 ### 静态结果的记录与推进顺序
 
-当前**ST1—ST7指定静态研究及主审完成，ST5—ST7另经三方来回互核；ST8待执行**。后续按既有允许／隔离／适配责任继续访客持久副作用研究，再随15／16落实完整实现。世界壳、可控LuaImage释放、实际context与在途退休尚未实现；已知不能安全复用的路径不能留待实机碰运气。这里是工作依赖，不另设分项验收；本轮ST5／ST6／ST7各一个GPT-6 Luna／max子智能体及互核安排均来自用户明确指定。
+当前**ST1—ST8指定静态研究及主审完成，ST5—ST7另经三方来回互核**。后续随15／16落实完整实现，沿用允许／隔离／适配责任及ST8持久归属合同。世界壳、可控LuaImage释放、实际context、在途退休与持久隔离尚未实现；已知不能安全复用的路径不能留待实机碰运气。这里是工作依赖，不另设分项验收；既有ST5／ST6／ST7分工与互核、本轮ST8一个GPT-6 Luna／max逆向子智能体及主审均来自用户明确指定。
 
 每项执行后在对应条目续记：实际范围、可读源码文件／函数位置、必要的J273 RVA／ABI／字节或布局、结论类型、拟采用方式、具体UNKNOWN和反馈任务。不要求每项单独报告包；不计算或校验任何哈希，不将静态结论登记成运行PASS。静态核验过程中不启动游戏或调试实机，不安装Hook、不做注入或运行时补丁，不执行功能／语法／离线校验脚本。
 
@@ -179,6 +180,18 @@ ST4由用户指定的一个GPT-6 Luna／max子智能体研究；主智能体独�
 
 三项合同统一为未发布候选准备、完整描述检查、主线程注册关联切换、有界保留旧引用、停止新使用后按owner退休；session／scene、资源修订、实例、Lua和context代次分别失效。实际失败候选不发布，资源准备不等于World Applied，失败或stop不提前解除Client隔离。ST8访客持久副作用、世界壳、可控释放及15／16接线仍未完成；实际Hook／context、正常与异常在途覆盖、GC时点、像素和GPU结果均留完整实现后的统一E2E。本轮仅资料与源码阅读、只读逆向、文档编辑和人工整体回读，无构建、测试、实机或artifact包。
 
+### ST8主审记录与采用限制（2026-10-31）
+
+用户本轮要求完成ST8，必要逆向指定一个GPT-6 Luna／max子智能体；该分工不扩大为项目层独立角色要求。上面的ST2—ST7收束段保留各轮当时进度，本段将当前静态状态更新为ST1—ST8完成。主智能体直接回读当前J273指令与REPENTOGON源码，采用[ST8正文](tx-04-17-persistence-exit-isolation.md)限定的事实和设计合同；以下地址为VA，imagebase为`0x400000`。
+
+- **Exit与run删除**：重读`0x6F635E—0x6F63BE`、`0x6F647B`、`0x9324A0`及`0x99E7B0／0x99E870`。PGD dirty／fileLoaded条件后的备份与cloud／local保存先于ShouldSave；false分支在Game `+0x25BA8`为0且Manager `+0x4AFB8／+0x4AFBC`相等时，于`0x9324CD`调用Delete，随后改内存及dirty。不能将条件路径写成每次必发，亦不能将原始EAX或反编译usercall当官方void接口的业务返回。
+- **Shutdown直接进度写入与纠错**：重读`0x982D10—0x982DDD`。条件实际为Game非空、`+0x25BA8>0`、byte `+0x25BB0=0`、DWORD `+0x25CB4=0`；代理初步消息中另外两项条件偏移计算错误，主审按原始cmp更正，代理复核接受。`0x982D44`直接清PGD `+0x5BC`（counter[192]），之后`0x982D4E`增加counter[522]、`0x982D5C`本地保存；counter[522]业务含义保留UNKNOWN。随后独立dirty／fileLoaded分支先清dirty、备份并保存，再按Manager state=2条件调用Exit(true)。readonly不能约束前述直接写，early unload更晚。
+- **返回值与官方整链**：重读`0x932300／0x9323F0`后的指令，原生Manager保存调用者不检查write的bool便继续文件／PGD处理。源码`GameStateManagement.cpp`的write／write_rerun在原生前后改暂态，后续分别调用ESSM、VirtualRoom与ItemPool保存；Delete亦扩展删除附加文件。bool既不是全部文件原子成功，也不能作为下层阻断后caller已安全返回的证明。
+- **Lua、官方进度与本地设置**：直接阅读`LuaPersistentGameData.cpp`、`AchievementsStuff.cpp`、`ChallengesStuff.cpp`、`CompletionTracker.cpp`、`EntitySaveStateManagement.cpp`、`onlinestub.lua`、`OptionsSyncing.cpp`、`InputConfigs.cpp`。确认forceunlock临时绕readonly、官方独立JSON及ESSM内部Mod文件入口；原版Online stub不覆盖C/S，不能复用其状态。Options Load可写文件，Save先super再同步INI，允许设置须定义本地来源与字段，不能只凭函数名、路径或扩展名放行。
+- **关闭与当前工程边界**：重读`ASMCallbacks.cpp:1876—1918`及原始`0x982DDD`补丁位置，early `MC_PRE_MOD_UNLOAD`在保存之后、Game／Manager销毁之前；与ST6／ST7的ANM cache、Lua close、ImageManager／context分别退休合同一致。主审另补读`SaveSyncing.cpp:611—647`，确认Manager析构Hook在super前仍可按启用／启动成功条件同步三档RGON／原版PGD并写同步状态JSON，经自有SaveFile写入。不能在early unload后提前撤销持久归属管理，也不能把正常本地版本同步当作Client服务器进度写入。当前`gen_binding.py`／`persistence.cpp`仍记录并调用super；`exit_patch.cpp`／`WorldProcessExitDecision`服务world录制收口，不能算Client玩法／持久隔离或通用关闭协调实现。
+
+静态研究只说明上述条件路径、返回限制和应采用的隔离责任，没有证明其在未来Client安装环境的实际命中。入口、准备／失败／stop／退出均须在进度修改及官方整链副作用之前处理；只读位、文件拦截、回滚dirty、退出回调和提前Off均不能替代。保留访客已有进度／Continue，允许本地设置有明确归属；15／16／31及18—20／27的反馈和未决项见正文。已完成本轮文档整体人工回读，未构建、运行游戏或测试，不留artifact包，也不宣称tx-04-17完整功能已完成。
+
 ## 5 完整实现工作
 
 在编写对应实现前，先列出其可能失败的方式和所需处理，再完成全部接线。以下工作使用ST结果和15／16的实际交付；建议职责名不是新增已存在API。
@@ -191,7 +204,7 @@ ST4由用户指定的一个GPT-6 Luna／max子智能体研究；主智能体独�
 | I4 资源管理 | 以描述和代次管理资源缓存、未发布候选与已发布实例 | 缺失／不兼容资源、准备失败、预算耗尽：明确失败原因，不发布部分候选，不无限积压 |
 | I5 姿态与图层 | 通过公开接口及必要专用适配应用main／overlay、层状态和外观 | 无效层／动画、姿态缺失、资源版本变化：拒绝不完整目标并撤销失效借用，不用本地Update猜出权威姿态 |
 | I6 线程与Lua寿命 | 原生／Lua／图形操作只在已解释阶段执行，后台只持有自有值 | 错误线程、context不符、userdata失效、关闭中回调：取消候选、停止发布并按有效owner清理 |
-| I7 持久隔离 | 访客不获得服务器run、统计、解锁或成就写入；保留允许的设置 | 未归属写入、提前解除隔离：阻止对应操作并报告；Host合法保存语义不因Client规则被全局关闭 |
+| I7 持久隔离 | 在准备前建立访客原有进度／Continue归属；隔离服务器run、统计、解锁、成就、挑战、完成标记及Mod保存，保留具名本地设置 | 在官方整链副作用之前阻止错误来源的请求；下层write=false、readonly或dirty不代替caller处理。失败／断连／stop保持必要隔离至安全退休，Host合法保存不因Client规则被全局关闭 |
 | I8 发布与退休协调 | prepare／commit／cancel／retire与15／16接线，错误向调用者明确返回 | 旧epoch／引用迟到、部分应用、stop在途：不确认半套状态、不恢复旧对象；先停止输入／发布和回调，再安全退休后回透传 |
 
 所有Hook经唯一清单注册，启动安装后常驻至进程结束，会话仅逻辑启停；Off原样透传，不恢复目标字节或强卸载DLL。新增资源的正常退休遵循各自owner，不改变既有自有virtual device的NEVER回收策略。
@@ -212,7 +225,7 @@ ST4由用户指定的一个GPT-6 Luna／max子智能体研究；主智能体独�
 | E6 失败候选与预算 | 缺资源、无效描述、部分准备失败及队列／预算耗尽明确处理；不发布或确认半套目标，不无限持有失败候选 |
 | E7 失效借用与旧代次 | 资源／场景重建后重新获取借用；旧epoch、迟到姿态和无效引用不能复活旧对象或污染当前展示 |
 | E8 线程 context与退休 | 记录实际阶段和必要运行条件；加载、换图、GC、stop与在途绘制不越过owner／context寿命；错误条件下停止相关操作 |
-| E9 访客进度与保存 | 结合实际调用、内存进度和必要文件观察检查整个窗口；无服务器世界写入访客原版进度，允许的设置行为有明确归属 |
+| E9 访客进度与保存 | 覆盖准备、加载、render／HUD、失败／断连／stop、返回菜单及正常进程退出的整个窗口；联合观察内存进度、平台通知、run写入／删除、备份、官方进度JSON／附加文件／PGD版本同步与Mod保存。访客原有Continue／进度归属不被服务器世界改变，允许的本地设置来源和字段明确；不以dirty=0、文件未变或write=false单独判定 |
 | E10 stop 故障与正常退出 | 准备中／展示中／失败后均能退休并回透传；返回菜单、窗口正常退出及Lua／context清理无旧回调或资源使用 |
 
 测试专用夹具只服务统一E2E，不进入发布模组；场景动作按已有授权执行。每次游戏启动前分别提示用户需要配合的操作及何时停止手动操作，需要手动配合时先确认已准备好再启动。不从本文推导新的存档、成就、持久写入或其他实机操作授权。

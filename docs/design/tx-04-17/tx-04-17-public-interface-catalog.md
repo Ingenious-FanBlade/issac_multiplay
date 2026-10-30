@@ -123,3 +123,19 @@ ST1完成的是把操作分成公开可用、需具体源码、需必要J273核�
 已把公开文档、当前源码、可复用J273证据和J460索引分开；工作流程所列三项已知限制均经原文／源码回读，新增构造器bool、换图bool、层帧clamp和借用owner的具体限定。接口选型不要求新增逆向即可成立；仍需补的J273问题已归ST2—ST8。
 
 本次通过资料阅读和编辑后的人工文本回读收束，不执行独立格式／语法／链接校验器，不对子项安排测试或消费tx-04-17全目标统一E2E。未观察当前安装环境实际Hook链、开关、命中、线程／context、调用次数、资源显示、像素、失败恢复或全过程持久副作用；这些仍留完整实现后的统一E2E。ST1资料工作完成不代表隔离、运行时或整个tx-04-17完成，不新增artifact包。
+
+## 7 ST8补充：持久操作的选型与失败合同（2026-10-31）
+
+前文保留ST1归并时点；后续持久研究及主审见[访客持久副作用与退出隔离](tx-04-17-persistence-exit-isolation.md)。这里续记公开接口与实际调用链对选型的限制，不新增运行接口。
+
+| 操作 | 已核对的边界 | Client适配要求（DESIGN） |
+| --- | --- | --- |
+| `Game::Exit(ShouldSave)`、`MC_PRE_GAME_EXIT` | J273 PGD备份／云或本地保存先于ShouldSave判断；false分支可条件删除run。回调返回void，不能否决退出／保存 | 不作为Client准备取消或无保存退休接口；先隔离原生run生命周期和进度裁决 |
+| `GameState::write`／`write_rerun`、Delete／DeleteRerun | 原生run读写与清理、官方ESSM／VirtualRoom／ItemPool附加文件分别有副作用；bool不汇总全部文件的持久成功，void删除不提供成功码 | 阻断请求必须先于官方整链副作用；下层false不能代替上层退休或恢复，须解释caller后态 |
+| PGD进度与平台解锁 | 原生readonly只约束部分入口；官方Lua `Unlock`可置forceunlock，官方Hook可临时清readonly；扩展成就／挑战／完成标记另有内存及JSON路径 | 在进度／回调消费者前隔离；不以全局readonly、回滚dirty或仅拦文件来保护访客 |
+| ModReference SaveData／RemoveData与ESSM内部SaveData／DeleteData | 普通Mod保存与ESSM自有附加保存是不同入口；原版Online stub不覆盖独立C/S；公开void不能当完整写入成功 | 服务器世界状态由Authority归属；只允许明确的本地界面偏好，不放开任意玩法Lua／卸载回调 |
+| Options Load／Save、SaveButtonMaps与界面配置 | 官方Options Load也可复制／写文件；Save可先写原生设置再同步INI；inputconfigs有独立rgon路径 | 按本地来源、字段及产品语义允许；服务器状态不得写成本地偏好，不能仅按文件扩展名放行 |
+| Shutdown与early unload | J273 Shutdown有条件直接清PGD counter[192]、增加counter[522]并本地保存，另有dirty／fileLoaded分支的备份与云／本地保存；均早于官方early `MC_PRE_MOD_UNLOAD`，且不保证下一次Manager Update | 关闭前完成本方退休并保持必要隔离；阻断文件不能代替阻断内存进度，early unload辅助资源清理，不能作为首次保存拦截点 |
+| 官方PGD版本同步 | SaveSyncing在启动／选档可初始化档，Manager析构Hook在super前还可按条件遍历三档，经SaveFile直接写RGON／原版PGD与同步状态JSON，晚于early unload | 识别正常本地同步归属，隔离服务器污染来源；保持协调寿命覆盖关闭整链，不将五项PGD观察入口视为全部文件写入 |
+
+15须区分Authority进度与本地设置；16负责准备前至安全退休后的角色范围及失败传播；31负责合法Host保存／Continue和访客原有进度归属。上述是静态结论与设计约束，实际阻断、Client场景壳、全部caller失败处理及全过程无持久副作用仍待完整实现和统一E2E。
