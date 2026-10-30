@@ -229,8 +229,8 @@ struct StorageConfig final {
   StorageLimits limits{};
   // 可空；为空表示不做 E2E 故障注入。开关对象必须比 reader 线程活得久。
   FaultSwitches *faults = nullptr; // 可空；不拥有
-  // 可空；为空时使用本模块内部的 256 MiB 预算账本。身份表与 writer 共用
-  // 同一账本时由调用方提供，保证总量仍是 256 MiB。
+  // 可空；为空时使用本模块内部的采集预算账本。身份表与 writer 共用
+  // 同一账本时由调用方提供，保证所有域与消费端共用总量。
   BudgetLedger *ledger = nullptr;
 };
 
@@ -345,6 +345,10 @@ public:
   FaultSwitches *Faults() noexcept;
   const FaultSwitches *Faults() const noexcept;
   StorageStatus Status() const noexcept;
+  // 后台判断录制关闭栅栏：指定 attempt 以前的槽／事件／gap 已交给唯一值队列。
+  // 这是消费端排空边界，不限制项目推进，也不等待游戏线程。
+  bool PassedFence(std::uint64_t attempt,std::uint64_t events,std::uint64_t gaps) const noexcept;
+  bool HasQueue() const noexcept;
 
 private:
   std::shared_ptr<StorageCore> core_;

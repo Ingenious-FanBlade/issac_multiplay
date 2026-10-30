@@ -9,6 +9,9 @@ inline constexpr uintptr_t InputManager = 0x7CE438;
 inline constexpr uintptr_t GameConsole = 0x67FD4, CommandCapture = 0x680D8;
 inline constexpr uintptr_t GameStateFlags = 0x25AC0, RunActive = 0x25B02;
 inline constexpr uintptr_t PlayerManager = 0x1BAA8, Starting = 0x4AD10;
+// tx-04-09：703 helper RVA3A3A40，+1590是各主动槽的1-based Esau Jr备份关联，不是PlayerIndex。
+inline constexpr uintptr_t ActiveItemSlotBase = 0x1574, ActiveItemSlotStride = 0x20,
+                           EsauJrAssociation = 0x1590, EsauJrStates = 0x80;
 inline constexpr uintptr_t ControllerIndex = 0x160C, PlayerIndex = 0x1610,
                            MoveDirection = 0x1618;
 inline constexpr uintptr_t KeyboardVtable = 0x73B490, GamepadVtable = 0x73B3F0;

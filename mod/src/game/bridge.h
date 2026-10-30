@@ -4,6 +4,8 @@
 #include <string>
 
 namespace cs::game {
+// SDK 公开只读 Getter 的 C++17 桥；只在主线程读取已确认的 Player。
+bool PlayerIsHologram(void *player) noexcept;
 // SDK-facing 的 world 作用域只传值，不包含 C++20 核心或 SDK 对象方法。
 enum class WorldBoundary : unsigned { Owner, Room, Tail, Lifecycle, RunEnd, RunStart };
 class WorldBoundaryScope final {
@@ -56,6 +58,7 @@ public:
 
 private:
   InputLease lease_;
+  unsigned ordinal_ = 0;
   bool active_ = false;
   int exceptions_ = 0;
 };
@@ -85,6 +88,7 @@ public:
   PlayerScope *previous = nullptr;
   uint64_t tick = 0, generation = 0;
   int ordinal = -1;
+  unsigned consumer_mask = 0; // 仅用于逐身体原生活动见证，不消费或复制输入。
   // world 读取依据的前快照；SDK-facing 头只保存 C++17 值，不包含 collector。
   void *world_device = nullptr;
   std::int32_t world_key = -1;
@@ -178,6 +182,7 @@ const char *PersistenceWindowKindName(PersistenceWindowKind kind) noexcept;
 struct PersistenceWindow {
   uint64_t id = 0, parent = 0, caller = 0;
   PersistenceWindowKind kind = PersistenceWindowKind::None;
+  unsigned ordinal = 0; // 0为整局窗口，1..3为独立远端生命窗口。
   uint64_t start_loop = 0, end_loop = 0, session_generation = 0;
   uint64_t loading_episode = 0, death_event = 0;
   const char *source = "", *end_reason = "open";
@@ -185,15 +190,15 @@ struct PersistenceWindow {
   bool call_returned = false, call_normal = false;
 };
 uint64_t OpenPersistenceWindow(PersistenceWindowKind kind, const char *source,
-                               uint64_t death_event = 0) noexcept;
+                               uint64_t death_event = 0, unsigned ordinal = 0) noexcept;
 bool ClosePersistenceWindow(PersistenceWindowKind kind, const char *reason,
-                            bool normal) noexcept;
-bool PersistenceWindowActive(PersistenceWindowKind kind) noexcept;
+                            bool normal, unsigned ordinal = 0) noexcept;
+bool PersistenceWindowActive(PersistenceWindowKind kind, unsigned ordinal = 0) noexcept;
 // 该窗口的同步原生调用是否已正常返回；只读诊断，不改窗口状态。
-bool PersistenceWindowCallNormal(PersistenceWindowKind kind) noexcept;
+bool PersistenceWindowCallNormal(PersistenceWindowKind kind, unsigned ordinal = 0) noexcept;
 // 该窗口的同步原生调用是否已经返回（正常或异常）。ST2 要求复活动作正常返回
 // 前不得仅凭 ghost=false 推进代次。
-bool PersistenceWindowCallReturned(PersistenceWindowKind kind) noexcept;
+bool PersistenceWindowCallReturned(PersistenceWindowKind kind, unsigned ordinal = 0) noexcept;
 void CloseAllPersistenceWindows(const char *reason, bool normal) noexcept;
 // 同步持久入口：记录 call_id/parent_call_id、同步 operation 与有效 window ids。
 class PersistenceCallScope final {

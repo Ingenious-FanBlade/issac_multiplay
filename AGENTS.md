@@ -3,15 +3,18 @@
 先读 [现行项目规范](docs/refactor/project-conventions.md)。该文档自 2026-10-12 起覆盖本仓库旧计划、历史记录和项目技能中冲突的流程要求，用户会话指示优先。
 
 - 永不设定 gate；不校验任何哈希，不以旧 gate/解锁字段作为推进前置条件。
-- 每次推进的最小粒度为 `tx-0x-0x`；整个目标完成后只执行一次整体测试验收，探讨、分析与修改过程中不得运行其他测试。
+- 每次推进的最小粒度为 `tx-0x-0x`；整个目标完成后进入统一的整体测试验收，进入验收前的探讨、分析与修改过程中不得运行其他测试。
+- 每个 tx 任务本身不再保留 artifact；E2E 测试默认也不保留 artifact，仅在中途停下、需要记录信息以便后续继续时保留必要材料。正常测试所需临时材料用后清理，不要求最终 artifact。
+- E2E 如无特殊说明，应连续完成测试；遇到问题先修复，再在同一 tx 的整体验收中继续必要测试，不因失败默认停下等待下一次指令，也不为修复续测另换 tx 编号。
 - 取消逆向与测试必须独立、作者分离、独立审计及强制子智能体要求；同一智能体可以完成逆向、实现和验收。
 - 每次实机测试前先告知用户需要配合的操作、何时停止手动操作；多次启动分别提示；需要手动配合时先确认用户已经准备好，再启动。
 - 保持 C/S 与原版/Isaac Sync 的隔离、统一输入语义、线程与生命周期约束、Hook 常驻与逻辑启停，以及实际操作授权范围。
 - 历史事实与失败记录如实保留；旧 gate、哈希、预封、多组验收和独立角色条款不再作为当前规范执行。
 - NEVER write unit tests after you write code. 
-- Highly prefer E2E tests as the sole testing mechanism. Use them to verify complex features work. At the end of E2E tests, produce a verifiable and repeatable artifact. 
+- Highly prefer E2E tests as the sole testing mechanism. Use them to verify complex features work. Artifact retention and continuous execution follow the rules above.
 - If you must test a system in isolation, FIRST write all the ways it could fail, THEN write the code.
 - 编写代码时一定要为某个功能、核心函数和数据结构写注释，且编写中文注释
+- 以撒原版wiki本地地址：F:\projects_isaac\IsaacDocs，REPENTOGONwiki本地地址：F:\projects_isaac\REPENTOGON-1.1.3\docs\docs
 
 ## 独立工程入口
 

@@ -44,17 +44,11 @@ void RegisterHooks() {
     auto &h = *pending[i];
     if (!Capabilities[size_t(h.group)])
       continue;
-    if (h.world && !WorldObservationArmed()) {
-      // 未配置 world 能力时不注册；注册后常驻，录制 stop 只关闭逻辑观察。
-      ++deferred;
-      Trace("world_hook_deferred", "%s rva=%x", h.id, unsigned(h.rva));
-      continue;
-    }
     new FunctionHook(h.name, *h.type, h.entry, h.super, h.priority);
     h.registered = true;
     ++installed;
-    Trace("hook_registered", "%s group=%s priority=%d", h.id, GroupNames[size_t(h.group)],
-          h.priority);
+    Trace("hook_registered", "%s group=%s priority=%d", h.id,
+          GroupNames[size_t(h.group)], h.priority);
   }
   // 容量与安装结果必须显式可见：注册数不等于安装数，超限也不能静默。
   const auto capacity = PendingHookCapacity();

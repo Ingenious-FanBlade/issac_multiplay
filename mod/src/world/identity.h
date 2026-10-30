@@ -238,7 +238,7 @@ private:
   std::uint32_t used_ = 0, nodes_used_ = 1;
   std::uint64_t next_local_id_ = 0, next_birth_ = 0;
   std::uint64_t batch_attempt_ = 0;
-  std::array<std::uint32_t, 2> player_address_{};
+  std::array<std::uint32_t, kControlAnchorCapacity> player_address_{};
   Error error_ = Error::None;
 };
 

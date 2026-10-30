@@ -81,7 +81,8 @@ void WriteEvent(const Event &e) noexcept {
   literal(e.truncated ? "true" : "false");
   literal("}\n");
   DWORD written = 0;
-  const bool written_ok = WriteFile(output, line, DWORD(p - line), &written, nullptr) != 0;
+  const bool written_ok =
+      WriteFile(output, line, DWORD(p - line), &written, nullptr) != 0;
   if (!written_ok || written != DWORD(p - line)) {
     last_error.store(written_ok ? ERROR_WRITE_FAULT : GetLastError());
     ++write_errors;
@@ -118,7 +119,8 @@ Event MakeEvent(const char *ev) noexcept {
   QueryPerformanceCounter(&now);
   Event e{};
   e.t = uint64_t(now.QuadPart / frequency.QuadPart) * 1000000 +
-        uint64_t(now.QuadPart % frequency.QuadPart) * 1000000 / frequency.QuadPart;
+        uint64_t(now.QuadPart % frequency.QuadPart) * 1000000 /
+            frequency.QuadPart;
   e.seq = sequence.fetch_add(1) + 1;
   strncpy_s(e.ev, ev, _TRUNCATE);
   return e;
@@ -130,9 +132,10 @@ void StartTrace(const std::string &directory) {
   std::filesystem::create_directories(directory);
   if (!QueryPerformanceFrequency(&frequency) || frequency.QuadPart <= 0)
     throw std::runtime_error("trace_clock_failed");
-  path = directory + "/boot-" + std::to_string(GetCurrentProcessId()) + ".jsonl";
-  output = CreateFileA(path.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, nullptr, CREATE_NEW,
-                       FILE_ATTRIBUTE_NORMAL, nullptr);
+  path =
+      directory + "/boot-" + std::to_string(GetCurrentProcessId()) + ".jsonl";
+  output = CreateFileA(path.c_str(), FILE_APPEND_DATA, FILE_SHARE_READ, nullptr,
+                       CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
   if (output == INVALID_HANDLE_VALUE)
     throw std::runtime_error("trace_open_failed");
   wake = CreateEventW(nullptr, FALSE, FALSE, nullptr);
@@ -153,10 +156,20 @@ void StartTrace(const std::string &directory) {
 void Trace(const char *ev, const char *format, ...) noexcept {
   if (!worker || stopping.load())
     return;
+  // 过滤发生在格式化/计时/入队之前；生产不运行逐tick、逐query及持久入口明细录制。
+  if (!Settings.diagnostics) {
+    bool important = std::strstr(ev, "error") || std::strstr(ev, "fault");
+    for (const auto *name : {"boot", "config", "shutdown", "session", "peer",
+                             "net", "tick_reject"})
+      important |= std::strcmp(ev, name) == 0;
+    if (!important)
+      return;
+  }
   Event e = MakeEvent(ev);
   va_list args;
   va_start(args, format);
-  const auto formatted = _vsnprintf_s(e.detail, sizeof(e.detail), _TRUNCATE, format, args);
+  const auto formatted =
+      _vsnprintf_s(e.detail, sizeof(e.detail), _TRUNCATE, format, args);
   va_end(args);
   if (formatted < 0) {
     e.truncated = true;
@@ -172,23 +185,17 @@ void Trace(const char *ev, const char *format, ...) noexcept {
     ++dropped;
   }
 }
-uint64_t TraceDropped() noexcept {
-  return dropped.load();
-}
-uint64_t TraceTruncated() noexcept {
-  return truncated.load();
-}
+uint64_t TraceDropped() noexcept { return dropped.load(); }
+uint64_t TraceTruncated() noexcept { return truncated.load(); }
 // 只读诊断区分队列容量、磁盘和唤醒失败；不改变 TraceDropped 的失败语义。
 std::string TraceFields() {
   return "trace_capacity=" + std::to_string(kTraceCapacity) +
-      "\ntrace_queue_dropped=" + std::to_string(queue_dropped.load()) +
-      "\ntrace_write_errors=" + std::to_string(write_errors.load()) +
-      "\ntrace_wake_errors=" + std::to_string(wake_errors.load()) +
-      "\ntrace_native_error=" + std::to_string(last_error.load()) + "\n";
+         "\ntrace_queue_dropped=" + std::to_string(queue_dropped.load()) +
+         "\ntrace_write_errors=" + std::to_string(write_errors.load()) +
+         "\ntrace_wake_errors=" + std::to_string(wake_errors.load()) +
+         "\ntrace_native_error=" + std::to_string(last_error.load()) + "\n";
 }
-const std::string &TracePath() noexcept {
-  return path;
-}
+const std::string &TracePath() noexcept { return path; }
 
 // 关闭配置时只留下 boot；正常线程环境下等待后台写完后关闭句柄。
 void FinishTrace() noexcept {

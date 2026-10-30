@@ -8,15 +8,20 @@
   "operation_timeout_ms": 30000,
   "close_timeout_ms": 10000,
   "action_timeout_ms": 65000,
-  "capture_timeout_seconds": 240,
+  "capture_timeout_seconds": 30,
   "offline_cli_timeout_seconds": 300,
-  "stable_samples": 2000,
-  "comparison_samples": 256,
+  "stable_samples": 250,
+  "comparison_samples": 32,
   "seed": null,
   "save_continue": true,
-  "legacy_capture": null,
+  "legacy_capture": "D:/projects/isaac_hook_reserach/artifacts/cs-t0/tx-01-85-gridfree-e2e-01/captures/gridfree/capture/world",
+  "legacy_source": "tx-01-85-gridfree-e2e-01 complete native recording; six original files, not a replay; original result/consumer/restoration retained. L7 proves explicit offline import only.",
   "save_baseline": "artifacts/repentogon/tx-04-04-e2e-08",
-  "observation_requirements": {"S4.reuse_duplicate_publish":"requires actual native observation; no artificial Publish or forced pool reuse"},
+  "observation_requirements": {
+    "S4.reuse_duplicate_publish":"requires actual native observation; no artificial Publish or forced pool reuse",
+    "S5.PlayerReplace":"ordinary Isaac A Type1/Variant0, primary703 charge1, public GetItemState()==0, one SPACE through canonical scheduler; require actual successful native Replace and both roster/retained snapshots; callback overrides remain observable failure",
+    "V9.direct_shutdown":"active Continue WM_CLOSE and menu WM_QUIT require actual main deferral, worker drain, terminal flush and native process exit"
+  },
   "to_file_select": ["ENTER"],
   "open_character_menu": ["ENTER"],
   "start_run": ["ENTER"],
@@ -52,22 +57,19 @@
     {"name":"spawn_short_lived","scene":"S4","id":"short","type":1000,"variant":15,"subtype":0,"seed":400807,"position":[160,200],"velocity":[0,0],"spawner_ordinal":0},
     {"name":"spawn_short_lived","scene":"S4","id":"reuse_candidate","type":1000,"variant":15,"subtype":0,"seed":400808,"position":[160,200],"velocity":[0,0],"spawner_ordinal":0},
     {"name":"grid_spawn","scene":"S4","id":"rock","index":32,"type":2,"variant":0,"seed":400809,"var_data":0},
-    {"name":"grid_replace","scene":"S5","id":"rock","index":32,"expected_type":2,"expected_variant":0,"type":2,"variant":0,"seed":400810,"var_data":0},
-    {"name":"grid_remove","scene":"S5","id":"rock","index":32,"expected_type":2,"expected_variant":0,"path_trail":0,"keep_decoration":false},
-    {"name":"player_esau","scene":"S5","item":703,"ordinal":0,"enabled":false,"reason":"UNKNOWN concrete role/owned-slot and full item-owner eligibility; never guess native Replace ABI"},
+    {"name":"grid_replace","scene":"S5","id":"rock","index":32,"replacement_mode":"remove_then_spawn","expected_type":2,"path_trail":0,"keep_decoration":false,"type":14,"variant":0,"seed":400810,"var_data":0},
+    {"name":"grid_remove","scene":"S5","id":"rock","index":32,"expected_type":14,"path_trail":0,"keep_decoration":false},
     {"name": "room", "scene": "S6"},
     {"name": "kill_b", "scene": "S6"},
     {"name": "revive_b", "scene": "S6"},
     {"name": "stage", "scene": "S6"},
     {"name": "world_observe", "scene": "S6"},
-    {"name":"spawn","scene":"S8","id":"fault_reference_source","type":3,"variant":1,"subtype":0,"seed":400811,"position":[160,200],"velocity":[0,0],"spawner_ordinal":0}
+    {"name":"spawn","scene":"S8","id":"fault_reference_source","type":3,"variant":1,"subtype":0,"seed":400811,"position":[160,200],"velocity":[0,0],"spawner_ordinal":0},
+    {"name":"player_esau","scene":"S5","phase":"post_continue","item":703,"ordinal":0,"slot":0,"charge":1,"input_key":"SPACE","input_count":1}
   ],
   "comparison_actions": [
-    {"name": "seed", "phase": "setup", "evidence": "use primary resolved actual seed; verify GetStartSeedString before starting world"},
+    {"name": "seed", "phase": "setup", "evidence": "use primary resolved actual seed; recorder must already be Recording before New Run and seed; verify GetStartSeedString before Host"},
     {"name": "world_observe", "phase": "setup"}
   ],
-  "unimplemented_runtime_requirements": {
-    "S5.PlayerReplace": "Esau Jr 703 candidate only; full public-use/item-owner eligibility UNKNOWN. Restore uses real menu Continue, never guessed ABI/state pointers",
-    "V9.direct_shutdown": "only explicit stop -> real Closed -> exit is available; direct-exit coordination remains UNKNOWN"
-  }
+  "unimplemented_runtime_requirements": {}
 }

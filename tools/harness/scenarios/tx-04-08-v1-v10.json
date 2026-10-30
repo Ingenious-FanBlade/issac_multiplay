@@ -1,0 +1,130 @@
+{
+  "description": "V1/V10 joint E2E: two sequential native launches; real Off/Closed passthrough, Hook/ABI/call pairing, all primary records and L1-L5 production CLI. Other dimensions NOT_RUN.",
+  "control_port": 27091,
+  "host_port": 27090,
+  "peer_timeout_ms": 3000,
+  "remote_lead": 2,
+  "startup_timeout_seconds": 90,
+  "operation_timeout_ms": 30000,
+  "close_timeout_ms": 10000,
+  "action_timeout_ms": 65000,
+  "capture_timeout_seconds": 30,
+  "offline_cli_timeout_seconds": 300,
+  "stable_samples": 250,
+  "comparison_samples": 32,
+  "seed": "S227 7MNF",
+  "save_continue": true,
+  "save_baseline": "artifacts/repentogon/tx-04-04-e2e-08",
+  "observation_requirements": {
+    "V1": "manifest and capability correspondence, observed outer/native calls exactly once in Off/active/Closed; no hook unload",
+    "V10": "full replay twice, raw128/float/u64 boundaries from an actual Tear capture; L3-L5 real CLI, original source byte comparison"
+  },
+  "to_file_select": [
+    "ENTER"
+  ],
+  "open_character_menu": [
+    "ENTER"
+  ],
+  "start_run": [
+    "ENTER"
+  ],
+  "key_settle_ms": 1400,
+  "input_script": [
+    {
+      "after": 0,
+      "movement": [
+        0,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    },
+    {
+      "after": 4,
+      "movement": [
+        32767,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    },
+    {
+      "after": 8,
+      "movement": [
+        -32767,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    },
+    {
+      "after": 12,
+      "movement": [
+        0,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "name": "seed",
+      "phase": "setup",
+      "evidence": "native console seed; use explicit scenario seed or resolve actual first-run seed, verify GetStartSeedString afterwards"
+    },
+    {
+      "name": "world_observe",
+      "phase": "setup"
+    },
+    {
+      "name": "spawn",
+      "scene": "S4",
+      "id": "tear",
+      "type": 2,
+      "variant": 0,
+      "subtype": 0,
+      "seed": 400801,
+      "position": [
+        160,
+        200
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "spawner_ordinal": 0
+    },
+    {
+      "name": "world_observe",
+      "scene": "S4"
+    },
+    {
+      "name": "remove",
+      "scene": "S4",
+      "id": "tear"
+    }
+  ],
+  "comparison_actions": [
+    {
+      "name": "seed",
+      "phase": "setup",
+      "evidence": "use primary resolved actual seed; recorder must already be Recording before New Run and seed; verify GetStartSeedString before Host"
+    },
+    {
+      "name": "world_observe",
+      "phase": "setup"
+    }
+  ],
+  "unimplemented_runtime_requirements": {},
+  "focus": "V1_V10",
+  "launch_authorization": "USER_DIRECT_START_V1_V10"
+}

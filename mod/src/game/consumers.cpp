@@ -20,15 +20,26 @@ int ControlledOrdinal(void *player) noexcept {
   auto *r = Runtime();
   if (!r || r->finished || !player)
     return -1;
-  const unsigned count = r->mode == core::SessionMode::Host ? 2u : 1u;
+  const unsigned count = r->session.ParticipantLimit();
+  int found = -1;
   for (unsigned i = 0; i < count; ++i) {
+    // 历史集合只拦截中性查询，不赋予当前资格。
     if (player == r->controlled_player[i] ||
-        player == r->topology[i].pair.player)
-      return int(i);
+        r->topology[i].Contains(player, false)) {
+      // RefreshLifecycle已撤销冲突组资格；保留一个拦截归属，避免退回物理输入。
+      if (found >= 0 && found != int(i))
+        return found;
+      found = int(i);
+    }
   }
+  if (found >= 0)
+    return found;
   for (unsigned i = 0; i < count; ++i) {
-    const auto observed = ReadTopology(i, i ? r->device.Object() : nullptr);
-    if (observed.pair.player == player)
+    if (!r->session.HasParticipant(i))
+      continue;
+    const auto observed =
+        ReadTopology(i, i ? r->Remote(i).device.Object() : nullptr);
+    if (observed.Contains(player, false))
       return int(i);
   }
   return -1;
@@ -50,21 +61,24 @@ ConsumerScope::ConsumerScope(void *value, ConsumerKind type) noexcept
     InputLeaseUnavailable();
   auto &r = *Runtime();
   RuntimeHealthy();
-  RefreshLifecycle(r, false);
+  RefreshLifecycle(r, false, player);
   const auto ordinal = ControlledOrdinal(player);
   if (ordinal < 0)
     return;
   const auto tick = r.pipeline.SimulationTick();
+  if (tick && outer_player && outer_player->player == player)
+    outer_player->consumer_mask |= 1u << unsigned(kind);
   if (tick && unsigned(kind) > 0 && unsigned(kind) <= 6)
     ++r.metrics[ordinal].consumers[unsigned(kind) - 1];
   if (kind == ConsumerKind::Shooting) {
     call_original_ = tick && !r.blocks && r.players[ordinal].BoundValid() &&
-                     r.players[ordinal].Bound().player == player &&
-                     ContextHealthy() && !InBlockedContext() && !r.failure;
+                     r.topology[ordinal].Contains(player) && ContextHealthy() &&
+                     !InBlockedContext() && !r.failure;
     // 新代次尚无可消费命令时，短暂暂停 Shooting，避免把握手空档变成武器松键。
     // Authority 不等待远端；首条命令（包括真实中性）或六 tick 上限均结束例外。
     const auto &recovery = r.shooting_recovery[ordinal];
-    const bool startup_deferred = call_original_ &&
+    const bool startup_deferred =
+        call_original_ &&
         recovery.generation == r.players[ordinal].Generation() &&
         !recovery.source_seen && !r.players[ordinal].CurrentSequence() &&
         tick >= recovery.first_tick &&
@@ -82,18 +96,20 @@ ConsumerScope::ConsumerScope(void *value, ConsumerKind type) noexcept
     // 计数替代。session/participant generation、owner token 与 room/加载窗口
     // 分开记录，避免把内部 Player 更新当成 Authority tick。
     const auto owner = TopOwner();
-    Trace("shooting_dispatch",
-          "ordinal=%u original=%u tick=%llu blocks=%u loop=%llu generation=%llu "
-          "session_generation=%llu owner=%u owner_token=%llu room=%p index=%u "
-          "loading_episode=%llu participant_generation=%llu startup_deferred=%u "
-          "recovery_first_tick=%llu recovery_limit=%llu input_sequence=%llu recovery_source_seen=%u",
-          unsigned(ordinal), call_original_, tick, r.blocks, r.loop,
-          r.players[ordinal].Generation(), r.session.Identity().generation,
-          unsigned(owner), OwnerToken(owner), r.topology[ordinal].room.room,
-          r.topology[ordinal].room.index,
-          r.loading.active ? r.loading.id : 0, r.players[ordinal].Generation(),
-          startup_deferred, recovery.first_tick, kShootingRecoveryTicks,
-          r.players[ordinal].CurrentSequence(), recovery.source_seen);
+    Trace(
+        "shooting_dispatch",
+        "ordinal=%u original=%u tick=%llu blocks=%u loop=%llu generation=%llu "
+        "session_generation=%llu owner=%u owner_token=%llu room=%p index=%u "
+        "loading_episode=%llu participant_generation=%llu startup_deferred=%u "
+        "recovery_first_tick=%llu recovery_limit=%llu input_sequence=%llu "
+        "recovery_source_seen=%u",
+        unsigned(ordinal), call_original_, tick, r.blocks, r.loop,
+        r.players[ordinal].Generation(), r.session.Identity().generation,
+        unsigned(owner), OwnerToken(owner), r.topology[ordinal].room.room,
+        r.topology[ordinal].room.index, r.loading.active ? r.loading.id : 0,
+        r.players[ordinal].Generation(), startup_deferred, recovery.first_tick,
+        kShootingRecoveryTicks, r.players[ordinal].CurrentSequence(),
+        recovery.source_seen);
     r.last_dispatch_suppressed[ordinal] = !call_original_;
   }
 }
@@ -110,8 +126,10 @@ ConsumerScope::~ConsumerScope() noexcept {
 // 全部相同才允许把两次原生读取当作同一快照。无 tick 的查询只进加载窗口汇总。
 void RecordQuery(unsigned ordinal, ConsumerKind type, QueryKind query,
                  int action, float result) noexcept {
+  if (!Settings.diagnostics)
+    return;
   auto *r = Runtime();
-  if (!r || ordinal >= r->session.ParticipantCount() || unsigned(type) < 1 ||
+  if (!r || !r->session.HasParticipant(ordinal) || unsigned(type) < 1 ||
       unsigned(type) > 6 || unsigned(query) < 1 || unsigned(query) > 3 ||
       action < 0 || action >= int(kQueryActionCount))
     return;
@@ -135,8 +153,8 @@ void RecordQuery(unsigned ordinal, ConsumerKind type, QueryKind query,
   ++m.query_reads;
   m.query_read_mask |= 1u << action;
   ++r->query.reads;
-  auto &coverage = r->query.coverage[ordinal][consumer_index]
-                                     [unsigned(action)][query_index];
+  auto &coverage =
+      r->query.coverage[ordinal][consumer_index][unsigned(action)][query_index];
   ++coverage.reads;
   // 非有限结果单列诊断，不作为首次有限样本，也不把 NaN 与 NaN 比较成重复值。
   if (!std::isfinite(result)) {
@@ -211,9 +229,9 @@ void RecordQuery(unsigned ordinal, ConsumerKind type, QueryKind query,
           "event=mismatch ordinal=%u consumer=%u query=%u action=%d tick=%llu "
           "generation=%llu epoch=%llu first=%g last=%g loop=%llu "
           "session_generation=%llu participant_generation=%llu",
-          key.ordinal, key.consumer, key.query, action, key.tick, key.generation,
-          key.epoch, bucket->first, result, r->loop, SessionGeneration(*r),
-          key.generation);
+          key.ordinal, key.consumer, key.query, action, key.tick,
+          key.generation, key.epoch, bucket->first, result, r->loop,
+          SessionGeneration(*r), key.generation);
   }
 }
 PlayerScope::PlayerScope(void *value) noexcept
@@ -232,9 +250,11 @@ PlayerScope::PlayerScope(void *value) noexcept
   tick = r.pipeline.SimulationTick();
   generation = controlled ? r.players[ordinal].Generation() : 0;
   if (controlled) {
-    const auto before = WorldPlayerAnchor(unsigned(ordinal));
+    const auto before = WorldPlayerAnchor(unsigned(ordinal), player);
     world_device = reinterpret_cast<void *>(uintptr_t(before.device));
-    world_key = before.key; world_session = before.session; world_valid = before.valid;
+    world_key = before.key;
+    world_session = before.session;
+    world_valid = before.valid;
   }
   if (controlled && tick)
     ++r.metrics[ordinal].player_entered;
@@ -269,7 +289,7 @@ PlayerScope::~PlayerScope() noexcept {
   if (controlled && tick && r->pipeline.SimulationTick() == tick) {
     if (!native_reached)
       ++r->metrics[ordinal].chain_skipped;
-    else if (r->players[ordinal].BoundValid() &&
+    else if (Settings.diagnostics && r->players[ordinal].BoundValid() &&
              r->players[ordinal].Generation() == generation &&
              r->players[ordinal].Bound().player == player) {
       auto &m = r->metrics[ordinal];
@@ -284,12 +304,32 @@ PlayerScope::~PlayerScope() noexcept {
           std::isfinite(m.shoot_x) && std::isfinite(m.shoot_y);
     }
   }
-  RefreshLifecycle(*r, false);
+  if (controlled && native_reached && tick && consumer_mask && !r->blocks &&
+      !r->control_lifecycle_depth && r->players[ordinal].BoundValid() &&
+      r->players[ordinal].Generation() == generation &&
+      r->pipeline.SimulationTick() == tick) {
+    // 只有本身体实际进入原生更新/consumer并正常返回才作活动见证，备份关系不因此变成输入身体。
+    for (unsigned b = 0; b < r->topology[ordinal].body_count; ++b) {
+      const auto &body = r->topology[ordinal].bodies[b];
+      if (body.player != player || !body.native_activity_required)
+        continue;
+      r->body_activity[ordinal][b] = {player, generation, tick};
+      Trace("body_activity",
+            "ordinal=%u player=%p generation=%llu tick=%llu consumers=%u",
+            unsigned(ordinal), player, generation, tick, consumer_mask);
+    }
+  }
+  RefreshLifecycle(*r, false, player);
   if (controlled) {
-    const world::PlayerAnchor before{static_cast<std::uint32_t>(uintptr_t(player)),
-        static_cast<std::uint32_t>(uintptr_t(world_device)), world_key,
-        world_session, generation, world_valid};
-    WorldPlayerReturned(unsigned(ordinal), before, tick, normal, native_reached);
+    const world::PlayerAnchor before{
+        static_cast<std::uint32_t>(uintptr_t(player)),
+        static_cast<std::uint32_t>(uintptr_t(world_device)),
+        world_key,
+        world_session,
+        generation,
+        world_valid};
+    WorldPlayerReturned(unsigned(ordinal), before, tick, normal,
+                        native_reached);
   }
 }
 } // namespace cs::game

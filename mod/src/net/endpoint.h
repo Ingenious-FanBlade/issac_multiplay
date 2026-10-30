@@ -9,6 +9,8 @@ namespace cs::net::protocol {
 // tick。
 struct Config {
   Role role = Role::Authority;
+  // 每个 Endpoint 仅属于一个远端 ordinal；网络线程不推断 Player 身份。
+  std::uint32_t remote_ordinal = 1;
   Id session{}, local_nonce{};
   Text build{};
   std::uint32_t peer_timeout_ms = 3000;

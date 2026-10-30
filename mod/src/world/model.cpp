@@ -332,6 +332,7 @@ void RawObject::Reset() noexcept {
   ordinal = kNoOrdinal;
   field_count = 0;
   grid_index = kNoGridIndex;
+  rng = {};
   // 字段数组只清到有效范围之外不必要；field_count=0 后旧字节不被读取。
 }
 void RawBatch::Reset() noexcept {

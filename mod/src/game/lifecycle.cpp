@@ -6,13 +6,20 @@
 #include "game/persistence.h"
 #include "game/remote_life.h"
 #include "game/state.h"
-#include "game/world_bridge.h"
 #include "game/tick.h"
+#include "game/world_bridge.h"
 #include "runtime.h"
 #include <algorithm>
 
 namespace cs::game {
 namespace {
+// 观测统计汇总所有Peer；不让旧的单B计数冒充全体admission。
+uint64_t AdmittedTotal(const SessionRuntime &r) noexcept {
+  uint64_t total = 0;
+  for (const auto &remote : r.remotes)
+    total += remote.peer.admitted;
+  return total;
+}
 // 只从已读取的 game 字段判断加载窗口，不把内部 Room/Player 更新当成加载。
 bool LoadingFromFlags(const Topology &value) noexcept {
   return value.known && value.run &&
@@ -46,15 +53,6 @@ const char *LoadingEnterReason(const Topology &value) noexcept {
     return "stage_transition_enter";
   return "loading_enter";
 }
-// PeerLost 是防御路径：停止 admission/publication 后按既有次序退休，
-// 不重试 Join，不再创建 K。
-void RequestPeerLost(SessionRuntime &r, const char *reason) noexcept {
-  Trace("session", "to=Retiring reason=PeerLost detail=%s loop=%llu",
-        reason && reason[0] ? reason : "remote_conflict", r.loop);
-  StopSession(core::SessionCause::PeerLost);
-  if (!r.retiring)
-    FailRuntime("peer_lost_retirement_rejected");
-}
 } // namespace
 // 两个 ordinal 对称失效；旧地址只用于识别中性查询，绝不据此解引用旧 Player。
 void InvalidateBinding(SessionRuntime &r, const char *reason,
@@ -64,19 +62,22 @@ void InvalidateBinding(SessionRuntime &r, const char *reason,
   ++r.query_epoch;
   if (r.loading.active)
     ++r.loading.invalidations;
-  for (unsigned i = 0; i < r.session.ParticipantCount(); ++i) {
+  for (unsigned i = 0; i < r.session.ParticipantLimit(); ++i) {
     WorldRevokePlayer(i);
     if (r.players[i].BoundValid()) {
       r.controlled_player[i] = r.players[i].Bound().player;
       r.players[i].Invalidate();
-      Trace("binding",
-            "ordinal=%u bound=0 generation=%llu reason=%s epoch=%llu loop=%llu "
-            "reason_class=%s session_generation=%llu participant_generation=%llu",
-            i, r.players[i].Generation(), reason, r.query_epoch, r.loop,
-            EligibilityReasonClass(reason), SessionGeneration(r), r.players[i].Generation());
+      Trace(
+          "binding",
+          "ordinal=%u bound=0 generation=%llu reason=%s epoch=%llu loop=%llu "
+          "reason_class=%s session_generation=%llu participant_generation=%llu",
+          i, r.players[i].Generation(), reason, r.query_epoch, r.loop,
+          EligibilityReasonClass(reason), SessionGeneration(r),
+          r.players[i].Generation());
     }
   }
-  r.life.pending_reason = reason;
+  for (auto &remote : r.remotes)
+    remote.life.pending_reason = reason;
   if (defer)
     r.defer_through = (std::max)(r.defer_through, r.loop);
   DiscardInputEdges();
@@ -98,12 +99,13 @@ void BeginLoadingEpisode(SessionRuntime &r, unsigned reasons,
   episode.start_loop = r.loop;
   episode.start_completed = r.clock.Completed();
   episode.overrides_at_start = r.overrides;
-  episode.admitted_at_start = r.peer.admitted;
-  episode.queue_at_start = {r.players[0].Depth(), r.players[1].Depth()};
-  episode.generation_at_start = {r.players[0].Generation(),
-                                 r.players[1].Generation()};
+  episode.admitted_at_start = AdmittedTotal(r);
+  for (unsigned i = 0; i < r.session.ParticipantLimit(); ++i)
+    episode.queue_at_start[i] = r.players[i].Depth();
+  for (unsigned i = 0; i < r.session.ParticipantLimit(); ++i)
+    episode.generation_at_start[i] = r.players[i].Generation();
   episode.reasons = reasons;
-  for (unsigned i = 0; i < r.session.ParticipantCount(); ++i) {
+  for (unsigned i = 0; i < r.session.ParticipantLimit(); ++i) {
     const auto progress = r.players[i].Progress(r.clock.Completed());
     episode.submit_at_start[i] = progress.submit_count;
     episode.resolved_tick_at_start[i] = progress.last_resolved_tick;
@@ -111,16 +113,17 @@ void BeginLoadingEpisode(SessionRuntime &r, unsigned reasons,
   Trace("loading",
         "event=begin episode=%llu source=%s loop=%llu tick=%llu reasons=%u "
         "first_menu=%u queue=%llu,%llu generation=%llu,%llu overrides=%llu "
-        "admitted=%llu session_generation=%llu a_generation=%llu b_generation=%llu "
+        "admitted=%llu session_generation=%llu a_generation=%llu "
+        "b_generation=%llu "
         "submit=%llu,%llu resolved_tick=%llu,%llu",
         episode.id, episode.reason, r.loop, episode.start_completed,
         episode.reasons, episode.first_menu, episode.queue_at_start[0],
         episode.queue_at_start[1], episode.generation_at_start[0],
         episode.generation_at_start[1], episode.overrides_at_start,
-        episode.admitted_at_start, SessionGeneration(r), r.players[0].Generation(),
-        r.players[1].Generation(), episode.submit_at_start[0],
-        episode.submit_at_start[1], episode.resolved_tick_at_start[0],
-        episode.resolved_tick_at_start[1]);
+        episode.admitted_at_start, SessionGeneration(r),
+        r.players[0].Generation(), r.players[1].Generation(),
+        episode.submit_at_start[0], episode.submit_at_start[1],
+        episode.resolved_tick_at_start[0], episode.resolved_tick_at_start[1]);
 }
 void EndLoadingEpisode(SessionRuntime &r, const char *reason) noexcept {
   auto &episode = r.loading;
@@ -131,10 +134,12 @@ void EndLoadingEpisode(SessionRuntime &r, const char *reason) noexcept {
   episode.end_loop = r.loop;
   episode.end_completed = r.clock.Completed();
   episode.overrides_at_end = r.overrides;
-  episode.admitted_at_end = r.peer.admitted;
-  episode.queue_at_end = {r.players[0].Depth(), r.players[1].Depth()};
-  episode.generation_at_end = {r.players[0].Generation(), r.players[1].Generation()};
-  for (unsigned i = 0; i < r.session.ParticipantCount(); ++i) {
+  episode.admitted_at_end = AdmittedTotal(r);
+  for (unsigned i = 0; i < r.session.ParticipantLimit(); ++i)
+    episode.queue_at_end[i] = r.players[i].Depth();
+  for (unsigned i = 0; i < r.session.ParticipantLimit(); ++i)
+    episode.generation_at_end[i] = r.players[i].Generation();
+  for (unsigned i = 0; i < r.session.ParticipantLimit(); ++i) {
     const auto progress = r.players[i].Progress(r.clock.Completed());
     episode.submit_at_end[i] = progress.submit_count;
     episode.resolved_tick_at_end[i] = progress.last_resolved_tick;
@@ -157,13 +162,16 @@ void EndLoadingEpisode(SessionRuntime &r, const char *reason) noexcept {
         episode.queue_at_start[0], episode.queue_at_start[1],
         episode.queue_at_end[0], episode.queue_at_end[1],
         episode.generation_at_start[0], episode.generation_at_start[1],
-        episode.generation_at_end[0], episode.generation_at_end[1], SessionGeneration(r),
-        episode.submit_at_start[0], episode.submit_at_start[1],
-        episode.submit_at_end[0], episode.submit_at_end[1],
-        episode.resolved_tick_at_start[0], episode.resolved_tick_at_start[1],
-        episode.resolved_tick_at_end[0], episode.resolved_tick_at_end[1]);
+        episode.generation_at_end[0], episode.generation_at_end[1],
+        SessionGeneration(r), episode.submit_at_start[0],
+        episode.submit_at_start[1], episode.submit_at_end[0],
+        episode.submit_at_end[1], episode.resolved_tick_at_start[0],
+        episode.resolved_tick_at_start[1], episode.resolved_tick_at_end[0],
+        episode.resolved_tick_at_end[1]);
 }
 void RecordLoadingQuery(bool nonzero, bool known_context) noexcept {
+  if (!Settings.diagnostics)
+    return;
   auto *r = Runtime();
   if (!r || !r->loading.active)
     return;
@@ -181,16 +189,17 @@ void NoteLoadingOwnerEntered(unsigned bit) noexcept {
   auto *r = Runtime();
   if (!r || r->finished)
     return;
-  // Hosting 未握手时也可保留菜单 Host；已握手时必须是 Warmup。
-  const bool session_ready =
-      !r->peer.established ||
-      r->session.Status().state == core::SessionState::Warmup;
+  // 初次菜单加载只允许尚无设备/Join/绑定的全体名单；不会只检查首个远端。
+  bool pristine = !r->run_observed;
+  for (const auto &remote : r->remotes)
+    pristine &=
+        !remote.join.complete && remote.device.State() == DeviceKState::Empty;
+  for (const auto &player : r->players)
+    pristine &= !player.BoundValid();
   const bool qualified =
       bit == StartOwner && r->mode == core::SessionMode::Host &&
-      session_ready && !r->run_observed && !r->join.complete &&
-      !RunActive() && r->device.State() == DeviceKState::Empty &&
-      !r->players[0].BoundValid() && !r->players[1].BoundValid() &&
-      !r->retiring && !r->failure;
+      r->session.Status().state == core::SessionState::Warmup && pristine &&
+      !RunActive() && !r->retiring && !r->failure;
   if (bit == StartOwner)
     r->start_qualified = qualified;
   if (r->loading.active)
@@ -222,13 +231,14 @@ void NoteLoadingOwnerReturned(unsigned bit, bool normal) noexcept {
   Trace("loading_owner",
         "event=return bit=%u owner=%u owner_token=%llu normal=%u loop=%llu "
         "tick=%llu starting=%u stage=%d room_transition=%d generation=%llu "
-        "session_generation=%llu episode=%llu a_generation=%llu b_generation=%llu",
+        "session_generation=%llu episode=%llu a_generation=%llu "
+        "b_generation=%llu",
         bit, unsigned(owner), OwnerToken(owner), unsigned(normal), r->loop,
         r->clock.Completed(), unsigned(r->topology[0].starting),
         r->topology[0].stage_transition, r->topology[0].room_transition,
         SessionGeneration(*r), SessionGeneration(*r),
-        r->loading.active ? r->loading.id : 0,
-        r->players[0].Generation(), r->players[1].Generation());
+        r->loading.active ? r->loading.id : 0, r->players[0].Generation(),
+        r->players[1].Generation());
   if (!normal) {
     FailRuntime("loading_owner_exception");
     return;
@@ -250,8 +260,8 @@ bool StartGameRequested(void *manager) noexcept {
   return requested;
 }
 LoadingOwnerScope::LoadingOwnerScope(bool start_owner, bool enabled) noexcept
-    : bit_(start_owner ? StartOwner : LifecycleOwner), main_(IsMain() && enabled),
-      exceptions_(std::uncaught_exceptions()) {
+    : bit_(start_owner ? StartOwner : LifecycleOwner),
+      main_(IsMain() && enabled), exceptions_(std::uncaught_exceptions()) {
   if (main_)
     NoteLoadingOwnerEntered(bit_);
 }
@@ -260,15 +270,119 @@ LoadingOwnerScope::~LoadingOwnerScope() noexcept {
     return;
   NoteLoadingOwnerReturned(bit_, exceptions_ == std::uncaught_exceptions());
 }
-void RefreshLifecycle(SessionRuntime &r, bool authority) noexcept {
-  if (r.finished || r.retiring || r.join.scope ||
-      (r.mode == core::SessionMode::Host && !r.peer.established))
+namespace {
+// 完整图已在当前边界确认后，consumer只检查当前身体、设备及全局阻断字段。
+// 任一变化都退回完整图读取；不在原生调用之间缓存未知对象，也不因缓存授予绑定。
+bool StableConsumerSnapshot(const SessionRuntime &r, void *player) noexcept {
+  if (!player || !r.pipeline.SimulationTick() || r.blocks || !r.observed ||
+      r.lifecycle_loop != r.loop || r.lifecycle_epoch != r.query_epoch)
+    return false;
+  const auto &host = r.topology[0];
+  void *game = GamePointer(), *room = nullptr, *manager = nullptr;
+  bool run = false, starting = false, focused = false, pause_on_focus = false;
+  int pause = 0, room_transition = 0, stage_transition = 0;
+  unsigned stage = 0, stage_type = 0, index = 0, dimension = 0;
+  if (!host.known || game != host.room.game ||
+      !ReadAt(game, offset::RunActive, run) || run != host.run ||
+      !ReadAt(game, offset::CurrentRoom, room) || room != host.room.room ||
+      !ReadAt(game, 0, stage) || stage != host.room.stage ||
+      !ReadAt(game, 4, stage_type) || stage_type != host.room.stage_type ||
+      !ReadAt(game, offset::RoomIndex, index) || index != host.room.index ||
+      !ReadAt(game, offset::Dimension, dimension) ||
+      dimension != host.room.dimension ||
+      !ReadAt(game, offset::PauseScreen, pause) || pause != host.pause ||
+      !ReadAt(game, offset::RoomTransition, room_transition) ||
+      room_transition != host.room_transition ||
+      !ReadAt(game, offset::StageTransition, stage_transition) ||
+      stage_transition != host.stage_transition ||
+      !ReadMemory(reinterpret_cast<void *>(Base + offset::Manager), &manager,
+                  sizeof(manager)) ||
+      !ReadAt(manager, offset::Starting, starting) ||
+      starting != host.starting || !ReadAt(manager, offset::Focus, focused) ||
+      focused != host.focused ||
+      !ReadAt(manager, offset::PauseOnFocusLost, pause_on_focus) ||
+      pause_on_focus != host.pause_on_focus_lost)
+    return false;
+  for (unsigned ordinal = 0; ordinal < r.session.ParticipantLimit();
+       ++ordinal) {
+    if (!r.session.HasParticipant(ordinal))
+      continue;
+    const auto &group = r.topology[ordinal];
+    for (unsigned b = 0; b < group.body_count; ++b) {
+      const auto &body = group.bodies[b];
+      if (body.player != player)
+        continue;
+      unsigned type = 0, variant = 0;
+      int character = -1, controller = -1, device_id = -1;
+      bool valid = false, exists = false, dead = false, removed = false,
+           ghost = false, enabled = false;
+      if (!ReadAt(player, offset::EntityType, type) || type != 1 ||
+          !ReadAt(player, offset::EntityVariant, variant) || variant != 0 ||
+          !ReadAt(player, offset::PlayerType, character) ||
+          character != body.character ||
+          !ReadAt(player, offset::ControllerIndex, controller) ||
+          controller != body.controller ||
+          !ReadAt(player, offset::EntityValid, valid) || valid != body.valid ||
+          !ReadAt(player, offset::EntityExists, exists) ||
+          exists != body.exists || !ReadAt(player, offset::EntityDead, dead) ||
+          dead != body.dead ||
+          !ReadAt(player, offset::EntityRemoved, removed) ||
+          removed != body.removed ||
+          !ReadAt(player, offset::CoopGhost, ghost) || ghost != body.ghost ||
+          !ReadAt(group.pair.device, offset::DeviceId, device_id) ||
+          device_id != group.pair.key ||
+          !ReadAt(group.pair.device, offset::DeviceEnabled, enabled) ||
+          !enabled)
+        return false;
+      constexpr size_t offsets[] = {0x1D84, 0x1E4C, 0x1E50, 0x267C};
+      for (unsigned relation = 0; relation < 4; ++relation) {
+        void *target = nullptr;
+        if (!ReadAt(player, offsets[relation], target) ||
+            target != body.relations[relation])
+          return false;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+} // namespace
+void RefreshLifecycle(SessionRuntime &r, bool authority,
+                      void *consumer_player) noexcept {
+  if (r.finished || r.retiring || r.join_ordinal || r.control_lifecycle_depth ||
+      !r.core_started)
     return;
+  if (!authority && !Settings.repeat_topology_reads &&
+      StableConsumerSnapshot(r, consumer_player)) {
+    ++r.lifecycle_reuses;
+    return;
+  }
+  ++r.lifecycle_refreshes;
   const bool host_mode = r.mode == core::SessionMode::Host;
-  std::array<Topology, 2> values{ReadTopology(), {}};
+  std::array<Topology, core::kMaximumParticipants> values{};
+  values[0] = ReadTopology();
   if (host_mode)
-    values[1] = ReadTopology(1, r.device.Object());
-  const bool remote = host_mode && r.join.complete;
+    for (unsigned i = 1; i < core::kMaximumParticipants; ++i)
+      if (r.Remote(i).join.complete && !r.Remote(i).retired)
+        values[i] = ReadTopology(i, r.Remote(i).device.Object());
+  // 不同参与者不得共享身体（包括备份）。冲突只撤销相关组，不借查询回退串用物理设备。
+  for (unsigned i = 0; i < r.session.ParticipantLimit(); ++i)
+    for (unsigned j = i + 1; j < r.session.ParticipantLimit(); ++j) {
+      if (!r.session.HasParticipant(i) || !r.session.HasParticipant(j))
+        continue;
+      bool overlap = false;
+      for (unsigned b = 0; b < values[i].body_count; ++b)
+        overlap |= values[j].Contains(values[i].bodies[b].player, false);
+      if (overlap)
+        for (unsigned k : {i, j}) {
+          values[k].unique = false;
+          values[k].fault = TopologyFault::Ambiguous;
+          values[k].reason = "cross_participant_body_conflict";
+          if (r.players[k].BoundValid())
+            r.players[k].Invalidate();
+          WorldRevokePlayer(k);
+        }
+    }
   const auto &value = values[0];
   if (value.known && !value.run) {
     // 主菜单握手后的 Warmup 无限等待首次 run；真正经历 run 后离开才是
@@ -296,10 +410,11 @@ void RefreshLifecycle(SessionRuntime &r, bool authority) noexcept {
     r.run_observed = true;
   const auto old_blocks = r.blocks;
   unsigned blocks = 0;
-  if (!value.known || !value.unique || !value.Alive() || !ContextHealthy())
+  if (!value.known || !value.room.room || !ContextHealthy())
     blocks |= Lifecycle;
   if (r.console_blocked ||
-      (run && (value.pause > 0 || (!value.focused && value.pause_on_focus_lost))))
+      (run &&
+       (value.pause > 0 || (!value.focused && value.pause_on_focus_lost))))
     blocks |= Pause;
   if (loading)
     blocks |= Loading;
@@ -312,13 +427,17 @@ void RefreshLifecycle(SessionRuntime &r, bool authority) noexcept {
     EndLoadingEpisode(r, "loading_clear");
   }
   // 3. 加载中只意味着不可绑定；人数/身份/归属矛盾只在非加载的稳定观察判断。
-  if (remote && run && !loading) {
-    const auto action = ObserveRemoteLife(r, value, values[1]);
-    if (action == RemoteLifeAction::PeerLost) {
-      // 先撤销 B 的输出资格，再请求有序退休；不重试 Join，不创建 K。
-      InvalidateRemoteBinding(r, r.life.conflict_reason);
-      RequestPeerLost(r, r.life.conflict_reason);
-      return;
+  if (host_mode && run && !loading) {
+    for (unsigned i = 1; i < core::kMaximumParticipants; ++i) {
+      auto &remote = r.Remote(i);
+      if (!remote.join.complete || remote.retiring || remote.retired)
+        continue;
+      const auto action = ObserveRemoteLife(r, value, values[i], i);
+      if (action == RemoteLifeAction::PeerLost) {
+        RequestRemoteRetirement(r, i, core::SessionCause::PeerLost);
+      } else if (action == RemoteLifeAction::Invalidate) {
+        InvalidateRemoteBinding(r, "remote_lifecycle_unavailable", i);
+      }
     }
   }
   // 4. A 的房间/生命/精确关联变化；B 的地址与归属变化由 ObserveRemoteLife
@@ -326,12 +445,23 @@ void RefreshLifecycle(SessionRuntime &r, bool authority) noexcept {
   if (r.observed && run && !loading) {
     if (!(values[0].room == r.topology[0].room))
       InvalidateBinding(r, "room_identity_changed", true);
-    else if (!SameLife(values[0], r.topology[0]))
-      InvalidateBinding(r, "player_lifecycle_changed", true);
-    else if (!(values[0].pair == r.topology[0].pair) ||
-             values[0].unique != r.topology[0].unique)
-      InvalidateBinding(r, "exact_pair_changed", true);
+    else if (!SameLife(values[0], r.topology[0]) ||
+             !SameControlGroup(values[0], r.topology[0]) ||
+             values[0].unique != r.topology[0].unique) {
+      // Host死亡/复活或角色切换只撤销自己的输入；其他Peer和Authority继续，不形成全员等待。
+      WorldRevokePlayer(0);
+      if (r.players[0].BoundValid())
+        r.players[0].Invalidate();
+      ++r.query_epoch;
+      DiscardInputEdges();
+      Trace("binding",
+            "ordinal=0 bound=0 reason=host_control_group_changed "
+            "generation=%llu loop=%llu",
+            r.players[0].Generation(), r.loop);
+    }
   }
+  if (r.loop <= r.defer_through)
+    blocks |= Lifecycle;
   const unsigned entered = blocks & ~old_blocks, left = old_blocks & ~blocks;
   if (entered) {
     // 进入阻断时记录具体来源：加载按 starting/换房/换层细分，便于 V13 归约。
@@ -346,8 +476,6 @@ void RefreshLifecycle(SessionRuntime &r, bool authority) noexcept {
                                           : "lifecycle_leave";
     InvalidateBinding(r, reason, false);
   }
-  if (r.loop <= r.defer_through)
-    blocks |= Lifecycle;
   r.blocks = blocks;
   r.topology = values;
   r.observed = true;
@@ -361,7 +489,8 @@ void RefreshLifecycle(SessionRuntime &r, bool authority) noexcept {
   // 5. 只有稳定且未阻断的 Authority 入口才重新唯一绑定；B 的死亡状态在此
   // 之前已拒绝输入，不会因为 blocks 清零而被绕过。
   if (authority && !blocks) {
-    if (!r.players[0].BoundValid() && values[0].unique && values[0].Alive()) {
+    if (r.loop > r.binding_defer_through[0] && !r.control_quarantined[0] &&
+        !r.players[0].BoundValid() && values[0].unique && values[0].Alive()) {
       if (!r.players[0].Bind(values[0].pair)) {
         FailRuntime("unique_binding_rejected");
         return;
@@ -370,38 +499,49 @@ void RefreshLifecycle(SessionRuntime &r, bool authority) noexcept {
       ++r.query_epoch;
       Trace("binding",
             "ordinal=0 bound=1 generation=%llu loop=%llu "
-            "reason=stable_authority session_generation=%llu participant_generation=%llu epoch=%llu",
+            "reason=stable_authority session_generation=%llu "
+            "participant_generation=%llu epoch=%llu",
             r.players[0].Generation(), r.loop, SessionGeneration(r),
             r.players[0].Generation(), r.query_epoch);
     }
-    if (remote && !r.players[1].BoundValid()) {
-      const bool revived = r.life.status == RemoteLifeStatus::Revived;
-      if (r.life.status == RemoteLifeStatus::Alive || revived)
-        BindRevivedRemote(r, revived);
-    }
+    if (host_mode)
+      for (unsigned i = 1; i < core::kMaximumParticipants; ++i) {
+        auto &remote = r.Remote(i);
+        if (!remote.join.complete || remote.retiring || remote.retired ||
+            r.players[i].BoundValid())
+          continue;
+        const bool revived = remote.life.status == RemoteLifeStatus::Revived;
+        if (remote.life.status == RemoteLifeStatus::Alive || revived)
+          BindRevivedRemote(r, revived, i);
+      }
   }
   WorldRefreshAnchors();
   ObservePersistenceWindows(r);
+  r.lifecycle_loop = r.loop;
+  r.lifecycle_epoch = r.query_epoch;
 }
 // Warmup 的稳定 Authority 只负责 K 的一次创建/等待 Join，不分配输入或推进
 // tick。Active 之后只要求 A 与会话可用，允许 B 为 Lost/未绑定。
 bool ReadyForAuthority(SessionRuntime &r) noexcept {
+  if (r.control_lifecycle_depth)
+    return false;
   RefreshLifecycle(r, true);
-  if (r.retiring || r.blocks || !r.players[0].BoundValid())
+  if (r.retiring || r.blocks ||
+      (!r.players[0].BoundValid() &&
+       r.session.Status().state != core::SessionState::Active))
     return false;
   if (r.mode == core::SessionMode::Host) {
-    if (r.device.State() == DeviceKState::Empty) {
-      if (!r.device.CreateOnce())
-        FailRuntime("device_k_creation_failed");
-      return false;
+    for (unsigned i = 1; i < core::kMaximumParticipants; ++i) {
+      auto &remote = r.Remote(i);
+      if (!remote.peer.established || remote.retiring || remote.retired)
+        continue;
+      if (remote.device.State() == DeviceKState::Empty) {
+        if (!remote.device.CreateOnce())
+          RequestRemoteRetirement(r, i, core::SessionCause::PeerProtocol);
+      } else if (remote.device.State() != DeviceKState::Registered) {
+        RequestRemoteRetirement(r, i, core::SessionCause::PeerLost);
+      }
     }
-    if (r.device.State() != DeviceKState::Registered) {
-      FailRuntime("device_k_lost");
-      return false;
-    }
-    if (r.session.Status().state == core::SessionState::Warmup &&
-        (!r.join.complete || !r.players[1].BoundValid()))
-      return false;
   }
   if (r.session.Status().state == core::SessionState::Warmup) {
     if (!r.session.Activate(r.players[0].BoundValid(),
@@ -445,10 +585,10 @@ void RunTeardownBeginning(bool native_exit) noexcept {
     return;
   if (auto *r = Runtime(); r && !r->finished) {
     r->run_torn_down = true;
-    // 只有真正的 Game::Exit 观察点才开启 run_exit 窗口。
-    if (native_exit)
-      OpenPersistenceWindow(PersistenceWindowKind::RunExit, "native_exit");
   }
+  // 窗口属于真实原生退出，不依赖 Host 仍活动；只观察，不重建会话或旧绑定。
+  if (native_exit)
+    OpenPersistenceWindow(PersistenceWindowKind::RunExit, "native_exit");
   StopSession(core::SessionCause::RunTeardown);
 }
 std::string LoadingFields(const SessionRuntime *r) {
@@ -477,20 +617,27 @@ std::string LoadingFields(const SessionRuntime *r) {
   n("loading_end_loop", episode ? episode->end_loop : 0);
   n("loading_completed_start", episode ? episode->start_completed : 0);
   n("loading_completed_end", episode ? episode->end_completed : 0);
-  n("loading_admitted_current", r ? r->peer.admitted : 0);
-  for (unsigned i = 0; i < 2; ++i) {
-    const std::string prefix = std::string("loading.") + (i ? "b." : "a.");
-    n((prefix + "queue_start").c_str(), episode ? episode->queue_at_start[i] : 0);
+  n("loading_admitted_current", r ? AdmittedTotal(*r) : 0);
+  for (unsigned i = 0; i < core::kMaximumParticipants; ++i) {
+    const std::string prefix =
+        std::string("loading.participant.") + std::to_string(i) + ".";
+    n((prefix + "queue_start").c_str(),
+      episode ? episode->queue_at_start[i] : 0);
     n((prefix + "queue_end").c_str(), episode ? episode->queue_at_end[i] : 0);
-    n((prefix + "generation_start").c_str(), episode ? episode->generation_at_start[i] : 0);
-    n((prefix + "generation_end").c_str(), episode ? episode->generation_at_end[i] : 0);
-    n((prefix + "submit_start").c_str(), episode ? episode->submit_at_start[i] : 0);
+    n((prefix + "generation_start").c_str(),
+      episode ? episode->generation_at_start[i] : 0);
+    n((prefix + "generation_end").c_str(),
+      episode ? episode->generation_at_end[i] : 0);
+    n((prefix + "submit_start").c_str(),
+      episode ? episode->submit_at_start[i] : 0);
     n((prefix + "submit_end").c_str(), episode ? episode->submit_at_end[i] : 0);
-    n((prefix + "resolved_tick_start").c_str(), episode ? episode->resolved_tick_at_start[i] : 0);
-    n((prefix + "resolved_tick_end").c_str(), episode ? episode->resolved_tick_at_end[i] : 0);
+    n((prefix + "resolved_tick_start").c_str(),
+      episode ? episode->resolved_tick_at_start[i] : 0);
+    n((prefix + "resolved_tick_end").c_str(),
+      episode ? episode->resolved_tick_at_end[i] : 0);
   }
-  out += "loading_source=" +
-         std::string(episode ? episode->reason : "none") + "\n";
+  out += "loading_source=" + std::string(episode ? episode->reason : "none") +
+         "\n";
   out += "loading_end_reason=" +
          std::string(episode ? episode->end_reason : "none") + "\n";
   n("start_qualified", r && r->start_qualified);

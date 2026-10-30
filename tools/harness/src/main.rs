@@ -8,8 +8,11 @@ mod tx05;
 mod tx06;
 mod tx07;
 mod tx08;
+mod tx09;
 mod win32;
 mod world;
+mod observation;
+mod tx10;
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -242,7 +245,12 @@ impl Control {
                 self.record(json!({"event":"startup_focus_pending","error":error,
                     "elapsed_ms":self.clock.elapsed().as_millis()}))?;
             }
-            last = self.request("cs status")?;
+            // 启动加载可能尚未响应窗口激活；只读状态不要求焦点，实际发键仍由win32::focus确认。
+            // 保存/恢复正常请求的焦点要求，错误路径也不能把后续场景变成无焦点操作。
+            let focus_window = self.focus_window.take();
+            let startup_response = self.request("cs status");
+            self.focus_window = focus_window;
+            last = startup_response?;
             match last.get("ok").map(String::as_str) {
                 Some("1") => {
                     let menu = last.get("menu_id").map(String::as_str);
@@ -330,11 +338,15 @@ impl Run {
         let mut content = json!({"schema":1,"enabled":enabled,"log_level":"info","trace_dir":"isaac-cs/traces",
             "control_port":{"enabled":enabled,"port":self.scenario["control_port"]},"host":{"default_port":self.scenario["host_port"].as_u64().unwrap_or(27090),
                 "bind_address":"127.0.0.1","peer_timeout_ms":self.scenario["peer_timeout_ms"].as_u64().unwrap_or(3000)}});
-        if self.report["tx"] == "tx-04-08" {
+        if self.report["tx"] == "tx-04-08" || self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" {
             content["world_record"] = json!({"enabled":enabled,
                 "output_dir":self.out.join("runtime-world"),"close_timeout_ms":self.scenario["close_timeout_ms"],
                 "e2e_token":self.report["token"]});
         }
+        // E2E显式启用明细；仍使用生产的拓扑复用路径，不强制逐consumer重读全图。
+        let production = self.report["tx"] == "tx-04-09" && self.scenario["production"] == true;
+        content["diagnostics"] = json!({"enabled":enabled && !production,"repeat_topology_reads":false});
+        if production { content["world_record"]["enabled"] = json!(false); }
         write_json(&p.join("config.json"), &content)?;
         self.deployment.push(json!({"operation":"write_config","destination":p.join("config.json"),"content":content}));
         write_json(&self.out.join("deployment.json"), &json!(self.deployment))?;
@@ -352,11 +364,12 @@ impl Run {
             self.out.join(format!("deployment-before-p{}",self.report["deploy_process"].as_u64().unwrap_or(1)))
         }else{self.out.join("deployment_before")};
         mkdir(&backup_root)?;
-        let targets = [
+        let mut targets = vec![
             ("out/repentogon/zhlIsaacCS.dll", "Repentogon/zhlIsaacCS.dll"),
             ("ui/isaac-cs-ui", "mods/isaac-cs-ui"),
             ("tests/e2e-mods/isaac-cs-test", "mods/isaac-cs-test"),
         ];
+        if self.report["tx"]=="tx-04-10" { targets.push(("mod/observation/isaac-cs-observation","mods/isaac-cs-observation")); }
         let existing = self.game.join("Repentogon/isaac-cs/config.json");
         if existing.exists() {
             fs::copy(&existing, backup_root.join("config.json"))
@@ -391,9 +404,13 @@ impl Run {
         self.deployed = true;
         if matches!(
             self.report["tx"].as_str(),
-            Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08")
+            Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10")
         ) {
-            let config = if self.report["tx"] == "tx-04-08" {
+            let config = if self.report["tx"] == "tx-04-10" {
+                format!("return {{tx=\"tx-04-10\",token=\"{}\"}}\n",self.report["token"].as_str().ok_or("token")?)
+            } else if self.report["tx"] == "tx-04-09" {
+                format!("return {{tx=\"tx-04-09\",token=\"{}\",seed=\"S227 7MNF\"}}\n", self.report["token"].as_str().ok_or("token")?)
+            } else if self.report["tx"] == "tx-04-08" {
                 self.fixture_config_tx08(self.report["deploy_process"].as_u64().unwrap_or(1))?
             } else if self.report["tx"] == "tx-04-07" {
                 self.fixture_config_tx07()?
@@ -1041,6 +1058,7 @@ impl Run {
     }
     // 所有场景在一个入口中顺序执行，不重试失败启动或失败验收。
     fn execute(&mut self) -> Result<()> {
+        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" { return self.execute_tx09(); }
         if self.report["tx"] == "tx-04-08" { return self.execute_tx08(); }
         if self.report["tx"] == "tx-04-07" {
             return self.execute_tx07();
@@ -1070,6 +1088,7 @@ impl Run {
     }
     // 清理先于报告分析，失败也关闭测试口并移除自己部署的夹具。
     fn finish(&mut self, result: Result<()>) -> Result<()> {
+        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" { return self.finish_tx09(result); }
         if self.report["tx"] == "tx-04-08" { return self.finish_tx08(result); }
         if self.report["tx"] == "tx-04-07" {
             return self.finish_tx07(result);
@@ -1213,6 +1232,7 @@ fn main() {
 }
 fn entry() -> Result<()> {
     let args = env::args().skip(1).collect::<Vec<_>>();
+    if args.first().map(String::as_str)==Some("observation-read") { return observation::run_cli(&args); }
     if matches!(args.first().map(String::as_str), Some("world-replay" | "world-compare")) {
         return world::run_cli(&args);
     }
@@ -1222,7 +1242,7 @@ fn entry() -> Result<()> {
     if args.get(0).map(String::as_str) != Some("e2e")
         || !matches!(
             args.get(1).map(String::as_str),
-            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08")
+            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10")
         )
     {
         return Err("usage: harness e2e <tx-04-04|tx-04-05|tx-04-06|tx-04-07|tx-04-08> --game <game-root> --artifact-dir <new-directory> [--scenario <json>]".into());
@@ -1263,8 +1283,13 @@ fn entry() -> Result<()> {
     let scenario_path = option("--scenario")
         .map(PathBuf::from)
         .unwrap_or_else(|| repo.join(format!("tools/harness/scenarios/{}.json", args[1])));
-    let scenario: Value =
+    let mut scenario: Value =
         serde_json::from_str(&read(&scenario_path)?).map_err(|e| e.to_string())?;
+    if args[1] == "tx-04-09" {
+        let profile=option("--profile").unwrap_or_else(||"diagnostic".into());
+        if !["diagnostic","production"].contains(&profile.as_str()) { return Err("unknown tx09 profile".into()); }
+        scenario["production"] = json!(profile=="production");
+    }
     write_json(&out.join("scenario.json"), &scenario)?;
     let save = PathBuf::from(env::var("USERPROFILE").map_err(|e| e.to_string())?)
         .join("Documents/My Games/Binding of Isaac Repentance+");
@@ -1285,5 +1310,14 @@ fn entry() -> Result<()> {
     // 意外 Rust panic 也转为失败报告，确保走清理路径。
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| run.execute()))
         .unwrap_or_else(|_| Err("harness panic".into()));
-    run.finish(result)
+    let result=run.finish(result);
+    let remove_temporary=result.is_ok()&&run.report["remove_temporary_output"]==true;
+    drop(run); // Windows必须先关闭steps/transcript再清理临时目录。
+    if remove_temporary {
+        let resolved=out.canonicalize().map_err(|e|e.to_string())?;
+        let intended=PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().join("out").canonicalize().map_err(|e|e.to_string())?;
+        if resolved==intended || !resolved.starts_with(&intended){return Err("temporary_cleanup_path_escape".into());}
+        fs::remove_dir_all(resolved).map_err(|e|e.to_string())?;
+    }
+    result
 }

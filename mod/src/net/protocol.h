@@ -10,13 +10,13 @@
 namespace cs::net::protocol {
 
 inline constexpr std::array<std::uint8_t, 4> kMagic{'I', 'C', 'S', 'N'};
-inline constexpr std::uint16_t kVersion = 1, kHeaderSize = 64;
+inline constexpr std::uint16_t kVersion = 2, kHeaderSize = 64;
 inline constexpr std::size_t kMaximumPacket = 1200, kMaximumInputRecords = 4;
-inline constexpr std::size_t kHelloSize = 104, kInputPrefixSize = 16,
-                             kAckSize = 80 + kHelloSize, kByeSize = 16;
+inline constexpr std::size_t kHelloSize = 120, kInputPrefixSize = 16,
+                             kAckSize = 88 + kHelloSize, kByeSize = 16;
 // V2 输入、整包 CRC、有界冗余；不包含原型的世界观测能力。
 inline constexpr std::uint64_t kCapabilities = 1 | 4 | 8;
-inline constexpr std::array<std::uint64_t, 2> kClients{1, 2};
+inline constexpr std::array<std::uint64_t, core::kMaximumParticipants> kClients{1, 2, 3, 4};
 using Id = std::array<std::uint8_t, 16>;
 using Text = std::array<std::uint8_t, 32>;
 constexpr Text TextId(const char *value) noexcept {
@@ -97,7 +97,7 @@ struct Hello {
   Role role = Role::Remote;
   std::uint64_t capabilities = kCapabilities;
   std::uint32_t maximum_packet = kMaximumPacket;
-  std::array<std::uint64_t, 2> clients = kClients;
+  std::array<std::uint64_t, core::kMaximumParticipants> clients = kClients;
   bool operator==(const Hello &) const = default;
 };
 // 冗余命令从旧到新排列，command 是最新一条；仍由 Participant 做命令级去重。
@@ -113,7 +113,8 @@ struct Ack {
   std::uint64_t server_tick = 0, client_id = kClients[1], accepted = 0,
                 processed = 0, processed_tick = 0, processed_source = 0,
                 generation = 0, rejected_count = 0;
-  std::uint32_t rejection_mask = 0;
+  // 名单按冻结 ordinal 的位图发布；离开不重新编号，身体数量另行观测。
+  std::uint32_t rejection_mask = 0, roster_mask = 1;
   core::SessionState session_state = core::SessionState::Warmup;
   AckPurpose purpose = AckPurpose::Progress;
   std::uint64_t hello_sequence = 0;

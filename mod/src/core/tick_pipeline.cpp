@@ -35,8 +35,9 @@ bool TickPipeline::Configure(const InputRuntimeConfig &config) noexcept {
 // 中止不提交 previous，不伪造 completed；原生函数是否调用仍由 wrapper
 // 唯一决定。
 TickDecision TickPipeline::Abort(TickDecision reason) noexcept {
-  for (std::size_t i = 0; i < session_.ParticipantCount(); ++i)
-    players_[i].End(false);
+  for (std::size_t i = 0; i < session_.ParticipantLimit(); ++i)
+    if (session_.HasParticipant(static_cast<std::uint32_t>(i)))
+      players_[i].End(false);
   clock_.Cancel(reason);
   phase_ = TickPipelinePhase::Failed;
   if (session_.AllowsBinding() || session_.AllowsCompletion())
@@ -66,7 +67,9 @@ TickDecision TickPipeline::BeginDrain(const TickBoundary &boundary,
   if (!budget_ || budget_ > kMaximumAdmissionAttemptBudget)
     return Abort(TickDecision::DrainBudgetExceeded);
   // 只遍历当前模式的参与者；Host 的 A/B 共用检查，Solo 不触碰不存在的 B。
-  for (std::size_t i = 0; i < session_.ParticipantCount(); ++i) {
+  for (std::size_t i = 0; i < session_.ParticipantLimit(); ++i) {
+    if (!session_.HasParticipant(static_cast<std::uint32_t>(i)))
+      continue;
     if (!players_[i].BelongsTo(session_, static_cast<std::uint32_t>(i)) ||
         players_[i].Retired() ||
         players_[i].RuntimeConfig().future_window_ticks !=
@@ -124,8 +127,9 @@ TickDecision TickPipeline::BeginSimulation() noexcept {
   const auto decision = clock_.Begin(boundary_, session_.AcceptsInput(), false);
   if (decision != TickDecision::Started)
     return Abort(decision);
-  for (std::size_t i = 0; i < session_.ParticipantCount(); ++i)
-    if (!players_[i].Begin(candidate_))
+  for (std::size_t i = 0; i < session_.ParticipantLimit(); ++i)
+    if (session_.HasParticipant(static_cast<std::uint32_t>(i)) &&
+        !players_[i].Begin(candidate_))
       return Abort(TickDecision::Reentry);
   phase_ = TickPipelinePhase::Simulating;
   return TickDecision::Started;
@@ -138,8 +142,9 @@ TickDecision TickPipeline::NativeReturned(const TickBoundary &boundary,
       clock_.CheckComplete(boundary, normal, session_.AllowsCompletion());
   if (decision != TickDecision::Committed)
     return Abort(decision);
-  for (std::size_t i = 0; i < session_.ParticipantCount(); ++i)
-    players_[i].End(true);
+  for (std::size_t i = 0; i < session_.ParticipantLimit(); ++i)
+    if (session_.HasParticipant(static_cast<std::uint32_t>(i)))
+      players_[i].End(true);
   phase_ = TickPipelinePhase::AwaitPostState;
   return TickDecision::Committed;
 }
@@ -177,7 +182,10 @@ TickPipeline::FinishPostState(std::uint64_t loop,
   receipt_.boundary = boundary_;
   receipt_.post = post;
   receipt_.participant_count = session_.ParticipantCount();
-  for (std::size_t i = 0; i < receipt_.participant_count; ++i) {
+  receipt_.clients = {};
+  for (std::size_t i = 0; i < session_.ParticipantLimit(); ++i) {
+    if (!session_.HasParticipant(static_cast<std::uint32_t>(i)))
+      continue;
     const auto progress = players_[i].Progress(clock_.Completed());
     receipt_.clients[i] = {progress.client,
                            progress.generation,

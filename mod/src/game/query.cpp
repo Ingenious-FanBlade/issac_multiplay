@@ -7,6 +7,7 @@
 #include "game/tick.h"
 #include <cstddef>
 #include <cstdio>
+#include <cmath>
 
 namespace cs::game {
 // 返回 true 表示本次属于受控 A/B gameplay 查询，即使资格不足也必须输出中性。
@@ -20,10 +21,18 @@ bool OverrideQuery(void *device, int action, QueryKind kind,
   auto *context = CurrentConsumer();
   const auto ordinal = context ? ControlledOrdinal(context->player) : -1;
   if (ordinal < 0) {
-    // 没有受控 consumer 上下文：加载窗口内单独汇总 unknown_context，
-    // 仍然原样透传，不写 current/previous。
-    if (!runtime->pipeline.SimulationTick())
-      RecordLoadingQuery(false, false);
+    // 没有受控consumer时保持原值；输入参数已是物理wrapper的original结果，或K的中性回退值。
+    // 上下文仍未知，但返回值可直接观察，不能把默认false当作已证明的中性。
+    if (!runtime->pipeline.SimulationTick() && runtime->loading.active) {
+      const bool finite = std::isfinite(result);
+      RecordLoadingQuery(!finite || result != 0, false);
+      Trace("loading_unscoped_query",
+            "episode=%llu session_generation=%llu loop=%llu action=%d kind=%u "
+            "consumer_present=%u context_known=0 overridden=0 value=%g finite=%u zero=%u",
+            runtime->loading.id, SessionGeneration(*runtime), runtime->loop,
+            action, unsigned(kind), unsigned(context != nullptr), result,
+            unsigned(finite), unsigned(finite && result == 0));
+    }
     return false;
   }
   auto &r = *runtime;
@@ -35,7 +44,7 @@ bool OverrideQuery(void *device, int action, QueryKind kind,
   int device_id = -1, controller = -1;
   if (tick && !r.blocks && !r.failure && ContextHealthy() &&
       !InBlockedContext() && p.BoundValid() &&
-      p.Bound().player == context->player && p.Bound().device == device &&
+      r.topology[ordinal].Contains(context->player) && p.Bound().device == device &&
       ReadAt(device, offset::DeviceId, device_id) &&
       ReadAt(context->player, offset::ControllerIndex, controller) &&
       device_id == p.Bound().key && controller == p.Bound().key) {
@@ -56,7 +65,7 @@ void PublishQueryCoverage(SessionRuntime &r, const char *checkpoint) noexcept {
   const auto snapshot = ++r.query_snapshots;
   const auto *scope = checkpoint ? "checkpoint" : "session";
   const auto *label = checkpoint ? checkpoint : "session_end";
-  const unsigned count = r.session.ParticipantCount();
+  const unsigned count = r.session.ParticipantLimit();
   for (unsigned ordinal = 0; ordinal < count; ++ordinal) {
     for (unsigned consumer = 0; consumer < kQueryConsumerCount; ++consumer) {
       char keys[2800]{};

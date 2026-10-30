@@ -22,11 +22,11 @@ struct LoadingEpisode {
   std::uint64_t overrides_at_start = 0, overrides_at_end = 0;
   // admission 计数只作对照：加载窗口内不应有 Submit/Resolve 推进。
   std::uint64_t admitted_at_start = 0, admitted_at_end = 0;
-  std::array<std::uint64_t, 2> queue_at_start{}, generation_at_start{};
+  std::array<std::uint64_t, 4> queue_at_start{}, generation_at_start{};
   // 结束快照冻结；加载中的 status 另显示当前值，不用默认 0 冒充结束值。
-  std::array<std::uint64_t, 2> queue_at_end{}, generation_at_end{};
-  std::array<std::uint64_t, 2> submit_at_start{}, submit_at_end{},
-                             resolved_tick_at_start{}, resolved_tick_at_end{};
+  std::array<std::uint64_t, 4> queue_at_end{}, generation_at_end{};
+  std::array<std::uint64_t, 4> submit_at_start{}, submit_at_end{},
+      resolved_tick_at_start{}, resolved_tick_at_end{};
   std::uint64_t invalidations = 0;
   std::uint64_t queries = 0, queries_nonzero = 0, queries_unknown = 0;
   unsigned reasons = 0; // 进入时的 starting/room_transition/stage_transition
@@ -35,7 +35,8 @@ struct LoadingEpisode {
   const char *end_reason = "open";      // 退休收尾与稳定结束分别保留真实原因
   bool active = false, first_menu = false;
 };
-void RefreshLifecycle(SessionRuntime &runtime, bool authority) noexcept;
+void RefreshLifecycle(SessionRuntime &runtime, bool authority,
+                      void *consumer_player = nullptr) noexcept;
 void InvalidateBinding(SessionRuntime &runtime, const char *reason,
                        bool defer) noexcept;
 bool ReadyForAuthority(SessionRuntime &runtime) noexcept;

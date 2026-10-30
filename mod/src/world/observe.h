@@ -1,5 +1,7 @@
 #pragma once
-// tx-04-08 world_record 迁移：world 观察入口的专用策略层。
+// tx-04-08
+// world_record观察策略；tx-04-09为清单显式标记的shared_control入口增加独立输入资格通知。
+// 下方原world-only说明继续适用于未标记入口；共享生命周期由值回调交给主线程桥，不写游戏对象。
 //
 // 迁移设计 4.1/4.2 与失败方式 F4 要求：新增的 world 观察入口不能套用
 // `cs::CallScope` 的会话失败策略（非主线程 `game::ForeignCall()`、异常时
@@ -52,22 +54,36 @@ inline constexpr std::uint32_t kObservationFaultCount = 2;
 // 永久的值通知接线。只在主线程调用 sink；非主线程只递增故障序号。
 // 回调地址常驻 DLL，不携带可被后台释放的录制上下文。
 struct ObservationSink final {
-  std::uint32_t (*enter)(Observation, std::uint32_t, const std::uint32_t *, std::uint32_t, bool) noexcept;
+  std::uint32_t (*enter)(Observation, std::uint32_t, const std::uint32_t *,
+                         std::uint32_t, bool) noexcept;
   void (*leave)(std::uint32_t, std::uint32_t, bool, bool) noexcept;
+  // tx-04-09：共享生命周期的输入资格与world录制互相独立，回调仍只传值。
+  std::uint32_t (*control_enter)(Observation, std::uint32_t,
+                                 const std::uint32_t *,
+                                 std::uint32_t) noexcept = nullptr;
+  void (*control_leave)(std::uint32_t, bool) noexcept = nullptr;
+  void (*control_foreign)() noexcept = nullptr;
+  // Replace成功返回的值通知保留替换来源，不依赖原生随后清空的临时关系。
+  void (*control_replace)(std::uint32_t, std::uint32_t) noexcept = nullptr;
 };
 void SetObservationSink(const ObservationSink *sink) noexcept;
 std::uint64_t ObservationFailureSequence() noexcept;
+// 分类别的累计次数用于相邻录制/帧之间取增量；历史故障位不污染新录制。
+struct ObservationFailureCounts final {
+  std::uint64_t wrong_thread = 0, native_exception = 0;
+};
+ObservationFailureCounts ObservationFailures() noexcept;
 
 const char *ObservationFaultName(std::uint32_t bit) noexcept;
 
 // 单个观察语义的只读快照。地址与实参只用于诊断，不进入比较 key。
 struct ObservationSnapshot final {
   std::uint64_t entered = 0, returned = 0, exceptional = 0, foreign = 0;
-  std::uint64_t last_object = 0;  // 仅诊断：最后一次主线程进入的对象地址
-  std::uint64_t last_value = 0;   // 最近一次正常返回的 raw32
+  std::uint64_t last_object = 0; // 仅诊断：最后一次主线程进入的对象地址
+  std::uint64_t last_value = 0;  // 最近一次正常返回的 raw32
   std::uint32_t last_arg_count = 0;
   std::uint32_t last_args[kObservationArgWords]{};
-  std::uint32_t faults = 0;  // ObservationFault 位掩码
+  std::uint32_t faults = 0; // ObservationFault 位掩码
 };
 
 // 一个原生入口的进入/返回观察作用域。
@@ -86,7 +102,8 @@ public:
   ObservationScope(Observation observation, bool main_thread,
                    const void *object, HookCounters counters,
                    std::initializer_list<std::uint32_t> args,
-                   bool native_witness = false) noexcept;
+                   bool native_witness = false,
+                   bool shared_control = false) noexcept;
   ~ObservationScope() noexcept;
   ObservationScope(const ObservationScope &) = delete;
   ObservationScope &operator=(const ObservationScope &) = delete;
@@ -106,7 +123,8 @@ private:
   int exceptions_ = 0;
   const ObservationSink *sink_ = nullptr;
   std::uint32_t call_ = 0;
-  bool native_ = false;
+  bool native_ = false, shared_control_ = false;
+  std::uint32_t control_mask_ = 0;
 };
 
 // 读取一个观察语义的累计快照；越界编号返回全零，不猜测最近值。

@@ -1,7 +1,7 @@
-//! ICSN v1 的独立 Rust 线格式；只处理稳定值，不读取游戏或 C++ 结构。
+//! ICSN v2 的独立 Rust 线格式；只处理稳定值，不读取游戏或 C++ 结构。
 use crate::Result;
 use serde_json::{Value, json};
-pub const BUILD: &[u8] = b"isaac.cs.tx-04-07";
+pub const BUILD: &[u8] = b"isaac.cs.tx-04-09";
 pub const MAX_PACKET: usize = 1200;
 pub type Id = [u8; 16];
 const LIMIT: u64 = u64::MAX;
@@ -110,29 +110,31 @@ impl Agreement {
             }
     }
     fn encode(&self) -> Vec<u8> {
-        let mut b = vec![0; 104];
+        let mut b = vec![0; 120];
         b[..32].copy_from_slice(&self.build);
         b[32..48].copy_from_slice(&self.nonce);
         b[48..64].copy_from_slice(&self.peer);
         put(&mut b, 64, 2, 2);
-        put(&mut b, 66, 1, 2);
+        put(&mut b, 66, 2, 2);
         put(&mut b, 68, self.role.into(), 2);
         put(&mut b, 72, 13, 8);
         put(&mut b, 80, 1200, 4);
         put(&mut b, 88, 1, 8);
         put(&mut b, 96, 2, 8);
+        put(&mut b, 104, 3, 8);
+        put(&mut b, 112, 4, 8);
         b
     }
     fn decode(b: &[u8]) -> Result<Self> {
-        need(b.len() == 104, "agreement_length")?;
+        need(b.len() == 120, "agreement_length")?;
         need(u16_at(b, 70) == 0 && u32_at(b, 84) == 0, "reserved")?;
         need(
             u16_at(b, 64) == 2
-                && u16_at(b, 66) == 1
+                && u16_at(b, 66) == 2
                 && u64_at(b, 72) == 13
                 && u32_at(b, 80) == 1200
                 && u64_at(b, 88) == 1
-                && u64_at(b, 96) == 2,
+                && u64_at(b, 96) == 2 && u64_at(b, 104) == 3 && u64_at(b, 112) == 4,
             "incompatible",
         )?;
         Ok(Self {
@@ -147,6 +149,8 @@ impl Agreement {
 // 主机进度快照；高水位与本次实际来源序号分别保存。
 #[derive(Clone, Debug)]
 pub struct Ack {
+    pub client: u64,
+    pub roster: u32,
     pub tick: u64,
     pub accepted: u64,
     pub processed: u64,
@@ -163,7 +167,8 @@ pub struct Ack {
 impl Ack {
     // 首包必须是零进度 Warmup；后续进度允许 processed=0 的中性模拟。
     fn valid(&self) -> bool {
-        self.agreement.valid(true)
+        (2..=4).contains(&self.client) && self.roster & 1 != 0 && self.roster & !15 == 0
+            && self.agreement.valid(true)
             && self.tick < LIMIT
             && self.accepted < LIMIT
             && self.processed <= self.accepted
@@ -200,7 +205,7 @@ impl Ack {
             && next.mask & self.mask == self.mask
     }
     pub fn value(&self) -> Value {
-        json!({"tick":self.tick,"accepted":self.accepted,"processed":self.processed,
+        json!({"client":self.client,"roster":self.roster,"tick":self.tick,"accepted":self.accepted,"processed":self.processed,
         "processed_tick":self.processed_tick,"source":self.source,"generation":self.generation,
         "rejected":self.rejected,"mask":self.mask,"state":self.state,"purpose":self.purpose})
     }
@@ -222,6 +227,7 @@ pub enum Body {
 // 网络身份不含本地 Player/device 指针或临时绑定 generation。
 #[derive(Clone, Debug)]
 pub struct Message {
+    pub sender: u64,
     pub session: Id,
     pub role: u16,
     pub sequence: u64,
@@ -246,7 +252,7 @@ impl Message {
             Body::Ack(a) => a.value(),
             Body::Bye { reason, last_ack } => json!({"reason":reason,"last_ack":last_ack}),
         };
-        json!({"kind":self.kind(),"role":self.role,"sequence":self.sequence,"session":hex(&self.session),"content":content})
+        json!({"sender":self.sender,"kind":self.kind(),"role":self.role,"sequence":self.sequence,"session":hex(&self.session),"content":content})
     }
 }
 pub fn hex(b: &[u8]) -> String {
@@ -287,7 +293,7 @@ pub fn encode(m: &Message) -> Result<Vec<u8>> {
                 previous = c.sequence;
                 let n = 16 + i * 64;
                 p[n..n + 16].copy_from_slice(&m.session);
-                put(&mut p, n + 16, 2, 8);
+                put(&mut p, n + 16, m.sender, 8);
                 put(&mut p, n + 24, c.sequence, 8);
                 put(&mut p, n + 32, c.target, 8);
                 put(&mut p, n + 40, 2, 2);
@@ -315,10 +321,10 @@ pub fn encode(m: &Message) -> Result<Vec<u8>> {
         }
         Body::Ack(a) => {
             need(a.valid(), "ack_payload")?;
-            let mut p = vec![0; 80];
+            let mut p = vec![0; 88];
             for (i, v) in [
                 a.tick,
-                2,
+                a.client,
                 a.accepted,
                 a.processed,
                 a.processed_tick,
@@ -335,12 +341,13 @@ pub fn encode(m: &Message) -> Result<Vec<u8>> {
             put(&mut p, 68, a.state.into(), 2);
             put(&mut p, 70, a.purpose.into(), 2);
             put(&mut p, 72, a.hello, 8);
+            put(&mut p, 80, a.roster.into(), 4);
             p.extend(a.agreement.encode());
             p
         }
     };
     need(
-        (m.role == 1 || m.role == 2) && sequence(m.sequence),
+        (m.role == 1 && m.sender == 1 || m.role == 2 && (2..=4).contains(&m.sender)) && sequence(m.sequence),
         "sender",
     )?;
     need(
@@ -361,12 +368,12 @@ pub fn encode(m: &Message) -> Result<Vec<u8>> {
     )?;
     let mut b = vec![0; 64];
     b[..4].copy_from_slice(b"ICSN");
-    put(&mut b, 4, 1, 2);
+    put(&mut b, 4, 2, 2);
     put(&mut b, 6, m.kind().into(), 2);
     put(&mut b, 8, 64, 2);
     put(&mut b, 10, m.role.into(), 2);
     b[16..32].copy_from_slice(&m.session);
-    put(&mut b, 32, m.role.into(), 8);
+    put(&mut b, 32, m.sender, 8);
     put(&mut b, 40, m.sequence, 8);
     put(&mut b, 48, payload.len() as u64, 4);
     b.append(&mut payload);
@@ -377,7 +384,7 @@ pub fn encode(m: &Message) -> Result<Vec<u8>> {
 pub fn decode(b: &[u8]) -> Result<Message> {
     need((64..=MAX_PACKET).contains(&b.len()), "length")?;
     need(&b[..4] == b"ICSN", "magic")?;
-    need(u16_at(b, 4) == 1, "version")?;
+    need(u16_at(b, 4) == 2, "version")?;
     need(
         u16_at(b, 8) == 64 && b.len() == 64 + u32_at(b, 48) as usize,
         "header",
@@ -386,10 +393,11 @@ pub fn decode(b: &[u8]) -> Result<Message> {
     need(u32_at(b, 52) == 0 && u32_at(b, 60) == 0, "reserved")?;
     need(u32_at(b, 56) == crc(b), "crc")?;
     let role = u16_at(b, 10);
+    let sender = u64_at(b, 32);
     let sequence = u64_at(b, 40);
     let session: Id = b[16..32].try_into().unwrap();
     need(
-        (role == 1 || role == 2) && u64_at(b, 32) == u64::from(role),
+        (role == 1 && sender == 1) || (role == 2 && (2..=4).contains(&sender)),
         "identity",
     )?;
     need(self::sequence(sequence), "sequence")?;
@@ -418,7 +426,7 @@ pub fn decode(b: &[u8]) -> Result<Message> {
             let mut previous = 0;
             for i in 0..count {
                 let q = &p[16 + i * 64..16 + (i + 1) * 64];
-                need(q[..16] == session && u64_at(q, 16) == 2, "command_identity")?;
+                need(q[..16] == session && u64_at(q, 16) == sender, "command_identity")?;
                 let sequence = u64_at(q, 24);
                 let target = u64_at(q, 32);
                 let state = State {
@@ -449,10 +457,13 @@ pub fn decode(b: &[u8]) -> Result<Message> {
         }
         3 => {
             need(
-                role == 1 && nonzero(&session) && p.len() == 184,
+                role == 1 && nonzero(&session) && p.len() == 208,
                 "ack_length_or_role",
             )?;
+            need(u32_at(p, 84) == 0, "ack_reserved")?;
             let a = Ack {
+                client: u64_at(p, 8),
+                roster: u32_at(p, 80),
                 tick: u64_at(p, 0),
                 accepted: u64_at(p, 16),
                 processed: u64_at(p, 24),
@@ -464,9 +475,9 @@ pub fn decode(b: &[u8]) -> Result<Message> {
                 state: u16_at(p, 68),
                 purpose: u16_at(p, 70),
                 hello: u64_at(p, 72),
-                agreement: Agreement::decode(&p[80..])?,
+                agreement: Agreement::decode(&p[88..])?,
             };
-            need(u64_at(p, 8) == 2 && a.valid(), "ack_payload")?;
+            need(a.valid(), "ack_payload")?;
             Body::Ack(a)
         }
         5 => {
@@ -485,6 +496,7 @@ pub fn decode(b: &[u8]) -> Result<Message> {
         _ => return Err("kind".into()),
     };
     Ok(Message {
+        sender,
         session,
         role,
         sequence,

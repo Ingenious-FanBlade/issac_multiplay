@@ -1,5 +1,17 @@
 # tx-04-08：Lua 夹具与统一 E2E harness
 
+> **2026-10-29 Grid variant 调整**：按用户要求，Grid创建后、跨帧到达、替换/删除前态及最终归约均不以实际variant等于固定请求值作为通过条件，改为保存实际观察；位置、类型、seed、varData及原生身份/生命周期要求保持。见[具体修订](tx-04-08-grid-recreation-fix.md)。纯编译产物更新后仍需未来整体E2E实测，e2e-10失败不改写。
+
+> **2026-10-29 Grid 夹具修正**：见[本地 Wiki 核对与实现](tx-04-08-grid-recreation-fix.md)。完整岩石不再直接重复 Spawn；当前明确删除自建岩石、跨真实帧复核同格空地、固定 seed 生成便便，再核对类型/派生接口。episode 单列旧退休与新出生的顺序证据，不声称原生单次覆盖。e2e-09 失败保留，本次不运行实机或离线验收。
+
+> **2026-10-29 采集规模调整**：用户要求目标数随 240→30 秒的窗口缩减，当前主进程 **250 份**、对照 **32 份**；实时计数与最终归约均读取冻结 scenario，原 odd-only/中断规则不变。e2e-08 按调整前 2,000/256 目标运行并失败，原结果保留。新规模仅修改与纯编译，未重新测试。
+
+本次规模调整的 [Rust 纯编译](../../../artifacts/repentogon/tx-04-08-defg-build/rust-build-sample-targets-30s.log) 17.41 秒成功，已更新 `out/repentogon/harness.exe`。DLL 未变；没有执行调整后的实机或离线测试。
+
+> **2026-10-29 开局记录时机修复**：见[修复说明](tx-04-08-early-recording-fix.md)。两次启动均在第二存档角色页等待真正 Recording，再触发 New Run 与 seed 重开；不在 MC_POST_GAME_STARTED/MC_POST_RENDER 之后才启用。旧 e2e-07 的 Effect NOT_READY 与失败报告保留。本轮只修改和纯编译，不启动实机测试。
+
+> **2026-10-28 剩余工程更新**：[当前实现/主审](tx-04-08-defg-implementation.md)接入RNG前后、完整原始证据归约和L7；限定的 Player Replace 已通过公开 ItemState0/703/slot0/charge1 准备和一次自然SPACE接入 Continue 后的独立 episode。第一进程随后在活动录制/Host下 WM_CLOSE，第二进程比较录制/Host正常停止后返回菜单另录 exit-menu 并 WM_QUIT，均经main退出桥收口。完整DLL/Rust纯编译成功，产物已更新，尚未部署或执行唯一整体E2E。下方早先缺口按原时点保留。
+
 > **后续ABC工程更新（2026-10-27）**：见[ABC实现与主审](tx-04-08-abc-implementation.md)。A/B接线和C可核定场景/episode索引已编写，V8已有实际故障证据归约；特殊Replace保留UNKNOWN，完整V9退出与F项判定等仍待后续。本文下方保留ABC续作前主体与限制的原时点，尤其“V8固定NOT_RUN”“无故障入口/具体参数”已被后续实现取代；不代表tx-04-08只待运行。
 
 日期：2026-10-27，Asia/Singapore。依据[现行规范](../../refactor/project-conventions.md)、[迁移要求](tx-04-08-implementation-plan.md)与[E2E 方案](tx-04-08-e2e-plan.md)。本项交付夹具、统一编排、文件证据与离线用例代码；仅纯编译，不部署、不启动游戏，不运行 replay/compare、局部测试或整体 E2E。**代码入口已接通，不表示 tx-04-08 已通过，也不表示所有必需覆盖已实现。**
@@ -12,9 +24,9 @@ out/repentogon/harness.exe e2e tx-04-08 --game <游戏根目录> --scenario tool
 
 保留旧 `--out` 别名；tx08 拒绝重复/未知选项、两个输出别名并用和既有产物目录。源码捕获目录内或游戏目录内的 artifact 被拒绝，防止递归复制或混入游戏环境。入口只执行一次；不会自动重启游戏、重发 F8 或重做失败场景。构建不调用入口。
 
-`tools/harness/src/tx08.rs` 编排两个顺序进程。两者都先选第二档、进入单 A 的新局，通过 F8 冻结/核对 seed，要求 A 为普通 Isaac；world 真正 Recording 后才 Host/握手，由原生 Join 创建 B，不调用 Lua SpawnCoPlayer。第一进程的 seed 可由 scenario 指定，也可从实际新局解析；第二进程使用第一进程实际记录的 seed。每个进程有不同 Lua token，避免第二次启动接受第一次动作终态。短输入脚本不射击、不投弹，A 的实际中性输入和 B 的实际消费均保留，不能据同 seed 宣称世界确定性。
+`tools/harness/src/tx08.rs` 编排两个顺序进程。两者都先选第二档并停在角色页，发出 world start 后等待真正 Recording，再进入单 A 的新局，通过 F8 冻结/核对 seed，要求 A 为普通 Isaac；同一录制覆盖 New Run 和 seed 重开的初始化。随后才 Host/握手，由原生 Join 创建 B，不调用 Lua SpawnCoPlayer。第一进程的 seed 可由 scenario 指定，也可从实际新局解析；第二进程使用第一进程实际记录的 seed。每个进程有不同 Lua token，避免第二次启动接受第一次动作终态。短输入脚本不射击、不投弹，A 的实际中性输入和 B 的实际消费均保留，不能据同 seed 宣称世界确定性。
 
-primary 的采集窗口目标为 2,000 次普通完整样本；comparison 默认 256。运行期间只用计数确定结束时机，最终用全部文件按 attempt 重新归约稳定性。计数不足只在冻结的 240 s 窗口内等候，超时不延长。world 准备/关闭 30 s、DLL close 10 s、F8 动作 65 s、每个离线 CLI 300 s，均在 scenario/调用记录中明示。
+primary 的采集窗口目标为 **250 次普通完整样本**；comparison 默认 **32 次**。运行期间只用计数确定结束时机，最终用全部文件按 attempt 重新归约稳定性，两处读取同一份冻结 scenario 的目标。2026-10-29 按用户要求将采集等待上限由 240 s 改为 **30 s**，随后按 1/8 比例将原 2,000/256 次目标同步调整；达标可提前结束，计数不足超时不延长。这是样本规模调整，不改变普通完整、odd-only 与其他中断的定义，也不表示固定录满 30 秒。world 准备/关闭 30 s、DLL close 10 s、F8 动作 65 s、每个离线 CLI 300 s，均在 scenario/调用记录中明示。历史 e2e-06/07 的 240 s 和 e2e-08 的 30 s / 2,000 目标失败事实保留。
 
 第一进程随后执行暂停/控制台、MC_PRE_UPDATE 跳帧、独立观察、已启用的世界动作、切房、B 死亡/复活、换层。primary 正常 stop 后记录 Host/Ack 继续推进，再在同一 Host 新建 healthy 录制并停止，最后正常 stop Host。保存退菜单后新建 continue 录制，覆盖首次菜单 Host、Continue 与 B 重建，然后显式 world stop、等待 Closed、正常 stop Host，最后退出。第二进程执行相同 seed/角色/脚本的短段，再逐项关闭。动作完成不代替原生生命周期或整体验收。
 
@@ -33,8 +45,8 @@ primary 的采集窗口目标为 2,000 次普通完整样本；comparison 默认
 | `morph_npc` | 自有 NPC `id`、`type/variant/subtype/champion`；公开四整数 Morph，无 bool 返回值 |
 | `morph_pickup` | 自有 Pickup `id`、`type=5/variant/subtype/keep_price/keep_seed/ignore_modifiers`；三项 bool 必须显式传入 |
 | `grid_spawn` | `index/type/variant/seed/var_data`，要求原格为空，index 不超过当前 GridSize 和 447；检查 bool 与后态 |
-| `grid_remove` | `index/expected_type/expected_variant/path_trail/keep_decoration`，核对原格后调用公开 RemoveGridEntityImmediate |
-| `grid_replace` | 上述删除参数加创建参数；删除与创建分别只调用一次，失败保留原始前缀，不复原或重试 |
+| `grid_remove` | `index/expected_type/path_trail/keep_decoration`，核对原格、自有标签/代次/seed后调用公开 RemoveGridEntityImmediate；variant仅记录实际值 |
+| `grid_replace` | 显式 `replacement_mode=remove_then_spawn`，删除参数加创建参数；只删除自有旧格，跨真实帧复核同格空地后创建。当前ROCK→POOP；两次调用各一次，记录实际返回值和类型/seed/varData后态；失败不复原或重试 |
 | `world_observe` | 只读 Entity/Grid/door/seed 视图，附 `cs witness`；标为 MC_POST_RENDER，不冒充完整采样 tick |
 
 所有写世界的新增动作都检查实际参数类型、范围和当前对象状态，参数没有默认 RNG/类型/格子/PathTrail。句柄以本房间、InitSeed 和 Entity.Index 防止错误复用；换房/退 run 全部失效。Morph 后只更新 Lua 自有记录，不伪造 DLL use/birth。B 仍只由 C/S 原生 Join 建立。夹具不开放任意 Lua、文件、地址或原生 ABI 调用。

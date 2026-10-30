@@ -55,8 +55,8 @@ void WriteHello(std::uint8_t *p, const Hello &h) noexcept {
   Put(p + 68, static_cast<unsigned>(h.role), 2);
   Put(p + 72, h.capabilities, 8);
   Put(p + 80, h.maximum_packet, 4);
-  Put(p + 88, h.clients[0], 8);
-  Put(p + 96, h.clients[1], 8);
+  for (std::size_t i = 0; i < h.clients.size(); ++i)
+    Put(p + 88 + i * 8, h.clients[i], 8);
 }
 Error ReadHello(const std::uint8_t *p, Hello &h) noexcept {
   if (Get(p + 70, 2) || Get(p + 84, 4))
@@ -69,14 +69,16 @@ Error ReadHello(const std::uint8_t *p, Hello &h) noexcept {
   h.role = static_cast<Role>(Get(p + 68, 2));
   h.capabilities = Get(p + 72, 8);
   h.maximum_packet = static_cast<std::uint32_t>(Get(p + 80, 4));
-  h.clients = {Get(p + 88, 8), Get(p + 96, 8)};
+  for (std::size_t i = 0; i < h.clients.size(); ++i)
+    h.clients[i] = Get(p + 88 + i * 8, 8);
   return Error::None;
 }
 bool ValidAck(const Ack &a) noexcept {
-  if (a.client_id != kClients[1] || !ValidHello(a.agreement, true) ||
-      a.server_tick == UINT64_MAX || a.accepted == UINT64_MAX ||
-      a.processed > a.accepted || a.processed_source > a.processed ||
-      a.processed_tick > a.server_tick ||
+  if ((a.client_id < kClients[1] || a.client_id > kClients.back()) ||
+      !(a.roster_mask & 1) || (a.roster_mask & ~15u) ||
+      !ValidHello(a.agreement, true) || a.server_tick == UINT64_MAX ||
+      a.accepted == UINT64_MAX || a.processed > a.accepted ||
+      a.processed_source > a.processed || a.processed_tick > a.server_tick ||
       a.session_state < core::SessionState::Warmup ||
       a.session_state > core::SessionState::Failed ||
       (a.rejection_mask & ~0x7ff8u) ||
@@ -104,7 +106,9 @@ Error Validate(const Message &m) noexcept {
     return Error::Role;
   if (!ValidSequence(h.sequence))
     return Error::Sequence;
-  if (h.sender != kClients[h.role == Role::Authority ? 0 : 1])
+  if (h.role == Role::Authority
+          ? h.sender != kClients[0]
+          : h.sender < kClients[1] || h.sender > kClients.back())
     return Error::Identity;
   if (h.kind == Kind::Hello) {
     if (h.role != Role::Remote)
@@ -291,7 +295,8 @@ Error Encode(const Message &m, Packet &output) noexcept {
     Put(p + 68, static_cast<unsigned>(a.session_state), 2);
     Put(p + 70, static_cast<unsigned>(a.purpose), 2);
     Put(p + 72, a.hello_sequence, 8);
-    WriteHello(p + 80, a.agreement);
+    Put(p + 80, a.roster_mask, 4);
+    WriteHello(p + 88, a.agreement);
   } else {
     Put(p, static_cast<unsigned>(m.bye.reason), 2);
     Put(p + 8, m.bye.last_ack, 8);
@@ -369,7 +374,10 @@ Error Decode(std::span<const std::uint8_t> bytes, Message &output) noexcept {
     a.session_state = static_cast<core::SessionState>(Get(p + 68, 2));
     a.purpose = static_cast<AckPurpose>(Get(p + 70, 2));
     a.hello_sequence = Get(p + 72, 8);
-    const auto r = ReadHello(p + 80, a.agreement);
+    if (Get(p + 84, 4))
+      return Error::Reserved;
+    a.roster_mask = static_cast<std::uint32_t>(Get(p + 80, 4));
+    const auto r = ReadHello(p + 88, a.agreement);
     if (r != Error::None)
       return r;
   } else {

@@ -53,7 +53,10 @@ struct Worker::State {
   WorkerConfig config{};
   HostIdentity identity{};
   SOCKET socket = INVALID_SOCKET;
-  bool wsa = false, locked = false;
+  bool wsa = false, locked = false, owns_transport = true;
+  unsigned ordinal = 0;
+  // 父状态独占 socket 和线程；三个子状态各自独占协议、队列、nonce 和 ACK 环。
+  std::array<std::unique_ptr<State>, core::kMaximumParticipants> peers{};
   sockaddr_in peer{};
   Endpoint endpoint{};
   SpscQueue<ReceivedInput, kReceiveCapacity> incoming;
@@ -88,11 +91,11 @@ struct Worker::State {
 
   ~State() { CloseTransport(); }
   void CloseTransport() noexcept {
-    if (socket != INVALID_SOCKET) {
+    if (owns_transport && socket != INVALID_SOCKET) {
       closesocket(socket);
       socket = INVALID_SOCKET;
     }
-    if (wsa) {
+    if (owns_transport && wsa) {
       WSACleanup();
       wsa = false;
     }
@@ -198,6 +201,7 @@ struct Worker::State {
     Message m{};
     m.header.kind = Kind::Ack;
     m.ack.purpose = AckPurpose::First;
+    m.ack.client_id = protocol::kClients[ordinal];
     SendMessage(m, now);
   }
   void BestEffortBye(ByeReason reason, std::uint64_t now) noexcept {
@@ -237,6 +241,10 @@ struct Worker::State {
                   const sockaddr_in &source, std::uint64_t now) noexcept {
     if (locked && !SameAddress(source, peer)) {
       foreign_packets.fetch_add(1, std::memory_order_relaxed);
+      return;
+    }
+    if (terminal.load(std::memory_order_acquire) != TerminalReason::None) {
+      terminal_received_packets.fetch_add(1, std::memory_order_relaxed);
       return;
     }
     Message m{};
@@ -305,61 +313,67 @@ struct Worker::State {
     }
     published_state.store(endpoint.State(), std::memory_order_release);
   }
+  // 单 socket 按已锁定地址分流；首次 Hello 按请求 ordinal 选槽，旧槽永不复用。
   void ReceiveBatch() noexcept {
-    // 多留一个字节以识别略超上限的包；更大的 datagram 由 WSAEMSGSIZE 计错。
     std::array<std::uint8_t, kMaximumPacket + 1> bytes{};
-    for (std::uint32_t i = 0;
-         i < kReceiveBudget && !stop.load(std::memory_order_acquire); ++i) {
+    for (unsigned n = 0;
+         n < kReceiveBudget && !stop.load(std::memory_order_acquire); ++n) {
       sockaddr_in source{};
-      int source_size = sizeof(source);
-      const auto n =
-          recvfrom(socket, reinterpret_cast<char *>(bytes.data()),
-                   static_cast<int>(bytes.size()), 0,
-                   reinterpret_cast<sockaddr *>(&source), &source_size);
-      if (n == SOCKET_ERROR) {
+      int size = sizeof(source);
+      const int count = recvfrom(socket, reinterpret_cast<char *>(bytes.data()),
+                                 static_cast<int>(bytes.size()), 0,
+                                 reinterpret_cast<sockaddr *>(&source), &size);
+      if (count == SOCKET_ERROR) {
         const auto error = WSAGetLastError();
         if (error == WSAEWOULDBLOCK)
           break;
-        receive_errors.fetch_add(1, std::memory_order_relaxed);
-        // 对端 Bye 已终止会话；收尾 socket 错误不能覆盖原因或把 Retired 改成
-        // Failed。
-        if (terminal.load(std::memory_order_acquire) == TerminalReason::PeerBye)
-          break;
-        native_error.store(error, std::memory_order_relaxed);
-        if (error == WSAEMSGSIZE) {
-          received_packets.fetch_add(1, std::memory_order_relaxed);
-          if (locked && !SameAddress(source, peer))
-            foreign_packets.fetch_add(1, std::memory_order_relaxed);
-          else {
-            CountError(Error::Length);
-            if (endpoint.State() == PeerState::Established) {
-              Finish(ByeReason::PeerProtocol, Error::Length);
-              BestEffortBye(ByeReason::PeerProtocol, GetTickCount64());
-              endpoint.Fail();
-            }
-          }
-        } else {
-          // 不把 ICMP 等 socket 错误冒充合法 Bye；真实断线由存活超时处理。
-          if (error != WSAECONNRESET && error != WSAENETRESET) {
-            Finish(ByeReason::InternalFailure, Error::None, error);
-            endpoint.Fail();
-          }
+        if (error == WSAEMSGSIZE || error == WSAECONNRESET ||
+            error == WSAENETRESET) {
+          receive_errors.fetch_add(1, std::memory_order_relaxed);
+          continue;
         }
+        Finish(ByeReason::InternalFailure, Error::None, error);
         break;
       }
-      received_packets.fetch_add(1, std::memory_order_relaxed);
-      received_bytes.fetch_add(static_cast<std::uint64_t>(n),
-                               std::memory_order_relaxed);
-      if (source_size != sizeof(source) || source.sin_family != AF_INET) {
-        CountError(Error::Identity);
+      if (size != sizeof(source) || source.sin_family != AF_INET)
         continue;
+      State *target = nullptr;
+      for (unsigned i = 1; i < peers.size(); ++i)
+        if (peers[i]->locked && SameAddress(peers[i]->peer, source)) {
+          target = peers[i].get();
+          break;
+        }
+      if (!target) {
+        Message hello{};
+        if (Decode({bytes.data(), static_cast<std::size_t>(count)}, hello) !=
+                Error::None ||
+            hello.header.kind != Kind::Hello || hello.header.sender < 2 ||
+            hello.header.sender > core::kMaximumParticipants) {
+          foreign_packets.fetch_add(1, std::memory_order_relaxed);
+          continue;
+        }
+        auto &candidate =
+            *peers[static_cast<std::size_t>(hello.header.sender - 1)];
+        if (candidate.locked ||
+            candidate.terminal.load(std::memory_order_acquire) !=
+                TerminalReason::None) {
+          foreign_packets.fetch_add(1, std::memory_order_relaxed);
+          continue;
+        }
+        // 同 nonce 不得从第二地址占用另一个参与者。
+        bool duplicate_nonce = false;
+        for (unsigned i = 1; i < peers.size(); ++i)
+          if (peers[i]->locked && peers[i]->endpoint.Agreement().peer_nonce ==
+                                      hello.hello.local_nonce)
+            duplicate_nonce = true;
+        if (duplicate_nonce)
+          continue;
+        target = &candidate;
       }
-      ReceiveOne({bytes.data(), static_cast<std::size_t>(n)}, source,
-                 GetTickCount64());
-      const auto cause = terminal.load(std::memory_order_acquire);
-      // 首份 Bye 已终止会话；本批剩余预算只收当前可读副本，不增加等待窗口。
-      if (cause != TerminalReason::None && cause != TerminalReason::PeerBye)
-        break;
+      target->received_packets.fetch_add(1, std::memory_order_relaxed);
+      target->received_bytes.fetch_add(count, std::memory_order_relaxed);
+      target->ReceiveOne({bytes.data(), static_cast<std::size_t>(count)},
+                         source, GetTickCount64());
     }
   }
   void SendBatch(std::uint64_t now) noexcept {
@@ -395,7 +409,8 @@ struct Worker::State {
   }
 
   // 逻辑终止后只保留短暂传输收包窗口，接收迟到 Bye/在途包供真实计数。
-  // 不调用 Endpoint::Receive、不刷新存活时间、不入输入队列、不发布 Ack 或回 Bye。
+  // 不调用 Endpoint::Receive、不刷新存活时间、不入输入队列、不发布 Ack 或回
+  // Bye。
   void DrainTerminal() noexcept {
     if (!locked || socket == INVALID_SOCKET)
       return;
@@ -417,7 +432,8 @@ struct Worker::State {
           break;
         }
         received_packets.fetch_add(1, std::memory_order_relaxed);
-        received_bytes.fetch_add(static_cast<std::uint64_t>(n), std::memory_order_relaxed);
+        received_bytes.fetch_add(static_cast<std::uint64_t>(n),
+                                 std::memory_order_relaxed);
         terminal_received_packets.fetch_add(1, std::memory_order_relaxed);
         if (size != sizeof(source) || !SameAddress(source, peer))
           foreign_packets.fetch_add(1, std::memory_order_relaxed);
@@ -428,52 +444,60 @@ struct Worker::State {
   }
   // 不等待全员输入；select 最长 10ms，每轮收发工作量有界，可及时响应停止。
   void Run() noexcept {
-    while (terminal.load(std::memory_order_acquire) == TerminalReason::None) {
-      const auto requested = stop.load(std::memory_order_acquire);
-      if (requested) {
-        const auto reason = static_cast<ByeReason>(requested);
-        Finish(reason);
-        BestEffortBye(reason, GetTickCount64());
-        break;
-      }
+    while (!stop.load(std::memory_order_acquire) &&
+           terminal.load(std::memory_order_acquire) == TerminalReason::None) {
       const auto now = GetTickCount64();
-      // 存活判定共用 Endpoint；先尝试 Bye，再关闭状态。
-      if (endpoint.TimedOut(now)) {
-        Finish(ByeReason::PeerTimeout);
-        BestEffortBye(ByeReason::PeerTimeout, now);
-        endpoint.Retire();
-        break;
+      for (unsigned i = 1; i < peers.size(); ++i) {
+        auto &p = *peers[i];
+        if (p.terminal.load(std::memory_order_acquire) != TerminalReason::None)
+          continue;
+        const auto requested = p.stop.load(std::memory_order_acquire);
+        if (requested || p.endpoint.TimedOut(now)) {
+          const auto reason = requested ? static_cast<ByeReason>(requested)
+                                        : ByeReason::PeerTimeout;
+          p.Finish(reason);
+          p.BestEffortBye(reason, now);
+          p.endpoint.Retire();
+        } else
+          p.SendBatch(now);
+        if (p.terminal.load(std::memory_order_acquire) !=
+            TerminalReason::None) {
+          if (p.terminal.load(std::memory_order_relaxed) ==
+              TerminalReason::InternalFailure) {
+            p.BestEffortBye(ByeReason::InternalFailure, now);
+            p.endpoint.Fail();
+          }
+          p.published_state.store(p.endpoint.State(),
+                                  std::memory_order_release);
+        }
       }
-      SendBatch(now);
-      if (terminal.load(std::memory_order_acquire) != TerminalReason::None)
-        break;
       fd_set reads;
       FD_ZERO(&reads);
       FD_SET(socket, &reads);
       timeval timeout{0, kPollMs * 1000};
       const auto ready = select(0, &reads, nullptr, nullptr, &timeout);
       if (ready == SOCKET_ERROR) {
-        const auto error = WSAGetLastError();
-        Finish(ByeReason::InternalFailure, Error::None, error);
-        endpoint.Fail();
+        Finish(ByeReason::InternalFailure, Error::None, WSAGetLastError());
         break;
       }
       if (ready > 0)
         ReceiveBatch();
     }
-    const auto cause = terminal.load(std::memory_order_acquire);
-    // 本地进度等内部失败仍可能保持已建立的传输；此时也按相同三副本规则通知对端。
-    if (cause == TerminalReason::InternalFailure)
-      BestEffortBye(ByeReason::InternalFailure, GetTickCount64());
-    if (cause == TerminalReason::PeerProtocol ||
-        cause == TerminalReason::InternalFailure)
-      endpoint.Fail();
-    else
-      endpoint.Retire();
-    if (cause != TerminalReason::PeerProtocol && cause != TerminalReason::InternalFailure)
-      DrainTerminal();
+    const auto requested = stop.load(std::memory_order_acquire);
+    const auto reason = requested ? static_cast<ByeReason>(requested)
+                                  : ByeReason::InternalFailure;
+    Finish(reason);
+    for (unsigned i = 1; i < peers.size(); ++i) {
+      auto &p = *peers[i];
+      if (p.terminal.load(std::memory_order_acquire) == TerminalReason::None) {
+        p.Finish(reason);
+        p.BestEffortBye(reason, GetTickCount64());
+        p.endpoint.Retire();
+      }
+      p.published_state.store(p.endpoint.State(), std::memory_order_release);
+      p.running.store(false, std::memory_order_release);
+    }
     CloseTransport();
-    published_state.store(endpoint.State(), std::memory_order_release);
     running.store(false, std::memory_order_release);
   }
   static DWORD WINAPI Entry(void *context) noexcept {
@@ -557,13 +581,6 @@ StartResult Worker::Start(const WorkerConfig &config) noexcept {
     if (random < 0 || !Nonzero(state->identity.session) ||
         !Nonzero(state->identity.nonce))
       return {StartError::Random, static_cast<std::uint32_t>(random)};
-    protocol::Config endpoint_config{};
-    endpoint_config.session = state->identity.session;
-    endpoint_config.local_nonce = state->identity.nonce;
-    endpoint_config.build = config.build;
-    endpoint_config.peer_timeout_ms = config.peer_timeout_ms;
-    if (state->endpoint.Start(endpoint_config, GetTickCount64()) != Error::None)
-      return {StartError::Configuration};
     WSADATA data{};
     const auto wsa = WSAStartup(MAKEWORD(2, 2), &data);
     if (wsa)
@@ -591,6 +608,33 @@ StartResult Worker::Start(const WorkerConfig &config) noexcept {
     if (bind(state->socket, reinterpret_cast<const sockaddr *>(&address),
              sizeof(address)))
       return {StartError::Bind, static_cast<std::uint32_t>(WSAGetLastError())};
+    for (unsigned i = 1; i < core::kMaximumParticipants; ++i) {
+      auto peer = std::make_unique<State>();
+      peer->owns_transport = false;
+      peer->socket = state->socket;
+      peer->ordinal = i;
+      peer->config = config;
+      peer->identity = state->identity;
+      if (BCryptGenRandom(nullptr, peer->identity.nonce.data(),
+                          static_cast<ULONG>(peer->identity.nonce.size()),
+                          BCRYPT_USE_SYSTEM_PREFERRED_RNG) < 0 ||
+          !Nonzero(peer->identity.nonce))
+        return {StartError::Random};
+      protocol::Config endpoint_config{};
+      endpoint_config.session = peer->identity.session;
+      endpoint_config.local_nonce = peer->identity.nonce;
+      endpoint_config.remote_ordinal = i;
+      endpoint_config.build = config.build;
+      endpoint_config.peer_timeout_ms = config.peer_timeout_ms;
+      if (peer->endpoint.Start(endpoint_config, GetTickCount64()) !=
+          Error::None)
+        return {StartError::Configuration};
+      peer->heartbeat.client_id = protocol::kClients[i];
+      peer->running.store(true, std::memory_order_relaxed);
+      peer->published_state.store(PeerState::Negotiating,
+                                  std::memory_order_relaxed);
+      state->peers[i] = std::move(peer);
+    }
     auto transfer = std::make_unique<std::shared_ptr<State>>(state);
     state->published_state.store(PeerState::Negotiating,
                                  std::memory_order_relaxed);
@@ -608,19 +652,34 @@ StartResult Worker::Start(const WorkerConfig &config) noexcept {
   }
 }
 bool Worker::QueueAck(const protocol::Ack &ack) noexcept {
-  return state_ && !state_->stop.load(std::memory_order_acquire) &&
-         state_->running.load(std::memory_order_acquire) &&
-         state_->terminal.load(std::memory_order_acquire) ==
-             TerminalReason::None &&
-         state_->published_state.load(std::memory_order_acquire) ==
+  if (!state_ || ack.client_id < 2 ||
+      ack.client_id > core::kMaximumParticipants)
+    return false;
+  auto &p = *state_->peers[static_cast<std::size_t>(ack.client_id - 1)];
+  return !state_->stop.load(std::memory_order_acquire) &&
+         p.terminal.load(std::memory_order_acquire) == TerminalReason::None &&
+         p.published_state.load(std::memory_order_acquire) ==
              PeerState::Established &&
-         state_->outgoing.TryPush(ack);
+         p.outgoing.TryPush(ack);
 }
-bool Worker::TryReceive(ReceivedInput &input) noexcept {
-  return state_ && !state_->stop.load(std::memory_order_acquire) &&
-         state_->terminal.load(std::memory_order_acquire) ==
-             TerminalReason::None &&
-         state_->incoming.TryPop(input);
+bool Worker::TryReceive(ReceivedInput &input, unsigned ordinal) noexcept {
+  if (!state_ || !ordinal || ordinal >= core::kMaximumParticipants)
+    return false;
+  auto &p = *state_->peers[ordinal];
+  return !state_->stop.load(std::memory_order_acquire) &&
+         p.terminal.load(std::memory_order_acquire) == TerminalReason::None &&
+         p.incoming.TryPop(input);
+}
+void Worker::RequestPeerStop(unsigned ordinal,
+                             protocol::ByeReason reason) noexcept {
+  if (!state_ || !ordinal || ordinal >= core::kMaximumParticipants)
+    return;
+  if (!protocol::ValidByeReason(reason))
+    reason = ByeReason::InternalFailure;
+  std::uint32_t expected = 0;
+  state_->peers[ordinal]->stop.compare_exchange_strong(
+      expected, static_cast<std::uint32_t>(reason), std::memory_order_release,
+      std::memory_order_relaxed);
 }
 void Worker::RequestStop(protocol::ByeReason reason) noexcept {
   if (!state_)
@@ -651,11 +710,14 @@ StopResult Worker::Stop(protocol::ByeReason reason,
   state_->native_error.store(GetLastError(), std::memory_order_relaxed);
   return StopResult::WaitFailed;
 }
-WorkerStatus Worker::Status() const noexcept {
+bool Worker::TransportFailed() const noexcept {
+  return state_ && state_->terminal.load(std::memory_order_acquire) == TerminalReason::InternalFailure;
+}
+WorkerStatus Worker::Status(unsigned ordinal) const noexcept {
   WorkerStatus result{};
-  if (!state_)
+  if (!state_ || !ordinal || ordinal >= core::kMaximumParticipants)
     return result;
-  const auto &s = *state_;
+  const auto &s = *state_->peers[ordinal];
   result.terminal = s.terminal.load(std::memory_order_acquire);
   result.running = s.running.load(std::memory_order_acquire);
   result.state = s.published_state.load(std::memory_order_acquire);

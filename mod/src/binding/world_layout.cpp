@@ -44,7 +44,7 @@ static_assert(std::size(kManifestFields) == std::size(kLayoutFields),
 static_assert(std::size(kManifestSources) == std::size(kLayoutSources),
               "manifest 来源表与完整来源表条数必须一致");
 static_assert(std::size(kLayoutClasses) == std::size_t(RttiClass::Count),
-              "必须登记 10 个 RTTI 类");
+              "必须完整登记已核定的 Entity/Grid RTTI 类");
 static_assert(std::size(kLayoutSources) == kSourceCount,
               "必须登记 15 个来源");
 static_assert(std::size(kLayoutObservations) == kObservationCount,
@@ -138,7 +138,9 @@ constexpr const char *kSourceKindNames[] = {"EntityList", "Roster",
                                             "Reserved"};
 constexpr const char *kRttiClassNames[] = {
     "Entity", "Player", "NPC", "Tear", "Projectile",
-    "Pickup", "Familiar", "Effect", "Grid", "Door"};
+    "Pickup", "Familiar", "Effect", "Grid", "Door",
+    "Decoration", "Rock", "Pit", "Spikes", "Web", "Lock", "TNT", "Fire",
+    "Poop", "Wall", "TrapDoor", "Stairs", "Gravity", "PressurePlate", "Statue", "Teleporter"};
 
 } // namespace
 

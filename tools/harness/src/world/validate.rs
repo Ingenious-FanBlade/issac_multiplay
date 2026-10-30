@@ -30,6 +30,22 @@ pub fn bits(v: &str) -> Result<u32> {
     u32::from_str_radix(v, 16).map_err(|e| e.to_string())
 }
 
+// 新增 RNG 诊断不参与世界比较 key；出现时严格保留四个原始 word 与各自状态。
+fn rng_words(v: &Value) -> Result<()> {
+    if v.is_null() { return Ok(()); }
+    io::keys(v,&["before_status","after_status","before","after"],&[])?;
+    for side in ["before","after"] {
+        let status=v[format!("{side}_status")].as_u64().ok_or("rng status")?;
+        if status>2 || (status==1)!=v[side].is_array() { return Err("rng payload/status mismatch".into()); }
+        if status!=1 && !v[side].is_null() {return Err("unavailable RNG carries words".into());}
+        if let Some(words)=v[side].as_array() {
+            if words.len()!=4 {return Err("RNG requires all four words".into());}
+            for word in words {hex(word.as_str().ok_or("rng word")?,8)?;}
+        }
+    }
+    Ok(())
+}
+
 // manifest 既校验固定语义，也保留 producer/layout/未知和历史事实，不生成新出处。
 pub fn manifest(v: &Value, legacy: bool) -> Result<()> {
     let domain = if legacy { LEGACY } else { DOMAIN };
@@ -415,11 +431,16 @@ pub fn capture(bytes: &[u8], m: &Value, legacy: bool) -> Result<Capture> {
     if !legacy && c.recording_generation.map(u64::from) != m["recording_generation"].as_u64() {
         return Err("capture recording generation mismatch".into());
     }
+    // 原研究编码器 encode_batch 总是序列化15个 NativeSource，零初始化 gap 也如此。
+    // 只在显式旧域容纳该原始空头，不丢弃诊断、不把它解释为真实枚举；新版仍须 sources=[]。
+    // 非零计数/descriptor、异常状态、缺头或重号不能借 legacy 绕过 gap 约束。
+    let legacy_gap_headers = legacy && c.sources.len()==15 && c.sources.iter().all(|s|
+        s.count==0 && s.status=="NONE" && s.diagnostics==json!({"descriptor":[0,0,0,0]}));
     if c.record == "gap"
         && (c.complete
             || c.capture_seq.is_some()
             || !c.objects.is_empty()
-            || !c.sources.is_empty()
+            || (!c.sources.is_empty() && !legacy_gap_headers)
             || c.reason == "NONE"
             || c.required_objects != 0
             || c.required_memberships != 0)
@@ -460,6 +481,7 @@ pub fn capture(bytes: &[u8], m: &Value, legacy: bool) -> Result<Capture> {
     let mut memberships = BTreeSet::new();
     let mut membership_count = 0;
     for o in &c.objects {
+        if !legacy {rng_words(&o.diagnostics["rng_window"])?;}
         if decimal(&o.local_id)? == 0 || decimal(&o.use_generation)? == 0 {
             return Err("zero local identity".into());
         }
@@ -479,7 +501,7 @@ pub fn capture(bytes: &[u8], m: &Value, legacy: bool) -> Result<Capture> {
             || o.init_evidence > 3
             || !["UNSET", "FIRST_OBSERVED", "OBSERVED_CREATION"].contains(&o.origin.as_str())
             || o.ordinal
-                .is_some_and(|n| n > 1 || !["Player", "UnknownEntity"].contains(&o.class.as_str()))
+                .is_some_and(|n| n > 3 || !["Player", "UnknownEntity"].contains(&o.class.as_str()))
             || o.grid_index
                 .is_some_and(|n| n >= 448 || o.object_domain != 1)
         {

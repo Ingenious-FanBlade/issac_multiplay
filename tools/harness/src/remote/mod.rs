@@ -71,6 +71,14 @@ impl Remote {
         lead: u64,
         ready: impl FnOnce(SocketAddr) -> Result<()>,
     ) -> Result<Self> {
+        Self::start_participant(address, path, timeout_ms, lead, 1, ready)
+    }
+    // 三个独立远端显式选择冻结ordinal；不从ControllerIndex或身体数推断。
+    pub fn start_participant(
+        address: SocketAddr, path: &Path, timeout_ms: u64, lead: u64, ordinal: u32,
+        ready: impl FnOnce(SocketAddr) -> Result<()>,
+    ) -> Result<Self> {
+        if !(1..=3).contains(&ordinal) { return Err("remote_ordinal".into()); }
         if !(1..=64).contains(&lead) || !(500..=60000).contains(&timeout_ms) || !address.is_ipv4() {
             return Err("invalid_remote_config".into());
         }
@@ -101,7 +109,7 @@ impl Remote {
         if unsafe { BCryptGenRandom(std::ptr::null_mut(), nonce.as_mut_ptr(), 16, 2) } != 0 {
             return Err("remote_random_failed".into());
         }
-        let endpoint = Endpoint::new(nonce, Duration::from_millis(timeout_ms))?;
+        let endpoint = Endpoint::new(nonce, Duration::from_millis(timeout_ms), ordinal)?;
         let (tx, rx) = mpsc::sync_channel(32);
         let state = Arc::new(Mutex::new(Snapshot::default()));
         let shared = state.clone();
@@ -584,7 +592,8 @@ pub fn run_cli(args: &[String]) -> Result<()> {
     }
     std::fs::create_dir_all(&output).map_err(|e| e.to_string())?;
     crate::write_json(&output.join("script.json"), &script)?;
-    let remote = Remote::start(address, &output.join("packets.jsonl"), 3000, 2)?;
+    let ordinal = option("--ordinal").map(|s| s.parse::<u32>()).transpose().map_err(|e| e.to_string())?.unwrap_or(1);
+    let remote = Remote::start_participant(address, &output.join("packets.jsonl"), 3000, 2, ordinal, |_| Ok(()))?;
     let result = (|| -> Result<()> {
         let deadline = Instant::now() + Duration::from_secs(600);
         let mut started = false;

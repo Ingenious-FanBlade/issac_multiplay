@@ -1,0 +1,83 @@
+#pragma once
+// tx-04-10 公共纯值合同；域、身份空间和来源阶段分别编号，禁止携带借用游戏对象。
+#include <cstdint>
+#include <string>
+#include <vector>
+
+namespace cs::world::observation {
+enum class DomainId : std::uint16_t { Entity=1, Grid, Room, Level, Exploration, RoomSave, Player, Run, Random, Presentation, Mod };
+enum class IdentitySpace : std::uint16_t { Entity=1, Grid, Run, Floor, Dimension, RoomDescriptor, RoomInstance, SaveEntry, Participant, ControlGroup, RandomStream, Presentation, Resource, ModGraphNode };
+enum class Presence : std::uint8_t { Known, Unknown, NotApplicable };
+enum class Phase : std::uint8_t { OrdinaryPost, PlayerPost, Lifecycle, Transition, Render, ActualCall };
+// 当前接入来源的阶段能力；尚未接线的 PlayerPost/Transition 请求须明确拒绝。
+constexpr std::uint32_t SupportedPhases(DomainId domain) noexcept {
+  return domain==DomainId::Entity ? 53u : domain==DomainId::Grid ? 5u : 0u;
+}
+enum class RecordKind : std::uint8_t { State, Event, Relation, Coverage, Gap, Catalog };
+enum class Outcome : std::uint8_t { AuthorityCommitted, IndependentPublished, Cancelled, Invalidated };
+enum class Coverage : std::uint8_t { Complete, Partial, Failed, NotApplicable, NotScheduled, Disabled, Unsupported };
+enum class ValueStatus : std::uint8_t { Value, Null, Empty, NotApplicable, Unavailable, NotCaptured, ReadFailed, Nonfinite, Truncated };
+enum class Resolution : std::uint8_t { Null, KnownCurrent, KnownHistorical, Unresolved, NotCaptured, UnsupportedTarget, Retired, AmbiguousReuse, CrossEpoch };
+template<class T> struct Optional final { Presence presence=Presence::Unknown; T value{}; };
+// 主体仅在本会话与观测 epoch 内唯一；录制代次不参与主体身份。
+struct SubjectKey final {
+  std::uint64_t session=0, epoch=0, local=0;
+  IdentitySpace space=IdentitySpace::Entity;
+  bool operator==(const SubjectKey &) const = default;
+};
+struct ObservationContext final {
+  std::uint64_t session=0, epoch=0, scope=0, parent_scope=0, sequence=0;
+  Optional<SubjectKey> run, floor, dimension, descriptor, room;
+  Optional<std::uint64_t> authority_tick;
+  Phase phase=Phase::OrdinaryPost;
+  std::uint64_t outer=0, owner=0, mutation_before=0, mutation_after=0, event_watermark=0;
+  std::uint32_t source=0, source_version=1, plan_revision=1;
+};
+struct ObservationReference final {
+  SubjectKey source{}, target{};
+  IdentitySpace target_space=IdentitySpace::Entity;
+  Resolution resolution=Resolution::Unresolved;
+  std::uint64_t scope=0, sequence=0, target_revision=0;
+  std::string relation, basis;
+};
+struct Budget final { std::uint32_t objects=16384, nodes=262144, depth=12; std::uint64_t bytes=16ull<<20; };
+struct DomainResult final {
+  Coverage coverage=Coverage::NotScheduled;
+  std::string range;
+  std::vector<std::string> reasons;
+  std::uint64_t objects=0, nodes=0, bytes=0;
+  Budget budget{};
+};
+struct DomainDescriptor final {
+  DomainId domain;
+  const char *schema;
+  std::uint32_t version;
+  const char *range;
+  std::uint32_t phases;
+  Budget budget;
+};
+struct DomainRequest final { DomainId domain=DomainId::Entity; std::uint32_t phases=1, interval=1; Budget budget{}; };
+struct CapturePlan final { std::uint32_t revision=1; std::vector<DomainRequest> domains; };
+// payload 是主线程已经复制的 JSON 值；后台只能编码 envelope，不能补调 Getter。
+struct ObservationEnvelope final {
+  ObservationContext context{};
+  DomainId domain=DomainId::Entity;
+  RecordKind kind=RecordKind::State;
+  std::string schema;
+  std::uint32_t version=2;
+  DomainResult result{};
+  std::string payload;
+};
+struct RequestResult final { bool accepted=false; const char *reason="unavailable"; };
+// 窄回调仅在主线程借用 const 值；需要后台使用时须复制到自有有界队列。
+struct Consumer final {
+  std::uint32_t id=0;
+  void *owner=nullptr;
+  void (*publish)(void *, const ObservationEnvelope &) noexcept=nullptr;
+  CapturePlan plan{};
+};
+const char *CoverageName(Coverage) noexcept;
+const char *PhaseName(Phase) noexcept;
+const char *RecordKindName(RecordKind) noexcept;
+std::string EncodeEnvelope(const ObservationEnvelope &);
+} // namespace cs::world::observation

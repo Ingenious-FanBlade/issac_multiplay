@@ -12,6 +12,9 @@
     ]
   },
   "hooks": [
+    ["actual_pickup_loot","world","Entity_Pickup","GetLootList","LootList","bool advance, Entity_Player* player","advance, player","0x2D8700","None",false,"",false,-10000,true],
+    ["actual_fireplace_loot","world","Entity_NPC","fireplace_get_loot","LootList","bool advance","advance","0x2CD630","None",false,"",false,-10000,true],
+    ["actual_shopkeeper_loot","world","Entity_NPC","shopkeeper_get_loot","LootList","bool advance","advance","0x2BDC70","None",false,"",false,-10000,true],
     ["manager_update","loop","Manager","Update","void","bool value","value","0x52E3E0","Manager",true,"stdcall",false,-10000,true],
     ["game_update","loop","Game","Update","void","","","0x2F6D30","Game",false,"",false,0,true],
     ["post_update","loop","CsStatic","PostUpdateCaller","int","","","0x446C90","None",true,"cdecl",true,0,true],
@@ -84,6 +87,7 @@
     {
       "id": "world_entity_init",
       "observation": "Init",
+      "shared_control": true,
       "group": "world",
       "class": "Entity",
       "method": "Init",
@@ -137,6 +141,7 @@
     {
       "id": "world_entity_remove",
       "observation": "Remove",
+      "shared_control": true,
       "group": "world",
       "class": "Entity",
       "method": "Remove",
@@ -160,6 +165,7 @@
     {
       "id": "world_clear_references",
       "observation": "ClearReferences",
+      "shared_control": true,
       "group": "world",
       "class": "Entity",
       "method": "ClearReferences",
@@ -183,6 +189,7 @@
     {
       "id": "world_entity_destroy",
       "observation": "Destroy",
+      "shared_control": true,
       "group": "world",
       "class": "Entity",
       "method": "destructor",
@@ -206,6 +213,7 @@
     {
       "id": "world_player_ctor",
       "observation": "PlayerCtor",
+      "shared_control": true,
       "group": "world",
       "class": "Entity_Player",
       "method": "constructor",
@@ -279,6 +287,7 @@
     {
       "id": "world_replace",
       "observation": "Replace",
+      "shared_control": true,
       "group": "world",
       "class": "PlayerManager",
       "method": "ReplacePlayer",
@@ -305,6 +314,7 @@
     {
       "id": "world_player_restore",
       "observation": "PlayerRestore",
+      "shared_control": true,
       "group": "world",
       "class": "Entity_Player",
       "method": "RestoreGameState",
@@ -551,6 +561,7 @@
     }
   ],
   "byte_patches": [
+    {"id":"world_process_exit","group":"world","rva":"0x50AFC4","expected":"80 78 08 01 0F 85 73 FF FF FF","resume":"0x50AFCE","alternate":"0x50AF41","kind":"jump","size":10,"evidence":"tx-04-08 DE: GPT-6 Luna static main analysis, primary raw-instruction review; original cmp+jnz, no GLFW object writes"},
     {"id": "odd_normal", "group": "player", "rva": "0x2F9559", "expected": "FF 52 0C 6A 00", "resume": "0x2F955E"},
     {"id": "join_mode_1", "group": "join", "rva": "0x5915ae", "expected": "E8 ED FA FF FF", "resume": "0x5915b3", "alternate": "0x0", "kind": "call", "size": 5},
     {"id": "join_mode_2", "group": "join", "rva": "0x59174c", "expected": "E8 4F F9 FF FF", "resume": "0x591751", "alternate": "0x0", "kind": "call", "size": 5},

@@ -7,22 +7,30 @@
 #include "game/tick.h"
 #include "game/topology.h"
 #include "game/world_bridge.h"
-#include "runtime.h"
 #include "ops/world_commands.h"
+#include "runtime.h"
 #include <algorithm>
 #include <charconv>
 #include <cstring>
 #include <exception>
-#include <mutex>
 #include <limits>
+#include <mutex>
 #include <sstream>
 namespace cs {
 namespace {
 // 状态变更只排队，在下一次最外层 Manager 入口统一执行。
 struct Mutation {
   uint64_t id;
-  enum class Kind { Host, StopHost, SoloStart, SoloStop,
-                    WorldStart, WorldStop, WorldCheckpoint } kind;
+  enum class Kind {
+    Host,
+    StopHost,
+    SoloStart,
+    SoloStop,
+    Role,
+    WorldStart,
+    WorldStop,
+    WorldCheckpoint
+  } kind;
   unsigned port;
   int character;
   std::uint32_t generation = 0;
@@ -50,7 +58,8 @@ std::string state() {
       return "Disabled";
   return game::StateName();
 }
-// 所有来源共用参数解析；变更入队，status/counters 读帧尾快照，witness 只读当前主线程边界。
+// 所有来源共用参数解析；变更入队，status/counters 读帧尾快照，witness
+// 只读当前主线程边界。
 std::string Execute(std::string_view text, const char *source) {
   if (text.size() > 512 ||
       text.find_first_of("\r\n\0", 0, 3) != std::string_view::npos)
@@ -65,6 +74,9 @@ std::string Execute(std::string_view text, const char *source) {
     in >> arg >> extra;
     result = arg.empty() || !extra.empty() ? "ok=0\nerror=arguments\n"
                                            : "ok=1\necho=" + arg + "\n";
+  } else if (verb == "observe") {
+    in >> arg >> extra;
+    result=extra.empty()?ObservationCommand(arg):"ok=0\nerror=arguments\n";
   } else if (verb == "world_test") {
     std::string token, mode, generation_text, value_text, trailing;
     in >> token >> generation_text >> mode >> value_text >> trailing;
@@ -73,8 +85,10 @@ std::string Execute(std::string_view text, const char *source) {
       const auto r = std::from_chars(s.data(), s.data() + s.size(), v);
       return !s.empty() && r.ec == std::errc{} && r.ptr == s.data() + s.size();
     };
-    result = !trailing.empty() || !parse(generation_text, generation) || !parse(value_text, value)
-        ? "ok=0\nerror=arguments\n" : TestWorldCommand(source, token, generation, mode, value);
+    result = !trailing.empty() || !parse(generation_text, generation) ||
+                     !parse(value_text, value)
+                 ? "ok=0\nerror=arguments\n"
+                 : TestWorldCommand(source, token, generation, mode, value);
   } else if (verb == "world") {
     std::string action, label, trailing;
     in >> action >> label >> trailing;
@@ -85,57 +99,100 @@ std::string Execute(std::string_view text, const char *source) {
       result = "ok=0\nerror=arguments\n";
     else if (action == "status") {
       result = pending_world_start
-          ? "ok=1\nworld_status_version=1\nworld_state=Preparing\nphase=Queued\nrequest=" +
-                std::to_string(pending_world_request) + "\ngeneration=" + std::to_string(world_generation) +
-                "\nrecording=" + WorldRecordingId(world_generation) + "\n"
-          : WorldCommandStatus();
+                   ? "ok=1\nworld_status_version=1\nworld_state="
+                     "Preparing\nphase=Queued\nrequest=" +
+                         std::to_string(pending_world_request) +
+                         "\ngeneration=" + std::to_string(world_generation) +
+                         "\nrecording=" + WorldRecordingId(world_generation) +
+                         "\n"
+                   : WorldCommandStatus();
     } else if (action != "start" && action != "stop" && action != "checkpoint")
       result = "ok=0\nerror=unknown_world_verb\n";
     else if (action == "start" && (WorldCommandBusy() || pending_world_start))
       result = "ok=0\nerror=busy\n";
     else if (action == "start" && WorldStartError())
       result = "ok=0\nerror=" + std::string(WorldStartError()) + "\n";
-    else if (action == "start" && world_generation == (std::numeric_limits<std::uint32_t>::max)())
+    else if (action == "start" &&
+             world_generation == (std::numeric_limits<std::uint32_t>::max)())
       result = "ok=0\nerror=recording_generation_exhausted\n";
     else if (action == "checkpoint" && !WorldCanCheckpoint())
       result = "ok=0\nerror=world_not_recording\n";
     else {
       Mutation mutation{};
       mutation.id = next_id.fetch_add(1);
-      mutation.kind = action == "start" ? Mutation::Kind::WorldStart
-          : action == "stop" ? Mutation::Kind::WorldStop : Mutation::Kind::WorldCheckpoint;
+      mutation.kind = action == "start"  ? Mutation::Kind::WorldStart
+                      : action == "stop" ? Mutation::Kind::WorldStop
+                                         : Mutation::Kind::WorldCheckpoint;
       mutation.generation = world_generation + (action == "start" ? 1u : 0u);
-      if (labeled) strcpy_s(mutation.label, label.c_str());
+      if (labeled)
+        strcpy_s(mutation.label, label.c_str());
       if (mutations.Push(mutation)) {
         if (action == "start") {
-          pending_world_start = true; world_generation = mutation.generation;
+          pending_world_start = true;
+          world_generation = mutation.generation;
           pending_world_request = mutation.id;
         }
-        // queued 只是 admission；录制启动/标记落盘必须从后续快照与 artifact 确认。
+        // queued 只是 admission；录制启动/标记落盘必须从后续快照与 artifact
+        // 确认。
         result = "ok=1\nqueued=" + std::to_string(mutation.id) +
-            "\nrequest=" + std::to_string(mutation.id) +
-            "\ngeneration=" + std::to_string(mutation.generation) +
-            "\nrecording=" + WorldRecordingId(mutation.generation) +
-            "\nworld_state=" + (action == "start" ? std::string("Preparing")
-                : action == "stop" ? std::string(WorldCommandBusy() || pending_world_start ? "Closing" : "Closed")
-                : std::string("Recording")) + "\n";
-      } else { ++queue_dropped; result = "ok=0\nerror=queue_full\n"; }
+                 "\nrequest=" + std::to_string(mutation.id) +
+                 "\ngeneration=" + std::to_string(mutation.generation) +
+                 "\nrecording=" + WorldRecordingId(mutation.generation) +
+                 "\nworld_state=" +
+                 (action == "start" ? std::string("Preparing")
+                  : action == "stop"
+                      ? std::string(WorldCommandBusy() || pending_world_start
+                                        ? "Closing"
+                                        : "Closed")
+                      : std::string("Recording")) +
+                 "\n";
+      } else {
+        ++queue_dropped;
+        result = "ok=0\nerror=queue_full\n";
+      }
     }
   } else if (verb == "query_checkpoint") {
     in >> arg >> extra;
     // 场景标签限制为短的单个词；只发布主线程已有统计，不发起原生查询、
     // Submit/Resolve，不清桶、不改变输入或参与者状态。
-    const bool label_ok = !arg.empty() && arg.size() <= 64 && extra.empty() &&
-        arg.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-") == std::string::npos;
+    const bool label_ok =
+        !arg.empty() && arg.size() <= 64 && extra.empty() &&
+        arg.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV"
+                              "WXYZ0123456789_.-") == std::string::npos;
     if (!label_ok)
       result = "ok=0\nerror=arguments\n";
     else if (auto *r = game::Runtime()) {
       game::PublishQueryCoverage(*r, arg.c_str());
-      result = "ok=1\nquery_checkpoint=" + arg + "\nquery_snapshot=" +
-          std::to_string(r->query_snapshots) + "\nsession_generation=" +
-          std::to_string(game::SessionGeneration(*r)) + "\n";
+      result = "ok=1\nquery_checkpoint=" + arg +
+               "\nquery_snapshot=" + std::to_string(r->query_snapshots) +
+               "\nsession_generation=" +
+               std::to_string(game::SessionGeneration(*r)) + "\n";
     } else
       result = "ok=0\nerror=no_session\n";
+  } else if (verb == "role") {
+    // 角色只能在该远端第一次Join之前选择；仍在Manager队列执行，不绕过原生工厂。
+    in >> arg >> extra;
+    std::string trailing;
+    in >> trailing;
+    unsigned ordinal = 0;
+    int character = -1;
+    const auto a =
+        std::from_chars(arg.data(), arg.data() + arg.size(), ordinal);
+    const auto b =
+        std::from_chars(extra.data(), extra.data() + extra.size(), character);
+    if (arg.empty() || extra.empty() || !trailing.empty() ||
+        a.ec != std::errc{} || b.ec != std::errc{} ||
+        a.ptr != arg.data() + arg.size() ||
+        b.ptr != extra.data() + extra.size() || ordinal < 1 ||
+        ordinal >= core::kMaximumParticipants || character < 0)
+      result = "ok=0\nerror=arguments\n";
+    else {
+      Mutation mutation{next_id.fetch_add(1), Mutation::Kind::Role, ordinal,
+                        character};
+      result = mutations.Push(mutation)
+                   ? "ok=1\nqueued=" + std::to_string(mutation.id) + "\n"
+                   : "ok=0\nerror=queue_full\n";
+    }
   } else if (verb == "host" || verb == "stop" || verb == "solo") {
     std::string trailing;
     in >> arg >> extra >> trailing;
@@ -150,7 +207,8 @@ std::string Execute(std::string_view text, const char *source) {
               parsed.ptr == arg.data() + arg.size() && port > 0 &&
               port <= 65535;
       if (!extra.empty()) {
-        auto role = std::from_chars(extra.data(), extra.data() + extra.size(), character);
+        auto role = std::from_chars(extra.data(), extra.data() + extra.size(),
+                                    character);
         // 可选性在 Join 的原生角色表中确认；这里仅拒绝负值、随机标记与溢出。
         valid = valid && role.ec == std::errc{} &&
                 role.ptr == extra.data() + extra.size() && character >= 0;
@@ -203,13 +261,18 @@ std::string Execute(std::string_view text, const char *source) {
       const auto *r = game::Runtime();
       const auto owner = game::TopOwner();
       result = "ok=1\nwitness_version=1\nframe=" + std::to_string(frame) +
-          "\nsimulation_tick=" + std::to_string(r ? r->pipeline.SimulationTick() : 0) +
-          "\nsession_generation=" + std::to_string(r ? game::SessionGeneration(*r) : 0) +
-          "\na_generation=" + std::to_string(r ? r->players[0].Generation() : 0) +
-          "\nb_generation=" + std::to_string(r ? r->players[1].Generation() : 0) +
-          "\nblocks=" + std::to_string(r ? r->blocks : 0) +
-          "\nowner=" + std::to_string(unsigned(owner)) +
-          "\nowner_token=" + std::to_string(game::OwnerToken(owner)) + "\n";
+               "\nsimulation_tick=" +
+               std::to_string(r ? r->pipeline.SimulationTick() : 0) +
+               "\nsession_generation=" +
+               std::to_string(r ? game::SessionGeneration(*r) : 0) +
+               "\na_generation=" +
+               std::to_string(r ? r->players[0].Generation() : 0) +
+               "\nb_generation=" +
+               std::to_string(r ? r->players[1].Generation() : 0) +
+               "\nblocks=" + std::to_string(r ? r->blocks : 0) +
+               "\nowner=" + std::to_string(unsigned(owner)) +
+               "\nowner_token=" + std::to_string(game::OwnerToken(owner)) +
+               "\n";
     } else
       result = "ok=0\nerror=unknown_verb\n";
   }
@@ -217,12 +280,15 @@ std::string Execute(std::string_view text, const char *source) {
   // status/counters 的完整响应走控制口；trace 只保留响应长度与结果，避免
   // 大快照挤入单个 3500 字节事件被截断。其它命令继续保留原始结果。
   if (verb == "status" || verb == "counters")
-    Trace("command", "source=%s text=%.*s result_logged=0 result_bytes=%zu "
-          "result_ok=%u g_game=%p frame=%llu", source, int(text.size()), text.data(),
-          result.size(), unsigned(result.rfind("ok=1\n", 0) == 0), GamePointer(), frame);
+    Trace("command",
+          "source=%s text=%.*s result_logged=0 result_bytes=%zu "
+          "result_ok=%u g_game=%p frame=%llu",
+          source, int(text.size()), text.data(), result.size(),
+          unsigned(result.rfind("ok=1\n", 0) == 0), GamePointer(), frame);
   else
-    Trace("command", "source=%s text=%.*s result=%s g_game=%p frame=%llu", source,
-          int(text.size()), text.data(), result.c_str(), GamePointer(), frame);
+    Trace("command", "source=%s text=%.*s result=%s g_game=%p frame=%llu",
+          source, int(text.size()), text.data(), result.c_str(), GamePointer(),
+          frame);
   return result;
 }
 } // namespace
@@ -245,7 +311,10 @@ bool TakeReply(PortReply &reply) noexcept { return port_replies.Pop(reply); }
 // 在主线程复制只读状态，再一次性替换供命令查询的快照。
 void PublishStatus() noexcept {
   try {
-    std::string counters = "ok=1\n";
+    std::string counters =
+        Settings.diagnostics
+            ? "ok=1\ndiagnostics_enabled=1\n"
+            : "ok=1\ndiagnostics_enabled=0\ncounters_available=0\n";
     size_t n;
     auto hooks = Hooks(n);
     unsigned registered = 0;
@@ -255,13 +324,15 @@ void PublishStatus() noexcept {
       registered += h.registered;
       foreign += h.foreign.load();
       total += h.calls.load();
-      counters += "hook." + std::string(h.id) + "=" +
-                  std::to_string(h.calls.load()) + "\nhook." + h.id +
-                  ".foreign=" + std::to_string(h.foreign.load()) + "\nhook." +
-                  h.id + ".completed=" + std::to_string(h.completed.load()) +
-                  "\n";
+      if (Settings.diagnostics)
+        counters += "hook." + std::string(h.id) + "=" +
+                    std::to_string(h.calls.load()) + "\nhook." + h.id +
+                    ".foreign=" + std::to_string(h.foreign.load()) + "\nhook." +
+                    h.id + ".completed=" + std::to_string(h.completed.load()) +
+                    "\n";
     }
-    counters += PointerCounters();
+    if (Settings.diagnostics)
+      counters += PointerCounters();
     auto *manager = *reinterpret_cast<unsigned char **>(Base + offset::Manager);
     const bool starting =
         manager && *reinterpret_cast<bool *>(manager + offset::Starting);
@@ -272,6 +343,11 @@ void PublishStatus() noexcept {
         "ok=1\nstatus_version=1\nstate=" + state() +
         "\nframe=" + std::to_string(frame) + "\ng_game=" + (game ? "1" : "0") +
         "\nrun_active=" + (run ? "1" : "0") +
+        "\ndiagnostics_enabled=" + (Settings.diagnostics ? "1" : "0") +
+        "\nworld_record_enabled=" +
+        (Settings.world_record_enabled ? "1" : "0") +
+        "\nrepeat_topology_reads=" +
+        (Settings.repeat_topology_reads ? "1" : "0") +
         "\nmanager_starting=" + (starting ? "1" : "0") +
         "\nregistered=" + std::to_string(registered) +
         "\npointers=" + std::to_string(PointerCount()) +
@@ -324,6 +400,10 @@ void FrameBegin() noexcept {
     for (unsigned i = 0; i < 64 && mutations.Pop(m); ++i) {
       const std::string before = state();
       last_error.clear();
+      // 关闭请求已在 main 捕获后，旧会话启动命令不能在延后的原生循环中复活。
+      if (WorldProcessExitPending() && (m.kind == Mutation::Kind::Host ||
+                                        m.kind == Mutation::Kind::SoloStart))
+        continue;
       switch (m.kind) {
       case Mutation::Kind::Host:
         pending_host_start = false;
@@ -334,6 +414,15 @@ void FrameBegin() noexcept {
           config.peer_timeout_ms = Settings.peer_timeout_ms;
           last_error = game::StartHost(config, m.character);
         }
+        break;
+      case Mutation::Kind::Role:
+        if (auto *r = game::Runtime();
+            r && r->mode == core::SessionMode::Host && !r->retiring &&
+            !r->Remote(m.port).retired && !r->Remote(m.port).retiring &&
+            !r->Remote(m.port).join.passes && !r->Remote(m.port).join.scope)
+          r->Remote(m.port).join.character = m.character;
+        else
+          last_error = "role_join_already_started_or_no_host";
         break;
       case Mutation::Kind::StopHost:
         game::StopSession();
@@ -359,8 +448,10 @@ void FrameBegin() noexcept {
         CheckpointWorldCommand(m.id, m.generation, m.label);
         break;
       }
-      Trace("state", "id=%llu from=%s to=%s port=%u character=%d frame=%llu error=%s", m.id,
-            before.c_str(), state().c_str(), m.port, m.character, frame, last_error.c_str());
+      Trace("state",
+            "id=%llu from=%s to=%s port=%u character=%d frame=%llu error=%s",
+            m.id, before.c_str(), state().c_str(), m.port, m.character, frame,
+            last_error.c_str());
     }
     PortRequest request{};
     for (unsigned i = 0; i < 32 && port_requests.Pop(request); ++i) {
@@ -378,8 +469,9 @@ void FrameBegin() noexcept {
       auto text = Execute(request.text, "port");
       // 有界控制口响应不能静默截断；超长时回显式错误并留下实际长度。
       if (text.size() >= sizeof(reply.text)) {
-        Trace("command_error", "response_too_large id=%llu bytes=%zu capacity=%zu",
-              request.id, text.size(), sizeof(reply.text));
+        Trace("command_error",
+              "response_too_large id=%llu bytes=%zu capacity=%zu", request.id,
+              text.size(), sizeof(reply.text));
         strcpy_s(reply.text, "ok=0\nerror=response_too_large\n");
       } else
         strcpy_s(reply.text, text.c_str());
@@ -405,23 +497,28 @@ void FrameEnd(bool completed) noexcept {
   PublishStatus();
   if (frame <= 3)
     Trace("frame_end", "frame=%llu", frame);
-  if (frame % 60 == 0) {
+  if (Settings.diagnostics && frame % 60 == 0) {
     try {
       std::lock_guard lock(snapshot_lock);
-      // 按换行分片，每片最多 2500 字节；frame/part/last/total_bytes 可重组快照。
+      // 按换行分片，每片最多 2500 字节；frame/part/last/total_bytes
+      // 可重组快照。
       constexpr size_t chunk_limit = 2500;
       size_t offset = 0;
       unsigned part = 0;
       while (offset < counter_snapshot.size()) {
-        size_t length = (std::min)(chunk_limit, counter_snapshot.size() - offset);
+        size_t length =
+            (std::min)(chunk_limit, counter_snapshot.size() - offset);
         if (offset + length < counter_snapshot.size()) {
-          const auto newline = counter_snapshot.rfind('\n', offset + length - 1);
+          const auto newline =
+              counter_snapshot.rfind('\n', offset + length - 1);
           if (newline != std::string::npos && newline >= offset)
             length = newline - offset + 1;
         }
         Trace("counters", "frame=%llu part=%u last=%u total_bytes=%zu\n%.*s",
-              frame, ++part, unsigned(offset + length == counter_snapshot.size()),
-              counter_snapshot.size(), int(length), counter_snapshot.data() + offset);
+              frame, ++part,
+              unsigned(offset + length == counter_snapshot.size()),
+              counter_snapshot.size(), int(length),
+              counter_snapshot.data() + offset);
         offset += length;
       }
     } catch (...) {
@@ -442,7 +539,8 @@ void ClearPendingRunMutations() noexcept {
         ignored.kind == Mutation::Kind::WorldCheckpoint)
       world_pending[count++] = ignored;
   }
-  for (size_t i = 0; i < count; ++i) mutations.Push(world_pending[i]);
+  for (size_t i = 0; i < count; ++i)
+    mutations.Push(world_pending[i]);
   pending_host_start = pending_solo_start = false;
 }
 void RunExit() noexcept {
@@ -458,7 +556,8 @@ void RunExit() noexcept {
 namespace game {
 // tx-04-07：一次 Restore 决策同时处理两个停止点。保留条件必须同时满足，
 // 不能只凭 Warmup 或 startGame 豁免已有 run。
-RestoreScope::RestoreScope(void *game_object, void *state, bool start_game) noexcept
+RestoreScope::RestoreScope(void *game_object, void *state,
+                           bool start_game) noexcept
     : game_(game_object), state_(state), start_game_(start_game),
       main_(cs::IsMain()), exceptions_(std::uncaught_exceptions()) {
   if (!main_)
@@ -483,7 +582,8 @@ RestoreScope::RestoreScope(void *game_object, void *state, bool start_game) noex
               (!r->peer.established ||
                r->session.Status().state == core::SessionState::Warmup);
   if (preserve_) {
-    // 本轮资格只用于这一次加载；保留 worker、握手/session identity 与菜单 Host。
+    // 本轮资格只用于这一次加载；保留 worker、握手/session identity 与菜单
+    // Host。
     r->start_qualified = false;
     InvalidateBinding(*r, "restore_preserve", false);
     ClearPendingRunMutations();
@@ -510,9 +610,9 @@ RestoreScope::~RestoreScope() noexcept {
   auto *r = Runtime();
   // 记录 owner 正常/异常返回，并把稳定入口延后到后续 loop。
   NoteLoadingOwnerReturned(RestoreOwner, normal);
-  Trace("restore", "event=return preserve=%u normal=%u game=%p state=%p loop=%llu",
-        unsigned(preserve_), unsigned(normal), game_, state_,
-        r ? r->loop : 0);
+  Trace("restore",
+        "event=return preserve=%u normal=%u game=%p state=%p loop=%llu",
+        unsigned(preserve_), unsigned(normal), game_, state_, r ? r->loop : 0);
   if (!normal || !r || r->finished)
     return;
   // 只延后稳定入口；不在 Restore owner 仍在内层时做绑定/生命观察。

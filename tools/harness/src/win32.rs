@@ -170,6 +170,7 @@ unsafe extern "system" {
     fn MapVirtualKeyW(code: u32, kind: u32) -> u32;
     fn VkKeyScanW(c: u16) -> i16;
     fn PostMessageW(window: Handle, msg: u32, wparam: usize, lparam: isize) -> Bool;
+    fn PostThreadMessageW(thread: u32, msg: u32, wparam: usize, lparam: isize) -> Bool;
     fn GetClientRect(window: Handle, rect: *mut Rect) -> Bool;
     fn GetDC(window: Handle) -> Handle;
     fn ReleaseDC(window: Handle, dc: Handle) -> i32;
@@ -634,6 +635,24 @@ impl Game {
         }
         Err("game did not exit after WM_CLOSE".into())
     }
+    // tx08 第二进程走真实消息泵的 WM_QUIT 分支；只向本 harness 创建的 PID 主窗口线程投递一次。
+    pub fn close_via_quit(&self) -> Result<u32,String> {
+        if self.exited().is_none() {
+            let window=self.window()?;let mut owner=0;
+            unsafe {
+                let thread=GetWindowThreadProcessId(window as _,&mut owner);
+                if thread==0 || owner!=self.pid() || PostThreadMessageW(thread,0x12,0,0)==0 {
+                    return Err("owned_game_WM_QUIT_delivery_failed".into());
+                }
+            }
+        }
+        let deadline=Instant::now()+Duration::from_secs(15);
+        while Instant::now()<deadline {
+            if let Some(code)=self.exited() {return Ok(code);}
+            thread::sleep(Duration::from_millis(100));
+        }
+        Err("game did not exit after WM_QUIT".into())
+    }
 }
 impl Drop for Game {
     fn drop(&mut self) {
@@ -712,6 +731,9 @@ fn key_code(name: &str) -> Result<(u16, bool), String> {
         "W" => (0x11, false),
         "S" => (0x1F, false),
         "E" => (0x12, false),
+        "Q" => (0x10, false),
+        "CTRL" => (0x1D, false),
+        "SPACE" => (0x39, false),
         "F8" => (0x42, false),
         "F9" => (0x43, false),
         _ => return Err(format!("unknown key {name}")),

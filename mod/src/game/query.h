@@ -8,8 +8,8 @@ namespace cs::game {
 inline constexpr unsigned kQueryActionCount = 12;
 inline constexpr unsigned kQueryKindCount = 3;
 inline constexpr unsigned kQueryConsumerCount = 6;
-inline constexpr unsigned kQueryOrdinalCount = 2;
-inline constexpr unsigned kQueryRepeatCapacity = 192;
+inline constexpr unsigned kQueryOrdinalCount = 4;
+inline constexpr unsigned kQueryRepeatCapacity = 384;
 // 完整查询键：只有 tick、participant 代次、资格段、consumer、查询类型与动作
 // 全部相同，才允许比较两次原生读取。失效前后绝不混为“同一快照不一致”。
 struct QueryKey {

@@ -1,0 +1,399 @@
+{
+  "description": "V5-only native lifecycle E2E. Public Spawn/Remove, bounded free pool cycling, Morph, Grid retirement, Restore and two real Esau Jr switches. No direct Publish or pool slot writes.",
+  "control_port": 27091,
+  "host_port": 27090,
+  "peer_timeout_ms": 3000,
+  "remote_lead": 2,
+  "startup_timeout_seconds": 90,
+  "operation_timeout_ms": 30000,
+  "close_timeout_ms": 10000,
+  "action_timeout_ms": 65000,
+  "capture_timeout_seconds": 30,
+  "offline_cli_timeout_seconds": 300,
+  "stable_samples": 250,
+  "comparison_samples": 32,
+  "seed": "S227 7MNF",
+  "save_continue": true,
+  "save_baseline": "artifacts/repentogon/tx-04-04-e2e-08",
+  "observation_requirements": {
+    "V5.lifecycle": "native four-boundary calls, owner births, logical Remove/ClearReferences versus separate physical Destroy, real free pool reuse, Morph revisions, Grid retirement, Restore and Esau Jr round trip; duplicate publication requires actual native Publish on same recording/local/use"
+  },
+  "to_file_select": [
+    "ENTER"
+  ],
+  "open_character_menu": [
+    "ENTER"
+  ],
+  "start_run": [
+    "ENTER"
+  ],
+  "key_settle_ms": 1400,
+  "input_script": [
+    {
+      "after": 0,
+      "movement": [
+        0,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    },
+    {
+      "after": 4,
+      "movement": [
+        32767,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    },
+    {
+      "after": 8,
+      "movement": [
+        -32767,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    },
+    {
+      "after": 12,
+      "movement": [
+        0,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "name": "seed",
+      "phase": "setup",
+      "evidence": "native console seed; use explicit scenario seed or resolve actual first-run seed, verify GetStartSeedString afterwards"
+    },
+    {
+      "name": "world_observe",
+      "phase": "setup"
+    },
+    {
+      "name": "world_observe",
+      "scene": "S4"
+    },
+    {
+      "name": "spawn",
+      "scene": "S4",
+      "id": "tear",
+      "type": 2,
+      "variant": 0,
+      "subtype": 0,
+      "seed": 400801,
+      "position": [
+        160,
+        200
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "spawner_ordinal": 0
+    },
+    {
+      "name": "world_observe",
+      "scene": "S4"
+    },
+    {
+      "name": "remove",
+      "scene": "S4",
+      "id": "tear"
+    },
+    {
+      "name": "spawn",
+      "scene": "S4",
+      "id": "projectile",
+      "type": 9,
+      "variant": 0,
+      "subtype": 0,
+      "seed": 400802,
+      "position": [
+        160,
+        200
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "spawner_ordinal": 0
+    },
+    {
+      "name": "world_observe",
+      "scene": "S4"
+    },
+    {
+      "name": "remove",
+      "scene": "S4",
+      "id": "projectile"
+    },
+    {
+      "name": "spawn",
+      "scene": "S4",
+      "id": "familiar",
+      "type": 3,
+      "variant": 1,
+      "subtype": 0,
+      "seed": 400803,
+      "position": [
+        480,
+        200
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "spawner_ordinal": 0
+    },
+    {
+      "name": "world_observe",
+      "scene": "S4"
+    },
+    {
+      "name": "remove",
+      "scene": "S4",
+      "id": "familiar"
+    },
+    {
+      "name": "spawn",
+      "scene": "S4",
+      "id": "pickup",
+      "type": 5,
+      "variant": 10,
+      "subtype": 1,
+      "seed": 400804,
+      "position": [
+        160,
+        360
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "spawner_ordinal": 0
+    },
+    {
+      "name": "morph_pickup",
+      "scene": "S5",
+      "id": "pickup",
+      "type": 5,
+      "variant": 10,
+      "subtype": 2,
+      "keep_price": true,
+      "keep_seed": true,
+      "ignore_modifiers": true
+    },
+    {
+      "name": "remove",
+      "scene": "S4",
+      "id": "pickup"
+    },
+    {
+      "name": "spawn",
+      "scene": "S4",
+      "id": "npc",
+      "type": 13,
+      "variant": 0,
+      "subtype": 0,
+      "seed": 400805,
+      "position": [
+        480,
+        360
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "spawner_ordinal": 0
+    },
+    {
+      "name": "morph_npc",
+      "scene": "S5",
+      "id": "npc",
+      "type": 14,
+      "variant": 0,
+      "subtype": 0,
+      "champion": -1
+    },
+    {
+      "name": "remove",
+      "scene": "S4",
+      "id": "npc"
+    },
+    {
+      "name": "spawn",
+      "scene": "S4",
+      "id": "effect",
+      "type": 1000,
+      "variant": 15,
+      "subtype": 0,
+      "seed": 400806,
+      "position": [
+        160,
+        200
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "spawner_ordinal": 0
+    },
+    {
+      "name": "world_observe",
+      "scene": "S4"
+    },
+    {
+      "name": "spawn_short_lived",
+      "scene": "S4",
+      "id": "short",
+      "type": 2,
+      "variant": 0,
+      "subtype": 0,
+      "seed": 400807,
+      "position": [
+        160,
+        200
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "spawner_ordinal": 0
+    },
+    {
+      "name": "spawn_short_lived",
+      "scene": "S4",
+      "id": "reuse_candidate",
+      "type": 2,
+      "variant": 0,
+      "subtype": 0,
+      "seed": 400808,
+      "position": [
+        160,
+        200
+      ],
+      "velocity": [
+        0,
+        0
+      ],
+      "spawner_ordinal": 0
+    },
+    {
+      "name": "pool_cycle",
+      "scene": "S4",
+      "count": 72,
+      "type": 3,
+      "variant": 1,
+      "subtype": 0,
+      "seed": 401000,
+      "position": [
+        480,
+        200
+      ],
+      "velocity": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "grid_spawn",
+      "scene": "S4",
+      "id": "rock",
+      "index": 32,
+      "type": 2,
+      "variant": 0,
+      "seed": 400809,
+      "var_data": 0
+    },
+    {
+      "name": "grid_replace",
+      "scene": "S5",
+      "id": "rock",
+      "index": 32,
+      "replacement_mode": "remove_then_spawn",
+      "expected_type": 2,
+      "path_trail": 0,
+      "keep_decoration": false,
+      "type": 14,
+      "variant": 0,
+      "seed": 400810,
+      "var_data": 0
+    },
+    {
+      "name": "grid_remove",
+      "scene": "S5",
+      "id": "rock",
+      "index": 32,
+      "expected_type": 14,
+      "path_trail": 0,
+      "keep_decoration": false
+    },
+    {
+      "name": "world_observe",
+      "scene": "S6"
+    },
+    {
+      "name": "room",
+      "phase": "post_continue",
+      "scene": "V5"
+    },
+    {
+      "name": "room",
+      "phase": "post_continue",
+      "scene": "V5",
+      "return_to_previous": true
+    },
+    {
+      "name": "player_esau",
+      "scene": "S5",
+      "phase": "post_continue",
+      "item": 703,
+      "ordinal": 0,
+      "slot": 0,
+      "charge": 1,
+      "input_key": "SPACE",
+      "input_count": 1,
+      "expect_new_player": true
+    },
+    {
+      "name": "player_esau",
+      "scene": "S5",
+      "phase": "post_continue",
+      "item": 703,
+      "ordinal": 0,
+      "slot": 0,
+      "charge": 1,
+      "input_key": "SPACE",
+      "input_count": 1,
+      "expect_new_player": false
+    }
+  ],
+  "comparison_actions": [
+    {
+      "name": "seed",
+      "phase": "setup",
+      "evidence": "use primary resolved actual seed; recorder must already be Recording before New Run and seed; verify GetStartSeedString before Host"
+    },
+    {
+      "name": "world_observe",
+      "phase": "setup"
+    }
+  ],
+  "unimplemented_runtime_requirements": {},
+  "focus": "V5"
+}

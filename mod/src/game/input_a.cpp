@@ -10,13 +10,19 @@
 
 namespace cs::game {
 namespace {
+// 物理轮次可多于Authority tick；只保存尚未入统一队列的边沿，不保存旧世界状态。
+// 每个新鲜Authority-pre最多提交一个上升沿样本，重复同键不会被位或合并丢失。
+struct PendingEdge final { uint32_t mask = 0; uint64_t sample = 0; };
 // 只保存当前已知物理源；设备消失/身份不明后首次重见只建立 held 基线。
 struct Source {
   core::Binding pair{};
   core::ShootingDirections shooting;
   core::InputStateDraftV2 sample{}, logged{};
   uint32_t held = 0;
-  uint64_t frame = 0, serial = 0, last_edge_serial = 0;
+  uint64_t frame = 0, serial = 0;
+  std::array<PendingEdge, 16> edges{};
+  unsigned edge_head = 0, edge_count = 0;
+  uint64_t edge_session = 0, edge_generation = 0;
   uint64_t published_serial = 0, published_completed = 0,
            published_generation = 0;
   bool known = false, fresh = false, logged_valid = false;
@@ -95,6 +101,7 @@ void DeviceScope::Returned(bool success) {
   CaptureInput(device, loop, actions);
 }
 void ForgetInputDevice() noexcept {
+  DiscardInputEdges();
   source.known = false;
   source.fresh = false;
   source.held = 0;
@@ -104,7 +111,8 @@ void ForgetInputDevice() noexcept {
 }
 void DiscardInputEdges() noexcept {
   source.sample.edge_flags = 0;
-  source.last_edge_serial = source.serial;
+  source.edge_head = source.edge_count = 0;
+  source.edge_session = source.edge_generation = 0;
 }
 // Poll 只记录结果；此处运行在公共更新成功返回后，读取最终 action 状态。
 void CaptureInput(void *device, uint64_t loop, const PhysicalActions &actions) {
@@ -116,6 +124,7 @@ void CaptureInput(void *device, uint64_t loop, const PhysicalActions &actions) {
   const bool same = source.known && source.pair.device == device &&
                     source.pair.key == topology.pair.key;
   if (!same) {
+    DiscardInputEdges();
     source.shooting = {};
     source.held = 0;
   }
@@ -147,10 +156,31 @@ void CaptureInput(void *device, uint64_t loop, const PhysicalActions &actions) {
   source.frame = loop;
   source.sample = state;
   ++source.serial;
-  // 屏蔽时仅推进物理历史，不把该区间产生的边沿留给恢复后的 Authority。
-  if (auto *r = Runtime();
-      r && (r->blocks || r->console_blocked || r->retiring))
+  // 只在当前唯一绑定的有效会话内暂存；暂停/加载/换代/设备变化立即清除。
+  // held历史仍随物理源更新，恢复时不会为一直按住的键重新制造上升沿。
+  auto *r = Runtime();
+  const bool eligible = r && Armed() && !r->blocks && !r->console_blocked &&
+      !r->retiring && !r->failure && !InBlockedContext() &&
+      r->players[0].BoundValid() && source.pair == r->players[0].Bound();
+  if (!eligible) {
     DiscardInputEdges();
+  } else {
+    const auto session = SessionGeneration(*r), generation = r->players[0].Generation();
+    if (source.edge_session != session || source.edge_generation != generation) {
+      // 清旧代次积压，但本次有效新鲜采样的真实边沿仍可入队。
+      DiscardInputEdges();
+      source.edge_session = session; source.edge_generation = generation;
+    }
+    if (state.edge_flags) {
+      if (source.edge_count == source.edges.size()) {
+        FailRuntime("physical_edge_queue_full"); return;
+      }
+      source.edges[(source.edge_head + source.edge_count) % source.edges.size()] =
+          {state.edge_flags, source.serial};
+      ++source.edge_count;
+    }
+    source.sample.edge_flags = state.edge_flags;
+  }
   if (Armed() && (!source.logged_valid ||
                   std::memcmp(&source.logged, &source.sample, sizeof(state)))) {
     Trace(
@@ -180,8 +210,10 @@ bool SubmitInput(SessionRuntime &r) noexcept {
       source.published_generation == generation)
     return true;
   auto state = source.sample;
-  if (source.last_edge_serial == source.serial)
-    state.edge_flags = 0;
+  if (source.edge_session != SessionGeneration(r) || source.edge_generation != generation)
+    DiscardInputEdges();
+  const auto edge = source.edge_count ? source.edges[source.edge_head] : PendingEdge{};
+  state.edge_flags = edge.mask;
   const bool startup = player.StartupPending();
   uint64_t target = 0;
   if (!(startup
@@ -195,17 +227,21 @@ bool SubmitInput(SessionRuntime &r) noexcept {
     Trace("submit",
           "ordinal=0 generation=%llu sample=%llu sequence=%llu target=%llu "
           "loop=%llu session_generation=%llu "
-          "decision=%u edge=%u move=%d,%d aim=%d,%d held=%u",
+          "decision=%u edge=%u move=%d,%d aim=%d,%d held=%u edge_sample=%llu",
           generation, source.serial, cmd.sequence, cmd.target_tick, r.loop,
           r.session.Identity().generation,
           unsigned(result), cmd.state.edge_flags, cmd.state.move_x, cmd.state.move_y,
-          cmd.state.aim_x, cmd.state.aim_y, cmd.state.held_flags);
+          cmd.state.aim_x, cmd.state.aim_y, cmd.state.held_flags, value.edge_flags ? edge.sample : 0);
     return result == core::Decision::Accepted ||
            result == core::Decision::Duplicate;
   };
   if (!submit(state, target))
     return false;
-  source.last_edge_serial = source.serial;
+  // admission成功才消费一次；之后的新鲜连续样本和启动补帧不重放该边沿。
+  if (source.edge_count) {
+    source.edge_head = static_cast<unsigned>((source.edge_head + 1) % source.edges.size());
+    --source.edge_count;
+  }
   if (startup) {
     state.edge_flags = 0;
     if (!core::NextInputTarget(completed, player.RuntimeConfig(), target) ||

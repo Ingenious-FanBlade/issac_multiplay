@@ -14,7 +14,7 @@
 namespace cs::game {
 namespace {
 // 跨 loop 窗口与同步调用都只在主线程记录；固定容量，容量不足时显式报错。
-constexpr std::size_t kWindowCapacity = 8;
+constexpr std::size_t kWindowCapacity = 16;
 // 一个窗口在没有观察结果时的上限（Manager loop 单位）；超时单列，不冒充完成。
 constexpr std::uint64_t kWindowTimeoutLoops = 1800;
 struct WindowRegistry {
@@ -38,17 +38,10 @@ uint64_t PersistenceSessionGeneration() noexcept {
 // 线程局部同步 operation 标签：只围住一次原生同步调用，不跨帧存活。
 thread_local const char *operation = "none";
 
-bool ControlledRemote(SessionRuntime &r, void *entity) noexcept {
-  if (!entity)
-    return false;
-  int index = -1;
-  unsigned type = 0;
-  if (!ReadAt(entity, offset::PlayerIndex, index) ||
-      !ReadAt(entity, offset::EntityType, type) || index != 1 || type != 1)
-    return false;
-  if (r.life.current.confirmed && r.life.current.player == entity)
-    return true;
-  return r.players[1].BoundValid() && r.players[1].Bound().player == entity;
+int ControlledRemote(SessionRuntime &r, void *entity) noexcept {
+  for (unsigned i = 1; i < core::kMaximumParticipants; ++i)
+    if (r.session.HasParticipant(i) && r.Remote(i).join.complete && r.topology[i].Contains(entity, false)) return int(i);
+  return -1;
 }
 // 有效窗口 id 列表；只用于把一次入口与它所属的跨 loop 窗口关联起来。
 void WindowIds(char *out, std::size_t size) noexcept {
@@ -69,9 +62,9 @@ void WindowIds(char *out, std::size_t size) noexcept {
     out[used] = 0;
   }
 }
-PersistenceWindow *FindWindow(PersistenceWindowKind kind) noexcept {
+PersistenceWindow *FindWindow(PersistenceWindowKind kind, unsigned ordinal = 0) noexcept {
   for (auto &window : registry.windows)
-    if (window.active && window.kind == kind)
+    if (window.active && window.kind == kind && window.ordinal == ordinal)
       return &window;
   return nullptr;
 }
@@ -119,13 +112,13 @@ const char *PersistenceWindowKindName(PersistenceWindowKind kind) noexcept {
   return "UNKNOWN";
 }
 uint64_t OpenPersistenceWindow(PersistenceWindowKind kind, const char *source,
-                               uint64_t death_event) noexcept {
+                               uint64_t death_event, unsigned ordinal) noexcept {
   if (!IsMain() || kind == PersistenceWindowKind::None ||
       kind == PersistenceWindowKind::Count)
     return 0;
   // 同类窗口不重复打开：一次原生请求对应一个窗口。再次请求时保留 id 与
   // 起始 loop，但重置“调用已返回”标志——否则第二次原生调用会被误当成已返回。
-  if (auto *existing = FindWindow(kind)) {
+  if (auto *existing = FindWindow(kind, ordinal)) {
     existing->source = source ? source : "";
     existing->caller = registry.current_call;
     existing->death_event = death_event;
@@ -155,6 +148,7 @@ uint64_t OpenPersistenceWindow(PersistenceWindowKind kind, const char *source,
   *slot = {};
   slot->id = ++registry.next_id;
   slot->kind = kind;
+  slot->ordinal = ordinal;
   slot->caller = registry.current_call;
   slot->parent = 0;
   slot->source = source ? source : "";
@@ -173,8 +167,8 @@ uint64_t OpenPersistenceWindow(PersistenceWindowKind kind, const char *source,
   return slot->id;
 }
 bool ClosePersistenceWindow(PersistenceWindowKind kind, const char *reason,
-                            bool normal) noexcept {
-  auto *window = FindWindow(kind);
+                            bool normal, unsigned ordinal) noexcept {
+  auto *window = FindWindow(kind, ordinal);
   if (!window)
     return false;
   window->active = false;
@@ -195,22 +189,22 @@ bool ClosePersistenceWindow(PersistenceWindowKind kind, const char *reason,
         window->loading_episode);
   return true;
 }
-bool PersistenceWindowActive(PersistenceWindowKind kind) noexcept {
-  return FindWindow(kind) != nullptr;
+bool PersistenceWindowActive(PersistenceWindowKind kind, unsigned ordinal) noexcept {
+  return FindWindow(kind, ordinal) != nullptr;
 }
-bool PersistenceWindowCallNormal(PersistenceWindowKind kind) noexcept {
-  const auto *window = FindWindow(kind);
+bool PersistenceWindowCallNormal(PersistenceWindowKind kind, unsigned ordinal) noexcept {
+  const auto *window = FindWindow(kind, ordinal);
   return window && window->call_returned && window->call_normal;
 }
-bool PersistenceWindowCallReturned(PersistenceWindowKind kind) noexcept {
-  const auto *window = FindWindow(kind);
+bool PersistenceWindowCallReturned(PersistenceWindowKind kind, unsigned ordinal) noexcept {
+  const auto *window = FindWindow(kind, ordinal);
   return window && window->call_returned;
 }
 void CloseAllPersistenceWindows(const char *reason, bool normal) noexcept {
   for (std::size_t i = 1; i < static_cast<std::size_t>(PersistenceWindowKind::Count);
        ++i)
-    ClosePersistenceWindow(static_cast<PersistenceWindowKind>(i), reason,
-                           normal);
+    for (unsigned ordinal = 0; ordinal < core::kMaximumParticipants; ++ordinal)
+      ClosePersistenceWindow(static_cast<PersistenceWindowKind>(i), reason, normal, ordinal);
 }
 PersistenceCallScope::PersistenceCallScope(const char *entry,
                                            void *object, bool enabled) noexcept
@@ -257,17 +251,16 @@ void ObserveEntityKill(void *entity, void *source) noexcept {
   if (!IsMain() || !entity)
     return;
   auto *r = Runtime();
-  if (!r || r->finished || r->mode != core::SessionMode::Host ||
-      !r->join.complete)
+  if (!r || r->finished || r->mode != core::SessionMode::Host)
     return;
-  if (!ControlledRemote(*r, entity))
-    return;
+  const int ordinal = ControlledRemote(*r, entity);
+  if (ordinal < 1) return;
   const auto window = OpenPersistenceWindow(PersistenceWindowKind::BDeath,
-                                            "native_kill", r->life.death_event);
+                                            "native_kill", r->Remote(unsigned(ordinal)).life.death_event, unsigned(ordinal));
   Trace("life",
-        "event=kill_request player=%p source=%p generation=%llu death=%llu "
+        "ordinal=%u event=kill_request player=%p source=%p generation=%llu death=%llu "
         "window=%llu loop=%llu",
-        entity, source, r->players[1].Generation(), r->life.death_event,
+        unsigned(ordinal), entity, source, r->players[ordinal].Generation(), r->Remote(unsigned(ordinal)).life.death_event,
         window, r->loop);
 }
 // RevivePlayerGhost 只对当前归属 B 开启复活窗口；bool 由 Lua 端记录，不由这里伪造。
@@ -275,17 +268,16 @@ void ObserveReviveGhost(void *player) noexcept {
   if (!IsMain() || !player)
     return;
   auto *r = Runtime();
-  if (!r || r->finished || r->mode != core::SessionMode::Host ||
-      !r->join.complete)
+  if (!r || r->finished || r->mode != core::SessionMode::Host)
     return;
-  if (!ControlledRemote(*r, player))
-    return;
+  const int ordinal = ControlledRemote(*r, player);
+  if (ordinal < 1) return;
   const auto window = OpenPersistenceWindow(PersistenceWindowKind::BRevive,
-                                            "native_revive", r->life.death_event);
+                                            "native_revive", r->Remote(unsigned(ordinal)).life.death_event, unsigned(ordinal));
   Trace("life",
-        "event=revive_request player=%p status=%s death=%llu window=%llu "
+        "ordinal=%u event=revive_request player=%p status=%s death=%llu window=%llu "
         "loop=%llu",
-        player, RemoteLifeStatusName(r->life.status), r->life.death_event,
+        unsigned(ordinal), player, RemoteLifeStatusName(r->Remote(unsigned(ordinal)).life.status), r->Remote(unsigned(ordinal)).life.death_event,
         window, r->loop);
 }
 // 换层请求在 original 之前开始观察；真正进入 FSM 由后续字段观察决定。
@@ -322,7 +314,7 @@ void ObserveLoadGameState(void *manager, int saveslot) noexcept {
 }
 // 每次稳定观察后收口：只读已复制的 runtime 值，不调用原生函数。
 void ObservePersistenceWindows(SessionRuntime &r) noexcept {
-  const bool stable = !r.blocks && !r.join.scope && !r.retiring;
+  const bool stable = !r.blocks && !r.join_ordinal && !r.retiring;
   if (auto *window = FindWindow(PersistenceWindowKind::Continue)) {
     if (r.retiring || r.failure) {
       ClosePersistenceWindow(PersistenceWindowKind::Continue,
@@ -336,18 +328,20 @@ void ObservePersistenceWindows(SessionRuntime &r) noexcept {
       ClosePersistenceWindow(PersistenceWindowKind::Continue, "timeout", false);
     }
   }
-  if (auto *window = FindWindow(PersistenceWindowKind::BRevive)) {
+  for (unsigned ordinal = 1; ordinal < core::kMaximumParticipants; ++ordinal) {
+  if (auto *window = FindWindow(PersistenceWindowKind::BRevive, ordinal)) {
     if (r.retiring || r.failure) {
       ClosePersistenceWindow(PersistenceWindowKind::BRevive,
                              r.failure ? "session_failed" : "session_retiring",
-                             false);
-    } else if (r.life.status == RemoteLifeStatus::Alive &&
-               r.players[1].BoundValid() && r.life.revived_loop != 0) {
+                             false, ordinal);
+    } else if (r.Remote(ordinal).life.status == RemoteLifeStatus::Alive &&
+               r.players[ordinal].BoundValid() && r.Remote(ordinal).life.revived_loop != 0) {
       // 正常情况下已在观察到健康时收口；这里只兜底重绑成功仍未关闭的情况。
-      ClosePersistenceWindow(PersistenceWindowKind::BRevive, "rebound", true);
+      ClosePersistenceWindow(PersistenceWindowKind::BRevive, "rebound", true, ordinal);
     } else if (r.loop > window->start_loop + kWindowTimeoutLoops) {
-      ClosePersistenceWindow(PersistenceWindowKind::BRevive, "timeout", false);
+      ClosePersistenceWindow(PersistenceWindowKind::BRevive, "timeout", false, ordinal);
     }
+  }
   }
   if (auto *window = FindWindow(PersistenceWindowKind::StageChange)) {
     const bool stage_clear = r.topology[0].known && r.topology[0].run &&
@@ -368,17 +362,19 @@ void ObservePersistenceWindows(SessionRuntime &r) noexcept {
   }
   // b_death 的正常收口在观察到 ghost 时完成；这里只处理会话结束与超时，
   // 不把“未观察到结果”冒充成功。超时时 B 仍为 Alive 的按意外自动复活单列。
-  if (auto *window = FindWindow(PersistenceWindowKind::BDeath)) {
+  for (unsigned ordinal = 1; ordinal < core::kMaximumParticipants; ++ordinal) {
+  if (auto *window = FindWindow(PersistenceWindowKind::BDeath, ordinal)) {
     if (r.retiring || r.failure) {
       ClosePersistenceWindow(PersistenceWindowKind::BDeath,
                              r.failure ? "session_failed" : "session_retiring",
-                             false);
+                             false, ordinal);
     } else if (r.loop > window->start_loop + kWindowTimeoutLoops) {
-      const bool still_alive = r.life.status == RemoteLifeStatus::Alive;
+      const bool still_alive = r.Remote(ordinal).life.status == RemoteLifeStatus::Alive;
       ClosePersistenceWindow(PersistenceWindowKind::BDeath,
                              still_alive ? "unexpected_revive" : "timeout",
-                             false);
+                             false, ordinal);
     }
+  }
   }
 }
 void FinishPersistenceWindows(const char *reason) noexcept {
@@ -421,6 +417,7 @@ std::string PersistenceWindowFields() {
     if (!window.active)
       continue;
     const std::string prefix = "persist_window." + std::to_string(window.id);
+    out += prefix + ".ordinal=" + std::to_string(window.ordinal) + "\n";
     out += prefix + ".kind=" + PersistenceWindowKindName(window.kind) + "\n";
     out += prefix + ".source=" + window.source + "\n";
     out += prefix + ".start_loop=" + std::to_string(window.start_loop) + "\n";

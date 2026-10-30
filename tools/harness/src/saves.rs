@@ -127,6 +127,11 @@ pub fn other_slot(name: &str) -> bool {
 fn is_daily_backup(name: &str) -> bool {
     name.starts_with("documents/save_backups/")
 }
+// 活动日志和D27排除的每日备份仍完整复制；其并发写入不等于存档快照不稳定。
+// 其余路径一律要求稳定，不扩展存档变化白名单，也不把父调用返回当文件写入成功。
+pub fn requires_stable_snapshot(name: &str) -> bool {
+    name != "documents/log.txt" && !is_daily_backup(name)
+}
 fn allowed_change(name: &str) -> bool {
     let base = Path::new(name)
         .file_name()

@@ -12,6 +12,7 @@ pub enum Reception {
 // 每轮创建新对象，First Ack 缓存常驻至本轮结束，不复用退休身份。
 pub struct Endpoint {
     pub session: Id,
+    pub ordinal: u32,
     pub ack: Option<Ack>,
     pub last_ack: u64,
     pub established: bool,
@@ -29,15 +30,18 @@ pub struct Endpoint {
     timeout: Duration,
 }
 impl Endpoint {
-    pub fn new(nonce: Id, timeout: Duration) -> Result<Self> {
+    pub fn new(nonce: Id, timeout: Duration, ordinal: u32) -> Result<Self> {
+        if !(1..=3).contains(&ordinal) { return Err("remote_ordinal".into()); }
         let hello = Agreement::hello(nonce);
         let bytes = protocol::encode(&Message {
+            sender: u64::from(ordinal) + 1,
             session: [0; 16],
             role: 2,
             sequence: 1,
             body: Body::Hello(hello.clone()),
         })?;
         Ok(Self {
+            ordinal,
             session: [0; 16],
             ack: None,
             last_ack: 0,
@@ -77,8 +81,11 @@ impl Endpoint {
             return Ok(Reception::RetiredIgnored);
         }
         let m = protocol::decode(b)?;
-        if m.role != 1 {
+        if m.role != 1 || m.sender != 1 {
             return Err("role".into());
+        }
+        if let Body::Ack(a) = &m.body {
+            if a.client != u64::from(self.ordinal) + 1 { return Err("ack_client".into()); }
         }
         match &m.body {
             Body::Ack(a) if a.purpose == 1 => {
@@ -156,6 +163,7 @@ impl Endpoint {
             return Err("send_phase".into());
         }
         protocol::encode(&Message {
+            sender: u64::from(self.ordinal) + 1,
             session: self.session,
             role: 2,
             sequence: self.next,

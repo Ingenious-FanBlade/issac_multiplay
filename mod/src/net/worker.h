@@ -14,12 +14,12 @@ struct WorkerConfig {
   std::string bind_address = "0.0.0.0";
   std::uint16_t port = 27090;
   std::uint32_t peer_timeout_ms = 3000, heartbeat_ms = 250;
-  protocol::Text build = protocol::TextId("isaac.cs.tx-04-07");
+  protocol::Text build = protocol::TextId("isaac.cs.tx-04-09");
 };
 // 系统随机数生成的会话身份；主线程据此构造 Session，不能用对象地址替代。
 struct HostIdentity {
   protocol::Id session{}, nonce{};
-  std::array<std::uint64_t, 2> clients = protocol::kClients;
+  std::array<std::uint64_t, core::kMaximumParticipants> clients = protocol::kClients;
 };
 enum class StartError : std::uint32_t {
   None,
@@ -102,12 +102,15 @@ public:
   Worker &operator=(const Worker &) = delete;
   StartResult Start(const WorkerConfig &config) noexcept;
   bool QueueAck(const protocol::Ack &ack) noexcept;
-  bool TryReceive(ReceivedInput &input) noexcept;
+  bool TryReceive(ReceivedInput &input, unsigned ordinal = 1) noexcept;
+  // 单 Peer 退出只关闭自己的 Endpoint，监听线程和其他远端继续运行。
+  void RequestPeerStop(unsigned ordinal, protocol::ByeReason reason) noexcept;
   void
   RequestStop(protocol::ByeReason reason = protocol::ByeReason::Stop) noexcept;
   StopResult Stop(protocol::ByeReason reason = protocol::ByeReason::Stop,
                   std::uint32_t wait_ms = 1000) noexcept;
-  WorkerStatus Status() const noexcept;
+  WorkerStatus Status(unsigned ordinal = 1) const noexcept;
+  bool TransportFailed() const noexcept;
 
 private:
   struct State;

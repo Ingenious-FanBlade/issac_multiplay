@@ -62,8 +62,8 @@
 | effect | 1000/15/0 Poof01，seed400806，(160,200) | 新对象与视图；寿命由游戏推进，早退/退休如实失败或缺观察 |
 | 短命/复用候选 | 同类effect，seed400807/400808，两个独立标签 | 同动作创建再Remove；必须看真实birth/clear/destroy/use事件，第二次分配不保证复用 |
 | Grid | index32，ROCK=2/variant0，seed400809，varData0 | 先确认实际空格、原始GetGridPath=0且无door alias；SpawnGridEntity必须返回true |
-| Grid替换 | 同格同类，seed400810，varData0 | 直接调用SpawnGridEntity真实覆盖owner，不先Remove；保存原生前后槽 |
-| Grid移除 | 自建rock标签/房间代次/seed/type/variant匹配；PathTrail0，keepDecoration=false | 原始该格路径值必须0、无door alias；观察实际清槽与物理退休各自事件，不能把标签/seed当native身份 |
+| Grid替换（2026-10-29修订） | index32，原ROCK=2，目标POOP=14/variant0，seed400810，varData0；replacement_mode=remove_then_spawn，PathTrail0，keepDecoration=false | e2e-09直接覆盖完整岩石失败后，改为删除自有旧格、跨真实帧核对空地、再创建；实际返回值/类型/seed和旧退休→新出生分别保留，不声称单次原生覆盖 |
+| Grid移除（2026-10-29修订） | 自建标签保持rock，其当前对象已为POOP；房间代次/seed/type14匹配，variant只记录实际值；PathTrail0，keepDecoration=false | 原始该格路径值必须0、无door alias；观察实际清槽与物理退休各自事件，不能把标签/seed当native身份 |
 | 引用故障来源 | 换层后3/1/0 familiar，seed400811，(160,200)，spawner A | 为后续reference测试提供真实非空引用候选；没有实际引用仍不能通过 |
 
 主审复读 `0x813BD0` 确认 PathTrail 原值写 `Room+0x76C+4*index`、清槽再调析构包装；传0有路径影响，仅限制于上述初始路径为0的自建普通rock。门不直接生成：通过实际新局/切房后的 GetDoor/格子映射只读视图，与采集来源11/12交叉观察；八EL、roster、Esau、Player关系按capture实际成员记录，空来源仍如实为空，reserved13/14仍NOT_APPLICABLE。

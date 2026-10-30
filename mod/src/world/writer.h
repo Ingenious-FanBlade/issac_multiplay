@@ -69,7 +69,7 @@ public:
   // 创建目录与文件、写 manifest、启动编码线程。storage 必须比 writer 活得久
   // （writer 线程在 Close 之前一直读取它的队列/诊断/故障开关）。
   bool Open(const WriterConfig &config, const ManifestInput &manifest,
-            WorldStorage &storage) noexcept;
+            WorldStorage &storage,ValueQueue *consumer_queue=nullptr) noexcept;
   // 只发停止信号，不等待；主线程路径必须用它。
   void RequestStop() noexcept;
   // 有界等待 writer 线程；wait_ms=0 时只返回当前是否已收口。

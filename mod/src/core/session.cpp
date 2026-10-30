@@ -97,11 +97,16 @@ bool Session::Start(const SessionIdentity &identity,
                     SessionMode mode) noexcept {
   if (Status().state != SessionState::Dormant)
     return false;
-  const bool valid_clients =
-      mode == SessionMode::Solo
-          ? identity.clients[1] == 0
-          : mode == SessionMode::Host && identity.clients[1] != 0 &&
-                identity.clients[0] != identity.clients[1];
+  bool valid_clients = mode == SessionMode::Solo || mode == SessionMode::Host;
+  for (std::size_t i = 1; i < kMaximumParticipants; ++i) {
+    if (mode == SessionMode::Solo)
+      valid_clients &= identity.clients[i] == 0;
+    else {
+      valid_clients &= identity.clients[i] != 0;
+      for (std::size_t j = 0; j < i; ++j)
+        valid_clients &= identity.clients[i] != identity.clients[j];
+    }
+  }
   if (!valid_clients || !identity.generation || !identity.clients[0] ||
       std::all_of(identity.session.begin(), identity.session.end(),
                   [](auto byte) { return byte == 0; })) {
@@ -110,26 +115,44 @@ bool Session::Start(const SessionIdentity &identity,
   }
   identity_ = identity;
   mode_ = mode;
+  present_ = 1;
   return Move(SessionState::Dormant, SessionState::Warmup,
               SessionCause::Prepared);
 }
 bool Session::Activate(bool host_bound, bool remote_bound) noexcept {
+  (void)remote_bound;
   if (AcceptsInput())
     return true;
-  const bool bindings_ready =
-      host_bound && (mode_ == SessionMode::Solo ||
-                     (mode_ == SessionMode::Host && remote_bound));
-  return bindings_ready &&
-         Move(SessionState::Warmup, SessionState::Active,
-              SessionCause::BindingsReady);
+  const bool bindings_ready = host_bound && HasParticipant(0);
+  return bindings_ready && Move(SessionState::Warmup, SessionState::Active,
+                                SessionCause::BindingsReady);
+}
+std::size_t Session::ParticipantCount() const noexcept {
+  std::size_t count = 0;
+  for (std::size_t i = 0; i < ParticipantLimit(); ++i)
+    count += HasParticipant(static_cast<std::uint32_t>(i));
+  return count;
+}
+bool Session::AddParticipant(std::uint32_t ordinal) noexcept {
+  if (!ordinal || ordinal >= ParticipantLimit() || !AllowsBinding() ||
+      (retired_ & (1u << ordinal)))
+    return false;
+  present_ |= 1u << ordinal;
+  return true;
+}
+bool Session::RemoveParticipant(std::uint32_t ordinal) noexcept {
+  if (!ordinal || ordinal >= ParticipantLimit())
+    return false;
+  present_ &= ~(1u << ordinal);
+  retired_ |= 1u << ordinal;
+  return true;
 }
 // 退休立即关闭新的 admission；已经开始的模拟仍可正常返回并完成发布。
 bool Session::BeginRetirement(SessionCause cause) noexcept {
   // PeerLost 与其它 Peer 原因一样只属于 Host 的有序退休；Solo 不接受。
-  const bool peer_cause = cause == SessionCause::PeerBye ||
-                         cause == SessionCause::PeerTimeout ||
-                         cause == SessionCause::PeerProtocol ||
-                         cause == SessionCause::PeerLost;
+  const bool peer_cause =
+      cause == SessionCause::PeerBye || cause == SessionCause::PeerTimeout ||
+      cause == SessionCause::PeerProtocol || cause == SessionCause::PeerLost;
   if (cause != SessionCause::Stop && cause != SessionCause::RunTeardown &&
       !(mode_ == SessionMode::Host && peer_cause))
     return false;

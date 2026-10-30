@@ -1,0 +1,113 @@
+{
+  "description": "V2-only real two-process E2E: full owner/Room/tail and StandardRoom submission order, all four recordings, odd/pause/loading/no-authority rejection. Other V/L dimensions are not accepted.",
+  "control_port": 27091,
+  "host_port": 27090,
+  "peer_timeout_ms": 3000,
+  "remote_lead": 2,
+  "startup_timeout_seconds": 90,
+  "operation_timeout_ms": 30000,
+  "close_timeout_ms": 10000,
+  "action_timeout_ms": 65000,
+  "capture_timeout_seconds": 30,
+  "offline_cli_timeout_seconds": 300,
+  "stable_samples": 250,
+  "comparison_samples": 32,
+  "seed": "KZFN AP41",
+  "save_continue": true,
+  "save_baseline": "artifacts/repentogon/tx-04-04-e2e-08",
+  "observation_requirements": {
+    "V2.phase_order": "all complete captures must match unique same-loop/scope/tick StandardRoom pre/commit/publish and normal three-stage returns; require complete samples in primary/comparison/healthy/continue; odd/pause/loading/no-authority remain gaps",
+    "V2.recreated_room": "after recorder restart use native adjacent-room transition; after Continue return to the actually observed previous room; FIRST_OBSERVED objects stay unqualified until a real creation/restore owner proves readiness"
+  },
+  "to_file_select": [
+    "ENTER"
+  ],
+  "open_character_menu": [
+    "ENTER"
+  ],
+  "start_run": [
+    "ENTER"
+  ],
+  "key_settle_ms": 1400,
+  "input_script": [
+    {
+      "after": 0,
+      "movement": [
+        0,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    },
+    {
+      "after": 4,
+      "movement": [
+        32767,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    },
+    {
+      "after": 8,
+      "movement": [
+        -32767,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    },
+    {
+      "after": 12,
+      "movement": [
+        0,
+        0
+      ],
+      "aim": [
+        0,
+        0
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "name": "seed",
+      "phase": "setup",
+      "evidence": "native console seed; use explicit scenario seed or resolve actual first-run seed, verify GetStartSeedString afterwards"
+    },
+    {
+      "name": "world_observe",
+      "phase": "setup"
+    },
+    {
+      "name": "room",
+      "phase": "healthy",
+      "scene": "V2"
+    },
+    {
+      "name": "room",
+      "phase": "post_continue",
+      "scene": "V2",
+      "return_to_previous": true
+    }
+  ],
+  "comparison_actions": [
+    {
+      "name": "seed",
+      "phase": "setup",
+      "evidence": "use primary resolved actual seed; recorder must already be Recording before New Run and seed; verify GetStartSeedString before Host"
+    },
+    {
+      "name": "world_observe",
+      "phase": "setup"
+    }
+  ],
+  "unimplemented_runtime_requirements": {},
+  "focus": "V2"
+}

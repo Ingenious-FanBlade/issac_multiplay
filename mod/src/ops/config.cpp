@@ -20,8 +20,8 @@ Config ReadConfig() {
   }
   rapidjson::Document d;
   d.Parse(text.data(), text.size());
-  if (d.HasParseError() || !d.IsObject() || !d.HasMember("schema") || !d["schema"].IsUint() ||
-      d["schema"].GetUint() != 1) {
+  if (d.HasParseError() || !d.IsObject() || !d.HasMember("schema") ||
+      !d["schema"].IsUint() || d["schema"].GetUint() != 1) {
     c.reason = "config_schema";
     return c;
   }
@@ -29,6 +29,18 @@ Config ReadConfig() {
     if (!d.HasMember("enabled") || !d["enabled"].IsBool())
       throw std::runtime_error("enabled");
     c.enabled = d["enabled"].GetBool();
+    if (d.HasMember("diagnostics")) {
+      const auto &v = d["diagnostics"];
+      if (!v.IsObject() || !v.HasMember("enabled") || !v["enabled"].IsBool())
+        throw std::runtime_error("diagnostics.enabled");
+      c.diagnostics = v["enabled"].GetBool();
+      if (v.HasMember("repeat_topology_reads")) {
+        if (!v["repeat_topology_reads"].IsBool())
+          throw std::runtime_error("diagnostics.repeat_topology_reads");
+        c.repeat_topology_reads =
+            c.diagnostics && v["repeat_topology_reads"].GetBool();
+      }
+    }
     if (d.HasMember("trace_dir")) {
       if (!d["trace_dir"].IsString())
         throw std::runtime_error("trace_dir");
@@ -41,8 +53,8 @@ Config ReadConfig() {
     }
     // 端口严格限定到有效 TCP 范围。
     auto port = [](const rapidjson::Value &v, const char *key) -> unsigned {
-      if (!v.IsObject() || !v.HasMember(key) || !v[key].IsUint() || v[key].GetUint() < 1 ||
-          v[key].GetUint() > 65535)
+      if (!v.IsObject() || !v.HasMember(key) || !v[key].IsUint() ||
+          v[key].GetUint() < 1 || v[key].GetUint() > 65535)
         throw std::runtime_error("port");
       return v[key].GetUint();
     };
@@ -79,17 +91,21 @@ Config ReadConfig() {
       c.world_record_enabled = v["enabled"].GetBool();
       if (v.HasMember("e2e_token")) {
         const auto &token = v["e2e_token"];
-        if (!token.IsString() || !token.GetStringLength() || token.GetStringLength() > 96 ||
+        if (!token.IsString() || !token.GetStringLength() ||
+            token.GetStringLength() > 96 ||
             std::strlen(token.GetString()) != token.GetStringLength())
           throw std::runtime_error("world_record.e2e_token");
         c.world_e2e_token = token.GetString();
-        if (c.world_e2e_token.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-") != std::string::npos)
+        if (c.world_e2e_token.find_first_not_of(
+                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+                "_.-") != std::string::npos)
           throw std::runtime_error("world_record.e2e_token_chars");
       }
       if (v.HasMember("output_dir")) {
         if (!v["output_dir"].IsString() || !v["output_dir"].GetStringLength() ||
             v["output_dir"].GetStringLength() > 240 ||
-            std::strlen(v["output_dir"].GetString()) != v["output_dir"].GetStringLength())
+            std::strlen(v["output_dir"].GetString()) !=
+                v["output_dir"].GetStringLength())
           throw std::runtime_error("world_record.output_dir");
         c.world_output_dir = v["output_dir"].GetString();
         for (const unsigned char byte : c.world_output_dir)
@@ -97,7 +113,8 @@ Config ReadConfig() {
             throw std::runtime_error("world_record.output_dir_control");
       }
       if (v.HasMember("close_timeout_ms")) {
-        if (!v["close_timeout_ms"].IsUint() || !v["close_timeout_ms"].GetUint() ||
+        if (!v["close_timeout_ms"].IsUint() ||
+            !v["close_timeout_ms"].GetUint() ||
             v["close_timeout_ms"].GetUint() > 60000)
           throw std::runtime_error("world_record.close_timeout_ms");
         c.world_close_timeout_ms = v["close_timeout_ms"].GetUint();

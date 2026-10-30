@@ -50,10 +50,14 @@ ImGui.AddCallback(panel, ImGuiCallback.Render, function()
         return
     end
     local state = status.state or "Disabled"
-    ImGui.UpdateText("isaac-cs-peer", "Peer: " .. (status.peer_address or "none")
-        .. "  " .. (status.peer_state or "Dormant") .. "\nRTT: " .. (status.peer_rtt_ms or "0")
-        .. " ms  B bound: " .. (status.b_bound or "0") .. "  Join: " .. (status.join_state or "Waiting")
-        .. "\nSession error: " .. (status.session_error or "") .. "  Terminal: " .. (status.peer_terminal or "None"))
+    local peers = { "Participants: " .. (status.participants or "0") .. "/4   Bodies: " .. (status.active_bodies or "0") }
+    for ordinal = 1, 3 do
+        local prefix = "participant." .. ordinal .. "."
+        peers[#peers + 1] = "Remote " .. ordinal .. ": " .. (status[prefix .. "peer"] or "Dormant")
+            .. "   Join: " .. (status[prefix .. "join"] or "None")
+            .. "   Bodies: " .. (status[prefix .. "active_bodies"] or "0")
+    end
+    ImGui.UpdateText("isaac-cs-peer", table.concat(peers, "\n"))
     ImGui.UpdateText("isaac-cs-state", "State: " .. state .. "\nDLL: " .. (version.dll_version or "?") .. "\nREPENTOGON: " .. (version.repentogon_version or "?"))
     local groups = {}
     for _, name in ipairs({"loop", "input", "player", "join", "control", "device"}) do

@@ -35,9 +35,9 @@
       }                                                                        \
     };                                                                         \
     static Pending pending;                                                    \
-    /* super 只做一次 jmp，形参不在本体内引用；用 __pragma 精确抑制这一处 */    \
-    __pragma(warning(suppress : 4100))                                         \
-    auto __declspec(naked) conv Wrapper::super sig->ret {                      \
+    /* super 只做一次 jmp，形参不在本体内引用；用 __pragma 精确抑制这一处 */   \
+    __pragma(warning(suppress : 4100)) auto                                    \
+        __declspec(naked) conv Wrapper::super sig->ret {                       \
       __asm jmp internalSuper                                                  \
     }                                                                          \
   }                                                                            \
@@ -63,52 +63,56 @@
 //   3. 自有定义的 ArgData 来自显式 HookArg 表，可表达 ECX/EDX 等寄存器参数，
 //      不再按逗号数假定“每参一个栈 word”。
 #define CS_WORLD_HOOK_COMMON(id, def, cls, method, pri, rv, pat, own, nargs,   \
-                             argspec, flags, obs, conv, sig, ret, stat, typ)   \
-  namespace HW_##id {                                                         \
-    static void *internalSuper = nullptr;                                     \
-    struct Wrapper : cls {                                                    \
-      stat auto conv hook sig->ret;                                           \
-      stat auto conv super sig->ret;                                          \
-    };                                                                        \
-    static cs::Hook record{#id,                                               \
-                           cs::Group::World,                                  \
-                           def,                                               \
-                           &typeid(typ),                                      \
-                           nullptr,                                           \
-                           &internalSuper,                                    \
-                           rv,                                                \
-                           pat,                                               \
-                           own,                                               \
-                           nargs,                                             \
-                           flags,                                             \
-                           pri,                                               \
-                           cs::Owner::None,                                   \
-                           argspec,                                           \
-                           static_cast<std::uint32_t>(                        \
-                               cs::world::Observation::obs),                  \
-                           true};                                             \
-    struct Pending {                                                          \
-      Pending() noexcept {                                                    \
-        auto member = &Wrapper::hook;                                         \
-        static_assert(sizeof(member) == sizeof(void *));                      \
-        memcpy(&record.entry, &member, sizeof(void *));                       \
-        cs::AddPending(&record);                                              \
-      }                                                                       \
-    };                                                                        \
-    static Pending pending;                                                   \
+                             argspec, flags, obs, shared, conv, sig, ret,      \
+                             stat, typ)                                        \
+  namespace HW_##id {                                                          \
+    static void *internalSuper = nullptr;                                      \
+    struct Wrapper : cls {                                                     \
+      stat auto conv hook sig->ret;                                            \
+      stat auto conv super sig->ret;                                           \
+    };                                                                         \
+    static cs::Hook record{                                                    \
+        #id,                                                                   \
+        (shared ? cs::Group::Observe : cs::Group::World),                      \
+        def,                                                                   \
+        &typeid(typ),                                                          \
+        nullptr,                                                               \
+        &internalSuper,                                                        \
+        rv,                                                                    \
+        pat,                                                                   \
+        own,                                                                   \
+        nargs,                                                                 \
+        flags,                                                                 \
+        pri,                                                                   \
+        cs::Owner::None,                                                       \
+        argspec,                                                               \
+        static_cast<std::uint32_t>(cs::world::Observation::obs),               \
+        true,                                                                  \
+        shared};                                                               \
+    struct Pending {                                                           \
+      Pending() noexcept {                                                     \
+        auto member = &Wrapper::hook;                                          \
+        static_assert(sizeof(member) == sizeof(void *));                       \
+        memcpy(&record.entry, &member, sizeof(void *));                        \
+        cs::AddPending(&record);                                               \
+      }                                                                        \
+    };                                                                         \
+    static Pending pending;                                                    \
     /* super 只做一次 jmp，形参不在本体内引用；用 __pragma 精确抑制这一处 */   \
-    __pragma(warning(suppress : 4100))                                        \
-    auto __declspec(naked) conv Wrapper::super sig->ret {                     \
-      __asm jmp internalSuper                                                 \
-    }                                                                         \
-  }                                                                           \
+    __pragma(warning(suppress : 4100)) auto                                    \
+        __declspec(naked) conv Wrapper::super sig->ret {                       \
+      __asm jmp internalSuper                                                  \
+    }                                                                          \
+  }                                                                            \
   auto conv HW_##id::Wrapper::hook sig->ret
 
 #define CS_WORLD_HOOK_METHOD(id, def, cls, method, pri, rv, pat, own, nargs,   \
-                             argspec, flags, obs, conv, sig, ret)              \
-  CS_WORLD_HOOK_COMMON(id, def, cls, method, pri, rv, pat, own, nargs, argspec, \
-                       flags, obs, conv, sig, ret, , auto(cls::*) sig->ret)
+                             argspec, flags, obs, shared, conv, sig, ret)      \
+  CS_WORLD_HOOK_COMMON(id, def, cls, method, pri, rv, pat, own, nargs,         \
+                       argspec, flags, obs, shared, conv, sig, ret, ,          \
+                       auto(cls::*) sig->ret)
 #define CS_WORLD_HOOK_STATIC(id, def, cls, method, pri, rv, pat, own, nargs,   \
-                             argspec, flags, obs, conv, sig, ret)              \
-  CS_WORLD_HOOK_COMMON(id, def, cls, method, pri, rv, pat, own, nargs, argspec, \
-                       flags, obs, conv, sig, ret, static, auto(*) sig->ret)
+                             argspec, flags, obs, shared, conv, sig, ret)      \
+  CS_WORLD_HOOK_COMMON(id, def, cls, method, pri, rv, pat, own, nargs,         \
+                       argspec, flags, obs, shared, conv, sig, ret, static,    \
+                       auto(*) sig->ret)

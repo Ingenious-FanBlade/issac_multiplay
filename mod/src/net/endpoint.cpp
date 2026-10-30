@@ -40,6 +40,8 @@ Error Endpoint::Start(const Config &config, std::uint64_t now_ms) noexcept {
   hello.build = config.build;
   hello.local_nonce = config.local_nonce;
   if (!ValidHello(hello, false) || !config.peer_timeout_ms ||
+      !config.remote_ordinal ||
+      config.remote_ordinal >= core::kMaximumParticipants ||
       (config.role != Role::Authority && config.role != Role::Remote) ||
       (Nonzero(config.session) != (config.role == Role::Authority))) {
     Fail();
@@ -72,7 +74,8 @@ Error Endpoint::Prepare(const Message &content, Packet &output) noexcept {
     return Error::Sequence;
   auto m = content;
   m.header.role = config_.role;
-  m.header.sender = kClients[config_.role == Role::Authority ? 0 : 1];
+  m.header.sender =
+      kClients[config_.role == Role::Authority ? 0 : config_.remote_ordinal];
   m.header.sequence = next_send_;
   m.header.session = config_.session;
   if (m.header.kind == Kind::Hello) {
@@ -86,6 +89,7 @@ Error Endpoint::Prepare(const Message &content, Packet &output) noexcept {
       return Error::Phase;
     m.ack = {};
     m.ack.purpose = AckPurpose::First;
+    m.ack.client_id = kClients[config_.remote_ordinal];
     m.ack.hello_sequence = hello_sequence_;
     m.ack.agreement = Agreement();
   } else {
@@ -173,6 +177,11 @@ Error Endpoint::Receive(std::span<const std::uint8_t> bytes,
       config_.role == Role::Authority ? Role::Remote : Role::Authority;
   if (m.header.role != other)
     return Error::Role;
+  if (m.header.sender !=
+          kClients[other == Role::Authority ? 0 : config_.remote_ordinal] ||
+      (m.header.kind == Kind::Ack &&
+       m.ack.client_id != kClients[config_.remote_ordinal]))
+    return Error::Identity;
   const auto index = static_cast<std::size_t>(m.header.kind) - 1;
   if (received_sequences_[index] && Same(received_[index], bytes)) {
     last_receive_ms_ = now_ms;

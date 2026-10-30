@@ -1,4 +1,12 @@
+> **tx-04-10 交付（2026-10-30）**：[公共边界、采集／录制分离、Entity／旧 Grid 拆分及 Entity 完整观测](observation-expansion/tx-04-10-implementation.md)已实现，统一 E2E 最终 5/5 PASS。新域使用独立 v2 schema，旧 v1 取同读取兼容投影；完整 Grid 仍归 tx-04-11。
+
 # REPENTOGON 适配重构设计
+
+> **2026-10-30 整局最终目标**：状态同步最终交付已由单房间原型扩展到整局可玩。当前顺序见[tx-04-09—tx-04-34完整流程](state-synchronization-roadmap.md)，架构见[状态同步设计](state-synchronization.md)。09—14观测先行不变；后续明确覆盖真实游戏Client、全部原版内容、切房换层、重连Continue、完整表现与产品发布。下文早期“后续再做”的必要整局能力不再视为未排期；当前未实现能力不因规划而改判。
+
+> **2026-10-30 最新连续计划**：按用户安排先实施[tx-04-09—tx-04-14四人、多身体与完整世界观测](observation-expansion/README.md)，暂不进入状态同步实现。优先两套本地Wiki和公开Lua采集，只有具体缺口才查源码或补必要逆向；不对全部公开成员强制native比对。本轮只编写计划，不修改运行代码。历史同号tx-04-09 ASM patch记录原样保留，新09以四人／多身体主题区分。
+
+> **2026-10-30 后续范围**：用户要求状态同步阶段恢复四名参与者，本轮先明确现状和设计，不改运行代码。当前单peer/双人DLL、固定min-read-v1及单主要Player绑定的实际限制见[范围澄清](four-participant-state-sync-scope.md)。后续四人按参与者与多身体实体分离，不把历史A/B限制继续固定到新状态协议；Slot/Machine完整支持、双子控制组和可玩Replica均尚待实现/验收。
 
 > **tx-04-07 已完成（用户正式接受，D31，2026-10-26）**。用户明确将 e2e-11 的整体 E2E 正式视为全部通过；原始自动 FAIL、S17 停止及未执行项保留，不再安排本轮补测。见[验收记录](../../artifacts/repentogon/tx-04-07-e2e-11/acceptance.md)和[结果](tx-04-07-results.md)。下方历史状态不追溯改写。
 
@@ -609,6 +617,8 @@ cs-t0/               冻结，只作历史资料和代码来源
 
 ## 14. 推进计划
 
+当前后续执行计划以[tx-04-09—tx-04-34完整流程](state-synchronization-roadmap.md)为准；其中09—14细节见[输入与完整观测六项计划](observation-expansion/README.md)。本节既有tx-04-01—tx-04-08表保留各原始状态，不据新计划改判历史结果。
+
 | 编号 | 目标 | 验收 | 状态 |
 | --- | --- | --- | --- |
 | tx-04-01 | 设计文档初稿 | 一次静态文档审阅 | 完成 |
@@ -618,7 +628,7 @@ cs-t0/               冻结，只作历史资料和代码来源
 | tx-04-05 | 循环阶段与 tick 判定；本地 A 经统一队列输入；生命周期；会话真实状态（单人）。实现方案见 [tx-04-05-implementation-plan.md](tx-04-05-implementation-plan.md) | 一次 E2E：A 的输入；tick、暂停、控制台屏蔽、加载、跳帧、teardown 的判定 | U1–U4 已确认（D19）；T1–T8 静态审查与主审完成；全路径最终位置次序仍 UNKNOWN，采用后续稳定边界重绑；core/game、必要 Hook/solo、Lua 夹具与 Rust 单启动 S0–S11 / V1–V10 均已编写并完成相应纯构建；第一次整体 E2E 在 S0 启动阶段因 harness focus 时序 FAIL，未进入 run，未重跑，另发现 V10 历史基线规则无法匹配；按 D20 修正后第二次 E2E 跑完 S0–S11，V1、V3–V9 PASS，V2、V10 因 harness 时序与 F9 截图热键 FAIL；按 D21 修正后第三次 E2E 中 V1、V3–V10 PASS，V2 因 S10 移动被随机房间的岩石挡住 FAIL；按 D22 修正后第四次 E2E 中 V1、V3–V10 PASS，V2 因判定方向未随 S10 反向同步 FAIL，未重跑。D23：用户决定将第四次 E2E 算作验收通过，**tx-04-05 完成（用户接受）**，见[结果](tx-04-05-results.md) |
 | tx-04-06 | net（DLL 内 UDP 线程与新协议）；按 v1.9.7.12 重做的虚拟设备 K；Join（含调用点补丁）；B 的远端输入；断开与退休；Rust 远端模拟客户端（D24）。实现方案见 [tx-04-06-implementation-plan.md](tx-04-06-implementation-plan.md) | 一次 E2E：主菜单 Hosting、握手、Join、B 输入、A/B 同 tick、炸弹、浮层、切房、stop/超时/teardown 三种结束 | U1–U4 已确认（D25）；ST1–ST9 静态确认与实现完成；第一次 E2E 因 K 缺少 RTTI COL 崩溃，按 D26 修复；第二次 E2E 中 V1–V11 PASS，V12 只因每日备份的基线匹配失败（D27 起不判定每日备份）。D28：用户决定将第二次 E2E 算作验收通过，**tx-04-06 完成（用户接受）**，见[结果](tx-04-06-results.md) |
 | tx-04-07 | relay 与故障注入；B 死亡与复活；异常 Join；B 的跨房射击；loading 查询；补齐首轮完整场景集（D24）。实现方案见 [tx-04-07-implementation-plan.md](tx-04-07-implementation-plan.md) | 一次 E2E：首轮完整场景集 | **已完成（用户正式接受，D31，2026-10-26）**。e2e-11 整体 E2E 正式验收通过；原自动 FAIL、停止/未执行与实测事实保留，不再补测。见[验收记录](../../artifacts/repentogon/tx-04-07-e2e-11/acceptance.md)与[历次结果](tx-04-07-results.md) |
-| tx-04-08 | 完整迁移 world_record（D24 起由 tx-04-07 顺延）；[迁移设计](tx-04-08/tx-04-08-implementation-plan.md)、[E2E 方案](tx-04-08/tx-04-08-e2e-plan.md) | 设计任务一次静态文档审阅；功能完成后一次整体 E2E：2,000 次稳定采集、生命周期、两个顺序进程和离线工具 | D32 已确认；设计完成，[ST1](../research/tx-04-08-st1-static-confirmation.md)、[ST2](../research/tx-04-08-st2-static-confirmation.md)、[ST3–ST5](../research/tx-04-08-st3-st5-static-confirmation.md)及[ST6–ST8 owner/生命周期/工程边界](../research/tx-04-08-st6-st8-static-confirmation.md)静态核验与主审完成；具体 UNKNOWN、B 部分撤销分支和完整退出协调缺口保留。工程实现与运行验收尚未完成。未构建或执行功能测试，ST2 额外 JSON 校验偏差见报告 |
+| tx-04-08 | 完整迁移 world_record（D24 起由 tx-04-07 顺延）；[迁移设计](tx-04-08/tx-04-08-implementation-plan.md)、[E2E 方案](tx-04-08/tx-04-08-e2e-plan.md) | 设计任务一次静态文档审阅；功能完成后一次整体 E2E：2,000 次稳定采集、生命周期、两个顺序进程和离线工具 | D32 已确认；设计完成，[ST1](../research/tx-04-08-st1-static-confirmation.md)、[ST2](../research/tx-04-08-st2-static-confirmation.md)、[ST3–ST5](../research/tx-04-08-st3-st5-static-confirmation.md)及[ST6–ST8 owner/生命周期/工程边界](../research/tx-04-08-st6-st8-static-confirmation.md)静态核验与主审完成；后续 A–G 与限定 Player 自然路径已接线，完整 DLL/Rust 纯编译成功，见[当前实现与主审](tx-04-08/tx-04-08-defg-implementation.md)。产物已更新；唯一整体 E2E 尚未执行，运行未知保留。ST2 额外 JSON 校验的历史偏差见原报告 |
 | 之后 | 按状态同步方案第 17 节的次序，包括 Client 角色与界面“加入”页 | 每次各一次 E2E | |
 
 ## 15. 未决问题
@@ -670,3 +680,4 @@ Codex 技能 `isaac-cs-refactor`（`~/.codex/skills/`）没有包含上述冲突
 - **REPENTOGON 源码**（`D:\projects\REPENTOGON`）：`loader/loader.cpp`、`libzhl/dllmain.cpp`、`libzhl/HookSystem.cpp`、`include/HookSystem.h`、`repentogon/dllmain.cpp`、`repentogon/Patches/ASMPatches/`、`repentogon/Patches/ConsoleHooks.cpp`、`repentogon/ImGuiFeatures/`、`repentogon/resources/scripts/repentogon_extras/onlinestub.lua`、`libzhl/functions/*.zhl`、`delirium/`。
 - **本仓库：** [现行规范](../refactor/project-conventions.md)、[Hook 总入口](../hooks/README.md)、[安装声明索引](../hooks/installed-hook-inventory.json)、[状态同步方案](state-synchronization.md)、[T0 代码入口](../../cs-t0/README.md)。
 - **讨论来源：** 2026-10-23 的两份 Codex 会话记录（REPENTOGON 流程研究、原型设计梳理），以及 2026-10-23、10-24 两次会话中的用户决定。
+

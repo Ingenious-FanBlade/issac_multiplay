@@ -1,6 +1,18 @@
+> **tx-04-10 观测交付（2026-10-30）**：[公共边界、录制分离、Entity／旧 Grid 拆分及 Entity 实现与结果](observation-expansion/tx-04-10-implementation.md)统一 E2E 5/5 PASS。正式纯值采集不依赖 Recorder 成功；世界状态下行、Replica 和客户端写回仍未实现。
+
 # Isaac 服务端权威状态同步设计
 
-日期：2026-10-22；tx-03-09。状态：用户已采纳模型与首版范围，设计文档完成后用于后续实现；**Replica、baseline/delta apply 尚未实现**。本次只迁移与编写文档，不构建、不操作游戏、不运行代码测试。
+> **2026-10-30 当前目标与执行入口**：用户要求完整推进流程全部完成后交付**整局可玩的四人联机模组**。见[完整推进流程：tx-04-09—tx-04-34](state-synchronization-roadmap.md)：09—14输入／完整观测，15—22真实游戏Client与状态闭环，23—29整局世界与内容，30—34重连／Continue／性能／产品发布及整局联合验收。单房间仅为中间交付。本轮只修订文档，未启动实现、构建或测试。
+
+> **当前执行规则**：遵循[现行规范](../refactor/project-conventions.md)。进入统一整体验收前不预跑测试；验收发现问题在同一tx修复续测，默认连续完成。tx及E2E默认不留artifact，只有必要中断且需要恢复信息时保留必要材料；schema、产品存档、发布包和功能文档正常交付。不设gate，不计算任何哈希。
+
+> **观测先行**：[tx-04-09—tx-04-14](observation-expansion/README.md)保持原范围和次序，不在其中提前实现世界复制。公开Wiki／Lua优先；完整观测与用于Replica的状态选择分开。当前运行代码的双人、七类最小观测和无Replica限制不会因本文规划而变成已完成能力。
+
+> **观测模块共用设计（2026-10-30）**：[按域拆分与迁移边界](observation-expansion/domain-observation-architecture.md)明确公共接口、域归属、采样scope、引用、录制隔离和旧格式兼容。tx-04-09当前四人／多身体结果见[实现说明](observation-expansion/four-participant-implementation.md)，上方“双人”描述保留原时点；10—14的观测扩展及本次公共拆分仍待实现。后续复制消费自有值，不依赖调试录制，也不直接沿用观测内存布局为网络ABI。
+
+> **2026-10-30 范围澄清**：用户要求后续恢复最多四名参与者，本轮先回答现状和明确设计，不改运行代码。后续不再沿用下文首版固定A/B的双人上限；参与者与Player实体分开，多身体控制组不能占用额外参与者名额。当前DLL仍仅Authority加一个Rust输入远端，无Replica/状态下行；min-read-v1不覆盖整个世界，Slot/Machine尚无专用schema。详见[四人、世界覆盖与多Player归属](four-participant-state-sync-scope.md)。历史研究与tx-04-08验收范围不追溯扩大。
+
+原始设计日期：2026-10-22，tx-03-09；当前整局路线修订日期：2026-10-30。原用户采纳的Baseline＋Delta＋表现事件模型保持，最终范围由本次整局目标扩展；**Replica、baseline/delta apply 尚未实现**。下列tx-03系列说明保留其历史研究状态，不代表新实现的完成或强制重复研究。
 
 tx-03-10补充：首项[更新与展示分派静态研究](../research/tx-03-10-replica-update-presentation-boundary.md)已形成实际指令、ABI和调用链记录；原生安全展示边界仍未闭合。该推进没有实现Replica，也没有展开其余逆向任务。
 
@@ -24,17 +36,17 @@ tx-03-19补充：[独立 Sprite 实际绘制窗口](../research/tx-03-19-sprite-
 
 tx-03-20补充：[具体资源与连续姿态闭环](../research/tx-03-20-sprite-resource-pose-closure.md)已收敛一个现成单层 Poof／RGBA8 PNG 的支持声明，定义 render 前同 Authority 完整采集、同 descriptor 的完整 key／外观原地提交，以及资源／descriptor 变更的候选路线。XML keys 不替代 native parser 后态；fixture 不新增 Effect Entity 支持。建议直接实现最小独立 Sprite adapter／本地 fixture，实际命中、context/pass、像素及正常停用由实现后的整体 E2E 回答，尚无 Replica 或新 wire。
 
-tx-04-02补充（2026-10-24）：项目转向[REPENTOGON 适配](repentogon-refactor.md)，目标为官方 REPENTOGON 与 v1.9.7.12.J273。本文第1节中“ISCS protocol5/ABI5、七项Lua API、channel0/0xFD保持独立”的兼容约束已不再延续，只保留不触及原版联机与 Isaac Sync 的隔离。第15、17节中的“Hook恢复”改按Hook常驻、逻辑启停理解。本文其余模型与首版范围不变，原文保留。
+tx-04-02补充（2026-10-24）：项目转向[REPENTOGON 适配](repentogon-refactor.md)，目标为官方 REPENTOGON 与 v1.9.7.12.J273。本文第1节中“ISCS protocol5/ABI5、七项Lua API、channel0/0xFD保持独立”的兼容约束已不再延续，只保留不触及原版联机与 Isaac Sync 的隔离。第15、17节中的“Hook恢复”改按Hook常驻、逻辑启停理解。当时保留其余模型和首版范围；最终产品范围现按2026-10-30整局修订执行。
 
-用户决定：**完整基线＋增量状态＋表现事件；首版单房间、无预测，切房、插值和预测作为后续扩展。** 执行约束以[现行规范](../refactor/project-conventions.md)为准；本文确定新状态同步路线的首版范围，旧[总体规划](../refactor/isaac-cs-architecture-plan.md)中扩大到完整RNG/任意房间的baseline草案不自动进入首版。
+历史范围（2026-10-22）：完整基线＋增量状态＋表现事件，先以单房间、无预测建立闭环。当前决定（2026-10-30）：**保留状态同步架构，最终交付扩展为整局可玩**；切房、换层、原版完整内容、插值、重连、Continue与产品流程均已进入[完整路线](state-synchronization-roadmap.md)，不能再作为未排期扩展。gameplay预测／rollback、host migration和Dedicated Server另属非必需扩展。
 
 ## 1. 目标和当前事实
 
-房主真实 `isaac-ng.exe` 是唯一 Authority 模拟器，同时为房主渲染。远端客户端发送输入意图，接收服务器结果，维护只负责展示的 Replica。A/B 输入使用同一codec、sequence、调度、去重、Resolve及apply；Authority日常推进不等待所有客户端。
+房主真实 `isaac-ng.exe` 是唯一 Authority 模拟器，同时为房主渲染。一至四名参与者使用同一输入语义、调度、去重、Resolve及apply；远端真实游戏客户端发送意图，接收结果，维护只负责展示的Replica。一个参与者可关联多个Player身体，不以身体数代替参与者数。Authority日常推进不等待所有客户端。
 
 目前已有：Authority tick/统一输入、owned virtual B、生命周期观察、七类Entity及Grid的最小只读采集、独立IPC/UDP研究链。T0-06通过只代表声明profile内的采集与比较；tx-03-07 Host+VM P1/F0正式通过只覆盖10,000tick ACK/Gap STATE、输入和正常停止/恢复。当前远端worker不写游戏世界；T0-09-C observer设计不等于Replica实现。
 
-本文消息名、状态字段和组件名是**新设计草案**，不是现有wire ABI。当前Kind::StateHash只有PartialValues/Gap、最多24值，不计算状态哈希，不能扩名后宣称已支持snapshot。既有ISCS protocol5/ABI5、七项Lua API、原版channel0和Isaac Sync channel0xFD保持独立。
+本文消息名、状态字段和组件名是**新设计草案**，不是现有wire ABI。历史T0中的Kind::StateHash只有PartialValues/Gap、最多24值，不计算状态哈希；当前DLL输入协议也没有世界基线／Delta，不能扩名后宣称已支持snapshot。新C/S协议与原版Online、Isaac Sync隔离，不沿用已取消的旧ISCS兼容要求。
 
 ## 2. 三种消息的职责
 
@@ -44,17 +56,17 @@ tx-04-02补充（2026-10-24）：项目转向[REPENTOGON 适配](repentogon-refa
 | Delta | 从明确基线B到目标快照T的完整差异 | 属性变化、实体创建/移除、分类和引用变化 | 客户端自行计算缺失游戏结果 |
 | PresentationEvent | 某时某地发生的一次可展示过程 | 命中闪光、音效、已证明纯展示的粒子等 | 扣血、拾取、掉落、库存或世界真相 |
 
-“完整”以协商的Replica schema和支持类别为界：足以从零重建该模型，不意味着任意原生字段、全部角色/Mod/武器已覆盖。持久结果必须能在没有旧表现事件时恢复。Create/Remove可采用操作式编码，但属于可由baseline恢复的状态语义。
+单个Baseline的“完整”以明确scope、schema及其版本引用为界，足以从零重建对应模型；产品最终的“完整”则必须覆盖目标原版整局内容，不能靠协商成几个类别缩小最终目标。它不意味着复制所有私有内存或任意未知Mod。持久结果必须能在没有旧表现事件时恢复。Create/Remove可采用操作式编码，但属于可由baseline恢复的状态语义。
 
-事件也分命令与结果。客户端输入是意图；服务器发送的表现事件是已裁决结果的展示通知。首版不让客户端通过“开火/受伤/拾取”命令重执行规则。若给事件携带最终HP等值，它已经承担状态更新，应并入状态协议并遵守版本规则。
+事件也分命令与结果。客户端输入是意图；服务器发送的表现事件是已裁决结果的展示通知。展示型客户端不通过“开火/受伤/拾取”命令重执行规则。若给事件携带最终HP等值，它已经承担状态更新，应并入状态协议并遵守版本规则。
 
-## 3. 首版范围和支持声明
+## 3. 整局最终范围与中间交付
 
-首版在已知构建、固定单房间、固定A/B与明确角色/武器/实体集合内实施。实现任务选择具体supported variants并公开记录，不能从已读取Tear/NPC头部推断所有变体可玩。初始房间和资源如何建立必须有明确native adapter，不能依赖客户端把相同输入重放到相同世界。
+最终产品为官方REPENTOGON1.1.3／J273环境下的Listen Server联机模组：最多四参与者，含多身体角色；普通／困难、Greed／Greedier、挑战及可用种子规则；原版全部角色／物品／武器／敌人／Boss／机器／Grid、楼层与特殊路线；真实切房回访、换层／维度／世界重构、死亡复活／结局、重连／Continue、完整HUD音画、安装连接与正常退出。每日规则体验为非排行榜联机，不伪造官方资格或上传成绩。详细范围与账号／外部资源条件见[推进流程第1节](state-synchronization-roadmap.md#1-最终产品与完成定义)。
 
-首版包含：输入上行、权威推进、完整基线、增量重建、创建/更新/移除、必要引用与UI状态、无预测画面、少量表现事件、丢包后恢复及正常停止。可以先实现完整快照的应用，再用同一模型增加delta编码。
+tx-04-21以单房间四端全量基线建立首次闭环，22增加Delta与恢复。这些中间交付可明确类别／变体范围；后续必须由23—29补齐整局及全部内容，再由30—34完成恢复、持久、性能与产品交付。不能从七类采集、一个Sprite或一次普通房间成功外推最终完成。
 
-首版不承诺切房/换层、late join、重连、任意Mod兼容、全武器、客户端gameplay预测、rollback、host migration或Dedicated Server。协议保留代次与恢复结构，不能把这些结构存在写成上述能力完成。若首版出现真实房间过渡，退休当前Replica并明确报告不支持，等待后续任务处理。
+最终范围不要求四人分散在不同房间同时模拟，使用Authority原生多人房间裁决。任意未适配第三方Mod、其他游戏版本／平台、自动NAT穿透／公共中继服务、gameplay预测／rollback、host migration和Dedicated Server不是本流程承诺；可达公网和局域网游戏属于交付。临时不支持的正常过渡可以在中间阶段显式处理，但最终产品不能遇到过门或特殊角色就结束复制。
 
 ## 4. 所有权与架构
 
@@ -81,7 +93,7 @@ Authority裁决碰撞、伤害、死亡、拾取、生成、删除、RNG及gamep
 
 ## 5. 身份和代次
 
-每包至少绑定`session_id`、`run_epoch`、`room_epoch`与schema版本。Authority为逻辑实体分配单调、不复用的`entity_id:u64`，对象域用`domain`区分Entity与Grid。网络key为`(run_epoch,domain,entity_id)`，session在包上下文冻结；room_epoch限定本次房间视图和消息有效性。
+协议按消息scope携带必要的`session_id`、`connection_epoch`、`run_epoch`、`floor_epoch`、`dimension_id`、`room_id/room_epoch`、`scene_revision`及schema版本，不要求输入包重复全域对象。Authority为逻辑实体分配单调、不复用的`entity_id:u64`，对象域用`domain`区分Entity与Grid；Player身体复用Entity身份。网络key为`(run_epoch,domain,entity_id)`，session在包上下文明确；场景字段限定视图和消息有效性，不能用房间索引复用旧世界。
 
 原生地址只用于主线程Registry临时映射，不进入wire。PlayerIndex、Entity.Index、seed、vptr、设备key和平台handle均不充当网络实体ID。各端不需要碰巧按相同顺序调用Spawn。启用前对象可以从Authority当前有效来源登记为FIRST_OBSERVED并分配网络ID；不补造出生历史，也不要求客户端拥有同一历史才能接收baseline。
 
@@ -94,25 +106,29 @@ Authority裁决碰撞、伤害、死亡、拾取、生成、删除、RNG及gamep
 | Remove到提交摘表 | 分别记录请求、关系和成员状态 | 以声明的存在性模型提交，不能把一次缺枚举当物理析构 |
 | 玩家Restore/Replace | 保留原事实，更新mutation/关系，必要时使采样作废 | 依明确网络状态重建，未支持路径报告不支持 |
 
-后续persistent对象跨房若维持同一逻辑身份，可保留entity_id并建立新room membership；room视图换代不等于全部原生对象已析构。序号/代次耗尽前结束相关session，不回绕成旧身份。
+persistent对象跨房若维持同一逻辑身份，可保留entity_id并建立新room membership；room视图换代不等于全部原生对象已析构。participant、控制组代次、Player角色／备份状态和网络连接分别管理；重连不复活退休对象，Continue重建新session并恢复语义关联，不恢复指针。序号／代次耗尽前结束相关session，不回绕成旧身份。
 
 ## 6. Replica状态模型
 
 正式wire采用显式字段，不发送C++对象内存、padding、vtable或原生指针。当前min-read-v1是研究输入，不直接成为可写回网络schema。
 
-| 模块 | 首版目标状态 | 现有基础与待补范围 |
+| 模块 | 最终模型必须表达的状态 | 观测／主要落地任务 |
 | --- | --- | --- |
-| Room/Grid | 声明房间身份、必要资源/门/Grid存在性及状态 | 448Grid＋8门、别名与生命周期已知；完整房间构建/耐久/派生表现仍需补充 |
-| Entity公共 | 网络ID、分类、存在/可见、位置/速度、必要展示属性与引用 | 公共字段和生命周期可读；安全写回、sprite/渲染属性不完整 |
-| Player | 角色外观、位置/朝向、心量、资源、装备与所需HUD结果 | hearts、ordinal、关系已知；库存/武器/动画的完整展示schema待补 |
-| NPC | 分类、位置、必要姿态/动画、服务器生命与状态表现 | 少量state/timer已有布局，不等于全部AI状态已恢复 |
-| Tear/Projectile | 实际生成参数、位置、必要轨迹展示、flags、存在性 | flags宽度已知；高度、轨迹、颜色等按支持变体补齐 |
-| Pickup/Familiar/Effect | 分类、owner、位置、必要专用状态和表现 | 最小专用字段已有；全variant支持不外推 |
-| Bomb/Laser/Knife/Slot等 | 对被选场景确实使用的类别提供专门schema | 仅RTTI/部分入口或字段；不能默认为已支持 |
+| 整局 | 模式／挑战／规则／时间／Seed Effects／概率／显示知识、终态与保存归属 | 14→25、28、31 |
+| 楼层／地图／离房世界 | Stage／路线／Dimension、连接图、探索／诅咒／揭示、非活动房间保存与回访结果 | 12、13→24、26 |
+| Room／Grid | 房间身份／布局／资源／环境／进度、全部Grid和门／机关状态、保存结果 | 11、12→18、23、26 |
+| Entity公共 | 身份、分类／存在／Morph、空间／姿态／资源／颜色／引用及生命周期 | 10→19、21、22 |
+| Player | 四参与者／多身体、角色形态／组合外观、心量／资源／槽位／装备／充能／武器／临时效果、备份／替换 | 09、10、13→20、28 |
+| NPC／Boss／专用扩展 | 分类／阶段／部件、必要姿态和可见状态、权威生命／效果及实体关系 | 10→19、29 |
+| Tear／Projectile／Bomb／Laser／Knife | 实际生成和轨迹／高度／曲线／挂载／范围／计时／外观及专用状态 | 10→19、29 |
+| Pickup／Familiar／Effect／Slot | 价格／选项／所有者／持续范围／机器奖品与阶段等完整专用结果 | 10→19、25、29 |
+| HUD／独立表现／声明Mod | HUD／地图表现、音效／音乐／提示、独立Sprite／资源、声明状态与事件 | 10、14→27、33 |
 
-所有关系以NetEntityKey表达，NULL、已知目标、暂未解析与冲突分开。服务器不得把未解析裸地址变成0。需要而未能确定的字段使该scope不可发布为完整快照；客户端不能用默认值偷偷补全。可以明确降低到另一个协商profile，但不能逐帧临时删字段来得到“完整”。
+所有关系使用相应域的稳定key表达，NULL、已知目标、暂未解析与冲突分开。服务器不得把未解析裸地址变成0。需要而未能确定的字段使该scope不可发布为完整快照；客户端不能用默认值偷偷补全。中间阶段可以明确选择较小profile，但不能逐帧临时删字段，最终也不能靠缩小profile绕开原版必需内容。
 
-纯展示Replica不执行gameplay RNG，因此首版不复制服务器全部AI/RNG内部对象。可能影响可见结果的随机选择在Authority完成，复制实际结果。以后若增加本地gameplay预测、rollback或接管，再研究完整依赖状态、RNG和可撤销副作用；不把首版baseline当作可继续权威模拟的存档。
+运行时可按整局／楼层／房间／Player／表现划分低频和高频scope，但目标模型必须引用明确的其他scope版本。初期使用完整逻辑模型再分块；若后续独立调度，必须实现scope级基线／依赖／ACK，禁止把不同采样时刻的碎片拼成没有说明的原子世界。
+
+纯展示Replica不执行gameplay RNG，因此不复制服务器全部AI/RNG内部对象。可能影响可见结果的随机选择在Authority完成，复制实际结果；凡是展示仍需的状态都必须在模型中表达。以后若增加本地gameplay预测、rollback或接管，再研究完整依赖状态、RNG和可撤销副作用；不把展示baseline当作可继续权威模拟的存档。
 
 ## 7. 采样时序与版本
 
@@ -122,11 +138,11 @@ Authority裁决碰撞、伤害、死亡、拾取、生成、删除、RNG及gamep
 
 读取/初始化不足、身份歧义、来源变化、错误线程、预算或背压产生显式gap。Authority按自身健康状态继续正常模拟，复制器不能为了凑快照等待全员，也不能把旧采样标成新tick。完整快照缺口期间客户端保持最后已确认状态；超出可配置展示时限后进入显式恢复/停显。
 
-首版不在本文硬编码30/60Hz、snapshot频率、量化精度、MTU或插值延迟。实现任务根据采样能力和一次整体验收确定参数，manifest记录实际设置及范围。
+本文不将30/60Hz、snapshot频率、量化精度、MTU或插值延迟当成已知实现参数。tx-04-32必须落实可测的性能／网络工作档及实际设置，再在统一整体验收中验证；参数与使用范围进入产品配置／说明，不要求另存测试manifest或artifact。
 
 ## 8. Baseline建立和恢复
 
-Baseline携带`baseline_seq/snapshot_seq/server_tick`、schema、支持类别/资源标识、room_epoch、完整实体集合及显式关系，以及表现事件watermark。它是自包含的Replica模型，不依赖此前的增量或旧事件。
+Baseline携带`baseline_seq/snapshot_seq/server_tick`、schema、类别／资源描述、对应场景代次、整局／楼层／房间／玩家上下文或明确版本引用、完整成员集合及关系、表现事件watermark。初次加入／重连／切场景必须能取得所有必要引用域，不能要求Client拥有旧事件或本地同seed历史。
 
 1. Authority在稳定采样点T生成不可变模型，按总长/分块数上限发送。
 2. 客户端仅在自有内存重组、解码并建立候选DTO；检查版本、有限浮点、唯一ID、资源和引用依赖。完整数据前不修改原生世界。
@@ -149,7 +165,7 @@ Delta(B,T) = Create(T中有而B中无)
 TargetModel = Reconstruct(ImmutableBaseline[B], Delta(B,T))
 ```
 
-首版变化字段发送最终值，如`HP=7`、`position=(104,80)`；“只发变化字段”与“数值再作差分压缩”分开。相对坐标、量化、bit packing及优先级调度后置，不能先改变正确性语义。
+初期变化字段发送最终值，如`HP=7`、`position=(104,80)`；“只发变化字段”与“数值再作差分压缩”分开。相对坐标、量化、bit packing及优先级调度在32落地需要的优化，不能先改变正确性语义。
 
 每个delta是从指定B到T的**完整差异**，不是“上一发送包之后刚变化的字段”。客户端先在自有模型从B重建完整目标，再在主线程按新版本应用；不能把Δ(B,T)直接当成对当前任意状态的patch。例如B的HP=10，T1为7，T2又为10时，Δ(B,T2)可能省略HP，但目标重建必须回到10，不能让当前T1的7残留。
 
@@ -157,17 +173,17 @@ TargetModel = Reconstruct(ImmutableBaseline[B], Delta(B,T))
 
 旧包不能覆盖新状态；去重后同一版本payload冲突视为协议错误。某对象最后一次移动、HP变化或删除，必须在未确认基线对应的差异中持续被包含，直到新基线确认或完整恢复覆盖它。Remove是明确删除或完整集合差异，不靠“本包没提到”猜删除。实体创建/移除在依赖基线的逻辑目标中幂等，不发生重复生成。
 
-基线保留有数量、字节和时间上限；引用被淘汰的基线时请求全量恢复。首版完整delta重建成功才能更新AppliedAck；未来若按对象分包/不同频率调度，必须引入明确的对象级基线/确认，不沿用“一个包ACK表示所有对象最新”的假设。
+基线保留有数量、字节和时间上限；引用被淘汰的基线时请求全量恢复。完整delta重建成功且实际应用提交后才能更新AppliedAck；若按对象／scope分包或不同频率调度，必须实现对应基线／确认，不沿用“一个包ACK表示所有对象最新”的假设。
 
 ## 10. 客户端原生应用与表现分离
 
-网络线程只解析、限额和排队；原生创建、对象字段、资源、引用及Lua全部在已理解主线程窗口操作。adapter每一类操作列出准确调用点/ABI、资源依赖、所需字段、允许副作用、失败与恢复路径，证据入口见[模块点位目录](../hooks/README.md)。
+网络线程只解析、限额和排队；原生创建、对象字段、资源、引用及Lua全部在已理解主线程窗口操作。优先查公开Wiki／Lua的状态与应用语义；只对真实副作用、版本疑问或公开接口缺口补源码／必要native研究，不逐字段强制逆向。adapter逐类说明调用／公开接口、资源依赖、所需字段、允许副作用、失败与恢复；已有研究入口见[模块点位目录](../hooks/README.md)。
 
 推荐一次提交顺序：确认session/run/room与目标版本 → 准备全部实体壳/资源 → 建立ID到本地对象映射 → 应用标量与展示属性 → 解析并应用关系 → 提交成员/移除并清理引用 → 发布已确认模型与展示资格。实际native操作顺序以其真实生命周期要求调整，不能强制套用Entity顺序到Grid或Player。
 
 原生Spawn/Init/Remove可能触发Lua、RNG、掉落或其它对象变更。禁止直接复制服务器内存、直接写vptr，或调用Damage/Pickup/UseItem来得到想要的最终状态。字段setter若有副作用也需专门适配；当前只读offset没有自动获得写回资格。
 
-客户端必须停用实际gameplay路径：AI、伤害/碰撞裁决、拾取、掉落、gameplay RNG与副作用回调；同时明确保留相机、HUD、动画和渲染。不是“把输入清零”就等于停止gameplay，也不能依据函数名Interpolate认定只读。现有slot4会写当前位置，特殊FSM也可更新Player，属于首批补充逆向内容。
+客户端必须停用实际gameplay路径：AI、伤害／碰撞裁决、拾取、掉落、gameplay RNG与副作用回调；同时明确保留相机、HUD、动画和渲染。不是“把输入清零”就等于停止gameplay，也不能依据函数名Interpolate认定只读。既有研究指出slot4与特殊FSM仍可能更新Player，应纳入17的具体边界，不因此重新逆向全部公开接口。房间遮挡、Player组合绘制、激光曲线、动态贴图等最终都需落实，不能用一个独立屏幕Sprite代替世界应用。
 
 ## 11. 表现事件
 
@@ -183,9 +199,11 @@ TargetModel = Reconstruct(ImmutableBaseline[B], Delta(B,T))
 
 ## 12. 输入、回执与客户端时间
 
-复用现有统一输入意图语义，但新复制session、协议对象和缓存独立。A/B共用canonical转换、校验和scheduler；连续量、exactly-once边沿、generation、lead与缺输入策略保留当前规则。输入ACK与snapshot AppliedAck分开；`last_processed_input`表示服务器已处理进度，不表示客户端已经显示该结果。
+复用现有统一输入意图语义，但新复制session、协议对象和缓存独立。一至四参与者共用canonical转换、校验和scheduler；连续量、exactly-once边沿、generation、lead与缺输入策略保留当前规则。命令按参与者提交一次，各身体按已核定角色规则消费。输入ACK与snapshot AppliedAck分开；`last_processed_input`表示服务器已处理进度，不表示客户端已经显示该结果。
 
-首版远端玩家会感受到输入lead、网络和状态发布延迟；不以客户端提前执行gameplay来掩盖。房主看到Authority世界，无网络下行等待，Listen Server的天然延迟差异如实保留。协议不承诺竞技级公平，也不让房主绕过统一输入。
+远端玩家会感受到输入lead、网络和状态发布延迟；不以客户端提前执行gameplay来掩盖。房主看到Authority世界，无网络下行等待，Listen Server的天然延迟差异如实保留。32必须提供实际可玩的插值／发布节奏／网络档，不能把“无预测”当作明显不可玩延迟的豁免。协议不承诺竞技级公平，也不让房主绕过统一输入。
+
+玩法中的选项／指向／交互和产品菜单分开。UI控制消息携带参与者权限、上下文、序号和代次，由Authority验证并按原生规则裁决，不开放任意函数RPC或地址写入。暂停／过门／开始／结局等以Authority状态为准；客户端本地打开联机界面只屏蔽自己的输入，不能自行暂停房主。房主原有菜单／ImGui引发的原生屏蔽语义保持，必要新流程在33接线。
 
 ## 13. 传输和消息边界
 
@@ -203,9 +221,11 @@ TargetModel = Reconstruct(ImmutableBaseline[B], Delta(B,T))
 
 ## 14. Lua、持久副作用和支持边界
 
-Authority保持既有gameplay规则；Replica只允许明确的presentation逻辑。首版禁用未知gameplay Mod；资源一致性通过可读版本/清单及支持声明表达，不使用哈希。普通Mod不能假定两端都执行相同副作用回调。
+Authority保持既有gameplay规则；Replica只允许明确的presentation逻辑。正式只读观测Lua、纯界面Lua、E2E夹具与声明的Mod适配分别登记；未知gameplay Mod不自动兼容。资源一致性通过可读版本／资源清单和能力声明表达，不使用哈希。普通Mod不能假定两端都执行相同副作用回调。27交付实际声明适配链，29闭合原版全部内容；不能把Mod边界用来排除原版特殊资源。
 
-新Replica adapter须避免客户端save、achievement、unlock、统计或额外持久写入；只有任务实际授权的动作可执行。不能以结束时dirty=0代替整个操作窗口的副作用理解。lua_close、run teardown使旧generation退休；常驻DLL和owned设备仍按现行NEVER策略管理。
+新Replica adapter须避免客户端save、achievement、unlock、统计或额外持久写入。31落实房主的原生合法保存／Continue、会话身份元数据和各端进度归属：访客不镜像房主存档／解锁／统计，不回放服务器成就；房主按其原生规则保存，测试写入仍服从实际会话授权，不由本文推导授权。产品存档不是测试artifact；也不能通过关闭所有保存来逃避整局Continue交付。
+
+不能以结束时dirty=0代替整个操作窗口的副作用理解。lua_close、run teardown使旧generation退休；常驻DLL和owned设备仍按NEVER策略。重连保留有效对象与中性控制组、恢复连接代次，不复活已退休K；Continue以新session重建关联，不持久化指针。房主退出可正常保存／结束，不承诺host migration。
 
 ## 15. 故障与恢复
 
@@ -217,28 +237,45 @@ Authority保持既有gameplay规则；Replica只允许明确的presentation逻�
 | native apply失败 | 停显该Replica，禁止gameplay继续，记录已执行前缀并正常清理 | 不回滚已完成的Authority tick |
 | 输入缺失 | 展示服务器最终中性策略结果 | 日常不等待全员，按现行缺输入规则 |
 | 缓冲/预算耗尽 | 关闭候选或请求新基线，不无限积压 | 只停相关peer复制或按已知失败处理 |
-| room/run/session变更 | 拒绝旧epoch消息，首版退休 | 保持真实生命周期，后续再实现切房事务 |
-| Hook恢复不确定 | 停止修改，不强卸载或盲目重注入 | 沿单一owner的恢复事务处理 |
+| room／floor／scene变化 | 拒绝旧epoch，按场景事务退休旧视图、准备新基线 | 保持真实原生过渡，慢Peer独立恢复，不逐tick等全员 |
+| Peer掉线／重连 | 旧连接失效，新连接认证并取得必要全域基线 | 保留期内中性，过期正常退休；其他人继续，不接管他人对象 |
+| Continue／新run | 新session／连接代次，重建上下文和实体映射 | 合法保存状态加载，不恢复旧裸指针／旧输入 |
+| Hook／生命周期状态不确定 | 停止相关逻辑，不强卸载或盲目重注入 | 单一owner正常停用，Hook常驻，不恢复字节 |
 
-## 16. 后续扩展
+## 16. 整局场景事务、恢复与可选扩展
 
-插值：保留两个已确认快照，沿服务器展示时间插值所支持运动字段；新增缓冲延迟需实际测定。传送、出生/删除、换形不能统一按线性插值。
+切房、换层、维度切换及世界重构是最终必需能力，由23—26实现。可靠事务描述目标资源与scene revision、旧状态退休范围、跨场景持续对象、新Baseline及显示资格。新增楼层／布局必须换代，不能只在旧场景上增删Entity。普通门、传送、特殊入口、Ascent、世界重置等各自映射到真实Authority生命周期。
 
-切房/换层：后续以可靠低频事务描述目标资源和room_epoch，旧房间退休、新baseline提交后展示；有超时/断开策略，不恢复逐tick全员等待。
+慢Peer不阻塞Authority日常模拟；无法准备新视图的客户端明确加载／停显并恢复，不能继续操控旧世界。重构／换层期间的输入与过期事件按代次处理，不让上一房间的攻击或音效在新房间复活。
 
-预测：先研究有限本地展示反馈，之后才讨论本地移动gameplay预测。完整reconciliation/rollback需要确定相关世界、RNG、Lua和副作用依赖；不得只回滚Player位置就宣称整个房间正确。late join、reconnect和Dedicated Server仍是独立后续能力。
+插值是32的必需工作：保留明确版本快照、沿服务器展示时间处理可插值字段，并为传送／出生删除／Morph单独切换，测定新增缓冲延迟。Late join／reconnect由30落地，合法Continue由31落地，不再作为未排期扩展。
+
+gameplay预测、rollback、host migration和Dedicated Server保持可选；若未来开展，需另外恢复AI／RNG／Lua及可撤销副作用依赖，不能只回滚Player位置便称整个房间正确。它们不是34整局最终验收的隐含条件。
 
 ## 17. 实施次序与验收规划
 
-建议依次完成：Replica gameplay/presentation边界及最小安全apply研究 → 单房间声明schema/ID Registry → 完整baseline应用 → 输入到权威结果的双端闭环 → Δ(B,T)/ACK/恢复 → 表现事件 → 进一步压缩与插值。当前T0-09-C/D脚本比较保留为历史研究任务，不作为本路线开始的流程前置条件。
+完整执行入口为[整局可玩联机模组推进流程](state-synchronization-roadmap.md)，包括每个tx的目标、直接交付、依赖、整体验收及跨域责任表。
 
-每次推进以独立实质目标的tx编号说明范围。分析/逆向/修改期间不运行测试；整个目标完成后只执行一次统一E2E，失败保留、不自动重跑。不新增实现后的单元测试。本文是设计与迁移任务，最终仅进行一次整体静态文档审阅。
+| 编号 | 完整交付范围 |
+| --- | --- |
+| tx-04-09—14 | 四人及多身体实际输入；Entity／Grid／房间楼层／探索跨房玩家／整局随机HUD和Mod完整观测 |
+| tx-04-15—17 | 全域复制模型与协议；真实游戏Client；玩法隔离与资源／展示运行时 |
+| tx-04-18—20 | Room／Grid、非Player Entity、四人多身体Player的实际客户端应用 |
+| tx-04-21—22 | 四个真实游戏实例的单房间Baseline闭环、Delta／每Peer确认与恢复；属于中间交付 |
+| tx-04-23—26 | 切房回访、楼层地图与离房世界、整局规则及随机结果、换层／维度／世界重构 |
+| tx-04-27—29 | 完整HUD音画与声明适配、角色生命周期及结局、原版全内容与模式专用差异闭合 |
+| tx-04-30—33 | Late join／重连、保存Continue与进度隔离、平滑性能网络档、完整UI与发布工程 |
+| tx-04-34 | 由实际发布包完成真实跨设备四端整局联合验收，修复至完整可玩并交付 |
 
-未来一次整体E2E应保存可重复artifact：目标/参数/支持范围、双端原始输入与包、baseline/delta及ACK、各代实体ID和关系、实际apply顺序与前缀失败、逐字段再采集比较、事件去重/过期、丢包/缺基线恢复及Hook恢复记录。只比较声明profile和明确tick配对；不可读/未知不算相等，不计算状态或文件哈希。
+每次推进以一个实质tx完整目标为单位，分析／设计／实施前期不预跑。全目标接线完成后进入统一整体验收，发现问题直接修复并在同一tx续测，覆盖修复影响与未完成用例；不新增实现后的单元测试，不为续测改编号。必要中断遵循实际用户操作授权和现行规范。
 
-## 18. 尚需补充的实际逆向
+tx和E2E默认不留artifact，仅在必要中断且需要恢复信息时保留必要材料。测试过程中按需观察输入／包／Baseline／Delta／ACK、对象身份／关系、实际应用与可见结果、事件／场景／恢复、副作用与资源健康；临时数据用后清理，最终说明实际覆盖、失败与修复及未决问题。不可读／未知不当相等，不计算任何哈希。
 
-1. 每类Replica创建/更新/移除及引用重建的安全native路径和可接受副作用。
+最终验收必须通过正常安装与UI，在真实游戏Client上至少完成一局从开局到正常通关结局的连续游玩，另覆盖Game Over；含四人多身体、实际房间与楼层过渡、互斥模式／路线的必要多局、网络恢复、合法保存Continue和正常退出。辅助Lua场景、Rust远端或离线比较只能补充，不能替代整局自然游玩或用开局团灭充当通关。本轮仅文档任务，最终一次静态审阅，无代码／游戏测试。
+
+## 18. 公开接口优先与具体实现缺口
+
+1. 先查原版Wiki与REPENTOGON Wiki，直接利用公开Lua／容器／回调的明确语义；只对创建／更新／移除／引用重建的实际缺口和副作用研究补源码或必要native路径。不以本节历史研究为逐成员强制逆向要求。
 2. 停止所有必要gameplay consumer后仍可维护动画/render/HUD的真实边界。tx-03-10已补充[循环分派层实际静态研究](../research/tx-03-10-replica-update-presentation-boundary.md)：普通owner、driver staged恢复、odd/FSM和render内Room/Lua调用必须分别处理；该研究不代表完整安全展示边界或Replica实现已经完成。
    tx-03-11的[进一步静态研究](../research/tx-03-11-logic-presentation-separation.md)补齐基类绘制与动画事件依赖；后续须按首版支持类追派生绘制、Sprite 资源生命周期和残存事件消费者，不能由动画推进器存在推导安全展示层已经完成。
    tx-03-12已补充三类[派生绘制及 Sprite 资源链](../research/tx-03-12-derived-render-sprite-lifecycle.md)；下一项具体缺口为图像 control／释放线程、支持视觉集合与独立对象应用，Player 组合绘制仍单独未决。
@@ -250,11 +287,11 @@ Authority保持既有gameplay规则；Replica只允许明确的presentation逻�
    tx-03-18已补充[资源就绪与最小单 Sprite 合同](../research/tx-03-18-single-sprite-adapter-contract.md)，上述接口已形成静态设计，具体资源清单和实现仍未完成。当前下一项为实际绘制接入窗口、加载绘制旁路、runtime thread/context guard 及 caller 参数／pass 恢复；之后选择资源实现最小适配。
    tx-03-19已补充[具体绘制接入与批次寿命](../research/tx-03-19-sprite-render-entry-window.md)，收敛最终 pre-present 的屏幕 Sprite 候选与 guard／状态限制。当前下一项为选择可信具体 ANM／PNG 清单、Authority 同窗口姿态采集，以及已发布实例连续姿态／资源变更的应用和失败顺序；随后进入最小 adapter 实现。
    tx-03-20已补充[具体样本、采集和更新合同](../research/tx-03-20-sprite-resource-pose-closure.md)，当前建议进入受限独立 Sprite adapter／本地 fixture 实现；保留实际资源加载、native shape、context／pass／像素和生命周期的运行未知，不再重复拆解已解释基础链。完整 Entity 外观、Room／Grid apply、异常与热重载仍各有范围。
-3. Player装备/武器、各类sprite/轨迹/高度/资源的最小展示字段和生命周期。
-4. 对支持范围内Spawn/Init/Remove、Lua及Grid/Room操作的副作用隔离与失败停显。
+3. Player装备／武器、各类Sprite／轨迹／高度／资源的完整必要展示字段和生命周期，落实到19、20、27、29，不以最小样本替代全内容。
+4. 对Spawn／Init／Remove、Lua及Grid／Room操作的副作用隔离与失败停显，落实到17—20、23、26，避免重复奖励与持久写入。
 5. baseline原生应用部分失败后的清理与恢复路径；不预设全引擎事务。
 
-这些是具体工程依赖与未知，不另设gate、哈希或角色分离要求。现有字段偏移和T0 PASS不替代它们。
+这些是有明确负责tx的工程依赖与未知，不另设gate、哈希或角色分离要求。现有字段偏移和T0 PASS不替代它们；未知不得被写成已完成，也不成为永远停留在研究文档的理由。
 
 ## 19. 资料
 

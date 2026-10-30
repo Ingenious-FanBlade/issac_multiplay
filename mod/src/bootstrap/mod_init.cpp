@@ -26,7 +26,7 @@ void *GamePointer() noexcept {
   return Base ? *reinterpret_cast<void **>(Base + offset::Game) : nullptr;
 }
 bool WorldObservationArmed() noexcept {
-  return Settings.enabled && Settings.world_record_enabled;
+  return Settings.enabled;
 }
 } // namespace cs
 BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID reserved) {

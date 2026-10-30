@@ -235,14 +235,14 @@ IdentityTable::AnchorPlayer(std::uint32_t ordinal, std::uint32_t address) noexce
       result.changed = false;
       return result;
     }
-    identity->ordinal = ordinal;
+    identity->ordinal = ordinal / kControlBodiesPerParticipant;
     result.identity = identity;
     return result;
   }
   // 解绑：清 ordinal 并撤销当前 Player 读取依据；不去重同址复用证据。
   for (std::uint32_t i = 0; i < used_; ++i) {
     auto &identity = identities_[i];
-    if (identity.ordinal != ordinal)
+    if (identity.address != result.previous)
       continue;
     identity.ordinal = kNoOrdinal;
     identity.RevokeCurrentWitness();
@@ -256,7 +256,7 @@ Identity *IdentityTable::MarkCurrentWitness(std::uint32_t ordinal) noexcept {
   if (ordinal >= player_address_.size() || !player_address_[ordinal])
     return nullptr;
   auto *identity = Find(ObjectDomain::Entity, player_address_[ordinal]);
-  if (!identity || identity->ordinal != ordinal)
+  if (!identity || identity->ordinal != ordinal / kControlBodiesPerParticipant)
     return nullptr;
   // 创建 owner 已完成时保留更完整的依据；witness 只覆盖缺失的 0/1。
   if (identity->readiness >=
@@ -269,17 +269,12 @@ Identity *IdentityTable::MarkCurrentWitness(std::uint32_t ordinal) noexcept {
 }
 
 Identity *IdentityTable::RevokeCurrentWitness(std::uint32_t ordinal) noexcept {
-  for (std::uint32_t i = 0; i < used_; ++i) {
-    auto &identity = identities_[i];
-    if (identity.ordinal != ordinal)
-      continue;
-    if (!identity.current_public_ready && identity.readiness !=
-        static_cast<std::uint32_t>(Readiness::CurrentPlayerUpdateWitness))
-      continue;
-    identity.RevokeCurrentWitness();
-    return &identity;
-  }
-  return nullptr;
+  if (ordinal >= player_address_.size() || !player_address_[ordinal]) return nullptr;
+  auto *identity = Find(ObjectDomain::Entity, player_address_[ordinal]);
+  if (!identity || (!identity->current_public_ready && identity->readiness !=
+      static_cast<std::uint32_t>(Readiness::CurrentPlayerUpdateWitness))) return nullptr;
+  identity->RevokeCurrentWitness();
+  return identity;
 }
 
 bool IdentityTable::Acquire(Identity &id, Observation kind, bool physical,

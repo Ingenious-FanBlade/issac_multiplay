@@ -672,17 +672,17 @@ ReadOutcome ReadOneBatch(StorageCore &core) noexcept {
   if (memberships)
     std::copy_n(slot.batch->memberships.data(), memberships,
                 item.batch.memberships.get());
-  slot.state.store(static_cast<std::uint32_t>(SlotState::Free),
-                   std::memory_order_release);
   const auto elapsed = NowNanoseconds() - started;
   const auto previous = core.diag.copy_max_ns.load(std::memory_order_relaxed);
   if (elapsed > previous)
     core.diag.copy_max_ns.store(elapsed, std::memory_order_relaxed);
   if (!core.queue->Push(std::move(item))) {
+    slot.state.store(unsigned(SlotState::Free),std::memory_order_release);
     core.queue->Release(bytes);
     core.Fail(Reason::Budget, FailSource::Queue, 0, "queue_push");
     return ReadOutcome::Stop;
   }
+  slot.state.store(unsigned(SlotState::Free),std::memory_order_release);
   core.diag.batches_copied.fetch_add(1, std::memory_order_relaxed);
   return ReadOutcome::Copied;
 }
@@ -722,13 +722,13 @@ ReadOutcome ReadEventChunk(StorageCore &core) noexcept {
     core.queue->Release(bytes);
     return ReadOutcome::Empty;
   }
-  core.diag.events_consumed.fetch_add(item.events.size(),
-                                      std::memory_order_relaxed);
+  const auto delivered_count=item.events.size();
   if (!core.queue->Push(std::move(item))) {
     core.queue->Release(bytes);
     core.Fail(Reason::Budget, FailSource::Queue, 0, "queue_push");
     return ReadOutcome::Stop;
   }
+  core.diag.events_consumed.fetch_add(delivered_count,std::memory_order_release);
   return ReadOutcome::Copied;
 }
 
@@ -764,13 +764,13 @@ ReadOutcome ReadGapChunk(StorageCore &core) noexcept {
     core.queue->Release(bytes);
     return ReadOutcome::Empty;
   }
-  core.diag.gaps_consumed.fetch_add(item.gaps.size(),
-                                    std::memory_order_relaxed);
+  const auto delivered_count=item.gaps.size();
   if (!core.queue->Push(std::move(item))) {
     core.queue->Release(bytes);
     core.Fail(Reason::Budget, FailSource::Queue, 0, "queue_push");
     return ReadOutcome::Stop;
   }
+  core.diag.gaps_consumed.fetch_add(delivered_count,std::memory_order_release);
   return ReadOutcome::Copied;
 }
 
@@ -1243,5 +1243,15 @@ StorageStatus WorldStorage::Status() const noexcept {
   status.budget_limit = core_->ledger->Limit();
   return status;
 }
+
+bool WorldStorage::PassedFence(std::uint64_t attempt,std::uint64_t events,std::uint64_t gaps) const noexcept {
+  if(!core_) return false;
+  if(core_->diag.events_consumed.load(std::memory_order_acquire)<events ||
+     core_->diag.gaps_consumed.load(std::memory_order_acquire)<gaps) return false;
+  for(const auto &slot:core_->slots) if(slot && slot->state.load(std::memory_order_acquire)!=unsigned(SlotState::Free) &&
+    slot->attempt.load(std::memory_order_acquire)<=attempt) return false;
+  return true;
+}
+bool WorldStorage::HasQueue() const noexcept { return core_&&bool(core_->queue); }
 
 } // namespace cs::world

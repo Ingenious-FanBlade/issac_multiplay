@@ -19,7 +19,6 @@ enum class DiscardReason : unsigned {
 const char *DiscardReasonName(DiscardReason reason) noexcept;
 // Worker 只持网络值；本桥的身份、接收边界与进度全部由游戏主线程持有。
 struct PeerBridge {
-  net::Worker worker;
   net::HostIdentity identity{};
   net::WorkerStatus observed{};
   uint64_t receive_after_ms = 0, discarded = 0, admitted = 0, ack_dropped = 0;
@@ -32,9 +31,12 @@ struct PeerBridge {
   bool established = false, stop_requested = false, stop_finished = false;
   bool stop_failed = false;
 };
-void DiscardPeerWindow(SessionRuntime &runtime) noexcept;
+void DiscardPeerWindow(SessionRuntime &runtime, unsigned ordinal = 0) noexcept;
 void PollPeer(SessionRuntime &runtime) noexcept;
 void DrainPeer(SessionRuntime &runtime) noexcept;
 void PublishPeer(SessionRuntime &runtime) noexcept;
 bool StopPeer(SessionRuntime &runtime) noexcept;
+void RequestRemoteRetirement(SessionRuntime &runtime, unsigned ordinal,
+                             core::SessionCause cause) noexcept;
+void FinishRemoteRetirements(SessionRuntime &runtime) noexcept;
 } // namespace cs::game

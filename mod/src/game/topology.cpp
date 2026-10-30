@@ -2,7 +2,10 @@
 #include "binding/offsets.h"
 #include "game/bridge.h"
 #include "game/device_k.h"
+#include "game/state.h"
+#include "game/tick.h"
 #include "runtime.h"
+#include <algorithm>
 #include <limits>
 
 namespace cs::game {
@@ -71,7 +74,7 @@ bool RunActive() noexcept {
 // 读取失败时区分不可读与身份不符，调用方据此决定中性或 PeerLost。
 bool ReadPlayerSlot(unsigned ordinal, PlayerSlot &out) noexcept {
   out = {};
-  if (!IsMain() || !Base || ordinal > 1)
+  if (!IsMain() || !Base || ordinal >= core::kMaximumParticipants)
     return false;
   InputLease lease(HostBusy());
   if (!lease.Ready())
@@ -91,22 +94,28 @@ bool ReadPlayerSlot(unsigned ordinal, PlayerSlot &out) noexcept {
   }
   uintptr_t players = 0;
   size_t count = 0;
-  if (!VectorRange(game, offset::PlayerManager, 16, players, count)) {
+  if (!VectorRange(game, offset::PlayerManager, 64, players, count)) {
     out.fault = TopologyFault::PlayerList;
     out.reason = "player_list_unknown";
     return false;
   }
   out.count = static_cast<unsigned>(count);
-  if (count <= ordinal) {
+  // ordinal 只选择已确认控制组的根；原生列表重排不改变参与者身份。
+  auto *runtime = Runtime();
+  void *expected = runtime ? runtime->controlled_player[ordinal] : nullptr;
+  if (!expected && ordinal == 0 && count)
+    ReadMemory(reinterpret_cast<void *>(players), &expected, sizeof(expected));
+  for (size_t i = 0; i < count; ++i) {
+    void *candidate = nullptr;
+    if (!ReadMemory(reinterpret_cast<void *>(players + i * sizeof(void *)),
+                    &candidate, sizeof(candidate)))
+      return false;
+    if (candidate == expected)
+      out.player = candidate;
+  }
+  if (!out.player) {
     out.fault = TopologyFault::PlayerList;
     out.reason = "player_slot_missing";
-    return false;
-  }
-  if (!ReadMemory(reinterpret_cast<void *>(players + ordinal * sizeof(void *)),
-                  &out.player, sizeof(void *)) ||
-      !out.player) {
-    out.fault = TopologyFault::Unreadable;
-    out.reason = "player_pointer_unreadable";
     return false;
   }
   if (!ReadAt(out.player, offset::PlayerIndex, out.index) ||
@@ -123,7 +132,7 @@ bool ReadPlayerSlot(unsigned ordinal, PlayerSlot &out) noexcept {
     out.reason = "player_fields_unreadable";
     return false;
   }
-  if (out.index != int(ordinal) || out.type != 1 || out.variant != 0) {
+  if (out.type != 1 || out.variant != 0) {
     out.fault = TopologyFault::Identity;
     out.reason = "player_slot_identity";
     return false;
@@ -134,11 +143,19 @@ bool ReadPlayerSlot(unsigned ordinal, PlayerSlot &out) noexcept {
   return true;
 }
 Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
+  auto *r = Runtime();
+  void *root = r && ordinal < core::kMaximumParticipants
+                   ? r->controlled_player[ordinal]
+                   : nullptr;
+  return ReadTopologyForRoot(ordinal, root, owned_device);
+}
+Topology ReadTopologyForRoot(unsigned ordinal, void *root,
+                             void *owned_device) noexcept {
   Topology out;
   if (!IsMain() || !Base)
     return out;
   InputLease lease(HostBusy());
-  if (!lease.Ready() || ordinal > 1)
+  if (!lease.Ready() || ordinal >= core::kMaximumParticipants)
     return out;
   out.room.game = GamePointer();
   if (!ReadAt(out.room.game, offset::RunActive, out.run))
@@ -170,25 +187,57 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
   out.known = true;
   uintptr_t players = 0;
   size_t player_count = 0;
-  if (!VectorRange(out.room.game, offset::PlayerManager, 16, players,
+  if (!VectorRange(out.room.game, offset::PlayerManager, 64, players,
                    player_count) ||
-      player_count <= ordinal) {
+      !player_count) {
     out.player_count = static_cast<unsigned>(player_count);
     out.fault = TopologyFault::PlayerList;
     out.reason = "player_list_unknown";
     return out;
   }
   out.player_count = static_cast<unsigned>(player_count);
-  if (!ReadMemory(reinterpret_cast<void *>(players + ordinal * sizeof(void *)),
-                  &out.pair.player, sizeof(void *))) {
+  std::array<void *, 64> roster{};
+  if (!ReadMemory(reinterpret_cast<void *>(players), roster.data(),
+                  player_count * sizeof(void *))) {
     out.fault = TopologyFault::Unreadable;
     out.reason = "player_pointer_unreadable";
     return out;
   }
+  if (!root && ordinal == 0)
+    root = roster[0];
+  // 只从当前 roster 的已知关系寻找替换根，不解引用已经缺席的历史地址。
+  bool in_roster = std::find(roster.begin(), roster.begin() + player_count,
+                             root) != roster.begin() + player_count;
+  if (!in_roster && root) {
+    void *replacement = nullptr;
+    for (size_t i = 0; i < player_count; ++i) {
+      for (const size_t relation :
+           {size_t(0x1D84), size_t(0x1E4C), size_t(0x1E50), size_t(0x267C)}) {
+        void *target = nullptr;
+        if (!ReadAt(roster[i], relation, target)) {
+          out.fault = TopologyFault::Unreadable;
+          return out;
+        }
+        if (target == root) {
+          if (replacement && replacement != roster[i]) {
+            out.fault = TopologyFault::Ambiguous;
+            return out;
+          }
+          replacement = roster[i];
+        }
+      }
+    }
+    root = replacement;
+  }
+  if (!root) {
+    out.fault = TopologyFault::Identity;
+    out.reason = "group_root_missing";
+    return out;
+  }
+  out.pair.player = root;
   int index = -1;
   unsigned type = 0;
   if (!ReadAt(out.pair.player, offset::PlayerIndex, index) ||
-      index != int(ordinal) ||
       !ReadAt(out.pair.player, offset::EntityType, type) || type != 1 ||
       !ReadAt(out.pair.player, offset::EntityVariant, out.variant) ||
       out.variant != 0 ||
@@ -205,23 +254,126 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
     out.reason = "player_identity_unknown";
     return out;
   }
-  for (size_t i = 0; i < player_count; ++i) {
-    if (i == ordinal)
-      continue;
-    void *other = nullptr;
-    int other_index = -1;
-    if (!ReadMemory(reinterpret_cast<void *>(players + i * sizeof(void *)),
-                    &other, sizeof(other)) ||
-        !ReadAt(other, offset::PlayerIndex, other_index)) {
-      out.pair.player = nullptr;
+  // 关系偏移复用 J273 world_layout 已核定的公开 Lua
+  // Getter；关系资格不传赠读取历史。
+  const auto append = [&](void *player, BodyRole role) noexcept {
+    if (!player)
+      return true;
+    for (unsigned i = 0; i < out.body_count; ++i)
+      if (out.bodies[i].player == player)
+        return true;
+    if (out.body_count == out.bodies.size())
+      return false;
+    auto &body = out.bodies[out.body_count++];
+    body.player = player;
+    body.role = role;
+    body.roster = std::find(roster.begin(), roster.begin() + player_count,
+                            player) != roster.begin() + player_count;
+    return true;
+  };
+  append(root, BodyRole::Primary);
+  for (unsigned i = 0; i < out.body_count; ++i) {
+    auto &body = out.bodies[i];
+    unsigned type = 0, variant = 0;
+    bool valid = false, exists = false, removed = false;
+    if (!ReadAt(body.player, offset::EntityType, type) || type != 1 ||
+        !ReadAt(body.player, offset::EntityVariant, variant) || variant != 0 ||
+        !ReadAt(body.player, offset::PlayerIndex, body.index) ||
+        !ReadAt(body.player, offset::ControllerIndex, body.controller) ||
+        !ReadAt(body.player, offset::PlayerType, body.character) ||
+        !ReadAt(body.player, offset::EntityValid, valid) ||
+        !ReadAt(body.player, offset::EntityExists, exists) ||
+        !ReadAt(body.player, offset::EntityRemoved, removed) ||
+        !ReadAt(body.player, offset::EntityDead, body.dead) ||
+        !ReadAt(body.player, offset::CoopGhost, body.ghost)) {
       out.fault = TopologyFault::Unreadable;
-      out.reason = "player_pointer_unreadable";
+      out.reason = "group_body_unreadable";
       return out;
     }
-    if (other_index == int(ordinal) || other == out.pair.player) {
-      out.pair.player = nullptr;
+    body.valid = valid;
+    body.exists = exists;
+    body.removed = removed;
+    body.hologram =
+        valid && exists && !removed && PlayerIsHologram(body.player);
+    const bool control_role = body.role == BodyRole::Primary ||
+                              body.role == BodyRole::Twin ||
+                              body.role == BodyRole::SubPlayer;
+    body.active = control_role && valid && exists && !removed &&
+                  body.controller == out.pair.key;
+    // 普通16/17的+1D84是形态状态交换对象；非roster时不预设它独立参与模拟。
+    body.native_activity_required =
+        body.role == BodyRole::SubPlayer && !body.roster &&
+        (body.character == 16 || body.character == 17);
+    if (body.native_activity_required) {
+      if (auto *r = Runtime(); r && r->players[ordinal].BoundValid())
+        for (const auto &witness : r->body_activity[ordinal])
+          if (witness.player == body.player &&
+              witness.generation == r->players[ordinal].Generation() &&
+              witness.tick && witness.tick <= r->clock.Completed())
+            body.native_activity_seen = true;
+    }
+    out.active_bodies += body.CanConsume();
+    // Esau Jr槽由当前实体各active
+    // slot的703元数据定位，绝不按ordinal/PlayerIndex猜测。
+    if (control_role)
+      for (unsigned slot = 0; slot < 4; ++slot) {
+        int item = 0, association = 0;
+        if (!ReadAt(body.player,
+                    offset::ActiveItemSlotBase +
+                        slot * offset::ActiveItemSlotStride,
+                    item)) {
+          out.fault = TopologyFault::Unreadable;
+          out.reason = "active_item_unreadable";
+          return out;
+        }
+        if (item != 703)
+          continue;
+        if (!ReadAt(body.player,
+                    offset::EsauJrAssociation +
+                        slot * offset::ActiveItemSlotStride,
+                    association) ||
+            association < 0 || association > 4) {
+          out.fault = TopologyFault::Identity;
+          out.reason = "esau_jr_slot_invalid";
+          return out;
+        }
+        if (!association)
+          continue;
+        void *backup = nullptr;
+        if (!ReadAt(out.room.game,
+                    offset::PlayerManager + offset::EsauJrStates +
+                        (association - 1) * sizeof(void *),
+                    backup) ||
+            !append(backup, BodyRole::EsauJr)) {
+          out.fault = TopologyFault::Unreadable;
+          out.reason = "esau_jr_backup_unknown";
+          return out;
+        }
+      }
+    const size_t relations[] = {0x1D84, 0x1E4C, 0x1E50, 0x267C};
+    const BodyRole roles[] = {BodyRole::SubPlayer, BodyRole::Twin,
+                              BodyRole::Backup, BodyRole::Replaced};
+    for (unsigned j = 0; j < 4; ++j) {
+      void *target = nullptr;
+      if (!ReadAt(body.player, relations[j], target) ||
+          !append(target, control_role ? roles[j] : BodyRole::Inactive)) {
+        out.fault = TopologyFault::Ambiguous;
+        out.reason = "group_relation_unknown_or_overflow";
+        return out;
+      }
+      body.relations[j] = target;
+    }
+  }
+  // 同 key 的另一个 roster 根必须由已确认关系解释，否则整组关闭，不能默默串控。
+  for (size_t i = 0; i < player_count; ++i) {
+    int key = -1;
+    if (!ReadAt(roster[i], offset::ControllerIndex, key)) {
+      out.fault = TopologyFault::Unreadable;
+      return out;
+    }
+    if (key == out.pair.key && !out.Contains(roster[i], false)) {
       out.fault = TopologyFault::Ambiguous;
-      out.reason = "ambiguous_player";
+      out.reason = "unowned_shared_controller";
       return out;
     }
   }
@@ -254,8 +406,7 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
   }
   uintptr_t vtable = 0;
   bool enabled = false;
-  const bool readable = matches == 1 &&
-                        ReadAt(out.pair.device, 0, vtable) &&
+  const bool readable = matches == 1 && ReadAt(out.pair.device, 0, vtable) &&
                         ReadAt(out.pair.device, offset::DeviceEnabled, enabled);
   // A 只接受键盘/手柄后端；B 只接受构造时记录的自有 K。归属不符与
   // 设备暂时不可用必须分开：前者允许进入 PeerLost 防御，后者只表示不可绑定。
@@ -270,10 +421,10 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
     if (matches > 1) {
       out.fault = TopologyFault::Ambiguous;
       out.reason = "ambiguous_device";
-    } else if (ordinal == 1 && matches != 1) {
+    } else if (ordinal != 0 && matches != 1) {
       out.fault = TopologyFault::Ownership;
       out.reason = "device_missing";
-    } else if (ordinal == 1 && readable && !ownership_ok) {
+    } else if (ordinal != 0 && readable && !ownership_ok) {
       out.fault = TopologyFault::Ownership;
       out.reason = "device_ownership_mismatch";
     } else {
@@ -282,7 +433,10 @@ Topology ReadTopology(unsigned ordinal, void *owned_device) noexcept {
     }
     return out;
   }
-  out.unique = out.room.room != nullptr;
+  bool structural = false;
+  for (unsigned i = 0; i < out.body_count; ++i)
+    structural |= out.bodies[i].active;
+  out.unique = out.room.room != nullptr && structural;
   out.fault = out.unique ? TopologyFault::None : TopologyFault::Room;
   out.reason = out.unique ? "unique" : "room_unknown";
   return out;
@@ -334,5 +488,21 @@ int DeviceIdOccurrences(int id) noexcept {
       ++matches;
   }
   return matches;
+}
+} // namespace cs::game
+
+namespace cs::game {
+bool SameControlGroup(const Topology &a, const Topology &b) noexcept {
+  if (!(a.pair == b.pair) || a.body_count != b.body_count)
+    return false;
+  for (unsigned i = 0; i < a.body_count; ++i) {
+    auto left = a.bodies[i], right = b.bodies[i];
+    left.native_activity_seen = right.native_activity_seen = false;
+    left.index = right.index =
+        -1; // 原生RemoveCoPlayer重编号不改变其余参与者归属。
+    if (!(left == right))
+      return false;
+  }
+  return true;
 }
 } // namespace cs::game

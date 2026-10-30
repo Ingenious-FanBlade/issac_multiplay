@@ -3,7 +3,7 @@ mod compare;
 pub(crate) mod dataset;
 mod io;
 pub(crate) mod model;
-mod profile;
+pub(crate) mod profile;
 mod replay;
 mod validate;
 type Result<T> = std::result::Result<T, String>;

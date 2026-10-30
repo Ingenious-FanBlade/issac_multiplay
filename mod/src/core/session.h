@@ -7,6 +7,9 @@
 
 namespace cs::core {
 
+// 参与者容量与 Player 身体数量无关；一个控制组可以拥有多个原生身体。
+inline constexpr std::size_t kMaximumParticipants = 4;
+
 // 既有状态与原因的数值沿用原型；新原因只追加，Ack 继续使用既有状态值。
 // Negotiating 和控制器/恢复原因仅供历史对照，网络协商由外层管理。
 enum class SessionState : std::uint32_t {
@@ -41,12 +44,12 @@ enum class SessionCause : std::uint32_t {
 };
 enum class SessionMode : std::uint32_t { None, Solo, Host };
 
-// 身份由主线程适配层在启动前生成并冻结；ordinal 0=A、1=B。
-// Solo 的 ordinal 1 必须不存在；Host 的两个 client id 必须非零且互异。
+// 身份在启动前生成并冻结；0为Host，1..3为预留远端身份，实际名单由presence表达。
+// Solo只有0；Host预留ID非零互异，离开不移动其他人的ordinal。
 // generation 是会话代次，独立于 Participant 的重绑代次，不进入输入 codec。
 struct SessionIdentity {
   std::array<std::uint8_t, 16> session{};
-  std::array<std::uint64_t, 2> clients{};
+  std::array<std::uint64_t, kMaximumParticipants> clients{};
   std::uint64_t generation = 0;
 };
 struct SessionStatus {
@@ -63,10 +66,10 @@ const char *SessionModeName(SessionMode mode) noexcept;
 // 可跨线程读取；身份与模式不作跨线程发布。
 class Session final {
 public:
-  // Solo 直接准备；Host 由适配层确认握手完成后调用，两种模式均进入 Warmup。
+  // Solo与Host均直接准备Warmup；稳定Host可先单人运行，Peer随后独立握手加入。
   bool Start(const SessionIdentity &identity,
              SessionMode mode = SessionMode::Solo) noexcept;
-  // 只检查首次激活的绑定条件，Active 后不把 B 的就绪变成逐 tick 等待条件。
+  // 首次激活只要求Host绑定；任何日常tick均不等待全员。
   bool Activate(bool host_bound, bool remote_bound = false) noexcept;
   // Peer 原因仅用于 Host 的有序退休；允许已经开始的窗口正常提交与发布。
   bool BeginRetirement(SessionCause cause) noexcept;
@@ -75,18 +78,16 @@ public:
   SessionStatus Status() const noexcept;
   const SessionIdentity &Identity() const noexcept { return identity_; }
   SessionMode Mode() const noexcept { return mode_; }
-  std::size_t ParticipantCount() const noexcept {
-    switch (mode_) {
-    case SessionMode::Solo:
-      return 1;
-    case SessionMode::Host:
-      return 2;
-    default:
-      return 0;
-    }
+  std::size_t ParticipantCount() const noexcept;
+  // ordinal 在会话中冻结；离开留下空位，不压缩其他人的序号，也不复用退休身份。
+  std::size_t ParticipantLimit() const noexcept {
+    return mode_ == SessionMode::Host ? kMaximumParticipants
+           : mode_ == SessionMode::Solo ? 1 : 0;
   }
+  bool AddParticipant(std::uint32_t ordinal) noexcept;
+  bool RemoveParticipant(std::uint32_t ordinal) noexcept;
   bool HasParticipant(std::uint32_t ordinal) const noexcept {
-    return ordinal < ParticipantCount();
+    return ordinal < ParticipantLimit() && (present_ & (1u << ordinal));
   }
   bool AcceptsInput() const noexcept {
     return Status().state == SessionState::Active;
@@ -108,6 +109,7 @@ private:
       Pack(SessionState::Dormant, SessionCause::None)};
   SessionIdentity identity_{};
   SessionMode mode_ = SessionMode::None;
+  std::uint32_t present_ = 0, retired_ = 0;
 };
 
 } // namespace cs::core

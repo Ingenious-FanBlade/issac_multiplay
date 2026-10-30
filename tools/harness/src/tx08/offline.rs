@@ -163,19 +163,31 @@ impl Run {
             self.report["offline"][format!("L{n}")] = json!({"status":"NOT_RUN"});
         }
         let primary = self.out.join("runtime-world/primary");
+        // 离线 CLI 的只读性按五份完整输入文件直接逐字节核对，不计算摘要。
+        let originals=root.join("source-before");
+        fs::create_dir(&originals).map_err(|e|e.to_string())?;
+        let source_names=["manifest.json","captures.jsonl","lifecycle-events.jsonl","diagnostics.jsonl","result.json"];
+        for name in source_names {
+            if primary.join(name).is_file() { fs::copy(primary.join(name),originals.join(name)).map_err(|e|e.to_string())?; }
+        }
         let example = (|| -> Result<Value> {
             let data = Dataset::open(&primary, false)?;
             let scan = dataset::scan(&data, None, None, None)?;
-            let first = scan
-                .attempts
-                .values()
-                .find(|l| l.complete)
-                .ok_or("no_complete_capture_for_offline")?;
-            let capture = data.at(
-                &mut File::open(primary.join("captures.jsonl")).map_err(|e| e.to_string())?,
-                first,
-            )?;
-            serde_json::to_value(capture).map_err(|e| e.to_string())
+            let mut file=File::open(primary.join("captures.jsonl")).map_err(|e|e.to_string())?;
+            let mut fallback=None;
+            // Tear 只在后续原生 Spawn 场景出现；不能用首份无 raw128 的开局样本宣布未覆盖。
+            for loc in scan.attempts.values().filter(|l|l.complete) {
+                let capture=serde_json::to_value(data.at(&mut file,loc)?).map_err(|e|e.to_string())?;
+                let raw128=capture["objects"].as_array().unwrap().iter().any(|o|
+                    o["fields"].as_array().unwrap().iter().any(|f|f["width"]==16 && f["status"]=="VALUE"));
+                if raw128 {
+                    write_json(&root.join("example-selection.json"),&json!({"source":primary,
+                        "attempt":capture["attempt_seq"],"raw128":true,"all_source_records_retained":true}))?;
+                    return Ok(capture);
+                }
+                if fallback.is_none() {fallback=Some(capture);}
+            }
+            fallback.ok_or("no_complete_capture_for_offline".into())
         })();
         for (n, name) in [
             (1, "full_replay"),
@@ -186,6 +198,7 @@ impl Run {
             (6, "two_process_compare"),
             (7, "legacy_import"),
         ] {
+            if self.scenario["focus"]=="V1_V10" && n>5 {continue;}
             let result = match n {
                 1 => {
                     if primary.join("manifest.json").exists() {
@@ -212,6 +225,14 @@ impl Run {
             };
             write_json(&root.join("ledger.json"), &self.report["offline"])?;
         }
+        let mut unchanged=json!({});
+        for name in source_names {
+            unchanged[name]=json!(same_bytes(&primary.join(name),&originals.join(name))?);
+        }
+        let intact=unchanged.as_object().unwrap().values().all(|v|v==true);
+        self.report["offline"]["source_unchanged"]=json!({"pass":intact,"files":unchanged,"comparison":"full bytes; no hashes"});
+        if !intact { self.report["offline"]["L1"]["status"]=json!("FAIL"); }
+        write_json(&root.join("ledger.json"), &self.report["offline"])?;
         Ok(())
     }
     fn l1_tx08(&self, root: &Path, source: &Path) -> Result<Value> {
@@ -446,14 +467,19 @@ impl Run {
         let invocation = compare(root, "L3-compare", &left, &right_path, &alignment)?;
         let result = load(&root.join("L3-compare/result.json"))?;
         let comparisons = rows(&root.join("L3-compare/comparisons.jsonl"))?;
-        let precise = comparisons.iter().any(|r| {
-            r["differences"]
-                .as_array()
-                .is_some_and(|a| a.len() == 1 && a[0]["field_id"] == changed["field"])
-        });
+        let id = u16::from_str_radix(changed["field"].as_str().ok_or("field id")?,16).map_err(|e|e.to_string())?;
+        let expected_path = json!([c["run_epoch"],c["room_epoch"],c["authority_tick"],"Player",
+            format!("player:{:02}",changed["ordinal"].as_u64().ok_or("ordinal")?),crate::world::profile::field_name(id)]);
+        let precise = comparisons.len()==1 && comparisons[0]["left_tick"]==c["authority_tick"]
+            && comparisons[0]["right_tick"]==c["authority_tick"]
+            && comparisons[0]["differences"].as_array().is_some_and(|a|a.len()==1
+                && a[0]["field_id"]==changed["field"] && a[0]["path"]==expected_path
+                && comparisons[0]["first_observed_difference"]==a[0])
+            && comparisons[0]["earlier_coverage_unknown"].as_bool()==comparisons[0]["unknown"].as_array().map(|a|!a.is_empty())
+            && result["earlier_coverage_unknown"]==comparisons[0]["earlier_coverage_unknown"];
         Ok(
             json!({"status":if invocation["expectation_met"]==true && result["status"]=="DIFFERENT" && precise{"PASS"}else{"FAIL"},
-            "cli":invocation,"changed":changed,"precise_single_field":precise,"result":result}),
+            "cli":invocation,"changed":changed,"expected_path":expected_path,"comparisons":comparisons,"precise_single_field":precise,"result":result}),
         )
     }
     fn l4_tx08(&self, root: &Path, source: &Path, c: &Value) -> Result<Value> {
@@ -722,6 +748,8 @@ impl Run {
             |p: &str| crate::tx05::evidence::parse_events(&self.out.join(p).join("trace.jsonl"));
         let le = events("process-1")?;
         let re = events("process-2")?;
+        let left_trace = super::trace_index::TraceIndex::new(&le);
+        let right_trace = super::trace_index::TraceIndex::new(&re);
         let generation = |p: &str| -> Result<u64> {
             load(&self.out.join(p).join("bindings.json"))?["status"]["generation"]
                 .as_str()
@@ -731,7 +759,7 @@ impl Run {
         };
         let lg = generation("process-1")?;
         let rg = generation("process-2")?;
-        let base = |p: &str, label: &str| -> Result<u64> {
+        let base = |p: &str, label: &str| -> Result<(u64,u64)> {
             let r = rows(&self.out.join(p).join("input.jsonl"))?;
             let scripts = r
                 .iter()
@@ -740,48 +768,38 @@ impl Run {
             if scripts.len() != 1 {
                 return Err("script anchor missing/duplicated".into());
             }
-            scripts[0]["base"].as_u64().ok_or("script base".into())
+            let generation=scripts[0]["generation"].as_u64().ok_or("script generation")?;
+            let bindings=load(&self.out.join(p).join("bindings.json"))?;
+            if bindings["status"]["b_generation"].as_str().and_then(|s|s.parse::<u64>().ok())!=Some(generation) {
+                return Err("script_generation_not_frozen_binding".into());
+            }
+            Ok((scripts[0]["base"].as_u64().ok_or("script base")?,generation))
         };
-        let lb = base("process-1", "p1.stable")?;
-        let rb = base("process-2", "p2.stable")?;
+        let (lb,lbg) = base("process-1", "p1.stable")?;
+        let (rb,rbg) = base("process-2", "p2.stable")?;
         let mut pairs = vec![];
         let mut proof = vec![];
         let mut scopes = None;
+        // 完整 capture 的同 tick 组只建立一次；重复项保留，后续仍要求 len==1。
+        let mut left_capture_ticks = BTreeMap::<Option<u64>, Vec<_>>::new();
+        let mut right_capture_ticks = BTreeMap::<Option<u64>, Vec<_>>::new();
+        for location in ls.attempts.values().filter(|l| l.complete) {
+            left_capture_ticks.entry(location.tick).or_default().push(location);
+        }
+        for location in rs.attempts.values().filter(|l| l.complete) {
+            right_capture_ticks.entry(location.tick).or_default().push(location);
+        }
         for offset in 1..=self.scenario["comparison_samples"].as_u64().unwrap() + 128 {
-            let l = ls
-                .attempts
-                .values()
-                .filter(|l| l.complete && l.tick == lb.checked_add(offset))
-                .collect::<Vec<_>>();
-            let r = rs
-                .attempts
-                .values()
-                .filter(|l| l.complete && l.tick == rb.checked_add(offset))
-                .collect::<Vec<_>>();
+            let l = left_capture_ticks.get(&lb.checked_add(offset)).map(Vec::as_slice).unwrap_or(&[]);
+            let r = right_capture_ticks.get(&rb.checked_add(offset)).map(Vec::as_slice).unwrap_or(&[]);
             if l.len() != 1 || r.len() != 1 {
                 continue;
             }
             let mut consumed = vec![];
             let mut valid = true;
             for ordinal in 0..=1 {
-                let a = le
-                    .iter()
-                    .filter(|e| {
-                        e.kind() == "tick"
-                            && e.n("generation") == Some(lg)
-                            && e.n("tick") == lb.checked_add(offset)
-                            && e.n("ordinal") == Some(ordinal)
-                    })
-                    .collect::<Vec<_>>();
-                let b = re
-                    .iter()
-                    .filter(|e| {
-                        e.kind() == "tick"
-                            && e.n("generation") == Some(rg)
-                            && e.n("tick") == rb.checked_add(offset)
-                            && e.n("ordinal") == Some(ordinal)
-                    })
-                    .collect::<Vec<_>>();
+                let a = left_trace.ticks(Some(lg), lb.checked_add(offset), Some(ordinal));
+                let b = right_trace.ticks(Some(rg), rb.checked_add(offset), Some(ordinal));
                 if a.len() != 1 || b.len() != 1 {
                     valid = false;
                     break;
@@ -792,12 +810,21 @@ impl Run {
                     || ["held", "edge"]
                         .iter()
                         .any(|k| a[0].n(k).is_none() || a[0].n(k) != b[0].n(k))
-                    || (ordinal == 1
-                        && (a[0].n("input_sequence").unwrap_or(0) == 0
-                            || b[0].n("input_sequence").unwrap_or(0) == 0))
+                    || a[0].n("input_sequence").unwrap_or(0) == 0
+                    || b[0].n("input_sequence").unwrap_or(0) == 0
                 {
                     valid = false;
                     break;
+                }
+                // 双方 Submit/Resolve/消费逐条相接；相同值或相同 seed 不能代替真实命令。
+                if !left_trace.command_matches(a[0]) || !right_trace.command_matches(b[0])
+                    || a[0].n("session_generation")!=Some(lg) || b[0].n("session_generation")!=Some(rg)
+                    || a[0].n("input_generation").is_none_or(|g|g==0)
+                    || b[0].n("input_generation").is_none_or(|g|g==0) {
+                    valid=false; break;
+                }
+                if ordinal==1 && (a[0].n("input_generation")!=Some(lbg) || b[0].n("input_generation")!=Some(rbg)) {
+                    valid=false; break;
                 }
                 consumed.push(json!({"ordinal":ordinal,"left":a[0].raw,"right":b[0].raw}));
             }
@@ -821,7 +848,8 @@ impl Run {
         write_json(
             &root.join("L6-alignment-basis.json"),
             &json!({"rule":"same relative frozen script tick; unique complete capture and actual A/B resolved input in both processes",
-            "left_base":lb.to_string(),"right_base":rb.to_string(),"seed_used_as_key":false,"address_used_as_key":false,"pairs":proof,
+            "left_base":lb.to_string(),"right_base":rb.to_string(),"left_script_generation":lbg.to_string(),"right_script_generation":rbg.to_string(),
+            "seed_used_as_key":false,"address_used_as_key":false,"pairs":proof,
             "unmapped_births":"INCOMPARABLE; never auto-match by seed/type/position"}),
         )?;
         let path = root.join("L6-alignment.json");
@@ -839,14 +867,18 @@ impl Run {
                 json!({"status":"NOT_RUN","reason":"scenario must identify existing complete legacy material"}),
             );
         };
-        let source = self.repo.join(relative);
+        let source = self.out.join("legacy-input");
+        for name in ["manifest.json","captures.jsonl","lifecycle-events.jsonl","result.json","consumer.json","restoration.json"] {
+            if !source.join(name).is_file() { return Err(format!("legacy_missing_original:{name}")); }
+        }
         let manifest = load(&source.join("manifest.json"))?;
         if manifest["domain"] != crate::world::LEGACY {
             return Err("legacy domain mismatch".into());
         }
         let invocation = replay(root, "L7-legacy", &source, true, true)?;
         Ok(
-            json!({"status":if invocation["expectation_met"]==true{"PASS"}else{"FAIL"},"cli":invocation,"runtime_compatibility":"NOT_CLAIMED"}),
+            json!({"status":if invocation["expectation_met"]==true{"PASS"}else{"FAIL"},"cli":invocation,
+                "original_source":relative,"frozen_input":source,"provenance":self.scenario["legacy_source"],"runtime_compatibility":"NOT_CLAIMED"}),
         )
     }
 }

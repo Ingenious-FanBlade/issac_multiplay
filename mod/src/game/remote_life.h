@@ -33,6 +33,8 @@ struct RetirementPlayerSnapshot {
   RoomIdentity room{};
   std::uint64_t generation = 0;
   bool confirmed = false;
+  std::array<ControlBody, kMaximumGroupBodies> bodies{};
+  unsigned body_count = 0;
 };
 // B 的生命记录、死亡窗口与重绑计数。所有字段由主线程修改。
 struct RemoteLifeData {
@@ -58,22 +60,22 @@ enum class RemoteLifeAction : unsigned { None, Invalidate, PeerLost };
 enum class RetirementConfirm : unsigned { Unknown, Absent, Conflict, Ready };
 // 主线程已读取的 A/B 拓扑；只更新生命状态与请求，不 Bind、不读队列、不写世界。
 RemoteLifeAction ObserveRemoteLife(SessionRuntime &runtime, const Topology &host,
-                                   const Topology &remote) noexcept;
+                                   const Topology &remote, unsigned ordinal = 1) noexcept;
 // Join 正常返回并确认完整 B 后建立首次生命记录与当前归属。
-void NoteRemoteJoined(SessionRuntime &runtime, const Topology &remote) noexcept;
+void NoteRemoteJoined(SessionRuntime &runtime, const Topology &remote, unsigned ordinal = 1) noexcept;
 // 稳定且未阻断的 Authority 入口：重新读取唯一 exact pair 后绑定同一 ordinal。
 // after_revival 只影响计数与 trace 的原因，不放宽任何健康/归属条件。
-bool BindRevivedRemote(SessionRuntime &runtime, bool after_revival) noexcept;
+bool BindRevivedRemote(SessionRuntime &runtime, bool after_revival, unsigned ordinal = 1) noexcept;
 // 撤销 B 的绑定一次（Participant::Invalidate 已递增 generation），并保留
 // 一次输入丢弃边界；重复调用在未绑定时不产生额外效果。
-void InvalidateRemoteBinding(SessionRuntime &runtime, const char *reason) noexcept;
+void InvalidateRemoteBinding(SessionRuntime &runtime, const char *reason, unsigned ordinal = 1) noexcept;
 // 移出 K 之前保存当前 Game/PlayerManager/A/B/controller 的只读关联。
-bool CaptureRetirementSnapshot(SessionRuntime &runtime) noexcept;
+bool CaptureRetirementSnapshot(SessionRuntime &runtime, unsigned ordinal = 1) noexcept;
 // K 已离开设备 vector 后用受限读取确认当前 slot 仍是快照中的自有 B。
 RetirementConfirm ConfirmRetirementPlayer(SessionRuntime &runtime,
-                                          void *&player) noexcept;
+                                          void *&player, unsigned ordinal = 1) noexcept;
 // 健康条件：ReadTopology 已校验 Type/Variant/index/controller/唯一设备，
 // 这里再要求生命可用、角色与本轮指定角色一致。
 bool RemoteHealthEligible(const SessionRuntime &runtime,
-                          const Topology &remote) noexcept;
+                          const Topology &remote, unsigned ordinal = 1) noexcept;
 } // namespace cs::game

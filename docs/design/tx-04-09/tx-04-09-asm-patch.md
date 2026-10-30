@@ -1,5 +1,7 @@
 # tx-04-09：改用 REPENTOGON ASM patch 安装器
 
+> **同号历史说明（2026-10-30）**：本文保留2026-10-27的原任务、路径及失败结果。用户新指定的tx-04-09是[四人及多身体支持](observation-expansion/four-participant-control.md)，属于[新的连续推进计划](observation-expansion/README.md)。两者按主题区分；不覆盖本文或原artifact，不把本次编号整理视为ASM patch已通过验收。
+
 日期：2026-10-27。用户要求将 `mod/src/hooks/odd_patch.cpp` 和 `host_patch.cpp` 改用 REPENTOGON 提供的 ASM patch。本次仅迁移这 12 处补丁的编码和安装，沿用统一清单、首次主线程延后安装、Host 后端锁和进程常驻策略。
 
 ## 实现

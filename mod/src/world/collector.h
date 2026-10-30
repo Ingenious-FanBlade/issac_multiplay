@@ -3,6 +3,8 @@
 // 本对象在后台准备完成后交给主线程，所有入口均零等待、无运行期分配。
 #include "core/tick_pipeline.h"
 #include "world/identity.h"
+#include "world/common/native_source.h"
+#include "world/common/membership.h"
 #include "world/storage.h"
 
 namespace cs::world {
@@ -26,6 +28,16 @@ struct PlayerAnchor final {
   bool operator==(const PlayerAnchor &) const = default;
 };
 
+// 采集服务的窄提交通知；录制器不拥有 Collector，也不能决定 Authority 是否提交。
+struct CaptureSink final {
+  void *owner=nullptr;
+  void (*lua)(void *,const BatchHeader &,const RawObject *) noexcept=nullptr;
+  void (*native)(void *,const BatchHeader &,const RawObject *,const RawMembership *) noexcept=nullptr;
+  void (*commit)(void *,bool,bool) noexcept=nullptr;
+  void (*event)(void *,const LifecycleEvent &) noexcept=nullptr;
+  void (*gap)(void *,const GapRecord &) noexcept=nullptr;
+};
+
 class Collector final {
 public:
   Collector(WorldStorage &storage, IdentityTable &identities,
@@ -33,6 +45,7 @@ public:
   ~Collector();
   // 主线程接收已准备上下文时调用；失败不影响 Authority。
   bool Activate() noexcept;
+  void SetCaptureSink(CaptureSink sink) noexcept { sink_=sink; }
   bool Recording() const noexcept;
   bool Participating() const noexcept { return active_; }
   bool Drained() const noexcept;
@@ -58,6 +71,13 @@ public:
   void LifecycleLeave(bool normal) noexcept;
   void RevokePlayer(std::uint32_t ordinal) noexcept;
   void AnchorPlayer(std::uint32_t ordinal, const PlayerAnchor &anchor) noexcept;
+  std::uint64_t EntityLocalId(std::uint32_t address) noexcept {
+    auto *identity = identities_.Find(ObjectDomain::Entity, address);
+    return identity && !identity->Retired() ? identity->local_id : 0;
+  }
+  PlayerAnchor CurrentAnchor(std::uint32_t slot) const noexcept {
+    return slot < anchors_.size() ? anchors_[slot] : PlayerAnchor{};
+  }
   void PlayerReturned(std::uint32_t ordinal, const PlayerAnchor &before,
                       const PlayerAnchor &after, std::uint64_t tick,
                       bool normal, bool body_reached) noexcept;
@@ -111,17 +131,23 @@ private:
                      std::uint32_t result) noexcept;
   bool Birth(Identity &identity, Observation owner) noexcept;
   void CopySources() noexcept;
+  // 先定义集合再开始见证；主复制重新枚举，不把单字段读前后冒充整个复制窗口。
+  void BeginRngWindow() noexcept;
+  void EndRngWindow(bool sources_stable) noexcept;
   void CopySource(std::uint32_t source) noexcept;
   std::int32_t Add(ObjectDomain domain, std::uint32_t address,
                    std::uint32_t source, std::uint32_t index) noexcept;
   void CopyObject(RawObject &object, Identity &identity) noexcept;
-  void CopyFields(RawObject &object, const Identity &identity, bool ready = true) noexcept;
+  NativeSource Source() noexcept;
+  SubjectRegistry Registry() noexcept;
   void ResolveReferences() noexcept;
   void Memberships(bool commit) noexcept;
   void Gap(Reason reason, bool authority) noexcept;
   void CloseIfDrained() noexcept;
 
   WorldStorage &storage_;
+  CaptureSink sink_{};
+  bool post_stable_=false;
   IdentityTable &identities_;
   MemoryReader memory_;
   const std::uint32_t generation_;
@@ -139,11 +165,20 @@ private:
   std::uint32_t authority_count_ = 0, game_frame_ = 0, grid_width_ = 0;
   std::array<Phase, 4> phases_{};
   std::array<Call, 64> calls_{};
-  std::array<PlayerAnchor, 2> anchors_{};
+  std::array<PlayerAnchor, kControlAnchorCapacity> anchors_{};
+  // 当前exact pair是否已观察正常PlayerUpdate；独立于创建owner赋予的字段读取依据。
+  std::array<PlayerAnchor, kControlAnchorCapacity> update_witnesses_{};
   // 来源顺序两遍读取，包含每个指针值；大工作表属于堆上 Collector，计入管理余量。
   std::array<std::uint32_t, kMembershipBudget> source_addresses_{};
   std::array<std::uint32_t, 460> fixed_addresses_{}; // Esau 4 + Grid 448 + door 8。
   std::array<std::uint32_t, kRelationNodes> relation_nodes_{};
+  struct RngInventory {
+    std::uint64_t local = 0, use = 0, revision = 0;
+    std::uint32_t domain = 0, address = 0, vptr = 0, kind = 0;
+    RawRng value{};
+  };
+  std::array<RngInventory, kObjectBudget> rng_inventory_{};
+  std::uint32_t rng_count_ = 0;
   BatchWriter pending_{};
   core::TickPostState post_{};
 };

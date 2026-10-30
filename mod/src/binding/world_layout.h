@@ -53,8 +53,8 @@ enum class SourceKind : std::uint8_t {
 };
 const char *SourceKindName(SourceKind value) noexcept;
 
-// RTTI 分类：七类 Entity、Entity 根、GridEntity 根与 Door。
-// 它们不是文件类别（Class）——Entity/Door 没有独立字段 schema。
+// RTTI 分类：Entity 根/七类专用 Entity，以及已核定的 18 类 Grid 实现。
+// 它们不是文件类别；所有 Grid 派生类共用 Grid 公共字段，不新增专用 schema。
 enum class RttiClass : std::uint8_t {
   Entity = 0,
   Player = 1,
@@ -66,7 +66,23 @@ enum class RttiClass : std::uint8_t {
   Effect = 7,
   Grid = 8,
   Door = 9,
-  Count = 10
+  Decoration = 10,
+  Rock = 11,
+  Pit = 12,
+  Spikes = 13,
+  Web = 14,
+  Lock = 15,
+  TNT = 16,
+  Fire = 17,
+  Poop = 18,
+  Wall = 19,
+  TrapDoor = 20,
+  Stairs = 21,
+  Gravity = 22,
+  PressurePlate = 23,
+  Statue = 24,
+  Teleporter = 25,
+  Count = 26
 };
 const char *RttiClassName(RttiClass value) noexcept;
 
@@ -108,10 +124,11 @@ struct BaseClassSpec final {
 // 一个分类的目标 RTTI 与虚表槽（只读分类使用，不调用任何方法）。
 struct ClassSpec final {
   RttiClass rtti;
-  // 是否为七类专用 schema / Grid 域；Entity 根与 Door 没有独立字段 schema。
+  // 是否持有独立文件 schema；Grid 派生类只通过根类使用公共 Grid schema。
   bool schema;
   // 映射到的文件类别；schema=false 时为 Class::Unknown（不使用）。
   Class schema_class;
+  // object_size=0 表示完整尺寸未知；公共读取前缀与分配请求在可读清单中分列保存。
   std::uint32_t vtable_rva, col_rva, td_rva, object_size;
   const char *td_name;
   std::uint32_t free_slot_rva; // 虚表 slot 0 删除包装，仅诊断
@@ -138,6 +155,16 @@ struct ObservationSpec final {
 // 目标版本常量。成员顺序即生成清单顺序；生成代码使用指定初始化器，
 // 名称或顺序不一致会直接编译失败。
 struct Constants final {
+  std::uint32_t sprite_null_names_offset;
+  std::uint32_t sprite_event_names_offset;
+
+  std::uint32_t entity_text_td_rva;
+  std::uint32_t entity_dummy_td_rva;
+  std::uint32_t entity_text_counter_offset;
+  std::uint32_t entity_text_duration_offset;
+  std::uint32_t entity_text_buffer_offset;
+  std::uint32_t entity_text_capacity;
+
   std::uint32_t game_root_rva;
   std::uint32_t game_frame_offset;
   std::uint32_t game_room_offset;

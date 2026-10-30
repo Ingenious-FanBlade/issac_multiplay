@@ -3,6 +3,8 @@
 local fixture = RegisterMod("Isaac CS E2E fixture", 1)
 local config = include("harness_config")
 local json = require("json")
+if config.tx == "tx-04-10" then include("tx10"); return end
+if config.tx == "tx-04-09" then include("tx09"); return end
 local menuDone, runDone, panelShown = false, false, false
 -- 界面 mod 的窗口 id；只在 E2E 中由本夹具强制显示。
 local PANEL = "isaac-cs-panel"
@@ -565,6 +567,8 @@ local function requestSkip(current)
 end
 
 -- 选择已开启、未上锁的普通相邻门；记录来源/目标，目标层/房变化由轮询确认。
+-- V2 录制重启会丢弃旧 Effect 的出生依据；经原生切房重新观察创建，不扩大 FIRST_OBSERVED 权限。
+local phasePreviousRoom = nil
 local function requestRoom(current)
     local source = roomIdentity()
     if source.error then
@@ -573,15 +577,25 @@ local function requestRoom(current)
     end
     local game = Game()
     local room, level = game:GetRoom(), game:GetLevel()
+    local returning = worldMode and current.spec.return_to_previous == true
+    if returning and (not phasePreviousRoom or phasePreviousRoom.stage ~= source.stage
+        or phasePreviousRoom.stage_type ~= source.stage_type) then
+        finishAction("rejected", { reason = "previous_phase_room_missing_or_changed" })
+        return
+    end
     for slot = 0, 7 do
         local door = room:GetDoor(slot)
-        if door and door:IsOpen() and not door:IsLocked() and door.TargetRoomIndex >= 0
+        -- 返回路线只允许本进程已实际离开的相邻房；直接调用原生过渡，不改门或实体字段。
+        local route = door and (returning and door.TargetRoomIndex == phasePreviousRoom.index
+            or not returning and door:IsOpen() and not door:IsLocked())
+        if route and door.TargetRoomIndex >= 0
             and door.TargetRoomIndex ~= source.index then
             local target = level:GetRoomByIdx(door.TargetRoomIndex, -1)
             if target and target.Data and target.Data.Type == RoomType.ROOM_DEFAULT then
                 current.data = { source = source, target = door.TargetRoomIndex,
                     direction = door.Direction, slot = slot }
                 current.phase = "waiting_room"
+                if not returning then phasePreviousRoom = source end
                 -- 全参数调用；不把调用返回当作过渡成功，也不写门或 Player 状态。
                 local ok, err = pcall(function()
                     game:StartRoomTransition(current.data.target, current.data.direction, 0, nil, -1)

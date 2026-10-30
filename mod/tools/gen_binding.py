@@ -54,7 +54,9 @@ SOURCE_ORDER = ['main', 'persistent', 'update', 'render', 'effect', 'temp',
                 'grid', 'door', 'reserved_13', 'reserved_14']
 # world_layout.h 的 RttiClass 顺序。
 RTTI_ORDER = ['Entity', 'Player', 'NPC', 'Tear', 'Projectile', 'Pickup',
-              'Familiar', 'Effect', 'Grid', 'Door']
+              'Familiar', 'Effect', 'Grid', 'Door', 'Decoration', 'Rock', 'Pit',
+              'Spikes', 'Web', 'Lock', 'TNT', 'Fire', 'Poop', 'Wall', 'TrapDoor',
+              'Stairs', 'Gravity', 'PressurePlate', 'Statue', 'Teleporter']
 ENCODINGS = {'Raw': 0, 'F32': 1, 'Reference': 2, 'Derived': 3}
 FIELD_STATUS = {'InitConfirmed': 0, 'InitDefault': 1, 'InitUnknown': 2,
                 'InitAssumed': 3, 'LuaBinding': 4, 'Derived': 5}
@@ -67,6 +69,16 @@ XMM_REGISTERS = {'xmm%d' % i: i for i in range(9)}
 # 与 world_layout.h 的 Constants 成员顺序一致；生成代码用指定初始化器，
 # 名称或顺序不一致会直接编译失败。
 CONSTANT_ORDER = [
+    ('sprite_null_names_offset', 'u32'),
+    ('sprite_event_names_offset', 'u32'),
+
+    ('entity_text_td_rva', 'u32'),
+    ('entity_dummy_td_rva', 'u32'),
+    ('entity_text_counter_offset', 'u32'),
+    ('entity_text_duration_offset', 'u32'),
+    ('entity_text_buffer_offset', 'u32'),
+    ('entity_text_capacity', 'u32'),
+
     ('game_root_rva', 'u32'),
     ('game_frame_offset', 'u32'),
     ('game_room_offset', 'u32'),
@@ -206,7 +218,7 @@ def split_params(text):
 # 既有 hooks 行
 # ===========================================================================
 
-LEGACY_GROUPS = {'loop', 'input', 'player', 'join', 'control', 'device', 'observe'}
+LEGACY_GROUPS = {'loop', 'input', 'player', 'join', 'control', 'device', 'observe', 'world'}
 
 
 def parse_legacy_rows(rows, problems):
@@ -279,6 +291,8 @@ def parse_world_rows(doc, problems):
         seen_observations.append(observation)
         if row.get('group') != 'world':
             problems.add(where, 'group 必须是 world')
+        if not isinstance(row.get('shared_control', False), bool):
+            problems.add(where, 'shared_control 必须是布尔值')
         cls, method = row.get('class'), row.get('method')
         definition = row.get('definition')
         if not all(isinstance(value, str) and value
@@ -406,7 +420,8 @@ def parse_world_rows(doc, problems):
             return_abi=return_abi, entry_bytes=entry_bytes,
             completion=row.get('completion', ''), reach=row.get('reach', ''),
             required=bool(row.get('required')), evidence=row.get('evidence', ''),
-            nargs=len(arg_specs), flags=derived_flags, name=definition))
+            nargs=len(arg_specs), flags=derived_flags, name=definition,
+            shared_control=bool(row.get('shared_control', False))))
     if sorted(seen_observations) != sorted(OBSERVATION_ORDER):
         problems.add('world_observations', '必须恰好覆盖 19 项观察语义，当前 %r'
                      % (seen_observations,))
@@ -443,6 +458,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "hooks/cs_hook.h"
 #include "binding/offsets.h"
 #include "game/bridge.h"
+#include "game/world_sources/loot.h"
 // tx-04-08 world 观察入口的专用作用域与 19 项观察编号（C++17 兼容头）。
 #include "world/observe.h"
 // 自有定义仅借用类型表达 ABI，不构造这些对象。
@@ -467,6 +483,17 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    if ident.startswith('actual_') and ident.endswith('_loot'):
+        member={'actual_pickup_loot':'EntityPickup.GetLootList',
+                'actual_fireplace_loot':'EntityNPC.GetFireplaceLoot',
+                'actual_shopkeeper_loot':'EntityNPC.GetShopkeeperLoot'}[ident]
+        return ['    cs::game::ActualValueScope observation;',
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    if(!observation.main) record.foreign.fetch_add(1, std::memory_order_relaxed);',
+                '    auto result=super(%s);' % call,
+                '    cs::game::ObserveActualLoot(this, "%s", advance, result);' % member,
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);',
+                '    return result;']
     lines = ['    cs::CallScope scope(record);']
     if ident == 'manager_update':
         lines += ['    cs::FrameScope frame(scope.main);', '    super(%s);' % call]
@@ -518,7 +545,9 @@ def legacy_body(row):
             lines += ['    cs::game::InputLease input_lease(cs::game::HostBusy());',
                       '    if (!input_lease.Ready()) cs::game::InputLeaseUnavailable();']
         elif ident == 'game_exit':
-            lines.append('    if (scope.main) cs::game::RunTeardownBeginning(true);')
+            # 真实退出即使发生在 Host 已停止后，也需要独立的原生调用与窗口关联。
+            lines += ['    cs::game::PersistenceCallScope call("game_exit", this);',
+                      '    if (scope.main) cs::game::RunTeardownBeginning(true);']
         elif ident == 'device_update':
             lines.append('    cs::game::DeviceScope device_scope(this);')
         elif ident == 'restore':
@@ -572,7 +601,8 @@ def legacy_body(row):
         if ident == 'new_room':
             lines.append('    if (scope.main) cs::game::NewRoomReturned();')
         if ident == 'game_exit':
-            lines.append('    if (scope.main) cs::RunExit();')
+            lines += ['    call.Returned();',
+                      '    if (scope.main) cs::RunExit();']
         if ret != 'void':
             lines.append('    return result;')
     return lines
@@ -615,7 +645,7 @@ def world_body(row):
         '    cs::world::ObservationScope observation(',
         '        cs::world::Observation::%s, cs::IsMain(), %s,' % (row['observation'], obj),
         '        {&record.calls, &record.foreign, &record.completed},',
-        '        {%s}%s);' % (', '.join(words), ', true' if row.get('native_witness') else ''),
+        '        {%s}, %s, %s);' % (', '.join(words), str(bool(row.get('native_witness'))).lower(), str(row['shared_control']).lower()),
     ]
     if row['ret'] == 'void':
         lines.append('    super(%s);' % call if call else '    super();')
@@ -658,11 +688,11 @@ def emit_hooks(legacy, world, patterns):
         conv = '__' + row['conv'] if row['static'] else ''
         params = ', '.join('%s %s' % (arg['type'], arg['name'])
                            for arg in row['args'])
-        lines.append('%s(%s, "%s", %s, %s, %d, %s, "%s", %s, %d, %s, %d, %s, %s, (%s), %s) {'
+        lines.append('%s(%s, "%s", %s, %s, %d, %s, "%s", %s, %d, %s, %d, %s, %s, %s, (%s), %s) {'
                      % (macro, row['id'], row['definition'], row['cls'],
                         row['method'], row['priority'], hex(row['rva']),
                         row['pattern'], str(row['own']).lower(), row['nargs'],
-                        table_name, row['flags'], row['observation'], conv,
+                        table_name, row['flags'], row['observation'], str(row['shared_control']).lower(), conv,
                         params, row['ret']))
         lines += world_body(row)
         lines.append('}')
@@ -727,10 +757,21 @@ def parse_layout(doc, problems):
         if schema != (rtti in ('Player', 'NPC', 'Tear', 'Projectile',
                                'Pickup', 'Familiar', 'Effect', 'Grid')):
             problems.add(cwhere, 'schema 标记与七类专用 schema + Grid 不一致')
-        size = parse_int(entry.get('object_size'), cwhere + '.object_size', problems)
+        # 新 Grid 派生类只承诺已核定的公共前缀；分配请求不等于完整对象尺寸。
+        # 非 schema 类的 null 表示未知，生成的 object_size=0 也只作该诊断含义。
+        size = (0 if entry.get('object_size') is None and not schema
+                else parse_int(entry.get('object_size'), cwhere + '.object_size', problems))
         if size is None:
             continue
-        class_sizes[rtti] = size
+        prefix = (parse_int(entry['readable_prefix_size'], cwhere + '.readable_prefix_size', problems)
+                  if 'readable_prefix_size' in entry else size)
+        allocation = (parse_int(entry['factory_allocation_size'], cwhere + '.factory_allocation_size', problems)
+                      if entry.get('factory_allocation_size') is not None else 0)
+        if prefix is None or allocation is None:
+            continue
+        if prefix <= 0 or (size and prefix > size) or (allocation and prefix > allocation):
+            problems.add(cwhere, '已核定读取前缀必须为正且不大于已知对象/分配范围')
+        class_sizes[rtti] = prefix
         td = parse_int(entry.get('td_rva'), cwhere + '.td_rva', problems)
         if td is None:
             continue
@@ -778,14 +819,15 @@ def parse_layout(doc, problems):
             schema_class=rtti if schema else 'Unknown',
             vtable_rva=parse_int(entry.get('vtable_rva'), cwhere, problems),
             col_rva=parse_int(entry.get('col_rva'), cwhere, problems),
-            td_rva=td, object_size=size, td_name=entry.get('td_name', ''),
+            td_rva=td, object_size=size, readable_prefix_size=prefix,
+            factory_allocation_size=allocation, td_name=entry.get('td_name', ''),
             free_slot_rva=parse_int(entry.get('free_slot_rva'), cwhere, problems),
             init_rva=(parse_int(entry.get('init_rva'), cwhere + '.init_rva', problems)
                       if entry.get('init_rva') is not None else 0),
             init_source=entry.get('init_source', ''),
             evidence=entry.get('evidence', ''), bases=parsed_bases))
     if sorted(row['rtti'] for row in parsed_classes) != sorted(RTTI_ORDER):
-        problems.add(where + '.classes', '必须恰好覆盖 10 个已登记 RTTI 类')
+        problems.add(where + '.classes', '必须恰好覆盖 %d 个已登记 RTTI 类' % len(RTTI_ORDER))
     if sorted(row['rtti'] for row in parsed_classes if row['schema']) != sorted(
             ['Player', 'NPC', 'Tear', 'Projectile', 'Pickup', 'Familiar', 'Effect',
              'Grid']):
@@ -1230,7 +1272,7 @@ def main():
     (args.out / 'binding_v1_9_7_12.inc').write_text(
         '\n'.join('{0x%X, "%s"},' % (rva, pattern) for rva, pattern in device)
         + '\n', encoding='utf-8')
-    patch = document['byte_patches'][0]
+    patch = next(row for row in document['byte_patches'] if row['id'] == 'odd_normal')
     expected = [int(value, 16) for value in patch['expected'].split()]
     (args.out / 'permanent_patches.inc').write_text(
         '// 由唯一 Hook 清单生成，勿手改。\n'
@@ -1240,7 +1282,7 @@ def main():
         'inline constexpr unsigned char OddExpected[] = {%s};\n'
         % (patch['rva'], patch['resume'], patch['expected'],
            ','.join(hex(value) for value in expected)), encoding='utf-8')
-    host_patches = document['byte_patches'][1:]
+    host_patches = [row for row in document['byte_patches'] if row['group'] == 'join']
     host_lines = ['// 由唯一 Hook 清单生成，勿手改。',
                   'struct HostPatchSpec { const char* id; uintptr_t rva, resume, '
                   'alternate; const char* expected; unsigned size; bool call; };',
@@ -1260,6 +1302,15 @@ def main():
     host_lines.append('};')
     (args.out / 'host_patches.inc').write_text('\n'.join(host_lines) + '\n',
                                                encoding='utf-8')
+    # 退出判断与 Host patch 分开编译，仍全部来自同一清单、同一安装 owner。
+    exit_patch = next(row for row in document['byte_patches'] if row['id'] == 'world_process_exit')
+    (args.out / 'exit_patch.inc').write_text(
+        '// 唯一清单生成的 main 关闭判断；完整 cmp+jnz 共十字节。\n'
+        'inline constexpr uintptr_t ExitCheckRva = %s, ExitResumeRva = %s, ExitLoopRva = %s;\n'
+        'inline constexpr const char* ExitCheckPattern = "%s";\n'
+        'inline constexpr unsigned ExitCheckBytes = %s;\n'
+        % (exit_patch['rva'], exit_patch['resume'], exit_patch['alternate'],
+           exit_patch['expected'], exit_patch['size']), encoding='utf-8')
 
     # --- 容量与布局 -------------------------------------------------------
     (args.out / 'hook_capacity.h').write_text(emit_capacity(capacity),
@@ -1287,7 +1338,8 @@ def main():
     world_manifest = []
     for row in world:
         world_manifest.append({
-            'id': row['id'], 'observation': row['observation'], 'group': 'world',
+            'id': row['id'], 'observation': row['observation'],
+            'group': 'observe' if row['shared_control'] else 'world', 'shared_control': row['shared_control'],
             'definition': row['definition'], 'class': row['cls'],
             'method': row['method'], 'rva': hex(row['rva']),
             'priority': row['priority'],
@@ -1305,7 +1357,7 @@ def main():
             definition=row['definition'], rva=hex(row['rva']),
             completion='内层进入且 super 正常返回，再与外层同 call 配对；运行证据仍待整体 E2E')
     total = dict(
-        tx='tx-04-08', schema=2,
+        tx='tx-04-09', schema=2,
         generated_from=['mod/binding/hooks.json',
                         'mod/binding/world_layout.json'],
         capacity=capacity, hooks=legacy_manifest,
@@ -1324,7 +1376,7 @@ def main():
     (args.out / 'hook-manifest.json').write_text(
         json.dumps(total, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
 
-    md = ['# tx-04-08 Hook manifest', '',
+    md = ['# tx-04-09 Hook manifest', '',
           'Generated from `mod/binding/hooks.json` and '
           '`mod/binding/world_layout.json`. 安装后常驻；session 只控制逻辑启停。',
           '',
@@ -1361,12 +1413,14 @@ def main():
     for row in host_patches:
         md.append('Host/K: %s @ %s, expected %s, resume %s. Permanent.'
                   % (row['id'], row['rva'], row['expected'], row['resume']))
+    md.append('World exit: %s @ %s, expected %s, shutdown %s, loop %s. Permanent.'
+              % (exit_patch['id'], exit_patch['rva'], exit_patch['expected'], exit_patch['resume'], exit_patch['alternate']))
     (args.out / 'hook-manifest.md').write_text('\n'.join(md) + '\n',
                                                encoding='utf-8')
 
     # --- world-layout.json（E2E / 离线工具的规范化导出） -------------------
     export = dict(
-        tx='tx-04-08', schema=1, domain=layout_doc.get('domain'),
+        tx='tx-04-09', schema=1, domain=layout_doc.get('domain'),
         profile=layout_doc.get('profile'), target=layout_doc.get('target'),
         evidence_reports=layout_doc.get('evidence_reports'),
         capacity=capacity, constants=layout['constants'],
@@ -1376,7 +1430,10 @@ def main():
                       vtable_rva=hex_text(cls['vtable_rva']),
                       col_rva=hex_text(cls['col_rva']),
                       td_rva=hex_text(cls['td_rva']),
-                      object_size=hex_text(cls['object_size']),
+                      object_size=(hex_text(cls['object_size']) if cls['object_size'] else None),
+                      readable_prefix_size=hex_text(cls['readable_prefix_size']),
+                      factory_allocation_size=(hex_text(cls['factory_allocation_size'])
+                                               if cls['factory_allocation_size'] else None),
                       td_name=cls['td_name'],
                       free_slot_rva=hex_text(cls['free_slot_rva']),
                       init_rva=hex_text(cls['init_rva']),
@@ -1389,6 +1446,7 @@ def main():
                              for base in cls['bases']],
                       evidence=cls['evidence'])
                  for cls in layout['classes']],
+        grid_types=layout_doc.get('grid_types', []),
         fields=[dict(id='0x%04X' % row['id'], name=row['name'],
                      width=row['width'], encoding=row['encoding'],
                      base=row['base'], owner=row['owner'],

@@ -1,3 +1,11 @@
+> **tx-04-10 当前交付**：[实现、成员目录与整体验收结果](../docs/design/observation-expansion/tx-04-10-implementation.md)。构建及统一 E2E 5/5通过。安装 DLL 时同时部署 `mod/observation/isaac-cs-observation` 到游戏 `mods/isaac-cs-observation`；此正式模块独立于 UI 和测试夹具。`cs observe start|status|stop` 管正式纯值消费，`cs world start <label>|status|stop` 管可选录制；录制关闭／失败不停止仍有需求的采集。新记录写入各录制的 `observation-v2/`，离线入口 `harness observation-read --capture <目录>`。完整 Grid 待 tx-04-11；下方旧 tx 记录按历史理解。
+
+# tx-04-09 四参与者与多身体
+
+四参与者、多身体控制组与ICSN v2已通过统一功能整体验收；性能开销、原生限制、失败修复与操作入口见[实现说明](../docs/design/observation-expansion/four-participant-implementation.md)。下方历史记录保持原结果。
+
+生产默认关闭世界录制和详细诊断；`diagnostics.enabled`与`world_record.enabled`须显式配置才启用，逐consumer重复全图核对还须单独开启`diagnostics.repeat_topology_reads`。稳定窗口使用安全拓扑复用；E2E支持Diagnostic／Production配置并已续测通过，四参与者／七身体生产短窗口约60 FPS。Rust harness与`tests/e2e-mods`不属于正式模组内容。
+
 # REPENTOGON mod
 
 2026-10-27 tx-04-08 layout/Hook 清单与生成器（工程顺序中的清单项）：唯一清单 `binding/hooks.json` 升级为 schema 2——41 条既有行保持不变，新增 19 项 `world_observations`（逐参数 `stack:N`／寄存器 ABI、完成含义、SDK `flags/argdata` 交叉校验）；新增 `binding/world_layout.json` 登记 78 项字段偏移与证据、15 个来源、10 个 RTTI 类与目标版本常量。`tools/gen_binding.py` 生成 wrapper、`hook_capacity.h`、`world_layout.inc`、`hook-manifest.json/md` 与 `world-layout.json`，生成期拒绝 ABI/容量/字段/几何关系不一致；待注册 **60/64**（既有 41 + world 19），注册期超限也会显式报告而不是静默丢弃。`src/binding/world_layout.*` 提供只读访问与编译期一致性校验，`src/world/observe.*` 提供不进入会话失败路径的 world 观察策略；world 组当前**不安装**（`WorldObservationArmed()` 固定 false），待主线程桥接入配置后启用。**只做了一次临时目录生成与纯编译（`/W4` 无项目警告），没有运行测试、没有启动游戏**；DLL 整体链接仍被既有 `libzhl/ASMPatcher.hpp:302` 的 `friend static` 与当前 C++20 组合挡住，并已确认 `host_patch.cpp` 不能整体降级到 C++17，留给“必要纯编译链接”项。见[实现说明](../docs/design/tx-04-08/tx-04-08-layout-hook-manifest.md)。下方保留历史状态。

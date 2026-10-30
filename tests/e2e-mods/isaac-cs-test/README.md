@@ -1,5 +1,9 @@
 # isaac-cs-test（临时 E2E 夹具）
 
+2026-10-29 variant策略修订：用户要求Grid variant不作严格等值判定。请求仍显式传variant，但创建返回、跨帧到达、替换/删除前态及最终重建判定仅记录实际variant与先前观察值，不要求等于请求或固定0。位置、类型、seed、varData、自有标签/房间代次、删除后空格和原生身份链仍须满足；Entity Spawn/Morph规则不变。未重新测试。
+
+2026-10-29 Grid 当前行为：`grid_replace` 必须声明 `replacement_mode=remove_then_spawn`、PathTrail0、keep_decoration=false，只删除本房间夹具自建格。跨一个真实游戏帧、确认同格无对象/碰撞/路径阻挡，且 `Isaac.GetFreeNearPosition` 返回同格后，再用 `Room:SpawnGridEntity` 的显式 seed 创建 POOP(type14)。记录返回类型/值及类型/variant/seed/varData后态；`ToPoop()` 只验证便便派生接口，不把岩石变便便。一次删除与一次创建各有日志与DLL证据，失败不回滚、重试或找别的格；原生单次覆盖路径没有因此得到覆盖。详见[修正说明](../../../docs/design/tx-04-08/tx-04-08-grid-recreation-fix.md)。本次只修改与纯编译，未部署或测试。
+
 tx-04-08 扩展及后续[ABC实现](../../../docs/design/tx-04-08/tx-04-08-abc-implementation.md)：复用同一F8队列，world_fixture已接具体七类Entity/Grid参数和原始episode索引。特殊Player Replace资格仍UNKNOWN/默认禁用，具体参数与原生覆盖均未实机验收。tx08关闭自动菜单Host，world真正Recording后才由harness Host/Join创建B；两次启动使用不同fixture token。下文tx07约定保持原范围。
 
 本目录是 tx-04-05/06/07 的临时测试夹具，不是产品 gameplay mod。tx-04-07 的公共入口、屏幕日志和事件只由
@@ -80,5 +84,12 @@ tx-04-08 扩展及后续[ABC实现](../../../docs/design/tx-04-08/tx-04-08-abc-i
 不终止或跳过 Appear、不调用 `MorphToCoopGhost`。
 ## tx-04-08 ABC 后续实现
 
+2026-10-28 当前补充：特殊 Player Replace 已接线并启用，见[主审说明](../../../docs/design/tx-04-08/tx-04-08-defg-implementation.md)。Continue 恢复后，要求普通 Isaac A 的 Type1/Variant0、公开 GetItemState()==0，调用一次 AddCollectible(703,1,false,0,0) 后复核 primary/charge/ItemState；harness 只按一次 SPACE，经统一输入进入原生 Item consumer。Lua 仅观察准备后的 MC_POST_PLAYER_INIT 和公开前后态，不直接 UseActiveItem、Set/ResetItemState，不要求猜定的角色类型变化。真正成功 Replace、新旧 ordinal0 与旧对象进入 Esau 保留槽由 DLL episode 判定。尚未运行；下段保留 ABC 时点。
+
 world_fixture 的具体参数、位置/空格/标签保护、PathTrail作用域、真实MC_POST_RENDER视图和原生episode归约见[ABC实现说明](../../../docs/design/tx-04-08/tx-04-08-abc-implementation.md)。默认scenario已启用七类Entity（Player仍由原生新局/Host/Join）和Grid覆盖/移除；特殊Player Replace仍UNKNOWN/禁用。只编译，未运行Lua或游戏；上方早先通用夹具记录按原时点保留。
 
+
+
+## tx-04-10 完整 Entity 场景
+
+`tx10.lua` 仅由 tx-04-10 harness 配置接入，通过 F8 顺序执行全部显式测试动作。它可以创建、修改、Morph、接触、移除测试对象及暂停／切房；上方早期夹具的“不写字段”描述不适用于这个明确的玩法夹具。正式观察代码位于 `mod/observation/isaac-cs-observation`，不发布本夹具或 harness。统一入口与实际范围见[实现及5/5验收结果](../../../docs/design/observation-expansion/tx-04-10-implementation.md)。

@@ -21,12 +21,14 @@ struct JoinData {
   bool scope = false, complete = false, remove_attempted = false;
   // 只保留首次 Join 的历史地址；退休使用当前已确认归属的只读快照。
   void *joined_player = nullptr;
+  std::array<void *, 64> before_roster{};
+  unsigned before_count = 0;
 };
 const char *JoinStateName(JoinState state) noexcept;
 bool JoinQuery(void *device, int action, QueryKind query,
                float &result) noexcept;
 // 只按当前已确认归属调用一次原生移除；已确认被移除时跳过，身份矛盾时报告残留。
-bool RetireJoinedPlayer(SessionRuntime &runtime) noexcept;
+bool RetireJoinedPlayer(SessionRuntime &runtime, unsigned ordinal = 1) noexcept;
 // 退休完成后复位 join_state，并把最终业务结果保存到 join_last。
-void ResetJoinStateAfterRetirement(SessionRuntime &runtime) noexcept;
+void ResetJoinStateAfterRetirement(SessionRuntime &runtime, unsigned ordinal = 1) noexcept;
 } // namespace cs::game

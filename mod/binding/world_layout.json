@@ -18,9 +18,18 @@
     "docs/research/tx-04-08-st3-st5-static-confirmation.md",
     "docs/research/tx-04-08-st4-agent-notes.md",
     "docs/research/tx-04-08-st5-agent-notes.md",
-    "docs/research/tx-04-08-st6-st8-static-confirmation.md"
+    "docs/research/tx-04-08-st6-st8-static-confirmation.md",
+    "docs/research/tx-04-08-grid-kinds-static-confirmation.md"
   ],
   "constants": {
+    "sprite_null_names_offset": "0x84",
+    "sprite_event_names_offset": "0x8C",
+    "entity_text_td_rva": "0x7D2030",
+    "entity_dummy_td_rva": "0x7D2164",
+    "entity_text_counter_offset": "0x410",
+    "entity_text_duration_offset": "0x414",
+    "entity_text_buffer_offset": "0x418",
+    "entity_text_capacity": 256,
     "game_root_rva": "0x7E49F4",
     "game_frame_offset": "0x25A70",
     "game_room_offset": "0x18300",
@@ -278,6 +287,9 @@
       "td_rva": "0x7D15C0",
       "td_name": ".?AVGridEntity_Door@IsaacRepentancePlus@@",
       "object_size": "0x2EC",
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x2F0",
+      "object_size_note": "2EC为既有SDK声明；J273工厂实际分配请求2F0，两者分列保留，公共读取只到Grid前缀。",
       "free_slot_rva": "0x306730",
       "init_rva": null,
       "init_source": "无独立 Init 入口；MakeDoor 内含内联基 Grid 初始化",
@@ -286,7 +298,597 @@
         {"td_rva": "0x7D15C0", "td_name": ".?AVGridEntity_Door@IsaacRepentancePlus@@", "mdisp": 0, "pdisp": -1, "vdisp": 0, "attributes": "0x40", "supported": true},
         {"td_rva": "0x7D143C", "td_name": ".?AVGridEntity@IsaacRepentancePlus@@", "mdisp": 0, "pdisp": -1, "vdisp": 0, "attributes": "0x40", "supported": true}
       ]
+    },
+    {
+      "class": "Decoration",
+      "schema": false,
+      "vtable_rva": "0x7196cc",
+      "col_rva": "0x743CAC",
+      "td_rva": "0x7D2214",
+      "td_name": ".?AVGridEntity_Decoration@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x154",
+      "free_slot_rva": "0x305020",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D2214",
+          "td_name": ".?AVGridEntity_Decoration@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Rock",
+      "schema": false,
+      "vtable_rva": "0x71969c",
+      "col_rva": "0x743D30",
+      "td_rva": "0x7D14F8",
+      "td_name": ".?AVGridEntity_Rock@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x198",
+      "free_slot_rva": "0x3066E0",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D14F8",
+          "td_name": ".?AVGridEntity_Rock@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Pit",
+      "schema": false,
+      "vtable_rva": "0x71a004",
+      "col_rva": "0x743E54",
+      "td_rva": "0x7D235C",
+      "td_name": ".?AVGridEntity_Pit@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x158",
+      "free_slot_rva": "0x30CD20",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D235C",
+          "td_name": ".?AVGridEntity_Pit@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Spikes",
+      "schema": false,
+      "vtable_rva": "0x71a2e4",
+      "col_rva": "0x743E74",
+      "td_rva": "0x7D2390",
+      "td_name": ".?AVGridEntity_Spikes@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x158",
+      "free_slot_rva": "0x306870",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D2390",
+          "td_name": ".?AVGridEntity_Spikes@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Web",
+      "schema": false,
+      "vtable_rva": "0x71a578",
+      "col_rva": "0x743F5C",
+      "td_rva": "0x7D2430",
+      "td_name": ".?AVGridEntity_Web@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x154",
+      "free_slot_rva": "0x305020",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D2430",
+          "td_name": ".?AVGridEntity_Web@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Lock",
+      "schema": false,
+      "vtable_rva": "0x719f14",
+      "col_rva": "0x743DD0",
+      "td_rva": "0x7D2328",
+      "td_name": ".?AVGridEntity_Lock@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x158",
+      "free_slot_rva": "0x306870",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D2328",
+          "td_name": ".?AVGridEntity_Lock@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "TNT",
+      "schema": false,
+      "vtable_rva": "0x71a32c",
+      "col_rva": "0x743EEC",
+      "td_rva": "0x7D23C4",
+      "td_name": ".?AVGridEntity_TNT@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x158",
+      "free_slot_rva": "0x306870",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D23C4",
+          "td_name": ".?AVGridEntity_TNT@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Fire",
+      "schema": false,
+      "vtable_rva": "0x71978c",
+      "col_rva": "0x743C14",
+      "td_rva": "0x7D21E0",
+      "td_name": ".?AVGridEntity_Fire@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x390",
+      "free_slot_rva": "0x3067E0",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D21E0",
+          "td_name": ".?AVGridEntity_Fire@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Poop",
+      "schema": false,
+      "vtable_rva": "0x71960c",
+      "col_rva": "0x743B68",
+      "td_rva": "0x7D1374",
+      "td_name": ".?AVGridEntity_Poop@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x19C",
+      "free_slot_rva": "0x3067A0",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D1374",
+          "td_name": ".?AVGridEntity_Poop@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Wall",
+      "schema": false,
+      "vtable_rva": "0x71972c",
+      "col_rva": "0x743BA8",
+      "td_rva": "0x7D224C",
+      "td_name": ".?AVGridEntity_Wall@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x154",
+      "free_slot_rva": "0x305020",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D224C",
+          "td_name": ".?AVGridEntity_Wall@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "TrapDoor",
+      "schema": false,
+      "vtable_rva": "0x71a484",
+      "col_rva": "0x743F10",
+      "td_rva": "0x7D23F8",
+      "td_name": ".?AVGridEntity_TrapDoor@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x158",
+      "free_slot_rva": "0x306870",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D23F8",
+          "td_name": ".?AVGridEntity_TrapDoor@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Stairs",
+      "schema": false,
+      "vtable_rva": "0x72e758",
+      "col_rva": "0x745060",
+      "td_rva": "0x7D3238",
+      "td_name": ".?AVGridEntity_Stairs@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x154",
+      "free_slot_rva": "0x305020",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D3238",
+          "td_name": ".?AVGridEntity_Stairs@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Gravity",
+      "schema": false,
+      "vtable_rva": "0x72e6dc",
+      "col_rva": "0x745024",
+      "td_rva": "0x7D3200",
+      "td_name": ".?AVGridEntity_Gravity@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x154",
+      "free_slot_rva": "0x305020",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D3200",
+          "td_name": ".?AVGridEntity_Gravity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "PressurePlate",
+      "schema": false,
+      "vtable_rva": "0x7195dc",
+      "col_rva": "0x743D50",
+      "td_rva": "0x7D2280",
+      "td_name": ".?AVGridEntity_PressurePlate@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x27C",
+      "free_slot_rva": "0x306830",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D2280",
+          "td_name": ".?AVGridEntity_PressurePlate@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Statue",
+      "schema": false,
+      "vtable_rva": "0x71963c",
+      "col_rva": "0x743DA4",
+      "td_rva": "0x7D22F4",
+      "td_name": ".?AVGridEntity_Statue@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x158",
+      "free_slot_rva": "0x306870",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D22F4",
+          "td_name": ".?AVGridEntity_Statue@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
+    },
+    {
+      "class": "Teleporter",
+      "schema": false,
+      "vtable_rva": "0x7196fc",
+      "col_rva": "0x743D90",
+      "td_rva": "0x7D22BC",
+      "td_name": ".?AVGridEntity_Teleporter@IsaacRepentancePlus@@",
+      "object_size": null,
+      "readable_prefix_size": "0x154",
+      "factory_allocation_size": "0x154",
+      "free_slot_rva": "0x305020",
+      "init_rva": "0x305070",
+      "init_source": "共用 GridEntity::Init；该函数在派生 InitSubclass 正常返回后设置 initialized，不新增 Hook",
+      "evidence": "docs/research/tx-04-08-grid-kinds-static-confirmation.md；主审独立复读18类COL/CHD/BCD与GridFactory；只读取公共Grid字段。",
+      "bases": [
+        {
+          "td_rva": "0x7D22BC",
+          "td_name": ".?AVGridEntity_Teleporter@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        },
+        {
+          "td_rva": "0x7D143C",
+          "td_name": ".?AVGridEntity@IsaacRepentancePlus@@",
+          "mdisp": 0,
+          "pdisp": -1,
+          "vdisp": 0,
+          "attributes": "0x40",
+          "supported": true
+        }
+      ]
     }
+  ],
+  "grid_types": [
+    {"value":0,"name":"GRID_NULL","rtti":null},
+    {"value":1,"name":"GRID_DECORATION","rtti":"Decoration"},
+    {"value":2,"name":"GRID_ROCK","rtti":"Rock"},
+    {"value":3,"name":"GRID_ROCKB","rtti":"Rock"},
+    {"value":4,"name":"GRID_ROCKT","rtti":"Rock"},
+    {"value":5,"name":"GRID_ROCK_BOMB","rtti":"Rock"},
+    {"value":6,"name":"GRID_ROCK_ALT","rtti":"Rock"},
+    {"value":7,"name":"GRID_PIT","rtti":"Pit"},
+    {"value":8,"name":"GRID_SPIKES","rtti":"Spikes"},
+    {"value":9,"name":"GRID_SPIKES_ONOFF","rtti":"Spikes"},
+    {"value":10,"name":"GRID_SPIDERWEB","rtti":"Web"},
+    {"value":11,"name":"GRID_LOCK","rtti":"Lock"},
+    {"value":12,"name":"GRID_TNT","rtti":"TNT"},
+    {"value":13,"name":"GRID_FIREPLACE","rtti":"Fire","note":"Wiki标未使用；目标J273工厂case13仍构造Fire，不外推自然出现"},
+    {"value":14,"name":"GRID_POOP","rtti":"Poop"},
+    {"value":15,"name":"GRID_WALL","rtti":"Wall"},
+    {"value":16,"name":"GRID_DOOR","rtti":"Door"},
+    {"value":17,"name":"GRID_TRAPDOOR","rtti":"TrapDoor"},
+    {"value":18,"name":"GRID_STAIRS","rtti":"Stairs"},
+    {"value":19,"name":"GRID_GRAVITY","rtti":"Gravity"},
+    {"value":20,"name":"GRID_PRESSURE_PLATE","rtti":"PressurePlate"},
+    {"value":21,"name":"GRID_STATUE","rtti":"Statue"},
+    {"value":22,"name":"GRID_ROCK_SS","rtti":"Rock"},
+    {"value":23,"name":"GRID_TELEPORTER","rtti":"Teleporter"},
+    {"value":24,"name":"GRID_PILLAR","rtti":"Rock"},
+    {"value":25,"name":"GRID_ROCK_SPIKED","rtti":"Rock"},
+    {"value":26,"name":"GRID_ROCK_ALT2","rtti":"Rock"},
+    {"value":27,"name":"GRID_ROCK_GOLD","rtti":"Rock"}
   ],
   "fields": [
     {"id": "0x0001", "name": "index", "width": 4, "encoding": "Raw", "base": "entity", "owner": "Entity", "offset": "0x20", "status": "InitConfirmed", "sdk_member": "_index", "evidence": "Entity Init 0x6A4B1D: mov dword [esi+20h],0"},

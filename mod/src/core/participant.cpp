@@ -344,7 +344,7 @@ void Participant::Initialize(const std::array<std::uint8_t, 16> &session,
   client_ = client;
   ordinal_ = ordinal;
   retired_ =
-      !client || ordinal > 1 ||
+      !client || ordinal >= kMaximumParticipants ||
       std::all_of(session.begin(), session.end(),
                   [](auto b) { return b == 0; }) ||
       source_sequence_start == 0 ||

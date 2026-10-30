@@ -23,11 +23,17 @@ fn raw_bits(s: &str, _digits: usize) -> Result<u64> {
 fn object_key(
     object: &Object,
     births: &BTreeMap<u64, usize>,
-    players: &BTreeMap<u32, usize>,
+    players: &BTreeMap<String, usize>,
+    single_body: bool,
 ) -> Option<String> {
     if object.class == "Player" {
         if let Some(ordinal) = object.ordinal {
-            if let Some(mapped) = players.get(&ordinal) {
+            let key = format!("{ordinal}:{}:{}", object.local_id, object.use_generation);
+            if let Some(mapped) = players.get(&key).or_else(|| {
+                single_body
+                    .then(|| players.get(&ordinal.to_string()))
+                    .flatten()
+            }) {
                 return Some(format!("player:{mapped:02}"));
             }
         }
@@ -55,6 +61,17 @@ struct Pair {
 struct PlayerPair {
     left: u32,
     right: u32,
+    #[serde(default)]
+    left_entity: Option<PlayerEntity>,
+    #[serde(default)]
+    right_entity: Option<PlayerEntity>,
+}
+// 多身体必须明确配对每个Entity local_id/use，参与者ordinal不再充当身体ID。
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct PlayerEntity {
+    local_id: String,
+    use_generation: String,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -263,12 +280,23 @@ pub fn run(
     let mut lp = BTreeMap::new();
     let mut rp = BTreeMap::new();
     for (i, p) in a.players.iter().enumerate() {
-        if p.left > 1
-            || p.right != p.left
-            || lp.insert(p.left, i).is_some()
-            || rp.insert(p.right, i).is_some()
+        if p.left > 3 || p.right != p.left || p.left_entity.is_some() != p.right_entity.is_some() {
+            return Err("Player mapping must preserve participant ordinal 0..3 and pair explicit body identities".into());
+        }
+        let key = |ordinal: u32, entity: &Option<PlayerEntity>| -> Result<String> {
+            match entity {
+                None => Ok(ordinal.to_string()),
+                Some(e) => {
+                    decimal(&e.local_id)?;
+                    decimal(&e.use_generation)?;
+                    Ok(format!("{ordinal}:{}:{}", e.local_id, e.use_generation))
+                }
+            }
+        };
+        if lp.insert(key(p.left, &p.left_entity)?, i).is_some()
+            || rp.insert(key(p.right, &p.right_entity)?, i).is_some()
         {
-            return Err("Player mapping must preserve frozen A=0/B=1 ordinals one-to-one".into());
+            return Err("Player body mapping must be one-to-one".into());
         }
     }
     let evidence_root = out.join("alignment-evidence");
@@ -396,13 +424,21 @@ type LocalKeys = BTreeMap<(String, String), Option<String>>;
 fn group<'a>(
     capture: &'a Capture,
     births: &BTreeMap<u64, usize>,
-    players: &BTreeMap<u32, usize>,
+    players: &BTreeMap<String, usize>,
     unknown: &mut Vec<Value>,
 ) -> (Groups<'a>, LocalKeys) {
     let mut groups = Groups::new();
     let mut local = LocalKeys::new();
     for object in &capture.objects {
-        let key = object_key(object, births, players);
+        let single_body = object.ordinal.is_none_or(|ordinal| {
+            capture
+                .objects
+                .iter()
+                .filter(|o| o.class == "Player" && o.ordinal == Some(ordinal))
+                .count()
+                == 1
+        });
+        let key = object_key(object, births, players, single_body);
         // Reference 隐含 Entity 域；Grid 的同值编号不能覆盖实体引用。
         if object.object_domain == 0 {
             local.insert(
@@ -489,8 +525,8 @@ fn compare_pair(
     right: &Capture,
     lb: &BTreeMap<u64, usize>,
     rb: &BTreeMap<u64, usize>,
-    lp: &BTreeMap<u32, usize>,
-    rp: &BTreeMap<u32, usize>,
+    lp: &BTreeMap<String, usize>,
+    rp: &BTreeMap<String, usize>,
     earlier: bool,
 ) -> Result<Value> {
     let mut unknown = Vec::new();
@@ -545,10 +581,16 @@ fn compare_pair(
                 c.sources
                     .iter()
                     .any(|s| s.source == id && s.status == "NONE")
-            }) && c
-                .objects
-                .iter()
-                .all(|o| o.class != "UnknownEntity" && object_key(o, b, p).is_some())
+            }) && c.objects.iter().all(|o| {
+                let single_body = o.ordinal.is_none_or(|ordinal| {
+                    c.objects
+                        .iter()
+                        .filter(|v| v.class == "Player" && v.ordinal == Some(ordinal))
+                        .count()
+                        == 1
+                });
+                o.class != "UnknownEntity" && object_key(o, b, p, single_body).is_some()
+            })
         });
     let mut key_counts = BTreeMap::new();
     for ((_, key), values) in &lg {

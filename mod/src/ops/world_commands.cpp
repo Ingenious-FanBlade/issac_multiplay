@@ -2,304 +2,341 @@
 #include "runtime.h"
 #include "binding/world_layout.h"
 #include "game/world_bridge.h"
+#include "game/world_sources/lua_entity.h"
+#include "game/tick.h"
 #include "world/observe.h"
+#include <algorithm>
 #include <array>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 
 namespace cs {
 namespace {
-// ready 发布前主线程不读 recording；后台的本地强引用保护其完整生命周期。
-// 主线程撤销桥和 job 引用后才准许后台释放大数组，DllMain 不参与等待。
+// Recorder 仅拥有文件和值队列；Capture 独立拥有身份、Collector、域与采集 epoch。
+struct RecordingRequest final {
+  std::uint64_t request=0;
+  std::uint32_t generation=0;
+  std::string label,session,version,root;
+  std::atomic<bool> ready{false},stop{false},closed{false};
+  std::atomic<world::Reason> fault{world::Reason::None};
+  std::atomic<std::uint64_t> v2_written{0};
+  std::uint64_t stop_attempt=0,stop_events=0,stop_gaps=0,start_loss=0,start_capture_loss=0;
+  bool historical_gap=false,charged=false;
+  std::unique_ptr<world::ValueQueue> queue;
+  world::WorldWriter writer;
+  std::ofstream v2;
+};
 struct WorldJob final {
-  std::uint64_t request = 0;
-  std::uint32_t generation = 0, timeout = 10000;
-  std::string label, session, version, root;
+  std::uint64_t request=0;
+  std::uint32_t generation=0,timeout=10000;
+  std::string label,session,version,root;
   world::MemoryReader memory{};
-  std::array<bool, world::kObservationCount> observations{};
+  std::array<bool,world::kObservationCount> observations{};
   std::shared_ptr<game::WorldRecording> recording;
-  std::atomic<bool> ready{false}, cancel{false}, producer_done{false};
-  std::atomic<bool> closed{false}, retired{false}, close_timeout{false};
+  std::unique_ptr<RecordingRequest> consumer;
+  std::atomic<RecordingRequest *> next_consumer{nullptr};
+  std::atomic<bool> ready{false},cancel{false},producer_done{false},closed{false},retired{false};
   std::atomic<std::uint64_t> stop_at{0};
   std::atomic<world::Reason> fault{world::Reason::None};
   std::atomic<const char *> stage{""};
-  HANDLE test_thread = nullptr; // 主线程创建；producer_done 发布后由准备 worker 等待真实退出。
-  bool attached = false, stopping = false; // 仅主线程访问。
+  HANDLE test_thread=nullptr;
+  bool attached=false,stopping=false,formal=false;
 };
 std::shared_ptr<WorldJob> job;
-std::string snapshot = "ok=1\nworld_status_version=1\nworld_state=Off\nreason=NONE\n";
-
-// Job 首因与 storage 首因分别保留，不用 Closing/Closed 覆盖错误。
-void Fail(WorldJob &j, world::Reason reason, const char *stage) noexcept {
-  auto expected = world::Reason::None;
-  if (j.fault.compare_exchange_strong(expected, reason)) j.stage.store(stage);
+bool process_exit_pending=false,process_exit_released=false;
+std::uint64_t process_exit_started=0;
+std::string snapshot="ok=1\nworld_status_version=1\nworld_state=Off\nreason=NONE\n";
+std::uint64_t next_epoch=0;
+constexpr std::uint64_t kObservationReserve=world::kObservationReserveBytes;
+void Fail(WorldJob &j,world::Reason reason,const char *stage) noexcept {
+  auto expected=world::Reason::None;
+  if(j.fault.compare_exchange_strong(expected,reason)) j.stage.store(stage);
 }
 std::wstring RootPath(const std::string &value) {
-  const auto size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-      value.data(), static_cast<int>(value.size()), nullptr, 0);
-  if (!size) throw std::runtime_error("world_output_dir_utf8");
-  std::wstring result(static_cast<size_t>(size), L'\0');
-  MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, value.data(),
-      static_cast<int>(value.size()), result.data(), size);
-  return result;
+  const auto size=MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,value.data(),int(value.size()),nullptr,0);
+  if(!size) throw std::runtime_error("world_output_dir_utf8");
+  std::wstring out(size,L'\0'); MultiByteToWideChar(CP_UTF8,MB_ERR_INVALID_CHARS,value.data(),int(value.size()),out.data(),size); return out;
 }
-
-// 版本字符串由 Job 持有到 writer 结束；布局表是静态值，构造 collector 不执行 copy。
-bool Prepare(WorldJob &j, game::WorldRecording &r) {
-  world::StorageConfig storage;
-  storage.ledger = &r.ledger;
-  if (!Settings.world_e2e_token.empty()) {
-    storage.faults = &r.faults;
-    if (j.label == "fault-events") storage.limits.event_capacity = 64;
-    // VirtualAlloc 保留粒度为 64 KiB，提交一页也按整个保留范围计账。
-    if (!r.ledger.Charge(65536)) return false;
-    r.faults.unreadable = static_cast<std::uint32_t>(reinterpret_cast<uintptr_t>(
-        VirtualAlloc(nullptr, 4096, MEM_RESERVE | MEM_COMMIT, PAGE_NOACCESS)));
-    if (!r.faults.unreadable) { r.ledger.Release(65536); return false; }
+world::ManifestInput Manifest(WorldJob &j,RecordingRequest &q) {
+  world::ManifestInput m;
+  m.session=q.session.c_str(); m.game_version="Repentance+ v1.9.7.12.J273";
+  m.repentogon_version=q.version.c_str(); m.build=Version; m.hook_manifest=world::layout::HookManifestReference();
+  m.recording_generation=q.generation; m.observations=j.observations.data();
+  m.layout_fields=world::layout::ManifestFields(m.layout_field_count);
+  m.layout_sources=world::layout::ManifestSources(m.layout_source_count);
+  m.layout_classes=world::layout::ManifestClasses(m.layout_class_count);
+  m.assumptions=world::layout::Assumptions(m.assumption_count); m.unknowns=world::layout::Unknowns(m.unknown_count);
+  const auto limits=j.recording->storage.Status().limits;
+  m.slot_count=limits.slots; m.event_capacity=limits.event_capacity; m.gap_capacity=limits.gap_capacity;
+  m.queue_bytes=limits.queue_bytes; m.queue_items=limits.queue_items; return m;
+}
+bool Prepare(WorldJob &j,game::WorldRecording &r) {
+  r.source_memory=j.memory;
+  world::StorageConfig config; config.ledger=&r.ledger;
+  if(!Settings.world_e2e_token.empty()) {
+    config.faults=&r.faults;
+    if(!r.ledger.Charge(65536)) return false;
+    r.faults.unreadable=std::uint32_t(reinterpret_cast<uintptr_t>(VirtualAlloc(nullptr,4096,MEM_RESERVE|MEM_COMMIT,PAGE_NOACCESS)));
+    if(!r.faults.unreadable) { r.ledger.Release(65536); return false; }
   }
-  if (!r.storage.Prepare(storage)) return false;
-  if (j.cancel.load()) return false;
-  if (!r.identities.Initialize(r.ledger)) {
-    r.storage.Diag().Fail(world::Reason::Budget, world::FailSource::Prepare, 0, "identity_prepare");
-    return false;
-  }
-  if (j.cancel.load()) return false;
-  world::ManifestInput manifest;
-  manifest.session = j.session.c_str();
-  manifest.game_version = "Repentance+ v1.9.7.12.J273";
-  manifest.repentogon_version = j.version.c_str(); manifest.build = Version;
-  manifest.hook_manifest = world::layout::HookManifestReference();
-  manifest.recording_generation = j.generation;
-  manifest.observations = j.observations.data();
-  manifest.layout_fields = world::layout::ManifestFields(manifest.layout_field_count);
-  manifest.layout_sources = world::layout::ManifestSources(manifest.layout_source_count);
-  manifest.layout_classes = world::layout::ManifestClasses(manifest.layout_class_count);
-  manifest.assumptions = world::layout::Assumptions(manifest.assumption_count);
-  manifest.unknowns = world::layout::Unknowns(manifest.unknown_count);
-  const auto limits = r.storage.Status().limits;
-  manifest.slot_count = limits.slots; manifest.event_capacity = limits.event_capacity;
-  manifest.gap_capacity = limits.gap_capacity; manifest.queue_bytes = limits.queue_bytes;
-  manifest.queue_items = limits.queue_items;
-  world::WriterConfig writer;
-  writer.root = RootPath(j.root); writer.label = j.label; writer.session = j.session;
-  writer.close_timeout_ms = j.timeout;
-  if (!r.writer.Open(writer, manifest, r.storage)) return false;
-  r.collector = std::make_unique<world::Collector>(r.storage, r.identities, j.memory, j.generation);
+  if(!r.storage.Prepare(config)||j.cancel.load()||!r.identities.Initialize(r.ledger)||!r.ledger.Charge(kObservationReserve)) return false;
+  r.reserve_charged=true;
+  // reserve 同时覆盖最多三个 pending payload、两个最新值及编码在途值，发布队列另计。
+  r.collector=std::make_unique<world::Collector>(r.storage,r.identities,j.memory,std::uint32_t(r.epoch));
   return true;
 }
-
+bool OpenRecorder(WorldJob &j,RecordingRequest &q) {
+  auto &r=*j.recording;
+  if(!r.ledger.Charge(world::kQueueBytes)) return false;
+  q.charged=true; q.queue=std::make_unique<world::ValueQueue>(world::kQueueBytes,world::kQueueItems);
+  world::WriterConfig config; config.root=RootPath(q.root); config.label=q.label; config.session=q.session; config.close_timeout_ms=j.timeout;
+  if(!q.writer.Open(config,Manifest(j,q),r.storage,q.queue.get())) return false;
+  const auto directory=std::filesystem::path(q.writer.Directory())/L"observation-v2";
+  std::filesystem::create_directory(directory);
+  q.v2.open(directory/L"records.jsonl",std::ios::binary|std::ios::out);
+  std::ofstream manifest(directory/L"manifest.json",std::ios::binary|std::ios::out);
+  manifest<<"{\"format\":\"isaac.cs.observation\",\"version\":2,\"session\":\""<<r.session_key
+    <<"\",\"observation_epoch\":\""<<r.epoch<<"\",\"recording_generation\":"<<q.generation
+    <<",\"catalog\":\"entity-catalog.json\",\"schemas\":[\"isaac.cs.entity\",\"isaac.cs.entity.native-v1\",\"isaac.cs.entity.lifecycle\",\"isaac.cs.entity.lua-event\",\"isaac.cs.entity.query\",\"isaac.cs.entity.actual-call\",\"isaac.cs.entity.render\",\"isaac.cs.entity.coverage\",\"isaac.cs.grid.legacy\",\"isaac.cs.grid.lifecycle\"],\"enabled_domains\":[1,2],\"unsupported_domains\":[3,4,5,6,7,8,9,10,11],\"capture_plan\":{\"ordinary_interval\":30,\"lifecycle\":true,\"explicit_queries\":true},\"budgets\":{\"total_bytes\":"<<world::kWorldBudgetBytes<<",\"publication_bytes\":33554432,\"scope_bytes\":16777216,\"nodes\":262144,\"depth\":12},\"legacy_grid_range\":\"min-read-v1-only\",\"v1_identity_mapping\":\"same-observation-epoch-local-id-and-use\",\"v1_history_complete\":"<<(q.historical_gap?"false":"true")<<"}";
+  // REPENTOGON 进程工作目录位于游戏的 Repentogon 子目录，资源在其兄弟 mods 目录。
+  wchar_t executable[32768]{};
+  const auto length=GetModuleFileNameW(nullptr,executable,DWORD(std::size(executable)));
+  if(!length||length>=std::size(executable)) return false;
+  const auto catalog=std::filesystem::path(executable).parent_path().parent_path()/L"mods"/L"isaac-cs-observation"/L"entity-catalog.json";
+  std::filesystem::copy_file(catalog,directory/L"entity-catalog.json");
+  manifest.flush(); q.start_loss=r.publications.LossSequence(); q.start_capture_loss=r.observation.LossSequence();
+  return q.v2.good()&&manifest.good();
+}
+void MapRecording(RecordingRequest &q,world::QueueItem &item) {
+  if(item.kind==world::ItemKind::Batch) {
+    item.batch.header.recording_generation=q.generation;
+    if(q.historical_gap) { item.batch.header.complete=0; item.batch.header.reason=unsigned(world::Reason::Continuity); }
+  } else if(item.kind==world::ItemKind::Gaps) for(auto &v:item.gaps) v.recording_generation=q.generation;
+  else if(item.kind==world::ItemKind::Checkpoints) for(auto &v:item.checkpoints) v.recording_generation=q.generation;
+}
+void Forward(RecordingRequest &q,world::QueueItem &item) {
+  if(!q.queue||!q.ready.load()||q.fault.load()!=world::Reason::None) return;
+  if(q.stop.load(std::memory_order_acquire)) {
+    if(item.kind==world::ItemKind::Batch&&item.batch.header.attempt>q.stop_attempt) return;
+    if(item.kind==world::ItemKind::Events) item.events.erase(std::remove_if(item.events.begin(),item.events.end(),[&](const auto &v){return v.sequence>q.stop_events;}),item.events.end());
+    if(item.kind==world::ItemKind::Gaps) item.gaps.erase(std::remove_if(item.gaps.begin(),item.gaps.end(),[&](const auto &v){return v.attempt>q.stop_attempt;}),item.gaps.end());
+  }
+  MapRecording(q,item);
+  const auto bytes=item.bytes;
+  if(!q.queue->Reserve(bytes,0)) { q.fault.store(world::Reason::Backpressure); return; }
+  if(!q.queue->Push(std::move(item))) { q.queue->Release(bytes); q.fault.store(world::Reason::Backpressure); }
+}
+void CloseRecorder(WorldJob &j,RecordingRequest &q) {
+  if(q.queue) q.queue->CloseProducer();
+  if(q.writer.Status().opened) while(!q.writer.Closed()) Sleep(5);
+  if(q.writer.Status().opened) { q.writer.Close(100); if(q.writer.Status().fault!=world::Reason::None) q.fault.store(q.writer.Status().fault); }
+  try { if(q.v2.is_open()) {
+    q.v2.flush(); if(!q.v2.good()) q.fault.store(world::Reason::FileError); q.v2.close();
+    // 扩展 Windows 路径不转换内部正斜杠，每个组成段分别拼接。
+    std::ofstream result(std::filesystem::path(q.writer.Directory())/L"observation-v2"/L"result.json",std::ios::binary|std::ios::out);
+    const auto lost=j.recording->publications.LossSequence()-q.start_loss;
+    const auto scope_lost=j.recording->observation.LossSequence()-q.start_capture_loss;
+    result<<"{\"format\":\"isaac.cs.observation\",\"version\":2,\"closed\":true,\"records\":"<<q.v2_written.load()<<",\"loss_sequence_delta\":"<<lost<<",\"capture_loss_sequence_delta\":"<<scope_lost<<",\"complete_delivery\":"<<(!lost&&!scope_lost&&q.fault.load()==world::Reason::None?"true":"false")<<",\"fault\":\""<<world::ReasonName(q.fault.load())<<"\"}";
+    result.flush(); if(!result.good()) q.fault.store(world::Reason::FileError);
+  }
+  } catch(...) { q.fault.store(world::Reason::FileError); }
+  if(q.charged) { j.recording->ledger.Release(world::kQueueBytes); q.charged=false; }
+  j.next_consumer.store(nullptr,std::memory_order_release);
+  q.closed.store(true,std::memory_order_release);
+}
+// 唯一后台分派线程：无录制时归还值内存；文件错误只退休 Recorder，不关闭 Capture。
 DWORD WINAPI Work(void *parameter) noexcept {
-  std::unique_ptr<std::shared_ptr<WorldJob>> start(
-      static_cast<std::shared_ptr<WorldJob> *>(parameter));
-  auto current = std::move(*start);
-  // 即使主线程已归还 job->recording，本地强引用也使最终释放留在后台。
-  std::shared_ptr<game::WorldRecording> recording;
-  bool prepared = false;
-  try {
-    recording = std::make_shared<game::WorldRecording>();
-    current->recording = recording;
-    prepared = Prepare(*current, *recording);
-    if (!prepared && !current->cancel.load()) {
-      const auto reason = recording->storage.Status().fault.reason;
-      Fail(*current, reason == world::Reason::None ? world::Reason::PrepareFailed : reason, "prepare");
+  std::unique_ptr<std::shared_ptr<WorldJob>> start(static_cast<std::shared_ptr<WorldJob> *>(parameter));
+  auto j=std::move(*start); bool prepared=false;
+  try { prepared=Prepare(*j,*j->recording); } catch(...) { Fail(*j,world::Reason::PrepareFailed,"capture_prepare_exception"); }
+  if(!prepared) Fail(*j,world::Reason::PrepareFailed,"capture_prepare");
+  j->ready.store(true,std::memory_order_release);
+  auto &r=*j->recording;
+  RecordingRequest *current=nullptr;
+  if(!prepared&&r.storage.Status().state==world::StorageState::Idle) { j->closed.store(true,std::memory_order_release); while(!j->retired.load()) Sleep(5); return 0; }
+  if(!prepared) r.storage.RequestStop(world::Reason::Stopped);
+  for(;;) {
+    if(!current) {
+      current=j->next_consumer.load(std::memory_order_acquire);
+      if(current) {
+        bool opened=false;
+        try { opened=prepared&&OpenRecorder(*j,*current); }
+        catch(const std::exception &e) { Trace("recorder_open","reason=%s",e.what()); opened=false; }
+        catch(...) { Trace("recorder_open","reason=unknown_exception"); opened=false; }
+        if(!opened) current->fault.store(world::Reason::PrepareFailed);
+        current->ready.store(true,std::memory_order_release);
+      }
     }
-  } catch (...) { Fail(*current, world::Reason::PrepareFailed, "prepare_exception"); }
-  if (!prepared && recording && recording->storage.Ready() &&
-      current->fault.load() != world::Reason::None)
-    recording->storage.Diag().Fail(current->fault.load(), world::FailSource::Prepare, 0, "prepare");
-  current->ready.store(true, std::memory_order_release);
-  // 期限包含 stop 等待在途 producer 的时间；超时只记自有故障并保留 owner。
-  const auto note_timeout = [&] {
-    const auto since = current->stop_at.load();
-    if (since && GetTickCount64() - since >= current->timeout &&
-        !current->close_timeout.exchange(true)) {
-      Fail(*current, world::Reason::ThreadFailed, "close_timeout");
-      if (recording && recording->storage.Status().state != world::StorageState::Idle)
-        recording->storage.Diag().Fail(world::Reason::ThreadFailed,
-            world::FailSource::Prepare, 0, "close_timeout");
+    world::QueueItem item;
+    bool got=r.storage.HasQueue() ? r.storage.Queue().Pop(item,1) : false;
+    if(got) {
+      const auto bytes=item.bytes;
+      if(current&&current->fault.load()==world::Reason::None) Forward(*current,item);
+      item={}; r.storage.Queue().Release(bytes);
     }
-  };
-  // 未 Attach 的失败/取消由后台收口；成功准备后必须等主线程归还 producer。
-  while (prepared && (!current->producer_done.load(std::memory_order_acquire) ||
-                     !recording->faults.worker_done.load(std::memory_order_acquire))) {
-    note_timeout(); Sleep(10);
-  }
-  std::uint64_t unset = 0;
-  current->stop_at.compare_exchange_strong(unset, GetTickCount64());
-  if (current->test_thread) {
-    while (WaitForSingleObject(current->test_thread, 10) != WAIT_OBJECT_0) note_timeout();
-    CloseHandle(current->test_thread); current->test_thread = nullptr;
-  }
-  if (recording) {
-    recording->storage.RequestStop(world::Reason::Stopped);
-    const bool writer_started = recording->writer.Status().opened;
-    // reader 先结束生产，writer 自然 drain；提前 RequestStop 会使空队列早退。
-    while (!recording->storage.Closed() || (writer_started && !recording->writer.Closed())) {
-      note_timeout();
-      Sleep(10);
+    std::string value;
+    while(r.publications.Pop(value)) {
+      if(current&&current->ready.load()&&current->fault.load()==world::Reason::None) {
+        current->v2<<value<<'\n';
+        if(!current->v2.good()) current->fault.store(world::Reason::FileError);
+        else ++current->v2_written;
+      }
+      value.clear();
     }
-    // done 标记可能早于线程函数真正返回；必须取得真实退出，才能释放外部 ledger。
-    if (recording->storage.Status().state != world::StorageState::Idle)
-      while (!recording->storage.Close(10)) { note_timeout(); Sleep(10); }
-    if (writer_started)
-      while (!recording->writer.Close(10)) { note_timeout(); Sleep(10); }
+    if(current&&current->writer.Status().write_failed) current->fault.store(current->writer.Status().fault);
+    if(current&&current->stop.load(std::memory_order_acquire)&&
+       r.storage.PassedFence(current->stop_attempt,current->stop_events,current->stop_gaps)&&(!r.storage.HasQueue()||r.storage.Queue().Empty())&&r.publications.Empty()) {
+      CloseRecorder(*j,*current); current=nullptr;
+    }
+    if(j->producer_done.load(std::memory_order_acquire)||!prepared) r.storage.RequestStop(world::Reason::Stopped);
+    if(r.storage.Closed()&&(!r.storage.HasQueue()||r.storage.Queue().Empty())&&r.publications.Empty()) {
+      if(current) { CloseRecorder(*j,*current); current=nullptr; }
+      break;
+    }
+    if(!got) Sleep(1);
   }
-  current->closed.store(true, std::memory_order_release);
-  while (!current->retired.load(std::memory_order_acquire)) Sleep(10);
+  if(j->test_thread) { WaitForSingleObject(j->test_thread,INFINITE); CloseHandle(j->test_thread); j->test_thread=nullptr; }
+  if(r.storage.Status().state!=world::StorageState::Idle) while(!r.storage.Close(10)) Sleep(5);
+  j->closed.store(true,std::memory_order_release);
+  while(!j->retired.load(std::memory_order_acquire)) Sleep(5);
   return 0;
 }
-
-// 快照只含主线程已有值和原子后台计数，尺寸远小于控制口上限。
-void Publish(WorldJob &j, bool closed) {
-  world::StorageStatus storage;
-  world::WriterStatus writer;
-  const bool ready = j.ready.load(std::memory_order_acquire);
-  if (ready && j.recording) {
-    storage = j.recording->storage.Status(); writer = j.recording->writer.Status();
-  }
-  const auto reason = storage.fault.reason != world::Reason::None
-      ? storage.fault.reason : j.fault.load();
-  const char *state = closed ? "Closed" : j.stopping ? "Closing"
-      : reason != world::Reason::None ? "Faulted"
-      : j.attached && j.recording->collector->Recording() ? "Recording" : "Preparing";
-  snapshot = "ok=1\nworld_status_version=1\nworld_state=" + std::string(state) +
-      "\nreason=" + world::ReasonName(reason) + "\nfault_stage=" +
-      (storage.fault.reason != world::Reason::None ? storage.fault.stage : j.stage.load()) +
-      "\nrequest=" + std::to_string(j.request) + "\nrecording=" + j.session +
-      "\ngeneration=" + std::to_string(j.generation) + "\nlabel=" + j.label +
-      "\ndirectory=" + j.root + "/" + j.label +
-      "\nattempt=" + std::to_string(storage.attempts) +
-      "\ncomplete=" + std::to_string(storage.complete_captures) +
-      "\ngap=" + std::to_string(storage.gaps) +
-      "\nbackpressure=" + std::to_string(storage.backpressure) +
-      "\ncallbacks=" + std::to_string(storage.callbacks) +
-      "\ncheckpoint_produced=" + std::to_string(ready && j.recording &&
-          storage.state != world::StorageState::Idle ? j.recording->storage.Diag().checkpoints_produced.load() : 0) +
-      "\ncheckpoint_written=" + std::to_string(ready && j.recording &&
-          storage.state != world::StorageState::Idle ? j.recording->storage.Diag().checkpoints_written.load() : 0) +
-      "\nreader=" + world::ThreadStateName(storage.reader) +
-      "\nwriter=" + world::ThreadStateName(writer.thread) +
-      "\nfiles_flushed=" + std::to_string(writer.files_flushed) +
-      "\nresult_written=" + std::to_string(writer.result_written) +
-      "\ndrain_complete=" + std::to_string(writer.drain_complete) +
-      "\nclose_timeout=" + std::to_string(j.close_timeout.load()) +
-      "\noutcome=" + world::WriterOutcomeName(writer.outcome) + "\n";
-  if (ready && j.recording) {
-    const auto &f = j.recording->faults;
-    snapshot += "test_mode=" + std::to_string(f.mode.load()) +
-        "\ntest_applied=" + std::to_string(f.applied.load()) +
-        "\ntest_before=" + std::to_string(f.before.load()) +
-        "\ntest_after=" + std::to_string(f.after.load()) + "\n";
-  }
-}
-} // namespace
-
-bool WorldCommandBusy() noexcept { return bool(job); }
-std::string WorldRecordingId(std::uint32_t generation) {
-  static const auto process_epoch = GetTickCount64();
-  return "world-" + std::to_string(GetCurrentProcessId()) + "-" +
-      std::to_string(process_epoch) + "-" + std::to_string(generation);
-}
-const char *WorldStartError() noexcept {
-  if (!Settings.enabled || !Settings.world_record_enabled) return "world_disabled";
-  if (!Capabilities[size_t(Group::World)] || !Capabilities[size_t(Group::Loop)] ||
-      !Capabilities[size_t(Group::Player)]) return "world_capabilities_unavailable";
-  bool mask[world::kObservationCount]{};
-  world::layout::ObservationMask(mask, world::kObservationCount);
-  for (const auto registered : mask) if (!registered) return "world_observations_unavailable";
+const char *CaptureError() noexcept {
+  if(process_exit_pending) return "process_exiting";
+  if(!Settings.enabled) return "disabled";
+  if(!WorldExitPatchInstalled()) return "world_exit_patch_unavailable";
+  if(!Capabilities[size_t(Group::World)]||!Capabilities[size_t(Group::Loop)]||!Capabilities[size_t(Group::Player)]) return "world_capabilities_unavailable";
   return nullptr;
 }
-bool WorldCanCheckpoint() noexcept {
-  return job && job->attached && !job->stopping && job->recording->collector->Recording();
+bool EnsureJob() {
+  if(job) return !job->stopping;
+  if(CaptureError()) return false;
+  if(next_epoch==UINT32_MAX) return false;
+  job=std::make_shared<WorldJob>(); job->recording=std::make_shared<game::WorldRecording>();
+  job->recording->epoch=++next_epoch;
+  static const auto process_started=GetTickCount64();
+  job->recording->session_key=(std::uint64_t(GetCurrentProcessId())<<32)|(process_started&UINT32_MAX);
+  job->root=Settings.world_output_dir; job->timeout=Settings.world_close_timeout_ms;
+  job->version=RepentogonVersion; job->memory=game::WorldMemoryReader();
+  world::layout::ObservationMask(job->observations.data(),job->observations.size());
+  auto start=std::make_unique<std::shared_ptr<WorldJob>>(job);
+  const auto thread=CreateThread(nullptr,0,Work,start.get(),0,nullptr);
+  if(!thread) { Fail(*job,world::Reason::ThreadFailed,"capture_thread"); job->ready.store(true); job->closed.store(true); return false; }
+  start.release(); CloseHandle(thread); return true;
 }
-void StartWorldCommand(std::uint64_t request, std::uint32_t generation, const char *label) noexcept {
+void Publish(WorldJob &j) {
+  const auto ready=j.ready.load(std::memory_order_acquire);
+  const auto storage=ready?j.recording->storage.Status():world::StorageStatus{};
+  auto *q=j.consumer.get(); const auto qready=q&&q->ready.load(std::memory_order_acquire);
+  const auto writer=qready?q->writer.Status():world::WriterStatus{};
+  const auto reason=q&&q->fault.load()!=world::Reason::None?q->fault.load():storage.fault.reason!=world::Reason::None?storage.fault.reason:j.fault.load();
+  const char *state=!q?"Off":q->closed.load()?"Closed":q->stop.load()?"Closing":reason!=world::Reason::None?"Faulted":qready&&j.attached&&j.recording->collector->Recording()?"Recording":"Preparing";
+  snapshot="ok=1\nworld_status_version=1\nworld_state="+std::string(state)+"\nreason="+world::ReasonName(reason)+
+    "\nrequest="+std::to_string(j.request)+"\ngeneration="+std::to_string(j.generation)+"\nrecording="+j.session+
+    "\nlabel="+j.label+"\ndirectory="+j.root+"/"+j.label+"\nattempt="+std::to_string(storage.attempts)+
+    "\ncomplete="+std::to_string(storage.complete_captures)+"\ngap="+std::to_string(storage.gaps)+
+    "\nbackpressure="+std::to_string(storage.backpressure)+"\ncallbacks="+std::to_string(storage.callbacks)+
+    "\ncheckpoint_written="+std::to_string(ready&&storage.state!=world::StorageState::Idle?j.recording->storage.Diag().checkpoints_written.load():0)+
+    "\ncheckpoint_produced="+std::to_string(ready&&storage.state!=world::StorageState::Idle?j.recording->storage.Diag().checkpoints_produced.load():0)+
+    "\nwriter_records="+std::to_string(writer.records_written)+"\nwriter_events="+std::to_string(writer.events_written)+
+    "\nwriter_gaps="+std::to_string(writer.gaps_written)+"\nwriter_result="+std::to_string(writer.result_written)+
+    "\nobservation_epoch="+std::to_string(j.recording->epoch)+"\nobservation_active="+std::to_string(j.attached&&!j.stopping)+
+    "\nv2_records="+std::to_string(q?q->v2_written.load():0)+"\n";
+}
+}
+bool WorldCommandBusy() noexcept { return job&&job->consumer&&!job->consumer->closed.load(); }
+std::string WorldRecordingId(std::uint32_t generation) { return "world-"+std::to_string(GetCurrentProcessId())+"-"+std::to_string(generation); }
+const char *WorldStartError() noexcept { if(!Settings.world_record_enabled) return "world_disabled"; return CaptureError(); }
+bool WorldCanCheckpoint() noexcept { return job&&job->attached&&job->consumer&&job->consumer->ready.load()&&!job->consumer->closed.load()&&!job->consumer->stop.load(); }
+void StartWorldCommand(std::uint64_t request,std::uint32_t generation,const char *label) noexcept {
   try {
-    if (job) return;
-    job = std::make_shared<WorldJob>();
-    job->request = request; job->generation = generation; job->label = label;
-    job->root = Settings.world_output_dir; job->timeout = Settings.world_close_timeout_ms;
-    job->version = RepentogonVersion; job->memory = game::WorldMemoryReader();
-    job->session = WorldRecordingId(generation);
-    world::layout::ObservationMask(job->observations.data(), job->observations.size());
-    if (const auto error = WorldStartError()) {
-      Fail(*job, world::Reason::PrepareFailed, error);
-      job->ready.store(true); job->closed.store(true); return;
-    }
-    if (!job->memory.copy || !job->memory.image_base || !job->memory.image_size) {
-      Fail(*job, world::Reason::PrepareFailed, "world_memory_reader");
-      job->ready.store(true); job->closed.store(true); return;
-    }
-    auto start = std::make_unique<std::shared_ptr<WorldJob>>(job);
-    const auto thread = CreateThread(nullptr, 0, Work, start.get(), 0, nullptr);
-    if (!thread) {
-      Fail(*job, world::Reason::ThreadFailed, "prepare_thread");
-      job->ready.store(true); job->closed.store(true); return;
-    }
-    start.release(); CloseHandle(thread);
-  } catch (...) {
-    if (job) {
-      Fail(*job, world::Reason::PrepareFailed, "start_exception");
-      job->ready.store(true); job->closed.store(true);
-    }
-    Trace("world_command", "request=%llu error=start_exception", request);
-  }
+    if(WorldStartError()||WorldCommandBusy()||!EnsureJob()) return;
+    job->consumer=std::make_unique<RecordingRequest>(); auto &q=*job->consumer;
+    job->request=q.request=request; job->generation=q.generation=generation; job->label=q.label=label;
+    job->session=q.session=WorldRecordingId(generation); q.root=job->root; q.version=job->version;
+    q.historical_gap=job->attached; job->next_consumer.store(&q,std::memory_order_release);
+  } catch(...) { if(job) Fail(*job,world::Reason::PrepareFailed,"recorder_request"); }
 }
-void StopWorldCommand(std::uint64_t request, std::uint32_t generation) noexcept {
-  if (!job || job->generation != generation) return;
-  job->stopping = true; job->cancel.store(true);
-  std::uint64_t unset = 0;
-  job->stop_at.compare_exchange_strong(unset, GetTickCount64());
-  if (job->attached) game::StopWorldRecording();
-  Trace("world_stop", "request=%llu generation=%u", request, generation);
+void StopWorldCommand(std::uint64_t,std::uint32_t generation) noexcept {
+  if(!job||!job->consumer||job->generation!=generation||job->consumer->stop.load()) return;
+  auto &r=*job->recording; auto &q=*job->consumer;
+  if(job->attached) r.SetConsumers(job->formal,false);
+  if(job->ready.load(std::memory_order_acquire)) { q.stop_attempt=r.storage.Diag().last_attempt.load(); q.stop_events=r.storage.EventWatermark(); q.stop_gaps=r.storage.Diag().gaps_produced.load(); }
+  q.stop.store(true,std::memory_order_release);
+  if(!job->formal) job->stopping=true;
 }
-void CheckpointWorldCommand(std::uint64_t request, std::uint32_t generation, const char *label) noexcept {
-  const bool ok = WorldCanCheckpoint() && job->generation == generation &&
-      job->recording->collector->Checkpoint(request, label);
-  Trace("world_checkpoint", "request=%llu generation=%u label=%s accepted=%u",
-        request, generation, label, unsigned(ok));
+void CheckpointWorldCommand(std::uint64_t request,std::uint32_t generation,const char *label) noexcept {
+  if(WorldCanCheckpoint()&&job->generation==generation) job->recording->collector->Checkpoint(request,label);
 }
 void PumpWorldCommands() noexcept {
-  if (!job || !IsMain()) return;
+  if(!IsMain()) return;
+  game::EnsureObservationLuaBridge();
+  if(!job) return;
   try {
-    if (job->ready.load(std::memory_order_acquire) && !job->closed.load()) {
-      auto &r = job->recording;
-      if (job->attached && r && r->faults.pending == 9 && r->faults.reader_paused.load(std::memory_order_acquire)) {
-        // reader 已确认暂停后才填真实环，最多 capacity+1 次，不等待 reader。
-        auto &f = r->faults; f.pending = 0;
-        world::LifecycleEvent diagnostic{};
-        diagnostic.kind = world::EventKind::GapOrUnknown; diagnostic.result = 0x54455354;
-        const auto capacity = r->storage.Status().limits.event_capacity;
-        std::uint32_t count = 0;
-        while (count <= capacity && r->storage.PublishEvent(diagnostic)) ++count;
-        f.before.store(capacity); f.after.store(count);
-        f.applied.store(r->storage.Diag().FaultReason() == world::Reason::EventOverflow);
+    if(job->ready.load(std::memory_order_acquire)&&!job->closed.load()) {
+      auto &r=*job->recording;
+      if(job->fault.load()!=world::Reason::None||r.storage.Status().fault.reason!=world::Reason::None) job->stopping=true;
+      auto *q=job->consumer.get(); const bool qready=q&&q->ready.load(std::memory_order_acquire);
+      if(!job->attached&&!job->stopping) {
+        if(game::AttachPreparedWorld(job->recording)) job->attached=true;
+        else { Fail(*job,world::Reason::PrepareFailed,"capture_attach"); job->stopping=true; }
       }
-      if (job->fault.load() != world::Reason::None ||
-          (r && r->storage.Status().fault.reason != world::Reason::None)) job->stopping = true;
-      if (!job->stopping && !job->attached) {
-        if (game::AttachPreparedWorld(r)) job->attached = true;
-        else { Fail(*job, world::Reason::PrepareFailed, "attach"); job->stopping = true; }
+      if(job->attached) r.SetConsumers(job->formal,qready&&!q->stop.load()&&!q->closed.load()&&q->fault.load()==world::Reason::None);
+      if(qready&&q->fault.load()!=world::Reason::None&&!q->stop.load()) StopWorldCommand(0,q->generation);
+      if(job->attached&&r.faults.pending==9&&r.faults.reader_paused.load()) {
+        auto &f=r.faults; f.pending=0; world::LifecycleEvent e{}; e.kind=world::EventKind::GapOrUnknown; e.result=0x54455354;
+        const auto capacity=r.storage.Status().limits.event_capacity; unsigned count=0;
+        while(count<=capacity&&r.storage.PublishEvent(e)) ++count;
+        f.before.store(capacity); f.after.store(count); f.applied.store(r.storage.Diag().FaultReason()==world::Reason::EventOverflow);
       }
-      if (job->stopping) {
-        std::uint64_t unset = 0;
-        job->stop_at.compare_exchange_strong(unset, GetTickCount64());
-        if (r && r->storage.Ready() && job->fault.load() != world::Reason::None)
-          r->storage.Diag().Fail(job->fault.load(), world::FailSource::Producer, 0, job->stage.load());
-        if (job->attached) game::StopWorldRecording();
-        if (!job->attached || r->collector->Drained()) job->producer_done.store(true);
+      if(job->stopping) {
+        std::uint64_t unset=0; job->stop_at.compare_exchange_strong(unset,GetTickCount64());
+        if(job->attached) game::StopWorldRecording();
+        if(!job->attached||r.collector->Drained()) job->producer_done.store(true,std::memory_order_release);
       }
     }
-    const bool closed = job->closed.load(std::memory_order_acquire);
-    Publish(*job, closed);
-    if (closed) {
-      if (job->attached && !game::DetachClosedWorld(job->recording)) return;
-      // worker 的本地强引用尚在；先归还主线程 owner，再准许后台释放。
-      job->recording.reset();
-      job->retired.store(true, std::memory_order_release);
-      job.reset();
+    Publish(*job);
+    if(job->closed.load(std::memory_order_acquire)) {
+      if(job->attached&&!game::DetachClosedWorld(job->recording)) return;
+      job->retired.store(true,std::memory_order_release); job.reset();
     }
-  } catch (...) { Trace("world_command", "error=pump_exception"); }
+  } catch(...) { if(job) { Fail(*job,world::Reason::PrepareFailed,"capture_pump"); job->stopping=true; } }
 }
 const std::string &WorldCommandStatus() noexcept { return snapshot; }
+std::string ObservationCommand(const std::string &action) {
+  if(!IsMain()) return "ok=0\nerror=wrong_thread\n";
+  if(action=="start") {
+    if(!EnsureJob()) return "ok=0\nerror=capture_unavailable\n";
+    job->formal=true; return "ok=1\nobservation_state=Preparing\n";
+  }
+  if(action=="stop") { if(job) { job->formal=false; if(!WorldCommandBusy()) job->stopping=true; } return "ok=1\nobservation_state=Stopping\n"; }
+  if(action!="status") return "ok=0\nerror=unknown_observation_verb\n";
+  if(!job) return "ok=1\nobservation_state=Off\n";
+  auto &r=*job->recording;
+  const bool ready=job->ready.load(std::memory_order_acquire);
+  return "ok=1\nobservation_state="+std::string(job->stopping?"Stopping":job->attached?"Active":"Preparing")+
+    "\nobservation_epoch="+std::to_string(r.epoch)+"\nformal_consumer="+std::to_string(job->formal)+
+    "\nrecording_consumer="+std::to_string(ready&&r.recorder_consumer)+"\npublication_count="+std::to_string(ready?r.observation.Published():0)+
+    "\nloss_sequence="+std::to_string(ready?r.observation.LossSequence():0)+"\nrecord_loss_sequence="+std::to_string(r.publications.LossSequence())+
+    "\nlua_attempts="+std::to_string(ready?r.lua_attempts:0)+"\nlua_complete="+std::to_string(ready?r.lua_complete:0)+
+    "\nlua_partial="+std::to_string(ready?r.lua_partial:0)+"\nentity_scope="+std::to_string(ready?r.latest_entity.context.scope:0)+
+    "\nentity_coverage="+(ready?world::observation::CoverageName(r.latest_entity.result.coverage):"NotScheduled")+"\n";
+}
+bool WorldProcessExitPending() noexcept { return process_exit_pending; }
+bool WorldProcessExitDecision() noexcept {
+  if(!IsMain()||(!job&&!process_exit_pending)) return true;
+  if(!process_exit_pending) {
+    process_exit_pending=true; process_exit_started=GetTickCount64();
+    if(job) { job->formal=false; if(job->consumer) StopWorldCommand(0,job->generation); job->stopping=true; }
+    ClearPendingRunMutations(); game::StopSession(core::SessionCause::RunTeardown);
+  }
+  PumpWorldCommands(); const bool done=!job&&!game::Busy();
+  const bool expired=GetTickCount64()-process_exit_started>=Settings.world_close_timeout_ms;
+  if(!done&&!expired) return false;
+  if(!process_exit_released) { process_exit_released=true; Trace("world_exit","event=release closed=%u timeout=%u",unsigned(done),unsigned(expired&&!done)); Trace("world_exit_status","%s",snapshot.c_str()); }
+  return true;
+}
 
 // 此命令在 port 请求的 Manager 主线程分派处执行，不进入 UDP/玩家 Lua 接口。
 std::string TestWorldCommand(const char *source, const std::string &token,

@@ -1,6 +1,7 @@
 #include "game/context.h"
 #include "game/device_k.h"
 #include "runtime.h"
+#include "ops/world_commands.h"
 #include <cstdio>
 // SDK 补丁编码器留在 C++17 单元；Odd owner 通知经 context.h 的值接口传递。
 #include "ASMPatcher.hpp"
@@ -53,6 +54,7 @@ __declspec(naked) void OddNormalShim() {
 bool OddPatchInstalled() noexcept { return installed; }
 // 所有补丁由同一个常驻安装入口协调，启动后会话只切换逻辑状态，不恢复字节。
 void InstallRuntimePatches() noexcept {
+  InstallWorldExitPatch();
   InstallPointers();
   game::InstallHostPatches();
   if (attempted || !IsMain() || !Capabilities[size_t(Group::Player)] ||

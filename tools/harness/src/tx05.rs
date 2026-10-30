@@ -21,7 +21,7 @@ fn number(s: &Status, key: &str) -> Result<u64> {
 pub(super) fn fixture_records(text: &str, token: &str) -> Result<Vec<Value>> {
     let mut out = vec![];
     for line in text.lines() {
-        if let Some((_, payload)) = line.split_once("[isaac-cs-test] tx05 ").or_else(||line.split_once("[isaac-cs-test] tx06 ")).or_else(||line.split_once("[isaac-cs-test] tx07 ")).or_else(||line.split_once("[isaac-cs-test] tx08 ")) {
+        if let Some((_, payload)) = line.split_once("[isaac-cs-test] tx05 ").or_else(||line.split_once("[isaac-cs-test] tx06 ")).or_else(||line.split_once("[isaac-cs-test] tx07 ")).or_else(||line.split_once("[isaac-cs-test] tx08 ")).or_else(||line.split_once("[isaac-cs-test] tx09 ")).or_else(||line.split_once("[isaac-cs-test] tx10 ")) {
             let v: Value = serde_json::from_str(payload)
                 .map_err(|e| format!("malformed fixture record: {e}"))?;
             if v["token"].as_str() == Some(token) {
@@ -256,6 +256,16 @@ impl Run {
         w: usize,
         control: &mut Control,
     ) -> Result<()> {
+        self.prepare_new_run_tx05(game, w, control)?;
+        self.start_new_run_tx05(game, w, control)
+    }
+    // 只选第二存档并停在角色页；tx08 在真正 New Run 前启用生命周期记录。
+    pub(super) fn prepare_new_run_tx05(
+        &mut self,
+        game: &win32::Game,
+        w: usize,
+        control: &mut Control,
+    ) -> Result<()> {
         let timeout = self.scenario["startup_timeout_seconds"]
             .as_u64()
             .unwrap_or(90);
@@ -294,6 +304,16 @@ impl Run {
         }
         control.wait("menu_game_selection", "0", 5)?;
         self.sequence(w, "open_character_menu")?;
+        control.wait("menu_id", "5", 15)?;
+        Ok(())
+    }
+    // 角色页后的开局及原有 S0 观测独立成段；旧 tx05/06/07 仍顺序调用两段。
+    pub(super) fn start_new_run_tx05(
+        &mut self,
+        game: &win32::Game,
+        w: usize,
+        control: &mut Control,
+    ) -> Result<()> {
         control.wait("menu_id", "5", 15)?;
         self.sequence(w, "start_run")?;
         control.wait("run_active", "1", 20)?;
@@ -338,7 +358,10 @@ impl Run {
             .rev()
             .find(|v| v["event"] == "observation")
             .unwrap();
-        let player=if self.report["tx"]=="tx-04-07" {&observation["players"][0]}else{&observation};
+        // tx08沿用tx07的结构化players数组；不能按tx05/06的顶层字段读取后把缺失当失败。
+        let player=if matches!(self.report["tx"].as_str(),Some("tx-04-07"|"tx-04-08")) {
+            &observation["players"][0]
+        } else {&observation};
         if player["player_type"] != 0
             || player["controller"] != 0
             || player["bombs"].as_i64().unwrap_or(0) < 1

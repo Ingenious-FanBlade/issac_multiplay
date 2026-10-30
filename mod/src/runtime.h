@@ -11,7 +11,7 @@
 #include <winsock2.h>
 
 namespace cs {
-inline constexpr char Version[] = "0.4.0-tx-04-08";
+inline constexpr char Version[] = "0.4.0-tx-04-10";
 // Group 决定能力组：某组 binding 不符时只关闭该组。
 // Observe 是 tx-04-07 新增的只读观察组；World 是 tx-04-08 的 world_record
 // 观察组（19 项观察语义），它有独立的 world 故障策略，不进入会话失败路径。
@@ -46,9 +46,10 @@ enum class Owner {
   Device,
   OddNormal
 };
-// schema=1 配置；log_level 在 tx-04-04 中仅记录，不过滤 trace。
+// schema=1配置；高频测试诊断须显式启用，生产默认只保留低频状态/错误日志。
 struct Config {
   bool enabled = false, control = false;
+  bool diagnostics = false, repeat_topology_reads = false;
   unsigned control_port = 27091, host_port = 27090;
   // Host 网络参数只在会话创建前复制，不提供运行中热修改。
   std::string host_bind_address = "0.0.0.0";
@@ -167,6 +168,7 @@ struct Hook {
   const HookArg *arg_spec = nullptr;
   std::uint32_t observation = kHookObservationNone;
   bool world = false;
+  bool shared_control = false; // 关闭world录制时仍常驻的C/S生命周期观察。
   std::atomic<uint64_t> calls{}, foreign{}, completed{};
   bool registered = false;
 };
@@ -219,7 +221,7 @@ struct PortRequest {
 };
 struct PortReply {
   uint64_t id;
-  char text[12000];
+  char text[65536]; // 四参与者及逐身体状态仍为有界主线程值快照。
 };
 bool QueuePort(const PortRequest &) noexcept;
 bool TakeReply(PortReply &) noexcept;

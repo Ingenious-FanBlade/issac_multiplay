@@ -12,6 +12,13 @@ void StopWorldCommand(std::uint64_t request, std::uint32_t generation) noexcept;
 void CheckpointWorldCommand(std::uint64_t request, std::uint32_t generation, const char *label) noexcept;
 void PumpWorldCommands() noexcept;
 const std::string &WorldCommandStatus() noexcept;
+// 正式纯值消费需求独立于可选录制；实际激活／停用由 Manager Pump 执行。
+std::string ObservationCommand(const std::string &action);
+// main 的原始退出判断点调用：零等待，只决定本轮继续原循环或进入原 Shutdown。
+bool WorldProcessExitDecision() noexcept;
+bool WorldProcessExitPending() noexcept;
+void InstallWorldExitPatch() noexcept;
+bool WorldExitPatchInstalled() noexcept;
 // 仅本地控制口主线程调用；token/代次/模式均在内部校验。
 std::string TestWorldCommand(const char *source, const std::string &token,
     std::uint32_t generation, const std::string &mode, std::uint32_t value);

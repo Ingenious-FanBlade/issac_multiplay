@@ -43,7 +43,7 @@ struct TickReceipt {
   TickKind kind = TickKind::StandardRoom;
   TickBoundary boundary{};
   TickPostState post{};
-  std::array<TickClientReceipt, 2> clients{};
+  std::array<TickClientReceipt, kMaximumParticipants> clients{};
   std::size_t participant_count = 0;
   bool published = false;
 };
@@ -60,7 +60,7 @@ const char *TickPipelinePhaseName(TickPipelinePhase phase) noexcept;
 class TickPipeline final {
 public:
   TickPipeline(Session &session, TickClock &clock,
-               std::array<Participant, 2> &players,
+               std::array<Participant, kMaximumParticipants> &players,
                std::uint32_t budget = kTickDrainAttemptBudget) noexcept
       : session_(session), clock_(clock), players_(players), budget_(budget) {}
 
@@ -99,7 +99,7 @@ private:
   Decision AfterAdmission(Decision decision) noexcept;
   Session &session_;
   TickClock &clock_;
-  std::array<Participant, 2> &players_;
+  std::array<Participant, kMaximumParticipants> &players_;
   std::uint32_t budget_, drained_ = 0;
   std::uint64_t candidate_ = 0;
   bool configured_ = false;

@@ -1,5 +1,6 @@
 //! 运行结束后唯一一次归约。输出逐记录索引，缺证据保持未知，不由摘要/历史 PASS 推断。
 use super::*;
+use super::trace_index::TraceIndex;
 use crate::world::dataset::{self, Dataset};
 use std::{
     collections::BTreeSet,
@@ -87,6 +88,7 @@ fn capture_proof(root: &Path, trace: &Path, out: &Path) -> Result<Value> {
     let data = Dataset::open(root, false)?;
     let scan = dataset::scan(&data, None, None, None)?;
     let events = crate::tx05::evidence::parse_events(trace)?;
+    let trace_index = TraceIndex::new(&events);
     let mut file = File::open(root.join("captures.jsonl")).map_err(|e| e.to_string())?;
     let mut output = BufWriter::new(File::create(out).map_err(|e| e.to_string())?);
     let (mut complete, mut matched) = (0u64, 0u64);
@@ -140,29 +142,8 @@ fn capture_proof(root: &Path, trace: &Path, out: &Path) -> Result<Value> {
                         && scope.is_some_and(|s| s > 0)
                 })
         });
-        let selected = events
-            .iter()
-            .filter(|e| {
-                e.n("tick") == tick && e.n("loop") == loop_id && e.n("owner_token") == scope
-            })
-            .collect::<Vec<_>>();
-        let pre = selected
-            .iter()
-            .filter(|e| e.kind() == "tick_phase" && e.text("phase") == "pre")
-            .count();
-        let commit = selected
-            .iter()
-            .filter(|e| e.kind() == "tick_phase" && e.text("phase") == "commit")
-            .count();
-        let standard = selected
-            .iter()
-            .filter(|e| {
-                e.kind() == "tick"
-                    && e.text("kind") == "StandardRoom"
-                    && e.n("ordinal") == Some(0)
-                    && e.n("published") == Some(1)
-            })
-            .count();
+        let counts = trace_index.phase_counts(tick, loop_id, scope);
+        let (pre, commit, standard) = (counts.pre, counts.commit, counts.standard_publish);
         let ok = stages && pre == 1 && commit == 1 && standard == 1;
         if ok {
             matched += 1;
@@ -200,7 +181,7 @@ fn capture_proof(root: &Path, trace: &Path, out: &Path) -> Result<Value> {
         }
     }
     Ok(
-        json!({"complete":complete,"phase_matched":matched,"phase_pass":complete>0 && matched==complete && !scan.event_gaps,
+        json!({"complete":complete,"phase_matched":matched,"trace_index":trace_index.summary(),"phase_pass":complete>0 && matched==complete && !scan.event_gaps,
         "known_fields":values,"missing_fields":missing,"source_observation_counts":source_counts,"door_grid_alias_samples":aliases,
         "first_observed_player_without_birth":player_first,"healthy":data.healthy(),"index":out}),
     )
@@ -335,17 +316,99 @@ fn stable(root: &Path, out: &Path, target: u64, prefix: &str) -> Result<Value> {
 }
 
 impl Run {
+    // 四份原始录制共用同一原生四边界/嵌套顺序归约，专项不借用旧报告。
+    pub(super) fn reduce_native_calls_tx08(&mut self) -> Result<(bool, u64)> {
+        let mut lifecycle = json!({});
+        let mut errors = vec![];
+        let mut closed = true;
+        let mut recording_count = 0;
+        for label in ["primary", "comparison", "healthy", "continue"] {
+            let root = self.out.join("runtime-world").join(label);
+            if !root.join("manifest.json").exists() {
+                closed = false;
+                continue;
+            }
+            recording_count += 1;
+            let result = (|| -> Result<Value> {
+                let data = Dataset::open(&root, false)?;
+                let scan = dataset::scan(&data, None, None, None)?;
+                let mut calls = BTreeMap::<String, [u64; 4]>::new();
+                let mut stack = Vec::<(u64,bool)>::new();
+                let mut order_errors = vec![];
+                let mut kinds = BTreeMap::<String, u64>::new();
+                for line in BufReader::new(
+                    File::open(root.join("lifecycle-events.jsonl")).map_err(|e| e.to_string())?,
+                )
+                .lines()
+                {
+                    let row: Value = serde_json::from_str(&line.map_err(|e| e.to_string())?)
+                        .map_err(|e| e.to_string())?;
+                    *kinds.entry(row["event_kind"].to_string()).or_default() += 1;
+                    if row["exceptional"] == true {
+                        errors.push(format!("{label}:exceptional:{}", row["sequence"]));
+                    }
+                    if row["event_kind"] == 0 || row["event_kind"] == 8 {
+                        let call=dec(&row["call"]).ok_or("native call missing")?;
+                        let body=row["event_kind"]==8;
+                        let entering=row["entering"]==true;
+                        let order=if entering {
+                            let expected=if body {Some((call,false))}else{dec(&row["parent"]).map(|p|(p,true))};
+                            let valid=if body {stack.last().copied()==expected}
+                                else {stack.last().map(|p|p.0)==expected.map(|p|p.0)};
+                            stack.push((call,body)); valid
+                        } else {stack.pop()==Some((call,body))};
+                        if !order {order_errors.push(row["sequence"].clone());}
+                        let key = format!("{}:{}", row["call"], row["observation"]);
+                        let slot = if row["event_kind"] == 8 { 2 } else { 0 }
+                            + if row["entering"] == true { 0 } else { 1 };
+                        calls.entry(key).or_insert([0; 4])[slot] += 1;
+                    }
+                }
+                let mismatches = calls
+                    .iter()
+                    .filter(|(_, v)| **v != [1, 1, 1, 1])
+                    .map(|(k, v)| json!({"key":k,"counts":v}))
+                    .collect::<Vec<_>>();
+                if !mismatches.is_empty() {
+                    errors.push(format!(
+                        "{label}:native_body_pair_mismatches={}",
+                        mismatches.len()
+                    ));
+                }
+                if !stack.is_empty() || !order_errors.is_empty() {errors.push(format!("{label}:native_order"));}
+                closed &= data.healthy();
+                Ok(
+                    json!({"counts":scan.counts(),"terminal":data.terminal,"healthy":data.healthy(),"event_gaps":scan.event_gaps,
+                    "event_kinds":kinds,"call_groups":calls.len(),"call_pair_mismatches":mismatches,"call_order_errors":order_errors,"open_calls":stack,
+                    "limitation":"lifecycle call pairing does not prove all phase/original or RNG invariants"}),
+                )
+            })();
+            lifecycle[label] =
+                json!({"evidence":result.as_ref().ok(),"error":result.as_ref().err()});
+            if result.is_err() {
+                closed = false;
+            }
+        }
+        write_json(
+            &self.out.join("evidence/lifecycle-and-close.json"),
+            &lifecycle,
+        )?;
+        self.report["lifecycle"] = lifecycle;
+        self.report["native_order_errors"]=json!(errors);
+        Ok((closed, recording_count))
+    }
     pub(super) fn evaluate_tx08(&mut self) -> Result<()> {
         mkdir(&self.out.join("evidence"))?;
         for n in 1..=12 {
             self.report["cases"][format!("V{n}")] = json!({"status":"NOT_OBSERVED","pass":false,
             "reason":"required native/runtime evidence not established; no historical results imported"});
         }
+        // 最终稳定段与实时停止使用同一份冻结目标，缩短采集窗口后不能残留旧的 2,000。
         for (label, target, prefix) in [
-            ("primary", 2000, "p1"),
+            ("primary", self.scenario["stable_samples"].as_u64().ok_or("stable_samples")?, "p1"),
             (
                 "comparison",
-                self.scenario["comparison_samples"].as_u64().unwrap_or(256),
+                self.scenario["comparison_samples"].as_u64().ok_or("comparison_samples")?,
                 "p2",
             ),
         ] {
@@ -384,74 +447,7 @@ impl Run {
             "pass":primary["phase_pass"]==true,"evidence":primary,"error":proof.err()});
         self.report["cases"]["V3"] = json!({"status":if stable["status"]=="PASS" {"PASS"}else{"FAIL"},
             "pass":stable["status"]=="PASS","detail":self.report["stable"]["primary"]});
-        let mut lifecycle = json!({});
-        let mut errors = vec![];
-        let mut closed = true;
-        let mut recording_count = 0;
-        for label in ["primary", "comparison", "healthy", "continue"] {
-            let root = self.out.join("runtime-world").join(label);
-            if !root.join("manifest.json").exists() {
-                closed = false;
-                continue;
-            }
-            recording_count += 1;
-            let result = (|| -> Result<Value> {
-                let data = Dataset::open(&root, false)?;
-                let scan = dataset::scan(&data, None, None, None)?;
-                let mut calls = BTreeMap::<String, [u64; 4]>::new();
-                let mut kinds = BTreeMap::<String, u64>::new();
-                for line in BufReader::new(
-                    File::open(root.join("lifecycle-events.jsonl")).map_err(|e| e.to_string())?,
-                )
-                .lines()
-                {
-                    let row: Value = serde_json::from_str(&line.map_err(|e| e.to_string())?)
-                        .map_err(|e| e.to_string())?;
-                    *kinds.entry(row["event_kind"].to_string()).or_default() += 1;
-                    if row["exceptional"] == true {
-                        errors.push(format!("{label}:exceptional:{}", row["sequence"]));
-                    }
-                    if row["event_kind"] == 0 || row["event_kind"] == 8 {
-                        let key = format!("{}:{}", row["call"], row["observation"]);
-                        let slot = if row["event_kind"] == 8 { 2 } else { 0 }
-                            + if row["entering"] == true { 0 } else { 1 };
-                        calls.entry(key).or_insert([0; 4])[slot] += 1;
-                    }
-                }
-                let mismatches = calls
-                    .iter()
-                    .filter(|(_, v)| **v != [1, 1, 1, 1])
-                    .map(|(k, v)| json!({"key":k,"counts":v}))
-                    .collect::<Vec<_>>();
-                if !mismatches.is_empty() {
-                    errors.push(format!(
-                        "{label}:native_body_pair_mismatches={}",
-                        mismatches.len()
-                    ));
-                }
-                closed &= data.healthy();
-                Ok(
-                    json!({"counts":scan.counts(),"terminal":data.terminal,"healthy":data.healthy(),"event_gaps":scan.event_gaps,
-                    "event_kinds":kinds,"call_groups":calls.len(),"call_pair_mismatches":mismatches,
-                    "limitation":"lifecycle call pairing does not prove all phase/original or RNG invariants"}),
-                )
-            })();
-            lifecycle[label] =
-                json!({"evidence":result.as_ref().ok(),"error":result.as_ref().err()});
-            if result.is_err() {
-                closed = false;
-            }
-        }
-        write_json(
-            &self.out.join("evidence/lifecycle-and-close.json"),
-            &lifecycle,
-        )?;
-        self.report["lifecycle"] = lifecycle;
-        if !errors.is_empty() {
-            self.report["cases"]["V1"] = json!({"status":"FAIL","pass":false,"errors":errors});
-        }
-        self.report["cases"]["V4"]["detail"] = json!({"all_primary_fields_and_sources":primary,"stable_observed":stable,
-            "required":"seven Entity classes plus Grid, full fixed fields, eight EL/player sources and door aliases; concrete fixture variants remain limited"});
+        let (closed, recording_count) = self.reduce_native_calls_tx08()?;
         let episode = (|| -> Result<Value> {
             let token = format!("{}-p1", self.report["token"].as_str().ok_or("token")?);
             let fixture = crate::tx05::fixture_records(&read(&self.out.join("process-1/log.txt"))?, &token)?;
@@ -459,12 +455,6 @@ impl Run {
             super::episodes::reduce(&self.out, &self.scenario["actions"], &fixture)
         })();
         self.report["episodes"] = json!({"proof":episode.as_ref().ok(),"error":episode.as_ref().err()});
-        self.report["cases"]["V5"]["detail"] = json!({"native_lifecycle":self.report["lifecycle"],"disabled_actions":self.report["disabled_actions"],
-            "episodes":self.report["episodes"],"required":"actual reuse/duplicate publication/Replace still require native observation; Esau eligibility UNKNOWN"});
-        self.report["cases"]["V7"]["detail"] = json!({"required":"copy-before/after RNG raw-word witness and producer-thread/original-call evidence",
-            "reason":"current capture format has thread and raw RNG fields, but no before/after copy-window RNG witness; never infer invariance from one snapshot"});
-        self.report["cases"]["V6"]["detail"] = json!({"basis_3_ordinals":stable["player_basis_3_ordinals"],
-            "required":"FIRST_OBSERVED, revocation and rebuilt native-body witness after revival/Continue"});
         let host_continues = (1..=2).all(|n| {
             json(
                 &self
@@ -484,20 +474,22 @@ impl Run {
                     && v["after"]["session_state"] == "Active"
             })
         });
-        self.report["cases"]["V9"] = json!({"status":if closed && recording_count==4 && host_continues {"NOT_OBSERVED"}else{"FAIL"},"pass":false,
-            "healthy_recordings":closed,"recording_count":recording_count,"host_continues_after_stop":host_continues,
-            "reason":"healthy explicit stop path recorded; direct shutdown coordination and file-failure injection remain unimplemented"});
         let faults = fault_evidence(&self.out, &self.report["fault_recordings"])?;
         write_json(&self.out.join("evidence/faults.json"), &faults)?;
         self.report["cases"]["V8"] = faults;
-        self.report["cases"]["V9"]["fault_recordings"] = self.report["cases"]["V8"].clone();
-        self.report["cases"]["V9"]["reason"] = json!("explicit normal/fault close recorded; direct-exit coordination remains engineering item E");
+        self.report["cases"]["V9"]=self.close_obligations_tx08(closed,recording_count,host_continues)
+            .unwrap_or_else(|e|json!({"status":"NOT_OBSERVED","pass":false,"error":e}));
         let l = self.report["offline"].clone();
         let tools = (1..=5).all(|n| l[format!("L{n}")]["status"] == "PASS");
         self.report["cases"]["V10"] =
             json!({"status":if tools {"PASS"}else{"FAIL"},"pass":tools,"detail":l});
         let dual = l["L6"]["status"] == "PASS" && l["L7"]["status"] == "PASS";
         self.report["cases"]["V11"] = json!({"status":if dual {"PASS"}else{"NOT_OBSERVED"},"pass":dual,"detail":l["L6"],"legacy":l["L7"]});
+        self.reduce_obligations_tx08()?;
+        // 第二进程仍是必需的完整普通稳定段，不因 L6 偶然取得一对输入而放宽。
+        let both=self.report["stable"]["primary"]["proof"]["status"]=="PASS"
+            && self.report["stable"]["comparison"]["proof"]["status"]=="PASS";
+        self.report["cases"]["V3"]=json!({"status":if both{"PASS"}else{"FAIL"},"pass":both,"recordings":self.report["stable"]});
         Ok(())
     }
     pub(super) fn finalize_tx08(&mut self) -> Result<()> {
@@ -518,9 +510,41 @@ impl Run {
                 b.iter()
                     .all(|(k, v)| !k.to_ascii_lowercase().ends_with(".dmp") || a.get(k) == Some(v))
             });
-        self.report["cases"]["V12"] = json!({"status":if saves && windows && exits && crashes {"NOT_OBSERVED"}else{"FAIL"},"pass":false,
+        if self.scenario["focus"]=="V12" {
+            // V12依赖最终文件/退出与整个过程证据，在统一收尾中最后判定。
+            let chain=self.session_obligations_tx08();
+            let passed=saves && windows && exits && crashes && chain.as_ref().is_ok_and(|v|v["pass"]==true);
+            self.report["cases"]["V12"]=json!({"status":if passed{"PASS"}else{"FAIL"},"pass":passed,
+                "native_chain":chain.as_ref().ok(),"reduction_error":chain.as_ref().err(),
+                "save_changes_allowed":saves,"per_process_changes_allowed":windows,"two_normal_exits":exits,"no_new_crashes":crashes});
+        }
+        if matches!(self.scenario["focus"].as_str(),Some("V6"|"V2"|"V5"|"V1_V10"|"V12")) {
+            // 专项只判本项和本次操作的清理/退出条件，其他维度保留NOT_RUN。
+            let focus=self.scenario["focus"].as_str().unwrap();
+            let errors_clear = ["failure","offline_error","evaluation_error","cleanup_error",
+                "environment_restore_error","helper_restore_error","save_compare_error","crash_scan_error"]
+                .iter().all(|key|self.report[*key].is_null());
+            let selected = if focus=="V1_V10" {
+                ["V1","V10"].iter().all(|key|self.report["cases"][*key]["pass"]==true)
+            } else { self.report["cases"][focus]["pass"]==true };
+            let pass = selected
+                && saves && windows && exits && crashes && errors_clear;
+            self.report["pass"] = json!(pass);
+            self.report["automatic_retry"] = json!(false);
+            self.report["environment_checks"] = json!({"save_changes_allowed":saves,
+                "per_process_changes_allowed":windows,"two_normal_exits":exits,"no_new_crashes":crashes});
+            write_json(&self.out.join("report.json"), &self.report)?;
+            let mut md=format!("# tx-04-08 {focus} E2E\n\nResult: **{}**\n\n",if pass {"PASS"}else{"FAIL"});
+            for n in 1..=12 { md+=&format!("- V{n}: {}\n",self.report["cases"][format!("V{n}")]["status"].as_str().unwrap_or("NOT_RUN")); }
+            fs::write(self.out.join("report.md"),md).map_err(|e|e.to_string())?;
+            return if pass { Ok(()) } else { Err(format!("{focus} incomplete or failed; {}",self.out.join("report.json").display())) };
+        }
+        let chain=self.session_obligations_tx08();
+        let chains_ok=chain.as_ref().is_ok_and(|v|v["pass"]==true);
+        let pass12=saves && windows && exits && crashes && chains_ok;
+        self.report["cases"]["V12"] = json!({"status":if pass12 {"PASS"}else{"FAIL"},"pass":pass12,
             "save_changes_allowed":saves,"per_process_changes_allowed":windows,"two_normal_exits":exits,"no_new_crashes":crashes,
-            "reason":"full input/Join/K/loading native-chain reduction remains required; file snapshots alone do not prove operation-window safety"});
+            "native_chain":chain.as_ref().ok(),"reduction_error":chain.as_ref().err()});
         let pass = (1..=12).all(|n| self.report["cases"][format!("V{n}")]["pass"] == true)
             && [
                 "failure",
@@ -549,7 +573,7 @@ impl Run {
             );
         }
         md += &format!(
-            "\nFailure: {}\n\nFault evidence and lifecycle episodes are indexed above. Special Player Replace eligibility, direct shutdown and remaining D-G requirements stay explicit; no unobserved coverage is promoted.\n",
+            "\nFailure: {}\n\nRaw fault, lifecycle, RNG, readiness and session indexes are in evidence/. Every missing or unobserved obligation stays explicit; no historical runtime result is imported.\n",
             self.report["failure"]
         );
         fs::write(self.out.join("report.md"), md).map_err(|e| e.to_string())?;

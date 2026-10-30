@@ -50,10 +50,14 @@ inline constexpr std::uint32_t kQueueItems = 64;
 // 每个 JSONL 文件 1 MiB 缓冲。
 inline constexpr std::size_t kIoBufferBytes = 1u << 20;
 // world 自有动态存储总预算，含批次、队列、身份/radix、控制记录、I/O 与管理。
-inline constexpr std::uint64_t kWorldBudgetBytes = 256ull << 20;
+inline constexpr std::uint64_t kWorldBudgetBytes = 512ull << 20;
+// tx-04-10 扩展域和可选录制共同计账，不把每个模块都当成独享旧预算。
+inline constexpr std::uint64_t kObservationReserveBytes=112ull<<20, kPublicationBytes=32ull<<20, kRecorderQueueBytes=kQueueBytes;
 // 未逐项记账的管理/编码余量，明确计入总预算而不是当作免费。
 inline constexpr std::uint64_t kManagementBytes = 8ull << 20;
 // 生命周期事件环使用 sequence 关联，事件与批次各自保留 watermark。
+// 控制组身体锚点容量不等于参与者容量；每个身体仍沿用同一 Entity identity。
+inline constexpr std::uint32_t kControlBodiesPerParticipant = 64, kControlAnchorCapacity = 4 * kControlBodiesPerParticipant;
 inline constexpr std::uint32_t kNoOrdinal = 0xFFFFFFFFu;
 inline constexpr std::uint32_t kNoGridIndex = 0xFFFFFFFFu;
 // 单个原生函数的观察调用编号从 1 开始，0 表示“无”。
@@ -214,6 +218,12 @@ static_assert(sizeof(RawField) == 48,
 
 // 单个对象的一次只读复制。address/vptr 只用于本地诊断，不参与比较 key。
 // 与 RawField 相同，不写默认成员初始化器，写入前必须调用 Reset()。
+// RNG 见证：0=未读/集合变化，1=成功，2=受保护读取失败。原始四字不作摘要。
+struct RawRng final {
+  std::array<std::uint32_t, 4> before, after;
+  std::uint32_t before_status, after_status;
+};
+static_assert(sizeof(RawRng) == 40);
 struct RawObject final {
   std::uint64_t local_id, use, birth, revision;
   std::uint32_t domain;            // ObjectDomain
@@ -230,11 +240,12 @@ struct RawObject final {
   std::uint32_t field_count;
   std::uint32_t grid_index;        // Grid/Door 已确认的槽关联
   std::array<RawField, kFieldBudget> fields;
+  RawRng rng;
 
   void Reset() noexcept;
 };
-static_assert(sizeof(RawObject) == 2592,
-              "RawObject 布局必须是 2592 字节，预算表按此计算");
+static_assert(sizeof(RawObject) == 2632,
+              "RawObject 布局必须是 2632 字节，预算表按此计算");
 
 // 一批内的成员关系：同一对象可同时来自多个来源，不重复计出生。
 struct RawMembership final {
@@ -276,8 +287,12 @@ struct BatchHeader final {
   std::array<std::uint64_t, 3> phase_scopes{};
   std::array<std::uint32_t, 3> phase_entered{}, phase_returned{};
   std::array<RawSource, kSourceCount> sources{};
+  // 前置清单仅定义观察集合；见证窗口包住随后完整的来源枚举、字段、引用和尾部复核。
+  std::uint32_t rng_inventory = 0, rng_matched = 0, rng_set_stable = 0;
+  std::uint32_t rng_thread_before = 0, rng_thread_after = 0;
+  std::uint64_t copy_started_qpc = 0, copy_finished_qpc = 0, qpc_frequency = 0;
 };
-static_assert(sizeof(BatchHeader) == 528, "BatchHeader 布局必须是 528 字节");
+static_assert(sizeof(BatchHeader) == 576, "BatchHeader 布局必须是 576 字节");
 
 // 原始批次：槽内一次性写满的有效前缀，不把固定容量写成有效数据。
 // objects/memberships 故意不带初始化器，分配时不触碰这两块大数组；
@@ -290,8 +305,8 @@ struct RawBatch final {
   // 清头、来源与计数；对象/成员数组保留旧字节但不再被读取。
   void Reset() noexcept;
 };
-static_assert(sizeof(RawBatch) == 43516432,
-              "RawBatch 布局必须是 43516432 字节，预算表按此计算");
+static_assert(sizeof(RawBatch) == 44171840,
+              "RawBatch 布局必须是 44171840 字节，预算表按此计算");
 
 // 生命周期事件。sequence 由 storage 分配；call/parent 是观察调用编号，
 // 由主线程桥分配，0 表示没有（例如成员关系快照）。
@@ -365,10 +380,11 @@ constexpr std::uint64_t PlannedWorldBytes() noexcept {
          std::uint64_t(kCheckpointCapacity) * sizeof(CheckpointRecord) +
          kIdentityRecordBytes * kIdentityBudget +
          kRadixNodeBytes * kRadixNodes +
-         2 * std::uint64_t(kIoBufferBytes) + kManagementBytes;
+         2 * std::uint64_t(kIoBufferBytes) + kManagementBytes +
+         kObservationReserveBytes + kPublicationBytes + kRecorderQueueBytes;
 }
 static_assert(PlannedWorldBytes() <= kWorldBudgetBytes,
-              "默认 world 计划超过 256 MiB 总预算，必须先缩减上限");
+              "默认 world 计划超过配置总预算，必须先缩减上限");
 static_assert(kBatchSlots == 3 && kObjectBudget == 16384 &&
                   kMembershipBudget == 65536,
               "槽/对象/成员上限是文件模型与验收计数的共同前提");
@@ -417,95 +433,7 @@ constexpr FieldDeclaration FieldDecl(std::uint16_t id, const char *name,
 // 放在头里保持 constexpr 可比较：binding/world_layout 生成的偏移表必须与
 // 这里的 ID/宽度/编码逐项一致，否则编译期 static_assert 直接失败，避免
 // 文件模型与目标版本布局清单各自漂移。
-inline constexpr std::array<FieldDeclaration, 78> kProfileFieldTable{{
-    // Entity 公共 0001–001E
-    FieldDecl(0x0001, "index", 4, Encoding::Raw),
-    FieldDecl(0x0002, "type", 4, Encoding::Raw),
-    FieldDecl(0x0003, "variant", 4, Encoding::Raw),
-    FieldDecl(0x0004, "subtype", 4, Encoding::Raw),
-    FieldDecl(0x0005, "flags", 8, Encoding::Raw),
-    FieldDecl(0x0006, "valid", 1, Encoding::Raw),
-    FieldDecl(0x0007, "visible", 1, Encoding::Raw),
-    FieldDecl(0x0008, "exists", 1, Encoding::Raw),
-    FieldDecl(0x0009, "dead", 1, Encoding::Raw),
-    FieldDecl(0x000A, "removed_by_factory", 1, Encoding::Raw),
-    FieldDecl(0x000B, "position.x", 4, Encoding::F32),
-    FieldDecl(0x000C, "position.y", 4, Encoding::F32),
-    FieldDecl(0x000D, "velocity.x", 4, Encoding::F32),
-    FieldDecl(0x000E, "velocity.y", 4, Encoding::F32),
-    FieldDecl(0x000F, "hp", 4, Encoding::F32),
-    FieldDecl(0x0010, "max_hp", 4, Encoding::F32),
-    FieldDecl(0x0011, "init_seed", 4, Encoding::Raw),
-    FieldDecl(0x0012, "drop_rng.word0", 4, Encoding::Raw),
-    FieldDecl(0x0013, "drop_rng.word1", 4, Encoding::Raw),
-    FieldDecl(0x0014, "drop_rng.word2", 4, Encoding::Raw),
-    FieldDecl(0x0015, "drop_rng.word3", 4, Encoding::Raw),
-    FieldDecl(0x0016, "parent", 4, Encoding::Reference),
-    FieldDecl(0x0017, "child", 4, Encoding::Reference),
-    FieldDecl(0x0018, "target", 4, Encoding::Reference),
-    FieldDecl(0x0019, "spawner", 4, Encoding::Reference),
-    FieldDecl(0x001A, "spawner_type", 4, Encoding::Raw),
-    FieldDecl(0x001B, "spawner_variant", 4, Encoding::Raw),
-    FieldDecl(0x001C, "birth_counter", 4, Encoding::Raw),
-    FieldDecl(0x001D, "game_frame_counter", 4, Encoding::Raw),
-    FieldDecl(0x001E, "frame_count", 4, Encoding::Derived),
-    // Player 0101–0110
-    FieldDecl(0x0101, "player_type", 4, Encoding::Raw),
-    FieldDecl(0x0102, "player_index", 4, Encoding::Raw),
-    FieldDecl(0x0103, "damage_cooldown", 4, Encoding::Raw),
-    FieldDecl(0x0104, "max_hearts", 4, Encoding::Raw),
-    FieldDecl(0x0105, "red_hearts", 4, Encoding::Raw),
-    FieldDecl(0x0106, "eternal_hearts", 4, Encoding::Raw),
-    FieldDecl(0x0107, "soul_hearts", 4, Encoding::Raw),
-    FieldDecl(0x0108, "black_hearts", 4, Encoding::Raw),
-    FieldDecl(0x0109, "bone_hearts", 4, Encoding::Raw),
-    FieldDecl(0x010A, "golden_hearts", 4, Encoding::Raw),
-    FieldDecl(0x010B, "broken_hearts", 4, Encoding::Raw),
-    FieldDecl(0x010C, "rotten_hearts", 4, Encoding::Raw),
-    FieldDecl(0x010D, "sub_player", 4, Encoding::Reference),
-    FieldDecl(0x010E, "twin", 4, Encoding::Reference),
-    FieldDecl(0x010F, "backup", 4, Encoding::Reference),
-    FieldDecl(0x0110, "replaced", 4, Encoding::Reference),
-    // NPC 0201–0204
-    FieldDecl(0x0201, "state_frame", 4, Encoding::Raw),
-    FieldDecl(0x0202, "state", 4, Encoding::Raw),
-    FieldDecl(0x0203, "projectile_cooldown", 4, Encoding::Raw),
-    FieldDecl(0x0204, "projectile_delay", 4, Encoding::Raw),
-    // Familiar 0301–0303
-    FieldDecl(0x0301, "player", 4, Encoding::Reference),
-    FieldDecl(0x0302, "fire_cooldown", 4, Encoding::Raw),
-    FieldDecl(0x0303, "state", 4, Encoding::Raw),
-    // Effect 0401–0403
-    FieldDecl(0x0401, "state", 4, Encoding::Raw),
-    FieldDecl(0x0402, "timeout", 4, Encoding::Raw),
-    FieldDecl(0x0403, "lifespan", 4, Encoding::Raw),
-    // Pickup 0501–0503
-    FieldDecl(0x0501, "timeout", 4, Encoding::Raw),
-    FieldDecl(0x0502, "wait", 4, Encoding::Raw),
-    FieldDecl(0x0503, "state", 4, Encoding::Raw),
-    // Tear 0601：完整 128 位
-    FieldDecl(0x0601, "tear_flags", 16, Encoding::Raw),
-    // Projectile 0701：完整 64 位
-    FieldDecl(0x0701, "projectile_flags", 8, Encoding::Raw),
-    // Grid 0801–0811；0810/0811 为已确认公式的派生格点坐标
-    FieldDecl(0x0801, "type", 4, Encoding::Raw),
-    FieldDecl(0x0802, "variant", 4, Encoding::Raw),
-    FieldDecl(0x0803, "state", 4, Encoding::Raw),
-    FieldDecl(0x0804, "spawn_count", 4, Encoding::Raw),
-    FieldDecl(0x0805, "spawn_seed", 4, Encoding::Raw),
-    FieldDecl(0x0806, "var_data", 4, Encoding::Raw),
-    FieldDecl(0x0807, "initialized", 1, Encoding::Raw),
-    FieldDecl(0x0808, "variable_seed", 4, Encoding::Raw),
-    FieldDecl(0x0809, "grid_index", 4, Encoding::Raw),
-    FieldDecl(0x080A, "spawn_frame", 4, Encoding::Raw),
-    FieldDecl(0x080B, "rng.word0", 4, Encoding::Raw),
-    FieldDecl(0x080C, "rng.word1", 4, Encoding::Raw),
-    FieldDecl(0x080D, "rng.word2", 4, Encoding::Raw),
-    FieldDecl(0x080E, "rng.word3", 4, Encoding::Raw),
-    FieldDecl(0x080F, "collision_class", 4, Encoding::Raw),
-    FieldDecl(0x0810, "position.x", 4, Encoding::F32),
-    FieldDecl(0x0811, "position.y", 4, Encoding::F32),
-}};
+#include "world/compatibility/min_read_v1_fields.inc"
 
 // 全部 78 个字段，按 ID 升序。
 std::span<const FieldDeclaration> ProfileFields() noexcept;
