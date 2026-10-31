@@ -532,7 +532,9 @@ def legacy_body(row):
                 '    return result;']
     lines = ['    cs::CallScope scope(record);']
     if ident == 'manager_update':
-        lines += ['    cs::FrameScope frame(scope.main);', '    super(%s);' % call]
+        lines += ['    cs::FrameScope frame(scope.main);',
+                  '    if (cs::game::ClientManagerBoundary()) return;',
+                  '    super(%s);' % call]
     elif ident == 'console_command':
         lines += [
             '    if (scope.main && cs::OwnCommand(in)) {',
@@ -578,8 +580,11 @@ def legacy_body(row):
         elif ident == 'join_pass':
             lines.append('    cs::game::JoinScope join_scope(this);')
         elif ident == 'input_update':
-            lines += ['    cs::game::InputLease input_lease(cs::game::HostBusy());',
-                      '    if (!input_lease.Ready()) cs::game::InputLeaseUnavailable();']
+            lines += ['    cs::game::InputLease input_lease(cs::game::HostBusy() || cs::game::ClientBusy());',
+                      '    if (!input_lease.Ready()) {',
+                      '        cs::game::InputLeaseUnavailable();',
+                      '        if (cs::game::ClientBusy()) { cs::game::ClientInputUnavailable(); return 0; }',
+                      '    }']
         elif ident == 'game_exit':
             # 真实退出即使发生在 Host 已停止后，也需要独立的原生调用与窗口关联。
             lines += ['    cs::game::PersistenceCallScope call("game_exit", this);',
@@ -632,6 +637,8 @@ def legacy_body(row):
             lines.append('    device_scope.Returned(result);')
         if ident == 'input_update':
             lines.append('    if (scope.main) cs::game::InputFrameFinished();')
+        if ident == 'manager_render':
+            lines.append('    if (scope.main) cs::game::ClientMenuRendered();')
         if ident == 'console_check':
             lines.append('    if (scope.main) cs::game::ObserveConsole(result);')
         if ident == 'new_room':

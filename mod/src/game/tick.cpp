@@ -522,6 +522,10 @@ std::string StatusFields() {
     out += '\n';
   };
   n("participants", r ? r->session.ParticipantCount() : 0);
+  // 公开随机会话的纯值编号用于真实端身份关联，不公开对象地址或文件摘要。
+  std::uint64_t wire_session=0;
+  if(r)std::memcpy(&wire_session,r->session.Identity().session.data(),sizeof(wire_session));
+  n("host.wire_session",wire_session?wire_session:1);
   n("participant_capacity", core::kMaximumParticipants);
   unsigned body_total = 0;
   if (r)

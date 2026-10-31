@@ -20,6 +20,7 @@ mod tx14;
 mod tx14_global_random;
 mod tx14_native_random;
 mod tx15;
+mod tx16;
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -323,8 +324,9 @@ impl Run {
                 "output_dir":self.out.join("runtime-world"),"close_timeout_ms":self.scenario["close_timeout_ms"],
                 "e2e_token":self.report["token"]});
         }
+        if self.report["tx"]=="tx-04-16" {content["host"]["bind_address"]=json!("0.0.0.0");}
         // tx12连续多次启动时PID可能复用；诊断文件放本次临时目录，不能覆盖/误收历史trace。
-        if self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" {
+        if self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-16" {
             let trace=self.out.join("runtime-trace").to_string_lossy().trim_start_matches(r"\\?\").replace('\\',"/");
             content["trace_dir"]=json!(trace);
         }
@@ -354,6 +356,7 @@ impl Run {
             ("ui/isaac-cs-ui", "mods/isaac-cs-ui"),
             ("tests/e2e-mods/isaac-cs-test", "mods/isaac-cs-test"),
         ];
+        if self.report["tx"]=="tx-04-16" { targets.retain(|(_,dst)|!dst.ends_with("isaac-cs-test")); }
         if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" { targets.push(("mod/observation/isaac-cs-observation","mods/isaac-cs-observation")); }
         if self.report["tx"]=="tx-04-14" && self.scenario["global_random"]!=true && self.scenario["native_random"]!=true { targets.push(("out/tx14-source/BOIStageAPI15-master","mods/stageapi15")); }
         let existing = self.game.join("Repentogon/isaac-cs/config.json");
@@ -388,6 +391,11 @@ impl Run {
                 .push(json!({"operation":"copy","source":s,"destination":d}));
         }
         self.deployed = true;
+        if self.report["tx"]=="tx-04-16" {
+            // 本次UI是必要产品依赖，临时撤销旧disable.it；完整目录已由恢复journal备份。
+            let marker=self.game.join("mods/isaac-cs-ui/disable.it");
+            if marker.exists(){fs::remove_file(marker).map_err(|e|e.to_string())?;}
+        }
         if matches!(
             self.report["tx"].as_str(),
             Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13" | "tx-04-14" | "tx-04-15")
@@ -568,7 +576,7 @@ impl Run {
     }
     // 读取和清理使用同一归属路径；测试不能因PID重用删除历史记录。
     fn trace_file(&self,pid:u32)->PathBuf {
-        if self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" { self.out.join("runtime-trace").join(format!("boot-{pid}.jsonl")) }
+        if self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-16" { self.out.join("runtime-trace").join(format!("boot-{pid}.jsonl")) }
         else { self.game.join(format!("Repentogon/isaac-cs/traces/boot-{pid}.jsonl")) }
     }
     fn collect(&self, pid: u32, label: &str) -> Result<()> {
@@ -1058,6 +1066,7 @@ impl Run {
     }
     // 所有场景在一个入口中顺序执行，不重试失败启动或失败验收。
     fn execute(&mut self) -> Result<()> {
+        if self.report["tx"]=="tx-04-16" { return self.execute_tx16(); }
         if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" || self.report["tx"] == "tx-04-13" || self.report["tx"] == "tx-04-14" || self.report["tx"] == "tx-04-15" { return self.execute_tx09(); }
         if self.report["tx"] == "tx-04-08" { return self.execute_tx08(); }
         if self.report["tx"] == "tx-04-07" {
@@ -1088,6 +1097,7 @@ impl Run {
     }
     // 清理先于报告分析，失败也关闭测试口并移除自己部署的夹具。
     fn finish(&mut self, result: Result<()>) -> Result<()> {
+        if self.report["tx"]=="tx-04-16" { return self.finish_tx09(result); }
         if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" || self.report["tx"] == "tx-04-13" || self.report["tx"] == "tx-04-14" || self.report["tx"] == "tx-04-15" { return self.finish_tx09(result); }
         if self.report["tx"] == "tx-04-08" { return self.finish_tx08(result); }
         if self.report["tx"] == "tx-04-07" {
@@ -1245,7 +1255,7 @@ fn entry() -> Result<()> {
     if args.get(0).map(String::as_str) != Some("e2e")
         || !matches!(
             args.get(1).map(String::as_str),
-            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13" | "tx-04-14" | "tx-04-15")
+            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13" | "tx-04-14" | "tx-04-15" | "tx-04-16")
         )
     {
         return Err("usage: harness e2e <tx-04-04|tx-04-05|tx-04-06|tx-04-07|tx-04-08> --game <game-root> --artifact-dir <new-directory> [--scenario <json>]".into());
@@ -1277,12 +1287,8 @@ fn entry() -> Result<()> {
         fs::create_dir(&out).map_err(|e|format!("new artifact directory: {e}"))?;
     } else { mkdir(&out)?; }
     let out = out.canonicalize().map_err(|e| e.to_string())?;
-    let repo = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf();
+    // 远端E2E节点可携带自己的目录，不能依赖构建机F盘路径。
+    let repo = option("--repo").map(PathBuf::from).unwrap_or_else(||PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf());
     let scenario_path = option("--scenario")
         .map(PathBuf::from)
         .unwrap_or_else(|| repo.join(format!("tools/harness/scenarios/{}.json", args[1])));
@@ -1296,6 +1302,21 @@ fn entry() -> Result<()> {
         let profile=option("--profile").unwrap_or_else(||"diagnostic".into());
         if !["diagnostic","production"].contains(&profile.as_str()) { return Err("unknown tx09 profile".into()); }
         scenario["production"] = json!(profile=="production");
+    }
+    if args[1]=="tx-04-16" {
+        scenario["node_role"]=json!(option("--node-role").unwrap_or_else(||"Local".into()));
+        scenario["host_address"]=json!(option("--host-address").unwrap_or_else(||"127.0.0.1".into()));
+        scenario["cohort"]=json!(option("--cohort").unwrap_or_else(||"local".into()));
+        if let Some(source)=option("--resume-from"){scenario["resume_local"]=json!(source);}
+        if let Some(path)=option("--host-hold"){scenario["host_hold"]=json!(path);}
+        let peers:u64=option("--peer-count").unwrap_or_else(||"3".into()).parse().map_err(|e|format!("peer count: {e}"))?;
+        if !(1..=3).contains(&peers){return Err("peer count must be 1..3".into())}scenario["peer_count"]=json!(peers);
+        if let Some(port)=option("--host-port") {
+            let port:u16=port.parse().map_err(|e|format!("host port: {e}"))?;
+            if port==0{return Err("zero host port".into())}scenario["host_port"]=json!(port);
+        }
+        if scenario["node_role"]=="Local" {scenario["peer_timeout_ms"]=json!(1500);}
+        if !["Local","Host","Client"].contains(&scenario["node_role"].as_str().unwrap_or("")){return Err("tx16 node role".into());}
     }
     write_json(&out.join("scenario.json"), &scenario)?;
     let save = PathBuf::from(env::var("USERPROFILE").map_err(|e| e.to_string())?)
@@ -1319,10 +1340,11 @@ fn entry() -> Result<()> {
         .unwrap_or_else(|_| Err("harness panic".into()));
     let result=run.finish(result);
     let remove_temporary=result.is_ok()&&run.report["remove_temporary_output"]==true;
+    let workspace_out=run.repo.join("out");
     drop(run); // Windows必须先关闭steps/transcript再清理临时目录。
     if remove_temporary {
         let resolved=out.canonicalize().map_err(|e|e.to_string())?;
-        let intended=PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().join("out").canonicalize().map_err(|e|e.to_string())?;
+        let intended=workspace_out.canonicalize().map_err(|e|e.to_string())?;
         if resolved==intended || !resolved.starts_with(&intended){return Err("temporary_cleanup_path_escape".into());}
         fs::remove_dir_all(resolved).map_err(|e|e.to_string())?;
     }

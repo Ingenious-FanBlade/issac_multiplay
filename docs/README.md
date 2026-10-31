@@ -20,6 +20,8 @@
 
 > **当前连续计划（2026-10-30，tx-04-09—tx-04-14）**：[四人、多身体与完整世界观测](design/observation-expansion/README.md)。用户确认顺延重号：09恢复四参与者及一人多EntityPlayer，10补全Entity，11补全Grid，12补全房间／楼层，13补全探索／离房保存／跨房玩家，14补全整局／随机选择／HUD／Mod状态。优先两套本地Wiki与公开Lua接口，不要求逐项逆向比对；暂不进入状态同步实现。六项均是待实施计划，本轮只编写文档、一次静态文档审阅。历史同号ASM patch记录保留且与新09分开标识。
 
+> **tx-04-14 Mod验收补充（2026-10-31）**：StageAPI自定义房间类型、带原生载体及无原生载体的CustomGrid、Lua附加状态与生命周期，纳入[具名Mod适配及同tx统一E2E](design/observation-expansion/run-presentation-mod-observation.md#51-stageapi自定义房间与customgrid必测适配)。当前仅补充计划，待tx-04-14实施后统一验收。
+
 > **状态同步前范围澄清（2026-10-30）**：[四人、世界覆盖与多Player归属](design/four-participant-state-sync-scope.md)。当前DLL仍为双人Authority/输入远端，无可玩Replica；min-read-v1不是整个可重建世界，Slot/Machine尚无专用schema，关系字段可读不等于双子支持。用户要求后续恢复四名参与者，本轮选择先明确现状和设计；后续按参与者/控制组/Player实体分离建模，四名参与者不等于四个Player实体。本轮无运行代码修改、构建或测试。
 
 > **tx-04-08 V12完成（2026-10-30）**：[结果、失败历史与同步提示](../artifacts/repentogon/tx-04-08-v12-e2e-03/README.md)。第三轮V12 PASS：3710条A/B tick、104条Ack、四个Recording/Closed输入窗口、5283组持久调用与9个原生窗口通过；338条加载期未知上下文查询保留UNKNOWN，逐条实际透传值均有限为零。两进程正常退出、文件变化符合原D18/D20/D27、环境恢复无误。前两轮同步提示/收尾目录与未知值见证失败、一次旧基线未覆盖的第三档尾字段变更保留FAIL；未改写存档或放宽白名单。其它V/L本次NOT_RUN。

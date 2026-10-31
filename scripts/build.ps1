@@ -1,4 +1,4 @@
-param([string]$RepentogonRoot='F:/projects_isaac/REPENTOGON-1.1.3', [switch]$BuildSdk)
+﻿param([string]$RepentogonRoot='F:/projects_isaac/REPENTOGON-1.1.3', [switch]$BuildSdk, [string]$HarnessOutput)
 $ErrorActionPreference='Stop'
 $repoRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 # 只构建；全部实现完成后另行执行唯一一次整体 E2E。
@@ -12,7 +12,10 @@ if($LASTEXITCODE) { throw 'IsaacCS configure failed' }
 if($LASTEXITCODE) { throw 'IsaacCS build failed' }
 & cargo build --manifest-path (Join-Path $repoRoot 'tools/harness/Cargo.toml') --release --locked --target i686-pc-windows-msvc --target-dir (Join-Path $repoRoot 'build/harness')
 if($LASTEXITCODE) { throw 'Harness build failed' }
-Copy-Item -LiteralPath (Join-Path $repoRoot 'build/harness/i686-pc-windows-msvc/release/harness.exe') -Destination (Join-Path $repoRoot 'out/repentogon/harness.exe')
+# 连续验收允许新编排器输出到另一文件，不覆盖仍在等待远端的房主进程。
+if(-not $HarnessOutput){$HarnessOutput=Join-Path $repoRoot 'out/repentogon/harness.exe'}
+elseif(-not [IO.Path]::IsPathRooted($HarnessOutput)){$HarnessOutput=Join-Path $repoRoot $HarnessOutput}
+Copy-Item -LiteralPath (Join-Path $repoRoot 'build/harness/i686-pc-windows-msvc/release/harness.exe') -Destination $HarnessOutput
 Copy-Item -LiteralPath (Join-Path $repoRoot 'build/repentogon/generated/hook-manifest.json') -Destination (Join-Path $repoRoot 'out/repentogon/hook-manifest.json')
 Copy-Item -LiteralPath (Join-Path $repoRoot 'build/repentogon/generated/hook-manifest.md') -Destination (Join-Path $repoRoot 'out/repentogon/hook-manifest.md')
 # tx-04-08：布局清单（字段偏移/来源/RTTI/常量）与 Hook 清单一同落到产物目录。

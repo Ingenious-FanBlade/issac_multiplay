@@ -183,7 +183,13 @@ impl Run {
             ("MenuBack-0", "256"),
         ];
         let mut configurations = vec![];
-        for name in ["inputconfigs.dat", "inputconfigs_rgon.dat"] {
+        // tx16只检查目标REPENTOGON实际加载的独立键位文件。官方1.1.3已将
+        // LoadButtonMaps/SaveButtonMaps改到inputconfigs_rgon.dat，原版文件不是必需项。
+        // 历史tx仍保留原验收清单；不创建空文件、不复制或修改用户键位。
+        let binding_files: &[&str] = if self.report["tx"]=="tx-04-16" {
+            &["inputconfigs_rgon.dat"]
+        } else { &["inputconfigs.dat", "inputconfigs_rgon.dat"] };
+        for &name in binding_files {
             let path = self.save.join(name);
             let content = read(&path)?;
             fs::copy(&path, self.out.join(name)).map_err(|e| e.to_string())?;

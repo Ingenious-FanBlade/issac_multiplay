@@ -9,7 +9,7 @@
 namespace cs::net {
 
 inline constexpr std::size_t kReceiveCapacity = 256, kSendCapacity = 256;
-// 配置只在 Start 前设置；本模块只实现 DLL 内的 Authority，Remote 留给 Rust。
+// 配置只在Start前设置；Authority同时接受ICSR真实游戏Client与既有输入工具。
 struct WorkerConfig {
   std::string bind_address = "0.0.0.0";
   std::uint16_t port = 27090;

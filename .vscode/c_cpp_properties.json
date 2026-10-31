@@ -1,0 +1,40 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "name": "Win32 (MSVC v143, C++20)",
+            "compilerPath": "D:/VisualStudio2022/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x86/cl.exe",
+            "intelliSenseMode": "windows-msvc-x86",
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "includePath": [
+                "${workspaceFolder}/mod/src",
+                "${workspaceFolder}/build/repentogon/generated",
+                "${workspaceFolder}/../REPENTOGON-1.1.3/include",
+                "${workspaceFolder}/../REPENTOGON-1.1.3/libzhl",
+                "${workspaceFolder}/../REPENTOGON-1.1.3/libs/rapidjson/include",
+                "${workspaceFolder}/../REPENTOGON-1.1.3/libs/rapidxml",
+                "${workspaceFolder}/../REPENTOGON-1.1.3/libs/lua"
+            ],
+            "defines": [
+                "WIN32",
+                "_WINDOWS",
+                "WIN32_LEAN_AND_MEAN",
+                "NOMINMAX",
+                "_CRT_SECURE_NO_WARNINGS"
+            ],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/mod/src",
+                    "${workspaceFolder}/build/repentogon/generated",
+                    "${workspaceFolder}/../REPENTOGON-1.1.3/include",
+                    "${workspaceFolder}/../REPENTOGON-1.1.3/libzhl",
+                    "${workspaceFolder}/../REPENTOGON-1.1.3/libs/rapidjson/include",
+                    "${workspaceFolder}/../REPENTOGON-1.1.3/libs/rapidxml",
+                    "${workspaceFolder}/../REPENTOGON-1.1.3/libs/lua"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ]
+}

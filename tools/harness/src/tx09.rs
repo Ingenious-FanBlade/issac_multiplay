@@ -771,6 +771,15 @@ impl Run {
         self.report["failure"] = json!(result.as_ref().err());
         let cleanup = self.cleanup();
         let restore = self.restore_environment_tx08();
+        // tx16虚拟机模式的options独立恢复，即使部署恢复失败也继续还原原选项。
+        let restore = if self.report["tx"]=="tx-04-16" {
+            let background=self.restore_background_options_tx16();
+            match (restore,background) {
+                (Ok(()),Ok(()))=>Ok(()),
+                (Err(a),Err(b))=>Err(format!("{a}; {b}")),
+                (Err(e),_)|(_,Err(e))=>Err(e),
+            }
+        } else {restore};
         let helper = self.restore_helper_tx08();
         self.report["cleanup_errors"] = json!([
             cleanup.as_ref().err(),
@@ -784,7 +793,7 @@ impl Run {
                     &self.out.join("save_before"),
                     &self.out.join("save_after"),
                 )?;
-                if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" { self.save_fields_tx10(&mut changes)?; }
+                if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-16" { self.save_fields_tx10(&mut changes)?; }
                 else { self.apply_recorded_baseline_tx05(&mut changes)?; }
                 let allowed = changes
                     .as_array()
@@ -823,6 +832,7 @@ impl Run {
             self.report["failure"]
         );
         if pass {
+            if self.report["tx"]=="tx-04-16" && self.scenario["node_role"]!="Local" { return Ok(()); }
             // 临时目录只由本次进程创建，先核定路径再删除；日志与备份没有永久artifact要求。
             let resolved = self.out.canonicalize().map_err(|e| e.to_string())?;
             // Windows canonicalize带\\?\前缀；父目录也须同样规范化后比较，不能混用普通路径。

@@ -110,6 +110,10 @@ struct Input {
 // accepted/processed 为 sequence 高水位，processed_source
 // 为本次实际来源，可为零。
 struct Ack {
+  // 仅ICSR roster使用的主线程输入资格；历史ICSN布局保持不变。
+  bool input_enabled = false;
+  // ICSR使用的主线程快照时间；不写入历史ICSN编码，也不作为Authority时钟。
+  std::uint64_t server_sample_ms = 0;
   std::uint64_t server_tick = 0, client_id = kClients[1], accepted = 0,
                 processed = 0, processed_tick = 0, processed_source = 0,
                 generation = 0, rejected_count = 0;

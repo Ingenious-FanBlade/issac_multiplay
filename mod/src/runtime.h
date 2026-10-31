@@ -11,7 +11,7 @@
 #include <winsock2.h>
 
 namespace cs {
-inline constexpr char Version[] = "0.4.0-tx-04-10";
+inline constexpr char Version[] = "0.4.0-tx-04-16";
 // Group 决定能力组：某组 binding 不符时只关闭该组。
 // Observe 是 tx-04-07 新增的只读观察组；World 是 tx-04-08 的 world_record
 // 观察组（19 项观察语义），它有独立的 world 故障策略，不进入会话失败路径。

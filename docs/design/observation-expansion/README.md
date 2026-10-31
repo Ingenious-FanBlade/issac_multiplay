@@ -29,7 +29,7 @@ tx-04-09已交付四人及多身体输入支持，后续依次实施各域完整
 | tx-04-11 | GridEntity、全部公开派生接口及其关联数据的完整观测 | [GridEntity 观测](grid-observation.md)／[实现与结果](tx-04-11-implementation.md) | 构建及统一E2E 5/5通过，未逐一执行范围另列 |
 | tx-04-12 | 房间身份与构建、房间进度、房间环境、楼层结构的完整观测 | [房间及楼层](room-level-observation.md)、[实现与验收](tx-04-12-implementation.md) | [特殊房间及Greed 206项](tx-04-12-special-room-coverage.md)全部完成，统一E2E 7/7 PASS |
 | tx-04-13 | 地图与探索、离开后的房间、玩家与控制关系、玩家跨房状态的完整观测 | [探索及跨房玩家](exploration-player-observation.md)／[实现与验收](tx-04-13-implementation.md) | 统一E2E 5/5 PASS、31/31场景；实际范围和边界另列 |
-| tx-04-14 | 整局规则与进度、随机与选择系统、HUD 与独立表现、Mod 自定义状态的完整观测 | [整局、表现及 Mod](run-presentation-mod-observation.md) | 待实现、待整体 E2E |
+| tx-04-14 | 整局规则与进度、随机与选择系统、HUD 与独立表现、Mod 自定义状态的完整观测 | [整局、表现及 Mod](run-presentation-mod-observation.md) | 待实现、待整体 E2E；含[StageAPI自定义房间／CustomGrid具名Mod适配](run-presentation-mod-observation.md#51-stageapi自定义房间与customgrid必测适配) |
 
 实施按上述次序连续推进；自然的数据依赖在各计划中说明，不另设 gate 或解锁条件。每个 tx 是一个完整实质目标，内部小节不另拆为增加测试次数的编号。完成这六项仍只代表输入能力与观测能力的对应交付，不代表可玩 Replica 已完成。
 

@@ -1,5 +1,6 @@
 // tx-04-08 E：main 最后的关闭判断常驻桥。原 cmp 只执行一次，未请求关闭时纯透传。
 #include "runtime.h"
+#include "game/bridge.h"
 #include "ops/world_commands.h"
 #include "ASMPatcher.hpp"
 #include <string>
@@ -8,7 +9,11 @@ namespace {
 #include "exit_patch.inc"
 uintptr_t exit_resume = 0, exit_loop = 0;
 bool attempted = false, installed = false;
-extern "C" bool __stdcall CsWorldExitDecision() noexcept { return WorldProcessExitDecision(); }
+extern "C" bool __stdcall CsWorldExitDecision() noexcept {
+  const bool client_ready=game::ClientProcessExitDecision();
+  const bool world_ready=WorldProcessExitDecision();
+  return client_ready&&world_ready;
+}
 
 // J273 main 的 EAX 已由原指令载入窗口；不重新解释/写 GLFW 结构。
 // 原 cmp 与条件跳转完整搬移。只有原 ZF=1 的退出请求才调用自有策略。

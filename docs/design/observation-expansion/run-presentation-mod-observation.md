@@ -4,6 +4,8 @@
 
 日期：2026-10-30。状态：待实现、待整体 E2E。遵循[共同观测合同](README.md)，本轮只规划。
 
+2026-10-31补充：按用户安排，StageAPI自定义房间类型与CustomGrid作为本tx的具名Mod适配和必测样本，纳入全目标实现后的统一E2E；本次仅更新计划，不启动实现或实机测试。tx-04-11／12的原生Grid／Room验收不代替这部分Lua状态观测。
+
 架构按[按域拆分详细设计](domain-observation-architecture.md)实施，本 tx 接入 run、random、presentation、mod 四域。正式状态、真实事件和 render 来源使用共同记录合同及各自 scope；不把所有数据强塞入每 tick 的 Entity/Grid 快照。
 
 ## 1. 完整目标与 Wiki 入口
@@ -62,9 +64,28 @@ EntitySaveStateManager 优先使用已有内容查询；Wiki 中 `GetEntityData(
 
 这扩展的是**观测能力**，不自动宣布任意第三方 gameplay Mod 可在 C/S 或未来 Replica 上运行。自有观测 Lua、纯 UI Lua、E2E 场景夹具与第三方 gameplay Mod 分开登记，避免沿用旧“界面 mod 不注册 gameplay 回调”规则而把正式只读采集一概排除，也避免将只读观测放宽成玩法修改。
 
+### 5.1 StageAPI自定义房间与CustomGrid必测适配
+
+将真实StageAPI及使用它定义房间／CustomGrid的测试Mod纳入声明适配集合，记录实际StageAPI／测试Mod版本、命名空间、配置资源、读取入口及支持范围。使用本工程目标REPENTOGON与游戏版本执行，不能只用自造同名Lua表代替框架。资料入口为[StageAPI文档](https://github.com/Meowlala/BOIStageAPI15/blob/master/doc.md)、[CustomGrid实现](https://github.com/Meowlala/BOIStageAPI15/blob/master/scripts/stageapi/grid/customgrids.lua)和[房间状态实现](https://github.com/Meowlala/BOIStageAPI15/blob/master/scripts/stageapi/room/levelRoom.lua)，落地时核对实际装载版本的接口与语义。
+
+原生载体引用已有room／level／grid规范主体，不复制成第二份原生对象；自定义类型、框架逻辑房间／网格实例、配置及附加状态归mod域。自定义类型标识不强转为原生枚举，多个自定义类型共用一个原生类型时仍分别表达。逻辑主体按Mod命名空间、run／floor／dimension／room归属及实际生命周期建立；房号、格号、类型名称或Lua地址均不能单独充当跨生命周期唯一ID。
+
+| 必测范围 | 实际场景与观测判据 |
+| --- | --- |
+| 自定义房间类型 | 至少两种不同逻辑房间类型共用同一原生RoomType；分别记录StageAPI逻辑类型／TypeOverride及实际原生类型、布局配置、房间归属和附加状态。切换、离房及回访后，不能只读Room:GetType而将两者合并 |
+| 有原生载体的CustomGrid | 不同CustomGrid名称共用同一BaseType，并覆盖BaseVariant与附加状态差异；记录实际底层Grid引用、自定义配置／类型及实例。Lua状态改变而原生类型不变时，正式Mod样本仍须表达变化 |
+| 无原生载体的CustomGrid | 不指定BaseType并实际创建GridEntity为nil的CustomGrid；通过StageAPI自身集合观测成员、位置、逻辑身份和状态，明确无原生载体关系，不能因原生Grid枚举没有它而遗漏、补造原生类型或误判整个对象不存在 |
+| 临时与持久状态 | 分别观察实例Data、PersistentData及测试Mod自有状态；实际修改、离房／回访时核对各自保留、重建和恢复语义。保存／Continue只在已有授权且实际发生的流程中检查，不为读取主动写存档或创建缺失表 |
+| 生命周期与引用 | 创建、移除、同格重建、自定义类型／载体更换、切房／换层及run结束；旧实例退休，新实例不因同格／同名继承身份。原生载体与Lua逻辑对象按各自实际寿命关联，nil／未解析／已退休分别表达 |
+| 图、事件及适配缺口 | 覆盖共享／循环表、预算截断、不可序列化值和失效引用；核对真实框架／Mod事件、RNG及表现关联。缺少适配、接口不可用或Mod样本不完整须显式报告，原生Room／Grid的Complete不能替代Mod完整性 |
+
+读取发生在已声明的主线程阶段，只复制已有框架状态；初始化、生成、更新、删除及玩法回调仍由真实Mod／测试夹具触发。观察器不为采集再调用StageAPI生成／Spawn／Update／保存方法或推进随机。普通后态、生命周期、保存恢复和render事件使用各自scope，并通过有效引用衔接；跨scope数据不能拼成虚假的同窗后态。
+
 ## 6. 一次整体 E2E 与交付
 
 一个统一入口覆盖整局规则／概率条件变化、暂停／加载／计时差异、具名随机流当前状态和真实消费、池权重／移除／黑名单／重掷、药丸鉴定、HUD／独立 Sprite／提示／音乐与一次性事件，以及 Mod 表／保存扩展／RNG／资源和退休。
+
+第5.1节StageAPI各项与其他Mod状态在本tx同一统一入口验收，不另回tx-04-11／12重跑原生枚举清单，也不提前单独试跑StageAPI。通过判据同时核对原生载体和正式mod域样本；无载体CustomGrid必须独立进入Mod成员集合。续测复用已通过且未受修改影响的项目，覆盖修复影响项及未完成项，最后统一汇总全目标结果；正常临时材料用后清理。
 
 夹具制造正常玩法变化，观察者不制造额外随机、抽取、表创建、绘制或持久副作用。保留实际调用／结果及有来源依据的前后记录，不额外消费随机来构造所谓对照。输出跨域总目录、随机流及池模型、时钟表、表现状态／事件、Mod 适配 schema 与原始样本、未暴露和未观察内容。
 

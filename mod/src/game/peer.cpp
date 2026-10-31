@@ -227,14 +227,17 @@ void PublishPeer(SessionRuntime &r) noexcept {
     net::protocol::Ack ack;
     ack.roster_mask = roster;
     ack.server_tick = r.clock.Completed();
+    ack.server_sample_ms = GetTickCount64();
     ack.client_id = progress.client;
     ack.accepted = progress.last_accepted_sequence;
     ack.processed = progress.last_processed_sequence;
     ack.processed_tick = progress.last_processed_tick;
     ack.processed_source = progress.last_processed_source_sequence;
     if (r.session.AcceptsInput() && !r.blocks &&
-        r.players[ordinal].BoundValid())
+        r.players[ordinal].BoundValid()) {
       p.advertised_generation = progress.generation;
+      ack.input_enabled = true;
+    }
     ack.generation = p.advertised_generation;
     ack.rejected_count = progress.rejected_count;
     ack.session_state = r.session.Status().state;

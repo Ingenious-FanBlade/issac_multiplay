@@ -7,6 +7,9 @@ set(REPENTOGON_ROOT "F:/projects_isaac/REPENTOGON-1.1.3" CACHE PATH "REPENTOGON 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
+# 新版 STL 的 constexpr mutex 初始化依赖新版 MSVCP140；游戏可先加载旧运行库。
+# 统一使用微软提供的兼容构造路径，让实际运行库初始化锁；所有链接单元保持一致。
+add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 # core 独立使用 C++20 标准库；不继承 SDK include、Win32 宏或游戏绑定依赖。
 add_library(isaac_cs_core STATIC src/core/session.cpp src/core/tick_clock.cpp
   src/core/tick_pipeline.cpp src/core/input_core.cpp src/core/participant.cpp)
@@ -43,6 +46,9 @@ target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/
 target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_compile_definitions(isaac_cs_replica PUBLIC _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
 target_link_libraries(isaac_cs_replica PUBLIC isaac_cs_world)
+# 真实游戏连接复用复制合同，网络后台不引用SDK或游戏对象。
+target_sources(isaac_cs_net PRIVATE src/net/live.cpp)
+target_link_libraries(isaac_cs_net PUBLIC isaac_cs_replica)
 # E2E工具与正式DLL分开打包；同一库用于正式主线程纯值适配和统一验收。
 add_executable(replica-contract ../tools/replica-contract/main.cpp)
 target_link_libraries(replica-contract PRIVATE isaac_cs_replica)
@@ -61,6 +67,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/world_sources/random_owners.cpp src/hooks/random_runtime.cpp
   "${REPENTOGON_ROOT}/libzhl/hde32/src/hde32.cpp"
   src/game/device_k.cpp src/game/join.cpp src/game/peer.cpp src/game/input_lease.cpp src/game/persistence.cpp
+  src/game/client.cpp
   src/ops/config.cpp src/ops/trace.cpp src/ops/command.cpp src/ops/world_commands.cpp src/ops/control_port.cpp
   "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc"
   "${GENERATED}/exit_patch.inc"

@@ -8,6 +8,7 @@
 #include "net/worker.h"
 #include "net/endpoint.h"
 #include "net/queue.h"
+#include "net/live.h"
 #include <algorithm>
 #include <atomic>
 #include <cstring>
@@ -59,6 +60,10 @@ struct Worker::State {
   std::array<std::unique_ptr<State>, core::kMaximumParticipants> peers{};
   sockaddr_in peer{};
   Endpoint endpoint{};
+  // ICSR与历史输入工具共用监听socket，但每槽只选择一种协议与独立身份。
+  std::unique_ptr<live::HostPeer> game_peer;
+  bool game_candidate = false;
+  std::uint64_t candidate_since = 0;
   SpscQueue<ReceivedInput, kReceiveCapacity> incoming;
   SpscQueue<Ack, kSendCapacity> outgoing;
   std::atomic<std::uint32_t> stop{0};
@@ -205,6 +210,12 @@ struct Worker::State {
     SendMessage(m, now);
   }
   void BestEffortBye(ByeReason reason, std::uint64_t now) noexcept {
+    if (game_peer) {
+      try { SendGame(game_peer->Bye(ByeReasonName(reason)), now); }
+      catch (...) { CountError(Error::Payload); }
+      published_state.store(PeerState::Retired, std::memory_order_release);
+      return;
+    }
     if (endpoint.State() != PeerState::Established)
       return;
     Finish(reason); // 发送前固定真实原因，后续 sendto 失败只能增加发送诊断。
@@ -234,6 +245,51 @@ struct Worker::State {
     }
     endpoint.CancelPending(); // 三次都失败时也不留下未提交的包。
     published_state.store(endpoint.State(), std::memory_order_release);
+  }
+
+  // 正式ICSR数据报仍受1200字节限制；sendto失败不触及主线程对象。
+  void SendGame(const live::Packets &packets, std::uint64_t now) noexcept {
+    for (const auto &bytes : packets) {
+      if (bytes.size() > kMaximumPacket) { Finish(ByeReason::InternalFailure); return; }
+      Packet packet{}; packet.size = bytes.size();
+      std::copy(bytes.begin(), bytes.end(), packet.bytes.begin());
+      SendPacket(packet, now);
+    }
+  }
+  void ReceiveGame(std::span<const std::uint8_t> bytes, const sockaddr_in &source,
+                   std::uint64_t now) noexcept {
+    if (terminal.load(std::memory_order_acquire) != TerminalReason::None) return;
+    try {
+      if (!game_peer) {
+        std::uint64_t session = 0; std::memcpy(&session, identity.session.data(), sizeof(session));
+        if (!session) session = 1;
+        game_peer = std::make_unique<live::HostPeer>(session, ordinal);
+        game_candidate = true; candidate_since = now; peer = source;
+      }
+      ReceivedInput input{};
+      const bool delivered = game_peer->Receive(bytes, now, input, identity);
+      SendGame(game_peer->Reply(), now);
+      if (game_peer->Nonce()) {
+        locked = true; game_candidate = false;
+        peer_ip.store(ntohl(peer.sin_addr.s_addr), std::memory_order_relaxed);
+        peer_port.store(ntohs(peer.sin_port), std::memory_order_relaxed);
+        published_locked.store(true, std::memory_order_release);
+      }
+      if (delivered) incoming.TryPush(input);
+      if (game_peer->Stopped()) {
+        Finish(ByeReason::PeerBye);
+        published_state.store(PeerState::Retired, std::memory_order_release);
+      }
+      last_receive_ms.store(game_peer->LastReceive(), std::memory_order_relaxed);
+      valid_packets.fetch_add(1, std::memory_order_relaxed);
+    } catch (const std::exception &error) {
+      CountError(Error::Payload);
+      try { if(game_peer)SendGame(game_peer->Reject(error.what()),now); }catch(...){}
+      if (locked) { Finish(ByeReason::PeerProtocol, Error::Payload); BestEffortBye(ByeReason::PeerProtocol, now); }
+      else { game_peer.reset(); game_candidate = false; }
+    } catch (...) {
+      Finish(ByeReason::InternalFailure,Error::Payload);
+    }
   }
 
   // 已锁定地址之外的包一律在解析前丢弃，不能借错误报文结束合法对端的会话。
@@ -337,12 +393,47 @@ struct Worker::State {
       }
       if (size != sizeof(source) || source.sin_family != AF_INET)
         continue;
+      const auto packet = std::span<const std::uint8_t>(bytes.data(), std::size_t(count));
+      const auto now = GetTickCount64();
+      // 未完成的分片候选最多三个、每个64KiB；超时释放，不永久占用参与者。
+      for (unsigned i=1;i<peers.size();++i) {
+        auto &p=*peers[i];
+        if (p.game_candidate && now-p.candidate_since>=1000) {
+          p.game_peer.reset();p.game_candidate=false;
+        }
+      }
       State *target = nullptr;
       for (unsigned i = 1; i < peers.size(); ++i)
-        if (peers[i]->locked && SameAddress(peers[i]->peer, source)) {
+        if ((peers[i]->locked || peers[i]->game_candidate) && SameAddress(peers[i]->peer, source)) {
           target = peers[i].get();
           break;
         }
+      if (live::IsPacket(packet)) {
+        if (!target) for (unsigned i=1;i<peers.size();++i) {
+          auto &p=*peers[i];
+          if (!p.locked && !p.game_candidate && p.terminal.load(std::memory_order_acquire)==TerminalReason::None) {
+            target=&p;break;
+          }
+        }
+        if (target && (!target->locked || target->game_peer)) {
+          target->received_packets.fetch_add(1,std::memory_order_relaxed);
+          target->received_bytes.fetch_add(count,std::memory_order_relaxed);
+          target->ReceiveGame(packet,source,now);
+          if (target->game_peer && target->game_peer->Nonce())
+            for (unsigned i=1;i<peers.size();++i)
+              if (peers[i].get()!=target && peers[i]->game_peer &&
+                  peers[i]->game_peer->Nonce()==target->game_peer->Nonce()) {
+                target->Finish(ByeReason::PeerProtocol,Error::Identity);
+                target->BestEffortBye(ByeReason::PeerProtocol,now);
+              }
+          // 只有完整协商/nonce互斥完成后才向主线程发布，不能先Join再撤销。
+          if(target->game_peer&&target->game_peer->Established()&&
+             target->terminal.load(std::memory_order_acquire)==TerminalReason::None)
+            target->published_state.store(PeerState::Established,std::memory_order_release);
+        } else foreign_packets.fetch_add(1,std::memory_order_relaxed);
+        continue;
+      }
+      if (target && target->game_peer) { foreign_packets.fetch_add(1,std::memory_order_relaxed);continue; }
       if (!target) {
         Message hello{};
         if (Decode({bytes.data(), static_cast<std::size_t>(count)}, hello) !=
@@ -354,7 +445,7 @@ struct Worker::State {
         }
         auto &candidate =
             *peers[static_cast<std::size_t>(hello.header.sender - 1)];
-        if (candidate.locked ||
+        if (candidate.locked || candidate.game_candidate ||
             candidate.terminal.load(std::memory_order_acquire) !=
                 TerminalReason::None) {
           foreign_packets.fetch_add(1, std::memory_order_relaxed);
@@ -377,6 +468,19 @@ struct Worker::State {
     }
   }
   void SendBatch(std::uint64_t now) noexcept {
+    if (game_peer) {
+      if (!game_peer->Established()) return;
+      try {
+        Ack ack{};
+        // 每轮只发布最新完整快照，避免高帧率主线程造成无界发送；输入ACK独立产生。
+        bool have = false;
+        for (unsigned i=0;i<kSendBudget && outgoing.TryPop(ack);++i) {heartbeat=ack;have=true;}
+        if(!(heartbeat.roster_mask&(1u<<ordinal)))return;
+        if (have || now-last_sent_ms>=config.heartbeat_ms)
+          SendGame(game_peer->Progress(heartbeat),now);
+      } catch (...) { Finish(ByeReason::InternalFailure,Error::Payload); }
+      return;
+    }
     if (endpoint.State() != PeerState::Established)
       return;
     // 每个主线程发布值都按顺序验证；socket 背压失败时保留最后的有效快照作心跳。
@@ -452,7 +556,8 @@ struct Worker::State {
         if (p.terminal.load(std::memory_order_acquire) != TerminalReason::None)
           continue;
         const auto requested = p.stop.load(std::memory_order_acquire);
-        if (requested || p.endpoint.TimedOut(now)) {
+        const bool timed_out = p.game_peer ? p.game_peer->LastReceive() && now-p.game_peer->LastReceive()>=config.peer_timeout_ms : p.endpoint.TimedOut(now);
+        if (requested || timed_out) {
           const auto reason = requested ? static_cast<ByeReason>(requested)
                                         : ByeReason::PeerTimeout;
           p.Finish(reason);
@@ -467,7 +572,7 @@ struct Worker::State {
             p.BestEffortBye(ByeReason::InternalFailure, now);
             p.endpoint.Fail();
           }
-          p.published_state.store(p.endpoint.State(),
+          p.published_state.store(p.game_peer ? PeerState::Retired : p.endpoint.State(),
                                   std::memory_order_release);
         }
       }
@@ -494,7 +599,7 @@ struct Worker::State {
         p.BestEffortBye(reason, GetTickCount64());
         p.endpoint.Retire();
       }
-      p.published_state.store(p.endpoint.State(), std::memory_order_release);
+      p.published_state.store(p.game_peer ? PeerState::Retired : p.endpoint.State(), std::memory_order_release);
       p.running.store(false, std::memory_order_release);
     }
     CloseTransport();

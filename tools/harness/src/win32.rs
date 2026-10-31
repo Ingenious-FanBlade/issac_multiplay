@@ -9,12 +9,18 @@ use std::{
     path::Path,
     path::PathBuf,
     ptr::null_mut,
+    sync::atomic::{AtomicBool, Ordering},
     thread,
     time::UNIX_EPOCH,
     time::{Duration, Instant},
 };
 type Handle = *mut c_void;
 type Bool = i32;
+// 编排器前台策略按本次进程设置；关闭后所有发键/截图只检查现有前台，绝不激活窗口。
+static AUTO_FOCUS: AtomicBool = AtomicBool::new(true);
+pub fn set_auto_focus(enabled: bool) {
+    AUTO_FOCUS.store(enabled, Ordering::Relaxed);
+}
 #[repr(C)]
 #[derive(Default)]
 struct StartupInfo {
@@ -682,6 +688,12 @@ pub fn focus_state(window: usize) -> Value {
 }
 pub fn focus(window: usize) -> Result<(), String> {
     unsafe {
+        if GetForegroundWindow() == window as _ {
+            return Ok(());
+        }
+        if !AUTO_FOCUS.load(Ordering::Relaxed) {
+            return Err("game window is not foreground; automatic activation disabled".into());
+        }
         ShowWindow(window as _, 9);
         for _ in 0..50 {
             SetForegroundWindow(window as _);

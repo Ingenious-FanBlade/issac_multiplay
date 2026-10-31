@@ -86,6 +86,12 @@ bool PrepareBindings() {
     uintptr_t rva;
     const char *pattern;
   };
+  // Client独立输入必须包含原生窗口消息前端；只调低层设备更新会永久采到旧键盘状态。
+  if (!PatternMatches(offset::ClientInputPump,
+                      "80 3D ?? ?? ?? ?? 00 56 8B F1 75 1C 6A 00 68 01 00 01 00 E8")) {
+    Capabilities[size_t(Group::Input)] = false;
+    CapabilityReasons[size_t(Group::Input)] += "client_input_pump:binding_mismatch;";
+  }
   const Dependency device[] = {
 #include "binding_v1_9_7_12.inc"
   };

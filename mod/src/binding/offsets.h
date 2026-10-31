@@ -5,6 +5,8 @@ namespace cs::offset {
 inline constexpr uintptr_t Game = 0x7E49F4, Manager = 0x7E4A1C,
                            LuaEngine = 0x7E4A0C;
 inline constexpr uintptr_t InputManager = 0x7CE438;
+// J273输入前端：先泵窗口/控制器事件，再进入既有InputManagerUpdate，不更新世界。
+inline constexpr uintptr_t ClientInputPump = 0x5EC130;
 // tx-04-04 静态复核：Console+0x104 为 std::string*，旧资料的 0x68158 有误。
 inline constexpr uintptr_t GameConsole = 0x67FD4, CommandCapture = 0x680D8;
 inline constexpr uintptr_t GameStateFlags = 0x25AC0, RunActive = 0x25B02;

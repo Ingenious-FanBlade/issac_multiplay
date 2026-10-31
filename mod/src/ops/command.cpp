@@ -1,5 +1,6 @@
 #include "binding/offsets.h"
 #include "game/bridge.h"
+#include "game/client.h"
 #include "game/context.h"
 #include "game/lifecycle.h"
 #include "game/persistence.h"
@@ -26,6 +27,7 @@ struct Mutation {
     StopHost,
     SoloStart,
     SoloStop,
+    Client,
     Role,
     WorldStart,
     WorldStop,
@@ -35,6 +37,7 @@ struct Mutation {
   int character;
   std::uint32_t generation = 0;
   char label[65]{};
+  char address[16]{};
 };
 Ring<Mutation, 64> mutations;
 Ring<PortRequest, 32> port_requests;
@@ -43,6 +46,7 @@ std::atomic<uint64_t> next_id{1}, queue_dropped{};
 uint64_t frame = 0;
 unsigned frame_depth = 0;
 bool pending_host_start = false, pending_solo_start = false;
+bool pending_client_start = false, native_frame = true;
 bool pending_world_start = false;
 std::uint32_t world_generation = 0;
 std::uint64_t pending_world_request = 0;
@@ -56,6 +60,7 @@ std::string state() {
   for (auto c : Capabilities)
     if (!c)
       return "Disabled";
+  if (game::ClientBusy()) return game::ClientStateName();
   return game::StateName();
 }
 // 所有来源共用参数解析；变更入队，status/counters 读帧尾快照，witness
@@ -89,6 +94,26 @@ std::string Execute(std::string_view text, const char *source) {
                      !parse(value_text, value)
                  ? "ok=0\nerror=arguments\n"
                  : TestWorldCommand(source, token, generation, mode, value);
+  } else if (verb == "client") {
+    // 地址和设备key只作连接配置；Client不在本机创建Player或载入Continue。
+    std::string address, port_text, key_text, trailing;
+    in >> address >> port_text >> key_text >> trailing;
+    unsigned port=0;int key=0;
+    const auto p=std::from_chars(port_text.data(),port_text.data()+port_text.size(),port);
+    bool valid=!port_text.empty()&&p.ec==std::errc{}&&p.ptr==port_text.data()+port_text.size()&&port>0&&port<=65535&&
+               !address.empty()&&address.size()<16&&address.find_first_not_of("0123456789.")==std::string::npos&&trailing.empty();
+    if(!key_text.empty()) {const auto k=std::from_chars(key_text.data(),key_text.data()+key_text.size(),key);
+      valid=valid&&k.ec==std::errc{}&&k.ptr==key_text.data()+key_text.size()&&key>=0&&key<=255;}
+    if(!valid)result="ok=0\nerror=arguments\n";
+    else if(state()=="Disabled")result="ok=0\nerror=capabilities_unavailable\n";
+    else if(game::Busy()||game::ClientBusy()||pending_host_start||pending_solo_start||pending_client_start||WorldCommandBusy()||pending_world_start)
+      result="ok=0\nerror=busy\n";
+    else if(game::RunActive())result="ok=0\nerror=client_requires_stable_menu\n";
+    else {
+      Mutation m{next_id.fetch_add(1),Mutation::Kind::Client,port,key};strcpy_s(m.address,address.c_str());
+      if(mutations.Push(m)){pending_client_start=true;result="ok=1\nqueued="+std::to_string(m.id)+"\n";}
+      else {++queue_dropped;result="ok=0\nerror=queue_full\n";}
+    }
   } else if (verb == "world") {
     std::string action, label, trailing;
     in >> action >> label >> trailing;
@@ -108,7 +133,7 @@ std::string Execute(std::string_view text, const char *source) {
                    : WorldCommandStatus();
     } else if (action != "start" && action != "stop" && action != "checkpoint")
       result = "ok=0\nerror=unknown_world_verb\n";
-    else if (action == "start" && (WorldCommandBusy() || pending_world_start))
+    else if (action == "start" && (WorldCommandBusy() || pending_world_start || game::ClientBusy() || pending_client_start))
       result = "ok=0\nerror=busy\n";
     else if (action == "start" && WorldStartError())
       result = "ok=0\nerror=" + std::string(WorldStartError()) + "\n";
@@ -222,7 +247,7 @@ std::string Execute(std::string_view text, const char *source) {
     else if ((verb == "host" || start_solo) && state() == "Disabled")
       result = "ok=0\nerror=capabilities_unavailable\n";
     else if (((verb == "host" || start_solo) &&
-              (game::Busy() || pending_host_start || pending_solo_start)) ||
+              (game::Busy() || game::ClientBusy() || pending_client_start || pending_host_start || pending_solo_start)) ||
              (solo && !start_solo && (game::HostBusy() || pending_host_start)))
       result = "ok=0\nerror=busy\n";
     else if (start_solo && !game::RunActive())
@@ -252,9 +277,10 @@ std::string Execute(std::string_view text, const char *source) {
     else if (verb == "version")
       result = std::string("ok=1\ncommand_version=1\ndll_version=") + Version +
                "\nrepentogon_version=" + RepentogonVersion + "\n";
-    else if (verb == "status" || verb == "counters") {
+    else if (verb == "status" || verb == "counters" || verb == "ui_status") {
+      if(verb=="ui_status")game::ClientUiHeartbeat();
       std::lock_guard lock(snapshot_lock);
-      result = verb == "status" ? status_snapshot : counter_snapshot;
+      result = verb == "counters" ? counter_snapshot : status_snapshot;
     } else if (verb == "witness") {
       // Lua 在 Shooting 内观测激光时不能使用上一轮 status_snapshot 的 frame。
       // 此接口只复制当前主线程的编号/代次/阻断值，不读取蓄力或写入任何游戏状态。
@@ -279,7 +305,9 @@ std::string Execute(std::string_view text, const char *source) {
   // 记录所有命令来源及 Q14 的 Game 指针；cs 不进入原生命令分支。
   // status/counters 的完整响应走控制口；trace 只保留响应长度与结果，避免
   // 大快照挤入单个 3500 字节事件被截断。其它命令继续保留原始结果。
-  if (verb == "status" || verb == "counters")
+  if (verb == "ui_status") {
+    // UI只读刷新不是逐tick诊断，不向生产日志写每帧状态查询明细。
+  } else if (verb == "status" || verb == "counters")
     Trace("command",
           "source=%s text=%.*s result_logged=0 result_bytes=%zu "
           "result_ok=%u g_game=%p frame=%llu",
@@ -361,6 +389,7 @@ void PublishStatus() noexcept {
     s += TraceFields();
     s += MenuStatus(run);
     s += game::StatusFields();
+    s += game::ClientFields();
     for (size_t i = 0; i < Capabilities.size(); ++i) {
       s += "capability." + std::string(GroupNames[i]) + "=" +
            (Capabilities[i] ? "1" : "0") + "\n";
@@ -391,8 +420,11 @@ void FrameBegin() noexcept {
     Trace("runtime_version", "repentogon=%s", RepentogonVersion.c_str());
   }
   // world 窗口必须先于 BeginManager 的网络/lifecycle 和排队命令建立。
-  game::WorldFrameBegin(frame);
-  game::BeginManager(frame);
+  native_frame = !game::ClientBusy();
+  if (native_frame) {
+    game::WorldFrameBegin(frame);
+    game::BeginManager(frame);
+  } else game::BeginContextFrame();
   PumpWorldCommands();
   try {
     // N 帧收到的变更在 N+1 帧入口执行，下面取出的端口请求不能抢跑。
@@ -412,7 +444,7 @@ void FrameBegin() noexcept {
           config.port = static_cast<uint16_t>(m.port);
           config.bind_address = Settings.host_bind_address;
           config.peer_timeout_ms = Settings.peer_timeout_ms;
-          last_error = game::StartHost(config, m.character);
+          last_error = game::ClientBusy() ? "busy" : game::StartHost(config, m.character);
         }
         break;
       case Mutation::Kind::Role:
@@ -425,11 +457,15 @@ void FrameBegin() noexcept {
           last_error = "role_join_already_started_or_no_host";
         break;
       case Mutation::Kind::StopHost:
-        game::StopSession();
+        if(game::ClientBusy())game::StopClient();else game::StopSession();
+        break;
+      case Mutation::Kind::Client:
+        pending_client_start=false;
+        last_error=WorldCommandBusy()?"busy":game::StartClient(m.address,m.port,m.character);
         break;
       case Mutation::Kind::SoloStart:
         pending_solo_start = false;
-        last_error = game::StartSolo();
+        last_error = game::ClientBusy() ? "busy" : game::StartSolo();
         break;
       case Mutation::Kind::SoloStop:
         if (game::HostBusy())
@@ -488,9 +524,11 @@ void FrameEnd(bool completed) noexcept {
   if (!frame_depth || --frame_depth != 0)
     return;
   // 原生异常展开只归还深度，不发布未完成帧的状态快照。
-  game::WorldPreparePostState(completed);
-  game::EndManager(completed);
-  game::WorldFrameEnd();
+  if(native_frame) {
+    game::WorldPreparePostState(completed);
+    game::EndManager(completed);
+    game::WorldFrameEnd();
+  }
   PumpWorldCommands();
   if (!completed)
     return;
@@ -541,7 +579,7 @@ void ClearPendingRunMutations() noexcept {
   }
   for (size_t i = 0; i < count; ++i)
     mutations.Push(world_pending[i]);
-  pending_host_start = pending_solo_start = false;
+  pending_host_start = pending_solo_start = pending_client_start = false;
 }
 void RunExit() noexcept {
   game::StopSession(core::SessionCause::RunTeardown);

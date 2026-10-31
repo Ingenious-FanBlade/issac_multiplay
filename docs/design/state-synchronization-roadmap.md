@@ -60,7 +60,7 @@
 | tx-04-11 | Grid完整观测 | 全部Grid类型／子类／保存描述与生命周期 | 09、10共用身份 |
 | tx-04-12 | 房间与楼层观测 | [房间/楼层及特殊房间/Greed 206项已完成，统一E2E 7/7 PASS](observation-expansion/tx-04-12-supplement.md) | 10、11 |
 | tx-04-13 | 探索与跨房玩家观测 | [探索/保存/跨房玩家已完成，统一E2E 5/5 PASS](observation-expansion/tx-04-13-implementation.md) | 09—12 |
-| tx-04-14 | 整局、随机、HUD、Mod观测 | 跨域总目录、随机流／选择、独立表现和适配 | 10—13 |
+| tx-04-14 | 整局、随机、HUD、Mod观测 | 跨域总目录、随机流／选择、独立表现和适配；[StageAPI自定义房间／CustomGrid作为Mod统一验收](observation-expansion/run-presentation-mod-observation.md#51-stageapi自定义房间与customgrid必测适配) | 10—13 |
 | tx-04-15 | 复制模型与协议合同 | 全域复制模型、身份／版本、编码及能力声明 | 09—14的实际交付 |
 | tx-04-16 | 真实游戏Client角色 | 游戏端连接、输入上行、主线程接线与生命周期 | 09、15 |
 | tx-04-17 | [Replica边界与资源运行时](tx-04-17/tx-04-17-workflow.md) | 隔离客户端玩法与持久副作用，资源／渲染／Lua安全运行 | 完整实现依赖15、16；专项静态核验可先行 |

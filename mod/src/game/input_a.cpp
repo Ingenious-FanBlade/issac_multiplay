@@ -1,4 +1,5 @@
 #include "game/input_a.h"
+#include "game/client.h"
 #include "game/context.h"
 #include "game/lifecycle.h"
 #include "game/state.h"
@@ -68,6 +69,8 @@ void DeviceScope::Returned(bool success) {
                 core::TickDecision::WrongReturn);
     return;
   }
+  if (ClientDeviceReturned(device, success, polls, poll_ok))
+    return;
   // 原生将在失败返回后移除/销毁设备；先退休源历史，防止同轮地址复用冒充旧设备。
   if (!success) {
     auto *r = Runtime();
@@ -195,6 +198,7 @@ void CaptureInput(void *device, uint64_t loop, const PhysicalActions &actions) {
 void InputFrameFinished() noexcept {
   if (!IsMain())
     return;
+  if (ClientBusy()) { ClientInputFinished(); return; }
   if (!ReadTopology().unique)
     ForgetInputDevice();
 }

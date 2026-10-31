@@ -35,6 +35,15 @@ struct PhysicalActions {
   std::array<float, 12> values{};
   std::array<bool, 12> pressed{}, triggered{};
 };
+// 真实Client在完整Manager原链之前泵消息并独立更新输入后端，不启动本地模拟。
+bool ClientManagerBoundary() noexcept;
+bool ClientBusy() noexcept;
+void ClientPollInput();
+bool ClientUiBlocked() noexcept;
+bool ClientMenuAvailable() noexcept;
+void ClientInputUnavailable() noexcept;
+void ClientMenuRendered() noexcept;
+bool ClientProcessExitDecision() noexcept;
 // 主线程按“物理后端锁 -> 原生 vector 锁”顺序访问设备；本线程嵌套只增加深度。
 // 使用同一原生 Mutex，不在公共更新已持 vector 锁后首次反向取得后端锁。
 class InputLease final {
