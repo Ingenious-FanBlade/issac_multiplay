@@ -1,6 +1,8 @@
 #include "binding/offsets.h"
 #include "game/bridge.h"
 #include "game/client.h"
+#include "game/presentation.h"
+#include "game/mod_persistence.h"
 #include "game/context.h"
 #include "game/lifecycle.h"
 #include "game/persistence.h"
@@ -82,6 +84,9 @@ std::string Execute(std::string_view text, const char *source) {
   } else if (verb == "observe") {
     in >> arg >> extra;
     result=extra.empty()?ObservationCommand(arg):"ok=0\nerror=arguments\n";
+  } else if (verb == "presentation_test") {
+    std::string token,name;in>>token>>name>>extra;
+    result=extra.empty()?game::PresentationTest(token,name):"ok=0\nerror=arguments\n";
   } else if (verb == "world_test") {
     std::string token, mode, generation_text, value_text, trailing;
     in >> token >> generation_text >> mode >> value_text >> trailing;
@@ -411,6 +416,7 @@ void FrameBegin() noexcept {
     return;
   }
   ++frame;
+  game::PumpModPersistenceHooks();
   if (frame <= 3)
     Trace("frame_begin", "frame=%llu", frame);
   if (!started) {

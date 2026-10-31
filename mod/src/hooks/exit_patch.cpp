@@ -49,7 +49,8 @@ bool WorldExitPatchInstalled() noexcept { return installed; }
 void InstallWorldExitPatch() noexcept {
   if (attempted || !IsMain()) return;
   attempted = true;
-  if (!WorldObservationArmed() || !Capabilities[size_t(Group::World)]) return;
+  // Client资源退休也依赖正常关闭边界；不能让生产默认关闭录制时漏装该常驻桥。
+  if (!Capabilities[size_t(Group::Loop)]) return;
   if (!PatternMatches(ExitCheckRva, ExitCheckPattern)) {
     Capabilities[size_t(Group::World)] = false;
     Trace("byte_patch", "id=world_process_exit ok=0 reason=instruction_mismatch"); return;

@@ -101,7 +101,7 @@
 
 ### tx-04-17：客户端玩法隔离与资源／展示运行时
 
-- 专项入口：[工作流程与先行静态核验清单](tx-04-17/tx-04-17-workflow.md)。ST1—ST8归同一17，优先复用J273研究与公开接口；协议无关的静态核验可在15／16前进行。2026-10-31已完成[ST1接口目录](tx-04-17/tx-04-17-public-interface-catalog.md)、[ST2场景根](tx-04-17/tx-04-17-client-scene-lifecycle.md)、[ST3更新隔离](tx-04-17/tx-04-17-update-isolation.md)、[ST4展示边界](tx-04-17/tx-04-17-render-presentation-boundary.md)、[ST5资源与完整姿态](tx-04-17/tx-04-17-resource-pose-runtime.md)、[ST6线程／context](tx-04-17/tx-04-17-thread-context-lifetime.md)、[ST7 Lua与借用寿命](tx-04-17/tx-04-17-lua-borrow-lifetime.md)、[ST8持久归属与退出](tx-04-17/tx-04-17-persistence-exit-isolation.md)的指定静态研究与主审。既有ST5—ST7互核记录保留；本轮ST8必要逆向由一个GPT-6 Luna／max子智能体执行，主智能体独立回读关键指令／源码、纠错并补官方PGD版本同步关闭路径。向15反馈资源／姿态／引用／错误与进度所有权，向16反馈主线程、角色全寿命与安全退休，向31反馈访客Continue／进度、允许本地设置和Host合法保存的归属；Exit(false)、readonly、下层write=false与early unload均不能代替隔离。Client世界壳、运行实现、可控LuaImage释放及实际context／全部在途owner仍未完成，完整接线和统一E2E依赖15／16；本轮仅静态文档整体审阅，未改运行代码、构建或测试，不增加分项验收。
+- 专项入口：[工作流程](tx-04-17/tx-04-17-workflow.md)；当前[实现与统一E2E结果](tx-04-17/tx-04-17-implementation.md)：2026-10-31公共运行时完成，最终10/10 PASS。独立Scene／Camera／HUD、完整资源与层姿态、动态候选发布／退休、Client玩法／Lua／PGD／Continue／Mod持久隔离及正常退出已接线；第四次只续验隐藏ESSM与退出保护，复用8项不受影响的通过结果。ST1—ST8原始静态事实和失败保留；必要剩余逆向由一个GPT-6 Luna/max执行，主审回读、纠正及具体UNKNOWN见[补充](tx-04-17/tx-04-17-reverse-supplement.md)。不把17受控多pass场景等同18—21全部世界应用／网络Baseline闭环。
 - 实现：普通／odd／FSM／loading／render等真实路径的客户端边界，隔离AI、碰撞与伤害裁决、物品使用、拾取、掉落、gameplay RNG／Lua及存档副作用，保留必要相机／动画／HUD／渲染；为仍有状态写入的展示路径提供明确适配。
 - 落地资源加载／缓存／动态换图／姿态／图层／context／Lua寿命与正常退休，处理准备失败／部分应用；保持Hook常驻、主线程原生操作与后台有界自有数据。
 - 整体验收：真实Client在正常／加载／暂停等路径持续展示受控资源，不产生第二份战斗、随机、奖励或保存；失败不渲染半套世界。不能用输入清零或只绘制一个屏幕Sprite代替完整边界。

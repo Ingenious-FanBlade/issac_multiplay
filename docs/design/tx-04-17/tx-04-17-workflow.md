@@ -1,8 +1,8 @@
 # tx-04-17 客户端玩法隔离与资源展示运行时工作流程
 
-日期：2026-10-31，Asia/Singapore。状态：**ST1—ST8指定范围的静态研究与主审完成；ST2／ST3及ST5—ST7已完成来回互核**。成果见[接口目录](tx-04-17-public-interface-catalog.md)、[场景根与生命周期](tx-04-17-client-scene-lifecycle.md)、[更新隔离](tx-04-17-update-isolation.md)、[展示边界](tx-04-17-render-presentation-boundary.md)、[资源与完整姿态](tx-04-17-resource-pose-runtime.md)、[线程／context／在途绘制](tx-04-17-thread-context-lifetime.md)、[Lua与借用寿命](tx-04-17-lua-borrow-lifetime.md)、[访客持久副作用与退出隔离](tx-04-17-persistence-exit-isolation.md)。Client世界壳及隔离运行时仍未实现，具体构造／展示／可控释放与持久隔离缺口和运行UNKNOWN保留，未构建或测试。
+日期：2026-10-31，Asia/Singapore。当前状态：**tx-04-17公共运行时实现与统一E2E完成，最终10/10 PASS**。见[实现、失败修复与验收结果](tx-04-17-implementation.md)及[剩余逆向与主审](tx-04-17-reverse-supplement.md)。ST1—ST8指定静态研究与互核的原始记录保留在下文；其“尚未实现／未测试”描述属于当时静态阶段，当前完成范围以实现结果为准。
 
-本tx为真实游戏Client建立不执行权威玩法的运行环境，并交付资源准备、姿态应用、正常展示与退休的公共运行时。**与协议无关的静态核验可以先于tx-04-15／16进行；角色接线和完整功能验收仍依赖15／16。** 静态结果应及时反馈15的资源、姿态、引用和错误模型，避免协议定稿后才发现表达缺口。
+本tx为真实游戏Client建立不执行权威玩法的运行环境，并交付资源准备、姿态应用、正常展示与退休的公共运行时。**静态阶段可先于15／16；现已接入15复制值合同和16真实Client生命周期，17统一E2E通过。** 静态结果应及时反馈15的资源、姿态、引用和错误模型，避免协议定稿后才发现表达缺口。
 
 执行规范见[现行项目规范](../../refactor/project-conventions.md)，完整范围见[09—34路线图](../state-synchronization-roadmap.md)，技术模型见[状态同步设计](../state-synchronization.md)。本文是tx-04-17的专项工作入口，不改变其他tx的范围与编号。
 

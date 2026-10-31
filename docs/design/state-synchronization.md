@@ -258,7 +258,7 @@ gameplay预测、rollback、host migration和Dedicated Server保持可选；若�
 
 完整执行入口为[整局可玩联机模组推进流程](state-synchronization-roadmap.md)，包括每个tx的目标、直接交付、依赖、整体验收及跨域责任表。
 
-tx-04-17另有[客户端玩法隔离与资源展示运行时工作流程](tx-04-17/tx-04-17-workflow.md)，单列ST1—ST8先行静态核验、研究复用／公开接口／必要逆向、完整实现及统一E2E。2026-10-31已完成ST1—ST8指定静态研究与主审，既有[资源与完整姿态](tx-04-17/tx-04-17-resource-pose-runtime.md)、[线程／context／在途引用](tx-04-17/tx-04-17-thread-context-lifetime.md)、[Lua与借用寿命](tx-04-17/tx-04-17-lua-borrow-lifetime.md)互核记录保留；本轮[ST8访客持久副作用与正常退出](tx-04-17/tx-04-17-persistence-exit-isolation.md)由一个GPT-6 Luna／max子智能体完成必要逆向，主智能体独立审阅、纠错及补证。资源逻辑发布与旧引用释放分别处理；Client准备、失败、断连、stop至安全退休保持必要隔离，Authority展示进度不写访客PGD／Continue／Mod持久档，本地设置按来源和字段允许。Shutdown直接进度写入、Exit保存／条件删除和Manager析构官方PGD版本同步分列，readonly／write=false／early unload均不构成完整保护。Client世界壳、实际隔离、可控释放、context／全部在途owner和统一E2E仍未完成；本轮仅文档与统一人工静态审阅，无构建或测试。协议无关的静态研究可先于15／16，功能接线与整体验收仍依赖其实际交付。
+tx-04-17的[专项工作流程](tx-04-17/tx-04-17-workflow.md)已完成公共运行时与统一E2E，最终10/10 PASS，见[实现、失败修复和验收](tx-04-17/tx-04-17-implementation.md)。独立Scene／Camera／HUD、资源与完整层姿态、候选原子发布、真实context／CPU队列／GPU退休、玩法／Lua与访客PGD／Continue／Mod持久隔离已接入15／16；第四次只续验隐藏ESSM及退出相关项，8项复用。必要剩余逆向由一个GPT-6 Luna/max执行，主审回读并纠正，见[补充](tx-04-17/tx-04-17-reverse-supplement.md)。此前ST1—ST8静态研究和失败记录保留；复杂Room／Grid、非Player Entity、Player全内容应用和网络世界Baseline／Applied仍分别归18—21，不预记完成。
 
 | 编号 | 完整交付范围 |
 | --- | --- |

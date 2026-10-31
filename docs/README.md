@@ -8,7 +8,7 @@
 
 # C/S研究与状态同步文档
 
-> **tx-04-17 ST1—ST8静态工作完成（2026-10-31）**：[专项工作流程](design/tx-04-17/tx-04-17-workflow.md)及[接口目录](design/tx-04-17/tx-04-17-public-interface-catalog.md)已汇总场景、更新、展示、资源、线程／context、Lua寿命与持久归属合同。本轮[ST8访客持久副作用与正常退出](design/tx-04-17/tx-04-17-persistence-exit-isolation.md)的必要逆向由一个GPT-6 Luna／max子智能体执行，主智能体独立回读指令／源码并审阅、纠错和补证。确认Exit(false)、Shutdown直接计数写入与保存、官方进度JSON、GameState／Mod附加保存以及Manager析构PGD版本同步的边界；Client准备至安全退休全程保持必要隔离。本轮仅文档编辑及统一人工静态审阅，无构建或测试；Client世界壳、隔离运行实现及统一E2E仍未完成，完整接线依赖15／16，持久归属反馈31。
+> **tx-04-17 已完成（2026-10-31）**：[公共展示／资源运行时实现与统一E2E](design/tx-04-17/tx-04-17-implementation.md)，最终10/10 PASS。独立Scene／Camera／HUD、多pass资源与完整姿态、候选原子发布、CPU／GPU在途退休、Client玩法／Lua／访客进度隔离和正常退出已实现；第四次仅续验Mod持久与退出，复用8项不受影响的通过结果。必要剩余逆向由一个GPT-6 Luna/max完成，主智能体独立回读并纠错，[主审补充](design/tx-04-17/tx-04-17-reverse-supplement.md)。失败事实保留，临时测试材料清理；18—21的具体全域应用与网络世界闭环不预记完成。
 
 > **按观测域拆分设计（2026-10-30）**：[详细设计与迁移边界](design/observation-expansion/domain-observation-architecture.md)确定公共接口、各域职责、scope／采样时序、跨域引用、采集与录制分离及 Entity/Grid 迁移。已同步 tx-04-10—14 观测计划；公共拆分纳入 10 的完整实现，其他域依次接入。本次只修改设计和计划，未修改运行代码、构建或测试。
 

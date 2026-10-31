@@ -132,7 +132,9 @@ CONSTANT_ORDER = [
     ('roster_vector_capacity_offset', 'u32'),
 ]
 # 既有行 schema 里唯一允许的同址成对层（player_update 外层 / player_native 内层）。
-ALLOWED_SAME_RVA = {0x37BD40: {'player_update', 'player_native'}}
+ALLOWED_SAME_RVA = {0x37BD40: {'player_update', 'player_native'},
+                    0x52EC40: {'manager_render', 'manager_render_native'},
+                    0x52A7C0: {'manager_destroy', 'manager_destroy_native'}}
 
 
 class Problems:
@@ -458,6 +460,9 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "hooks/cs_hook.h"
 #include "binding/offsets.h"
 #include "game/bridge.h"
+#include "game/client_isolation.h"
+#include "game/presentation.h"
+#include "game/mod_persistence.h"
 #include "game/world_sources/loot.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
@@ -531,6 +536,36 @@ def legacy_body(row):
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);',
                 '    return result;']
     lines = ['    cs::CallScope scope(record);']
+    if ident == 'client_lua_scripts':
+        return lines + ['    if (scope.main) cs::game::PumpModPersistenceHooks();',
+                        '    return super(path);']
+    if ident in ('manager_render_native', 'manager_destroy_native'):
+        return lines + ['    super();']
+    if ident == 'manager_destroy':
+        return lines + ['    if (cs::game::ClientProgressProtected()) { cs::game::ClientOriginalManagerDestroy(this); return; }',
+                        '    super();']
+    if ident == 'manager_render':
+        return lines + ['    if (cs::game::ClientBusy()) {',
+                        '        if (!scope.main) return;',
+                        '        cs::game::ClientOriginalRender(this);',
+                        '        cs::game::ClientMenuRendered();',
+                        '        cs::game::PresentationRenderReturned();',
+                        '        return;', '    }', '    super();']
+    if ident in ('frame_apply', 'frame_reset'):
+        return lines + ['    %ssuper();' % ('auto result = ' if ret != 'void' else ''),
+                        '    cs::game::PresentationQueueReturned(%s);' % ('true' if ident == 'frame_reset' else 'false')] + ([] if ret == 'void' else ['    return result;'])
+    # Client在所有已登记的替代入口也拒绝本地裁决；观察original与主动隔离分别计数。
+    client_blocked = {
+        'game_update', 'post_update', 'room_update', 'odd_helper', 'entity_list',
+        'player_update', 'player_native', 'start_game', 'restore', 'room_lifecycle',
+        'door_update', 'door_nested', 'new_room', 'game_exit', 'join_pass',
+        'move', 'bomb', 'active_item', 'card_pill', 'shoot', 'drop',
+        'pgd_unlock', 'pgd_counter', 'pgd_local', 'pgd_cloud', 'gamestate_write',
+        'gamestate_delete', 'gamestate_delete_rerun', 'stage_transition',
+        'entity_kill', 'revive_ghost', 'load_game_state'}
+    if ident in client_blocked:
+        lines.append('    if (cs::game::ClientSuppress("%s")) return%s;' %
+                     (ident, '' if ret == 'void' else ' {}'))
     if ident == 'manager_update':
         lines += ['    cs::FrameScope frame(scope.main);',
                   '    if (cs::game::ClientManagerBoundary()) return;',
@@ -638,7 +673,8 @@ def legacy_body(row):
         if ident == 'input_update':
             lines.append('    if (scope.main) cs::game::InputFrameFinished();')
         if ident == 'manager_render':
-            lines.append('    if (scope.main) cs::game::ClientMenuRendered();')
+            lines += ['    if (scope.main) cs::game::ClientMenuRendered();',
+                      '    if (scope.main) cs::game::PresentationRenderReturned();']
         if ident == 'console_check':
             lines.append('    if (scope.main) cs::game::ObserveConsole(result);')
         if ident == 'new_room':
@@ -739,7 +775,17 @@ def emit_hooks(legacy, world, patterns):
                         params, row['ret']))
         lines += world_body(row)
         lines.append('}')
-    lines.append('')
+    lines += ['', '// 显式调用最内层原生trampoline，绕过已核官方外层PRE_RENDER／存档同步。',
+              'namespace cs::game {',
+              'void ClientOriginalRender(void *manager) {',
+              '    auto fn = reinterpret_cast<void(__thiscall *)(void *)>(H_manager_render_native::internalSuper);',
+              '    if (!fn) throw std::runtime_error("client_render_trampoline");',
+              '    fn(manager);', '}',
+              'void ClientOriginalManagerDestroy(void *manager) {',
+              '    auto fn = reinterpret_cast<void(__thiscall *)(void *)>(H_manager_destroy_native::internalSuper);',
+              '    if (!fn) throw std::runtime_error("client_destroy_trampoline");',
+              '    cs::Trace("client_isolation", "entry=manager_sync original=0 native_destructor=1");',
+              '    fn(manager);', '}', '}','']
     return '\n'.join(lines)
 
 
@@ -1361,6 +1407,33 @@ def main():
         % (exit_patch['rva'], exit_patch['resume'], exit_patch['alternate'],
            exit_patch['expected'], exit_patch['size']), encoding='utf-8')
 
+    client_render = next(row for row in document['byte_patches'] if row['id'] == 'client_render_dispatch')
+    (args.out / 'client_patches.inc').write_text(
+        '// 唯一清单生成的Client图形分派；原cmp七字节，尾部先重载Manager。\n'
+        'inline constexpr uintptr_t ClientRenderRva = %s, ClientRenderResume = %s, ClientRenderAlternate = %s;\n'
+        'inline constexpr const char* ClientRenderPattern = "%s";\n'
+        'inline constexpr unsigned ClientRenderBytes = %s;\n'
+        % (client_render['rva'], client_render['resume'], client_render['alternate'],
+           client_render['expected'], client_render['size']), encoding='utf-8')
+    with (args.out / 'client_patches.inc').open('a', encoding='utf-8') as client_out:
+        for ident, prefix in [('client_shutdown_counters', 'ClientCounters'), ('client_shutdown_flush', 'ClientFlush')]:
+            row = next(row for row in document['byte_patches'] if row['id'] == ident)
+            client_out.write('inline constexpr uintptr_t %sRva=%s, %sResume=%s, %sAlternate=%s;\n'
+                             % (prefix, row['rva'], prefix, row['resume'], prefix, row['alternate']))
+            client_out.write('inline constexpr const char *%sPattern="%s";\ninline constexpr unsigned %sBytes=%s;\n'
+                             % (prefix, row.get('pattern', row['expected']), prefix, row['size']))
+
+    persistence_lines = ['// 唯一清单生成的常驻Mod持久入口；公开Lua CFunction ABI。']
+    persistence_entries = document.get('runtime_persistence_hooks', [])
+    if len(persistence_entries) != 4 or {row.get('index') for row in persistence_entries} != set(range(4)):
+        problems.add('runtime_persistence_hooks', '四个入口必须完整且序号互异')
+    for row in persistence_entries:
+        if row.get('abi') != 'lua-CFunction-cdecl' or row.get('index') not in range(4):
+            problems.add('runtime_persistence_hooks', '无效的Lua CFunction入口')
+            continue
+        persistence_lines.append('{%d, "%s", %s},' % (row['index'], row['path'], str(row['optional']).lower()))
+    (args.out / 'persistence_runtime.inc').write_text('\n'.join(persistence_lines)+'\n', encoding='utf-8')
+
     # --- 容量与布局 -------------------------------------------------------
     (args.out / 'hook_capacity.h').write_text(emit_capacity(capacity),
                                               encoding='utf-8')
@@ -1422,6 +1495,7 @@ def main():
         pointer_hooks=document['pointer_hooks'],
         native_dependencies=document.get('native_dependencies', []),
         runtime_random_hooks=document.get('runtime_random_hooks', []),
+        runtime_persistence_hooks=document.get('runtime_persistence_hooks', []),
         byte_patches=document['byte_patches'])
     (args.out / 'hook-manifest.json').write_text(
         json.dumps(total, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')

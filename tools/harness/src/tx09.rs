@@ -793,7 +793,7 @@ impl Run {
                     &self.out.join("save_before"),
                     &self.out.join("save_after"),
                 )?;
-                if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-16" { self.save_fields_tx10(&mut changes)?; }
+                if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-16" || self.report["tx"]=="tx-04-17" { self.save_fields_tx10(&mut changes)?; }
                 else { self.apply_recorded_baseline_tx05(&mut changes)?; }
                 let allowed = changes
                     .as_array()

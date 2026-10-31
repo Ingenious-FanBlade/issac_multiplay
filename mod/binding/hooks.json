@@ -31,7 +31,13 @@
     ["post_update","loop","CsStatic","PostUpdateCaller","int","","","0x446C90","None",true,"cdecl",true,0,true],
     ["game_exit","loop","Game","Exit","void","bool shouldSave","shouldSave","0x2F6270","None",false,"",false,0,true],
     ["new_room","loop","CsStatic","NewRoomCaller","int","","","0x44B930","None",true,"cdecl",true,0,true],
-    ["manager_render","loop","Manager","Render","void","","","0x52EC40","Render",false,"",false,0,true],
+    ["manager_render","loop","Manager","Render","void","","","0x52EC40","Render",false,"",false,-30000,true],
+    ["manager_render_native","loop","Manager","Render","void","","","0x52EC40","None",false,"",false,30000,true],
+    ["manager_destroy","loop","Manager","destructor","void","","","0x52A7C0","None",false,"",false,-30000,true],
+    ["manager_destroy_native","loop","Manager","destructor","void","","","0x52A7C0","None",false,"",false,30000,true],
+    ["frame_apply","loop","KAGE_Graphics_ImageManager","apply_frame_images","void","","","0x5EFA70","None",false,"",false,-30000,true],
+    ["frame_reset","loop","CsStatic","ClientFrameReset","unsigned int","","","0x5EFA10","None",true,"cdecl",true,-30000,true],
+    ["client_lua_scripts","loop","LuaEngine","RunBundledScript","bool","const char* path","path","0x454FD0","None",false,"",false,-30000,true],
     ["start_game","loop","Manager","ExecuteStartGame","void","","","0x532A20","Start",false,"",false,0,true],
     ["post_start","loop","LuaEngine","PostGameStart","void","unsigned int state","state","0x44B660","None",true,"stdcall",false,0,true],
     ["console_check","loop","Console","ConsoleGate","bool","","","0x287020","None",false,"",true,0,true],
@@ -572,6 +578,9 @@
     }
   ],
   "byte_patches": [
+    {"id":"client_shutdown_counters","group":"loop","rva":"0x582D1B","expected":"85 C0 74 48 83 B8 A8 5B 02 00 00","resume":"0x582D26","alternate":"0x582D61","kind":"jump","size":11,"evidence":"tx-04-17 Shutdown direct PGD counter[192]/522/save isolation; preserve OptionsConfig path; native zero branch=0x582D67"},
+    {"id":"client_shutdown_flush","group":"loop","rva":"0x582D72","expected":"A1 1C 4A BE 00","pattern":"A1 ?? ?? ?? ??","resume":"0x582D77","alternate":"0x582DDD","kind":"jump","size":5,"evidence":"tx-04-17 Shutdown dirty/backup/cloud/local/Exit block; absolute operand is ASLR-relocated and checked against live Manager address; preserve post-Exit Game/Manager/Lua/context cleanup"},
+    {"id":"client_render_dispatch","group":"loop","rva":"0x52EDDE","expected":"80 BF D4 A3 04 00 00","resume":"0x52EDE5","alternate":"0x52F041","kind":"jump","size":7,"evidence":"tx-04-17 J273 Manager::Render: graphics prelude then Client own Scene, skip native world/UI/Lua; alternate reloads Manager in EAX before graphics tail"},
     {"id":"world_process_exit","group":"world","rva":"0x50AFC4","expected":"80 78 08 01 0F 85 73 FF FF FF","resume":"0x50AFCE","alternate":"0x50AF41","kind":"jump","size":10,"evidence":"tx-04-08 DE: GPT-6 Luna static main analysis, primary raw-instruction review; original cmp+jnz, no GLFW object writes"},
     {"id": "odd_normal", "group": "player", "rva": "0x2F9559", "expected": "FF 52 0C 6A 00", "resume": "0x2F955E"},
     {"id": "join_mode_1", "group": "join", "rva": "0x5915ae", "expected": "E8 ED FA FF FF", "resume": "0x5915b3", "alternate": "0x0", "kind": "call", "size": 5},
@@ -592,6 +601,12 @@
     {"id":"repentogon_random_float","source":2,"lua":"RandomFloat","abi":"lua-CFunction"},
     {"id":"lua_math_random","source":3,"lua":"math.random","abi":"lua-CFunction"},
     {"id":"lua_math_randomseed","source":4,"lua":"math.randomseed","abi":"lua-CFunction"}
+  ],
+  "runtime_persistence_hooks": [
+    {"index":0,"path":"Isaac.SaveModData","optional":false,"abi":"lua-CFunction-cdecl"},
+    {"index":1,"path":"Isaac.RemoveModData","optional":false,"abi":"lua-CFunction-cdecl"},
+    {"index":2,"path":"_CBindings.ESSM.SaveData","optional":false,"abi":"lua-CFunction-cdecl"},
+    {"index":3,"path":"_CBindings.ESSM.DeleteData","optional":false,"abi":"lua-CFunction-cdecl"}
   ],
   "native_dependencies": [
     {"id":"input_backend_lock","rva":"0x5E60E0","expected":"55 8B EC 53 8B D9 56 57"},
