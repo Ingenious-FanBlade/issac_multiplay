@@ -33,6 +33,21 @@ target_compile_definitions(isaac_cs_world PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 target_compile_options(isaac_cs_world PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_link_libraries(isaac_cs_world PUBLIC isaac_cs_core)
 set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
+# 复制层只依赖纯值观测合同与JSON库；生成目录属于产品协议，不包含游戏地址。
+file(GLOB REPLICA_CATALOGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/observation/isaac-cs-observation/*catalog.json")
+add_custom_command(OUTPUT "${GENERATED}/replication_catalog.inc" "${GENERATED}/replication-catalog.json"
+  COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_replica_catalog.py" --out "${GENERATED}"
+  DEPENDS tools/gen_replica_catalog.py ${REPLICA_CATALOGS} VERBATIM)
+add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/codec.cpp "${GENERATED}/replication_catalog.inc")
+target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")
+target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
+target_compile_definitions(isaac_cs_replica PUBLIC _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
+target_link_libraries(isaac_cs_replica PUBLIC isaac_cs_world)
+# E2E工具与正式DLL分开打包；同一库用于正式主线程纯值适配和统一验收。
+add_executable(replica-contract ../tools/replica-contract/main.cpp)
+target_link_libraries(replica-contract PRIVATE isaac_cs_replica)
+target_compile_options(replica-contract PRIVATE /W4 /Zi /utf-8 /EHsc)
+set_target_properties(replica-contract PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")
 add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/binding_v1_9_7_12.inc" "${GENERATED}/hook-manifest.json" "${GENERATED}/permanent_patches.inc" "${GENERATED}/host_patches.inc" "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc" "${GENERATED}/world-layout.json"
   BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/random_runtime.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_binding.py" --out "${GENERATED}"
@@ -64,6 +79,6 @@ target_include_directories(zhlIsaacCS PRIVATE "${REPENTOGON_ROOT}/libs/zydis/inc
   "${REPENTOGON_ROOT}/libs/zydis/dependencies/zycore/include")
 target_compile_definitions(zhlIsaacCS PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
 target_compile_options(zhlIsaacCS PRIVATE /EHs /W4 /Zi /utf-8 /wd4251 /wd4996)
-target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net isaac_cs_world "${REPENTOGON_ROOT}/build/Release/libzhl.lib" "${REPENTOGON_ROOT}/build/Release/Lua5.3.3r.lib" ws2_32 bcrypt)
+target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net isaac_cs_world isaac_cs_replica "${REPENTOGON_ROOT}/build/Release/libzhl.lib" "${REPENTOGON_ROOT}/build/Release/Lua5.3.3r.lib" ws2_32 bcrypt)
 target_link_options(zhlIsaacCS PRIVATE /DEBUG)
 set_target_properties(zhlIsaacCS PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")

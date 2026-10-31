@@ -1104,6 +1104,7 @@ impl Run {
             ("stageapi_data", "data/stageapi15"),
             ("tx14_data", "data/isaac-cs-test"),
         ]);}
+        if self.report["tx"]=="tx-04-15" {targets.push(("tx15_data", "data/isaac-cs-test"));}
         for (name,relative) in targets {
             let target = self.game.join(relative);
             let backup = root.join(name);

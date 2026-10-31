@@ -727,7 +727,7 @@ impl Run {
         let game = self.launch("enabled")?;
         self.report["pid"] = json!(game.pid());
         let result =
-            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| if self.report["tx"]=="tx-04-14" { self.scenes_tx14(&game) } else if self.report["tx"]=="tx-04-13" { self.scenes_tx13(&game) } else if self.report["tx"]=="tx-04-12" { self.scenes_tx12(&game) } else if self.report["tx"]=="tx-04-11" { self.scenes_tx11(&game) } else if self.report["tx"]=="tx-04-10" { self.scenes_tx10(&game) } else { self.scenes_tx09(&game) }))
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| if self.report["tx"]=="tx-04-15" { self.scenes_tx15(&game) } else if self.report["tx"]=="tx-04-14" { self.scenes_tx14(&game) } else if self.report["tx"]=="tx-04-13" { self.scenes_tx13(&game) } else if self.report["tx"]=="tx-04-12" { self.scenes_tx12(&game) } else if self.report["tx"]=="tx-04-11" { self.scenes_tx11(&game) } else if self.report["tx"]=="tx-04-10" { self.scenes_tx10(&game) } else { self.scenes_tx09(&game) }))
                 .unwrap_or_else(|_| Err("tx09 scenario panic".into()));
         if let Err(e) = &result {
             self.capture_failure(&game, "enabled", e);
@@ -784,7 +784,7 @@ impl Run {
                     &self.out.join("save_before"),
                     &self.out.join("save_after"),
                 )?;
-                if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" { self.save_fields_tx10(&mut changes)?; }
+                if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" { self.save_fields_tx10(&mut changes)?; }
                 else { self.apply_recorded_baseline_tx05(&mut changes)?; }
                 let allowed = changes
                     .as_array()

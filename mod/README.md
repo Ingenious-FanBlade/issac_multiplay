@@ -1,3 +1,5 @@
+> **tx-04-15 已完成**：[复制模型、ICSR v1协议与统一E2E](../docs/design/tx-04-15.md)，4/4组PASS；正式库位于`src/replica/`，产品附带`replication-catalog.json`。真实游戏Client与原生应用按16—22继续。
+
 > **tx-04-10 当前交付**：[实现、成员目录与整体验收结果](../docs/design/observation-expansion/tx-04-10-implementation.md)。构建及统一 E2E 5/5通过。安装 DLL 时同时部署 `mod/observation/isaac-cs-observation` 到游戏 `mods/isaac-cs-observation`；此正式模块独立于 UI 和测试夹具。`cs observe start|status|stop` 管正式纯值消费，`cs world start <label>|status|stop` 管可选录制；录制关闭／失败不停止仍有需求的采集。新记录写入各录制的 `observation-v2/`，离线入口 `harness observation-read --capture <目录>`。完整 Grid 待 tx-04-11；下方旧 tx 记录按历史理解。
 
 # tx-04-09 四参与者与多身体
