@@ -2,7 +2,9 @@
 #include "binding/offsets.h"
 #include "game/bridge.h"
 #include "game/client_isolation.h"
+#include "game/client.h"
 #include "game/presentation.h"
+#include "game/native_room_grid.h"
 #include "ASMPatcher.hpp"
 #include <string>
 
@@ -12,11 +14,63 @@ namespace {
 uintptr_t render_resume=0,render_client=0;
 uintptr_t counters_resume=0,counters_client=0,counters_zero=0,
           flush_resume=0,flush_client=0,manager_address=0;
+uintptr_t controls_character_resume=0,controls_character_client=0,controls_device_resume=0,controls_device_client=0,game_address=0;
 bool attempted=false,installed=false;
+extern "C" int __stdcall CsNativeControlsCharacter() noexcept {return game::NativeRoomGridControlCharacter();}
+extern "C" int __stdcall CsNativeControlsDevice() noexcept {return game::NativeRoomGridContextActive()?game::ClientDeviceKey():-1;}
+// 全寄存器／FP保存后只替换两个只读来源；后续角色姿态、按键查询与缓存绘制仍走原生函数。
+__declspec(naked) void NativeControlsCharacterShim(){
+  __asm {
+    pushfd
+    pushad
+    mov ebx,esp
+    sub esp,528
+    and esp,-16
+    fxsave [esp]
+    call CsNativeControlsCharacter
+    mov [ebx+28],eax
+    fxrstor [esp]
+    mov esp,ebx
+    popad
+    popfd
+    cmp eax,0
+    jl native_path
+    mov [ebp-3Ch],eax
+    jmp dword ptr [controls_character_client]
+  native_path:
+    mov eax,[ecx+4AD14h]
+    jmp dword ptr [controls_character_resume]
+  }
+}
+__declspec(naked) void NativeControlsDeviceShim(){
+  __asm {
+    pushfd
+    pushad
+    mov ebx,esp
+    sub esp,528
+    and esp,-16
+    fxsave [esp]
+    call CsNativeControlsDevice
+    mov [ebx+28],eax
+    fxrstor [esp]
+    mov esp,ebx
+    popad
+    popfd
+    mov esi,dword ptr [game_address]
+    mov esi,[esi]
+    cmp eax,0
+    jl native_path
+    mov edx,eax
+    mov [ebp-54h],edx
+    jmp dword ptr [controls_device_client]
+  native_path:
+    jmp dword ptr [controls_device_resume]
+  }
+}
 // 当前线程不是主线程时只跳过未知原生场景树；不在错误context强行绘制。
 extern "C" bool __stdcall CsClientRenderDispatch() noexcept {
   if(!game::ClientBusy())return false;
-  game::PresentationDraw();return true;
+  if(game::NativeRoomGridOwnsDraw())game::NativeRoomGridDraw();else game::PresentationDraw();return true;
 }
 // J273 graphics prelude已完成，局部render-target标记保留在原栈上。
 // Off/Host重放原cmp一次；Client恢复完整GPR/FP后走加载Manager指针的尾部入口，
@@ -121,19 +175,26 @@ bool ClientPatchesInstalled() noexcept {return installed;}
 void InstallClientPatches() noexcept {
   if(attempted||!IsMain())return;attempted=true;
   if(!Capabilities[size_t(Group::Loop)]||!PatternMatches(ClientRenderRva,ClientRenderPattern)||
-     !PatternMatches(ClientCountersRva,ClientCountersPattern)||!PatternMatches(ClientFlushRva,ClientFlushPattern)){
+     !PatternMatches(ClientCountersRva,ClientCountersPattern)||!PatternMatches(ClientFlushRva,ClientFlushPattern)||
+     !PatternMatches(NativeControlsCharacterRva,NativeControlsCharacterPattern)||!PatternMatches(NativeControlsDeviceRva,NativeControlsDevicePattern)){
     Trace("client_patch","installed=0 reason=render_binding");return;
   }
   uintptr_t operand=0;std::memcpy(&operand,reinterpret_cast<const void *>(Base+ClientFlushRva+1),sizeof(operand));
   if(operand!=Base+offset::Manager){Trace("client_patch","installed=0 reason=flush_manager_operand");return;}
+  std::memcpy(&operand,reinterpret_cast<const void *>(Base+NativeControlsDeviceRva+2),sizeof(operand));
+  if(operand!=Base+offset::Game){Trace("client_patch","installed=0 reason=controls_game_operand");return;}
   try{
     render_resume=Base+ClientRenderResume;render_client=Base+ClientRenderAlternate;
     counters_resume=Base+ClientCountersResume;counters_client=Base+ClientCountersAlternate;counters_zero=Base+0x582D67;
     flush_resume=Base+ClientFlushResume;flush_client=Base+ClientFlushAlternate;manager_address=Base+offset::Manager;
+    controls_character_resume=Base+NativeControlsCharacterResume;controls_character_client=Base+NativeControlsCharacterAlternate;
+    controls_device_resume=Base+NativeControlsDeviceResume;controls_device_client=Base+NativeControlsDeviceAlternate;game_address=Base+offset::Game;
     struct Site{uintptr_t rva;unsigned bytes;void *entry;};
     const Site sites[]={{ClientRenderRva,ClientRenderBytes,reinterpret_cast<void *>(&ClientRenderShim)},
       {ClientCountersRva,ClientCountersBytes,reinterpret_cast<void *>(&ClientCountersShim)},
-      {ClientFlushRva,ClientFlushBytes,reinterpret_cast<void *>(&ClientFlushShim)}};
+      {ClientFlushRva,ClientFlushBytes,reinterpret_cast<void *>(&ClientFlushShim)},
+      {NativeControlsCharacterRva,NativeControlsCharacterBytes,reinterpret_cast<void *>(&NativeControlsCharacterShim)},
+      {NativeControlsDeviceRva,NativeControlsDeviceBytes,reinterpret_cast<void *>(&NativeControlsDeviceShim)}};
     bool complete=true;
     for(const auto &site:sites){ASMPatch patch;patch.AddRelativeJump(site.entry);
       if(patch.Length()>site.bytes)throw std::runtime_error("client_patch_length");

@@ -12,7 +12,7 @@ if(-not $TemporaryDirectory){$TemporaryDirectory=Join-Path $tx18Root ('out/tx-04
 $tx18Temporary=[IO.Path]::GetFullPath($TemporaryDirectory)
 $tx18Output=[IO.Path]::GetFullPath((Join-Path $tx18Root 'out'))+[IO.Path]::DirectorySeparatorChar
 if(-not $tx18Temporary.StartsWith($tx18Output,[StringComparison]::OrdinalIgnoreCase)){throw 'Temporary directory must stay inside repository out/'}
-Write-Output 'tx-04-18 is starting one real game. Stop manual game input until it exits; no manual cooperation or focus switching is required.'
+Write-Output 'tx-04-18 native Room/Grid E2E is starting one real game. Stop manual game input until it exits. Harness focuses Authority for menu inputs; Client inspection does not take focus. No manual cooperation is required.'
 $tx18Args=@('e2e','tx-04-18','--game',$GameRoot,'--artifact-dir',$tx18Temporary)
 if($ResumeFrom){$tx18Args+=@('--resume-from',[IO.Path]::GetFullPath($ResumeFrom))}
 if($Retest){$tx18Args+=@('--retest',$Retest)}

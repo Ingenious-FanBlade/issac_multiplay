@@ -82,8 +82,8 @@ void CheckValue(const Value &v,Limits l){
     if(x.IsObject())for(auto i=x.MemberBegin();i!=x.MemberEnd();++i){self(self,i->name);self(self,i->value);}
   };count(count,v);
 }
-void ValidateModel(const Value &v){
-  CheckValue(v);Model(v);const auto scope=ReadScope(v["scope"]);Unsigned(At(v,"event_watermark"));
+void ValidateModel(const Value &v,Limits limits){
+  CheckValue(v,limits);Model(v);const auto scope=ReadScope(v["scope"]);Unsigned(At(v,"event_watermark"));
   if(At(v,"native_applied")!=false)Fail("wire_cannot_claim_native_apply");
   std::set<unsigned> domains;std::set<std::uint64_t> captures;std::string tick;
   for(auto i=v["components"].MemberBegin();i!=v["components"].MemberEnd();++i){
@@ -219,7 +219,7 @@ Value Registry::Project(const Value &v,Allocator &a,std::uint64_t epoch,unsigned
   return out;
 }
 
-Json CaptureRows(const Scope &scope,std::uint64_t revision,const std::vector<Json> &rows,Registry &registry){
+Json CaptureRows(const Scope &scope,std::uint64_t revision,const std::vector<Json> &rows,Registry &registry,Limits limits){
   Json out(rapidjson::kObjectType);auto &a=out.GetAllocator();ReadScope(ScopeValue(scope,a));if(!revision)Fail("zero_revision");
   Put(out,"format","isaac.cs.replica.model",a);Put(out,"scope",ScopeValue(scope,a),a);Put(out,"revision",Decimal(revision,a),a);
   Value components(rapidjson::kObjectType),missing(rapidjson::kArrayType);
@@ -257,10 +257,10 @@ Json CaptureRows(const Scope &scope,std::uint64_t revision,const std::vector<Jso
   for(unsigned d=1;d<=11;++d)if(!domains.count(d)){missing.PushBack(String(DomainName(d),a),a);complete=false;}
   Put(out,"components",std::move(components),a);Put(out,"missing_domains",std::move(missing),a);
   Put(out,"publishable",Value(complete),a);Put(out,"event_watermark",Decimal(watermark,a),a);
-  Put(out,"native_applied",Value(false),a);ValidateModel(out);return out;
+  Put(out,"native_applied",Value(false),a);ValidateModel(out,limits);return out;
 }
-Json Capture(const Scope &scope,std::uint64_t revision,const std::vector<world::observation::ObservationEnvelope> &values,Registry &registry){
-  std::vector<Json> rows;rows.reserve(values.size());for(const auto &v:values)rows.push_back(Parse(world::observation::EncodeEnvelope(v)));return CaptureRows(scope,revision,rows,registry);
+Json Capture(const Scope &scope,std::uint64_t revision,const std::vector<world::observation::ObservationEnvelope> &values,Registry &registry,Limits limits){
+  std::vector<Json> rows;rows.reserve(values.size());for(const auto &v:values)rows.push_back(Parse(world::observation::EncodeEnvelope(v),limits));return CaptureRows(scope,revision,rows,registry,limits);
 }
 // 独立回调／Render／查询是自己的component，不获得普通完整世界采样资格。
 Message Independent(const Scope &scope,const Value &r,Registry &registry){
@@ -275,10 +275,18 @@ Message Independent(const Scope &scope,const Value &r,Registry &registry){
   return m;
 }
 
-Json Difference(const Value &baseline,const Value &target){
-  ValidateModel(baseline);ValidateModel(target);if(ReadScope(baseline["scope"])!=ReadScope(target["scope"]))Fail("delta_scope");
+namespace {
+// 组件重建沿用15的替换／删除语义；调用者必须显式声明本次完整域，拒绝部分成员作为删除依据。
+void CompleteDomains(const Value &model,const std::vector<std::string> &domains){
+ if(domains.empty()){if(model["publishable"]!=true)Fail("incomplete_membership");return;}
+ std::set<std::string> unique(domains.begin(),domains.end());if(unique.size()!=domains.size()||model["components"].MemberCount()!=domains.size())Fail("component_delta_domains");
+ for(const auto &name:domains){const auto &component=At(model["components"],name.c_str());if(component["coverage"]!="Complete"||component["membership_complete"]!=true)Fail("incomplete_membership");}
+}
+}
+Json Difference(const Value &baseline,const Value &target,Limits limits,const std::vector<std::string> &domains){
+  ValidateModel(baseline,limits);ValidateModel(target,limits);if(ReadScope(baseline["scope"])!=ReadScope(target["scope"]))Fail("delta_scope");
   if(Unsigned(target["revision"])<=Unsigned(baseline["revision"]))Fail("delta_revision");
-  if(target["publishable"]!=true||baseline["publishable"]!=true)Fail("incomplete_membership");
+  CompleteDomains(target,domains);CompleteDomains(baseline,domains);
   Json out(rapidjson::kObjectType);auto &a=out.GetAllocator();Put(out,"scope",ScopeValue(ReadScope(target["scope"]),a),a);
   Put(out,"base",Decimal(Unsigned(baseline["revision"]),a),a);Put(out,"target",Decimal(Unsigned(target["revision"]),a),a);
   Value updates(rapidjson::kObjectType),removed(rapidjson::kArrayType),header(rapidjson::kObjectType);
@@ -291,7 +299,8 @@ Json Difference(const Value &baseline,const Value &target){
   }
   Put(out,"header",std::move(header),a);Put(out,"replace",std::move(updates),a);Put(out,"remove",std::move(removed),a);return out;
 }
-Json Reconstruct(const Value &baseline,const Value &delta){
+Json Reconstruct(const Value &baseline,const Value &delta,Limits limits,const std::vector<std::string> &domains){
+  CheckValue(delta,limits);ValidateModel(baseline,limits);CompleteDomains(baseline,domains);
   Model(baseline);if(Unsigned(At(delta,"base"))!=Unsigned(baseline["revision"]))Fail("missing_baseline");
   if(ReadScope(At(delta,"scope"))!=ReadScope(baseline["scope"]))Fail("delta_scope");
   if(Unsigned(At(delta,"target"))<=Unsigned(delta["base"]))Fail("delta_revision");
@@ -304,8 +313,8 @@ Json Reconstruct(const Value &baseline,const Value &delta){
   for(auto i=At(delta,"replace").MemberBegin();i!=delta["replace"].MemberEnd();++i){
     const auto k=Str(i->name);if(removed.count(k))Fail("delete_update_conflict");Value v;v.CopyFrom(i->value,a);Put(components,k.c_str(),std::move(v),a);
   }
-  Put(out,"components",std::move(components),a);ValidateModel(out);
-  if(out["revision"]!=delta["target"]||ReadScope(out["scope"])!=ReadScope(delta["scope"])||out["publishable"]!=true)Fail("delta_target");return out;
+  Put(out,"components",std::move(components),a);ValidateModel(out,limits);CompleteDomains(out,domains);
+  if(out["revision"]!=delta["target"]||ReadScope(out["scope"])!=ReadScope(delta["scope"]))Fail("delta_target");return out;
 }
 Message Applied(const Scope &s,std::uint64_t snapshot,std::uint64_t watermark,bool committed){
   if(!committed||!snapshot)Fail("native_commit_required");Message m;m.kind=Kind::AppliedAck;m.sequence=snapshot;m.body.SetObject();auto &a=m.body.GetAllocator();

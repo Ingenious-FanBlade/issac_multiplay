@@ -3,6 +3,7 @@
 local fixture = RegisterMod("Isaac CS E2E fixture", 1)
 local config = include("harness_config")
 local json = require("json")
+if config.tx == "tx-04-18" then include("tx18_native"); return end
 if config.tx == "tx-04-15" then include("tx15"); return end
 if config.tx == "tx-04-14" then include(config.native_random and "tx14_native_random" or config.global_random and "tx14_global_random" or "tx14"); return end
 if config.tx == "tx-04-13" then include("tx13"); return end

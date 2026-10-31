@@ -1,6 +1,7 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/world_sources/lua_entity.h"
+#include "game/native_room_grid.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
 #include "runtime.h"
@@ -223,6 +224,12 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
       if(objects<0||objects>16384||nodes<0||nodes>262144) { result.complete=false; result.reason="lua_count_budget"; }
       else { result.objects=unsigned(objects); result.nodes=unsigned(nodes); }
       const auto *reason=lua_tostring(L,-2); if(reason) result.reason=reason;
+      // 同一原生复制窗口补齐18载体所需的具名Game／descriptor值，和正式Room消费端一起提交。
+      if(domain==2&&result.complete&&!result.payload.empty()&&result.payload.back()=='}'){
+        const auto context=",\"native_context\":"+CaptureNativeRoomContext();
+        if(result.payload.size()+context.size()>(16u<<20)){result.complete=false;result.reason="native_context_byte_budget";}
+        else result.payload.insert(result.payload.size()-1,context);
+      }
     } else result.reason="lua_payload_budget";
   } catch(...) { result.complete=false; result.reason="lua_owned_value_budget"; }
   lua_settop(L,top); return result;

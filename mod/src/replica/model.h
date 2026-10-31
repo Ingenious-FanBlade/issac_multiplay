@@ -35,7 +35,7 @@ Json Parse(const std::string &,Limits={});
 std::string Text(const Value &);
 Json Copy(const Value &);
 void CheckValue(const Value &,Limits={});
-void ValidateModel(const Value &);
+void ValidateModel(const Value &,Limits={});
 Value Decimal(std::uint64_t,Allocator &);
 std::uint64_t Unsigned(const Value &);
 void Put(Value &,const char *,Value,Allocator &);
@@ -63,11 +63,12 @@ private:
 };
 // 每个component保留自己的capture kind、tick、scope和依赖；不把独立回调拼成原子世界。
 Json Capture(const Scope &,std::uint64_t revision,
-             const std::vector<world::observation::ObservationEnvelope> &,Registry &);
-Json CaptureRows(const Scope &,std::uint64_t revision,const std::vector<Json> &,Registry &);
+             const std::vector<world::observation::ObservationEnvelope> &,Registry &,Limits={});
+Json CaptureRows(const Scope &,std::uint64_t revision,const std::vector<Json> &,Registry &,Limits={});
 Message Independent(const Scope &,const Value &observation,Registry &);
-Json Difference(const Value &baseline,const Value &target);
-Json Reconstruct(const Value &baseline,const Value &delta);
+// 显式域集合只接受这些域的Complete目标；默认仍要求11域整世界，不能把域成功冒充整世界。
+Json Difference(const Value &baseline,const Value &target,Limits={},const std::vector<std::string> &complete_domains={});
+Json Reconstruct(const Value &baseline,const Value &delta,Limits={},const std::vector<std::string> &complete_domains={});
 // 模型DTO确认与原生应用确认分开；只有调用者完成实际应用才能建立Applied ACK。
 Message Applied(const Scope &,std::uint64_t snapshot,std::uint64_t watermark,bool native_committed);
 Message InputProgress(const Scope &,std::uint64_t participant,std::uint64_t generation,std::uint64_t sequence,std::uint64_t tick);

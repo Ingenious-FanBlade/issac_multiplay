@@ -2,6 +2,11 @@
   "evidence": "STATIC_CONFIRMED",
   "base": "0x400000",
   "functions": [
+    {"rva":"0x686BC9","pattern":"E9 ?? ?? ?? ??","type":"void __cdecl(void*)","entry":["tx-04-18 J273 VA A86BC9 j_j_free: Camera deleting destructor 7E03F0 frees six ring buffer pointers at +50,+40,+30,+20,+10,+0 then root via A8717B; SDK destructor declaration omits native ret4 argument and is unsuitable for DLL-owned root"]},
+    {"rva":"0x42D230","pattern":"55 8B EC 83 E4 F8 83 EC 74 A1 ?? ?? ?? ?? 33 C4","type":"void __thiscall()","entry":["tx-04-18 J273 GridEntity_Statue vtable+28 InitSubclass: creates and publishes display Entity at +154, then writes path; Client restores Grid values without this gameplay/entity owner"]},
+    {"rva":"0x515890","pattern":"53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04","type":"void __thiscall(int,int,unsigned int,int,Vector const&,bool,bool)","entry":["tx-04-18 J273 VA915890: ECX backdrop, seven stack words ret1C; creates backdrop LIGHT, smoke and wall decoration Entities; no direct room cache drawing"]},
+    {"rva":"0x515750","pattern":"55 8B EC 83 E4 F8 83 EC 18 8B C1 89 54 24 0C","type":"unsigned int __fastcall(ANM2*, Vector*, bool, bool)","entry":["tx-04-18 J273 VA915750: ECX sprite EDX position, ret8; only creates LIGHT entities from sprite Null points"]},
+    {"rva":"0x517420","pattern":"55 8B EC 83 E4 F8 83 EC 20 83 B9 50 01 00 00 2A","type":"unsigned int __thiscall(RNG*, Vector const&, bool, bool, bool, bool, float)","entry":["tx-04-18 J273 VA917420: ECX backdrop, seven stack words ret1C; renders detail layers then creates LIGHT entities from detail nulls"]},
     {"rva":"0x5EFA10","pattern":"8B 15 ?? ?? ?? ?? 8B 0D ?? ?? ?? ?? 2B D1 56 C1 FA 02","type":"unsigned int __cdecl()","entry":["tx-04-17 J273 frame queue reset; standalone no-argument static helper, ret without stack adjustment"]},
     {
       "rva": "0x42ac90",

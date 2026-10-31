@@ -1,4 +1,4 @@
-> **tx-04-18 已完成（2026-10-31）**：[Room／Grid专用表示、逆向主审与统一E2E](design/tx-04-18/tx-04-18-implementation.md)，最终10/10 PASS；27类型／17派生、448格／八门槽、12房形与真实GPU目标像素。失败修复及不受影响的通过项复用如实记录，临时材料已清理；网络Baseline／整世界Applied仍归21，原版全内容组合闭合仍归29。
+> **tx-04-18 原生应用已完成（2026-11-01），统一E2E 29/29 PASS**：[create／remove／change原生Room／Grid应用及验收结果](design/tx-04-18/tx-04-18-native-state-plan.md#13-最终统一验收结果)。真实Authority的25个场景覆盖27类型／17类、12房形、448格、八门视图、资源／动画／FX／水色与实际墙面选择；10种无效候选、重复／过期、三阶段失败恢复、stop／重连／正常退出及访客持久隔离通过。同一18完成17的原生展示接线调整，未新增单元测试，本轮临时材料已清理。[旧专用表示10/10](design/tx-04-18/tx-04-18-implementation.md)及旧资源重放失败仍保留历史。Entity19／Player20、网络21／整世界Applied及29全内容组合均不由本次域成功代替。
 
 > **tx-04-14 已完成（2026-10-31）**：[整局、随机选择、HUD/独立表现、Mod及真实StageAPI实现与统一验收](design/observation-expansion/tx-04-14-implementation.md)。6/6 PASS、21/21场景、84个指定四域scope；[记录/适配合同](design/observation-expansion/run-mod-schema.md)。下方早期计划状态保留原时点。
 

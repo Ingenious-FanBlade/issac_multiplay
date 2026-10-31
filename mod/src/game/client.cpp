@@ -1,6 +1,7 @@
 #include "game/client.h"
 #include "game/client_isolation.h"
 #include "game/presentation.h"
+#include "game/native_room_grid.h"
 #include "game/mod_persistence.h"
 #include "binding/offsets.h"
 #include "game/context.h"
@@ -104,6 +105,7 @@ bool MenuReady() noexcept {
 }
 }
 bool ClientBusy() noexcept {return client_active.load(std::memory_order_acquire);}
+int ClientDeviceKey() noexcept {return IsMain()&&client?client->device_key:0;}
 const char *ClientStateName() noexcept {
   if(!client)return "Off";
   switch(client->state) {
@@ -130,6 +132,7 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
     const auto error=next->network.Start(ipv4,std::uint16_t(port),Settings.peer_timeout_ms);
     if(*error)return error;
     if(!PresentationBegin(next->connection)){next->network.Stop();return "presentation_busy";}
+    if(!NativeRoomGridBegin(next->connection)){PresentationStop();next->network.Stop();return "native_room_busy";}
     ClientProtectionBegin();client_closing=false;
     ForgetInputDevice();client=std::move(next);foreign_client=false;client_active.store(true,std::memory_order_release);
     Trace("client","event=connecting connection=%llu address=%s port=%u key=%d local_run=0",connections,ipv4.c_str(),port,device_key);
@@ -139,7 +142,7 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
 void StopClient() noexcept {
   if(!IsMain()||!ClientBusy())return;
   Neutral(*client,true);client->input_ready=false;client->state=State::Retiring;client->neutral_loops=0;client->network.Stop();
-  PresentationStop();
+  NativeRoomGridStop();PresentationStop();
   Trace("client","event=retiring connection=%llu",client->connection);
 }
 // 该入口在FrameScope之后、完整Manager原链之前；从不推进Authority时钟。
@@ -187,7 +190,7 @@ bool ClientManagerBoundary() noexcept {
       c.sampled_this_loop=false;c.physical_neutral=false;c.blocked=true;ClientPollInput();
       if(!c.sampled_this_loop||c.physical_neutral)++c.neutral_loops;else c.neutral_loops=0;
       // 自有资源、图形队列和输入callback都退休后才交还Off。关闭进程时保护延续到Shutdown。
-      if(c.network.Finished()&&c.neutral_loops>=2&&MenuReady()&&PresentationDrained()&&PresentationProgressUnchanged()) {
+      if(c.network.Finished()&&c.neutral_loops>=2&&MenuReady()&&NativeRoomGridDrained()&&PresentationDrained()&&PresentationProgressUnchanged()) {
         c.state=State::Off;ForgetInputDevice();client_active.store(false,std::memory_order_release);
         if(!client_closing)ClientProtectionEnd();
         Trace("client","event=off connection=%llu input_closed=1 worker_finished=1 local_run=0",c.connection);
@@ -275,11 +278,11 @@ bool ClientProcessExitDecision() noexcept {
   if(!ClientBusy())return true;
   client_closing=true;
   if(client->state!=State::Retiring)StopClient();
-  return client->network.Finished()&&PresentationDrained();
+  return client->network.Finished()&&NativeRoomGridDrained()&&PresentationDrained();
 }
 std::string ClientFields() {
   std::string s="role="+std::string(ClientBusy()?"Client":HostBusy()?"Host":"Off")+"\nclient_state="+ClientStateName()+"\nclient_world_applied=0\n";
-  s+=PresentationFields()+ClientIsolationFields()+ModPersistenceFields();
+  s+=NativeRoomGridFields()+PresentationFields()+ClientIsolationFields()+ModPersistenceFields();
   s+="client_ui_available="+std::string(ui_seen_ms&&GetTickCount64()-ui_seen_ms<=1000?"1":"0")+"\n";
   s+="client.ui_frames="+std::to_string(ui_frames)+"\n";
   if(!client)return s;

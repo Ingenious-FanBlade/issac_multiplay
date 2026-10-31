@@ -14,7 +14,7 @@ function M.Capture(limits)
   local grids,gap=IsaacCSObservationNative.GridSources()
   for _,e in ipairs(sources) do IsaacCSObservationNative.Subject(e.entity) end
   for _,g in ipairs(grids) do IsaacCSObservationNative.GridSubject(g.grid) end
-  local out={room_index=level:GetCurrentRoomIndex(),dimension_index=level:GetDimension(),location=location,descriptor=model.Reference(d,level:GetCurrentRoomIndex()),state=read.Collect(room,"Room",c,0),doors={},entities={},grids={},seeds={spawn=room:GetSpawnSeed(),decoration=room:GetDecorationSeed(),award=room:GetAwardSeed()},sampling={freshness="ReadInCurrentNativeWindow",cache_reused=false},config=read.Value(d.Data,"RoomConfigRoom",c,0),override_config=read.Value(d.OverrideData,"RoomConfigRoom",c,0)}
+  local out={room_index=level:GetCurrentRoomIndex(),dimension_index=level:GetDimension(),location=location,descriptor=model.Reference(d,level:GetCurrentRoomIndex()),state=read.Collect(room,"Room",c,0),doors=read.Array(),entities=read.Array(),grids=read.Array(),seeds={spawn=room:GetSpawnSeed(),decoration=room:GetDecorationSeed(),award=room:GetAwardSeed()},sampling={freshness="ReadInCurrentNativeWindow",cache_reused=false},config=read.Value(d.Data,"RoomConfigRoom",c,0),override_config=read.Value(d.OverrideData,"RoomConfigRoom",c,0)}
   for slot=0,7 do
     local g=room:GetDoor(slot)
     out.doors[#out.doors+1]={slot=slot,shape_allowed=room:IsDoorSlotAllowed(slot),descriptor_enabled=(d.AllowedDoors&(1<<slot))~=0,shape_target_grid_index=d.Doors[slot],actual=g and IsaacCSObservationNative.GridReference(g) or {resolution="Null"},actual_target=g and g.TargetRoomIndex or nil,actual_connection=g and model.Target(level,g.TargetRoomIndex,level:GetDimension(),false) or {kind="NoActualDoor"}}

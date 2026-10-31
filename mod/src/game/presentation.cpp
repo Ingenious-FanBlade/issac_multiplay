@@ -2,6 +2,7 @@
 #include "LuaCore.h"
 #include "game/presentation.h"
 #include "game/client.h"
+#include "game/native_room_grid.h"
 #include "game/mod_persistence.h"
 #include "game/bridge.h"
 #include "replica/room_grid.h"
@@ -118,6 +119,8 @@ void CaptureTarget(){
   BITMAPFILEHEADER header{};header.bfType=0x4d42;header.bfOffBits=sizeof(header)+sizeof(BITMAPINFOHEADER);header.bfSize=header.bfOffBits+DWORD(data.size());
   BITMAPINFOHEADER info{};info.biSize=sizeof(info);info.biWidth=width;info.biHeight=height;info.biPlanes=1;info.biBitCount=32;info.biSizeImage=DWORD(data.size());
   const auto path=std::filesystem::u8path(Settings.world_output_dir)/"presentation"/(s.capture+".bmp");
+  // Authority参考截图也走此入口，不能依赖Client夹具预先创建输出目录。
+  std::filesystem::create_directories(path.parent_path());
   std::ofstream file(path,std::ios::binary);file.write(reinterpret_cast<const char *>(&header),sizeof(header));file.write(reinterpret_cast<const char *>(&info),sizeof(info));
   file.write(reinterpret_cast<const char *>(data.data()),std::streamsize(data.size()));if(!file)Reject("presentation_capture_write");
   s.capture.clear();++s.captures;
@@ -340,6 +343,10 @@ bool PresentationBegin(std::uint64_t connection) noexcept {
   std::memcpy(s.progress.data(),g_Manager->GetPersistentGameData(),s.progress.size());s.progress_changed=false;
   s.active=true;s.stopping=false;s.connection=connection;s.revision=s.epoch=0;s.dc=nullptr;s.context=nullptr;s.pending.clear();s.capture.clear();s.error.clear();return true;
 }
+bool PresentationNativeGraphicsReady() noexcept {return Graphics();}
+void PresentationNativeDrawStarted() noexcept {auto &s=State();s.render_pending=true;s.draw_apply=s.applies;s.draw_reset=s.resets;}
+void PresentationClearTarget(){ClearScene();}
+void PresentationCaptureNativeReference(const std::string &name){if(!Graphics()||!State().capture.empty())Reject("native_reference_context");State().capture=name;CaptureTarget();}
 const char *PresentationSubmit(const std::string &descriptor) noexcept {
   auto &s=State();if(!IsMain()||!s.active||s.stopping)return "presentation_not_active";
   if(descriptor.size()>8u*1024u*1024u)return "presentation_descriptor_budget";
@@ -416,11 +423,13 @@ void PresentationDraw() noexcept {
   s.drawing=false;
 }
 void PresentationQueueReturned(bool reset) noexcept {
+  NativeRoomGridQueueReturned(reset);
   if(!IsMain()||!ClientBusy())return;auto &s=State();
   if(reset)++s.resets;else ++s.applies;
 }
 // 正常render返回仍需本轮apply/reset见证及具体raw容器检查；不能以SwapBuffers冒充GPU完成。
 void PresentationRenderReturned() noexcept {
+  NativeRoomGridRenderReturned();
   auto &s=State();if(!s.active||!s.render_pending||!IsMain())return;s.render_pending=false;
   if(!s.capture.empty()&&s.applies>s.draw_apply&&s.resets>s.draw_reset&&Graphics()&&
      g_KAGE_Graphics_ImageManager._frameImages.empty()&&g_KAGE_Graphics_ImageManager._transparentBatches.empty()){

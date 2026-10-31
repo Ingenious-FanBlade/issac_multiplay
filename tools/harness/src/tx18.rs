@@ -1,292 +1,190 @@
-//! tx-04-18统一实机应用验收。受控Authority纯值经过正式应用入口，不构造Client本地run。
+//! tx-04-18统一实机验收：真实Authority后态经生产Room/Grid入口进入真实原生Client。
+//! 普通输入只允许换成本连接代次；损坏模型及版本改写只用于明确的负向／恢复用例。
 use crate::{Control,Result,Run,win32};
 use serde_json::{Value,json};
-use std::{collections::BTreeMap,fs,net::UdpSocket,thread,time::{Duration,Instant}};
+use std::{collections::{BTreeMap,BTreeSet},fs,net::UdpSocket,path::Path,thread,time::{Duration,Instant}};
 type Status=BTreeMap<String,String>;
 fn n(s:&Status,k:&str)->u64{s.get(k).and_then(|s|s.parse().ok()).unwrap_or(0)}
-// 几何值允许JSON整数/浮点的等值表示，身份和64位整数仍按原值严格比较。
-fn geometry_equal(a:&Value,b:&Value)->bool{
- if a.is_number()&&b.is_number(){return a.as_f64()==b.as_f64();}
- if let (Some(a),Some(b))=(a.as_array(),b.as_array()){return a.len()==b.len()&&a.iter().zip(b).all(|(a,b)|geometry_equal(a,b));}
- if let (Some(a),Some(b))=(a.as_object(),b.as_object()){return a.len()==b.len()&&a.iter().all(|(k,a)|b.get(k).is_some_and(|b|geometry_equal(a,b)));}
- a==b
+fn integer(v:&Value)->Result<i64>{v.as_i64().or_else(||v.as_str().and_then(|s|s.parse().ok())).or_else(||v["value"].as_str().and_then(|s|s.parse().ok())).ok_or_else(||format!("native scalar {v}"))}
+fn equal(a:&Value,b:&Value)->bool{
+ if a.is_number()&&b.is_number(){return (a.as_f64().unwrap()-b.as_f64().unwrap()).abs()<0.00001;}
+ if b["type"]=="int64"{return integer(a).ok()==integer(b).ok();}
+ if let (Some(a),Some(b))=(a.as_array(),b.as_array()){return a.len()==b.len()&&a.iter().zip(b).all(|(a,b)|equal(a,b));}
+ if let (Some(a),Some(b))=(a.as_object(),b.as_object()){return a.len()==b.len()&&a.iter().all(|(k,a)|b.get(k).is_some_and(|b|equal(a,b)));}a==b
 }
-const CLASSES:[&str;28]=["","Decoration","Rock","Rock","Rock","Rock","Rock","Pit","Spikes","Spikes","Web","Lock","TNT","Fire","Poop","Wall","Door","TrapDoor","Stairs","Gravity","PressurePlate","Statue","Rock","Teleporter","Rock","Rock","Rock","Rock"];
-fn key(id:u64)->Value{json!({"run":"1","space":"2","id":id.to_string()})}
-fn pose()->Value{json!({"animation":"Main","frame":0,"overlay":null,"overlay_first":false,
- "offset":[0,0],"scale":[1,1],"rotation":0,"color":[1,1,1,1,0,0,0,0,0,0,0],"champion_color":[1,1,1,1,0,0,0,0,0,0,0],
- "flip_x":false,"flip_y":false,"flags":0,"layers":[],"custom_shader":null,"champion_shader":null})}
-fn node(id:u64,pass:u64,x:i32,y:i32,orange:bool)->Value{json!({"id":id.to_string(),"pass":pass,"screen":false,
- "position":[x,y],"order":y,"clamp_top":[0,0],"clamp_bottom":[0,0],"anm2":"gfx/isaac-cs-tx17/scene.anm2",
- "sheets":if orange{json!([{"id":0,"path":"gfx/isaac-cs-tx17/b.png"},{"id":1,"path":"gfx/isaac-cs-tx17/b.png"}])}else{json!([])},"pose":pose()})}
-// 每个实际inside格使用一个由Authority给定的地面部件，缺角直接没有节点；不用全屏背景伪装房形。
-fn rebuild_floor(world:&mut Value){
- world["nodes"].as_array_mut().unwrap().retain(|n|n["id"].as_str().unwrap().parse::<u64>().unwrap()<1000);
- world["room"]["parts"].as_array_mut().unwrap().retain(|p|p["role"]!="floor");
- let cells=world["room"]["cells"].as_array().unwrap().clone();
- for cell in cells.iter().filter(|c|c["inside"]==true){let i=cell["index"].as_u64().unwrap();let id=1000+i;
-  let mut tile=node(id,0,cell["position"][0].as_i64().unwrap() as i32,cell["position"][1].as_i64().unwrap() as i32,false);
-  tile["anm2"]=json!("gfx/isaac-cs-tx18/tile.anm2");tile["pose"]["scale"]=json!([1.25,1.25]);
-  world["nodes"].as_array_mut().unwrap().push(tile);
-  world["room"]["parts"].as_array_mut().unwrap().push(json!({"role":"floor","node":id.to_string(),"cells":[i]}));
- }
+// Client姿态由Authority快照驱动，IsPlaying／事件消费被主动关闭；核对其实际视觉状态而非要求本地动画运行。
+fn sprite_equal(a:&Value,b:&Value)->bool{let a=&a["fields"];let b=&b["fields"];
+ for key in ["Sprite.GetFilename","Sprite.IsLoaded"]{if !equal(&a[key],&b[key]){return false;}}
+ if b["Sprite.IsLoaded"]!=true{return true;}
+ ["Sprite.GetAnimation","Sprite.GetFrame","Sprite.GetOverlayAnimation","Sprite.GetOverlayFrame","Sprite.Color","Sprite.FlipX","Sprite.FlipY","Sprite.Offset","Sprite.Scale","Sprite.Rotation","Sprite.PlaybackSpeed","Sprite.GetRenderFlags","Sprite.GetAllLayers"].into_iter().all(|key|equal(&a[key],&b[key]))
 }
-// 目录枚举只构造明确受控的Authority状态，不调用任何游戏玩法setter；所有值都要从Client读回。
-fn fields(catalog:&Value,owner:&str)->Value{
- let mut fields=serde_json::Map::new();
- for m in catalog["members"].as_array().unwrap().iter().filter(|m|m["owner"]==owner){
-  let category=m["category"].as_str().unwrap_or("");if !["field","query","parameter_query"].contains(&category){continue;}
-  let ret=m["returns"].as_str().unwrap_or("");let member=m["member"].as_str().unwrap_or("");
-  let v=if category=="parameter_query"{json!({"kind":"parameter_results","values":[{"parameters":[0],"value":false}]})}
-   else if ret=="boolean"{json!(false)}else if ret=="string"{json!("Idle")}
-   else if ret=="Vector"{json!({"type":"vector","x":0,"y":0})}
-   else if ret=="RNG"||member.contains("RNG"){json!({"status":"AuthorityOnly","reason":"No gameplay RNG on Client"})}
-   else if ret=="Sprite"{json!({"type":"resource_pose","resource":{"logical_path":"gfx/isaac-cs-tx17/scene.anm2","content_version":"tx18-controlled-v1"},"pose":pose()})}
-   else if ret=="GridEntityDesc"{json!({"type":"GridEntityDesc","fields":{"GridEntityDesc.Initialized":true,"GridEntityDesc.SpawnCount":1,"GridEntityDesc.SpawnSeed":123,"GridEntityDesc.State":0,"GridEntityDesc.Type":1,"GridEntityDesc.VarData":0,"GridEntityDesc.VariableSeed":456,"GridEntityDesc.Variant":0}})}
-   else{json!(0)};
-  fields.insert(m["id"].as_str().unwrap().to_string(),v);
- }
- json!({"type":owner,"fields":fields})
+fn revision(v:&Value)->Result<u64>{v["revision"].as_str().ok_or("revision")?.parse().map_err(|e|format!("revision: {e}"))}
+// 负向输入有意采用新版本；所有组件／依赖版本一起改，避免被无关header错误提前拦截。
+fn negative_revision(v:&mut Value,r:u64){v["revision"]=json!(r.to_string());for (_,c) in v["components"].as_object_mut().unwrap(){c["version"]=json!(r.to_string());}
+ fn walk(v:&mut Value,r:u64){if let Some(a)=v.as_array_mut(){for e in a{walk(e,r)}}else if let Some(o)=v.as_object_mut(){if o.contains_key("required_revision"){o.insert("required_revision".into(),json!(r.to_string()));}for (_,e) in o{walk(e,r)}}}walk(&mut v["components"],r);
 }
-fn world(catalog:&Value,connection:u64,revision:u64)->Value{
- let mut nodes=vec![node(2,2,560,40,false)];nodes[0]["pose"]["scale"]=json!([34,1]);
- let mut grids=Vec::new();
- for t in 1..28{
-  let class=format!("GridEntity{}",CLASSES[t]);let mut common=fields(catalog,"GridEntity");let mut derived=fields(catalog,&class);
-  common["fields"]["GridEntity.GetType"]=json!(t);common["fields"]["GridEntity.GetVariant"]=json!(0);
-  common["fields"]["GridEntity.GetGridIndex"]=json!(t+30);
-  common["fields"]["GridEntity.GetSaveState"]["fields"]["GridEntityDesc.Type"]=json!(t);
-  common["fields"]["GridEntity.Desc"]=common["fields"]["GridEntity.GetSaveState"].clone();
-  let id=t as u64+100;let (x,y)=(40+((t+30)%28) as i32*40,80+((t+30)/28) as i32*40);
-  common["fields"]["GridEntity.Position"]=json!({"type":"vector","x":x,"y":y});common["fields"]["GridEntity.GetRenderPosition"]=common["fields"]["GridEntity.Position"].clone();
-  nodes.push(node(id,4,x,y,true));
-  let mut parts=vec![json!({"role":"main","node":id.to_string()})];
-  if t==16{derived["fields"]["GridEntityDoor.ExtraVisible"]=json!(true);derived["fields"]["GridEntityDoor.Slot"]=json!(0);
-   nodes.push(node(500,4,420,190,true));parts.push(json!({"role":"extra","node":"500"}));}
-  if t==20{nodes.push(node(501,4,120,250,true));parts.push(json!({"role":"timer","node":"501"}));
-   nodes.push(json!({"id":"503","pass":4,"position":[120,280],"screen":false,"order":280,"text":"00:37","text_scale":[1,1],"text_color":[1,0.3,0.2,1]}));
-   parts.push(json!({"role":"timer_text","node":"503"}));}
-  if t==2{nodes.push(node(502,5,120,90,true));parts.push(json!({"role":"top","node":"502"}));}
-  let memberships=if t==16{json!([{"source":"grid","index":t+30},{"source":"door","index":0}])}else{json!([{"source":"grid","index":t+30}])};
-  grids.push(json!({"key":key(t as u64),"type":t,"variant":0,"class":class,"index":t+30,"memberships":memberships,
-    "visible":true,"save":common["fields"]["GridEntity.GetSaveState"],"state":{"common":common,"derived":derived},"parts":parts}));
- }
- let cells:Vec<_>=(0..448).map(|i|json!({"index":i,"inside":true,"position":[40+(i%28)*40,80+(i/28)*40],"collision":i%6,"path":i*3,"rail":i%7,"occlusion":i%4})).collect();
- let doors:Vec<_>=(0..8).map(|i|json!({"slot":i,"allowed":true,"descriptor_enabled":i==0,"target":{"kind":"MapRoom","index":65},"grid":if i==0{key(16)}else{Value::Null}})).collect();
- let mut result=json!({"format":"isaac.cs.room-grid","version":1,"connection":connection.to_string(),"revision":revision.to_string(),
- "scope":{"session":"1","connection":"1","run":"1","floor":"1","dimension":"0","room":"1","scene":"1"},
- "membership_complete":true,"room":{"shape":8,"size":[1200,800],"cells":cells,"state":{"type":"Room","fields":{"Room.GetRoomShape":8}},
- "config":{"type":"RoomConfigRoom","controlled":true},"override_config":null,
- "environment":{"backdrop":1,"floor_color":[1,1,1,1],"wall_color":[1,1,1,1],"water":{"amount":0,"color":[0.1,0.2,0.3,1],"current":[0,0]},"fx":{"rain":false,"lava":false}},
- "doors":doors,"parts":[{"role":"wall","node":"2"}]},
- "camera":{"origin":[0,0],"zoom":0.45},"hud":"Authority Room/Grid dedicated display - no local simulation","grids":grids,"nodes":nodes});
- rebuild_floor(&mut result);result
+fn sources()->Vec<(String,String)>{let mut out=vec![("natural","prepare"),("types","types"),("states","states"),("states-return","states-return"),("destroy","destroy"),("replace-old","replace-old"),("replace-new","replace-new"),("empty","empty")].into_iter().map(|(a,b)|(a.into(),b.into())).collect::<Vec<_>>();
+ for shape in 1..=12{out.push((format!("shape-{shape}"),format!("shape-{shape}")));}for name in ["boss","cellar","flooded","water","womb"]{out.push((name.into(),name.into()));}out
 }
-// 真实经过15规范模型的Room/Grid component接入；其他九域不宣称已经应用。
-fn source_model(display:&Value)->Value{
- let mut room_state=display["room"]["state"].clone();
- for (member,field) in [("Room.GetGridPosition","position"),("Room.GetGridCollision","collision"),("Room.GetGridPath","path"),("Room.GetRail","rail")]{
-  let values:Vec<_>=display["room"]["cells"].as_array().unwrap().iter().map(|c|json!({"parameters":[c["index"]],
-   "value":if field=="position"{json!({"type":"vector","x":c[field][0],"y":c[field][1]})}else{c[field].clone()}})).collect();
-  room_state["fields"][member]=json!({"kind":"parameter_results","values":values});
- }
- let objects:Vec<_>=display["grids"].as_array().unwrap().iter().map(|g|{
-  let memberships:Vec<_>=g["memberships"].as_array().unwrap().iter().map(|m|json!({"source":if m["source"]=="grid"{11}else{12},"index":m["index"]})).collect();
-  let mut bodies=serde_json::Map::new();bodies.insert(g["class"].as_str().unwrap().into(),g["state"]["derived"].clone());
-  json!({"subject":{"type":"reference","status":"KnownCurrent","target":g["key"]},"type":g["type"],"variant":g["variant"],"index":g["index"],"class":g["class"],"memberships":memberships,
-    "common":g["state"]["common"],"bodies":bodies})
- }).collect();
- let doors:Vec<_>=display["room"]["doors"].as_array().unwrap().iter().map(|d|json!({"slot":d["slot"],"shape_allowed":d["allowed"],"descriptor_enabled":d["descriptor_enabled"],"actual_connection":d["target"],
-  "actual":if d["grid"].is_null(){json!({"type":"reference","status":"Null"})}else{json!({"type":"reference","status":"KnownCurrent","target":d["grid"]})}})).collect();
- let mut components=serde_json::Map::new();
- for (name,domain,scope,state) in [("grid",2,1,json!({"objects":objects})),("room",3,2,json!({"state":room_state,"config":display["room"]["config"],"override_config":display["room"]["override_config"],"doors":doors}))]{
-  components.insert(name.into(),json!({"domain":domain.to_string(),"version":display["revision"],"coverage":"Complete","reasons":[],"ownership":"ReplicatedState","membership_complete":true,
-   "capture":{"scope":scope.to_string(),"authority_tick":"100","phase":"OrdinaryPost"},"state":state}));
- }
- json!({"format":"isaac.cs.replica.model","scope":display["scope"],"revision":display["revision"],"event_watermark":"0","native_applied":false,"publishable":false,
- "missing_domains":["entity","level","exploration","room_save","player","run","random","presentation","mod"],"components":components})
+// 画面只核对自然内容与明确场景，不把逐像素相等当作Room/Grid域成功定义。
+fn bitmap(path:&Path)->Result<(usize,usize,Vec<u8>)>{let b=fs::read(path).map_err(|e|e.to_string())?;
+ let u=|p|->Result<u32>{Ok(u32::from_le_bytes(b.get(p..p+4).ok_or("BMP header")?.try_into().unwrap()))};
+ if b.get(..2)!=Some(b"BM")||b.get(28..30)!=Some(&32u16.to_le_bytes()){return Err("native BMP format".into())}
+ let w=u(18)? as usize;let raw_h=u(22)? as i32;let h=raw_h.unsigned_abs() as usize;if w<32||h<64||w*h>8*1024*1024{return Err("native BMP dimensions".into())}
+ let offset=u(10)? as usize;let mut pixels=b.get(offset..offset+w*h*4).ok_or("BMP body")?.to_vec();if raw_h>0{for y in 0..h/2{for x in 0..w*4{pixels.swap(y*w*4+x,(h-1-y)*w*4+x)}}}Ok((w,h,pixels))
 }
-fn pixels(path:&std::path::Path)->Result<(u64,u64)>{
- let b=fs::read(path).map_err(|e|e.to_string())?;if b.get(..2)!=Some(b"BM"){return Err("BMP".into())}
- let offset=u32::from_le_bytes(b.get(10..14).ok_or("BMP offset")?.try_into().unwrap()) as usize;
- let mut teal=0;let mut orange=0;for p in b.get(offset..).ok_or("BMP body")?.chunks_exact(4){let (r,g,blue)=(u32::from(p[2]),u32::from(p[1]),u32::from(p[0]));
-  if blue>r*2&&g>r*2&&blue>60{teal+=1;}if r>blue*2&&r>g&&r>80{orange+=1;}}
- Ok((teal,orange))
+fn natural_pixels(authority:&Path,client:&Path)->Result<Value>{let (w,h,a)=bitmap(authority)?;let (cw,ch,b)=bitmap(client)?;if (w,h)!=(cw,ch){return Err("native Authority/Client render size".into())}
+ let mut bins=BTreeSet::new();let mut colored=0u64;let mut error=0u64;let mut count=0u64;
+ for y in 40..h-8{for x in 8..w-8{let at=(y*w+x)*4;let p=&b[at..at+3];if p.iter().any(|&v|v>16){colored+=1;bins.insert((p[0]/4,p[1]/4,p[2]/4));}
+  for c in 0..3{error+=u64::from(a[at+c].abs_diff(b[at+c]));count+=1;}
+ }}let mean=error as f64/count as f64;if colored<2000||bins.len()<12||mean>20.0{return Err(format!("native visual mismatch colored={colored} colors={} mean={mean}",bins.len()))}
+ Ok(json!({"colored":colored,"colors":bins.len(),"mean_channel_difference":mean}))
 }
 impl Run {
- fn wait_tx18(&mut self,g:&win32::Game,c:&mut Control,label:&str,p:impl Fn(&Status)->bool)->Result<Status>{
-  let end=Instant::now()+Duration::from_secs(30);loop{
-   if let Some(code)=g.exited(){return Err(format!("{label}: exited {code}"))}let s=c.command("cs status")?;
-   if p(&s){self.step(label,json!(s))?;return Ok(s)}if Instant::now()>=end{return Err(format!("{label}: {s:?}"))}thread::sleep(Duration::from_millis(65));
+ fn native_command(&self,c:&mut Control,action:&str)->Result<Status>{c.command(&format!("cs native_room_test {} {action}",self.report["token"].as_str().ok_or("token")?))}
+ fn native_action(&self,c:&mut Control,action:&str)->Result<Value>{let response=self.native_command(c,&format!("action-{action}"))?;serde_json::from_str(response.get("native.fixture").ok_or("native fixture response")?).map_err(|e|e.to_string())}
+ fn native_wait(&mut self,g:&win32::Game,c:&mut Control,label:&str,p:impl Fn(&Status)->bool)->Result<Status>{let end=Instant::now()+Duration::from_secs(45);loop{
+  if let Some(code)=g.exited(){return Err(format!("native {label} process exit {code}"))}let s=c.command("cs status")?;if p(&s){self.step(label,json!(s))?;return Ok(s)}
+  if Instant::now()>=end{return Err(format!("native {label}: {s:?}"))}thread::sleep(Duration::from_millis(80));
+ }}
+ fn native_submit(&self,c:&mut Control,name:&str,model:&Value)->Result<()>{let dir=self.out.join("runtime-world/native");fs::create_dir_all(&dir).map_err(|e|e.to_string())?;
+  // 与正式DTO保持紧凑编码；大房间的缩进文本可膨胀数倍，不能因此错误触发生产字节上限。
+  fs::write(dir.join(format!("{name}.json")),serde_json::to_vec(model).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+  let operation=if model.get("baseline").is_some(){"reconstruct"}else{"submit"};self.native_command(c,&format!("{operation}-{name}"))?;Ok(())}
+ fn native_object(&self,c:&mut Control,id:&str)->Result<Value>{let s=self.native_command(c,&format!("object-{id}"))?;
+  let text=if let Some(file)=s.get("native.object_file"){if *file!=format!("readback-{id}.json"){return Err("native readback path".into())}crate::read(&self.out.join("runtime-world/native").join(file))?}else{s.get("native.object").ok_or("actual native object response")?.clone()};serde_json::from_str(&text).map_err(|e|e.to_string())}
+ fn native_isolated(&self,c:&mut Control,before:&Status,callbacks:&Status)->Result<Status>{let after=c.command("cs counters")?;
+  for entry in ["game_update","room_update","entity_list","odd_helper","player_update","start_game","restore","join_pass"]{let key=format!("hook.{entry}");if n(before,&key)!=n(&after,&key){return Err(format!("native Client gameplay entered {entry}"))}}
+  let token=self.report["token"].as_str().ok_or("token")?;if *callbacks!=c.command(&format!("cs presentation_test {token} callbacks"))?{return Err("native Client dispatched gameplay Lua".into())}
+  let status=c.command("cs status")?;if n(&status,"client_world_applied")!=0||n(&status,"presentation.progress_changed")!=0{return Err("native domain crossed world/persistence boundary".into())}Ok(after)
+ }
+ fn native_readback(&mut self,c:&mut Control,model:&Value,name:&str)->Result<()>{let source=&model["components"]["room"]["state"];let f=&source["state"]["fields"];let room=self.native_object(c,"room")?;
+  for (key,member) in [("shape","Room.GetRoomShape"),("width","Room.GetGridWidth"),("height","Room.GetGridHeight"),("backdrop","Room.GetBackdropType"),("water","Room.GetWaterAmount")]{if !equal(&room[key],&f[member]){return Err(format!("native {name} Room {key}"))}}
+  let cells=room["cells"].as_array().ok_or("native actual cells")?;if cells.len()!=448{return Err("native actual 448-cell membership".into())}
+  let objects=model["components"]["grid"]["state"]["objects"].as_array().ok_or("native source objects")?;
+  let positions=self.native_object(c,"geometry")?;
+  if !equal(&self.native_object(c,"clocks")?,&source["native_context"]["grid_birth"]){return Err(format!("native {name} Grid creation clocks"))}
+  for (i,cell) in cells.iter().enumerate(){for (member,key) in [("Room.GetGridCollision","collision"),("Room.GetGridPath","path"),("Room.GetRail","rail")]{let expected=&f[member]["values"][i]["value"];
+   let expected=if expected["status"]=="Null"{255}else{integer(expected)?};if integer(&cell[key])?!=expected{return Err(format!("native {name} cell {i} {key}"))}}
+   if cell["occupied"]!=json!(objects.iter().any(|o|o["index"].as_u64()==Some(i as u64))){return Err(format!("native {name} occupied {i}"))}
+   for axis in ["x","y"]{if !equal(&positions[i][axis],&f["Room.GetGridPosition"]["values"][i]["value"][axis]){return Err(format!("native {name} actual position {i}"))}}
+   if cell["inside"]!=source["native_context"]["grid_inside"][i]{return Err(format!("native {name} actual shape mask {i}"))}
   }
+  for door in source["doors"].as_array().ok_or("source doors")?{let slot=door["slot"].as_u64().ok_or("door slot")? as usize;let expected=door["actual"]["target"]["id"].as_str().unwrap_or("0");if room["doors"][slot]!=expected{return Err(format!("native {name} door alias {slot}"))}}
+  for object in objects{let id=object["subject"]["target"]["id"].as_str().ok_or("source id")?;let actual=self.native_object(c,id)?;let common=&object["common"]["fields"];let desc=&common["GridEntity.GetSaveState"]["fields"];
+   for key in ["type","variant","index"]{if actual[key]!=object[key]{return Err(format!("native {name} Grid {id} {key}"))}}
+   for (key,member) in [("state","GridEntity.State"),("collision","GridEntity.CollisionClass"),("water","GridEntity.GetWaterClipFlags")]{if !equal(&actual[key],&common[member]){return Err(format!("native {name} Grid {id} {key}"))}}
+   for axis in ["x","y"]{if !equal(&actual["position"][axis],&common["GridEntity.Position"][axis]){return Err(format!("native {name} Grid {id} position {axis}"))}}
+   for key in ["Type","Variant","State","SpawnCount","SpawnSeed","VariableSeed","VarData","Initialized"]{if !equal(&actual["save"][key],&desc[format!("GridEntityDesc.{key}")]){return Err(format!("native {name} Grid {id} save {key}"))}}
+   for (key,member) in [("filename","Sprite.GetFilename"),("animation","Sprite.GetAnimation"),("frame","Sprite.GetFrame")]{if !equal(&actual["sprite"][key],&common["GridEntity.GetSprite"]["fields"][member]){return Err(format!("native {name} Grid {id} sprite {key}"))}}
+   let class=object["class"].as_str().ok_or("source class")?;
+   // Lua JSON把无字段的空表编码为[]；仅源类字段本来为空时接纳，不能漏验非空派生状态。
+   if actual["derived"].as_array().is_some_and(|a|a.is_empty())&&object["bodies"][class]["fields"].as_object().is_some_and(|o|o.is_empty()){}
+   else{for (key,value) in actual["derived"].as_object().ok_or("actual derived values")?{if !equal(value,&object["bodies"][class]["fields"][key]){return Err(format!("native {name} Grid {id} derived {key}"))}}}
+  }
+  let state=self.native_object(c,"room-state")?;for (key,value) in state.as_object().ok_or("actual Room state")?{let expected=&f[key];if value.is_object(){for (field,v) in value.as_object().unwrap(){if !equal(v,&expected[field]){return Err(format!("native {name} {key} {field}"))}}}else if !equal(value,expected){return Err(format!("native {name} {key}"))}}
+  let motion=self.native_object(c,"motion")?;if !equal(&motion,&source["native_context"]["motion"]){return Err(format!("native {name} animation phase/track state"))}
+  if !equal(&self.native_object(c,"water-lerp")?,&source["native_context"]["water_lerp"]){return Err(format!("native {name} water interpolation state"))}
+  let mut env=self.native_object(c,"environment")?;let mut expected=source["native_context"]["environment"].clone();
+  for i in 0..2{if !sprite_equal(&env["sprites"][i],&expected["sprites"][i]){return Err(format!("native {name} FX sprite {i}"))}}
+  env.as_object_mut().ok_or("actual environment")?.remove("sprites");expected.as_object_mut().ok_or("expected environment")?.remove("sprites");
+  if !equal(&env,&expected){return Err(format!("native {name} FX resources/state"))}
+  self.step(&format!("native_readback_{name}"),json!({"cells":448,"door_slots":8,"grids":objects.len(),"source_fields":true,"actual_objects":true,"motion":true,"environment":true}))?;Ok(())
  }
- fn submit_tx18(&mut self,c:&mut Control,name:&str,value:&Value)->Result<()>{
-  let root=self.out.join("runtime-world/presentation");fs::create_dir_all(&root).map_err(|e|e.to_string())?;
-  crate::write_json(&root.join(format!("{name}.json")),value)?;
-  c.command(&format!("cs presentation_test {} {name}",self.report["token"].as_str().ok_or("token")?))?;Ok(())
+ fn native_capture(&mut self,g:&win32::Game,c:&mut Control,name:&str)->Result<Value>{let end=Instant::now()+Duration::from_secs(45);loop{
+  match self.native_command(c,&format!("source-{name}")){Ok(_)=>break,Err(e) if e.contains("native_source_incomplete_window")||e.contains("native_source_inactive")=>{if Instant::now()>=end{return Err(e)}self.watch_tx05(g,c,150)?;},Err(e)=>return Err(e)}
  }
- fn object_tx18(&mut self,c:&mut Control,id:&str)->Result<Value>{
-  let r=c.command(&format!("cs presentation_test {} room-grid-object-{id}",self.report["token"].as_str().ok_or("token")?))?;
-  serde_json::from_str(r.get("room_grid.object").ok_or("object response")?).map_err(|e|e.to_string())
+ let model:Value=serde_json::from_str(&crate::read(&self.out.join(format!("runtime-world/native/{name}.json")))?).map_err(|e|e.to_string())?;
+ self.native_command(c,&format!("reference-{name}"))?;let path=self.out.join(format!("runtime-world/presentation/source-{name}.bmp"));let end=Instant::now()+Duration::from_secs(15);
+ while !path.exists(){if Instant::now()>=end{return Err(format!("native Authority reference {name}"))}self.watch_tx05(g,c,100)?;}Ok(model)
  }
- fn capture_tx18(&mut self,g:&win32::Game,c:&mut Control,name:&str)->Result<()>{
-  let count=n(&c.command("cs status")?,"presentation.captures");
-  c.command(&format!("cs presentation_test {} capture-{name}",self.report["token"].as_str().unwrap()))?;
-  self.wait_tx18(g,c,&format!("capture_{name}"),|s|n(s,"presentation.captures")>count)?;
-  fs::copy(self.out.join(format!("runtime-world/presentation/capture-{name}.bmp")),self.out.join(format!("{name}.bmp"))).map_err(|e|e.to_string())?;Ok(())
- }
- pub(super) fn execute_tx18(&mut self)->Result<()>{
-  if let Some(source)=self.scenario["resume_from"].as_str().map(std::path::PathBuf::from){
-   let prior:Value=serde_json::from_str(&crate::read(&source.join("result.json"))?).map_err(|e|e.to_string())?;
-   if prior["tx"]!="tx-04-18"{return Err("tx18 resume source".into())}
-   let retest=self.scenario["retest_cases"].as_array().cloned().unwrap_or_default();
-   for (name,value) in prior["cases"].as_object().ok_or("prior cases")?{
-    if value["pass"]==true&&!retest.iter().any(|v|v==name){self.report["cases"][name]=value.clone();}
-   }
-   let mut objects=serde_json::Map::new();let mut cells=serde_json::Map::new();let mut cursor=Some(source.clone());let mut visited=std::collections::BTreeSet::new();
-   while let Some(path)=cursor.take(){if !visited.insert(path.clone())||visited.len()>8{return Err("cyclic tx18 continuation".into())}
-   for line in crate::read(&path.join("control.jsonl"))?.lines(){let row:Value=serde_json::from_str(line).map_err(|e|e.to_string())?;
-    if row["event"]=="send"&&row["text"].as_str().is_some_and(|s|s.ends_with(" states")){break;}
-    if row["event"]!="response"||row["response"]["ok"]!="1"{continue;}
-    if let Some(id)=row["text"].as_str().and_then(|s|s.split("room-grid-object-").nth(1)){
-     if let Some(text)=row["response"]["room_grid.object"].as_str(){let value:Value=serde_json::from_str(text).map_err(|e|e.to_string())?;
-      if id.parse::<u64>().is_ok(){objects.entry(id.to_string()).or_insert(value);}
-      else if let Some(index)=id.strip_prefix("cell-"){if index.parse::<usize>().is_ok(){cells.entry(index.to_string()).or_insert(value);}}
-     }
+ pub(super) fn execute_tx18(&mut self)->Result<()>{self.report["native_state_version"]=json!(8);
+  if let Some(source)=self.scenario["resume_from"].as_str().map(std::path::PathBuf::from){let prior:Value=serde_json::from_str(&crate::read(&source.join("result.json"))?).map_err(|e|e.to_string())?;
+   if prior["native_state_version"]!=8{return Err("native continuation requires two-frame domain references, actual wall choices and complete native context".into())}
+   if source.join("source-scenes.json").exists(){let list:Value=serde_json::from_str(&crate::read(&source.join("source-scenes.json"))?).map_err(|e|e.to_string())?;
+    if list.as_array().is_some_and(|a|a.len()==sources().len()){for folder in ["native","presentation"]{let dest=self.out.join("runtime-world").join(folder);fs::create_dir_all(&dest).map_err(|e|e.to_string())?;
+      for (name,_) in sources(){let file=if folder=="native"{format!("{name}.json")}else{format!("source-{name}.bmp")};fs::copy(source.join("runtime-world").join(folder).join(&file),dest.join(&file)).map_err(|e|e.to_string())?;}}
+     crate::write_json(&self.out.join("source-scenes.json"),&list)?;self.report["reused_authority_sources"]=json!(source);
     }
    }
-   let ancestor:Value=serde_json::from_str(&crate::read(&path.join("result.json"))?).map_err(|e|e.to_string())?;
-   cursor=ancestor["reused_unaffected"]["source"].as_str().map(std::path::PathBuf::from);
-   }
-   if !retest.iter().any(|v|v=="all_types_derived_save_members_and_native_pixels"){self.scenario["reused_objects"]=json!(objects);}
-   self.scenario["reused_cells"]=json!(cells);
-   self.report["reused_unaffected"]=json!({"source":source,"cases":self.report["cases"],"object_readbacks":objects.len(),"cell_readbacks":cells.len(),"retest":retest});
   }
-  win32::set_auto_focus(false);self.environment()?;self.report["crash_before"]=self.crash_files()?;self.snapshot("save_before")?;
-  self.prepare_restore_tx08(1)?;self.disable_helper_tx08()?;self.deploy()?;
-  let game=self.launch("enabled")?;self.report["pid"]=json!(game.pid());
-  let result=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||self.scenes_tx18(&game))).unwrap_or_else(|_|Err("tx18 scenario panic".into()));
+  self.environment()?;self.report["crash_before"]=self.crash_files()?;self.snapshot("save_before")?;self.prepare_restore_tx08(1)?;self.disable_helper_tx08()?;self.deploy()?;
+  let game=self.launch("enabled")?;self.report["pid"]=json!(game.pid());let result=std::panic::catch_unwind(std::panic::AssertUnwindSafe(||self.native_scenes(&game))).unwrap_or_else(|_|Err("native scenario panic".into()));
   if let Err(e)=&result{self.capture_failure(&game,"enabled",e);let _=game.close();}self.collect(game.pid(),"enabled")?;result
  }
- fn scenes_tx18(&mut self,g:&win32::Game)->Result<()>{
-  let w=g.wait_window(90)?;let mut c=Control::connect(self.scenario["control_port"].as_u64().ok_or("port")? as u16,g,90,&self.out.join("control.jsonl"))?;
-  c.wait_startup(g,w,90)?;c.focus_window=None;c.wait("client_ui_available","1",20)?;self.snapshot("save-client-before")?;
+ fn native_scenes(&mut self,g:&win32::Game)->Result<()>{let w=g.wait_window(90)?;let mut c=Control::connect(self.scenario["control_port"].as_u64().ok_or("port")? as u16,g,90,&self.out.join("control.jsonl"))?;c.wait_startup(g,w,90)?;
+  let index=self.out.join("source-scenes.json");if !index.exists(){win32::set_auto_focus(true);c.focus_window=Some(w);self.prepare_new_run_tx05(g,w,&mut c)?;self.sequence(w,"start_run")?;c.wait("run_active","1",25)?;
+   self.native_action(&mut c,"seed")?;self.watch_tx05(g,&mut c,1800)?;c.command("cs observe start")?;c.command(&format!("cs host {}",self.scenario["host_port"]))?;c.wait("session_state","Active",25)?;
+   let mut entries=Vec::new();for (name,action) in sources(){let requested=self.native_action(&mut c,&action)?;self.watch_tx05(g,&mut c,900)?;
+    if name.starts_with("shape-")||["boss","cellar","flooded","water","womb"].contains(&name.as_str()){self.native_action(&mut c,"prepare")?;self.watch_tx05(g,&mut c,450)?;}
+    if name=="water"{self.native_action(&mut c,"water")?;self.watch_tx05(g,&mut c,450)?;}
+    let model=self.native_capture(g,&mut c,&name)?;let fact=self.native_action(&mut c,"facts")?;
+    // 用真实Authority独立列举核对场景成员，防止周期采集延迟使上一动作的快照冒充本场景。
+    let mut captured=Vec::new();for o in model["components"]["grid"]["state"]["objects"].as_array().ok_or("captured members")?{captured.push((integer(&o["index"])?,integer(&o["type"])?,integer(&o["variant"])?));}
+    let mut actual=Vec::new();for o in fact["grids"].as_array().ok_or("Authority actual members")?{actual.push((integer(&o["index"])?,integer(&o["type"])?,integer(&o["variant"])?));}
+    captured.sort();actual.sort();if captured!=actual{return Err(format!("native Authority scene snapshot was stale: {name}"))}
+    if let Some(shape)=name.strip_prefix("shape-"){if fact["shape"].as_u64()!=shape.parse::<u64>().ok(){return Err(format!("Authority actual requested {name}: {fact}"))}}
+    entries.push(json!({"name":name,"pid":g.pid(),"scope":model["scope"],"revision":model["revision"],"fact":fact,"requested":requested}));crate::write_json(&index,&json!(entries))?;
+   }
+   c.command("cs stop")?;c.wait("session_state","Idle",25)?;c.command("cs observe stop")?;let end=Instant::now()+Duration::from_secs(20);
+   loop{let s=c.command("cs observe status")?;if s.get("observation_state").is_some_and(|s|s=="Off"){break;}if Instant::now()>=end{return Err("Authority observation retirement".into())}self.watch_tx05(g,&mut c,100)?;}
+   self.return_to_menu(w,&mut c)?;
+  }
+  // 顺序续测直接进入Client时也等待启动通知消退，避免Steam叠加提示污染画面对比。
+  self.watch_tx05(g,&mut c,12000)?;
+  c.focus_window=None;win32::set_auto_focus(false);c.wait("client_ui_available","1",20)?;self.snapshot("save-client-before")?;
   let blackhole=UdpSocket::bind("127.0.0.1:0").map_err(|e|e.to_string())?;let port=blackhole.local_addr().map_err(|e|e.to_string())?.port();
-  c.command(&format!("cs client 127.0.0.1 {port} 0"))?;let initial=c.wait("role","Client",10)?;
-  let before=c.command("cs counters")?;let token=self.report["token"].as_str().unwrap().to_string();
-  let callbacks=c.command(&format!("cs presentation_test {token} callbacks"))?;
-  let catalog:Value=serde_json::from_str(&crate::read(&self.repo.join("mod/observation/isaac-cs-observation/grid-catalog.json"))?).map_err(|e|e.to_string())?;
-  let mut current=world(&catalog,n(&initial,"client.connection"),1);
-  let request=json!({"format":"isaac.cs.room-grid-source","model":source_model(&current),"display":current});
-  self.submit_tx18(&mut c,"all-types",&request)?;
-  let ready=self.wait_tx18(g,&mut c,"room_grid_initial",|s|n(s,"room_grid.revision")==1&&n(s,"presentation.draws")>=4)?;
-  if n(&ready,"room_grid.types")!=27||n(&ready,"room_grid.classes")!=17||n(&ready,"room_grid.cells")!=448||n(&ready,"room_grid.doors")!=1{return Err(format!("type/geometry boundary {ready:?}"))}
-  let reused_initial=self.report["cases"]["all_types_derived_save_members_and_native_pixels"]["pass"]==true;
-  if !reused_initial{for expected in current["grids"].as_array().unwrap(){let id=expected["key"]["id"].as_str().unwrap();
-   let actual=if let Some(value)=self.scenario["reused_objects"].get(id){value.clone()}else{self.object_tx18(&mut c,id)?};
-   if actual!=*expected{return Err(format!("full derived/save state mismatch {}",expected["key"]["id"]))}}
-  for i in 0..448{let cell=if let Some(v)=self.scenario["reused_cells"].get(i.to_string()){v.clone()}else{self.object_tx18(&mut c,&format!("cell-{i}"))?};if !geometry_equal(&cell,&current["room"]["cells"][i]){return Err(format!("cell state {i}"))}}
+  let entries:Value=serde_json::from_str(&crate::read(&index)?).map_err(|e|e.to_string())?;let mut previous=Value::Null;let mut baseline=Value::Null;let mut before=Status::new();let mut callbacks=Status::new();let mut connection=0;
+  let mut types=BTreeSet::new();let mut classes=BTreeSet::new();let mut shapes=BTreeSet::new();let mut backdrops=BTreeSet::new();let mut last=Value::Null;
+  for entry in entries.as_array().ok_or("native source list")?{let name=entry["name"].as_str().ok_or("scene name")?;let mut model:Value=serde_json::from_str(&crate::read(&self.out.join(format!("runtime-world/native/{name}.json")))?).map_err(|e|e.to_string())?;
+   if connection==0||previous!=entry["scope"]{if connection!=0{self.native_isolated(&mut c,&before,&callbacks)?;c.command("cs stop")?;c.wait("role","Off",25)?;}
+    c.command(&format!("cs client 127.0.0.1 {port} 0"))?;let s=c.wait("role","Client",10)?;connection=n(&s,"client.connection");before=c.command("cs counters")?;callbacks=c.command(&format!("cs presentation_test {} callbacks",self.report["token"].as_str().unwrap()))?;previous=entry["scope"].clone();baseline=Value::Null;
+   }
+   model["scope"]["connection"]=json!(connection.to_string());let r=revision(&model)?;let start=c.command("cs status")?;let rejected=n(&start,"native.rejected");let draws=n(&start,"native.draws");
+   let input=if baseline.is_null(){baseline=model.clone();model.clone()}else{json!({"baseline":baseline,"target":model})};self.native_submit(&mut c,&format!("client-{name}"),&input)?;
+   let end=Instant::now()+Duration::from_secs(45);loop{let s=c.command("cs status")?;if n(&s,"native.rejected")>rejected{return Err(format!("native {name} rejected: {:?}",s.get("native.error")))}
+    if n(&s,"native.revision")==r&&n(&s,"native.healthy")==1&&n(&s,"native.draws")>draws+3{break;}if Instant::now()>=end{return Err(format!("native {name} apply timeout {s:?}"))}self.watch_tx05(g,&mut c,80)?;}
+   self.native_readback(&mut c,&model,name)?;let count=n(&c.command("cs status")?,"presentation.captures");c.command(&format!("cs presentation_test {} capture-{name}",self.report["token"].as_str().unwrap()))?;
+   self.native_wait(g,&mut c,&format!("native_capture_{name}"),|s|n(s,"presentation.captures")>count)?;
+   let pixels=natural_pixels(&self.out.join(format!("runtime-world/presentation/source-{name}.bmp")),&self.out.join(format!("runtime-world/presentation/capture-{name}.bmp")))?;
+   for object in model["components"]["grid"]["state"]["objects"].as_array().unwrap(){types.insert(integer(&object["type"])?);classes.insert(object["class"].as_str().ok_or("class")?.to_string());}
+   shapes.insert(integer(&model["components"]["room"]["state"]["state"]["fields"]["Room.GetRoomShape"])?);backdrops.insert(integer(&model["components"]["room"]["state"]["state"]["fields"]["Room.GetBackdropType"])?);
+   self.native_isolated(&mut c,&before,&callbacks)?;self.case(&format!("native_{name}"),true,json!({"pixels":pixels,"actual_objects":true,"scope":model["scope"],"revision":r}));last=model;
   }
-  let pixel=if reused_initial{let p=&self.report["cases"]["all_types_derived_save_members_and_native_pixels"]["detail"]["pixels"];
-   (p[0].as_u64().ok_or("reused pixels")?,p[1].as_u64().ok_or("reused pixels")?)}else{self.capture_tx18(g,&mut c,"room-grid")?;pixels(&self.out.join("room-grid.bmp"))?};
-  if pixel.0<1000||pixel.1<1000{return Err(format!("real native room/grid pixels {pixel:?}"))}
-  if !reused_initial{self.case("all_types_derived_save_members_and_native_pixels",true,json!({"status":ready,"pixels":pixel,"types":27,"classes":17,"full_state_readback":true}));}
-  // 真实门、坑桥、破坏、TimerPlate、岩石top等最终状态只应用纯值，不重演裁决。
-  current["revision"]=json!("2");current["grids"][6]["state"]["derived"]["fields"]["GridEntityPit.HasLadder"]=json!(true);
-  current["grids"][6]["state"]["common"]["fields"]["GridEntity.State"]=json!(1);current["room"]["cells"][37]["collision"]=json!(0);
-  current["grids"][13]["state"]["common"]["fields"]["GridEntity.State"]=json!(1000);
-  current["grids"][11]["state"]["common"]["fields"]["GridEntity.State"]=json!(4);
-  current["grids"][15]["state"]["derived"]["fields"]["GridEntityDoor.IsOpen"]=json!(true);
-  current["grids"][15]["state"]["derived"]["fields"]["GridEntityDoor.TargetRoomIndex"]=json!(-100);
-  current["room"]["doors"][0]["target"]=json!({"kind":"DimensionRoute","index":-100,"route":"Mirror"});
-  current["grids"][6]["state"]["derived"]["bridge_parent"]=json!({"type":"reference","status":"KnownCurrent","target":key(2)});
-  self.submit_tx18(&mut c,"states",&current)?;self.wait_tx18(g,&mut c,"states_published",|s|n(s,"room_grid.revision")==2&&n(s,"presentation.retiring")==0)?;
-  if self.report["cases"]["pit_bridge_destruction_door_timer_top_and_reference"]["pass"]!=true{
-  for id in [7,12,14,16,20]{if self.object_tx18(&mut c,&id.to_string())?!=current["grids"][id-1]{return Err(format!("state transition {id}"))}}
-  self.case("pit_bridge_destruction_door_timer_top_and_reference",true,json!({"state_readback":true,"native_actions_replayed":false}));
-  }
-  current["revision"]=json!("3");current["grids"][1]["key"]=key(2002);
-  current["grids"][6]["state"]["derived"]["bridge_parent"]["target"]=key(2002);
-  self.submit_tx18(&mut c,"replace",&current)?;self.wait_tx18(g,&mut c,"same_slot_replaced",|s|n(s,"room_grid.revision")==3&&n(s,"presentation.retiring")==0)?;
-  if self.report["cases"]["same_slot_replacement_and_retirement"]["pass"]!=true{
-  if !self.object_tx18(&mut c,"2")?.is_null()||self.object_tx18(&mut c,"2002")?!=current["grids"][1]{return Err("same-slot identity resurrection".into())}
-  self.case("same_slot_replacement_and_retirement",true,json!({"old":"2","new":"2002","same_index":32}));
-  }
-  // 所有房形使用Authority显式mask；客户端不能把形状标签换算成随机房间。
-  let mut revision=3;
-  let reuse_shapes=self.report["cases"]["all_room_shapes_explicit_geometry_and_eight_door_slots"]["pass"]==true;
-  for shape in 1..=12{revision+=1;current["revision"]=json!(revision.to_string());current["room"]["shape"]=json!(shape);
-   current["room"]["state"]["fields"]["Room.GetRoomShape"]=json!(shape);
-   for i in 0..448{let width=if shape<=5{15}else{28};current["room"]["cells"][i]["position"]=json!([40+(i%width)*40,80+(i/width)*40]);
-    current["room"]["cells"][i]["inside"]=json!(match shape{1=>i<135,2=>i<135&&i/15>2&&i/15<6,3=>i<135&&i%15>4&&i%15<10,4=>i<240,5=>i<240&&i%15>4&&i%15<10,6=>i<252,7=>i<252&&i/28>2&&i/28<6,8=>true,9=>i%28>=14||i/28>=8,10=>i%28<14||i/28>=8,11=>i%28>=14||i/28<8,_=>i%28<14||i/28<8});}
-   rebuild_floor(&mut current);
-   if reuse_shapes{if shape==12{self.submit_tx18(&mut c,"shape-context",&current)?;self.wait_tx18(g,&mut c,"restore_shape_context",|s|n(s,"room_grid.revision")==revision)?;}continue;}
-   self.submit_tx18(&mut c,&format!("shape-{shape}"),&current)?;self.wait_tx18(g,&mut c,&format!("shape_{shape}"),|s|n(s,"room_grid.revision")==revision)?;
-   let mut metadata=current["room"].clone();metadata.as_object_mut().unwrap().remove("cells");if self.object_tx18(&mut c,"metadata")?!=metadata{return Err(format!("shape/environment/doors {shape}"))}
-   if [1,8,9].contains(&shape){self.capture_tx18(g,&mut c,&format!("shape-{shape}"))?;let p=pixels(&self.out.join(format!("shape-{shape}.bmp")))?;
-    if shape!=8&&p.0>=pixel.0{return Err(format!("shape {shape} retained full rectangular floor"))}}
-  }
-  if !reuse_shapes{self.case("all_room_shapes_explicit_geometry_and_eight_door_slots",true,json!({"shapes":12,"cells":448,"door_slots":8,"initial_all_cells_readback":true}));}
-  // 所有失败候选均应保留整个已发布Room/Grid与资源版本。
-  let mut bads=Vec::new();let mut bad=current.clone();bad["grids"][0]["class"]=json!("UnknownGrid");bads.push(("unknown-class",bad));
-  let mut bad=current.clone();bad["grids"][0]["type"]=json!(28);bads.push(("unknown-type",bad));
-  let mut bad=current.clone();bad["membership_complete"]=json!(false);bads.push(("partial-members",bad));
-  let mut bad=current.clone();bad["room"]["cells"].as_array_mut().unwrap().pop();bads.push(("short-cells",bad));
-  let mut bad=current.clone();bad["grids"][0]["state"]["common"]["fields"].as_object_mut().unwrap().remove("GridEntity.State");bads.push(("missing-field",bad));
-  let mut bad=current.clone();bad["grids"][6]["state"]["derived"]["bridge_parent"]["target"]=key(999);bads.push(("missing-ref",bad));
-  let mut bad=current.clone();bad["nodes"][4]["anm2"]=json!("gfx/isaac-cs-tx17/missing.anm2");bads.push(("missing-resource",bad));
-  let mut bad=current.clone();bad["room"]["doors"][1]=bad["room"]["doors"][0].clone();bads.push(("duplicate-door",bad));
-  let mut bad=current.clone();bad["nodes"][1]["pose"]["flags"]=json!(2);bads.push(("random-uv",bad));
-  let mut bad=current.clone();bad["nodes"][1]["pose"]["flags"]=json!(128);bads.push(("local-time-effect",bad));
-  let mut rejected=n(&c.command("cs status")?,"presentation.rejected");
-  if self.report["cases"]["unknown_partial_missing_reference_and_resource_atomic_rejection"]["pass"]!=true{
-  for (name,mut bad) in bads{bad["revision"]=json!((revision+1).to_string());self.submit_tx18(&mut c,name,&bad)?;
-   let s=self.wait_tx18(g,&mut c,name,|s|n(s,"presentation.rejected")>rejected)?;rejected=n(&s,"presentation.rejected");
-   if n(&s,"room_grid.revision")!=revision||n(&s,"presentation.revision")!=revision||self.object_tx18(&mut c,"2002")?!=current["grids"][1]{return Err(format!("partial candidate published {name}"))}
-  }
-  self.case("unknown_partial_missing_reference_and_resource_atomic_rejection",true,json!({"rejected":10,"old_revision":revision}));
-  }
-  revision+=1;current["revision"]=json!(revision.to_string());current["room"]["environment"]["water"]["amount"]=json!(0.5);
-  let mut water=node(600,3,400,160,false);water["pose"]["scale"]=json!([4,1]);water["pose"]["color"]=json!([0.2,0.4,1,0.7,0,0,0,0,0,0,0]);
-  current["nodes"].as_array_mut().unwrap().push(water);current["room"]["parts"].as_array_mut().unwrap().push(json!({"role":"water","node":"600"}));
-  current["room"]["environment"]["floor_color"]=json!([0.3,0.5,0.8,1]);
-  current["camera"]=json!({"origin":[5,3],"zoom":1.05});current["nodes"][3]["clamp_bottom"]=json!([0,12]);
-  for tile in current["nodes"].as_array_mut().unwrap().iter_mut().filter(|n|n["pass"]==0){tile["pose"]["color"]=json!([0.3,0.5,0.8,1,0,0,0,0,0,0,0]);}
-  self.submit_tx18(&mut c,"environment",&current)?;self.wait_tx18(g,&mut c,"environment_published",|s|n(s,"room_grid.revision")==revision&&n(s,"presentation.retiring")==0)?;
-  if self.report["cases"]["environment_camera_water_clamp_native_pixels"]["pass"]!=true{
-  self.capture_tx18(g,&mut c,"room-environment")?;let changed=pixels(&self.out.join("room-environment.bmp"))?;
-  if changed==pixel{return Err("environment/camera/clamp made no pixel change".into())}
-  self.case("environment_camera_water_clamp_native_pixels",true,json!({"before":pixel,"after":changed}));
-  }
-  revision+=1;current["revision"]=json!(revision.to_string());
-  let mut layers=Vec::new();for id in 0..2{layers.push(json!({"id":id,"frame":0,"overlay_frame":null,"visible":true,
-   "offset":[0,0],"scale":[1,1],"rotation":0,"color":[1,1,1,1,0,0,0,0,0,0,0],"flip_x":false,"flip_y":false,
-   "crop":[3,2],"flags":2,"blend":[0,1,7,1,7],"custom_shader":null,"champion_shader":null}));}
-  current["nodes"][1]["pose"]["flags"]=json!(2);current["nodes"][1]["pose"]["resolved_random_uv"]=json!(true);current["nodes"][1]["pose"]["layers"]=json!(layers);
-  self.submit_tx18(&mut c,"resolved-random",&current)?;
-  let resolved=self.wait_tx18(g,&mut c,"resolved_uv_published",|s|n(s,"room_grid.revision")==revision&&n(s,"presentation.rng_checks")>20)?;
-  if n(&resolved,"presentation.rng_changes")!=0{return Err("resolved UV drew from local RNG".into())}
-  self.case("authority_resolved_random_uv_without_local_rng",true,json!({"checks":n(&resolved,"presentation.rng_checks"),"changes":0}));
-  let counters=c.command("cs counters")?;for name in ["start_game","game_update","room_update","entity_list","odd_helper","restore","post_update","player_update","join_pass"]{let k=format!("hook.{name}");if n(&before,&k)!=n(&counters,&k){return Err(format!("local gameplay entered {name}"))}}
-  if callbacks!=c.command(&format!("cs presentation_test {token} callbacks"))?{return Err("gameplay Lua resumed".into())}
-  let isolated=c.command("cs status")?;
-  if n(&isolated,"client_world_applied")!=0{return Err("domain apply became whole-world Applied".into())}
-  if n(&isolated,"presentation.rng_checks")==0||n(&isolated,"presentation.rng_changes")!=0{return Err("Client draw changed global render RNG".into())}
-  self.case("application_keeps_client_simulation_and_persistence_isolated",true,json!({"native_before":before,"native_after":counters,"whole_world_applied":false}));
-  // 完整空成员集才退休所有Grid；没有遗留门别名、旧主体或旧视觉部件。
-  revision+=1;let mut empty=current.clone();empty["revision"]=json!(revision.to_string());empty["grids"]=json!([]);
-  empty["nodes"].as_array_mut().unwrap().retain(|n|{let id=n["id"].as_str().unwrap().parse::<u64>().unwrap();id==2||id==600||id>=1000});
-  for door in empty["room"]["doors"].as_array_mut().unwrap(){door["grid"]=Value::Null;}
-  self.submit_tx18(&mut c,"remove-members",&empty)?;self.wait_tx18(g,&mut c,"all_grid_members_removed",|s|n(s,"room_grid.revision")==revision&&n(s,"room_grid.grids")==0&&n(s,"presentation.retiring")==0)?;
-  if !self.object_tx18(&mut c,"2002")?.is_null(){return Err("removed member query survived".into())}
-  self.case("complete_member_deletion_without_ghosts",true,json!({"grids":0,"old_member":null}));
-  c.command("cs stop")?;self.wait_tx18(g,&mut c,"stop_drains_domain",|s|s.get("role").map(String::as_str)==Some("Off")&&n(s,"presentation.drained")==1&&n(s,"room_grid.cells")==0)?;
-  c.command(&format!("cs client 127.0.0.1 {port} 0"))?;let next=c.wait("role","Client",10)?;
-  current["connection"]=json!(n(&next,"client.connection").to_string());current["revision"]=json!("1");self.submit_tx18(&mut c,"normal-close",&current)?;
-  self.wait_tx18(g,&mut c,"close_room_ready",|s|n(s,"room_grid.revision")==1)?;self.report["final_status"]=json!(c.command("cs status")?);drop(c);
-  if g.close()?!=0{return Err("normal close".into())}self.snapshot("save-process-exit")?;
+  if types!=(1..=27).collect::<BTreeSet<_>>()||classes.len()!=17||shapes!=(1..=12).collect::<BTreeSet<_>>()||backdrops.len()<3{return Err(format!("native coverage types={types:?} classes={classes:?} shapes={shapes:?} backdrops={backdrops:?}"))}
+  self.case("native_complete_type_shape_environment_coverage",true,json!({"types":types,"classes":classes,"shapes":shapes,"backdrops":backdrops}));
+  self.native_negative(g,&mut c,&last)?;self.native_isolated(&mut c,&before,&callbacks)?;c.command("cs stop")?;c.wait("role","Off",25)?;
+  // 新连接以完整正常目标重建，随后在有载体和GPU资源的情况下直接走正常退出。
+  c.command(&format!("cs client 127.0.0.1 {port} 0"))?;let s=c.wait("role","Client",10)?;last["scope"]["connection"]=json!(n(&s,"client.connection").to_string());self.native_submit(&mut c,"normal-close",&last)?;
+  self.native_wait(g,&mut c,"native_normal_close_ready",|s|n(s,"native.healthy")==1)?;self.report["final_status"]=json!(c.command("cs status")?);drop(c);if g.close()?!=0{return Err("native Client normal exit".into())}self.snapshot("save-process-exit")?;
   let changes=crate::saves::changes(&self.out.join("save-client-before"),&self.out.join("save-process-exit"))?;
-  if changes.as_array().ok_or("save changes")?.iter().any(|r|{let p=r["path"].as_str().unwrap_or("").to_lowercase();r["bytes_changed"]==true&&(p.contains("persistentgamedata")||p.contains("gamestate")||p.contains("savesyncstatus"))}){return Err("visitor progress changed".into())}
-  self.case("stop_reconnect_domain_retirement_and_normal_exit",true,json!({"changes":changes,"exit":0}));Ok(())
+  if changes.as_array().ok_or("visitor save changes")?.iter().any(|v|{let p=v["path"].as_str().unwrap_or("").to_lowercase();v["bytes_changed"]==true&&(p.contains("persistentgamedata")||p.contains("gamestate")||p.contains("savesyncstatus"))}){return Err("native Client visitor persistence changed".into())}
+  self.case("native_stop_reconnect_exit_and_visitor_persistence",true,json!({"changes":changes,"normal_exit":true,"whole_world_applied":false}));Ok(())
+ }
+ fn native_negative(&mut self,g:&win32::Game,c:&mut Control,real:&Value)->Result<()>{let r=revision(real)?;let mut bads=Vec::new();
+  let mut bad=real.clone();bad["components"]["grid"]["coverage"]=json!("Partial");bad["components"]["grid"]["membership_complete"]=json!(false);bads.push(("partial",bad));
+  let mut bad=real.clone();bad["components"]["room"]["state"].as_object_mut().unwrap().remove("config");bads.push(("missing-config",bad));
+  let mut bad=real.clone();bad["components"]["grid"]["state"]["objects"][0]["class"]=json!("UnknownGrid");bads.push(("unknown-class",bad));
+  let mut bad=real.clone();bad["components"]["grid"]["state"]["objects"][0]["type"]=json!(28);bads.push(("unknown-type",bad));
+  let mut bad=real.clone();bad["components"]["grid"]["state"]["objects"][0]["common"]["fields"].as_object_mut().unwrap().remove("GridEntity.State");bads.push(("missing-state",bad));
+  let mut bad=real.clone();bad["components"]["room"]["state"]["grids"][0]["subject"]["target"]["id"]=json!("999999999");bads.push(("missing-reference",bad));
+  let mut bad=real.clone();let object=bad["components"]["grid"]["state"]["objects"].as_array_mut().unwrap().iter_mut().find(|o|o["common"]["fields"]["GridEntity.GetSprite"]["fields"]["Sprite.IsLoaded"]==true).ok_or("negative source needs a loaded native sprite")?;
+  let sprite=&mut object["common"]["fields"]["GridEntity.GetSprite"];sprite["fields"]["Sprite.GetFilename"]=json!("gfx/native-tx18-missing.anm2");sprite["resource"]["logical_path"]=json!("gfx/native-tx18-missing.anm2");bads.push(("missing-resource",bad));
+  let mut bad=real.clone();bad["components"]["room"]["state"]["native_context"]["descriptors"]=json!([]);bads.push(("missing-descriptor",bad));
+  let mut bad=real.clone();bad["scope"]["scene"]=json!("999999999");bads.push(("foreign-scope",bad));
+  let mut bad=real.clone();bad["components"]["room"]["state"]["state"]["fields"]["Room.GetBackdropType"]=json!(1);bads.push(("same-version-conflict",bad));
+  for (name,mut bad) in bads{if name!="same-version-conflict"{negative_revision(&mut bad,r+1);}let start=c.command("cs status")?;let rejected=n(&start,"native.rejected");self.native_submit(c,&format!("negative-{name}"),&bad)?;
+   let s=self.native_wait(g,c,name,|s|n(s,"native.rejected")>rejected)?;if n(&s,"native.revision")!=r||n(&s,"native.healthy")!=1{return Err(format!("native invalid candidate changed committed world: {name}"))}
+  }
+  self.case("native_invalid_partial_resource_reference_atomic_rejection",true,json!({"cases":10,"previous_revision":r}));
+  let start=c.command("cs status")?;self.native_submit(c,"duplicate",real)?;let d=n(&start,"native.duplicates");self.native_wait(g,c,"native_duplicate",|s|n(s,"native.duplicates")>d)?;
+  let mut old=real.clone();negative_revision(&mut old,r-1);self.native_submit(c,"stale",&old)?;let d=n(&start,"native.stale");self.native_wait(g,c,"native_stale",|s|n(s,"native.stale")>d)?;
+  // 所有故障输入均是标记过的真实目标副本；每次完整恢复后重新读实际原生对象。
+  let mut current=real.clone();for (i,phase) in ["create","state","refresh"].into_iter().enumerate(){self.native_command(c,"fail-apply")?;self.native_command(c,&format!("fail-next-{phase}"))?;
+   negative_revision(&mut current,r+1+i as u64);let rejected=n(&c.command("cs status")?,"native.rejected");self.native_submit(c,&format!("failure-{phase}"),&current)?;
+   let s=self.native_wait(g,c,&format!("native_partial_{phase}"),|s|n(s,"native.rejected")>rejected)?;if n(&s,"native.healthy")!=0||!self.native_object(c,"room")?.is_null(){return Err("native half-applied world remained visible".into())}
+   self.native_submit(c,&format!("recovery-{phase}"),&current)?;let expected=revision(&current)?;self.native_wait(g,c,&format!("native_recovered_{phase}"),|s|n(s,"native.revision")==expected&&n(s,"native.healthy")==1)?;self.native_readback(c,&current,&format!("recovery-{phase}"))?;
+  }
+  self.case("native_duplicate_stale_partial_failure_full_recovery",true,json!({"failure_phases":3,"recovered_actual_state":true,"domain_only":true}));Ok(())
  }
 }

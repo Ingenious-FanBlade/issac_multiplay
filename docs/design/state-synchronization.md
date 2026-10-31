@@ -1,3 +1,5 @@
+> **tx-04-18原生应用已完成（2026-11-01），29/29 PASS**：[create／remove／change应用到原生Room／Grid](tx-04-18/tx-04-18-native-state-plan.md#13-最终统一验收结果)，包含17的展示接线、原生资源／动画／FX／墙面选择／颜色水面及生命周期调整。25个真实场景和拒绝／恢复／退出已通过统一E2E，whole-world Applied仍为0。旧受控展示与旧资源重放失败保留历史；Entity19／Player20、21网络世界和29全内容组合没有提前记为完成。
+
 > **tx-04-15 已完成（2026-10-31）**：[全域复制模型、稳定身份、逐成员归属与ICSR v1可执行协议合同](tx-04-15.md)，统一E2E 4/4组通过。模型能力与原生应用器分开声明；真实Client、下行与原生应用仍按16—22推进。
 
 > **tx-04-10 观测交付（2026-10-30）**：[公共边界、录制分离、Entity／旧 Grid 拆分及 Entity 实现与结果](observation-expansion/tx-04-10-implementation.md)统一 E2E 5/5 PASS。正式纯值采集不依赖 Recorder 成功；世界状态下行、Replica 和客户端写回仍未实现。
@@ -163,9 +165,11 @@ Authority可在发送baseline期间继续模拟；缓存有界，溢出则放弃
 ```text
 Delta(B,T) = Create(T中有而B中无)
            + Remove(B中有而T中无)
-           + Update(两者均有但字段/关系/shape不同)
+           + Change(两者均有但字段/关系/shape不同)
 TargetModel = Reconstruct(ImmutableBaseline[B], Delta(B,T))
 ```
+
+2026-10-31用户重申三种语义为create／remove／change；旧文中的Update与change同义，不因此更改15已实现的component替换／删除线格式。Client先重建完整目标T，再比较最后成功应用目标C与T生成本地原生操作，不能把相对B的create／change直接执行到任意C。Room／Grid在18按[原生状态应用方案](tx-04-18/tx-04-18-native-state-plan.md)落实。
 
 初期变化字段发送最终值，如`HP=7`、`position=(104,80)`；“只发变化字段”与“数值再作差分压缩”分开。相对坐标、量化、bit packing及优先级调度在32落地需要的优化，不能先改变正确性语义。
 
@@ -178,6 +182,8 @@ TargetModel = Reconstruct(ImmutableBaseline[B], Delta(B,T))
 基线保留有数量、字节和时间上限；引用被淘汰的基线时请求全量恢复。完整delta重建成功且实际应用提交后才能更新AppliedAck；若按对象／scope分包或不同频率调度，必须实现对应基线／确认，不沿用“一个包ACK表示所有对象最新”的假设。
 
 ## 10. 客户端原生应用与表现分离
+
+2026-10-31会话决定：18将create／remove／change应用到本地原生Room／Grid，由游戏依据状态维护资源、外观与渲染；为此在同一18调整17跳过原生世界绘制／采用自有Scene的接线，保留玩法与持久隔离。必要的类型恢复／外观刷新在原生对象中完成，不再以Authority贴图／surface像素、最终顶点或绘制批次捕获重放作为18路线。旧18受控模型10/10不代表该原生应用已完成。
 
 网络线程只解析、限额和排队；原生创建、对象字段、资源、引用及Lua全部在已理解主线程窗口操作。优先查公开Wiki／Lua的状态与应用语义；只对真实副作用、版本疑问或公开接口缺口补源码／必要native研究，不逐字段强制逆向。adapter逐类说明调用／公开接口、资源依赖、所需字段、允许副作用、失败与恢复；已有研究入口见[模块点位目录](../hooks/README.md)。
 
@@ -264,7 +270,7 @@ tx-04-17的[专项工作流程](tx-04-17/tx-04-17-workflow.md)已完成公共运
 | --- | --- |
 | tx-04-09—14 | 四人及多身体实际输入；Entity／Grid／房间楼层／探索跨房玩家／整局随机HUD和Mod完整观测 |
 | tx-04-15—17 | 全域复制模型与协议；真实游戏Client；玩法隔离与资源／展示运行时 |
-| tx-04-18—20 | Room／Grid、非Player Entity、四人多身体Player的实际客户端应用 |
+| tx-04-18—20 | Room／Grid按create／remove／change原生应用并配套调整17；非Player Entity、四人多身体Player的实际客户端应用 |
 | tx-04-21—22 | 四个真实游戏实例的单房间Baseline闭环、Delta／每Peer确认与恢复；属于中间交付 |
 | tx-04-23—26 | 切房回访、楼层地图与离房世界、整局规则及随机结果、换层／维度／世界重构 |
 | tx-04-27—29 | 完整HUD音画与声明适配、角色生命周期及结局、原版全内容与模式专用差异闭合 |

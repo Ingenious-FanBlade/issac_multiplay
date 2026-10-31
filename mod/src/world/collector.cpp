@@ -1131,7 +1131,7 @@ std::uint32_t Collector::ObserveEnter(Observation kind, std::uint32_t object,
   const bool direct =
       kind == Observation::Init || kind == Observation::Remove ||
       kind == Observation::ClearReferences || kind == Observation::Destroy ||
-      kind == Observation::PlayerCtor || kind == Observation::PlayerRestore ||
+      kind == Observation::PlayerCtor || kind == Observation::GridCtor || kind == Observation::PlayerRestore ||
       kind == Observation::GridInit || entity::Morph(kind);
   if (direct)
     id = Find(domain, object);
@@ -1325,23 +1325,25 @@ void Collector::ObserveLeave(std::uint32_t call_id, std::uint32_t result,
   Identity *id = nullptr;
   const bool completed = normal && call.body_reached && call.body_returned;
   if (completed && !stopping_ && storage_.Ready()) {
-    if (kind == Observation::Factory || kind == Observation::GridFactory ||
+    if (kind == Observation::Factory || kind == Observation::GridFactory || kind == Observation::GridCtor ||
         kind == Observation::PlayerCtor) {
       const auto address =
-          kind == Observation::PlayerCtor ? call.object : call.body_result;
+          (kind == Observation::PlayerCtor || kind == Observation::GridCtor) ? call.object : call.body_result;
       id = Find(domain, address);
       if (id) {
         const auto owner = CreationOwner(domain);
-        // Factory 包含 ctor 时，同一次真实取得只计一次 use。
-        if (!(kind == Observation::Factory && id->candidate &&
+        // GridCtor只确认已核定基类构造，实际构造先重建物理身份，不补Init或出生。
+        const bool grid_constructor=kind==Observation::GridCtor;
+        // Entity/Grid工厂包含ctor时，同一次真实取得只计一次use，不覆盖构造见证。
+        if (!((kind == Observation::Factory || (kind==Observation::GridFactory&&!grid_constructor)) && id->candidate &&
               id->owner_scope == owner &&
               id->lifecycle ==
                   static_cast<std::uint32_t>(Lifecycle::Constructed))) {
-          if (!identities_.Acquire(*id, kind, kind == Observation::PlayerCtor,
+          if (!identities_.Acquire(*id, kind, kind == Observation::PlayerCtor||grid_constructor,
                                    owner))
             Fault(Reason::SequenceExhausted, "acquire");
         }
-        if (kind == Observation::PlayerCtor)
+        if (kind == Observation::PlayerCtor||grid_constructor)
           id->lifecycle = static_cast<std::uint32_t>(Lifecycle::Constructed);
       }
     } else if (kind == Observation::Publish) {

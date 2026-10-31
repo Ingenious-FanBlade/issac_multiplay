@@ -12,6 +12,13 @@
     ]
   },
   "hooks": [
+    ["native_backdrop_walls","world","Backdrop","pre_render_walls","void","","","0x511310","None",false,"",false,-10000,true],
+    ["native_reference_entity_light","world","Room","RenderEntityLight","void","Entity* entity, Vector& offset","entity, offset","0x3FC110","None",false,"",false,-30000,true],
+    ["native_statue_init","world","CsGridStatue","StatueInitSubclass","void","","","0x42D230","None",false,"",true,-10000,true],
+    ["native_backdrop_entities","world","CsBackdrop","BackdropEntities","void","int x, int y, unsigned int layer, int kind, Vector const& position, bool flipx, bool flipy","x, y, layer, kind, position, flipx, flipy","0x515890","None",false,"",true,-10000,true],
+    ["native_sprite_lights","world","CsStatic","BackdropNullLights","unsigned int","ANM2* sprite, Vector* position, bool flipx, bool flipy","sprite, position, flipx, flipy","0x515750","None",true,"stdcall",true,-10000,true,["ecx","edx","stack:1","stack:1"]],
+    ["native_backdrop_details","world","CsBackdrop","BackdropDetails","unsigned int","RNG* random, Vector const& offset, bool flipx, bool flipy, bool horizontal, bool vertical, float probability","random, offset, flipx, flipy, horizontal, vertical, probability","0x517420","None",false,"",true,-10000,true],
+    ["native_room_descriptor","loop","Game","GetRoomByIdx","RoomDescriptor*","int index, int dimension","index, dimension","0x33AD10","None",false,"",false,-30000,true],
     ["native_level_random","world","Level","generate_dungeon","void","RNG* random","random","0x33AF60","None",false,"",false,-10000,true],
     ["native_generator_random","world","LevelGenerator","Generate","void","int value, bool a, bool b, bool c, unsigned int const& shapes, unsigned int ends, LevelGenerator_Room* start","value, a, b, c, shapes, ends, start","0x585230","None",false,"",false,-10000,true],
     ["native_rng_ctor","world","RNG","game_constructor","void","unsigned int seed, unsigned int shift","seed, shift","0x3DF450","None",false,"",false,-10000,true],
@@ -75,6 +82,17 @@
     ["gamestate_delete_rerun","observe","CsGameState","DeleteRerun","void","","","0x59E870","None",false,"",true,-10000,false]
   ],
   "world_observations": [
+    {
+      "id":"world_grid_ctor", "observation":"GridCtor", "group":"world",
+      "class":"CsGridBase", "method":"GridBaseCtor", "definition":"IsaacCS::GridBaseCtor",
+      "own":true, "static":false, "conv":"thiscall", "rva":"0x304FB0",
+      "pattern":"55 8B EC 51 F3 0F 7E 05 ?? ?? ?? ?? A1 ?? ?? ?? ??", "priority":-10000,
+      "args":[], "return":"GridEntity*", "return_abi":"eax", "sdk":null,
+      "entry_bytes":"55 8B EC 51 F3 0F 7E 05 4C CE AA 00",
+      "completion":"实际Grid基类构造正常返回确认物理新use；不代表派生Init或外层owner出生完成。",
+      "reach":"覆盖Room.Init绕过CreateGridEntity工厂的直接墙体构造；内层witness确认原生body正常返回。",
+      "required":true, "evidence":"tx-04-18 J273 VA704FB0；ECX对象，无参数，EAX返回this；写基类vtable和描述默认值并构造ANM2。"
+    },
     {
       "id": "world_factory",
       "observation": "Factory",
@@ -578,6 +596,8 @@
     }
   ],
   "byte_patches": [
+    {"id":"native_controls_character","group":"loop","rva":"0x50E425","expected":"8B 81 14 AD 04 00","resume":"0x50E42B","alternate":"0x50E462","kind":"jump","size":6,"evidence":"tx-04-18 J273 Backdrop controls: EDI=Backdrop, ESI=controls ANM2, ECX=Manager, local character at EBP-3C; Client uses Authority type, Off/Host original menu selection"},
+    {"id":"native_controls_device","group":"loop","rva":"0x50E6D2","expected":"8B 35 F4 49 BE 00","pattern":"8B 35 ?? ?? ?? ??","resume":"0x50E6D8","alternate":"0x50E735","kind":"jump","size":6,"evidence":"tx-04-18 J273 controls cache: original loads Game in ESI then Player0 device at+160C; Client skips Player lookup, puts local device key in EDX and EBP-54, resumes native glyph selection"},
     {"id":"client_shutdown_counters","group":"loop","rva":"0x582D1B","expected":"85 C0 74 48 83 B8 A8 5B 02 00 00","resume":"0x582D26","alternate":"0x582D61","kind":"jump","size":11,"evidence":"tx-04-17 Shutdown direct PGD counter[192]/522/save isolation; preserve OptionsConfig path; native zero branch=0x582D67"},
     {"id":"client_shutdown_flush","group":"loop","rva":"0x582D72","expected":"A1 1C 4A BE 00","pattern":"A1 ?? ?? ?? ??","resume":"0x582D77","alternate":"0x582DDD","kind":"jump","size":5,"evidence":"tx-04-17 Shutdown dirty/backup/cloud/local/Exit block; absolute operand is ASLR-relocated and checked against live Manager address; preserve post-Exit Game/Manager/Lua/context cleanup"},
     {"id":"client_render_dispatch","group":"loop","rva":"0x52EDDE","expected":"80 BF D4 A3 04 00 00","resume":"0x52EDE5","alternate":"0x52F041","kind":"jump","size":7,"evidence":"tx-04-17 J273 Manager::Render: graphics prelude then Client own Scene, skip native world/UI/Lua; alternate reloads Manager in EAX before graphics tail"},
@@ -609,6 +629,7 @@
     {"index":3,"path":"_CBindings.ESSM.DeleteData","optional":false,"abi":"lua-CFunction-cdecl"}
   ],
   "native_dependencies": [
+    {"id":"native_camera_buffer_free","rva":"0x686BC9","expected":"E9"},
     {"id":"input_backend_lock","rva":"0x5E60E0","expected":"55 8B EC 53 8B D9 56 57"},
     {"id":"input_backend_unlock","rva":"0x5E61A0","expected":"56 8B F1 80 7E 04 00"}
   ],

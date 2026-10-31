@@ -14,6 +14,11 @@ bool PresentationProgressUnchanged() noexcept;
 void PresentationDraw() noexcept;
 void PresentationRenderReturned() noexcept;
 void PresentationQueueReturned(bool reset) noexcept;
+// 18复用已核定的图形owner／队列及截图寿命，不借旧Scene节点绘制Room世界。
+bool PresentationNativeGraphicsReady() noexcept;
+void PresentationNativeDrawStarted() noexcept;
+void PresentationClearTarget();
+void PresentationCaptureNativeReference(const std::string &name);
 std::string PresentationFields();
 // 当前已发布Room/Grid专用表示的owned值查询。空场景返回null，查询不推进任何模拟。
 std::string PresentationRoomGrid(const std::string &identity);

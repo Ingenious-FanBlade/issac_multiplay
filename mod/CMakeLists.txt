@@ -41,7 +41,8 @@ file(GLOB REPLICA_CATALOGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/observ
 add_custom_command(OUTPUT "${GENERATED}/replication_catalog.inc" "${GENERATED}/replication-catalog.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_replica_catalog.py" --out "${GENERATED}"
   DEPENDS tools/gen_replica_catalog.py ${REPLICA_CATALOGS} VERBATIM)
-add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/codec.cpp src/replica/room_grid.cpp "${GENERATED}/replication_catalog.inc")
+add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/codec.cpp src/replica/room_grid.cpp
+  src/replica/native_room_grid.cpp "${GENERATED}/replication_catalog.inc")
 target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")
 target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_compile_definitions(isaac_cs_replica PUBLIC _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
@@ -68,6 +69,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   "${REPENTOGON_ROOT}/libzhl/hde32/src/hde32.cpp"
   src/game/device_k.cpp src/game/join.cpp src/game/peer.cpp src/game/input_lease.cpp src/game/persistence.cpp
   src/game/client.cpp src/game/client_isolation.cpp src/game/presentation.cpp src/game/mod_persistence.cpp
+  src/game/native_room_grid.cpp src/game/native_room_grid_plan.cpp
   src/ops/config.cpp src/ops/trace.cpp src/ops/command.cpp src/ops/world_commands.cpp src/ops/control_port.cpp
   "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc"
   "${GENERATED}/exit_patch.inc"
@@ -78,7 +80,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
 set_source_files_properties(src/game/world_sources/loot.cpp src/game/world_sources/lua_entity.cpp src/game/player_api.cpp src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp"
   src/game/world_sources/random_runtime_lua.cpp src/game/world_sources/random_e2e.cpp src/game/world_sources/random_owners.cpp
   src/hooks/host_patch.cpp src/hooks/odd_patch.cpp src/hooks/exit_patch.cpp src/hooks/client_patch.cpp
-  src/game/presentation.cpp src/game/mod_persistence.cpp
+  src/game/presentation.cpp src/game/mod_persistence.cpp src/game/native_room_grid.cpp
   PROPERTIES COMPILE_OPTIONS "/std:c++17")
 target_include_directories(zhlIsaacCS PRIVATE src "${GENERATED}" "${REPENTOGON_ROOT}/include" "${REPENTOGON_ROOT}/libzhl"
   "${REPENTOGON_ROOT}/libs/rapidjson/include" "${REPENTOGON_ROOT}/libs/rapidxml" "${REPENTOGON_ROOT}/libs/lua")

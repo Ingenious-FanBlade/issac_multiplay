@@ -361,8 +361,8 @@ impl Run {
             ("ui/isaac-cs-ui", "mods/isaac-cs-ui"),
             ("tests/e2e-mods/isaac-cs-test", "mods/isaac-cs-test"),
         ];
-        if self.report["tx"]=="tx-04-16" || self.report["tx"]=="tx-04-17" || self.report["tx"]=="tx-04-18" { targets.retain(|(_,dst)|!dst.ends_with("isaac-cs-test")); }
-        if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" { targets.push(("mod/observation/isaac-cs-observation","mods/isaac-cs-observation")); }
+        if self.report["tx"]=="tx-04-16" || self.report["tx"]=="tx-04-17" { targets.retain(|(_,dst)|!dst.ends_with("isaac-cs-test")); }
+        if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-18" { targets.push(("mod/observation/isaac-cs-observation","mods/isaac-cs-observation")); }
         if self.report["tx"]=="tx-04-14" && self.scenario["global_random"]!=true && self.scenario["native_random"]!=true { targets.push(("out/tx14-source/BOIStageAPI15-master","mods/stageapi15")); }
         if self.report["tx"]=="tx-04-17" || self.report["tx"]=="tx-04-18" {targets.push(("tests/e2e-mods/isaac-cs-presentation","mods/isaac-cs-presentation"));}
         let existing = self.game.join("Repentogon/isaac-cs/config.json");
@@ -404,7 +404,7 @@ impl Run {
         }
         if matches!(
             self.report["tx"].as_str(),
-            Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13" | "tx-04-14" | "tx-04-15")
+            Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13" | "tx-04-14" | "tx-04-15" | "tx-04-18")
         ) {
             let config = if self.report["tx"] == "tx-04-14" {
                 format!("return {{tx=\"tx-04-14\",token=\"{}\",global_random={},native_random={},pending={}}}\n",self.report["token"].as_str().ok_or("token")?,self.scenario["global_random"]==true,self.scenario["native_random"]==true,self.scenario["tx14_pending"].as_array().map(|a|format!("{{{}}}",a.iter().map(|s|format!("{:?}",s.as_str().unwrap())).collect::<Vec<_>>().join(","))).unwrap_or("nil".into()))
