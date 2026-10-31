@@ -4,6 +4,7 @@
 #include "game/client.h"
 #include "game/mod_persistence.h"
 #include "game/bridge.h"
+#include "replica/room_grid.h"
 #include "runtime.h"
 #include <GL/gl.h>
 #include <rapidjson/document.h>
@@ -31,6 +32,11 @@ struct Node final {
   unsigned pass=0;
   Vector position{0,0};
   bool screen=false;
+  float order=0;
+  Vector clamp_top{0,0},clamp_bottom{0,0};
+  std::string text;
+  Vector text_scale{1,1};
+  KColor text_color{1,1,1,1};
   std::unique_ptr<Sprite> sprite;
 };
 // Room与Camera是独立呈现模型，不构造会使用共享RNG和玩法回调的原生世界。
@@ -41,12 +47,16 @@ struct Scene final {
   std::vector<Node> nodes;
   std::string hud,descriptor;
   std::uint64_t drawn=0;
+  std::unique_ptr<replica::RoomGrid> room_grid;
 };
 struct Service final {
   std::uint64_t connection=0,revision=0,epoch=0,prepared=0,published=0,rejected=0,
     draws=0,retired=0,context_checks=0,context_misses=0,applies=0,resets=0,
     draw_apply=0,draw_reset=0,drains=0,drain_waits=0;
   bool active=false,stopping=false,drawing=false,render_pending=false;
+  std::uint64_t rng_checks=0,rng_changes=0;
+  std::string capture;
+  std::uint64_t captures=0;
   HDC dc=nullptr;
   HGLRC context=nullptr;
   std::string pending,error;
@@ -89,6 +99,28 @@ bool Graphics() noexcept {
   }
   if(s.context&&(s.context!=expected_context||s.dc!=expected_dc)) {s.error="presentation_context_changed";++s.context_misses;return false;}
   s.dc=expected_dc;s.context=expected_context;return true;
+}
+bool DrawRandom(std::uint32_t &value) noexcept {
+  SIZE_T copied=0;return IsMain()&&ReadProcessMemory(GetCurrentProcess(),reinterpret_cast<const void *>(Base+0x7aa104),&value,sizeof(value),&copied)&&copied==sizeof(value);
+}
+// E2E直接读取实际native提交后的当前color target，不激活窗口、不依赖被遮挡的桌面像素。
+void CaptureTarget(){
+  auto &s=State();if(s.capture.empty())return;
+  GLint viewport[4]{},alignment=0,row=0,rows=0,pixels=0,pbo=0;
+  glGetIntegerv(GL_VIEWPORT,viewport);glGetIntegerv(GL_PACK_ALIGNMENT,&alignment);glGetIntegerv(GL_PACK_ROW_LENGTH,&row);
+  glGetIntegerv(GL_PACK_SKIP_ROWS,&rows);glGetIntegerv(GL_PACK_SKIP_PIXELS,&pixels);glGetIntegerv(0x88ED,&pbo);
+  const int width=viewport[2],height=viewport[3];
+  if(pbo||width<=0||height<=0||std::uint64_t(width)*unsigned(height)>8u*1024u*1024u)Reject("presentation_capture_target");
+  std::vector<unsigned char> data(std::size_t(width)*unsigned(height)*4);
+  glPixelStorei(GL_PACK_ALIGNMENT,4);glPixelStorei(GL_PACK_ROW_LENGTH,0);glPixelStorei(GL_PACK_SKIP_ROWS,0);glPixelStorei(GL_PACK_SKIP_PIXELS,0);
+  glFinish();glReadPixels(viewport[0],viewport[1],width,height,0x80E1,GL_UNSIGNED_BYTE,data.data());
+  glPixelStorei(GL_PACK_ALIGNMENT,alignment);glPixelStorei(GL_PACK_ROW_LENGTH,row);glPixelStorei(GL_PACK_SKIP_ROWS,rows);glPixelStorei(GL_PACK_SKIP_PIXELS,pixels);
+  BITMAPFILEHEADER header{};header.bfType=0x4d42;header.bfOffBits=sizeof(header)+sizeof(BITMAPINFOHEADER);header.bfSize=header.bfOffBits+DWORD(data.size());
+  BITMAPINFOHEADER info{};info.biSize=sizeof(info);info.biWidth=width;info.biHeight=height;info.biPlanes=1;info.biBitCount=32;info.biSizeImage=DWORD(data.size());
+  const auto path=std::filesystem::u8path(Settings.world_output_dir)/"presentation"/(s.capture+".bmp");
+  std::ofstream file(path,std::ios::binary);file.write(reinterpret_cast<const char *>(&header),sizeof(header));file.write(reinterpret_cast<const char *>(&info),sizeof(info));
+  file.write(reinterpret_cast<const char *>(data.data()),std::streamsize(data.size()));if(!file)Reject("presentation_capture_write");
+  s.capture.clear();++s.captures;
 }
 // 场景拥有当前pass的背景，避免冻结前的菜单像素残留在Replica空白区域。
 // 只清已由原生prelude绑定的color target，完整恢复GL clear/mask/scissor状态。
@@ -183,7 +215,16 @@ void SelectLayer(AnimationState *state,ANM2 *sprite,AnimationData *data,unsigned
   state->_layerFrames[order]=selected;
 }
 // 所有层先核ID、轨道与时间帧，再调用原生setter；不采用GetFrameData的clamp作为合法性证明。
-void Layers(ANM2 *sprite,AnimationData *main,AnimationData *overlay,const Value &layers){
+// STATIC/GOLDEN的官方renderer读本地Game/Manager时间；以Authority给定shader及colorize相位替代。
+unsigned FinalFlags(const Value &v,const Value &owner,bool random_uv){
+  if(!v.IsUint())Reject("presentation_flags");const auto flags=v.GetUint();
+  if((flags&2)&&!random_uv)Reject("presentation_unresolved_random_uv");
+  if(flags&(32u|128u)){
+    if(!owner.HasMember("resolved_time_effect")||!Flag(owner["resolved_time_effect"])||Member(owner,"custom_shader").IsNull())Reject("presentation_unresolved_time_effect");
+  }
+  return flags&~(2u|32u|64u|128u);
+}
+void Layers(ANM2 *sprite,AnimationData *main,AnimationData *overlay,const Value &layers,bool random_uv){
   if(!layers.IsArray()||layers.Size()>64)Reject("presentation_layers_budget");
   std::set<unsigned> seen;
   for(const auto &p:layers.GetArray()){
@@ -197,33 +238,54 @@ void Layers(ANM2 *sprite,AnimationData *main,AnimationData *overlay,const Value 
     layer->_visible=Flag(Member(p,"visible"));layer->_pos=Vec(Member(p,"offset"));layer->_size=Vec(Member(p,"scale"));
     layer->_rotation=Number(Member(p,"rotation"));layer->_color=Color(Member(p,"color"));
     layer->_flipX=Flag(Member(p,"flip_x"));layer->_flipY=Flag(Member(p,"flip_y"));
-    layer->_cropOffset=Vec(Member(p,"crop"));const auto &flags=Member(p,"flags");if(!flags.IsUint())Reject("presentation_layer_flags");layer->_bitflags=flags.GetUint();
+    layer->_cropOffset=Vec(Member(p,"crop"));const auto &flags=Member(p,"flags");if(!flags.IsUint())Reject("presentation_layer_flags");
+    // GLITCH会在GetSourceQuad前进全局RNG。只接受Authority已经bake到crop的UV结果，
+    // native随机位清零；未给定结果时拒绝整个候选，不能在Client重抽。
+    layer->_bitflags=FinalFlags(flags,p,random_uv);
     const auto &blend=Member(p,"blend");if(!blend.IsArray()||blend.Size()!=5)Reject("presentation_blend");
     layer->_blendMode=BlendMode(int(Index(blend[0],unsigned(eBlendEquation::NUM_BLEND_EQUATIONS))),int(Index(blend[1],unsigned(eBlendFactor::NUM_BLEND_FACTORS))),int(Index(blend[2],unsigned(eBlendFactor::NUM_BLEND_FACTORS))),int(Index(blend[3],unsigned(eBlendFactor::NUM_BLEND_FACTORS))),int(Index(blend[4],unsigned(eBlendFactor::NUM_BLEND_FACTORS))));
     Shaders(layer,true,p);
   }
 }
 std::unique_ptr<Scene> Prepare(const std::string &text){
+  // 18的域元数据必须与所有native Sprite属于同一个候选，不能先发布几何再加载资源。
+  std::unique_ptr<replica::RoomGrid> domain;
   rapidjson::Document root;root.Parse<rapidjson::kParseIterativeFlag|rapidjson::kParseValidateEncodingFlag>(text.data(),text.size());
   if(root.HasParseError()||!root.IsObject())Reject("presentation_descriptor_json");
+  if(root.HasMember("format")&&root["format"].IsString()&&
+     (std::string(root["format"].GetString())=="isaac.cs.room-grid"||std::string(root["format"].GetString())=="isaac.cs.room-grid-source")){
+    domain=std::make_unique<replica::RoomGrid>(replica::PrepareRoomGrid(text));
+    root.Parse<rapidjson::kParseIterativeFlag|rapidjson::kParseValidateEncodingFlag>(domain->descriptor.data(),domain->descriptor.size());
+  }else if(text.size()>256u*1024u)Reject("presentation_descriptor_budget");
   std::vector<std::pair<const Value *,unsigned>> work{{&root,0}};unsigned count=0;
-  while(!work.empty()){auto item=work.back();work.pop_back();if(++count>16384||item.second>32)Reject("presentation_value_budget");
+  while(!work.empty()){auto item=work.back();work.pop_back();if(++count>(domain?524288u:16384u)||item.second>32)Reject("presentation_value_budget");
     if(item.first->IsArray())for(const auto &v:item.first->GetArray())work.emplace_back(&v,item.second+1);
     if(item.first->IsObject()){std::set<std::string> names;for(auto it=item.first->MemberBegin();it!=item.first->MemberEnd();++it){if(!names.insert(String(it->name)).second)Reject("presentation_duplicate_member");work.emplace_back(&it->value,item.second+1);}}
   }
   if(Id(Member(root,"connection"))!=State().connection)Reject("presentation_connection_stale");
   auto scene=std::make_unique<Scene>();scene->descriptor=text;
+  scene->room_grid=std::move(domain);
   scene->epoch=Id(Member(root,"epoch"));scene->revision=Id(Member(root,"revision"));
   const auto &room=Member(root,"room");scene->size=Vec(Member(room,"size"));
   if(scene->size.x<=0||scene->size.y<=0)Reject("presentation_room_geometry");
   const auto &camera=Member(root,"camera");scene->camera=Vec(Member(camera,"origin"));scene->zoom=Number(Member(camera,"zoom"));
   if(scene->zoom<=0||scene->zoom>16)Reject("presentation_camera_zoom");
   scene->hud=String(Member(root,"hud"),2048);
-  const auto &nodes=Member(root,"nodes");if(!nodes.IsArray()||nodes.Size()>512)Reject("presentation_nodes_budget");
-  std::set<std::uint64_t> ids;std::uint64_t pixels=0;
+  const auto &nodes=Member(root,"nodes");if(!nodes.IsArray()||nodes.Size()>(scene->room_grid?4096u:512u))Reject("presentation_nodes_budget");
+  std::set<std::uint64_t> ids;std::uint64_t pixels=0;std::set<const void *> images;
   for(const auto &p:nodes.GetArray()){
     Node node;node.id=Id(Member(p,"id"));if(!ids.insert(node.id).second)Reject("presentation_node_duplicate");
     node.pass=Index(Member(p,"pass"),8);node.screen=Flag(Member(p,"screen"));node.position=Vec(Member(p,"position"));
+    if(p.HasMember("order"))node.order=Number(p["order"]);
+    if(p.HasMember("clamp_top"))node.clamp_top=Vec(p["clamp_top"]);
+    if(p.HasMember("clamp_bottom"))node.clamp_bottom=Vec(p["clamp_bottom"]);
+    // 压力板倒计时等字形只显示Authority给定文本，不能读取本地Game计时器重新计算。
+    if(p.HasMember("text")){
+      node.text=String(p["text"],2048);if(node.text.empty())Reject("presentation_text_empty");
+      node.text_scale=Vec(Member(p,"text_scale"));const auto &color=Member(p,"text_color");
+      if(!color.IsArray()||color.Size()!=4)Reject("presentation_text_color");node.text_color=KColor(Number(color[0]),Number(color[1]),Number(color[2]),Number(color[3]));
+      scene->nodes.push_back(std::move(node));continue;
+    }
     // 不用delete ANM2：native destructor已经析构std_string和内部数组，避免C++再次析构成员。
     void *raw=::operator new(sizeof(ANM2));ANM2 *sprite=nullptr;
     try{sprite=new(raw) ANM2;}catch(...){::operator delete(raw);throw;}
@@ -239,7 +301,8 @@ std::unique_ptr<Scene> Prepare(const std::string &text){
     sprite->LoadGraphics(false);
     for(unsigned i=0;i<sprite->_layerCount;++i){auto &layer=sprite->_layerState[i];if(!layer._layerData)continue;const auto &image=layer._spriteSheet;
       if(!layer._spriteSheetLoaded||!image.image||!image.counter||image.image->GetWidth()<=0||image.image->GetHeight()<=0)Reject("presentation_image_missing");
-      pixels+=std::uint64_t(image.image->GetWidth())*unsigned(image.image->GetHeight());
+      // 多格共享同一native image只计一次纹理；不把448格共享图误算成448张独立纹理。
+      if(images.insert(image.image).second)pixels+=std::uint64_t(image.image->GetWidth())*unsigned(image.image->GetHeight());
       if(pixels>16u*1024u*1024u)Reject("presentation_texture_budget");
     }
     const auto &pose=Member(p,"pose");
@@ -253,11 +316,19 @@ std::unique_ptr<Scene> Prepare(const std::string &text){
     sprite->_scale=Vec(Member(pose,"scale"));sprite->_offset=Vec(Member(pose,"offset"));
     sprite->_rotation=Number(Member(pose,"rotation"));sprite->_color=Color(Member(pose,"color"));
     sprite->_championColor=Color(Member(pose,"champion_color"));sprite->_flipX=Flag(Member(pose,"flip_x"));sprite->_flipY=Flag(Member(pose,"flip_y"));
-    const auto &flags=Member(pose,"flags");if(!flags.IsUint())Reject("presentation_flags");sprite->_bitflags=flags.GetUint();
-    Shaders(sprite,false,pose);Layers(sprite,main,overlay,Member(pose,"layers"));
+    const bool random_uv=pose.HasMember("resolved_random_uv")&&Flag(pose["resolved_random_uv"]);
+    const auto &flags=Member(pose,"flags");if(!flags.IsUint())Reject("presentation_flags");
+    sprite->_bitflags=FinalFlags(flags,pose,random_uv);
+    const auto &layers=Member(pose,"layers");
+    if((flags.GetUint()&2)&&(!layers.IsArray()||layers.Size()!=sprite->_layerCount))Reject("presentation_random_uv_layers_incomplete");
+    Shaders(sprite,false,pose);Layers(sprite,main,overlay,layers,random_uv);
+    // ANM资源默认层也不能遗留随机位；有该位的每层都必须有显式crop结果。
+    for(unsigned i=0;i<sprite->_layerCount;++i)if(sprite->_layerState[i]._bitflags&(2u|32u|128u))Reject("presentation_resource_effect_unresolved");
+    // Client只展示指定后态。禁止RGON插值路径按本地奇偶帧改写共享AnimationFrame。
+    sprite->_animState._isPlaying=false;sprite->_overlayAnimState._isPlaying=false;
     scene->nodes.push_back(std::move(node));
   }
-  std::stable_sort(scene->nodes.begin(),scene->nodes.end(),[](const Node &a,const Node &b){return a.pass<b.pass;});
+  std::stable_sort(scene->nodes.begin(),scene->nodes.end(),[](const Node &a,const Node &b){return a.pass==b.pass?a.order<b.order:a.pass<b.pass;});
   return scene;
 }
 }
@@ -267,11 +338,11 @@ bool PresentationBegin(std::uint64_t connection) noexcept {
   if(!g_Manager)return false;
   try{s.progress.resize(sizeof(PersistentGameData));}catch(...){return false;}
   std::memcpy(s.progress.data(),g_Manager->GetPersistentGameData(),s.progress.size());s.progress_changed=false;
-  s.active=true;s.stopping=false;s.connection=connection;s.revision=s.epoch=0;s.dc=nullptr;s.context=nullptr;s.pending.clear();s.error.clear();return true;
+  s.active=true;s.stopping=false;s.connection=connection;s.revision=s.epoch=0;s.dc=nullptr;s.context=nullptr;s.pending.clear();s.capture.clear();s.error.clear();return true;
 }
 const char *PresentationSubmit(const std::string &descriptor) noexcept {
   auto &s=State();if(!IsMain()||!s.active||s.stopping)return "presentation_not_active";
-  if(descriptor.size()>256u*1024u)return "presentation_descriptor_budget";
+  if(descriptor.size()>8u*1024u*1024u)return "presentation_descriptor_budget";
   if(!s.pending.empty())return s.pending==descriptor?"":"presentation_candidate_busy";
   if(s.current&&s.current->descriptor==descriptor)return "";
   try{s.pending=descriptor;return "";}catch(...){return "presentation_allocation";}
@@ -292,12 +363,26 @@ void PresentationDraw() noexcept {
   s.render_pending=true;
   s.draw_apply=s.applies;s.draw_reset=s.resets;
   s.drawing=true;
+  // J273 404F60的全局XorShift状态；仅显式E2E读取，生产不做逐帧诊断。
+  std::uint32_t rng_before=0;const bool watch_rng=!Settings.world_e2e_token.empty()&&DrawRandom(rng_before);
   try {
+    // 只在本方draw窗口限定官方ANM2全局模式，正常/异常返回均恢复。反射/GLITCH
+    // 由Authority已解析的部件表达，不能从冻结的本地Room读取水量或对象地址派生UV。
+    struct Modes final {
+      bool light=g_ANM2_LightRendering,reflection=g_ANM2_ReflectionRendering,glitch=g_ANM2_GlitchRendering;
+      Modes(){g_ANM2_LightRendering=false;g_ANM2_ReflectionRendering=false;g_ANM2_GlitchRendering=false;}
+      ~Modes(){g_ANM2_LightRendering=light;g_ANM2_ReflectionRendering=reflection;g_ANM2_GlitchRendering=glitch;}
+    } modes;
+    if(!g_ColorOverrideStack.empty())Reject("presentation_foreign_color_override");
     ClearScene();
     if(!s.pending.empty()&&!s.stopping){
       auto pending=std::move(s.pending);s.pending.clear();
       try{auto candidate=Prepare(pending);++s.prepared;
         if(candidate->epoch<s.epoch||(candidate->epoch==s.epoch&&candidate->revision<=s.revision))Reject("presentation_stale_revision");
+        if(s.current&&s.current->room_grid&&candidate->room_grid&&candidate->epoch==s.epoch){
+          const auto &old=*s.current->room_grid,&next=*candidate->room_grid;
+          if(old.session!=next.session||old.connection!=next.connection||old.run!=next.run||old.floor!=next.floor||old.dimension!=next.dimension||old.room!=next.room)Reject("room_grid_scope_changed_without_scene");
+        }
         if(s.retiring.size()>=2)Reject("presentation_retirement_budget");
         if(s.current)s.retiring.push_back(std::move(s.current));
         s.epoch=candidate->epoch;s.revision=candidate->revision;s.current=std::move(candidate);++s.published;
@@ -306,11 +391,13 @@ void PresentationDraw() noexcept {
     if(s.stopping&&s.current)s.retiring.push_back(std::move(s.current));
     if(s.current&&!s.stopping){auto &scene=*s.current;
       for(auto &node:scene.nodes){Vector at=node.position;
+        g_ANM2_LightRendering=node.pass==6;
         if(!node.screen){at.x=(at.x-scene.camera.x)*scene.zoom;at.y=(at.y-scene.camera.y)*scene.zoom;}
+        if(!node.sprite){if(g_Manager){auto scale=node.text_scale;if(!node.screen){scale.x*=scene.zoom;scale.y*=scene.zoom;}
+          FontSettings settings;g_Manager->_font8_LuaMiniOutlined.DrawString(node.text.c_str(),at,scale,&node.text_color,&settings);}continue;}
         auto *sprite=node.sprite->value;const auto scale=sprite->_scale;
         if(!node.screen){sprite->_scale.x*=scene.zoom;sprite->_scale.y*=scene.zoom;}
-        Vector clamp(0,0);
-        try{sprite->Render(&at,&clamp,&clamp);}catch(...){sprite->_scale=scale;throw;}
+        try{sprite->Render(&at,&node.clamp_top,&node.clamp_bottom);}catch(...){sprite->_scale=scale;throw;}
         sprite->_scale=scale;
       }
       if(g_Manager){KColor color(1,1,1,1);FontSettings settings;g_Manager->_font8_LuaMiniOutlined.DrawString(scene.hud.c_str(),Vector(20,15),Vector(1,1),&color,&settings);}
@@ -323,6 +410,9 @@ void PresentationDraw() noexcept {
     }
     ClientUiHeartbeat();
   }catch(const std::exception &e){s.error=e.what();}catch(...){s.error="presentation_native_exception";}
+  if(watch_rng){std::uint32_t after=0;++s.rng_checks;
+    if(!DrawRandom(after)||after!=rng_before)++s.rng_changes;
+  }
   s.drawing=false;
 }
 void PresentationQueueReturned(bool reset) noexcept {
@@ -332,6 +422,10 @@ void PresentationQueueReturned(bool reset) noexcept {
 // 正常render返回仍需本轮apply/reset见证及具体raw容器检查；不能以SwapBuffers冒充GPU完成。
 void PresentationRenderReturned() noexcept {
   auto &s=State();if(!s.active||!s.render_pending||!IsMain())return;s.render_pending=false;
+  if(!s.capture.empty()&&s.applies>s.draw_apply&&s.resets>s.draw_reset&&Graphics()&&
+     g_KAGE_Graphics_ImageManager._frameImages.empty()&&g_KAGE_Graphics_ImageManager._transparentBatches.empty()){
+    try{CaptureTarget();}catch(const std::exception &e){s.capture.clear();s.error=e.what();}catch(...){s.capture.clear();s.error="presentation_capture_failed";}
+  }
   if(s.retiring.empty()){if(s.stopping&&!s.current){s.active=false;}return;}
   if(s.applies<=s.draw_apply||s.resets<=s.draw_reset||!Graphics()){++s.drain_waits;return;}
   // frameImages与透明pair是待提交raw owner，两个具体容器必须都已排空。
@@ -358,6 +452,12 @@ std::string PresentationTest(const std::string &token,const std::string &name){
     lua_settop(L,top);return out.str();
   }
   if(!ClientBusy())return "ok=0\nerror=presentation_not_active\n";
+  if(name.rfind("capture-",0)==0){
+    if(name.size()>64||name.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-")!=name.npos)return "ok=0\nerror=capture_name\n";
+    if(!State().capture.empty())return "ok=0\nerror=capture_busy\n";State().capture=name;return "ok=1\n";
+  }
+  if(name=="room-grid-state")return "ok=1\nroom_grid.model="+PresentationRoomGrid("all")+"\n";
+  if(name.rfind("room-grid-object-",0)==0)return "ok=1\nroom_grid.object="+PresentationRoomGrid(name.substr(17))+"\n";
   if(name=="mod-persistence"){
     auto *L=g_LuaEngine?g_LuaEngine->_state:nullptr;if(!L||!ModPersistenceReady())return "ok=0\nerror=mod_persistence_unavailable\n";
     const int top=lua_gettop(L);lua_getglobal(L,"IsaacCS_PresentationTryPersistence");
@@ -373,8 +473,8 @@ std::string PresentationTest(const std::string &token,const std::string &name){
   if(name.empty()||name.size()>64||name.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-")!=name.npos)return "ok=0\nerror=presentation_test_name\n";
   const auto path=std::filesystem::u8path(Settings.world_output_dir)/"presentation"/(name+".json");
   std::ifstream file(path,std::ios::binary);if(!file)return "ok=0\nerror=presentation_test_file\n";
-  std::string text(256u*1024u+1,'\0');file.read(text.data(),std::streamsize(text.size()));text.resize(std::size_t(file.gcount()));
-  if(text.size()>256u*1024u)return "ok=0\nerror=presentation_descriptor_budget\n";
+  std::string text(8u*1024u*1024u+1,'\0');file.read(text.data(),std::streamsize(text.size()));text.resize(std::size_t(file.gcount()));
+  if(text.size()>8u*1024u*1024u)return "ok=0\nerror=presentation_descriptor_budget\n";
   const auto *error=PresentationSubmit(text);return *error?"ok=0\nerror="+std::string(error)+"\n":"ok=1\n";
 }
 std::string PresentationFields(){
@@ -384,11 +484,19 @@ std::string PresentationFields(){
    <<"\npresentation.epoch="<<s.epoch<<"\npresentation.revision="<<s.revision<<"\npresentation.prepared="<<s.prepared
    <<"\npresentation.published="<<s.published<<"\npresentation.rejected="<<s.rejected<<"\npresentation.draws="<<s.draws
    <<"\npresentation.retired="<<s.retired<<"\npresentation.retiring="<<s.retiring.size()<<"\npresentation.context_checks="<<s.context_checks
+   <<"\npresentation.rng_checks="<<s.rng_checks<<"\npresentation.rng_changes="<<s.rng_changes
+   <<"\npresentation.captures="<<s.captures
    <<"\npresentation.context_misses="<<s.context_misses<<"\npresentation.nodes="<<(s.current?s.current->nodes.size():0)
    <<"\npresentation.applies="<<s.applies<<"\npresentation.resets="<<s.resets<<"\npresentation.drains="<<s.drains
    <<"\npresentation.drain_waits="<<s.drain_waits<<"\npresentation.drained="<<PresentationDrained()<<"\npresentation.error="<<s.error<<"\n";
+  if(s.current&&s.current->room_grid){const auto &r=*s.current->room_grid;
+    o<<"room_grid.revision="<<r.revision<<"\nroom_grid.room="<<r.room<<"\nroom_grid.shape="<<r.shape
+     <<"\nroom_grid.cells="<<r.cells.size()<<"\nroom_grid.grids="<<r.grids<<"\nroom_grid.doors="<<r.doors
+     <<"\nroom_grid.types="<<r.types<<"\nroom_grid.classes="<<r.classes<<"\nroom_grid.parts="<<r.parts
+     <<"\nroom_grid.references="<<r.references<<"\n";
+  }else o<<"room_grid.revision=0\nroom_grid.grids=0\nroom_grid.cells=0\n";
   // 仅在有效owner的当前自有Sprite上复制姿态值；不跨线程发布native借用或地址。
-  if(s.current&&!s.current->nodes.empty()){
+  if(s.current&&!s.current->nodes.empty()&&s.current->nodes.front().sprite){
     const auto *sprite=s.current->nodes.front().sprite->value;
     o<<"presentation.main_frame="<<sprite->_animState._animFrame<<"\npresentation.overlay_frame="<<sprite->_overlayAnimState._animFrame
      <<"\npresentation.main_event_mask="<<sprite->_animState._currentlyTriggeredEvents<<'\n';
@@ -396,5 +504,9 @@ std::string PresentationFields(){
       o<<"presentation.layer0_key="<<sprite->_animState._layerFrames[0]<<"\npresentation.overlay_layer0_key="<<sprite->_overlayAnimState._layerFrames[0]<<'\n';
   }
   return o.str();
+}
+std::string PresentationRoomGrid(const std::string &identity){
+  if(!IsMain())return "null";const auto &s=State();
+  return s.current&&s.current->room_grid?replica::RoomGridObject(*s.current->room_grid,identity):"null";
 }
 } // namespace cs::game

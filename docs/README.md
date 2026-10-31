@@ -1,3 +1,5 @@
+> **tx-04-18 已完成（2026-10-31）**：[Room／Grid专用表示、逆向主审与统一E2E](design/tx-04-18/tx-04-18-implementation.md)，最终10/10 PASS；27类型／17派生、448格／八门槽、12房形与真实GPU目标像素。失败修复及不受影响的通过项复用如实记录，临时材料已清理；网络Baseline／整世界Applied仍归21，原版全内容组合闭合仍归29。
+
 > **tx-04-14 已完成（2026-10-31）**：[整局、随机选择、HUD/独立表现、Mod及真实StageAPI实现与统一验收](design/observation-expansion/tx-04-14-implementation.md)。6/6 PASS、21/21场景、84个指定四域scope；[记录/适配合同](design/observation-expansion/run-mod-schema.md)。下方早期计划状态保留原时点。
 
 > **tx-04-13已完成（2026-10-31）**：[探索、离房保存与玩家跨房观测](design/observation-expansion/tx-04-13-implementation.md)已通过统一E2E 5/5，31/31场景、124个指定正式scope；不受影响的已完成项目复用，失败和边界如实保留，临时材料已清理。

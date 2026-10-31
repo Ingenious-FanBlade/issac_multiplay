@@ -15,6 +15,8 @@ void PresentationDraw() noexcept;
 void PresentationRenderReturned() noexcept;
 void PresentationQueueReturned(bool reset) noexcept;
 std::string PresentationFields();
+// 当前已发布Room/Grid专用表示的owned值查询。空场景返回null，查询不推进任何模拟。
+std::string PresentationRoomGrid(const std::string &identity);
 // 失败状态留在Client角色内；主线程在Manager边界读取，不从图形回调切换角色。
 const char *PresentationFailure() noexcept;
 // 仅显式E2E配置开放的真实进程夹具；读取本次测试目录内有界纯值描述。

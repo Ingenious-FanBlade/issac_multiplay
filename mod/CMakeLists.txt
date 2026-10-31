@@ -41,7 +41,7 @@ file(GLOB REPLICA_CATALOGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/observ
 add_custom_command(OUTPUT "${GENERATED}/replication_catalog.inc" "${GENERATED}/replication-catalog.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_replica_catalog.py" --out "${GENERATED}"
   DEPENDS tools/gen_replica_catalog.py ${REPLICA_CATALOGS} VERBATIM)
-add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/codec.cpp "${GENERATED}/replication_catalog.inc")
+add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/codec.cpp src/replica/room_grid.cpp "${GENERATED}/replication_catalog.inc")
 target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")
 target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_compile_definitions(isaac_cs_replica PUBLIC _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
