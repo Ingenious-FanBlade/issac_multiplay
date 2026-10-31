@@ -2,6 +2,7 @@
 #include "LuaCore.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/world_sources/global_random.h"
+#include "game/world_sources/random_sources.h"
 #include "runtime.h"
 #include <cstring>
 namespace cs::game {
@@ -126,6 +127,19 @@ int PublishLocation(lua_State *L) {
 }
 int CaptureContext(lua_State *L) { const auto s=ObservationCaptureContext(); lua_pushlstring(L,s.data(),s.size()); return 1; }
 int LuaGlobalRandomState(lua_State *L) { const auto s=ObservationGlobalRandomState();lua_pushlstring(L,s.data(),s.size());return 1; }
+int LuaNativeRandomSources(lua_State *L){const auto s=RandomSourcesSummary();lua_pushlstring(L,s.data(),s.size());return 1;}
+int LuaTestNativeRandomSources(lua_State *L){
+  try{const auto s=TestNativeRandomSources(luaL_checkstring(L,1),luaL_checkstring(L,2),unsigned(luaL_optinteger(L,3,0)),std::uint32_t(luaL_optinteger(L,4,1)));lua_pushlstring(L,s.data(),s.size());return 1;}
+  catch(const std::exception &e){return luaL_error(L,"%s",e.what());}
+}
+int LuaRegisterRandomSource(lua_State *L){
+  auto *rng=lua::GetLuabridgeUserdata<RNG *>(L,1,lua::Metatables::RNG,"RNG");
+  std::size_t n=0;const auto *owner=luaL_checklstring(L,2,&n);
+  const auto *purpose=luaL_checkstring(L,3);const auto *life=luaL_checkstring(L,4);
+  if(n>4096||std::strlen(purpose)>256||std::strlen(life)>256)return luaL_error(L,"random_owner_metadata_budget");
+  BindRandomSource({rng,RandomAlgorithm::XorShift32,std::string(owner,n),purpose,life});
+  const auto s=RandomSourceReference(rng);lua_pushlstring(L,s.data(),s.size());return 1;
+}
 // 测试入口只在专用token配置中开放；动作由E2E夹具请求，正式采集器不推进随机源。
 int TestGlobalRandom(lua_State *L) {
   const auto *token=luaL_checkstring(L,1);const auto count=luaL_checkinteger(L,2);
@@ -176,8 +190,9 @@ void EnsureObservationLuaBridge() noexcept {
   lua_getglobal(L,"IsaacCSObservationNative");
   const bool exists=lua_istable(L,-1); lua_settop(L,top);
   if(exists) return;
+  RegisterRuntimeRandomFunctions();
   lua_newtable(L);
-  const luaL_Reg funcs[]={{"GlobalRandomState",LuaGlobalRandomState},{"TestGlobalRandom",TestGlobalRandom},{"PromptState",PromptState},{"RelatedSubject",RelatedSubject},{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
+  const luaL_Reg funcs[]={{"TestNativeRandomSources",LuaTestNativeRandomSources},{"NativeRandomSources",LuaNativeRandomSources},{"RegisterRandomSource",LuaRegisterRandomSource},{"GlobalRandomState",LuaGlobalRandomState},{"TestGlobalRandom",TestGlobalRandom},{"PromptState",PromptState},{"RelatedSubject",RelatedSubject},{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
   luaL_setfuncs(L,funcs,0); lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
 }
 // Coordinator 在复制窗口内部调用一次；错误返回自有原因，不让 Lua 异常越过 Authority。

@@ -21,6 +21,7 @@ function M.Register(rng,owner,purpose,parameters,lifetime)
     M.count=(M.count or 0)+1;s={subject={space=11,session=x.session,epoch=x.epoch,local_id=IsaacCSObservationNative.RelatedSubject(11)},owner=owner,purpose=purpose,parameters=p,lifetime=lifetime or x.run,first_observation="FirstObserved;not_birth"};M.streams[key]=s
   end
   M.byObject[rng]=s;s.owner=owner
+  s.native_reference=require("json").decode(IsaacCSObservationNative.RegisterRandomSource(rng,R.Encode(identity or {}),purpose or "",tostring(lifetime or x.run)))
   s.state={seed=tostring(rng:GetSeed()),shift=rng:GetShiftIdx(),source_scope=x.scope,source_application_frame=Isaac.GetFrameCount()}
   return {type="random_stream_reference",subject=s.subject,owner=owner,purpose=purpose,current=s.state}
 end
@@ -55,16 +56,16 @@ function M.Capture(limits)
   out.source_gaps[2]="cached_Lua_functions_except_global_Random;native_global_entry_covers_cached_Random"
   for _,e in ipairs(Isaac.GetRoomEntities()) do
     local owner=IsaacCSObservationNative.Reference(e)
-    M.Register(e:GetDropRNG(),owner,"Entity.GetDropRNG",{},owner.use)
+    M.Register(Calls.Silent(function()return e:GetDropRNG()end),owner,"Entity.GetDropRNG",{},owner.use)
   end
   local grids=IsaacCSObservationNative.GridSources()
   for _,entry in ipairs(grids) do
     local grid=entry.grid or entry.entity or entry.object
-    if grid then local owner=IsaacCSObservationNative.GridReference(grid);M.Register(grid:GetRNG(),owner,"GridEntity.GetRNG",{},owner.use) end
+    if grid then local owner=IsaacCSObservationNative.GridReference(grid);M.Register(Calls.Silent(function()return grid:GetRNG()end),owner,"GridEntity.GetRNG",{},owner.use) end
   end
   -- Level的两个Getter公开返回已存在的固定成员，不分配物品RNG。
-  M.Register(Game():GetLevel():GetGenerationRNG(),{space=4,local_id=x.floor},"Level.GetGenerationRNG",{},x.floor)
-  M.Register(Game():GetLevel():GetDevilAngelRoomRNG(),{space=4,local_id=x.floor},"Level.GetDevilAngelRoomRNG",{},x.floor)
+  M.Register(Calls.Silent(function()return Game():GetLevel():GetGenerationRNG()end),{space=4,local_id=x.floor},"Level.GetGenerationRNG",{},x.floor)
+  M.Register(Calls.Silent(function()return Game():GetLevel():GetDevilAngelRoomRNG()end),{space=4,local_id=x.floor},"Level.GetDevilAngelRoomRNG",{},x.floor)
   -- 不跨生命周期解引用缓存的原生RNG；仅本窗口已取得资格的Getter/适配reader刷新状态。
   for _,s in pairs(M.streams) do
     s.freshness=s.state.source_scope==x.scope and "ReadInCurrentNativeWindow" or "HistoricalObservedState;not_polled_without_owner_qualification"
@@ -83,6 +84,11 @@ function M.Capture(limits)
   end
   out.trinket_availability={}
   for _,args in ipairs(X.Enum("TrinketType")) do out.trinket_availability[#out.trinket_availability+1]={id=args[1],available=pool:HasTrinket(args[1])} end
+  -- 完整原生快照由C++直接合并；Lua避免整份解码后再次编码。
+  out.native_sources_summary=require("json").decode(IsaacCSObservationNative.NativeRandomSources())
+  c.objects=c.objects+(out.native_sources_summary.objects or 0);c.nodes=c.nodes+(out.native_sources_summary.nodes or 0)
+  if not out.native_sources_summary.complete then R.Fail(c,"native_random_sources_incomplete") end
+  out.source_gaps={"inline_consumption_is_observed_as_state_change;not_fabricated_as_individual_calls","unknown_private_Mod_RNG_requires_registration"}
   return R.Finish(out,c)
 end
 function M.Outcome() end

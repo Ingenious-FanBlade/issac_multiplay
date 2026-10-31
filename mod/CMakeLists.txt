@@ -34,7 +34,7 @@ target_compile_options(isaac_cs_world PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_link_libraries(isaac_cs_world PUBLIC isaac_cs_core)
 set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
 add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/binding_v1_9_7_12.inc" "${GENERATED}/hook-manifest.json" "${GENERATED}/permanent_patches.inc" "${GENERATED}/host_patches.inc" "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc" "${GENERATED}/world-layout.json"
-  BYPRODUCTS "${GENERATED}/exit_patch.inc"
+  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/random_runtime.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_binding.py" --out "${GENERATED}"
   DEPENDS tools/gen_binding.py binding/hooks.json binding/world_layout.json binding/v1_9_7_12-static.json ../docs/hooks/repentogon-binding.json VERBATIM)
 add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions.cpp
@@ -42,6 +42,9 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/hooks/pointer_patch.cpp src/hooks/odd_patch.cpp src/hooks/host_patch.cpp src/hooks/exit_patch.cpp
   src/game/context.cpp src/game/player_api.cpp src/game/world_sources/lua_entity.cpp src/game/world_sources/loot.cpp src/game/world_sources/observation.cpp src/game/topology.cpp src/game/tick.cpp src/game/input_a.cpp
   src/game/query.cpp src/game/consumers.cpp src/game/lifecycle.cpp src/game/remote_life.cpp src/game/world_bridge.cpp src/game/world_sources/global_random.cpp
+  src/game/world_sources/random_sources.cpp src/game/world_sources/random_runtime_lua.cpp src/game/world_sources/random_e2e.cpp
+  src/game/world_sources/random_owners.cpp src/hooks/random_runtime.cpp
+  "${REPENTOGON_ROOT}/libzhl/hde32/src/hde32.cpp"
   src/game/device_k.cpp src/game/join.cpp src/game/peer.cpp src/game/input_lease.cpp src/game/persistence.cpp
   src/ops/config.cpp src/ops/trace.cpp src/ops/command.cpp src/ops/world_commands.cpp src/ops/control_port.cpp
   "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc"
@@ -51,6 +54,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
 # SDK-facing 单元只使用 C++17 值接口；Join/输入/world 核心保持 C++20。
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。
 set_source_files_properties(src/game/world_sources/loot.cpp src/game/world_sources/lua_entity.cpp src/game/player_api.cpp src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp"
+  src/game/world_sources/random_runtime_lua.cpp src/game/world_sources/random_e2e.cpp src/game/world_sources/random_owners.cpp
   src/hooks/host_patch.cpp src/hooks/odd_patch.cpp src/hooks/exit_patch.cpp
   PROPERTIES COMPILE_OPTIONS "/std:c++17")
 target_include_directories(zhlIsaacCS PRIVATE src "${GENERATED}" "${REPENTOGON_ROOT}/include" "${REPENTOGON_ROOT}/libzhl"

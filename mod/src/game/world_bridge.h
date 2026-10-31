@@ -7,6 +7,7 @@
 #include <memory>
 #include "world/domains/level/model.h"
 #include "game/world_sources/global_random.h"
+#include "game/world_sources/random_sources.h"
 
 namespace cs::game {
 // 采集 owner 不拥有文件录制器；即使没有 Recorder，也保持同一身份 epoch 和值消费。
@@ -26,6 +27,7 @@ struct WorldCapture final {
   // 跨房三域及新增四域只保存自有值；Player本体引用同批Entity scope，不重复采集。
   std::array<world::observation::ObservationEnvelope,7> latest_continuity{};
   GlobalRandomMirror global_random{};
+  std::shared_ptr<RandomRegistry> random_sources=MakeRandomRegistry();
   world::observation::ObservationEnvelope latest_global_random{};
   std::uint64_t current_entity_scope=0;
   world::level::Hierarchy hierarchy{};

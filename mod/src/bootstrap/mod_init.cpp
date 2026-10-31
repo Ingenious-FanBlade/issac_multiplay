@@ -2,6 +2,7 @@
 #include "libzhl.h"
 #include "runtime.h"
 #include "game/world_bridge.h"
+#include "hooks/random_runtime.h"
 namespace cs {
 DWORD MainThread = 0;
 uintptr_t Base = 0;
@@ -66,6 +67,7 @@ MOD_EXPORT int ModInit() noexcept {
     PrepareBindings();
     game::InitializeWorldBridge();
     RegisterHooks();
+    InitializeRuntimeRandomHooks();
     PublishStatus();
     if (Settings.control && Capabilities[size_t(Group::Loop)] &&
         Capabilities[size_t(Group::Control)])

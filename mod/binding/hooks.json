@@ -2,7 +2,7 @@
   "comment": "tx-04-07/tx-04-08：唯一 Hook 清单。hooks 为常驻入口/设备槽/Odd/Join/K/持久与只读观察组（栈参数 ABI）；world_observations 为 tx-04-08 的 19 项 world 观察入口，带显式参数 ABI、完成含义与证据。",
   "schema": {
     "version": 2,
-    "pending_capacity": 96,
+    "pending_capacity": 128,
     "world_native_witness_priority": 10000,
     "layout_manifest": "binding/world_layout.json",
     "notes": [
@@ -12,6 +12,15 @@
     ]
   },
   "hooks": [
+    ["native_level_random","world","Level","generate_dungeon","void","RNG* random","random","0x33AF60","None",false,"",false,-10000,true],
+    ["native_generator_random","world","LevelGenerator","Generate","void","int value, bool a, bool b, bool c, unsigned int const& shapes, unsigned int ends, LevelGenerator_Room* start","value, a, b, c, shapes, ends, start","0x585230","None",false,"",false,-10000,true],
+    ["native_rng_ctor","world","RNG","game_constructor","void","unsigned int seed, unsigned int shift","seed, shift","0x3DF450","None",false,"",false,-10000,true],
+    ["native_rng_seed","world","RNG","SetSeed","void","unsigned int seed, unsigned int shift","seed, shift","0x3DF4A0","None",false,"",false,-10000,true],
+    ["native_rng_next","world","RNG","Next","unsigned int","","","0x3DF5B0","None",false,"",false,-10000,true],
+    ["native_rng_int","world","RNG","RandomInt","unsigned int","unsigned int max","max","0x3DF4E0","None",false,"",false,-10000,true],
+    ["native_rng_float","world","RNG","RandomFloat","float","","","0x3DF540","None",false,"",false,-10000,true],
+    ["native_mt_seed","world","MTRNG","Init","void","unsigned int seed","seed","0x4DA340","None",false,"",false,-10000,true],
+    ["native_mt_next","world","MTRNG","Next","unsigned int","","","0x4DA390","None",false,"",false,-10000,true],
     ["native_global_random","world","CsStatic","GlobalRandom","unsigned int","","","0x2EB4B0","None",true,"cdecl",true,-10000,true],
     ["native_global_seed","world","CsMtSeed","ApplySeed","int","","","0x2EB470","None",false,"",true,-10000,true],
     ["actual_pickup_loot","world","Entity_Pickup","GetLootList","LootList","bool advance, Entity_Player* player","advance, player","0x2D8700","None",false,"",false,-10000,true],
@@ -576,6 +585,13 @@
     {"id": "k_controller_list", "group": "join", "rva": "0x4af970", "expected": "85 C0 0F 84 D5 00 00 00", "resume": "0x4af978", "alternate": "0x4afa4d", "kind": "jump", "size": 8},
     {"id": "k_keyconfig_draw", "group": "join", "rva": "0x4b8d3d", "expected": "83 B8 8C 04 00 00 00", "resume": "0x4b8d44", "alternate": "0x4b9aa7", "kind": "jump", "size": 7},
     {"id": "k_pause_disconnect", "group": "join", "rva": "0x534768", "expected": "83 B8 8C 04 00 00 00", "resume": "0x53476f", "alternate": "0x5347a9", "kind": "jump", "size": 7}
+  ],
+  "runtime_random_hooks": [
+    {"id":"crt_rand","source":0,"module":"ucrtbase.dll","symbol":"rand","import_owners":["executable","zhlREPENTOGON.dll","zhlIsaacCS.dll"],"abi":"cdecl-int-noargs"},
+    {"id":"crt_srand","source":1,"module":"ucrtbase.dll","symbol":"srand","import_owners":["executable","zhlREPENTOGON.dll","zhlIsaacCS.dll"],"abi":"cdecl-void-u32"},
+    {"id":"repentogon_random_float","source":2,"lua":"RandomFloat","abi":"lua-CFunction"},
+    {"id":"lua_math_random","source":3,"lua":"math.random","abi":"lua-CFunction"},
+    {"id":"lua_math_randomseed","source":4,"lua":"math.randomseed","abi":"lua-CFunction"}
   ],
   "native_dependencies": [
     {"id":"input_backend_lock","rva":"0x5E60E0","expected":"55 8B EC 53 8B D9 56 57"},

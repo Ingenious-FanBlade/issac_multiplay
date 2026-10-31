@@ -19,7 +19,7 @@ fn draw(w:&mut Vec<u32>,index:&mut usize)->Result<u32>{
  }
  let mut y=w[*index];*index+=1;y^=y>>11;y^=(y<<7)&0x9d2c5680;y^=(y<<15)&0xefc60000;y^=y>>18;Ok(y)
 }
-fn actual(rows:&[Value])->Result<Value>{
+pub(super) fn actual(rows:&[Value])->Result<Value>{
  if let Some(v)=rows.iter().find(|r|r["event"]=="actual"){return Ok(v.clone())}
  let parts=rows.iter().filter(|r|r["event"]=="native_rng_chunk").collect::<Vec<_>>();
  let first=parts.first().ok_or("fixture actual absent")?;let total=u(&first["total"])? as usize;

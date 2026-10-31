@@ -460,6 +460,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "game/bridge.h"
 #include "game/world_sources/loot.h"
 #include "game/world_sources/global_random.h"
+#include "game/world_sources/random_sources.h"
 #include <intrin.h>
 // tx-04-08 world 观察入口的专用作用域与 19 项观察编号（C++17 兼容头）。
 #include "world/observe.h"
@@ -486,6 +487,31 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    if ident in ('native_level_random','native_generator_random'):
+        out=['    cs::game::NativeRandomCall state(%s, cs::game::RandomAlgorithm::XorShift32, "%s", 0, %s);'
+             % ('random' if ident=='native_level_random' else 'this','Level.generate_dungeon.argument' if ident=='native_level_random' else 'LevelGenerator.Generate', 'false' if ident=='native_level_random' else 'true')]
+        if ident=='native_level_random':
+            out+=['    cs::game::NativeRandomCall generation(g_Game ? &g_Game->_generationRNG : nullptr, cs::game::RandomAlgorithm::XorShift32, "Level.generate_dungeon.GameGenerationRNG");']
+        out+=['    record.calls.fetch_add(1, std::memory_order_relaxed);','    super(%s);' % call,'    state.Returned(0);']
+        if ident=='native_level_random':out+=['    generation.Returned(0);']
+        return out+['    record.completed.fetch_add(1, std::memory_order_relaxed);']
+    if ident.startswith('native_rng_') or ident.startswith('native_mt_'):
+        algorithm='MTRNG' if ident.startswith('native_mt_') else 'XorShift32'
+        initialize=ident in ('native_rng_ctor','native_rng_seed','native_mt_seed')
+        argument='seed' if initialize else 'max' if ident=='native_rng_int' else '0'
+        member={'native_rng_ctor':'RNG.constructor','native_rng_seed':'RNG.SetSeed','native_rng_next':'RNG.Next',
+                'native_rng_int':'RNG.RandomInt','native_rng_float':'RNG.RandomFloat',
+                'native_mt_seed':'MTRNG.Init','native_mt_next':'MTRNG.Next'}[ident]
+        out=['    cs::game::NativeRandomCall observation(this, cs::game::RandomAlgorithm::%s, "%s", %s, %s, %s);'
+             % (algorithm,member,argument,str(initialize).lower(),'shift' if ident in ('native_rng_ctor','native_rng_seed') else '0'),
+             '    record.calls.fetch_add(1, std::memory_order_relaxed);']
+        if ret=='void':
+            out+=['    super(%s);' % call,'    observation.Returned(0);']
+        elif ret=='float':
+            out+=['    auto result=super();','    std::uint32_t bits=0; std::memcpy(&bits,&result,4);','    observation.Returned(bits,true);']
+        else:
+            out+=['    auto result=super(%s);' % call,'    observation.Returned(result);']
+        return out+['    record.completed.fetch_add(1, std::memory_order_relaxed);']+([] if ret=='void' else ['    return result;'])
     if ident in ('native_global_random','native_global_seed'):
         return ['    cs::game::GlobalRandomCall observation(%s, _AddressOfReturnAddress());' % ('true, std::uint32_t(reinterpret_cast<uintptr_t>(this))' if ident=='native_global_seed' else 'false, 0'),
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
@@ -1273,6 +1299,12 @@ def main():
     problems.finish()
 
     # --- hooks_generated.cpp ---------------------------------------------
+    runtime=document.get('runtime_random_hooks',[])
+    if {r.get('source') for r in runtime} != set(range(5)):
+        raise ValueError('runtime_random_hooks必须明确列出五个来源，不从代码外猜测Hook')
+    (args.out / 'random_runtime.inc').write_text(''.join(
+        '  {%s,%s,%s,%du},\n' % (c_string(r['id']),c_string(r.get('module','')),c_string(r.get('symbol','')),r['source'])
+        for r in runtime),encoding='utf-8')
     (args.out / 'hooks_generated.cpp').write_text(
         emit_hooks(legacy, world, patterns) + '\n', encoding='utf-8')
 
@@ -1382,6 +1414,7 @@ def main():
                                           if cls['schema'])),
         pointer_hooks=document['pointer_hooks'],
         native_dependencies=document.get('native_dependencies', []),
+        runtime_random_hooks=document.get('runtime_random_hooks', []),
         byte_patches=document['byte_patches'])
     (args.out / 'hook-manifest.json').write_text(
         json.dumps(total, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')

@@ -76,3 +76,23 @@ run/random/presentation/mod四域已接入正式采集、最新值消费、manif
 连续验收共3次实机启动：第1次夹具把两份完整状态写入一行DebugString，超过游戏日志单行上限而截断；改为4000字节分块、严格检查分块完整性后继续。第2次在Join初期发送暂停键未生效；改为等待100个已完成模拟tick再暂停。诊断同时发现系统栈回溯无法越过ZHL生成的adapter，改用ZHL 1.1.3已核定的无参非void返回槽布局（+28），仅接纳游戏映像内且E8目标匹配入口的直接调用者，不扫描栈猜地址。第3次全项通过。构建期间的Lua桥函数/状态类型同名错误亦已修复。未用最终PASS抹去这些失败事实。
 
 既有StageAPI/CustomGrid、HUD、Mod图等未受影响的已通过场景没有重复运行。游戏正常退出、环境恢复、保存字段许可及崩溃检查通过；成功轮临时材料由harness自动清理，失败轮诊断材料在本轮完成后清理，不保留artifact。
+
+## 2026-10-31 其余原生随机源补充（同tx，当前验收）
+
+按用户要求在全局Random之后继续补齐对象RNG、池/生成/Player私有已分配流、独立MTRNG、CRT及REPENTOGON/Lua运行库随机源。静态逆向由GPT-6 Luna（max）子智能体完成，未运行游戏/测试/构建，未改IDB。其点位与owner字段已进入代码、中央Hook清单与run-catalog.json；原版RNG.Next/RandomInt/RandomFloat分别RVA 0x3DF5B0/0x3DF4E0/0x3DF540，constructor/SetSeed为0x3DF450/0x3DF4A0；MTRNG Init/Next为0x4DA340/0x4DA390。
+
+Player四类Getter在J273仅读已有vector，不分配/resize/seed；因此修正前轮“为避免lazy而只观察实际Getter”的保守范围，枚举当前已分配Collectible +0x1760、Trinket +0x176C、Pill +0x1778、Card +0x1784，均为三指针vector且元素16字节。Game、31个ItemPool双流、37个Boss池、Seeds、Ambush、PlayerManager及Backdrop均补入当前完整状态。Level.generate_dungeon (RVA0x33AF60) 和LevelGenerator.Generate (0x585230) 为真实生成边界，栈RNG只在原函数存活期间复制，不跨调用缓存解引用。
+
+对象式MTRNG独立于全局Random；CRT按EXE/REPENTOGON/本DLL的实际IAT原子接入，并从已核定的实际rand正文解析PTD状态字段；全局RandomFloat读取其独立MSVC MT完整双缓冲状态；math.random读取实际C closure的xoshiro256** upvalue，包含缓存函数和Lua错误恢复。所有来源仍保持original一次、逻辑停用透传及主线程游戏对象访问。inline/copy/restore变化明确记录为ObservedStateChange，不伪造逐次调用；未知Loot非拥有指针不因可读就继续解引用。
+
+观测实现完成后编写[统一E2E清单](tx-04-14-rng-e2e.md)和专用夹具/归约器。统一入口 scripts/accept-tx-04-14.ps1 -NativeRandom。旧已通过且不受影响的StageAPI/HUD/Mod图/达摩克里斯清单不重复执行。
+
+本轮同tx统一验收最终6/6组PASS：精确核对23,160次实际原生调用的输出及完整前后状态，普通窗口2,315条owner流（含99个池内RNG），62次观测状态变化及27次退休。对象式MT和独立RandomFloat各实际消费1,300次跨twist；CRT实际播种及64次返回、math.random浮点/区间/64位返回、播种多返回值、Lua错误与恢复均已核对。真实seed重建、换层生成、Entity/Grid/Loot、inline/copy/constructor复用、暂停、停录后Formal继续、停用透传、重启、reader交付、环境恢复、保存许可及崩溃检查通过。普通Lua域的原生部分带独立source=1及同窗source_scope，完整words不经过Lua往返解析。
+
+连续验收发生4次真实游戏启动。前2次在首次随机域采集后主线程阻塞，harness按超时关闭并恢复环境；诊断显示原生枚举/状态/编码约31ms完成，没有进入完整普通scope提交。原实现把2,314条原生流完整JSON交给Lua解码后再由R.Finish编码，并在主动枚举时重复触发包装Getter、注册和事件。修复为C++只编码一次并直接合并普通域payload，Lua仅取摘要/计数，同窗完整状态保留且计入同一字节预算；主动枚举使用Calls.Silent，实际玩法Getter仍正常观测。第3次原生部分约1.03MB、合并快照约1.88MB，Lua约116ms完成、随机域Complete，游戏正常推进，backpressure和publication/record loss均为0。故本次阻塞应归于主线程重复数据处理路径，不能归为磁盘录制队列已满。
+
+第3次后续Loot夹具把LootList userdata当Lua数组取长度而失败，改为公开GetEntries()。续测启动前对已有样本归约时还发现游戏json库仅保留约14位数字，而夹具浮点容差过严；按实际传输精度修正，完整原生状态仍逐字精确核对，正式C++返回保留17位精度。该次在启动游戏前结束，不计为游戏启动。第4次复用前次未受影响的算法样本，只重建seed/实体前提后续测所有未完成项，并跨capture读取正式记录，6/6通过。临时Lua和逐窗口C++诊断输出随后移除；首窗口按diagnostics开启的原生阶段诊断保留。正常成功轮由harness自动清理，失败轮材料在本轮完成后清理，不保留artifact。
+
+收尾静态核对还发现初始CRT接入计数只有2，而EXE/官方REP/self三者实际均导入rand和srand。旧boot记录的repentogon=unknown提示加载顺序缺口，不能以此前6组通过外推所有模块已接入。补为官方Lua注册边界重新接入尚缺的CRT模块，并按模块记录匹配；rand与srand只有三个模块均完成（mask=7）才报告installed，缺模块不再伪报Complete。已有槽保持常驻，原始target在改槽前发布，不触碰运行中的CRT正文。新增仅覆盖该改动的`-CrtImports`续测，不重放既有6组。
+
+第5次真实游戏启动验证了ModInit时EXE/self各1槽、REP未加载（mask=5），约5秒后的Lua注册边界REP出现并接入，第0/1来源均成为3槽、mask=7。用官方EntityEffect.CreateLight省略Scale触发8次实际REP C++ rand，逐一核对32位PTD状态、15位返回投影和正式独立事件全部存在，另核对1次srand；reader交付、正常退出、环境恢复、保存许可和崩溃检查通过。此专项1/1 PASS，连同复用的6组全部必要验收完成。构建时追加harness的w名称遮蔽编译错误亦已修正。该模块加载问题与前2次主线程阻塞是不同缺陷，均如实保留。

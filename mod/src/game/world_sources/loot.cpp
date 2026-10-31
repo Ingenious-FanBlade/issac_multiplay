@@ -1,5 +1,6 @@
 #include "game/world_sources/loot.h"
 #include "game/world_sources/lua_entity.h"
+#include "game/world_sources/random_sources.h"
 #include "runtime.h"
 #include <atomic>
 #include <exception>
@@ -26,9 +27,11 @@ void ObserveActualLoot(void *owner,const char *member,bool advance,const LootLis
     for(const auto &entry:values) {
       if(count==4096) break;
       if(count) json<<',';
+      // 非拥有指针只有已限定的外部owner才可关联；GetLootList栈副本已经返回，不因内存可读就继续解引用。
+      const auto reference=entry._rng?RandomSourceReference(entry._rng):"{\"resolution\":\"Null\"}";
       json<<"{\"type\":"<<entry._type<<",\"variant\":"<<entry._variant<<",\"subtype\":"<<entry._subType
-          <<",\"seed\":"<<entry._seed<<",\"rng_reference\":{\"resolution\":\""<<(entry._rng?"UnsupportedTarget":"Null")
-          <<"\",\"owner_field\":\"loot-entry\",\"responsible_tx\":\"tx-04-14\"}}";
+          <<",\"seed\":"<<entry._seed<<",\"rng_reference\":"<<reference
+          <<",\"rng_lifetime\":\"non-owning;unknown-copy-not-dereferenced-after-return\"}";
       ++count;
     }
     const bool complete=values.size()<=4096&&subject.local;

@@ -22,6 +22,7 @@ fn graph(v:&Value)->Value {
 fn adapter(v:&Value,name:&str)->Value {v["adapters"].as_array().and_then(|a|a.iter().find(|s|s["namespace"]==name)).map(|a|graph(&a["state"]["root"])).unwrap_or(Value::Null)}
 impl Run {
  pub(super) fn prepare_resume_tx14(&mut self)->Result<()> {
+  if self.scenario["native_random"]==true{return self.prepare_resume_tx14_native_random()}
   let Some(paths)=self.scenario["resume_from"].as_array() else{return Ok(())};let mut sources=Vec::new();let mut done=BTreeSet::new();
   for p in paths {let base=std::path::PathBuf::from(p.as_str().ok_or("resume path")?);let report:Value=serde_json::from_str(&crate::read(&base.join("result.json"))?).map_err(|e|e.to_string())?;
    if report["tx"]!="tx-04-14"||report["cleanup_errors"].as_array().is_none_or(|a|a.iter().any(|x|!x.is_null())){return Err("resume requires restored environment".into());}
@@ -59,6 +60,7 @@ impl Run {
   if number(&s,"loss_sequence")!=0||number(&s,"record_loss_sequence")!=0{return Err("tx14 publication loss".into());}Ok(s)
  }
  pub(super) fn scenes_tx14(&mut self,g:&win32::Game)->Result<()> {
+  if self.scenario["native_random"]==true{return self.scenes_tx14_native_random(g)}
   if self.scenario["global_random"]==true{return self.scenes_tx14_global_random(g)}
   let w=g.wait_window(90)?;let mut c=Control::connect(self.scenario["control_port"].as_u64().ok_or("port")? as u16,g,90,&self.out.join("control.jsonl"))?;c.focus_window=Some(w);
   self.prepare_new_run_tx05(g,w,&mut c)?;self.sequence(w,"start_run")?;c.wait("run_active","1",30)?;
@@ -186,11 +188,11 @@ impl Run {
 // 只归约已执行并恢复环境的同tx正式记录，不启动游戏、不重发场景动作。
 pub(crate) fn reduce_existing(base:&std::path::Path)->Result<()> {
  let report:Value=serde_json::from_str(&crate::read(&base.join("result.json"))?).map_err(|e|e.to_string())?;
- if report["tx"]!="tx-04-14"||report["final_status"]["session_state"]!="Idle"||(report["global_random"]!=true&&report["cases"]["run_pause_and_optional_recording"]["pass"]!=true)||report["cleanup_errors"].as_array().is_none_or(|a|a.iter().any(|v|!v.is_null())){return Err("reduction requires completed scenes and restored environment".into());}
+ if report["tx"]!="tx-04-14"||report["final_status"]["session_state"]!="Idle"||(report["global_random"]!=true&&report["native_random"]!=true&&report["cases"]["run_pause_and_optional_recording"]["pass"]!=true)||report["cleanup_errors"].as_array().is_none_or(|a|a.iter().any(|v|!v.is_null())){return Err("reduction requires completed scenes and restored environment".into());}
  let repo=std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf();
  let game=std::path::PathBuf::from(report["environment"]["game"].as_str().ok_or("game root")?);let save=std::path::PathBuf::from(report["environment"]["save_roots"]["documents"].as_str().ok_or("save root")?);
  let mut run=Run{repo,game,out:base.to_path_buf(),save,scenario:Value::Null,report,steps:fs::OpenOptions::new().append(true).open(base.join("steps.jsonl")).map_err(|e|e.to_string())?,deployed:false,fixture_owned:false,saves:None,deployment:vec![]};
- if run.report["global_random"]==true{run.reduce_tx14_global_random()?}else{run.reduce_tx14()?}
+ if run.report["native_random"]==true{run.reduce_tx14_native_random()?}else if run.report["global_random"]==true{run.reduce_tx14_global_random()?}else{run.reduce_tx14()?}
  let mut changes=crate::saves::changes(&base.join("save_before"),&base.join("save_after"))?;run.save_fields_tx10(&mut changes)?;
  if changes.as_array().ok_or("save changes")?.iter().any(|v|v["allowed"]!=true){return Err("save changes outside authorized scope".into());}
  let crashes=run.crash_files()?;if crashes.as_object().is_some_and(|o|o.iter().any(|(name,state)|name.to_lowercase().ends_with(".dmp")&&run.report["crash_before"][name]!=*state)){return Err("new native crash dump".into());}

@@ -78,7 +78,15 @@ void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects
       c.lua_objects=objects; c.lua_object_count=h.object_count; c.lua_members=members; c.lua_members_count=h.membership_count; c.lua_scope=e.context.scope; c.lua_run=h.run; c.lua_room=h.room; c.location_window=true;
       for(const auto &d:c.observation.Plan().domains) if(d.domain==domain) e.result.budget=d.budget;
       const auto budget=e.result.budget;
-      auto result=CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,std::uint32_t(budget.bytes)-(index>=2?64u:0u),index);
+      // 原生随机流只编码一次，Lua仅取计数摘要；完整状态仍属于同一采集scope和字节预算。
+      const auto native_random=index==8?CaptureRandomSources():std::string{};
+      const auto reserved=(index>=2?64u:0u)+(native_random.empty()?0u:unsigned(native_random.size()+20));
+      auto result=CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,reserved<budget.bytes?std::uint32_t(budget.bytes)-reserved:0,index);
+      if(index==8&&result.available&&!result.payload.empty()&&result.payload.back()=='}') {
+        if(reserved<budget.bytes&&result.payload.size()+native_random.size()+20<=budget.bytes)
+          result.payload.insert(result.payload.size()-1,",\"native_sources\":"+native_random);
+        else { result.complete=false;result.reason="native_random_combined_payload_budget"; }
+      }
       if(index==0) { ++c.lua_attempts; if(result.available&&result.complete) ++c.lua_complete; else ++c.lua_partial; }
       c.lua_objects=nullptr; c.lua_object_count=0; c.lua_members=nullptr; c.lua_members_count=0; c.location_window=false;
       LocationContext(c,e.context,h.run,h.room);
@@ -211,10 +219,11 @@ void WorldCapture::SetConsumers(bool formal,bool recorder) noexcept {
   }
   if(recorder!=recorder_consumer) {
     const auto result=recorder?observation.AttachConsumer({2,this,Record,Plan()}):observation.DetachConsumer(2);
-    if(result.accepted) { recorder_consumer=recorder; if(recorder) GlobalRandomCheckpoint(); }
+    if(result.accepted) { recorder_consumer=recorder; if(recorder) {GlobalRandomCheckpoint();RandomSourcesCheckpoint();} }
   }
   ArmObservationValueSources(observation.Active()&&(formal_consumer||recorder_consumer));
   ArmGlobalRandom(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));
+  ArmRandomSources(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));
 }
 bool ObservationLuaNeeded(const char *phase,bool grid) noexcept {
   auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->observation.Active()) return false;

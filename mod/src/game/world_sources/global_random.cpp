@@ -19,7 +19,7 @@ GlobalRandomState Read() noexcept {
     m.copy(m.image_base+kIndex,&s.index,sizeof(s.index))&&m.copy(m.image_base+kCrt,&s.crt,1);
   return s;
 }
-bool Valid(const GlobalRandomState &s) noexcept { return s.readable&&!s.crt&&s.index<=625; }
+bool Valid(const GlobalRandomState &s) noexcept { return s.readable&&(s.crt?CaptureRuntimeRandomWords(0).readable:s.index<=625); }
 // 独立ActualCall scope不借用上个Authority tick；不触及Lua或原版Online状态。
 bool Publish(WorldCapture &c,const char *schema,std::string payload,bool complete,std::uint32_t nodes) {
   obs::ObservationEnvelope e;e.domain=obs::DomainId::Random;e.schema=schema;e.kind=obs::RecordKind::State;
@@ -39,7 +39,7 @@ void Words(std::ostringstream &o,const GlobalRandomState &s) {
 }
 void State(std::ostringstream &o,const GlobalRandomState &s,std::uint64_t block) {
   o<<"{\"block\":\""<<block<<"\",\"index\":"<<s.index<<",\"mode\":\""<<(s.crt?"CRT-rand":"MT19937")
-    <<"\",\"status\":\""<<(!s.readable?"ReadFailed":s.crt?"UnsupportedCRTState":s.index==625?"Uninitialized":s.index<=624?"Value":"InvalidIndex")<<"\"}";
+    <<"\",\"status\":\""<<(!s.readable?"ReadFailed":s.crt?"CRTStateInSeparateNativeSource":s.index==625?"Uninitialized":s.index<=624?"Value":"InvalidIndex")<<"\"}";
 }
 // 624字只在实际内容变化时发布；每次取值仍记录真实前后索引、结果和直接原生调用者RVA。
 std::uint64_t Block(WorldCapture &c,const GlobalRandomState &s,bool checkpoint=false) {
@@ -67,6 +67,7 @@ GlobalRandomCall::GlobalRandomCall(bool seed,std::uint32_t value,void *return_sl
   auto c=CurrentWorldRecording();if(!c||!c->observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall))return;
   try {
     fault_=foreign_faults.load();before_=Read();block_=Block(*c,before_);
+    if(before_.crt)crt_before_=EncodeRandomWords(CaptureRuntimeRandomWords(0),RandomAlgorithm::CrtRand);
     epoch_=c->epoch;session_=c->session_key;sequence_=++sequence;parent_=parent_call;parent_call=sequence_;active_=true;
     // ZHL 1.1.3无参非void adapter：保存EBP及5个寄存器后call wrapper。
     // wrapper返回槽+28才是原生调用者；OS栈回溯在无展开元数据的生成adapter处终止。
@@ -97,7 +98,9 @@ void GlobalRandomCall::Returned(std::uint32_t result) noexcept {
     o<<",\"after\":";State(o,after,block);o<<",\"result\":"<<result<<",\"seed_argument\":";
     if(seed_)o<<seed_value_;else o<<"null";
     o<<",\"game_callers_rva\":[";for(unsigned i=0;i<caller_count_;++i){if(i)o<<',';o<<callers_[i];}
-    o<<"],\"caller_basis\":\""<<(caller_count_?"ZHL-noarg-return-slot;direct-call-target-checked":"ExternalOrAdapter;not-inferred")<<"\",\"foreign_faults\":\""<<foreign_faults.load()<<"\"}";
+    o<<"],\"caller_basis\":\""<<(caller_count_?"ZHL-noarg-return-slot;direct-call-target-checked":"ExternalOrAdapter;not-inferred")<<"\",\"foreign_faults\":\""<<foreign_faults.load()<<"\"";
+    if(before_.crt||after.crt)o<<",\"crt_before\":"<<(crt_before_.empty()?"null":crt_before_)<<",\"crt_after\":"<<EncodeRandomWords(CaptureRuntimeRandomWords(0),RandomAlgorithm::CrtRand);
+    o<<'}';
     if(!Publish(*c,"isaac.cs.random.native-global-call",o.str(),complete,32)){++m.failures;c->observation.Invalidate("native_global_call_delivery");}
   }catch(...){++c->global_random.failures;c->observation.Invalidate("native_global_return_budget");}
 }
@@ -111,7 +114,9 @@ std::string ObservationGlobalRandomState(bool test_disabled) noexcept {
   try {
     const auto s=Read();const auto block=Block(*c,s);const auto &m=c->global_random;
     std::ostringstream o;o<<"{\"enabled\":true,\"algorithm\":\"MT19937\",\"lifetime\":\"process;first-observed-not-birth\",\"stream\":\""<<m.subject<<"\",\"state\":";
-    State(o,s,block);o<<",\"words\":";Words(o,s);o<<",\"calls\":\""<<m.calls<<"\",\"seeds\":\""<<m.seeds<<"\",\"failures\":\""<<m.failures
+    State(o,s,block);o<<",\"words\":";Words(o,s);
+    if(s.crt)o<<",\"crt_state\":"<<EncodeRandomWords(CaptureRuntimeRandomWords(0),RandomAlgorithm::CrtRand);
+    o<<",\"calls\":\""<<m.calls<<"\",\"seeds\":\""<<m.seeds<<"\",\"failures\":\""<<m.failures
       <<"\",\"foreign_faults\":\""<<foreign_faults.load()<<"\",\"complete\":"<<(Valid(s)&&!m.failures&&!foreign_faults.load()?"true":"false")<<'}';return o.str();
   }catch(...){c->observation.Invalidate("native_global_snapshot_budget");return "{\"status\":\"BudgetFailure\",\"complete\":false}";}
 }

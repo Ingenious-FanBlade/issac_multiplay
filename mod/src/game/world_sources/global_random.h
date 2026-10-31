@@ -26,6 +26,7 @@ public:
   void Returned(std::uint32_t result) noexcept;
 private:
   GlobalRandomState before_{};
+  std::string crt_before_;
   std::uint64_t block_=0,sequence_=0,parent_=0,epoch_=0,session_=0,fault_=0;
   std::array<std::uint32_t,24> callers_{};
   unsigned caller_count_=0;

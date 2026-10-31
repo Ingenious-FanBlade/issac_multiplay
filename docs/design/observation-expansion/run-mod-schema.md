@@ -25,11 +25,11 @@ Entity/Grid复用已有规范subject/use；Player不是另一套身体ID。rando
 
 ## 随机与时钟
 
-流记录包含subject、owner、purpose、parameters、lifetime、first_observation、state和freshness。seed和shift是状态，不是流ID。固定Entity Drop、Grid及Level RNG只在当前资格来源重新取得时读取；原生RNG指针不会跨生命周期缓存解引用。物品RNG不为遍历ID空间而懒创建，只记录真实Getter或具名Mod reader交付的对象。历史状态保留实际source_scope/应用帧，不换成当前采样时刻。
+流记录包含subject、owner、purpose、parameters、lifetime、first_observation、state和freshness。seed和shift是状态，不是流ID。固定Entity Drop、Grid及Level RNG只在当前资格来源重新取得时读取；原生RNG指针不会跨生命周期缓存解引用。J273四类Player Getter已静态核定为只读现存vector；现直接枚举已分配Collectible/Trinket/Pill/Card容器，不调用会创建对象的方法，不resize，不补种。历史状态保留实际source_scope/应用帧，不换成当前采样时刻。
 
-真实Lua调用包含call/parent_call、member、完整参数数目和nil洞、成功/异常、多返回值、可获得的before/after。wrapper原调用一次；观测内部读取静默，不制造消费。池抽取方法不进入轮询器。全局Random由原生公共入口额外覆盖，其他RNG类原生内部消费和此前缓存函数仍列来源缺口。
+真实Lua调用包含call/parent_call、member、完整参数数目和nil洞、成功/异常、多返回值、可获得的before/after。wrapper原调用一次；观测内部读取静默，不制造消费。池抽取方法不进入轮询器。全局Random由原生公共入口额外覆盖，对象RNG原生入口另有常驻Hook，缓存Lua函数同样到达原生入口；内联/直接复制以ObservedStateChange表达，不伪造逐次消费。
 
-原版全局Random使用独立RandomStream主体，寿命为process；观测epoch内分配主体，不以种子、指针或原版联机字段命名。普通字段native_global_random包含624字完整MT状态、index、mode、状态块版本、实际calls/seeds和故障计数。index=625表示原生未初始化，不主动播种；index=624表示下次取值需要twist。mode切到CRT时明确UnsupportedCRTState/Partial，不声称MT能重现CRT输出。
+原版全局Random使用独立RandomStream主体，寿命为process；观测epoch内分配主体，不以种子、指针或原版联机字段命名。普通字段native_global_random包含624字完整MT状态、index、mode、状态块版本、实际calls/seeds和故障计数。index=625表示原生未初始化，不主动播种；index=624表示下次取值需要twist。mode切到CRT时引用独立捕获的主线程CRT状态，不声称MT能重现CRT输出。
 
 独立schema isaac.cs.random.native-global-block保存stream/block/words；624字仅在真实内容变化或新Recorder接入时发布。native-global-call保存member（::Random或::SeedGlobalRandom）、stream、call/parent_call、真实before/after块号与index/mode/status、原始返回值、seed_argument及game_callers_rva。两个schema均source=1、phase=ActualCall、authority_tick=null；直接调用者只输出游戏模块RVA，来源为ZHL 1.1.3无参adapter返回槽且E8目标已检查。只读快照不额外取随机值，原始入口恰好调用一次。新录制从完整状态块开始，不依赖旧文件；Formal仍可在停录后消费纯值镜像。主线程读取，错误线程仅原样透传并增加故障计数，不读取游戏状态。未启用期间及外部恢复来源不补造调用历史。
 
@@ -54,3 +54,19 @@ Entity/Grid复用已有规范subject/use；Player不是另一套身体ID。rando
 StageAPI适配版本为metadata 2.43、schema `isaac.cs.mod.stageapi.v1`。读取已有LevelRooms、CustomGridEntities、CustomGrids和实际框架回调；不调用会建表的GetRoomCustomGrids。逻辑RoomType/TypeOverride保持原类型，布局/配置/Data/PersistentData归Mod图。当前逻辑房间关联实际原生Descriptor；离房对象的LevelIndex须与实际描述位置/维度一致，否则Unresolved。CustomGrid的原生载体引用既有Grid主体；GridEntity=nil明确Null且仍保留逻辑实例成员。
 
 当前绑定的HUDMessage Getter替代旧Wiki两个Sprite别名，另复制主/副文本及显示状态。GenericPrompt通过`IsaacCSObservationNative.PromptState`直接复制活根公开值及Sprite姿态，避开官方Getter对未构造C++ userdata的ANM2赋值复制。该桥接不调用Initialize/Update/Render。
+
+## 2026-10-31 其余原生随机源
+
+普通random.native_sources记录完整原始words、主体、owner/purpose/lifetime、revision、calls及观测到的状态变化。对象xorshift为4×u32；原版对象式MTRNG为624字及index；REPENTOGON全局RandomFloat为MSVC双缓冲MT完整1250字（index、1248字、mask）；CRT为主线程PTD中的完整32位state；Lua math随机为4×u64，以8个小端u32无损记录。浮点返回保存f32位或17位有效数字，64位整数用十进制字符串。它们是不同随机流，不能合并为一个global seed。
+
+完整native_sources由C++在同一普通窗口复制、编码并直接并入payload；Lua NativeRandomSources()仅返回已复制摘要（complete、objects/nodes/bytes、owner_errors/failures、source_scope），不再次解码/编码完整流。窗口外摘要读取不额外采集，不推进随机状态。native_sources内source=1及source_scope说明原生来源，外围公开Lua域仍为source=2；合并结果计入统一字节预算，超出时显式Partial。
+
+RNG constructor/SetSeed/Next/RandomInt/RandomFloat、MTRNG Init/Next及真实楼层生成边界由hooks.json统一登记；CRT按声明模块的实际IAT原子改槽，Lua C函数从实际注册值解析并由同一协调owner常驻Hook，安装后不随session卸载。Lua math的实际upvalue按注册表持有，包含缓存C函数调用；Lua longjmp不跨越C++析构对象或服务pending scope，未正常返回的调用下一边界明确记NonLocalLuaExit，原错误不吞掉、不重复调用。
+
+CRT在ModInit及实际Lua注册边界处理模块晚加载；EXE、官方REPENTOGON、自身DLL三个模块的rand/srand导入全部匹配后才报告installed。诊断import_module_mask的位0/1/2分别为EXE/REP/self，完整值7；缺失模块不能以“至少有一个槽接入”冒充完整覆盖。
+
+Game generation、Seeds内部、31池双RNG及主RNG、37个Boss池、PlayerManager、Ambush、当前Backdrop，以及合格Entity/Grid和四类Player现存vector都在普通窗口复制。vector检查begin/end/capacity及16字节步长，不缓存已释放元素；owner代次改变/成员缺失退休旧主体。模块静态RNG只在真实原生入口见证其类型后跟踪；未知栈/堆RNG只复制当前实际调用的值，不跨调用轮询裸地址。LevelGenerator及生成参数RNG在生成函数返回前复制，随后不继续解引用。
+
+native-call保存真实参数、原始返回与前后状态；native-state-change保存两个实际读边界的前后状态，明确可能来自inline、copy或restore，不补造次数、参数或结果。native-retire、native-checkpoint分别表达退休与新录制起点。普通读取失败、容器非法、预算失败或动态来源缺失会显式使native_sources不完整，不能漏掉来源后保留Complete。
+
+Loot返回条目只链接已限定的随机owner；未知非拥有指针可能指向已返回的栈副本，保持Unresolved，不因地址仍可读就解引用。激活前历史、未登记的私有自定义算法以及逐次inline调用细节仍不补造；这与当前完整状态已复制是两个维度。

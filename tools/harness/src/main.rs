@@ -18,6 +18,7 @@ mod tx12;
 mod tx13;
 mod tx14;
 mod tx14_global_random;
+mod tx14_native_random;
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -353,7 +354,7 @@ impl Run {
             ("tests/e2e-mods/isaac-cs-test", "mods/isaac-cs-test"),
         ];
         if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" { targets.push(("mod/observation/isaac-cs-observation","mods/isaac-cs-observation")); }
-        if self.report["tx"]=="tx-04-14" && self.scenario["global_random"]!=true { targets.push(("out/tx14-source/BOIStageAPI15-master","mods/stageapi15")); }
+        if self.report["tx"]=="tx-04-14" && self.scenario["global_random"]!=true && self.scenario["native_random"]!=true { targets.push(("out/tx14-source/BOIStageAPI15-master","mods/stageapi15")); }
         let existing = self.game.join("Repentogon/isaac-cs/config.json");
         if existing.exists() {
             fs::copy(&existing, backup_root.join("config.json"))
@@ -391,7 +392,7 @@ impl Run {
             Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13" | "tx-04-14")
         ) {
             let config = if self.report["tx"] == "tx-04-14" {
-                format!("return {{tx=\"tx-04-14\",token=\"{}\",global_random={},pending={}}}\n",self.report["token"].as_str().ok_or("token")?,self.scenario["global_random"]==true,self.scenario["tx14_pending"].as_array().map(|a|format!("{{{}}}",a.iter().map(|s|format!("{:?}",s.as_str().unwrap())).collect::<Vec<_>>().join(","))).unwrap_or("nil".into()))
+                format!("return {{tx=\"tx-04-14\",token=\"{}\",global_random={},native_random={},pending={}}}\n",self.report["token"].as_str().ok_or("token")?,self.scenario["global_random"]==true,self.scenario["native_random"]==true,self.scenario["tx14_pending"].as_array().map(|a|format!("{{{}}}",a.iter().map(|s|format!("{:?}",s.as_str().unwrap())).collect::<Vec<_>>().join(","))).unwrap_or("nil".into()))
             } else if self.report["tx"] == "tx-04-13" {
                 let pending=self.scenario["tx13_pending"].as_array().map(|a|format!("{{{}}}",a.iter().map(|n|format!("[{:?}]=true",n.as_str().unwrap())).collect::<Vec<_>>().join(","))).unwrap_or("nil".into());
                 format!("return {{tx=\"tx-04-13\",token=\"{}\",resume={},resume_start=\"{}\",pending={}}}\n",self.report["token"].as_str().ok_or("token")?,self.report["continuity_resume_sources"].is_array(),self.scenario["tx13_pending"][0].as_str().unwrap_or(""),pending)
