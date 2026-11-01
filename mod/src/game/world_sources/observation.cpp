@@ -340,7 +340,9 @@ EntitySupplementValue EntitySupplement(void *object) noexcept {
   auto *id=c->identities.Find(world::ObjectDomain::Entity,address);
   if(!id||id->Retired()||id->readiness<2) { out.status="NotCaptured"; return out; }
   if(!reader.copy(address+layout.entity_text_counter_offset,&out.counter,4)||
-     !reader.copy(address+layout.entity_text_duration_offset,&out.duration,4)) { out.status="ReadFailed"; return out; }
+     !reader.copy(address+layout.entity_text_duration_offset,&out.duration,4)||
+     !reader.copy(address+layout.entity_text_color_offset,out.text_color,sizeof(out.text_color))||
+     !reader.copy(address+layout.entity_text_color_offset+16,&out.color_word,4)) { out.status="ReadFailed"; return out; }
   for(std::uint32_t i=0;i<layout.entity_text_capacity&&i<sizeof(out.text);++i) {
     if(!reader.copy(address+layout.entity_text_buffer_offset+i,&out.text[i],1)) { out.status="ReadFailed"; return out; }
     if(!out.text[i]) { out.text_size=i; out.status="Value"; return out; }

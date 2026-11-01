@@ -269,6 +269,19 @@ collect=function(object,class,ctx,depth)
       end
     end
   end
+  if class=="Sprite" then
+    -- 主/overlay的连续时钟及逐层帧选择属于对象姿态；不触发Update或动画事件。
+    local ok,pose=pcall(native().SpritePose,object)
+    if ok then
+      local nodes=10
+      for _,name in ipairs({"main","overlay"}) do
+        pose[name].layers=M.Array(pose[name].layers);pose[name].nulls=M.Array(pose[name].nulls)
+        nodes=nodes+2+5*(#pose[name].layers+#pose[name].nulls)
+      end
+      if ctx.nodes+nodes>LIMIT.nodes then fail(ctx,"sprite_pose_budget");out.native_pose=missing("Truncated","sprite_pose_budget")
+      else ctx.nodes=ctx.nodes+nodes;out.native_pose=pose end
+    else fail(ctx,"sprite_pose_capture");out.native_pose=missing("ReadFailed","sprite_pose_capture") end
+  end
   return out
 end
 

@@ -2,6 +2,9 @@
   "evidence": "STATIC_CONFIRMED",
   "base": "0x400000",
   "functions": [
+    {"rva":"0x2AC3F0","pattern":"56 8B F1 8B 86 5C 03 00 00 85 C0 75 27","type":"unsigned int __thiscall()","entry":["tx-04-19 Entity vtable+34原生排序键；部分SortingLayer只读Index低10位，数值callee6A37D0，无事件/生成/写列表；私有窗口临时恢复源10位渲染片段，返回即恢复完整本端Index，排序/分区仍由4150C0执行。Laser/Knife使用各自override且不读Index。"]},
+    {"rva":"0x508140","pattern":"55 8B EC 53 56 8B 75 08 57 85 F6 0F 88 ?? ?? ?? ?? 8B 19 B8","type":"void __thiscall(int)","entry":["tx-04-19 Weapon Urn原生Reset/ClearReferences 9E0D50无条件停止全局样本22/23；私有被动创建/退休窗口不得停止访客声音，窗口外原样透传。"]},
+    {"rva":"0x2B7730","pattern":"55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 81 EC B0 00 00 00 A1","type":"void __thiscall()","entry":["tx-04-19 J273 NPC vtable B187D0+64 ->6B7730 LoadEntityConfig；基Init6A4AD6虚调用，包含冠军随机/MakeChampion；私有应用改用基础6A4F30，公开后态另行恢复。ResetColor为+60 ->6BD290，勿混淆。"]},
     {"rva":"0x686BC9","pattern":"E9 ?? ?? ?? ??","type":"void __cdecl(void*)","entry":["tx-04-18 J273 VA A86BC9 j_j_free: Camera deleting destructor 7E03F0 frees six ring buffer pointers at +50,+40,+30,+20,+10,+0 then root via A8717B; SDK destructor declaration omits native ret4 argument and is unsuitable for DLL-owned root"]},
     {"rva":"0x42D230","pattern":"55 8B EC 83 E4 F8 83 EC 74 A1 ?? ?? ?? ?? 33 C4","type":"void __thiscall()","entry":["tx-04-18 J273 GridEntity_Statue vtable+28 InitSubclass: creates and publishes display Entity at +154, then writes path; Client restores Grid values without this gameplay/entity owner"]},
     {"rva":"0x515890","pattern":"53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04","type":"void __thiscall(int,int,unsigned int,int,Vector const&,bool,bool)","entry":["tx-04-18 J273 VA915890: ECX backdrop, seven stack words ret1C; creates backdrop LIGHT, smoke and wall decoration Entities; no direct room cache drawing"]},

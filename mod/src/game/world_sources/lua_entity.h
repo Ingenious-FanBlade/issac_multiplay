@@ -22,6 +22,9 @@ struct EntitySupplementValue final {
   const char *status="NotApplicable";
   std::uint32_t counter=0,duration=0,text_size=0;
   char text[256]{};
+  // Text原生KColor的五个具名SDK值；color_word保留_unk的原整数，不猜测其含义。
+  float text_color[4]{};
+  std::int32_t color_word=0;
 };
 EntitySupplementValue EntitySupplement(void *object) noexcept;
 std::uint32_t ObservationEntities(void *owner,void (*visit)(void *,void *,std::uint32_t) noexcept) noexcept;

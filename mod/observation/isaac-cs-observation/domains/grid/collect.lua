@@ -22,6 +22,12 @@ local function snapshot(g,c)
     end
   end
   if not out.class then out.class="UnknownGrid"; read.Fail(c,"unknown_grid_type:"..tostring(out.type)) end
+  if out.class=="GridEntityStatue" then
+    local ok,display=pcall(native().GridDisplayEntity,g)
+    if ok and display then native().Subject(display) end
+    out.native_relations={version=1,display_entity=ok and read.Value(display,"Entity",c,1) or read.Missing("ReadFailed","statue_display_entity")}
+    if not ok then read.Fail(c,"statue_display_entity") end
+  end
   return out
 end
 function M.Capture(limits)

@@ -16482,8 +16482,8 @@
       "signature": "Entity GetPlayerTarget ( )",
       "returns": "Entity",
       "parameters": " ",
-      "category": "query",
-      "reason": "",
+      "category": "actual_call",
+      "reason": "gameplay_target_selection_and_optional_cache:J273-6BA580",
       "sources": [
         {
           "wiki": "vanilla",
@@ -16498,7 +16498,7 @@
       "phase": "OrdinaryPost / Lifecycle / explicit query scope",
       "absence": "Value / Null / Empty / NotApplicable / Unavailable / NotCaptured / ReadFailed / Nonfinite / Truncated",
       "units": "API原单位；持续时间为游戏更新帧，角度／坐标依原成员语义",
-      "implementation": "public_lua_copy"
+      "implementation": "actual_event_only"
     },
     {
       "class": "EntityNPC",
@@ -38310,6 +38310,78 @@
     },
     {
       "class": "NativeText",
+      "member": "alpha",
+      "signature": "float alpha",
+      "returns": "float",
+      "parameters": null,
+      "category": "native_field",
+      "reason": "J273 completed creation owner; see native supplements",
+      "sources": [
+        {
+          "wiki": "native-J273",
+          "path": "F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md",
+          "line": 1
+        }
+      ],
+      "id": "NativeText.alpha",
+      "schema": "isaac.cs.entity",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / Lifecycle / explicit query scope",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / NotCaptured / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；持续时间为游戏更新帧，角度／坐标依原成员语义",
+      "implementation": "native_copy"
+    },
+    {
+      "class": "NativeText",
+      "member": "blue",
+      "signature": "float blue",
+      "returns": "float",
+      "parameters": null,
+      "category": "native_field",
+      "reason": "J273 completed creation owner; see native supplements",
+      "sources": [
+        {
+          "wiki": "native-J273",
+          "path": "F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md",
+          "line": 1
+        }
+      ],
+      "id": "NativeText.blue",
+      "schema": "isaac.cs.entity",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / Lifecycle / explicit query scope",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / NotCaptured / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；持续时间为游戏更新帧，角度／坐标依原成员语义",
+      "implementation": "native_copy"
+    },
+    {
+      "class": "NativeText",
+      "member": "color_word",
+      "signature": "int color_word",
+      "returns": "int",
+      "parameters": null,
+      "category": "native_field",
+      "reason": "J273 completed creation owner; see native supplements",
+      "sources": [
+        {
+          "wiki": "native-J273",
+          "path": "F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md",
+          "line": 1
+        }
+      ],
+      "id": "NativeText.color_word",
+      "schema": "isaac.cs.entity",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / Lifecycle / explicit query scope",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / NotCaptured / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；持续时间为游戏更新帧，角度／坐标依原成员语义",
+      "implementation": "native_copy"
+    },
+    {
+      "class": "NativeText",
       "member": "counter",
       "signature": "int counter",
       "returns": "int",
@@ -38348,6 +38420,54 @@
         }
       ],
       "id": "NativeText.duration",
+      "schema": "isaac.cs.entity",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / Lifecycle / explicit query scope",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / NotCaptured / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；持续时间为游戏更新帧，角度／坐标依原成员语义",
+      "implementation": "native_copy"
+    },
+    {
+      "class": "NativeText",
+      "member": "green",
+      "signature": "float green",
+      "returns": "float",
+      "parameters": null,
+      "category": "native_field",
+      "reason": "J273 completed creation owner; see native supplements",
+      "sources": [
+        {
+          "wiki": "native-J273",
+          "path": "F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md",
+          "line": 1
+        }
+      ],
+      "id": "NativeText.green",
+      "schema": "isaac.cs.entity",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / Lifecycle / explicit query scope",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / NotCaptured / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；持续时间为游戏更新帧，角度／坐标依原成员语义",
+      "implementation": "native_copy"
+    },
+    {
+      "class": "NativeText",
+      "member": "red",
+      "signature": "float red",
+      "returns": "float",
+      "parameters": null,
+      "category": "native_field",
+      "reason": "J273 completed creation owner; see native supplements",
+      "sources": [
+        {
+          "wiki": "native-J273",
+          "path": "F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md",
+          "line": 1
+        }
+      ],
+      "id": "NativeText.red",
       "schema": "isaac.cs.entity",
       "schema_version": 2,
       "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",

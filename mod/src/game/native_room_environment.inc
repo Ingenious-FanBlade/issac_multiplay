@@ -34,7 +34,7 @@ void FxImage(KAGE_SmartPointer_ImageBase &p,const V &v){const auto name=Str(v);i
  const auto path=Path(v);KAGE_SmartPointer_ImageBase image;
  ResourceFile(v);
  Manager::LoadImage(&image,path.c_str(),__ptr_g_VertexAttributeDescriptor_Position,false);
- if(!image.image)Fail("native_fx_resource");p=std::move(image);
+ if(!image.image)Fail("native_fx_resource");ResourceImage(image.image);p=std::move(image);
 }
 // 字段表的偏移只在SDK适配内部使用；报文包含有类型的具名数值，不携带内存块／指针。
 const std::pair<const char *,unsigned> fx_floats[]={{"velocity_x_min",28},{"velocity_x_max",32},{"velocity_y_min",36},{"velocity_y_max",40},{"depth_scale",60}};

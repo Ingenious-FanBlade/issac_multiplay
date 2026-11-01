@@ -77,6 +77,7 @@ CONSTANT_ORDER = [
     ('entity_text_counter_offset', 'u32'),
     ('entity_text_duration_offset', 'u32'),
     ('entity_text_buffer_offset', 'u32'),
+    ('entity_text_color_offset', 'u32'),
     ('entity_text_capacity', 'u32'),
 
     ('game_root_rva', 'u32'),
@@ -484,6 +485,9 @@ struct CsMtSeed {};
 struct CsBackdrop {};
 struct CsGridStatue {};
 struct CsGridBase {};
+struct CsNpcConfig {};
+struct CsReplicaSound {};
+struct CsEntitySort {};
 struct CsEntityList {};
 struct CsLifecycle {};
 struct CsDevice {};
@@ -504,6 +508,28 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    if ident=='native_entity_sort_key':
+        return ['    cs::CallScope scope(record);',
+                '    unsigned fragment=0;if (!cs::game::NativeEntityRenderOrderFragment(this,&fragment)) return super();',
+                '    // 仅在已核定无回调/无池访问的原生数值函数内借用低10位；完整本端Index始终在返回前恢复。',
+                '    auto &index=*reinterpret_cast<unsigned *>(reinterpret_cast<char *>(this)+0x20);const auto previous=index;',
+                '    index=(previous&~1023u)|fragment;',
+                '    try { const auto result=super();index=previous;return result; } catch (...) { index=previous;throw; }']
+    if ident=='native_entity_sound_stop':
+        return ['    cs::CallScope scope(record);',
+                '    // Urn Weapon的ClearReferences会停止全局声音；Replica只能退休本方资源，不能改访客音频。',
+                '    if (cs::game::NativeRoomGridContextActive()) return;',
+                '    super(sample);']
+    if ident=='native_npc_color':
+        return ['    cs::CallScope scope(record);',
+                '    // NPC基Init会虚调用混合ResetColor；私有场景直接恢复权威冠军/颜色/资源后态。',
+                '    if (cs::game::NativeRoomGridContextActive()) return;',
+                '    super();']
+    if ident=='native_npc_config':
+        return ['    cs::CallScope scope(record);',
+                '    // NPC.LoadEntityConfig会选择冠军；私有创建仅复用已核定无玩法随机的Entity基础配置加载。',
+                '    if (cs::game::NativeRoomGridContextActive()) { reinterpret_cast<void (__thiscall *)(void *)>(cs::Base+0x2A4F30)(this); return; }',
+                '    super();']
     if ident=='native_backdrop_walls':
         return ['    cs::CallScope scope(record);',
                 '    cs::game::NativeBackdropWallsBegin(this);',
@@ -775,14 +801,23 @@ def world_body(row):
     call = ', '.join(arg['name'] for arg in row['args'])
     lines = []
     if not row.get('native_witness') and row['id'] in ('world_spawn', 'world_factory'):
+        permit = ' && !cs::game::NativeEntityFactoryAllowed(this,type,force)' if row['id']=='world_factory' else ''
         lines += ['    // 原生复制初始化／绘制不得生成第二份玩法Entity；异常收束整个目标并停显。',
-                  '    if (cs::game::NativeRoomGridContextActive()) {',
+                  '    if (cs::game::NativeRoomGridContextActive()%s) {' % permit,
                   '        // 在触及原生生成之前保存有界调用链，用于定位混合初始化的玩法分支。',
                   '        auto *stack=static_cast<unsigned *>(_AddressOfReturnAddress());',
                   '        for (unsigned i=0;i<256;++i) { unsigned value=0; SIZE_T copied=0; if (!ReadProcessMemory(GetCurrentProcess(),stack+i,&value,4,&copied)||copied!=4) break;',
                   f'            if (value>=cs::Base&&value<cs::Base+0x800000) cs::Trace("native_spawn_block", "entry=%s type=%u word=%u candidate_rva=%08X", "{row["id"]}", type, i, value-unsigned(cs::Base)); }}',
                   '        throw std::runtime_error("native_gameplay_spawn_forbidden");',
                   '    }']
+    # 私有Replica载体的构造/发布/退休不能污染访客游戏的Authority身份Registry或输入生命周期。
+    lines += ['    if (cs::game::NativeRoomGridContextActive()) {',
+              '        record.calls.fetch_add(1, std::memory_order_relaxed);']
+    if row['ret']=='void':
+        lines += ['        super(%s);' % call, '        record.completed.fetch_add(1, std::memory_order_relaxed);', '        return;']
+    else:
+        lines += ['        auto result=super(%s);' % call, '        record.completed.fetch_add(1, std::memory_order_relaxed);', '        return result;']
+    lines.append('    }')
     lines += [
         '    // %s：%s 的 world 观察。原调用 exactly-once，异常只撤销本次观察资格。'
         % (row['id'], row['observation']),

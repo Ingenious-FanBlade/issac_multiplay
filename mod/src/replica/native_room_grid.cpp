@@ -96,7 +96,7 @@ template<class T> void Queries(const Value &fields,const char *name,T &result,bo
 const Value &Room(const NativeRoomGridTarget &target){return target.model["components"]["room"]["state"];}
 const Value &ResourceState(const Value &v){return At(v,"type")=="resource"?At(v,"state"):v;}
 void Boolean(const Value &v){if(!v.IsBool())Fail("native_room_grid_boolean");}
-void ResourcePath(const Value &v,bool empty=false){const auto s=String(v);if((s.empty()&&!empty)||s.size()>512||(!s.empty()&&s.front()=='/')||s.find(':')!=s.npos||s.find("..")!=s.npos||s.find('\\')!=s.npos)Fail("native_room_grid_resource_path");}
+void ResourcePath(const Value &v,bool empty=false){const auto s=String(v);if((s.empty()&&!empty)||s.size()>512||(!s.empty()&&s.front()=='/')||s.find(':')!=s.npos||s.find('\0')!=s.npos||s.find("..")!=s.npos||s.find('\\')!=s.npos)Fail("native_room_grid_resource_path");}
 void VectorValue(const Value &v){if(At(v,"type")!="vector")Fail("native_room_grid_vector");Number(At(v,"x"));Number(At(v,"y"));}
 void ColorValue(const Value &v,bool offsets){for(const char *k:{"R","G","B","A"})Number(At(v,k));if(offsets)for(const char *k:{"RO","GO","BO"})Number(At(v,k));}
 void SpriteValue(const Value &v){Fields(v,"Sprite","entity-catalog.json");const auto &f=At(v,"fields");Boolean(At(f,"Sprite.IsLoaded"));
@@ -108,6 +108,14 @@ void SpriteValue(const Value &v){Fields(v,"Sprite","entity-catalog.json");const 
  for(const char *k:{"Sprite.FlipX","Sprite.FlipY"})Boolean(At(f,k));
  for(const char *k:{"Sprite.Offset","Sprite.Scale"})VectorValue(At(f,k));
  for(const char *k:{"Sprite.Rotation","Sprite.PlaybackSpeed"})Number(At(f,k));ColorValue(At(f,"Sprite.Color"),true);
+  if(v.HasMember("native_pose")){
+    const auto &pose=v["native_pose"];if(Integer(At(pose,"version"))!=1)Fail("native_sprite_pose_version");
+    for(const char *key:{"main","overlay"}){const auto &state=At(pose,key);Number(At(state,"frame"));Boolean(At(state,"playing"));
+      for(const char *events:{"events_current","events_previous"}){const auto n=Integer(At(state,events));if(n<INT32_MIN||n>INT32_MAX)Fail("native_sprite_pose_events");}
+      for(const char *values:{"layers","nulls"}){std::set<int> ids;
+        for(const auto &index:Array(At(state,values),values==std::string("layers")?64:256).GetArray())
+          if(Integer(At(index,"frame"))<-1||!ids.insert(Integer(At(index,"id"))).second)Fail("native_sprite_pose_frame");}}
+  }
  for(const auto &entry:Array(At(At(f,"Sprite.GetAllLayers"),"entries"),64).GetArray()){
   const auto &layer=At(entry,"value");Fields(layer,"LayerState","entity-catalog.json");const auto &l=layer["fields"];
   for(const char *k:{"LayerState.GetLayerID","LayerState.GetRenderFlags","LayerState.GetWrapSMode","LayerState.GetWrapTMode"})Integer(At(l,k));
@@ -177,6 +185,7 @@ NativeRoomGridTarget PrepareNativeRoomGrid(const std::string &text){
   }
   const auto &room=Room(out),&room_state=At(room,"state"),&fields=At(room_state,"fields");
   ResourceValues(room);ResourceValues(At(At(components,"grid"),"state"));
+  if(components.HasMember("entity"))ResourceValues(At(components["entity"],"state"));
   // 最小原生上下文和资源在任何SDK写入之前完整解码；未知依赖不得进入半套原生世界。
   const auto &context=At(room,"native_context");
   EnvironmentValue(At(context,"environment"));

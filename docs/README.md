@@ -1,3 +1,9 @@
+> **tx-04-19前5项已实现（2026-11-01）**：R19-01—05已接通正式来源、全部非Player类别的私有原生owner与状态应用、身份／Morph调和、引用及必要Player载体、原生资源与绘制排序。GPT-6 Luna／max负责缺口逆向，主智能体复读、纠错并完成实现。生产DLL已编译、链接；未部署、启动游戏或运行测试。见[实现范围、主审事实与验收边界](design/tx-04-19/tx-04-19-native-entity-plan.md#r19-first-five-progress)。R19-06—10及19统一E2E仍待完成，不代表整个19已验收；下方“仅文档”段落为此前设计时点。
+
+> **tx-04-19实现设计、任务路线与整体验收计划（2026-11-01，仅文档）**：[非Player Entity原生应用设计](design/tx-04-19/tx-04-19-native-entity-plan.md)、[10项实现任务及实施路线](design/tx-04-19/tx-04-19-native-entity-plan.md#101-实施路线与依赖)、[统一E2E计划](design/tx-04-19/tx-04-19-e2e-plan.md)。明确来源／共享载体→原生对象与身份→引用／必要Player→资源展示→原生阻挡与Authority效果→恢复退休→全目标统一验收的依赖，列出实际改动、交付行为、场景对应和待核定原生入口。优先复用原生机制，只补实际缺失状态与接线；未改代码、构建或运行测试，19尚未实施／验收。
+
+> **19碰撞职责与交互验收补全（同日，仅文档）**：飞行与非飞行的空间阻挡／通行均由Client原生机制判定和处理；Authority同步所需状态并裁决其他效果。[空间阻挡合同](design/tx-04-19/tx-04-19-native-entity-plan.md#72-client原生空间阻挡与authority效果裁决)及[E2E详细交互矩阵](design/tx-04-19/tx-04-19-e2e-plan.md#51-entity与grid交互的共同判据)包含27种非空Grid与适用Entity类别、阻挡／通行、破坏／连锁、地面效果／机关、正反对照与恢复。当前32个主场景组，其中E19-27—32细化为41个交互子用例，全部未执行；19仍不加入快照间自主移动。
+
 > **tx-04-18 原生应用已完成（2026-11-01），统一E2E 29/29 PASS**：[create／remove／change原生Room／Grid应用及验收结果](design/tx-04-18/tx-04-18-native-state-plan.md#13-最终统一验收结果)。真实Authority的25个场景覆盖27类型／17类、12房形、448格、八门视图、资源／动画／FX／水色与实际墙面选择；10种无效候选、重复／过期、三阶段失败恢复、stop／重连／正常退出及访客持久隔离通过。同一18完成17的原生展示接线调整，未新增单元测试，本轮临时材料已清理。[旧专用表示10/10](design/tx-04-18/tx-04-18-implementation.md)及旧资源重放失败仍保留历史。Entity19／Player20、网络21／整世界Applied及29全内容组合均不由本次域成功代替。
 
 > **tx-04-14 已完成（2026-10-31）**：[整局、随机选择、HUD/独立表现、Mod及真实StageAPI实现与统一验收](design/observation-expansion/tx-04-14-implementation.md)。6/6 PASS、21/21场景、84个指定四域scope；[记录/适配合同](design/observation-expansion/run-mod-schema.md)。下方早期计划状态保留原时点。

@@ -12,6 +12,10 @@
     ]
   },
   "hooks": [
+    ["native_entity_sort_key","world","CsEntitySort","RenderKey","unsigned int","","","0x2AC3F0","None",false,"",true,-30000,true],
+    ["native_entity_sound_stop","world","CsReplicaSound","StopSample","void","int sample","sample","0x508140","None",false,"",true,-30000,true],
+    ["native_npc_color","world","Entity_NPC","ResetColor","void","","","0x2BD290","None",false,"",false,-30000,true],
+    ["native_npc_config","world","CsNpcConfig","PassiveLoad","void","","","0x2B7730","None",false,"",true,-30000,true],
     ["native_backdrop_walls","world","Backdrop","pre_render_walls","void","","","0x511310","None",false,"",false,-10000,true],
     ["native_reference_entity_light","world","Room","RenderEntityLight","void","Entity* entity, Vector& offset","entity, offset","0x3FC110","None",false,"",false,-30000,true],
     ["native_statue_init","world","CsGridStatue","StatueInitSubclass","void","","","0x42D230","None",false,"",true,-10000,true],
