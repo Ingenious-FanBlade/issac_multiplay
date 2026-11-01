@@ -21,7 +21,7 @@ fn number(s: &Status, key: &str) -> Result<u64> {
 pub(super) fn fixture_records(text: &str, token: &str) -> Result<Vec<Value>> {
     let mut out = vec![];
     for line in text.lines() {
-        if let Some((_, payload)) = line.split_once("[isaac-cs-test] tx05 ").or_else(||line.split_once("[isaac-cs-test] tx06 ")).or_else(||line.split_once("[isaac-cs-test] tx07 ")).or_else(||line.split_once("[isaac-cs-test] tx08 ")).or_else(||line.split_once("[isaac-cs-test] tx09 ")).or_else(||line.split_once("[isaac-cs-test] tx10 ")).or_else(||line.split_once("[isaac-cs-test] tx11 ")).or_else(||line.split_once("[isaac-cs-test] tx12 ")).or_else(||line.split_once("[isaac-cs-test] tx13 ")).or_else(||line.split_once("[isaac-cs-test] tx14 ")).or_else(||line.split_once("[isaac-cs-test] tx15 ")) {
+        if let Some((_, payload)) = line.split_once("[isaac-cs-test] tx05 ").or_else(||line.split_once("[isaac-cs-test] tx06 ")).or_else(||line.split_once("[isaac-cs-test] tx07 ")).or_else(||line.split_once("[isaac-cs-test] tx08 ")).or_else(||line.split_once("[isaac-cs-test] tx09 ")).or_else(||line.split_once("[isaac-cs-test] tx10 ")).or_else(||line.split_once("[isaac-cs-test] tx11 ")).or_else(||line.split_once("[isaac-cs-test] tx12 ")).or_else(||line.split_once("[isaac-cs-test] tx13 ")).or_else(||line.split_once("[isaac-cs-test] tx14 ")).or_else(||line.split_once("[isaac-cs-test] tx15 ")).or_else(||line.split_once("[isaac-cs-test] tx17 ")) {
             let v: Value = serde_json::from_str(payload)
                 .map_err(|e| format!("malformed fixture record: {e}"))?;
             if v["token"].as_str() == Some(token) {

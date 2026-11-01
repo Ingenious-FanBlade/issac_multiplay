@@ -10,11 +10,15 @@
 #include "runtime.h"
 #include <algorithm>
 #include <exception>
+#include <cstring>
 #include <memory>
+#include <thread>
+#include <GL/gl.h>
 
 namespace cs::game {
 namespace {
 enum class State { Off, Connecting, AwaitingWorld, Retiring, Failed };
+constexpr const char *kIsolationOriginals[]={"start_game","game_update","room_update","entity_list","odd_helper","restore","post_update","player_update","join_pass"};
 // 输入目标只投影到预计抵达服务器的时刻；不推进本地/Authority时钟，不放行过期命令。
 // 速率由服务器实际提交tick与同机单调时间的差值建立；暂停/换代立即丢弃旧估计。
 struct InputTiming final {
@@ -68,18 +72,23 @@ struct ClientRuntime final {
   unsigned held=0;
   bool baseline=false, eligible=false, sampled_this_loop=false, blocked=true;
   bool physical_neutral=false;
-  bool focused=false,ui_blocked=false,input_ready=false;
+  bool focused=false,ui_blocked=false,input_ready=false,fixture=false;
   InputTiming timing;
   unsigned neutral_loops=0;
   void *source=nullptr;
   std::string address, error;
   // I3 纯值分派诊断独立于观察记录，供最终整体验收区分预期跳过与漏链。
-  std::array<std::uint64_t,16> dispatch_original{},dispatch_expected{},dispatch_fault{};
+  std::array<std::uint64_t,unsigned(ClientEntry::Count)> dispatch_original{},dispatch_expected{},dispatch_fault{};
   unsigned dispatch_last_entry=0,dispatch_last_decision=0;
   std::uint64_t callback_skipped=0,callback_own=0,callback_fault=0;
+  // 精确连接边界的原调用计数，避免把连接前最后一次Off调用混入Client验收窗口。
+  std::array<std::uint64_t,9> original_begin{};
 };
 std::unique_ptr<ClientRuntime> client;
 std::atomic<bool> client_active{false},foreign_client{false};
+// 真实窗口关闭一旦始于Client，保护延续到Shutdown/Manager最后写入者。
+// 场景安全退休可先交还Off，但不能因此重新开放同一次进程退出的进度写入。
+std::atomic<bool> client_exit_progress_guard{false};
 std::uint64_t connections=0;
 std::uint64_t ui_seen_ms=0,ui_frames=0;
 thread_local unsigned client_depth=0;
@@ -109,7 +118,8 @@ constexpr std::uint64_t kExpectedUpdateMask=
 constexpr const char *kClientEntryNames[]={
   "game_update","post_update","room_update","entity_list","player_update",
   "odd_helper","lifecycle_fsm","door_update","door_nested","new_room",
-  "room_init","game_render","room_prerender","room_render","render_sort","game_start"};
+  "room_init","game_render","room_prerender","room_render","render_sort","game_start",
+  "native_build","native_apply","native_teardown","presentation_maintenance","presentation_draw","menu_render"};
 void CountDispatch(ClientRuntime &c,ClientEntry entry,ClientEntryDecision decision) noexcept {
   const auto index=unsigned(entry);
   if(index>=c.dispatch_original.size())return;
@@ -125,19 +135,19 @@ bool DispatchRootAllowed(ClientOperation operation,ClientEntry root,
   switch(operation){
     case ClientOperation::Build:
       return state==ClientSceneState::Preparing&&owner==Owner::Manager&&
-          root==ClientEntry::RoomInit;
+          root==ClientEntry::NativeBuild;
     case ClientOperation::Apply:
       return state==ClientSceneState::Applying&&owner==Owner::Manager&&
-          root==ClientEntry::RoomInit;
+          root==ClientEntry::NativeApply;
     case ClientOperation::PresentMaintenance:
-      // render_sort 有空列表越界前提；I4 提供验证后的维护适配前不准直接原调。
-      return false;
+      return state==ClientSceneState::Applying&&owner==Owner::Manager&&
+          root==ClientEntry::PresentationMaintenance;
     case ClientOperation::PresentDraw:
-      // 整体 Game/Room Render 含未闭合 pass；I4 采用段适配前拒绝整树。
-      return false;
+      return state==ClientSceneState::Displaying&&owner==Owner::Render&&
+          root==ClientEntry::PresentationDraw;
     case ClientOperation::Retire:
-      // 原生释放走 I6 具名 release phase；这里不把任意玩法入口伪装成退休工具。
-      return false;
+      return (state==ClientSceneState::Retiring||state==ClientSceneState::Failed)&&
+          owner==Owner::Manager&&root==ClientEntry::NativeTeardown;
   }
   return false;
 }
@@ -165,8 +175,40 @@ bool MenuReady() noexcept {
   bool starting=false;
   return manager&&ClientMenuAvailable()&&!RunActive()&&ReadAt(manager,offset::Starting,starting)&&!starting;
 }
+// 正式连接与测试纯值来源共用启动前置；保护必须先于任何原生场景写入。
+const char *ClientStartUnavailable() noexcept {
+  if(!IsMain()||TopOwner()!=Owner::Manager||client_depth)return "wrong_boundary";
+  if(ClientBusy()||Busy())return "busy";
+  if(!MenuReady())return "client_requires_stable_menu";
+  if(PointerCount()!=8||!ContextHealthy()||!Capabilities[size_t(Group::Input)]||
+     !Capabilities[size_t(Group::Loop)]||!Capabilities[size_t(Group::Control)]||
+     !Capabilities[size_t(Group::Client)]||!WorldExitPatchInstalled())return "adaptation_unavailable";
+  if(!ClientShutdownPatchInstalled())return "shutdown_isolation_unavailable";
+  ClientGuardLuaBindings();
+  if(!ClientLuaGuardReady())return "lua_persistence_guard_unavailable";
+  if(!ClientDispatchIsolationInstalled())return "client_dispatch_isolation_unavailable";
+  if(connections==UINT64_MAX)return "connection_exhausted";
+  return "";
+}
 }
 bool ClientBusy() noexcept {return client_active.load(std::memory_order_acquire);}
+// 检查真实 trampoline，不能拿清单行或能力组存在冒充已经安装。
+bool ClientDispatchIsolationInstalled() noexcept {
+  if(!IsMain()||!Capabilities[size_t(Group::Client)]||!ClientCallbackGuardReady())return false;
+  static constexpr const char *required[]={"client_game_update","client_post_update",
+    "client_room_update","client_entity_list","client_player_update","client_odd_helper",
+    "client_room_lifecycle","client_door_update","client_door_nested","client_new_room",
+    "room_init","game_render","room_prerender","room_render","entitylist_render_sort","client_game_start","client_menu_render"};
+  size_t count=0;auto hooks=Hooks(count);
+  for(const char *id:required){
+    bool installed=false;
+    for(size_t i=0;i<count;++i)if(std::strcmp(hooks[i]->id,id)==0){
+      installed=hooks[i]->registered&&hooks[i]->super&&*hooks[i]->super;break;
+    }
+    if(!installed)return false;
+  }
+  return true;
+}
 void ClientCallbackFault(const char *reason) noexcept {
   if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
   if(client&&ClientBusy()){
@@ -195,7 +237,7 @@ ClientDispatchScope::ClientDispatchScope(ClientOperation operation,ClientEntry r
   if(!ClientBusy()||!client)return;
   auto &c=*client;
   const auto owner=TopOwner();
-  if(dispatch_frame.id||!ContextHealthy()||InBlockedContext()||
+  if(dispatch_frame.id||!ContextHealthy()||InBlockedContext()||!ClientDispatchIsolationInstalled()||
      (expected_skips&~kExpectedUpdateMask)||
      (expected_skips&EntryBit(root))||
      !DispatchRootAllowed(operation,root,c.scene.State(),owner)||
@@ -287,19 +329,9 @@ const char *ClientStateName() noexcept {
   return "Failed";
 }
 const char *StartClient(const std::string &ipv4,unsigned port,int device_key) noexcept {
-  if(!IsMain()||TopOwner()!=Owner::Manager||client_depth)return "wrong_boundary";
-  if(ClientBusy()||Busy())return "busy";
-  if(!MenuReady())return "client_requires_stable_menu";
+  const auto unavailable=ClientStartUnavailable();if(*unavailable)return unavailable;
   if(!ui_seen_ms||GetTickCount64()-ui_seen_ms>1000)return "client_ui_unavailable";
   if(port<1||port>65535||device_key<0||device_key>255)return "arguments";
-  if(PointerCount()!=8||!ContextHealthy()||!Capabilities[size_t(Group::Input)]||
-     !Capabilities[size_t(Group::Loop)]||!Capabilities[size_t(Group::Control)]||
-     !Capabilities[size_t(Group::Client)]||!WorldExitPatchInstalled())return "adaptation_unavailable";
-  if(!ClientShutdownPatchInstalled())return "shutdown_isolation_unavailable";
-  ClientGuardLuaBindings();
-  if(!ClientLuaGuardReady())return "lua_persistence_guard_unavailable";
-  if(!ClientCallbackGuardReady())return "lua_callback_guard_unavailable";
-  if(connections==UINT64_MAX)return "connection_exhausted";
   try {
     auto next=std::make_unique<ClientRuntime>();next->connection=++connections;
     next->address=ipv4;next->device_key=device_key;
@@ -310,6 +342,61 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
     Trace("client","event=connecting connection=%llu address=%s port=%u key=%d local_run=0",connections,ipv4.c_str(),port,device_key);
     return "";
   } catch(...) {return "client_allocation";}
+}
+// 测试会话只替换目标来源；启动保护、原生应用、失败隔离及退休仍走同一正式 owner。
+const char *ClientTestBegin(const std::string &token,const replica::Scope &scope) noexcept {
+  if(Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token)return "client_test_disabled";
+  const auto unavailable=ClientStartUnavailable();if(*unavailable)return unavailable;
+  if(!scope.session||!scope.connection||!scope.run||!scope.scene)return "formal_scope_required";
+  try {
+    auto next=std::make_unique<ClientRuntime>();next->connection=++connections;
+    next->fixture=true;next->address="e2e_value_fixture";next->scope=scope;
+    next->scope.run=next->scope.floor=next->scope.dimension=next->scope.room=next->scope.scene=0;
+    next->state=State::AwaitingWorld;next->scene.Begin(next->scope);
+    if(next->scene.State()==ClientSceneState::Failed)return "client_scene_begin_failed";
+    size_t count=0;auto hooks=Hooks(count);
+    for(unsigned j=0;j<next->original_begin.size();++j)for(size_t i=0;i<count;++i)
+      if(std::strcmp(hooks[i]->id,kIsolationOriginals[j])==0)next->original_begin[j]=hooks[i]->calls.load();
+    ForgetInputDevice();client=std::move(next);foreign_client=false;
+    client_active.store(true,std::memory_order_release);
+    Trace("client","event=fixture_begin connection=%llu source=e2e_value_fixture session=%llu wire_connection=%llu",connections,scope.session,scope.connection);
+    return "";
+  }catch(...){return "client_allocation";}
+}
+// 目标在 Manager 上复制为自有值；测试 token 不授予任意地址或额外 native 写入权限。
+// 统一实机验收在已发布真实场景检验owner拒绝；worker只携带自有纯值模型。
+std::string ClientTestExerciseOwnership(const std::string &token) noexcept {
+  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||
+     !ClientBusy()||!client||!client->fixture||!client->scene.DisplayReady())return "ok=0\nerror=client_ownership_context\n";
+  try {
+    auto values=replica::Copy(*client->scene.Published());const auto scope=replica::ReadScope(values["scope"]);
+    const auto revision=replica::Unsigned(values["revision"]);bool accepted=true;
+    std::thread foreign([model=std::move(values),scope,revision,&accepted]{accepted=ClientAdmitTarget(scope,revision,model);});
+    foreign.join();if(accepted)return "ok=0\nerror=foreign_target_accepted\n";
+    ClientBorrowToken borrowed{};
+    if(!client->scene.Borrow(ClientPurpose::Graphics,borrowed)||!client->scene.Valid(borrowed))return "ok=0\nerror=graphics_borrow_missing\n";
+    const auto stale=borrowed;client->scene.Release(borrowed);
+    if(client->scene.Valid(stale))return "ok=0\nerror=released_borrow_valid\n";
+    // 暂撤本线程的实际WGL current，再验证正式图形借用在任何原生写入前拒绝。
+    const auto dc=wglGetCurrentDC();const auto context=wglGetCurrentContext();
+    if(!dc||!context||!wglMakeCurrent(nullptr,nullptr))return "ok=0\nerror=context_detach_failed\n";
+    ClientBorrowToken invalid{};const bool wrong_context=client->scene.Borrow(ClientPurpose::Graphics,invalid);
+    const bool restored=wglMakeCurrent(dc,context)!=FALSE;
+    if(wrong_context)client->scene.Release(invalid);
+    if(!restored||wrong_context)return "ok=0\nerror=context_rejection_or_restore_failed\n";
+    return "ok=1\nownership_exercise=1\n";
+  }catch(...){return "ok=0\nerror=ownership_exercise_exception\n";}
+}
+bool ClientAdmitTarget(const replica::Scope &scope,std::uint64_t revision,const replica::Value &value) noexcept {
+  if(!IsMain()||TopOwner()!=Owner::Manager||client_depth||!ClientBusy()||!client||
+     (client->state!=State::AwaitingWorld&&!(client->fixture&&client->state==State::Failed)))return false;
+  const bool admitted=client->scene.AdmitTarget(scope,revision,value);
+  if(admitted){
+    Neutral(*client,true);client->input_ready=false;
+    // 测试来源可交付新的完整T进行正式恢复；真实断连不借此恢复已停止的网络线程。
+    if(client->fixture){client->state=State::AwaitingWorld;client->error.clear();}
+  }
+  return admitted;
 }
 void StopClient() noexcept {
   if(!IsMain()||!ClientBusy())return;
@@ -327,12 +414,13 @@ bool ClientManagerBoundary() noexcept {
   try {
     if(c.scene.ConsumeForeignFault())Failure(c,"client_foreign_scene");
     c.scene.ObserveLuaState(ClientLuaStateIdentity());
+    c.scene.Pump();
     c.scene.DrainRetained();
-    if(c.scene.State()==ClientSceneState::Failed&&c.state!=State::Failed)Failure(c,"client_scene_failed");
+    if(c.scene.State()==ClientSceneState::Failed&&c.state!=State::Failed)Failure(c,c.scene.Result().reason.data());
     if(foreign_client.exchange(false))Failure(c,"client_foreign_manager");
     ++c.manager_skipped;
     net::live::Event event;
-    for(unsigned i=0;i<256&&c.network.Poll(event);++i) {
+    for(unsigned i=0;!c.fixture&&i<256&&c.network.Poll(event);++i) {
       switch(event.type) {
         case net::live::Event::Type::Welcome:
           if(c.state!=State::Connecting)break;
@@ -364,14 +452,16 @@ bool ClientManagerBoundary() noexcept {
       c.sampled_this_loop=false;c.physical_neutral=false;c.blocked=true;ClientPollInput();
       if(!c.sampled_this_loop||c.physical_neutral)++c.neutral_loops;else c.neutral_loops=0;
       // 只有无原生执行前缀、无借用与在途使用时才能交还本地菜单。
-      if(c.network.Finished()&&c.neutral_loops>=2&&MenuReady()&&c.scene.CanReturnToMenu()) {
+      if((c.fixture||c.network.Finished())&&c.neutral_loops>=2&&MenuReady()&&c.scene.CanReturnToMenu()) {
         c.state=State::Off;ForgetInputDevice();client_active.store(false,std::memory_order_release);
         Trace("client","event=off connection=%llu input_closed=1 worker_finished=1 local_run=0",c.connection);
       }
     } else if(c.state==State::Connecting||c.state==State::AwaitingWorld) {
       c.sampled_this_loop=false;c.focused=Focused();c.ui_blocked=ClientUiBlocked();c.blocked=!c.focused||c.ui_blocked;
       std::uint64_t target=0;
-      c.input_ready=!c.blocked&&c.progress.input_enabled&&c.state==State::AwaitingWorld&&
+      // 16 的等待场景仍能向 Authority 发输入；已有目标的构建/替换窗口则清边沿并保持中性。
+      const bool input_scene=c.scene.State()==ClientSceneState::Waiting||c.scene.DisplayReady();
+      c.input_ready=!c.fixture&&input_scene&&!c.blocked&&c.progress.input_enabled&&c.state==State::AwaitingWorld&&
                     c.progress.session_state==core::SessionState::Active&&c.generation&&
                     c.timing.Target(c.progress.server_tick,GetTickCount64(),target);
       ClientPollInput();
@@ -392,7 +482,7 @@ bool ClientManagerBoundary() noexcept {
           } else Failure(c,"client_input_queue_full");
         }
       }
-      if(c.network.Finished()&&c.state!=State::Failed)Failure(c,"client_transport_finished");
+      if(!c.fixture&&c.network.Finished()&&c.state!=State::Failed)Failure(c,"client_transport_finished");
     }
   } catch(const std::exception &error){Failure(c,error.what());}
   catch(...){Failure(c,"client_main_exception");}
@@ -442,7 +532,7 @@ void ClientInputUnavailable() noexcept {
 void ClientMenuRendered() noexcept {
   if(IsMain()&&ClientBusy())++client->render_calls;
 }
-// 观察借用跨过完整 Manager::Render super，异常由析构收口；它不允许 Client 原生世界绘制。
+// 观察窗口跨过Manager Render完整原链；具体原生展示在其菜单绘制子入口替代，保留清屏/Swap职责。
 ClientRenderScope::ClientRenderScope(bool enabled) noexcept
   :exceptions_(std::uncaught_exceptions()) {
   if(!enabled||!IsMain()||!ClientBusy())return;
@@ -454,6 +544,24 @@ ClientRenderScope::~ClientRenderScope() noexcept {
   if(!active_||!client)return;
   if(std::uncaught_exceptions()!=exceptions_)client->scene.Fail("client_render_exception");
   client->scene.Release(render_observation);
+}
+// 原生菜单绘制子入口中执行已发布场景，既不调用完整Game Render，也不在Swap之后补画。
+bool ClientMenuRenderBoundary() noexcept {
+  if(!ClientBusy())return false;
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return true;}
+  if(!client)return true;
+  if(TopOwner()!=Owner::Render||!render_observation.active||
+     !client->scene.Valid(render_observation)||dispatch_frame.id){
+    CountDispatch(*client,ClientEntry::MenuRender,ClientEntryDecision::FaultSkip);
+    Failure(*client,"client_menu_render_phase");return true;
+  }
+  if(!client->scene.HasNativePrefix()&&!client->scene.DisplayReady()){
+    CountDispatch(*client,ClientEntry::MenuRender,ClientEntryDecision::CallOriginal);
+    return false;
+  }
+  CountDispatch(*client,ClientEntry::MenuRender,ClientEntryDecision::ExpectedSkip);
+  if(client->scene.DisplayReady())client->scene.RenderPublished();
+  return true;
 }
 // Lua VM 关闭先换代并撤销本方借用，不能把 unref 当作 userdata 析构。
 void ClientLuaClosing() noexcept {
@@ -499,6 +607,7 @@ void ClientLuaRegistryRetire(const ClientRetainedTicket &ticket) noexcept {
 }
 void ClientShutdownBeginning() noexcept {
   if(!IsMain()||!ClientBusy())return;
+  client_exit_progress_guard.store(true,std::memory_order_release);
   // 关闭阶段只保留 Options 明确的本地写入，不能用场景计数打开全部 progress writer。
   if(client->state!=State::Retiring)StopClient();
 }
@@ -507,7 +616,15 @@ void ClientContextClosing() noexcept {
 }
 // 此分派独立于 PersistenceScope 的 original exactly-once 观察；外层 wrapper 可直接拒绝。
 bool ClientPersistenceBlocked() noexcept {
-  return client_active.load(std::memory_order_acquire);
+  return client_active.load(std::memory_order_acquire)||client_exit_progress_guard.load(std::memory_order_acquire);
+}
+bool ClientRetainGraphics(void *owner,ClientRetainedRelease release,ClientRetainedTicket &ticket) noexcept {
+  if(!IsMain()||!ClientBusy()||!client)return false;
+  return client->scene.Retain(ClientRetainedKind::Graphics,ClientReleasePhase::ManagerContext,owner,release,ticket);
+}
+void ClientRetireGraphics(const ClientRetainedTicket &ticket) noexcept {
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
+  if(ClientBusy()&&client)client->scene.RetireRetained(ticket);
 }
 // Shutdown 内部两段无 Hook 的直接 PGD 写在指令入口判定，保护寿命独立于 socket。
 bool ClientShutdownProgressBlocked() noexcept {return ClientPersistenceBlocked();}
@@ -519,16 +636,21 @@ void ClientUiHeartbeat() noexcept {
 bool ClientProcessExitDecision() noexcept {
   if(!IsMain()){foreign_client.store(true,std::memory_order_release);return false;}
   if(!ClientBusy())return true;
+  if(!client_exit_progress_guard.exchange(true,std::memory_order_acq_rel))
+    Trace("client","event=process_exit_progress_guard connection=%llu",client->connection);
   if(client->state!=State::Retiring)StopClient();
-  return client->network.Finished()&&client->scene.CanReturnToMenu();
+  return (client->fixture||client->network.Finished())&&client->scene.CanReturnToMenu();
 }
 std::string ClientFields() {
-  std::string s="role="+std::string(ClientBusy()?"Client":HostBusy()?"Host":"Off")+"\nclient_state="+ClientStateName()+"\nclient_world_applied=0\n";
+  std::string s="role="+std::string(ClientBusy()?"Client":HostBusy()?"Host":"Off")+"\nclient_state="+ClientStateName()+"\n";
+  s+="client_world_applied="+std::string(client&&client->scene.DisplayReady()?"1":"0")+"\n";
   s+="client_ui_available="+std::string(ui_seen_ms&&GetTickCount64()-ui_seen_ms<=1000?"1":"0")+"\n";
   s+="client.ui_frames="+std::to_string(ui_frames)+"\n";
   if(!client)return s;
   const auto &c=*client;
+  s+="client.target_source="+std::string(c.fixture?"e2e_value_fixture":"network")+"\n";
   const auto add=[&](const char *name,std::uint64_t value){s+="client."+std::string(name)+"="+std::to_string(value)+"\n";};
+  if(c.fixture)for(unsigned i=0;i<c.original_begin.size();++i)add((std::string("original_begin.")+kIsolationOriginals[i]).c_str(),c.original_begin[i]);
   add("connection",c.connection);add("participant",c.ordinal);add("roster",c.roster);add("generation",c.generation);
   add("wire_session",c.scope.session);add("wire_connection",c.scope.connection);
   add("server_tick",c.progress.server_tick);add("sent",c.sent);add("sequence",c.sequence);
@@ -544,11 +666,25 @@ std::string ClientFields() {
   add("sent_edge_mask",c.sent_edge_mask);
   add("render_calls",c.render_calls);
   add("scene_generation",c.scene.Generations().scene);
+  add("instance_generation",c.scene.Generations().instance);
+  add("resource_generation",c.scene.Generations().resource);
   add("lua_generation",c.scene.Generations().lua);
   add("context_generation",c.scene.Generations().context);
   add("native_attempt",c.scene.Result().attempt);
+  add("scene_state",unsigned(c.scene.State()));
+  add("native_result",unsigned(c.scene.Result().kind));
+  add("native_revision",c.scene.Result().revision);
+  add("applied_revision",c.scene.AppliedRevision());
+  add("native_scope_run",c.scene.Result().scope.run);
+  add("native_scope_scene",c.scene.Result().scope.scene);
   add("native_executed_prefix",c.scene.Result().executed_prefix);
   add("native_committed",c.scene.Result().native_committed);
+  add("native_pending_owners",c.scene.Result().pending_owners);
+  add("pending_owners",c.scene.Result().pending_owners);
+  add("native_owners",c.scene.Result().native_owners);
+  add("native_written",c.scene.Result().native_written);
+  add("native_old_display_valid",c.scene.Result().old_display_valid);
+  add("old_display_valid",c.scene.Result().old_display_valid);
   add("dispatch_last_entry",c.dispatch_last_entry);
   add("dispatch_last_decision",c.dispatch_last_decision);
   add("callback_skipped",c.callback_skipped);
@@ -560,6 +696,7 @@ std::string ClientFields() {
          std::to_string(c.dispatch_original[i])+","+
          std::to_string(c.dispatch_expected[i])+","+
          std::to_string(c.dispatch_fault[i])+"\n";
+  s+="client.native_phase="+std::string(c.scene.Result().phase.data())+"\n";
   s+="client.native_reason="+std::string(c.scene.Result().reason.data())+"\n";
   s+="client.error="+c.error+"\n";return s;
 }

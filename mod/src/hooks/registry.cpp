@@ -1,6 +1,7 @@
 #include "HookSystem.h"
 #include "hook_capacity.h"
 #include "runtime.h"
+#include <cstring>
 namespace cs {
 namespace {
 // 唯一待注册清单，静态构造阶段不触碰 REPENTOGON。
@@ -59,3 +60,13 @@ void RegisterHooks() {
         unsigned(installed), unsigned(deferred));
 }
 } // namespace cs
+namespace cs::game {
+bool ClientObjectPreStatsIsolationInstalled() noexcept {
+  if(!Capabilities[size_t(Group::Client)])return false;
+  size_t count=0;auto hooks=Hooks(count);
+  for(size_t i=0;i<count;++i){const auto &h=*hooks[i];
+    if(std::strcmp(h.id,"client_player_pre_stats")==0)return h.registered&&h.super&&*h.super;
+  }
+  return false;
+}
+}

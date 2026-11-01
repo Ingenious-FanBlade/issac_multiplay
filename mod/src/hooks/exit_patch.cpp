@@ -6,6 +6,7 @@
 #include "binding/offsets.h"
 #include <string>
 namespace cs {
+namespace game {bool ReadMemory(const void *,void *,std::size_t) noexcept;}
 namespace {
 #include "exit_patch.inc"
 #include "shutdown_patch.inc"
@@ -118,8 +119,12 @@ void InstallClientShutdownPatch() noexcept {
   if(shutdown_attempted||!IsMain())return;
   shutdown_attempted=true;
   if(!Capabilities[size_t(Group::Client)])return;
+  // A1的绝对地址随PE重定位，核对实际Manager槽而非首选基址的四字节常量。
+  uintptr_t manager_operand=0;
+  const bool manager_matches=game::ReadMemory(reinterpret_cast<void *>(Base+ShutdownSaveRva+1),
+      &manager_operand,sizeof(manager_operand))&&manager_operand==Base+offset::Manager;
   if(!PatternMatches(ShutdownCounterRva,ShutdownCounterPattern)||
-     !PatternMatches(ShutdownSaveRva,ShutdownSavePattern)){
+     !PatternMatches(ShutdownSaveRva,ShutdownSavePattern)||!manager_matches){
     Capabilities[size_t(Group::Client)]=false;
     Trace("byte_patch","id=client_shutdown ok=0 reason=instruction_mismatch");return;
   }

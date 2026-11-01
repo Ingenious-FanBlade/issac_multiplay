@@ -3,8 +3,10 @@
 #include "game/world_sources/lua_entity.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
+#include "game/client_presentation_native.h"
 #include "runtime.h"
 #include <cstring>
+#include <cmath>
 namespace cs::game {
 namespace {
 lua_State *State() noexcept { return IsMain()&&g_LuaEngine ? g_LuaEngine->_state : nullptr; }
@@ -111,6 +113,28 @@ int SpriteNames(lua_State *L) {
   });
   lua_pushstring(L,status); lua_setfield(L,-2,"status"); return 1;
 }
+// 公开 GetFrame 会截断分数帧；这里只复制当前动画的纯值相位和选择器，不推进动画。
+int SpriteRuntimePose(lua_State *L) {
+  if(!IsMain())return luaL_error(L,"sprite_pose_main_thread");
+  auto *sprite=lua::GetLuabridgeUserdata<ANM2 *>(L,1,lua::Metatables::SPRITE,"Sprite");
+  if(!sprite)return luaL_error(L,"sprite_pose_owner");
+  const auto valid=[sprite](const AnimationState &s) {
+    const auto *d=s._animData;
+    return !d||(s._animation==sprite&&std::isfinite(s._animFrame)&&d->_layerCount>=0&&d->_layerCount<=64&&
+      d->_nullLayerCount>=0&&d->_nullLayerCount<=64&&(!d->_layerCount||s._layerFrames)&&(!d->_nullLayerCount||s._nullLayerFrames));
+  };
+  if(!valid(sprite->_animState)||!valid(sprite->_overlayAnimState))return luaL_error(L,"sprite_pose_layout");
+  lua_newtable(L);lua_pushinteger(L,1);lua_setfield(L,-2,"version");
+  lua_pushboolean(L,sprite->_overlayRenderFirst);lua_setfield(L,-2,"overlay_first");
+  const auto copy=[L](const AnimationState &s,const char *key) {
+    lua_newtable(L);lua_pushnumber(L,s._animData?s._animFrame:0);lua_setfield(L,-2,"phase");
+    lua_newtable(L);if(s._animData)for(int i=0;i<s._animData->_layerCount;++i){lua_pushinteger(L,s._layerFrames[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"layers");
+    lua_newtable(L);if(s._animData)for(int i=0;i<s._animData->_nullLayerCount;++i){lua_pushinteger(L,s._nullLayerFrames[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"nulls");
+    lua_setfield(L,-2,key);
+  };
+  copy(sprite->_animState,"main");copy(sprite->_overlayAnimState,"overlay");return 1;
+}
+int RoomPresentation(lua_State *L) {return ClientPresentationCaptureLua(L);}
 // Lua只取得十进制纯值身份，不持有后台可访问的Room/Level userdata。
 int Location(lua_State *L) {
   const auto v=ObservationLocation(int(luaL_checkinteger(L,1)),int(luaL_checkinteger(L,2)),std::uint32_t(luaL_checkinteger(L,3)),int(luaL_checkinteger(L,4)),int(luaL_checkinteger(L,5)),int(luaL_checkinteger(L,6)),luaL_checkstring(L,7));
@@ -193,7 +217,10 @@ void EnsureObservationLuaBridge() noexcept {
   RegisterRuntimeRandomFunctions();
   lua_newtable(L);
   const luaL_Reg funcs[]={{"TestNativeRandomSources",LuaTestNativeRandomSources},{"NativeRandomSources",LuaNativeRandomSources},{"RegisterRandomSource",LuaRegisterRandomSource},{"GlobalRandomState",LuaGlobalRandomState},{"TestGlobalRandom",TestGlobalRandom},{"PromptState",PromptState},{"RelatedSubject",RelatedSubject},{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
-  luaL_setfuncs(L,funcs,0); lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
+  luaL_setfuncs(L,funcs,0);
+  lua_pushcfunction(L,SpriteRuntimePose);lua_setfield(L,-2,"SpriteRuntimePose");
+  lua_pushcfunction(L,RoomPresentation);lua_setfield(L,-2,"RoomPresentation");
+  lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
 }
 // Coordinator 在复制窗口内部调用一次；错误返回自有原因，不让 Lua 异常越过 Authority。
 LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::uint32_t depth,std::uint32_t limit,unsigned domain) noexcept {

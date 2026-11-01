@@ -1,5 +1,38 @@
 # tx-04-17 原生客户端世界与状态应用公共运行时
 
+## 2026-11-02 剩余实现与统一实机验收（已完成）
+
+按本次用户指定，I3／I6／I7分别由GPT-6.1 Sol high承担，I2／I4分别由Sol xhigh承担，I1与I8由同一个Sol xhigh承担；主智能体完成I5、集成与E2E编排，并集中审阅调用ABI、初始化依赖、部分写入、实例／资源寿命、显示副作用及退出最后写入者。未执行全量代码审阅或实现后的单元测试。下方公共骨架和研究阶段记录保留当时事实，由本节说明当前推进状态。
+
+已接入真实Game／Room／Camera／PlayerManager／HUD承载、对象A→T计划和create／change／replace／remove、正式资源姿态适配、原生展示、分阶段提交与退休。原生构造和展示都在主线程已知owner及实际OS-current HDC/HGLRC下执行，网络线程只传纯值。实际逻辑提交才发布`client_world_applied`；半套写入立即失去A有效性，保持Client隔离并退休／完整重建。没有使用完整Game Start／Room Init／Game Update补算缺失展示缓存。
+
+本轮代表profile明确为普通Isaac、Effect 1000/57（subtype 0/1）、无Grid的普通Basement房间，以及具名场景／HUD／Sprite／FX字段；小地图采用真实CURSE_OF_THE_LOST的问号及诅咒图标分支，完整楼层拓扑交18。正式来源仍采11域完整模型，夹具显式选择本轮应用字段，不宣称所有域已Applied。对象容量512、绘制成员256，Sprite层64，代表FX光束最多4组、每组16条；正式采集仍允许256组、每组64条并显式报告超限。18—20的全类别应用、21—22的实时世界下行和Applied ACK，以及整局可玩联机，均不是本轮已完成结果。
+
+统一入口为`harness e2e tx-04-17`。当前采用`--node-role Source`生成真实Host来源并正常退出，再以`--node-role Client --resume-from <Source临时目录>`启动独立纯Client。两个进程分别提示启动，均属同一tx整体验收；来源、诊断和截图只为本轮使用，主审完成画面对照后统一清理。Client不先开本地局，不借用Source进程旧资源。此拆分避免同进程Host合法Continue关联元数据延迟到Client退出时同步，既不放宽存档比较白名单，也不禁用官方Manager析构。
+
+截至第19次游戏启动S：独立纯Client复用Source P，14项自动用例全部通过；Client经正常`WM_CLOSE`退出，进程退出码为0，`client_before → client_after → client_exit`严格文件比较通过。真实create／change／replace／remove、重复目标、部分缺资源退休与恢复、无效姿态／预算／引用拒绝、旧Scope、实际外线程／GL context／失效借用、native和Lua/Mod保存隔离、准备中取消、重连及正常窗口退出已执行。第12次当时的严格退出文件比较因同进程Source Host先前的Continue关联元数据同步而失败，该失败事实保留；后续采用前述Source／Client独立进程编排。
+
+S阶段仍未完成视觉验收：主智能体对照`host-source.bmp`、`client-world.bmp`与`client-pose.bmp`时，背景构建seed及独立RNG初始化修复已使Source P与Client S的墙体／背景纹理一致，真实FX／ray也已绘制；但Player身体缺失，存在多余且偏移的阴影，minimap缺失。该失败没有因自动状态检查和严格文件比较通过而被忽略。
+
+本轮实际失败及已定位修复保留：早期自动焦点、tx17夹具识别、Shutdown绝对地址特征、来源Effect自行消失及Burning Basement余烬；随后补齐真实FX／光束组采集、按正式component版本合同构造回到基线目标、光束Image顶点格式、官方LuaInit删除`_LuaBindings`后ESSM删除闭包失效。第11次重连发生原生AV，原因是Backdrop教程surface在Player roster创建前解引用首Player，已后置到对象完成后具名Finalize；第12次重连和正常退出未复现该崩溃。截图按125% DPI被裁切的问题已在harness线程DPI上下文中修复。新鲜菜单静态检查又补齐Room bounds→Camera的几何前置。
+
+后续M／P两轮Source均已正常退出；N修复合作选择面板成对索引的展示上下文，O修复关闭console后的ESC编排。冷Client的背景纹理差异定位为仅写`Backdrop.seed`却未初始化实际绘图消费的独立`Backdrop.rng`，已接入正式观测中的真实背景构建seed与shift。Q在原生展示准备时因water检查安全退休：原生Room构造函数未初始化`_waterAmount`，不是Backdrop生成了额外水面；现于phase2明确应用Source最终值。R又因FX `+0x34` countdown未初始化且被混入vector归属检查而安全退休；现安装正式目标countdown并分开原生vector归属与最终状态检查。S已继续执行真实FX／ray绘制并通过上述14项自动用例及正常退出文件比较。
+
+第20次T的只读诊断证明身体已提交顶点、小地图已实际调用原生Render，缺图并非对象字段不足。根智能体与I4核定共享FBO深度缓冲：`PresentWithoutSwap`重置深度序列但不清深度，本方曾在主画面中途多次调用，并遗漏原生offscreen `Present`的深度清理。修复先完成shadow／light预绘，仅对本方刚设置并精确核对的非空目标调用原生Present，再连续提交floor、分层实体、walls、shading、shadow、Player、light、rays、HUD；不修改坐标、身体字段或直接写GL深度状态。
+
+**最终第21次U：Release编译通过，独立Client的14项自动用例全部PASS，正常退出码0，主智能体亲自完成Host／Client基线及姿态画面对照。** 玩家身体、小地图与阴影均正确，背景纹理一致，选中环境光束可见，先前视觉问题未复现。I1—I8在上述代表范围内实现及统一验收完成。历史A—T的失败事实保留；本轮临时来源、日志、截图和本次崩溃产生的转储在收束时清理，不另留artifact包。
+
+| 统一验收设计 | 本轮实际覆盖 |
+| --- | --- |
+| E1／E3 | 独立Source正常退出后冷Client从菜单构建；真实控制台打开、持续绘制及Esc恢复；Host／Off切换；实际Start／Restore／Room.Init加载入口拒绝 |
+| E2／E4 | 实际普通／odd／RoomTransition等入口、原始调用计数、Lua回调阻断；含动画事件的姿态保持，无自主更新、RNG或重复生成 |
+| E5 | main／overlay、分数相位、动态换图、原生资源重建、FX及光束；主智能体画面对照 |
+| E6／E7 | 缺资源后的部分写入退休／恢复，非法姿态及预算写前拒绝，引用清空、无效引用和旧目标／Scope拒绝 |
+| E8 | 实际外线程、失效借用和GL context解绑／恢复拒绝；主线程和真实context上的创建、绘制、GC与退休 |
+| E9 | native／Lua／Mod持久入口前置拒绝及内存值不变，Client窗口和正常关闭后的Documents、Steam remote、官方附属文件及ModData逐字节比较；仅具名日志／退出Options允许变化。沿用用户D27决定，每日`save_backups`不参与文件判定；不声称已观测任意第三方IO或强制终止 |
+| E10 | 准备取消、部分失败恢复、停止、安全菜单交还、重连及展示期间真实WM_CLOSE退出；实际最后保存者归因见持久专题 |
+| E11／E12 | 原生create／原位change／同key换实例／remove／重复目标，值回到基线、关系设置与清空、新Scene和旧Scope；只有真实原生提交发布成功 |
+
 ## 2026-11-02 公共骨架及 I6／I7／I3 实施状态
 
 ### I3 玩法分派静态接线（2026-11-02）

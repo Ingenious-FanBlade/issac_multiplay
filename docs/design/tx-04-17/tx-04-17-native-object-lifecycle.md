@@ -159,6 +159,38 @@ remove的受控提交发生于下一次sort／shadow／entity draw之前；Clear
 
 源码和静态范围明确不等于R2运行实现完成，也不等于R1完整初始化已闭合。后续以本表具体问题回补，不设置gate、哈希校验或额外分项验收。
 
+## 8 tx-04-17 I2实现接线（2026-11-02）
+
+以下为本轮代码事实及补充静态核对，尚未由统一E2E验收。`mod/src/game/client_objects.cpp`持有不可变候选、最后对象提交和A→T计划；`client_objects_native.cpp`持有主线程稳定key→原生实例表。`client_objects_native.h`是C++17纯值边界，不包含15模型或SDK。上面的历史研究、失败和UNKNOWN保持。
+
+本轮真实代表路径是普通Isaac首Player（Type1／Variant0／SubType0）和Effect57（SubType0／1）。目标必须显式携带`client_profile.id=tx-04-17-representative-v1`，并采用正式15对象／引用／resource_pose形态的具名字段投影；完整原始来源与选择集合由调用者保留说明。未知ReplicatedState字段明确返回`objects_field_unsupported`，不能把代表投影的提交扩大为18—20完整类别／全字段已应用。NPC／Pickup的Morph、Grid及特殊Player不因存在研究记录而声明已经接入。
+
+- 首Player使用与`0x98F63E`相同的游戏分配器、SDK构造方法、PlayerManager roster发布、派生Init，再应用服务器最终基础统计／生命／货币值和内嵌Sprite资源，最后调用已核`0x413D00 __thiscall(EntityList*,Entity*)`发布成员。Init中的`0x7518B5`→Pre统计链只在本次同一Player受控构建窗口由唯一Hook清单跳过；安装资格读取真实trampoline。保留EntityPlus、ESSM等ctor／Init必要维护，不调用Post统计、EvaluateItems或合作选择wheel来生成目标。
+- 补充静态核对`0x413270`显示EntityList ctor已分配main／render各16384、persistent256、update2048的成员数组。`0x413D00`将Player放入persistentEL，普通Effect放入mainEL，二者另有render成员及依flags的update成员；不能只在mainEL查Player。Room ctor未初始化`+0x1214`本地Index计数，首Player在空roster和空owner成员验证后由本方初始化为0，后续发布递增；服务器Index和wire key不填入该字段。
+- Effect使用`EntityFactory::Create(1000,true)`不覆盖存活池项，执行真实派生Init，再写最终字段／资源及发布。补充复读Effect vtable `0xB14D00`的Init `0x5CD070`：所选57分支只选`Effect`／`Effect2`动画，共同资源上传和回调仍保留；没有把其它variant的随机／生成分支一起放行。形态变化采用本地实例替换，逻辑key保持、实例号增加，不调用未闭合的Morph。
+- 引用按全部实例建成后再用官方`EntityPtr::SetReference`登记Parent／Child／Target／Spawner及反向表，允许该合同下的循环引用。明确Null同时接收15投影的`status=Null`和正式`Subject(nil)`保留的`resolution=Null`；未知／历史／退休引用不当成空值。当前use资格比较vptr、InitSeed、本地Index和形态；地址相同不恢复旧实例资格。
+- Effect remove只执行一次非战斗Remove、从实际相关EL摘除、提前保留的官方`_LuaBindings.EntityManager.DeleteEntity`原闭包的ESSM清理、ClearReferences和`valid=false`，再通过已核`0x416D10 __thiscall(EntityList*,int,int,int)`撤类型查询缓存。池内嵌Sprite和EntityPlus继续随池owner管理，不delete池槽、不手动Reset Sprite。ClearReferences前拒绝非空`+0x310`未分类附属owner，避免无解释的连带Remove。
+- 创建／字段／资源／成员／引用分阶段保留实际进入前缀，结果附key、实例号和对象前缀。所有实际应用经I3具名NativeApply根，不授权嵌套玩法Update。全部字段、引用、成员和资源检查完成后才开放本方Visit；原生早发布成员不获得展示或ACK资格。重复同值目标不再Factory／Init／Remove／资源重载。
+- 全场景退休先撤本方映射，再由I1的Room重建→PlayerManager清理→HUD清理承担真实释放，避免重复Free。已经Init但尚未Publish的孤立Effect池use由本方在NativeTeardown根先退休。未正常完成派生Init、Player未交PM、实例发生外部换代或异常Remove前缀不能安全接续时保留owner并保持Client；不假称已回滚、已Off或已处理完整OOM／SEH闭包。
+
+`CancelPlanned()`只取消尚未执行且本次无原生写入的纯值计划，供其它域预检失败时保留当前原生A。每轮资源命令由场景分帧推进，I6退尽借用和真实CPU提交队列后才允许破坏实例／资源。构建、安装链、真实首Player／Effect图像、停止／异常退休和全过程进度隔离仍由主智能体在全部实现后的同一tx统一验收；本段不记录分项测试通过。
+
+2026-11-02同一tx统一E2E第10次续测实际在replace的key `1:1:4`、本地实例2、revision4／attempt4返回`objects_remove_auxiliary_or_essm_unknown`，当时对象前缀573、应用前缀575，随后安全退休；该失败保留，不改判为通过。静态复读`LuaInit.cpp:209—247`确认官方先将EntityManager两个闭包绑定进其私有registry，再主动把全局`_LuaBindings`置nil；`main_ex.lua:2245—2246`也将`_GetModule`和`s_modules`置nil，因此旧实现运行期从该global取DeleteEntity必定失败，合并错误不能证明当时`+0x310`的值。
+
+修复在现有官方`main_ex`正常返回、`LuaInit`尚未删除global的窗口调用`ClientObjectSealEssmDeleteBinding`，通过受保护C thunk将真实owner表和原DeleteEntity闭包保留在本DLL私有Lua registry key。重复同VM调用只核对owner／闭包身份，不覆盖未知snapshot；注册分配失败或身份不同使Client准备资格撤销。执行时只读当前VM自己的snapshot，核对owner上的函数仍是原闭包后才通过pcall发送删除通知；不扫描官方私有registry编号、不重新加载ESSM，也不重新导出内部接口。VM关闭由其registry自动释放本方强引用，C++没有可跨VM复用的Lua引用编号。运行期错误现分别保留辅助owner非空、VM／栈预算、绑定缺失／变化和回调失败；孤立池use退休采用同一机制。本次修复尚待主智能体在该tx统一续测中观察，未由子智能体另行构建或测试。
+
+2026-11-02第15次统一续测O的冷启动Client图像仍缺普通Player身体，M的Authority源图像则为完整普通Isaac；同帧Effect57身体已持续显示。该失败不能由先前同进程Host预热后的显示成功覆盖。补充静态核对：普通Player组合绘制为`0x784A60→0x783680→RenderBody 0x786460／RenderHead 0x786760→ANM2::RenderLayer 0x405A50`。Body按`_playerCostumeMap`选择主Sprite的层1—3或实际服装Sprite，Head选择层4—10；普通身体不使用SDK所述“null动画临时副本”`_bodySprite`。Init共同路径已调用`0x7580B0`，清服装vector并将15层index／layer初始化为-1，身体分类为1／2／3／11；源`GetCostumeLayerMap`的priority=-1与该初值0的差别不参与普通身体选源，不能据此直接认定缺体原因。
+
+原生上述绘制链不以AnimationState播放位决定是否画身体；官方`InterpolV2.cpp`在未进入Game::Render或停止播放时继续调用原绘制，只跳过插值。因此没有证据支持把停止播放改为推进动画。实际绘制仍分别受AnimationLayer、LayerState、选中AnimationFrame的可见性及图像引用约束；源正式模型已有这些公开元数据，不能把LayerState可见单独当作全部成立。I4已在显式diagnostics的真实首draw补15层map、服装数及main／overlay身体帧条件，留同一tx统一续测定位。本轮未调用玩法Update、Pre／Post统计或EvaluateItems，也未为无关priority差异扩充代表profile。
+
+第19次S的实际首draw显示服装为空、map与源一致，main身体层有10帧且selector0／三种可见性／图像引用均有效，仍缺身体。诊断中的`gate139a=11776`来自读取两字节；原始`0x7C1884`只比较`BYTE +0x139A`，其低字节实际为0，非零的是未参与该谓词的`+0x139B`。Init也已显式清`WORD +0x1398`和`BYTE +0x139A`，本次没有据相邻字节清内存。新增唯一Hook清单上的`RenderBody(Vector*)`／`RenderHead(Vector*)`只读包装（RVA `0x386460`／`0x386760`，SDK __thiscall），原链每次恰好一次，诊断只对本方已提交且仍为当前use的Player、主线程Render owner生效。每个实际写代次的Body／Head各记首次真实调用前后，记录实际位置、alpha／override、sprite尺度／offset、两处native skin缓存、light／shader／target及普通／透明队列。batch缓存指针只有在当帧仍在途队列中找到相应image／batch、且opaque batch仍属于该image容器时才读取单buffer的顶点／索引size；不解引用未知或仅前帧残留的last指针。此值用于避免把共用image的队列长度不变误判为没有提交，live=false时的0不作无提交证明。退休／销毁撤销诊断owner，不保留跨原生寿命的Player地址。本段只补可定位的运行观测，不宣称缺体已修复。
+
+第20次T的真实Body／Head原链诊断进一步证明：Body调用前透明队列为空，正常返回后同一图像的live透明batch已有8个顶点／12个索引；Head随后将同一batch增加到12个顶点／18个索引。实际位置为216.5／158、alpha1、scale1、offset0、light关闭、无颜色override，两个隐身byte均0、两处skin缓存均-1。Sprite flags8在官方枚举中仅为`APPLY_LAYER_SCALE_TO_SPRITE`，普通COLOR_OFFSET shader选路未变；外层graphics.shader为空是官方提交helper临时设shader后恢复的状态，不表示batch没有shader。故身体并非未构造、未进入RenderBody或未提交，I2不再为该图像问题改写普通对象字段／动画播放语义。
+
+本次缺体后续修复归属I4展示pass编排及主审接线：原生offscreen预pass使用`Present 0x9E4170`，target非空时提交后清depth；此前误用的`PresentWithoutSwap 0x9E5340`会把全局深度cursor复位为-1，却不清共享depthbuffer，恢复target本身也不清深度。主审／I4据此将shadow／light前置为完整offscreen预pass，再连续提交主画面队列；图像修复仍由同一tx统一续测观察，不以T的对象batch证据替代最终像素验收。I2 normal object逻辑保持，未调用额外玩法／动画Update修复显示。
+
+第21次U统一续测中，主审亲自查看并对照baseline，确认上述I4原位修复后Player身体完整、小地图恢复、额外黑点消失，pose光线显示正常；14个自动用例全部通过、正常退出码0、严格存档隔离检查通过。本次显示修复没有更改I2普通对象最终字段或动画播放语义，也没有增加玩法／动画Update调用；O／S的缺体失败与T的定位证据仍按原事实保留。子智能体仅补此结果记录，未另行构建、测试或编辑源码。
+
 ## 7 主审取舍与本轮收束
 
 主智能体独立回读Factory、完整Spawn、成员发布及其EL子helper、基Remove／ClearReferences与67回调helper、NPC／Pickup Morph、PGD bestiary写入、首Player专用owner／vtable／Pre和Post调用段、合作选择数据原始指令、HUD关联以及相关官方源码。保留子智能体关于阶段拆分和R1依赖的有效结论；没有将其未审的传递调用当作已闭合。

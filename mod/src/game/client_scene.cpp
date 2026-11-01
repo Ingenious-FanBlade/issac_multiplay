@@ -1,9 +1,15 @@
 #include "game/client_scene.h"
+#include "game/client_objects.h"
+#include "game/client_presentation.h"
 #include "game/context.h"
 #include "game/bridge.h"
 #include "runtime.h"
 #include <cstdio>
 #include <cstring>
+#include <charconv>
+#include <cmath>
+#include <limits>
+#include <algorithm>
 #include <windows.h>
 #include <GL/gl.h>
 
@@ -19,12 +25,116 @@ std::uint64_t NewSceneEpoch() noexcept {
   }
   return 0;
 }
+const replica::Value *Member(const replica::Value *v,const char *name) noexcept {
+  return v&&v->IsObject()&&v->HasMember(name)?&(*v)[name]:nullptr;
 }
+const replica::Value *Fields(const replica::Value *v) noexcept {return Member(v,"fields");}
+const replica::Value *Scalar(const replica::Value *v) noexcept {
+  if(v&&v->IsObject()&&v->HasMember("type")&&(*v)["type"].IsString()&&
+     std::strcmp((*v)["type"].GetString(),"int64")==0)return Member(v,"value");
+  return v;
+}
+bool Integer(const replica::Value *v,std::int64_t &out) noexcept {
+  v=Scalar(v);if(!v)return false;
+  if(v->IsInt64()){out=v->GetInt64();return true;}
+  if(v->IsUint64()&&v->GetUint64()<=std::uint64_t(INT64_MAX)){out=std::int64_t(v->GetUint64());return true;}
+  if(v->IsString()){
+    const auto result=std::from_chars(v->GetString(),v->GetString()+v->GetStringLength(),out);
+    return result.ec==std::errc{}&&result.ptr==v->GetString()+v->GetStringLength();
+  }
+  return false;
+}
+bool Int(const replica::Value *v,int &out) noexcept {
+  std::int64_t number=0;if(!Integer(v,number)||number<INT32_MIN||number>INT32_MAX)return false;
+  out=int(number);return true;
+}
+bool UInt(const replica::Value *v,std::uint32_t &out) noexcept {
+  std::int64_t number=0;if(!Integer(v,number)||number<0||number>UINT32_MAX)return false;
+  out=std::uint32_t(number);return true;
+}
+bool Float(const replica::Value *v,float &out) noexcept {
+  v=Scalar(v);if(!v)return false;
+  double number=0;
+  if(v->IsNumber())number=v->GetDouble();
+  else {std::int64_t integer=0;if(!Integer(v,integer))return false;number=double(integer);}
+  if(!std::isfinite(number)||number<-std::numeric_limits<float>::max()||number>std::numeric_limits<float>::max())return false;
+  out=float(number);return true;
+}
+// 只读取15已经表达的具名值；缺字段不以菜单、seed或本地模拟补齐。
+bool SceneDescription(const replica::Value &model,ClientNativeSceneDescription &out,const char *&reason) noexcept {
+  const auto *components=Member(&model,"components");
+  const auto *room=Member(Member(components,"room"),"state");
+  const auto *level=Member(Member(components,"level"),"state");
+  const auto *run=Member(Member(components,"run"),"state");
+  const auto *room_fields=Fields(Member(room,"state"));
+  const auto *level_fields=Fields(Member(level,"state"));
+  const auto *run_fields=Fields(Member(run,"state"));
+  const auto *config_fields=Fields(Member(Member(room,"config"),"state"));
+  const auto *descriptor_fields=Fields(Member(level,"current_descriptor"));
+  const auto *backdrop_runtime=Member(Member(room,"presentation_runtime"),"backdrop_runtime");
+  const auto *presentation_runtime=Member(room,"presentation_runtime");
+  out={};reason="native_scene_fields_missing";
+  if(!Int(Member(room,"room_index"),out.room_index)||!Int(Member(room,"dimension_index"),out.dimension)||
+     !Int(Member(level_fields,"Level.GetStage"),out.stage)||!Int(Member(level_fields,"Level.GetStageType"),out.stage_type)||
+     !Int(Member(level_fields,"Level.EnterDoor"),out.enter_door)||
+     !Int(Member(run_fields,"Game.Difficulty"),out.difficulty)||!Int(Member(run_fields,"Game.Challenge"),out.challenge)||
+     !Int(Member(config_fields,"RoomConfigRoom.StageID"),out.config_stage)||
+     !Int(Member(config_fields,"RoomConfigRoom.Mode"),out.config_mode)||
+     !Int(Member(config_fields,"RoomConfigRoom.Type"),out.room_type)||
+     !Int(Member(config_fields,"RoomConfigRoom.Variant"),out.variant)||
+     !Int(Member(config_fields,"RoomConfigRoom.Subtype"),out.subtype)||
+     !Int(Member(config_fields,"RoomConfigRoom.Shape"),out.shape)||
+     !Int(Member(config_fields,"RoomConfigRoom.Width"),out.width)||
+     !Int(Member(config_fields,"RoomConfigRoom.Height"),out.height)||
+     !Int(Member(descriptor_fields,"RoomDescriptor.ListIndex"),out.list_index)||
+     !Int(Member(descriptor_fields,"RoomDescriptor.SafeGridIndex"),out.safe_grid_index)||
+     !Int(Member(descriptor_fields,"RoomDescriptor.AllowedDoors"),out.allowed_doors)||
+     !Int(Member(descriptor_fields,"RoomDescriptor.Flags"),out.descriptor_flags)||
+     !Int(Member(descriptor_fields,"RoomDescriptor.VisitedCount"),out.visited_count)||
+     !Int(Member(descriptor_fields,"RoomDescriptor.ClearCount"),out.clear_count)||
+     !UInt(Member(descriptor_fields,"RoomDescriptor.SpawnSeed"),out.spawn_seed)||
+     !UInt(Member(descriptor_fields,"RoomDescriptor.DecorationSeed"),out.decoration_seed)||
+     !UInt(Member(descriptor_fields,"RoomDescriptor.AwardSeed"),out.award_seed)||
+     !UInt(Member(room_fields,"Room.GetBackdropType"),out.backdrop)||
+     !UInt(Member(backdrop_runtime,"construction_seed"),out.backdrop_seed)||
+     !UInt(Member(backdrop_runtime,"shift1"),out.backdrop_shift1)||
+     !UInt(Member(backdrop_runtime,"shift2"),out.backdrop_shift2)||
+     !UInt(Member(backdrop_runtime,"shift3"),out.backdrop_shift3)||
+     !Float(Member(presentation_runtime,"water_amount"),out.water_amount))return false;
+  const auto *center=Member(room_fields,"Room.GetCenterPos");
+  if(!Float(Member(center,"x"),out.camera_x)||!Float(Member(center,"y"),out.camera_y))return false;
+  const auto *doors=Member(descriptor_fields,"RoomDescriptor.Doors");
+  if(!doors||!doors->IsArray()||doors->Size()!=8){reason="native_descriptor_doors_missing";return false;}
+  unsigned seen=0;
+  for(const auto &door:doors->GetArray()){
+    int slot=0,target=0;
+    if(!Int(Member(&door,"slot"),slot)||slot<0||slot>7||(seen&(1u<<slot))||
+       !Int(Member(&door,"target_grid_index"),target)){reason="native_descriptor_door_invalid";return false;}
+    seen|=1u<<slot;out.door_targets[slot]=target;
+  }
+  // 17的代表路径解析同一配置的Data/Override；真正的双配置适配不能默默丢掉其差异。
+  const auto *override_fields=Fields(Member(Member(room,"override_config"),"state"));
+  if(override_fields)for(const char *name:{"RoomConfigRoom.StageID","RoomConfigRoom.Mode","RoomConfigRoom.Type",
+       "RoomConfigRoom.Variant","RoomConfigRoom.Subtype","RoomConfigRoom.Shape","RoomConfigRoom.Width","RoomConfigRoom.Height"}){
+    const auto *a=Member(config_fields,name),*b=Member(override_fields,name);
+    if(!a||!b||*a!=*b){reason="native_distinct_override_config";return false;}
+  }
+  reason="native_scene_description_ready";return true;
+}
+}
+ClientScene::ClientScene() noexcept=default;
+ClientScene::~ClientScene() {ClientNativeWorldDestroy(native_world_);}
 // 新连接只建立等待身份；从不把等待 Scope 的 run/room 伪装成原生场景。
 void ClientScene::Begin(const replica::Scope &scope) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
   if(!CanReturnToMenu()){FailureResult(ClientResultKind::PartialNativeFailure,"begin","old_owner_inflight");state_=ClientSceneState::Failed;return;}
   waiting_scope_=scope;target_scope_={};applied_scope_={};target_.reset();applied_.reset();
+  ClientNativeWorldDestroy(native_world_);native_world_=nullptr;objects_.reset();presentation_.reset();
+  applied_valid_=rebuild_pending_=objects_planned_=objects_retired_=pumping_=false;
+  attempt_invalidated_=false;
+  objects_complete_=presentation_retired_=false;
+  retirement_complete_=false;
+  retired_scopes_={};retired_scope_count_=0;
   native_dispatch_prefix_=false;
   target_revision_=applied_revision_=0;
   const auto epoch=NewSceneEpoch();
@@ -35,6 +145,9 @@ void ClientScene::Begin(const replica::Scope &scope) noexcept {
   current_dc_=current_context_=observed_dc_=observed_context_=nullptr;
 }
 void ClientScene::FailureResult(ClientResultKind kind,const char *phase,const char *reason) noexcept {
+  if(kind==ClientResultKind::PartialNativeFailure||kind==ClientResultKind::ContextOrThreadFault||kind==ClientResultKind::UnsupportedRequirement)
+    Trace("client_apply_failure","revision=%llu attempt=%llu kind=%u phase=%s reason=%s prefix=%u written=%u",
+      result_.revision,result_.attempt,unsigned(kind),phase?phase:"unknown",reason?reason:"unknown",result_.executed_prefix,unsigned(result_.native_written));
   result_.kind=kind;
   std::snprintf(result_.phase.data(),result_.phase.size(),"%s",phase?phase:"unknown");
   std::snprintf(result_.reason.data(),result_.reason.size(),"%s",reason?reason:"unknown");
@@ -51,17 +164,14 @@ bool ClientScene::NoteNativeDispatchEntry() noexcept {
   ++result_.executed_prefix;
   return true;
 }
-// 现阶段模型载荷没有进入 Client worker；任何直接调用均不可被误认为 native Applied。
+// 接纳只建立自有T和计划；较新T取消已写前缀时先退休原生世界，再从完整T重建。
 bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision,
                               const replica::Value &value) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
-  if(state_==ClientSceneState::Retiring||state_==ClientSceneState::Failed||
+  if((state_==ClientSceneState::Retiring&&!rebuild_pending_)||pumping_||
      active_native_||active_lua_||active_graphics_||active_observation_||active_dispatch_){
     FailureResult(ClientResultKind::Retiring,"admit","owner_unavailable");return false;
   }
-  result_.scope=scope;result_.revision=revision;
-  if(next_attempt_==UINT64_MAX){FailureResult(ClientResultKind::BudgetExhausted,"admit","attempt_exhausted");return false;}
-  result_.attempt=++next_attempt_;
   if(!scope.session||!scope.connection||!scope.run||!scope.scene||!revision||
      scope.session!=waiting_scope_.session||scope.connection!=waiting_scope_.connection) {
     FailureResult(ClientResultKind::WaitingDependency,"admit","formal_scope_required");return false;
@@ -76,25 +186,191 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     for(const auto &borrow:borrows_)if(borrow.id){
       FailureResult(ClientResultKind::Retiring,"admit","borrow_inflight");return false;
     }
-    if(target_&&scope!=target_scope_){
-      FailureResult(ClientResultKind::UnsupportedRequirement,"admit","scene_transition_unavailable");return false;
+    for(unsigned i=0;i<retired_scope_count_;++i)if(scope==retired_scopes_[i]){
+      FailureResult(ClientResultKind::WaitingDependency,"admit","retired_scope");return false;
     }
-    if(target_&&revision==target_revision_) {
+    if(applied_valid_&&applied_&&scope==applied_scope_&&revision==applied_revision_&&*applied_==value){
+      FailureResult(ClientResultKind::DuplicateTarget,"committed","duplicate_native_committed");
+      result_.scope=scope;result_.revision=revision;result_.native_committed=true;result_.old_display_valid=true;return true;
+    }
+    if(target_&&scope==target_scope_&&revision==target_revision_) {
       FailureResult(*target_==value?ClientResultKind::DuplicateTarget:ClientResultKind::UnsupportedRequirement,
-                    "admit",*target_==value?"duplicate_target":"same_version_conflict");return false;
+                    "admit",*target_==value?"duplicate_target":"same_version_conflict");return *target_==value;
     }
-    if(target_&&revision<target_revision_) {
+    if(target_&&scope==target_scope_&&revision<target_revision_) {
       FailureResult(ClientResultKind::WaitingDependency,"admit","stale_revision");return false;
     }
-    if(applied_&&(scope!=applied_scope_||revision<=applied_revision_)) {
+    if(applied_&&scope==applied_scope_&&revision<=applied_revision_) {
       FailureResult(ClientResultKind::WaitingDependency,"admit","already_applied_revision");return false;
     }
+    ClientNativeSceneDescription description{};const char *reason=nullptr;
+    if(!SceneDescription(value,description,reason)){
+      FailureResult(ClientResultKind::UnsupportedRequirement,"admit",reason);return false;
+    }
+    if(next_attempt_==UINT64_MAX){FailureResult(ClientResultKind::BudgetExhausted,"admit","attempt_exhausted");return false;}
     auto copy=std::make_unique<replica::Json>(replica::Copy(value));
+    if(!objects_)objects_=std::make_unique<ClientObjects>();
+    if(!presentation_)presentation_=std::make_unique<ClientPresentation>();
+    const bool changing_scope=target_&&scope!=target_scope_;
+    if(changing_scope&&retired_scope_count_==retired_scopes_.size()){
+      FailureResult(ClientResultKind::BudgetExhausted,"admit","retired_scope_budget");return false;
+    }
+    const bool need_rebuild=state_==ClientSceneState::Failed||rebuild_pending_||
+        (ClientNativeWorldHasPrefix(native_world_)&&
+         (state_!=ClientSceneState::Displaying||changing_scope||!ClientNativeWorldCanReuse(native_world_,description)));
+    // 写世界前先完成所有纯值计划；失败保留上一已提交展示资格。
+    if(!need_rebuild&&!objects_->PrepareTarget(value,applied_valid_?applied_.get():nullptr,reason)){
+      FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);return false;
+    }
+    if(!need_rebuild&&!presentation_->PrepareTarget(value,reason)){
+      // 纯值展示预检失败时撤销尚未执行的对象计划，保留当前原生A及其身份表。
+      if(!objects_->CancelPlanned())Fail("unexecuted_plan_cancel_failed");
+      FailureResult(ClientResultKind::UnsupportedRequirement,"presentation_plan",reason);return false;
+    }
+    if(changing_scope)retired_scopes_[retired_scope_count_++]=target_scope_;
     target_=std::move(copy);target_scope_=scope;target_revision_=revision;
+    native_description_=description;objects_planned_=!need_rebuild;objects_retired_=false;attempt_invalidated_=false;
+    objects_complete_=presentation_retired_=false;
+    retirement_complete_=false;
+    const auto pending=result_.pending_owners;
+    result_={};result_.scope=scope;result_.revision=revision;result_.attempt=++next_attempt_;
+    result_.pending_owners=pending;result_.old_display_valid=applied_valid_;
+    if(need_rebuild){
+      rebuild_pending_=true;applied_valid_=false;state_=ClientSceneState::Retiring;
+      for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
+      FailureResult(ClientResultKind::Retiring,"rebuild","target_requires_native_rebuild");
+    }else{
+      state_=ClientSceneState::Preparing;
+      FailureResult(ClientResultKind::WaitingDependency,"prepare","target_planned");
+    }
+    return true;
   } catch(...) {FailureResult(ClientResultKind::UnsupportedRequirement,"admit","invalid_or_unavailable_target");return false;}
-  // T 有独立所有权；没有原生 adapter 时仍不得进入准备或改动 A。
-  FailureResult(ClientResultKind::UnsupportedRequirement,"admit","native_adapter_unavailable");
-  return false;
+}
+void ClientScene::NoteNativeStep(const ClientNativeStep &step,const char *phase) noexcept {
+  result_.executed_prefix=(std::max)(result_.executed_prefix,step.prefix);
+  if(step.written&&!step.safe_menu){result_.native_written=true;result_.old_display_valid=false;applied_valid_=false;}
+  if(step.state==ClientNativeStepState::Failed){
+    FailureResult(ClientResultKind::PartialNativeFailure,phase,step.reason);
+    state_=ClientSceneState::Failed;rebuild_pending_=false;
+  }else if(step.state==ClientNativeStepState::Waiting)
+    FailureResult(ClientResultKind::WaitingDependency,phase,step.reason);
+  else FailureResult(ClientResultKind::WaitingDependency,phase,step.reason);
+}
+// 同一主线程泵只做一个完整子步骤；借用/原生队列未退尽时返回下一轮，不等待网络或磁盘。
+void ClientScene::Pump() noexcept {
+  if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
+  if(pumping_||TopOwner()!=Owner::Manager||!ContextHealthy()||InBlockedContext())return;
+  pumping_=true;
+  ContextWindow();DrainRetained();
+  const bool retiring=state_==ClientSceneState::Retiring||state_==ClientSceneState::Failed;
+  if(!DestructiveReady()){pumping_=false;return;}
+  if(retiring){
+    // 已停止展示与新借用后先撤本方映射，再让原生Room/Player/HUD单一owner真实退休。
+    ClientBorrowToken borrow{};
+    if(!Borrow(ClientPurpose::NativeRetire,borrow)){pumping_=false;return;}
+    if(presentation_&&!presentation_retired_){
+      const auto step=presentation_->Retire(ClientNativeWorldRoots(native_world_));
+      if(step.failed){FailureResult(ClientResultKind::PartialNativeFailure,"presentation_retire",step.reason);state_=ClientSceneState::Failed;}
+      else presentation_retired_=step.done;
+      Release(borrow);pumping_=false;return;
+    }
+    if(objects_&&!objects_retired_){
+      const auto step=objects_->Retire(ClientNativeWorldRoots(native_world_));
+      result_.executed_prefix=(std::max)(result_.executed_prefix,step.executed_prefix);
+      if(step.failed){FailureResult(ClientResultKind::PartialNativeFailure,"objects_retire",step.reason);state_=ClientSceneState::Failed;}
+      else objects_retired_=step.done;
+      Release(borrow);pumping_=false;return;
+    }
+    if(native_world_){
+      const auto step=ClientNativeWorldRetire(native_world_);NoteNativeStep(step,"native_retire");
+      if(step.safe_menu){result_.native_written=false;result_.native_owners=0;}
+    }
+    Release(borrow);FinishRetirementIfDrained();pumping_=false;return;
+  }
+  if((state_!=ClientSceneState::Preparing&&state_!=ClientSceneState::Applying)||!target_){pumping_=false;return;}
+  if(!objects_planned_){
+    const char *reason=nullptr;
+    if(!objects_){try{objects_=std::make_unique<ClientObjects>();}catch(...){Fail("objects_allocation");pumping_=false;return;}}
+    if(!objects_->PrepareTarget(*target_,applied_valid_?applied_.get():nullptr,reason)){
+      FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);Fail(reason);pumping_=false;return;
+    }
+    if(!presentation_){try{presentation_=std::make_unique<ClientPresentation>();}catch(...){Fail("presentation_allocation");pumping_=false;return;}}
+    if(!presentation_->PrepareTarget(*target_,reason)){Fail(reason);pumping_=false;return;}
+    objects_planned_=true;
+  }
+  if(!GraphicsWindowValid()){
+    FailureResult(ClientResultKind::WaitingDependency,"prepare","native_graphics_context");pumping_=false;return;
+  }
+  if(!native_world_){
+    native_world_=ClientNativeWorldCreate();
+    if(!native_world_){Fail("native_world_allocation");pumping_=false;return;}
+  }
+  if(!attempt_invalidated_){InvalidateInstance();attempt_invalidated_=true;}
+  if(state_==ClientSceneState::Failed){pumping_=false;return;}
+  ClientBorrowToken native{},graphics{};
+  if(!Borrow(ClientPurpose::NativeApply,native)){pumping_=false;return;}
+  if(!Borrow(ClientPurpose::Graphics,graphics)){Release(native);pumping_=false;return;}
+  if(state_==ClientSceneState::Preparing){
+    const auto step=ClientNativeWorldPrepare(native_world_,native_description_);
+    NoteNativeStep(step,"native_prepare");
+    if(step.state==ClientNativeStepState::Ready)state_=ClientSceneState::Applying;
+  }else{
+    const auto roots=ClientNativeWorldRoots(native_world_);
+    // 每轮最多一个对象命令；候选资源在释放用途借用后由下一轮DrainRetained收口。
+    const auto step=objects_complete_?ClientObjectStep{true,false,false,0,result_.native_owners,"objects_complete"}:objects_->Step(roots,1);
+    result_.executed_prefix=(std::max)(result_.executed_prefix,step.executed_prefix);
+    result_.native_owners=step.pending_owners;
+    if(Settings.diagnostics&&step.key.id)Trace("client_object_step","key=%llu:%u:%llu instance=%llu prefix=%u done=%u failed=%u reason=%s",
+      step.key.run,step.key.space,step.key.id,step.instance,step.object_prefix,unsigned(step.done),unsigned(step.failed),step.reason);
+    if(step.written){result_.native_written=true;result_.old_display_valid=false;applied_valid_=false;}
+    if(step.failed){
+      FailureResult(ClientResultKind::PartialNativeFailure,"objects_apply",step.reason);state_=ClientSceneState::Failed;
+    }else if(step.done){
+      objects_complete_=true;
+      // Backdrop.Init的教程surface读取首Player，必须等正式对象计划已完成roster/EL，
+      // 并在I4缓存准备/绘制前具名收尾；空PM不得靠旧vector存储继续解引用。
+      const auto finalized=ClientNativeWorldFinalize(native_world_);
+      NoteNativeStep(finalized,"native_finalize");
+      if(finalized.state==ClientNativeStepState::Ready){
+        const auto present=presentation_->Step(roots);
+        if(present.written){result_.native_written=true;result_.old_display_valid=false;applied_valid_=false;}
+        if(present.failed){
+          FailureResult(ClientResultKind::PartialNativeFailure,"presentation_prepare",present.reason);state_=ClientSceneState::Failed;
+        }else if(!present.done)FailureResult(ClientResultKind::WaitingDependency,"presentation_prepare",present.reason);
+        else {
+          const auto check=ClientNativeWorldCheckCommit(native_world_);NoteNativeStep(check,"native_commit");
+          if(check.state==ClientNativeStepState::Ready){
+            try{
+              auto committed=std::make_unique<replica::Json>(replica::Copy(*target_));
+              applied_=std::move(committed);applied_scope_=target_scope_;applied_revision_=target_revision_;
+              applied_valid_=true;state_=ClientSceneState::Displaying;
+              FailureResult(ClientResultKind::NativeCommitted,"committed","native_target_committed");
+              result_.native_committed=true;result_.old_display_valid=true;
+            }catch(...){Fail("native_commit_model_allocation");}
+          }
+        }
+      }
+    }else FailureResult(ClientResultKind::WaitingDependency,"objects_apply",step.reason);
+  }
+  Release(graphics);Release(native);pumping_=false;
+}
+bool ClientScene::DisplayReady() const noexcept {
+  return IsMain()&&state_==ClientSceneState::Displaying&&applied_valid_&&applied_&&
+         !foreign_fault_.load(std::memory_order_acquire)&&!ClientNativeWorldSafeMenu(native_world_);
+}
+ClientNativeRoots ClientScene::NativeRoots() const noexcept {
+  return DisplayReady()?ClientNativeWorldRoots(native_world_):ClientNativeRoots{};
+}
+const replica::Value *ClientScene::Published() const noexcept {return DisplayReady()?applied_.get():nullptr;}
+// 展示只读取真实提交后的同一原生世界；Render失败立即撤资格，并把退休留给Manager有效owner。
+void ClientScene::RenderPublished() noexcept {
+  if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
+  if(!DisplayReady()||!presentation_||TopOwner()!=Owner::Render)return;
+  ClientBorrowToken graphics{};
+  if(!Borrow(ClientPurpose::Graphics,graphics))return;
+  const auto step=presentation_->Render(ClientNativeWorldRoots(native_world_));
+  if(step.failed)Fail(step.reason);
+  Release(graphics);
 }
 // 每个原生、Lua、图形用途都要求已知主线程和 owner；图形另要求当前 OS context。
 bool ClientScene::Enter(ClientPurpose purpose) noexcept {
@@ -126,17 +402,19 @@ bool ClientScene::Enter(ClientPurpose purpose) noexcept {
   if(state_==ClientSceneState::Retiring||state_==ClientSceneState::Failed)return false;
   if(purpose==ClientPurpose::NativeApply){
     if(state_==ClientSceneState::Waiting||!target_){FailureResult(ClientResultKind::UnsupportedRequirement,"apply","target_unavailable");return false;}
-    if(TopOwner()!=Owner::Manager){FailureResult(ClientResultKind::ContextOrThreadFault,"apply","native_phase");return false;}
-    FailureResult(ClientResultKind::UnsupportedRequirement,"apply","native_adapter_unavailable");return false;
+    if(TopOwner()!=Owner::Manager||active_native_||
+       (state_!=ClientSceneState::Preparing&&state_!=ClientSceneState::Applying)){
+      FailureResult(ClientResultKind::ContextOrThreadFault,"apply","native_phase");return false;
+    }
+    ++active_native_;return true;
   }
   if(purpose==ClientPurpose::Lua) {
-    if(!lua_state_||(TopOwner()!=Owner::Manager&&TopOwner()!=Owner::Render)||
+    if(lua_closing_||!lua_state_||(TopOwner()!=Owner::Manager&&TopOwner()!=Owner::Render)||
        active_lua_==kMaximumInFlight){FailureResult(ClientResultKind::ContextOrThreadFault,"lua","state_phase_or_budget");return false;}
     ++active_lua_;return true;
   }
   if(purpose==ClientPurpose::Graphics) {
-    if(TopOwner()!=Owner::Render||!current_dc_||!current_context_||
-       wglGetCurrentDC()!=current_dc_||wglGetCurrentContext()!=current_context_||
+    if(!GraphicsWindowValid()||
        active_graphics_==kMaximumInFlight) {
       FailureResult(ClientResultKind::ContextOrThreadFault,"graphics","os_context_or_phase");return false;
     }
@@ -161,6 +439,38 @@ ClientScene::RetainedEntry *ClientScene::FindRetained(const ClientRetainedTicket
       entry.ticket.scene==ticket.scene&&entry.ticket.instance==ticket.instance)return &entry;
   return nullptr;
 }
+// 逐次比较 OS-current 与真正 renderer window；缓存的句柄只用于识别代次，不充当许可。
+bool ClientScene::GraphicsWindowValid() const noexcept {
+  if(!IsMain()||context_closing_||
+     (TopOwner()!=Owner::Manager&&TopOwner()!=Owner::Render)||
+     !current_dc_||!current_context_)return false;
+  void *dc=nullptr,*context=nullptr;
+  return ClientRendererHandles(dc,context)&&dc==current_dc_&&context==current_context_&&
+      wglGetCurrentDC()==dc&&wglGetCurrentContext()==context;
+}
+// 资源 admission 与 release 分离：旧修订不再可用，但其真正 owner 仍保留到有效阶段退休。
+bool ClientScene::ResourceUseValid(const RetainedEntry &entry) const noexcept {
+  if(entry.generations.scene!=generations_.scene||
+     entry.generations.instance!=generations_.instance||
+     entry.generations.resource!=generations_.resource)return false;
+  if(entry.kind==ClientRetainedKind::LuaRegistry)
+    return !lua_closing_&&lua_state_&&entry.generations.lua==generations_.lua;
+  if(entry.kind==ClientRetainedKind::Graphics||entry.phase==ClientReleasePhase::ManagerContext||
+     entry.phase==ClientReleasePhase::RenderContext)
+    return entry.generations.context==generations_.context&&GraphicsWindowValid();
+  return true;
+}
+bool ClientScene::DestructiveReady() const noexcept {
+  if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
+  if(foreign_fault_.load(std::memory_order_acquire)||draining_||lua_closing_||context_closing_||
+     !ContextHealthy()||InBlockedContext()||TopOwner()!=Owner::Manager||
+     active_native_||active_lua_||active_graphics_||active_observation_||active_dispatch_)return false;
+  for(const auto &borrow:borrows_)if(borrow.id)return false;
+  for(const auto &owner:retained_)if(owner.ticket.id&&
+      (owner.cpu_queued||owner.gpu_queued||owner.releasing||owner.failed))return false;
+  // 未登记于本方表的原生 raw 图像队列仍必须为空；这不是 Render 返回或 GPU idle 推断。
+  return ClientNativeCpuQueuesEmpty();
+}
 // 调用方在已核主线程阶段登记其合法持有的资源；同一指针只接受一个释放 owner。
 bool ClientScene::Retain(ClientRetainedKind kind,ClientReleasePhase phase,void *owned,ClientRetainedRelease release,
                          ClientRetainedTicket &ticket) noexcept {
@@ -170,18 +480,19 @@ bool ClientScene::Retain(ClientRetainedKind kind,ClientReleasePhase phase,void *
   if(!owned||!release||!generations_.scene||draining_||!ContextHealthy()||InBlockedContext()||
      state_==ClientSceneState::Retiring||state_==ClientSceneState::Failed)return false;
   // 这里只登记调用方已合法拥有的对象寿命，不执行构造或应用，也不授予 NativeApply。
-  if(kind==ClientRetainedKind::Native&&TopOwner()!=Owner::Manager)return false;
+  if(kind!=ClientRetainedKind::Native&&kind!=ClientRetainedKind::LuaRegistry&&
+     kind!=ClientRetainedKind::Graphics)return false;
+  if(kind==ClientRetainedKind::Native&&(TopOwner()!=Owner::Manager||
+     (phase!=ClientReleasePhase::Manager&&phase!=ClientReleasePhase::ManagerContext)))return false;
   if((kind==ClientRetainedKind::LuaRegistry&&phase!=ClientReleasePhase::LuaState)||
-     (kind==ClientRetainedKind::Graphics&&phase!=ClientReleasePhase::RenderContext))return false;
-  if(kind==ClientRetainedKind::LuaRegistry&&(!lua_state_||
+     (kind==ClientRetainedKind::Graphics&&phase!=ClientReleasePhase::RenderContext&&
+      phase!=ClientReleasePhase::ManagerContext))return false;
+  if(kind==ClientRetainedKind::LuaRegistry&&(lua_closing_||!lua_state_||
       (TopOwner()!=Owner::Manager&&TopOwner()!=Owner::Render)))return false;
-  if(kind==ClientRetainedKind::Graphics&&
-     (TopOwner()!=Owner::Render||!current_dc_||!current_context_||
-      wglGetCurrentDC()!=current_dc_||wglGetCurrentContext()!=current_context_))return false;
+  if(kind==ClientRetainedKind::Graphics&&!GraphicsWindowValid())return false;
   if(phase==ClientReleasePhase::LuaState&&!lua_state_)return false;
   if((phase==ClientReleasePhase::RenderContext||phase==ClientReleasePhase::ManagerContext)&&
-     (!current_dc_||!current_context_||
-      wglGetCurrentDC()!=current_dc_||wglGetCurrentContext()!=current_context_||
+     (!GraphicsWindowValid()||
       TopOwner()!=(phase==ClientReleasePhase::RenderContext?Owner::Render:Owner::Manager)))return false;
   for(const auto &entry:retained_)if(entry.ticket.id&&entry.owned==owned){
     FailureResult(ClientResultKind::UnsupportedRequirement,"retain","duplicate_native_owner");return false;
@@ -195,26 +506,22 @@ bool ClientScene::Retain(ClientRetainedKind kind,ClientReleasePhase phase,void *
 }
 bool ClientScene::QueueCpuUse(const ClientRetainedTicket &ticket) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
-  if(draining_)return false;
+  if(draining_||state_==ClientSceneState::Retiring||state_==ClientSceneState::Failed)return false;
   auto *owner=FindRetained(ticket);
-  if(!owner||owner->retiring||owner->failed||owner->generations!=generations_||
+  if(!owner||owner->retiring||owner->releasing||owner->failed||!ResourceUseValid(*owner)||
      !ContextHealthy()||InBlockedContext()||owner->cpu_queued==kMaximumInFlight)return false;
   if(owner->kind==ClientRetainedKind::Native&&TopOwner()!=Owner::Manager)return false;
   if(owner->kind==ClientRetainedKind::LuaRegistry&&
      (!lua_state_||(TopOwner()!=Owner::Manager&&TopOwner()!=Owner::Render)))return false;
-  if(owner->kind==ClientRetainedKind::Graphics&&
-     (TopOwner()!=Owner::Render||!current_dc_||!current_context_||
-      wglGetCurrentDC()!=current_dc_||wglGetCurrentContext()!=current_context_))return false;
+  if(owner->kind==ClientRetainedKind::Graphics&&!GraphicsWindowValid())return false;
   ++owner->cpu_queued;return true;
 }
 bool ClientScene::QueueGpuUse(const ClientRetainedTicket &ticket) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
-  if(draining_)return false;
+  if(draining_||state_==ClientSceneState::Retiring||state_==ClientSceneState::Failed)return false;
   auto *owner=FindRetained(ticket);
-  if(!owner||owner->kind!=ClientRetainedKind::Graphics||owner->retiring||owner->failed||
-     owner->generations!=generations_||!ContextHealthy()||InBlockedContext()||
-     TopOwner()!=Owner::Render||!current_dc_||!current_context_||
-     wglGetCurrentDC()!=current_dc_||wglGetCurrentContext()!=current_context_||
+  if(!owner||owner->kind!=ClientRetainedKind::Graphics||owner->retiring||owner->releasing||owner->failed||
+     !ResourceUseValid(*owner)||!ContextHealthy()||InBlockedContext()||!GraphicsWindowValid()||
      owner->gpu_queued==kMaximumInFlight)return false;
   ++owner->gpu_queued;return true;
 }
@@ -223,6 +530,10 @@ void ClientScene::CpuUseComplete(const ClientRetainedTicket &ticket) noexcept {
   if(ticket.scene!=generations_.scene)return;
   auto *owner=FindRetained(ticket);
   if(!owner||!owner->cpu_queued){Fail("cpu_use_unbalanced");return;}
+  if(!ContextHealthy()||InBlockedContext()||
+     (TopOwner()!=Owner::Manager&&TopOwner()!=Owner::Render)){
+    Fail("cpu_complete_without_owner");return;
+  }
   --owner->cpu_queued;DrainRetained();
 }
 void ClientScene::GpuUseComplete(const ClientRetainedTicket &ticket) noexcept {
@@ -230,6 +541,10 @@ void ClientScene::GpuUseComplete(const ClientRetainedTicket &ticket) noexcept {
   if(ticket.scene!=generations_.scene)return;
   auto *owner=FindRetained(ticket);
   if(!owner||!owner->gpu_queued){Fail("gpu_use_unbalanced");return;}
+  // 只有持原 context 的真实 fence 消费方能报告；禁止错误线程或旧 context 替它归零。
+  if(owner->generations.context!=generations_.context||!GraphicsWindowValid()){
+    Fail("gpu_complete_without_context");return;
+  }
   --owner->gpu_queued;DrainRetained();
 }
 void ClientScene::RetireRetained(const ClientRetainedTicket &ticket) noexcept {
@@ -240,11 +555,11 @@ void ClientScene::RetireRetained(const ClientRetainedTicket &ticket) noexcept {
   owner->retiring=true;DrainRetained();
 }
 bool ClientScene::UseLuaRegistry(const ClientRetainedTicket &ticket,void *&owned) noexcept {
-  owned=nullptr;
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
+  owned=nullptr;
   auto *owner=FindRetained(ticket);
   if(!owner||owner->kind!=ClientRetainedKind::LuaRegistry||owner->retiring||owner->releasing||owner->failed||
-     owner->generations!=generations_||!active_lua_||draining_||
+     !ResourceUseValid(*owner)||!active_lua_||draining_||
      !ContextHealthy()||InBlockedContext())return false;
   owned=owner->owned;return true;
 }
@@ -281,6 +596,12 @@ void ClientScene::DrainRetained() noexcept {
               wglGetCurrentDC()==current_dc_&&wglGetCurrentContext()==current_context_;break;
     }
     if(!phase_valid)continue;
+    if(owner.kind==ClientRetainedKind::Graphics||owner.phase==ClientReleasePhase::RenderContext||
+       owner.phase==ClientReleasePhase::ManagerContext){
+      void *dc=nullptr,*context=nullptr;
+      if(!ClientRendererHandles(dc,context)||dc!=current_dc_||context!=current_context_||
+         !ClientNativeCpuQueuesEmpty())continue;
+    }
     owner.releasing=true;
     if(!owner.release(owner.owned)){
       // false 表示释放可能已有原生执行前缀；禁止自动重试同一回调。
@@ -295,44 +616,66 @@ void ClientScene::DrainRetained() noexcept {
   FinishRetirementIfDrained();
 }
 void ClientScene::FinishRetirementIfDrained() noexcept {
+  if(retirement_complete_)return;
   if(state_!=ClientSceneState::Retiring&&state_!=ClientSceneState::Failed)return;
   if(active_native_||active_lua_||active_graphics_||active_observation_||active_dispatch_)return;
   for(const auto &entry:borrows_)if(entry.id)return;
   for(const auto &owner:retained_)if(owner.ticket.id)return;
-  if(target_){target_.reset();target_revision_=0;InvalidateInstance();result_.generations=generations_;}
+  if((presentation_&&!presentation_retired_)||(objects_&&!objects_retired_)||
+     !ClientNativeWorldSafeMenu(native_world_))return;
+  // 此处只有实际原生退休已经完成；清本方记录不能替代Room/Player/HUD析构。
+  ClientNativeWorldDestroy(native_world_);native_world_=nullptr;
+  native_dispatch_prefix_=false;result_.native_written=false;result_.native_owners=0;
+  result_.executed_prefix=0;result_.native_committed=false;result_.old_display_valid=false;
+  applied_valid_=false;applied_.reset();applied_revision_=0;applied_scope_={};
+  InvalidateInstance();result_.generations=generations_;
+  if(rebuild_pending_&&target_){
+    rebuild_pending_=false;objects_planned_=false;objects_retired_=false;
+    objects_complete_=presentation_retired_=attempt_invalidated_=false;
+    state_=ClientSceneState::Preparing;
+    FailureResult(ClientResultKind::WaitingDependency,"rebuild","native_retired_rebuild_target");
+  }else{
+    target_.reset();target_revision_=0;target_scope_={};
+    retirement_complete_=true;
+    FailureResult(ClientResultKind::Retiring,"retired","native_safe_menu");
+  }
 }
 // 借用只能在同一主线程 owner 栈内使用；不同代次即使地址相同也失效。
 bool ClientScene::Borrow(ClientPurpose purpose,ClientBorrowToken &out) noexcept {
+  if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
   if(out.active)return false;
   out={};
-  if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
   BorrowEntry *free=nullptr;
   for(auto &entry:borrows_)if(!entry.id){free=&entry;break;}
   if(!free||next_borrow_==UINT64_MAX){FailureResult(ClientResultKind::BudgetExhausted,"borrow","borrow_budget_or_id");return false;}
   if(!Enter(purpose))return false;
   const auto id=++next_borrow_;
   const auto owner_token=OwnerToken(TopOwner());
+  if(!owner_token){Leave(purpose);return false;}
   *free={id,generations_.scene,owner_token,purpose};
   out={id,purpose,generations_,owner_token,true};
   return true;
 }
 bool ClientScene::Valid(const ClientBorrowToken &borrow) const noexcept {
-  if(!IsMain())return false;
+  if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
   bool registered=false;
   for(const auto &entry:borrows_)if(entry.id==borrow.id&&entry.purpose==borrow.purpose&&
       entry.scene==borrow.generations.scene&&entry.owner_token==borrow.owner_token){registered=true;break;}
   if(!borrow.active||!ContextHealthy()||InBlockedContext()||
-     !registered||borrow.generations!=generations_||
+     !registered||
      borrow.owner_token==0||borrow.owner_token!=OwnerToken(TopOwner())||
      borrow.generations.scene!=generations_.scene)return false;
   if(borrow.purpose==ClientPurpose::RenderObservation)return TopOwner()==Owner::Render;
+  if(borrow.purpose==ClientPurpose::LocalSettings)return true;
+  if((state_==ClientSceneState::Failed||state_==ClientSceneState::Retiring)&&
+     borrow.purpose!=ClientPurpose::NativeRetire&&borrow.purpose!=ClientPurpose::Dispatch)return false;
+  if(borrow.generations.instance!=generations_.instance||
+     borrow.generations.resource!=generations_.resource)return false;
   if(borrow.purpose==ClientPurpose::Lua)
-    return lua_state_&&borrow.generations.lua==generations_.lua;
+    return !lua_closing_&&lua_state_&&borrow.generations.lua==generations_.lua;
   if(borrow.purpose==ClientPurpose::Graphics)
-    return current_dc_&&current_context_&&borrow.generations.context==generations_.context&&
-           wglGetCurrentDC()==current_dc_&&wglGetCurrentContext()==current_context_;
-  return borrow.generations.instance==generations_.instance&&
-         borrow.generations.resource==generations_.resource;
+    return borrow.generations.context==generations_.context&&GraphicsWindowValid();
+  return true;
 }
 void ClientScene::Release(ClientBorrowToken &borrow) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
@@ -341,34 +684,47 @@ void ClientScene::Release(ClientBorrowToken &borrow) noexcept {
   for(auto &entry:borrows_)if(entry.id==borrow.id&&entry.purpose==borrow.purpose&&
       entry.scene==borrow.generations.scene&&entry.owner_token==borrow.owner_token){registered=&entry;break;}
   if(!registered){borrow.active=false;return;}
-  if(!Valid(borrow)){FailureResult(ClientResultKind::ContextOrThreadFault,"borrow","borrow_invalidated");state_=ClientSceneState::Failed;}
+  // 取消/失败只是关闭 admission；退出原有栈不要求重新取得已经撤销的使用许可。
+  // 正常运行下的错误栈或意外代次变化仍报告，但总会归还本票据一次，绝不等待自己。
+  if(!Valid(borrow)&&state_!=ClientSceneState::Retiring&&state_!=ClientSceneState::Failed){
+    FailureResult(ClientResultKind::ContextOrThreadFault,"borrow","borrow_invalidated");state_=ClientSceneState::Failed;
+  }
   registered->id=0;
-  Leave(borrow.purpose);borrow.active=false;
+  borrow.active=false;Leave(borrow.purpose);
 }
 bool ClientScene::ConsumeForeignFault() noexcept {
   if(!IsMain())return false;
   return foreign_fault_.exchange(false,std::memory_order_acq_rel);
 }
-// Render owner 每次重新读取 OS current；变化使旧图形借用失效，不主动切换 context。
-void ClientScene::RenderWindow() noexcept {
+// renderer 身份与 OS-current 分开观察：临时切到 ImGui context 不制造原 context 的新代次。
+void ClientScene::ContextWindow() noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
-  if(TopOwner()!=Owner::Render)return;
+  if(TopOwner()!=Owner::Render&&TopOwner()!=Owner::Manager)return;
+  if(context_closing_)return;
   void *dc=nullptr,*context=nullptr;
   const bool known=ClientRendererHandles(dc,context);
-  auto *os_dc=wglGetCurrentDC();auto *os_context=wglGetCurrentContext();
-  if(!known||dc!=os_dc||context!=os_context)dc=context=nullptr;
+  if(!known)dc=context=nullptr;
   if(dc!=observed_dc_||context!=observed_context_) {
+    if(active_graphics_){
+      FailureResult(ClientResultKind::ContextOrThreadFault,"render","context_replaced_inflight");
+      state_=ClientSceneState::Failed;
+    }
     if(observed_context_)for(const auto &owner:retained_)if(owner.ticket.id&&
         (owner.phase==ClientReleasePhase::RenderContext||owner.phase==ClientReleasePhase::ManagerContext)){
       FailureResult(ClientResultKind::ContextOrThreadFault,"render","context_replaced_with_owner");
       state_=ClientSceneState::Failed;break;
     }
     observed_dc_=dc;observed_context_=context;
-    current_dc_=dc;current_context_=context;
     if(generations_.context==UINT64_MAX){FailureResult(ClientResultKind::BudgetExhausted,"render","context_generation_exhausted");state_=ClientSceneState::Failed;return;}
     ++generations_.context;
   }
+  current_dc_=dc;current_context_=context;
+  if(dc!=wglGetCurrentDC()||context!=wglGetCurrentContext())current_dc_=current_context_=nullptr;
   DrainRetained();
+}
+void ClientScene::RenderWindow() noexcept {
+  if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
+  if(TopOwner()==Owner::Render)ContextWindow();
 }
 // Lua state 身份在主线程观察；替换/消失即换代，旧 registry 借用不能复活。
 void ClientScene::ObserveLuaState(void *state) noexcept {
@@ -385,6 +741,7 @@ void ClientScene::ObserveLuaState(void *state) noexcept {
 }
 void ClientScene::LuaClosing() noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
+  if(lua_closing_){Fail("lua_close_reentrant");return;}
   for(auto &owner:retained_)if(owner.ticket.id&&owner.phase==ClientReleasePhase::LuaState)owner.retiring=true;
   lua_closing_=true;
   DrainRetained();
@@ -397,6 +754,7 @@ void ClientScene::LuaClosing() noexcept {
 }
 void ClientScene::ContextClosing() noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
+  if(context_closing_){Fail("context_close_reentrant");return;}
   for(auto &owner:retained_)if(owner.ticket.id&&
       (owner.phase==ClientReleasePhase::RenderContext||owner.phase==ClientReleasePhase::ManagerContext))owner.retiring=true;
   context_closing_=true;
@@ -419,15 +777,20 @@ void ClientScene::InvalidateResource() noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
   if(generations_.resource==UINT64_MAX){FailureResult(ClientResultKind::BudgetExhausted,"resource","generation_exhausted");state_=ClientSceneState::Failed;return;}
   ++generations_.resource;
+  // 旧语义关联即刻关闭 admission；实际 owner 仍由 Drain 在 CPU/VM/context 条件满足后释放。
+  for(auto &owner:retained_)if(owner.ticket.id&&owner.generations.resource!=generations_.resource)
+    owner.retiring=true;
 }
 void ClientScene::Retire(const char *reason) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
+  rebuild_pending_=false;applied_valid_=false;result_.old_display_valid=false;
   state_=ClientSceneState::Retiring;FailureResult(ClientResultKind::Retiring,"retire",reason);
   for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
   DrainRetained();
 }
 void ClientScene::Fail(const char *reason) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
+  rebuild_pending_=false;applied_valid_=false;result_.old_display_valid=false;
   state_=ClientSceneState::Failed;FailureResult(ClientResultKind::PartialNativeFailure,"failed",reason);
   for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
   DrainRetained();
@@ -437,6 +800,8 @@ bool ClientScene::CanReturnToMenu() const noexcept {
   for(const auto &entry:borrows_)if(entry.id)return false;
   for(const auto &owner:retained_)if(owner.ticket.id)return false;
   return !HasNativePrefix()&&
+         ClientNativeWorldSafeMenu(native_world_)&&(!objects_||objects_retired_)&&
+         (!presentation_||presentation_retired_)&&!target_&&
          !active_native_&&!active_lua_&&!active_graphics_&&!active_observation_&&!active_dispatch_&&!applied_;
 }
 } // namespace cs::game

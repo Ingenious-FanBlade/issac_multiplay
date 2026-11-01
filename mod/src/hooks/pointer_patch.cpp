@@ -25,9 +25,11 @@ template <unsigned I> void Count() noexcept {
     game::ForeignCall();
   }
 }
-// 设备 wrapper 同样保持异常中立，只调用一次原函数。
+// Off/Host保持原函数恰一次；Client主动查询隔离在原调用前中性返回。
 template <unsigned I> bool __fastcall Query(void *self, void *, int action) {
   Count<I>();
+  // Client 的玩法查询在调用官方/原生回调前中性返回；物理采样另走保存的原函数。
+  if(game::ClientBusy())return false;
   const bool original = reinterpret_cast<bool(__thiscall *)(void *, int)>(
       slots[I].original)(self, action);
   float result = original ? 1.0F : 0.0F;
@@ -40,6 +42,7 @@ template <unsigned I> bool __fastcall Query(void *self, void *, int action) {
 }
 template <unsigned I> float __fastcall Value(void *self, void *, int action) {
   Count<I>();
+  if(game::ClientBusy())return 0.0F;
   const float original = reinterpret_cast<float(__thiscall *)(void *, int)>(
       slots[I].original)(self, action);
   float result = original;

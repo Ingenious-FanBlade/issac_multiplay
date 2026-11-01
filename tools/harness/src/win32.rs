@@ -178,6 +178,7 @@ unsafe extern "system" {
     fn PostMessageW(window: Handle, msg: u32, wparam: usize, lparam: isize) -> Bool;
     fn PostThreadMessageW(thread: u32, msg: u32, wparam: usize, lparam: isize) -> Bool;
     fn GetClientRect(window: Handle, rect: *mut Rect) -> Bool;
+    fn SetThreadDpiAwarenessContext(context: Handle) -> Handle;
     fn GetDC(window: Handle) -> Handle;
     fn ReleaseDC(window: Handle, dc: Handle) -> i32;
 }
@@ -817,7 +818,19 @@ pub fn text(window: usize, text: &str) -> Result<(), String> {
     Ok(())
 }
 // 场景截图先确认游戏焦点；失败诊断则直接截取整个虚拟桌面。
+// GDI复制使用物理像素；读取客户区时也必须处于同一DPI语义，防止125%缩放下截掉右/下部。
+struct ScreenshotDpi(Handle);
+impl ScreenshotDpi {
+    fn enter()->Result<Self,String>{
+        let previous=unsafe{SetThreadDpiAwarenessContext((-4isize) as Handle)};
+        if previous.is_null(){Err(error("SetThreadDpiAwarenessContext"))}else{Ok(Self(previous))}
+    }
+}
+impl Drop for ScreenshotDpi {
+    fn drop(&mut self){unsafe{SetThreadDpiAwarenessContext(self.0);}}
+}
 pub fn screenshot(window: usize, path: &Path) -> Result<(), String> {
+    let _dpi=ScreenshotDpi::enter()?;
     focus(window)?;
     let mut rect = Rect::default();
     unsafe {
@@ -828,6 +841,7 @@ pub fn screenshot(window: usize, path: &Path) -> Result<(), String> {
     capture(window, path, 0, 0, rect.right, rect.bottom)
 }
 pub fn desktop_screenshot(path: &Path) -> Result<(), String> {
+    let _dpi=ScreenshotDpi::enter()?;
     unsafe {
         capture(
             0,

@@ -12,6 +12,8 @@ use std::{
 pub struct SaveRoots {
     pub documents: PathBuf,
     pub steam_remote: Vec<(String, PathBuf)>,
+    // tx17另观察官方ModData目录；它不享有第二槽原生存档的变化白名单。
+    pub mod_data: Option<PathBuf>,
 }
 impl SaveRoots {
     pub fn discover(documents: PathBuf) -> Result<Self> {
@@ -31,10 +33,11 @@ impl SaveRoots {
         Ok(Self {
             documents,
             steam_remote,
+            mod_data: None,
         })
     }
     pub fn describe(&self) -> Value {
-        json!({"documents":self.documents,"steam_remote":self.steam_remote.iter()
+        json!({"documents":self.documents,"mod_data":self.mod_data,"steam_remote":self.steam_remote.iter()
             .map(|(account,path)|json!({"account":account,"path":path})).collect::<Vec<_>>()})
     }
     // 同一快照保存源路径、大小与修改时间；时间变化不代表字节变化。
@@ -44,6 +47,7 @@ impl SaveRoots {
         for (account, remote) in &self.steam_remote {
             copy_tree(remote, &dest.join("steam_remote").join(account))?;
         }
+        if let Some(root)=&self.mod_data {copy_tree(root,&dest.join("mod_data"))?;}
         let mut metadata = BTreeMap::new();
         fn walk(
             root: &Path,
@@ -68,6 +72,7 @@ impl SaveRoots {
             Ok(())
         }
         walk(&self.documents, &self.documents, "documents", &mut metadata)?;
+        if let Some(root)=&self.mod_data {walk(root,root,"mod_data",&mut metadata)?;}
         for (account, remote) in &self.steam_remote {
             walk(
                 remote,

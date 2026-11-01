@@ -1,5 +1,6 @@
 #pragma once
 #include "game/bridge.h"
+#include "replica/model.h"
 #include <string>
 
 namespace cs::game {
@@ -7,6 +8,11 @@ namespace cs::game {
 bool ClientBusy() noexcept;
 const char *ClientStateName() noexcept;
 const char *StartClient(const std::string &ipv4, unsigned port, int device_key) noexcept;
+// E2E 只提供有明确来源的纯值目标，复用正式 Client 场景，不启动网络或本地模拟。
+const char *ClientTestBegin(const std::string &token, const replica::Scope &scope) noexcept;
+std::string ClientTestExerciseOwnership(const std::string &token) noexcept;
+bool ClientAdmitTarget(const replica::Scope &scope, std::uint64_t revision,
+                       const replica::Value &value) noexcept;
 void StopClient() noexcept;
 std::string ClientFields();
 void ClientUiHeartbeat() noexcept;

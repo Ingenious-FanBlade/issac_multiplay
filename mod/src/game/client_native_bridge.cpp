@@ -14,7 +14,12 @@ namespace cs::game {
 bool ReadMemory(const void *source,void *output,std::size_t size) noexcept;
 namespace {
 lua_State *guard_ready_state=nullptr;
+lua_State *guard_base_state=nullptr;
 lua_State *guard_essm_state=nullptr;
+lua_State *guard_sealed_state=nullptr;
+// 此表只由所属 VM 的 registry 持有；记录早期别名已接到保护之后的函数身份。
+// C++ 不保存 Lua 引用编号，VM 销毁时由 Lua 一并释放。
+char persistence_registry_key;
 lua_State *callback_ready_state=nullptr;
 thread_local bool menu_callback_running=false;
 // VM 私有强引用只保存在本地 C++ owner，VM 换代后绝不跨 state 使用。
@@ -82,6 +87,9 @@ namespace {
 // pcall 收住 Lua longjmp，保证本 C++ 桥没有未运行的析构与跨 VM 悬空票据。
 int GuardedLuaPersistence(lua_State *L) {
   if(ClientPersistenceBlocked()) {
+    if(!IsMain()||ClientLuaStateIdentity()!=L)
+      ClientCallbackFault("client_persistence_foreign_or_vm");
+    ObserveClientPersistenceDenied(lua_tostring(L,lua_upvalueindex(3)),true);
     const int result=int(lua_tointeger(L,lua_upvalueindex(2)));
     if(result==1){lua_pushboolean(L,0);return 1;}
     if(result==2){lua_pushnil(L);return 1;}
@@ -103,38 +111,115 @@ bool GuardField(lua_State *L,int table,const char *field,int blocked_result) {
     lua_pop(L,1);return guarded;
   }
   lua_pushinteger(L,blocked_result);
-  lua_pushcclosure(L,GuardedLuaPersistence,2);
+  lua_pushstring(L,field);
+  lua_pushcclosure(L,GuardedLuaPersistence,3);
   lua_setfield(L,table,field);
   return true;
+}
+// 只包含已解释的官方持久入口；本地 Options/输入映射不借 ModData 白名单放行。
+struct PersistenceLuaField final {const char *name;int blocked_result;};
+constexpr PersistenceLuaField isaac_persistence_fields[]={
+  {"SaveModData",0},{"RemoveModData",0},{"MarkChallengeAsNotDone",0},
+  {"UnClearChallenge",0},{"ClearChallenge",0},{"SetChallengeCompletion",0},
+  {"SetCompletionMarks",0},{"SetCompletionMark",0},{"FillCompletionMarks",0},
+  {"ClearCompletionMarks",0},{"HasModData",1},{"LoadModData",3},
+  {"LoadModDataFromFolder",2}
+};
+constexpr PersistenceLuaField pgd_persistence_fields[]={
+  // Unlock/TryUnlock 的官方 Lua 函数在调用原生入口前会写 forceunlock/nextSkipAchiev。
+  // 必须在这层之前拒绝，不能只依赖原生 TryUnlock 返回 false。
+  {"Unlock",1},{"TryUnlock",1},{"IncreaseEventCounter",0},
+  {"AddBestiaryKill",1},{"AddBossKilled",0}
+};
+constexpr PersistenceLuaField essm_persistence_fields[]={
+  {"SaveData",0},{"DeleteData",0},{"LoadData",2}
+};
+template <std::size_t N>
+bool GuardFields(lua_State *L,int table,const PersistenceLuaField (&fields)[N]) {
+  bool complete=true;
+  for(const auto &field:fields)complete=GuardField(L,table,field.name,field.blocked_result)&&complete;
+  return complete;
 }
 // 可能触发 Lua 元方法或内存错误的安装过程放在受保护的 C thunk 内。
 int InstallGuardThunk(lua_State *L) {
   bool isaac_ready=true,essm_ready=false,essm_seen=false;
   lua_getglobal(L,"Isaac");
   if(lua_istable(L,-1)) {
-    for(const char *name:{"SaveModData","RemoveModData","MarkChallengeAsNotDone",
-                          "UnClearChallenge","ClearChallenge","SetChallengeCompletion",
-                          "SetCompletionMarks","SetCompletionMark","FillCompletionMarks",
-                          "ClearCompletionMarks"})isaac_ready=GuardField(L,-1,name,0)&&isaac_ready;
-    isaac_ready=GuardField(L,-1,"HasModData",1)&&isaac_ready;
-    isaac_ready=GuardField(L,-1,"LoadModData",3)&&isaac_ready;
-    isaac_ready=GuardField(L,-1,"LoadModDataFromFolder",2)&&isaac_ready;
+    isaac_ready=GuardFields(L,-1,isaac_persistence_fields);
   }else isaac_ready=false;
+  lua_pop(L,1);
+  luaL_getmetatable(L,lua::metatables::PersistentGameDataMT);
+  isaac_ready=(lua_istable(L,-1)&&GuardFields(L,-1,pgd_persistence_fields))&&isaac_ready;
   lua_pop(L,1);
   lua_getglobal(L,"_CBindings");
   if(lua_istable(L,-1)){
     lua_getfield(L,-1,"ESSM");
     if(lua_istable(L,-1)){
       essm_seen=true;essm_ready=true;
-      essm_ready=GuardField(L,-1,"SaveData",0)&&essm_ready;
-      essm_ready=GuardField(L,-1,"DeleteData",0)&&essm_ready;
-      essm_ready=GuardField(L,-1,"LoadData",2)&&essm_ready;
+      essm_ready=GuardFields(L,-1,essm_persistence_fields);
     }
     lua_pop(L,1);
   }
   lua_pop(L,1);
   lua_pushboolean(L,isaac_ready);
   lua_pushinteger(L,!essm_seen?0:essm_ready?1:2);return 2;
+}
+// 身份表保留真正的 owner 和每个已保护函数，不用函数指针/名称近似 Lua 闭包身份。
+template <std::size_t N>
+bool SnapshotGuardFields(lua_State *L,int root,int index,int owner,
+                         const PersistenceLuaField (&fields)[N]) {
+  root=lua_absindex(L,root);owner=lua_absindex(L,owner);
+  if(!lua_istable(L,owner))return false;
+  lua_createtable(L,0,int(N)+1);
+  const int snapshot=lua_absindex(L,-1);
+  lua_pushvalue(L,owner);lua_setfield(L,snapshot,"owner");
+  for(const auto &field:fields){
+    lua_getfield(L,owner,field.name);
+    if(!lua_iscfunction(L,-1)||lua_tocfunction(L,-1)!=GuardedLuaPersistence){lua_pop(L,2);return false;}
+    lua_setfield(L,snapshot,field.name);
+  }
+  lua_rawseti(L,root,index);return true;
+}
+// 仅 main_ex 正常返回的官方初始化窗口可建立身份表；连接时不接受晚补保护。
+int SealPersistenceThunk(lua_State *L) {
+  lua_createtable(L,3,0);const int root=lua_absindex(L,-1);
+  lua_getglobal(L,"Isaac");
+  bool complete=SnapshotGuardFields(L,root,1,-1,isaac_persistence_fields);lua_pop(L,1);
+  luaL_getmetatable(L,lua::metatables::PersistentGameDataMT);
+  complete=SnapshotGuardFields(L,root,2,-1,pgd_persistence_fields)&&complete;lua_pop(L,1);
+  lua_getglobal(L,"_CBindings");
+  if(lua_istable(L,-1))lua_getfield(L,-1,"ESSM");else lua_pushnil(L);
+  complete=SnapshotGuardFields(L,root,3,-1,essm_persistence_fields)&&complete;lua_pop(L,2);
+  if(complete){lua_pushvalue(L,root);lua_rawsetp(L,LUA_REGISTRYINDEX,&persistence_registry_key);}
+  lua_pushboolean(L,complete);return 1;
+}
+template <std::size_t N>
+bool CheckGuardFields(lua_State *L,int root,int index,int current_owner,
+                      const PersistenceLuaField (&fields)[N]) {
+  root=lua_absindex(L,root);
+  if(current_owner)current_owner=lua_absindex(L,current_owner);
+  lua_rawgeti(L,root,index);
+  if(!lua_istable(L,-1)){lua_pop(L,1);return false;}
+  const int snapshot=lua_absindex(L,-1);
+  lua_getfield(L,snapshot,"owner");const int owner=lua_absindex(L,-1);
+  bool complete=lua_istable(L,owner)&&(!current_owner||lua_rawequal(L,owner,current_owner));
+  if(complete)for(const auto &field:fields){
+    lua_getfield(L,owner,field.name);lua_getfield(L,snapshot,field.name);
+    complete=lua_isfunction(L,-1)&&lua_rawequal(L,-1,-2)&&complete;lua_pop(L,2);
+  }
+  lua_pop(L,2);return complete;
+}
+// _CBindings 在 Init 尾部被官方删除；只验证保留的 ESSM owner，不重新导出内部接口。
+int VerifyPersistenceThunk(lua_State *L) {
+  lua_rawgetp(L,LUA_REGISTRYINDEX,&persistence_registry_key);
+  if(!lua_istable(L,-1)){lua_pushboolean(L,0);return 1;}
+  const int root=lua_absindex(L,-1);
+  lua_getglobal(L,"Isaac");
+  bool complete=CheckGuardFields(L,root,1,-1,isaac_persistence_fields);lua_pop(L,1);
+  luaL_getmetatable(L,lua::metatables::PersistentGameDataMT);
+  complete=CheckGuardFields(L,root,2,-1,pgd_persistence_fields)&&complete;lua_pop(L,1);
+  complete=CheckGuardFields(L,root,3,0,essm_persistence_fields)&&complete;
+  lua_pushboolean(L,complete);return 1;
 }
 // 只选本方 mod 注册的唯一菜单候选；其函数身份仍由当次官方回调表核对。
 bool OwnMenuCallback(lua_State *L,int mod_index) {
@@ -203,8 +288,8 @@ int GuardedClientCallback(lua_State *L) {
     if(!IsMain()||!g_LuaEngine||L!=g_LuaEngine->_state){
       ClientCallbackFault("client_callback_foreign_or_vm");return 0;
     }
-    if(lua_type(L,1)==LUA_TNUMBER&&lua_tointeger(L,1)==1023){
-      if(menu_callback_running||!ClientCallbackMenuAllowed()){
+    if(lua_type(L,1)==LUA_TNUMBER&&lua_tointeger(L,1)==1023&&ClientCallbackMenuAllowed()){
+      if(menu_callback_running){
         ClientCallbackFault("client_ui_callback_phase");return 0;
       }
       // 所有栈增长及可能 longjmp 的名单遍历在受保护的零捕获 C thunk 内。
@@ -216,6 +301,7 @@ int GuardedClientCallback(lua_State *L) {
       menu_callback_running=false;
       return 0;
     }
+    // 世界绘制中的同编号回调也属于一般 Mod 逻辑；只有安全菜单窗口允许本方唯一函数。
     ClientCallbackSkipped();
     return 0;
   }
@@ -261,30 +347,57 @@ int InstallCallbackGuardThunk(lua_State *L) {
 }
 // RegisterClasses 外层返回后、所有 bundled script 执行前再次接线；onlinestub
 // 复制 UnsafeFuncs 旧闭包时取得的已是保护闭包，无法靠后续替换 global 绕过。
-void ClientGuardLuaBindings() noexcept {
+void ClientGuardLuaBindings(bool classes_registered) noexcept {
   if(!IsMain()||!g_LuaEngine||!g_LuaEngine->_state)return;
   auto *L=g_LuaEngine->_state;
   guard_ready_state=nullptr;
   const int top=lua_gettop(L);
   if(!lua_checkstack(L,2))return;
+  if(guard_sealed_state==L){
+    // 准备和后续连接只能核对；已被替换的入口不能靠再次包装恢复早期别名资格。
+    lua_pushcfunction(L,VerifyPersistenceThunk);
+    if(lua_pcall(L,0,1,0)==LUA_OK&&lua_toboolean(L,-1))guard_ready_state=L;
+    lua_settop(L,top);
+    if(!guard_ready_state&&ClientBusy())ClientCallbackFault("client_persistence_binding_changed");
+    return;
+  }
   lua_pushcfunction(L,InstallGuardThunk);
   if(lua_pcall(L,0,2,0)==LUA_OK){
     const int essm=int(lua_tointeger(L,-1));
+    const bool base_ready=lua_toboolean(L,-2)!=0;
+    if(classes_registered)guard_base_state=base_ready?L:nullptr;
     if(essm==1)guard_essm_state=L;
     if(essm==2)guard_essm_state=nullptr;
-    if(lua_toboolean(L,-2)&&guard_essm_state==L)guard_ready_state=L;
+    if(base_ready&&guard_base_state==L&&guard_essm_state==L)guard_ready_state=L;
   }
   lua_settop(L,top);
 }
-bool ClientLuaGuardReady() noexcept {return IsMain()&&guard_ready_state&&guard_ready_state==ClientLuaStateIdentity();}
-void ClientLuaGuardClosed() noexcept {if(IsMain()){guard_ready_state=nullptr;guard_essm_state=nullptr;callback_ready_state=nullptr;}}
+bool ClientLuaGuardReady() noexcept {
+  return IsMain()&&guard_ready_state&&guard_ready_state==guard_sealed_state&&
+         guard_ready_state==ClientLuaStateIdentity();
+}
+void ClientLuaGuardClosed() noexcept {
+  if(IsMain()){guard_ready_state=nullptr;guard_base_state=nullptr;guard_essm_state=nullptr;guard_sealed_state=nullptr;callback_ready_state=nullptr;}
+}
 void ClientGuardCallbackBindings(const char *path) noexcept {
   if(!IsMain()||!path||std::strcmp(path,"resources/scripts/main_ex.lua")!=0||
      !g_LuaEngine||!g_LuaEngine->_state)return;
   auto *L=g_LuaEngine->_state;
   callback_ready_state=nullptr;
+  // 官方bind_lua_internals稍后会清空_LuaBindings；原生remove必须持有其原闭包。
+  if(!ClientObjectSealEssmDeleteBinding(L)){guard_ready_state=nullptr;return;}
   const int top=lua_gettop(L);
   if(!lua_checkstack(L,2))return;
+  // main_ex 执行前 ESSM 已捕获保护后的 Save/Load/Delete；onlinestub 的 UnsafeFuncs
+  // 同样已保存保护闭包。此处再保护官方公开包装，并记录最终身份供后续只读核对。
+  if(guard_ready_state!=L||guard_essm_state!=L)return;
+  ClientGuardLuaBindings();
+  if(guard_ready_state!=L)return;
+  lua_pushcfunction(L,SealPersistenceThunk);
+  const bool sealed=lua_pcall(L,0,1,0)==LUA_OK&&lua_toboolean(L,-1);
+  lua_settop(L,top);
+  if(!sealed){guard_ready_state=nullptr;return;}
+  guard_sealed_state=L;
   lua_pushcfunction(L,InstallCallbackGuardThunk);
   if(lua_pcall(L,0,1,0)==LUA_OK&&lua_toboolean(L,-1))callback_ready_state=L;
   lua_settop(L,top);

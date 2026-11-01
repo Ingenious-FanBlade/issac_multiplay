@@ -19,6 +19,8 @@ function M.Capture(limits)
     local g=room:GetDoor(slot)
     out.doors[#out.doors+1]={slot=slot,shape_allowed=room:IsDoorSlotAllowed(slot),descriptor_enabled=(d.AllowedDoors&(1<<slot))~=0,shape_target_grid_index=d.Doors[slot],actual=g and IsaacCSObservationNative.GridReference(g) or {resolution="Null"},actual_target=g and g.TargetRoomIndex or nil,actual_connection=g and model.Target(level,g.TargetRoomIndex,level:GetDimension(),false) or {kind="NoActualDoor"}}
   end
+  -- 正式观测同步复制原生展示参数；不由Client按本地房间配置重新裁决。
+  out.presentation_runtime=IsaacCSObservationNative.RoomPresentation()
   if unavailable>0 then read.Fail(c,"room_entity_membership_unavailable") end
   for _,e in ipairs(sources) do out.entities[#out.entities+1]=IsaacCSObservationNative.Subject(e.entity) end
   if gap>0 then read.Fail(c,"room_grid_membership_unavailable") end

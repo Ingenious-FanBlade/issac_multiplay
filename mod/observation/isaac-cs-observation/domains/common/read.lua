@@ -49,6 +49,8 @@ local function parameterSets(object, spec, ctx)
     if sets~=nil then return sets end
   end
   local name=spec.member
+  -- 官方实现允许空路径查询是否存在任意自定义 shader，不枚举或猜测路径。
+  if (spec.owner=="Sprite" or spec.owner=="LayerState") and (name=="HasCustomShader" or name=="HasCustomChampionShader") then return {{""}} end
   if spec.owner=="Sprite" and (name=="GetNullFrame" or name=="GetOverlayNullFrame" or name:find("EventTriggered")) then
     local overlay=name:find("Overlay")~=nil
     if overlay and not object:GetOverlayAnimationData() or not overlay and not object:GetCurrentAnimationData() then return {} end
@@ -232,6 +234,10 @@ collect=function(object,class,ctx,depth)
     ctx.config_seen[key]=true
   end
   local out={type=class,fields={}}
+  if class=="Sprite" then
+    local ok,pose=pcall(native().SpriteRuntimePose,object)
+    if ok then out.pose_runtime=pose else fail(ctx,"sprite_runtime_pose");out.pose_runtime=missing("ReadFailed",textError(pose)) end
+  end
   local handled={}
   for _,spec in ipairs(schemas[class] or {}) do
     if not handled[spec.id] then

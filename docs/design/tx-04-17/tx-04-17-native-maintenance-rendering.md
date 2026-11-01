@@ -1,6 +1,14 @@
 # tx-04-17 R3：停止玩法后的原生维护与绘制
 
-日期：2026-11-01，Asia/Singapore。目标为官方 REPENTOGON 1.1.3 与 Repentance+ v1.9.7.12.J273。状态：**本轮公开接口／源码阅读、必要静态逆向与主审形成维护分派合同；尚未实现或运行原生 Client 世界。** 同属 tx-04-17，不另拆研究 tx。本轮只更新设计文档，没有修改代码、绑定、游戏文件或 IDB，没有构建、测试或实机操作。
+当前记录：2026-11-02，Asia/Singapore。目标为官方 REPENTOGON 1.1.3 与 Repentance+ v1.9.7.12.J273。**I4代表路径已实现，并由根智能体在同一tx的第21次U统一实机验收通过。** 根亲自对照Source P与Client U三图：baseline除FPS外无可见差异，Player身体完整、Lost小图问号／curse图标正确、多余黑椭圆消失；pose目标光束正确。14个自动用例全部通过，正常退出码0、严格存档比对通过。这里是人工视觉对照结果，不声明逐像素相等或全内容支持；I4未自行构建、运行测试或控制游戏。
+
+第20次T已证实Player body实际提交透明顶点、小图原生Frame也已执行；阴影位置／顶点与viewport均正确，故不是缺资源、缺draw调用或实体offset。根与I4复核确认：graphics+0xD4只有一个共享depth renderbuffer，切RT仅更换color texture；`PresentWithoutSwap`消费队列后把`BA4714`深度序列重置为-1，却不清depth。原版`RoomPreRender 803E6C`调用`Present 9E4170`，在非空RT上于`9E41D0`清共享depth。旧组合错用WithoutSwap留下半尺寸shadow深度，挡住主floor形成左上黑点；主画面中途多次flush重置z，又挡住已提交的body／minimap。第19次S的14个自动用例虽已通过，仍有这些视觉缺口，未据此提前接受。
+
+最终顺序为shadow／light全部先预绘；只在本方刚设置、非空且指针匹配的offscreen目标上调用原生Present结束预pass，再恢复外层RT。主画面floor→Z分层实体／walls→shading／shadow→主层Player／Effect→light合成→ray→HUD保持连续队列，最后一次WithoutSwap消费并由RAII恢复RT／blend／shader。没有直接清depth、改z游标或补实体坐标；未知外层main目标不调用可能Swap的Present。上述修正经U实际消除了三处视觉缺口。
+
+当前边界仍是所选普通Basement、稳定房间、空装备普通Isaac和Effect57、来源明确零水量、id7 lighting及已选ray、Lost小图与关闭合作选择面板。非零水面／poop、其它必要FX、普通地图拓扑或未闭合角色／装备明确拒绝，不扩大为任意房间／完整HUD／所有内容Applied。既有原生玩法更新和通用Lua隔离、资源／context借用及正常退休约束继续生效；下文待验收标记与旧pass顺序保留其当时事实，以本段最终实现和U结果为当前记录。
+
+2026-11-01原始研究状态（历史）：目标为官方 REPENTOGON 1.1.3 与 Repentance+ v1.9.7.12.J273。状态：**本轮公开接口／源码阅读、必要静态逆向与主审形成维护分派合同；尚未实现或运行原生 Client 世界。** 同属 tx-04-17，不另拆研究 tx。本轮只更新设计文档，没有修改代码、绑定、游戏文件或 IDB，没有构建、测试或实机操作。
 
 现行目标与顺序见[主流程](tx-04-17-workflow.md)，前置事实见[R1 原生初始化](tx-04-17-client-scene-lifecycle.md#r1-results)和[R2 对象生命周期](tx-04-17-native-object-lifecycle.md)。ST3／ST4 的普通、odd、FSM、loading、动画事件与派生绘制证据继续有效；旧“原生对象一律不可写”及“一律禁止 HUD 后处理”的设计按本文细分，历史事实不改写。
 
@@ -13,6 +21,60 @@
 **R4回补（2026-11-01）**：[资源与在途合同](tx-04-17-native-resource-lifetime.md)分开当前draw活跃栈、Image raw提交与owner析构。官方buffer复制Entity／Animation上下文的分支被EnableCustomRendering=false及注释patch入口关闭，只记未来启用风险。资源重建／Morph／析构排在采用pass的实际CPU消费结束与下一轮提交之间；Image pins只保图像。全部采用的shadow／light／HUD／loading pass纳入使用范围，未知取消路径停新发布并交R5收口，不为关闭的扩展分支增加清理前置。
 
 Client 继续使用已有 Game 下的原生 Room／Grid／Entity／Player／Camera／HUD。服务器提供最终玩法状态；客户端可写这些对象的目标值和必要显示缓存，复用已解释的原生排序、资源与 draw helper。不运行整条 Manager／Game／Room／Entity 更新来补显示，也不另外建立一个运行中的 Game。
+
+### 2026-11-02 I4实际接线（等待整个tx统一验收）
+
+第12轮统一实机的完整截图显示：Backdrop原点修正后几何已对齐，但墙边暗渐变、Lost minimap、HUD run徽章与合作面板仍有差异。以下为该轮后的静态修正，尚待根智能体继续同一整体验收。正式`RoomPresentation`现采实际`shading` Image身份及采样参数、`hud_context`的最终Manager成就禁用查询和seed／rerun／debug／challenge／difficulty与4槽合作选择面板门值，以及`minimap_runtime`的最终curse、小图／大图alpha、state、shake及实际Question Image。Source不会因Client只支持代表路径而隐去其它正式域；Client明确只接关闭合作面板、普通空装备Isaac、普通Basement无特殊darkness／lightning混色、Lost小图state0且大图alpha0。普通地图依赖楼层拓扑，仍明确拒绝，不将缺失静默当空地图。
+
+原生`80513E`绘Z<5000，`8051A0`绘墙，`80548B`继续Z<10000，`805954`按Backdrop offset画实际shading Image，`805980`合成实体shadow，然后才画主层实体。`7E814F`的普通Basement shading来自真实`gfx/backdrop/shading.png`；Client使用来源实际资源名，不重跑含FX随机选择的`7E7670`。shadow维持原版`803E39`的`usesScreenSize=false`。surface改用真实Image vtable+24位置入口／light的+1C目标quad入口生成实际像素source UV，补齐shader3附加属性；不再把整张padded纹理UV=1铺到屏幕。`67E7B0 __thiscall(ECX=ColorMod, stack=vertexBuffer,Image,counter)`、`ret12`；调用前显式增加临时strong，callee在尾部Decr，原surface owner不被每帧减引用。light surface总是先按`803FC6`用basic-color shader和solid-image四角色入口填shadowColor，再用`803FFB`实际premultiplied-alpha blend和普通分支的lightColor调用layer4，最后按原生blend合成。
+
+右下GET／Space为`HUD::Render 97DC46`的合作面板，并非MenuManager漏画；其PlayerManager+0C／+14索引门值按stride20逐槽在HUD draw作用域供应来源值，只有同槽两个索引均非负时才打开，正常首槽`(0,-1)`必须接受。左红徽章包括`Manager::AchievementUnlocksDisallowed 9328C0`的最终查询：它及官方patch可读取访客PGD、mod环境、console、online、Manager状态与Game daily／debug；仅改Manager状态不能复制Authority结果。根统一Hook在`ClientPresentationHudAchievementQuery`确认有效主线程、Render owner、HUD同步栈时返回来源最终bool；其它调用原样super，持久mutator隔离不变。第15轮又纠正了`unk=false`过滤：`97D001`实际`push ecx`，native `9328C0`完全不读栈参数、官方Hook只透传，因此其参数值不能充显示查询资格。临时seed／curse／challenge／difficulty／rerun／debug和面板门值正常／异常离栈恢复，Manager状态不改写。
+
+`Minimap::Render 966680`已由HUD原生调用，采用Lost分支无需Refresh／楼层拓扑。`965740`已完整静态核定只加载内嵌ANM／Question Image、创建地图surface并设置显示数值，不调用玩法／Refresh／Update／RNG；随后每次显式核Question Image的实际格式。Minimap长寿命资源继续由Game owner持有；首次准备保存header0x18、两个Config+11C..15F纯数值段和shake12字节，明确排除Config+114的Image strong，正常退休恢复这些显示缓存。首draw诊断另记录实体shadow-layer ID与body可见性在shadow／light前后实际值，仅收集因果，不擅改I2／I5姿态或隐藏必要层。
+
+第15轮O实际Effect已持续可见、shading已出现且GET面板消失；shadow-layer／body LayerState在前后均未变化，撤回“shadow pass隐藏Effect”的因果假说。Minimap还依赖`966802→827350`的RoomTransition fade；既有正式room.transition已采mode0，Client预检只接此稳定模式，并在HUD draw临时供应、离栈恢复，避免菜单mode2/3进度使小图alpha归零。Backdrop装饰的正式`backdrop_runtime`补实际construction_seed、rng_seed及三个shift，均用Lua整数精确复制uint32；I1仅以构造seed和真实shift恢复该独立装饰流，不能把当前后态rng_seed当初始种子重播。上述后续修正继续由根统一验收，尚未用未跑的截图结论替代实际结果。
+
+第17轮Q在draw前因本地`Room._waterAmount`非零拒绝，而P正式来源值明确为0。原实现虽采水量却没有应用，错误地让本地初始化结果决定目标支持范围。SDK `Room.zhl:161`直接返回`+7240`地址，官方`LuaRoom.cpp:102—109 SetWaterAmount`也只写该float、无额外helper或owner副作用；现写前只拒绝目标非零，在已登记written的展示值应用段复制Authority水量0，draw继续确认本地仍为0。非零目标仍要求真实水面／反射适配，不能以删除必要视觉flag冒充支持。
+
+第18轮R继续在draw前因`presentation_foreign_fx_owner`拒绝。补核确认Room ctor为FX构造真实空vector并初始化loaded／avg／bounds，但从未写FX+30 selectedRayGroup和+34 poop倒计时；`96BD30`也不写这两个scalar。Install原已写selected，却漏写正式poop值，并错误把未初始化倒计时混入owner检查。现owner只比较FX／ray完整vector三指针与本方已安装记录数；Install显式安装来源poop倒计时（代表0或-1），draw再逐项核loaded／selected／poop／avg／bounds最终值，正倒计时仍拒绝其必要cloud消费者。退休只核真实vector归属，不因未安装的heap显示值阻止候选清理；真正vector不符时只记录一次精确begin／end／capacity、安装数与显示scalar诊断。
+
+**同日统一E2E中的必要修正（由主智能体实际执行，I4未控制游戏／运行测试）**：首次实际来源为Burning Basement并带Effect87余烬，之后普通Basement来源仍在`presentation_room_fx_requires_native_pass_adapter`拒绝。不能把这些实际来源改成“无FX”来满足初稿范围。主智能体读取真实安装的`extracted_resources/resources/fxlayers.xml`确认普通Basement必有id7、stage1／altStages7、layer=lighting的overlay；本节以下初稿的“所有非空房间FX均拒绝”范围已由本段细化替代，实际失败事实保留。
+
+修正后的正式`presentation_runtime.room_fx`复制Authority真实FX向量中已经选定的Image资源名、过滤／wrap／shader状态、全部20字节pose中的位置／速度／翻转、FX平均位置与bounds，以及真实ray group数量／poop倒计时。Client支持代表id7／layer4；不按seed或XML重选覆盖图，不调用含共享随机的`FXLayers::Load 968E10`／`Update 96BF40`。第7次统一E2E实际又在`presentation_fx_rays_or_poop_adapter_required`拒绝：普通Basement有两组ray容器。单有group数量不能证明当前是否需要光线pass；正式来源现补每组7项几何、全部ray的Image与过滤／wrap／shader、opacity／speed／phase、真实当前组索引`ray_group`和最终`ray_lighting`／`ray_darkness`条件。来源有界采集最多256组、每组64条（与Client代表预算分开），应用器只接最多4组、每组16条；不把不支持的真实成员从来源隐藏。Lua正式编码器将空table写成`{}`，仅该精确空值按空成员接受。其它FX、poop和特殊背景pass仍明确拒绝。`Game._screenShakeOffset(+25A84/88)`与`Room._renderScrollOffset(+1204/08)`也由正式来源复制并应用，不继承菜单／之前Host的值；首次写前保存Game旧shake并在正常退休恢复，Room继续由I1的真实owner退休。
+
+额外静态依据：`96BD30`确认FXLayers`+18/+1C/+20`是FX vector三指针，stride`0x4C`；`+24/+28/+2C`是RayGroup vector，stride`0x2C`。FX`+4`为Image strong pair，`+0C/+10/+14`是pose vector，stride`0x14`，`+18`为采用pose数量，`+2C`是pass分类。普通Basement必要调用是`96DB20`（原生caller `803E20:8041B3`），不是处理layer2的`96CD10`。本方在原生light surface中调用`96DB20 __thiscall(ECX=真实FXLayers, 栈=KColor* shadowColor)`，raw尾部`96DF72 retn 4`；它仅读取已复制pose／bounds／滚动并提交原生Image draw，不运行FX随机更新。
+
+FX候选记录与pose都经目标exe `A86DE5 operator new`分配，预算最多8条FX、每条16个pose，每块均小于4096字节，不混用本方STL allocator。资源候选的Image strong pair由`Manager::LoadImage`实际返回，完整准备后才转交Room实际FX vector；未发布候选仍由本方native owner承担。换代／退休先停止新draw、退尽活跃栈及普通／透明CPU队列，再用原生`96FFD0 __fastcall(ECX=begin,EDX=end)`析构pose vector及Image strong，raw尾部`970054 retn`无栈参数；pose析构`41EAB0`使用同一原生free。最后由`A8717B free(void*)`释放FX记录块并将Room vector归零，避免随后Room析构重复释放。缺图／预算失败保留实际候选前缀用于退休，原生异常仍标不确定并保持隔离，不声称任意异常可回滚。此修正由主智能体继续同一tx的统一E2E验证，本文不提前宣称通过。
+
+Ray补核纠正：`FXLayers+30`是**有符号当前组索引**，不是时间float；`96D26E`读取后`test/js`拒绝负数，`96D4F3`按44字节选择组，`96B680/96B72C`写`-1`。RayGroup stride44，前7个float依次为xMin／xMax／topParallax／bottomParallax／rayLength／raySpacing／perspective，`+1C/+20/+24`为Ray vector三指针；Ray stride20，`+0/+4/+8`为opacity／speed／phase，`+C/+10`为Image strong pair。不能因为普通XML有两组就同时画两组，也不能把空选中组交给原生：`96D58A`在循环判断前先除以实际ray数，外层对空组直接跳过，保留目标的空成员证明。
+
+采用光线pass为`96CE20 __thiscall(ECX=Room._fxLayers)`，无栈参数，`96DB1A ret`；真实caller为`RoomRender 806859/80685F`。它在当前代表的仅layer4／poop<=0条件下跳过foreground FX与poop分支。入口会在Backdrop57绘制特殊Effect166/sub951，故选中非空ray时实际Backdrop只接普通Basement的1；不让该特殊分支进入代表路径。`96D238—264`还读Manager lighting和`(Game._curses | Game+25AC8 | 6F55C0()) & ~6F5750()`的darkness位；两个helper只读真实run-effect map，不是随机生产者。来源采集真实最终条件，准备与draw分别核对本地采用原生上下文一致；不一致明确拒绝`presentation_ray_context_requires_adapter`／`presentation_ray_context_changed`，不让菜单或旧Host遗留条件静默改变服务器必要光线。索引`-1`、真实空选中组、来源关闭lighting或最终darkness成立时不调用ray pass；没有删除视觉flag来凑代表场景。
+
+`96DAAA`在每条ray绘制后执行`phase+=speed`；本方`RayPhases`栈owner保存全部原位phase并在正常／C++异常离栈恢复，重复draw不推进服务器相位。`412AC0`为sin helper，不是RNG。复读纠正：`67E7B0`实际为ColorMod顶点补全，写4个stride88顶点的colorize／offset／textureSize等附加属性，并消费按值Image临时strong；它不是CPU入队入口。原生Image Render建立batch，本方在同一借用内`PresentWithoutSwap`消费，最终检查普通／透明队列实际为空。ray候选组与成员均用同一目标exe allocator；每个placement完成即记录constructed group数／ray end，缺图等已知失败只析构真实前缀。候选及已安装的组由`96F760 __thiscall(ECX=&group.rays)`析构（内部`970060 __fastcall(begin,end)`对成员Image strong逐一Decr并释放ray块），随后目标exe free外层group块；Room vector清零后才交原生Room析构，避免重复释放。异常前缀不确定时继续保持隔离，未声称通用恢复。
+
+实际来源`Image._name`为`resources/gfx/Overlays/Basement/1x1_overlay_3.png`。`Manager::LoadImage 931B30`经`8D2AB0`处理逻辑资源名，再交Image manager；本方只将已核定挂载根`resources/`剥去，传`gfx/...`，随后核对返回Image._name与来源完整挂载名一致，避免重复添加根或加载其它资源。ray图片走相同具名路径和实际strong owner；没有重读XML或按seed选择。其它挂载根当前明确不采用，不能把这个归一化外推成任意mod路径处理。
+
+第8次统一E2E由主智能体采到真实ray成员3／5条、当前组索引`-1`、lighting=true、darkness=false，故该实际目标保留完整ray资源但当前不需要ray draw；不能把该来源解释为没有ray。第9次实际创建Player(instance1)和Effect(instance2)、通过两者原生状态／资源检查后，在`presentation_ray_resource_candidate`拒绝，随后安全退休到native_safe_menu且pending_owners=0。主审据来源ray shader3／filter0／wrap1，与overlay shader1／filter1／wrap0的差异要求补核，未把候选失败或安全退休记为展示成功。
+
+静态修正：`96A223`的overlay与`96B3D2`的ray确实均先用Position descriptor `BA47B0`调用`Manager::LoadImage`，但ray随后`96B488 push [AACB00]`、`96B48E call vtable+3C`执行`Image::SetVertexFormat`。`AACB00`存真实descriptor地址`B88760`，准确SDK参数类型为`KAGE_Graphics_ImageBase_VertexAttributeDescriptor const&`；该terminated descriptor八项format为`5,6,7,4,3,2,1,3`，终止format0，stride88。`9E2210`先按descriptor指针身份将Image shader设为3，再复制format字节、属性数与stride；Position descriptor对应三属性`5,6,7`、stride36、shader1。故shader3不能只等待Host缓存偶然保留，也不能直接改shader标量冒充完整格式。本方每次加载ray都按原生caller显式调用该虚setter，overlay也显式设置Position；再核验实际shader／属性数／stride／format字节与正式filter／wrap。该修正只保证每次正式准备执行同一具名资源子段，不主动释放全局cache或更改其归属；实机结果继续由同一tx统一验收提供。I4未运行构建、测试或游戏。
+
+第10次统一E2E已完成baseline原生提交及重复／change／back，后停在I2 remove／replace；主智能体实际查看Client截图发现右侧裁切与Player偏右，最初把保留菜单projection列为推断。第11次同条件Host-source对照同样右裁且Player／HUD坐标相同，故撤回“仅Client投影导致”的因果解释，截图DPI由主智能体另修。静态链也显示`92D946/94E`、`92D969/971`及`92DBD5/DD`、`92DC14/1C`成对维护`g_WIDTH/HEIGHT`与`g_OrthographicWidth/Height`；`9E85B0`据实际target／usesScreenSize重建投影，`67EEB0`恢复target时重走该链。没有据截图比例盲写640／512或另造Camera矩阵。
+
+Host／Client对照同时确认Backdrop相对实体有垂直偏差，来源`Room.GetRenderSurfaceTopLeft=(-4.5,15)`、scroll约`(1.5e-5,0)`、shake0。已核`703F05—46`的独立纯显示标量是`Room+11FC/1200=((g_WIDTH-338)/2-52,(g_HEIGHT-182)/2-52)`；RoomRender`804E81—EBE`再合成该origin+scroll+shake，分别在`80501D`／`8051A0`传给Backdrop floor／walls。本方补上该本地视口派生缓存，在Prepare及draw维护，只向Backdrop传完整offset；Entity已自行进行世界→屏幕变换，继续使用其原生scroll合同，不能把surface origin重复加到Player。I1的Backdrop.Init仍由Finalize在I2真实Player／EL有效后执行，I4随后维护，不重新加载另一套Backdrop。
+
+Effect57 baseline不见而pose后出现的现象尚由主智能体核I5资源／层姿态缓存。静态`600ECC—601005`每次读取`Entity._pos(+33C/340)+_posOffset(+34C/350)`并重写screenPos`+1A4/+1A8`，variant57走默认`603121—12F`直接把该位置交内嵌ANM2 renderer，未发现需额外复制的独立Effect位置缓存；因此本轮没有为现象猜写Effect字段。修正后的Backdrop像素仍由后续同tx统一实机验收确认，I4仅进行图片阅读、源码／IDA静态分析及窄实现编辑。
+
+`mod/src/game/client_presentation.h/.cpp`负责完整纯值候选，`client_presentation_native.h/.cpp`负责C++17原生窗口。正式Room域的`presentation_runtime`由`ClientPresentationCaptureLua`复制真实floor／wall／FXParams／water／HUD可见性、24个心形描述及10项StatHUD显示缓存；概率值来自服务器已经存在的缓存，不运行Client概率生产者。缺描述、非有限值或不支持的必要pass在写前拒绝，保留旧完整展示；解析成功后才替换候选，原生写入后的失败不声称回滚。I1在I2完整成员／资源提交后执行维护，完成后才发布；I3在Manager仍负责clear／flush／swap的窗口替代`MenuManager::Render`，实际像素来自原生世界。
+
+当前代表范围为单普通Isaac、空装备和Effect57子型0／1、无Grid／水面的普通Basement，保留id7 layer4 overlay、该背景的已选真实光线组与普通Player必要光照。正式采集直接检查真实FX layer／ray group容器及poop FX计数；存在时`room_fx_present=true`，并由成员描述预检采用范围。不清空这些容器、改flag或改采样值来放行。其它角色／Grid／水面反射／其它房间FX仍是明确未采用范围，不能把本节称为全类别或完整可玩世界。
+
+实际pass为：原生GetRenderZ全排 → native RenderShadows到原生Shadow Surface → Backdrop floor → native阴影合成 → floor层实体 → Backdrop walls →其余原生Player／Effect组合draw → native实体light与layer4 overlay合成 → 已选native ray pass及phase恢复 → HUD::Render → PresentWithoutSwap消费CPU raw提交。逐pass显式保存目标／blend／shader；不调用GameRender、RoomRender、RoomPreRender、Entity::Interpolate、PlayerHUD::Update、HUD::Update／PostUpdate或StatHUD::RecomputeStats。一般原版／官方Lua回调由I3隔离，官方插值不经GameRender启用；实体与HUD的真实draw仍保留。该静态组合是否产生正确像素尚待统一实机验收，不把void返回或CPU队列清空记为视觉PASS。
+
+`render_sort`的空表／共享scratch／渐进全排问题由固定256成员预算的本方全排处理，比较键仍来自实际native vtable+0x34，tie用原生index；不写Game帧奇偶。超预算、无效成员、重复成员、Player关联不唯一及未采用类别均停显。维护不推进Authority tick，不调用动画Update，不消费动画事件；HUD心形字符串由本方owner持有，借用退出及实际普通／透明CPU队列退尽后，先撤HUD字符串／Player关联，再交I1原生Room／PM／HUD单一owner退休。
+
+本次额外只读J273补核：`7E08E0`全部分支仅创建／加载具名surface和图像、设置vertex format／filter／wrap，可作为资源保证子段；不采用其caller `703E40`的其它全局操作。EntityList ctor `413270→413662`已加载`gfx/shadow.png`到`+0xD8`。`Room::Init`的`7E8DB7—7E911A`分别Load真实内嵌`Room+0x6E40`的`gfx/LightGradient.anm2`和`+0x6F54`的`gfx/SpotLight.anm2`，layer0 min／mag为1，默认blend为`0,1,7,1,7`。I4仅复用该资源子段的具名Load／姿态，不执行完整Room Init。补读`7FCA50→7FD03D→7FD0F8`确认普通空装备Player仍需LightGradient，已保留真实`RenderEntityLight`，不能以空装备推导灯光no-op。`805980`阴影合成常量为`(1,1,1,0.24)`；`806699—8066C8`light overlay blend为`0,4,7,8,7`。StatHUD记录按`83CFD0`／`83DC60`的当前值／差值／前值／阈值／倒计时复制，不调用其概率分支。所有点位只形成采用依据，尚无本轮运行结论。
+
+仍需统一验收确认当前安装的官方Hook、真实context、像素、HUD布局／Minimap及所选Player组合；原生异常／context丢失不具备通用安全恢复保证，相关owner不确定时停显并保持隔离。全局render surfaces仍归真实Manager，未转成网络对象或任意线程释放；本方只借用并在有效context消费，CPU退尽不表示GPU完成。此实现阶段未由I4执行构建、游戏、校验器、单元测试或E2E。
 
 本轮确定的分派是：**按R2依赖执行生命周期／目标应用（含必要移除） → 成员与清理收口 → 排序／显示缓存准备 → 原生 pass 与 draw → 在途使用结束**。移除／替换与新建的内部次序由实际owner、引用和池预算决定，不要求先创建所有对象再移除旧对象。这些阶段有各自的输入与完成含义。绘制不是新的 Authority tick；排序成功不是 create／remove 成功；提交了目标状态也不等于资源或像素已经可用。
 

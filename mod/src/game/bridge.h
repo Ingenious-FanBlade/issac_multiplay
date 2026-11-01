@@ -1,9 +1,16 @@
 #pragma once
+// 首个Player只在具名构建窗口隔离起始统计链；安装资格检查真实trampoline。
+namespace cs::game {
+bool ClientObjectSkipPlayerPreStats() noexcept;
+bool ClientObjectSuppressPlayerPreStats(void *player) noexcept;
+bool ClientObjectPreStatsIsolationInstalled() noexcept;
+}
 #include <array>
 #include <cstdint>
 #include <string>
 
 namespace cs::game {
+std::string ClientTestExerciseNative(const std::string &token) noexcept;
 // SDK 公开只读 Getter 的 C++17 桥；只在主线程读取已确认的 Player。
 bool PlayerIsHologram(void *player) noexcept;
 // SDK-facing 的 world 作用域只传值，不包含 C++20 核心或 SDK 对象方法。
@@ -40,16 +47,23 @@ bool ClientManagerBoundary() noexcept;
 bool ClientBusy() noexcept;
 void ClientPollInput();
 bool ClientUiBlocked() noexcept;
+// 仅当前原生HUD draw作用域供应服务器最终显示条件，不放行成就或任何持久写入。
+bool ClientPresentationHudAchievementQuery(bool &result) noexcept;
 bool ClientMenuAvailable() noexcept;
 void ClientInputUnavailable() noexcept;
 void ClientMenuRendered() noexcept;
+// 只替代 Manager Render 内的菜单绘制；保留外层真实清屏、提交与交换缓冲。
+bool ClientMenuRenderBoundary() noexcept;
 bool ClientProcessExitDecision() noexcept;
 bool ClientShutdownProgressBlocked() noexcept;
-void ClientGuardLuaBindings() noexcept;
+// classes_registered 仅 RegisterClasses 外层正常返回可设，证明 vanilla main.lua 前已保护。
+void ClientGuardLuaBindings(bool classes_registered=false) noexcept;
 bool ClientLuaGuardReady() noexcept;
 void ClientLuaGuardClosed() noexcept;
 void ClientGuardCallbackBindings(const char *path) noexcept;
 bool ClientCallbackGuardReady() noexcept;
+// main_ex返回、官方清除_LuaBindings之前保留同VM的真实EntityManager清理闭包。
+bool ClientObjectSealEssmDeleteBinding(void *state) noexcept;
 void ClientCallbackFault(const char *reason) noexcept;
 bool ClientCallbackMenuAllowed() noexcept;
 void ClientCallbackSkipped() noexcept;
@@ -71,7 +85,9 @@ enum class ClientOperation : unsigned { Build, Apply, PresentMaintenance, Presen
 enum class ClientEntry : unsigned {
   GameUpdate, PostUpdate, RoomUpdate, EntityListUpdate, PlayerUpdate, OddHelper,
   LifecycleFSM, DoorUpdate, DoorNested, NewRoom, RoomInit, GameRender,
-  RoomPreRender, RoomRender, EntityListRenderSort, GameStart
+  RoomPreRender, RoomRender, EntityListRenderSort, GameStart,
+  NativeBuild, NativeApply, NativeTeardown, PresentationMaintenance, PresentationDraw, MenuRender,
+  Count
 };
 enum class ClientEntryDecision : unsigned { CallOriginal, ExpectedSkip, FaultSkip };
 constexpr std::uint64_t ClientEntryMask(ClientEntry entry) noexcept {
@@ -94,6 +110,8 @@ private:
 };
 ClientEntryDecision ClientDispatchBefore(ClientEntry entry) noexcept;
 void ClientDispatchReturned(ClientEntry entry) noexcept;
+// 实际安装的常驻外层入口和 Lua 回调保护齐备后才允许原生适配器使用。
+bool ClientDispatchIsolationInstalled() noexcept;
 // C++17 Hook 桥仅传纯值通知；场景/模型类型不暴露给 SDK-facing wrapper。
 // 只观测 Manager::Render 在途窗口；不授予完整 native Render 或 Graphics 使用资格。
 class ClientRenderScope final {
@@ -110,6 +128,8 @@ void ClientLuaClosing() noexcept;
 void ClientShutdownBeginning() noexcept;
 void ClientContextClosing() noexcept;
 bool ClientPersistenceBlocked() noexcept;
+// 主动拒绝与 original exactly-once 观察分开计数；只接受固定入口名，不保存 Lua 值。
+void ObserveClientPersistenceDenied(const char *entry,bool lua=false) noexcept;
 // SDK-facing 只在主线程返回当前原生 owner 身份；不跨线程传递这些值。
 bool ClientRendererHandles(void *&dc,void *&context) noexcept;
 void *ClientLuaStateIdentity() noexcept;

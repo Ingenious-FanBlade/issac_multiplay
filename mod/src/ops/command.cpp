@@ -14,6 +14,8 @@
 #include <charconv>
 #include <cstring>
 #include <exception>
+#include <filesystem>
+#include <fstream>
 #include <limits>
 #include <mutex>
 #include <sstream>
@@ -94,6 +96,32 @@ std::string Execute(std::string_view text, const char *source) {
                      !parse(value_text, value)
                  ? "ok=0\nerror=arguments\n"
                  : TestWorldCommand(source, token, generation, mode, value);
+  } else if (verb == "client_test") {
+    // 测试口只接收专用目录内的正式纯值模型；没有任意原生写入或执行脚本能力。
+    std::string token,mode,label,trailing;in>>token>>mode>>label>>trailing;
+    if(mode=="exercise"&&label=="native"&&trailing.empty())result=game::ClientTestExerciseNative(token);
+    else if(mode=="exercise"&&label=="ownership"&&trailing.empty())result=game::ClientTestExerciseOwnership(token);
+    else if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||
+       token!=Settings.world_e2e_token||!trailing.empty()||(mode!="begin"&&mode!="begin-cancel"&&mode!="target")||
+       label.empty()||label.size()>64||label.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-_")!=std::string::npos)
+      result="ok=0\nerror=client_fixture_arguments\n";
+    else try {
+      const auto root=std::filesystem::canonical(std::filesystem::path(Settings.world_output_dir)/"client-targets");
+      const auto path=std::filesystem::canonical(root/(label+".json"));
+      if(path.parent_path()!=root||std::filesystem::file_size(path)>(32u<<20))throw std::runtime_error("client_fixture_path_or_budget");
+      std::ifstream file(path,std::ios::binary);if(!file)throw std::runtime_error("client_fixture_read");
+      std::string text((std::istreambuf_iterator<char>(file)),{});auto model=replica::Parse(text);
+      replica::ValidateModel(model);const auto scope=replica::ReadScope(model["scope"]);
+      const auto revision=replica::Unsigned(model["revision"]);
+      const auto *error=mode!="target"?game::ClientTestBegin(token,scope):"";
+      if(error&&*error)result="ok=0\nerror="+std::string(error)+"\n";
+      else {
+        const bool admitted=game::ClientAdmitTarget(scope,revision,model);
+        result=admitted?"ok=1\naccepted=1\n":"ok=1\naccepted=0\n";
+        // 同一真实Manager命令内在Admit之后取消，避免IPC耗时使准备中测试误跑成展示中。
+        if(admitted&&mode=="begin-cancel"){game::StopClient();result+="cancelled_before_pump=1\n";}
+      }
+    }catch(const std::exception &e){result="ok=0\nerror="+std::string(e.what())+"\n";}
   } else if (verb == "client") {
     // 地址和设备key只作连接配置；Client不在本机创建Player或载入Continue。
     std::string address, port_text, key_text, trailing;

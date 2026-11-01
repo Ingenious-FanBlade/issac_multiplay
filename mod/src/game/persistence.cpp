@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstring>
 #include <exception>
+#include <atomic>
 
 namespace cs::game {
 namespace {
@@ -28,6 +29,8 @@ struct WindowRegistry {
   std::int64_t last_load_slot = -1;
 };
 WindowRegistry registry;
+// 外线程也只能累加纯值；不从拒绝路径访问 PGD、Lua 或当前场景对象。
+std::atomic<std::uint64_t> client_denied_native{0},client_denied_lua{0};
 // 最大八个窗口，各 id 最长二十位加分隔符，完整列表不能沿用旧 64 字节缓冲。
 constexpr std::size_t kWindowIdsBytes = kWindowCapacity * 21 + 1;
 // 预读可能发生在 Host 之前；无会话用 0，Hosting 用已分配的本轮代次。
@@ -92,6 +95,12 @@ void FinishCall(const char *entry, std::uint64_t call, std::uint64_t parent,
         PersistenceSessionGeneration());
 }
 } // namespace
+void ObserveClientPersistenceDenied(const char *entry,bool lua) noexcept {
+  auto &counter=lua?client_denied_lua:client_denied_native;
+  counter.fetch_add(1,std::memory_order_relaxed);
+  if(IsMain())Trace("client_persistence","event=denied source=%s entry=%s loop=%llu",
+                    lua?"lua":"native",entry?entry:"unknown",ManagerLoop());
+}
 const char *PersistenceWindowKindName(PersistenceWindowKind kind) noexcept {
   switch (kind) {
   case PersistenceWindowKind::None:
@@ -389,6 +398,8 @@ std::string PersistenceFields() {
     out += '\n';
   };
   n("persist_entries", registry.entries);
+  n("persist_client_denied_native",client_denied_native.load(std::memory_order_relaxed));
+  n("persist_client_denied_lua",client_denied_lua.load(std::memory_order_relaxed));
   n("persist_returns", registry.returns);
   n("persist_return_errors", registry.return_errors);
   n("persist_window_overflow", registry.overflow);

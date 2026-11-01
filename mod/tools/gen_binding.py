@@ -469,6 +469,8 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "hooks/cs_hook.h"
 #include "binding/offsets.h"
 #include "game/bridge.h"
+#include "game/client_objects_native.h"
+#include "game/client_presentation_native.h"
 #include "game/world_sources/loot.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
@@ -500,6 +502,31 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    if ident in ('client_player_render_body_diagnostic', 'client_player_render_head_diagnostic'):
+        body = 'true' if ident == 'client_player_render_body_diagnostic' else 'false'
+        return ['    // 只读诊断由当前Client实例限制；原链每次仍恰好执行一次。',
+                '    cs::CallScope scope(record);',
+                '    cs::game::ClientObjectPlayerDrawDiagnostic(this, position, %s, false);' % body,
+                '    super(position);',
+                '    cs::game::ClientObjectPlayerDrawDiagnostic(this, position, %s, true);' % body]
+    if ident == 'client_minimap_render_diagnostic':
+        return ['    cs::CallScope scope(record);',
+                '    cs::game::ClientPresentationMinimapDiagnostic(this, false);',
+                '    super();',
+                '    cs::game::ClientPresentationMinimapDiagnostic(this, true);']
+    if ident == 'client_hud_achievement_query':
+        return ['    // 仅当前Client HUD绘制读取Authority的最终徽章条件；进度能力不受此查询影响。',
+                '    bool result=false;',
+                '    // J273 HUD传未使用的栈word（push ecx），不能以其bool值决定是否应用显示来源。',
+                '    if (cs::game::ClientPresentationHudAchievementQuery(result)) return result;',
+                '    cs::CallScope scope(record);',
+                '    return super(unk);']
+    if ident == 'client_menu_render':
+        return ['    if (cs::game::ClientMenuRenderBoundary()) return;',
+                '    // 替代分派先决策；仅原菜单真正进入时才记录原调用。',
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    super();',
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);']
     # Client 外层只负责决策；CallOriginal 才进入既有观察 Hook 与官方原链。
     outer_dispatch={
         'client_game_update':'GameUpdate','client_post_update':'PostUpdate',
@@ -513,9 +540,10 @@ def legacy_body(row):
     }
     if ident in outer_dispatch:
         entry=outer_dispatch[ident]
-        out=['    record.calls.fetch_add(1, std::memory_order_relaxed);',
-             '    if (cs::game::ClientDispatchBefore(cs::game::ClientEntry::%s) != cs::game::ClientEntryDecision::CallOriginal) return%s;'
-             % (entry,' 0' if ret!='void' else '')]
+        out=['    if (cs::game::ClientDispatchBefore(cs::game::ClientEntry::%s) != cs::game::ClientEntryDecision::CallOriginal) return%s;'
+             % (entry,' 0' if ret!='void' else ''),
+             '    // 主动跳过单独由Client计数，观察调用只对应真正进入的原链。',
+             '    record.calls.fetch_add(1, std::memory_order_relaxed);']
         out.append('    %ssuper(%s);' % ('auto result = ' if ret!='void' else '',call))
         out += ['    cs::game::ClientDispatchReturned(cs::game::ClientEntry::%s);' % entry,
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
@@ -564,22 +592,26 @@ def legacy_body(row):
                 '    cs::game::ObserveActualLoot(this, "%s", advance, result);' % member,
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);',
                 '    return result;']
-    lines = ['    cs::CallScope scope(record);']
+    lines = []
+    if ident == 'client_player_pre_stats':
+        return ['    cs::CallScope scope(record);', '    if (cs::game::ClientObjectSuppressPlayerPreStats(this)) return;', '    super();']
     # Client 主动持久分派位于观察作用域之外；被隔离的调用绝不进入官方外层 Hook。
     if ident in ('start_game', 'restore', 'game_exit', 'post_start', 'lua_post_render',
-                 'manager_set_save_slot', 'manager_save_game_state', 'game_save_state',
+                 'manager_set_save_slot', 'manager_save_game_state', 'manager_record_completion', 'game_save_state',
                  'pgd_add_challenge', 'pgd_add_collection', 'pgd_add_boss', 'pgd_unlock_steam',
                  'gamestate_clear',
                  'pgd_counter', 'pgd_local', 'pgd_cloud',
                  'gamestate_delete', 'gamestate_delete_rerun', 'load_game_state'):
-        lines.append('    if (cs::game::ClientPersistenceBlocked()) return;')
+        lines.append('    if (cs::game::ClientPersistenceBlocked()) { cs::game::ObserveClientPersistenceDenied("%s"); return; }' % ident)
     elif ident in ('pgd_unlock', 'gamestate_write', 'gamestate_read',
                    'pgd_add_bestiary_kill', 'pgd_encounter', 'gamestate_write_rerun', 'gamestate_read_rerun'):
-        lines.append('    if (cs::game::ClientPersistenceBlocked()) return false;')
+        lines.append('    if (cs::game::ClientPersistenceBlocked()) { cs::game::ObserveClientPersistenceDenied("%s"); return false; }' % ident)
+    # 拒绝计数与original计数分别记录；拒绝路径不能先创建CallScope伪装原链已执行。
+    lines.append('    cs::CallScope scope(record);')
     if ident == 'lua_register_classes':
         lines += ['    if (scope.main) cs::game::ClientLuaGuardClosed();',
                   '    super();',
-                  '    if (scope.main) cs::game::ClientGuardLuaBindings();']
+                  '    if (scope.main) cs::game::ClientGuardLuaBindings(true);']
         return lines
     if ident == 'lua_run_bundled_script':
         lines += ['    if (scope.main) cs::game::ClientGuardLuaBindings();',
@@ -621,7 +653,7 @@ def legacy_body(row):
             '        return;',
             '    }',
             '    // Client 原生命令可直接改 achievements/challenges；仅保留本方 cs 命令。',
-            '    if (cs::game::ClientPersistenceBlocked()) return;',
+            '    if (cs::game::ClientPersistenceBlocked()) { cs::game::ObserveClientPersistenceDenied("console_command"); return; }',
             '    super(%s);' % call,
         ]
     else:

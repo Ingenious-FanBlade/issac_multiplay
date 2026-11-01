@@ -1,12 +1,15 @@
 #pragma once
 #include "replica/model.h"
 #include "game/client_lifetime.h"
+#include "game/client_native_world.h"
 #include <array>
 #include <atomic>
 #include <cstdint>
 #include <memory>
 
 namespace cs::game {
+class ClientObjects;
+class ClientPresentation;
 // Client 原生场景与连接分开；这里只保存纯值目标和提交，不跨线程拥有原生对象。
 enum class ClientSceneState : unsigned { Waiting, Preparing, Applying, Displaying, Retiring, Failed };
 enum class ClientPurpose : unsigned { NativeApply, NativeRetire, Lua, Graphics, RenderObservation, Dispatch, LocalSettings };
@@ -36,17 +39,26 @@ struct ClientApplyResult final {
   std::array<char,32> phase{};
   std::array<char,96> reason{};
   unsigned executed_prefix=0, pending_owners=0;
+  unsigned native_owners=0;
   bool native_written=false, native_committed=false, old_display_valid=false;
 };
-// 有界的主线程场景 owner；目前没有世界网络载荷和可调用原生 adapter，接纳只会明确拒绝。
+// 有界的主线程场景 owner；DTO接纳、原生应用、发布和实际退休分别推进。
 class ClientScene final {
 public:
+  ClientScene() noexcept;
+  ~ClientScene();
   void Begin(const replica::Scope &waiting_scope) noexcept;
   void Retire(const char *reason) noexcept;
   void Fail(const char *reason) noexcept;
   bool CanReturnToMenu() const noexcept;
   bool AdmitTarget(const replica::Scope &, std::uint64_t revision,
                    const replica::Value &) noexcept;
+  // Manager原链短路后每轮至多执行一个完整子步骤，不推进Authority tick。
+  void Pump() noexcept;
+  bool DisplayReady() const noexcept;
+  ClientNativeRoots NativeRoots() const noexcept;
+  const replica::Value *Published() const noexcept;
+  void RenderPublished() noexcept;
   bool Borrow(ClientPurpose purpose,ClientBorrowToken &out) noexcept;
   bool Valid(const ClientBorrowToken &borrow) const noexcept;
   void Release(ClientBorrowToken &borrow) noexcept;
@@ -59,7 +71,11 @@ public:
   void RetireRetained(const ClientRetainedTicket &ticket) noexcept;
   bool UseLuaRegistry(const ClientRetainedTicket &ticket,void *&owned) noexcept;
   void DrainRetained() noexcept;
+  // 破坏实例/内嵌 ANM 前在取得本次借用之前调用；只检查退尽，不阻塞当前栈。
+  bool DestructiveReady() const noexcept;
   bool ConsumeForeignFault() noexcept;
+  // Manager 资源窗口和 Render 窗口共用真实 renderer/OS-current 检查。
+  void ContextWindow() noexcept;
   void RenderWindow() noexcept;
   void ObserveLuaState(void *state) noexcept;
   void LuaClosing() noexcept;
@@ -69,8 +85,10 @@ public:
   // 以下只读视图仅供主线程使用；跨线程只能用上层已复制的状态发布。
   ClientSceneState State() const noexcept { return state_; }
   ClientApplyResult Result() const noexcept { return result_; }
+  // A仅在完整原生提交后有效，部分写入或退休不继续暴露旧提交版本。
+  std::uint64_t AppliedRevision() const noexcept { return applied_valid_?applied_revision_:0; }
   const ClientGenerations &Generations() const noexcept { return generations_; }
-  bool HasNativePrefix() const noexcept { return native_dispatch_prefix_ || result_.native_written || result_.pending_owners; }
+  bool HasNativePrefix() const noexcept { return native_dispatch_prefix_ || ClientNativeWorldHasPrefix(native_world_) || result_.native_written || result_.pending_owners; }
   // 分派原调用前记录“可能已执行”的不可逆前缀，直到 I8 实际退休后才可清除。
   bool NoteNativeDispatchEntry() noexcept;
 private:
@@ -85,7 +103,10 @@ private:
     bool retiring=false,releasing=false,failed=false;
   };
   RetainedEntry *FindRetained(const ClientRetainedTicket &ticket) noexcept;
+  bool ResourceUseValid(const RetainedEntry &entry) const noexcept;
+  bool GraphicsWindowValid() const noexcept;
   void FinishRetirementIfDrained() noexcept;
+  void NoteNativeStep(const ClientNativeStep &,const char *phase) noexcept;
   bool Enter(ClientPurpose purpose) noexcept;
   void Leave(ClientPurpose purpose) noexcept;
   void FailureResult(ClientResultKind kind,const char *phase,const char *reason) noexcept;
@@ -102,7 +123,16 @@ private:
   std::uint64_t next_borrow_=0;
   ClientSceneState state_=ClientSceneState::Waiting;
   replica::Scope waiting_scope_{}, target_scope_{}, applied_scope_{};
+  std::array<replica::Scope,16> retired_scopes_{};
+  unsigned retired_scope_count_=0;
   std::unique_ptr<replica::Json> target_, applied_;
+  std::unique_ptr<ClientObjects> objects_;
+  std::unique_ptr<ClientPresentation> presentation_;
+  ClientNativeWorldOwner *native_world_=nullptr;
+  ClientNativeSceneDescription native_description_{};
+  bool applied_valid_=false,rebuild_pending_=false,objects_planned_=false,
+       objects_retired_=false,pumping_=false,attempt_invalidated_=false,
+       objects_complete_=false,presentation_retired_=false,retirement_complete_=false;
   std::uint64_t target_revision_=0, applied_revision_=0, next_attempt_=0;
   ClientGenerations generations_{};
   ClientApplyResult result_{};
@@ -110,6 +140,6 @@ private:
   void *current_dc_=nullptr, *current_context_=nullptr;
   void *observed_dc_=nullptr, *observed_context_=nullptr;
   void *lua_state_=nullptr;
-  std::atomic<bool> foreign_fault_{false};
+  mutable std::atomic<bool> foreign_fault_{false};
 };
 } // namespace cs::game

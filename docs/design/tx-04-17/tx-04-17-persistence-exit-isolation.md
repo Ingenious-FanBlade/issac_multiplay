@@ -149,3 +149,63 @@ Client将在原生世界中构建与应用服务器状态，访客原有run／Co
 主审还纠正了AddChallenge扩展所属源码为ChallengesStuff.cpp，删除条件改记原始字段比较而不臆定容器类型，补明Game::Exit的stdcall／void ABI及官方PGD版本同步的启动、选档与Manager析构路径；并将正常teardown、主线程非阻塞退休和Authority展示值／访客持久档的区别写入合同。
 
 本轮完成全部文档编辑后的统一人工静态回读，只核对引用、规则一致性和指定范围；未运行游戏、构建、测试、哈希或格式／语法校验器，无artifact包。ST8研究与主审完成不表示tx-04-17 Client隔离功能完成。
+
+## 7 2026-11-02 I7实现与统一验收中的持久归属补充
+
+本节续记tx-04-17实际实现和统一E2E中发现的具体问题；以上2026-10-31／11-01历史事实、失败与当时UNKNOWN原样保留。源码实现、已经观察到的个别运行结果和仍待完成的最终验收分别陈述。本节文档续写只读现有源码、trace与已产生的before／exit文件，未另行构建、运行测试、启动游戏或计算／验证任何校验值。统一验收最终覆盖与结论由主流程后续更新，不能据本节单独宣称E9或整个tx通过。
+
+### 7.1 首次原生准备前的Lua与native保护
+
+`IMPLEMENTED`：[client_native_bridge.cpp](../../../mod/src/game/client_native_bridge.cpp)将持久API保护接在官方初始化实际时序上，而不是等连接后再替换全局函数。
+
+- `LuaEngine::RegisterClasses`外层正常返回后调用`ClientGuardLuaBindings(true)`，在vanilla主脚本取得别名前保护`Isaac`持久API及`PersistentGameData`元表方法；基础入口缺失或安装失败不能由后续连接时的包装补作“早期别名已保护”。
+- 官方`LuaEngine::Init`在其super返回后才创建`_CBindings`，随后调用bundled `enums_ex.lua`／`main_ex.lua`。本方在bundled script之前保护`_CBindings.ESSM.SaveData/LoadData/DeleteData`，使ESSM模块捕获的local别名和onlinestub保存到`UnsafeFuncs`的原函数已经经过保护。官方`_LuaBindings`中的Entity／ESSM结构维护保持原链，不能把它们与持久sidecar写入混为一类全部跳过。
+- 只有基础保护、ESSM早期保护和`main_ex.lua`正常完成均成立，才在所属VM私有registry表中记录最终owner及函数身份。连接时只核对该身份；被替换、缺失或VM不符时拒绝继续，不能重新包装后假称旧alias安全。身份表由VM拥有，未在C++保留跨VM的registry编号，不每帧重建。
+- `PersistentGameData:Unlock/TryUnlock`的官方Lua函数会在调用native `TryUnlock`前修改`forceunlock/nextSkipAchiev`。本方因此在Lua元表入口之前拒绝；仅让下层native返回false不足以覆盖这两个官方全局状态。计数、bestiary、boss、挑战和completion setter亦各按已解释入口隔离，ModData读写／删除及ESSM持久API没有被归为本地设置白名单。
+
+`IMPLEMENTED`：[hooks.json](../../../mod/binding/hooks.json)和[gen_binding.py](../../../mod/tools/gen_binding.py)中的Client持久分派在官方整链副作用之前拒绝Start／Restore／Exit、Manager保存／选档／完成标记、PGD进度及保存、GameState读写／删除／rerun等已采用入口。bool入口返回false，void入口不进入super；Host及正常Off保留原调用。主动拒绝不记作original正常返回，[persistence.cpp](../../../mod/src/game/persistence.cpp)另计`persist_client_denied_native/lua`并记录固定入口名，供完整窗口归因使用。
+
+本轮补认`Manager::RecordPlayerCompletion`为必须保护的独立入口：官方`CompletionTracker.cpp:899`的priority `100` Hook可在super之前直接改变自定义角色`CompletionMarks`并保存JSON，不能由`IncreaseEventCounter` Hook代替。J273已核VA `0x933D40`／RVA `0x533D40`，SDK ABI为static `__stdcall void(int)`；本方清单采用priority `-20000`。官方libzhl的Hook表按priority降序安装，每次新detour包住旧入口，故较小priority最后安装在外层，覆盖官方`100`、`0`和`-9999`层；这项源码事实不意味着任意第三方动态补丁也受同一排序支配。本方不据此承诺任意第三方native IO隔离。
+
+### 7.2 Shutdown直接写、ASLR修正与关闭来源的保护寿命
+
+`IMPLEMENTED`：[exit_patch.cpp](../../../mod/src/hooks/exit_patch.cpp)中的常驻Shutdown桥分别处理counter直接store分支和dirty／backup／cloud／local flush分支，保留Options以及后续对象、Lua和图形关闭。不能整个return `Isaac::Shutdown`，也不能把late unload当第一道保护。
+
+本轮修正了第二段补丁的ASLR操作数处理：原`A1`指令的四字节绝对Manager槽地址会被PE重定位，不能把首选基址常量当作每次运行的指令值。清单现用`A1 ?? ?? ?? ??`核对指令形状，安装时另读取实际操作数并要求其等于`Base + offset::Manager`；shim通过该实际槽载入Manager，在正常和跳过保存两条路径都保留原载入语义。不匹配时停用相关Client能力，不猜地址或绕过检查。
+
+本轮还修复了关闭请求与Client身份解除之间的保护空档。窗口Close若始于Client，`ClientProcessExitDecision`立即登记进程关闭来源并置`client_exit_progress_guard`，再推进场景／输入／网络退休；直接进入Shutdown且Client仍在时也登记该来源。`ClientPersistenceBlocked()`同时检查活跃Client及该进程退出标志，因此场景已安全退休、`ClientRuntime`转Off后，余下Shutdown中的持久消费者仍保持隔离。trace用`process_exit_progress_guard`说明这一来源，不能只凭随后出现`event=off`就恢复进度写入。
+
+该标志服务于已经开始的进程关闭，并非把正常菜单交还永久变成Client。正常stop完成后的合法本地玩法仍按其自身归属运行；源码与本节没有引入readonly翻转、dirty清零、存档快照恢复或退出后合并修复。设置仅保留已经声明的本机Options／输入配置路径及其本地来源，不把opaque ModData、进度JSON或run请求放宽为设置。
+
+### 7.3 统一E2E第12次L：vanilla PGD改变的实际归因
+
+`RUNTIME_OBSERVED`：本轮统一验收L的诊断位置为`out/tx17-e2e-20261102-l`。该次进程先运行SourceHost采集局，退出到菜单后才取得`client_before`，随后运行Client及正常窗口关闭。严格Client窗口的文件比较发现`steam_remote/387111160/rep+persistentgamedata2.dat`改变，RGON对应PGD未改变；该失败现象保留，未通过扩大白名单抹去。
+
+本次续写只对已有文件读取并比较原始字节。vanilla before／exit长度均为16932，全部差异仅在`0x10–0x13`和`0x4220–0x4223`。官方`SaveFile.h`及`SaveFile::ReadGamestateChecksum/SetGamestateChecksum`表明，前者是PGD中保存的Continue／GameState关联字段；后者是文件最后四字节的原有校验字段。本方没有计算、验证或重签任何校验值。两者之间的成就、计数、bestiary、设置等数据块，以及倒数第二个四字节计数均未变；`rep+gamestate2.dat`在Client before／exit之间全部57276字节相同。
+
+下表只列直接读取的`0x10`字段值，用于说明归属时序，不执行任何校验算法：
+
+| 已有快照阶段 | vanilla PGD `0x10` | RGON PGD `0x10` |
+| --- | --- | --- |
+| `save_before`，本进程SourceHost前 | `014BBF6F` | `E4AC898A` |
+| `client_before`，SourceHost已退菜单 | `E4AC898A` | `0242652A` |
+| `client_after` | `E4AC898A` | `0242652A` |
+| `client_exit` | `0242652A` | `0242652A` |
+
+`RUNTIME_OBSERVED`：L的trace `seq10689`记录`process_exit_progress_guard connection=4`，之后依次为retiring、Off、`isaac_shutdown`、Lua销毁及正常Shutdown返回；关闭来源保护没有因先转Off而丢失。上述文件字段说明，新关联值`0242652A`在Client开始前已存在于SourceHost保存的RGON PGD；Client窗口内没有再生成另一代run关联，退出时只是vanilla追上该已有值。`rgon_savesyncstatus.json`的before／exit文本也相同。
+
+`SOURCE/DERIVED`：官方[SaveSyncing.cpp](F:/projects_isaac/REPENTOGON-1.1.3/repentogon/SaveSyncing/SaveSyncing.cpp:501)对`updateVanillaGamestateChecksum`作独立判断；即使`syncVanilla/syncRgon`均为false、不需要同步进度，只要Continue关联值不同仍可继续执行。在同文件`:557–574`更新该字段并调用`vanillaSave.Save()`；`:642`的Manager析构Hook发起关闭同步。实际最终写入经[SaveFile.cpp](F:/projects_isaac/REPENTOGON-1.1.3/repentogon/SaveSyncing/SaveFile.cpp:716)的`SaveToSteamCloud → SteamCloudFile::PushToSteamCloud`，不经过PGD的`SaveToSteamCloud`观察／拒绝入口。因此这次是实际发生的官方最后writer写入，但现有字节和调用合同共同将其归因为同进程SourceHost已存在Continue关联的延后同步，而非Client新增成就、统计或其它进度块漏写。它不是把整个PGD文件判成“允许改变”。
+
+### 7.4 独立进程验证设计与保留边界
+
+`PENDING`：后续统一验收将Source采集与Client正常关闭放在独立游戏进程。Source进程先按其合法Host生命周期保存并正常退出，让官方最后同步完成；Client进程随后从其自身启动／选档完成后的真实本地状态建立窗口基线，再执行Client准备、应用、失败／重连、退休和正常关闭。这一设计去除“在同一进程Client窗口之前已有Host待同步Continue”的归因混杂，仍要求严格检查完整Client窗口，不扩大PGD白名单，也不以跳过失败项记通过。本节写入时，该独立Source／Client进程方案的最终运行结果尚待主智能体统一记录。
+
+Manager析构的官方合法本地同步继续保留。服务器来源从未污染其输入时，正常同步访客原有进度／Continue关联有独立本地归属；不能因存在最后writer就禁用整个析构、跨进程永久关闭同步或阻断必要teardown。若以后确有产品要求限制“Client来源关闭时的官方自动同步请求”，必须在该具名请求进入整链之前说明来源和失败后态，同时继续正常析构；不能只在底层拒绝文件写入后让上游冒充同步成功。
+
+最终文件未变、仅元数据变化、dirty终值、readonly或某次拒绝计数都不能单独代替全过程理解。I7仍须与原生准备前的消费者分派、允许的本地设置来源、失败／断连后的场景隔离、Close来源、实际Shutdown及官方最后writer联合判断。现有结论限定于本tx已采用入口与实际观察窗口；未知第三方native IO、任意异常／强制终止和未采用的后续路径没有因此变成已闭合保证。
+
+### 7.5 独立进程的最终运行结果
+
+`RUNTIME_OBSERVED`：Source P正常退出后，独立Client S、T、最终U均完成14项自动用例；主智能体在U另完成画面对照，正常窗口关闭退出码为0。各自`client_before → client_after`及`client_before → client_exit`比较均通过：前者仅允许`documents/log.txt`，后者另允许本机`documents/options.ini`；PGD、Continue、官方JSON／附属文件及ModData没有被放宽。原生与Lua／Mod持久请求被前置拒绝，内存进度及RNG保持原值，关闭来源标志一直覆盖到Shutdown，Manager正常析构仍执行。
+
+这验证了§7.4的独立Source／Client设计，§7.3的同进程L失败保留原事实。文件判定沿用用户D27决定排除每日`save_backups`，不将其称为逐字节验证通过；Shutdown备份消费者仍由相同关闭来源保护约束。临时快照和日志仅用于本轮归因，验收收束后清理，不保留artifact包。结果限定于主流程列明的代表场景与标准API，不外推第三方直接IO、强制终止或完整整局模式。
