@@ -1,5 +1,121 @@
 # tx-04-17 ST1：公开接口选型、既有事实与具体缺口
 
+## 2026-11-01 当前设计与补充研究
+
+现行合同与执行顺序见[tx-04-17主流程](tx-04-17-workflow.md)。2026-11-01已推进R1—R5原生生命周期静态合同，本轮[R6模型／角色／应用器](tx-04-17-model-role-applier-integration.md)对照15／16实际源码归并接口。前项各自静态事实与UNKNOWN保留，R1—R6指定文档结果均已形成；完整可调用原生前置和新增接线未实现。没有新增逆向、代码修改、构建或运行测试。
+
+本目录继续提供公开接口与已知副作用依据；2026-10-31后续ST1—ST8的指定静态研究已完成，以下各轮“未执行／未完成”保留其原时点。原生世界承载Client及create／remove／change是现行设计，R1—R6文档进度以上述结果为准。
+
+- 按[R1](tx-04-17-workflow.md#r1)补原生初始化／setup接口，按[R2](tx-04-17-workflow.md#r2)补工厂、Morph、成员提交与退休；登记前置对象、参数、调用阶段、允许副作用、失败后态和适用类别。
+- [R3](tx-04-17-workflow.md#r3)／[R4](tx-04-17-workflow.md#r4)补原生维护与内嵌资源借用；[R5](tx-04-17-workflow.md#r5)／[R6](tx-04-17-workflow.md#r6)归并安全退出及15／16接线。现有Sprite公开成员无需因路线变化全部重新逆向。
+- 接口存在、只读采集成功或名字含Remove／Render都不自动证明可安全应用。仅在公开文档／源码未解释实际需要时补J273静态路径；不新增通用函数RPC，不改变15线格式。
+- 下文ST指定模型／子智能体安排属于历史任务；R1—R5各自的必要逆向另按用户明确要求使用一个GPT-6 Luna／max子智能体，主智能体复读关键指令与源码后取舍。
+
+<a id="r6-integration-interfaces"></a>
+
+### R6 模型／角色／应用器接口补充（2026-11-01）
+
+本轮不重新核对已解释的native地址。源码事实、拟定接口输入／输出、执行线程、失败前缀和任务责任见[R6正文](tx-04-17-model-role-applier-integration.md)。以下不表示已有C++ API已具备新增行为。
+
+| 当前接口 | 原生应用接线限制 |
+| --- | --- |
+| Capture／Registry／Difference／Reconstruct | 从Authority正式consumer的同窗口自有值投影网络key和完整T，不读录制文件、不重算玩法随机；原生操作按A→T规划，不按Delta字段直接RPC |
+| ModelWindow::Stage／Current | 只提交DTO，Current可能在下一次Stage被替换；跨帧计划拥有不可变目标，A和实例资格由主线程另管。Stage false不表示失败场景无需重建 |
+| Applied(scope,snapshot,watermark,bool) | bool只限制编码调用，不验证游戏对象；17提供真实且Scope／attempt匹配的提交结果，21—22再发ACK。资源loaded、InputAck和ReceiveAck不代替 |
+| EventWindow／ControlWindow | Accept会推进去重／接纳记录，但不执行效果；补有界待执行与完成记录，事件预留／完成及水位不靠最大已见ID推断 |
+| live::Event／Intent／等待Scope／Limits | 当前通知无世界值、Intent无完整Scope、等待代次为占位、小重组限64KiB且世界消息被拒；新增纯值队列、正式Scope路由及预算是实际接线缺口，不改wire即可自动获得的能力不存在 |
+| ClientManagerBoundary／InputTiming／物理泵 | 主线程职责扩展但Client不启动Authority TickPipeline；输入预计目标不充世界时间。准备／恢复／切scope撤销旧Intent与边沿，展示与输入资格分别判定 |
+| 退场与清单／角色 | R5真实资源／owner／持久后态满足才Off，进程关闭独立于录制；常驻Hook由唯一清单按用途分派，Host／Off透传 |
+
+<a id="r5-retirement-interfaces"></a>
+
+### R5 失败退休接口补充（2026-11-01）
+
+完整调用点、前置、部分失败表和主审见[R5结果](tx-04-17-failure-retirement.md)。
+
+| 入口／候选 | 选型与失败限制 |
+| --- | --- |
+| MC_PRE_GAME_EXIT／MC_PRE_MOD_UNLOAD | 无保存否决；early unload在Shutdown持久副作用之后，仅能补受控清理，不代替构建前隔离 |
+| Game::ResetState `0x6F08D0` | 原生只重置标量／stage计数，官方ESSM前置遍历有效保存状态；不释放Room／Player，也不修复半构造对象 |
+| Room重建 `0x732D20`／PlayerManager清理 `0x98F7C0` | 正常Exit先销毁／重建Room并发布，再对当前Room执行roster摘除／Player Free。Room重建有分配失败窗口，不能当无分配teardown；清理要限定真实owner |
+| HUD `0x97AB10/0x979D80` | 含ANM／Image清理和8槽缓存／关联重置，不能当纯标量复位，仍遵守资源context及官方维护合同 |
+| Manager::cleanup_current_state `0x932970` | state2可进入完整Exit及保存／删除；名字cleanup不提供无保存取消保证 |
+| 菜单请求helper `0x933060` | 正常链可写state1并准备菜单，但前段含原版Online；C/S不整体执行、不触及其NetplayManager，不从函数中部跳入。菜单自有编排及具体callee参数仍待落实 |
+| 当前ClientProcessExitDecision／MenuReady | 16只保证无世界Client的线程／输入收束，退出patch仍有录制安装依赖；17须补独立于录制的原生owner／持久退休责任，不把现有API误标为新功能完成 |
+
+<a id="r4-resource-interfaces"></a>
+
+### R4 内嵌资源与释放权限补充（2026-11-01）
+
+完整owner表、源码位置、静态主审与UNKNOWN见[R4结果](tx-04-17-native-resource-lifetime.md)。
+
+| 入口／类型 | 选型与限制 |
+| --- | --- |
+| `Entity／Grid:GetSprite`、Player body／held／blood | 原生内嵌存储借用，registry只保wrapper；body公开文档的temporary copy并非Lua自有Sprite。资源／实例变化后重取，不手动Reset／GC |
+| `GetCostumeSpriteDescs():GetSprite`／portrait | vector元素或transition map内资源，容器revision独立于Player／Game实例；不保存旧userdata跨容器重建 |
+| `GetLayer`／Animation／Frame／BlendMode | 无父对象强引用或自动代次检测；按ANM／cache重绑、Load／Reload／Reset和关联变化撤销，不能拿旧wrapper做存活检查 |
+| `GetSpritesheet`／native smart pointer | 可类型化复制Image强引用，getter可能lazy sync；C++值析构使本方pin释放可控，仍限有效owner／context。Image不能保活原生实例／动画，也不能自动取消raw queue |
+| Lua `Image` | 公开方法无Release／Close；`__gc`减引用，unref不保证GC。native pin方案不升级为已解决所有LuaImage退休 |
+| 官方custom-render contexts | 本地1.1.3的EnableCustomRendering=false，Allocate在super后早退且绘制patch入口注释；buffer raw上下文副本不是当前活跃owner。若未来启用，必须另解其消费／取消；不能以Image保活或禁用1136代替 |
+| Reset／原生destructor／shader extras | 内嵌Sprite由原生owner清理；官方Reset／dtor hook清ANM副表，EntityPlus／GridPlus分别维护。erase关联不等于共享shader program释放，不能清全局cache或手删官方holder |
+
+<a id="r1-init-interfaces"></a>
+
+### R1 初始化接口补充（2026-11-01）
+
+先读两套本地Wiki，再读官方1.1.3源码；另参考[官方回调文档](https://repentogon.com/enums/ModCallbacks.html#mc_pre_new_room)与[官方Level文档](https://repentogon.com/Level.html#tryplaceroom)。网站只作公开语义补充，不替代本地1.1.3和J273的版本依据。下列均为文档／源码事实或明确的设计选择，没有实机调用。
+
+| 接口／候选 | 已读合同及真实限制 | R1选型 |
+| --- | --- | --- |
+| 原版`Game:ChangeRoom`／`StartRoomTransition`、RGON`StartStageTransition` | 原版`Game.md:88—90,551`，RGON`Game.md:34—38`；原版`Level:ChangeRoom`还明确不完整更新fxlayers | 是已有玩法世界的切换入口，不是菜单Game到受控Client世界的构造合同；不用于先正常开局再清空 |
+| `MC_PRE_LEVEL_INIT(1060)`／`MC_PRE_NEW_ROOM(1200)` | 本地`enums/ModCallbacks.md:1251—1256,1399—1407`不接受取消返回；官方`CustomCallbacks.cpp:1061—1074,3828—3846`调用Lua后仍无条件`super`。1200发生于Room完整初始化前，文档特别警告几何查询 | 可以定位阶段，不能单靠Lua返回值阻止生成／持久副作用，也不能在1200把Room标成ready |
+| `MC_PRE_LEVEL_SELECT(1104)`／`MC_PRE_LEVEL_PLACE_ROOM(1137)` | 本地回调文档`:1264—1296`允许替换模式参数／房间config，且受形状和门兼容限制；不是完整拓扑恢复接口 | 不把参数替换等同于接管整条Level／Room初始化 |
+| `MC_PRE_ROOM_GRID_ENTITY_SPAWN(1192)` | 本地文档`:2098—2108`只覆盖布局Grid，不覆盖随机装饰；`ASMGridEntitySpawn.cpp:83—133`的false在该trampoline内早退，否则CreateGridEntity→发布grid槽→Init | 只可作为具体生成点的控制依据；不覆盖全部实体、门、装饰、随机消费及caller前后工作。不能“全禁1192”就声称得到安全空Room |
+| `Level:TryPlaceRoom`／`TryPlaceRoomAtDoor` | `Level.md:133—149`为已有楼层增房并有布局限制；`LuaLevel.cpp:211—231`非法grid index实际返回false，helper失败才nil，保留与文档差异。`RoomPlacement.cpp:172—289`临时切dimension、调用PlaceRoom、改双方门关系、可MakeDoor／播放动画／移除红门轮廓，按本地地图flags更新可见性 | 不直接用于任意服务器拓扑灌入。PlaceRoom之后Data为空返回nullptr未回滚前序变更；返回nil／false不保证未写世界 |
+| `RoomDescriptor`与`RoomConfigRoom` | 原版`RoomDescriptor.md`区分GridIndex／ListIndex、Data与各seed；RGON增加保存容器访问。`RoomDescriptor.zhl:19—54`还含OverrideData、Doors、三类保存容器、RestrictedGridIndexes；不是可跨进程复制的POD | 服务器提供逻辑描述和资源身份；客户端由本地有效owner解析并构造，不能传服务器指针、memcpy整个descriptor，不能用`InitSeeds`重抽服务器已给出的seed |
+| ZHL `Room::Init(int,RoomDescriptor*)`／`Camera::constructor(Room*)` | `Room.zhl:73—74`、`Camera.zhl:1—2`是native绑定声明，未作为Lua安全构造API暴露；需J273具体调用段和前置全局状态 | 进入受控原生setup研究，详细切分见R1正文；不从函数名或`void`返回推导成功、回滚或无玩法副作用 |
+| ZHL `HUD::LoadGraphics()` | `HUD.zhl:10—11`为`__thiscall void`，与J273 VA`0x979E10`签名相符；Start调用点VA`0x6F1772`；包含字体、ANM、图像与离屏surface准备，内部已加载标志不是逐资源结果 | 选为可独立复用的HUD资源准备helper，仍需有效HUD、主线程／context和资源结果处理；不调用整条Start来间接获得HUD资源，不将其返回等同world ready |
+
+官方外围链也属于拟用入口的合同：`LuaRoom.cpp:474—486`在Room Init前重置water／item-pool副表、后按stage与descriptor设置水量；ESSM`:3481—3485`在链后检查稳定性。`VanillaTweaks.cpp:61—65`在Level Init返回后直接读取`_playerList[0]`并重算StatHUD，不能对空Player列表整体调用此链。原生构造的EntityManager／ESSM登记须保留必要结构语义，Gameplay Lua不能笼统和这些登记一同抹掉；具体分派与实例关系由R2／R3落实。
+
+<a id="r2-object-interfaces"></a>
+
+### R2 创建、变化和退休接口补充（2026-11-01）
+
+详见[R2公开选型、官方维护与原生边界](tx-04-17-native-object-lifecycle.md#2-公开接口与当前源码选型)。本轮没有选择一个可对全部类别直接调用的公开create／remove／change函数；实际操作沿对应原生owner进行，公开最终值setter语义足够时仍优先使用，不要求全部成员逆向。
+
+| 接口／维护 | 本次新增限定 |
+| --- | --- |
+| Game Spawn／Factory | 公开七参与native八参分开；第八word低bit传给Factory。原生bool非零在池耗尽时返回null，不能按ZHL的force命名误作强制覆盖。通用Factory不能生成Player；显式seed不等于整Spawn无规则／回调／后处理 |
+| 零seed | 原版Wiki风险说明保留；官方1.1.3 `MiscFixes.cpp:172—178`在PreEntitySpawn前后钳seed。不能用旧文档宣称该修复不存在；直接Player Init不由这条Spawn修复自动保护 |
+| Spawn取消／Morph结果 | 原版24是改参table，不是false取消；NPC Wiki bool与官方void包装存在差异。1212／1213可改参或短路，但callback本身仍可写对象；实际body、最终形态和外层完成分别处理 |
+| Remove／CommitRemoved | 基Remove会处理Lua引用且没有整体重复早退；官方提交只处理五类EL、ClearReferences可连带Remove、Player可Free(1)。不以一次Remove／Exists=false／67回调代替全部摘表或回收 |
+| 原生扩展／Lua登记 | EntityPlus在基Init时重建，Remove清理Hook只是注释代码；EntityManager→ESSM New／Delete与Gameplay Lua分开。保留必要结构维护，网络key不等于masked地址 |
+| Grid／Player | GridEntityPlus为按index的独立副表，同格重建须换代并维护；RemoveCoPlayer只适用于已解释的额外Player，不能用来退休main player；InitTwin依赖现存Player，不是首建接口 |
+
+NPC Morph的PGD bestiary写入点与Player／Room归属回补见[R2静态事实](tx-04-17-native-object-lifecycle.md#3-工厂发布移除与morph的静态边界)和[R1回补](tx-04-17-native-object-lifecycle.md#5-与r1及后续任务的关系)。资源／借用失效、完整失败退休和实际命中仍留后续研究及全目标统一E2E，不能将本目录当作已实现adapter清单。
+
+<a id="r3-maintenance-interfaces"></a>
+
+### R3 维护、相机、HUD与绘制接口补充（2026-11-01）
+
+完整公开来源、J273证据及调用阶段见[R3维护与绘制](tx-04-17-native-maintenance-rendering.md)。保留原生对象及必要显示写入；公开名字含Update／Render／Get不作为整链白名单。
+
+| 接口／候选 | 本轮选型与限制 |
+| --- | --- |
+| `MC_PRE_UPDATE(1026)` | true只跳Game主更新段，官方仍CommitRemoved／sort／HUD PostUpdate；外围Manager、odd、FSM、loading不因此隔离。不把它当Client完整维护入口 |
+| `EntityList::render_sort` | native声明，无公开完整维护合同；J273 `0x4150C0`只重排renderEL，有空表读首项、共享scratch、虚GetRenderZ及渐进排序限制。成员／引用先提交，不拿sort补创建或证明完整次序 |
+| Entity原生Interpolate | ZHL vtable+0x10，J273 `0x6AC2A0`写回临时世界位置并可进入碰撞；与官方AnimationLayer插值不同。Client不调用它或odd来生成显示姿态 |
+| Camera三个接口 | SetFocus仅进历史并置override；Snap重填六缓冲，算clamp后写Camera／Room显示offset，Lua包装另置override；Update直接进含共享RNG的原生DoUpdate链。选显式目标／缓存适配，Snap仅窄定位候选；有效Room／config／视口与Active Camera缺口保留 |
+| HUD getter／setter／draw | 资源、AssignPlayerHUDs、显示缓存和Render分开；heart getter是值副本，不能当回写接口。PlayerHUD Update尾部查询ACTION_DROP并可进MC_INPUT_ACTION；History即时重算后分派1029。公开RenderActiveItem仍读Player关联／原生布局，不能在任意空HUD调用或将整条缓存更新当纯函数 |
+| HUD／History／光照回调 | 1020／1021／1022／1024、History和Room light callback可运行任意Lua，返回极性按各wrapper；必要官方结构维护与通用Gameplay Lua分派分开，不能用名称认定只读 |
+| Sprite／shader／插值 | 继续优先公开姿态setter；SetFrame事件位不得进入Gameplay消费者。官方插值临时写共享frame、shader读全局帧时钟须适配，不清visual flags、不伪造Game／Manager tick |
+
+## 2026-10-31 历史研究正文
+
+以下保留当时事实、纠错、UNKNOWN和设计推导；冲突设计按上文及主流程执行，静态结论不升级为运行结果，历史分工不成为新要求。
+
+
 > 后续进度（2026-10-31）：[ST2场景根](tx-04-17-client-scene-lifecycle.md)、[ST3更新隔离](tx-04-17-update-isolation.md)、[ST4展示边界](tx-04-17-render-presentation-boundary.md)、[ST5资源与完整姿态](tx-04-17-resource-pose-runtime.md)、[ST6线程／context／在途绘制](tx-04-17-thread-context-lifetime.md)、[ST7 Lua与借用寿命](tx-04-17-lua-borrow-lifetime.md)已完成指定静态研究与主审，ST2／ST3及ST5—ST7另经来回互核；[工作流程](tx-04-17-workflow.md)记录纠错与接受范围。最新结果补正BlendMode可写属性、shader描述、J273 raw队列／最后引用、Lua GC与分段关闭合同；不是原生render整树安全或资源运行时完成。下文“ST2—ST8未执行／本轮未调用IDA”及缺口表保留ST1资料归并当时事实，不代表后续进度。ST8、世界壳、可控LuaImage释放、运行隔离及统一E2E仍未完成。
 
 日期：2026-10-31，Asia/Singapore。状态：**ST1 资料归并与源码审阅完成；ST2—ST8 未执行，Client 隔离与资源运行时尚未实现。** 本目录是[工作流程 ST1](tx-04-17-workflow.md#st1-公开接口和既有事实归并)的设计输入，归同一 tx-04-17，不另设研究 tx 或分项验收。

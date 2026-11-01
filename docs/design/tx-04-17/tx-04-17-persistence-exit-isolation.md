@@ -1,5 +1,29 @@
 # tx-04-17 ST8：访客持久副作用与正常退出隔离
 
+## 2026-11-01 当前设计与补充研究
+
+现行合同与执行顺序见[tx-04-17主流程](tx-04-17-workflow.md)。R1—R4已补初始化、对象生命周期、维护绘制与资源借用；本轮[R5失败／退休／菜单交还](tx-04-17-failure-retirement.md)整合全过程保护及最后相关writer，补原生清理／状态转换的边界。R6已形成[模型／角色／应用器归并](tx-04-17-model-role-applier-integration.md)，具体接线与原生UNKNOWN仍未实现，未修改代码、构建或运行测试。
+
+Client将在原生世界中构建与应用服务器状态，访客原有run／Continue／统计／成就／解锁和允许的本地设置仍各有归属。ST8关于保存、删除、直接进度写入和官方整链的静态事实继续有效。
+
+**R5反馈（2026-11-01）**：选择自有退休编排，不调用Exit(false)取消，不用GameState Delete清运行时容器。正常Exit的Room重建先销毁旧owner后分配新对象，ResetState的官方ESSM包装又先访问有效backwards descriptors，均不保证半构造失败可恢复。保护始于首次服务器原生写入之前，覆盖Shutdown直接PGD／flush、early unload后资源及Manager析构SaveSyncing的来源；常驻持久归属策略与Client场景身份分开，只有服务器残留消费者／run状态已安全退尽才可在菜单转Off，不因最后writer要到进程末尾才存在而永久占用Client。Host／Off和访客随后合法run按正常归属透传，未知污染不能靠dirty／readonly／文件回滚消除。实际关闭接线、全部caller及异常仍有UNKNOWN，详见R5。
+
+- 下文“Client不走任何Start／Restore”“必须独立场景”等属于旧设计限制。当前允许研究受控复用原生初始化子路径，但不允许借访客Continue建世界，不默认放行完整Start／Restore／Exit；是否存在可复用段仍由[R1](tx-04-17-workflow.md#r1)解释。
+- 隔离须在原生构建前生效，覆盖临时初始化、create／remove／change、展示维护、失败／重建、stop与退出。原生场景有效不代表可以保存为访客run；仅拦磁盘写入或事后清dirty仍不足。
+- [R5](tx-04-17-workflow.md#r5)沿新采用路径复查进度写入与清理顺序，明确保留的原生析构／菜单交还工作、禁止的保存删除以及最后保护owner。Exit(false)、readonly、write=false和early unload依然不是现成完整保护。
+- [R6](tx-04-17-workflow.md#r6)扩展16退休条件并向31交付持久归属；源码现已有独立ClientRuntime，下文“当前没有Client”只代表研究时点。原有失败与UNKNOWN不因本次方案变更而改判。
+
+**R1反馈（2026-11-01）**：主审原始指令确认Start在VA`0x6F18F2`直接写Manager`+0x15`的PGD readonly；不能先调用Start再恢复该位来保护访客。所选路径改为已有根上的自有准备编排，独立复用HUD资源／几何计算／受控Camera构造，替代整层生成、启动保存、Room模拟及game-start玩法Lua。Room Init几何前已有池位集和对象清理；PlayerManager在virtual Init之前已可发布列表，Camera替换在新分配之前已释放旧对象，失败不是“无写入”。这些事实要求从准备前保护到实际owner退休，不能让部分失败经Exit(false)或提前Off恢复原生接管；异常清理和完整返回菜单仍待R4／R5，不改判为隔离已实现。
+
+**R2反馈（2026-11-01）**：主审独立回读NPC Morph：VA`0x6BD24F`以Manager`+0x14`的PGD调用`0x904DE0`。该helper在`0x904DEE`检查readonly；配置符合条件时，在`0x904E77`递增或`0x904E8F`写1到PGD`+0xF64` bestiary表项，随后还有条件通知。它证明change/Morph原生体可写进度，不仅外围Gameplay Lua存在副作用；具体统计项命名仍按静态依据保留，不从函数地址补造公开API。Client按应用上下文在这类消费者前隔离，不能用Morph返回、最终dirty或是否写盘证明全过程无影响。此补证不扩大readonly为完整保护，也不表示该分派已实现；其它派生Init／Spawn／Morph随实际采用路径继续补齐。
+
+**R3反馈（2026-11-01）**：停止Gameplay Update后，原生PlayerHUD缓存更新仍可经ACTION_DROP查询进入MC_INPUT_ACTION；History即时重算会在官方super后分派1029，Room光照亦有带原生userdata的Lua。它们不能因调用点在维护／绘制阶段而获得通用Gameplay／PGD写权限，必要结构／资源维护与这些消费者分派分开。相机DoUpdate仍直达已知条件共享RNG路径，不能当本地展示时钟。R3没有新增“已穷尽全部持久写入”的结论；ST8整链保护、R2已证Morph写入和R4／R5的最后owner责任保持，显示失败或断连不提前Off。
+
+## 2026-10-31 历史研究正文
+
+以下保留当时事实、纠错、UNKNOWN和设计推导；冲突设计按上文及主流程执行，静态结论不升级为运行结果，历史分工不成为新要求。
+
+
 日期：2026-10-31。状态：**指定范围静态研究与主智能体审阅完成；Client隔离与正常退休尚未实现。**必要逆向由用户指定的一个GPT-6 Luna／max子智能体完成，主智能体独立回读关键指令和源码，并补充官方PGD版本同步的关闭路径。目标为官方REPENTOGON 1.1.3与Repentance+ v1.9.7.12.J273。J273地址采用VA，`RVA=VA-0x400000`，主要入口同时列RVA。目标IDA输入及imagebase沿用[ST2场景研究](tx-04-17-client-scene-lifecycle.md)，仅只读反汇编／反编译／xref；没有改IDB、运行游戏、构建、测试、校验或保存artifact包。
 
 本文把可直接读到的官方源码和J273指令列为`SOURCE`／`J273_STATIC`，基于它们得出的Client限制列为`DERIVED`，静态资料不能确定的项目列为`UNKNOWN`。这是持久设计研究文档，不代表功能交付或运行通过。

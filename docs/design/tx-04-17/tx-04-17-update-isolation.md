@@ -1,5 +1,25 @@
 # tx-04-17 ST3：J273 更新隔离与保留点
 
+## 2026-11-01 当前设计与补充研究
+
+现行合同与执行顺序见[tx-04-17主流程](tx-04-17-workflow.md)。R1已形成初始化范围，R2已补[对象构造／成员／Morph／退休](tx-04-17-native-object-lifecycle.md)，R3形成[停玩法后的维护与绘制合同](tx-04-17-native-maintenance-rendering.md)；本轮[R4资源寿命](tx-04-17-native-resource-lifetime.md)补原生owner与Image在途引用，custom-render延后上下文分支当前关闭；不能为退尽实际引用而放行未知整条更新／绘制或Lua。R5已补[失败退休与菜单交还](tx-04-17-failure-retirement.md)，R6已形成[模型／角色／应用器归并](tx-04-17-model-role-applier-integration.md)，具体接线与原生UNKNOWN仍未实现。没有修改代码、构建或运行测试。
+
+原生Game／Room／Entity／Player允许在Client构建、create／remove／change应用和明确的展示维护中被写入；玩法结果仍由Host唯一裁决。
+
+- 下文整段Manager短路、禁止一切Start／Room setup的建议是旧方案及16等待阶段的基础，不能直接作为有原生场景后的完整运行设计。保留ordinary／odd／FSM／loading／外层位置写入和相机随机的事实；新分派须按实际用途解释哪些段被跳过、哪些由Client运行时受控调用。
+- 依[R1](tx-04-17-workflow.md#r1)确定构建入口，再由[R2](tx-04-17-workflow.md#r2)解释工厂、Init、Morph、成员提交与摘除的重入／回调和连带对象；不能靠输入中性、单个pre-update回调或Client标记证明整链隔离。
+- [R3](tx-04-17-workflow.md#r3)逐项列出必要排序、缓存、相机／HUD和draw-state的写入者、输入来源、执行阶段与禁止消费者。不能为显示补齐而完整执行玩法Update；局部原生维护有写入不等于必然禁止。
+- [R6](tx-04-17-workflow.md#r6)复用16已有ClientManagerBoundary与物理消息泵，扩展场景／应用／退休，不建立客户端Authority时钟，不让连接断开自动解除隔离。当前已有独立ClientRuntime；下文“没有Client入口”等只代表原研究时点。
+
+**R2反馈（2026-11-01）**：不要为摘表运行整条EntityList／Room Update。官方`CommitRemovedEntities`提供可选择复用的五类EL清理，但并不覆盖全部列表／Player roster／Grid别名；其中ClearReferences可进一步调用关联对象Remove，故必须纳入退休上下文和实际后态。派生Init、Morph、Spawn及Remove的官方内部维护Lua与Gameplay／持久消费者分别分派，Host／Off继续透传；不能只屏蔽24／67或MC_PRE_UPDATE就宣称全部构建／退休安全。NPC Morph另有已定位的PGD写入，见[持久隔离补充](tx-04-17-persistence-exit-isolation.md)。R3继续解释停玩法后的维护频率、排序和draw输入，本轮没有实现这些分派或运行验证。
+
+**R3反馈（2026-11-01）**：保留既有ClientManagerBoundary对完整Manager原链的短路；原生场景建立后主动调用已解释的维护段，不改为每帧运行1026暂停链。Entity::Interpolate `0x6AC2A0`会保存／改写位置、置staged标记，Type1在`0x6AC357`进入碰撞；odd的`0x6F957D`等slot+0x10不是纯显示。Camera DoUpdate两分支直达此前含共享RNG的helper。移除、非空EL排序、相机／HUD缓存和draw按不同频率运行，不为显示维护推进Game／Manager帧或清除视觉flag。排序不补成员／引用，HUD PostUpdate不等于纯布局；具体输入、写入、Lua／动画消费者和失败见R3正文。
+
+## 2026-10-31 历史研究正文
+
+以下保留当时事实、纠错、UNKNOWN和设计推导；冲突设计按上文及主流程执行，静态结论不升级为运行结果，历史分工不成为新要求。
+
+
 日期：2026-10-31，Asia/Singapore。状态：**ST3指定范围的J273静态研究、与ST2两轮互核及主智能体独立审阅完成。** 本项由用户指定的GPT-6 Luna／max子智能体推进；主审接受范围和更正记录见[专项工作流程](tx-04-17-workflow.md)的“ST2／ST3交叉核对与主审记录”。本文属于 tx-04-17，不是独立验收，也不表示 Client 隔离已实现。
 
 范围：官方 REPENTOGON 1.1.3 与 Repentance+ v1.9.7.12.J273。只读目标为当前共享 IDA 输入 `C:\Users\114514\AppData\Local\Temp\claude\F--projects-isaac-issac-multiplay\910d48ab-e91d-4daa-b1b5-2a86b9899653\scratchpad\v12\isaac-ng-v1.9.7.12.exe.unpacked.exe`，imagebase `0x400000`；地址同时给出 VA/RVA。没有切换 IDB、操作调试器或写入 IDB。只做静态分析和文档；未运行构建、校验器、测试或游戏，未修改运行代码。

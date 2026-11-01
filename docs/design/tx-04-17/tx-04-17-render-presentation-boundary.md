@@ -1,5 +1,23 @@
 # tx-04-17 ST4：render、HUD、动画事件与展示边界
 
+## 2026-11-01 当前设计与补充研究
+
+现行合同与执行顺序见[tx-04-17主流程](tx-04-17-workflow.md)。R1／R2已形成初始化范围与对象生命周期合同，R3形成[维护／绘制分派静态合同](tx-04-17-native-maintenance-rendering.md)；本轮[R4资源与在途寿命](tx-04-17-native-resource-lifetime.md)补原生析构／Morph资源变化、容器借用、Image保留及实际CPU使用退场。custom-render延后上下文分支当前关闭，只记条件风险。R5已补[失败退休与菜单交还](tx-04-17-failure-retirement.md)，R6已形成[接线归并](tx-04-17-model-role-applier-integration.md)，原生实现／统一E2E仍未完成；本轮只改设计文档，没有修改代码、构建或运行测试。
+
+现行方案优先复用原生Room／Entity／Player／HUD与绘制。服务器最终值通过create／remove／change写入这些Client对象；必要的本地显示维护允许执行，独立Sprite只服务UI和明确的辅助表现。
+
+- 下文“仅自有呈现对象可写、不得写Game／Room／Entity／Player”的设计限制已被替代。客户端原生对象是服务器状态的承载者；限制落在自主玩法裁决、重复事件、未知回调及访客进度，而非禁止一切原生对象写入。
+- 依[R3维护与绘制](tx-04-17-workflow.md#r3)为实际保留的Game／Room／派生Entity／HUD链列出输入、必要缓存、允许写入、阶段和副作用分派；既不整树无条件透传，也不因发现局部写入便退回逐个独立Sprite重做世界。
+- 动画姿态与开火／掉落消费者分开；原生显示时钟不推进Authority tick，声音、闪光等按唯一触发者与事件水位处理。HUD所需权威状态由应用器供应，必要布局／显示维护按实际合同运行。
+- [R4资源与借用](tx-04-17-workflow.md#r4)承接原生实例与内嵌Sprite寿命；具体Player组合、Laser等全内容适配仍由18—20／27／29实现。渲染字段暂存的正常恢复不扩展为异常／重入保证。
+
+**R3采用范围（2026-11-01）**：优先复用原生对象、排序与绘制pass，拆开目标提交、移除、显示缓存和draw。下文“一律不保留HUD PostUpdate”是旧选择；本轮改为按PlayerHUD、HistoryHUD、StatHUD的输入与消费者选择受控维护，不能整体放行。`render_sort`非空／scratch／渐进排序限制、Entity原生Interpolate与碰撞、Camera窄setter及DoUpdate混合链已补证。Room PreRender包含RenderShadows、light／pass维护，不能删掉或当成Interpolate；通用render Lua及共享动画帧暂存仍需隔离。详细阶段、时间／音画去重、R1／R2反馈和未决项以R3正文为准；静态范围不是逐类renderer已完成。
+
+## 2026-10-31 历史研究正文
+
+以下保留当时事实、纠错、UNKNOWN和设计推导；冲突设计按上文及主流程执行，静态结论不升级为运行结果，历史分工不成为新要求。
+
+
 日期：2026-10-31，Asia/Singapore。状态：**ST4指定静态研究及主智能体审阅完成**。由本任务指定的 GPT-6 Luna/max 子智能体研究，主审独立复核关键来源与 J273 地址并补证；子智能体唯一新建文件为本文。未运行游戏、未构建、未测试。本报告是 ST4 设计输入，不代表 Client 场景或隔离已实现。目标版本为 Repentance+ v1.9.7.12.J273；只读目标与[ST2](tx-04-17-client-scene-lifecycle.md)相同，为该文记录的 v12 目录中 `isaac-ng-v1.9.7.12.exe.unpacked.exe.i64`，未切换或写入IDB。imagebase 为 0x400000；文内二进制点位记 VA，RVA=VA-0x400000。
 
 证据标签：SOURCE 表示本地 REPENTOGON 源码；J273-STATIC 表示目标二进制中的静态指令、伪码或已匹配 ZHL 签名；DERIVED 表示据静态调用关系提出的设计约束；UNKNOWN 表示静态材料不能回答。03-11／03-12 的 J460 仅作为查找动画事件和派生 render 的索引，本文地址只记录 J273。

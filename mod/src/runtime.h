@@ -24,11 +24,12 @@ enum class Group {
   Device,
   Observe,
   World,
+  Client,
   Count
 };
 inline constexpr const char *GroupNames[] = {"loop",    "input", "player",
                                              "join",    "control", "device",
-                                             "observe", "world"};
+                                             "observe", "world", "client"};
 enum class Owner {
   None,
   Manager,

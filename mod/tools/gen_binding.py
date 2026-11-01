@@ -218,7 +218,7 @@ def split_params(text):
 # 既有 hooks 行
 # ===========================================================================
 
-LEGACY_GROUPS = {'loop', 'input', 'player', 'join', 'control', 'device', 'observe', 'world'}
+LEGACY_GROUPS = {'loop', 'input', 'player', 'join', 'control', 'device', 'observe', 'world', 'client'}
 
 
 def parse_legacy_rows(rows, problems):
@@ -531,6 +531,24 @@ def legacy_body(row):
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);',
                 '    return result;']
     lines = ['    cs::CallScope scope(record);']
+    # Client 主动持久分派位于观察作用域之外；被隔离的调用绝不进入官方外层 Hook。
+    if ident in ('start_game', 'restore', 'game_exit', 'post_start', 'lua_post_render',
+                 'pgd_counter', 'pgd_local', 'pgd_cloud',
+                 'gamestate_delete', 'gamestate_delete_rerun', 'load_game_state'):
+        lines.append('    if (cs::game::ClientPersistenceBlocked()) return;')
+    elif ident in ('pgd_unlock', 'gamestate_write', 'gamestate_read'):
+        lines.append('    if (cs::game::ClientPersistenceBlocked()) return false;')
+    if ident == 'isaac_shutdown':
+        lines += ['    if (scope.main) cs::game::ClientShutdownBeginning();',
+                  '    super();',
+                  '    if (scope.main) cs::game::ClientContextClosing();']
+        return lines
+    if ident == 'lua_destroy':
+        lines += ['    if (scope.main) cs::game::ClientLuaClosing();',
+                  '    super();']
+        return lines
+    if ident == 'manager_render':
+        lines.append('    cs::game::ClientRenderScope client_render(scope.main);')
     if ident == 'manager_update':
         lines += ['    cs::FrameScope frame(scope.main);',
                   '    if (cs::game::ClientManagerBoundary()) return;',

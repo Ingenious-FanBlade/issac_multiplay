@@ -1,12 +1,15 @@
 #include "game/client.h"
+#include "game/client_scene.h"
 #include "binding/offsets.h"
 #include "game/context.h"
 #include "game/input_a.h"
 #include "game/tick.h"
 #include "game/topology.h"
 #include "net/live.h"
+#include "ops/world_commands.h"
 #include "runtime.h"
 #include <algorithm>
+#include <exception>
 #include <memory>
 
 namespace cs::game {
@@ -48,6 +51,7 @@ struct InputTiming final {
 // 主线程唯一持有的Client控制块；只保存自有输入值，设备地址仅用于同轮临时确认。
 struct ClientRuntime final {
   net::live::Client network;
+  ClientScene scene;
   State state=State::Connecting;
   replica::Scope scope{};
   net::protocol::Ack progress{};
@@ -72,9 +76,12 @@ struct ClientRuntime final {
 };
 std::unique_ptr<ClientRuntime> client;
 std::atomic<bool> client_active{false},foreign_client{false};
+// 无服务器原生写入前缀的进程关闭仍属于访客原有本地存档，正常 Shutdown 可透传。
+std::atomic<bool> local_shutdown_passthrough{false};
 std::uint64_t connections=0;
 std::uint64_t ui_seen_ms=0,ui_frames=0;
 thread_local unsigned client_depth=0;
+thread_local ClientBorrowToken render_observation{};
 
 // 设备/代次/UI变化清除待发边沿，但保留此次物理held基线防止恢复时补发。
 void Neutral(ClientRuntime &c,bool forget=false) noexcept {
@@ -83,7 +90,9 @@ void Neutral(ClientRuntime &c,bool forget=false) noexcept {
   if(forget){c.source=nullptr;c.baseline=false;c.held=0;c.shooting={};}
 }
 void Failure(ClientRuntime &c,const char *reason) noexcept {
-  Neutral(c,true);c.input_ready=false;c.state=State::Failed;c.network.Stop();
+  Neutral(c,true);c.input_ready=false;c.state=State::Failed;
+  if(c.scene.State()!=ClientSceneState::Failed)c.scene.Fail(reason);
+  c.network.Stop();
   try {c.error=reason;Trace("client","event=failed connection=%llu reason=%s",c.connection,reason);}catch(...){}
 }
 bool Focused() noexcept {
@@ -115,21 +124,25 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
   if(!ui_seen_ms||GetTickCount64()-ui_seen_ms>1000)return "client_ui_unavailable";
   if(port<1||port>65535||device_key<0||device_key>255)return "arguments";
   if(PointerCount()!=8||!ContextHealthy()||!Capabilities[size_t(Group::Input)]||
-     !Capabilities[size_t(Group::Loop)]||!Capabilities[size_t(Group::Control)])return "adaptation_unavailable";
+     !Capabilities[size_t(Group::Loop)]||!Capabilities[size_t(Group::Control)]||
+     !Capabilities[size_t(Group::Client)]||!WorldExitPatchInstalled())return "adaptation_unavailable";
   if(connections==UINT64_MAX)return "connection_exhausted";
   try {
     auto next=std::make_unique<ClientRuntime>();next->connection=++connections;
     next->address=ipv4;next->device_key=device_key;
     const auto error=next->network.Start(ipv4,std::uint16_t(port),Settings.peer_timeout_ms);
     if(*error)return error;
-    ForgetInputDevice();client=std::move(next);foreign_client=false;client_active.store(true,std::memory_order_release);
+    ForgetInputDevice();client=std::move(next);foreign_client=false;
+    local_shutdown_passthrough.store(false,std::memory_order_release);
+    client_active.store(true,std::memory_order_release);
     Trace("client","event=connecting connection=%llu address=%s port=%u key=%d local_run=0",connections,ipv4.c_str(),port,device_key);
     return "";
   } catch(...) {return "client_allocation";}
 }
 void StopClient() noexcept {
   if(!IsMain()||!ClientBusy())return;
-  Neutral(*client,true);client->input_ready=false;client->state=State::Retiring;client->neutral_loops=0;client->network.Stop();
+  if(client->state==State::Retiring)return;
+  Neutral(*client,true);client->input_ready=false;client->state=State::Retiring;client->scene.Retire("client_stop");client->neutral_loops=0;client->network.Stop();
   Trace("client","event=retiring connection=%llu",client->connection);
 }
 // 该入口在FrameScope之后、完整Manager原链之前；从不推进Authority时钟。
@@ -140,6 +153,9 @@ bool ClientManagerBoundary() noexcept {
   if(client_depth){Failure(c,"client_manager_reentrant");return true;}
   ++client_depth;
   try {
+    if(c.scene.ConsumeForeignFault())Failure(c,"client_foreign_scene");
+    c.scene.ObserveLuaState(ClientLuaStateIdentity());
+    if(c.scene.State()==ClientSceneState::Failed&&c.state!=State::Failed)Failure(c,"client_scene_failed");
     if(foreign_client.exchange(false))Failure(c,"client_foreign_manager");
     ++c.manager_skipped;
     net::live::Event event;
@@ -147,7 +163,9 @@ bool ClientManagerBoundary() noexcept {
       switch(event.type) {
         case net::live::Event::Type::Welcome:
           if(c.state!=State::Connecting)break;
-          c.scope=event.scope;c.ordinal=event.ordinal;c.state=State::AwaitingWorld;
+          c.scope=event.scope;c.scene.Begin(event.scope);
+          if(c.scene.State()==ClientSceneState::Failed){Failure(c,"client_scene_begin_failed");break;}
+          c.ordinal=event.ordinal;c.state=State::AwaitingWorld;
           Trace("client","event=welcome connection=%llu ordinal=%u session=%llu wire_connection=%llu",c.connection,c.ordinal,c.scope.session,c.scope.connection);break;
         case net::live::Event::Type::Progress:
           if(c.state!=State::AwaitingWorld)break;
@@ -172,9 +190,10 @@ bool ClientManagerBoundary() noexcept {
       // 原生菜单可能在Input更新之前消费缓存；交还前刷新两轮真实松键，不能重放Client按键。
       c.sampled_this_loop=false;c.physical_neutral=false;c.blocked=true;ClientPollInput();
       if(!c.sampled_this_loop||c.physical_neutral)++c.neutral_loops;else c.neutral_loops=0;
-      // 没有自有图形/Lua引用；当前外层owner内无输入callback，线程退出才交还Off。
-      if(c.network.Finished()&&c.neutral_loops>=2&&MenuReady()) {
+      // 只有无原生执行前缀、无借用与在途使用时才能交还本地菜单。
+      if(c.network.Finished()&&c.neutral_loops>=2&&MenuReady()&&c.scene.CanReturnToMenu()) {
         c.state=State::Off;ForgetInputDevice();client_active.store(false,std::memory_order_release);
+        local_shutdown_passthrough.store(false,std::memory_order_release);
         Trace("client","event=off connection=%llu input_closed=1 worker_finished=1 local_run=0",c.connection);
       }
     } else if(c.state==State::Connecting||c.state==State::AwaitingWorld) {
@@ -251,6 +270,38 @@ void ClientInputUnavailable() noexcept {
 void ClientMenuRendered() noexcept {
   if(IsMain()&&ClientBusy())++client->render_calls;
 }
+// 观察借用跨过完整 Manager::Render super，异常由析构收口；它不允许 Client 原生世界绘制。
+ClientRenderScope::ClientRenderScope(bool enabled) noexcept
+  :exceptions_(std::uncaught_exceptions()) {
+  if(!enabled||!IsMain()||!ClientBusy())return;
+  if(render_observation.active){client->scene.Fail("client_render_reentrant");return;}
+  client->scene.RenderWindow();
+  active_=client->scene.Borrow(ClientPurpose::RenderObservation,render_observation);
+}
+ClientRenderScope::~ClientRenderScope() noexcept {
+  if(!active_||!client)return;
+  if(std::uncaught_exceptions()!=exceptions_)client->scene.Fail("client_render_exception");
+  client->scene.Release(render_observation);
+}
+// Lua VM 关闭先换代并撤销本方借用，不能把 unref 当作 userdata 析构。
+void ClientLuaClosing() noexcept {
+  if(IsMain()&&ClientBusy())client->scene.LuaClosing();
+}
+void ClientShutdownBeginning() noexcept {
+  if(!IsMain()||!ClientBusy())return;
+  // 当前仅等待菜单且无原生写入前缀时，Shutdown 的直接 PGD 写仍是访客本地生命周期。
+  // 一旦有服务器原生前缀，不能凭下层 PGD Hook 认为 Shutdown 安全。
+  local_shutdown_passthrough.store(client->scene.CanReturnToMenu(),std::memory_order_release);
+  if(client->state!=State::Retiring)StopClient();
+}
+void ClientContextClosing() noexcept {
+  if(IsMain()&&ClientBusy())client->scene.ContextClosing();
+}
+// 此分派独立于 PersistenceScope 的 original exactly-once 观察；外层 wrapper 可直接拒绝。
+bool ClientPersistenceBlocked() noexcept {
+  return client_active.load(std::memory_order_acquire)&&
+         !(IsMain()&&local_shutdown_passthrough.load(std::memory_order_acquire));
+}
 // 自带纯菜单UI实际运行的主线程心跳；未加载UI时拒绝进入不可见等待状态。
 void ClientUiHeartbeat() noexcept {
   if(IsMain()){ui_seen_ms=GetTickCount64();if(ClientBusy())++ui_frames;}
@@ -259,7 +310,7 @@ void ClientUiHeartbeat() noexcept {
 bool ClientProcessExitDecision() noexcept {
   if(!ClientBusy())return true;
   if(client->state!=State::Retiring)StopClient();
-  return client->network.Finished();
+  return client->network.Finished()&&client->scene.CanReturnToMenu();
 }
 std::string ClientFields() {
   std::string s="role="+std::string(ClientBusy()?"Client":HostBusy()?"Host":"Off")+"\nclient_state="+ClientStateName()+"\nclient_world_applied=0\n";
@@ -281,6 +332,14 @@ std::string ClientFields() {
   s+="client.sample_move="+std::to_string(c.sample.move_x)+","+std::to_string(c.sample.move_y)+"\n";
   s+="client.sample_aim="+std::to_string(c.sample.aim_x)+","+std::to_string(c.sample.aim_y)+"\n";
   add("sent_edge_mask",c.sent_edge_mask);
-  add("render_calls",c.render_calls);s+="client.error="+c.error+"\n";return s;
+  add("render_calls",c.render_calls);
+  add("scene_generation",c.scene.Generations().scene);
+  add("lua_generation",c.scene.Generations().lua);
+  add("context_generation",c.scene.Generations().context);
+  add("native_attempt",c.scene.Result().attempt);
+  add("native_executed_prefix",c.scene.Result().executed_prefix);
+  add("native_committed",c.scene.Result().native_committed);
+  s+="client.native_reason="+std::string(c.scene.Result().reason.data())+"\n";
+  s+="client.error="+c.error+"\n";return s;
 }
 } // namespace cs::game

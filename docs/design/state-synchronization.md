@@ -4,6 +4,10 @@
 
 # Isaac 服务端权威状态同步设计
 
+> **2026-11-01 R6源码与接口归并**：[模型、角色与原生应用器](tx-04-17/tx-04-17-model-role-applier-integration.md)已对照15／16源码形成B→T／A→T、Scope／输入换代、原生结果／ACK／事件完成及域责任合同。R1—R6指定静态文档结果均已形成，原生前置和新增接线仍有具体未决项，尚未实现原生Client世界。本轮只改文档，无新增逆向、代码、构建或测试。
+
+> **2026-11-01 原生客户端世界决定的原时点记录**：按[tx-04-17现行设计与R1—R6研究计划](tx-04-17/tx-04-17-workflow.md)，Client在原生Game／Room／Grid／Entity／Player／Camera／HUD上承载服务器状态，保留create／remove／change、稳定身份及Baseline／Delta。纯值模型用于目标恢复与规划，不另建完整第二运行世界；原生构建、状态应用、展示维护和玩法模拟分别管理。旧独立场景／仅自有Sprite的设计结论被替代，静态事实和UNKNOWN保留。该次只修订文档，当时补充研究、代码及验收尚未开展；后续R1—R6文档进度以上方归并为准。
+
 > **2026-10-30 当前目标与执行入口**：用户要求完整推进流程全部完成后交付**整局可玩的四人联机模组**。见[完整推进流程：tx-04-09—tx-04-34](state-synchronization-roadmap.md)：09—14输入／完整观测，15—22真实游戏Client与状态闭环，23—29整局世界与内容，30—34重连／Continue／性能／产品发布及整局联合验收。单房间仅为中间交付。本轮只修订文档，未启动实现、构建或测试。
 
 > **当前执行规则**：遵循[现行规范](../refactor/project-conventions.md)。进入统一整体验收前不预跑测试；验收发现问题在同一tx修复续测，默认连续完成。tx及E2E默认不留artifact，只有必要中断且需要恢复信息时保留必要材料；schema、产品存档、发布包和功能文档正常交付。不设gate，不计算任何哈希。
@@ -89,7 +93,7 @@ flowchart LR
     T --> V
 ```
 
-Authority裁决碰撞、伤害、死亡、拾取、生成、删除、RNG及gameplay Lua副作用。Replica保留本地输入采样、相机、窗口、已证明纯展示的动画/HUD和插值缓存。房主使用Authority世界本身，不在同进程再维护一份Replica，不因房主本地输入绕过队列。
+Authority裁决碰撞、伤害、死亡、拾取、生成、删除、玩法随机结果及gameplay Lua副作用。Client使用原生世界承载Replica状态，按create／remove／change进行受控原生构造、最终值／关系应用与退休，保留必要本地输入采样、窗口、相机、显示维护、动画／HUD和插值缓存。允许的构造／表现写入与本地玩法模拟分开，不通过后者计算缺失的服务器结果。房主使用Authority世界本身，不在同进程再维护一份Replica，不因房主本地输入绕过队列。
 
 推荐内部组件：`AuthorityRegistry`、`ReplicaCaptureAdapter`、`SnapshotStore`、`PerPeerReplicationState`、`StateCodec`、`ReplicaWorldAdapter`、`PresentationEventQueue`。先形成可说明的职责，再选择代码目录；不要求改造旧Lockstep对象承载这些状态。
 
@@ -130,7 +134,7 @@ persistent对象跨房若维持同一逻辑身份，可保留entity_id并建立�
 
 运行时可按整局／楼层／房间／Player／表现划分低频和高频scope，但目标模型必须引用明确的其他scope版本。初期使用完整逻辑模型再分块；若后续独立调度，必须实现scope级基线／依赖／ACK，禁止把不同采样时刻的碎片拼成没有说明的原子世界。
 
-纯展示Replica不执行gameplay RNG，因此不复制服务器全部AI/RNG内部对象。可能影响可见结果的随机选择在Authority完成，复制实际结果；凡是展示仍需的状态都必须在模型中表达。以后若增加本地gameplay预测、rollback或接管，再研究完整依赖状态、RNG和可撤销副作用；不把展示baseline当作可继续权威模拟的存档。
+Client不自行进行玩法随机裁决，因此不复制服务器全部AI／RNG内部对象。决定玩法可见结果的随机选择在Authority完成，复制实际结果；必要的原生初始化／表现随机计算按17说明局部状态、用途和消费者，不替代服务器状态或推进后续本地玩法。凡展示仍需的权威状态均须在模型中表达。以后若增加gameplay预测、rollback或接管，再研究完整依赖状态、RNG和可撤销副作用；不把展示baseline当作可继续权威模拟的存档。
 
 ## 7. 采样时序与版本
 
@@ -163,9 +167,11 @@ Authority可在发送baseline期间继续模拟；缓存有界，溢出则放弃
 ```text
 Delta(B,T) = Create(T中有而B中无)
            + Remove(B中有而T中无)
-           + Update(两者均有但字段/关系/shape不同)
+           + Change(两者均有但字段/关系/shape不同；旧文档称Update)
 TargetModel = Reconstruct(ImmutableBaseline[B], Delta(B,T))
 ```
+
+create／remove／change是状态和对象应用语义；15当前线格式仍以component最终值replace／remove表达Delta，不因此新增对象RPC或opcode。收到目标T后，以最后成功应用状态A与T的差异规划原生操作；原生实例有效性另行检查。Morph保留逻辑身份，可在change内部替换本地实例；remove按对象存在性或scope成员关系区分，不把离房、一次缺枚举或物理释放等同于对象死亡。
 
 初期变化字段发送最终值，如`HP=7`、`position=(104,80)`；“只发变化字段”与“数值再作差分压缩”分开。相对坐标、量化、bit packing及优先级调度在32落地需要的优化，不能先改变正确性语义。
 
@@ -178,6 +184,8 @@ TargetModel = Reconstruct(ImmutableBaseline[B], Delta(B,T))
 基线保留有数量、字节和时间上限；引用被淘汰的基线时请求全量恢复。完整delta重建成功且实际应用提交后才能更新AppliedAck；若按对象／scope分包或不同频率调度，必须实现对应基线／确认，不沿用“一个包ACK表示所有对象最新”的假设。
 
 ## 10. 客户端原生应用与表现分离
+
+2026-11-01起，原生Game／Room／Entity／Player本身承载客户端状态。17负责受控初始化、三类操作公共机制、必要原生维护／绘制及失败退休；18—20负责逐类应用。Start／Room setup是否整体或分段复用由17的R1确定，不一概禁止，也不在尚未解释副作用前放行。独立Sprite用于UI及明确辅助表现，不另建独立世界替代原生对象体系。
 
 网络线程只解析、限额和排队；原生创建、对象字段、资源、引用及Lua全部在已理解主线程窗口操作。优先查公开Wiki／Lua的状态与应用语义；只对真实副作用、版本疑问或公开接口缺口补源码／必要native研究，不逐字段强制逆向。adapter逐类说明调用／公开接口、资源依赖、所需字段、允许副作用、失败与恢复；已有研究入口见[模块点位目录](../hooks/README.md)。
 
@@ -258,7 +266,7 @@ gameplay预测、rollback、host migration和Dedicated Server保持可选；若�
 
 完整执行入口为[整局可玩联机模组推进流程](state-synchronization-roadmap.md)，包括每个tx的目标、直接交付、依赖、整体验收及跨域责任表。
 
-tx-04-17另有[客户端玩法隔离与资源展示运行时工作流程](tx-04-17/tx-04-17-workflow.md)，单列ST1—ST8先行静态核验、研究复用／公开接口／必要逆向、完整实现及统一E2E。2026-10-31已完成ST1—ST8指定静态研究与主审，既有[资源与完整姿态](tx-04-17/tx-04-17-resource-pose-runtime.md)、[线程／context／在途引用](tx-04-17/tx-04-17-thread-context-lifetime.md)、[Lua与借用寿命](tx-04-17/tx-04-17-lua-borrow-lifetime.md)互核记录保留；本轮[ST8访客持久副作用与正常退出](tx-04-17/tx-04-17-persistence-exit-isolation.md)由一个GPT-6 Luna／max子智能体完成必要逆向，主智能体独立审阅、纠错及补证。资源逻辑发布与旧引用释放分别处理；Client准备、失败、断连、stop至安全退休保持必要隔离，Authority展示进度不写访客PGD／Continue／Mod持久档，本地设置按来源和字段允许。Shutdown直接进度写入、Exit保存／条件删除和Manager析构官方PGD版本同步分列，readonly／write=false／early unload均不构成完整保护。Client世界壳、实际隔离、可控释放、context／全部在途owner和统一E2E仍未完成；本轮仅文档与统一人工静态审阅，无构建或测试。协议无关的静态研究可先于15／16，功能接线与整体验收仍依赖其实际交付。
+tx-04-17采用[原生客户端世界与状态应用公共运行时](tx-04-17/tx-04-17-workflow.md)。2026-10-31的ST1—ST8指定静态研究、主审纠错与UNKNOWN保留；2026-11-01新路线依次补充R1初始化、R2操作生命周期、R3维护绘制、R4资源借用、R5失败退休／持久整链、R6模型角色接线。R1—R4已形成静态合同，本轮[R5失败／退休／菜单交还](tx-04-17/tx-04-17-failure-retirement.md)明确部分写入前缀、正常Room重建→Player／HUD清理、菜单后态及保护的结束位置；含原版Online的菜单helper不整体采用。完整可调用编排、取消／LuaImage GC／异常仍有UNKNOWN；本轮[R6源码与接口归并](tx-04-17/tx-04-17-model-role-applier-integration.md)已明确15／16到公共applier、Scope／输入、提交与ACK的责任，R1—R6指定文档结果均已形成，新增接线尚未实现。优先公开接口／源码，仅补所选路径的J273缺口，不重做全部ST。复用15／16实际交付，扩展原生场景状态及安全退休；旧方案禁止原生承载的设计结论不再执行。准备至安全退休保持访客进度归属，Exit(false)、readonly、write=false和early unload均非现成完整保护。全目标实现后统一E2E，本次只修订文档，不改变既有功能／验收状态。
 
 | 编号 | 完整交付范围 |
 | --- | --- |

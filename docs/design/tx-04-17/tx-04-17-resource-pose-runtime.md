@@ -1,5 +1,21 @@
 # tx-04-17 ST5：资源准备、动态换图与完整姿态
 
+## 2026-11-01 当前设计与补充研究
+
+现行合同与执行顺序见[tx-04-17主流程](tx-04-17-workflow.md)。R1／R2已形成初始化范围与对象生命周期合同，R3将内嵌动画帧、shadow batch、Room光照集合和HUD缓存列入实际使用链；本轮[R4内嵌资源与在途寿命](tx-04-17-native-resource-lifetime.md)补owner／替换／失效及原生实例和Image的不同保留责任。R5已补[失败退休与菜单交还](tx-04-17-failure-retirement.md)，R6已形成[模型／角色／应用器归并](tx-04-17-model-role-applier-integration.md)，具体接线与原生UNKNOWN仍未实现，本轮没有修改代码、构建或运行测试。
+
+资源合同扩展到原生Room／Entity／Player拥有的Sprite和附属资源。独立Sprite不再作为世界主体，自有资源候选与原生内嵌对象的所有权分开；已有Load／Reload、setter和图层／shader静态事实继续复用。
+
+- [R2](tx-04-17-workflow.md#r2)说明create／change／Morph采用的原生实例路径；[R4](tx-04-17-workflow.md#r4)在这些路径上补资源描述、完整姿态、内嵌Sprite／图层／Image和官方副表的归属与失效，不重做已解释的每个公开API。
+- R4补充：自有候选不能浅拷贝／swap到内嵌ANM2冒充原子发布；服装vector与portrait map有独立容器revision，NPC／Pickup Morph可重载同址内嵌ANM。破坏性变化前退尽实际使用，Image pins只覆盖图像；官方custom-render延后context分支当前关闭，不作为额外依赖。内嵌资源交原生owner清理，本方不对借用Sprite手动Reset／GC。
+- 资源换代或本地实例更换不改变服务器逻辑key；准备、切换关联和旧引用退休分开。成功应用姿态不自动等于整个世界已提交，失败不得发布半套资源。
+- 公开接口不足的分数相位、特殊几何和缓存需要继续向18—20反馈；不执行原生玩法Update来补齐姿态，也不以单Sprite缩小Player或其他类的表现范围。
+
+## 2026-10-31 历史研究正文
+
+以下保留当时事实、纠错、UNKNOWN和设计推导；冲突设计按上文及主流程执行，静态结论不升级为运行结果，历史分工不成为新要求。
+
+
 研究日期：2026-10-31，Asia/Singapore。状态：**ST5指定静态研究、与ST6／ST7来回互核及主智能体审阅完成，具体UNKNOWN保留**。本项由一个GPT-6 Luna／max子智能体推进；纠错与接受范围见[工作流程主审记录](tx-04-17-workflow.md)。本报告属于 tx-04-17 的先行静态阶段，不代表 Client 资源运行时或整个 tx 已完成。
 
 ## 1 范围与证据标记

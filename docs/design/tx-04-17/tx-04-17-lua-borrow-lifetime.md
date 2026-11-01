@@ -1,5 +1,21 @@
 # tx-04-17 ST7：Lua、Sprite 与借用对象寿命
 
+## 2026-11-01 当前设计与补充研究
+
+现行合同与执行顺序见[tx-04-17主流程](tx-04-17-workflow.md)。R1／R2已形成初始化范围与对象生命周期合同，R3区分HUD、History与光照Lua和官方结构维护；本轮[R4内嵌资源／借用／在途寿命](tx-04-17-native-resource-lifetime.md)补服装／portrait容器失效、原生owner清理，并明确custom-render context分支当前关闭。R5已补[失败退休与菜单交还](tx-04-17-failure-retirement.md)，R6已形成[模型／角色／应用器归并](tx-04-17-model-role-applier-integration.md)，具体接线与原生UNKNOWN仍未实现，本轮没有修改代码、构建或运行测试。
+
+原生世界方案保留自有userdata、原生对象借用、Layer／Animation裸引用与Image强引用的区分。服务器key稳定不保证本地原生实例或Lua借用始终有效；create／remove／change尤其Morph和资源替换须触发各自的失效处理。
+
+- [R4](tx-04-17-workflow.md#r4)按R2实例操作和R3绘制路径核对内嵌Sprite、官方副表、registry、GC与原生destructor的交接；必要时只补这些路径中源码未解释的部分。
+- 原生内嵌Sprite不能套用自有Sprite的Reset／析构／外层内存释放策略；不得通过手调GC销毁借用对象。registry root只能保护对应Lua值，不把其保存的裸指针变成原生强引用。
+- R4补充：Player仍存活时，`GetCostumeSpriteDescs`返回的vector元素wrapper也可能随容器变化失效；Image强持有不延寿这些元素或父实例／ANM。官方延后Entity／Animation context副本分支当前关闭，不列活跃依赖。本方native Image pin有受控值析构路径，既有LuaImage仍无公开release；不通过全局强制GC或手调finalizer补此缺口。
+- [R5](tx-04-17-workflow.md#r5)给出部分构造、实例替换、在途回调与Lua关闭的退休顺序；旧借用失效后按新实例／资源代次重新获取，不能因网络ID没变而继续使用旧地址。可控Image释放及未解释的异常范围保持UNKNOWN。
+
+## 2026-10-31 历史研究正文
+
+以下保留当时事实、纠错、UNKNOWN和设计推导；冲突设计按上文及主流程执行，静态结论不升级为运行结果，历史分工不成为新要求。
+
+
 研究日期：2026-10-31，Asia/Singapore。状态：**ST7指定静态研究、与ST5／ST6来回互核及主智能体审阅完成，具体UNKNOWN保留；不是整个 tx-04-17 完成。** 本项由一个GPT-6 Luna／max子智能体推进；纠错与接受范围见[工作流程主审记录](tx-04-17-workflow.md)。
 
 ## 1 范围与证据口径

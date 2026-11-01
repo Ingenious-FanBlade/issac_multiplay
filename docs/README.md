@@ -8,6 +8,20 @@
 
 # C/S研究与状态同步文档
 
+> **tx-04-17 R6模型、角色与应用器归并（2026-11-01）**：[R1—R5与15／16源码接线合同](design/tx-04-17/tx-04-17-model-role-applier-integration.md)已更新。分开B／完整T／最后原生A，明确三类操作、依赖、取消／恢复、角色与场景、正式Scope及输入换代、原生结果与ACK／事件完成的责任。登记16等待Scope／小预算／固定队列和事件窗口的真实接线缺口；R1—R6指定静态文档结果均已形成，具体原生前置与实现仍未完成。本轮只改文档，无新增逆向、代码、构建或测试。
+
+> **tx-04-17 R5部分失败、退休与菜单交还（2026-11-01）**：[失败分阶段处理、原生清理与持久保护结束范围](design/tx-04-17/tx-04-17-failure-retirement.md)已更新。核定ResetState限制、正常Room重建→Player／HUD清理及菜单state1路径，选择自有退休编排；含原版Online的菜单helper不整体采用。保护覆盖准备至安全退休和最后相关持久writer，进程退出与回菜单分开；完整可调用菜单编排、全pass取消和异常仍有UNKNOWN。必要逆向由指定GPT-6 Luna／max子智能体执行并经主审复读。R6及实现／统一E2E待推进，本轮只改设计文档，无代码、构建或测试。
+
+> **tx-04-17 R4原生内嵌资源与在途寿命（2026-11-01）**：[资源owner、借用失效、在途持有及未决问题](design/tx-04-17/tx-04-17-native-resource-lifetime.md)已更新。分开原生实例、服装／portrait容器、ANM、Image、Lua与context寿命，核定代表对象析构、Morph资源重载及本方native Image保留合同；官方custom-render deferred context分支当前关闭，只记条件风险。正常消费与取消、LuaImage GC、异常退休仍有未决项。必要逆向由一个指定GPT-6 Luna／max子智能体执行，主智能体复读审阅。R5—R6、实现与统一E2E待推进；本轮只更新设计文档，无代码、构建或测试。
+
+> **tx-04-17 R3维护／绘制与R1／R2回补（2026-11-01）**：[停玩法后的原生维护范围、分派合同与未决项](design/tx-04-17/tx-04-17-native-maintenance-rendering.md)已更新。明确目标提交、移除／排序、Camera／HUD缓存与draw的阶段，保留原生表现并隔离玩法／Lua／动画事件；核定sort空表／scratch／渐进限制、位置插值碰撞与Camera Update随机路径。必要逆向由一个指定GPT-6 Luna／max子智能体执行，主智能体独立复读审阅。完整逐类draw、资源／借用、异常退休仍有UNKNOWN，R4—R6与实现／统一E2E待推进。本轮只改设计文档，无代码、构建或测试。
+
+> **tx-04-17 R2对象生命周期与R1回补（2026-11-01）**：[create／remove／change公共合同、静态事实及未决项](design/tx-04-17/tx-04-17-native-object-lifecycle.md)已更新。明确工厂池use、派生Init、成员发布、外层完成、摘表和回收的区别，以及不覆盖存活池项、key／实例换代、Morph和官方Lua／扩展维护的处理；NPC Morph的PGD bestiary写入点已反馈持久隔离。必要逆向由一个指定GPT-6 Luna／max子智能体执行，主智能体独立复读审阅并回补R1的Player／Room归属。逐类Init闭包和完整失败退休仍有UNKNOWN，R3—R6及实现／整体验收待推进。本轮只更新设计文档，无构建或测试。
+
+> **tx-04-17 R1原生初始化范围（2026-11-01）**：[范围选型、静态事实、主审及未决项](design/tx-04-17/tx-04-17-client-scene-lifecycle.md#r1-results)已更新。先查公开接口／官方源码，必要逆向由指定GPT-6 Luna／max子智能体执行，主智能体复读指令审阅。选择已有根上的自有准备编排，复用具名原生helper；Start／Level Init／Room Init不能整体放行，Room几何前的对象清理、config指针参数及Camera非原子替换已明确。完整可调用结构初始化、Player与失败恢复仍有具体UNKNOWN；当轮R2—R6未开展，用户随后启动的R2与回补见上方新记录。没有代码实现、构建或整体验收。
+
+> **tx-04-17 原生世界方案修订（2026-11-01）**：[主设计与补充研究顺序](design/tx-04-17/tx-04-17-workflow.md)已按用户要求改为原生Game／Room／Entity／Player承载Client，保留create／remove／change、稳定身份与Baseline／Delta语义。后续依次研究R1原生初始化、R2操作生命周期、R3维护绘制、R4资源借用、R5失败退休与持久隔离、R6模型／角色接线；优先公开接口／源码，仅补具体缺口的J273逆向。ST1—ST8历史事实与纠错保留，冲突设计已注明替代。该方案修订时只改文档、R任务未开展；用户随后启动的R1进度见上方新记录。未改变16已有双机结果或四端暂缓状态。
+
 > **tx-04-17 ST1—ST8静态工作完成（2026-10-31）**：[专项工作流程](design/tx-04-17/tx-04-17-workflow.md)及[接口目录](design/tx-04-17/tx-04-17-public-interface-catalog.md)已汇总场景、更新、展示、资源、线程／context、Lua寿命与持久归属合同。本轮[ST8访客持久副作用与正常退出](design/tx-04-17/tx-04-17-persistence-exit-isolation.md)的必要逆向由一个GPT-6 Luna／max子智能体执行，主智能体独立回读指令／源码并审阅、纠错和补证。确认Exit(false)、Shutdown直接计数写入与保存、官方进度JSON、GameState／Mod附加保存以及Manager析构PGD版本同步的边界；Client准备至安全退休全程保持必要隔离。本轮仅文档编辑及统一人工静态审阅，无构建或测试；Client世界壳、隔离运行实现及统一E2E仍未完成，完整接线依赖15／16，持久归属反馈31。
 
 > **按观测域拆分设计（2026-10-30）**：[详细设计与迁移边界](design/observation-expansion/domain-observation-architecture.md)确定公共接口、各域职责、scope／采样时序、跨域引用、采集与录制分离及 Entity/Grid 迁移。已同步 tx-04-10—14 观测计划；公共拆分纳入 10 的完整实现，其他域依次接入。本次只修改设计和计划，未修改运行代码、构建或测试。

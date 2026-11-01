@@ -44,6 +44,25 @@ bool ClientMenuAvailable() noexcept;
 void ClientInputUnavailable() noexcept;
 void ClientMenuRendered() noexcept;
 bool ClientProcessExitDecision() noexcept;
+// C++17 Hook 桥仅传纯值通知；场景/模型类型不暴露给 SDK-facing wrapper。
+// 只观测 Manager::Render 在途窗口；不授予完整 native Render 或 Graphics 使用资格。
+class ClientRenderScope final {
+public:
+  explicit ClientRenderScope(bool enabled) noexcept;
+  ~ClientRenderScope() noexcept;
+  ClientRenderScope(const ClientRenderScope &)=delete;
+  ClientRenderScope &operator=(const ClientRenderScope &)=delete;
+private:
+  bool active_=false;
+  int exceptions_=0;
+};
+void ClientLuaClosing() noexcept;
+void ClientShutdownBeginning() noexcept;
+void ClientContextClosing() noexcept;
+bool ClientPersistenceBlocked() noexcept;
+// SDK-facing 只在主线程返回当前原生 owner 身份；不跨线程传递这些值。
+bool ClientRendererHandles(void *&dc,void *&context) noexcept;
+void *ClientLuaStateIdentity() noexcept;
 // 主线程按“物理后端锁 -> 原生 vector 锁”顺序访问设备；本线程嵌套只增加深度。
 // 使用同一原生 Mutex，不在公共更新已持 vector 锁后首次反向取得后端锁。
 class InputLease final {

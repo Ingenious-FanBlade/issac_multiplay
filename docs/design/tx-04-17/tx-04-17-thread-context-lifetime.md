@@ -1,5 +1,21 @@
 # tx-04-17 ST6：主线程、graphics context、加载旁路与在途绘制寿命
 
+## 2026-11-01 当前设计与补充研究
+
+现行合同与执行顺序见[tx-04-17主流程](tx-04-17-workflow.md)。R1／R2已形成初始化范围与对象生命周期合同，R3分开目标应用／排序、相机／HUD缓存与render窗口；本轮[R4资源与在途寿命](tx-04-17-native-resource-lifetime.md)连接原生owner、资源变化、Image强引用，并明确custom-render context分支当前关闭。R5已补[失败退休与菜单交还](tx-04-17-failure-retirement.md)，R6已形成[模型／角色／应用器归并](tx-04-17-model-role-applier-integration.md)，具体接线与原生UNKNOWN仍未实现，本轮没有修改代码、构建或运行测试。
+
+原生Client世界的create／remove／change、资源及Lua操作仍限定在已解释主线程阶段，后台仅处理自有值。原生实例、资源和render队列的寿命必须接在同一条实际使用链上；本轮没有证明新的清理或context保证。
+
+- [R3](tx-04-17-workflow.md#r3)选定保留的绘制／维护入口后，[R4](tx-04-17-workflow.md#r4)连接实例替换、原生destructor、队列raw引用、最后资源释放与实际context；复用已知加载旁路、WGL／TLS及queue事实，不重做整个renderer。
+- R4补充：官方`LuaRender.cpp:30,3139`以EnableCustomRendering=false关闭Allocate复制Entity／Animation context，`ASMPatches.cpp:272`也注释绘制patch入口，故其deferred副表不是当前活跃owner，只记条件风险。native Image pin可在已知owner阶段以类型化smart-pointer值释放，但不保活父实例／ANM，也不解决既有LuaImage的GC时点。实际raw队列／活跃栈的全部取消与异常路径仍UNKNOWN并交R5，不从普通路径外推。
+- [R5](tx-04-17-workflow.md#r5)扩展准备失败、部分change、remove后延迟回收、停显／重建、stop和Shutdown的收口。逻辑remove／原生提交不等于物理释放，CPU队列清理不等于GPU完成。
+- 不为得到原子切换而建立第二个完整原生世界；在已存在世界部分写入后失败应停显、保持隔离并按实际owner清理。线程／context或回收状态不明时停止相关新使用，不假称通用异常恢复。
+
+## 2026-10-31 历史研究正文
+
+以下保留当时事实、纠错、UNKNOWN和设计推导；冲突设计按上文及主流程执行，静态结论不升级为运行结果，历史分工不成为新要求。
+
+
 日期：2026-10-31，Asia/Singapore。状态：**ST6指定J273静态研究、与ST5／ST7来回互核及主智能体审阅完成，具体UNKNOWN保留**。本项由一个GPT-6 Luna／max子智能体推进；普通frame queue reset／remove与正常最后strong→Image析构→GL删除分别核定，异常覆盖和实机context仍未知。纠错与接受范围见[工作流程主审记录](tx-04-17-workflow.md)。本文是tx-04-17的设计输入，不是资源运行时实现或E2E验收。
 
 ## 1 范围与证据口径

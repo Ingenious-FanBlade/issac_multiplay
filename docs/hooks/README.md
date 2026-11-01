@@ -1,5 +1,7 @@
 # Hook 与逆向点位总入口
 
+tx-04-17设计修订（2026-11-01）：[原生客户端世界与R1—R6补充研究](../design/tx-04-17/tx-04-17-workflow.md)保留create／remove／change，改在原生世界应用。研究顺序为原生初始化→操作生命周期→维护绘制→资源借用→失败退休／持久整链→模型角色接线；R1—R5已形成当轮静态合同，本轮[R6模型／角色／应用器](../design/tx-04-17/tx-04-17-model-role-applier-integration.md)对照15／16源码归并目标与A、原生计划、正式Scope／输入换代、提交与ACK及后续域职责；R1—R6指定文档结果均已形成，具体原生前置／取消／菜单及新增接线仍未实现。本轮没有新增native地址／ABI或逆向。没有新增运行结论或实现。ST1—ST8指定静态研究已于2026-10-31完成，下方更早的“ST8待完成”等保持原时点；原静态事实可复用，冲突的独立场景设计按新方案替代。
+
 tx-04-17 ST5—ST7补充（2026-10-31）：[资源／姿态](../design/tx-04-17/tx-04-17-resource-pose-runtime.md)、[线程／context／在途绘制](../design/tx-04-17/tx-04-17-thread-context-lifetime.md)、[Lua与借用寿命](../design/tx-04-17/tx-04-17-lua-borrow-lifetime.md)已按每项一个GPT-6 Luna／max子智能体、三方来回互核及主审完成J273静态研究。补齐Load／Reload、帧setter、启动加载render旁路、WGL/TLS、raw image queue reset／remove、最后strong→Image析构→GL删除，以及Lua GC／原生借用和分段关闭顺序。正常静态链不代表实机context、全部在途引用或GPU完成；ST8、可控释放、世界壳与完整实现／统一E2E仍待完成。本轮未构建、运行、安装新Hook或改机器点位索引，具体接受范围见[工作流程内的主审记录](../design/tx-04-17/tx-04-17-workflow.md)。
 
 tx-04-05 game 代码（2026-10-24）：[主线程适配与 Hook 接线](../design/tx-04-05-game-adapter.md)已编写并纯构建成功，清单为 28 个入口、8 个设备槽和 Odd 普通点 shim。没有在游戏进程中安装或测试，不改写下方历史运行观察与静态证据等级。

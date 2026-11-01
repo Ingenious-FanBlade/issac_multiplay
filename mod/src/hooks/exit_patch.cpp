@@ -49,23 +49,26 @@ bool WorldExitPatchInstalled() noexcept { return installed; }
 void InstallWorldExitPatch() noexcept {
   if (attempted || !IsMain()) return;
   attempted = true;
-  if (!WorldObservationArmed() || !Capabilities[size_t(Group::World)]) return;
+  // Client 进程关闭退休独立于 world 录制/观察能力。
+  if (!Capabilities[size_t(Group::World)] && !Capabilities[size_t(Group::Client)]) return;
   if (!PatternMatches(ExitCheckRva, ExitCheckPattern)) {
     Capabilities[size_t(Group::World)] = false;
+    Capabilities[size_t(Group::Client)] = false;
     Trace("byte_patch", "id=world_process_exit ok=0 reason=instruction_mismatch"); return;
   }
   try {
     exit_resume = Base + ExitResumeRva; exit_loop = Base + ExitLoopRva;
     ASMPatch patch; patch.AddRelativeJump(reinterpret_cast<void *>(&ExitCheckShim));
-    if (patch.Length() > ExitCheckBytes) { Capabilities[size_t(Group::World)] = false; return; }
+    if (patch.Length() > ExitCheckBytes) { Capabilities[size_t(Group::World)] = false; Capabilities[size_t(Group::Client)] = false; return; }
     patch.AddBytes(std::string(ExitCheckBytes - patch.Length(), '\x90'));
     auto *target = reinterpret_cast<unsigned char *>(Base + ExitCheckRva);
     sASMPatcher.FlatPatch(target, &patch);
     installed = FlushInstructionCache(GetCurrentProcess(), target, ExitCheckBytes) != FALSE;
-    if (!installed) Capabilities[size_t(Group::World)] = false;
+    if (!installed) {Capabilities[size_t(Group::World)] = false; Capabilities[size_t(Group::Client)] = false;}
     Trace("byte_patch", "id=world_process_exit ok=%u resident=1 rva=%x", unsigned(installed), unsigned(ExitCheckRva));
   } catch (...) {
     Capabilities[size_t(Group::World)] = false;
+    Capabilities[size_t(Group::Client)] = false;
     Trace("byte_patch", "id=world_process_exit ok=0 reason=asm_patch_exception");
   }
 }
