@@ -1,6 +1,14 @@
 # tx-04-17 原生客户端世界与状态应用公共运行时
 
-## 2026-11-02 公共骨架及 I6／I7 实施状态
+## 2026-11-02 公共骨架及 I6／I7／I3 实施状态
+
+### I3 玩法分派静态接线（2026-11-02）
+
+统一 `hooks.json` 已为普通 Game／Room／EntityList／Player Update、post tail、odd、RoomTransition FSM／Door、NewRoom、直接 Game::Start、Room::Init、Game／Room 绘制和 render_sort 登记常驻 Client 外层 Hook；既有观察 Hook 留在内层，只有主动 `CallOriginal` 才执行观察及官方原链。Off／Host 仍透传一次。`ClientDispatchScope` 以具名用途、根入口、主线程 owner、全代次和 I6 在途借用限制受控调用；只有根正在执行且显式列出的嵌套更新可记为 `ExpectedSkip`，其它 Client 意外入口记为 `FaultSkip` 并关闭输入／网络。根原调前记录保守 native 执行前缀，异常、重入、停止或代次改变后不把原调用入场误作正常返回，未实际退休时禁止菜单交还。每入口三类有界计数和最后决策由 `ClientFields` 以纯值提供，生产分派不依赖观察录制。
+
+`main_ex.lua` 的 `RunBundledScript` 返回后、REPENTOGON 将 `_RunCallback`／双参数函数存入 native registry 前，当前 VM 的回调闭包与公开别名被保护。Client gameplay ModCallback 跳过；菜单 1023 只在有效 Manager Render 观察借用和稳定菜单中，从官方 `GetCallbacks` 结果选本方 mod 路径与名称的唯一候选函数执行，数量、重入、VM 与错误均有界并转失败。官方 `_Internals` 结构调用未整体停用；Off／Host 调用原回调。该路径的函数同源性仍须完整 tx 的统一 E2E 观察，不把同一 callbackID 的其他 mod 视为本方。
+
+本轮没有 I1 场景状态转换和 I4 原生展示适配，当前 `Room::Init` 只在未来已合法进入 Preparing／Applying 的具名作用域中可准入；完整 Game／Room Render、Room PreRender、render_sort、NewRoom、FSM 与 Door 整链均保持拒绝，不能以 I3 分派票据代替它们的前置状态或 Graphics 借用。已采用的 loading 链由 Manager::ExecuteStartGame、Game::Start 与 Restore 的 Client 外层保护，未声明对任意第三方 C++ 直接调用 StartDaily／Debug／Rerun 的全集隔离。I2 对象构建、I5 资源姿态及 I8 前缀退休和 Applied 仍属后续职责。上述均为代码静态接线，尚未构建、运行生成器、游戏或测试；只在整个 tx 完成后统一 E2E。
 
 本次推进在 `mod/src/game/client_scene.h/.cpp` 增加独立 Client 场景 owner：完整等待／目标／已应用 Scope、T 与 A 分别持有、单调 attempt、实际执行前缀和失败结果、主线程用途借用及有界在途表。现有 16 的网络 worker 仍无世界 payload；T 接入复用 15 的模型校验并拥有副本，但原生 adapter 尚未实现，返回 `UnsupportedRequirement`，A 为空，`native_committed=false`，不得产生 Applied ACK。该骨架不改变 Host 的统一 scheduler 或 Client 的输入语义。
 

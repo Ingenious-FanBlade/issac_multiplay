@@ -9,7 +9,7 @@
 namespace cs::game {
 // Client 原生场景与连接分开；这里只保存纯值目标和提交，不跨线程拥有原生对象。
 enum class ClientSceneState : unsigned { Waiting, Preparing, Applying, Displaying, Retiring, Failed };
-enum class ClientPurpose : unsigned { NativeApply, NativeRetire, Lua, Graphics, RenderObservation, LocalSettings };
+enum class ClientPurpose : unsigned { NativeApply, NativeRetire, Lua, Graphics, RenderObservation, Dispatch, LocalSettings };
 enum class ClientResultKind : unsigned {
   WaitingDependency, DuplicateTarget, UnsupportedRequirement, ContextOrThreadFault,
   BudgetExhausted, PartialNativeFailure, Retiring, NativeCommitted
@@ -70,7 +70,9 @@ public:
   ClientSceneState State() const noexcept { return state_; }
   ClientApplyResult Result() const noexcept { return result_; }
   const ClientGenerations &Generations() const noexcept { return generations_; }
-  bool HasNativePrefix() const noexcept { return result_.native_written || result_.pending_owners; }
+  bool HasNativePrefix() const noexcept { return native_dispatch_prefix_ || result_.native_written || result_.pending_owners; }
+  // 分派原调用前记录“可能已执行”的不可逆前缀，直到 I8 实际退休后才可清除。
+  bool NoteNativeDispatchEntry() noexcept;
 private:
   struct RetainedEntry final {
     ClientRetainedTicket ticket{};
@@ -95,6 +97,7 @@ private:
   std::array<RetainedEntry,16> retained_{};
   std::uint64_t next_retained_=0;
   bool draining_=false;
+  bool native_dispatch_prefix_=false;
   bool lua_closing_=false,context_closing_=false;
   std::uint64_t next_borrow_=0;
   ClientSceneState state_=ClientSceneState::Waiting;
@@ -103,7 +106,7 @@ private:
   std::uint64_t target_revision_=0, applied_revision_=0, next_attempt_=0;
   ClientGenerations generations_{};
   ClientApplyResult result_{};
-  unsigned active_native_=0, active_lua_=0, active_graphics_=0, active_observation_=0;
+  unsigned active_native_=0, active_lua_=0, active_graphics_=0, active_observation_=0, active_dispatch_=0;
   void *current_dc_=nullptr, *current_context_=nullptr;
   void *observed_dc_=nullptr, *observed_context_=nullptr;
   void *lua_state_=nullptr;

@@ -73,6 +73,10 @@ struct ClientRuntime final {
   unsigned neutral_loops=0;
   void *source=nullptr;
   std::string address, error;
+  // I3 纯值分派诊断独立于观察记录，供最终整体验收区分预期跳过与漏链。
+  std::array<std::uint64_t,16> dispatch_original{},dispatch_expected{},dispatch_fault{};
+  unsigned dispatch_last_entry=0,dispatch_last_decision=0;
+  std::uint64_t callback_skipped=0,callback_own=0,callback_fault=0;
 };
 std::unique_ptr<ClientRuntime> client;
 std::atomic<bool> client_active{false},foreign_client{false};
@@ -80,6 +84,63 @@ std::uint64_t connections=0;
 std::uint64_t ui_seen_ms=0,ui_frames=0;
 thread_local unsigned client_depth=0;
 thread_local ClientBorrowToken render_observation{};
+// I3 的单根原生用途帧仅在主线程存放；每帧票据阻止连接/scene 提前回收。
+struct ClientDispatchFrame final {
+  ClientScene *scene=nullptr;
+  ClientBorrowToken borrow{};
+  ClientOperation operation=ClientOperation::Build;
+  ClientEntry root=ClientEntry::GameUpdate;
+  ClientSceneState state=ClientSceneState::Waiting;
+  Owner owner=Owner::None;
+  std::uint64_t id=0,owner_token=0,expected=0;
+  bool called=false,returned=false,fault=false;
+};
+thread_local ClientDispatchFrame dispatch_frame{};
+std::uint64_t next_dispatch_frame=0;
+
+constexpr std::uint64_t EntryBit(ClientEntry entry) noexcept {
+  return ClientEntryMask(entry);
+}
+constexpr std::uint64_t kExpectedUpdateMask=
+    EntryBit(ClientEntry::GameUpdate)|EntryBit(ClientEntry::PostUpdate)|
+    EntryBit(ClientEntry::RoomUpdate)|EntryBit(ClientEntry::EntityListUpdate)|
+    EntryBit(ClientEntry::PlayerUpdate)|EntryBit(ClientEntry::OddHelper)|
+    EntryBit(ClientEntry::DoorUpdate);
+constexpr const char *kClientEntryNames[]={
+  "game_update","post_update","room_update","entity_list","player_update",
+  "odd_helper","lifecycle_fsm","door_update","door_nested","new_room",
+  "room_init","game_render","room_prerender","room_render","render_sort","game_start"};
+void CountDispatch(ClientRuntime &c,ClientEntry entry,ClientEntryDecision decision) noexcept {
+  const auto index=unsigned(entry);
+  if(index>=c.dispatch_original.size())return;
+  auto &counter=decision==ClientEntryDecision::CallOriginal?c.dispatch_original[index]:
+                decision==ClientEntryDecision::ExpectedSkip?c.dispatch_expected[index]:
+                c.dispatch_fault[index];
+  if(counter!=UINT64_MAX)++counter;
+  c.dispatch_last_entry=index;c.dispatch_last_decision=unsigned(decision);
+}
+// 只允许用途已证明的具名根；状态门与根入口共同约束原链资格。
+bool DispatchRootAllowed(ClientOperation operation,ClientEntry root,
+                         ClientSceneState state,Owner owner) noexcept {
+  switch(operation){
+    case ClientOperation::Build:
+      return state==ClientSceneState::Preparing&&owner==Owner::Manager&&
+          root==ClientEntry::RoomInit;
+    case ClientOperation::Apply:
+      return state==ClientSceneState::Applying&&owner==Owner::Manager&&
+          root==ClientEntry::RoomInit;
+    case ClientOperation::PresentMaintenance:
+      // render_sort 有空列表越界前提；I4 提供验证后的维护适配前不准直接原调。
+      return false;
+    case ClientOperation::PresentDraw:
+      // 整体 Game/Room Render 含未闭合 pass；I4 采用段适配前拒绝整树。
+      return false;
+    case ClientOperation::Retire:
+      // 原生释放走 I6 具名 release phase；这里不把任意玩法入口伪装成退休工具。
+      return false;
+  }
+  return false;
+}
 
 // 设备/代次/UI变化清除待发边沿，但保留此次物理held基线防止恢复时补发。
 void Neutral(ClientRuntime &c,bool forget=false) noexcept {
@@ -106,6 +167,116 @@ bool MenuReady() noexcept {
 }
 }
 bool ClientBusy() noexcept {return client_active.load(std::memory_order_acquire);}
+void ClientCallbackFault(const char *reason) noexcept {
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
+  if(client&&ClientBusy()){
+    if(client->callback_fault!=UINT64_MAX)++client->callback_fault;
+    Failure(*client,reason);
+  }
+}
+void ClientCallbackSkipped() noexcept {
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
+  if(client&&ClientBusy()&&client->callback_skipped!=UINT64_MAX)++client->callback_skipped;
+}
+void ClientCallbackOwnExecuted() noexcept {
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
+  if(client&&ClientBusy()&&client->callback_own!=UINT64_MAX)++client->callback_own;
+}
+bool ClientCallbackMenuAllowed() noexcept {
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return false;}
+  return ClientBusy()&&client&&!dispatch_frame.id&&TopOwner()==Owner::Render&&
+         !InBlockedContext()&&ContextHealthy()&&MenuReady()&&
+         render_observation.active&&client->scene.Valid(render_observation);
+}
+ClientDispatchScope::ClientDispatchScope(ClientOperation operation,ClientEntry root,
+                                         std::uint64_t expected_skips) noexcept
+    : exceptions_(std::uncaught_exceptions()) {
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
+  if(!ClientBusy()||!client)return;
+  auto &c=*client;
+  const auto owner=TopOwner();
+  if(dispatch_frame.id||!ContextHealthy()||InBlockedContext()||
+     (expected_skips&~kExpectedUpdateMask)||
+     (expected_skips&EntryBit(root))||
+     !DispatchRootAllowed(operation,root,c.scene.State(),owner)||
+     next_dispatch_frame==UINT64_MAX){Failure(c,"client_dispatch_admission");return;}
+  ClientBorrowToken borrow{};
+  if(!c.scene.Borrow(ClientPurpose::Dispatch,borrow)){Failure(c,"client_dispatch_borrow");return;}
+  const auto token=OwnerToken(owner);
+  if(!token){c.scene.Release(borrow);Failure(c,"client_dispatch_owner");return;}
+  frame_=++next_dispatch_frame;
+  dispatch_frame={&c.scene,borrow,operation,root,c.scene.State(),owner,frame_,token,
+                  expected_skips,false,false,false};
+  active_=true;
+}
+bool ClientDispatchScope::Succeeded() const noexcept {
+  if(!IsMain())return false;
+  return active_&&dispatch_frame.id==frame_&&dispatch_frame.called&&
+         dispatch_frame.returned&&!dispatch_frame.fault&&
+         dispatch_frame.scene->State()==dispatch_frame.state&&
+         dispatch_frame.scene->Valid(dispatch_frame.borrow)&&
+         ContextHealthy()&&OwnerToken(dispatch_frame.owner)==dispatch_frame.owner_token&&
+         exceptions_==std::uncaught_exceptions();
+}
+ClientDispatchScope::~ClientDispatchScope() noexcept {
+  if(!active_)return;
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
+  if(dispatch_frame.id!=frame_||!dispatch_frame.scene){
+    if(client)Failure(*client,"client_dispatch_unpaired");return;
+  }
+  auto frame=dispatch_frame;
+  dispatch_frame={};
+  if(std::uncaught_exceptions()!=exceptions_||!frame.returned||frame.fault||
+     frame.scene->State()!=frame.state||!ContextHealthy()||
+     !frame.scene->Valid(frame.borrow)||
+     OwnerToken(frame.owner)!=frame.owner_token){
+    if(client && (&client->scene==frame.scene))Failure(*client,"client_dispatch_incomplete");
+  }
+  frame.scene->Release(frame.borrow);
+}
+// 主动 Client 分派不计入观察 Hook 的 Returned；预期嵌套跳过必须由根用途显式声明。
+ClientEntryDecision ClientDispatchBefore(ClientEntry entry) noexcept {
+  if(!ClientBusy())return ClientEntryDecision::CallOriginal;
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return ClientEntryDecision::FaultSkip;}
+  if(!client)return ClientEntryDecision::FaultSkip;
+  const auto decide=[&](ClientEntryDecision decision) noexcept {
+    CountDispatch(*client,entry,decision);return decision;
+  };
+  auto &frame=dispatch_frame;
+  if(frame.id&&frame.scene==&client->scene&&ContextHealthy()&&
+     OwnerToken(frame.owner)==frame.owner_token&&
+     frame.borrow.generations==client->scene.Generations()&&
+     frame.scene->State()==frame.state){
+    if(entry==frame.root&&!frame.called&&!frame.fault){
+      if(!frame.scene->Valid(frame.borrow)){
+        frame.fault=true;Failure(*client,"client_dispatch_borrow_invalid");
+        return decide(ClientEntryDecision::FaultSkip);
+      }
+      if(!frame.scene->NoteNativeDispatchEntry()){
+        frame.fault=true;Failure(*client,"client_dispatch_prefix_budget");return decide(ClientEntryDecision::FaultSkip);
+      }
+      frame.called=true;return decide(ClientEntryDecision::CallOriginal);
+    }
+    if(frame.called&&!frame.returned&&(frame.expected&EntryBit(entry))&&
+       !frame.fault)return decide(ClientEntryDecision::ExpectedSkip);
+    frame.fault=true;
+  }
+  Failure(*client,"client_dispatch_unexpected_entry");
+  return decide(ClientEntryDecision::FaultSkip);
+}
+void ClientDispatchReturned(ClientEntry entry) noexcept {
+  if(!ClientBusy())return;
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
+  if(!client||!dispatch_frame.id||dispatch_frame.root!=entry||
+     dispatch_frame.scene!=&client->scene||!dispatch_frame.called||dispatch_frame.returned||
+     dispatch_frame.fault||!ContextHealthy()||
+     !dispatch_frame.scene->Valid(dispatch_frame.borrow)||
+     dispatch_frame.borrow.generations!=client->scene.Generations()||
+     client->scene.State()!=dispatch_frame.state){
+    if(client)Failure(*client,"client_dispatch_return_mismatch");return;
+  }
+  dispatch_frame.returned=true;
+}
 const char *ClientStateName() noexcept {
   if(!client)return "Off";
   switch(client->state) {
@@ -127,6 +298,7 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
   if(!ClientShutdownPatchInstalled())return "shutdown_isolation_unavailable";
   ClientGuardLuaBindings();
   if(!ClientLuaGuardReady())return "lua_persistence_guard_unavailable";
+  if(!ClientCallbackGuardReady())return "lua_callback_guard_unavailable";
   if(connections==UINT64_MAX)return "connection_exhausted";
   try {
     auto next=std::make_unique<ClientRuntime>();next->connection=++connections;
@@ -377,6 +549,17 @@ std::string ClientFields() {
   add("native_attempt",c.scene.Result().attempt);
   add("native_executed_prefix",c.scene.Result().executed_prefix);
   add("native_committed",c.scene.Result().native_committed);
+  add("dispatch_last_entry",c.dispatch_last_entry);
+  add("dispatch_last_decision",c.dispatch_last_decision);
+  add("callback_skipped",c.callback_skipped);
+  add("callback_own",c.callback_own);
+  add("callback_fault",c.callback_fault);
+  for(unsigned i=0;i<c.dispatch_original.size();++i)
+    if(c.dispatch_original[i]||c.dispatch_expected[i]||c.dispatch_fault[i])
+      s+="client.dispatch."+std::string(kClientEntryNames[i])+"="+
+         std::to_string(c.dispatch_original[i])+","+
+         std::to_string(c.dispatch_expected[i])+","+
+         std::to_string(c.dispatch_fault[i])+"\n";
   s+="client.native_reason="+std::string(c.scene.Result().reason.data())+"\n";
   s+="client.error="+c.error+"\n";return s;
 }

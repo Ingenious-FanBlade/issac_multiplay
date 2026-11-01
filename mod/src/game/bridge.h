@@ -48,6 +48,52 @@ bool ClientShutdownProgressBlocked() noexcept;
 void ClientGuardLuaBindings() noexcept;
 bool ClientLuaGuardReady() noexcept;
 void ClientLuaGuardClosed() noexcept;
+void ClientGuardCallbackBindings(const char *path) noexcept;
+bool ClientCallbackGuardReady() noexcept;
+void ClientCallbackFault(const char *reason) noexcept;
+bool ClientCallbackMenuAllowed() noexcept;
+void ClientCallbackSkipped() noexcept;
+void ClientCallbackOwnExecuted() noexcept;
+// main_ex.lua 重载开始即撤销旧保护资格；正常返回后重装，异常/失败阻止活跃 Client 继续。
+class ClientCallbackScriptScope final {
+public:
+  ClientCallbackScriptScope(bool main,const char *path) noexcept;
+  ~ClientCallbackScriptScope() noexcept;
+  ClientCallbackScriptScope(const ClientCallbackScriptScope &)=delete;
+  ClientCallbackScriptScope &operator=(const ClientCallbackScriptScope &)=delete;
+  bool AllowOriginal() const noexcept { return allowed_; }
+  void Returned(bool success) noexcept;
+private:
+  bool tracked_=false,returned_=false,allowed_=true;
+};
+// I3 入口分派只标记实际用途和原调用处置；不会把观察 Hook 的 skip 计作原调用返回。
+enum class ClientOperation : unsigned { Build, Apply, PresentMaintenance, PresentDraw, Retire };
+enum class ClientEntry : unsigned {
+  GameUpdate, PostUpdate, RoomUpdate, EntityListUpdate, PlayerUpdate, OddHelper,
+  LifecycleFSM, DoorUpdate, DoorNested, NewRoom, RoomInit, GameRender,
+  RoomPreRender, RoomRender, EntityListRenderSort, GameStart
+};
+enum class ClientEntryDecision : unsigned { CallOriginal, ExpectedSkip, FaultSkip };
+constexpr std::uint64_t ClientEntryMask(ClientEntry entry) noexcept {
+  return unsigned(entry)<64?std::uint64_t{1}<<unsigned(entry):0;
+}
+// 适配器须声明唯一根入口与明确预期跳过的嵌套更新；作用域持有 I6 票据直到原调用退出。
+class ClientDispatchScope final {
+public:
+  ClientDispatchScope(ClientOperation operation, ClientEntry root,
+                      std::uint64_t expected_skips = 0) noexcept;
+  ~ClientDispatchScope() noexcept;
+  ClientDispatchScope(const ClientDispatchScope &)=delete;
+  ClientDispatchScope &operator=(const ClientDispatchScope &)=delete;
+  bool Ready() const noexcept { return active_; }
+  bool Succeeded() const noexcept;
+private:
+  std::uint64_t frame_=0;
+  bool active_=false;
+  int exceptions_=0;
+};
+ClientEntryDecision ClientDispatchBefore(ClientEntry entry) noexcept;
+void ClientDispatchReturned(ClientEntry entry) noexcept;
 // C++17 Hook 桥仅传纯值通知；场景/模型类型不暴露给 SDK-facing wrapper。
 // 只观测 Manager::Render 在途窗口；不授予完整 native Render 或 Graphics 使用资格。
 class ClientRenderScope final {

@@ -2,6 +2,7 @@
   "evidence": "STATIC_CONFIRMED",
   "base": "0x400000",
   "functions": [
+    {"rva":"0x404500","pattern":"53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04","type":"void __thiscall()","entry":["J273 0x804500 Room render；Game Render 0x6F7DF4 无显式参数 thiscall，0x8080EF retn"]},
     {"rva":"0x532160","pattern":"55 8B EC 83 EC 24 53 56 8B 35 ?? ?? ?? ?? 57 83","type":"void __cdecl()","entry":["J273 0x932160 ManagerSaveGameState: 静态全局 Manager 读取，无 ECX 参数"]},
     {"rva":"0x504de0","pattern":"55 8B EC 83 E4 F8 83 EC 1C 53 8B D9 56 57 80 7B","type":"bool __thiscall(int,int)","entry":["J273 0x904DE0 PGD NPC encounter helper；直接 bestiary/achievement 写"]},
     {"rva":"0x59de10","pattern":"53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B ??","type":"void __thiscall()","entry":["J273 GameState::Clear，官方外层 sidecar 清除入口"]},

@@ -25,6 +25,7 @@ void ClientScene::Begin(const replica::Scope &scope) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
   if(!CanReturnToMenu()){FailureResult(ClientResultKind::PartialNativeFailure,"begin","old_owner_inflight");state_=ClientSceneState::Failed;return;}
   waiting_scope_=scope;target_scope_={};applied_scope_={};target_.reset();applied_.reset();
+  native_dispatch_prefix_=false;
   target_revision_=applied_revision_=0;
   const auto epoch=NewSceneEpoch();
   if(!epoch){FailureResult(ClientResultKind::BudgetExhausted,"begin","scene_generation_exhausted");state_=ClientSceneState::Failed;return;}
@@ -40,12 +41,22 @@ void ClientScene::FailureResult(ClientResultKind kind,const char *phase,const ch
   result_.generations=generations_;
   result_.native_committed=false;
 }
+bool ClientScene::NoteNativeDispatchEntry() noexcept {
+  if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
+  if(result_.executed_prefix==UINT32_MAX){
+    FailureResult(ClientResultKind::BudgetExhausted,"dispatch","native_prefix_budget");
+    state_=ClientSceneState::Failed;return false;
+  }
+  native_dispatch_prefix_=true;
+  ++result_.executed_prefix;
+  return true;
+}
 // 现阶段模型载荷没有进入 Client worker；任何直接调用均不可被误认为 native Applied。
 bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision,
                               const replica::Value &value) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
   if(state_==ClientSceneState::Retiring||state_==ClientSceneState::Failed||
-     active_native_||active_lua_||active_graphics_||active_observation_){
+     active_native_||active_lua_||active_graphics_||active_observation_||active_dispatch_){
     FailureResult(ClientResultKind::Retiring,"admit","owner_unavailable");return false;
   }
   result_.scope=scope;result_.revision=revision;
@@ -100,6 +111,12 @@ bool ClientScene::Enter(ClientPurpose purpose) noexcept {
        active_observation_==kMaximumInFlight)return false;
     ++active_observation_;return true;
   }
+  // 分派票据只维持用途帧寿命，不授权任何原生写入或图形操作。
+  if(purpose==ClientPurpose::Dispatch){
+    if((TopOwner()!=Owner::Manager&&TopOwner()!=Owner::Render)||
+       active_dispatch_==kMaximumInFlight)return false;
+    ++active_dispatch_;return true;
+  }
   if(purpose==ClientPurpose::LocalSettings)return TopOwner()!=Owner::None;
   if(purpose==ClientPurpose::NativeRetire) {
     if(state_!=ClientSceneState::Retiring&&state_!=ClientSceneState::Failed)return false;
@@ -131,7 +148,8 @@ void ClientScene::Leave(ClientPurpose purpose) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
   unsigned *count=purpose==ClientPurpose::Lua?&active_lua_:
                   purpose==ClientPurpose::Graphics?&active_graphics_:
-                  purpose==ClientPurpose::RenderObservation?&active_observation_:&active_native_;
+                  purpose==ClientPurpose::RenderObservation?&active_observation_:
+                  purpose==ClientPurpose::Dispatch?&active_dispatch_:&active_native_;
   if(purpose==ClientPurpose::LocalSettings)return;
   if(!*count){FailureResult(ClientResultKind::ContextOrThreadFault,"leave","unbalanced_use");state_=ClientSceneState::Failed;return;}
   --*count;
@@ -236,14 +254,14 @@ void ClientScene::DrainRetained() noexcept {
   if(state_==ClientSceneState::Failed)
     for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
   if(draining_||!ContextHealthy()||InBlockedContext()||
-     active_native_||active_lua_||active_graphics_||active_observation_)return;
+     active_native_||active_lua_||active_graphics_||active_observation_||active_dispatch_)return;
   for(const auto &borrow:borrows_)if(borrow.id)return;
   draining_=true;
   for(auto &owner:retained_){
     if(!owner.ticket.id||!owner.retiring||owner.releasing||owner.failed||
        owner.cpu_queued||owner.gpu_queued)continue;
     if(!ContextHealthy()||InBlockedContext()||active_native_||active_lua_||
-       active_graphics_||active_observation_)break;
+       active_graphics_||active_observation_||active_dispatch_)break;
     // 旧资源代次禁止新借用，但原 owner 的独占引用仍须在其 VM/context 有效时释放。
     bool phase_valid=false;
     switch(owner.phase){
@@ -278,7 +296,7 @@ void ClientScene::DrainRetained() noexcept {
 }
 void ClientScene::FinishRetirementIfDrained() noexcept {
   if(state_!=ClientSceneState::Retiring&&state_!=ClientSceneState::Failed)return;
-  if(active_native_||active_lua_||active_graphics_||active_observation_)return;
+  if(active_native_||active_lua_||active_graphics_||active_observation_||active_dispatch_)return;
   for(const auto &entry:borrows_)if(entry.id)return;
   for(const auto &owner:retained_)if(owner.ticket.id)return;
   if(target_){target_.reset();target_revision_=0;InvalidateInstance();result_.generations=generations_;}
@@ -419,6 +437,6 @@ bool ClientScene::CanReturnToMenu() const noexcept {
   for(const auto &entry:borrows_)if(entry.id)return false;
   for(const auto &owner:retained_)if(owner.ticket.id)return false;
   return !HasNativePrefix()&&
-         !active_native_&&!active_lua_&&!active_graphics_&&!active_observation_&&!applied_;
+         !active_native_&&!active_lua_&&!active_graphics_&&!active_observation_&&!active_dispatch_&&!applied_;
 }
 } // namespace cs::game

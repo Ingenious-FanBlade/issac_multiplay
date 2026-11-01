@@ -131,8 +131,19 @@ CONSTANT_ORDER = [
     ('roster_vector_end_offset', 'u32'),
     ('roster_vector_capacity_offset', 'u32'),
 ]
-# 既有行 schema 里唯一允许的同址成对层（player_update 外层 / player_native 内层）。
-ALLOWED_SAME_RVA = {0x37BD40: {'player_update', 'player_native'}}
+# 同址入口只准具名的 Client 主动外层与既有观察层配对；Player 另有内层见证。
+ALLOWED_SAME_RVA = {
+    0x2F6D30: {'client_game_update','game_update'},
+    0x446C90: {'client_post_update','post_update'},
+    0x3F7F60: {'client_room_update','room_update'},
+    0x13F00: {'client_entity_list','entity_list'},
+    0x37BD40: {'client_player_update','player_update','player_native'},
+    0x2F9340: {'client_odd_helper','odd_helper'},
+    0x509100: {'client_room_lifecycle','room_lifecycle'},
+    0x426430: {'client_door_update','door_update'},
+    0x2FA0F0: {'client_door_nested','door_nested'},
+    0x44B930: {'client_new_room','new_room'},
+}
 
 
 class Problems:
@@ -468,6 +479,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 struct CsStatic {};
 struct CsMtSeed {};
 struct CsEntityList {};
+struct CsRoom {};
 struct CsLifecycle {};
 struct CsDevice {};
 struct CsButtonMaps {};
@@ -488,6 +500,27 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    # Client 外层只负责决策；CallOriginal 才进入既有观察 Hook 与官方原链。
+    outer_dispatch={
+        'client_game_update':'GameUpdate','client_post_update':'PostUpdate',
+        'client_room_update':'RoomUpdate','client_entity_list':'EntityListUpdate',
+        'client_player_update':'PlayerUpdate','client_odd_helper':'OddHelper',
+        'client_room_lifecycle':'LifecycleFSM','client_door_update':'DoorUpdate',
+        'client_door_nested':'DoorNested','client_new_room':'NewRoom',
+        'room_init':'RoomInit','game_render':'GameRender',
+        'room_prerender':'RoomPreRender','room_render':'RoomRender',
+        'entitylist_render_sort':'EntityListRenderSort','client_game_start':'GameStart'
+    }
+    if ident in outer_dispatch:
+        entry=outer_dispatch[ident]
+        out=['    record.calls.fetch_add(1, std::memory_order_relaxed);',
+             '    if (cs::game::ClientDispatchBefore(cs::game::ClientEntry::%s) != cs::game::ClientEntryDecision::CallOriginal) return%s;'
+             % (entry,' 0' if ret!='void' else '')]
+        out.append('    %ssuper(%s);' % ('auto result = ' if ret!='void' else '',call))
+        out += ['    cs::game::ClientDispatchReturned(cs::game::ClientEntry::%s);' % entry,
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);']
+        if ret!='void':out.append('    return result;')
+        return out
     if ident in ('native_level_random','native_generator_random'):
         out=['    cs::game::NativeRandomCall state(%s, cs::game::RandomAlgorithm::XorShift32, "%s", 0, %s);'
              % ('random' if ident=='native_level_random' else 'this','Level.generate_dungeon.argument' if ident=='native_level_random' else 'LevelGenerator.Generate', 'false' if ident=='native_level_random' else 'true')]
@@ -550,7 +583,11 @@ def legacy_body(row):
         return lines
     if ident == 'lua_run_bundled_script':
         lines += ['    if (scope.main) cs::game::ClientGuardLuaBindings();',
-                  '    return super(path);']
+                  '    cs::game::ClientCallbackScriptScope callback_script(scope.main, path);',
+                  '    if (!callback_script.AllowOriginal()) return false;',
+                  '    const auto result=super(path);',
+                  '    callback_script.Returned(result);',
+                  '    return result;']
         return lines
     if ident == 'isaac_shutdown':
         lines += ['    if (scope.main) cs::game::ClientShutdownBeginning();',
@@ -560,6 +597,7 @@ def legacy_body(row):
         return lines
     if ident == 'lua_destroy':
         lines += ['    if (scope.main) cs::game::ClientLuaClosing();',
+                  '    if (scope.main) cs::game::ClientLuaGuardClosed();',
                   '    super();']
         return lines
     if ident == 'manager_render':
