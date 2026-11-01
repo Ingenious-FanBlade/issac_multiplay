@@ -44,6 +44,10 @@ bool ClientMenuAvailable() noexcept;
 void ClientInputUnavailable() noexcept;
 void ClientMenuRendered() noexcept;
 bool ClientProcessExitDecision() noexcept;
+bool ClientShutdownProgressBlocked() noexcept;
+void ClientGuardLuaBindings() noexcept;
+bool ClientLuaGuardReady() noexcept;
+void ClientLuaGuardClosed() noexcept;
 // C++17 Hook 桥仅传纯值通知；场景/模型类型不暴露给 SDK-facing wrapper。
 // 只观测 Manager::Render 在途窗口；不授予完整 native Render 或 Graphics 使用资格。
 class ClientRenderScope final {

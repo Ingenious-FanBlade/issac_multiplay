@@ -67,6 +67,7 @@ MOD_EXPORT int ModInit() noexcept {
     PrepareBindings();
     game::InitializeWorldBridge();
     RegisterHooks();
+    InstallClientShutdownPatch();
     InitializeRuntimeRandomHooks();
     PublishStatus();
     if (Settings.control && Capabilities[size_t(Group::Loop)] &&

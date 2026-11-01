@@ -76,8 +76,6 @@ struct ClientRuntime final {
 };
 std::unique_ptr<ClientRuntime> client;
 std::atomic<bool> client_active{false},foreign_client{false};
-// 无服务器原生写入前缀的进程关闭仍属于访客原有本地存档，正常 Shutdown 可透传。
-std::atomic<bool> local_shutdown_passthrough{false};
 std::uint64_t connections=0;
 std::uint64_t ui_seen_ms=0,ui_frames=0;
 thread_local unsigned client_depth=0;
@@ -126,6 +124,9 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
   if(PointerCount()!=8||!ContextHealthy()||!Capabilities[size_t(Group::Input)]||
      !Capabilities[size_t(Group::Loop)]||!Capabilities[size_t(Group::Control)]||
      !Capabilities[size_t(Group::Client)]||!WorldExitPatchInstalled())return "adaptation_unavailable";
+  if(!ClientShutdownPatchInstalled())return "shutdown_isolation_unavailable";
+  ClientGuardLuaBindings();
+  if(!ClientLuaGuardReady())return "lua_persistence_guard_unavailable";
   if(connections==UINT64_MAX)return "connection_exhausted";
   try {
     auto next=std::make_unique<ClientRuntime>();next->connection=++connections;
@@ -133,7 +134,6 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
     const auto error=next->network.Start(ipv4,std::uint16_t(port),Settings.peer_timeout_ms);
     if(*error)return error;
     ForgetInputDevice();client=std::move(next);foreign_client=false;
-    local_shutdown_passthrough.store(false,std::memory_order_release);
     client_active.store(true,std::memory_order_release);
     Trace("client","event=connecting connection=%llu address=%s port=%u key=%d local_run=0",connections,ipv4.c_str(),port,device_key);
     return "";
@@ -155,6 +155,7 @@ bool ClientManagerBoundary() noexcept {
   try {
     if(c.scene.ConsumeForeignFault())Failure(c,"client_foreign_scene");
     c.scene.ObserveLuaState(ClientLuaStateIdentity());
+    c.scene.DrainRetained();
     if(c.scene.State()==ClientSceneState::Failed&&c.state!=State::Failed)Failure(c,"client_scene_failed");
     if(foreign_client.exchange(false))Failure(c,"client_foreign_manager");
     ++c.manager_skipped;
@@ -193,7 +194,6 @@ bool ClientManagerBoundary() noexcept {
       // 只有无原生执行前缀、无借用与在途使用时才能交还本地菜单。
       if(c.network.Finished()&&c.neutral_loops>=2&&MenuReady()&&c.scene.CanReturnToMenu()) {
         c.state=State::Off;ForgetInputDevice();client_active.store(false,std::memory_order_release);
-        local_shutdown_passthrough.store(false,std::memory_order_release);
         Trace("client","event=off connection=%llu input_closed=1 worker_finished=1 local_run=0",c.connection);
       }
     } else if(c.state==State::Connecting||c.state==State::AwaitingWorld) {
@@ -285,13 +285,49 @@ ClientRenderScope::~ClientRenderScope() noexcept {
 }
 // Lua VM 关闭先换代并撤销本方借用，不能把 unref 当作 userdata 析构。
 void ClientLuaClosing() noexcept {
+  ClientLuaGuardClosed();
   if(IsMain()&&ClientBusy())client->scene.LuaClosing();
+}
+// registry 捕获先取得 VM 借用与有界 owner 槽，再执行可能触发 GC 的 Lua API。
+bool ClientLuaRegistryCapture(int stack_index,ClientRetainedTicket &ticket) noexcept {
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return false;}
+  if(!ClientBusy()||ticket.id)return false;
+  ClientBorrowToken borrow{};
+  if(!client->scene.Borrow(ClientPurpose::Lua,borrow))return false;
+  void *owner=ClientLuaRegistryMakeOwner();
+  if(!owner){client->scene.Release(borrow);return false;}
+  if(!client->scene.Retain(ClientRetainedKind::LuaRegistry,ClientReleasePhase::LuaState,
+                           owner,ClientLuaRegistryReleaseRaw,ticket)){
+    ClientLuaRegistryDiscardOwner(owner);client->scene.Release(borrow);return false;
+  }
+  const bool captured=ClientLuaRegistryCaptureRaw(owner,stack_index);
+  if(!captured)client->scene.RetireRetained(ticket);
+  client->scene.Release(borrow);
+  if(!captured)ticket={};
+  return captured;
+}
+bool ClientLuaRegistryVisit(const ClientRetainedTicket &ticket,
+                            bool (*visitor)(void *,void *) noexcept,void *context) noexcept {
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return false;}
+  if(!ClientBusy()||!visitor)return false;
+  ClientBorrowToken borrow{};
+  if(!client->scene.Borrow(ClientPurpose::Lua,borrow))return false;
+  void *owner=nullptr;
+  const bool valid=client->scene.UseLuaRegistry(ticket,owner);
+  const bool visited=valid&&ClientLuaRegistryVisitRaw(owner,visitor,context);
+  if(valid&&!visited)client->scene.Fail("lua_registry_visit_failed");
+  if(!client->scene.Valid(borrow))client->scene.Fail("lua_visit_invalidated");
+  client->scene.Release(borrow);
+  return visited;
+}
+void ClientLuaRegistryRetire(const ClientRetainedTicket &ticket) noexcept {
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
+  if(!ClientBusy())return;
+  client->scene.RetireRetained(ticket);
 }
 void ClientShutdownBeginning() noexcept {
   if(!IsMain()||!ClientBusy())return;
-  // 当前仅等待菜单且无原生写入前缀时，Shutdown 的直接 PGD 写仍是访客本地生命周期。
-  // 一旦有服务器原生前缀，不能凭下层 PGD Hook 认为 Shutdown 安全。
-  local_shutdown_passthrough.store(client->scene.CanReturnToMenu(),std::memory_order_release);
+  // 关闭阶段只保留 Options 明确的本地写入，不能用场景计数打开全部 progress writer。
   if(client->state!=State::Retiring)StopClient();
 }
 void ClientContextClosing() noexcept {
@@ -299,15 +335,17 @@ void ClientContextClosing() noexcept {
 }
 // 此分派独立于 PersistenceScope 的 original exactly-once 观察；外层 wrapper 可直接拒绝。
 bool ClientPersistenceBlocked() noexcept {
-  return client_active.load(std::memory_order_acquire)&&
-         !(IsMain()&&local_shutdown_passthrough.load(std::memory_order_acquire));
+  return client_active.load(std::memory_order_acquire);
 }
+// Shutdown 内部两段无 Hook 的直接 PGD 写在指令入口判定，保护寿命独立于 socket。
+bool ClientShutdownProgressBlocked() noexcept {return ClientPersistenceBlocked();}
 // 自带纯菜单UI实际运行的主线程心跳；未加载UI时拒绝进入不可见等待状态。
 void ClientUiHeartbeat() noexcept {
   if(IsMain()){ui_seen_ms=GetTickCount64();if(ClientBusy())++ui_frames;}
 }
 // 原生主循环关闭前完成本方线程退休；不修改窗口关闭标志，也不调用Game::Exit。
 bool ClientProcessExitDecision() noexcept {
+  if(!IsMain()){foreign_client.store(true,std::memory_order_release);return false;}
   if(!ClientBusy())return true;
   if(client->state!=State::Retiring)StopClient();
   return client->network.Finished()&&client->scene.CanReturnToMenu();

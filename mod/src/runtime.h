@@ -69,6 +69,8 @@ extern std::array<std::string, size_t(Group::Count)> CapabilityReasons;
 extern std::string RepentogonVersion;
 extern Config Settings;
 bool IsMain() noexcept;
+bool ClientShutdownPatchInstalled() noexcept;
+void InstallClientShutdownPatch() noexcept;
 void RefreshVersion() noexcept;
 void *GamePointer() noexcept;
 Config ReadConfig();

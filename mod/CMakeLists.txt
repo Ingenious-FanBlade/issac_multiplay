@@ -55,7 +55,7 @@ target_link_libraries(replica-contract PRIVATE isaac_cs_replica)
 target_compile_options(replica-contract PRIVATE /W4 /Zi /utf-8 /EHsc)
 set_target_properties(replica-contract PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")
 add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/binding_v1_9_7_12.inc" "${GENERATED}/hook-manifest.json" "${GENERATED}/permanent_patches.inc" "${GENERATED}/host_patches.inc" "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc" "${GENERATED}/world-layout.json"
-  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/random_runtime.inc"
+  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/shutdown_patch.inc" "${GENERATED}/random_runtime.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_binding.py" --out "${GENERATED}"
   DEPENDS tools/gen_binding.py binding/hooks.json binding/world_layout.json binding/v1_9_7_12-static.json ../docs/hooks/repentogon-binding.json VERBATIM)
 add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions.cpp
@@ -71,6 +71,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/ops/config.cpp src/ops/trace.cpp src/ops/command.cpp src/ops/world_commands.cpp src/ops/control_port.cpp
   "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc"
   "${GENERATED}/exit_patch.inc"
+  "${GENERATED}/shutdown_patch.inc"
   "${GENERATED}/hooks_generated.cpp")
 # SDK 1.1.3 的生成头和 ASMPatcher.hpp 的 friend-static 声明不兼容当前 C++20。
 # SDK-facing 单元只使用 C++17 值接口；Join/输入/world 核心保持 C++20。

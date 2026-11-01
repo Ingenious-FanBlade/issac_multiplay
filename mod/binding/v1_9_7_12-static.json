@@ -2,6 +2,11 @@
   "evidence": "STATIC_CONFIRMED",
   "base": "0x400000",
   "functions": [
+    {"rva":"0x532160","pattern":"55 8B EC 83 EC 24 53 56 8B 35 ?? ?? ?? ?? 57 83","type":"void __cdecl()","entry":["J273 0x932160 ManagerSaveGameState: 静态全局 Manager 读取，无 ECX 参数"]},
+    {"rva":"0x504de0","pattern":"55 8B EC 83 E4 F8 83 EC 1C 53 8B D9 56 57 80 7B","type":"bool __thiscall(int,int)","entry":["J273 0x904DE0 PGD NPC encounter helper；直接 bestiary/achievement 写"]},
+    {"rva":"0x59de10","pattern":"53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B ??","type":"void __thiscall()","entry":["J273 GameState::Clear，官方外层 sidecar 清除入口"]},
+    {"rva":"0x5ad750","pattern":"55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 ?? ?? ?? ?? 50 83 EC 48","type":"bool __thiscall(void**)","entry":["J273 GameState::write_rerun，官方外层 sidecar 写入入口"]},
+    {"rva":"0x5ad320","pattern":"55 8B EC 83 EC 78 A1 ?? ?? ?? ?? 33 C5 89 45 ?? 53 8B 5D","type":"bool __thiscall(void**)","entry":["J273 GameState::read_rerun，官方外层 sidecar 读取入口"]},
     {
       "rva": "0x42ac90",
       "pattern": "55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 B8 6C 04 01 00",

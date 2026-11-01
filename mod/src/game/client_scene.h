@@ -1,5 +1,6 @@
 #pragma once
 #include "replica/model.h"
+#include "game/client_lifetime.h"
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -49,6 +50,15 @@ public:
   bool Borrow(ClientPurpose purpose,ClientBorrowToken &out) noexcept;
   bool Valid(const ClientBorrowToken &borrow) const noexcept;
   void Release(ClientBorrowToken &borrow) noexcept;
+  bool Retain(ClientRetainedKind kind,ClientReleasePhase phase,void *owned,ClientRetainedRelease release,
+              ClientRetainedTicket &ticket) noexcept;
+  bool QueueCpuUse(const ClientRetainedTicket &ticket) noexcept;
+  bool QueueGpuUse(const ClientRetainedTicket &ticket) noexcept;
+  void CpuUseComplete(const ClientRetainedTicket &ticket) noexcept;
+  void GpuUseComplete(const ClientRetainedTicket &ticket) noexcept;
+  void RetireRetained(const ClientRetainedTicket &ticket) noexcept;
+  bool UseLuaRegistry(const ClientRetainedTicket &ticket,void *&owned) noexcept;
+  void DrainRetained() noexcept;
   bool ConsumeForeignFault() noexcept;
   void RenderWindow() noexcept;
   void ObserveLuaState(void *state) noexcept;
@@ -62,11 +72,30 @@ public:
   const ClientGenerations &Generations() const noexcept { return generations_; }
   bool HasNativePrefix() const noexcept { return result_.native_written || result_.pending_owners; }
 private:
+  struct RetainedEntry final {
+    ClientRetainedTicket ticket{};
+    ClientRetainedKind kind=ClientRetainedKind::Native;
+    ClientReleasePhase phase=ClientReleasePhase::Manager;
+    void *owned=nullptr;
+    ClientRetainedRelease release=nullptr;
+    ClientGenerations generations{};
+    unsigned cpu_queued=0,gpu_queued=0;
+    bool retiring=false,releasing=false,failed=false;
+  };
+  RetainedEntry *FindRetained(const ClientRetainedTicket &ticket) noexcept;
+  void FinishRetirementIfDrained() noexcept;
   bool Enter(ClientPurpose purpose) noexcept;
   void Leave(ClientPurpose purpose) noexcept;
   void FailureResult(ClientResultKind kind,const char *phase,const char *reason) noexcept;
-  struct BorrowEntry final {std::uint64_t id=0;ClientPurpose purpose=ClientPurpose::NativeApply;};
+  struct BorrowEntry final {
+    std::uint64_t id=0,scene=0,owner_token=0;
+    ClientPurpose purpose=ClientPurpose::NativeApply;
+  };
   std::array<BorrowEntry,16> borrows_{};
+  std::array<RetainedEntry,16> retained_{};
+  std::uint64_t next_retained_=0;
+  bool draining_=false;
+  bool lua_closing_=false,context_closing_=false;
   std::uint64_t next_borrow_=0;
   ClientSceneState state_=ClientSceneState::Waiting;
   replica::Scope waiting_scope_{}, target_scope_{}, applied_scope_{};

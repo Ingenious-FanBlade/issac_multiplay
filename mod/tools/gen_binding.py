@@ -476,6 +476,7 @@ struct CsEntity {};
 struct CsGame {};
 struct CsManager {};
 struct CsGameState {};
+struct CsPersistentGameData {};
 """
 
 
@@ -533,14 +534,28 @@ def legacy_body(row):
     lines = ['    cs::CallScope scope(record);']
     # Client 主动持久分派位于观察作用域之外；被隔离的调用绝不进入官方外层 Hook。
     if ident in ('start_game', 'restore', 'game_exit', 'post_start', 'lua_post_render',
+                 'manager_set_save_slot', 'manager_save_game_state', 'game_save_state',
+                 'pgd_add_challenge', 'pgd_add_collection', 'pgd_add_boss', 'pgd_unlock_steam',
+                 'gamestate_clear',
                  'pgd_counter', 'pgd_local', 'pgd_cloud',
                  'gamestate_delete', 'gamestate_delete_rerun', 'load_game_state'):
         lines.append('    if (cs::game::ClientPersistenceBlocked()) return;')
-    elif ident in ('pgd_unlock', 'gamestate_write', 'gamestate_read'):
+    elif ident in ('pgd_unlock', 'gamestate_write', 'gamestate_read',
+                   'pgd_add_bestiary_kill', 'pgd_encounter', 'gamestate_write_rerun', 'gamestate_read_rerun'):
         lines.append('    if (cs::game::ClientPersistenceBlocked()) return false;')
+    if ident == 'lua_register_classes':
+        lines += ['    if (scope.main) cs::game::ClientLuaGuardClosed();',
+                  '    super();',
+                  '    if (scope.main) cs::game::ClientGuardLuaBindings();']
+        return lines
+    if ident == 'lua_run_bundled_script':
+        lines += ['    if (scope.main) cs::game::ClientGuardLuaBindings();',
+                  '    return super(path);']
+        return lines
     if ident == 'isaac_shutdown':
         lines += ['    if (scope.main) cs::game::ClientShutdownBeginning();',
                   '    super();',
+                  '    // main 的平台图形清理晚于 Shutdown；在该截止点前撤销本方 context 资格。',
                   '    if (scope.main) cs::game::ClientContextClosing();']
         return lines
     if ident == 'lua_destroy':
@@ -567,6 +582,8 @@ def legacy_body(row):
             '        } catch (...) { cs::Trace("command_error", "exception"); }',
             '        return;',
             '    }',
+            '    // Client 原生命令可直接改 achievements/challenges；仅保留本方 cs 命令。',
+            '    if (cs::game::ClientPersistenceBlocked()) return;',
             '    super(%s);' % call,
         ]
     else:
@@ -1378,6 +1395,18 @@ def main():
         'inline constexpr unsigned ExitCheckBytes = %s;\n'
         % (exit_patch['rva'], exit_patch['resume'], exit_patch['alternate'],
            exit_patch['expected'], exit_patch['size']), encoding='utf-8')
+    # Shutdown 两段原生直接写点与关闭判断同属常驻字节补丁，唯一来源仍是 hooks.json。
+    shutdown_rows = [next(row for row in document['byte_patches'] if row['id'] == ident)
+                     for ident in ('client_shutdown_counter', 'client_shutdown_save')]
+    (args.out / 'shutdown_patch.inc').write_text(
+        '// J273 Shutdown progress 分支；Client 跳过后仍继续 Options 与正常析构。\n'
+        + ''.join('inline constexpr uintptr_t Shutdown%sRva = %s, Shutdown%sResumeRva = %s, Shutdown%sSkipRva = %s;\n'
+                  'inline constexpr const char *Shutdown%sPattern = "%s";\n'
+                  'inline constexpr unsigned Shutdown%sBytes = %s;\n'
+                  % (name, row['rva'], name, row['resume'], name, row['alternate'],
+                     name, row['expected'], name, row['size'])
+                  for name, row in zip(('Counter', 'Save'), shutdown_rows)),
+        encoding='utf-8')
 
     # --- 容量与布局 -------------------------------------------------------
     (args.out / 'hook_capacity.h').write_text(emit_capacity(capacity),
