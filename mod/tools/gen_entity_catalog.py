@@ -11,8 +11,6 @@ ALIASES={'renderer/Image':'Image','renderer/BlendMode':'BlendMode','renderer/Sha
 # 以下接口不能凭 Get 前缀作为轮询。随机选择、懒创建及玩法派生计算只记录真实发生。
 ACTUAL={'GetData':'mod_namespace:tx-04-14','GetRandomPickupVelocity':'rng_consuming_call','GetRandomWisp':'rng_consuming_call','RandomCoinJamAnim':'rng_consuming_call','GetGlyphOfBalanceDrop':'gameplay_drop_selection','GetTearHitParams':'gameplay_attack_parameters','GetBombVariant':'gameplay_bomb_selection','GetMultiShotParams':'gameplay_attack_parameters','GetMultiShotPositionVelocity':'gameplay_attack_parameters','GetLootList':'gameplay_loot_generation','GetFireplaceLoot':'gameplay_loot_generation','GetShopkeeperLoot':'gameplay_loot_generation'}
 ACTUAL['GetBombFlags']='gameplay_attack_flags_and_rng_even_when_false:J273-779880'
-# J273会选择敌我目标、修改EntityPtr，Type53还会抽签；不能作为普通关系Getter轮询。
-ACTUAL['GetPlayerTarget']='gameplay_target_selection_and_optional_cache:J273-6BA580'
 DERIVED={'ComputeStatusEffectDuration','IgnoreEffectFromFriendly','CalculateEndPoint','CalcTargetPosition','QueryNPCsGroup','QueryNPCsSpawnerType','QueryNPCsType','VoidHasCollectible'}
 DEFER={'IsLocalPlayer':'isolated_original_online_locality;use_cs_control_relation','GetPlayerHUD':'presentation:tx-04-14','GetMovingBoxContents':'room_save:tx-04-13','GetHistory':'player_history:tx-04-13','GetGridEntityDesc':'grid:isaac.cs.grid.lifted_descriptors'}
 
@@ -48,7 +46,7 @@ def members():
                 key=(cls,name,signature)
                 e=entries.setdefault(key,{'class':ALIASES.get(cls,cls),'member':name,'signature':signature,'returns':typ.replace('const ','').replace('static ',''),'parameters':args,'category':category,'reason':reason,'sources':[]})
                 e['sources'].append({'wiki':wiki,'path':str(path).replace('\\','/'),'line':no})
-    for name,typ in [('counter','int'),('duration','int'),('text','string'),('red','float'),('green','float'),('blue','float'),('alpha','float'),('color_word','int')]:
+    for name,typ in [('counter','int'),('duration','int'),('text','string')]:
         entries[('NativeText',name,name)]={'class':'NativeText','member':name,'signature':typ+' '+name,'returns':typ,'parameters':None,'category':'native_field','reason':'J273 completed creation owner; see native supplements','sources':[{'wiki':'native-J273','path':str(ROOT/'docs/design/observation-expansion/entity-native-supplements.md').replace('\\','/'),'line':1}]}
     result=sorted(entries.values(),key=lambda e:(e['class'],e['member'],e['signature']))
     # 字段使用规范名称，重载共用名称但保留完整来源／参数签名。

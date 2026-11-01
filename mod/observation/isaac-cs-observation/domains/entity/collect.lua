@@ -31,23 +31,12 @@ local function snapshot(e,ctx,class)
     if supplement.class~="UnknownEntity" then
       out.class=supplement.class; out.body={type=supplement.class,status=supplement.status,fields={}}
       if supplement.class=="NativeText" then
-        for _,key in ipairs({"counter","duration","text","red","green","blue","alpha","color_word"}) do
+        for _,key in ipairs({"counter","duration","text"}) do
           out.body.fields["NativeText."..key]=supplement[key]~=nil and value(supplement[key],nil,ctx,1) or missing(supplement.status,"native_readiness_or_copy")
         end
       end
       if supplement.status~="Value" then fail(ctx,"native_supplement:"..supplement.status) end
     else fail(ctx,"unknown_entity_type:"..tostring(e.Type)) end
-  end
-  if out.class~="UnknownEntity" then
-    local ok,state=pcall(native().EntityRenderState,e)
-    if ok then
-      out.native_render={version=1,sprites={},order_fragment=state.order_fragment,knife_sort_z=state.knife_sort_z,isaacs_body=state.isaacs_body,body_ids=read.Array(),abyss_before=state.abyss_before,abyss_after=state.abyss_after}
-      out.native_render.familiar_child=value(state.familiar_child,"Entity",ctx,1)
-      out.native_render.weapon={present=state.weapon.present,layout=state.weapon.layout,refs=read.Array()}
-      for i=1,state.weapon.count do out.native_render.weapon.refs[i]=value(state.weapon.refs[i],"Entity",ctx,1) end
-      for i,id in ipairs(state.body_ids) do out.native_render.body_ids[i]=value(id,"int",ctx,1) end
-      for name,sprite in pairs(state.sprites) do out.native_render.sprites[name]=collect(sprite,"Sprite",ctx,1) end
-    else fail(ctx,"entity_native_render_state");out.native_render=missing("ReadFailed","entity_native_render_state") end
   end
   return out
 end
@@ -73,15 +62,6 @@ function M.Capture(limits)
     if i>LIMIT.objects then fail(ctx,"object_budget"); out.membership.complete=false; break end
     ctx.objects=ctx.objects+1; out.objects[#out.objects+1]=snapshot(e,ctx)
   end
-  -- 最小Player载体仍复用本域身体key；roster顺序/Esau备用关系来自原生manager而非ordinal推测。
-  local players=native().PlayerContext()
-  out.player_context={version=1,roster=read.Array(),esau=read.Array()}
-  for i,p in ipairs(players.roster) do out.player_context.roster[i]=value(p,"EntityPlayer",ctx,1) end
-  for i=1,4 do out.player_context.esau[i]=value(players.esau[i],"EntityPlayer",ctx,1) end
-  out.render_order=read.Array()
-  local ok,order=pcall(native().EntityRenderOrder)
-  if ok then for i,entity in ipairs(order) do out.render_order[i]=value(entity,"Entity",ctx,1) end
-  else fail(ctx,"entity_render_order") end
   verifyPlayers()
   return finish(out,ctx)
 end

@@ -3,7 +3,6 @@ import argparse
 import json
 import pathlib
 import re
-from native_entity_contract import application as native_entity_application, PROPERTIES, SETTERS, READONLY
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "mod/observation/isaac-cs-observation"
@@ -18,9 +17,6 @@ def classify(m, domain):
     owner = m.get("owner", m.get("class", ""))
     member = m.get("member", "")
     category = m.get("category", "")
-    if m.get("id") in ("Entity.Index", "Entity.GetHitListIndex") or (
-            owner.startswith("Entity") and member == "GetHitList"):
-        return "ClientLocal", "原生列表／碰撞池索引只属于本端；不把Authority槽号写入本地池或命中集合"
     if owner in ("Input", "Keyboard", "Mouse", "Options", "ImGui"):
         return "ClientLocal", "本地窗口／输入／设置只影响该端，不能覆写Authority世界"
     if category in ("operation", "cast", "container_operator"):
@@ -43,17 +39,13 @@ def generate():
         for m in catalog.get("members", []):
             domain = m.get("domain") or m.get("schema", "isaac.cs.entity").split(".")[2]
             ownership, reason = classify(m, domain)
-            row = {"source_catalog": path.name, "id": m["id"], "domain": domain,
+            rows.append({"source_catalog": path.name, "id": m["id"], "domain": domain,
                          "category": m.get("category", ""), "ownership": ownership,
                          "reason": reason, "application_tasks": TASKS[domain],
                          "availability": "observed_status_required;catalog_is_not_runtime_support",
                          "returns": m.get("returns", ""), "parameters": m.get("parameters"),
                          "units": m.get("units", "API原单位"), "source_schema": m.get("schema", ""),
-                         "source_version": m.get("schema_version", m.get("version", 2))}
-            native = native_entity_application(m, ownership) if path.name == "entity-catalog.json" else None
-            if native is not None:
-                row["native_application"] = native
-            rows.append(row)
+                         "source_version": m.get("schema_version", m.get("version", 2))})
         for i, callback in enumerate(catalog.get("callbacks", [])):
             signature = callback.get("signature", str(callback)) if isinstance(callback, dict) else str(callback)
             # 回调本身不是通用远程命令；render只提供独立来源的展示状态。
@@ -71,7 +63,7 @@ def generate():
             "resources": {"fields": ["logical_path", "content_version", "category", "layers", "pose", "status"],
                           "content_version": "explicit installation/mod version;no file digest",
                           "application_tasks": [17, 18, 19, 20, 27, 29]},
-            "runtime_support": "native-room-grid:tx-04-18;native-nonplayer-state:tx-04-19-R01-R05/unified-e2e-pending;minimal-player-owner;full-player:20;world-network:21"}
+            "runtime_support": "model_only;native_appliers_not_implemented"}
 
 
 def main():
@@ -85,15 +77,6 @@ def main():
     # C++原始字符串嵌入产品目录，正式adapter不依赖磁盘录制或测试包。
     chunks = [text[i:i+8000] for i in range(0, len(text), 8000)]
     (args.out / "replication_catalog.inc").write_text('std::string{}' + ''.join('+std::string(R"ICSR(' + part + ')ICSR")' for part in chunks), encoding="utf-8")
-    # 同一白名单同时驱动产品目录与主线程Lua恢复，避免声明能力与执行成员发生漂移。
-    def lua(value):
-        if isinstance(value, str):
-            return json.dumps(value, ensure_ascii=True)
-        if isinstance(value, list):
-            return "{" + ",".join(lua(v) for v in value) + "}"
-        return "{" + ",".join("[" + lua(k) + "]=" + lua(v) for k, v in sorted(value.items())) + "}"
-    (args.out / "native_entity_rules.inc").write_text(
-        'R"cs_rules(' + lua({"properties": PROPERTIES, "setters": SETTERS,"readonly":READONLY}) + ')cs_rules"', encoding="utf-8")
 
 
 if __name__ == "__main__":

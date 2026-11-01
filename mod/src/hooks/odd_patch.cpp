@@ -54,7 +54,6 @@ __declspec(naked) void OddNormalShim() {
 bool OddPatchInstalled() noexcept { return installed; }
 // 所有补丁由同一个常驻安装入口协调，启动后会话只切换逻辑状态，不恢复字节。
 void InstallRuntimePatches() noexcept {
-  InstallClientPatches();
   InstallWorldExitPatch();
   InstallPointers();
   game::InstallHostPatches();

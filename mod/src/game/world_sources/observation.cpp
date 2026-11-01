@@ -3,7 +3,6 @@
 #include "world/compatibility/encode.h"
 #include "binding/world_layout.h"
 #include "game/world_sources/value_source.h"
-#include "game/native_room_grid.h"
 #include "runtime.h"
 #include <cstring>
 namespace cs::game {
@@ -281,12 +280,7 @@ std::uint32_t ObservationGrids(void *owner,void (*visit)(void *,void *,std::uint
   for(std::uint32_t i=0;i<c->lua_object_count;++i) {
     const auto &o=c->lua_objects[i]; if(o.domain!=unsigned(world::ObjectDomain::Grid)) continue;
     auto *id=c->identities.Find(world::ObjectDomain::Grid,o.address);
-    if(!id||id->Retired()) {
-      // 实际固定槽仍有对象时，不得悄悄遗漏后声称完整；保留真实身份状态用于诊断。
-      ++unavailable;
-      if(!Settings.world_e2e_token.empty())Trace("grid_member_excluded","scope=%llu address=%08X local=%llu use=%llu origin=%u lifecycle=%u readiness=%u destroyed=%u candidate=%u owner=%llu",c->lua_scope,o.address,id?id->local_id:0,id?id->use:0,id?id->origin:0,id?id->lifecycle:0,id?id->readiness:0,id?unsigned(id->destroyed):0,id?unsigned(id->candidate):0,id?id->owner_scope:0);
-      continue;
-    }
+    if(!id||id->Retired()) continue;
     // 仅初始化／实际index／membership同时成立才允许公开派生读取。
     bool ready=o.vptr&&o.field_count;
     for(unsigned f=0;f<o.field_count;++f) if(o.fields[f].status==world::FieldStatus::NotReady||o.fields[f].status==world::FieldStatus::ReadFailed) ready=false;
@@ -340,9 +334,7 @@ EntitySupplementValue EntitySupplement(void *object) noexcept {
   auto *id=c->identities.Find(world::ObjectDomain::Entity,address);
   if(!id||id->Retired()||id->readiness<2) { out.status="NotCaptured"; return out; }
   if(!reader.copy(address+layout.entity_text_counter_offset,&out.counter,4)||
-     !reader.copy(address+layout.entity_text_duration_offset,&out.duration,4)||
-     !reader.copy(address+layout.entity_text_color_offset,out.text_color,sizeof(out.text_color))||
-     !reader.copy(address+layout.entity_text_color_offset+16,&out.color_word,4)) { out.status="ReadFailed"; return out; }
+     !reader.copy(address+layout.entity_text_duration_offset,&out.duration,4)) { out.status="ReadFailed"; return out; }
   for(std::uint32_t i=0;i<layout.entity_text_capacity&&i<sizeof(out.text);++i) {
     if(!reader.copy(address+layout.entity_text_buffer_offset+i,&out.text[i],1)) { out.status="ReadFailed"; return out; }
     if(!out.text[i]) { out.text_size=i; out.status="Value"; return out; }
@@ -352,32 +344,27 @@ EntitySupplementValue EntitySupplement(void *object) noexcept {
 // J273 GetNullFrame/IsEventTriggered 的名字枚举未公开；仅复制已加载 ANM2 的名字表，
 // 再交由公开 Getter 读取当前姿态，绝不 Load/Update/Play 或执行随机动画。
 const char *ObservationSpriteNames(void *sprite,void *owner,void (*visit)(void *,bool,const char *,std::size_t) noexcept) noexcept {
-  auto c=CurrentWorldRecording(); if(!IsMain()||(!c&&!NativeRoomGridContextActive())||!sprite||!visit) return "Unavailable";
-  // 名字表只读不依赖Recorder；Client只在自有原生对象的主线程借用窗口允许同一读取。
-  const auto copy=[&](std::uint32_t address,void *out,std::size_t bytes) noexcept {
-    if(c)return c->source_memory.copy(address,out,bytes);
-    SIZE_T copied=0;return ReadProcessMemory(GetCurrentProcess(),reinterpret_cast<const void *>(uintptr_t(address)),out,bytes,&copied)&&copied==bytes;
-  };
-  const auto &layout=world::layout::LayoutConstants();
+  auto c=CurrentWorldRecording(); if(!IsMain()||!c||!sprite||!visit) return "Unavailable";
+  const auto &reader=c->source_memory; const auto &layout=world::layout::LayoutConstants();
   const auto base=std::uint32_t(reinterpret_cast<uintptr_t>(sprite)); std::size_t total=0;
   for(unsigned event=0;event<2;++event) {
     const auto offset=event?layout.sprite_event_names_offset:layout.sprite_null_names_offset;
     std::uint32_t before[2]{},after[2]{};
-    if(!copy(base+offset,before,sizeof(before))) return "ReadFailed";
+    if(!reader.copy(base+offset,before,sizeof(before))) return "ReadFailed";
     if(before[1]>65536||(!before[0]&&before[1])) return "Truncated";
     for(std::uint32_t i=0;i<before[1];++i) {
       std::uint32_t value[6]{}; const auto at=std::uint64_t(before[0])+std::uint64_t(i)*24;
-      if(at>UINT32_MAX||!copy(std::uint32_t(at),value,sizeof(value))) return "ReadFailed";
+      if(at>UINT32_MAX||!reader.copy(std::uint32_t(at),value,sizeof(value))) return "ReadFailed";
       const auto length=value[4],capacity=value[5];
       if(length>capacity||length>1024||total+length>(1u<<20)) return "Truncated";
       char name[1024]{};
       if(length) {
         if(capacity<16) { if(length>15) return "ReadFailed"; std::memcpy(name,value,length); }
-        else if(!value[0]||!copy(value[0],name,length)) return "ReadFailed";
+        else if(!value[0]||!reader.copy(value[0],name,length)) return "ReadFailed";
       }
       visit(owner,event!=0,name,length); total+=length;
     }
-    if(!copy(base+offset,after,sizeof(after))||std::memcmp(before,after,sizeof(before))) return "ReadFailed";
+    if(!reader.copy(base+offset,after,sizeof(after))||std::memcmp(before,after,sizeof(before))) return "ReadFailed";
   }
   return "Value";
 }

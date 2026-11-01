@@ -1,13 +1,10 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/world_sources/lua_entity.h"
-#include "game/native_room_grid.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
 #include "runtime.h"
-#include "game/native_entity_weapon.h"
 #include <cstring>
-#include <cmath>
 namespace cs::game {
 namespace {
 lua_State *State() noexcept { return IsMain()&&g_LuaEngine ? g_LuaEngine->_state : nullptr; }
@@ -47,12 +44,6 @@ int RegisterSubject(lua_State *L) { return Subject(L,true); }
 int Reference(lua_State *L) { return Subject(L,false); }
 int GridSubject(lua_State *L) { return Subject(L,true,true); }
 int GridReference(lua_State *L) { return Subject(L,false,true); }
-// Statue显示完全由Room中的Entity绘制；Grid只借用该主体，不能按格号/seed猜对应对象。
-int GridDisplayEntity(lua_State *L){if(!IsMain())return luaL_error(L,"grid_display_thread");
-  auto *grid=lua::GetLuabridgeUserdata<GridEntity *>(L,1,lua::Metatables::GRID_ENTITY,"GridEntity");Entity *display=nullptr;
-  if(grid->_desc._type==21)std::memcpy(&display,reinterpret_cast<char *>(grid)+0x154,4);
-  if(display)lua::luabridge::UserdataPtr::push(L,display,lua::Metatables::ENTITY);else lua_pushnil(L);return 1;
-}
 // 官方 Lua 包装每次 new Vector 未回收；此处使用已声明 SDK Getter 的栈缓冲。
 int GridRenderPosition(lua_State *L) {
   auto *grid=lua::GetLuabridgeUserdata<GridEntity *>(L,1,lua::Metatables::GRID_ENTITY,"GridEntity");
@@ -86,83 +77,6 @@ int GridCallbackView(lua_State *L) {
   lua::luabridge::UserdataPtr::push(L,grid,lua::Metatables::GRID_ENTITY); return 1;
 }
 int GridNeeded(lua_State *L) { lua_pushboolean(L,IsMain()&&ObservationLuaNeeded(luaL_checkstring(L,1),true)); return 1; }
-// 只复制当前PlayerManager的真实身体关系；Lua随后转换为既有规范key，不按参与者号猜roster。
-int PlayerContext(lua_State *L){
-  if(!IsMain()||!g_Game)return luaL_error(L,"entity_player_context");
-  if(g_Game->_playerManager._playerList.size()>8)return luaL_error(L,"entity_player_context_budget");
-  lua_newtable(L);lua_newtable(L);int i=0;
-  for(auto *player:g_Game->_playerManager._playerList){if(!player)return luaL_error(L,"entity_player_context_null");lua::luabridge::UserdataPtr::push(L,player,lua::Metatables::ENTITY_PLAYER);lua_rawseti(L,-2,++i);}
-  lua_setfield(L,-2,"roster");lua_newtable(L);
-  for(unsigned slot=0;slot<4;++slot)if(auto *player=g_Game->_playerManager._esauJrState[slot]){lua::luabridge::UserdataPtr::push(L,player,lua::Metatables::ENTITY_PLAYER);lua_rawseti(L,-2,slot+1);}
-  lua_setfield(L,-2,"esau");return 1;
-}
-// 没有公开Getter的附属Sprite仍按原生资源/姿态采集；不导出对象地址或绘制数据。
-int EntityRenderState(lua_State *L){
-  if(!IsMain())return luaL_error(L,"entity_render_state_thread");
-  auto *e=lua::GetLuabridgeUserdata<Entity *>(L,1,lua::Metatables::ENTITY,"Entity");
-  lua_newtable(L);lua_pushinteger(L,e->_index&0x3ffu);lua_setfield(L,-2,"order_fragment");
-  if(e->_type==8){float layer=0;std::memcpy(&layer,reinterpret_cast<char *>(e)+0x434,4);if(!std::isfinite(layer))return luaL_error(L,"knife_sort_layer");lua_pushnumber(L,layer);lua_setfield(L,-2,"knife_sort_z");}
-  lua_newtable(L);
-  if(e->_type==5){auto *pickup=static_cast<Entity_Pickup *>(e);
-    lua::luabridge::UserdataPtr::push(L,&pickup->_altPedestalANM2,lua::Metatables::SPRITE);lua_setfield(L,-2,"alternate_pedestal");}
-  void *body=nullptr;unsigned abyss_counts[2]{};
-  if(e->_type==3&&e->_variant==48){std::memcpy(&body,reinterpret_cast<char *>(e)+0xecc,4);
-    if(body&&*static_cast<std::uintptr_t *>(body)!=Base+0x714f84)return luaL_error(L,"familiar_body_class");
-    if(body){for(unsigned i=0;i<5;++i){const auto name=std::string("isaacs_body_")+std::to_string(i);
-      auto *sprite=reinterpret_cast<ANM2 *>(static_cast<char *>(body)+(i?0x118+(i-1)*0x114:4));
-      lua::luabridge::UserdataPtr::push(L,sprite,lua::Metatables::SPRITE);lua_setfield(L,-2,name.c_str());}}}
-  if(e->_type==3&&e->_variant==231){void *data=nullptr;std::memcpy(&data,reinterpret_cast<char *>(e)+0xecc,4);
-    if(!data||*static_cast<std::uintptr_t *>(data)!=Base+0x71510c)return luaL_error(L,"familiar_abyss_class");
-    for(unsigned side=0;side<2;++side){ANM2 *header[3]{};std::memcpy(header,static_cast<char *>(data)+0x24+side*12,sizeof(header));
-      const auto begin=reinterpret_cast<std::uintptr_t>(header[0]),end=reinterpret_cast<std::uintptr_t>(header[1]),cap=reinterpret_cast<std::uintptr_t>(header[2]);
-      if(end<begin||cap<end||(end-begin)%0x114||(cap-begin)%0x114||(cap-begin)/0x114>256)return luaL_error(L,"familiar_abyss_vector");
-      abyss_counts[side]=unsigned((end-begin)/0x114);
-      for(unsigned i=0;i<abyss_counts[side];++i){const auto name=std::string(side?"abyss_after_":"abyss_before_")+std::to_string(i);
-        lua::luabridge::UserdataPtr::push(L,reinterpret_cast<ANM2 *>(begin+i*0x114),lua::Metatables::SPRITE);lua_setfield(L,-2,name.c_str());}}}
-  lua_setfield(L,-2,"sprites");lua_pushboolean(L,body!=nullptr);lua_setfield(L,-2,"isaacs_body");lua_newtable(L);
-  if(body)for(unsigned i=0;i<4;++i){int id=0;std::memcpy(&id,static_cast<char *>(body)+0x568+i*4,4);lua_pushinteger(L,id);lua_rawseti(L,-2,i+1);}
-  lua_setfield(L,-2,"body_ids");lua_pushinteger(L,abyss_counts[0]);lua_setfield(L,-2,"abyss_before");lua_pushinteger(L,abyss_counts[1]);lua_setfield(L,-2,"abyss_after");
-  Entity *child=nullptr;if(e->_type==3&&e->_variant==240)std::memcpy(&child,reinterpret_cast<char *>(e)+0xdac,4);
-  if(child)lua::luabridge::UserdataPtr::push(L,child,lua::Metatables::ENTITY);else lua_pushnil(L);lua_setfield(L,-2,"familiar_child");
-  Weapon *weapon=e->_type==3?static_cast<Entity_Familiar *>(e)->_weapon:nullptr;NativeWeaponLayout layout;
-  if(weapon){try{layout=EntityWeaponLayout(weapon);}catch(...){return luaL_error(L,"entity_weapon_reference_layout");}}
-  lua_newtable(L);lua_pushboolean(L,weapon!=nullptr);lua_setfield(L,-2,"present");lua_pushstring(L,layout.name);lua_setfield(L,-2,"layout");lua_pushinteger(L,layout.count);lua_setfield(L,-2,"count");lua_newtable(L);
-  if(weapon)for(unsigned i=0;i<layout.count;++i){Entity *ref=nullptr;std::memcpy(&ref,reinterpret_cast<char *>(weapon)+layout.offsets[i],4);
-    if(ref)lua::luabridge::UserdataPtr::push(L,ref,lua::Metatables::ENTITY);else lua_pushnil(L);lua_rawseti(L,-2,i+1);}
-  lua_setfield(L,-2,"refs");lua_setfield(L,-2,"weapon");
-  return 1;
-}
-// 保存原生sort的输入次序为规范关系；不把源地址、完整Index或池槽序号传给Client。
-int EntityRenderOrder(lua_State *L){if(!IsMain()||!g_Game||!g_Game->_room)return luaL_error(L,"entity_render_order_context");
-  const auto &list=g_Game->_room->_entityList._renderEL;
-  if(list._size>list._capacity||list._size>4096||(list._size&&!list._data))return luaL_error(L,"entity_render_order_budget");
-  lua_newtable(L);for(unsigned i=0;i<list._size;++i){if(!list._data[i])return luaL_error(L,"entity_render_order_null");lua::luabridge::UserdataPtr::push(L,list._data[i],lua::Metatables::ENTITY);lua_rawseti(L,-2,i+1);}return 1;
-}
-// 公开GetFrame只返回整数，补充当前连续时钟和逐层缓存；不推进动画、不读取像素或绘制几何。
-int SpritePose(lua_State *L) {
-  if(!IsMain())return luaL_error(L,"sprite_pose_thread");
-  auto *s=lua::GetLuabridgeUserdata<ANM2 *>(L,1,lua::Metatables::SPRITE,"Sprite");
-  if(s->_layerCount>64)return luaL_error(L,"sprite_pose_layer_budget");
-  lua_newtable(L);lua_pushinteger(L,1);lua_setfield(L,-2,"version");
-  auto state=[&](const char *name,const AnimationState &state){
-    if(!std::isfinite(state._animFrame))luaL_error(L,"sprite_pose_nonfinite");
-    lua_newtable(L);lua_pushnumber(L,state._animFrame);lua_setfield(L,-2,"frame");
-    lua_pushboolean(L,state._isPlaying);lua_setfield(L,-2,"playing");
-    lua_pushinteger(L,state._currentlyTriggeredEvents);lua_setfield(L,-2,"events_current");lua_pushinteger(L,state._previouslyTriggeredEvents);lua_setfield(L,-2,"events_previous");
-    lua_newtable(L);if(state._animData){const int count=state._animData->_layerCount;
-      if(count<0||count>64||(count&&(!state._layerFrames||!state._animData->_animLayers)))luaL_error(L,"sprite_pose_layer_storage");
-      for(int i=0;i<count;++i){lua_newtable(L);lua_pushinteger(L,state._animData->_animLayers[i]._layerID);lua_setfield(L,-2,"id");lua_pushinteger(L,state._layerFrames[i]);lua_setfield(L,-2,"frame");lua_rawseti(L,-2,i+1);}}
-    lua_setfield(L,-2,"layers");
-    lua_newtable(L);if(state._animData){const auto count=state._animData->_nullLayerCount;
-      if(count<0||count>256)luaL_error(L,"sprite_pose_null_budget");
-      if(count&&!state._nullLayerFrames)luaL_error(L,"sprite_pose_null_storage");
-      const int *records=nullptr;std::memcpy(&records,state._animData->_nullLayersPtr,sizeof(records));
-      if(count&&!records)luaL_error(L,"sprite_pose_null_records");
-      for(int i=0;i<count;++i){lua_newtable(L);lua_pushinteger(L,records[i*4]);lua_setfield(L,-2,"id");lua_pushinteger(L,state._nullLayerFrames[i]);lua_setfield(L,-2,"frame");lua_rawseti(L,-2,i+1);}}
-    lua_setfield(L,-2,"nulls");lua_setfield(L,-2,name);
-  };
-  state("main",s->_animState);state("overlay",s->_overlayAnimState);return 1;
-}
 int Supplement(lua_State *L) {
   auto *entity=lua::GetLuabridgeUserdata<Entity *>(L,1,lua::Metatables::ENTITY,"Entity");
   const auto v=EntitySupplement(entity);
@@ -172,9 +86,6 @@ int Supplement(lua_State *L) {
     lua_pushinteger(L,v.counter); lua_setfield(L,-2,"counter");
     lua_pushinteger(L,v.duration); lua_setfield(L,-2,"duration");
     lua_pushlstring(L,v.text,v.text_size); lua_setfield(L,-2,"text");
-    const char *channels[]={"red","green","blue","alpha"};
-    for(unsigned i=0;i<4;++i){lua_pushnumber(L,v.text_color[i]);lua_setfield(L,-2,channels[i]);}
-    lua_pushinteger(L,v.color_word);lua_setfield(L,-2,"color_word");
   }
   return 1;
 }
@@ -282,9 +193,7 @@ void EnsureObservationLuaBridge() noexcept {
   RegisterRuntimeRandomFunctions();
   lua_newtable(L);
   const luaL_Reg funcs[]={{"TestNativeRandomSources",LuaTestNativeRandomSources},{"NativeRandomSources",LuaNativeRandomSources},{"RegisterRandomSource",LuaRegisterRandomSource},{"GlobalRandomState",LuaGlobalRandomState},{"TestGlobalRandom",TestGlobalRandom},{"PromptState",PromptState},{"RelatedSubject",RelatedSubject},{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
-  luaL_setfuncs(L,funcs,0);lua_pushcfunction(L,SpritePose);lua_setfield(L,-2,"SpritePose");lua_pushcfunction(L,PlayerContext);lua_setfield(L,-2,"PlayerContext");
-  lua_pushcfunction(L,EntityRenderState);lua_setfield(L,-2,"EntityRenderState");lua_pushcfunction(L,EntityRenderOrder);lua_setfield(L,-2,"EntityRenderOrder");
-  lua_pushcfunction(L,GridDisplayEntity);lua_setfield(L,-2,"GridDisplayEntity");lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
+  luaL_setfuncs(L,funcs,0); lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
 }
 // Coordinator 在复制窗口内部调用一次；错误返回自有原因，不让 Lua 异常越过 Authority。
 LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::uint32_t depth,std::uint32_t limit,unsigned domain) noexcept {
@@ -314,12 +223,6 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
       if(objects<0||objects>16384||nodes<0||nodes>262144) { result.complete=false; result.reason="lua_count_budget"; }
       else { result.objects=unsigned(objects); result.nodes=unsigned(nodes); }
       const auto *reason=lua_tostring(L,-2); if(reason) result.reason=reason;
-      // 同一原生复制窗口补齐18载体所需的具名Game／descriptor值，和正式Room消费端一起提交。
-      if(domain==2&&result.complete&&!result.payload.empty()&&result.payload.back()=='}'){
-        const auto context=",\"native_context\":"+CaptureNativeRoomContext();
-        if(result.payload.size()+context.size()>(16u<<20)){result.complete=false;result.reason="native_context_byte_budget";}
-        else result.payload.insert(result.payload.size()-1,context);
-      }
     } else result.reason="lua_payload_budget";
   } catch(...) { result.complete=false; result.reason="lua_owned_value_budget"; }
   lua_settop(L,top); return result;

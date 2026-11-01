@@ -6,7 +6,7 @@
 // 静态初始化只填本 DLL 的待注册表；ModInit 判定能力组后再调用 ZHL。
 // wrapper 保持异常中立，原函数异常必须继续交给原生上层处理。
 #define CS_HOOK_COMMON(id, group, def, cls, method, pri, rv, pat, own, nargs,  \
-                       flags, owner, conv, sig, ret, stat, typ, argspec)       \
+                       flags, owner, conv, sig, ret, stat, typ)                \
   namespace H_##id {                                                           \
     static void *internalSuper = nullptr;                                      \
     struct Wrapper : cls {                                                     \
@@ -25,7 +25,7 @@
                            nargs,                                              \
                            flags,                                              \
                            pri,                                                \
-                           cs::Owner::owner, argspec};                         \
+                           cs::Owner::owner};                                  \
     struct Pending {                                                           \
       Pending() noexcept {                                                     \
         auto member = &Wrapper::hook;                                          \
@@ -46,17 +46,11 @@
 #define CS_HOOK_METHOD(id, group, def, cls, method, pri, rv, pat, own, nargs,  \
                        flags, owner, conv, sig, ret)                           \
   CS_HOOK_COMMON(id, group, def, cls, method, pri, rv, pat, own, nargs, flags, \
-                 owner, conv, sig, ret, , auto(cls::*) sig->ret, nullptr)
+                 owner, conv, sig, ret, , auto(cls::*) sig->ret)
 #define CS_HOOK_STATIC(id, group, def, cls, method, pri, rv, pat, own, nargs,  \
                        flags, owner, conv, sig, ret)                           \
   CS_HOOK_COMMON(id, group, def, cls, method, pri, rv, pat, own, nargs, flags, \
-                 owner, conv, sig, ret, static, auto(*) sig->ret, nullptr)
-
-// 具名表现入口使用与world相同的显式寄存器ABI，不伪装成栈参数函数。
-#define CS_HOOK_ABI_STATIC(id, group, def, cls, method, pri, rv, pat, own, nargs, \
-                          argspec, flags, owner, conv, sig, ret)               \
-  CS_HOOK_COMMON(id, group, def, cls, method, pri, rv, pat, own, nargs, flags,   \
-                 owner, conv, sig, ret, static, auto(*) sig->ret, argspec)
+                 owner, conv, sig, ret, static, auto(*) sig->ret)
 
 // tx-04-08：world 观察入口（迁移设计 4.1/4.2、失败方式 F4）。
 //

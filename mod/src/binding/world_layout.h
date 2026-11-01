@@ -163,7 +163,6 @@ struct Constants final {
   std::uint32_t entity_text_counter_offset;
   std::uint32_t entity_text_duration_offset;
   std::uint32_t entity_text_buffer_offset;
-  std::uint32_t entity_text_color_offset;
   std::uint32_t entity_text_capacity;
 
   std::uint32_t game_root_rva;

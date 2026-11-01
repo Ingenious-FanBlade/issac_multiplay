@@ -43,7 +43,7 @@ OBSERVATION_ORDER = [
     'Factory', 'Init', 'Publish', 'Remove', 'ClearReferences', 'Destroy',
     'PlayerCtor', 'PlayerCreate', 'ManagerRestore', 'Replace', 'PlayerRestore',
     'NpcMorph', 'PickupMorph', 'GridFactory', 'GridInit', 'GridSpawn', 'Door',
-    'GridFree', 'Spawn', 'GridCtor',
+    'GridFree', 'Spawn',
 ]
 # world/model.cpp 的 kClassNames（含 UnknownEntity）。
 CLASS_ORDER = ['Player', 'NPC', 'Tear', 'Projectile', 'Pickup', 'Familiar',
@@ -77,7 +77,6 @@ CONSTANT_ORDER = [
     ('entity_text_counter_offset', 'u32'),
     ('entity_text_duration_offset', 'u32'),
     ('entity_text_buffer_offset', 'u32'),
-    ('entity_text_color_offset', 'u32'),
     ('entity_text_capacity', 'u32'),
 
     ('game_root_rva', 'u32'),
@@ -133,9 +132,7 @@ CONSTANT_ORDER = [
     ('roster_vector_capacity_offset', 'u32'),
 ]
 # 既有行 schema 里唯一允许的同址成对层（player_update 外层 / player_native 内层）。
-ALLOWED_SAME_RVA = {0x37BD40: {'player_update', 'player_native'},
-                    0x52EC40: {'manager_render', 'manager_render_native'},
-                    0x52A7C0: {'manager_destroy', 'manager_destroy_native'}}
+ALLOWED_SAME_RVA = {0x37BD40: {'player_update', 'player_native'}}
 
 
 class Problems:
@@ -231,19 +228,11 @@ def parse_legacy_rows(rows, problems):
         return parsed
     for index, row in enumerate(rows):
         where = 'hooks[%d]' % index
-        if not isinstance(row, list) or len(row) not in (14,15):
-            problems.add(where, '位置式行必须是14列，可附第15列显式ABI')
+        if not isinstance(row, list) or len(row) != 14:
+            problems.add(where, '位置式行必须是 14 列')
             continue
         (ident, group, cls, method, ret, params, call, rv, owner, static,
-         conv, own, priority, required) = row[:14]
-        arg_specs=[]
-        if len(row)==15:
-            if not own or not static or len(row[14])!=len(split_params(params)):
-                problems.add(where, '显式ABI须为自有静态定义，且逐参声明')
-            for abi in row[14]:
-                if abi in GP_REGISTERS: arg_specs.append(dict(kind='gp',reg=GP_REGISTERS[abi],abi=abi))
-                elif abi=='stack:1': arg_specs.append(dict(kind='stack',size=1,abi=abi))
-                else: problems.add(where, '不支持的显式ABI: %r'%abi)
+         conv, own, priority, required) = row
         if not isinstance(ident, str) or not ident:
             problems.add(where, 'id 必须是非空字符串')
             continue
@@ -269,7 +258,7 @@ def parse_legacy_rows(rows, problems):
             kind='legacy', id=ident, group=group, cls=cls, method=method,
             ret=ret, params=params, call=call, rva=rva, owner=owner,
             static=static, conv=conv, own=own, priority=priority_value,
-            required=bool(required), nargs=len(split_params(params)),args=arg_specs,
+            required=bool(required), nargs=len(split_params(params)),
             name=('IsaacCS::' + method) if own else cls + '::' + method))
     return parsed
 
@@ -434,7 +423,7 @@ def parse_world_rows(doc, problems):
             nargs=len(arg_specs), flags=derived_flags, name=definition,
             shared_control=bool(row.get('shared_control', False))))
     if sorted(seen_observations) != sorted(OBSERVATION_ORDER):
-        problems.add('world_observations', '必须恰好覆盖全部已声明观察语义，当前 %r'
+        problems.add('world_observations', '必须恰好覆盖 19 项观察语义，当前 %r'
                      % (seen_observations,))
     return parsed
 
@@ -469,10 +458,6 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "hooks/cs_hook.h"
 #include "binding/offsets.h"
 #include "game/bridge.h"
-#include "game/client_isolation.h"
-#include "game/presentation.h"
-#include "game/native_room_grid.h"
-#include "game/mod_persistence.h"
 #include "game/world_sources/loot.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
@@ -482,12 +467,6 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 // 自有定义仅借用类型表达 ABI，不构造这些对象。
 struct CsStatic {};
 struct CsMtSeed {};
-struct CsBackdrop {};
-struct CsGridStatue {};
-struct CsGridBase {};
-struct CsNpcConfig {};
-struct CsReplicaSound {};
-struct CsEntitySort {};
 struct CsEntityList {};
 struct CsLifecycle {};
 struct CsDevice {};
@@ -508,66 +487,6 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
-    if ident=='native_entity_sort_key':
-        return ['    cs::CallScope scope(record);',
-                '    unsigned fragment=0;if (!cs::game::NativeEntityRenderOrderFragment(this,&fragment)) return super();',
-                '    // 仅在已核定无回调/无池访问的原生数值函数内借用低10位；完整本端Index始终在返回前恢复。',
-                '    auto &index=*reinterpret_cast<unsigned *>(reinterpret_cast<char *>(this)+0x20);const auto previous=index;',
-                '    index=(previous&~1023u)|fragment;',
-                '    try { const auto result=super();index=previous;return result; } catch (...) { index=previous;throw; }']
-    if ident=='native_entity_sound_stop':
-        return ['    cs::CallScope scope(record);',
-                '    // Urn Weapon的ClearReferences会停止全局声音；Replica只能退休本方资源，不能改访客音频。',
-                '    if (cs::game::NativeRoomGridContextActive()) return;',
-                '    super(sample);']
-    if ident=='native_npc_color':
-        return ['    cs::CallScope scope(record);',
-                '    // NPC基Init会虚调用混合ResetColor；私有场景直接恢复权威冠军/颜色/资源后态。',
-                '    if (cs::game::NativeRoomGridContextActive()) return;',
-                '    super();']
-    if ident=='native_npc_config':
-        return ['    cs::CallScope scope(record);',
-                '    // NPC.LoadEntityConfig会选择冠军；私有创建仅复用已核定无玩法随机的Entity基础配置加载。',
-                '    if (cs::game::NativeRoomGridContextActive()) { reinterpret_cast<void (__thiscall *)(void *)>(cs::Base+0x2A4F30)(this); return; }',
-                '    super();']
-    if ident=='native_backdrop_walls':
-        return ['    cs::CallScope scope(record);',
-                '    cs::game::NativeBackdropWallsBegin(this);',
-                '    try { super(); cs::game::NativeBackdropWallsEnd(this,true); }',
-                '    catch (...) { cs::game::NativeBackdropWallsEnd(this,false); throw; }']
-    if ident=='native_reference_entity_light':
-        return ['    cs::CallScope scope(record);',
-                '    // 仅E2E的Room/Grid参考帧排除Entity灯光，避免把19/20的缺席误判成本域错误。',
-                '    if (cs::game::NativeRoomGridReferenceOnly()) return;',
-                f'    super({call});']
-    if ident=='native_statue_init':
-        return ['    cs::CallScope scope(record);',
-                '    // Statue的图像属于单独Entity；Grid复制不生成它，也不保留悬空实体借用。',
-                '    if (cs::game::NativeRoomGridContextActive()) { *reinterpret_cast<void **>(reinterpret_cast<char *>(this)+0x154)=nullptr; return; }',
-                '    super();']
-    if ident=='native_backdrop_entities':
-        return ['    cs::CallScope scope(record);',
-                '    // 独立的背景Entity生成器不负责Room缓存绘制；实体由后续域恢复。',
-                '    if (cs::game::NativeRoomGridContextActive()) { cs::game::NativeBackdropEntityChoice(this,x,y,layer,kind,position.x,position.y,flipx,flipy,false); return; }',
-                f'    super({call});',
-                '    cs::game::NativeBackdropEntityChoice(this,x,y,layer,kind,position.x,position.y,flipx,flipy,true);']
-    if ident=='native_sprite_lights':
-        return ['    cs::CallScope scope(record);',
-                '    // 此helper只根据Null点生成LIGHT Entity，18不在本地重复生成。',
-                '    if (cs::game::NativeRoomGridContextActive()) return 0;',
-                f'    return super({call});']
-    if ident=='native_backdrop_details':
-        return ['    cs::CallScope scope(record);',
-                f'    if (!cs::game::NativeRoomGridContextActive()) return super({call});',
-                '    // 只屏蔽末尾Null灯光生成；层选择、姿态与原生细节绘制保持执行。',
-                '    auto &sprite=reinterpret_cast<Backdrop *>(this)->_wallDetailANM2;',
-                '    const auto count=sprite._numNullLayers; sprite._numNullLayers=0;',
-                f'    try {{ auto result=super({call}); sprite._numNullLayers=count; return result; }}',
-                '    catch (...) { sprite._numNullLayers=count; throw; }']
-    if ident == 'native_room_descriptor':
-        return ['    cs::CallScope scope(record);',
-                '    if (cs::game::NativeRoomGridContextActive()) return static_cast<RoomDescriptor *>(cs::game::NativeRoomGridDescriptor(index, dimension));',
-                '    return super(index, dimension);']
     if ident in ('native_level_random','native_generator_random'):
         out=['    cs::game::NativeRandomCall state(%s, cs::game::RandomAlgorithm::XorShift32, "%s", 0, %s);'
              % ('random' if ident=='native_level_random' else 'this','Level.generate_dungeon.argument' if ident=='native_level_random' else 'LevelGenerator.Generate', 'false' if ident=='native_level_random' else 'true')]
@@ -583,8 +502,7 @@ def legacy_body(row):
         member={'native_rng_ctor':'RNG.constructor','native_rng_seed':'RNG.SetSeed','native_rng_next':'RNG.Next',
                 'native_rng_int':'RNG.RandomInt','native_rng_float':'RNG.RandomFloat',
                 'native_mt_seed':'MTRNG.Init','native_mt_next':'MTRNG.Next'}[ident]
-        out=['    if (cs::game::NativeRoomGridContextActive() && !cs::game::NativeRoomGridRandomObjectAllowed(this)) throw std::runtime_error("native_gameplay_rng_forbidden");',
-             '    cs::game::NativeRandomCall observation(this, cs::game::RandomAlgorithm::%s, "%s", %s, %s, %s);'
+        out=['    cs::game::NativeRandomCall observation(this, cs::game::RandomAlgorithm::%s, "%s", %s, %s, %s);'
              % (algorithm,member,argument,str(initialize).lower(),'shift' if ident in ('native_rng_ctor','native_rng_seed') else '0'),
              '    record.calls.fetch_add(1, std::memory_order_relaxed);']
         if ret=='void':
@@ -595,10 +513,7 @@ def legacy_body(row):
             out+=['    auto result=super(%s);' % call,'    observation.Returned(result);']
         return out+['    record.completed.fetch_add(1, std::memory_order_relaxed);']+([] if ret=='void' else ['    return result;'])
     if ident in ('native_global_random','native_global_seed'):
-        isolation = ('    if (cs::game::NativeRoomGridContextActive()) { cs::game::NativeRoomGridSeed(std::uint32_t(reinterpret_cast<uintptr_t>(this))); return 0; }'
-                     if ident=='native_global_seed' else
-                     '    if (cs::game::NativeRoomGridContextActive()) return cs::game::NativeRoomGridRandom();')
-        return [isolation, '    cs::game::GlobalRandomCall observation(%s, _AddressOfReturnAddress());' % ('true, std::uint32_t(reinterpret_cast<uintptr_t>(this))' if ident=='native_global_seed' else 'false, 0'),
+        return ['    cs::game::GlobalRandomCall observation(%s, _AddressOfReturnAddress());' % ('true, std::uint32_t(reinterpret_cast<uintptr_t>(this))' if ident=='native_global_seed' else 'false, 0'),
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                 '    auto result=super();',
                 '    observation.Returned(result);',
@@ -616,37 +531,6 @@ def legacy_body(row):
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);',
                 '    return result;']
     lines = ['    cs::CallScope scope(record);']
-    if ident == 'client_lua_scripts':
-        return lines + ['    if (scope.main) cs::game::PumpModPersistenceHooks();',
-                        '    return super(path);']
-    if ident in ('manager_render_native', 'manager_destroy_native'):
-        return lines + ['    super();']
-    if ident == 'manager_destroy':
-        return lines + ['    if (cs::game::ClientProgressProtected()) { cs::game::ClientOriginalManagerDestroy(this); return; }',
-                        '    super();']
-    if ident == 'manager_render':
-        return lines + ['    if (cs::game::ClientBusy()) {',
-                        '        if (!scope.main) return;',
-                        '        cs::game::ClientOriginalRender(this);',
-                        '        cs::game::ClientMenuRendered();',
-                        '        cs::game::PresentationRenderReturned();',
-                        '        return;', '    }', '    super();',
-                        '    if (scope.main) cs::game::NativeRoomGridRenderReturned();']
-    if ident in ('frame_apply', 'frame_reset'):
-        return lines + ['    %ssuper();' % ('auto result = ' if ret != 'void' else ''),
-                        '    cs::game::PresentationQueueReturned(%s);' % ('true' if ident == 'frame_reset' else 'false')] + ([] if ret == 'void' else ['    return result;'])
-    # Client在所有已登记的替代入口也拒绝本地裁决；观察original与主动隔离分别计数。
-    client_blocked = {
-        'game_update', 'post_update', 'room_update', 'odd_helper', 'entity_list',
-        'player_update', 'player_native', 'start_game', 'restore', 'room_lifecycle',
-        'door_update', 'door_nested', 'new_room', 'game_exit', 'join_pass',
-        'move', 'bomb', 'active_item', 'card_pill', 'shoot', 'drop',
-        'pgd_unlock', 'pgd_counter', 'pgd_local', 'pgd_cloud', 'gamestate_write',
-        'gamestate_delete', 'gamestate_delete_rerun', 'stage_transition',
-        'entity_kill', 'revive_ghost', 'load_game_state'}
-    if ident in client_blocked:
-        lines.append('    if (cs::game::ClientSuppress("%s")) return%s;' %
-                     (ident, '' if ret == 'void' else ' {}'))
     if ident == 'manager_update':
         lines += ['    cs::FrameScope frame(scope.main);',
                   '    if (cs::game::ClientManagerBoundary()) return;',
@@ -754,8 +638,7 @@ def legacy_body(row):
         if ident == 'input_update':
             lines.append('    if (scope.main) cs::game::InputFrameFinished();')
         if ident == 'manager_render':
-            lines += ['    if (scope.main) cs::game::ClientMenuRendered();',
-                      '    if (scope.main) cs::game::PresentationRenderReturned();']
+            lines.append('    if (scope.main) cs::game::ClientMenuRendered();')
         if ident == 'console_check':
             lines.append('    if (scope.main) cs::game::ObserveConsole(result);')
         if ident == 'new_room':
@@ -799,26 +682,7 @@ def world_body(row):
         else:
             words.append('cs::world::PackWord(%s)' % arg['name'])
     call = ', '.join(arg['name'] for arg in row['args'])
-    lines = []
-    if not row.get('native_witness') and row['id'] in ('world_spawn', 'world_factory'):
-        permit = ' && !cs::game::NativeEntityFactoryAllowed(this,type,force)' if row['id']=='world_factory' else ''
-        lines += ['    // 原生复制初始化／绘制不得生成第二份玩法Entity；异常收束整个目标并停显。',
-                  '    if (cs::game::NativeRoomGridContextActive()%s) {' % permit,
-                  '        // 在触及原生生成之前保存有界调用链，用于定位混合初始化的玩法分支。',
-                  '        auto *stack=static_cast<unsigned *>(_AddressOfReturnAddress());',
-                  '        for (unsigned i=0;i<256;++i) { unsigned value=0; SIZE_T copied=0; if (!ReadProcessMemory(GetCurrentProcess(),stack+i,&value,4,&copied)||copied!=4) break;',
-                  f'            if (value>=cs::Base&&value<cs::Base+0x800000) cs::Trace("native_spawn_block", "entry=%s type=%u word=%u candidate_rva=%08X", "{row["id"]}", type, i, value-unsigned(cs::Base)); }}',
-                  '        throw std::runtime_error("native_gameplay_spawn_forbidden");',
-                  '    }']
-    # 私有Replica载体的构造/发布/退休不能污染访客游戏的Authority身份Registry或输入生命周期。
-    lines += ['    if (cs::game::NativeRoomGridContextActive()) {',
-              '        record.calls.fetch_add(1, std::memory_order_relaxed);']
-    if row['ret']=='void':
-        lines += ['        super(%s);' % call, '        record.completed.fetch_add(1, std::memory_order_relaxed);', '        return;']
-    else:
-        lines += ['        auto result=super(%s);' % call, '        record.completed.fetch_add(1, std::memory_order_relaxed);', '        return result;']
-    lines.append('    }')
-    lines += [
+    lines = [
         '    // %s：%s 的 world 观察。原调用 exactly-once，异常只撤销本次观察资格。'
         % (row['id'], row['observation']),
         '    cs::world::ObservationScope observation(',
@@ -842,13 +706,6 @@ def emit_hooks(legacy, world, patterns):
         macro = 'CS_HOOK_STATIC' if row['static'] else 'CS_HOOK_METHOD'
         conv = '__' + row['conv'] if row['conv'] else ''
         pattern = patterns.get(row['rva'], '') if row['own'] else ''
-        if row.get('args'):
-            table_lines,table_name=world_arg_table(row)
-            lines+=table_lines
-            lines.append('CS_HOOK_ABI_STATIC(%s, %s, "%s", %s, %s, %d, %s, "%s", true, %d, %s, %d, %s, %s, (%s), %s) {' %
-                         (row['id'],row['group'].title(),row['name'],row['cls'],row['method'],row['priority'],hex(row['rva']),pattern,row['nargs'],table_name,legacy_flags(row),row['owner'],conv,row['params'],row['ret']))
-            lines+=legacy_body(row)+['}']
-            continue
         lines.append('%s(%s, %s, "%s", %s, %s, %d, %s, "%s", %s, %d, %d, %s, %s, (%s), %s) {'
                      % (macro, row['id'], row['group'].title(), row['name'],
                         row['cls'], row['method'], row['priority'], hex(row['rva']),
@@ -882,17 +739,7 @@ def emit_hooks(legacy, world, patterns):
                         params, row['ret']))
         lines += world_body(row)
         lines.append('}')
-    lines += ['', '// 显式调用最内层原生trampoline，绕过已核官方外层PRE_RENDER／存档同步。',
-              'namespace cs::game {',
-              'void ClientOriginalRender(void *manager) {',
-              '    auto fn = reinterpret_cast<void(__thiscall *)(void *)>(H_manager_render_native::internalSuper);',
-              '    if (!fn) throw std::runtime_error("client_render_trampoline");',
-              '    fn(manager);', '}',
-              'void ClientOriginalManagerDestroy(void *manager) {',
-              '    auto fn = reinterpret_cast<void(__thiscall *)(void *)>(H_manager_destroy_native::internalSuper);',
-              '    if (!fn) throw std::runtime_error("client_destroy_trampoline");',
-              '    cs::Trace("client_isolation", "entry=manager_sync original=0 native_destructor=1");',
-              '    fn(manager);', '}', '}','']
+    lines.append('')
     return '\n'.join(lines)
 
 
@@ -1514,34 +1361,6 @@ def main():
         % (exit_patch['rva'], exit_patch['resume'], exit_patch['alternate'],
            exit_patch['expected'], exit_patch['size']), encoding='utf-8')
 
-    client_render = next(row for row in document['byte_patches'] if row['id'] == 'client_render_dispatch')
-    (args.out / 'client_patches.inc').write_text(
-        '// 唯一清单生成的Client图形分派；原cmp七字节，尾部先重载Manager。\n'
-        'inline constexpr uintptr_t ClientRenderRva = %s, ClientRenderResume = %s, ClientRenderAlternate = %s;\n'
-        'inline constexpr const char* ClientRenderPattern = "%s";\n'
-        'inline constexpr unsigned ClientRenderBytes = %s;\n'
-        % (client_render['rva'], client_render['resume'], client_render['alternate'],
-           client_render['expected'], client_render['size']), encoding='utf-8')
-    with (args.out / 'client_patches.inc').open('a', encoding='utf-8') as client_out:
-        for ident, prefix in [('client_shutdown_counters', 'ClientCounters'), ('client_shutdown_flush', 'ClientFlush'),
-                              ('native_controls_character', 'NativeControlsCharacter'), ('native_controls_device', 'NativeControlsDevice')]:
-            row = next(row for row in document['byte_patches'] if row['id'] == ident)
-            client_out.write('inline constexpr uintptr_t %sRva=%s, %sResume=%s, %sAlternate=%s;\n'
-                             % (prefix, row['rva'], prefix, row['resume'], prefix, row['alternate']))
-            client_out.write('inline constexpr const char *%sPattern="%s";\ninline constexpr unsigned %sBytes=%s;\n'
-                             % (prefix, row.get('pattern', row['expected']), prefix, row['size']))
-
-    persistence_lines = ['// 唯一清单生成的常驻Mod持久入口；公开Lua CFunction ABI。']
-    persistence_entries = document.get('runtime_persistence_hooks', [])
-    if len(persistence_entries) != 4 or {row.get('index') for row in persistence_entries} != set(range(4)):
-        problems.add('runtime_persistence_hooks', '四个入口必须完整且序号互异')
-    for row in persistence_entries:
-        if row.get('abi') != 'lua-CFunction-cdecl' or row.get('index') not in range(4):
-            problems.add('runtime_persistence_hooks', '无效的Lua CFunction入口')
-            continue
-        persistence_lines.append('{%d, "%s", %s},' % (row['index'], row['path'], str(row['optional']).lower()))
-    (args.out / 'persistence_runtime.inc').write_text('\n'.join(persistence_lines)+'\n', encoding='utf-8')
-
     # --- 容量与布局 -------------------------------------------------------
     (args.out / 'hook_capacity.h').write_text(emit_capacity(capacity),
                                               encoding='utf-8')
@@ -1562,7 +1381,7 @@ def main():
             inactive=('handle cs; other commands super exactly once'
                       if row['id'] == 'console_command' else 'super exactly once'),
             prototype=prototypes, evidence='STATIC_CONFIRMED',
-            abi=dict(model='explicit-registers' if row.get('args') else 'stack-words', arguments=[a['abi'] for a in row.get('args',[])], nargs=row['nargs'],
+            abi=dict(model='stack-words', nargs=row['nargs'],
                      thiscall=not row['static'], conv=row['conv'] or 'thiscall',
                      flags=legacy_flags(row))))
     world_manifest = []
@@ -1603,7 +1422,6 @@ def main():
         pointer_hooks=document['pointer_hooks'],
         native_dependencies=document.get('native_dependencies', []),
         runtime_random_hooks=document.get('runtime_random_hooks', []),
-        runtime_persistence_hooks=document.get('runtime_persistence_hooks', []),
         byte_patches=document['byte_patches'])
     (args.out / 'hook-manifest.json').write_text(
         json.dumps(total, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')

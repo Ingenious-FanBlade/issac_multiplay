@@ -2,8 +2,6 @@ if IsaacCSObservationValues then return IsaacCSObservationValues end
 -- 全部复制在游戏主线程完成；输出只有自有标量／表／规范主体键，不输出 userdata 或地址。
 local schemas = include("domains/entity/schema")
 local M = { SchemaVersion=2 }
--- 显式空序列仍编码为[]，与空字段字典{}区分；不以长度猜测完整空成员集的类型。
-function M.Array(values) return setmetatable(values or {},{__cs_array=true}) end
 local LIMIT = {objects=16384, nodes=262144, depth=12, bytes=16*1024*1024, queries=131072}
 local function missing(status, reason) return {status=status,reason=reason} end
 local function native() return IsaacCSObservationNative end
@@ -24,7 +22,7 @@ local function fail(ctx,reason)
   ctx.complete=false
   ctx.reasons[reason]=(ctx.reasons[reason] or 0)+1
 end
-local function array(values) return {kind="array",values=M.Array(values)} end
+local function array(values) return {kind="array",values=values} end
 local function typeName(value)
   local ok, name=pcall(function() return getmetatable(value).__type end)
   return ok and type(name)=="string" and name or nil
@@ -152,7 +150,7 @@ value=function(object, typ, ctx, depth)
   if type(object)=="table" then
     if ctx.seen[object] then return {type="graph_ref",node=ctx.seen[object]} end
     ctx.graph=ctx.graph+1; ctx.seen[object]=ctx.graph
-    local node={type="table",node=ctx.graph,entries=M.Array()}
+    local node={type="table",node=ctx.graph,entries={}}
     local keys={}; for k in pairs(object) do if #keys>=LIMIT.nodes-ctx.nodes then fail(ctx,"table_key_budget");break end;keys[#keys+1]=k end
     table.sort(keys,function(a,b) return type(a)==type(b) and tostring(a)<tostring(b) or type(a)<type(b) end)
     for _,k in ipairs(keys) do
@@ -250,7 +248,7 @@ collect=function(object,class,ctx,depth)
             if ctx.queries>=LIMIT.queries then fail(ctx,"query_budget"); results[#results+1]=missing("Truncated","query_budget"); break end
             results[#results+1]={parameters=value(args,nil,ctx,depth+1),value=query(object,spec,args,ctx,depth)}
           end
-          out.fields[spec.id]={kind="parameter_results",values=M.Array(results)}
+          out.fields[spec.id]={kind="parameter_results",values=results}
         else out.fields[spec.id]={status="NotScheduled",reason="derived_query_requires_explicit_parameters",signature=spec.parameters} end
       elseif spec.category=="domain_value" and ctx.domain_member then
         out.fields[spec.id]=ctx.domain_member(object,spec,ctx,depth)
@@ -269,19 +267,6 @@ collect=function(object,class,ctx,depth)
       end
     end
   end
-  if class=="Sprite" then
-    -- 主/overlay的连续时钟及逐层帧选择属于对象姿态；不触发Update或动画事件。
-    local ok,pose=pcall(native().SpritePose,object)
-    if ok then
-      local nodes=10
-      for _,name in ipairs({"main","overlay"}) do
-        pose[name].layers=M.Array(pose[name].layers);pose[name].nulls=M.Array(pose[name].nulls)
-        nodes=nodes+2+5*(#pose[name].layers+#pose[name].nulls)
-      end
-      if ctx.nodes+nodes>LIMIT.nodes then fail(ctx,"sprite_pose_budget");out.native_pose=missing("Truncated","sprite_pose_budget")
-      else ctx.nodes=ctx.nodes+nodes;out.native_pose=pose end
-    else fail(ctx,"sprite_pose_capture");out.native_pose=missing("ReadFailed","sprite_pose_capture") end
-  end
   return out
 end
 
@@ -299,7 +284,7 @@ local function encode(root)
       emit(math.type(v)=="integer" and tostring(v) or v==0 and 1/v<0 and "-0.0" or string.format("%.17g",v))
     elseif t=="boolean" then emit(v and "true" or "false")
     elseif t=="table" then
-      local isArray=#v>0 or (getmetatable(v) and getmetatable(v).__cs_array==true)
+      local isArray=#v>0
       emit(isArray and "[" or "{")
       local first=true
       if isArray then for _,x in ipairs(v) do if not first then emit(",") end; first=false; write(x,depth+1) end

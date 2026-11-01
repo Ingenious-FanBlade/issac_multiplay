@@ -110,7 +110,6 @@ struct BitmapInfo {
 
 #[link(name = "kernel32")]
 unsafe extern "system" {
-    fn GetCurrentThreadId() -> u32;
     fn CreateProcessW(
         app: *const u16,
         cmd: *mut u16,
@@ -172,8 +171,6 @@ unsafe extern "system" {
     fn GetSystemMetrics(index: i32) -> i32;
     fn GetForegroundWindow() -> Handle;
     fn SetForegroundWindow(window: Handle) -> Bool;
-    fn AttachThreadInput(from: u32, to: u32, attach: Bool) -> Bool;
-    fn BringWindowToTop(window: Handle) -> Bool;
     fn ShowWindow(window: Handle, cmd: i32) -> Bool;
     fn SendInput(count: u32, input: *const Input, size: i32) -> u32;
     fn MapVirtualKeyW(code: u32, kind: u32) -> u32;
@@ -699,15 +696,7 @@ pub fn focus(window: usize) -> Result<(), String> {
         }
         ShowWindow(window as _, 9);
         for _ in 0..50 {
-            // 先关联当前前台的输入线程，按Windows前台切换规则激活本次自有游戏。
-            // 无论成功与否立即解除；之后仍以真实前台相等作为发键前置条件。
-            let own_thread=GetCurrentThreadId();
-            let mut foreground_pid=0;
-            let foreground_thread=GetWindowThreadProcessId(GetForegroundWindow(),&mut foreground_pid);
-            let attached=foreground_thread!=0&&foreground_thread!=own_thread&&AttachThreadInput(own_thread,foreground_thread,1)!=0;
-            BringWindowToTop(window as _);
             SetForegroundWindow(window as _);
-            if attached {AttachThreadInput(own_thread,foreground_thread,0);}
             if GetForegroundWindow() == window as _ {
                 return Ok(());
             }

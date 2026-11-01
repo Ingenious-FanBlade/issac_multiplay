@@ -1,9 +1,3 @@
-> **2026-11-01实施更新**：tx-04-19前5项R19-01—05已完成实现，包含全类别私有原生owner、状态／关系／必要Player及资源恢复，复用原生Entity绘制和排序。见[实现与静态主审](tx-04-19/tx-04-19-native-entity-plan.md#r19-first-five-progress)。生产DLL已编译、链接，未部署或运行测试；R19-06—10、统一E2E及21的网络整世界闭环尚未完成，不能据此宣称整局可玩。下方“仅文档”为历史时点。
-
-> **tx-04-19实现设计与整体验收计划（2026-11-01，仅文档）**：[原生Entity应用](tx-04-19/tx-04-19-native-entity-plan.md)、[统一E2E计划](tx-04-19/tx-04-19-e2e-plan.md)。按用户决定优先复用原生机制，只补实际缺失的状态和接线；分类／排序／阴影／多pass复用原生绘制并验收结果。19未实施／验收，本轮未改代码、构建或运行测试。
-
-> **tx-04-18原生应用已完成（2026-11-01），29/29 PASS**：[create／remove／change应用到原生Room／Grid](tx-04-18/tx-04-18-native-state-plan.md#13-最终统一验收结果)，包含17的展示接线、原生资源／动画／FX／墙面选择／颜色水面及生命周期调整。25个真实场景和拒绝／恢复／退出已通过统一E2E，whole-world Applied仍为0。旧受控展示与旧资源重放失败保留历史；Entity19／Player20、21网络世界和29全内容组合没有提前记为完成。
-
 > **tx-04-15 已完成（2026-10-31）**：[全域复制模型、稳定身份、逐成员归属与ICSR v1可执行协议合同](tx-04-15.md)，统一E2E 4/4组通过。模型能力与原生应用器分开声明；真实Client、下行与原生应用仍按16—22推进。
 
 > **tx-04-10 观测交付（2026-10-30）**：[公共边界、录制分离、Entity／旧 Grid 拆分及 Entity 实现与结果](observation-expansion/tx-04-10-implementation.md)统一 E2E 5/5 PASS。正式纯值采集不依赖 Recorder 成功；世界状态下行、Replica 和客户端写回仍未实现。
@@ -95,7 +89,7 @@ flowchart LR
     T --> V
 ```
 
-Authority按原生规则模拟并裁决伤害、死亡、拾取、生成、删除、RNG及gameplay Lua副作用。2026-11-01用户明确并澄清：无论飞行还是非飞行，Entity与Grid的空间阻挡及不阻挡都由Client原生应用判定和处理，其他效果由Authority裁决。Authority同步飞行／碰撞类别和Grid等状态；Replica交由原生机制处理空间约束，不等待Authority逐次放行，不重复伤害、减速、击退／反弹、命中消失、机关、破坏或掉落。本地约束结果与不可变权威目标／网络基线分开。19先限于状态应用的普通位移，不推进快照间本地运动，传送／重建按明确权威语义处理，详见[19第7.2节](tx-04-19/tx-04-19-native-entity-plan.md#72-client原生空间阻挡与authority效果裁决)。Replica仍保留本地输入采样、相机、窗口、已证明纯展示的动画/HUD和插值缓存。房主使用Authority世界本身，不在同进程再维护一份Replica，不因房主本地输入绕过队列。
+Authority裁决碰撞、伤害、死亡、拾取、生成、删除、RNG及gameplay Lua副作用。Replica保留本地输入采样、相机、窗口、已证明纯展示的动画/HUD和插值缓存。房主使用Authority世界本身，不在同进程再维护一份Replica，不因房主本地输入绕过队列。
 
 推荐内部组件：`AuthorityRegistry`、`ReplicaCaptureAdapter`、`SnapshotStore`、`PerPeerReplicationState`、`StateCodec`、`ReplicaWorldAdapter`、`PresentationEventQueue`。先形成可说明的职责，再选择代码目录；不要求改造旧Lockstep对象承载这些状态。
 
@@ -169,11 +163,9 @@ Authority可在发送baseline期间继续模拟；缓存有界，溢出则放弃
 ```text
 Delta(B,T) = Create(T中有而B中无)
            + Remove(B中有而T中无)
-           + Change(两者均有但字段/关系/shape不同)
+           + Update(两者均有但字段/关系/shape不同)
 TargetModel = Reconstruct(ImmutableBaseline[B], Delta(B,T))
 ```
-
-2026-10-31用户重申三种语义为create／remove／change；旧文中的Update与change同义，不因此更改15已实现的component替换／删除线格式。Client先重建完整目标T，再比较最后成功应用目标C与T生成本地原生操作，不能把相对B的create／change直接执行到任意C。Room／Grid在18按[原生状态应用方案](tx-04-18/tx-04-18-native-state-plan.md)落实。
 
 初期变化字段发送最终值，如`HP=7`、`position=(104,80)`；“只发变化字段”与“数值再作差分压缩”分开。相对坐标、量化、bit packing及优先级调度在32落地需要的优化，不能先改变正确性语义。
 
@@ -186,8 +178,6 @@ TargetModel = Reconstruct(ImmutableBaseline[B], Delta(B,T))
 基线保留有数量、字节和时间上限；引用被淘汰的基线时请求全量恢复。完整delta重建成功且实际应用提交后才能更新AppliedAck；若按对象／scope分包或不同频率调度，必须实现对应基线／确认，不沿用“一个包ACK表示所有对象最新”的假设。
 
 ## 10. 客户端原生应用与表现分离
-
-2026-10-31会话决定：18将create／remove／change应用到本地原生Room／Grid，由游戏依据状态维护资源、外观与渲染；为此在同一18调整17跳过原生世界绘制／采用自有Scene的接线，保留玩法与持久隔离。必要的类型恢复／外观刷新在原生对象中完成，不再以Authority贴图／surface像素、最终顶点或绘制批次捕获重放作为18路线。旧18受控模型10/10不代表该原生应用已完成。
 
 网络线程只解析、限额和排队；原生创建、对象字段、资源、引用及Lua全部在已理解主线程窗口操作。优先查公开Wiki／Lua的状态与应用语义；只对真实副作用、版本疑问或公开接口缺口补源码／必要native研究，不逐字段强制逆向。adapter逐类说明调用／公开接口、资源依赖、所需字段、允许副作用、失败与恢复；已有研究入口见[模块点位目录](../hooks/README.md)。
 
@@ -268,15 +258,13 @@ gameplay预测、rollback、host migration和Dedicated Server保持可选；若�
 
 完整执行入口为[整局可玩联机模组推进流程](state-synchronization-roadmap.md)，包括每个tx的目标、直接交付、依赖、整体验收及跨域责任表。
 
-tx-04-19的[实现设计](tx-04-19/tx-04-19-native-entity-plan.md)和[统一整体验收计划](tx-04-19/tx-04-19-e2e-plan.md)确定非Player实体的原生三语义、Morph／引用、必要Owner依赖、短命可见结果及共享场景恢复。按2026-11-01用户决定，优先复用原生创建／管理／资源维护／绘制，只补确认缺失的状态和接线；原生排序、遮挡、阴影和多pass不预设为重写功能。19只声明本域应用，完整Player归20、网络整世界Applied归21—22。当前仅文档，未实施／验收。
-
-tx-04-17的[专项工作流程](tx-04-17/tx-04-17-workflow.md)已完成公共运行时与统一E2E，最终10/10 PASS，见[实现、失败修复和验收](tx-04-17/tx-04-17-implementation.md)。独立Scene／Camera／HUD、资源与完整层姿态、候选原子发布、真实context／CPU队列／GPU退休、玩法／Lua与访客PGD／Continue／Mod持久隔离已接入15／16；第四次只续验隐藏ESSM及退出相关项，8项复用。必要剩余逆向由一个GPT-6 Luna/max执行，主审回读并纠正，见[补充](tx-04-17/tx-04-17-reverse-supplement.md)。此前ST1—ST8静态研究和失败记录保留；复杂Room／Grid、非Player Entity、Player全内容应用和网络世界Baseline／Applied仍分别归18—21，不预记完成。
+tx-04-17另有[客户端玩法隔离与资源展示运行时工作流程](tx-04-17/tx-04-17-workflow.md)，单列ST1—ST8先行静态核验、研究复用／公开接口／必要逆向、完整实现及统一E2E。2026-10-31已完成ST1—ST8指定静态研究与主审，既有[资源与完整姿态](tx-04-17/tx-04-17-resource-pose-runtime.md)、[线程／context／在途引用](tx-04-17/tx-04-17-thread-context-lifetime.md)、[Lua与借用寿命](tx-04-17/tx-04-17-lua-borrow-lifetime.md)互核记录保留；本轮[ST8访客持久副作用与正常退出](tx-04-17/tx-04-17-persistence-exit-isolation.md)由一个GPT-6 Luna／max子智能体完成必要逆向，主智能体独立审阅、纠错及补证。资源逻辑发布与旧引用释放分别处理；Client准备、失败、断连、stop至安全退休保持必要隔离，Authority展示进度不写访客PGD／Continue／Mod持久档，本地设置按来源和字段允许。Shutdown直接进度写入、Exit保存／条件删除和Manager析构官方PGD版本同步分列，readonly／write=false／early unload均不构成完整保护。Client世界壳、实际隔离、可控释放、context／全部在途owner和统一E2E仍未完成；本轮仅文档与统一人工静态审阅，无构建或测试。协议无关的静态研究可先于15／16，功能接线与整体验收仍依赖其实际交付。
 
 | 编号 | 完整交付范围 |
 | --- | --- |
 | tx-04-09—14 | 四人及多身体实际输入；Entity／Grid／房间楼层／探索跨房玩家／整局随机HUD和Mod完整观测 |
 | tx-04-15—17 | 全域复制模型与协议；真实游戏Client；玩法隔离与资源／展示运行时 |
-| tx-04-18—20 | Room／Grid按create／remove／change原生应用并配套调整17；非Player Entity、四人多身体Player的实际客户端应用 |
+| tx-04-18—20 | Room／Grid、非Player Entity、四人多身体Player的实际客户端应用 |
 | tx-04-21—22 | 四个真实游戏实例的单房间Baseline闭环、Delta／每Peer确认与恢复；属于中间交付 |
 | tx-04-23—26 | 切房回访、楼层地图与离房世界、整局规则及随机结果、换层／维度／世界重构 |
 | tx-04-27—29 | 完整HUD音画与声明适配、角色生命周期及结局、原版全内容与模式专用差异闭合 |

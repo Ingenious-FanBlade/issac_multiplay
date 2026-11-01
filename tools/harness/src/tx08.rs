@@ -1098,7 +1098,6 @@ impl Run {
             ("observation", "mods/isaac-cs-observation"),
             ("config", "Repentogon/isaac-cs/config.json"),
         ];
-        if self.report["tx"]=="tx-04-17" || self.report["tx"]=="tx-04-18" {targets.extend([("presentation_fixture","mods/isaac-cs-presentation"),("presentation_data","data/isaac-cs-presentation")]);}
         // REPENTOGON用模组目录名保存数据；只备份本tx真正部署的框架及夹具命名空间。
         if self.report["tx"]=="tx-04-14" {targets.extend([
             ("stageapi", "mods/stageapi15"),

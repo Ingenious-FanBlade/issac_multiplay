@@ -8,7 +8,7 @@ const observation::DomainDescriptor &DescribeDomain() noexcept {
   return value;
 }
 bool ObservationFor(Observation kind) noexcept {
-  return kind==Observation::GridCtor||kind==Observation::GridFactory||kind==Observation::GridInit||kind==Observation::GridSpawn||kind==Observation::Door||kind==Observation::GridFree;
+  return kind==Observation::GridFactory||kind==Observation::GridInit||kind==Observation::GridSpawn||kind==Observation::Door||kind==Observation::GridFree;
 }
 bool CreationOwner(Observation kind) noexcept { return kind==Observation::GridSpawn||kind==Observation::Door; }
 bool OwnsSource(std::uint32_t source) noexcept { return source==11||source==12; }

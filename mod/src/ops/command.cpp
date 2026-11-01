@@ -1,9 +1,6 @@
 #include "binding/offsets.h"
 #include "game/bridge.h"
 #include "game/client.h"
-#include "game/presentation.h"
-#include "game/native_room_grid.h"
-#include "game/mod_persistence.h"
 #include "game/context.h"
 #include "game/lifecycle.h"
 #include "game/persistence.h"
@@ -85,12 +82,6 @@ std::string Execute(std::string_view text, const char *source) {
   } else if (verb == "observe") {
     in >> arg >> extra;
     result=extra.empty()?ObservationCommand(arg):"ok=0\nerror=arguments\n";
-  } else if (verb == "native_room_test") {
-    std::string token,action;in>>token>>action>>extra;
-    result=extra.empty()?game::NativeRoomGridTest(token,action):"ok=0\nerror=arguments\n";
-  } else if (verb == "presentation_test") {
-    std::string token,name;in>>token>>name>>extra;
-    result=extra.empty()?game::PresentationTest(token,name):"ok=0\nerror=arguments\n";
   } else if (verb == "world_test") {
     std::string token, mode, generation_text, value_text, trailing;
     in >> token >> generation_text >> mode >> value_text >> trailing;
@@ -313,10 +304,10 @@ std::string Execute(std::string_view text, const char *source) {
   }
   // 记录所有命令来源及 Q14 的 Game 指针；cs 不进入原生命令分支。
   // status/counters 的完整响应走控制口；trace 只保留响应长度与结果，避免
-  // 大快照挤入单个 3500 字节事件被截断。原生验收的实际对象读回同样走控制口。
+  // 大快照挤入单个 3500 字节事件被截断。其它命令继续保留原始结果。
   if (verb == "ui_status") {
     // UI只读刷新不是逐tick诊断，不向生产日志写每帧状态查询明细。
-  } else if (verb == "status" || verb == "counters" || verb == "native_room_test")
+  } else if (verb == "status" || verb == "counters")
     Trace("command",
           "source=%s text=%.*s result_logged=0 result_bytes=%zu "
           "result_ok=%u g_game=%p frame=%llu",
@@ -420,7 +411,6 @@ void FrameBegin() noexcept {
     return;
   }
   ++frame;
-  game::PumpModPersistenceHooks();
   if (frame <= 3)
     Trace("frame_begin", "frame=%llu", frame);
   if (!started) {

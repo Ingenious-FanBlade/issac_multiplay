@@ -690,7 +690,7 @@
 | `EntityNPC.GetFlyingOverride` | `boolean GetFlyingOverride ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityNPC.md)（行75） |
 | `EntityNPC.GetHitList` | `int[] GetHitList ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityNPC.md)（行79） |
 | `EntityNPC.Pathfinder` | `Pathfinder GetPathfinder ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityNPC.md)（行13） |
-| `EntityNPC.GetPlayerTarget` | `Entity GetPlayerTarget ( )` | actual_event_only gameplay_target_selection_and_optional_cache:J273-6BA580 | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityNPC.md)（行84） |
+| `EntityNPC.GetPlayerTarget` | `Entity GetPlayerTarget ( )` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityNPC.md)（行84） |
 | `EntityNPC.GetShieldStrength` | `float GetShieldStrength ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityNPC.md)（行84） |
 | `EntityNPC.GetShopkeeperLoot` | `LootList GetShopkeeperLoot ( )` | actual_event_only gameplay_loot_generation | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityNPC.md)（行88） |
 | `EntityNPC.GetSirenPlayerEntity` | `EntityPlayer GetSirenPlayerEntity ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityNPC.md)（行93） |
@@ -1598,13 +1598,8 @@
 | `LootListEntry.GetSubType` | `int GetSubType ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LootListEntry.md)（行41） |
 | `LootListEntry.GetType` | `EntityType GetType ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LootListEntry.md)（行45） |
 | `LootListEntry.GetVariant` | `int GetVariant ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LootListEntry.md)（行49） |
-| `NativeText.alpha` | `float alpha` | native_copy J273 completed creation owner; see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
-| `NativeText.blue` | `float blue` | native_copy J273 completed creation owner; see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
-| `NativeText.color_word` | `int color_word` | native_copy J273 completed creation owner; see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
 | `NativeText.counter` | `int counter` | native_copy J273 completed creation owner; see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
 | `NativeText.duration` | `int duration` | native_copy J273 completed creation owner; see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
-| `NativeText.green` | `float green` | native_copy J273 completed creation owner; see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
-| `NativeText.red` | `float red` | native_copy J273 completed creation owner; see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
 | `NativeText.text` | `string text` | native_copy J273 completed creation owner; see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
 | `NullFrame.GetColor` | `Color GetColor ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/NullFrame.md)（行10） |
 | `NullFrame.GetPos` | `Vector GetPos ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/NullFrame.md)（行14） |

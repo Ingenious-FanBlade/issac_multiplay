@@ -39,11 +39,9 @@ set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
 # 复制层只依赖纯值观测合同与JSON库；生成目录属于产品协议，不包含游戏地址。
 file(GLOB REPLICA_CATALOGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/observation/isaac-cs-observation/*catalog.json")
 add_custom_command(OUTPUT "${GENERATED}/replication_catalog.inc" "${GENERATED}/replication-catalog.json"
-  BYPRODUCTS "${GENERATED}/native_entity_rules.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_replica_catalog.py" --out "${GENERATED}"
-  DEPENDS tools/gen_replica_catalog.py tools/native_entity_contract.py ${REPLICA_CATALOGS} VERBATIM)
-add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/codec.cpp src/replica/room_grid.cpp
-  src/replica/native_room_grid.cpp src/replica/native_entity.cpp "${GENERATED}/replication_catalog.inc")
+  DEPENDS tools/gen_replica_catalog.py ${REPLICA_CATALOGS} VERBATIM)
+add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/codec.cpp "${GENERATED}/replication_catalog.inc")
 target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")
 target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_compile_definitions(isaac_cs_replica PUBLIC _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
@@ -57,20 +55,19 @@ target_link_libraries(replica-contract PRIVATE isaac_cs_replica)
 target_compile_options(replica-contract PRIVATE /W4 /Zi /utf-8 /EHsc)
 set_target_properties(replica-contract PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")
 add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/binding_v1_9_7_12.inc" "${GENERATED}/hook-manifest.json" "${GENERATED}/permanent_patches.inc" "${GENERATED}/host_patches.inc" "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc" "${GENERATED}/world-layout.json"
-  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/random_runtime.inc" "${GENERATED}/client_patches.inc" "${GENERATED}/persistence_runtime.inc"
+  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/random_runtime.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_binding.py" --out "${GENERATED}"
   DEPENDS tools/gen_binding.py binding/hooks.json binding/world_layout.json binding/v1_9_7_12-static.json ../docs/hooks/repentogon-binding.json VERBATIM)
 add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions.cpp
   src/binding/world_layout.cpp src/hooks/registry.cpp src/hooks/context.cpp
-  src/hooks/pointer_patch.cpp src/hooks/odd_patch.cpp src/hooks/host_patch.cpp src/hooks/exit_patch.cpp src/hooks/client_patch.cpp
+  src/hooks/pointer_patch.cpp src/hooks/odd_patch.cpp src/hooks/host_patch.cpp src/hooks/exit_patch.cpp
   src/game/context.cpp src/game/player_api.cpp src/game/world_sources/lua_entity.cpp src/game/world_sources/loot.cpp src/game/world_sources/observation.cpp src/game/topology.cpp src/game/tick.cpp src/game/input_a.cpp
   src/game/query.cpp src/game/consumers.cpp src/game/lifecycle.cpp src/game/remote_life.cpp src/game/world_bridge.cpp src/game/world_sources/global_random.cpp
   src/game/world_sources/random_sources.cpp src/game/world_sources/random_runtime_lua.cpp src/game/world_sources/random_e2e.cpp
   src/game/world_sources/random_owners.cpp src/hooks/random_runtime.cpp
   "${REPENTOGON_ROOT}/libzhl/hde32/src/hde32.cpp"
   src/game/device_k.cpp src/game/join.cpp src/game/peer.cpp src/game/input_lease.cpp src/game/persistence.cpp
-  src/game/client.cpp src/game/client_isolation.cpp src/game/presentation.cpp src/game/mod_persistence.cpp
-  src/game/native_room_grid.cpp src/game/native_room_grid_plan.cpp
+  src/game/client.cpp
   src/ops/config.cpp src/ops/trace.cpp src/ops/command.cpp src/ops/world_commands.cpp src/ops/control_port.cpp
   "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc"
   "${GENERATED}/exit_patch.inc"
@@ -80,8 +77,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。
 set_source_files_properties(src/game/world_sources/loot.cpp src/game/world_sources/lua_entity.cpp src/game/player_api.cpp src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp"
   src/game/world_sources/random_runtime_lua.cpp src/game/world_sources/random_e2e.cpp src/game/world_sources/random_owners.cpp
-  src/hooks/host_patch.cpp src/hooks/odd_patch.cpp src/hooks/exit_patch.cpp src/hooks/client_patch.cpp
-  src/game/presentation.cpp src/game/mod_persistence.cpp src/game/native_room_grid.cpp
+  src/hooks/host_patch.cpp src/hooks/odd_patch.cpp src/hooks/exit_patch.cpp
   PROPERTIES COMPILE_OPTIONS "/std:c++17")
 target_include_directories(zhlIsaacCS PRIVATE src "${GENERATED}" "${REPENTOGON_ROOT}/include" "${REPENTOGON_ROOT}/libzhl"
   "${REPENTOGON_ROOT}/libs/rapidjson/include" "${REPENTOGON_ROOT}/libs/rapidxml" "${REPENTOGON_ROOT}/libs/lua")
@@ -90,6 +86,6 @@ target_include_directories(zhlIsaacCS PRIVATE "${REPENTOGON_ROOT}/libs/zydis/inc
   "${REPENTOGON_ROOT}/libs/zydis/dependencies/zycore/include")
 target_compile_definitions(zhlIsaacCS PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
 target_compile_options(zhlIsaacCS PRIVATE /EHs /W4 /Zi /utf-8 /wd4251 /wd4996)
-target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net isaac_cs_world isaac_cs_replica "${REPENTOGON_ROOT}/build/Release/libzhl.lib" "${REPENTOGON_ROOT}/build/Release/Lua5.3.3r.lib" ws2_32 bcrypt opengl32)
+target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net isaac_cs_world isaac_cs_replica "${REPENTOGON_ROOT}/build/Release/libzhl.lib" "${REPENTOGON_ROOT}/build/Release/Lua5.3.3r.lib" ws2_32 bcrypt)
 target_link_options(zhlIsaacCS PRIVATE /DEBUG)
 set_target_properties(zhlIsaacCS PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")
