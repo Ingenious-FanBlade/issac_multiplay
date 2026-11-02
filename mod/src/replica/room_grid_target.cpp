@@ -49,14 +49,43 @@ DomainReference Ref(const V &v,const std::string &path,std::uint64_t run,unsigne
   if(!Is(At(v,"type",path),"reference")||!Is(At(v,"status",path),"KnownCurrent"))Error(path,"reference_unresolved");
   return {false,Key(At(v,"target",path),path+"/target",run,space)};
 }
+// 配置私有Flags/QuestDoors/MergedData没有完整公开接口；正式只读来源补齐，而非在Client猜值。
+RoomConfiguration ConfigValue(const V &v,const std::string &path,const std::string &version,unsigned depth,unsigned &entries){
+  RoomConfiguration c;c.content_version=version;if(Null(v))return c;
+  if(depth>8||Field(v,"version",path)!=1)Error(path,"config_content_version_or_depth");
+  c.is_null=false;c.stage=Field(v,"stage",path,0,36);c.mode=Field(v,"mode",path,0,1);c.type=Field(v,"type",path,1,29);
+  c.variant=U32(At(v,"variant",path),path);c.subtype=Field(v,"subtype",path,0);c.shape=Field(v,"shape",path,1,12);
+  c.width=Field(v,"width",path,1,26);c.height=Field(v,"height",path,1,14);c.difficulty=Field(v,"difficulty",path);
+  c.original_variant=U32(At(v,"original_variant",path),path);c.doors=U32(At(v,"doors",path),path);
+  c.quest_doors=U32(At(v,"quest_doors",path),path);c.flags=U32(At(v,"flags",path),path);
+  const auto real=[&](const char *name){const auto &n=At(v,name,path);if(!n.IsNumber()||!std::isfinite(n.GetDouble())||std::abs(n.GetDouble())>1e30)Error(path+"/"+name,"finite_config_number");return float(n.GetDouble());};
+  c.initial_weight=real("initial_weight");c.weight=real("weight");const auto &name=At(v,"name",path);
+  if(!name.IsString()||name.GetStringLength()>4096)Error(path,"config_name");c.name.assign(name.GetString(),name.GetStringLength());
+  const auto &spawns=Sequence(At(v,"spawns",path),path);if(spawns.Size()>65535)Error(path,"config_spawn_budget");
+  for(const auto &s:spawns.GetArray()){
+    RoomSpawnValue spawn;spawn.x=std::uint16_t(Field(s,"x",path,0,65535));spawn.y=std::uint16_t(Field(s,"y",path,0,65535));
+    const auto &sum=At(s,"sum_weights",path);if(!sum.IsNumber()||!std::isfinite(sum.GetDouble())||std::abs(sum.GetDouble())>1e30)Error(path,"config_weight");spawn.sum_weights=float(sum.GetDouble());
+    const auto &items=Sequence(At(s,"entries",path),path);if(items.Size()>255)Error(path,"config_entry_budget");
+    if(entries+items.Size()+1>262144)Error(path,"config_total_budget");entries+=items.Size()+1;
+    for(const auto &e:items.GetArray()){
+      RoomEntryValue entry;entry.type=U32(At(e,"type",path),path);entry.variant=std::uint16_t(Field(e,"variant",path,0,65535));entry.subtype=std::uint16_t(Field(e,"subtype",path,0,65535));
+      const auto &w=At(e,"weight",path);if(!w.IsNumber()||!std::isfinite(w.GetDouble())||std::abs(w.GetDouble())>1e30)Error(path,"config_entry_weight");entry.weight=float(w.GetDouble());spawn.entries.push_back(entry);
+    }
+    c.spawns.push_back(std::move(spawn));
+  }
+  const auto &merged=At(v,"merged",path);if(!merged.IsArray()||merged.Size()!=2)Error(path,"config_merged_pair");
+  for(const auto &m:merged.GetArray())c.merged.push_back(ConfigValue(m,path+"/merged",version,depth+1,entries));
+  return c;
+}
 RoomConfiguration Config(const V &v,const std::string &path,const std::string &version){
-  RoomConfiguration c;c.content_version=version;if(Null(v)){c.is_null=true;return c;}
+  RoomConfiguration c;c.content_version=version;if(Null(v))return c;
+  unsigned entries=0;c=ConfigValue(At(v,"application_config",path),path+"/application_config",version,0,entries);
   const auto &f=Fields(At(v,"state",path),path+"/state");
-  c.stage=Field(f,"RoomConfigRoom.StageID",path,0,36);c.mode=Field(f,"RoomConfigRoom.Mode",path,0,1);
-  c.type=Field(f,"RoomConfigRoom.Type",path,1,29);c.variant=U32(At(f,"RoomConfigRoom.Variant",path),path+"/RoomConfigRoom.Variant");
-  c.subtype=Field(f,"RoomConfigRoom.Subtype",path);c.shape=Field(f,"RoomConfigRoom.Shape",path,1,12);
-  c.width=Field(f,"RoomConfigRoom.Width",path,1,26);c.height=Field(f,"RoomConfigRoom.Height",path,1,14);
-  if((c.width+2)*(c.height+2)>448)Error(path,"configuration_grid_budget");return c;
+  if(c.is_null||c.stage!=Field(f,"RoomConfigRoom.StageID",path)||c.mode!=Field(f,"RoomConfigRoom.Mode",path)||
+     c.type!=Field(f,"RoomConfigRoom.Type",path)||c.variant!=U32(At(f,"RoomConfigRoom.Variant",path),path)||
+     c.subtype!=Field(f,"RoomConfigRoom.Subtype",path)||c.shape!=Field(f,"RoomConfigRoom.Shape",path)||
+     c.width!=Field(f,"RoomConfigRoom.Width",path)||c.height!=Field(f,"RoomConfigRoom.Height",path))Error(path,"configuration_source_conflict");
+  return c;
 }
 DescriptorLocation Placement(const V &p,const V &fields,const std::string &path){
   if(!Is(At(p,"status",path),"Value")||Field(p,"version",path)!=1)Error(path,"placement_source_version");
@@ -131,14 +160,15 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
   const auto run=out->scope.run;if(!run||!out->scope.floor||!out->scope.dimension||!out->scope.room)Error("scope","world_scope_required");
   const auto &room=Component(model,"room",out->room_capture),&level=Component(model,"level",out->level_capture),&grid=Component(model,"grid",out->grid_capture);
   const auto &contract=At(room,"application_source","room"),&gc=At(grid,"application_source","grid");
-  if(Field(contract,"version","room/application_source")!=1||Field(gc,"version","grid/application_source")!=1||
+  if(Field(contract,"version","room/application_source")!=2||Field(gc,"version","grid/application_source")!=1||
      !Is(At(contract,"target","room"),"REPENTOGON-1.1.3/J273")||!Is(At(gc,"target","grid"),"REPENTOGON-1.1.3/J273"))Error("application_source","unsupported_contract");
   for(const auto *c:{&contract,&gc})if(c->HasMember("required_contracts")){
     const auto &required=(*c)["required_contracts"];if(!required.IsArray()||required.Size()>32)Error("application_source/required_contracts","budget");
-    for(const auto &name:required.GetArray())if(!Is(name,"descriptor-placement-v1")&&!Is(name,"grid-membership-v2")&&!Is(name,"resource-pose-v1"))Error("application_source/required_contracts/"+(name.IsString()?std::string(name.GetString(),name.GetStringLength()):"invalid"),"unknown_required");
+    for(const auto &name:required.GetArray())if(!Is(name,"descriptor-placement-v1")&&!Is(name,"grid-membership-v2")&&!Is(name,"resource-pose-v1")&&!Is(name,"room-configuration-v1")&&!Is(name,"room-runtime-v1"))Error("application_source/required_contracts/"+(name.IsString()?std::string(name.GetString(),name.GetStringLength()):"invalid"),"unknown_required");
   }
   const auto &cv=At(contract,"config_version","room");if(!cv.IsString()||cv.GetStringLength()==0||cv.GetStringLength()>256)Error("config_version","resource_version_required");
   const std::string config_version(cv.GetString(),cv.GetStringLength());
+  if(config_version!="REPENTOGON-1.1.3/J273/room-configuration-v1")Error("config_version","unsupported_configuration_version");
   auto &r=out->room;r.current_index=Field(room,"room_index","room",-20,168);r.dimension=Field(room,"dimension_index","room",0,2);
   if(r.current_index==-19)Error("room/room_index","original_online_excluded");
   const auto &location=At(room,"location","room");r.key=Key(At(location,"room_instance","room/location"),"room/location/room_instance",run,7);r.floor=Key(At(location,"floor","room/location"),"room/location/floor",run,4);
@@ -179,9 +209,12 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
   }
   const auto &rf=Fields(At(room,"state","room"),"room/state");r.environment.backdrop=unsigned(Field(rf,"Room.GetBackdropType","room",1,62));
   r.layout.shape=Field(rf,"Room.GetRoomShape","room",1,12);
+  // J273几何Getter直接读取当前Data.Shape；不能接受与实际原生派生结构矛盾的展示形状。
+  if(data.is_null||r.layout.shape!=data.shape)Error("room/layout","active_data_shape_required");
   r.layout.grid_width=Field(rf,"Room.GetGridWidth","room",1,28);r.layout.grid_height=Field(rf,"Room.GetGridHeight","room",1,16);
   r.layout.capacity=Field(rf,"Room.GetGridSize","room",1,448);
   if(r.layout.grid_width*r.layout.grid_height!=r.layout.capacity)Error("room/layout","geometry_capacity_disagrees");
+  if(r.layout.grid_width!=RoomShapeGridWidth(r.layout.shape)||r.layout.grid_height!=RoomShapeGridHeight(r.layout.shape))Error("room/layout","shape_array_stride_disagrees");
   const auto &water=At(At(room,"presentation_runtime","room"),"water_amount","room/presentation_runtime");if(!water.IsNumber()||!std::isfinite(water.GetDouble())||water.GetDouble()<0||water.GetDouble()>1)Error("room/water_amount","finite_unit_range");r.environment.water=float(water.GetDouble());
   const auto &objects=Sequence(At(grid,"objects","grid"),"grid/objects"),&membership=At(grid,"membership","grid");
   const auto &lifted=Sequence(At(grid,"lifted_descriptors","grid"),"grid/lifted_descriptors");
@@ -250,7 +283,7 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
   Resources(room,"room");Resources(grid,"grid");
   out->source=Copy(model);return out;
 }
-Json RoomGridCapabilities(){return Parse(R"({"id":"room-grid-target-v1","version":1,"source_extension":1,"target":"REPENTOGON-1.1.3/J273","grid_types":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],"descriptor_capacity":527,"excluded_off_grid":[-19],"limits":{"descriptors":526,"grids":456,"steps":8192,"references":4096,"dependency_edges":1048576},"native_apply":false,"native_responsibility":"I07-I25;per-member application catalog"})");}
+Json RoomGridCapabilities(){return Parse(R"({"id":"room-grid-target-v2","version":2,"source_extension":2,"target":"REPENTOGON-1.1.3/J273","grid_types":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],"descriptor_capacity":527,"excluded_off_grid":[-19],"room_shapes":[1,2,3,4,5,6,7,8,9,10,11,12],"room_adapters":["distinct-nullable-configs","shape-geometry","progress","backdrop-config-pose","water-color-fx","rails-lroom"],"room_dependencies":["I13-map-camera","I14-I25-grid","tx-04-19-special-entity-pass","tx-04-20-player-roster","tx-04-27-hud"],"environment_limits":{"layers":256,"poses_per_layer":256,"ray_groups":256,"rays_per_group":64,"vein_nodes":4096,"vein_depth":32,"vein_draw_visits":65536,"poop_poses":256},"limits":{"descriptors":526,"grids":456,"steps":8192,"references":4096,"dependency_edges":1048576},"native_apply":false,"native_responsibility":"I07-I12 Room adapters implemented;complete scene requires I13-I25"})");}
 const Json &RoomGridApplicationCatalog(){static const auto catalog=Parse(
 #include "room_grid_application.inc"
 );return catalog;}

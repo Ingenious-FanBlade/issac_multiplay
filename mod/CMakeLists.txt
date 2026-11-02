@@ -77,7 +77,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   "${REPENTOGON_ROOT}/libzhl/hde32/src/hde32.cpp"
   src/game/device_k.cpp src/game/join.cpp src/game/peer.cpp src/game/input_lease.cpp src/game/persistence.cpp
   src/game/client.cpp src/game/client_scene.cpp src/game/client_native_bridge.cpp
-  src/game/client_native_world.cpp src/game/client_objects.cpp src/game/client_objects_native.cpp
+  src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_objects.cpp src/game/client_objects_native.cpp
   src/game/client_presentation.cpp src/game/client_presentation_native.cpp
   src/game/client_resource_model.cpp src/game/client_resources_native.cpp
   src/game/client_e2e_native.cpp
@@ -90,7 +90,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
 # SDK-facing 单元只使用 C++17 值接口；Join/输入/world 核心保持 C++20。
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。
 set_source_files_properties(src/game/world_sources/loot.cpp src/game/world_sources/lua_entity.cpp src/game/player_api.cpp src/game/client_native_bridge.cpp src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp"
-  src/game/client_native_world.cpp src/game/client_objects_native.cpp src/game/client_presentation_native.cpp src/game/client_resources_native.cpp
+  src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_objects_native.cpp src/game/client_presentation_native.cpp src/game/client_resources_native.cpp
   src/game/client_e2e_native.cpp
   src/game/world_sources/random_runtime_lua.cpp src/game/world_sources/random_e2e.cpp src/game/world_sources/random_owners.cpp
   src/hooks/host_patch.cpp src/hooks/odd_patch.cpp src/hooks/exit_patch.cpp

@@ -20,7 +20,7 @@ function M.IdentityLocation(d,sourceIndex)
 end
 function M.Reference(d,sourceIndex)
   if not d then return {resolution="Null"} end
-  if not d.Data then return {resolution="NotApplicable",reason="uninitialized_descriptor"} end
+  if not d.Data and not d.OverrideData then return {resolution="NotApplicable",reason="uninitialized_descriptor"} end
   local dimension=d:GetDimension()
   local list,grid=M.IdentityLocation(d,sourceIndex)
   local id,revision=IsaacCSObservationNative.Descriptor(dimension,list,grid,M.Construction(d))
@@ -44,7 +44,9 @@ function M.Context()
     if typ=="RoomConfigRoom" then
       local key=table.concat({object.StageID,object.Mode,object.Type,object.Variant},":")
       -- Data与Override即使共享variant也可能内容不同；查找键不替代实际配置值或资源身份。
-      return true,{type="resource",lookup_key=key,owner=ctx.owner,state=read.Collect(object,typ,ctx,depth+1)}
+      local contents=IsaacCSObservationNative.RoomConfigContents(object)
+      if not contents then read.Fail(ctx,"room_config_contents_unavailable") end
+      return true,{type="resource",lookup_key=key,owner=ctx.owner,state=read.Collect(object,typ,ctx,depth+1),application_config=contents}
     end
     return false
   end

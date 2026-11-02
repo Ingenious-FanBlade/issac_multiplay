@@ -9,6 +9,46 @@ SOURCE = ROOT / "mod/observation/isaac-cs-observation"
 PARSER = "mod/src/replica/room_grid_target.cpp:ParseRoomGridTarget"
 PLAN = "mod/src/replica/room_grid_plan.cpp:PlanRoomGridTarget"
 NATIVE = "mod/src/game/client_native_world.cpp:PrepareImpl/RetireImpl"
+ROOM_NATIVE = {
+    "I07": "mod/src/replica/room_grid_target.cpp:ConfigValue;mod/src/game/client_native_world.cpp:ResolveConfiguration/OwnConfiguration",
+    "I08": "mod/src/replica/room_geometry.h;mod/src/game/client_room_native.cpp:ClientRoomStateApply",
+    "I09": "mod/src/game/client_scene.cpp:RoomState;mod/src/game/client_room_native.cpp:ClientRoomStateApply/ClientRoomFrameMaintain",
+    "I10": "mod/src/game/client_native_world.cpp:FinalizeImpl;mod/src/game/client_presentation_native.cpp:DrawImpl",
+    "I11": "mod/src/game/client_presentation.cpp:PrepareTarget;mod/src/game/client_presentation_native.cpp:LuaCaptureAux/BuildAuxCandidate/DrawImpl/ColorComposite",
+    "I12": "mod/src/game/client_room_native.cpp:ClientRoomStateCaptureLua/ClientRoomRailsDraw;mod/src/replica/room_geometry.h",
+}
+# 这些事实仍完整保留在已提交T中；不能把未来Entity/整局裁决派生查询谎称为当前Room私有字段。
+ROOM_FACT_CONSUMERS = {
+    "Room.CanSpawnObstacleAtPosition": "I20 collision/placement query",
+    "Room.GetAliveEnemiesCount": "tx-04-19 Entity membership",
+    "Room.GetAliveBossesCount": "tx-04-19 Entity membership",
+    "Room.GetSecondBossID": "tx-04-19 boss Entity/context",
+    "Room.GetBossVictoryJingle": "tx-04-27 audio",
+    "Room.GetBrokenWatchState": "tx-04-25 run effects",
+    "Room.GetShopLevel": "tx-04-25 run/shop rules",
+    "Room.GetShopItemPrice": "tx-04-25 authoritative shop price",
+    "Room.GetDeliriumDistance": "tx-04-25 boss selection;tx-04-26 topology",
+    "Room.GetDungeonRockIdx": "I17 dungeon Grid layout",
+    "Room.GetTintedRockIdx": "I17 authoritative rock Grid state",
+    "Room.GetEnemyDamageInflicted": "tx-04-25 room damage rules",
+    "Room.GetLaserTarget": "tx-04-19 laser Entity/reference",
+    "Room.IsCurrentRoomLastBoss": "tx-04-25 boss rules;tx-04-26 route",
+    "Room.IsMirrorWorld": "I13 mirror Camera;tx-04-26 dimension flow",
+    "Room.IsPersistentRoomEntity": "tx-04-24 room-save membership;tx-04-19 Entity",
+    "Room.GetEffects": "tx-04-25 room temporary gameplay effects",
+    "Room.HasCurseMist": "tx-04-19 environment Entity membership",
+    "Room.HasWaterPits": "I17/I21 authoritative GridPit/water draw",
+    "RoomDescriptor.BossDeathSeed": "tx-04-25 authoritative reward RNG",
+    "RoomDescriptor.DeliriumDistance": "tx-04-25 boss selection;tx-04-26 topology",
+    "RoomDescriptor.GetErrorTrinketEffect": "tx-04-25 authoritative room rules",
+    "RoomDescriptor.GetGroup": "tx-04-26 level group/topology",
+    "RoomDescriptor.GetGroupByName": "tx-04-26 level group/topology",
+    "RoomDescriptor.GetRestrictedGridIndexes": "I17/I20 authoritative Grid placement",
+    "RoomDescriptor.GetValidNeighborPlacementLocations": "tx-04-26 level placement",
+    "Room.IsFirstEnemyDead": "tx-04-25 room rules;retained fact",
+    "Room.HasTriggerPressurePlates": "I17/I20 Grid membership",
+    "Room.KeepDoorsClosed": "I18 authoritative Door states",
+}
 
 
 def route(m):
@@ -74,7 +114,8 @@ def generate():
             operation = ownership in ("AuthorityOnly", "ClientLocal")
             if category == "cast": ownership, operation, reason = "DerivedWitness", False, "派生接口结果是类型见证，不分配身份，不在Client重放cast调用"
             handling = "不作为Client远程调用；最终结果由状态项安装" if operation else "参数与结果一起保留；仅已理解的纯展示派生可本地重算" if category in ("parameter_query", "derived_query") else "保留具名纯值/状态/关系，按具体adapter安装"
-            implemented = task in ("I03", "I06") or operation
+            implemented = task in ("I03", "I06") or task in ROOM_NATIVE or operation
+            consumer = ROOM_FACT_CONSUMERS.get(m["id"], "tx-04-27 stage UI/audio" if m["owner"] == "RoomConfigStage" else "")
             rows.append({"source_catalog": name, "source_ordinal": ordinal, "id": m["id"], "member": m["member"],
                          "category": category, "parameters": m.get("parameters"), "returns": m.get("returns"),
                          "units": m.get("units", "API原单位"), "source_absence": m.get("absence", "状态显式保留"),
@@ -84,8 +125,9 @@ def generate():
                          "source_path": f"components/{'{room|grid}' if name == 'entity-catalog.json' else domain}/state/**/fields/{m['id']}",
                          "dependencies": ["same Scope/component capture", "complete membership before deletion", "I05 plan;I23 retirement"],
                          "missing": "保留Null/Empty/Unknown/Unavailable/Partial/Truncated；required缺失则字段级拒绝，不补零",
-                         "implementation": NATIVE if task == "I06" else PARSER if implemented else f"{PARSER}（保留来源）；{task}原生adapter待实现",
-                         "status": "implemented_foundation;runtime_pending_I29" if implemented else "native_pending_"+task,
+                         "implementation": NATIVE if task == "I06" else ROOM_NATIVE[task] if task in ROOM_NATIVE and not operation else PARSER if implemented else f"{PARSER}（保留来源）；{task}原生adapter待实现",
+                         "status": "retained_fact;consumer="+consumer if consumer and not operation else "implemented_room_adapter;runtime_pending_I29" if task in ROOM_NATIVE and not operation else "implemented_foundation;runtime_pending_I29" if implemented else "native_pending_"+task,
+                         "consumer": consumer,
                          "e2e": e2e})
         if name != "entity-catalog.json":
             for ordinal, c in enumerate(catalog.get("callbacks", [])):
@@ -103,13 +145,16 @@ def generate():
         ("GridEntityPressurePlate.TimerPlate.Null", "I21", "合法Null沿用read.Value；不可把nil当空路径Sprite"),
         ("private_grid_bridge_parent/neighbors", "I19/I20", "公开来源没有父桥指针；当前不调用MakeBridge/邻居维护，采用时补具体来源或明确纯展示推导"),
         ("resource_pose/pose_runtime", "I21", "17正式资源姿态与内容版本；不创建第二套Grid身份"),
+        ("room.config.application_config", "I07", "独立可空完整配置及MergedData树；只读复用或自有深副本，不执行候选"),
+        ("room.application_runtime", "I08/I09/I12", "真实数组尺寸/边界/12形矩形、进度、448字节轨道；不经截断Lua Getter"),
+        ("room.presentation_runtime.auxiliary", "I11", "poop最终pose/Image及vein索引图；不传指针、不调用随机构建"),
     ]
     return {"format": "isaac.cs.room-grid.application-catalog", "version": 1,
             "members": rows, "callbacks": callbacks, "gaps": gaps,
             "interfaces": grid.get("classes", []),
             "associated": [{**row, "application_task": "I19", "missing": "未解析Entity owner则拒绝依赖；不推断source Grid", "e2e": "E11"} for row in grid.get("associated", [])],
             "structural": [{"id": key, "application_task": task, "handling": text, "implementation": PARSER+";"+PLAN, "missing": "required缺失写前拒绝", "e2e": "E01/E03/E11/E13"} for key, task, text in structures],
-            "native_scope": "I01—I06基础；I07—I30及G01—G27仍按完整计划实现和统一验收"}
+            "native_scope": "I01—I12已实现；I13—I30及G01—G27仍按完整计划实现和统一验收；特殊Entity/HUD/地图依赖见room-application说明"}
 
 
 def main():

@@ -9,7 +9,7 @@ class ClientPresentation final {
 public:
   ClientPresentation() noexcept;
   ~ClientPresentation();
-  bool PrepareTarget(const replica::Value &,const char *&reason) noexcept;
+  bool PrepareTarget(const replica::Value &,const char *&reason,const ClientRoomState &) noexcept;
   ClientPresentationStep Step(const ClientNativeRoots &) noexcept;
   ClientPresentationStep Render(const ClientNativeRoots &) noexcept;
   ClientPresentationStep Retire(const ClientNativeRoots &) noexcept;

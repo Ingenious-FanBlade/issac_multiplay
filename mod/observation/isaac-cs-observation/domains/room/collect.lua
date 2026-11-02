@@ -21,8 +21,23 @@ function M.Capture(limits)
   end
   -- 正式观测同步复制原生展示参数；不由Client按本地房间配置重新裁决。
   out.presentation_runtime=IsaacCSObservationNative.RoomPresentation()
-  -- v1应用来源合同与观测v2分开版本化；配置结果/原生映射来自正式consumer，录制关闭仍可用。
-  out.application_source={version=1,target="REPENTOGON-1.1.3/J273",required_contracts={"descriptor-placement-v1","resource-pose-v1"},config_version="REPENTOGON-1.1.3/J273/base-room-config-v1",descriptor_placement=IsaacCSObservationNative.DescriptorPlacement(d)}
+  if not out.presentation_runtime then read.Fail(c,"room_presentation_runtime_unavailable") end
+  out.application_runtime=IsaacCSObservationNative.RoomApplication()
+  out.backdrop_sprites={}
+  for i,sprite in ipairs(IsaacCSObservationNative.RoomBackdropSprites()) do
+    out.backdrop_sprites[i]=sprite and read.Value(sprite,"Sprite",c,0) or {status="Null",reason="native_anm_not_loaded"}
+  end
+  out.vein_sprites={}
+  for i,sprite in ipairs(IsaacCSObservationNative.RoomVeinSprites()) do out.vein_sprites[i]=sprite and read.Value(sprite,"Sprite",c,0) or {status="Null"} end
+  if not out.application_runtime then read.Fail(c,"room_application_runtime_unavailable") end
+  -- 轨道资源按与Grid相同的正式资源姿态复制，空轨道无需加载菜单默认Sprite。
+  if out.application_runtime then
+    local present=false
+    for _,rail in ipairs(out.application_runtime.rails) do if rail~=255 then present=true;break end end
+    if present then out.rail_sprite=read.Value(room:GetRailManager():GetRailsSprite(),"Sprite",c,0) end
+  end
+  -- 应用来源extension v2与观测schema v2分开版本化；正式consumer在录制关闭时仍交付配置与原生映射。
+  out.application_source={version=2,target="REPENTOGON-1.1.3/J273",required_contracts={"descriptor-placement-v1","resource-pose-v1","room-configuration-v1","room-runtime-v1"},config_version="REPENTOGON-1.1.3/J273/room-configuration-v1",descriptor_placement=IsaacCSObservationNative.DescriptorPlacement(d)}
   if out.application_source.descriptor_placement.status~="Value" then read.Fail(c,"descriptor_placement_unavailable") end
   if unavailable>0 then read.Fail(c,"room_entity_membership_unavailable") end
   for _,e in ipairs(sources) do out.entities[#out.entities+1]=IsaacCSObservationNative.Subject(e.entity) end

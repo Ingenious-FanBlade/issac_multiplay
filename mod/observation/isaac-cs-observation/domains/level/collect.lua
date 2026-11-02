@@ -28,12 +28,12 @@ function M.Capture(limits)
       end
     end
   end
-  -- GetRooms不含全部离图槽，逐槽读取已初始化的当前描述；nil Data明确为未初始化，不能伪造空维度。
+  -- GetRooms不含全部离图槽；两份配置分别判空，不能把仅Override存在的记录吞成未初始化。
   out.off_grid={source="Level.GetRoomByIdx;target SDK 20 slots",entries={},excluded={index=-19,reason="original_online_isolation"},complete=true}
   for slot=-1,-20,-1 do if slot~=-19 then
     local d=level:GetRoomByIdx(slot,0)
-    local entry={slot=slot,status=d and d.Data and "Initialized" or "Uninitialized"}
-    if d and d.Data then
+    local entry={slot=slot,status=d and (d.Data or d.OverrideData) and "Initialized" or "Uninitialized"}
+    if d and (d.Data or d.OverrideData) then
       local id=model.Reference(d,slot); c.owner=id; c.objects=c.objects+1
       entry.subject=id; entry.state=read.Collect(d,"RoomDescriptor",c,0); entry.placement=placement(d,c)
       if id.local_id=="0" then read.Fail(c,"off_grid_identity_unavailable"); out.off_grid.complete=false end

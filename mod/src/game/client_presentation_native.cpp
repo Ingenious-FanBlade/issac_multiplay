@@ -12,6 +12,10 @@
 #include <cmath>
 #include <cstring>
 #include <new>
+#include <memory>
+#include <map>
+#include <set>
+#include <functional>
 #include <windows.h>
 #include <GL/gl.h>
 
@@ -20,7 +24,7 @@ bool ReadMemory(const void *,void *,std::size_t) noexcept;
 namespace {
 constexpr unsigned kMaximumRenderMembers=256;
 // J273 96BD30/96DB20：真实vector三指针；FX stride=0x4C，pose stride=0x14。
-// 这里只构造layer4 draw会读取的成员，其余配置不交给任何Update/随机消费者。
+// 只构造独立pass1..6实际读取的成员，不把配置交给Update/随机消费者。
 template <class T> struct NativeFXVector final {T *begin=nullptr,*end=nullptr,*capacity=nullptr;};
 struct NativeFXPose final {float x=0,y=0,velocity_x=0,velocity_y=0;bool flip_x=false,flip_y=false;unsigned char padding[2]{};};
 struct NativeFX final {
@@ -32,6 +36,14 @@ struct NativeFX final {
 };
 struct NativeRay final {float opacity=0,speed=0,phase=0;KAGE_SmartPointer_ImageBase image{};};
 struct NativeRayGroup final {float geometry[7]{};NativeFXVector<NativeRay> rays{};unsigned reserved=0;};
+struct NativeVein final {
+  int kind=0;NativeVein *children[3]{};unsigned unused=0;
+  float rotation=0,scale=1,factor=0,opacity=1;int depth=0;float x=0,y=0;unsigned padding=0;
+};
+static_assert(sizeof(NativeVein)==0x34&&offsetof(NativeVein,rotation)==0x14&&offsetof(NativeVein,x)==0x28);
+NativeVein *RoomVeins(Room &room){return reinterpret_cast<NativeVein *>(reinterpret_cast<unsigned char *>(&room._fxLayers)+0xc0);}
+NativeFXVector<NativeFXPose> &PoopVector(Room &room){return *reinterpret_cast<NativeFXVector<NativeFXPose> *>(reinterpret_cast<unsigned char *>(&room._fxLayers)+0x44);}
+KAGE_SmartPointer_ImageBase &PoopImage(Room &room){return *reinterpret_cast<KAGE_SmartPointer_ImageBase *>(reinterpret_cast<unsigned char *>(&room._fxLayers)+0x3c);}
 static_assert(sizeof(NativeFXVector<NativeFX>)==12&&sizeof(NativeFXPose)==0x14&&sizeof(NativeFX)==0x4c);
 static_assert(offsetof(NativeFX,image)==4&&offsetof(NativeFX,poses)==0xc&&offsetof(NativeFX,count)==0x18);
 static_assert(sizeof(NativeRay)==0x14&&offsetof(NativeRay,image)==0xc&&sizeof(NativeRayGroup)==0x2c&&offsetof(NativeRayGroup,rays)==0x1c);
@@ -73,11 +85,11 @@ KAGE_SmartPointer_ImageBase &QuestionImage(Minimap &map) noexcept {
   return *reinterpret_cast<KAGE_SmartPointer_ImageBase *>(reinterpret_cast<unsigned char *>(&map)+0x614);
 }
 bool RayContextMatches(Room &room,Game &game,const ClientPresentationDescription &d) {
-  // 96CE20的57背景会先绘制特殊Effect；采用普通Basement只允许真实Backdrop 1。
+  // 96CE20的57背景先绘制特殊Effect；该跨域主体缺失由Prepare具名报告。
   // 也不让菜单遗留curse/run-effect/lighting决定Authority已选光线的最终可见条件。
-  return !HasSelectedRays(d)||(room._backdrop.backdropId==1&&RayLighting()==d.fx_ray_lighting&&RayDarkness(game)==d.fx_ray_darkness);
+  return !HasSelectedRays(d)||(room._backdrop.backdropId!=57&&RayLighting()==d.fx_ray_lighting&&RayDarkness(game)==d.fx_ray_darkness);
 }
-bool FXVectorValid(const NativeFXVector<NativeFX> &v,unsigned &count,unsigned maximum=8) noexcept {
+bool FXVectorValid(const NativeFXVector<NativeFX> &v,unsigned &count,unsigned maximum=256) noexcept {
   const auto first=reinterpret_cast<std::uintptr_t>(v.begin),last=reinterpret_cast<std::uintptr_t>(v.end),cap=reinterpret_cast<std::uintptr_t>(v.capacity);
   if(last<first||cap<last||(last-first)%sizeof(NativeFX)||(cap-first)%sizeof(NativeFX)||(!first&&(last||cap)))return false;
   count=unsigned((last-first)/sizeof(NativeFX));return count<=maximum&&((!count&&!first)||first);
@@ -89,6 +101,14 @@ void *NativeFXAllocate(std::size_t bytes) {
 void NativeFXFree(void *pointer) noexcept {
   if(pointer)reinterpret_cast<void (__cdecl *)(void *)>(Base+0x68717b)(pointer);
 }
+// 所有分配都在候选owner内登记；原生Room仅借用图根/数组，不拥有本方节点的释放责任。
+struct NativeAux final {
+  NativeVein *nodes=nullptr;unsigned node_count=0;
+  std::array<unsigned,10> roots{};
+  NativeFXPose *poop=nullptr;unsigned poop_count=0;
+  KAGE_SmartPointer_ImageBase image{};
+  ~NativeAux(){NativeFXFree(nodes);NativeFXFree(poop);}
+};
 void DestroyFXRecords(NativeFX *records,unsigned count) {
   if(!records)return;
   // 原生96FFD0：ECX=begin、EDX=end、ret无栈参数；内部析构pose vector再Decr Image。
@@ -157,6 +177,10 @@ bool PassResourcesReady(const ClientPresentationDescription &description) noexce
   const auto surface_format=[](const KAGE_SmartPointer_ImageBase &p){return p.image&&p.counter&&p.image->_predefinedShader==3&&
       p.image->_numVertexAttributes==8&&p.image->_vertexFormatStride==88;};
   if(!surface_format(Surface(0x7e7360))||!ImageShader()->_initialized)return false;
+  if(description.water_amount>0&&description.water_enabled){const auto &water=Surface(0x7e7388);
+    if(!water.image||!water.counter||!water.image->_vertexFormat||water.image->_vertexFormatStride<72)return false;}
+  if(description.color_enabled){const auto &color=Surface(0x7e72e4);
+    if(!color.image||!color.counter||color.image->_vertexFormatStride!=48||!reinterpret_cast<KAGE_Graphics_Shader *>(Base+0x7ab2ec)->_initialized)return false;}
   return (description.lighting_alpha<=0&&description.fx_layers.empty())||(surface_format(Surface(0x7e7398))&&
       *reinterpret_cast<KAGE_Graphics_ImageBase **>(Base+0x7e743c));
 }
@@ -209,8 +233,10 @@ bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &o
     out[i]=entity;
   }
   if(players!=1){reason="presentation_player_render_membership";return false;}
-  for(unsigned i=0;i<room._gridWidth*room._gridHeight;++i)
-    if(room._gridEntities[i]){reason="presentation_grid_renderer_required";return false;}
+  // SDK的数组声明少列一槽，J273实际存储+24..723为448指针；末格用有界字节视图读取。
+  for(unsigned i=0;i<room._gridWidth*room._gridHeight;++i){GridEntity *grid=nullptr;
+    std::memcpy(&grid,reinterpret_cast<unsigned char *>(&room)+0x24+i*sizeof(grid),sizeof(grid));
+    if(grid){reason="presentation_grid_renderer_required";return false;}}
   return true;
 }
 // 以当前原生GetRenderZ全排，保留原索引作为tie次序；不使用4150C0的共享scratch、
@@ -257,7 +283,7 @@ void Composite(KAGE_Graphics_ImageBase *image,const KColor &color,const BlendMod
 // 随后的67E7B0是ColorMod顶点补全而非提交队列：shader3还读取stride88后半部属性。
 void FillSurfaceVertices(KAGE_SmartPointer_ImageBase &pair,float *vertices) {
   auto *image=pair.image;
-  if(vertices&&image->_predefinedShader==3){
+  if(vertices&&image->_predefinedShader==3&&image->_vertexFormatStride==88){
     struct PairArgument final {KAGE_Graphics_ImageBase *image;KAGE_ReferenceCount_ImageBase *counter;};
     static_assert(sizeof(PairArgument)==8);
     pair.counter->IncrementReference();ColorMod white;
@@ -278,6 +304,17 @@ void SurfaceComposite(KAGE_SmartPointer_ImageBase &pair,const KColor &color,cons
   auto **table=*reinterpret_cast<void ***>(pair.image);
   auto *vertices=reinterpret_cast<float *(__thiscall *)(KAGE_Graphics_ImageBase *,const DestinationQuad *,const KColor *)>(table[7])(pair.image,&quad,&color);
   FillSurfaceVertices(pair,vertices);
+}
+// GameRender的窄ColorModifier合成：直接供应Source最终6个值，不运行其更新/随机/完整GameRender。
+bool ColorComposite(const ClientPresentationDescription &d){
+  auto &graphics=*__ptr_g_KAGE_Graphics_Manager;auto &pair=Surface(0x7e72e4);auto *image=pair.image;
+  if(!image||image->_vertexFormatStride!=48)return false;graphics._shader=reinterpret_cast<KAGE_Graphics_Shader *>(Base+0x7ab2ec);graphics._blendMode=BlendMode(0,1,0,1,0);
+  SourceQuad source{};source._topRight=Vector(1,0);source._bottomLeft=Vector(0,1);source._bottomRight=Vector(1,1);
+  source._coordinateSpace=SourceQuad::NORMALIZED_UV;
+  DestinationQuad destination{};destination._topRight=Vector(g_WIDTH,0);destination._bottomLeft=Vector(0,g_HEIGHT);destination._bottomRight=Vector(g_WIDTH,g_HEIGHT);
+  const KColor tint(d.current_color[0],d.current_color[1],d.current_color[2],1);auto **table=*reinterpret_cast<void ***>(image);
+  auto *vertices=reinterpret_cast<float *(__thiscall *)(KAGE_Graphics_ImageBase *,const SourceQuad *,const DestinationQuad *,const KColor *)>(table[3])(image,&source,&destination,&tint);
+  if(!vertices)return false;for(unsigned i=0;i<4;++i){vertices[i*12+9]=d.current_color[3];vertices[i*12+10]=d.current_color[4];vertices[i*12+11]=d.current_color[5];}return true;
 }
 // 首draw只读诊断实际GL窗口与待消费顶点，区分FBO投影、blit及后续本体pass；不修正坐标。
 void ShadowDiagnostic(const char *phase,bool batches=false) noexcept {
@@ -316,11 +353,17 @@ void ShadowDiagnostic(const char *phase,bool batches=false) noexcept {
 }
 bool FXPresent(Room &room) noexcept {
   const auto &layers=FXLayersVector(room);
-  return layers.begin!=layers.end||FXRayGroups(room)||room._fxLayers._poopFxCountdown>0;
+  return layers.begin!=layers.end||FXRayGroups(room)||room._fxLayers._poopFxCountdown>0||RoomVeins(room)[0].children[0];
 }
 void DrawEntity(Entity *entity,Vector &offset) {
   if(entity->_type==1)static_cast<Entity_Player *>(entity)->Render(&offset);
   else static_cast<Entity_Effect *>(entity)->Render(&offset);
+}
+// 415350是原生按Z绘制的窄consumer；mode3/4/5依据已提供water clip flags分层，不能直接全员再画一次。
+void DrawBand(Room &room,unsigned limit,Vector &offset,int mode,bool reset=false){
+  auto *bytes=reinterpret_cast<unsigned char *>(&room._entityList);std::memcpy(bytes+0xa4,&mode,4);
+  if(reset){const unsigned zero=0;std::memcpy(bytes+0xa0,&zero,4);}
+  reinterpret_cast<void (__thiscall *)(EntityList *,unsigned,Vector *)>(Base+0x15350)(&room._entityList,limit,&offset);
 }
 }
 // 本owner拥有服务器心形字符串，不拥有Game/Room/HUD/Entity或原生全局渲染surface。
@@ -334,7 +377,11 @@ struct ClientNativePresentation final {
   NativeRayGroup *rays_installed=nullptr,*rays_candidate=nullptr;
   unsigned rays_installed_count=0,rays_candidate_count=0;
   Vector previous_screen_shake{};
+  ColorModState previous_current_color{},previous_target_color{},previous_lerp_color{};
+  float previous_lightning=0,previous_darkness=0,previous_darkness_scale=0;
+  bool environment_snapshot=false,previous_color_lerp=false;
   KAGE_SmartPointer_ImageBase shading{};
+  std::unique_ptr<NativeAux> auxiliary,auxiliary_candidate;
   // MinimapConfig+114为Image strong，明确排除；+11C..15F只有原生几何/alpha数值缓存。
   std::array<unsigned char,0x18> previous_map_header{};
   std::array<std::array<unsigned char,0x44>,2> previous_map_config{};
@@ -404,8 +451,11 @@ template <class Source> bool LoadFXImage(KAGE_SmartPointer_ImageBase &pair,const
      !image->_name||source.image!=image->_name)return false;
   // 原生96B3D2先按Position加载ray，96B488/48E再以[AACB00]的描述符调用vtable+3C。
   // 9E2210据描述符身份设置shader并复制完整属性布局；每次显式执行，不能依赖Host缓存。
-  const auto *format=ray?*reinterpret_cast<KAGE_Graphics_ImageBase_VertexAttributeDescriptor **>(Base+0x6acb00):
-      __ptr_g_VertexAttributeDescriptor_Position;
+  // J273 FX loader三种真实格式；shader3同时可能是44字节mask或88字节扩展格式，不能混同。
+  const bool position=source.shader==1&&source.vertex_stride==36,mask=source.shader==3&&source.vertex_stride==44,full=source.shader==3&&source.vertex_stride==88;
+  if((!position&&!mask&&!full)||(ray&&!full))return false;
+  const auto *format=position?__ptr_g_VertexAttributeDescriptor_Position:
+      reinterpret_cast<const KAGE_Graphics_ImageBase_VertexAttributeDescriptor *>(Base+(mask?0x788734:0x788760));
   if(!format)return false;
   image->SetVertexFormat(*format);
   using ImageParameters=void (__thiscall *)(KAGE_Graphics_ImageBase *,unsigned,unsigned);
@@ -413,14 +463,52 @@ template <class Source> bool LoadFXImage(KAGE_SmartPointer_ImageBase &pair,const
   reinterpret_cast<ImageParameters>(table[16])(image,source.min_filter,source.mag_filter);
   reinterpret_cast<ImageParameters>(table[17])(image,source.wrap_s,source.wrap_t);
   // J273 B88760为ray八属性（stride88）；Position为三属性（stride36）。
-  const unsigned char attributes[8]={5,6,7,4,3,2,1,3};
-  const bool valid=image->_predefinedShader==source.shader&&image->_predefinedShader==(ray?3u:1u)&&
+  const bool valid=image->_predefinedShader==source.shader&&
       image->_minFilterMode==source.min_filter&&image->_magFilterMode==source.mag_filter&&
       image->_wrapSMode==source.wrap_s&&image->_wrapTMode==source.wrap_t&&
-      image->_vertexFormat&&image->_numVertexAttributes==(ray?8:3)&&image->_vertexFormatStride==(ray?88:36)&&
-      std::memcmp(image->_vertexFormat,attributes,ray?8:3)==0;
+      image->_vertexFormat&&image->_numVertexAttributes==source.attributes.size()&&image->_vertexFormatStride==source.vertex_stride&&
+      std::memcmp(image->_vertexFormat,source.attributes.data(),source.attributes.size())==0;
   if(!valid)return false;
   pair=std::move(candidate);return true;
+}
+bool AuxOwnerMatches(const ClientNativePresentation &p,Room &room){
+  const auto &v=PoopVector(room);const auto *aux=p.auxiliary.get();
+  if(!aux){if(v.begin||v.end||v.capacity||PoopImage(room).image)return false;
+    for(unsigned i=0;i<10;++i)for(auto *child:RoomVeins(room)[i].children)if(child)return false;return true;}
+  const auto *end=aux->poop?aux->poop+aux->poop_count:nullptr;
+  if(v.begin!=aux->poop||v.end!=end||v.capacity!=end||PoopImage(room).image!=aux->image.image||PoopImage(room).counter!=aux->image.counter)return false;
+  for(unsigned i=0;i<10;++i){const auto &root=RoomVeins(room)[i],&expected=aux->nodes[aux->roots[i]];
+    for(unsigned j=0;j<3;++j)if(root.children[j]!=expected.children[j])return false;}return true;
+}
+bool BuildAuxCandidate(ClientNativePresentation &p,const ClientPresentationDescription &d,Room &room){
+  if(p.auxiliary_candidate||!AuxOwnerMatches(p,room))return false;
+  p.auxiliary_candidate=std::make_unique<NativeAux>();auto &a=*p.auxiliary_candidate;const auto &source=d.auxiliary;
+  a.roots=source.roots;
+  a.node_count=unsigned(source.veins.size());a.poop_count=unsigned(source.poop_poses.size());
+  a.nodes=static_cast<NativeVein *>(NativeFXAllocate(a.node_count*sizeof(NativeVein)));if(!a.nodes)return false;
+  for(unsigned i=0;i<a.node_count;++i){const auto &s=source.veins[i];auto &n=a.nodes[i];new(&n) NativeVein;
+    n.kind=s.kind;n.rotation=s.rotation;n.scale=s.scale;n.factor=s.factor;n.opacity=s.opacity;n.depth=s.depth;n.x=s.x;n.y=s.y;
+    for(unsigned j=0;j<3;++j)n.children[j]=s.children[j]<0?nullptr:a.nodes+unsigned(s.children[j]);}
+  if(a.poop_count){a.poop=static_cast<NativeFXPose *>(NativeFXAllocate(a.poop_count*sizeof(NativeFXPose)));if(!a.poop)return false;
+    for(unsigned i=0;i<a.poop_count;++i){const auto &s=source.poop_poses[i];new(a.poop+i) NativeFXPose{s.x,s.y,s.velocity_x,s.velocity_y,s.flip_x,s.flip_y,{0,0}};}}
+  if(source.poop_image_present&&!LoadFXImage(a.image,source.poop_image,true))return false;
+  if(source.veins_present)for(unsigned i=0;i<2;++i){auto *sprite=reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&room._fxLayers)+0x2c8+i*sizeof(ANM2));
+    if(source.vein_sprite_present[i]){if(!ClientApplyResourcePose(sprite,source.vein_sprites[i]).complete)return false;}
+    else if(sprite->_loaded){sprite->destructor();sprite->constructor();}}
+  return true;
+}
+void InstallAuxCandidate(ClientNativePresentation &p,Room &room,const ClientPresentationDescription &d){
+  auto &a=*p.auxiliary_candidate;for(unsigned i=0;i<10;++i)RoomVeins(room)[i]=a.nodes[d.auxiliary.roots[i]];
+  PoopImage(room)=a.image;PoopVector(room)={a.poop,a.poop?a.poop+a.poop_count:nullptr,a.poop?a.poop+a.poop_count:nullptr};
+  auto *bytes=reinterpret_cast<unsigned char *>(&room._fxLayers);const int count=int(a.poop_count);std::memcpy(bytes+0x50,&count,4);
+  std::memcpy(bytes+0x54,d.auxiliary.poop_settings,sizeof(float)*4);room._fxLayers._poopFxColor=Color(d.auxiliary.poop_color);
+  p.auxiliary=std::move(p.auxiliary_candidate);
+}
+void RetireAux(ClientNativePresentation &p,Room &room){
+  for(unsigned i=0;i<10;++i)RoomVeins(room)[i]=NativeVein{};
+  PoopVector(room)={};PoopImage(room)=KAGE_SmartPointer_ImageBase{};const unsigned zero=0;
+  std::memcpy(reinterpret_cast<unsigned char *>(&room._fxLayers)+0x50,&zero,4);
+  p.auxiliary.reset();p.auxiliary_candidate.reset();
 }
 bool BuildFXCandidate(ClientNativePresentation &p,const ClientPresentationDescription &description) {
   if(p.fx_candidate)return false;
@@ -429,13 +517,16 @@ bool BuildFXCandidate(ClientNativePresentation &p,const ClientPresentationDescri
   if(!p.fx_candidate)return false;
   for(const auto &source:description.fx_layers){
     auto &target=p.fx_candidate[p.fx_candidate_count];new(&target) NativeFX;
-    ++p.fx_candidate_count;target.id=source.id;target.parameters[4]=source.pass;
+    ++p.fx_candidate_count;target.id=source.id;
+    // 仅填已核消费者读取的字段；未采用的原生word保持本方零初始化，不复制未知内存。
+    target.parameters[4]=source.pass;std::memcpy(&target.parameters[8],&source.color_branch,4);
+    target.parameters[9]=source.mask_backdrop;target.parameters[11]=source.mask?1u:0u;
     // 真实selected Image路径来自Authority当前资源；不按seed或XML重新挑选overlay。
     if(!LoadFXImage(target.image,source))return false;
     target.count=int(source.poses.size());
     target.poses.begin=static_cast<NativeFXPose *>(NativeFXAllocate(source.poses.size()*sizeof(NativeFXPose)));
-    if(!target.poses.begin)return false;
-    target.poses.end=target.poses.capacity=target.poses.begin+source.poses.size();
+    if(!source.poses.empty()&&!target.poses.begin)return false;
+    target.poses.end=target.poses.capacity=source.poses.empty()?target.poses.begin:target.poses.begin+source.poses.size();
     for(unsigned i=0;i<source.poses.size();++i){const auto &s=source.poses[i];
       new(target.poses.begin+i) NativeFXPose{s.x,s.y,s.velocity_x,s.velocity_y,s.flip_x,s.flip_y,{0,0}};
     }
@@ -497,20 +588,30 @@ bool FXDrawReady(ClientNativePresentation &p,Room &room) noexcept {
   if(!p.fx_installed_count&&!p.rays_installed_count)return true;
   if(!room._fxLayers._loaded)return false;
   for(unsigned i=0;i<p.fx_installed_count;++i){const auto &v=p.fx_installed[i];
-    if(v.id!=7||v.parameters[4]!=4||!v.image.image||!v.image.counter||!v.poses.begin||
-       v.count!=int(p.description.fx_layers[i].poses.size())||v.poses.end!=v.poses.begin+v.count)return false;
+    if(v.id!=p.description.fx_layers[i].id||v.parameters[4]!=p.description.fx_layers[i].pass||!v.image.image||!v.image.counter||(v.count&&!v.poses.begin)||
+       v.count!=int(p.description.fx_layers[i].poses.size())||v.poses.end!=(v.count?v.poses.begin+v.count:v.poses.begin))return false;
   }
   return true;
 }
 // 原生96DAAA会phase+=speed；保存每条原位相位并在正常/异常离栈恢复，不推进展示目标。
 class RayPhases final {
 public:
-  explicit RayPhases(NativeRayGroup &group) noexcept:group_(group),count_(unsigned(group.rays.end-group.rays.begin)) {
+  explicit RayPhases(NativeRayGroup &group) noexcept:group_(group),count_(group.rays.begin?unsigned(group.rays.end-group.rays.begin):0) {
     for(unsigned i=0;i<count_;++i)phase_[i]=group.rays.begin[i].phase;
   }
   ~RayPhases(){for(unsigned i=0;i<count_;++i)group_.rays.begin[i].phase=phase_[i];}
 private:
-  NativeRayGroup &group_;unsigned count_=0;std::array<float,16> phase_{};
+  NativeRayGroup &group_;unsigned count_=0;std::array<float,64> phase_{};
+};
+// 96EAB0不推进动画，但为各node覆盖两只vein Sprite的scale/rotation/ColorMod；绘制后归还来源姿态。
+class VeinDrawBorrow final {
+public:
+  VeinDrawBorrow(Room &room,bool enabled):room_(room),enabled_(enabled){if(enabled_)for(unsigned i=0;i<2;++i){auto &s=Sprite(i);previous_[i]={s._scale,s._rotation,s._color};}}
+  ~VeinDrawBorrow(){if(enabled_)for(unsigned i=0;i<2;++i){auto &s=Sprite(i);s._scale=previous_[i].scale;s._rotation=previous_[i].rotation;s._color=previous_[i].color;}}
+private:
+  ANM2 &Sprite(unsigned i){return *reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&room_._fxLayers)+0x2c8+i*sizeof(ANM2));}
+  struct Pose {Vector scale;float rotation=0;ColorMod color;};
+  Room &room_;bool enabled_;std::array<Pose,2> previous_{};
 };
 ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativeRoots &roots,const ClientPresentationDescription &description) {
   if(!p||p->active||p->uncertain||!Current(roots)||TopOwner()!=Owner::Manager||!ClientDispatchIsolationInstalled())return {false,false,true,"presentation_prepare_owner"};
@@ -518,21 +619,26 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   auto &game=*static_cast<Game *>(roots.game);auto &room=*static_cast<Room *>(roots.room);
   std::array<Entity *,kMaximumRenderMembers> entities{};unsigned count=0;const char *reason=nullptr;
   if(!Members(room,game,entities,count,reason))return {false,false,true,reason};
-  if(description.water_amount!=0)return {false,false,true,"presentation_unadapted_water"};
-  if(description.fx_poop_countdown>0)return {false,false,true,"presentation_fx_poop_adapter_required"};
   if(!FXOwnerMatches(*p,room))return {false,false,true,"presentation_foreign_fx_owner"};
-  if(!RayContextMatches(room,game,description))return {false,false,true,"presentation_ray_context_requires_adapter"};
+  // Home专用pass直接消费Effect166/sub951，由19的真实Entity承载提供；不能用其它背景代画。
+  if(description.special_light_pass)return {false,false,true,"presentation_dependency_I19_home_effect166_951"};
   if(game._seedEffects.AchievementUnlocksDisallowed()!=description.hud_seed_blocked)
     return {false,false,true,"presentation_hud_seed_context_requires_adapter"};
   ClientPresentationDescription candidate=description;
   p->ready=false;std::swap(p->description,candidate);p->retired=false;p->game=&game;p->room=&room;
   if(!p->screen_shake_captured){p->previous_screen_shake=game._screenShakeOffset;p->screen_shake_captured=true;}
+  if(!p->environment_snapshot){p->previous_current_color=game._currentColorModifier;p->previous_target_color=game._targetColorModifier;p->previous_lerp_color=game._lerpColorModifier;
+    p->previous_color_lerp=game._shouldLerpColorModState;p->previous_lightning=game._lightningIntensity;
+    std::memcpy(&p->previous_darkness,reinterpret_cast<unsigned char *>(&game)+0x25a90,4);std::memcpy(&p->previous_darkness_scale,reinterpret_cast<unsigned char *>(&game)+0x25a94,4);p->environment_snapshot=true;}
   p->written=true;
+  if(!BuildAuxCandidate(*p,description,room))return {false,true,true,"presentation_auxiliary_resource_candidate"};
   if(!BuildFXCandidate(*p,description))return {false,true,true,"presentation_fx_resource_candidate"};
   if(!BuildRayCandidate(*p,description))return {false,true,true,"presentation_ray_resource_candidate"};
   // 7E08E0只保证具名native render surfaces/资源存在，不调用703E40的其余全局链。
   // 已读其全部分支：CreateProceduralImage/LoadImage/SetVertexFormat/filter/wrap，无模拟tick。
   reinterpret_cast<void (__cdecl *)()>(Base+0x3e08e0)();
+  // 6EFB70仅分配/配置全局图形surface；不使用703E40的Room/全局更新链。
+  if(description.color_enabled)reinterpret_cast<void (__cdecl *)()>(Base+0x2efb70)();
   if(!PassResourcesReady(description))return {false,true,true,"presentation_native_pass_resources"};
   if(!LoadRoomLight(room,false)||!LoadRoomLight(room,true))return {false,true,true,"presentation_native_room_light_resources"};
   if(description.shading_present&&!LoadFXImage(p->shading,description.shading))return {false,true,true,"presentation_shading_resource"};
@@ -552,12 +658,22 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   minimap._state=description.minimap_state;minimap._holdTime=0;minimap._shakeDuration=description.minimap_shake_duration;
   minimap._shakeOffset=Vector(description.minimap_shake[0],description.minimap_shake[1]);
   minimap._config[0]._alpha=description.minimap_small_alpha;minimap._config[1]._alpha=description.minimap_big_alpha;
-  InstallFXCandidate(*p,room,description);
+  InstallAuxCandidate(*p,room,description);InstallFXCandidate(*p,room,description);
   game._screenShakeOffset=Vector(description.screen_shake[0],description.screen_shake[1]);
   room._renderScrollOffset=Vector(description.render_scroll[0],description.render_scroll[1]);
-  // 官方Room:SetWaterAmount同样只写+7240；采用Authority明确的零值，不继承本地初始化水量。
-  // 非零目标仍在纯值/native写前拒绝，不能用此赋值绕过必要反射pass。
+  // 环境字段全量安装，包括清零/清空与真实lerp后态；没有普通Update或重新处理颜色。
   room._waterAmount=description.water_amount;
+  room._waterColor=Color(description.water_color);room._waterColorMultiplier=Color(description.water_multiplier);
+  room._waterLerpTargetColor=Color(description.water_target);room._waterLerpTargetColorMult=Color(description.water_target_multiplier);
+  room._waterLerpColorDuration=description.water_lerp_duration;room._waterLerpColorCountdown=description.water_lerp_countdown;
+  room._waterCurrent=Vector(description.water_current[0],description.water_current[1]);room._lavaIntensity=description.lava;room._rainIntensity=description.rain;room._numRainSpawners=description.rain_spawners;
+  auto &fx_params=room._fxLayers._fxParams;fx_params.useWaterV2=description.use_water_v2;
+  fx_params.waterColor=Color(description.fx_water_color);fx_params.waterColorMultiplier=Color(description.fx_water_multiplier);
+  fx_params.waterEffectColor=Color(description.water_effect);fx_params.roomColor=Color(description.fx_room_color);fx_params.brightness=description.fx_brightness;fx_params.contrast=description.fx_contrast;
+  const auto modifier=[](const float (&c)[6]){return ColorModState(c[0],c[1],c[2],c[3],c[4],c[5]);};
+  game._currentColorModifier=modifier(description.current_color);game._targetColorModifier=modifier(description.target_color);game._lerpColorModifier=modifier(description.lerp_color);
+  game._shouldLerpColorModState=description.color_lerp;game._lightningIntensity=description.lightning;
+  std::memcpy(reinterpret_cast<unsigned char *>(&game)+0x25a90,&description.darkness,4);std::memcpy(reinterpret_cast<unsigned char *>(&game)+0x25a94,&description.darkness_scale,4);
   MaintainRoomSurfaceOrigin(room);
   room._floorColor=Color(description.floor);room._wallColor=Color(description.wall);
   room._fxLayers._fxParams.shadowColor=Color(description.shadow);room._fxLayers._fxParams.lightColor=Color(description.light);
@@ -585,9 +701,23 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
   if(!p||!p->ready||p->active||p->uncertain||p->retired||!Current(roots)||p->game!=roots.game||p->room!=roots.room||
      !HasOwner(Owner::Render)||!GraphicsContext()||!ClientDispatchIsolationInstalled())return {false,false,true,"presentation_draw_owner"};
   auto &room=*p->room;auto &game=*p->game;
+  // 水纹等原生draw读取Game帧；仅本draw栈借用服务器帧，离栈恢复本地计数，不推进计时。
+  struct FrameBorrow {Game &game;Room &room;int previous;std::uint32_t baseline=0;
+    FrameBorrow(Game &g,Room &r):game(g),room(r),previous(g._frameCount){std::memcpy(&baseline,reinterpret_cast<unsigned char *>(&room)+0x11f0,4);}
+    ~FrameBorrow(){game._frameCount=previous;std::memcpy(reinterpret_cast<unsigned char *>(&room)+0x11f0,&baseline,4);}
+  } frame_borrow(game,room);
+  game._frameCount=p->description.room_state.game_frame;
+  ClientRoomFrameMaintain(&game,&room,p->description.room_state.frame,p->description.room_state.initialized);
+  // 光线可见条件是已采绘制上下文；仅draw栈借用，用户本地图形设置在离栈恢复。
+  struct FXDrawContext {Game &game;bool &lighting,&water;unsigned curses,temporary=0;bool old_lighting,old_water;
+    FXDrawContext(Game &g,const ClientPresentationDescription &d):game(g),lighting(*reinterpret_cast<bool *>(reinterpret_cast<unsigned char *>(g_Manager)+0x2a1fd)),water(*reinterpret_cast<bool *>(reinterpret_cast<unsigned char *>(g_Manager)+0x2a203)),curses(g._curses),old_lighting(lighting),old_water(water){
+      std::memcpy(&temporary,reinterpret_cast<unsigned char *>(&game)+0x25ac8,4);const unsigned zero=0;
+      std::memcpy(reinterpret_cast<unsigned char *>(&game)+0x25ac8,&zero,4);game._curses=d.effective_curses;lighting=d.fx_ray_lighting;water=d.water_enabled;}
+    ~FXDrawContext(){game._curses=curses;lighting=old_lighting;water=old_water;std::memcpy(reinterpret_cast<unsigned char *>(&game)+0x25ac8,&temporary,4);}
+  } fx_context(game,p->description);
   std::array<Entity *,kMaximumRenderMembers> entities{};unsigned count=0;const char *reason=nullptr;
   if(!Members(room,game,entities,count,reason))return {false,false,true,reason};
-  if(room._waterAmount!=0||!FXDrawReady(*p,room))return {false,false,true,"presentation_unadapted_pass_or_fx_owner"};
+  if(!FXDrawReady(*p,room)||!AuxOwnerMatches(*p,room))return {false,false,true,"presentation_fx_owner_changed"};
   if(!RayContextMatches(room,game,p->description))return {false,false,true,"presentation_ray_context_changed"};
   if(!PassResourcesReady(p->description)||*reinterpret_cast<unsigned *>(Base+0x7e72b0)>=15)
     return {false,false,true,"presentation_pass_resource_or_target_stack"};
@@ -623,6 +753,7 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     }
   }
   ActiveDraw active(p->active);
+  VeinDrawBorrow vein_pose(room,p->description.auxiliary.veins_present);
   {
     RenderState restore;
     MaintainRoomSurfaceOrigin(room);
@@ -657,7 +788,7 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     if(first_diagnostic)ShadowDiagnostic("shadow_submitted",true);
     if(!restore.FinishOffscreen(shadow.image))return {false,false,true,"presentation_shadow_target_changed"};
     if(first_diagnostic)ShadowDiagnostic("restored");
-    // 两个offscreen预pass先完成；主画面开始后不再切目标/flush而重置原生深度序列。
+    // 阴影、光照与水面预pass先完成；主场景在选定的最终颜色surface内保持连续深度序列。
     const bool has_light=p->description.lighting_alpha>0||!p->description.fx_layers.empty();
     if(has_light){
       auto &light=Surface(0x7e7398);
@@ -665,11 +796,11 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
       restore.Target(light.image,true);
       auto *solid=*reinterpret_cast<KAGE_Graphics_ImageBase **>(Base+0x7e743c);
       if(!solid)return {false,false,true,"presentation_light_solid_image"};
-      Composite(solid,Color(p->description.shadow),BlendMode());
-      if(!p->description.fx_layers.empty()){
+      Composite(solid,Color(p->description.shadow_fill),BlendMode());
+      if(!p->description.fx_layers.empty()&&p->description.layer4_enabled){
         graphics._shader=ImageShader();
         graphics._blendMode=BlendMode(0,*reinterpret_cast<const bool *>(Base+0x7ae1b3)?1:6,1,1,1);
-        KColor color=Color(p->description.light);
+        KColor color=Color(p->description.light_tint);
         reinterpret_cast<void (__thiscall *)(FXLayers *,KColor *)>(Base+0x56db20)(&room._fxLayers,&color);
       }
       for(unsigned i=0;i<count;++i)room.RenderEntityLight(entities[i],offset);
@@ -677,30 +808,62 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     }
     trace_shadow("after_light");
     if(first_diagnostic)ShadowDiagnostic("after_light");
+    const bool water=p->description.water_amount>0&&p->description.water_enabled;
+    struct BandRestore {Room &room;std::array<unsigned,2> previous{};
+      explicit BandRestore(Room &r):room(r){std::memcpy(previous.data(),reinterpret_cast<unsigned char *>(&room._entityList)+0xa0,8);}
+      ~BandRestore(){std::memcpy(reinterpret_cast<unsigned char *>(&room._entityList)+0xa0,previous.data(),8);}
+    } band_restore(room);
+    if(water){
+      // 816250是RoomPreRender末端的独立水面surface绘制；无Room/Entity/Grid Update。
+      // 使用已有正式成员及资源，原生Present在非空水面FBO上消费raw draw，再恢复外层target。
+      const auto mode_offset=0x12bcu,cursor_offset=0x12b8u;int previous_mode=0,previous_cursor=0;
+      std::memcpy(&previous_mode,reinterpret_cast<unsigned char *>(&room)+mode_offset,4);std::memcpy(&previous_cursor,reinterpret_cast<unsigned char *>(&room)+cursor_offset,4);
+      struct WaterState {Room &room;int mode,cursor;bool reflection=g_ANM2_ReflectionRendering;
+        ~WaterState(){std::memcpy(reinterpret_cast<unsigned char *>(&room)+0x12bc,&mode,4);std::memcpy(reinterpret_cast<unsigned char *>(&room)+0x12b8,&cursor,4);g_ANM2_ReflectionRendering=reflection;}
+      } water_state{room,previous_mode,previous_cursor};
+      ClientRoomWaterPreDraw(&room);
+      if(!ClientNativeCpuQueuesEmpty())return {false,false,true,"presentation_water_prepass_inflight"};
+    }
     // 原生Backdrop含floor/wall细节资源，原生Player含身体/头/服装组合，均非菜单Sprite。
-    room._backdrop.RenderFloor(backdrop_offset,room._floorColor);
+    if(p->description.color_enabled)restore.Target(Surface(0x7e72e4).image,true);
+    // FXLayers独立绘制入口仅消费已安装参数/pose，不调用Load/Update/随机。
+    reinterpret_cast<void (__thiscall *)(FXLayers *)>(Base+0x56cc00)(&room._fxLayers); // pass3：背景之前
+    if(water)reinterpret_cast<void (__thiscall *)(Room *,const Vector *)>(Base+0x416bb0)(&room,&backdrop_offset);
+    else if(room._roomType!=16)room._backdrop.RenderFloor(backdrop_offset,room._floorColor);
+    if(room._roomType!=16)reinterpret_cast<void (__thiscall *)(FXLayers *)>(Base+0x56ea50)(&room._fxLayers); // 已采vein树，无生成/随机
     unsigned cursor=0;
     // 普通Room 804F1A设mode=1；80513E绘制Z<5000，8051A0绘墙；415350的mode1无额外筛选。
-    while(cursor<count&&RenderZ(entities[cursor])<5000)DrawEntity(entities[cursor++],offset);
-    room._backdrop.RenderWalls(backdrop_offset,room._wallColor);
+    if(water)DrawBand(room,5000,offset,3,true);
+    else while(cursor<count&&RenderZ(entities[cursor])<5000)DrawEntity(entities[cursor++],offset);
+    if(room._roomType!=16)room._backdrop.RenderWalls(backdrop_offset,room._wallColor);
+    if(!water&&room._roomType!=16)ClientRoomRailsDraw(&room,p->description.room_state,{offset.x,offset.y});
     // 80548B继续处理Z<10000；shading/阴影合成位于其后，主层实体位于其前景。
-    while(cursor<count&&RenderZ(entities[cursor])<10000)DrawEntity(entities[cursor++],offset);
+    if(water)DrawBand(room,10000,offset,3);
+    else while(cursor<count&&RenderZ(entities[cursor])<10000)DrawEntity(entities[cursor++],offset);
     // 7E814F选出的实际墙边shading图，805954在walls后以同一Backdrop offset绘制。
     if(p->shading.image){graphics._blendMode=BlendMode();graphics._shader=ImageShader();ImageAt(p->shading,backdrop_offset,KColor(1,1,1,1));}
     // J273 805980的原生阴影合成色为(1,1,1,0.24)，不按猜测改写实体视觉flag。
     SurfaceComposite(shadow,KColor(1,1,1,0.24f),BlendMode());
+    reinterpret_cast<void (__thiscall *)(FXLayers *)>(Base+0x56cd10)(&room._fxLayers); // pass2：阴影之后
     if(first_diagnostic)ShadowDiagnostic("shadow_composite",true);
-    for(;cursor<count;++cursor)DrawEntity(entities[cursor],offset);
+    if(water)DrawBand(room,UINT_MAX,offset,1);
+    else for(;cursor<count;++cursor)DrawEntity(entities[cursor],offset);
     // light集合只由所选实体的真实native helper维护，包含普通Isaac必需的原生LightGradient。
-    // Basement真实layer4 FX写同一light surface；不调用含共享随机的FXLayers Load/Update。
+    // 来源已选layer4 FX写同一light surface；不调用含共享随机的FXLayers Load/Update。
     if(has_light)SurfaceComposite(Surface(0x7e7398),KColor(1,1,1,p->description.lighting_alpha),BlendMode(0,4,7,8,7),true);
-    if(HasSelectedRays(p->description)&&p->description.fx_ray_lighting&&!p->description.fx_ray_darkness){
+    if(!p->description.fx_layers.empty()||p->description.fx_poop_countdown>0||HasSelectedRays(p->description)){
       // RoomRender原生80685F：ECX=实际FXLayers，无栈参数，尾96DB1A ret。
-      // 只采用layer4与poop<=0，因此此入口的其它foreground/poop消费者不可达。
-      RayPhases phases(p->rays_installed[unsigned(p->description.fx_ray_group)]);
+      // foreground/poop/ray均消费已安装后态；ray相位自增由下面的栈借用恢复。
+      NativeRayGroup empty;auto &selected=HasSelectedRays(p->description)?p->rays_installed[unsigned(p->description.fx_ray_group)]:empty;
+      RayPhases phases(selected);
+      struct SelectedRayBorrow {Room &room;int previous;~SelectedRayBorrow(){SelectedRayGroup(room)=previous;}} selection{room,SelectedRayGroup(room)};
+      if(!HasSelectedRays(p->description))SelectedRayGroup(room)=-1;
       graphics._blendMode=BlendMode();graphics._shader=ImageShader();
       reinterpret_cast<void (__thiscall *)(FXLayers *)>(Base+0x56ce20)(&room._fxLayers);
     }
+    graphics._blendMode=BlendMode();graphics._shader=ImageShader();
+    reinterpret_cast<void (__thiscall *)(FXLayers *)>(Base+0x56e2b0)(&room._fxLayers); // pass6：最终持续覆盖层
+    if(p->description.color_enabled){if(!restore.FinishOffscreen(Surface(0x7e72e4).image)||!ColorComposite(p->description))return {false,false,true,"presentation_color_surface_or_packet"};}
     graphics._blendMode=BlendMode();graphics._shader=ImageShader();
     if(game._hud._isVisible){
       HudDraw hud(*p);
@@ -769,8 +932,9 @@ ClientPresentationStep ClientPresentationRetire(ClientNativePresentation *p,cons
      !GraphicsContext()||!ClientNativeCpuQueuesEmpty())return {false,p->written,false,"presentation_retire_inflight_or_context"};
   if(p->written){
     if(p->uncertain||!Current(roots)||p->game!=roots.game||p->room!=roots.room)return {false,true,true,"presentation_retire_owner_uncertain"};
-    if(!FXOwnerMatches(*p,*p->room))return {false,true,true,"presentation_retire_fx_owner"};
+    if(!FXOwnerMatches(*p,*p->room)||!AuxOwnerMatches(*p,*p->room))return {false,true,true,"presentation_retire_fx_owner"};
     try {
+      RetireAux(*p,*p->room);
       if(p->fx_candidate){DestroyFXRecords(p->fx_candidate,p->fx_candidate_count);p->fx_candidate=nullptr;p->fx_candidate_count=0;}
       if(p->fx_installed){DestroyFXRecords(p->fx_installed,p->fx_installed_count);p->fx_installed=nullptr;p->fx_installed_count=0;}
       if(p->rays_candidate){DestroyRayGroups(p->rays_candidate,p->rays_candidate_count);p->rays_candidate=nullptr;p->rays_candidate_count=0;}
@@ -787,6 +951,9 @@ ClientPresentationStep ClientPresentationRetire(ClientNativePresentation *p,cons
       std::memcpy(reinterpret_cast<unsigned char *>(&map)+0x61c,p->previous_map_shake.data(),12);p->map_snapshot=false;p->minimap_loaded=false;
     }
     if(p->screen_shake_captured){p->game->_screenShakeOffset=p->previous_screen_shake;p->screen_shake_captured=false;}
+    if(p->environment_snapshot){auto &game=*p->game;game._currentColorModifier=p->previous_current_color;game._targetColorModifier=p->previous_target_color;
+      game._lerpColorModifier=p->previous_lerp_color;game._shouldLerpColorModState=p->previous_color_lerp;game._lightningIntensity=p->previous_lightning;
+      std::memcpy(reinterpret_cast<unsigned char *>(&game)+0x25a90,&p->previous_darkness,4);std::memcpy(reinterpret_cast<unsigned char *>(&game)+0x25a94,&p->previous_darkness_scale,4);p->environment_snapshot=false;}
   }
   p->retired=true;p->game=nullptr;p->room=nullptr;return {true,p->written,false,"presentation_retired"};
 }
@@ -795,6 +962,12 @@ void LuaNumber(lua_State *L,const char *key,float value){lua_pushnumber(L,value)
 void LuaBoolean(lua_State *L,const char *key,bool value){lua_pushboolean(L,value);lua_setfield(L,-2,key);}
 template <std::size_t N> void LuaArray(lua_State *L,const char *key,const float (&v)[N]) {
   lua_createtable(L,int(N),0);for(unsigned i=0;i<N;++i){lua_pushnumber(L,v[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,key);
+}
+// Image格式由正式来源逐属性携带；不以同为shader3就假定相同stride。
+bool LuaImageFormat(lua_State *L,const KAGE_Graphics_ImageBase &image){
+  if(!image._vertexFormat||image._numVertexAttributes>8)return false;
+  LuaNumber(L,"vertex_stride",float(image._vertexFormatStride));lua_createtable(L,image._numVertexAttributes,0);
+  for(unsigned i=0;i<image._numVertexAttributes;++i){lua_pushinteger(L,image._vertexFormat[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"attributes");return true;
 }
 // 复制实际挂载Image身份与采样/格式参数，冷加载不得根据seed或默认图片重选。
 bool LuaImage(lua_State *L,const char *key,const KAGE_SmartPointer_ImageBase &pair,bool optional=false) {
@@ -806,7 +979,8 @@ bool LuaImage(lua_State *L,const char *key,const KAGE_SmartPointer_ImageBase &pa
   if(!size||size==1024)return false;
   lua_pushlstring(L,name,size);lua_setfield(L,-2,"image");LuaNumber(L,"shader",float(image->_predefinedShader));
   LuaNumber(L,"min_filter",float(image->_minFilterMode));LuaNumber(L,"mag_filter",float(image->_magFilterMode));
-  LuaNumber(L,"wrap_s",float(image->_wrapSMode));LuaNumber(L,"wrap_t",float(image->_wrapTMode));lua_setfield(L,-2,key);return true;
+  LuaNumber(L,"wrap_s",float(image->_wrapSMode));LuaNumber(L,"wrap_t",float(image->_wrapTMode));
+  if(!LuaImageFormat(L,*image))return false;lua_setfield(L,-2,key);return true;
 }
 bool LuaCacheString(lua_State *L,const char *key,const char *source) {
   char buffer[97]{};unsigned count=0;
@@ -840,6 +1014,7 @@ bool LuaCaptureFX(lua_State *L,Room &room) {
       if(!LuaFXImageName(L,image->_name))return false;
       LuaNumber(L,"min_filter",float(image->_minFilterMode));LuaNumber(L,"mag_filter",float(image->_magFilterMode));
       LuaNumber(L,"wrap_s",float(image->_wrapSMode));LuaNumber(L,"wrap_t",float(image->_wrapTMode));LuaNumber(L,"shader",float(image->_predefinedShader));
+      if(!LuaImageFormat(L,*image))return false;
       lua_rawseti(L,-2,j+1);
     }
     lua_setfield(L,-2,"rays");lua_rawseti(L,-2,i+1);
@@ -853,10 +1028,19 @@ bool LuaCaptureFX(lua_State *L,Room &room) {
     const auto first=reinterpret_cast<std::uintptr_t>(fx.poses.begin),last=reinterpret_cast<std::uintptr_t>(fx.poses.end),cap=reinterpret_cast<std::uintptr_t>(fx.poses.capacity);
     if(!image||!fx.image.counter||fx.count<0||fx.count>256||last<first||cap<last||(!first&&(last||cap))||
        last-first!=std::size_t(fx.count)*sizeof(NativeFXPose)||(cap-first)%sizeof(NativeFXPose))return false;
-    lua_createtable(L,0,9);LuaNumber(L,"id",float(fx.id));LuaNumber(L,"pass",float(fx.parameters[4]));
+    const auto pass=fx.parameters[4];if(pass<1||pass>6)return false;
+    const bool generic=pass==1||pass==2||pass==3||pass==6;unsigned char mask_byte=0;
+    if(generic)std::memcpy(&mask_byte,reinterpret_cast<const unsigned char *>(&fx)+0x48,1);
+    const bool mask=mask_byte!=0;float color_branch=0;std::uint32_t mask_backdrop=0;
+    if(generic&&!mask)std::memcpy(&color_branch,reinterpret_cast<const unsigned char *>(&fx)+0x3c,4);
+    if(generic&&mask)std::memcpy(&mask_backdrop,reinterpret_cast<const unsigned char *>(&fx)+0x40,4);
+    if(!std::isfinite(color_branch))return false;
+    lua_createtable(L,0,12);LuaNumber(L,"id",float(fx.id));LuaNumber(L,"pass",float(pass));
+    LuaNumber(L,"color_branch",color_branch);LuaBoolean(L,"mask",mask);lua_pushinteger(L,mask_backdrop);lua_setfield(L,-2,"mask_backdrop");
     if(!LuaFXImageName(L,image->_name))return false;
     LuaNumber(L,"min_filter",float(image->_minFilterMode));LuaNumber(L,"mag_filter",float(image->_magFilterMode));
     LuaNumber(L,"wrap_s",float(image->_wrapSMode));LuaNumber(L,"wrap_t",float(image->_wrapTMode));LuaNumber(L,"shader",float(image->_predefinedShader));
+    if(!LuaImageFormat(L,*image))return false;
     lua_createtable(L,fx.count,0);
     for(int j=0;j<fx.count;++j){const auto &pose=fx.poses.begin[j];lua_createtable(L,0,6);
       LuaNumber(L,"x",pose.x);LuaNumber(L,"y",pose.y);LuaNumber(L,"velocity_x",pose.velocity_x);LuaNumber(L,"velocity_y",pose.velocity_y);
@@ -866,17 +1050,56 @@ bool LuaCaptureFX(lua_State *L,Room &room) {
   }
   lua_setfield(L,-2,"layers");lua_setfield(L,-2,"room_fx");return true;
 }
+// 只读复制poop随机后态及vein图；图地址仅用于本次主线程去重，出栈仅有有界整数引用。
+// node+10/+30既无draw消费合同，也不参与复制；不把未知padding或child裸地址上网。
+bool LuaCaptureAux(lua_State *L,Room &room){
+  const auto &v=PoopVector(room);const auto first=reinterpret_cast<std::uintptr_t>(v.begin),last=reinterpret_cast<std::uintptr_t>(v.end),cap=reinterpret_cast<std::uintptr_t>(v.capacity);
+  int count=0;std::memcpy(&count,reinterpret_cast<unsigned char *>(&room._fxLayers)+0x50,4);
+  if(count<0||count>256||last<first||cap<last||(last-first)%sizeof(NativeFXPose)||(cap-first)%sizeof(NativeFXPose)||(!first&&(last||cap))||std::size_t(count)>(last-first)/sizeof(NativeFXPose))return false;
+  std::map<const NativeVein *,unsigned> ids;std::set<const NativeVein *> active;std::vector<ClientPresentationVein> nodes;std::array<unsigned,10> roots{};
+  std::function<bool(const NativeVein *,unsigned,unsigned &)> visit=[&](const NativeVein *p,unsigned depth,unsigned &id){
+    if(!p||depth>32||active.count(p))return false;if(auto found=ids.find(p);found!=ids.end()){id=found->second;return true;}
+    if(nodes.size()>=4096)return false;NativeVein n;
+    if(!ReadMemory(p,&n.kind,4)||!ReadMemory(reinterpret_cast<const unsigned char *>(p)+4,n.children,12)||
+       !ReadMemory(reinterpret_cast<const unsigned char *>(p)+0x14,&n.rotation,28)||n.kind<0||n.kind>1)return false;
+    id=unsigned(nodes.size());ids.emplace(p,id);nodes.emplace_back();active.insert(p);
+    ClientPresentationVein value;value.kind=n.kind;value.depth=n.depth;value.rotation=n.rotation;value.scale=n.scale;value.factor=n.factor;value.opacity=n.opacity;value.x=n.x;value.y=n.y;
+    for(unsigned i=0;i<3;++i)if(n.children[i]){unsigned child=0;if(!visit(n.children[i],depth+1,child))return false;value.children[i]=int(child);}
+    nodes[id]=value;active.erase(p);return true;
+  };
+  for(unsigned i=0;i<10;++i)if(!visit(RoomVeins(room)+i,0,roots[i]))return false;
+  lua_createtable(L,0,7);LuaBoolean(L,"veins_present",RoomVeins(room)[0].children[0]!=nullptr);
+  if(!LuaImage(L,"poop_image",PoopImage(room),true))return false;
+  float color[11]{},settings[4]{};CopyColor(room._fxLayers._poopFxColor,color);std::memcpy(settings,reinterpret_cast<unsigned char *>(&room._fxLayers)+0x54,sizeof(settings));
+  LuaArray(L,"poop_color",color);LuaArray(L,"poop_settings",settings);lua_createtable(L,count,0);
+  for(int i=0;i<count;++i){const auto &s=v.begin[i];lua_createtable(L,0,6);LuaNumber(L,"x",s.x);LuaNumber(L,"y",s.y);
+    LuaNumber(L,"velocity_x",s.velocity_x);LuaNumber(L,"velocity_y",s.velocity_y);LuaBoolean(L,"flip_x",s.flip_x);LuaBoolean(L,"flip_y",s.flip_y);lua_rawseti(L,-2,i+1);}
+  lua_setfield(L,-2,"poop_poses");lua_createtable(L,10,0);for(unsigned i=0;i<10;++i){lua_pushinteger(L,roots[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"roots");
+  lua_createtable(L,int(nodes.size()),0);for(unsigned i=0;i<nodes.size();++i){const auto &n=nodes[i];lua_createtable(L,0,9);
+    LuaNumber(L,"kind",float(n.kind));LuaNumber(L,"depth",float(n.depth));LuaNumber(L,"rotation",n.rotation);LuaNumber(L,"scale",n.scale);
+    LuaNumber(L,"factor",n.factor);LuaNumber(L,"opacity",n.opacity);LuaNumber(L,"x",n.x);LuaNumber(L,"y",n.y);lua_createtable(L,3,0);
+    for(unsigned j=0;j<3;++j){lua_pushinteger(L,n.children[j]);lua_rawseti(L,-2,j+1);}lua_setfield(L,-2,"children");lua_rawseti(L,-2,i+1);}
+  lua_setfield(L,-2,"veins");lua_setfield(L,-2,"auxiliary");return true;
+}
 }
 int ClientPresentationCaptureLua(void *state) {
   auto *L=static_cast<lua_State *>(state);
   const int top=lua_gettop(L);
-  if(!IsMain()||!g_Game||!g_Game->_room||!g_Game->_room->_descriptor||g_Game->_playerManager._playerList.size()!=1){lua_pushnil(L);return 1;}
+  if(!IsMain()||!g_Game||!g_Game->_room||!g_Game->_room->_descriptor||g_Game->_playerManager._playerList.empty()||g_Game->_room->_backdrop.backdropId>=63){lua_pushnil(L);return 1;}
   auto &room=*g_Game->_room;auto &hud=g_Game->_hud;auto &ph=hud._playerHUD[0];
   if(ph._player!=g_Game->_playerManager._playerList[0]){lua_pushnil(L);return 1;}
   float floor[11]{},wall[11]{},shadow[5]{},light[5]{};
   CopyColor(room._floorColor,floor);CopyColor(room._wallColor,wall);
   CopyColor(room._fxLayers._fxParams.shadowColor,shadow);CopyColor(room._fxLayers._fxParams.lightColor,light);
-  lua_createtable(L,0,13);LuaNumber(L,"version",1);
+  lua_createtable(L,0,40);LuaNumber(L,"version",2);
+  const float backdrop_inputs[4]={room._backdrop.unkVec1.x,room._backdrop.unkVec1.y,room._backdrop.unkVec2.x,room._backdrop.unkVec2.y};
+  LuaArray(L,"backdrop_surface_inputs",backdrop_inputs);
+  // 当前Backdrop配置为原生构建采用的实际资源集合；不以本地Stage/RoomType重新选图。
+  const auto &bc=room._backdrop.configurations[room._backdrop.backdropId];lua_createtable(L,0,2);lua_createtable(L,12,0);
+  const std::string *paths[]={&bc.gfx,&bc.waterGfx,&bc.lFloorGfx,&bc.nFloorGfx,&bc.props,&bc.rocks,&bc.pit,&bc.waterPit,&bc.bridge,&bc.door,&bc.holeInWall,&bc.spikes};
+  for(unsigned i=0;i<12;++i){lua_pushlstring(L,paths[i]->data(),paths[i]->size());lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"paths");
+  const unsigned values[]={bc.backdropId,bc.walls,bc.wallVariants,bc.floors,bc.floorVariants,bc.unk1,bc.waterPitsMode};lua_createtable(L,7,0);
+  for(unsigned i=0;i<7;++i){lua_pushinteger(L,values[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"values");lua_setfield(L,-2,"backdrop_config");
   // Backdrop独立装饰流：保留真实构造seed、当前后态及shift；不重抽Authority玩法随机。
   lua_createtable(L,0,5);
   lua_pushinteger(L,lua_Integer(room._backdrop.seed));lua_setfield(L,-2,"construction_seed");
@@ -886,10 +1109,43 @@ int ClientPresentationCaptureLua(void *state) {
   lua_pushinteger(L,lua_Integer(room._backdrop.rng._shift3));lua_setfield(L,-2,"shift3");lua_setfield(L,-2,"backdrop_runtime");
   LuaArray(L,"floor_color",floor);LuaArray(L,"wall_color",wall);LuaArray(L,"shadow_color",shadow);LuaArray(L,"light_color",light);
   LuaNumber(L,"shadow_alpha",room._fxLayers._fxParams.shadowAlpha);LuaNumber(L,"water_amount",room._waterAmount);
+  auto &fx=room._fxLayers._fxParams;
+  const auto kcolor=[L](const char *name,const KColor &c){float values[5]{};CopyColor(c,values);LuaArray(L,name,values);};
+  kcolor("water_color",room._waterColor);kcolor("water_multiplier",room._waterColorMultiplier);
+  kcolor("water_target",room._waterLerpTargetColor);kcolor("water_target_multiplier",room._waterLerpTargetColorMult);
+  kcolor("fx_water_color",fx.waterColor);kcolor("fx_water_multiplier",fx.waterColorMultiplier);kcolor("fx_room_color",fx.roomColor);
+  float water_effect[11]{};CopyColor(fx.waterEffectColor,water_effect);LuaArray(L,"water_effect",water_effect);
+  const auto modifier=[L](const char *name,const ColorModState &c){const float values[6]={c.r,c.g,c.b,c.a,c.brightness,c.contrast};LuaArray(L,name,values);};
+  modifier("current_color",g_Game->_currentColorModifier);modifier("target_color",g_Game->_targetColorModifier);modifier("lerp_color",g_Game->_lerpColorModifier);
+  LuaBoolean(L,"color_lerp",g_Game->_shouldLerpColorModState);LuaBoolean(L,"use_water_v2",fx.useWaterV2);
+  LuaBoolean(L,"water_enabled",g_Manager&&*reinterpret_cast<const bool *>(reinterpret_cast<const unsigned char *>(g_Manager)+0x2a203));
+  LuaBoolean(L,"color_enabled",g_Manager&&*reinterpret_cast<const bool *>(reinterpret_cast<const unsigned char *>(g_Manager)+0x2a205));
+  const float current[2]={room._waterCurrent.x,room._waterCurrent.y};LuaArray(L,"water_current",current);
+  LuaNumber(L,"fx_brightness",fx.brightness);LuaNumber(L,"fx_contrast",fx.contrast);LuaNumber(L,"lava",room._lavaIntensity);LuaNumber(L,"rain",room._rainIntensity);
+  LuaNumber(L,"rain_spawners",float(room._numRainSpawners));LuaNumber(L,"lightning",g_Game->_lightningIntensity);
+  LuaNumber(L,"water_lerp_duration",float(room._waterLerpColorDuration));LuaNumber(L,"water_lerp_countdown",float(room._waterLerpColorCountdown));
   LuaNumber(L,"lighting_alpha",room.GetLightingAlpha());LuaBoolean(L,"hud_visible",hud._isVisible);LuaBoolean(L,"room_fx_present",FXPresent(room));
   float darkness=0,darkness_scale=0;std::memcpy(&darkness,reinterpret_cast<unsigned char *>(g_Game)+0x25a90,4);
   std::memcpy(&darkness_scale,reinterpret_cast<unsigned char *>(g_Game)+0x25a94,4);
-  // 对应803F24/804076—11A：此代表下layer4输入为真实lightColor，其它混合路径明确不采用。
+  LuaNumber(L,"darkness",darkness);LuaNumber(L,"darkness_scale",darkness_scale);
+  // 803F24—8041B3的最终混色。两个窄helper仅查询现有楼层/curse/收集品，不触发生成。
+  // 只在Authority计算一次；Client不依赖自己的curse、路线或共享随机状态再计算。
+  KColor fill=fx.shadowColor,tint=fx.lightColor;const bool pitch=(room._descriptor->Flags&0x200)!=0,special=room._backdrop.backdropId==57;
+  if(pitch)fill=KColor(0,0,0,1);
+  if(!pitch&&!special){float factor=RayDarkness(*g_Game)?1.0f:darkness*darkness_scale;
+    const bool boost=room._roomType==8||room._roomType==29||
+      (reinterpret_cast<bool (__thiscall *)(Game *)>(Base+0x348f30)(g_Game)&&g_Game->_currentDimensionIdx==1)||
+      reinterpret_cast<bool (__thiscall *)(Room *)>(Base+0x41cb60)(&room);
+    if(boost)factor=(std::min)(factor+0.6f,1.0f);
+    if(g_Game->_stage==13&&g_Game->_stageType==1&&!(room._descriptor->Flags&4))factor=1;
+    factor=(std::max)(factor-g_Game->_lightningIntensity,0.0f);
+    tint=KColor(tint._red+(fill._red-tint._red)*factor,tint._green+(fill._green-tint._green)*factor,
+      tint._blue+(fill._blue-tint._blue)*factor,tint._alpha);
+  }
+  float fill_value[5]{},tint_value[5]{};CopyColor(fill,fill_value);CopyColor(tint,tint_value);
+  LuaArray(L,"shadow_fill",fill_value);LuaArray(L,"light_tint",tint_value);LuaBoolean(L,"special_light_pass",special);
+  LuaBoolean(L,"layer4_enabled",!pitch&&!special);
+  // 保留17已有的普通分支事实；最终绘制使用上面的Source混色，不用此事实限制其它Room。
   LuaBoolean(L,"ordinary_light_tint",room._roomType==1&&room._backdrop.backdropId==1&&g_Game->_stage==1&&
       g_Game->_currentDimensionIdx==0&&!(room._descriptor->Flags&0x200)&&!RayDarkness(*g_Game)&&darkness*darkness_scale==0&&g_Game->_lightningIntensity==0);
   if(!LuaImage(L,"shading",Surface(0x7e7370),true)){lua_settop(L,top);lua_pushnil(L);return 1;}
@@ -906,6 +1162,7 @@ int ClientPresentationCaptureLua(void *state) {
   const float shake[2]={g_Game->_screenShakeOffset.x,g_Game->_screenShakeOffset.y},scroll[2]={room._renderScrollOffset.x,room._renderScrollOffset.y};
   LuaArray(L,"screen_shake",shake);LuaArray(L,"render_scroll",scroll);
   if(!LuaCaptureFX(L,room)){lua_settop(L,top);lua_pushnil(L);return 1;}
+  if(!LuaCaptureAux(L,room)){lua_settop(L,top);lua_pushnil(L);return 1;}
   lua_createtable(L,0,5);LuaNumber(L,"red_flash",float(ph._redHeartFlashCountdown));LuaNumber(L,"soul_flash",float(ph._soulHeartFlashCountdown));
   LuaNumber(L,"gold_flash",float(ph._goldHeartFlashCountdown));LuaNumber(L,"drop_scale",DropScale(ph));
   lua_createtable(L,24,0);

@@ -2,8 +2,16 @@
 #include <cstdint>
 #include <array>
 #include <vector>
+#include "replica/room_configuration.h"
+#include "game/client_room_native.h"
 
 namespace cs::game {
+// 背景配置属于Room内嵌Backdrop，不修改共享XML/Host资源；字符串只接受逻辑资源路径。
+struct ClientBackdropConfiguration final {
+  std::array<std::string,12> paths{};
+  std::array<unsigned,7> values{};
+  bool operator==(const ClientBackdropConfiguration &b) const {return paths==b.paths&&values==b.values;}
+};
 // SDK边界只接收具名纯值；Key只用于核对本地承载代次，不分配身份、不携带对象指针。
 struct ClientNativeDescriptorDescription final {
   std::uint64_t key_run=0,key_id=0,construction_revision=0;
@@ -13,6 +21,7 @@ struct ClientNativeDescriptorDescription final {
   int config_stage=0,config_mode=0,type=0,subtype=0,shape=0,width=0,height=0;
   std::uint32_t variant=0;
   bool data_null=false,override_null=false;
+  replica::RoomConfiguration data{},override_data{};
   int allowed=0,flags=0,visited=0,clear_count=0;
   std::array<int,8> doors{};
   std::uint32_t spawn=0,decoration=0,award=0;
@@ -23,6 +32,7 @@ struct ClientNativeSceneDescription final {
   int config_stage=0,config_mode=0,room_type=0,subtype=0;
   std::uint32_t variant=0;
   int shape=0,width=0,height=0,config_flags=0;
+  int grid_width=0,grid_height=0;
   int room_index=0,grid_index=0,list_index=0,safe_grid_index=0,dimension=0,enter_door=-1,starting_index=0;
   // 首项为当前descriptor，其余为正式来源实际提供的相关descriptor；不补造未知条目。
   std::vector<ClientNativeDescriptorDescription> descriptors;
@@ -34,6 +44,11 @@ struct ClientNativeSceneDescription final {
   unsigned backdrop=0;
   float water_amount=0;
   float camera_x=0,camera_y=0;
+  ClientRoomState room_state{};
+  ClientBackdropConfiguration backdrop_config{};
+  std::array<float,4> backdrop_surface_inputs{};
+  std::array<ClientResourcePose,4> backdrop_sprites{};
+  std::array<bool,4> backdrop_sprite_present{};
 };
 enum class ClientNativeStepState : unsigned { Progress, Ready, Waiting, Failed };
 // 前缀为实际已开始的子步骤；失败时保留，只有真实退休完成后才归零。

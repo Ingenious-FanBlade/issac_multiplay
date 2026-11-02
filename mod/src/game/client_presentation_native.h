@@ -25,26 +25,62 @@ struct ClientPresentationFXPose final {
 };
 struct ClientPresentationFX final {
   unsigned id=0,pass=0,min_filter=0,mag_filter=0,wrap_s=0,wrap_t=0,shader=0;
+  unsigned vertex_stride=0;
+  std::vector<unsigned char> attributes;
   std::string image;
   std::vector<ClientPresentationFXPose> poses;
+  // 96C620实际消费+3c的浮点条件、+40的背景整数和+48的bool；其它word不进网络合同。
+  float color_branch=0;
+  std::uint32_t mask_backdrop=0;
+  bool mask=false;
 };
 // ray的动画相位同样来自Authority缓存；native draw的phase自增在离栈时恢复。
 struct ClientPresentationRay final {
   float opacity=0,speed=0,phase=0;
   unsigned min_filter=0,mag_filter=0,wrap_s=0,wrap_t=0,shader=0;
+  unsigned vertex_stride=0;
+  std::vector<unsigned char> attributes;
   std::string image;
 };
 struct ClientPresentationRayGroup final {
   std::array<float,7> geometry{};
   std::vector<ClientPresentationRay> rays;
 };
+// 私有vein树只传索引与绘制所消费的标量；不复制child地址、未知padding或owner计数。
+struct ClientPresentationVein final {
+  int kind=0,depth=0;
+  std::array<int,3> children{-1,-1,-1};
+  float rotation=0,scale=1,factor=0,opacity=1,x=0,y=0;
+};
+struct ClientPresentationAux final {
+  bool poop_image_present=false,veins_present=false;
+  ClientPresentationFX poop_image;
+  float poop_color[11]{},poop_settings[4]{};
+  std::vector<ClientPresentationFXPose> poop_poses;
+  std::vector<ClientPresentationVein> veins;
+  std::array<unsigned,10> roots{};
+  std::array<ClientResourcePose,2> vein_sprites{};
+  std::array<bool,2> vein_sprite_present{};
+};
 // 展示输入只含服务器最终值；原生指针只在当前主线程借用中解析。
 struct ClientPresentationDescription final {
+  ClientRoomState room_state{};
+  ClientPresentationAux auxiliary{};
   float floor[11]{1,1,1,1,0,0,0,0,0,0,0};
   float wall[11]{1,1,1,1,0,0,0,0,0,0,0};
   float shadow[5]{0,0,0,1,0},light[5]{1,1,1,1,0};
   float shadow_alpha=1,water_amount=0,lighting_alpha=0;
-  // 803E20实际layer4输入色；先只闭合普通Basement无特殊darkness/lightning的分支。
+  // FXParams输入与已处理ColorModifier分开，绝不调用Compute/UpdateColorModifier重新裁决。
+  float water_color[5]{},water_multiplier[5]{},water_target[5]{},water_target_multiplier[5]{};
+  float fx_water_color[5]{},fx_water_multiplier[5]{},water_effect[11]{},fx_room_color[5]{};
+  float current_color[6]{},target_color[6]{},lerp_color[6]{};
+  float water_current[2]{},fx_brightness=0,fx_contrast=1,lava=0,rain=0,lightning=0,darkness=0,darkness_scale=0;
+  int water_lerp_duration=0,water_lerp_countdown=0,rain_spawners=0;
+  bool use_water_v2=false,color_lerp=false,water_enabled=false,color_enabled=false;
+  float light_tint[5]{1,1,1,1,0};
+  float shadow_fill[5]{0,0,0,1,0};
+  bool special_light_pass=false,layer4_enabled=true;
+  // 保留原代表分支的来源事实；实际输入色为上面的最终light_tint，不以此值限制Room。
   bool ordinary_light_tint=false;
   bool hud_visible=true,room_fx_present=false;
   // HUD采用Authority最终显示条件；合作选择面板仅支持来源明确关闭的代表路径。

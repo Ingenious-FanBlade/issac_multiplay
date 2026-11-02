@@ -10,6 +10,7 @@
 #include <iterator>
 #include <cstring>
 #include <cstddef>
+#include <memory>
 #include <windows.h>
 #include <GL/gl.h>
 
@@ -21,6 +22,8 @@ namespace {
 struct DescriptorScalars final {
   int grid=0,safe=0,list=0,dimension=0,allowed=0,flags=0,visited=0;
   std::int16_t clear=0;
+  std::int16_t money=0,shop=0,discount=0,poop=0,keeper=0;
+  int greed_subtype=0,pits=0;
   RoomConfig_Room *data=nullptr,*override_data=nullptr;
   int doors[8]{};
   std::uint32_t spawn=0,decoration=0,award=0;
@@ -28,12 +31,14 @@ struct DescriptorScalars final {
     grid=d.GridIndex;safe=d.SafeGridIndex;list=d.ListIndex;dimension=d.Dimension;
     data=d.Data;override_data=d.OverrideData;allowed=d.AllowedDoors;flags=d.Flags;
     visited=d.VisitedCount;clear=d.ClearCount;spawn=d.SpawnSeed;decoration=d.DecorationSeed;award=d.AwardSeed;
+    money=d.TotalMoneySpent;shop=d.ShopItemIdx;discount=d.ShopItemDiscountIdx;poop=d.PoopCount;keeper=d.TKeeperCoinSpawns;greed_subtype=d.GreedSubType;pits=d.PitsCount;
     std::copy(std::begin(d.Doors),std::end(d.Doors),doors);
   }
   void Restore(RoomDescriptor &d) const noexcept {
     d.GridIndex=grid;d.SafeGridIndex=safe;d.ListIndex=list;d.Dimension=dimension;
     d.Data=data;d.OverrideData=override_data;d.AllowedDoors=allowed;d.Flags=flags;
     d.VisitedCount=visited;d.ClearCount=clear;d.SpawnSeed=spawn;d.DecorationSeed=decoration;d.AwardSeed=award;
+    d.TotalMoneySpent=money;d.ShopItemIdx=shop;d.ShopItemDiscountIdx=discount;d.PoopCount=poop;d.TKeeperCoinSpawns=keeper;d.GreedSubType=greed_subtype;d.PitsCount=pits;
     std::copy(std::begin(doors),std::end(doors),d.Doors);
   }
 };
@@ -48,25 +53,51 @@ RoomDescriptor *DescriptorStorage(Game &g,const ClientNativeDescriptorDescriptio
 static_assert(offsetof(Game,pad2)==0x182c8&&sizeof(void *)==4,"J273 current dimension offsets");
 std::uint32_t CurrentOffsets(const Game &g) noexcept {std::uint32_t bits=0;std::memcpy(&bits,g.pad2,4);return bits;}
 void CurrentOffsets(Game &g,std::uint32_t bits) noexcept {std::memcpy(g.pad2,&bits,4);}
-void ApplyDescriptor(RoomDescriptor &d,const ClientNativeDescriptorDescription &s,RoomConfig_Room *config) noexcept {
+struct ConfigurationPair final {RoomConfig_Room *data=nullptr,*override_data=nullptr;};
+// SDK以bitset<8>声明这两处4字节存储；按J273实际word保留全部原始位，不经构造器截掉高位。
+template <class T> std::uint32_t ConfigurationBits(const T &value){static_assert(sizeof(T)==4);std::uint32_t bits=0;std::memcpy(&bits,&value,4);return bits;}
+void ApplyDescriptor(RoomDescriptor &d,const ClientNativeDescriptorDescription &s,const ConfigurationPair &configs) noexcept {
   d.GridIndex=s.grid;d.SafeGridIndex=s.safe;d.ListIndex=s.list;d.Dimension=s.dimension;
-  d.Data=s.data_null?nullptr:config;d.OverrideData=s.override_null?nullptr:config;
+  d.Data=configs.data;d.OverrideData=configs.override_data;
   d.AllowedDoors=s.allowed;d.Flags=s.flags;d.VisitedCount=s.visited;d.ClearCount=std::int16_t(s.clear_count);
   d.SpawnSeed=s.spawn;d.DecorationSeed=s.decoration;d.AwardSeed=s.award;
   std::copy(s.doors.begin(),s.doors.end(),d.Doors);
 }
-// 双配置/配置内容校验归I07；当前沿用17已理解的配置查找，不重载已有RoomSet。
-RoomConfig_Room *ResolveDescriptorConfig(Game &g,const ClientNativeDescriptorDescription &s,bool &written,unsigned &prefix) {
-  if(s.data_null&&s.override_null)return nullptr;
-  auto &set=g._roomConfig._stages[s.config_stage]._rooms[s.config_mode];
-  if(!set._loaded){
-    if(set._configs||set._count)return nullptr;
-    written=true;prefix|=1u;g._roomConfig.LoadStageBinary(s.config_stage,s.config_mode);
-    if(!set._loaded)return nullptr;
-  }
-  auto *config=g._roomConfig.GetRoomByStageTypeAndVariant(s.config_stage,s.type,s.variant,s.config_mode);
-  return config&&config->Type==s.type&&config->Subtype==s.subtype&&config->Shape==s.shape&&
-      config->Width==s.width&&config->Height==s.height?config:nullptr;
+// 借用仅限内容完全相同的已加载资源；不LoadStageBinary，避免退休快照持有悬空Data。
+// 内容不同或尚未加载时使用SDK具名构造的自有深副本，释放在Room退休且descriptor恢复之后。
+bool ConfigurationMatches(const RoomConfig_Room *c,const replica::RoomConfiguration &s,unsigned depth=0) {
+  if(s.is_null)return !c;
+  if(!c||depth>8||c->StageId!=s.stage||c->Mode!=s.mode||c->Type!=s.type||c->Variant!=s.variant||c->Subtype!=s.subtype||
+     c->Shape!=s.shape||c->Width!=s.width||c->Height!=s.height||c->Name!=s.name||c->Difficulty!=s.difficulty||
+     c->InitialWeight!=s.initial_weight||c->Weight!=s.weight||c->Doors!=s.doors||ConfigurationBits(c->QuestDoors)!=s.quest_doors||
+     ConfigurationBits(c->Flags)!=s.flags||c->originalVariant!=s.original_variant||c->SpawnCount!=s.spawns.size()||s.merged.size()!=2)return false;
+  if(c->SpawnCount&&!c->Spawns)return false;
+  for(unsigned i=0;i<c->SpawnCount;++i){const auto &a=c->Spawns[i];const auto &b=s.spawns[i];
+    if(a.X!=b.x||a.Y!=b.y||a.SumWeights!=b.sum_weights||a.CountEntries!=b.entries.size()||(a.CountEntries&&!a.Entries))return false;
+    for(unsigned j=0;j<a.CountEntries;++j){const auto &x=a.Entries[j];const auto &y=b.entries[j];if(x.type!=y.type||x.variant!=y.variant||x.subtype!=y.subtype||x.weight!=y.weight)return false;}}
+  return ConfigurationMatches(c->MergedData[0],s.merged[0],depth+1)&&ConfigurationMatches(c->MergedData[1],s.merged[1],depth+1);
+}
+RoomConfig_Room *OwnConfiguration(const replica::RoomConfiguration &s,std::vector<std::unique_ptr<RoomConfig_Room>> &owner) {
+  if(s.is_null)return nullptr;
+  auto value=std::make_unique<RoomConfig_Room>();auto *c=value.get();owner.push_back(std::move(value));
+  c->StageId=s.stage;c->Mode=s.mode;c->Type=s.type;c->Variant=s.variant;c->Subtype=s.subtype;c->Name=s.name;c->Difficulty=s.difficulty;
+  c->InitialWeight=s.initial_weight;c->Weight=s.weight;c->Doors=s.doors;std::memcpy(&c->QuestDoors,&s.quest_doors,4);c->Width=std::int8_t(s.width);c->Height=std::int8_t(s.height);
+  c->Shape=s.shape;std::memcpy(&c->Flags,&s.flags,4);c->originalVariant=s.original_variant;
+  // 先完整分配再发布SpawnCount；SDK析构逐项拥有Entries，不接管游戏共享数组。
+  if(!s.spawns.empty()){c->Spawns=new RoomSpawn[s.spawns.size()];c->SpawnCount=std::uint16_t(s.spawns.size());}
+  for(unsigned i=0;i<s.spawns.size();++i){auto &a=c->Spawns[i];const auto &b=s.spawns[i];a.X=b.x;a.Y=b.y;a.SumWeights=b.sum_weights;
+    if(!b.entries.empty()){a.Entries=new RoomEntry[b.entries.size()];a.CountEntries=std::uint8_t(b.entries.size());}
+    for(unsigned j=0;j<b.entries.size();++j){a.Entries[j].type=b.entries[j].type;a.Entries[j].variant=b.entries[j].variant;a.Entries[j].subtype=b.entries[j].subtype;a.Entries[j].weight=b.entries[j].weight;}}
+  for(unsigned i=0;i<2;++i)c->MergedData[i]=OwnConfiguration(s.merged[i],owner);return c;
+}
+RoomConfig_Room *ResolveConfiguration(Game &g,const replica::RoomConfiguration &s,std::vector<std::unique_ptr<RoomConfig_Room>> &owner) {
+  if(s.is_null)return nullptr;
+  auto &set=g._roomConfig._stages[s.stage]._rooms[s.mode];
+  if(set._loaded){auto *candidate=g._roomConfig.GetRoomByStageTypeAndVariant(s.stage,s.type,s.variant,s.mode);
+    if(ConfigurationMatches(candidate,s))return candidate;}
+  // 冷Client中相同内容也复用同一自有配置；Data/Override相同不会制造两份替代资源。
+  for(const auto &candidate:owner)if(ConfigurationMatches(candidate.get(),s))return candidate.get();
+  return OwnConfiguration(s,owner);
 }
 // J273 7E8410：ECX=slot、EDX=width、栈=height/shape，caller 清栈8字节。
 // 普通 fastcall 会错误地重复清栈，所以用具名适配保存此已核调用合同。
@@ -100,9 +131,7 @@ bool GraphicsContext() noexcept {
          dc==wglGetCurrentDC()&&context==wglGetCurrentContext();
 }
 bool DescriptionValid(const ClientNativeSceneDescription &d) noexcept {
-  // 尺寸由官方 shape 表核对；不让网络值扩大448格的原生数组。
-  static constexpr int widths[]={0,13,13,5,13,5,26,26,26,26,26,26,26};
-  static constexpr int heights[]={0,7,3,7,14,14,7,3,14,14,14,14,14};
+  // 窄房有效区域不等于数组尺寸；采用来源实际grid_width/height，最多448格。
   if(d.descriptors.empty()||d.descriptors.size()>526)return false;
   bool storage[527]{},occupied[507]{};
   for(const auto &s:d.descriptors){
@@ -116,7 +145,7 @@ bool DescriptionValid(const ClientNativeSceneDescription &d) noexcept {
     for(unsigned i=0;i<s.occupied_count;++i){const int index=s.occupied[i];if(index<0||index>168||occupied[s.dimension*169+index])return false;occupied[s.dimension*169+index]=true;safe|=index==s.safe;}
     if(!safe)return false;
     if(!(s.data_null&&s.override_null)&&(s.config_stage<0||s.config_stage>=37||s.config_mode<0||s.config_mode>1||s.type<1||s.type>29||
-       s.subtype<0||s.shape<1||s.shape>12||s.width!=widths[s.shape]||s.height!=heights[s.shape]))return false;
+       s.subtype<0||s.shape<1||s.shape>12||s.width<1||s.width>26||s.height<1||s.height>14))return false;
     if(!off){std::array<int,4> cells{};unsigned count=0;
       if(!replica::RoomShapeCells(s.grid,s.shape,cells,count)||count!=s.occupied_count||
          !std::equal(cells.begin(),cells.begin()+count,s.occupied.begin()))return false;}
@@ -129,8 +158,8 @@ bool DescriptionValid(const ClientNativeSceneDescription &d) noexcept {
          d.difficulty>=0&&d.difficulty<=3&&d.challenge>=0&&d.challenge<1024&&
          d.config_stage>=0&&d.config_stage<37&&d.config_mode>=0&&d.config_mode<=1&&
          d.room_type>=1&&d.room_type<=29&&d.subtype>=0&&
-         d.shape>=1&&d.shape<=12&&d.width==widths[d.shape]&&d.height==heights[d.shape]&&
-         (d.width+2)*(d.height+2)<=448&&d.dimension>=0&&d.dimension<=2&&
+         d.shape>=1&&d.shape<=12&&d.width>=1&&d.width<=26&&d.height>=1&&d.height<=14&&
+         d.grid_width>=3&&d.grid_width<=28&&d.grid_height>=3&&d.grid_height<=16&&d.grid_width*d.grid_height<=448&&d.dimension>=0&&d.dimension<=2&&
          d.room_index>=-20&&d.room_index<169&&d.room_index!=-19&&d.enter_door>=-1&&d.enter_door<=7&&
          d.starting_index>=0&&d.starting_index<169&&
          d.allowed_doors>=0&&d.allowed_doors<=255&&d.clear_count>=0&&d.clear_count<=32767&&
@@ -152,12 +181,16 @@ struct ClientNativeWorldOwner final {
   // 保存所有将被改写的已构造标量；不复制容器、不析构descriptor，不读取Online槽。
   std::array<DescriptorScalars,527> old_descriptors{};
   std::array<std::uint32_t,507> old_offsets{};
-  std::vector<RoomConfig_Room *> descriptor_configs;
+  std::vector<ConfigurationPair> descriptor_configs;
+  std::vector<std::unique_ptr<RoomConfig_Room>> owned_configs;
   std::uint32_t old_stage=0,old_stage_type=0,old_difficulty=0,old_challenge=0,
                 old_current=0,old_last=0,old_dimension=0,old_last_dimension=0,
                 old_enter=0,old_leave=0,old_count=0,old_start=0,old_curses=0,old_current_offsets=0;
   unsigned prepare_phase=0,retire_phase=0,prefix=0;
-  bool written=false,ready=false,backdrop_ready=false,retired=false,uncertain=false,snapshot=false;
+  unsigned old_greed_wave=0;
+  int old_ambush_wave=0,old_ambush_max=0,old_ambush_bosses=0;
+  bool old_ambush_active=false;
+  bool written=false,ready=false,backdrop_ready=false,backdrop_pose_ready=false,retired=false,uncertain=false,snapshot=false;
 };
 namespace {
 ClientNativeStep Status(ClientNativeWorldOwner *o,ClientNativeStepState state,const char *reason) noexcept {
@@ -203,11 +236,11 @@ bool ClientNativeWorldCanReuse(const ClientNativeWorldOwner *o,const ClientNativ
     if(x.key_run!=y.key_run||x.key_id!=y.key_id||x.grid!=y.grid||x.safe!=y.safe||x.list!=y.list||x.dimension!=y.dimension||
        x.storage!=y.storage||x.source_slot!=y.source_slot||x.occupied_count!=y.occupied_count||x.occupied!=y.occupied||
        x.config_stage!=y.config_stage||x.config_mode!=y.config_mode||x.type!=y.type||x.variant!=y.variant||x.subtype!=y.subtype||
-       x.shape!=y.shape||x.width!=y.width||x.height!=y.height||x.data_null!=y.data_null||x.override_null!=y.override_null)return false;
+       x.shape!=y.shape||x.width!=y.width||x.height!=y.height||x.data!=y.data||x.override_data!=y.override_data)return false;
   }
   return a.config_stage==d.config_stage&&a.config_mode==d.config_mode&&a.room_type==d.room_type&&
          a.variant==d.variant&&a.subtype==d.subtype&&a.shape==d.shape&&a.width==d.width&&a.height==d.height&&
-         a.room_index==d.room_index&&a.list_index==d.list_index&&a.dimension==d.dimension&&a.backdrop==d.backdrop;
+         a.grid_width==d.grid_width&&a.grid_height==d.grid_height&&a.room_index==d.room_index&&a.list_index==d.list_index&&a.dimension==d.dimension&&a.backdrop==d.backdrop;
 }
 
 // 每轮只推进一个完整原生子步骤；调用前先记录责任，失败不冒称旧场景仍完整。
@@ -222,13 +255,14 @@ static ClientNativeStep PrepareImpl(ClientNativeWorldOwner *o,const ClientNative
       // 同一承载的新目标只写具名目标值，缺省/回到基线的值同样实际覆盖。
       auto &g=*o->game;
       if(o->description.backdrop_seed!=d.backdrop_seed||o->description.backdrop_shift1!=d.backdrop_shift1||
-         o->description.backdrop_shift2!=d.backdrop_shift2||o->description.backdrop_shift3!=d.backdrop_shift3)
+         o->description.backdrop_shift2!=d.backdrop_shift2||o->description.backdrop_shift3!=d.backdrop_shift3||!(o->description.backdrop_config==d.backdrop_config))
         o->backdrop_ready=false;
-      o->description=d;o->prefix|=256u;
+      o->description=d;o->backdrop_pose_ready=false;o->prefix|=256u;
       g._stage=d.stage;g._stageType=d.stage_type;g._difficulty=d.difficulty;g._challenge=d.challenge;
       g._enterDoor=d.enter_door;g._startingRoomIdx=d.starting_index;
       for(unsigned i=0;i<d.descriptors.size();++i)ApplyDescriptor(*DescriptorStorage(g,d.descriptors[i]),d.descriptors[i],o->descriptor_configs[i]);
       o->room->_waterAmount=d.water_amount;
+      if(!ClientRoomStateApply(&g,o->room,d.room_state))return Status(o,ClientNativeStepState::Failed,"native_room_state_apply");
       Vector focus(d.camera_x,d.camera_y);o->camera->SnapToPosition(focus);
       return Status(o,ClientNativeStepState::Ready,"native_description_applied");
     }
@@ -253,6 +287,8 @@ static ClientNativeStep PrepareImpl(ClientNativeWorldOwner *o,const ClientNative
         o->old_dimension=g_Game->_currentDimensionIdx;o->old_last_dimension=g_Game->_lastRoomDimensionIdx;
         o->old_enter=g_Game->_enterDoor;o->old_leave=g_Game->_leaveDoor;
         o->old_count=g_Game->_nbRooms;o->old_start=g_Game->_startingRoomIdx;
+        o->old_greed_wave=g_Game->_greedModeWave;o->old_ambush_wave=g_Game->_ambush.currentWave;
+        o->old_ambush_active=g_Game->_ambush.active;o->old_ambush_max=g_Game->_ambush.maxBossWaves;o->old_ambush_bosses=g_Game->_ambush.bossesPerWave;
         o->snapshot=true;++o->prepare_phase;
         return Status(o,ClientNativeStepState::Progress,"native_menu_roots_captured");
       }
@@ -261,10 +297,11 @@ static ClientNativeStep PrepareImpl(ClientNativeWorldOwner *o,const ClientNative
         // LoadStageBinary会删除并重分配整个RoomSet；重连不得重载已加载配置，
         // 否则现有descriptor及退休快照中的Data/Override都会成为悬空裸指针。
         for(unsigned i=0;i<d.descriptors.size();++i){const auto &s=d.descriptors[i];
-          o->descriptor_configs[i]=ResolveDescriptorConfig(*o->game,s,o->written,o->prefix);
-          if(!o->descriptor_configs[i]&&!(s.data_null&&s.override_null))return Status(o,ClientNativeStepState::Failed,"native_room_config_mismatch");
+          auto &pair=o->descriptor_configs[i];pair.data=ResolveConfiguration(*o->game,s.data,o->owned_configs);
+          pair.override_data=ResolveConfiguration(*o->game,s.override_data,o->owned_configs);
+          if((!s.data_null&&!pair.data)||(!s.override_null&&!pair.override_data))return Status(o,ClientNativeStepState::Failed,"native_room_config_mismatch");
         }
-        o->config=o->descriptor_configs.front();
+        o->config=o->descriptor_configs.front().override_data?o->descriptor_configs.front().override_data:o->descriptor_configs.front().data;
         if(!o->config)return Status(o,ClientNativeStepState::Failed,"native_active_config_missing");
         ++o->prepare_phase;return Status(o,ClientNativeStepState::Progress,"native_config_resolved");
       }
@@ -287,12 +324,15 @@ static ClientNativeStep PrepareImpl(ClientNativeWorldOwner *o,const ClientNative
         CurrentOffsets(g,std::uint32_t(reinterpret_cast<std::uintptr_t>(&g._roomOffset[d.dimension*169])));
         g._startingRoomIdx=d.starting_index;
         o->room->_descriptor=o->descriptor;o->room->_roomType=d.room_type;
-        o->room->_gridWidth=d.width+2;o->room->_gridHeight=d.height+2;
+        o->room->_gridWidth=d.grid_width;o->room->_gridHeight=d.grid_height;
         // Room ctor不写+7240，原RoomInit7E97B8才设置；必须安装Authority最终值，
         // 不能把新鲜菜单heap残值当作额外水面，也不能在Client重新裁决淹水条件。
         o->room->_waterAmount=d.water_amount;
-        for(int slot=0;slot<8;++slot)o->room->_doorGridPositions[slot]=DoorGridPosition(slot,d.width+2,d.height+2,d.shape);
+        for(int slot=0;slot<8;++slot)o->room->_doorGridPositions[slot]=DoorGridPosition(slot,d.grid_width,d.grid_height,d.shape);
         InitializeRoomBounds(o->room);
+        // Camera构造/Snap立即读取边界；正式来源覆盖必须先于Camera，不能先让它缓存临时几何。
+        std::memcpy(reinterpret_cast<unsigned char *>(o->room)+0x14,d.room_state.bounds.data(),sizeof(float)*4);
+        std::copy(d.room_state.door_positions.begin(),d.room_state.door_positions.end(),o->room->_doorGridPositions);
         ++o->prepare_phase;return Status(o,ClientNativeStepState::Progress,"native_descriptor_geometry");
       }
       case 3: {
@@ -313,6 +353,9 @@ static ClientNativeStep PrepareImpl(ClientNativeWorldOwner *o,const ClientNative
         ++o->prepare_phase;return Status(o,ClientNativeStepState::Progress,"native_hud_resources");
       }
       case 5: {
+        if(!GraphicsContext())return Status(o,ClientNativeStepState::Waiting,"native_room_state_context");
+        o->written=true;o->prefix|=512u;
+        if(!ClientRoomStateApply(o->game,o->room,d.room_state))return Status(o,ClientNativeStepState::Failed,"native_room_state_apply");
         // 先把结构承载交给I2；Backdrop.Init内部教程surface绘制会解引用首Player，
         // 所以不能在尚无玩家的Preparing阶段执行，也不能靠空vector旧存储侥幸存活。
         ++o->prepare_phase;o->ready=true;
@@ -327,27 +370,39 @@ static ClientNativeStep FinalizeImpl(ClientNativeWorldOwner *o) noexcept {
   if(!o||!ManagerPhase()||!o->ready||o->uncertain||o->retired||!RootsCurrent(*o)||
      !o->camera||o->room->_Camera!=o->camera)return Status(o,ClientNativeStepState::Failed,"native_finalize_roots");
   if(!PlayersCurrent(*o))return Status(o,ClientNativeStepState::Failed,"native_finalize_player_membership");
-  if(o->backdrop_ready)return Status(o,ClientNativeStepState::Ready,"native_resources_finalized");
+  if(o->backdrop_ready&&o->backdrop_pose_ready)return Status(o,ClientNativeStepState::Ready,"native_resources_finalized");
   if(!GraphicsContext())return Status(o,ClientNativeStepState::Waiting,"native_finalize_context");
+  if(!ClientNativeCpuQueuesEmpty())return Status(o,ClientNativeStepState::Waiting,"native_finalize_inflight");
   try{
     o->written=true;o->prefix|=16u;
     // J273 7E7ADF—7E7B0F同时初始化Backdrop.seed与其独立RNG；Init自身不会重设RNG。
     // 源Backdrop本体保留真正构建seed/shift，descriptor同值或ctor默认0x11111111都不能代替。
     // 这里只重建既定背景surface，不使用/推进共享玩法RNG，也不把本地后态上报为Authority状态。
     auto &backdrop=o->room->_backdrop;
-    backdrop.seed=o->description.backdrop_seed;
-    backdrop.rng._seed=o->description.backdrop_seed;
-    backdrop.rng._shift1=o->description.backdrop_shift1;
-    backdrop.rng._shift2=o->description.backdrop_shift2;
-    backdrop.rng._shift3=o->description.backdrop_shift3;
-    o->room->_backdrop.Init(o->description.backdrop,true);
-    o->backdrop_ready=true;
+    auto &config=backdrop.configurations[o->description.backdrop];const auto &source=o->description.backdrop_config;
+    std::string *paths[]={&config.gfx,&config.waterGfx,&config.lFloorGfx,&config.nFloorGfx,&config.props,&config.rocks,&config.pit,&config.waterPit,&config.bridge,&config.door,&config.holeInWall,&config.spikes};
+    for(unsigned i=0;i<12;++i)*paths[i]=source.paths[i];
+    config.backdropId=source.values[0];config.walls=source.values[1];config.wallVariants=source.values[2];config.floors=source.values[3];
+    config.floorVariants=source.values[4];config.unk1=source.values[5];config.waterPitsMode=source.values[6];
+    if(!o->backdrop_ready){
+      backdrop.seed=o->description.backdrop_seed;backdrop.rng._seed=o->description.backdrop_seed;
+      backdrop.rng._shift1=o->description.backdrop_shift1;backdrop.rng._shift2=o->description.backdrop_shift2;backdrop.rng._shift3=o->description.backdrop_shift3;
+      o->room->_backdrop.Init(o->description.backdrop,true);
+    }
+    // 816BB0消费的实际surface输入，SDK仅命名unkVec1/2；保持来源值，不从形状猜尺寸。
+    const auto &inputs=o->description.backdrop_surface_inputs;
+    backdrop.unkVec1=Vector(inputs[0],inputs[1]);backdrop.unkVec2=Vector(inputs[2],inputs[3]);
+    ANM2 *sprites[]={&backdrop.floorANM2,&backdrop._wallDetailANM2,&backdrop._controlsANM2,&backdrop._controlsButtonsANM2};
+    for(unsigned i=0;i<4;++i){if(o->description.backdrop_sprite_present[i]){
+        if(!ClientApplyResourcePose(sprites[i],o->description.backdrop_sprites[i]).complete)return Status(o,ClientNativeStepState::Failed,"native_backdrop_sprite_apply");
+      }else if(sprites[i]->_loaded){sprites[i]->destructor();sprites[i]->constructor();}}
+    o->backdrop_ready=o->backdrop_pose_ready=true;
     return Status(o,ClientNativeStepState::Ready,"native_resources_finalized");
   }catch(...){o->uncertain=true;return Status(o,ClientNativeStepState::Failed,"native_finalize_exception");}
 }
 // 只检查实际结构资格；A/T提交仍由公共applier在全部字段/资源完成后决定。
 ClientNativeStep ClientNativeWorldCheckCommit(ClientNativeWorldOwner *o) noexcept {
-  if(!o||!ManagerPhase()||!o->ready||!o->backdrop_ready||o->uncertain||!RootsCurrent(*o)||
+  if(!o||!ManagerPhase()||!o->ready||!o->backdrop_ready||!o->backdrop_pose_ready||o->uncertain||!RootsCurrent(*o)||
      !o->camera||o->room->_Camera!=o->camera)return Status(o,ClientNativeStepState::Failed,"native_commit_roots");
   if(!PlayersCurrent(*o))return Status(o,ClientNativeStepState::Failed,"native_player_membership");
   const auto &d=o->description;const auto &g=*o->game;
@@ -357,6 +412,9 @@ ClientNativeStep ClientNativeWorldCheckCommit(ClientNativeWorldOwner *o) noexcep
   for(const auto &s:d.descriptors){const auto *actual=DescriptorStorage(*o->game,s);
     if(!actual||actual->GridIndex!=s.grid||actual->SafeGridIndex!=s.safe||actual->ListIndex!=s.list||actual->Dimension!=s.dimension)
       return Status(o,ClientNativeStepState::Failed,"native_descriptor_location_changed");
+    const auto index=std::size_t(&s-d.descriptors.data());const auto &configs=o->descriptor_configs[index];
+    if(actual->Data!=configs.data||actual->OverrideData!=configs.override_data)
+      return Status(o,ClientNativeStepState::Failed,"native_descriptor_configuration_changed");
     for(unsigned i=0;i<s.occupied_count;++i)if(g._roomOffset[s.dimension*169+s.occupied[i]]!=unsigned(s.storage))
       return Status(o,ClientNativeStepState::Failed,"native_descriptor_offset_changed");
   }
@@ -401,6 +459,9 @@ static ClientNativeStep RetireImpl(ClientNativeWorldOwner *o) noexcept {
         g._currentRoomIdx=o->old_current;g._lastRoomIdx=o->old_last;
         g._currentDimensionIdx=o->old_dimension;g._lastRoomDimensionIdx=o->old_last_dimension;
         g._enterDoor=o->old_enter;g._leaveDoor=o->old_leave;g._nbRooms=o->old_count;g._startingRoomIdx=o->old_start;
+        g._greedModeWave=o->old_greed_wave;g._ambush.currentWave=o->old_ambush_wave;g._ambush.active=o->old_ambush_active;
+        g._ambush.maxBossWaves=o->old_ambush_max;g._ambush.bossesPerWave=o->old_ambush_bosses;
+        o->descriptor_configs.clear();o->owned_configs.clear();
         if(!g_Manager||g_Manager->_state!=1||g_Manager->_starting||RunActive()||
            g._room->_entityList._mainEL._size||!g._playerManager._playerList.empty())
           return Status(o,ClientNativeStepState::Failed,"native_retire_menu_postcondition");

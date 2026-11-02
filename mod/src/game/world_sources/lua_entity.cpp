@@ -4,6 +4,7 @@
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
 #include "game/client_presentation_native.h"
+#include "game/client_room_native.h"
 #include "runtime.h"
 #include <cstring>
 #include <cmath>
@@ -161,6 +162,10 @@ int SpriteRuntimePose(lua_State *L) {
   copy(sprite->_animState,"main");copy(sprite->_overlayAnimState,"overlay");return 1;
 }
 int RoomPresentation(lua_State *L) {return ClientPresentationCaptureLua(L);}
+int RoomConfigContents(lua_State *L) {return ClientRoomConfigCaptureLua(L);}
+int RoomApplication(lua_State *L) {return ClientRoomStateCaptureLua(L);}
+int RoomBackdropSprites(lua_State *L) {return ClientRoomBackdropSpritesLua(L);}
+int RoomVeinSprites(lua_State *L) {return ClientRoomVeinSpritesLua(L);}
 // Lua只取得十进制纯值身份，不持有后台可访问的Room/Level userdata。
 int Location(lua_State *L) {
   const auto v=ObservationLocation(int(luaL_checkinteger(L,1)),int(luaL_checkinteger(L,2)),std::uint32_t(luaL_checkinteger(L,3)),int(luaL_checkinteger(L,4)),int(luaL_checkinteger(L,5)),int(luaL_checkinteger(L,6)),luaL_checkstring(L,7));
@@ -246,6 +251,10 @@ void EnsureObservationLuaBridge() noexcept {
   luaL_setfuncs(L,funcs,0);
   lua_pushcfunction(L,SpriteRuntimePose);lua_setfield(L,-2,"SpriteRuntimePose");
   lua_pushcfunction(L,RoomPresentation);lua_setfield(L,-2,"RoomPresentation");
+  lua_pushcfunction(L,RoomConfigContents);lua_setfield(L,-2,"RoomConfigContents");
+  lua_pushcfunction(L,RoomApplication);lua_setfield(L,-2,"RoomApplication");
+  lua_pushcfunction(L,RoomBackdropSprites);lua_setfield(L,-2,"RoomBackdropSprites");
+  lua_pushcfunction(L,RoomVeinSprites);lua_setfield(L,-2,"RoomVeinSprites");
   lua_pushcfunction(L,DescriptorPlacement);lua_setfield(L,-2,"DescriptorPlacement");
   lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
 }

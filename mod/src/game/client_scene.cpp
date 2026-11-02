@@ -1,6 +1,8 @@
 #include "game/client_scene.h"
 #include "game/client_objects.h"
 #include "game/client_presentation.h"
+#include "game/client_resource_model.h"
+#include "replica/room_geometry.h"
 #include "game/context.h"
 #include "game/bridge.h"
 #include "runtime.h"
@@ -10,6 +12,7 @@
 #include <cmath>
 #include <limits>
 #include <algorithm>
+#include <type_traits>
 #include <windows.h>
 #include <GL/gl.h>
 
@@ -59,6 +62,50 @@ bool Float(const replica::Value *v,float &out) noexcept {
   else {std::int64_t integer=0;if(!Integer(v,integer))return false;number=double(integer);}
   if(!std::isfinite(number)||number<-std::numeric_limits<float>::max()||number>std::numeric_limits<float>::max())return false;
   out=float(number);return true;
+}
+// 正式来源的Room缓存与公开Getter交叉约束只做写前解释，不调用游戏验证或补造默认值。
+bool RoomState(const replica::Value *room,const replica::RoomGridTarget &target,ClientRoomState &out,const char *&reason){
+  reason="native_room_runtime_fields";const auto *v=Member(room,"application_runtime");int version=0;
+  if(!Int(Member(v,"version"),version)||version!=1)return false;
+  const auto integer=[&](const char *name,int &value){return Int(Member(v,name),value);};
+  const auto boolean=[&](const char *name,bool &value){const auto *x=Member(v,name);if(!x||!x->IsBool())return false;value=x->GetBool();return true;};
+  if(!boolean("initialized",out.initialized)||!boolean("red_heart_damage",out.red_heart_damage)||!boolean("pacifist",out.pacifist)||
+     !boolean("ambush_active",out.ambush_active)||!integer("frame",out.frame)||!integer("game_frame",out.game_frame)||!integer("clear_delay",out.clear_delay)||
+     !integer("slowdown",out.slowdown)||
+     !integer("greed_timer",out.greed_timer)||!integer("greed_wave",out.greed_wave)||!integer("ambush_wave",out.ambush_wave)||
+     !integer("ambush_max",out.ambush_max)||!integer("ambush_bosses",out.ambush_bosses)||!integer("total_money",out.total_money)||
+     !integer("shop_item",out.shop_item)||!integer("shop_discount",out.shop_discount)||!integer("greed_subtype",out.greed_subtype)||
+     !integer("poop_count",out.poop_count)||!integer("keeper_coins",out.keeper_coins)||!integer("pits",out.pits)||!UInt(Member(v,"boss"),out.boss))return false;
+  const auto small=[](int n){return n>=INT16_MIN&&n<=INT16_MAX;};
+  if(!out.initialized||out.frame<0||out.greed_wave<0||!small(out.total_money)||!small(out.shop_item)||!small(out.shop_discount)||!small(out.poop_count)||!small(out.keeper_coins))return false;
+  const auto numbers=[&](const char *name,auto &array){const auto *a=Member(v,name);if(!a||!a->IsArray()||a->Size()!=array.size())return false;
+    for(unsigned i=0;i<array.size();++i){if constexpr(std::is_same_v<typename std::decay_t<decltype(array)>::value_type,float>){if(!Float(&(*a)[i],array[i]))return false;}
+      else if(!Int(&(*a)[i],array[i]))return false;}return true;};
+  if(!numbers("bounds",out.bounds)||!numbers("l_area",out.l_area)||!numbers("l_tiles",out.l_tiles)||!numbers("door_positions",out.door_positions))return false;
+  if(out.bounds[0]>=out.bounds[2]||out.bounds[1]>=out.bounds[3])return false;
+  if(out.l_tiles!=replica::RoomShapeTiles(target.room.layout.shape))return false;
+  for(int position:out.door_positions)if(position<-1||position>=target.room.layout.capacity||
+      (position>=0&&!replica::RoomShapeGridCell(target.room.layout.shape,position,true)))return false;
+  for(const auto &pair:{std::pair{"valid",&out.valid},std::pair{"interior",&out.interior}}){const auto *a=Member(v,pair.first);
+    if(!a||!a->IsArray()||a->Size()!=448)return false;for(unsigned i=0;i<448;++i){if(!(*a)[i].IsBool())return false;(*pair.second)[i]=(*a)[i].GetBool();}}
+  const auto *rails=Member(v,"rails");if(!rails||!rails->IsArray()||rails->Size()!=448)return false;
+  const auto *rail_scope=Member(v,"rail_scope");if(!rail_scope||!rail_scope->IsString()||std::strcmp(rail_scope->GetString(),"active_extent;outside_not_applicable")!=0)return false;
+  for(unsigned i=0;i<448;++i){int rail=0;if(!Int(&(*rails)[i],rail)||!replica::RoomRailTypeValid(rail))return false;out.rails[i]=std::uint8_t(rail);out.rails_present|=rail!=255;
+    if(i>=unsigned(target.room.layout.capacity)&&(out.valid[i]||out.interior[i]||rail!=255))return false;
+    if(out.interior[i]&&!out.valid[i])return false;
+    if(out.valid[i]!=replica::RoomShapeGridCell(target.room.layout.shape,int(i),true)||out.interior[i]!=replica::RoomShapeGridCell(target.room.layout.shape,int(i),false))return false;
+  }
+  const auto *fields=Fields(Member(room,"state"));const auto *descriptor=Fields(&target.DescriptorState(target.room.descriptors.front()));
+  const auto agrees=[&](const char *name,bool value){const auto *x=Member(descriptor,name);return x&&x->IsBool()&&x->GetBool()==value;};
+  const auto flags=unsigned(target.room.descriptors.front().flags);
+  for(const auto &flag:{std::pair{"RoomDescriptor.Clear",1u},std::pair{"RoomDescriptor.PressurePlatesTriggered",2u},
+      std::pair{"RoomDescriptor.SacrificeDone",4u},std::pair{"RoomDescriptor.ChallengeDone",8u},std::pair{"RoomDescriptor.NoReward",128u}})
+    if(!agrees(flag.first,(flags&flag.second)!=0)){reason="native_room_descriptor_flag_conflict";return false;}
+  const auto *clear=Member(fields,"Room.IsClear");int frame=0;
+  if(!clear||!clear->IsBool()||clear->GetBool()!=bool(flags&1)||!Int(Member(fields,"Room.GetFrameCount"),frame)||frame!=out.frame){reason="native_room_progress_source_conflict";return false;}
+  if(out.rails_present){const auto *sprite=Member(room,"rail_sprite");std::string error;
+    if(!sprite||!ClientParseResourcePose(*sprite,out.rail_sprite,error)||(out.rail_sprite.animation!="rail"&&out.rail_sprite.animation!="pitrail")){reason="native_room_rail_resource";return false;}}
+  return true;
 }
 // 只读取15已经表达的具名值；缺字段不以菜单、seed或本地模拟补齐。
 bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget &target,ClientNativeSceneDescription &out,const char *&reason) {
@@ -115,8 +162,8 @@ bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget 
   out.award_seed=target.room.descriptors.front().award_seed;
   out.grid_index=target.room.descriptors.front().location.grid_index;
   for(const auto &d:target.room.descriptors){
-    // I07双配置原生寿命尚未接入；解析保留两份，SDK写前明确拒绝不同配置。
-    if(!d.data.is_null&&!d.override_data.is_null&&d.data!=d.override_data){reason="native_distinct_override_config";return false;}
+    // 两份完整资源描述独立交给SDK owner；不能用查找键相同抹掉Override差异。
+    // 地图占用由Data描述；Override是替换配置，不能用它的房形推翻实际已发布占用。
     const auto &c=d.data.is_null?d.override_data:d.data;
     ClientNativeDescriptorDescription v;const auto &p=d.location;
     v.key_run=d.key.run;v.key_id=d.key.id;v.construction_revision=d.construction_revision;
@@ -124,16 +171,28 @@ bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget 
     v.occupied_count=unsigned(p.occupied.size());std::copy(p.occupied.begin(),p.occupied.end(),v.occupied.begin());
     v.config_stage=c.stage;v.config_mode=c.mode;v.type=c.type;v.variant=c.variant;v.subtype=c.subtype;v.shape=c.shape;v.width=c.width;v.height=c.height;
     v.data_null=d.data.is_null;v.override_null=d.override_data.is_null;v.allowed=d.allowed_doors;v.flags=d.flags;v.visited=d.visited;v.clear_count=d.clear_count;
+    v.data=d.data;v.override_data=d.override_data;
     v.doors=d.door_targets;v.spawn=d.spawn_seed;v.decoration=d.decoration_seed;v.award=d.award_seed;
     out.descriptors.push_back(v);
   }
-  // 17的代表路径解析同一配置的Data/Override；真正的双配置适配不能默默丢掉其差异。
-  const auto *override_fields=Fields(Member(Member(room,"override_config"),"state"));
-  if(override_fields)for(const char *name:{"RoomConfigRoom.StageID","RoomConfigRoom.Mode","RoomConfigRoom.Type",
-       "RoomConfigRoom.Variant","RoomConfigRoom.Subtype","RoomConfigRoom.Shape","RoomConfigRoom.Width","RoomConfigRoom.Height"}){
-    const auto *a=Member(config_fields,name),*b=Member(override_fields,name);
-    if(!a||!b||*a!=*b){reason="native_distinct_override_config";return false;}
-  }
+  const auto &active=target.room.descriptors.front();const auto &effective=active.override_data.is_null?active.data:active.override_data;
+  out.config_stage=effective.stage;out.config_mode=effective.mode;out.variant=effective.variant;out.subtype=effective.subtype;
+  out.width=effective.width;out.height=effective.height;out.shape=target.room.layout.shape;
+  out.grid_width=target.room.layout.grid_width;out.grid_height=target.room.layout.grid_height;
+  if(!Int(Member(room_fields,"Room.GetType"),out.room_type))return false;
+  if(!RoomState(room,target,out.room_state,reason))return false;
+  const auto *background=Member(presentation_runtime,"backdrop_config"),*paths=Member(background,"paths"),*values=Member(background,"values");
+  if(!paths||!paths->IsArray()||paths->Size()!=12||!values||!values->IsArray()||values->Size()!=7){reason="native_backdrop_config_missing";return false;}
+  for(unsigned i=0;i<12;++i){const auto &p=(*paths)[i];if(!p.IsString()||p.GetStringLength()>1024)return false;out.backdrop_config.paths[i].assign(p.GetString(),p.GetStringLength());
+    const auto &s=out.backdrop_config.paths[i];if(s.find("..")!=s.npos||s.find(':')!=s.npos||(!s.empty()&&(s.front()=='/'||s.front()=='\\'))||s.find_first_of("\r\n\0",0,3)!=s.npos)return false;}
+  for(unsigned i=0;i<7;++i)if(!UInt(&(*values)[i],out.backdrop_config.values[i]))return false;
+  if(out.backdrop_config.values[0]!=out.backdrop){reason="native_backdrop_config_id";return false;}
+  const auto *surface=Member(presentation_runtime,"backdrop_surface_inputs");if(!surface||!surface->IsArray()||surface->Size()!=4)return false;
+  for(unsigned i=0;i<4;++i)if(!Float(&(*surface)[i],out.backdrop_surface_inputs[i]))return false;
+  if(out.backdrop_surface_inputs[0]>=out.backdrop_surface_inputs[2]||out.backdrop_surface_inputs[1]>=out.backdrop_surface_inputs[3])return false;
+  const auto *sprites=Member(room,"backdrop_sprites");if(!sprites||!sprites->IsArray()||sprites->Size()!=4){reason="native_backdrop_sprites_missing";return false;}
+  for(unsigned i=0;i<4;++i){const auto &s=(*sprites)[i];if(s.IsObject()&&s.HasMember("status")&&s["status"].IsString()&&std::strcmp(s["status"].GetString(),"Null")==0)continue;
+    std::string error;if(!ClientParseResourcePose(s,out.backdrop_sprites[i],error)){reason="native_backdrop_sprite_resource";return false;}out.backdrop_sprite_present[i]=true;}
   reason="native_scene_description_ready";return true;
 }
 }
@@ -247,7 +306,7 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     if(!need_rebuild&&!objects_->PrepareTarget(value,applied_valid_?applied_.get():nullptr,reason)){
       FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);return false;
     }
-    if(!need_rebuild&&!presentation_->PrepareTarget(value,reason)){
+    if(!need_rebuild&&!presentation_->PrepareTarget(value,reason,description.room_state)){
       // 纯值展示预检失败时撤销尚未执行的对象计划，保留当前原生A及其身份表。
       if(!objects_->CancelPlanned())Fail("unexecuted_plan_cancel_failed");
       // 新T预检失败，下一轮重新规划仍保留的旧T；不留下target_与已撤计划不一致的状态。
@@ -328,7 +387,7 @@ void ClientScene::Pump() noexcept {
       FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);Fail(reason);pumping_=false;return;
     }
     if(!presentation_){try{presentation_=std::make_unique<ClientPresentation>();}catch(...){Fail("presentation_allocation");pumping_=false;return;}}
-    if(!presentation_->PrepareTarget(*target_,reason)){Fail(reason);pumping_=false;return;}
+    if(!presentation_->PrepareTarget(*target_,reason,native_description_.room_state)){Fail(reason);pumping_=false;return;}
     objects_planned_=true;
   }
   if(!GraphicsWindowValid()){

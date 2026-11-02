@@ -1,5 +1,6 @@
 #pragma once
 #include "replica/model.h"
+#include "replica/room_configuration.h"
 #include <array>
 #include <memory>
 #include <compare>
@@ -20,14 +21,6 @@ struct DescriptorLocation final {
   int grid_index=0,safe_grid_index=0,list_index=0,dimension=0,storage_index=-1,source_slot=0;
   std::vector<int> occupied;
   bool operator==(const DescriptorLocation &) const = default;
-};
-// Data/Override各有配置值和显式内容版本；Null不是空配置，也不重新抽选Spawns。
-struct RoomConfiguration final {
-  bool is_null=false;
-  int stage=0,mode=0,type=0,subtype=0,shape=0,width=0,height=0;
-  std::uint32_t variant=0;
-  std::string content_version;
-  bool operator==(const RoomConfiguration &) const = default;
 };
 // descriptor实体使用space=6；位置只是当前代次的本地存储映射。
 struct RoomDescriptorTarget final {
