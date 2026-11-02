@@ -404,6 +404,16 @@ void StopClient() noexcept {
   Neutral(*client,true);client->input_ready=false;client->state=State::Retiring;client->scene.Retire("client_stop");client->neutral_loops=0;client->network.Stop();
   Trace("client","event=retiring connection=%llu",client->connection);
 }
+bool ClientAdmitGridIndependent(const replica::Message &message,const char *&reason) noexcept {
+  if(!IsMain()||!client||!ClientBusy()||client_depth){reason="grid_independent_client_unavailable";return false;}
+  return client->scene.AdmitGridIndependent(message,reason);
+}
+bool ClientVisitGridIndependent(void *context,ClientGridIndependentVisitor visitor) noexcept {
+  return IsMain()&&client&&ClientBusy()&&client->scene.VisitGridIndependent(context,visitor);
+}
+bool ClientCompleteGridIndependent(std::uint64_t sequence,std::uint64_t scope,const char *phase) noexcept {
+  return IsMain()&&client&&ClientBusy()&&client->scene.CompleteGridIndependent(sequence,scope,phase);
+}
 // 该入口在FrameScope之后、完整Manager原链之前；从不推进Authority时钟。
 bool ClientManagerBoundary() noexcept {
   if(!ClientBusy())return false;
@@ -679,6 +689,12 @@ std::string ClientFields() {
   add("native_scope_scene",c.scene.Result().scope.scene);
   add("native_executed_prefix",c.scene.Result().executed_prefix);
   add("native_committed",c.scene.Result().native_committed);
+  add("native_committed_domains",c.scene.Result().committed_domains);
+  add("grid_prefix",c.scene.Result().grid_prefix);
+  add("grid_owners",c.scene.Result().grid_owners);
+  add("failure_key_run",c.scene.Result().failed_key.run);
+  add("failure_key_space",c.scene.Result().failed_key.space);
+  add("failure_key_id",c.scene.Result().failed_key.id);
   add("native_pending_owners",c.scene.Result().pending_owners);
   add("pending_owners",c.scene.Result().pending_owners);
   add("native_owners",c.scene.Result().native_owners);
@@ -698,6 +714,10 @@ std::string ClientFields() {
          std::to_string(c.dispatch_fault[i])+"\n";
   s+="client.native_phase="+std::string(c.scene.Result().phase.data())+"\n";
   s+="client.native_reason="+std::string(c.scene.Result().reason.data())+"\n";
+  s+="client.failure_domain="+std::string(c.scene.Result().failed_domain.data())+"\n";
+  s+="client.failure_phase="+std::string(c.scene.Result().failure_phase.data())+"\n";
+  s+="client.failure_reason="+std::string(c.scene.Result().failure_reason.data())+"\n";
+  s+="client.recovery="+std::string(c.scene.Result().recovery.data())+"\n";
   s+="client.error="+c.error+"\n";return s;
 }
 } // namespace cs::game

@@ -55,6 +55,13 @@ struct GridDescriptorTarget final {
   int spawn_count=0;
   bool initialized=false;
 };
+// 搬起描述只属于 Effect136 owner；公开来源不提供 source_grid，保持 Unresolved。
+// Entity19 通过此纯值接口安装其内嵌描述，不再创建一份活动 Grid，也不猜原槽。
+struct LiftedGridTarget final {
+  SubjectKey owner{};
+  GridDescriptorTarget descriptor{};
+  bool descriptor_null=false;
+};
 // source沿用原生来源11=格数组、12=门数组；alias不分配第二份主体。
 struct GridMembership final {
   unsigned source=0,index=0;
@@ -96,6 +103,7 @@ struct RoomGridTarget final {
   DomainCapture room_capture{},grid_capture{},level_capture{};
   RoomTarget room{};
   std::vector<GridTarget> grids;
+  std::vector<LiftedGridTarget> lifted;
   Json source;
   const Value &GridState(const GridTarget &) const;
   const Value &DescriptorState(const RoomDescriptorTarget &) const;

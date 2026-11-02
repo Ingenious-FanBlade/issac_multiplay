@@ -82,7 +82,14 @@ int ClientRoomStateCaptureLua(void *state){
   auto &g=*g_Game;auto &r=*g._room;auto &d=*r._descriptor;auto *config=d.Data;
   if(config->Shape<1||config->Shape>12||config->Type<1||config->Type>29){lua_pushnil(L);return 1;}
   const auto extent=r._gridWidth*r._gridHeight;if(!r._gridWidth||!r._gridHeight||r._gridWidth>28||r._gridHeight>16||extent>448){lua_pushnil(L);return 1;}
-  lua_createtable(L,0,30);Integer(L,"version",1);
+  lua_createtable(L,0,32);Integer(L,"version",2);
+  lua_createtable(L,int(extent),0);for(unsigned i=0;i<extent;++i){lua_pushinteger(L,r._gridPaths[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"grid_paths");
+  lua_pushstring(L,"active_extent;outside_not_applicable");lua_setfield(L,-2,"path_scope");
+  const int light_queries[]={int(g._seedEffects.HasSeedEffect(79)),int(g.GetStageID(false)),
+    int(reinterpret_cast<bool (__thiscall *)(Game *)>(Base+0x348900)(&g)),
+    int(reinterpret_cast<bool (__cdecl *)()>(Base+0x415b80)()),
+    reinterpret_cast<int (__thiscall *)(Game *)>(Base+0x345b10)(&g)};
+  Array(L,"grid_light_queries",light_queries);
   lua_pushboolean(L,Read<bool>(&r,0));lua_setfield(L,-2,"initialized");
   lua_pushboolean(L,r._redHeartDamage);lua_setfield(L,-2,"red_heart_damage");lua_pushboolean(L,r._pacifist);lua_setfield(L,-2,"pacifist");
   Integer(L,"frame",r.GetFrameCount());Integer(L,"game_frame",g._frameCount);Integer(L,"clear_delay",r._roomClearDelay);Integer(L,"greed_timer",r._greedWaveTimer);Integer(L,"greed_wave",g._greedModeWave);
@@ -130,6 +137,8 @@ bool ClientRoomStateApply(void *game,void *room,const ClientRoomState &s) noexce
   std::memcpy(reinterpret_cast<unsigned char *>(&r)+0x14,s.bounds.data(),sizeof(float)*4);
   std::copy(s.door_positions.begin(),s.door_positions.end(),r._doorGridPositions);
   std::memcpy(reinterpret_cast<unsigned char *>(&r)+0x746c,s.rails.data(),448);
+  if(s.grid_paths.size()!=r._gridWidth*r._gridHeight||s.grid_paths.size()>448)return false;
+  std::copy(s.grid_paths.begin(),s.grid_paths.end(),r._gridPaths);
   r._railManager._room=&r;
   if(s.rails_present&&!ClientApplyResourcePose(&r._railManager._sprite,s.rail_sprite).complete)return false;
   return true;
@@ -143,5 +152,10 @@ void ClientRoomRailsDraw(void *room,const ClientRoomState &s,const ClientPoseVec
 void ClientRoomWaterPreDraw(void *room){
   auto &r=*static_cast<Room *>(room);RailDrawBorrow borrow(r._railManager._sprite,true);
   reinterpret_cast<void (__thiscall *)(Room *)>(Base+0x416250)(&r);
+}
+// 普通轨道与坑轨道位于不同pass；已核9B7F00同样只选帧/绘制，不创建矿车。
+void ClientRoomPitRailsDraw(void *room,const ClientRoomState &s,const ClientPoseVector &offset){
+  if(!s.rails_present)return;auto &r=*static_cast<Room *>(room);RailDrawBorrow borrow(r._railManager._sprite,true);Vector value(offset.x,offset.y);
+  reinterpret_cast<void (__thiscall *)(RailManager *,const Vector *)>(Base+0x5b7f00)(&r._railManager,&value);
 }
 } // namespace cs::game

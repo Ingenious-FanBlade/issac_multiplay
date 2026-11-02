@@ -1,4 +1,5 @@
 #include "game/client_grids.h"
+#include "game/client_objects.h"
 #include "game/client_resource_model.h"
 #include <algorithm>
 #include <charconv>
@@ -50,9 +51,10 @@ ClientGridDescription Parse(const replica::RoomGridTarget &target,const replica:
   for(const auto &m:g.memberships)if(m.source==11)d.grid_member=true;else d.door_aliases|=1u<<m.index;
   const auto &source=target.GridState(g),&common=At(At(source,"common"),"fields"),&mask=At(source,"casts");
   const auto &runtime=At(source,"application_runtime");
-  if(Integer(At(runtime,"version"))!=1)throw std::runtime_error("grid_runtime_version");
+  if(Integer(At(runtime,"version"))!=2)throw std::runtime_error("grid_runtime_version");
   const auto &spawn=At(runtime,"spawn_frame");if(!spawn.IsUint())throw std::runtime_error("grid_spawn_frame");d.spawn_frame=spawn.GetUint();
-  if(g.type==16)d.door_animation_mode=Boolean(At(runtime,"door_animation_mode"));
+  if(g.type==16){d.door_animation_mode=Boolean(At(runtime,"door_animation_mode"));
+    const auto &flags=At(runtime,"door_light_flags");if(!flags.IsUint())throw std::runtime_error("grid_door_light_flags");d.door_light_flags=flags.GetUint();}
   const auto sequence=[](const V &v)->const V &{if(v.IsArray())return v;if(v.IsObject()&&!v.MemberCount()){static const V empty(rapidjson::kArrayType);return empty;}throw std::runtime_error("grid_runtime_array");};
   if(g.type==13){d.fire_timer=Integer(At(runtime,"fire_timer"));d.fire_style=Integer(At(runtime,"fire_style"));if(d.fire_style<0||d.fire_style>2)throw std::runtime_error("grid_fire_style");
     const auto &embers=sequence(At(runtime,"embers"));if(embers.Size()>4096)throw std::runtime_error("grid_ember_budget");
@@ -120,6 +122,17 @@ bool ClientGrids::PrepareTarget(const replica::RoomGridPlan &plan,const char *&r
     if(plan.room==replica::RoomPlanKind::Rebuild&&committed_)throw std::runtime_error("grid_room_rebuild_requires_retirement");
     std::map<replica::SubjectKey,ClientGridDescription> values;
     for(const auto &g:plan.target->grids)values.emplace(g.key,Parse(*plan.target,g));
+    // 缺失依赖写前具名失败；先登记全体Key再解析，Grid环不会触发构造顺序等待。
+    std::set<replica::SubjectKey> entities,descriptors;
+    const auto &rows=plan.target->source["components"]["entity"]["state"]["objects"];
+    if(!rows.IsArray())throw std::runtime_error("grid_entity_membership_required");
+    for(const auto &row:rows.GetArray()){const auto &key=At(At(row,"subject"),"target");
+      entities.insert({replica::Unsigned(At(key,"run")),replica::Unsigned(At(key,"id")),unsigned(Integer(At(key,"space")))});}
+    for(const auto &d:plan.target->room.descriptors)descriptors.insert(d.key);
+    for(const auto &g:plan.target->grids)for(const auto &ref:g.references){
+      if(!(ref.space==2?values.count(ref):ref.space==1?entities.count(ref):ref.space==6?descriptors.count(ref):false))
+        throw std::runtime_error("grid_required_reference_missing:key="+std::to_string(g.key.id)+":target="+std::to_string(ref.id));}
+    for(const auto &v:plan.target->lifted)if(!entities.count(v.owner))throw std::runtime_error("grid_lifted_entity_owner_missing:key="+std::to_string(v.owner.id));
     std::vector<ClientGridCommand> commands;
     for(const auto &step:plan.steps){ClientGridOperation op;
       switch(step.operation){
@@ -174,4 +187,39 @@ ClientGridStep ClientGrids::Retire(const ClientNativeRoots &roots) noexcept {
   return result;
 }
 bool ClientGrids::Visit(void *context,ClientGridVisitor visitor) const noexcept {return !failed_&&!target_&&committed_&&ClientNativeGridsVisit(native_,context,visitor);}
+// Pit.MakeBridge 没有持久父指针，Door 目标为 descriptor 纯值关系；不发明可落写的指针字段。
+// 必需 Entity 只接受同场景已安装实例；19 尚未提供的真实类别会由对象预检写前拒绝。
+ClientGridStep ClientGrids::ResolveReferences(const ClientObjects &objects) noexcept {
+  if(failed_||target_||!committed_)return {false,written_,true,0,0,"grid_reference_target_not_installed"};
+  try{
+    std::set<ClientObjectKey> entities;
+    const auto collect=[](void *c,void *,const ClientObjectKey &key,std::uint64_t,unsigned) noexcept {
+      try{static_cast<std::set<ClientObjectKey> *>(c)->insert(key);return true;}catch(...){return false;}
+    };
+    if(!objects.Visit(&entities,collect))return {false,false,true,0,0,"grid_required_entity_owner_unavailable"};
+    std::set<replica::SubjectKey> grids,descriptors;
+    for(const auto &g:committed_->grids)grids.insert(g.key);
+    for(const auto &d:committed_->room.descriptors)descriptors.insert(d.key);
+    for(const auto &g:committed_->grids)for(const auto &ref:g.references){
+      const bool resolved=ref.space==2?grids.count(ref):ref.space==1?entities.count(Key(ref)):
+        ref.space==6?descriptors.count(ref):false;
+      if(!resolved){failed_=true;return {false,false,true,0,0,"grid_required_reference_unresolved"};}
+    }
+    for(const auto &v:committed_->lifted)if(!entities.count(Key(v.owner))){failed_=true;return {false,false,true,0,0,"grid_lifted_requires_entity19_owner"};}
+    return {true,false,false,0,unsigned(grids.size()),"grid_references_resolved"};
+  }catch(...){failed_=true;return {false,false,true,0,0,"grid_reference_allocation"};}
+}
+bool ClientGrids::VisitLifted(void *context,LiftedVisitor visitor) const noexcept {
+  if(!visitor||failed_||target_||!committed_)return false;
+  for(const auto &value:committed_->lifted)if(!visitor(context,value))return false;return true;
+}
+// 场景最终检查重复核对公共字段/资源/成员，不重复构造，也不更新动画。
+ClientGridStep ClientGrids::Check(const ClientNativeRoots &roots) noexcept {
+  if(failed_||target_||!committed_)return {false,false,true,0,0,"grid_commit_owner_not_ready"};
+  try{
+    for(const auto &g:committed_->grids){auto result=ClientNativeGridsExecute(native_,roots,{ClientGridOperation::Check,Parse(*committed_,g)});
+      if(result.failed){failed_=true;return result;}}
+    return ClientNativeGridsBindDoors(native_,roots,doors_);
+  }catch(...){failed_=true;return {false,false,true,0,0,"grid_commit_check_allocation"};}
+}
 } // namespace cs::game

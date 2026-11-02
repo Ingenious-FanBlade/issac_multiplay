@@ -13,6 +13,11 @@ const char *ClientTestBegin(const std::string &token, const replica::Scope &scop
 std::string ClientTestExerciseOwnership(const std::string &token) noexcept;
 bool ClientAdmitTarget(const replica::Scope &scope, std::uint64_t revision,
                        const replica::Value &value) noexcept;
+// 交给27的独立表现记录；这里只接纳，不重放Grid玩法或宣称已呈现。
+bool ClientAdmitGridIndependent(const replica::Message &,const char *&reason) noexcept;
+using ClientGridIndependentVisitor=bool (*)(void *,const replica::Value &,std::uint64_t) noexcept;
+bool ClientVisitGridIndependent(void *,ClientGridIndependentVisitor) noexcept;
+bool ClientCompleteGridIndependent(std::uint64_t sequence,std::uint64_t source_scope,const char *phase) noexcept;
 void StopClient() noexcept;
 std::string ClientFields();
 void ClientUiHeartbeat() noexcept;

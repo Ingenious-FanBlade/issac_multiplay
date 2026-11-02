@@ -78,7 +78,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/device_k.cpp src/game/join.cpp src/game/peer.cpp src/game/input_lease.cpp src/game/persistence.cpp
   src/game/client.cpp src/game/client_scene.cpp src/game/client_native_bridge.cpp
   src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_objects.cpp src/game/client_objects_native.cpp
-  src/game/client_grids.cpp src/game/client_grid_native.cpp
+  src/game/client_grids.cpp src/game/client_grid_native.cpp src/game/client_grid_events.cpp
   src/game/client_map_native.cpp
   src/game/client_presentation.cpp src/game/client_presentation_native.cpp
   src/game/client_resource_model.cpp src/game/client_resources_native.cpp

@@ -503,6 +503,16 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    grid_light_queries={'client_grid_light_seed':0,'client_grid_light_stage':1,'client_grid_light_alt':2,
+                        'client_grid_light_boss':3,'client_grid_light_suffix':4}
+    if ident in grid_light_queries:
+        query=grid_light_queries[ident]
+        return ['    // 仅当前Client Grid灯光用途读取Authority条件；Host/Off与其它调用原样透传。',
+                '    std::int64_t result=0;',
+                '    if (cs::game::ClientGridLightQuery(%d, %s, %s, result)) return static_cast<%s>(result);'
+                % (query,'nullptr' if row['static'] else 'this','seedEffect' if query==0 else '0',ret),
+                '    cs::CallScope scope(record);',
+                '    return super(%s);' % call]
     if ident.startswith('client_grid_water_'):
         return ['    cs::CallScope scope(record);',
                 '    auto* result=super(out);',

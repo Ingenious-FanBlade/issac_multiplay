@@ -15,6 +15,10 @@ struct ClientRoomState final {
   std::array<int,8> door_positions{};
   std::array<bool,448> valid{},interior{};
   std::array<std::uint8_t,448> rails{};
+  // GetGridPath 为 +76c 原始整数；只复制活动extent，尾部448..455没有已知用途。
+  std::vector<int> grid_paths;
+  // 原生Grid灯光消费的五项只读Authority显示条件；Client draw按用途供应，不重新裁决路线。
+  std::array<int,5> grid_light_queries{};
   bool rails_present=false;
   ClientResourcePose rail_sprite;
 };
@@ -27,6 +31,7 @@ int ClientRoomVeinSpritesLua(void *);
 bool ClientRoomStateApply(void *game,void *room,const ClientRoomState &) noexcept;
 void ClientRoomFrameMaintain(void *game,void *room,int frame,bool initialized) noexcept;
 void ClientRoomRailsDraw(void *room,const ClientRoomState &,const ClientPoseVector &offset);
+void ClientRoomPitRailsDraw(void *room,const ClientRoomState &,const ClientPoseVector &offset);
 // 水面预绘制内部也会选择rail/pitrail帧；同样保护原选择器数组，外层负责渲染上下文恢复。
 void ClientRoomWaterPreDraw(void *room);
 } // namespace cs::game

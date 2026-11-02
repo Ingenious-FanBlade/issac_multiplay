@@ -3,6 +3,7 @@
 #include "replica/room_grid_plan.h"
 
 namespace cs::game {
+class ClientObjects;
 // Grid 域独立执行器复用 I05 的计划/Key；I25 的场景提交是唯一整目标提交点。
 class ClientGrids final {
 public:
@@ -13,6 +14,11 @@ public:
   ClientGridStep Step(const ClientNativeRoots &,unsigned budget=1) noexcept;
   ClientGridStep Retire(const ClientNativeRoots &) noexcept;
   bool Visit(void *context,ClientGridVisitor visitor) const noexcept;
+  // 全部实例登记后解析依赖，允许合法环；不跨本次调用保存 Entity 裸指针。
+  ClientGridStep ResolveReferences(const ClientObjects &) noexcept;
+  using LiftedVisitor=bool (*)(void *,const replica::LiftedGridTarget &) noexcept;
+  bool VisitLifted(void *,LiftedVisitor) const noexcept;
+  ClientGridStep Check(const ClientNativeRoots &) noexcept;
 private:
   ClientNativeGrids *native_=nullptr;
   std::vector<ClientGridCommand> commands_;

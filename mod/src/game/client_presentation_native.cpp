@@ -1,6 +1,7 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/client_presentation_native.h"
+#include "game/client_grid_native.h"
 #include "game/client_lifetime.h"
 #include "game/bridge.h"
 #include "game/context.h"
@@ -235,10 +236,7 @@ bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &o
     out[i]=entity;
   }
   if(players!=1){reason="presentation_player_render_membership";return false;}
-  // SDK的数组声明少列一槽，J273实际存储+24..723为448指针；末格用有界字节视图读取。
-  for(unsigned i=0;i<room._gridWidth*room._gridHeight;++i){GridEntity *grid=nullptr;
-    std::memcpy(&grid,reinterpret_cast<unsigned char *>(&room)+0x24+i*sizeof(grid),sizeof(grid));
-    if(grid){reason="presentation_grid_renderer_required";return false;}}
+  if(!ClientGridMembersMatch(&room)){reason="presentation_grid_owner_or_membership";return false;}
   return true;
 }
 // 以当前原生GetRenderZ全排，保留原索引作为tie次序；不使用4150C0的共享scratch、
@@ -790,6 +788,8 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     }
   }
   ActiveDraw active(p->active);
+  ClientGridDrawScope grid_pose(roots,p->description.room_state.grid_light_queries);
+  if(!grid_pose.Ready())return {false,false,true,"presentation_grid_pose_borrow"};
   VeinDrawBorrow vein_pose(room,p->description.auxiliary.veins_present);
   {
     // 原生 Mirror Surface 是 Manager 的常驻图形资源；只借用其 target，不持有第二个世界。
@@ -800,6 +800,8 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     {
     RenderState restore;
     MaintainRoomSurfaceOrigin(room);
+    {RenderState pit_restore;
+      if(!ClientGridDraw(roots,ClientGridPass::TexturedPitPre,{}))return {false,false,true,"presentation_textured_pit_surface"};}
     // RoomRender 804E81—EBE分别合成floor/walls的offset；实体自带世界→屏幕变换，不加此原点。
     const Vector backdrop_offset=RoomSurfaceOrigin(room)+room._renderScrollOffset+game._screenShakeOffset;
     Vector offset=room._renderScrollOffset;
@@ -846,6 +848,7 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
         reinterpret_cast<void (__thiscall *)(FXLayers *,KColor *)>(Base+0x56db20)(&room._fxLayers,&color);
       }
       for(unsigned i=0;i<count;++i)room.RenderEntityLight(entities[i],offset);
+      if(!ClientGridDraw(roots,ClientGridPass::Light,{offset.x,offset.y}))return {false,false,true,"presentation_grid_light"};
       if(!restore.FinishOffscreen(light.image))return {false,false,true,"presentation_light_target_changed"};
     }
     trace_shadow("after_light");
@@ -873,23 +876,39 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     if(water)reinterpret_cast<void (__thiscall *)(Room *,const Vector *)>(Base+0x416bb0)(&room,&backdrop_offset);
     else if(room._roomType!=16)room._backdrop.RenderFloor(backdrop_offset,room._floorColor);
     if(room._roomType!=16)reinterpret_cast<void (__thiscall *)(FXLayers *)>(Base+0x56ea50)(&room._fxLayers); // 已采vein树，无生成/随机
+    if(!water&&!ClientGridDraw(roots,room._roomType==16?ClientGridPass::Dungeon:ClientGridPass::Decoration,{offset.x,offset.y}))
+      return {false,false,true,"presentation_grid_floor_pass"};
     unsigned cursor=0;
     // 普通Room 804F1A设mode=1；80513E绘制Z<5000，8051A0绘墙；415350的mode1无额外筛选。
     if(water)DrawBand(room,5000,offset,3,true);
     else while(cursor<count&&RenderZ(entities[cursor])<5000)DrawEntity(entities[cursor++],offset);
     if(room._roomType!=16)room._backdrop.RenderWalls(backdrop_offset,room._wallColor);
     if(!water&&room._roomType!=16)ClientRoomRailsDraw(&room,p->description.room_state,{offset.x,offset.y});
+    if(!water&&room._roomType!=16&&!ClientGridDraw(roots,ClientGridPass::Under,{offset.x,offset.y}))return {false,false,true,"presentation_grid_under_pass"};
+    if(!water&&room._roomType!=16&&!ClientGridDraw(roots,ClientGridPass::TexturedPit,{offset.x,offset.y}))return {false,false,true,"presentation_textured_pit_pass"};
+    if(!water&&room._roomType!=16)ClientRoomPitRailsDraw(&room,p->description.room_state,{offset.x,offset.y});
     // 80548B继续处理Z<10000；shading/阴影合成位于其后，主层实体位于其前景。
     if(water)DrawBand(room,10000,offset,3);
     else while(cursor<count&&RenderZ(entities[cursor])<10000)DrawEntity(entities[cursor++],offset);
+    if(room._roomType!=16&&!ClientGridDraw(roots,ClientGridPass::Door,{offset.x,offset.y}))return {false,false,true,"presentation_grid_door_pass"};
     // 7E814F选出的实际墙边shading图，805954在walls后以同一Backdrop offset绘制。
     if(p->shading.image){graphics._blendMode=BlendMode();graphics._shader=ImageShader();ImageAt(p->shading,backdrop_offset,KColor(1,1,1,1));}
     // J273 805980的原生阴影合成色为(1,1,1,0.24)，不按猜测改写实体视觉flag。
     SurfaceComposite(shadow,KColor(1,1,1,0.24f),BlendMode());
     reinterpret_cast<void (__thiscall *)(FXLayers *)>(Base+0x56cd10)(&room._fxLayers); // pass2：阴影之后
     if(first_diagnostic)ShadowDiagnostic("shadow_composite",true);
-    if(water)DrawBand(room,UINT_MAX,offset,1);
-    else for(;cursor<count;++cursor)DrawEntity(entities[cursor],offset);
+    if(room._roomType!=16){
+      if(!ClientGridDraw(roots,ClientGridPass::Main,{offset.x,offset.y}))return {false,false,true,"presentation_grid_main_pass"};
+      // J273柱顶与实体按行深度交错；全部Grid先画完再画玩家会破坏前后遮挡。
+      unsigned threshold=10000;
+      for(unsigned row=0;row<room._gridHeight;++row){threshold=24030+row*4000;
+        if(water)DrawBand(room,threshold,offset,1);else while(cursor<count&&RenderZ(entities[cursor])<threshold)DrawEntity(entities[cursor++],offset);
+        if(!ClientGridDraw(roots,ClientGridPass::PillarRow,{offset.x,offset.y},row))return {false,false,true,"presentation_grid_pillar_row"};
+      }
+      if(water)DrawBand(room,threshold+5000,offset,1);else while(cursor<count&&RenderZ(entities[cursor])<threshold+5000)DrawEntity(entities[cursor++],offset);
+      if(!ClientGridDraw(roots,ClientGridPass::PillarEnd,{offset.x,offset.y}))return {false,false,true,"presentation_grid_pillar_end"};
+    }
+    if(water)DrawBand(room,UINT_MAX,offset,1);else for(;cursor<count;++cursor)DrawEntity(entities[cursor],offset);
     // light集合只由所选实体的真实native helper维护，包含普通Isaac必需的原生LightGradient。
     // 来源已选layer4 FX写同一light surface；不调用含共享随机的FXLayers Load/Update。
     if(has_light)SurfaceComposite(Surface(0x7e7398),KColor(1,1,1,p->description.lighting_alpha),BlendMode(0,4,7,8,7),true);

@@ -406,6 +406,9 @@ ClientNativeStep ClientNativeWorldCheckCommit(ClientNativeWorldOwner *o) noexcep
   if(!o||!ManagerPhase()||!o->ready||!o->backdrop_ready||!o->backdrop_pose_ready||o->uncertain||!RootsCurrent(*o)||
      !o->camera||o->room->_Camera!=o->camera)return Status(o,ClientNativeStepState::Failed,"native_commit_roots");
   if(!PlayersCurrent(*o))return Status(o,ClientNativeStepState::Failed,"native_player_membership");
+  const auto &paths=o->description.room_state.grid_paths;
+  if(paths.size()!=o->room->_gridWidth*o->room->_gridHeight||!std::equal(paths.begin(),paths.end(),o->room->_gridPaths))
+    return Status(o,ClientNativeStepState::Failed,"native_grid_path_cache_changed");
   const auto &d=o->description;const auto &g=*o->game;
   if(std::int32_t(g._currentRoomIdx)!=d.room_index||int(g._currentDimensionIdx)!=d.dimension||
      CurrentOffsets(g)!=std::uint32_t(reinterpret_cast<std::uintptr_t>(&g._roomOffset[d.dimension*169])))

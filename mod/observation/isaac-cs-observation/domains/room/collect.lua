@@ -39,7 +39,7 @@ function M.Capture(limits)
     if present then out.rail_sprite=read.Value(room:GetRailManager():GetRailsSprite(),"Sprite",c,0) end
   end
   -- 应用来源extension v2与观测schema v2分开版本化；正式consumer在录制关闭时仍交付配置与原生映射。
-  out.application_source={version=3,target="REPENTOGON-1.1.3/J273",required_contracts={"descriptor-placement-v1","resource-pose-v1","room-configuration-v1","room-runtime-v1","map-camera-v1"},config_version="REPENTOGON-1.1.3/J273/room-configuration-v1",descriptor_placement=IsaacCSObservationNative.DescriptorPlacement(d)}
+  out.application_source={version=4,target="REPENTOGON-1.1.3/J273",required_contracts={"descriptor-placement-v1","resource-pose-v1","room-configuration-v1","room-runtime-v2","grid-path-v1","map-camera-v1"},config_version="REPENTOGON-1.1.3/J273/room-configuration-v1",descriptor_placement=IsaacCSObservationNative.DescriptorPlacement(d)}
   if out.application_source.descriptor_placement.status~="Value" then read.Fail(c,"descriptor_placement_unavailable") end
   if unavailable>0 then read.Fail(c,"room_entity_membership_unavailable") end
   for _,e in ipairs(sources) do out.entities[#out.entities+1]=IsaacCSObservationNative.Subject(e.entity) end

@@ -11,6 +11,7 @@
 #include <map>
 #include <memory>
 #include <new>
+#include <stdexcept>
 #include <windows.h>
 #include <GL/gl.h>
 
@@ -111,6 +112,15 @@ bool Resources(Entry &entry,bool apply) noexcept {
     if(!source.present){if(sprite&&sprite->_loaded){if(!apply)return false;sprite->destructor();sprite->constructor();}continue;}if(!sprite)return false;
     if(apply){const auto result=ClientApplyResourcePose(sprite,source.pose);if(!result.complete){if(std::strcmp(result.reason,"resource_native_exception")==0)entry.uncertain=true;return false;}}
     else if(!ClientResourcePoseMatches(sprite,source.pose))return false;}
+  const auto &d=entry.description;auto &sprite=entry.grid->_sprite;
+  // 原生专用pass会无条件取得这些层；写后失败撤展示，由同一Grid owner退休。
+  if(d.type==7&&(!sprite._loaded||sprite._layerCount<1))return false;
+  if(d.type==24&&d.state!=2&&(!sprite._loaded||sprite._layerCount<2))return false;
+  if(Rock(d.type)&&d.state==2&&!d.rubble.empty()){
+    const auto &rubble=*reinterpret_cast<const std_string *>(reinterpret_cast<const unsigned char *>(entry.grid)+0x16c);
+    auto *animation=sprite.GetAnimationData(rubble);
+    if(!animation||animation->_length<=0||sprite._layerCount<1)return false;
+  }
   return true;
 }
 bool CommonMatches(const Entry &entry) noexcept {
@@ -132,11 +142,21 @@ void Runtime(Entry &entry) noexcept {
   if(d.type==13){Write(g,0x268,d.fire_timer);Write(g,0x26c,d.fire_style);auto *p=d.embers.empty()?nullptr:d.embers.data();
     Write(g,0x270,NativeArray<ClientGridEmber>{p,p?p+d.embers.size():nullptr,p?p+d.embers.size():nullptr});}
   if(Rock(d.type)){auto *p=d.rubble.empty()?nullptr:d.rubble.data();Write(g,0x184,NativeArray<ClientPoseVector>{p,p?p+d.rubble.size():nullptr,p?p+d.rubble.size():nullptr});}
-  if(d.type==16)Write(g,0x154,d.door_animation_mode);
+  if(d.type==16){Write(g,0x154,d.door_animation_mode);Write(g,0x28c,d.door_light_flags);}
 }
 void DetachRuntime(Entry &entry) noexcept {
   if(entry.description.type==13)Write(entry.grid,0x270,NativeArray<ClientGridEmber>{});
   if(Rock(entry.description.type))Write(entry.grid,0x184,NativeArray<ClientPoseVector>{});
+}
+// 最终提交也核对非公开已采用输入和借出缓冲owner，不能只凭公开字段相等提交。
+bool RuntimeMatches(const Entry &entry) noexcept {
+  const auto *g=entry.grid;const auto &d=entry.description;
+  if(d.type==16&&(Read<bool>(g,0x154)!=d.door_animation_mode||Read<unsigned>(g,0x28c)!=d.door_light_flags))return false;
+  if(d.type==13){const auto a=Read<NativeArray<ClientGridEmber>>(g,0x270);const auto *p=d.embers.empty()?nullptr:d.embers.data();
+    if(Read<int>(g,0x268)!=d.fire_timer||Read<int>(g,0x26c)!=d.fire_style||a.begin!=p||a.end!=(p?p+d.embers.size():nullptr)||a.capacity!=a.end)return false;}
+  if(Rock(d.type)){const auto a=Read<NativeArray<ClientPoseVector>>(g,0x184);const auto *p=d.rubble.empty()?nullptr:d.rubble.data();
+    if(a.begin!=p||a.end!=(p?p+d.rubble.size():nullptr)||a.capacity!=a.end)return false;}
+  return true;
 }
 bool PositionMatches(Room &room,const Entry &entry) noexcept {
   const auto &d=entry.description;const auto index=unsigned(d.index);const float x=float(index%room._gridWidth)*40+40,y=float(index/room._gridWidth)*40+120;
@@ -158,9 +178,52 @@ struct ClientNativeGrids final {
   std::uint64_t next_instance=0;
   unsigned prefix=0;
   bool written=false,uncertain=false;
+  unsigned active_draw=0;
 };
 namespace {
 ClientNativeGrids *water_owner=nullptr;
+// 选择器由游戏 allocator 创建且可被游戏 SetAnimation 释放；本方只保留原数组独占借用。
+void ReleaseSelectors(int *p) noexcept {if(p)reinterpret_cast<void (__cdecl *)(void *)>(Base+0x686bc9)(p);}
+int *CopySelectors(const int *p,int count){
+  if(count<0||count>256||(!p&&count))throw std::runtime_error("grid_draw_selector_shape");
+  if(!count)return nullptr;auto *copy=static_cast<int *>(reinterpret_cast<void *(__cdecl *)(std::size_t)>(Base+0x686de5)(std::size_t(count)*4));
+  if(!copy)throw std::bad_alloc();std::memcpy(copy,p,std::size_t(count)*4);return copy;
+}
+struct DrawAnimation final {
+  AnimationState *state=nullptr,previous{},working{};bool attached=false;
+  explicit DrawAnimation(AnimationState &s):state(&s),previous(s),working(s){
+    working._layerFrames=working._nullLayerFrames=nullptr;
+    try{if(s._animData){working._layerFrames=CopySelectors(s._layerFrames,s._animData->_layerCount);
+      working._nullLayerFrames=CopySelectors(s._nullLayerFrames,s._animData->_nullLayerCount);}}
+    catch(...){ReleaseSelectors(working._layerFrames);throw;}
+  }
+  void Attach() noexcept {*state=working;attached=true;}
+  ~DrawAnimation(){if(attached){ReleaseSelectors(state->_layerFrames);ReleaseSelectors(state->_nullLayerFrames);*state=previous;}
+    else{ReleaseSelectors(working._layerFrames);ReleaseSelectors(working._nullLayerFrames);}}
+};
+// 不复制std::string/资源计数/owner指针；只保护ANM/Layers已知可变显示标量。
+struct DrawSprite final {
+  ANM2 &sprite;DrawAnimation main,overlay;bool first=false;
+  std::array<unsigned char,0x80> scalars{};
+  std::vector<std::array<unsigned char,0x78>> layers;
+  explicit DrawSprite(ANM2 &s):sprite(s),main(s._animState),overlay(s._overlayAnimState),first(s._overlayRenderFirst){
+    if(s._layerCount>256||(s._layerCount&&!s._layerState))throw std::runtime_error("grid_draw_layer_shape");
+    std::memcpy(scalars.data(),reinterpret_cast<unsigned char *>(&s)+0x94,scalars.size());layers.resize(s._layerCount);
+    for(unsigned i=0;i<s._layerCount;++i)std::memcpy(layers[i].data(),reinterpret_cast<unsigned char *>(&s._layerState[i])+0x20,layers[i].size());
+  }
+  void Attach() noexcept {main.Attach();overlay.Attach();}
+  ~DrawSprite(){sprite._overlayRenderFirst=first;std::memcpy(reinterpret_cast<unsigned char *>(&sprite)+0x94,scalars.data(),scalars.size());
+    for(unsigned i=0;i<layers.size();++i)std::memcpy(reinterpret_cast<unsigned char *>(&sprite._layerState[i])+0x20,layers[i].data(),layers[i].size());}
+};
+struct DrawOwner final {
+  ClientNativeGrids *owner=nullptr;
+  std::array<int,5> light_queries{};
+  bool query_active=false;
+  std::vector<std::unique_ptr<DrawSprite>> sprites;
+  bool light=g_ANM2_LightRendering,reflection=g_ANM2_ReflectionRendering,glitch=g_ANM2_GlitchRendering;
+  ~DrawOwner(){sprites.clear();g_ANM2_LightRendering=light;g_ANM2_ReflectionRendering=reflection;g_ANM2_GlitchRendering=glitch;if(owner)--owner->active_draw;}
+};
+DrawOwner *draw_owner=nullptr;
 ClientGridStep Result(ClientNativeGrids *owner,bool done,bool failed,const char *reason){return {done,owner&&owner->written,failed,owner?owner->prefix:0,owner?unsigned(owner->entries.size()):0,reason};}
 bool Owned(const ClientNativeGrids &owner,const Room &room,const Entry &entry){
   if(owner.room!=&room||!entry.grid||!entry.constructed||entry.uncertain||entry.release_entered)return false;
@@ -203,7 +266,7 @@ ClientGridStep Execute(ClientNativeGrids *owner,const ClientNativeRoots &roots,c
   }else if(found==owner->entries.end())return Result(owner,false,true,"grid_instance_missing");
   auto &e=*found->second;
   if(command.operation==ClientGridOperation::Check){
-    if(!Owned(*owner,room,e)||!e.ready||!CommonMatches(e)||!Fields(e,false)||!Resources(e,false)||!PositionMatches(room,e))return Result(owner,false,true,"grid_final_state_or_membership_changed");
+    if(!Owned(*owner,room,e)||!e.ready||!CommonMatches(e)||!RuntimeMatches(e)||!Fields(e,false)||!Resources(e,false)||!PositionMatches(room,e))return Result(owner,false,true,"grid_final_state_or_membership_changed");
     return Result(owner,true,false,"grid_instance_checked");}
   if(command.operation==ClientGridOperation::Change){
     if(!Owned(*owner,room,e)||e.description.index!=d.index||e.description.type!=d.type||e.description.variant!=d.variant||e.description.revision!=d.revision)
@@ -230,6 +293,7 @@ ClientGridStep ClientNativeGridsExecute(ClientNativeGrids *owner,const ClientNat
   if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeApply)!=ClientEntryDecision::CallOriginal)return Result(owner,false,true,"grid_apply_dispatch");
   ClientGridStep result;
   try{result=Execute(owner,roots,command);}catch(...){if(owner)owner->uncertain=true;result=Result(owner,false,true,"grid_native_exception");}
+  result.key=command.value.key;
   ClientDispatchReturned(ClientEntry::NativeApply);if(!dispatch.Succeeded())return Result(owner,false,true,"grid_apply_dispatch_return");return result;
 }
 ClientGridStep ClientNativeGridsBindDoors(ClientNativeGrids *owner,const ClientNativeRoots &roots,const std::array<ClientGridDoorBinding,8> &bindings) noexcept {
@@ -247,6 +311,7 @@ ClientGridStep ClientNativeGridsBindDoors(ClientNativeGrids *owner,const ClientN
   ++owner->prefix;owner->written=true;std::copy(doors.begin(),doors.end(),room._doors);return Result(owner,true,false,"grid_door_aliases_installed");
 }
 ClientGridStep ClientNativeGridsRetire(ClientNativeGrids *owner,const ClientNativeRoots &roots) noexcept {
+  if(owner&&owner->active_draw)return Result(owner,false,false,"grid_retire_draw_inflight");
   if(!owner)return {true,false,false,0,0,"grid_empty"};if(owner->entries.empty()){if(water_owner==owner)water_owner=nullptr;owner->room=nullptr;owner->room_key={};owner->written=false;return Result(owner,true,false,"grid_retired");}
   if(!Window(roots)||owner->uncertain||owner->room!=roots.room)return Result(owner,false,true,"grid_retire_context_or_prefix");
   try{auto i=owner->entries.begin();if(!Remove(*owner,*owner->room,*i->second))return Result(owner,false,true,"grid_retire_uncertain");owner->entries.erase(i);
@@ -263,14 +328,104 @@ void ClientGridWaterClip(void *pointer,void *out) noexcept {
   for(const auto &pair:water_owner->entries){const auto &e=*pair.second;
     if(e.grid==pointer&&e.constructed&&!e.release_entered){static_cast<WaterClipInfo *>(out)->bitFlags=e.description.water_clip;return;}}
 }
+ClientGridDrawScope::ClientGridDrawScope(const ClientNativeRoots &roots,const std::array<int,5> &queries) noexcept {
+  try{
+    if(!IsMain()||TopOwner()!=Owner::Render||!ClientBusy()||!g_Game||roots.room!=g_Game->_room||!ClientDispatchIsolationInstalled())return;
+    auto *owner=water_owner;auto &room=*static_cast<Room *>(roots.room);
+    if(!owner){for(unsigned i=0;i<448;++i)if(Grid(room,i))return;for(auto *door:room._doors)if(door)return;ready_=true;return;}
+    if(owner->uncertain||owner->room!=&room||owner->active_draw)return;
+    auto state=std::make_unique<DrawOwner>();state->light_queries=queries;
+    // RenderGridLight会临时修改Room自有Gradient/SpotLight的scale、颜色和layer blend。
+    state->sprites.push_back(std::make_unique<DrawSprite>(*reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&room)+0x6e40)));
+    state->sprites.push_back(std::make_unique<DrawSprite>(*reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&room)+0x6f54)));
+    for(const auto &p:owner->entries){auto &entry=*p.second;if(!entry.ready||!Owned(*owner,room,entry))return;
+      for(const auto &source:entry.description.sprites){auto *sprite=Sprite(entry,source);if(sprite)state->sprites.push_back(std::make_unique<DrawSprite>(*sprite));}}
+    // 所有分配先完成；失败不让任何sprite保留半套借用。
+    for(auto &sprite:state->sprites)sprite->Attach();state->owner=owner;++owner->active_draw;state_=state.release();draw_owner=static_cast<DrawOwner *>(state_);ready_=true;
+  }catch(...){ready_=false;}
+}
+ClientGridDrawScope::~ClientGridDrawScope(){if(draw_owner==state_)draw_owner=nullptr;delete static_cast<DrawOwner *>(state_);}
+bool ClientGridLightQuery(unsigned query,const void *object,unsigned argument,std::int64_t &result) noexcept {
+  if(!IsMain()||TopOwner()!=Owner::Render||!ClientBusy()||!draw_owner||!draw_owner->query_active||!g_Game||query>=5)return false;
+  if(query==0){if(object!=&g_Game->_seedEffects||argument!=79)return false;}
+  else if(query!=3&&object!=g_Game)return false;
+  result=draw_owner->light_queries[query];return true;
+}
+bool ClientGridMembersMatch(void *pointer) noexcept {
+  if(!IsMain()||!pointer)return false;auto &room=*static_cast<Room *>(pointer);auto *owner=water_owner;
+  std::array<GridEntity *,448> grids{};std::array<GridEntity *,8> doors{};
+  if(owner){if(owner->uncertain||owner->room!=&room)return false;
+    for(const auto &p:owner->entries){const auto &e=*p.second;if(!e.ready||!Owned(*owner,room,e))return false;
+      if(e.description.grid_member)grids[unsigned(e.description.index)]=e.grid;
+      for(unsigned slot=0;slot<8;++slot)if(e.description.door_aliases&(1u<<slot))doors[slot]=e.grid;}}
+  for(unsigned i=0;i<448;++i)if(Grid(room,i)!=grids[i])return false;
+  return std::equal(doors.begin(),doors.end(),room._doors);
+}
+// RoomRender的窄pass：保留原格顺序和每组Begin/End，不进入完整RoomRender/PreRender/Update。
+// Statue的slot3在J273就是空实现；保留该事实，不创建另一个Sprite展示物。
+bool ClientGridDraw(const ClientNativeRoots &roots,ClientGridPass pass,const ClientPoseVector &value,unsigned row) noexcept {
+  if(!IsMain()||TopOwner()!=Owner::Render||!ClientBusy()||!g_Game||!roots.room||roots.room!=g_Game->_room)return false;
+  auto &room=*static_cast<Room *>(roots.room);auto *owner=water_owner;
+  if(!owner)return true;if(owner->uncertain||owner->room!=&room||owner->active_draw!=1)return false;
+  const auto extent=room._gridWidth*room._gridHeight;if(!extent||extent>448)return false;
+  Vector offset(value.x,value.y);
+  const bool water=room._waterAmount>0&&g_Manager&&Read<bool>(g_Manager,0x2a203);
+  const auto selected=[&](GridEntity *g,unsigned index){if(!g)return false;const int type=g->GetType();
+    const bool under=type==7||type==17||type==18||(type==14&&g->_desc._state==1000);
+    switch(pass){
+      case ClientGridPass::Decoration:return type==1;
+      case ClientGridPass::Door:return type==16;
+      case ClientGridPass::Under:return under;
+      case ClientGridPass::Main:return type!=1&&type!=16&&!under;
+      case ClientGridPass::PillarRow:return type==24&&index/room._gridWidth==row;
+      case ClientGridPass::PillarEnd:return type==24;
+      case ClientGridPass::TexturedPit:return type==7;
+      default:return true;
+    }};
+  try{
+    const bool textured=room._backdrop.backdropId==32&&(room._descriptor->Flags&0x20)!=0;
+    if(pass==ClientGridPass::TexturedPitPre){if(!textured)return true;
+      // 81BB30只填充Textured Pit surface；其内部Present发生在独立FBO，主画面尚未开始。
+      if(!*reinterpret_cast<void **>(Base+0x7e73b8)||!*reinterpret_cast<void **>(Base+0x7e7368)||
+         !*reinterpret_cast<void **>(Base+0x7e73a8)||!*reinterpret_cast<void **>(Base+0x7e7318))return false;
+      reinterpret_cast<void (__thiscall *)(Room *)>(Base+0x41bb30)(&room);return ClientNativeCpuQueuesEmpty();}
+    if(pass==ClientGridPass::TexturedPit){if(!textured)return true;
+      // 81C000的ESI是callee保存寄存器，真实ABI为thiscall(Room*,Vector*)、ret4。
+      const Vector backdrop=Vector((g_WIDTH-338.0f)*0.5f-52.0f,(g_HEIGHT-182.0f)*0.5f-52.0f)+offset+g_Game->_screenShakeOffset;
+      reinterpret_cast<void (__thiscall *)(Room *,const Vector *)>(Base+0x41c000)(&room,&backdrop);
+    }
+    if(pass==ClientGridPass::Light){if(!draw_owner)return false;
+      struct QueryBorrow {DrawOwner &owner;explicit QueryBorrow(DrawOwner &o):owner(o){owner.query_active=true;}~QueryBorrow(){owner.query_active=false;}} query(*draw_owner);
+      for(unsigned i=0;i<extent;++i)if(auto *g=Grid(room,i))room.RenderGridLight(g,offset);return true;}
+    std::array<GridEntity *,448> list{};unsigned count=0;
+    for(unsigned i=0;i<extent;++i){auto *g=Grid(room,i);if(!selected(g,i))continue;
+      if(pass==ClientGridPass::Main&&water){WaterClipInfo info{};auto **table=*reinterpret_cast<void ***>(g);
+        reinterpret_cast<WaterClipInfo *(__thiscall *)(GridEntity *,WaterClipInfo *)>(table[6])(g,&info);if(info.bitFlags&2)continue;}
+      list[count++]=g;
+    }
+    for(unsigned i=0;i<count;++i){auto *g=list[i];auto **table=*reinterpret_cast<void ***>(g);
+      if(pass==ClientGridPass::TexturedPit){auto *layer=g->_sprite.GetLayer(0);if(!layer)return false;
+        const bool visible=layer->_visible;layer->_visible=false;
+        reinterpret_cast<void (__thiscall *)(GridEntity *,Vector *)>(table[3])(g,&offset);layer->_visible=visible;continue;}
+      if(pass==ClientGridPass::PillarEnd){reinterpret_cast<void (__thiscall *)(GridEntity *)>(table[9])(g);continue;}
+      reinterpret_cast<void (__thiscall *)(GridEntity *)>(table[8])(g);
+      if(pass==ClientGridPass::PillarRow)reinterpret_cast<void (__thiscall *)(GridEntity *,Vector *)>(Base+0x3149e0)(g,&offset);
+      else reinterpret_cast<void (__thiscall *)(GridEntity *,Vector *)>(table[3])(g,&offset);
+    }
+    if(pass!=ClientGridPass::PillarRow&&pass!=ClientGridPass::PillarEnd&&pass!=ClientGridPass::TexturedPit)
+      for(unsigned i=0;i<count;++i){auto *g=list[i];auto **table=*reinterpret_cast<void ***>(g);reinterpret_cast<void (__thiscall *)(GridEntity *)>(table[9])(g);}
+    return true;
+  }catch(...){owner->uncertain=true;return false;}
+}
 int ClientGridCaptureLua(void *state){
   auto *L=static_cast<lua_State *>(state);if(!IsMain()){lua_pushnil(L);return 1;}
   auto *grid=lua::GetLuabridgeUserdata<GridEntity *>(L,1,lua::Metatables::GRID_ENTITY,"GridEntity");if(!grid){lua_pushnil(L);return 1;}
-  lua_createtable(L,0,6);lua_pushinteger(L,1);lua_setfield(L,-2,"version");lua_pushinteger(L,grid->_spawnFrame);lua_setfield(L,-2,"spawn_frame");
+  lua_createtable(L,0,7);lua_pushinteger(L,2);lua_setfield(L,-2,"version");lua_pushinteger(L,grid->_spawnFrame);lua_setfield(L,-2,"spawn_frame");
   const auto number=[L](const char *name,float value){if(!std::isfinite(value))luaL_error(L,"grid_runtime_nonfinite");lua_pushnumber(L,value);lua_setfield(L,-2,name);};
   lua_createtable(L,0,3);number("width",g_WIDTH);number("height",g_HEIGHT);
   number("pixel_scale",*reinterpret_cast<const float *>(Base+0x788730)* *reinterpret_cast<const float *>(Base+0x7883e8));lua_setfield(L,-2,"render_inputs");
-  if(grid->GetType()==16){lua_pushboolean(L,Read<bool>(grid,0x154));lua_setfield(L,-2,"door_animation_mode");}
+  if(grid->GetType()==16){lua_pushboolean(L,Read<bool>(grid,0x154));lua_setfield(L,-2,"door_animation_mode");
+    lua_pushinteger(L,Read<unsigned>(grid,0x28c));lua_setfield(L,-2,"door_light_flags");}
   const auto valid=[](const auto &v,unsigned stride){const auto b=reinterpret_cast<std::uintptr_t>(v.begin),e=reinterpret_cast<std::uintptr_t>(v.end),c=reinterpret_cast<std::uintptr_t>(v.capacity);
     return e>=b&&c>=e&&e-b<=4096*stride&&c-b<=65536*stride&&(e-b)%stride==0&&(c-b)%stride==0&&(b||(!e&&!c));};
   if(grid->GetType()==13){lua_pushinteger(L,Read<int>(grid,0x268));lua_setfield(L,-2,"fire_timer");lua_pushinteger(L,Read<int>(grid,0x26c));lua_setfield(L,-2,"fire_style");

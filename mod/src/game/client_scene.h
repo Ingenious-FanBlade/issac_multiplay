@@ -3,6 +3,7 @@
 #include "replica/room_grid_plan.h"
 #include "game/client_lifetime.h"
 #include "game/client_native_world.h"
+#include "game/client_grid_events.h"
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -11,6 +12,7 @@
 namespace cs::game {
 class ClientObjects;
 class ClientPresentation;
+class ClientGrids;
 // Client 原生场景与连接分开；这里只保存纯值目标和提交，不跨线程拥有原生对象。
 enum class ClientSceneState : unsigned { Waiting, Preparing, Applying, Displaying, Retiring, Failed };
 enum class ClientPurpose : unsigned { NativeApply, NativeRetire, Lua, Graphics, RenderObservation, Dispatch, LocalSettings };
@@ -42,6 +44,13 @@ struct ClientApplyResult final {
   unsigned executed_prefix=0, pending_owners=0;
   unsigned native_owners=0;
   bool native_written=false, native_committed=false, old_display_valid=false;
+  // 仅确认18的 Room/Grid 范围，不代表完整11域或网络 Applied ACK。
+  unsigned committed_domains=0,grid_prefix=0,grid_owners=0;
+  replica::SubjectKey failed_key{};
+  std::array<char,24> failed_domain{};
+  std::array<char,48> recovery{};
+  std::array<char,32> failure_phase{};
+  std::array<char,96> failure_reason{};
 };
 // 有界的主线程场景 owner；DTO接纳、原生应用、发布和实际退休分别推进。
 class ClientScene final {
@@ -54,6 +63,9 @@ public:
   bool CanReturnToMenu() const noexcept;
   bool AdmitTarget(const replica::Scope &, std::uint64_t revision,
                    const replica::Value &) noexcept;
+  bool AdmitGridIndependent(const replica::Message &,const char *&reason) noexcept;
+  bool VisitGridIndependent(void *,ClientGridEvents::Visitor) noexcept;
+  bool CompleteGridIndependent(std::uint64_t,std::uint64_t,const char *) noexcept;
   // Manager原链短路后每轮至多执行一个完整子步骤，不推进Authority tick。
   void Pump() noexcept;
   bool DisplayReady() const noexcept;
@@ -131,11 +143,14 @@ private:
   replica::RoomGridPlan room_grid_plan_{};
   std::unique_ptr<ClientObjects> objects_;
   std::unique_ptr<ClientPresentation> presentation_;
+  std::unique_ptr<ClientGrids> grids_;
+  ClientGridEvents grid_events_;
   ClientNativeWorldOwner *native_world_=nullptr;
   ClientNativeSceneDescription native_description_{};
   bool applied_valid_=false,rebuild_pending_=false,objects_planned_=false,
        objects_retired_=false,pumping_=false,attempt_invalidated_=false,
        objects_complete_=false,presentation_retired_=false,retirement_complete_=false;
+  bool grids_planned_=false,grids_complete_=false,grids_retired_=false,references_complete_=false;
   std::uint64_t target_revision_=0, applied_revision_=0, next_attempt_=0;
   ClientGenerations generations_{};
   ClientApplyResult result_{};

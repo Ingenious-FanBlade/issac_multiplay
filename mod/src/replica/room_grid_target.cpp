@@ -161,11 +161,11 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
   const auto run=out->scope.run;if(!run||!out->scope.floor||!out->scope.dimension||!out->scope.room)Error("scope","world_scope_required");
   const auto &room=Component(model,"room",out->room_capture),&level=Component(model,"level",out->level_capture),&grid=Component(model,"grid",out->grid_capture);
   const auto &contract=At(room,"application_source","room"),&gc=At(grid,"application_source","grid");
-  if(Field(contract,"version","room/application_source")!=3||Field(gc,"version","grid/application_source")!=2||
+  if(Field(contract,"version","room/application_source")!=4||Field(gc,"version","grid/application_source")!=3||
      !Is(At(contract,"target","room"),"REPENTOGON-1.1.3/J273")||!Is(At(gc,"target","grid"),"REPENTOGON-1.1.3/J273"))Error("application_source","unsupported_contract");
   for(const auto *c:{&contract,&gc})if(c->HasMember("required_contracts")){
     const auto &required=(*c)["required_contracts"];if(!required.IsArray()||required.Size()>32)Error("application_source/required_contracts","budget");
-    for(const auto &name:required.GetArray())if(!Is(name,"descriptor-placement-v1")&&!Is(name,"grid-membership-v2")&&!Is(name,"resource-pose-v1")&&!Is(name,"room-configuration-v1")&&!Is(name,"room-runtime-v1")&&!Is(name,"grid-runtime-v1")&&!Is(name,"map-camera-v1"))Error("application_source/required_contracts/"+(name.IsString()?std::string(name.GetString(),name.GetStringLength()):"invalid"),"unknown_required");
+    for(const auto &name:required.GetArray())if(!Is(name,"descriptor-placement-v1")&&!Is(name,"grid-membership-v2")&&!Is(name,"resource-pose-v1")&&!Is(name,"room-configuration-v1")&&!Is(name,"room-runtime-v2")&&!Is(name,"grid-runtime-v2")&&!Is(name,"grid-path-v1")&&!Is(name,"map-camera-v1"))Error("application_source/required_contracts/"+(name.IsString()?std::string(name.GetString(),name.GetStringLength()):"invalid"),"unknown_required");
   }
   const auto &cv=At(contract,"config_version","room");if(!cv.IsString()||cv.GetStringLength()==0||cv.GetStringLength()>256)Error("config_version","resource_version_required");
   const std::string config_version(cv.GetString(),cv.GetStringLength());
@@ -220,6 +220,22 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
   const auto &objects=Sequence(At(grid,"objects","grid"),"grid/objects"),&membership=At(grid,"membership","grid");
   const auto &lifted=Sequence(At(grid,"lifted_descriptors","grid"),"grid/lifted_descriptors");
   if(lifted.Size()>limits.grids)Error("grid/lifted_descriptors","budget");
+  std::set<SubjectKey> lifted_owners;
+  for(const auto &row:lifted.GetArray()){
+    const auto path="grid/lifted_descriptors/"+std::to_string(out->lifted.size());LiftedGridTarget item;
+    item.owner=Ref(At(row,"owner",path),path+"/owner",run,1).key;
+    if(!lifted_owners.insert(item.owner).second)Error(path,"duplicate_entity_owner");
+    const auto &source=At(row,"source_grid",path);
+    if(!Is(At(source,"resolution",path),"Unresolved")||source.HasMember("target"))Error(path,"source_identity_must_remain_unresolved");
+    const auto &value=At(row,"descriptor",path);item.descriptor_null=Null(value);
+    if(!item.descriptor_null){const auto &f=Fields(value,path+"/descriptor");auto &d=item.descriptor;
+      d.type=Field(f,"GridEntityDesc.Type",path,0,27);d.variant=Field(f,"GridEntityDesc.Variant",path,0);
+      d.state=Field(f,"GridEntityDesc.State",path);d.var_data=Field(f,"GridEntityDesc.VarData",path);
+      d.spawn_seed=U32(At(f,"GridEntityDesc.SpawnSeed",path),path);d.variable_seed=U32(At(f,"GridEntityDesc.VariableSeed",path),path);
+      d.spawn_count=Field(f,"GridEntityDesc.SpawnCount",path);d.initialized=Boolean(At(f,"GridEntityDesc.Initialized",path),path);
+    }
+    out->lifted.push_back(item);
+  }
   if(objects.Size()>limits.grids||!Boolean(At(membership,"complete","grid/membership"),"grid/membership")||Field(membership,"unavailable","grid/membership",0)!=0)Error("grid/membership","incomplete_or_budget");
   std::map<SubjectKey,unsigned> keys;std::set<std::pair<unsigned,unsigned>> aliases;std::map<int,SubjectKey> grid_slots;
   unsigned index=0,reference_count=0;
@@ -294,7 +310,7 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
   Resources(room,"room");Resources(grid,"grid");
   out->source=Copy(model);return out;
 }
-Json RoomGridCapabilities(){return Parse(R"({"id":"room-grid-target-v3","version":3,"source_extension":3,"grid_source_extension":2,"target":"REPENTOGON-1.1.3/J273","grid_types":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],"descriptor_capacity":527,"excluded_off_grid":[-19],"room_shapes":[1,2,3,4,5,6,7,8,9,10,11,12],"room_adapters":["distinct-nullable-configs","shape-geometry","progress","backdrop-config-pose","water-color-fx","rails-lroom","camera-native-minimap"],"grid_adapters":["stable-key-instance-owner","factory-final-state-no-init","desc-common-aliases","17-derived-interfaces","fire-three-anm-embers","rock-rubble","door-alias-routes","instance-effective-water-clip"],"room_dependencies":["I19-I25-grid","tx-04-19-special-entity-pass","tx-04-20-player-roster","tx-04-27-hud"],"environment_limits":{"layers":256,"poses_per_layer":256,"ray_groups":256,"rays_per_group":64,"vein_nodes":4096,"vein_depth":32,"vein_draw_visits":65536,"poop_poses":256},"limits":{"descriptors":526,"grids":456,"steps":8192,"references":4096,"dependency_edges":1048576},"native_apply":false,"native_responsibility":"I07-I18 domain adapters implemented;complete Grid scene requires I19-I25"})");}
+Json RoomGridCapabilities(){return Parse(R"({"id":"room-grid-target-v4","version":4,"source_extension":4,"grid_source_extension":3,"target":"REPENTOGON-1.1.3/J273","grid_types":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],"descriptor_capacity":527,"excluded_off_grid":[-19],"room_shapes":[1,2,3,4,5,6,7,8,9,10,11,12],"room_adapters":["distinct-nullable-configs","shape-geometry","progress","backdrop-config-pose","water-color-fx","rails-lroom","camera-native-minimap"],"grid_adapters":["stable-key-instance-owner","factory-final-state-no-init","desc-common-aliases","17-derived-interfaces","fire-three-anm-embers","rock-rubble","door-alias-routes","instance-effective-water-clip","stable-references-and-lifted-descriptor-interface","source-collision-path-neighbor-pose","native-layered-grid-draw","source-grid-light-queries","scoped-independent-history","prefix-retirement","scene-atomic-commit"],"room_dependencies":["tx-04-19-special-entity-pass","tx-04-20-player-roster","tx-04-27-hud"],"environment_limits":{"layers":256,"poses_per_layer":256,"ray_groups":256,"rays_per_group":64,"vein_nodes":4096,"vein_depth":32,"vein_draw_visits":65536,"poop_poses":256},"limits":{"descriptors":526,"grids":456,"steps":8192,"references":4096,"dependency_edges":1048576},"native_apply":true,"full_world_commit":false,"runtime_acceptance":"pending-I29","independent_effects":"handoff-to-tx-04-27;no-presentation-watermark-ack","native_responsibility":"I07-I25 Room/Grid scene;Entity19/Player20/HUD27 retain their own capabilities"})");}
 const Json &RoomGridApplicationCatalog(){static const auto catalog=Parse(
 #include "room_grid_application.inc"
 );return catalog;}
