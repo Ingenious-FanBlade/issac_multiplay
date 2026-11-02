@@ -1,4 +1,5 @@
 #include "replica/model.h"
+#include "replica/room_grid_target.h"
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include <algorithm>
@@ -180,6 +181,8 @@ Value Registry::Project(const Value &v,Allocator &a,std::uint64_t epoch,unsigned
       Put(out,"target",Key(space,std::to_string(epoch)+"/"+local,v.HasMember("use")?Str(v["use"]):"",a),a);
     }
     if(v.HasMember("revision"))Put(out,"shape_revision",Project(v["revision"],a,epoch,depth+1),a);
+    // descriptor构建修订是当前配置见证，不是出生；稳定Key投影不能吞掉该变更依据。
+    if(v.HasMember("construction_revision"))Put(out,"construction_revision",Project(v["construction_revision"],a,epoch,depth+1),a);
     for(const char *k:{"control_relation","control_group_membership"})if(v.HasMember(k))Put(out,k,Project(v[k],a,epoch,depth+1),a);
     return out;
   }
@@ -323,7 +326,11 @@ Message InputIntent(const Scope &s,unsigned participant,std::uint64_t generation
   Value movement(rapidjson::kArrayType),aim(rapidjson::kArrayType);movement.PushBack(Value(int(state.move_x)),a).PushBack(Value(int(state.move_y)),a);aim.PushBack(Value(int(state.aim_x)),a).PushBack(Value(int(state.aim_y)),a);
   Put(m.body,"movement",std::move(movement),a);Put(m.body,"aim",std::move(aim),a);Put(m.body,"held",Value(state.held_flags),a);Put(m.body,"edge",Value(state.edge_flags),a);return m;
 }
-Json Capabilities(){return Parse(R"({"protocol":1,"model":1,"game":"v1.9.7.12.J273","repentogon":"1.1.3","required":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"supported":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"domains":[1,2,3,4,5,6,7,8,9,10,11],"model_categories":{"entity":["Player","NPC","Delirium","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect","Slot","NativeText","NativeDarkness"],"grid":"all target-version categories;specialized fields and explicit Unsupported","modes":["Normal","Hard","Greed","Greedier","Challenge","SeedEffects","DailyNonRanking"],"resource_pose":["ANM2","texture-replacements","main","overlay","layers","tracks","shader","camera","transition"],"unexposed":"Unavailable;never synthesized"},"native_appliers":[],"mods":[],"resources":{"base":"J273","status":"InstallationRequired"},"limits":{"bytes":33554432,"datagram":1200,"candidates":2,"fragments":32768,"timeout_ms":5000}})");}
+Json Capabilities(){auto out=Parse(R"({"protocol":1,"model":1,"game":"v1.9.7.12.J273","repentogon":"1.1.3","required":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"supported":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"domains":[1,2,3,4,5,6,7,8,9,10,11],"model_categories":{"entity":["Player","NPC","Delirium","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect","Slot","NativeText","NativeDarkness"],"grid":"all target-version categories;specialized fields and explicit Unsupported","modes":["Normal","Hard","Greed","Greedier","Challenge","SeedEffects","DailyNonRanking"],"resource_pose":["ANM2","texture-replacements","main","overlay","layers","tracks","shader","camera","transition"],"unexposed":"Unavailable;never synthesized"},"native_appliers":[],"mods":[],"resources":{"base":"J273","status":"InstallationRequired"},"limits":{"bytes":33554432,"datagram":1200,"candidates":2,"fragments":32768,"timeout_ms":5000}})");
+  auto &allocator=out.GetAllocator();auto contract=RoomGridCapabilities();
+  Value target;target.CopyFrom(contract,allocator);Put(out["model_categories"],"room_grid_target",std::move(target),allocator);
+  out["supported"].PushBack(Value("room-grid-target-v1",allocator),allocator);return out;
+}
 Json Negotiate(const Value &local,const Value &remote){
   for(const auto *v:{&local,&remote}){
     if(!v->IsObject()||v->MemberCount()!=12)Fail("capability_schema");

@@ -1,0 +1,127 @@
+"""I01逐成员应用目录：生成产品数据和可审阅JSON；不运行游戏/测试，不计算摘要。"""
+import argparse
+import json
+import pathlib
+from gen_replica_catalog import classify
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+SOURCE = ROOT / "mod/observation/isaac-cs-observation"
+PARSER = "mod/src/replica/room_grid_target.cpp:ParseRoomGridTarget"
+PLAN = "mod/src/replica/room_grid_plan.cpp:PlanRoomGridTarget"
+NATIVE = "mod/src/game/client_native_world.cpp:PrepareImpl/RetireImpl"
+
+
+def route(m):
+    """每个原始目录行都有处理；参数查询保留结果，操作绝不转为网络RPC。"""
+    owner, name = m["owner"], m["member"]
+    if owner.startswith("GridEntity"):
+        if owner == "GridEntityDesc": return "I16", "GridDescriptorTarget及原始Desc字段", "E04/E05"
+        if owner == "GridEntityDoor": return "I18", "DoorBinding及G16专用主体/额外Sprite", "E06/E11"
+        if name.startswith("To"): return "I03", "GridTarget原始casts（类型派生见证，不执行远程cast）", "E04/E13"
+        if name in ("GetType", "GetVariant", "GetGridIndex"): return "I03", "GridTarget类型/variant/index与common交叉语义", "E04/E05"
+        if owner == "GridEntity" and name in ("State", "VarData", "CollisionClass", "Position", "GetSaveState"): return "I16", "GridTarget公共值/Desc；Position保留纯值", "E04/E05"
+        if name in ("GetSprite", "GetRenderPosition", "GetWaterClipFlags", "RenderTop", "Render"): return "I21", "Grid资源/姿态/裁切/绘制pass", "E04/E08"
+        if name in ("Init", "PostInit"): return "I15", "Grid构造/初始化owner（非RPC）", "E04/E13"
+        return "I17", owner + "专用字段/查询结果；对应G01—G27", "E04/E07/E11"
+    if owner in ("RoomConfig", "RoomConfigRoom", "RoomConfigSpawn", "RoomConfigEntry", "RoomConfigStage"):
+        return "I07", "RoomConfiguration及完整配置资源子树（候选不等于最终成员）", "E03/E13"
+    if owner == "RoomDescriptor":
+        if name in ("GridIndex", "SafeGridIndex", "ListIndex", "GetDimension"): return "I06", "RoomDescriptorTarget.location；Game两数组/各维度offset", "E02/E03"
+        if name in ("Data", "OverrideData"): return "I07", "RoomDescriptorTarget.data/override_data独立可空配置", "E03/E13"
+        if name == "Doors" or name == "AllowedDoors": return "I18", "候选索引/启用位与实际门主体分开", "E06"
+        if "SaveState" in name: return "tx-04-24", "离房保存域；18实际展示所需当前Desc仍归I16/I19", "E11"
+        if name in ("DisplayFlags", "GetNeighboringRooms"): return "I13", "当前楼层拓扑/地图显示上下文；完整探索历史归24", "E10"
+        return "I09", "RoomDescriptorTarget完整原始字段；最终进度值", "E03/E09"
+    if owner in ("LRoomAreaDesc", "LRoomTileDesc", "RailManager"): return "I12", "Room专用结构/轨道及关联Sprite", "E09"
+    if owner == "Backdrop": return "I10", "背景资源与真实构建流；controls资源按Player依赖收尾", "E01/E08"
+    if owner in ("FXParams", "FXLayers", "ColorModifier"): return "I11", "EnvironmentTarget及完整持续环境纯值", "E08"
+    if owner == "Camera": return "I13", "Camera目标与真实地图/scroll展示上下文", "E10"
+    if owner == "RoomTransition": return "tx-04-27", "过渡展示；18当前稳定房间需明确transition=0", "E08/E14"
+    if owner == "Level":
+        if name in ("GetCurrentRoomIndex", "GetDimension", "GetCurrentRoomDesc", "GetRoomByIdx", "GetRooms", "GetRoomCount", "GetLastRoomDesc", "GetPreviousRoomIndex", "EnterDoor", "LeaveDoor"):
+            return "I06", "RoomTarget.current_index/descriptor及正式已采相关descriptor", "E02/E03"
+        if name in ("GetCurses", "GetCanSeeEverything", "GetName", "GetNeighboringRooms"): return "I13", "必要当前楼层地图上下文；完整探索归24", "E10"
+        if name in ("GetStage", "GetStageType", "GetAbsoluteStage", "GetStartingRoomIndex"): return "I06", "原生Game当前展示上下文；完整楼层重构归26", "E03"
+        return "tx-04-25", "整局裁决/路线/随机最终状态；18保留来源，不本地执行", "E16"
+    if owner == "Room":
+        if any(s in name for s in ("Water", "Color", "Lighting", "Lightning", "Lava", "Rain", "CurseMist")) or name in ("GetFXParams", "GetFXLayers", "GetEffects"): return "I11", "EnvironmentTarget持续状态及完整原始环境树", "E08"
+        if "Backdrop" in name or name == "GetRoomConfigStage": return "I10", "背景构建与资源依赖", "E08"
+        if "Rail" in name or "LRoom" in name: return "I12", "专用Room结构/轨道", "E09"
+        if name in ("GetDoor", "IsDoorSlotAllowed", "GetDoorSlotPosition", "RemoveDoor") or "Door" in name: return "I18", "Room门槽/允许/候选/实际主体关系", "E06"
+        if "Grid" in name or name in ("CheckLine", "FindFreeTilePosition", "IsPositionInRoom", "GetClampedPosition", "TryMakeBridge", "TryPlaceLadder"): return "I20", "最终格子几何/碰撞/路径查询及维护；Grid主体归I14—I19", "E02/E07"
+        if name in ("GetRoomShape", "GetCenterPos", "GetTopLeftPos", "GetBottomRightPos", "IsLShapedRoom"): return "I08", "RoomLayout几何/边界及原始查询结果", "E02"
+        if any(s in name for s in ("Camera", "Render", "Screen")): return "I13", "Camera及具名绘制上下文；完整Render不用于补状态", "E10"
+        if name == "GetEntities": return "tx-04-19", "唯一Entity域主体引用；18不造替代Entity", "E11"
+        if any(s in name for s in ("Random", "Seeded", "Champion", "ItemPool", "DevilRoomChance")): return "tx-04-25", "Authority已裁决结果；Client不重新随机", "E16"
+        return "I09", "Room进度/机关/计数及纯值查询结果（不把Getter强行变setter）", "E09"
+    # 共享资源沿用17的canonical资源合同；操作仍由下方归属覆盖。
+    return "I21", owner + "共享资源/层/帧/颜色/向量纯值，owner仍为Room/Grid", "E08/E11/E13"
+
+
+def generate():
+    rows, callbacks, gaps = [], [], []
+    grid = json.loads((SOURCE / "grid-catalog.json").read_text(encoding="utf-8-sig"))
+    resources = set(grid["shared_resources"]["canonical_classes"])
+    for name in ("grid-catalog.json", "room-level-catalog.json", "entity-catalog.json"):
+        catalog = json.loads((SOURCE / name).read_text(encoding="utf-8-sig"))
+        for ordinal, m in enumerate(catalog["members"]):
+            m = {**m, "owner": m.get("owner", m.get("class", ""))}
+            if name == "entity-catalog.json" and m["owner"] not in resources: continue
+            task, destination, e2e = route(m)
+            domain = m.get("domain", "grid" if name == "grid-catalog.json" else "room")
+            ownership, reason = classify(m, domain)
+            category = m.get("category", "")
+            operation = ownership in ("AuthorityOnly", "ClientLocal")
+            if category == "cast": ownership, operation, reason = "DerivedWitness", False, "派生接口结果是类型见证，不分配身份，不在Client重放cast调用"
+            handling = "不作为Client远程调用；最终结果由状态项安装" if operation else "参数与结果一起保留；仅已理解的纯展示派生可本地重算" if category in ("parameter_query", "derived_query") else "保留具名纯值/状态/关系，按具体adapter安装"
+            implemented = task in ("I03", "I06") or operation
+            rows.append({"source_catalog": name, "source_ordinal": ordinal, "id": m["id"], "member": m["member"],
+                         "category": category, "parameters": m.get("parameters"), "returns": m.get("returns"),
+                         "units": m.get("units", "API原单位"), "source_absence": m.get("absence", "状态显式保留"),
+                         "sources": m.get("sources", []), "source_schema": m.get("schema"), "source_version": m.get("schema_version", 2),
+                         "target": m.get("target", "REPENTOGON 1.1.3 / J273"), "ownership": ownership, "ownership_reason": reason,
+                         "application_task": task, "handling": handling, "local_storage": destination,
+                         "source_path": f"components/{'{room|grid}' if name == 'entity-catalog.json' else domain}/state/**/fields/{m['id']}",
+                         "dependencies": ["same Scope/component capture", "complete membership before deletion", "I05 plan;I23 retirement"],
+                         "missing": "保留Null/Empty/Unknown/Unavailable/Partial/Truncated；required缺失则字段级拒绝，不补零",
+                         "implementation": NATIVE if task == "I06" else PARSER if implemented else f"{PARSER}（保留来源）；{task}原生adapter待实现",
+                         "status": "implemented_foundation;runtime_pending_I29" if implemented else "native_pending_"+task,
+                         "e2e": e2e})
+        if name != "entity-catalog.json":
+            for ordinal, c in enumerate(catalog.get("callbacks", [])):
+                render = "RENDER" in c["signature"]
+                callbacks.append({"source_catalog": name, "source_ordinal": ordinal, **c,
+                                  "ownership": "IndependentPresentationSource" if render else "AuthorityOnly",
+                                  "handling": "保留独立scope，不拼成普通快照；Client不重发玩法回调", "application_task": "I22", "implementation": PARSER+"（普通目标不接独立回调）；I22事件adapter待实现", "e2e": "E12/E16"})
+            for gap in catalog.get("unexposed", []):
+                gaps.append({**gap, "source_catalog": name, "application_task": "I11", "handling": "正式RoomPresentation已提供采用的真实环境缓存；其余私有容器仍Unavailable，不补造", "e2e": "E08/E13"})
+    structures = [
+        ("room.application_source.descriptor_placement", "I06", "原生数组存储/实际offset占用；地址只在主线程转换为值"),
+        ("reference.construction_revision", "I03", "保留descriptor当前构建修订；不是出生"),
+        ("grid.membership/objects.memberships", "I14", "一份主体，多格子/门别名；完整集合才规划删除"),
+        ("grid.lifted_descriptors", "I19", "Effect136所有，不推断来源Grid身份"),
+        ("GridEntityPressurePlate.TimerPlate.Null", "I21", "合法Null沿用read.Value；不可把nil当空路径Sprite"),
+        ("private_grid_bridge_parent/neighbors", "I19/I20", "公开来源没有父桥指针；当前不调用MakeBridge/邻居维护，采用时补具体来源或明确纯展示推导"),
+        ("resource_pose/pose_runtime", "I21", "17正式资源姿态与内容版本；不创建第二套Grid身份"),
+    ]
+    return {"format": "isaac.cs.room-grid.application-catalog", "version": 1,
+            "members": rows, "callbacks": callbacks, "gaps": gaps,
+            "interfaces": grid.get("classes", []),
+            "associated": [{**row, "application_task": "I19", "missing": "未解析Entity owner则拒绝依赖；不推断source Grid", "e2e": "E11"} for row in grid.get("associated", [])],
+            "structural": [{"id": key, "application_task": task, "handling": text, "implementation": PARSER+";"+PLAN, "missing": "required缺失写前拒绝", "e2e": "E01/E03/E11/E13"} for key, task, text in structures],
+            "native_scope": "I01—I06基础；I07—I30及G01—G27仍按完整计划实现和统一验收"}
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--out", type=pathlib.Path, required=True)
+    args = parser.parse_args()
+    args.out.mkdir(parents=True, exist_ok=True)
+    data = generate()
+    (args.out / "room-grid-application.json").write_text(json.dumps(data, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
+    text = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    (args.out / "room_grid_application.inc").write_text("std::string{}"+"".join('+std::string(R"ICSA('+text[i:i+8000]+')ICSA")' for i in range(0, len(text), 8000)), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    main()

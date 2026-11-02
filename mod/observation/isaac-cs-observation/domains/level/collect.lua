@@ -2,6 +2,12 @@
 local read=include("domains/common/read")
 local model=include("domains/level/model")
 local M={SchemaVersion=2}
+-- placement是正式来源的一部分，失败必须降低本域完整性，不能只等Client发现缺口。
+local function placement(d,c)
+  local p=IsaacCSObservationNative.DescriptorPlacement(d)
+  if p.status~="Value" then read.Fail(c,"descriptor_placement_unavailable") end
+  return p
+end
 function M.Capture(limits)
   read.Limits(limits); local c=model.Context(); local level=Game():GetLevel(); local list=level:GetRooms()
   local out={state=read.Collect(level,"Level",c,0),descriptors={},dimensions={},connections={},sampling={freshness="ReadInCurrentNativeWindow",cache_reused=false},membership={source="Level.GetRooms;all_dimensions",size=list.Size,complete=true}}
@@ -13,7 +19,7 @@ function M.Capture(limits)
     if id.local_id=="0" then read.Fail(c,"descriptor_identity_budget") end
     if not dims[id.dimension_index] then read.Fail(c,"unknown_dimension"); out.membership.complete=false
     else dims[id.dimension_index].descriptors[#dims[id.dimension_index].descriptors+1]=id end
-    out.descriptors[#out.descriptors+1]={subject=id,list_position=i,state=read.Collect(d,"RoomDescriptor",c,0)}
+    out.descriptors[#out.descriptors+1]={subject=id,list_position=i,placement=placement(d,c),state=read.Collect(d,"RoomDescriptor",c,0)}
     if d.Data and d.GridIndex>=0 then
       local neighbors=d:GetNeighboringRooms()
       for slot=0,7 do
@@ -29,7 +35,7 @@ function M.Capture(limits)
     local entry={slot=slot,status=d and d.Data and "Initialized" or "Uninitialized"}
     if d and d.Data then
       local id=model.Reference(d,slot); c.owner=id; c.objects=c.objects+1
-      entry.subject=id; entry.state=read.Collect(d,"RoomDescriptor",c,0)
+      entry.subject=id; entry.state=read.Collect(d,"RoomDescriptor",c,0); entry.placement=placement(d,c)
       if id.local_id=="0" then read.Fail(c,"off_grid_identity_unavailable"); out.off_grid.complete=false end
     end
     out.off_grid.entries[#out.off_grid.entries+1]=entry

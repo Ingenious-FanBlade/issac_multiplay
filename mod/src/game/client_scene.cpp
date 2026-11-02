@@ -61,7 +61,7 @@ bool Float(const replica::Value *v,float &out) noexcept {
   out=float(number);return true;
 }
 // 只读取15已经表达的具名值；缺字段不以菜单、seed或本地模拟补齐。
-bool SceneDescription(const replica::Value &model,ClientNativeSceneDescription &out,const char *&reason) noexcept {
+bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget &target,ClientNativeSceneDescription &out,const char *&reason) {
   const auto *components=Member(&model,"components");
   const auto *room=Member(Member(components,"room"),"state");
   const auto *level=Member(Member(components,"level"),"state");
@@ -77,11 +77,12 @@ bool SceneDescription(const replica::Value &model,ClientNativeSceneDescription &
   if(!Int(Member(room,"room_index"),out.room_index)||!Int(Member(room,"dimension_index"),out.dimension)||
      !Int(Member(level_fields,"Level.GetStage"),out.stage)||!Int(Member(level_fields,"Level.GetStageType"),out.stage_type)||
      !Int(Member(level_fields,"Level.EnterDoor"),out.enter_door)||
+     !Int(Member(level_fields,"Level.GetStartingRoomIndex"),out.starting_index)||
      !Int(Member(run_fields,"Game.Difficulty"),out.difficulty)||!Int(Member(run_fields,"Game.Challenge"),out.challenge)||
      !Int(Member(config_fields,"RoomConfigRoom.StageID"),out.config_stage)||
      !Int(Member(config_fields,"RoomConfigRoom.Mode"),out.config_mode)||
      !Int(Member(config_fields,"RoomConfigRoom.Type"),out.room_type)||
-     !Int(Member(config_fields,"RoomConfigRoom.Variant"),out.variant)||
+     !UInt(Member(config_fields,"RoomConfigRoom.Variant"),out.variant)||
      !Int(Member(config_fields,"RoomConfigRoom.Subtype"),out.subtype)||
      !Int(Member(config_fields,"RoomConfigRoom.Shape"),out.shape)||
      !Int(Member(config_fields,"RoomConfigRoom.Width"),out.width)||
@@ -92,9 +93,6 @@ bool SceneDescription(const replica::Value &model,ClientNativeSceneDescription &
      !Int(Member(descriptor_fields,"RoomDescriptor.Flags"),out.descriptor_flags)||
      !Int(Member(descriptor_fields,"RoomDescriptor.VisitedCount"),out.visited_count)||
      !Int(Member(descriptor_fields,"RoomDescriptor.ClearCount"),out.clear_count)||
-     !UInt(Member(descriptor_fields,"RoomDescriptor.SpawnSeed"),out.spawn_seed)||
-     !UInt(Member(descriptor_fields,"RoomDescriptor.DecorationSeed"),out.decoration_seed)||
-     !UInt(Member(descriptor_fields,"RoomDescriptor.AwardSeed"),out.award_seed)||
      !UInt(Member(room_fields,"Room.GetBackdropType"),out.backdrop)||
      !UInt(Member(backdrop_runtime,"construction_seed"),out.backdrop_seed)||
      !UInt(Member(backdrop_runtime,"shift1"),out.backdrop_shift1)||
@@ -107,10 +105,27 @@ bool SceneDescription(const replica::Value &model,ClientNativeSceneDescription &
   if(!doors||!doors->IsArray()||doors->Size()!=8){reason="native_descriptor_doors_missing";return false;}
   unsigned seen=0;
   for(const auto &door:doors->GetArray()){
-    int slot=0,target=0;
+    int slot=0,door_target=0;
     if(!Int(Member(&door,"slot"),slot)||slot<0||slot>7||(seen&(1u<<slot))||
-       !Int(Member(&door,"target_grid_index"),target)){reason="native_descriptor_door_invalid";return false;}
-    seen|=1u<<slot;out.door_targets[slot]=target;
+       !Int(Member(&door,"target_grid_index"),door_target)){reason="native_descriptor_door_invalid";return false;}
+    seen|=1u<<slot;out.door_targets[slot]=door_target;
+  }
+  out.spawn_seed=target.room.descriptors.front().spawn_seed;
+  out.decoration_seed=target.room.descriptors.front().decoration_seed;
+  out.award_seed=target.room.descriptors.front().award_seed;
+  out.grid_index=target.room.descriptors.front().location.grid_index;
+  for(const auto &d:target.room.descriptors){
+    // I07双配置原生寿命尚未接入；解析保留两份，SDK写前明确拒绝不同配置。
+    if(!d.data.is_null&&!d.override_data.is_null&&d.data!=d.override_data){reason="native_distinct_override_config";return false;}
+    const auto &c=d.data.is_null?d.override_data:d.data;
+    ClientNativeDescriptorDescription v;const auto &p=d.location;
+    v.key_run=d.key.run;v.key_id=d.key.id;v.construction_revision=d.construction_revision;
+    v.grid=p.grid_index;v.safe=p.safe_grid_index;v.list=p.list_index;v.dimension=p.dimension;v.storage=p.storage_index;v.source_slot=p.source_slot;
+    v.occupied_count=unsigned(p.occupied.size());std::copy(p.occupied.begin(),p.occupied.end(),v.occupied.begin());
+    v.config_stage=c.stage;v.config_mode=c.mode;v.type=c.type;v.variant=c.variant;v.subtype=c.subtype;v.shape=c.shape;v.width=c.width;v.height=c.height;
+    v.data_null=d.data.is_null;v.override_null=d.override_data.is_null;v.allowed=d.allowed_doors;v.flags=d.flags;v.visited=d.visited;v.clear_count=d.clear_count;
+    v.doors=d.door_targets;v.spawn=d.spawn_seed;v.decoration=d.decoration_seed;v.award=d.award_seed;
+    out.descriptors.push_back(v);
   }
   // 17的代表路径解析同一配置的Data/Override；真正的双配置适配不能默默丢掉其差异。
   const auto *override_fields=Fields(Member(Member(room,"override_config"),"state"));
@@ -129,6 +144,7 @@ void ClientScene::Begin(const replica::Scope &scope) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
   if(!CanReturnToMenu()){FailureResult(ClientResultKind::PartialNativeFailure,"begin","old_owner_inflight");state_=ClientSceneState::Failed;return;}
   waiting_scope_=scope;target_scope_={};applied_scope_={};target_.reset();applied_.reset();
+  room_grid_target_.reset();room_grid_applied_.reset();room_grid_plan_={};
   ClientNativeWorldDestroy(native_world_);native_world_=nullptr;objects_.reset();presentation_.reset();
   applied_valid_=rebuild_pending_=objects_planned_=objects_retired_=pumping_=false;
   attempt_invalidated_=false;
@@ -203,8 +219,15 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     if(applied_&&scope==applied_scope_&&revision<=applied_revision_) {
       FailureResult(ClientResultKind::WaitingDependency,"admit","already_applied_revision");return false;
     }
+    auto domain=replica::ParseRoomGridTarget(value);
+    auto domain_plan=replica::PlanRoomGridTarget(domain,applied_valid_?room_grid_applied_:nullptr);
+    // I14—I25尚未执行Grid计划，不能以17代表profile悄悄提交非空Grid目标。
+    const auto &lifted=value["components"]["grid"]["state"]["lifted_descriptors"];
+    if(!domain->grids.empty()||(lifted.IsArray()&&!lifted.Empty())||(lifted.IsObject()&&lifted.MemberCount())){
+      FailureResult(ClientResultKind::UnsupportedRequirement,"admit","native_grid_adapters_pending_I14_I25");return false;
+    }
     ClientNativeSceneDescription description{};const char *reason=nullptr;
-    if(!SceneDescription(value,description,reason)){
+    if(!SceneDescription(value,*domain,description,reason)){
       FailureResult(ClientResultKind::UnsupportedRequirement,"admit",reason);return false;
     }
     if(next_attempt_==UINT64_MAX){FailureResult(ClientResultKind::BudgetExhausted,"admit","attempt_exhausted");return false;}
@@ -217,7 +240,9 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     }
     const bool need_rebuild=state_==ClientSceneState::Failed||rebuild_pending_||
         (ClientNativeWorldHasPrefix(native_world_)&&
-         (state_!=ClientSceneState::Displaying||changing_scope||!ClientNativeWorldCanReuse(native_world_,description)));
+         (domain_plan.room==replica::RoomPlanKind::Rebuild||(state_!=ClientSceneState::Displaying&&
+           !(state_==ClientSceneState::Preparing&&replica::CancelRoomGridPlan(result_.native_written,result_.executed_prefix)==replica::PlanCancellation::PreserveApplied))||
+          changing_scope||!ClientNativeWorldCanReuse(native_world_,description)));
     // 写世界前先完成所有纯值计划；失败保留上一已提交展示资格。
     if(!need_rebuild&&!objects_->PrepareTarget(value,applied_valid_?applied_.get():nullptr,reason)){
       FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);return false;
@@ -225,11 +250,18 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     if(!need_rebuild&&!presentation_->PrepareTarget(value,reason)){
       // 纯值展示预检失败时撤销尚未执行的对象计划，保留当前原生A及其身份表。
       if(!objects_->CancelPlanned())Fail("unexecuted_plan_cancel_failed");
+      // 新T预检失败，下一轮重新规划仍保留的旧T；不留下target_与已撤计划不一致的状态。
+      objects_planned_=false;
       FailureResult(ClientResultKind::UnsupportedRequirement,"presentation_plan",reason);return false;
     }
     if(changing_scope)retired_scopes_[retired_scope_count_++]=target_scope_;
+    // 空菜单快照虽无原生写入，也绑定了旧T的descriptor地址；替换时撤掉该未执行owner。
+    if(!need_rebuild&&native_world_&&!ClientNativeWorldHasPrefix(native_world_)){
+      ClientNativeWorldDestroy(native_world_);native_world_=nullptr;
+    }
     target_=std::move(copy);target_scope_=scope;target_revision_=revision;
-    native_description_=description;objects_planned_=!need_rebuild;objects_retired_=false;attempt_invalidated_=false;
+    room_grid_target_=std::move(domain);room_grid_plan_=std::move(domain_plan);
+    native_description_=std::move(description);objects_planned_=!need_rebuild;objects_retired_=false;attempt_invalidated_=false;
     objects_complete_=presentation_retired_=false;
     retirement_complete_=false;
     const auto pending=result_.pending_owners;
@@ -244,7 +276,8 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
       FailureResult(ClientResultKind::WaitingDependency,"prepare","target_planned");
     }
     return true;
-  } catch(...) {FailureResult(ClientResultKind::UnsupportedRequirement,"admit","invalid_or_unavailable_target");return false;}
+  } catch(const replica::ContractError &e) {FailureResult(ClientResultKind::UnsupportedRequirement,"admit",e.what());return false;}
+    catch(...) {FailureResult(ClientResultKind::UnsupportedRequirement,"admit","invalid_or_unavailable_target");return false;}
 }
 void ClientScene::NoteNativeStep(const ClientNativeStep &step,const char *phase) noexcept {
   result_.executed_prefix=(std::max)(result_.executed_prefix,step.prefix);
@@ -343,6 +376,8 @@ void ClientScene::Pump() noexcept {
             try{
               auto committed=std::make_unique<replica::Json>(replica::Copy(*target_));
               applied_=std::move(committed);applied_scope_=target_scope_;applied_revision_=target_revision_;
+              room_grid_applied_=room_grid_target_;
+              room_grid_plan_.applied.reset();
               applied_valid_=true;state_=ClientSceneState::Displaying;
               FailureResult(ClientResultKind::NativeCommitted,"committed","native_target_committed");
               result_.native_committed=true;result_.old_display_valid=true;
@@ -628,14 +663,18 @@ void ClientScene::FinishRetirementIfDrained() noexcept {
   native_dispatch_prefix_=false;result_.native_written=false;result_.native_owners=0;
   result_.executed_prefix=0;result_.native_committed=false;result_.old_display_valid=false;
   applied_valid_=false;applied_.reset();applied_revision_=0;applied_scope_={};
+  room_grid_applied_.reset();room_grid_plan_.applied.reset();
   InvalidateInstance();result_.generations=generations_;
   if(rebuild_pending_&&target_){
     rebuild_pending_=false;objects_planned_=false;objects_retired_=false;
     objects_complete_=presentation_retired_=attempt_invalidated_=false;
     state_=ClientSceneState::Preparing;
+    try{room_grid_plan_=replica::PlanRoomGridTarget(room_grid_target_);}
+    catch(...){Fail("room_grid_rebuild_plan_unavailable");return;}
     FailureResult(ClientResultKind::WaitingDependency,"rebuild","native_retired_rebuild_target");
   }else{
     target_.reset();target_revision_=0;target_scope_={};
+    room_grid_target_.reset();room_grid_plan_={};
     retirement_complete_=true;
     FailureResult(ClientResultKind::Retiring,"retired","native_safe_menu");
   }

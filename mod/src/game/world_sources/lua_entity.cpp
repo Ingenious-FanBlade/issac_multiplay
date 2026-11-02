@@ -53,6 +53,32 @@ int GridRenderPosition(lua_State *L) {
   lua_newtable(L); lua_pushstring(L,"vector"); lua_setfield(L,-2,"type");
   lua_pushnumber(L,buffer.x); lua_setfield(L,-2,"x"); lua_pushnumber(L,buffer.y); lua_setfield(L,-2,"y"); return 1;
 }
+// I02 正式只读来源：复制实际descriptor存储和已发布offset，不能从房形/seed猜占用。
+// 只比较已构造数组内地址；离图-19不读取，未知userdata不参与寻址，不调用GetRoomByIdx初始化分支。
+int DescriptorPlacement(lua_State *L) {
+  auto *d=lua::GetLuabridgeUserdata<RoomDescriptor *>(L,1,lua::Metatables::ROOM_DESCRIPTOR,lua::Metatables::CONST_ROOM_DESCRIPTOR,"RoomDescriptor");
+  lua_newtable(L);
+  int storage=-1,slot=0;
+  if(IsMain()&&g_Game&&d){
+    for(int i=0;i<507;++i)if(d==&g_Game->_gridRooms[i]){storage=i;break;}
+    if(storage<0)for(int i=0;i<20;++i)if(i!=18&&d==&g_Game->_negativeGridRooms[i]){slot=-i-1;break;}
+  }
+  if(storage<0&&!slot){lua_pushstring(L,"Unavailable");lua_setfield(L,-2,"status");return 1;}
+  lua_pushstring(L,"Value");lua_setfield(L,-2,"status");
+  lua_pushinteger(L,1);lua_setfield(L,-2,"version");
+  lua_pushinteger(L,storage);lua_setfield(L,-2,"storage_index");
+  if(slot){lua_pushinteger(L,slot);lua_setfield(L,-2,"source_slot");}
+  lua_pushinteger(L,d->GridIndex);lua_setfield(L,-2,"grid_index");
+  lua_pushinteger(L,d->SafeGridIndex);lua_setfield(L,-2,"safe_grid_index");
+  lua_pushinteger(L,d->ListIndex);lua_setfield(L,-2,"list_index");
+  lua_pushinteger(L,d->Dimension);lua_setfield(L,-2,"dimension_index");
+  lua_newtable(L);int count=0;
+  if(storage>=0&&d->Dimension>=0&&d->Dimension<3)
+    for(int index=0;index<169;++index)if(g_Game->_roomOffset[d->Dimension*169+index]==unsigned(storage)){
+      lua_pushinteger(L,index);lua_rawseti(L,-2,++count);
+    }
+  lua_setfield(L,-2,"occupied_indices");return 1;
+}
 int GridSources(lua_State *L) {
   lua_newtable(L);
   struct Sink { lua_State *L; int index=0; } sink{L};
@@ -220,6 +246,7 @@ void EnsureObservationLuaBridge() noexcept {
   luaL_setfuncs(L,funcs,0);
   lua_pushcfunction(L,SpriteRuntimePose);lua_setfield(L,-2,"SpriteRuntimePose");
   lua_pushcfunction(L,RoomPresentation);lua_setfield(L,-2,"RoomPresentation");
+  lua_pushcfunction(L,DescriptorPlacement);lua_setfield(L,-2,"DescriptorPlacement");
   lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
 }
 // Coordinator 在复制窗口内部调用一次；错误返回自有原因，不让 Lua 异常越过 Authority。

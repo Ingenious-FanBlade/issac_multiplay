@@ -21,6 +21,9 @@ function M.Capture(limits)
   end
   -- 正式观测同步复制原生展示参数；不由Client按本地房间配置重新裁决。
   out.presentation_runtime=IsaacCSObservationNative.RoomPresentation()
+  -- v1应用来源合同与观测v2分开版本化；配置结果/原生映射来自正式consumer，录制关闭仍可用。
+  out.application_source={version=1,target="REPENTOGON-1.1.3/J273",required_contracts={"descriptor-placement-v1","resource-pose-v1"},config_version="REPENTOGON-1.1.3/J273/base-room-config-v1",descriptor_placement=IsaacCSObservationNative.DescriptorPlacement(d)}
+  if out.application_source.descriptor_placement.status~="Value" then read.Fail(c,"descriptor_placement_unavailable") end
   if unavailable>0 then read.Fail(c,"room_entity_membership_unavailable") end
   for _,e in ipairs(sources) do out.entities[#out.entities+1]=IsaacCSObservationNative.Subject(e.entity) end
   if gap>0 then read.Fail(c,"room_grid_membership_unavailable") end

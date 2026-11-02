@@ -1,5 +1,6 @@
 #pragma once
 #include "replica/model.h"
+#include "replica/room_grid_plan.h"
 #include "game/client_lifetime.h"
 #include "game/client_native_world.h"
 #include <array>
@@ -126,6 +127,8 @@ private:
   std::array<replica::Scope,16> retired_scopes_{};
   unsigned retired_scope_count_=0;
   std::unique_ptr<replica::Json> target_, applied_;
+  std::shared_ptr<const replica::RoomGridTarget> room_grid_target_,room_grid_applied_;
+  replica::RoomGridPlan room_grid_plan_{};
   std::unique_ptr<ClientObjects> objects_;
   std::unique_ptr<ClientPresentation> presentation_;
   ClientNativeWorldOwner *native_world_=nullptr;

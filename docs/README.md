@@ -1,3 +1,5 @@
+> **tx-04-18 I01—I06（2026-11-02）**：[基础实现及静态主审](design/tx-04-18/tx-04-18-foundation.md)已落实逐成员应用目录、正式来源补缺、不可变领域目标、A→T依赖计划和普通／离图／多维descriptor承载。必要逆向由GPT-6 Luna／max完成，主智能体独立核对并纠正形状表及离图ListIndex推导。[完整计划](design/tx-04-18/tx-04-18-implementation-plan.md)的I07—I30、[G01—G27](design/tx-04-18/tx-04-18-grid-application.md)及统一实机验收仍待完成；本轮未启动游戏或运行测试。
+
 > **tx-04-14 已完成（2026-10-31）**：[整局、随机选择、HUD/独立表现、Mod及真实StageAPI实现与统一验收](design/observation-expansion/tx-04-14-implementation.md)。6/6 PASS、21/21场景、84个指定四域scope；[记录/适配合同](design/observation-expansion/run-mod-schema.md)。下方早期计划状态保留原时点。
 
 > **tx-04-13已完成（2026-10-31）**：[探索、离房保存与玩家跨房观测](design/observation-expansion/tx-04-13-implementation.md)已通过统一E2E 5/5，31/31场景、124个指定正式scope；不受影响的已完成项目复用，失败和边界如实保留，临时材料已清理。

@@ -27,7 +27,7 @@ end
 function M.Capture(limits)
   local budget=read.Limits(limits); local c=context()
   local sources,unavailable=native().GridSources()
-  local out={objects={},lifted_descriptors={},membership={source="native:grid+door",entries={},unavailable=unavailable,complete=unavailable==0}}
+  local out={application_source={version=1,target="REPENTOGON-1.1.3/J273",required_contracts={"grid-membership-v2","resource-pose-v1"},resources="canonical-resource-pose;nullable-TimerPlate",relations="memberships-and-public-references;private-bridge-parent-unavailable"},objects={},lifted_descriptors={},membership={source="native:grid+door",entries={},unavailable=unavailable,complete=unavailable==0}}
   if unavailable>0 then read.Fail(c,"grid_native_source_unavailable") end
   -- 一次窗口先登记所有主体；各槽保留别名，同一主体只读一次。
   for _,entry in ipairs(sources) do native().GridSubject(entry.grid) end

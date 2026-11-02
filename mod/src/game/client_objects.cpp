@@ -149,7 +149,8 @@ ClientObjects::~ClientObjects(){ClientNativeObjectsDestroy(native_);}
 bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&reason) noexcept {
   try {
     if(failed_){reason="objects_failed_requires_retirement";return false;}
-    if(candidate_){reason="objects_plan_inflight";return false;}
+    // 纯值阶段的新T可原子替换尚未执行的计划；已执行前缀仍须由场景owner退休。
+    if(candidate_&&(cursor_||written_)){reason="objects_plan_inflight";return false;}
     Objects desired,old;
     if(!ParseObjects(target,desired,reason_)){reason=reason_.c_str();return false;}
     // A来自唯一原生提交。传入的A与本表历史不一致时不在未知世界继续diff。
