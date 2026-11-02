@@ -12,7 +12,7 @@
 | --- | --- |
 | Partial、Unknown、缺 required 字段、错误版本、混合采样或不完整成员 | 领域解析返回带字段/Key 的错误；不补零，不产生删除 |
 | 同版本不同内容、旧 revision、重复目标、T 回到旧值 | 冲突/旧值拒绝；相同目标幂等；差分从真正提交 A 生成 |
-| 同 Key 改变构造类型/variant、同格新 Key、实例修订倒退 | 规划 replace；同格先退旧主体；倒退或未升修订的构造冲突拒绝 |
+| 同 Key 改变构造类型/SpawnSeed、同格新 Key、实例修订倒退 | 规划 replace；同格先退旧主体；倒退或未升修订的构造冲突拒绝；Variant/VariableSeed按同实例状态处理（I29修正，见下文） |
 | 入口象限/GridIndex/SafeGridIndex 混用，L 缺口、重复映射、多维同索引 | 各字段分开；只安装来源明确的占用象限；维度是映射的一部分 |
 | -19、-100/-101、NO_ROOM_IDX、负槽越界或把负 ListIndex 当数组下标 | Online 拒绝；路由独立枚举；离图按源槽有界寻址，保留 descriptor 原值 |
 | 引用未解析、门别名与 Grid 主体矛盾、非法路径/非有限值/超预算 | 写前拒绝；资源和引用依赖进入计划，不创建替代对象 |
@@ -77,3 +77,5 @@ SDK明确`_gridRooms[507]@+0x14`、`_negativeGridRooms[20]@+0x16C7C`、`_roomOff
 第一次沙箱内构建停在MSBuild启动阶段，主动中断后在获准的沙箱外构建成功；首次编译发现本轮新增的局部变量遮蔽参数警告，已改名。随后按SDK宽度和完整成员语义修正，最终增量构建成功。官方SDK/RapidJSON头的既有警告和既有Lua采集局部变量遮蔽警告仍存在；未修改第三方SDK，也未以屏蔽警告代替修复。
 
 按本次只推进I01—I06的范围及I29安排，未运行游戏、probe、分项测试或单元测试。全部Room/Grid adapter完成后从同一正式解析器进入统一E01—E18验收；当前不报告I29通过，也不改变11/12/17既有成功与失败记录。不创建本tx artifact或测试报告包。
+
+2026-11-03 I29修正：真实Greed换波中同Key Rock(type2)的Variant由1000变0，实例revision仍0、SpawnSeed与spawnFrame未变；原计划把Variant当构造参数而误拒绝。按本地GridEntityDesc文档，VariableSeed随事件变化；原生工厂按Type/index分配，Variant不参与构造参数。当前同实例change安装Variant/VariableSeed等最终Desc状态，Type/SpawnSeed、身份与实例修订仍按构造/换代合同核对；Door先前局部例外已统一到此规则。完整结果见[统一验收](tx-04-18-acceptance.md)。

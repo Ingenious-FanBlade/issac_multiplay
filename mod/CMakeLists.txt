@@ -45,7 +45,7 @@ add_custom_command(OUTPUT "${GENERATED}/room_grid_application.inc" "${GENERATED}
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_room_grid_catalog.py" --out "${GENERATED}"
   DEPENDS tools/gen_room_grid_catalog.py tools/gen_replica_catalog.py ${REPLICA_CATALOGS} VERBATIM)
 add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/codec.cpp
-  src/replica/room_grid_target.cpp src/replica/room_grid_plan.cpp
+  src/replica/room_grid_target.cpp src/replica/room_grid_plan.cpp src/replica/room_grid_budget.cpp
   "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc")
 target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")
 target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
@@ -55,6 +55,8 @@ target_link_libraries(isaac_cs_replica PUBLIC isaac_cs_world)
 target_sources(isaac_cs_net PRIVATE src/net/live.cpp)
 target_link_libraries(isaac_cs_net PUBLIC isaac_cs_replica)
 # E2E工具与正式DLL分开打包；同一库用于正式主线程纯值适配和统一验收。
+option(ISAACCS_BUILD_E2E_TOOLS "Build explicitly requested E2E tools outside product install tree" OFF)
+if(ISAACCS_BUILD_E2E_TOOLS)
 add_executable(replica-contract ../tools/replica-contract/main.cpp)
 target_link_libraries(replica-contract PRIVATE isaac_cs_replica)
 target_compile_options(replica-contract PRIVATE /W4 /Zi /utf-8 /EHsc)
@@ -63,8 +65,9 @@ add_executable(client-fixture ../tools/client-fixture/main.cpp)
 target_link_libraries(client-fixture PRIVATE isaac_cs_replica)
 target_compile_options(client-fixture PRIVATE /W4 /Zi /utf-8 /EHsc)
 set_target_properties(client-fixture PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")
+endif()
 add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/binding_v1_9_7_12.inc" "${GENERATED}/hook-manifest.json" "${GENERATED}/permanent_patches.inc" "${GENERATED}/host_patches.inc" "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc" "${GENERATED}/world-layout.json"
-  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/shutdown_patch.inc" "${GENERATED}/random_runtime.inc"
+  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/shutdown_patch.inc" "${GENERATED}/backdrop_patch.inc" "${GENERATED}/random_runtime.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_binding.py" --out "${GENERATED}"
   DEPENDS tools/gen_binding.py binding/hooks.json binding/world_layout.json binding/v1_9_7_12-static.json ../docs/hooks/repentogon-binding.json VERBATIM)
 add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions.cpp
@@ -77,13 +80,14 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   "${REPENTOGON_ROOT}/libzhl/hde32/src/hde32.cpp"
   src/game/device_k.cpp src/game/join.cpp src/game/peer.cpp src/game/input_lease.cpp src/game/persistence.cpp
   src/game/client.cpp src/game/client_scene.cpp src/game/client_native_bridge.cpp
-  src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_objects.cpp src/game/client_objects_native.cpp
+  src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_backdrop_native.cpp src/game/client_objects.cpp src/game/client_objects_native.cpp
   src/game/client_grids.cpp src/game/client_grid_native.cpp src/game/client_grid_events.cpp
   src/game/client_map_native.cpp
+  src/hooks/backdrop_patch.cpp
   src/game/client_presentation.cpp src/game/client_presentation_native.cpp
   src/game/client_resource_model.cpp src/game/client_resources_native.cpp
   src/game/client_e2e_native.cpp
-  src/ops/config.cpp src/ops/trace.cpp src/ops/command.cpp src/ops/world_commands.cpp src/ops/control_port.cpp
+  src/ops/config.cpp src/ops/trace.cpp src/ops/command.cpp src/ops/client_fixture.cpp src/ops/world_commands.cpp src/ops/control_port.cpp
   "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc"
   "${GENERATED}/exit_patch.inc"
   "${GENERATED}/shutdown_patch.inc"
@@ -92,12 +96,13 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
 # SDK-facing 单元只使用 C++17 值接口；Join/输入/world 核心保持 C++20。
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。
 set_source_files_properties(src/game/world_sources/loot.cpp src/game/world_sources/lua_entity.cpp src/game/player_api.cpp src/game/client_native_bridge.cpp src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp"
-  src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_objects_native.cpp src/game/client_presentation_native.cpp src/game/client_resources_native.cpp
+  src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_backdrop_native.cpp src/game/client_objects_native.cpp src/game/client_presentation_native.cpp src/game/client_resources_native.cpp
   src/game/client_grid_native.cpp
   src/game/client_map_native.cpp
   src/game/client_e2e_native.cpp
   src/game/world_sources/random_runtime_lua.cpp src/game/world_sources/random_e2e.cpp src/game/world_sources/random_owners.cpp
   src/hooks/host_patch.cpp src/hooks/odd_patch.cpp src/hooks/exit_patch.cpp
+  src/hooks/backdrop_patch.cpp
   PROPERTIES COMPILE_OPTIONS "/std:c++17")
 target_include_directories(zhlIsaacCS PRIVATE src "${GENERATED}" "${REPENTOGON_ROOT}/include" "${REPENTOGON_ROOT}/libzhl"
   "${REPENTOGON_ROOT}/libs/rapidjson/include" "${REPENTOGON_ROOT}/libs/rapidxml" "${REPENTOGON_ROOT}/libs/lua")

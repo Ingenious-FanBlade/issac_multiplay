@@ -43,7 +43,7 @@ OBSERVATION_ORDER = [
     'Factory', 'Init', 'Publish', 'Remove', 'ClearReferences', 'Destroy',
     'PlayerCtor', 'PlayerCreate', 'ManagerRestore', 'Replace', 'PlayerRestore',
     'NpcMorph', 'PickupMorph', 'GridFactory', 'GridInit', 'GridSpawn', 'Door',
-    'GridFree', 'Spawn',
+    'GridFree', 'Spawn', 'GridCtor',
 ]
 # world/model.cpp 的 kClassNames（含 UnknownEntity）。
 CLASS_ORDER = ['Player', 'NPC', 'Tear', 'Projectile', 'Pickup', 'Familiar',
@@ -296,7 +296,7 @@ def parse_world_rows(doc, problems):
         where = 'world_observations[%d](%s)' % (index, ident)
         observation = row.get('observation')
         if observation not in OBSERVATION_ORDER:
-            problems.add(where, 'observation 必须是 19 项观察语义之一: %r'
+            problems.add(where, 'observation 必须是 20 项观察语义之一: %r'
                          % (observation,))
             continue
         seen_observations.append(observation)
@@ -434,7 +434,7 @@ def parse_world_rows(doc, problems):
             nargs=len(arg_specs), flags=derived_flags, name=definition,
             shared_control=bool(row.get('shared_control', False))))
     if sorted(seen_observations) != sorted(OBSERVATION_ORDER):
-        problems.add('world_observations', '必须恰好覆盖 19 项观察语义，当前 %r'
+        problems.add('world_observations', '必须恰好覆盖 20 项观察语义，当前 %r'
                      % (seen_observations,))
     return parsed
 
@@ -476,7 +476,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
 #include <intrin.h>
-// tx-04-08 world 观察入口的专用作用域与 19 项观察编号（C++17 兼容头）。
+// tx-04-08 world 观察入口的专用作用域与 20 项观察编号（C++17 兼容头）。
 #include "world/observe.h"
 // 自有定义仅借用类型表达 ABI，不构造这些对象。
 struct CsStatic {};
@@ -530,6 +530,26 @@ def legacy_body(row):
                 '    cs::game::ClientPresentationMinimapDiagnostic(this, false);',
                 '    super();',
                 '    cs::game::ClientPresentationMinimapDiagnostic(this, true);']
+    if ident == 'client_backdrop_effects':
+        return ['    // Source只读记录真实独立RNG前后态，Client按完整来源重放并省去本地实体生成。',
+                '    cs::game::ClientBackdropEffectScope trace(this, %s);' % call,
+                '    if (trace.Handled()) return;',
+                '    cs::CallScope scope(record);',
+                '    super(%s);' % call,
+                '    trace.Returned();']
+    if ident == 'client_backdrop_wall':
+        return ['    cs::game::ClientBackdropWallScope trace(this);',
+                '    if (!trace.Ready()) return;',
+                '    cs::CallScope scope(record);',
+                '    super();',
+                '    trace.Returned();']
+    if ident == 'client_backdrop_graphics':
+        return ['    cs::game::ClientBackdropBuildScope trace(this);',
+                '    if (!trace.Ready()) return 0;',
+                '    cs::CallScope scope(record);',
+                '    auto result=super();',
+                '    trace.Returned();',
+                '    return result;']
     if ident == 'client_hud_achievement_query':
         return ['    // 仅当前Client HUD绘制读取Authority的最终徽章条件；进度能力不受此查询影响。',
                 '    bool result=false;',
@@ -1481,6 +1501,20 @@ def main():
         'inline constexpr unsigned ExitCheckBytes = %s;\n'
         % (exit_patch['rva'], exit_patch['resume'], exit_patch['alternate'],
            exit_patch['expected'], exit_patch['size']), encoding='utf-8')
+    # 背景实体生成两点同样来自唯一清单；Source/Off重放被覆盖的真实GlobalRandom调用。
+    backdrop_rows = [next(row for row in document['byte_patches'] if row['id'] == ident)
+                     for ident in ('client_backdrop_effect_1', 'client_backdrop_effect_2')]
+    backdrop_random = next(row['rva'] for row in legacy if row['id'] == 'native_global_random')
+    (args.out / 'backdrop_patch.inc').write_text(
+        'inline constexpr uintptr_t BackdropEffectRva[2] = {%s};\n'
+        'inline constexpr uintptr_t BackdropEffectResume[2] = {%s};\n'
+        'inline constexpr uintptr_t BackdropEffectSkip[2] = {%s};\n'
+        'inline constexpr const char *BackdropEffectPattern[2] = {%s};\n'
+        'inline constexpr uintptr_t BackdropRandomRva = 0x%Xu;\n'
+        % (','.join(row['rva'] for row in backdrop_rows),
+           ','.join(row['resume'] for row in backdrop_rows),
+           ','.join(row['alternate'] for row in backdrop_rows),
+           ','.join(c_string(row['expected']) for row in backdrop_rows), backdrop_random), encoding='utf-8')
     # Shutdown 两段原生直接写点与关闭判断同属常驻字节补丁，唯一来源仍是 hooks.json。
     shutdown_rows = [next(row for row in document['byte_patches'] if row['id'] == ident)
                      for ident in ('client_shutdown_counter', 'client_shutdown_save')]

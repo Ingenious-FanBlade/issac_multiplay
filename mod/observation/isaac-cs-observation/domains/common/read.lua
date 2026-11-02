@@ -2,7 +2,7 @@ if IsaacCSObservationValues then return IsaacCSObservationValues end
 -- 全部复制在游戏主线程完成；输出只有自有标量／表／规范主体键，不输出 userdata 或地址。
 local schemas = include("domains/entity/schema")
 local M = { SchemaVersion=2 }
-local LIMIT = {objects=16384, nodes=262144, depth=12, bytes=16*1024*1024, queries=131072}
+local LIMIT = {objects=16384, nodes=64*1024*1024, depth=12, bytes=16*1024*1024, queries=131072}
 local function missing(status, reason) return {status=status,reason=reason} end
 local function native() return IsaacCSObservationNative end
 local function protected(object, name, args, field, static)
@@ -246,7 +246,9 @@ collect=function(object,class,ctx,depth)
   for _,spec in ipairs(schemas[class] or {}) do
     if not handled[spec.id] then
       handled[spec.id]=true
-      if ctx.runtime and (spec.returns=="Sprite" or spec.category=="parameter_query" or spec.member=="GetRNG" or spec.member=="GetRenderPosition") then
+      local alias=ctx.member_alias and ctx.member_alias(spec)
+      if alias then out.fields[spec.id]=alias
+      elseif ctx.runtime and (spec.returns=="Sprite" or spec.category=="parameter_query" or spec.member=="GetRNG" or spec.member=="GetRenderPosition") then
         -- 独立更新只复制运行字段；资源与静态参数查询由普通域窗口负责。
       elseif spec.category=="field" or spec.category=="query" then
         out.fields[spec.id]=query(object,spec,{},ctx,depth)

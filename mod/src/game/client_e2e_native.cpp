@@ -6,6 +6,8 @@
 #include "runtime.h"
 
 namespace cs::game {
+void *ClientTestCreateVm() noexcept {return IsMain()&&!Settings.world_e2e_token.empty()?luaL_newstate():nullptr;}
+void ClientTestDestroyVm(void *state) noexcept {if(IsMain()&&state)lua_close(static_cast<lua_State *>(state));}
 // 失败方式：Hook漏接、一般Lua仍执行、PGD写前未隔离、玩法推进。只在专用E2E token开放。
 // 调用真实已采用入口并比较具名值，既不清dirty也不恢复进度来制造通过。
 std::string ClientTestExerciseNative(const std::string &token) noexcept {

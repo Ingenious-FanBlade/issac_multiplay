@@ -24,6 +24,11 @@ GRID_NATIVE = {
     "I16": "mod/src/game/client_grids.cpp:Parse;mod/src/game/client_grid_native.cpp:Common/FieldsThunk",
     "I17": "mod/src/game/client_grids.cpp:Parse;mod/src/game/client_grid_native.cpp:Runtime/Resources",
     "I18": "mod/src/replica/room_grid_target.cpp;mod/src/game/client_grid_native.cpp:ClientNativeGridsBindDoors/Unpublish",
+    "I19": "mod/src/game/client_grids.cpp:ResolveReferences/VisitLifted",
+    "I20": "mod/src/game/client_scene.cpp:RoomState;mod/src/game/client_room_native.cpp:ClientRoomStateApply;mod/src/game/client_native_world.cpp:ClientNativeWorldCheckCommit",
+    "I21": "mod/src/game/client_resources_native.cpp;mod/src/game/client_grid_native.cpp:ClientGridDraw;mod/src/game/client_presentation_native.cpp:DrawImpl",
+    "I22": "mod/src/game/client_grid_events.cpp;mod/src/game/client_scene.cpp:AdmitGridIndependent",
+    "I23": "mod/src/game/client_grids.cpp:Retire;mod/src/game/client_grid_native.cpp:Remove;mod/src/game/client_scene.cpp:Pump",
 }
 # 这些事实仍完整保留在已提交T中；不能把未来Entity/整局裁决派生查询谎称为当前Room私有字段。
 ROOM_FACT_CONSUMERS = {
@@ -46,6 +51,7 @@ ROOM_FACT_CONSUMERS = {
     "Room.GetEffects": "tx-04-25 room temporary gameplay effects",
     "Room.HasCurseMist": "tx-04-19 environment Entity membership",
     "Room.HasWaterPits": "I17/I21 authoritative GridPit/water draw",
+    "RoomDescriptor.GridIndex": "I06普通值核验；dim1 1x1异常raw仅诊断，native原点取实际offset，不冒认raw等价",
     "RoomDescriptor.BossDeathSeed": "tx-04-25 authoritative reward RNG",
     "RoomDescriptor.DeliriumDistance": "tx-04-25 boss selection;tx-04-26 topology",
     "RoomDescriptor.GetErrorTrinketEffect": "tx-04-25 authoritative room rules",
@@ -134,7 +140,7 @@ def generate():
                          "dependencies": ["same Scope/component capture", "complete membership before deletion", "I05 plan;I23 retirement"],
                          "missing": "保留Null/Empty/Unknown/Unavailable/Partial/Truncated；required缺失则字段级拒绝，不补零",
                          "implementation": NATIVE if task == "I06" else ROOM_NATIVE[task] if task in ROOM_NATIVE and not operation else GRID_NATIVE[task] if task in GRID_NATIVE and not operation else PARSER if implemented else f"{PARSER}（保留来源）；{task}原生adapter待实现",
-                         "status": "retained_fact;consumer="+consumer if consumer and not operation else "implemented_grid_adapter;integration_pending_I19_I25;runtime_pending_I29" if task in GRID_NATIVE and not operation else "implemented_room_adapter;runtime_pending_I29" if task in ROOM_NATIVE and not operation else "implemented_foundation;runtime_pending_I29" if implemented else "native_pending_"+task,
+                         "status": "retained_fact;consumer="+consumer if consumer and not operation else "implemented_grid_adapter;scene_integrated_I25;runtime_representative_I29_pass" if task in GRID_NATIVE and not operation else "implemented_room_adapter;runtime_representative_I29_pass" if task in ROOM_NATIVE and not operation else "implemented_foundation;runtime_representative_I29_pass" if implemented else "native_pending_"+task,
                          "consumer": consumer,
                          "e2e": e2e})
         if name != "entity-catalog.json":
@@ -142,29 +148,36 @@ def generate():
                 render = "RENDER" in c["signature"]
                 callbacks.append({"source_catalog": name, "source_ordinal": ordinal, **c,
                                   "ownership": "IndependentPresentationSource" if render else "AuthorityOnly",
-                                  "handling": "保留独立scope，不拼成普通快照；Client不重发玩法回调", "application_task": "I22", "implementation": PARSER+"（普通目标不接独立回调）；I22事件adapter待实现", "e2e": "E12/E16"})
+                                  "handling": "保留独立scope，不拼成普通快照；Client不重发玩法回调", "application_task": "I22", "implementation": PARSER+"（普通目标不接独立回调）；I22 ClientGridEvents已接入；独立效果消费/音画归27，不由普通状态冒认完成", "e2e": "E12/E16"})
             for gap in catalog.get("unexposed", []):
                 gaps.append({**gap, "source_catalog": name, "application_task": "I11", "handling": "正式RoomPresentation已提供采用的真实环境缓存；其余私有容器仍Unavailable，不补造", "e2e": "E08/E13"})
     structures = [
+        ("grid.physical_generation", "I14", "统一清单追加GridCtor=19；直接墙构造正常返回换新物理代次，工厂内去重，不伪造派生Init或外层出生；原生槽与退休身份不一致则来源Partial"),
         ("room.application_source.descriptor_placement", "I06", "原生数组存储/实际offset占用；地址只在主线程转换为值"),
         ("reference.construction_revision", "I03", "保留descriptor当前构建修订；不是出生"),
         ("grid.membership/objects.memberships", "I14", "一份主体，多格子/门别名；完整集合才规划删除"),
         ("grid.lifted_descriptors", "I19", "Effect136所有，不推断来源Grid身份"),
         ("GridEntityPressurePlate.TimerPlate.Null", "I21", "合法Null沿用read.Value；不可把nil当空路径Sprite"),
+        ("grid.member_sprite_pose", "I21", "来源v5：Door用REP GetExtraSprite指针Getter，TimerPlate读真实内嵌成员；原版ANM2值拷贝会清owner Offset/render flags，不能作为实际绘制姿态"),
         ("private_grid_bridge_parent/neighbors", "I19/I20", "J273 MakeBridge不保留parent指针；最终State/HasLadder是状态输入，邻居/路径维护仍归I20"),
         ("grid.application_runtime/application_sprites", "I15/I17", "spawnFrame、Door动画模式、Rock碎屑/Fire三Sprite与有界Ember，正式只读来源；不调用Init/PostInit"),
+        ("room.map_sprites", "I13/I21", "Minimap两份原生ANM2语义pose，Refresh后安装；不复制owner或用IconsSprite代替边框"),
+        ("room.backdrop_wall_trace", "I10/I24", "来源v8记录真实墙面构建/不适用见证和最多4096项独立RNG轨迹；Client保持墙纹采样，省去915890/两处variant7/917420尾部null标记实体生成，不推进共享MT"),
+        ("room.application_runtime.render_flag_7220", "I09", "J273仅采用已核定byte绘制条件；不写SDK误标slowdown的未知高位"),
+        ("descriptor.grid_index/raw_grid_index_adopted", "I06", "raw保留；dim1 1x1的native原点取唯一真实占用格，缺口通过聚合状态显式报告"),
         ("room.map_application/descriptor.map_icons", "I13", "Camera数值、地图config、DisplayFlags与保存记录图标投影；不替代24完整保存/探索"),
         ("resource_pose/pose_runtime", "I21", "17正式资源姿态与内容版本；不创建第二套Grid身份"),
         ("room.config.application_config", "I07", "独立可空完整配置及MergedData树；只读复用或自有深副本，不执行候选"),
         ("room.application_runtime", "I08/I09/I12", "真实数组尺寸/边界/12形矩形、进度、448字节轨道；不经截断Lua Getter"),
         ("room.presentation_runtime.auxiliary", "I11", "poop最终pose/Image及vein索引图；不传指针、不调用随机构建"),
+        ("room_grid.target_budget", "I26", "完整目标32MiB/64M节点（用户要求先放宽，压缩优化后另行收敛）、456主槽及门别名、4096资源/65536层/32768FX；单T、16借用/retained owner及每步一格"),
     ]
     return {"format": "isaac.cs.room-grid.application-catalog", "version": 1,
             "members": rows, "callbacks": callbacks, "gaps": gaps,
             "interfaces": grid.get("classes", []),
             "associated": [{**row, "application_task": "I19", "missing": "未解析Entity owner则拒绝依赖；不推断source Grid", "e2e": "E11"} for row in grid.get("associated", [])],
             "structural": [{"id": key, "application_task": task, "handling": text, "implementation": PARSER+";"+PLAN, "missing": "required缺失写前拒绝", "e2e": "E01/E03/E11/E13"} for key, task, text in structures],
-            "native_scope": "I01—I18领域adapter已实现；I19—I30的引用/缓存/绘制/场景集成及统一验收仍待完成；G01—G27状态/构造输入不表示I21绘制或I29实机通过"}
+            "native_scope": "I01—I30已完成；统一E2E为49个真实Source目标、49个冷Client目标及12项检查，代表画面已主审；不外推所有内容组合、Entity19/Player20/HUD27或实时整局联机"}
 
 
 def main():

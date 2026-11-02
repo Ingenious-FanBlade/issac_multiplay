@@ -22,10 +22,13 @@ public:
 private:
   ClientNativeGrids *native_=nullptr;
   std::vector<ClientGridCommand> commands_;
+  // 不可变T只解析一次；最终检查分步消费缓存，下一目标/退休立即使旧缓存失效。
+  std::vector<ClientGridCommand> checks_,planned_checks_;
   std::array<ClientGridDoorBinding,8> doors_{};
   std::shared_ptr<const replica::RoomGridTarget> target_,committed_;
   std::string reason_;
   std::size_t cursor_=0;
+  std::size_t check_cursor_=0;
   bool written_=false,failed_=false,doors_bound_=false,retired_=true,native_started_=false;
 };
 } // namespace cs::game

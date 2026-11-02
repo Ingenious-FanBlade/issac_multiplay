@@ -44,6 +44,9 @@ struct ClientResourceResult final {
   unsigned layers=0;
   const char *reason="resource_not_applied";
 };
+// 仅主线程读取的聚合计数；不保存对象地址或逐资源日志。
+struct ClientResourceStatistics final { std::uint64_t unchanged=0,reused_graphics=0,candidate_loads=0; };
+ClientResourceStatistics ClientResourcesStatistics() noexcept;
 bool ClientNativeCpuQueuesEmpty() noexcept;
 ClientResourceResult ClientApplyResourcePose(void *sprite,const ClientResourcePose &) noexcept;
 bool ClientResourcePoseMatches(void *sprite,const ClientResourcePose &) noexcept;

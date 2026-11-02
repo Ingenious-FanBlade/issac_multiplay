@@ -50,7 +50,7 @@ local function capture(limits,render)
 end
 function M.Capture(limits) return Calls.Silent(capture,limits,false) end
 function M.Render()
-  local j,ok,count,nodes,reason=Calls.Silent(capture,{objects=16384,nodes=262144,depth=12,bytes=8*1024*1024},true)
+  local j,ok,count,nodes,reason=Calls.Silent(capture,{objects=16384,nodes=64*1024*1024,depth=12,bytes=8*1024*1024},true)
   IsaacCSObservationNative.PublishLocation(j,ok,count,nodes,reason,7,2)
 end
 function M.Outcome() end

@@ -14,7 +14,8 @@ std::string Str(const Value &v){return v.IsString()?std::string(v.GetString(),v.
 const Value &At(const Value &v,const char *k){if(!v.IsObject()||!v.HasMember(k)) Fail("missing_field");return v[k];}
 Value String(const std::string &s,Allocator &a){return Value(s.data(),rapidjson::SizeType(s.size()),a);}
 void Check(const Value &v,const Limits &l,unsigned depth,std::uint64_t &nodes){
-  if(depth>l.depth||++nodes>l.nodes) Fail("value_budget");
+  if(depth>l.depth)Fail("value_depth_budget");
+  if(++nodes>l.nodes)Fail("value_node_budget");
   if(v.IsString()&&v.GetStringLength()>l.string_bytes) Fail("string_budget");
   if(v.IsDouble()&&!std::isfinite(v.GetDouble())) Fail("nonfinite");
   if(v.IsArray()) for(const auto &x:v.GetArray()) Check(x,l,depth+1,nodes);
@@ -329,7 +330,7 @@ Message InputIntent(const Scope &s,unsigned participant,std::uint64_t generation
 Json Capabilities(){auto out=Parse(R"({"protocol":1,"model":1,"game":"v1.9.7.12.J273","repentogon":"1.1.3","required":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"supported":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"domains":[1,2,3,4,5,6,7,8,9,10,11],"model_categories":{"entity":["Player","NPC","Delirium","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect","Slot","NativeText","NativeDarkness"],"grid":"all target-version categories;specialized fields and explicit Unsupported","modes":["Normal","Hard","Greed","Greedier","Challenge","SeedEffects","DailyNonRanking"],"resource_pose":["ANM2","texture-replacements","main","overlay","layers","tracks","shader","camera","transition"],"unexposed":"Unavailable;never synthesized"},"native_appliers":[],"mods":[],"resources":{"base":"J273","status":"InstallationRequired"},"limits":{"bytes":33554432,"datagram":1200,"candidates":2,"fragments":32768,"timeout_ms":5000}})");
   auto &allocator=out.GetAllocator();auto contract=RoomGridCapabilities();
   Value target;target.CopyFrom(contract,allocator);Put(out["model_categories"],"room_grid_target",std::move(target),allocator);
-  out["supported"].PushBack(Value("room-grid-target-v2",allocator),allocator);return out;
+  out["supported"].PushBack(Value("room-grid-target-v10",allocator),allocator);return out;
 }
 Json Negotiate(const Value &local,const Value &remote){
   for(const auto *v:{&local,&remote}){

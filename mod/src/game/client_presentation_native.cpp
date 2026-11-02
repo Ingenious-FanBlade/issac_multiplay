@@ -12,6 +12,7 @@
 #include <climits>
 #include <cmath>
 #include <cstring>
+#include <cstdio>
 #include <new>
 #include <memory>
 #include <map>
@@ -231,7 +232,10 @@ bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &o
     auto *entity=list._data[i];
     if(!entity||!entity->_valid||!entity->_exists){reason="presentation_invalid_member";return false;}
     if(entity->_type==1){if(entity!=player){reason="presentation_foreign_player";return false;}++players;}
-    else if(entity->_type!=1000||entity->_variant!=57||entity->_subtype>1){reason="presentation_entity_renderer_unsupported";return false;}
+    else if(entity->_type!=1000||entity->_variant!=57||entity->_subtype>1){
+      // 记录真实多出的native成员；不把未知Entity过滤后冒认完整展示。
+      static thread_local char detail[96];std::snprintf(detail,sizeof(detail),"presentation_entity_renderer_unsupported:%u:%u:%u",entity->_type,entity->_variant,entity->_subtype);
+      reason=detail;return false;}
     for(unsigned j=0;j<i;++j)if(out[j]==entity){reason="presentation_duplicate_member";return false;}
     out[i]=entity;
   }
@@ -248,19 +252,25 @@ void FullSort(Room &room,std::array<Entity *,kMaximumRenderMembers> &entities,un
   std::sort(keys.begin(),keys.begin()+count,[](const Key &a,const Key &b){return a.z!=b.z?a.z<b.z:a.index<b.index;});
   for(unsigned i=0;i<count;++i)room._entityList._renderEL._data[i]=entities[i]=keys[i].entity;
 }
+// 9E4140消费CPU队列后重置BA4714，却不清当前FBO的depth。相同target内的flush
+// 必须保留连续递减的z，否则世界合成quad与HUD第一张Frame同深度而遮掉它。
+void FlushSameTarget(KAGE_Graphics_Manager &manager) {
+  auto &depth=*reinterpret_cast<float *>(Base+0x7a4714);const float next=depth;
+  manager.PresentWithoutSwap();depth=next;
+}
 // 每个pass保存renderer显式状态；所有CPU raw提交在改变目标/释放借用前消费。
 class RenderState final {
 public:
   RenderState():manager_(*__ptr_g_KAGE_Graphics_Manager),blend_(manager_._blendMode),shader_(manager_._shader) {
-    manager_.PresentWithoutSwap();Rendering::PushCurrentRenderTarget();active_=true;
+    FlushSameTarget(manager_);Rendering::PushCurrentRenderTarget();active_=true;
   }
   ~RenderState(){if(active_){
     // 原版Present只有在本方刚设置的非空offscreen目标上才消费并清共享depth；绝不对外层main调用。
-    if(offscreen_&&manager_.currentRenderTarget==offscreen_)manager_.Present();else manager_.PresentWithoutSwap();
+    if(offscreen_&&manager_.currentRenderTarget==offscreen_)manager_.Present();else FlushSameTarget(manager_);
     Rendering::RestorePreviousRenderTarget();manager_._blendMode=blend_;manager_._shader=shader_;
   }}
   void Target(KAGE_Graphics_ImageBase *target,bool screen) {
-    manager_.PresentWithoutSwap();offscreen_=target;manager_.SetCurrentRenderTarget(target,screen);manager_.Clear();
+    FlushSameTarget(manager_);offscreen_=target;manager_.SetCurrentRenderTarget(target,screen);manager_.Clear();
   }
   bool FinishOffscreen(KAGE_Graphics_ImageBase *expected){
     if(!expected||offscreen_!=expected||manager_.currentRenderTarget!=expected)return false;
@@ -376,7 +386,8 @@ void ShadowDiagnostic(const char *phase,bool batches=false) noexcept {
 }
 bool FXPresent(Room &room) noexcept {
   const auto &layers=FXLayersVector(room);
-  return layers.begin!=layers.end||FXRayGroups(room)||room._fxLayers._poopFxCountdown>0||RoomVeins(room)[0].children[0];
+  // 96CE20等消费者先检查loaded；Reset未初始化的停用计数不构成可见FX。
+  return (room._fxLayers._loaded&&(layers.begin!=layers.end||FXRayGroups(room)||room._fxLayers._poopFxCountdown>0))||RoomVeins(room)[0].children[0];
 }
 void DrawEntity(Entity *entity,Vector &offset) {
   if(entity->_type==1)static_cast<Entity_Player *>(entity)->Render(&offset);
@@ -508,9 +519,11 @@ bool BuildAuxCandidate(ClientNativePresentation &p,const ClientPresentationDescr
   if(p.auxiliary_candidate||!AuxOwnerMatches(p,room))return false;
   p.auxiliary_candidate=std::make_unique<NativeAux>();auto &a=*p.auxiliary_candidate;const auto &source=d.auxiliary;
   a.roots=source.roots;
-  a.node_count=unsigned(source.veins.size());a.poop_count=unsigned(source.poop_poses.size());
+  // 不适用的Source图没有标量；本方只构造十个空根，保证原生首child判定关闭绘制。
+  a.node_count=source.veins.empty()?10u:unsigned(source.veins.size());a.poop_count=unsigned(source.poop_poses.size());
   a.nodes=static_cast<NativeVein *>(NativeFXAllocate(a.node_count*sizeof(NativeVein)));if(!a.nodes)return false;
-  for(unsigned i=0;i<a.node_count;++i){const auto &s=source.veins[i];auto &n=a.nodes[i];new(&n) NativeVein;
+  if(source.veins.empty())for(unsigned i=0;i<10;++i){new(a.nodes+i) NativeVein{};a.roots[i]=i;}
+  for(unsigned i=0;i<source.veins.size();++i){const auto &s=source.veins[i];auto &n=a.nodes[i];new(&n) NativeVein;
     n.kind=s.kind;n.rotation=s.rotation;n.scale=s.scale;n.factor=s.factor;n.opacity=s.opacity;n.depth=s.depth;n.x=s.x;n.y=s.y;
     for(unsigned j=0;j<3;++j)n.children[j]=s.children[j]<0?nullptr:a.nodes+unsigned(s.children[j]);}
   if(a.poop_count){a.poop=static_cast<NativeFXPose *>(NativeFXAllocate(a.poop_count*sizeof(NativeFXPose)));if(!a.poop)return false;
@@ -522,7 +535,7 @@ bool BuildAuxCandidate(ClientNativePresentation &p,const ClientPresentationDescr
   return true;
 }
 void InstallAuxCandidate(ClientNativePresentation &p,Room &room,const ClientPresentationDescription &d){
-  auto &a=*p.auxiliary_candidate;for(unsigned i=0;i<10;++i)RoomVeins(room)[i]=a.nodes[d.auxiliary.roots[i]];
+  auto &a=*p.auxiliary_candidate;for(unsigned i=0;i<10;++i)RoomVeins(room)[i]=a.nodes[a.roots[i]];
   PoopImage(room)=a.image;PoopVector(room)={a.poop,a.poop?a.poop+a.poop_count:nullptr,a.poop?a.poop+a.poop_count:nullptr};
   auto *bytes=reinterpret_cast<unsigned char *>(&room._fxLayers);const int count=int(a.poop_count);std::memcpy(bytes+0x50,&count,4);
   std::memcpy(bytes+0x54,d.auxiliary.poop_settings,sizeof(float)*4);room._fxLayers._poopFxColor=Color(d.auxiliary.poop_color);
@@ -594,7 +607,7 @@ void InstallFXCandidate(ClientNativePresentation &p,Room &room,const ClientPrese
   std::memcpy(bytes,description.fx_average.data(),sizeof(float)*2);
   std::memcpy(bytes+0xb0,description.fx_bounds.data(),sizeof(float)*4);
   SelectedRayGroup(room)=description.fx_ray_group;
-  // Room ctor和96BD30都不写+34；必须安装Authority实际倒计时，不能把冷堆值当资源owner。
+  // loaded时安装Authority实际倒计时；不适用时仅构造本方关闭状态，不复制Source冷堆值。
   room._fxLayers._poopFxCountdown=description.fx_poop_countdown;
   room._fxLayers._loaded=description.fx_loaded;
 }
@@ -693,6 +706,9 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   // 外层完整保存 renderer/target，内部 push/pop 不会破坏17已修复的深度提交顺序。
   {RenderState restore;
     if(!ClientMinimapBuild(&game,description.map.descriptors,description.map.state,description.effective_curses))return {false,true,true,"presentation_minimap_source_cache"};}
+  if(description.minimap_poses_present)for(unsigned i=0;i<2;++i)
+    if(!ClientApplyResourcePose(&minimap._config[i]._mapSprite,description.minimap_poses[i]).complete)
+      return {false,true,true,"presentation_minimap_source_pose"};
   InstallAuxCandidate(*p,room,description);InstallFXCandidate(*p,room,description);
   game._screenShakeOffset=Vector(description.screen_shake[0],description.screen_shake[1]);
   room._renderScrollOffset=Vector(description.render_scroll[0],description.render_scroll[1]);
@@ -929,7 +945,7 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     if(p->description.mirror){
       if(!mirror_restore.FinishOffscreen(Surface(0x7e7340).image)||!MirrorComposite(room,p->description))return {false,false,true,"presentation_mirror_surface_or_packet"};
       // 镜像 quad 消费后再接 HUD，保持 native 递减 z 与 FBO depth 的真实提交边界。
-      graphics.PresentWithoutSwap();
+      FlushSameTarget(graphics);
     }
     graphics._blendMode=BlendMode();graphics._shader=ImageShader();
     if(game._hud._isVisible){
@@ -959,15 +975,45 @@ bool ClientPresentationHudAchievementQuery(bool &result) noexcept {
 }
 void ClientPresentationMinimapDiagnostic(void *value,bool after) noexcept {
   // 只记录真实Minimap调用的首个前/后状态，不补调Render，也不改原生分支。
-  if(!Settings.diagnostics||!IsMain()||!HasOwner(Owner::Render))return;
+  if(!Settings.diagnostics||!IsMain()||!g_Game||value!=&g_Game->_minimap)return;
   auto *p=hud_draw;const unsigned bit=after?2u:1u;
-  if(!p||!p->active||!p->ready||p->game!=g_Game||value!=&g_Game->_minimap||(p->minimap_diagnostic&bit))return;
-  p->minimap_diagnostic|=bit;
+  const bool source=!p&&!ClientBusy()&&!Settings.world_e2e_token.empty()&&g_Game->_room&&*reinterpret_cast<const bool *>(g_Game->_room);
+  if(source){
+    if(g_Game->_roomTransition._mode!=0||g_Game->_minimap._config[0]._alpha<0.99f)return;
+    // 只读E2E的Source/Client差异诊断；每个连续房间至多一次前后，最多32房，不增加Hook。
+    static int previous=INT32_MIN;static unsigned mask=0,rooms=0;
+    if(previous!=g_Game->_currentRoomIdx){previous=g_Game->_currentRoomIdx;mask=0;++rooms;}
+    if(rooms>32||(mask&bit))return;mask|=bit;
+  }else{
+    if(!HasOwner(Owner::Render)||!p||!p->active||!p->ready||p->game!=g_Game||(p->minimap_diagnostic&bit))return;
+    p->minimap_diagnostic|=bit;
+  }
   auto &map=g_Game->_minimap;auto &sprite=map._config[0]._mapSprite;
+  const auto &geometry=map._config[0];
+  Trace("minimap_geometry_diagnostic","source=%u after=%u anchor=%.4f,%.4f padding=%.4f,%.4f offset=%.4f scale=%.4f cells=%d,%d icons=%d size1=%.4f,%.4f size2=%.4f,%.4f alpha=%.4f",
+      source,after,geometry._vec1.x,geometry._vec1.y,geometry._borderPadding.x,geometry._borderPadding.y,geometry._posOffsetX,geometry._borderScale,
+      geometry._i1,geometry._i2,geometry._minimapIconNum,geometry._size1.x,geometry._size1.y,geometry._size2.x,geometry._size2.y,geometry._alpha);
   float transition=0;
   auto *raw=reinterpret_cast<const unsigned char *>(&g_Game->_roomTransition);
   std::memcpy(&transition,raw+0xc,4);
   auto &graphics=*__ptr_g_KAGE_Graphics_Manager;
+  Trace("minimap_pose_diagnostic","source=%u after=%u room=%d loaded=%u main=%s frame=%.4f overlay=%s overlay_frame=%.4f overlay_first=%u layers=%u shader_rva=%llx",
+      source,after,g_Game->_currentRoomIdx,sprite._loaded,sprite._animState._animData?sprite._animState._animData->_name.c_str():"",sprite._animState._animFrame,
+      sprite._overlayAnimState._animData?sprite._overlayAnimState._animData->_name.c_str():"",sprite._overlayAnimState._animFrame,sprite._overlayRenderFirst,sprite._layerCount,
+      static_cast<unsigned long long>(reinterpret_cast<std::uintptr_t>(graphics._shader)-Base));
+  for(unsigned i=0;i<(std::min)(sprite._layerCount,4u);++i){const auto *layer=sprite.GetLayer(int(i));
+    if(layer)Trace("minimap_layer_diagnostic","source=%u after=%u layer=%u visible=%u loaded=%u color=%.4f image=%s main_selector=%d overlay_selector=%d",
+        source,after,i,layer->_visible,layer->_spriteSheetLoaded,layer->_color._tint[3],layer->_spriteSheetPath.c_str(),
+        sprite._animState._layerFrames?sprite._animState._layerFrames[i]:-1,sprite._overlayAnimState._layerFrames?sprite._overlayAnimState._layerFrames[i]:-1);
+  }
+  // 对照真实Frame消费者的只读条件；不补调绘制、不修改全局颜色或深度。
+  auto *animation_layer=sprite._animState._animData?sprite._animState._animData->GetLayerById(0):nullptr;
+  auto *frame=animation_layer&&sprite._animState._layerFrames?animation_layer->GetFrame(sprite._animState._layerFrames[0]):nullptr;
+  Trace("minimap_frame_diagnostic","source=%u after=%u layer_visible=%u frames=%d frame_visible=%u size=%.4f,%.4f color=%.4f override_count=%u override_alpha=%.4f light=%u reflection=%u glitch=%u native_z=%.6f",
+      source,after,animation_layer&&animation_layer->IsVisible(),animation_layer?animation_layer->GetFrameCount():0,
+      frame&&frame->visible,frame?frame->width:0,frame?frame->height:0,frame?frame->color._tint[3]:0,
+      unsigned(g_ColorOverrideStack.size()),g_ColorOverrideStack.empty()?1.0f:g_ColorOverrideStack.back()._tint[3],
+      g_ANM2_LightRendering,g_ANM2_ReflectionRendering,g_ANM2_GlitchRendering,*reinterpret_cast<const float *>(Base+0x7a4714));
   Trace("client_presentation_minimap_call","after=%u visible=%u seed10=%u alpha=%.4f,%.4f transition=%d,%.4f shake=%.4f,%.4f screen=%.4f,%.4f loaded=%u anim=%s flags=%u color=%.4f scale=%.4f,%.4f target=%p shader=%p",
       after,g_Game->_hud._isVisible,g_Game->_seedEffects.HasSeedEffect(10),map._config[0]._alpha,map._config[1]._alpha,
       g_Game->_roomTransition._mode,transition,map._shakeOffset.x,map._shakeOffset.y,g_WIDTH,g_HEIGHT,sprite._loaded,
@@ -1066,20 +1112,38 @@ bool LuaFXImageName(lua_State *L,const char *source) {
   lua_pushlstring(L,buffer,count);lua_setfield(L,-2,"image");return true;
 }
 // 复制原生已选图片和随机后pose；不调用FXLayers Load、Update、GetItemPool或任何RNG。
+// 只记录当前复制失败的具名阶段；错误文本随Partial返回，不增加逐帧日志或原生副作用。
+thread_local const char *presentation_capture_failure="presentation_capture";
+thread_local char presentation_capture_detail[128]{};
 bool LuaCaptureFX(lua_State *L,Room &room) {
+  // J273 7E7D6C/96BD30清空容器并关闭loaded，却不写选择索引及poop计数。
+  // 未加载时不读取这些停用标量；显式适用性与有效的零值/空容器分开。
+  if(!room._fxLayers._loaded){
+    lua_createtable(L,0,2);LuaBoolean(L,"loaded",false);
+    lua_pushliteral(L,"NotApplicable");lua_setfield(L,-2,"applicability");
+    lua_setfield(L,-2,"room_fx");return true;
+  }
   unsigned count=0;const auto &vector=FXLayersVector(room);const auto rays=FXRayGroups(room);
   // 正式来源预算独立于代表applier的4组/16条限制；不把未采用的真实组隐藏为缺字段。
-  if(!FXVectorValid(vector,count,256)||rays>256||SelectedRayGroup(room)<-1||SelectedRayGroup(room)>=int(rays))return false;
+  presentation_capture_failure="fx_vector_shape";
+  if(!FXVectorValid(vector,count,256)||rays>256)return false;
+  presentation_capture_failure="fx_ray_selection";
+  if(SelectedRayGroup(room)<-1||SelectedRayGroup(room)>=int(rays)){
+    std::snprintf(presentation_capture_detail,sizeof(presentation_capture_detail),"fx_ray_selection:loaded=%u:groups=%u:selected=%d",unsigned(room._fxLayers._loaded),rays,SelectedRayGroup(room));
+    presentation_capture_failure=presentation_capture_detail;return false;}
   lua_createtable(L,0,10);LuaBoolean(L,"loaded",room._fxLayers._loaded);
+  lua_pushliteral(L,"Loaded");lua_setfield(L,-2,"applicability");
   LuaNumber(L,"ray_groups",float(rays));LuaNumber(L,"poop_countdown",float(room._fxLayers._poopFxCountdown));
   LuaNumber(L,"ray_group",float(SelectedRayGroup(room)));LuaBoolean(L,"ray_lighting",RayLighting());LuaBoolean(L,"ray_darkness",RayDarkness(*g_Game));
   lua_createtable(L,int(rays),0);
   for(unsigned i=0;i<rays;++i){const auto &group=RayGroupsVector(room).begin[i];
+    presentation_capture_failure="ray_vector_or_budget";
     const auto first=reinterpret_cast<std::uintptr_t>(group.rays.begin),last=reinterpret_cast<std::uintptr_t>(group.rays.end),cap=reinterpret_cast<std::uintptr_t>(group.rays.capacity);
     if(last<first||cap<last||(last-first)%sizeof(NativeRay)||(cap-first)%sizeof(NativeRay)||(!first&&(last||cap)))return false;
     const auto count_rays=unsigned((last-first)/sizeof(NativeRay));if(count_rays>64)return false;
     lua_createtable(L,0,2);LuaArray(L,"geometry",group.geometry);lua_createtable(L,int(count_rays),0);
     for(unsigned j=0;j<count_rays;++j){const auto &ray=group.rays.begin[j];const auto *image=ray.image.image;
+      presentation_capture_failure="ray_image_pair_path_or_format";
       if(!image||!ray.image.counter)return false;
       lua_createtable(L,0,9);LuaNumber(L,"opacity",ray.opacity);LuaNumber(L,"speed",ray.speed);LuaNumber(L,"phase",ray.phase);
       if(!LuaFXImageName(L,image->_name))return false;
@@ -1095,20 +1159,21 @@ bool LuaCaptureFX(lua_State *L,Room &room) {
   float average[2]{},bounds[4]{};std::memcpy(average,bytes,sizeof(average));std::memcpy(bounds,bytes+0xb0,sizeof(bounds));
   LuaArray(L,"average",average);LuaArray(L,"bounds",bounds);lua_createtable(L,int(count),0);
   for(unsigned i=0;i<count;++i){
+    presentation_capture_failure="fx_pose_vector_or_image_pair";
     const auto &fx=vector.begin[i];auto *image=fx.image.image;
     const auto first=reinterpret_cast<std::uintptr_t>(fx.poses.begin),last=reinterpret_cast<std::uintptr_t>(fx.poses.end),cap=reinterpret_cast<std::uintptr_t>(fx.poses.capacity);
     if(!image||!fx.image.counter||fx.count<0||fx.count>256||last<first||cap<last||(!first&&(last||cap))||
        last-first!=std::size_t(fx.count)*sizeof(NativeFXPose)||(cap-first)%sizeof(NativeFXPose))return false;
-    const auto pass=fx.parameters[4];if(pass<1||pass>6)return false;
+    presentation_capture_failure="fx_pass";const auto pass=fx.parameters[4];if(pass<1||pass>6)return false;
     const bool generic=pass==1||pass==2||pass==3||pass==6;unsigned char mask_byte=0;
     if(generic)std::memcpy(&mask_byte,reinterpret_cast<const unsigned char *>(&fx)+0x48,1);
     const bool mask=mask_byte!=0;float color_branch=0;std::uint32_t mask_backdrop=0;
     if(generic&&!mask)std::memcpy(&color_branch,reinterpret_cast<const unsigned char *>(&fx)+0x3c,4);
     if(generic&&mask)std::memcpy(&mask_backdrop,reinterpret_cast<const unsigned char *>(&fx)+0x40,4);
-    if(!std::isfinite(color_branch))return false;
+    presentation_capture_failure="fx_color_condition";if(!std::isfinite(color_branch))return false;
     lua_createtable(L,0,12);LuaNumber(L,"id",float(fx.id));LuaNumber(L,"pass",float(pass));
     LuaNumber(L,"color_branch",color_branch);LuaBoolean(L,"mask",mask);lua_pushinteger(L,mask_backdrop);lua_setfield(L,-2,"mask_backdrop");
-    if(!LuaFXImageName(L,image->_name))return false;
+    presentation_capture_failure="fx_image_path_or_format";if(!LuaFXImageName(L,image->_name))return false;
     LuaNumber(L,"min_filter",float(image->_minFilterMode));LuaNumber(L,"mag_filter",float(image->_magFilterMode));
     LuaNumber(L,"wrap_s",float(image->_wrapSMode));LuaNumber(L,"wrap_t",float(image->_wrapTMode));LuaNumber(L,"shader",float(image->_predefinedShader));
     if(!LuaImageFormat(L,*image))return false;
@@ -1124,9 +1189,12 @@ bool LuaCaptureFX(lua_State *L,Room &room) {
 // 只读复制poop随机后态及vein图；图地址仅用于本次主线程去重，出栈仅有有界整数引用。
 // node+10/+30既无draw消费合同，也不参与复制；不把未知padding或child裸地址上网。
 bool LuaCaptureAux(lua_State *L,Room &room){
+  const bool poop_applicable=room._fxLayers._loaded&&room._fxLayers._poopFxCountdown>0;
+  const bool veins_present=RoomVeins(room)[0].children[0]!=nullptr;
+  presentation_capture_failure="aux_poop_vector";
   const auto &v=PoopVector(room);const auto first=reinterpret_cast<std::uintptr_t>(v.begin),last=reinterpret_cast<std::uintptr_t>(v.end),cap=reinterpret_cast<std::uintptr_t>(v.capacity);
-  int count=0;std::memcpy(&count,reinterpret_cast<unsigned char *>(&room._fxLayers)+0x50,4);
-  if(count<0||count>256||last<first||cap<last||(last-first)%sizeof(NativeFXPose)||(cap-first)%sizeof(NativeFXPose)||(!first&&(last||cap))||std::size_t(count)>(last-first)/sizeof(NativeFXPose))return false;
+  int count=0;if(poop_applicable){std::memcpy(&count,reinterpret_cast<unsigned char *>(&room._fxLayers)+0x50,4);
+    if(count<0||count>256||last<first||cap<last||(last-first)%sizeof(NativeFXPose)||(cap-first)%sizeof(NativeFXPose)||(!first&&(last||cap))||std::size_t(count)>(last-first)/sizeof(NativeFXPose))return false;}
   std::map<const NativeVein *,unsigned> ids;std::set<const NativeVein *> active;std::vector<ClientPresentationVein> nodes;std::array<unsigned,10> roots{};
   std::function<bool(const NativeVein *,unsigned,unsigned &)> visit=[&](const NativeVein *p,unsigned depth,unsigned &id){
     if(!p||depth>32||active.count(p))return false;if(auto found=ids.find(p);found!=ids.end()){id=found->second;return true;}
@@ -1138,31 +1206,35 @@ bool LuaCaptureAux(lua_State *L,Room &room){
     for(unsigned i=0;i<3;++i)if(n.children[i]){unsigned child=0;if(!visit(n.children[i],depth+1,child))return false;value.children[i]=int(child);}
     nodes[id]=value;active.erase(p);return true;
   };
-  for(unsigned i=0;i<10;++i)if(!visit(RoomVeins(room)+i,0,roots[i]))return false;
-  lua_createtable(L,0,7);LuaBoolean(L,"veins_present",RoomVeins(room)[0].children[0]!=nullptr);
-  if(!LuaImage(L,"poop_image",PoopImage(room),true))return false;
+  // 96EA50只在首根child非空时消费图；Reset后的根标量没有Source值合同。
+  presentation_capture_failure="aux_vein_graph";if(veins_present)for(unsigned i=0;i<10;++i)if(!visit(RoomVeins(room)+i,0,roots[i]))return false;
+  lua_createtable(L,0,7);LuaBoolean(L,"veins_present",veins_present);LuaBoolean(L,"poop_applicable",poop_applicable);
+  if(poop_applicable){
+  presentation_capture_failure="aux_poop_image";if(!LuaImage(L,"poop_image",PoopImage(room),true))return false;
   float color[11]{},settings[4]{};CopyColor(room._fxLayers._poopFxColor,color);std::memcpy(settings,reinterpret_cast<unsigned char *>(&room._fxLayers)+0x54,sizeof(settings));
   LuaArray(L,"poop_color",color);LuaArray(L,"poop_settings",settings);lua_createtable(L,count,0);
   for(int i=0;i<count;++i){const auto &s=v.begin[i];lua_createtable(L,0,6);LuaNumber(L,"x",s.x);LuaNumber(L,"y",s.y);
     LuaNumber(L,"velocity_x",s.velocity_x);LuaNumber(L,"velocity_y",s.velocity_y);LuaBoolean(L,"flip_x",s.flip_x);LuaBoolean(L,"flip_y",s.flip_y);lua_rawseti(L,-2,i+1);}
-  lua_setfield(L,-2,"poop_poses");lua_createtable(L,10,0);for(unsigned i=0;i<10;++i){lua_pushinteger(L,roots[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"roots");
+  lua_setfield(L,-2,"poop_poses");}
+  if(veins_present){lua_createtable(L,10,0);for(unsigned i=0;i<10;++i){lua_pushinteger(L,roots[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"roots");
   lua_createtable(L,int(nodes.size()),0);for(unsigned i=0;i<nodes.size();++i){const auto &n=nodes[i];lua_createtable(L,0,9);
     LuaNumber(L,"kind",float(n.kind));LuaNumber(L,"depth",float(n.depth));LuaNumber(L,"rotation",n.rotation);LuaNumber(L,"scale",n.scale);
     LuaNumber(L,"factor",n.factor);LuaNumber(L,"opacity",n.opacity);LuaNumber(L,"x",n.x);LuaNumber(L,"y",n.y);lua_createtable(L,3,0);
     for(unsigned j=0;j<3;++j){lua_pushinteger(L,n.children[j]);lua_rawseti(L,-2,j+1);}lua_setfield(L,-2,"children");lua_rawseti(L,-2,i+1);}
-  lua_setfield(L,-2,"veins");lua_setfield(L,-2,"auxiliary");return true;
+  lua_setfield(L,-2,"veins");}lua_setfield(L,-2,"auxiliary");return true;
 }
 }
 int ClientPresentationCaptureLua(void *state) {
   auto *L=static_cast<lua_State *>(state);
   const int top=lua_gettop(L);
-  if(!IsMain()||!g_Game||!g_Game->_room||!g_Game->_room->_descriptor||g_Game->_playerManager._playerList.empty()||g_Game->_room->_backdrop.backdropId>=63){lua_pushnil(L);return 1;}
+  const auto failed=[&](const char *reason){lua_settop(L,top);lua_pushnil(L);lua_pushstring(L,reason);return 2;};
+  if(!IsMain()||!g_Game||!g_Game->_room||!g_Game->_room->_descriptor||g_Game->_playerManager._playerList.empty()||g_Game->_room->_backdrop.backdropId>=63){return failed("presentation_roots");}
   auto &room=*g_Game->_room;auto &hud=g_Game->_hud;auto &ph=hud._playerHUD[0];
-  if(ph._player!=g_Game->_playerManager._playerList[0]){lua_pushnil(L);return 1;}
+  if(ph._player!=g_Game->_playerManager._playerList[0])return failed("presentation_hud_owner");
   float floor[11]{},wall[11]{},shadow[5]{},light[5]{};
   CopyColor(room._floorColor,floor);CopyColor(room._wallColor,wall);
   CopyColor(room._fxLayers._fxParams.shadowColor,shadow);CopyColor(room._fxLayers._fxParams.lightColor,light);
-  lua_createtable(L,0,40);LuaNumber(L,"version",2);
+  lua_createtable(L,0,40);LuaNumber(L,"version",3);
   const unsigned curses=EffectiveCurses(*g_Game);
   const bool mirror=g_Game->_currentDimensionIdx==1&&(g_Game->_stageType==4||g_Game->_stageType==5)&&(g_Game->_stage==2||(g_Game->_stage==1&&(curses&2)));
   LuaBoolean(L,"mirror",mirror);LuaBoolean(L,"mirror_shader",g_Manager&&*reinterpret_cast<const bool *>(reinterpret_cast<const unsigned char *>(g_Manager)+0x2a204));
@@ -1224,7 +1296,7 @@ int ClientPresentationCaptureLua(void *state) {
   // 保留17已有的普通分支事实；最终绘制使用上面的Source混色，不用此事实限制其它Room。
   LuaBoolean(L,"ordinary_light_tint",room._roomType==1&&room._backdrop.backdropId==1&&g_Game->_stage==1&&
       g_Game->_currentDimensionIdx==0&&!(room._descriptor->Flags&0x200)&&!RayDarkness(*g_Game)&&darkness*darkness_scale==0&&g_Game->_lightningIntensity==0);
-  if(!LuaImage(L,"shading",Surface(0x7e7370),true)){lua_settop(L,top);lua_pushnil(L);return 1;}
+  if(!LuaImage(L,"shading",Surface(0x7e7370),true))return failed("presentation_shading_image");
   lua_createtable(L,0,9);LuaBoolean(L,"achievement_blocked",g_Manager->AchievementUnlocksDisallowed(false));
   LuaBoolean(L,"seed_blocked",g_Game->_seedEffects.AchievementUnlocksDisallowed());LuaBoolean(L,"custom_run",g_Game->_seedEffects._isCustomRun);
   LuaBoolean(L,"rerun",g_Game->_isRerun);LuaBoolean(L,"debug",g_Game->_isDebug);
@@ -1234,18 +1306,18 @@ int ClientPresentationCaptureLua(void *state) {
   auto &map=g_Game->_minimap;lua_createtable(L,0,7);LuaNumber(L,"effective_curses",float(EffectiveCurses(*g_Game)));
   LuaNumber(L,"state",float(map._state));LuaNumber(L,"small_alpha",map._config[0]._alpha);LuaNumber(L,"big_alpha",map._config[1]._alpha);
   LuaNumber(L,"shake_duration",float(map._shakeDuration));const float map_shake[2]={map._shakeOffset.x,map._shakeOffset.y};LuaArray(L,"shake",map_shake);
-  if(!LuaImage(L,"question",QuestionImage(map))){lua_settop(L,top);lua_pushnil(L);return 1;}lua_setfield(L,-2,"minimap_runtime");
+  if(!LuaImage(L,"question",QuestionImage(map)))return failed("presentation_minimap_question");lua_setfield(L,-2,"minimap_runtime");
   const float shake[2]={g_Game->_screenShakeOffset.x,g_Game->_screenShakeOffset.y},scroll[2]={room._renderScrollOffset.x,room._renderScrollOffset.y};
   LuaArray(L,"screen_shake",shake);LuaArray(L,"render_scroll",scroll);
-  if(!LuaCaptureFX(L,room)){lua_settop(L,top);lua_pushnil(L);return 1;}
-  if(!LuaCaptureAux(L,room)){lua_settop(L,top);lua_pushnil(L);return 1;}
+  if(!LuaCaptureFX(L,room))return failed(presentation_capture_failure);
+  if(!LuaCaptureAux(L,room))return failed(presentation_capture_failure);
   lua_createtable(L,0,5);LuaNumber(L,"red_flash",float(ph._redHeartFlashCountdown));LuaNumber(L,"soul_flash",float(ph._soulHeartFlashCountdown));
   LuaNumber(L,"gold_flash",float(ph._goldHeartFlashCountdown));LuaNumber(L,"drop_scale",DropScale(ph));
   lua_createtable(L,24,0);
   for(unsigned i=0;i<24;++i){
     const auto &h=ph._heart[i];lua_createtable(L,0,7);LuaBoolean(L,"visible",h._visibility);LuaBoolean(L,"eternal",h._eternalHeartVisibility);
     LuaBoolean(L,"golden",h._goldenHeartVisibility);LuaBoolean(L,"fading",h._fadeHeart);LuaNumber(L,"flash",float(h._flashType));
-    if(!LuaCacheString(L,"animation",h._spriteAnim)||!LuaCacheString(L,"overlay",h._spriteOverlayAnim)){lua_settop(L,top);lua_pushnil(L);return 1;}
+    if(!LuaCacheString(L,"animation",h._spriteAnim)||!LuaCacheString(L,"overlay",h._spriteOverlayAnim))return failed("presentation_heart_cache");
     lua_rawseti(L,-2,i+1);
   }
   lua_setfield(L,-2,"hearts");lua_setfield(L,-2,"player_hud");

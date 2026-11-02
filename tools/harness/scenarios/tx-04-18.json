@@ -1,0 +1,435 @@
+{
+  "description": "tx-04-18 unified real Source/cold Client acceptance; formal consumer export with recording disabled; no partial coverage promoted to PASS",
+  "control_port": 27091,
+  "host_port": 27090,
+  "peer_timeout_ms": 30000,
+  "startup_timeout_seconds": 90,
+  "close_timeout_ms": 10000,
+  "key_settle_ms": 900,
+  "to_file_select": [
+    "ENTER"
+  ],
+  "open_character_menu": [
+    "ENTER"
+  ],
+  "start_run": [
+    "ENTER"
+  ],
+  "scenes": [
+    {
+      "label": "baseline",
+      "kind": "setup",
+      "covers": [
+        "E01",
+        "E10",
+        "E18"
+      ]
+    },
+    {
+      "label": "boss-backdrop",
+      "kind": "boss-backdrop",
+      "covers": [
+        "E09",
+        "E13"
+      ]
+    },
+    {
+      "label": "sacrifice-backdrop",
+      "kind": "backdrop",
+      "value": 30,
+      "covers": [
+        "E09",
+        "E13"
+      ]
+    },
+    {
+      "label": "baseline-return",
+      "kind": "reset-floor",
+      "covers": [
+        "E05",
+        "E08"
+      ]
+    },
+    {
+      "label": "entry-0",
+      "kind": "map-big",
+      "value": 0,
+      "covers": [
+        "E02",
+        "E03",
+        "E10"
+      ]
+    },
+    {
+      "label": "entry-1",
+      "kind": "map-big",
+      "value": 1,
+      "covers": [
+        "E02",
+        "E03",
+        "E10"
+      ]
+    },
+    {
+      "label": "entry-13",
+      "kind": "map-big",
+      "value": 13,
+      "covers": [
+        "E02",
+        "E03",
+        "E10"
+      ]
+    },
+    {
+      "label": "entry-14",
+      "kind": "map-big",
+      "value": 14,
+      "covers": [
+        "E02",
+        "E03",
+        "E10"
+      ]
+    },
+    {
+      "label": "shape-1",
+      "kind": "shape",
+      "value": 1,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "shape-2",
+      "kind": "shape",
+      "value": 2,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "shape-3",
+      "kind": "shape",
+      "value": 3,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "shape-4",
+      "kind": "shape",
+      "value": 4,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "shape-5",
+      "kind": "shape",
+      "value": 5,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "shape-6",
+      "kind": "shape",
+      "value": 6,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "shape-7",
+      "kind": "shape",
+      "value": 7,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "shape-8",
+      "kind": "shape",
+      "value": 8,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "shape-9",
+      "kind": "shape",
+      "value": 9,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "shape-10",
+      "kind": "shape",
+      "value": 10,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "shape-11",
+      "kind": "shape",
+      "value": 11,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "shape-12",
+      "kind": "shape",
+      "value": 12,
+      "covers": [
+        "E02",
+        "E03"
+      ]
+    },
+    {
+      "label": "double-config",
+      "kind": "override",
+      "covers": [
+        "E03"
+      ]
+    },
+    {
+      "label": "all-grids",
+      "kind": "grids",
+      "covers": [
+        "E04",
+        "E06"
+      ]
+    },
+    {
+      "label": "change",
+      "kind": "change",
+      "covers": [
+        "E05",
+        "E07",
+        "E11"
+      ]
+    },
+    {
+      "label": "restore",
+      "kind": "restore",
+      "covers": [
+        "E05"
+      ]
+    },
+    {
+      "label": "replace",
+      "kind": "replace",
+      "covers": [
+        "E05"
+      ]
+    },
+    {
+      "label": "remove",
+      "kind": "remove",
+      "covers": [
+        "E05"
+      ]
+    },
+    {
+      "label": "recreate",
+      "kind": "recreate",
+      "covers": [
+        "E05"
+      ]
+    },
+    {
+      "label": "short",
+      "kind": "short",
+      "covers": [
+        "E12"
+      ]
+    },
+    {
+      "label": "water",
+      "kind": "environment",
+      "value": 0.75,
+      "covers": [
+        "E08"
+      ]
+    },
+    {
+      "label": "dry",
+      "kind": "environment",
+      "value": 0,
+      "covers": [
+        "E08"
+      ]
+    },
+    {
+      "label": "progress",
+      "kind": "progress",
+      "covers": [
+        "E09"
+      ]
+    },
+    {
+      "label": "lost",
+      "kind": "lost",
+      "covers": [
+        "E10"
+      ]
+    },
+    {
+      "label": "normal-map",
+      "kind": "normal-map",
+      "covers": [
+        "E10"
+      ]
+    },
+    {
+      "label": "door-remove",
+      "kind": "door-remove",
+      "covers": [
+        "E06"
+      ]
+    },
+    {
+      "label": "dense-shape",
+      "kind": "shape",
+      "value": 8,
+      "covers": [
+        "E02"
+      ]
+    },
+    {
+      "label": "dense",
+      "kind": "grids",
+      "dense": true,
+      "covers": [
+        "E17"
+      ]
+    },
+    {
+      "label": "slot_devil_native",
+      "kind": "special-case",
+      "value": "slot_devil_native",
+      "covers": [
+        "E03",
+        "E09"
+      ]
+    },
+    {
+      "label": "crawlspace_native",
+      "kind": "special-case",
+      "value": "crawlspace_native",
+      "covers": [
+        "E03",
+        "E09"
+      ]
+    },
+    {
+      "label": "mirror_floor",
+      "kind": "special-case",
+      "value": "mirror_entrance",
+      "covers": [
+        "E03",
+        "E09"
+      ]
+    },
+    {
+      "label": "mirror_inside",
+      "kind": "special-case",
+      "value": "mirror_inside",
+      "covers": [
+        "E03",
+        "E09"
+      ]
+    },
+    {
+      "label": "mineshaft_entrance",
+      "kind": "special-case",
+      "value": "mineshaft_entrance",
+      "covers": [
+        "E03",
+        "E09"
+      ]
+    },
+    {
+      "label": "mineshaft_inside",
+      "kind": "special-case",
+      "value": "mineshaft_inside",
+      "covers": [
+        "E03",
+        "E09"
+      ]
+    },
+    {
+      "label": "greed",
+      "kind": "special-case",
+      "value": "greed",
+      "covers": [
+        "E03",
+        "E09"
+      ]
+    },
+    {
+      "label": "greed_wave",
+      "kind": "special-case",
+      "value": "greed_wave",
+      "covers": [
+        "E03",
+        "E09"
+      ]
+    },
+    {
+      "label": "mutations-setup",
+      "kind": "mutations-setup",
+      "covers": [
+        "E04",
+        "E07",
+        "E08"
+      ]
+    },
+    {
+      "label": "mutations-broken",
+      "kind": "mutations-break",
+      "covers": [
+        "E06",
+        "E07",
+        "E08"
+      ]
+    },
+    {
+      "label": "timer-recreate",
+      "kind": "timer-recreate",
+      "covers": [
+        "E11",
+        "E05"
+      ]
+    },
+    {
+      "label": "timer-retexture",
+      "kind": "timer-retexture",
+      "covers": [
+        "E11",
+        "E05"
+      ]
+    },
+    {
+      "label": "timer-retire",
+      "kind": "timer-retire",
+      "covers": [
+        "E11",
+        "E05"
+      ]
+    }
+  ]
+}

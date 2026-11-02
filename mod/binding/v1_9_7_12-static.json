@@ -2,6 +2,9 @@
   "evidence": "STATIC_CONFIRMED",
   "base": "0x400000",
   "functions": [
+    {"rva":"0x304FB0","pattern":"55 8B EC 51 F3 0F 7E 05 ?? ?? ?? ?? A1 ?? ?? ?? ?? 56 8B F1","type":"GridEntity* __thiscall()","entry":["tx-04-18主审704FB0基物理构造；保留EAX=this，无栈参，GridFactory之外的直接墙构造也调用。只记物理代次，不冒称完整派生出生。"]},
+    {"rva":"0x517910","pattern":"53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04","type":"int __thiscall()","entry":["tx-04-18主审：实际Backdrop图形构建，ECX=Backdrop、无栈参数；Room.Init 7ED815等绕过917870直接调用。保留原EAX返回，不把包装Init的前态见证外推至所有原生调用。"]},
+    {"rva":"0x515890","pattern":"53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04","type":"void __thiscall(int,int,unsigned int,int,Vector*,unsigned char,bool)","entry":["tx-04-18主审：J273 915890只派生/创建背景Effect并设置新实体，无背景surface提交；ECX=Backdrop，7个栈word，9171F1 ret 1Ch。Client仅在NativeApply根显式跳过，Host/Off透传。"]},
     {"rva":"0x348900","pattern":"55 8B EC 83 EC 08 53 8B 1D ?? ?? ?? ?? 8B D1","type":"bool __thiscall()","entry":["tx-04-18主审：748900是完整路线显示条件，并非SDK Level::IsAltPath(745AF0)；只读结果由正式Source复制"]},
     {"rva":"0x415B80","pattern":"8B 0D ?? ?? ?? ?? 6A FF FF B1 04 83 01 00 E8","type":"bool __cdecl()","entry":["tx-04-18 I21主审：815B80当前descriptor.ListIndex与Game+18314比较；只在Grid灯光用途栈供应Source结果"]},
     {"rva":"0x345B10","pattern":"A1 ?? ?? ?? ?? 53 8B 80 40 5F 02 00 83 F8 02","type":"int __thiscall()","entry":["tx-04-18 I21主审：745B10根据当前Stage/StageType/curse派生显示编号；无写入或随机"]},

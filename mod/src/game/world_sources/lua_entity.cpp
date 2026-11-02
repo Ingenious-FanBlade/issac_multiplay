@@ -7,6 +7,7 @@
 #include "game/client_room_native.h"
 #include "game/client_grid_native.h"
 #include "game/client_map_native.h"
+#include "game/client_backdrop_native.h"
 #include "runtime.h"
 #include <cstring>
 #include <cmath>
@@ -104,6 +105,7 @@ int GridSources(lua_State *L) {
   });
   lua_pushinteger(L,unavailable); return 2;
 }
+int SourceSnapshotToken(lua_State *L){std::string reason;const auto token=ObservationSourceSnapshotToken(&reason);lua_pushlstring(L,token.data(),token.size());lua_pushlstring(L,reason.data(),reason.size());return 2;}
 // 不更改回调传入userdata的元表；构造经保护读取验证过的借用基类视图。
 int GridCallbackView(lua_State *L) {
   if(!IsMain()||lua_type(L,1)!=LUA_TUSERDATA||lua_rawlen(L,1)!=sizeof(lua::luabridge::UserdataPtr)) { lua_pushnil(L); return 1; }
@@ -173,6 +175,8 @@ int RoomConfigContents(lua_State *L) {return ClientRoomConfigCaptureLua(L);}
 int RoomApplication(lua_State *L) {return ClientRoomStateCaptureLua(L);}
 int RoomBackdropSprites(lua_State *L) {return ClientRoomBackdropSpritesLua(L);}
 int RoomVeinSprites(lua_State *L) {return ClientRoomVeinSpritesLua(L);}
+int RoomMapSprites(lua_State *L) {return ClientRoomMapSpritesLua(L);}
+int RoomBackdropTrace(lua_State *L) {return ClientBackdropWallTraceLua(L);}
 // Lua只取得十进制纯值身份，不持有后台可访问的Room/Level userdata。
 int Location(lua_State *L) {
   const auto v=ObservationLocation(int(luaL_checkinteger(L,1)),int(luaL_checkinteger(L,2)),std::uint32_t(luaL_checkinteger(L,3)),int(luaL_checkinteger(L,4)),int(luaL_checkinteger(L,5)),int(luaL_checkinteger(L,6)),luaL_checkstring(L,7));
@@ -236,7 +240,7 @@ int Publish(lua_State *L,unsigned phase,bool grid=false) {
   const auto complete=lua_toboolean(L,2)!=0;
   const auto objects=luaL_checkinteger(L,3),nodes=luaL_checkinteger(L,4);
   const auto *reason=luaL_optstring(L,5,"");
-  const bool valid=bytes<=(16u<<20)&&objects>=0&&objects<=16384&&nodes>=0&&nodes<=262144;
+  const bool valid=bytes<=(16u<<20)&&objects>=0&&objects<=16384&&nodes>=0&&nodes<=kLuaObservationNodeBudget;
   lua_pushboolean(L,valid&&ObservationPublishLua(json,bytes,complete,unsigned(objects),unsigned(nodes),reason,phase,grid));
   return 1;
 }
@@ -254,7 +258,7 @@ void EnsureObservationLuaBridge() noexcept {
   if(exists) return;
   RegisterRuntimeRandomFunctions();
   lua_newtable(L);
-  const luaL_Reg funcs[]={{"TestNativeRandomSources",LuaTestNativeRandomSources},{"NativeRandomSources",LuaNativeRandomSources},{"RegisterRandomSource",LuaRegisterRandomSource},{"GlobalRandomState",LuaGlobalRandomState},{"TestGlobalRandom",TestGlobalRandom},{"PromptState",PromptState},{"RelatedSubject",RelatedSubject},{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
+  const luaL_Reg funcs[]={{"TestNativeRandomSources",LuaTestNativeRandomSources},{"NativeRandomSources",LuaNativeRandomSources},{"RegisterRandomSource",LuaRegisterRandomSource},{"GlobalRandomState",LuaGlobalRandomState},{"TestGlobalRandom",TestGlobalRandom},{"PromptState",PromptState},{"RelatedSubject",RelatedSubject},{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"SourceSnapshotToken",SourceSnapshotToken},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
   luaL_setfuncs(L,funcs,0);
   lua_pushcfunction(L,SpriteRuntimePose);lua_setfield(L,-2,"SpriteRuntimePose");
   lua_pushcfunction(L,RoomPresentation);lua_setfield(L,-2,"RoomPresentation");
@@ -266,6 +270,8 @@ void EnsureObservationLuaBridge() noexcept {
   lua_pushcfunction(L,MapApplication);lua_setfield(L,-2,"MapApplication");
   lua_pushcfunction(L,RoomBackdropSprites);lua_setfield(L,-2,"RoomBackdropSprites");
   lua_pushcfunction(L,RoomVeinSprites);lua_setfield(L,-2,"RoomVeinSprites");
+  lua_pushcfunction(L,RoomMapSprites);lua_setfield(L,-2,"RoomMapSprites");
+  lua_pushcfunction(L,RoomBackdropTrace);lua_setfield(L,-2,"RoomBackdropTrace");
   lua_pushcfunction(L,DescriptorPlacement);lua_setfield(L,-2,"DescriptorPlacement");
   lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
 }
@@ -284,18 +290,18 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
     lua_pushinteger(L,nodes); lua_setfield(L,-2,"nodes");
     lua_pushinteger(L,depth); lua_setfield(L,-2,"depth");
     lua_pushinteger(L,limit); lua_setfield(L,-2,"bytes");
-    lua_pushinteger(L,domain==5?262144:131072); lua_setfield(L,-2,"queries");
+    lua_pushinteger(L,domain==1?524288:domain==5?262144:131072); lua_setfield(L,-2,"queries");
     if(!lua_isfunction(L,-2)||lua_pcall(L,1,6,0)!=LUA_OK) {
       const auto *error=lua_tostring(L,-1); result.reason=error?std::string(error).substr(0,256):"lua_capture_failed";
       lua_settop(L,top); return result;
     }
     std::size_t bytes=0; const auto *payload=lua_tolstring(L,-6,&bytes);
-    if(payload&&bytes<=(16u<<20)) {
+    if(payload&&bytes<=limit) {
       result.payload.assign(payload,bytes); result.available=true;
       result.complete=lua_toboolean(L,-5)!=0;
-      const auto objects=lua_tointeger(L,-4),nodes=lua_tointeger(L,-3);
-      if(objects<0||objects>16384||nodes<0||nodes>262144) { result.complete=false; result.reason="lua_count_budget"; }
-      else { result.objects=unsigned(objects); result.nodes=unsigned(nodes); }
+      const auto captured_objects=lua_tointeger(L,-4),captured_nodes=lua_tointeger(L,-3);
+      if(captured_objects<0||captured_objects>objects||captured_nodes<0||captured_nodes>nodes) { result.complete=false; result.reason="lua_count_budget"; }
+      else { result.objects=unsigned(captured_objects); result.nodes=unsigned(captured_nodes); }
       const auto *reason=lua_tostring(L,-2); if(reason) result.reason=reason;
     } else result.reason="lua_payload_budget";
   } catch(...) { result.complete=false; result.reason="lua_owned_value_budget"; }

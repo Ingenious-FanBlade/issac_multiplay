@@ -1,5 +1,5 @@
 #pragma once
-// tx-04-08 world_record 迁移：19 项观察语义的公共编号。
+// tx-04-08 world_record 原有19项语义；tx-04-18追加Grid物理构造，旧编号不变。
 //
 // 本头只包含 C++17 可表达的值类型，供 SDK-facing 的生成 Hook wrapper
 // （按项目约定以 C++17 编译）与 C++20 的 world 实现共用。它不依赖 SDK、
@@ -11,8 +11,8 @@
 
 namespace cs::world {
 
-// 原型 19 项观察语义；它们是观察范围，不是 19 个独立安装器。
-inline constexpr std::uint32_t kObservationCount = 19;
+// 观察范围与统一Hook清单对应，不各自建立安装器。
+inline constexpr std::uint32_t kObservationCount = 20;
 // 生命周期/成员关系边界事件不属于任何一个原生观察入口。
 inline constexpr std::uint32_t kNoObservation = 0xFFFFFFFFu;
 
@@ -35,7 +35,8 @@ enum class Observation : std::uint32_t {
   GridSpawn = 15,
   Door = 16,
   GridFree = 17,
-  Spawn = 18
+  Spawn = 18,
+  GridCtor = 19
 };
 
 // 名称同时用于 lifecycle-events 的 hook 列与 manifest 图例；越界返回

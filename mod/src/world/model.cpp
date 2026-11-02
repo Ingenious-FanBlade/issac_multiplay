@@ -100,7 +100,7 @@ constexpr const char *kObservationNames[kObservationCount] = {
     "Factory",   "Init",       "Publish",     "Remove",  "ClearReferences",
     "Destroy",   "PlayerCtor", "PlayerCreate", "ManagerRestore", "Replace",
     "PlayerRestore", "NpcMorph", "PickupMorph", "GridFactory", "GridInit",
-    "GridSpawn", "Door",       "GridFree",    "Spawn"};
+    "GridSpawn", "Door",       "GridFree",    "Spawn", "GridCtor"};
 constexpr const char *kEventKindNames[9] = {
     "NATIVE_HOOK", "BIRTH_CONFIRMED", "LIFECYCLE_BOUNDARY", "GAP_OR_UNKNOWN",
     "GRID_PHYSICAL_RETIRED", "UNUSED_5", "CURRENT_PLAYER_READ_WITNESS",

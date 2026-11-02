@@ -27,7 +27,20 @@ local function snapshot(g,c)
     elseif not derived then out.casts[name]={status="NotApplicable"}
     else
       out.casts[name]={status="Value"}; out.class="GridEntity"..name
+      -- SDK Rock继承Base.GetSprite()，均返回内嵌_sprite；保留别名行，只复制一份规范姿态。
+      if c.application and name=="Rock" then c.member_alias=function(spec)
+        if spec.id=="GridEntityRock.GetSprite" then return {type="resource_alias",member="GridEntity.GetSprite"} end
+      end end
+      -- 原版ANM2值拷贝会清除owner Offset/render flags；正式应用读取真实内嵌成员。
+      -- Door使用REP公开指针Getter；TimerPlate只有值属性，以已核定native只读来源取成员。
+      if c.application and name=="Door" then c.member_alias=function(spec)
+        if spec.id=="GridEntityDoor.ExtraSprite" then return read.Value(derived:GetExtraSprite(),"Sprite",c,0) end
+      end end
+      if c.application and name=="PressurePlate" then c.member_alias=function(spec)
+        if spec.id=="GridEntityPressurePlate.TimerPlate" then return read.Value(native().GridApplicationSprites(derived).timer,"Sprite",c,0) end
+      end end
       out.bodies[out.class]=read.Collect(derived,out.class,c,0)
+      c.member_alias=nil
     end
   end
   if not out.class then out.class="UnknownGrid"; read.Fail(c,"unknown_grid_type:"..tostring(out.type)) end
@@ -36,7 +49,7 @@ end
 function M.Capture(limits)
   local budget=read.Limits(limits); local c=context(); c.application=true
   local sources,unavailable=native().GridSources()
-  local out={application_source={version=3,target="REPENTOGON-1.1.3/J273",required_contracts={"grid-membership-v2","resource-pose-v1","grid-runtime-v2"},resources="canonical-resource-pose;nullable-TimerPlate",relations="memberships-and-public-references;bridge-final-state-without-stored-parent-pointer"},objects={},lifted_descriptors={},membership={source="native:grid+door",entries={},unavailable=unavailable,complete=unavailable==0}}
+  local out={application_source={version=5,target="REPENTOGON-1.1.3/J273",required_contracts={"grid-membership-v2","resource-pose-v1","grid-runtime-v2","grid-sprite-alias-v1","grid-member-sprite-pose-v1"},resources="canonical-resource-pose;actual-Door/TimerPlate-members;nullable-TimerPlate;Rock.GetSprite=common.GetSprite",relations="memberships-and-public-references;bridge-final-state-without-stored-parent-pointer"},objects={},lifted_descriptors={},membership={source="native:grid+door",entries={},unavailable=unavailable,complete=unavailable==0}}
   if unavailable>0 then read.Fail(c,"grid_native_source_unavailable") end
   -- 一次窗口先登记所有主体；各槽保留别名，同一主体只读一次。
   for _,entry in ipairs(sources) do native().GridSubject(entry.grid) end

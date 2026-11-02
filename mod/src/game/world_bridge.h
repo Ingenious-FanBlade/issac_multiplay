@@ -5,6 +5,7 @@
 #include "world/common/service.h"
 #include "world/common/publication.h"
 #include <memory>
+#include <deque>
 #include "world/domains/level/model.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
@@ -36,6 +37,10 @@ struct WorldCapture final {
   bool formal_consumer=false,recorder_consumer=false;
   std::uint64_t lua_attempts=0,lua_complete=0,lua_partial=0;
   std::uint64_t formal_loss=0;
+  // 显式E2E仅保留最近一批不可用Grid身份诊断；不进入正式目标或生产日志。
+  std::string e2e_grid_faults;
+  // 故障续测保留有界的实际创建/退休边，便于区分漏记取得与错误退休。
+  std::deque<world::LifecycleEvent> e2e_grid_events;
   bool reserve_charged=false;
   world::MemoryReader source_memory{};
   // 只在同步 Lua 调用期间有效，均为本批自有 RawObject 值，不交给后台。

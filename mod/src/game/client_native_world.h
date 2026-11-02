@@ -5,6 +5,7 @@
 #include "replica/room_configuration.h"
 #include "game/client_room_native.h"
 #include "game/client_map_native.h"
+#include "game/client_backdrop_native.h"
 
 namespace cs::game {
 // 背景配置属于Room内嵌Backdrop，不修改共享XML/Host资源；字符串只接受逻辑资源路径。
@@ -48,6 +49,7 @@ struct ClientNativeSceneDescription final {
   ClientMapTarget map;
   ClientRoomState room_state{};
   ClientBackdropConfiguration backdrop_config{};
+  ClientBackdropWallTrace backdrop_wall_trace{};
   std::array<float,4> backdrop_surface_inputs{};
   std::array<ClientResourcePose,4> backdrop_sprites{};
   std::array<bool,4> backdrop_sprite_present{};

@@ -96,6 +96,9 @@ struct ClientPresentationDescription final {
   std::array<float,2> minimap_shake{};
   ClientPresentationFX minimap_question,shading;
   bool shading_present=false;
+  // Refresh只构建地图缓存；边框的独立层尺寸/裁切/可见性取Source真实pose。
+  std::array<ClientResourcePose,2> minimap_poses{};
+  bool minimap_poses_present=false;
   std::array<ClientPresentationHeart,24> hearts{};
   std::array<ClientPresentationStat,10> stats{};
   int red_flash=0,soul_flash=0,gold_flash=0;

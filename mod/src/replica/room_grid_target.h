@@ -1,6 +1,7 @@
 #pragma once
 #include "replica/model.h"
 #include "replica/room_configuration.h"
+#include "replica/room_grid_budget.h"
 #include <array>
 #include <memory>
 #include <compare>
@@ -19,6 +20,9 @@ struct DomainCapture final {
 // source_slot只对离图有效；普通storage_index与ListIndex一致，入口象限独立保留。
 struct DescriptorLocation final {
   int grid_index=0,safe_grid_index=0,list_index=0,dimension=0,storage_index=-1,source_slot=0;
+  // Source原始GridIndex保留在grid_index；native原点独立按已证地图占用表达，不回写异常来源。
+  int native_grid_origin=0;
+  bool raw_grid_index_adopted=true;
   std::vector<int> occupied;
   bool operator==(const DescriptorLocation &) const = default;
 };
@@ -98,6 +102,7 @@ struct RoomGridLimits final {unsigned descriptors=526,grids=456,steps=8192,refer
 // 只通过shared_ptr<const>发布；Source是独立自有DOM，保留全部原coverage及未消费字段。
 // 后续adapter按source_index取得专用字段，不持有Lua/SDK对象或外部DOM借用。
 struct RoomGridTarget final {
+  RoomGridBudgetUsage budget{};
   Scope scope{};
   std::uint64_t revision=0;
   DomainCapture room_capture{},grid_capture{},level_capture{};

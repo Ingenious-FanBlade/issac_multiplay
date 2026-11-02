@@ -68,6 +68,7 @@ MOD_EXPORT int ModInit() noexcept {
     game::InitializeWorldBridge();
     RegisterHooks();
     InstallClientShutdownPatch();
+    InstallClientBackdropPatch();
     InitializeRuntimeRandomHooks();
     PublishStatus();
     if (Settings.control && Capabilities[size_t(Group::Loop)] &&

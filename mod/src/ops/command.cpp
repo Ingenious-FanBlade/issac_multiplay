@@ -1,6 +1,7 @@
 #include "binding/offsets.h"
 #include "game/bridge.h"
 #include "game/client.h"
+#include "game/client_scene.h"
 #include "game/context.h"
 #include "game/lifecycle.h"
 #include "game/persistence.h"
@@ -9,6 +10,8 @@
 #include "game/topology.h"
 #include "game/world_bridge.h"
 #include "ops/world_commands.h"
+#include "ops/client_fixture.h"
+#include "replica/codec.h"
 #include "runtime.h"
 #include <algorithm>
 #include <charconv>
@@ -99,10 +102,13 @@ std::string Execute(std::string_view text, const char *source) {
   } else if (verb == "client_test") {
     // 测试口只接收专用目录内的正式纯值模型；没有任意原生写入或执行脚本能力。
     std::string token,mode,label,trailing;in>>token>>mode>>label>>trailing;
-    if(mode=="exercise"&&label=="native"&&trailing.empty())result=game::ClientTestExerciseNative(token);
+    if(mode=="sampling"&&trailing.empty())result=ClientFixtureSampling(token,label);
+    else if(mode=="export"&&trailing.empty())result=ExportClientFixture(token,label);
+    else if(mode=="exercise"&&label=="native"&&trailing.empty())result=game::ClientTestExerciseNative(token);
     else if(mode=="exercise"&&label=="ownership"&&trailing.empty())result=game::ClientTestExerciseOwnership(token);
+    else if(mode=="exercise"&&label=="vm"&&trailing.empty())result=game::ClientTestExerciseVm(token);
     else if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||
-       token!=Settings.world_e2e_token||!trailing.empty()||(mode!="begin"&&mode!="begin-cancel"&&mode!="target")||
+       token!=Settings.world_e2e_token||!trailing.empty()||(mode!="preflight"&&mode!="begin"&&mode!="begin-cancel"&&mode!="begin-cancel-native"&&mode!="begin-cancel-grid"&&mode!="begin-cancel-display"&&mode!="target")||
        label.empty()||label.size()>64||label.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-_")!=std::string::npos)
       result="ok=0\nerror=client_fixture_arguments\n";
     else try {
@@ -111,8 +117,22 @@ std::string Execute(std::string_view text, const char *source) {
       if(path.parent_path()!=root||std::filesystem::file_size(path)>(32u<<20))throw std::runtime_error("client_fixture_path_or_budget");
       std::ifstream file(path,std::ios::binary);if(!file)throw std::runtime_error("client_fixture_read");
       std::string text((std::istreambuf_iterator<char>(file)),{});auto model=replica::Parse(text);
+      // E2E投影说明是本地元数据，不扩展15的Baseline协议字段；实际目标完整走codec。
+      replica::Json profile;const bool projected=model.HasMember("client_profile");
+      if(projected){profile=replica::Copy(model["client_profile"]);model.RemoveMember("client_profile");}
+      const auto sequence=replica::Unsigned(model["revision"]);
+      model=replica::Decode(replica::Encode({replica::Kind::Baseline,sequence,std::move(model)})).body;
+      if(projected){replica::Value v;v.CopyFrom(profile,model.GetAllocator());replica::Put(model,"client_profile",std::move(v),model.GetAllocator());}
       replica::ValidateModel(model);const auto scope=replica::ReadScope(model["scope"]);
       const auto revision=replica::Unsigned(model["revision"]);
+      if(mode=="preflight"){
+        // 只在E2E内完整调用正式纯值接纳；这个临时Scene不注册到runtime且永不Pump。
+        // 可一次报告全部来源的写前问题，不把接纳成功当原生安装/像素通过。
+        game::ClientScene candidate;candidate.Begin(scope);
+        const bool admitted=candidate.AdmitTarget(scope,revision,model);const auto state=candidate.Result();
+        if(state.native_written||state.executed_prefix||state.native_committed)throw std::runtime_error("fixture_preflight_wrote_native");
+        result=std::string("ok=1\naccepted=")+(admitted?"1":"0")+"\nreason="+state.reason.data()+"\n";
+      }else{
       const auto *error=mode!="target"?game::ClientTestBegin(token,scope):"";
       if(error&&*error)result="ok=0\nerror="+std::string(error)+"\n";
       else {
@@ -120,6 +140,10 @@ std::string Execute(std::string_view text, const char *source) {
         result=admitted?"ok=1\naccepted=1\n":"ok=1\naccepted=0\n";
         // 同一真实Manager命令内在Admit之后取消，避免IPC耗时使准备中测试误跑成展示中。
         if(admitted&&mode=="begin-cancel"){game::StopClient();result+="cancelled_before_pump=1\n";}
+        if(admitted&&(mode=="begin-cancel-native"||mode=="begin-cancel-grid"||mode=="begin-cancel-display")){
+          if(!game::ClientTestCancelAfter(token,mode=="begin-cancel-native"?1:mode=="begin-cancel-grid"?2:3))result="ok=0\nerror=cancel_arm_failed\n";
+        }
+      }
       }
     }catch(const std::exception &e){result="ok=0\nerror="+std::string(e.what())+"\n";}
   } else if (verb == "client") {

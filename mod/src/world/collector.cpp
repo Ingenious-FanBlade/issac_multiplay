@@ -1132,7 +1132,7 @@ std::uint32_t Collector::ObserveEnter(Observation kind, std::uint32_t object,
       kind == Observation::Init || kind == Observation::Remove ||
       kind == Observation::ClearReferences || kind == Observation::Destroy ||
       kind == Observation::PlayerCtor || kind == Observation::PlayerRestore ||
-      kind == Observation::GridInit || entity::Morph(kind);
+      kind == Observation::GridInit || kind == Observation::GridCtor || entity::Morph(kind);
   if (direct)
     id = Find(domain, object);
   if (kind == Observation::Publish && count)
@@ -1326,22 +1326,23 @@ void Collector::ObserveLeave(std::uint32_t call_id, std::uint32_t result,
   const bool completed = normal && call.body_reached && call.body_returned;
   if (completed && !stopping_ && storage_.Ready()) {
     if (kind == Observation::Factory || kind == Observation::GridFactory ||
-        kind == Observation::PlayerCtor) {
+        kind == Observation::PlayerCtor || kind == Observation::GridCtor) {
       const auto address =
-          kind == Observation::PlayerCtor ? call.object : call.body_result;
+          (kind == Observation::PlayerCtor || kind == Observation::GridCtor) ? call.object : call.body_result;
       id = Find(domain, address);
       if (id) {
         const auto owner = CreationOwner(domain);
-        // Factory 包含 ctor 时，同一次真实取得只计一次 use。
-        if (!(kind == Observation::Factory && id->candidate &&
+        // Entity/Grid工厂包含物理ctor时，同一次真实取得只计一次use。
+        // Grid边界墙/关门替墙直接new，必须在基构造正常返回处换代，不能复活旧身份。
+        if (!((kind == Observation::Factory || kind == Observation::GridFactory) && id->candidate &&
               id->owner_scope == owner &&
               id->lifecycle ==
                   static_cast<std::uint32_t>(Lifecycle::Constructed))) {
-          if (!identities_.Acquire(*id, kind, kind == Observation::PlayerCtor,
+          if (!identities_.Acquire(*id, kind, kind == Observation::PlayerCtor || kind == Observation::GridCtor,
                                    owner))
             Fault(Reason::SequenceExhausted, "acquire");
         }
-        if (kind == Observation::PlayerCtor)
+        if (kind == Observation::PlayerCtor || kind == Observation::GridCtor)
           id->lifecycle = static_cast<std::uint32_t>(Lifecycle::Constructed);
       }
     } else if (kind == Observation::Publish) {

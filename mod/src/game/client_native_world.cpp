@@ -140,14 +140,14 @@ bool DescriptionValid(const ClientNativeSceneDescription &d) noexcept {
        s.allowed<0||s.allowed>255||s.clear_count<0||s.clear_count>32767||s.visited<0)return false;
     const bool off=s.source_slot<0;
     if(off?(s.source_slot<-20||s.source_slot==-19||s.storage!=-1||s.occupied_count!=0):
-        (s.source_slot!=0||s.storage<0||s.storage>=507||s.list!=s.storage||s.grid<0||s.grid>168||s.safe<0||s.safe>168||!s.occupied_count))return false;
+        (s.source_slot!=0||s.storage<0||s.storage>=507||s.list!=s.storage||s.grid<0||s.grid>168||s.safe<0||s.safe>168))return false;
     const int slot=off?506-s.source_slot:s.storage;if(storage[slot])return false;storage[slot]=true;
-    bool safe=off;
+    bool safe=off||!s.occupied_count;
     for(unsigned i=0;i<s.occupied_count;++i){const int index=s.occupied[i];if(index<0||index>168||occupied[s.dimension*169+index])return false;occupied[s.dimension*169+index]=true;safe|=index==s.safe;}
     if(!safe)return false;
     if(!(s.data_null&&s.override_null)&&(s.config_stage<0||s.config_stage>=37||s.config_mode<0||s.config_mode>1||s.type<1||s.type>29||
        s.subtype<0||s.shape<1||s.shape>12||s.width<1||s.width>26||s.height<1||s.height>14))return false;
-    if(!off){std::array<int,4> cells{};unsigned count=0;
+    if(!off&&s.occupied_count){std::array<int,4> cells{};unsigned count=0;
       if(!replica::RoomShapeCells(s.grid,s.shape,cells,count)||count!=s.occupied_count||
          !std::equal(cells.begin(),cells.begin()+count,s.occupied.begin()))return false;}
   }
@@ -256,7 +256,8 @@ static ClientNativeStep PrepareImpl(ClientNativeWorldOwner *o,const ClientNative
       // 同一承载的新目标只写具名目标值，缺省/回到基线的值同样实际覆盖。
       auto &g=*o->game;
       if(o->description.backdrop_seed!=d.backdrop_seed||o->description.backdrop_shift1!=d.backdrop_shift1||
-         o->description.backdrop_shift2!=d.backdrop_shift2||o->description.backdrop_shift3!=d.backdrop_shift3||!(o->description.backdrop_config==d.backdrop_config))
+         o->description.backdrop_shift2!=d.backdrop_shift2||o->description.backdrop_shift3!=d.backdrop_shift3||!(o->description.backdrop_config==d.backdrop_config)||
+         !(o->description.backdrop_wall_trace==d.backdrop_wall_trace))
         o->backdrop_ready=false;
       o->description=d;o->backdrop_pose_ready=false;o->prefix|=256u;
       g._stage=d.stage;g._stageType=d.stage_type;g._difficulty=d.difficulty;g._challenge=d.challenge;
@@ -388,7 +389,9 @@ static ClientNativeStep FinalizeImpl(ClientNativeWorldOwner *o) noexcept {
     if(!o->backdrop_ready){
       backdrop.seed=o->description.backdrop_seed;backdrop.rng._seed=o->description.backdrop_seed;
       backdrop.rng._shift1=o->description.backdrop_shift1;backdrop.rng._shift2=o->description.backdrop_shift2;backdrop.rng._shift3=o->description.backdrop_shift3;
+      ClientBackdropReplay replay(&backdrop,o->description.backdrop_wall_trace);
       o->room->_backdrop.Init(o->description.backdrop,true);
+      if(!replay.Complete())return Status(o,ClientNativeStepState::Failed,"native_backdrop_wall_trace");
     }
     // 816BB0消费的实际surface输入，SDK仅命名unkVec1/2；保持来源值，不从形状猜尺寸。
     const auto &inputs=o->description.backdrop_surface_inputs;
@@ -487,7 +490,8 @@ ClientNativeStep ClientNativeWorldPrepare(ClientNativeWorldOwner *o,const Client
   return step;
 }
 ClientNativeStep ClientNativeWorldFinalize(ClientNativeWorldOwner *o) noexcept {
-  ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
+  // Init(true)仍完成原生资源/surface，只显式跳过915890生成本地Authority背景Entity的分支。
+  ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply,ClientEntryMask(ClientEntry::BackdropEffects));
   if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeApply)!=ClientEntryDecision::CallOriginal)
     return Status(o,ClientNativeStepState::Failed,"native_finalize_dispatch");
   const auto step=FinalizeImpl(o);

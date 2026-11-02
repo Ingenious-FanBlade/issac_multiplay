@@ -40,7 +40,9 @@ struct ObservationReference final {
   std::uint64_t scope=0, sequence=0, target_revision=0;
   std::string relation, basis;
 };
-struct Budget final { std::uint32_t objects=16384, nodes=262144, depth=12; std::uint64_t bytes=16ull<<20; };
+// 2026-11-03按用户要求先放宽节点容量；独立的字节/深度/对象约束继续生效。
+inline constexpr std::uint32_t kNodeBudget=64u<<20;
+struct Budget final { std::uint32_t objects=16384, nodes=kNodeBudget, depth=12; std::uint64_t bytes=16ull<<20; };
 struct DomainResult final {
   Coverage coverage=Coverage::NotScheduled;
   std::string range;

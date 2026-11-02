@@ -8,14 +8,16 @@
 namespace cs::game {
 namespace {
 namespace obs=world::observation;
+static_assert(kLuaObservationNodeBudget==obs::kNodeBudget);
 // 所有服务请求发生在 Manager 主线程边界；后台只消费 PublicationQueue 的自有值。
 obs::CapturePlan Plan() {
   obs::CapturePlan p;
   p.domains.push_back({obs::DomainId::Entity,1u|4u|16u|32u,30,{}});
-  p.domains.push_back({obs::DomainId::Grid,1u|4u|16u|32u,30,{}});
-  p.domains.push_back({obs::DomainId::Room,53u,30,{16384,262144,12,4ull<<20}});
-  p.domains.push_back({obs::DomainId::Level,45u,30,{16384,262144,12,4ull<<20}});
-  for(unsigned d=5;d<=11;++d) p.domains.push_back({static_cast<obs::DomainId>(d),obs::SupportedPhases(static_cast<obs::DomainId>(d)),30,{16384,262144,12,(d==6||d>=8?8ull:1ull)<<20}});
+  // 节点按用户要求统一放宽至64M；Grid仍有独立32MiB、其它域保留原字节上限。
+  p.domains.push_back({obs::DomainId::Grid,1u|4u|16u|32u,30,{16384,obs::kNodeBudget,12,32ull<<20}});
+  p.domains.push_back({obs::DomainId::Room,53u,30,{16384,obs::kNodeBudget,12,4ull<<20}});
+  p.domains.push_back({obs::DomainId::Level,45u,30,{16384,obs::kNodeBudget,12,4ull<<20}});
+  for(unsigned d=5;d<=11;++d) p.domains.push_back({static_cast<obs::DomainId>(d),obs::SupportedPhases(static_cast<obs::DomainId>(d)),30,{16384,obs::kNodeBudget,12,(d==6||d>=8?8ull:1ull)<<20}});
   return p;
 }
 void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
@@ -151,6 +153,11 @@ void Commit(void *owner,bool committed,bool stable) noexcept {
 }
 void Event(void *owner,const world::LifecycleEvent &event) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
+  if(Settings.diagnostics&&!Settings.world_e2e_token.empty()&&event.domain&&event.local_id&&
+     !event.entering&&(event.kind==world::EventKind::NativeHook||event.kind==world::EventKind::GridPhysicalRetired))try {
+    if(c.e2e_grid_events.size()==4096)c.e2e_grid_events.pop_front();
+    c.e2e_grid_events.push_back(event);
+  }catch(...){}
   // Collector内部的生命周期撤销不经过WorldRevokePlayer，也要保留实际身体失效边。
   if(event.kind==world::EventKind::CurrentPlayerReadWitness&&event.reason==world::Reason::NotReady&&
      c.observation.Needed(obs::DomainId::Player,obs::Phase::Lifecycle)) try {
@@ -277,17 +284,60 @@ std::uint32_t ObservationEntities(void *owner,void (*visit)(void *,void *,std::u
 std::uint32_t ObservationGrids(void *owner,void (*visit)(void *,void *,std::uint32_t) noexcept) noexcept {
   auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->lua_objects||!visit) return 1;
   std::uint32_t unavailable=0;
+  const bool diagnose=Settings.diagnostics&&!Settings.world_e2e_token.empty();
+  std::string faults;
+  const auto fault=[&](const world::RawObject &o,const world::Identity *id,const char *reason) noexcept {
+    if(!diagnose)return;
+    try {if(!faults.empty())faults+=",";
+      faults+="{\"reason\":\""+std::string(reason)+"\",\"index\":"+std::to_string(o.grid_index)+",\"address\":"+std::to_string(o.address)+
+        ",\"vptr\":"+std::to_string(o.vptr)+",\"fields\":"+std::to_string(o.field_count);
+      if(id)faults+=",\"local\":"+std::to_string(id->local_id)+",\"use\":"+std::to_string(id->use)+",\"destroyed\":"+std::to_string(id->destroyed)+
+        ",\"lifecycle\":"+std::to_string(id->lifecycle)+",\"readiness\":"+std::to_string(id->readiness)+",\"origin\":"+std::to_string(id->origin)+
+        ",\"owner_scope\":"+std::to_string(id->owner_scope)+",\"birth_kind\":"+std::to_string(id->birth_kind);
+      faults+=",\"events\":[";bool first=true;
+      for(const auto &e:c->e2e_grid_events)if(e.address==o.address){
+        if(!first)faults+=",";first=false;
+        faults+="{\"sequence\":"+std::to_string(e.sequence)+",\"kind\":"+std::to_string(unsigned(e.kind))+
+          ",\"observation\":"+std::to_string(e.observation)+",\"call\":"+std::to_string(e.call)+",\"parent\":"+std::to_string(e.parent)+
+          ",\"local\":"+std::to_string(e.local_id)+",\"use\":"+std::to_string(e.use)+",\"lifecycle\":"+std::to_string(e.lifecycle)+
+          ",\"before\":"+std::to_string(e.slot_before)+",\"after\":"+std::to_string(e.slot_after)+",\"index\":"+std::to_string(e.args[0])+"}";
+      }
+      faults+="]}";
+    }catch(...){}
+  };
   for(std::uint32_t i=0;i<c->lua_object_count;++i) {
     const auto &o=c->lua_objects[i]; if(o.domain!=unsigned(world::ObjectDomain::Grid)) continue;
     auto *id=c->identities.Find(world::ObjectDomain::Grid,o.address);
-    if(!id||id->Retired()) continue;
+    // 原生本批槽仍有对象却找不到当前身份时，不能静默少报成员并宣称Complete。
+    if(!id||id->Retired()) {++unavailable;fault(o,id,"identity_missing_or_retired");continue;}
     // 仅初始化／实际index／membership同时成立才允许公开派生读取。
     bool ready=o.vptr&&o.field_count;
     for(unsigned f=0;f<o.field_count;++f) if(o.fields[f].status==world::FieldStatus::NotReady||o.fields[f].status==world::FieldStatus::ReadFailed) ready=false;
-    if(!ready) { ++unavailable; continue; }
+    if(!ready) { ++unavailable;fault(o,id,"native_field_not_ready");continue; }
     visit(owner,reinterpret_cast<void *>(uintptr_t(o.address)),id->pending_memberships);
   }
+  if(diagnose)try{c->e2e_grid_faults="{\"scope\":"+std::to_string(c->lua_scope)+",\"faults\":["+faults+"]}";}catch(...){}
   return unavailable;
+}
+std::string ObservationSourceSnapshotToken(std::string *reason) noexcept {
+  auto c=CurrentWorldRecording();
+  if(!IsMain()||Settings.world_e2e_token.empty()||!c||!c->formal_consumer||!c->observation.Active())return {};
+  const auto &r=c->latest_room.context;
+  if(!r.owner||!r.authority_tick.value)return {};
+  const auto current=[&](const obs::ObservationEnvelope &e){return
+      (e.result.coverage==obs::Coverage::Complete||e.result.coverage==obs::Coverage::NotApplicable)&&
+      e.context.phase==obs::Phase::OrdinaryPost&&e.context.owner==r.owner&&
+      e.context.authority_tick.value==r.authority_tick.value&&e.context.run.value.local==r.run.value.local&&
+      e.context.room.value.local==r.room.value.local;};
+  try{
+    const auto inspect=[&](const obs::ObservationEnvelope &e){if(current(e))return true;
+      if(reason){*reason=e.schema+":coverage="+std::to_string(unsigned(e.result.coverage))+":tick="+std::to_string(e.context.authority_tick.value)+":owner="+std::to_string(e.context.owner);
+        for(const auto &text:e.result.reasons)*reason+=":"+text;}return false;};
+    for(const auto *e:{&c->latest_entity,&c->latest_grid,&c->latest_room,&c->latest_level})if(!inspect(*e))return {};
+    for(const auto &e:c->latest_continuity)if(!inspect(e))return {};
+    return std::to_string(c->session_key)+":"+std::to_string(c->epoch)+":"+std::to_string(r.run.value.local)+":"+
+      std::to_string(r.room.value.local)+":"+std::to_string(r.authority_tick.value)+":"+std::to_string(r.owner);}
+  catch(...){return {};}
 }
 // 部分官方回调按字符串注册名包装TNT等userdata，可能缺少vanilla元表。
 // 只接纳已核定RTTI、已初始化、索引有界且未退休的当前Grid，绝不猜测未知ABI。
@@ -455,7 +505,7 @@ void ObservationLocationBoundary(const char *name,bool floor) noexcept {
   } catch(...) { c->hierarchy.Invalidate(floor); c->observation.Invalidate("location_boundary_budget"); }
 }
 bool ObservationPublishLocation(const char *payload,std::size_t bytes,bool complete,std::uint32_t nodes,const char *reason,unsigned domain,unsigned phase) noexcept {
-  auto c=CurrentWorldRecording(); if(!ObservationLocationNeeded()||!c||bytes>(16u<<20)||nodes>262144||domain>8||phase>4) return false;
+  auto c=CurrentWorldRecording(); if(!ObservationLocationNeeded()||!c||bytes>(16u<<20)||nodes>obs::kNodeBudget||domain>8||phase>4) return false;
   if(!c->observation.Needed(static_cast<obs::DomainId>(domain+3),phase==4?obs::Phase::ActualCall:phase==3?obs::Phase::Transition:phase==1?obs::Phase::ActualCall:phase==2?obs::Phase::Render:obs::Phase::Lifecycle)) return false;
   try {
     obs::ObservationEnvelope e; e.domain=static_cast<obs::DomainId>(domain+3);

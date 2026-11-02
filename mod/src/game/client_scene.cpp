@@ -67,12 +67,15 @@ bool Float(const replica::Value *v,float &out) noexcept {
 // 正式来源的Room缓存与公开Getter交叉约束只做写前解释，不调用游戏验证或补造默认值。
 bool RoomState(const replica::Value *room,const replica::RoomGridTarget &target,ClientRoomState &out,const char *&reason){
   reason="native_room_runtime_fields";const auto *v=Member(room,"application_runtime");int version=0;
-  if(!Int(Member(v,"version"),version)||version!=2)return false;
+  if(!Int(Member(v,"version"),version)||(version!=2&&version!=3))return false;
   const auto integer=[&](const char *name,int &value){return Int(Member(v,name),value);};
+  // 旧v2保存SDK原始word；只解释已核定的低字节。v3来源直接提供真实byte，绝不补零。
+  int render_flag=0;
+  if(!integer(version==2?"slowdown":"render_flag_7220",render_flag)||(version==3&&(render_flag<0||render_flag>255)))return false;
+  out.render_flag_7220=std::uint8_t(render_flag);
   const auto boolean=[&](const char *name,bool &value){const auto *x=Member(v,name);if(!x||!x->IsBool())return false;value=x->GetBool();return true;};
   if(!boolean("initialized",out.initialized)||!boolean("red_heart_damage",out.red_heart_damage)||!boolean("pacifist",out.pacifist)||
      !boolean("ambush_active",out.ambush_active)||!integer("frame",out.frame)||!integer("game_frame",out.game_frame)||!integer("clear_delay",out.clear_delay)||
-     !integer("slowdown",out.slowdown)||
      !integer("greed_timer",out.greed_timer)||!integer("greed_wave",out.greed_wave)||!integer("ambush_wave",out.ambush_wave)||
      !integer("ambush_max",out.ambush_max)||!integer("ambush_bosses",out.ambush_bosses)||!integer("total_money",out.total_money)||
      !integer("shop_item",out.shop_item)||!integer("shop_discount",out.shop_discount)||!integer("greed_subtype",out.greed_subtype)||
@@ -92,8 +95,11 @@ bool RoomState(const replica::Value *room,const replica::RoomGridTarget &target,
   if(!numbers("grid_light_queries",out.grid_light_queries)||out.grid_light_queries[0]<0||out.grid_light_queries[0]>1||
      out.grid_light_queries[1]<0||out.grid_light_queries[1]>255||out.grid_light_queries[2]<0||out.grid_light_queries[2]>1||
      out.grid_light_queries[3]<0||out.grid_light_queries[3]>1||out.grid_light_queries[4]<0||out.grid_light_queries[4]>4)return false;
-  for(int position:out.door_positions)if(position<-1||position>=target.room.layout.capacity||
-      (position>=0&&!replica::RoomShapeGridCell(target.room.layout.shape,position,true)))return false;
+  // 原生缓存包含全部八槽位置，1x1的停用右/下半槽仍保留大房模板坐标。
+  // 仅当前房形采用的槽要求位于活动extent；其余保留Source值但不作为门/格子解引用。
+  for(unsigned i=0;i<out.door_positions.size();++i){const int position=out.door_positions[i];
+    if(position<-1||position>=448||(target.room.doors[i].shape_allowed&&position>=0&&
+       !replica::RoomShapeGridCell(target.room.layout.shape,position,true))){reason="native_room_door_position";return false;}}
   for(const auto &pair:{std::pair{"valid",&out.valid},std::pair{"interior",&out.interior}}){const auto *a=Member(v,pair.first);
     if(!a||!a->IsArray()||a->Size()!=448)return false;for(unsigned i=0;i<448;++i){if(!(*a)[i].IsBool())return false;(*pair.second)[i]=(*a)[i].GetBool();}}
   const auto *rails=Member(v,"rails");if(!rails||!rails->IsArray()||rails->Size()!=448)return false;
@@ -198,14 +204,14 @@ bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget 
   out.spawn_seed=target.room.descriptors.front().spawn_seed;
   out.decoration_seed=target.room.descriptors.front().decoration_seed;
   out.award_seed=target.room.descriptors.front().award_seed;
-  out.grid_index=target.room.descriptors.front().location.grid_index;
+  out.grid_index=target.room.descriptors.front().location.native_grid_origin;
   for(const auto &d:target.room.descriptors){
     // 两份完整资源描述独立交给SDK owner；不能用查找键相同抹掉Override差异。
     // 地图占用由Data描述；Override是替换配置，不能用它的房形推翻实际已发布占用。
     const auto &c=d.data.is_null?d.override_data:d.data;
     ClientNativeDescriptorDescription v;const auto &p=d.location;
     v.key_run=d.key.run;v.key_id=d.key.id;v.construction_revision=d.construction_revision;
-    v.grid=p.grid_index;v.safe=p.safe_grid_index;v.list=p.list_index;v.dimension=p.dimension;v.storage=p.storage_index;v.source_slot=p.source_slot;
+    v.grid=p.native_grid_origin;v.safe=p.safe_grid_index;v.list=p.list_index;v.dimension=p.dimension;v.storage=p.storage_index;v.source_slot=p.source_slot;
     v.occupied_count=unsigned(p.occupied.size());std::copy(p.occupied.begin(),p.occupied.end(),v.occupied.begin());
     v.config_stage=c.stage;v.config_mode=c.mode;v.type=c.type;v.variant=c.variant;v.subtype=c.subtype;v.shape=c.shape;v.width=c.width;v.height=c.height;
     v.data_null=d.data.is_null;v.override_null=d.override_data.is_null;v.allowed=d.allowed_doors;v.flags=d.flags;v.visited=d.visited;v.clear_count=d.clear_count;
@@ -227,6 +233,29 @@ bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget 
     const auto &s=out.backdrop_config.paths[i];if(s.find("..")!=s.npos||s.find(':')!=s.npos||(!s.empty()&&(s.front()=='/'||s.front()=='\\'))||s.find_first_of("\r\n\0",0,3)!=s.npos)return false;}
   for(unsigned i=0;i<7;++i)if(!UInt(&(*values)[i],out.backdrop_config.values[i]))return false;
   if(out.backdrop_config.values[0]!=out.backdrop){reason="native_backdrop_config_id";return false;}
+  // 语义构建轨迹必须完整；不从Client本地重抽，也不将旧来源缺失解释为空轨迹。
+  const auto *wall_trace=Member(room,"backdrop_wall_trace");unsigned trace_version=0;
+  const auto *applicable=Member(wall_trace,"applicable");
+  if(!UInt(Member(wall_trace,"version"),trace_version)||trace_version!=1||!applicable||!applicable->IsBool()){
+    reason="native_backdrop_wall_trace_required";return false;
+  }
+  auto &trace=out.backdrop_wall_trace;trace.present=true;trace.applicable=applicable->GetBool();
+  if(!UInt(Member(wall_trace,"initial"),trace.initial)||(trace.applicable&&!trace.initial)){
+    reason="native_backdrop_initial_rng_required";return false;
+  }
+  if(trace.applicable){
+    const auto *steps=Member(wall_trace,"steps");
+    if(!UInt(Member(wall_trace,"before"),trace.before)||!trace.before||!UInt(Member(wall_trace,"after"),trace.after)||!trace.after||
+       !steps||!steps->IsArray()||steps->Size()>4096){reason="native_backdrop_wall_trace_fields";return false;}
+    for(const auto &step:steps->GetArray()){
+      ClientBackdropEffectStep value;const auto *args=Member(&step,"arguments"),*quad=Member(&step,"quad"),*x=Member(&step,"flip_x"),*y=Member(&step,"flip_y");
+      if(!args||!args->IsArray()||args->Size()!=4||!quad||!quad->IsArray()||quad->Size()!=8||!x||!x->IsBool()||!y||!y->IsBool()||
+         !UInt(Member(&step,"before"),value.before)||!value.before||!UInt(Member(&step,"after"),value.after)||!value.after){reason="native_backdrop_wall_trace_step";return false;}
+      for(unsigned i=0;i<4;++i)if(!UInt(&(*args)[i],value.arguments[i]))return false;
+      for(unsigned i=0;i<8;++i)if(!Float(&(*quad)[i],value.quad[i])||std::fabs(value.quad[i])>1000000)return false;
+      value.flip_x=x->GetBool();value.flip_y=y->GetBool();trace.steps.push_back(value);
+    }
+  }
   const auto *surface=Member(presentation_runtime,"backdrop_surface_inputs");if(!surface||!surface->IsArray()||surface->Size()!=4)return false;
   for(unsigned i=0;i<4;++i)if(!Float(&(*surface)[i],out.backdrop_surface_inputs[i]))return false;
   if(out.backdrop_surface_inputs[0]>=out.backdrop_surface_inputs[2]||out.backdrop_surface_inputs[1]>=out.backdrop_surface_inputs[3])return false;
@@ -524,6 +553,8 @@ void ClientScene::Pump() noexcept {
           const auto grid_check=grids_->Check(roots);
           if(grid_check.failed){result_.failed_key={grid_check.key.run,grid_check.key.id,grid_check.key.space};
             FailureResult(ClientResultKind::PartialNativeFailure,"grid_commit",grid_check.reason);state_=ClientSceneState::Failed;
+            Release(graphics);Release(native);pumping_=false;return;}
+          if(!grid_check.done){FailureResult(ClientResultKind::WaitingDependency,"grid_commit",grid_check.reason);
             Release(graphics);Release(native);pumping_=false;return;}
           const auto check=ClientNativeWorldCheckCommit(native_world_);NoteNativeStep(check,"native_commit");
           if(check.state==ClientNativeStepState::Ready){

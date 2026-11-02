@@ -1,4 +1,5 @@
 #pragma once
+#include "game/client_backdrop_native.h"
 // 首个Player只在具名构建窗口隔离起始统计链；安装资格检查真实trampoline。
 namespace cs::game {
 bool ClientObjectSkipPlayerPreStats() noexcept;
@@ -11,6 +12,9 @@ bool ClientObjectPreStatsIsolationInstalled() noexcept;
 
 namespace cs::game {
 std::string ClientTestExerciseNative(const std::string &token) noexcept;
+// E2E专有独立VM，只用于实际不同VM身份的受控拒绝，不替换游戏Lua根。
+void *ClientTestCreateVm() noexcept;
+void ClientTestDestroyVm(void *) noexcept;
 // SDK 公开只读 Getter 的 C++17 桥；只在主线程读取已确认的 Player。
 bool PlayerIsHologram(void *player) noexcept;
 // SDK-facing 的 world 作用域只传值，不包含 C++20 核心或 SDK 对象方法。
@@ -87,6 +91,7 @@ enum class ClientEntry : unsigned {
   LifecycleFSM, DoorUpdate, DoorNested, NewRoom, RoomInit, GameRender,
   RoomPreRender, RoomRender, EntityListRenderSort, GameStart,
   NativeBuild, NativeApply, NativeTeardown, PresentationMaintenance, PresentationDraw, MenuRender,
+  BackdropEffects,
   Count
 };
 enum class ClientEntryDecision : unsigned { CallOriginal, ExpectedSkip, FaultSkip };

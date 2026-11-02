@@ -19,7 +19,7 @@
 #include <span>
 #include <string_view>
 
-// 19 项观察语义单独放在 C++17 兼容的头里：生成的 SDK-facing wrapper 也要用。
+// 20 项观察语义单独放在 C++17 兼容的头里：生成的 SDK-facing wrapper 也要用。
 #include "world/observation.h"
 
 namespace cs::world {

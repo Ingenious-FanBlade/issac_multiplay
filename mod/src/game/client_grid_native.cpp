@@ -251,7 +251,7 @@ ClientGridStep Execute(ClientNativeGrids *owner,const ClientNativeRoots &roots,c
   owner->room=&room;auto found=owner->entries.find(d.key);
   if(command.operation==ClientGridOperation::Remove){if(found==owner->entries.end())return Result(owner,false,true,"grid_remove_owner_missing");
     if(!Remove(*owner,room,*found->second))return Result(owner,false,true,"grid_remove_prefix_uncertain");owner->entries.erase(found);return Result(owner,true,false,"grid_removed");}
-  if(d.key.space!=2||!d.key.run||!d.key.id||d.room.space!=7||d.index<0||d.index>=448||d.type<1||d.type>27||!d.revision)
+  if(d.key.space!=2||!d.key.run||!d.key.id||d.room.space!=7||d.index<0||d.index>=448||d.type<1||d.type>27)
     return Result(owner,false,true,"grid_description_invalid");
   if(owner->room_key.id&&!(owner->room_key==d.room))return Result(owner,false,true,"grid_room_key_changed");owner->room_key=d.room;
   if(command.operation==ClientGridOperation::Create){
@@ -269,7 +269,8 @@ ClientGridStep Execute(ClientNativeGrids *owner,const ClientNativeRoots &roots,c
     if(!Owned(*owner,room,e)||!e.ready||!CommonMatches(e)||!RuntimeMatches(e)||!Fields(e,false)||!Resources(e,false)||!PositionMatches(room,e))return Result(owner,false,true,"grid_final_state_or_membership_changed");
     return Result(owner,true,false,"grid_instance_checked");}
   if(command.operation==ClientGridOperation::Change){
-    if(!Owned(*owner,room,e)||e.description.index!=d.index||e.description.type!=d.type||e.description.variant!=d.variant||e.description.revision!=d.revision)
+    // Variant/VariableSeed可原位变化；唯一主体仍由Key、原生类型、格索引及实例修订约束。
+    if(!Owned(*owner,room,e)||e.description.index!=d.index||e.description.type!=d.type||e.description.revision!=d.revision)
       return Result(owner,false,true,"grid_change_requires_replace");e.description=d;}
   ++owner->prefix;owner->written=true;e.ready=false;e.prefix|=4;Common(e);Runtime(e);
   if(!Fields(e,true))return Result(owner,false,true,"grid_public_fields_or_cast");e.prefix|=8;
@@ -303,7 +304,7 @@ ClientGridStep ClientNativeGridsBindDoors(ClientNativeGrids *owner,const ClientN
   for(unsigned slot=0;slot<8;++slot){const auto &b=bindings[slot];
     if(b.slot!=int(slot)||b.target==-19||b.candidate==-19||b.enabled!=bool(room._descriptor->AllowedDoors&(1u<<slot))||b.candidate!=room._descriptor->Doors[slot])return Result(owner,false,true,"grid_door_descriptor_conflict");
     if(b.is_null)continue;auto found=owner->entries.find(b.actual);
-    if(!b.shape_allowed||found==owner->entries.end()||!found->second->ready||found->second->description.type!=16||!(found->second->description.door_aliases&(1u<<slot)))return Result(owner,false,true,"grid_door_subject_conflict");
+    if((!b.shape_allowed&&b.target!=-100&&b.target!=-101)||found==owner->entries.end()||!found->second->ready||found->second->description.type!=16||!(found->second->description.door_aliases&(1u<<slot)))return Result(owner,false,true,"grid_door_subject_conflict");
     doors[slot]=found->second->grid;
   }
   if(std::equal(doors.begin(),doors.end(),room._doors))return Result(owner,true,false,"grid_door_aliases_unchanged");
@@ -437,6 +438,10 @@ int ClientGridCaptureLua(void *state){
 }
 int ClientGridSpritesLua(void *state){
   auto *L=static_cast<lua_State *>(state);auto *grid=lua::GetLuabridgeUserdata<GridEntity *>(L,1,lua::Metatables::GRID_ENTITY,"GridEntity");lua_newtable(L);
+  // TimerPlate属性返回ANM2值副本，拷贝构造清Offset/flags；在普通主线程采集真实成员。
+  // 未加载保持公开Getter的nil语义，不把未初始化或停用资源解释为有效Sprite。
+  if(IsMain()&&grid&&grid->GetType()==20){auto *sprite=reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(grid)+0x154);
+    if(sprite->_loaded){lua::luabridge::UserdataPtr::push(L,sprite,lua::GetMetatableKey(lua::Metatables::SPRITE));lua_setfield(L,-2,"timer");}}
   if(IsMain()&&grid&&grid->GetType()==13)for(unsigned i=0;i<2;++i){auto *sprite=reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(grid)+(i?0x27c:0x154));
     lua::luabridge::UserdataPtr::push(L,sprite,lua::GetMetatableKey(lua::Metatables::SPRITE));lua_rawseti(L,-2,i+1);}return 1;
 }

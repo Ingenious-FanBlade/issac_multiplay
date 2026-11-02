@@ -33,7 +33,10 @@ std::vector<const V *> Sequence(const V &v) {
   std::vector<const V *> out;
   if(v.IsArray()){for(const auto &item:v.GetArray())out.push_back(&item);}
   else if(v.IsObject()&&v.HasMember("entries")){
-    const auto &entries=At(v,"entries");if(!entries.IsArray()||entries.Size()>256)throw std::runtime_error("resource_table_budget");
+    const auto &entries=At(v,"entries");
+    // 正式Lua编码的空typed table为entries={}；与缺失、非空对象或表洞严格区分。
+    if(entries.IsObject()&&entries.MemberCount()==0)return out;
+    if(!entries.IsArray()||entries.Size()>256)throw std::runtime_error("resource_table_budget");
     std::vector<std::pair<int,const V *>> ordered;
     for(const auto &entry:entries.GetArray())ordered.push_back({Integer(At(entry,"key"),1,256),&At(entry,"value")});
     std::sort(ordered.begin(),ordered.end(),[](auto a,auto b){return a.first<b.first;});

@@ -106,3 +106,14 @@ I07—I12代码和正式来源已实现并完成上述静态主审。`pwsh -NoPr
 收尾静态复核另修正了地图占用对Data房形与Override替换房形的混用，冷Client的相同完整配置复用同一自有资源；Source及Client均按官方RailType/IsValidRailType等价表拒绝非法轨道字节。目录补明保留事实的Grid、Entity、整局规则、保存及转场消费责任。
 
 完整场景仍有I13地图/Camera、I14—I25 Grid、19特殊Entity、20玩家及27完整HUD等明确依赖。现有17的普通Isaac/Effect57与Lost地图代表限制保留在所属域，不能把Room接口已实现当作这些其它任务也已完成。后续I28/I29应覆盖本文件失败模型及E01/E02/E03/E08/E09/E13/E14/E17，使用同一正式来源和场景入口连续修复/续测；不为本轮创建artifact或提前试跑。
+
+2026-11-03 I29更正：上表此前写作slowdown的SDK int不是J273已核定duration。当前仅采/装Room+7220的实际byte绘制条件，未知高三字节不再写入；来源及主审见[统一验收](tx-04-18-acceptance.md)。Greed HUD采用已有波数/时钟并待本轮实机核验。
+
+
+## I29补充：背景构建输入与实体生成隔离
+
+Room应用来源v8增加`backdrop_wall_trace`（`backdrop-wall-trace-v1`）。`initial`是实际图形构建入口`917910`调用前的独立RNG seed；Room.Init可直接调用该入口而绕过`Backdrop.Init 917870`包装。`before/after`是墙面构建前后态，`steps`保存最多4096次装饰helper的真实参数、DestinationQuad、flip和独立seed前后态。Source只在原调用正常返回后发布完整轨迹，当前Room/Backdrop、id及构建seed必须仍匹配。`applicable=false`来自实际图形构建未进入墙面构建的见证，或原生不使用普通Backdrop的Crawlspace分支；不根据缓存完成后gfx是否仍驻留来猜。
+
+REP公开`Room:SetBackdropType`直接调用Init而不重置RNG。因此Client以`initial`重建地面，再以墙面`before`及逐helper轨迹保留墙纹采样；只省去创建本地环境Entity的部分，不调用共享Random。917420保留前半h/v层选择与绘制，仅在同步栈内借用空null标记枚举，随后恢复；两处直接variant7生成块保留唯一的独立scale随机流推进并跨过Spawn/配置/Update。Hook和两处条件shim都常驻，唯一清单仍为`mod/binding/hooks.json`。错误线程、失效用途或轨迹不匹配不继续原生构建；已写入者按Scene实际前缀退休。
+
+纯值及原生边界在`game/client_backdrop_native.*`，条件shim在`hooks/backdrop_patch.cpp`；正式来源与采集/录制分开。能力v9声明原生背景构建至少需要Room来源v8，不把旧来源缺字段解释为空轨迹。不声称Source/Client的全局MT或完整玩法轨迹相等；全局RNG及玩法仍归Authority。实际覆盖和失败保留在[统一验收](tx-04-18-acceptance.md)。

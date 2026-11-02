@@ -86,7 +86,7 @@ public:
   void PlayerReturned(std::uint32_t ordinal, const PlayerAnchor &before,
                       const PlayerAnchor &after, std::uint64_t tick,
                       bool normal, bool body_reached) noexcept;
-  // 19 项观察入口的 call/parent 值；错线程只在观察策略层置原子故障位。
+  // 20 项观察入口的 call/parent 值；错线程只在观察策略层置原子故障位。
   std::uint32_t ObserveEnter(Observation observation, std::uint32_t object,
                             const std::uint32_t *args, std::uint32_t count) noexcept;
   void ObserveLeave(std::uint32_t call, std::uint32_t result, bool normal) noexcept;

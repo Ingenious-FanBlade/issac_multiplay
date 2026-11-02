@@ -1,3 +1,13 @@
+# tx-04-18 Room/Grid应用工程入口
+
+I01—I30已完成；统一E2E的Source 49/49、独立冷Client 49/49及12/12检查通过，代表画面已主审，实际范围、历史失败与后续接口见[统一验收及后续接口](../docs/design/tx-04-18/tx-04-18-acceptance.md)。正式背景来源包含真实图形构建前态/独立RNG轨迹，Client不重建本地环境Entity；Room来源v8为原生背景构建的最低版本。没有完整世界Applied ACK，Entity19、Player20和完整HUD27仍各自负责后续领域。
+
+正常产品只需`pwsh -NoProfile -File scripts/build.ps1`构建；`-E2E`另建独立工具及Rust harness。`pwsh -NoProfile -File scripts/package.ps1 -OutputDirectory out/product`向一个新目录生成显式产品清单：DLL、UI、正式观测Lua及功能目录。默认Off、录制/诊断/控制口关闭、无E2E token；测试玩法mod和工具不进入发布安装树。
+
+统一验收入口为`harness e2e tx-04-18 --game <游戏目录> --artifact-dir <临时新目录> --node-role Source`，正常完成后用`--node-role Client --resume-from <Source目录>`启动冷Client。`--resume-client-from`仅用于同tx修复后复用未受影响、正常清理的成功前缀；新进程仍冷构建baseline及最后A。正式录制与目标消费独立。临时目录在整体验收完成后清理。
+
+以下保留早先阶段记录，待实现/未执行等文字表示当时状态。
+
 # tx-04-18 I01—I06 基础实现
 
 逐成员Room/Grid应用目录、正式descriptor存储/占用来源、不可变领域目标、A→T依赖计划与J273普通/离图/多维承载已接入，见[实现说明与静态主审](../docs/design/tx-04-18/tx-04-18-foundation.md)。产品目录由`gen_room_grid_catalog.py`生成并嵌入`isaac_cs_replica`，构建包附`room-grid-application.json`。完整Grid执行器、双配置与其余I07—I30仍待实现，能力声明不声称18已完整原生应用；统一实机验收留在I29，本轮不运行游戏/测试。以下历史记录保留原事实。

@@ -21,6 +21,13 @@ static AUTO_FOCUS: AtomicBool = AtomicBool::new(true);
 pub fn set_auto_focus(enabled: bool) {
     AUTO_FOCUS.store(enabled, Ordering::Relaxed);
 }
+// 只在显式E2E进程的执行栈保持显示/系统运行；不改用户电源方案，离栈归还原线程请求。
+pub struct DisplayAwake(u32);
+pub fn keep_display_awake()->Result<DisplayAwake,String>{
+    let previous=unsafe{SetThreadExecutionState(0x80000003)};
+    if previous==0{Err(error("SetThreadExecutionState"))}else{Ok(DisplayAwake(previous))}
+}
+impl Drop for DisplayAwake{fn drop(&mut self){unsafe{SetThreadExecutionState(self.0);}}}
 #[repr(C)]
 #[derive(Default)]
 struct StartupInfo {
@@ -110,6 +117,7 @@ struct BitmapInfo {
 
 #[link(name = "kernel32")]
 unsafe extern "system" {
+    fn SetThreadExecutionState(flags:u32)->u32;
     fn CreateProcessW(
         app: *const u16,
         cmd: *mut u16,

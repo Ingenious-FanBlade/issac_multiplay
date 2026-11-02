@@ -72,7 +72,7 @@ function M.Outcome(scope,ok) store:Outcome(scope,ok) end
 function M.Boundary(name) shared.Boundary(3,name) end
 -- 原生保存/恢复公开回调提供真实阶段，独立复制当时容器；不借普通tick或推断逐对象身份。
 function M.Event(name,first,descriptor,key)
-  read.Limits({bytes=8*1024*1024,nodes=262144,objects=16384,depth=12,queries=262144})
+  read.Limits({bytes=8*1024*1024,nodes=64*1024*1024,objects=16384,depth=12,queries=262144})
   local c=shared.Model.Context();local x=shared.Context()
   local out={event=name,location=x,phase_semantics="actual_save_or_pre_restore_callback;not_ordinary_post",collections={},object_correspondence="Unresolved"}
   if descriptor then

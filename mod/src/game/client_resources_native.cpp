@@ -10,6 +10,7 @@
 
 namespace cs::game {
 namespace {
+ClientResourceStatistics resource_statistics;
 // 失败方式：错误 context、资源缺失、层映射不符、半套 Load、构造/释放异常。
 // 候选先登记寿命，完成前从不交给 draw；原生异常后不重试析构或伪造回滚。
 struct ResourceCandidate final {
@@ -61,16 +62,16 @@ bool ExactPhase(AnimationState &state,float phase,const std::vector<int> &layers
   state._animFrame=phase;return true;
 }
 // 不使用 ANM2::Update；setter 定位时间帧后显式停止播放，不消费动画事件。
-bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason) {
+bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason,bool load_graphics=true) {
   if(sprite._layerCount!=pose.layers.size()||sprite._layerCount>64||!sprite._layerState){reason="resource_layer_count";return false;}
   if((!pose.animation.empty()&&!AnimationReady(sprite,pose.animation,pose.frame,false))||
       (pose.overlay_present&&!AnimationReady(sprite,pose.overlay_animation,pose.overlay_frame,true))){reason="resource_animation_frame";return false;}
   for(const auto &layer:pose.layers){
     auto *native=sprite.GetLayer(int(layer.id));
     if(!native||!native->_layerData||native->_layerData->ID!=layer.id||native->_layerData->name!=layer.name){reason="resource_layer_identity";return false;}
-    if(native->_spriteSheetPath!=layer.sheet){auto path=layer.sheet;sprite.ReplaceSpritesheet(int(layer.id),path);}
+    if(native->_spriteSheetPath!=layer.sheet){if(!load_graphics){reason="resource_graphics_changed";return false;}auto path=layer.sheet;sprite.ReplaceSpritesheet(int(layer.id),path);}
   }
-  sprite.LoadGraphics(false);
+  if(load_graphics)sprite.LoadGraphics(false);
   // 每个所需图像都检查实际 pair 与尺寸；loaded flag 本身不代表全部层成功。
   for(const auto &layer:pose.layers){
     auto *native=sprite.GetLayer(int(layer.id));
@@ -113,7 +114,27 @@ bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason) {
   sprite._playbackSpeed=pose.playback_speed;sprite._bitflags=pose.flags;sprite._overlayRenderFirst=pose.overlay_first;
   reason="resource_complete";return true;
 }
+// 只复用当前实例中已验证的同文件、同图层Image及同动画整数帧；改变动画/帧走完整候选预检。
+// 这使位置/颜色/旋转等姿态变化不重复Load/LoadGraphics，资源或实例变化立即失效。
+bool ReusableGraphics(ANM2 &sprite,const ClientResourcePose &pose) {
+  if(!pose.loaded||!sprite._loaded||sprite._filename!=pose.path||sprite._layerCount!=pose.layers.size()||!pose.exact_phase)return false;
+  const auto animation=[](const AnimationState &state,const std::string &name,int frame,float phase,const std::vector<int> &layers,const std::vector<int> &nulls){
+    if(name.empty())return !state._animData&&phase==0&&layers.empty()&&nulls.empty();
+    const auto *d=state._animData;if(!d||d->_name!=name||!std::isfinite(state._animFrame)||frame!=int(std::floor(state._animFrame))||
+      !std::isfinite(phase)||phase<0||phase>=d->_length||d->_layerCount!=int(layers.size())||d->_nullLayerCount!=int(nulls.size())||
+      (!layers.empty()&&(!d->_animLayers||!state._layerFrames))||(!nulls.empty()&&!state._nullLayerFrames))return false;
+    for(unsigned i=0;i<layers.size();++i){const int count=d->_animLayers[i].GetFrameCount();if(count<0||(count==0?layers[i]!=state._layerFrames[i]:layers[i]<0||layers[i]>=count))return false;}
+    for(unsigned i=0;i<nulls.size();++i)if(state._nullLayerFrames[i]!=nulls[i])return false;return true;
+  };
+  if(!animation(sprite._animState,pose.animation,pose.frame,pose.main_phase,pose.main_selectors,pose.main_null_selectors)||
+    (pose.overlay_present?!animation(sprite._overlayAnimState,pose.overlay_animation,pose.overlay_frame,pose.overlay_phase,pose.overlay_selectors,pose.overlay_null_selectors):sprite._overlayAnimState._animData!=nullptr))return false;
+  for(const auto &layer:pose.layers){auto *v=sprite.GetLayer(int(layer.id));
+    if(!v||!v->_layerData||v->_layerData->ID!=layer.id||v->_layerData->name!=layer.name||v->_spriteSheetPath!=layer.sheet||
+      !v->_spriteSheetLoaded||!v->_spriteSheet.image||!v->_spriteSheet.counter||v->_spriteSheet.image->GetWidth()<=0||v->_spriteSheet.image->GetHeight()<=0)return false;}
+  return true;
 }
+}
+ClientResourceStatistics ClientResourcesStatistics() noexcept {return IsMain()?resource_statistics:ClientResourceStatistics{};}
 bool ClientNativeCpuQueuesEmpty() noexcept {
   if(!IsMain()||!__ptr_g_KAGE_Graphics_ImageManager)return false;
   const auto &manager=*__ptr_g_KAGE_Graphics_ImageManager;
@@ -123,6 +144,12 @@ bool ClientNativeCpuQueuesEmpty() noexcept {
 ClientResourceResult ClientApplyResourcePose(void *pointer,const ClientResourcePose &pose) noexcept {
   ClientResourceResult result;
   if(!pointer||!ResourceWindow()||!ClientNativeCpuQueuesEmpty()){result.reason="resource_context_or_inflight";return result;}
+  // 同一原生实例上的完整资源/姿态相同则复用；换实例或任意姿态变化立即走正常安装。
+  if(ClientResourcePoseMatches(pointer,pose)){++resource_statistics.unchanged;result.complete=true;result.layers=unsigned(pose.layers.size());result.reason="resource_unchanged";return result;}
+  try{auto &sprite=*static_cast<ANM2 *>(pointer);if(ReusableGraphics(sprite,pose)){
+    result.written=true;result.complete=SetPose(sprite,pose,result.reason,false);result.layers=result.complete?unsigned(pose.layers.size()):0;
+    if(result.complete){++resource_statistics.reused_graphics;result.reason="resource_graphics_reused";}return result;
+  }}catch(...){result.written=true;result.reason="resource_native_exception";return result;}
   if(!pose.loaded){
     if(!pose.path.empty()||!pose.layers.empty()||!pose.animation.empty()||pose.overlay_present||!pose.exact_phase||pose.main_phase!=0||!pose.main_selectors.empty()||!pose.main_null_selectors.empty()){
       result.reason="resource_unloaded_description";return result;}
@@ -144,7 +171,7 @@ ClientResourceResult ClientApplyResourcePose(void *pointer,const ClientResourceP
   }
   try {
     owner->constructor_entered=true;owner->sprite->constructor();owner->constructed=true;
-    auto path=pose.path;owner->sprite->Load(path,false);
+    auto path=pose.path;++resource_statistics.candidate_loads;owner->sprite->Load(path,false);
     if(!SetPose(*owner->sprite,pose,result.reason)){ClientRetireGraphics(ticket);return result;}
     auto &sprite=*static_cast<ANM2 *>(pointer);
     result.written=true;

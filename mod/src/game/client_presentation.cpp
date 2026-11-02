@@ -65,8 +65,14 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
     if(!transition.IsObject()||!Member(transition,"type").IsString()||std::string(Member(transition,"type").GetString())!="int64"||
        !Member(transition,"value").IsString()||std::string(Member(transition,"value").GetString())!="0")
       throw std::runtime_error("presentation_stable_room_transition_required");
-    if(Integer(Member(v,"version"),2,2)!=2)throw std::runtime_error("presentation_version");
+    const int presentation_version=Integer(Member(v,"version"),2,3);
     ClientPresentationDescription d;d.room_state=room_state;d.map=map_target;
+    const auto &room=Member(Member(Member(model,"components"),"room"),"state");
+    if(room.HasMember("map_sprites")){
+      const auto &sprites=room["map_sprites"];if(!sprites.IsArray()||sprites.Size()!=2)throw std::runtime_error("presentation_minimap_poses");
+      for(unsigned i=0;i<2;++i){std::string error;if(!ClientParseResourcePose(sprites[i],d.minimap_poses[i],error))throw std::runtime_error("presentation_minimap_pose:"+error);}
+      d.minimap_poses_present=true;
+    }else if(Integer(Member(Member(room,"application_source"),"version"),4,7)>=7)throw std::runtime_error("presentation_minimap_pose_required");
     Colors(Member(v,"floor_color"),d.floor);Colors(Member(v,"wall_color"),d.wall);
     Colors(Member(v,"shadow_color"),d.shadow);Colors(Member(v,"light_color"),d.light);
     Colors(Member(v,"water_color"),d.water_color);Colors(Member(v,"water_multiplier"),d.water_multiplier);
@@ -105,7 +111,8 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
     // 97DC46仅在同槽两个索引均非负时绘制；已加入首Player的(0,-1)仍是关闭面板。
     for(unsigned i=0;i<4;++i)if(d.coop_selection[2*i]>=0&&d.coop_selection[2*i+1]>=0)
       throw std::runtime_error("presentation_coop_menu_adapter_required");
-    if(d.hud_seed_blocked||d.hud_challenge||d.hud_difficulty>1)throw std::runtime_error("presentation_hud_run_adapter_required");
+    // 97D0BB/97D370直接以difficulty 2/3和已安装的greed_wave绘制计数；不另选模式或推进波次。
+    if(d.hud_seed_blocked||d.hud_challenge)throw std::runtime_error("presentation_hud_run_adapter_required");
     d.effective_curses=unsigned(Integer(Member(map,"effective_curses"),0,511));d.minimap_state=Integer(Member(map,"state"),0,4);
     d.minimap_small_alpha=Number(Member(map,"small_alpha"));d.minimap_big_alpha=Number(Member(map,"big_alpha"));
     d.minimap_shake_duration=Integer(Member(map,"shake_duration"),0,100000);
@@ -125,12 +132,17 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
       if(!((out.shader==1&&out.vertex_stride==36&&out.attributes==position)||(out.shader==3&&out.vertex_stride==44&&out.attributes==mask)||
            (out.shader==3&&out.vertex_stride==88&&out.attributes==full)))throw std::runtime_error("presentation_image_format");
     };
-    const auto &aux=Member(v,"auxiliary");auto &a=d.auxiliary;const auto &poop_image=Member(aux,"poop_image");
+    const auto &aux=Member(v,"auxiliary");auto &a=d.auxiliary;
+    const bool poop_applicable=presentation_version==2||Boolean(Member(aux,"poop_applicable"));
+    a.veins_present=Boolean(Member(aux,"veins_present"));
+    if(poop_applicable){const auto &poop_image=Member(aux,"poop_image");
     a.poop_image_present=Boolean(Member(poop_image,"present"));if(a.poop_image_present)image_description(poop_image,a.poop_image);
-    a.veins_present=Boolean(Member(aux,"veins_present"));Colors(Member(aux,"poop_color"),a.poop_color);Colors(Member(aux,"poop_settings"),a.poop_settings);
+    Colors(Member(aux,"poop_color"),a.poop_color);Colors(Member(aux,"poop_settings"),a.poop_settings);
     const auto &poop=Sequence(Member(aux,"poop_poses"));if(poop.Size()>256)throw std::runtime_error("presentation_poop_budget");
     for(const auto &s:poop.GetArray()){ClientPresentationFXPose pose;pose.x=Number(Member(s,"x"));pose.y=Number(Member(s,"y"));
       pose.velocity_x=Number(Member(s,"velocity_x"));pose.velocity_y=Number(Member(s,"velocity_y"));pose.flip_x=Boolean(Member(s,"flip_x"));pose.flip_y=Boolean(Member(s,"flip_y"));a.poop_poses.push_back(pose);}
+    }
+    if(presentation_version==2||a.veins_present){
     const auto &nodes=Member(aux,"veins"),&roots=Member(aux,"roots");if(!nodes.IsArray()||nodes.Empty()||nodes.Size()>4096||!roots.IsArray()||roots.Size()!=10)throw std::runtime_error("presentation_vein_budget");
     for(const auto &n:nodes.GetArray()){ClientPresentationVein node;node.kind=Integer(Member(n,"kind"),0,1);node.depth=Integer(Member(n,"depth"),-1000000,1000000);
       node.rotation=Number(Member(n,"rotation"));node.scale=Number(Member(n,"scale"));node.factor=Number(Member(n,"factor"));node.opacity=Number(Member(n,"opacity"));node.x=Number(Member(n,"x"));node.y=Number(Member(n,"y"));
@@ -142,10 +154,11 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
       active[i]=true;seen[i]=true;for(int child:a.veins[i].children)if(child>=0)visit(unsigned(child),depth+1);active[i]=false;};
     for(unsigned root:a.roots)visit(root,0);for(bool value:seen)if(!value)throw std::runtime_error("presentation_vein_unowned_node");
     if(a.veins_present!=(a.veins[a.roots[0]].children[0]>=0))throw std::runtime_error("presentation_vein_membership");
-    const auto &sprites=Member(Member(Member(Member(model,"components"),"room"),"state"),"vein_sprites");
+    }
+    if(a.veins_present){const auto &sprites=Member(Member(Member(Member(model,"components"),"room"),"state"),"vein_sprites");
     if(!sprites.IsArray()||sprites.Size()!=2)throw std::runtime_error("presentation_vein_sprites");
     for(unsigned i=0;i<2;++i){const auto &s=sprites[i];if(s.IsObject()&&s.HasMember("status")&&s["status"].IsString()&&std::string(s["status"].GetString())=="Null")continue;
-      std::string error;if(!ClientParseResourcePose(s,a.vein_sprites[i],error))throw std::runtime_error("presentation_vein_sprite_pose:"+error);a.vein_sprite_present[i]=true;}
+      std::string error;if(!ClientParseResourcePose(s,a.vein_sprites[i],error))throw std::runtime_error("presentation_vein_sprite_pose:"+error);a.vein_sprite_present[i]=true;}}
     image_description(Member(map,"question"),d.minimap_question);
     const auto &shading=Member(v,"shading");d.shading_present=Boolean(Member(shading,"present"));
     if(d.shading_present)image_description(shading,d.shading);
@@ -154,7 +167,12 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
     if(d.lighting_alpha<0||d.lighting_alpha>1)throw std::runtime_error("presentation_lighting_alpha");
     if(d.water_amount<0||d.water_amount>1)throw std::runtime_error("presentation_water_range");
     const auto &fx=Member(v,"room_fx");
-    d.fx_loaded=Boolean(Member(fx,"loaded"));d.fx_ray_groups=unsigned(Integer(Member(fx,"ray_groups"),0,256));
+    d.fx_loaded=Boolean(Member(fx,"loaded"));
+    // v3显式区分停用字段；本方描述的默认值只用于构造关闭的Client状态。
+    if(presentation_version==3&&Text(Member(fx,"applicability"))!=(d.fx_loaded?"Loaded":"NotApplicable"))
+      throw std::runtime_error("presentation_fx_applicability");
+    if(presentation_version==2||d.fx_loaded){
+    d.fx_ray_groups=unsigned(Integer(Member(fx,"ray_groups"),0,256));
     d.fx_poop_countdown=Integer(Member(fx,"poop_countdown"),-1,100000);
     d.fx_ray_group=Integer(Member(fx,"ray_group"),-1,255);
     d.fx_ray_lighting=Boolean(Member(fx,"ray_lighting"));d.fx_ray_darkness=Boolean(Member(fx,"ray_darkness"));
@@ -196,6 +214,8 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
       }
       d.fx_layers.push_back(std::move(layer));
     }
+    }
+    if(presentation_version==3&&poop_applicable!=(d.fx_loaded&&d.fx_poop_countdown>0))throw std::runtime_error("presentation_poop_applicability");
     if(d.room_fx_present!=(!d.fx_layers.empty()||!d.ray_groups.empty()||d.fx_poop_countdown>0||a.veins_present)||
        ((!d.fx_layers.empty()||!d.ray_groups.empty())&&!d.fx_loaded))
       throw std::runtime_error("presentation_fx_membership_conflict");
@@ -232,6 +252,8 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
 }
 ClientPresentationStep ClientPresentation::Step(const ClientNativeRoots &roots) noexcept {
   if(!planned_)return {false,false,true,"presentation_target_not_prepared"};
+  // 同一T已准备完毕，Grid分步终检期间不重复分配FX/加载Image。
+  if(ready_)return {true,false,false,"presentation_target_ready"};
   if(!native_)native_=ClientPresentationCreate();
   if(!native_)return {false,false,true,"presentation_owner_allocation"};
   auto step=ClientPresentationPrepare(native_,roots,target_);ready_=step.done&&!step.failed;return step;

@@ -82,7 +82,7 @@ int ClientRoomStateCaptureLua(void *state){
   auto &g=*g_Game;auto &r=*g._room;auto &d=*r._descriptor;auto *config=d.Data;
   if(config->Shape<1||config->Shape>12||config->Type<1||config->Type>29){lua_pushnil(L);return 1;}
   const auto extent=r._gridWidth*r._gridHeight;if(!r._gridWidth||!r._gridHeight||r._gridWidth>28||r._gridHeight>16||extent>448){lua_pushnil(L);return 1;}
-  lua_createtable(L,0,32);Integer(L,"version",2);
+  lua_createtable(L,0,32);Integer(L,"version",3);
   lua_createtable(L,int(extent),0);for(unsigned i=0;i<extent;++i){lua_pushinteger(L,r._gridPaths[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"grid_paths");
   lua_pushstring(L,"active_extent;outside_not_applicable");lua_setfield(L,-2,"path_scope");
   const int light_queries[]={int(g._seedEffects.HasSeedEffect(79)),int(g.GetStageID(false)),
@@ -93,7 +93,7 @@ int ClientRoomStateCaptureLua(void *state){
   lua_pushboolean(L,Read<bool>(&r,0));lua_setfield(L,-2,"initialized");
   lua_pushboolean(L,r._redHeartDamage);lua_setfield(L,-2,"red_heart_damage");lua_pushboolean(L,r._pacifist);lua_setfield(L,-2,"pacifist");
   Integer(L,"frame",r.GetFrameCount());Integer(L,"game_frame",g._frameCount);Integer(L,"clear_delay",r._roomClearDelay);Integer(L,"greed_timer",r._greedWaveTimer);Integer(L,"greed_wave",g._greedModeWave);
-  Integer(L,"slowdown",r._slowdownDuration);
+  Integer(L,"render_flag_7220",Read<std::uint8_t>(&r,0x7220));
   lua_pushboolean(L,g._ambush.active);lua_setfield(L,-2,"ambush_active");Integer(L,"ambush_wave",g._ambush.currentWave);
   Integer(L,"ambush_max",g._ambush.maxBossWaves);Integer(L,"ambush_bosses",g._ambush.bossesPerWave);
   Integer(L,"total_money",d.TotalMoneySpent);Integer(L,"shop_item",d.ShopItemIdx);Integer(L,"shop_discount",d.ShopItemDiscountIdx);
@@ -122,6 +122,13 @@ int ClientRoomVeinSpritesLua(void *state){
   for(unsigned i=0;i<2;++i){auto *sprite=reinterpret_cast<ANM2 *>(fx+0x2c8+i*sizeof(ANM2));
     if(visible&&sprite->_loaded)lua::luabridge::UserdataPtr::push(L,sprite,lua::Metatables::SPRITE);else lua_pushboolean(L,false);lua_rawseti(L,-2,i+1);}return 1;
 }
+// GetConfig未公开注册；只借用真实Minimap owner内的两份ANM2，Lua在当前窗口立即复制语义pose。
+int ClientRoomMapSpritesLua(void *state){
+  auto *L=static_cast<lua_State *>(state);lua_createtable(L,2,0);
+  if(!IsMain()||!g_Game)return 1;
+  for(unsigned i=0;i<2;++i){auto *sprite=&g_Game->_minimap._config[i]._mapSprite;
+    lua::luabridge::UserdataPtr::push(L,sprite,lua::Metatables::SPRITE);lua_rawseti(L,-2,i+1);}return 1;
+}
 // GetFrameCount=Game._frameCount-Room[11f0]；每次展示前重新锚定，服务器帧数可合法回到旧值。
 void ClientRoomFrameMaintain(void *game,void *room,int frame,bool initialized) noexcept {
   if(!IsMain()||!game||!room)return;auto &g=*static_cast<Game *>(game);
@@ -130,7 +137,11 @@ void ClientRoomFrameMaintain(void *game,void *room,int frame,bool initialized) n
 bool ClientRoomStateApply(void *game,void *room,const ClientRoomState &s) noexcept {
   if(!IsMain()||!game||!room)return false;auto &g=*static_cast<Game *>(game);auto &r=*static_cast<Room *>(room);if(!r._descriptor)return false;
   auto &d=*r._descriptor;ClientRoomFrameMaintain(game,room,s.frame,s.initialized);
-  r._roomClearDelay=s.clear_delay;r._slowdownDuration=s.slowdown;r._greedWaveTimer=s.greed_timer;r._redHeartDamage=s.red_heart_damage;r._pacifist=s.pacifist;r._bossId=s.boss;
+  r._roomClearDelay=s.clear_delay;
+  // SDK将7220标成int slowdown，但J273 807146仅读取低字节谓词；高三字节没有采用合同。
+  // 兼容旧来源的原始word时只供应已核定的byte条件，不把冷堆高位覆盖进Client。
+  Write<std::uint8_t>(&r,0x7220,s.render_flag_7220);
+  r._greedWaveTimer=s.greed_timer;r._redHeartDamage=s.red_heart_damage;r._pacifist=s.pacifist;r._bossId=s.boss;
   g._greedModeWave=unsigned(s.greed_wave);g._ambush.active=s.ambush_active;g._ambush.currentWave=s.ambush_wave;g._ambush.maxBossWaves=s.ambush_max;g._ambush.bossesPerWave=s.ambush_bosses;
   d.TotalMoneySpent=std::int16_t(s.total_money);d.ShopItemIdx=std::int16_t(s.shop_item);d.ShopItemDiscountIdx=std::int16_t(s.shop_discount);d.GreedSubType=s.greed_subtype;
   d.PoopCount=std::int16_t(s.poop_count);d.TKeeperCoinSpawns=std::int16_t(s.keeper_coins);d.PitsCount=s.pits;

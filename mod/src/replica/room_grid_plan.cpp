@@ -17,7 +17,11 @@ bool Same(const Value &a,const Value &b){
   if(a.IsArray()&&b.IsArray()){if(a.Size()!=b.Size())return false;for(unsigned i=0;i<a.Size();++i)if(!Same(a[i],b[i]))return false;return true;}
   return a==b;
 }
-bool Construction(const GridTarget &a,const GridTarget &b){return a.type==b.type&&a.variant==b.variant&&a.descriptor.spawn_seed==b.descriptor.spawn_seed&&a.descriptor.variable_seed==b.descriptor.variable_seed;}
+bool Construction(const GridTarget &a,const GridTarget &b){
+  // 原生工厂只按Type/格索引分配类；Variant是描述状态，Door锁与Greed岩石都会原位改变它。
+  // Wiki也明确VariableSeed随事件改变；它们不能冒充实例换代，完整后态/资源仍须正常安装。
+  return a.type==b.type&&a.descriptor.spawn_seed==b.descriptor.spawn_seed;
+}
 bool RoomReuse(const RoomGridTarget &a,const RoomGridTarget &b){
   if(a.scope!=b.scope||a.room.key!=b.room.key||a.room.floor!=b.room.floor||a.room.descriptor!=b.room.descriptor||
      a.room.current_index!=b.room.current_index||a.room.dimension!=b.room.dimension||a.room.descriptors.size()!=b.room.descriptors.size())return false;

@@ -98,6 +98,7 @@ public:
   // 以下只读视图仅供主线程使用；跨线程只能用上层已复制的状态发布。
   ClientSceneState State() const noexcept { return state_; }
   ClientApplyResult Result() const noexcept { return result_; }
+  replica::RoomGridBudgetUsage Budget() const noexcept { return room_grid_target_?room_grid_target_->budget:replica::RoomGridBudgetUsage{}; }
   // A仅在完整原生提交后有效，部分写入或退休不继续暴露旧提交版本。
   std::uint64_t AppliedRevision() const noexcept { return applied_valid_?applied_revision_:0; }
   const ClientGenerations &Generations() const noexcept { return generations_; }
@@ -136,7 +137,7 @@ private:
   std::uint64_t next_borrow_=0;
   ClientSceneState state_=ClientSceneState::Waiting;
   replica::Scope waiting_scope_{}, target_scope_{}, applied_scope_{};
-  std::array<replica::Scope,16> retired_scopes_{};
+  std::array<replica::Scope,128> retired_scopes_{};
   unsigned retired_scope_count_=0;
   std::unique_ptr<replica::Json> target_, applied_;
   std::shared_ptr<const replica::RoomGridTarget> room_grid_target_,room_grid_applied_;

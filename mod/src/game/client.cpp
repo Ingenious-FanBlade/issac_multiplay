@@ -1,5 +1,6 @@
 #include "game/client.h"
 #include "game/client_scene.h"
+#include "game/client_resources.h"
 #include "binding/offsets.h"
 #include "game/context.h"
 #include "game/input_a.h"
@@ -75,6 +76,7 @@ struct ClientRuntime final {
   bool focused=false,ui_blocked=false,input_ready=false,fixture=false;
   InputTiming timing;
   unsigned neutral_loops=0;
+  unsigned fixture_cancel_stage=0;
   void *source=nullptr;
   std::string address, error;
   // I3 纯值分派诊断独立于观察记录，供最终整体验收区分预期跳过与漏链。
@@ -110,16 +112,16 @@ std::uint64_t next_dispatch_frame=0;
 constexpr std::uint64_t EntryBit(ClientEntry entry) noexcept {
   return ClientEntryMask(entry);
 }
-constexpr std::uint64_t kExpectedUpdateMask=
+constexpr std::uint64_t kExpectedNestedMask=
     EntryBit(ClientEntry::GameUpdate)|EntryBit(ClientEntry::PostUpdate)|
     EntryBit(ClientEntry::RoomUpdate)|EntryBit(ClientEntry::EntityListUpdate)|
     EntryBit(ClientEntry::PlayerUpdate)|EntryBit(ClientEntry::OddHelper)|
-    EntryBit(ClientEntry::DoorUpdate);
+    EntryBit(ClientEntry::DoorUpdate)|EntryBit(ClientEntry::BackdropEffects);
 constexpr const char *kClientEntryNames[]={
   "game_update","post_update","room_update","entity_list","player_update",
   "odd_helper","lifecycle_fsm","door_update","door_nested","new_room",
   "room_init","game_render","room_prerender","room_render","render_sort","game_start",
-  "native_build","native_apply","native_teardown","presentation_maintenance","presentation_draw","menu_render"};
+  "native_build","native_apply","native_teardown","presentation_maintenance","presentation_draw","menu_render","backdrop_effects"};
 void CountDispatch(ClientRuntime &c,ClientEntry entry,ClientEntryDecision decision) noexcept {
   const auto index=unsigned(entry);
   if(index>=c.dispatch_original.size())return;
@@ -184,6 +186,7 @@ const char *ClientStartUnavailable() noexcept {
      !Capabilities[size_t(Group::Loop)]||!Capabilities[size_t(Group::Control)]||
      !Capabilities[size_t(Group::Client)]||!WorldExitPatchInstalled())return "adaptation_unavailable";
   if(!ClientShutdownPatchInstalled())return "shutdown_isolation_unavailable";
+  if(!ClientBackdropPatchInstalled())return "backdrop_isolation_unavailable";
   ClientGuardLuaBindings();
   if(!ClientLuaGuardReady())return "lua_persistence_guard_unavailable";
   if(!ClientDispatchIsolationInstalled())return "client_dispatch_isolation_unavailable";
@@ -198,7 +201,7 @@ bool ClientDispatchIsolationInstalled() noexcept {
   static constexpr const char *required[]={"client_game_update","client_post_update",
     "client_room_update","client_entity_list","client_player_update","client_odd_helper",
     "client_room_lifecycle","client_door_update","client_door_nested","client_new_room",
-    "room_init","game_render","room_prerender","room_render","entitylist_render_sort","client_game_start","client_menu_render"};
+    "room_init","game_render","room_prerender","room_render","entitylist_render_sort","client_game_start","client_menu_render","client_backdrop_effects","client_backdrop_wall","client_backdrop_graphics"};
   size_t count=0;auto hooks=Hooks(count);
   for(const char *id:required){
     bool installed=false;
@@ -238,7 +241,7 @@ ClientDispatchScope::ClientDispatchScope(ClientOperation operation,ClientEntry r
   auto &c=*client;
   const auto owner=TopOwner();
   if(dispatch_frame.id||!ContextHealthy()||InBlockedContext()||!ClientDispatchIsolationInstalled()||
-     (expected_skips&~kExpectedUpdateMask)||
+     (expected_skips&~kExpectedNestedMask)||
      (expected_skips&EntryBit(root))||
      !DispatchRootAllowed(operation,root,c.scene.State(),owner)||
      next_dispatch_frame==UINT64_MAX){Failure(c,"client_dispatch_admission");return;}
@@ -363,6 +366,11 @@ const char *ClientTestBegin(const std::string &token,const replica::Scope &scope
     return "";
   }catch(...){return "client_allocation";}
 }
+// 在真实Manager阶段边界取消，避免IPC轮询跳过短暂阶段；只调用正式StopClient。
+bool ClientTestCancelAfter(const std::string &token,unsigned stage) noexcept {
+  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||!client->fixture||stage<1||stage>3)return false;
+  client->fixture_cancel_stage=stage;return true;
+}
 // 目标在 Manager 上复制为自有值；测试 token 不授予任意地址或额外 native 写入权限。
 // 统一实机验收在已发布真实场景检验owner拒绝；worker只携带自有纯值模型。
 std::string ClientTestExerciseOwnership(const std::string &token) noexcept {
@@ -386,6 +394,20 @@ std::string ClientTestExerciseOwnership(const std::string &token) noexcept {
     if(!restored||wrong_context)return "ok=0\nerror=context_rejection_or_restore_failed\n";
     return "ok=1\nownership_exercise=1\n";
   }catch(...){return "ok=0\nerror=ownership_exercise_exception\n";}
+}
+// VM不匹配是终止当前场景的故障，单独编排并由正式退休/重建恢复。
+std::string ClientTestExerciseVm(const std::string &token) noexcept {
+  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||!client->fixture||!client->scene.DisplayReady())return "ok=0\nerror=vm_exercise_context\n";
+  try {
+    // 用真实独立Lua VM制造身份不匹配；保留游戏原根，并在同一栈释放旧借用和临时VM。
+    void *vm=ClientTestCreateVm();if(!vm)return "ok=0\nerror=temporary_vm_allocation\n";
+    void *original=ClientLuaStateIdentity();ClientBorrowToken lua{};
+    if(!client->scene.Borrow(ClientPurpose::Lua,lua)){ClientTestDestroyVm(vm);return "ok=0\nerror=lua_borrow_missing\n";}
+    client->scene.ObserveLuaState(vm);const bool stale_valid=client->scene.Valid(lua);
+    client->scene.Release(lua);client->scene.ObserveLuaState(original);ClientTestDestroyVm(vm);
+    if(stale_valid||client->scene.State()!=ClientSceneState::Failed)return "ok=0\nerror=vm_generation_not_rejected\n";
+    return "ok=1\nvm_exercise=1\n";
+  }catch(...){return "ok=0\nerror=vm_exercise_exception\n";}
 }
 bool ClientAdmitTarget(const replica::Scope &scope,std::uint64_t revision,const replica::Value &value) noexcept {
   if(!IsMain()||TopOwner()!=Owner::Manager||client_depth||!ClientBusy()||!client||
@@ -425,6 +447,11 @@ bool ClientManagerBoundary() noexcept {
     if(c.scene.ConsumeForeignFault())Failure(c,"client_foreign_scene");
     c.scene.ObserveLuaState(ClientLuaStateIdentity());
     c.scene.Pump();
+    if(c.fixture_cancel_stage){const auto r=c.scene.Result();const auto stage=c.fixture_cancel_stage;
+      if((stage==1&&r.native_written)||(stage==2&&r.grid_prefix)||(stage==3&&c.scene.DisplayReady())){
+        c.fixture_cancel_stage=0;StopClient();
+      }
+    }
     c.scene.DrainRetained();
     if(c.scene.State()==ClientSceneState::Failed&&c.state!=State::Failed)Failure(c,c.scene.Result().reason.data());
     if(foreign_client.exchange(false))Failure(c,"client_foreign_manager");
@@ -712,6 +739,16 @@ std::string ClientFields() {
          std::to_string(c.dispatch_original[i])+","+
          std::to_string(c.dispatch_expected[i])+","+
          std::to_string(c.dispatch_fault[i])+"\n";
+  const auto budget=c.scene.Budget();
+  add("target_bytes",budget.bytes);add("target_nodes",budget.nodes);add("target_resources",budget.resources);
+  add("target_layers",budget.layers);add("target_aliases",budget.aliases);add("target_fx",budget.fragments);
+  add("unadopted_descriptor_grid_indices",budget.unadopted_grid_indices);
+  if(Settings.diagnostics&&!Settings.world_e2e_token.empty()){
+    void *dc=nullptr,*context=nullptr;
+    if(ClientRendererHandles(dc,context))add("renderer_window",reinterpret_cast<std::uintptr_t>(WindowFromDC(static_cast<HDC>(dc))));
+  }
+  const auto resources=ClientResourcesStatistics();add("resource_unchanged",resources.unchanged);
+  add("resource_graphics_reused",resources.reused_graphics);add("resource_candidate_loads",resources.candidate_loads);
   s+="client.native_phase="+std::string(c.scene.Result().phase.data())+"\n";
   s+="client.native_reason="+std::string(c.scene.Result().reason.data())+"\n";
   s+="client.failure_domain="+std::string(c.scene.Result().failed_domain.data())+"\n";

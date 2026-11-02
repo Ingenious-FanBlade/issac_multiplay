@@ -1,6 +1,6 @@
 # tx-04-18：Room／全部 Grid 客户端应用实现计划
 
-日期：2026-11-02，Asia/Singapore。状态：**I01—I25代码及领域/场景接线已实现并完成静态主审；I26—I30待推进，I29统一实机验收未执行。** 本轮按用户要求完成I09—I25范围，既有I09—I18复核与I19—I25实现、来源版本/能力、Luna研究主审和完整纯构建见[场景集成说明](tx-04-18-scene-integration.md)。I13—I18/G01—G27原领域记录见[Grid owner](tx-04-18-grid-owner.md)，I07—I12见[Room说明](tx-04-18-room-application.md)，I01—I06见[基础说明](tx-04-18-foundation.md)，逐成员映射见[功能目录](room-grid-application.json)。各类别像素和生命周期结果仍归I29，不以编译/静态结论冒报通过。
+日期：2026-11-02，Asia/Singapore。状态：**I01—I30已完成；统一E2E为Source 49/49、独立冷Client 49/49及12/12检查通过，代表画面已主审。** 当前工程、实际失败/修复和后续接口见[统一验收](tx-04-18-acceptance.md)。 本轮按用户要求完成I09—I25范围，既有I09—I18复核与I19—I25实现、来源版本/能力、Luna研究主审和完整纯构建见[场景集成说明](tx-04-18-scene-integration.md)。I13—I18/G01—G27原领域记录见[Grid owner](tx-04-18-grid-owner.md)，I07—I12见[Room说明](tx-04-18-room-application.md)，I01—I06见[基础说明](tx-04-18-foundation.md)，逐成员映射见[功能目录](room-grid-application.json)。各类别实际覆盖、像素和生命周期边界以I29结果为准，不外推所有内容组合。
 
 本次目标是把正式复制模型中的活动房间构成、环境、门和全部原版 Grid 类别，应用到真实 Client 的原生世界，支持创建、改变、替换、移除及失败后的安全退休。本文逐项列出实现内容、注意事项和完成判据；[全部 Grid 逐类任务](tx-04-18-grid-application.md)是本计划的组成部分，不能只完成公共接口就结束本 tx。
 
@@ -74,7 +74,7 @@ REPENTOGON [RoomDescriptor](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDes
 
 ## 3. 完整任务索引
 
-下列I01—I25领域adapter与场景接线已落实实现，I26—I30仍待推进。I13—I18结果与后续集成边界见[Grid与地图owner说明](tx-04-18-grid-owner.md)。I07—I12的正式来源、原生adapter、Luna研究/主审和跨域依赖见[Room应用说明](tx-04-18-room-application.md)。各项完成判据是功能交付描述；当前尚未获得本tx实机结果，不在分项结束时提前运行测试，统一验收仍在I29。
+下列I01—I28领域adapter、场景/预算/工程及E2E编排已落实实现；I29实机与I30收尾仍在推进。I13—I18结果与后续集成边界见[Grid与地图owner说明](tx-04-18-grid-owner.md)。I07—I12的正式来源、原生adapter、Luna研究/主审和跨域依赖见[Room应用说明](tx-04-18-room-application.md)。各项完成判据是功能交付描述；本tx实际Source/Client结果在统一验收中记录，不将编译或局部成功代替I29完整结论。
 
 | 编号 | 任务 | 主要依赖 |
 | --- | --- | --- |
@@ -448,5 +448,5 @@ E03／E09从12已建立的特殊场景目录选择并扩展实际应用场景：
 - 本地公开语义：[原版GridEntity](F:/projects_isaac/IsaacDocs/docs/GridEntity.md)、[GridEntityDesc](F:/projects_isaac/IsaacDocs/docs/GridEntityDesc.md)、[Grid类型](F:/projects_isaac/IsaacDocs/docs/enums/GridEntityType.md)、[房形](F:/projects_isaac/IsaacDocs/docs/enums/RoomShape.md)、[REPENTOGON Room](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Room.md)、[GridEntity](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntity.md)、[Door](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GridEntityDoor.md)。
 - 具体副作用来源：[官方GridEntityPlus](F:/projects_isaac/REPENTOGON-1.1.3/repentogon/Patches/GridEntityPlus.cpp)、[官方Grid Lua接口](F:/projects_isaac/REPENTOGON-1.1.3/repentogon/LuaInterfaces/GridEntities/LuaGridEntity.cpp)。公开接口优先，必要时才扩展源码／逆向范围。
 
-本轮仅交付本计划、逐类任务及入口链接，静态回读核对范围、字段、依赖和现行规范；没有新增运行代码，没有运行生成器、构建、测试或游戏，没有制作tx artifact。后续实际实现及验收结果应追加在本目录，并如实更新任务状态。
+原始计划文档阶段的历史记录：本轮仅交付本计划、逐类任务及入口链接，静态回读核对范围、字段、依赖和现行规范；没有新增运行代码，没有运行生成器、构建、测试或游戏，没有制作tx artifact。后续实际实现及验收结果应追加在本目录，并如实更新任务状态。当前完成状态与运行结果见文首链接。
 

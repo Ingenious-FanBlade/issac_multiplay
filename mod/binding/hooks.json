@@ -64,6 +64,9 @@
     ["client_player_render_body_diagnostic","client","Entity_Player","RenderBody","void","Vector* position","position","0x386460","None",false,"",false,-20000,true],
     ["client_player_render_head_diagnostic","client","Entity_Player","RenderHead","void","Vector* position","position","0x386760","None",false,"",false,-20000,true],
     ["client_minimap_render_diagnostic","client","Minimap","Render","void","","","0x566680","None",false,"",false,-20000,true],
+    ["client_backdrop_effects","client","Backdrop","ClientBackdropEffects","void","int a, int b, unsigned int kind, int part, Vector* position, unsigned char flipX, bool flipY","a, b, kind, part, position, flipX, flipY","0x515890","None",false,"",true,-20000,true],
+    ["client_backdrop_wall","client","Backdrop","pre_render_walls","void","","","0x511310","None",false,"",false,-20000,true],
+    ["client_backdrop_graphics","client","Backdrop","ClientLoadGraphics","int","","","0x517910","None",false,"",true,-20000,true],
     ["client_grid_water_base","client","GridEntity","GetWaterClipInfo","WaterClipInfo*","WaterClipInfo* out","out","0x305250","None",false,"",false,-20000,true],
     ["client_grid_water_pit","client","GridEntity_Pit","GetWaterClipInfo","WaterClipInfo*","WaterClipInfo* out","out","0x30F120","None",false,"",false,-20000,true],
     ["client_grid_water_door","client","GridEntity_Door","GetWaterClipInfo","WaterClipInfo*","WaterClipInfo* out","out","0x30C360","None",false,"",false,-20000,true],
@@ -458,6 +461,29 @@
       "evidence": "ST1 §2/§3、ST6 §2.1：EntityPickup.zhl:2，ret 18h。"
     },
     {
+      "id": "world_grid_ctor",
+      "observation": "GridCtor",
+      "group": "world",
+      "class": "GridEntity",
+      "method": "GridPhysicalConstruct",
+      "definition": "IsaacCS::GridPhysicalConstruct",
+      "own": true,
+      "static": false,
+      "conv": "thiscall",
+      "rva": "0x304FB0",
+      "pattern": "55 8B EC 51 F3 0F 7E 05 ?? ?? ?? ?? A1 ?? ?? ?? ?? 56 8B F1",
+      "priority": -10000,
+      "args": [],
+      "return": "GridEntity*",
+      "return_abi": "eax",
+      "sdk": null,
+      "entry_bytes": "55 8B EC 51 F3 0F 7E 05",
+      "completion": "基物理构造正常返回EAX=this；只记录新物理代次，不补造派生Init或外层出生。工厂内同一次构造/取得去重。",
+      "reach": "make_wall 7E4B40与remove_door 80B950直接new Wall绕过工厂；两者均调用704FB0。",
+      "required": true,
+      "evidence": "tx-04-18 Luna max静态研究与主审：704FB0无栈参thiscall，705019 mov eax,esi，70501F ret；直接墙构造见7E4D80/80BA0E。"
+    },
+    {
       "id": "world_grid_factory",
       "observation": "GridFactory",
       "group": "world",
@@ -623,6 +649,8 @@
     }
   ],
   "byte_patches": [
+    {"id":"client_backdrop_effect_1","group":"client","rva":"0x51168F","expected":"E8 1C 9E DD FF","resume":"0x511694","alternate":"0x511778","kind":"jump","size":5,"evidence":"tx-04-18 J273 Luna核查及主审：源call GlobalRandom恰一次；Client只补scale的一次Backdrop独立xorshift，跳过Spawn7/Update，EDI=Backdrop，landing恢复ESI"},
+    {"id":"client_backdrop_effect_2","group":"client","rva":"0x5119E9","expected":"E8 C2 9A DD FF","resume":"0x5119EE","alternate":"0x511AEE","kind":"jump","size":5,"evidence":"tx-04-18 J273 Luna核查及主审：Backdrop30/39命中后唯一额外独立xorshift用于scale，保留原栈并于landing恢复ESI"},
     {"id":"world_process_exit","group":"world","rva":"0x50AFC4","expected":"80 78 08 01 0F 85 73 FF FF FF","resume":"0x50AFCE","alternate":"0x50AF41","kind":"jump","size":10,"evidence":"tx-04-08 DE: GPT-6 Luna static main analysis, primary raw-instruction review; original cmp+jnz, no GLFW object writes"},
     {"id":"client_shutdown_counter","group":"client","rva":"0x582D1B","expected":"85 C0 74 48 83 B8 A8 5B 02 00 00","resume":"0x582D26","alternate":"0x582D67","kind":"jump","size":11,"evidence":"J273 Isaac::Shutdown 0x982D1B-0x982D67；仅跳过 counter[192]/522 与 PGD 保存，保留后续 Options 保存"},
     {"id":"client_shutdown_save","group":"client","rva":"0x582D72","expected":"A1 ?? ?? ?? ??","resume":"0x582D77","alternate":"0x582DD0","kind":"jump","size":5,"evidence":"J273 Isaac::Shutdown 0x982D72-0x982DD0；A1的绝对Manager地址由ASLR重定位，安装时另验其等于Base+Manager；跳过dirty/backup/cloud/local，保留Manager加载与Game::Exit/析构"},

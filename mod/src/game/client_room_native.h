@@ -6,7 +6,9 @@ namespace cs::game {
 // Room只安装已裁决事实。计数和轨道不运行Update；L区域由同一几何版本的实际来源给出。
 struct ClientRoomState final {
   bool initialized=false,red_heart_damage=false,pacifist=false,ambush_active=false;
-  int frame=0,game_frame=0,clear_delay=0,slowdown=0,greed_timer=0,greed_wave=0,ambush_wave=0,ambush_max=0,ambush_bosses=0;
+  int frame=0,game_frame=0,clear_delay=0,greed_timer=0,greed_wave=0,ambush_wave=0,ambush_max=0,ambush_bosses=0;
+  // J273仅核定7220低字节的绘制条件；不采用SDK误标的int duration及未知高位。
+  std::uint8_t render_flag_7220=0;
   int total_money=0,shop_item=0,shop_discount=0,greed_subtype=0,poop_count=0,keeper_coins=0,pits=0;
   unsigned boss=0;
   std::array<float,4> bounds{};
@@ -27,6 +29,7 @@ int ClientRoomConfigCaptureLua(void *);
 int ClientRoomStateCaptureLua(void *);
 int ClientRoomBackdropSpritesLua(void *);
 int ClientRoomVeinSpritesLua(void *);
+int ClientRoomMapSpritesLua(void *);
 // 写入只发生于既有Manager用途窗口；Room析构清除内部状态，Game的全局借用由world owner恢复。
 bool ClientRoomStateApply(void *game,void *room,const ClientRoomState &) noexcept;
 void ClientRoomFrameMaintain(void *game,void *room,int frame,bool initialized) noexcept;

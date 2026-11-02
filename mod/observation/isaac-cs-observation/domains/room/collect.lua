@@ -20,8 +20,9 @@ function M.Capture(limits)
     out.doors[#out.doors+1]={slot=slot,shape_allowed=room:IsDoorSlotAllowed(slot),descriptor_enabled=(d.AllowedDoors&(1<<slot))~=0,shape_target_grid_index=d.Doors[slot],actual=g and IsaacCSObservationNative.GridReference(g) or {resolution="Null"},actual_target=g and g.TargetRoomIndex or nil,actual_connection=g and model.Target(level,g.TargetRoomIndex,level:GetDimension(),false) or {kind="NoActualDoor"}}
   end
   -- 正式观测同步复制原生展示参数；不由Client按本地房间配置重新裁决。
-  out.presentation_runtime=IsaacCSObservationNative.RoomPresentation()
-  if not out.presentation_runtime then read.Fail(c,"room_presentation_runtime_unavailable") end
+  local presentation,reason=IsaacCSObservationNative.RoomPresentation()
+  out.presentation_runtime=presentation
+  if not presentation then read.Fail(c,"room_presentation_runtime_unavailable:"..tostring(reason));out.presentation_failure=read.Missing("ReadFailed",tostring(reason)) end
   out.application_runtime=IsaacCSObservationNative.RoomApplication()
   out.map_application=IsaacCSObservationNative.MapApplication()
   if not out.map_application then read.Fail(c,"map_application_unavailable") end
@@ -31,6 +32,10 @@ function M.Capture(limits)
   end
   out.vein_sprites={}
   for i,sprite in ipairs(IsaacCSObservationNative.RoomVeinSprites()) do out.vein_sprites[i]=sprite and read.Value(sprite,"Sprite",c,0) or {status="Null"} end
+  out.map_sprites={}
+  for i,sprite in ipairs(IsaacCSObservationNative.RoomMapSprites()) do out.map_sprites[i]=read.Value(sprite,"Sprite",c,0) end
+  out.backdrop_wall_trace=IsaacCSObservationNative.RoomBackdropTrace()
+  if not out.backdrop_wall_trace then read.Fail(c,"backdrop_wall_trace_unavailable") end
   if not out.application_runtime then read.Fail(c,"room_application_runtime_unavailable") end
   -- 轨道资源按与Grid相同的正式资源姿态复制，空轨道无需加载菜单默认Sprite。
   if out.application_runtime then
@@ -39,7 +44,7 @@ function M.Capture(limits)
     if present then out.rail_sprite=read.Value(room:GetRailManager():GetRailsSprite(),"Sprite",c,0) end
   end
   -- 应用来源extension v2与观测schema v2分开版本化；正式consumer在录制关闭时仍交付配置与原生映射。
-  out.application_source={version=4,target="REPENTOGON-1.1.3/J273",required_contracts={"descriptor-placement-v1","resource-pose-v1","room-configuration-v1","room-runtime-v2","grid-path-v1","map-camera-v1"},config_version="REPENTOGON-1.1.3/J273/room-configuration-v1",descriptor_placement=IsaacCSObservationNative.DescriptorPlacement(d)}
+  out.application_source={version=8,target="REPENTOGON-1.1.3/J273",required_contracts={"descriptor-placement-v1","resource-pose-v1","room-configuration-v1","room-runtime-v3","grid-path-v1","map-camera-v1","map-frame-pose-v1","room-fx-applicability-v1","backdrop-wall-trace-v1"},config_version="REPENTOGON-1.1.3/J273/room-configuration-v1",descriptor_placement=IsaacCSObservationNative.DescriptorPlacement(d)}
   if out.application_source.descriptor_placement.status~="Value" then read.Fail(c,"descriptor_placement_unavailable") end
   if unavailable>0 then read.Fail(c,"room_entity_membership_unavailable") end
   for _,e in ipairs(sources) do out.entities[#out.entities+1]=IsaacCSObservationNative.Subject(e.entity) end

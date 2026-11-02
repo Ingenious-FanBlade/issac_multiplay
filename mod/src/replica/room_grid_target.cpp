@@ -95,12 +95,13 @@ DescriptorLocation Placement(const V &p,const V &fields,const std::string &path)
   if(p.HasMember("source_slot"))d.source_slot=Field(p,"source_slot",path,-20,-1);
   if(d.source_slot==-19)Error(path,"original_online_excluded");
   if(d.source_slot){if(d.storage_index!=-1)Error(path,"off_grid_storage_conflict");}
-  else if(d.storage_index<0||d.list_index!=d.storage_index||d.grid_index<0||d.grid_index>168||d.safe_grid_index<0||d.safe_grid_index>168)Error(path,"map_location_range");
+  else if(d.storage_index<0||d.list_index!=d.storage_index||(d.dimension!=1&&(d.grid_index<0||d.grid_index>168))||d.safe_grid_index<0||d.safe_grid_index>168)Error(path,"map_location_range");
   const auto &a=Sequence(At(p,"occupied_indices",path),path+"/occupied_indices");if(a.Size()>4)Error(path,"occupied_budget");
   std::set<int> indices;for(const auto &x:a.GetArray())if(!indices.insert(Number(x,path+"/occupied_indices",0,168)).second)Error(path,"duplicate_occupied_index");
   d.occupied.assign(indices.begin(),indices.end());
   if(d.source_slot&&!d.occupied.empty())Error(path,"off_grid_has_map_offsets");
-  if(!d.source_slot&&(d.occupied.empty()||!indices.count(d.safe_grid_index)))Error(path,"safe_index_not_occupied");
+  // Mineshaft生成可保留Data非空但已不占图的descriptor；它仍有存储身份，不补回旧占用。
+  if(!d.source_slot&&!d.occupied.empty()&&!indices.count(d.safe_grid_index))Error(path,"safe_index_not_occupied");
   if(d.grid_index!=Field(fields,"RoomDescriptor.GridIndex",path)||d.safe_grid_index!=Field(fields,"RoomDescriptor.SafeGridIndex",path)||
      d.list_index!=Field(fields,"RoomDescriptor.ListIndex",path)||d.dimension!=Field(fields,"RoomDescriptor.GetDimension",path,0,2))Error(path,"placement_fields_disagree");
   return d;
@@ -112,9 +113,19 @@ RoomDescriptorTarget Descriptor(const V &subject,const V &state,const V &placeme
   const auto &f=Fields(state,path);d.location=Placement(placement,f,path+"/placement");
   d.data=Config(At(f,"RoomDescriptor.Data",path),path+"/Data",version);
   d.override_data=Config(At(f,"RoomDescriptor.OverrideData",path),path+"/OverrideData",version);
-  if(!d.location.source_slot){const auto &c=d.data.is_null?d.override_data:d.data;std::array<int,4> expected{};unsigned count=0;
-    if(c.is_null||!RoomShapeCells(d.location.grid_index,c.shape,expected,count)||count!=d.location.occupied.size()||
+  d.location.native_grid_origin=d.location.grid_index;
+  const auto &shape_config=d.data.is_null?d.override_data:d.data;
+  if(!d.location.source_slot&&d.location.dimension==1&&!shape_config.is_null&&shape_config.shape==1&&
+     d.location.occupied.size()==1&&d.location.occupied[0]==d.location.safe_grid_index){
+    // J273镜像样本的公开GridIndex出现0x00600060，含义未确认，不能送入native数组/坐标转换。
+    // 1x1实际offset已唯一确定原点；只用这个真实几何事实构造本方native缓存，Source raw不改、不冒认等价。
+    d.location.native_grid_origin=d.location.occupied[0];
+    d.location.raw_grid_index_adopted=d.location.grid_index==d.location.native_grid_origin;
+  }
+  if(!d.location.source_slot&&!d.location.occupied.empty()){const auto &c=d.data.is_null?d.override_data:d.data;std::array<int,4> expected{};unsigned count=0;
+    if(c.is_null||!RoomShapeCells(d.location.native_grid_origin,c.shape,expected,count)||count!=d.location.occupied.size()||
        !std::equal(expected.begin(),expected.begin()+count,d.location.occupied.begin()))Error(path,"shape_occupancy_disagrees");}
+  if(!d.location.source_slot&&(d.location.native_grid_origin<0||d.location.native_grid_origin>168))Error(path,"native_grid_origin_range");
   d.allowed_doors=Field(f,"RoomDescriptor.AllowedDoors",path,0,255);d.flags=Field(f,"RoomDescriptor.Flags",path);
   d.display_flags=Field(f,"RoomDescriptor.DisplayFlags",path);
   d.visited=Field(f,"RoomDescriptor.VisitedCount",path,0);d.clear_count=Field(f,"RoomDescriptor.ClearCount",path,0,32767);
@@ -156,16 +167,18 @@ const Value &RoomGridTarget::DescriptorState(const RoomDescriptorTarget &d) cons
 // 解析先完成全部有界纯值校验，最后发布不可变T；无SDK调用，也不依赖录制文件。
 std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGridLimits limits){
   if(!limits.descriptors||limits.descriptors>526||!limits.grids||limits.grids>456||!limits.references||limits.references>4096)Error("limits","only_tightening_allowed");
+  const auto usage=MeasureRoomGridBudget(model);
   ValidateModel(model);if(model["publishable"]!=true)Error("model","not_publishable");
-  auto out=std::shared_ptr<RoomGridTarget>(new RoomGridTarget);out->scope=ReadScope(model["scope"]);out->revision=Unsigned(model["revision"]);
+  auto out=std::shared_ptr<RoomGridTarget>(new RoomGridTarget);out->budget=usage;out->scope=ReadScope(model["scope"]);out->revision=Unsigned(model["revision"]);
   const auto run=out->scope.run;if(!run||!out->scope.floor||!out->scope.dimension||!out->scope.room)Error("scope","world_scope_required");
   const auto &room=Component(model,"room",out->room_capture),&level=Component(model,"level",out->level_capture),&grid=Component(model,"grid",out->grid_capture);
   const auto &contract=At(room,"application_source","room"),&gc=At(grid,"application_source","grid");
-  if(Field(contract,"version","room/application_source")!=4||Field(gc,"version","grid/application_source")!=3||
+  const auto grid_version=Field(gc,"version","grid/application_source"),room_version=Field(contract,"version","room/application_source");
+  if((room_version!=4&&room_version!=5&&room_version!=6&&room_version!=7&&room_version!=8)||(grid_version!=3&&grid_version!=4&&grid_version!=5)||
      !Is(At(contract,"target","room"),"REPENTOGON-1.1.3/J273")||!Is(At(gc,"target","grid"),"REPENTOGON-1.1.3/J273"))Error("application_source","unsupported_contract");
   for(const auto *c:{&contract,&gc})if(c->HasMember("required_contracts")){
     const auto &required=(*c)["required_contracts"];if(!required.IsArray()||required.Size()>32)Error("application_source/required_contracts","budget");
-    for(const auto &name:required.GetArray())if(!Is(name,"descriptor-placement-v1")&&!Is(name,"grid-membership-v2")&&!Is(name,"resource-pose-v1")&&!Is(name,"room-configuration-v1")&&!Is(name,"room-runtime-v2")&&!Is(name,"grid-runtime-v2")&&!Is(name,"grid-path-v1")&&!Is(name,"map-camera-v1"))Error("application_source/required_contracts/"+(name.IsString()?std::string(name.GetString(),name.GetStringLength()):"invalid"),"unknown_required");
+    for(const auto &name:required.GetArray())if(!Is(name,"descriptor-placement-v1")&&!Is(name,"grid-membership-v2")&&!Is(name,"resource-pose-v1")&&!Is(name,"room-configuration-v1")&&!Is(name,"room-runtime-v2")&&!Is(name,"room-runtime-v3")&&!Is(name,"grid-runtime-v2")&&!Is(name,"grid-path-v1")&&!Is(name,"map-camera-v1")&&!Is(name,"map-frame-pose-v1")&&!Is(name,"backdrop-wall-trace-v1")&&!Is(name,"grid-sprite-alias-v1")&&!Is(name,"grid-member-sprite-pose-v1")&&!Is(name,"room-fx-applicability-v1"))Error("application_source/required_contracts/"+(name.IsString()?std::string(name.GetString(),name.GetStringLength()):"invalid"),"unknown_required");
   }
   const auto &cv=At(contract,"config_version","room");if(!cv.IsString()||cv.GetStringLength()==0||cv.GetStringLength()>256)Error("config_version","resource_version_required");
   const std::string config_version(cv.GetString(),cv.GetStringLength());
@@ -203,6 +216,7 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
     ++position;
   }
   for(const auto &d:r.descriptors){const auto &l=d.location;
+    if(!l.raw_grid_index_adopted)++out->budget.unadopted_grid_indices;
     // 普通存储和负槽用符号区分；同一ListIndex不能被另一维度重用为第二个对象。
     const auto unique=std::make_pair(l.source_slot?-1:0,l.source_slot?l.source_slot:l.storage_index);
     if(!storage.emplace(unique,d.key).second)Error("level/descriptors","duplicate_storage");
@@ -241,7 +255,8 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
   unsigned index=0,reference_count=0;
   for(const auto &v:objects.GetArray()){
     const auto path="grid/objects/"+std::to_string(index);GridTarget g;g.source_index=index++;const auto &s=At(v,"subject",path);g.key=Ref(s,path+"/subject",run,2).key;
-    g.instance_revision=U64(At(s,"shape_revision",path),path+"/shape_revision");if(!g.instance_revision)Error(path,"instance_revision_zero");
+    // 正式身份服务的首次shape revision为0；字段缺失仍失败，0不是未知/空实例。
+    g.instance_revision=U64(At(s,"shape_revision",path),path+"/shape_revision");
     g.index=Field(v,"index",path,0,r.layout.capacity-1);g.type=Field(v,"type",path,1,27);g.variant=Field(v,"variant",path,0);
     const auto &f=Fields(At(v,"common",path),path+"/common");g.state=Field(f,"GridEntity.State",path);g.var_data=Field(f,"GridEntity.VarData",path);g.collision=Field(f,"GridEntity.CollisionClass",path,0,6);
     if(g.type!=Field(f,"GridEntity.GetType",path)||g.variant!=Field(f,"GridEntity.GetVariant",path)||g.index!=Field(f,"GridEntity.GetGridIndex",path))Error(path,"common_type_or_slot_conflict");
@@ -251,7 +266,8 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
     if(d.type!=g.type||d.variant!=g.variant)Error(path,"descriptor_type_conflict");
     const auto &members=At(v,"memberships",path);if(!members.IsArray()||members.Empty()||members.Size()>456)Error(path,"memberships_required");
     for(const auto &m:members.GetArray()){GridMembership alias{unsigned(Field(m,"source",path,11,12)),unsigned(Field(m,"index",path,0,447))};
-      if(alias.source==12&&alias.index>7)Error(path,"door_slot_range");if(!aliases.emplace(alias.source,alias.index).second)Error(path,"duplicate_membership");g.memberships.push_back(alias);
+      if(alias.source==12&&alias.index>7)Error(path,"door_slot_range");if(!aliases.emplace(alias.source,alias.index).second)Error(path,"duplicate_membership");
+      if(++out->budget.aliases>kRoomGridAliases)Error(path,"alias_total_budget");g.memberships.push_back(alias);
       if(alias.source==11&&int(alias.index)!=g.index)Error(path,"grid_slot_disagrees");}
     std::sort(g.memberships.begin(),g.memberships.end(),[](const auto &a,const auto &b){return std::tie(a.source,a.index)<std::tie(b.source,b.index);});
     if(!keys.emplace(g.key,unsigned(out->grids.size())).second)Error(path,"duplicate_key");
@@ -272,7 +288,6 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
     d.shape_allowed=Boolean(At(v,"shape_allowed","room/doors"),"room/doors");d.descriptor_enabled=Boolean(At(v,"descriptor_enabled","room/doors"),"room/doors");d.shape_target=Field(v,"shape_target_grid_index","room/doors");d.actual=Ref(At(v,"actual","room/doors"),"room/doors/actual",run,2,true);
     if(d.shape_target!=current.door_targets[slot]||d.descriptor_enabled!=bool(current.allowed_doors&(1u<<slot)))Error("room/doors","descriptor_binding_conflict");
     if(!d.actual.is_null){auto g=keys.find(d.actual.key);if(g==keys.end()||out->grids[g->second].type!=16)Error("room/doors","door_subject_missing");
-      if(!d.shape_allowed)Error("room/doors","actual_door_in_disallowed_slot");
       const auto &ms=out->grids[g->second].memberships;if(std::find(ms.begin(),ms.end(),GridMembership{12,slot})==ms.end())Error("room/doors","door_membership_missing");
       d.actual_target=Field(v,"actual_target","room/doors");const auto target=d.actual_target;
       const auto &body=Fields(At(At(objects[out->grids[g->second].source_index],"bodies","grid/door"),"GridEntityDoor","grid/door"),"grid/door/body");
@@ -280,6 +295,8 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
       if(target==-19)Error("room/doors","original_online_excluded");
       if(target==-100)d.route=DoorRoute::Mirror;else if(target==-101)d.route=DoorRoute::Mineshaft;
       else if(target>=0&&target<169)d.route=DoorRoute::Map;else if(target>=-20&&target<0)d.route=DoorRoute::OffGrid;else Error("room/doors","unknown_actual_route");
+      // 镜门/矿车门的实际路由不依赖descriptor普通邻接启用位，不能据此抹掉真实门。
+      if(!d.shape_allowed&&d.route!=DoorRoute::Mirror&&d.route!=DoorRoute::Mineshaft)Error("room/doors","actual_door_in_disallowed_slot");
       const auto &connection=At(v,"actual_connection","room/doors");if(Field(connection,"index","room/doors")!=target)Error("room/doors","connection_index_conflict");
       if(d.route==DoorRoute::Map||d.route==DoorRoute::OffGrid){
         if(!Is(At(connection,"kind","room/doors"),d.route==DoorRoute::Map?"MapRoom":"OffGridSlot"))Error("room/doors","connection_route_conflict");
@@ -310,7 +327,7 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
   Resources(room,"room");Resources(grid,"grid");
   out->source=Copy(model);return out;
 }
-Json RoomGridCapabilities(){return Parse(R"({"id":"room-grid-target-v4","version":4,"source_extension":4,"grid_source_extension":3,"target":"REPENTOGON-1.1.3/J273","grid_types":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],"descriptor_capacity":527,"excluded_off_grid":[-19],"room_shapes":[1,2,3,4,5,6,7,8,9,10,11,12],"room_adapters":["distinct-nullable-configs","shape-geometry","progress","backdrop-config-pose","water-color-fx","rails-lroom","camera-native-minimap"],"grid_adapters":["stable-key-instance-owner","factory-final-state-no-init","desc-common-aliases","17-derived-interfaces","fire-three-anm-embers","rock-rubble","door-alias-routes","instance-effective-water-clip","stable-references-and-lifted-descriptor-interface","source-collision-path-neighbor-pose","native-layered-grid-draw","source-grid-light-queries","scoped-independent-history","prefix-retirement","scene-atomic-commit"],"room_dependencies":["tx-04-19-special-entity-pass","tx-04-20-player-roster","tx-04-27-hud"],"environment_limits":{"layers":256,"poses_per_layer":256,"ray_groups":256,"rays_per_group":64,"vein_nodes":4096,"vein_depth":32,"vein_draw_visits":65536,"poop_poses":256},"limits":{"descriptors":526,"grids":456,"steps":8192,"references":4096,"dependency_edges":1048576},"native_apply":true,"full_world_commit":false,"runtime_acceptance":"pending-I29","independent_effects":"handoff-to-tx-04-27;no-presentation-watermark-ack","native_responsibility":"I07-I25 Room/Grid scene;Entity19/Player20/HUD27 retain their own capabilities"})");}
+Json RoomGridCapabilities(){return Parse(R"({"id":"room-grid-target-v10","version":10,"source_extension":8,"room_source_accepted":[4,5,6,7,8],"native_backdrop_source_minimum":8,"legacy_minimap_pose":"not-captured-before-source-7","descriptor_raw_grid_index":"dimension1 1x1 mismatch retained as diagnostic;native origin from real occupied cell;not raw equivalence","room_runtime_versions":[2,3],"presentation_versions":[2,3],"grid_source_extension":5,"grid_source_accepted":[3,4,5],"native_grid_source_minimum":5,"resource_aliases":["grid-sprite-alias-v1"],"target":"REPENTOGON-1.1.3/J273","grid_types":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],"descriptor_capacity":527,"excluded_off_grid":[-19],"room_shapes":[1,2,3,4,5,6,7,8,9,10,11,12],"room_adapters":["distinct-nullable-configs","shape-geometry","progress","backdrop-config-pose","water-color-fx","rails-lroom","camera-native-minimap"],"grid_adapters":["stable-key-instance-owner","factory-final-state-no-init","desc-common-aliases","17-derived-interfaces","fire-three-anm-embers","rock-rubble","door-alias-routes","instance-effective-water-clip","stable-references-and-lifted-descriptor-interface","source-collision-path-neighbor-pose","native-layered-grid-draw","source-grid-light-queries","scoped-independent-history","prefix-retirement","scene-atomic-commit"],"room_dependencies":["tx-04-19-special-entity-pass","tx-04-20-player-roster","tx-04-27-hud"],"environment_limits":{"layers":256,"poses_per_layer":256,"ray_groups":256,"rays_per_group":64,"vein_nodes":4096,"vein_depth":32,"vein_draw_visits":65536,"poop_poses":256},"limits":{"descriptors":526,"grids":456,"steps":8192,"references":4096,"dependency_edges":1048576,"target_bytes":33554432,"target_nodes":67108864,"target_depth":64,"resources":4096,"resource_layers":65536,"fx_members":32768,"grid_aliases":456,"native_grid_owners":456,"pending_targets":1,"retained_owners":16,"borrow_tickets":16,"retired_scopes":128,"grid_commands_per_step":1,"grid_checks_per_step":1,"grid_retirements_per_step":1},"native_apply":true,"full_world_commit":false,"runtime_acceptance":"tx-04-18:49-Source/49-cold-Client/12-checks;representative-visual-reviewed;not-all-content","independent_effects":"handoff-to-tx-04-27;no-presentation-watermark-ack","native_responsibility":"I07-I25 Room/Grid scene;Entity19/Player20/HUD27 retain their own capabilities"})");}
 const Json &RoomGridApplicationCatalog(){static const auto catalog=Parse(
 #include "room_grid_application.inc"
 );return catalog;}

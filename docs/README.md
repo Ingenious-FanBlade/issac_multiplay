@@ -1,3 +1,5 @@
+> **tx-04-18 I26—I30（2026-11-03，已完成）**：预算、资源复用、产品/测试构建边界及完整Source/冷Client编排已接入；节点上限按用户要求统一64M。实际覆盖、连续失败/修复、背景构建轨迹、地图深度和后续接口见[统一验收记录](design/tx-04-18/tx-04-18-acceptance.md)。最终Source 49/49、冷Client 49/49及12/12检查通过，代表画面已主审；下方历史阶段状态保留原时点。
+
 > **tx-04-18 I01—I18（2026-11-02）**：[基础实现](design/tx-04-18/tx-04-18-foundation.md)、[Room应用](design/tx-04-18/tx-04-18-room-application.md)及[Grid/地图owner](design/tx-04-18/tx-04-18-grid-owner.md)已接入领域adapter。I13—I18覆盖真实地图/Camera、Grid单owner、27类构造/字段/资源及Door别名；GPT-6 Luna/max逆向已由主智能体复读。I19—I25仍负责跨域引用、缓存、分层draw及整场景提交，I29统一实机未执行；本轮不运行游戏或分项测试。
 
 > **tx-04-18 I09—I25续作（2026-11-02）**：引用、最终path/碰撞与邻接结果、Grid原生分层绘制、独立记录、失败退休和唯一Scene提交已接线，GPT-6 Luna/max研究经主智能体直接复读审阅，完整纯构建成功。见[场景集成与实际边界](design/tx-04-18/tx-04-18-scene-integration.md)。I26—I30待推进，I29统一实机验收未执行；下方此前待集成状态保留原阶段语境。

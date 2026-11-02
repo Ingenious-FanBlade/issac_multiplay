@@ -26,6 +26,22 @@ float Real(const V &v){if(!v.IsNumber()||!std::isfinite(v.GetDouble())||std::abs
 ClientPoseVector Vector(const V &v){if(!Is(At(v,"type"),"vector"))throw std::runtime_error("grid_vector_type");return {Real(At(v,"x")),Real(At(v,"y"))};}
 ClientObjectKey Key(const replica::SubjectKey &k){return {k.run,k.id,k.space};}
 bool Null(const V &v){return v.IsNull()||(v.IsObject()&&v.HasMember("status")&&Is(v["status"],"Null"));}
+// 旧来源两次读取同值Sprite时，局部table节点编号不同；比较图的对应关系而非裸编号。
+// 只对typed table/graph_ref的node做双向映射，普通数值和图连接关系仍必须相等。
+bool SameSpriteValue(const V &a,const V &b){
+  std::map<std::uint64_t,std::uint64_t> forward,backward;
+  const auto compare=[&](auto &&self,const V &x,const V &y)->bool {
+    if(x.IsArray()&&y.IsArray()){if(x.Size()!=y.Size())return false;for(unsigned i=0;i<x.Size();++i)if(!self(self,x[i],y[i]))return false;return true;}
+    if(!x.IsObject()||!y.IsObject())return x==y;
+    if(x.MemberCount()!=y.MemberCount())return false;
+    const bool graph=x.HasMember("type")&&(Is(x["type"],"table")||Is(x["type"],"graph_ref"));
+    for(auto i=x.MemberBegin();i!=x.MemberEnd();++i){if(!y.HasMember(i->name))return false;const auto &v=y[i->name];
+      if(graph&&Is(i->name,"node")){const auto left=replica::Unsigned(i->value),right=replica::Unsigned(v);
+        auto f=forward.emplace(left,right),r=backward.emplace(right,left);if(f.first->second!=right||r.first->second!=left)return false;
+      }else if(!self(self,i->value,v))return false;
+    }return true;
+  };return compare(compare,a,b);
+}
 // 每个类别只接收真实公开派生字段；无新增字段的类别仍核对全部 cast 和原生资源。
 void Field(ClientGridDescription &d,const V &v,unsigned cast,const char *name,ClientGridValueKind kind){
   const std::string id=std::string("GridEntity")+casts[cast]+"."+name;const auto &value=At(v,id.c_str());
@@ -94,20 +110,23 @@ ClientGridDescription Parse(const replica::RoomGridTarget &target,const replica:
       case 5:boolean("HasLadder");break;
       case 6:
         integer("ReviveTimer");boolean("UnderPlayer");text("StateAnimation");
-        // Repentance 已移除此字段；Unavailable 保持其版本事实，不创建虚构 setter。
+        // Wiki明确Repentance已移除此字段；旧来源实际Getter为nil，保留Null/Unavailable版本事实。
         if(body.HasMember("GridEntityPoop.ReducedSpawnRate")){const auto &old=body["GridEntityPoop.ReducedSpawnRate"];
-          if(old.IsBool())boolean("ReducedSpawnRate");else if(!old.IsObject()||!old.HasMember("status")||!Is(old["status"],"Unavailable"))throw std::runtime_error("grid_removed_field_status");}break;
+          if(!old.IsObject()||!old.HasMember("status")||(!Is(old["status"],"Unavailable")&&!Is(old["status"],"Null")))throw std::runtime_error("grid_removed_field_status");}break;
       case 7:text("NextGreedAnimation");Sprite(d,At(body,"GridEntityPressurePlate.TimerPlate"),2,true);break;
       case 8:text("Anim");text("RubbleAnim");integer("FrameCnt");d.big_rock_frame=Integer(At(body,"GridEntityRock.GetBigRockFrame"));
-        if(At(body,"GridEntityRock.GetSprite")!=At(common,"GridEntity.GetSprite"))throw std::runtime_error("grid_rock_sprite_alias_conflict");
+        {const auto &alias=At(body,"GridEntityRock.GetSprite");
+          const bool canonical=alias.IsObject()&&alias.MemberCount()==2&&alias.HasMember("type")&&Is(alias["type"],"resource_alias")&&alias.HasMember("member")&&Is(alias["member"],"GridEntity.GetSprite");
+          if(!canonical&&!SameSpriteValue(alias,At(common,"GridEntity.GetSprite")))throw std::runtime_error("grid_rock_sprite_alias_conflict");}
         if(d.big_rock_frame<-1||d.big_rock_frame>7||(d.big_rock_frame>=0&&d.variant!=1000+d.big_rock_frame))throw std::runtime_error("grid_big_rock_variant_conflict");break;
       case 9:integer("Timeout");break;
       case 13:integer("FrameCnt");break;
       default:break;
     }
   }
-  // 官方原版 pressureplate 资源静态目录；非法名字在工厂/字段任何原生写入前拒绝。
-  for(const auto &field:d.fields)if(field.cast==7&&field.name=="NextGreedAnimation"&&!field.null_text){
+  // 普通非Greed板的真实后态为非空指针的空字符串；它与nil均不选择下一动画。
+  // 有名字时才按官方资源目录核验，不能把合法空字符串误拒绝或改写成nil。
+  for(const auto &field:d.fields)if(field.cast==7&&field.name=="NextGreedAnimation"&&!field.null_text&&!field.text.empty()){
     static const std::set<std::string> animations={"Off","On","Switched","SwitchedRed","SwitchedSkull","OffRed","OffSkull","OnSkull","SwitchedPentagram","OffPentagram","OnPentagram","OffRedStart","OffRedEnd"};
     if(!animations.count(field.text))throw std::runtime_error("grid_pressureplate_animation_unknown");}
   return d;
@@ -120,6 +139,9 @@ bool ClientGrids::PrepareTarget(const replica::RoomGridPlan &plan,const char *&r
     if(failed_||(target_&&(cursor_||written_))||!plan.target)throw std::runtime_error("grid_plan_inflight_or_failed");
     if(plan.applied!=committed_&&!(retired_&&!plan.applied))throw std::runtime_error("grid_applied_owner_mismatch");
     if(plan.room==replica::RoomPlanKind::Rebuild&&committed_)throw std::runtime_error("grid_room_rebuild_requires_retirement");
+    // v3/v4仍可纯值解析，但其Door/TimerPlate值副本丢失owner偏移/flags，不能冒认原生成员姿态。
+    if(Integer(At(At(plan.target->source["components"]["grid"]["state"],"application_source"),"version"))<5)
+      throw std::runtime_error("grid_actual_member_pose_source_required");
     std::map<replica::SubjectKey,ClientGridDescription> values;
     for(const auto &g:plan.target->grids)values.emplace(g.key,Parse(*plan.target,g));
     // 缺失依赖写前具名失败；先登记全体Key再解析，Grid环不会触发构造顺序等待。
@@ -145,8 +167,10 @@ bool ClientGrids::PrepareTarget(const replica::RoomGridPlan &plan,const char *&r
       if(op==ClientGridOperation::Remove){value.key=Key(step.key);value.room=Key(plan.target->room.key);}
       else value=values.at(step.key);commands.push_back({op,std::move(value)});
     }
-    // 每个实际主体最终核对一次；重复目标不走构造/Init，不重置官方副表。
-    for(const auto &[key,value]:values)commands.push_back({ClientGridOperation::Check,value});
+    // 最终检查由Scene提交前按一格/步执行，不在安装和提交两次重复解析/全图检查。
+    std::vector<ClientGridCommand> checks;
+    checks.reserve(values.size());
+    for(auto &[key,value]:values)checks.push_back({ClientGridOperation::Check,std::move(value)});
     std::array<ClientGridDoorBinding,8> doors{};
     for(unsigned i=0;i<8;++i){const auto &s=plan.target->room.doors[i];auto &d=doors[i];
       d.slot=int(i);d.candidate=s.shape_target;d.target=s.actual_target;d.shape_allowed=s.shape_allowed;d.enabled=s.descriptor_enabled;
@@ -161,12 +185,12 @@ bool ClientGrids::PrepareTarget(const replica::RoomGridPlan &plan,const char *&r
         if(!resolved||d.descriptor_null)throw std::runtime_error("grid_door_target_descriptor_missing");
       }
     }
-    commands_=std::move(commands);doors_=doors;target_=plan.target;cursor_=0;written_=doors_bound_=native_started_=false;retired_=false;
+    commands_=std::move(commands);planned_checks_=std::move(checks);doors_=doors;target_=plan.target;cursor_=0;written_=doors_bound_=native_started_=false;retired_=false;
     reason_="grid_target_ready";reason=reason_.c_str();return true;
   }catch(const std::exception &e){reason_=e.what();}catch(...){reason_="grid_plan_allocation";}
   reason=reason_.c_str();return false;
 }
-bool ClientGrids::CancelPlanned() noexcept {if(cursor_||written_||failed_)return false;target_.reset();commands_.clear();return true;}
+bool ClientGrids::CancelPlanned() noexcept {if(cursor_||written_||failed_)return false;target_.reset();commands_.clear();planned_checks_.clear();return true;}
 ClientGridStep ClientGrids::Step(const ClientNativeRoots &roots,unsigned budget) noexcept {
   if(failed_||!target_)return {false,written_,true,0,0,"grid_target_not_ready"};
   if(!budget||budget>16)return {false,written_,true,0,0,"grid_step_budget"};
@@ -178,12 +202,12 @@ ClientGridStep ClientGrids::Step(const ClientNativeRoots &roots,unsigned budget)
   if(cursor_<commands_.size()){result.done=false;return result;}
   if(!doors_bound_){result=ClientNativeGridsBindDoors(native_,roots,doors_);written_|=result.written;result.written=written_;
     if(result.failed){failed_=true;return result;}doors_bound_=result.done;if(!doors_bound_)return result;}
-  committed_=target_;target_.reset();commands_.clear();cursor_=0;written_=false;
+  committed_=target_;target_.reset();commands_.clear();checks_=std::move(planned_checks_);check_cursor_=0;cursor_=0;written_=false;
   result.done=true;result.reason="grid_domain_installed_scene_commit_pending";return result;
 }
 ClientGridStep ClientGrids::Retire(const ClientNativeRoots &roots) noexcept {
   auto result=native_?ClientNativeGridsRetire(native_,roots):ClientGridStep{true,false,false,0,0,"grid_owner_empty"};
-  if(result.done&&!result.failed){target_.reset();committed_.reset();commands_.clear();cursor_=0;written_=failed_=doors_bound_=native_started_=false;retired_=true;}
+  if(result.done&&!result.failed){target_.reset();committed_.reset();commands_.clear();checks_.clear();planned_checks_.clear();check_cursor_=0;cursor_=0;written_=failed_=doors_bound_=native_started_=false;retired_=true;}
   return result;
 }
 bool ClientGrids::Visit(void *context,ClientGridVisitor visitor) const noexcept {return !failed_&&!target_&&committed_&&ClientNativeGridsVisit(native_,context,visitor);}
@@ -213,12 +237,16 @@ bool ClientGrids::VisitLifted(void *context,LiftedVisitor visitor) const noexcep
   if(!visitor||failed_||target_||!committed_)return false;
   for(const auto &value:committed_->lifted)if(!visitor(context,value))return false;return true;
 }
-// 场景最终检查重复核对公共字段/资源/成员，不重复构造，也不更新动画。
+// 每轮只检查一个主体；无全图解析/资源重载，返回done前Scene不得提交。
 ClientGridStep ClientGrids::Check(const ClientNativeRoots &roots) noexcept {
   if(failed_||target_||!committed_)return {false,false,true,0,0,"grid_commit_owner_not_ready"};
   try{
-    for(const auto &g:committed_->grids){auto result=ClientNativeGridsExecute(native_,roots,{ClientGridOperation::Check,Parse(*committed_,g)});
-      if(result.failed){failed_=true;return result;}}
+    if(check_cursor_<checks_.size()){
+      auto result=ClientNativeGridsExecute(native_,roots,checks_[check_cursor_]);
+      if(result.failed){failed_=true;return result;}
+      if(result.done)++check_cursor_;
+      result.done=false;return result;
+    }
     return ClientNativeGridsBindDoors(native_,roots,doors_);
   }catch(...){failed_=true;return {false,false,true,0,0,"grid_commit_check_allocation"};}
 }

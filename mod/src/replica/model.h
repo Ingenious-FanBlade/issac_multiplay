@@ -15,7 +15,8 @@ using Value=rapidjson::Value;
 using Allocator=rapidjson::Document::AllocatorType;
 // 协议边界预算；协商只能收紧，不允许来自报文的长度扩大分配上限。
 struct Limits final {
-  std::uint32_t bytes=32u<<20, nodes=1048576, depth=64, string_bytes=2u<<20;
+  // 用户要求压缩优化前先放宽至64M节点；字节/深度约束独立，不按报文扩大。
+  std::uint32_t bytes=32u<<20, nodes=world::observation::kNodeBudget, depth=64, string_bytes=2u<<20;
   std::uint32_t datagram=1200, candidates=2, fragments=32768, timeout_ms=5000;
 };
 enum class Kind : std::uint8_t { Hello=1, Welcome, Baseline, Delta, Event, Control, InputAck, AppliedAck, Error, ReceiveAck, Component, Input };
