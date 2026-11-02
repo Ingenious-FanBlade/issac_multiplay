@@ -12,6 +12,15 @@ local function snapshot(g,c)
   if id.resolution=="Retired" then out.status="NotApplicable"; return out end
   if id.local_id=="0" then read.Fail(c,"grid_subject_budget"); return out end
   out.common=read.Collect(g,"GridEntity",c,0)
+  -- 非公开构造后态只属于完整普通窗口，不把 pre-init/独立回调的字段资格外推为它。
+  if c.application then
+    out.application_runtime=native().GridApplication(g)
+    if not out.application_runtime then read.Fail(c,"grid_application_runtime_unavailable") end
+    if out.type==13 then
+      out.application_sprites={}
+      for i,sprite in ipairs(native().GridApplicationSprites(g)) do out.application_sprites[i]=read.Value(sprite,"Sprite",c,0) end
+    end
+  end
   for _,name in ipairs(casts) do
     local ok,derived=read.Protected(g,"To"..name)
     if not ok then out.casts[name]={status="Unavailable"}; read.Fail(c,"grid_cast:"..name)
@@ -25,9 +34,9 @@ local function snapshot(g,c)
   return out
 end
 function M.Capture(limits)
-  local budget=read.Limits(limits); local c=context()
+  local budget=read.Limits(limits); local c=context(); c.application=true
   local sources,unavailable=native().GridSources()
-  local out={application_source={version=1,target="REPENTOGON-1.1.3/J273",required_contracts={"grid-membership-v2","resource-pose-v1"},resources="canonical-resource-pose;nullable-TimerPlate",relations="memberships-and-public-references;private-bridge-parent-unavailable"},objects={},lifted_descriptors={},membership={source="native:grid+door",entries={},unavailable=unavailable,complete=unavailable==0}}
+  local out={application_source={version=2,target="REPENTOGON-1.1.3/J273",required_contracts={"grid-membership-v2","resource-pose-v1","grid-runtime-v1"},resources="canonical-resource-pose;nullable-TimerPlate",relations="memberships-and-public-references;bridge-final-state-without-stored-parent-pointer"},objects={},lifted_descriptors={},membership={source="native:grid+door",entries={},unavailable=unavailable,complete=unavailable==0}}
   if unavailable>0 then read.Fail(c,"grid_native_source_unavailable") end
   -- 一次窗口先登记所有主体；各槽保留别名，同一主体只读一次。
   for _,entry in ipairs(sources) do native().GridSubject(entry.grid) end

@@ -5,6 +5,8 @@
 #include "game/world_sources/random_sources.h"
 #include "game/client_presentation_native.h"
 #include "game/client_room_native.h"
+#include "game/client_grid_native.h"
+#include "game/client_map_native.h"
 #include "runtime.h"
 #include <cstring>
 #include <cmath>
@@ -47,6 +49,10 @@ int RegisterSubject(lua_State *L) { return Subject(L,true); }
 int Reference(lua_State *L) { return Subject(L,false); }
 int GridSubject(lua_State *L) { return Subject(L,true,true); }
 int GridReference(lua_State *L) { return Subject(L,false,true); }
+int GridApplication(lua_State *L) {return ClientGridCaptureLua(L);}
+int GridApplicationSprites(lua_State *L) {return ClientGridSpritesLua(L);}
+int MinimapDescriptor(lua_State *L) {return ClientMapDescriptorCaptureLua(L);}
+int MapApplication(lua_State *L) {return ClientMapStateCaptureLua(L);}
 // 官方 Lua 包装每次 new Vector 未回收；此处使用已声明 SDK Getter 的栈缓冲。
 int GridRenderPosition(lua_State *L) {
   auto *grid=lua::GetLuabridgeUserdata<GridEntity *>(L,1,lua::Metatables::GRID_ENTITY,"GridEntity");
@@ -152,6 +158,7 @@ int SpriteRuntimePose(lua_State *L) {
   };
   if(!valid(sprite->_animState)||!valid(sprite->_overlayAnimState))return luaL_error(L,"sprite_pose_layout");
   lua_newtable(L);lua_pushinteger(L,1);lua_setfield(L,-2,"version");
+  lua_pushboolean(L,sprite->_loaded);lua_setfield(L,-2,"loaded");
   lua_pushboolean(L,sprite->_overlayRenderFirst);lua_setfield(L,-2,"overlay_first");
   const auto copy=[L](const AnimationState &s,const char *key) {
     lua_newtable(L);lua_pushnumber(L,s._animData?s._animFrame:0);lua_setfield(L,-2,"phase");
@@ -253,6 +260,10 @@ void EnsureObservationLuaBridge() noexcept {
   lua_pushcfunction(L,RoomPresentation);lua_setfield(L,-2,"RoomPresentation");
   lua_pushcfunction(L,RoomConfigContents);lua_setfield(L,-2,"RoomConfigContents");
   lua_pushcfunction(L,RoomApplication);lua_setfield(L,-2,"RoomApplication");
+  lua_pushcfunction(L,GridApplication);lua_setfield(L,-2,"GridApplication");
+  lua_pushcfunction(L,GridApplicationSprites);lua_setfield(L,-2,"GridApplicationSprites");
+  lua_pushcfunction(L,MinimapDescriptor);lua_setfield(L,-2,"MinimapDescriptor");
+  lua_pushcfunction(L,MapApplication);lua_setfield(L,-2,"MapApplication");
   lua_pushcfunction(L,RoomBackdropSprites);lua_setfield(L,-2,"RoomBackdropSprites");
   lua_pushcfunction(L,RoomVeinSprites);lua_setfield(L,-2,"RoomVeinSprites");
   lua_pushcfunction(L,DescriptorPlacement);lua_setfield(L,-2,"DescriptorPlacement");

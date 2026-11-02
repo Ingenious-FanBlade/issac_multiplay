@@ -93,8 +93,9 @@ bool ClientParseResourcePose(const replica::Value &v,ClientResourcePose &out,std
   try {
     if(String(At(v,"type"))!="resource_pose")throw std::runtime_error("resource_pose_type");
     ClientResourcePose p;const auto &f=Fields(v);
-    p.path=String(At(f,"Sprite.GetFilename"));if(!Path(p.path))throw std::runtime_error("resource_path");
-    p.animation=String(At(f,"Sprite.GetAnimation"));p.frame=Integer(At(f,"Sprite.GetFrame"));
+    if(v.HasMember("pose_runtime")&&v["pose_runtime"].IsObject()&&v["pose_runtime"].HasMember("loaded"))p.loaded=Boolean(v["pose_runtime"]["loaded"]);
+    p.path=String(At(f,"Sprite.GetFilename"));if(p.loaded?!Path(p.path):!p.path.empty())throw std::runtime_error("resource_path_or_unloaded_nonempty");
+    p.animation=String(At(f,"Sprite.GetAnimation"));p.frame=Integer(At(f,"Sprite.GetFrame"),-1);
     p.overlay_animation=String(At(f,"Sprite.GetOverlayAnimation"));p.overlay_present=!p.overlay_animation.empty();
     if(p.overlay_present)p.overlay_frame=Integer(At(f,"Sprite.GetOverlayFrame"));
     p.offset=Vector(At(f,"Sprite.Offset"));p.scale=Vector(At(f,"Sprite.Scale"));p.color=Color(At(f,"Sprite.Color"));
@@ -103,7 +104,7 @@ bool ClientParseResourcePose(const replica::Value &v,ClientResourcePose &out,std
     p.flags=unsigned(Integer(At(f,"Sprite.GetRenderFlags"),0,0x7fffffff));
     ShaderAbsent(f,"Sprite.HasCustomShader");ShaderAbsent(f,"Sprite.HasCustomChampionShader");
     const auto layer_values=Sequence(At(f,"Sprite.GetAllLayers"));
-    if(layer_values.empty()||layer_values.size()>64)throw std::runtime_error("resource_layer_budget");
+    if((p.loaded&&layer_values.empty())||layer_values.size()>64||(!p.loaded&&!layer_values.empty()))throw std::runtime_error("resource_layer_budget");
     for(const auto *layer:layer_values)p.layers.push_back(Layer(*layer));
     std::sort(p.layers.begin(),p.layers.end(),[](const auto &a,const auto &b){return a.id<b.id;});
     for(unsigned i=0;i<p.layers.size();++i)if(p.layers[i].id!=i)throw std::runtime_error("resource_layer_identity");
@@ -112,9 +113,11 @@ bool ClientParseResourcePose(const replica::Value &v,ClientResourcePose &out,std
       p.overlay_first=Boolean(At(runtime,"overlay_first"));
       const auto &main=At(runtime,"main");p.main_phase=float(Number(At(main,"phase")));
       Selectors(At(main,"layers"),p.main_selectors);Selectors(At(main,"nulls"),p.main_null_selectors);
+      if(p.animation.empty()&&(p.main_phase!=0||!p.main_selectors.empty()||!p.main_null_selectors.empty()))throw std::runtime_error("resource_absent_main_phase_conflict");
       if(p.overlay_present){const auto &overlay=At(runtime,"overlay");p.overlay_phase=float(Number(At(overlay,"phase")));Selectors(At(overlay,"layers"),p.overlay_selectors);Selectors(At(overlay,"nulls"),p.overlay_null_selectors);}
       p.exact_phase=true;
     }else throw std::runtime_error("resource_exact_phase_unavailable");
+    if(!p.loaded&&(!p.animation.empty()||p.overlay_present||p.main_phase!=0||!p.main_selectors.empty()||!p.main_null_selectors.empty()))throw std::runtime_error("resource_unloaded_animation_conflict");
     out=std::move(p);reason.clear();return true;
   }catch(const std::exception &e){reason=e.what();return false;}catch(...){reason="resource_parse_allocation";return false;}
 }

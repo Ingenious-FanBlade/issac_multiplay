@@ -1,6 +1,6 @@
 # tx-04-18：全部Grid逐类实现任务
 
-日期：2026-11-02。状态：**计划，G01—G27均待实现／统一验收。** 本文是[实现计划I17](tx-04-18-implementation-plan.md#i17-grid)的组成部分；编号对应 `GridEntityType` 数值，不另建tx，不分项提前测试。
+日期：2026-11-02。状态：**G01—G27构造/字段/资源输入adapter已实现，缓存/draw/整场景集成继续I19—I25，统一实机验收待I29。** 具体源码与静态主审见[Grid owner](tx-04-18-grid-owner.md)，逐类原生差异见[研究笔记](tx-04-18-grid-native-research.md)。 本文是[实现计划I17](tx-04-18-implementation-plan.md#i17-grid)的组成部分；编号对应 `GridEntityType` 数值，不另建tx，不分项提前测试。
 
 类型以本地[原版枚举](F:/projects_isaac/IsaacDocs/docs/enums/GridEntityType.md)及11实际来源为依据；公开字段见[Grid逐成员目录](../observation-expansion/grid-catalog.md)。原版Wiki的自然用途说明、11实际受控工厂结果和18将来应用结果分别记录。本文没有把未研究的派生Init／Render分支认定为无副作用。
 

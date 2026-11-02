@@ -1,4 +1,5 @@
-> **tx-04-18 I01—I12（2026-11-02）**：[基础实现](design/tx-04-18/tx-04-18-foundation.md)与[Room应用及静态主审](design/tx-04-18/tx-04-18-room-application.md)已落实领域模型/计划、descriptor、双配置寿命、12形几何、房间进度、背景、持续环境和轨道/L结构。必要逆向由GPT-6 Luna／max完成并由主智能体复读关键伪码/指令，版本和纯构建结果见实现说明。[完整计划](design/tx-04-18/tx-04-18-implementation-plan.md)的I13—I30、[G01—G27](design/tx-04-18/tx-04-18-grid-application.md)及统一实机验收仍待完成；未启动游戏或运行分项测试。
+> **tx-04-18 I01—I18（2026-11-02）**：[基础实现](design/tx-04-18/tx-04-18-foundation.md)、[Room应用](design/tx-04-18/tx-04-18-room-application.md)及[Grid/地图owner](design/tx-04-18/tx-04-18-grid-owner.md)已接入领域adapter。I13—I18覆盖真实地图/Camera、Grid单owner、27类构造/字段/资源及Door别名；GPT-6 Luna/max逆向已由主智能体复读。I19—I25仍负责跨域引用、缓存、分层draw及整场景提交，I29统一实机未执行；本轮不运行游戏或分项测试。
+
 
 > **tx-04-14 已完成（2026-10-31）**：[整局、随机选择、HUD/独立表现、Mod及真实StageAPI实现与统一验收](design/observation-expansion/tx-04-14-implementation.md)。6/6 PASS、21/21场景、84个指定四域scope；[记录/适配合同](design/observation-expansion/run-mod-schema.md)。下方早期计划状态保留原时点。
 

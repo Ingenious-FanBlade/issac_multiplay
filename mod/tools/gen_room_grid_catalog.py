@@ -16,6 +16,14 @@ ROOM_NATIVE = {
     "I10": "mod/src/game/client_native_world.cpp:FinalizeImpl;mod/src/game/client_presentation_native.cpp:DrawImpl",
     "I11": "mod/src/game/client_presentation.cpp:PrepareTarget;mod/src/game/client_presentation_native.cpp:LuaCaptureAux/BuildAuxCandidate/DrawImpl/ColorComposite",
     "I12": "mod/src/game/client_room_native.cpp:ClientRoomStateCaptureLua/ClientRoomRailsDraw;mod/src/replica/room_geometry.h",
+    "I13": "mod/src/game/client_map_native.cpp;mod/src/game/client_scene.cpp:MapState;mod/src/game/client_presentation_native.cpp:PrepareImpl",
+}
+GRID_NATIVE = {
+    "I14": "mod/src/game/client_grids.cpp:PrepareTarget/Step/Retire;mod/src/game/client_grid_native.cpp:Entry",
+    "I15": "mod/src/game/client_grid_native.cpp:Execute/Remove/ClientGridWaterClip;mod/binding/hooks.json",
+    "I16": "mod/src/game/client_grids.cpp:Parse;mod/src/game/client_grid_native.cpp:Common/FieldsThunk",
+    "I17": "mod/src/game/client_grids.cpp:Parse;mod/src/game/client_grid_native.cpp:Runtime/Resources",
+    "I18": "mod/src/replica/room_grid_target.cpp;mod/src/game/client_grid_native.cpp:ClientNativeGridsBindDoors/Unpublish",
 }
 # 这些事实仍完整保留在已提交T中；不能把未来Entity/整局裁决派生查询谎称为当前Room私有字段。
 ROOM_FACT_CONSUMERS = {
@@ -114,7 +122,7 @@ def generate():
             operation = ownership in ("AuthorityOnly", "ClientLocal")
             if category == "cast": ownership, operation, reason = "DerivedWitness", False, "派生接口结果是类型见证，不分配身份，不在Client重放cast调用"
             handling = "不作为Client远程调用；最终结果由状态项安装" if operation else "参数与结果一起保留；仅已理解的纯展示派生可本地重算" if category in ("parameter_query", "derived_query") else "保留具名纯值/状态/关系，按具体adapter安装"
-            implemented = task in ("I03", "I06") or task in ROOM_NATIVE or operation
+            implemented = task in ("I03", "I06") or task in ROOM_NATIVE or task in GRID_NATIVE or operation
             consumer = ROOM_FACT_CONSUMERS.get(m["id"], "tx-04-27 stage UI/audio" if m["owner"] == "RoomConfigStage" else "")
             rows.append({"source_catalog": name, "source_ordinal": ordinal, "id": m["id"], "member": m["member"],
                          "category": category, "parameters": m.get("parameters"), "returns": m.get("returns"),
@@ -125,8 +133,8 @@ def generate():
                          "source_path": f"components/{'{room|grid}' if name == 'entity-catalog.json' else domain}/state/**/fields/{m['id']}",
                          "dependencies": ["same Scope/component capture", "complete membership before deletion", "I05 plan;I23 retirement"],
                          "missing": "保留Null/Empty/Unknown/Unavailable/Partial/Truncated；required缺失则字段级拒绝，不补零",
-                         "implementation": NATIVE if task == "I06" else ROOM_NATIVE[task] if task in ROOM_NATIVE and not operation else PARSER if implemented else f"{PARSER}（保留来源）；{task}原生adapter待实现",
-                         "status": "retained_fact;consumer="+consumer if consumer and not operation else "implemented_room_adapter;runtime_pending_I29" if task in ROOM_NATIVE and not operation else "implemented_foundation;runtime_pending_I29" if implemented else "native_pending_"+task,
+                         "implementation": NATIVE if task == "I06" else ROOM_NATIVE[task] if task in ROOM_NATIVE and not operation else GRID_NATIVE[task] if task in GRID_NATIVE and not operation else PARSER if implemented else f"{PARSER}（保留来源）；{task}原生adapter待实现",
+                         "status": "retained_fact;consumer="+consumer if consumer and not operation else "implemented_grid_adapter;integration_pending_I19_I25;runtime_pending_I29" if task in GRID_NATIVE and not operation else "implemented_room_adapter;runtime_pending_I29" if task in ROOM_NATIVE and not operation else "implemented_foundation;runtime_pending_I29" if implemented else "native_pending_"+task,
                          "consumer": consumer,
                          "e2e": e2e})
         if name != "entity-catalog.json":
@@ -143,7 +151,9 @@ def generate():
         ("grid.membership/objects.memberships", "I14", "一份主体，多格子/门别名；完整集合才规划删除"),
         ("grid.lifted_descriptors", "I19", "Effect136所有，不推断来源Grid身份"),
         ("GridEntityPressurePlate.TimerPlate.Null", "I21", "合法Null沿用read.Value；不可把nil当空路径Sprite"),
-        ("private_grid_bridge_parent/neighbors", "I19/I20", "公开来源没有父桥指针；当前不调用MakeBridge/邻居维护，采用时补具体来源或明确纯展示推导"),
+        ("private_grid_bridge_parent/neighbors", "I19/I20", "J273 MakeBridge不保留parent指针；最终State/HasLadder是状态输入，邻居/路径维护仍归I20"),
+        ("grid.application_runtime/application_sprites", "I15/I17", "spawnFrame、Door动画模式、Rock碎屑/Fire三Sprite与有界Ember，正式只读来源；不调用Init/PostInit"),
+        ("room.map_application/descriptor.map_icons", "I13", "Camera数值、地图config、DisplayFlags与保存记录图标投影；不替代24完整保存/探索"),
         ("resource_pose/pose_runtime", "I21", "17正式资源姿态与内容版本；不创建第二套Grid身份"),
         ("room.config.application_config", "I07", "独立可空完整配置及MergedData树；只读复用或自有深副本，不执行候选"),
         ("room.application_runtime", "I08/I09/I12", "真实数组尺寸/边界/12形矩形、进度、448字节轨道；不经截断Lua Getter"),
@@ -154,7 +164,7 @@ def generate():
             "interfaces": grid.get("classes", []),
             "associated": [{**row, "application_task": "I19", "missing": "未解析Entity owner则拒绝依赖；不推断source Grid", "e2e": "E11"} for row in grid.get("associated", [])],
             "structural": [{"id": key, "application_task": task, "handling": text, "implementation": PARSER+";"+PLAN, "missing": "required缺失写前拒绝", "e2e": "E01/E03/E11/E13"} for key, task, text in structures],
-            "native_scope": "I01—I12已实现；I13—I30及G01—G27仍按完整计划实现和统一验收；特殊Entity/HUD/地图依赖见room-application说明"}
+            "native_scope": "I01—I18领域adapter已实现；I19—I30的引用/缓存/绘制/场景集成及统一验收仍待完成；G01—G27状态/构造输入不表示I21绘制或I29实机通过"}
 
 
 def main():

@@ -19,7 +19,7 @@ function M.Capture(limits)
     if id.local_id=="0" then read.Fail(c,"descriptor_identity_budget") end
     if not dims[id.dimension_index] then read.Fail(c,"unknown_dimension"); out.membership.complete=false
     else dims[id.dimension_index].descriptors[#dims[id.dimension_index].descriptors+1]=id end
-    out.descriptors[#out.descriptors+1]={subject=id,list_position=i,placement=placement(d,c),state=read.Collect(d,"RoomDescriptor",c,0)}
+    out.descriptors[#out.descriptors+1]={subject=id,list_position=i,placement=placement(d,c),state=model.ReadDescriptor(d,c)}
     if d.Data and d.GridIndex>=0 then
       local neighbors=d:GetNeighboringRooms()
       for slot=0,7 do
@@ -35,7 +35,7 @@ function M.Capture(limits)
     local entry={slot=slot,status=d and (d.Data or d.OverrideData) and "Initialized" or "Uninitialized"}
     if d and (d.Data or d.OverrideData) then
       local id=model.Reference(d,slot); c.owner=id; c.objects=c.objects+1
-      entry.subject=id; entry.state=read.Collect(d,"RoomDescriptor",c,0); entry.placement=placement(d,c)
+      entry.subject=id; entry.state=model.ReadDescriptor(d,c); entry.placement=placement(d,c)
       if id.local_id=="0" then read.Fail(c,"off_grid_identity_unavailable"); out.off_grid.complete=false end
     end
     out.off_grid.entries[#out.off_grid.entries+1]=entry
@@ -43,7 +43,7 @@ function M.Capture(limits)
   for i=0,2 do local dim=dims[i]; dim.subject={space=5,local_id=IsaacCSObservationNative.Dimension(i),presence=#dim.descriptors>0 and "Known" or "NotApplicable"}; dim.membership_complete=out.membership.complete; dim.status=#dim.descriptors>0 and "Present" or "EmptyInEnumeratedDescriptorList"; out.dimensions[#out.dimensions+1]=dim end
   -- 当前调试特殊房可能不在GetRooms常规列表，单列真实descriptor而不遗漏或伪造列表成员。
   local current=level:GetCurrentRoomDesc(); out.current=model.Reference(current,level:GetCurrentRoomIndex()); c.owner=out.current
-  out.current_descriptor=read.Collect(current,"RoomDescriptor",c,0)
+  out.current_descriptor=model.ReadDescriptor(current,c)
   out.previous=model.Reference(level:GetLastRoomDesc(),level:GetPreviousRoomIndex())
   return read.Finish(out,c)
 end

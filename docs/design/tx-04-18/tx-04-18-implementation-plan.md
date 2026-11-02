@@ -1,6 +1,6 @@
 # tx-04-18：Room／全部 Grid 客户端应用实现计划
 
-日期：2026-11-02，Asia/Singapore。状态：**I01—I12已实现并完成静态主审；I13—I30及G01—G27待实现，统一实机验收未执行。** I01—I06的纯构建已成功；本轮I07—I12纯构建结果见[Room应用说明](tx-04-18-room-application.md)。初稿只编写计划，用户随后分批启动实现；基础代码、来源与先前主审纠错见[基础实现说明](tx-04-18-foundation.md)，逐成员应用映射见[功能目录](room-grid-application.json)。
+日期：2026-11-02，Asia/Singapore。状态：**I01—I18领域adapter已实现并完成静态主审；I19—I30待实现，统一实机验收未执行。** I13—I18及G01—G27的构造/字段/资源输入见[Grid与地图owner说明](tx-04-18-grid-owner.md)，G项共享的引用/缓存/draw/整场景提交仍在I19—I25闭合，类别实机结果归I29。 I01—I06的纯构建已成功；本轮I07—I12纯构建结果见[Room应用说明](tx-04-18-room-application.md)。初稿只编写计划，用户随后分批启动实现；基础代码、来源与先前主审纠错见[基础实现说明](tx-04-18-foundation.md)，逐成员应用映射见[功能目录](room-grid-application.json)。
 
 本次目标是把正式复制模型中的活动房间构成、环境、门和全部原版 Grid 类别，应用到真实 Client 的原生世界，支持创建、改变、替换、移除及失败后的安全退休。本文逐项列出实现内容、注意事项和完成判据；[全部 Grid 逐类任务](tx-04-18-grid-application.md)是本计划的组成部分，不能只完成公共接口就结束本 tx。
 
@@ -74,7 +74,7 @@ REPENTOGON [RoomDescriptor](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDes
 
 ## 3. 完整任务索引
 
-下列I01—I12已落实实现，I13—I30仍待实现。I07—I12的正式来源、原生adapter、Luna研究/主审和跨域依赖见[Room应用说明](tx-04-18-room-application.md)。各项完成判据是功能交付描述；当前尚未获得本tx实机结果，不在分项结束时提前运行测试，统一验收仍在I29。
+下列I01—I18领域adapter已落实实现，I19—I30仍待实现。I13—I18结果与后续集成边界见[Grid与地图owner说明](tx-04-18-grid-owner.md)。I07—I12的正式来源、原生adapter、Luna研究/主审和跨域依赖见[Room应用说明](tx-04-18-room-application.md)。各项完成判据是功能交付描述；当前尚未获得本tx实机结果，不在分项结束时提前运行测试，统一验收仍在I29。
 
 | 编号 | 任务 | 主要依赖 |
 | --- | --- | --- |

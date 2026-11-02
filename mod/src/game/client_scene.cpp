@@ -107,6 +107,36 @@ bool RoomState(const replica::Value *room,const replica::RoomGridTarget &target,
     if(!sprite||!ClientParseResourcePose(*sprite,out.rail_sprite,error)||(out.rail_sprite.animation!="rail"&&out.rail_sprite.animation!="pitrail")){reason="native_room_rail_resource";return false;}}
   return true;
 }
+// 地图投影与完整探索/离房恢复分开；每项都来自正式采集，不能使用本地菜单保存记录。
+bool MapState(const replica::Value *room,const replica::RoomGridTarget &target,ClientMapTarget &out,const char *&reason){
+  reason="native_map_camera_source";const auto *state=Member(room,"map_application");int version=0;
+  if(!Int(Member(state,"version"),version)||version!=1)return false;
+  const auto vector=[](const replica::Value *v,ClientPoseVector &value){return Float(Member(v,"x"),value.x)&&Float(Member(v,"y"),value.y);};
+  const auto boolean=[](const replica::Value *v,bool &value){if(!v||!v->IsBool())return false;value=v->GetBool();return true;};
+  const auto *camera=Member(state,"camera"),*vectors=Member(camera,"vectors");auto &c=out.state.camera;
+  if(!vectors||!vectors->IsArray()||vectors->Size()!=5)return false;
+  for(unsigned i=0;i<5;++i)if(!vector(&(*vectors)[i],c.vectors[i]))return false;
+  if(!boolean(Member(camera,"overridden"),c.overridden)||!boolean(Member(camera,"focus_present"),c.focus_present)||!vector(Member(camera,"focus_tail"),c.focus_tail)||!Float(Member(camera,"smoothing"),c.smoothing))return false;
+  const auto *configs=Member(state,"configs"),*flags=Member(state,"game_flags");
+  if(!configs||!configs->IsArray()||configs->Size()!=2||!flags||!flags->IsArray()||flags->Size()!=2)return false;
+  for(unsigned i=0;i<2;++i){auto &d=out.state.configs[i];const auto *v=&(*configs)[i];
+    if(!vector(Member(v,"anchor"),d.anchor)||!vector(Member(v,"padding"),d.padding)||!vector(Member(v,"size1"),d.size1)||!vector(Member(v,"size2"),d.size2)||
+       !Float(Member(v,"offset"),d.offset)||!Float(Member(v,"border_scale"),d.border_scale)||!Float(Member(v,"alpha"),d.alpha)||
+       !Int(Member(v,"width"),d.width)||!Int(Member(v,"height"),d.height)||!Int(Member(v,"icons"),d.icons)||d.width<1||d.width>13||d.height<1||d.height>13||d.icons<0||d.icons>64||d.alpha<0||d.alpha>1||!UInt(&(*flags)[i],out.state.game_flags[i]))return false;}
+  unsigned total=0;
+  for(const auto &descriptor:target.room.descriptors){const auto *v=Member(&target.DescriptorState(descriptor),"map_icons");const auto *items=Member(v,"icons");
+    if(!Int(Member(v,"version"),version)||version!=1||!items)return false;
+    const bool empty=items->IsObject()&&!items->MemberCount();if(!empty&&!items->IsArray())return false;
+    ClientMapDescriptor d;d.storage=descriptor.location.storage_index;d.source_slot=descriptor.location.source_slot;
+    if(!empty){if(items->Size()>4096||(total+=items->Size())>65536)return false;for(const auto &item:items->GetArray()){
+      ClientMapSavedIcon icon;std::uint32_t bits=0;
+      if(!Int(Member(&item,"type"),icon.type)||icon.type<0||!Int(Member(&item,"variant"),icon.variant)||!Int(Member(&item,"subtype"),icon.subtype)||
+         !UInt(Member(&item,"storage3"),bits)||!vector(Member(&item,"position"),icon.position))return false;
+      std::memcpy(&icon.storage3,&bits,4);d.icons.push_back(icon);}}
+    out.descriptors.push_back(std::move(d));
+  }
+  return true;
+}
 // 只读取15已经表达的具名值；缺字段不以菜单、seed或本地模拟补齐。
 bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget &target,ClientNativeSceneDescription &out,const char *&reason) {
   const auto *components=Member(&model,"components");
@@ -171,6 +201,7 @@ bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget 
     v.occupied_count=unsigned(p.occupied.size());std::copy(p.occupied.begin(),p.occupied.end(),v.occupied.begin());
     v.config_stage=c.stage;v.config_mode=c.mode;v.type=c.type;v.variant=c.variant;v.subtype=c.subtype;v.shape=c.shape;v.width=c.width;v.height=c.height;
     v.data_null=d.data.is_null;v.override_null=d.override_data.is_null;v.allowed=d.allowed_doors;v.flags=d.flags;v.visited=d.visited;v.clear_count=d.clear_count;
+    v.display_flags=d.display_flags;
     v.data=d.data;v.override_data=d.override_data;
     v.doors=d.door_targets;v.spawn=d.spawn_seed;v.decoration=d.decoration_seed;v.award=d.award_seed;
     out.descriptors.push_back(v);
@@ -181,6 +212,7 @@ bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget 
   out.grid_width=target.room.layout.grid_width;out.grid_height=target.room.layout.grid_height;
   if(!Int(Member(room_fields,"Room.GetType"),out.room_type))return false;
   if(!RoomState(room,target,out.room_state,reason))return false;
+  if(!MapState(room,target,out.map,reason))return false;
   const auto *background=Member(presentation_runtime,"backdrop_config"),*paths=Member(background,"paths"),*values=Member(background,"values");
   if(!paths||!paths->IsArray()||paths->Size()!=12||!values||!values->IsArray()||values->Size()!=7){reason="native_backdrop_config_missing";return false;}
   for(unsigned i=0;i<12;++i){const auto &p=(*paths)[i];if(!p.IsString()||p.GetStringLength()>1024)return false;out.backdrop_config.paths[i].assign(p.GetString(),p.GetStringLength());
@@ -280,10 +312,11 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     }
     auto domain=replica::ParseRoomGridTarget(value);
     auto domain_plan=replica::PlanRoomGridTarget(domain,applied_valid_?room_grid_applied_:nullptr);
-    // I14—I25尚未执行Grid计划，不能以17代表profile悄悄提交非空Grid目标。
+    // I14—I18 的独立 Grid owner 已实现；I19—I25 的引用/缓存/绘制/整场景提交尚未闭合。
+    // 保持写前依赖报告，不能让已可构造的 Grid 半目标进入17尚不支持的 draw pass。
     const auto &lifted=value["components"]["grid"]["state"]["lifted_descriptors"];
     if(!domain->grids.empty()||(lifted.IsArray()&&!lifted.Empty())||(lifted.IsObject()&&lifted.MemberCount())){
-      FailureResult(ClientResultKind::UnsupportedRequirement,"admit","native_grid_adapters_pending_I14_I25");return false;
+      FailureResult(ClientResultKind::UnsupportedRequirement,"admit","native_grid_integration_pending_I19_I25");return false;
     }
     ClientNativeSceneDescription description{};const char *reason=nullptr;
     if(!SceneDescription(value,*domain,description,reason)){
@@ -306,7 +339,7 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     if(!need_rebuild&&!objects_->PrepareTarget(value,applied_valid_?applied_.get():nullptr,reason)){
       FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);return false;
     }
-    if(!need_rebuild&&!presentation_->PrepareTarget(value,reason,description.room_state)){
+    if(!need_rebuild&&!presentation_->PrepareTarget(value,reason,description.room_state,description.map)){
       // 纯值展示预检失败时撤销尚未执行的对象计划，保留当前原生A及其身份表。
       if(!objects_->CancelPlanned())Fail("unexecuted_plan_cancel_failed");
       // 新T预检失败，下一轮重新规划仍保留的旧T；不留下target_与已撤计划不一致的状态。
@@ -387,7 +420,7 @@ void ClientScene::Pump() noexcept {
       FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);Fail(reason);pumping_=false;return;
     }
     if(!presentation_){try{presentation_=std::make_unique<ClientPresentation>();}catch(...){Fail("presentation_allocation");pumping_=false;return;}}
-    if(!presentation_->PrepareTarget(*target_,reason,native_description_.room_state)){Fail(reason);pumping_=false;return;}
+    if(!presentation_->PrepareTarget(*target_,reason,native_description_.room_state,native_description_.map)){Fail(reason);pumping_=false;return;}
     objects_planned_=true;
   }
   if(!GraphicsWindowValid()){

@@ -177,6 +177,8 @@ bool PassResourcesReady(const ClientPresentationDescription &description) noexce
   const auto surface_format=[](const KAGE_SmartPointer_ImageBase &p){return p.image&&p.counter&&p.image->_predefinedShader==3&&
       p.image->_numVertexAttributes==8&&p.image->_vertexFormatStride==88;};
   if(!surface_format(Surface(0x7e7360))||!ImageShader()->_initialized)return false;
+  if(description.mirror){const auto &pair=Surface(0x7e7340);auto *image=pair.image;
+    if(!image||!pair.counter||image->_vertexFormatStride!=(description.mirror_shader?48:88)||image->GetWidth()<=0||image->GetHeight()<=0)return false;}
   if(description.water_amount>0&&description.water_enabled){const auto &water=Surface(0x7e7388);
     if(!water.image||!water.counter||!water.image->_vertexFormat||water.image->_vertexFormatStride<72)return false;}
   if(description.color_enabled){const auto &color=Surface(0x7e72e4);
@@ -316,6 +318,29 @@ bool ColorComposite(const ClientPresentationDescription &d){
   auto *vertices=reinterpret_cast<float *(__thiscall *)(KAGE_Graphics_ImageBase *,const SourceQuad *,const DestinationQuad *,const KColor *)>(table[3])(image,&source,&destination,&tint);
   if(!vertices)return false;for(unsigned i=0;i<4;++i){vertices[i*12+9]=d.current_color[3];vertices[i*12+10]=d.current_color[4];vertices[i*12+11]=d.current_color[5];}return true;
 }
+// 807961 的 SourceQuad 水平反转；镜像 shader 的 48 字节顶点在 807A..807D 逐点写七个参数。
+// 参数仅依赖本地 surface/视口、已安装边界/scroll/震动及 Authority phase，不调用 RoomRender 大链。
+bool MirrorComposite(Room &room,const ClientPresentationDescription &d){
+  auto &pair=Surface(0x7e7340);auto *image=pair.image;if(!image||!pair.counter)return false;
+  auto &graphics=*__ptr_g_KAGE_Graphics_Manager;graphics._blendMode=BlendMode(0,1,0,1,0);
+  graphics._shader=d.mirror_shader?reinterpret_cast<KAGE_Graphics_Shader *>(Base+0x7ab294):ImageShader();
+  SourceQuad source{};source._coordinateSpace=SourceQuad::NORMALIZED_UV;
+  source._topLeft=Vector(1,0);source._topRight=Vector(0,0);source._bottomLeft=Vector(1,1);source._bottomRight=Vector(0,1);
+  DestinationQuad dest{};dest._topRight=Vector(g_WIDTH,0);dest._bottomLeft=Vector(0,g_HEIGHT);dest._bottomRight=Vector(g_WIDTH,g_HEIGHT);
+  if(!d.mirror_shader){auto *vertices=image->Render(source,dest,KColor(1,1,1,1));if(!vertices)return false;FillSurfaceVertices(pair,vertices);return true;}
+  if(image->_vertexFormatStride!=48||image->_numVertexAttributes!=5)return false;
+  const float padded_w=float(image->GetPaddedWidth()),padded_h=float(image->GetPaddedHeight());
+  const float pixel=*reinterpret_cast<const float *>(Base+0x7883e8),scale=pixel* *reinterpret_cast<const float *>(Base+0x788730);
+  if(padded_w<=0||padded_h<=0||pixel<=0||scale<=0)return false;
+  float bounds[4]{};std::memcpy(bounds,reinterpret_cast<unsigned char *>(&room)+0x14,16);
+  const float px=std::floor(((bounds[0]-60)*0.65f+(g_WIDTH-338)*0.5f)*scale+0.5f)/scale;
+  const float py=std::floor(((bounds[1]-140)*0.65f+(g_HEIGHT-182)*0.5f)*scale+0.5f)/scale;
+  const float values[]={float(image->GetWidth())/padded_w,float(image->GetHeight())/padded_h,padded_w/(pixel*1024),padded_h/(pixel*1024),
+    (px+room._renderScrollOffset.x+d.screen_shake[0])*pixel/padded_w,(py+room._renderScrollOffset.y+d.screen_shake[1])*pixel/padded_h,d.mirror_phase};
+  for(float value:values)if(!std::isfinite(value))return false;
+  auto *vertices=image->Render(source,dest,KColor(1,1,1,1));if(!vertices)return false;
+  for(unsigned vertex=0;vertex<4;++vertex)std::copy(std::begin(values),std::end(values),vertices+vertex*12+5);return true;
+}
 // 首draw只读诊断实际GL窗口与待消费顶点，区分FBO投影、blit及后续本体pass；不修正坐标。
 void ShadowDiagnostic(const char *phase,bool batches=false) noexcept {
   auto &graphics=*__ptr_g_KAGE_Graphics_Manager;GLint viewport[4]{},framebuffer=0,program=0;
@@ -387,6 +412,7 @@ struct ClientNativePresentation final {
   std::array<std::array<unsigned char,0x44>,2> previous_map_config{};
   std::array<unsigned char,12> previous_map_shake{};
   bool map_snapshot=false;
+  bool mirror_format_snapshot=false,previous_mirror_extended=false;
   bool screen_shake_captured=false,minimap_loaded=false;
   bool written=false,ready=false,retired=false,uncertain=false,diagnostic_drawn=false,fx_owner_reported=false;
   unsigned minimap_diagnostic=0;
@@ -617,6 +643,8 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   if(!p||p->active||p->uncertain||!Current(roots)||TopOwner()!=Owner::Manager||!ClientDispatchIsolationInstalled())return {false,false,true,"presentation_prepare_owner"};
   if(!GraphicsContext()||!ClientNativeCpuQueuesEmpty())return {false,false,false,"presentation_prepare_context_or_inflight"};
   auto &game=*static_cast<Game *>(roots.game);auto &room=*static_cast<Room *>(roots.room);
+  const bool mirror=game._currentDimensionIdx==1&&(game._stageType==4||game._stageType==5)&&(game._stage==2||(game._stage==1&&(description.effective_curses&2)));
+  if(mirror!=description.mirror)return {false,false,true,"presentation_mirror_source_conflict"};
   std::array<Entity *,kMaximumRenderMembers> entities{};unsigned count=0;const char *reason=nullptr;
   if(!Members(room,game,entities,count,reason))return {false,false,true,reason};
   if(!FXOwnerMatches(*p,room))return {false,false,true,"presentation_foreign_fx_owner"};
@@ -637,6 +665,11 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   // 7E08E0只保证具名native render surfaces/资源存在，不调用703E40的其余全局链。
   // 已读其全部分支：CreateProceduralImage/LoadImage/SetVertexFormat/filter/wrap，无模拟tick。
   reinterpret_cast<void (__cdecl *)()>(Base+0x3e08e0)();
+  if(description.mirror){auto &pair=Surface(0x7e7340);auto *image=pair.image;
+    if(!image||!pair.counter||(image->_vertexFormatStride!=48&&image->_vertexFormatStride!=88))return {false,true,true,"presentation_mirror_surface"};
+    if(!p->mirror_format_snapshot){p->previous_mirror_extended=image->_vertexFormatStride==88;p->mirror_format_snapshot=true;}
+    image->SetVertexFormat(*reinterpret_cast<const KAGE_Graphics_ImageBase_VertexAttributeDescriptor *>(Base+(description.mirror_shader?0x788670:0x788760)));
+    if(image->_vertexFormatStride!=(description.mirror_shader?48:88)||(description.mirror_shader&&!reinterpret_cast<KAGE_Graphics_Shader *>(Base+0x7ab294)->_initialized))return {false,true,true,"presentation_mirror_format_or_shader"};}
   // 6EFB70仅分配/配置全局图形surface；不使用703E40的Room/全局更新链。
   if(description.color_enabled)reinterpret_cast<void (__cdecl *)()>(Base+0x2efb70)();
   if(!PassResourcesReady(description))return {false,true,true,"presentation_native_pass_resources"};
@@ -658,6 +691,10 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   minimap._state=description.minimap_state;minimap._holdTime=0;minimap._shakeDuration=description.minimap_shake_duration;
   minimap._shakeOffset=Vector(description.minimap_shake[0],description.minimap_shake[1]);
   minimap._config[0]._alpha=description.minimap_small_alpha;minimap._config[1]._alpha=description.minimap_big_alpha;
+  // Refresh 仅构建真实原生 Minimap surface；保存图标/flags 在该调用内借用正式来源。
+  // 外层完整保存 renderer/target，内部 push/pop 不会破坏17已修复的深度提交顺序。
+  {RenderState restore;
+    if(!ClientMinimapBuild(&game,description.map.descriptors,description.map.state,description.effective_curses))return {false,true,true,"presentation_minimap_source_cache"};}
   InstallAuxCandidate(*p,room,description);InstallFXCandidate(*p,room,description);
   game._screenShakeOffset=Vector(description.screen_shake[0],description.screen_shake[1]);
   room._renderScrollOffset=Vector(description.render_scroll[0],description.render_scroll[1]);
@@ -719,7 +756,7 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
   if(!Members(room,game,entities,count,reason))return {false,false,true,reason};
   if(!FXDrawReady(*p,room)||!AuxOwnerMatches(*p,room))return {false,false,true,"presentation_fx_owner_changed"};
   if(!RayContextMatches(room,game,p->description))return {false,false,true,"presentation_ray_context_changed"};
-  if(!PassResourcesReady(p->description)||*reinterpret_cast<unsigned *>(Base+0x7e72b0)>=15)
+  if(!PassResourcesReady(p->description)||*reinterpret_cast<unsigned *>(Base+0x7e72b0)>=13)
     return {false,false,true,"presentation_pass_resource_or_target_stack"};
   const bool first_diagnostic=Settings.diagnostics&&!p->diagnostic_drawn;
   // 仅显式诊断模式下记录每个已提交目标的首draw，不推进原生更新或改变排序/道具状态。
@@ -755,12 +792,17 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
   ActiveDraw active(p->active);
   VeinDrawBorrow vein_pose(room,p->description.auxiliary.veins_present);
   {
+    // 原生 Mirror Surface 是 Manager 的常驻图形资源；只借用其 target，不持有第二个世界。
+    // 外层先选镜像 surface，内层各 prepass/颜色 surface 结束后恢复到它；HUD 在合成后绘制。
+    RenderState mirror_restore;
+    auto &graphics=*__ptr_g_KAGE_Graphics_Manager;
+    if(p->description.mirror)mirror_restore.Target(Surface(0x7e7340).image,true);
+    {
     RenderState restore;
     MaintainRoomSurfaceOrigin(room);
     // RoomRender 804E81—EBE分别合成floor/walls的offset；实体自带世界→屏幕变换，不加此原点。
     const Vector backdrop_offset=RoomSurfaceOrigin(room)+room._renderScrollOffset+game._screenShakeOffset;
     Vector offset=room._renderScrollOffset;
-    auto &graphics=*__ptr_g_KAGE_Graphics_Manager;
     if(first_diagnostic)ShadowDiagnostic("before_target");
     auto &shadow=Surface(0x7e7360);restore.Target(shadow.image,false);
     if(first_diagnostic)ShadowDiagnostic("shadow_target");
@@ -864,6 +906,12 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     graphics._blendMode=BlendMode();graphics._shader=ImageShader();
     reinterpret_cast<void (__thiscall *)(FXLayers *)>(Base+0x56e2b0)(&room._fxLayers); // pass6：最终持续覆盖层
     if(p->description.color_enabled){if(!restore.FinishOffscreen(Surface(0x7e72e4).image)||!ColorComposite(p->description))return {false,false,true,"presentation_color_surface_or_packet"};}
+    }
+    if(p->description.mirror){
+      if(!mirror_restore.FinishOffscreen(Surface(0x7e7340).image)||!MirrorComposite(room,p->description))return {false,false,true,"presentation_mirror_surface_or_packet"};
+      // 镜像 quad 消费后再接 HUD，保持 native 递减 z 与 FBO depth 的真实提交边界。
+      graphics.PresentWithoutSwap();
+    }
     graphics._blendMode=BlendMode();graphics._shader=ImageShader();
     if(game._hud._isVisible){
       HudDraw hud(*p);
@@ -945,6 +993,10 @@ ClientPresentationStep ClientPresentationRetire(ClientNativePresentation *p,cons
     for(auto &ph:hud._playerHUD){ph._player=nullptr;for(auto &h:ph._heart){h._spriteAnim=h._spriteOverlayAnim=nullptr;h._visibility=false;}}
     StatPlayer(hud._statHUD,0)=StatPlayer(hud._statHUD,1)=nullptr;
     p->shading=KAGE_SmartPointer_ImageBase{};
+    if(p->mirror_format_snapshot){auto *image=Surface(0x7e7340).image;
+      if(!image)return {false,true,true,"presentation_mirror_retire_surface_missing"};
+      try{image->SetVertexFormat(*reinterpret_cast<const KAGE_Graphics_ImageBase_VertexAttributeDescriptor *>(Base+(p->previous_mirror_extended?0x788760:0x788670)));p->mirror_format_snapshot=false;}
+      catch(...){p->uncertain=true;return {false,true,true,"presentation_mirror_retire_exception"};}}
     if(p->map_snapshot){
       auto &map=p->game->_minimap;std::memcpy(&map,p->previous_map_header.data(),0x18);
       for(unsigned i=0;i<2;++i)std::memcpy(reinterpret_cast<unsigned char *>(&map._config[i])+0x11c,p->previous_map_config[i].data(),0x44);
@@ -1092,6 +1144,11 @@ int ClientPresentationCaptureLua(void *state) {
   CopyColor(room._floorColor,floor);CopyColor(room._wallColor,wall);
   CopyColor(room._fxLayers._fxParams.shadowColor,shadow);CopyColor(room._fxLayers._fxParams.lightColor,light);
   lua_createtable(L,0,40);LuaNumber(L,"version",2);
+  const unsigned curses=EffectiveCurses(*g_Game);
+  const bool mirror=g_Game->_currentDimensionIdx==1&&(g_Game->_stageType==4||g_Game->_stageType==5)&&(g_Game->_stage==2||(g_Game->_stage==1&&(curses&2)));
+  LuaBoolean(L,"mirror",mirror);LuaBoolean(L,"mirror_shader",g_Manager&&*reinterpret_cast<const bool *>(reinterpret_cast<const unsigned char *>(g_Manager)+0x2a204));
+  const unsigned parity=g_Game->IsPaused()?0:(g_Manager->_framecount+1)%2;
+  LuaNumber(L,"mirror_phase",mirror?float(parity+2*(unsigned(g_Game->_frameCount)%600))/120.0f:0.0f);
   const float backdrop_inputs[4]={room._backdrop.unkVec1.x,room._backdrop.unkVec1.y,room._backdrop.unkVec2.x,room._backdrop.unkVec2.y};
   LuaArray(L,"backdrop_surface_inputs",backdrop_inputs);
   // 当前Backdrop配置为原生构建采用的实际资源集合；不以本地Stage/RoomType重新选图。

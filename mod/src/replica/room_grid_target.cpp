@@ -116,6 +116,7 @@ RoomDescriptorTarget Descriptor(const V &subject,const V &state,const V &placeme
     if(c.is_null||!RoomShapeCells(d.location.grid_index,c.shape,expected,count)||count!=d.location.occupied.size()||
        !std::equal(expected.begin(),expected.begin()+count,d.location.occupied.begin()))Error(path,"shape_occupancy_disagrees");}
   d.allowed_doors=Field(f,"RoomDescriptor.AllowedDoors",path,0,255);d.flags=Field(f,"RoomDescriptor.Flags",path);
+  d.display_flags=Field(f,"RoomDescriptor.DisplayFlags",path);
   d.visited=Field(f,"RoomDescriptor.VisitedCount",path,0);d.clear_count=Field(f,"RoomDescriptor.ClearCount",path,0,32767);
   d.spawn_seed=SeedBits(At(f,"RoomDescriptor.SpawnSeed",path),path+"/SpawnSeed");d.decoration_seed=SeedBits(At(f,"RoomDescriptor.DecorationSeed",path),path+"/DecorationSeed");d.award_seed=SeedBits(At(f,"RoomDescriptor.AwardSeed",path),path+"/AwardSeed");
   const auto &doors=At(f,"RoomDescriptor.Doors",path);if(!doors.IsArray()||doors.Size()!=8)Error(path,"door_slots_required");
@@ -160,11 +161,11 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
   const auto run=out->scope.run;if(!run||!out->scope.floor||!out->scope.dimension||!out->scope.room)Error("scope","world_scope_required");
   const auto &room=Component(model,"room",out->room_capture),&level=Component(model,"level",out->level_capture),&grid=Component(model,"grid",out->grid_capture);
   const auto &contract=At(room,"application_source","room"),&gc=At(grid,"application_source","grid");
-  if(Field(contract,"version","room/application_source")!=2||Field(gc,"version","grid/application_source")!=1||
+  if(Field(contract,"version","room/application_source")!=3||Field(gc,"version","grid/application_source")!=2||
      !Is(At(contract,"target","room"),"REPENTOGON-1.1.3/J273")||!Is(At(gc,"target","grid"),"REPENTOGON-1.1.3/J273"))Error("application_source","unsupported_contract");
   for(const auto *c:{&contract,&gc})if(c->HasMember("required_contracts")){
     const auto &required=(*c)["required_contracts"];if(!required.IsArray()||required.Size()>32)Error("application_source/required_contracts","budget");
-    for(const auto &name:required.GetArray())if(!Is(name,"descriptor-placement-v1")&&!Is(name,"grid-membership-v2")&&!Is(name,"resource-pose-v1")&&!Is(name,"room-configuration-v1")&&!Is(name,"room-runtime-v1"))Error("application_source/required_contracts/"+(name.IsString()?std::string(name.GetString(),name.GetStringLength()):"invalid"),"unknown_required");
+    for(const auto &name:required.GetArray())if(!Is(name,"descriptor-placement-v1")&&!Is(name,"grid-membership-v2")&&!Is(name,"resource-pose-v1")&&!Is(name,"room-configuration-v1")&&!Is(name,"room-runtime-v1")&&!Is(name,"grid-runtime-v1")&&!Is(name,"map-camera-v1"))Error("application_source/required_contracts/"+(name.IsString()?std::string(name.GetString(),name.GetStringLength()):"invalid"),"unknown_required");
   }
   const auto &cv=At(contract,"config_version","room");if(!cv.IsString()||cv.GetStringLength()==0||cv.GetStringLength()>256)Error("config_version","resource_version_required");
   const std::string config_version(cv.GetString(),cv.GetStringLength());
@@ -183,7 +184,7 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
   std::map<SubjectKey,unsigned> descriptors{{current.key,0}};std::map<std::pair<int,int>,SubjectKey> storage,occupied;
   auto add=[&](RoomDescriptorTarget d){auto found=descriptors.find(d.key);if(found!=descriptors.end()){
       const auto &old=r.descriptors[found->second];if(old.location!=d.location||old.construction_revision!=d.construction_revision||old.data!=d.data||old.override_data!=d.override_data||
-        old.allowed_doors!=d.allowed_doors||old.flags!=d.flags||old.visited!=d.visited||old.clear_count!=d.clear_count||old.spawn_seed!=d.spawn_seed||old.decoration_seed!=d.decoration_seed||old.award_seed!=d.award_seed||old.door_targets!=d.door_targets)Error("level/descriptors","conflicting_current_descriptor");return;}
+        old.allowed_doors!=d.allowed_doors||old.flags!=d.flags||old.display_flags!=d.display_flags||old.visited!=d.visited||old.clear_count!=d.clear_count||old.spawn_seed!=d.spawn_seed||old.decoration_seed!=d.decoration_seed||old.award_seed!=d.award_seed||old.door_targets!=d.door_targets)Error("level/descriptors","conflicting_current_descriptor");return;}
     if(r.descriptors.size()>=limits.descriptors)Error("level/descriptors","descriptor_budget");descriptors.emplace(d.key,unsigned(r.descriptors.size()));r.descriptors.push_back(std::move(d));};
   const auto &list=Sequence(At(level,"descriptors","level"),"level/descriptors");if(list.Size()>507||list.Size()>limits.descriptors)Error("level/descriptors","descriptor_budget");
   const auto &lm=At(level,"membership","level");
@@ -238,7 +239,8 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
       if(alias.source==11&&int(alias.index)!=g.index)Error(path,"grid_slot_disagrees");}
     std::sort(g.memberships.begin(),g.memberships.end(),[](const auto &a,const auto &b){return std::tie(a.source,a.index)<std::tie(b.source,b.index);});
     if(!keys.emplace(g.key,unsigned(out->grids.size())).second)Error(path,"duplicate_key");
-    if(!grid_slots.emplace(g.index,g.key).second)Error(path,"duplicate_grid_index");
+    // Door-only 别名可与同 index 的主格成员共存；双占用只针对实际 +24 格数组。
+    if(std::find(g.memberships.begin(),g.memberships.end(),GridMembership{11,unsigned(g.index)})!=g.memberships.end()&&!grid_slots.emplace(g.index,g.key).second)Error(path,"duplicate_grid_index");
     const auto refs=[&](auto &&self,const V &x)->void{
       if(x.IsArray())for(const auto &y:x.GetArray())self(self,y);
       if(!x.IsObject())return;
@@ -262,6 +264,15 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
       if(target==-19)Error("room/doors","original_online_excluded");
       if(target==-100)d.route=DoorRoute::Mirror;else if(target==-101)d.route=DoorRoute::Mineshaft;
       else if(target>=0&&target<169)d.route=DoorRoute::Map;else if(target>=-20&&target<0)d.route=DoorRoute::OffGrid;else Error("room/doors","unknown_actual_route");
+      const auto &connection=At(v,"actual_connection","room/doors");if(Field(connection,"index","room/doors")!=target)Error("room/doors","connection_index_conflict");
+      if(d.route==DoorRoute::Map||d.route==DoorRoute::OffGrid){
+        if(!Is(At(connection,"kind","room/doors"),d.route==DoorRoute::Map?"MapRoom":"OffGridSlot"))Error("room/doors","connection_route_conflict");
+        const auto &ref=At(connection,"target","room/doors");
+        if(ref.IsObject()&&ref.HasMember("resolution")&&Is(ref["resolution"],"NotApplicable")&&ref.HasMember("reason")&&Is(ref["reason"],"uninitialized_descriptor"))d.target_uninitialized=true;
+        else{d.target_descriptor=Ref(ref,"room/doors/actual_connection/target",run,6);const auto found=descriptors.find(d.target_descriptor.key);
+          if(found==descriptors.end())Error("room/doors","target_descriptor_missing");const auto &p=r.descriptors[found->second].location;
+          if(d.route==DoorRoute::OffGrid?p.source_slot!=target:(p.source_slot||p.dimension!=r.dimension||std::find(p.occupied.begin(),p.occupied.end(),target)==p.occupied.end()))Error("room/doors","target_descriptor_location_conflict");}
+      }else if(!Is(At(connection,"kind","room/doors"),"DimensionRoute")||!Is(At(connection,"route","room/doors"),d.route==DoorRoute::Mirror?"Mirror":"Mineshaft"))Error("room/doors","dimension_route_conflict");
     }
   }
   for(const auto &g:out->grids){for(const auto &m:g.memberships)if(m.source==12&&r.doors[m.index].actual.key!=g.key)Error("grid/memberships","orphan_door_alias");
@@ -283,7 +294,7 @@ std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGri
   Resources(room,"room");Resources(grid,"grid");
   out->source=Copy(model);return out;
 }
-Json RoomGridCapabilities(){return Parse(R"({"id":"room-grid-target-v2","version":2,"source_extension":2,"target":"REPENTOGON-1.1.3/J273","grid_types":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],"descriptor_capacity":527,"excluded_off_grid":[-19],"room_shapes":[1,2,3,4,5,6,7,8,9,10,11,12],"room_adapters":["distinct-nullable-configs","shape-geometry","progress","backdrop-config-pose","water-color-fx","rails-lroom"],"room_dependencies":["I13-map-camera","I14-I25-grid","tx-04-19-special-entity-pass","tx-04-20-player-roster","tx-04-27-hud"],"environment_limits":{"layers":256,"poses_per_layer":256,"ray_groups":256,"rays_per_group":64,"vein_nodes":4096,"vein_depth":32,"vein_draw_visits":65536,"poop_poses":256},"limits":{"descriptors":526,"grids":456,"steps":8192,"references":4096,"dependency_edges":1048576},"native_apply":false,"native_responsibility":"I07-I12 Room adapters implemented;complete scene requires I13-I25"})");}
+Json RoomGridCapabilities(){return Parse(R"({"id":"room-grid-target-v3","version":3,"source_extension":3,"grid_source_extension":2,"target":"REPENTOGON-1.1.3/J273","grid_types":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27],"descriptor_capacity":527,"excluded_off_grid":[-19],"room_shapes":[1,2,3,4,5,6,7,8,9,10,11,12],"room_adapters":["distinct-nullable-configs","shape-geometry","progress","backdrop-config-pose","water-color-fx","rails-lroom","camera-native-minimap"],"grid_adapters":["stable-key-instance-owner","factory-final-state-no-init","desc-common-aliases","17-derived-interfaces","fire-three-anm-embers","rock-rubble","door-alias-routes","instance-effective-water-clip"],"room_dependencies":["I19-I25-grid","tx-04-19-special-entity-pass","tx-04-20-player-roster","tx-04-27-hud"],"environment_limits":{"layers":256,"poses_per_layer":256,"ray_groups":256,"rays_per_group":64,"vein_nodes":4096,"vein_depth":32,"vein_draw_visits":65536,"poop_poses":256},"limits":{"descriptors":526,"grids":456,"steps":8192,"references":4096,"dependency_edges":1048576},"native_apply":false,"native_responsibility":"I07-I18 domain adapters implemented;complete Grid scene requires I19-I25"})");}
 const Json &RoomGridApplicationCatalog(){static const auto catalog=Parse(
 #include "room_grid_application.inc"
 );return catalog;}

@@ -4,6 +4,7 @@
 #include <vector>
 #include "replica/room_configuration.h"
 #include "game/client_room_native.h"
+#include "game/client_map_native.h"
 
 namespace cs::game {
 // 背景配置属于Room内嵌Backdrop，不修改共享XML/Host资源；字符串只接受逻辑资源路径。
@@ -22,7 +23,7 @@ struct ClientNativeDescriptorDescription final {
   std::uint32_t variant=0;
   bool data_null=false,override_null=false;
   replica::RoomConfiguration data{},override_data{};
-  int allowed=0,flags=0,visited=0,clear_count=0;
+  int allowed=0,flags=0,display_flags=0,visited=0,clear_count=0;
   std::array<int,8> doors{};
   std::uint32_t spawn=0,decoration=0,award=0;
 };
@@ -44,6 +45,7 @@ struct ClientNativeSceneDescription final {
   unsigned backdrop=0;
   float water_amount=0;
   float camera_x=0,camera_y=0;
+  ClientMapTarget map;
   ClientRoomState room_state{};
   ClientBackdropConfiguration backdrop_config{};
   std::array<float,4> backdrop_surface_inputs{};

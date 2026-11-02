@@ -57,7 +57,7 @@ const replica::Value &Sequence(const replica::Value &v) {
 ClientPresentation::ClientPresentation() noexcept=default;
 ClientPresentation::~ClientPresentation(){ClientPresentationDestroy(native_);}
 // 先完整解释采用范围再触碰原生owner；缺失字段不能被默认的白色/零水面掩盖。
-bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&reason,const ClientRoomState &room_state) noexcept {
+bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&reason,const ClientRoomState &room_state,const ClientMapTarget &map_target) noexcept {
   try {
     const auto &v=Member(Member(Member(Member(model,"components"),"room"),"state"),"presentation_runtime");
     const auto &transition=Member(Member(Member(Member(Member(Member(model,"components"),"room"),"state"),"transition"),"fields"),"RoomTransition.GetTransitionMode");
@@ -66,7 +66,7 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
        !Member(transition,"value").IsString()||std::string(Member(transition,"value").GetString())!="0")
       throw std::runtime_error("presentation_stable_room_transition_required");
     if(Integer(Member(v,"version"),2,2)!=2)throw std::runtime_error("presentation_version");
-    ClientPresentationDescription d;d.room_state=room_state;
+    ClientPresentationDescription d;d.room_state=room_state;d.map=map_target;
     Colors(Member(v,"floor_color"),d.floor);Colors(Member(v,"wall_color"),d.wall);
     Colors(Member(v,"shadow_color"),d.shadow);Colors(Member(v,"light_color"),d.light);
     Colors(Member(v,"water_color"),d.water_color);Colors(Member(v,"water_multiplier"),d.water_multiplier);
@@ -78,6 +78,8 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
     Colors(Member(v,"light_tint"),d.light_tint);Colors(Member(v,"shadow_fill"),d.shadow_fill);
     d.special_light_pass=Boolean(Member(v,"special_light_pass"));
     d.layer4_enabled=Boolean(Member(v,"layer4_enabled"));
+    d.mirror=Boolean(Member(v,"mirror"));d.mirror_shader=Boolean(Member(v,"mirror_shader"));d.mirror_phase=Number(Member(v,"mirror_phase"));
+    if(d.mirror_phase<0||d.mirror_phase>=10)throw std::runtime_error("presentation_mirror_phase");
     d.fx_brightness=Number(Member(v,"fx_brightness"));d.fx_contrast=Number(Member(v,"fx_contrast"));
     d.lava=Number(Member(v,"lava"));d.rain=Number(Member(v,"rain"));d.lightning=Number(Member(v,"lightning"));
     d.darkness=Number(Member(v,"darkness"));d.darkness_scale=Number(Member(v,"darkness_scale"));
@@ -109,9 +111,9 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
     d.minimap_shake_duration=Integer(Member(map,"shake_duration"),0,100000);
     const auto &map_shake=Member(map,"shake");if(!map_shake.IsArray()||map_shake.Size()!=2)throw std::runtime_error("presentation_minimap_shake");
     for(unsigned i=0;i<2;++i)d.minimap_shake[i]=Number(map_shake[i]);
-    // 普通地图依赖18的楼层拓扑；本代表明确采用Lost小图的真实原生问号分支。
-    if(!(d.effective_curses&4)||d.minimap_state!=0||d.minimap_big_alpha!=0||d.minimap_small_alpha<0||d.minimap_small_alpha>1)
-      throw std::runtime_error("presentation_minimap_lost_branch_required");
+    // 普通/Lost 均消费真实 descriptor DisplayFlags 和来源已裁决 alpha，不创建额外诅咒。
+    if(d.minimap_small_alpha<0||d.minimap_small_alpha>1||d.minimap_big_alpha<0||d.minimap_big_alpha>1)
+      throw std::runtime_error("presentation_minimap_alpha");
     const auto image_description=[&](const replica::Value &source,auto &out){
       out.image=ImagePath(Member(source,"image"));out.shader=unsigned(Integer(Member(source,"shader"),0,64));
       out.min_filter=unsigned(Integer(Member(source,"min_filter"),0,1));out.mag_filter=unsigned(Integer(Member(source,"mag_filter"),0,1));

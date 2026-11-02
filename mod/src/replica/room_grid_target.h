@@ -28,7 +28,7 @@ struct RoomDescriptorTarget final {
   std::uint64_t construction_revision=0;
   DescriptorLocation location{};
   RoomConfiguration data{},override_data{};
-  int allowed_doors=0,flags=0,visited=0,clear_count=0;
+  int allowed_doors=0,flags=0,display_flags=0,visited=0,clear_count=0;
   std::uint32_t spawn_seed=0,decoration_seed=0,award_seed=0;
   std::array<int,8> door_targets{};
   // 0=current_descriptor，1=level.descriptors，2=off_grid.entries；定位完整配置/专用字段。
@@ -44,6 +44,8 @@ struct DoorBinding final {
   bool shape_allowed=false,descriptor_enabled=false;
   int shape_target=0,actual_target=0;
   DomainReference actual{};
+  DomainReference target_descriptor{true,{}};
+  bool target_uninitialized=false;
   DoorRoute route=DoorRoute::None;
 };
 // 保存描述值与活动Grid状态分开，不用Init/Restore产生Authority未提供的结果。

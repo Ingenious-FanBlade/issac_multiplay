@@ -23,6 +23,8 @@ struct ClientLayerPose final {
   int main_frame=-1,overlay_frame=-1;
 };
 struct ClientResourcePose final {
+  // 已构造 ANM 可以合法没有加载资源；与缺失字段/Null引用不同，不擅自选择默认动画。
+  bool loaded=true;
   std::string path,animation,overlay_animation;
   int frame=0,overlay_frame=0;
   bool overlay_present=false,overlay_first=false,flip_x=false,flip_y=false;

@@ -46,6 +46,7 @@ bool AnimationReady(ANM2 &sprite,const std::string &name,int frame,bool overlay)
 // 不猜测未声明的 null-layer 内部布局，也不通过 Update 消费事件。
 bool ExactPhase(AnimationState &state,float phase,const std::vector<int> &layers,const std::vector<int> &nulls) {
   const auto *data=state._animData;
+  if(!data)return phase==0&&layers.empty()&&nulls.empty();
   if(!data||!std::isfinite(phase)||phase<0||phase>=data->_length||
      data->_layerCount!=int(layers.size())||data->_nullLayerCount!=int(nulls.size())||
      (!layers.empty()&&(!data->_animLayers||!state._layerFrames))||(!nulls.empty()&&!state._nullLayerFrames))return false;
@@ -62,7 +63,7 @@ bool ExactPhase(AnimationState &state,float phase,const std::vector<int> &layers
 // 不使用 ANM2::Update；setter 定位时间帧后显式停止播放，不消费动画事件。
 bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason) {
   if(sprite._layerCount!=pose.layers.size()||sprite._layerCount>64||!sprite._layerState){reason="resource_layer_count";return false;}
-  if(!AnimationReady(sprite,pose.animation,pose.frame,false)||
+  if((!pose.animation.empty()&&!AnimationReady(sprite,pose.animation,pose.frame,false))||
       (pose.overlay_present&&!AnimationReady(sprite,pose.overlay_animation,pose.overlay_frame,true))){reason="resource_animation_frame";return false;}
   for(const auto &layer:pose.layers){
     auto *native=sprite.GetLayer(int(layer.id));
@@ -76,8 +77,14 @@ bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason) {
     if(!native||!native->_spriteSheetLoaded||!native->_spriteSheet.image||!native->_spriteSheet.counter||
        native->_spriteSheetPath!=layer.sheet||native->_spriteSheet.image->GetWidth()<=0||native->_spriteSheet.image->GetHeight()<=0){reason="resource_image_pair";return false;}
   }
-  if(!sprite.SetAnimation(pose.animation.c_str(),true)){reason="resource_main_animation";return false;}
-  auto animation=pose.animation;sprite.SetFrame(&animation,pose.frame);
+  if(pose.animation.empty()){
+    // 原生 Fire 的历史资源可能加载成功而没有选中 FireStage00；保留来源的无动画状态。
+    // 这是已加载资源的显式状态，不选 Idle 代替，也不推进 Update 试图恢复。
+    sprite._animState._animData=nullptr;
+  }else{
+    if(!sprite.SetAnimation(pose.animation.c_str(),true)){reason="resource_main_animation";return false;}
+    auto animation=pose.animation;sprite.SetFrame(&animation,pose.frame);
+  }
   if(pose.overlay_present){
     if(!sprite.SetOverlayAnimation(pose.overlay_animation.c_str(),true)){reason="resource_overlay_animation";return false;}
     sprite.SetOverlayFrame(pose.overlay_animation.c_str(),pose.overlay_frame);
@@ -92,7 +99,7 @@ bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason) {
   sprite._overlayAnimState._currentlyTriggeredEvents=0;sprite._overlayAnimState._previouslyTriggeredEvents=0;
   for(const auto &layer:pose.layers){
     auto *native=sprite.GetLayer(int(layer.id));
-    if(layer.main_frame>=0)sprite.SetLayerFrame(int(layer.id),layer.main_frame);
+    if(!pose.animation.empty()&&layer.main_frame>=0)sprite.SetLayerFrame(int(layer.id),layer.main_frame);
     if(pose.overlay_present&&layer.overlay_frame>=0)sprite._overlayAnimState.SetLayerFrame(int(layer.id),layer.overlay_frame);
     native->_size=Vector(layer.size.x,layer.size.y);native->_pos=Vector(layer.position.x,layer.position.y);
     native->_cropOffset=Vector(layer.crop.x,layer.crop.y);native->_rotation=layer.rotation;
@@ -116,6 +123,16 @@ bool ClientNativeCpuQueuesEmpty() noexcept {
 ClientResourceResult ClientApplyResourcePose(void *pointer,const ClientResourcePose &pose) noexcept {
   ClientResourceResult result;
   if(!pointer||!ResourceWindow()||!ClientNativeCpuQueuesEmpty()){result.reason="resource_context_or_inflight";return result;}
+  if(!pose.loaded){
+    if(!pose.path.empty()||!pose.layers.empty()||!pose.animation.empty()||pose.overlay_present||!pose.exact_phase||pose.main_phase!=0||!pose.main_selectors.empty()||!pose.main_null_selectors.empty()){
+      result.reason="resource_unloaded_description";return result;}
+    try{auto &sprite=*static_cast<ANM2 *>(pointer);result.written=true;
+      if(sprite._loaded||!sprite._filename.empty()||sprite._layerCount||sprite._animState._animData||sprite._overlayAnimState._animData){sprite.destructor();sprite.constructor();}
+      sprite._offset=Vector(pose.offset.x,pose.offset.y);sprite._scale=Vector(pose.scale.x,pose.scale.y);sprite._rotation=pose.rotation;sprite._color=Color(pose.color);
+      sprite._flipX=pose.flip_x;sprite._flipY=pose.flip_y;sprite._playbackSpeed=pose.playback_speed;sprite._bitflags=pose.flags;sprite._overlayRenderFirst=pose.overlay_first;
+      result.complete=true;result.reason="resource_unloaded_state_installed";
+    }catch(...){result.reason="resource_native_exception";}return result;
+  }
   if(pose.path.empty()||pose.layers.empty()||pose.layers.size()>64){result.reason="resource_description";return result;}
   auto *owner=new(std::nothrow) ResourceCandidate;
   if(!owner){result.reason="resource_owner_budget";return result;}
@@ -140,11 +157,12 @@ ClientResourceResult ClientApplyResourcePose(void *pointer,const ClientResourceP
 bool ClientResourcePoseMatches(void *pointer,const ClientResourcePose &pose) noexcept {
   if(!pointer||!ResourceWindow())return false;
   const auto &sprite=*static_cast<ANM2 *>(pointer);
-  if(sprite._filename!=pose.path||sprite._layerCount!=pose.layers.size()||!sprite._animState._animData||
-     sprite._animState._animData->_name!=pose.animation||sprite._animState._animFrame!=pose.main_phase||sprite._animState._isPlaying)return false;
+  if(sprite._loaded!=pose.loaded||sprite._filename!=pose.path||sprite._layerCount!=pose.layers.size()||bool(sprite._animState._animData)!=!pose.animation.empty()||
+     (sprite._animState._animData&&(sprite._animState._animData->_name!=pose.animation||sprite._animState._animFrame!=pose.main_phase||sprite._animState._isPlaying)))return false;
   if(bool(sprite._overlayAnimState._animData)!=pose.overlay_present)return false;
   if(pose.overlay_present&&(sprite._overlayAnimState._animData->_name!=pose.overlay_animation||sprite._overlayAnimState._animFrame!=pose.overlay_phase||sprite._overlayAnimState._isPlaying))return false;
   const auto sameState=[](const AnimationState &state,const std::vector<int> &layers,const std::vector<int> &nulls){
+    if(!state._animData)return layers.empty()&&nulls.empty()&&state._currentlyTriggeredEvents==0&&state._previouslyTriggeredEvents==0;
     if(!state._animData||state._animData->_layerCount!=int(layers.size())||state._animData->_nullLayerCount!=int(nulls.size()))return false;
     for(unsigned i=0;i<layers.size();++i)if(!state._layerFrames||state._layerFrames[i]!=layers[i])return false;
     for(unsigned i=0;i<nulls.size();++i)if(!state._nullLayerFrames||state._nullLayerFrames[i]!=nulls[i])return false;

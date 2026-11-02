@@ -26,6 +26,13 @@ function M.Reference(d,sourceIndex)
   local id,revision=IsaacCSObservationNative.Descriptor(dimension,list,grid,M.Construction(d))
   return {space=6,local_id=id,construction_revision=revision,source_room_index=sourceIndex,identity_basis=sourceIndex and sourceIndex<0 and "known_off_grid_source_slot" or "map_descriptor_location",construction_basis="current_config_and_named_seed_values;not_birth_history",resolution=id=="0" and "Unresolved" or "KnownCurrent",dimension_index=dimension,list_index=d.ListIndex,grid_index=d.GridIndex,safe_grid_index=d.SafeGridIndex}
 end
+-- 地图缓存只读离房保存记录中图标消费者所需的投影；完整保存域保持独立责任。
+function M.ReadDescriptor(d,c)
+  local state=read.Collect(d,"RoomDescriptor",c,0)
+  state.map_icons=IsaacCSObservationNative.MinimapDescriptor(d)
+  if not state.map_icons then read.Fail(c,"minimap_descriptor_unavailable") end
+  return state
+end
 -- 离图槽与路由哨兵具有不同语义；-100/-101不能送入GetRoomByIdx。
 function M.Target(level,index,dimension,shapeCandidate)
   if shapeCandidate and index<0 then return {kind="ShapeDisallowsSlot",index=index} end

@@ -470,6 +470,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "binding/offsets.h"
 #include "game/bridge.h"
 #include "game/client_objects_native.h"
+#include "game/client_grid_native.h"
 #include "game/client_presentation_native.h"
 #include "game/world_sources/loot.h"
 #include "game/world_sources/global_random.h"
@@ -502,6 +503,11 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    if ident.startswith('client_grid_water_'):
+        return ['    cs::CallScope scope(record);',
+                '    auto* result=super(out);',
+                '    cs::game::ClientGridWaterClip(this,result);',
+                '    return result;']
     if ident in ('client_player_render_body_diagnostic', 'client_player_render_head_diagnostic'):
         body = 'true' if ident == 'client_player_render_body_diagnostic' else 'false'
         return ['    // 只读诊断由当前Client实例限制；原链每次仍恰好执行一次。',

@@ -80,6 +80,9 @@ struct ClientPresentationDescription final {
   float light_tint[5]{1,1,1,1,0};
   float shadow_fill[5]{0,0,0,1,0};
   bool special_light_pass=false,layer4_enabled=true;
+  // 镜像是 RoomRender 的独立 surface/pass；phase 是 Authority 已选帧，不由 Client 墙钟推进。
+  bool mirror=false,mirror_shader=false;
+  float mirror_phase=0;
   // 保留原代表分支的来源事实；实际输入色为上面的最终light_tint，不以此值限制Room。
   bool ordinary_light_tint=false;
   bool hud_visible=true,room_fx_present=false;
@@ -88,6 +91,7 @@ struct ClientPresentationDescription final {
   unsigned hud_challenge=0,hud_difficulty=0,effective_curses=0;
   std::array<int,8> coop_selection{};
   int minimap_state=0,minimap_shake_duration=0;
+  ClientMapTarget map;
   float minimap_small_alpha=0,minimap_big_alpha=0;
   std::array<float,2> minimap_shake{};
   ClientPresentationFX minimap_question,shading;

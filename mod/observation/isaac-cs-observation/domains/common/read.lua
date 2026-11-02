@@ -220,6 +220,10 @@ query=function(object,spec,args,ctx,depth)
   end
   local ok,v,extra=protected(spec.static and _G[spec.owner] or object,spec.member,args,spec.category=="field",spec.static)
   if not ok then fail(ctx,"read:"..spec.id); return missing("ReadFailed",textError(v)) end
+  -- J273 TimerPlate getter 按值返回内嵌 ANM；未加载时表示没有 Timer 资源，不能生成空路径姿态。
+  if spec.owner=="GridEntityPressurePlate" and spec.member=="TimerPlate" and v and v:GetFilename()=="" then
+    return missing("Null","native_timer_anm_unloaded")
+  end
   local copied,out=pcall(value,v,spec.returns,ctx,depth+1)
   if not copied then fail(ctx,"value_copy:"..spec.id); return missing("ReadFailed",textError(out)) end
   if extra~=nil then return {returns={out,value(extra,spec.returns:match(",%s*([%w_]+)"),ctx,depth+1)}} end

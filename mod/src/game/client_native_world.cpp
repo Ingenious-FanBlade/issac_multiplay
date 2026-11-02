@@ -20,7 +20,7 @@ bool RunActive() noexcept;
 namespace {
 // 仅保存本适配实际修改的具名标量；descriptor 的原生容器由已有构造 owner 管理。
 struct DescriptorScalars final {
-  int grid=0,safe=0,list=0,dimension=0,allowed=0,flags=0,visited=0;
+  int grid=0,safe=0,list=0,dimension=0,allowed=0,flags=0,display_flags=0,visited=0;
   std::int16_t clear=0;
   std::int16_t money=0,shop=0,discount=0,poop=0,keeper=0;
   int greed_subtype=0,pits=0;
@@ -30,14 +30,14 @@ struct DescriptorScalars final {
   void Read(RoomDescriptor &d) noexcept {
     grid=d.GridIndex;safe=d.SafeGridIndex;list=d.ListIndex;dimension=d.Dimension;
     data=d.Data;override_data=d.OverrideData;allowed=d.AllowedDoors;flags=d.Flags;
-    visited=d.VisitedCount;clear=d.ClearCount;spawn=d.SpawnSeed;decoration=d.DecorationSeed;award=d.AwardSeed;
+    display_flags=d.DisplayFlags;visited=d.VisitedCount;clear=d.ClearCount;spawn=d.SpawnSeed;decoration=d.DecorationSeed;award=d.AwardSeed;
     money=d.TotalMoneySpent;shop=d.ShopItemIdx;discount=d.ShopItemDiscountIdx;poop=d.PoopCount;keeper=d.TKeeperCoinSpawns;greed_subtype=d.GreedSubType;pits=d.PitsCount;
     std::copy(std::begin(d.Doors),std::end(d.Doors),doors);
   }
   void Restore(RoomDescriptor &d) const noexcept {
     d.GridIndex=grid;d.SafeGridIndex=safe;d.ListIndex=list;d.Dimension=dimension;
     d.Data=data;d.OverrideData=override_data;d.AllowedDoors=allowed;d.Flags=flags;
-    d.VisitedCount=visited;d.ClearCount=clear;d.SpawnSeed=spawn;d.DecorationSeed=decoration;d.AwardSeed=award;
+    d.DisplayFlags=display_flags;d.VisitedCount=visited;d.ClearCount=clear;d.SpawnSeed=spawn;d.DecorationSeed=decoration;d.AwardSeed=award;
     d.TotalMoneySpent=money;d.ShopItemIdx=shop;d.ShopItemDiscountIdx=discount;d.PoopCount=poop;d.TKeeperCoinSpawns=keeper;d.GreedSubType=greed_subtype;d.PitsCount=pits;
     std::copy(std::begin(doors),std::end(doors),d.Doors);
   }
@@ -60,6 +60,7 @@ void ApplyDescriptor(RoomDescriptor &d,const ClientNativeDescriptorDescription &
   d.GridIndex=s.grid;d.SafeGridIndex=s.safe;d.ListIndex=s.list;d.Dimension=s.dimension;
   d.Data=configs.data;d.OverrideData=configs.override_data;
   d.AllowedDoors=s.allowed;d.Flags=s.flags;d.VisitedCount=s.visited;d.ClearCount=std::int16_t(s.clear_count);
+  d.DisplayFlags=s.display_flags;
   d.SpawnSeed=s.spawn;d.DecorationSeed=s.decoration;d.AwardSeed=s.award;
   std::copy(s.doors.begin(),s.doors.end(),d.Doors);
 }
@@ -263,7 +264,7 @@ static ClientNativeStep PrepareImpl(ClientNativeWorldOwner *o,const ClientNative
       for(unsigned i=0;i<d.descriptors.size();++i)ApplyDescriptor(*DescriptorStorage(g,d.descriptors[i]),d.descriptors[i],o->descriptor_configs[i]);
       o->room->_waterAmount=d.water_amount;
       if(!ClientRoomStateApply(&g,o->room,d.room_state))return Status(o,ClientNativeStepState::Failed,"native_room_state_apply");
-      Vector focus(d.camera_x,d.camera_y);o->camera->SnapToPosition(focus);
+      if(!ClientCameraApply(o->camera,d.map.state.camera))return Status(o,ClientNativeStepState::Failed,"native_camera_values");
       return Status(o,ClientNativeStepState::Ready,"native_description_applied");
     }
     switch(o->prepare_phase){
@@ -344,7 +345,7 @@ static ClientNativeStep PrepareImpl(ClientNativeWorldOwner *o,const ClientNative
         if(!camera)return Status(o,ClientNativeStepState::Failed,"native_camera_allocation");
         camera->constructor(o->room); // 原生EH负责其已构造缓冲；异常时owner进入不确定态。
         o->camera=camera;o->room->_Camera=camera;
-        Vector focus(d.camera_x,d.camera_y);camera->SnapToPosition(focus);
+        if(!ClientCameraApply(camera,d.map.state.camera))return Status(o,ClientNativeStepState::Failed,"native_camera_values");
         ++o->prepare_phase;return Status(o,ClientNativeStepState::Progress,"native_camera_constructed");
       }
       case 4: {
