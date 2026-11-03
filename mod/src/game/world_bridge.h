@@ -46,6 +46,12 @@ struct WorldCapture final {
   std::uint64_t formal_loss=0;
   // 显式E2E仅保留最近一批不可用Grid身份诊断；不进入正式目标或生产日志。
   std::string e2e_grid_faults;
+#ifdef ISAACCS_E2E
+  // 正式consumer旁的测试转储缓冲；绝不被正式目标/调度读取。
+  std::deque<world::observation::ObservationEnvelope> e2e_entity_independent;
+  std::size_t e2e_entity_bytes=0;
+  bool e2e_entity_loss=false;
+#endif
   // 故障续测保留有界的实际创建/退休边，便于区分漏记取得与错误退休。
   std::deque<world::LifecycleEvent> e2e_grid_events;
   bool reserve_charged=false;

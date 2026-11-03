@@ -1,5 +1,8 @@
 # isaac-cs-test（临时 E2E 夹具）
 
+
+2026-11-03 tx-04-19：`tx19.lua`只在`tx=tx-04-19,node_role=Source`时处理F8场景，使用正式只读观测来源；Client仅注册必要测试身份，不生成Source实体。F9仅用于本次Source录制故障后解除冻结。Text经真实damage writer，Dummy明确为E2E专用池桥；不运行Slot捐款/支付。构建需`scripts/build.ps1 -E2E`，DLL在`out/repentogon/e2e`，产品拒绝E2E token且不含这些模块。统一运行入口是`scripts/run-tx-04-19.ps1`，它也执行18完整回归；每次启动单独提示准备/停止操作，I34前不得试跑。本轮夹具未执行。详见[实现／失败模型](../../../docs/design/tx-04-19/tx-04-19-e2e-integration.md)。
+
 2026-10-29 variant策略修订：用户要求Grid variant不作严格等值判定。请求仍显式传variant，但创建返回、跨帧到达、替换/删除前态及最终重建判定仅记录实际variant与先前观察值，不要求等于请求或固定0。位置、类型、seed、varData、自有标签/房间代次、删除后空格和原生身份链仍须满足；Entity Spawn/Morph规则不变。未重新测试。
 
 2026-10-29 Grid 当前行为：`grid_replace` 必须声明 `replacement_mode=remove_then_spawn`、PathTrail0、keep_decoration=false，只删除本房间夹具自建格。跨一个真实游戏帧、确认同格无对象/碰撞/路径阻挡，且 `Isaac.GetFreeNearPosition` 返回同格后，再用 `Room:SpawnGridEntity` 的显式 seed 创建 POOP(type14)。记录返回类型/值及类型/variant/seed/varData后态；`ToPoop()` 只验证便便派生接口，不把岩石变便便。一次删除与一次创建各有日志与DLL证据，失败不回滚、重试或找别的格；原生单次覆盖路径没有因此得到覆盖。详见[修正说明](../../../docs/design/tx-04-08/tx-04-08-grid-recreation-fix.md)。本次只修改与纯编译，未部署或测试。

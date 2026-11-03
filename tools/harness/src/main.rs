@@ -23,6 +23,7 @@ mod tx15;
 mod tx16;
 mod tx17;
 mod tx18;
+mod tx19;
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -321,14 +322,14 @@ impl Run {
         let mut content = json!({"schema":1,"enabled":enabled,"log_level":"info","trace_dir":"isaac-cs/traces",
             "control_port":{"enabled":enabled,"port":self.scenario["control_port"]},"host":{"default_port":self.scenario["host_port"].as_u64().unwrap_or(27090),
                 "bind_address":"127.0.0.1","peer_timeout_ms":self.scenario["peer_timeout_ms"].as_u64().unwrap_or(3000)}});
-        if self.report["tx"] == "tx-04-08" || self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" || self.report["tx"] == "tx-04-13" || self.report["tx"] == "tx-04-14" || self.report["tx"] == "tx-04-15" || (self.report["tx"] == "tx-04-17" || self.report["tx"] == "tx-04-18") {
+        if self.report["tx"] == "tx-04-08" || self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" || self.report["tx"] == "tx-04-13" || self.report["tx"] == "tx-04-14" || self.report["tx"] == "tx-04-15" || (self.report["tx"] == "tx-04-17" || (self.report["tx"] == "tx-04-18" || self.report["tx"] == "tx-04-19")) {
             content["world_record"] = json!({"enabled":enabled,
                 "output_dir":self.out.join("runtime-world"),"close_timeout_ms":self.scenario["close_timeout_ms"],
                 "e2e_token":self.report["token"]});
         }
         if self.report["tx"]=="tx-04-16" {content["host"]["bind_address"]=json!("0.0.0.0");}
         // tx12连续多次启动时PID可能复用；诊断文件放本次临时目录，不能覆盖/误收历史trace。
-        if self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-16" || (self.report["tx"]=="tx-04-17" || self.report["tx"]=="tx-04-18") {
+        if self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-16" || (self.report["tx"]=="tx-04-17" || (self.report["tx"]=="tx-04-18" || self.report["tx"]=="tx-04-19")) {
             let trace=self.out.join("runtime-trace").to_string_lossy().trim_start_matches(r"\\?\").replace('\\',"/");
             content["trace_dir"]=json!(trace);
         }
@@ -353,13 +354,15 @@ impl Run {
             self.out.join(format!("deployment-before-p{}",self.report["deploy_process"].as_u64().unwrap_or(1)))
         }else{self.out.join("deployment_before")};
         mkdir(&backup_root)?;
+        let flavor:Value=serde_json::from_str(&read(&self.repo.join("out/repentogon/e2e/build-flavor.json"))?).map_err(|e|e.to_string())?;
+        if flavor["flavor"]!="e2e"||flavor["e2e_tools"]!=true{return Err("E2E DLL build flavor required".into())}
         let mut targets = vec![
-            ("out/repentogon/zhlIsaacCS.dll", "Repentogon/zhlIsaacCS.dll"),
+            ("out/repentogon/e2e/zhlIsaacCS.dll", "Repentogon/zhlIsaacCS.dll"),
             ("ui/isaac-cs-ui", "mods/isaac-cs-ui"),
             ("tests/e2e-mods/isaac-cs-test", "mods/isaac-cs-test"),
         ];
         if self.report["tx"]=="tx-04-16" { targets.retain(|(_,dst)|!dst.ends_with("isaac-cs-test")); }
-        if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || (self.report["tx"]=="tx-04-17" || self.report["tx"]=="tx-04-18") { targets.push(("mod/observation/isaac-cs-observation","mods/isaac-cs-observation")); }
+        if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || (self.report["tx"]=="tx-04-17" || (self.report["tx"]=="tx-04-18" || self.report["tx"]=="tx-04-19")) { targets.push(("mod/observation/isaac-cs-observation","mods/isaac-cs-observation")); }
         if self.report["tx"]=="tx-04-14" && self.scenario["global_random"]!=true && self.scenario["native_random"]!=true { targets.push(("out/tx14-source/BOIStageAPI15-master","mods/stageapi15")); }
         let existing = self.game.join("Repentogon/isaac-cs/config.json");
         if existing.exists() {
@@ -393,16 +396,18 @@ impl Run {
                 .push(json!({"operation":"copy","source":s,"destination":d}));
         }
         self.deployed = true;
-        if self.report["tx"]=="tx-04-16" || (self.report["tx"]=="tx-04-17" || self.report["tx"]=="tx-04-18") {
+        if self.report["tx"]=="tx-04-16" || (self.report["tx"]=="tx-04-17" || (self.report["tx"]=="tx-04-18" || self.report["tx"]=="tx-04-19")) {
             // 本次UI是必要产品依赖，临时撤销旧disable.it；完整目录已由恢复journal备份。
             let marker=self.game.join("mods/isaac-cs-ui/disable.it");
             if marker.exists(){fs::remove_file(marker).map_err(|e|e.to_string())?;}
         }
         if matches!(
             self.report["tx"].as_str(),
-            Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13" | "tx-04-14" | "tx-04-15" | "tx-04-17" | "tx-04-18")
+            Some("tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13" | "tx-04-14" | "tx-04-15" | "tx-04-17" | "tx-04-18" | "tx-04-19")
         ) {
-            let config = if self.report["tx"] == "tx-04-18" {
+            let config = if self.report["tx"] == "tx-04-19" {
+                format!("return {{tx=\"tx-04-19\",token=\"{}\",node_role=\"{}\",scenes_json=[=[{}]=]}}\n",self.report["token"].as_str().ok_or("token")?,self.scenario["node_role"].as_str().ok_or("node role")?,serde_json::to_string(&self.scenario["scenes"]).map_err(|e|e.to_string())?)
+            } else if self.report["tx"] == "tx-04-18" {
                 let reused=if self.scenario["node_role"]=="Source"{if let Some(path)=self.scenario["source_run"].as_str(){
                     let values:Value=serde_json::from_str(&read(&PathBuf::from(path).join("source-progress.json"))?).map_err(|e|e.to_string())?;
                     self.scenario["source_reuse_prefix"].as_u64().unwrap_or(values.as_array().ok_or("Source progress array")?.len() as u64)
@@ -449,7 +454,7 @@ impl Run {
     }
     fn environment(&mut self) -> Result<()> {
         self.saves = Some(saves::SaveRoots::discover(self.save.clone())?);
-        if self.report["tx"]=="tx-04-17" || self.report["tx"]=="tx-04-18" {
+        if self.report["tx"]=="tx-04-17" || (self.report["tx"]=="tx-04-18" || self.report["tx"]=="tx-04-19") {
             let data=self.game.join("data");
             if data.is_dir(){self.saves.as_mut().unwrap().mod_data=Some(win32::ordinary_path(&data)?);}
         }
@@ -588,7 +593,7 @@ impl Run {
     }
     // 读取和清理使用同一归属路径；测试不能因PID重用删除历史记录。
     fn trace_file(&self,pid:u32)->PathBuf {
-        if self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-16" || (self.report["tx"]=="tx-04-17" || self.report["tx"]=="tx-04-18") { self.out.join("runtime-trace").join(format!("boot-{pid}.jsonl")) }
+        if self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-16" || (self.report["tx"]=="tx-04-17" || (self.report["tx"]=="tx-04-18" || self.report["tx"]=="tx-04-19")) { self.out.join("runtime-trace").join(format!("boot-{pid}.jsonl")) }
         else { self.game.join(format!("Repentogon/isaac-cs/traces/boot-{pid}.jsonl")) }
     }
     fn collect(&self, pid: u32, label: &str) -> Result<()> {
@@ -1079,7 +1084,7 @@ impl Run {
     // 所有场景在一个入口中顺序执行，不重试失败启动或失败验收。
     fn execute(&mut self) -> Result<()> {
         if self.report["tx"]=="tx-04-16" { return self.execute_tx16(); }
-        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" || self.report["tx"] == "tx-04-13" || self.report["tx"] == "tx-04-14" || self.report["tx"] == "tx-04-15" || (self.report["tx"] == "tx-04-17" || self.report["tx"] == "tx-04-18") { return self.execute_tx09(); }
+        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" || self.report["tx"] == "tx-04-13" || self.report["tx"] == "tx-04-14" || self.report["tx"] == "tx-04-15" || (self.report["tx"] == "tx-04-17" || (self.report["tx"] == "tx-04-18" || self.report["tx"] == "tx-04-19")) { return self.execute_tx09(); }
         if self.report["tx"] == "tx-04-08" { return self.execute_tx08(); }
         if self.report["tx"] == "tx-04-07" {
             return self.execute_tx07();
@@ -1110,7 +1115,7 @@ impl Run {
     // 清理先于报告分析，失败也关闭测试口并移除自己部署的夹具。
     fn finish(&mut self, result: Result<()>) -> Result<()> {
         if self.report["tx"]=="tx-04-16" { return self.finish_tx09(result); }
-        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" || self.report["tx"] == "tx-04-13" || self.report["tx"] == "tx-04-14" || self.report["tx"] == "tx-04-15" || (self.report["tx"] == "tx-04-17" || self.report["tx"] == "tx-04-18") { return self.finish_tx09(result); }
+        if self.report["tx"] == "tx-04-09" || self.report["tx"] == "tx-04-10" || self.report["tx"] == "tx-04-11" || self.report["tx"] == "tx-04-12" || self.report["tx"] == "tx-04-13" || self.report["tx"] == "tx-04-14" || self.report["tx"] == "tx-04-15" || (self.report["tx"] == "tx-04-17" || (self.report["tx"] == "tx-04-18" || self.report["tx"] == "tx-04-19")) { return self.finish_tx09(result); }
         if self.report["tx"] == "tx-04-08" { return self.finish_tx08(result); }
         if self.report["tx"] == "tx-04-07" {
             return self.finish_tx07(result);
@@ -1267,7 +1272,7 @@ fn entry() -> Result<()> {
     if args.get(0).map(String::as_str) != Some("e2e")
         || !matches!(
             args.get(1).map(String::as_str),
-            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13" | "tx-04-14" | "tx-04-15" | "tx-04-16" | "tx-04-17" | "tx-04-18")
+            Some("tx-04-04" | "tx-04-05" | "tx-04-06" | "tx-04-07" | "tx-04-08" | "tx-04-09" | "tx-04-10" | "tx-04-11" | "tx-04-12" | "tx-04-13" | "tx-04-14" | "tx-04-15" | "tx-04-16" | "tx-04-17" | "tx-04-18" | "tx-04-19")
         )
     {
         return Err("usage: harness e2e <tx-04-04|tx-04-05|tx-04-06|tx-04-07|tx-04-08> --game <game-root> --artifact-dir <new-directory> [--scenario <json>]".into());
@@ -1315,7 +1320,7 @@ fn entry() -> Result<()> {
         if !["diagnostic","production"].contains(&profile.as_str()) { return Err("unknown tx09 profile".into()); }
         scenario["production"] = json!(profile=="production");
     }
-    if args[1]=="tx-04-17" || args[1]=="tx-04-18" {
+    if args[1]=="tx-04-17" || (args[1]=="tx-04-18" || args[1]=="tx-04-19") {
         // 来源Host正常退出后，另启纯Client；避免合法Host延迟存档同步混入Client退出窗口。
         scenario["node_role"]=json!(option("--node-role").unwrap_or_else(||"Source".into()));
         if !["Source","Client"].contains(&scenario["node_role"].as_str().unwrap_or("")){return Err("tx17 node role".into());}

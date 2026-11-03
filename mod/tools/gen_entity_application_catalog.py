@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 from gen_replica_catalog import classify
-from replica_projection_policy import consumer_review
+from replica_projection_policy import consumer_review, ENTITY_COMPACT_CONSUMERS
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "mod/observation/isaac-cs-observation/entity-catalog.json"
@@ -126,6 +126,9 @@ def generate():
     return {"format": "isaac.cs.entity.application-catalog", "version": 1, "model_version": 2,
             "target_contract": "entity-target-v1", "source_contract": "entity-source-v1", "members": rows,
             "common_native": common_native, "class_native": class_native,
+            "projection_consumer_review": {"task": "I31", "compact_sources": ENTITY_COMPACT_CONSUMERS,
+                "retained_parameter_queries": ["EntityBomb.GetCostumeLayerSprite", "Sprite.HasCustomShader", "Sprite.HasCustomChampionShader", "LayerState.HasCustomShader", "LayerState.HasCustomChampionShader"],
+                "graph": "one closed graph per complete component;no new Sprite alias", "runtime_acceptance": "I34-pending"},
             "class_execution": {"registered": ["NPC", "Delirium-special", "Tear", "Projectile", "Bomb", "Laser", "Knife", "Pickup", "Familiar", "Effect", "Slot1..18", "NativeText", "NativeDummy"],
                                 "model": "mod/src/game/client_entity_class_model.cpp", "native": "mod/src/game/client_entity_adapters_native.cpp",
                                 "resources": "main/overlay/layers/exact-phase/champion-color/shader;NPC two ANM;Tear three ANM;Bomb five costumes;Knife shared DeadEye;Pickup price/alternate;Slot prize;five typed ExtraData families",
@@ -135,10 +138,10 @@ def generate():
                                 "owned_presentations": "Familiar48 IsaacsBody/231 AbyssLocust;Effect108 MrMe/166 SpriteTrail/191 PickupGhost;real native shared-owner and constructors/destructors",
                                 "npc_compound_draw": "835 references+path;906/920 child ANM;921 C04 secondary path;C18 retained independently;951:3 full path;965:10 named Player minecart offset",
                                 "native_type_context": "ordinary Source/preflight/frame require Game Deathmatch state <2;835 path reads only real NPC Type10..999;Player C28 belongs to ANM2 layerCount, never a path",
-                                "scene_commit": "I29-pending", "native_draw_dispatch": "I25 implemented;dynamic main/shadow/noarg post/Room-light;water indirect hooks;Authority frame RNG borrow;final Abyss ANM;Text font", "runtime_acceptance": "I34-pending"},
+                                "scene_commit": "I29-single-Scene-commit;non-Player-range-only", "native_draw_dispatch": "I25 implemented;dynamic main/shadow/noarg post/Room-light;water indirect hooks;Authority frame RNG borrow;final Abyss ANM;Text font", "runtime_acceptance": "I34-pending"},
             "common_execution": {"tasks": "I05-I09", "plan": "mod/src/replica/entity_plan.cpp:PlanEntityTarget",
                                  "executor": "mod/src/game/client_objects.cpp:ClientObjects;mod/src/game/client_objects_native.cpp:FormalExecute",
-                                 "class_native_apply": False, "scene_commit": "I29-pending", "runtime_acceptance": "I34-pending"},
+                                 "class_native_apply": False, "scene_commit": "I29-single-Scene-commit;non-Player-range-only", "runtime_acceptance": "I34-pending"},
             # I04研究索引是资料与采用约束，不把静态审阅升级为原生支持或运行通过。
             "static_research": json.loads(RESEARCH.read_text(encoding="utf-8-sig")),
             "classes": [{"source_class": c, "category": d[0], "task": d[1], "contract": d[2], "e2e": d[3], "adapter_registered": c in {"EntityNPC", "EntityDelirium", "EntityTear", "EntityProjectile", "EntityBomb", "EntityLaser", "EntityKnife", "EntityPickup", "EntityFamiliar", "EntityEffect", "EntitySlot", "NativeText", "NativeDummy"}, "native_apply": False} for c, d in CLASSES.items()],

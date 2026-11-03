@@ -9,13 +9,13 @@ fn drawn(s:&Status)->u64{s.get("client.dispatch.presentation_draw").and_then(|v|
 fn backdrop_skipped(s:&Status)->u64{s.get("client.dispatch.backdrop_effects").and_then(|v|v.split(',').nth(1)).and_then(|v|v.parse().ok()).unwrap_or(0)}
 fn rev(v:&Value)->u64{v["revision"].as_str().and_then(|v|v.parse().ok()).unwrap_or(0)}
 // 产品内容检查只读普通文件；清单和默认配置在同一整体E2E中检查。
-fn product_files(root:&std::path::Path,at:&std::path::Path,out:&mut Vec<std::path::PathBuf>)->Result<()> {
+pub(super) fn product_files(root:&std::path::Path,at:&std::path::Path,out:&mut Vec<std::path::PathBuf>)->Result<()> {
  for item in std::fs::read_dir(at).map_err(|e|e.to_string())? {let item=item.map_err(|e|e.to_string())?;let kind=item.file_type().map_err(|e|e.to_string())?;
   if kind.is_symlink(){return Err("product symlink".into())}if kind.is_dir(){product_files(root,&item.path(),out)?}else{out.push(item.path().strip_prefix(root).map_err(|e|e.to_string())?.to_path_buf());if out.len()>4096{return Err("product file budget".into())}}
  }Ok(())
 }
 // 具名恶意值只在E2E目标内修改；全部经过正式codec和Client入口，不能直接写SDK。
-fn revision(v:&mut Value,r:u64){v["revision"]=json!(r.to_string());
+pub(super) fn revision(v:&mut Value,r:u64){v["revision"]=json!(r.to_string());
  for (_,c) in v["components"].as_object_mut().unwrap(){c["version"]=json!(r.to_string());}
  fn refs(v:&mut Value,r:u64){match v{Value::Object(o)=>{if o.contains_key("required_revision"){o.insert("required_revision".into(),json!(r.to_string()));}for v in o.values_mut(){refs(v,r)}},Value::Array(a)=>for v in a{refs(v,r)},_=>()}}
  refs(&mut v["components"],r);
@@ -35,7 +35,7 @@ impl Run {
   self.wait_tx18(g,c,label,|s|n(s,"client_world_applied")==1&&n(s,"client.applied_revision")==r)
  }
  // 不接受任意文件变化作为Host合法进度；Client单独基线覆盖从Begin到窗口正常关闭。
- fn files_tx18(&mut self,name:&str)->Result<Value>{
+ pub(super) fn files_tx18(&mut self,name:&str)->Result<Value>{
   self.snapshot(name)?;let changes=crate::saves::changes(&self.out.join("client_before"),&self.out.join(name))?;
   if changes.as_array().ok_or("file changes")?.iter().any(|v|v["bytes_changed"]==true&&!matches!(v["path"].as_str(),Some("documents/log.txt"|"documents/options.ini"))){return Err(format!("Client progress changed: {changes}"))}Ok(changes)
  }

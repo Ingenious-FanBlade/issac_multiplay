@@ -458,6 +458,9 @@ def check_unique(legacy, world, problems):
         if len(rows) == 1:
             continue
         names = {row['id'] for row in rows}
+        # E2E主动选择位于官方New和观察内层；观察super次数与生产透传不变。
+        if rva == 0x2EC540 and names == {'e2e_dummy_acquire','world_factory'}:
+            continue
         if all(row['kind'] == 'legacy' for row in rows) and \
                 ALLOWED_SAME_RVA.get(rva) == names:
             continue
@@ -479,6 +482,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "game/client_grid_native.h"
 #include "game/client_presentation_native.h"
 #include "game/client_entity_draw_native.h"
+#include "game/client_entity_e2e.h"
 #include "game/world_sources/loot.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/world_sources/global_random.h"
@@ -497,6 +501,7 @@ struct CsButtonMaps {};
 // tx-04-07 只读观察组的 ABI 替身：只用于成员指针类型，不构造对象。
 struct CsEntity {};
 struct CsSoundEffects {};
+struct CsEntityE2EFactory {};
 struct CsGame {};
 struct CsManager {};
 struct CsGameState {};
@@ -637,6 +642,14 @@ def legacy_body(row):
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                 '    auto result=super();',
                 '    observation.Returned(result);',
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);',
+                '    return result;']
+    if ident == 'e2e_dummy_acquire':
+        return ['    void *value=nullptr;',
+                '    // 专用E2E主动获取；观察wrapper仍各调用super一次。正式构建恒透传。',
+                '    if(cs::game::ClientTestDummyAcquire(this,type,force,value)) return static_cast<Entity *>(value);',
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    auto *result=super(type,force);',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);',
                 '    return result;']
     if ident == 'client_entity_local_sound':

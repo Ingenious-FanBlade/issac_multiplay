@@ -1,3 +1,4 @@
+#ifdef ISAACCS_E2E
 #include "IsaacRepentance.h"
 #include "game/world_sources/random_sources.h"
 #include "runtime.h"
@@ -65,3 +66,5 @@ std::string TestNativeRandomSources(const char *token,const char *mode,unsigned 
   throw std::runtime_error("unknown_native_random_test");
 }
 }
+
+#endif

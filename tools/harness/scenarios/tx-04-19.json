@@ -1,0 +1,551 @@
+{
+  "description": "tx-04-19 E01-E26 unified real Source/cold Client; I34 only; exact non-Player range; recording off; tx18 regression orchestrated by run-tx-04-19.ps1",
+  "control_port": 27091,
+  "host_port": 27090,
+  "peer_timeout_ms": 30000,
+  "startup_timeout_seconds": 90,
+  "close_timeout_ms": 10000,
+  "key_settle_ms": 900,
+  "to_file_select": [
+    "ENTER"
+  ],
+  "open_character_menu": [
+    "ENTER"
+  ],
+  "start_run": [
+    "ENTER"
+  ],
+  "scenes": [
+    {
+      "label": "baseline",
+      "kind": "setup",
+      "covers": [
+        "E01",
+        "E20",
+        "E26"
+      ]
+    },
+    {
+      "label": "npc",
+      "kind": "npc",
+      "covers": [
+        "E02",
+        "E15",
+        "E18"
+      ]
+    },
+    {
+      "label": "npc-change",
+      "kind": "change",
+      "covers": [
+        "E02",
+        "E15",
+        "E18"
+      ]
+    },
+    {
+      "label": "npc-relations",
+      "kind": "relations",
+      "covers": [
+        "E15"
+      ]
+    },
+    {
+      "label": "npc-clear-relations",
+      "kind": "clear-relations",
+      "covers": [
+        "E15"
+      ]
+    },
+    {
+      "label": "npc-dead-existing",
+      "kind": "dead",
+      "covers": [
+        "E02",
+        "E16",
+        "E17"
+      ]
+    },
+    {
+      "label": "npc-morph",
+      "kind": "morph",
+      "covers": [
+        "E02",
+        "E16"
+      ]
+    },
+    {
+      "label": "delirium",
+      "kind": "delirium",
+      "covers": [
+        "E03"
+      ]
+    },
+    {
+      "label": "delirium-change",
+      "kind": "delirium-morph",
+      "covers": [
+        "E03",
+        "E16"
+      ]
+    },
+    {
+      "label": "tear-projectile",
+      "kind": "tear-projectile",
+      "covers": [
+        "E04",
+        "E18"
+      ]
+    },
+    {
+      "label": "tear-change",
+      "kind": "change",
+      "covers": [
+        "E04",
+        "E18"
+      ]
+    },
+    {
+      "label": "bomb",
+      "kind": "bomb",
+      "covers": [
+        "E05",
+        "E18"
+      ]
+    },
+    {
+      "label": "bomb-change",
+      "kind": "change",
+      "covers": [
+        "E05",
+        "E18"
+      ]
+    },
+    {
+      "label": "bomb-remove",
+      "kind": "remove",
+      "covers": [
+        "E05",
+        "E16"
+      ]
+    },
+    {
+      "label": "laser-straight",
+      "kind": "laser",
+      "covers": [
+        "E06",
+        "E18"
+      ],
+      "mode": "straight"
+    },
+    {
+      "label": "laser-circle",
+      "kind": "laser",
+      "covers": [
+        "E06",
+        "E18"
+      ],
+      "mode": "circle"
+    },
+    {
+      "label": "laser-curve",
+      "kind": "laser",
+      "covers": [
+        "E06",
+        "E18"
+      ],
+      "mode": "curve"
+    },
+    {
+      "label": "laser-sample",
+      "kind": "laser",
+      "covers": [
+        "E06",
+        "E18"
+      ],
+      "mode": "sample"
+    },
+    {
+      "label": "laser-chain",
+      "kind": "laser",
+      "covers": [
+        "E06",
+        "E18"
+      ],
+      "mode": "chain"
+    },
+    {
+      "label": "laser-clear",
+      "kind": "clear",
+      "covers": [
+        "E06",
+        "E16"
+      ]
+    },
+    {
+      "label": "knife",
+      "kind": "knife",
+      "covers": [
+        "E07",
+        "E15"
+      ]
+    },
+    {
+      "label": "knife-out",
+      "kind": "knife-out",
+      "covers": [
+        "E07"
+      ]
+    },
+    {
+      "label": "knife-return",
+      "kind": "knife-return",
+      "covers": [
+        "E07"
+      ]
+    },
+    {
+      "label": "pickup",
+      "kind": "pickup",
+      "covers": [
+        "E08"
+      ]
+    },
+    {
+      "label": "pickup-cycle",
+      "kind": "pickup-cycle",
+      "covers": [
+        "E08"
+      ]
+    },
+    {
+      "label": "pickup-morph",
+      "kind": "pickup-morph",
+      "covers": [
+        "E08",
+        "E16"
+      ]
+    },
+    {
+      "label": "pickup-remove",
+      "kind": "remove",
+      "covers": [
+        "E08",
+        "E16"
+      ]
+    },
+    {
+      "label": "familiar",
+      "kind": "familiar",
+      "covers": [
+        "E09",
+        "E18"
+      ]
+    },
+    {
+      "label": "familiar-owner",
+      "kind": "familiar-owner",
+      "covers": [
+        "E09",
+        "E15"
+      ]
+    },
+    {
+      "label": "effects",
+      "kind": "effects",
+      "covers": [
+        "E10",
+        "E18"
+      ]
+    },
+    {
+      "label": "effect-change",
+      "kind": "change",
+      "covers": [
+        "E10",
+        "E18"
+      ]
+    },
+    {
+      "label": "slot-1",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 1
+    },
+    {
+      "label": "slot-2",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 2
+    },
+    {
+      "label": "slot-3",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 3
+    },
+    {
+      "label": "slot-4",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 4
+    },
+    {
+      "label": "slot-5",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 5
+    },
+    {
+      "label": "slot-6",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 6
+    },
+    {
+      "label": "slot-7",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 7
+    },
+    {
+      "label": "slot-8",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 8
+    },
+    {
+      "label": "slot-9",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 9
+    },
+    {
+      "label": "slot-10",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 10
+    },
+    {
+      "label": "slot-11",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 11
+    },
+    {
+      "label": "slot-12",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 12
+    },
+    {
+      "label": "slot-13",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 13
+    },
+    {
+      "label": "slot-14",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 14
+    },
+    {
+      "label": "slot-15",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 15
+    },
+    {
+      "label": "slot-16",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 16
+    },
+    {
+      "label": "slot-17",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 17
+    },
+    {
+      "label": "slot-18",
+      "kind": "slot",
+      "covers": [
+        "E11",
+        "E18"
+      ],
+      "variant": 18
+    },
+    {
+      "label": "slot-results",
+      "kind": "slot-results",
+      "covers": [
+        "E12"
+      ]
+    },
+    {
+      "label": "slot-destroyed",
+      "kind": "slot-destroyed",
+      "covers": [
+        "E12",
+        "E16"
+      ]
+    },
+    {
+      "label": "text",
+      "kind": "native-text",
+      "covers": [
+        "E13"
+      ]
+    },
+    {
+      "label": "dummy",
+      "kind": "native-dummy",
+      "covers": [
+        "E13"
+      ]
+    },
+    {
+      "label": "lifted",
+      "kind": "lifted",
+      "covers": [
+        "E14"
+      ]
+    },
+    {
+      "label": "lifted-change",
+      "kind": "lifted-change",
+      "covers": [
+        "E14"
+      ]
+    },
+    {
+      "label": "lifted-land",
+      "kind": "lifted-land",
+      "covers": [
+        "E14"
+      ]
+    },
+    {
+      "label": "short",
+      "kind": "short",
+      "covers": [
+        "E17"
+      ]
+    },
+    {
+      "label": "resources",
+      "kind": "resources",
+      "covers": [
+        "E18",
+        "E24"
+      ]
+    },
+    {
+      "label": "resource-change",
+      "kind": "change",
+      "covers": [
+        "E01",
+        "E18"
+      ]
+    },
+    {
+      "label": "resource-restore",
+      "kind": "restore",
+      "covers": [
+        "E01",
+        "E18"
+      ]
+    },
+    {
+      "label": "water",
+      "kind": "water",
+      "covers": [
+        "E18"
+      ],
+      "amount": 0.75
+    },
+    {
+      "label": "dry",
+      "kind": "water",
+      "covers": [
+        "E18"
+      ],
+      "amount": 0
+    },
+    {
+      "label": "queries",
+      "kind": "queries",
+      "covers": [
+        "E24"
+      ]
+    },
+    {
+      "label": "dense",
+      "kind": "dense",
+      "covers": [
+        "E25"
+      ]
+    },
+    {
+      "label": "final-clear",
+      "kind": "clear",
+      "covers": [
+        "E01",
+        "E16"
+      ]
+    }
+  ]
+}

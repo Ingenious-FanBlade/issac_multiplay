@@ -6,10 +6,14 @@ elseif(-not [IO.Path]::IsPathRooted($OutputDirectory)){$OutputDirectory=Join-Pat
 $packageTarget=[IO.Path]::GetFullPath($OutputDirectory)
 # 产品只采用显式清单；不从包含Rust/fixture程序的out目录整体复制，不覆盖已有安装树。
 if(Test-Path -LiteralPath $packageTarget){throw 'Product destination must be a new directory'}
+$flavor=Get-Content -LiteralPath (Join-Path $packageRepo 'out/repentogon/build-flavor.json') -Raw | ConvertFrom-Json
+if($flavor.format -ne 'isaac.cs.build' -or $flavor.version -ne 1 -or $flavor.flavor -ne 'product' -or $flavor.e2e_tools -ne $false){throw 'Product DLL build flavor required'}
 $packageFiles=@(
     @('out/repentogon/zhlIsaacCS.dll','Repentogon/zhlIsaacCS.dll'),
     @('out/repentogon/replication-catalog.json','Repentogon/isaac-cs/replication-catalog.json'),
-    @('out/repentogon/room-grid-application.json','Repentogon/isaac-cs/room-grid-application.json')
+    @('out/repentogon/room-grid-application.json','Repentogon/isaac-cs/room-grid-application.json'),
+    @('out/repentogon/entity-application.json','Repentogon/isaac-cs/entity-application.json'),
+    @('out/repentogon/build-flavor.json','Repentogon/isaac-cs/build-flavor.json')
 )
 foreach($entry in $packageFiles){if(-not (Test-Path -LiteralPath (Join-Path $packageRepo $entry[0]) -PathType Leaf)){throw "Missing product build input: $($entry[0])"}}
 foreach($entry in $packageFiles){

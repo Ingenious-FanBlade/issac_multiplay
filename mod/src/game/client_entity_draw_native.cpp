@@ -1,3 +1,4 @@
+#include "game/client_entity_e2e.h"
 #include "IsaacRepentance.h"
 #include "game/client_entity_draw_native.h"
 #include "game/client_entity_adapters.h"
@@ -167,6 +168,7 @@ ClientEntityFrameScope::~ClientEntityFrameScope(){
   if(frame==state_)frame=nullptr;delete state;
 }
 ClientEntityDrawScope::ClientEntityDrawScope(void *pointer,void *offset,unsigned pass){
+  ClientEntityTestMeasure measure("draw_prepare");
   if(!IsMain()||!ClientBusy()||!frame)return;
   if(frame->uncertain){original_=false;return;}
   for(auto *p=draw;p;p=p->previous)if(p->entity==pointer){
@@ -176,6 +178,7 @@ ClientEntityDrawScope::ClientEntityDrawScope(void *pointer,void *offset,unsigned
   }
   const auto *d=ClientNativeObjectDrawDescription(pointer);
   if(!d||!d->full_entity||!d->derived){if(static_cast<Entity *>(pointer)->_type!=1){original_=false;ClientCallbackFault("entity_draw_unowned_subject");}return;}
+  if(ClientEntityTestFault("draw-before")){original_=false;ClientCallbackFault("draw-before");return;}
   auto state=std::make_unique<Draw>(*static_cast<Entity *>(pointer),*d,pass);state->Attach(*d);state_=state.release();
   if(pass==0&&d->category==11){original_=false;if(!offset)throw std::runtime_error("entity_text_draw_offset");Text(*static_cast<Entity *>(pointer),*d,*static_cast<Vector *>(offset));}
 }
@@ -185,6 +188,8 @@ ClientEntityDrawScope::~ClientEntityDrawScope(){
   try{auto &graphics=*__ptr_g_KAGE_Graphics_Manager;auto &depth=*reinterpret_cast<float *>(Base+0x7a4714);const auto next=depth;graphics.PresentWithoutSwap();depth=next;}
   catch(...){if(frame)frame->uncertain=true;ClientCallbackFault("entity_draw_cpu_use_uncertain");return;}
   delete static_cast<Draw *>(state_);
+  // 队列已消费、借用已归还，再注入可安全退休的正常返回失败。
+  if(ClientEntityTestFault("draw-after"))ClientCallbackFault("draw-after");
 }
 bool ClientEntityDrawPaused(bool &value) noexcept {if(!IsMain()||!frame)return false;value=frame->source.paused;return true;}
 bool ClientEntityDrawDrained() noexcept {return IsMain()&&!frame&&!draw;}

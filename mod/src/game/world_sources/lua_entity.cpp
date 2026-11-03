@@ -13,6 +13,9 @@
 #include <cstring>
 #include <cmath>
 namespace cs::game {
+#ifdef ISAACCS_E2E
+int ClientTestEntitySourceLua(lua_State *);
+#endif
 int ClientEntityGeometryLua(lua_State *);
 int ClientEntityOwnedPresentationLua(lua_State *);
 int ClientEntityNpcPresentationLua(lua_State *);
@@ -304,10 +307,12 @@ int PublishLocation(lua_State *L) {
 int CaptureContext(lua_State *L) { const auto s=ObservationCaptureContext(); lua_pushlstring(L,s.data(),s.size()); return 1; }
 int LuaGlobalRandomState(lua_State *L) { const auto s=ObservationGlobalRandomState();lua_pushlstring(L,s.data(),s.size());return 1; }
 int LuaNativeRandomSources(lua_State *L){const auto s=RandomSourcesSummary();lua_pushlstring(L,s.data(),s.size());return 1;}
+#ifdef ISAACCS_E2E
 int LuaTestNativeRandomSources(lua_State *L){
   try{const auto s=TestNativeRandomSources(luaL_checkstring(L,1),luaL_checkstring(L,2),unsigned(luaL_optinteger(L,3,0)),std::uint32_t(luaL_optinteger(L,4,1)));lua_pushlstring(L,s.data(),s.size());return 1;}
   catch(const std::exception &e){return luaL_error(L,"%s",e.what());}
 }
+#endif
 int LuaRegisterRandomSource(lua_State *L){
   auto *rng=lua::GetLuabridgeUserdata<RNG *>(L,1,lua::Metatables::RNG,"RNG");
   std::size_t n=0;const auto *owner=luaL_checklstring(L,2,&n);
@@ -317,6 +322,7 @@ int LuaRegisterRandomSource(lua_State *L){
   const auto s=RandomSourceReference(rng);lua_pushlstring(L,s.data(),s.size());return 1;
 }
 // 测试入口只在专用token配置中开放；动作由E2E夹具请求，正式采集器不推进随机源。
+#ifdef ISAACCS_E2E
 int TestGlobalRandom(lua_State *L) {
   const auto *token=luaL_checkstring(L,1);const auto count=luaL_checkinteger(L,2);
   if(!IsMain()||Settings.world_e2e_token.empty()||Settings.world_e2e_token!=token||count<0||count>1400)return luaL_error(L,"global_random_test_disabled_or_bounds");
@@ -331,6 +337,7 @@ int TestGlobalRandom(lua_State *L) {
   lua_newtable(L);for(lua_Integer i=1;i<=count;++i){lua_pushinteger(L,::Random());lua_rawseti(L,-2,i);}lua_setfield(L,-2,"results");
   const auto after=ObservationGlobalRandomState(true);lua_pushlstring(L,after.data(),after.size());lua_setfield(L,-2,"after");return 1;
 }
+#endif
 // 官方GetGenericPrompt对未构造userdata赋值复制ANM2；只借用活根，复制公开纯值，不复制C++对象。
 int PromptState(lua_State *L) {
   if(!IsMain()||!g_Game) { lua_pushnil(L); return 1; }
@@ -368,7 +375,16 @@ void EnsureObservationLuaBridge() noexcept {
   if(exists) return;
   RegisterRuntimeRandomFunctions();
   lua_newtable(L);
-  const luaL_Reg funcs[]={{"TestNativeRandomSources",LuaTestNativeRandomSources},{"NativeRandomSources",LuaNativeRandomSources},{"RegisterRandomSource",LuaRegisterRandomSource},{"GlobalRandomState",LuaGlobalRandomState},{"TestGlobalRandom",TestGlobalRandom},{"PromptState",PromptState},{"RelatedSubject",RelatedSubject},{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"SourceSnapshotToken",SourceSnapshotToken},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
+  const luaL_Reg funcs[]={
+#ifdef ISAACCS_E2E
+  {"TestNativeRandomSources",LuaTestNativeRandomSources},
+  {"TestEntitySource",ClientTestEntitySourceLua},
+#endif
+  {"NativeRandomSources",LuaNativeRandomSources},{"RegisterRandomSource",LuaRegisterRandomSource},{"GlobalRandomState",LuaGlobalRandomState},
+#ifdef ISAACCS_E2E
+  {"TestGlobalRandom",TestGlobalRandom},
+#endif
+  {"PromptState",PromptState},{"RelatedSubject",RelatedSubject},{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"SourceSnapshotToken",SourceSnapshotToken},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
   luaL_setfuncs(L,funcs,0);
   lua_pushcfunction(L,SpriteRuntimePose);lua_setfield(L,-2,"SpriteRuntimePose");
   lua_pushcfunction(L,LaserPresentation);lua_setfield(L,-2,"LaserPresentation");

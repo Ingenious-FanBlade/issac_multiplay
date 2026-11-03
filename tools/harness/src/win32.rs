@@ -28,6 +28,24 @@ pub fn keep_display_awake()->Result<DisplayAwake,String>{
     if previous==0{Err(error("SetThreadExecutionState"))}else{Ok(DisplayAwake(previous))}
 }
 impl Drop for DisplayAwake{fn drop(&mut self){unsafe{SetThreadExecutionState(self.0);}}}
+// E25进程级真实内存计数；只读查询，不把采样窗口外的峰值归因于单个Entity。
+#[repr(C)]
+#[derive(Default)]
+struct ProcessMemory {cb:u32,page_faults:u32,peak_working_set:usize,working_set:usize,
+ quota_peak_paged:usize,quota_paged:usize,quota_peak_nonpaged:usize,quota_nonpaged:usize,
+ pagefile:usize,peak_pagefile:usize,private_bytes:usize}
+#[link(name="kernel32")]
+unsafe extern "system" {
+ fn OpenProcess(access:u32,inherit:Bool,pid:u32)->Handle;
+ fn K32GetProcessMemoryInfo(process:Handle,counters:*mut ProcessMemory,size:u32)->Bool;
+}
+pub fn process_memory(pid:u32)->Result<Value,String>{unsafe{
+ let process=OpenProcess(0x410,0,pid);if process.is_null(){return Err(error("OpenProcess memory"))}
+ let mut m=ProcessMemory::default();m.cb=size_of::<ProcessMemory>() as u32;
+ let ok=K32GetProcessMemoryInfo(process,&mut m,size_of::<ProcessMemory>() as u32);CloseHandle(process);
+ if ok==0{return Err(error("GetProcessMemoryInfo"))}
+ Ok(json!({"working_set":m.working_set,"peak_working_set":m.peak_working_set,"private_bytes":m.private_bytes,"peak_pagefile":m.peak_pagefile,"scope":"whole process;not per-class allocation"}))
+}}
 #[repr(C)]
 #[derive(Default)]
 struct StartupInfo {

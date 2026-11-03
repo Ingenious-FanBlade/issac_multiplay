@@ -700,7 +700,7 @@ impl Run {
         Ok(())
     }
     pub(super) fn execute_tx09(&mut self) -> Result<()> {
-        let _display=if self.report["tx"]=="tx-04-18"{Some(win32::keep_display_awake()?)}else{None};
+        let _display=if (self.report["tx"]=="tx-04-18" || self.report["tx"]=="tx-04-19"){Some(win32::keep_display_awake()?)}else{None};
         if self.report["tx"]=="tx-04-12" { self.prepare_resume_tx12()?; }
         if self.report["tx"]=="tx-04-13" { self.prepare_resume_tx13()?; }
         if self.report["tx"]=="tx-04-14" { self.prepare_resume_tx14()?; }
@@ -729,7 +729,7 @@ impl Run {
         let game = self.launch("enabled")?;
         self.report["pid"] = json!(game.pid());
         let result =
-            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| if self.report["tx"]=="tx-04-18" { self.scenes_tx18(&game) } else if self.report["tx"]=="tx-04-17" { self.scenes_tx17(&game) } else if self.report["tx"]=="tx-04-15" { self.scenes_tx15(&game) } else if self.report["tx"]=="tx-04-14" { self.scenes_tx14(&game) } else if self.report["tx"]=="tx-04-13" { self.scenes_tx13(&game) } else if self.report["tx"]=="tx-04-12" { self.scenes_tx12(&game) } else if self.report["tx"]=="tx-04-11" { self.scenes_tx11(&game) } else if self.report["tx"]=="tx-04-10" { self.scenes_tx10(&game) } else { self.scenes_tx09(&game) }))
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| if self.report["tx"]=="tx-04-19" { self.scenes_tx19(&game) } else if self.report["tx"]=="tx-04-18" { self.scenes_tx18(&game) } else if self.report["tx"]=="tx-04-17" { self.scenes_tx17(&game) } else if self.report["tx"]=="tx-04-15" { self.scenes_tx15(&game) } else if self.report["tx"]=="tx-04-14" { self.scenes_tx14(&game) } else if self.report["tx"]=="tx-04-13" { self.scenes_tx13(&game) } else if self.report["tx"]=="tx-04-12" { self.scenes_tx12(&game) } else if self.report["tx"]=="tx-04-11" { self.scenes_tx11(&game) } else if self.report["tx"]=="tx-04-10" { self.scenes_tx10(&game) } else { self.scenes_tx09(&game) }))
                 .unwrap_or_else(|_| Err("tx09 scenario panic".into()));
         if let Err(e) = &result {
             self.capture_failure(&game, "enabled", e);
@@ -795,7 +795,7 @@ impl Run {
                     &self.out.join("save_before"),
                     &self.out.join("save_after"),
                 )?;
-                if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-16" || (self.report["tx"]=="tx-04-17" || self.report["tx"]=="tx-04-18") { self.save_fields_tx10(&mut changes)?; }
+                if self.report["tx"]=="tx-04-10" || self.report["tx"]=="tx-04-11" || self.report["tx"]=="tx-04-12" || self.report["tx"]=="tx-04-13" || self.report["tx"]=="tx-04-14" || self.report["tx"]=="tx-04-15" || self.report["tx"]=="tx-04-16" || (self.report["tx"]=="tx-04-17" || (self.report["tx"]=="tx-04-18" || self.report["tx"]=="tx-04-19")) { self.save_fields_tx10(&mut changes)?; }
                 else { self.apply_recorded_baseline_tx05(&mut changes)?; }
                 let allowed = changes
                     .as_array()
@@ -836,7 +836,7 @@ impl Run {
         if pass {
             if self.report["tx"]=="tx-04-16" && self.scenario["node_role"]!="Local" { return Ok(()); }
             // 17来源供后续独立Client使用；Client截图须由主审实际查看，完成整体验收后统一清理。
-            if self.report["tx"]=="tx-04-17" || self.report["tx"]=="tx-04-18" { return Ok(()); }
+            if self.report["tx"]=="tx-04-17" || (self.report["tx"]=="tx-04-18" || self.report["tx"]=="tx-04-19") { return Ok(()); }
             // 临时目录只由本次进程创建，先核定路径再删除；日志与备份没有永久artifact要求。
             let resolved = self.out.canonicalize().map_err(|e| e.to_string())?;
             // Windows canonicalize带\\?\前缀；父目录也须同样规范化后比较，不能混用普通路径。

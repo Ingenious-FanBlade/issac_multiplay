@@ -9,8 +9,8 @@ OMITTED_GROUPS = (
         "Sprite.GetAllAnimationData",
     ),
     (
-        "参数查询无当前Entity/Player应用器消费者；完整观测保留，19/20采用新字段时显式修订本清单",
-        "client_objects.cpp:Object/FieldsSupported只读取具名公共字段及代表Player统计；未通过参数查询构造或应用对象",
+        "I31逐类复核：非Player最终字段/关系/几何已有具名正式输入；下列派生按参查询不安装到Client；Player完整应用归20",
+        "I31:client_entity_model.cpp的Installed/具名关系、client_entity_class_model.cpp的Rules/Resource/Collection/ParseFields、client_entity_links.inc逐槽及client_entity_draw_native.cpp已复核。Flags直接取完整位集；EntityList/VectorList/EffectList由完整表替代Get；GetNullOffset/CollisionCapsule/OrbitPosition均不被安装器或draw调用；Bomb五层另行保留；Player20再复核",
         """
         BitSet128.Get EffectList.Get
         Entity.GetCollisionCapsule Entity.GetDebugShape Entity.GetNullCapsule
@@ -52,8 +52,8 @@ OMITTED_GROUPS = (
         """,
     ),
     (
-        "资源参数查询无消费者；本地动画数据及已保留逐实例姿态足以支持现有资源应用",
-        "client_resource_model.cpp:Layer/ClientParseResourcePose读取GetAllLayers和pose_runtime；client_resources_native.cpp:ExactPhase/SetPose安装精确selector。官方LuaSprite.cpp:LuaGetLayerFrameDataInternal仅按同一selector查本地AnimationData帧",
+        "I31：主/辅助/owned Sprite均使用GetAllLayers+精确pose_runtime+本地同版本ANM；不发送可由同selector本地查询的静态帧表",
+        "I31:ClientDescribeEntityClass::Pose/owned_sprite/NPC两ANM/Tear三ANM/Bomb五层/Knife DeadEye/Pickup双Sprite/Slot Prize与ClientEntityDrawScope均消费独立成员资源，未按path建立别名。client_resource_model.cpp:Layer/ClientParseResourcePose消费GetAllLayers/pose_runtime；client_resources_native.cpp:ExactPhase/SetPose安装selector；官方LuaSprite.cpp:LuaGetLayerFrameDataInternal按同selector读本地AnimationData帧",
         """
         AnimationData.GetLayer AnimationLayer.GetFrame Image.GetTexelRegion
         Sprite.GetAnimationData Sprite.GetLayer Sprite.GetLayerFrameData Sprite.GetNullFrame
@@ -97,7 +97,7 @@ OMITTED_GROUPS = (
     ),
     (
         "整局/HUD/音画参数查询无当前应用器消费者；随机选择不在Client重放",
-        "client_presentation.cpp/client_presentation_native.cpp消费正式presentation_runtime而非这些按参查询；完整HUD/整局应用归25/27，当前没有参数结果消费者",
+        "I31:client_presentation_native.cpp及client_entity_draw_native.cpp::Text消费presentation_runtime/同窗口application_draw/真实Font6；文本宽度在本地同版本Font按已知bytes计算，未消费观测Font按参枚举；HUD/整局归25/27",
         """
         Font.GetCharacterWidth Font.GetStringWidth Font.GetStringWidthUTF8
         Game.GetStateFlag Game.HasEncounteredBoss Game.IsErased
@@ -137,3 +137,16 @@ def consumer_review(member):
     if member in OMITTED_MEMBERS:
         return OMITTED_MEMBERS[member][1]
     return RETAINED_QUERIES.get(member, "未声明省略；沿用原归属，新增消费者须逐成员复核")
+
+
+# I31保留的紧凑正式来源：它们不是Sprite别名，也不是夹具补值。
+ENTITY_COMPACT_CONSUMERS = {
+    "Entity.application_draw": "ClientEntityFrameScope;ClientEntityDrawScope;ordinary-window frame/subframe and two render RNG states",
+    "EntityNPC.application_npc": "ClientEntityNpcCollections;three complete independent deques, including typed EntityPtr links",
+    "EntityNPC.application_resources": "NPC overlay/effect real members;each owns exact resource_pose",
+    "Entity.application_links": "client_entity_links.inc;stable typed slots;Null kept;no EntityList.Get needed",
+    "EntityLaser.HomingLaser.application_geometry": "four complete owned containers and native scalar values;GetSamples/GetNonOptimizedSamples aliases cross-checked, never SampleLaser RPC",
+    "Entity.application_owned": "five typed ExtraData owners;independent ANM poses and SpriteTrail records",
+    "EntityEffect.GetGridEntityDesc": "Effect136 full LiftedGridTarget;Grid18 owner;no inferred source key",
+    "NativeText.application_text_bytes": "writer-witnessed bounded bytes+KColor20+ordinary application_draw;Font6 reads local metrics",
+}

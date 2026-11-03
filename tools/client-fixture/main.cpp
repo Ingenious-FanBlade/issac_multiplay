@@ -34,6 +34,11 @@ J Project(const J &source){auto m=r::Copy(source);auto &a=m.GetAllocator();V pro
 }
 }
 int main(int argc,char **argv){try{
+  if(argc==3&&std::string(argv[1])=="--capabilities"){
+    // 仅导出正式能力值，供同一实机E2E通过真实Negotiate验证版本拒绝。
+    std::ofstream output(argv[2],std::ios::binary);output<<r::Text(r::Capabilities());
+    if(!output)throw std::runtime_error("capability_write_failed");return 0;
+  }
   if(argc!=3)throw std::runtime_error("client-fixture <records.jsonl> <client-targets>");
   const std::filesystem::path root=argv[2];std::filesystem::create_directories(root);std::ifstream file(argv[1]);if(!file)throw std::runtime_error("capture_missing");
   std::vector<J> rows;J source;std::string window,line;std::unique_ptr<r::Registry> registry;r::Scope scope{};unsigned complete=0;

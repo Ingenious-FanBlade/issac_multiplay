@@ -1,3 +1,4 @@
+#include "game/client_entity_e2e.h"
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/client_objects_native.h"
@@ -617,6 +618,7 @@ void ClientNativeObjectsDestroy(ClientNativeObjects *o) noexcept {
   }
 }
 ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *o,const ClientNativeRoots &roots,const ClientObjectCommand &command) noexcept {
+  ClientEntityTestMeasure measure("native_object_step");
   if(!o||!Phase()||!Current(*o,roots))return Result(o,false,true,"objects_context_or_roots");
   if(o->uncertain||o->executing||o->abandoned)return Result(o,false,true,"objects_owner_uncertain_or_reentrant");
   if(!Graphics())return Result(o,false,false,"objects_graphics_or_cpu_inflight");
@@ -630,7 +632,22 @@ ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *o,const ClientN
   if(!read_only)o->committed=false;
   try {
     const auto &d=command.value;auto found=o->entries.find(d.key);
-    if(d.full_entity)ok=FormalExecute(*o,roots,command,reason);
+    if(d.full_entity){
+      const char *before=nullptr,*after=nullptr;
+      switch(command.operation){
+        case ClientObjectOperation::Acquire:before="acquire-before";after="acquire-after";break;
+        case ClientObjectOperation::Initialize:before="init-before";after="init-after";break;
+        case ClientObjectOperation::Fields:before="fields-before";after="fields-after";break;
+        case ClientObjectOperation::Resources:before="resources-before";after="resources-after";break;
+        case ClientObjectOperation::Publish:before="publish-before";after="publish-after";break;
+        case ClientObjectOperation::References:before="references-before";after="references-after";break;
+        case ClientObjectOperation::Check:before="check-before";after="check-after";break;
+        default:break;
+      }
+      // 正常返回后的注入保留真实已执行前缀；不伪造原生异常、不遗忘Acquire责任。
+      if(before&&ClientEntityTestFault(before)){reason=before;ok=false;}
+      else {ok=FormalExecute(*o,roots,command,reason);if(ok&&after&&ClientEntityTestFault(after)){reason=after;ok=false;}}
+    }
     else switch(command.operation){
       case ClientObjectOperation::Create:ok=Create(*o,d,reason);break;
       case ClientObjectOperation::Remove:

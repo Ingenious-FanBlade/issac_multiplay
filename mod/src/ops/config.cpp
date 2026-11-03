@@ -90,6 +90,9 @@ Config ReadConfig() {
         throw std::runtime_error("world_record.enabled");
       c.world_record_enabled = v["enabled"].GetBool();
       if (v.HasMember("e2e_token")) {
+#ifndef ISAACCS_E2E
+        throw std::runtime_error("e2e_token_requires_e2e_build");
+#endif
         const auto &token = v["e2e_token"];
         if (!token.IsString() || !token.GetStringLength() ||
             token.GetStringLength() > 96 ||

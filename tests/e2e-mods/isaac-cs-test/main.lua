@@ -1,3 +1,5 @@
+local tx19config=include("harness_config")
+if tx19config.tx=="tx-04-19" then include("tx19");return end
 -- 测试专用夹具；tx-04-05/06 临时配置启用跳帧与切房，tx-04-07 启用 B 死亡/复活/换层与激光观测。
 -- 本文件只用于 E2E，不是产品 gameplay mod；所有世界动作仅由 harness 通过 F8 显式触发。
 local fixture = RegisterMod("Isaac CS E2E fixture", 1)

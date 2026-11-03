@@ -1,3 +1,4 @@
+#include "game/client_entity_e2e.h"
 #include "game/client.h"
 #include "game/client_scene.h"
 #include "game/client_resources.h"
@@ -348,6 +349,12 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
     return "";
   } catch(...) {return "client_allocation";}
 }
+#ifdef ISAACCS_E2E
+// 只读后态借用仍由Scene唯一提交资格决定，不用DTO取代原生检查。
+std::string ClientTestInspect(const std::string &token) noexcept {
+  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||!client->fixture)return "ok=0\nerror=inspect_context\n";
+  return client->scene.TestInspect();
+}
 // 测试会话只替换目标来源；启动保护、原生应用、失败隔离及退休仍走同一正式 owner。
 const char *ClientTestBegin(const std::string &token,const replica::Scope &scope) noexcept {
   if(Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token)return "client_test_disabled";
@@ -411,7 +418,9 @@ std::string ClientTestExerciseVm(const std::string &token) noexcept {
     return "ok=1\nvm_exercise=1\n";
   }catch(...){return "ok=0\nerror=vm_exercise_exception\n";}
 }
+#endif
 bool ClientAdmitTarget(const replica::Scope &scope,std::uint64_t revision,const replica::Value &value) noexcept {
+  ClientEntityTestMeasure measure("target_parse_plan");
   if(!IsMain()||TopOwner()!=Owner::Manager||client_depth||!ClientBusy()||!client||
      (client->state!=State::AwaitingWorld&&!(client->fixture&&client->state==State::Failed)))return false;
   const bool admitted=client->scene.AdmitTarget(scope,revision,value);

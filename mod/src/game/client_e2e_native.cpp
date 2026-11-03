@@ -4,8 +4,70 @@
 #include "game/context.h"
 #include "game/world_sources/global_random.h"
 #include "runtime.h"
+#include "game/client_entity_e2e.h"
+#include "game/client_entity_adapters.h"
+#include "game/client_resource_model.h"
+#include "game/client_objects_native.h"
+#include <set>
 
 namespace cs::game {
+// 读真实已提交实例；逐类字段/容器/资源使用正式只读后态函数，不运行Update。
+std::string ClientTestInspectNative(const ClientNativeObjects *objects) noexcept {
+  if(!IsMain()||!ClientBusy())return "ok=0\nerror=inspect_native_context\n";
+  try {
+    struct State {replica::Json rows{rapidjson::kArrayType};std::set<void *> unique;std::vector<ClientEntityClassAdapter> adapters=ClientEntityBuiltinAdapters();const char *reason="inspect_native_failed";} state;
+    const auto visit=[](void *context,void *pointer,const ClientObjectKey &key,std::uint64_t instance,unsigned type) noexcept ->bool {
+      auto &s=*static_cast<State *>(context);
+      try {
+        const auto *d=ClientNativeObjectDrawDescription(pointer);
+        if(!d||!instance||!s.unique.insert(pointer).second)return false;
+        auto &e=*static_cast<Entity *>(pointer);
+        if(!e._valid||!e._exists||e._type!=int(type))return false;
+        if(d->full_entity&&d->category){
+          const ClientEntityClassAdapter *adapter=nullptr;for(const auto &a:s.adapters)if(a.category==d->category)adapter=&a;
+          if(!adapter||!ClientEntityCommonFields(pointer,d->common_fields,true,s.reason)||
+             !adapter->fields(adapter->context,pointer,*d,true,s.reason)||!adapter->resources(adapter->context,pointer,*d,true,s.reason))return false;
+        }
+        auto &a=s.rows.GetAllocator();replica::Value row(rapidjson::kObjectType);
+        replica::Put(row,"run",replica::Decimal(key.run,a),a);replica::Put(row,"id",replica::Decimal(key.id,a),a);
+        replica::Put(row,"instance",replica::Decimal(instance,a),a);replica::Put(row,"shape",replica::Decimal(d->shape_revision,a),a);
+        replica::Put(row,"category",replica::Value(d->category),a);replica::Put(row,"type",replica::Value(type),a);
+        replica::Put(row,"variant",replica::Value(e._variant),a);replica::Put(row,"exists",replica::Value(e._exists),a);
+        s.rows.PushBack(std::move(row),a);return true;
+      }catch(...){return false;}
+    };
+    if(!ClientNativeObjectsVisit(objects,&state,visit))return "ok=0\nerror="+std::string(state.reason)+"\n";
+    return "ok=1\nnative_checked=1\nobjects="+replica::Text(state.rows)+"\n";
+  }catch(...){return "ok=0\nerror=inspect_allocation\n";}
+}
+namespace {void *dummy_source_factory=nullptr;bool dummy_source_used=false;}
+// 仅在一个显式Source Lua调用栈内替换通用Factory选择；保留外层官方New/Init/Publish。
+bool ClientTestDummyAcquire(void *factory,unsigned type,bool,void *&result) noexcept {
+  if(!IsMain()||ClientBusy()||factory!=dummy_source_factory||!factory||type!=964)return false;
+  dummy_source_used=true;result=nullptr;
+  auto *pool=static_cast<unsigned char *>(factory)+0x675650;
+  for(unsigned i=0;i<128;++i){auto *e=reinterpret_cast<Entity *>(pool+i*0x410);
+    if(*reinterpret_cast<std::uintptr_t *>(e)!=Base+0x7181b8)return true;
+    if(!e->_valid&&!e->_exists){result=e;break;}
+  }
+  return true;
+}
+int ClientTestEntitySourceLua(lua_State *L){
+  const auto *token=luaL_checkstring(L,1),*kind=luaL_checkstring(L,2);
+  if(!IsMain()||ClientBusy()||!HostBusy()||Settings.world_e2e_token.empty()||Settings.world_e2e_token!=token||
+     std::strcmp(kind,"native-dummy")||!g_Game||!g_Game->_room||!g_Game->_entityFactory||dummy_source_factory)
+    return luaL_error(L,"entity_source_context_or_token");
+  Entity *value=nullptr;
+  try {
+    struct Scope {Scope(){dummy_source_factory=g_Game->_entityFactory;dummy_source_used=false;}~Scope(){dummy_source_factory=nullptr;}} scope;
+    const Vector position=g_Game->_room->GetCenterPos(),velocity(0,0);
+    // 正常Game::Spawn负责所有后续owner；该记录明确是E2E专用池桥，不冒充自然Dummy caller。
+    value=g_Game->Spawn(964,0,position,velocity,nullptr,0,191913,0);
+  }catch(...){return luaL_error(L,"entity_source_unknown_native_prefix;no_retry");}
+  if(!dummy_source_used||!value||*reinterpret_cast<std::uintptr_t *>(value)!=Base+0x7181b8||!value->_valid||!value->_exists)
+    return luaL_error(L,"entity_source_dummy_not_published");
+  lua_pushboolean(L,true);return 1;
+}
 void *ClientTestCreateVm() noexcept {return IsMain()&&!Settings.world_e2e_token.empty()?luaL_newstate():nullptr;}
 void ClientTestDestroyVm(void *state) noexcept {if(IsMain()&&state)lua_close(static_cast<lua_State *>(state));}
 // 失败方式：Hook漏接、一般Lua仍执行、PGD写前未隔离、玩法推进。只在专用E2E token开放。

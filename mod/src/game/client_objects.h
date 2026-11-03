@@ -30,6 +30,9 @@ public:
   ClientEntityBudget Budget() const noexcept {auto b=budget_;b.completed=unsigned(cursor_+player_cursor_);return b;}
   ClientObjectStep Retire(const ClientNativeRoots &) noexcept;
   bool Visit(void *context,ClientObjectVisitor visitor) const noexcept;
+#ifdef ISAACCS_E2E
+  std::string TestInspect() const noexcept;
+#endif
 private:
   ClientNativeObjects *native_=nullptr;
   std::vector<ClientObjectCommand> commands_;

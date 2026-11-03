@@ -10,7 +10,10 @@
 #include "game/topology.h"
 #include "game/world_bridge.h"
 #include "ops/world_commands.h"
+#ifdef ISAACCS_E2E
 #include "ops/client_fixture.h"
+#include "game/client_entity_e2e.h"
+#endif
 #include "replica/codec.h"
 #include "runtime.h"
 #include <algorithm>
@@ -87,7 +90,9 @@ std::string Execute(std::string_view text, const char *source) {
   } else if (verb == "observe") {
     in >> arg >> extra;
     result=extra.empty()?ObservationCommand(arg):"ok=0\nerror=arguments\n";
-  } else if (verb == "world_test") {
+  }
+#ifdef ISAACCS_E2E
+  else if (verb == "world_test") {
     std::string token, mode, generation_text, value_text, trailing;
     in >> token >> generation_text >> mode >> value_text >> trailing;
     std::uint32_t generation = 0, value = 0;
@@ -102,13 +107,18 @@ std::string Execute(std::string_view text, const char *source) {
   } else if (verb == "client_test") {
     // 测试口只接收专用目录内的正式纯值模型；没有任意原生写入或执行脚本能力。
     std::string token,mode,label,trailing;in>>token>>mode>>label>>trailing;
-    if(mode=="sampling"&&trailing.empty())result=ClientFixtureSampling(token,label);
+    if(mode=="fault"&&trailing.empty())result=game::ClientEntityTestArm(token,label);
+    else if(mode=="fault-status"&&label.empty())result=game::ClientEntityTestStatus(token);
+    else if(mode=="inspect"&&label.empty())result=game::ClientTestInspect(token);
+    else if(mode=="independent"&&trailing.empty())result=ImportClientIndependent(token,label);
+    else if(mode=="export19"&&trailing.empty())result=ExportClientFixture(token,label,true);
+    else if(mode=="sampling"&&trailing.empty())result=ClientFixtureSampling(token,label);
     else if(mode=="export"&&trailing.empty())result=ExportClientFixture(token,label);
     else if(mode=="exercise"&&label=="native"&&trailing.empty())result=game::ClientTestExerciseNative(token);
     else if(mode=="exercise"&&label=="ownership"&&trailing.empty())result=game::ClientTestExerciseOwnership(token);
     else if(mode=="exercise"&&label=="vm"&&trailing.empty())result=game::ClientTestExerciseVm(token);
     else if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||
-       token!=Settings.world_e2e_token||!trailing.empty()||(mode!="preflight"&&mode!="begin"&&mode!="begin-cancel"&&mode!="begin-cancel-native"&&mode!="begin-cancel-grid"&&mode!="begin-cancel-display"&&mode!="target")||
+       token!=Settings.world_e2e_token||!trailing.empty()||(mode!="negotiate"&&mode!="preflight"&&mode!="begin"&&mode!="begin-cancel"&&mode!="begin-cancel-native"&&mode!="begin-cancel-grid"&&mode!="begin-cancel-display"&&mode!="target")||
        label.empty()||label.size()>64||label.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-_")!=std::string::npos)
       result="ok=0\nerror=client_fixture_arguments\n";
     else try {
@@ -117,11 +127,15 @@ std::string Execute(std::string_view text, const char *source) {
       if(path.parent_path()!=root||std::filesystem::file_size(path)>(32u<<20))throw std::runtime_error("client_fixture_path_or_budget");
       std::ifstream file(path,std::ios::binary);if(!file)throw std::runtime_error("client_fixture_read");
       std::string text((std::istreambuf_iterator<char>(file)),{});auto model=replica::Parse(text);
+      if(mode=="negotiate"){
+        try{auto result_caps=replica::Negotiate(replica::Capabilities(),model);result="ok=1\naccepted=1\n";}
+        catch(const std::exception &e){result="ok=1\naccepted=0\nreason="+std::string(e.what())+"\n";}
+      }else {
       // E2E投影说明是本地元数据，不扩展15的Baseline协议字段；实际目标完整走codec。
       replica::Json profile;const bool projected=model.HasMember("client_profile");
       if(projected){profile=replica::Copy(model["client_profile"]);model.RemoveMember("client_profile");}
       const auto sequence=replica::Unsigned(model["revision"]);
-      model=replica::Decode(replica::Encode({replica::Kind::Baseline,sequence,std::move(model)})).body;
+      {game::ClientEntityTestMeasure measure("codec_baseline");model=replica::Decode(replica::Encode({replica::Kind::Baseline,sequence,std::move(model)})).body;}
       if(projected){replica::Value v;v.CopyFrom(profile,model.GetAllocator());replica::Put(model,"client_profile",std::move(v),model.GetAllocator());}
       replica::ValidateModel(model);const auto scope=replica::ReadScope(model["scope"]);
       const auto revision=replica::Unsigned(model["revision"]);
@@ -145,8 +159,11 @@ std::string Execute(std::string_view text, const char *source) {
         }
       }
       }
+      }
     }catch(const std::exception &e){result="ok=0\nerror="+std::string(e.what())+"\n";}
-  } else if (verb == "client") {
+  }
+#endif
+  else if (verb == "client") {
     // 地址和设备key只作连接配置；Client不在本机创建Player或载入Continue。
     std::string address, port_text, key_text, trailing;
     in >> address >> port_text >> key_text >> trailing;

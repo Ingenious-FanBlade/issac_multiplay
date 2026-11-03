@@ -2,6 +2,12 @@
 #include "game/world_bridge.h"
 #include "game/context.h"
 #include "replica/model.h"
+#include "replica/entity_target.h"
+#include "replica/codec.h"
+#include "game/bridge.h"
+#include "game/client.h"
+#include "game/client_entity_events.h"
+#include "game/world_sources/lua_entity.h"
 #include "runtime.h"
 #include <filesystem>
 #include <fstream>
@@ -10,9 +16,10 @@
 namespace cs {
 // 续测准备期降低纯值采样频率；生命周期Hook/身份表持续工作，Authority从不等待采样。
 std::string ClientFixtureSampling(const std::string &token,const std::string &mode) noexcept {
-  if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||(mode!="prepare"&&mode!="capture"))return "ok=0\nerror=fixture_sampling_arguments\n";
+  if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||(mode!="prepare"&&mode!="capture"&&mode!="capture19"))return "ok=0\nerror=fixture_sampling_arguments\n";
   const auto c=game::CurrentWorldRecording();if(!c||!c->formal_consumer||c->recorder_consumer)return "ok=0\nerror=fixture_sampling_consumer\n";
-  try{auto plan=c->observation.Plan();for(auto &d:plan.domains)d.interval=mode=="prepare"?1000000:30;
+  try{if(mode=="capture"||mode=="capture19"){c->e2e_entity_independent.clear();c->e2e_entity_bytes=0;c->e2e_entity_loss=false;}
+    auto plan=c->observation.Plan();for(auto &d:plan.domains)d.interval=mode=="prepare"?1000000:mode=="capture19"?1:30;
     const auto r=c->observation.UpdateCapturePlan(1,std::move(plan));return r.accepted?"ok=1\nsampling_updated=1\n":"ok=0\nerror="+std::string(r.reason)+"\n";
   }catch(...){return "ok=0\nerror=fixture_sampling_allocation\n";}
 }
@@ -57,10 +64,12 @@ void Save(const std::filesystem::path &path,const replica::Value &v){
 }
 // 失败模型：关闭录制、混采样窗、Partial、旧epoch、未支持Entity及写盘失败均可区分。
 // 此同步文件出口仅在显式E2E token下运行；生产consumer不依赖它，后台不持有游戏指针。
-std::string ExportClientFixture(const std::string &token,const std::string &label) noexcept {
+std::string ExportClientFixture(const std::string &token,const std::string &label,bool entity19) noexcept {
   if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||label.empty()||label.size()>48||label.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-_")!=std::string::npos)return "ok=0\nerror=fixture_export_arguments\n";
   try {
     const auto c=game::CurrentWorldRecording();if(!c||!c->formal_consumer)throw replica::ContractError("fixture_formal_consumer_unavailable");
+    const auto token_at_export=game::ObservationSourceSnapshotToken();
+    if(entity19&&token_at_export.empty())throw replica::ContractError("fixture_same_window_unavailable");
     const auto &ctx=c->latest_room.context;
     if(ctx.phase!=world::observation::Phase::OrdinaryPost||!ctx.run.value.local||!ctx.room.value.local||!ctx.floor.value.local||!ctx.dimension.value.local)throw replica::ContractError("fixture_scope_unavailable");
     replica::Scope scope{ctx.session,1,ctx.run.value.local,ctx.floor.value.local,ctx.dimension.value.local,ctx.room.value.local,ctx.room.value.local};
@@ -68,9 +77,9 @@ std::string ExportClientFixture(const std::string &token,const std::string &labe
     const auto identity=token+":"+std::to_string(ctx.epoch)+":"+std::to_string(scope.run);
     if(owner!=identity){registry=std::make_unique<replica::Registry>(scope.session,scope.run);owner=identity;revision=0;}
     if(revision==UINT64_MAX)throw replica::ContractError("fixture_revision_exhausted");
-    std::vector<replica::Json> rows;
+    std::vector<replica::Json> rows;std::size_t raw_bytes=0;
     const auto envelope=[&](const world::observation::ObservationEnvelope &e){const auto raw=world::observation::EncodeEnvelope(e);
-      try{rows.push_back(replica::Parse(raw));}catch(const std::exception &error){
+      try{raw_bytes+=raw.size();rows.push_back(replica::Parse(raw));}catch(const std::exception &error){
         const auto root=std::filesystem::path(Settings.world_output_dir)/"client-targets";std::filesystem::create_directories(root);
         std::ofstream f(root/("source-envelope-"+label+"-"+std::to_string(unsigned(e.domain))+".json"),std::ios::binary);f.write(raw.data(),raw.size());
         throw replica::ContractError("fixture_envelope_domain="+std::to_string(unsigned(e.domain))+":bytes="+std::to_string(raw.size())+":"+error.what());
@@ -88,9 +97,63 @@ std::string ExportClientFixture(const std::string &token,const std::string &labe
         if(std::string(i->value["coverage"].GetString())!="Complete"&&std::string(i->value["coverage"].GetString())!="NotApplicable")error+=":"+std::string(i->name.GetString())+":"+replica::Text(i->value["reasons"]);
       throw replica::ContractError(error);
     }
-    Save(root/("source-full-"+label+".json"),model);ProjectEntity(model);replica::ValidateModel(model);
+    Save(root/("source-full-"+label+".json"),model);
+    const auto projection_bytes=replica::Text(model).size();
+    if(entity19){
+      // 不删墓碑、不筛活对象、不裁非Player字段；所有19消费者使用同一正式目标。
+      const auto target=replica::ParseEntityTarget(model);
+      replica::Value profile(rapidjson::kObjectType);auto &a=model.GetAllocator();
+      replica::Put(profile,"id","tx-04-19-non-player-v1",a);
+      replica::Put(profile,"source","same-window formal CaptureRows;complete entity projection retained",a);
+      replica::Put(profile,"scope","all non-Player;ordinary Isaac support only;full Player=tx-04-20;not all-domain Applied",a);
+      replica::Put(profile,"source_members",replica::Value(target.source_member_count),a);
+      replica::Put(profile,"player_members",replica::Value(unsigned(target.player_keys.size())),a);
+      replica::Put(model,"client_profile",std::move(profile),a);
+      replica::Json original(rapidjson::kArrayType);for(const auto &row:rows){replica::Value v;v.CopyFrom(row,original.GetAllocator());original.PushBack(std::move(v),original.GetAllocator());}
+      Save(root/("observation-"+label+".json"),original);
+      replica::Json metric(rapidjson::kObjectType);auto &ma=metric.GetAllocator();
+      replica::Put(metric,"capture_token",token_at_export,ma);
+      replica::Put(metric,"raw_observation_bytes",replica::Decimal(raw_bytes,ma),ma);
+      replica::Put(metric,"replica_projection_bytes",replica::Decimal(projection_bytes,ma),ma);
+      replica::Put(metric,"comparison","same source raw vs current projection;not P1-P6 net improvement",ma);
+      Save(root/("metrics-"+label+".json"),metric);
+      if(c->e2e_entity_loss)throw replica::ContractError("fixture_independent_buffer_loss");
+      replica::Json independent(rapidjson::kArrayType);
+      for(const auto &e:c->e2e_entity_independent){
+        if(e.context.room.value.local!=ctx.room.value.local||e.context.run.value.local!=ctx.run.value.local)continue;
+        auto message=replica::Independent(scope,replica::Parse(world::observation::EncodeEnvelope(e)),*registry);
+        // 只导出真实独立scope，required_state指本次T，绝不把独立值合并进普通快照。
+        replica::Put(message.body,"required_state",replica::Decimal(revision+1,message.body.GetAllocator()),message.body.GetAllocator());
+        replica::Value item(rapidjson::kObjectType),body;auto &ia=independent.GetAllocator();body.CopyFrom(message.body,ia);
+        replica::Put(item,"kind",replica::Value(unsigned(message.kind)),ia);replica::Put(item,"sequence",replica::Decimal(message.sequence,ia),ia);
+        replica::Put(item,"body",std::move(body),ia);independent.PushBack(std::move(item),ia);
+      }
+      Save(root/("independent-"+label+".json"),independent);
+      c->e2e_entity_independent.clear();c->e2e_entity_bytes=0;
+    }else ProjectEntity(model);
+    replica::ValidateModel(model);
     Save(root/(label+".json"),model);++revision;
-    return "ok=1\nexported=1\nrevision="+std::to_string(revision)+"\nsource_tick="+std::to_string(ctx.authority_tick.value)+"\n";
+    return "ok=1\nexported=1\nrevision="+std::to_string(revision)+"\nsource_tick="+std::to_string(ctx.authority_tick.value)+"\ncapture_token="+token_at_export+"\n";
   }catch(const std::exception &e){return "ok=1\nexported=0\nerror="+std::string(e.what())+"\n";}catch(...){return "ok=0\nerror=fixture_export_allocation\n";}
 }
+std::string ImportClientIndependent(const std::string &token,const std::string &label) noexcept {
+  if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||
+     label.empty()||label.size()>48||label.find_first_not_of("abcdefghijklmnopqrstuvwxyz0123456789-_")!=std::string::npos)return "ok=0\nerror=independent_arguments\n";
+  try {
+    const auto root=std::filesystem::canonical(std::filesystem::path(Settings.world_output_dir)/"client-targets");
+    const auto path=std::filesystem::canonical(root/("independent-"+label+".json"));
+    if(path.parent_path()!=root||std::filesystem::file_size(path)>(8u<<20))throw replica::ContractError("independent_path_or_budget");
+    std::ifstream f(path,std::ios::binary);auto rows=replica::Parse(std::string(std::istreambuf_iterator<char>(f),{}));
+    if(!rows.IsArray()||rows.Size()>4096)throw replica::ContractError("independent_array");
+    unsigned accepted=0;const char *reason="";
+    for(const auto &row:rows.GetArray()){
+      replica::Message m;m.kind=static_cast<replica::Kind>(replica::Unsigned(row["kind"]));m.sequence=replica::Unsigned(row["sequence"]);m.body=replica::Copy(row["body"]);
+      m=replica::Decode(replica::Encode(m));
+      if(!game::ClientAdmitEntityIndependent(m,reason))return "ok=1\naccepted=0\nrecords="+std::to_string(accepted)+"\ndeferred="+std::to_string(rows.Size()-accepted)+"\nreason="+std::string(reason)+"\n";
+      ++accepted;
+    }
+    return "ok=1\naccepted=1\nrecords="+std::to_string(accepted)+"\n";
+  }catch(const std::exception &e){return "ok=0\nerror="+std::string(e.what())+"\n";}
+}
+
 }

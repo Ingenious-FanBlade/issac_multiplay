@@ -344,6 +344,7 @@ bool WorldProcessExitDecision() noexcept {
   return true;
 }
 
+#ifdef ISAACCS_E2E
 // 此命令在 port 请求的 Manager 主线程分派处执行，不进入 UDP/玩家 Lua 接口。
 std::string TestWorldCommand(const char *source, const std::string &token,
     std::uint32_t generation, const std::string &mode, std::uint32_t value) {
@@ -399,4 +400,5 @@ std::string TestWorldCommand(const char *source, const std::string &token,
   return "ok=1\ninjected=TEST_INJECTED\ngeneration=" + std::to_string(generation) +
       "\nrecording=" + job->session + "\nmode=" + mode + "\nvalue=" + std::to_string(value) + "\n";
 }
+#endif
 } // namespace cs

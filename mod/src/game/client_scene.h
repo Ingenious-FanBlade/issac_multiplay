@@ -79,6 +79,9 @@ public:
   bool DisplayReady() const noexcept;
   ClientNativeRoots NativeRoots() const noexcept;
   const replica::Value *Published() const noexcept;
+#ifdef ISAACCS_E2E
+  std::string TestInspect() const noexcept;
+#endif
   void RenderPublished() noexcept;
   bool Borrow(ClientPurpose purpose,ClientBorrowToken &out) noexcept;
   bool Valid(const ClientBorrowToken &borrow) const noexcept;

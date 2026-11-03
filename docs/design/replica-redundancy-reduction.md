@@ -306,3 +306,10 @@ worker 已经有每个 Peer 的 `received_packets`／`received_bytes` 计数，�
 统一运行验收未执行：按第 6 节并入 19，重跑 18 Room／Grid 完整场景并结合 19 Entity 场景，覆盖字段缺失／失败、四个 shader 查询、资源姿态／别名、图引用和版本不兼容拒绝，使用 `cs status` 复测目标字节／节点；本次没有可报告的新实测缩减比例。
 
 第 8.5 节 C1—C4、第 8.4／9 节的控制流量、zstd、分层预算、可靠分块和字段 Delta 均未在本次实现，继续归 21／22／32；64M 节点与现有字节预算未擅自收紧。没有制作 tx artifact 或 E2E artifact。
+
+
+## 11. 2026-11-03 I31新消费者复核
+
+[tx-04-19 I31—I33](tx-04-19/tx-04-19-e2e-integration.md)已逐一复核公共字段表、派生字段表、具名关系、动态Pose/辅助资源及分层draw。Bomb五层参数查询继续保留0..4及Null/失败；四个shader查询、全部动态层与pose_runtime保持。Laser四容器、NPC三deque、typed ExtraData、Text字节与KColor20等使用正式紧凑来源，没有新建Sprite别名；其余逐成员省略理由已写回生成目录。
+
+统一E2E保存同一正式consumer窗口的完整原始envelope、当前复制投影及对应capture token，另读`cs status`目标字节／节点；原始观测与投影差值明确不算本次P1—P6净收益。18的49个Source、49个冷Client及12项检查由统一入口实际重跑，不能引用历史PASS代替。I34前没有执行测试、测量或游戏，原文估算及历史测量保持原事实。

@@ -1,3 +1,4 @@
+#include "game/client_entity_e2e.h"
 #include "game/world_bridge.h"
 #include "game/world_sources/lua_entity.h"
 #include "world/compatibility/encode.h"
@@ -25,6 +26,12 @@ obs::CapturePlan Plan() {
 void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
   try {
+#ifdef ISAACCS_E2E
+    if(!Settings.world_e2e_token.empty()&&e.domain==obs::DomainId::Entity&&e.context.phase!=obs::Phase::OrdinaryPost){
+      if(c.e2e_entity_independent.size()>=4096||c.e2e_entity_bytes+e.payload.size()>(8u<<20))c.e2e_entity_loss=true;
+      else {c.e2e_entity_independent.push_back(e);c.e2e_entity_bytes+=e.payload.size();}
+    }
+#endif
     if(e.kind!=obs::RecordKind::State) return;
     if(e.schema=="isaac.cs.entity.render"){
       const auto payload=replica::Parse(e.payload);
@@ -97,7 +104,7 @@ void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects
       // 原生随机流只编码一次，Lua仅取计数摘要；完整状态仍属于同一采集scope和字节预算。
       const auto native_random=index==8?CaptureRandomSources():std::string{};
       const auto reserved=(index>=2?64u:0u)+(native_random.empty()?0u:unsigned(native_random.size()+20));
-      auto result=CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,reserved<budget.bytes?std::uint32_t(budget.bytes)-reserved:0,index);
+      auto result=[&]{ClientEntityTestMeasure measure("formal_lua_capture");return CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,reserved<budget.bytes?std::uint32_t(budget.bytes)-reserved:0,index);}();
       if(index==8&&result.available&&!result.payload.empty()&&result.payload.back()=='}') {
         if(reserved<budget.bytes&&result.payload.size()+native_random.size()+20<=budget.bytes)
           result.payload.insert(result.payload.size()-1,",\"native_sources\":"+native_random);

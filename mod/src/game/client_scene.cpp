@@ -605,6 +605,11 @@ bool ClientScene::DisplayReady() const noexcept {
 ClientNativeRoots ClientScene::NativeRoots() const noexcept {
   return DisplayReady()?ClientNativeWorldRoots(native_world_):ClientNativeRoots{};
 }
+#ifdef ISAACCS_E2E
+std::string ClientScene::TestInspect() const noexcept {
+  return DisplayReady()&&objects_?objects_->TestInspect():"ok=0\nerror=inspect_not_committed\n";
+}
+#endif
 const replica::Value *ClientScene::Published() const noexcept {return DisplayReady()?applied_.get():nullptr;}
 // 独立记录与普通目标走不同入口；没有已知主线程/场景时不接纳，也不写原生世界。
 bool ClientScene::AdmitGridIndependent(const replica::Message &message,const char *&reason) noexcept {

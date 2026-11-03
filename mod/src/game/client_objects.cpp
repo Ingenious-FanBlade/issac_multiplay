@@ -1,3 +1,4 @@
+#include "game/client_entity_e2e.h"
 #include "game/client_objects.h"
 #include "game/client_resource_model.h"
 #include "game/client_entity_model.h"
@@ -146,6 +147,9 @@ bool ParseObjects(const V &model,Objects &out,std::string &reason) {
   return true;
 }
 }
+#ifdef ISAACCS_E2E
+std::string ClientObjects::TestInspect() const noexcept {return ClientTestInspectNative(native_);}
+#endif
 ClientObjects::ClientObjects() noexcept {try{entity_adapters_=ClientEntityBuiltinAdapters();}catch(...){failed_=true;reason_="objects_builtin_adapter_allocation";}}
 ClientObjects::~ClientObjects(){ClientNativeObjectsDestroy(native_);}
 ClientEntityOwners ClientObjects::PlayerOwner() noexcept {return ClientNativeObjectsPlayerOwner(native_);}

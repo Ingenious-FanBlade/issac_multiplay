@@ -1,5 +1,6 @@
 #pragma once
 #include "game/client_native_world.h"
+#include "game/client_entity_e2e.h"
 namespace cs::game {
 // 整帧借用Authority普通窗口表现输入；还原全局随机/帧值后才离开唯一Scene绘制。
 class ClientEntityFrameScope final {
@@ -19,7 +20,11 @@ public:
   bool CallOriginal() const noexcept {return original_;}
   ClientEntityDrawScope(const ClientEntityDrawScope &)=delete;
   ClientEntityDrawScope &operator=(const ClientEntityDrawScope &)=delete;
-private:void *state_=nullptr;bool original_=true;
+private:
+#ifdef ISAACCS_E2E
+  ClientEntityTestMeasure cpu_{"draw_scope_inclusive"};
+#endif
+  void *state_=nullptr;bool original_=true;
 };
 bool ClientEntityDrawPaused(bool &) noexcept;
 // 原版Deathmatch会把Type=1纳入NPC的数值判断；普通C/S仅使用真实Player/NPC布局。
