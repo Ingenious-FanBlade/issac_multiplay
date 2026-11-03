@@ -16,7 +16,7 @@ OMITTED_GROUPS = (
         Entity.GetCollisionCapsule Entity.GetDebugShape Entity.GetNullCapsule
         Entity.GetNullOffset Entity.GetPredictedTargetPosition Entity.HasCommonParentWithEntity
         Entity.HasEntityFlags Entity.IsActiveEnemy Entity.IsFrame
-        EntityBomb.GetCostumeLayerSprite EntityBomb.HasTearFlags
+        EntityBomb.HasTearFlags
         EntityConfigEntity.HasCustomTag EntityConfigEntity.HasEntityTags EntityConfigEntity.HasGibFlags
         EntityEffect.HasTearFlags EntityFamiliar.GetOrbitPosition EntityKnife.HasTearFlags
         EntityLaser.HasTearFlags EntityList.Get EntityNPC.CanBeDamagedFromVelocity
@@ -123,6 +123,7 @@ RETAINED_QUERIES = {
         "LayerState.HasCustomShader", "LayerState.HasCustomChampionShader",
     )
 }
+RETAINED_QUERIES["EntityBomb.GetCostumeLayerSprite"] = "tx-04-19 entity-target-v1/I10/I14：五个真实costume成员的独立资源和精确姿态是Bomb表现输入，参数0..4及Null/失败均保留"
 
 OMITTED_MEMBERS = {
     member: (reason, consumer)

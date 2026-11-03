@@ -22,10 +22,41 @@ struct ObservationSubjectValue final {
 struct EntitySupplementValue final {
   const char *class_name="UnknownEntity";
   const char *status="NotApplicable";
-  std::uint32_t counter=0,duration=0,text_size=0;
+  const char *color_status="NotCaptured";
+  const char *state_status="NotCaptured";
+  std::int32_t counter=0,duration=0;
+  std::uint32_t text_size=0;
+  // NativeText draw读取完整20字节KColor；末字语义未知，按有来源的opaque32保留。
+  float draw_color[4]{};
+  std::int32_t color_extra=0;
   char text[256]{};
 };
 EntitySupplementValue EntitySupplement(void *object) noexcept;
+// 常驻观察wrapper调用：只认可真实counter0格式化或具名writer完成caller。
+struct EntityTextUpdateWitness final {
+  std::uint64_t epoch=0,local=0,use=0,revision=0;
+  std::uint32_t address=0;
+  bool wrote=false;
+};
+EntityTextUpdateWitness BeginEntityTextUpdate(void *object,void *return_slot) noexcept;
+void FinishEntityTextUpdate(const EntityTextUpdateWitness &) noexcept;
+// Text的Manager半帧/暂停是独立Render输入，不借用Authority tick或混入OrdinaryPost。
+struct EntityTextRenderWitness final {
+  EntitySupplementValue state;
+  ObservationSubjectValue subject;
+  std::uint32_t address=0,manager_frame=0;
+  float offset_x=0,offset_y=0;
+  bool paused=false,active=false;
+};
+EntityTextRenderWitness BeginEntityTextRender(void *object,std::uint32_t frame,bool paused,float x,float y) noexcept;
+void FinishEntityTextRender(const EntityTextRenderWitness &) noexcept;
+// Laser私有表现原值：公开bool不保留-1初始化态；未知DWORD仅按原位32位状态表达。
+struct EntityLaserPresentationValue final {
+  const char *status="NotCaptured";
+  std::int8_t sample_mode_raw=0;
+  std::int32_t start_offset_mode_opaque32=0;
+};
+EntityLaserPresentationValue EntityLaserPresentation(void *object) noexcept;
 std::uint32_t ObservationEntities(void *owner,void (*visit)(void *,void *,std::uint32_t) noexcept) noexcept;
 const char *ObservationSpriteNames(void *sprite,void *owner,
     void (*visit)(void *,bool,const char *,std::size_t) noexcept) noexcept;

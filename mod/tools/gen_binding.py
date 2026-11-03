@@ -78,6 +78,12 @@ CONSTANT_ORDER = [
     ('entity_text_duration_offset', 'u32'),
     ('entity_text_buffer_offset', 'u32'),
     ('entity_text_capacity', 'u32'),
+    ('entity_text_color_offset', 'u32'),
+    ('entity_text_variant_offset', 'u32'),
+    ('entity_text_writer_return_rva', 'u32'),
+    ('entity_laser_td_rva', 'u32'),
+    ('entity_laser_sample_mode_offset', 'u32'),
+    ('entity_laser_start_offset_mode_offset', 'u32'),
 
     ('game_root_rva', 'u32'),
     ('game_frame_offset', 'u32'),
@@ -473,6 +479,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "game/client_grid_native.h"
 #include "game/client_presentation_native.h"
 #include "game/world_sources/loot.h"
+#include "game/world_sources/lua_entity.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
 #include <intrin.h>
@@ -615,6 +622,25 @@ def legacy_body(row):
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                 '    auto result=super();',
                 '    observation.Returned(result);',
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);',
+                '    return result;']
+    if ident == 'native_text_render':
+        return ['    cs::game::ActualValueScope observation;',
+                '    cs::game::EntityTextRenderWitness witness;',
+                '    if(observation.main && cs::game::ObservationLuaNeeded("Render") && g_Manager && g_Game && offset)',
+                '      witness=cs::game::BeginEntityTextRender(this,g_Manager->_framecount,g_Game->IsPaused(),offset->x,offset->y);',
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    if(!observation.main) record.foreign.fetch_add(1, std::memory_order_relaxed);',
+                '    super(offset);',
+                '    cs::game::FinishEntityTextRender(witness);',
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);']
+    if ident == 'native_text_update':
+        return ['    cs::game::ActualValueScope observation;',
+                '    const auto witness=cs::game::BeginEntityTextUpdate(this, _AddressOfReturnAddress());',
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    if(!observation.main) record.foreign.fetch_add(1, std::memory_order_relaxed);',
+                '    const auto result=super();',
+                '    cs::game::FinishEntityTextUpdate(witness);',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);',
                 '    return result;']
     if ident.startswith('actual_') and ident.endswith('_loot'):

@@ -1,3 +1,7 @@
+> **tx-04-19 I01—I03（2026-11-03）**：[目录／纯值目标／正式来源实现](design/tx-04-19/tx-04-19-foundation.md)、[全成员应用目录](design/tx-04-19/entity-application.json)、[Text／Laser 来源研究与主审](design/tx-04-19/entity-source-research.md)。已接入 `entity-target-v1`／`entity-source-v1`、分类与 Player 边界、完整资源姿态和必要原生只读补充；原生应用器和统一 E2E 仍待 I04—I35。逆向由 GPT-6 Luna Max 完成，主智能体独立审阅并纠正 Text writer 推断；没有启动游戏或执行提前分项测试。
+
+> **tx-04-19 初版具体实现计划（2026-11-03，历史文档阶段）**：[35项完整任务、失败模型与26项统一E2E安排](design/tx-04-19/tx-04-19-implementation-plan.md)、[13项类别适配与Slot 18种变体](design/tx-04-19/tx-04-19-entity-application.md)、[13项静态确认／必要逆向](design/tx-04-19/tx-04-19-native-research-plan.md)。初版仅规划，不代表当时已改代码、逆向或运行验收；后续 I01—I03 进度见上项。
+
 > **复制模型冗余发送优化（2026-11-03，19前置实现已完成，运行验收待19）**：[P1—P6实现与消费者复核、模型v2及统一验收安排](design/replica-redundancy-reduction.md#10-2026-11-03-前置优化实现)。完整观测不变，发送投影省略静态动画表／无消费者查询、精简占位和无引用图编号；19的Entity主体尚未开始。10 Mbps预算及21／22／32后续网络优化仍见同文第8—9节，原样本统计不作为本次收益。
 
 > **tx-04-18 I26—I30（2026-11-03，已完成）**：预算、资源复用、产品/测试构建边界及完整Source/冷Client编排已接入；节点上限按用户要求统一64M。实际覆盖、连续失败/修复、背景构建轨迹、地图深度和后续接口见[统一验收记录](design/tx-04-18/tx-04-18-acceptance.md)。最终Source 49/49、冷Client 49/49及12/12检查通过，代表画面已主审；下方历史阶段状态保留原时点。

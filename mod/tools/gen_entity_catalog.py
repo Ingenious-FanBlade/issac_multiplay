@@ -46,8 +46,11 @@ def members():
                 key=(cls,name,signature)
                 e=entries.setdefault(key,{'class':ALIASES.get(cls,cls),'member':name,'signature':signature,'returns':typ.replace('const ','').replace('static ',''),'parameters':args,'category':category,'reason':reason,'sources':[]})
                 e['sources'].append({'wiki':wiki,'path':str(path).replace('\\','/'),'line':no})
-    for name,typ in [('counter','int'),('duration','int'),('text','string')]:
-        entries[('NativeText',name,name)]={'class':'NativeText','member':name,'signature':typ+' '+name,'returns':typ,'parameters':None,'category':'native_field','reason':'J273 completed creation owner; see native supplements','sources':[{'wiki':'native-J273','path':str(ROOT/'docs/design/observation-expansion/entity-native-supplements.md').replace('\\','/'),'line':1}]}
+    for name,typ in [('counter','int'),('duration','int'),('text','string'),('draw_color','native_kcolor20'),('draw_phase','native_render_dependency')]:
+        reason='J273 real-current-use-writer-witness;Init-does-not-initialize-buffer' if name=='text' else 'independent-native-text-render-v1;not-ordinary-phase' if name=='draw_phase' else 'J273 completed creation owner;KColor20 includes opaque32;see native supplements'
+        entries[('NativeText',name,name)]={'class':'NativeText','member':name,'signature':typ+' '+name,'returns':typ,'parameters':None,'category':'native_field','reason':reason,'sources':[{'wiki':'native-J273','path':str(ROOT/'docs/design/observation-expansion/entity-native-supplements.md').replace('\\','/'),'line':1}]}
+    for name,typ in [('sample_mode_raw','int8'),('start_offset_mode_opaque32','int32')]:
+        entries[('EntityLaser',name,name)]={'class':'EntityLaser','member':name,'signature':typ+' '+name,'returns':typ,'parameters':None,'category':'native_field','reason':'J273 Laser Init+completed owner; signed sample byte and opaque draw branch; not gameplay setter','sources':[{'wiki':'native-J273','path':str(ROOT/'docs/design/tx-04-19/entity-source-research.md').replace('\\','/'),'line':1}]}
     result=sorted(entries.values(),key=lambda e:(e['class'],e['member'],e['signature']))
     # 字段使用规范名称，重载共用名称但保留完整来源／参数签名。
     fields={(e['class'],e['member']) for e in result if e['category']=='field'}
@@ -59,6 +62,7 @@ def members():
         e['schema']='isaac.cs.entity'; e['schema_version']=2
         e['target']='REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273'
         e['phase']='OrdinaryPost / Lifecycle / explicit query scope'
+        if e['id']=='NativeText.draw_phase': e['phase']='ordinary owner-qualified dependency / independent Render entry inputs'
         e['absence']='Value / Null / Empty / NotApplicable / Unavailable / NotCaptured / ReadFailed / Nonfinite / Truncated'
         e['units']='API原单位；持续时间为游戏更新帧，角度／坐标依原成员语义'
         e['implementation']={'field':'public_lua_copy','query':'public_lua_copy','parameter_query':'bounded_parameter_query','derived_query':'explicit_readonly_query','operation':'actual_event_only','actual_call':'actual_event_only','external_reference':'owner_qualified_reference','cast':'classification','native_field':'native_copy'}[e['category']]

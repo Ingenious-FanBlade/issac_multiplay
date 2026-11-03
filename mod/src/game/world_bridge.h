@@ -6,11 +6,14 @@
 #include "world/common/publication.h"
 #include <memory>
 #include <deque>
+#include <map>
 #include "world/domains/level/model.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
 
 namespace cs::game {
+// Text缓冲资格来自本use真实writer，不由Init/内存可读或旧池内容推断。
+struct EntityTextWriteWitness final { std::uint64_t local=0,use=0,revision=0; };
 // 采集 owner 不拥有文件录制器；即使没有 Recorder，也保持同一身份 epoch 和值消费。
 struct WorldCapture final {
   // 测试状态先构造、最后释放，reader/writer 的非拥有指针不会悬空。
@@ -25,6 +28,10 @@ struct WorldCapture final {
   std::uint64_t session_key=0,epoch=0;
   std::array<std::uint64_t,13> pending_scopes{};
   world::observation::ObservationEnvelope latest_entity{},latest_grid{},latest_room{},latest_level{};
+  // 正式消费者保存Text独立Render最新值，关闭Recorder仍可取用；不覆盖Ordinary Entity。
+  std::map<std::uint64_t,world::observation::ObservationEnvelope> entity_render_samples;
+  std::uint64_t entity_render_room=0;
+  std::size_t entity_render_bytes=0;
   // 跨房三域及新增四域只保存自有值；Player本体引用同批Entity scope，不重复采集。
   std::array<world::observation::ObservationEnvelope,7> latest_continuity{};
   GlobalRandomMirror global_random{};
@@ -43,6 +50,8 @@ struct WorldCapture final {
   std::deque<world::LifecycleEvent> e2e_grid_events;
   bool reserve_charged=false;
   world::MemoryReader source_memory{};
+  // 只在主线程查找地址关联；至多16384项，scope退休时随采集owner释放。
+  std::map<std::uint32_t,EntityTextWriteWitness> text_writes;
   // 只在同步 Lua 调用期间有效，均为本批自有 RawObject 值，不交给后台。
   const world::RawObject *lua_objects=nullptr;
   const world::RawMembership *lua_members=nullptr;

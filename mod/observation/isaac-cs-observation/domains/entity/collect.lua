@@ -7,9 +7,10 @@ local native=function() return IsaacCSObservationNative end
 local context,collect,value,query,finish,fail,missing,protected=read.Context,read.Collect,read.Value,read.QueryValue,read.Finish,read.Fail,read.Missing,read.Protected
 local LIMIT=read.Limits()
 local conversions={ {"ToPlayer","EntityPlayer"},{"ToNPC","EntityNPC"},{"ToTear","EntityTear"},{"ToProjectile","EntityProjectile"},{"ToBomb","EntityBomb"},{"ToLaser","EntityLaser"},{"ToKnife","EntityKnife"},{"ToPickup","EntityPickup"},{"ToFamiliar","EntityFamiliar"},{"ToEffect","EntityEffect"},{"ToSlot","EntitySlot"} }
-local function context() return {complete=true,nodes=0,queries=0,objects=0,reasons={},seen={},config_seen={},sprite_names={},graph=0} end
+local function context() return read.Context() end
 local function snapshot(e,ctx,class)
   local subject=native().Subject(e)
+  ctx.owner=subject
   if subject.local_id=="0" then fail(ctx,"subject_budget"); return {subject=subject,status="NotCaptured"} end
   if subject.resolution=="Retired" then return {subject=subject,status="NotApplicable",reason="retired_at_source"} end
   local out={subject=subject,common=collect(e,"Entity",ctx,0)}
@@ -25,6 +26,14 @@ local function snapshot(e,ctx,class)
     if ok and d then out.special=collect(d,"EntityDelirium",ctx,0) end
   end
   out.class=class or "UnknownEntity"
+  if class=="EntityLaser" then
+    local presentation=native().LaserPresentation(e:ToLaser())
+    for _,key in ipairs({"sample_mode_raw","start_offset_mode_opaque32"}) do
+      out.body.fields["EntityLaser."..key]=presentation.status=="Value" and value(presentation[key],"int",ctx,1) or missing(presentation.status,"laser_initialized_owner_required")
+    end
+    out.native_source={contract="entity-laser-presentation-v1",target="REPENTOGON-1.1.3/J273",readiness="observed-completed-creation-owner",sample="signed-byte;-1-not-yet-resolved;not-public-bool",opaque="J273-draw-4F0-signed<=0;semantic-UNKNOWN"}
+    if presentation.status~="Value" then fail(ctx,"laser_presentation:"..presentation.status) end
+  end
   if class=="EntitySlot" then out.variant_semantics=slots[e.Variant] or missing("Unavailable","unmapped_slot_variant"); if not slots[e.Variant] then fail(ctx,"unmapped_slot_variant") end end
   if out.class=="UnknownEntity" then
     local supplement=native().Supplement(e)
@@ -34,6 +43,15 @@ local function snapshot(e,ctx,class)
         for _,key in ipairs({"counter","duration","text"}) do
           out.body.fields["NativeText."..key]=supplement[key]~=nil and value(supplement[key],nil,ctx,1) or missing(supplement.status,"native_readiness_or_copy")
         end
+        local color={type="native_kcolor20",status=supplement.draw_color.status}
+        if color.status=="Value" then
+          for _,k in ipairs({"R","G","B","A"}) do color[k]=value(supplement.draw_color[k],"float",ctx,1) end
+          color.opaque32=value(supplement.draw_color.opaque32,"int",ctx,1)
+        end
+        out.body.fields["NativeText.draw_color"]=color
+        out.body.fields["NativeText.draw_phase"]={type="owner_qualified_domain_reference",schema="isaac.cs.entity",owner=subject,contract="native-text-render-v1",capture_kind="Render",required_state="same Key/shape/counter/text",scope_rule="independent-render-entry-inputs;not-an-ordinary-phase"}
+        if supplement.draw_color.status~="Value" then fail(ctx,"native_text_color:"..supplement.draw_color.status) end
+        out.native_source={contract="entity-native-presentation-v1",target="REPENTOGON-1.1.3/J273",color="KColor20;observed-creation-owner;opaque32-not-guessed",text="bounded-native-buffer;real-current-use-writer-witness",phase="independent-native-text-render-v1;Manager-frame-not-Authority-tick"}
       end
       if supplement.status~="Value" then fail(ctx,"native_supplement:"..supplement.status) end
     else fail(ctx,"unknown_entity_type:"..tostring(e.Type)) end
@@ -57,7 +75,9 @@ function M.Capture(limits)
     if id.local_id=="0" then fail(ctx,"subject_registry_budget"); enumerationComplete=false; subjects[#subjects+1]=e
     elseif not seen[id.local_id] then seen[id.local_id]=true; subjects[#subjects+1]=e end
   end
-  local out={objects={},membership={source="Isaac.GetRoomEntities+native_membership",count=#subjects,native_count=#nativeSources,unavailable_native=unavailable,complete=enumerationComplete}}
+  -- 普通窗口已复制主/辅助Sprite的精确phase、图层和两组Laser当前采样；
+  -- 独立Render节流样本只描述自己的scope，绝不拼进此原子窗口。
+  local out={application_source={version=1,contract="entity-source-v1",target="REPENTOGON-1.1.3/J273",pose_scope="same-ordinary-window",required_contracts={"resource-pose-v1","entity-classification-v1","entity-auxiliary-sprites-v1","entity-native-presentation-v1"},auxiliary="Tear:dead-eye/effect/halo;Bomb:costume0..4;Pickup:price;Slot:prize;unloaded=Null",laser="current-optimized/nonoptimized-public-samples;no-CalculateSamples",independent="Render/Lifecycle/ActualCall/Query-have-own-scope;render-stride30-is-not-target-pose"},objects={},membership={source="Isaac.GetRoomEntities+native_membership",count=#subjects,native_count=#nativeSources,unavailable_native=unavailable,complete=enumerationComplete}}
   for i,e in ipairs(subjects) do
     if i>LIMIT.objects then fail(ctx,"object_budget"); out.membership.complete=false; break end
     ctx.objects=ctx.objects+1; out.objects[#out.objects+1]=snapshot(e,ctx)
@@ -83,7 +103,7 @@ function M.Render(object)
   renderCounters[key]=(renderCounters[key] or 0)+1
   if renderCounters[key]%30~=0 then return end
   local ctx=context(); ctx.objects=1
-  local json,complete,objects,nodes,reason=finish({subject=subject,sprite=collect(object:GetSprite(),"Sprite",ctx,0)},ctx)
+  local json,complete,objects,nodes,reason=finish({subject=subject,source={contract="entity-render-sample-v1",stride=30,callback_ordinal=renderCounters[key],semantics="independent-render-scope;never-substitute-ordinary-target-pose"},sprite=collect(object:GetSprite(),"Sprite",ctx,0)},ctx)
   native().PublishRender(json,complete,objects,nodes,reason)
 end
 -- 显式派生查询同样受 schema 白名单与预算约束，不能用此入口执行玩法动作。

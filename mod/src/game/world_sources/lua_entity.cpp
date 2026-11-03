@@ -119,10 +119,30 @@ int Supplement(lua_State *L) {
   const auto v=EntitySupplement(entity);
   lua_newtable(L); lua_pushstring(L,v.class_name); lua_setfield(L,-2,"class");
   lua_pushstring(L,v.status); lua_setfield(L,-2,"status");
-  if(!std::strcmp(v.class_name,"NativeText")&&(!std::strcmp(v.status,"Value")||!std::strcmp(v.status,"Truncated"))) {
+  if(!std::strcmp(v.class_name,"NativeText")) {
+    lua_newtable(L);lua_pushstring(L,v.color_status);lua_setfield(L,-2,"status");
+    if(!std::strcmp(v.color_status,"Value")){
+      constexpr const char *keys[]={"R","G","B","A"};
+      for(unsigned i=0;i<4;++i){lua_pushnumber(L,v.draw_color[i]);lua_setfield(L,-2,keys[i]);}
+      lua_pushinteger(L,v.color_extra);lua_setfield(L,-2,"opaque32");
+    }
+    lua_setfield(L,-2,"draw_color");
+  }
+  if(!std::strcmp(v.class_name,"NativeText")&&!std::strcmp(v.state_status,"Value")) {
     lua_pushinteger(L,v.counter); lua_setfield(L,-2,"counter");
     lua_pushinteger(L,v.duration); lua_setfield(L,-2,"duration");
+  }
+  if(!std::strcmp(v.class_name,"NativeText")&&(!std::strcmp(v.status,"Value")||!std::strcmp(v.status,"Truncated"))) {
     lua_pushlstring(L,v.text,v.text_size); lua_setfield(L,-2,"text");
+  }
+  return 1;
+}
+int LaserPresentation(lua_State *L) {
+  auto *entity=lua::GetLuabridgeUserdata<Entity_Laser *>(L,1,lua::Metatables::ENTITY_LASER,"EntityLaser");
+  const auto v=EntityLaserPresentation(entity);lua_newtable(L);lua_pushstring(L,v.status);lua_setfield(L,-2,"status");
+  if(!std::strcmp(v.status,"Value")){
+    lua_pushinteger(L,v.sample_mode_raw);lua_setfield(L,-2,"sample_mode_raw");
+    lua_pushinteger(L,v.start_offset_mode_opaque32);lua_setfield(L,-2,"start_offset_mode_opaque32");
   }
   return 1;
 }
@@ -261,6 +281,7 @@ void EnsureObservationLuaBridge() noexcept {
   const luaL_Reg funcs[]={{"TestNativeRandomSources",LuaTestNativeRandomSources},{"NativeRandomSources",LuaNativeRandomSources},{"RegisterRandomSource",LuaRegisterRandomSource},{"GlobalRandomState",LuaGlobalRandomState},{"TestGlobalRandom",TestGlobalRandom},{"PromptState",PromptState},{"RelatedSubject",RelatedSubject},{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"SourceSnapshotToken",SourceSnapshotToken},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
   luaL_setfuncs(L,funcs,0);
   lua_pushcfunction(L,SpriteRuntimePose);lua_setfield(L,-2,"SpriteRuntimePose");
+  lua_pushcfunction(L,LaserPresentation);lua_setfield(L,-2,"LaserPresentation");
   lua_pushcfunction(L,RoomPresentation);lua_setfield(L,-2,"RoomPresentation");
   lua_pushcfunction(L,RoomConfigContents);lua_setfield(L,-2,"RoomConfigContents");
   lua_pushcfunction(L,RoomApplication);lua_setfield(L,-2,"RoomApplication");

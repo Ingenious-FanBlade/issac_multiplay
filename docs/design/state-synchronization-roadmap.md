@@ -124,6 +124,8 @@
 
 ### tx-04-19：非Player Entity的客户端应用
 
+- 2026-11-03后续实施：[I01—I03实现与边界](tx-04-19/tx-04-19-foundation.md)已交付全成员应用目录、正式T分类payload与能力、同窗口资源姿态、Text真实writer/KColor20/独立Render源及Laser signed/opaque表现值。主智能体已审阅GPT-6 Luna Max静态研究。原生应用器、I04起的采用路径研究和I34整体E2E仍未完成，不宣称整个19或Entity域已应用。
+- 2026-11-03具体实施入口：[I01—I35完整计划](tx-04-19/tx-04-19-implementation-plan.md)、[C01—C13逐类别与Slot变体](tx-04-19/tx-04-19-entity-application.md)、[R01—R13静态确认／必要逆向](tx-04-19/tx-04-19-native-research-plan.md)。纳入正式来源／投影、构造依赖、辅助资源、Effect136、派生draw、失败退休和P1—P6／18回归，列明E01—E26统一验收。当前仅计划文档；非Player完成不能代替包含Player的整个Entity域完成，20／21／22责任不变；未执行新增逆向、运行代码修改、构建或测试。
 - 2026-11-03：已先完成[复制模型冗余发送优化 P1—P6](replica-redundancy-reduction.md#10-2026-11-03-前置优化实现)的实现与静态消费者复核，模型／目录升为v2，完整观测不变；尚未开始本tx Entity应用主体或运行验收。19统一验收仍须重跑18的Room／Grid场景作为回归，并实测目标字节／节点、图闭合和版本拒绝；10 Mbps预算与控制流量精简见该文第8节，21／22／32的后续项见第9节。
 - 实现：NPC、Tear、Projectile、Bomb、Laser、Knife、Pickup、Familiar、Effect、Slot及专用扩展的创建／更新／移除、Morph、所有者／父子／目标引用、Sprite／曲线／高度等。公共适配与专用适配并存，未知类不伪装为NPC。
 - 支持短命对象结果、同采样内创建移除、资源替换和部分失败退休，不调用Damage／Pickup／UseItem重演裁决。Slot奖品由房主确定，客户端不开奖。

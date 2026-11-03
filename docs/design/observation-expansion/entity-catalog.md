@@ -663,6 +663,8 @@
 | `EntityLaser.StartAngleDegrees` | `float StartAngleDegrees` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityLaser.md)（行264） |
 | `EntityLaser.TearFlags` | `TearFlags TearFlags` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityLaser.md)（行270） |
 | `EntityLaser.Timeout` | `int Timeout` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityLaser.md)（行274） |
+| `EntityLaser.sample_mode_raw` | `int8 sample_mode_raw` | native_copy J273 Laser Init+completed owner; signed sample byte and opaque draw branch; not gameplay setter | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/tx-04-19/entity-source-research.md)（行1） |
+| `EntityLaser.start_offset_mode_opaque32` | `int32 start_offset_mode_opaque32` | native_copy J273 Laser Init+completed owner; signed sample byte and opaque draw branch; not gameplay setter | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/tx-04-19/entity-source-research.md)（行1） |
 | `EntityList.Get` | `Entity Get ( int idx )` | bounded_parameter_query  | [vanilla](F:/projects_isaac/IsaacDocs/docs/CppContainer_EntityList.md)（行32） |
 | `EntityList.Size` | `const int Size` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/CppContainer_EntityList.md)（行40） |
 | `EntityList.__len` | `int __len ( )` | actual_event_only  | [vanilla](F:/projects_isaac/IsaacDocs/docs/CppContainer_EntityList.md)（行24） |
@@ -1598,9 +1600,11 @@
 | `LootListEntry.GetSubType` | `int GetSubType ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LootListEntry.md)（行41） |
 | `LootListEntry.GetType` | `EntityType GetType ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LootListEntry.md)（行45） |
 | `LootListEntry.GetVariant` | `int GetVariant ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/LootListEntry.md)（行49） |
-| `NativeText.counter` | `int counter` | native_copy J273 completed creation owner; see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
-| `NativeText.duration` | `int duration` | native_copy J273 completed creation owner; see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
-| `NativeText.text` | `string text` | native_copy J273 completed creation owner; see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
+| `NativeText.counter` | `int counter` | native_copy J273 completed creation owner;KColor20 includes opaque32;see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
+| `NativeText.draw_color` | `native_kcolor20 draw_color` | native_copy J273 completed creation owner;KColor20 includes opaque32;see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
+| `NativeText.draw_phase` | `native_render_dependency draw_phase` | native_copy independent-native-text-render-v1;not-ordinary-phase | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
+| `NativeText.duration` | `int duration` | native_copy J273 completed creation owner;KColor20 includes opaque32;see native supplements | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
+| `NativeText.text` | `string text` | native_copy J273 real-current-use-writer-witness;Init-does-not-initialize-buffer | [native-J273](F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md)（行1） |
 | `NullFrame.GetColor` | `Color GetColor ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/NullFrame.md)（行10） |
 | `NullFrame.GetPos` | `Vector GetPos ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/NullFrame.md)（行14） |
 | `NullFrame.GetRotation` | `float GetRotation ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/NullFrame.md)（行18） |

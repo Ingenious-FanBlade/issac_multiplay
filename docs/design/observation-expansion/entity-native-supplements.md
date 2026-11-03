@@ -2,6 +2,8 @@
 
 目标为 J273，IDA imagebase 为 `0x400000`。这是静态来源说明，不代替实机覆盖。
 
+2026-11-03 tx-04-19 I01—I03 后续修正：[正式来源实现](../tx-04-19/tx-04-19-foundation.md)和[Text／Laser主审](../tx-04-19/entity-source-research.md)覆盖以下旧规则。Text Init **不初始化字符串缓冲**，只凭创建 owner 读取文本的旧规则过宽；当前 counter／duration／完整KColor20 与字符串资格分开，字符串要求本 use 的真实 writer 完成见证。原始历史记录不抹去，但不再执行旧的文本资格推断。Laser 公开 SampleLaser 布尔仍保留，额外 signed raw byte 表达 Init=-1 的不绘制状态，不能将其压成 true。
+
 | 类别 | 核定位置 | 采集内容与限制 |
 | --- | --- | --- |
 | Entity_Text | TD RVA `0x7D2030`，COL `0x7434E0`，vtable `0x71410C`；构造 `0x1CC1F0`，Init `0x1CC260`，更新 `0x1CC340`，绘制 `0x1CC580` | Entity 公共公开状态；创建 owner 正常完成后读取 `+0x410` 更新计数、`+0x414` 生命周期长度，`+0x418` 的至多 256 字节以零结尾文本。逐字节读到终止符即停止，不读取终止符后的未初始化空间。无终止符报告 Truncated。文本专用颜色的私有表示不推测，由公共颜色与实际可读外观分别表达。 |

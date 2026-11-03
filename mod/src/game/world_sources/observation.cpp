@@ -4,6 +4,8 @@
 #include "binding/world_layout.h"
 #include "game/world_sources/value_source.h"
 #include "runtime.h"
+#include "replica/model.h"
+#include <cmath>
 #include <cstring>
 namespace cs::game {
 namespace {
@@ -24,6 +26,18 @@ void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
   try {
     if(e.kind!=obs::RecordKind::State) return;
+    if(e.schema=="isaac.cs.entity.render"){
+      const auto payload=replica::Parse(e.payload);
+      if(payload.HasMember("contract")&&payload["contract"]=="native-text-render-v1"){
+        const auto room=e.context.room.value.local;
+        if(c.entity_render_room!=room){c.entity_render_samples.clear();c.entity_render_bytes=0;c.entity_render_room=room;}
+        const auto key=replica::Unsigned(payload["subject"]["local_id"]);
+        const auto old=c.entity_render_samples.find(key);const auto prior=old==c.entity_render_samples.end()?0:old->second.payload.size();
+        // 缓存容量与原始发布分开；不足明确计formal_loss，不能把独立样本伪装成普通Complete。
+        if((old==c.entity_render_samples.end()&&c.entity_render_samples.size()>=4096)||c.entity_render_bytes-prior+e.payload.size()>(4u<<20)){++c.formal_loss;return;}
+        c.entity_render_samples.insert_or_assign(key,e);c.entity_render_bytes=c.entity_render_bytes-prior+e.payload.size();
+      }
+    }
     if(e.schema=="isaac.cs.random.native-global-call") c.latest_global_random=e;
     if(e.schema=="isaac.cs.entity") c.latest_entity=e;
     else if(e.schema=="isaac.cs.grid") c.latest_grid=e;
@@ -371,7 +385,8 @@ void ObservationGridMemberships(void *grid,void *owner,void (*visit)(void *,std:
 // 公开 Wiki 没有 Text/Dummy 派生接口；只补 J273 已解释字段，未知私有内存不推断。
 EntitySupplementValue EntitySupplement(void *object) noexcept {
   EntitySupplementValue out;
-  auto c=CurrentWorldRecording(); if(!IsMain()||!c||!object) return out;
+  if(!IsMain()||!object)return out;
+  auto c=CurrentWorldRecording(); if(!c) return out;
   const auto reader=c->source_memory;
   const auto address=std::uint32_t(reinterpret_cast<uintptr_t>(object));
   std::uint32_t vptr=0,col=0,td=0;
@@ -383,13 +398,111 @@ EntitySupplementValue EntitySupplement(void *object) noexcept {
   out.class_name="NativeText";
   auto *id=c->identities.Find(world::ObjectDomain::Entity,address);
   if(!id||id->Retired()||id->readiness<2) { out.status="NotCaptured"; return out; }
+  // Text Init的KColor ctor初始化RGBA与末字；+528也被字体draw消费，不能丢弃或猜成padding。
+  if(reader.copy(address+layout.entity_text_color_offset,out.draw_color,sizeof(out.draw_color))&&
+     reader.copy(address+layout.entity_text_color_offset+16,&out.color_extra,4))out.color_status="Value";
+  else out.color_status="ReadFailed";
   if(!reader.copy(address+layout.entity_text_counter_offset,&out.counter,4)||
      !reader.copy(address+layout.entity_text_duration_offset,&out.duration,4)) { out.status="ReadFailed"; return out; }
+  out.state_status="Value";
+  const auto witness=c->text_writes.find(address);
+  if(witness==c->text_writes.end()||witness->second.local!=id->local_id||witness->second.use!=id->use||witness->second.revision!=id->revision){out.status="NotCaptured";return out;}
   for(std::uint32_t i=0;i<layout.entity_text_capacity&&i<sizeof(out.text);++i) {
     if(!reader.copy(address+layout.entity_text_buffer_offset+i,&out.text[i],1)) { out.status="ReadFailed"; return out; }
     if(!out.text[i]) { out.text_size=i; out.status="Value"; return out; }
   }
   out.text_size=sizeof(out.text); out.status="Truncated"; return out;
+}
+EntityLaserPresentationValue EntityLaserPresentation(void *object) noexcept {
+  EntityLaserPresentationValue out;if(!IsMain()||!object)return out;
+  auto c=CurrentWorldRecording();if(!c||!c->observation.Active())return out;
+  const auto address=std::uint32_t(reinterpret_cast<uintptr_t>(object));
+  const auto *id=c->identities.Find(world::ObjectDomain::Entity,address);
+  if(!id||id->Retired()||id->readiness<2)return out;
+  const auto &m=c->source_memory;const auto &layout=world::layout::LayoutConstants();std::uint32_t vptr=0,col=0,td=0;
+  if(!m.copy||!m.copy(address,&vptr,4)||vptr<4||!m.copy(vptr-4,&col,4)||
+     col<m.image_base||col-m.image_base>m.image_size-20||!m.copy(col+12,&td,4)||td-m.image_base!=layout.entity_laser_td_rva)return out;
+  // J273 Laser Init分别写WORD[45C]=FF01和DWORD[4F0]=0，创建owner完成后可读。
+  // Render读取有符号sample byte，并以4F0<=0选择起点修正；不猜该DWORD玩法含义。
+  if(!m.copy(address+layout.entity_laser_sample_mode_offset,&out.sample_mode_raw,1)||
+     !m.copy(address+layout.entity_laser_start_offset_mode_offset,&out.start_offset_mode_opaque32,4)){out.status="ReadFailed";return out;}
+  out.status="Value";return out;
+}
+// Text Init不初始化buffer；真实首个Update的两个格式化分支和具名helper才建立本use读资格。
+EntityTextUpdateWitness BeginEntityTextUpdate(void *object,void *return_slot) noexcept {
+  EntityTextUpdateWitness out;if(!IsMain()||!object)return out;
+  auto c=CurrentWorldRecording();if(!c||!c->observation.Active())return out;
+  const auto address=std::uint32_t(reinterpret_cast<uintptr_t>(object));
+  const auto *id=c->identities.Find(world::ObjectDomain::Entity,address);
+  if(!id||id->Retired()||id->readiness<2)return out;
+  const auto &m=c->source_memory;const auto &layout=world::layout::LayoutConstants();
+  std::uint32_t vptr=0,col=0,td=0,variant=0,counter=0,caller=0;
+  if(!m.copy||!m.copy(address,&vptr,4)||vptr<4||!m.copy(vptr-4,&col,4)||
+     col<m.image_base||col-m.image_base>m.image_size-20||!m.copy(col+12,&td,4)||td-m.image_base!=layout.entity_text_td_rva||
+     !m.copy(address+layout.entity_text_variant_offset,&variant,4)||!m.copy(address+layout.entity_text_counter_offset,&counter,4))return out;
+  bool wrote=counter==0&&(variant==1||variant==2);
+  // 该版本ZHL无参非void适配保存EBP及五寄存器，+28才是原生返回槽；不扫描栈猜caller。
+  const auto slot=std::uint32_t(reinterpret_cast<uintptr_t>(return_slot));unsigned char call[3]{};
+  if(!wrote&&slot&&m.copy(slot+28,&caller,4)&&caller==m.image_base+layout.entity_text_writer_return_rva&&
+     m.copy(caller-3,call,3)&&call[0]==0xff&&call[1]==0x50&&call[2]==0x0c)wrote=true;
+  if(wrote)out={c->epoch,id->local_id,id->use,id->revision,address,true};return out;
+}
+void FinishEntityTextUpdate(const EntityTextUpdateWitness &w) noexcept {
+  if(!w.wrote||!IsMain())return;auto c=CurrentWorldRecording();if(!c||c->epoch!=w.epoch||!c->observation.Active())return;
+  const auto *id=c->identities.Find(world::ObjectDomain::Entity,w.address);
+  if(!id||id->Retired()||id->local_id!=w.local||id->use!=w.use||id->revision!=w.revision||id->readiness<2)return;
+  try {
+    if(c->text_writes.size()>=16384&&!c->text_writes.count(w.address)){
+      for(auto i=c->text_writes.begin();i!=c->text_writes.end();){const auto *current=c->identities.Find(world::ObjectDomain::Entity,i->first);
+        if(!current||current->Retired()||current->local_id!=i->second.local||current->use!=i->second.use||current->revision!=i->second.revision)i=c->text_writes.erase(i);else ++i;}
+      if(c->text_writes.size()>=16384)return;
+    }
+    c->text_writes[w.address]={w.local,w.use,w.revision};
+  }catch(...){/* 有界记录失败只使本字段NotCaptured，不改变Authority输入或模拟。 */}
+}
+EntityTextRenderWitness BeginEntityTextRender(void *object,std::uint32_t frame,bool paused,float x,float y) noexcept {
+  EntityTextRenderWitness out;
+  if(!IsMain()||!ObservationLuaNeeded("Render"))return out;
+  out.state=EntitySupplement(object);if(std::strcmp(out.state.class_name,"NativeText"))return out;
+  out.subject=ObservationSubject(object,true);if(!out.subject.local||out.subject.status!=1)return out;
+  out.address=std::uint32_t(reinterpret_cast<uintptr_t>(object));out.manager_frame=frame;out.paused=paused;
+  out.offset_x=x;out.offset_y=y;out.active=true;return out;
+}
+void FinishEntityTextRender(const EntityTextRenderWitness &w) noexcept {
+  if(!w.active||!IsMain())return;
+  auto current=CurrentWorldRecording();if(!current||current->epoch!=w.subject.epoch||!current->observation.Active())return;
+  const auto *after=current->identities.Find(world::ObjectDomain::Entity,w.address);
+  if(!after||after->Retired()||after->local_id!=w.subject.local||after->use!=w.subject.use||after->revision!=w.subject.revision)return;
+  try {
+    namespace r=replica;using V=r::Value;r::Json doc(rapidjson::kObjectType);auto &a=doc.GetAllocator();
+    r::Put(doc,"contract","native-text-render-v1",a);r::Put(doc,"capture_kind","Render",a);
+    r::Put(doc,"scope_rule","independent;match-Key/shape/counter/text;never-merge-into-ordinary",a);
+    V subject(rapidjson::kObjectType);r::Put(subject,"session",r::Decimal(w.subject.session,a),a);r::Put(subject,"epoch",r::Decimal(w.subject.epoch,a),a);
+    r::Put(subject,"space",V(1u),a);r::Put(subject,"local_id",r::Decimal(w.subject.local,a),a);r::Put(subject,"use",r::Decimal(w.subject.use,a),a);
+    r::Put(subject,"revision",r::Decimal(w.subject.revision,a),a);r::Put(subject,"resolution","KnownCurrent",a);r::Put(doc,"subject",std::move(subject),a);
+    r::Put(doc,"manager_frame",V(w.manager_frame),a);r::Put(doc,"paused",V(w.paused),a);
+    r::Put(doc,"subframe",V(w.paused?0u:(w.manager_frame+1u)%2u),a);
+    r::Put(doc,"font","Manager.font6_PFTempestaSevenCondensed;J273-installation-resource",a);
+    r::Put(doc,"state_status",w.state.state_status,a);
+    if(!std::strcmp(w.state.state_status,"Value")){r::Put(doc,"counter",V(w.state.counter),a);r::Put(doc,"duration",V(w.state.duration),a);}
+    r::Put(doc,"text_status",w.state.status,a);
+    if(!std::strcmp(w.state.status,"Value")){
+      // 原生文本是字节串；采用hex纯值，避免把非UTF8原字节写成非法JSON。
+      static const char digits[]="0123456789abcdef";std::string hex;hex.reserve(w.state.text_size*2);
+      for(unsigned i=0;i<w.state.text_size;++i){const auto b=static_cast<unsigned char>(w.state.text[i]);hex+=digits[b>>4];hex+=digits[b&15];}
+      r::Put(doc,"text_bytes_hex",hex,a);
+    }
+    bool complete=!std::strcmp(w.state.status,"Value")&&!std::strcmp(w.state.state_status,"Value")&&!std::strcmp(w.state.color_status,"Value")&&std::isfinite(w.offset_x)&&std::isfinite(w.offset_y);
+    V color(rapidjson::kObjectType);r::Put(color,"status",w.state.color_status,a);
+    constexpr const char *keys[]={"R","G","B","A"};
+    if(!std::strcmp(w.state.color_status,"Value")){
+      for(unsigned i=0;i<4;++i)if(std::isfinite(w.state.draw_color[i]))r::Put(color,keys[i],V(double(w.state.draw_color[i])),a);else complete=false;
+      r::Put(color,"opaque32",V(w.state.color_extra),a);
+    }
+    r::Put(doc,"draw_color",std::move(color),a);
+    if(std::isfinite(w.offset_x)&&std::isfinite(w.offset_y)){V offset(rapidjson::kObjectType);r::Put(offset,"x",V(double(w.offset_x)),a);r::Put(offset,"y",V(double(w.offset_y)),a);r::Put(doc,"render_offset",std::move(offset),a);}
+    const auto payload=r::Text(doc);ObservationPublishLua(payload.data(),payload.size(),complete,1,32,complete?"":"text_render_input_unavailable",2);
+  }catch(...){/* 观测失败不改变原生draw或普通完整目标。 */}
 }
 // J273 GetNullFrame/IsEventTriggered 的名字枚举未公开；仅复制已加载 ANM2 的名字表，
 // 再交由公开 Getter 读取当前姿态，绝不 Load/Update/Play 或执行随机动画。

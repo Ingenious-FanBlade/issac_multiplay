@@ -49,6 +49,8 @@ local function parameterSets(object, spec, ctx)
     if sets~=nil then return sets end
   end
   local name=spec.member
+  -- J273官方wrapper限定五个真实costume成员；不用可缺失的全局枚举猜参数域。
+  if spec.id=="EntityBomb.GetCostumeLayerSprite" then return {{0},{1},{2},{3},{4}} end
   -- 官方实现允许空路径查询是否存在任意自定义 shader，不枚举或猜测路径。
   if (spec.owner=="Sprite" or spec.owner=="LayerState") and (name=="HasCustomShader" or name=="HasCustomChampionShader") then return {{""}} end
   if spec.owner=="Sprite" and (name=="GetNullFrame" or name=="GetOverlayNullFrame" or name:find("EventTriggered")) then
@@ -220,6 +222,11 @@ query=function(object,spec,args,ctx,depth)
   end
   local ok,v,extra=protected(spec.static and _G[spec.owner] or object,spec.member,args,spec.category=="field",spec.static)
   if not ok then fail(ctx,"read:"..spec.id); return missing("ReadFailed",textError(v)) end
+  -- Entity辅助ANM可合法未加载；保持Null，不能把空路径伪装成可应用资源。
+  -- 这些公开Getter返回真实内嵌成员，不调用Load/Reset/Update来补姿态。
+  if spec.returns=="Sprite" and spec.owner:find("^Entity") and v and v:GetFilename()=="" then
+    return missing("Null","native_entity_anm_unloaded")
+  end
   -- J273 TimerPlate getter 按值返回内嵌 ANM；未加载时表示没有 Timer 资源，不能生成空路径姿态。
   if spec.owner=="GridEntityPressurePlate" and spec.member=="TimerPlate" and v and v:GetFilename()=="" then
     return missing("Null","native_timer_anm_unloaded")
@@ -270,6 +277,9 @@ collect=function(object,class,ctx,depth)
         elseif spec.owner=="EntityPlayer" and (spec.member=="GetHistory" or spec.member=="GetMovingBoxContents") then
           out.fields[spec.id]={type="owner_qualified_domain_reference",schema=spec.member=="GetHistory" and "isaac.cs.player" or "isaac.cs.room_save",owner=native().Reference(object),field=spec.member=="GetHistory" and "bodies.history" or "carried.moving_box",scope_rule="same_committed_native_window;target_coverage_applies"}
         elseif spec.member=="GetPlayerHUD" then out.fields[spec.id]={type="owner_qualified_domain_reference",schema="isaac.cs.presentation",owner=native().Reference(object)}
+        elseif spec.id=="EntityEffect.GetGridEntityDesc" then
+          -- 完整描述由同窗口Grid域采集；仅136适用，不把VarData当通用int再复制。
+          out.fields[spec.id]=object.Variant==136 and {type="owner_qualified_domain_reference",schema="isaac.cs.grid",owner=native().Reference(object),field="lifted_descriptors",scope_rule="same_committed_native_window;nullable_descriptor;source_grid_may_be_unresolved"} or missing("NotApplicable","effect_variant_not_136")
         elseif ctx.external_reference then out.fields[spec.id]=ctx.external_reference(object,spec)
         else out.fields[spec.id]=missing("NotCaptured",spec.reason) end
       elseif spec.category=="actual_call" then

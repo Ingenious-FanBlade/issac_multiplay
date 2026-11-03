@@ -26,6 +26,8 @@
     ["actual_pickup_loot","world","Entity_Pickup","GetLootList","LootList","bool advance, Entity_Player* player","advance, player","0x2D8700","None",false,"",false,-10000,true],
     ["actual_fireplace_loot","world","Entity_NPC","fireplace_get_loot","LootList","bool advance","advance","0x2CD630","None",false,"",false,-10000,true],
     ["actual_shopkeeper_loot","world","Entity_NPC","shopkeeper_get_loot","LootList","bool advance","advance","0x2BDC70","None",false,"",false,-10000,true],
+    ["native_text_update","world","CsEntity","TextUpdate","int","","","0x1CC340","None",false,"",true,-10000,true],
+    ["native_text_render","world","CsEntity","TextRender","void","Vector* offset","offset","0x1CC580","None",false,"",true,-10000,true],
     ["manager_update","loop","Manager","Update","void","bool value","value","0x52E3E0","Manager",true,"stdcall",false,-10000,true],
     ["client_game_update","client","Game","Update","void","","","0x2F6D30","None",false,"",false,-20000,true],
     ["game_update","loop","Game","Update","void","","","0x2F6D30","Game",false,"",false,0,true],

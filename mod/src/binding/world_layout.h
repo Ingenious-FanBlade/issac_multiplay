@@ -164,6 +164,12 @@ struct Constants final {
   std::uint32_t entity_text_duration_offset;
   std::uint32_t entity_text_buffer_offset;
   std::uint32_t entity_text_capacity;
+  std::uint32_t entity_text_color_offset;
+  std::uint32_t entity_text_variant_offset;
+  std::uint32_t entity_text_writer_return_rva;
+  std::uint32_t entity_laser_td_rva;
+  std::uint32_t entity_laser_sample_mode_offset;
+  std::uint32_t entity_laser_start_offset_mode_offset;
 
   std::uint32_t game_root_rva;
   std::uint32_t game_frame_offset;

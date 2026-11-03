@@ -15824,6 +15824,54 @@
       "implementation": "public_lua_copy"
     },
     {
+      "class": "EntityLaser",
+      "member": "sample_mode_raw",
+      "signature": "int8 sample_mode_raw",
+      "returns": "int8",
+      "parameters": null,
+      "category": "native_field",
+      "reason": "J273 Laser Init+completed owner; signed sample byte and opaque draw branch; not gameplay setter",
+      "sources": [
+        {
+          "wiki": "native-J273",
+          "path": "F:/projects_isaac/issac_multiplay/docs/design/tx-04-19/entity-source-research.md",
+          "line": 1
+        }
+      ],
+      "id": "EntityLaser.sample_mode_raw",
+      "schema": "isaac.cs.entity",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / Lifecycle / explicit query scope",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / NotCaptured / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；持续时间为游戏更新帧，角度／坐标依原成员语义",
+      "implementation": "native_copy"
+    },
+    {
+      "class": "EntityLaser",
+      "member": "start_offset_mode_opaque32",
+      "signature": "int32 start_offset_mode_opaque32",
+      "returns": "int32",
+      "parameters": null,
+      "category": "native_field",
+      "reason": "J273 Laser Init+completed owner; signed sample byte and opaque draw branch; not gameplay setter",
+      "sources": [
+        {
+          "wiki": "native-J273",
+          "path": "F:/projects_isaac/issac_multiplay/docs/design/tx-04-19/entity-source-research.md",
+          "line": 1
+        }
+      ],
+      "id": "EntityLaser.start_offset_mode_opaque32",
+      "schema": "isaac.cs.entity",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / Lifecycle / explicit query scope",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / NotCaptured / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；持续时间为游戏更新帧，角度／坐标依原成员语义",
+      "implementation": "native_copy"
+    },
+    {
       "class": "EntityList",
       "member": "Get",
       "signature": "Entity Get ( int idx )",
@@ -38315,7 +38363,7 @@
       "returns": "int",
       "parameters": null,
       "category": "native_field",
-      "reason": "J273 completed creation owner; see native supplements",
+      "reason": "J273 completed creation owner;KColor20 includes opaque32;see native supplements",
       "sources": [
         {
           "wiki": "native-J273",
@@ -38334,12 +38382,60 @@
     },
     {
       "class": "NativeText",
+      "member": "draw_color",
+      "signature": "native_kcolor20 draw_color",
+      "returns": "native_kcolor20",
+      "parameters": null,
+      "category": "native_field",
+      "reason": "J273 completed creation owner;KColor20 includes opaque32;see native supplements",
+      "sources": [
+        {
+          "wiki": "native-J273",
+          "path": "F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md",
+          "line": 1
+        }
+      ],
+      "id": "NativeText.draw_color",
+      "schema": "isaac.cs.entity",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "OrdinaryPost / Lifecycle / explicit query scope",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / NotCaptured / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；持续时间为游戏更新帧，角度／坐标依原成员语义",
+      "implementation": "native_copy"
+    },
+    {
+      "class": "NativeText",
+      "member": "draw_phase",
+      "signature": "native_render_dependency draw_phase",
+      "returns": "native_render_dependency",
+      "parameters": null,
+      "category": "native_field",
+      "reason": "independent-native-text-render-v1;not-ordinary-phase",
+      "sources": [
+        {
+          "wiki": "native-J273",
+          "path": "F:/projects_isaac/issac_multiplay/docs/design/observation-expansion/entity-native-supplements.md",
+          "line": 1
+        }
+      ],
+      "id": "NativeText.draw_phase",
+      "schema": "isaac.cs.entity",
+      "schema_version": 2,
+      "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",
+      "phase": "ordinary owner-qualified dependency / independent Render entry inputs",
+      "absence": "Value / Null / Empty / NotApplicable / Unavailable / NotCaptured / ReadFailed / Nonfinite / Truncated",
+      "units": "API原单位；持续时间为游戏更新帧，角度／坐标依原成员语义",
+      "implementation": "native_copy"
+    },
+    {
+      "class": "NativeText",
       "member": "duration",
       "signature": "int duration",
       "returns": "int",
       "parameters": null,
       "category": "native_field",
-      "reason": "J273 completed creation owner; see native supplements",
+      "reason": "J273 completed creation owner;KColor20 includes opaque32;see native supplements",
       "sources": [
         {
           "wiki": "native-J273",
@@ -38363,7 +38459,7 @@
       "returns": "string",
       "parameters": null,
       "category": "native_field",
-      "reason": "J273 completed creation owner; see native supplements",
+      "reason": "J273 real-current-use-writer-witness;Init-does-not-initialize-buffer",
       "sources": [
         {
           "wiki": "native-J273",

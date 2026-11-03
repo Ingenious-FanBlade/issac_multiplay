@@ -25,6 +25,7 @@ Copy-Item -LiteralPath (Join-Path $repoRoot 'build/repentogon/generated/hook-man
 Copy-Item -LiteralPath (Join-Path $repoRoot 'build/repentogon/generated/world-layout.json') -Destination (Join-Path $repoRoot 'out/repentogon/world-layout.json')
 Copy-Item -LiteralPath (Join-Path $repoRoot 'build/repentogon/generated/replication-catalog.json') -Destination (Join-Path $repoRoot 'out/repentogon/replication-catalog.json')
 Copy-Item -LiteralPath (Join-Path $repoRoot 'build/repentogon/generated/room-grid-application.json') -Destination (Join-Path $repoRoot 'out/repentogon/room-grid-application.json')
+Copy-Item -LiteralPath (Join-Path $repoRoot 'build/repentogon/generated/entity-application.json') -Destination (Join-Path $repoRoot 'out/repentogon/entity-application.json')
 
 # 正式观察 Lua 作为产品资源单独打包，测试夹具与 Rust 不混入模组目录。
 $observationOutput=Join-Path $repoRoot 'out/repentogon/isaac-cs-observation'
