@@ -51,7 +51,7 @@ EntityDependency DescribeEntityDependency(const EntityObjectTarget &o,const Enti
   else if(returns=="EntityEffect")d.expected=EntityCategory::Effect;
   if(d.member=="Entity.GetLastChild"||d.member=="Entity.GetLastParent"){
     d.kind=EntityDependencyKind::Historical;d.phase=EntityDependencyPhase::ValueOnly;
-  }else if(d.member=="EntityNPC.GetPlayerTarget"||d.member=="EntityNPC.Pathfinder"||d.member.rfind("EntityNPC.QueryNPCs",0)==0||d.member=="EntityFamiliar.GetActiveWeaponEntity"){
+  }else if(d.member=="EntityNPC.GetPlayerTarget"||d.member=="EntityNPC.Pathfinder"||d.member.rfind("EntityNPC.QueryNPCs",0)==0||d.member=="EntityFamiliar.GetActiveWeaponEntity"||d.member=="EntityFamiliar.GetWeapon"||d.member=="EntityFamiliar.GetPathfinder"||d.member=="EntityFamiliar.GetItemConfig"){
     d.kind=EntityDependencyKind::AuthorityValue;d.phase=EntityDependencyPhase::ValueOnly;
   }
   // Familiar Init真实读取Spawner；Knife的Parent链是owner/draw前置，不以首Player补齐。

@@ -12,6 +12,8 @@
 #include <cstring>
 #include <cmath>
 namespace cs::game {
+int ClientEntityGeometryLua(lua_State *);
+int ClientEntityOwnedPresentationLua(lua_State *);
 namespace {
 lua_State *State() noexcept { return IsMain()&&g_LuaEngine ? g_LuaEngine->_state : nullptr; }
 void Decimal(lua_State *L,const char *key,std::uint64_t value) {
@@ -153,7 +155,10 @@ int EntityApplicationSprites(lua_State *L){
   lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");lua_pushinteger(L,1);lua_setfield(L,-2,"version");
   // 类型来自Lua已经成功的派生转换，再用当前对象作交叉检查，不能按Type范围猜NPC。
   const char *source_class=luaL_checkstring(L,2);const unsigned category=e->ToNPC()?1:e->ToProjectile()?3:
-      !std::strcmp(source_class,"EntityTear")&&e->_type==2?2:!std::strcmp(source_class,"EntityBomb")&&e->_type==4?4:13;
+      !std::strcmp(source_class,"EntityTear")&&e->_type==2?2:!std::strcmp(source_class,"EntityBomb")&&e->_type==4?4:
+      !std::strcmp(source_class,"EntityLaser")&&e->_type==7?5:!std::strcmp(source_class,"EntityKnife")&&e->_type==8?6:
+      !std::strcmp(source_class,"EntityPickup")&&e->_type==5?7:!std::strcmp(source_class,"EntityFamiliar")&&e->_type==3?8:
+      !std::strcmp(source_class,"EntityEffect")&&e->_type==1000?9:13;
   if(category==13)return luaL_error(L,"entity_application_class_witness");
   lua_newtable(L);
   const auto link=[&](const char *name,unsigned offset){auto *target=*reinterpret_cast<Entity **>(reinterpret_cast<unsigned char *>(e)+offset);
@@ -162,13 +167,32 @@ int EntityApplicationSprites(lua_State *L){
 #include "game/client_entity_links.inc"
 #undef CS_CLASS_LINK
   lua_setfield(L,-2,"links");
+  // 固定声明列显式另列名称，空关系也能由Lua序列化为有名字的Null。
+  lua_newtable(L);unsigned link_index=0;
+#define CS_CLASS_LINK(cat,id,offset) if(cat==0||cat==category){lua_pushliteral(L,id);lua_rawseti(L,-2,++link_index);}
+#include "game/client_entity_links.inc"
+#undef CS_CLASS_LINK
+  lua_setfield(L,-2,"link_names");
   if(category==1){lua_pushinteger(L,*reinterpret_cast<unsigned *>(reinterpret_cast<unsigned char *>(e)+0xc00));lua_setfield(L,-2,"npc_private_reference_count");
     lua_pushboolean(L,*reinterpret_cast<void **>(reinterpret_cast<unsigned char *>(e)+0xf40)!=nullptr);lua_setfield(L,-2,"npc_owned_actor_present");}
   if(category==4){lua_pushboolean(L,*reinterpret_cast<bool *>(reinterpret_cast<unsigned char *>(e)+0x462));lua_setfield(L,-2,"bomb_costume_draw_enabled");}
   if(e->ToNPC())for(const auto &p:{std::pair<const char *,unsigned>{"npc_overlay",0xcd8u},{"npc_effect",0xdecu}}){
     auto *sprite=reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(e)+p.second);
     lua::luabridge::UserdataPtr::push(L,sprite,lua::GetMetatableKey(lua::Metatables::SPRITE));lua_setfield(L,-2,p.first);
-  }return 1;
+  }
+  if(category==7){auto *sprite=&static_cast<Entity_Pickup *>(e)->_altPedestalANM2;
+    lua::luabridge::UserdataPtr::push(L,sprite,lua::GetMetatableKey(lua::Metatables::SPRITE));lua_setfield(L,-2,"pickup_alternate");}
+  if(category==6){auto *sprite=*reinterpret_cast<ANM2 **>(Base+0x7e5594);
+    lua::luabridge::UserdataPtr::push(L,sprite,lua::GetMetatableKey(lua::Metatables::SPRITE));lua_setfield(L,-2,"knife_dead_eye");}
+  if(category>=5){
+    lua_newtable(L);lua_pushinteger(L,2);lua_setfield(L,-2,"version");lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");
+    if(category==8){lua_pushboolean(L,*reinterpret_cast<void **>(reinterpret_cast<unsigned char *>(e)+0xecc)!=nullptr);lua_setfield(L,-2,"private_owner_present");
+      lua_pushboolean(L,static_cast<Entity_Familiar *>(e)->_weapon!=nullptr);lua_setfield(L,-2,"weapon_present");}
+    if(category==9){auto *bytes=reinterpret_cast<unsigned char *>(e);lua_pushboolean(L,*reinterpret_cast<void **>(bytes+0x4b4)!=nullptr);lua_setfield(L,-2,"private_owner_present");
+      lua_pushboolean(L,*reinterpret_cast<void **>(bytes+0x4a8)!=*reinterpret_cast<void **>(bytes+0x4ac));lua_setfield(L,-2,"private_container_nonempty");}
+    lua_setfield(L,-2,"runtime");
+  }
+  return 1;
 }
 int Sources(lua_State *L) {
   lua_newtable(L);
@@ -313,6 +337,8 @@ void EnsureObservationLuaBridge() noexcept {
   lua_pushcfunction(L,SpriteRuntimePose);lua_setfield(L,-2,"SpriteRuntimePose");
   lua_pushcfunction(L,LaserPresentation);lua_setfield(L,-2,"LaserPresentation");
   lua_pushcfunction(L,EntityApplicationSprites);lua_setfield(L,-2,"EntityApplicationSprites");
+  lua_pushcfunction(L,ClientEntityGeometryLua);lua_setfield(L,-2,"EntityApplicationGeometry");
+  lua_pushcfunction(L,ClientEntityOwnedPresentationLua);lua_setfield(L,-2,"EntityApplicationOwned");
   lua_pushcfunction(L,RoomPresentation);lua_setfield(L,-2,"RoomPresentation");
   lua_pushcfunction(L,RoomConfigContents);lua_setfield(L,-2,"RoomConfigContents");
   lua_pushcfunction(L,RoomApplication);lua_setfield(L,-2,"RoomApplication");

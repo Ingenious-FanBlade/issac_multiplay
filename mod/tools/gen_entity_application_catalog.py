@@ -112,12 +112,12 @@ def generate():
             rows[-1]["local_storage"] = common_native[m["id"]]["storage"]
             rows[-1]["implementation"] = "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
         elif m["id"] in class_native and ownership == "ReplicatedState":
-            rows[-1]["native_status"] = "I11-I14-final-field-path-implemented;I25/I29-integration-and-I34-pending"
+            rows[-1]["native_status"] = "I11-I19-final-field-path-implemented;I25/I29-integration-and-I34-pending"
             rows[-1]["local_storage"] = class_native[m["id"]]
             rows[-1]["implementation"] = "mod/src/game/client_entity_class_model.cpp:ClientDescribeEntityClass;mod/src/game/client_entity_adapters_native.cpp:Fields"
-        elif m["class"] in {"EntityNPC", "EntityDelirium", "EntityTear", "EntityProjectile", "EntityBomb"} and ownership == "ReplicatedState":
-            rows[-1]["native_status"] = "I10-I14-explicit-field-disposition;I25/I29/I34-pending"
-            rows[-1]["local_storage"] = "ClientEntityClassDisposition:resource/native-reference/Authority-fact/optional-bool/removed-API;source-owned-actor-or-private-container=explicit-reject"
+        elif m["class"] in {"EntityNPC", "EntityDelirium", "EntityTear", "EntityProjectile", "EntityBomb", "EntityLaser", "EntityKnife", "EntityPickup", "EntityFamiliar", "EntityEffect"} and ownership == "ReplicatedState":
+            rows[-1]["native_status"] = "I10-I19-explicit-field-disposition;I25/I29/I34-pending"
+            rows[-1]["local_storage"] = "ClientEntityClassDisposition:resource/native-reference/Authority-fact/complete-typed-collection/optional-bool/removed-API;unknown-private-owner=explicit-reject;Effect136=I24"
             rows[-1]["implementation"] = "mod/src/game/client_entity_class_model.cpp:ClientEntityClassDisposition;mod/src/game/client_entity_adapters_native.cpp"
         elif responsibility == "typed_reference":
             rows[-1]["native_status"] = "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending"
@@ -126,11 +126,13 @@ def generate():
     return {"format": "isaac.cs.entity.application-catalog", "version": 1, "model_version": 2,
             "target_contract": "entity-target-v1", "source_contract": "entity-source-v1", "members": rows,
             "common_native": common_native, "class_native": class_native,
-            "class_execution": {"registered": ["NPC", "Delirium-special", "Tear", "Projectile", "Bomb"],
+            "class_execution": {"registered": ["NPC", "Delirium-special", "Tear", "Projectile", "Bomb", "Laser", "Knife", "Pickup", "Familiar", "Effect"],
                                 "model": "mod/src/game/client_entity_class_model.cpp", "native": "mod/src/game/client_entity_adapters_native.cpp",
-                                "resources": "main/overlay/layers/exact-phase/champion-color/shader;NPC two ANM;Tear three ANM;Bomb five costumes",
-                                "native_links": "NativeEntity.Attached;NPC ChildA/Peer/ChildB/RemovalChild/Related;Tear ChildA/Peer/ChildB/LinkA/LinkB/ChildC;Null-explicit;official-EntityPtr-helper",
-                                "source_contract": "entity-class-application-v1;NPC nonempty private reference container or owned actor remains unavailable until I25/20",
+                                "resources": "main/overlay/layers/exact-phase/champion-color/shader;NPC two ANM;Tear three ANM;Bomb five costumes;Knife shared DeadEye;Pickup price/alternate;five typed ExtraData families",
+                                "native_links": "client_entity_links.inc;public class references;Familiar Player raw scoped borrow;Knife Plus leaf;Null-explicit;official-EntityPtr-helper",
+                                "source_contract": "entity-class-application-v2;unknown private owners remain unavailable;Player composite draws=I25/20",
+                                "collections": "Laser four independent vectors and inline geometry;Pickup complete cycle;SpriteTrail owned deque and exact 64B records",
+                                "owned_presentations": "Familiar48 IsaacsBody/231 AbyssLocust;Effect108 MrMe/166 SpriteTrail/191 PickupGhost;real native shared-owner and constructors/destructors",
                                 "rejected_npc_private_draw": ["835", "906", "920", "921", "951:3", "965:10"],
                                 "scene_commit": "I29-pending", "native_draw_dispatch": "I25-pending", "runtime_acceptance": "I34-pending"},
             "common_execution": {"tasks": "I05-I09", "plan": "mod/src/replica/entity_plan.cpp:PlanEntityTarget",
@@ -138,7 +140,7 @@ def generate():
                                  "class_native_apply": False, "scene_commit": "I29-pending", "runtime_acceptance": "I34-pending"},
             # I04研究索引是资料与采用约束，不把静态审阅升级为原生支持或运行通过。
             "static_research": json.loads(RESEARCH.read_text(encoding="utf-8-sig")),
-            "classes": [{"source_class": c, "category": d[0], "task": d[1], "contract": d[2], "e2e": d[3], "adapter_registered": c in {"EntityNPC", "EntityDelirium", "EntityTear", "EntityProjectile", "EntityBomb"}, "native_apply": False} for c, d in CLASSES.items()],
+            "classes": [{"source_class": c, "category": d[0], "task": d[1], "contract": d[2], "e2e": d[3], "adapter_registered": c in {"EntityNPC", "EntityDelirium", "EntityTear", "EntityProjectile", "EntityBomb", "EntityLaser", "EntityKnife", "EntityPickup", "EntityFamiliar", "EntityEffect"}, "native_apply": False} for c, d in CLASSES.items()],
             "classification": {"method": "public-derived-interface-or-J273-RTTI;never-Type-range", "rejected_legacy": ["NativeDarkness"], "unknown": "explicit-UnknownEntity;never-NPC", "delirium": "EntityNPC+EntityDelirium-special"},
             "slot_variants": {"source": "mod/observation/isaac-cs-observation/domains/entity/slot_variants.lua", "values": [
                 {"variant": i+1, "name": name, "contract": "C11;read actual Prize/DonationValue/Timeout/PrizeSprite;no local payout"}
@@ -149,10 +151,11 @@ def generate():
                 {"id": "Sprite.pose_runtime", "task": "I03/I10", "handling": "resource-pose-v1;actual source member;nullable unloaded auxiliary"},
                 {"id": "Sprite.pose_runtime.champion_color/shaders", "task": "I10", "handling": "11-float native champion ColorMod;early observed successful official shader paths;current Has query must match;unobserved=ReadFailed"},
                 {"id": "EntityNPC.application_resources", "task": "I10/I11", "handling": "observed completed owner;same-use native ANM +CD8/+DEC;independent resources;Null unload via candidate swap"},
-                {"id": "Entity.application_links", "task": "I11-I14/I09", "handling": "client_entity_links.inc is source/native declaration;complete fixed set including Null;stable Key;not copied addresses;unlink before retirement"},
+                {"id": "Entity.application_links", "task": "I11-I19/I09", "handling": "client_entity_links.inc is source/native declaration;complete fixed set including Null;stable Key;not copied addresses;unlink before retirement"},
                 {"id": "EntityNPC.application_runtime", "task": "I11/I25", "handling": "private_reference_count and owned_actor_present are availability facts;nonempty/owned=explicit incomplete Source+write-before-reject;never assign container count or borrow roster as owned actor"},
                 {"id": "EntityBomb.application_runtime", "task": "I14", "handling": "NativeBomb.CostumeDrawEnabled is the actual initialized byte +462;separate from source lazy pending +463"},
-                {"id": "EntityLaser.HomingLaser", "task": "I03/I15", "handling": "owner-qualified opaque identity;public optimized/nonoptimized sample vectors retained;private geometry versioned separately"},
+                {"id": "EntityLaser.HomingLaser", "task": "I03/I15", "handling": "application_geometry v1;four owned vectors/scalars;six-f32 Bezier;self backpointer retained;public aliases checked;no CalculateSamples"},
+                {"id": "Entity.application_owned", "task": "I18/I19", "handling": "five typed ExtraData families;independent ANM poses;Source stable current owner;game allocator/shared control owner;unknown RTTI unavailable;no copied headers"},
                 {"id": "EntityLaser.sample_mode_raw/start_offset_mode_opaque32", "task": "I03/I15", "handling": "initialized-owner J273 supplement;signed int8 preserves -1 early-return state;int32 opaque preserves 4F0<=0 branch without guessing semantic name"},
                 {"id": "NativeDummy", "task": "I03/I22", "handling": "J273 RTTI native supplement;common only;not NativeDarkness"},
                 {"id": "NativeText.draw_color", "task": "I03/I21", "handling": "20-byte KColor;RGBA+opaque32;observed creation owner;never-public-Color-substitution"},

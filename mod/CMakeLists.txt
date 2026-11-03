@@ -89,6 +89,8 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_backdrop_native.cpp src/game/client_objects.cpp src/game/client_objects_native.cpp
   src/game/client_entity_model.cpp src/game/client_entity_common_native.cpp
   src/game/client_entity_class_model.cpp src/game/client_entity_adapters_native.cpp
+  src/game/client_entity_collections_native.cpp
+  src/game/client_entity_owned_native.cpp
   src/game/client_grids.cpp src/game/client_grid_native.cpp src/game/client_grid_events.cpp
   src/game/client_map_native.cpp
   src/hooks/backdrop_patch.cpp
@@ -105,7 +107,8 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。
 set_source_files_properties(src/game/world_sources/loot.cpp src/game/world_sources/lua_entity.cpp src/game/player_api.cpp src/game/client_native_bridge.cpp src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp"
   src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_backdrop_native.cpp src/game/client_objects_native.cpp src/game/client_presentation_native.cpp src/game/client_resources_native.cpp
-  src/game/client_entity_common_native.cpp src/game/client_resource_shaders_native.cpp src/game/client_entity_adapters_native.cpp
+  src/game/client_entity_common_native.cpp src/game/client_resource_shaders_native.cpp src/game/client_entity_adapters_native.cpp src/game/client_entity_collections_native.cpp
+  src/game/client_entity_owned_native.cpp
   src/game/client_grid_native.cpp
   src/game/client_map_native.cpp
   src/game/client_e2e_native.cpp

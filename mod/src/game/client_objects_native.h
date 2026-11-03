@@ -98,7 +98,7 @@ struct ClientEntityClassAdapter final {
   void *context=nullptr;
   bool (*prepare)(void *,const ClientObjectDescription &,const char *&) noexcept=nullptr;
   bool (*before_init)(void *,void *,const ClientObjectDescription &,const ClientEntityOwners &,const ClientNativeRoots &,const char *&)=nullptr;
-  // 可选窄Init作用域；仍经同一动态Init/官方Plus链，不允许另造或提前发布实例。
+  // 可选窄Init作用域；按类别采用动态Init或已核base Init/官方Plus链，不允许另造或提前发布实例。
   bool (*initialize)(void *,void *,const ClientObjectDescription &,const char *&)=nullptr;
   bool (*fields)(void *,void *,const ClientObjectDescription &,bool,const char *&)=nullptr;
   bool (*resources)(void *,void *,const ClientObjectDescription &,bool,const char *&)=nullptr;

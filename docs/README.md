@@ -1,4 +1,6 @@
-> **tx-04-19 I10—I14（2026-11-03）**：[资源与四类应用实现／明确边界](design/tx-04-19/tx-04-19-class-application.md)、[Luna max静态研究与主审](design/tx-04-19/entity-i10-i14-native.md)。主／辅助资源完整姿态、NPC／Delirium、Tear、Projectile、Bomb字段和具名关系已接入；特殊NPC私有draw目标写前明确拒绝并交I25，不冒称全类别画面已完成。Win32 Release纯编译链接成功，未运行分项测试、游戏或E2E；I15之后及I34统一验收待推进。
+> **tx-04-19 I15—I19（2026-11-03）**：[Laser／Knife／Pickup／Familiar／Effect类别应用](design/tx-04-19/tx-04-19-laser-effect-application.md)、[Luna max静态研究与主审](design/tx-04-19/entity-i15-i19-native.md)。五类最终量、完整激光几何／cycle、具名引用／辅助资源及五种typed ExtraData已接入；Player复合draw、Effect136交接、完整分层绘制和唯一Scene提交继续按I24／I25／I29推进。按会话要求直接提交，没有构建或运行测试；I34待统一验收。
+
+> **tx-04-19 I10—I14（2026-11-03，阶段记录）**：[资源与四类应用实现／明确边界](design/tx-04-19/tx-04-19-class-application.md)、[Luna max静态研究与主审](design/tx-04-19/entity-i10-i14-native.md)。主／辅助资源完整姿态、NPC／Delirium、Tear、Projectile、Bomb字段和具名关系已接入；特殊NPC私有draw目标写前明确拒绝并交I25，不冒称全类别画面已完成。Win32 Release纯编译链接成功，未运行分项测试、游戏或E2E；后续进度见上项。
 
 > **tx-04-19 I05—I09（2026-11-03）**：[公共应用实现与必要逆向主审](design/tx-04-19/tx-04-19-common-application.md)。稳定实例／Player接口、A→T阶段计划、构造／发布、公共最终值与真实后态、分类型依赖已接线；一个GPT-6 Luna max子智能体逆向，主智能体独立复读并纠正SplatColor／Color别名及DepthOffset映射。Win32 Release纯构建成功，没有测试或游戏启动；类别adapter、唯一Scene提交与I34统一E2E仍归I10—I35。
 

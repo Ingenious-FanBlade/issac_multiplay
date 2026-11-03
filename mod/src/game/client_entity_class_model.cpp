@@ -8,6 +8,7 @@
 #include <map>
 #include <set>
 #include <type_traits>
+#include <algorithm>
 namespace cs::game {
 namespace {
 using V=replica::Value;
@@ -27,7 +28,7 @@ ClientPoseColor Color(const V &v){ClientPoseColor c;const char *t[] = {"R","G","
   for(const auto &e:entries.GetArray()){const auto &key=At(e,"key");if(!key.IsString())Fail("color","key");unsigned i=0;while(i<4&&std::string(key.GetString())!=t[i])++i;if(i==4||(mask&(1u<<i)))Fail("color","duplicate");mask|=1u<<i;c.colorize[i]=Real(At(e,"value"));}return c;}
 struct Rule final {unsigned category;ClientEntityValueKind kind;std::int64_t low,high;};
 Rule Storage(unsigned category,ClientEntityValueKind kind,const char *type){std::int64_t low=INT32_MIN,high=INT32_MAX;
-  if(!std::strcmp(type,"std::uint8_t")){low=0;high=UINT8_MAX;}else if(!std::strcmp(type,"std::uint16_t")){low=0;high=UINT16_MAX;}else if(!std::strcmp(type,"std::uint32_t")){low=0;high=UINT32_MAX;}
+  if(!std::strcmp(type,"std::int8_t")){low=INT8_MIN;high=INT8_MAX;}else if(!std::strcmp(type,"std::uint8_t")){low=0;high=UINT8_MAX;}else if(!std::strcmp(type,"std::uint16_t")){low=0;high=UINT16_MAX;}else if(!std::strcmp(type,"std::uint32_t")){low=0;high=UINT32_MAX;}
   return {category,kind,low,high};}
 const std::map<std::string,Rule> &Rules(){static const std::map<std::string,Rule> rules={
 #define CS_CLASS_FIELD(category,id,offset,type,kind) {id,Storage(category,ClientEntityValueKind::kind,#type)},
@@ -37,14 +38,22 @@ const std::map<std::string,Rule> &Rules(){static const std::map<std::string,Rule
 bool Authority(const std::string &id){static const std::set<std::string> facts={
   "EntityNPC.CalcTargetPosition","EntityNPC.CanReroll","EntityNPC.CanShutDoors","EntityNPC.GetAliveEnemyCount","EntityNPC.GetHitList","EntityNPC.Pathfinder",
   "EntityNPC.GetPlayerTarget","EntityNPC.IsBoss","EntityNPC.IsBossColor","EntityNPC.IsChampion","EntityNPC.QueryNPCsGroup","EntityNPC.QueryNPCsSpawnerType","EntityNPC.QueryNPCsType",
-  "EntityDelirium.GetTeleportationTimer","EntityDelirium.IsRedMode","EntityTear.GetHitList","EntityBomb.GetHitList","EntityBomb.IsLoadingCostumes"};return facts.count(id)!=0;}
-bool Relation(const std::string &id){return id=="EntityNPC.ParentNPC"||id=="EntityNPC.ChildNPC"||id=="EntityNPC.EntityRef"||id=="EntityNPC.GetSirenPlayerEntity"||id=="EntityTear.StickTarget";}
-bool Resource(const std::string &id){return id=="EntityTear.GetDeadEyeSprite"||id=="EntityTear.GetTearEffectSprite"||id=="EntityTear.GetTearHaloSprite"||id=="EntityBomb.GetCostumeLayerSprite";}
+  "EntityDelirium.GetTeleportationTimer","EntityDelirium.IsRedMode","EntityTear.GetHitList","EntityBomb.GetHitList","EntityBomb.IsLoadingCostumes",
+  "EntityLaser.GetHitList","EntityLaser.CalculateEndPoint","EntityLaser.GetRenderZ","EntityLaser.IsCircleLaser","EntityLaser.SampleLaser",
+  "EntityKnife.GetHitList","EntityKnife.GetRenderZ",
+  "EntityPickup.CanReroll","EntityPickup.GetCoinValue","EntityPickup.GetFlipCollectible","EntityPickup.HasFlipData","EntityPickup.IsShopItem","EntityPickup.GetAlternatePedestal",
+  "EntityFamiliar.CanBeDamagedByEnemies","EntityFamiliar.CanBeDamagedByLasers","EntityFamiliar.CanBeDamagedByProjectiles","EntityFamiliar.CanBlockProjectiles","EntityFamiliar.CanCharm","EntityFamiliar.IsCharmed",
+  "EntityFamiliar.GetFollowerPriority","EntityFamiliar.GetActiveWeaponEntity","EntityFamiliar.GetActiveWeaponNumFired","EntityFamiliar.GetItemConfig","EntityFamiliar.GetMultiplier","EntityFamiliar.GetPathfinder","EntityFamiliar.GetWeapon",
+  "EntityEffect.IsPlayerCreep"};return facts.count(id)!=0;}
+bool Relation(const std::string &id){static const std::set<std::string> relations={"EntityNPC.ParentNPC","EntityNPC.ChildNPC","EntityNPC.EntityRef","EntityNPC.GetSirenPlayerEntity","EntityTear.StickTarget",
+  "EntityLaser.BounceLaser","EntityKnife.GetHitboxParentKnife","EntityFamiliar.Player","EntityPickup.GetPickupGhost","EntityPickup.GetMegaChestLeftCollectible","EntityPickup.GetMegaChestRightCollectible","EntityEffect.GetGridEntityDesc"};return relations.count(id)!=0;}
+bool Resource(const std::string &id){return id=="EntityTear.GetDeadEyeSprite"||id=="EntityTear.GetTearEffectSprite"||id=="EntityTear.GetTearHaloSprite"||id=="EntityBomb.GetCostumeLayerSprite"||id=="EntityPickup.GetPriceSprite";}
+bool Collection(const std::string &id){return id=="EntityLaser.HomingLaser"||id=="EntityLaser.GetSamples"||id=="EntityLaser.GetNonOptimizedSamples"||id=="EntityPickup.GetCollectibleCycle"||id=="EntityEffect.GetTearFlags";}
 void ParseFields(const V &fields,unsigned category,ClientEntityClassState &state){
   for(auto it=fields.MemberBegin();it!=fields.MemberEnd();++it){const std::string id(it->name.GetString());const auto rule=Rules().find(id);
     if(rule==Rules().end()){const auto *policy=replica::EntityApplicationPolicy(id);if(policy&&std::string((*policy)["ownership"].GetString())!="ReplicatedState")continue;
       if(id=="EntityTear.Bounced"){if(!Is(it->value,"status","Null")&&!Is(it->value,"status","NotApplicable"))Fail(id,"removed_since_Repentance");continue;}
-      if(Authority(id)||Relation(id)||Resource(id)||id=="EntityNPC.GetFlyingOverride")continue;Fail(id,"disposition_missing");}
+      if(Authority(id)||Relation(id)||Resource(id)||Collection(id)||id=="EntityNPC.GetFlyingOverride")continue;Fail(id,"disposition_missing");}
     if(rule->second.category!=category)Fail(id,"category_mismatch");const auto &v=it->value;if(Is(v,"status","NotApplicable"))Fail(id,"required_native_value_not_applicable");
     ClientEntityField f;f.member=id;f.kind=rule->second.kind;
     switch(f.kind){case ClientEntityValueKind::Integer:f.integer=Integer<std::int64_t>(v);if(f.integer<rule->second.low||f.integer>rule->second.high)Fail(id,"native_width");break;
@@ -59,10 +68,45 @@ void ParseFields(const V &fields,unsigned category,ClientEntityClassState &state
 }
 void Pose(const V &v,const char *id,unsigned index,ClientEntityClassState &state){ClientEntityClassState::Resource r;r.member=id;r.index=index;r.is_null=Is(v,"status","Null");
   if(r.is_null){r.pose.loaded=false;r.pose.exact_phase=true;r.pose.champion_color_present=true;r.pose.shaders_present=true;}else {std::string why;if(!ClientParseResourcePose(v,r.pose,why))Fail(id,why.c_str());}state.resources.push_back(std::move(r));}
+// 原生补充数组不带图节点；公开Lua容器按完整、连续下标解释，不忽略表洞/重复项。
+std::vector<const V *> Sequence(const V &v,unsigned limit){std::vector<const V *> out;
+  if(v.IsArray()){if(v.Size()>limit)Fail("collection","budget");for(const auto &x:v.GetArray())out.push_back(&x);return out;}
+  if(v.IsObject()&&v.MemberCount()==0)return out;
+  if(Is(v,"kind","array"))return Sequence(At(v,"values"),limit);
+  if(Is(v,"type","table")){const auto &entries=At(v,"entries");if(entries.IsObject()&&entries.MemberCount()==0)return out;
+    if(!entries.IsArray()||entries.Size()>limit)Fail("collection","table_budget");std::map<unsigned,const V *> items;
+    for(const auto &e:entries.GetArray()){const auto i=Integer<unsigned>(At(e,"key"));if(!i||i>limit||!items.emplace(i,&At(e,"value")).second)Fail("collection","index");}
+    for(const auto &e:items){if(e.first!=out.size()+1)Fail("collection","hole");out.push_back(e.second);}return out;}
+  Fail("collection","explicit_sequence_required");}
+ClientPoseVector Point(const V &v){return {Real(At(v,"x")),Real(At(v,"y"))};}
+std::vector<ClientPoseVector> Points(const V &v){std::vector<ClientPoseVector> out;for(const auto *p:Sequence(v,16384))out.push_back(Point(*p));return out;}
+void Geometry(const V &v,ClientEntityClassState &state){if(Integer<unsigned>(At(v,"version"))!=1||!Is(v,"status","Value"))Fail("laser_geometry","version_or_status");
+  auto g=std::make_shared<ClientEntityClassState::LaserGeometry>();g->origin=Point(At(v,"origin"));g->end=Point(At(v,"end"));g->parameter=Real(At(v,"parameter"));g->spacing=Real(At(v,"spacing"));
+  g->sample_count=Integer<std::uint32_t>(At(v,"sample_count"));g->cursor=Integer<std::int32_t>(At(v,"cursor"));g->optimized=Points(At(v,"optimized"));g->unoptimized=Points(At(v,"unoptimized"));
+  for(const auto *i:Sequence(At(v,"indices"),16384))g->indices.push_back(Integer<std::int32_t>(*i));
+  for(const auto *b:Sequence(At(v,"bezier"),16384)){const auto values=Sequence(*b,6);if(values.size()!=6)Fail("laser_bezier","six_components_required");std::array<float,6> row{};for(unsigned i=0;i<6;++i)row[i]=Real(*values[i]);g->bezier.push_back(row);}state.laser=std::move(g);}
+// 私有表现owner明确区分None/具体类型；索引、采样record和每个实际ANM一并形成正式来源。
+void Owned(const V &v,ClientObjectDescription &d,ClientEntityClassState &state){using P=ClientEntityClassState::OwnedPresentation;
+  if(Integer<unsigned>(At(v,"version"))!=1||!Is(v,"status","Value"))Fail("owned_presentation","version_or_unavailable");
+  const auto &kind=At(v,"kind");if(!kind.IsString())Fail("owned_presentation","kind");const std::map<std::string,P::Kind> kinds={{"None",P::None},{"MrMe",P::MrMe},{"SpriteTrail",P::SpriteTrail},{"PickupGhost",P::PickupGhost},{"IsaacsBody",P::IsaacsBody},{"AbyssLocust",P::AbyssLocust}};
+  const auto found=kinds.find(kind.GetString());auto &o=state.owned;
+  if(std::string(kind.GetString())=="AuthorityOnly"){
+    if((d.category==8&&(d.variant==48||d.variant==231))||(d.category==9&&(d.variant==108||d.variant==166||d.variant==191)))Fail("owned_presentation","render_payload_cannot_be_authority_only");o.authority_only=true;
+  }else {if(found==kinds.end())Fail("owned_presentation","unknown_type");o.kind=found->second;}
+  if(o.kind!=P::None&& !((d.category==9&&((o.kind==P::MrMe&&d.variant==108)||(o.kind==P::SpriteTrail&&d.variant==166)||(o.kind==P::PickupGhost&&d.variant==191)))||
+       (d.category==8&&((o.kind==P::IsaacsBody&&d.variant==48)||(o.kind==P::AbyssLocust&&d.variant==231)))))Fail("owned_presentation","type_variant_conflict");
+  unsigned expected=o.kind==P::MrMe?1:o.kind==P::PickupGhost?4:o.kind==P::IsaacsBody?5:0;
+  if(o.kind==P::IsaacsBody){const auto indices=Sequence(At(v,"indices"),4);if(indices.size()!=4)Fail("isaacs_body","four_indices");for(unsigned i=0;i<4;++i)o.body_indices[i]=Integer<std::int32_t>(*indices[i]);}
+  if(o.kind==P::AbyssLocust){o.sprites_a=Integer<unsigned>(At(v,"sprites_a"));o.sprites_b=Integer<unsigned>(At(v,"sprites_b"));if(o.sprites_a>16384||o.sprites_b>16384||o.sprites_a+o.sprites_b>16384)Fail("abyss_sprites","budget");expected=o.sprites_a+o.sprites_b;}
+  const auto sprites=Sequence(At(v,"sprites"),16384);if(sprites.size()!=expected)Fail("owned_presentation","complete_sprite_members_required");for(unsigned i=0;i<sprites.size();++i)Pose(*sprites[i],"owned_sprite",i,state);
+  if(o.kind==P::PickupGhost){o.count=Integer<unsigned>(At(v,"count"));if(o.count>4)Fail("pickup_ghost","count");}
+  if(o.kind==P::SpriteTrail)for(const auto *row:Sequence(At(v,"trail"),16384)){const auto fields=Sequence(*row,16);if(fields.size()!=16)Fail("sprite_trail","record_size");std::array<std::uint32_t,16> record{};
+    for(unsigned i=0;i<16;++i){record[i]=Integer<std::uint32_t>(*fields[i]);float f=0;std::memcpy(&f,&record[i],4);if(!std::isfinite(f))Fail("sprite_trail","nonfinite_record");}o.trail.push_back(record);}
 }
-const char *ClientEntityClassDisposition(const std::string &id) noexcept {if(Rules().count(id))return "native-final-value;class-field-table";if(id=="EntityTear.Bounced")return "removed-since-Repentance;only-Null-or-NotApplicable;never-fabricate-storage";if(id=="EntityNPC.GetFlyingOverride")return "official-Plus-optional-bool;fixed-leaf-Lua-Set-Clear-Get";if(id=="EntityBomb.IsLoadingCostumes")return "authority-lazy-work-request;install-final-five-resources;client-pending=false";if(Authority(id))return "authority-fact;no-client-AI-or-collision-consumer";if(Relation(id))return "typed-reference;class-owner";if(Resource(id))return "independent-native-member-resource;I10";return nullptr;}
+}
+const char *ClientEntityClassDisposition(const std::string &id) noexcept {if(Rules().count(id))return "native-final-value;class-field-table";if(id=="EntityTear.Bounced")return "removed-since-Repentance;only-Null-or-NotApplicable;never-fabricate-storage";if(id=="EntityNPC.GetFlyingOverride")return "official-Plus-optional-bool;fixed-leaf-Lua-Set-Clear-Get";if(id=="EntityBomb.IsLoadingCostumes")return "authority-lazy-work-request;install-final-five-resources;client-pending=false";if(Authority(id))return "authority-fact;no-client-AI-or-collision-consumer";if(Relation(id))return "typed-reference;class-owner";if(Resource(id))return "independent-native-member-resource;I10";if(Collection(id))return "class-owned-complete-container;variant-qualified;no-gameplay-recalculation";return nullptr;}
 void ClientDescribeEntityClass(const replica::EntityObjectTarget &o,ClientObjectDescription &d){
-  if(d.category<1||d.category>4)return;auto state=std::make_shared<ClientEntityClassState>();state->delirium=o.delirium;
+  if(d.category<1||d.category>9)return;auto state=std::make_shared<ClientEntityClassState>();state->delirium=o.delirium;
   const V *body=nullptr;std::visit([&](const auto &p){body=&p.fields.value;},o.payload);const auto &fields=At(*body,"fields");ParseFields(fields,d.category,*state);
   // 解析与native表的必需列一致；缺失/不适用不能悄悄留下池上一use的值。
   for(const auto &rule:Rules())if(rule.second.category==d.category){const auto &id=rule.first;
@@ -76,6 +120,18 @@ void ClientDescribeEntityClass(const replica::EntityObjectTarget &o,ClientObject
   if(At(links,"links").MemberCount()!=link_count)Fail("native_links","unknown_or_duplicate_member");
   if(o.delirium)ParseFields(At(o.special.value,"fields"),1,*state);
   if(d.category==4){const auto &runtime=At(*body,"application_runtime");if(Integer<unsigned>(At(runtime,"version"))!=1||!Is(runtime,"status","Value"))Fail("bomb_application_runtime","unavailable_or_version");At(At(runtime,"values"),"NativeBomb.CostumeDrawEnabled");ParseFields(At(runtime,"values"),4,*state);}
+  if(d.category>=5){const auto &runtime=At(*body,"application_runtime");if(Integer<unsigned>(At(runtime,"version"))!=2||!Is(runtime,"status","Value"))Fail("class_application_runtime","unavailable_or_version");
+    if(d.category==8||d.category==9){Owned(At(*body,"application_owned"),d,*state);const auto &owner=At(runtime,"private_owner_present");if(!owner.IsBool()||owner.GetBool()!=(state->owned.kind!=ClientEntityClassState::OwnedPresentation::None||state->owned.authority_only))Fail("class_private_owner","typed_owner_alias_conflict");}
+    // 此容器只供Authority更新；当前Render没有消费者，保留事实，不复制header或执行Update恢复它。
+    if(d.category==9&&!At(runtime,"private_container_nonempty").IsBool())Fail("effect_private_container","bool_required");}
+  if(d.category==5){Geometry(At(*body,"application_geometry"),*state);
+    if(Real(At(fields,"EntityLaser.Angle"))!=Real(At(fields,"EntityLaser.AngleDegrees")))Fail("EntityLaser.Angle","degrees_alias_conflict");
+    const auto &sample=At(fields,"EntityLaser.SampleLaser");if(!sample.IsBool()||sample.GetBool()!=(Integer<std::int8_t>(At(fields,"EntityLaser.sample_mode_raw"))!=0))Fail("EntityLaser.SampleLaser","raw_mode_alias_conflict");
+    for(const auto &p:{std::pair{"EntityLaser.GetSamples",&state->laser->optimized},std::pair{"EntityLaser.GetNonOptimizedSamples",&state->laser->unoptimized}}){const auto points=Points(At(fields,p.first));if(points.size()!=p.second->size())Fail(p.first,"native_geometry_alias_count");for(unsigned i=0;i<points.size();++i)if(points[i].x!=(*p.second)[i].x||points[i].y!=(*p.second)[i].y)Fail(p.first,"native_geometry_alias_value");}}
+  if(d.category==7){for(const auto *v:Sequence(At(fields,"EntityPickup.GetCollectibleCycle"),8))state->pickup_cycle.push_back(Integer<std::uint32_t>(*v));}
+  if(d.category==9){const auto &flags=At(fields,"EntityEffect.GetTearFlags");state->effect_tear_flags=d.variant==54||d.variant==113||d.variant==126||d.variant==167;
+    if(state->effect_tear_flags){if(!Is(flags,"type","bits128"))Fail("EntityEffect.GetTearFlags","variant_requires_bits128");ClientEntityField f;f.member="NativeEffect.TearFlags";f.kind=ClientEntityValueKind::Bits128;f.bits=Bits(At(flags,"low"));f.high_bits=Bits(At(flags,"high"));state->fields.push_back(std::move(f));}
+    else if(!Is(flags,"status","Null")&&!Is(flags,"status","NotApplicable"))Fail("EntityEffect.GetTearFlags","variant_not_tear_flags");}
   if(d.category==1)for(const auto &alias:{std::pair{"EntityNPC.ParentNPC","Entity.Parent"},std::pair{"EntityNPC.ChildNPC","Entity.Child"}}){
     const ClientEntityRelation *left=nullptr,*right=nullptr;for(const auto &r:d.relations){if(r.member==alias.first)left=&r;if(r.member==alias.second)right=&r;}
     if(!left||!right||left->is_null!=right->is_null||(!left->is_null&&!(left->target==right->target)))Fail(alias.first,"common_reference_alias_conflict");}
@@ -86,6 +142,9 @@ void ClientDescribeEntityClass(const replica::EntityObjectTarget &o,ClientObject
     if(!At(runtime,"owned_actor_present").IsBool()||At(runtime,"owned_actor_present").GetBool())Fail("npc_owned_actor","pending_I25_Player20;never-borrow-roster-as-owned-clone");}
   if(d.category==1){const auto &resources=At(*body,"application_resources");if(Integer<unsigned>(At(resources,"version"))!=1||!Is(resources,"status","Value"))Fail("npc_application_resources","unavailable_or_version");
     Pose(At(resources,"npc_overlay"),"npc_overlay",0,*state);Pose(At(resources,"npc_effect"),"npc_effect",0,*state);}
+  if(d.category==7){const auto &resources=At(*body,"application_resources");if(Integer<unsigned>(At(resources,"version"))!=1||!Is(resources,"status","Value"))Fail("pickup_application_resources","unavailable_or_version");
+    Pose(At(fields,"EntityPickup.GetPriceSprite"),"EntityPickup.GetPriceSprite",0,*state);Pose(At(resources,"pickup_alternate"),"pickup_alternate",0,*state);}
+  if(d.category==6){const auto &resources=At(*body,"application_resources");if(Integer<unsigned>(At(resources,"version"))!=1||!Is(resources,"status","Value"))Fail("knife_application_resources","unavailable_or_version");Pose(At(resources,"knife_dead_eye"),"knife_dead_eye",0,*state);}
   // 主Sprite与辅助成员分别解析，不按文件名合并，也不把Null当缺失字段。
   const auto &main=At(At(o.common.value,"fields"),"Entity.GetSprite");
   if(Is(main,"status","Null")){d.resource.loaded=false;d.resource.exact_phase=true;d.resource.champion_color_present=true;d.resource.shaders_present=true;}
