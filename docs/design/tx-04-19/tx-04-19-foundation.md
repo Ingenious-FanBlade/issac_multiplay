@@ -4,6 +4,8 @@
 
 后续I04的[静态合同](entity-application-contracts.md)与[J273必要逆向](entity-native-static.md)进一步核对采用分支。I03交付的已有来源不扩写为所有私有draw输入已齐：Pickup alternate pedestal、Slot Timeout资料冲突及具体类别的私有缓存／owner须按I04逐项处理，必要时回补正式来源和适配；不以原“已实现”状态掩盖新发现缺口。
 
+I05—I09后续实现见[公共应用实现与补充主审](tx-04-19-common-application.md)。它接通正式目标计划与通用原生阶段，不把I10以后类别/资源/场景和I34验收写成完成；本页继续保留I01—I03阶段事实。
+
 ## I01：应用目录
 
 `mod/tools/gen_entity_application_catalog.py` 从正式 `entity-catalog.json`、15 的复制归属函数和 P1—P6 逐成员发送策略生成产品目录；可审阅版本为 [entity-application.json](entity-application.json)。每个原成员／重载保留 ordinal、规范 id、别名签名、Wiki／原生来源及版本、适用类别、责任、目标位置、本地承载、缺失语义、依赖、实施任务和 E2E 对应。公共继承只由 Entity 定义；目录不把待写回字段标成已经原生应用。

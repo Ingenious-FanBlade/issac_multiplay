@@ -11,9 +11,9 @@ enum class EntityMemberPresence : unsigned { Current, Retired, NotCaptured };
 struct EntityFields final { Json value; std::vector<std::string> missing; };
 // 关系先作为纯值分类型依赖保存；实例解析和构造前置由I05/I09负责。
 struct EntityReferenceTarget final {
-  std::string path,status;
+  std::string path,status,contract;
   SubjectKey target{};
-  bool has_target=false;
+  bool has_target=false,owner_qualified=false;
 };
 template<EntityCategory Category> struct EntityClassValues final { EntityFields fields; };
 using EntityPayload=std::variant<EntityClassValues<EntityCategory::Player>, EntityClassValues<EntityCategory::NPC>,

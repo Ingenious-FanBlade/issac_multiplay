@@ -12,10 +12,13 @@
 #include <GL/gl.h>
 
 namespace cs::game {
+struct ClientPlayerOwnerToken final {ClientNativeObjects *owner=nullptr;};
 namespace {
 constexpr unsigned kObjectBudget=512;
 // 前缀表示已经进入的真实步骤，异常不能通过重试清除此责任。
 enum Prefix : unsigned { Acquired=1,Roster=2,Init=4,Fields=8,Published=16,Resource=32,References=64,Removed=128,Detached=256,Checked=512 };
+// 同一进程的场景重建也不复用实例号；地址/InitSeed/Index仅作本use见证。
+std::uint64_t next_object_instance=0;
 thread_local Entity_Player *initializing_player=nullptr;
 thread_local bool pre_stats_skipped=false;
 ClientNativeObjects *diagnostic_owner=nullptr;
@@ -24,7 +27,7 @@ struct Entry final {
   Entity *entity=nullptr;
   void *raw=nullptr;
   ClientObjectDescription description{};
-  std::uint64_t instance=0;
+  std::uint64_t instance=0,pool_use=0;
   std::uintptr_t vptr=0;
   unsigned native_seed=0,native_index=0;
   unsigned prefix=0;
@@ -33,7 +36,7 @@ struct Entry final {
   bool ctor_entered=false,constructed=false,initialized=false,roster=false,retired=false,resource=false,checked=false;
 };
 bool CurrentUse(const Entry &e) noexcept {
-  return e.entity&&!e.retired&&e.entity->_valid&&e.entity->_exists&&
+  return e.entity&&!e.retired&&e.entity->_valid&&(e.description.full_entity||e.entity->_exists)&&
       *reinterpret_cast<const std::uintptr_t *>(e.entity)==e.vptr&&
       e.entity->_initSeed==e.native_seed&&e.entity->_index==e.native_index&&
       e.entity->_type==e.description.type&&e.entity->_variant==e.description.variant&&e.entity->_subtype==e.description.subtype;
@@ -50,15 +53,19 @@ unsigned Count(const EntityList_EL &list,const Entity *entity) noexcept {
   unsigned n=0;for(unsigned i=0;i<list._size;++i)n+=list._data[i]==entity;return n;
 }
 bool MemberSpace(EntityList &list,Entity &e) noexcept {
-  auto &owner=e._type==1?list._persistentEL:list._mainEL;
+  const bool persistent=e._type==1||e._type==3||(e._type==8&&e._subtype==0);
+  auto &owner=persistent?list._persistentEL:list._mainEL;
   return ListValid(owner)&&ListValid(list._renderEL)&&ListValid(list._updateEL)&&
       owner._size<owner._capacity&&list._renderEL._size<list._renderEL._capacity&&
+      (!(e._type==3&&e._variant==206)||(ListValid(list._wispEL)&&list._wispEL._size<list._wispEL._capacity))&&
       ((e._flags&8)||list._updateEL._size<list._updateEL._capacity);
 }
 bool MemberMatches(EntityList &list,Entity &e) noexcept {
   if(!ListValid(list._mainEL)||!ListValid(list._persistentEL)||!ListValid(list._renderEL)||!ListValid(list._updateEL))return false;
   const auto main=Count(list._mainEL,&e),persistent=Count(list._persistentEL,&e);
-  return main==(e._type==1?0u:1u)&&persistent==(e._type==1?1u:0u)&&Count(list._renderEL,&e)==1&&
+  const bool owner_persistent=e._type==1||e._type==3||(e._type==8&&e._subtype==0);
+  return main==(owner_persistent?0u:1u)&&persistent==(owner_persistent?1u:0u)&&Count(list._renderEL,&e)==1&&
+      ListValid(list._wispEL)&&Count(list._wispEL,&e)==((e._type==3&&e._variant==206)?1u:0u)&&
       Count(list._updateEL,&e)==((e._flags&8)?0u:1u);
 }
 void Erase(EntityList_EL &list,Entity *entity) {
@@ -73,11 +80,13 @@ bool Roots(const ClientNativeRoots &r) noexcept {
   auto *g=static_cast<Game *>(r.game);auto *room=static_cast<Room *>(r.room);
   return g&&g==g_Game&&room&&g->_room==room&&r.descriptor&&room->_descriptor==r.descriptor&&r.camera&&room->_Camera==r.camera;
 }
+// 公开Lua DepthOffset的J273绑定读+358；SDK旧名_depthOffset(+2B0)不能代替它。
+float PublicDepth(const Entity &e) noexcept {float value=0;std::memcpy(&value,reinterpret_cast<const unsigned char *>(&e)+0x358,4);return value;}
 bool ValuesMatch(const Entity &e,const ClientObjectDescription &d) noexcept {
   if(e._type!=d.type||e._variant!=d.variant||e._subtype!=d.subtype||!e._valid||!e._exists||e._dead||
      e._pos.x!=d.position.x||e._pos.y!=d.position.y||e._velocity.x!=d.velocity.x||e._velocity.y!=d.velocity.y||
      e._posOffset.x!=d.position_offset.x||e._posOffset.y!=d.position_offset.y||e._visible!=d.visible||
-     e._depthOffset!=d.depth||e._size!=d.size||e._mass!=d.mass||e._collisionDamage!=d.collision_damage||
+     PublicDepth(e)!=d.depth||e._size!=d.size||e._mass!=d.mass||e._collisionDamage!=d.collision_damage||
      e._entityCollisionClass!=d.entity_collision||e._entityGridCollisionClass!=d.grid_collision)return false;
   if(d.type==1){const auto &p=static_cast<const Entity_Player &>(e);
     return p._damage==d.damage&&p._movespeed==d.move_speed&&p._maxfiredelay==d.max_fire_delay&&p._shotspeed==d.shot_speed&&
@@ -90,7 +99,7 @@ bool ValuesMatch(const Entity &e,const ClientObjectDescription &d) noexcept {
 void WriteFields(Entity &e,const ClientObjectDescription &d) {
   e._pos=Vector(d.position.x,d.position.y);e._velocity=Vector(d.velocity.x,d.velocity.y);
   e._posOffset=Vector(d.position_offset.x,d.position_offset.y);e._visible=d.visible;
-  e._depthOffset=d.depth;e._size=d.size;e._mass=d.mass;e._collisionDamage=d.collision_damage;
+  std::memcpy(reinterpret_cast<unsigned char *>(&e)+0x358,&d.depth,4);e._size=d.size;e._mass=d.mass;e._collisionDamage=d.collision_damage;
   e._entityCollisionClass=d.entity_collision;e._entityGridCollisionClass=d.grid_collision;
   if(d.type==1){auto &p=static_cast<Entity_Player &>(e);
     p._damage=d.damage;p._movespeed=d.move_speed;p._maxfiredelay=d.max_fire_delay;p._shotspeed=d.shot_speed;
@@ -183,10 +192,15 @@ bool ClientObjectSealEssmDeleteBinding(void *state) noexcept {
 struct ClientNativeObjects final {
   std::map<ClientObjectKey,Entry> entries;
   Game *game=nullptr;Room *room=nullptr;
-  std::uint64_t next_instance=0;
+  std::uint64_t next_pool_use=0;
   std::uint64_t mutations=0;
   unsigned prefix=0;
   bool executing=false,uncertain=false,committed=false,abandoned=false,index_initialized=false;
+  ClientEntityOwners external{};
+  std::vector<ClientEntityClassAdapter> adapters;
+  std::map<ClientObjectKey,std::pair<std::uint64_t,std::uint64_t>> players;
+  bool formal=false,configured=false;
+  std::shared_ptr<ClientPlayerOwnerToken> player_token;
 };
 namespace {
 void Mark(ClientNativeObjects &o,unsigned prefix) noexcept {o.prefix|=prefix;++o.mutations;}
@@ -209,17 +223,17 @@ bool Publish(ClientNativeObjects &o,Entry &entry) {
   auto &e=*entry.entity;auto &list=o.room->_entityList;
   if(e._valid||!MemberSpace(list,e))return false;
   auto &index=*reinterpret_cast<unsigned *>(reinterpret_cast<unsigned char *>(o.room)+0x1214);
-  if(index==UINT32_MAX)return false;e._index=index++;
+  if(index==UINT32_MAX)return false;entry.prefix|=Fields;Mark(o,Fields);e._index=index++;
   entry.prefix|=Published;Mark(o,Published);
   reinterpret_cast<void (__thiscall *)(EntityList *,Entity *)>(Base+0x13d00)(&list,&e);
   if(!e._valid||!MemberMatches(list,e))return false;
   entry.native_index=e._index;return true;
 }
 bool Create(ClientNativeObjects &o,const ClientObjectDescription &d,const char *&reason) {
-  reason="objects_create_unsupported";if(!Supported(d)||!Graphics()||o.entries.size()>=kObjectBudget||o.next_instance==UINT64_MAX)return false;
+  reason="objects_create_unsupported";if(!Supported(d)||!Graphics()||o.entries.size()>=kObjectBudget||next_object_instance==UINT64_MAX)return false;
   auto found=o.entries.find(d.key);
   if(found!=o.entries.end()&&!found->second.retired){reason="objects_create_duplicate_or_partial";return false;}
-  auto &entry=o.entries[d.key];entry={};entry.description=d;entry.instance=++o.next_instance;
+  auto &entry=o.entries[d.key];entry={};entry.description=d;entry.instance=++next_object_instance;
   if(d.type==1){
     if(!ClientObjectPreStatsIsolationInstalled()){reason="objects_player_pre_isolation_uninstalled";return false;}
     auto &roster=o.game->_playerManager._playerList;
@@ -253,6 +267,7 @@ bool Create(ClientNativeObjects &o,const ClientObjectDescription &d,const char *
     entry.entity=o.game->_entityFactory->Create(d.type,true);
     if(!entry.entity){reason="objects_pool_exhausted";return false;}
     if(entry.entity->_valid||!UniqueAddress(o,entry.entity,d.key)){reason="objects_pool_use_conflict";return false;}
+    if(o.next_pool_use==UINT64_MAX){reason="objects_pool_use_exhausted";return false;}entry.pool_use=++o.next_pool_use;
     entry.constructed=true;
     entry.prefix|=Init;Mark(o,Init);entry.entity->Init(d.type,d.variant,d.subtype,d.seed);entry.initialized=true;
   }
@@ -335,11 +350,209 @@ bool CheckAll(ClientNativeObjects &o,const char *&reason) {
   }
   o.committed=true;diagnostic_owner=&o;reason="objects_committed";return true;
 }
+const ClientEntityClassAdapter *Adapter(const ClientNativeObjects &o,unsigned category) noexcept {
+  for(const auto &a:o.adapters)if(a.category==category)return &a;return nullptr;
 }
-ClientNativeObjects *ClientNativeObjectsCreate() noexcept {return Phase()?new(std::nothrow) ClientNativeObjects:nullptr;}
+bool FormalUse(const Entry &entry) noexcept {
+  const auto *e=entry.entity;
+  return e&&!entry.retired&&entry.initialized&&*reinterpret_cast<const std::uintptr_t *>(e)==entry.vptr&&e->_initSeed==entry.native_seed&&
+      e->_type==entry.description.type&&e->_variant==entry.description.variant&&e->_subtype==entry.description.subtype&&
+      (!(entry.prefix&Published)||(e->_valid&&e->_index==entry.native_index));
+}
+// 包装器只在当前SDK调用栈内返回借用；每次外部Player都重新核对实例/owner代次及真实roster。
+struct ResolveContext final {ClientNativeObjects *owner;const ClientNativeRoots *roots;};
+bool ResolveDependency(void *context,const ClientNativeRoots &roots,const ClientEntityRelation &r,const char *&reason) noexcept {
+  auto &external=static_cast<ResolveContext *>(context)->owner->external;
+  if(!external.dependency){reason="objects_named_domain_owner_not_ready";return false;}
+  return external.dependency(external.context,roots,r,reason);
+}
+bool ResolveEntity(void *context,const ClientNativeRoots &roots,const ClientObjectKey &key,unsigned expected,ClientEntityBorrow &out,const char *&reason) noexcept {
+  if(!Phase()||!context||!Roots(roots)){reason="objects_entity_borrow_context";return false;}
+  auto &o=*static_cast<ResolveContext *>(context)->owner;
+  const auto it=o.entries.find(key);
+  if(it!=o.entries.end()&&!it->second.retired){const auto &e=it->second;
+    if(!FormalUse(e)||!(e.prefix&Published)||!e.entity->_exists||(expected!=13&&e.description.category!=expected)){reason="objects_entity_borrow_use_or_type";return false;}
+    out={e.entity,e.instance,reinterpret_cast<std::uintptr_t>(o.room),e.description.category};return true;
+  }
+  if(!o.external.resolve||!o.external.resolve(o.external.context,roots,key,expected,out,reason)||!out.object||!out.instance||!out.owner_epoch)return false;
+  if(key.space==1){
+    if(out.category!=0||(expected!=13&&expected!=0)){reason="objects_external_entity_requires_player_owner";return false;}
+    const auto witness=o.players.find(key);
+    if(witness==o.players.end()||witness->second.first!=out.instance||witness->second.second!=out.owner_epoch){reason="objects_player_instance_changed";return false;}
+    auto *p=static_cast<Entity *>(out.object);
+    if(!p->_valid||!p->_exists||!p->ToPlayer()||std::find(o.game->_playerManager._playerList.begin(),o.game->_playerManager._playerList.end(),p)==o.game->_playerManager._playerList.end()){
+      reason="objects_player_owner_not_current_roster";return false;}
+  }return true;
+}
+bool FormalReferences(ClientNativeObjects &o,const ClientNativeRoots &roots,Entry &entry,const ClientObjectDescription &d,bool check,bool clear,const char *&reason){
+  if(!FormalUse(entry)){reason="objects_entity_reference_source_use";return false;}
+  const auto *a=Adapter(o,d.category);if(!a||!a->relations){reason="objects_entity_reference_adapter_missing";return false;}
+  ResolveContext context{&o,&roots};ClientEntityOwners resolver{&context,ResolveEntity,ResolveDependency};auto &e=*entry.entity;
+  if(!check){entry.prefix|=References;Mark(o,References);entry.checked=false;}
+  for(const auto &r:d.relations){if(r.value_only)continue;Entity *target=nullptr;
+    if(!clear&&!r.is_null&&r.target.space==1){ClientEntityBorrow borrow;if(!ResolveEntity(&context,roots,r.target,r.expected,borrow,reason))return false;target=static_cast<Entity *>(borrow.object);}
+    if(r.member=="Entity.Parent"){if(check){if(e.GetParent()!=target)return false;}else e.SetParent(target);}
+    else if(r.member=="Entity.Child"){if(check){if(e.GetChild()!=target)return false;}else e.SetChild(target);}
+    else if(r.member=="Entity.Target"){if(check){if(e.GetTarget()!=target)return false;}else e.SetTarget(target);}
+    else if(r.member=="Entity.SpawnerEntity"){if(check){if(e.GetSpawnerEntity()!=target)return false;}else e.SetSpawnerEntity(target);}
+    else if(r.member=="Entity.GetMinecart"){if(check){if(e.GetMinecart()!=target)return false;}else e._minecart.SetReference(target);}
+  }
+  return a->relations(a->context,entry.entity,d,resolver,roots,check,clear,reason);
+}
+bool FormalCheckAll(ClientNativeObjects &o,const ClientNativeRoots &roots,const char *&reason){
+  ResolveContext context{&o,&roots};
+  for(const auto &p:o.players){ClientEntityBorrow borrow;if(!ResolveEntity(&context,roots,p.first,0,borrow,reason))return false;}
+  if(o.players.size()!=o.game->_playerManager._playerList.size()){reason="objects_formal_player_roster_count";return false;}
+  for(const auto &pair:o.entries)if(!pair.second.retired&&(!FormalUse(pair.second)||!pair.second.checked)){reason="objects_formal_unchecked_instance";return false;}
+  auto &list=o.room->_entityList;
+  for(auto *el:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL,&list._effectEL,&list._tempEL,&list._wispEL}){
+    if(!ListValid(*el)){reason="objects_formal_member_list_invalid";return false;}
+    for(unsigned n=0;n<el->_size;++n){auto *e=el->_data[n];unsigned count=0;
+      for(const auto &pair:o.entries)count+=!pair.second.retired&&pair.second.entity==e;
+      for(const auto &p:o.players){ClientEntityBorrow borrow;if(!ResolveEntity(&context,roots,p.first,0,borrow,reason))return false;count+=borrow.object==e;}
+      if(count!=1){reason="objects_formal_unclassified_or_aliased_member";return false;}
+    }
+  }o.committed=true;reason="objects_non_player_checked";return true;
+}
+bool FormalExecute(ClientNativeObjects &o,const ClientNativeRoots &roots,const ClientObjectCommand &command,const char *&reason){
+  const auto &d=command.value;
+  if(command.operation==ClientObjectOperation::Check&&!d.key.id)return FormalCheckAll(o,roots,reason);
+  const auto *a=Adapter(o,d.category);if(!a||!d.full_entity||d.category==0){reason="objects_formal_class_contract_missing";return false;}
+  auto it=o.entries.find(d.key);
+  if(command.operation==ClientObjectOperation::Acquire){
+    if(it!=o.entries.end()&&!it->second.retired){reason="objects_formal_duplicate_acquire";return false;}
+    if(next_object_instance==UINT64_MAX||o.entries.size()>=16384){reason="objects_formal_instance_budget";return false;}
+    auto &e=o.entries[d.key];e={};e.description=d;e.instance=++next_object_instance;e.prefix|=Acquired;Mark(o,Acquired);
+    if(d.category==12&&!a->acquire){reason="objects_dummy_dedicated_owner_required";return false;}
+    e.entity=a->acquire?static_cast<Entity *>(a->acquire(a->context,d,roots,reason)):o.game->_entityFactory?o.game->_entityFactory->Create(d.type,true):nullptr;
+    if(!e.entity){reason="objects_formal_pool_exhausted";return false;}
+    if(e.entity->_valid||!UniqueAddress(o,e.entity,d.key)){e.entity=nullptr;reason="objects_formal_live_pool_use_conflict";return false;}
+    if(o.next_pool_use==UINT64_MAX){reason="objects_pool_use_exhausted";return false;}
+    e.pool_use=++o.next_pool_use;e.constructed=true;return true;
+  }
+  if(it==o.entries.end()||it->second.retired||!it->second.entity){reason="objects_formal_instance_missing";return false;}
+  auto &entry=it->second;auto &e=*entry.entity;ResolveContext context{&o,&roots};ClientEntityOwners resolver{&context,ResolveEntity,ResolveDependency};
+  switch(command.operation){
+    case ClientObjectOperation::Initialize:
+      if(entry.prefix&Init){reason="objects_formal_init_already_entered";return false;}
+      entry.prefix|=Init;Mark(o,Init);
+      if(!a->before_init(a->context,&e,d,resolver,roots,reason))return false;
+      e.Init(d.type,d.variant,d.subtype,d.seed);entry.initialized=true;
+      entry.vptr=*reinterpret_cast<const std::uintptr_t *>(&e);entry.native_seed=e._initSeed;
+      if(e._type!=d.type||e._variant!=d.variant||e._subtype!=d.subtype||e._valid){reason="objects_formal_init_shape_or_early_publication";return false;}
+      return true;
+    case ClientObjectOperation::Fields:{
+      if(!FormalUse(entry)){reason="objects_formal_fields_use";return false;}
+      const auto old_flags=e._flags;entry.checked=false;entry.prefix|=Fields;Mark(o,Fields);
+      if(!ClientEntityCommonFields(&e,d.common_fields,false,reason)||!a->fields(a->context,&e,d,false,reason))return false;
+      // valid分支只刷新update与类型缓存；不能重加main/render/wisp或冒充重新发布。
+      if((entry.prefix&Published)&&((old_flags^e._flags)&8)){
+        auto &list=o.room->_entityList;if(!ListValid(list._updateEL)||(!(e._flags&8)&&Count(list._updateEL,&e)==0&&list._updateEL._size>=list._updateEL._capacity)){reason="objects_update_membership_capacity";return false;}
+        reinterpret_cast<void (__thiscall *)(EntityList *,Entity *)>(Base+0x13d00)(&list,&e);
+      }entry.description=d;return true;}
+    case ClientObjectOperation::Resources:
+      if(!FormalUse(entry)){reason="objects_formal_resource_use";return false;}
+      entry.checked=false;entry.prefix|=Resource;Mark(o,Resource);entry.resource=a->resources(a->context,&e,d,false,reason);return entry.resource;
+    case ClientObjectOperation::Publish:{
+      if(!FormalUse(entry)||entry.prefix&Published||!entry.resource){reason="objects_formal_publish_prefix";return false;}
+      if(!o.index_initialized){unsigned next=0;auto &list=o.room->_entityList;
+        for(auto *el:{&list._mainEL,&list._persistentEL}){if(!ListValid(*el)){reason="objects_formal_index_owner";return false;}
+          for(unsigned n=0;n<el->_size;++n){if(!el->_data[n]||el->_data[n]->_index==UINT32_MAX){reason="objects_formal_index_exhausted";return false;}next=(std::max)(next,el->_data[n]->_index+1);}}
+        Mark(o,Fields);*reinterpret_cast<unsigned *>(reinterpret_cast<unsigned char *>(o.room)+0x1214)=next;o.index_initialized=true;
+      }return Publish(o,entry);}
+    case ClientObjectOperation::Unlink:return FormalReferences(o,roots,entry,d,false,true,reason);
+    case ClientObjectOperation::References:return FormalReferences(o,roots,entry,d,false,false,reason);
+    case ClientObjectOperation::Check:
+      if(!FormalUse(entry)||!MemberMatches(o.room->_entityList,e)||!ClientEntityCommonFields(&e,d.common_fields,true,reason)||
+         !a->fields(a->context,&e,d,true,reason)||!a->resources(a->context,&e,d,true,reason)||!FormalReferences(o,roots,entry,d,true,false,reason))return false;
+      entry.description=d;entry.checked=true;entry.prefix|=Checked;o.prefix|=Checked;return true;
+    case ClientObjectOperation::Remove:{
+      if(!FormalUse(entry)||entry.prefix&Removed){reason="objects_formal_retire_use_or_prefix";return false;}
+      if(!EssmDelete(&e,false,reason))return false;
+      entry.checked=false;entry.prefix|=Removed;Mark(o,Removed);
+      // 类别owner完成已核的Remove/ClearReferences及附属清理，公共层不重放虚清理链。
+      if(!a->retire(a->context,&e,d,reason)||e._exists){reason="objects_formal_retire_class_postcondition";return false;}
+      auto &list=o.room->_entityList;
+      for(auto *el:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL,&list._effectEL,&list._tempEL,&list._wispEL})if(!ListValid(*el)){reason="objects_formal_retire_members";return false;}
+      entry.prefix|=Detached;Mark(o,Detached);
+      for(auto *el:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL,&list._effectEL,&list._tempEL,&list._wispEL})Erase(*el,&e);
+      if(!EssmDelete(&e,true,reason))return false;e._valid=false;
+      reinterpret_cast<void (__thiscall *)(EntityList *,int,int,int)>(Base+0x16d10)(&list,int(e._type),int(e._variant),int(e._subtype));
+      entry.retired=true;entry.entity=nullptr;entry.resource=false;return true;}
+    default:reason="objects_formal_unplanned_operation";return false;
+  }
+}
+}
+bool ClientNativeObjectsConfigure(ClientNativeObjects *o,const ClientEntityOwners &owners,const std::vector<ClientEntityClassAdapter> &adapters) noexcept {
+  if(!o||!IsMain()||o->executing||o->uncertain||o->abandoned)return false;
+  try{if(!o->configured){o->external=owners;o->adapters=adapters;o->configured=true;o->formal=true;}
+    return o->external.context==owners.context&&o->external.resolve==owners.resolve&&o->external.dependency==owners.dependency&&o->external.player_ready==owners.player_ready;}catch(...){return false;}
+}
+namespace {
+bool ResolveOwnedPlayer(void *owner,const ClientNativeRoots &roots,const ClientObjectKey &key,unsigned expected,ClientEntityBorrow &out,const char *&reason) noexcept {
+  if(!IsMain()){reason="objects_player_owner_thread";return false;}
+  auto *token=static_cast<ClientPlayerOwnerToken *>(owner);auto *o=token?token->owner:nullptr;
+  if(!o||!IsMain()||!ClientBusy()||!Current(*o,roots)||o->uncertain||o->executing||o->abandoned||(expected!=0&&expected!=13)){
+    reason="objects_player_owner_context";return false;}
+  const auto found=o->entries.find(key);
+  if(found==o->entries.end()||found->second.description.type!=1||!found->second.checked||!CurrentUse(found->second)){
+    reason="objects_player_key_not_ready";return false;}
+  const auto &e=found->second;
+  // 此owner只声明17已实现的普通Isaac，不能用一个真实身体替代另一种Player形态。
+  if(e.description.variant||e.description.subtype||!e.description.player_stats||!ValuesMatch(*e.entity,e.description)){
+    reason="objects_player_shape_pending_tx04_20";return false;}
+  out={e.entity,e.instance,reinterpret_cast<std::uintptr_t>(o),0};reason="objects_player_key_resolved";return true;
+}
+bool OwnedPlayerReady(void *owner,const ClientNativeRoots &roots,const ClientObjectDescription &d,const ClientEntityBorrow &b,const char *&reason) noexcept {
+  if(!IsMain()||!ClientBusy()){reason="objects_player_dependency_context";return false;}
+  auto *token=static_cast<ClientPlayerOwnerToken *>(owner);auto *o=token?token->owner:nullptr;
+  if(!o||!Current(*o,roots)||!d.player_stats||!d.exists||d.dead){reason="objects_player_shape_pending_tx04_20";return false;}
+  const auto entry=o->entries.find(d.key);
+  if(entry==o->entries.end()||entry->second.entity!=b.object||entry->second.instance!=b.instance||entry->second.description.shape_revision!=d.shape_revision||
+     !ValuesMatch(*entry->second.entity,d)||!ClientResourcePoseMatches(&entry->second.entity->_sprite,d.resource)){
+    reason="objects_player_requested_state_not_ready";return false;}
+  return true;
+}
+}
+ClientEntityOwners ClientNativeObjectsPlayerOwner(ClientNativeObjects *o) noexcept {
+  if(!IsMain()||!o||!o->player_token)return {};return {o->player_token.get(),ResolveOwnedPlayer,nullptr,OwnedPlayerReady,o->player_token};
+}
+bool ClientNativeObjectsPreflight(ClientNativeObjects *o,const ClientNativeRoots &roots,const std::vector<ClientObjectDescription> &descriptions,const std::vector<ClientObjectKey> &players,const char *&reason) noexcept {
+  if(!o||!Phase()||!Current(*o,roots)||!o->configured||o->uncertain){reason="objects_entity_preflight_context";return false;}
+  try{
+    auto &list=o->room->_entityList;
+    for(auto *el:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL,&list._effectEL,&list._tempEL,&list._wispEL})
+      if(!ListValid(*el)){reason="objects_entity_preflight_member_storage";return false;}
+    std::map<ClientObjectKey,std::pair<std::uint64_t,std::uint64_t>> current_players;
+    std::vector<void *> addresses;
+    for(const auto &key:players){ClientEntityBorrow b;
+      if(!o->external.resolve||!o->external.resolve(o->external.context,roots,key,0,b,reason)||!b.object||!b.instance||!b.owner_epoch||b.category!=0){reason="objects_player_dependency_not_ready";return false;}
+      auto *p=static_cast<Entity *>(b.object);
+      if(!p->_valid||!p->_exists||!p->ToPlayer()||std::find(o->game->_playerManager._playerList.begin(),o->game->_playerManager._playerList.end(),p)==o->game->_playerManager._playerList.end()||std::find(addresses.begin(),addresses.end(),p)!=addresses.end()){
+        reason="objects_player_owner_invalid_or_duplicate_body";return false;}
+      const auto d=std::find_if(descriptions.begin(),descriptions.end(),[&](const auto &v){return v.key==key&&v.category==0;});
+      if(d==descriptions.end()||!o->external.player_ready||!o->external.player_ready(o->external.context,roots,*d,b,reason)){
+        reason="objects_player_requested_shape_or_state_not_ready";return false;}
+      addresses.push_back(p);current_players.emplace(key,std::make_pair(b.instance,b.owner_epoch));
+    }
+    for(const auto &d:descriptions){if(!d.full_entity||d.category==0)continue;
+      const auto *a=Adapter(*o,d.category);if(!a||!a->prepare||!a->prepare(a->context,d,reason)){reason="objects_entity_adapter_preflight";return false;}
+      for(const auto &r:d.relations){
+        if(!r.is_null&&r.kind==4){if(!o->external.dependency||!o->external.dependency(o->external.context,roots,r,reason)){reason="objects_descriptor_dependency_not_ready";return false;}}
+        if(!r.value_only&&!r.is_null&&r.target.space!=1){ClientEntityBorrow b;
+        if(!o->external.resolve||!o->external.resolve(o->external.context,roots,r.target,r.expected,b,reason)||!b.object||!b.instance||!b.owner_epoch){reason="objects_cross_domain_dependency_not_ready";return false;}}
+      }
+    }
+    o->players=std::move(current_players);reason="objects_entity_dependencies_ready";return true;
+  }catch(...){reason="objects_entity_preflight_allocation";return false;}
+}
+ClientNativeObjects *ClientNativeObjectsCreate() noexcept {
+  if(!Phase())return nullptr;
+  try{auto owner=std::make_unique<ClientNativeObjects>();owner->player_token=std::make_shared<ClientPlayerOwnerToken>();owner->player_token->owner=owner.get();return owner.release();}catch(...){return nullptr;}
+}
 void ClientNativeObjectsDestroy(ClientNativeObjects *o) noexcept {
   if(o&&IsMain()&&(o->entries.empty()||o->abandoned)){
-    if(diagnostic_owner==o)diagnostic_owner=nullptr;delete o;
+    if(diagnostic_owner==o)diagnostic_owner=nullptr;if(o->player_token)o->player_token->owner=nullptr;delete o;
   }
 }
 ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *o,const ClientNativeRoots &roots,const ClientObjectCommand &command) noexcept {
@@ -356,7 +569,8 @@ ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *o,const ClientN
   if(!read_only)o->committed=false;
   try {
     const auto &d=command.value;auto found=o->entries.find(d.key);
-    switch(command.operation){
+    if(d.full_entity)ok=FormalExecute(*o,roots,command,reason);
+    else switch(command.operation){
       case ClientObjectOperation::Create:ok=Create(*o,d,reason);break;
       case ClientObjectOperation::Remove:
         if(found==o->entries.end()){reason="objects_remove_missing_key";break;}ok=Remove(*o,found->second,reason);break;
@@ -383,6 +597,7 @@ ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *o,const ClientN
             ReferencesMatch(*o,found->second,d)&&ClientResourcePoseMatches(&found->second.entity->_sprite,d.resource);
         reason=ok?"objects_checked":"objects_target_postcondition";
         if(ok){found->second.checked=true;found->second.prefix|=Checked;o->prefix|=Checked;}break;
+      default:reason="objects_representative_operation_invalid";break;
     }
   }catch(...){reason="objects_native_exception";initializing_player=nullptr;}
   ClientDispatchReturned(ClientEntry::NativeApply);
@@ -390,7 +605,8 @@ ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *o,const ClientN
   o->executing=false;if(!ok){o->uncertain=true;o->committed=false;}
   auto result=Result(o,ok,!ok,reason,o->mutations!=mutations);result.key=command.value.key;
   const auto actual=o->entries.find(command.value.key);
-  if(actual!=o->entries.end()){result.instance=actual->second.instance;result.object_prefix=actual->second.prefix;}
+  if(actual!=o->entries.end()){result.instance=actual->second.instance;result.object_prefix=actual->second.prefix;
+    result.pool_use=actual->second.pool_use;result.shape_revision=actual->second.description.shape_revision;}
   return result;
 }
 ClientObjectStep ClientNativeObjectsAbandon(ClientNativeObjects *o,const ClientNativeRoots &roots) noexcept {
@@ -416,6 +632,10 @@ ClientObjectStep ClientNativeObjectsAbandon(ClientNativeObjects *o,const ClientN
     try {
       for(auto &pair:o->entries){auto &entry=pair.second;auto *e=entry.entity;
         if(!e||entry.retired||entry.description.type==1||(entry.prefix&Published))continue;
+        if(entry.description.full_entity){
+          ClientObjectCommand command;command.operation=ClientObjectOperation::Remove;command.value=entry.description;
+          if(!FormalExecute(*o,roots,command,reason)){ok=false;break;}continue;
+        }
         if((entry.prefix&Removed)||e->_valid||e->_type!=1000||e->_variant!=57){
           ok=false;reason="objects_retire_partial_pool_unknown";break;
         }
@@ -441,6 +661,11 @@ bool ClientNativeObjectsVisit(const ClientNativeObjects *o,void *context,ClientO
   for(const auto &pair:o->entries){const auto &e=pair.second;
     if(e.retired)continue;
     if(!e.checked||!CurrentUse(e)||!visitor(context,e.entity,pair.first,e.instance,e.entity->_type))return false;
+  }
+  if(o->formal){auto *mutable_owner=const_cast<ClientNativeObjects *>(o);const ClientNativeRoots roots{ o->game,o->room,o->room->_descriptor,o->room->_Camera };
+    ResolveContext resolver{mutable_owner,&roots};
+    for(const auto &p:o->players){ClientEntityBorrow b;const char *reason="objects_player_visit";
+      if(!ResolveEntity(&resolver,roots,p.first,0,b,reason)||!visitor(context,b.object,p.first,b.instance,1))return false;}
   }
   return true;
 }

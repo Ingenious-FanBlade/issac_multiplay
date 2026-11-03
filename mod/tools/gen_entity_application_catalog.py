@@ -1,6 +1,7 @@
 """tx-04-19 全成员应用责任目录；资料生成不执行游戏或测试。"""
 import argparse
 import json
+import re
 from pathlib import Path
 from gen_replica_catalog import classify
 from replica_projection_policy import consumer_review
@@ -9,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "mod/observation/isaac-cs-observation/entity-catalog.json"
 PARSER = "mod/src/replica/entity_target.cpp:ParseEntityTarget"
 RESEARCH = ROOT / "docs/design/tx-04-19/entity-native-contracts.json"
+COMMON_FIELDS = ROOT / "mod/src/game/client_entity_fields.inc"
 # 分类来自公开转换/专用RTTI见证；数值Type只用于交叉检查，绝不按范围猜NPC。
 CLASSES = {
     "EntityPlayer": ("Player", "tx-04-20", "external-player-owner", "E13"),
@@ -54,6 +56,14 @@ def route(m):
 
 def generate():
     catalog = json.loads(SOURCE.read_text(encoding="utf-8-sig"))
+    # 产品字段表同时供模型解析和SDK写/读使用；目录只读取声明，不执行原生程序。
+    common_native = {}
+    for line in COMMON_FIELDS.read_text(encoding="utf-8-sig").splitlines():
+        match = re.match(r'CS_ENTITY_(FIELD|RAW_FIELD|SPECIAL_FIELD)\("([^"]+)",(.+)\)', line)
+        if match:
+            kind, member, storage = match.groups()
+            common_native[member] = {"declaration": kind, "storage": storage, "scope": "non-Player;Player20-owner",
+                                     "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"}
     rows = []
     for ordinal, m in enumerate(catalog["members"]):
         task, responsibility, reason, e2e = route(m)
@@ -88,9 +98,20 @@ def generate():
             "native_status": "authority_not_replayed" if ownership == "AuthorityOnly" else "not_applied_by_I01_I03",
             "e2e": e2e,
         })
+        if m["id"] in common_native and ownership == "ReplicatedState":
+            rows[-1]["native_status"] = "I08-common-path-implemented;class-owner-and-I34-pending"
+            rows[-1]["local_storage"] = common_native[m["id"]]["storage"]
+            rows[-1]["implementation"] = "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+        elif responsibility == "typed_reference":
+            rows[-1]["native_status"] = "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending"
+            rows[-1]["implementation"] = "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences"
     # 结构型补充与公开行使用同一责任目录，不能靠测试夹具补表现源。
     return {"format": "isaac.cs.entity.application-catalog", "version": 1, "model_version": 2,
             "target_contract": "entity-target-v1", "source_contract": "entity-source-v1", "members": rows,
+            "common_native": common_native,
+            "common_execution": {"tasks": "I05-I09", "plan": "mod/src/replica/entity_plan.cpp:PlanEntityTarget",
+                                 "executor": "mod/src/game/client_objects.cpp:ClientObjects;mod/src/game/client_objects_native.cpp:FormalExecute",
+                                 "class_native_apply": False, "scene_commit": "I29-pending", "runtime_acceptance": "I34-pending"},
             # I04研究索引是资料与采用约束，不把静态审阅升级为原生支持或运行通过。
             "static_research": json.loads(RESEARCH.read_text(encoding="utf-8-sig")),
             "classes": [{"source_class": c, "category": d[0], "task": d[1], "contract": d[2], "e2e": d[3], "native_apply": False} for c, d in CLASSES.items()],

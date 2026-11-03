@@ -4,6 +4,8 @@
 
 I04 后续静态结论见[全类别采用合同](entity-application-contracts.md)、[J273必要逆向与主审](entity-native-static.md)及[功能目录研究索引](entity-native-contracts.json)。字段宽度、池大小、专用资源／owner、Timeout文档冲突和失败前缀以具名证据为准；下面的类别任务仍须实际实现并在I34统一验收，不能把静态结果改成native支持。
 
+公共I05—I09的阶段执行器、字段表与Player/依赖接口见[公共应用实现](tx-04-19-common-application.md)。C01—C13须注册完整`ClientEntityClassAdapter`；未注册类别在写前拒绝，不能将公共执行器存在当作该类别已经实现。
+
 ## 1. 全类别共同要求
 
 每类任务均包含：正式完整来源 → 发送字段 → 纯值解析 → 构造与官方扩展 → 最终公共／派生状态 → 引用及辅助资源 → 原生绘制 → 改变／替换／移除 → 失败退休。下文的字段主题是实现导航；具体全量范围以 10 的 `entity-catalog.json`、实际 schema、I01 应用目录及新增必要原生表现字段为准，不能把示例字段当上限。

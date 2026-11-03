@@ -3,6 +3,7 @@
 #include "game/client_resources.h"
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -17,7 +18,25 @@ struct ClientObjectKey final {
   }
 };
 struct ClientObjectReference final { bool present=false,is_null=false;ClientObjectKey target{}; };
-// 此值合同只表达17已实现的代表路径；逐类全字段由18—20增加，不能默认忽略必需字段。
+// C++17 SDK边界只接收自有值；字段状态由纯值层解释，不向原生传JSON地址。
+enum class ClientEntityValueKind : unsigned { Integer, Bits, Real, Boolean, Vector, Color };
+struct ClientEntityField final {
+  std::string member;
+  ClientEntityValueKind kind=ClientEntityValueKind::Integer;
+  std::int64_t integer=0;
+  std::uint64_t bits=0;
+  float real=0;
+  bool boolean=false;
+  ClientPoseVector vector{};
+  ClientPoseColor color{};
+};
+struct ClientEntityRelation final {
+  std::string member,path,contract;
+  ClientObjectKey target{};
+  unsigned kind=0,expected=13;
+  bool is_null=false,before_init=false,value_only=false;
+};
+// 17代表值和19公共值显式区分；派生完整值交给具名类别owner，不默认忽略必需字段。
 struct ClientObjectDescription final {
   ClientObjectKey key{};
   std::uint64_t shape_revision=0;
@@ -28,12 +47,21 @@ struct ClientObjectDescription final {
   bool visible=true;
   std::array<ClientObjectReference,4> references{}; // Parent、Child、Target、Spawner。
   ClientResourcePose resource{};
+  // 正式19描述与17代表描述明确区分；派生值交给具名类别owner，不丢弃未应用字段。
+  bool full_entity=false,exists=true,dead=false;
+  unsigned category=13;
+  std::vector<ClientEntityField> common_fields;
+  std::vector<ClientEntityRelation> relations;
+  std::string class_values,common_values,special_values;
+  // 组件内graph_ref必须在整component解析；各对象共享不可变文本，不复制N份完整图。
+  std::shared_ptr<const std::string> component_values;
   // 普通Isaac的最终基础统计；构造期不执行Pre/Post起始物品玩法。
   bool player_stats=false;
   float damage=0,move_speed=0,max_fire_delay=0,shot_speed=0,tear_range=0,luck=0;
   int hearts=0,max_hearts=0,soul_hearts=0,black_hearts=0,eternal_hearts=0,coins=0,keys=0,bombs=0;
 };
-enum class ClientObjectOperation : unsigned { Remove, Create, Change, Replace, References, Check };
+enum class ClientObjectOperation : unsigned { Remove, Create, Change, Replace, References, Check,
+  Unlink, Acquire, Initialize, Fields, Resources, Publish };
 struct ClientObjectCommand final {
   ClientObjectOperation operation=ClientObjectOperation::Check;
   ClientObjectDescription value{};
@@ -46,8 +74,41 @@ struct ClientObjectStep final {
   ClientObjectKey key{};
   std::uint64_t instance=0;
   unsigned object_prefix=0;
+  std::uint64_t pool_use=0,shape_revision=0;
 };
 struct ClientNativeObjects;
+// 外部Player/跨域owner按稳定Key每次重新借用；不缓存Authority指针，也不回退到roster[0]。
+struct ClientEntityBorrow final {void *object=nullptr;std::uint64_t instance=0,owner_epoch=0;unsigned category=13;};
+using ClientEntityResolve=bool (*)(void *,const ClientNativeRoots &,const ClientObjectKey &,unsigned,ClientEntityBorrow &,const char *&) noexcept;
+struct ClientEntityOwners final {
+  void *context=nullptr;ClientEntityResolve resolve=nullptr;
+  // 描述值/Weapon等不能假冒EntityPtr；依赖owner核对同scope的完整来源与寿命。
+  bool (*dependency)(void *,const ClientNativeRoots &,const ClientEntityRelation &,const char *&) noexcept=nullptr;
+  bool (*player_ready)(void *,const ClientNativeRoots &,const ClientObjectDescription &,const ClientEntityBorrow &,const char *&) noexcept=nullptr;
+  // 外部owner退休先使token失效；回调context在所有消费端释放前保持存活。
+  std::shared_ptr<void> lifetime;
+};
+// 类别适配负责自己的派生Init前置、资源、关系及清理；公共执行器统一掌握前缀和成员发布。
+// 回调地址与context属于产品模块，绝不从网络注册；任何回调失败都保留已进入前缀。
+struct ClientEntityClassAdapter final {
+  unsigned category=13;
+  void *context=nullptr;
+  bool (*prepare)(void *,const ClientObjectDescription &,const char *&) noexcept=nullptr;
+  bool (*before_init)(void *,void *,const ClientObjectDescription &,const ClientEntityOwners &,const ClientNativeRoots &,const char *&)=nullptr;
+  bool (*fields)(void *,void *,const ClientObjectDescription &,bool,const char *&)=nullptr;
+  bool (*resources)(void *,void *,const ClientObjectDescription &,bool,const char *&)=nullptr;
+  bool (*relations)(void *,void *,const ClientObjectDescription &,const ClientEntityOwners &,const ClientNativeRoots &,bool,bool,const char *&)=nullptr;
+  bool (*retire)(void *,void *,const ClientObjectDescription &,const char *&)=nullptr;
+  // Dummy等不走通用Factory的类须提供具名取得路径，不能用默认NPC池冒充。
+  void *(*acquire)(void *,const ClientObjectDescription &,const ClientNativeRoots &,const char *&)=nullptr;
+  std::shared_ptr<void> lifetime;
+};
+bool ClientNativeObjectsConfigure(ClientNativeObjects *,const ClientEntityOwners &,const std::vector<ClientEntityClassAdapter> &) noexcept;
+ClientEntityOwners ClientNativeObjectsPlayerOwner(ClientNativeObjects *) noexcept;
+bool ClientNativeObjectsPreflight(ClientNativeObjects *,const ClientNativeRoots &,const std::vector<ClientObjectDescription> &,
+    const std::vector<ClientObjectKey> &,const char *&) noexcept;
+// 公共字段的安装/后态共用具名存储表；不调用Damage/Kill/Update推进玩法。
+bool ClientEntityCommonFields(void *,const std::vector<ClientEntityField> &,bool check,const char *&) noexcept;
 ClientNativeObjects *ClientNativeObjectsCreate() noexcept;
 void ClientNativeObjectsDestroy(ClientNativeObjects *) noexcept;
 ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *,const ClientNativeRoots &,const ClientObjectCommand &) noexcept;

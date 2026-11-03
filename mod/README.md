@@ -1,3 +1,7 @@
+# tx-04-19 I05—I09 公共应用入口
+
+稳定实例/Player owner、正式EntityTarget的A→T阶段计划、原生构造/发布、公共字段写回/真实后态与分类型引用已接入`src/replica/entity_plan.*`和`src/game/client_objects*`，公共字段表为`src/game/client_entity_fields.inc`。见[实现与静态主审](../docs/design/tx-04-19/tx-04-19-common-application.md)。Win32 Release纯构建成功；尚不表示I11—I22类别adapter、I29唯一场景提交或I34整体验收已完成，不提前运行分项测试。下方保留18已验收范围。
+
 # tx-04-18 Room/Grid应用工程入口
 
 I01—I30已完成；统一E2E的Source 49/49、独立冷Client 49/49及12/12检查通过，代表画面已主审，实际范围、历史失败与后续接口见[统一验收及后续接口](../docs/design/tx-04-18/tx-04-18-acceptance.md)。正式背景来源包含真实图形构建前态/独立RNG轨迹，Client不重建本地环境Entity；Room来源v8为原生背景构建的最低版本。没有完整世界Applied ACK，Entity19、Player20和完整HUD27仍各自负责后续领域。

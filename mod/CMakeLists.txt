@@ -48,8 +48,9 @@ add_custom_command(OUTPUT "${GENERATED}/entity_application.inc" "${GENERATED}/en
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_entity_application_catalog.py" --out "${GENERATED}"
   # 静态合同随功能目录生成；修改研究索引也必须更新嵌入目录，避免残留旧采用约束。
   DEPENDS tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py
+    src/game/client_entity_fields.inc
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-native-contracts.json" ${REPLICA_CATALOGS} VERBATIM)
-add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/projection_graph.cpp src/replica/codec.cpp src/replica/entity_target.cpp
+add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/projection_graph.cpp src/replica/codec.cpp src/replica/entity_target.cpp src/replica/entity_plan.cpp
   src/replica/room_grid_target.cpp src/replica/room_grid_plan.cpp src/replica/room_grid_budget.cpp
   "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc" "${GENERATED}/entity_application.inc")
 target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")
@@ -86,6 +87,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/device_k.cpp src/game/join.cpp src/game/peer.cpp src/game/input_lease.cpp src/game/persistence.cpp
   src/game/client.cpp src/game/client_scene.cpp src/game/client_native_bridge.cpp
   src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_backdrop_native.cpp src/game/client_objects.cpp src/game/client_objects_native.cpp
+  src/game/client_entity_model.cpp src/game/client_entity_common_native.cpp
   src/game/client_grids.cpp src/game/client_grid_native.cpp src/game/client_grid_events.cpp
   src/game/client_map_native.cpp
   src/hooks/backdrop_patch.cpp
@@ -102,6 +104,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。
 set_source_files_properties(src/game/world_sources/loot.cpp src/game/world_sources/lua_entity.cpp src/game/player_api.cpp src/game/client_native_bridge.cpp src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp"
   src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_backdrop_native.cpp src/game/client_objects_native.cpp src/game/client_presentation_native.cpp src/game/client_resources_native.cpp
+  src/game/client_entity_common_native.cpp
   src/game/client_grid_native.cpp
   src/game/client_map_native.cpp
   src/game/client_e2e_native.cpp

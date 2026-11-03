@@ -106,15 +106,32 @@ void FieldType(const V &v,const V &policy,const std::string &p,bool parameter_va
     if(const auto *key=Find(v,"target");key&&U64(At(*key,"space",p),p)!=1)Error(p,"entity_reference_space");
   }
 }
-void References(const V &v,const std::string &p,std::vector<EntityReferenceTarget> &out){
-  if(v.IsArray()){unsigned i=0;for(const auto &x:v.GetArray())References(x,p+"/"+std::to_string(i++),out);return;}
+using Graph=std::map<std::uint64_t,const V *>;
+void GraphNodes(const V &v,Graph &out){
+  if(v.IsArray()){for(const auto &x:v.GetArray())GraphNodes(x,out);return;}if(!v.IsObject())return;
+  if(Is(Find(v,"type"),"table"))if(const auto *node=Find(v,"node"))out.emplace(U64(*node,"graph/node"),&v);
+  for(auto i=v.MemberBegin();i!=v.MemberEnd();++i)GraphNodes(i->value,out);
+}
+void References(const V &v,const std::string &p,std::vector<EntityReferenceTarget> &out,const Graph &graph,std::set<std::uint64_t> &visiting,unsigned &budget){
+  if(!budget--)Error(p,"reference_graph_budget");
+  if(v.IsArray()){unsigned i=0;for(const auto &x:v.GetArray())References(x,p+"/"+std::to_string(i++),out,graph,visiting,budget);return;}
   if(!v.IsObject())return;
-  if(Is(Find(v,"type"),"reference")){
-    EntityReferenceTarget ref;ref.path=p;ref.status=Str(At(v,"status",p));
+  if(Is(Find(v,"type"),"graph_ref")){
+    const auto node=U64(At(v,"node",p),p);const auto it=graph.find(node);if(it==graph.end())Error(p,"reference_graph_unresolved");
+    if(!visiting.insert(node).second)return;References(*it->second,p,out,graph,visiting,budget);visiting.erase(node);return;
+  }
+  if(Is(Find(v,"type"),"owner_qualified_domain_reference")){
+    EntityReferenceTarget ref;ref.path=p;ref.owner_qualified=true;ref.status="OwnerQualified";
+    if(const auto *c=Find(v,"contract"))ref.contract=Str(*c);
+    else {if(const auto *s=Find(v,"schema"))ref.contract=Str(*s);if(const auto *f=Find(v,"field"))ref.contract+=":"+Str(*f);}
+    out.push_back(std::move(ref));return;
+  }
+  if(Is(Find(v,"type"),"reference")||Is(Find(v,"resolution"),"Null")){
+    EntityReferenceTarget ref;ref.path=p;ref.status=Is(Find(v,"resolution"),"Null")?"Null":Str(At(v,"status",p));
     if(const auto *key=Find(v,"target")){ref.has_target=true;ref.target={U64(At(*key,"run",p),p),U64(At(*key,"id",p),p),unsigned(U64(At(*key,"space",p),p))};}
     out.push_back(std::move(ref));return;
   }
-  for(auto i=v.MemberBegin();i!=v.MemberEnd();++i)References(i->value,p+"/"+Str(i->name),out);
+  for(auto i=v.MemberBegin();i!=v.MemberEnd();++i)References(i->value,p+"/"+Str(i->name),out,graph,visiting,budget);
 }
 using Policies=std::map<std::string,const V *>;
 const Policies &PoliciesById(){
@@ -201,6 +218,7 @@ EntityTarget ParseEntityTarget(const Value &model){
   // 原始全成员枚举、字段coverage与非Player子范围是三项事实；Partial字段不能改写枚举事实。
   out.membership_complete=complete.GetBool();
   out.non_player_complete=out.membership_complete;std::set<SubjectKey> seen;
+  Graph graph;GraphNodes(state,graph);unsigned reference_budget=1048576;
   for(const auto &row:rows.GetArray()){
     EntityObjectTarget object;const auto path="objects/"+std::to_string(out.objects.size());const auto &subject=At(row,"subject",path);
     object.key=Key(subject,out.scope,path);if(!seen.insert(object.key).second)Error(path,"duplicate_subject");
@@ -227,12 +245,13 @@ EntityTarget ParseEntityTarget(const Value &model){
     const auto *fields=Find(object.common.value,"fields");
     if(fields){if(const auto *v=Find(*fields,"Entity.Exists");v&&v->IsBool()){object.exists_known=true;object.exists=v->GetBool();}
       if(const auto *v=Find(*fields,"Entity.IsDead");v&&v->IsBool()){object.dead_known=true;object.dead=v->GetBool();}}
-    TypeWitness(object,path);References(object.common.value,path+"/common",object.references);
-    std::visit([&](const auto &body_value){References(body_value.fields.value,path+"/body",object.references);},object.payload);
-    if(object.delirium)References(object.special.value,path+"/special",object.references);
+    TypeWitness(object,path);std::set<std::uint64_t> visiting;
+    References(object.common.value,path+"/common",object.references,graph,visiting,reference_budget);
+    std::visit([&](const auto &body_value){References(body_value.fields.value,path+"/body",object.references,graph,visiting,reference_budget);},object.payload);
+    if(object.delirium)References(object.special.value,path+"/special",object.references,graph,visiting,reference_budget);
     out.objects.push_back(std::move(object));
   }
   out.source=Copy(component);return out;
 }
-Json EntityCapabilities(){return Parse(R"({"id":"entity-target-v1","source":"entity-source-v1","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","model_expression":"all-catalogued-members;typed-status;int64;bits128;sparse-graph;resources;typed-references","classification":"public-derived-interface-or-native-RTTI;NativeDummy;no-NativeDarkness-alias","non_player_native_apply":false,"player_native_apply":"tx-04-17-representative-v1-only;full-owner=tx-04-20","runtime_acceptance":"I01-I03-pending-full-tx-04-19-I34","full_entity_domain_commit":false,"limits":{"objects":16384,"bytes":33554432,"depth":64}})");}
+Json EntityCapabilities(){return Parse(R"({"id":"entity-target-v1","source":"entity-source-v1","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","model_expression":"all-catalogued-members;typed-status;int64;bits128;sparse-graph;resources;typed-references","classification":"public-derived-interface-or-native-RTTI;NativeDummy;no-NativeDarkness-alias","common_execution":"I05-I09-implemented;class-adapters=I11-I22;scene=I29","non_player_native_apply":false,"player_native_apply":"named-current-key-owner;ordinary-Isaac-proof;full-owner=tx-04-20","runtime_acceptance":"pending-full-tx-04-19-I34","full_entity_domain_commit":false,"limits":{"objects":16384,"bytes":33554432,"depth":64}})");}
 } // namespace cs::replica

@@ -4,6 +4,8 @@
 
 资料顺序为本地原版 Wiki `F:/projects_isaac/IsaacDocs/docs`、本地 REPENTOGON Wiki `F:/projects_isaac/REPENTOGON-1.1.3/docs/docs`、同版本官方源码／ZHL、最后必要 J273 指令。`PUBLIC_DOC` 为公开语义，`SOURCE` 为源码事实，`REUSED_J273` 为 17／18 已核事实，`J273_STATIC` 为本轮二进制静态事实，`DERIVED` 为推导，`DESIGN` 为采用决定，`UNKNOWN` 为尚未解释内容。本文没有新运行观察；不执行试调用、探针、测试或哈希校验。
 
+后续I05—I09的公共执行、字段补证与主审纠错见[公共应用实现](tx-04-19-common-application.md)，尤其区分公开DepthOffset与SDK旧命名、SplatColor/Color/GetColor三处存储以及真实成员发布条件；本文保留I04当时采用范围。
+
 ## R01 分类、字段和存在性
 
 `SOURCE`：正式 `domains/entity/collect.lua::snapshot` 依次尝试 Player／NPC／Tear／Projectile／Bomb／Laser／Knife／Pickup／Familiar／Effect／Slot 的公开转换；NPC 再调用 `ToDelirium`，特殊接口附在同一主体上。转换失败后才读具名 RTTI supplement；不按 `Type>=10` 把 Text／Dummy 当成 NPC。当前 `entity_target.cpp::Category` 已拒绝旧 `NativeDarkness`；`model.cpp::Capabilities` 已声明 NativeDummy，I04 不再新增别名。

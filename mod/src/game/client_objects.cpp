@@ -1,5 +1,6 @@
 #include "game/client_objects.h"
 #include "game/client_resource_model.h"
+#include "game/client_entity_model.h"
 #include <algorithm>
 #include <charconv>
 #include <cmath>
@@ -146,11 +147,43 @@ bool ParseObjects(const V &model,Objects &out,std::string &reason) {
 }
 ClientObjects::ClientObjects() noexcept=default;
 ClientObjects::~ClientObjects(){ClientNativeObjectsDestroy(native_);}
+ClientEntityOwners ClientObjects::PlayerOwner() noexcept {return ClientNativeObjectsPlayerOwner(native_);}
+bool ClientObjects::ConfigureEntityOwners(ClientEntityOwners owners,std::vector<ClientEntityClassAdapter> adapters) noexcept {
+  if(candidate_||native_||committed_||failed_)return false;
+  try{std::set<unsigned> categories;for(const auto &a:adapters)if(a.category==0||a.category>=13||!a.prepare||!a.before_init||!a.fields||!a.resources||!a.relations||!a.retire||!categories.insert(a.category).second)return false;
+    entity_owners_=owners;entity_adapters_=std::move(adapters);return true;}catch(...){return false;}
+}
 bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&reason) noexcept {
   try {
     if(failed_){reason="objects_failed_requires_retirement";return false;}
     // 纯值阶段的新T可原子替换尚未执行的计划；已执行前缀仍须由场景owner退休。
     if(candidate_&&(cursor_||written_)){reason="objects_plan_inflight";return false;}
+    // 正式模型与历史代表投影共用同一native实例表；19不扩大17的支持声明。
+    if(!Is(At(At(&target,"client_profile"),"id"),"tx-04-17-representative-v1")){
+      if(applied&&(!committed_||*committed_!=*applied)){reason="objects_applied_identity_mismatch";return false;}
+      if(!applied&&committed_&&!retired_){reason="objects_current_world_requires_applied";return false;}
+      auto desired=std::make_shared<const replica::EntityTarget>(replica::ParseEntityTarget(target));
+      auto plan=std::make_unique<replica::EntityApplyPlan>(replica::PlanEntityTarget(desired,applied?entity_applied_:nullptr));
+      if(applied&&!entity_applied_){reason="objects_entity_applied_missing";return false;}
+      std::vector<ClientObjectDescription> next,before;
+      auto source=std::make_shared<const std::string>(replica::Text(desired->source));
+      next.reserve(desired->objects.size());
+      if(plan->duplicate)next=entity_applied_values_;
+      else for(const auto &o:desired->objects){
+        if(o.presence!=replica::EntityMemberPresence::Current){next.emplace_back();continue;}
+        auto d=ClientDescribeEntity(o,plan->dependencies,source);
+        if(o.category!=replica::EntityCategory::Player){
+          const auto a=std::find_if(entity_adapters_.begin(),entity_adapters_.end(),[&](const auto &v){return v.category==d.category;});
+          if(a==entity_adapters_.end()){reason="objects_entity_class_adapter_pending_I11_I22";return false;}
+          if(!a->prepare(a->context,d,reason)){reason_=reason;reason=reason_.c_str();return false;}
+        }next.push_back(std::move(d));
+      }
+      if(plan->applied){before=entity_applied_values_;if(before.size()!=plan->applied->objects.size()){reason="objects_entity_applied_values_missing";return false;}}
+      auto copy=std::make_unique<replica::Json>(replica::Copy(target));
+      candidate_=std::move(copy);entity_plan_=std::move(plan);entity_old_values_=std::move(before);entity_target_values_=std::move(next);
+      commands_.clear();cursor_=prefix_=0;written_=false;retired_=false;entity_preflight_=false;reason="objects_entity_plan_ready";return true;
+    }
+    if(entity_applied_){reason="objects_profile_change_requires_scene_retirement";return false;}
     Objects desired,old;
     if(!ParseObjects(target,desired,reason_)){reason=reason_.c_str();return false;}
     // A来自唯一原生提交。传入的A与本表历史不一致时不在未知世界继续diff。
@@ -189,17 +222,49 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
     if(plan.size()>kPlanBudget){reason="objects_plan_budget";return false;}
     candidate_=std::make_unique<replica::Json>(replica::Copy(target));commands_=std::move(plan);
     cursor_=0;prefix_=0;written_=false;retired_=false;reason="objects_plan_ready";return true;
-  }catch(...){reason="objects_plan_exception";return false;}
+  }catch(const std::exception &e){reason_=e.what();reason=reason_.c_str();return false;}
+  catch(...){reason="objects_plan_exception";return false;}
 }
 bool ClientObjects::CancelPlanned() noexcept {
   if(!candidate_||cursor_||written_||failed_)return false;
-  candidate_.reset();commands_.clear();reason_.clear();prefix_=0;return true;
+  candidate_.reset();entity_plan_.reset();entity_target_values_.clear();entity_old_values_.clear();entity_preflight_=false;
+  commands_.clear();reason_.clear();prefix_=0;return true;
 }
 ClientObjectStep ClientObjects::Step(const ClientNativeRoots &roots,unsigned budget) noexcept {
   if(failed_)return {false,written_,true,prefix_,0,"objects_failed_requires_retirement"};
   if(!candidate_)return {false,written_,false,prefix_,0,"objects_target_missing"};
   if(!native_)native_=ClientNativeObjectsCreate();
   if(!native_)return {false,written_,true,prefix_,0,"objects_owner_allocation"};
+  if(entity_plan_){
+    if(!entity_preflight_){const char *why="objects_entity_preflight";
+      if(!ClientNativeObjectsConfigure(native_,entity_owners_,entity_adapters_)){failed_=true;return {false,false,true,prefix_,0,"objects_entity_configure_failed"};}
+      std::vector<ClientObjectKey> players;try{for(const auto &key:entity_plan_->external_players)players.push_back({key.run,key.id,key.space});}
+      catch(...){failed_=true;return {false,false,true,prefix_,0,"objects_entity_dependency_allocation"};}
+      if(!ClientNativeObjectsPreflight(native_,roots,entity_target_values_,players,why))return {false,false,false,prefix_,0,why};
+      entity_preflight_=true;
+    }
+    const auto operation=[](replica::EntityAction a){switch(a){
+      case replica::EntityAction::Unlink:return ClientObjectOperation::Unlink;
+      case replica::EntityAction::Remove:return ClientObjectOperation::Remove;
+      case replica::EntityAction::Acquire:return ClientObjectOperation::Acquire;
+      case replica::EntityAction::Initialize:return ClientObjectOperation::Initialize;
+      case replica::EntityAction::Fields:return ClientObjectOperation::Fields;
+      case replica::EntityAction::Resources:return ClientObjectOperation::Resources;
+      case replica::EntityAction::Publish:return ClientObjectOperation::Publish;
+      case replica::EntityAction::Link:return ClientObjectOperation::References;
+      default:return ClientObjectOperation::Check;}};
+    budget=(std::min)(budget,64u);ClientObjectStep last{};
+    while(budget--&&cursor_<entity_plan_->steps.size()){
+      const auto &p=entity_plan_->steps[cursor_];ClientObjectCommand command;command.operation=operation(p.action);
+      try{if(p.action!=replica::EntityAction::CheckAll)command.value=p.from_applied?entity_old_values_.at(p.object):entity_target_values_.at(p.object);else command.value.full_entity=true;}
+      catch(...){failed_=true;return {false,written_,true,prefix_,0,"objects_entity_command_allocation"};}
+      auto step=ClientNativeObjectsExecute(native_,roots,command);written_|=step.written;prefix_|=step.executed_prefix;
+      step.written=written_;step.executed_prefix=prefix_;if(step.failed){failed_=true;return step;}if(!step.done)return step;last=step;++cursor_;
+    }
+    if(cursor_!=entity_plan_->steps.size()){last.done=false;last.written=written_;last.executed_prefix=prefix_;return last;}
+    entity_applied_=entity_plan_->target;entity_applied_values_=std::move(entity_target_values_);entity_plan_.reset();entity_old_values_.clear();committed_=std::move(candidate_);
+    return {true,written_,false,prefix_,0,"objects_non_player_native_checked_pending_scene_commit"};
+  }
   budget=(std::min)(budget,64u);
   ClientObjectStep last{};
   while(budget--&&cursor_<commands_.size()){
@@ -218,6 +283,7 @@ ClientObjectStep ClientObjects::Retire(const ClientNativeRoots &roots) noexcept 
   auto step=ClientNativeObjectsAbandon(native_,roots);
   if(!step.done)return step;
   ClientNativeObjectsDestroy(native_);native_=nullptr;commands_.clear();candidate_.reset();committed_.reset();
+  entity_plan_.reset();entity_applied_.reset();entity_target_values_.clear();entity_old_values_.clear();entity_applied_values_.clear();entity_preflight_=false;
   cursor_=0;prefix_=0;failed_=written_=false;retired_=true;return step;
 }
 bool ClientObjects::Visit(void *context,ClientObjectVisitor visitor) const noexcept {

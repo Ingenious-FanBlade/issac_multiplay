@@ -7298,9 +7298,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -7371,7 +7371,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.CollidesWithGrid",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_collidesWithGrid,Boolean",
       "source_path": "components/entity/state/objects/**/fields/Entity.CollidesWithGrid",
       "dependencies": [
         "same ordinary component capture",
@@ -7380,9 +7380,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -7412,7 +7412,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.CollisionDamage",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_collisionDamage,Real",
       "source_path": "components/entity/state/objects/**/fields/Entity.CollisionDamage",
       "dependencies": [
         "same ordinary component capture",
@@ -7421,9 +7421,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -7453,7 +7453,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.Color",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x1b8,ColorMod,Color",
       "source_path": "components/entity/state/objects/**/fields/Entity.Color",
       "dependencies": [
         "same ordinary component capture",
@@ -7462,9 +7462,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -7576,7 +7576,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.DepthOffset",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x358,float,Real",
       "source_path": "components/entity/state/objects/**/fields/Entity.DepthOffset",
       "dependencies": [
         "same ordinary component capture",
@@ -7585,9 +7585,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -7699,7 +7699,7 @@
       "reason": "稳定Key与scope；构造前置/后置关系由类别adapter决定，禁止首玩家回退",
       "application_task": "I09",
       "target_field": "EntityTarget.objects/common/fields/Entity.EntityCollisionClass",
-      "local_storage": "owned-pure-value;native-storage-pending-I09",
+      "local_storage": "_entityCollisionClass,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.EntityCollisionClass",
       "dependencies": [
         "same ordinary component capture",
@@ -7708,9 +7708,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -7740,7 +7740,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.Exists",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_exists,Boolean",
       "source_path": "components/entity/state/objects/**/fields/Entity.Exists",
       "dependencies": [
         "same ordinary component capture",
@@ -7749,9 +7749,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -7781,7 +7781,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.FlipX",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x148,bool,Boolean",
       "source_path": "components/entity/state/objects/**/fields/Entity.FlipX",
       "dependencies": [
         "same ordinary component capture",
@@ -7790,9 +7790,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -7863,7 +7863,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.FrameCount",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.FrameCount",
       "dependencies": [
         "same ordinary component capture",
@@ -7872,9 +7872,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -7904,7 +7904,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.Friction",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x36c,float,Real",
       "source_path": "components/entity/state/objects/**/fields/Entity.Friction",
       "dependencies": [
         "same ordinary component capture",
@@ -7913,9 +7913,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -7945,7 +7945,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetBaitedCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_baitedCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetBaitedCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -7954,9 +7954,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -7986,7 +7986,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetBleedingCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_bleedingCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetBleedingCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -7995,9 +7995,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8068,7 +8068,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetBossStatusEffectCooldown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_bossStatusEffectCooldown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetBossStatusEffectCooldown",
       "dependencies": [
         "same ordinary component capture",
@@ -8077,9 +8077,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8109,7 +8109,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetBrimstoneMarkCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_brimstoneMarkCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetBrimstoneMarkCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -8118,9 +8118,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8150,7 +8150,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetBurnCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_burnCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetBurnCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -8159,9 +8159,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8191,7 +8191,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetBurnDamageTimer",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_burnDamageTimer,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetBurnDamageTimer",
       "dependencies": [
         "same ordinary component capture",
@@ -8200,9 +8200,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8232,7 +8232,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetCharmedCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_charmedCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetCharmedCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -8241,9 +8241,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8314,7 +8314,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.Color",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x1b8,ColorMod,Color",
       "source_path": "components/entity/state/objects/**/fields/Entity.Color",
       "dependencies": [
         "same ordinary component capture",
@@ -8323,9 +8323,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8396,7 +8396,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetConfusionCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_confusionCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetConfusionCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -8405,9 +8405,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8437,7 +8437,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetDamageCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_damageCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetDamageCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -8446,9 +8446,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8642,7 +8642,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetEntityFlags",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_flags,Bits",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetEntityFlags",
       "dependencies": [
         "same ordinary component capture",
@@ -8651,9 +8651,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8683,7 +8683,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetFearCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_fearCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetFearCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -8692,9 +8692,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8724,7 +8724,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetFireDamageCooldown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_fireDamageCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetFireDamageCooldown",
       "dependencies": [
         "same ordinary component capture",
@@ -8733,9 +8733,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8765,7 +8765,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetFreezeCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_freezeCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetFreezeCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -8774,9 +8774,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8847,7 +8847,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetIceCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_iceCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetIceCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -8856,9 +8856,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8888,7 +8888,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetKnockbackCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_knockbackCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetKnockbackCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -8897,9 +8897,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8929,7 +8929,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetKnockbackDirection",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_knockbackDirection,Vector",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetKnockbackDirection",
       "dependencies": [
         "same ordinary component capture",
@@ -8938,9 +8938,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -8979,9 +8979,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -9020,9 +9020,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -9052,7 +9052,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetMagnetizedCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_magnetizedCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetMagnetizedCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -9061,9 +9061,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -9093,7 +9093,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetMidasFreezeCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_midasFreezeCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetMidasFreezeCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -9102,9 +9102,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -9143,9 +9143,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -9257,7 +9257,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetPauseTime",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_pauseTimer,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetPauseTime",
       "dependencies": [
         "same ordinary component capture",
@@ -9266,9 +9266,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -9298,7 +9298,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetPoisonCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_poisonCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetPoisonCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -9307,9 +9307,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -9339,7 +9339,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetPoisonDamageTimer",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_poisonDamageTimer,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetPoisonDamageTimer",
       "dependencies": [
         "same ordinary component capture",
@@ -9348,9 +9348,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -9462,7 +9462,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetShadowSize",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_shadowSize,Real",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetShadowSize",
       "dependencies": [
         "same ordinary component capture",
@@ -9471,9 +9471,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -9503,7 +9503,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetShrinkCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_shrinkCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetShrinkCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -9512,9 +9512,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -9544,7 +9544,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetSlowingCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_slowingCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetSlowingCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -9553,9 +9553,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -9585,7 +9585,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetSpeedMultiplier",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_speedMultiplier,Real",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetSpeedMultiplier",
       "dependencies": [
         "same ordinary component capture",
@@ -9594,9 +9594,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -9676,9 +9676,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -9708,7 +9708,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetWaterClipFlags",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetWaterClipFlags",
       "dependencies": [
         "same ordinary component capture",
@@ -9717,9 +9717,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -9749,7 +9749,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetWeaknessCountdown",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_weaknessCountdown,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GetWeaknessCountdown",
       "dependencies": [
         "same ordinary component capture",
@@ -9758,9 +9758,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -9831,7 +9831,7 @@
       "reason": "稳定Key与scope；构造前置/后置关系由类别adapter决定，禁止首玩家回退",
       "application_task": "I09",
       "target_field": "EntityTarget.objects/common/fields/Entity.GridCollisionClass",
-      "local_storage": "owned-pure-value;native-storage-pending-I09",
+      "local_storage": "_entityGridCollisionClass,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.GridCollisionClass",
       "dependencies": [
         "same ordinary component capture",
@@ -9840,9 +9840,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -10036,7 +10036,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.HitPoints",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x380,float,Real",
       "source_path": "components/entity/state/objects/**/fields/Entity.HitPoints",
       "dependencies": [
         "same ordinary component capture",
@@ -10045,9 +10045,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -10282,7 +10282,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.IsDead",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_dead,Boolean",
       "source_path": "components/entity/state/objects/**/fields/Entity.IsDead",
       "dependencies": [
         "same ordinary component capture",
@@ -10291,9 +10291,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -10446,7 +10446,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.IsInvincible",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_isInvicible,Boolean",
       "source_path": "components/entity/state/objects/**/fields/Entity.IsInvincible",
       "dependencies": [
         "same ordinary component capture",
@@ -10455,9 +10455,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -10487,7 +10487,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.IsVisible",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_visible,Boolean",
       "source_path": "components/entity/state/objects/**/fields/Entity.IsVisible",
       "dependencies": [
         "same ordinary component capture",
@@ -10496,9 +10496,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -10733,7 +10733,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.Mass",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_mass,Real",
       "source_path": "components/entity/state/objects/**/fields/Entity.Mass",
       "dependencies": [
         "same ordinary component capture",
@@ -10742,9 +10742,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -10774,7 +10774,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.MaxHitPoints",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x384,float,Real",
       "source_path": "components/entity/state/objects/**/fields/Entity.MaxHitPoints",
       "dependencies": [
         "same ordinary component capture",
@@ -10783,9 +10783,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -10865,9 +10865,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -10897,7 +10897,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.Position",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_pos,Vector",
       "source_path": "components/entity/state/objects/**/fields/Entity.Position",
       "dependencies": [
         "same ordinary component capture",
@@ -10906,9 +10906,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -10938,7 +10938,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.PositionOffset",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_posOffset,Vector",
       "source_path": "components/entity/state/objects/**/fields/Entity.PositionOffset",
       "dependencies": [
         "same ordinary component capture",
@@ -10947,9 +10947,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -11184,7 +11184,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.RenderZOffset",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x354,int,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.RenderZOffset",
       "dependencies": [
         "same ordinary component capture",
@@ -11193,9 +11193,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -12619,7 +12619,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.Size",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_size,Real",
       "source_path": "components/entity/state/objects/**/fields/Entity.Size",
       "dependencies": [
         "same ordinary component capture",
@@ -12628,9 +12628,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -12660,7 +12660,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.SizeMulti",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x374,Vector,Vector",
       "source_path": "components/entity/state/objects/**/fields/Entity.SizeMulti",
       "dependencies": [
         "same ordinary component capture",
@@ -12669,9 +12669,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -12701,7 +12701,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.SortingLayer",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x35c,int,Integer",
       "source_path": "components/entity/state/objects/**/fields/Entity.SortingLayer",
       "dependencies": [
         "same ordinary component capture",
@@ -12710,9 +12710,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -12874,9 +12874,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -12915,9 +12915,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -12988,7 +12988,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.SplatColor",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x1e4,ColorMod,Color",
       "source_path": "components/entity/state/objects/**/fields/Entity.SplatColor",
       "dependencies": [
         "same ordinary component capture",
@@ -12997,9 +12997,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -13029,7 +13029,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.SpriteOffset",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0xdc,Vector,Vector",
       "source_path": "components/entity/state/objects/**/fields/Entity.SpriteOffset",
       "dependencies": [
         "same ordinary component capture",
@@ -13038,9 +13038,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -13070,7 +13070,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.SpriteRotation",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0xec,float,Real",
       "source_path": "components/entity/state/objects/**/fields/Entity.SpriteRotation",
       "dependencies": [
         "same ordinary component capture",
@@ -13079,9 +13079,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -13111,7 +13111,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.SpriteScale",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0xe4,Vector,Vector",
       "source_path": "components/entity/state/objects/**/fields/Entity.SpriteScale",
       "dependencies": [
         "same ordinary component capture",
@@ -13120,9 +13120,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -13243,9 +13243,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -13275,7 +13275,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.TargetPosition",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "0x334,Vector,Vector",
       "source_path": "components/entity/state/objects/**/fields/Entity.TargetPosition",
       "dependencies": [
         "same ordinary component capture",
@@ -13284,9 +13284,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -13899,9 +13899,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -14013,7 +14013,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.Velocity",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_velocity,Vector",
       "source_path": "components/entity/state/objects/**/fields/Entity.Velocity",
       "dependencies": [
         "same ordinary component capture",
@@ -14022,9 +14022,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -14054,7 +14054,7 @@
       "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.Visible",
-      "local_storage": "owned-pure-value;native-storage-pending-I08",
+      "local_storage": "_visible,Boolean",
       "source_path": "components/entity/state/objects/**/fields/Entity.Visible",
       "dependencies": [
         "same ordinary component capture",
@@ -14063,9 +14063,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I08-common-path-implemented;class-owner-and-I34-pending",
       "e2e": "E01/E15"
     },
     {
@@ -21074,9 +21074,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -22386,9 +22386,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -23247,9 +23247,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -24518,9 +24518,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -27516,9 +27516,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -27598,9 +27598,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -28259,9 +28259,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -28382,9 +28382,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -28833,9 +28833,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -29079,9 +29079,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "explicit_readonly_query",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -29120,9 +29120,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "explicit_readonly_query",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -29161,9 +29161,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "explicit_readonly_query",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -30611,9 +30611,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -30652,9 +30652,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -30693,9 +30693,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -30734,9 +30734,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -59080,9 +59080,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -65445,9 +65445,9 @@
         "I05 Player/instance owner;I09 references;I10 resources"
       ],
       "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
-      "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
+      "implementation": "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences",
       "source_implementation": "public_lua_copy",
-      "native_status": "not_applied_by_I01_I03",
+      "native_status": "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending",
       "e2e": "E13/E15"
     },
     {
@@ -73609,6 +73609,352 @@
       "e2e": "E13"
     }
   ],
+  "common_native": {
+    "Entity.Position": {
+      "declaration": "FIELD",
+      "storage": "_pos,Vector",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.Velocity": {
+      "declaration": "FIELD",
+      "storage": "_velocity,Vector",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.PositionOffset": {
+      "declaration": "FIELD",
+      "storage": "_posOffset,Vector",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.DepthOffset": {
+      "declaration": "RAW_FIELD",
+      "storage": "0x358,float,Real",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.Size": {
+      "declaration": "FIELD",
+      "storage": "_size,Real",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.Mass": {
+      "declaration": "FIELD",
+      "storage": "_mass,Real",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.CollisionDamage": {
+      "declaration": "FIELD",
+      "storage": "_collisionDamage,Real",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.EntityCollisionClass": {
+      "declaration": "FIELD",
+      "storage": "_entityCollisionClass,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GridCollisionClass": {
+      "declaration": "FIELD",
+      "storage": "_entityGridCollisionClass,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.Visible": {
+      "declaration": "FIELD",
+      "storage": "_visible,Boolean",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.IsDead": {
+      "declaration": "FIELD",
+      "storage": "_dead,Boolean",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.Exists": {
+      "declaration": "FIELD",
+      "storage": "_exists,Boolean",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.CollidesWithGrid": {
+      "declaration": "FIELD",
+      "storage": "_collidesWithGrid,Boolean",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.IsInvincible": {
+      "declaration": "FIELD",
+      "storage": "_isInvicible,Boolean",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetEntityFlags": {
+      "declaration": "FIELD",
+      "storage": "_flags,Bits",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetShadowSize": {
+      "declaration": "FIELD",
+      "storage": "_shadowSize,Real",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetKnockbackDirection": {
+      "declaration": "FIELD",
+      "storage": "_knockbackDirection,Vector",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetSpeedMultiplier": {
+      "declaration": "FIELD",
+      "storage": "_speedMultiplier,Real",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetPauseTime": {
+      "declaration": "FIELD",
+      "storage": "_pauseTimer,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetDamageCountdown": {
+      "declaration": "FIELD",
+      "storage": "_damageCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetFireDamageCooldown": {
+      "declaration": "FIELD",
+      "storage": "_fireDamageCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetFreezeCountdown": {
+      "declaration": "FIELD",
+      "storage": "_freezeCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetPoisonCountdown": {
+      "declaration": "FIELD",
+      "storage": "_poisonCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetSlowingCountdown": {
+      "declaration": "FIELD",
+      "storage": "_slowingCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetCharmedCountdown": {
+      "declaration": "FIELD",
+      "storage": "_charmedCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetConfusionCountdown": {
+      "declaration": "FIELD",
+      "storage": "_confusionCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetMidasFreezeCountdown": {
+      "declaration": "FIELD",
+      "storage": "_midasFreezeCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetFearCountdown": {
+      "declaration": "FIELD",
+      "storage": "_fearCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetBurnCountdown": {
+      "declaration": "FIELD",
+      "storage": "_burnCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetShrinkCountdown": {
+      "declaration": "FIELD",
+      "storage": "_shrinkCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetBleedingCountdown": {
+      "declaration": "FIELD",
+      "storage": "_bleedingCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetMagnetizedCountdown": {
+      "declaration": "FIELD",
+      "storage": "_magnetizedCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetBaitedCountdown": {
+      "declaration": "FIELD",
+      "storage": "_baitedCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetKnockbackCountdown": {
+      "declaration": "FIELD",
+      "storage": "_knockbackCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetWeaknessCountdown": {
+      "declaration": "FIELD",
+      "storage": "_weaknessCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetIceCountdown": {
+      "declaration": "FIELD",
+      "storage": "_iceCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetBrimstoneMarkCountdown": {
+      "declaration": "FIELD",
+      "storage": "_brimstoneMarkCountdown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetPoisonDamageTimer": {
+      "declaration": "FIELD",
+      "storage": "_poisonDamageTimer,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetBurnDamageTimer": {
+      "declaration": "FIELD",
+      "storage": "_burnDamageTimer,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetBossStatusEffectCooldown": {
+      "declaration": "FIELD",
+      "storage": "_bossStatusEffectCooldown,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.HitPoints": {
+      "declaration": "RAW_FIELD",
+      "storage": "0x380,float,Real",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.MaxHitPoints": {
+      "declaration": "RAW_FIELD",
+      "storage": "0x384,float,Real",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.Friction": {
+      "declaration": "RAW_FIELD",
+      "storage": "0x36c,float,Real",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.SizeMulti": {
+      "declaration": "RAW_FIELD",
+      "storage": "0x374,Vector,Vector",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.TargetPosition": {
+      "declaration": "RAW_FIELD",
+      "storage": "0x334,Vector,Vector",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.RenderZOffset": {
+      "declaration": "RAW_FIELD",
+      "storage": "0x354,int,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.SortingLayer": {
+      "declaration": "RAW_FIELD",
+      "storage": "0x35c,int,Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.SpriteOffset": {
+      "declaration": "RAW_FIELD",
+      "storage": "0xdc,Vector,Vector",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.SpriteScale": {
+      "declaration": "RAW_FIELD",
+      "storage": "0xe4,Vector,Vector",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.SpriteRotation": {
+      "declaration": "RAW_FIELD",
+      "storage": "0xec,float,Real",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.FlipX": {
+      "declaration": "RAW_FIELD",
+      "storage": "0x148,bool,Boolean",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.Color": {
+      "declaration": "RAW_FIELD",
+      "storage": "0x1b8,ColorMod,Color",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.SplatColor": {
+      "declaration": "RAW_FIELD",
+      "storage": "0x1e4,ColorMod,Color",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.IsVisible": {
+      "declaration": "FIELD",
+      "storage": "_visible,Boolean",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.FrameCount": {
+      "declaration": "SPECIAL_FIELD",
+      "storage": "Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    },
+    "Entity.GetWaterClipFlags": {
+      "declaration": "SPECIAL_FIELD",
+      "storage": "Integer",
+      "scope": "non-Player;Player20-owner",
+      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+    }
+  },
+  "common_execution": {
+    "tasks": "I05-I09",
+    "plan": "mod/src/replica/entity_plan.cpp:PlanEntityTarget",
+    "executor": "mod/src/game/client_objects.cpp:ClientObjects;mod/src/game/client_objects_native.cpp:FormalExecute",
+    "class_native_apply": false,
+    "scene_commit": "I29-pending",
+    "runtime_acceptance": "I34-pending"
+  },
   "static_research": {
     "format": "isaac.cs.entity.native-research",
     "version": 1,
