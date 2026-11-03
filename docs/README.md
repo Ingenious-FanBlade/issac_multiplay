@@ -1,4 +1,6 @@
-> **tx-04-19 I01—I03（2026-11-03）**：[目录／纯值目标／正式来源实现](design/tx-04-19/tx-04-19-foundation.md)、[全成员应用目录](design/tx-04-19/entity-application.json)、[Text／Laser 来源研究与主审](design/tx-04-19/entity-source-research.md)。已接入 `entity-target-v1`／`entity-source-v1`、分类与 Player 边界、完整资源姿态和必要原生只读补充；原生应用器和统一 E2E 仍待 I04—I35。逆向由 GPT-6 Luna Max 完成，主智能体独立审阅并纠正 Text writer 推断；没有启动游戏或执行提前分项测试。
+> **tx-04-19 I04（2026-11-03）**：R01—R13的[静态采用合同](design/tx-04-19/entity-application-contracts.md)、[J273必要逆向与主审](design/tx-04-19/entity-native-static.md)、[目录研究索引](design/tx-04-19/entity-native-contracts.json)已写回功能目录。一个GPT-6 Luna max子智能体执行必要逆向，主智能体独立复读并纠错；明确池大小／工厂选择、字段宽度、真实辅助资源、draw随机及跨对象退休副作用，不放行未知分支。I05—I35与统一E2E仍待实施；本轮无构建、测试或游戏启动。
+
+> **tx-04-19 I01—I03（2026-11-03）**：[目录／纯值目标／正式来源实现](design/tx-04-19/tx-04-19-foundation.md)、[全成员应用目录](design/tx-04-19/entity-application.json)、[Text／Laser 来源研究与主审](design/tx-04-19/entity-source-research.md)。已接入 `entity-target-v1`／`entity-source-v1`、分类与 Player 边界、完整资源姿态和必要原生只读补充；本段为当轮实现记录，新发现的来源／owner缺口按I04回补。逆向由 GPT-6 Luna Max 完成，主智能体独立审阅并纠正 Text writer 推断；没有启动游戏或执行提前分项测试。
 
 > **tx-04-19 初版具体实现计划（2026-11-03，历史文档阶段）**：[35项完整任务、失败模型与26项统一E2E安排](design/tx-04-19/tx-04-19-implementation-plan.md)、[13项类别适配与Slot 18种变体](design/tx-04-19/tx-04-19-entity-application.md)、[13项静态确认／必要逆向](design/tx-04-19/tx-04-19-native-research-plan.md)。初版仅规划，不代表当时已改代码、逆向或运行验收；后续 I01—I03 进度见上项。
 

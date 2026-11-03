@@ -1,8 +1,8 @@
 # tx-04-19：静态确认与必要逆向工作清单
 
-日期：2026-11-03。状态：**R01—R13 的完整采用路径研究仍待 I04／类别 adapter 推进。I01—I03 已完成其所需 Text／Laser 窄来源研究及主审，见[来源说明](entity-source-research.md)与[实现说明](tx-04-19-foundation.md)。** 初版仅编写清单，不能将本次来源核对外推为构造／写回／draw／退休完整调用链已核定。
+日期：2026-11-03。状态：**I04已形成R01—R13的[静态采用合同](entity-application-contracts.md)、[J273必要逆向与主审](entity-native-static.md)和[功能目录研究索引](entity-native-contracts.json)。** 各类别实际适配、本文明确未闭合的专用分支和统一E2E仍待后续任务；不把静态完成等同全类别构造／写回／draw／退休已实现。I01—I03的窄来源历史见[来源说明](entity-source-research.md)与[实现说明](tx-04-19-foundation.md)。
 
-本清单属于[总实施计划](tx-04-19-implementation-plan.md)的 I04；服务[逐类别适配](tx-04-19-entity-application.md)。同一智能体可完成研究、实现与统一验收，无必须委派、作者分离或独立审计的要求。
+本清单属于[总实施计划](tx-04-19-implementation-plan.md)的I04；服务[逐类别适配](tx-04-19-entity-application.md)。本轮按用户会话指示由一个GPT-6 Luna max子智能体完成必要逆向，主智能体独立回读源码、伪码和关键原始指令并审阅纠错；没有运行探针／测试／游戏，没有构建或新建artifact。
 
 ## 1. 来源优先级与结果要求
 
@@ -174,7 +174,7 @@
 
 R01／R02 先明确类型与公共生命周期，R03—R09 随各类别依赖推进；R10 贯穿资源，R11 在字段／资源基础上整理所有 pass，R12／R13 从第一次选择原生调用时就同步分析。对应源码／公开接口已足够时只做静态确认；只有具名缺口才进入逆向，不机械要求每个 R 都反编译。
 
-当前需要落实的主要技术选择如下，均未预先当成事实：
+以下是初版I04之前的主要技术未知，保留原问题供对照，不将其当作执行后的当前判定；本轮结果见第5节和两份静态专题：
 
 | 未知或选择 | 负责项 | 如何得出结论 |
 | --- | --- | --- |
@@ -189,3 +189,27 @@ R01／R02 先明确类型与公共生命周期，R03—R09 随各类别依赖推
 | 19 的非 Player 完成范围怎样接入当前域位结果 | I02／I29 | Entity 含 Player 的实际模型结构和 21 消费责任；不冒报完整域 |
 
 这些技术问题不要求用户猜原生实现。只有证据不足且需要产品取舍或新的实际操作授权时，形成具体方案后再问用户。即便所有 R 项形成静态合同，类别实现、运行后态和画面仍要分别完成；本轮不提前执行任何测试。
+
+## 5. 2026-11-03 I04静态结果与接续
+
+各项均已按资料优先级形成研究记录；下表是交付定位，不是native支持矩阵或运行PASS。具体ABI、直接/间接消费者、失败前缀和未决项以[采用合同](entity-application-contracts.md)及[J273专题](entity-native-static.md)为准。
+
+| 研究 | 已形成的具体结果 | 实施责任和未决边界 |
+| --- | --- | --- |
+| R01 | 公开转换/RTTI分类、同一NPC的Delirium special、NativeDummy命名、字段signedness/位宽、存在/死亡/退休/缺席分离 | I05/I06按实例和完整成员集合应用；未提供未知类的假身份 |
+| R02 | 各预构造池步长/容量、true不覆盖活槽、Player专用owner、New/Init/Plus/发布前缀、EntityPtr/裸指针区别、专用成员责任 | Dummy generic964实际取NPC；真实取得owner仍有缺口；非空附属owner不得删保护放行 |
+| R03 | NPC Morph的bestiary写入、Delirium字段精确宽度和延后AI变形操作、优先同Key实例替换合同 | I11继续特殊NPC部件/配置/缓存适配，不能只以普通NPC替代 |
+| R04 | Tear/Projectile/Bomb分开布局/flags/高度；Tear三辅助、Bomb五costume真实成员；禁止分裂/引爆/Update取值 | 派生Init与特殊draw按专题分支采用，缺缓存补正式来源 |
+| R05 | Laser signed mode、真实optimized samples、非优化/Bezier不同owner、Init的PostLaserInit Lua、容器字节/allocator/在途责任 | I15明确游戏allocator相容的容器安装，不复制vector头；不CalculateSamples |
+| R06 | Knife/Familiar的Player/Weapon/EntityPtr前置和专用关系；Familiar退休跨写Player与清理Weapon | I16/I18按真实Key和窄外部接口满足依赖；不绑首Player/假装备 |
+| R07 | Pickup main/price/alt资源与flip副作用；Slot18变体、leaf存储宽度、SetPrize非leaf、Timeout文档冲突 | I03/I17补真实必要源；I20不采用整开奖/捐款/setPrize图形链，不凭Wiki补高位 |
+| R08 | Effect按初始化/资源/附属owner分族；136真实creator复制GridDesc32并交换完整ANM，lift链另改Grid/RNG并直调关联Entity Update | I19/I24消费Source完整描述/State/主资源及举持依赖，不重跑lift、不建第二个活动Grid |
+| R09 | Text真实writer/KColor20/独立phase，Dummy独立类型及字体draw，不能Create964伪造Dummy | I21/I22实现合法取得、安装和退休；未知writer/creator保留具体缺口 |
+| R10 | 各真实辅助成员/容器owner、借用失效；Knife共享DeadEye、Familiar48/231 ExtraData、Bomb lazy-rebuild来源时点等具体补充 | I10/I31复核实际消费者；这些新需要不能由夹具合成或公共Sprite替代 |
+| R11 | 类别/pass输入、代表DrawEntity错误cast边界、18水面/FBO/depth顺序，Pickup/Familiar draw推进全局RNG且Bomb draw可重建资源 | I25/I27采用窄分支，替换为Authority真实表现；像素正确性只在I34判定 |
+| R12 | 逐前缀退休/取消/部分失败，动态Remove/ClearRefs连带owner，ESSM与Plus责任不同 | I23/I28/I29实现已核正常前缀；SEH/OOM/未知owner不能盲目析构/重试/交还Off |
+| R13 | 构造/setter/Morph/draw/retire副作用采用/拒绝表、单Hook owner、Host/Off透传、持久保护全窗口 | I27/I32具体接线；不以静音/readonly/最终文件不变替代整链理解 |
+
+主智能体独立读取本地官方源码、工厂/池构造、选定ctor/vtable、各关键cleanup、各代表draw、Slot SetPrize、GetHitListIndex、Laser回调及Effect136 creator链的伪码与必要raw；纠正门值名称、字段含义、分支范围、遗漏类型、十进制/十六进制单位、全局/实例资源owner与ANM交换语义。主审自身早先将伪码`this+16`错写成byte+0x10的中间推断，也经raw `413D15`与官方EntityList.zhl更正为updateEL byte+0x40；最终记录不保留错误采用结论。新结论不抹去17/18和I03的历史失败与当时UNKNOWN。
+
+目录生成器将`entity-native-contracts.json`嵌入`entity-application.json`，CMake显式依赖该研究索引；沿用目录版本1，原有pure-value/native_apply/运行状态分开，未提升native能力。同步修正Text/Dummy的E2E对应为E13和GetHitListIndex的Authority身份事实责任。仅生成资料和人工静态审阅，没有构建、游戏、测试或自动校验程序；本tx的Entity原生适配仍待后续实现，I34统一E2E未开始。

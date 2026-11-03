@@ -8,6 +8,7 @@ from replica_projection_policy import consumer_review
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "mod/observation/isaac-cs-observation/entity-catalog.json"
 PARSER = "mod/src/replica/entity_target.cpp:ParseEntityTarget"
+RESEARCH = ROOT / "docs/design/tx-04-19/entity-native-contracts.json"
 # 分类来自公开转换/专用RTTI见证；数值Type只用于交叉检查，绝不按范围猜NPC。
 CLASSES = {
     "EntityPlayer": ("Player", "tx-04-20", "external-player-owner", "E13"),
@@ -22,8 +23,8 @@ CLASSES = {
     "EntityFamiliar": ("Familiar", "I18", "C09", "E09"),
     "EntityEffect": ("Effect", "I19/I24", "C10;variant136=GridDesc", "E10/E14"),
     "EntitySlot": ("Slot", "I20", "C11:variants1..18", "E11"),
-    "NativeText": ("NativeText", "I21", "C12", "E12"),
-    "NativeDummy": ("NativeDummy", "I22", "C13", "E12"),
+    "NativeText": ("NativeText", "I21", "C12", "E13"),
+    "NativeDummy": ("NativeDummy", "I22", "C13", "E13"),
 }
 RESOURCE_CLASSES = {"Sprite", "LayerState", "AnimationData", "AnimationLayer", "AnimationFrame", "NullFrame", "Image", "BlendMode", "Shape", "Color", "KColor", "Vector"}
 PLAYER_RELATED = {"Weapon", "TemporaryEffects", "TemporaryEffect", "CostumeSpriteDesc", "PocketItem", "QueueItemData", "ActiveItemDesc", "EntityConfigPlayer", "EntityConfigBaby", "History", "HistoryItem"}
@@ -42,8 +43,8 @@ def route(m):
     if owner in RESOURCE_CLASSES or m["returns"] == "Sprite":
         return "I10/I25", "resource_pose", "同窗口真实成员资源/精确姿态；不Load/Update取值、不按路径合并实例", "E16"
     if owner == "Entity":
-        if member in {"Index", "InitSeed", "DropSeed", "SpawnGridIndex", "SpawnerType", "SpawnerVariant"}:
-            return "I08", "authority_fact", "保留Authority身份/来源事实；Index与seed不写入本地身份", "E01/E15"
+        if member in {"Index", "GetHitListIndex", "InitSeed", "DropSeed", "SpawnGridIndex", "SpawnerType", "SpawnerVariant"}:
+            return "I08", "authority_fact", "保留Authority身份/来源事实；Index、命中编号与seed不写入本地身份", "E01/E15"
         return "I08", "common_state", "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作", "E01/E15"
     if owner in CLASSES:
         _, task, _, e2e = CLASSES[owner]
@@ -90,6 +91,8 @@ def generate():
     # 结构型补充与公开行使用同一责任目录，不能靠测试夹具补表现源。
     return {"format": "isaac.cs.entity.application-catalog", "version": 1, "model_version": 2,
             "target_contract": "entity-target-v1", "source_contract": "entity-source-v1", "members": rows,
+            # I04研究索引是资料与采用约束，不把静态审阅升级为原生支持或运行通过。
+            "static_research": json.loads(RESEARCH.read_text(encoding="utf-8-sig")),
             "classes": [{"source_class": c, "category": d[0], "task": d[1], "contract": d[2], "e2e": d[3], "native_apply": False} for c, d in CLASSES.items()],
             "classification": {"method": "public-derived-interface-or-J273-RTTI;never-Type-range", "rejected_legacy": ["NativeDarkness"], "unknown": "explicit-UnknownEntity;never-NPC", "delirium": "EntityNPC+EntityDelirium-special"},
             "slot_variants": {"source": "mod/observation/isaac-cs-observation/domains/entity/slot_variants.lua", "values": [

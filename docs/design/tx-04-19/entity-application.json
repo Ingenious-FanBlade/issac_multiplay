@@ -7655,7 +7655,7 @@
       "projection_reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
       "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核",
       "responsibility": "authority_fact",
-      "reason": "保留Authority身份/来源事实；Index与seed不写入本地身份",
+      "reason": "保留Authority身份/来源事实；Index、命中编号与seed不写入本地身份",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.DropSeed",
       "local_storage": "owned-pure-value;native-storage-pending-I08",
@@ -8802,8 +8802,8 @@
       "ownership": "ReplicatedState",
       "projection_reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
       "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核",
-      "responsibility": "common_state",
-      "reason": "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作",
+      "responsibility": "authority_fact",
+      "reason": "保留Authority身份/来源事实；Index、命中编号与seed不写入本地身份",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.GetHitListIndex",
       "local_storage": "owned-pure-value;native-storage-pending-I08",
@@ -10115,7 +10115,7 @@
       "projection_reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
       "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核",
       "responsibility": "authority_fact",
-      "reason": "保留Authority身份/来源事实；Index与seed不写入本地身份",
+      "reason": "保留Authority身份/来源事实；Index、命中编号与seed不写入本地身份",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.Index",
       "local_storage": "owned-pure-value;native-storage-pending-I08",
@@ -10156,7 +10156,7 @@
       "projection_reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
       "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核",
       "responsibility": "authority_fact",
-      "reason": "保留Authority身份/来源事实；Index与seed不写入本地身份",
+      "reason": "保留Authority身份/来源事实；Index、命中编号与seed不写入本地身份",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.InitSeed",
       "local_storage": "owned-pure-value;native-storage-pending-I08",
@@ -12780,7 +12780,7 @@
       "projection_reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
       "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核",
       "responsibility": "authority_fact",
-      "reason": "保留Authority身份/来源事实；Index与seed不写入本地身份",
+      "reason": "保留Authority身份/来源事实；Index、命中编号与seed不写入本地身份",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.SpawnGridIndex",
       "local_storage": "owned-pure-value;native-storage-pending-I08",
@@ -12944,7 +12944,7 @@
       "projection_reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
       "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核",
       "responsibility": "authority_fact",
-      "reason": "保留Authority身份/来源事实；Index与seed不写入本地身份",
+      "reason": "保留Authority身份/来源事实；Index、命中编号与seed不写入本地身份",
       "application_task": "I08",
       "target_field": "EntityTarget.objects/common/fields/Entity.SpawnerVariant",
       "local_storage": "owned-pure-value;native-storage-pending-I08",
@@ -65530,7 +65530,7 @@
       "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
       "source_implementation": "native_copy",
       "native_status": "not_applied_by_I01_I03",
-      "e2e": "E12"
+      "e2e": "E13"
     },
     {
       "source_catalog": "entity-catalog.json",
@@ -65571,7 +65571,7 @@
       "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
       "source_implementation": "native_copy",
       "native_status": "not_applied_by_I01_I03",
-      "e2e": "E12"
+      "e2e": "E13"
     },
     {
       "source_catalog": "entity-catalog.json",
@@ -65612,7 +65612,7 @@
       "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
       "source_implementation": "native_copy",
       "native_status": "not_applied_by_I01_I03",
-      "e2e": "E12"
+      "e2e": "E13"
     },
     {
       "source_catalog": "entity-catalog.json",
@@ -65653,7 +65653,7 @@
       "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
       "source_implementation": "native_copy",
       "native_status": "not_applied_by_I01_I03",
-      "e2e": "E12"
+      "e2e": "E13"
     },
     {
       "source_catalog": "entity-catalog.json",
@@ -65694,7 +65694,7 @@
       "implementation": "mod/src/replica/entity_target.cpp:ParseEntityTarget",
       "source_implementation": "native_copy",
       "native_status": "not_applied_by_I01_I03",
-      "e2e": "E12"
+      "e2e": "E13"
     },
     {
       "source_catalog": "entity-catalog.json",
@@ -73609,6 +73609,489 @@
       "e2e": "E13"
     }
   ],
+  "static_research": {
+    "format": "isaac.cs.entity.native-research",
+    "version": 1,
+    "task": "tx-04-19/I04",
+    "target": "REPENTOGON-1.1.3/J273",
+    "contracts": "docs/design/tx-04-19/entity-application-contracts.md",
+    "native_evidence": "docs/design/tx-04-19/entity-native-static.md",
+    "source_evidence": "docs/design/tx-04-19/entity-source-research.md",
+    "evidence_kinds": [
+      "PUBLIC_DOC",
+      "SOURCE",
+      "REUSED_J273",
+      "J273_STATIC",
+      "DERIVED",
+      "DESIGN",
+      "UNKNOWN"
+    ],
+    "scope": "static-contracts-and-explicit-gaps;never-native-support-or-runtime-acceptance",
+    "review": {
+      "reverse_agent": "gpt-6-luna/max;one-subagent",
+      "root": "independent-official-source/decompilation/raw-instruction-review",
+      "corrections": "widths-and-units;valid-vs-removed;exact-branches;global-vs-instance-ANM;full-SwapANM-not-path;draw-side-effects",
+      "remaining_unknowns": "explicit-in-native-evidence;must-not-become-native-support"
+    },
+    "allocation_constraints": {
+      "evidence": "J273_STATIC:Factory-ctor-VA6EEE60-and-selector-VA6EC540;root-reviewed-instructions",
+      "pool_stride_overrides": {
+        "EntityKnife": "0x520;SDK-size0xE78-not-used",
+        "EntityEffect": "0x4C0;SDK-size0x490-not-pool-stride",
+        "EntitySlot": "0x550;SDK-size0x548-not-pool-stride",
+        "EntityProjectile": "0x478;SDK-size0x470-not-pool-stride"
+      },
+      "pool_capacities": {
+        "EntityEffect": 1024,
+        "EntityFamiliar": 64,
+        "EntityBomb": 64,
+        "EntityProjectile": 512,
+        "EntityTear": 512,
+        "EntityLaser": 128,
+        "EntityPickup": 512,
+        "EntitySlot": 128,
+        "EntityNPC": 512,
+        "NativeText": 128,
+        "NativeDummy": 128,
+        "EntityKnife": 64
+      },
+      "NativeDummy": "pool-preconstructed;Create(964,true)-selects-NPC;real-acquire-owner-UNKNOWN;never-vptr/type-patch",
+      "rule": "no-SDK-size-based-pool-walk/raw-allocation/whole-object-copy;field-evidence-separate;count-live/candidate/retiring/external-uses;pure-value-budget-never-expands-pool"
+    },
+    "native_apply": false,
+    "runtime_acceptance": "pending-full-tx-04-19-I34",
+    "research": [
+      {
+        "id": "R01",
+        "anchor": "r01-分类字段和存在性",
+        "tasks": [
+          "I01",
+          "I02",
+          "I05",
+          "I06",
+          "I22"
+        ],
+        "contract": "public-cast-or-native-RTTI;Delirium-special-of-NPC;native-widths;separate-membership-and-existence"
+      },
+      {
+        "id": "R02",
+        "anchor": "r02-构造发布引用和成员-owner",
+        "tasks": [
+          "I05",
+          "I07",
+          "I09",
+          "I23",
+          "I29"
+        ],
+        "contract": "pool-use/Init/official-maintenance/Publish/outer-completion-are-distinct-prefixes;typed-owner-and-references"
+      },
+      {
+        "id": "R03",
+        "anchor": "r03-npcdelirium-和-morph",
+        "tasks": [
+          "I11",
+          "I23",
+          "I27"
+        ],
+        "contract": "no-AI-or-forced-transform;NPC-Morph-bestiary-side-effect;replacement-keeps-Key"
+      },
+      {
+        "id": "R04",
+        "anchor": "r04-tearprojectilebomb",
+        "tasks": [
+          "I12",
+          "I13",
+          "I14",
+          "I25"
+        ],
+        "contract": "separate-layouts-and-flags;actual-auxiliary-ANMs;no-split/explode/update"
+      },
+      {
+        "id": "R05",
+        "anchor": "r05-laserhominglaser-和几何",
+        "tasks": [
+          "I03",
+          "I15",
+          "I25",
+          "I28"
+        ],
+        "contract": "owned-vector-values-not-headers;signed-sample-mode;no-CalculateSamples;no-cross-CRT-allocation-assumption"
+      },
+      {
+        "id": "R06",
+        "anchor": "r06-knifefamiliar-与-player-依赖",
+        "tasks": [
+          "I05",
+          "I09",
+          "I16",
+          "I18"
+        ],
+        "contract": "Player/Weapon/EntityPtr-distinct;explicit-current-owner;no-first-player-fallback"
+      },
+      {
+        "id": "R07",
+        "anchor": "r07-pickup-和-slot",
+        "tasks": [
+          "I17",
+          "I20",
+          "I23",
+          "I27"
+        ],
+        "contract": "Pickup-main/price/alternate-distinct;Slot-variants1..18;leaf-setters-by-width;Wiki-timeout-high-bits-unproven;public-signed16"
+      },
+      {
+        "id": "R08",
+        "anchor": "r08-effect族和-lifted-grid136",
+        "tasks": [
+          "I19",
+          "I24",
+          "I25"
+        ],
+        "contract": "variant-qualified-effect-families;GridDesc32-not-BitSet128;descriptor-not-active-Grid"
+      },
+      {
+        "id": "R09",
+        "anchor": "r09-nativetextnativedummy",
+        "tasks": [
+          "I21",
+          "I22"
+        ],
+        "contract": "real-pool-and-dynamic-type;Text-current-use-writer-and-KColor20;no-Update-to-initialize-text"
+      },
+      {
+        "id": "R10",
+        "anchor": "r10-资源成员借用和来源缺口",
+        "tasks": [
+          "I03",
+          "I10",
+          "I23",
+          "I31"
+        ],
+        "contract": "real-member-identity;no-path-based-alias;invalidate-before-Init/Morph/reallocation;CPU-use-before-retirement"
+      },
+      {
+        "id": "R11",
+        "anchor": "r11-draw和pass分派",
+        "tasks": [
+          "I03",
+          "I25",
+          "I27"
+        ],
+        "contract": "class-qualified-render/shadow/light/post/Z/water;retain-18-FBO/depth-order;no-Effect-cast-fallback"
+      },
+      {
+        "id": "R12",
+        "anchor": "r12-删除部分失败与重建",
+        "tasks": [
+          "I23",
+          "I28",
+          "I29"
+        ],
+        "contract": "actual-prefix-and-owner;noncombat-retirement;ESSM-and-Plus-distinct;unknown-failure-stays-isolated"
+      },
+      {
+        "id": "R13",
+        "anchor": "r13-用途分派副作用和持久整链",
+        "tasks": [
+          "I27",
+          "I29",
+          "I32"
+        ],
+        "contract": "one-hook-owner;named-client-purpose;official-structure-maintenance;block-gameplay-before-side-effects;protect-through-last-writer"
+      }
+    ],
+    "classes": {
+      "Entity": [
+        "R01",
+        "R02",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntityNPC": [
+        "R01",
+        "R02",
+        "R03",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntityDelirium": [
+        "R01",
+        "R03",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntityTear": [
+        "R01",
+        "R02",
+        "R04",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntityProjectile": [
+        "R01",
+        "R02",
+        "R04",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntityBomb": [
+        "R01",
+        "R02",
+        "R04",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntityLaser": [
+        "R01",
+        "R02",
+        "R05",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntityKnife": [
+        "R01",
+        "R02",
+        "R06",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntityPickup": [
+        "R01",
+        "R02",
+        "R07",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntityFamiliar": [
+        "R01",
+        "R02",
+        "R06",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntityEffect": [
+        "R01",
+        "R02",
+        "R08",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntitySlot": [
+        "R01",
+        "R02",
+        "R07",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "NativeText": [
+        "R01",
+        "R02",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "NativeDummy": [
+        "R01",
+        "R02",
+        "R09",
+        "R11",
+        "R12",
+        "R13"
+      ],
+      "EntityPlayer": [
+        "R01",
+        "R02",
+        "R06"
+      ],
+      "associated_values": [
+        "R01",
+        "R02",
+        "R10"
+      ]
+    },
+    "member_constraints": {
+      "EntityDelirium.Angle": {
+        "storage": "uint8",
+        "range": [
+          0,
+          255
+        ],
+        "evidence": "SOURCE:EntityNPC.zhl/LuaDelirium.cpp;public-int8-label-is-not-signed-storage"
+      },
+      "EntityDelirium.StateD": {
+        "storage": "uint8",
+        "range": [
+          0,
+          255
+        ]
+      },
+      "EntityDelirium.RemainingAttacks": {
+        "storage": "uint8",
+        "range": [
+          0,
+          255
+        ]
+      },
+      "EntityDelirium.TransformationTimer": {
+        "storage": "uint16",
+        "range": [
+          0,
+          65535
+        ]
+      },
+      "EntityDelirium.Cycle": {
+        "storage": "uint32",
+        "contract": "preserve-all-bits;getter-timer-mask0x3FF-shift15;not-eleven-bits"
+      },
+      "EntityDelirium.Transform": {
+        "handling": "not-adopted;writes-ForcedTransformations-and-timer1;requires-next-AI-update"
+      },
+      "EntitySlot.GetTimeout": {
+        "storage": "int16-at-0x41C",
+        "contract": "Init/Update-observed-word-access;Wiki-high-bits-conflict;packed-storage-unproven;never-invent-an-upper-word"
+      },
+      "EntitySlot.GetTouch": {
+        "storage": "uint16-at-0x42A"
+      },
+      "EntitySlot.GetTriggerTimerNum": {
+        "storage": "uint32-at-0x424"
+      },
+      "EntitySlot.GetShellGameAnimationIndex": {
+        "storage": "int16-at-0x41A"
+      },
+      "EntitySlot.SetPrizeCollectible": {
+        "handling": "not-adopted-whole-chain;VA6626F0-writes540-all-variants;15/16-rules/graphics/ANM-Update;install-final-scalar-and-resources"
+      },
+      "EntitySlot.RandomCoinJamAnim": {
+        "handling": "not-adopted;Isaac::Random(4)"
+      },
+      "EntityBomb.GetFallSpeed": {
+        "storage": "float-at-0x41C",
+        "contract": "not-height;visual-height=PositionOffset.Y"
+      },
+      "EntityBomb.GetFallAcceleration": {
+        "storage": "float-at-0x420"
+      },
+      "EntityBomb.GetCostumeLayerSprite": {
+        "storage": "ANM2[5]-at-0x464-stride0x114",
+        "parameters": "0..4",
+        "owner": "Bomb;five-distinct-native-members"
+      },
+      "EntityPickup.GetPriceSprite": {
+        "storage": "embedded-ANM2-at-0x410",
+        "owner": "Pickup;separate-from-main-and-altPedestal"
+      },
+      "EntityPickup.GetCollectibleCycle": {
+        "storage": "uint32[8]-and-count",
+        "contract": "bounded-replacement-and-clear;not-repeated-append"
+      },
+      "EntityEffect.GetGridEntityDesc": {
+        "storage": "GridEntityDesc32-at-effect0x420",
+        "applicability": "variant136-only",
+        "contract": "copy-eight-semantic-fields;no-padding/no-active-grid/no-BitSet128-truncation;Init16B-is-not-complete-desc",
+        "creator": "VA81AE00-copies32-and-swaps-full-ANM-to-main;not-string/path",
+        "not_adopted": "81AE00/81A920-whole-lift-chain;RNG/Grid-delete/Decoration/direct-Type96-Update",
+        "client_strategy": "reviewed-Effect136-prefix+final-desc/State/main-resource-pose+explicit-held-owner;never-re-lift"
+      },
+      "EntityEffect.GetTearFlags": {
+        "storage": "BitSet128-at-effect0x420",
+        "applicability": [
+          54,
+          113,
+          126,
+          167
+        ],
+        "contract": "mutually-exclusive-with-variant136-descriptor"
+      },
+      "EntityTear.GetHitList": {
+        "handling": "Authority-pure-value;GetHitListIndex-not-stable-Key;never-copy-as-local-Index"
+      },
+      "EntityLaser.GetHitList": {
+        "handling": "Authority-pure-value;GetHitListIndex-not-stable-Key;never-copy-as-local-Index"
+      },
+      "EntityKnife.GetHitList": {
+        "handling": "Authority-pure-value;GetHitListIndex-not-stable-Key;never-copy-as-local-Index"
+      },
+      "Entity.GetHitListIndex": {
+        "handling": "Authority-derived-identity-fact;VA6B1ED0-can-use-top-parent-Index;never-native-field-install"
+      },
+      "NativeText.text": {
+        "handling": "current-use-writer-required;Init-does-not-initialize-buffer;raw-bytes-not-guessed-encoding"
+      },
+      "NativeText.draw_color": {
+        "storage": "KColor20;RGBA+opaque32",
+        "contract": "not-public-Color;opaque-semantics-UNKNOWN"
+      }
+    },
+    "implementation_followups": [
+      {
+        "task": "I05/I07/I09",
+        "requirement": "record-per-class-pool-use/Init/Publish/official-state;explicit-construction-dependencies-and-special-lists"
+      },
+      {
+        "task": "I03/I17/I20",
+        "requirement": "backfill-draw-required-Pickup-altPedestal/6D9/684;explicit-ordinary-vs-Render-scope;resolve-Slot-Wiki-timeout-high-bit-conflict-before-any-new-field;never-fixture-synthesis"
+      },
+      {
+        "task": "I17/I25/I27",
+        "requirement": "Pickup-Render-VA6E35D0-writes-global-RNG-BD0CA4-at6E37CC;replace-before-random-with-Authority-result;no-whole-Render-purity-assumption"
+      },
+      {
+        "task": "I03/I14/I25/I27",
+        "requirement": "Bomb-Render-loadCostumes463-calls6A2420-resource-reset/load/rebuild;need-Source-final-main/costume-poses-and-explicit-preRender-vs-final-scope;do-not-rebuild-locally"
+      },
+      {
+        "task": "I03/I16/I18/I25/I27",
+        "requirement": "Knife-global-DeadEye-ANM-BE5594-is-not-per-instance;Familiar-ExtraData-variant48/231-and-Player-draw68/78/243;inline-Render-RNG-BD0674;explicit-owner/source/scope-required"
+      },
+      {
+        "task": "I11-I22/I25",
+        "requirement": "implement-reviewed-class-branches-and-explicit-private-cache/resource-gaps;no-single-Sprite-or-Effect57-fallback"
+      },
+      {
+        "task": "I15/I28",
+        "requirement": "choose-native-container-allocation-compatible-with-game-owner;no-vector-header-copy-or-cross-CRT-assumption"
+      },
+      {
+        "task": "I23/I28/I29",
+        "requirement": "keep-unknown-auxiliary-owner-and-exception-prefix-isolated;no-blind-destruction/retry"
+      },
+      {
+        "task": "I27/I32",
+        "requirement": "register-only-implemented-narrow-purpose-rules-in-existing-hook-owner;Host/Off-original-behavior"
+      },
+      {
+        "task": "I33/I34",
+        "requirement": "all-runtime/class/visual/retirement/persistence-coverage-in-one-full-tx-E2E;static-review-is-not-PASS"
+      }
+    ]
+  },
   "classes": [
     {
       "source_class": "EntityPlayer",
@@ -73711,7 +74194,7 @@
       "category": "NativeText",
       "task": "I21",
       "contract": "C12",
-      "e2e": "E12",
+      "e2e": "E13",
       "native_apply": false
     },
     {
@@ -73719,7 +74202,7 @@
       "category": "NativeDummy",
       "task": "I22",
       "contract": "C13",
-      "e2e": "E12",
+      "e2e": "E13",
       "native_apply": false
     }
   ],

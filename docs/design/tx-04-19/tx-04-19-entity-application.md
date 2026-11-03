@@ -2,6 +2,8 @@
 
 日期：2026-11-03。状态：**C01—C13 均为待实施计划**；不是已经支持的类别清单，也不将 10 的完整观测等同于写回支持。执行、公共任务和统一验收见[总实施计划](tx-04-19-implementation-plan.md)，原生前置见[静态研究清单](tx-04-19-native-research-plan.md)。
 
+I04 后续静态结论见[全类别采用合同](entity-application-contracts.md)、[J273必要逆向与主审](entity-native-static.md)及[功能目录研究索引](entity-native-contracts.json)。字段宽度、池大小、专用资源／owner、Timeout文档冲突和失败前缀以具名证据为准；下面的类别任务仍须实际实现并在I34统一验收，不能把静态结果改成native支持。
+
 ## 1. 全类别共同要求
 
 每类任务均包含：正式完整来源 → 发送字段 → 纯值解析 → 构造与官方扩展 → 最终公共／派生状态 → 引用及辅助资源 → 原生绘制 → 改变／替换／移除 → 失败退休。下文的字段主题是实现导航；具体全量范围以 10 的 `entity-catalog.json`、实际 schema、I01 应用目录及新增必要原生表现字段为准，不能把示例字段当上限。
@@ -125,7 +127,7 @@
 | 13 | BatteryBum | DonationValue 的既定随机增量结果与归零 |
 | 14 | HomeClosetPlayer | 所用角色／表现与真实 Player 依赖，不创建第二个参与者 |
 | 15 | HellGame | PickupVariant 与 PrizeCollectible 的联合解释 |
-| 16 | CraneGame | 道具奖品、奖品 Sprite、复合 Timeout 位／倒计时语义 |
+| 16 | CraneGame | 道具奖品、奖品 Sprite；Wiki记复合Timeout位，但本版本Getter/已读native访问仅16位，高位存储尚未定位，不按文档补造packed字段 |
 | 17 | Confessional | 当前交互／奖励／表现结果，不裁决心量或随机效果 |
 | 18 | RottenBeggar | DonationValue 的随机后态、奖励及关联物表现 |
 
@@ -135,7 +137,7 @@
 
 ### C12：NativeText（I21，R09；E13）
 
-**范围与输入：** 10 的 J273 补充已核定 Text 类、工厂 Type9001、当前计数／寿命与至多 256 字节零结尾文本读取；专用文本颜色仍有来源缺口。既有读取依据不证明可安全构造／写入／draw。
+**范围与输入：** 10 的 J273 补充已核定 Text 类和 Type9001。I03 已补当前计数／寿命、当前use真实writer见证下至多256字节零结尾文本、KColor20和独立render phase来源；Init不初始化文本。既有读取依据不证明可安全构造／写入／draw，未匹配的phase和未知writer保持明确缺失。
 
 **实现步骤：** 复用已定位 ctor／Init／Render 线索，补可调用 owner、字节串编码／终止和长度约束、字体／颜色／布局、当前 phase 的来源和安装。Text 可能不是通常的 ANM 绘制，必须使用真实类的表现路径。文本空串、变化、到期后移除分别处理，不让 Client 自己计时决定存在性。
 
@@ -146,6 +148,8 @@
 **范围与输入：** 10 已定位 Entity_Dummy 的 RTTI／ctor／Update／Render，正式补充输出 `NativeDummy`，不含猜测的派生字段。15 当前能力字符串的 `NativeDarkness` 不能直接当作同物别名。
 
 **实现步骤：** 核对分类与能力名称、真实工厂／构造用途、成员归属、当前公共字段所能满足的 Render 和清理前置。若只有共同字段确已足够，则保留独立类型并复用公共适配；若发现专用状态，补正式来源和目录。测试来源需真实受支持的构造／场景，不能把 Effect／NPC 改 Type 伪造 Dummy。
+
+I04已核定Dummy池预构造不等于通用Factory有对应选择分支：`Create(964,true)`默认进入NPC池，不能采用。I22须按专题取得真实Dummy owner；真实caller尚未解释时保持该具体缺口，不能改vptr绕过。
 
 **失败与完成判据：** 实际未知类报告具体分类证据和缺失项，不能泛化为 Dummy。没有有效来源／未闭合 owner 时明确未完成，不把“暂未观察到”写成已支持。完成的 Dummy 应能独立建立／改变／退休且不会串入错误 vtable 或派生布局。
 

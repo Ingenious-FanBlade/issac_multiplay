@@ -46,7 +46,9 @@ add_custom_command(OUTPUT "${GENERATED}/room_grid_application.inc" "${GENERATED}
   DEPENDS tools/gen_room_grid_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py ${REPLICA_CATALOGS} VERBATIM)
 add_custom_command(OUTPUT "${GENERATED}/entity_application.inc" "${GENERATED}/entity-application.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_entity_application_catalog.py" --out "${GENERATED}"
-  DEPENDS tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py ${REPLICA_CATALOGS} VERBATIM)
+  # 静态合同随功能目录生成；修改研究索引也必须更新嵌入目录，避免残留旧采用约束。
+  DEPENDS tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py
+    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-native-contracts.json" ${REPLICA_CATALOGS} VERBATIM)
 add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/projection_graph.cpp src/replica/codec.cpp src/replica/entity_target.cpp
   src/replica/room_grid_target.cpp src/replica/room_grid_plan.cpp src/replica/room_grid_budget.cpp
   "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc" "${GENERATED}/entity_application.inc")
