@@ -154,7 +154,7 @@ bool ClientObjects::ConfigureEntityOwners(ClientEntityOwners owners,std::vector<
   try{std::set<unsigned> categories;for(const auto &a:adapters)if(a.category==0||a.category>=13||!a.prepare||!a.before_init||!a.fields||!a.resources||!a.relations||!a.retire||!categories.insert(a.category).second)return false;
     entity_owners_=owners;entity_adapters_=std::move(adapters);return true;}catch(...){return false;}
 }
-bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&reason) noexcept {
+bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&reason,const replica::RoomGridTarget *room_grid) noexcept {
   try {
     if(failed_){reason="objects_failed_requires_retirement";return false;}
     // 纯值阶段的新T可原子替换尚未执行的计划；已执行前缀仍须由场景owner退休。
@@ -168,16 +168,37 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
       if(applied&&!entity_applied_){reason="objects_entity_applied_missing";return false;}
       std::vector<ClientObjectDescription> next,before;
       auto source=std::make_shared<const std::string>(replica::Text(desired->source));
+      std::shared_ptr<const replica::RoomGridTarget> own_grid;
+      if(!room_grid){own_grid=replica::ParseRoomGridTarget(target);room_grid=own_grid.get();}
+      std::map<ClientObjectKey,const replica::LiftedGridTarget *> lifted;
+      for(const auto &v:room_grid->lifted){
+        if(v.descriptor_null||!lifted.emplace(ClientObjectKey{v.owner.run,v.owner.id,v.owner.space},&v).second){reason="objects_lifted_null_or_duplicate";return false;}
+      }
       next.reserve(desired->objects.size());
       if(plan->duplicate)next=entity_applied_values_;
       else for(const auto &o:desired->objects){
         if(o.presence!=replica::EntityMemberPresence::Current){next.emplace_back();continue;}
         auto d=ClientDescribeEntity(o,plan->dependencies,source);
+        if(d.category==9&&d.variant==136){
+          const auto found=lifted.find(d.key);if(found==lifted.end()||!d.derived||desired->capture.tick!=room_grid->grid_capture.tick){reason="objects_lifted_same_target_owner_or_window";return false;}
+          auto state=std::make_shared<ClientEntityClassState>(*d.derived);const auto &g=found->second->descriptor;auto &v=state->lifted;
+          v.type=g.type;v.variant=g.variant;v.state=g.state;v.spawn_count=g.spawn_count;v.spawn_seed=g.spawn_seed;v.var_data=g.var_data;v.initialized=g.initialized;v.variable_seed=g.variable_seed;state->has_lifted=true;d.derived=std::move(state);lifted.erase(found);
+        }
         if(o.category!=replica::EntityCategory::Player){
           const auto a=std::find_if(entity_adapters_.begin(),entity_adapters_.end(),[&](const auto &v){return v.category==d.category;});
           if(a==entity_adapters_.end()){reason="objects_entity_class_adapter_pending_I11_I22";return false;}
           if(!a->prepare(a->context,d,reason)){reason_=reason;reason=reason_.c_str();return false;}
         }next.push_back(std::move(d));
+      }
+      if(!plan->duplicate&&!lifted.empty()){reason="objects_lifted_requires_effect136";return false;}
+      if(!plan->duplicate)for(const auto &d:next)if(d.category==1&&d.type==835&&d.derived){
+        for(unsigned i=0;i<(std::min)(d.derived->npc_composite_count,2u);++i){const auto name="NativeNPC.Composite:"+std::to_string(i);
+          const auto relation=std::find_if(d.relations.begin(),d.relations.end(),[&](const auto &r){return r.member==name;});if(relation==d.relations.end()||relation->is_null)continue;
+          const auto child=std::find_if(next.begin(),next.end(),[&](const auto &v){return v.key==relation->target;});
+          if(child==next.end()||!child->derived){reason="objects_npc835_path_owner_missing";return false;}
+          if(child->category==0){if(!child->derived->player_npc835_path_empty){reason="objects_npc835_player_nonempty_path_owner_unavailable";return false;}}
+          else if(child->category!=1||(!child->derived->npc_path.empty()&&(child->derived->npc_path.size()<3||child->derived->npc_path.size()%3))){reason="objects_npc835_complete_path_owner_required";return false;}
+        }
       }
       if(plan->applied){before=entity_applied_values_;if(before.size()!=plan->applied->objects.size()){reason="objects_entity_applied_values_missing";return false;}}
       auto copy=std::make_unique<replica::Json>(replica::Copy(target));
@@ -289,5 +310,15 @@ ClientObjectStep ClientObjects::Retire(const ClientNativeRoots &roots) noexcept 
 }
 bool ClientObjects::Visit(void *context,ClientObjectVisitor visitor) const noexcept {
   return !candidate_&&!failed_&&committed_&&ClientNativeObjectsVisit(native_,context,visitor);
+}
+bool ClientObjects::CheckLifted(const replica::LiftedGridTarget &value,const char *&reason) const noexcept {
+  if(candidate_||failed_||!committed_||value.descriptor_null){reason="objects_lifted_not_installed";return false;}
+  const ClientObjectKey key{value.owner.run,value.owner.id,value.owner.space};
+  for(const auto &d:entity_applied_values_)if(d.key==key){
+    if(d.category!=9||d.variant!=136||!d.derived||!d.derived->has_lifted){reason="objects_lifted_owner_category";return false;}
+    const auto &a=d.derived->lifted;const auto &b=value.descriptor;
+    if(a.type!=b.type||a.variant!=b.variant||a.state!=b.state||a.spawn_count!=b.spawn_count||a.spawn_seed!=b.spawn_seed||a.var_data!=b.var_data||a.initialized!=b.initialized||a.variable_seed!=b.variable_seed){reason="objects_lifted_descriptor_conflict";return false;}
+    return ClientNativeObjectsCheckLifted(native_,key,reason);
+  }reason="objects_lifted_owner_missing";return false;
 }
 } // namespace cs::game

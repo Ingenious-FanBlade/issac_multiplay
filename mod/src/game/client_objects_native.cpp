@@ -1,6 +1,7 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/client_objects_native.h"
+#include "game/client_entity_draw_native.h"
 #include "game/bridge.h"
 #include "game/context.h"
 #include "runtime.h"
@@ -124,28 +125,33 @@ int SealEssmDeleteThunk(lua_State *L) {
   const int owner=lua_absindex(L,-1);RawField(L,owner,"DeleteEntity");
   if(!lua_isfunction(L,-1)||lua_iscfunction(L,-1)){lua_pushboolean(L,0);return 1;}
   const int callback=lua_absindex(L,-1);
+  RawField(L,owner,"NewEntity");if(!lua_isfunction(L,-1)||lua_iscfunction(L,-1)){lua_pushboolean(L,0);return 1;}
+  const int new_callback=lua_absindex(L,-1);
   lua_rawgetp(L,LUA_REGISTRYINDEX,&essm_delete_registry_key);
   if(lua_istable(L,-1)){
     // 同VM重复调用只核对；已有未知值或不同owner/闭包绝不通过覆盖恢复资格。
     const int snapshot=lua_absindex(L,-1);RawField(L,snapshot,"owner");
     const bool same_owner=lua_rawequal(L,owner,-1);lua_pop(L,1);
-    RawField(L,snapshot,"callback");
-    lua_pushboolean(L,same_owner&&lua_rawequal(L,callback,-1));return 1;
+    RawField(L,snapshot,"callback");const bool same_delete=lua_rawequal(L,callback,-1);lua_pop(L,1);
+    RawField(L,snapshot,"new_callback");
+    lua_pushboolean(L,same_owner&&same_delete&&lua_rawequal(L,new_callback,-1));return 1;
   }
   if(!lua_isnil(L,-1)){lua_pushboolean(L,0);return 1;}
-  lua_pop(L,1);lua_createtable(L,0,2);const int snapshot=lua_absindex(L,-1);
+  lua_pop(L,1);lua_createtable(L,0,3);const int snapshot=lua_absindex(L,-1);
   lua_pushliteral(L,"owner");lua_pushvalue(L,owner);lua_rawset(L,snapshot);
   lua_pushliteral(L,"callback");lua_pushvalue(L,callback);lua_rawset(L,snapshot);
+  lua_pushliteral(L,"new_callback");lua_pushvalue(L,new_callback);lua_rawset(L,snapshot);
   lua_pushvalue(L,snapshot);lua_rawsetp(L,LUA_REGISTRYINDEX,&essm_delete_registry_key);
   lua_pushboolean(L,1);return 1;
 }
 int UseEssmDeleteThunk(lua_State *L) {
   const bool execute=lua_toboolean(L,2)!=0;
+  const bool creating=lua_toboolean(L,3)!=0;
   lua_rawgetp(L,LUA_REGISTRYINDEX,&essm_delete_registry_key);
   if(!lua_istable(L,-1)){lua_pushinteger(L,EssmBindingMissing);return 1;}
   const int snapshot=lua_absindex(L,-1);RawField(L,snapshot,"owner");
   if(!lua_istable(L,-1)){lua_pushinteger(L,EssmBindingChanged);return 1;}
-  RawField(L,-1,"DeleteEntity");RawField(L,snapshot,"callback");
+  RawField(L,-1,creating?"NewEntity":"DeleteEntity");RawField(L,snapshot,creating?"new_callback":"callback");
   if(!lua_isfunction(L,-1)||lua_iscfunction(L,-1)||!lua_rawequal(L,-1,-2)){
     lua_pushinteger(L,EssmBindingChanged);return 1;
   }
@@ -157,7 +163,7 @@ int UseEssmDeleteThunk(lua_State *L) {
 }
 // 官方闭包只处理ESSM，不执行第三方ModCallback。预检和实际执行分别受pcall保护，
 // 错误区分VM/预算/绑定/闭包调用；不以userdata析构或强制GC代替一次真实Delete通知。
-bool EssmDelete(Entity *entity,bool execute,const char *&reason) noexcept {
+bool EssmDelete(Entity *entity,bool execute,const char *&reason,bool creating=false) noexcept {
   if(!IsMain()||!g_LuaEngine||!g_LuaEngine->_state||ClientLuaStateIdentity()!=g_LuaEngine->_state){
     reason="objects_essm_delete_vm_unavailable";return false;
   }
@@ -166,7 +172,8 @@ bool EssmDelete(Entity *entity,bool execute,const char *&reason) noexcept {
   lua_pushcfunction(L,UseEssmDeleteThunk);
   lua_pushinteger(L,g_LuaEngine->GetMaskedPointer(reinterpret_cast<uintptr_t>(entity)));
   lua_pushboolean(L,execute);
-  const bool called=lua_pcall(L,2,1,0)==LUA_OK;
+  lua_pushboolean(L,creating);
+  const bool called=lua_pcall(L,3,1,0)==LUA_OK;
   const int status=called&&lua_isinteger(L,-1)?int(lua_tointeger(L,-1)):-1;
   lua_settop(L,top);
   switch(status){
@@ -199,6 +206,7 @@ struct ClientNativeObjects final {
   ClientEntityOwners external{};
   std::vector<ClientEntityClassAdapter> adapters;
   std::map<ClientObjectKey,std::pair<std::uint64_t,std::uint64_t>> players;
+  std::map<Entity *,Entry> player_draw; // 不拥有身体，仅保存本次player_ready见证及纯值draw输入。
   bool formal=false,configured=false;
   std::shared_ptr<ClientPlayerOwnerToken> player_token;
 };
@@ -412,7 +420,7 @@ bool FormalCheckAll(ClientNativeObjects &o,const ClientNativeRoots &roots,const 
       for(const auto &p:o.players){ClientEntityBorrow borrow;if(!ResolveEntity(&context,roots,p.first,0,borrow,reason))return false;count+=borrow.object==e;}
       if(count!=1){reason="objects_formal_unclassified_or_aliased_member";return false;}
     }
-  }o.committed=true;reason="objects_non_player_checked";return true;
+  }o.committed=true;diagnostic_owner=&o;reason="objects_non_player_checked";return true;
 }
 bool FormalExecute(ClientNativeObjects &o,const ClientNativeRoots &roots,const ClientObjectCommand &command,const char *&reason){
   const auto &d=command.value;
@@ -428,7 +436,10 @@ bool FormalExecute(ClientNativeObjects &o,const ClientNativeRoots &roots,const C
     if(!e.entity){reason="objects_formal_pool_exhausted";return false;}
     if(e.entity->_valid||!UniqueAddress(o,e.entity,d.key)){e.entity=nullptr;reason="objects_formal_live_pool_use_conflict";return false;}
     if(o.next_pool_use==UINT64_MAX){reason="objects_pool_use_exhausted";return false;}
-    e.pool_use=++o.next_pool_use;e.constructed=true;return true;
+    e.pool_use=++o.next_pool_use;e.constructed=true;
+    // Dummy绕过通用Factory；在同一已封存官方owner上完成一次New通知，避免复用旧ESSM数据。
+    // Plus holder由真实池ctor创建，后续base Init仍进入官方Plus重置链。
+    if(d.category==12&&!EssmDelete(e.entity,true,reason,true))return false;return true;
   }
   if(it==o.entries.end()||it->second.retired||!it->second.entity){reason="objects_formal_instance_missing";return false;}
   auto &entry=it->second;auto &e=*entry.entity;ResolveContext context{&o,&roots};ClientEntityOwners resolver{&context,ResolveEntity,ResolveDependency};
@@ -518,12 +529,13 @@ ClientEntityOwners ClientNativeObjectsPlayerOwner(ClientNativeObjects *o) noexce
   if(!IsMain()||!o||!o->player_token)return {};return {o->player_token.get(),ResolveOwnedPlayer,nullptr,OwnedPlayerReady,o->player_token};
 }
 bool ClientNativeObjectsPreflight(ClientNativeObjects *o,const ClientNativeRoots &roots,const std::vector<ClientObjectDescription> &descriptions,const std::vector<ClientObjectKey> &players,const char *&reason) noexcept {
-  if(!o||!Phase()||!Current(*o,roots)||!o->configured||o->uncertain){reason="objects_entity_preflight_context";return false;}
+  if(!o||!Phase()||!Current(*o,roots)||!o->configured||o->uncertain||!ClientEntityDrawIsolationInstalled()){reason="objects_entity_preflight_context_or_draw_isolation";return false;}
   try{
     auto &list=o->room->_entityList;
     for(auto *el:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL,&list._effectEL,&list._tempEL,&list._wispEL})
       if(!ListValid(*el)){reason="objects_entity_preflight_member_storage";return false;}
     std::map<ClientObjectKey,std::pair<std::uint64_t,std::uint64_t>> current_players;
+    std::map<Entity *,Entry> player_draw;
     std::vector<void *> addresses;
     for(const auto &key:players){ClientEntityBorrow b;
       if(!o->external.resolve||!o->external.resolve(o->external.context,roots,key,0,b,reason)||!b.object||!b.instance||!b.owner_epoch||b.category!=0){reason="objects_player_dependency_not_ready";return false;}
@@ -534,16 +546,21 @@ bool ClientNativeObjectsPreflight(ClientNativeObjects *o,const ClientNativeRoots
       if(d==descriptions.end()||!o->external.player_ready||!o->external.player_ready(o->external.context,roots,*d,b,reason)){
         reason="objects_player_requested_shape_or_state_not_ready";return false;}
       addresses.push_back(p);current_players.emplace(key,std::make_pair(b.instance,b.owner_epoch));
+      Entry entry;entry.entity=p;entry.description=*d;entry.instance=b.instance;entry.initialized=entry.checked=true;
+      entry.vptr=*reinterpret_cast<std::uintptr_t *>(p);entry.native_seed=p->_initSeed;entry.native_index=p->_index;player_draw.emplace(p,std::move(entry));
     }
     for(const auto &d:descriptions){if(!d.full_entity||d.category==0)continue;
       const auto *a=Adapter(*o,d.category);if(!a||!a->prepare||!a->prepare(a->context,d,reason)){reason="objects_entity_adapter_preflight";return false;}
+      if(d.category==1&&d.type==835)for(unsigned i=0;i<(std::min)(d.derived->npc_composite_count,2u);++i){const auto name="NativeNPC.Composite:"+std::to_string(i);
+        for(const auto &r:d.relations)if(r.member==name&&!r.is_null)for(const auto &p:player_draw)if(p.second.description.key==r.target&&
+          *reinterpret_cast<std::uint32_t *>(reinterpret_cast<unsigned char *>(p.first)+0xc28)){reason="objects_npc835_player_path_native_owner_not_empty";return false;}}
       for(const auto &r:d.relations){
-        if(!r.is_null&&r.kind==4){if(!o->external.dependency||!o->external.dependency(o->external.context,roots,r,reason)){reason="objects_descriptor_dependency_not_ready";return false;}}
+        if(!r.value_only&&!r.is_null&&r.kind==4){if(!o->external.dependency||!o->external.dependency(o->external.context,roots,r,reason)){reason="objects_descriptor_dependency_not_ready";return false;}}
         if(!r.value_only&&!r.is_null&&r.target.space!=1){ClientEntityBorrow b;
         if(!o->external.resolve||!o->external.resolve(o->external.context,roots,r.target,r.expected,b,reason)||!b.object||!b.instance||!b.owner_epoch){reason="objects_cross_domain_dependency_not_ready";return false;}}
       }
     }
-    o->players=std::move(current_players);reason="objects_entity_dependencies_ready";return true;
+    o->players=std::move(current_players);o->player_draw=std::move(player_draw);reason="objects_entity_dependencies_ready";return true;
   }catch(...){reason="objects_entity_preflight_allocation";return false;}
 }
 ClientNativeObjects *ClientNativeObjectsCreate() noexcept {
@@ -668,6 +685,26 @@ bool ClientNativeObjectsVisit(const ClientNativeObjects *o,void *context,ClientO
       if(!ResolveEntity(&resolver,roots,p.first,0,b,reason)||!visitor(context,b.object,p.first,b.instance,1))return false;}
   }
   return true;
+}
+const ClientObjectDescription *ClientNativeObjectDrawDescription(void *pointer) noexcept {
+  auto *o=diagnostic_owner;
+  if(!o||!IsMain()||!ClientBusy()||!o->committed||o->uncertain||o->executing||o->abandoned||o->game!=g_Game||!g_Game||g_Game->_room!=o->room)return nullptr;
+  for(const auto &pair:o->entries){const auto &e=pair.second;if(e.entity==pointer&&e.checked&&CurrentUse(e))return &e.description;}
+  const auto player=o->player_draw.find(static_cast<Entity *>(pointer));
+  if(player!=o->player_draw.end()&&CurrentUse(player->second)&&std::find(o->game->_playerManager._playerList.begin(),o->game->_playerManager._playerList.end(),pointer)!=o->game->_playerManager._playerList.end())return &player->second.description;
+  return nullptr;
+}
+void *ClientNativeObjectDrawAddress(const ClientObjectKey &key) noexcept {
+  auto *o=diagnostic_owner;if(!o||!IsMain()||!o->committed||o->uncertain||o->abandoned||o->executing)return nullptr;
+  const auto found=o->entries.find(key);if(found!=o->entries.end()&&ClientNativeObjectDrawDescription(found->second.entity))return found->second.entity;
+  for(const auto &p:o->player_draw)if(p.second.description.key==key&&ClientNativeObjectDrawDescription(p.first))return p.first;
+  return nullptr;
+}
+bool ClientNativeObjectsCheckLifted(const ClientNativeObjects *o,const ClientObjectKey &key,const char *&reason) noexcept {
+  if(!o||!IsMain()||!o->committed||o->uncertain||o->executing||o->abandoned){reason="objects_lifted_native_context";return false;}
+  const auto found=o->entries.find(key);if(found==o->entries.end()||!found->second.checked||!CurrentUse(found->second)){reason="objects_lifted_native_use";return false;}
+  const auto &e=found->second;const auto *a=Adapter(*o,e.description.category);
+  return a&&a->fields&&a->fields(a->context,e.entity,e.description,true,reason);
 }
 // SDK的RenderBody/Head只读旁观：先以本方稳定map验证当前use，再读取正在调用的参数。
 // 每个实际目标的Body/Head各一组前后记录；同值重复提交不产生新的原生写代次或逐帧日志。

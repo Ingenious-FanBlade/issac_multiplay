@@ -61,9 +61,16 @@ ClientObjectDescription ClientDescribeEntity(const replica::EntityObjectTarget &
   const auto &fields=At(o.common.value,"fields");
   const auto u32=[&](const char *id){const auto n=Integer<std::uint64_t>(At(fields,id));if(n>UINT32_MAX)Fail(id,"u32");return unsigned(n);};
   d.type=u32("Entity.Type");d.variant=u32("Entity.Variant");d.subtype=u32("Entity.SubType");d.seed=u32("Entity.InitSeed");
+  d.authority_index=u32("Entity.Index");
   // Spawn语义在Init前已有位置/速度；正式类别不能继承池槽上一use的坐标。
   d.position=Vector(At(fields,"Entity.Position"));d.velocity=Vector(At(fields,"Entity.Velocity"));
+  for(const auto &r:dependencies)if(r.source==o.key){ClientEntityRelation relation;relation.member=r.member;relation.path=r.path;relation.contract=r.contract;
+    relation.target=r.has_target?ClientObjectKey{r.target.run,r.target.id,r.target.space}:d.key;relation.expected=unsigned(r.expected);relation.kind=unsigned(r.kind);relation.is_null=r.is_null;
+    relation.before_init=r.phase==replica::EntityDependencyPhase::BeforeInit;relation.value_only=r.phase==replica::EntityDependencyPhase::ValueOnly;d.relations.push_back(std::move(relation));}
   if(o.category==replica::EntityCategory::Player){
+    ClientDescribeEntityPlayerDraw(o,d);
+    ClientEntityField frame;frame.member="Entity.FrameCount";frame.kind=ClientEntityValueKind::Integer;frame.integer=Integer<std::int64_t>(At(fields,"Entity.FrameCount"));
+    if(frame.integer<INT32_MIN||frame.integer>INT32_MAX)Fail("Entity.FrameCount","i32");d.common_fields.push_back(std::move(frame));
     // 只准备普通Isaac依赖的窄只读核对；其它形态由外部Player20的player_ready具名解释。
     const auto &body=std::get<replica::EntityClassValues<replica::EntityCategory::Player>>(o.payload).fields.value;
     const auto &b=At(body,"fields");const auto player_type=b.FindMember("EntityPlayer.GetPlayerType");
@@ -97,9 +104,6 @@ ClientObjectDescription ClientDescribeEntity(const replica::EntityObjectTarget &
       case ClientEntityValueKind::Color:f.color=Color(v);break;
     }d.common_fields.push_back(std::move(f));
   }
-  for(const auto &r:dependencies)if(r.source==o.key){ClientEntityRelation relation;relation.member=r.member;relation.path=r.path;relation.contract=r.contract;
-    relation.target=r.has_target?ClientObjectKey{r.target.run,r.target.id,r.target.space}:d.key;relation.expected=unsigned(r.expected);relation.kind=unsigned(r.kind);relation.is_null=r.is_null;
-    relation.before_init=r.phase==replica::EntityDependencyPhase::BeforeInit;relation.value_only=r.phase==replica::EntityDependencyPhase::ValueOnly;d.relations.push_back(std::move(relation));}
   ClientDescribeEntityClass(o,d);return d;
 }
 } // namespace cs::game

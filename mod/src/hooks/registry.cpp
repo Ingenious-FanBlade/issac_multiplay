@@ -75,4 +75,13 @@ bool ClientEntityInitIsolationInstalled() noexcept {
     if(std::strcmp(h.id,"client_entity_retire_sound")==0)sound=h.registered&&h.super&&*h.super;
   }return random&&sound;
 }
+bool ClientEntityDrawIsolationInstalled() noexcept {
+  const char *required[]={"client_entity_draw_npc","client_entity_draw_tear","client_entity_draw_projectile","client_entity_draw_bomb",
+    "client_entity_draw_familiar","client_entity_draw_knife","client_entity_draw_pickup","client_entity_draw_laser","client_entity_draw_slot",
+    "client_entity_draw_effect","client_entity_draw_dummy","client_entity_shadow_base","client_entity_shadow_npc","client_entity_shadow_familiar",
+    "client_entity_shadow_laser","client_entity_post_base","client_entity_post_laser","client_entity_draw_paused","client_entity_owned_final","native_text_render"};
+  size_t count=0;auto hooks=Hooks(count);
+  for(const auto *id:required){bool found=false;for(size_t i=0;i<count;++i){const auto &h=*hooks[i];if(!std::strcmp(h.id,id)){found=h.registered&&h.super&&*h.super;break;}}if(!found)return false;}
+  return true;
+}
 }

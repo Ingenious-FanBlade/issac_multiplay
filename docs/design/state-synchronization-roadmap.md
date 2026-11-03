@@ -124,6 +124,8 @@
 
 ### tx-04-19：非Player Entity的客户端应用
 
+- 2026-11-03：[I20—I25剩余类别、形态与绘制](tx-04-19/tx-04-19-slot-text-draw-application.md)接入Slot1—18／Text／真正Dummy、替换／死亡／删除、Effect136双向交接、NPC复合deque与逐类主／阴影／光照／Post及水面间接draw。指定GPT-6 Luna max研究、主智能体复读关键源码／指令并采用；未构建／测试而直接提交。835非空Player私有路径明确未知，完整Player仍归20；I26—I35与I34统一E2E待完成，不设置完整Entity域位。
+
 - 2026-11-03：[I15—I19五类应用及明确边界](tx-04-19/tx-04-19-laser-effect-application.md)接入Laser／Knife／Pickup／Familiar／Effect，含完整激光几何、cycle、辅助资源、具名引用和五族typed ExtraData。必要逆向由一个GPT-6 Luna max子智能体完成，主智能体复读并纠正；按会话要求不构建／测试而直接提交。分层draw／Player复合分支、Effect136交接、唯一Scene提交和统一E2E仍按I24／I25／I29／I34推进，不置完整Entity提交位。以下记录保留当时语境。
 
 - 2026-11-03：[I10—I14资源与四类实现](tx-04-19/tx-04-19-class-application.md)已接入正式Source、不可变派生值、类别注册、主／辅助姿态、具名关系和正常退休；GPT-6 Luna max补查，主智能体独立审阅并纠正字段／引用／owner结论。NPC私有容器、拥有的actor和具名复合draw仍写前拒绝，I25／20继续闭合；没有全Entity提交位。纯编译链接完成，未测试或启动游戏；I15之后与I34统一E2E待推进。以下较早实施记录保留当时语境。

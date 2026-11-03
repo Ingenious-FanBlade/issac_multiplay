@@ -211,7 +211,7 @@ EntityTarget ParseEntityTarget(const Value &model){
   const auto &component=At(At(model,"components","model"),"entity","components");
   const auto &state=At(component,"state","entity");const auto &src=At(state,"application_source","entity");
   if(U64(At(src,"version","source"),"source/version")!=1||!Is(Find(src,"contract"),"entity-source-v1")||!Is(Find(src,"target"),"REPENTOGON-1.1.3/J273")||!Is(Find(src,"pose_scope"),"same-ordinary-window"))Error("application_source","source_contract_version");
-  static const std::set<std::string> supported={"resource-pose-v1","entity-classification-v1","entity-auxiliary-sprites-v1","entity-native-presentation-v1","entity-class-application-v1","entity-class-application-v2"};
+  static const std::set<std::string> supported={"resource-pose-v1","entity-classification-v1","entity-auxiliary-sprites-v1","entity-native-presentation-v1","entity-class-application-v1","entity-class-application-v2","entity-class-application-v3"};
   std::set<std::string> required;
   for(const auto &c:Sequence(At(src,"required_contracts","source"),"source/contracts").GetArray()){
     const auto name=Str(c);if(!supported.count(name)||!required.insert(name).second)Error("application_source","unknown_or_duplicate_required_contract");
@@ -242,6 +242,7 @@ EntityTarget ParseEntityTarget(const Value &model){
     }
     object.source_class=Str(At(row,"class",path));object.category=Category(object.source_class);object.classification_supported=object.category!=EntityCategory::Unknown;
     if(object.category>=EntityCategory::Laser&&object.category<=EntityCategory::Effect&&!required.count("entity-class-application-v2"))Error(path,"class_application_v2_required");
+    if(object.category!=EntityCategory::Unknown&&!required.count("entity-class-application-v3"))Error(path,"class_application_v3_required");
     object.common=Fields(At(row,"common",path),"Entity",path+"/common");
     EntityFields body;
     if(object.classification_supported)body=Fields(At(row,"body",path),object.source_class,path+"/body");
@@ -264,5 +265,5 @@ EntityTarget ParseEntityTarget(const Value &model){
   }
   out.source=Copy(component);return out;
 }
-Json EntityCapabilities(){return Parse(R"({"id":"entity-target-v1","source":"entity-source-v1","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","model_expression":"all-catalogued-members;typed-status;int64;bits128;sparse-graph;resources;typed-references","classification":"public-derived-interface-or-native-RTTI;NativeDummy;no-NativeDarkness-alias","common_execution":"I05-I19-class-data-and-resources;remaining-classes=I20-I22;draw=I25;scene=I29","builtin_class_adapters":["NPC","Delirium-special","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect"],"class_source_contract":"entity-class-application-v2","non_player_native_apply":false,"player_native_apply":"named-current-key-owner;ordinary-Isaac-proof;full-owner=tx-04-20","runtime_acceptance":"pending-full-tx-04-19-I34","full_entity_domain_commit":false,"limits":{"objects":16384,"bytes":33554432,"depth":64}})");}
+Json EntityCapabilities(){return Parse(R"({"id":"entity-target-v1","source":"entity-source-v1","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","model_expression":"all-catalogued-members;typed-status;int64;bits128;sparse-graph;resources;typed-references","classification":"public-derived-interface-or-native-RTTI;NativeDummy;no-NativeDarkness-alias","common_execution":"I05-I25-class-data-resources-morph-lifted-layered-draw;scene=I29","builtin_class_adapters":["NPC","Delirium-special","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect","Slot1..18","NativeText","NativeDummy"],"class_source_contract":"entity-class-application-v3","non_player_native_apply":false,"player_native_apply":"named-current-key-owner;ordinary-Isaac-proof;full-owner=tx-04-20","runtime_acceptance":"pending-full-tx-04-19-I34","full_entity_domain_commit":false,"limits":{"objects":16384,"bytes":33554432,"depth":64}})");}
 } // namespace cs::replica

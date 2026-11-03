@@ -13,7 +13,7 @@
     "evidence": "J273_STATIC:Factory-ctor-VA6EEE60-and-selector-VA6EC540;root-reviewed-instructions",
     "pool_stride_overrides": {"EntityKnife": "0x520;SDK-size0xE78-not-used", "EntityEffect": "0x4C0;SDK-size0x490-not-pool-stride", "EntitySlot": "0x550;SDK-size0x548-not-pool-stride", "EntityProjectile": "0x478;SDK-size0x470-not-pool-stride"},
     "pool_capacities": {"EntityEffect": 1024, "EntityFamiliar": 64, "EntityBomb": 64, "EntityProjectile": 512, "EntityTear": 512, "EntityLaser": 128, "EntityPickup": 512, "EntitySlot": 128, "EntityNPC": 512, "NativeText": 128, "NativeDummy": 128, "EntityKnife": 64},
-    "NativeDummy": "pool-preconstructed;Create(964,true)-selects-NPC;real-acquire-owner-UNKNOWN;never-vptr/type-patch",
+    "NativeDummy": "I22 own main-thread acquire:Factory+0x675650,128x0x410,exact-Dummy-vtable,valid=false/exists=false;native-generic-Create964-still-NPC;no-cursor/type/vptr-patch",
     "rule": "no-SDK-size-based-pool-walk/raw-allocation/whole-object-copy;field-evidence-separate;count-live/candidate/retiring/external-uses;pure-value-budget-never-expands-pool"
   },
   "native_apply": false,
@@ -77,6 +77,18 @@
     "Entity.GetHitListIndex": {"handling": "Authority-derived-identity-fact;VA6B1ED0-can-use-top-parent-Index;never-native-field-install"},
     "NativeText.text": {"handling": "current-use-writer-required;Init-does-not-initialize-buffer;raw-bytes-not-guessed-encoding"},
     "NativeText.draw_color": {"storage": "KColor20;RGBA+opaque32", "contract": "not-public-Color;opaque-semantics-UNKNOWN"}
+  },
+  "implementation_i20_i25": {
+    "evidence": "docs/design/tx-04-19/entity-i20-i25-native.md;root-reviewed Source and selected decompilation/raw instructions",
+    "status": "implemented-source-model-native-and-draw;not-built-or-runtime-tested;scene-I29/full-E2E-I34-pending",
+    "Slot": "variants1..18;leaf final scalars by native widths;independent prize ANM;no payout/donation/SetPrizeCollectible chain",
+    "Text": "same-use bounded bytes+KColor20+counter/duration;new ordinary application_draw inputs and narrow Font6 consumer;independent Render scope retained",
+    "NPC": "BF0 EntityPtr deque;C04 and C18 separate Vector2 streams;all local storage game-allocated;current Key relations;three-point group checks",
+    "owned_siren_actor": "F40 nonempty retained as Authority-only gameplay owner fact;main NPC draw does not consume it;never borrow a roster Player as owned heap actor",
+    "player_composites": "current ready Player Key;Familiar68/78/243 and NPC965:10 temporary color/layers/visible/position/minecart-offset borrow;full Player data stays20",
+    "unknown": "835 nonempty Player-private path owner has no installation contract;explicit source/preflight failure;not replaced with empty path",
+    "Effect136": "same T Grid18 descriptor installed at+420;all eight fields checked;no active Grid or fabricated source key;Grid-only descriptor changes still schedule fields",
+    "draw": "dynamic class Render/Shadow;Room light;Post slot7 no args at main-tail;water indirect entry guards;frame-wide Authority xorshift stream;Abyss final ANM avoids fade/Reset/Update"
   },
   "implementation_followups": [
     {"task": "I05/I07/I09", "requirement": "record-per-class-pool-use/Init/Publish/official-state;explicit-construction-dependencies-and-special-lists"},

@@ -1,0 +1,28 @@
+#pragma once
+#include "game/client_native_world.h"
+namespace cs::game {
+// 整帧借用Authority普通窗口表现输入；还原全局随机/帧值后才离开唯一Scene绘制。
+class ClientEntityFrameScope final {
+public:
+  explicit ClientEntityFrameScope(const ClientNativeRoots &);
+  ~ClientEntityFrameScope();
+  bool Ready() const noexcept {return ready_;}
+  ClientEntityFrameScope(const ClientEntityFrameScope &)=delete;
+  ClientEntityFrameScope &operator=(const ClientEntityFrameScope &)=delete;
+private:void *state_=nullptr;bool ready_=false;
+};
+// 唯一Hook清单的逐类Render/Shadow/Post入口共用此保护；水面间接调用也不能绕过。
+class ClientEntityDrawScope final {
+public:
+  ClientEntityDrawScope(void *entity,void *offset,unsigned pass);
+  ~ClientEntityDrawScope();
+  bool CallOriginal() const noexcept {return original_;}
+  ClientEntityDrawScope(const ClientEntityDrawScope &)=delete;
+  ClientEntityDrawScope &operator=(const ClientEntityDrawScope &)=delete;
+private:void *state_=nullptr;bool original_=true;
+};
+bool ClientEntityDrawPaused(bool &) noexcept;
+// Abyss helper含fade/Reset/Update；本用途只画Source已安装的最终ANM，不执行这些writer。
+bool ClientEntityDrawOwnedFinal(void *entity,void *sprite,void *offset);
+bool ClientEntityDrawIsolationInstalled() noexcept;
+} // namespace cs::game

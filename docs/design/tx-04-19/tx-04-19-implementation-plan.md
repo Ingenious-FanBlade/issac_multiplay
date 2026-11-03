@@ -1,6 +1,6 @@
 # tx-04-19：非 Player Entity 客户端应用具体实现计划
 
-日期：2026-11-03，Asia/Singapore。状态：**I01—I03已实现；I04静态合同见[采用合同](entity-application-contracts.md)、[J273专题](entity-native-static.md)与[研究索引](entity-native-contracts.json)；I05—I09见[公共实现](tx-04-19-common-application.md)；I10—I14的资源／类别值／关系／正常生命周期实现见[类别实现与明确边界](tx-04-19-class-application.md)，必要逆向与主审见[本轮静态研究](entity-i10-i14-native.md)。I15—I19见[五类应用及明确边界](tx-04-19-laser-effect-application.md)和[本轮静态研究／主审](entity-i15-i19-native.md)；I20—I35及统一E2E待推进。** 未解释NPC私有容器／拥有的actor及具名复合draw分支仍写前拒绝，由I25／20补齐，不冒称全形态支持。没有默认放行尚未注册的类别adapter，没有设置完整Entity提交位。已有P1—P6发送优化完成实现与纯编译，运行验收并入本tx；I04登记的来源／owner／分支缺口随实际adapter闭合，不把研究或公共代码当成全类别native支持。
+日期：2026-11-03，Asia/Singapore。状态：**I01—I25的实现已接入；本轮I20—I25见[剩余类别、形态及绘制实现](tx-04-19-slot-text-draw-application.md)与[指定Luna研究／主审](entity-i20-i25-native.md)。I26—I35及统一E2E待推进。** 本轮接入Slot1—18、NativeText、真正NativeDummy专用池、同Key替换／死亡／删除、Effect136／Grid双向核对及逐类分层draw；NPC三份deque与具名Player复合绘制补齐，Siren私有heap Player是Authority玩法owner事实而非本地draw owner。835非空Player私有路径没有可安装合同，写前明确报告，不补空；完整Player形态／装备仍归20。没有设置完整Entity域提交位，也没有构建或运行测试。I01—I19的历史说明保持原事实，当前采用范围以本轮实现说明为准。
 
 初版文档工作的完整目标是列出 tx-04-19 的全部实现、必要静态研究、工程接线与整体验收任务。本文是执行入口；[逐类别应用计划](tx-04-19-entity-application.md)与[静态确认及必要逆向清单](tx-04-19-native-research-plan.md)是同一计划的组成部分。I01—I35、C01—C13、R01—R13、E01—E26 只是同一 tx 内的内容索引，不拆成新 tx。
 
@@ -84,7 +84,7 @@
 
 ## 4. 全部任务索引
 
-I01—I14进度与边界见上方链接；I15—I19的类别字段、容器、五种typed ExtraData、资源和正常生命周期见[本轮实现及后续集成](tx-04-19-laser-effect-application.md)，必要逆向与主审见[静态专题](entity-i15-i19-native.md)。I31所承接P1—P6有前置实现；后续按I20—I35推进，并在I25／20闭合具名NPC／Familiar的Player复合draw缺口。下表保留完整目标索引，代码完成与运行覆盖分开，运行验收统一留在I34。
+I01—I14进度与边界见上方链接；I15—I19的类别字段、容器、五种typed ExtraData、资源和正常生命周期见[本轮实现及后续集成](tx-04-19-laser-effect-application.md)，必要逆向与主审见[静态专题](entity-i15-i19-native.md)。I20—I25后续实现覆盖此前具名NPC／Familiar复合draw；当前边界见上方实现说明。I31所承接P1—P6有前置实现，后续按I26—I35推进。下表保留完整目标索引，代码完成与运行覆盖分开，运行验收统一留在I34。
 
 | 编号 | 任务 | 依赖／专题 |
 | --- | --- | --- |
@@ -98,21 +98,21 @@ I01—I14进度与边界见上方链接；I15—I19的类别字段、容器、�
 | I08 | 已实现公共最终值、字段级去向与真实native后态 | I01／I03／I07 |
 | I09 | 已实现分类型依赖／图／公共EntityPtr；专用绑定由各类别owner接入 | I05—I08，R02 |
 | I10 | 已实现主／辅助资源与完整姿态；真实运行覆盖归I34 | I03／I07，R10 |
-| I11 | 已实现NPC／Delirium值、双ANM与具名关系；私有draw／owned actor拒绝清单见实现说明，I25／20继续闭合 | C01／C02，R03 |
+| I11 | 已实现NPC／Delirium值、双ANM与具名关系；三份私有deque和复合draw已由I25接入；owned Siren actor保留Authority事实 | C01／C02，R03 |
 | I12 | 已实现Tear字段、三份辅助ANM、sticky与内部引用、正常退休；draw调度归I25 | C03，R04 |
 | I13 | 已实现Projectile独立布局与正常生命周期；draw调度归I25 | C04，R04 |
 | I14 | 已实现Bomb字段、五层costume与启用位、正常生命周期；draw调度归I25 | C05，R04 |
 | I15 | 已实现Laser／HomingLaser字段、四容器、具名引用与正常生命周期；draw归I25 | C06，R05；I34待验收 |
 | I16 | 已实现Knife字段、Parent前置、Plus引用与共享DeadEye资源；draw归I25 | C07，R06；I34待验收 |
 | I17 | 已实现Pickup字段、完整cycle、价格／底座资源和关系／正常退休 | C08，R07；I34待验收 |
-| I18 | 已实现Familiar字段、Player借用及48／231 typed owner；68／78／243复合draw写前拒绝，由I25／20接入 | C09，R06；I34待验收 |
-| I19 | 已实现Effect字段、variant-qualified flags及108／166／191 typed owner；136完整描述归I24，分层draw归I25 | C10，R08；I34待验收 |
-| I20 | Slot 全部现有变体解释 | C11，R07 |
-| I21 | NativeText | C12，R09 |
-| I22 | NativeDummy 及明确未知分类 | C13，R01／R09 |
-| I23 | Morph、替换、死亡展示与删除 | I06—I22，R02／R12 |
-| I24 | Effect136／Grid 双向交接 | I09／I19，18，R08 |
-| I25 | 各类原生绘制与必要缓存 | I10—I24，R11 |
+| I18 | 已实现Familiar字段、Player借用及48／231 typed owner；68／78／243复合draw已由I25借当前具名Player接入，完整Player仍归20 | C09，R06；I34待验收 |
+| I19 | 已实现Effect字段、variant-qualified flags及108／166／191 typed owner；136完整描述与分层draw已由I24／I25接入 | C10，R08；I34待验收 |
+| I20 | 已实现Slot1—18的全部现有公开字段／最终资源与语义 | C11，R07 |
+| I21 | 已实现NativeText字节／KColor20／计时与Font6消费 | C12，R09 |
+| I22 | 已实现NativeDummy专用空池use及明确未知分类 | C13，R01／R09 |
+| I23 | 已实现同Key形态换代、死亡展示／删除及引用／资源失效 | I06—I22，R02／R12 |
+| I24 | 已实现Effect136／Grid完整描述安装及双向核对 | I09／I19，18，R08 |
+| I25 | 已实现逐类主／阴影／光照／Post与水面／镜像／柱遮挡、具名复合缓存；835非空Player私有路径明确未知 | I10—I24，R11 |
 | I26 | 短命主体、独立 scope 与结果事件 | I05／I06／I23 |
 | I27 | 玩法／Lua／RNG／持久隔离 | 全部采用路径，R13 |
 | I28 | 部分失败、在途借用与安全退休 | I07—I27，R12 |

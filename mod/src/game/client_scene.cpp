@@ -383,11 +383,11 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
           changing_scope||!ClientNativeWorldCanReuse(native_world_,description)));
     // 重建也先完成全部纯值预检；不能先退休 A，才发现 T 依赖尚未支持的 Entity19。
     {ClientObjects objects;ClientGrids grids;ClientPresentation presentation;
-      if(!objects.PrepareTarget(value,nullptr,reason)||!grids.PrepareTarget(replica::PlanRoomGridTarget(domain),reason)||
+      if(!objects.PrepareTarget(value,nullptr,reason,domain.get())||!grids.PrepareTarget(replica::PlanRoomGridTarget(domain),reason)||
          !presentation.PrepareTarget(value,reason,description.room_state,description.map)){
         FailureResult(ClientResultKind::UnsupportedRequirement,"preflight",reason);return false;}}
     // 写世界前先完成所有纯值计划；失败保留上一已提交展示资格。
-    if(!need_rebuild&&!objects_->PrepareTarget(value,applied_valid_?applied_.get():nullptr,reason)){
+    if(!need_rebuild&&!objects_->PrepareTarget(value,applied_valid_?applied_.get():nullptr,reason,domain.get())){
       FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);return false;
     }
     if(!need_rebuild&&!grids_->PrepareTarget(domain_plan,reason)){
@@ -484,7 +484,7 @@ void ClientScene::Pump() noexcept {
   if(!objects_planned_){
     const char *reason=nullptr;
     if(!objects_){try{objects_=std::make_unique<ClientObjects>();}catch(...){Fail("objects_allocation");pumping_=false;return;}}
-    if(!objects_->PrepareTarget(*target_,applied_valid_?applied_.get():nullptr,reason)){
+    if(!objects_->PrepareTarget(*target_,applied_valid_?applied_.get():nullptr,reason,room_grid_target_.get())){
       FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);Fail(reason);pumping_=false;return;
     }
     if(!presentation_){try{presentation_=std::make_unique<ClientPresentation>();}catch(...){Fail("presentation_allocation");pumping_=false;return;}}

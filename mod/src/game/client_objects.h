@@ -12,7 +12,9 @@ class ClientObjects final {
 public:
   ClientObjects() noexcept;
   ~ClientObjects();
-  bool PrepareTarget(const replica::Value &target,const replica::Value *applied,const char *&reason) noexcept;
+  bool PrepareTarget(const replica::Value &target,const replica::Value *applied,const char *&reason,const replica::RoomGridTarget *room_grid=nullptr) noexcept;
+  // Effect136内嵌描述与Grid18接口在同一不可变T内核对；安装完成后仍由Scene统一提交。
+  bool CheckLifted(const replica::LiftedGridTarget &,const char *&reason) const noexcept;
   // 产品类别模块和Player20在候选进入前配置；不允许在在途执行中替换owner合同。
   bool ConfigureEntityOwners(ClientEntityOwners,std::vector<ClientEntityClassAdapter>) noexcept;
   ClientEntityOwners PlayerOwner() noexcept;

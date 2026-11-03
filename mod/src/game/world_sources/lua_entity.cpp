@@ -14,6 +14,7 @@
 namespace cs::game {
 int ClientEntityGeometryLua(lua_State *);
 int ClientEntityOwnedPresentationLua(lua_State *);
+int ClientEntityNpcPresentationLua(lua_State *);
 namespace {
 lua_State *State() noexcept { return IsMain()&&g_LuaEngine ? g_LuaEngine->_state : nullptr; }
 void Decimal(lua_State *L,const char *key,std::uint64_t value) {
@@ -136,6 +137,9 @@ int Supplement(lua_State *L) {
   }
   if(!std::strcmp(v.class_name,"NativeText")&&(!std::strcmp(v.status,"Value")||!std::strcmp(v.status,"Truncated"))) {
     lua_pushlstring(L,v.text,v.text_size); lua_setfield(L,-2,"text");
+    static const char digits[]="0123456789abcdef";std::string hex;hex.reserve(v.text_size*2);
+    for(unsigned i=0;i<v.text_size;++i){const auto b=static_cast<unsigned char>(v.text[i]);hex+=digits[b>>4];hex+=digits[b&15];}
+    lua_pushlstring(L,hex.data(),hex.size());lua_setfield(L,-2,"text_hex");
   }
   return 1;
 }
@@ -154,11 +158,14 @@ int EntityApplicationSprites(lua_State *L){
   lua_newtable(L);if(!e||subject.status!=1||subject.readiness<2){lua_pushliteral(L,"NotCaptured");lua_setfield(L,-2,"status");return 1;}
   lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");lua_pushinteger(L,1);lua_setfield(L,-2,"version");
   // 类型来自Lua已经成功的派生转换，再用当前对象作交叉检查，不能按Type范围猜NPC。
-  const char *source_class=luaL_checkstring(L,2);const unsigned category=e->ToNPC()?1:e->ToProjectile()?3:
+  const char *source_class=luaL_checkstring(L,2);const unsigned category=!std::strcmp(source_class,"EntityPlayer")&&e->ToPlayer()?0:e->ToNPC()?1:e->ToProjectile()?3:
       !std::strcmp(source_class,"EntityTear")&&e->_type==2?2:!std::strcmp(source_class,"EntityBomb")&&e->_type==4?4:
       !std::strcmp(source_class,"EntityLaser")&&e->_type==7?5:!std::strcmp(source_class,"EntityKnife")&&e->_type==8?6:
       !std::strcmp(source_class,"EntityPickup")&&e->_type==5?7:!std::strcmp(source_class,"EntityFamiliar")&&e->_type==3?8:
-      !std::strcmp(source_class,"EntityEffect")&&e->_type==1000?9:13;
+      !std::strcmp(source_class,"EntityEffect")&&e->_type==1000?9:
+      !std::strcmp(source_class,"EntitySlot")&&e->_type==6?10:
+      !std::strcmp(source_class,"NativeText")&&!std::strcmp(EntitySupplement(e).class_name,"NativeText")?11:
+      !std::strcmp(source_class,"NativeDummy")&&!std::strcmp(EntitySupplement(e).class_name,"NativeDummy")?12:13;
   if(category==13)return luaL_error(L,"entity_application_class_witness");
   lua_newtable(L);
   const auto link=[&](const char *name,unsigned offset){auto *target=*reinterpret_cast<Entity **>(reinterpret_cast<unsigned char *>(e)+offset);
@@ -173,6 +180,35 @@ int EntityApplicationSprites(lua_State *L){
 #include "game/client_entity_links.inc"
 #undef CS_CLASS_LINK
   lua_setfield(L,-2,"link_names");
+  // 只复制本次普通采集窗口的表现输入，不借用独立Render的旧scope或本地玩法随机源。
+  lua_newtable(L);lua_pushinteger(L,1);lua_setfield(L,-2,"version");
+  lua_pushliteral(L,"same-ordinary-window");lua_setfield(L,-2,"scope");
+  if(g_Manager&&g_Game){
+    lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");
+    lua_pushinteger(L,g_Manager->_framecount);lua_setfield(L,-2,"manager_frame");
+    std::uint32_t frame=0;std::memcpy(&frame,reinterpret_cast<unsigned char *>(g_Game)+0x25a70,4);
+    lua_pushinteger(L,frame);lua_setfield(L,-2,"game_frame");
+    lua_pushinteger(L,g_Game->IsPaused()?0:(g_Manager->_framecount+1u)%2u);lua_setfield(L,-2,"subframe");
+    lua_pushboolean(L,g_Game->IsPaused());lua_setfield(L,-2,"paused");
+    // 两个inline xorshift各为seed+三shift；没有推进它们，也不序列化全局地址。
+    for(const auto &p:{std::pair<const char *,unsigned>{"pickup_random",0x7d0ca4u},{"familiar_random",0x7d0674u}}){
+      lua_createtable(L,4,0);for(unsigned i=0;i<4;++i){std::uint32_t word=0;std::memcpy(&word,reinterpret_cast<void *>(Base+p.second+i*4),4);lua_pushinteger(L,word);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,p.first);
+    }
+  }else {lua_pushliteral(L,"Unavailable");lua_setfield(L,-2,"status");}
+  lua_setfield(L,-2,"draw");
+  if(category==0){
+    lua_newtable(L);lua_pushinteger(L,1);lua_setfield(L,-2,"version");
+    auto *minecart=e->GetMinecart();const bool used=minecart&&minecart->_type==965&&minecart->_variant==10;
+    lua_pushboolean(L,used);lua_setfield(L,-2,"minecart_draw");
+    // 835的通用路径consumer也接受Player，但只证明当前空路径；不猜Player私有容器owner。
+    std::uint32_t path_count=0;std::memcpy(&path_count,reinterpret_cast<unsigned char *>(e)+0xc28,4);
+    lua_pushboolean(L,path_count==0);lua_setfield(L,-2,"npc835_path_empty");
+    if(used){Vector offset;std::memcpy(&offset,reinterpret_cast<unsigned char *>(e)+0x205c,8);
+      if(!std::isfinite(offset.x)||!std::isfinite(offset.y))return luaL_error(L,"entity_player_minecart_draw_nonfinite");
+      lua_newtable(L);lua_pushnumber(L,offset.x);lua_setfield(L,-2,"x");lua_pushnumber(L,offset.y);lua_setfield(L,-2,"y");lua_setfield(L,-2,"offset");
+      std::uint32_t sort_bits=0;std::memcpy(&sort_bits,&offset.y,4);lua_pushinteger(L,sort_bits);lua_setfield(L,-2,"sort_bits");}
+    lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");lua_setfield(L,-2,"player_draw");
+  }
   if(category==1){lua_pushinteger(L,*reinterpret_cast<unsigned *>(reinterpret_cast<unsigned char *>(e)+0xc00));lua_setfield(L,-2,"npc_private_reference_count");
     lua_pushboolean(L,*reinterpret_cast<void **>(reinterpret_cast<unsigned char *>(e)+0xf40)!=nullptr);lua_setfield(L,-2,"npc_owned_actor_present");}
   if(category==4){lua_pushboolean(L,*reinterpret_cast<bool *>(reinterpret_cast<unsigned char *>(e)+0x462));lua_setfield(L,-2,"bomb_costume_draw_enabled");}
@@ -339,6 +375,7 @@ void EnsureObservationLuaBridge() noexcept {
   lua_pushcfunction(L,EntityApplicationSprites);lua_setfield(L,-2,"EntityApplicationSprites");
   lua_pushcfunction(L,ClientEntityGeometryLua);lua_setfield(L,-2,"EntityApplicationGeometry");
   lua_pushcfunction(L,ClientEntityOwnedPresentationLua);lua_setfield(L,-2,"EntityApplicationOwned");
+  lua_pushcfunction(L,ClientEntityNpcPresentationLua);lua_setfield(L,-2,"EntityApplicationNpc");
   lua_pushcfunction(L,RoomPresentation);lua_setfield(L,-2,"RoomPresentation");
   lua_pushcfunction(L,RoomConfigContents);lua_setfield(L,-2,"RoomConfigContents");
   lua_pushcfunction(L,RoomApplication);lua_setfield(L,-2,"RoomApplication");

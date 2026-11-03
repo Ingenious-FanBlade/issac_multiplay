@@ -43,6 +43,7 @@ struct ClientObjectDescription final {
   ClientObjectKey key{};
   std::uint64_t shape_revision=0;
   unsigned type=0,variant=0,subtype=0,seed=0;
+  unsigned authority_index=0; // 仅为相同Z的绘制次序，不覆盖本地Index/身份。
   ClientPoseVector position{},velocity{},position_offset{};
   float depth=0,size=0,mass=0,collision_damage=0;
   int entity_collision=0,grid_collision=0;
@@ -122,6 +123,10 @@ ClientObjectStep ClientNativeObjectsAbandon(ClientNativeObjects *,const ClientNa
 // I4只在当前借用内枚举已提交的原生实例；地址不允许存入网络或跨帧队列。
 using ClientObjectVisitor=bool (*)(void *,void *,const ClientObjectKey &,std::uint64_t,unsigned) noexcept;
 bool ClientNativeObjectsVisit(const ClientNativeObjects *,void *,ClientObjectVisitor) noexcept;
+bool ClientNativeObjectsCheckLifted(const ClientNativeObjects *,const ClientObjectKey &,const char *&) noexcept;
+// 仅本次主线程draw栈借用已核实例描述；换T/退休使当前资格失效。
+const ClientObjectDescription *ClientNativeObjectDrawDescription(void *) noexcept;
+void *ClientNativeObjectDrawAddress(const ClientObjectKey &) noexcept;
 // 仅当前已提交实例的首次真实Body/Head原链诊断；不额外绘制，不改变原生调用处置。
 void ClientObjectPlayerDrawDiagnostic(void *player,const void *position,bool body,bool after) noexcept;
 // 唯一Hook清单中的Player Pre包装调用此函数；只跳过本次受控Init的同一Player。

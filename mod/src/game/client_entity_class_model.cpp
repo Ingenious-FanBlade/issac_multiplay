@@ -28,7 +28,7 @@ ClientPoseColor Color(const V &v){ClientPoseColor c;const char *t[] = {"R","G","
   for(const auto &e:entries.GetArray()){const auto &key=At(e,"key");if(!key.IsString())Fail("color","key");unsigned i=0;while(i<4&&std::string(key.GetString())!=t[i])++i;if(i==4||(mask&(1u<<i)))Fail("color","duplicate");mask|=1u<<i;c.colorize[i]=Real(At(e,"value"));}return c;}
 struct Rule final {unsigned category;ClientEntityValueKind kind;std::int64_t low,high;};
 Rule Storage(unsigned category,ClientEntityValueKind kind,const char *type){std::int64_t low=INT32_MIN,high=INT32_MAX;
-  if(!std::strcmp(type,"std::int8_t")){low=INT8_MIN;high=INT8_MAX;}else if(!std::strcmp(type,"std::uint8_t")){low=0;high=UINT8_MAX;}else if(!std::strcmp(type,"std::uint16_t")){low=0;high=UINT16_MAX;}else if(!std::strcmp(type,"std::uint32_t")){low=0;high=UINT32_MAX;}
+  if(!std::strcmp(type,"std::int8_t")){low=INT8_MIN;high=INT8_MAX;}else if(!std::strcmp(type,"std::int16_t")){low=INT16_MIN;high=INT16_MAX;}else if(!std::strcmp(type,"std::uint8_t")){low=0;high=UINT8_MAX;}else if(!std::strcmp(type,"std::uint16_t")){low=0;high=UINT16_MAX;}else if(!std::strcmp(type,"std::uint32_t")){low=0;high=UINT32_MAX;}
   return {category,kind,low,high};}
 const std::map<std::string,Rule> &Rules(){static const std::map<std::string,Rule> rules={
 #define CS_CLASS_FIELD(category,id,offset,type,kind) {id,Storage(category,ClientEntityValueKind::kind,#type)},
@@ -37,7 +37,7 @@ const std::map<std::string,Rule> &Rules(){static const std::map<std::string,Rule
 };return rules;}
 bool Authority(const std::string &id){static const std::set<std::string> facts={
   "EntityNPC.CalcTargetPosition","EntityNPC.CanReroll","EntityNPC.CanShutDoors","EntityNPC.GetAliveEnemyCount","EntityNPC.GetHitList","EntityNPC.Pathfinder",
-  "EntityNPC.GetPlayerTarget","EntityNPC.IsBoss","EntityNPC.IsBossColor","EntityNPC.IsChampion","EntityNPC.QueryNPCsGroup","EntityNPC.QueryNPCsSpawnerType","EntityNPC.QueryNPCsType",
+  "EntityNPC.GetPlayerTarget","EntityNPC.GetSirenPlayerEntity","EntityNPC.IsBoss","EntityNPC.IsBossColor","EntityNPC.IsChampion","EntityNPC.QueryNPCsGroup","EntityNPC.QueryNPCsSpawnerType","EntityNPC.QueryNPCsType",
   "EntityDelirium.GetTeleportationTimer","EntityDelirium.IsRedMode","EntityTear.GetHitList","EntityBomb.GetHitList","EntityBomb.IsLoadingCostumes",
   "EntityLaser.GetHitList","EntityLaser.CalculateEndPoint","EntityLaser.GetRenderZ","EntityLaser.IsCircleLaser","EntityLaser.SampleLaser",
   "EntityKnife.GetHitList","EntityKnife.GetRenderZ",
@@ -47,13 +47,13 @@ bool Authority(const std::string &id){static const std::set<std::string> facts={
   "EntityEffect.IsPlayerCreep"};return facts.count(id)!=0;}
 bool Relation(const std::string &id){static const std::set<std::string> relations={"EntityNPC.ParentNPC","EntityNPC.ChildNPC","EntityNPC.EntityRef","EntityNPC.GetSirenPlayerEntity","EntityTear.StickTarget",
   "EntityLaser.BounceLaser","EntityKnife.GetHitboxParentKnife","EntityFamiliar.Player","EntityPickup.GetPickupGhost","EntityPickup.GetMegaChestLeftCollectible","EntityPickup.GetMegaChestRightCollectible","EntityEffect.GetGridEntityDesc"};return relations.count(id)!=0;}
-bool Resource(const std::string &id){return id=="EntityTear.GetDeadEyeSprite"||id=="EntityTear.GetTearEffectSprite"||id=="EntityTear.GetTearHaloSprite"||id=="EntityBomb.GetCostumeLayerSprite"||id=="EntityPickup.GetPriceSprite";}
+bool Resource(const std::string &id){return id=="EntityTear.GetDeadEyeSprite"||id=="EntityTear.GetTearEffectSprite"||id=="EntityTear.GetTearHaloSprite"||id=="EntityBomb.GetCostumeLayerSprite"||id=="EntityPickup.GetPriceSprite"||id=="EntitySlot.GetPrizeSprite";}
 bool Collection(const std::string &id){return id=="EntityLaser.HomingLaser"||id=="EntityLaser.GetSamples"||id=="EntityLaser.GetNonOptimizedSamples"||id=="EntityPickup.GetCollectibleCycle"||id=="EntityEffect.GetTearFlags";}
 void ParseFields(const V &fields,unsigned category,ClientEntityClassState &state){
   for(auto it=fields.MemberBegin();it!=fields.MemberEnd();++it){const std::string id(it->name.GetString());const auto rule=Rules().find(id);
     if(rule==Rules().end()){const auto *policy=replica::EntityApplicationPolicy(id);if(policy&&std::string((*policy)["ownership"].GetString())!="ReplicatedState")continue;
       if(id=="EntityTear.Bounced"){if(!Is(it->value,"status","Null")&&!Is(it->value,"status","NotApplicable"))Fail(id,"removed_since_Repentance");continue;}
-      if(Authority(id)||Relation(id)||Resource(id)||Collection(id)||id=="EntityNPC.GetFlyingOverride")continue;Fail(id,"disposition_missing");}
+      if(Authority(id)||Relation(id)||Resource(id)||Collection(id)||id=="EntityNPC.GetFlyingOverride"||id=="NativeText.text"||id=="NativeText.draw_color"||id=="NativeText.draw_phase")continue;Fail(id,"disposition_missing");}
     if(rule->second.category!=category)Fail(id,"category_mismatch");const auto &v=it->value;if(Is(v,"status","NotApplicable"))Fail(id,"required_native_value_not_applicable");
     ClientEntityField f;f.member=id;f.kind=rule->second.kind;
     switch(f.kind){case ClientEntityValueKind::Integer:f.integer=Integer<std::int64_t>(v);if(f.integer<rule->second.low||f.integer>rule->second.high)Fail(id,"native_width");break;
@@ -103,24 +103,60 @@ void Owned(const V &v,ClientObjectDescription &d,ClientEntityClassState &state){
   if(o.kind==P::SpriteTrail)for(const auto *row:Sequence(At(v,"trail"),16384)){const auto fields=Sequence(*row,16);if(fields.size()!=16)Fail("sprite_trail","record_size");std::array<std::uint32_t,16> record{};
     for(unsigned i=0;i<16;++i){record[i]=Integer<std::uint32_t>(*fields[i]);float f=0;std::memcpy(&f,&record[i],4);if(!std::isfinite(f))Fail("sprite_trail","nonfinite_record");}o.trail.push_back(record);}
 }
+// Source当前同窗口的完整描述；不接受字符串截断、猜测编码或拼接独立Render样本。
+void TextState(const V &fields,const V &body,ClientEntityClassState &state){
+  const auto &color=At(fields,"NativeText.draw_color");if(!Is(color,"status","Value")||!Is(color,"type","native_kcolor20"))Fail("NativeText.draw_color","complete_kcolor20_required");
+  const char *keys[]={"R","G","B","A"};for(unsigned i=0;i<4;++i)state.text_color[i]=Real(At(color,keys[i]));state.text_color_extra=Integer<std::int32_t>(At(color,"opaque32"));
+  const auto &bytes=At(body,"application_text_bytes");if(!Is(bytes,"status","Value")||Integer<unsigned>(At(bytes,"version"))!=1)Fail("NativeText.text","current_use_bytes_required");
+  const auto &hex=At(bytes,"hex");if(!hex.IsString()||hex.GetStringLength()>510||hex.GetStringLength()%2)Fail("NativeText.text","buffer_capacity");
+  const auto nibble=[](char c)->int {return c>='0'&&c<='9'?c-'0':c>='a'&&c<='f'?c-'a'+10:-1;};
+  for(unsigned i=0;i<hex.GetStringLength();i+=2){const int a=nibble(hex.GetString()[i]),b=nibble(hex.GetString()[i+1]);if(a<0||b<0||!(a*16+b))Fail("NativeText.text","hex_or_embedded_nul");state.text.push_back(char(a*16+b));}
+  const auto &text=At(fields,"NativeText.text");
+  if(text.IsString()){if(std::string(text.GetString(),text.GetStringLength())!=state.text)Fail("NativeText.text","byte_alias_conflict");}
+  else if(!Is(text,"type","bytes")||!Is(text,"encoding","lua-string-bytes")||At(text,"hex")!=hex)Fail("NativeText.text","byte_alias_conflict");
 }
-const char *ClientEntityClassDisposition(const std::string &id) noexcept {if(Rules().count(id))return "native-final-value;class-field-table";if(id=="EntityTear.Bounced")return "removed-since-Repentance;only-Null-or-NotApplicable;never-fabricate-storage";if(id=="EntityNPC.GetFlyingOverride")return "official-Plus-optional-bool;fixed-leaf-Lua-Set-Clear-Get";if(id=="EntityBomb.IsLoadingCostumes")return "authority-lazy-work-request;install-final-five-resources;client-pending=false";if(Authority(id))return "authority-fact;no-client-AI-or-collision-consumer";if(Relation(id))return "typed-reference;class-owner";if(Resource(id))return "independent-native-member-resource;I10";if(Collection(id))return "class-owned-complete-container;variant-qualified;no-gameplay-recalculation";return nullptr;}
+void DrawInputs(const V &body,ClientEntityClassState &state){
+  const auto &v=At(body,"application_draw");if(!Is(v,"status","Value")||Integer<unsigned>(At(v,"version"))!=1||!Is(v,"scope","same-ordinary-window"))Fail("application_draw","same_window_contract");
+  auto &d=state.draw;d.manager_frame=Integer<std::uint32_t>(At(v,"manager_frame"));d.game_frame=Integer<std::uint32_t>(At(v,"game_frame"));d.subframe=Integer<unsigned>(At(v,"subframe"));if(d.subframe>1)Fail("application_draw","subframe");
+  const auto &paused=At(v,"paused");if(!paused.IsBool())Fail("application_draw","paused");d.paused=paused.GetBool();if(d.subframe!=(d.paused?0u:(d.manager_frame+1u)%2u))Fail("application_draw","phase_alias_conflict");
+  const auto random=[&](const char *key,std::array<std::uint32_t,4> &out){const auto values=Sequence(At(v,key),4);if(values.size()!=4)Fail(key,"four_words");for(unsigned i=0;i<4;++i)out[i]=Integer<std::uint32_t>(*values[i]);if(!out[0])Fail(key,"zero_seed");for(unsigned i=1;i<4;++i)if(out[i]>31)Fail(key,"shift_range");};
+  random("pickup_random",d.pickup_random);random("familiar_random",d.familiar_random);d.present=true;
+}
+}
+const char *ClientEntityClassDisposition(const std::string &id) noexcept {if(Rules().count(id))return "native-final-value;class-field-table";if(id=="NativeText.text"||id=="NativeText.draw_color")return "current-use-native-text-bytes-and-KColor20;native-storage-and-font-consumer";if(id=="NativeText.draw_phase")return "independent-Render-reference-retained;ordinary-presentation-uses-own-application_draw-v1";if(id=="EntityTear.Bounced")return "removed-since-Repentance;only-Null-or-NotApplicable;never-fabricate-storage";if(id=="EntityNPC.GetFlyingOverride")return "official-Plus-optional-bool;fixed-leaf-Lua-Set-Clear-Get";if(id=="EntityBomb.IsLoadingCostumes")return "authority-lazy-work-request;install-final-five-resources;client-pending=false";if(Authority(id))return "authority-fact;no-client-AI-or-collision-consumer";if(Relation(id))return "typed-reference;class-owner";if(Resource(id))return "independent-native-member-resource;I10";if(Collection(id))return "class-owned-complete-container;variant-qualified;no-gameplay-recalculation";return nullptr;}
+void ClientDescribeEntityPlayerDraw(const replica::EntityObjectTarget &o,ClientObjectDescription &d){
+  const auto &body=std::get<replica::EntityClassValues<replica::EntityCategory::Player>>(o.payload).fields.value;
+  auto state=std::make_shared<ClientEntityClassState>();DrawInputs(body,*state);
+  const auto &v=At(body,"application_player_draw");if(Integer<unsigned>(At(v,"version"))!=1||!Is(v,"status","Value"))Fail("player_draw","current_owner_source_required");
+  const auto &used=At(v,"minecart_draw");if(!used.IsBool())Fail("player_draw","minecart_bool");state->player_minecart_draw=used.GetBool();
+  const auto &empty=At(v,"npc835_path_empty");if(!empty.IsBool())Fail("player_draw","npc835_path_empty_bool");state->player_npc835_path_empty=empty.GetBool();
+  if(state->player_minecart_draw){state->player_minecart_offset=Point(At(v,"offset"));state->player_minecart_sort_bits=Integer<std::uint32_t>(At(v,"sort_bits"));float y=0;std::memcpy(&y,&state->player_minecart_sort_bits,4);
+    if(!std::isfinite(y)||y!=state->player_minecart_offset.y)Fail("player_draw","minecart_sort_alias_conflict");std::memcpy(&state->player_minecart_offset.y,&state->player_minecart_sort_bits,4);}
+  d.derived=std::move(state);
+}
 void ClientDescribeEntityClass(const replica::EntityObjectTarget &o,ClientObjectDescription &d){
-  if(d.category<1||d.category>9)return;auto state=std::make_shared<ClientEntityClassState>();state->delirium=o.delirium;
+  if(d.category<1||d.category>12)return;auto state=std::make_shared<ClientEntityClassState>();state->delirium=o.delirium;
   const V *body=nullptr;std::visit([&](const auto &p){body=&p.fields.value;},o.payload);const auto &fields=At(*body,"fields");ParseFields(fields,d.category,*state);
   // 解析与native表的必需列一致；缺失/不适用不能悄悄留下池上一use的值。
   for(const auto &rule:Rules())if(rule.second.category==d.category){const auto &id=rule.first;
-    if(id.rfind("Native",0)==0)continue;if(id.rfind("EntityDelirium.",0)==0){if(o.delirium)At(At(o.special.value,"fields"),id.c_str());}
+    if(id.rfind("Native",0)==0&&d.category!=11)continue;if(id.rfind("EntityDelirium.",0)==0){if(o.delirium)At(At(o.special.value,"fields"),id.c_str());}
     else At(fields,id.c_str());}
+  DrawInputs(*body,*state);if(d.category==11)TextState(fields,*body,*state);
+  if(d.category==1){const auto &npc=At(*body,"application_npc");if(Integer<unsigned>(At(npc,"version"))!=1||!Is(npc,"status","Value"))Fail("npc_composite","complete_source_required");
+    state->npc_composite_count=Integer<unsigned>(At(npc,"reference_count"));if(state->npc_composite_count>16384)Fail("npc_composite","budget");state->npc_path=Points(At(npc,"path"));state->npc_secondary_path=Points(At(npc,"secondary_path"));}
+  if(d.category==1){const auto triplets=[](const auto &p){return p.empty()||(p.size()>=3&&p.size()%3==0);};
+    if((d.type==951&&d.variant==3&&state->npc_path.size()>=9&&!triplets(state->npc_path))||
+       (d.type==921&&d.variant==0&&!triplets(state->npc_secondary_path)))Fail("npc_curve","complete_native_triplets_required");}
   const auto &links=At(*body,"application_links");if(Integer<unsigned>(At(links,"version"))!=1||!Is(links,"status","Value"))Fail("native_links","unavailable_or_version");
   unsigned link_count=0;
 #define CS_CLASS_LINK(cat,id,offset) if(cat==0||cat==d.category){++link_count;const auto &link=At(At(links,"links"),id);if(!Is(link,"status","Null")&&!Is(link,"status","KnownCurrent"))Fail(id,"unresolved_or_invalid_link");}
 #include "game/client_entity_links.inc"
 #undef CS_CLASS_LINK
+  if(d.category==1)for(unsigned i=0;i<state->npc_composite_count;++i){const auto id="NativeNPC.Composite:"+std::to_string(i);++link_count;const auto &link=At(At(links,"links"),id.c_str());if(!Is(link,"status","Null")&&!Is(link,"status","KnownCurrent"))Fail(id,"unresolved_composite_member");}
   if(At(links,"links").MemberCount()!=link_count)Fail("native_links","unknown_or_duplicate_member");
   if(o.delirium)ParseFields(At(o.special.value,"fields"),1,*state);
   if(d.category==4){const auto &runtime=At(*body,"application_runtime");if(Integer<unsigned>(At(runtime,"version"))!=1||!Is(runtime,"status","Value"))Fail("bomb_application_runtime","unavailable_or_version");At(At(runtime,"values"),"NativeBomb.CostumeDrawEnabled");ParseFields(At(runtime,"values"),4,*state);}
-  if(d.category>=5){const auto &runtime=At(*body,"application_runtime");if(Integer<unsigned>(At(runtime,"version"))!=2||!Is(runtime,"status","Value"))Fail("class_application_runtime","unavailable_or_version");
+  if(d.category>=5&&d.category<=9){const auto &runtime=At(*body,"application_runtime");if(Integer<unsigned>(At(runtime,"version"))!=2||!Is(runtime,"status","Value"))Fail("class_application_runtime","unavailable_or_version");
     if(d.category==8||d.category==9){Owned(At(*body,"application_owned"),d,*state);const auto &owner=At(runtime,"private_owner_present");if(!owner.IsBool()||owner.GetBool()!=(state->owned.kind!=ClientEntityClassState::OwnedPresentation::None||state->owned.authority_only))Fail("class_private_owner","typed_owner_alias_conflict");}
     // 此容器只供Authority更新；当前Render没有消费者，保留事实，不复制header或执行Update恢复它。
     if(d.category==9&&!At(runtime,"private_container_nonempty").IsBool())Fail("effect_private_container","bool_required");}
@@ -138,13 +174,14 @@ void ClientDescribeEntityClass(const replica::EntityObjectTarget &o,ClientObject
   if(d.category==3){const auto &common=At(o.common.value,"fields");if(Real(At(fields,"EntityProjectile.DepthOffset"))!=Real(At(common,"Entity.DepthOffset")))Fail("EntityProjectile.DepthOffset","common_alias_conflict");}
   if(d.category==1){const auto &flying=At(fields,"EntityNPC.GetFlyingOverride");if(Is(flying,"status","Null"))state->flying_override=-1;else if(flying.IsBool())state->flying_override=flying.GetBool()?1:0;else Fail("EntityNPC.GetFlyingOverride","optional_bool");}
   if(d.category==1){const auto &runtime=At(*body,"application_runtime");if(Integer<unsigned>(At(runtime,"version"))!=1||!Is(runtime,"status","Value"))Fail("npc_application_runtime","unavailable_or_version");
-    if(Integer<std::uint64_t>(At(runtime,"private_reference_count")))Fail("npc_private_reference_container","pending_I25;never-copy-header-or-count");
-    if(!At(runtime,"owned_actor_present").IsBool()||At(runtime,"owned_actor_present").GetBool())Fail("npc_owned_actor","pending_I25_Player20;never-borrow-roster-as-owned-clone");}
+    if(Integer<std::uint64_t>(At(runtime,"private_reference_count"))!=state->npc_composite_count)Fail("npc_private_reference_container","count_alias_conflict");
+    if(!At(runtime,"owned_actor_present").IsBool())Fail("npc_owned_actor","bool_required;Authority-owned-update-only");}
   if(d.category==1){const auto &resources=At(*body,"application_resources");if(Integer<unsigned>(At(resources,"version"))!=1||!Is(resources,"status","Value"))Fail("npc_application_resources","unavailable_or_version");
     Pose(At(resources,"npc_overlay"),"npc_overlay",0,*state);Pose(At(resources,"npc_effect"),"npc_effect",0,*state);}
   if(d.category==7){const auto &resources=At(*body,"application_resources");if(Integer<unsigned>(At(resources,"version"))!=1||!Is(resources,"status","Value"))Fail("pickup_application_resources","unavailable_or_version");
     Pose(At(fields,"EntityPickup.GetPriceSprite"),"EntityPickup.GetPriceSprite",0,*state);Pose(At(resources,"pickup_alternate"),"pickup_alternate",0,*state);}
   if(d.category==6){const auto &resources=At(*body,"application_resources");if(Integer<unsigned>(At(resources,"version"))!=1||!Is(resources,"status","Value"))Fail("knife_application_resources","unavailable_or_version");Pose(At(resources,"knife_dead_eye"),"knife_dead_eye",0,*state);}
+  if(d.category==10)Pose(At(fields,"EntitySlot.GetPrizeSprite"),"EntitySlot.GetPrizeSprite",0,*state);
   // 主Sprite与辅助成员分别解析，不按文件名合并，也不把Null当缺失字段。
   const auto &main=At(At(o.common.value,"fields"),"Entity.GetSprite");
   if(Is(main,"status","Null")){d.resource.loaded=false;d.resource.exact_phase=true;d.resource.champion_color_present=true;d.resource.shaders_present=true;}

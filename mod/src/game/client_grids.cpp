@@ -232,7 +232,8 @@ ClientGridStep ClientGrids::ResolveReferences(const ClientObjects &objects) noex
         ref.space==6?descriptors.count(ref):false;
       if(!resolved){failed_=true;return {false,false,true,0,0,"grid_required_reference_unresolved"};}
     }
-    for(const auto &v:committed_->lifted)if(!entities.count(Key(v.owner))){failed_=true;return {false,false,true,0,0,"grid_lifted_requires_entity19_owner"};}
+    const char *reason="grid_lifted_requires_entity19_owner";
+    for(const auto &v:committed_->lifted)if(!entities.count(Key(v.owner))||!objects.CheckLifted(v,reason)){failed_=true;return {false,false,true,0,0,reason};}
     return {true,false,false,0,unsigned(grids.size()),"grid_references_resolved"};
   }catch(...){failed_=true;return {false,false,true,0,0,"grid_reference_allocation"};}
 }

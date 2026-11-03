@@ -51,7 +51,7 @@ EntityDependency DescribeEntityDependency(const EntityObjectTarget &o,const Enti
   else if(returns=="EntityEffect")d.expected=EntityCategory::Effect;
   if(d.member=="Entity.GetLastChild"||d.member=="Entity.GetLastParent"){
     d.kind=EntityDependencyKind::Historical;d.phase=EntityDependencyPhase::ValueOnly;
-  }else if(d.member=="EntityNPC.GetPlayerTarget"||d.member=="EntityNPC.Pathfinder"||d.member.rfind("EntityNPC.QueryNPCs",0)==0||d.member=="EntityFamiliar.GetActiveWeaponEntity"||d.member=="EntityFamiliar.GetWeapon"||d.member=="EntityFamiliar.GetPathfinder"||d.member=="EntityFamiliar.GetItemConfig"){
+  }else if(d.member=="EntityNPC.GetSirenPlayerEntity"||d.member=="EntityNPC.GetPlayerTarget"||d.member=="EntityNPC.Pathfinder"||d.member.rfind("EntityNPC.QueryNPCs",0)==0||d.member=="EntityFamiliar.GetActiveWeaponEntity"||d.member=="EntityFamiliar.GetWeapon"||d.member=="EntityFamiliar.GetPathfinder"||d.member=="EntityFamiliar.GetItemConfig"){
     d.kind=EntityDependencyKind::AuthorityValue;d.phase=EntityDependencyPhase::ValueOnly;
   }
   // Familiar Init真实读取Spawner；Knife的Parent链是owner/draw前置，不以首Player补齐。
@@ -71,7 +71,7 @@ EntityApplyPlan PlanEntityTarget(std::shared_ptr<const EntityTarget> t,std::shar
     if(target.revision==before.revision){if(target.source!=before.source)Fail("revision_content_conflict");out.duplicate=true;return out;}
     old=Members(before);
     if(std::set<SubjectKey>(target.player_keys.begin(),target.player_keys.end())!=std::set<SubjectKey>(before.player_keys.begin(),before.player_keys.end()))Fail("player_membership_change_requires_scene_player_stage");
-    if(target.source["state"]==before.source["state"]){out.duplicate=true;return out;}
+    // revision变化时仍复核跨域描述；Entity字节相同不能抹掉Grid侧Effect136描述变化。
   }
   std::set<SubjectKey> replace,remove;
   for(const auto &[key,index]:old){const auto &before=out.applied->objects[index];if(!Current(before)||before.category==EntityCategory::Player)continue;
@@ -92,8 +92,8 @@ EntityApplyPlan PlanEntityTarget(std::shared_ptr<const EntityTarget> t,std::shar
   for(const auto &key:replace)out.steps.push_back({EntityAction::Remove,key,old.at(key),true});
   std::map<SubjectKey,std::set<SubjectKey>> prerequisites;
   for(const auto &[key,index]:desired){const auto &o=target.objects[index];if(!Current(o))continue;
-    if(o.category==EntityCategory::Player)continue;
     for(const auto &r:o.references){auto d=DescribeEntityDependency(o,r);
+      if(o.category==EntityCategory::Player&&d.member!="Entity.GetMinecart")continue;
       if(out.dependencies.size()>=limits.dependencies)Fail("dependency_budget");
       if(!d.is_null&&d.phase!=EntityDependencyPhase::ValueOnly){
         if(!d.has_target||d.status!="KnownCurrent")Fail("required_reference_unresolved");
@@ -127,6 +127,7 @@ EntityApplyPlan PlanEntityTarget(std::shared_ptr<const EntityTarget> t,std::shar
       changed=o.common.value!=b.common.value||o.special.value!=b.special.value||o.payload.index()!=b.payload.index();
       std::visit([&](const auto &v){using B=std::decay_t<decltype(v)>;if(const auto *bv=std::get_if<B>(&b.payload))changed|=v.fields.value!=bv->fields.value;},o.payload);
     }
+    if(std::any_of(o.references.begin(),o.references.end(),[](const auto &r){return r.contract=="isaac.cs.grid:lifted_descriptors";}))changed=true;
     if(changed)out.steps.push_back({EntityAction::Fields,o.key,index});
     const auto &row=target.source["state"]["objects"][index];
     if(create||Resources(row,out.applied->source["state"]["objects"][prev->second]))out.steps.push_back({EntityAction::Resources,o.key,index});

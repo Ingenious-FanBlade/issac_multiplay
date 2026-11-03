@@ -2,6 +2,8 @@
 #include "LuaCore.h"
 #include "game/client_presentation_native.h"
 #include "game/client_grid_native.h"
+#include "game/client_objects_native.h"
+#include "game/client_entity_draw_native.h"
 #include "game/client_lifetime.h"
 #include "game/bridge.h"
 #include "game/context.h"
@@ -24,7 +26,7 @@
 namespace cs::game {
 bool ReadMemory(const void *,void *,std::size_t) noexcept;
 namespace {
-constexpr unsigned kMaximumRenderMembers=256;
+constexpr unsigned kMaximumRenderMembers=16384;
 // J273 96BD30/96DB20：真实vector三指针；FX stride=0x4C，pose stride=0x14。
 // 只构造独立pass1..6实际读取的成员，不把配置交给Update/随机消费者。
 template <class T> struct NativeFXVector final {T *begin=nullptr,*end=nullptr,*capacity=nullptr;};
@@ -215,7 +217,7 @@ unsigned RenderZ(Entity *entity) noexcept {
   auto **table=*reinterpret_cast<void ***>(entity);
   return reinterpret_cast<GetZ>(table[13])(entity);
 }
-// 只枚举17已闭合的普通Isaac/拉取表现；列表成员/变体不符时完整目标停止展示。
+// 列表中的每个非Player必须属于正式实例表；完整源成员不会被过滤成代表投影。
 bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &out,unsigned &count,const char *&reason) noexcept {
   const auto &list=room._entityList._renderEL;
   count=list._size;
@@ -230,9 +232,10 @@ bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &o
   unsigned players=0;
   for(unsigned i=0;i<count;++i){
     auto *entity=list._data[i];
-    if(!entity||!entity->_valid||!entity->_exists){reason="presentation_invalid_member";return false;}
+    if(!entity||!entity->_valid){reason="presentation_invalid_member";return false;}
     if(entity->_type==1){if(entity!=player){reason="presentation_foreign_player";return false;}++players;}
-    else if(entity->_type!=1000||entity->_variant!=57||entity->_subtype>1){
+    else if(const auto *d=ClientNativeObjectDrawDescription(entity);!(d&&d->full_entity&&d->category>0&&d->category<13)&&
+        (entity->_type!=1000||entity->_variant!=57||entity->_subtype>1)){
       // 记录真实多出的native成员；不把未知Entity过滤后冒认完整展示。
       static thread_local char detail[96];std::snprintf(detail,sizeof(detail),"presentation_entity_renderer_unsupported:%u:%u:%u",entity->_type,entity->_variant,entity->_subtype);
       reason=detail;return false;}
@@ -248,7 +251,7 @@ bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &o
 void FullSort(Room &room,std::array<Entity *,kMaximumRenderMembers> &entities,unsigned count) noexcept {
   struct Key final {Entity *entity;unsigned z,index;};
   std::array<Key,kMaximumRenderMembers> keys{};
-  for(unsigned i=0;i<count;++i)keys[i]={entities[i],RenderZ(entities[i]),entities[i]->_index};
+  for(unsigned i=0;i<count;++i){const auto *d=ClientNativeObjectDrawDescription(entities[i]);keys[i]={entities[i],RenderZ(entities[i]),d&&d->full_entity?d->authority_index:entities[i]->_index};}
   std::sort(keys.begin(),keys.begin()+count,[](const Key &a,const Key &b){return a.z!=b.z?a.z<b.z:a.index<b.index;});
   for(unsigned i=0;i<count;++i)room._entityList._renderEL._data[i]=entities[i]=keys[i].entity;
 }
@@ -390,8 +393,9 @@ bool FXPresent(Room &room) noexcept {
   return (room._fxLayers._loaded&&(layers.begin!=layers.end||FXRayGroups(room)||room._fxLayers._poopFxCountdown>0))||RoomVeins(room)[0].children[0];
 }
 void DrawEntity(Entity *entity,Vector &offset) {
-  if(entity->_type==1)static_cast<Entity_Player *>(entity)->Render(&offset);
-  else static_cast<Entity_Effect *>(entity)->Render(&offset);
+  // 各类真实虚表Render；统一Hook保护也覆盖水面415350的间接调用，不再错误cast为Effect。
+  auto **table=*reinterpret_cast<void ***>(entity);
+  reinterpret_cast<void (__thiscall *)(Entity *,Vector *)>(table[5])(entity,&offset);
 }
 // 415350是原生按Z绘制的窄consumer；mode3/4/5依据已提供water clip flags分层，不能直接全员再画一次。
 void DrawBand(Room &room,unsigned limit,Vector &offset,int mode,bool reset=false){
@@ -804,6 +808,8 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     }
   }
   ActiveDraw active(p->active);
+  ClientEntityFrameScope entity_frame(roots);
+  if(!entity_frame.Ready())return {false,false,true,"presentation_entity_draw_inputs_or_hooks"};
   ClientGridDrawScope grid_pose(roots,p->description.room_state.grid_light_queries);
   if(!grid_pose.Ready())return {false,false,true,"presentation_grid_pose_borrow"};
   VeinDrawBorrow vein_pose(room,p->description.auxiliary.veins_present);
@@ -863,7 +869,7 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
         KColor color=Color(p->description.light_tint);
         reinterpret_cast<void (__thiscall *)(FXLayers *,KColor *)>(Base+0x56db20)(&room._fxLayers,&color);
       }
-      for(unsigned i=0;i<count;++i)room.RenderEntityLight(entities[i],offset);
+      for(unsigned i=0;i<count;++i){ClientEntityDrawScope light(entities[i],&offset,3);if(light.CallOriginal())room.RenderEntityLight(entities[i],offset);}
       if(!ClientGridDraw(roots,ClientGridPass::Light,{offset.x,offset.y}))return {false,false,true,"presentation_grid_light"};
       if(!restore.FinishOffscreen(light.image))return {false,false,true,"presentation_light_target_changed"};
     }
@@ -925,6 +931,11 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
       if(!ClientGridDraw(roots,ClientGridPass::PillarEnd,{offset.x,offset.y}))return {false,false,true,"presentation_grid_pillar_end"};
     }
     if(water)DrawBand(room,UINT_MAX,offset,1);else for(;cursor<count;++cursor)DrawEntity(entities[cursor],offset);
+    // J273 8061A8—8061D2：全部主层结束后，按真实已消费范围调用slot7，无offset参数。
+    // 水面和普通路径在此共用一次Post，不在每张Sprite/每个反射pass重复执行。
+    unsigned post_count=count;if(water)std::memcpy(&post_count,reinterpret_cast<unsigned char *>(&room._entityList)+0xa0,4);
+    if(post_count>count)return {false,false,true,"presentation_entity_post_cursor"};
+    for(unsigned i=0;i<post_count;++i){auto **table=*reinterpret_cast<void ***>(entities[i]);reinterpret_cast<void (__thiscall *)(Entity *)>(table[7])(entities[i]);}
     // light集合只由所选实体的真实native helper维护，包含普通Isaac必需的原生LightGradient。
     // 来源已选layer4 FX写同一light surface；不调用含共享随机的FXLayers Load/Update。
     if(has_light)SurfaceComposite(Surface(0x7e7398),KColor(1,1,1,p->description.lighting_alpha),BlendMode(0,4,7,8,7),true);

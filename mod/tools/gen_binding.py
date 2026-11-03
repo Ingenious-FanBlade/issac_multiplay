@@ -478,6 +478,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "game/client_objects_native.h"
 #include "game/client_grid_native.h"
 #include "game/client_presentation_native.h"
+#include "game/client_entity_draw_native.h"
 #include "game/world_sources/loot.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/world_sources/global_random.h"
@@ -511,6 +512,17 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    if ident == 'client_entity_draw_paused':
+        return ['    bool value=false;', '    if(cs::game::ClientEntityDrawPaused(value)) return value;',
+                '    cs::CallScope scope(record);', '    return super();']
+    if ident == 'client_entity_owned_final':
+        return ['    if(cs::game::ClientEntityDrawOwnedFinal(this,sprite,offset)) return;',
+                '    cs::CallScope scope(record);', '    super(sprite,offset);']
+    if ident.startswith('client_entity_draw_') or ident.startswith('client_entity_shadow_') or ident.startswith('client_entity_post_'):
+        kind=2 if ident.startswith('client_entity_post_') else 1 if ident.startswith('client_entity_shadow_') else 0
+        return ['    cs::game::ClientEntityDrawScope draw(this,%s,%d);' % ('nullptr' if kind==2 else 'offset',kind),
+                '    if(!draw.CallOriginal()) return%s;' % (' false' if ret=='bool' else ''),
+                '    cs::CallScope scope(record);', '    %ssuper(%s);' % ('return ' if ret!='void' else '',call)]
     grid_light_queries={'client_grid_light_seed':0,'client_grid_light_stage':1,'client_grid_light_alt':2,
                         'client_grid_light_boss':3,'client_grid_light_suffix':4}
     if ident in grid_light_queries:
@@ -634,7 +646,9 @@ def legacy_body(row):
                 '    super(sound);',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
     if ident == 'native_text_render':
-        return ['    cs::game::ActualValueScope observation;',
+        return ['    cs::game::ClientEntityDrawScope draw(this,offset,0);',
+                '    if(!draw.CallOriginal()) return;',
+                '    cs::game::ActualValueScope observation;',
                 '    cs::game::EntityTextRenderWitness witness;',
                 '    if(observation.main && cs::game::ObservationLuaNeeded("Render") && g_Manager && g_Game && offset)',
                 '      witness=cs::game::BeginEntityTextRender(this,g_Manager->_framecount,g_Game->IsPaused(),offset->x,offset->y);',

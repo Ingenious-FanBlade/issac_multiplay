@@ -37,8 +37,10 @@ local function snapshot(e,ctx,class)
     local ok,d=protected(e,"ToDelirium")
     if ok and d then out.special=collect(d,"EntityDelirium",ctx,0) end
   end
-  if class=="EntityNPC" or class=="EntityTear" or class=="EntityProjectile" or class=="EntityBomb" or class=="EntityLaser" or class=="EntityKnife" or class=="EntityPickup" or class=="EntityFamiliar" or class=="EntityEffect" then
+  if class=="EntityPlayer" or class=="EntityNPC" or class=="EntityTear" or class=="EntityProjectile" or class=="EntityBomb" or class=="EntityLaser" or class=="EntityKnife" or class=="EntityPickup" or class=="EntityFamiliar" or class=="EntityEffect" or class=="EntitySlot" then
     local resources=native().EntityApplicationSprites(e,class)
+    out.body.application_draw=nativeValue(resources.draw or missing(resources.status,"draw_inputs_missing"),ctx)
+    if class=="EntityPlayer" then out.body.application_player_draw=nativeValue(resources.player_draw or missing(resources.status,"player_draw_inputs_missing"),ctx) end
     out.body.application_links={version=1,status=resources.status,links={}}
     if resources.status=="Value" then
       -- C++返回的固定声明列完整保留；nil也必须带名写出Null，不能被Lua pairs省略。
@@ -50,8 +52,11 @@ local function snapshot(e,ctx,class)
     end
     if class=="EntityNPC" then
       out.body.application_runtime={version=1,status=resources.status,private_reference_count=resources.npc_private_reference_count,owned_actor_present=resources.npc_owned_actor_present}
-      if resources.status=="Value" and resources.npc_private_reference_count~=0 then fail(ctx,"npc_private_reference_container_pending_I25") end
-      if resources.npc_owned_actor_present then fail(ctx,"npc_owned_actor_pending_I25_Player20") end
+      local composite=nativeValue(native().EntityApplicationNpc(e),ctx)
+      out.body.application_npc={version=1,status=composite.status,reference_count=composite.reference_count,path=composite.path,secondary_path=composite.secondary_path}
+      if composite.status=="Value" then
+        for i=0,composite.reference_count-1 do out.body.application_links.links["NativeNPC.Composite:"..tostring(i)]=value(composite.references[i+1],"Entity",ctx,1) end
+      else fail(ctx,"npc_application_composite:"..composite.status) end
       out.body.application_resources={version=1,status=resources.status}
       if resources.status=="Value" then
         for _,key in ipairs({"npc_overlay","npc_effect"}) do
@@ -102,7 +107,14 @@ local function snapshot(e,ctx,class)
     local supplement=native().Supplement(e)
     if supplement.class~="UnknownEntity" then
       out.class=supplement.class; out.body={type=supplement.class,status=supplement.status,fields={}}
+      -- 原生Text/Dummy也共用正式具名关系和普通窗口draw输入，不伪装成NPC。
+      local resources=native().EntityApplicationSprites(e,supplement.class)
+      out.body.application_draw=nativeValue(resources.draw or missing(resources.status,"draw_inputs_missing"),ctx)
+      out.body.application_links={version=1,status=resources.status,links={}}
+      if resources.status=="Value" then for _,name in ipairs(resources.link_names) do out.body.application_links.links[name]=value(resources.links[name],"Entity",ctx,1) end
+      else fail(ctx,"native_application_links:"..resources.status) end
       if supplement.class=="NativeText" then
+        out.body.application_text_bytes={version=1,status=supplement.status,hex=supplement.text_hex}
         for _,key in ipairs({"counter","duration","text"}) do
           out.body.fields["NativeText."..key]=supplement[key]~=nil and value(supplement[key],nil,ctx,1) or missing(supplement.status,"native_readiness_or_copy")
         end
@@ -140,7 +152,7 @@ function M.Capture(limits)
   end
   -- 普通窗口已复制主/辅助Sprite的精确phase、图层和两组Laser当前采样；
   -- 独立Render节流样本只描述自己的scope，绝不拼进此原子窗口。
-  local out={application_source={version=1,contract="entity-source-v1",target="REPENTOGON-1.1.3/J273",pose_scope="same-ordinary-window",required_contracts={"resource-pose-v1","entity-classification-v1","entity-auxiliary-sprites-v1","entity-native-presentation-v1","entity-class-application-v1","entity-class-application-v2"},auxiliary="NPC:overlay/effect;Tear:dead-eye/effect/halo;Bomb:costume0..4;Knife:shared-dead-eye;Pickup:price/alternate;Slot:prize;unloaded=Null",class_application="same-use-owned-links;NPC-private-owner-availability;Bomb-costume-enabled;Sprite-champion-color/playing/shader-paths",laser="same-use-four-owned-vectors-and-scalars-v1;public-sample-aliases-checked;no-CalculateSamples",independent="Render/Lifecycle/ActualCall/Query-have-own-scope;render-stride30-is-not-target-pose"},objects={},membership={source="Isaac.GetRoomEntities+native_membership",count=#subjects,native_count=#nativeSources,unavailable_native=unavailable,complete=enumerationComplete}}
+  local out={application_source={version=1,contract="entity-source-v1",target="REPENTOGON-1.1.3/J273",pose_scope="same-ordinary-window",required_contracts={"resource-pose-v1","entity-classification-v1","entity-auxiliary-sprites-v1","entity-native-presentation-v1","entity-class-application-v1","entity-class-application-v2","entity-class-application-v3"},auxiliary="NPC:overlay/effect;Tear:dead-eye/effect/halo;Bomb:costume0..4;Knife:shared-dead-eye;Pickup:price/alternate;Slot:prize;unloaded=Null",class_application="same-use-owned-links;NPC-private-owner-availability;Bomb-costume-enabled;Sprite-champion-color/playing/shader-paths",laser="same-use-four-owned-vectors-and-scalars-v1;public-sample-aliases-checked;no-CalculateSamples",independent="Render/Lifecycle/ActualCall/Query-have-own-scope;render-stride30-is-not-target-pose"},objects={},membership={source="Isaac.GetRoomEntities+native_membership",count=#subjects,native_count=#nativeSources,unavailable_native=unavailable,complete=enumerationComplete}}
   for i,e in ipairs(subjects) do
     if i>LIMIT.objects then fail(ctx,"object_budget"); out.membership.complete=false; break end
     ctx.objects=ctx.objects+1; out.objects[#out.objects+1]=snapshot(e,ctx)
