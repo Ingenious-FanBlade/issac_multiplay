@@ -52,5 +52,7 @@ struct EntityTarget final {
 EntityTarget ParseEntityTarget(const Value &model);
 const Json &EntityApplicationCatalog();
 const Value *EntityApplicationPolicy(const std::string &id);
+// 公开fields与版本化application_links使用不同结构；两者关系都保留原始具名槽身份。
+std::string EntityReferenceMember(const std::string &path);
 Json EntityCapabilities();
 } // namespace cs::replica

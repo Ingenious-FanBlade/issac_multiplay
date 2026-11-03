@@ -495,6 +495,7 @@ struct CsDevice {};
 struct CsButtonMaps {};
 // tx-04-07 只读观察组的 ABI 替身：只用于成员指针类型，不构造对象。
 struct CsEntity {};
+struct CsSoundEffects {};
 struct CsGame {};
 struct CsManager {};
 struct CsGameState {};
@@ -618,12 +619,20 @@ def legacy_body(row):
             out+=['    auto result=super(%s);' % call,'    observation.Returned(result);']
         return out+['    record.completed.fetch_add(1, std::memory_order_relaxed);']+([] if ret=='void' else ['    return result;'])
     if ident in ('native_global_random','native_global_seed'):
-        return ['    cs::game::GlobalRandomCall observation(%s, _AddressOfReturnAddress());' % ('true, std::uint32_t(reinterpret_cast<uintptr_t>(this))' if ident=='native_global_seed' else 'false, 0'),
+        return (['    unsigned initialization_value=0;',
+                 '    // Client类别构造只安装Source结果；此窄分支主动不调用原随机源，不计入观察完成。',
+                 '    if(cs::game::ClientEntityInitializationRandom(initialization_value)) return initialization_value;'] if ident=='native_global_random' else [])+['    cs::game::GlobalRandomCall observation(%s, _AddressOfReturnAddress());' % ('true, std::uint32_t(reinterpret_cast<uintptr_t>(this))' if ident=='native_global_seed' else 'false, 0'),
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                 '    auto result=super();',
                 '    observation.Returned(result);',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);',
                 '    return result;']
+    if ident == 'client_entity_retire_sound':
+        return ['    // 仅具名Entity退休内的原生Stop不重演全局音效状态；其余用途原样调用。',
+                '    if(cs::game::ClientEntitySuppressRetireSound()) return;',
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    super(sound);',
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);']
     if ident == 'native_text_render':
         return ['    cs::game::ActualValueScope observation;',
                 '    cs::game::EntityTextRenderWitness witness;',

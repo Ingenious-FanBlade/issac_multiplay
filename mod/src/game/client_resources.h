@@ -30,11 +30,20 @@ struct ClientResourcePose final {
   bool overlay_present=false,overlay_first=false,flip_x=false,flip_y=false;
   ClientPoseVector offset{},scale{1,1};
   ClientPoseColor color{};
+  // 冠军颜色是ANM独立的第二份ColorMod；不能由Entity.Color或普通Sprite.Color代替。
+  bool champion_color_present=false;
+  ClientPoseColor champion_color{};
+  // 官方shader路径由早期Lua setter观察复制；每层与整Sprite分别拥有两类shader。
+  bool shaders_present=false;
+  std::array<std::string,2> shaders{};
+  std::vector<std::array<std::string,2>> layer_shaders;
   float rotation=0,playback_speed=1;
   unsigned flags=0;
   std::vector<ClientLayerPose> layers;
   // 可选精确采样由正式观测提供；selector 是动画内层顺序，不是时间帧。
   bool exact_phase=false;
+  // 停止Entity/ANM Update与“原姿态是否标记播放中”分开；NPC overlay draw会读取此位。
+  bool main_playing=false,overlay_playing=false;
   float main_phase=0,overlay_phase=0;
   std::vector<int> main_selectors,overlay_selectors,main_null_selectors,overlay_null_selectors;
 };
@@ -50,4 +59,8 @@ ClientResourceStatistics ClientResourcesStatistics() noexcept;
 bool ClientNativeCpuQueuesEmpty() noexcept;
 ClientResourceResult ClientApplyResourcePose(void *sprite,const ClientResourcePose &) noexcept;
 bool ClientResourcePoseMatches(void *sprite,const ClientResourcePose &) noexcept;
+// 只在RegisterClasses后、bundled/mod脚本前包装四个具名setter；原setter恰好调用一次。
+bool ClientResourceInstallShaderBindings(void *lua_state) noexcept;
+// 当前Lua受保护调用内复制路径；只查询已观察路径，不猜测未知shader或保存userdata。
+bool ClientResourceCaptureShaderPaths(void *lua_state,void *sprite) noexcept;
 } // namespace cs::game

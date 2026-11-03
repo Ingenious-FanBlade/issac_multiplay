@@ -27,6 +27,7 @@ double Number(const V &v) {
   return n;
 }
 int Integer(const V &v,int low=0,int high=1000000){const auto n=Number(v);if(n<low||n>high||std::floor(n)!=n)throw std::runtime_error("resource_integer_range");return int(n);}
+unsigned Bits32(const V &v){const auto n=Number(v);if(n<0||n>UINT32_MAX||std::floor(n)!=n)throw std::runtime_error("resource_flags32_range");return unsigned(n);}
 bool Boolean(const V &v){if(!v.IsBool())throw std::runtime_error("resource_boolean");return v.GetBool();}
 ClientPoseVector Vector(const V &v){return {float(Number(At(v,"x"))),float(Number(At(v,"y")))};}
 std::vector<const V *> Sequence(const V &v) {
@@ -67,11 +68,13 @@ bool Path(const std::string &path) {
       path.find(':')==std::string::npos&&path.find("..") == std::string::npos&&
       path.find_first_of("\r\n\0",0,3)==std::string::npos;
 }
-void ShaderAbsent(const V &fields,const char *key) {
+void ShaderState(const V &fields,const char *key,const std::string *path=nullptr) {
   const auto &v=At(fields,key);
-  if(v.IsBool()){if(v.GetBool())throw std::runtime_error("resource_shader_path_unavailable");return;}
+  const auto check=[&](bool present){if(path?present!=!path->empty():present)throw std::runtime_error("resource_shader_path_unavailable_or_conflict");};
+  if(v.IsBool()){check(v.GetBool());return;}
   if(v.IsObject()&&v.HasMember("values")){
-    for(const auto *row:Sequence(v["values"]))if(Boolean(At(*row,"value")))throw std::runtime_error("resource_shader_path_unavailable");
+    const auto rows=Sequence(v["values"]);if(rows.size()!=1)throw std::runtime_error("resource_shader_query_count");
+    for(const auto *row:rows)check(Boolean(At(*row,"value")));
     return;
   }
   throw std::runtime_error("resource_shader_state_unavailable");
@@ -83,12 +86,12 @@ ClientLayerPose Layer(const V &v) {
   l.size=Vector(At(f,"LayerState.GetSize"));l.position=Vector(At(f,"LayerState.GetPos"));l.crop=Vector(At(f,"LayerState.GetCropOffset"));
   l.rotation=float(Number(At(f,"LayerState.GetRotation")));l.color=Color(At(f,"LayerState.GetColor"));
   l.visible=Boolean(At(f,"LayerState.IsVisible"));l.flip_x=Boolean(At(f,"LayerState.GetFlipX"));l.flip_y=Boolean(At(f,"LayerState.GetFlipY"));
-  l.flags=unsigned(Integer(At(f,"LayerState.GetRenderFlags"),0,0x7fffffff));
+  l.flags=Bits32(At(f,"LayerState.GetRenderFlags"));
   l.wrap_s=unsigned(Integer(At(f,"LayerState.GetWrapSMode"),0,2));l.wrap_t=unsigned(Integer(At(f,"LayerState.GetWrapTMode"),0,2));
   const auto &blend=Fields(At(f,"LayerState.GetBlendMode"));
   const char *keys[]={"BlendMode.Equation","BlendMode.RGBSourceFactor","BlendMode.RGBDestinationFactor","BlendMode.AlphaSourceFactor","BlendMode.AlphaDestinationFactor"};
   for(unsigned i=0;i<5;++i)l.blend[i]=unsigned(Integer(At(blend,keys[i]),0,i?14:4));
-  ShaderAbsent(f,"LayerState.HasCustomShader");ShaderAbsent(f,"LayerState.HasCustomChampionShader");return l;
+  return l;
 }
 void Selectors(const V &v,std::vector<int> &out){for(const auto *item:Sequence(v))out.push_back(Integer(*item,-1,1000000));if(out.size()>64)throw std::runtime_error("resource_selector_budget");}
 }
@@ -104,22 +107,35 @@ bool ClientParseResourcePose(const replica::Value &v,ClientResourcePose &out,std
     p.offset=Vector(At(f,"Sprite.Offset"));p.scale=Vector(At(f,"Sprite.Scale"));p.color=Color(At(f,"Sprite.Color"));
     p.rotation=float(Number(At(f,"Sprite.Rotation")));p.playback_speed=float(Number(At(f,"Sprite.PlaybackSpeed")));
     p.flip_x=Boolean(At(f,"Sprite.FlipX"));p.flip_y=Boolean(At(f,"Sprite.FlipY"));
-    p.flags=unsigned(Integer(At(f,"Sprite.GetRenderFlags"),0,0x7fffffff));
-    ShaderAbsent(f,"Sprite.HasCustomShader");ShaderAbsent(f,"Sprite.HasCustomChampionShader");
+    p.flags=Bits32(At(f,"Sprite.GetRenderFlags"));
     const auto layer_values=Sequence(At(f,"Sprite.GetAllLayers"));
-    if((p.loaded&&layer_values.empty())||layer_values.size()>64||(!p.loaded&&!layer_values.empty()))throw std::runtime_error("resource_layer_budget");
+    if(layer_values.size()>64||(!p.loaded&&!layer_values.empty()))throw std::runtime_error("resource_layer_budget");
     for(const auto *layer:layer_values)p.layers.push_back(Layer(*layer));
     std::sort(p.layers.begin(),p.layers.end(),[](const auto &a,const auto &b){return a.id<b.id;});
     for(unsigned i=0;i<p.layers.size();++i)if(p.layers[i].id!=i)throw std::runtime_error("resource_layer_identity");
     if(v.HasMember("pose_runtime")){
       const auto &runtime=v["pose_runtime"];if(Integer(At(runtime,"version"),1,1)!=1)throw std::runtime_error("resource_phase_version");
+      if(runtime.HasMember("champion_color")){const auto values=Sequence(runtime["champion_color"]);if(values.size()!=11)throw std::runtime_error("resource_champion_color");
+        p.champion_color_present=true;for(unsigned i=0;i<4;++i){p.champion_color.tint[i]=float(Number(*values[i]));p.champion_color.colorize[i]=float(Number(*values[i+4]));}
+        for(unsigned i=0;i<3;++i)p.champion_color.offset[i]=float(Number(*values[i+8]));}
+      if(runtime.HasMember("shaders")){const auto &shaders=runtime["shaders"];
+        const auto pair=[](const V &v){const auto rows=Sequence(v);if(rows.size()!=2)throw std::runtime_error("resource_shader_pair");std::array<std::string,2> out;
+          for(unsigned i=0;i<2;++i){out[i]=String(*rows[i]);if(!out[i].empty()&&!Path(out[i]))throw std::runtime_error("resource_shader_path");}return out;};
+        p.shaders=pair(At(shaders,"sprite"));for(const auto *row:Sequence(At(shaders,"layers")))p.layer_shaders.push_back(pair(*row));
+        if(p.layer_shaders.size()!=p.layers.size())throw std::runtime_error("resource_shader_layer_count");p.shaders_present=true;}
       p.overlay_first=Boolean(At(runtime,"overlay_first"));
       const auto &main=At(runtime,"main");p.main_phase=float(Number(At(main,"phase")));
+      if(main.HasMember("playing"))p.main_playing=Boolean(main["playing"]);
       Selectors(At(main,"layers"),p.main_selectors);Selectors(At(main,"nulls"),p.main_null_selectors);
       if(p.animation.empty()&&(p.main_phase!=0||!p.main_selectors.empty()||!p.main_null_selectors.empty()))throw std::runtime_error("resource_absent_main_phase_conflict");
-      if(p.overlay_present){const auto &overlay=At(runtime,"overlay");p.overlay_phase=float(Number(At(overlay,"phase")));Selectors(At(overlay,"layers"),p.overlay_selectors);Selectors(At(overlay,"nulls"),p.overlay_null_selectors);}
+      if(p.overlay_present){const auto &overlay=At(runtime,"overlay");p.overlay_phase=float(Number(At(overlay,"phase")));if(overlay.HasMember("playing"))p.overlay_playing=Boolean(overlay["playing"]);Selectors(At(overlay,"layers"),p.overlay_selectors);Selectors(At(overlay,"nulls"),p.overlay_null_selectors);}
       p.exact_phase=true;
     }else throw std::runtime_error("resource_exact_phase_unavailable");
+    ShaderState(f,"Sprite.HasCustomShader",p.shaders_present?&p.shaders[0]:nullptr);ShaderState(f,"Sprite.HasCustomChampionShader",p.shaders_present?&p.shaders[1]:nullptr);
+    for(unsigned i=0;i<layer_values.size();++i){const auto &fields=Fields(*layer_values[i]);const auto id=p.layers[i].id;
+      ShaderState(fields,"LayerState.HasCustomShader",p.shaders_present?&p.layer_shaders[id][0]:nullptr);ShaderState(fields,"LayerState.HasCustomChampionShader",p.shaders_present?&p.layer_shaders[id][1]:nullptr);}
+    // 旧来源的四组查询全部明确false时仍能安装“无shader”，不能遗留上一目标的路径。
+    if(!p.shaders_present){p.shaders_present=true;p.layer_shaders.resize(p.layers.size());}
     if(!p.loaded&&(!p.animation.empty()||p.overlay_present||p.main_phase!=0||!p.main_selectors.empty()||!p.main_null_selectors.empty()))throw std::runtime_error("resource_unloaded_animation_conflict");
     out=std::move(p);reason.clear();return true;
   }catch(const std::exception &e){reason=e.what();return false;}catch(...){reason="resource_parse_allocation";return false;}

@@ -38,8 +38,7 @@ bool Resources(const Value &v,const Value &before){
 EntityDependency DescribeEntityDependency(const EntityObjectTarget &o,const EntityReferenceTarget &r){
   EntityDependency d;d.source=o.key;d.path=r.path;d.status=r.status;d.target=r.target;d.has_target=r.has_target;d.is_null=r.status=="Null";
   // path中的成员名来自目录，不从未经解释的数值Type猜关系类型。
-  const auto slash=r.path.find("/fields/");
-  if(slash!=std::string::npos){d.member=r.path.substr(slash+8);const auto end=d.member.find('/');if(end!=std::string::npos)d.member.resize(end);}
+  d.member=EntityReferenceMember(r.path);
   if(r.owner_qualified){d.contract=r.contract;d.phase=EntityDependencyPhase::ValueOnly;
     d.kind=r.contract=="isaac.cs.grid:lifted_descriptors"?EntityDependencyKind::Descriptor:EntityDependencyKind::AuthorityValue;return d;}
   if(d.has_target&&d.target.space!=1){d.kind=d.target.space==2?EntityDependencyKind::Grid:d.target.space==7?EntityDependencyKind::Room:EntityDependencyKind::Descriptor;return d;}
@@ -52,7 +51,7 @@ EntityDependency DescribeEntityDependency(const EntityObjectTarget &o,const Enti
   else if(returns=="EntityEffect")d.expected=EntityCategory::Effect;
   if(d.member=="Entity.GetLastChild"||d.member=="Entity.GetLastParent"){
     d.kind=EntityDependencyKind::Historical;d.phase=EntityDependencyPhase::ValueOnly;
-  }else if(d.member=="EntityNPC.GetPlayerTarget"||d.member=="EntityFamiliar.GetActiveWeaponEntity"){
+  }else if(d.member=="EntityNPC.GetPlayerTarget"||d.member=="EntityNPC.Pathfinder"||d.member.rfind("EntityNPC.QueryNPCs",0)==0||d.member=="EntityFamiliar.GetActiveWeaponEntity"){
     d.kind=EntityDependencyKind::AuthorityValue;d.phase=EntityDependencyPhase::ValueOnly;
   }
   // Familiar Init真实读取Spawner；Knife的Parent链是owner/draw前置，不以首Player补齐。

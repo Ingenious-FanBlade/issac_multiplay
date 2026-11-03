@@ -1,3 +1,5 @@
+> **tx-04-19 I10—I14（2026-11-03）**：[资源与四类应用实现／明确边界](design/tx-04-19/tx-04-19-class-application.md)、[Luna max静态研究与主审](design/tx-04-19/entity-i10-i14-native.md)。主／辅助资源完整姿态、NPC／Delirium、Tear、Projectile、Bomb字段和具名关系已接入；特殊NPC私有draw目标写前明确拒绝并交I25，不冒称全类别画面已完成。Win32 Release纯编译链接成功，未运行分项测试、游戏或E2E；I15之后及I34统一验收待推进。
+
 > **tx-04-19 I05—I09（2026-11-03）**：[公共应用实现与必要逆向主审](design/tx-04-19/tx-04-19-common-application.md)。稳定实例／Player接口、A→T阶段计划、构造／发布、公共最终值与真实后态、分类型依赖已接线；一个GPT-6 Luna max子智能体逆向，主智能体独立复读并纠正SplatColor／Color别名及DepthOffset映射。Win32 Release纯构建成功，没有测试或游戏启动；类别adapter、唯一Scene提交与I34统一E2E仍归I10—I35。
 
 > **tx-04-19 I04（2026-11-03，阶段记录）**：R01—R13的[静态采用合同](design/tx-04-19/entity-application-contracts.md)、[J273必要逆向与主审](design/tx-04-19/entity-native-static.md)、[目录研究索引](design/tx-04-19/entity-native-contracts.json)已写回功能目录。一个GPT-6 Luna max子智能体执行必要逆向，主智能体独立复读并纠错；明确池大小／工厂选择、字段宽度、真实辅助资源、draw随机及跨对象退休副作用，不放行未知分支。此阶段I05—I35与统一E2E待实施，无构建、测试或游戏启动；后续进度见上项。
@@ -231,3 +233,4 @@
 - tx-04-10 当前实现与统一 E2E：[公共接口、Entity／Grid 拆分及完整 Entity 来源](design/observation-expansion/tx-04-10-implementation.md)。
 
 - tx-04-12 已完成：[房间身份/构建、进度、环境及楼层结构观测](design/observation-expansion/tx-04-12-implementation.md)及[206项特殊房间/Greed补全](design/observation-expansion/tx-04-12-supplement.md)，同tx统一E2E 7/7 PASS，实际覆盖与边界见结果。
+

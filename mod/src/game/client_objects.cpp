@@ -1,6 +1,7 @@
 #include "game/client_objects.h"
 #include "game/client_resource_model.h"
 #include "game/client_entity_model.h"
+#include "game/client_entity_adapters.h"
 #include <algorithm>
 #include <charconv>
 #include <cmath>
@@ -145,7 +146,7 @@ bool ParseObjects(const V &model,Objects &out,std::string &reason) {
   return true;
 }
 }
-ClientObjects::ClientObjects() noexcept=default;
+ClientObjects::ClientObjects() noexcept {try{entity_adapters_=ClientEntityBuiltinAdapters();}catch(...){failed_=true;reason_="objects_builtin_adapter_allocation";}}
 ClientObjects::~ClientObjects(){ClientNativeObjectsDestroy(native_);}
 ClientEntityOwners ClientObjects::PlayerOwner() noexcept {return ClientNativeObjectsPlayerOwner(native_);}
 bool ClientObjects::ConfigureEntityOwners(ClientEntityOwners owners,std::vector<ClientEntityClassAdapter> adapters) noexcept {

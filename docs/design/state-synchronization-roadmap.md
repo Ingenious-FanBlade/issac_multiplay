@@ -124,6 +124,7 @@
 
 ### tx-04-19：非Player Entity的客户端应用
 
+- 2026-11-03：[I10—I14资源与四类实现](tx-04-19/tx-04-19-class-application.md)已接入正式Source、不可变派生值、类别注册、主／辅助姿态、具名关系和正常退休；GPT-6 Luna max补查，主智能体独立审阅并纠正字段／引用／owner结论。NPC私有容器、拥有的actor和具名复合draw仍写前拒绝，I25／20继续闭合；没有全Entity提交位。纯编译链接完成，未测试或启动游戏；I15之后与I34统一E2E待推进。以下较早实施记录保留当时语境。
 - 2026-11-03后续实施：[I01—I03实现与边界](tx-04-19/tx-04-19-foundation.md)已交付全成员应用目录、正式T分类payload与能力、同窗口资源姿态、Text真实writer/KColor20/独立Render源及Laser signed/opaque表现值。主智能体已审阅GPT-6 Luna Max静态研究。原生应用器、I04起的采用路径研究和I34整体E2E仍未完成，不宣称整个19或Entity域已应用。
 - 2026-11-03具体实施入口：[I01—I35完整计划](tx-04-19/tx-04-19-implementation-plan.md)、[C01—C13逐类别与Slot变体](tx-04-19/tx-04-19-entity-application.md)、[R01—R13静态确认／必要逆向](tx-04-19/tx-04-19-native-research-plan.md)。纳入正式来源／投影、构造依赖、辅助资源、Effect136、派生draw、失败退休和P1—P6／18回归，列明E01—E26统一验收。当前仅计划文档；非Player完成不能代替包含Player的整个Entity域完成，20／21／22责任不变；未执行新增逆向、运行代码修改、构建或测试。
 - 2026-11-03：已先完成[复制模型冗余发送优化 P1—P6](replica-redundancy-reduction.md#10-2026-11-03-前置优化实现)的实现与静态消费者复核，模型／目录升为v2，完整观测不变；尚未开始本tx Entity应用主体或运行验收。19统一验收仍须重跑18的Room／Grid场景作为回归，并实测目标字节／节点、图闭合和版本拒绝；10 Mbps预算与控制流量精简见该文第8节，21／22／32的后续项见第9节。

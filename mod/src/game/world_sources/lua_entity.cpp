@@ -146,6 +146,30 @@ int LaserPresentation(lua_State *L) {
   }
   return 1;
 }
+// NPC两份辅助ANM由物理ctor分别构造；只借用同use当前成员，不拷贝ANM或运行AI。
+int EntityApplicationSprites(lua_State *L){
+  auto *e=lua::GetLuabridgeUserdata<Entity *>(L,1,lua::Metatables::ENTITY,"Entity");const auto subject=ObservationSubject(e,false);
+  lua_newtable(L);if(!e||subject.status!=1||subject.readiness<2){lua_pushliteral(L,"NotCaptured");lua_setfield(L,-2,"status");return 1;}
+  lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");lua_pushinteger(L,1);lua_setfield(L,-2,"version");
+  // 类型来自Lua已经成功的派生转换，再用当前对象作交叉检查，不能按Type范围猜NPC。
+  const char *source_class=luaL_checkstring(L,2);const unsigned category=e->ToNPC()?1:e->ToProjectile()?3:
+      !std::strcmp(source_class,"EntityTear")&&e->_type==2?2:!std::strcmp(source_class,"EntityBomb")&&e->_type==4?4:13;
+  if(category==13)return luaL_error(L,"entity_application_class_witness");
+  lua_newtable(L);
+  const auto link=[&](const char *name,unsigned offset){auto *target=*reinterpret_cast<Entity **>(reinterpret_cast<unsigned char *>(e)+offset);
+    lua::luabridge::UserdataPtr::push(L,target,lua::GetMetatableKey(lua::Metatables::ENTITY));lua_setfield(L,-2,name);};
+#define CS_CLASS_LINK(cat,id,offset) if(cat==0||cat==category)link(id,offset);
+#include "game/client_entity_links.inc"
+#undef CS_CLASS_LINK
+  lua_setfield(L,-2,"links");
+  if(category==1){lua_pushinteger(L,*reinterpret_cast<unsigned *>(reinterpret_cast<unsigned char *>(e)+0xc00));lua_setfield(L,-2,"npc_private_reference_count");
+    lua_pushboolean(L,*reinterpret_cast<void **>(reinterpret_cast<unsigned char *>(e)+0xf40)!=nullptr);lua_setfield(L,-2,"npc_owned_actor_present");}
+  if(category==4){lua_pushboolean(L,*reinterpret_cast<bool *>(reinterpret_cast<unsigned char *>(e)+0x462));lua_setfield(L,-2,"bomb_costume_draw_enabled");}
+  if(e->ToNPC())for(const auto &p:{std::pair<const char *,unsigned>{"npc_overlay",0xcd8u},{"npc_effect",0xdecu}}){
+    auto *sprite=reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(e)+p.second);
+    lua::luabridge::UserdataPtr::push(L,sprite,lua::GetMetatableKey(lua::Metatables::SPRITE));lua_setfield(L,-2,p.first);
+  }return 1;
+}
 int Sources(lua_State *L) {
   lua_newtable(L);
   struct Sink { lua_State *L; int index=0; } sink{L};
@@ -184,11 +208,17 @@ int SpriteRuntimePose(lua_State *L) {
   lua_pushboolean(L,sprite->_overlayRenderFirst);lua_setfield(L,-2,"overlay_first");
   const auto copy=[L](const AnimationState &s,const char *key) {
     lua_newtable(L);lua_pushnumber(L,s._animData?s._animFrame:0);lua_setfield(L,-2,"phase");
+    lua_pushboolean(L,s._animData&&s._isPlaying);lua_setfield(L,-2,"playing");
     lua_newtable(L);if(s._animData)for(int i=0;i<s._animData->_layerCount;++i){lua_pushinteger(L,s._layerFrames[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"layers");
     lua_newtable(L);if(s._animData)for(int i=0;i<s._animData->_nullLayerCount;++i){lua_pushinteger(L,s._nullLayerFrames[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"nulls");
     lua_setfield(L,-2,key);
   };
-  copy(sprite->_animState,"main");copy(sprite->_overlayAnimState,"overlay");return 1;
+  copy(sprite->_animState,"main");copy(sprite->_overlayAnimState,"overlay");
+  // 第二份冠军ColorMod直接复制11个纯float，不调用着色状态机。
+  lua_newtable(L);const auto &champion=sprite->_championColor;
+  for(unsigned i=0;i<4;++i){lua_pushnumber(L,champion._tint[i]);lua_rawseti(L,-2,i+1);lua_pushnumber(L,champion._colorize[i]);lua_rawseti(L,-2,i+5);}
+  for(unsigned i=0;i<3;++i){lua_pushnumber(L,champion._offset[i]);lua_rawseti(L,-2,i+9);}lua_setfield(L,-2,"champion_color");
+  if(!ClientResourceCaptureShaderPaths(L,sprite))return luaL_error(L,"sprite_shader_paths");lua_setfield(L,-2,"shaders");return 1;
 }
 int RoomPresentation(lua_State *L) {return ClientPresentationCaptureLua(L);}
 int RoomConfigContents(lua_State *L) {return ClientRoomConfigCaptureLua(L);}
@@ -282,6 +312,7 @@ void EnsureObservationLuaBridge() noexcept {
   luaL_setfuncs(L,funcs,0);
   lua_pushcfunction(L,SpriteRuntimePose);lua_setfield(L,-2,"SpriteRuntimePose");
   lua_pushcfunction(L,LaserPresentation);lua_setfield(L,-2,"LaserPresentation");
+  lua_pushcfunction(L,EntityApplicationSprites);lua_setfield(L,-2,"EntityApplicationSprites");
   lua_pushcfunction(L,RoomPresentation);lua_setfield(L,-2,"RoomPresentation");
   lua_pushcfunction(L,RoomConfigContents);lua_setfield(L,-2,"RoomConfigContents");
   lua_pushcfunction(L,RoomApplication);lua_setfield(L,-2,"RoomApplication");

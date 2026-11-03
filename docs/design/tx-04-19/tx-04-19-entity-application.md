@@ -1,6 +1,6 @@
 # tx-04-19：非 Player Entity 逐类别应用计划
 
-日期：2026-11-03。状态：**C01—C13 均为待实施计划**；不是已经支持的类别清单，也不将 10 的完整观测等同于写回支持。执行、公共任务和统一验收见[总实施计划](tx-04-19-implementation-plan.md)，原生前置见[静态研究清单](tx-04-19-native-research-plan.md)。
+日期：2026-11-03。状态：**C01—C05的类别值、资源、引用与正常生命周期路径已实现**，见[I10—I14实现与具名拒绝边界](tx-04-19-class-application.md)。C01／C02的未明私有容器、拥有的actor及复合draw继续明确拒绝并交I25／20；全类别draw调度归I25。C06—C13及统一E2E待实施。下文是完整类别目标，不将代码／观测存在写成已运行通过的全类别清单。执行、公共任务和统一验收见[总实施计划](tx-04-19-implementation-plan.md)，原生前置见[静态研究清单](tx-04-19-native-research-plan.md)。
 
 I04 后续静态结论见[全类别采用合同](entity-application-contracts.md)、[J273必要逆向与主审](entity-native-static.md)及[功能目录研究索引](entity-native-contracts.json)。字段宽度、池大小、专用资源／owner、Timeout文档冲突和失败前缀以具名证据为准；下面的类别任务仍须实际实现并在I34统一验收，不能把静态结果改成native支持。
 

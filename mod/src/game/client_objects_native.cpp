@@ -437,7 +437,7 @@ bool FormalExecute(ClientNativeObjects &o,const ClientNativeRoots &roots,const C
       if(entry.prefix&Init){reason="objects_formal_init_already_entered";return false;}
       entry.prefix|=Init;Mark(o,Init);
       if(!a->before_init(a->context,&e,d,resolver,roots,reason))return false;
-      e.Init(d.type,d.variant,d.subtype,d.seed);entry.initialized=true;
+      if(a->initialize){if(!a->initialize(a->context,&e,d,reason))return false;}else e.Init(d.type,d.variant,d.subtype,d.seed);entry.initialized=true;
       entry.vptr=*reinterpret_cast<const std::uintptr_t *>(&e);entry.native_seed=e._initSeed;
       if(e._type!=d.type||e._variant!=d.variant||e._subtype!=d.subtype||e._valid){reason="objects_formal_init_shape_or_early_publication";return false;}
       return true;

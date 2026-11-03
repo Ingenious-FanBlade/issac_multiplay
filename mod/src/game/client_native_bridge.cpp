@@ -2,6 +2,7 @@
 #include "LuaCore.h"
 #include "game/bridge.h"
 #include "game/client_lifetime.h"
+#include "game/client_resources.h"
 #include "runtime.h"
 #include <cstddef>
 #include <cstring>
@@ -351,6 +352,7 @@ void ClientGuardLuaBindings(bool classes_registered) noexcept {
   if(!IsMain()||!g_LuaEngine||!g_LuaEngine->_state)return;
   auto *L=g_LuaEngine->_state;
   guard_ready_state=nullptr;
+  if(classes_registered&&!ClientResourceInstallShaderBindings(L)){ClientCallbackFault("client_shader_binding_install");return;}
   const int top=lua_gettop(L);
   if(!lua_checkstack(L,2))return;
   if(guard_sealed_state==L){

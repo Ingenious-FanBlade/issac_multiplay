@@ -2,6 +2,7 @@
   "evidence": "STATIC_CONFIRMED",
   "base": "0x400000",
   "functions": [
+    {"rva":"0x508140","pattern":"55 8B EC 53 56 8B 75 08 57 85 F6 0F 88 AD 00 00 00","type":"void __thiscall(int)","entry":["tx-04-19 I10-I14 Luna静态核对及主审：SoundEffects Stop；ECX=this、一个int栈参数，两返回VA908196/908202均ret4。仅Client类别Retire作用域阻止NPC912/903等原生Clear重演全局Stop；Host/Off及其它用途original exactly-once。Lua官方Stop存在，C++SDK无同址声明，使用自有薄定义。"]},
     {"rva":"0x1CC580","pattern":"55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 83 EC 2C","type":"void __thiscall(Vector*)","entry":["tx-04-19 I03主审：Text Render；ECX=this，一个栈word的Vector*。只观察真实draw输入，原调用一次；Text2暂停与Manager framecount半帧独立记录，不拼OrdinaryPost。"]},
     {"rva":"0x1CC340","pattern":"55 8B EC 83 E4 F0 83 EC 2C 56 8B F1 8B 46 2C","type":"int __thiscall()","entry":["tx-04-19 I03主审：Text Update；ECX=this，无显式栈参，保留EAX。counter+410为0且variant1/2分别执行有界%g/%d格式化，正常返回才见证本use文本写入；variant0仅接纳已解释writer的虚调返回点RVA2FF344。观察wrapper original exactly-once，不主动Update。"]},
     {"rva":"0x304FB0","pattern":"55 8B EC 51 F3 0F 7E 05 ?? ?? ?? ?? A1 ?? ?? ?? ?? 56 8B F1","type":"GridEntity* __thiscall()","entry":["tx-04-18主审704FB0基物理构造；保留EAX=this，无栈参，GridFactory之外的直接墙构造也调用。只记物理代次，不冒称完整派生出生。"]},

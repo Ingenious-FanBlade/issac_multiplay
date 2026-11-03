@@ -11,6 +11,7 @@ SOURCE = ROOT / "mod/observation/isaac-cs-observation/entity-catalog.json"
 PARSER = "mod/src/replica/entity_target.cpp:ParseEntityTarget"
 RESEARCH = ROOT / "docs/design/tx-04-19/entity-native-contracts.json"
 COMMON_FIELDS = ROOT / "mod/src/game/client_entity_fields.inc"
+CLASS_FIELDS = ROOT / "mod/src/game/client_entity_class_fields.inc"
 # 分类来自公开转换/专用RTTI见证；数值Type只用于交叉检查，绝不按范围猜NPC。
 CLASSES = {
     "EntityPlayer": ("Player", "tx-04-20", "external-player-owner", "E13"),
@@ -64,6 +65,14 @@ def generate():
             kind, member, storage = match.groups()
             common_native[member] = {"declaration": kind, "storage": storage, "scope": "non-Player;Player20-owner",
                                      "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"}
+    # 派生表与公共表同样来自产品声明，目录不执行任何原生检查。
+    class_native = {}
+    for line in CLASS_FIELDS.read_text(encoding="utf-8-sig").splitlines():
+        match = re.match(r'CS_CLASS_FIELD\((\d+),"([^"]+)",([^,]+),([^,]+),([^\)]+)\)', line)
+        if match:
+            category, member, offset, native_type, kind = match.groups()
+            class_native[member] = {"category": int(category), "offset": offset, "native_type": native_type, "kind": kind,
+                                    "write_and_check": "mod/src/game/client_entity_adapters_native.cpp:Fields"}
     rows = []
     for ordinal, m in enumerate(catalog["members"]):
         task, responsibility, reason, e2e = route(m)
@@ -102,19 +111,34 @@ def generate():
             rows[-1]["native_status"] = "I08-common-path-implemented;class-owner-and-I34-pending"
             rows[-1]["local_storage"] = common_native[m["id"]]["storage"]
             rows[-1]["implementation"] = "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+        elif m["id"] in class_native and ownership == "ReplicatedState":
+            rows[-1]["native_status"] = "I11-I14-final-field-path-implemented;I25/I29-integration-and-I34-pending"
+            rows[-1]["local_storage"] = class_native[m["id"]]
+            rows[-1]["implementation"] = "mod/src/game/client_entity_class_model.cpp:ClientDescribeEntityClass;mod/src/game/client_entity_adapters_native.cpp:Fields"
+        elif m["class"] in {"EntityNPC", "EntityDelirium", "EntityTear", "EntityProjectile", "EntityBomb"} and ownership == "ReplicatedState":
+            rows[-1]["native_status"] = "I10-I14-explicit-field-disposition;I25/I29/I34-pending"
+            rows[-1]["local_storage"] = "ClientEntityClassDisposition:resource/native-reference/Authority-fact/optional-bool/removed-API;source-owned-actor-or-private-container=explicit-reject"
+            rows[-1]["implementation"] = "mod/src/game/client_entity_class_model.cpp:ClientEntityClassDisposition;mod/src/game/client_entity_adapters_native.cpp"
         elif responsibility == "typed_reference":
             rows[-1]["native_status"] = "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending"
             rows[-1]["implementation"] = "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences"
     # 结构型补充与公开行使用同一责任目录，不能靠测试夹具补表现源。
     return {"format": "isaac.cs.entity.application-catalog", "version": 1, "model_version": 2,
             "target_contract": "entity-target-v1", "source_contract": "entity-source-v1", "members": rows,
-            "common_native": common_native,
+            "common_native": common_native, "class_native": class_native,
+            "class_execution": {"registered": ["NPC", "Delirium-special", "Tear", "Projectile", "Bomb"],
+                                "model": "mod/src/game/client_entity_class_model.cpp", "native": "mod/src/game/client_entity_adapters_native.cpp",
+                                "resources": "main/overlay/layers/exact-phase/champion-color/shader;NPC two ANM;Tear three ANM;Bomb five costumes",
+                                "native_links": "NativeEntity.Attached;NPC ChildA/Peer/ChildB/RemovalChild/Related;Tear ChildA/Peer/ChildB/LinkA/LinkB/ChildC;Null-explicit;official-EntityPtr-helper",
+                                "source_contract": "entity-class-application-v1;NPC nonempty private reference container or owned actor remains unavailable until I25/20",
+                                "rejected_npc_private_draw": ["835", "906", "920", "921", "951:3", "965:10"],
+                                "scene_commit": "I29-pending", "native_draw_dispatch": "I25-pending", "runtime_acceptance": "I34-pending"},
             "common_execution": {"tasks": "I05-I09", "plan": "mod/src/replica/entity_plan.cpp:PlanEntityTarget",
                                  "executor": "mod/src/game/client_objects.cpp:ClientObjects;mod/src/game/client_objects_native.cpp:FormalExecute",
                                  "class_native_apply": False, "scene_commit": "I29-pending", "runtime_acceptance": "I34-pending"},
             # I04研究索引是资料与采用约束，不把静态审阅升级为原生支持或运行通过。
             "static_research": json.loads(RESEARCH.read_text(encoding="utf-8-sig")),
-            "classes": [{"source_class": c, "category": d[0], "task": d[1], "contract": d[2], "e2e": d[3], "native_apply": False} for c, d in CLASSES.items()],
+            "classes": [{"source_class": c, "category": d[0], "task": d[1], "contract": d[2], "e2e": d[3], "adapter_registered": c in {"EntityNPC", "EntityDelirium", "EntityTear", "EntityProjectile", "EntityBomb"}, "native_apply": False} for c, d in CLASSES.items()],
             "classification": {"method": "public-derived-interface-or-J273-RTTI;never-Type-range", "rejected_legacy": ["NativeDarkness"], "unknown": "explicit-UnknownEntity;never-NPC", "delirium": "EntityNPC+EntityDelirium-special"},
             "slot_variants": {"source": "mod/observation/isaac-cs-observation/domains/entity/slot_variants.lua", "values": [
                 {"variant": i+1, "name": name, "contract": "C11;read actual Prize/DonationValue/Timeout/PrizeSprite;no local payout"}
@@ -123,6 +147,11 @@ def generate():
                 {"id": "membership", "task": "I02/I06", "handling": "original count and Player keys retained;partial never deletes"},
                 {"id": "application_source", "task": "I03", "handling": "ordinary same-window exact member poses;independent render remains separate/throttled"},
                 {"id": "Sprite.pose_runtime", "task": "I03/I10", "handling": "resource-pose-v1;actual source member;nullable unloaded auxiliary"},
+                {"id": "Sprite.pose_runtime.champion_color/shaders", "task": "I10", "handling": "11-float native champion ColorMod;early observed successful official shader paths;current Has query must match;unobserved=ReadFailed"},
+                {"id": "EntityNPC.application_resources", "task": "I10/I11", "handling": "observed completed owner;same-use native ANM +CD8/+DEC;independent resources;Null unload via candidate swap"},
+                {"id": "Entity.application_links", "task": "I11-I14/I09", "handling": "client_entity_links.inc is source/native declaration;complete fixed set including Null;stable Key;not copied addresses;unlink before retirement"},
+                {"id": "EntityNPC.application_runtime", "task": "I11/I25", "handling": "private_reference_count and owned_actor_present are availability facts;nonempty/owned=explicit incomplete Source+write-before-reject;never assign container count or borrow roster as owned actor"},
+                {"id": "EntityBomb.application_runtime", "task": "I14", "handling": "NativeBomb.CostumeDrawEnabled is the actual initialized byte +462;separate from source lazy pending +463"},
                 {"id": "EntityLaser.HomingLaser", "task": "I03/I15", "handling": "owner-qualified opaque identity;public optimized/nonoptimized sample vectors retained;private geometry versioned separately"},
                 {"id": "EntityLaser.sample_mode_raw/start_offset_mode_opaque32", "task": "I03/I15", "handling": "initialized-owner J273 supplement;signed int8 preserves -1 early-return state;int32 opaque preserves 4F0<=0 branch without guessing semantic name"},
                 {"id": "NativeDummy", "task": "I03/I22", "handling": "J273 RTTI native supplement;common only;not NativeDarkness"},

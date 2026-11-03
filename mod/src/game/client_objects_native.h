@@ -19,12 +19,13 @@ struct ClientObjectKey final {
 };
 struct ClientObjectReference final { bool present=false,is_null=false;ClientObjectKey target{}; };
 // C++17 SDK边界只接收自有值；字段状态由纯值层解释，不向原生传JSON地址。
-enum class ClientEntityValueKind : unsigned { Integer, Bits, Real, Boolean, Vector, Color };
+enum class ClientEntityValueKind : unsigned { Integer, Bits, Real, Boolean, Vector, Color, Bits128 };
 struct ClientEntityField final {
   std::string member;
   ClientEntityValueKind kind=ClientEntityValueKind::Integer;
   std::int64_t integer=0;
   std::uint64_t bits=0;
+  std::uint64_t high_bits=0;
   float real=0;
   bool boolean=false;
   ClientPoseVector vector{};
@@ -37,6 +38,7 @@ struct ClientEntityRelation final {
   bool is_null=false,before_init=false,value_only=false;
 };
 // 17代表值和19公共值显式区分；派生完整值交给具名类别owner，不默认忽略必需字段。
+struct ClientEntityClassState;
 struct ClientObjectDescription final {
   ClientObjectKey key{};
   std::uint64_t shape_revision=0;
@@ -55,6 +57,7 @@ struct ClientObjectDescription final {
   std::string class_values,common_values,special_values;
   // 组件内graph_ref必须在整component解析；各对象共享不可变文本，不复制N份完整图。
   std::shared_ptr<const std::string> component_values;
+  std::shared_ptr<const ClientEntityClassState> derived;
   // 普通Isaac的最终基础统计；构造期不执行Pre/Post起始物品玩法。
   bool player_stats=false;
   float damage=0,move_speed=0,max_fire_delay=0,shot_speed=0,tear_range=0,luck=0;
@@ -95,6 +98,8 @@ struct ClientEntityClassAdapter final {
   void *context=nullptr;
   bool (*prepare)(void *,const ClientObjectDescription &,const char *&) noexcept=nullptr;
   bool (*before_init)(void *,void *,const ClientObjectDescription &,const ClientEntityOwners &,const ClientNativeRoots &,const char *&)=nullptr;
+  // 可选窄Init作用域；仍经同一动态Init/官方Plus链，不允许另造或提前发布实例。
+  bool (*initialize)(void *,void *,const ClientObjectDescription &,const char *&)=nullptr;
   bool (*fields)(void *,void *,const ClientObjectDescription &,bool,const char *&)=nullptr;
   bool (*resources)(void *,void *,const ClientObjectDescription &,bool,const char *&)=nullptr;
   bool (*relations)(void *,void *,const ClientObjectDescription &,const ClientEntityOwners &,const ClientNativeRoots &,bool,bool,const char *&)=nullptr;
@@ -123,4 +128,8 @@ void ClientObjectPlayerDrawDiagnostic(void *player,const void *position,bool bod
 bool ClientObjectSuppressPlayerPreStats(void *player) noexcept;
 bool ClientObjectSkipPlayerPreStats() noexcept;
 bool ClientObjectPreStatsIsolationInstalled() noexcept;
+// 主动类别Init中的临时随机输入不推进本地全局RNG；Off/Host和其它调用原样透传。
+bool ClientEntityInitializationRandom(unsigned &value) noexcept;
+bool ClientEntityInitIsolationInstalled() noexcept;
+bool ClientEntitySuppressRetireSound() noexcept;
 } // namespace cs::game

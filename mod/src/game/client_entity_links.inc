@@ -1,0 +1,13 @@
+// 已核定的4字节关系槽；0适用于本轮四类。Source复制Key，Client使用官方SetReference登记/撤销。
+CS_CLASS_LINK(0,"NativeEntity.Attached",0x310)
+CS_CLASS_LINK(1,"NativeNPC.ChildA",0xf50)
+CS_CLASS_LINK(1,"NativeNPC.Peer",0xf54)
+CS_CLASS_LINK(1,"NativeNPC.ChildB",0xf58)
+CS_CLASS_LINK(1,"NativeNPC.RemovalChild",0xf28)
+CS_CLASS_LINK(1,"NativeNPC.Related",0xf38)
+CS_CLASS_LINK(2,"NativeTear.ChildA",0x488)
+CS_CLASS_LINK(2,"NativeTear.Peer",0x48c)
+CS_CLASS_LINK(2,"NativeTear.ChildB",0x490)
+CS_CLASS_LINK(2,"NativeTear.LinkA",0x494)
+CS_CLASS_LINK(2,"NativeTear.LinkB",0x498)
+CS_CLASS_LINK(2,"NativeTear.ChildC",0x49c)

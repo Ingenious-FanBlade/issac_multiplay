@@ -126,7 +126,13 @@ void References(const V &v,const std::string &p,std::vector<EntityReferenceTarge
     else {if(const auto *s=Find(v,"schema"))ref.contract=Str(*s);if(const auto *f=Find(v,"field"))ref.contract+=":"+Str(*f);}
     out.push_back(std::move(ref));return;
   }
-  if(Is(Find(v,"type"),"reference")||Is(Find(v,"resolution"),"Null")){
+  // Lua nil采用通用Null节点。只有具名Entity关系将它解释为解除边，Sprite/optional-bool的Null不建依赖。
+  bool null_relation=false;
+  if(Is(Find(v,"status"),"Null")){const auto member=EntityReferenceMember(p);if(!member.empty()){
+    const auto *policy=EntityApplicationPolicy(member);std::string returns;if(policy&&policy->HasMember("returns"))returns=(*policy)["returns"].GetString();
+    null_relation=(returns.rfind("Entity",0)==0&&returns.rfind("EntityConfig",0)!=0&&returns!="EntityDesc")||member.rfind("NativeEntity.",0)==0||member.rfind("NativeNPC.",0)==0||member.rfind("NativeTear.",0)==0;
+  }}
+  if(Is(Find(v,"type"),"reference")||Is(Find(v,"resolution"),"Null")||null_relation){
     EntityReferenceTarget ref;ref.path=p;ref.status=Is(Find(v,"resolution"),"Null")?"Null":Str(At(v,"status",p));
     if(const auto *key=Find(v,"target")){ref.has_target=true;ref.target={U64(At(*key,"run",p),p),U64(At(*key,"id",p),p),unsigned(U64(At(*key,"space",p),p))};}
     out.push_back(std::move(ref));return;
@@ -194,6 +200,10 @@ const Json &EntityApplicationCatalog(){static const Json catalog=Parse(
 #include "entity_application.inc"
 );return catalog;}
 const Value *EntityApplicationPolicy(const std::string &id){const auto &p=PoliciesById();const auto i=p.find(id);return i==p.end()?nullptr:i->second;}
+std::string EntityReferenceMember(const std::string &path){const std::string native="/application_links/links/";auto slash=path.find(native);std::size_t skip=native.size();
+  if(slash==std::string::npos){slash=path.find("/fields/");skip=8;}if(slash==std::string::npos)return {};
+  auto member=path.substr(slash+skip);const auto end=member.find('/');if(end!=std::string::npos)member.resize(end);return member;
+}
 
 EntityTarget ParseEntityTarget(const Value &model){
   ValidateModel(model);
@@ -201,7 +211,7 @@ EntityTarget ParseEntityTarget(const Value &model){
   const auto &component=At(At(model,"components","model"),"entity","components");
   const auto &state=At(component,"state","entity");const auto &src=At(state,"application_source","entity");
   if(U64(At(src,"version","source"),"source/version")!=1||!Is(Find(src,"contract"),"entity-source-v1")||!Is(Find(src,"target"),"REPENTOGON-1.1.3/J273")||!Is(Find(src,"pose_scope"),"same-ordinary-window"))Error("application_source","source_contract_version");
-  static const std::set<std::string> supported={"resource-pose-v1","entity-classification-v1","entity-auxiliary-sprites-v1","entity-native-presentation-v1"};
+  static const std::set<std::string> supported={"resource-pose-v1","entity-classification-v1","entity-auxiliary-sprites-v1","entity-native-presentation-v1","entity-class-application-v1"};
   std::set<std::string> required;
   for(const auto &c:Sequence(At(src,"required_contracts","source"),"source/contracts").GetArray()){
     const auto name=Str(c);if(!supported.count(name)||!required.insert(name).second)Error("application_source","unknown_or_duplicate_required_contract");
@@ -253,5 +263,5 @@ EntityTarget ParseEntityTarget(const Value &model){
   }
   out.source=Copy(component);return out;
 }
-Json EntityCapabilities(){return Parse(R"({"id":"entity-target-v1","source":"entity-source-v1","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","model_expression":"all-catalogued-members;typed-status;int64;bits128;sparse-graph;resources;typed-references","classification":"public-derived-interface-or-native-RTTI;NativeDummy;no-NativeDarkness-alias","common_execution":"I05-I09-implemented;class-adapters=I11-I22;scene=I29","non_player_native_apply":false,"player_native_apply":"named-current-key-owner;ordinary-Isaac-proof;full-owner=tx-04-20","runtime_acceptance":"pending-full-tx-04-19-I34","full_entity_domain_commit":false,"limits":{"objects":16384,"bytes":33554432,"depth":64}})");}
+Json EntityCapabilities(){return Parse(R"({"id":"entity-target-v1","source":"entity-source-v1","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","model_expression":"all-catalogued-members;typed-status;int64;bits128;sparse-graph;resources;typed-references","classification":"public-derived-interface-or-native-RTTI;NativeDummy;no-NativeDarkness-alias","common_execution":"I05-I14-class-data-and-resources;remaining-classes=I15-I22;draw=I25;scene=I29","builtin_class_adapters":["NPC","Delirium-special","Tear","Projectile","Bomb"],"class_source_contract":"entity-class-application-v1","non_player_native_apply":false,"player_native_apply":"named-current-key-owner;ordinary-Isaac-proof;full-owner=tx-04-20","runtime_acceptance":"pending-full-tx-04-19-I34","full_entity_domain_commit":false,"limits":{"objects":16384,"bytes":33554432,"depth":64}})");}
 } // namespace cs::replica

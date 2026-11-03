@@ -25,6 +25,33 @@ local function snapshot(e,ctx,class)
     local ok,d=protected(e,"ToDelirium")
     if ok and d then out.special=collect(d,"EntityDelirium",ctx,0) end
   end
+  if class=="EntityNPC" or class=="EntityTear" or class=="EntityProjectile" or class=="EntityBomb" then
+    local resources=native().EntityApplicationSprites(e,class)
+    out.body.application_links={version=1,status=resources.status,links={}}
+    if resources.status=="Value" then
+      -- C++返回的固定声明列完整保留；nil也必须带名写出Null，不能被Lua pairs省略。
+      local names={"NativeEntity.Attached"}
+      if class=="EntityNPC" then for _,name in ipairs({"NativeNPC.ChildA","NativeNPC.Peer","NativeNPC.ChildB","NativeNPC.RemovalChild","NativeNPC.Related"}) do names[#names+1]=name end end
+      if class=="EntityTear" then for _,name in ipairs({"NativeTear.ChildA","NativeTear.Peer","NativeTear.ChildB","NativeTear.LinkA","NativeTear.LinkB","NativeTear.ChildC"}) do names[#names+1]=name end end
+      for _,name in ipairs(names) do out.body.application_links.links[name]=value(resources.links[name],"Entity",ctx,1) end
+    else fail(ctx,"entity_application_links:"..resources.status) end
+    if class=="EntityBomb" then
+      out.body.application_runtime={version=1,status=resources.status,values={}}
+      if resources.status=="Value" then out.body.application_runtime.values["NativeBomb.CostumeDrawEnabled"]=resources.bomb_costume_draw_enabled end
+    end
+    if class=="EntityNPC" then
+      out.body.application_runtime={version=1,status=resources.status,private_reference_count=resources.npc_private_reference_count,owned_actor_present=resources.npc_owned_actor_present}
+      if resources.status=="Value" and resources.npc_private_reference_count~=0 then fail(ctx,"npc_private_reference_container_pending_I25") end
+      if resources.npc_owned_actor_present then fail(ctx,"npc_owned_actor_pending_I25_Player20") end
+      out.body.application_resources={version=1,status=resources.status}
+      if resources.status=="Value" then
+        for _,key in ipairs({"npc_overlay","npc_effect"}) do
+          local sprite=resources[key]
+          out.body.application_resources[key]=sprite:GetFilename()=="" and missing("Null","native_entity_anm_unloaded") or value(sprite,"Sprite",ctx,1)
+        end
+      else fail(ctx,"npc_application_resources:"..resources.status) end
+    end
+  end
   out.class=class or "UnknownEntity"
   if class=="EntityLaser" then
     local presentation=native().LaserPresentation(e:ToLaser())
@@ -77,7 +104,7 @@ function M.Capture(limits)
   end
   -- 普通窗口已复制主/辅助Sprite的精确phase、图层和两组Laser当前采样；
   -- 独立Render节流样本只描述自己的scope，绝不拼进此原子窗口。
-  local out={application_source={version=1,contract="entity-source-v1",target="REPENTOGON-1.1.3/J273",pose_scope="same-ordinary-window",required_contracts={"resource-pose-v1","entity-classification-v1","entity-auxiliary-sprites-v1","entity-native-presentation-v1"},auxiliary="Tear:dead-eye/effect/halo;Bomb:costume0..4;Pickup:price;Slot:prize;unloaded=Null",laser="current-optimized/nonoptimized-public-samples;no-CalculateSamples",independent="Render/Lifecycle/ActualCall/Query-have-own-scope;render-stride30-is-not-target-pose"},objects={},membership={source="Isaac.GetRoomEntities+native_membership",count=#subjects,native_count=#nativeSources,unavailable_native=unavailable,complete=enumerationComplete}}
+  local out={application_source={version=1,contract="entity-source-v1",target="REPENTOGON-1.1.3/J273",pose_scope="same-ordinary-window",required_contracts={"resource-pose-v1","entity-classification-v1","entity-auxiliary-sprites-v1","entity-native-presentation-v1","entity-class-application-v1"},auxiliary="NPC:overlay/effect;Tear:dead-eye/effect/halo;Bomb:costume0..4;Pickup:price;Slot:prize;unloaded=Null",class_application="same-use-owned-links;NPC-private-owner-availability;Bomb-costume-enabled;Sprite-champion-color/playing/shader-paths",laser="current-optimized/nonoptimized-public-samples;no-CalculateSamples",independent="Render/Lifecycle/ActualCall/Query-have-own-scope;render-stride30-is-not-target-pose"},objects={},membership={source="Isaac.GetRoomEntities+native_membership",count=#subjects,native_count=#nativeSources,unavailable_native=unavailable,complete=enumerationComplete}}
   for i,e in ipairs(subjects) do
     if i>LIMIT.objects then fail(ctx,"object_budget"); out.membership.complete=false; break end
     ctx.objects=ctx.objects+1; out.objects[#out.objects+1]=snapshot(e,ctx)

@@ -1,6 +1,6 @@
 # tx-04-19：非 Player Entity 客户端应用具体实现计划
 
-日期：2026-11-03，Asia/Singapore。状态：**I01—I03已实现；I04静态合同见[采用合同](entity-application-contracts.md)、[J273专题](entity-native-static.md)与[研究索引](entity-native-contracts.json)；I05—I09公共应用实现及补充逆向主审见[实现说明](tx-04-19-common-application.md)。I10—I35与统一E2E待实施。** 公共框架没有默认放行尚未注册的类别adapter，没有设置完整Entity提交位。已有P1—P6发送优化完成实现与纯编译，运行验收并入本tx；I04登记的来源／owner／分支缺口随实际adapter闭合，不把研究或公共代码当成全类别native支持。
+日期：2026-11-03，Asia/Singapore。状态：**I01—I03已实现；I04静态合同见[采用合同](entity-application-contracts.md)、[J273专题](entity-native-static.md)与[研究索引](entity-native-contracts.json)；I05—I09见[公共实现](tx-04-19-common-application.md)；I10—I14的资源／类别值／关系／正常生命周期实现见[类别实现与明确边界](tx-04-19-class-application.md)，必要逆向与主审见[本轮静态研究](entity-i10-i14-native.md)。I15—I35及统一E2E待推进。** 未解释NPC私有容器／拥有的actor及具名复合draw分支仍写前拒绝，由I25／20补齐，不冒称全形态支持。没有默认放行尚未注册的类别adapter，没有设置完整Entity提交位。已有P1—P6发送优化完成实现与纯编译，运行验收并入本tx；I04登记的来源／owner／分支缺口随实际adapter闭合，不把研究或公共代码当成全类别native支持。
 
 初版文档工作的完整目标是列出 tx-04-19 的全部实现、必要静态研究、工程接线与整体验收任务。本文是执行入口；[逐类别应用计划](tx-04-19-entity-application.md)与[静态确认及必要逆向清单](tx-04-19-native-research-plan.md)是同一计划的组成部分。I01—I35、C01—C13、R01—R13、E01—E26 只是同一 tx 内的内容索引，不拆成新 tx。
 
@@ -84,7 +84,7 @@
 
 ## 4. 全部任务索引
 
-I01—I09进度见上方链接，I31所承接P1—P6有前置实现；后续按I10—I35推进。下表保留完整目标索引，代码完成与运行覆盖分开，运行验收统一留在I34。
+I01—I14进度与边界见上方链接，I31所承接P1—P6有前置实现；后续按I15—I35推进，并在I25／20闭合具名NPC输入／draw缺口。下表保留完整目标索引，代码完成与运行覆盖分开，运行验收统一留在I34。
 
 | 编号 | 任务 | 依赖／专题 |
 | --- | --- | --- |
@@ -97,11 +97,11 @@ I01—I09进度见上方链接，I31所承接P1—P6有前置实现；后续按I
 | I07 | 已实现工厂／Init／官方链／成员发布公共执行器；具体类别按I11—I22注册 | I04／I05／I06 |
 | I08 | 已实现公共最终值、字段级去向与真实native后态 | I01／I03／I07 |
 | I09 | 已实现分类型依赖／图／公共EntityPtr；专用绑定由各类别owner接入 | I05—I08，R02 |
-| I10 | 主 Sprite／辅助资源与完整姿态 | I03／I07，R10 |
-| I11 | NPC 与 Delirium | C01／C02，R03 |
-| I12 | Tear | C03，R04 |
-| I13 | Projectile | C04，R04 |
-| I14 | Bomb | C05，R04 |
+| I10 | 已实现主／辅助资源与完整姿态；真实运行覆盖归I34 | I03／I07，R10 |
+| I11 | 已实现NPC／Delirium值、双ANM与具名关系；私有draw／owned actor拒绝清单见实现说明，I25／20继续闭合 | C01／C02，R03 |
+| I12 | 已实现Tear字段、三份辅助ANM、sticky与内部引用、正常退休；draw调度归I25 | C03，R04 |
+| I13 | 已实现Projectile独立布局与正常生命周期；draw调度归I25 | C04，R04 |
+| I14 | 已实现Bomb字段、五层costume与启用位、正常生命周期；draw调度归I25 | C05，R04 |
 | I15 | Laser／HomingLaser | C06，R05 |
 | I16 | Knife | C07，R06 |
 | I17 | Pickup | C08，R07 |
