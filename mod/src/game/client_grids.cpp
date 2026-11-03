@@ -27,15 +27,18 @@ ClientPoseVector Vector(const V &v){if(!Is(At(v,"type"),"vector"))throw std::run
 ClientObjectKey Key(const replica::SubjectKey &k){return {k.run,k.id,k.space};}
 bool Null(const V &v){return v.IsNull()||(v.IsObject()&&v.HasMember("status")&&Is(v["status"],"Null"));}
 // 旧来源两次读取同值Sprite时，局部table节点编号不同；比较图的对应关系而非裸编号。
-// 只对typed table/graph_ref的node做双向映射，普通数值和图连接关系仍必须相等。
+// 只对typed table/graph_ref的node做双向映射；定义编号可因组件外部引用而仅一侧保留，
+// graph_ref本身仍需两侧存在并保持双向对应，普通数值和图连接关系仍必须相等。
 bool SameSpriteValue(const V &a,const V &b){
   std::map<std::uint64_t,std::uint64_t> forward,backward;
   const auto compare=[&](auto &&self,const V &x,const V &y)->bool {
     if(x.IsArray()&&y.IsArray()){if(x.Size()!=y.Size())return false;for(unsigned i=0;i<x.Size();++i)if(!self(self,x[i],y[i]))return false;return true;}
     if(!x.IsObject()||!y.IsObject())return x==y;
-    if(x.MemberCount()!=y.MemberCount())return false;
+    const bool table=x.HasMember("type")&&Is(x["type"],"table")&&y.HasMember("type")&&Is(y["type"],"table");
+    if(x.MemberCount()-(table&&x.HasMember("node"))!=y.MemberCount()-(table&&y.HasMember("node")))return false;
     const bool graph=x.HasMember("type")&&(Is(x["type"],"table")||Is(x["type"],"graph_ref"));
-    for(auto i=x.MemberBegin();i!=x.MemberEnd();++i){if(!y.HasMember(i->name))return false;const auto &v=y[i->name];
+    for(auto i=x.MemberBegin();i!=x.MemberEnd();++i){if(table&&Is(i->name,"node")&&!y.HasMember("node"))continue;
+      if(!y.HasMember(i->name))return false;const auto &v=y[i->name];
       if(graph&&Is(i->name,"node")){const auto left=replica::Unsigned(i->value),right=replica::Unsigned(v);
         auto f=forward.emplace(left,right),r=backward.emplace(right,left);if(f.first->second!=right||r.first->second!=left)return false;
       }else if(!self(self,i->value,v))return false;

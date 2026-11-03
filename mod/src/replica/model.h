@@ -53,9 +53,11 @@ public:
   explicit Registry(std::uint64_t session,std::uint64_t run):session_(session),run_(run){}
   void BindSource(std::uint64_t session,std::uint64_t epoch,const std::string &run);
   Value Key(unsigned space,const std::string &local,const std::string &use,Allocator &);
-  Value Project(const Value &,Allocator &,std::uint64_t epoch=0,unsigned depth=0);
+  // 所有普通/独立组件共用目录投影；完整根值完成后才处理组件内图引用。
+  Value Project(const Value &,Allocator &,std::uint64_t epoch=0);
   std::size_t Size() const noexcept { return keys_.size(); }
 private:
+  Value ProjectValue(const Value &,Allocator &,std::uint64_t epoch,unsigned depth);
   std::uint64_t session_,run_,next_=0;
   std::uint64_t source_epoch_=0;
   std::string source_run_;

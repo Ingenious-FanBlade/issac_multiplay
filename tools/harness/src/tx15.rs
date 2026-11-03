@@ -37,6 +37,8 @@ fn audit_projection(repo:&Path,capture:&Path,root:&Path)->Result<Value>{
  for line in BufReader::new(fs::File::open(root.join("expected.jsonl")).map_err(|e|e.to_string())?).lines(){let row:Value=serde_json::from_str(&line.map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;if row["file"].as_str().is_some_and(|s|s.starts_with("real-")&&s!="real-delta.icsr")&&row["kind"]==3{let model=row["body"].clone();for (domain,c) in model["components"].as_object().ok_or("components")?{wanted.insert(c["capture"]["scope"].as_str().ok_or("source scope")?.to_string(),(domain.clone(),c.clone()));}models.push(model);}}
  fn compare(source:&Value,target:&Value,policy:&BTreeMap<String,String>,identities:&mut BTreeMap<String,Value>,leaves:&mut u64,path:&str)->Result<()> {
   if let Some(o)=source.as_object(){
+   // 模型v2按目录省略成员，NotScheduled只传状态；失败对象仍逐叶比较。
+   if source["status"]=="NotScheduled"{if target!=&json!({"status":"NotScheduled"}){return Err(format!("scheduled placeholder:{path}"))}*leaves+=1;return Ok(())}
    if o.contains_key("space")&&o.contains_key("local_id"){
     if target["type"]!="reference"{return Err(format!("reference projection:{path}"))}let status=source["resolution"].as_str().unwrap_or_else(||match source["presence"].as_str(){Some("NotApplicable")=>"NotApplicable",Some("Unknown")=>"Unknown",_=>"KnownCurrent"});if target["status"]!=status{return Err(format!("reference status:{path}"))}
     if target["target"].is_object(){let id=format!("{}:{}:{}",source["space"],source["local_id"],source["use"].as_str().unwrap_or(""));if let Some(old)=identities.insert(id,target["target"].clone()){if old!=target["target"]{return Err(format!("unstable network identity:{path}"))}}
@@ -45,11 +47,15 @@ fn audit_projection(repo:&Path,capture:&Path,root:&Path)->Result<Value>{
    }
    for (key,value) in o{
     if ["session","epoch"].contains(&key.as_str()){continue}
+    // table定义的无引用编号允许被投影裁掉；graph_ref的目标编号仍必须相等。
+    if key=="node"&&source["type"]=="table"&&target.get(key).is_none(){continue}
     let at=format!("{path}.{key}");
     if key=="fields"{for (member,value) in value.as_object().ok_or("source fields")?{
-      let ownership=policy.get(member).map(String::as_str).unwrap_or("Unsupported");if ownership!="ReplicatedState"{if target[key][member]["status"]!=ownership{return Err(format!("field ownership:{at}.{member}"))}*leaves+=1;}
+      let ownership=policy.get(member).map(String::as_str).unwrap_or("Unsupported");if ownership=="NotReplicated"{if target[key].get(member).is_some(){return Err(format!("omitted field transmitted:{at}.{member}"))}*leaves+=1;}
+      else if ownership!="ReplicatedState"{if target[key][member]["status"]!=ownership{return Err(format!("field ownership:{at}.{member}"))}*leaves+=1;}
       else{compare(value,&target[key][member],policy,identities,leaves,&format!("{at}.{member}"))?}}
-    }else if policy.get(key).is_some_and(|s|s!="ReplicatedState"){if target[key]["status"]!=policy[key]{return Err(format!("ownership:{at}"))}}
+    }else if policy.get(key).is_some_and(|s|s=="NotReplicated"){if target.get(key).is_some(){return Err(format!("omitted member transmitted:{at}"))}}
+    else if policy.get(key).is_some_and(|s|s!="ReplicatedState"){if target[key]["status"]!=policy[key]{return Err(format!("ownership:{at}"))}}
     else if key=="type"&&value=="Sprite"{if target[key]!="resource_pose"||target["resource"]["status"]!="Unverified"{return Err("resource pose descriptor".into())}}
     else if ["participant_local_id","control_group_local_id","floor","dimension","descriptor","room_instance","run"].contains(&key.as_str())&&value.as_str().is_some_and(|s|s!="0") {if !target[key].is_object()||target[key]["id"].as_str().is_none(){return Err(format!("related identity:{at}"))}*leaves+=1;}
     else{compare(value,&target[key],policy,identities,leaves,&at)?}

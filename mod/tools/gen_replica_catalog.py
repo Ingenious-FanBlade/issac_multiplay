@@ -3,6 +3,7 @@ import argparse
 import json
 import pathlib
 import re
+from replica_projection_policy import OMITTED_MEMBERS, consumer_review
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "mod/observation/isaac-cs-observation"
@@ -17,6 +18,9 @@ def classify(m, domain):
     owner = m.get("owner", m.get("class", ""))
     member = m.get("member", "")
     category = m.get("category", "")
+    # 发送选择只来自显式逐成员清单，不按值或parameter_query类别一刀切。
+    if m["id"] in OMITTED_MEMBERS:
+        return "NotReplicated", OMITTED_MEMBERS[m["id"]][0]
     if owner in ("Input", "Keyboard", "Mouse", "Options", "ImGui"):
         return "ClientLocal", "本地窗口／输入／设置只影响该端，不能覆写Authority世界"
     if category in ("operation", "cast", "container_operator"):
@@ -42,6 +46,7 @@ def generate():
             rows.append({"source_catalog": path.name, "id": m["id"], "domain": domain,
                          "category": m.get("category", ""), "ownership": ownership,
                          "reason": reason, "application_tasks": TASKS[domain],
+                         "consumer_review": consumer_review(m["id"]),
                          "availability": "observed_status_required;catalog_is_not_runtime_support",
                          "returns": m.get("returns", ""), "parameters": m.get("parameters"),
                          "units": m.get("units", "API原单位"), "source_schema": m.get("schema", ""),
@@ -56,8 +61,14 @@ def generate():
         if catalog.get("unexposed"):
             gaps.append({"source_catalog": path.name, "description": catalog["unexposed"],
                          "status": "Unavailable", "application_tasks": [17, 29, 31]})
-    return {"format": "isaac.cs.replication.catalog", "version": 1, "members": rows,
+    return {"format": "isaac.cs.replication.catalog", "version": 2, "model_version": 2, "members": rows,
             "callbacks": callbacks, "gaps": gaps,
+            "projection": {"id": "replica-projection-v2", "omitted_ownership": "NotReplicated",
+                           "placeholder_fields": ["status"],
+                           "not_scheduled": {"reason": "derived_query_requires_explicit_parameters",
+                                             "signature": "member.parameters;not repeated per instance"},
+                           "graph_nodes": "component-local;retain only referenced table nodes;reject dangling or ambiguous graph_ref",
+                           "observation": "unchanged;coverage and failures remain explicit"},
             "structural_values": {"ownership": "ReplicatedState", "reason": "域schema结构值继承所在component合同；身份经Registry转换；随机域仅声明房主所有权",
                                   "application_tasks": TASKS},
             "resources": {"fields": ["logical_path", "content_version", "category", "layers", "pose", "status"],

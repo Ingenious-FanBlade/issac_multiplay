@@ -1,5 +1,6 @@
 // tx17统一E2E辅助：实际11域采样经正式CaptureRows形成模型，再明确选取17代表profile。
-// 不创建原生对象，不用离线输出代替真实Client；完整来源与选择集合在临时目录中可追溯。
+// 不创建原生对象，不用离线输出代替真实Client；source-full为正式发送投影，完整观测在records中。
+// 这里只选择代表字段，所有资源/参数查询去冗余均由正式Registry投影统一负责。
 #include "replica/model.h"
 #include <array>
 #include <filesystem>
@@ -25,7 +26,7 @@ V &Effect(J &m){for(auto &e:m["components"]["entity"]["state"]["objects"].GetArr
 V &Sprite(J &m){return Effect(m)["common"]["fields"]["Entity.GetSprite"];}
 V &Player(J &m){for(auto &e:m["components"]["entity"]["state"]["objects"].GetArray())if(Str(e["class"])=="EntityPlayer")return e;throw std::runtime_error("player_missing");}
 J Project(const J &source){auto m=r::Copy(source);auto &a=m.GetAllocator();V profile(rapidjson::kObjectType);r::Put(profile,"id","tx-04-17-representative-v1",a);
-  r::Put(profile,"source","source-full.json;formal CaptureRows OrdinaryPost",a);r::Put(profile,"scope","selected entity fields plus scene/resources/presentation;not all-domain Applied",a);
+  r::Put(profile,"source","source-full.json;formal CaptureRows OrdinaryPost;replica projection v2",a);r::Put(profile,"scope","tx17 Entity whitelist plus formal replica scene/resources/presentation;not full observation or all-domain Applied",a);
   V selected(rapidjson::kArrayType);for(const auto &name:common)selected.PushBack(V(name.c_str(),a),a);for(const auto &name:player)selected.PushBack(V(name.c_str(),a),a);r::Put(profile,"selected_fields",std::move(selected),a);r::Put(m,"client_profile",std::move(profile),a);
   auto &objects=m["components"]["entity"]["state"]["objects"];if(objects.Size()!=2)throw std::runtime_error("representative_source_requires_exact_player_effect");
   for(auto &e:objects.GetArray()){const auto cl=Str(e["class"]);if(cl!="EntityPlayer"&&cl!="EntityEffect")throw std::runtime_error("source_category");Select(e["common"]["fields"],common);Select(e["body"]["fields"],cl=="EntityPlayer"?player:std::set<std::string>{});}

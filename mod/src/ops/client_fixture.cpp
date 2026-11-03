@@ -17,7 +17,8 @@ std::string ClientFixtureSampling(const std::string &token,const std::string &mo
   }catch(...){return "ok=0\nerror=fixture_sampling_allocation\n";}
 }
 namespace {
-// 仅裁剪17明确支持的Entity字段；完整源独立保存，Room/Grid一项也不删除。
+// 仅选择17明确支持的Entity字段；语义去冗余由正式Registry投影负责。
+// source-full是全域复制模型（已执行模型v2发送选择），并非完整观测原文；Room/Grid不另作夹具裁剪。
 // 新类别在Source清理后仍存在时明确失败，不能把它从成功目标中悄悄滤掉。
 void ProjectEntity(replica::Json &m) {
   using V=replica::Value;auto &a=m.GetAllocator();
@@ -45,7 +46,7 @@ void ProjectEntity(replica::Json &m) {
   if(players!=1)throw replica::ContractError("fixture_exact_player_required");
   V profile(rapidjson::kObjectType);replica::Put(profile,"id","tx-04-17-representative-v1",a);
   replica::Put(profile,"source","tx18 formal consumer;source-full-<label>.json",a);
-  replica::Put(profile,"scope","complete Room/Grid;explicit tx17 Entity field projection;not full-world Applied",a);
+  replica::Put(profile,"scope","Room/Grid replica projection v2;explicit tx17 Entity field whitelist only;not full observation or full-world Applied",a);
   replica::Put(profile,"retired_entity_prefixes",std::move(retired),a);
   V fields(rapidjson::kArrayType);for(const auto &s:common)fields.PushBack(V(s.c_str(),a),a);for(const auto &s:player)fields.PushBack(V(s.c_str(),a),a);
   replica::Put(profile,"selected_fields",std::move(fields),a);replica::Put(m,"client_profile",std::move(profile),a);

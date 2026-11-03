@@ -3,6 +3,7 @@ import argparse
 import json
 import pathlib
 from gen_replica_catalog import classify
+from replica_projection_policy import consumer_review
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "mod/observation/isaac-cs-observation"
@@ -30,7 +31,7 @@ GRID_NATIVE = {
     "I22": "mod/src/game/client_grid_events.cpp;mod/src/game/client_scene.cpp:AdmitGridIndependent",
     "I23": "mod/src/game/client_grids.cpp:Retire;mod/src/game/client_grid_native.cpp:Remove;mod/src/game/client_scene.cpp:Pump",
 }
-# 这些事实仍完整保留在已提交T中；不能把未来Entity/整局裁决派生查询谎称为当前Room私有字段。
+# 仍发送的事实保留在T；参数查询是否发送以模型v2清单为准，未来任务说明不是已有消费者。
 ROOM_FACT_CONSUMERS = {
     "Room.CanSpawnObstacleAtPosition": "I20 collision/placement query",
     "Room.GetAliveEnemiesCount": "tx-04-19 Entity membership",
@@ -125,22 +126,24 @@ def generate():
             domain = m.get("domain", "grid" if name == "grid-catalog.json" else "room")
             ownership, reason = classify(m, domain)
             category = m.get("category", "")
+            omitted = ownership == "NotReplicated"
             operation = ownership in ("AuthorityOnly", "ClientLocal")
             if category == "cast": ownership, operation, reason = "DerivedWitness", False, "派生接口结果是类型见证，不分配身份，不在Client重放cast调用"
-            handling = "不作为Client远程调用；最终结果由状态项安装" if operation else "参数与结果一起保留；仅已理解的纯展示派生可本地重算" if category in ("parameter_query", "derived_query") else "保留具名纯值/状态/关系，按具体adapter安装"
+            handling = "仅完整观测保留；复制投影按逐成员清单省略，不能据此补造状态或掩盖来源失败" if omitted else "不作为Client远程调用；最终结果由状态项安装" if operation else "仅已声明消费者需要的参数与结果保留；NotScheduled仅传状态" if category == "parameter_query" else "保留具名纯值/状态/关系，按具体adapter安装"
             implemented = task in ("I03", "I06") or task in ROOM_NATIVE or task in GRID_NATIVE or operation
-            consumer = ROOM_FACT_CONSUMERS.get(m["id"], "tx-04-27 stage UI/audio" if m["owner"] == "RoomConfigStage" else "")
+            consumer = "" if omitted else ROOM_FACT_CONSUMERS.get(m["id"], "tx-04-27 stage UI/audio" if m["owner"] == "RoomConfigStage" else "")
             rows.append({"source_catalog": name, "source_ordinal": ordinal, "id": m["id"], "member": m["member"],
                          "category": category, "parameters": m.get("parameters"), "returns": m.get("returns"),
                          "units": m.get("units", "API原单位"), "source_absence": m.get("absence", "状态显式保留"),
                          "sources": m.get("sources", []), "source_schema": m.get("schema"), "source_version": m.get("schema_version", 2),
                          "target": m.get("target", "REPENTOGON 1.1.3 / J273"), "ownership": ownership, "ownership_reason": reason,
-                         "application_task": task, "handling": handling, "local_storage": destination,
+                         "consumer_review": consumer_review(m["id"]),
+                         "application_task": task, "handling": handling, "local_storage": "observation_only;not_on_wire" if omitted else destination,
                          "source_path": f"components/{'{room|grid}' if name == 'entity-catalog.json' else domain}/state/**/fields/{m['id']}",
                          "dependencies": ["same Scope/component capture", "complete membership before deletion", "I05 plan;I23 retirement"],
-                         "missing": "保留Null/Empty/Unknown/Unavailable/Partial/Truncated；required缺失则字段级拒绝，不补零",
-                         "implementation": NATIVE if task == "I06" else ROOM_NATIVE[task] if task in ROOM_NATIVE and not operation else GRID_NATIVE[task] if task in GRID_NATIVE and not operation else PARSER if implemented else f"{PARSER}（保留来源）；{task}原生adapter待实现",
-                         "status": "retained_fact;consumer="+consumer if consumer and not operation else "implemented_grid_adapter;scene_integrated_I25;runtime_representative_I29_pass" if task in GRID_NATIVE and not operation else "implemented_room_adapter;runtime_representative_I29_pass" if task in ROOM_NATIVE and not operation else "implemented_foundation;runtime_representative_I29_pass" if implemented else "native_pending_"+task,
+                         "missing": "成员按目录不发送；来源coverage/失败原因不变，不能将省略解释为成功读取" if omitted else "保留Null/Empty/Unknown/Unavailable/Partial/Truncated；required缺失则字段级拒绝，不补零",
+                         "implementation": "mod/src/replica/model.cpp:Registry::ProjectValue" if omitted else NATIVE if task == "I06" else ROOM_NATIVE[task] if task in ROOM_NATIVE and not operation else GRID_NATIVE[task] if task in GRID_NATIVE and not operation else PARSER if implemented else f"{PARSER}（保留来源）；{task}原生adapter待实现",
+                         "status": "not_replicated_model_v2;runtime_regression_pending_tx19" if omitted else "retained_fact;consumer="+consumer if consumer and not operation else "implemented_grid_adapter;scene_integrated_I25;runtime_representative_I29_pass" if task in GRID_NATIVE and not operation else "implemented_room_adapter;runtime_representative_I29_pass" if task in ROOM_NATIVE and not operation else "implemented_foundation;runtime_representative_I29_pass" if implemented else "native_pending_"+task,
                          "consumer": consumer,
                          "e2e": e2e})
         if name != "entity-catalog.json":
@@ -172,7 +175,7 @@ def generate():
         ("room.presentation_runtime.auxiliary", "I11", "poop最终pose/Image及vein索引图；不传指针、不调用随机构建"),
         ("room_grid.target_budget", "I26", "完整目标32MiB/64M节点（用户要求先放宽，压缩优化后另行收敛）、456主槽及门别名、4096资源/65536层/32768FX；单T、16借用/retained owner及每步一格"),
     ]
-    return {"format": "isaac.cs.room-grid.application-catalog", "version": 1,
+    return {"format": "isaac.cs.room-grid.application-catalog", "version": 2, "model_version": 2,
             "members": rows, "callbacks": callbacks, "gaps": gaps,
             "interfaces": grid.get("classes", []),
             "associated": [{**row, "application_task": "I19", "missing": "未解析Entity owner则拒绝依赖；不推断source Grid", "e2e": "E11"} for row in grid.get("associated", [])],

@@ -1,4 +1,5 @@
 #include "replica/model.h"
+#include "replica/projection_graph.h"
 #include "replica/room_grid_target.h"
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
@@ -44,8 +45,9 @@ const char *DomainName(unsigned d){
   static const char *names[]={"invalid","entity","grid","room","level","exploration","room_save","player","run","random","presentation","mod"};
   return d>0&&d<12?names[d]:"invalid";
 }
-Value Authority(Allocator &a,const std::string &reason){
-  Value out(rapidjson::kObjectType);Put(out,"status","AuthorityOnly",a);Put(out,"reason",reason,a);return out;
+// 归属和未调度占位仅传状态；解释位于版本化目录，读取失败的诊断仍按原值保留。
+Value Status(Allocator &a,const std::string &status){
+  Value out(rapidjson::kObjectType);Put(out,"status",status,a);return out;
 }
 bool Same(const Value &a,const Value &b){return a==b;}
 void Model(const Value &v){
@@ -99,7 +101,7 @@ void ValidateModel(const Value &v){
     if(Str(At(component,"ownership"))!=(d==9?"AuthorityOnly":"ReplicatedState"))Fail("ownership_claim");
     const auto &c=At(component,"capture");if(Str(At(c,"phase"))!="OrdinaryPost"||!Unsigned(At(c,"authority_tick"))||!captures.insert(Unsigned(At(c,"scope"))).second)Fail("component_capture");
     const auto t=Text(c["authority_tick"]);if(tick.empty())tick=t;else if(tick!=t)Fail("mixed_component_tick");
-    At(component,"state");
+    CheckProjectionGraph(At(component,"state"));
   }
   if(v["publishable"]==true&&(domains.size()!=11||!v["missing_domains"].Empty()))Fail("missing_required_domain");
   auto references=[&](auto &&self,const Value &x)->void{
@@ -167,12 +169,17 @@ Value Registry::Key(unsigned space,const std::string &local,const std::string &u
   }
   Value out(rapidjson::kObjectType);Put(out,"run",Decimal(run_,a),a);Put(out,"space",Value(space),a);Put(out,"id",Decimal(it->second,a),a);return out;
 }
-Value Registry::Project(const Value &v,Allocator &a,std::uint64_t epoch,unsigned depth){
+Value Registry::Project(const Value &v,Allocator &a,std::uint64_t epoch){
+  auto out=ProjectValue(v,a,epoch,0);PruneProjectionGraph(out);return out;
+}
+// 递归阶段只处理显式成员归属，绝不按结果值决定省略；图闭合检查在整组件完成后执行。
+Value Registry::ProjectValue(const Value &v,Allocator &a,std::uint64_t epoch,unsigned depth){
   if(depth>64) Fail("projection_depth");
-  if(v.IsArray()){Value out(rapidjson::kArrayType);for(const auto &x:v.GetArray())out.PushBack(Project(x,a,epoch,depth+1),a);return out;}
+  if(v.IsArray()){Value out(rapidjson::kArrayType);for(const auto &x:v.GetArray())out.PushBack(ProjectValue(x,a,epoch,depth+1),a);return out;}
   if(!v.IsObject()) {Value out;out.CopyFrom(v,a);return out;}
   if(v.HasMember("session")&&Unsigned(v["session"])!=session_) Fail("cross_session_subject");
   if(v.HasMember("epoch")&&v["epoch"].IsString()&&Unsigned(v["epoch"])!=epoch) Fail("cross_epoch_subject");
+  if(v.HasMember("status")&&Str(v["status"])=="NotScheduled")return Status(a,"NotScheduled");
   // Entity／Grid与所有相关身份统一转换，绝不把本地Index／seed／地址当key。
   if(v.HasMember("space")&&v.HasMember("local_id")){
     Value out(rapidjson::kObjectType);const auto space=unsigned(Unsigned(v["space"]));
@@ -181,27 +188,32 @@ Value Registry::Project(const Value &v,Allocator &a,std::uint64_t epoch,unsigned
     if(local!="0"&&!local.empty()&&(status=="KnownCurrent"||status=="KnownHistorical"||status=="Retired")){
       Put(out,"target",Key(space,std::to_string(epoch)+"/"+local,v.HasMember("use")?Str(v["use"]):"",a),a);
     }
-    if(v.HasMember("revision"))Put(out,"shape_revision",Project(v["revision"],a,epoch,depth+1),a);
+    if(v.HasMember("revision"))Put(out,"shape_revision",ProjectValue(v["revision"],a,epoch,depth+1),a);
     // descriptor构建修订是当前配置见证，不是出生；稳定Key投影不能吞掉该变更依据。
-    if(v.HasMember("construction_revision"))Put(out,"construction_revision",Project(v["construction_revision"],a,epoch,depth+1),a);
-    for(const char *k:{"control_relation","control_group_membership"})if(v.HasMember(k))Put(out,k,Project(v[k],a,epoch,depth+1),a);
+    if(v.HasMember("construction_revision"))Put(out,"construction_revision",ProjectValue(v["construction_revision"],a,epoch,depth+1),a);
+    for(const char *k:{"control_relation","control_group_membership"})if(v.HasMember(k))Put(out,k,ProjectValue(v[k],a,epoch,depth+1),a);
     return out;
   }
+  // 显式只读Query把成员名放在值中；它也遵守同一目录，不能借result包装绕过发送选择。
+  const auto *query=v.HasMember("member")&&v["member"].IsString()&&v.HasMember("parameters")&&v.HasMember("result")?Policy(Str(v["member"])):nullptr;
+  const bool omitted_query=query&&Str((*query)["ownership"])=="NotReplicated";
   Value out(rapidjson::kObjectType);
   for(auto it=v.MemberBegin();it!=v.MemberEnd();++it){
     const auto key=Str(it->name);
     if(IsInternal(key)) Fail("native_pointer_or_handle");
     if(key=="session"||key=="epoch") continue;
+    if(omitted_query&&(key=="parameters"||key=="result"))continue;
     Value x;
     if(const auto *p=Policy(key);p&&Str((*p)["ownership"])!="ReplicatedState"){
-      x=Authority(a,Str((*p)["reason"]));Put(x,"status",Str((*p)["ownership"]),a);
+      const auto ownership=Str((*p)["ownership"]);if(ownership=="NotReplicated")continue;
+      x=Status(a,ownership);
     }else if(key=="fields"&&it->value.IsObject()){
       x.SetObject();
       for(auto f=it->value.MemberBegin();f!=it->value.MemberEnd();++f){
         const auto id=Str(f->name);const auto *rule=Policy(id);Value field;
         if(!rule){field.SetObject();Put(field,"status","Unsupported",a);Put(field,"reason","undeclared_member",a);}
-        else if(Str((*rule)["ownership"])!="ReplicatedState") {field=Authority(a,Str((*rule)["reason"]));Put(field,"status",Str((*rule)["ownership"]),a);}
-        else field=Project(f->value,a,epoch,depth+1);
+        else if(Str((*rule)["ownership"])!="ReplicatedState") {const auto ownership=Str((*rule)["ownership"]);if(ownership=="NotReplicated")continue;field=Status(a,ownership);}
+        else field=ProjectValue(f->value,a,epoch,depth+1);
         x.AddMember(String(id,a),field,a);
       }
     }else{
@@ -209,14 +221,15 @@ Value Registry::Project(const Value &v,Allocator &a,std::uint64_t epoch,unsigned
       if(key=="participant_local_id")space=9;else if(key=="control_group_local_id")space=10;
       else if(key=="floor")space=4;else if(key=="dimension")space=5;else if(key=="descriptor")space=6;else if(key=="room_instance")space=7;else if(key=="run")space=3;
       if(space&&it->value.IsString()&&Str(it->value)!="0")x=Key(space,std::to_string(epoch)+"/"+Str(it->value),"",a);
-      else x=Project(it->value,a,epoch,depth+1);
+      else x=ProjectValue(it->value,a,epoch,depth+1);
     }
     out.AddMember(String(key,a),x,a);
   }
+  if(omitted_query)Put(out,"status","NotReplicated",a);
   if(v.HasMember("type")&&Str(v["type"])=="Sprite"){
     Put(out,"type","resource_pose",a);Value descriptor(rapidjson::kObjectType);
     Put(descriptor,"category","anm2",a);Put(descriptor,"content_version","REPENTOGON-1.1.3/J273;mod-version-required",a);Put(descriptor,"status","Unverified",a);
-    if(v.HasMember("fields")&&v["fields"].HasMember("Sprite.GetFilename"))Put(descriptor,"logical_path",Project(v["fields"]["Sprite.GetFilename"],a,epoch,depth+1),a);
+    if(v.HasMember("fields")&&v["fields"].HasMember("Sprite.GetFilename"))Put(descriptor,"logical_path",ProjectValue(v["fields"]["Sprite.GetFilename"],a,epoch,depth+1),a);
     else Put(descriptor,"status","Unavailable",a);
     Put(out,"resource",std::move(descriptor),a);
   }
@@ -252,7 +265,7 @@ Json CaptureRows(const Scope &scope,std::uint64_t revision,const std::vector<Jso
     if(coverage!="Complete"&&coverage!="NotApplicable")complete=false;
     Put(component,"coverage",coverage,a);
     Value reasons;reasons.CopyFrom(At(r["coverage"],"reasons"),a);Put(component,"reasons",std::move(reasons),a);
-    if(domain==9){Put(component,"ownership","AuthorityOnly",a);Put(component,"state",Authority(a,"all gameplay RNG stays at Authority;world results are replicated"),a);}
+    if(domain==9){Put(component,"ownership","AuthorityOnly",a);Put(component,"state",Status(a,"AuthorityOnly"),a);}
     else {Put(component,"ownership","ReplicatedState",a);auto state=registry.Project(At(r,"payload"),a,epoch);Dependencies(state,revision,a);Put(component,"state",std::move(state),a);}
     // 成员完整性由域来源明确声明；Partial不能被Delta当作全成员删除依据。
     Put(component,"membership_complete",Value(coverage=="Complete"),a);
@@ -275,7 +288,7 @@ Message Independent(const Scope &scope,const Value &r,Registry &registry){
   Put(m.body,"scope",ScopeValue(scope,a),a);Put(m.body,"domain",Value(domain),a);Put(m.body,"source_schema",Str(At(r,"schema")),a);
   Put(m.body,"capture_kind",Str(At(c,"phase")),a);Put(m.body,"source_scope",Decimal(Unsigned(At(c,"scope")),a),a);
   Put(m.body,"required_state",Decimal(0,a),a);Put(m.body,"coverage",Str(At(r["coverage"],"status")),a);
-  Put(m.body,"value",domain==9?Authority(a,"independent RNG history remains AuthorityOnly"):registry.Project(At(r,"payload"),a,Unsigned(At(c,"epoch"))),a);
+  Put(m.body,"value",domain==9?Status(a,"AuthorityOnly"):registry.Project(At(r,"payload"),a,Unsigned(At(c,"epoch"))),a);
   return m;
 }
 
@@ -327,7 +340,10 @@ Message InputIntent(const Scope &s,unsigned participant,std::uint64_t generation
   Value movement(rapidjson::kArrayType),aim(rapidjson::kArrayType);movement.PushBack(Value(int(state.move_x)),a).PushBack(Value(int(state.move_y)),a);aim.PushBack(Value(int(state.aim_x)),a).PushBack(Value(int(state.aim_y)),a);
   Put(m.body,"movement",std::move(movement),a);Put(m.body,"aim",std::move(aim),a);Put(m.body,"held",Value(state.held_flags),a);Put(m.body,"edge",Value(state.edge_flags),a);return m;
 }
-Json Capabilities(){auto out=Parse(R"({"protocol":1,"model":1,"game":"v1.9.7.12.J273","repentogon":"1.1.3","required":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"supported":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"domains":[1,2,3,4,5,6,7,8,9,10,11],"model_categories":{"entity":["Player","NPC","Delirium","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect","Slot","NativeText","NativeDarkness"],"grid":"all target-version categories;specialized fields and explicit Unsupported","modes":["Normal","Hard","Greed","Greedier","Challenge","SeedEffects","DailyNonRanking"],"resource_pose":["ANM2","texture-replacements","main","overlay","layers","tracks","shader","camera","transition"],"unexposed":"Unavailable;never synthesized"},"native_appliers":[],"mods":[],"resources":{"base":"J273","status":"InstallationRequired"},"limits":{"bytes":33554432,"datagram":1200,"candidates":2,"fragments":32768,"timeout_ms":5000}})");
+Json Capabilities(){auto out=Parse(R"({"protocol":1,"model":2,"game":"v1.9.7.12.J273","repentogon":"1.1.3","required":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"supported":["typed-values-v1","stable-keys-v1","scope-components-v1","complete-delta-v1"],"domains":[1,2,3,4,5,6,7,8,9,10,11],"model_categories":{"entity":["Player","NPC","Delirium","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect","Slot","NativeText","NativeDarkness"],"grid":"all target-version categories;specialized fields and explicit Unsupported","modes":["Normal","Hard","Greed","Greedier","Challenge","SeedEffects","DailyNonRanking"],"resource_pose":["ANM2","texture-replacements","main","overlay","layers","tracks","shader","camera","transition"],"unexposed":"Unavailable;never synthesized"},"native_appliers":[],"mods":[],"resources":{"base":"J273","status":"InstallationRequired"},"limits":{"bytes":33554432,"datagram":1200,"candidates":2,"fragments":32768,"timeout_ms":5000}})");
+  // 只提升模型语义版本；ICSR v1类型标签和网络lane保持原格式，旧模型在协商时明确拒绝。
+  out["required"].PushBack(Value("replica-projection-v2",out.GetAllocator()),out.GetAllocator());
+  out["supported"].PushBack(Value("replica-projection-v2",out.GetAllocator()),out.GetAllocator());
   auto &allocator=out.GetAllocator();auto contract=RoomGridCapabilities();
   Value target;target.CopyFrom(contract,allocator);Put(out["model_categories"],"room_grid_target",std::move(target),allocator);
   out["supported"].PushBack(Value("room-grid-target-v10",allocator),allocator);return out;
