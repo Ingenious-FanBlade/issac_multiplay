@@ -220,6 +220,16 @@ struct ClientNativeObjects final {
 };
 namespace {
 void Mark(ClientNativeObjects &o,unsigned prefix) noexcept {o.prefix|=prefix;++o.mutations;}
+// 19的普通Isaac还提供136持物所需的真实BodySprite/null-frame；仍走同一资源服务与只读后态。
+// 17代表路径没有derived，不扩充其支持合同，也不在Render内加载或重建ANM owner。
+bool PlayerBodyResource(Entity &entity,const ClientObjectDescription &d,bool check,const char *&reason){
+  if(d.type!=1||!d.derived)return true;
+  if(d.derived->resources.size()!=1||d.derived->resources[0].member!="player_body"){reason="objects_player_body_resource_contract";return false;}
+  auto *player=entity.ToPlayer();if(!player){reason="objects_player_body_owner";return false;}
+  const auto &pose=d.derived->resources[0].pose;
+  if(check){if(!ClientResourcePoseMatches(&player->_bodySprite,pose)){reason="objects_player_body_pose";return false;}return true;}
+  const auto applied=ClientApplyResourcePose(&player->_bodySprite,pose);if(!applied.complete){reason=applied.reason;return false;}return true;
+}
 ClientObjectStep Result(ClientNativeObjects *o,bool done,bool failed,const char *reason,bool written=false) noexcept {
   unsigned pending=o&&o->uncertain_pool_use?1u:0u;
   if(o)for(const auto &pair:o->entries)if(!pair.second.retired&&pair.second.entity)++pending;
@@ -293,7 +303,8 @@ bool Create(ClientNativeObjects &o,const ClientObjectDescription &d,const char *
   entry.prefix|=Fields;Mark(o,Fields);WriteFields(e,d);
   entry.prefix|=Resource;Mark(o,Resource);
   const auto resource=ClientApplyResourcePose(&e._sprite,d.resource);
-  if(!resource.complete){reason=resource.reason;return false;}entry.resource=true;
+  if(!resource.complete){reason=resource.reason;return false;}
+  if(!PlayerBodyResource(e,d,false,reason))return false;entry.resource=true;
   if(!Publish(o,entry)){reason="objects_publish_postcondition";return false;}
   // 此处不调用PostLevelInitStats/EvaluateItems，也不从本地解锁/ItemPool补服务器目标。
   reason="objects_created";return true;
@@ -533,7 +544,7 @@ bool OwnedPlayerReady(void *owner,const ClientNativeRoots &roots,const ClientObj
   if(!o||!Current(*o,roots)||!d.player_stats||!d.exists||d.dead){reason="objects_player_shape_pending_tx04_20";return false;}
   const auto entry=o->entries.find(d.key);
   if(entry==o->entries.end()||entry->second.entity!=b.object||entry->second.instance!=b.instance||entry->second.description.shape_revision!=d.shape_revision||
-     !ValuesMatch(*entry->second.entity,d)||!ClientResourcePoseMatches(&entry->second.entity->_sprite,d.resource)){
+     !ValuesMatch(*entry->second.entity,d)||!ClientResourcePoseMatches(&entry->second.entity->_sprite,d.resource)||!PlayerBodyResource(*entry->second.entity,d,true,reason)){
     reason="objects_player_requested_state_not_ready";return false;}
   return true;
 }
@@ -663,6 +674,7 @@ ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *o,const ClientN
         if(command.resource){
           found->second.prefix|=Resource;Mark(*o,Resource);
           const auto resource=ClientApplyResourcePose(&found->second.entity->_sprite,d.resource);ok=resource.complete;reason=resource.reason;
+          if(ok)ok=PlayerBodyResource(*found->second.entity,d,false,reason);
           if(ok)found->second.resource=true;
         }
         if(ok){found->second.description=d;reason="objects_changed";}break;
@@ -671,9 +683,13 @@ ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *o,const ClientN
       case ClientObjectOperation::Check:
         if(!d.key.id){ok=CheckAll(*o,reason);break;}
         if(found==o->entries.end()||!CurrentUse(found->second)){reason="objects_check_missing_key";break;}
-        ok=ValuesMatch(*found->second.entity,d)&&MemberMatches(o->room->_entityList,*found->second.entity)&&
-            ReferencesMatch(*o,found->second,d)&&ClientResourcePoseMatches(&found->second.entity->_sprite,d.resource);
-        reason=ok?"objects_checked":"objects_target_postcondition";
+        // 保留相同四项后态判据，首因区分值/成员/引用/资源，不能以总失败掩盖实际责任。
+        if(!ValuesMatch(*found->second.entity,d))reason="objects_target_values";
+        else if(!MemberMatches(o->room->_entityList,*found->second.entity))reason="objects_target_membership";
+        else if(!ReferencesMatch(*o,found->second,d))reason="objects_target_references";
+        else if(!ClientResourcePoseMatches(&found->second.entity->_sprite,d.resource))reason="objects_target_resource_pose";
+        else if(!PlayerBodyResource(*found->second.entity,d,true,reason)){}
+        else{ok=true;reason="objects_checked";}
         if(ok){found->second.checked=true;found->second.prefix|=Checked;o->prefix|=Checked;}break;
       default:reason="objects_representative_operation_invalid";break;
     }

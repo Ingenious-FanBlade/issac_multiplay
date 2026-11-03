@@ -447,7 +447,7 @@
 | `EntityConfigPlayer.GetTrinket` | `TrinketType GetTrinket ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityConfigPlayer.md)（行179） |
 | `EntityConfigPlayer.IsHidden` | `boolean IsHidden ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityConfigPlayer.md)（行186） |
 | `EntityConfigPlayer.IsTainted` | `boolean IsTainted ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityConfigPlayer.md)（行193） |
-| `EntityDelirium.Angle` | `int8 Angle` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityDelirium.md)（行53） |
+| `EntityDelirium.Angle` | `int8 Angle` | public_lua_copy Wiki正文0..255与官方uint8 getter一致；标题int8保留为原始签名，采用无符号8位 | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityDelirium.md)（行53）<br>[repentogon-source](F:/projects_isaac/REPENTOGON-1.1.3/repentogon/LuaInterfaces/LuaDelirium.cpp)（行79） |
 | `EntityDelirium.AttackID` | `int AttackID` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityDelirium.md)（行66） |
 | `EntityDelirium.BossType` | `const int BossType` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityDelirium.md)（行72） |
 | `EntityDelirium.BossVariant` | `const int BossVariant` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityDelirium.md)（行78） |
@@ -524,7 +524,7 @@
 | `EntityFamiliar.GetItemConfig` | `ItemConfigItem GetItemConfig ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityFamiliar.md)（行53） |
 | `EntityFamiliar.GetMoveDelayNum` | `int GetMoveDelayNum ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityFamiliar.md)（行60） |
 | `EntityFamiliar.GetMultiplier` | `float GetMultiplier ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityFamiliar.md)（行65） |
-| `EntityFamiliar.OrbitDistance` | `static Vector GetOrbitDistance ( int Layer )` | explicit_readonly_query  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityFamiliar.md)（行73） |
+| `EntityFamiliar.GetOrbitDistance` | `static Vector GetOrbitDistance ( int Layer )` | explicit_readonly_query  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityFamiliar.md)（行73） |
 | `EntityFamiliar.GetOrbitPosition` | `Vector GetOrbitPosition ( Vector Pos )` | bounded_parameter_query  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityFamiliar.md)（行78） |
 | `EntityFamiliar.GetPathfinder` | `PathFinder GetPathfinder ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityFamiliar.md)（行75） |
 | `EntityFamiliar.GetRandomWisp` | `CollectibleType GetRandomWisp ( RNG RNG )` | actual_event_only rng_consuming_call | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityFamiliar.md)（行79） |
@@ -612,7 +612,7 @@
 | `EntityLaser.GetDamageMultiplier` | `float GetDamageMultiplier ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityLaser.md)（行27） |
 | `EntityLaser.DisableFollowParent` | `boolean GetDisableFollowParent ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityLaser.md)（行31） |
 | `EntityLaser.EndPoint` | `const Vector GetEndPoint ( )` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityLaser.md)（行39） |
-| `EntityLaser.GetHitList` | `int GetHitList ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityLaser.md)（行35） |
+| `EntityLaser.GetHitList` | `int GetHitList ( )` | public_lua_copy Wiki标题int与正文array冲突；官方Lua_EntityLaserGetHitList逐项返回整数table，采用int[]并保留原签名 | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityLaser.md)（行35）<br>[repentogon-source](F:/projects_isaac/REPENTOGON-1.1.3/repentogon/LuaInterfaces/Entities/LuaEntityLaser.cpp)（行114） |
 | `EntityLaser.GetNonOptimizedSamples` | `const VectorList GetNonOptimizedSamples ( )` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityLaser.md)（行44） |
 | `EntityLaser.GetNumChainedLasers` | `int GetNumChainedLasers ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityLaser.md)（行40） |
 | `EntityLaser.OneHit` | `boolean GetOneHit ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityLaser.md)（行45） |

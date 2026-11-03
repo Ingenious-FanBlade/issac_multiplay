@@ -29,6 +29,8 @@ struct ClientPresentationFX final {
   std::vector<unsigned char> attributes;
   std::string image;
   std::vector<ClientPresentationFXPose> poses;
+  // generic pass在9E17B0消费+44混合模式；0覆盖、1透明、2叠加，不能用零默认值替代来源。
+  unsigned blend_mode=0;
   // 96C620实际消费+3c的浮点条件、+40的背景整数和+48的bool；其它word不进网络合同。
   float color_branch=0;
   std::uint32_t mask_backdrop=0;

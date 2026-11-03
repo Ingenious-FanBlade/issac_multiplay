@@ -18,7 +18,7 @@ OMITTED_GROUPS = (
         Entity.HasEntityFlags Entity.IsActiveEnemy Entity.IsFrame
         EntityBomb.HasTearFlags
         EntityConfigEntity.HasCustomTag EntityConfigEntity.HasEntityTags EntityConfigEntity.HasGibFlags
-        EntityEffect.HasTearFlags EntityFamiliar.GetOrbitPosition EntityKnife.HasTearFlags
+        EntityEffect.HasTearFlags EntityFamiliar.GetOrbitPosition EntityFamiliar.GetOrbitDistance EntityKnife.HasTearFlags
         EntityLaser.HasTearFlags EntityList.Get EntityNPC.CanBeDamagedFromVelocity
         EntityPlayer.CanAddCollectible EntityPlayer.CanAddCollectibleToInventory
         EntityPlayer.CanOverrideActiveItem EntityPlayer.CanUsePill
@@ -134,6 +134,10 @@ OMITTED_MEMBERS = {
 
 def consumer_review(member):
     """将显式复核结论逐成员写入目录，新成员不能自动继承省略结论。"""
+    if member == "EntityPlayer.GetHeldEntity":
+        return "tx-04-19 I24/I25：Effect136的原生Player持物draw按当前稳定Key/shape借用；完整Player状态由20负责"
+    if member in {"EntityPlayer.GetBodySprite", "EntityPlayer.GetItemState", "EntityPlayer.GetSuplexState"}:
+        return "tx-04-19 I24/I25：普通Isaac的136持物draw必需BodySprite/null-frame和当前状态；按来源安装或Render栈借用，不重放玩法"
     if member in OMITTED_MEMBERS:
         return OMITTED_MEMBERS[member][1]
     return RETAINED_QUERIES.get(member, "未声明省略；沿用原归属，新增消费者须逐成员复核")

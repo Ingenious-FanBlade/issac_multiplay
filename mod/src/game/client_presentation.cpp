@@ -65,7 +65,7 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
     if(!transition.IsObject()||!Member(transition,"type").IsString()||std::string(Member(transition,"type").GetString())!="int64"||
        !Member(transition,"value").IsString()||std::string(Member(transition,"value").GetString())!="0")
       throw std::runtime_error("presentation_stable_room_transition_required");
-    const int presentation_version=Integer(Member(v,"version"),2,3);
+    const int presentation_version=Integer(Member(v,"version"),2,4);
     ClientPresentationDescription d;d.room_state=room_state;d.map=map_target;
     const auto &room=Member(Member(Member(model,"components"),"room"),"state");
     if(room.HasMember("map_sprites")){
@@ -169,7 +169,7 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
     const auto &fx=Member(v,"room_fx");
     d.fx_loaded=Boolean(Member(fx,"loaded"));
     // v3显式区分停用字段；本方描述的默认值只用于构造关闭的Client状态。
-    if(presentation_version==3&&Text(Member(fx,"applicability"))!=(d.fx_loaded?"Loaded":"NotApplicable"))
+    if(presentation_version>=3&&Text(Member(fx,"applicability"))!=(d.fx_loaded?"Loaded":"NotApplicable"))
       throw std::runtime_error("presentation_fx_applicability");
     if(presentation_version==2||d.fx_loaded){
     d.fx_ray_groups=unsigned(Integer(Member(fx,"ray_groups"),0,256));
@@ -203,6 +203,9 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
       layer.color_branch=FXCondition(Member(source,"color_branch"));layer.mask_backdrop=Word(Member(source,"mask_backdrop"));layer.mask=Boolean(Member(source,"mask"));
       image_description(source,layer);
       const bool generic=layer.pass==1||layer.pass==2||layer.pass==3||layer.pass==6;
+      // v2/v3未采混合模式；仅未消费该字段的pass4/5可继续使用旧来源，generic缺值必须拒绝。
+      if(generic||presentation_version>=4)layer.blend_mode=unsigned(Integer(Member(source,"blend_mode"),0,2));
+      if(!generic&&layer.blend_mode)throw std::runtime_error("presentation_fx_unused_blend_mode");
       if((layer.mask&&(!generic||layer.vertex_stride!=44||layer.color_branch!=0))||(!layer.mask&&layer.mask_backdrop)||
          (!generic&&layer.color_branch!=0))throw std::runtime_error("presentation_fx_mask_format_conflict");
       const auto &poses=Member(source,"poses");
@@ -215,7 +218,7 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
       d.fx_layers.push_back(std::move(layer));
     }
     }
-    if(presentation_version==3&&poop_applicable!=(d.fx_loaded&&d.fx_poop_countdown>0))throw std::runtime_error("presentation_poop_applicability");
+    if(presentation_version>=3&&poop_applicable!=(d.fx_loaded&&d.fx_poop_countdown>0))throw std::runtime_error("presentation_poop_applicability");
     if(d.room_fx_present!=(!d.fx_layers.empty()||!d.ray_groups.empty()||d.fx_poop_countdown>0||a.veins_present)||
        ((!d.fx_layers.empty()||!d.ray_groups.empty())&&!d.fx_loaded))
       throw std::runtime_error("presentation_fx_membership_conflict");

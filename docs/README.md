@@ -1,3 +1,5 @@
+> **tx-04-19 I34—I35（2026-11-04，完成）**：[统一验收、实际失败／修复、成本与后续交接](design/tx-04-19/tx-04-19-acceptance.md)。18 Source49／49、冷Client49／49及12／12检查；19 Source65／65、冷Client65／65、20非法目标／2版本拒绝、16故障恢复、暂停／stop／退出均通过，主智能体已审阅114对画面。能力与应用目录记录准确非Player范围；完整Player20、网络21／22、独立音画27及整局内容仍按具名交接推进。下方保留前序阶段事实。
+
 > **tx-04-19 I26—I30（2026-11-03）**：[独立结果、隔离、退休与唯一提交](design/tx-04-19/tx-04-19-scene-commit-retirement.md)、[Luna max必要静态研究／主审](design/tx-04-19/entity-i26-i30-native.md)。Entity专用独立scope、全窗口SFX隔离、逐前缀逐类退休、Scene唯一提交及准确非Player／Player支撑范围、真实逐池预算和稳定缓存已接入。按本轮会话要求未构建／测试而直接提交；I31—I35与I34统一E2E待推进，不置完整Entity域位或网络ACK。下方记录保留各阶段事实。
 
 > **tx-04-19 I15—I19（2026-11-03）**：[Laser／Knife／Pickup／Familiar／Effect类别应用](design/tx-04-19/tx-04-19-laser-effect-application.md)、[Luna max静态研究与主审](design/tx-04-19/entity-i15-i19-native.md)。五类最终量、完整激光几何／cycle、具名引用／辅助资源及五种typed ExtraData已接入；Player复合draw、Effect136交接、完整分层绘制和唯一Scene提交继续按I24／I25／I29推进。按会话要求直接提交，没有构建或运行测试；I34待统一验收。

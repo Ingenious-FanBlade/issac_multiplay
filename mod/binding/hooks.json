@@ -12,6 +12,7 @@
     ]
   },
   "hooks": [
+    ["world_delirium_owner","world","CsEntity","DeliriumReconfiguration","unsigned int","","","0x9F3D0","None",false,"",true,-20000,true],
     ["e2e_dummy_acquire","client","CsEntityE2EFactory","AcquireDummy","Entity*","unsigned int type, bool force","type, force","0x2EC540","None",false,"",true,20000,true],
     ["native_level_random","world","Level","generate_dungeon","void","RNG* random","random","0x33AF60","None",false,"",false,-10000,true],
     ["native_generator_random","world","LevelGenerator","Generate","void","int value, bool a, bool b, bool c, unsigned int const& shapes, unsigned int ends, LevelGenerator_Room* start","value, a, b, c, shapes, ends, start","0x585230","None",false,"",false,-10000,true],

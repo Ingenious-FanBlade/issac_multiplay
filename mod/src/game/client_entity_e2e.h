@@ -15,7 +15,7 @@ std::string ClientTestInspect(const std::string &) noexcept;
 struct ClientNativeObjects;
 std::string ClientTestInspectNative(const ClientNativeObjects *) noexcept;
 void ClientEntityTestTime(const char *,std::uint64_t) noexcept;
-// 只量具名调用CPU窗口，和harness包含IPC/等待的墙钟明确区分。
+// steady_clock只量具名代码包围窗口的经过时间，并非线程CPU；和harness含IPC/等待的墙钟另报。
 struct ClientEntityTestMeasure final {
   const char *name;std::chrono::steady_clock::time_point start=std::chrono::steady_clock::now();
   explicit ClientEntityTestMeasure(const char *value):name(value){}

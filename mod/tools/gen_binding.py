@@ -487,6 +487,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "game/world_sources/lua_entity.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
+#include "game/world_entity_owner.h"
 #include <intrin.h>
 // tx-04-08 world 观察入口的专用作用域与 20 项观察编号（C++17 兼容头）。
 #include "world/observe.h"
@@ -517,6 +518,10 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    if ident == 'world_delirium_owner':
+        return ['    // 专属原生owner只观察；无Init不制造Morph，异常不恢复资格。',
+                '    cs::game::WorldEntityReconfigurationScope owner(this,{&record.calls,&record.foreign,&record.completed});',
+                '    auto value=super();', '    owner.Returned();', '    return value;']
     if ident == 'client_entity_draw_paused':
         return ['    bool value=false;', '    if(cs::game::ClientEntityDrawPaused(value)) return value;',
                 '    cs::CallScope scope(record);', '    return super();']

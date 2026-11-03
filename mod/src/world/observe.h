@@ -73,6 +73,8 @@ struct ObservationFailureCounts final {
   std::uint64_t wrong_thread = 0, native_exception = 0;
 };
 ObservationFailureCounts ObservationFailures() noexcept;
+// 专属重配owner沿用world故障隔离；错误线程只更新原子状态，不调用Authority失败路径。
+void ReportEntityReconfigurationFault(ObservationFault fault) noexcept;
 
 const char *ObservationFaultName(std::uint32_t bit) noexcept;
 

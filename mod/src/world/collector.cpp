@@ -36,7 +36,41 @@ bool Collector::Recording() const noexcept {
          storage_.Diag().FaultReason() == Reason::None;
 }
 bool Collector::Drained() const noexcept {
-  return !depth_ && !lifecycle_depth_ && !outer_active_ && !pending_;
+  return !depth_ && !entity_reconfiguration_depth_ && !lifecycle_depth_ && !outer_active_ && !pending_;
+}
+Collector::EntityReconfiguration *Collector::EntityReconfigurationFor(std::uint32_t object) noexcept {
+  if(!entity_reconfiguration_depth_)return nullptr;
+  auto &owner=entity_reconfigurations_[entity_reconfiguration_depth_-1];
+  auto *id=identities_.Find(ObjectDomain::Entity,object);
+  return owner.object==object&&owner.run==run_&&owner.outer==outer_&&id&&!id->Retired()&&
+      id->local_id==owner.local&&id->use==owner.use&&id->birth==owner.birth&&id->born?&owner:nullptr;
+}
+std::uint32_t Collector::BeginDeliriumReconfiguration(std::uint32_t object) noexcept {
+  if(GetCurrentThreadId()!=memory_.main_thread||!Recording()||!run_active_||!outer_active_)return 0;
+  auto *id=identities_.Find(ObjectDomain::Entity,object);
+  if(!id||!id->born||id->candidate||id->Retired()||id->birth_type!=412)return 0;
+  for(std::uint32_t i=0;i<entity_reconfiguration_depth_;++i)if(entity_reconfigurations_[i].object==object){Fault(Reason::UnpairedScope,"delirium_owner_reentry");return 0;}
+  if(entity_reconfiguration_depth_==entity_reconfigurations_.size()||next_entity_reconfiguration_==UINT32_MAX){Fault(Reason::Budget,"delirium_owner_budget");return 0;}
+  auto &owner=entity_reconfigurations_[entity_reconfiguration_depth_++];owner={};
+  owner.token=++next_entity_reconfiguration_;owner.object=object;owner.call_depth=depth_;
+  owner.local=id->local_id;owner.use=id->use;owner.birth=id->birth;owner.run=run_;owner.outer=outer_;
+  storage_.Diag().callbacks.fetch_add(1,std::memory_order_relaxed);return owner.token;
+}
+void Collector::EndDeliriumReconfiguration(std::uint32_t token,bool normal) noexcept {
+  if(!token)return;
+  if(!entity_reconfiguration_depth_||entity_reconfigurations_[entity_reconfiguration_depth_-1].token!=token){Fault(Reason::UnpairedScope,"delirium_owner_pair");return;}
+  const auto owner=entity_reconfigurations_[entity_reconfiguration_depth_-1];
+  auto *current=EntityReconfigurationFor(owner.object);
+  auto *id=identities_.Find(ObjectDomain::Entity,owner.object);
+  // 未进入Init的普通AI不改资格；原生Init完整返回及整个helper收口缺一不可。
+  if(owner.native_init&&current&&id){
+    if(normal&&Recording()&&depth_==owner.call_depth&&id->readiness==std::uint32_t(Readiness::BaseInitReturned)){
+      id->readiness=std::uint32_t(Readiness::CreationOwnerCompleted);id->current_public_ready=true;
+    }else {id->readiness=0;id->current_public_ready=false;}
+  }
+  --entity_reconfiguration_depth_;storage_.Diag().callbacks.fetch_sub(1,std::memory_order_relaxed);
+  if(!normal||depth_!=owner.call_depth)Fault(Reason::UnpairedScope,"delirium_owner_return");
+  CloseIfDrained();
 }
 void Collector::CloseIfDrained() noexcept {
   if ((stopping_ || storage_.Diag().FaultReason() != Reason::None) &&
@@ -204,7 +238,7 @@ void Collector::BeginOuter(std::uint64_t loop, std::uint64_t outer,
     Fault(Reason::WrongThread, "outer_thread");
     return;
   }
-  if (outer_active_ || pending_ || depth_ || lifecycle_depth_ || !outer ||
+  if (outer_active_ || pending_ || depth_ || entity_reconfiguration_depth_ || lifecycle_depth_ || !outer ||
       !loop) {
     Fault(Reason::UnpairedScope, "outer_begin");
     return;
@@ -777,7 +811,7 @@ core::TickPostState Collector::PreparePostState(bool normal) noexcept {
   post_.attempt_seq = attempt_;
   const bool authority = authority_count_ == 1 && authority_.tick;
   Reason reason = outer_reason_;
-  if (!normal || depth_ || lifecycle_depth_)
+  if (!normal || depth_ || entity_reconfiguration_depth_ || lifecycle_depth_)
     reason = Reason::UnpairedScope;
   else if (stopping_ || !Recording())
     reason = storage_.Diag().FaultReason() == Reason::None
@@ -1190,6 +1224,7 @@ std::uint32_t Collector::ObserveEnter(Observation kind, std::uint32_t object,
   }
   if (id && (kind == Observation::Init || kind == Observation::GridInit)) {
     bool known_owner = CreationOwner(domain) != 0;
+    if(kind==Observation::Init&&EntityReconfigurationFor(object))known_owner=true;
     for (std::uint32_t i = 0; i + 1 < depth_; ++i)
       known_owner = known_owner || (entity::Morph(calls_[i].observation) &&
                                     calls_[i].object == object);
@@ -1223,6 +1258,13 @@ std::uint32_t Collector::NativeEnter(Observation kind, std::uint32_t object,
   }
   auto &call = calls_[depth_ - 1];
   call.body_reached = true;
+  if(kind==Observation::Init)if(auto *owner=EntityReconfigurationFor(object)){
+    if(!owner->native_init){
+      auto *id=identities_.Find(ObjectDomain::Entity,object);
+      if(id->revision==UINT64_MAX)Fault(Reason::SequenceExhausted,"delirium_shape_revision");
+      else {++id->revision;owner->native_init=true;}
+    }
+  }
   call.count = count;
   for (std::uint32_t i = 0; i < count; ++i)
     call.args[i] = args[i];

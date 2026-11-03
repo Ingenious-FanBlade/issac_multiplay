@@ -105,6 +105,8 @@ Variant 231 AbyssLocust 所有副ANM来自具名 ExtraData owner；`0x647310`执
 
 ## Effect136 与 `LiftedGridTarget`（承接 I18）
 
+2026-11-04 I34补证：136本体Visible=false时由Player持物Render消费；只安装desc／主Sprite不等于举持已显示。必要依赖为当前GetHeldEntity稳定Key／shape、GetItemState、GetSuplexState以及独立GetBodySprite完整pose／null-frame。Player+44C是BodySprite+41C内的AnimationState+30，不是HeldSprite+FF8；Source真实LiftItem frame2已提供该记录。正式资源apply及Render栈借用、原生暂时置可见并回调Entity Render的具体指令、Nullable Body／原生Suplex状态5、运行失败与最终覆盖见[统一验收说明](tx-04-19-acceptance.md)。它补齐19所需的普通Isaac窄支撑，完整Player仍归20。
+
 本地 Wiki 与 REPENTOGON `LuaEntityEffect.cpp::Lua_GetGridEntityDesc` 确认：仅Effect Variant136把 `_varData`（Effect `+0x420`）暴露为 `GridEntityDesc` view。官方 `GridEntityDesc.zhl` 布局总长 `0x20`，含 Type `+0` i32、Variant `+4` i32、State `+8` i32、SpawnCount `+C` i32、SpawnSeed `+10` u32、VarData `+14` i32、Initialized byte `+18`（`+19..+1B` padding）、VariableSeed `+1C` u32。注意这里16B的是Effect通用 `_varData` 起始区域/Init清除长度，不是GridEntityDesc的VarData字段。Effect Init `0x5CD070` 只清`+0x420..+0x42F`的16B；Render `0x600E60`不消费该desc；不因公开 GetGridEntityDesc 就认为Room仍有active Grid owner。
 
 真实 creator `Room::PickupGridEntity VA 0x81AE00` 先用`0x81A920`取desc及 GridEntity内嵌ANM2副本，然后调RNG、`0x424340` Spawn Type1000/Variant136、以`0x403160 SwapANM2`把完整ANM2交换到Effect主Sprite `+0x48`、写全部32B descriptor及 Room State。`0x81A920`还可能移除/替换Room grid、创建Decoration，且会对命中的关联Entity写状态并调用Update；因此不调用creator/helper作为无副作用 getter，也不重新构造源动画文件名。

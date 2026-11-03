@@ -282,9 +282,12 @@ ObservationSubjectValue ObservationSubject(void *object,bool registering,bool gr
   if(!grid) ObservationPlayerMembership(object,result);
   if(registering&&c->lua_objects&&id->local_id<c->lua_subject_scopes.size()) c->lua_subject_scopes[id->local_id]=c->lua_scope;
   const bool current=c->lua_objects&&id->local_id<c->lua_subject_scopes.size()&&c->lua_subject_scopes[id->local_id]==c->lua_scope;
-  // v2 当前 Lua 引用还需本 scope 的主体登记；复用地址仅在真实创建 owner 已完成且
-  // 本 use 没有 Morph/未知 Init 修订时恢复当前资格。旧 v1 的强出生排序规则保持原样。
-  const bool reuse_current=id->born&&id->readiness>=2&&id->revision==0&&(grid||id->current_public_ready);
+  // v2 当前 Lua 引用还需本scope登记；非Player复用仍要求完整创建owner及未修订的本use。
+  // Player的显式当前更新见证是项目已采纳的独立依据：同一有效anchor正常更新后可读，
+  // 即使新run复用了地址且没有出生历史，也不能把当前身体误判为旧对象；撤绑/Init即撤销。
+  const bool player_current=!grid&&result.control_active&&id->current_public_ready&&
+      id->readiness==std::uint32_t(world::Readiness::CurrentPlayerUpdateWitness);
+  const bool reuse_current=player_current||(id->born&&id->readiness>=2&&id->revision==0&&(grid||id->current_public_ready));
   result.status=id->Retired()?6:registering?1:current&&(!id->reused||reuse_current)?1:id->reused?7:3;
   return result;
 }

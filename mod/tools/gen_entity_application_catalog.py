@@ -32,11 +32,21 @@ CLASSES = {
 RESOURCE_CLASSES = {"Sprite", "LayerState", "AnimationData", "AnimationLayer", "AnimationFrame", "NullFrame", "Image", "BlendMode", "Shape", "Color", "KColor", "Vector"}
 PLAYER_RELATED = {"Weapon", "TemporaryEffects", "TemporaryEffect", "CostumeSpriteDesc", "PocketItem", "QueueItemData", "ActiveItemDesc", "EntityConfigPlayer", "EntityConfigBaby", "History", "HistoryItem"}
 RELATIONS = {"Entity.Parent", "Entity.Child", "Entity.Target", "Entity.SpawnerEntity", "Entity.GetLastChild", "Entity.GetLastParent", "Entity.GetMinecart", "EntityNPC.ParentNPC", "EntityNPC.ChildNPC", "EntityNPC.EntityRef", "EntityNPC.GetPlayerTarget", "EntityNPC.GetSirenPlayerEntity", "EntityTear.StickTarget", "EntityLaser.BounceLaser"}
+# 类别实现与逐字段运行覆盖分别声明；验收文档保存具体场景和未覆盖分支。
+ACCEPTANCE_DOC = "docs/design/tx-04-19/tx-04-19-acceptance.md"
+NATIVE_CLASSES = set(CLASSES) - {"EntityPlayer"}
+RUNTIME_ACCEPTANCE = "I34-passed:65-Source/65-cold-Client;20-invalid/2-compat/16-fault;named-scenes;see-acceptance-document"
 
 
 def route(m):
     """公共继承只定义一次；类别字段与关联值分别声明安装/纯值/外部责任。"""
     owner, member = m["class"], m["member"]
+    if m["id"] == "EntityPlayer.GetHeldEntity":
+        return "I24/I25", "typed_reference", "仅Effect136所需的同T稳定Key/shape与Render栈持物借用；不执行TryHold/Throw，完整Player持物语义仍归20", "E14/E15/E22"
+    if m["id"] == "EntityPlayer.GetBodySprite":
+        return "I24/I25", "resource_pose", "普通Isaac窄支撑安装实际BodySprite及null-frame，供136原生持物draw；完整Player形态/装备仍归20", "E14/E18"
+    if m["id"] in {"EntityPlayer.GetItemState", "EntityPlayer.GetSuplexState"}:
+        return "I24/I25", "presentation_dependency", "仅136持物Render栈按来源临时安装并还原；公开状态不重放UseItem/Suplex/Throw，完整Player应用仍归20", "E14/E22"
     if m["id"] == "EntityEffect.GetGridEntityDesc":
         return "I24", "external_domain", "仅Effect136；同窗口Grid.lifted_descriptors提供完整可空描述，不是活动Grid身份或通用VarData", "E14"
     if owner == "EntityPlayer" or owner in PLAYER_RELATED:
@@ -51,7 +61,7 @@ def route(m):
         return "I08", "common_state", "公共最终状态；写回与真实后态由I08逐字段实现，不能重放操作", "E01/E15"
     if owner in CLASSES:
         _, task, _, e2e = CLASSES[owner]
-        return task, "class_state", "类别最终值/容器；具体原生存储由该adapter实现，当前纯值保留不等于原生应用", e2e
+        return task, "class_state", "类别最终值/容器；由具名adapter安装、保留Authority事实或交接外部owner，具体分支见应用处置及验收文档", e2e
     return "I08/I09", "associated_value", "配置/PathFinder/命中集合等关联纯值；禁止寻路、抽奖或复制原生Index为本地引用", "E01/E15"
 
 
@@ -89,7 +99,7 @@ def generate():
             target_field, storage = "none;operation-not-a-state-setter;actual-call-has-independent-scope", "Authority/complete-observation only;not native-applied"
         else:
             section = "common" if m["class"] == "Entity" else "special" if m["class"] == "EntityDelirium" else "payload"
-            target_field, storage = "EntityTarget.objects/" + section + "/fields/" + m["id"], "owned-pure-value;native-storage-pending-" + task
+            target_field, storage = "EntityTarget.objects/" + section + "/fields/" + m["id"], "owned-pure-value;named-disposition-" + task
         rows.append({
             "source_catalog": SOURCE.name, "source_ordinal": ordinal, "id": m["id"],
             "owner": m["class"], "member": m["member"], "signature": m["signature"],
@@ -104,31 +114,32 @@ def generate():
             "dependencies": ["same ordinary component capture", "entity-source-v1", "stable-keys-v1", "I05 Player/instance owner;I09 references;I10 resources"],
             "missing": "Missing/Null/Empty/NotApplicable/NotScheduled/Unknown/Unavailable/ReadFailed/Truncated分别保留；只有完整成员表允许缺席删除",
             "implementation": PARSER, "source_implementation": m["implementation"],
-            "native_status": "authority_not_replayed" if ownership == "AuthorityOnly" else "not_applied_by_I01_I03",
+            "native_status": "authority_not_replayed" if ownership == "AuthorityOnly" else "external_Player20" if task == "tx-04-20" else responsibility + ";named-consumer-disposition",
             "e2e": e2e,
         })
         if m["id"] in common_native and ownership == "ReplicatedState":
-            rows[-1]["native_status"] = "I08-common-path-implemented;class-owner-and-I34-pending"
+            rows[-1]["native_status"] = "I08-common-path-implemented;non-Player-only;Player20"
             rows[-1]["local_storage"] = common_native[m["id"]]["storage"]
             rows[-1]["implementation"] = "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
         elif m["id"] in class_native and ownership == "ReplicatedState":
-            rows[-1]["native_status"] = "I11-I25-final-field-path-implemented;I29-and-I34-pending"
+            rows[-1]["native_status"] = "I11-I25-final-field-path-implemented;I29-Scene-only-commit"
             rows[-1]["local_storage"] = class_native[m["id"]]
             rows[-1]["implementation"] = "mod/src/game/client_entity_class_model.cpp:ClientDescribeEntityClass;mod/src/game/client_entity_adapters_native.cpp:Fields"
         elif m["class"] in {"EntityNPC", "EntityDelirium", "EntityTear", "EntityProjectile", "EntityBomb", "EntityLaser", "EntityKnife", "EntityPickup", "EntityFamiliar", "EntityEffect", "EntitySlot", "NativeText", "NativeDummy"} and ownership == "ReplicatedState":
-            rows[-1]["native_status"] = "I10-I25-explicit-field-disposition;I29/I34-pending"
+            rows[-1]["native_status"] = "I10-I25-explicit-field-disposition;I29-Scene-only-commit"
             rows[-1]["local_storage"] = "ClientEntityClassDisposition:resource/native-reference/Authority-fact/complete-typed-collection/optional-bool/removed-API;NPC-three-deques=stable-keys/value-streams;Siren-owned-gameplay-actor=Authority-fact;Effect136=checked-Grid18-handoff"
             rows[-1]["implementation"] = "mod/src/game/client_entity_class_model.cpp:ClientEntityClassDisposition;mod/src/game/client_entity_adapters_native.cpp"
         elif responsibility == "typed_reference":
-            rows[-1]["native_status"] = "I09-typed-plan-and-common-EntityPtr-implemented;class-binding-and-I34-pending"
+            rows[-1]["native_status"] = "I09-typed-plan-and-common-EntityPtr-implemented;named-owner-required"
             rows[-1]["implementation"] = "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences"
     # 结构型补充与公开行使用同一责任目录，不能靠测试夹具补表现源。
     return {"format": "isaac.cs.entity.application-catalog", "version": 1, "model_version": 2,
+            "acceptance_scope": {"document": ACCEPTANCE_DOC, "scope": "category-scene;not-every-member-value-or-variant", "full_entity_domain_commit": False, "network_ack": False},
             "target_contract": "entity-target-v1", "source_contract": "entity-source-v1", "members": rows,
             "common_native": common_native, "class_native": class_native,
             "projection_consumer_review": {"task": "I31", "compact_sources": ENTITY_COMPACT_CONSUMERS,
                 "retained_parameter_queries": ["EntityBomb.GetCostumeLayerSprite", "Sprite.HasCustomShader", "Sprite.HasCustomChampionShader", "LayerState.HasCustomShader", "LayerState.HasCustomChampionShader"],
-                "graph": "one closed graph per complete component;no new Sprite alias", "runtime_acceptance": "I34-pending"},
+                "graph": "one closed graph per complete component;no new Sprite alias", "runtime_acceptance": RUNTIME_ACCEPTANCE},
             "class_execution": {"registered": ["NPC", "Delirium-special", "Tear", "Projectile", "Bomb", "Laser", "Knife", "Pickup", "Familiar", "Effect", "Slot1..18", "NativeText", "NativeDummy"],
                                 "model": "mod/src/game/client_entity_class_model.cpp", "native": "mod/src/game/client_entity_adapters_native.cpp",
                                 "resources": "main/overlay/layers/exact-phase/champion-color/shader;NPC two ANM;Tear three ANM;Bomb five costumes;Knife shared DeadEye;Pickup price/alternate;Slot prize;five typed ExtraData families",
@@ -138,13 +149,16 @@ def generate():
                                 "owned_presentations": "Familiar48 IsaacsBody/231 AbyssLocust;Effect108 MrMe/166 SpriteTrail/191 PickupGhost;real native shared-owner and constructors/destructors",
                                 "npc_compound_draw": "835 references+path;906/920 child ANM;921 C04 secondary path;C18 retained independently;951:3 full path;965:10 named Player minecart offset",
                                 "native_type_context": "ordinary Source/preflight/frame require Game Deathmatch state <2;835 path reads only real NPC Type10..999;Player C28 belongs to ANM2 layerCount, never a path",
-                                "scene_commit": "I29-single-Scene-commit;non-Player-range-only", "native_draw_dispatch": "I25 implemented;dynamic main/shadow/noarg post/Room-light;water indirect hooks;Authority frame RNG borrow;final Abyss ANM;Text font", "runtime_acceptance": "I34-pending"},
+                                "scene_commit": "I29-single-Scene-commit;non-Player-range-only", "native_draw_dispatch": "I25 implemented;dynamic main/shadow/noarg post/Room-light;water indirect hooks;Authority frame RNG borrow;final Abyss ANM;Text font", "runtime_acceptance": RUNTIME_ACCEPTANCE},
             "common_execution": {"tasks": "I05-I09", "plan": "mod/src/replica/entity_plan.cpp:PlanEntityTarget",
                                  "executor": "mod/src/game/client_objects.cpp:ClientObjects;mod/src/game/client_objects_native.cpp:FormalExecute",
-                                 "class_native_apply": False, "scene_commit": "I29-single-Scene-commit;non-Player-range-only", "runtime_acceptance": "I34-pending"},
+                                 "class_native_apply": True, "scope": "non-Player;full-Player20", "scene_commit": "I29-single-Scene-commit;non-Player-range-only", "runtime_acceptance": RUNTIME_ACCEPTANCE},
             # I04研究索引是资料与采用约束，不把静态审阅升级为原生支持或运行通过。
+            "static_research_context": {"kind": "pre-I34-static-record", "runtime_authority": ACCEPTANCE_DOC,
+                                        "note": "原研究时点的pending/UNKNOWN保留；当前运行范围看顶层acceptance_scope，不把旧字段作为推进前置"},
             "static_research": json.loads(RESEARCH.read_text(encoding="utf-8-sig")),
-            "classes": [{"source_class": c, "category": d[0], "task": d[1], "contract": d[2], "e2e": d[3], "adapter_registered": c in {"EntityNPC", "EntityDelirium", "EntityTear", "EntityProjectile", "EntityBomb", "EntityLaser", "EntityKnife", "EntityPickup", "EntityFamiliar", "EntityEffect", "EntitySlot", "NativeText", "NativeDummy"}, "native_apply": False} for c, d in CLASSES.items()],
+            "classes": [{"source_class": c, "category": d[0], "task": d[1], "contract": d[2], "e2e": d[3], "adapter_registered": c in NATIVE_CLASSES, "native_apply": c in NATIVE_CLASSES,
+                         "acceptance_document": ACCEPTANCE_DOC, "coverage": "named-category-scenes;not-all-content-combinations" if c in NATIVE_CLASSES else "one-ordinary-Isaac-support-only;full-Player20"} for c, d in CLASSES.items()],
             "classification": {"method": "public-derived-interface-or-J273-RTTI;never-Type-range", "rejected_legacy": ["NativeDarkness"], "unknown": "explicit-UnknownEntity;never-NPC", "delirium": "EntityNPC+EntityDelirium-special"},
             "slot_variants": {"source": "mod/observation/isaac-cs-observation/domains/entity/slot_variants.lua", "values": [
                 {"variant": i+1, "name": name, "contract": "C11;read actual Prize/DonationValue/Timeout/PrizeSprite;no local payout"}
@@ -170,7 +184,7 @@ def generate():
                 {"id": "NativeText.text", "task": "I03/I21", "handling": "current-use native writer witness;Init alone insufficient;unwitnessed=NotCaptured;never read pool leftovers"},
                 {"id": "NativeText.draw_phase", "task": "I03/I21/I26", "handling": "independent native-text-render-v1 entry inputs;Manager frame/pause/subframe/font;match source state, never merge into ordinary"},
                 {"id": "EntityEffect.GetGridEntityDesc", "task": "I24", "handling": "grid.lifted_descriptors owns nullable full description;not generic VarData;no fabricated source Grid key"},
-            ], "runtime_acceptance": "pending-full-tx-04-19-I34;catalog-and-target-are-not-native-support"}
+            ], "runtime_acceptance": RUNTIME_ACCEPTANCE}
 
 
 def main():

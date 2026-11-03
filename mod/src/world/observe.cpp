@@ -47,6 +47,9 @@ void RaiseFault(std::uint32_t index, ObservationFault fault) noexcept {
 void SetObservationSink(const ObservationSink *value) noexcept {
   sink.store(value, std::memory_order_release);
 }
+void ReportEntityReconfigurationFault(ObservationFault fault) noexcept {
+  RaiseFault(ObservationIndex(Observation::NpcMorph),fault);
+}
 std::uint64_t ObservationFailureSequence() noexcept {
   return failure_sequence.load(std::memory_order_acquire);
 }

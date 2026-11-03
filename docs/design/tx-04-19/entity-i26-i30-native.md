@@ -1,5 +1,7 @@
 # I26—I30 必要原生静态补证
 
+2026-11-04 I34更正：下文记录的基类调用意图与旧实现不一致。官方SDK的 `e.Entity::Init/Remove/ClearReferences` 包装器内部仍按虚表派发，不能通过C++基类限定跳过派生。Client07实际Familiar退休AV后，指定Luna max补查、主智能体独立复读，19 adapter已改为调用唯一清单已有的base entry RVA `2A4A20/2A8000/2A8060`，保留官方Hook／Plus／ESSM链；具体失败、ABI／callee与续测结果见[统一验收](tx-04-19-acceptance.md)。旧记录按当时采用解释保留，以本次更正为准。
+
 目标：`isaac-ng-v1.9.7.12.J273`，IDA ImageBase=`0x400000`。本文只记录本地实体 Wiki、REPENTOGON 源码和目标 IDB 静态证据；VA/RVA 按 `RVA=VA-0x400000`。标记：`SRC`=直接源码，`J273`=二进制直接观察，`推导`=基于两者的设计结论，`UNKNOWN`=尚未闭合。复用 [I20—I25 原生合同](entity-i20-i25-native.md)、[通用原生合同](entity-native-static.md) 与[应用合同](entity-application-contracts.md)，这里只补池预算、生命周期前缀与 I27 副作用。
 
 ## I30：Factory 实际池容量与复用

@@ -41,25 +41,39 @@ struct SpriteBorrow final {
   ~SpriteBorrow(){sprite._overlayRenderFirst=first;std::memcpy(reinterpret_cast<unsigned char *>(&sprite)+0x94,scalars.data(),scalars.size());
     for(unsigned i=0;i<layers.size();++i)std::memcpy(reinterpret_cast<unsigned char *>(&sprite._layerState[i])+0x20,layers[i].data(),layers[i].size());}
 };
-// 965:10及Familiar复合绘制借用当前Player；仅在draw栈安装所需关系/偏移，离栈归还。
+// 965:10、Familiar及136持物绘制借用当前Player；仅在draw栈安装所需输入，离栈归还。
 struct PlayerBorrow final {
   Entity_Player &player;Entity *minecart=nullptr,*desired=nullptr;
+  Entity *held=nullptr,*desired_held=nullptr;std::int32_t item_state=0,held_pose=0;
   Vector position,position_offset,cart_offset;ColorMod color;bool visible=false,attached=false;
   std::uint32_t frame_base=0;const ClientObjectDescription &description;
   std::vector<std::unique_ptr<SpriteBorrow>> sprites;
   PlayerBorrow(Entity_Player &p,const ClientObjectDescription &d):player(p),minecart(p.GetMinecart()),position(p._pos),position_offset(p._posOffset),visible(p._visible),description(d){
+    held=p.GetHeldEntity();held_pose=p._suplexState;std::memcpy(&item_state,reinterpret_cast<unsigned char *>(&p)+0x15f4,4);
     std::memcpy(&cart_offset,reinterpret_cast<unsigned char *>(&p)+0x205c,8);std::memcpy(&color,reinterpret_cast<unsigned char *>(&p)+0x1b8,sizeof(color));
     std::memcpy(&frame_base,reinterpret_cast<unsigned char *>(&p)+0x328,4);
-    sprites.push_back(std::make_unique<SpriteBorrow>(p._sprite));if(p._costumeSpriteDescs.size()>16384)throw std::runtime_error("entity_player_draw_costume_budget");
+    sprites.push_back(std::make_unique<SpriteBorrow>(p._sprite));sprites.push_back(std::make_unique<SpriteBorrow>(p._bodySprite));
+    if(p._costumeSpriteDescs.size()>16384)throw std::runtime_error("entity_player_draw_costume_budget");
     for(auto &costume:p._costumeSpriteDescs)sprites.push_back(std::make_unique<SpriteBorrow>(costume._sprite));
     for(const auto &r:d.relations)if(r.member=="Entity.GetMinecart"&&!r.is_null){desired=static_cast<Entity *>(ClientNativeObjectDrawAddress(r.target));if(!desired)throw std::runtime_error("entity_player_draw_minecart_key");}
     if(d.derived->player_minecart_draw&&(!desired||desired->_type!=965||desired->_variant!=10))throw std::runtime_error("entity_player_draw_minecart_shape");
+    if(d.derived->player_held_draw){
+      for(const auto &r:d.relations)if(r.member=="EntityPlayer.GetHeldEntity"&&!r.is_null)desired_held=static_cast<Entity *>(ClientNativeObjectDrawAddress(r.target));
+      const auto *source=ClientNativeObjectDrawDescription(desired_held);
+      if(!desired_held||!source||source->category!=9||source->variant!=136||source->shape_revision!=d.derived->player_held_shape||
+         !desired_held->_exists||desired_held->_visible||desired_held->GetParent()!=&p)throw std::runtime_error("entity_player_draw_held136_owner_or_pose");
+      // Player Render临时变换持物并调用其原生Render；资源留在原owner，选择器/标量工作副本保护到外层drain。
+      sprites.push_back(std::make_unique<SpriteBorrow>(desired_held->_sprite));
+    }
   }
   void Attach(){for(auto &s:sprites)s->Attach();attached=true;player._minecart.SetReference(desired);
+    player._heldEntity=desired_held;
+    if(description.derived->player_held_draw){player._suplexState=description.derived->player_held_pose;std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x15f4,&description.derived->player_held_item_state,4);}
     if(description.derived->player_minecart_draw){const Vector offset(description.derived->player_minecart_offset.x,description.derived->player_minecart_offset.y);std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x205c,&offset,8);std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x2060,&description.derived->player_minecart_sort_bits,4);}
     for(const auto &f:description.common_fields)if(f.member=="Entity.FrameCount"){const auto base=description.derived->draw.game_frame-std::uint32_t(f.integer);std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x328,&base,4);}
   }
   ~PlayerBorrow(){if(attached){player._minecart.SetReference(minecart);player._pos=position;player._posOffset=position_offset;player._visible=visible;
+    player._heldEntity=held;player._suplexState=held_pose;std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x15f4,&item_state,4);
     std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x205c,&cart_offset,8);std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x1b8,&color,sizeof(color));std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x328,&frame_base,4);}}
 };
 struct Frame final {
@@ -161,7 +175,7 @@ ClientEntityFrameScope::ClientEntityFrameScope(const ClientNativeRoots &roots){
 }
 ClientEntityFrameScope::~ClientEntityFrameScope(){
   auto *state=static_cast<Frame *>(state_);
-  if(state&&(state->uncertain||std::uncaught_exceptions()!=state->exceptions)){
+  if(state&&(state->uncertain||std::uncaught_exceptions()!=state->exceptions||!ClientNativeCpuQueuesEmpty())){
     // 未知draw/队列异常保留全部owner和隔离；不能在未消费raw使用上释放选择器或强交还Off。
     state->uncertain=true;ClientCallbackFault("entity_frame_inflight_owner_retained");return;
   }
@@ -184,11 +198,10 @@ ClientEntityDrawScope::ClientEntityDrawScope(void *pointer,void *offset,unsigned
 }
 ClientEntityDrawScope::~ClientEntityDrawScope(){
   if(!state_)return;
-  // raw CPU队列必须先消费，才能归还ANM选择器；同FBO保持连续depth，不清外层depth。
-  try{auto &graphics=*__ptr_g_KAGE_Graphics_Manager;auto &depth=*reinterpret_cast<float *>(Base+0x7a4714);const auto next=depth;graphics.PresentWithoutSwap();depth=next;}
-  catch(...){if(frame)frame->uncertain=true;ClientCallbackFault("entity_draw_cpu_use_uncertain");return;}
+  // RenderLayer已同步把姿态读成顶点；队列只借Image/Batch，不借选择器或Entity标量。
+  // 此处恢复工作值，不在原生Shadow等未收口batch中Present；资源owner由整帧scope保持到外层drain。
   delete static_cast<Draw *>(state_);
-  // 队列已消费、借用已归还，再注入可安全退休的正常返回失败。
+  // 原调用已返回且工作值已归还；外层RenderState仍负责消费本帧队列，再进入失败退休。
   if(ClientEntityTestFault("draw-after"))ClientCallbackFault("draw-after");
 }
 bool ClientEntityDrawPaused(bool &value) noexcept {if(!IsMain()||!frame)return false;value=frame->source.paused;return true;}

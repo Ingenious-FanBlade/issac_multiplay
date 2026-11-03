@@ -14,6 +14,17 @@ namespace {
 thread_local bool initializing_class=false;
 thread_local unsigned initializing_seed=0;
 thread_local bool retiring_class=false;
+// SDK的Entity方法包装器内部仍按vtable分派，C++基类限定也不能选择base原生实现。
+// 直达唯一Hook清单world_entity_init/remove/clear_references的已登记入口；保留官方与自有常驻链。
+void BaseEntityInit(Entity &entity,const ClientObjectDescription &d){
+  reinterpret_cast<void (__thiscall *)(Entity *,unsigned,unsigned,unsigned,unsigned)>(Base+0x2a4a20)(
+      &entity,d.type,d.variant,d.subtype,d.seed);
+}
+// 本方Familiar没有Player编队/Weapon玩法owner；先撤全部关系和typed附属owner后只清公共use。
+void BaseEntityRetire(Entity &entity){
+  reinterpret_cast<void (__thiscall *)(Entity *)>(Base+0x2a8000)(&entity);
+  reinterpret_cast<void (__thiscall *)(Entity *)>(Base+0x2a8060)(&entity);
+}
 // 在同一当前use中按类别安装；既不调用属性玩法setter，也不整体复制带owner的对象内存。
 template<class T> bool Value(T &native,const ClientEntityField &f,bool check){
   if constexpr(std::is_same_v<T,BitSet128>){if(f.kind!=ClientEntityValueKind::Bits128)return false;
@@ -61,7 +72,7 @@ bool BeforeInit(void *,void *pointer,const ClientObjectDescription &d,const Clie
   if(!pointer||!d.derived||!IsMain()||!ClientBusy()||!ClientEntityInitIsolationInstalled()){reason="entity_class_init_context_or_random_isolation";return false;}
   auto &e=*static_cast<Entity *>(pointer);if(e._valid){reason="entity_class_live_pool_use";return false;}
   if(d.category==1&&(*reinterpret_cast<unsigned *>(reinterpret_cast<unsigned char *>(pointer)+0xc00)||*reinterpret_cast<void **>(reinterpret_cast<unsigned char *>(pointer)+0xf40))){reason="entity_npc_previous_private_owner_unknown";return false;}
-  // 配置加载仍由原生动态Init负责。新use不得携带上一use的公共关系进入派生初始化。
+  // 配置加载仍由真实Init中的LoadEntityConfig负责；新use不得携带上一use的公共关系进入初始化。
   e.SetParent(nullptr);e.SetChild(nullptr);e.SetTarget(nullptr);e.SetSpawnerEntity(nullptr);e._minecart.SetReference(nullptr);
   for(const auto &r:d.relations)if(const auto offset=ClassReferenceOffset(d.category,r.member))reinterpret_cast<EntityPtr *>(reinterpret_cast<unsigned char *>(pointer)+offset)->SetReference(nullptr);
 #define CS_CLASS_LINK(cat,id,offset) if(cat==0||cat==d.category)reinterpret_cast<EntityPtr *>(reinterpret_cast<unsigned char *>(pointer)+offset)->SetReference(nullptr);
@@ -82,7 +93,7 @@ bool Initialize(void *,void *pointer,const ClientObjectDescription &d,const char
   // Pickup/Familiar/Effect的派生Init包含生成/抽池/Player状态裁决；真实Factory/ctor已经建立成员owner。
   // 仅进入官方base Init及Plus链，随后由本方完整最终量/资源/关系安装；不将跳过计作原派生调用完成。
   if(d.category==7||d.category==8||d.category==9||d.category==10){
-    e.Entity::Init(d.type,d.variant,d.subtype,d.seed);
+    BaseEntityInit(e,d);
     if(d.category==8){auto &f=static_cast<Entity_Familiar &>(e);
       // 派生ctor构造的容器/Pathfinder/ExtraData holder保持原owner。游戏Weapon只由被跳过的玩法Init创建，
       // 本用途不创建它，也不让未初始化的DB0/410标量变成可消费指针。
@@ -130,6 +141,7 @@ bool Fields(void *,void *pointer,const ClientObjectDescription &d,bool check,con
   reason=check?"entity_class_native_checked":"entity_class_final_values";return true;
 }
 ANM2 *Auxiliary(Entity &e,const ClientEntityClassState::Resource &r){
+  if(r.member=="player_body"){auto *p=e.ToPlayer();return p?&p->_bodySprite:nullptr;}
   if(r.member=="npc_overlay")return reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&e)+0xcd8);
   if(r.member=="npc_effect")return reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&e)+0xdec);
   if(r.member=="EntityTear.GetDeadEyeSprite")return &static_cast<Entity_Tear &>(e)._deadEyeANM2;
@@ -206,7 +218,7 @@ bool Retire(void *,void *pointer,const ClientObjectDescription &d,const char *&r
     auto &f=static_cast<Entity_Familiar &>(e);
     if(!ClientEntityRetireOwnedPresentation(pointer,d.category,reason))return false;
     if(f._weapon||*reinterpret_cast<void **>(reinterpret_cast<unsigned char *>(pointer)+0xecc)){reason="entity_familiar_unexpected_owned_gameplay_state";return false;}
-    e.Entity::Remove();e.Entity::ClearReferences();f._player=nullptr;
+    BaseEntityRetire(e);f._player=nullptr;
   }else {e.Remove();e.ClearReferences();}
   if(e._exists){reason="entity_class_retire_exists";return false;}reason="entity_class_retired";return true;
 }

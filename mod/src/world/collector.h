@@ -94,6 +94,9 @@ public:
   std::uint32_t NativeEnter(Observation observation, std::uint32_t object,
                            const std::uint32_t *args, std::uint32_t count) noexcept;
   void NativeLeave(std::uint32_t call, std::uint32_t result, bool normal) noexcept;
+  // 仅49F3D0已核定的Type412重配owner调用；不按普通NPCUpdate推导私有字段资格。
+  std::uint32_t BeginDeliriumReconfiguration(std::uint32_t object) noexcept;
+  void EndDeliriumReconfiguration(std::uint32_t token,bool normal) noexcept;
 
 private:
   struct Roots {
@@ -170,6 +173,16 @@ private:
   std::uint32_t authority_count_ = 0, game_frame_ = 0, grid_width_ = 0;
   std::array<Phase, 4> phases_{};
   std::array<Call, 64> calls_{};
+  // 地址只作同线程在途关联；local/use/birth/run/outer共同限定同一已观察出生。
+  // entry不改身份；实际BaseInit才推进shape，正常helper返回才恢复派生读取。
+  struct EntityReconfiguration final {
+    std::uint32_t token=0,object=0,call_depth=0;
+    std::uint64_t local=0,use=0,birth=0,run=0,outer=0;
+    bool native_init=false;
+  };
+  std::array<EntityReconfiguration,8> entity_reconfigurations_{};
+  std::uint32_t entity_reconfiguration_depth_=0,next_entity_reconfiguration_=0;
+  EntityReconfiguration *EntityReconfigurationFor(std::uint32_t object) noexcept;
   std::array<PlayerAnchor, kControlAnchorCapacity> anchors_{};
   // 当前exact pair是否已观察正常PlayerUpdate；独立于创建owner赋予的字段读取依据。
   std::array<PlayerAnchor, kControlAnchorCapacity> update_witnesses_{};

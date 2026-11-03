@@ -92,6 +92,7 @@ void FieldType(const V &v,const V &policy,const std::string &p,bool parameter_va
   if(type=="boolean"||type=="bool"){if(!v.IsBool())Error(p,"boolean_required");}
   else if(type=="float"||type=="double")Real(v,p);
   else if(type=="int"||type=="integer")I64(v,p);
+  else if(type=="uint8"){if(U64(v,p)>UINT8_MAX)Error(p,"unsigned_field_range");}
   else if(type=="int8"||type=="int32"){
     const auto n=I64(v,p);if(type=="int8"?(n<INT8_MIN||n>INT8_MAX):(n<INT32_MIN||n>INT32_MAX))Error(p,"signed_field_range");
   }
@@ -272,11 +273,11 @@ Json EntityCapabilities(){return Parse(R"({
   "common_execution":"I05-I30;instances-then-Grid-then-links-checks;Scene-only-commit",
   "builtin_class_adapters":["NPC","Delirium-special","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect","Slot1..18","NativeText","NativeDummy"],
   "class_source_contract":"entity-class-application-v3","non_player_native_apply":true,
-  "player_native_apply":"named-current-key-owner;builtin-one-ordinary-Isaac-representative;full-owner=tx-04-20",
+  "player_native_apply":"named-current-key-owner;builtin-one-ordinary-Isaac+BodySprite+held136-render-borrow;full-owner=tx-04-20",
   "result_scope":"non_player_entity_applied+player_support_applied;full_entity_applied=false;no-network-ACK",
   "independent":"Entity-only-bounded-history;exact-required-state-and-Key-shape-for-Render-Query;events-handoff27;no-event-watermark",
   "retirement":"stop-draw;drain-borrows;unlink;reverse-instance-class-retire;Grid;Room;unknown-prefix-retains-isolation",
-  "runtime_acceptance":"pending-full-tx-04-19-I34","full_entity_domain_commit":false,
+  "runtime_acceptance":"tx-04-19:I34;65-Source/65-cold-Client;20-invalid/2-compat/16-fault;named-scene-visual-reviewed","acceptance_document":"docs/design/tx-04-19/tx-04-19-acceptance.md","full_entity_domain_commit":false,
   "native_pool_capacities":{"NPC":512,"Tear":512,"Projectile":512,"Bomb":64,"Laser":128,"Knife":64,"Pickup":512,"Familiar":64,"Effect":1024,"Slot":128,"NativeText":128,"NativeDummy":128},
   "limits":{"objects":16384,"render_members":16384,"commands":131073,"references":262144,"curve_points":262144,"resources":4096,"resource_slots":16384,"bytes":33554432,"nodes":67108864,"depth":64,"independent_records":128,"independent_bytes":2097152,"independent_record_bytes":262144}
 })");}

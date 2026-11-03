@@ -313,3 +313,11 @@ worker 已经有每个 Peer 的 `received_packets`／`received_bytes` 计数，�
 [tx-04-19 I31—I33](tx-04-19/tx-04-19-e2e-integration.md)已逐一复核公共字段表、派生字段表、具名关系、动态Pose/辅助资源及分层draw。Bomb五层参数查询继续保留0..4及Null/失败；四个shader查询、全部动态层与pose_runtime保持。Laser四容器、NPC三deque、typed ExtraData、Text字节与KColor20等使用正式紧凑来源，没有新建Sprite别名；其余逐成员省略理由已写回生成目录。
 
 统一E2E保存同一正式consumer窗口的完整原始envelope、当前复制投影及对应capture token，另读`cs status`目标字节／节点；原始观测与投影差值明确不算本次P1—P6净收益。18的49个Source、49个冷Client及12项检查由统一入口实际重跑，不能引用历史PASS代替。I34前没有执行测试、测量或游戏，原文估算及历史测量保持原事实。
+
+## 12. 2026-11-04 I34实测与消费者补齐
+
+[tx-04-19最终验收与成本口径](tx-04-19/tx-04-19-acceptance.md)已完成18的49／49 Source、49／49冷Client及12检查，19的65／65 Source、65／65冷Client与恢复／拒绝，114对画面已主审。每个19目标实际复核190个省略成员ID，图闭合及独立Query保留失败／Partial语义，四个shader查询和精确动态pose仍在；这是按ID去重的检查口径，与第10节历史按目录行计数不同。
+
+新增消费者逐项回读：静态GetOrbitDistance(Layer)不得遮蔽真实OrbitDistance属性，独立参数查询明确省略而Vector保留；BodySprite与Entity.GetSprite虽然同文件，真实LiftItem frame2与PickupWalkDown pose不同，是独立成员，不新增别名。136所需公开GetHeldEntity／GetItemState／GetSuplexState与BodySprite完整pose保留，经正常apply或Render栈借用消费。Burning generic FX的真实blend_mode是正式来源补齐，不按XML在Client重新选择。
+
+最终Source22同token原始观测／当前投影：最小4,769,700／1,946,562B，中位4,955,164／2,072,820B，dense最大8,857,072／3,834,637B。它们是原始观测与当前发送投影，不能称为P1—P6实施前后净收益。cs status模型预算另计，dense为5,430,843预算bytes／490,727nodes。Source单域采集、Client codec／parse-plan／native-step／draw窗口及含IPC墙钟、全进程峰值均已在验收文档分别记录；没有线程CPU、10Mbps实时能力或全部类别满池的实测声明。21／22／32继续负责真实网络发布、字段Delta与整局性能。

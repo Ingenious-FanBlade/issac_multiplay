@@ -85,6 +85,13 @@ ClientObjectDescription ClientDescribeEntity(const replica::EntityObjectTarget &
     d.hearts=i32(At(b,"EntityPlayer.GetHearts"));d.max_hearts=i32(At(b,"EntityPlayer.GetMaxHearts"));d.soul_hearts=i32(At(b,"EntityPlayer.GetSoulHearts"));
     d.black_hearts=i32(At(b,"EntityPlayer.GetBlackHearts"));d.eternal_hearts=i32(At(b,"EntityPlayer.GetEternalHearts"));d.coins=i32(At(b,"EntityPlayer.GetNumCoins"));
     d.keys=i32(At(b,"EntityPlayer.GetNumKeys"));d.bombs=i32(At(b,"EntityPlayer.GetNumBombs"));std::string reason;
+    // 19的普通Isaac支撑复用17执行器；必须显式传递四个Null，零初始化的缺席不能冒充空引用。
+    const char *primary[]={"Entity.Parent","Entity.Child","Entity.Target","Entity.SpawnerEntity"};
+    for(unsigned i=0;i<d.references.size();++i){const auto &v=At(fields,primary[i]);auto &r=d.references[i];
+      if(v.IsNull()||Is(v,"status","Null")){r.present=true;r.is_null=true;}
+      else if(Is(v,"type","reference")&&Is(v,"status","KnownCurrent")){const auto &key=At(v,"target");r.present=true;
+        r.target={Integer<std::uint64_t>(At(key,"run")),Integer<std::uint64_t>(At(key,"id")),Integer<unsigned>(At(key,"space"))};}
+    }
     if(!ClientParseResourcePose(At(fields,"Entity.GetSprite"),d.resource,reason))Fail("player",reason.c_str());return d;
   }
   for(const auto &field:Installed())if(!fields.HasMember(field.first.c_str()))Fail(field.first,"required_native_field_missing");

@@ -4,7 +4,8 @@ use crate::{Control,Result,Run,win32};
 use serde_json::{Value,json};
 use std::{collections::{BTreeMap,BTreeSet},process::Command,thread,time::{Duration,Instant}};
 type Status=BTreeMap<String,String>;
-fn num(v:&Value)->u64{v.as_u64().or_else(||v.as_str().and_then(|v|v.parse().ok())).unwrap_or(0)}
+// 正式Lua整数保留int64标签；场景判据和库存计数使用真实值，不能把有标签整数读成0。
+fn num(v:&Value)->u64{let v=if v["type"]=="int64"{&v["value"]}else{v};v.as_u64().or_else(||v.as_str().and_then(|v|v.parse().ok())).unwrap_or(0)}
 fn n(s:&Status,k:&str)->u64{s.get(k).and_then(|v|v.parse().ok()).unwrap_or(0)}
 fn drawn(s:&Status)->u64{s.get("client.dispatch.presentation_draw").and_then(|v|v.split(',').next()).and_then(|v|v.parse().ok()).unwrap_or(0)}
 fn load(path:&std::path::Path)->Result<Value>{serde_json::from_str(&crate::read(path)?).map_err(|e|e.to_string())}
@@ -34,11 +35,53 @@ fn scene_source(spec:&Value,target:&Value,independent:&Value)->Result<()> {
   "familiar"|"familiar-owner"=>vec!["EntityFamiliar"],"effects"=>vec!["EntityEffect"],"slot"=>vec!["EntitySlot"],
   "native-text"=>vec!["NativeText"],"native-dummy"=>vec!["NativeDummy"],"lifted"|"lifted-change"=>vec!["EntityEffect"],_=>vec![]};
  for cl in expected{if !has(cl){return Err(format!("{label} did not produce actual {cl}"))}}
- if spec["kind"]=="slot"&&!rows.iter().any(|o|o["class"]=="EntitySlot"&&o["common"]["fields"]["Entity.Variant"]==spec["variant"]){return Err(format!("{label} actual Slot variant"))}
- if spec["kind"]=="delirium-morph"&&!rows.iter().any(|o|o["special"]["fields"]["EntityDelirium.BossType"]==20){return Err("real Delirium transform not observed".into())}
+ if spec["kind"]=="familiar-owner"{
+  // 固定实际云层回归，随机开到普通Basement不能作为Burning黑场修复的验收。
+  let p=&target["components"]["room"]["state"]["presentation_runtime"];
+  if !p["room_fx"]["layers"].as_array().is_some_and(|v|v.iter().any(|x|num(&x["id"])==4&&num(&x["pass"])==1&&num(&x["blend_mode"])==1)){
+   return Err("familiar-owner actual Burning foreground blend mode1 missing".into())
+  }
+ }
+ // 场景名不能替代真实几何或链；退化单点和悬空Bounce不算复杂Laser覆盖。
+ if spec["kind"]=="laser"{
+  let beams=rows.iter().filter(|o|o["class"]=="EntityLaser"&&live(o)).collect::<Vec<_>>();
+  if spec["mode"]=="chain"{
+   let linked=beams.iter().any(|o|{let r=&o["body"]["fields"]["EntityLaser.BounceLaser"];
+    r["status"]=="KnownCurrent"&&r["target"]!=o["subject"]["target"]&&beams.iter().any(|b|b["subject"]["target"]==r["target"])});
+   if !linked{return Err(format!("{label} actual live Laser chain missing"))}
+  }else if spec["mode"]=="curve"||spec["mode"]=="sample"{
+   let valid=beams.iter().any(|o|{let g=&o["body"]["application_geometry"];
+    let points=g["optimized"].as_array().map(|p|p.iter().filter_map(|v|Some((v["x"].as_f64()?.to_bits(),v["y"].as_f64()?.to_bits()))).collect::<BTreeSet<_>>()).unwrap_or_default();
+    points.len()>=2&&g["bezier"].as_array().is_some_and(|p|p.len()>=2)});
+   if !valid{return Err(format!("{label} nondegenerate sampled geometry missing"))}
+  }
+ }
+ if spec["kind"]=="slot"&&!rows.iter().any(|o|o["class"]=="EntitySlot"&&num(&o["common"]["fields"]["Entity.Variant"])==num(&spec["variant"])){return Err(format!("{label} actual Slot variant"))}
+ if spec["kind"]=="effects"{
+  for variant in [22,57,108,166,191]{
+   if !rows.iter().any(|o|o["class"]=="EntityEffect"&&live(o)&&num(&o["common"]["fields"]["Entity.Variant"])==variant){return Err(format!("{label} actual Effect variant {variant} missing"))}
+  }
+ }
+ if spec["kind"]=="delirium-morph"&&!rows.iter().any(|o|num(&o["special"]["fields"]["EntityDelirium.BossType"])==20){return Err("real Delirium transform not observed".into())}
  if spec["kind"]=="dead"&&!rows.iter().any(|o|live(o)&&o["common"]["fields"]["Entity.IsDead"]==true){return Err("dead-but-existing Source state missing".into())}
+ // 同一刀的挂载/出刀/返回须有真实阶段值，不能只改标签或用零射程重置替代返回。
+ if matches!(spec["kind"].as_str(),Some("knife"|"knife-out"|"knife-return")){
+  let valid=rows.iter().filter(|o|o["class"]=="EntityKnife"&&live(o)).any(|o|{
+   let f=&o["body"]["fields"];let distance=f["EntityKnife.GetKnifeDistance"].as_f64().unwrap_or(-1.0);
+   let velocity=f["EntityKnife.GetKnifeVelocity"].as_f64().unwrap_or(0.0);
+   if spec["kind"]=="knife"{f["EntityKnife.IsFlying"]==false&&distance==0.0}
+   else{f["EntityKnife.IsFlying"]==true&&distance>0.0&&if spec["kind"]=="knife-out"{velocity>0.0}else{velocity<0.0}}
+  });if !valid{return Err(format!("{label} actual Knife phase missing"))}
+ }
  if spec["kind"]=="lifted"||spec["kind"]=="lifted-change"{
-  if target["components"]["grid"]["state"]["lifted_descriptors"].as_array().is_none_or(Vec::is_empty){return Err("actual Effect136 full descriptor missing".into())}
+  let effects=rows.iter().filter(|o|o["class"]=="EntityEffect"&&live(o)&&num(&o["common"]["fields"]["Entity.Variant"])==136).collect::<Vec<_>>();
+  let descriptors=target["components"]["grid"]["state"]["lifted_descriptors"].as_array();
+  if effects.is_empty()||descriptors.is_none_or(|d|d.len()!=effects.len()||effects.iter().any(|e|!d.iter().any(|v|v["owner"]["target"]==e["subject"]["target"]))){return Err("actual live Effect136/full descriptor owner mismatch".into())}
+  let owner=rows.iter().filter(|o|o["class"]=="EntityPlayer").any(|o|{
+   let f=&o["body"]["fields"];effects.iter().any(|e|f["EntityPlayer.GetHeldEntity"]["target"]==e["subject"]["target"])&&
+    num(&f["EntityPlayer.GetItemState"])==604&&f["EntityPlayer.GetBodySprite"]["pose_runtime"]["loaded"]==true&&
+    f["EntityPlayer.GetBodySprite"]["pose_runtime"]["main"]["nulls"].as_array().is_some_and(|v|!v.is_empty())
+  });if !owner{return Err("lifted actual Player held key/body-null-frame source missing".into())}
  }
  if spec["kind"]=="short"||spec["kind"]=="queries"{
   let phase=if spec["kind"]=="short"{"Lifecycle"}else{"ActualCall"};
@@ -84,7 +127,10 @@ impl Run {
   let target=load(&self.out.join(format!("runtime-world/client-targets/{label}.json")))?;let revision=num(&target["revision"]);
   let token=self.report["token"].as_str().ok_or("token")?.to_owned();let mode=if begin{"begin"}else{"target"};
   let accepted=c.command(&format!("cs client_test {token} {mode} {label}"))?;
-  if accepted.get("accepted").map(String::as_str)!=Some("1"){return Err(format!("{label} not admitted: {accepted:?}"))}
+  if accepted.get("accepted").map(String::as_str)!=Some("1"){
+   let status=c.command("cs status")?;
+   return Err(format!("{label} not admitted: {accepted:?}; phase={:?}; reason={:?}",status.get("client.native_phase"),status.get("client.native_reason")))
+  }
   let s=self.wait_tx19(g,c,label,false,|s|n(s,"client_world_applied")==1&&n(s,"client.applied_revision")==revision)?;
   if n(&s,"client.non_player_entity_applied")!=1||n(&s,"client.player_support_applied")!=1||n(&s,"client.full_entity_applied")!=0||n(&s,"client.native_committed_domains")&(1<<1)!=0{
    return Err(format!("{label} inaccurate Entity applied range: {s:?}"))
@@ -106,15 +152,32 @@ impl Run {
   for(i,spec)in scenes.iter().enumerate(){let label=spec["label"].as_str().ok_or("scene label")?;
    c.command(&format!("cs client_test {token} sampling capture19"))?;win32::key(w,"F8")?;
    let until=Instant::now()+Duration::from_secs(90);
-   let mut restarted_host=false;
+   let mut restarted_host=false;let mut diagnosed=false;
    let actual=loop{let current=self.watch_tx05(g,c,40)?;
     if spec["kind"]=="familiar-owner"&&!restarted_host&&current.get("session_state").map(String::as_str)==Some("Idle")&&n(&current,"run_active")==1{
      c.command(&format!("cs host {} 0",self.scenario["host_port"]))?;restarted_host=true;
     }
     let rows=self.live_fixture()?;
     if let Some(e)=rows.iter().find(|e|e["event"]=="fixture_error"){return Err(format!("Source {label}: {e}"))}
-    if let Some(e)=rows.iter().find(|e|e["event"]=="ready"&&e["label"]==label&&num(&e["action"])==i as u64+1){break e.clone()}
-    if Instant::now()>=until{return Err(format!("Source {label} ready timeout"))}
+    if let Some(e)=rows.iter().find(|e|e["event"]=="ready"&&e["label"]==label&&num(&e["action"])==i as u64+1){
+     // 日志不能承载密集库存的单行JSON；按同一action/label精确重组，缺块/重复/超界绝不算ready。
+     let chunks=num(&e["inventory_chunks"]);if chunks==0{break e.clone()}
+     let count=num(&e["entity_count"]);if count>16384||chunks!=(count+15)/16{return Err("Source inventory chunk bounds".into())}
+     let(mut complete,mut inventory)=(true,Vec::new());
+     for index in 1..=chunks{
+      let parts=rows.iter().filter(|v|v["event"]=="inventory_chunk"&&v["label"]==label&&v["action"]==e["action"]&&num(&v["index"])==index).collect::<Vec<_>>();
+      if parts.is_empty(){complete=false;break}if parts.len()!=1{return Err("Source duplicate inventory chunk".into())}
+      let part=parts[0]["entities"].as_array().ok_or("Source inventory chunk array")?;
+      if part.is_empty()||part.len()>16{return Err("Source inventory chunk size".into())}inventory.extend(part.iter().cloned());
+     }
+     if complete{if inventory.len()as u64!=count{return Err("Source inventory chunk count".into())}let mut actual=e.clone();actual["entities"]=json!(inventory);break actual}
+    }
+    // 诊断出口只读正式consumer自有值；允许保存Partial逐字段原因，不能当19成功目标。
+    if !diagnosed&&Instant::now()+Duration::from_secs(80)>=until&&rows.iter().any(|e|e["event"]=="capture_pending"&&e["label"]==label){
+     let diagnosis=c.request(&format!("cs client_test {token} export pending-{label}"))?;
+     self.step("source-partial-diagnosis",json!({"label":label,"reply":diagnosis,"accepted_as_scene":false}))?;diagnosed=true;
+    }
+    if Instant::now()>=until{let diagnosis=rows.iter().rev().find(|e|(e["event"]=="capture_pending"||e["event"]=="action_pending")&&e["label"]==label);return Err(format!("Source {label} ready timeout: {diagnosis:?}"))}
    };
    let until=Instant::now()+Duration::from_secs(45);
    let exported=loop{let r=c.command(&format!("cs client_test {token} export19 {label}"))?;
@@ -126,6 +189,7 @@ impl Run {
    let entity=raw.as_array().ok_or("raw observations")?.iter().find(|r|r["schema"]=="isaac.cs.entity").ok_or("raw Entity envelope")?;
    let source_ids=entity["payload"]["objects"].as_array().ok_or("raw entity inventory")?.iter().map(|r|num(&r["subject"]["local_id"])).collect::<BTreeSet<_>>();
    for e in actual["entities"].as_array().ok_or("raw Source inventory")?{let id=num(&e["subject"]["local_id"]);if id==0||!source_ids.contains(&id){return Err(format!("{label} live Source entity missing from formal inventory: {e}"))}}
+   let target=load(&root.join(format!("{label}.json")))?;let independent=load(&root.join(format!("independent-{label}.json")))?;scene_source(spec,&target,&independent)?;
    let world=c.command("cs world status")?;if world.get("world_state").map(String::as_str)==Some("Recording"){return Err("Source unexpectedly depends on recorder".into())}
    win32::screenshot(w,&self.out.join(format!("source-{label}.bmp")))?;
    samples.push(json!({"label":label,"actual":actual,"export":exported,"recorder":world}));
@@ -137,7 +201,7 @@ impl Run {
   let recording=loop{let s=c.command("cs world status")?;if s.get("world_state").map(String::as_str)==Some("Recording"){break s}
    if Instant::now()>=until{return Err(format!("recorder start timeout: {s:?}"))}self.watch_tx05(g,c,60)?;};
   let generation=n(&recording,"generation");if generation==0{return Err("recorder generation missing".into())}
-  c.command(&format!("cs world_test {token} {generation} file 1"))?;win32::key(w,"F9")?;
+  c.command(&format!("cs world_test {token} {generation} file 1"))?;win32::key(w,"F8")?;
   let until=Instant::now()+Duration::from_secs(30);
   let failure=loop{self.watch_tx05(g,c,60)?;let s=c.command("cs world status")?;
    if s.get("reason").map(String::as_str)==Some("FILE_ERROR"){break s}
@@ -152,6 +216,8 @@ impl Run {
   if recovery.get("exported").map(String::as_str)!=Some("1"){return Err(format!("formal export after recorder fault: {recovery:?}"))}
   self.case("E26.recorder_failure",true,json!({"before":before,"failure":failure,"after":after,"recovery":recovery}));
   self.report["source_timings"]=json!(c.command(&format!("cs client_test {token} fault-status"))?);
+  // 进程仍在本轮Source内时读取OS峰值；和逐调用CPU窗口分开，不把整进程成本算作某个类别。
+  self.report["source_memory"]=json!(win32::process_memory(g.pid())?);
   c.command("cs stop")?;c.wait("session_state","Idle",30)?;c.command("cs observe stop")?;
   self.return_to_menu(w,c)?;self.report["source_samples"]=json!(samples);
   self.report["acceptance_stage"]=json!("source_ready_not_Client_PASS");Ok(())
@@ -159,7 +225,7 @@ impl Run {
  // 只在显式E2E文件内制造恶意T，逐项记录修改位置及写前保A，不伪装自然Source。
  fn negatives_tx19(&mut self,g:&win32::Game,c:&mut Control,base:&Value)->Result<()> {
   let token=self.report["token"].as_str().ok_or("token")?.to_owned();let r=num(&base["revision"]);let before=c.command("cs status")?;
-  let invalids=["old-revision","same-revision-conflict","partial","source-version","field-read-failed","field-truncated","shader-read-failed","bad-class","bad-number","bad-bitset","bad-reference","missing-owner","dangling-graph","bad-resource","pool-budget","player-scope"];
+  let invalids=["old-revision","same-revision-conflict","partial","source-version","field-read-failed","field-truncated","shader-read-failed","bad-class","bad-number","bad-bitset","bad-reference","missing-owner","dangling-graph","bad-resource","pool-budget","player-scope","fx-blend-range","fx-blend-missing","held-owner-missing","held-owner-wrong-class"];
   for name in invalids{
    let mut v=base.clone();crate::tx18::revision(&mut v,if name=="old-revision"{r.saturating_sub(1)}else if name=="same-revision-conflict"{r}else{r+1});
    let entity=&mut v["components"]["entity"];
@@ -168,6 +234,21 @@ impl Run {
     "partial"=>entity["coverage"]=json!("Partial"),
     "source-version"=>entity["state"]["application_source"]["version"]=json!(999),
     "dangling-graph"=>entity["state"]["negative_graph"]=json!({"type":"graph_ref","node":99999999}),
+    "fx-blend-range"|"fx-blend-missing"=>{
+     // 正式来源必须带真实generic混合模式；越界和缺失均应写前拒绝，不能默认覆盖或透明。
+     let layers=v["components"]["room"]["state"]["presentation_runtime"]["room_fx"]["layers"].as_array_mut().ok_or("negative FX layers")?;
+     let layer=layers.iter_mut().find(|x|matches!(num(&x["pass"]),1|2|3|6)).ok_or("negative requires generic FX")?;
+     if name=="fx-blend-range"{layer["blend_mode"]=json!(3);}else{layer.as_object_mut().ok_or("negative FX object")?.remove("blend_mode");}
+    },
+    "held-owner-missing"|"held-owner-wrong-class"=>{
+     // 复用真实Player主体，仅改显式恶意引用；不得默认为首实体、其它类别或缺失owner。
+     let rows=entity["state"]["objects"].as_array_mut().ok_or("negative Player objects")?;
+     let p=rows.iter_mut().find(|o|o["class"]=="EntityPlayer").ok_or("negative Player required")?;
+     let mut held=p["subject"].clone();if name=="held-owner-missing"{held["target"]["id"]=json!("999999999");}
+     p["body"]["fields"]["EntityPlayer.GetHeldEntity"]=held;
+     p["body"]["fields"]["EntityPlayer.GetItemState"]=json!({"type":"int64","value":"604"});
+     p["body"]["fields"]["EntityPlayer.GetSuplexState"]=json!({"type":"int64","value":"0"});
+    },
     _=>{let rows=entity["state"]["objects"].as_array_mut().ok_or("negative objects")?;
      let obj=rows.iter_mut().find(|o|if name=="player-scope"{o["class"]=="EntityPlayer"}else{o["class"]!="EntityPlayer"&&live(o)}).ok_or("negative requires actual class")?;
      match name{
@@ -179,15 +260,30 @@ impl Run {
       "shader-read-failed"=>obj["common"]["fields"]["Entity.GetSprite"]["fields"]["Sprite.HasCustomShader"]=json!({"status":"ReadFailed","reason":"E2E retained shader query failure"}),
       "bad-resource"=>obj["common"]["fields"]["Entity.GetSprite"]["fields"]["Sprite.GetFilename"]=json!("../invalid.anm2"),
       "player-scope"=>obj["body"]["fields"]["EntityPlayer.GetPlayerType"]=json!(20),
-      "pool-budget"=>{let template=obj.clone();for i in 0..513{let mut x=template.clone();x["subject"]["target"]["id"]=json!((700000+i).to_string());rows.push(x);}},
+      "pool-budget"=>{let template=obj.clone();for i in 0..513{let mut x=template.clone();x["subject"]["target"]["id"]=json!((700000+i).to_string());rows.push(x);}
+       // 保持完整成员计数，确保命中真实类别池预算，而不是提前被计数不一致拒绝。
+       let count=rows.len();entity["state"]["membership"]["count"]=json!(count);entity["state"]["membership"]["native_count"]=json!(count);
+      },
       _=>obj["common"]["fields"]["Entity.Position"]["x"]=json!(251),
      }
     }
    }
-   let label=format!("negative-{name}");crate::write_json(&self.out.join(format!("runtime-world/client-targets/{label}.json")),&v)?;
+   let label=format!("negative-{name}");let path=self.out.join(format!("runtime-world/client-targets/{label}.json"));
+   // 大目标保留全部字段但去掉缩进；避免格式空白先触发文件预算，掩盖正式类别池容量检查。
+   if name=="pool-budget"{std::fs::write(&path,serde_json::to_vec(&v).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;}
+   else{crate::write_json(&path,&v)?;}
    let result=c.request(&format!("cs client_test {token} target {label}"))?;let after=c.command("cs status")?;
    if result.get("accepted").map(String::as_str)==Some("1")||n(&after,"client.applied_revision")!=r||n(&after,"client_world_applied")!=1||n(&after,"client.native_attempt")!=n(&before,"client.native_attempt"){
     return Err(format!("{name} write-before rejection failed: {result:?} {after:?}"))
+   }
+   if name=="pool-budget"&&!after.get("client.native_reason").is_some_and(|v|v.contains("entity_budget:native_pool_category=1:capacity=512")){
+    return Err(format!("pool fixture did not reach category capacity: {result:?}; reason={:?}",after.get("client.native_reason")))
+   }
+   if name=="held-owner-missing"&&!after.get("client.native_reason").is_some_and(|v|v.contains("required_reference_missing")){
+    return Err(format!("held missing owner did not reach dependency rejection: {:?}",after.get("client.native_reason")))
+   }
+   if name=="held-owner-wrong-class"&&!after.get("client.native_reason").is_some_and(|v|v.contains("objects_player_held_effect136_scope_or_shape")){
+    return Err(format!("held wrong class did not reach scoped preflight: {:?}",after.get("client.native_reason")))
    }
    self.step(&label,json!({"injection":"E2E pure-value target only","reply":result,"status":after}))?;
   }
@@ -227,6 +323,32 @@ impl Run {
    let reply=c.command(&format!("cs client_test {token} {mode} {label}"))?;if reply.get("accepted").map(String::as_str)!=Some("1"){return Err(format!("{mode} rejected"))}c.wait("role","Off",45)?;
   }
   self.case("E21.stop_prefixes",true,json!({"stages":4}));Ok(())
+ }
+ // 独立来源保留真实Partial；逐个经过正式拒绝后继续后缀，背压则明确留下未接纳记录，绝不伪确认。
+ fn source_independent_tx19(&mut self,c:&mut Control,label:&str,source:&Value,target:&Value)->Result<Value>{
+  let rows=source.as_array().ok_or("independent Source array")?;let token=self.report["token"].as_str().ok_or("token")?.to_owned();
+  let(mut offset,mut accepted,mut incomplete,mut deferred,mut replies)=(0usize,0u64,0u64,0usize,Vec::new());
+  loop{
+   let part=if offset==0{label.to_owned()}else{format!("remaining-{}-{}",&label[..label.len().min(24)],offset)};
+   if offset>0{crate::write_json(&self.out.join(format!("runtime-world/client-targets/independent-{part}.json")),&json!(&rows[offset..]))?;}
+   let reply=c.command(&format!("cs client_test {token} independent {part}"))?;let prefix=n(&reply,"records")as usize;
+   if prefix>rows.len()-offset{return Err("independent accepted prefix exceeds Source".into())}accepted+=prefix as u64;
+   if reply.get("accepted").map(String::as_str)==Some("1"){
+    if prefix!=rows.len()-offset{return Err("independent success omitted Source suffix".into())}replies.push(json!(reply));offset=rows.len();break;
+   }
+   offset+=prefix;
+   if reply.get("reason").map(String::as_str)==Some("entity_independent_backpressure"){
+    deferred=rows.len()-offset;self.step("independent-backpressure",json!({"label":label,"reply":reply,"unconsumed_records":deferred,"unconsumed_owner":"tx-04-27"}))?;replies.push(json!(reply));break;
+   }
+   if reply.get("reason").map(String::as_str)!=Some("entity_independent_domain_or_coverage")||offset>=rows.len()||num(&rows[offset]["body"]["domain"])!=1||rows[offset]["body"]["coverage"]=="Complete"{
+    return Err(format!("{label} unexpected independent rejection at {offset}: {reply:?}"))
+   }
+   let state=c.command("cs status")?;
+   if n(&state,"client.applied_revision")!=num(&target["revision"])||n(&state,"client_world_applied")!=1||n(&state,"client.entity_independent_presented")!=0{return Err("incomplete independent Source altered/acknowledged ordinary state".into())}
+   self.step("independent-incomplete-source-rejected",json!({"label":label,"index":offset,"sequence":rows[offset]["sequence"],"coverage":rows[offset]["body"]["coverage"],"reply":reply,"not_presented":true}))?;
+   incomplete+=1;offset+=1;replies.push(json!(reply));if offset==rows.len(){break}
+  }
+  Ok(json!({"accepted_or_duplicate":accepted,"incomplete_rejected_not_presented":incomplete,"deferred_backpressure":deferred,"evaluated_all":offset==rows.len(),"all_admitted":incomplete==0&&deferred==0,"replies":replies}))
  }
  // 独立Query仍是自己的scope；以真实记录为输入，只修改具名协议条件来覆盖负向路径。
  fn independent_tx19(&mut self,c:&mut Control,base:&Value)->Result<()> {
@@ -289,12 +411,12 @@ impl Run {
     if n(&result,&format!("client.original_begin.{name}"))!=n(&counters,&format!("hook.{name}")){return Err(format!("{label} Client gameplay leaked: {name}"))}
    }
    for o in objects(&target)?.iter().filter(|o|live(o)){classes.insert(o["class"].as_str().ok_or("class")?.to_owned());if o["class"]=="EntitySlot"{slots.insert(num(&o["common"]["fields"]["Entity.Variant"]));}}
-   let independent=c.command(&format!("cs client_test {token} independent {label}"))?;if independent.get("accepted").map(String::as_str)!=Some("1")&&independent.get("reason").map(String::as_str)!=Some("entity_independent_backpressure"){return Err(format!("{label} independent record refused: {independent:?}"))}
-   // 有界背压是明确的负向覆盖，未接纳后缀仍在Source自有值里，不标成播放/完成。
-   if independent.get("accepted").map(String::as_str)==Some("0"){self.step("independent-backpressure",json!({"label":label,"reply":independent,"unconsumed_owner":"tx-04-27"}))?;}
+   let independent=self.source_independent_tx19(&mut c,label,&actual_independent,&target)?;
    let after_independent=c.command("cs status")?;if n(&after_independent,"client.entity_independent_presented")!=0{return Err("independent result falsely acknowledged as displayed".into())}
    let repeats=if label=="dense"{20}else{2};for _ in 0..repeats{let duplicate=self.apply_tx19(g,&mut c,label,false)?;
-    for k in ["client.native_attempt","client.native_executed_prefix","client.resource_candidate_loads"]{if n(&duplicate,k)!=n(&result,k){return Err(format!("{label} duplicate rebuilt owners: {k}"))}}
+    // executed_prefix也统计正常draw，不能拿它当owner重建计数；重复T需保持实际实例/shape及资源加载。
+    for k in ["client.native_attempt","client.resource_candidate_loads"]{if n(&duplicate,k)!=n(&result,k){return Err(format!("{label} duplicate rebuilt owners: {k}"))}}
+    if self.readback_tx19(&mut c,&target,label)?!=readback{return Err(format!("{label} duplicate changed native owner inventory/instance"))}
    }
    if n(&result,"client.renderer_window")!=w as u64{return Err("capture/native renderer window mismatch".into())}
    let screenshot=self.out.join(format!("client-{label}.bmp"));win32::screenshot(w,&screenshot)?;
@@ -316,11 +438,21 @@ impl Run {
   let ownership=c.command(&format!("cs client_test {token} exercise ownership"))?;if ownership.get("ownership_exercise").map(String::as_str)!=Some("1"){return Err("ownership exercise".into())}
   self.failures_tx19(g,&mut c,"resources")?;
   let active=self.apply_tx19(g,&mut c,"resources",true)?;let before=c.command("cs status")?;
-  c.command(&format!("cs client_test {token} exercise native"))?;let after=c.command("cs status")?;
+  let isolated=c.command(&format!("cs client_test {token} exercise native"))?;let after=c.command("cs status")?;
+  if isolated.get("isolation_exercise").map(String::as_str)!=Some("1"){return Err(format!("native isolation exercise: {isolated:?}"))}
   if n(&after,"persist_client_denied_native")<=n(&before,"persist_client_denied_native")||n(&after,"persist_client_denied_lua")<n(&before,"persist_client_denied_lua")+6{return Err("whole-window progress isolation not observed".into())}
-  win32::key(w,"ESC")?;self.wait_tx19(g,&mut c,"paused-display",false,|s|n(s,"client.ui_blocked")==1)?;
+  // 故意无用途调用受保护入口会按正式策略停显；先正常退休、完整T恢复，再单独验证暂停UI。
+  // 不能让非法调用遗留的Failed状态冒充暂停失败，也不能放宽产品dispatch拒绝。
+  let counters=c.command("cs counters")?;
+  for name in ["start_game","game_update","room_update","entity_list","odd_helper","restore","post_update","player_update","join_pass"]{
+   if n(&active,&format!("client.original_begin.{name}"))!=n(&counters,&format!("hook.{name}")){return Err(format!("isolation exercise gameplay leaked: {name}"))}
+  }
+  c.command("cs stop")?;c.wait("role","Off",45)?;let recovered=self.apply_tx19(g,&mut c,"resources",true)?;
+  // ClientUiBlocked观察REP控制台；沿17的真实开关方式，Esc只负责关闭，不是打开操作。
+  win32::key(w,"CONSOLE")?;let paused=self.wait_tx19(g,&mut c,"paused-display",false,|s|n(s,"client.ui_blocked")==1&&n(s,"client_world_applied")==1)?;
+  self.wait_tx19(g,&mut c,"paused-continuous-display",false,|s|drawn(s)>=drawn(&paused)+2&&n(s,"client.applied_revision")==num(&base["revision"]))?;
   win32::key(w,"ESC")?;self.wait_tx19(g,&mut c,"resumed-display",false,|s|n(s,"client.ui_blocked")==0)?;
-  self.case("E20",true,json!({"before":before,"after":after,"active":active}));
+  self.case("E20",true,json!({"before":before,"after":after,"active":active,"exercise":isolated,"recovered_before_pause":recovered}));
   c.command("cs stop")?;c.wait("role","Off",45)?;let files=self.files_tx18("client_after")?;
   self.apply_tx19(g,&mut c,"resources",true)?;drop(c);if g.close()?!=0{return Err("Client abnormal exit".into())}
   let exit=self.files_tx18("client_exit")?;self.case("E21",true,json!({"stop":files,"shutdown":exit}));

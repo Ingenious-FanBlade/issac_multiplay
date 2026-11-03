@@ -55,10 +55,24 @@ def members():
     # 字段使用规范名称，重载共用名称但保留完整来源／参数签名。
     fields={(e['class'],e['member']) for e in result if e['category']=='field'}
     for e in result:
-        canonical=e['member'][3:] if e['member'].startswith('Get') and (e['class'],e['member'][3:]) in fields else e['member']
+        # 只有无参实例getter可对应同名属性；静态GetOrbitDistance(Layer)不是OrbitDistance字段。
+        # 二者同ID会让派生查询的NotScheduled遮蔽真实Vector，破坏完整应用来源。
+        canonical=e['member'][3:] if e['member'].startswith('Get') and (e['class'],e['member'][3:]) in fields and not e['signature'].startswith('static ') and not (e['parameters'] or '').strip() else e['member']
         # J273 SampleLaser 属性被绑定为 signed-char userdata；公开 IsSampleLaser 读取同一 +1117 字节的布尔语义。
         if e['class']=='EntityLaser' and e['member']=='IsSampleLaser': canonical='SampleLaser'
         e['id']=e['class']+'.'+canonical
+        # Wiki此处标题误写int；同页正文及官方Lua wrapper明确返回完整整数数组。
+        # 保留原始签名与documented_returns，采用类型按源码修正，不能将真实table强读成标量。
+        if e['id']=='EntityLaser.GetHitList':
+            e['documented_returns']=e['returns']
+            e['returns']='int[]'
+            e['reason']='Wiki标题int与正文array冲突；官方Lua_EntityLaserGetHitList逐项返回整数table，采用int[]并保留原签名'
+            e['sources'].append({'wiki':'repentogon-source','path':str(WIKIS[1][1].parent.parent/'repentogon/LuaInterfaces/Entities/LuaEntityLaser.cpp').replace('\\','/'),'line':114})
+        # Angle标题int8的正文明确0..255，官方getter也零扩展uint8；保留原文而修正采用范围。
+        if e['id']=='EntityDelirium.Angle':
+            e['documented_returns']=e['returns'];e['returns']='uint8'
+            e['reason']='Wiki正文0..255与官方uint8 getter一致；标题int8保留为原始签名，采用无符号8位'
+            e['sources'].append({'wiki':'repentogon-source','path':str(WIKIS[1][1].parent.parent/'repentogon/LuaInterfaces/LuaDelirium.cpp').replace('\\','/'),'line':79})
         e['schema']='isaac.cs.entity'; e['schema_version']=2
         e['target']='REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273'
         e['phase']='OrdinaryPost / Lifecycle / explicit query scope'

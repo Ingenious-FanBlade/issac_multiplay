@@ -93,7 +93,8 @@ EntityApplyPlan PlanEntityTarget(std::shared_ptr<const EntityTarget> t,std::shar
   std::map<SubjectKey,std::set<SubjectKey>> prerequisites;
   for(const auto &[key,index]:desired){const auto &o=target.objects[index];if(!Current(o))continue;
     for(const auto &r:o.references){auto d=DescribeEntityDependency(o,r);
-      if(o.category==EntityCategory::Player&&d.member!="Entity.GetMinecart")continue;
+      // 19只消费Player的具名表现依赖；举起136也须先验证同T成员，不能在draw时才猜owner。
+      if(o.category==EntityCategory::Player&&d.member!="Entity.GetMinecart"&&d.member!="EntityPlayer.GetHeldEntity")continue;
       if(out.dependencies.size()>=limits.dependencies)Fail("dependency_budget");
       if(!d.is_null&&d.phase!=EntityDependencyPhase::ValueOnly){
         if(!d.has_target||d.status!="KnownCurrent")Fail("required_reference_unresolved");

@@ -2,6 +2,7 @@
 #include "LuaCore.h"
 #include "game/client_entity_adapters.h"
 #include "game/bridge.h"
+#include "game/world_sources/lua_entity.h"
 #include "runtime.h"
 #include <cmath>
 #include <cstring>

@@ -127,6 +127,17 @@ const char *ClientEntityClassDisposition(const std::string &id) noexcept {if(Rul
 void ClientDescribeEntityPlayerDraw(const replica::EntityObjectTarget &o,ClientObjectDescription &d){
   const auto &body=std::get<replica::EntityClassValues<replica::EntityCategory::Player>>(o.payload).fields.value;
   auto state=std::make_shared<ClientEntityClassState>();DrawInputs(body,*state);
+  // +44c是公开BodySprite的AnimationState；136举持从它的真实null-frame取位置，不是GetHeldSprite。
+  Pose(At(At(body,"fields"),"EntityPlayer.GetBodySprite"),"player_body",0,*state);
+  const auto &held=At(At(body,"fields"),"EntityPlayer.GetHeldEntity");
+  if(!held.IsNull()&&!Is(held,"status","Null")){
+    if(!Is(held,"type","reference")||!Is(held,"status","KnownCurrent"))Fail("player_held_entity","current_reference_required");
+    state->player_held_draw=true;state->player_held_shape=Integer<std::uint64_t>(At(held,"shape_revision"));
+    state->player_held_item_state=Integer<std::int32_t>(At(At(body,"fields"),"EntityPlayer.GetItemState"));
+    state->player_held_pose=Integer<std::int32_t>(At(At(body,"fields"),"EntityPlayer.GetSuplexState"));
+    // REP公开枚举只列0..4，但J273 78CE75的原生过渡确实写5；保留真实已知状态，不钳成枚举默认值。
+    if(state->player_held_pose<0||state->player_held_pose>5)Fail("player_held_entity","pose_range");
+  }
   const auto &v=At(body,"application_player_draw");if(Integer<unsigned>(At(v,"version"))!=1||!Is(v,"status","Value"))Fail("player_draw","current_owner_source_required");
   const auto &used=At(v,"minecart_draw");if(!used.IsBool())Fail("player_draw","minecart_bool");state->player_minecart_draw=used.GetBool();
   if(state->player_minecart_draw){state->player_minecart_offset=Point(At(v,"offset"));state->player_minecart_sort_bits=Integer<std::uint32_t>(At(v,"sort_bits"));float y=0;std::memcpy(&y,&state->player_minecart_sort_bits,4);

@@ -10,6 +10,9 @@ local function restoreDamageDebug()
  damageDebugAdded=false
 end
 local original={};local tracked={};local slotResults={};local sourceReady=false;local liftedIndex
+local ghostPickupIndex=nil;local mrMeUsed=false
+-- 换主人后固定真实Burning Basement，避免随机新run绕开generic云层混合模式回归。
+local ownerStagePending=0
 local function emit(event,data)
  data=data or {};data.event=event;data.token=config.token;data.action=action
  Isaac.DebugString("[isaac-cs-test] tx19 "..json.encode(data))
@@ -25,8 +28,10 @@ local function spawn(t,v,s,offset,owner)
 end
 local function clear()
  -- 显式clear场景才产生删除；就绪/导出期间绝不筛掉待测或环境实体。
+ ghostPickupIndex=nil
  for _,e in ipairs(Isaac.GetRoomEntities()) do if not e:ToPlayer() then e:Remove() end end
  tracked={};local p=player();p.Position=center()+Vector(0,100);p.Velocity=Vector.Zero
+ if mrMeUsed then p:GetEffects():RemoveCollectibleEffect(CollectibleType.COLLECTIBLE_MR_ME,1);mrMeUsed=false end
  p.EntityCollisionClass=0;p.GridCollisionClass=0;p:SetMinDamageCooldown(18000)
 end
 local function familiars()
@@ -39,6 +44,8 @@ local function perform(s)
  elseif s.kind=="npc" then
   clear();local n=spawn(10,0,0,Vector(-70,-25)):ToNPC();n:MakeChampion(191919,0,true)
   local child=spawn(10,0,0,Vector(30,-25)):ToNPC();n.Child=child;child.Parent=n
+  -- Dip的公开KillUnique用于真实独特死亡动画，保留同一Key的生前→死亡中存在后态。
+  spawn(EntityType.ENTITY_DIP,0,0,Vector(90,55))
  elseif s.kind=="delirium" then clear();spawn(EntityType.ENTITY_DELIRIUM,0,0,Vector(60,-20))
  elseif s.kind=="delirium-morph" then
   local d=assert(tracked[1]:ToDelirium());d:SetRedMode(true);d:SetTeleportationTimer(120);d:Transform(EntityType.ENTITY_MONSTRO,0)
@@ -54,11 +61,25 @@ local function perform(s)
   l.CollisionDamage=0;l.MaxDistance=160;l:SetDisableFollowParent(true)
   if s.mode=="circle" then l.Radius=55
   elseif s.mode=="curve" then l.CurveStrength=2;l:SetHomingType(1)
-  elseif s.mode=="sample" then l:SetHomingType(2);l.CurveStrength=1
-  elseif s.mode=="chain" then local n=spawn(10,0,0,Vector(90,0));l.Parent=n;local b=keep(EntityLaser.ShootAngle(2,n.Position,140,1800,Vector.Zero,p));l.BounceLaser=b end
- elseif s.kind=="knife" then clear();keep(player():FireKnife(player(),20,true,0,0))
+  elseif s.mode=="sample" then
+   -- mode2的原生候选包含非Parent的Player；真实NPC作Parent，现有Player提供有效目标。
+   local owner=spawn(10,0,0,Vector(90,-40));owner:AddEntityFlags(EntityFlag.FLAG_FREEZE)
+   l.Parent=owner;l:SetHomingType(2);l.CurveStrength=0
+  elseif s.mode=="chain" then
+   -- bit19是原生Bounce维护前提；让光束真实击墙，由原生owner创建并维持子束。
+   l.GridCollisionClass=EntityGridCollisionClass.GRIDCOLL_WALLS
+   l.MaxDistance=700;l:AddTearFlags(TearFlags.TEAR_BOUNCE)
+  end
+ elseif s.kind=="knife" then
+  clear();local owner=Isaac.Spawn(10,0,0,center()+Vector(-70,-25),Vector.Zero,nil)
+  owner:AddEntityFlags(EntityFlag.FLAG_FREEZE)
+  -- 普通Isaac没有Knife武器，原生Update会退休其挂载刀；用真实NPC父级保留公开FireKnife来源。
+  keep(player():FireKnife(owner,20,true,0,0));keep(owner)
  elseif s.kind=="knife-out" then assert(tracked[1]:ToKnife()):Shoot(1,140)
- elseif s.kind=="knife-return" then assert(tracked[1]:ToKnife()):Shoot(0,0)
+ elseif s.kind=="knife-return" then
+  -- 不用Shoot(0,0)冒充返回；让同一刀自然进入负速度阶段，并换成另一个真实owner。
+  local owner=spawn(10,0,0,Vector(70,-25));owner:AddEntityFlags(EntityFlag.FLAG_FREEZE)
+  assert(tracked[1]:ToKnife()).Parent=owner
  elseif s.kind=="pickup" then
   clear();local p=spawn(5,100,1,Vector.Zero):ToPickup();p.Price=15;p.ShopItemId=0;p.OptionsPickupIndex=19
  elseif s.kind=="pickup-cycle" then local p=assert(tracked[1]:ToPickup());p:AddCollectibleCycle(2);p:AddCollectibleCycle(3)
@@ -69,7 +90,14 @@ local function perform(s)
   -- 用真实run退休/新Player Key验证owner换代；不把同一Player重复赋值当成owner变化。
   Isaac.ExecuteCommand("restart")
  elseif s.kind=="effects" then
-  clear();for i,v in ipairs({22,57,108,166,191}) do local e=spawn(1000,v,0,Vector(-100+(i-1)*45,0),player()):ToEffect();e.Timeout=1800 end
+  clear();local p=player();local anchor=spawn(10,0,0,Vector(-90,-30));anchor:AddEntityFlags(EntityFlag.FLAG_FREEZE)
+  local ground=spawn(1000,22,0,Vector(-100,0),p):ToEffect();ground.Timeout=1800
+  local pulling=spawn(1000,57,0,Vector(-50,0),p):ToEffect();pulling.Timeout=1800;pulling:FollowParent(anchor)
+  local trail=spawn(1000,166,0,Vector(40,0),p):ToEffect();trail.Timeout=1800;trail:FollowParent(p)
+  -- MrMe由道具owner配置同类Target；不能把Player放进原生要求Effect的Target槽。
+  p:UseActiveItem(CollectibleType.COLLECTIBLE_MR_ME,UseFlag.USE_NOANIM|UseFlag.USE_NOCOSTUME|UseFlag.USE_NOANNOUNCER,-1);mrMeUsed=true
+  -- Ghost由实际Pickup owner和公开LootList回调生成，绝不把Player指针放进Pickup专用父关系。
+  local chest=spawn(5,50,0,Vector(90,-30)):ToPickup();chest.Wait=1800;ghostPickupIndex=chest.Index;chest:UpdatePickupGhosts()
  elseif s.kind=="slot" then
   clear();local slot=spawn(6,s.variant,0,Vector.Zero):ToSlot();assert(slot,"real EntitySlot missing");slot:SetTimeout(1800);slotResults[s.variant]=true
  elseif s.kind=="slot-results" then
@@ -80,11 +108,19 @@ local function perform(s)
  elseif s.kind=="lifted" then
   clear();local r=Game():GetRoom();liftedIndex=r:GetGridIndex(center())
   if r:GetGridEntity(liftedIndex) then r:RemoveGridEntityImmediate(liftedIndex,0,false) end
-  assert(r:SpawnGridEntity(liftedIndex,2,0,191914,0));keep(assert(r:PickupGridEntity(liftedIndex)))
+  assert(r:SpawnGridEntity(liftedIndex,2,0,191914,0))
+  local e=keep(assert(r:PickupGridEntity(liftedIndex)))
+  -- Pickup只返回可投掷helper；公开Player owner负责真正举起，避免无owner的落地helper立即消失。
+  assert(player():TryHoldEntity(e),"Player did not hold real lifted Grid helper")
+  -- TryHold登记Player手持槽但不设helper Parent；136的原生Update仍要求有效父级。
+  e:FollowParent(player())
  elseif s.kind=="lifted-change" then
   local d=assert(tracked[1]:ToEffect():GetGridEntityDesc());d.State=2;d.VarData=3
  elseif s.kind=="lifted-land" then
-  local r=Game():GetRoom();for _,e in ipairs(tracked) do e:Remove() end;tracked={}
+  local r=Game():GetRoom();local thrown=assert(player():ThrowHeldEntity(Vector.Zero),"lifted Player owner was lost")
+  -- 本场景显式提供最终落地Grid，不冒称自然投射物落地；公开投出后退休其返回主体及旧helper。
+  if thrown:Exists() then thrown:Remove() end
+  for _,e in ipairs(tracked) do if e:Exists() then e:Remove() end end;tracked={}
   assert(r:SpawnGridEntity(assert(liftedIndex),2,0,191915,3))
  elseif s.kind=="native-text" then
   clear();damageDebugAdded=(Game():GetDebugFlags() & DebugFlag.DAMAGE_VALUES)==0
@@ -108,12 +144,16 @@ local function perform(s)
   local n=assert(tracked[1]);local before=n:GetDropRNG():GetSeed()
   for _,q in ipairs({{"Entity","HasEntityFlags",{EntityFlag.FLAG_FREEZE}},{"Sprite","HasCustomShader",{"tx19-absent-shader"}}}) do
    local object=q[1]=="Sprite" and n:GetSprite() or n
-   IsaacCSObservation.Query(object,q[1],q[2],q[3])
+   -- Sprite是查询对象，Entity才是独立记录的稳定owner；复用正式接口的第五参数。
+   IsaacCSObservation.Query(n,q[1],q[2],q[3],object)
   end
   assert(before==n:GetDropRNG():GetSeed(),"Query advanced RNG")
- elseif s.kind=="relations" then assert(tracked[1]).Parent=assert(tracked[2]);tracked[2].Child=tracked[1]
+ elseif s.kind=="relations" then
+  -- 先解除旧树方向再反转；合法Parent/Child回链不能变成无根的Parent递归环。
+  local child,parent=assert(tracked[1]),assert(tracked[2])
+  child.Child=nil;parent.Parent=nil;child.Parent=parent;parent.Child=child
  elseif s.kind=="clear-relations" then for _,e in ipairs(tracked) do e.Parent=nil;e.Child=nil;e.Target=nil end
- elseif s.kind=="dead" then assert(tracked[1]):Die()
+ elseif s.kind=="dead" then assert(tracked[3]:ToNPC()):KillUnique()
  elseif s.kind=="morph" then assert(tracked[2]:ToNPC()):Morph(11,0,0,-1)
  elseif s.kind=="remove" then for _,e in ipairs(tracked) do if e:Exists() then e:Remove() end end;tracked={}
  elseif s.kind=="change" then for _,e in ipairs(tracked) do if e:Exists() then e.Position=e.Position+Vector(8,-6);e.Color=Color(0.7,0.8,1,0.9,0,0,0);local n=e:ToNPC();if n then n.HitPoints=n.HitPoints*0.5 end end end
@@ -124,30 +164,87 @@ local function inventory()
   rows[#rows+1]={subject=IsaacCSObservationNative.Subject(e),type=e.Type,variant=e.Variant,exists=e:Exists(),dead=e:IsDead()}
  end;return rows
 end
+-- 游戏日志单行有界；密集库存分块传送，ready最后发，所有块仍属于同一冻结token/action。
+local function emitReady(label,token)
+ local rows=inventory();local chunks=#rows>16 and math.ceil(#rows/16) or 0
+ if chunks>0 then
+  for index=1,chunks do
+   local part={};for i=(index-1)*16+1,math.min(index*16,#rows) do part[#part+1]=rows[i] end
+   emit("inventory_chunk",{label=label,index=index,entities=part})
+  end
+ end
+ emit("ready",{label=label,capture_token=token,entity_count=#rows,inventory_chunks=chunks,entities=chunks==0 and rows or {},slots=slotResults})
+end
+-- 仅Source的具名Chest走官方扩展回调；实际原生Pickup owner负责分配/关联/资源，不填观测结果。
+mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_UPDATE_GHOST_PICKUPS,function(_,pickup)
+ if config.node_role=="Source" and ghostPickupIndex==pickup.Index then return true end
+end)
+mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_GET_LOOT_LIST,function(_,pickup)
+ if config.node_role=="Source" and ghostPickupIndex==pickup.Index then
+  local loot=LootList();loot:PushEntry(5,20,1,191916);loot:PushEntry(5,10,1,191917);return loot
+ end
+end)
 mod:AddCallback(ModCallbacks.MC_PRE_UPDATE,function()
  if held and IsaacCSObservationNative.SourceSnapshotToken()~="" then return true end
 end)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED,function()
  sourceReady=true
- if scenes[action] and scenes[action].kind=="familiar-owner" then clear();familiars() end
+ if scenes[action] and scenes[action].kind=="familiar-owner" then ownerStagePending=1 end
 end)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT,function() sourceReady=false;held=false;restoreDamageDebug() end)
 mod:AddCallback(ModCallbacks.MC_POST_RENDER,function()
  frames=frames+1;if config.node_role~="Source" or not sourceReady or Game():GetNumPlayers()==0 then return end
- if Input.IsButtonTriggered(Keyboard.KEY_F9,0) then held=false end
+ if ownerStagePending==1 then
+  -- 在正常Render边界执行公开stage命令；实际新房就绪后才建立Familiar，不借重启前的对象。
+  ownerStagePending=2;Isaac.ExecuteCommand("stage 1b");return
+ elseif ownerStagePending==2 then
+  if Game():GetLevel():GetStageType()~=StageType.STAGETYPE_AFTERBIRTH or Game():GetRoom():GetBackdropType()~=3 then return end
+  clear();familiars();ownerStagePending=0;if pending then pending.at=frames+60 end
+ end
  if Input.IsButtonTriggered(Keyboard.KEY_F8,0) then
-  held=false;capture=nil;action=action+1;local s=assert(scenes[action],"unexpected action")
-  local ok,err=pcall(perform,s);if not ok then emit("fixture_error",{label=s.label,reason=tostring(err)});return end
-  -- 真实Source有短暂更新窗口，随后等新普通完整采集，不把旧token当本次结果。
-  pending={scene=s,at=frames+((s.kind=="setup" or s.kind=="familiar-owner") and 60 or s.kind=="dead" and 1 or 3)}
+  held=false;capture=nil
+  if action==#scenes then
+   -- 全部场景后仍使用已采用的F8解冻，不另用会产生原版手动截图的F9。
+   pending=nil;emit("resumed",{label="recorder-fault"})
+  else
+   action=action+1;local s=assert(scenes[action],"unexpected action")
+   local ok,err=pcall(perform,s);if not ok then emit("fixture_error",{label=s.label,reason=tostring(err)});return end
+   -- 真实Source有短暂更新窗口，随后等新普通完整采集，不把旧token当本次结果。
+   pending={scene=s,at=frames+((s.kind=="setup" or s.kind=="familiar-owner") and 60 or s.kind=="dead" and 1 or 3)}
+  end
  end
  if pending and frames>=pending.at then
-  capture={scene=pending.scene,after=IsaacCSObservationNative.SourceSnapshotToken()};pending=nil
+  -- Transform只排队，Appear期间还不会推进变形AI；按实际BossType等待后再取新的完整窗口。
+  local settled=true
+  if pending.scene.kind=="delirium-morph" then
+   local d=assert(tracked[1]:ToDelirium());settled=d.BossType==EntityType.ENTITY_MONSTRO
+   if not settled and (not pending.diagnosed_at or frames-pending.diagnosed_at>=120) then
+    pending.diagnosed_at=frames;emit("action_pending",{label=pending.scene.label,reason="delirium_transform_waiting",boss_type=d.BossType,state=d.State,timer=d.TransformationTimer})
+   end
+  elseif pending.scene.kind=="laser" and pending.scene.mode=="chain" then
+   -- 真实子束可能迟于初次几何更新；按活链等待，再取新的完整同窗口目标。
+   local l=assert(tracked[1]:ToLaser());local b=l.BounceLaser
+   settled=b~=nil and b:Exists() and b:ToLaser()~=nil
+   if not settled and (not pending.diagnosed_at or frames-pending.diagnosed_at>=120) then
+    pending.diagnosed_at=frames;emit("action_pending",{label=pending.scene.label,reason="laser_native_bounce_waiting",grid_hit=l.GridHit,endpoint={x=l.EndPoint.X,y=l.EndPoint.Y}})
+   end
+  elseif pending.scene.kind=="knife-out" or pending.scene.kind=="knife-return" then
+   local k=assert(tracked[1]:ToKnife());local velocity=k:GetKnifeVelocity();local distance=k:GetKnifeDistance()
+   settled=k:Exists() and k:IsFlying() and distance>0 and (pending.scene.kind=="knife-out" and velocity>0 or pending.scene.kind=="knife-return" and velocity<0)
+   if not settled and (not pending.diagnosed_at or frames-pending.diagnosed_at>=120) then
+    pending.diagnosed_at=frames;emit("action_pending",{label=pending.scene.label,reason="knife_actual_phase_waiting",exists=k:Exists(),flying=k:IsFlying(),distance=distance,velocity=velocity})
+   end
+  end
+  if settled then capture={scene=pending.scene,after=IsaacCSObservationNative.SourceSnapshotToken()};pending=nil end
  end
  if capture then
-  local token=IsaacCSObservationNative.SourceSnapshotToken()
+  local token,reason=IsaacCSObservationNative.SourceSnapshotToken()
+  -- 等待失败必须带出正式域／字段首因；限频记录，不把Partial改作可冻结窗口。
+  if token=="" and reason and reason~="" and (not capture.diagnosed_at or frames-capture.diagnosed_at>=120) then
+   capture.diagnosed_at=frames;emit("capture_pending",{label=capture.scene.label,reason=reason})
+  end
   if token~="" and token~=capture.after then
-   held=true;restoreDamageDebug();emit("ready",{label=capture.scene.label,capture_token=token,entities=inventory(),slots=slotResults});capture=nil
+   held=true;restoreDamageDebug();emitReady(capture.scene.label,token);capture=nil
   end
  end
 end)

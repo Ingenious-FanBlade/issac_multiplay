@@ -40,7 +40,7 @@ ColorMod Color(const ClientPoseColor &v) {
                   v.colorize[0],v.colorize[1],v.colorize[2],v.colorize[3]);
 }
 bool AnimationReady(ANM2 &sprite,const std::string &name,int frame,bool overlay) {
-  if(name.empty()||frame<0)return false;
+  if(name.empty()||frame<-1)return false;
   auto *data=sprite.GetAnimationData(name);
   return data&&data->_length>0&&frame<data->_length&&data->_layerCount>=0&&data->_layerCount<=64&&
       (!data->_layerCount||data->_animLayers)&&(!overlay||!name.empty());
@@ -64,7 +64,7 @@ bool LayerSelectors(const AnimationState &state,const std::vector<int> &layers) 
 bool ExactPhase(AnimationState &state,float phase,const std::vector<int> &layers,const std::vector<int> &nulls) {
   const auto *data=state._animData;
   if(!data)return phase==0&&layers.empty()&&nulls.empty();
-  if(!data||!std::isfinite(phase)||phase<0||phase>=data->_length||
+  if(!data||!std::isfinite(phase)||phase<-1||(phase<0&&phase!=-1)||phase>=data->_length||
      data->_layerCount!=int(layers.size())||data->_nullLayerCount!=int(nulls.size())||
      (!layers.empty()&&(!data->_animLayers||!state._layerFrames))||(!nulls.empty()&&!state._nullLayerFrames))return false;
   // 空层0/-1均不会被原生RenderFrame解引用；有帧层允许独立的-1隐藏姿态。
@@ -79,6 +79,11 @@ bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason,boo
   if(sprite._layerCount!=pose.layers.size()||sprite._layerCount>64||(sprite._layerCount&&!sprite._layerState)){reason="resource_layer_count";return false;}
   if((!pose.animation.empty()&&!AnimationReady(sprite,pose.animation,pose.frame,false))||
       (pose.overlay_present&&!AnimationReady(sprite,pose.overlay_animation,pose.overlay_frame,true))){reason="resource_animation_frame";return false;}
+  // 价格Sprite用停止态-1全局相位及独立数字层；只接受该精确哨兵，播放负相位仍拒绝。
+  const auto phase_valid=[](int frame,float phase,bool playing){return std::isfinite(phase)&&
+      phase>=-1&&(phase>=0||(!playing&&phase==-1))&&double(frame)==std::floor(double(phase));};
+  if((!pose.animation.empty()&&!phase_valid(pose.frame,pose.main_phase,pose.main_playing))||
+      (pose.overlay_present&&!phase_valid(pose.overlay_frame,pose.overlay_phase,pose.overlay_playing))){reason="resource_exact_phase";return false;}
   for(const auto &layer:pose.layers){
     auto *native=sprite.GetLayer(int(layer.id));
     if(!native||!native->_layerData||native->_layerData->ID!=layer.id||native->_layerData->name!=layer.name){reason="resource_layer_identity";return false;}
@@ -97,11 +102,11 @@ bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason,boo
     sprite._animState._animData=nullptr;
   }else{
     if(!sprite.SetAnimation(pose.animation.c_str(),true)){reason="resource_main_animation";return false;}
-    auto animation=pose.animation;sprite.SetFrame(&animation,pose.frame);
+    auto animation=pose.animation;sprite.SetFrame(&animation,pose.frame<0?0:pose.frame);
   }
   if(pose.overlay_present){
     if(!sprite.SetOverlayAnimation(pose.overlay_animation.c_str(),true)){reason="resource_overlay_animation";return false;}
-    sprite.SetOverlayFrame(pose.overlay_animation.c_str(),pose.overlay_frame);
+    sprite.SetOverlayFrame(pose.overlay_animation.c_str(),pose.overlay_frame<0?0:pose.overlay_frame);
   }else{
     // 和公开 RemoveOverlay 一样，只撤销动画选择，不析构内嵌 AnimationState。
     sprite._overlayAnimState._animData=nullptr;
@@ -136,7 +141,7 @@ bool ReusableGraphics(ANM2 &sprite,const ClientResourcePose &pose) {
   const auto animation=[](const AnimationState &state,const std::string &name,int frame,float phase,const std::vector<int> &layers,const std::vector<int> &nulls){
     if(name.empty())return !state._animData&&phase==0&&layers.empty()&&nulls.empty();
     const auto *d=state._animData;if(!d||d->_name!=name||!std::isfinite(state._animFrame)||frame!=int(std::floor(state._animFrame))||
-      !std::isfinite(phase)||phase<0||phase>=d->_length||d->_layerCount!=int(layers.size())||d->_nullLayerCount!=int(nulls.size())||
+      !std::isfinite(phase)||phase<-1||(phase<0&&phase!=-1)||phase>=d->_length||d->_layerCount!=int(layers.size())||d->_nullLayerCount!=int(nulls.size())||
       (!layers.empty()&&(!d->_animLayers||!state._layerFrames))||(!nulls.empty()&&!state._nullLayerFrames))return false;
     return LayerSelectors(state,layers)&&NullSelectors(state,nulls);
   };

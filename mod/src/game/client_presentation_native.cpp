@@ -320,6 +320,27 @@ void SurfaceComposite(KAGE_SmartPointer_ImageBase &pair,const KColor &color,cons
   auto *vertices=reinterpret_cast<float *(__thiscall *)(KAGE_Graphics_ImageBase *,const DestinationQuad *,const KColor *)>(table[7])(pair.image,&quad,&color);
   FillSurfaceVertices(pair,vertices);
 }
+#ifdef ISAACCS_E2E
+// 只在本次显式E2E的首个负色彩场景、既有offscreen排空后读取四份GPU缓存，不补绘制或Present。
+// 官方getter内部临时绑定图像；只在有真实旧target/mode可恢复时调用，并核对返回的FBO/viewport。
+bool SampleSceneSurfaces(Room &room){
+  static bool sampled=false;if(sampled||Settings.world_e2e_token.empty())return true;
+  if(!__ptr_g_KAGE_Graphics_Manager||!__ptr_g_KAGE_Graphics_Manager->currentRenderTarget)return false;sampled=true;
+  GLint framebuffer=0,viewport[4]{},after_framebuffer=0,after_viewport[4]{};
+  glGetIntegerv(0x8ca6,&framebuffer);glGetIntegerv(GL_VIEWPORT,viewport);
+  const std::pair<const char *,KAGE_Graphics_ImageBase *> images[]={
+    {"floor",room._backdrop.floorBuffer.image},{"walls",room._backdrop.wallsBuffer.image},
+    {"color",Surface(0x7e72e4).image},{"light",Surface(0x7e7398).image}};
+  for(const auto &entry:images){auto *image=entry.second;if(!image)return false;
+    const int w=image->GetWidth(),h=image->GetHeight();if(w<=0||h<=0)return false;unsigned char rgba[4]{};
+    image->GetTexelRegion(w/2,h/2,1,1,rgba);
+    Trace("client_e2e_surface","name=%s size=%d,%d stride=%u shader=%u rgba=%u,%u,%u,%u",entry.first,w,h,
+        image->_vertexFormatStride,image->_predefinedShader,rgba[0],rgba[1],rgba[2],rgba[3]);
+  }
+  glGetIntegerv(0x8ca6,&after_framebuffer);glGetIntegerv(GL_VIEWPORT,after_viewport);
+  return framebuffer==after_framebuffer&&std::memcmp(viewport,after_viewport,sizeof(viewport))==0;
+}
+#endif
 // GameRender的窄ColorModifier合成：直接供应Source最终6个值，不运行其更新/随机/完整GameRender。
 bool ColorComposite(const ClientPresentationDescription &d){
   auto &graphics=*__ptr_g_KAGE_Graphics_Manager;auto &pair=Surface(0x7e72e4);auto *image=pair.image;
@@ -567,7 +588,7 @@ bool BuildFXCandidate(ClientNativePresentation &p,const ClientPresentationDescri
     ++p.fx_candidate_count;target.id=source.id;
     // 仅填已核消费者读取的字段；未采用的原生word保持本方零初始化，不复制未知内存。
     target.parameters[4]=source.pass;std::memcpy(&target.parameters[8],&source.color_branch,4);
-    target.parameters[9]=source.mask_backdrop;target.parameters[11]=source.mask?1u:0u;
+    target.parameters[9]=source.mask_backdrop;target.parameters[10]=source.blend_mode;target.parameters[11]=source.mask?1u:0u;
     // 真实selected Image路径来自Authority当前资源；不按seed或XML重新挑选overlay。
     if(!LoadFXImage(target.image,source))return false;
     target.count=int(source.poses.size());
@@ -635,7 +656,7 @@ bool FXDrawReady(ClientNativePresentation &p,Room &room) noexcept {
   if(!p.fx_installed_count&&!p.rays_installed_count)return true;
   if(!room._fxLayers._loaded)return false;
   for(unsigned i=0;i<p.fx_installed_count;++i){const auto &v=p.fx_installed[i];
-    if(v.id!=p.description.fx_layers[i].id||v.parameters[4]!=p.description.fx_layers[i].pass||!v.image.image||!v.image.counter||(v.count&&!v.poses.begin)||
+    if(v.id!=p.description.fx_layers[i].id||v.parameters[4]!=p.description.fx_layers[i].pass||v.parameters[10]!=p.description.fx_layers[i].blend_mode||!v.image.image||!v.image.counter||(v.count&&!v.poses.begin)||
        v.count!=int(p.description.fx_layers[i].poses.size())||v.poses.end!=(v.count?v.poses.begin+v.count:v.poses.begin))return false;
   }
   return true;
@@ -963,7 +984,13 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     }
     graphics._blendMode=BlendMode();graphics._shader=ImageShader();
     reinterpret_cast<void (__thiscall *)(FXLayers *)>(Base+0x56e2b0)(&room._fxLayers); // pass6：最终持续覆盖层
-    if(p->description.color_enabled){if(!restore.FinishOffscreen(Surface(0x7e72e4).image)||!ColorComposite(p->description))return {false,false,true,"presentation_color_surface_or_packet"};}
+    if(p->description.color_enabled){
+      if(!restore.FinishOffscreen(Surface(0x7e72e4).image))return {false,false,true,"presentation_color_surface_or_packet"};
+#ifdef ISAACCS_E2E
+      if(first_diagnostic&&p->description.current_color[0]<0&&!SampleSceneSurfaces(room))return {false,false,true,"e2e_surface_read_context"};
+#endif
+      if(!ColorComposite(p->description))return {false,false,true,"presentation_color_surface_or_packet"};
+    }
     }
     if(p->description.mirror){
       if(!mirror_restore.FinishOffscreen(Surface(0x7e7340).image)||!MirrorComposite(room,p->description))return {false,false,true,"presentation_mirror_surface_or_packet"};
@@ -1193,9 +1220,13 @@ bool LuaCaptureFX(lua_State *L,Room &room) {
     const bool mask=mask_byte!=0;float color_branch=0;std::uint32_t mask_backdrop=0;
     if(generic&&!mask)std::memcpy(&color_branch,reinterpret_cast<const unsigned char *>(&fx)+0x3c,4);
     if(generic&&mask)std::memcpy(&mask_backdrop,reinterpret_cast<const unsigned char *>(&fx)+0x40,4);
+    // pass1/2/3/6绘制前按实际+44调用BlendMode构造；不从图片、XML或id推测混合模式。
+    const unsigned blend_mode=generic?fx.parameters[10]:0;
     presentation_capture_failure="fx_color_condition";if(!std::isfinite(color_branch))return false;
+    presentation_capture_failure="fx_blend_mode";if(blend_mode>2)return false;
     lua_createtable(L,0,12);LuaNumber(L,"id",float(fx.id));LuaNumber(L,"pass",float(pass));
     LuaNumber(L,"color_branch",color_branch);LuaBoolean(L,"mask",mask);lua_pushinteger(L,mask_backdrop);lua_setfield(L,-2,"mask_backdrop");
+    LuaNumber(L,"blend_mode",float(blend_mode));
     presentation_capture_failure="fx_image_path_or_format";if(!LuaFXImageName(L,image->_name))return false;
     LuaNumber(L,"min_filter",float(image->_minFilterMode));LuaNumber(L,"mag_filter",float(image->_magFilterMode));
     LuaNumber(L,"wrap_s",float(image->_wrapSMode));LuaNumber(L,"wrap_t",float(image->_wrapTMode));LuaNumber(L,"shader",float(image->_predefinedShader));
@@ -1257,7 +1288,7 @@ int ClientPresentationCaptureLua(void *state) {
   float floor[11]{},wall[11]{},shadow[5]{},light[5]{};
   CopyColor(room._floorColor,floor);CopyColor(room._wallColor,wall);
   CopyColor(room._fxLayers._fxParams.shadowColor,shadow);CopyColor(room._fxLayers._fxParams.lightColor,light);
-  lua_createtable(L,0,40);LuaNumber(L,"version",3);
+  lua_createtable(L,0,40);LuaNumber(L,"version",4);
   const unsigned curses=EffectiveCurses(*g_Game);
   const bool mirror=g_Game->_currentDimensionIdx==1&&(g_Game->_stageType==4||g_Game->_stageType==5)&&(g_Game->_stage==2||(g_Game->_stage==1&&(curses&2)));
   LuaBoolean(L,"mirror",mirror);LuaBoolean(L,"mirror_shader",g_Manager&&*reinterpret_cast<const bool *>(reinterpret_cast<const unsigned char *>(g_Manager)+0x2a204));

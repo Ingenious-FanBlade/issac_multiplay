@@ -1,4 +1,5 @@
 #include "game/world_bridge.h"
+#include "game/world_entity_owner.h"
 #include "binding/world_layout.h"
 #include "game/bridge.h"
 #include "game/context.h"
@@ -13,6 +14,24 @@
 #include <exception>
 
 namespace cs::game {
+WorldEntityReconfigurationScope::WorldEntityReconfigurationScope(void *object,world::HookCounters counters) noexcept
+    :counters_(counters),exceptions_(std::uncaught_exceptions()) {
+  if(counters_.calls)counters_.calls->fetch_add(1,std::memory_order_relaxed);
+  if(!IsMain()){
+    if(counters_.foreign)counters_.foreign->fetch_add(1,std::memory_order_relaxed);
+    world::ReportEntityReconfigurationFault(world::ObservationFault::WrongThread);return;
+  }
+  capture_=CurrentWorldRecording();
+  if(capture_&&capture_->collector)token_=capture_->collector->BeginDeliriumReconfiguration(world::PackWord(object));
+}
+WorldEntityReconfigurationScope::~WorldEntityReconfigurationScope() noexcept {
+  const bool normal=returned_&&std::uncaught_exceptions()==exceptions_;
+  if(!normal)world::ReportEntityReconfigurationFault(world::ObservationFault::NativeException);
+  if(token_&&capture_&&capture_->collector)capture_->collector->EndDeliriumReconfiguration(token_,normal);
+}
+void WorldEntityReconfigurationScope::Returned() noexcept {
+  returned_=true;if(counters_.completed)counters_.completed->fetch_add(1,std::memory_order_relaxed);
+}
 WorldCapture::~WorldCapture() {
   if(reserve_charged) ledger.Release(world::kObservationReserveBytes);
   if (faults.unreadable) {

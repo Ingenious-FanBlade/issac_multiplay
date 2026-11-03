@@ -195,6 +195,16 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
         }next.push_back(std::move(d));
       }
       if(!plan->duplicate&&!lifted.empty()){reason="objects_lifted_requires_effect136";return false;}
+      if(!plan->duplicate)for(const auto &d:next)if(d.category==0&&d.derived&&d.derived->player_held_draw){
+        // 本轮仅补136持物显示；其它可举实体仍由Player20扩展，不能拿首个Effect或首Player代替引用。
+        const auto edge=std::find_if(d.relations.begin(),d.relations.end(),[](const auto &r){return r.member=="EntityPlayer.GetHeldEntity"&&!r.is_null;});
+        if(edge==d.relations.end()){reason="objects_player_held_reference_missing";return false;}
+        const auto held=std::find_if(next.begin(),next.end(),[&](const auto &v){return v.key==edge->target;});
+        if(held==next.end()||held->category!=9||held->variant!=136||!held->exists||!held->derived||!held->derived->has_lifted||
+           held->shape_revision!=d.derived->player_held_shape||d.derived->player_held_item_state!=604){reason="objects_player_held_effect136_scope_or_shape";return false;}
+        const auto parent=std::find_if(held->relations.begin(),held->relations.end(),[](const auto &r){return r.member=="Entity.Parent"&&!r.is_null;});
+        if(parent==held->relations.end()||!(parent->target==d.key)){reason="objects_player_held_parent_mismatch";return false;}
+      }
       if(!plan->duplicate)for(const auto &d:next)if(d.category==1&&d.type==835&&d.variant==0&&d.derived){
         // 原版只在非空时进入，但随后固定读前两槽；长度一不能靠map旧项补成第二槽。
         if(d.derived->npc_composite_count==1){reason="objects_npc835_two_composite_slots_required";return false;}
@@ -216,6 +226,9 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
           if(!d.player_stats||d.type!=1||d.variant||d.subtype||!d.exists||d.dead||d.size<0||d.mass<0||
              d.entity_collision<0||d.entity_collision>5||d.grid_collision<0||d.grid_collision>6||
              d.hearts<0||d.max_hearts<d.hearts||d.soul_hearts<0||d.eternal_hearts<0||d.coins<0||d.keys<0||d.bombs<0){reason="objects_builtin_player_scope_pending_tx04_20";return false;}
+          // 当前支撑只在非Player构造前准备独立Isaac；身体自己的跨对象关系由20的具名owner负责。
+          if(std::any_of(d.references.begin(),d.references.end(),[](const auto &r){return !r.present||!r.is_null;})){
+            reason="objects_builtin_player_relations_pending_tx04_20";return false;}
           auto support=d;support.full_entity=false;
           const auto old=std::find_if(before.begin(),before.end(),[&](const auto &v){return v.key==d.key;});
           if(old!=before.end()&&(old->shape_revision!=d.shape_revision||old->seed!=d.seed)){reason="objects_builtin_player_shape_requires_rebuild";return false;}
