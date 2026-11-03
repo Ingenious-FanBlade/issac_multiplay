@@ -4,6 +4,7 @@
 #include "game/client_grid_native.h"
 #include "game/client_objects_native.h"
 #include "game/client_entity_draw_native.h"
+#include "game/client_entity_budget.h"
 #include "game/client_lifetime.h"
 #include "game/bridge.h"
 #include "game/context.h"
@@ -26,7 +27,7 @@
 namespace cs::game {
 bool ReadMemory(const void *,void *,std::size_t) noexcept;
 namespace {
-constexpr unsigned kMaximumRenderMembers=16384;
+constexpr unsigned kMaximumRenderMembers=kClientEntityMembers;
 // J273 96BD30/96DB20：真实vector三指针；FX stride=0x4C，pose stride=0x14。
 // 只构造独立pass1..6实际读取的成员，不把配置交给Update/随机消费者。
 template <class T> struct NativeFXVector final {T *begin=nullptr,*end=nullptr,*capacity=nullptr;};
@@ -218,7 +219,7 @@ unsigned RenderZ(Entity *entity) noexcept {
   return reinterpret_cast<GetZ>(table[13])(entity);
 }
 // 列表中的每个非Player必须属于正式实例表；完整源成员不会被过滤成代表投影。
-bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &out,unsigned &count,const char *&reason) noexcept {
+bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &out,unsigned &count,const char *&reason) {
   const auto &list=room._entityList._renderEL;
   count=list._size;
   if(count>kMaximumRenderMembers||count>list._capacity||(count&&!list._data)){
@@ -230,6 +231,7 @@ bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &o
   auto *player=game._playerManager._playerList[0];
   if(!player||player->_playerType!=0){reason="presentation_player_shape";return false;}
   unsigned players=0;
+  std::set<Entity *> seen;
   for(unsigned i=0;i<count;++i){
     auto *entity=list._data[i];
     if(!entity||!entity->_valid){reason="presentation_invalid_member";return false;}
@@ -239,7 +241,7 @@ bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &o
       // 记录真实多出的native成员；不把未知Entity过滤后冒认完整展示。
       static thread_local char detail[96];std::snprintf(detail,sizeof(detail),"presentation_entity_renderer_unsupported:%u:%u:%u",entity->_type,entity->_variant,entity->_subtype);
       reason=detail;return false;}
-    for(unsigned j=0;j<i;++j)if(out[j]==entity){reason="presentation_duplicate_member";return false;}
+    if(!seen.insert(entity).second){reason="presentation_duplicate_member";return false;}
     out[i]=entity;
   }
   if(players!=1){reason="presentation_player_render_membership";return false;}
@@ -410,6 +412,10 @@ struct ClientNativePresentation final {
   ClientPresentationDescription description{};
   Game *game=nullptr;Room *room=nullptr;
   unsigned active=0;
+  // 拓扑和排序每个T只核定一次；稳定draw只做线性寿命见证，换T立即重建。
+  std::array<Entity *,kMaximumRenderMembers> entities{};
+  Entity **render_storage=nullptr;
+  unsigned entity_count=0;
   NativeFX *fx_installed=nullptr,*fx_candidate=nullptr;
   unsigned fx_installed_count=0,fx_candidate_count=0;
   NativeRayGroup *rays_installed=nullptr,*rays_candidate=nullptr;
@@ -660,7 +666,7 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   auto &game=*static_cast<Game *>(roots.game);auto &room=*static_cast<Room *>(roots.room);
   const bool mirror=game._currentDimensionIdx==1&&(game._stageType==4||game._stageType==5)&&(game._stage==2||(game._stage==1&&(description.effective_curses&2)));
   if(mirror!=description.mirror)return {false,false,true,"presentation_mirror_source_conflict"};
-  std::array<Entity *,kMaximumRenderMembers> entities{};unsigned count=0;const char *reason=nullptr;
+  auto &entities=p->entities;unsigned count=0;const char *reason=nullptr;
   if(!Members(room,game,entities,count,reason))return {false,false,true,reason};
   if(!FXOwnerMatches(*p,room))return {false,false,true,"presentation_foreign_fx_owner"};
   // Home专用pass直接消费Effect166/sub951，由19的真实Entity承载提供；不能用其它背景代画。
@@ -734,6 +740,7 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   room._fxLayers._fxParams.shadowColor=Color(description.shadow);room._fxLayers._fxParams.lightColor=Color(description.light);
   room._fxLayers._fxParams.shadowAlpha=description.shadow_alpha;
   FullSort(room,entities,count);
+  p->entity_count=count;p->render_storage=room._entityList._renderEL._data;
   auto &hud=game._hud;auto &player_hud=hud._playerHUD[0];
   player_hud._player=game._playerManager._playerList[0];player_hud._HUD=&hud;player_hud._playerHudIndex=0;
   for(unsigned i=1;i<8;++i)hud._playerHUD[i]._player=nullptr;
@@ -770,8 +777,13 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
       std::memcpy(reinterpret_cast<unsigned char *>(&game)+0x25ac8,&zero,4);game._curses=d.effective_curses;lighting=d.fx_ray_lighting;water=d.water_enabled;}
     ~FXDrawContext(){game._curses=curses;lighting=old_lighting;water=old_water;std::memcpy(reinterpret_cast<unsigned char *>(&game)+0x25ac8,&temporary,4);}
   } fx_context(game,p->description);
-  std::array<Entity *,kMaximumRenderMembers> entities{};unsigned count=0;const char *reason=nullptr;
-  if(!Members(room,game,entities,count,reason))return {false,false,true,reason};
+  const auto &entities=p->entities;const unsigned count=p->entity_count;const auto &render=room._entityList._renderEL;
+  if(render._data!=p->render_storage||render._size!=count||render._size>render._capacity||!count||
+     game._playerManager._playerList.size()!=1||!game._playerManager._playerList[0]||game._playerManager._playerList[0]->_playerType!=0)return {false,false,true,"presentation_cached_topology_changed"};
+  for(unsigned i=0;i<count;++i)if(render._data[i]!=entities[i]||!entities[i]||!entities[i]->_valid||
+      (entities[i]->_type==1&&entities[i]!=game._playerManager._playerList[0])||!ClientNativeObjectDrawDescription(entities[i]))
+    return {false,false,true,"presentation_cached_instance_changed"};
+  if(!ClientGridMembersMatch(&room))return {false,false,true,"presentation_cached_grid_owner_changed"};
   if(!FXDrawReady(*p,room)||!AuxOwnerMatches(*p,room))return {false,false,true,"presentation_fx_owner_changed"};
   if(!RayContextMatches(room,game,p->description))return {false,false,true,"presentation_ray_context_changed"};
   if(!PassResourcesReady(p->description)||*reinterpret_cast<unsigned *>(Base+0x7e72b0)>=13)

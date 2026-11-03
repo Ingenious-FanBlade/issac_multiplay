@@ -265,5 +265,19 @@ EntityTarget ParseEntityTarget(const Value &model){
   }
   out.source=Copy(component);return out;
 }
-Json EntityCapabilities(){return Parse(R"({"id":"entity-target-v1","source":"entity-source-v1","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","model_expression":"all-catalogued-members;typed-status;int64;bits128;sparse-graph;resources;typed-references","classification":"public-derived-interface-or-native-RTTI;NativeDummy;no-NativeDarkness-alias","common_execution":"I05-I25-class-data-resources-morph-lifted-layered-draw;scene=I29","builtin_class_adapters":["NPC","Delirium-special","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect","Slot1..18","NativeText","NativeDummy"],"class_source_contract":"entity-class-application-v3","non_player_native_apply":false,"player_native_apply":"named-current-key-owner;ordinary-Isaac-proof;full-owner=tx-04-20","runtime_acceptance":"pending-full-tx-04-19-I34","full_entity_domain_commit":false,"limits":{"objects":16384,"bytes":33554432,"depth":64}})");}
+Json EntityCapabilities(){return Parse(R"({
+  "id":"entity-target-v1","source":"entity-source-v1","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273",
+  "model_expression":"all-catalogued-members;typed-status;int64;bits128;sparse-graph;resources;typed-references",
+  "classification":"public-derived-interface-or-native-RTTI;NativeDummy;no-NativeDarkness-alias",
+  "common_execution":"I05-I30;instances-then-Grid-then-links-checks;Scene-only-commit",
+  "builtin_class_adapters":["NPC","Delirium-special","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect","Slot1..18","NativeText","NativeDummy"],
+  "class_source_contract":"entity-class-application-v3","non_player_native_apply":true,
+  "player_native_apply":"named-current-key-owner;builtin-one-ordinary-Isaac-representative;full-owner=tx-04-20",
+  "result_scope":"non_player_entity_applied+player_support_applied;full_entity_applied=false;no-network-ACK",
+  "independent":"Entity-only-bounded-history;exact-required-state-and-Key-shape-for-Render-Query;events-handoff27;no-event-watermark",
+  "retirement":"stop-draw;drain-borrows;unlink;reverse-instance-class-retire;Grid;Room;unknown-prefix-retains-isolation",
+  "runtime_acceptance":"pending-full-tx-04-19-I34","full_entity_domain_commit":false,
+  "native_pool_capacities":{"NPC":512,"Tear":512,"Projectile":512,"Bomb":64,"Laser":128,"Knife":64,"Pickup":512,"Familiar":64,"Effect":1024,"Slot":128,"NativeText":128,"NativeDummy":128},
+  "limits":{"objects":16384,"render_members":16384,"commands":131073,"references":262144,"curve_points":262144,"resources":4096,"resource_slots":16384,"bytes":33554432,"nodes":67108864,"depth":64,"independent_records":128,"independent_bytes":2097152,"independent_record_bytes":262144}
+})");}
 } // namespace cs::replica

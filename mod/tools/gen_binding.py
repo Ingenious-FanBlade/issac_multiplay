@@ -639,6 +639,12 @@ def legacy_body(row):
                 '    observation.Returned(result);',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);',
                 '    return result;']
+    if ident == 'client_entity_local_sound':
+        return ['    // 访客准备至安全退休期间不执行本地SFX/声音RNG；Authority瞬时音画由27具名消费。',
+                '    if(cs::game::ClientBusy()) return;',
+                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+                '    super(id, volume, delay, loop, pitch, pan);',
+                '    record.completed.fetch_add(1, std::memory_order_relaxed);']
     if ident == 'client_entity_retire_sound':
         return ['    // 仅具名Entity退休内的原生Stop不重演全局音效状态；其余用途原样调用。',
                 '    if(cs::game::ClientEntitySuppressRetireSound()) return;',

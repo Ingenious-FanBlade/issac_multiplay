@@ -1,3 +1,5 @@
+> **tx-04-19 I26—I30（2026-11-03）**：[独立结果、隔离、退休与唯一提交](design/tx-04-19/tx-04-19-scene-commit-retirement.md)、[Luna max必要静态研究／主审](design/tx-04-19/entity-i26-i30-native.md)。Entity专用独立scope、全窗口SFX隔离、逐前缀逐类退休、Scene唯一提交及准确非Player／Player支撑范围、真实逐池预算和稳定缓存已接入。按本轮会话要求未构建／测试而直接提交；I31—I35与I34统一E2E待推进，不置完整Entity域位或网络ACK。下方记录保留各阶段事实。
+
 > **tx-04-19 I15—I19（2026-11-03）**：[Laser／Knife／Pickup／Familiar／Effect类别应用](design/tx-04-19/tx-04-19-laser-effect-application.md)、[Luna max静态研究与主审](design/tx-04-19/entity-i15-i19-native.md)。五类最终量、完整激光几何／cycle、具名引用／辅助资源及五种typed ExtraData已接入；Player复合draw、Effect136交接、完整分层绘制和唯一Scene提交继续按I24／I25／I29推进。按会话要求直接提交，没有构建或运行测试；I34待统一验收。
 
 2026-11-03 tx-04-19：[I20—I25剩余类别／形态／Effect136／分层绘制实现](design/tx-04-19/tx-04-19-slot-text-draw-application.md)，[指定Luna研究及主审](design/tx-04-19/entity-i20-i25-native.md)。未构建或运行测试，整体验收归I34。

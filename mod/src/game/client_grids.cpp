@@ -216,14 +216,14 @@ ClientGridStep ClientGrids::Retire(const ClientNativeRoots &roots) noexcept {
 bool ClientGrids::Visit(void *context,ClientGridVisitor visitor) const noexcept {return !failed_&&!target_&&committed_&&ClientNativeGridsVisit(native_,context,visitor);}
 // Pit.MakeBridge 没有持久父指针，Door 目标为 descriptor 纯值关系；不发明可落写的指针字段。
 // 必需 Entity 只接受同场景已安装实例；19 尚未提供的真实类别会由对象预检写前拒绝。
-ClientGridStep ClientGrids::ResolveReferences(const ClientObjects &objects) noexcept {
+ClientGridStep ClientGrids::ResolveReferences(const ClientObjects &objects,std::uint64_t attempt) noexcept {
   if(failed_||target_||!committed_)return {false,written_,true,0,0,"grid_reference_target_not_installed"};
   try{
     std::set<ClientObjectKey> entities;
     const auto collect=[](void *c,void *,const ClientObjectKey &key,std::uint64_t,unsigned) noexcept {
       try{static_cast<std::set<ClientObjectKey> *>(c)->insert(key);return true;}catch(...){return false;}
     };
-    if(!objects.Visit(&entities,collect))return {false,false,true,0,0,"grid_required_entity_owner_unavailable"};
+    if(!objects.VisitPrepared(attempt,&entities,collect))return {false,false,true,0,0,"grid_required_entity_attempt_unavailable"};
     std::set<replica::SubjectKey> grids,descriptors;
     for(const auto &g:committed_->grids)grids.insert(g.key);
     for(const auto &d:committed_->room.descriptors)descriptors.insert(d.key);

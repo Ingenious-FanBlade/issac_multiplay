@@ -113,9 +113,11 @@ bool ClientNativeObjectsConfigure(ClientNativeObjects *,const ClientEntityOwners
 ClientEntityOwners ClientNativeObjectsPlayerOwner(ClientNativeObjects *) noexcept;
 bool ClientNativeObjectsPreflight(ClientNativeObjects *,const ClientNativeRoots &,const std::vector<ClientObjectDescription> &,
     const std::vector<ClientObjectKey> &,const char *&) noexcept;
+bool ClientNativeObjectsCapacity(ClientNativeObjects *,const ClientNativeRoots &,const std::vector<ClientObjectDescription> &,const char *&) noexcept;
 // 公共字段的安装/后态共用具名存储表；不调用Damage/Kill/Update推进玩法。
 bool ClientEntityCommonFields(void *,const std::vector<ClientEntityField> &,bool check,const char *&) noexcept;
 ClientNativeObjects *ClientNativeObjectsCreate() noexcept;
+unsigned ClientNativeObjectsOwnerCount(const ClientNativeObjects *) noexcept;
 void ClientNativeObjectsDestroy(ClientNativeObjects *) noexcept;
 ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *,const ClientNativeRoots &,const ClientObjectCommand &) noexcept;
 // 全场景先处理没有Room成员的已Init池use，再撤映射；已发布实例由NativeWorld单一owner清理。
@@ -124,6 +126,8 @@ ClientObjectStep ClientNativeObjectsAbandon(ClientNativeObjects *,const ClientNa
 using ClientObjectVisitor=bool (*)(void *,void *,const ClientObjectKey &,std::uint64_t,unsigned) noexcept;
 bool ClientNativeObjectsVisit(const ClientNativeObjects *,void *,ClientObjectVisitor) noexcept;
 bool ClientNativeObjectsCheckLifted(const ClientNativeObjects *,const ClientObjectKey &,const char *&) noexcept;
+// 独立记录只匹配当前Key/shape/本地实例；不因同地址或同revision复活旧use。
+bool ClientNativeObjectsMatch(const ClientNativeObjects *,const ClientObjectKey &,std::uint64_t,std::uint64_t) noexcept;
 // 仅本次主线程draw栈借用已核实例描述；换T/退休使当前资格失效。
 const ClientObjectDescription *ClientNativeObjectDrawDescription(void *) noexcept;
 void *ClientNativeObjectDrawAddress(const ClientObjectKey &) noexcept;

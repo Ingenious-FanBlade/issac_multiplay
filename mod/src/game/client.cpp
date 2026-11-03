@@ -1,6 +1,7 @@
 #include "game/client.h"
 #include "game/client_scene.h"
 #include "game/client_resources.h"
+#include "game/client_entity_draw_native.h"
 #include "binding/offsets.h"
 #include "game/context.h"
 #include "game/input_a.h"
@@ -190,6 +191,7 @@ const char *ClientStartUnavailable() noexcept {
   ClientGuardLuaBindings();
   if(!ClientLuaGuardReady())return "lua_persistence_guard_unavailable";
   if(!ClientDispatchIsolationInstalled())return "client_dispatch_isolation_unavailable";
+  if(!ClientEntityInitIsolationInstalled()||!ClientEntityDrawIsolationInstalled())return "client_entity_isolation_unavailable";
   if(connections==UINT64_MAX)return "connection_exhausted";
   return "";
 }
@@ -435,6 +437,16 @@ bool ClientVisitGridIndependent(void *context,ClientGridIndependentVisitor visit
 }
 bool ClientCompleteGridIndependent(std::uint64_t sequence,std::uint64_t scope,const char *phase) noexcept {
   return IsMain()&&client&&ClientBusy()&&client->scene.CompleteGridIndependent(sequence,scope,phase);
+}
+bool ClientAdmitEntityIndependent(const replica::Message &message,const char *&reason) noexcept {
+  if(!IsMain()||!client||!ClientBusy()||client_depth){reason="entity_independent_client_unavailable";return false;}
+  return client->scene.AdmitEntityIndependent(message,reason);
+}
+bool ClientVisitEntityIndependent(void *context,ClientEntityEvents::Visitor visitor) noexcept {
+  return IsMain()&&client&&ClientBusy()&&client->scene.VisitEntityIndependent(context,visitor);
+}
+bool ClientCompleteEntityIndependent(replica::Kind kind,std::uint64_t sequence,std::uint64_t source,const char *phase) noexcept {
+  return IsMain()&&client&&ClientBusy()&&client->scene.CompleteEntityIndependent(kind,sequence,source,phase);
 }
 // 该入口在FrameScope之后、完整Manager原链之前；从不推进Authority时钟。
 bool ClientManagerBoundary() noexcept {
@@ -717,6 +729,17 @@ std::string ClientFields() {
   add("native_executed_prefix",c.scene.Result().executed_prefix);
   add("native_committed",c.scene.Result().native_committed);
   add("native_committed_domains",c.scene.Result().committed_domains);
+  add("non_player_entity_applied",c.scene.Result().non_player_entity_applied);
+  add("player_support_applied",c.scene.Result().player_support_applied);
+  add("full_entity_applied",c.scene.Result().full_entity_applied);
+  const auto entity_budget=c.scene.EntityBudget();
+  add("entity_members",entity_budget.members);add("entity_players",entity_budget.players);add("entity_retired_rows",entity_budget.retired);
+  add("entity_resource_slots",entity_budget.resources);add("entity_references",entity_budget.references);add("entity_curve_points",entity_budget.curve_points);
+  add("entity_commands",entity_budget.commands);add("entity_commands_completed",entity_budget.completed);
+  add("entity_independent_pending",c.scene.EntityIndependentPending());
+  const auto independent=c.scene.EntityIndependentStatus();
+  add("entity_independent_presented",independent.presented);add("entity_independent_expired",independent.expired);
+  add("entity_independent_superseded",independent.superseded);add("entity_independent_bytes",independent.bytes);
   add("grid_prefix",c.scene.Result().grid_prefix);
   add("grid_owners",c.scene.Result().grid_owners);
   add("failure_key_run",c.scene.Result().failed_key.run);

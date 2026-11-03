@@ -92,6 +92,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/client_entity_collections_native.cpp
   src/game/client_entity_owned_native.cpp
   src/game/client_entity_draw_native.cpp
+  src/game/client_entity_events.cpp
   src/game/client_entity_npc_native.cpp
   src/game/client_grids.cpp src/game/client_grid_native.cpp src/game/client_grid_events.cpp
   src/game/client_map_native.cpp

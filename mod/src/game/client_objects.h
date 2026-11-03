@@ -2,6 +2,7 @@
 #include "game/client_objects_native.h"
 #include "replica/model.h"
 #include "replica/entity_plan.h"
+#include "game/client_entity_budget.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -19,19 +20,34 @@ public:
   bool ConfigureEntityOwners(ClientEntityOwners,std::vector<ClientEntityClassAdapter>) noexcept;
   ClientEntityOwners PlayerOwner() noexcept;
   bool CancelPlanned() noexcept;
-  ClientObjectStep Step(const ClientNativeRoots &,unsigned budget=16) noexcept;
+  ClientObjectStep Step(const ClientNativeRoots &,unsigned budget=16,bool finish=true) noexcept;
+  bool InstancesReady() const noexcept { return instances_ready_; }
+  // 只有唯一Scene可把已检查候选提升为A；内部枚举必须携带同一attempt。
+  bool BeginAttempt(std::uint64_t) noexcept;
+  bool Commit(std::uint64_t) noexcept;
+  bool VisitPrepared(std::uint64_t,void *,ClientObjectVisitor) const noexcept;
+  bool MatchIndependent(const ClientObjectKey &,std::uint64_t shape,std::uint64_t instance) const noexcept;
+  ClientEntityBudget Budget() const noexcept {auto b=budget_;b.completed=unsigned(cursor_+player_cursor_);return b;}
   ClientObjectStep Retire(const ClientNativeRoots &) noexcept;
   bool Visit(void *context,ClientObjectVisitor visitor) const noexcept;
 private:
   ClientNativeObjects *native_=nullptr;
   std::vector<ClientObjectCommand> commands_;
   std::unique_ptr<replica::Json> candidate_,committed_;
+  std::unique_ptr<replica::Json> installed_;
   std::unique_ptr<replica::EntityApplyPlan> entity_plan_;
   std::shared_ptr<const replica::EntityTarget> entity_applied_;
+  std::shared_ptr<const replica::EntityTarget> entity_installed_;
+  std::vector<ClientObjectDescription> entity_installed_values_;
   std::vector<ClientObjectDescription> entity_target_values_,entity_old_values_,entity_applied_values_;
   ClientEntityOwners entity_owners_{};
   std::vector<ClientEntityClassAdapter> entity_adapters_;
-  bool entity_preflight_=false;
+  bool entity_preflight_=false,capacity_checked_=false;
+  bool instances_ready_=false,ready_=false;
+  std::uint64_t attempt_=0;
+  ClientEntityBudget budget_{};
+  std::vector<ClientObjectCommand> player_commands_;
+  std::size_t player_cursor_=0;
   std::string reason_;
   std::size_t cursor_=0;
   unsigned prefix_=0;

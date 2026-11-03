@@ -1,6 +1,7 @@
 #pragma once
 #include "game/bridge.h"
 #include "replica/model.h"
+#include "game/client_entity_events.h"
 #include <string>
 
 namespace cs::game {
@@ -20,6 +21,10 @@ bool ClientAdmitGridIndependent(const replica::Message &,const char *&reason) no
 using ClientGridIndependentVisitor=bool (*)(void *,const replica::Value &,std::uint64_t) noexcept;
 bool ClientVisitGridIndependent(void *,ClientGridIndependentVisitor) noexcept;
 bool ClientCompleteGridIndependent(std::uint64_t sequence,std::uint64_t source_scope,const char *phase) noexcept;
+// Entity历史/瞬时结果单独交给27；接纳与真实呈现各自显式完成，不发送事件ACK。
+bool ClientAdmitEntityIndependent(const replica::Message &,const char *&reason) noexcept;
+bool ClientVisitEntityIndependent(void *,ClientEntityEvents::Visitor) noexcept;
+bool ClientCompleteEntityIndependent(replica::Kind,std::uint64_t,std::uint64_t,const char *) noexcept;
 void StopClient() noexcept;
 std::string ClientFields();
 void ClientUiHeartbeat() noexcept;

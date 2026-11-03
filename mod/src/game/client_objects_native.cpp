@@ -2,11 +2,13 @@
 #include "LuaCore.h"
 #include "game/client_objects_native.h"
 #include "game/client_entity_draw_native.h"
+#include "game/client_entity_budget.h"
 #include "game/bridge.h"
 #include "game/context.h"
 #include "runtime.h"
 #include <algorithm>
 #include <cstring>
+#include <cstdio>
 #include <map>
 #include <new>
 #include <windows.h>
@@ -15,7 +17,7 @@
 namespace cs::game {
 struct ClientPlayerOwnerToken final {ClientNativeObjects *owner=nullptr;};
 namespace {
-constexpr unsigned kObjectBudget=512;
+constexpr unsigned kObjectBudget=kClientEntityMembers;
 // 前缀表示已经进入的真实步骤，异常不能通过重试清除此责任。
 enum Prefix : unsigned { Acquired=1,Roster=2,Init=4,Fields=8,Published=16,Resource=32,References=64,Removed=128,Detached=256,Checked=512 };
 // 同一进程的场景重建也不复用实例号；地址/InitSeed/Index仅作本use见证。
@@ -35,6 +37,7 @@ struct Entry final {
   std::uint64_t draw_diagnostic_revision=~std::uint64_t{0};
   unsigned draw_diagnostic_seen=0,draw_diagnostic_pending=0;
   bool ctor_entered=false,constructed=false,initialized=false,roster=false,retired=false,resource=false,checked=false;
+  bool acquire_returned=false;
 };
 bool CurrentUse(const Entry &e) noexcept {
   return e.entity&&!e.retired&&e.entity->_valid&&(e.description.full_entity||e.entity->_exists)&&
@@ -207,13 +210,17 @@ struct ClientNativeObjects final {
   std::vector<ClientEntityClassAdapter> adapters;
   std::map<ClientObjectKey,std::pair<std::uint64_t,std::uint64_t>> players;
   std::map<Entity *,Entry> player_draw; // 不拥有身体，仅保存本次player_ready见证及纯值draw输入。
+  // 同一已检查窗口按地址索引描述；下一原生写入立即关闭资格，不能每个draw再扫全图。
+  std::map<Entity *,const Entry *> draw_values;
   bool formal=false,configured=false;
+  bool cleanup_uncertain=false,retirement_unlinked=false,retirement_fault=false;
+  Entity *uncertain_pool_use=nullptr; // 未归类的半活槽保留在原Factory，不Delete他方use。
   std::shared_ptr<ClientPlayerOwnerToken> player_token;
 };
 namespace {
 void Mark(ClientNativeObjects &o,unsigned prefix) noexcept {o.prefix|=prefix;++o.mutations;}
 ClientObjectStep Result(ClientNativeObjects *o,bool done,bool failed,const char *reason,bool written=false) noexcept {
-  unsigned pending=0;
+  unsigned pending=o&&o->uncertain_pool_use?1u:0u;
   if(o)for(const auto &pair:o->entries)if(!pair.second.retired&&pair.second.entity)++pending;
   return {done,written,failed,o?o->prefix:0,pending,reason};
 }
@@ -356,6 +363,7 @@ bool CheckAll(ClientNativeObjects &o,const char *&reason) {
       if(!found){reason="objects_commit_unclassified_native_member";return false;}
     }
   }
+  o.draw_values.clear();for(const auto &pair:o.entries)if(!pair.second.retired)o.draw_values.emplace(pair.second.entity,&pair.second);
   o.committed=true;diagnostic_owner=&o;reason="objects_committed";return true;
 }
 const ClientEntityClassAdapter *Adapter(const ClientNativeObjects &o,unsigned category) noexcept {
@@ -417,10 +425,12 @@ bool FormalCheckAll(ClientNativeObjects &o,const ClientNativeRoots &roots,const 
     if(!ListValid(*el)){reason="objects_formal_member_list_invalid";return false;}
     for(unsigned n=0;n<el->_size;++n){auto *e=el->_data[n];unsigned count=0;
       for(const auto &pair:o.entries)count+=!pair.second.retired&&pair.second.entity==e;
-      for(const auto &p:o.players){ClientEntityBorrow borrow;if(!ResolveEntity(&context,roots,p.first,0,borrow,reason))return false;count+=borrow.object==e;}
+      for(const auto &p:o.players){if(o.entries.count(p.first))continue;ClientEntityBorrow borrow;if(!ResolveEntity(&context,roots,p.first,0,borrow,reason))return false;count+=borrow.object==e;}
       if(count!=1){reason="objects_formal_unclassified_or_aliased_member";return false;}
     }
-  }o.committed=true;diagnostic_owner=&o;reason="objects_non_player_checked";return true;
+  }o.draw_values.clear();for(const auto &pair:o.entries)if(!pair.second.retired)o.draw_values.emplace(pair.second.entity,&pair.second);
+  for(const auto &p:o.player_draw)o.draw_values[p.first]=&p.second;
+  o.committed=true;diagnostic_owner=&o;reason="objects_non_player_checked";return true;
 }
 bool FormalExecute(ClientNativeObjects &o,const ClientNativeRoots &roots,const ClientObjectCommand &command,const char *&reason){
   const auto &d=command.value;
@@ -429,17 +439,19 @@ bool FormalExecute(ClientNativeObjects &o,const ClientNativeRoots &roots,const C
   auto it=o.entries.find(d.key);
   if(command.operation==ClientObjectOperation::Acquire){
     if(it!=o.entries.end()&&!it->second.retired){reason="objects_formal_duplicate_acquire";return false;}
-    if(next_object_instance==UINT64_MAX||o.entries.size()>=16384){reason="objects_formal_instance_budget";return false;}
+    if(next_object_instance==UINT64_MAX||o.entries.size()>=kObjectBudget){reason="objects_formal_instance_budget";return false;}
     auto &e=o.entries[d.key];e={};e.description=d;e.instance=++next_object_instance;e.prefix|=Acquired;Mark(o,Acquired);
     if(d.category==12&&!a->acquire){reason="objects_dummy_dedicated_owner_required";return false;}
     e.entity=a->acquire?static_cast<Entity *>(a->acquire(a->context,d,roots,reason)):o.game->_entityFactory?o.game->_entityFactory->Create(d.type,true):nullptr;
     if(!e.entity){reason="objects_formal_pool_exhausted";return false;}
-    if(e.entity->_valid||!UniqueAddress(o,e.entity,d.key)){e.entity=nullptr;reason="objects_formal_live_pool_use_conflict";return false;}
+    if(e.entity->_valid||!UniqueAddress(o,e.entity,d.key)){
+      // Factory/官方New已经返回；冲突地址既不能遗忘，也不能Delete另一个use的ESSM。
+      o.cleanup_uncertain=true;reason="objects_formal_live_pool_use_conflict_retained";return false;}
     if(o.next_pool_use==UINT64_MAX){reason="objects_pool_use_exhausted";return false;}
     e.pool_use=++o.next_pool_use;e.constructed=true;
     // Dummy绕过通用Factory；在同一已封存官方owner上完成一次New通知，避免复用旧ESSM数据。
     // Plus holder由真实池ctor创建，后续base Init仍进入官方Plus重置链。
-    if(d.category==12&&!EssmDelete(e.entity,true,reason,true))return false;return true;
+    if(d.category==12&&!EssmDelete(e.entity,true,reason,true))return false;e.acquire_returned=true;return true;
   }
   if(it==o.entries.end()||it->second.retired||!it->second.entity){reason="objects_formal_instance_missing";return false;}
   auto &entry=it->second;auto &e=*entry.entity;ResolveContext context{&o,&roots};ClientEntityOwners resolver{&context,ResolveEntity,ResolveDependency};
@@ -532,6 +544,8 @@ bool ClientNativeObjectsPreflight(ClientNativeObjects *o,const ClientNativeRoots
   if(!o||!Phase()||!Current(*o,roots)||!o->configured||o->uncertain||!ClientEntityDrawIsolationInstalled()){reason="objects_entity_preflight_context_or_draw_isolation";return false;}
   if(!ClientEntityOrdinaryTypeContext()){reason="objects_native_deathmatch_type_context";return false;}
   try{
+    o->committed=false;o->draw_values.clear();
+    for(auto it=o->entries.begin();it!=o->entries.end();)if(it->second.retired)it=o->entries.erase(it);else ++it;
     auto &list=o->room->_entityList;
     for(auto *el:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL,&list._effectEL,&list._tempEL,&list._wispEL})
       if(!ListValid(*el)){reason="objects_entity_preflight_member_storage";return false;}
@@ -561,12 +575,44 @@ bool ClientNativeObjectsPreflight(ClientNativeObjects *o,const ClientNativeRoots
     o->players=std::move(current_players);o->player_draw=std::move(player_draw);reason="objects_entity_dependencies_ready";return true;
   }catch(...){reason="objects_entity_preflight_allocation";return false;}
 }
+// 与6EEE60构造立即数和6EC540的valid扫描一致；只数空槽/本方可退休槽，不改游标或占用位。
+bool ClientNativeObjectsCapacity(ClientNativeObjects *o,const ClientNativeRoots &roots,const std::vector<ClientObjectDescription> &values,const char *&reason) noexcept {
+  if(!o||!Phase()||!Current(*o,roots)||!o->game->_entityFactory){reason="objects_capacity_context";return false;}
+  static constexpr unsigned offsets[]={0,0x45fe40,0x223220,0x194218,0x16cc10,0x32c228,0x695e58,0x357630,0x130008,0,0x435638,0x64be48,0x675650};
+  static constexpr unsigned strides[]={0,0xf60,0x848,0x478,0x9d8,0x568,0x520,0x6f0,0xf30,0x4c0,0x550,0x530,0x410};
+  unsigned wanted[13]{},owned[13]{};
+  for(const auto &d:values)if(d.key.id&&d.category<13)++wanted[d.category];
+  for(const auto &p:o->entries)if(p.second.entity&&!p.second.retired&&p.second.description.category<13)++owned[p.second.description.category];
+  for(unsigned category=1;category<13;++category){if(!wanted[category])continue;unsigned free=0;
+    auto *pool=reinterpret_cast<unsigned char *>(o->game->_entityFactory)+offsets[category];
+    for(unsigned i=0;i<kClientEntityPools[category];++i){auto *e=reinterpret_cast<Entity *>(pool+i*strides[category]);
+      if(!e->_valid&&e->_exists){o->cleanup_uncertain=true;o->uncertain_pool_use=e;reason="objects_native_unclassified_partial_pool_use_retained";return false;}
+      free+=!e->_valid&&!e->_exists;}
+    if(wanted[category]>free+owned[category]){static thread_local char detail[96];
+      std::snprintf(detail,sizeof(detail),"objects_native_pool_budget:class=%u wanted=%u available=%u",category,wanted[category],free+owned[category]);reason=detail;return false;}
+  }
+  // 所有最终成员需要主/持久owner和render位；update/wisp按已解析最终flags分别核算。
+  unsigned main=0,persistent=0,update=0,wisp=0,render=0;
+  for(const auto &d:values){if(!d.key.id)continue;++render;
+    const bool persistent_owner=d.type==1||d.type==3||(d.type==8&&d.subtype==0);persistent+=persistent_owner;main+=!persistent_owner;
+    bool no_update=false;for(const auto &f:d.common_fields)if(f.member=="Entity.GetEntityFlags")no_update=(f.bits&8)!=0;
+    update+=!no_update;wisp+=d.type==3&&d.variant==206;
+  }
+  const auto &list=o->room->_entityList;
+  if(!ListValid(list._mainEL)||!ListValid(list._persistentEL)||!ListValid(list._renderEL)||!ListValid(list._updateEL)||!ListValid(list._wispEL)||
+     main>list._mainEL._capacity||persistent>list._persistentEL._capacity||render>list._renderEL._capacity||update>list._updateEL._capacity||wisp>list._wispEL._capacity){reason="objects_native_member_capacity_budget";return false;}
+  reason="objects_native_capacity_ready";return true;
+}
 ClientNativeObjects *ClientNativeObjectsCreate() noexcept {
   if(!Phase())return nullptr;
   try{auto owner=std::make_unique<ClientNativeObjects>();owner->player_token=std::make_shared<ClientPlayerOwnerToken>();owner->player_token->owner=owner.get();return owner.release();}catch(...){return nullptr;}
 }
+unsigned ClientNativeObjectsOwnerCount(const ClientNativeObjects *o) noexcept {
+  if(!IsMain()||!o)return 0;unsigned count=o->uncertain_pool_use?1u:0u;
+  for(const auto &p:o->entries)count+=p.second.entity&&!p.second.retired;return count;
+}
 void ClientNativeObjectsDestroy(ClientNativeObjects *o) noexcept {
-  if(o&&IsMain()&&(o->entries.empty()||o->abandoned)){
+  if(o&&IsMain()&&!o->cleanup_uncertain&&!o->retirement_fault&&!o->uncertain_pool_use&&(o->entries.empty()||o->abandoned)){
     if(diagnostic_owner==o)diagnostic_owner=nullptr;if(o->player_token)o->player_token->owner=nullptr;delete o;
   }
 }
@@ -614,7 +660,7 @@ ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *o,const ClientN
         if(ok){found->second.checked=true;found->second.prefix|=Checked;o->prefix|=Checked;}break;
       default:reason="objects_representative_operation_invalid";break;
     }
-  }catch(...){reason="objects_native_exception";initializing_player=nullptr;}
+  }catch(...){reason="objects_native_exception";o->cleanup_uncertain=true;initializing_player=nullptr;}
   ClientDispatchReturned(ClientEntry::NativeApply);
   if(!dispatch.Succeeded()){ok=false;reason="objects_dispatch_incomplete";}
   o->executing=false;if(!ok){o->uncertain=true;o->committed=false;}
@@ -629,6 +675,39 @@ ClientObjectStep ClientNativeObjectsAbandon(ClientNativeObjects *o,const ClientN
   if(!Phase()||o->executing)return Result(o,false,true,"objects_retire_context");
   if(o->abandoned)return Result(o,true,false,"objects_already_abandoned");
   if(!Current(*o,roots))return Result(o,false,true,"objects_retire_roots_changed");
+  if(o->cleanup_uncertain||o->retirement_fault)return Result(o,false,true,"objects_retire_uncertain_prefix_retained");
+  // 所有已完成Init的正式实例先撤全图依赖，再按取得次序逆序逐个退休。
+  // 已发布实例也必须走自己的类别清理；不能直接丢map让Room调用不适用的Familiar玩法Remove。
+  if(o->formal){
+    if(!Graphics())return Result(o,false,false,"objects_retire_graphics_or_cpu_inflight");
+    for(const auto &pair:o->entries){const auto &e=pair.second;
+      if(e.entity&&!e.retired&&e.description.full_entity&&((!e.initialized&&((e.prefix&Init)||!e.acquire_returned||e.entity->_valid||e.entity->_exists))||(e.prefix&Removed))){
+        o->retirement_fault=true;return Result(o,false,true,"objects_retire_incomplete_init_or_remove_retained");}}
+    ClientDispatchScope dispatch(ClientOperation::Retire,ClientEntry::NativeTeardown);
+    if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeTeardown)!=ClientEntryDecision::CallOriginal)return Result(o,false,true,"objects_retire_dispatch");
+    const char *reason="objects_retire_unlink";bool ok=true,changed=false,done=false;
+    try{
+      if(!o->retirement_unlinked){
+        Entry *next=nullptr;
+        for(auto &pair:o->entries){auto &e=pair.second;if(e.entity&&!e.retired&&e.description.full_entity&&(e.prefix&References)){next=&e;break;}}
+        if(next){ok=FormalReferences(*o,roots,*next,next->description,false,true,reason);if(ok)next->prefix&=~References;changed=true;}
+        else o->retirement_unlinked=true;
+      }else{
+        Entry *next=nullptr;for(auto &pair:o->entries){auto &e=pair.second;
+          if(e.entity&&!e.retired&&e.description.full_entity&&(!next||e.instance>next->instance))next=&e;}
+        if(next){changed=true;
+          if(!next->initialized){
+            // 正常返回的Acquire尚未进入Init：只配平官方New，不析构预构造槽、不调用未初始化派生Remove。
+            if(EssmDelete(next->entity,false,reason)){next->prefix|=Removed;Mark(*o,Removed);ok=EssmDelete(next->entity,true,reason);}
+            else ok=false;if(ok){next->retired=true;next->entity=nullptr;}
+          }else {ClientObjectCommand command;command.operation=ClientObjectOperation::Remove;command.value=next->description;ok=FormalExecute(*o,roots,command,reason);}}
+        else done=true;
+      }
+    }catch(...){ok=false;reason="objects_retire_native_exception_retained";o->cleanup_uncertain=true;}
+    ClientDispatchReturned(ClientEntry::NativeTeardown);if(!dispatch.Succeeded()){ok=false;reason="objects_retire_dispatch_incomplete";}
+    if(!ok){o->retirement_fault=true;return Result(o,false,true,reason,changed);}
+    if(!done)return Result(o,false,false,reason,changed);
+  }
   bool partial_pool=false;
   for(const auto &pair:o->entries){const auto &e=pair.second;
     // 首Player尚未交PM所有时，Room重建不能处理该半构造owner，不可丢记录。
@@ -669,7 +748,7 @@ ClientObjectStep ClientNativeObjectsAbandon(ClientNativeObjects *o,const ClientN
     if(!ok)return Result(o,false,true,reason,true);
   }
   o->committed=false;o->abandoned=true;if(diagnostic_owner==o)diagnostic_owner=nullptr;
-  const auto prefix=o->prefix;o->entries.clear();return {true,false,false,prefix,0,"objects_mappings_retired_native_world_owns_cleanup"};
+  const auto prefix=o->prefix;o->draw_values.clear();o->entries.clear();return {true,false,false,prefix,0,"objects_mappings_retired_native_world_owns_cleanup"};
 }
 bool ClientNativeObjectsVisit(const ClientNativeObjects *o,void *context,ClientObjectVisitor visitor) noexcept {
   if(!o||!visitor||!IsMain()||!o->committed||o->uncertain||o->executing||o->abandoned||g_Game!=o->game||g_Game->_room!=o->room)return false;
@@ -679,17 +758,23 @@ bool ClientNativeObjectsVisit(const ClientNativeObjects *o,void *context,ClientO
   }
   if(o->formal){auto *mutable_owner=const_cast<ClientNativeObjects *>(o);const ClientNativeRoots roots{ o->game,o->room,o->room->_descriptor,o->room->_Camera };
     ResolveContext resolver{mutable_owner,&roots};
-    for(const auto &p:o->players){ClientEntityBorrow b;const char *reason="objects_player_visit";
+    for(const auto &p:o->players){if(o->entries.count(p.first))continue;ClientEntityBorrow b;const char *reason="objects_player_visit";
       if(!ResolveEntity(&resolver,roots,p.first,0,b,reason)||!visitor(context,b.object,p.first,b.instance,1))return false;}
   }
   return true;
 }
+bool ClientNativeObjectsMatch(const ClientNativeObjects *o,const ClientObjectKey &key,std::uint64_t shape,std::uint64_t instance) noexcept {
+  if(!o||!IsMain()||!o->committed||o->uncertain||o->executing||o->abandoned||g_Game!=o->game||!g_Game||g_Game->_room!=o->room)return false;
+  const auto it=o->entries.find(key);
+  if(it!=o->entries.end()){const auto &e=it->second;return e.checked&&CurrentUse(e)&&e.description.shape_revision==shape&&(!instance||e.instance==instance);}
+  for(const auto &p:o->player_draw)if(p.second.description.key==key&&p.second.description.shape_revision==shape&&CurrentUse(p.second)&&(!instance||p.second.instance==instance))return true;
+  return false;
+}
 const ClientObjectDescription *ClientNativeObjectDrawDescription(void *pointer) noexcept {
   auto *o=diagnostic_owner;
   if(!o||!IsMain()||!ClientBusy()||!o->committed||o->uncertain||o->executing||o->abandoned||o->game!=g_Game||!g_Game||g_Game->_room!=o->room)return nullptr;
-  for(const auto &pair:o->entries){const auto &e=pair.second;if(e.entity==pointer&&e.checked&&CurrentUse(e))return &e.description;}
-  const auto player=o->player_draw.find(static_cast<Entity *>(pointer));
-  if(player!=o->player_draw.end()&&CurrentUse(player->second)&&std::find(o->game->_playerManager._playerList.begin(),o->game->_playerManager._playerList.end(),pointer)!=o->game->_playerManager._playerList.end())return &player->second.description;
+  const auto cached=o->draw_values.find(static_cast<Entity *>(pointer));
+  if(cached!=o->draw_values.end()&&cached->second->checked&&CurrentUse(*cached->second))return &cached->second->description;
   return nullptr;
 }
 void *ClientNativeObjectDrawAddress(const ClientObjectKey &key) noexcept {

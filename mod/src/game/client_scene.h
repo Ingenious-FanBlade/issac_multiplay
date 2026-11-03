@@ -4,6 +4,8 @@
 #include "game/client_lifetime.h"
 #include "game/client_native_world.h"
 #include "game/client_grid_events.h"
+#include "game/client_entity_events.h"
+#include "game/client_entity_budget.h"
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -46,6 +48,9 @@ struct ClientApplyResult final {
   bool native_written=false, native_committed=false, old_display_valid=false;
   // 仅确认18的 Room/Grid 范围，不代表完整11域或网络 Applied ACK。
   unsigned committed_domains=0,grid_prefix=0,grid_owners=0;
+  // Entity包含完整Player域；19仅提交非Player合同和具名Player支撑，不设置完整Entity位。
+  bool non_player_entity_applied=false,player_support_applied=false,full_entity_applied=false;
+  unsigned entity_members=0,entity_non_players=0,entity_players=0;
   replica::SubjectKey failed_key{};
   std::array<char,24> failed_domain{};
   std::array<char,48> recovery{};
@@ -66,6 +71,9 @@ public:
   bool AdmitGridIndependent(const replica::Message &,const char *&reason) noexcept;
   bool VisitGridIndependent(void *,ClientGridEvents::Visitor) noexcept;
   bool CompleteGridIndependent(std::uint64_t,std::uint64_t,const char *) noexcept;
+  bool AdmitEntityIndependent(const replica::Message &,const char *&reason) noexcept;
+  bool VisitEntityIndependent(void *,ClientEntityEvents::Visitor) noexcept;
+  bool CompleteEntityIndependent(replica::Kind,std::uint64_t,std::uint64_t,const char *) noexcept;
   // Manager原链短路后每轮至多执行一个完整子步骤，不推进Authority tick。
   void Pump() noexcept;
   bool DisplayReady() const noexcept;
@@ -99,6 +107,9 @@ public:
   ClientSceneState State() const noexcept { return state_; }
   ClientApplyResult Result() const noexcept { return result_; }
   replica::RoomGridBudgetUsage Budget() const noexcept { return room_grid_target_?room_grid_target_->budget:replica::RoomGridBudgetUsage{}; }
+  ClientEntityBudget EntityBudget() const noexcept;
+  unsigned EntityIndependentPending() const noexcept {return entity_events_.Pending();}
+  ClientEntityEvents::Statistics EntityIndependentStatus() const noexcept {return entity_events_.Status();}
   // A仅在完整原生提交后有效，部分写入或退休不继续暴露旧提交版本。
   std::uint64_t AppliedRevision() const noexcept { return applied_valid_?applied_revision_:0; }
   const ClientGenerations &Generations() const noexcept { return generations_; }
@@ -124,6 +135,7 @@ private:
   bool Enter(ClientPurpose purpose) noexcept;
   void Leave(ClientPurpose purpose) noexcept;
   void FailureResult(ClientResultKind kind,const char *phase,const char *reason) noexcept;
+  void SetCommittedRange() noexcept;
   struct BorrowEntry final {
     std::uint64_t id=0,scene=0,owner_token=0;
     ClientPurpose purpose=ClientPurpose::NativeApply;
@@ -145,7 +157,12 @@ private:
   std::unique_ptr<ClientObjects> objects_;
   std::unique_ptr<ClientPresentation> presentation_;
   std::unique_ptr<ClientGrids> grids_;
+  // 重建的纯值计划在退休前一次解析并保留；未知T不能先撤A才被拒绝。
+  std::unique_ptr<ClientObjects> rebuild_objects_;
+  std::unique_ptr<ClientPresentation> rebuild_presentation_;
+  std::unique_ptr<ClientGrids> rebuild_grids_;
   ClientGridEvents grid_events_;
+  ClientEntityEvents entity_events_;
   ClientNativeWorldOwner *native_world_=nullptr;
   ClientNativeSceneDescription native_description_{};
   bool applied_valid_=false,rebuild_pending_=false,objects_planned_=false,

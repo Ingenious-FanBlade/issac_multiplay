@@ -27,4 +27,6 @@ bool ClientEntityOrdinaryTypeContext() noexcept;
 // Abyss helper含fade/Reset/Update；本用途只画Source已安装的最终ANM，不执行这些writer。
 bool ClientEntityDrawOwnedFinal(void *entity,void *sprite,void *offset);
 bool ClientEntityDrawIsolationInstalled() noexcept;
+// 未知异常可能留下raw CPU借用；Scene不得仅凭队列为空就销毁其Entity/ANM owner。
+bool ClientEntityDrawDrained() noexcept;
 } // namespace cs::game

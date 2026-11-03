@@ -15,7 +15,7 @@ public:
   ClientGridStep Retire(const ClientNativeRoots &) noexcept;
   bool Visit(void *context,ClientGridVisitor visitor) const noexcept;
   // 全部实例登记后解析依赖，允许合法环；不跨本次调用保存 Entity 裸指针。
-  ClientGridStep ResolveReferences(const ClientObjects &) noexcept;
+  ClientGridStep ResolveReferences(const ClientObjects &,std::uint64_t attempt) noexcept;
   using LiftedVisitor=bool (*)(void *,const replica::LiftedGridTarget &) noexcept;
   bool VisitLifted(void *,LiftedVisitor) const noexcept;
   ClientGridStep Check(const ClientNativeRoots &) noexcept;

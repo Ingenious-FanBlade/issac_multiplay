@@ -187,6 +187,7 @@ ClientEntityDrawScope::~ClientEntityDrawScope(){
   delete static_cast<Draw *>(state_);
 }
 bool ClientEntityDrawPaused(bool &value) noexcept {if(!IsMain()||!frame)return false;value=frame->source.paused;return true;}
+bool ClientEntityDrawDrained() noexcept {return IsMain()&&!frame&&!draw;}
 bool ClientEntityOrdinaryTypeContext() noexcept {
   if(!IsMain()||!g_Game)return false;std::int32_t state=0;
   // 55546F的真实条件是Deathmatch状态>=2，不是Player拥有NPC路径。只读，不改原版模式。

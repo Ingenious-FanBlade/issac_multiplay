@@ -70,10 +70,11 @@ bool ClientObjectPreStatsIsolationInstalled() noexcept {
   return false;
 }
 bool ClientEntityInitIsolationInstalled() noexcept {
-  bool random=false,sound=false;size_t count=0;auto hooks=Hooks(count);for(size_t i=0;i<count;++i){const auto &h=*hooks[i];
+  bool random=false,sound=false,play=false;size_t count=0;auto hooks=Hooks(count);for(size_t i=0;i<count;++i){const auto &h=*hooks[i];
     if(std::strcmp(h.id,"native_global_random")==0)random=h.registered&&h.super&&*h.super;
     if(std::strcmp(h.id,"client_entity_retire_sound")==0)sound=h.registered&&h.super&&*h.super;
-  }return random&&sound;
+    if(std::strcmp(h.id,"client_entity_local_sound")==0)play=h.registered&&h.super&&*h.super;
+  }return random&&sound&&play;
 }
 bool ClientEntityDrawIsolationInstalled() noexcept {
   const char *required[]={"client_entity_draw_npc","client_entity_draw_tear","client_entity_draw_projectile","client_entity_draw_bomb",

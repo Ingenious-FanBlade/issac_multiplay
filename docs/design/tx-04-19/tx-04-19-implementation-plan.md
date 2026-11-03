@@ -1,6 +1,6 @@
 # tx-04-19：非 Player Entity 客户端应用具体实现计划
 
-日期：2026-11-03，Asia/Singapore。状态：**I01—I25的实现已接入；本轮I20—I25见[剩余类别、形态及绘制实现](tx-04-19-slot-text-draw-application.md)与[指定Luna研究／主审](entity-i20-i25-native.md)。I26—I35及统一E2E待推进。** 本轮接入Slot1—18、NativeText、真正NativeDummy专用池、同Key替换／死亡／删除、Effect136／Grid双向核对及逐类分层draw；NPC三份deque与具名Player复合绘制补齐，Siren私有heap Player是Authority玩法owner事实而非本地draw owner。835初次提交的“非空Player私有路径”限制已证实源于把Player动画层数误读为NPC路径；现已撤掉错误字段和拒绝，并核对原版Deathmatch专属类别条件。完整Player形态／装备仍归20。没有设置完整Entity域提交位，也没有构建或运行测试。I01—I19的历史说明保持原事实，当前采用范围以本轮实现说明为准。
+日期：2026-11-03，Asia/Singapore。状态：**I01—I30的实现已接入；本轮I26—I30见[独立结果、隔离、退休与唯一提交](tx-04-19-scene-commit-retirement.md)及[指定Luna研究／主审](entity-i26-i30-native.md)。I31—I35及I34统一E2E待推进。** I20—I25的[剩余类别与draw记录](tx-04-19-slot-text-draw-application.md)和[I01—I19阶段记录](tx-04-19-laser-effect-application.md)保持原事实。本轮接通Entity独立scope／结果交接、全窗口声音隔离、真实前缀逐类退休、attempt限定的内部枚举及Scene唯一提交、普通Isaac支撑与逐池预算／稳定缓存。没有设置完整Entity域提交位或发送网络ACK，没有构建或运行测试，按会话要求直接提交。完整Player形态／装备仍归20；所有运行覆盖与UNKNOWN按统一验收实际报告。
 
 初版文档工作的完整目标是列出 tx-04-19 的全部实现、必要静态研究、工程接线与整体验收任务。本文是执行入口；[逐类别应用计划](tx-04-19-entity-application.md)与[静态确认及必要逆向清单](tx-04-19-native-research-plan.md)是同一计划的组成部分。I01—I35、C01—C13、R01—R13、E01—E26 只是同一 tx 内的内容索引，不拆成新 tx。
 
@@ -113,11 +113,11 @@ I01—I14进度与边界见上方链接；I15—I19的类别字段、容器、�
 | I23 | 已实现同Key形态换代、死亡展示／删除及引用／资源失效 | I06—I22，R02／R12 |
 | I24 | 已实现Effect136／Grid完整描述安装及双向核对 | I09／I19，18，R08 |
 | I25 | 已实现逐类主／阴影／光照／Post与水面／镜像／柱遮挡、具名复合缓存；835按真实NPC路径及普通世界类别条件处理，撤掉Player动画字段误读 | I10—I24，R11 |
-| I26 | 短命主体、独立 scope 与结果事件 | I05／I06／I23 |
-| I27 | 玩法／Lua／RNG／持久隔离 | 全部采用路径，R13 |
-| I28 | 部分失败、在途借用与安全退休 | I07—I27，R12 |
-| I29 | 唯一场景提交、准确范围与恢复 | I05—I28 |
-| I30 | 有界预算、稳定缓存与必要诊断 | I02／I25／I28／I29 |
+| I26 | 已实现Entity专用独立scope／短命结果交接；实际独立音画消费归27 | I05／I06／I23；运行验收归I34 |
+| I27 | 已接已采用路径隔离及Client全窗口SFX主动跳过；Host／Off透传 | 全部采用路径，R13；不外推未知玩法链 |
+| I28 | 已实现逐前缀／逆序逐类退休、Acquire配平及未知在途owner保留 | I07—I27，R12；运行故障覆盖归I34 |
+| I29 | 已实现实例／Grid／后置关系阶段、attempt限定内部枚举、Scene唯一提交与准确范围 | I05—I28；不置完整Entity域位／网络ACK |
+| I30 | 已实现逐池／成员预算、稳定分类／排序缓存及必要状态 | I02／I25／I28／I29；实际成本归I34 |
 | I31 | P1—P6 新消费者复核与验收合入 | 已有优化，I01／I03／I10／I30 |
 | I32 | 构建接线和产品／测试边界 | 新增模块清单 |
 | I33 | 完整 E2E 夹具与统一编排 | 第 7 节失败模型、第 8 节矩阵 |
