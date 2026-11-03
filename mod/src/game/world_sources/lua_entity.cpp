@@ -4,6 +4,7 @@
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
 #include "game/client_presentation_native.h"
+#include "game/client_entity_draw_native.h"
 #include "game/client_room_native.h"
 #include "game/client_grid_native.h"
 #include "game/client_map_native.h"
@@ -183,7 +184,7 @@ int EntityApplicationSprites(lua_State *L){
   // 只复制本次普通采集窗口的表现输入，不借用独立Render的旧scope或本地玩法随机源。
   lua_newtable(L);lua_pushinteger(L,1);lua_setfield(L,-2,"version");
   lua_pushliteral(L,"same-ordinary-window");lua_setfield(L,-2,"scope");
-  if(g_Manager&&g_Game){
+  if(g_Manager&&g_Game&&ClientEntityOrdinaryTypeContext()){
     lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");
     lua_pushinteger(L,g_Manager->_framecount);lua_setfield(L,-2,"manager_frame");
     std::uint32_t frame=0;std::memcpy(&frame,reinterpret_cast<unsigned char *>(g_Game)+0x25a70,4);
@@ -194,15 +195,14 @@ int EntityApplicationSprites(lua_State *L){
     for(const auto &p:{std::pair<const char *,unsigned>{"pickup_random",0x7d0ca4u},{"familiar_random",0x7d0674u}}){
       lua_createtable(L,4,0);for(unsigned i=0;i<4;++i){std::uint32_t word=0;std::memcpy(&word,reinterpret_cast<void *>(Base+p.second+i*4),4);lua_pushinteger(L,word);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,p.first);
     }
-  }else {lua_pushliteral(L,"Unavailable");lua_setfield(L,-2,"status");}
+  }else {lua_pushstring(L,g_Manager&&g_Game?"NotCaptured":"Unavailable");lua_setfield(L,-2,"status");
+    if(g_Manager&&g_Game){lua_pushliteral(L,"native_deathmatch_type_context");lua_setfield(L,-2,"reason");}}
   lua_setfield(L,-2,"draw");
   if(category==0){
     lua_newtable(L);lua_pushinteger(L,1);lua_setfield(L,-2,"version");
     auto *minecart=e->GetMinecart();const bool used=minecart&&minecart->_type==965&&minecart->_variant==10;
     lua_pushboolean(L,used);lua_setfield(L,-2,"minecart_draw");
-    // 835的通用路径consumer也接受Player，但只证明当前空路径；不猜Player私有容器owner。
-    std::uint32_t path_count=0;std::memcpy(&path_count,reinterpret_cast<unsigned char *>(e)+0xc28,4);
-    lua_pushboolean(L,path_count==0);lua_setfield(L,-2,"npc835_path_empty");
+    // 真正Player的+C28是+758起ANM2数组第5项的layerCount，绝不能作为NPC路径长度读取。
     if(used){Vector offset;std::memcpy(&offset,reinterpret_cast<unsigned char *>(e)+0x205c,8);
       if(!std::isfinite(offset.x)||!std::isfinite(offset.y))return luaL_error(L,"entity_player_minecart_draw_nonfinite");
       lua_newtable(L);lua_pushnumber(L,offset.x);lua_setfield(L,-2,"x");lua_pushnumber(L,offset.y);lua_setfield(L,-2,"y");lua_setfield(L,-2,"offset");

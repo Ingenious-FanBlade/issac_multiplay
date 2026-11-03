@@ -129,7 +129,6 @@ void ClientDescribeEntityPlayerDraw(const replica::EntityObjectTarget &o,ClientO
   auto state=std::make_shared<ClientEntityClassState>();DrawInputs(body,*state);
   const auto &v=At(body,"application_player_draw");if(Integer<unsigned>(At(v,"version"))!=1||!Is(v,"status","Value"))Fail("player_draw","current_owner_source_required");
   const auto &used=At(v,"minecart_draw");if(!used.IsBool())Fail("player_draw","minecart_bool");state->player_minecart_draw=used.GetBool();
-  const auto &empty=At(v,"npc835_path_empty");if(!empty.IsBool())Fail("player_draw","npc835_path_empty_bool");state->player_npc835_path_empty=empty.GetBool();
   if(state->player_minecart_draw){state->player_minecart_offset=Point(At(v,"offset"));state->player_minecart_sort_bits=Integer<std::uint32_t>(At(v,"sort_bits"));float y=0;std::memcpy(&y,&state->player_minecart_sort_bits,4);
     if(!std::isfinite(y)||y!=state->player_minecart_offset.y)Fail("player_draw","minecart_sort_alias_conflict");std::memcpy(&state->player_minecart_offset.y,&state->player_minecart_sort_bits,4);}
   d.derived=std::move(state);

@@ -1,6 +1,6 @@
 # tx-04-19：非 Player Entity 客户端应用具体实现计划
 
-日期：2026-11-03，Asia/Singapore。状态：**I01—I25的实现已接入；本轮I20—I25见[剩余类别、形态及绘制实现](tx-04-19-slot-text-draw-application.md)与[指定Luna研究／主审](entity-i20-i25-native.md)。I26—I35及统一E2E待推进。** 本轮接入Slot1—18、NativeText、真正NativeDummy专用池、同Key替换／死亡／删除、Effect136／Grid双向核对及逐类分层draw；NPC三份deque与具名Player复合绘制补齐，Siren私有heap Player是Authority玩法owner事实而非本地draw owner。835非空Player私有路径没有可安装合同，写前明确报告，不补空；完整Player形态／装备仍归20。没有设置完整Entity域提交位，也没有构建或运行测试。I01—I19的历史说明保持原事实，当前采用范围以本轮实现说明为准。
+日期：2026-11-03，Asia/Singapore。状态：**I01—I25的实现已接入；本轮I20—I25见[剩余类别、形态及绘制实现](tx-04-19-slot-text-draw-application.md)与[指定Luna研究／主审](entity-i20-i25-native.md)。I26—I35及统一E2E待推进。** 本轮接入Slot1—18、NativeText、真正NativeDummy专用池、同Key替换／死亡／删除、Effect136／Grid双向核对及逐类分层draw；NPC三份deque与具名Player复合绘制补齐，Siren私有heap Player是Authority玩法owner事实而非本地draw owner。835初次提交的“非空Player私有路径”限制已证实源于把Player动画层数误读为NPC路径；现已撤掉错误字段和拒绝，并核对原版Deathmatch专属类别条件。完整Player形态／装备仍归20。没有设置完整Entity域提交位，也没有构建或运行测试。I01—I19的历史说明保持原事实，当前采用范围以本轮实现说明为准。
 
 初版文档工作的完整目标是列出 tx-04-19 的全部实现、必要静态研究、工程接线与整体验收任务。本文是执行入口；[逐类别应用计划](tx-04-19-entity-application.md)与[静态确认及必要逆向清单](tx-04-19-native-research-plan.md)是同一计划的组成部分。I01—I35、C01—C13、R01—R13、E01—E26 只是同一 tx 内的内容索引，不拆成新 tx。
 
@@ -112,7 +112,7 @@ I01—I14进度与边界见上方链接；I15—I19的类别字段、容器、�
 | I22 | 已实现NativeDummy专用空池use及明确未知分类 | C13，R01／R09 |
 | I23 | 已实现同Key形态换代、死亡展示／删除及引用／资源失效 | I06—I22，R02／R12 |
 | I24 | 已实现Effect136／Grid完整描述安装及双向核对 | I09／I19，18，R08 |
-| I25 | 已实现逐类主／阴影／光照／Post与水面／镜像／柱遮挡、具名复合缓存；835非空Player私有路径明确未知 | I10—I24，R11 |
+| I25 | 已实现逐类主／阴影／光照／Post与水面／镜像／柱遮挡、具名复合缓存；835按真实NPC路径及普通世界类别条件处理，撤掉Player动画字段误读 | I10—I24，R11 |
 | I26 | 短命主体、独立 scope 与结果事件 | I05／I06／I23 |
 | I27 | 玩法／Lua／RNG／持久隔离 | 全部采用路径，R13 |
 | I28 | 部分失败、在途借用与安全退休 | I07—I27，R12 |

@@ -14,7 +14,6 @@ struct ClientEntityClassState final {
   ClientPoseVector player_minecart_offset{};
   std::uint32_t player_minecart_sort_bits=0; // Y偏移还被原生按i32位模式排序，保留负零等位模式。
   bool player_minecart_draw=false;
-  bool player_npc835_path_empty=false;
   // 官方EntityPlus的optional<bool>：-1=Null，0=false，1=true，不能把Null压成false。
   int flying_override=-1;
   // 激光四份容器各自拥有存储；Bezier为三对已核浮点值，不含原生地址或容器头。

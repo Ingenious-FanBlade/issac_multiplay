@@ -191,13 +191,16 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
         }next.push_back(std::move(d));
       }
       if(!plan->duplicate&&!lifted.empty()){reason="objects_lifted_requires_effect136";return false;}
-      if(!plan->duplicate)for(const auto &d:next)if(d.category==1&&d.type==835&&d.derived){
+      if(!plan->duplicate)for(const auto &d:next)if(d.category==1&&d.type==835&&d.variant==0&&d.derived){
+        // 原版只在非空时进入，但随后固定读前两槽；长度一不能靠map旧项补成第二槽。
+        if(d.derived->npc_composite_count==1){reason="objects_npc835_two_composite_slots_required";return false;}
         for(unsigned i=0;i<(std::min)(d.derived->npc_composite_count,2u);++i){const auto name="NativeNPC.Composite:"+std::to_string(i);
           const auto relation=std::find_if(d.relations.begin(),d.relations.end(),[&](const auto &r){return r.member==name;});if(relation==d.relations.end()||relation->is_null)continue;
           const auto child=std::find_if(next.begin(),next.end(),[&](const auto &v){return v.key==relation->target;});
           if(child==next.end()||!child->derived){reason="objects_npc835_path_owner_missing";return false;}
-          if(child->category==0){if(!child->derived->player_npc835_path_empty){reason="objects_npc835_player_nonempty_path_owner_unavailable";return false;}}
-          else if(child->category!=1||(!child->derived->npc_path.empty()&&(child->derived->npc_path.size()<3||child->derived->npc_path.size()%3))){reason="objects_npc835_complete_path_owner_required";return false;}
+          // 普通世界分支只把Type10..999当路径主体；真实Player和其它公共实体保留引用即可。
+          // 数值落在NPC范围仍须有真实NPC类别，不能把Dummy同数值误读为NPC容器。
+          if(child->type>=10&&child->type<=999&&(child->category!=1||(!child->derived->npc_path.empty()&&(child->derived->npc_path.size()<3||child->derived->npc_path.size()%3)))){reason="objects_npc835_complete_path_owner_required";return false;}
         }
       }
       if(plan->applied){before=entity_applied_values_;if(before.size()!=plan->applied->objects.size()){reason="objects_entity_applied_values_missing";return false;}}

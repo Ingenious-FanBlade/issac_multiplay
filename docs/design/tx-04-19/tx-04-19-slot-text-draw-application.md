@@ -19,11 +19,13 @@
 
 正式`application_npc`提供三份独立容器：BF0的EntityPtr deque，以及C04、C18两份Vector2 deque。Source复制完整顺序Key／Null和有序点，不发送proxy、map、block或原生地址。本地保留原ctor的proxy，用游戏allocator构建独立map／16B block；引用槽通过官方SetReference维护反向登记，退休逐槽解除后释放本方map／block，不连带Remove独立Key。
 
-835的前两项引用及路径、906／920的子体动画、921的C04曲线与FlipX、951:3的C18完整点列均有具名输入。三点分组消费者先检查完整尾组；未消费的路径不额外施加三点限制。父体直接借子体ANM时，也保护子体屏幕缓存、变换、位置及frame-base，避免只恢复父Sprite。
+835 variant0的前两项引用及真正NPC路径、906／920的子体动画、921的C04曲线与FlipX、951:3的C18完整点列均有具名输入。835非空引用表须至少有两槽；其余variant不进入该路径分支。三点分组消费者先检查完整尾组；未消费的路径不额外施加三点限制。父体直接借子体ANM时，也保护子体屏幕缓存、变换、位置及frame-base，避免只恢复父Sprite。
 
 Familiar68／78／243借用按当前Key、实例和roster证明就绪的Player，保护完整44B持续色、可见性、主／costume ANM及其layers。965:10额外从正式Player同窗口来源取得Minecart关系与`+205C/+2060`两f32偏移（第二个值同时是原生排序key，另传u32位模式保留负零等情况），仅在draw栈临时安装、绘制后归还。没有创建第二个Player，也没有把本轮范围扩成20的全Player／装备应用。
 
-Siren `+F40`是独立heap Player玩法owner，当前NPC主绘制不消费它。本轮保留Authority存在性／查询事实，本地保持null，不把roster身体塞进拥有型字段，不执行其玩法构造／更新。835若引用Player，当前只采用Source明确证明的空路径；非空Player私有路径没有可安装owner合同，纯值预检明确返回`objects_npc835_player_nonempty_path_owner_unavailable`，不会伪造为空或按NPC私有布局写Player。这是保留的具名未知，不宣称所有Player复合形态已经完成。
+Siren `+F40`是独立heap Player玩法owner，当前NPC主绘制不消费它。本轮保留Authority存在性／查询事实，本地保持null，不把roster身体塞进拥有型字段，不执行其玩法构造／更新。
+
+2026-11-03追查更正：初次实现曾把真正Player的`+C28`当作NPC路径长度，仅接受零值并拒绝整批非零目标。该解释错误：Player ctor `74DCF5..74DD07`在`+758`构造7份、步长`114`的ANM2；`+C28 = +BA8 +80`实际是数组第5项的`ANM2._layerCount`。因此零值也不能证明“空路径”。原生835 helper `55546F..555489`仅在`Game+25B8C >=2`的Deathmatch状态下把Type1纳入NPC数值分支；普通世界只接受Type10..999。已撤掉错误来源字段、模型和两处原生拒绝；真实Player仍按Key保留引用，不读写其NPC私有布局。普通来源、写前预检和整帧绘制共同核对`Game+25B8C <2`，只读模式而不进入／修改Deathmatch；真正NPC路径继续按完整来源安装。研究与主审见[835更正](entity-i20-i25-native.md)。此修复不等于20的完整Player形态／装备实现。
 
 ## 表现输入、借用与失败
 

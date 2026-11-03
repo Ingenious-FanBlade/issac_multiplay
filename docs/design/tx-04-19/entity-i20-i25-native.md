@@ -67,13 +67,13 @@ NPC ctor `0x6B4520` 初始化内嵌 ANM2 owners `+0xCD8/+0xDEC`。Type-specific 
 | --- | --- | --- | --- |
 | Composite references | `+0xBF0` proxy, `+0xBF4` map, `+0xBF8` capacity, `+0xBFC` offset, `+0xC00` count | 元素为4B `EntityPtr`，16B block容4个。实体槽需调用官方 `SetReference`，维护 child `+0x3CC` reverse observer | NPC Update helper `0x515AF0`登记/切换；Type835/906/920读取 |
 | Secondary path | `+0xC04` proxy, `+0xC08` map, `+0xC0C` capacity, `+0xC10` offset, `+0xC14` count | 元素为 Vector2 8B，16B block容2点 | Type19 helper `0x4A1540`每个新 child 后 append 父NPC当前位置`+0x33C/+0x340`；`0x54C1F0`会清理/限长；Type921主要消费者 |
-| Primary path | `+0xC18` proxy, `+0xC1C` map, `+0xC20` capacity, `+0xC24` offset, `+0xC28` count | 元素为 Vector2 8B，16B block容2点 | NPC path 更新/曲线路径；835与951:3消费者 |
+| Primary path | `+0xC18` proxy, `+0xC1C` map, `+0xC20` capacity, `+0xC24` offset, `+0xC28` count | 元素为 Vector2 8B，16B block容2点 | NPC path 更新/曲线路径；Type835 在合法类型门槛通过时调用子体路径 helper（普通 C/S scope仅10..999 NPC）；951:3消费者 |
 
 C00 元素必须按 Source 顺序稳定 key 两阶段解析成本地 EntityPtr，不写 Source 裸指针。退休先对每个槽 `SetReference(nullptr)` 消 reverse relation，再按游戏 allocator 释放每个16B block 和 map，保留 ctor 建立的 proxy；各容器分开清，不能触发 child Remove。C04/C18 复制完整有序坐标值，按游戏 allocator 重建本地 map/block，保留本地构造的 proxy。所有 count、capacity、offset、index 必须有界，并满足 consumer 的索引读边界；Source 不可只传 count。
 
 | 类型/变体与入口 | 实际消费/临时写 | Source / 本地处理合同 |
 | --- | --- | --- |
-| Type 835 — NPC Render `0x6CEC90`→`0x555410`，path child helper `0x4E4710` | 读取 C00 Composite的前两项，child `+0xC28` 非零时 helper读取C18路径点；无 `Type==1` 的早退，Player child也会进入通用 path reader。仅 CordPos Type950有独立早退 | C00 children按稳定key重建，C18完整来源。当前 Player 来源只能证明 `npc835_path_empty`；若 Player C18 非空则具体 owner未解释，须具名失败，不将它伪装为NPC或猜测点列 |
+| Type 835 — NPC Render `0x6CEC90`→`0x555410`，path child helper `0x4E4710` | `555410`在 C00 count 非零时固定读前两项。仅当 `Game+0x25B8C >= 2 && child.Type==1` 或 `10<=child.Type<=999` 才以 child 为 `this` 调 helper。普通 C/S scope（预检证明 state `<2`）不进入 Player 分支；真实 NPC child 仍走其自身 C18 ring。 | C00 children按稳定Key重建；NPC child供完整C18值。Player只保留稳定Key关系，不读／写 `Player+0xC18..0xC28`。若目标 scope不是普通状态，不得据 NPC布局解释Player内存；当前将其作为不支持的 Deathmatch Player-path形态处理。 |
 | Type 906 / 920 — Render→`0x4B52A0/0x4B6680` | 遍历 C00 EntityPtr child，按每个 child 当前 Sprite/Layer state 画图；辅助会借用 child ANM及公共 Render 状态 | 为每个 child 供稳定Key、当前动态类别、Main/aux资源pose、动画状态；借用期保存/恢复 child ANM 与确实改写的 common render cache/位置/可见/frame。只 snapshot child Sprite 不够。已有具名Source当前值可以进 native layer consumer，无需凭空造对象字段 |
 | Type 921 Variant 0 — Render→`0x574930` | 检查 Variant、从 `+0xC04..+0xC14` 读取 secondary path；切换 main Sprite layers 1/2 的 Visible、计算 `layer13 alpha/layer14 visible/angle`，使用 Entity `+0x148` FlipX；没有随机读写 | Source完整C04序列、`Entity.FlipX`（bool `+0x148`）及精确主ANM layers；逐实体 draw scope 恢复所改可见/alpha/角度和缓存。此处不消费C18 primary path |
 | Type 951 Variant 3 — Render→`0x599070`→`0x598B10` | 仅 `C18 count >= 9` 进入；构造全局 scratch 曲线/顶点，每组三个点步进并读取邻点，最终 `0x419D30` draw；未见 NPC 专有随机或附加标量读取 | Source给C18完整有序点列及有效边界；本地提供helper实际访问范围的guard。consumer的步进/邻点读取不等于“只读`count`个点”，长度尾组如不能保证被索引点存在必须失败，不能拿out-of-range map数据补齐 |
@@ -89,6 +89,20 @@ Familiar Render `0x61E360` 读取 player 裸借用指针 `+0x410`。Variant68使
 
 Variant 231 AbyssLocust 所有副ANM来自具名 ExtraData owner；`0x647310`执行ANM Update/Reset而非纯draw。只将Authority最终ANM frame、layer、shader与纹理状态安装到其真实本地owner并窄Render，不触发该更新helper，也不重算fade/scale或播放事件。
 
+## 835 Type 1 条件、Deathmatch 状态与 Player 字段归属
+
+本节更正首次 I20–I25 静态汇总中的误读。原记录把 `555410` 的 `Type==1` 条件读成“没有早退”，又把 NPC 的 `+0xC18..+0xC28` ring 布局套到 Player 上，因而提出 `npc835_path_empty` 与“非空 Player 私有路径 owner 未知”。这两个推论均撤回：分支有明确的 Deathmatch 状态门槛；Player 对应字节属于一个内嵌 ANM2，并非路径容器。它是静态分析中的纠正，不是一次运行时失败或运行时观察。
+
+本地原版 `enums/EntityType.md` 将 `835` 命名为 `ENTITY_PEEPER_FATTY`。原版 `EntityNPC.md`/`PathFinder.md` 与 REPENTOGON `EntityNPC.md`/`Pathfinder.md`公开的是 NPC PathFinder API；没有 Player waypoint/path-list API。REPENTOGON 官方 `Game.zhl` 将 `Ambush` 放在 `+0x25B40`、`DailyChallenge` 放在 `+0x25BA8`，未命名 `+0x25B8C`；具体语义依据目标二进制而非对 gap 的猜名：
+
+- `0x4257A0` 收到 `this=Game+0x25B8C` 与 selector 1–11 后，按选择创建带 RTTI 名称的 `DeathmatchTypeNormal/Ipecac/Bomberman/Ludovico/Sumo/Knockout/SwordFight/MachineGun/Indigestion/KnifeFight/Venom` 对象并存于 `this+0x0C`。`0x4249D0` 以状态 word `*this-2` 分派该对象；这是 Deathmatch 状态机。
+- `0x425180` 将该状态 word 设为 2、清 `+0x04` 计数、播放 Deathmatch intro，并调用 `0x6F9710` 到特殊 room index `-19`。`Game::End` (`0x6F5920`) 仅在状态 `<2` 或 `==6` 走普通结局分支。`0x8B14F0` 在重置处清状态为 0 并选取 DeathmatchType。综合这些直接交叉证据，`Game+0x25B8C>=2` 是 Deathmatch 子状态条件，不是 Online 开关；不能从数字 2 推导联机语义。
+- `Entity_NPC::Render` 进入 Type835 后调用 `0x555410`。其 raw 分支 `0x55546F..0x55548E` 先检查 `Game+0x25B8C>=2 && child.Type==1`，否则仍接受 `10<=child.Type<=999`；`0x555463` 已把 child pointer 装入 ECX，故 helper ABI 是 `void __thiscall(Entity* child, Vector* renderOffset, char flag)`，调用传入 offset 与 `flag=0`。所以 type 1 child 确实只在 Deathmatch 子状态到达 `0x4E4710`。
+- `Entity_Player` ctor `0x74DC70` 的 `0x74DCF5..0x74DD07` 对 `this+0x758` 调 EH vector constructor：元素 stride `0x114`、count 7、元素 ctor/dtor `0x402B00/0x403790`。索引4（第5项）起点为 `0x758 + 4*0x114 = 0xBA8`。REPENTOGON `ANM2.zhl` 明列 `+0x70 _overlayRenderFirst`、`+0x74 _animData`、`+0x78 _animCount`、`+0x7C _layerState`、`+0x80 _layerCount`；因此 Player `+0xC18..+0xC28` 是该 ANM2 元素内部字段，`+0xC28` 是 `layerCount`。构造与销毁归 Player 持有的七项 ANM2 数组及 ANM2 生命周期，不是 Player 路径 ring；也没有发现任何 Player waypoint writer/owner 合同。
+- 通用 helper `0x4E4710` 将 `this+0xC18..+0xC28` 按 NPC ring 的 proxy/map/capacity/offset/count 读取，计数在 `+0xC28`。把真实 Player 传入会把其 ANM2 overlay flag、animation data pointer/count、layer state pointer/layer count 错当 deque header/point count。当前资料无法证明这种 reinterpretation 在 Deathmatch 分支中有合法含义，不能读取、构造或写入这段 Player 内存，也不能用 `npc835_path_empty` 代替真实 owner。
+
+可实施范围限于当前普通 C/S draw：Source 保留 child 的稳定 Player Key 关系，不附加 Player 路径 bool/count/points；native preflight/draw 只读验证 `Game+0x25B8C<2`，不改写该 Deathmatch 对象，也不执行其状态转换。在此普通 scope 下 Type 1 helper 条件为假，Type 10–999 的真实 NPC path 按 NPC C18 合同绘制。若将来 Client 要覆盖 Deathmatch，仍缺少该 type 1 分支为何调用 ring helper、helper 预期数据 owner以及合法当前点列的静态证据；届时应明确拒绝该形态直到取得这些证据，不可伪造为空、把 Player 按 NPC ring 安装，或手动调用 native helper。没有定位到一条有真实 Player path owner 的窄纯绘制替代路径。
+
 ## Effect136 与 `LiftedGridTarget`（承接 I18）
 
 本地 Wiki 与 REPENTOGON `LuaEntityEffect.cpp::Lua_GetGridEntityDesc` 确认：仅Effect Variant136把 `_varData`（Effect `+0x420`）暴露为 `GridEntityDesc` view。官方 `GridEntityDesc.zhl` 布局总长 `0x20`，含 Type `+0` i32、Variant `+4` i32、State `+8` i32、SpawnCount `+C` i32、SpawnSeed `+10` u32、VarData `+14` i32、Initialized byte `+18`（`+19..+1B` padding）、VariableSeed `+1C` u32。注意这里16B的是Effect通用 `_varData` 起始区域/Init清除长度，不是GridEntityDesc的VarData字段。Effect Init `0x5CD070` 只清`+0x420..+0x42F`的16B；Render `0x600E60`不消费该desc；不因公开 GetGridEntityDesc 就认为Room仍有active Grid owner。
@@ -101,7 +115,7 @@ Variant 231 AbyssLocust 所有副ANM来自具名 ExtraData owner；`0x647310`执
 
 - 尚未找到原版 Dummy 的合法创建 caller；已定位专用预构造池和新 Client 扫描策略，但未证明原版业务创建语义，也未runtime验证真实池代次/使用窗口。
 - 尚未找到所有 Text Entity 的原生 producer。`0x6FF270`只证实一类 writer；未证明所有文本的字符串语义、寿命和业务写入者。
-- NPC835 Player child 的非空 C18 path 没有被当前 `EntityNPC`来源 owner 解释；现有已知合法输入仅为Source明确证明的空路径。
+- Deathmatch 状态下 Type835 的 `Type==1` child 会被送入按 NPC C18 ring 读取的 helper，但真实 Player `+0xC18..+0xC28` 是 ANM2 成员。该分支的预期 owner/意图与合法点列来源仍 `UNKNOWN`；普通 C/S scope 通过只读状态 `<2` 排除此分支。未作运行时验证。
 - NPC951 Variant3 的 triplet loop 使用前后邻点；任意count不一定意味着`[i+1]/[i+2]`都在正式长度内。Source若不能证明每次消费者访问有界，就失败而非复制超界/旧map残项。全类别动态分布需后续Runtime/E2E确认。
 - Effect136源Grid key (`source_grid`) 未有官方getter；Source描述和ANM有独立依据，identity关系仍缺。
 - PostRender Room外层调用顺序静态已定位；实际Client拼接时的次数、所有水面/列尾路径与原生画面等价性仍归I34运行验收。
@@ -109,6 +123,8 @@ Variant 231 AbyssLocust 所有副ANM来自具名 ExtraData owner；`0x647310`执
 
 ## 主智能体采用审阅
 
-2026-11-03：主智能体先读本地两份Wiki及官方Lua/ZHL，再独立复读`6620E0`、`5CC580`、`6A3630`、`6EEE60/6A3940`、`6CEC90`、`61E360`、`647310`、`6AE430`、`574930`、`415350`、`6AC660/956F80`与实际vtable；逐条raw核`4155E1..E9`的Shadow ABI和`80619A..8061E8`的Post次序。采用结论以上文主审更正为准：+172是Exists；LaserShadow不据IDA猜测增加EDX参数；Pickup的wobble与Bomb lazy重建分开；921消费C04，不对其未消费的C18额外限制；GridDesc.VarData是i32；NPC child缓存/变换与Player持续色完整保护。未知如实列在前节，不将静态审阅说成运行结果。
+2026-11-03：主智能体先读本地两份Wiki及官方Lua/ZHL，再独立复读`6620E0`、`5CC580`、`6A3630`、`6EEE60/6A3940`、`6CEC90`、`61E360`、`647310`、`6AE430`、`574930`、`415350`、`6AC660/956F80`与实际vtable；逐条raw核`4155E1..E9`的Shadow ABI和`80619A..8061E8`的Post次序。采用结论以上文主审更正为准：+172是Exists；LaserShadow不据IDA猜测增加EDX参数；Pickup的wobble与Bomb lazy重建分开；921消费C04，不对其未消费的C18额外限制；GridDesc.VarData是i32；NPC child缓存/变换与Player持续色完整保护。
+
+本次补核 835：Luna 研究与主审分别复读 `55546F..55548E` 的 Deathmatch状态条件、`0x4257A0/0x4249D0/0x425180` 的 DeathmatchType 状态机、Player ctor `0x74DCF5..0x74DD07` 的七个 ANM2 数组元素，以及官方 `ANM2.zhl` 的 layerCount 布局，结论相同。初稿“无 Type==1 早退”与 `npc835_path_empty` 均保留为已识别的初次误读历史，其结论已按上节纠正。主智能体采用上述更正并静态审阅Source／纯值预检／原生预检／整帧绘制的对应改动。这里全是源代码/目标二进制静态证据，没有运行游戏、构建、测试或 runtime PASS。
 
 主审另核官方`Patches/EntityPlus.cpp`：holder由Entity ctor创建，base Init重置Plus；`Patches/EntityManager.cpp`的Factory Create正常通知New，而Dummy自有acquire没有经过该入口。实现因此在同一官方main_ex绑定窗口同时保留New／Delete闭包，Dummy取得后补一次官方ESSM New，退休继续原Delete；闭包只维护ESSM s_validEntities／自有数据，不运行第三方ModCallback。

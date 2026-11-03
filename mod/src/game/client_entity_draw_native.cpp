@@ -111,7 +111,6 @@ struct Draw final {
       Keep(*reinterpret_cast<Vector *>(reinterpret_cast<unsigned char *>(child)+0xdc));Keep(*reinterpret_cast<Vector *>(reinterpret_cast<unsigned char *>(child)+0xe4));Keep(*reinterpret_cast<float *>(reinterpret_cast<unsigned char *>(child)+0xec));
       Keep(*reinterpret_cast<std::uint32_t *>(reinterpret_cast<unsigned char *>(child)+0x328));
       for(const auto &f:description->common_fields)if(f.member=="Entity.FrameCount")child_frames.emplace_back(child,description->derived->draw.game_frame-std::uint32_t(f.integer));
-      if(d.type==835&&child->_type==1&&*reinterpret_cast<std::uint32_t *>(reinterpret_cast<unsigned char *>(child)+0xc28))throw std::runtime_error("entity_draw_npc835_player_path_owner_not_empty");
       if(description->derived)for(const auto &resource:description->derived->resources){auto *s=static_cast<ANM2 *>(ClientEntityAuxiliarySprite(child,resource));if(s)Sprite(*s);}}
     // Familiar复合绘制只借当前具名Player，保护其颜色/可见性/位置及主Sprite；不拥有或退休身体。
     if(d.category==8&&(d.variant==68||d.variant==78||d.variant==243)){
@@ -140,7 +139,7 @@ void Text(Entity &e,const ClientObjectDescription &d,const Vector &offset){
 }
 }
 ClientEntityFrameScope::ClientEntityFrameScope(const ClientNativeRoots &roots){
-  if(!IsMain()||!ClientBusy()||TopOwner()!=Owner::Render||frame||!g_Game||roots.game!=g_Game||roots.room!=g_Game->_room||!g_Manager||!ClientEntityDrawIsolationInstalled())return;
+  if(!IsMain()||!ClientBusy()||TopOwner()!=Owner::Render||frame||!g_Game||roots.game!=g_Game||roots.room!=g_Game->_room||!g_Manager||!ClientEntityDrawIsolationInstalled()||!ClientEntityOrdinaryTypeContext())return;
   auto state=std::make_unique<Frame>();state->game=g_Game;state->manager=g_Manager;bool found=false;
   const auto &list=g_Game->_room->_entityList._renderEL;
   for(unsigned i=0;i<list._size;++i){const auto *d=ClientNativeObjectDrawDescription(list._data[i]);if(!d||!d->full_entity||!d->derived)continue;const auto &inputs=d->derived->draw;
@@ -188,6 +187,11 @@ ClientEntityDrawScope::~ClientEntityDrawScope(){
   delete static_cast<Draw *>(state_);
 }
 bool ClientEntityDrawPaused(bool &value) noexcept {if(!IsMain()||!frame)return false;value=frame->source.paused;return true;}
+bool ClientEntityOrdinaryTypeContext() noexcept {
+  if(!IsMain()||!g_Game)return false;std::int32_t state=0;
+  // 55546F的真实条件是Deathmatch状态>=2，不是Player拥有NPC路径。只读，不改原版模式。
+  std::memcpy(&state,reinterpret_cast<unsigned char *>(g_Game)+0x25b8c,4);return state<2;
+}
 bool ClientEntityDrawOwnedFinal(void *pointer,void *sprite,void *offset){
   if(!IsMain()||!frame)return false;
   const auto *d=ClientNativeObjectDrawDescription(pointer);

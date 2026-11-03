@@ -530,6 +530,7 @@ ClientEntityOwners ClientNativeObjectsPlayerOwner(ClientNativeObjects *o) noexce
 }
 bool ClientNativeObjectsPreflight(ClientNativeObjects *o,const ClientNativeRoots &roots,const std::vector<ClientObjectDescription> &descriptions,const std::vector<ClientObjectKey> &players,const char *&reason) noexcept {
   if(!o||!Phase()||!Current(*o,roots)||!o->configured||o->uncertain||!ClientEntityDrawIsolationInstalled()){reason="objects_entity_preflight_context_or_draw_isolation";return false;}
+  if(!ClientEntityOrdinaryTypeContext()){reason="objects_native_deathmatch_type_context";return false;}
   try{
     auto &list=o->room->_entityList;
     for(auto *el:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL,&list._effectEL,&list._tempEL,&list._wispEL})
@@ -551,9 +552,6 @@ bool ClientNativeObjectsPreflight(ClientNativeObjects *o,const ClientNativeRoots
     }
     for(const auto &d:descriptions){if(!d.full_entity||d.category==0)continue;
       const auto *a=Adapter(*o,d.category);if(!a||!a->prepare||!a->prepare(a->context,d,reason)){reason="objects_entity_adapter_preflight";return false;}
-      if(d.category==1&&d.type==835)for(unsigned i=0;i<(std::min)(d.derived->npc_composite_count,2u);++i){const auto name="NativeNPC.Composite:"+std::to_string(i);
-        for(const auto &r:d.relations)if(r.member==name&&!r.is_null)for(const auto &p:player_draw)if(p.second.description.key==r.target&&
-          *reinterpret_cast<std::uint32_t *>(reinterpret_cast<unsigned char *>(p.first)+0xc28)){reason="objects_npc835_player_path_native_owner_not_empty";return false;}}
       for(const auto &r:d.relations){
         if(!r.value_only&&!r.is_null&&r.kind==4){if(!o->external.dependency||!o->external.dependency(o->external.context,roots,r,reason)){reason="objects_descriptor_dependency_not_ready";return false;}}
         if(!r.value_only&&!r.is_null&&r.target.space!=1){ClientEntityBorrow b;
