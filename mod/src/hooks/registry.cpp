@@ -1,6 +1,9 @@
 #include "HookSystem.h"
 #include "hook_capacity.h"
 #include "runtime.h"
+#include "hooks/random_runtime.h"
+#include "game/client_player_isolation.h"
+#include "game/bridge.h"
 #include <cstring>
 namespace cs {
 namespace {
@@ -61,6 +64,24 @@ void RegisterHooks() {
 }
 } // namespace cs
 namespace cs::game {
+// 构造前核对真实trampoline；持久保护从连接准备之前生效并延续到最后退出writer。
+bool ClientPlayerIsolationInstalled() noexcept {
+  if(!IsMain())return false;
+  const char *required[]={"native_rng_ctor","native_rng_seed","native_rng_next","native_rng_int","native_rng_float",
+    "native_mt_seed","native_mt_next","native_global_random","native_global_seed",
+    "client_entity_local_sound","client_entity_retire_sound","client_player_update","client_game_start",
+    "client_entity_draw_player","client_entity_shadow_player","pgd_unlock","pgd_counter","pgd_local","pgd_cloud",
+    "load_game_state","gamestate_write","gamestate_read","gamestate_delete","gamestate_delete_rerun",
+    "manager_set_save_slot","manager_save_game_state","manager_record_completion","game_save_state",
+    "pgd_add_challenge","pgd_add_collection","pgd_add_boss","pgd_add_bestiary_kill","pgd_encounter","pgd_unlock_steam",
+    "gamestate_clear","gamestate_write_rerun","gamestate_read_rerun","isaac_shutdown"};
+  size_t count=0;const auto hooks=Hooks(count);
+  for(const char *id:required){bool installed=false;for(size_t i=0;i<count;++i){const auto &h=*hooks[i];
+    if(!std::strcmp(h.id,id)){installed=h.registered&&h.super&&*h.super;break;}}
+    if(!installed)return false;}
+  for(unsigned i=0;i<5;++i)if(!RuntimeRandomHookInstalled(i))return false;
+  return ClientLuaGuardReady()&&ClientCallbackGuardReady();
+}
 bool ClientObjectPreStatsIsolationInstalled() noexcept {
   if(!Capabilities[size_t(Group::Client)])return false;
   size_t count=0;auto hooks=Hooks(count);

@@ -1,6 +1,7 @@
 #include "game/client_player_equipment.h"
 #include "game/client_resource_model.h"
 #include "replica/player_target.h"
+#include "replica/player_limits.h"
 #include <charconv>
 #include <cmath>
 #include <limits>
@@ -31,17 +32,21 @@ class Graph final {
     if(v.IsArray())for(const auto &x:v.GetArray())Index(x,depth+1,budget);
     else if(v.IsObject())for(auto i=v.MemberBegin();i!=v.MemberEnd();++i)Index(i->value,depth+1,budget);
   }
-  V Expand(const V &v,replica::Allocator &a,unsigned depth,unsigned &budget,std::set<const V *> &stack) const {
+  V Expand(const V &v,replica::Allocator &a,unsigned depth,unsigned &budget,std::uint64_t &bytes,std::set<const V *> &stack) const {
     if(depth>64||!budget--)Fail("graph_expansion_budget");const V *p=&v;
     if(Is(v,"type","graph_ref")){const auto i=nodes_.find(Int<std::uint64_t>(At(v,"node")));if(i==nodes_.end())Fail("dangling_graph_ref");p=i->second;}
+    // 图展开也计实际自有分配；保留64M节点上限，重复引用不能绕过独立字节预算。
+    bytes+=sizeof(V)+(p->IsString()?p->GetStringLength():0);
+    if(p->IsObject())for(auto i=p->MemberBegin();i!=p->MemberEnd();++i)bytes+=sizeof(V)+i->name.GetStringLength();
+    if(bytes>replica::kPlayerTargetBytes)Fail("graph_expansion_byte_budget");
     if(!stack.insert(p).second)Fail("cyclic_value");V out;
-    if(p->IsArray()){out.SetArray();for(const auto &x:p->GetArray())out.PushBack(Expand(x,a,depth+1,budget,stack),a);}
-    else if(p->IsObject()){out.SetObject();for(auto i=p->MemberBegin();i!=p->MemberEnd();++i){V key;key.CopyFrom(i->name,a);out.AddMember(key,Expand(i->value,a,depth+1,budget,stack),a);}}
+    if(p->IsArray()){out.SetArray();for(const auto &x:p->GetArray())out.PushBack(Expand(x,a,depth+1,budget,bytes,stack),a);}
+    else if(p->IsObject()){out.SetObject();for(auto i=p->MemberBegin();i!=p->MemberEnd();++i){V key;key.CopyFrom(i->name,a);out.AddMember(key,Expand(i->value,a,depth+1,budget,bytes,stack),a);}}
     else out.CopyFrom(*p,a);stack.erase(p);return out;
   }
 public:
   explicit Graph(const V &root){unsigned budget=world::observation::kNodeBudget;Index(root,0,budget);}
-  replica::Json Value(const V &v) const {replica::Json out;unsigned budget=1048576;std::set<const V *> stack;auto x=Expand(v,out.GetAllocator(),0,budget,stack);static_cast<V &>(out).Swap(x);return out;}
+  replica::Json Value(const V &v) const {replica::Json out;unsigned budget=unsigned(replica::kPlayerTargetNodes);std::uint64_t bytes=0;std::set<const V *> stack;auto x=Expand(v,out.GetAllocator(),0,budget,bytes,stack);static_cast<V &>(out).Swap(x);return out;}
 };
 std::vector<const V *> Seq(const V &v,unsigned limit=16384){std::vector<const V *> out;
   if(v.IsArray()){if(v.Size()>limit)Fail("sequence_budget");for(const auto &x:v.GetArray())out.push_back(&x);return out;}

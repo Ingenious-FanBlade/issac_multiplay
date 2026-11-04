@@ -494,6 +494,7 @@ GENERATED_HEADER = """// 由 gen_binding.py 生成，请修改 binding/hooks.jso
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
 #include "game/world_entity_owner.h"
+#include "game/client_player_isolation.h"
 #include <intrin.h>
 // tx-04-08 world 观察入口的专用作用域与 20 项观察编号（C++17 兼容头）。
 #include "world/observe.h"
@@ -540,7 +541,10 @@ def legacy_body(row):
                 '    cs::CallScope scope(record);', '    super(sprite,offset);']
     if ident.startswith('client_entity_draw_') or ident.startswith('client_entity_shadow_') or ident.startswith('client_entity_post_'):
         kind=2 if ident.startswith('client_entity_post_') else 1 if ident.startswith('client_entity_shadow_') else 0
-        return ['    cs::game::ClientEntityDrawScope draw(this,%s,%d);' % ('nullptr' if kind==2 else 'offset',kind),
+        player_isolation=(['    cs::game::ClientPlayerIsolationScope isolation(cs::game::ClientPlayerOperation::Draw);',
+                           '    if(cs::game::ClientBusy()&&!isolation.Ready()) return%s;' % (' false' if ret=='bool' else '')]
+                          if ident in ('client_entity_draw_player','client_entity_shadow_player') else [])
+        return player_isolation+['    cs::game::ClientEntityDrawScope draw(this,%s,%d);' % ('nullptr' if kind==2 else 'offset',kind),
                 '    if(!draw.CallOriginal()) return%s;' % (' false' if ret=='bool' else ''),
                 '    cs::CallScope scope(record);', '    %ssuper(%s);' % ('return ' if ret!='void' else '',call)]
     grid_light_queries={'client_grid_light_seed':0,'client_grid_light_stage':1,'client_grid_light_alt':2,
@@ -640,7 +644,9 @@ def legacy_body(row):
         member={'native_rng_ctor':'RNG.constructor','native_rng_seed':'RNG.SetSeed','native_rng_next':'RNG.Next',
                 'native_rng_int':'RNG.RandomInt','native_rng_float':'RNG.RandomFloat',
                 'native_mt_seed':'MTRNG.Init','native_mt_next':'MTRNG.Next'}[ident]
-        out=['    cs::game::NativeRandomCall observation(this, cs::game::RandomAlgorithm::%s, "%s", %s, %s, %s);'
+        out=['    // Player用途中的未知随机在original之前拒绝；Host/Off观察链仍恰好一次。',
+             '    if(cs::game::ClientPlayerRandomDenied()) return%s;' % ('' if ret=='void' else ' 0'),
+             '    cs::game::NativeRandomCall observation(this, cs::game::RandomAlgorithm::%s, "%s", %s, %s, %s);'
              % (algorithm,member,argument,str(initialize).lower(),'shift' if ident in ('native_rng_ctor','native_rng_seed') else '0'),
              '    record.calls.fetch_add(1, std::memory_order_relaxed);']
         if ret=='void':
@@ -651,7 +657,7 @@ def legacy_body(row):
             out+=['    auto result=super(%s);' % call,'    observation.Returned(result);']
         return out+['    record.completed.fetch_add(1, std::memory_order_relaxed);']+([] if ret=='void' else ['    return result;'])
     if ident in ('native_global_random','native_global_seed'):
-        return (['    unsigned initialization_value=0;',
+        return ['    if(cs::game::ClientPlayerRandomDenied()) return 0;']+( ['    unsigned initialization_value=0;',
                  '    // Client类别构造只安装Source结果；此窄分支主动不调用原随机源，不计入观察完成。',
                  '    if(cs::game::ClientEntityInitializationRandom(initialization_value)) return initialization_value;'] if ident=='native_global_random' else [])+['    cs::game::GlobalRandomCall observation(%s, _AddressOfReturnAddress());' % ('true, std::uint32_t(reinterpret_cast<uintptr_t>(this))' if ident=='native_global_seed' else 'false, 0'),
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
@@ -674,8 +680,8 @@ def legacy_body(row):
                 '    super(id, volume, delay, loop, pitch, pan);',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']
     if ident == 'client_entity_retire_sound':
-        return ['    // 仅具名Entity退休内的原生Stop不重演全局音效状态；其余用途原样调用。',
-                '    if(cs::game::ClientEntitySuppressRetireSound()) return;',
+        return ['    // Client准备至安全退休全窗口不重演Stop；Host/Off仍透传。',
+                '    if(cs::game::ClientBusy()) return;',
                 '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                 '    super(sound);',
                 '    record.completed.fetch_add(1, std::memory_order_relaxed);']

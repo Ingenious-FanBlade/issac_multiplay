@@ -2,6 +2,7 @@
 #include "LuaCore.h"
 #include "EntityPlus.h"
 #include "game/client_player_state.h"
+#include "game/client_entity_e2e.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/bridge.h"
 #include "runtime.h"
@@ -111,10 +112,10 @@ bool SameSpoof(const Spoof &actual,const Spoof &wanted){if(actual.blocked!=wante
     if(a.persistent!=b.persistent||a.totals!=b.totals||a.temporary.size()!=b.temporary.size())return false;
     for(unsigned i=0;i<a.temporary.size();++i)if(a.temporary[i].id!=b.temporary[i].id||a.temporary[i].count!=b.temporary[i].count||a.temporary[i].timer!=b.temporary[i].timer)return false;}return true;}
 }
-int ClientPlayerStateCaptureLua(lua_State *L){auto *p=lua::GetLuabridgeUserdata<Entity_Player *>(L,1,lua::Metatables::ENTITY_PLAYER,"EntityPlayer");const auto subject=ObservationSubject(p,false);const int top=lua_gettop(L);bool failed=false;
+int ClientPlayerStateCaptureLua(lua_State *L){const auto started=ClientEntityTestClock();auto *p=lua::GetLuabridgeUserdata<Entity_Player *>(L,1,lua::Metatables::ENTITY_PLAYER,"EntityPlayer");const auto subject=ObservationSubject(p,false);const int top=lua_gettop(L);bool failed=false;
   lua_newtable(L);lua_pushinteger(L,1);lua_setfield(L,-2,"version");lua_pushliteral(L,"same-ordinary-window");lua_setfield(L,-2,"scope");
   if(!IsMain()||!p||subject.status!=1||subject.readiness<2){lua_pushliteral(L,"NotCaptured");lua_setfield(L,-2,"status");return 1;}
-  try{Capture(L,*p);}catch(...){failed=true;}if(failed){lua_settop(L,top);return luaL_error(L,"player_state_capture_failed");}return 1;
+  try{Capture(L,*p);}catch(...){failed=true;}ClientEntityTestTime("player_source_final_state",ClientEntityTestClock()-started);if(failed){lua_settop(L,top);return luaL_error(L,"player_state_capture_failed");}return 1;
 }
 bool ClientPlayerStatePreflight(const ClientPlayerDescription &d,const char *&reason){if(!IsMain()||!ClientBusy()||!d.state||d.player_type!=d.state->player_type){reason="player_final_state_missing_type_conflict_or_wrong_thread";return false;}
   for(unsigned i=0;i<4;++i)if(!d.active_backups[i].present){reason="player_esau_backup_relation_missing";return false;}return ValidateConfig(*d.state,reason);}

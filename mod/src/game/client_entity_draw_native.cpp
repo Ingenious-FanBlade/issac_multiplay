@@ -6,6 +6,7 @@
 #include "game/bridge.h"
 #include "game/context.h"
 #include "runtime.h"
+#include "replica/player_limits.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -44,16 +45,28 @@ struct SpriteBorrow final {
 };
 // Lazarus原生draw会对另一身体执行ANM copy/Swap/Reset，可能替换资源而非只改selector。
 // 保存真实ANM副本的strong直到外层CPU drain；J273 fastcall Swap修复两侧layer的owner。
+// 先登记后进入copy ctor；构造栈展开也不能丢失半构造资源owner或使Scene误判drained。
+struct NativeSpriteRecord final {
+  NativeSpriteRecord *previous=nullptr,*next=nullptr;
+  ANM2 *saved=nullptr;
+  bool restore_entered=false,destructor_entered=false,uncertain=false;
+};
+NativeSpriteRecord *sprite_records=nullptr;unsigned sprite_record_count=0;
+void ForgetSpriteRecord(NativeSpriteRecord *r){if(r->previous)r->previous->next=r->next;else sprite_records=r->next;
+  if(r->next)r->next->previous=r->previous;--sprite_record_count;delete r;}
 struct NativeSpriteBorrow final {
-  ANM2 &sprite;ANM2 *saved=nullptr;bool restore_entered=false,destructor_entered=false;
+  ANM2 &sprite;NativeSpriteRecord *record=nullptr;
   explicit NativeSpriteBorrow(ANM2 &s):sprite(s){
-    saved=static_cast<ANM2 *>(::operator new(sizeof(ANM2)));
-    try{saved->construct_from_copy(&s);}catch(...){ClientCallbackFault("player_draw_copy_ctor_prefix_retained");throw;}
+    if(sprite_record_count>=replica::kPlayerResources)throw std::runtime_error("player_draw_resource_owner_budget");
+    record=new NativeSpriteRecord;record->next=sprite_records;if(sprite_records)sprite_records->previous=record;sprite_records=record;++sprite_record_count;
+    try{record->saved=static_cast<ANM2 *>(::operator new(sizeof(ANM2)));}catch(...){ForgetSpriteRecord(record);record=nullptr;throw;}
+    try{record->saved->construct_from_copy(&s);}catch(...){record->uncertain=true;ClientCallbackFault("player_draw_copy_ctor_prefix_retained");throw;}
   }
   // 原生异常后保留实际owner，不从析构栈盲目重试copy/Free。
-  void Restore(){if(!saved)return;if(restore_entered||destructor_entered)throw std::runtime_error("player_draw_restore_prefix_uncertain");
-    restore_entered=true;reinterpret_cast<void (__fastcall *)(ANM2 *,ANM2 *)>(Base+0x3160)(&sprite,saved);restore_entered=false;
-    destructor_entered=true;saved->destructor();::operator delete(saved);saved=nullptr;destructor_entered=false;
+  void Restore(){if(!record)return;auto &r=*record;if(r.uncertain||r.restore_entered||r.destructor_entered)throw std::runtime_error("player_draw_restore_prefix_uncertain");
+    r.restore_entered=true;reinterpret_cast<void (__fastcall *)(ANM2 *,ANM2 *)>(Base+0x3160)(&sprite,r.saved);r.restore_entered=false;
+    r.destructor_entered=true;r.saved->destructor();::operator delete(r.saved);r.saved=nullptr;r.destructor_entered=false;
+    ForgetSpriteRecord(record);record=nullptr;
   }
 };
 // 965:10、Familiar和持物借用当前Player；状态/选择器持有至最外层CPU队列退尽。
@@ -112,6 +125,7 @@ struct Frame final {
   bool installed=false,uncertain=false;
   int exceptions=std::uncaught_exceptions();
   std::vector<std::unique_ptr<PlayerBorrow>> players;
+  std::unique_ptr<NativeSpriteBorrow> hearts;
   ~Frame(){if(installed){manager->_framecount=manager_frame;std::memcpy(reinterpret_cast<unsigned char *>(game)+0x25a70,&game_frame,4);
     std::memcpy(reinterpret_cast<void *>(Base+0x7d0ca4),pickup.data(),16);std::memcpy(reinterpret_cast<void *>(Base+0x7d0674),familiar.data(),16);}}
 };
@@ -199,6 +213,8 @@ ClientEntityFrameScope::ClientEntityFrameScope(const ClientNativeRoots &roots){
   // 非roster可见身体及被举起Player同样借用，不因列表位置失去完整Body/内嵌资源保护。
   for(unsigned i=0;i<list._size;++i)if(list._data[i]&&list._data[i]->_type==1)player(static_cast<Entity_Player *>(list._data[i]));
   for(std::size_t i=0;i<state->players.size();++i){auto &p=state->players[i]->player;
+    // 动态PlayerHUD身体旁心量会Load/换帧共享hearts ANM；同样保留完整strong至CPU drain。
+    if(p._playerHUD&&!state->hearts)state->hearts=std::make_unique<NativeSpriteBorrow>(g_Game->_hud._heartsSprite);
     auto *held=state->players[i]->desired_held;if(held&&held->_type==1)player(static_cast<Entity_Player *>(held));
     // Lazarus原生helper直接递归非roster backup，未必再次经过Render Hook；先封闭整个身体借用图。
     for(auto *peer:{p.GetTwinPlayer(),p._backupPlayer,p._replacedPlayer})player(peer);
@@ -218,7 +234,7 @@ ClientEntityFrameScope::~ClientEntityFrameScope(){
     // 未知draw/队列异常保留全部owner和隔离；不能在未消费raw使用上释放选择器或强交还Off。
     state->uncertain=true;ClientCallbackFault("entity_frame_inflight_owner_retained");return;
   }
-  if(state){try{for(auto &p:state->players)p->RestoreResources();}catch(...){state->uncertain=true;ClientCallbackFault("player_frame_resource_restore_prefix_retained");return;}}
+  if(state){try{for(auto &p:state->players)p->RestoreResources();if(state->hearts)state->hearts->Restore();}catch(...){state->uncertain=true;ClientCallbackFault("player_frame_resource_restore_prefix_retained");return;}}
   if(frame==state_)frame=nullptr;delete state;
 }
 ClientEntityDrawScope::ClientEntityDrawScope(void *pointer,void *offset,unsigned pass){
@@ -245,7 +261,7 @@ ClientEntityDrawScope::~ClientEntityDrawScope(){
   if(ClientEntityTestFault("draw-after"))ClientCallbackFault("draw-after");
 }
 bool ClientEntityDrawPaused(bool &value) noexcept {if(!IsMain()||!frame)return false;value=frame->source.paused;return true;}
-bool ClientEntityDrawDrained() noexcept {return IsMain()&&!frame&&!draw;}
+bool ClientEntityDrawDrained() noexcept {return IsMain()&&!frame&&!draw&&!sprite_records;}
 bool ClientEntityOrdinaryTypeContext() noexcept {
   if(!IsMain()||!g_Game)return false;std::int32_t state=0;
   // 55546F的真实条件是Deathmatch状态>=2，不是Player拥有NPC路径。只读，不改原版模式。

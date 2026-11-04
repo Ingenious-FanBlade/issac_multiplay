@@ -1,6 +1,7 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/client_player_roles.h"
+#include "game/client_entity_e2e.h"
 #include "game/client_player_equipment.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/bridge.h"
@@ -28,6 +29,7 @@ void Point(lua_State *L,const char *key,const Vector &value){
 }
 // 与既有正式来源同一use/普通窗口；备份不借用锚点的PlayerUpdate读取资格。
 int ClientPlayerRoleCaptureLua(lua_State *L){
+  const auto started=ClientEntityTestClock();
   auto *p=lua::GetLuabridgeUserdata<Entity_Player *>(L,1,lua::Metatables::ENTITY_PLAYER,"EntityPlayer");
   const auto subject=ObservationSubject(p,false);const int top=lua_gettop(L);bool failed=false;
   lua_newtable(L);Integer(L,"version",1);lua_pushliteral(L,"same-ordinary-window");lua_setfield(L,-2,"scope");
@@ -38,10 +40,12 @@ int ClientPlayerRoleCaptureLua(lua_State *L){
     Point(L,"suplex_target",p->_suplexTargetPos);Point(L,"suplex_land",p->_suplexLandPos);
     lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");
   }catch(...){failed=true;}
+  ClientEntityTestTime("player_source_role",ClientEntityTestClock()-started);
   if(failed){lua_settop(L,top);return luaL_error(L,"player_role_capture_failed");}return 1;
 }
 // 与角色本体同一合法普通窗口复制有限槽；不调用带配方/HUD副作用的公开setter。
 int ClientPlayerSpecialCaptureLua(lua_State *L){
+  const auto started=ClientEntityTestClock();
   auto *p=lua::GetLuabridgeUserdata<Entity_Player *>(L,1,lua::Metatables::ENTITY_PLAYER,"EntityPlayer");
   const auto subject=ObservationSubject(p,false);const int top=lua_gettop(L);bool failed=false;lua_newtable(L);Integer(L,"version",1);
   lua_pushliteral(L,"same-ordinary-window");lua_setfield(L,-2,"scope");
@@ -49,6 +53,7 @@ int ClientPlayerSpecialCaptureLua(lua_State *L){
   try{
   if(p->_afterImageFrames.size()>16384)throw std::runtime_error("player_afterimage_budget");
   ClientPlayerDrawCapture(L,p);
+  ClientPlayerHudCapture(L,p);
   lua_newtable(L);unsigned image_index=0;for(const auto &image:p->_afterImageFrames){lua_newtable(L);Integer(L,"duration",image._duration);Point(L,"position",image._position);lua_rawseti(L,-2,++image_index);}lua_setfield(L,-2,"afterimages");
   lua_newtable(L);for(unsigned i=0;i<16;++i){lua_pushinteger(L,p->_inventoryHistoryIdx[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"inventory_history");
   lua_newtable(L);for(unsigned i=0;i<8;++i){lua_pushinteger(L,static_cast<unsigned char>(p->_bagOfCraftingContent[i]));lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"crafting");
@@ -56,6 +61,7 @@ int ClientPlayerSpecialCaptureLua(lua_State *L){
   lua_newtable(L);for(unsigned i=0;i<6;++i){lua_pushinteger(L,static_cast<unsigned char>(p->_poopSpellQueue[i]));lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"poop");
   lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");
   }catch(...){failed=true;}
+  ClientEntityTestTime("player_source_special_draw",ClientEntityTestClock()-started);
   if(failed){lua_settop(L,top);return luaL_error(L,"player_special_capture_failed");}return 1;
 }
 // 有序槽按原位最终量安装，空槽也覆盖旧值；History下标已由全身体纯值预检核对。

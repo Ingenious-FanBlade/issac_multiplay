@@ -8,7 +8,7 @@ local function ref(p) return p and IsaacCSObservationNative.Reference(p) or {res
 function M.Capture(limits)
   read.Limits(limits); local c=shared.Model.Context(); local x,old=store:Begin()
   local out={location=x,bodies={},control_groups={},changes={},backup_slots={},sampling={cache_reused=false,freshness="ReadInCurrentNativeWindow"},previous_scope=old and old.context.scope or {status="NotCaptured"},resource_semantics="per_body_canonical_values;no_implicit_copy_or_shared_resource_inference"}
-  out.application_source={version=2,contract="player-source-v2",final_state="player-final-state-v1",equipment_state="player-equipment-state-v1",role_state="player-role-state-v1",special_state="player-special-state-v1",draw_state="player-draw-state-v1",target="REPENTOGON-1.1.3/J273",entity_scope=x.entity_scope,pose_scope="same-ordinary-window"}
+  out.application_source={version=2,contract="player-source-v2",final_state="player-final-state-v1",equipment_state="player-equipment-state-v1",role_state="player-role-state-v1",special_state="player-special-state-v1",draw_state="player-draw-state-v1",hud_state="player-hud-state-v1",target="REPENTOGON-1.1.3/J273",entity_scope=x.entity_scope,pose_scope="same-ordinary-window"}
   out.roster={};out.membership={complete=true,source="qualified-native+public-roots+relationship-closure",count=0}
   local nextState,groups,memberWitness={},{},{}
   local players,verify=shared.Players(c); local roster={}

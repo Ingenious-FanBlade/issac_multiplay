@@ -17,6 +17,13 @@ struct ClientPlayerRoleState final {
 };
 // 专用状态只保存真实有限槽；非Player的clot/wisp/locust/胎儿/DarkEsau沿Entity19唯一owner。
 struct ClientPlayerSpecialState final {
+  // 仅Player身体旁原生心量overlay的最终缓存；全HUD排版/主动图标仍归27。
+  struct Hud final {
+    struct Heart final {bool visible=false,eternal=false,golden=false,fading=false;int flash=0;std::string animation,overlay;};
+    bool present=false,mantle=false;
+    int index=-1,color=0,red_flash=0,soul_flash=0,gold_flash=0;
+    std::array<Heart,24> hearts{};
+  } hud;
   struct AfterImage final {int duration=0;ClientPoseVector position{};};
   // 原生可选动画序列的draw读集；不传链指针，玩法推进用的两个word明确不安装。
   struct Record final {ClientPoseVector position{};int animation=-1,frame=0,second_animation=-1,second_frame=0;};
@@ -43,6 +50,12 @@ bool ClientPlayerDrawRecords(void *,const ClientPlayerDescription &,bool check,c
 bool ClientPlayerDrawPreflight(const ClientPlayerDescription &,const char *&) noexcept;
 // 公开Lua补充调用栈内写出纯值；不导出lua_State/原生Player到模型层。
 void ClientPlayerDrawCapture(void *lua,void *player);
+void ClientPlayerHudCapture(void *lua,void *player);
+struct ClientPlayerHudOwner;
+ClientPlayerHudOwner *ClientPlayerHudCreate() noexcept;
+void ClientPlayerHudDestroy(ClientPlayerHudOwner *) noexcept;
+bool ClientPlayerHudInstall(ClientPlayerHudOwner *,void *,const ClientPlayerDescription &,bool check,const char *&);
+bool ClientPlayerHudRetire(ClientPlayerHudOwner *,void *,const char *&);
 ClientPlayerAdapter ClientPlayerBuiltinAdapter();
 std::shared_ptr<const ClientPlayerRoleState> ClientDescribePlayerRole(const replica::EntityObjectTarget &);
 // 同一T的全部身体一起核对，含四组八体；不按ordinal索引roster，不将ControllerIndex当身份。

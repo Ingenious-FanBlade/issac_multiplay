@@ -6,7 +6,8 @@ namespace cs::game {
 // Player结构与最终状态adapter的边界；所有描述均为本方值，SDK头不越过此边界。
 enum class ClientPlayerUse : unsigned { Structure=1, State=2, Relations=4, Draw=8 };
 // 供子owner按实际已进入前缀清理；Entered不等于正常返回，不能再次Init或Free。
-enum class ClientPlayerPrefix : unsigned { Raw=1,CtorEntered=2,Constructed=4,InitEntered=8,Initialized=16,State=32,Resources=64,Roster=128,Published=256,Linked=512,Checked=1024,FreeEntered=2048 };
+enum class ClientPlayerPrefix : unsigned { Raw=1,CtorEntered=2,Constructed=4,InitEntered=8,Initialized=16,State=32,Resources=64,Roster=128,Published=256,Linked=512,Checked=1024,FreeEntered=2048,
+  Unlinked=4096,AdapterRetired=8192,EquipmentRetired=16384,StateRetired=32768,Detached=65536,CountRetired=131072,Freed=262144,HudEntered=524288,HudRetired=1048576 };
 struct ClientPlayerState;
 struct ClientPlayerEquipment;
 struct ClientPlayerRoleState;
@@ -48,6 +49,8 @@ bool ClientNativePlayersBegin(ClientNativePlayers *,const ClientNativeRoots &,st
 ClientObjectStep ClientNativePlayersStructure(ClientNativePlayers *) noexcept;
 ClientObjectStep ClientNativePlayersFinish(ClientNativePlayers *,const ClientEntityOwners &,bool finish) noexcept;
 ClientObjectStep ClientNativePlayersRetire(ClientNativePlayers *,const ClientNativeRoots &) noexcept;
+// 先关闭全部用途借用，再在有效Manager/context逐体撤边；不释放任何身体或非Player。
+ClientObjectStep ClientNativePlayersUnlink(ClientNativePlayers *,const ClientNativeRoots &) noexcept;
 ClientEntityOwners ClientNativePlayersOwner(ClientNativePlayers *) noexcept;
 bool ClientNativePlayersCommit(ClientNativePlayers *,std::uint64_t revision) noexcept;
 bool ClientNativePlayersVisit(ClientNativePlayers *,void *,ClientObjectVisitor) noexcept;

@@ -5,6 +5,7 @@
 #include "game/client_presentation.h"
 #include "game/client_resource_model.h"
 #include "game/client_entity_draw_native.h"
+#include "game/client_entity_e2e.h"
 #include "replica/room_geometry.h"
 #include "game/context.h"
 #include "game/bridge.h"
@@ -277,6 +278,7 @@ void ClientScene::Begin(const replica::Scope &scope) noexcept {
   room_grid_target_.reset();room_grid_applied_.reset();room_grid_plan_={};
   player_target_.reset();player_applied_.reset();
   player_lifecycle_.reset();player_next_lifecycle_.reset();
+  stop_requested_=recovery_attempted_=retirement_failed_=recovery_forbidden_=false;
   ClientNativeWorldDestroy(native_world_);native_world_=nullptr;objects_.reset();presentation_.reset();grids_.reset();
   grid_events_.Reset(scope);entity_events_.Reset(scope);rebuild_objects_.reset();rebuild_grids_.reset();rebuild_presentation_.reset();grids_planned_=grids_complete_=grids_retired_=references_complete_=false;
   applied_valid_=rebuild_pending_=objects_planned_=objects_retired_=pumping_=false;
@@ -294,10 +296,12 @@ void ClientScene::Begin(const replica::Scope &scope) noexcept {
   current_dc_=current_context_=observed_dc_=observed_context_=nullptr;
 }
 void ClientScene::FailureResult(ClientResultKind kind,const char *phase,const char *reason) noexcept {
+  if(kind==ClientResultKind::ContextOrThreadFault)recovery_forbidden_=true;
   if((kind==ClientResultKind::UnsupportedRequirement||kind==ClientResultKind::PartialNativeFailure)&&reason&&
      (std::strstr(reason,"budget")||std::strstr(reason,"capacity")))kind=ClientResultKind::BudgetExhausted;
   if(kind==ClientResultKind::PartialNativeFailure||kind==ClientResultKind::ContextOrThreadFault||kind==ClientResultKind::UnsupportedRequirement||kind==ClientResultKind::BudgetExhausted){
     if(!result_.failure_phase[0]){
+      result_.failure_executed_prefix=result_.executed_prefix;
       std::snprintf(result_.failure_phase.data(),result_.failure_phase.size(),"%s",phase?phase:"unknown");
       std::snprintf(result_.failure_reason.data(),result_.failure_reason.size(),"%s",reason?reason:"unknown");
       if(!result_.failed_domain[0])std::snprintf(result_.failed_domain.data(),result_.failed_domain.size(),"%s",
@@ -315,16 +319,27 @@ void ClientScene::FailureResult(ClientResultKind kind,const char *phase,const ch
   result_.native_committed=false;
   result_.committed_domains=0;
   result_.non_player_entity_applied=result_.player_support_applied=result_.full_entity_applied=false;
+  result_.player_bodies_applied=result_.player_relations_applied=result_.player_resources_applied=result_.player_domain_applied=false;
   std::snprintf(result_.recovery.data(),result_.recovery.size(),"%s",kind==ClientResultKind::NativeCommitted?"none":result_.native_written?"retire_actual_owners_then_rebuild":"preserve_applied_or_replace_unwritten_target");
 }
 ClientEntityBudget ClientScene::EntityBudget() const noexcept {return objects_?objects_->Budget():ClientEntityBudget{};}
+ClientPlayerBudget ClientScene::PlayerBudget() const noexcept {return objects_?objects_->PlayerBudget():ClientPlayerBudget{};}
 void ClientScene::SetCommittedRange() noexcept {
   result_.committed_domains=(1u<<unsigned(world::observation::DomainId::Grid))|(1u<<unsigned(world::observation::DomainId::Room));
   const auto b=EntityBudget();result_.entity_members=b.members;result_.entity_players=b.players;result_.entity_non_players=b.members-b.players;
   // 旧17代表profile没有完整非Player字段；正常19目标才声明非Player合同完成。
   result_.non_player_entity_applied=applied_&&(!applied_->HasMember("client_profile")||!(*applied_)["client_profile"].IsObject()||!(*applied_)["client_profile"].HasMember("id")||
     !(*applied_)["client_profile"]["id"].IsString()||std::strcmp((*applied_)["client_profile"]["id"].GetString(),"tx-04-17-representative-v1"));
-  result_.player_support_applied=b.players!=0;result_.full_entity_applied=false;
+  result_.player_support_applied=b.players!=0;
+  // 唯一Scene在所有域同attempt回读之后才设置范围；目录能力、DTO或历史代表不授予域位。
+  const bool players=player_applied_&&player_applied_->scope==applied_scope_&&player_applied_->revision==applied_revision_&&
+    player_applied_->native_source_complete&&player_applied_->public_complete&&objects_&&
+    player_applied_->bodies.size()==b.players&&objects_->PlayersCommitted(applied_scope_,applied_revision_);
+  result_.player_bodies_applied=result_.player_relations_applied=result_.player_resources_applied=players;
+  result_.player_domain_applied=players&&player_applied_->membership_complete;
+  result_.full_entity_applied=result_.non_player_entity_applied&&players;
+  if(result_.full_entity_applied)result_.committed_domains|=1u<<unsigned(world::observation::DomainId::Entity);
+  if(result_.player_domain_applied)result_.committed_domains|=1u<<unsigned(world::observation::DomainId::Player);
 }
 bool ClientScene::NoteNativeDispatchEntry() noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
@@ -339,6 +354,7 @@ bool ClientScene::NoteNativeDispatchEntry() noexcept {
 // 接纳只建立自有T和计划；较新T取消已写前缀时先退休原生世界，再从完整T重建。
 bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision,
                               const replica::Value &value) noexcept {
+  ClientEntityTestMeasure measure("player_scene_parse_plan");
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return false;}
   if((state_==ClientSceneState::Retiring&&!rebuild_pending_)||pumping_||
      active_native_||active_lua_||active_graphics_||active_observation_||active_dispatch_){
@@ -433,6 +449,7 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
       ClientNativeWorldDestroy(native_world_);native_world_=nullptr;
     }
     target_=std::move(copy);target_scope_=scope;target_revision_=revision;
+    stop_requested_=recovery_attempted_=retirement_failed_=recovery_forbidden_=false;
     room_grid_target_=std::move(domain);room_grid_plan_=std::move(domain_plan);
     player_target_=std::move(players);
     player_next_lifecycle_=std::move(player_lifecycle);
@@ -482,7 +499,7 @@ void ClientScene::Pump() noexcept {
     if(!Borrow(ClientPurpose::NativeRetire,borrow)){pumping_=false;return;}
     if(presentation_&&!presentation_retired_){
       const auto step=presentation_->Retire(ClientNativeWorldRoots(native_world_));
-      if(step.failed){FailureResult(ClientResultKind::PartialNativeFailure,"presentation_retire",step.reason);state_=ClientSceneState::Failed;}
+      if(step.failed){retirement_failed_=true;FailureResult(ClientResultKind::PartialNativeFailure,"presentation_retire",step.reason);state_=ClientSceneState::Failed;}
       else presentation_retired_=step.done;
       Release(borrow);pumping_=false;return;
     }
@@ -490,7 +507,7 @@ void ClientScene::Pump() noexcept {
       const auto step=objects_->Retire(ClientNativeWorldRoots(native_world_));
       result_.native_owners=step.pending_owners;
       result_.executed_prefix=(std::max)(result_.executed_prefix,step.executed_prefix);
-      if(step.failed){FailureResult(ClientResultKind::PartialNativeFailure,"objects_retire",step.reason);state_=ClientSceneState::Failed;}
+      if(step.failed){retirement_failed_=true;FailureResult(ClientResultKind::PartialNativeFailure,"objects_retire",step.reason);state_=ClientSceneState::Failed;}
       else objects_retired_=step.done;
       Release(borrow);pumping_=false;return;
     }
@@ -498,12 +515,13 @@ void ClientScene::Pump() noexcept {
     if(grids_&&!grids_retired_){
       const auto step=grids_->Retire(ClientNativeWorldRoots(native_world_));
       result_.grid_prefix=step.prefix;result_.grid_owners=step.owners;
-      if(step.failed){FailureResult(ClientResultKind::PartialNativeFailure,"grid_retire",step.reason);state_=ClientSceneState::Failed;}
+      if(step.failed){retirement_failed_=true;FailureResult(ClientResultKind::PartialNativeFailure,"grid_retire",step.reason);state_=ClientSceneState::Failed;}
       else grids_retired_=step.done;
       Release(borrow);pumping_=false;return;
     }
     if(native_world_){
       const auto step=ClientNativeWorldRetire(native_world_);NoteNativeStep(step,"native_retire");
+      if(step.state==ClientNativeStepState::Failed)retirement_failed_=true;
       if(step.safe_menu){result_.native_written=false;result_.native_owners=0;}
     }
     Release(borrow);FinishRetirementIfDrained();pumping_=false;return;
@@ -618,6 +636,18 @@ ClientPlayerControlView ClientScene::PlayerControl(unsigned ordinal) const noexc
   if(!IsMain()||!DisplayReady()||!player_applied_)return {};
   return ClientPlayerControl(*player_applied_,ordinal);
 }
+std::shared_ptr<const ClientPlayerDisplayView> ClientScene::PlayerDisplay() const noexcept {
+  if(!DisplayReady()||!objects_||!player_applied_||!objects_->PlayersCommitted(applied_scope_,applied_revision_))return {};
+  return objects_->PlayerDisplay();
+}
+bool ClientScene::PlayerDisplayCurrent(const std::shared_ptr<const ClientPlayerDisplayView> &view) const noexcept {
+  return view&&view==PlayerDisplay();
+}
+// 仅在实际安全退休之后重建一次完整T；未知释放前缀会留住owner并关闭自动恢复。
+bool ClientScene::RecoveryPending() const noexcept {
+  return !stop_requested_&&!recovery_attempted_&&!retirement_failed_&&!recovery_forbidden_&&target_&&
+    state_==ClientSceneState::Failed&&result_.kind!=ClientResultKind::ContextOrThreadFault;
+}
 ClientNativeRoots ClientScene::NativeRoots() const noexcept {
   return DisplayReady()?ClientNativeWorldRoots(native_world_):ClientNativeRoots{};
 }
@@ -655,6 +685,7 @@ bool ClientScene::CompleteEntityIndependent(replica::Kind kind,std::uint64_t seq
 }
 // 展示只读取真实提交后的同一原生世界；Render失败立即撤资格，并把退休留给Manager有效owner。
 void ClientScene::RenderPublished() noexcept {
+  ClientEntityTestMeasure measure("player_scene_draw");
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
   if(!DisplayReady()||!presentation_||TopOwner()!=Owner::Render)return;
   ClientBorrowToken graphics{};
@@ -923,7 +954,16 @@ void ClientScene::FinishRetirementIfDrained() noexcept {
   player_applied_.reset();
   result_.grid_owners=result_.grid_prefix=result_.committed_domains=0;
   result_.non_player_entity_applied=result_.player_support_applied=result_.full_entity_applied=false;
+  result_.player_bodies_applied=result_.player_relations_applied=result_.player_resources_applied=result_.player_domain_applied=false;
   InvalidateInstance();result_.generations=generations_;
+  if(RecoveryPending()){
+    // 此时原生owner/CPU/GPU/VM借用均已真正退尽，才允许重新建立已预检的T。
+    // 新的attempt不冒用失败attempt；首因字段保留供最终验收和诊断。
+    recovery_attempted_=true;
+    if(next_attempt_==UINT64_MAX){Fail("recovery_attempt_budget");return;}
+    result_.attempt=++next_attempt_;rebuild_pending_=true;
+    objects_.reset();grids_.reset();presentation_.reset();
+  }
   if(rebuild_pending_&&target_){
     rebuild_pending_=false;objects_planned_=false;objects_retired_=false;
     objects_complete_=presentation_retired_=attempt_invalidated_=false;
@@ -1090,6 +1130,7 @@ void ClientScene::InvalidateResource() noexcept {
 void ClientScene::Retire(const char *reason) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
   rebuild_pending_=false;applied_valid_=false;result_.old_display_valid=false;
+  stop_requested_=true;
   state_=ClientSceneState::Retiring;FailureResult(ClientResultKind::Retiring,"retire",reason);
   for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
   DrainRetained();

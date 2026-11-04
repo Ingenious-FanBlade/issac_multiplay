@@ -1,3 +1,5 @@
+> **tx-04-20 I31—I35（2026-11-04）**：[同A只读展示、动态HUD、隔离退休、Scene提交与预算及必要逆向主审](design/tx-04-20/tx-04-20-commit-isolation-budget.md)。已接入完整只读接口、原生HUD/control pair、Player用途随机拒绝、全窗口SFX保护、提前撤边／ANM异常owner登记、安全退休后完整T恢复一次及准确Player／Entity域位。按用户要求直接提交，未构建、测试或启动游戏；I36—I40及I39统一验收待继续。下方保留此前阶段事实。
+
 > **tx-04-20 I26—I30（2026-11-04）**：[四槽／专用角色状态／生命周期／原生绘制和控制关系实现](design/tx-04-20/tx-04-20-special-draw-control.md)、[Luna max必要逆向及主审纠错](design/tx-04-20/player-i26-i30-native.md)。同窗口有限槽、Samson／IBS最终充能、残影／可选动画序列、真实Image及ANM整帧强借用、Scene寿命与已提交控制组视图已接入。未构建、测试或启动游戏，按会话要求直接提交；I31—I40及I39统一验收继续，完整native_apply仍false。
 
 > **tx-04-20 I21—I25（2026-11-04）**：[通用持物、原版角色注册及双身体／sub／Flip结果安装](design/tx-04-20/tx-04-20-role-installation.md)、[Luna max必要逆向及主审纠错](design/tx-04-20/player-i21-i25-native.md)。增加同窗口role来源、41类型具名责任、全图关系校验及全体Link后全体Check；直接复读IsSub／main／other／hologram、Swap和通用held Render。未构建、测试或启动游戏；I26—I40与I39统一E2E待推进，native_apply仍false。

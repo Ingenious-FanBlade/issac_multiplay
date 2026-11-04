@@ -101,12 +101,12 @@ def generate():
                 "same_window": "entity+player ordinary capture;History graph stays player-component-local",
                 "sharing": "per-body;explicit-source-relation-required;equal-values-do-not-prove-sharing",
                 "projection": {"ownership": ownership, "reason": reason, "review_task": "I05", "consumer_review": consumer_review(m["id"])},
-                "handling": "Authority-only-operation;install-final-result-through-state-member" if authority else "named-native-consumer-pending",
-                "consumer": "Authority" if authority else "ClientPlayers/" + task,
-                "installation": "never-replay-operation" if authority else "I02-owned-value;native-install-contract=" + research,
+                "handling": "Authority-only-operation;install-final-result-through-state-member" if authority else "I31:captured-readonly-query;native-storage-only-where-named-below",
+                "consumer": "Authority" if authority else "ClientPlayerDisplayView::Captured;native installer only for named dispositions",
+                "installation": "never-replay-operation" if authority else "ClientPlayerDisplayView::Captured;original-parameters/status/graph-root;no-local-query-replay",
                 "cleanup": "no-Client-operation-owner" if authority else "I33;body/child-resource owner;borrow-generation invalidation",
-                "implementation": "mod/src/replica/player_target.cpp" if not authority else "Authority-only;no-Replica-RPC",
-                "implementation_status": "classified-not-native-installed", "runtime_status": "not-run;I39",
+                "implementation": "mod/src/replica/player_target.cpp;mod/src/game/client_player_view.cpp" if not authority else "Authority-only;no-Replica-RPC",
+                "implementation_status": "readonly-captured-result;not-a-native-storage-claim" if not authority else "Authority-only;no-Client-operation", "runtime_status": "not-run;I39",
                 "task": task, "research": research, "e2e": e2e,
                 "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct",
             }
@@ -156,7 +156,15 @@ def generate():
     return {"format": "isaac.cs.player.application-catalog", "version": 1,
             "target_contract": "player-target-v2", "source_contract": "player-source-v2",
             "projection_review": PLAYER_PROJECTION_REVIEW,
-            "native_apply": False, "runtime_acceptance": "I39-not-run",
+            "native_apply": True, "runtime_acceptance": "I39-not-run",
+            "i31_i35_implementation": {
+                "hud": "Scene-only committed participant/body/slot immutable view;all heart/resource/active/pocket/charge/History/special/explicit sharing;captured queries preserve original semantics;required player-hud-state-v1 uses same-window dynamic HUD heart24/color/flash/mantle;native980020 factory owns real HUD+control pair;7D2B20 releases;full HUD layout remains tx27",
+                "isolation": "Player purpose frames;unexpected RNG FaultSkip before original;full Client SFX Play/Stop deny;existing callback/Lua persistence/native writers and shutdown protection remain installed until safe retirement",
+                "retirement": "Player stop-borrow/all-outgoing-links and dynamic HUD before non-Player retirement;per-body detach/count/Free prefixes;ANM copy/swap/dtor owners registered before entry and retained on uncertainty;one automatic complete-target recovery only after safe retirement;stop/foreign/VM/context failures do not grant retries",
+                "commit": "single Scene attempt;source-complete plus checked Player owner and matching full entity set;separate body/relation/resource/Player domain flags;legacy support cannot set complete Entity/Player bits;no network ACK",
+                "budget": "4 participants/64 group members/256 bodies/global4 backups;per-container and aggregate budgets;32MiB source/64Mi nodes;4096 resources/65536 layers/262144 references/65536 plan cost;bounded graph expansion bytes;immutable decoded values and native resource reuse",
+                "cost": "E2E aggregate source/parse/apply/draw/retire durations;status process working-set/private bytes separate from owned-value estimate;no realtime bandwidth claim",
+                "status": "implemented;no build/test/game;I36-I40 including I39 remain"},
             "i26_i30_implementation": {"backup": "four source slots;typed703 VarData;native mirror instance table;no Authority global slot writes", "special": "complete finite inventory-History/crafting/poop and final role/effect/Weapon state;Samson+2070/IBS+2074 distinct from CraftingUseCharge+1F54", "lifecycle": "Scene-committed Key tombstones survive native rebuild;dead/ghost/inactive distinct;complete membership only", "draw": "native Player pass+Image source+Source palette;typed optional list/cursor+record Sprite;full ANM strong copies through CPU drain;hologram RNG render-only;no Pre/Update;multi-body presentation member cache", "control": "committed pure group view;one intent stream per ordinal;binding generation independent from shape;native controller=-1", "status": "implemented;no build/test/game;I31-I40 including I39 remain"},
             "role_implementation": {"tasks": "I21-I25", "source": "application_player_role-v1;same-use ordinary window;source-v2.role_state=player-role-state-v1", "model": "mod/src/game/client_player_roles.cpp", "native": "mod/src/game/client_player_roles_native.cpp", "registry": VANILLA_ROLES, "internal": "possessor -1/variant2 and other Baby/internal variants explicitly unsupported;undeclared Mod characters=tx-04-27", "relationships": "source storage and public main/other/sub/flipped remain distinct;whole-target group and shape validation;all-links-before-all-checks", "hologram": "actual native exists/type29-or38/twin/lower-player-index predicate;no invented flag", "status": "implemented-slice;I26-I40-pending;I39-not-run;native_apply=false"},
             "structure_implementation": {"plan": "mod/src/replica/player_plan.cpp", "owner": "mod/src/game/client_players.cpp", "native": "mod/src/game/client_players_native.cpp", "tasks": "I05-I10", "scope": "base-entity-initialized/role-uninitialized until named I11-I29 adapters;preflight rejects absent adapters", "scene_commit": "ClientScene only;native_apply remains false"},
@@ -174,7 +182,8 @@ def generate():
                                 "consumer": "ClientPlayerEquipmentResources;I18/I19/I29", "installation": "implemented-independent-exact-pose;native-Player-owns-ANM;draw-admission-remains-I29",
                                 "cleanup": "I33;native-Player owns embedded-ANM;do-not-free-borrow", "research": "R07/R13/R15",
                                 "e2e": "E13/E20/E23", "runtime_status": "I39-not-run"} for i in range(1, 13)] + [
-                {"id": "NativePlayer.RecordSprite", "physical_offset": "0x1C50", "source": "application_player_special.record_sprite;ctor82E1C0;current ordinary window", "consumer": "ClientPlayerDrawResources;native82E340;whole-frame strong borrow", "installation": "independent complete exact ANM pose;record list/cursor separately typed;no Update", "cleanup": "native Player unique owner;restore after CPU drain", "task": "I29", "research": "R13", "runtime_status": "I39-not-run"}],
+                {"id": "NativePlayer.RecordSprite", "physical_offset": "0x1C50", "source": "application_player_special.record_sprite;ctor82E1C0;current ordinary window", "consumer": "ClientPlayerDrawResources;native82E340;whole-frame strong borrow", "installation": "independent complete exact ANM pose;record list/cursor separately typed;no Update", "cleanup": "native Player unique owner;restore after CPU drain", "task": "I29", "research": "R13", "runtime_status": "I39-not-run"},
+                {"id": "NativePlayer.DynamicHUD", "physical_offset": "0x20A8/0x20AC", "source": "application_player_special.hud;player-hud-state-v1;same ordinary window;actual dynamic owner not Lua getter fallback", "consumer": "ClientPlayerHudInstall;Player.Render78573F/83AC80/834930", "installation": "native980020(HUD,outPair,Player);only own ctor/baseInit empty pair;24 hearts+index/color/flash/mantle;no HUD Update;Game8 slots separate", "cleanup": "7D2B20 -> ReferenceCount<PlayerHUD>7D33A0 -> dtor6EC2F0;both pair words cleared before Player Free;entered exception retained", "task": "I31/I33", "research": "R14/R15", "runtime_status": "I39-not-run"}],
             "structures": [
                 {"id": n, "source": source, "consumer": consumer, "task": task, "status": "I05-I10:typed-target-plan-and-structural-owner;final-state-adapters-pending-I11-I29"}
                 for n, source, consumer, task in [

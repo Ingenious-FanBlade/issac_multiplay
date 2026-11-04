@@ -1,5 +1,6 @@
 #include "replica/player_plan.h"
 #include "replica/entity_plan.h"
+#include "replica/player_limits.h"
 #include <algorithm>
 #include <map>
 #include <set>
@@ -28,7 +29,7 @@ bool Equal(const Value &a,const Value &t,const Graph &ag,const Graph &tg,std::se
     for(auto i=x.MemberBegin();i!=x.MemberEnd();++i){if(xt&&std::string_view(i->name.GetString(),i->name.GetStringLength())=="node")continue;if(!y.HasMember(i->name)||!Equal(i->value,y[i->name],ag,tg,seen,budget))return false;}return true;
   }return x==y;
 }
-bool Same(const Value &a,const Value &t,const Graph &ag,const Graph &tg){std::set<std::pair<const Value *,const Value *>> seen;unsigned budget=1048576;return Equal(a,t,ag,tg,seen,budget);}
+bool Same(const Value &a,const Value &t,const Graph &ag,const Graph &tg){std::set<std::pair<const Value *,const Value *>> seen;unsigned budget=unsigned(kPlayerTargetNodes);return Equal(a,t,ag,tg,seen,budget);}
 bool MemberSame(const Value &a,const Value &t,const char *name,const Graph &ag,const Graph &tg){const bool x=a.HasMember(name),y=t.HasMember(name);return x==y&&(!x||Same(a[name],t[name],ag,tg));}
 std::map<SubjectKey,unsigned> Index(const PlayerTarget &t){
   if(!t.membership_complete)Fail("complete_membership_required_for_absence");
@@ -60,7 +61,7 @@ void Children(PlayerApplyPlan &p,const PlayerBodyTarget *a,const PlayerBodyTarge
 }
 }
 PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget> t,std::shared_ptr<const PlayerTarget> a){
-  if(!t||!t->revision||t->bodies.size()>256)Fail("target_or_body_budget");
+  if(!t||!t->revision||t->bodies.size()>kPlayerBodies)Fail("target_or_body_budget");
   PlayerApplyPlan p;p.target=std::move(t);p.applied=std::move(a);const auto desired=Index(*p.target);
   std::map<SubjectKey,unsigned> old;
   std::set<SubjectKey> replacements;
@@ -142,7 +143,7 @@ PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget> t,std::shar
   for(const auto &[key,i]:desired)p.steps.push_back({PlayerAction::Link,key,i});
   for(const auto &[key,i]:desired)p.steps.push_back({PlayerAction::Check,key,i});
   p.cost=unsigned(p.steps.size()+p.children.size()+p.dependencies.size());
-  if(p.cost>65536)Fail("plan_budget");return p;
+  if(p.cost>kPlayerPlanSteps)Fail("plan_budget");return p;
 }
 std::shared_ptr<const PlayerLifecycle> PlanPlayerLifecycle(const PlayerTarget &target,const PlayerLifecycle *applied){
   if(!target.membership_complete)Fail("partial_membership_cannot_remove_bodies");

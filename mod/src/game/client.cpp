@@ -3,6 +3,7 @@
 #include "game/client_scene.h"
 #include "game/client_resources.h"
 #include "game/client_entity_draw_native.h"
+#include "game/client_player_isolation.h"
 #include "binding/offsets.h"
 #include "game/context.h"
 #include "game/input_a.h"
@@ -16,6 +17,7 @@
 #include <cstring>
 #include <memory>
 #include <thread>
+#include <psapi.h>
 #include <GL/gl.h>
 
 namespace cs::game {
@@ -164,6 +166,7 @@ void Neutral(ClientRuntime &c,bool forget=false) noexcept {
   if(forget){c.source=nullptr;c.baseline=false;c.held=0;c.shooting={};}
 }
 void Failure(ClientRuntime &c,const char *reason) noexcept {
+  c.scene.CancelRecovery();
   Neutral(c,true);c.input_ready=false;c.state=State::Failed;
   if(c.scene.State()!=ClientSceneState::Failed)c.scene.Fail(reason);
   c.network.Stop();
@@ -194,11 +197,21 @@ const char *ClientStartUnavailable() noexcept {
   if(!ClientLuaGuardReady())return "lua_persistence_guard_unavailable";
   if(!ClientDispatchIsolationInstalled())return "client_dispatch_isolation_unavailable";
   if(!ClientEntityInitIsolationInstalled()||!ClientEntityDrawIsolationInstalled())return "client_entity_isolation_unavailable";
+  if(!ClientPlayerIsolationInstalled())return "client_player_isolation_unavailable";
   if(connections==UINT64_MAX)return "connection_exhausted";
   return "";
 }
 }
 bool ClientBusy() noexcept {return client_active.load(std::memory_order_acquire);}
+bool ClientPlayerBorrowAllowed() noexcept {
+  return IsMain()&&ClientBusy()&&client&&(client->scene.State()==ClientSceneState::Applying||client->scene.DisplayReady());
+}
+std::shared_ptr<const ClientPlayerDisplayView> ClientPlayerDisplay() noexcept {
+  return IsMain()&&ClientBusy()&&client?client->scene.PlayerDisplay():nullptr;
+}
+bool ClientPlayerDisplayCurrent(const std::shared_ptr<const ClientPlayerDisplayView> &view) noexcept {
+  return IsMain()&&ClientBusy()&&client&&client->scene.PlayerDisplayCurrent(view);
+}
 // 检查真实 trampoline，不能拿清单行或能力组存在冒充已经安装。
 bool ClientDispatchIsolationInstalled() noexcept {
   if(!IsMain()||!Capabilities[size_t(Group::Client)]||!ClientCallbackGuardReady())return false;
@@ -475,7 +488,7 @@ bool ClientManagerBoundary() noexcept {
       }
     }
     c.scene.DrainRetained();
-    if(c.scene.State()==ClientSceneState::Failed&&c.state!=State::Failed)Failure(c,c.scene.Result().reason.data());
+    if(c.scene.State()==ClientSceneState::Failed&&!c.scene.RecoveryPending()&&c.state!=State::Failed)Failure(c,c.scene.Result().reason.data());
     if(foreign_client.exchange(false))Failure(c,"client_foreign_manager");
     ++c.manager_skipped;
     net::live::Event event;
@@ -751,6 +764,26 @@ std::string ClientFields() {
   add("non_player_entity_applied",c.scene.Result().non_player_entity_applied);
   add("player_support_applied",c.scene.Result().player_support_applied);
   add("full_entity_applied",c.scene.Result().full_entity_applied);
+  add("player_bodies_applied",c.scene.Result().player_bodies_applied);
+  add("player_relations_applied",c.scene.Result().player_relations_applied);
+  add("player_resources_applied",c.scene.Result().player_resources_applied);
+  add("player_domain_applied",c.scene.Result().player_domain_applied);
+  add("player_random_denied",ClientPlayerRandomDenials());
+  add("failure_executed_prefix",c.scene.Result().failure_executed_prefix);
+  add("recovery_pending",c.scene.RecoveryPending());
+  const auto players=c.scene.PlayerBudget();
+  add("player_participants",players.participants);add("player_group_nodes",players.group_nodes);
+  add("player_bodies",players.bodies);add("player_roster",players.roster);add("player_non_roster",players.non_roster);add("player_backups",players.backups);
+  add("player_inventory_entries",players.inventory);add("player_effects",players.effects);add("player_history",players.history);
+  add("player_costumes",players.costumes);add("player_weapons",players.weapons);add("player_slots",players.slots);add("player_records",players.records);
+  add("player_dynamic_hud_owners",players.hud_owners);
+  add("player_references",players.references);add("player_resource_slots",players.resources);add("player_layers",players.layers);add("player_selectors",players.selectors);
+  add("player_plan_cost",players.steps);add("player_source_bytes",players.source_bytes);add("player_source_nodes",players.source_nodes);add("player_owned_estimate_bytes",players.owned_bytes);
+  // 只在显式status查询采进程实际内存；估算的模型成本与操作系统值分开，不写逐tick日志。
+  PROCESS_MEMORY_COUNTERS_EX memory{};memory.cb=sizeof(memory);
+  if(K32GetProcessMemoryInfo(GetCurrentProcess(),reinterpret_cast<PROCESS_MEMORY_COUNTERS *>(&memory),sizeof(memory))){
+    add("process_working_set_bytes",memory.WorkingSetSize);add("process_private_bytes",memory.PrivateUsage);
+  }
   const auto entity_budget=c.scene.EntityBudget();
   add("entity_members",entity_budget.members);add("entity_players",entity_budget.players);add("entity_retired_rows",entity_budget.retired);
   add("entity_resource_slots",entity_budget.resources);add("entity_references",entity_budget.references);add("entity_curve_points",entity_budget.curve_points);

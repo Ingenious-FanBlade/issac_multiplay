@@ -1,6 +1,7 @@
 #pragma once
 #include "game/client_players_native.h"
 #include "replica/player_plan.h"
+#include "game/client_player_budget.h"
 
 namespace cs::game {
 struct ClientPlayerHistoryView;
@@ -18,6 +19,7 @@ public:
   ClientObjectStep Structure(const ClientNativeRoots &) noexcept;
   ClientObjectStep Finish(const ClientEntityOwners &,bool finish) noexcept;
   ClientObjectStep Retire(const ClientNativeRoots &) noexcept;
+  ClientObjectStep Unlink(const ClientNativeRoots &) noexcept;
   bool Commit(std::uint64_t attempt) noexcept;
   bool BeginAttempt(std::uint64_t attempt) noexcept;
   bool Configure(ClientPlayerAdapter) noexcept;
@@ -25,6 +27,9 @@ public:
   bool Visit(void *,ClientObjectVisitor) const noexcept;
   // 主线程只读取得最后Scene提交的身体历史；候选、取消或退休不污染HUD视图。
   std::shared_ptr<const ClientPlayerHistoryView> History(const ClientObjectKey &) const noexcept;
+  std::shared_ptr<const ClientPlayerDisplayView> Display() const noexcept;
+  bool Committed(const replica::Scope &,std::uint64_t revision) const noexcept;
+  ClientPlayerBudget Budget() const noexcept {return budget_;}
   ClientObjectReference Backup(unsigned slot) const noexcept;
 private:
   std::unique_ptr<replica::PlayerApplyPlan> plan_;
@@ -32,6 +37,8 @@ private:
   std::vector<ClientPlayerDescription> values_;
   std::map<ClientObjectKey,std::shared_ptr<const ClientPlayerHistoryView>> histories_,candidate_histories_;
   std::array<ClientObjectReference,4> backups_{};
+  std::shared_ptr<const ClientPlayerDisplayView> display_,candidate_display_;
+  ClientPlayerBudget budget_{},applied_budget_{};
   ClientPlayerAdapter adapter_{};
   ClientNativePlayers *native_=nullptr;
   std::uint64_t attempt_=0;

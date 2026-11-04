@@ -5,6 +5,8 @@
 #include "game/client_player_equipment.h"
 #include "game/client_player_roles.h"
 #include "game/client_entity_draw_native.h"
+#include "game/client_player_isolation.h"
+#include "replica/player_limits.h"
 #include "game/context.h"
 #include "game/bridge.h"
 #include "runtime.h"
@@ -30,6 +32,7 @@ struct Entry final {
   ClientPlayerDescription description;
   Entity_Player *player=nullptr;
   ClientPlayerEquipmentOwner *equipment=nullptr;
+  ClientPlayerHudOwner *hud=nullptr;
   std::uint64_t instance=0;
   std::uintptr_t vptr=0;
   unsigned seed=0,index=0,prefix=0,ready=0;
@@ -56,7 +59,7 @@ struct ClientNativePlayers final {
   std::shared_ptr<Token> token;
   std::uint64_t epoch=0,scope=0,revision=0,committed_revision=0;
   unsigned prefix=0;
-  std::size_t cursor=0,preparation_cursor=0,finish_cursor=0;
+  std::size_t cursor=0,preparation_cursor=0,finish_cursor=0,unlink_cursor=0;
   bool busy=false,fault=false,structure_ready=false,sets_ready=false,links_ready=false,ready=false,retiring=false,unlinked=false,roster_removed=false;
   bool retirement_fault=false;
   std::array<char,128> retirement_reason{};
@@ -98,7 +101,7 @@ bool ValidateSets(ClientNativePlayers &o,const char *&reason){
 }
 bool Borrow(void *context,const ClientNativeRoots &roots,const ClientObjectKey &key,unsigned expected,ClientEntityBorrow &out,const char *&reason) noexcept {
   auto *token=static_cast<Token *>(context);auto *o=token?token->owner:nullptr;
-  if(!o||!IsMain()||!ClientBusy()||o->fault||o->retiring||o->busy||!SameRoots(roots)||roots.room!=o->roots.room||(expected!=0&&expected!=13)){reason="players_borrow_context_or_retired";return false;}
+  if(!o||!IsMain()||!ClientPlayerBorrowAllowed()||o->fault||o->retiring||o->busy||!SameRoots(roots)||roots.room!=o->roots.room||(expected!=0&&expected!=13)){reason="players_borrow_context_or_retired";return false;}
   const auto hit=o->entries.find(key);if(hit==o->entries.end()||!(hit->second.ready&unsigned(ClientPlayerUse::Structure))||!Current(*o,hit->second)){
     reason="players_key_or_current_use_not_ready";return false;}
   const auto &e=hit->second;out={e.player,e.instance,o->epoch,0};reason="players_borrowed_current_structure";return true;
@@ -181,10 +184,10 @@ unsigned ClientNativePlayersOwnerCount(const ClientNativePlayers *o) noexcept {
   if(!IsMain()||!o)return 0;unsigned n=0;for(const auto &e:o->entries)n+=e.second.player!=nullptr;return n;
 }
 bool ClientNativePlayersBegin(ClientNativePlayers *o,const ClientNativeRoots &roots,std::uint64_t scope,std::uint64_t revision,const std::vector<ClientPlayerDescription> &values,const std::array<ClientObjectReference,4> &backups,const ClientPlayerAdapter &adapter,const char *&reason) noexcept {
-  if(!o||!Phase()||o->fault||o->busy||o->retiring||!SameRoots(roots)||!scope||!revision||values.size()>256){reason="players_begin_context_or_budget";return false;}
+  if(!o||!Phase()||o->fault||o->busy||o->retiring||!SameRoots(roots)||!scope||!revision||values.size()>replica::kPlayerBodies){reason="players_begin_context_or_budget";return false;}
   // 后续字段/资源/角色adapter未闭合时在第一次原生写前拒绝，不能制造半初始化可见身体。
   if(!adapter.prepare||!adapter.install||!adapter.retire||!adapter.relations){reason="players_role_draw_adapter_incomplete";return false;}
-  if(!ClientCallbackGuardReady()||!ClientLuaGuardReady()){reason="players_official_callbacks_or_persistence_guard_unavailable";return false;}
+  if(!ClientCallbackGuardReady()||!ClientLuaGuardReady()||!ClientPlayerIsolationInstalled()){reason="players_official_callbacks_or_persistence_guard_unavailable";return false;}
   try{
     if(o->revision&&revision<=o->revision){reason="players_native_revision_not_new";return false;}
     if(o->roots.game&&(o->roots.game!=roots.game||o->roots.room!=roots.room)){reason="players_scope_requires_retirement";return false;}
@@ -225,22 +228,26 @@ ClientObjectStep ClientNativePlayersStructure(ClientNativePlayers *o) noexcept {
         e.player=static_cast<Entity_Player *>(reinterpret_cast<void *(__cdecl *)(std::size_t)>(Base+0x686de5)(sizeof(Entity_Player)));
         if(!e.player)throw std::bad_alloc();
         // 仅初始化尚未构造的自有raw存储；不是把零伪装成Source值，也不覆盖任何存活容器。
-        std::memset(e.player,0,sizeof(Entity_Player));e.prefix|=CtorEntered;o->prefix|=CtorEntered;
-        e.player->constructor();e.prefix|=Constructed;o->prefix|=Constructed;
+        std::memset(e.player,0,sizeof(Entity_Player));
+        {ClientPlayerIsolationScope isolation(ClientPlayerOperation::Construct);
+          if(!isolation.Ready())throw std::bad_alloc();e.prefix|=CtorEntered;o->prefix|=CtorEntered;e.player->constructor();}e.prefix|=Constructed;o->prefix|=Constructed;
         e.player->_playerIndex=-1;e.player->_controllerIndex=-1;e.player->_playerType=d.player_type;
-        e.prefix|=InitEntered;o->prefix|=InitEntered;
         // 基Init仍经过唯一常驻Hook及官方Plus链；不用Player派生Init/Pre/Join生成额外身体或装备。
-        reinterpret_cast<void (__thiscall *)(Entity *,unsigned,unsigned,unsigned,unsigned)>(Base+0x2a4a20)(e.player,d.entity.type,d.entity.variant,d.entity.subtype,d.entity.seed);
+        {ClientPlayerIsolationScope isolation(ClientPlayerOperation::BaseInit);
+          if(!isolation.Ready())throw std::bad_alloc();e.prefix|=InitEntered;o->prefix|=InitEntered;reinterpret_cast<void (__thiscall *)(Entity *,unsigned,unsigned,unsigned,unsigned)>(Base+0x2a4a20)(e.player,d.entity.type,d.entity.variant,d.entity.subtype,d.entity.seed);}
         e.prefix|=Initialized;o->prefix|=Initialized;e.vptr=*reinterpret_cast<std::uintptr_t *>(e.player);e.seed=e.player->_initSeed;
       }else {if(!Current(*o,e)){ok=false;reason="players_existing_instance_changed";}e.description=d;}
       if(ok){e.ready=unsigned(ClientPlayerUse::Structure);++o->cursor;}
     }else if(o->preparation_cursor<o->desired.size()){
       // 先让全部Key拥有base结构，再安装身体子owner；装备关系仍等Entity/Grid全体就绪。
       const auto &d=o->desired[o->preparation_cursor];o->last_key=d.entity.key;auto &e=o->entries.at(d.entity.key);
+      ClientPlayerIsolationScope isolation(ClientPlayerOperation::Install);if(!isolation.Ready())throw std::bad_alloc();
       if(!Current(*o,e)){ok=false;reason="players_state_use_changed";}
       if(ok&&!e.equipment){e.equipment=ClientPlayerEquipmentCreate();if(!e.equipment){ok=false;reason="players_equipment_owner_allocation";}}
+      if(ok&&!e.hud){e.hud=ClientPlayerHudCreate();if(!e.hud){ok=false;reason="players_hud_owner_allocation";}}
       if(ok&&d.state_changed){changed=true;e.prefix|=State;o->prefix|=State;ok=ClientPlayerStateFields(e.player,d,false,reason)&&ClientPlayerEquipmentFields(e.player,d,false,reason)&&ClientPlayerRoleFields(e.player,d,false,reason)&&o->adapter.install(o->adapter.context,e.player,d,false,false,reason);}
       if(ok&&d.resources_changed){changed=true;e.prefix|=Resources;o->prefix|=Resources;ok=ClientPlayerEquipmentResources(e.equipment,e.player,d,false,reason)&&o->adapter.install(o->adapter.context,e.player,d,true,false,reason);}
+      if(ok){e.prefix|=unsigned(ClientPlayerPrefix::HudEntered);o->prefix|=unsigned(ClientPlayerPrefix::HudEntered);changed=true;ok=ClientPlayerHudInstall(e.hud,e.player,d,false,reason);}
       if(ok){e.ready|=unsigned(ClientPlayerUse::State);++o->preparation_cursor;}
     }else{
       auto &roster=static_cast<Game *>(o->roots.game)->_playerManager._playerList;std::vector<Entity_Player *> ordered;
@@ -280,6 +287,8 @@ ClientObjectStep ClientNativePlayersFinish(ClientNativePlayers *o,const ClientEn
   ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
   if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeApply)!=ClientEntryDecision::CallOriginal)return Result(o,false,true,"players_link_dispatch");
   o->busy=true;bool ok=true;const char *reason="players_relations_progress";
+  ClientPlayerIsolationScope isolation(ClientPlayerOperation::Relations);
+  if(!isolation.Ready()){o->busy=false;return Result(o,false,true,"players_relations_isolation");}
   try{
     // twin/sub/backup/Weapon可形成环：全部身体先安装边，再逐体读取条件getter。
     // 不能在另一身体尚未链接时误判失败，也不能让部分组提前取得draw资格。
@@ -293,7 +302,7 @@ ClientObjectStep ClientNativePlayersFinish(ClientNativePlayers *o,const ClientEn
       o->last_key=o->desired[o->finish_cursor].entity.key;auto &e=o->entries.at(o->last_key);
       if(!Current(*o,e)){ok=false;reason="players_check_use_changed";}
       else {RelationContext context{o,&entities};ClientEntityOwners resolver{&context,ResolveRelation};
-        ok=Relations(*o,e,entities,true,false,reason)&&ClientPlayerRoleRelations(e.player,e.description,resolver,o->roots,reason)&&ClientPlayerStateFields(e.player,e.description,true,reason)&&ClientPlayerEquipmentFields(e.player,e.description,true,reason)&&ClientPlayerRoleFields(e.player,e.description,true,reason)&&ClientPlayerEquipmentResources(e.equipment,e.player,e.description,true,reason)&&o->adapter.install(o->adapter.context,e.player,e.description,false,true,reason)&&o->adapter.install(o->adapter.context,e.player,e.description,true,true,reason);}
+        ok=Relations(*o,e,entities,true,false,reason)&&ClientPlayerRoleRelations(e.player,e.description,resolver,o->roots,reason)&&ClientPlayerStateFields(e.player,e.description,true,reason)&&ClientPlayerEquipmentFields(e.player,e.description,true,reason)&&ClientPlayerRoleFields(e.player,e.description,true,reason)&&ClientPlayerEquipmentResources(e.equipment,e.player,e.description,true,reason)&&ClientPlayerHudInstall(e.hud,e.player,e.description,true,reason)&&o->adapter.install(o->adapter.context,e.player,e.description,false,true,reason)&&o->adapter.install(o->adapter.context,e.player,e.description,true,true,reason);}
       if(ok){e.prefix|=Checked;e.ready|=unsigned(ClientPlayerUse::Relations)|unsigned(ClientPlayerUse::Draw);++o->finish_cursor;}
     }else{o->ready=ValidateSets(*o,reason);ok=o->ready;}
   }catch(...){ok=false;reason="players_relations_exception_retained";}
@@ -313,13 +322,47 @@ bool ClientNativePlayersCommit(ClientNativePlayers *o,std::uint64_t revision) no
   if(!IsMain()||!o||o->fault||!o->ready||o->revision!=revision)return false;o->committed_revision=revision;return true;
 }
 bool ClientNativePlayersVisit(ClientNativePlayers *o,void *context,ClientObjectVisitor visitor) noexcept {
-  if(!IsMain()||!o||o->fault||!o->ready||!visitor)return false;
+  if(!IsMain()||!ClientPlayerBorrowAllowed()||!o||o->fault||o->retiring||!o->ready||!visitor)return false;
   for(const auto &p:o->entries)if(!Current(*o,p.second)||!visitor(context,p.second.player,p.first,p.second.instance,1))return false;return true;
+}
+// 第一阶段只撤销资格和出边。所有身体完成后，非Player owner才能开始释放自己的对象。
+// 每次至多处理一个身体，任何不确定前缀锁定首因，不在下一帧重复进入同一清理调用。
+ClientObjectStep ClientNativePlayersUnlink(ClientNativePlayers *o,const ClientNativeRoots &roots) noexcept {
+  if(!o)return {true,false,false,0,0,"players_no_links"};
+  if(!IsMain())return Result(o,false,true,"players_unlink_thread");
+  o->retiring=true;o->ready=false;o->committed_revision=0;
+  for(auto &p:o->entries)p.second.ready=0;
+  if(o->retirement_fault)return Result(o,false,true,o->retirement_reason.data());
+  if(o->unlinked||o->entries.empty()){o->unlinked=true;return Result(o,true,false,"players_all_links_revoked");}
+  if(!Phase()||o->busy||!SameRoots(roots)||roots.room!=o->roots.room)return Result(o,false,true,"players_unlink_roots_or_context");
+  if(!Graphics())return Result(o,false,false,"players_unlink_waiting_inflight");
+  if(!ClientCallbackGuardReady()||!ClientLuaGuardReady())return Result(o,false,true,"players_unlink_guards");
+  ClientDispatchScope dispatch(ClientOperation::Retire,ClientEntry::NativeTeardown);
+  if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeTeardown)!=ClientEntryDecision::CallOriginal)return Result(o,false,true,"players_unlink_dispatch");
+  bool ok=true;const char *reason="players_unlink_progress";o->busy=true;
+  ClientPlayerIsolationScope isolation(ClientPlayerOperation::Retire);
+  if(!isolation.Ready()){o->busy=false;return Result(o,false,true,"players_unlink_isolation");}
+  try{ClientEntityOwners none{};o->backup_players={};Entry *next=nullptr;
+    for(auto &pair:o->entries)if(pair.second.player&&!(pair.second.prefix&unsigned(ClientPlayerPrefix::Unlinked))){next=&pair.second;break;}
+    if(next){auto &e=*next;o->last_key=e.description.entity.key;
+      if((e.prefix&CtorEntered)&&!(e.prefix&Constructed)){ok=false;reason="players_partial_ctor_retained";}
+      else if((e.prefix&InitEntered)&&!(e.prefix&Initialized)){ok=false;reason="players_partial_init_retained";}
+      else if((e.prefix&Initialized)&&!Relations(*o,e,none,false,true,reason))ok=false;
+      if(ok&&(e.prefix&Constructed)&&!ClientPlayerHudRetire(e.hud,e.player,reason))ok=false;
+      if(ok&&e.hud){e.prefix|=unsigned(ClientPlayerPrefix::HudRetired);o->prefix|=unsigned(ClientPlayerPrefix::HudRetired);}
+      if(ok){e.prefix|=unsigned(ClientPlayerPrefix::Unlinked);o->prefix|=unsigned(ClientPlayerPrefix::Unlinked);++o->unlink_cursor;}
+    }else o->unlinked=true;
+  }catch(...){ok=false;reason="players_unlink_exception_prefix_retained";}
+  o->busy=false;ClientDispatchReturned(ClientEntry::NativeTeardown);
+  if(!dispatch.Succeeded()){ok=false;reason="players_unlink_dispatch_incomplete";}
+  if(!ok){o->fault=o->retirement_fault=true;std::snprintf(o->retirement_reason.data(),o->retirement_reason.size(),"%s",reason);reason=o->retirement_reason.data();}
+  return Result(o,ok&&o->unlinked,!ok,reason,true);
 }
 ClientObjectStep ClientNativePlayersRetire(ClientNativePlayers *o,const ClientNativeRoots &roots) noexcept {
   if(!o)return {true,false,false,0,0,"players_no_owner"};
   if(IsMain()&&o->entries.empty())return Result(o,true,false,"players_unwritten_owner_retired");
   if(o->retirement_fault)return Result(o,false,true,o->retirement_reason.data());
+  if(!o->unlinked)return ClientNativePlayersUnlink(o,roots);
   if(!Phase()||o->busy||!SameRoots(roots)||roots.room!=o->roots.room)return Result(o,false,true,"players_retire_roots_or_thread");
   if(!Graphics())return Result(o,false,false,"players_retire_inflight");
   if(!ClientCallbackGuardReady()||!ClientLuaGuardReady())return Result(o,false,true,"players_retire_callback_guard_unavailable");
@@ -328,31 +371,32 @@ ClientObjectStep ClientNativePlayersRetire(ClientNativePlayers *o,const ClientNa
   ClientDispatchScope dispatch(ClientOperation::Retire,ClientEntry::NativeTeardown);
   if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeTeardown)!=ClientEntryDecision::CallOriginal)return Result(o,false,true,"players_retire_dispatch");
   bool ok=true,done=false;const char *reason="players_retire_progress";o->busy=true;
+  ClientPlayerIsolationScope isolation(ClientPlayerOperation::Retire);
+  if(!isolation.Ready()){o->busy=false;return Result(o,false,true,"players_retire_isolation");}
   try{
-    if(!o->unlinked){ClientEntityOwners none{};o->backup_players={};
-      for(auto &pair:o->entries){auto &e=pair.second;if(!e.player)continue;
-        if((e.prefix&CtorEntered)&&!(e.prefix&Constructed)){ok=false;reason="players_partial_ctor_retained";break;}
-        if(e.prefix&InitEntered){if(!(e.prefix&Initialized)){ok=false;reason="players_partial_init_retained";break;}
-          if(!Relations(*o,e,none,false,true,reason)){ok=false;break;}}
-      }if(ok)o->unlinked=true;
-    }else if(!o->roster_removed){auto &roster=static_cast<Game *>(roots.game)->_playerManager._playerList;
+    if(!o->roster_removed){auto &roster=static_cast<Game *>(roots.game)->_playerManager._playerList;
       for(auto *p:roster)if(std::none_of(o->entries.begin(),o->entries.end(),[&](const auto &e){return e.second.player==p;})){ok=false;reason="players_retire_foreign_roster";break;}
       if(ok){roster.clear();o->roster_removed=true;}
     }else{
       Entry *next=nullptr;for(auto &pair:o->entries)if(pair.second.player&&(!next||pair.second.instance>next->instance))next=&pair.second;
       if(!next)done=true;else {auto &e=*next;o->last_key=e.description.entity.key;
         if(e.prefix&FreeEntered){ok=false;reason="players_free_prefix_uncertain_retained";}
-        else if(!(e.prefix&CtorEntered)){reinterpret_cast<void (__cdecl *)(void *)>(Base+0x686bc9)(e.player);e.player=nullptr;e.retired=true;}
-        else if(!o->adapter.retire(o->adapter.context,e.player,e.description,e.prefix,reason)||!ClientPlayerEquipmentRetire(e.equipment,e.player,reason)||!ClientPlayerStateRetire(e.player,reason))ok=false;
-        else {auto &p=*e.player;const auto &layout=world::layout::LayoutConstants();Entity *sub=nullptr;std::memcpy(&sub,reinterpret_cast<unsigned char *>(&p)+layout.player_sub_storage_offset,4);
+        else if(!(e.prefix&CtorEntered)){e.prefix|=FreeEntered;o->prefix|=FreeEntered;
+          reinterpret_cast<void (__cdecl *)(void *)>(Base+0x686bc9)(e.player);e.player=nullptr;e.retired=true;e.prefix|=unsigned(ClientPlayerPrefix::Freed);}
+        else {const auto mark=[&](ClientPlayerPrefix prefix){e.prefix|=unsigned(prefix);o->prefix|=unsigned(prefix);};
+          ok=o->adapter.retire(o->adapter.context,e.player,e.description,e.prefix,reason);if(ok)mark(ClientPlayerPrefix::AdapterRetired);
+          if(ok){ok=ClientPlayerEquipmentRetire(e.equipment,e.player,reason);if(ok)mark(ClientPlayerPrefix::EquipmentRetired);}
+          if(ok){ok=ClientPlayerStateRetire(e.player,reason);if(ok)mark(ClientPlayerPrefix::StateRetired);}
+          if(ok){auto &p=*e.player;const auto &layout=world::layout::LayoutConstants();Entity *sub=nullptr;std::memcpy(&sub,reinterpret_cast<unsigned char *>(&p)+layout.player_sub_storage_offset,4);
           if(sub||p._twinPlayer.GetReference()||p._backupPlayer||p._replacedPlayer||p._heldEntity||p._markedTarget||p._megaBlastLaser||p._playerHUD){ok=false;reason="players_retire_remaining_owned_or_borrowed_relationship";}
           for(auto *weapon:p._weapon)if(weapon){ok=false;reason="players_retire_weapon_owner_pending";}
           for(unsigned i=0;i<layout.game_player_borrow_count;++i){Entity_Player *global=nullptr;std::memcpy(&global,reinterpret_cast<unsigned char *>(roots.game)+layout.game_player_borrow_first_offset+i*4,4);if(global==e.player){ok=false;reason="players_retire_global_player_owner_still_borrowing";}}
           auto &list=static_cast<Room *>(roots.room)->_entityList;
           for(auto *l:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL,&list._effectEL,&list._tempEL,&list._wispEL})if(!ListValid(*l)){ok=false;reason="players_retire_list_invalid";break;}
-          if(ok)for(auto *l:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL,&list._effectEL,&list._tempEL,&list._wispEL})Erase(*l,e.player);
-          if(ok){if(e.prefix&Published)reinterpret_cast<void (__thiscall *)(EntityList *,int,int,int)>(Base+0x16d10)(&list,1,int(e.player->_variant),int(e.player->_subtype));
-            e.player->_valid=false;e.prefix|=FreeEntered;o->prefix|=FreeEntered;e.player->Free(1);e.player=nullptr;e.retired=true;ClientPlayerEquipmentDestroy(e.equipment);e.equipment=nullptr;}
+          if(ok){for(auto *l:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL,&list._effectEL,&list._tempEL,&list._wispEL})Erase(*l,e.player);mark(ClientPlayerPrefix::Detached);}
+          if(ok){if(e.prefix&Published){reinterpret_cast<void (__thiscall *)(EntityList *,int,int,int)>(Base+0x16d10)(&list,1,int(e.player->_variant),int(e.player->_subtype));mark(ClientPlayerPrefix::CountRetired);}
+            e.player->_valid=false;e.prefix|=FreeEntered;o->prefix|=FreeEntered;e.player->Free(1);e.player=nullptr;e.retired=true;mark(ClientPlayerPrefix::Freed);ClientPlayerEquipmentDestroy(e.equipment);e.equipment=nullptr;ClientPlayerHudDestroy(e.hud);e.hud=nullptr;}
+          }
         }
       }
     }

@@ -3,6 +3,7 @@
 #include "replica/model.h"
 #include "replica/entity_plan.h"
 #include "game/client_entity_budget.h"
+#include "game/client_player_budget.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -32,6 +33,9 @@ public:
   bool VisitPrepared(std::uint64_t,void *,ClientObjectVisitor) const noexcept;
   bool MatchIndependent(const ClientObjectKey &,std::uint64_t shape,std::uint64_t instance) const noexcept;
   ClientEntityBudget Budget() const noexcept {auto b=budget_;b.completed=unsigned(cursor_+player_cursor_);return b;}
+  ClientPlayerBudget PlayerBudget() const noexcept;
+  std::shared_ptr<const ClientPlayerDisplayView> PlayerDisplay() const noexcept;
+  bool PlayersCommitted(const replica::Scope &,std::uint64_t revision) const noexcept;
   ClientObjectStep Retire(const ClientNativeRoots &) noexcept;
   bool Visit(void *context,ClientObjectVisitor visitor) const noexcept;
 #ifdef ISAACCS_E2E

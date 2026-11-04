@@ -1,4 +1,5 @@
 #include "replica/player_target.h"
+#include "replica/player_limits.h"
 #include <map>
 #include <set>
 #include <string_view>
@@ -63,6 +64,7 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
   if(!Is(Find(src,"role_state"),"player-role-state-v1"))Error("source","role_state_v1_required");
   if(!Is(Find(src,"special_state"),"player-special-state-v1"))Error("source","special_state_v1_required");
   if(!Is(Find(src,"draw_state"),"player-draw-state-v1"))Error("source","draw_state_v1_required");
+  if(!Is(Find(src,"hud_state"),"player-hud-state-v1"))Error("source","hud_state_v1_required");
   out->entity_capture=out->entities->capture;out->player_capture=Capture(component,out->revision);
   const auto &entity_capture=At(out->entities->source,"capture"),&player_capture=At(component,"capture");
   for(const char *k:{"outer","owner","mutation_before","mutation_after"})if(U(At(entity_capture,k))!=U(At(player_capture,k)))Error("capture","mixed_owner_token_or_mutation");
@@ -154,11 +156,12 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
   for(const auto &body:out->bodies)if(body.membership.known&&!member_groups.count(body.key))Error("groups","missing_known_member");
   out->public_complete=out->membership_complete&&Is(Find(component,"coverage"),"Complete")&&out->missing.empty();
   for(const auto &body:out->bodies)if(!body.missing.empty())out->public_complete=false;
-  // 具名私有draw来源已接入；完整域处置/隔离/提交仍归I31—I34，不由单个adapter提升范围声明。
-  out->native_source_complete=false;out->source=Copy(component);return out;
+  // 这里只证明同窗来源完整，字段处置/原生回读和Scene提交仍必须实际完成。
+  // 不以目录里的运行验收状态推导此T已应用，也不允许缺来源降级旧单Isaac。
+  out->native_source_complete=out->public_complete&&out->entities->source_complete;out->source=Copy(component);return out;
 }
 const Json &PlayerApplicationCatalog(){static const auto catalog=Parse(
 #include "player_application.inc"
 );return catalog;}
-Json PlayerCapabilities(){return Parse(R"({"id":"player-target-v2","source":"player-source-v2","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","participants":4,"group_bodies":64,"backup_slots":4,"active_slots":4,"pocket_slots":4,"weapon_slots":5,"final_state":"player-final-state-v1","final_state_tasks":"I11-I15:implemented;I39-not-run","equipment_state":"player-equipment-state-v1","equipment_tasks":"I16-I20:implemented;I39-not-run","role_state":"player-role-state-v1","role_tasks":"I21-I30:implemented;I31-I40-pending;I39-not-run","special_state":"player-special-state-v1","draw_state":"player-draw-state-v1","control":"committed pure group view;one intent stream;binding separate from shape","vanilla_roles":"0..40 named C01-C17;finite special state and native draw installed;I39 not run","hologram":"native exists/type/twin/lower-player-index;no independent flag","history":"Scene-committed immutable per-body ordered view","native_apply":false,"structure_owner":"key/use/shape/role-qualified;roster-room-render-control-backup-separated","scope":"same-window Entity body+Player relations/History;owned typed values","legacy":"single ordinary Isaac profile remains separate","private_source":"named-consumer-writer-qualified;not blanket PlayerUpdate eligibility","runtime_acceptance":"I39-not-run"})");}
+Json PlayerCapabilities(){return Parse(R"({"id":"player-target-v2","source":"player-source-v2","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","participants":4,"group_bodies":64,"backup_slots":4,"active_slots":4,"pocket_slots":4,"weapon_slots":5,"final_state":"player-final-state-v1","final_state_tasks":"I11-I15:implemented;I39-not-run","equipment_state":"player-equipment-state-v1","equipment_tasks":"I16-I20:implemented;I39-not-run","role_state":"player-role-state-v1","role_tasks":"I21-I35:implemented;I36-I40-pending;I39-not-run","special_state":"player-special-state-v1","draw_state":"player-draw-state-v1","hud_state":"player-hud-state-v1","control":"committed pure group view;one intent stream;binding separate from shape","vanilla_roles":"0..40 named C01-C17;finite special state and native draw installed;I39 not run","hologram":"native exists/type/twin/lower-player-index;no independent flag","history":"Scene-committed immutable per-body ordered view","native_apply":true,"display_view":"committed participant/body/slot and original captured queries;full HUD layout=tx27","isolation":"purpose-scoped RNG rejection;callbacks/gameplay/persistence/audio blocked through safe retirement","retirement":"all Player out-links before non-Player release;per-prefix ownership;safe complete-target rebuild once","scene_commit":"same attempt;body/relation/resource and Player domain;full Entity requires complete Player owner;no network ACK","limits":{"bodies":256,"plan_cost":65536,"references":262144,"resources":4096,"layers":65536,"source_bytes":33554432,"source_nodes":67108864,"owned_estimate_bytes":268435456,"aggregate_entries":1048576},"structure_owner":"key/use/shape/role-qualified;roster-room-render-control-backup-separated","scope":"same-window Entity body+Player relations/History;owned typed values","legacy":"single ordinary Isaac profile remains separate","private_source":"named-consumer-writer-qualified;not blanket PlayerUpdate eligibility","runtime_acceptance":"I39-not-run"})");}
 } // namespace cs::replica

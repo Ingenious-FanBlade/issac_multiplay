@@ -62,6 +62,16 @@ std::shared_ptr<const ClientPlayerSpecialState> ClientDescribePlayerSpecial(cons
   const auto &v=At(body,"application_player_special");
   if(Int(At(v,"version"))!=1||!Is(v,"status","Value")||!Is(v,"scope","same-ordinary-window"))Fail("current_special_v1_required");
   auto state=std::make_shared<ClientPlayerSpecialState>();
+  const auto &hud=At(v,"hud");if(Int(At(hud,"version"))!=1)Fail("player_hud_source_version");
+  state->hud.present=Bool(At(hud,"present"));
+  if(state->hud.present){auto &h=state->hud;h.index=Int(At(hud,"index"));h.color=Int(At(hud,"color"));
+    h.red_flash=Int(At(hud,"red_flash"));h.soul_flash=Int(At(hud,"soul_flash"));h.gold_flash=Int(At(hud,"gold_flash"));h.mantle=Bool(At(hud,"mantle"));
+    if(h.index<INT16_MIN||h.index>INT16_MAX||h.color<INT16_MIN||h.color>INT16_MAX||h.red_flash< -128||h.red_flash>127||h.soul_flash< -128||h.soul_flash>127||h.gold_flash< -128||h.gold_flash>127)Fail("player_hud_scalar_width");
+    const auto &hearts=At(hud,"hearts");if(!hearts.IsArray()||hearts.Size()!=24)Fail("player_hud_heart_set");
+    const auto text=[](const V &v){if(!v.IsString()||v.GetStringLength()>1024)Fail("player_hud_animation_budget");std::string s(v.GetString(),v.GetStringLength());if(s.find('\0')!=s.npos)Fail("player_hud_animation_nul");return s;};
+    for(unsigned i=0;i<24;++i){const auto &row=hearts[i];auto &heart=h.hearts[i];heart.visible=Bool(At(row,"visible"));heart.eternal=Bool(At(row,"eternal"));heart.golden=Bool(At(row,"golden"));heart.fading=Bool(At(row,"fading"));heart.flash=Int(At(row,"flash"));
+      heart.animation=text(At(row,"animation"));heart.overlay=text(At(row,"overlay"));if(heart.flash<0||heart.flash>5||(heart.visible&&heart.animation.empty())||(heart.eternal&&heart.overlay.empty()))Fail("player_hud_heart_cache");}
+  }
   const auto array=[&](const char *name,auto &out,int low,int high){const auto &a=At(v,name);
     if(!a.IsArray()||a.Size()!=out.size())Fail("special_complete_slot_domain_required");
     for(unsigned i=0;i<out.size();++i){const int n=Int(a[i]);if(n<low||n>high)Fail("special_slot_range");out[i]=n;}};

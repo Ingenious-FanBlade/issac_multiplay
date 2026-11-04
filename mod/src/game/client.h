@@ -3,8 +3,10 @@
 #include "replica/model.h"
 #include "game/client_entity_events.h"
 #include <string>
+#include <memory>
 
 namespace cs::game {
+struct ClientPlayerDisplayView;
 // Client角色独立于Authority SessionRuntime，socket失败也不自动交还原生模拟。
 bool ClientBusy() noexcept;
 const char *ClientStateName() noexcept;
@@ -16,6 +18,9 @@ std::string ClientTestExerciseOwnership(const std::string &token) noexcept;
 std::string ClientTestExerciseVm(const std::string &token) noexcept;
 bool ClientAdmitTarget(const replica::Scope &scope, std::uint64_t revision,
                        const replica::Value &value) noexcept;
+// 正式HUD/角色展示的纯值入口；只在主线程取当前Scene A，旧快照不得继续冒作当前展示。
+std::shared_ptr<const ClientPlayerDisplayView> ClientPlayerDisplay() noexcept;
+bool ClientPlayerDisplayCurrent(const std::shared_ptr<const ClientPlayerDisplayView> &) noexcept;
 // 交给27的独立表现记录；这里只接纳，不重放Grid玩法或宣称已呈现。
 bool ClientAdmitGridIndependent(const replica::Message &,const char *&reason) noexcept;
 using ClientGridIndependentVisitor=bool (*)(void *,const replica::Value &,std::uint64_t) noexcept;

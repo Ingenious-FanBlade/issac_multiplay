@@ -258,7 +258,7 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
       auto copy=std::make_unique<replica::Json>(replica::Copy(target));
       // 最后才替换Player纯值候选；后面的Entity预检失败不能留下与旧candidate不一致的身体计划。
       if(plan->players&&!players_->Prepare(plan->players,reason))return false;
-      if(plan->players)usage.commands+=players_->Cost();
+      if(plan->players){usage.commands+=players_->Cost();if(usage.commands>kClientEntityCommands){players_->Cancel();reason="objects_combined_command_budget";return false;}}
       candidate_=std::move(copy);entity_plan_=std::move(plan);entity_old_values_=std::move(before);entity_target_values_=std::move(next);
       player_commands_=std::move(player_commands);player_cursor_=0;budget_=usage;instances_ready_=ready_=capacity_checked_=false;
       players_structured_=players_complete_=false;
@@ -387,6 +387,8 @@ bool ClientObjects::Commit(std::uint64_t attempt) noexcept {
   committed_=std::move(installed_);entity_applied_=std::move(entity_installed_);entity_applied_values_=std::move(entity_installed_values_);return true;
 }
 ClientObjectStep ClientObjects::Retire(const ClientNativeRoots &roots) noexcept {
+  // 双向关系先撤Player出边；非Player的正式Abandon随后撤其出边，再按唯一owner释放。
+  if(players_){auto links=players_->Unlink(roots);if(!links.done)return links;}
   auto step=ClientNativeObjectsAbandon(native_,roots);
   step.pending_owners=OwnerCount();
   if(!step.done)return step;
@@ -396,6 +398,11 @@ ClientObjectStep ClientObjects::Retire(const ClientNativeRoots &roots) noexcept 
   entity_plan_.reset();entity_applied_.reset();entity_target_values_.clear();entity_old_values_.clear();entity_applied_values_.clear();entity_preflight_=false;
   installed_.reset();entity_installed_.reset();entity_installed_values_.clear();player_commands_.clear();player_cursor_=0;ready_=instances_ready_=capacity_checked_=false;attempt_=0;budget_={};
   cursor_=0;prefix_=0;failed_=written_=false;retired_=true;return step;
+}
+ClientPlayerBudget ClientObjects::PlayerBudget() const noexcept {return players_?players_->Budget():ClientPlayerBudget{};}
+std::shared_ptr<const ClientPlayerDisplayView> ClientObjects::PlayerDisplay() const noexcept {return players_?players_->Display():nullptr;}
+bool ClientObjects::PlayersCommitted(const replica::Scope &scope,std::uint64_t revision) const noexcept {
+  return committed_&&!failed_&&(!(candidate_||installed_)||!written_)&&players_&&players_->Committed(scope,revision);
 }
 bool ClientObjects::Visit(void *context,ClientObjectVisitor visitor) const noexcept {
   return !candidate_&&!installed_&&!failed_&&committed_&&ClientNativeObjectsVisit(native_,context,visitor);

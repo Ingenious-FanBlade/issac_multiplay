@@ -9,6 +9,7 @@
 #include "game/client_grid_events.h"
 #include "game/client_entity_events.h"
 #include "game/client_entity_budget.h"
+#include "game/client_player_budget.h"
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -53,7 +54,9 @@ struct ClientApplyResult final {
   unsigned committed_domains=0,grid_prefix=0,grid_owners=0;
   // Entity包含完整Player域；19仅提交非Player合同和具名Player支撑，不设置完整Entity位。
   bool non_player_entity_applied=false,player_support_applied=false,full_entity_applied=false;
+  bool player_bodies_applied=false,player_relations_applied=false,player_resources_applied=false,player_domain_applied=false;
   unsigned entity_members=0,entity_non_players=0,entity_players=0;
+  unsigned failure_executed_prefix=0;
   replica::SubjectKey failed_key{};
   std::array<char,24> failed_domain{};
   std::array<char,48> recovery{};
@@ -114,6 +117,7 @@ public:
   ClientApplyResult Result() const noexcept { return result_; }
   replica::RoomGridBudgetUsage Budget() const noexcept { return room_grid_target_?room_grid_target_->budget:replica::RoomGridBudgetUsage{}; }
   ClientEntityBudget EntityBudget() const noexcept;
+  ClientPlayerBudget PlayerBudget() const noexcept;
   unsigned EntityIndependentPending() const noexcept {return entity_events_.Pending();}
   ClientEntityEvents::Statistics EntityIndependentStatus() const noexcept {return entity_events_.Status();}
   // A仅在完整原生提交后有效，部分写入或退休不继续暴露旧提交版本。
@@ -121,6 +125,11 @@ public:
   // 等待场景仍沿16发送意图；正式Player目标仅从唯一Scene提交A公开控制关系。
   bool HasPlayerControl() const noexcept {return bool(player_target_)||bool(player_applied_);}
   ClientPlayerControlView PlayerControl(unsigned ordinal) const noexcept;
+  // 仅发布同一A；旧shared_ptr可作历史快照，继续展示必须通过PlayerDisplayCurrent重新核对。
+  std::shared_ptr<const ClientPlayerDisplayView> PlayerDisplay() const noexcept;
+  bool PlayerDisplayCurrent(const std::shared_ptr<const ClientPlayerDisplayView> &) const noexcept;
+  bool RecoveryPending() const noexcept;
+  void CancelRecovery() noexcept {stop_requested_=true;}
   const ClientGenerations &Generations() const noexcept { return generations_; }
   bool HasNativePrefix() const noexcept { return native_dispatch_prefix_ || ClientNativeWorldHasPrefix(native_world_) || result_.native_written || result_.pending_owners; }
   // 分派原调用前记录“可能已执行”的不可逆前缀，直到 I8 实际退休后才可清除。
@@ -180,6 +189,7 @@ private:
        objects_retired_=false,pumping_=false,attempt_invalidated_=false,
        objects_complete_=false,presentation_retired_=false,retirement_complete_=false;
   bool grids_planned_=false,grids_complete_=false,grids_retired_=false,references_complete_=false;
+  bool stop_requested_=false,recovery_attempted_=false,retirement_failed_=false,recovery_forbidden_=false;
   std::uint64_t target_revision_=0, applied_revision_=0, next_attempt_=0;
   ClientGenerations generations_{};
   ClientApplyResult result_{};

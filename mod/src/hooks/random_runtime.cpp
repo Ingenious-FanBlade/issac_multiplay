@@ -1,5 +1,6 @@
 #include "hooks/random_runtime.h"
 #include "game/world_sources/random_sources.h"
+#include "game/client_player_isolation.h"
 #include "runtime.h"
 #include "mologie_detours.h"
 #include <array>
@@ -27,15 +28,18 @@ unsigned PatchCrtImports(HMODULE module,void *target,void *wrapper) noexcept {
   }return patched;
 }
 int __cdecl CrtRand() {
+  if(game::ClientPlayerRandomDenied())return 0;
   game::NativeRandomCall call(nullptr,game::RandomAlgorithm::CrtRand,"CRT.rand");
   const auto value=reinterpret_cast<int (__cdecl *)()>(slots[0].original)();
   call.Returned(std::uint32_t(value));return value;
 }
 void __cdecl CrtSeed(unsigned value) {
+  if(game::ClientPlayerRandomDenied())return;
   game::NativeRandomCall call(nullptr,game::RandomAlgorithm::CrtRand,"CRT.srand",value,true);
   reinterpret_cast<void (__cdecl *)(unsigned)>(slots[1].original)(value);call.Returned(0);
 }
 template<unsigned I> int __cdecl LuaRandom(void *lua) {
+  if(game::ClientPlayerRandomDenied())return 0;
   // Lua错误会longjmp；跨original只保存平凡整数，不留下C++析构/服务pending scope。
   const auto ticket=game::NativeRandomLuaEnter(I,lua);(void)ticket;
   const auto result=reinterpret_cast<int (__cdecl *)(void *)>(slots[I].original)(lua);

@@ -168,7 +168,7 @@ def consumer_review(member):
 
 # I31保留的紧凑正式来源：它们不是Sprite别名，也不是夹具补值。
 ENTITY_COMPACT_CONSUMERS = {
-    "EntityPlayer.application_player_special": "I27/I29:finite inventory-History/crafting/poop;typed afterimages and record-list/cursor/Sprite;two Image identities/formats and final palette;no recipe/refill/Update",
+    "EntityPlayer.application_player_special": "I27/I29/I31:finite inventory-History/crafting/poop;typed afterimages and record-list/cursor/Sprite;two Image identities/formats and final palette;dynamic PlayerHUD v1 heart cache+native pair owner;no recipe/refill/Update",
     "EntityPlayer.application_player_role": "I21-I25:current typed final ItemState/Suplex/index/sub-body;public getter cross-check;no Flip/Swap/InitTwin",
     "Entity.application_draw": "ClientEntityFrameScope;ClientEntityDrawScope;ordinary-window frame/subframe and two render RNG states",
     "EntityNPC.application_npc": "ClientEntityNpcCollections;three complete independent deques, including typed EntityPtr links",

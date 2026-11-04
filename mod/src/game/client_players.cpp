@@ -3,6 +3,7 @@
 #include "game/client_player_state.h"
 #include "game/client_player_equipment.h"
 #include "game/client_player_roles.h"
+#include "game/client_entity_e2e.h"
 #include <algorithm>
 
 namespace cs::game {
@@ -17,9 +18,11 @@ ClientPlayers::ClientPlayers() noexcept {adapter_=ClientPlayerBuiltinAdapter();}
 ClientPlayers::~ClientPlayers(){ClientNativePlayersDestroy(native_);}
 // 纯值预检不触碰原生；失败不替换上一计划或最后提交A。
 bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,const char *&reason) noexcept {
+  ClientEntityTestMeasure measure("player_parse");
   if(begun_&&!ready_){reason="players_candidate_inflight";return false;}
   try{
     auto plan=std::make_unique<replica::PlayerApplyPlan>(replica::PlanPlayerTarget(std::move(target),applied_));
+    if(!plan->target->native_source_complete)throw replica::ContractError("players:complete_native_source_required");
     if(!plan->target->membership_complete)throw replica::ContractError("players:partial_membership_preserves_existing_bodies");
     std::vector<ClientPlayerDescription> values;std::map<ClientObjectKey,std::shared_ptr<const ClientPlayerHistoryView>> histories;
     auto source=std::make_shared<const std::string>(replica::Text(plan->target->entities->source));
@@ -51,13 +54,16 @@ bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,
     // 先完成真实值/角色图预检；完整后续adapter缺席仍在世界写前拒绝，不用空回调放行。
     if(!adapter_.prepare||!adapter_.install||!adapter_.retire||!adapter_.relations){reason="players_role_draw_adapter_incomplete";return false;}
     std::array<ClientObjectReference,4> backups;for(unsigned i=0;i<4;++i)backups[i]=Ref(plan->target->backup_slots[i]);
-    plan_=std::move(plan);values_=std::move(values);candidate_histories_=std::move(histories);backups_=backups;begun_=written_=ready_=false;reason="players_plan_ready";return true;
+    auto display=ClientDescribePlayerDisplay(plan->target,values);const auto budget=ClientMeasurePlayers(*plan,values);
+    plan_=std::move(plan);values_=std::move(values);candidate_histories_=std::move(histories);backups_=backups;
+    candidate_display_=std::move(display);budget_=budget;begun_=written_=ready_=false;reason="players_plan_ready";return true;
   }catch(const std::exception &e){reason_=e.what();reason=reason_.c_str();return false;}catch(...){reason="players_plan_allocation";return false;}
 }
-bool ClientPlayers::Cancel() noexcept {if(begun_||written_)return false;plan_.reset();values_.clear();candidate_histories_.clear();return true;}
+bool ClientPlayers::Cancel() noexcept {if(begun_||written_)return false;plan_.reset();values_.clear();candidate_histories_.clear();candidate_display_.reset();budget_=applied_budget_;return true;}
 bool ClientPlayers::Configure(ClientPlayerAdapter adapter) noexcept {if(plan_||native_)return false;adapter_=std::move(adapter);return true;}
 bool ClientPlayers::BeginAttempt(std::uint64_t attempt) noexcept {if(!attempt||!plan_||written_)return false;attempt_=attempt;return true;}
 ClientObjectStep ClientPlayers::Structure(const ClientNativeRoots &roots) noexcept {
+  ClientEntityTestMeasure measure("player_structure_apply");
   if(!plan_)return {false,false,true,0,0,"players_plan_missing"};
   if(plan_->duplicate)return {true,false,false,0,0,"players_duplicate_no_native_write"};
   if(plan_->rebuild_scene)return {false,false,true,0,0,"players_scene_rebuild_required"};
@@ -67,17 +73,33 @@ ClientObjectStep ClientPlayers::Structure(const ClientNativeRoots &roots) noexce
   auto step=ClientNativePlayersStructure(native_);written_|=step.written;step.written=written_;return step;
 }
 ClientObjectStep ClientPlayers::Finish(const ClientEntityOwners &entities,bool finish) noexcept {
+  ClientEntityTestMeasure measure("player_links_check");
   if(plan_&&plan_->duplicate){ready_=true;return {true,false,false,0,0,"players_duplicate_no_native_write"};}
   auto step=ClientNativePlayersFinish(native_,entities,finish);written_|=step.written;step.written=written_;ready_=step.done&&!step.failed;return step;
 }
 bool ClientPlayers::Commit(std::uint64_t attempt) noexcept {
-  if(!plan_||attempt!=attempt_||!ready_||!ClientNativePlayersCommit(native_,plan_->target->revision))return false;
-  applied_=plan_->target;histories_.swap(candidate_histories_);candidate_histories_.clear();plan_.reset();begun_=written_=false;return true;
+  if(!plan_||attempt!=attempt_||!ready_||!candidate_display_||!plan_->target->native_source_complete||
+      !ClientNativePlayersCommit(native_,plan_->target->revision))return false;
+  applied_=plan_->target;display_=std::move(candidate_display_);applied_budget_=budget_;histories_.swap(candidate_histories_);candidate_histories_.clear();plan_.reset();begun_=written_=false;return true;
+}
+// 所有Player先撤边，非Player才能释放；不能把清理延后到非Player地址已退休之后。
+ClientObjectStep ClientPlayers::Unlink(const ClientNativeRoots &roots) noexcept {
+  display_.reset();candidate_display_.reset();histories_.clear();candidate_histories_.clear();ready_=false;
+  return ClientNativePlayersUnlink(native_,roots);
 }
 ClientObjectStep ClientPlayers::Retire(const ClientNativeRoots &roots) noexcept {
+  ClientEntityTestMeasure measure("player_retire");
+  display_.reset();candidate_display_.reset();
   histories_.clear();candidate_histories_.clear();
   auto step=ClientNativePlayersRetire(native_,roots);if(!step.done)return step;
-  ClientNativePlayersDestroy(native_);native_=nullptr;plan_.reset();applied_.reset();values_.clear();backups_={};attempt_=0;begun_=written_=ready_=false;return step;
+  ClientNativePlayersDestroy(native_);native_=nullptr;plan_.reset();applied_.reset();values_.clear();backups_={};budget_={};attempt_=0;begun_=written_=ready_=false;return step;
+}
+std::shared_ptr<const ClientPlayerDisplayView> ClientPlayers::Display() const noexcept {
+  return applied_&&!written_?display_:nullptr;
+}
+bool ClientPlayers::Committed(const replica::Scope &scope,std::uint64_t revision) const noexcept {
+  return applied_&&!written_&&display_&&applied_->native_source_complete&&
+      applied_->scope==scope&&applied_->revision==revision&&display_->scope==scope&&display_->revision==revision;
 }
 ClientEntityOwners ClientPlayers::Owner() noexcept {return ClientNativePlayersOwner(native_);}
 bool ClientPlayers::Visit(void *context,ClientObjectVisitor visitor) const noexcept {return ClientNativePlayersVisit(native_,context,visitor);}

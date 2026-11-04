@@ -1,4 +1,5 @@
 #include "game/client_player_equipment_native.h"
+#include "game/client_entity_e2e.h"
 #include "LuaCore.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/bridge.h"
@@ -61,7 +62,7 @@ bool Costumes(ClientPlayerEquipmentOwner &owner,Entity_Player &p,const ClientPla
   if(!Layers(p,s,false))return false;return ReleaseCostumes(owner.displaced,reason);}
 }
 // 正式补充与公开只读Getter属于同一ordinary/use，未知来源不伪装空效果或空武器。
-int ClientPlayerEquipmentCaptureLua(lua_State *L){const auto top=lua_gettop(L);auto *p=lua::GetLuabridgeUserdata<Entity_Player *>(L,1,lua::Metatables::ENTITY_PLAYER,"EntityPlayer");const auto subject=ObservationSubject(p,false);bool failed=false;
+int ClientPlayerEquipmentCaptureLua(lua_State *L){const auto started=ClientEntityTestClock();const auto top=lua_gettop(L);auto *p=lua::GetLuabridgeUserdata<Entity_Player *>(L,1,lua::Metatables::ENTITY_PLAYER,"EntityPlayer");const auto subject=ObservationSubject(p,false);bool failed=false;
   lua_newtable(L);Integer(L,"version",1);lua_pushliteral(L,"same-ordinary-window");lua_setfield(L,-2,"scope");
   if(!IsMain()||!p||subject.status!=1||subject.readiness<2){lua_pushliteral(L,"NotCaptured");lua_setfield(L,-2,"status");return 1;}
   try {auto &effects=p->_temporaryeffects;if(effects._effects.size()>Limit)throw std::runtime_error("player_effect_budget");
@@ -72,7 +73,7 @@ int ClientPlayerEquipmentCaptureLua(lua_State *L){const auto top=lua_gettop(L);a
     if(p->_headAnim.size()>2048)throw std::runtime_error("player_head_animation_budget");std::string head_hex;head_hex.reserve(p->_headAnim.size()*2);const char *digits="0123456789abcdef";
     for(unsigned char c:p->_headAnim){head_hex.push_back(digits[c>>4]);head_hex.push_back(digits[c&15]);}lua_pushlstring(L,head_hex.data(),head_hex.size());lua_setfield(L,-2,"head_animation_hex");
     ClientPlayerWeaponsCaptureLua(L,*p);lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");
-  }catch(...){failed=true;}if(failed){lua_settop(L,top);return luaL_error(L,"player_equipment_capture_failed");}return 1;
+  }catch(...){failed=true;}ClientEntityTestTime("player_source_equipment",ClientEntityTestClock()-started);if(failed){lua_settop(L,top);return luaL_error(L,"player_equipment_capture_failed");}return 1;
 }
 ClientPlayerEquipmentOwner *ClientPlayerEquipmentCreate() noexcept {return IsMain()?new(std::nothrow) ClientPlayerEquipmentOwner:nullptr;}
 void ClientPlayerEquipmentDestroy(ClientPlayerEquipmentOwner *o) noexcept {if(!o||!IsMain()||o->fault||o->candidate.first||o->displaced.first)return;for(const auto &w:o->weapons)if(w.pointer||w.create_entered||w.uncertain)return;delete o;}
