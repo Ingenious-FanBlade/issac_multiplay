@@ -42,6 +42,8 @@ local function snapshot(e,ctx,class)
     local resources=native().EntityApplicationSprites(e,class)
     out.body.application_draw=nativeValue(resources.draw or missing(resources.status,"draw_inputs_missing"),ctx)
     if class=="EntityPlayer" then
+      out.body.application_player_state=nativeValue(native().PlayerApplicationState(e:ToPlayer()),ctx)
+      if out.body.application_player_state.status~="Value" then fail(ctx,"player_application_state:"..out.body.application_player_state.status) end
       out.body.application_player_draw=nativeValue(resources.player_draw or missing(resources.status,"player_draw_inputs_missing"),ctx)
       out.body.application_player_resources={version=1,status=resources.status}
       if resources.status=="Value" then

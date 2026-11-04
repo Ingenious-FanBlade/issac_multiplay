@@ -1,5 +1,6 @@
 #include "game/client_players.h"
 #include "game/client_entity_model.h"
+#include "game/client_player_state.h"
 #include <algorithm>
 
 namespace cs::game {
@@ -22,8 +23,12 @@ bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,
     for(const auto &body:plan->target->bodies){
       if(!body.native_membership_known)throw replica::ContractError("players:native_membership_unavailable");
       ClientPlayerDescription d;d.entity=ClientDescribeEntity(plan->target->entities->objects.at(body.entity_index),plan->dependencies,source,true);
+      d.state=ClientDescribePlayerState(plan->target->entities->objects.at(body.entity_index));
+      for(unsigned i=0;i<4;++i){const int slot=d.state->active[i].backup_slot;
+        d.active_backups[i]=slot<0?ClientObjectReference{true,true,{}}:Ref(plan->target->backup_slots[unsigned(slot)]);}
       if(d.entity.type!=1||!d.entity.seed)throw replica::ContractError("players:entity_shape_or_seed");
       d.player_type=body.player_type;d.membership_known=body.membership.known;d.ordinal=body.membership.ordinal;d.body_role=body.membership.body_role;
+      if(d.state->player_type!=d.player_type)throw replica::ContractError("players:final_state_role_conflict");
       d.active=body.membership.active;d.can_consume=body.membership.can_consume;d.control_session=body.membership.control_session;d.binding_revision=body.membership.binding_revision;
       d.participant=Key(body.membership.participant.key);d.group=Key(body.membership.group.key);
       d.room_member=body.room_member;d.render_member=body.render_member;d.update_member=body.update_member;d.native_valid=body.native_valid;

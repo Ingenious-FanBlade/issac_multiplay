@@ -12,6 +12,14 @@ SOURCE = ROOT / "mod/observation/isaac-cs-observation"
 CLASSES = PLAYER_RELATED | RESOURCE_CLASSES | {
     "Entity", "EntityPlayer", "PlayerManager", "ItemConfigItem", "ItemConfigCostume",
     "ItemConfigCard", "ItemConfigPillEffect", "EffectList", "PosVel", "BitSet128"}
+# I11—I15与生产端同表取成员；目录不因任务编号完成而把其它查询/资源标成已安装。
+STATE_FIELDS = set(re.findall(r'CS_PLAYER_FIELD\("([^"]+)"',
+    (ROOT / "mod/src/game/client_player_fields.inc").read_text(encoding="utf-8")))
+STATE_CONTAINERS = {"EntityPlayer." + name for name in (
+    "GetCollectiblesList", "GetVoidedCollectiblesList", "GetWispCollectiblesList", "GetSpoofedCollectiblesList",
+    "GetSmeltedTrinkets", "GetSmeltedTrinketDesc", "GetTrinket", "IsCollectibleBlocked", "IsTrinketBlocked",
+    "GetInnateCollectibleCount", "GetInnateTrinketCount", "GetInnateCollectibleGroup", "GetInnateTrinketGroup")}
+STATE_SLOTS = {"EntityPlayer.GetActiveItemDesc", "EntityPlayer.SecondaryActiveItem", "EntityPlayer.GetPocketItem", "EntityPlayer.QueuedItem"}
 # 每一族指向实际实施责任；未实施的安装明确保留 pending，不能自动当作已处理。
 FAMILIES = [
     (r"History", "P10", "I17", "R06", "E12"),
@@ -78,12 +86,21 @@ def generate():
                 "task": task, "research": research, "e2e": e2e,
                 "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct",
             }
+            if not authority and (m["id"] in STATE_FIELDS | STATE_CONTAINERS | STATE_SLOTS or owner in {"ActiveItemDesc", "PocketItem", "QueueItemData"}):
+                row = rows[key]
+                row.update(handling="I11-I15:typed-final-native-storage;no-gameplay-replay",
+                           consumer="ClientPlayers/ClientPlayerStateFields;HUD keeps original public query semantics",
+                           installation="application_player_state-v1;per-body native backing;local-config lookup;complete containers;role-NotApplicable is distinct",
+                           implementation="mod/src/game/client_player_model.cpp;mod/src/game/client_player_state_native.cpp;mod/src/game/client_player_fields.inc",
+                           implementation_status="implemented-final-value-slice;full-resource-role-weapon-adapter-still-required",
+                           cleanup="Player/official-Plus own containers;queue config borrow revoked before Free;no double destruction")
     research_path = ROOT / "docs/design/tx-04-20/player-native-contracts.json"
     return {"format": "isaac.cs.player.application-catalog", "version": 1,
             "target_contract": "player-target-v2", "source_contract": "player-source-v2",
             "projection_review": PLAYER_PROJECTION_REVIEW,
             "native_apply": False, "runtime_acceptance": "I39-not-run",
             "structure_implementation": {"plan": "mod/src/replica/player_plan.cpp", "owner": "mod/src/game/client_players.cpp", "native": "mod/src/game/client_players_native.cpp", "tasks": "I05-I10", "scope": "base-entity-initialized/role-uninitialized until named I11-I29 adapters;preflight rejects absent adapters", "scene_commit": "ClientScene only;native_apply remains false"},
+            "final_state_implementation": {"tasks": "I11-I15", "source": "application_player_state-v1;same-use ordinary-window;no addresses or headers", "model": "mod/src/game/client_player_model.cpp", "native": "mod/src/game/client_player_state_native.cpp", "fields": sorted(STATE_FIELDS), "inventory": "counts/voided/wisps/smelted/trinkets;official Plus blocked+all innate groups including legacy and temporary timers", "slots": "active4/pocket4/queue;PartialCharge=f32 despite ZHL int;EsauJr typed backup slot", "status": "implemented-slice;I39-not-run;native_apply=false"},
             "members": list(rows.values()),
             "native_members": [{"id": "NativePlayer." + ("blood_gush" if i == 10 else "held" if i == 11 else "inline_" + str(i)),
                                 "source": "world_layout:player_inline_sprite_first_offset+i*player_inline_sprite_stride",

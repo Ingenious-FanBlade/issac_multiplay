@@ -7,8 +7,12 @@ namespace cs::game {
 enum class ClientPlayerUse : unsigned { Structure=1, State=2, Relations=4, Draw=8 };
 // 供子owner按实际已进入前缀清理；Entered不等于正常返回，不能再次Init或Free。
 enum class ClientPlayerPrefix : unsigned { Raw=1,CtorEntered=2,Constructed=4,InitEntered=8,Initialized=16,State=32,Resources=64,Roster=128,Published=256,Linked=512,Checked=1024,FreeEntered=2048 };
+struct ClientPlayerState;
 struct ClientPlayerDescription final {
   ClientObjectDescription entity;
+  std::shared_ptr<const ClientPlayerState> state;
+  // Esau Jr VarData是槽号，不是地址；引用同T的四个备份槽，供I26角色adapter消费。
+  std::array<ClientObjectReference,4> active_backups{};
   ClientObjectKey participant{},group{};
   std::uint64_t control_session=0,binding_revision=0;
   int player_type=0,roster_index=-1;

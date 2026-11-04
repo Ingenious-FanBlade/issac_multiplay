@@ -58,6 +58,7 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
   if(entities->scope!=out->scope||entities->revision!=out->revision||entities->source!=At(At(model,"components"),"entity"))Error("entity","target_identity");out->entities=std::move(entities);
   const auto &component=At(At(model,"components"),"player"),&state=At(component,"state"),&src=At(state,"application_source");
   if(U(At(src,"version"))!=2||!Is(Find(src,"contract"),"player-source-v2")||!Is(Find(src,"target"),"REPENTOGON-1.1.3/J273")||!Is(Find(src,"pose_scope"),"same-ordinary-window"))Error("source","contract_version");
+  if(!Is(Find(src,"final_state"),"player-final-state-v1"))Error("source","final_state_v1_required");
   out->entity_capture=out->entities->capture;out->player_capture=Capture(component,out->revision);
   const auto &entity_capture=At(out->entities->source,"capture"),&player_capture=At(component,"capture");
   for(const char *k:{"outer","owner","mutation_before","mutation_after"})if(U(At(entity_capture,k))!=U(At(player_capture,k)))Error("capture","mixed_owner_token_or_mutation");
@@ -100,6 +101,9 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
     if(const auto *type=Find(field_values,"EntityPlayer.GetPlayerType");type&&!Find(*type,"status"))if(Small(Scalar(*type),40)!=unsigned(body.player_type))Error("body","player_type_conflict");
     body.missing.insert(body.missing.end(),entity.common.missing.begin(),entity.common.missing.end());body.missing.insert(body.missing.end(),fields.missing.begin(),fields.missing.end());
     const auto &resources=At(fields.value,"application_player_resources");if(U(At(resources,"version"))!=1)Error("player_resources","version");
+    const auto &final_state=At(fields.value,"application_player_state");
+    if(U(At(final_state,"version"))!=1||!Is(Find(final_state,"scope"),"same-ordinary-window"))Error("player_final_state","version_or_window");
+    Gaps(final_state,"application_player_state",body.missing);
     if(Is(Find(resources,"status"),"Value"))for(const char *name:{"inline_1","inline_2","inline_3","inline_4","inline_5","inline_6","inline_7","inline_8","inline_9","blood_gush","held","inline_12"})At(resources,name);Gaps(resources,"application_player_resources",body.missing);
     const auto &extension=At(fields.value,"application_player");if(U(At(extension,"version"))!=2||!Is(Find(extension,"contract"),"player-source-v2"))Error("body_source","contract_version");
     const auto &domains=At(extension,"slot_domains");
@@ -149,5 +153,5 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
 const Json &PlayerApplicationCatalog(){static const auto catalog=Parse(
 #include "player_application.inc"
 );return catalog;}
-Json PlayerCapabilities(){return Parse(R"({"id":"player-target-v2","source":"player-source-v2","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","participants":4,"group_bodies":64,"backup_slots":4,"active_slots":4,"pocket_slots":4,"weapon_slots":5,"native_apply":false,"structure_owner":"key/use/shape/role-qualified;roster-room-render-control-backup-separated","scope":"same-window Entity body+Player relations/History;owned typed values","legacy":"single ordinary Isaac profile remains separate","private_source":"named-consumer-writer-qualified;not blanket PlayerUpdate eligibility","runtime_acceptance":"I39-not-run"})");}
+Json PlayerCapabilities(){return Parse(R"({"id":"player-target-v2","source":"player-source-v2","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","participants":4,"group_bodies":64,"backup_slots":4,"active_slots":4,"pocket_slots":4,"weapon_slots":5,"final_state":"player-final-state-v1","final_state_tasks":"I11-I15:implemented;I39-not-run","native_apply":false,"structure_owner":"key/use/shape/role-qualified;roster-room-render-control-backup-separated","scope":"same-window Entity body+Player relations/History;owned typed values","legacy":"single ordinary Isaac profile remains separate","private_source":"named-consumer-writer-qualified;not blanket PlayerUpdate eligibility","runtime_acceptance":"I39-not-run"})");}
 } // namespace cs::replica

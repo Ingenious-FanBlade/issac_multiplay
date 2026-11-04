@@ -467,5 +467,72 @@
     ],
     "native_apply": false,
     "runtime_acceptance": "I39-not-run; no build/test/game launch in I05-I10"
+  },
+  "i11_i15_update": {
+    "date": "2026-11-04",
+    "status": "STATIC_REVIEWED_IMPLEMENTED_SLICE;I39_NOT_RUN",
+    "review": "one GPT-6 Luna max read-only research; main independently reread native registration/getters, AddCollectible writer and official Plus source",
+    "implementation": "docs/design/tx-04-20/tx-04-20-state-installation.md",
+    "source": "application_player_state-v1;same-use/same-ordinary-window;player-source-v2.final_state=player-final-state-v1",
+    "native_fields": "mod/src/game/client_player_fields.inc",
+    "contracts": [
+      {
+        "id": "active_item_pool",
+        "offset": "+0x1574+0x20*slot+4",
+        "kind": "i32 item-pool provenance",
+        "evidence": "AddCollectible VA0x758F00 store VA0x759864/RVA0x359864;LuaEntityPlayer.cpp:71-79",
+        "decision": "copy named final integer;not a pointer"
+      },
+      {
+        "id": "active_partial_charge",
+        "offset": "ActiveItemDesc+0x18",
+        "kind": "f32",
+        "evidence": "registration helper0x863B30 getter0x8A4510 setter0x8A4570",
+        "correction": "initial Luna i32 inference from ZHL rejected by main;preserve Wiki/native float"
+      },
+      {
+        "id": "pocket4",
+        "offset": "+0x1790+8*slot",
+        "kind": "i32 id/u32 type",
+        "evidence": "VA0x74D7F0",
+        "decision": "id0 retains actual stale type;active pocket id=ActiveSlot+1"
+      },
+      {
+        "id": "queued_item",
+        "offset": "+0x17B4",
+        "kind": "0x10 embedded QueueItemData",
+        "evidence": "VA0x84D340 registration0x84FDFA-0x84FE04;QueueItemData.zhl",
+        "decision": "local ItemConfig type/id borrow;ItemType.TRINKET=2;no QueueItem/Flush"
+      },
+      {
+        "id": "soul_blood_charge",
+        "offset": "+0x1D94/+0x1D98",
+        "kind": "i32",
+        "evidence": "normal getters0x6D85E0/0x6D85F0",
+        "correction": "initial effective naming rejected;effective are0x7C8E90/0x7C9100"
+      },
+      {
+        "id": "tear_flags_colors",
+        "offset": "+0x1480/+0x1490/+0x14BC",
+        "kind": "bits128/ColorMod/ColorMod",
+        "evidence": "VA0x84D340 Player property registration"
+      },
+      {
+        "id": "fire_delay",
+        "evidence": "get0x77BCD0/set0x77BD10",
+        "decision": "native Weapon[0]/[1]+0xC;I20 owns installation;no invented Player field"
+      },
+      {
+        "id": "esau_vardata",
+        "evidence": "VA0x7A3A40",
+        "decision": "item703 only;0 unassigned or1..4 one-based backup slot;typed same-T reference;no native manager slot write"
+      },
+      {
+        "id": "inventory_plus",
+        "evidence": "LuaEntityPlayer.cpp GetCollectiblesList/GetWispCollectiblesList/GetSmeltedTrinkets;ItemSpoofSystem.h;EntityPlus.cpp",
+        "decision": "complete counts/voided/wisps/smelted/trinkets;blocked+all innate groups/timers/caches;preserve native vtables and container ownership;Release v143/MD ABI size constraints"
+      }
+    ],
+    "remaining": "full TemporaryEffects/History/resources/costumes/roles/weapons/draw/retirement integration remains I16-I40;no runtime claim;native_apply=false"
   }
 }

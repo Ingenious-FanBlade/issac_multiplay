@@ -1,6 +1,7 @@
 #include "IsaacRepentance.h"
 #include "binding/world_layout.h"
 #include "game/client_players_native.h"
+#include "game/client_player_state.h"
 #include "game/client_entity_draw_native.h"
 #include "game/context.h"
 #include "game/bridge.h"
@@ -183,6 +184,7 @@ bool ClientNativePlayersBegin(ClientNativePlayers *o,const ClientNativeRoots &ro
         reason="players_identity_role_or_membership_conflict";return false;}
       for(auto name:{"sub_storage","twin_storage","backup_storage","replaced_storage"})if(!d.body_relations.count(name)){reason="players_storage_source_unavailable";return false;}
       if(!adapter.prepare(adapter.context,d,reason))return false;
+      if(!ClientPlayerStatePreflight(d,reason))return false;
       auto hit=o->entries.find(d.entity.key);if(hit!=o->entries.end()){
         const auto &before=hit->second.description;
         if(before.entity.shape_revision!=d.entity.shape_revision||before.player_type!=d.player_type||before.entity.variant!=d.entity.variant||before.entity.subtype!=d.entity.subtype||before.entity.seed!=d.entity.seed){reason="players_shape_requires_scene_rebuild";return false;}}}
@@ -224,7 +226,8 @@ ClientObjectStep ClientNativePlayersStructure(ClientNativePlayers *o) noexcept {
     }else if(o->preparation_cursor<o->desired.size()){
       // 先让全部Key拥有base结构，再安装身体子owner；装备关系仍等Entity/Grid全体就绪。
       const auto &d=o->desired[o->preparation_cursor];o->last_key=d.entity.key;auto &e=o->entries.at(d.entity.key);
-      if(d.state_changed){changed=true;e.prefix|=State;o->prefix|=State;ok=o->adapter.install(o->adapter.context,e.player,d,false,false,reason);}
+      if(!Current(*o,e)){ok=false;reason="players_state_use_changed";}
+      if(ok&&d.state_changed){changed=true;e.prefix|=State;o->prefix|=State;ok=ClientPlayerStateFields(e.player,d,false,reason)&&o->adapter.install(o->adapter.context,e.player,d,false,false,reason);}
       if(ok&&d.resources_changed){changed=true;e.prefix|=Resources;o->prefix|=Resources;ok=o->adapter.install(o->adapter.context,e.player,d,true,false,reason);}
       if(ok){e.ready|=unsigned(ClientPlayerUse::State);++o->preparation_cursor;}
     }else{
@@ -262,7 +265,8 @@ ClientObjectStep ClientNativePlayersFinish(ClientNativePlayers *o,const ClientEn
   try{
     if(o->finish_cursor<o->desired.size()){
       o->last_key=o->desired[o->finish_cursor].entity.key;auto &e=o->entries.at(o->last_key);e.prefix|=Linked;o->prefix|=Linked;
-      ok=Relations(*o,e,entities,false,false,reason)&&Relations(*o,e,entities,true,false,reason)&&o->adapter.install(o->adapter.context,e.player,e.description,false,true,reason)&&o->adapter.install(o->adapter.context,e.player,e.description,true,true,reason);
+      if(!Current(*o,e)){ok=false;reason="players_check_use_changed";}
+      else ok=Relations(*o,e,entities,false,false,reason)&&Relations(*o,e,entities,true,false,reason)&&ClientPlayerStateFields(e.player,e.description,true,reason)&&o->adapter.install(o->adapter.context,e.player,e.description,false,true,reason)&&o->adapter.install(o->adapter.context,e.player,e.description,true,true,reason);
       if(ok){e.prefix|=Checked;e.ready|=unsigned(ClientPlayerUse::Relations)|unsigned(ClientPlayerUse::Draw);++o->finish_cursor;}
     }else{o->ready=ValidateSets(*o,reason);ok=o->ready;}
   }catch(...){ok=false;reason="players_relations_exception_retained";}
@@ -312,7 +316,7 @@ ClientObjectStep ClientNativePlayersRetire(ClientNativePlayers *o,const ClientNa
       if(!next)done=true;else {auto &e=*next;o->last_key=e.description.entity.key;
         if(e.prefix&FreeEntered){ok=false;reason="players_free_prefix_uncertain_retained";}
         else if(!(e.prefix&CtorEntered)){reinterpret_cast<void (__cdecl *)(void *)>(Base+0x686bc9)(e.player);e.player=nullptr;e.retired=true;}
-        else if(!o->adapter.retire(o->adapter.context,e.player,e.description,e.prefix,reason))ok=false;
+        else if(!o->adapter.retire(o->adapter.context,e.player,e.description,e.prefix,reason)||!ClientPlayerStateRetire(e.player,reason))ok=false;
         else {auto &p=*e.player;const auto &layout=world::layout::LayoutConstants();Entity *sub=nullptr;std::memcpy(&sub,reinterpret_cast<unsigned char *>(&p)+layout.player_sub_storage_offset,4);
           if(sub||p._twinPlayer.GetReference()||p._backupPlayer||p._replacedPlayer||p._heldEntity||p._markedTarget||p._megaBlastLaser||p._playerHUD){ok=false;reason="players_retire_remaining_owned_or_borrowed_relationship";}
           for(auto *weapon:p._weapon)if(weapon){ok=false;reason="players_retire_weapon_owner_pending";}

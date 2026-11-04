@@ -67,9 +67,8 @@ ClientObjectDescription ClientDescribeEntity(const replica::EntityObjectTarget &
   for(const auto &r:dependencies)if(r.source==o.key){ClientEntityRelation relation;relation.member=r.member;relation.path=r.path;relation.contract=r.contract;
     relation.target=r.has_target?ClientObjectKey{r.target.run,r.target.id,r.target.space}:d.key;relation.expected=unsigned(r.expected);relation.kind=unsigned(r.kind);relation.is_null=r.is_null;
     relation.before_init=r.phase==replica::EntityDependencyPhase::BeforeInit;relation.value_only=r.phase==replica::EntityDependencyPhase::ValueOnly;d.relations.push_back(std::move(relation));}
-  if(o.category==replica::EntityCategory::Player){
-    // 20的结构owner不继承19单Isaac的心量/绘制前置；完整值仍在同一不可变payload中。
-    if(player_structure)return d;
+  // Player20继续下方完整公共解码；19普通Isaac保留原来的窄字段/绘制路径。
+  if(o.category==replica::EntityCategory::Player&&!player_structure){
     ClientDescribeEntityPlayerDraw(o,d);
     ClientEntityField frame;frame.member="Entity.FrameCount";frame.kind=ClientEntityValueKind::Integer;frame.integer=Integer<std::int64_t>(At(fields,"Entity.FrameCount"));
     if(frame.integer<INT32_MIN||frame.integer>INT32_MAX)Fail("Entity.FrameCount","i32");d.common_fields.push_back(std::move(frame));
@@ -113,6 +112,6 @@ ClientObjectDescription ClientDescribeEntity(const replica::EntityObjectTarget &
       case ClientEntityValueKind::Color:f.color=Color(v);break;
     }d.common_fields.push_back(std::move(f));
   }
-  ClientDescribeEntityClass(o,d);return d;
+  if(!player_structure)ClientDescribeEntityClass(o,d);return d;
 }
 } // namespace cs::game

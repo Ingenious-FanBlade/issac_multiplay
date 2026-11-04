@@ -1,3 +1,5 @@
+2026-11-04：tx-04-20 I11—I15已接入[玩家最终量／生命／资源／库存／槽及主审](tx-04-20/tx-04-20-state-installation.md)，含正式补源、纯值解码、原生安装／真实回读。未构建／测试／启动游戏；I16—I40继续，统一E2E仍在I39，完整native_apply保持false。
+
 2026-11-04：tx-04-20 I01—I10已接入[基础来源／目录](tx-04-20/tx-04-20-foundation.md)及[投影、身体计划、结构owner／集合／关系接口与必要逆向主审](tx-04-20/tx-04-20-structure.md)；正式合同升级v2，完整状态／资源／角色adapter缺席时写前拒绝。I11—I40待推进；未构建／测试／启动游戏，native_apply仍false，尚未声明完整原生Player应用。下方初版计划和历史状态保留。
 
 > **当前交付更新（2026-10-30）**：tx-04-09 输入能力与 tx-04-10 公共观测边界／Entity 已完成；[tx-04-10 实现与统一验收](observation-expansion/tx-04-10-implementation.md)最终 5/5 PASS。11—34 仍按本文规划，未因 Entity 观测完成而实现 Replica 或整局可玩产品。下文规划时点表述保留。
