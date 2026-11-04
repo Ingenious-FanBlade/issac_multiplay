@@ -534,5 +534,61 @@
       }
     ],
     "remaining": "full TemporaryEffects/History/resources/costumes/roles/weapons/draw/retirement integration remains I16-I40;no runtime claim;native_apply=false"
+  },
+  "equipment_implementation_i16_i20": {
+    "date": "2026-11-04",
+    "implementation": "docs/design/tx-04-20/tx-04-20-equipment-installation.md",
+    "source": "application_player_equipment-v1;same-ordinary-window;KnownCurrent/readiness>=2;named ctor/writer/consumer contract only",
+    "model": "mod/src/game/client_player_equipment_model.cpp",
+    "native": ["mod/src/game/client_player_equipment_native.cpp", "mod/src/game/client_player_weapon_native.cpp"],
+    "agent": "one GPT-6 Luna max read-only reverse agent;primary independently reviewed adopted code and official sources",
+    "effects": {
+      "evidence": ["TemporaryEffects.zhl", "TemporaryEffect.zhl", "VA0x90A090", "VA0x90A150", "VA0x90A1B0", "VA0x90A220"],
+      "layout": "cacheFlags u32+0;vector+4;evaluate bool+0x10;disabled bool+0x11;local Player owner+0x14",
+      "entries": "ordered local ItemConfig type/id,Count,Cooldown;not inventory or HasEffect bool",
+      "record_tail": "+0xC not a category;typed wrappers write0;unknown unexposed tail not transmitted or called a pointer-free field",
+      "forms": "15 real i32 counters0..14;sentinel15 excluded",
+      "decision": "exact final mask/vector/flags/forms;no Add/Remove/Evaluate/transform replay"
+    },
+    "history": {
+      "evidence": ["LuaHistory.cpp", "LuaHistoryItem.cpp", "VA0x71BFD0", "VA0x71C160", "VA0x71C410", "VA0x71C490"],
+      "decision": "native vector + mutation-disabled byte0xC;component-local ordered History;Scene-committed immutable body view;no sharing by equality",
+      "not_adopted": "+0x10 unknown;16 external inventoryHistoryIdx belong I27;Add/Remove also mutate indices and global HUD so never replay"
+    },
+    "resources": {
+      "source": "public Sprite/CostumeSpriteDesc/CostumeLayerMap plus 12 ctor-witnessed physical inline ANM from I03",
+      "decision": "main+13 distinct inline exact poses;headAnim independent bytes/std::string assignment;costume candidate constructs native ANM then publishes locally allocated vector;15 layer map;old ANM destructed once;never AddCostume",
+      "head_animation": "ctor0x74DC70;writer calls0x778E03/0x778E21/0x778E3F/0x778E5D inside0x773990 assign HeadLeft/Right/Up/Down;reader0x783680;primary corrected reverse-agent writer UNKNOWN;hex source/current-use;never copy24-byte SSO object",
+      "draw_boundary": "head/hand are actual physical resources/layers;private draw selectors and full admission I29;no invented HeadSprite or HandSprite"
+    },
+    "weapons": {
+      "factory": "VA0x9CADB0/RVA0x5CADB0 __fastcall(type ECX, owner EDX);current registered factory then virtual Init",
+      "init": "VA0x9C5200 virtual Reset then owner+4/type+0x30;fresh ctor initializes all owned EntityPtr to Null;no Fire/Update",
+      "base_size_correction": "ctor VA0x9C4EB0 writes+0x40;SDK sizeof(Weapon)=0x40 is not allocation size;use actual factory",
+      "scalar_policy": "public-base-only;gameplay-caches-authority-only;no blanket private byte reads or writes",
+      "charge_bar": "vslot7 VA0x9C5E80 or constant0 VA0x9C4E60;vslot8 constant0;inputs charge/max_delay/modifiers only;capture and real getter postcondition",
+      "retirement": "detach every concrete EntityPtr using SetReference(null),owner=null,real virtual Free(1),normal return then clear Player slot;per-slot generations and entered/uncertain prefixes",
+      "rejected": "Destroy helper VA0x9CADE0 invokes destructive ClearReferences;Clear Removes Entity19 objects;Urn stops sound22/23;base dtor VA0x9C4FC0 mutates nonnull Player/Familiar owner",
+      "type11_correction": "VA0x401E90 stores factory object0xBAE154;its vtable0xB31BBC creates Weapon_Bone VA0x9CB380;type11 is Notched Axe but actual dynamic Bone,not Deathmatch",
+      "types": [
+        {"type":1,"class":"Tears","vtable":"0xB31EA4","bytes":"0x50","refs":["0x8"],"main":null},
+        {"type":2,"class":"Brimstone","vtable":"0xB31DB4","bytes":"0x4C","refs":["0x8","0x48"],"main":"0x48"},
+        {"type":3,"class":"Laser","vtable":"0xB31AAC","bytes":"0x50","refs":["0x8","0x44"],"main":"0x44"},
+        {"type":4,"class":"Knife","vtable":"0xB31D64","bytes":"0x54","refs":["0x8","0x44","0x48","0x4C","0x50"],"main":"0x44"},
+        {"type":5,"class":"Bombs","vtable":"0xB31A64","bytes":"0x48","refs":["0x8","0x44"],"main":"0x44"},
+        {"type":6,"class":"Rockets","vtable":"0xB31E5C","bytes":"0x48","refs":["0x8","0x44"],"main":"0x44"},
+        {"type":7,"class":"MonstrosLung","vtable":"0xB31DFC","bytes":"0x44","refs":["0x8"],"main":null},
+        {"type":8,"class":"Ludovico","vtable":"0xB31A1C","bytes":"0x48","refs":["0x8","0x44"],"main":"0x44"},
+        {"type":9,"class":"TechX","vtable":"0xB31CD4","bytes":"0x44","refs":["0x8"],"main":null},
+        {"type":10,"class":"Bone","vtable":"0xB31D1C","bytes":"0x60","refs":["0x8","0x44","0x48","0x4C","0x50","0x54","0x58"],"main":"0x44"},
+        {"type":11,"class":"Bone/NotchedAxe","vtable":"0xB31D1C","bytes":"0x60","refs":["0x8","0x44","0x48","0x4C","0x50","0x54","0x58"],"main":"0x44"},
+        {"type":12,"class":"UrnOfSouls","vtable":"0xB31B6C","bytes":"0x54","refs":["0x8","0x4C","0x50"],"main":"0x4C"},
+        {"type":13,"class":"SpiritSword","vtable":"0xB31EEC","bytes":"0x50","refs":["0x8","0x44"],"main":"0x44"},
+        {"type":14,"class":"Fetus","vtable":"0xB31C1C","bytes":"0x44","refs":["0x8"],"main":null},
+        {"type":15,"class":"UmbilicalWhip","vtable":"0xB31BC4","bytes":"0x48","refs":["0x8","0x44"],"main":"0x44"}
+      ]
+    },
+    "remaining": "I21-I40 roles/full draw/HUD/global retirement/Scene capability and unified E2E remain;native_apply=false;native_source_complete=false",
+    "validation": "static source and primary IDA review only;no build/test/game launch;I39 not run"
   }
 }

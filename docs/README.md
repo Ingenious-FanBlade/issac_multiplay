@@ -253,3 +253,5 @@
 
 - tx-04-12 已完成：[房间身份/构建、进度、环境及楼层结构观测](design/observation-expansion/tx-04-12-implementation.md)及[206项特殊房间/Greed补全](design/observation-expansion/tx-04-12-supplement.md)，同tx统一E2E 7/7 PASS，实际覆盖与边界见结果。
 
+- tx-04-20 I16—I20：[效果、History、完整身体资源、costume与五槽武器安装及必要逆向主审](design/tx-04-20/tx-04-20-equipment-installation.md)。I21—I40继续推进；本轮未构建或测试，完整native_apply仍为false。
+

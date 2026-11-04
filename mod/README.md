@@ -111,3 +111,5 @@ tx-04-04 当时未实现 tick、A 输入、网络、虚拟设备、Join 调用�
 - tx-04-11：正式Grid全量观测、全部17派生接口、保存／资源／真实变化事件与v2 reader，见[实现及统一E2E结果](../docs/design/observation-expansion/tx-04-11-implementation.md)。默认关闭时不枚举世界；采集与录制独立。
 
 - tx-04-13：探索、全楼层离房保存容器、控制关系/非活动备份和玩家跨房历史，见[实现及统一E2E 5/5结果](../docs/design/observation-expansion/tx-04-13-implementation.md)。正式采集与录制分离；E2E复用不受影响的已完成项目，仅续测修复影响与剩余场景。
+
+- tx-04-20 I16—I20：`client_player_equipment_*`接入效果／变身、Player域History、主Sprite+13内嵌ANM、完整costume及type1..15五槽Weapon；原生工厂、EntityPtr和Free均按具名动态合同执行，见[实现与主审](../docs/design/tx-04-20/tx-04-20-equipment-installation.md)。本轮未构建、测试或启动游戏；完整角色／draw adapter和I39整体E2E仍待后续任务。

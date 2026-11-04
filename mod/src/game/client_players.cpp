@@ -1,6 +1,7 @@
 #include "game/client_players.h"
 #include "game/client_entity_model.h"
 #include "game/client_player_state.h"
+#include "game/client_player_equipment.h"
 #include <algorithm>
 
 namespace cs::game {
@@ -19,11 +20,14 @@ bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,
     auto plan=std::make_unique<replica::PlayerApplyPlan>(replica::PlanPlayerTarget(std::move(target),applied_));
     // 完整T的执行依赖后续状态/资源/角色模块；缺席在世界写前返回具名未支持原因。
     if(!adapter_.prepare||!adapter_.install||!adapter_.retire||!adapter_.relations){reason="players_state_resource_role_adapters_pending_I11_I29";return false;}
-    std::vector<ClientPlayerDescription> values;auto source=std::make_shared<const std::string>(replica::Text(plan->target->entities->source));
+    std::vector<ClientPlayerDescription> values;std::map<ClientObjectKey,std::shared_ptr<const ClientPlayerHistoryView>> histories;
+    auto source=std::make_shared<const std::string>(replica::Text(plan->target->entities->source));
+    const auto equipment=ClientDescribePlayerEquipment(*plan->target);
     for(const auto &body:plan->target->bodies){
       if(!body.native_membership_known)throw replica::ContractError("players:native_membership_unavailable");
       ClientPlayerDescription d;d.entity=ClientDescribeEntity(plan->target->entities->objects.at(body.entity_index),plan->dependencies,source,true);
       d.state=ClientDescribePlayerState(plan->target->entities->objects.at(body.entity_index));
+      d.equipment=equipment.at(d.entity.key);histories.emplace(d.entity.key,d.equipment->history);
       for(unsigned i=0;i<4;++i){const int slot=d.state->active[i].backup_slot;
         d.active_backups[i]=slot<0?ClientObjectReference{true,true,{}}:Ref(plan->target->backup_slots[unsigned(slot)]);}
       if(d.entity.type!=1||!d.entity.seed)throw replica::ContractError("players:entity_shape_or_seed");
@@ -40,10 +44,10 @@ bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,
       values.push_back(std::move(d));
     }
     std::array<ClientObjectReference,4> backups;for(unsigned i=0;i<4;++i)backups[i]=Ref(plan->target->backup_slots[i]);
-    plan_=std::move(plan);values_=std::move(values);backups_=backups;begun_=written_=ready_=false;reason="players_plan_ready";return true;
+    plan_=std::move(plan);values_=std::move(values);candidate_histories_=std::move(histories);backups_=backups;begun_=written_=ready_=false;reason="players_plan_ready";return true;
   }catch(const std::exception &e){reason_=e.what();reason=reason_.c_str();return false;}catch(...){reason="players_plan_allocation";return false;}
 }
-bool ClientPlayers::Cancel() noexcept {if(begun_||written_)return false;plan_.reset();values_.clear();return true;}
+bool ClientPlayers::Cancel() noexcept {if(begun_||written_)return false;plan_.reset();values_.clear();candidate_histories_.clear();return true;}
 bool ClientPlayers::Configure(ClientPlayerAdapter adapter) noexcept {if(plan_||native_)return false;adapter_=std::move(adapter);return true;}
 bool ClientPlayers::BeginAttempt(std::uint64_t attempt) noexcept {if(!attempt||!plan_||written_)return false;attempt_=attempt;return true;}
 ClientObjectStep ClientPlayers::Structure(const ClientNativeRoots &roots) noexcept {
@@ -61,12 +65,16 @@ ClientObjectStep ClientPlayers::Finish(const ClientEntityOwners &entities,bool f
 }
 bool ClientPlayers::Commit(std::uint64_t attempt) noexcept {
   if(!plan_||attempt!=attempt_||!ready_||!ClientNativePlayersCommit(native_,plan_->target->revision))return false;
-  applied_=plan_->target;plan_.reset();begun_=written_=false;return true;
+  applied_=plan_->target;histories_.swap(candidate_histories_);candidate_histories_.clear();plan_.reset();begun_=written_=false;return true;
 }
 ClientObjectStep ClientPlayers::Retire(const ClientNativeRoots &roots) noexcept {
+  histories_.clear();candidate_histories_.clear();
   auto step=ClientNativePlayersRetire(native_,roots);if(!step.done)return step;
   ClientNativePlayersDestroy(native_);native_=nullptr;plan_.reset();applied_.reset();values_.clear();backups_={};attempt_=0;begun_=written_=ready_=false;return step;
 }
 ClientEntityOwners ClientPlayers::Owner() noexcept {return ClientNativePlayersOwner(native_);}
 bool ClientPlayers::Visit(void *context,ClientObjectVisitor visitor) const noexcept {return ClientNativePlayersVisit(native_,context,visitor);}
+std::shared_ptr<const ClientPlayerHistoryView> ClientPlayers::History(const ClientObjectKey &key) const noexcept {
+  if(!applied_||written_)return {};const auto found=histories_.find(key);return found==histories_.end()?nullptr:found->second;
+}
 } // namespace cs::game

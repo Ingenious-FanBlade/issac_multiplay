@@ -44,6 +44,17 @@ local function snapshot(e,ctx,class)
     if class=="EntityPlayer" then
       out.body.application_player_state=nativeValue(native().PlayerApplicationState(e:ToPlayer()),ctx)
       if out.body.application_player_state.status~="Value" then fail(ctx,"player_application_state:"..out.body.application_player_state.status) end
+      local equipment=native().PlayerApplicationEquipment(e:ToPlayer())
+      if equipment.status=="Value" then
+        -- 原生补充只在本窗口借用；最终表只保留规范引用及精确姿态，空边逐名保留。
+        for _,weapon in ipairs(equipment.weapons) do if weapon.present then
+          local links={}
+          for _,name in ipairs(weapon.link_names) do links[name]=value(weapon.links[name],"Entity",ctx,1) end
+          weapon.links=links;weapon.link_names=nil
+          for name,sprite in pairs(weapon.sprites) do weapon.sprites[name]=sprite:GetFilename()=="" and missing("Null","native_weapon_anm_unloaded") or value(sprite,"Sprite",ctx,1) end
+        end end
+      else fail(ctx,"player_application_equipment:"..equipment.status) end
+      out.body.application_player_equipment=nativeValue(equipment,ctx)
       out.body.application_player_draw=nativeValue(resources.player_draw or missing(resources.status,"player_draw_inputs_missing"),ctx)
       out.body.application_player_resources={version=1,status=resources.status}
       if resources.status=="Value" then

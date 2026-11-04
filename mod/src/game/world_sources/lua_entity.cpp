@@ -22,6 +22,7 @@ int ClientEntityGeometryLua(lua_State *);
 int ClientEntityOwnedPresentationLua(lua_State *);
 int ClientEntityNpcPresentationLua(lua_State *);
 int ClientPlayerStateCaptureLua(lua_State *);
+int ClientPlayerEquipmentCaptureLua(lua_State *);
 namespace {
 lua_State *State() noexcept { return IsMain()&&g_LuaEngine ? g_LuaEngine->_state : nullptr; }
 void Decimal(lua_State *L,const char *key,std::uint64_t value) {
@@ -442,6 +443,7 @@ void EnsureObservationLuaBridge() noexcept {
   lua_pushcfunction(L,EntityApplicationSprites);lua_setfield(L,-2,"EntityApplicationSprites");
   lua_pushcfunction(L,PlayerApplicationMembership);lua_setfield(L,-2,"PlayerApplicationMembership");
   lua_pushcfunction(L,ClientPlayerStateCaptureLua);lua_setfield(L,-2,"PlayerApplicationState");
+  lua_pushcfunction(L,ClientPlayerEquipmentCaptureLua);lua_setfield(L,-2,"PlayerApplicationEquipment");
   lua_pushcfunction(L,ClientEntityGeometryLua);lua_setfield(L,-2,"EntityApplicationGeometry");
   lua_pushcfunction(L,ClientEntityOwnedPresentationLua);lua_setfield(L,-2,"EntityApplicationOwned");
   lua_pushcfunction(L,ClientEntityNpcPresentationLua);lua_setfield(L,-2,"EntityApplicationNpc");

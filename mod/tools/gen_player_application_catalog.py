@@ -20,6 +20,14 @@ STATE_CONTAINERS = {"EntityPlayer." + name for name in (
     "GetSmeltedTrinkets", "GetSmeltedTrinketDesc", "GetTrinket", "IsCollectibleBlocked", "IsTrinketBlocked",
     "GetInnateCollectibleCount", "GetInnateTrinketCount", "GetInnateCollectibleGroup", "GetInnateTrinketGroup")}
 STATE_SLOTS = {"EntityPlayer.GetActiveItemDesc", "EntityPlayer.SecondaryActiveItem", "EntityPlayer.GetPocketItem", "EntityPlayer.QueuedItem"}
+# 只把已经存在的具名安装器登记为实现；操作接口始终保持Authority-only。
+EQUIPMENT_MEMBERS = {
+    "EntityPlayer.GetEffects", "EntityPlayer.HasPlayerForm", "EntityPlayer.GetPlayerFormCounter",
+    "EntityPlayer.GetHistory", "History.GetCollectiblesHistory", "EntityPlayer.GetBodySprite",
+    "EntityPlayer.GetHeldSprite", "EntityPlayer.GetCostumeSpriteDescs", "EntityPlayer.GetCostumeLayerMap",
+    "EntityPlayer.GetWeapon", "EntityPlayer.FireDelay",
+}
+EQUIPMENT_OWNERS = {"TemporaryEffect", "HistoryItem", "CostumeSpriteDesc", "Weapon"}
 # 每一族指向实际实施责任；未实施的安装明确保留 pending，不能自动当作已处理。
 FAMILIES = [
     (r"History", "P10", "I17", "R06", "E12"),
@@ -94,6 +102,14 @@ def generate():
                            implementation="mod/src/game/client_player_model.cpp;mod/src/game/client_player_state_native.cpp;mod/src/game/client_player_fields.inc",
                            implementation_status="implemented-final-value-slice;full-resource-role-weapon-adapter-still-required",
                            cleanup="Player/official-Plus own containers;queue config borrow revoked before Free;no double destruction")
+            if not authority and (m["id"] in EQUIPMENT_MEMBERS or owner in EQUIPMENT_OWNERS):
+                rows[key].update(
+                    handling="I16-I20:typed-body-equipment;public-query-and-native-storage-semantics-kept-distinct",
+                    consumer="ClientPlayers/ClientPlayerEquipment;History exposes committed immutable body view",
+                    installation="application_player_equipment-v1;effects/forms;Player-domain History;main+13-inline poses;costume vector/map;five typed Weapon owners",
+                    implementation="mod/src/game/client_player_equipment_model.cpp;mod/src/game/client_player_equipment_native.cpp;mod/src/game/client_player_weapon_native.cpp",
+                    implementation_status="implemented-equipment-slice;remaining-role-draw-adapter-I21-I29;I39-not-run",
+                    cleanup="unlink actual EntityPtr slots and weapon owner before virtual Free;costume ANM/native Player each destroyed once;unknown prefixes retained")
     research_path = ROOT / "docs/design/tx-04-20/player-native-contracts.json"
     return {"format": "isaac.cs.player.application-catalog", "version": 1,
             "target_contract": "player-target-v2", "source_contract": "player-source-v2",
@@ -101,6 +117,7 @@ def generate():
             "native_apply": False, "runtime_acceptance": "I39-not-run",
             "structure_implementation": {"plan": "mod/src/replica/player_plan.cpp", "owner": "mod/src/game/client_players.cpp", "native": "mod/src/game/client_players_native.cpp", "tasks": "I05-I10", "scope": "base-entity-initialized/role-uninitialized until named I11-I29 adapters;preflight rejects absent adapters", "scene_commit": "ClientScene only;native_apply remains false"},
             "final_state_implementation": {"tasks": "I11-I15", "source": "application_player_state-v1;same-use ordinary-window;no addresses or headers", "model": "mod/src/game/client_player_model.cpp", "native": "mod/src/game/client_player_state_native.cpp", "fields": sorted(STATE_FIELDS), "inventory": "counts/voided/wisps/smelted/trinkets;official Plus blocked+all innate groups including legacy and temporary timers", "slots": "active4/pocket4/queue;PartialCharge=f32 despite ZHL int;EsauJr typed backup slot", "status": "implemented-slice;I39-not-run;native_apply=false"},
+            "equipment_implementation": {"tasks": "I16-I20", "source": "application_player_equipment-v1;current-use ordinary window;public Sprite/Costume/Weapon and independent Player History component graph", "model": "mod/src/game/client_player_equipment_model.cpp", "native": "mod/src/game/client_player_equipment_native.cpp;mod/src/game/client_player_weapon_native.cpp", "effects": "ordered local-config/count/cooldown;cacheFlags/disabled/evaluate;15 form counters;no Add/Remove/EvaluateItems", "history": "ordered native vector plus Scene-committed immutable per-body HUD view;no equality-based sharing inference", "resources": "main and 13 physical inline ANM;complete exact pose;headAnim bytes/string assignment from named 773990 writer;ordered costume vector and 15 layer map;empty clears old", "weapons": "five explicit slots;types1..15;actual dynamic vtables;per-slot generations;EntityPtr links;detach owner before native Free;no Fire/Update/ClearReferences replay", "status": "implemented-slice;I21-I40-pending;I39-not-run;native_apply=false"},
             "members": list(rows.values()),
             "native_members": [{"id": "NativePlayer." + ("blood_gush" if i == 10 else "held" if i == 11 else "inline_" + str(i)),
                                 "source": "world_layout:player_inline_sprite_first_offset+i*player_inline_sprite_stride",
@@ -110,7 +127,7 @@ def generate():
                                 "source_lifetime": "current entity ordinary window;revoke on use/owner loss",
                                 "sharing": "independent-physical-member;no-filename-alias", "same_window": "entity+player",
                                 "source_implementation": "mod/src/game/world_sources/lua_entity.cpp:EntityApplicationSprites",
-                                "consumer": "ClientPlayers resource owner;I18/I19/I29", "installation": "pending-named-native-resource-owner",
+                                "consumer": "ClientPlayerEquipmentResources;I18/I19/I29", "installation": "implemented-independent-exact-pose;native-Player-owns-ANM;draw-admission-remains-I29",
                                 "cleanup": "I33;native-Player owns embedded-ANM;do-not-free-borrow", "research": "R07/R13/R15",
                                 "e2e": "E13/E20/E23", "runtime_status": "I39-not-run"} for i in range(1, 13)],
             "structures": [

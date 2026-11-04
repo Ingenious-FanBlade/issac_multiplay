@@ -8,9 +8,11 @@ enum class ClientPlayerUse : unsigned { Structure=1, State=2, Relations=4, Draw=
 // 供子owner按实际已进入前缀清理；Entered不等于正常返回，不能再次Init或Free。
 enum class ClientPlayerPrefix : unsigned { Raw=1,CtorEntered=2,Constructed=4,InitEntered=8,Initialized=16,State=32,Resources=64,Roster=128,Published=256,Linked=512,Checked=1024,FreeEntered=2048 };
 struct ClientPlayerState;
+struct ClientPlayerEquipment;
 struct ClientPlayerDescription final {
   ClientObjectDescription entity;
   std::shared_ptr<const ClientPlayerState> state;
+  std::shared_ptr<const ClientPlayerEquipment> equipment;
   // Esau Jr VarData是槽号，不是地址；引用同T的四个备份槽，供I26角色adapter消费。
   std::array<ClientObjectReference,4> active_backups{};
   ClientObjectKey participant{},group{};
@@ -22,7 +24,8 @@ struct ClientPlayerDescription final {
   bool state_changed=true,resources_changed=true;
   std::map<std::string,ClientObjectReference> body_relations;
 };
-// I11以后的具名状态/资源安装器使用同一owner；缺adapter不提升draw-ready或Scene提交。
+// I11—I20的状态/资源子owner由公共执行器管理；角色/draw adapter不重复释放这些Weapon/ANM。
+// 缺完整adapter不提升draw-ready或Scene提交。
 struct ClientPlayerAdapter final {
   void *context=nullptr;
   bool (*prepare)(void *,const ClientPlayerDescription &,const char *&) noexcept=nullptr;

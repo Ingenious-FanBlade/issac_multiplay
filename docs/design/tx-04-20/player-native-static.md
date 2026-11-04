@@ -2,6 +2,8 @@
 
 日期：2026-11-04。目标：官方 REPENTOGON 1.1.3 / `v1.9.7.12.J273`。本记录只含公开资料静态确认、已有 09/13/17/19 事实复用和必要 IDA 静态观察；没有启动游戏、构建、测试、哈希校验或 patch。未知调用不因结构声明、成功的单次运行或同名 Getter 而升级为已核定。
 
+I16—I20补充采用及主审见[装备／资源安装](tx-04-20-equipment-installation.md)：TemporaryEffects首字cache mask、History mutation-disabled／索引副作用、costume真实ANM owner、15类五槽Weapon工厂／全部EntityPtr／chargebar／窄Free。下文保留I04当时的未知；已补证项按该补充及机器索引解释，不能把未采用的玩法缓存或I21—I40误记完成。
+
 ## 0. 证据口径与共同边界
 
 - `PUBLIC`：本地原版 Wiki `F:/projects_isaac/IsaacDocs/docs`；官方 REPENTOGON 1.1.3 Wiki、wrapper、ZHL/SDK `F:/projects_isaac/REPENTOGON-1.1.3`。wrapper 说明 Getter 实际取值与拷贝/借用方式；ZHL 的成员布局本身只说明布局，不证明字段当前可读或资源已加载。

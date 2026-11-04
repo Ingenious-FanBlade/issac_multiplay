@@ -95,6 +95,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/client_entity_model.cpp src/game/client_entity_common_native.cpp
   src/game/client_players.cpp src/game/client_players_native.cpp
   src/game/client_player_model.cpp src/game/client_player_state_native.cpp
+  src/game/client_player_equipment_model.cpp src/game/client_player_equipment_native.cpp src/game/client_player_weapon_native.cpp
   src/game/client_entity_class_model.cpp src/game/client_entity_adapters_native.cpp
   src/game/client_entity_collections_native.cpp
   src/game/client_entity_owned_native.cpp
@@ -129,6 +130,7 @@ file(GENERATE OUTPUT "${ISAACCS_DLL_OUTPUT}/build-flavor.json"
 set_source_files_properties(src/game/world_sources/loot.cpp src/game/world_sources/lua_entity.cpp src/game/player_api.cpp src/game/client_native_bridge.cpp src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp"
   src/game/client_players_native.cpp
   src/game/client_player_state_native.cpp
+  src/game/client_player_equipment_native.cpp src/game/client_player_weapon_native.cpp
   src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_backdrop_native.cpp src/game/client_objects_native.cpp src/game/client_presentation_native.cpp src/game/client_resources_native.cpp
   src/game/client_entity_common_native.cpp src/game/client_resource_shaders_native.cpp src/game/client_entity_adapters_native.cpp src/game/client_entity_collections_native.cpp
   src/game/client_entity_owned_native.cpp

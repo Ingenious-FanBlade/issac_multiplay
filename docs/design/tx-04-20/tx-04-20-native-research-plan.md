@@ -2,6 +2,8 @@
 
 日期：2026-11-04。当前状态：**R01—R16已形成采用／否决合同和具体未闭合分支**，见[静态研究及必要逆向](player-native-static.md)、[机器索引](player-native-contracts.json)和[主智能体独立复读](tx-04-20-foundation.md)。研究不表示全部角色／Weapon／私有draw／清理闭包已成立，未闭合调用不得采用，具体工作随对应adapter继续。没有构建、测试或启动游戏。
 
+I16—I20的R06／R07／R08补证、主审修正及本轮采用范围见[装备／资源安装](tx-04-20-equipment-installation.md)；尤其type11实际复用Bone类，ClearReferences／Destroy helper不能当作无副作用退休，私有玩法缓存与当前draw／HUD输入分别处置。
+
 初版规划事实保留：当时只读取已有项目材料、源码和本地Wiki来编写下列任务，未登记新增静态结论或运行结果。与[主实施计划](tx-04-20-implementation-plan.md)、[状态／角色／武器清单](tx-04-20-player-application.md)共同使用。
 
 ## 1. 方法、资料和统一产出

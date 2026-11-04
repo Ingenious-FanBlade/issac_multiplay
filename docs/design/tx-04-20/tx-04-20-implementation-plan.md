@@ -1,6 +1,6 @@
 # tx-04-20：四参与者、多身体 Player 客户端应用具体实现计划
 
-日期：2026-11-04。当前进度：**I01—I15目录、结构owner与公共／生命／资源／库存／槽最终量已接入**，见[基础实现与主审](tx-04-20-foundation.md)、[I05—I10结构实现与必要逆向主审](tx-04-20-structure.md)、[逐签名应用目录](player-application.json)、[R01—R16研究结果](player-native-static.md)。I11—I15实现见[最终量安装及必要逆向主审](tx-04-20-state-installation.md)；I16—I40待推进。本轮未构建、测试或启动游戏。缺完整最终量／资源／角色adapter时写前明确拒绝，native_apply仍为false，不声明完整原生Player已应用。未闭合私有writer／角色／武器／清理分支随具名adapter采用时补证，不能由结构合同外推支持。
+日期：2026-11-04。当前进度：**I01—I20目录、结构owner、最终量、效果／History／完整资源／costume／五槽武器已接入**，见[基础实现与主审](tx-04-20-foundation.md)、[I05—I10结构实现与必要逆向主审](tx-04-20-structure.md)、[逐签名应用目录](player-application.json)、[R01—R16研究结果](player-native-static.md)。I11—I15实现见[最终量安装](tx-04-20-state-installation.md)，I16—I20见[装备／资源安装及必要逆向主审](tx-04-20-equipment-installation.md)；I21—I40待推进。本轮未构建、测试或启动游戏。缺完整角色／draw adapter时写前明确拒绝，native_apply仍为false，不声明完整原生Player已应用。未闭合私有writer／角色／清理分支随具名adapter采用时补证，不能由结构合同外推支持。
 
 初版规划事实（同日，保留）：当时仅编写文档、阅读现有代码及本地资料，I01—I40均待实施，无新增逆向结果／运行代码／构建／测试。下文“应”“完成表现”继续表示完整实施要求，不自动表示已完成。
 
@@ -105,11 +105,11 @@ I01—I04当前交付见上方实现说明；下表保留完整任务内容。�
 | I13 | 已接入资源、魂／血充能及角色计数；不适用成员显式NotApplicable | I11，R04、R12 | E09、E16 |
 | I14 | 已接入counts／voided／wisp／熔炼／饰品和官方Plus完整blocked／innate容器 | I03、I08，R05 | E10、E16 |
 | I15 | 已接入四主动／四口袋／queued本地配置、全部充能／item_pool及Esau槽关联 | I14，R05 | E11、E16 |
-| I16 | TemporaryEffects 与变身最终值 | I14，R06 | E12、E16 |
-| I17 | History、共享和每身体独立状态 | I09—I16，R03、R06 | E05—E08、E12 |
-| I18 | 主／身体／头／手等完整资源姿态 | I03、I08，R07 | E13、E20 |
-| I19 | costume 容器与动态换装 | I14、I16、I18，R07 | E13、E16 |
-| I20 | 全武器类型与关联 Entity | I10、I15、I18，R08 | E14、E15、E18 |
+| I16 | 已接入有序效果／计数／时限、CacheFlag mask及15变身计数 | I14，R06 | E12、E16；I39未运行 |
+| I17 | 已接入每身体History、mutation-disabled及提交后不可变视图；不由控制组推断共享 | I09—I16，R03、R06 | E05—E08、E12；I39未运行 |
+| I18 | 已接入主Sprite及13真实内嵌ANM的完整精确姿态；完整draw归I29 | I03、I08，R07 | E13、E20；I39未运行 |
+| I19 | 已接入完整costume描述／候选换装／15层map及实际ANM清理 | I14、I16、I18，R07 | E13、E16；I39未运行 |
+| I20 | 已接入五槽及type1..15真实动态工厂／最终值／chargebar／全部具名EntityPtr与退休；11实际为Bone类 | I10、I15、I18，R08 | E14、E15、E18；I39未运行 |
 | I21 | 举持、投掷结果和复合依赖 | I10、I18、I20，R09 | E18 |
 | I22 | 普通角色和最终形态注册 | I11—I20，C01—C05 | E03、E16 |
 | I23 | Jacob／Esau 多组双身体 | I09—I20，R10 | E04、E05 |

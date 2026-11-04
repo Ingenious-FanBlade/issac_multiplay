@@ -3,6 +3,7 @@
 #include "replica/player_plan.h"
 
 namespace cs::game {
+struct ClientPlayerHistoryView;
 // 与ClientObjects共享T和唯一Scene提交；installed仅是候选，不能作为后续差分A。
 class ClientPlayers final {
 public:
@@ -22,10 +23,13 @@ public:
   bool Configure(ClientPlayerAdapter) noexcept;
   ClientEntityOwners Owner() noexcept;
   bool Visit(void *,ClientObjectVisitor) const noexcept;
+  // 主线程只读取得最后Scene提交的身体历史；候选、取消或退休不污染HUD视图。
+  std::shared_ptr<const ClientPlayerHistoryView> History(const ClientObjectKey &) const noexcept;
 private:
   std::unique_ptr<replica::PlayerApplyPlan> plan_;
   std::shared_ptr<const replica::PlayerTarget> applied_;
   std::vector<ClientPlayerDescription> values_;
+  std::map<ClientObjectKey,std::shared_ptr<const ClientPlayerHistoryView>> histories_,candidate_histories_;
   std::array<ClientObjectReference,4> backups_{};
   ClientPlayerAdapter adapter_{};
   ClientNativePlayers *native_=nullptr;

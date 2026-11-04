@@ -40,7 +40,7 @@ bool ShapeFieldsDiffer(const PlayerTarget &a,const PlayerBodyTarget &x,const Pla
   for(auto name:{"Entity.Type","Entity.Variant","Entity.SubType","Entity.InitSeed"})if(af[name]!=tf[name])return true;return false;
 }
 // 子owner保留完整原始值及整组件图；节点号仅作组件内寻址，不能充当原生owner身份。
-void Children(PlayerApplyPlan &p,const PlayerBodyTarget *a,const PlayerBodyTarget *t,const Graph &ag,const Graph &tg){
+void Children(PlayerApplyPlan &p,const PlayerBodyTarget *a,const PlayerBodyTarget *t,const Graph &ag,const Graph &tg,const Graph &ap,const Graph &tp){
   const auto key=t?t->key:a->key;
   const std::pair<PlayerChildKind,std::vector<const char *>> groups[]={
     {PlayerChildKind::Inventory,{"EntityPlayer.GetCollectiblesList","EntityPlayer.GetVoidedCollectiblesList","EntityPlayer.GetWispCollectiblesList","EntityPlayer.GetSpoofedCollectiblesList","EntityPlayer.GetSmeltedTrinkets","EntityPlayer.GetTrinket"}},
@@ -51,9 +51,10 @@ void Children(PlayerApplyPlan &p,const PlayerBodyTarget *a,const PlayerBodyTarge
     {PlayerChildKind::Weapon,{"EntityPlayer.GetWeapon","EntityPlayer.GetWeaponModifiers","EntityPlayer.GetActiveWeaponEntity"}},
     {PlayerChildKind::History,{}}};
   for(const auto &[kind,members]:groups){bool changed=!a||!t;
-    if(!changed&&kind==PlayerChildKind::History)changed=a->history!=t->history||p.applied->source!=p.target->source; // History图独立归Player组件，保守保持完整图失效。
+    if(!changed&&kind==PlayerChildKind::History)changed=!Same(a->history,t->history,ap,tp);
     if(!changed){const auto &x=Fields(*p.applied,*a)["fields"],&y=Fields(*p.target,*t)["fields"];
       for(auto name:members){const bool has=x.HasMember(name),next=y.HasMember(name);if(has!=next||(has&&!Same(x[name],y[name],ag,tg))){changed=true;break;}}}
+    if(!changed&&(kind==PlayerChildKind::Effects||kind==PlayerChildKind::Weapon))changed=!MemberSame(Fields(*p.applied,*a),Fields(*p.target,*t),"application_player_equipment",ag,tg);
     if(changed)p.children.push_back({key,kind,!a,!t,true});
   }
 }
@@ -63,7 +64,7 @@ PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget> t,std::shar
   PlayerApplyPlan p;p.target=std::move(t);p.applied=std::move(a);const auto desired=Index(*p.target);
   std::map<SubjectKey,unsigned> old;
   std::set<SubjectKey> replacements;
-  Graph ag,tg;Nodes(p.target->entities->source,tg);if(p.applied)Nodes(p.applied->entities->source,ag);
+  Graph ag,tg,ap,tp;Nodes(p.target->entities->source,tg);Nodes(p.target->source,tp);if(p.applied){Nodes(p.applied->entities->source,ag);Nodes(p.applied->source,ap);}
   if(p.applied){
     if(p.target->scope!=p.applied->scope)Fail("scope_change_requires_scene_retirement");
     if(p.target->revision<p.applied->revision)Fail("stale_revision");
@@ -82,7 +83,7 @@ PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget> t,std::shar
       if(replace)replacements.insert(key);
     }
     // 当前逐角色原位换形和递归删除合同尚归I22—I28；显式整场景重建，不能当作setter。
-    if(next==desired.end()||replace){p.rebuild_scene=true;p.steps.push_back({PlayerAction::Unlink,key,i,true});p.steps.push_back({PlayerAction::Remove,key,i,true});Children(p,&before,nullptr,ag,tg);}
+    if(next==desired.end()||replace){p.rebuild_scene=true;p.steps.push_back({PlayerAction::Unlink,key,i,true});p.steps.push_back({PlayerAction::Remove,key,i,true});Children(p,&before,nullptr,ag,tg,ap,tp);}
   }
   for(const auto &[key,i]:desired){const auto &body=p.target->bodies[i];const auto prev=old.find(key);
     const auto *before=prev==old.end()?nullptr:&p.applied->bodies[prev->second];
@@ -91,10 +92,14 @@ PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget> t,std::shar
     change.membership=create||before->in_public_roster!=body.in_public_roster||before->room_member!=body.room_member||before->render_member!=body.render_member||before->update_member!=body.update_member||before->source["relations"]["membership"]!=body.source["relations"]["membership"];
     if(!create)for(auto name:{"roster","backup_slots","control_groups"})change.membership|=p.applied->source["state"][name]!=p.target->source["state"][name];
     change.state=create||!Same(p.applied->entities->objects[before->entity_index].common.value,p.target->entities->objects[body.entity_index].common.value,ag,tg)||!Same(Fields(*p.applied,*before),Fields(*p.target,body),ag,tg);
+    if(!create)change.state|=!Same(before->history,body.history,ap,tp);
     change.resources=create;
     if(!create){const auto &x=Fields(*p.applied,*before),&y=Fields(*p.target,body);
       change.resources=!MemberSame(p.applied->entities->objects[before->entity_index].common.value["fields"],p.target->entities->objects[body.entity_index].common.value["fields"],"Entity.GetSprite",ag,tg)||!MemberSame(x,y,"application_player_resources",ag,tg);
       for(auto name:{"EntityPlayer.GetBodySprite","EntityPlayer.GetCostumeSpriteDescs","EntityPlayer.GetCostumeLayerMap"})change.resources|=!MemberSame(x["fields"],y["fields"],name,ag,tg);
+      // 武器私有资源及动态槽变化也撤销旧资源借用；不能只比较公开主Sprite。
+      change.resources|=!MemberSame(x["application_player_equipment"],y["application_player_equipment"],"weapons",ag,tg);
+      change.resources|=!MemberSame(x["application_player_equipment"],y["application_player_equipment"],"head_animation_hex",ag,tg);
     }
     change.relations=create||before->source["relations"]!=body.source["relations"];
     p.bodies.push_back(change);
@@ -103,14 +108,15 @@ PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget> t,std::shar
     if(change.membership)p.steps.push_back({PlayerAction::Membership,key,i});
     if(change.state)p.steps.push_back({PlayerAction::State,key,i});
     if(change.resources)p.steps.push_back({PlayerAction::Resources,key,i});
-    Children(p,create?nullptr:before,&body,ag,tg);
+    Children(p,create?nullptr:before,&body,ag,tg,ap,tp);
     const auto &entity=p.target->entities->objects.at(body.entity_index);
     for(const auto &r:entity.references){auto d=DescribeEntityDependency(entity,r);
+      if(r.path.find("/application_player_equipment/weapons/")!=std::string::npos&&r.path.find("/links/")!=std::string::npos){d.member="NativeWeapon.EntityPtr";d.kind=EntityDependencyKind::Entity;d.phase=EntityDependencyPhase::AfterInstances;}
       // 装备内部的owner/mainEntity也保留原始路径；不能覆盖成Player同名的另一个槽。
       if(d.member.empty())continue;
       // 内嵌Weapon的关系按最近fields成员解释，保留完整path区分五个slot。
       const auto slash=r.path.rfind("/fields/");if(slash!=std::string::npos){auto nested=r;nested.path=r.path.substr(slash);auto named=DescribeEntityDependency(entity,nested);named.path=r.path;d=std::move(named);}
-      static const std::set<std::string> installed={"Entity.Parent","Entity.Child","Entity.Target","Entity.SpawnerEntity","Entity.GetMinecart","EntityPlayer.GetMainTwin","EntityPlayer.GetOtherTwin","EntityPlayer.GetSubPlayer","EntityPlayer.GetFlippedForm","EntityPlayer.GetHeldEntity","EntityPlayer.GetActiveWeaponEntity","Weapon.GetOwner","Weapon.GetMainEntity"};
+      static const std::set<std::string> installed={"Entity.Parent","Entity.Child","Entity.Target","Entity.SpawnerEntity","Entity.GetMinecart","EntityPlayer.GetMainTwin","EntityPlayer.GetOtherTwin","EntityPlayer.GetSubPlayer","EntityPlayer.GetFlippedForm","EntityPlayer.GetHeldEntity","EntityPlayer.GetActiveWeaponEntity","Weapon.GetOwner","Weapon.GetMainEntity","NativeWeapon.EntityPtr"};
       if(!installed.count(d.member)){d.phase=EntityDependencyPhase::ValueOnly;d.kind=EntityDependencyKind::AuthorityValue;}
       if(d.phase!=EntityDependencyPhase::ValueOnly&&!d.is_null){
         if(!d.has_target||d.status!="KnownCurrent")Fail("required_reference_unresolved");
