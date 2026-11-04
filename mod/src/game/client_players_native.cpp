@@ -6,6 +6,12 @@
 #include "game/client_player_roles.h"
 #include "game/client_entity_draw_native.h"
 #include "game/client_player_isolation.h"
+#include "game/client_player_e2e.h"
+#ifdef ISAACCS_E2E
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+#endif
 #include "replica/player_limits.h"
 #include "game/context.h"
 #include "game/bridge.h"
@@ -64,12 +70,18 @@ struct ClientNativePlayers final {
   bool retirement_fault=false;
   std::array<char,128> retirement_reason{};
   ClientObjectKey last_key{};
+  ClientObjectKey dependency{};
+  std::array<char,256> field{};
+  const char *phase="begin";
 };
 namespace {
 ClientObjectStep Result(ClientNativePlayers *o,bool done,bool failed,const char *why,bool written=false){
   unsigned pending=0;if(o)for(const auto &pair:o->entries)pending+=pair.second.player&&!pair.second.retired;
   ClientObjectStep result{done,written,failed,o?o->prefix:0,pending,why};
-  if(o){result.key=o->last_key;const auto it=o->entries.find(o->last_key);if(it!=o->entries.end()){result.instance=it->second.instance;result.shape_revision=it->second.description.entity.shape_revision;result.object_prefix=it->second.prefix;}}
+  result.domain="player";
+  if(o)result.phase=o->phase;
+  if(o)result.object_prefix=o->prefix;
+  if(o){result.key=o->last_key;if(failed){result.dependency=o->dependency;result.field=o->field;}const auto it=o->entries.find(o->last_key);if(it!=o->entries.end()){result.instance=it->second.instance;result.shape_revision=it->second.description.entity.shape_revision;result.object_prefix=it->second.prefix;result.body_role=it->second.description.body_role;result.player_type=it->second.description.player_type;}}
   return result;
 }
 bool Current(const ClientNativePlayers &o,const Entry &e){
@@ -124,11 +136,12 @@ bool DrawMember(void *context,const ClientNativeRoots &roots,const ClientObjectK
   if(!Witness(context,roots,key,b,reason))return false;auto &o=*static_cast<Token *>(context)->owner;const auto &e=o.entries.at(key);
   if(!o.ready||!(e.ready&unsigned(ClientPlayerUse::Draw))){reason="players_draw_not_ready";return false;}include=e.description.render_member;return true;
 }
-struct RelationContext final {ClientNativePlayers *owner;const ClientEntityOwners *entities;};
+struct RelationContext final {ClientNativePlayers *owner;const ClientEntityOwners *entities;bool inspect=false;};
 // 仅本次关系安装栈可借正在执行的自身owner；公开借用仍拒绝重入，不扩大到其他用途。
 bool ResolveRelation(void *context,const ClientNativeRoots &roots,const ClientObjectKey &key,unsigned expected,ClientEntityBorrow &out,const char *&reason) noexcept {
   auto &c=*static_cast<RelationContext *>(context);auto &o=*c.owner;
-  if(!Phase()||!o.busy||!SameRoots(roots)||roots.room!=o.roots.room){reason="players_relation_resolver_context";return false;}
+  if(!Phase()||(!o.busy&&!c.inspect)||(c.inspect&&(o.busy||o.fault||o.retiring||!o.ready||!o.committed_revision))||!SameRoots(roots)||roots.room!=o.roots.room){reason="players_relation_resolver_context";return false;}
+  if(!c.inspect)o.dependency=key;
   const auto i=o.entries.find(key);if(i!=o.entries.end()){
     if(!Current(o,i->second)||(expected!=0&&expected!=13)){reason="players_relation_body_use_or_type";return false;}
     out={i->second.player,i->second.instance,o.epoch,0};return true;
@@ -137,13 +150,16 @@ bool ResolveRelation(void *context,const ClientNativeRoots &roots,const ClientOb
   return c.entities->resolve(c.entities->context,roots,key,expected,out,reason);
 }
 // 通用层只处理有准确字段合同的边；每个裸借用在换实例/退休前统一撤掉。
-bool Relations(ClientNativePlayers &o,Entry &entry,const ClientEntityOwners &entities,bool check,bool clear,const char *&reason){
+bool Relations(ClientNativePlayers &o,Entry &entry,const ClientEntityOwners &entities,bool check,bool clear,const char *&reason,bool inspect=false){
   auto &p=*entry.player;
+  // 同步执行记录当前待解析边；inspect不改owner摘要，也不因检查失败使同步失效。
+  const auto note=[&](const char *field,ClientObjectKey key){if(!inspect){o.dependency=key;std::snprintf(o.field.data(),o.field.size(),"%s",field);}};
   const auto resolve=[&](const ClientObjectKey &key,unsigned expected,Entity *&entity){
     const auto body=o.entries.find(key);if(body!=o.entries.end()){if(!Current(o,body->second))return false;entity=body->second.player;return expected==0||expected==13;}
     ClientEntityBorrow b;if(!entities.resolve||!entities.resolve(entities.context,o.roots,key,expected,b,reason))return false;entity=static_cast<Entity *>(b.object);return entity!=nullptr;
   };
   for(const auto &r:entry.description.entity.relations){if(r.value_only||r.member.rfind("Entity.",0)!=0)continue;Entity *target=nullptr;
+    note(r.member.c_str(),r.target);
     if(!clear&&!r.is_null&&!resolve(r.target,r.expected,target))return false;
     EntityPtr *slot=r.member=="Entity.Parent"?&p._parent:r.member=="Entity.Child"?&p._child:r.member=="Entity.Target"?&p._target:r.member=="Entity.SpawnerEntity"?&p._spawnerEntity:r.member=="Entity.GetMinecart"?&p._minecart:nullptr;
     if(!slot)continue;if(check){if(slot->GetReference()!=target){reason="players_entity_relation_postcondition";return false;}}else slot->SetReference(target);
@@ -152,6 +168,7 @@ bool Relations(ClientNativePlayers &o,Entry &entry,const ClientEntityOwners &ent
   for(auto name:{"twin_storage","sub_storage","backup_storage","replaced_storage"}){
     const auto r=entry.description.body_relations.find(name);Entity *target=nullptr;
     if(r==entry.description.body_relations.end()){reason="players_native_relation_source_missing";return false;}
+    note(name,r->second.target);
     if(!clear&&!r->second.is_null&&!resolve(r->second.target,0,target))return false;
     if(std::strcmp(name,"twin_storage")==0){if(check){if(p._twinPlayer.GetReference()!=target){reason="players_twin_storage_mismatch";return false;}}else p._twinPlayer.SetReference(target);}
     else {
@@ -162,12 +179,14 @@ bool Relations(ClientNativePlayers &o,Entry &entry,const ClientEntityOwners &ent
   }
   // held是裸借用；它不拥有独立Key，不调用TryHold/Throw/Suplex重放Authority动作。
   for(const auto &r:entry.description.entity.relations)if(r.member=="EntityPlayer.GetHeldEntity"){
+    note(r.member.c_str(),r.target);
     Entity *target=nullptr;if(!clear&&!r.is_null&&!resolve(r.target,r.expected,target))return false;
     if(check){if(p._heldEntity!=target){reason="players_held_relation_mismatch";return false;}}else p._heldEntity=target;
   }
   // Weapon动态mainEntity/角色私有拥有关系由对应owner安装，绝不把所有派生型写成base+8。
   if(!o.adapter.relations){reason="players_role_relations_adapter_pending";return false;}
-  RelationContext context{&o,&entities};ClientEntityOwners resolver{&context,ResolveRelation};
+  RelationContext context{&o,&entities,inspect};ClientEntityOwners resolver{&context,ResolveRelation};
+  note("equipment.weapons",{});
   if(entry.equipment&&!ClientPlayerEquipmentRelations(entry.equipment,&p,entry.description,resolver,o.roots,check,clear,reason))return false;
   return o.adapter.relations(o.adapter.context,&p,entry.description,resolver,o.roots,check,clear,reason);
 }
@@ -220,22 +239,29 @@ ClientObjectStep ClientNativePlayersStructure(ClientNativePlayers *o) noexcept {
   ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
   if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeApply)!=ClientEntryDecision::CallOriginal)return Result(o,false,true,"players_structure_dispatch");
   const char *reason="players_structure_progress";bool changed=false,ok=true;o->busy=true;
+  o->dependency={};o->field={};
   try{
     if(o->cursor<o->desired.size()){
       const auto &d=o->desired[o->cursor];o->last_key=d.entity.key;auto &e=o->entries[d.entity.key];
       if(!e.player){if(next_player_instance==UINT64_MAX)throw std::bad_alloc();e.description=d;e.instance=++next_player_instance;
+        o->phase="allocate";ClientPlayerTestBoundary("player-allocate-before",d.entity.key,e.instance,e.prefix);
         e.prefix|=Raw;o->prefix|=Raw;changed=true;
         e.player=static_cast<Entity_Player *>(reinterpret_cast<void *(__cdecl *)(std::size_t)>(Base+0x686de5)(sizeof(Entity_Player)));
         if(!e.player)throw std::bad_alloc();
+        ClientPlayerTestBoundary("player-allocate-after",d.entity.key,e.instance,e.prefix);
         // 仅初始化尚未构造的自有raw存储；不是把零伪装成Source值，也不覆盖任何存活容器。
         std::memset(e.player,0,sizeof(Entity_Player));
+        o->phase="construct";ClientPlayerTestBoundary("player-ctor-before",d.entity.key,e.instance,e.prefix);
         {ClientPlayerIsolationScope isolation(ClientPlayerOperation::Construct);
           if(!isolation.Ready())throw std::bad_alloc();e.prefix|=CtorEntered;o->prefix|=CtorEntered;e.player->constructor();}e.prefix|=Constructed;o->prefix|=Constructed;
+        ClientPlayerTestBoundary("player-ctor-after",d.entity.key,e.instance,e.prefix);
         e.player->_playerIndex=-1;e.player->_controllerIndex=-1;e.player->_playerType=d.player_type;
         // 基Init仍经过唯一常驻Hook及官方Plus链；不用Player派生Init/Pre/Join生成额外身体或装备。
+        o->phase="initialize";ClientPlayerTestBoundary("player-init-before",d.entity.key,e.instance,e.prefix);
         {ClientPlayerIsolationScope isolation(ClientPlayerOperation::BaseInit);
           if(!isolation.Ready())throw std::bad_alloc();e.prefix|=InitEntered;o->prefix|=InitEntered;reinterpret_cast<void (__thiscall *)(Entity *,unsigned,unsigned,unsigned,unsigned)>(Base+0x2a4a20)(e.player,d.entity.type,d.entity.variant,d.entity.subtype,d.entity.seed);}
         e.prefix|=Initialized;o->prefix|=Initialized;e.vptr=*reinterpret_cast<std::uintptr_t *>(e.player);e.seed=e.player->_initSeed;
+        ClientPlayerTestBoundary("player-init-after",d.entity.key,e.instance,e.prefix);
       }else {if(!Current(*o,e)){ok=false;reason="players_existing_instance_changed";}e.description=d;}
       if(ok){e.ready=unsigned(ClientPlayerUse::Structure);++o->cursor;}
     }else if(o->preparation_cursor<o->desired.size()){
@@ -245,26 +271,31 @@ ClientObjectStep ClientNativePlayersStructure(ClientNativePlayers *o) noexcept {
       if(!Current(*o,e)){ok=false;reason="players_state_use_changed";}
       if(ok&&!e.equipment){e.equipment=ClientPlayerEquipmentCreate();if(!e.equipment){ok=false;reason="players_equipment_owner_allocation";}}
       if(ok&&!e.hud){e.hud=ClientPlayerHudCreate();if(!e.hud){ok=false;reason="players_hud_owner_allocation";}}
-      if(ok&&d.state_changed){changed=true;e.prefix|=State;o->prefix|=State;ok=ClientPlayerStateFields(e.player,d,false,reason)&&ClientPlayerEquipmentFields(e.player,d,false,reason)&&ClientPlayerRoleFields(e.player,d,false,reason)&&o->adapter.install(o->adapter.context,e.player,d,false,false,reason);}
-      if(ok&&d.resources_changed){changed=true;e.prefix|=Resources;o->prefix|=Resources;ok=ClientPlayerEquipmentResources(e.equipment,e.player,d,false,reason)&&o->adapter.install(o->adapter.context,e.player,d,true,false,reason);}
-      if(ok){e.prefix|=unsigned(ClientPlayerPrefix::HudEntered);o->prefix|=unsigned(ClientPlayerPrefix::HudEntered);changed=true;ok=ClientPlayerHudInstall(e.hud,e.player,d,false,reason);}
+      if(ok&&d.state_changed){o->phase="fields";ClientPlayerTestBoundary("player-fields-before",d.entity.key,e.instance,e.prefix);changed=true;e.prefix|=State;o->prefix|=State;ok=ClientPlayerStateFields(e.player,d,false,reason)&&ClientPlayerEquipmentFields(e.player,d,false,reason)&&ClientPlayerRoleFields(e.player,d,false,reason)&&o->adapter.install(o->adapter.context,e.player,d,false,false,reason);if(ok)ClientPlayerTestBoundary("player-fields-after",d.entity.key,e.instance,e.prefix);}
+      if(ok&&d.resources_changed){o->phase="resources";ClientPlayerTestBoundary("player-resources-before",d.entity.key,e.instance,e.prefix);changed=true;e.prefix|=Resources;o->prefix|=Resources;ok=ClientPlayerEquipmentResources(e.equipment,e.player,d,false,reason)&&o->adapter.install(o->adapter.context,e.player,d,true,false,reason);if(ok)ClientPlayerTestBoundary("player-resources-after",d.entity.key,e.instance,e.prefix);}
+      if(ok){o->phase="hud";ClientPlayerTestBoundary("player-hud-before",d.entity.key,e.instance,e.prefix);e.prefix|=unsigned(ClientPlayerPrefix::HudEntered);o->prefix|=unsigned(ClientPlayerPrefix::HudEntered);changed=true;ok=ClientPlayerHudInstall(e.hud,e.player,d,false,reason);if(ok)ClientPlayerTestBoundary("player-hud-after",d.entity.key,e.instance,e.prefix);}
       if(ok){e.ready|=unsigned(ClientPlayerUse::State);++o->preparation_cursor;}
     }else{
       auto &roster=static_cast<Game *>(o->roots.game)->_playerManager._playerList;std::vector<Entity_Player *> ordered;
       for(unsigned i=0;i<o->desired.size();++i)for(const auto &d:o->desired)if(d.roster_index==int(i))ordered.push_back(o->entries.at(d.entity.key).player);
       // 使用真实vector操作，不复制容器头；进入前登记，分配失败也保留全部对象owner。
+      o->phase="roster";o->last_key={};ClientPlayerTestBoundary("player-roster-before",{},0,o->prefix);
       changed=true;o->prefix|=Roster;roster.assign(ordered.begin(),ordered.end());
+      ClientPlayerTestBoundary("player-roster-after",{},0,o->prefix);
       for(unsigned i=0;i<4;++i)o->backup_players[i]=o->backups[i].is_null?nullptr:o->entries.at(o->backups[i].target).player;
       auto &list=static_cast<Room *>(o->roots.room)->_entityList;
       auto &index=*reinterpret_cast<unsigned *>(reinterpret_cast<unsigned char *>(o->roots.room)+0x1214);
       if(!(o->prefix&Published)&&o->entries.size()==o->desired.size()&&ListValid(list._mainEL)&&ListValid(list._persistentEL)&&!list._mainEL._size&&!list._persistentEL._size)index=0;
-      for(auto &pair:o->entries){auto &e=pair.second;const auto &d=e.description;e.prefix|=Roster;
+      for(auto &pair:o->entries){auto &e=pair.second;const auto &d=e.description;e.prefix|=Roster;o->last_key=pair.first;
         // 非roster身体也保留正式Source的索引；IsHologram读取双方索引，不能无条件写-1。
         e.player->_playerIndex=d.role->player_index;
         if(d.room_member&&!(e.prefix&Published)){
+          o->phase="publish";
+          ClientPlayerTestBoundary("player-publish-before",d.entity.key,e.instance,e.prefix);
           for(auto *l:{&list._persistentEL,&list._renderEL,&list._updateEL})if(!ListValid(*l)||l->_size>=l->_capacity)throw std::bad_alloc();
           if(index==UINT32_MAX)throw std::bad_alloc();e.player->_index=index++;e.index=e.player->_index;e.prefix|=Published;o->prefix|=Published;
           reinterpret_cast<void (__thiscall *)(EntityList *,Entity *)>(Base+0x13d00)(&list,e.player);
+          ClientPlayerTestBoundary("player-publish-after",d.entity.key,e.instance,e.prefix);
         }else if(!d.room_member&&(e.prefix&Published)){ok=false;reason="players_room_membership_change_requires_scene_rebuild";break;}
         if(!d.room_member)e.player->_valid=d.native_valid;
         // exists/dead/ghost不决定EL资格；同实例的复活/可见变化按正式最终成员集合恢复。
@@ -275,7 +306,11 @@ ClientObjectStep ClientNativePlayersStructure(ClientNativePlayers *o) noexcept {
       }
       if(ok){o->sets_ready=ValidateSets(*o,reason);ok=o->sets_ready;o->structure_ready=ok;}
     }
-  }catch(...){ok=false;reason="players_structure_exception_prefix_retained";}
+  }
+#ifdef ISAACCS_E2E
+  catch(const ClientPlayerInjected &fault){ok=false;reason=fault.point;}
+#endif
+  catch(...){ok=false;reason="players_structure_exception_prefix_retained";}
   o->busy=false;ClientDispatchReturned(ClientEntry::NativeApply);if(!dispatch.Succeeded()){ok=false;reason="players_structure_dispatch_incomplete";}
   if(!ok)o->fault=true;return Result(o,ok&&o->structure_ready,!ok,reason,changed);
 }
@@ -287,25 +322,33 @@ ClientObjectStep ClientNativePlayersFinish(ClientNativePlayers *o,const ClientEn
   ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
   if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeApply)!=ClientEntryDecision::CallOriginal)return Result(o,false,true,"players_link_dispatch");
   o->busy=true;bool ok=true;const char *reason="players_relations_progress";
+  o->dependency={};o->field={};
   ClientPlayerIsolationScope isolation(ClientPlayerOperation::Relations);
   if(!isolation.Ready()){o->busy=false;return Result(o,false,true,"players_relations_isolation");}
   try{
     // twin/sub/backup/Weapon可形成环：全部身体先安装边，再逐体读取条件getter。
     // 不能在另一身体尚未链接时误判失败，也不能让部分组提前取得draw资格。
     if(!o->links_ready&&o->finish_cursor<o->desired.size()){
-      o->last_key=o->desired[o->finish_cursor].entity.key;auto &e=o->entries.at(o->last_key);e.prefix|=Linked;o->prefix|=Linked;
+      o->phase="relations";
+      o->last_key=o->desired[o->finish_cursor].entity.key;auto &e=o->entries.at(o->last_key);ClientPlayerTestBoundary("player-relations-before",o->last_key,e.instance,e.prefix);e.prefix|=Linked;o->prefix|=Linked;
       if(!Current(*o,e)){ok=false;reason="players_check_use_changed";}
       else ok=Relations(*o,e,entities,false,false,reason);
-      if(ok)++o->finish_cursor;
+      if(ok){ClientPlayerTestBoundary("player-relations-after",o->last_key,e.instance,e.prefix);++o->finish_cursor;}
     }else if(!o->links_ready){o->links_ready=true;o->finish_cursor=0;}
     else if(o->finish_cursor<o->desired.size()){
+      o->phase="check";
       o->last_key=o->desired[o->finish_cursor].entity.key;auto &e=o->entries.at(o->last_key);
+      ClientPlayerTestBoundary("player-check-before",o->last_key,e.instance,e.prefix);
       if(!Current(*o,e)){ok=false;reason="players_check_use_changed";}
       else {RelationContext context{o,&entities};ClientEntityOwners resolver{&context,ResolveRelation};
         ok=Relations(*o,e,entities,true,false,reason)&&ClientPlayerRoleRelations(e.player,e.description,resolver,o->roots,reason)&&ClientPlayerStateFields(e.player,e.description,true,reason)&&ClientPlayerEquipmentFields(e.player,e.description,true,reason)&&ClientPlayerRoleFields(e.player,e.description,true,reason)&&ClientPlayerEquipmentResources(e.equipment,e.player,e.description,true,reason)&&ClientPlayerHudInstall(e.hud,e.player,e.description,true,reason)&&o->adapter.install(o->adapter.context,e.player,e.description,false,true,reason)&&o->adapter.install(o->adapter.context,e.player,e.description,true,true,reason);}
-      if(ok){e.prefix|=Checked;e.ready|=unsigned(ClientPlayerUse::Relations)|unsigned(ClientPlayerUse::Draw);++o->finish_cursor;}
+      if(ok){e.prefix|=Checked;e.ready|=unsigned(ClientPlayerUse::Relations)|unsigned(ClientPlayerUse::Draw);ClientPlayerTestBoundary("player-check-after",o->last_key,e.instance,e.prefix);++o->finish_cursor;}
     }else{o->ready=ValidateSets(*o,reason);ok=o->ready;}
-  }catch(...){ok=false;reason="players_relations_exception_retained";}
+  }
+#ifdef ISAACCS_E2E
+  catch(const ClientPlayerInjected &fault){ok=false;reason=fault.point;}
+#endif
+  catch(...){ok=false;reason="players_relations_exception_retained";}
   o->busy=false;ClientDispatchReturned(ClientEntry::NativeApply);if(!dispatch.Succeeded()){ok=false;reason="players_link_dispatch_incomplete";}
   if(!ok)o->fault=true;return Result(o,ok&&o->ready,!ok,reason,true);
 }
@@ -325,11 +368,50 @@ bool ClientNativePlayersVisit(ClientNativePlayers *o,void *context,ClientObjectV
   if(!IsMain()||!ClientPlayerBorrowAllowed()||!o||o->fault||o->retiring||!o->ready||!visitor)return false;
   for(const auto &p:o->entries)if(!Current(*o,p.second)||!visitor(context,p.second.player,p.first,p.second.instance,1))return false;return true;
 }
+#ifdef ISAACCS_E2E
+// 回读当前原生容器及公开语义的已审阅leaf；任何不一致只使本次inspect失败。
+// 不进入用途分派、不安装姿态、不设置fault/ready，也不把目标DTO原样打印作后态。
+std::string ClientNativePlayersInspect(ClientNativePlayers *o,const ClientEntityOwners &entities) noexcept {
+  if(!Phase()||!ClientPlayerBorrowAllowed()||!o||o->busy||o->fault||o->retiring||!o->ready||
+      !o->committed_revision||o->committed_revision!=o->revision||!SameRoots(o->roots)||!Graphics())
+    return "ok=0\nerror=player_inspect_context_or_uncommitted\n";
+  const char *reason="player_inspect_postcondition";
+  try{
+    if(!ValidateSets(*o,reason))return "ok=0\nerror="+std::string(reason)+"\n";
+    rapidjson::Document rows(rapidjson::kArrayType);auto &a=rows.GetAllocator();
+    const auto decimal=[&](std::uint64_t n){const auto s=std::to_string(n);return rapidjson::Value(s.c_str(),rapidjson::SizeType(s.size()),a);};
+    for(auto &pair:o->entries){auto &e=pair.second;const auto &d=e.description;
+      RelationContext context{o,&entities,true};ClientEntityOwners resolver{&context,ResolveRelation};
+      if(!Current(*o,e)||!e.equipment||!e.hud||!Relations(*o,e,entities,true,false,reason,true)||
+          !ClientPlayerRoleRelations(e.player,d,resolver,o->roots,reason)||!ClientPlayerStateFields(e.player,d,true,reason)||
+          !ClientPlayerEquipmentFields(e.player,d,true,reason)||!ClientPlayerRoleFields(e.player,d,true,reason)||
+          !ClientPlayerEquipmentResources(e.equipment,e.player,d,true,reason)||!ClientPlayerHudInstall(e.hud,e.player,d,true,reason)||
+          !o->adapter.install(o->adapter.context,e.player,d,false,true,reason)||!o->adapter.install(o->adapter.context,e.player,d,true,true,reason))
+        return "ok=0\nerror="+std::string(reason)+"\nplayer_key_run="+std::to_string(pair.first.run)+"\nplayer_key_id="+std::to_string(pair.first.id)+"\n";
+      auto &p=*e.player;rapidjson::Value row(rapidjson::kObjectType);
+      row.AddMember("run",decimal(pair.first.run),a);row.AddMember("space",pair.first.space,a);row.AddMember("id",decimal(pair.first.id),a);
+      row.AddMember("instance",decimal(e.instance),a);row.AddMember("shape",decimal(d.entity.shape_revision),a);row.AddMember("prefix",e.prefix,a);
+      row.AddMember("player_type",p._playerType,a);row.AddMember("player_index",p._playerIndex,a);row.AddMember("controller_index",p._controllerIndex,a);
+      row.AddMember("exists",p._exists,a);row.AddMember("valid",p._valid,a);row.AddMember("red_hearts",p._redHearts,a);
+      rapidjson::Value position(rapidjson::kArrayType);position.PushBack(p._pos.x,a);position.PushBack(p._pos.y,a);row.AddMember("position",std::move(position),a);
+      auto &list=static_cast<Room *>(o->roots.room)->_entityList;
+      row.AddMember("room_members",Count(list._persistentEL,&p),a);row.AddMember("render_members",Count(list._renderEL,&p),a);row.AddMember("update_members",Count(list._updateEL,&p),a);
+      row.AddMember("history_items",unsigned(p._history._historyItems.size()),a);row.AddMember("effects",unsigned(p._temporaryeffects._effects.size()),a);
+      row.AddMember("costumes",unsigned(p._costumeSpriteDescs.size()),a);row.AddMember("hud_present",p._playerHUD!=nullptr,a);
+      rapidjson::Value weapons(rapidjson::kArrayType);for(unsigned slot=0;slot<5;++slot){rapidjson::Value w(rapidjson::kObjectType);w.AddMember("slot",slot,a);w.AddMember("present",p._weapon[slot]!=nullptr,a);weapons.PushBack(std::move(w),a);}row.AddMember("weapons",std::move(weapons),a);
+      rows.PushBack(std::move(row),a);
+    }
+    rapidjson::StringBuffer text;rapidjson::Writer<rapidjson::StringBuffer> writer(text);rows.Accept(writer);
+    return "ok=1\nplayer_native_checked=1\nplayer_revision="+std::to_string(o->committed_revision)+"\nplayers="+std::string(text.GetString(),text.GetSize())+"\n";
+  }catch(...){return "ok=0\nerror=player_inspect_allocation_or_read\n";}
+}
+#endif
 // 第一阶段只撤销资格和出边。所有身体完成后，非Player owner才能开始释放自己的对象。
 // 每次至多处理一个身体，任何不确定前缀锁定首因，不在下一帧重复进入同一清理调用。
 ClientObjectStep ClientNativePlayersUnlink(ClientNativePlayers *o,const ClientNativeRoots &roots) noexcept {
   if(!o)return {true,false,false,0,0,"players_no_links"};
   if(!IsMain())return Result(o,false,true,"players_unlink_thread");
+  o->phase="unlink";
   o->retiring=true;o->ready=false;o->committed_revision=0;
   for(auto &p:o->entries)p.second.ready=0;
   if(o->retirement_fault)return Result(o,false,true,o->retirement_reason.data());
@@ -360,6 +442,8 @@ ClientObjectStep ClientNativePlayersUnlink(ClientNativePlayers *o,const ClientNa
 }
 ClientObjectStep ClientNativePlayersRetire(ClientNativePlayers *o,const ClientNativeRoots &roots) noexcept {
   if(!o)return {true,false,false,0,0,"players_no_owner"};
+  if(!IsMain())return {false,false,true,0,0,"players_retire_thread"};
+  o->phase="retire";
   if(IsMain()&&o->entries.empty())return Result(o,true,false,"players_unwritten_owner_retired");
   if(o->retirement_fault)return Result(o,false,true,o->retirement_reason.data());
   if(!o->unlinked)return ClientNativePlayersUnlink(o,roots);

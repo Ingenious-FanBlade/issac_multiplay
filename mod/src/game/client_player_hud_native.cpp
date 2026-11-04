@@ -55,7 +55,7 @@ bool ClientPlayerHudRetire(ClientPlayerHudOwner *o,void *pointer,const char *&re
 bool ClientPlayerHudInstall(ClientPlayerHudOwner *o,void *pointer,const ClientPlayerDescription &d,bool check,const char *&reason){
   if(!Window()||!o||!pointer||!d.special||o->uncertain||o->factory_entered||o->release_entered){reason="player_hud_install_context";return false;}
   auto &p=*static_cast<Entity_Player *>(pointer);auto &pair=Slot(p);const auto &s=d.special->hud;
-  if((o->player&&o->player!=&p)||pair.hud!=o->owned.hud||pair.control!=o->owned.control){reason="player_hud_pair_owner_changed";return false;}o->player=&p;
+  if((o->player&&o->player!=&p)||pair.hud!=o->owned.hud||pair.control!=o->owned.control){reason="player_hud_pair_owner_changed";return false;}if(!check)o->player=&p;
   if(!s.present){if(check){if(pair.hud||pair.control){reason="player_hud_null_postcondition";return false;}return true;}return ClientPlayerHudRetire(o,&p,reason);}
   if(!pair.hud){if(check){reason="player_hud_missing_native_dependency";return false;}
     // VA980020: ECX=HUD，栈(output pair*, Player*)，ret8。直接交给空Player槽，避免临时smart别名。
@@ -64,7 +64,7 @@ bool ClientPlayerHudInstall(ClientPlayerHudOwner *o,void *pointer,const ClientPl
     catch(...){o->uncertain=true;reason="player_hud_factory_exception_prefix_retained";return false;}
     o->factory_entered=false;o->owned=pair;
   }
-  if(!PairValid(pair)||pair.hud->_player!=&p||pair.hud->_HUD!=&g_Game->_hud){o->uncertain=true;reason="player_hud_factory_owner_postcondition";return false;}
+  if(!PairValid(pair)||pair.hud->_player!=&p||pair.hud->_HUD!=&g_Game->_hud){if(!check)o->uncertain=true;reason="player_hud_factory_owner_postcondition";return false;}
   return Cache(*pair.hud,s,check,reason);
 }
 } // namespace cs::game

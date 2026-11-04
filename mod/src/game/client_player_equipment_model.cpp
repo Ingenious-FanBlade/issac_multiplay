@@ -99,14 +99,26 @@ static std::shared_ptr<const ClientPlayerEquipment> Describe(const replica::Play
     const auto &links=At(native,"links");if(!links.IsObject())Fail("weapon_links");for(auto e=links.MemberBegin();e!=links.MemberEnd();++e)w.links.emplace(String(e->name),Ref(e->value,body.key.run));
     const auto &sprites=At(native,"sprites");if(!sprites.IsObject())Fail("weapon_sprites");for(auto e=sprites.MemberBegin();e!=sprites.MemberEnd();++e)w.sprites.emplace(String(e->name),Pose(e->value));
   }if(mask!=31)Fail("weapon_slot_missing");
-  const auto dependency=[&](const ClientObjectReference &ref){if(!ref.present)Fail("weapon_reference_not_captured");if(ref.is_null)return;for(const auto &entity:target.entities->objects)if(entity.key.run==ref.target.run&&entity.key.id==ref.target.id&&entity.key.space==ref.target.space&&entity.presence==replica::EntityMemberPresence::Current)return;Fail("weapon_reference_missing_from_same_target");};
-  for(const auto &weapon:out->weapons)if(weapon.present){dependency(weapon.owner);dependency(weapon.main);for(const auto &[name,ref]:weapon.links)dependency(ref);}
+  // 拒绝必须保留实际身体、缺失依赖及五槽中的字段，不让诊断猜测最后一个Player。
+  const auto dependency=[&](const ClientObjectReference &ref,const std::string &field){
+    const replica::SubjectKey required{ref.target.run,ref.target.id,ref.target.space};
+    if(!ref.present)throw replica::PlayerContractError("player_equipment:weapon_reference_not_captured",body.key,required,field);
+    if(ref.is_null)return;
+    for(const auto &entity:target.entities->objects)if(entity.key==required&&entity.presence==replica::EntityMemberPresence::Current)return;
+    throw replica::PlayerContractError("player_equipment:weapon_reference_missing_from_same_target",body.key,required,field);
+  };
+  for(unsigned slot=0;slot<5;++slot){const auto &weapon=out->weapons[slot];if(!weapon.present)continue;const auto field="equipment.weapons/"+std::to_string(slot)+"/";
+    dependency(weapon.owner,field+"owner");dependency(weapon.main,field+"main");for(const auto &[name,ref]:weapon.links)dependency(ref,field+"links/"+name);}
   return out;
 }
 std::map<ClientObjectKey,std::shared_ptr<const ClientPlayerEquipment>> ClientDescribePlayerEquipment(const replica::PlayerTarget &target){
   // 同一T的两份图只建索引一次；多身体不逐身体重新扫描整个世界组件。
   const Graph entity_graph(target.entities->source),player_graph(target.source);std::map<ClientObjectKey,std::shared_ptr<const ClientPlayerEquipment>> out;
-  for(const auto &body:target.bodies)out.emplace(ClientObjectKey{body.key.run,body.key.id,body.key.space},Describe(target,body,entity_graph,player_graph));return out;
+  for(const auto &body:target.bodies){
+    try{out.emplace(ClientObjectKey{body.key.run,body.key.id,body.key.space},Describe(target,body,entity_graph,player_graph));}
+    catch(const replica::PlayerContractError &){throw;}
+    catch(const replica::ContractError &e){throw replica::PlayerContractError(e.what(),body.key,{},e.what());}
+  }return out;
 }
 const char *ClientPlayerEquipmentDisposition(const std::string &id) noexcept {
   if(id.rfind("TemporaryEffect",0)==0||id=="EntityPlayer.GetEffects"||id=="EntityPlayer.GetPlayerFormCounter"||id=="EntityPlayer.HasPlayerForm")return "I16:ordered-effects+timers+forms;no-AddRemove-or-Evaluate";

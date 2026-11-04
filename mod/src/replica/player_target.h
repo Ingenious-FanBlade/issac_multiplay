@@ -5,6 +5,13 @@
 #include <memory>
 
 namespace cs::replica {
+// Player拒绝携带真实主体、缺失依赖和字段；诊断只复制稳定Key，不保存原生地址。
+struct PlayerContractError final : ContractError {
+  SubjectKey subject{},dependency{};
+  std::string field;
+  PlayerContractError(std::string code,SubjectKey body={},SubjectKey required={},std::string member={})
+    :ContractError(std::move(code)),subject(body),dependency(required),field(std::move(member)){}
+};
 // 身体存在、控制资格与公开roster位置互不替代；Null、缺失、未解析保留原状态。
 struct PlayerReferenceTarget final {
   std::string status;

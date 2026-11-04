@@ -296,10 +296,14 @@ void ClientScene::Begin(const replica::Scope &scope) noexcept {
   current_dc_=current_context_=observed_dc_=observed_context_=nullptr;
 }
 void ClientScene::FailureResult(ClientResultKind kind,const char *phase,const char *reason) noexcept {
+  if(kind==ClientResultKind::Retiring&&phase&&std::strcmp(phase,"retired")&&!result_.retirement_cause[0])
+    std::snprintf(result_.retirement_cause.data(),result_.retirement_cause.size(),"%s",reason?reason:"retire");
   if(kind==ClientResultKind::ContextOrThreadFault)recovery_forbidden_=true;
   if((kind==ClientResultKind::UnsupportedRequirement||kind==ClientResultKind::PartialNativeFailure)&&reason&&
      (std::strstr(reason,"budget")||std::strstr(reason,"capacity")))kind=ClientResultKind::BudgetExhausted;
   if(kind==ClientResultKind::PartialNativeFailure||kind==ClientResultKind::ContextOrThreadFault||kind==ClientResultKind::UnsupportedRequirement||kind==ClientResultKind::BudgetExhausted){
+    if(result_.native_written&&!result_.retirement_cause[0])std::snprintf(result_.retirement_cause.data(),result_.retirement_cause.size(),"%s",reason?reason:"unknown");
+    if(phase&&std::strstr(phase,"retire")&&!result_.retirement_failure[0])std::snprintf(result_.retirement_failure.data(),result_.retirement_failure.size(),"%s",reason?reason:"unknown");
     if(!result_.failure_phase[0]){
       result_.failure_executed_prefix=result_.executed_prefix;
       std::snprintf(result_.failure_phase.data(),result_.failure_phase.size(),"%s",phase?phase:"unknown");
@@ -323,7 +327,27 @@ void ClientScene::FailureResult(ClientResultKind kind,const char *phase,const ch
   std::snprintf(result_.recovery.data(),result_.recovery.size(),"%s",kind==ClientResultKind::NativeCommitted?"none":result_.native_written?"retire_actual_owners_then_rebuild":"preserve_applied_or_replace_unwritten_target");
 }
 ClientEntityBudget ClientScene::EntityBudget() const noexcept {return objects_?objects_->Budget():ClientEntityBudget{};}
-ClientPlayerBudget ClientScene::PlayerBudget() const noexcept {return objects_?objects_->PlayerBudget():ClientPlayerBudget{};}
+ClientPlayerBudget ClientScene::PlayerBudget() const noexcept {return rebuild_objects_?rebuild_objects_->PlayerBudget():objects_?objects_->PlayerBudget():ClientPlayerBudget{};}
+std::uint64_t ClientScene::PlayerRoleTypes() const noexcept {
+  std::uint64_t mask=0;if(player_target_)for(const auto &b:player_target_->bodies)if(b.player_type>=0&&b.player_type<=40)mask|=std::uint64_t(1)<<b.player_type;return mask;
+}
+unsigned ClientScene::PlayerBodyRoles() const noexcept {
+  unsigned mask=0;if(player_target_)for(const auto &b:player_target_->bodies)if(b.membership.known&&b.membership.body_role<32)mask|=1u<<b.membership.body_role;return mask;
+}
+void ClientScene::NotePlayerFailure(const ClientPlayerDiagnostics &value) noexcept {
+  if(!value.reason[0])return;
+  result_.player_step=value;result_.player_step.Normalize();if(!result_.player_failure.reason[0])result_.player_failure=result_.player_step;
+  if(!result_.failure_phase[0]){result_.failed_key={value.body.run,value.body.id,value.body.space};std::snprintf(result_.failed_domain.data(),result_.failed_domain.size(),"player");}
+}
+void ClientScene::NoteObjectStep(const ClientObjectStep &step,const char *phase) noexcept {
+  if(step.domain&&std::strcmp(step.domain,"player")==0){
+    result_.player_step.Record(step,phase);if(step.failed)NotePlayerFailure(result_.player_step);
+  }
+  if(step.failed&&!result_.failure_phase[0]){
+    result_.failed_key={step.key.run,step.key.id,step.key.space};
+    std::snprintf(result_.failed_domain.data(),result_.failed_domain.size(),"%s",step.domain?step.domain:"entity");
+  }
+}
 void ClientScene::SetCommittedRange() noexcept {
   result_.committed_domains=(1u<<unsigned(world::observation::DomainId::Grid))|(1u<<unsigned(world::observation::DomainId::Room));
   const auto b=EntityBudget();result_.entity_members=b.members;result_.entity_players=b.players;result_.entity_non_players=b.members-b.players;
@@ -424,10 +448,10 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     if(need_rebuild){rebuild_objects=std::make_unique<ClientObjects>();rebuild_grids=std::make_unique<ClientGrids>();rebuild_presentation=std::make_unique<ClientPresentation>();
       if(!rebuild_objects->PrepareTarget(value,nullptr,reason,domain.get(),players)||!rebuild_grids->PrepareTarget(replica::PlanRoomGridTarget(domain),reason)||
          !rebuild_presentation->PrepareTarget(value,reason,description.room_state,description.map)){
-        FailureResult(ClientResultKind::UnsupportedRequirement,"preflight",reason);return false;}}
+        NotePlayerFailure(rebuild_objects->PlayerDiagnostics());FailureResult(ClientResultKind::UnsupportedRequirement,"preflight",reason);return false;}}
     // 写世界前先完成所有纯值计划；失败保留上一已提交展示资格。
     if(!need_rebuild&&!objects_->PrepareTarget(value,applied_valid_?applied_.get():nullptr,reason,domain.get(),players)){
-      FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);return false;
+      NotePlayerFailure(objects_->PlayerDiagnostics());FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);return false;
     }
     if(!need_rebuild&&!grids_->PrepareTarget(domain_plan,reason)){
       objects_->CancelPlanned();objects_planned_=false;
@@ -472,7 +496,11 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
       FailureResult(ClientResultKind::WaitingDependency,"prepare","target_planned");
     }
     return true;
-  } catch(const replica::ContractError &e) {FailureResult(ClientResultKind::UnsupportedRequirement,"admit",e.what());return false;}
+  } catch(const replica::PlayerContractError &e) {
+      ClientObjectStep step;step.key={e.subject.run,e.subject.id,e.subject.space};step.dependency={e.dependency.run,e.dependency.id,e.dependency.space};step.reason=e.what();
+      std::snprintf(step.field.data(),step.field.size(),"%s",e.field.c_str());ClientPlayerDiagnostics d;d.Record(step,"admit");NotePlayerFailure(d);
+      FailureResult(ClientResultKind::UnsupportedRequirement,"admit",e.what());return false;
+    } catch(const replica::ContractError &e) {FailureResult(ClientResultKind::UnsupportedRequirement,"admit",e.what());return false;}
     catch(...) {FailureResult(ClientResultKind::UnsupportedRequirement,"admit","invalid_or_unavailable_target");return false;}
 }
 void ClientScene::NoteNativeStep(const ClientNativeStep &step,const char *phase) noexcept {
@@ -505,6 +533,7 @@ void ClientScene::Pump() noexcept {
     }
     if(objects_&&!objects_retired_){
       const auto step=objects_->Retire(ClientNativeWorldRoots(native_world_));
+      NoteObjectStep(step,"retire");
       result_.native_owners=step.pending_owners;
       result_.executed_prefix=(std::max)(result_.executed_prefix,step.executed_prefix);
       if(step.failed){retirement_failed_=true;FailureResult(ClientResultKind::PartialNativeFailure,"objects_retire",step.reason);state_=ClientSceneState::Failed;}
@@ -563,13 +592,13 @@ void ClientScene::Pump() noexcept {
     // 每轮最多一个对象命令；候选资源在释放用途借用后由下一轮DrainRetained收口。
     // 实例/最终量先就绪，Grid独立取得；随后才安装后置关系与最终检查。
     const auto step=objects_complete_?ClientObjectStep{true,false,false,0,result_.native_owners,"objects_complete"}:objects_->Step(roots,1,grids_complete_);
+    NoteObjectStep(step,"apply");
     result_.executed_prefix=(std::max)(result_.executed_prefix,step.executed_prefix);
     result_.native_owners=step.pending_owners;
     if(Settings.diagnostics&&step.key.id)Trace("client_object_step","key=%llu:%u:%llu instance=%llu prefix=%u done=%u failed=%u reason=%s",
       step.key.run,step.key.space,step.key.id,step.instance,step.object_prefix,unsigned(step.done),unsigned(step.failed),step.reason);
     if(step.written){result_.native_written=true;result_.old_display_valid=false;applied_valid_=false;}
     if(step.failed){
-      result_.failed_key={step.key.run,step.key.id,step.key.space};
       FailureResult(ClientResultKind::PartialNativeFailure,"objects_apply",step.reason);state_=ClientSceneState::Failed;
     }else if(step.done||objects_->InstancesReady()){
       objects_complete_=step.done;
@@ -577,8 +606,8 @@ void ClientScene::Pump() noexcept {
       if(!grids_complete_){const auto grid=grids_->Step(roots,1);
         result_.grid_prefix=grid.prefix;result_.grid_owners=grid.owners;
         if(grid.written){result_.native_written=true;result_.old_display_valid=false;applied_valid_=false;}
-        if(grid.failed){std::snprintf(result_.failed_domain.data(),result_.failed_domain.size(),"grid");
-          result_.failed_key={grid.key.run,grid.key.id,grid.key.space};
+        if(grid.failed){if(!result_.failure_phase[0]){std::snprintf(result_.failed_domain.data(),result_.failed_domain.size(),"grid");
+          result_.failed_key={grid.key.run,grid.key.id,grid.key.space};}
           FailureResult(ClientResultKind::PartialNativeFailure,"grid_apply",grid.reason);state_=ClientSceneState::Failed;}
         else grids_complete_=grid.done;
         Release(graphics);Release(native);pumping_=false;return;
@@ -601,7 +630,7 @@ void ClientScene::Pump() noexcept {
         }else if(!present.done)FailureResult(ClientResultKind::WaitingDependency,"presentation_prepare",present.reason);
         else {
           const auto grid_check=grids_->Check(roots);
-          if(grid_check.failed){result_.failed_key={grid_check.key.run,grid_check.key.id,grid_check.key.space};
+          if(grid_check.failed){if(!result_.failure_phase[0])result_.failed_key={grid_check.key.run,grid_check.key.id,grid_check.key.space};
             FailureResult(ClientResultKind::PartialNativeFailure,"grid_commit",grid_check.reason);state_=ClientSceneState::Failed;
             Release(graphics);Release(native);pumping_=false;return;}
           if(!grid_check.done){FailureResult(ClientResultKind::WaitingDependency,"grid_commit",grid_check.reason);
@@ -647,6 +676,14 @@ bool ClientScene::PlayerDisplayCurrent(const std::shared_ptr<const ClientPlayerD
 bool ClientScene::RecoveryPending() const noexcept {
   return !stop_requested_&&!recovery_attempted_&&!retirement_failed_&&!recovery_forbidden_&&target_&&
     state_==ClientSceneState::Failed&&result_.kind!=ClientResultKind::ContextOrThreadFault;
+}
+const char *ClientScene::RecoveryState() const noexcept {
+  if(stop_requested_)return "stopped";
+  if(retirement_failed_)return "retirement_failed";
+  if(recovery_forbidden_)return "forbidden";
+  if(RecoveryPending())return "waiting_safe_retirement";
+  if(recovery_attempted_)return DisplayReady()?"recovered":state_==ClientSceneState::Failed?"retry_failed":"rebuilding";
+  return "none";
 }
 ClientNativeRoots ClientScene::NativeRoots() const noexcept {
   return DisplayReady()?ClientNativeWorldRoots(native_world_):ClientNativeRoots{};
@@ -1131,6 +1168,7 @@ void ClientScene::Retire(const char *reason) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
   rebuild_pending_=false;applied_valid_=false;result_.old_display_valid=false;
   stop_requested_=true;
+  if(!result_.retirement_cause[0])std::snprintf(result_.retirement_cause.data(),result_.retirement_cause.size(),"%s",reason?reason:"stop");
   state_=ClientSceneState::Retiring;FailureResult(ClientResultKind::Retiring,"retire",reason);
   for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
   DrainRetained();

@@ -96,14 +96,14 @@ bool ClientPlayerEquipmentFields(void *pointer,const ClientPlayerDescription &d,
   if(check){if((*disabled!=0)!=s.history_mutation_disabled){reason="player_history_mutation_disabled_postcondition";return false;}}else *disabled=s.history_mutation_disabled?1:0;
   reason=check?"player_effect_forms_history_checked":"player_effect_forms_history_installed";return true;
 }
-bool ClientPlayerEquipmentResources(ClientPlayerEquipmentOwner *owner,void *pointer,const ClientPlayerDescription &d,bool check,const char *&reason){if(!Window()||!owner||owner->fault||owner->retired||!pointer||!d.equipment){reason="player_equipment_resource_context";return false;}auto &p=*static_cast<Entity_Player *>(pointer);if(owner->player&&owner->player!=&p){reason="player_equipment_instance_changed";return false;}owner->player=&p;
+bool ClientPlayerEquipmentResources(ClientPlayerEquipmentOwner *owner,void *pointer,const ClientPlayerDescription &d,bool check,const char *&reason){if(!Window()||!owner||owner->fault||owner->retired||!pointer||!d.equipment){reason="player_equipment_resource_context";return false;}auto &p=*static_cast<Entity_Player *>(pointer);if(owner->player&&owner->player!=&p){reason="player_equipment_instance_changed";return false;}if(!check)owner->player=&p;
   try {const auto &s=*d.equipment;
     // ctor构造真实字符串；773990写HeadLeft/Up/Right/Down，783680读取并派生Overlay。
     // 标准字符串赋值维护SSO/heap，不复制Authority的24字节对象表示。
     if(check){if(p._headAnim!=s.head_animation){reason="player_head_animation_postcondition";return false;}}else p._headAnim=s.head_animation;
     if(!Pose(p._sprite,s.main,check,reason,&owner->fault))return false;for(unsigned i=0;i<13;++i)if(!Pose(*reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&p)+0x41c+i*0x114),s.inline_sprites[i],check,reason,&owner->fault))return false;
     if(!Costumes(*owner,p,s,check,reason)||!ClientPlayerWeaponsInstall(*owner,p,d,check,reason))return false;return true;
-  }catch(...){owner->fault=true;reason="player_equipment_resource_exception_prefix_retained";return false;}}
+  }catch(...){if(!check)owner->fault=true;reason="player_equipment_resource_exception_prefix_retained";return false;}}
 bool ClientPlayerEquipmentRelations(ClientPlayerEquipmentOwner *o,void *p,const ClientPlayerDescription &d,const ClientEntityOwners &entities,const ClientNativeRoots &roots,bool check,bool clear,const char *&reason){
   // 字段阶段失败时子owner可能尚未进入资源前缀；clear仍核对五槽为空，允许安全退休已构造Player。
   if(!Window()||!o||!p||(o->player&&o->player!=p)||(!o->player&&!clear)||!d.equipment){reason="player_equipment_relation_context";return false;}return ClientPlayerWeaponsRelations(*o,*static_cast<Entity_Player *>(p),d,entities,roots,check,clear,reason);}

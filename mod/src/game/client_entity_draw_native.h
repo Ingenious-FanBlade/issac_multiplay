@@ -23,6 +23,9 @@ public:
 private:
 #ifdef ISAACCS_E2E
   ClientEntityTestMeasure cpu_{"draw_scope_inclusive"};
+  // 只保存本次真实draw入口的值；不把原生地址交给故障状态或Rust。
+  std::uint64_t player_test_run_=0,player_test_id_=0;
+  unsigned player_test_space_=0,player_test_pass_=0;
 #endif
   void *state_=nullptr;bool original_=true;
 };

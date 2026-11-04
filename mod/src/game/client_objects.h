@@ -4,6 +4,7 @@
 #include "replica/entity_plan.h"
 #include "game/client_entity_budget.h"
 #include "game/client_player_budget.h"
+#include "game/client_player_diagnostics.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -34,6 +35,7 @@ public:
   bool MatchIndependent(const ClientObjectKey &,std::uint64_t shape,std::uint64_t instance) const noexcept;
   ClientEntityBudget Budget() const noexcept {auto b=budget_;b.completed=unsigned(cursor_+player_cursor_);return b;}
   ClientPlayerBudget PlayerBudget() const noexcept;
+  ClientPlayerDiagnostics PlayerDiagnostics() const noexcept;
   std::shared_ptr<const ClientPlayerDisplayView> PlayerDisplay() const noexcept;
   bool PlayersCommitted(const replica::Scope &,std::uint64_t revision) const noexcept;
   ClientObjectStep Retire(const ClientNativeRoots &) noexcept;
@@ -46,6 +48,7 @@ private:
   ClientNativeObjects *native_=nullptr;
   std::unique_ptr<ClientPlayers> players_;
   bool players_structured_=false,players_complete_=false;
+  bool player_prepare_failed_=false;
   std::vector<ClientObjectCommand> commands_;
   std::unique_ptr<replica::Json> candidate_,committed_;
   std::unique_ptr<replica::Json> installed_;

@@ -1,24 +1,25 @@
 ﻿param([string]$Cohort='tx16-pair-20261031-01', [string]$HarnessPath)
 $ErrorActionPreference='Stop'
 $tx16PackageRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-if(-not $HarnessPath){$HarnessPath=Join-Path $tx16PackageRoot 'out/repentogon/harness.exe'}
+if(-not $HarnessPath){$HarnessPath=Join-Path $tx16PackageRoot 'out/repentogon/e2e/harness.exe'}
 $tx16Output=Join-Path $tx16PackageRoot 'out'
 $tx16Leaf='tx-04-16-access-'+[guid]::NewGuid().ToString('N')
 $tx16Staging=Join-Path $tx16Output $tx16Leaf
 $tx16Zip=Join-Path $tx16Output ($tx16Leaf+'.zip')
 # 接入包同时提供产品安装树和可搬到另一台Windows的E2E节点；Rust不是游戏Client。
-foreach($tx16Dir in @('install/Repentogon/isaac-cs','install/mods/isaac-cs-ui','e2e/scripts','e2e/out/repentogon','e2e/ui/isaac-cs-ui','e2e/tools/harness/scenarios')) {
+foreach($tx16Dir in @('install/Repentogon/isaac-cs','install/mods/isaac-cs-ui','e2e/scripts','e2e/out/repentogon/e2e','e2e/ui/isaac-cs-ui','e2e/tools/harness/scenarios')) {
     New-Item -ItemType Directory -Path (Join-Path $tx16Staging $tx16Dir) -Force | Out-Null
 }
 foreach($tx16Pair in @(
     @('out/repentogon/zhlIsaacCS.dll','install/Repentogon/zhlIsaacCS.dll'),
-    @('out/repentogon/zhlIsaacCS.dll','e2e/out/repentogon/zhlIsaacCS.dll'),
+    @('out/repentogon/e2e/zhlIsaacCS.dll','e2e/out/repentogon/e2e/zhlIsaacCS.dll'),
+    @('out/repentogon/e2e/build-flavor.json','e2e/out/repentogon/e2e/build-flavor.json'),
     @('scripts/accept-tx-04-16.ps1','e2e/scripts/accept-tx-04-16.ps1'),
     @('tools/harness/scenarios/tx-04-16.json','e2e/tools/harness/scenarios/tx-04-16.json')
 )) {
     Copy-Item -LiteralPath (Join-Path $tx16PackageRoot $tx16Pair[0]) -Destination (Join-Path $tx16Staging $tx16Pair[1])
 }
-Copy-Item -LiteralPath $HarnessPath -Destination (Join-Path $tx16Staging 'e2e/out/repentogon/harness.exe')
+Copy-Item -LiteralPath $HarnessPath -Destination (Join-Path $tx16Staging 'e2e/out/repentogon/e2e/harness.exe')
 Copy-Item -Path (Join-Path $tx16PackageRoot 'ui/isaac-cs-ui/*') -Destination (Join-Path $tx16Staging 'install/mods/isaac-cs-ui') -Recurse
 Copy-Item -Path (Join-Path $tx16PackageRoot 'ui/isaac-cs-ui/*') -Destination (Join-Path $tx16Staging 'e2e/ui/isaac-cs-ui') -Recurse
 $tx16Config=Get-Content -LiteralPath (Join-Path $tx16PackageRoot 'mod/config.example.json') -Raw | ConvertFrom-Json

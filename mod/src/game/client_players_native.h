@@ -54,6 +54,10 @@ ClientObjectStep ClientNativePlayersUnlink(ClientNativePlayers *,const ClientNat
 ClientEntityOwners ClientNativePlayersOwner(ClientNativePlayers *) noexcept;
 bool ClientNativePlayersCommit(ClientNativePlayers *,std::uint64_t revision) noexcept;
 bool ClientNativePlayersVisit(ClientNativePlayers *,void *,ClientObjectVisitor) noexcept;
+#ifdef ISAACCS_E2E
+// 显式E2E Manager窗口回读实际对象、关系、资源和成员集合；失败只返回诊断。
+std::string ClientNativePlayersInspect(ClientNativePlayers *,const ClientEntityOwners &) noexcept;
+#endif
 // 用途/shape/scope/实例共同核对；票据不替代下一次调用时的重新借用。
 bool ClientNativePlayersBorrow(ClientNativePlayers *,const ClientNativeRoots &,const ClientObjectKey &,std::uint64_t scope,
     std::uint64_t shape,ClientPlayerUse,ClientEntityBorrow &,const char *&) noexcept;

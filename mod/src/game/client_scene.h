@@ -10,6 +10,7 @@
 #include "game/client_entity_events.h"
 #include "game/client_entity_budget.h"
 #include "game/client_player_budget.h"
+#include "game/client_player_diagnostics.h"
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -62,6 +63,9 @@ struct ClientApplyResult final {
   std::array<char,48> recovery{};
   std::array<char,32> failure_phase{};
   std::array<char,96> failure_reason{};
+  // 当前Player步骤与首次Player失败分开；自动恢复、后续退休和新phase不覆盖首因。
+  ClientPlayerDiagnostics player_step{},player_failure{};
+  std::array<char,192> retirement_cause{},retirement_failure{};
 };
 // 有界的主线程场景 owner；DTO接纳、原生应用、发布和实际退休分别推进。
 class ClientScene final {
@@ -118,6 +122,10 @@ public:
   replica::RoomGridBudgetUsage Budget() const noexcept { return room_grid_target_?room_grid_target_->budget:replica::RoomGridBudgetUsage{}; }
   ClientEntityBudget EntityBudget() const noexcept;
   ClientPlayerBudget PlayerBudget() const noexcept;
+  std::uint64_t TargetRevision() const noexcept {return target_revision_;}
+  // 目标角色／用途位集仅来自已接纳T；不重新读取原生身体或查询游戏状态。
+  std::uint64_t PlayerRoleTypes() const noexcept;
+  unsigned PlayerBodyRoles() const noexcept;
   unsigned EntityIndependentPending() const noexcept {return entity_events_.Pending();}
   ClientEntityEvents::Statistics EntityIndependentStatus() const noexcept {return entity_events_.Status();}
   // A仅在完整原生提交后有效，部分写入或退休不继续暴露旧提交版本。
@@ -129,6 +137,8 @@ public:
   std::shared_ptr<const ClientPlayerDisplayView> PlayerDisplay() const noexcept;
   bool PlayerDisplayCurrent(const std::shared_ptr<const ClientPlayerDisplayView> &) const noexcept;
   bool RecoveryPending() const noexcept;
+  // 摘要不推进恢复；只有Pump在实际安全退休后改变生命周期。
+  const char *RecoveryState() const noexcept;
   void CancelRecovery() noexcept {stop_requested_=true;}
   const ClientGenerations &Generations() const noexcept { return generations_; }
   bool HasNativePrefix() const noexcept { return native_dispatch_prefix_ || ClientNativeWorldHasPrefix(native_world_) || result_.native_written || result_.pending_owners; }
@@ -153,6 +163,8 @@ private:
   bool Enter(ClientPurpose purpose) noexcept;
   void Leave(ClientPurpose purpose) noexcept;
   void FailureResult(ClientResultKind kind,const char *phase,const char *reason) noexcept;
+  void NotePlayerFailure(const ClientPlayerDiagnostics &) noexcept;
+  void NoteObjectStep(const ClientObjectStep &,const char *phase) noexcept;
   void SetCommittedRange() noexcept;
   struct BorrowEntry final {
     std::uint64_t id=0,scene=0,owner_token=0;

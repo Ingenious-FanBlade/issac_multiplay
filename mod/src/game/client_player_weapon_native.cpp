@@ -1,4 +1,5 @@
 #include "game/client_player_equipment_native.h"
+#include "game/client_player_e2e.h"
 #include "LuaCore.h"
 #include "game/bridge.h"
 #include "runtime.h"
@@ -56,13 +57,15 @@ bool ClientPlayerWeaponsPreflight(const ClientPlayerDescription &d,const char *&
 bool ClientPlayerWeaponsInstall(ClientPlayerEquipmentOwner &owner,Entity_Player &p,const ClientPlayerDescription &d,bool check,const char *&reason){if(!d.equipment||owner.fault||owner.retired){reason="weapon_owner_not_current";return false;}
   for(unsigned slot=0;slot<5;++slot){const auto &s=d.equipment->weapons[slot];auto &e=owner.weapons[slot];if(e.uncertain||e.create_entered||e.destroy_entered||p._weapon[slot]!=e.pointer){reason="weapon_slot_or_lifetime_conflict";return false;}
     if(check){if(bool(e.pointer)!=s.present||(s.present&&(!Type(e.pointer,unsigned(s.type))||!Public(*e.pointer,s,true,reason))))return false;continue;}
+    if(ClientPlayerTestFault("player-weapon-before",d.entity.key,0,unsigned(ClientPlayerPrefix::Resources),slot,e.generation)){reason="player-weapon-before";return false;}
     if(e.pointer&&(!s.present||e.type!=unsigned(s.type)))if(!Release(owner,p,slot,reason))return false;
     if(!s.present)continue;if(!e.pointer){if(owner.next_generation==UINT64_MAX){reason="weapon_generation_exhausted";return false;}e.create_entered=true;
       // fresh factory对象的Reset只处理已构造的空引用；不调用Fire/Update，不发布额外Entity。
       try{e.pointer=Isaac::CreateWeapon(WeaponType(s.type),&p);}catch(...){e.uncertain=true;owner.fault=true;reason="weapon_factory_Init_exception_retained";return false;}
       if(!e.pointer){e.create_entered=false;reason="weapon_factory_returned_null";return false;}e.type=unsigned(s.type);e.generation=++owner.next_generation;e.create_entered=false;p._weapon[slot]=e.pointer;
       if(!Type(e.pointer,e.type)){e.uncertain=true;owner.fault=true;reason="weapon_factory_dynamic_type_mismatch_retained";return false;}}
-    if(!Public(*e.pointer,s,false,reason))return false;}
+    if(!Public(*e.pointer,s,false,reason))return false;
+    if(ClientPlayerTestFault("player-weapon-after",d.entity.key,0,unsigned(ClientPlayerPrefix::Resources),slot,e.generation)){reason="player-weapon-after";return false;}}
   return true;}
 bool ClientPlayerWeaponsRelations(ClientPlayerEquipmentOwner &owner,Entity_Player &p,const ClientPlayerDescription &d,const ClientEntityOwners &entities,const ClientNativeRoots &roots,bool check,bool clear,const char *&reason){
   for(unsigned slot=0;slot<5;++slot){auto &e=owner.weapons[slot];if(e.uncertain||e.create_entered||e.destroy_entered||e.pointer!=p._weapon[slot]){reason="weapon_relation_lifetime_conflict";return false;}if(!e.pointer)continue;if(!Type(e.pointer,e.type)){reason="weapon_relation_dynamic_type";return false;}

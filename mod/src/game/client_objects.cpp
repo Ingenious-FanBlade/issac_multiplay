@@ -150,7 +150,16 @@ bool ParseObjects(const V &model,Objects &out,std::string &reason) {
 }
 }
 #ifdef ISAACCS_E2E
-std::string ClientObjects::TestInspect() const noexcept {return ClientTestInspectNative(native_);}
+std::string ClientObjects::TestInspect() const noexcept {
+  try{
+    auto entities=ClientTestInspectNative(native_);if(entities.rfind("ok=1\n",0)!=0)return entities;
+    if(players_&&players_->Active()){
+      auto players=players_->TestInspect(ClientNativeObjectsEntityOwner(native_));if(players.rfind("ok=1\n",0)!=0)return players;
+      entities+=players.substr(5);
+    }
+    return entities;
+  }catch(...){return "ok=0\nerror=inspect_allocation\n";}
+}
 #endif
 ClientObjects::ClientObjects() noexcept {try{entity_adapters_=ClientEntityBuiltinAdapters();}catch(...){failed_=true;reason_="objects_builtin_adapter_allocation";}}
 ClientObjects::~ClientObjects(){ClientNativeObjectsDestroy(native_);}
@@ -167,6 +176,7 @@ bool ClientObjects::ConfigureEntityOwners(ClientEntityOwners owners,std::vector<
     entity_owners_=owners;entity_adapters_=std::move(adapters);return true;}catch(...){return false;}
 }
 bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&reason,const replica::RoomGridTarget *room_grid,std::shared_ptr<const replica::PlayerTarget> players) noexcept {
+  player_prepare_failed_=false;
   try {
     if(failed_){reason="objects_failed_requires_retirement";return false;}
     if(players_&&players_->Active()&&!players&&!replica::HasPlayerTarget(target)){reason="objects_player_profile_change_requires_retirement";return false;}
@@ -257,7 +267,7 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
       auto usage=ClientMeasureEntities(next,unsigned(plan->steps.size()+player_commands.size()));
       auto copy=std::make_unique<replica::Json>(replica::Copy(target));
       // 最后才替换Player纯值候选；后面的Entity预检失败不能留下与旧candidate不一致的身体计划。
-      if(plan->players&&!players_->Prepare(plan->players,reason))return false;
+      if(plan->players&&!players_->Prepare(plan->players,reason)){player_prepare_failed_=true;return false;}
       if(plan->players){usage.commands+=players_->Cost();if(usage.commands>kClientEntityCommands){players_->Cancel();reason="objects_combined_command_budget";return false;}}
       candidate_=std::move(copy);entity_plan_=std::move(plan);entity_old_values_=std::move(before);entity_target_values_=std::move(next);
       player_commands_=std::move(player_commands);player_cursor_=0;budget_=usage;instances_ready_=ready_=capacity_checked_=false;
@@ -400,6 +410,7 @@ ClientObjectStep ClientObjects::Retire(const ClientNativeRoots &roots) noexcept 
   cursor_=0;prefix_=0;failed_=written_=false;retired_=true;return step;
 }
 ClientPlayerBudget ClientObjects::PlayerBudget() const noexcept {return players_?players_->Budget():ClientPlayerBudget{};}
+ClientPlayerDiagnostics ClientObjects::PlayerDiagnostics() const noexcept {return player_prepare_failed_&&players_?players_->Diagnostics():ClientPlayerDiagnostics{};}
 std::shared_ptr<const ClientPlayerDisplayView> ClientObjects::PlayerDisplay() const noexcept {return players_?players_->Display():nullptr;}
 bool ClientObjects::PlayersCommitted(const replica::Scope &scope,std::uint64_t revision) const noexcept {
   return committed_&&!failed_&&(!(candidate_||installed_)||!written_)&&players_&&players_->Committed(scope,revision);

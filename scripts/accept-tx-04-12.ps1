@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 $txRepoRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 # 全目标完成后调用；构建与必要修复续测均属于同一 tx 的整体验收。
 if($Stage -ne 'Run') {
-    & (Join-Path $PSScriptRoot 'build.ps1')
+    & (Join-Path $PSScriptRoot 'build.ps1') -E2E
     if($LASTEXITCODE) { throw 'tx-04-12 acceptance build failed' }
 }
 if($Stage -ne 'Build') {
@@ -17,6 +17,6 @@ if($Stage -ne 'Build') {
     # 续测复用同tx正式样本；仅未完成及明确受修复影响的ID再次实机执行。
     if($ResumeFrom) { $txArguments+=@('--resume-from',$ResumeFrom) }
     if($RetestIds) { $txArguments+=@('--retest-ids',$RetestIds) }
-    & (Join-Path $txRepoRoot 'out/repentogon/harness.exe') @txArguments
+    & (Join-Path $txRepoRoot 'out/repentogon/e2e/harness.exe') @txArguments
     if($LASTEXITCODE) { throw "tx-04-12 acceptance requires diagnosis/continuation: $txTemporary" }
 }

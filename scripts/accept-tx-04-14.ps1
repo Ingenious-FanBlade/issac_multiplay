@@ -4,7 +4,7 @@ if($CrtImports){$NativeRandom=$true}
 $txRepoRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if($Stage -eq 'Reduce') {
     if(-not $TemporaryDirectory) { throw 'Reduce requires completed scene directory' }
-    & (Join-Path $txRepoRoot 'out/repentogon/harness.exe') 'tx14-reduce' $TemporaryDirectory
+    & (Join-Path $txRepoRoot 'out/repentogon/e2e/harness.exe') 'tx14-reduce' $TemporaryDirectory
     if($LASTEXITCODE) { throw 'tx-04-14 formal-record reduction failed' }
     return
 }
@@ -15,7 +15,7 @@ if(-not $GlobalRandom -and -not $NativeRandom -and -not (Test-Path -LiteralPath 
     Invoke-WebRequest -Uri 'https://codeload.github.com/Meowlala/BOIStageAPI15/zip/refs/heads/master' -OutFile (Join-Path $txSource 'stageapi.zip')
     Expand-Archive -LiteralPath (Join-Path $txSource 'stageapi.zip') -DestinationPath $txSource -Force
 }
-if($Stage -ne 'Run') { & (Join-Path $PSScriptRoot 'build.ps1'); if($LASTEXITCODE) { throw 'tx-04-14 acceptance build failed' } }
+if($Stage -ne 'Run') { & (Join-Path $PSScriptRoot 'build.ps1') -E2E; if($LASTEXITCODE) { throw 'tx-04-14 acceptance build failed' } }
 if($Stage -ne 'Build') {
     if(-not $TemporaryDirectory) { $TemporaryDirectory=Join-Path $txRepoRoot ('out/tx-04-14-temp-'+[guid]::NewGuid().ToString('N')) }
     $txTemporary=[IO.Path]::GetFullPath($TemporaryDirectory)
@@ -25,6 +25,6 @@ if($Stage -ne 'Build') {
     $txArguments=@('e2e','tx-04-14','--game',$GameRoot,'--artifact-dir',$txTemporary,'--scenario',(Join-Path $txRepoRoot $txScenario))
     if($ResumeFrom) { $txArguments+=@('--resume-from',$ResumeFrom) }
     if($RetestIds) { $txArguments+=@('--retest-ids',$RetestIds) }
-    & (Join-Path $txRepoRoot 'out/repentogon/harness.exe') @txArguments
+    & (Join-Path $txRepoRoot 'out/repentogon/e2e/harness.exe') @txArguments
     if($LASTEXITCODE) { throw "tx-04-14 acceptance requires diagnosis/continuation: $txTemporary" }
 }

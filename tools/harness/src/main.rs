@@ -783,7 +783,7 @@ impl Run {
         let counters = control.command("cs counters")?;
         write_json(&self.out.join("counters.json"), &json!(counters))?;
         let manifest: Value =
-            serde_json::from_str(&read(&self.repo.join("out/repentogon/hook-manifest.json"))?)
+            serde_json::from_str(&read(&self.repo.join("out/repentogon/e2e/hook-manifest.json"))?)
                 .map_err(|e| e.to_string())?;
         let required = manifest["hooks"]
             .as_array()

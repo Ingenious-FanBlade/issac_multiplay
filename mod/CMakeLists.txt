@@ -68,17 +68,20 @@ target_link_libraries(isaac_cs_net PUBLIC isaac_cs_replica)
 # E2E工具与正式DLL分开打包；同一库用于正式主线程纯值适配和统一验收。
 option(ISAACCS_BUILD_E2E_TOOLS "Build explicitly requested E2E tools outside product install tree" OFF)
 if(ISAACCS_BUILD_E2E_TOOLS)
+set(ISAACCS_BUILD_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon/e2e")
 add_executable(replica-contract ../tools/replica-contract/main.cpp)
 target_link_libraries(replica-contract PRIVATE isaac_cs_replica)
 target_compile_options(replica-contract PRIVATE /W4 /Zi /utf-8 /EHsc)
-set_target_properties(replica-contract PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")
+set_target_properties(replica-contract PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${ISAACCS_BUILD_OUTPUT}")
 add_executable(client-fixture ../tools/client-fixture/main.cpp)
 target_link_libraries(client-fixture PRIVATE isaac_cs_replica)
 target_compile_options(client-fixture PRIVATE /W4 /Zi /utf-8 /EHsc)
-set_target_properties(client-fixture PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")
+set_target_properties(client-fixture PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${ISAACCS_BUILD_OUTPUT}")
+else()
+set(ISAACCS_BUILD_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon")
 endif()
 add_custom_command(OUTPUT "${GENERATED}/hooks_generated.cpp" "${GENERATED}/binding_v1_9_7_12.inc" "${GENERATED}/hook-manifest.json" "${GENERATED}/permanent_patches.inc" "${GENERATED}/host_patches.inc" "${GENERATED}/hook_capacity.h" "${GENERATED}/world_layout.inc" "${GENERATED}/world-layout.json"
-  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/shutdown_patch.inc" "${GENERATED}/backdrop_patch.inc" "${GENERATED}/random_runtime.inc"
+  BYPRODUCTS "${GENERATED}/exit_patch.inc" "${GENERATED}/shutdown_patch.inc" "${GENERATED}/backdrop_patch.inc" "${GENERATED}/random_runtime.inc" "${GENERATED}/hook-manifest.md"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_binding.py" --out "${GENERATED}"
   DEPENDS tools/gen_binding.py binding/hooks.json binding/world_layout.json binding/v1_9_7_12-static.json ../docs/hooks/repentogon-binding.json VERBATIM)
 add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions.cpp
@@ -120,7 +123,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   "${GENERATED}/hooks_generated.cpp")
 # 文件导入/导出、故障注入与原生测试只进入显式 E2E DLL；正式目标没有这些实现。
 if(ISAACCS_BUILD_E2E_TOOLS)
-  target_sources(zhlIsaacCS PRIVATE src/ops/client_fixture.cpp src/game/client_e2e_native.cpp src/game/client_entity_e2e.cpp src/game/world_sources/random_e2e.cpp)
+  target_sources(zhlIsaacCS PRIVATE src/ops/client_fixture.cpp src/game/client_e2e_native.cpp src/game/client_entity_e2e.cpp src/game/client_player_e2e.cpp src/game/world_sources/random_e2e.cpp)
   target_compile_definitions(zhlIsaacCS PRIVATE ISAACCS_E2E=1)
   set(ISAACCS_DLL_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon/e2e")
   set(ISAACCS_BUILD_FLAVOR "e2e")
@@ -129,7 +132,7 @@ else()
   set(ISAACCS_BUILD_FLAVOR "product")
 endif()
 file(GENERATE OUTPUT "${ISAACCS_DLL_OUTPUT}/build-flavor.json"
-  CONTENT "{\"format\":\"isaac.cs.build\",\"version\":1,\"flavor\":\"${ISAACCS_BUILD_FLAVOR}\",\"e2e_tools\":$<IF:$<BOOL:${ISAACCS_BUILD_E2E_TOOLS}>,true,false>}\n")
+  CONTENT "{\"format\":\"isaac.cs.build\",\"version\":1,\"flavor\":\"${ISAACCS_BUILD_FLAVOR}\",\"e2e_tools\":$<IF:$<BOOL:${ISAACCS_BUILD_E2E_TOOLS}>,true,false>,\"player_contract\":\"player-target-v2\",\"player_diagnostics\":1,\"player_runtime_acceptance\":\"I39-not-run\"}\n")
 # SDK 1.1.3 的生成头和 ASMPatcher.hpp 的 friend-static 声明不兼容当前 C++20。
 # SDK-facing 单元只使用 C++17 值接口；Join/输入/world 核心保持 C++20。
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。

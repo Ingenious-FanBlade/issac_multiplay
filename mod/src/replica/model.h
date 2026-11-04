@@ -27,7 +27,7 @@ struct Scope final {
   bool operator==(const Scope &) const = default;
 };
 struct Message final { Kind kind=Kind::Error; std::uint64_t sequence=0; Json body; };
-struct ContractError final : std::exception {
+struct ContractError : std::exception {
   std::string code;
   explicit ContractError(std::string c):code(std::move(c)){}
   const char *what() const noexcept override { return code.c_str(); }

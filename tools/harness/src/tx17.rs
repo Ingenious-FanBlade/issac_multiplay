@@ -52,7 +52,7 @@ impl Run {
   loop{let s=c.command("cs world status")?;if s.get("world_state").map(String::as_str)==Some("Closed"){break}if Instant::now()>=end{return Err("capture close".into())}thread::sleep(Duration::from_millis(80));}
   c.command("cs observe stop")?;c.command("cs stop")?;c.wait("session_state","Idle",20)?;self.return_to_menu(w,&mut c)?;
   let targets=self.out.join("runtime-world/client-targets");
-  let generated=Command::new(self.repo.join("out/repentogon/client-fixture.exe")).arg(self.out.join("runtime-world/tx17-source/observation-v2/records.jsonl")).arg(&targets).output().map_err(|e|e.to_string())?;
+  let generated=Command::new(self.repo.join("out/repentogon/e2e/client-fixture.exe")).arg(self.out.join("runtime-world/tx17-source/observation-v2/records.jsonl")).arg(&targets).output().map_err(|e|e.to_string())?;
   if !generated.status.success(){return Err(format!("source model: {}",String::from_utf8_lossy(&generated.stderr)))}
   self.step("formal_source_projection",json!({"output":String::from_utf8_lossy(&generated.stdout)}))?;
   // 原生Manager析构完成合法Host版本同步，随后Client才有独立、稳定的持久基线。

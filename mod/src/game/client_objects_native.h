@@ -79,6 +79,13 @@ struct ClientObjectStep final {
   std::uint64_t instance=0;
   unsigned object_prefix=0;
   std::uint64_t pool_use=0,shape_revision=0;
+  // Player步骤的语义前缀独立于Scene分派计数；缺依赖字段随步骤值复制，跨线程不带地址。
+  ClientObjectKey dependency{};
+  std::array<char,256> field{};
+  unsigned body_role=0;
+  int player_type=-1;
+  const char *domain="entity";
+  const char *phase="";
 };
 struct ClientNativeObjects;
 // 外部Player/跨域owner按稳定Key每次重新借用；不缓存Authority指针，也不回退到roster[0]。

@@ -8,7 +8,9 @@
 
 namespace cs::replica {
 namespace {
-[[noreturn]] void Fail(const char *why){throw ContractError(std::string("player_plan:")+why);}
+[[noreturn]] void Fail(const char *why,SubjectKey body={},SubjectKey dependency={},std::string field={}){
+  throw PlayerContractError(std::string("player_plan:")+why,body,dependency,std::move(field));
+}
 const Value &Fields(const PlayerTarget &t,const PlayerBodyTarget &b){return std::get<EntityClassValues<EntityCategory::Player>>(t.entities->objects.at(b.entity_index).payload).fields.value;}
 using Graph=std::map<std::uint64_t,const Value *>;
 void Nodes(const Value &v,Graph &g){if(v.IsArray())for(const auto &x:v.GetArray())Nodes(x,g);else if(v.IsObject()){
@@ -122,20 +124,20 @@ PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget> t,std::shar
       static const std::set<std::string> installed={"Entity.Parent","Entity.Child","Entity.Target","Entity.SpawnerEntity","Entity.GetMinecart","EntityPlayer.GetMainTwin","EntityPlayer.GetOtherTwin","EntityPlayer.GetSubPlayer","EntityPlayer.GetFlippedForm","EntityPlayer.GetHeldEntity","EntityPlayer.GetActiveWeaponEntity","Weapon.GetOwner","Weapon.GetMainEntity","NativeWeapon.EntityPtr"};
       if(!installed.count(d.member)){d.phase=EntityDependencyPhase::ValueOnly;d.kind=EntityDependencyKind::AuthorityValue;}
       if(d.phase!=EntityDependencyPhase::ValueOnly&&!d.is_null){
-        if(!d.has_target||d.status!="KnownCurrent")Fail("required_reference_unresolved");
-        if(d.target.run!=p.target->scope.run)Fail("cross_run_reference");
+        if(!d.has_target||d.status!="KnownCurrent")Fail("required_reference_unresolved",key,d.target,d.path);
+        if(d.target.run!=p.target->scope.run)Fail("cross_run_reference",key,d.target,d.path);
         if(d.target.space==1){bool found=false;
           for(const auto &other:p.target->entities->objects)if(other.key==d.target&&other.presence==EntityMemberPresence::Current){
-            if(d.expected!=EntityCategory::Unknown&&d.expected!=other.category)Fail("reference_category_mismatch");found=true;break;}
-          if(!found)Fail("required_reference_missing");
+            if(d.expected!=EntityCategory::Unknown&&d.expected!=other.category)Fail("reference_category_mismatch",key,d.target,d.path);found=true;break;}
+          if(!found)Fail("required_reference_missing",key,d.target,d.path);
         }
       }p.dependencies.push_back(std::move(d));
     }
     for(const auto &[slot,r]:body.relations){
-      if(r.status!="Null"&&r.status!="KnownCurrent")Fail("body_relation_unresolved");
+      if(r.status!="Null"&&r.status!="KnownCurrent")Fail("body_relation_unresolved",key,r.key,"body.relations/"+slot);
       if(r.has_target&&(slot=="parent"||slot=="child")){
-        if(std::none_of(p.target->entities->objects.begin(),p.target->entities->objects.end(),[&](const auto &e){return e.key==r.key&&e.presence==EntityMemberPresence::Current;}))Fail("body_entity_relation_missing");
-      }else if(r.has_target&&!desired.count(r.key))Fail("body_relation_missing");
+        if(std::none_of(p.target->entities->objects.begin(),p.target->entities->objects.end(),[&](const auto &e){return e.key==r.key&&e.presence==EntityMemberPresence::Current;}))Fail("body_entity_relation_missing",key,r.key,"body.relations/"+slot);
+      }else if(r.has_target&&!desired.count(r.key))Fail("body_relation_missing",key,r.key,"body.relations/"+slot);
       if(r.has_target&&slot!="parent"&&slot!="child"){const auto &other=p.target->bodies.at(desired.at(r.key));if(body.membership.known&&other.membership.known&&body.membership.group.key!=other.membership.group.key)Fail("body_relation_cross_control_group");}
     }
   }

@@ -13,6 +13,7 @@
 #ifdef ISAACCS_E2E
 #include "ops/client_fixture.h"
 #include "game/client_entity_e2e.h"
+#include "game/client_player_e2e.h"
 #endif
 #include "replica/codec.h"
 #include "runtime.h"
@@ -108,6 +109,8 @@ std::string Execute(std::string_view text, const char *source) {
     // 测试口只接收专用目录内的正式纯值模型；没有任意原生写入或执行脚本能力。
     std::string token,mode,label,trailing;in>>token>>mode>>label>>trailing;
     if(mode=="fault"&&trailing.empty())result=game::ClientEntityTestArm(token,label);
+    else if(mode=="player-fault"&&trailing.empty())result=game::ClientPlayerTestArm(token,label);
+    else if(mode=="player-fault-status"&&label.empty())result=game::ClientPlayerTestStatus(token);
     else if(mode=="fault-status"&&label.empty())result=game::ClientEntityTestStatus(token);
     else if(mode=="inspect"&&label.empty())result=game::ClientTestInspect(token);
     else if(mode=="independent"&&trailing.empty())result=ImportClientIndependent(token,label);

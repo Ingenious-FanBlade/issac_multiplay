@@ -2,6 +2,7 @@
 #include "game/client_players_native.h"
 #include "replica/player_plan.h"
 #include "game/client_player_budget.h"
+#include "game/client_player_diagnostics.h"
 
 namespace cs::game {
 struct ClientPlayerHistoryView;
@@ -30,6 +31,10 @@ public:
   std::shared_ptr<const ClientPlayerDisplayView> Display() const noexcept;
   bool Committed(const replica::Scope &,std::uint64_t revision) const noexcept;
   ClientPlayerBudget Budget() const noexcept {return budget_;}
+  ClientPlayerDiagnostics Diagnostics() const noexcept {return diagnostic_;}
+#ifdef ISAACCS_E2E
+  std::string TestInspect(const ClientEntityOwners &) const noexcept;
+#endif
   ClientObjectReference Backup(unsigned slot) const noexcept;
 private:
   std::unique_ptr<replica::PlayerApplyPlan> plan_;
@@ -44,5 +49,6 @@ private:
   std::uint64_t attempt_=0;
   bool begun_=false,written_=false,ready_=false;
   std::string reason_;
+  ClientPlayerDiagnostics diagnostic_{};
 };
 } // namespace cs::game

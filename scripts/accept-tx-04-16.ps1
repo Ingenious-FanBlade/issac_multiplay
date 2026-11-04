@@ -26,7 +26,7 @@ if($Stage -eq 'Combine') {
     return
 }
 if($Stage -in @('All','Build')) {
-    & (Join-Path $PSScriptRoot 'build.ps1')
+    & (Join-Path $PSScriptRoot 'build.ps1') -E2E
     if($LASTEXITCODE){throw 'tx-04-16 acceptance build failed'}
 }
 if($Stage -eq 'Build'){return}
@@ -43,7 +43,7 @@ if($WaitForPairStart){
     if($NodeRole -ne 'Host'){throw 'WaitForPairStart is only valid for Host'}
     $tx16Args+=@('--host-hold',(Join-Path $tx16Temporary 'start-pair.signal'))
 }
-& (Join-Path $tx16Root 'out/repentogon/harness.exe') @tx16Args
+& (Join-Path $tx16Root 'out/repentogon/e2e/harness.exe') @tx16Args
 if($LASTEXITCODE){throw "tx-04-16 needs continuous diagnosis/continuation: $tx16Temporary"}
 if($NodeRole -eq 'Local'){Write-Output 'Local lifecycle cases PASS; this does not replace the four-device cohort.'}
 else{Write-Output "Node cases passed; temporary continuation material for cohort Combine: $tx16Temporary"}

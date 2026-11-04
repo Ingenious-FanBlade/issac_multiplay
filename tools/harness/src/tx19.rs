@@ -289,7 +289,7 @@ impl Run {
   }
   // 版本拒绝走正式Negotiate；既不换旧DLL也不将模型JSON中的未知字段当版本号。
   let caps=self.out.join("runtime-world/client-targets/caps-v2.json");
-  let status=Command::new(self.repo.join("out/repentogon/client-fixture.exe")).arg("--capabilities").arg(&caps).output().map_err(|e|e.to_string())?;
+  let status=Command::new(self.repo.join("out/repentogon/e2e/client-fixture.exe")).arg("--capabilities").arg(&caps).output().map_err(|e|e.to_string())?;
   if !status.status.success(){return Err("capability source generation failed".into())}
   let caps=load(&caps)?;
   for name in ["model","catalog"]{let mut old=caps.clone();if name=="model"{old["model"]=json!(1)}else{old["model_categories"]["entity_target"]["catalog"]=json!(0)}
@@ -392,7 +392,7 @@ impl Run {
   let samples=report["source_samples"].as_array().ok_or("source samples")?;if samples.len()!=scenes.len(){return Err("Source scene count".into())}
   crate::copy_tree(&source.join("runtime-world/client-targets"),&self.out.join("runtime-world/client-targets"))?;
   self.report["source_run"]=json!(source);self.snapshot("client_before")?;
-  let catalog=load(&self.repo.join("out/repentogon/replication-catalog.json"))?;
+  let catalog=load(&self.repo.join("out/repentogon/e2e/replication-catalog.json"))?;
   let token=self.report["token"].as_str().ok_or("token")?.to_owned();let mut session=Value::Null;let mut applied=Vec::new();let mut classes=BTreeSet::new();let mut slots=BTreeSet::new();let mut previous_players=BTreeSet::new();
   for(i,spec)in scenes.iter().enumerate(){let label=spec["label"].as_str().ok_or("label")?;if samples[i]["label"]!=label{return Err("Source/Client sequence mismatch".into())}
    let root=self.out.join("runtime-world/client-targets");let target=load(&root.join(format!("{label}.json")))?;

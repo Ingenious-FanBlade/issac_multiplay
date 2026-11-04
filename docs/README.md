@@ -1,3 +1,5 @@
+> **tx-04-20 I36—I37（2026-11-04）**：[纯值状态／首因、真实原生 inspect、E2E 故障边界及构建发布接线](design/tx-04-20/tx-04-20-observability-build.md)已实现。产品与 E2E 的 DLL／工具／目录分开输出，Player 应用目录纳入发布清单。未构建、测试或启动游戏，按要求直接提交；I38—I40 及 I39 统一验收待推进。下方保留此前阶段事实。
+
 > **tx-04-20 I31—I35（2026-11-04）**：[同A只读展示、动态HUD、隔离退休、Scene提交与预算及必要逆向主审](design/tx-04-20/tx-04-20-commit-isolation-budget.md)。已接入完整只读接口、原生HUD/control pair、Player用途随机拒绝、全窗口SFX保护、提前撤边／ANM异常owner登记、安全退休后完整T恢复一次及准确Player／Entity域位。按用户要求直接提交，未构建、测试或启动游戏；I36—I40及I39统一验收待继续。下方保留此前阶段事实。
 
 > **tx-04-20 I26—I30（2026-11-04）**：[四槽／专用角色状态／生命周期／原生绘制和控制关系实现](design/tx-04-20/tx-04-20-special-draw-control.md)、[Luna max必要逆向及主审纠错](design/tx-04-20/player-i26-i30-native.md)。同窗口有限槽、Samson／IBS最终充能、残影／可选动画序列、真实Image及ANM整帧强借用、Scene寿命与已提交控制组视图已接入。未构建、测试或启动游戏，按会话要求直接提交；I31—I40及I39统一验收继续，完整native_apply仍false。

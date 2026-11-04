@@ -25,8 +25,9 @@ std::string ClientTestInspectNative(const ClientNativeObjects *objects) noexcept
         const auto *d=ClientNativeObjectDrawDescription(pointer);
         if(!d||!instance||!s.unique.insert(pointer).second)return false;
         auto &e=*static_cast<Entity *>(pointer);
-        if(!e._valid||!e._exists||e._type!=int(type))return false;
-        if(d->full_entity&&d->category){
+        // 正式Player的dead/exists/非roster资格由其唯一owner核对；不能用旧单Isaac条件拒绝合法身体。
+        if(e._type!=int(type)||(type!=1&&!e._valid)||(!d->full_entity&&!e._exists))return false;
+        if(type!=1&&d->full_entity&&d->category){
           const ClientEntityClassAdapter *adapter=nullptr;for(const auto &a:s.adapters)if(a.category==d->category)adapter=&a;
           if(!adapter||!ClientEntityCommonFields(pointer,d->common_fields,true,s.reason)||
              !adapter->fields(adapter->context,pointer,*d,true,s.reason)||!adapter->resources(adapter->context,pointer,*d,true,s.reason))return false;

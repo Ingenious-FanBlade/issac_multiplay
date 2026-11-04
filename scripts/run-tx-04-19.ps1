@@ -13,7 +13,7 @@ New-Item -ItemType Directory -Path $tx19Run -Force | Out-Null
 # 纯构建也统一放在I34入口，构建脚本不运行测试；两种DLL分别输出。
 & (Join-Path $PSScriptRoot 'build.ps1')
 & (Join-Path $PSScriptRoot 'build.ps1') -E2E
-$tx19Harness=Join-Path $tx19Repo 'out/repentogon/harness.exe'
+$tx19Harness=Join-Path $tx19Repo 'out/repentogon/e2e/harness.exe'
 # 一个整体验收入口包含全部18回归与19；失败保留必要进度，修复后同tx续测，不启动旧DLL。
 $tx19Stages=@(
     @('room-grid-source','tx-04-18','Source',$null),

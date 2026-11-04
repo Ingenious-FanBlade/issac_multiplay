@@ -2,6 +2,7 @@
 #include "IsaacRepentance.h"
 #include "binding/world_layout.h"
 #include "game/client_entity_draw_native.h"
+#include "game/client_player_e2e.h"
 #include "game/client_entity_adapters.h"
 #include "game/bridge.h"
 #include "game/context.h"
@@ -249,6 +250,12 @@ ClientEntityDrawScope::ClientEntityDrawScope(void *pointer,void *offset,unsigned
   const auto *d=ClientNativeObjectDrawDescription(pointer);
   if(!d||!d->full_entity||!d->derived){if(static_cast<Entity *>(pointer)->_type!=1){original_=false;ClientCallbackFault("entity_draw_unowned_subject");}return;}
   if(ClientEntityTestFault("draw-before")){original_=false;ClientCallbackFault("draw-before");return;}
+#ifdef ISAACCS_E2E
+  if(static_cast<Entity *>(pointer)->_type==1){
+    player_test_run_=d->key.run;player_test_id_=d->key.id;player_test_space_=d->key.space;player_test_pass_=pass;
+    if(ClientPlayerTestFault("player-draw-before",d->key,0,pass)){original_=false;ClientCallbackFault("player-draw-before");return;}
+  }
+#endif
   auto state=std::make_unique<Draw>(*static_cast<Entity *>(pointer),*d,pass);state->Attach(*d);state_=state.release();
   if(pass==0&&d->category==11){original_=false;if(!offset)throw std::runtime_error("entity_text_draw_offset");Text(*static_cast<Entity *>(pointer),*d,*static_cast<Vector *>(offset));}
 }
@@ -259,6 +266,9 @@ ClientEntityDrawScope::~ClientEntityDrawScope(){
   delete static_cast<Draw *>(state_);
   // 原调用已返回且工作值已归还；外层RenderState仍负责消费本帧队列，再进入失败退休。
   if(ClientEntityTestFault("draw-after"))ClientCallbackFault("draw-after");
+#ifdef ISAACCS_E2E
+  if(player_test_id_&&std::uncaught_exceptions()==0&&ClientPlayerTestFault("player-draw-after",{player_test_run_,player_test_id_,player_test_space_},0,player_test_pass_))ClientCallbackFault("player-draw-after");
+#endif
 }
 bool ClientEntityDrawPaused(bool &value) noexcept {if(!IsMain()||!frame)return false;value=frame->source.paused;return true;}
 bool ClientEntityDrawDrained() noexcept {return IsMain()&&!frame&&!draw&&!sprite_records;}

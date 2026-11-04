@@ -31,7 +31,7 @@ fn independent_decode(root:&Path)->Result<Value>{
 }
 // 独立核对投影：逐叶比较真实源值与复制值；身份单独检查稳定性／唯一性，归属按产品目录逐项读取。
 fn audit_projection(repo:&Path,capture:&Path,root:&Path)->Result<Value>{
- let catalog:Value=serde_json::from_str(&crate::read(&repo.join("out/repentogon/replication-catalog.json"))?).map_err(|e|e.to_string())?;
+ let catalog:Value=serde_json::from_str(&crate::read(&repo.join("out/repentogon/e2e/replication-catalog.json"))?).map_err(|e|e.to_string())?;
  let mut policies=BTreeMap::new();for row in catalog["members"].as_array().ok_or("catalog members")?{let id=row["id"].as_str().ok_or("catalog id")?.to_string();if !policies.contains_key(&id)||row["source_catalog"]=="entity-catalog.json"{policies.insert(id,row["ownership"].as_str().ok_or("ownership")?.to_string());}}
  let mut wanted=BTreeMap::new();let mut models=Vec::new();
  for line in BufReader::new(fs::File::open(root.join("expected.jsonl")).map_err(|e|e.to_string())?).lines(){let row:Value=serde_json::from_str(&line.map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;if row["file"].as_str().is_some_and(|s|s.starts_with("real-")&&s!="real-delta.icsr")&&row["kind"]==3{let model=row["body"].clone();for (domain,c) in model["components"].as_object().ok_or("components")?{wanted.insert(c["capture"]["scope"].as_str().ok_or("source scope")?.to_string(),(domain.clone(),c.clone()));}models.push(model);}}
@@ -104,7 +104,7 @@ impl Run {
   let capture=self.out.join("runtime-world/replica-contract/observation-v2");let read=crate::observation::read_capture(&capture)?;if read["delivery_complete"]!=true||read["supported_read_complete"]!=true{return Err(format!("source delivery:{read}"))}
   let root=self.out.join("wire");
   if self.report["cases"]["all_domain_model_and_contract"]["pass"]!=true||self.scenario["retest_contract"]==true {
-   let output=Command::new(self.repo.join("out/repentogon/replica-contract.exe")).arg(capture.join("records.jsonl")).arg(&root).output().map_err(|e|e.to_string())?;
+   let output=Command::new(self.repo.join("out/repentogon/e2e/replica-contract.exe")).arg(capture.join("records.jsonl")).arg(&root).output().map_err(|e|e.to_string())?;
    if !output.status.success(){return Err(format!("contract codec:{}{}",String::from_utf8_lossy(&output.stdout),String::from_utf8_lossy(&output.stderr)))}
    let summary:Value=serde_json::from_slice(&output.stdout).map_err(|e|e.to_string())?;self.case("all_domain_model_and_contract",summary["pass"]==true,summary);
   }
