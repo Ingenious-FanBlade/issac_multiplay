@@ -63,6 +63,30 @@ local function parameterSets(object, spec, ctx)
     return out
   end
   if name=="GetWeapon" then return {{0},{1},{2},{3},{4}} end
+  -- 装备查询只遍历当前配置中实际存在的ID；两个bool的四种组合不以默认参数冒充完整语义。
+  if spec.owner=="EntityPlayer" and (name=="GetCollectibleNum" or name=="GetActiveItemSlot" or name=="GetSmeltedTrinketDesc") then
+    local trinket=name=="GetSmeltedTrinketDesc"
+    ctx.player_config_ids=ctx.player_config_ids or {}
+    local key=trinket and "trinkets" or "collectibles"
+    if not ctx.player_config_ids[key] then
+      local ok,ids=pcall(function()
+        local config=Isaac.GetItemConfig();local list=trinket and config:GetTrinkets() or config:GetCollectibles()
+        if list.Size<0 or list.Size>LIMIT.queries then error("player_config_id_budget") end
+        local out={}
+        for i=1,list.Size-1 do if (trinket and config:GetTrinket(i) or not trinket and config:GetCollectible(i)) then out[#out+1]=i end end
+        return out
+      end)
+      if not ok then fail(ctx,"player_config_ids");return nil end
+      ctx.player_config_ids[key]=ids
+    end
+    local out={}
+    for _,id in ipairs(ctx.player_config_ids[key]) do
+      if name=="GetCollectibleNum" then
+        for _,only in ipairs({false,true}) do for _,ignore in ipairs({false,true}) do out[#out+1]={id,only,ignore} end end
+      else out[#out+1]={id} end
+    end
+    return out
+  end
   if name=="GetBagOfCraftingSlot" then local r={} for i=0,7 do r[#r+1]={i} end return r end
   if name=="GetCard" or name=="GetPill" or name=="GetPocketItem" then return {{0},{1},{2},{3}} end
   if name=="GetTrinket" then return {{0},{1}} end
@@ -375,32 +399,37 @@ function M.Limits(limits) if limits then for k,v in pairs(limits) do LIMIT[k]=v 
 -- 所有借用仅在此窗口局部存在，采集结束重新核对公开root和关系边。
 function M.PlayerSources(ctx)
   local out,seen,witnesses={},{},{}
-  local function add(p)
+  local function identity(p)
+    if not p then return "Null" end
+    local id=native().Subject(p)
+    return table.concat({id.local_id or "0",id.use or "0",id.revision or "0",id.resolution or "Unknown"},"/")
+  end
+  local function add(p,source)
     if not p then return end
     local id=native().Subject(p)
     if id.local_id=="0" or id.resolution=="Retired" then fail(ctx,"public_player_identity");return end
     if not seen[id.local_id] then
       if #out>=256 then fail(ctx,"public_player_source_budget");return end
-      seen[id.local_id]=true;out[#out+1]={player=p,subject=id}
+      seen[id.local_id]=true;out[#out+1]={player=p,subject=id,public_source=source,public_read_basis="live-public-root;relations-rechecked;private-fields-not-implied"}
     end
   end
   local function roots()
     local ids={}
-    for _,p in ipairs(PlayerManager.GetPlayers()) do add(p);ids[#ids+1]=native().Subject(p).local_id end
+    for _,p in ipairs(PlayerManager.GetPlayers()) do add(p,"roster");ids[#ids+1]=identity(p) end
     ids[#ids+1]="backups"
-    for i=0,3 do local p=PlayerManager.GetEsauJrState(i);add(p);ids[#ids+1]=p and native().Subject(p).local_id or "Null" end
+    for i=0,3 do local p=PlayerManager.GetEsauJrState(i);add(p,"backup:"..tostring(i));ids[#ids+1]=identity(p) end
     return table.concat(ids,"|")
   end
   local root=roots();local cursor=1
   while cursor<=#out do
     local p=out[cursor].player;cursor=cursor+1
     for _,name in ipairs({"GetMainTwin","GetOtherTwin","GetSubPlayer"}) do
-      local target=p[name](p);add(target);witnesses[#witnesses+1]={owner=p,member=name,id=target and native().Subject(target).local_id or "Null"}
+      local target=p[name](p);add(target,name);witnesses[#witnesses+1]={owner=p,member=name,id=identity(target)}
     end
   end
   return out,function()
     if roots()~=root then fail(ctx,"public_player_roots_changed") end
-    for _,w in ipairs(witnesses) do local p=w.owner[w.member](w.owner);if (p and native().Subject(p).local_id or "Null")~=w.id then fail(ctx,"public_player_relation_changed") end end
+    for _,w in ipairs(witnesses) do local p=w.owner[w.member](w.owner);if identity(p)~=w.id then fail(ctx,"public_player_relation_changed") end end
   end
 end
 IsaacCSObservationValues=M

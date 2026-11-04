@@ -8,9 +8,11 @@ local function ref(p) return p and IsaacCSObservationNative.Reference(p) or {res
 function M.Capture(limits)
   read.Limits(limits); local c=shared.Model.Context(); local x,old=store:Begin()
   local out={location=x,bodies={},control_groups={},changes={},backup_slots={},sampling={cache_reused=false,freshness="ReadInCurrentNativeWindow"},previous_scope=old and old.context.scope or {status="NotCaptured"},resource_semantics="per_body_canonical_values;no_implicit_copy_or_shared_resource_inference"}
+  out.application_source={version=1,contract="player-source-v1",target="REPENTOGON-1.1.3/J273",entity_scope=x.entity_scope,pose_scope="same-ordinary-window"}
+  out.roster={};out.membership={complete=true,source="qualified-native+public-roots+relationship-closure",count=0}
   local nextState,groups={},{}
   local players,verify=shared.Players(c); local roster={}
-  for _,p in ipairs(PlayerManager.GetPlayers()) do local r=ref(p); if r.local_id then roster[r.local_id]=true end end
+  for i,p in ipairs(PlayerManager.GetPlayers()) do local r=ref(p);out.roster[#out.roster+1]={index=i-1,body=r}; if r.local_id then roster[r.local_id]=true end end
   for _,entry in ipairs(players) do
     local p,id=entry.player,entry.subject; c.objects=c.objects+1
     local relation=id.control_relation;local membership=id.control_group_membership
@@ -21,17 +23,20 @@ function M.Capture(limits)
     out.bodies[#out.bodies+1]=body; nextState[id.local_id]=state
     if not before or not shared.Equal(before,state) then out.changes[#out.changes+1]={subject=id,kind=before and "RelationshipOrLifeStateChanged" or "FirstObserved",before=before or {status="NotCaptured"},after=state} end
     local group=relation or membership
-    if group then
+    if group and group.control_group_local_id and group.participant_local_id then
       local relation=group;local key=relation.control_group_local_id
       if not groups[key] then groups[key]={participant={space=9,local_id=relation.participant_local_id},subject={space=10,local_id=key},ordinal=relation.ordinal,control_session=relation.control_session,binding_revision=relation.binding_revision,bodies={},memberships={},device={status="KnownCurrent",basis="current_exact_pair_anchor",lifetime="control_session_and_binding_revision",role=relation.ordinal==0 and "HostPhysicalInput" or "OwnedVirtualDevice"}}; out.control_groups[#out.control_groups+1]=groups[key] end
       if id.control_relation then groups[key].bodies[#groups[key].bodies+1]=id end
       groups[key].memberships[#groups[key].memberships+1]={subject=id,body_role=relation.body_role,active=relation.active,can_consume=relation.can_consume}
     end
   end
+  out.membership.count=#out.bodies
   -- 四个备份槽只建立原生身体引用；不把非活动备份当当前受控身体，也不绕过Entity读取资格。
   for i=0,3 do out.backup_slots[#out.backup_slots+1]={index=i,body=ref(PlayerManager.GetEsauJrState(i)),source="PlayerManager.GetEsauJrState"} end
   if old then for id,state in pairs(old.data) do if not nextState[id] then out.changes[#out.changes+1]={subject=state.subject,kind="AbsentFromQualifiedSources",reason="not_destruction;binding_or_readiness_or_membership_invalidated",previous_scope=old.context.scope} end end end
   verify()
+  -- 根/关系重核失败也撤销成员完整性；不能让旧的true成为删除依据。
+  out.membership.complete=c.complete
   local results=table.pack(read.Finish(out,c))
   store:Stage(x,nextState,results[2])
   return table.unpack(results,1,results.n)

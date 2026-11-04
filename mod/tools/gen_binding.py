@@ -71,6 +71,9 @@ XMM_REGISTERS = {'xmm%d' % i: i for i in range(9)}
 CONSTANT_ORDER = [
     ('sprite_null_names_offset', 'u32'),
     ('sprite_event_names_offset', 'u32'),
+    ('player_inline_sprite_first_offset', 'u32'),
+    ('player_inline_sprite_stride', 'u32'),
+    ('player_inline_sprite_count', 'u32'),
 
     ('entity_text_td_rva', 'u32'),
     ('entity_dummy_td_rva', 'u32'),

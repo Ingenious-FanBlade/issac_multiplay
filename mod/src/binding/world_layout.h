@@ -157,6 +157,10 @@ struct ObservationSpec final {
 struct Constants final {
   std::uint32_t sprite_null_names_offset;
   std::uint32_t sprite_event_names_offset;
+  // Player ctor逐成员构造的13份内嵌ANM；物理slot不猜测未知用途，不按文件合并。
+  std::uint32_t player_inline_sprite_first_offset;
+  std::uint32_t player_inline_sprite_stride;
+  std::uint32_t player_inline_sprite_count;
 
   std::uint32_t entity_text_td_rva;
   std::uint32_t entity_dummy_td_rva;

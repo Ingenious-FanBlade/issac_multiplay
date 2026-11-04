@@ -154,6 +154,7 @@ def generate():
                                  "executor": "mod/src/game/client_objects.cpp:ClientObjects;mod/src/game/client_objects_native.cpp:FormalExecute",
                                  "class_native_apply": True, "scope": "non-Player;full-Player20", "scene_commit": "I29-single-Scene-commit;non-Player-range-only", "runtime_acceptance": RUNTIME_ACCEPTANCE},
             # I04研究索引是资料与采用约束，不把静态审阅升级为原生支持或运行通过。
+            "player_handoff": {"catalog": "docs/design/tx-04-20/player-application.json", "target": "player-target-v1", "native_apply": False, "implementation": "mod/src/replica/player_target.cpp"},
             "static_research_context": {"kind": "pre-I34-static-record", "runtime_authority": ACCEPTANCE_DOC,
                                         "note": "原研究时点的pending/UNKNOWN保留；当前运行范围看顶层acceptance_scope，不把旧字段作为推进前置"},
             "static_research": json.loads(RESEARCH.read_text(encoding="utf-8-sig")),

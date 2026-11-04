@@ -76311,6 +76311,12 @@
     "scene_commit": "I29-single-Scene-commit;non-Player-range-only",
     "runtime_acceptance": "I34-passed:65-Source/65-cold-Client;20-invalid/2-compat/16-fault;named-scenes;see-acceptance-document"
   },
+  "player_handoff": {
+    "catalog": "docs/design/tx-04-20/player-application.json",
+    "target": "player-target-v1",
+    "native_apply": false,
+    "implementation": "mod/src/replica/player_target.cpp"
+  },
   "static_research_context": {
     "kind": "pre-I34-static-record",
     "runtime_authority": "docs/design/tx-04-19/tx-04-19-acceptance.md",

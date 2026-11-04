@@ -1,0 +1,332 @@
+{
+  "tx": "tx-04-20",
+  "research": "I04/R01-R16",
+  "date": "2026-11-04",
+  "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273",
+  "evidence_labels": {
+    "PUBLIC": "本地原版 Wiki、REPENTOGON 1.1.3 Wiki/wrapper/ZHL/SDK 直接说明",
+    "J273": "静态 IDA 观察；VA/RVA 相对 imagebase 0x400000；不代表运行时观察",
+    "REUSED": "既有 tx-04-09/13/17/19 事实，不扩展至未覆盖分支",
+    "DESIGN": "本轮采用/否决选择",
+    "UNKNOWN": "尚无具体 writer/consumer/owner 证据，须按具名分支保持未知"
+  },
+  "common_layout": {
+    "player_size": "0x2EA0",
+    "player_members": {
+      "bodySprite": "+0x41C",
+      "costumeSpriteDescs": "+0x1220",
+      "playerCostumeMap15": "+0x122C",
+      "weapon5": "+0x13D8",
+      "temporaryEffects": "+0x1500",
+      "activeItemDesc4": "+0x1574",
+      "history": "+0x1DD8",
+      "twinEntityPtr": "+0x1E4C",
+      "backupRawPointer": "+0x1E50",
+      "playerHudRawPointer": "+0x20A8",
+      "unlistedRestoreStateReady": "+0x20BC",
+      "unlistedRestoreState": "+0x20C0",
+      "replacedRawPointer": "+0x267C"
+    },
+    "inline_anm2": {
+      "start": "+0x41C",
+      "stride": "0x114",
+      "count": 13,
+      "named": {
+        "bodySprite": "+0x41C",
+        "bloodGushSprite": "+0xEE4",
+        "heldSprite": "+0xFF8"
+      },
+      "other_members": "world_layout 中按 inline_n 命名，不由概念猜用途",
+      "construction": "IDA Player ctor VA 0x74DC70/RVA 0x34DC70；+0xEE4 call 0x402B00 at 0x74DD16, +0xFF8 call 0x402B00 at 0x74DD25; main reviewer verified full 13-entry run"
+    },
+    "player_manager": {
+      "sdk_declared_size": "0xC8",
+      "roster_vector": "+0x00",
+      "esau_jr_slots4": "+0x80",
+      "warning": "SpawnCoPlayer2(-1) IDA branch accesses +0xD0/+0xD4/+0xD8 independent vector; SDK size 0xC8 does not describe it"
+    },
+    "source_witness": "USER_ACCEPTED_CURRENT_PLAYER_UPDATE_WITNESS applies only to the same body after its own normal PlayerUpdate; it is not transferred to twin/sub/backup. Reachable relation is not private-field read qualification.",
+    "address_convention": "IDA VA; RVA=VA-0x400000. Static evidence only."
+  },
+  "records": [
+    {
+      "id": "R01",
+      "status": "STATIC_DECISION_WITH_NAMED_UNKNOWN",
+      "decision": "采用正式公开 Player 源与本体/关系分离；否决可达指针即全字段可读。",
+      "evidence": [
+        "REP PlayerManager.md:64-75,117; LuaPlayerManager.cpp:242-270",
+        "REP EntityPlayer.zhl:724-725,830-861",
+        "tx-04-09 four-participant-implementation.md:15-37",
+        "tx-04-13 tx-04-13-implementation.md:15,33",
+        "tx-04-20 I03 主线正式 application_player 公开 schema"
+      ],
+      "abi_preconditions": "仅公开只读 wrapper/source API；在游戏 Lua/Manager 主线程、同一 scope/use/shape/root 前后稳定窗口采集。",
+      "side_effects": "不新增未核定的 native 私有标量读取；R07 已有构造证据且经同一合法 Player source scope 复制的 13 项内嵌 ANM 对象属于明确采用例外。Costume/ANM pointer 是对象内借用，值须在所属 source scope 内复制。",
+      "failure_prefix": "root/use/shape/source 前后不一致或读取失败时不发布该 body 值；保留合法空、未访问、Null 与失败差异，不改原生世界。",
+      "cleanup": "只释放本地临时纯值/资源 pin；不调用游戏清理 API。",
+      "unknown": "未活动/backup 的私有字段合法当前来源仍逐字段未知；公开关系可达不能替代私有writer witness，不能扩展 readiness3。",
+      "maps_to": ["I01-I05", "P01", "P20", "E22", "E27"]
+    },
+    {
+      "id": "R02",
+      "status": "STATIC_DECISION_WITH_PREFIX_UNKNOWN",
+      "decision": "否决 SpawnCoPlayer2/InitTwin 作为通用 Client clone API；普通 Isaac 已采用窄合同不外推。",
+      "evidence": [
+        "J273 SpawnCoPlayer2 VA 0x990250/RVA 0x590250",
+        "J273 InitTwin VA 0x7C8370/RVA 0x3C8370; immediate dereference at 0x7C8394",
+        "J273 SetControllerId VA 0x79E1B0/RVA 0x39E1B0",
+        "REP LuaPlayerManager.cpp:162-170; LuaEntityPlayer.cpp:179-201",
+        "REP EntityPlayer.zhl:613-631; tx-04-17 client-scene-lifecycle.md:43,101-125",
+        "tx-04-09 four-participant-implementation.md:33-37"
+      ],
+      "abi_preconditions": "SpawnCoPlayer2 __thiscall Entity_Player*(PlayerManager* this, PlayerType)，主线程、有效 Game/Manager/Room/RNG、合法角色及 roster capacity；Player ctor 0x74DC70/RVA 0x34DC70，Init 虚 slot 1 使用 type=1, variant=0, subtype=PlayerType, seed。",
+      "side_effects": "对象 new 0x2EA0、ctor、先入 PlayerManager roster、角色 Init、推进 Manager RNG、Init 正常返回后才 EntityList::Add VA 0x413D00。InitTwin 又设双向 +0x1E4C、传播 controller、调整 parent/twin 位置并调用 AssignPlayerHUDs VA 0x980130。",
+      "failure_prefix": "普通分支 roster 已达64时分配前返回 Null；分配/ctor/roster push/Init/Room EntityList publish 是不同前缀，未证明中间异常自动撤销。InitTwin 不检查 SpawnCoPlayer2 返回值，Null 会在 0x7C8394 解引用。",
+      "cleanup": "仅准确正常 owner 可清已发布对象；半构造对象不能走 RemoveCoPlayer 或全局 cleanup。AssignPlayerHUDs VA 0x980130 按 tx-04-17 已命名，不是纯关系函数。",
+      "unknown": "异常展开、角色 Init 的全部自动生成与官方/玩法/资源副作用、Room 失败后清理完整性未闭合。PlayerType=-1 使用 Manager+0xD0/+0xD4/+0xD8 独立 vector、Init(1,2,0,seed)，不走常规 EntityList Add；SDK PlayerManager 仅0xC8，特殊容器所有权/退休 UNKNOWN。",
+      "maps_to": ["I06-I09", "I33", "P01", "P19", "E02", "E23"]
+    },
+    {
+      "id": "R03",
+      "status": "STATIC_DECISION_WITH_RELATION_UNKNOWN",
+      "decision": "采用类型化关系图；否决 roster 等同全身体集合或一个指针类型覆盖所有关系。",
+      "evidence": [
+        "REP EntityPlayer.zhl:830-861: twin EntityPtr +0x1E4C, backup raw +0x1E50, replaced raw +0x267C",
+        "REP PlayerManager.zhl:68-73: roster +0, Esau Jr slots +0x80",
+        "tx-04-09 four-participant-implementation.md:15-37",
+        "tx-04-13 tx-04-13-implementation.md:15",
+        "tx-04-19 entity-application-contracts.md:64,108-118,222-230"
+      ],
+      "abi_preconditions": "目标 Player structure 与其 owner/use 已有效；EntityPtr setter、裸pointer和拥有型关系分别经对应API管理；拓扑迭代有界去环。",
+      "side_effects": "装关系可能改变官方反向索引/HUD/Familiar/Weapon owner；来源缺席只撤销该用途资格，不说明死亡或销毁。",
+      "failure_prefix": "目标未解析或类型/组冲突时不写边、不清为Null、不发布关系完成；冲突精确到关系/Key。",
+      "cleanup": "边由创建/关联 owner 单一负责解绑；对原生 recursive removal 使用09已修正的索引升序和逐次重读 roster。",
+      "unknown": "sub_player +0x1D84 是09已有J273点位但不在当前EntityPlayer.zhl成员声明；其完整写者闭包和所有身体关系的共享字段/owner仍需按采用consumer具名核对。",
+      "maps_to": ["I07-I10", "I17", "P01", "P10", "P15", "P19", "E04-E08"]
+    },
+    {
+      "id": "R04",
+      "status": "STATIC_DECISION_WITH_PRIVATE_CACHE_UNKNOWN",
+      "decision": "采用当前source的公开最终心量/资源/stat值；否决Add/Remove/受击/重算路径。",
+      "evidence": [
+        "REP EntityPlayer.zhl:739-760,808-820: heart/resource/stat members and offsets",
+        "vanilla/REP EntityPlayer.md: public Player health and resource API",
+        "tx-04-19 existing Player owner/value contract",
+        "tx-04-17 update isolation and persistence/play boundary"
+      ],
+      "abi_preconditions": "同一合法 Player body/source witness；值的宽度、单位、角色条件和位掩码已有字段定义。",
+      "side_effects": "AddHearts/TakeDamage/Revive/EvaluateItems 会重演玩法、缓存、callback或恢复规则，不采用；只安装最终量。",
+      "failure_prefix": "部分字段写入失败时不提交A，记录首个字段前缀并停该scope；不将旧目标冒充新值。",
+      "cleanup": "角色变化按显式适用字段表更新/清除旧专用值，不调用道具链。",
+      "unknown": "未公开flash/draw缓存、特殊角色cache flags的writer与当前来源尚未核定；offset本身不授予读取。",
+      "maps_to": ["I11-I13", "P02-P05", "E09"]
+    },
+    {
+      "id": "R05",
+      "status": "STATIC_DECISION_WITH_SLOT_WRITER_UNKNOWN",
+      "decision": "采用完整有限库存/槽结构；否决默认参数抽样、循环取得/使用物品。",
+      "evidence": [
+        "REP EntityPlayer.md:272-275,931-945",
+        "REP LuaEntityPlayer.cpp:477-489: GetActiveItemDesc validates slot and returns native descriptor pointer",
+        "REP LuaWeapon.cpp:43-57: GetWeapon reads pointer slot 0..4 and returns nil for empty",
+        "REP EntityPlayer.zhl:748,772,777-781",
+        "PlayerTypes_ActiveItemDesc.md; PocketItem.md; QueueItemData.md"
+      ],
+      "abi_preconditions": "active descriptors bounded to four slots; Weapon slots bounded 0..4; source values current and same Player use. Inventory IDs use explicit config/actual container range.",
+      "side_effects": "Add/Remove/Use/ControlActiveItem can trigger stats, costume, familiar, weapon, history, Lua, random or persistence; do not use for final state installation.",
+      "failure_prefix": "Container replacement failure blocks Player/weapon/costume readiness; legal empty, not applicable, unvisited and failed remain distinct.",
+      "cleanup": "Container memory remains native owner/allocator; do not copy STL/vector headers across CRT or destroy an owner borrowed from Source.",
+      "unknown": "VarData and role-specific charge units, allocator/resize/cleanup for dynamic slots, all linked derivations remain writer-specific UNKNOWN.",
+      "maps_to": ["I14-I15", "I20", "I26", "P06-P08", "E10-E11"]
+    },
+    {
+      "id": "R06",
+      "status": "STATIC_DECISION_WITH_EFFECT_HUD_UNKNOWN",
+      "decision": "TemporaryEffects, Player forms and History remain separate full structures/views; reject boolean-only substitution and replaying History. ",
+      "evidence": [
+        "local TemporaryEffects.md; REP History.md and wrappers",
+        "REP EntityPlayer.zhl:761 (+0x1500), 798-800 (+0x17CC), 827 (+0x1DD8)",
+        "tx-04-13 tx-04-13-implementation.md:15"
+      ],
+      "abi_preconditions": "Read complete applicable lists/order/count/duration only from qualified Player source; maintain source scope and owner. ",
+      "side_effects": "Add/Clear effects and transformation calls may recalculate properties, costumes, Lua and resources; not adopted as Client setters. ",
+      "failure_prefix": "A list/History read or install failure remains explicit; no default empty list in place of unvisited/failed. ",
+      "cleanup": "Only exact effect/history/costume owner retires the corresponding container; no Update to decay effects. ",
+      "unknown": "Whether native Player/HUD draw requires History backing and complete effect sharing/removal resource closure remain consumer-specific. ",
+      "maps_to": ["I16-I17", "P09-P10", "E12"]
+    },
+    {
+      "id": "R07",
+      "status": "STATIC_DECISION_WITH_PASS_CONSUMER_UNKNOWN",
+      "decision": "Adopt the complete current 13 inline ANM2 physical source, CostumeSpriteDesc and layer maps; reject raw ANM memory copy and filename identity assumptions. Main implementation added the physical source to world_layout.",
+      "evidence": [
+        "REP EntityPlayer.zhl:728-735",
+        "J273 Player ctor VA 0x74DC70/RVA 0x34DC70, ANM2 ctor call at 0x74DD16 (+0xEE4) and 0x74DD25 (+0xFF8); main reviewer verified 13 x 0x114 run from +0x41C",
+        "REP LuaEntityPlayer.cpp:3407-3411",
+        "REP LuaCostumeSpriteDesc.cpp:5-21,23-35",
+        "tx-04-19 entity resource lifetime contract"
+      ],
+      "abi_preconditions": "Player/descriptor owner constructed; source marked KnownCurrent and readiness>=2 per parent reader; renderer/resource context and resource generation valid. Copy values immediately; use existing shared resource owner for Images.",
+      "side_effects": "Costume vector element pointers are borrows and invalidate on vector change/reload; ANM2 ctor does not imply Load. Do not call Reload/Update to synthesize state.",
+      "failure_prefix": "Not-loaded is explicit Null; resource replacement or partial Load closes draw admission and leaves old/new exact owner recorded; do not publish mixed resource pose.",
+      "cleanup": "Stop draw admission, drain actual borrows/CPU queue, then resource owner reload/rebind and reopen only on full return; image pins do not retain Player/ANM/layer pointers.",
+      "unknown": "All 13 ANM consumers by role/pass, Head/Hand/overlay/costume closure, GPU final-use boundary and private scalars headAnim/blink writers are not fully known.",
+      "maps_to": ["I18-I19", "I29", "P11-P12", "E13"]
+    },
+    {
+      "id": "R08",
+      "status": "STATIC_DECISION_WITH_WEAPON_TYPE_UNKNOWN",
+      "decision": "Adopt five public Weapon slots and typed final values; reject fake pointers, base-only layout for all subclasses, Fire/Shoot/Update to seed caches.",
+      "evidence": [
+        "REP EntityPlayer.md:931-945; Weapon.md",
+        "REP Weapon.zhl:28-82 (base size 0x40 and virtuals)",
+        "REP LuaWeapon.cpp:10-22,43-57",
+        "REP Isaac.zhl CreateWeapon/DestoryWeapon",
+        "J273 factory VA 0x9CADB0/RVA 0x5CADB0; destroy VA 0x9CADE0/RVA 0x5CADE0"
+      ],
+      "abi_preconditions": "CreateWeapon __fastcall(WeaponType ECX, Entity* EDX); a registered dynamic factory and valid unique owner are required; Init must complete before slot binding/readiness. Destroy receives valid exclusive Weapon** slot owner.",
+      "side_effects": "Factory dispatches dynamic ctor then virtual Init(type,owner); not bound to player slot automatically. Destroy virtual ClearReferences(slot5), Free(1)(slot0), then clears pointer only on normal completion.",
+      "failure_prefix": "Empty factory entry returns Null; returned allocation is immediately virtual-Init'd without a null check. A ClearReferences/Free exception leaves pointer uncleared; do not retry blindly. Subclass Init/allocator failures are not closed.",
+      "cleanup": "Use unique slot owner after dependencies/refs are unlinked and draw in-flight has drained; no shallow copy or double Free.",
+      "unknown": "W01-W15 subclass private fields, per-type init/spawn/render/retire side effects and full Entity dependencies not closed. Unsupported selected type fails before mutation; no Tears fallback.",
+      "maps_to": ["I10", "I20", "I29", "I33", "P13", "P15", "E14-E15"]
+    },
+    {
+      "id": "R09",
+      "status": "REUSED_WITH_SCOPE_LIMIT",
+      "decision": "Adopt same-T held relation and final display state; reject TryHold/Throw/Suplex simulation. Effect136 remains prior narrow fact only.",
+      "evidence": [
+        "REP EntityPlayer.zhl held +0x140C and suplex +0x1F08 family",
+        "tx-04-19 acceptance: Effect136 held display, hidden held entity/Player redraw, Body null frame and SuplexState 0..5",
+        "tx-04-19 entity-i20-i25-native.md:78-90 minecart/Familiar borrowing and restoration"
+      ],
+      "abi_preconditions": "Same scope Player/held Key/use and active resource generation; child/caller pass and CPU queue valid.",
+      "side_effects": "Parent render may draw hidden held child and temporarily change display state; minecart/Familiar composite caller can temporarily mutate Player and ANM.",
+      "failure_prefix": "Missing/replaced child revokes borrow; no key/address-based inheritance. Unknown scope/pass prevents draw.",
+      "cleanup": "Restore all temporary display fields after raw queue consumption; held Entity itself retires under its Entity owner exactly once.",
+      "unknown": "Other held dynamic types and all role-specific draw owner closure remain unknown; Effect136 facts do not imply global held support.",
+      "maps_to": ["I21", "I24", "I29", "P14-P15", "E18"]
+    },
+    {
+      "id": "R10",
+      "status": "REUSED_WITH_CLIENT_CONSTRUCTION_UNKNOWN",
+      "decision": "Adopt one input/control group with multiple Authority bodies and same-instance ordinary Forgotten swap semantics; reject Client InitTwin/SwapForgottenForm action replay.",
+      "evidence": [
+        "tx-04-09 four-participant-implementation.md:15-37 (four twin groups/eight bodies and lifecycle)",
+        "J273 InitTwin RVA 0x3C8370; SwapForgottenForm RVA 0x3C2470",
+        "REP EntityPlayer.md:1015-1018,1625-1639; LuaEntityPlayer.cpp:179-201,1632-1637",
+        "tx-04-19 held and retirement contracts"
+      ],
+      "abi_preconditions": "Unique body Keys/instances, shared group intent, independent body final state; all typed relation and resource owners resolved before draw.",
+      "side_effects": "InitTwin mutates roster, RNG/Init path, twin links, controller, positions and HUD binding. SwapForgottenForm is gameplay transition; source final state is input.",
+      "failure_prefix": "Scene 使用唯一原子提交；任一关系或组写入失败都撤销整个候选 Scene 的展示资格，保留其他组已复制的纯值，但不把半应用组提交为 A；不按 body count 合成 participant。",
+      "cleanup": "Use tx09 recursive removal order; own non-roster 35/40 Soul/held relation separately. Do not free twice through root+child.",
+      "unknown": "Client 16/17 in-place versus same-key replacement and complete Tainted Forgotten non-roster read/resource qualification still open.",
+      "maps_to": ["I21", "I23-I24", "I28", "P01", "P14-P16", "E04-E06"]
+    },
+    {
+      "id": "R11",
+      "status": "REUSED_WITH_BACKUP_FIELD_UNKNOWN",
+      "decision": "Four Esau Jr manager slots are run state, separate from players/participants; apply flip/hologram results, never clear native backup pointers as client cleanup.",
+      "evidence": [
+        "REP PlayerManager.zhl:70-72 slots +0x80; LuaPlayerManager.cpp:258-270 bounded index 0..3",
+        "REP EntityPlayer.zhl:830-861 backup/replaced/unlisted-restore fields",
+        "tx-04-09 four-participant-implementation.md Esau Jr active 703 one-based slot mapping and exit limits",
+        "tx-04-13 source qualifier for backup body"
+      ],
+      "abi_preconditions": "Resolve active item's real slot and current backup reference; never map slot to ordinal/index. Backup object/key/source scope separately identified.",
+      "side_effects": "ReplacePlayer RVA 0x595E10 temporarily links participants via +0x267C and clears both links on normal return; Esau Jr helper RVA 0x3A3A40 maps active item 703 to a one-based backup slot.",
+      "failure_prefix": "Invalid slot or missing source relation is not an empty player; switching/replace partial failure keeps old/new owner phases distinct and blocks display/input reuse.",
+      "cleanup": "Client retires only its mirror and unlinks its own owner; do not mutate or manually destroy Authority PlayerManager backup slot.",
+      "unknown": "When never-updated backup private fields become valid, Lazarus Flip instance/container exchange, abnormal replace failure cleanup and native slot teardown owner remain unknown.",
+      "maps_to": ["I25-I26", "I28", "I33", "P01", "P07", "P19", "E07-E08"]
+    },
+    {
+      "id": "R12",
+      "status": "STATIC_FAMILY_DECISION_WITH_ROLE_UNKNOWN",
+      "decision": "Adopt C01-C17 family mapping for PlayerType 0..40, separately classify -1/internal possessor and non-Player associations; reject type-only implementation.",
+      "evidence": [
+        "IsaacDocs enums/PlayerType.md",
+        "tx-04-20-player-application.md C01-C17 and P16",
+        "REP EntityPlayer.zhl: role-specific Bag +0x1F20/+0x1F28, poop +0x1F30/+0x1F34, Eve charge +0x1F58, wisp map +0x1F5C",
+        "Official wrapper getter registration in LuaEntityPlayer.cpp"
+      ],
+      "abi_preconditions": "Role/type is from current target/version config and source manifest; unknown/sentinel/internal types explicitly classified before apply.",
+      "side_effects": "No local randomization, reroll, revive, item use or role transition; apply Source final role-specific data and owners.",
+      "failure_prefix": "A required private role datum/resource absence rejects that role target; ordinary Isaac fallback prohibited.",
+      "cleanup": "Change role/shape invalidates all old role-specific containers, resources, weapon and entity owner references by typed owner.",
+      "unknown": "All role-specific writers and role/pass reader sets are not exhaustively proven by selected layout fields or public getter names.",
+      "maps_to": ["I22", "I27", "I29", "P16", "E03", "E16"]
+    },
+    {
+      "id": "R13",
+      "status": "PARTIAL_STATIC_DRAW_CONTRACT",
+      "decision": "Adopt studied Player composite render with proper outer pass/context; reject isolated vtable calls, Update-based animation and Sprite-only fallback.",
+      "evidence": [
+        "J273 Player vtable 0xB1BDB4 slot +0x14 -> Render VA 0x784A60/RVA 0x384A60",
+        "tx-04-17 native-maintenance-rendering.md:143-175,203-218",
+        "tx-04-19 entity-i20-i25-native.md:86-90",
+        "tx-04-19 entity-application-contracts.md:204-215"
+      ],
+      "abi_preconditions": "Main thread; committed Player instance/resource generation; renderer pass/FBO/depth/context and caller-prepared queue are valid.",
+      "side_effects": "Render reads/writes inherited +0x1A4/+0x1A8 coordinates/cache, borrows held +0x140C and can temporarily mutate child draw values; body/head/costume composite is not pure.",
+      "failure_prefix": "Draw exception/reentry or unknown pass stops visibility and retains resource owner; normal return alone does not mean GPU/CPU queue retired.",
+      "cleanup": "Restore every temporary touched field after actual CPU queue consumption; drain/retain ANM/Image owners before replacement/retirement.",
+      "unknown": "All roles x weapons x passes, blink/ghost/flight branches, remaining indirect callers, and final GPU use point are open; static contract does not establish pixels.",
+      "maps_to": ["I29", "I34", "P11-P16", "P19", "E20"]
+    },
+    {
+      "id": "R14",
+      "status": "STATIC_DECISION_WITH_HUD_MINIMUM_UNKNOWN",
+      "decision": "Native PlayerIndex/ControllerIndex are local process fields, not participant identity; reject original Online IsLocalPlayer and PlayerHUD Update as C/S input binding.",
+      "evidence": [
+        "REP EntityPlayer.zhl:772-774 controller +0x160C/player index +0x1610; :858 PlayerHUD +0x20A8",
+        "tx-04-09 participant/controller separation",
+        "tx-04-17 native-maintenance-rendering.md:151-160 PlayerHUD Update/HUD Lua/input side effects",
+        "J273 InitTwin VA0x7C8370 calls SetControllerId VA0x79E1B0 and AssignPlayerHUDs VA0x980130"
+      ],
+      "abi_preconditions": "Local display slot has a separate valid mapping; PlayerManager/HUD owner and slot structure valid when using AssignPlayerHUDs.",
+      "side_effects": "PlayerHUD Update reads ACTION_DROP and can dispatch input/Lua callbacks; AssignPlayerHUDs can rebind native HUD associations.",
+      "failure_prefix": "Missing local display slot leaves HUD association unavailable; no substitution from ordinal or remote controller ID.",
+      "cleanup": "Invalidate HUD mapping on body instance/shape change; retire through HUD owner, not borrowed Player pointer.",
+      "unknown": "Minimal HUD structure required for each non-roster/inactive role and every Player draw path remains unspecified; full layout belongs tx27.",
+      "maps_to": ["I30-I31", "P17-P18", "E17", "E19", "E24"]
+    },
+    {
+      "id": "R15",
+      "status": "STATIC_PREFIX_CONTRACT_WITH_SEH_UNKNOWN",
+      "decision": "Use single-owner per-prefix retirement; reject normal RemoveCoPlayer/global cleanup as arbitrary half-constructed rollback.",
+      "evidence": [
+        "J273 RemoveCoPlayer VA 0x990560/RVA 0x590560",
+        "tx-04-09 four-participant-implementation.md: recursive removal crash and corrected sorted reread order",
+        "tx-04-17 failure-retirement.md:34-90",
+        "J273 PlayerManager cleanup VA0x98F7C0/RVA0x58F7C0 needs live Room/consistent roster",
+        "tx-04-19 entity-application-contracts.md:222-246"
+      ],
+      "abi_preconditions": "Track raw/ctor/roster/Init/Room-publish/relations/resources/weapon/draw phases before destructive calls; owner graph and current Room valid for their native helper.",
+      "side_effects": "RemoveCoPlayer can recursively remove twin/sub/backup; player manager cleanup frees roster players and ancillary slots under normal Exit ordering.",
+      "failure_prefix": "Do not infer full cleanup from a throw/catch; unknown EH/context/allocator prefix keeps Client isolated with owner and first cause; don't repeat Remove/Free.",
+      "cleanup": "Unlink refs/HUD/Weapon/costume, drain actual borrows/CPU queue, then owner-specific retire exactly once. For normal tx09 recursive cleanup use index sort and roster reread.",
+      "unknown": "Per-role Init partially completed native cleanup, all backup/weapon normal teardown and arbitrary SEH recovery not closed; unknown retention is not normal success.",
+      "maps_to": ["I28", "I33-I34", "P19", "E21", "E23", "E25"]
+    },
+    {
+      "id": "R16",
+      "status": "ISOLATION_DECISION_WITH_CALLCHAIN_UNKNOWN",
+      "decision": "Adopt only reviewed final-state writes and named structural maintenance; reject default original passthrough for gameplay Init/Setter/Weapon/Draw/Retire callchains.",
+      "evidence": [
+        "J273 SpawnCoPlayer2 0x990250 RNG and roster/Init effects",
+        "J273 InitTwin 0x7C8370 relation/controller/position/HUD effects",
+        "J273 Player Init 0x74F6A0 and Player Render 0x784A60",
+        "tx-04-17 workflow.md and persistence-exit-isolation.md full Client protection window",
+        "tx-04-19 typed-purpose dispatch contract"
+      ],
+      "abi_preconditions": "Per-call purpose/owner is on game main thread and registered in sole Hook registry; Host/Off pass original exactly once.",
+      "side_effects": "Potential RNG, automatic child objects, Lua, gameplay callbacks, sound/events, persistence/HUD/resource lazy load are treated independently; Client explicit Skip is not reported as Original-called.",
+      "failure_prefix": "Record attempted before original; if call exits/throws after unknown prefix, preserve isolation and do not claim no mutation/rollback/complete state.",
+      "cleanup": "Protection remains until all Player/ANM/Weapon borrows and relevant persistent writers have safely retired; hooks remain resident.",
+      "unknown": "Full nested Lua/ItemPool/RNG/PGD closure of all Player Init types and role setters not exhaustively reversed; generic Init is consequently rejected.",
+      "maps_to": ["I32-I33", "I37", "P20", "E24-E25"]
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 #include "game/client_entity_e2e.h"
 #include "game/client_objects.h"
+#include "replica/player_target.h"
 #include "game/client_resource_model.h"
 #include "game/client_entity_model.h"
 #include "game/client_entity_adapters.h"
@@ -158,7 +159,7 @@ bool ClientObjects::ConfigureEntityOwners(ClientEntityOwners owners,std::vector<
   try{std::set<unsigned> categories;for(const auto &a:adapters)if(a.category==0||a.category>=13||!a.prepare||!a.before_init||!a.fields||!a.resources||!a.relations||!a.retire||!categories.insert(a.category).second)return false;
     entity_owners_=owners;entity_adapters_=std::move(adapters);return true;}catch(...){return false;}
 }
-bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&reason,const replica::RoomGridTarget *room_grid) noexcept {
+bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&reason,const replica::RoomGridTarget *room_grid,std::shared_ptr<const replica::PlayerTarget> players) noexcept {
   try {
     if(failed_){reason="objects_failed_requires_retirement";return false;}
     // 纯值阶段的新T可原子替换尚未执行的计划；已执行前缀仍须由场景owner退休。
@@ -167,8 +168,13 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
     if(!Is(At(At(&target,"client_profile"),"id"),"tx-04-17-representative-v1")){
       if(applied&&(!committed_||*committed_!=*applied)){reason="objects_applied_identity_mismatch";return false;}
       if(!applied&&committed_&&!retired_){reason="objects_current_world_requires_applied";return false;}
-      auto desired=std::make_shared<const replica::EntityTarget>(replica::ParseEntityTarget(target));
+      if(!players&&replica::HasPlayerTarget(target))players=replica::ParsePlayerTarget(target);
+      if(players&&(players->scope!=replica::ReadScope(target["scope"])||players->revision!=replica::Unsigned(target["revision"])||players->source!=target["components"]["player"])){
+        reason="objects_player_target_identity_mismatch";return false;
+      }
+      auto desired=players?players->entities:std::make_shared<const replica::EntityTarget>(replica::ParseEntityTarget(target));
       auto plan=std::make_unique<replica::EntityApplyPlan>(replica::PlanEntityTarget(desired,applied?entity_applied_:nullptr));
+      plan->players=std::move(players);
       if(applied&&!entity_applied_){reason="objects_entity_applied_missing";return false;}
       std::vector<ClientObjectDescription> next,before;
       auto source=std::make_shared<const std::string>(replica::Text(desired->source));

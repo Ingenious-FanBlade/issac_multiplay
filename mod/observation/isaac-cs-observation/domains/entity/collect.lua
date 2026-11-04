@@ -2,6 +2,7 @@
 local read=include("domains/common/read")
 local slots=include("domains/entity/slot_variants")
 local schemas=include("domains/entity/schema")
+local playerApplication=include("domains/entity/player_application")
 local M={SchemaVersion=2}
 local native=function() return IsaacCSObservationNative end
 local context,collect,value,query,finish,fail,missing,protected=read.Context,read.Collect,read.Value,read.QueryValue,read.Finish,read.Fail,read.Missing,read.Protected
@@ -40,7 +41,16 @@ local function snapshot(e,ctx,class)
   if class=="EntityPlayer" or class=="EntityNPC" or class=="EntityTear" or class=="EntityProjectile" or class=="EntityBomb" or class=="EntityLaser" or class=="EntityKnife" or class=="EntityPickup" or class=="EntityFamiliar" or class=="EntityEffect" or class=="EntitySlot" then
     local resources=native().EntityApplicationSprites(e,class)
     out.body.application_draw=nativeValue(resources.draw or missing(resources.status,"draw_inputs_missing"),ctx)
-    if class=="EntityPlayer" then out.body.application_player_draw=nativeValue(resources.player_draw or missing(resources.status,"player_draw_inputs_missing"),ctx) end
+    if class=="EntityPlayer" then
+      out.body.application_player_draw=nativeValue(resources.player_draw or missing(resources.status,"player_draw_inputs_missing"),ctx)
+      out.body.application_player_resources={version=1,status=resources.status}
+      if resources.status=="Value" then
+        for _,name in ipairs({"inline_1","inline_2","inline_3","inline_4","inline_5","inline_6","inline_7","inline_8","inline_9","blood_gush","held","inline_12"}) do
+          local sprite=resources.player_sprites[name]
+          out.body.application_player_resources[name]=sprite:GetFilename()=="" and missing("Null","native_player_anm_unloaded") or value(sprite,"Sprite",ctx,1)
+        end
+      else fail(ctx,"player_application_resources:"..resources.status) end
+    end
     out.body.application_links={version=1,status=resources.status,links={}}
     if resources.status=="Value" then
       -- C++返回的固定声明列完整保留；nil也必须带名写出Null，不能被Lua pairs省略。
@@ -91,6 +101,7 @@ local function snapshot(e,ctx,class)
     end
   end
   out.class=class or "UnknownEntity"
+  if class=="EntityPlayer" then out.body.application_player=playerApplication.Describe(out.body,out.common,subject) end
   if class=="EntityLaser" then
     -- 原生补充返回自有纯值几何；不通过Lua table图别名合并真实四个容器。
     out.body.application_geometry=nativeValue(native().EntityApplicationGeometry(e:ToLaser()),ctx)

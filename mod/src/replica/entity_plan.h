@@ -3,6 +3,7 @@
 #include <memory>
 
 namespace cs::replica {
+struct PlayerTarget;
 // 计划只拥有不可变纯值；A必须是最后原生提交，不能传入网络Delta或未完成候选。
 enum class EntityAction : unsigned { Unlink, Remove, Acquire, Initialize, Fields, Resources, Publish, Link, Check, CheckAll };
 enum class EntityDependencyKind : unsigned { Entity, Player, Grid, Room, Descriptor, Weapon, Historical, AuthorityValue };
@@ -24,6 +25,8 @@ struct EntityPlanStep final {
 };
 struct EntityApplyPlan final {
   std::shared_ptr<const EntityTarget> applied,target;
+  // Scene与对象计划共享同一已关联Player目标，后续I06/I07接原生owner时不重解析另一个T。
+  std::shared_ptr<const PlayerTarget> players;
   std::vector<EntityPlanStep> steps;
   std::vector<EntityDependency> dependencies;
   std::vector<SubjectKey> external_players;

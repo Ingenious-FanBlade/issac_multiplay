@@ -274,6 +274,7 @@ void ClientScene::Begin(const replica::Scope &scope) noexcept {
   if(!CanReturnToMenu()){FailureResult(ClientResultKind::PartialNativeFailure,"begin","old_owner_inflight");state_=ClientSceneState::Failed;return;}
   waiting_scope_=scope;target_scope_={};applied_scope_={};target_.reset();applied_.reset();
   room_grid_target_.reset();room_grid_applied_.reset();room_grid_plan_={};
+  player_target_.reset();
   ClientNativeWorldDestroy(native_world_);native_world_=nullptr;objects_.reset();presentation_.reset();grids_.reset();
   grid_events_.Reset(scope);entity_events_.Reset(scope);rebuild_objects_.reset();rebuild_grids_.reset();rebuild_presentation_.reset();grids_planned_=grids_complete_=grids_retired_=references_complete_=false;
   applied_valid_=rebuild_pending_=objects_planned_=objects_retired_=pumping_=false;
@@ -375,6 +376,7 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
       FailureResult(ClientResultKind::WaitingDependency,"admit","already_applied_revision");return false;
     }
     auto domain=replica::ParseRoomGridTarget(value);
+    auto players=replica::HasPlayerTarget(value)?replica::ParsePlayerTarget(value):nullptr;
     auto domain_plan=replica::PlanRoomGridTarget(domain,applied_valid_?room_grid_applied_:nullptr);
     ClientNativeSceneDescription description{};const char *reason=nullptr;
     if(!SceneDescription(value,*domain,description,reason)){
@@ -398,11 +400,11 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     // 重建也先完成全部纯值预检；不能先退休 A，才发现 T 依赖尚未支持的 Entity19。
     std::unique_ptr<ClientObjects> rebuild_objects;std::unique_ptr<ClientGrids> rebuild_grids;std::unique_ptr<ClientPresentation> rebuild_presentation;
     if(need_rebuild){rebuild_objects=std::make_unique<ClientObjects>();rebuild_grids=std::make_unique<ClientGrids>();rebuild_presentation=std::make_unique<ClientPresentation>();
-      if(!rebuild_objects->PrepareTarget(value,nullptr,reason,domain.get())||!rebuild_grids->PrepareTarget(replica::PlanRoomGridTarget(domain),reason)||
+      if(!rebuild_objects->PrepareTarget(value,nullptr,reason,domain.get(),players)||!rebuild_grids->PrepareTarget(replica::PlanRoomGridTarget(domain),reason)||
          !rebuild_presentation->PrepareTarget(value,reason,description.room_state,description.map)){
         FailureResult(ClientResultKind::UnsupportedRequirement,"preflight",reason);return false;}}
     // 写世界前先完成所有纯值计划；失败保留上一已提交展示资格。
-    if(!need_rebuild&&!objects_->PrepareTarget(value,applied_valid_?applied_.get():nullptr,reason,domain.get())){
+    if(!need_rebuild&&!objects_->PrepareTarget(value,applied_valid_?applied_.get():nullptr,reason,domain.get(),players)){
       FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);return false;
     }
     if(!need_rebuild&&!grids_->PrepareTarget(domain_plan,reason)){
@@ -426,6 +428,7 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     }
     target_=std::move(copy);target_scope_=scope;target_revision_=revision;
     room_grid_target_=std::move(domain);room_grid_plan_=std::move(domain_plan);
+    player_target_=std::move(players);
     native_description_=std::move(description);objects_planned_=!need_rebuild;objects_retired_=false;attempt_invalidated_=false;
     objects_complete_=presentation_retired_=false;
     grids_planned_=!need_rebuild;grids_complete_=grids_retired_=references_complete_=false;
@@ -502,7 +505,7 @@ void ClientScene::Pump() noexcept {
   if(!objects_planned_){
     const char *reason=nullptr;
     if(!objects_){try{objects_=std::make_unique<ClientObjects>();}catch(...){Fail("objects_allocation");pumping_=false;return;}}
-    if(!objects_->PrepareTarget(*target_,applied_valid_?applied_.get():nullptr,reason,room_grid_target_.get())){
+    if(!objects_->PrepareTarget(*target_,applied_valid_?applied_.get():nullptr,reason,room_grid_target_.get(),player_target_)){
       FailureResult(ClientResultKind::UnsupportedRequirement,"plan",reason);Fail(reason);pumping_=false;return;
     }
     if(!objects_->BeginAttempt(result_.attempt)){Fail("objects_attempt_rebuild");pumping_=false;return;}
@@ -924,6 +927,7 @@ void ClientScene::FinishRetirementIfDrained() noexcept {
     rebuild_objects_.reset();rebuild_grids_.reset();rebuild_presentation_.reset();entity_events_.Reset(waiting_scope_);
     target_.reset();target_revision_=0;target_scope_={};
     room_grid_target_.reset();room_grid_plan_={};
+    player_target_.reset();
     retirement_complete_=true;
     FailureResult(ClientResultKind::Retiring,"retired","native_safe_menu");
   }

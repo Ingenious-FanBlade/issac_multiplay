@@ -1,3 +1,7 @@
+> **tx-04-20 I01—I04（2026-11-04）**：[目录、PlayerTarget、正式只读来源及主审](design/tx-04-20/tx-04-20-foundation.md)、[逐签名应用目录](design/tx-04-20/player-application.json)、[R01—R16静态采用／否决合同](design/tx-04-20/player-native-static.md)。已接入两域同窗口／owner关联、roster／四备份槽／控制组、完整有限查询与12份新增内嵌ANM来源；指定GPT-6 Luna max研究，主智能体独立复读。I05—I40待推进；未构建、测试或启动游戏，完整原生Player支持尚未完成。下方保留初版规划事实。
+
+> **tx-04-20 具体实现规划（2026-11-04）**：[I01—I40 全部任务、失败模型与 E01—E30 统一验收安排](design/tx-04-20/tx-04-20-implementation-plan.md)、[P01—P20 玩家状态、全部角色／身体族及15种武器](design/tx-04-20/tx-04-20-player-application.md)、[R01—R16 静态确认／必要逆向计划](design/tx-04-20/tx-04-20-native-research-plan.md)。覆盖四参与者、多身体／非活动／备份、装备／资源／武器、原生绘制、跨域依赖、唯一提交和失败退休；明确正式来源／投影与19单Isaac支撑的差额。本轮仅编写文档并统一静态审阅，全部实施和研究任务待执行，没有新增逆向结果、运行代码修改、构建或测试。
+
 > **tx-04-19 I34—I35（2026-11-04，完成）**：[统一验收、实际失败／修复、成本与后续交接](design/tx-04-19/tx-04-19-acceptance.md)。18 Source49／49、冷Client49／49及12／12检查；19 Source65／65、冷Client65／65、20非法目标／2版本拒绝、16故障恢复、暂停／stop／退出均通过，主智能体已审阅114对画面。能力与应用目录记录准确非Player范围；完整Player20、网络21／22、独立音画27及整局内容仍按具名交接推进。下方保留前序阶段事实。
 
 > **tx-04-19 I26—I30（2026-11-03）**：[独立结果、隔离、退休与唯一提交](design/tx-04-19/tx-04-19-scene-commit-retirement.md)、[Luna max必要静态研究／主审](design/tx-04-19/entity-i26-i30-native.md)。Entity专用独立scope、全窗口SFX隔离、逐前缀逐类退休、Scene唯一提交及准确非Player／Player支撑范围、真实逐池预算和稳定缓存已接入。按本轮会话要求未构建／测试而直接提交；I31—I35与I34统一E2E待推进，不置完整Entity域位或网络ACK。下方记录保留各阶段事实。

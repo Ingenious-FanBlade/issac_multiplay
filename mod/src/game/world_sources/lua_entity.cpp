@@ -1,5 +1,6 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
+#include "binding/world_layout.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
@@ -202,6 +203,17 @@ int EntityApplicationSprites(lua_State *L){
     if(g_Manager&&g_Game){lua_pushliteral(L,"native_deathmatch_type_context");lua_setfield(L,-2,"reason");}}
   lua_setfield(L,-2,"draw");
   if(category==0){
+    // Player ctor 74DC70在74DD16/74DD25分别构造两份真实ANM；当前合法来源只借用，
+    // 不把结构存在推断成已Load，更不把未正常更新的备份提升为私有字段可读。
+    auto *player=e->ToPlayer();lua_newtable(L);
+    const auto &layout=world::layout::LayoutConstants();
+    // slot0就是公开BodySprite；其余12项分别复制，未知用途仅用物理slot命名。
+    for(unsigned i=1;i<layout.player_inline_sprite_count;++i){
+      const auto name=i==10?std::string("blood_gush"):i==11?std::string("held"):"inline_"+std::to_string(i);
+      auto *sprite=reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(player)+layout.player_inline_sprite_first_offset+i*layout.player_inline_sprite_stride);
+      lua::luabridge::UserdataPtr::push(L,sprite,lua::Metatables::SPRITE);lua_setfield(L,-2,name.c_str());
+    }
+    lua_setfield(L,-2,"player_sprites");
     lua_newtable(L);lua_pushinteger(L,1);lua_setfield(L,-2,"version");
     auto *minecart=e->GetMinecart();const bool used=minecart&&minecart->_type==965&&minecart->_variant==10;
     lua_pushboolean(L,used);lua_setfield(L,-2,"minecart_draw");

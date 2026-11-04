@@ -2,6 +2,7 @@
 #include "replica/projection_graph.h"
 #include "replica/room_grid_target.h"
 #include "replica/entity_target.h"
+#include "replica/player_target.h"
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include <algorithm>
@@ -261,6 +262,8 @@ Json CaptureRows(const Scope &scope,std::uint64_t revision,const std::vector<Jso
     Put(component,"domain",Value(domain),a);Put(component,"version",Decimal(revision,a),a);
     Value provenance(rapidjson::kObjectType);
     for(const char *k:{"scope","sequence","authority_tick","phase","source","source_version","event_watermark"}){Value value;value.CopyFrom(At(c,k),a);Put(provenance,k,std::move(value),a);}
+    // 20保留真实采集owner/token，Player解析不只凭相同tick拼接两个来源。
+    for(const char *k:{"outer","owner","mutation_before","mutation_after"}){Value value;value.CopyFrom(At(c,k),a);Put(provenance,k,std::move(value),a);}
     Put(component,"capture",std::move(provenance),a);
     const auto coverage=Str(At(At(r,"coverage"),"status"));
     if(coverage!="Complete"&&coverage!="NotApplicable")complete=false;
@@ -351,7 +354,10 @@ Json Capabilities(){auto out=Parse(R"({"protocol":1,"model":2,"game":"v1.9.7.12.
   auto entity=EntityCapabilities();Value entity_contract;entity_contract.CopyFrom(entity,allocator);
   Put(out["model_categories"],"entity_target",std::move(entity_contract),allocator);
   out["required"].PushBack(Value("entity-target-v1",allocator),allocator);
-  out["supported"].PushBack(Value("entity-target-v1",allocator),allocator);return out;
+  out["supported"].PushBack(Value("entity-target-v1",allocator),allocator);
+  auto player=PlayerCapabilities();Value player_contract;player_contract.CopyFrom(player,allocator);
+  Put(out["model_categories"],"player_target",std::move(player_contract),allocator);
+  out["supported"].PushBack(Value("player-target-v1",allocator),allocator);return out;
 }
 Json Negotiate(const Value &local,const Value &remote){
   for(const auto *v:{&local,&remote}){
