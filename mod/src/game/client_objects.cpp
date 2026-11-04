@@ -1,5 +1,6 @@
 #include "game/client_entity_e2e.h"
 #include "game/client_objects.h"
+#include "game/client_players.h"
 #include "replica/player_target.h"
 #include "game/client_resource_model.h"
 #include "game/client_entity_model.h"
@@ -153,7 +154,13 @@ std::string ClientObjects::TestInspect() const noexcept {return ClientTestInspec
 #endif
 ClientObjects::ClientObjects() noexcept {try{entity_adapters_=ClientEntityBuiltinAdapters();}catch(...){failed_=true;reason_="objects_builtin_adapter_allocation";}}
 ClientObjects::~ClientObjects(){ClientNativeObjectsDestroy(native_);}
-ClientEntityOwners ClientObjects::PlayerOwner() noexcept {return ClientNativeObjectsPlayerOwner(native_);}
+unsigned ClientObjects::OwnerCount() const noexcept {return ClientNativeObjectsOwnerCount(native_)+(players_?players_->OwnerCount():0);}
+ClientEntityOwners ClientObjects::PlayerOwner() noexcept {return players_&&players_->Active()?players_->Owner():ClientNativeObjectsPlayerOwner(native_);}
+bool ClientObjects::PlayerRebuildRequired() const noexcept {return players_&&players_->RequiresRebuild();}
+bool ClientObjects::ConfigurePlayerAdapter(ClientPlayerAdapter adapter) noexcept {
+  if(candidate_||native_||committed_||failed_||entity_owners_.resolve)return false;
+  try{if(!players_)players_=std::make_unique<ClientPlayers>();return players_->Configure(std::move(adapter));}catch(...){return false;}
+}
 bool ClientObjects::ConfigureEntityOwners(ClientEntityOwners owners,std::vector<ClientEntityClassAdapter> adapters) noexcept {
   if(candidate_||native_||committed_||failed_)return false;
   try{std::set<unsigned> categories;for(const auto &a:adapters)if(a.category==0||a.category>=13||!a.prepare||!a.before_init||!a.fields||!a.resources||!a.relations||!a.retire||!categories.insert(a.category).second)return false;
@@ -162,6 +169,7 @@ bool ClientObjects::ConfigureEntityOwners(ClientEntityOwners owners,std::vector<
 bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&reason,const replica::RoomGridTarget *room_grid,std::shared_ptr<const replica::PlayerTarget> players) noexcept {
   try {
     if(failed_){reason="objects_failed_requires_retirement";return false;}
+    if(players_&&players_->Active()&&!players&&!replica::HasPlayerTarget(target)){reason="objects_player_profile_change_requires_retirement";return false;}
     // 纯值阶段的新T可原子替换尚未执行的计划；已执行前缀仍须由场景owner退休。
     if(installed_||(candidate_&&(cursor_||player_cursor_||written_))){reason="objects_plan_inflight";return false;}
     // 正式模型与历史代表投影共用同一native实例表；19不扩大17的支持声明。
@@ -173,8 +181,11 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
         reason="objects_player_target_identity_mismatch";return false;
       }
       auto desired=players?players->entities:std::make_shared<const replica::EntityTarget>(replica::ParseEntityTarget(target));
-      auto plan=std::make_unique<replica::EntityApplyPlan>(replica::PlanEntityTarget(desired,applied?entity_applied_:nullptr));
+      auto plan=std::make_unique<replica::EntityApplyPlan>(replica::PlanEntityTarget(desired,applied?entity_applied_:nullptr,{},bool(players)));
       plan->players=std::move(players);
+      if(plan->players){if(entity_owners_.resolve){reason="objects_player_target_requires_single_owned_player_service";return false;}
+        if(!players_)players_=std::make_unique<ClientPlayers>();
+      }
       if(applied&&!entity_applied_){reason="objects_entity_applied_missing";return false;}
       std::vector<ClientObjectDescription> next,before;
       auto source=std::make_shared<const std::string>(replica::Text(desired->source));
@@ -188,7 +199,7 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
       if(plan->duplicate)next=entity_applied_values_;
       else for(const auto &o:desired->objects){
         if(o.presence!=replica::EntityMemberPresence::Current){next.emplace_back();continue;}
-        auto d=ClientDescribeEntity(o,plan->dependencies,source);
+        auto d=ClientDescribeEntity(o,plan->dependencies,source,bool(plan->players));
         if(d.category==9&&d.variant==136){
           const auto found=lifted.find(d.key);if(found==lifted.end()||!d.derived||desired->capture.tick!=room_grid->grid_capture.tick){reason="objects_lifted_same_target_owner_or_window";return false;}
           auto state=std::make_shared<ClientEntityClassState>(*d.derived);const auto &g=found->second->descriptor;auto &v=state->lifted;
@@ -226,7 +237,7 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
       if(plan->applied){before=entity_applied_values_;if(before.size()!=plan->applied->objects.size()){reason="objects_entity_applied_values_missing";return false;}}
       // 20提供外部owner时只借身体；否则沿17已核合同创建/安装唯一普通Isaac，绝不冒称完整Player。
       std::vector<ClientObjectCommand> player_commands;
-      if(!entity_owners_.resolve){
+      if(!entity_owners_.resolve&&!plan->players){
         if(desired->player_keys.size()!=1){reason="objects_builtin_player_requires_one_ordinary_Isaac";return false;}
         for(const auto &d:next)if(d.key.id&&d.category==0){
           if(!d.player_stats||d.type!=1||d.variant||d.subtype||!d.exists||d.dead||d.size<0||d.mass<0||
@@ -244,8 +255,12 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
       }
       auto usage=ClientMeasureEntities(next,unsigned(plan->steps.size()+player_commands.size()));
       auto copy=std::make_unique<replica::Json>(replica::Copy(target));
+      // 最后才替换Player纯值候选；后面的Entity预检失败不能留下与旧candidate不一致的身体计划。
+      if(plan->players&&!players_->Prepare(plan->players,reason))return false;
+      if(plan->players)usage.commands+=players_->Cost();
       candidate_=std::move(copy);entity_plan_=std::move(plan);entity_old_values_=std::move(before);entity_target_values_=std::move(next);
       player_commands_=std::move(player_commands);player_cursor_=0;budget_=usage;instances_ready_=ready_=capacity_checked_=false;
+      players_structured_=players_complete_=false;
       commands_.clear();cursor_=prefix_=0;written_=false;retired_=false;entity_preflight_=false;reason="objects_entity_plan_ready";return true;
     }
     if(entity_applied_){reason="objects_profile_change_requires_scene_retirement";return false;}
@@ -293,25 +308,28 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
 }
 bool ClientObjects::CancelPlanned() noexcept {
   if(!candidate_||cursor_||player_cursor_||written_||failed_)return false;
+  if(players_&&players_->Active()&&!players_->Cancel())return false;
   candidate_.reset();entity_plan_.reset();entity_target_values_.clear();entity_old_values_.clear();entity_preflight_=false;
   commands_.clear();player_commands_.clear();player_cursor_=0;instances_ready_=ready_=false;reason_.clear();prefix_=0;return true;
 }
-bool ClientObjects::BeginAttempt(std::uint64_t attempt) noexcept {if(!attempt||!candidate_||written_)return false;attempt_=attempt;return true;}
+bool ClientObjects::BeginAttempt(std::uint64_t attempt) noexcept {if(!attempt||!candidate_||written_)return false;if(entity_plan_&&entity_plan_->players&&!players_->BeginAttempt(attempt))return false;attempt_=attempt;return true;}
 ClientObjectStep ClientObjects::Step(const ClientNativeRoots &roots,unsigned budget,bool finish) noexcept {
   if(failed_)return {false,written_,true,prefix_,0,"objects_failed_requires_retirement"};
-  if(ready_)return {true,written_,false,prefix_,ClientNativeObjectsOwnerCount(native_),"objects_checked_pending_scene_commit"};
+  if(ready_)return {true,written_,false,prefix_,OwnerCount(),"objects_checked_pending_scene_commit"};
   if(!candidate_)return {false,written_,false,prefix_,0,"objects_target_missing"};
   if(!native_)native_=ClientNativeObjectsCreate();
   if(!native_)return {false,written_,true,prefix_,0,"objects_owner_allocation"};
   if(entity_plan_){
-    if(!capacity_checked_){const char *why="objects_capacity";if(!ClientNativeObjectsCapacity(native_,roots,entity_target_values_,why)){failed_=true;return {false,written_,true,prefix_,ClientNativeObjectsOwnerCount(native_),why};}capacity_checked_=true;}
+    if(entity_plan_->players&&!players_structured_){auto step=players_->Structure(roots);written_|=step.written;prefix_|=step.executed_prefix;
+      step.written=written_;step.executed_prefix=prefix_;if(step.failed)failed_=true;else if(step.done)players_structured_=true;step.done=false;return step;}
+    if(!capacity_checked_){const char *why="objects_capacity";if(!ClientNativeObjectsCapacity(native_,roots,entity_target_values_,why)){failed_=true;return {false,written_,true,prefix_,OwnerCount(),why};}capacity_checked_=true;}
     if(player_cursor_<player_commands_.size()){
       auto step=ClientNativeObjectsExecute(native_,roots,player_commands_[player_cursor_]);written_|=step.written;prefix_|=step.executed_prefix;
       step.written=written_;step.executed_prefix=prefix_;if(step.failed)failed_=true;else if(step.done)++player_cursor_;
       step.done=false;return step;
     }
     if(!entity_preflight_){const char *why="objects_entity_preflight";
-      const auto owners=entity_owners_.resolve?entity_owners_:ClientNativeObjectsPlayerOwner(native_);
+      const auto owners=entity_plan_->players?players_->Owner():entity_owners_.resolve?entity_owners_:ClientNativeObjectsPlayerOwner(native_);
       if(!ClientNativeObjectsConfigure(native_,owners,entity_adapters_)){failed_=true;return {false,written_,true,prefix_,0,"objects_entity_configure_failed"};}
       std::vector<ClientObjectKey> players;try{for(const auto &key:entity_plan_->external_players)players.push_back({key.run,key.id,key.space});}
       catch(...){failed_=true;return {false,written_,true,prefix_,0,"objects_entity_dependency_allocation"};}
@@ -332,21 +350,25 @@ ClientObjectStep ClientObjects::Step(const ClientNativeRoots &roots,unsigned bud
     while(budget--&&cursor_<entity_plan_->steps.size()){
       const auto &p=entity_plan_->steps[cursor_];ClientObjectCommand command;command.operation=operation(p.action);
       if(p.action==replica::EntityAction::Link||p.action==replica::EntityAction::Check||p.action==replica::EntityAction::CheckAll){
-        instances_ready_=true;if(!finish)return {false,written_,false,prefix_,ClientNativeObjectsOwnerCount(native_),"objects_instances_ready_pending_grid"};}
+        instances_ready_=true;if(!finish)return {false,written_,false,prefix_,OwnerCount(),"objects_instances_ready_pending_grid"};}
+      // Player和Entity构造环：全体实例/资源先完成，再装Player边，最后核对全场景。
+      if(entity_plan_->players&&!players_complete_&&(p.action==replica::EntityAction::Check||p.action==replica::EntityAction::CheckAll)){
+        auto step=players_->Finish(ClientNativeObjectsEntityOwner(native_),finish);written_|=step.written;prefix_|=step.executed_prefix;
+        step.written=written_;step.executed_prefix=prefix_;if(step.failed)failed_=true;else if(step.done)players_complete_=true;step.done=false;return step;}
       try{if(p.action!=replica::EntityAction::CheckAll)command.value=p.from_applied?entity_old_values_.at(p.object):entity_target_values_.at(p.object);else command.value.full_entity=true;}
       catch(...){failed_=true;return {false,written_,true,prefix_,0,"objects_entity_command_allocation"};}
-      auto step=ClientNativeObjectsExecute(native_,roots,command);written_|=step.written;prefix_|=step.executed_prefix;
+      auto step=ClientNativeObjectsExecute(native_,roots,command);step.pending_owners=OwnerCount();written_|=step.written;prefix_|=step.executed_prefix;
       step.written=written_;step.executed_prefix=prefix_;if(step.failed){failed_=true;return step;}if(!step.done)return step;last=step;++cursor_;
     }
     if(cursor_!=entity_plan_->steps.size()){last.done=false;last.written=written_;last.executed_prefix=prefix_;return last;}
     entity_installed_=entity_plan_->target;entity_installed_values_=std::move(entity_target_values_);entity_plan_.reset();entity_old_values_.clear();installed_=std::move(candidate_);ready_=true;
-    return {true,written_,false,prefix_,ClientNativeObjectsOwnerCount(native_),"objects_non_player_native_checked_pending_scene_commit"};
+    return {true,written_,false,prefix_,OwnerCount(),"objects_non_player_native_checked_pending_scene_commit"};
   }
   budget=(std::min)(budget,64u);
   ClientObjectStep last{};
   while(budget--&&cursor_<commands_.size()){
     if(commands_[cursor_].operation==ClientObjectOperation::References||commands_[cursor_].operation==ClientObjectOperation::Check){
-      instances_ready_=true;if(!finish)return {false,written_,false,prefix_,ClientNativeObjectsOwnerCount(native_),"objects_instances_ready_pending_grid"};}
+      instances_ready_=true;if(!finish)return {false,written_,false,prefix_,OwnerCount(),"objects_instances_ready_pending_grid"};}
     auto step=ClientNativeObjectsExecute(native_,roots,commands_[cursor_]);
     written_|=step.written;prefix_|=step.executed_prefix;
     if(step.failed){failed_=true;step.written=written_;step.executed_prefix=prefix_;return step;}
@@ -356,16 +378,20 @@ ClientObjectStep ClientObjects::Step(const ClientNativeRoots &roots,unsigned bud
   }
   // 保留本轮真正执行对象的key/instance/前缀，供统一E2E核对替换与地址复用语义。
   if(cursor_!=commands_.size()){last.done=false;last.written=written_;last.executed_prefix=prefix_;return last;}
-  installed_=std::move(candidate_);commands_.clear();ready_=true;return {true,written_,false,prefix_,ClientNativeObjectsOwnerCount(native_),"objects_checked_pending_scene_commit"};
+  installed_=std::move(candidate_);commands_.clear();ready_=true;return {true,written_,false,prefix_,OwnerCount(),"objects_checked_pending_scene_commit"};
 }
 bool ClientObjects::Commit(std::uint64_t attempt) noexcept {
   if(!attempt||attempt!=attempt_||!ready_||!installed_||failed_)return false;
+  if(players_&&players_->Active()&&!players_->Commit(attempt))return false;
   committed_=std::move(installed_);entity_applied_=std::move(entity_installed_);entity_applied_values_=std::move(entity_installed_values_);return true;
 }
 ClientObjectStep ClientObjects::Retire(const ClientNativeRoots &roots) noexcept {
   auto step=ClientNativeObjectsAbandon(native_,roots);
+  step.pending_owners=OwnerCount();
   if(!step.done)return step;
   ClientNativeObjectsDestroy(native_);native_=nullptr;commands_.clear();candidate_.reset();committed_.reset();
+  // 非Player先撤身体借用，再退Player自身，最后交NativeWorld清Room。
+  if(players_){auto player_step=players_->Retire(roots);if(!player_step.done)return player_step;players_.reset();}players_structured_=players_complete_=false;
   entity_plan_.reset();entity_applied_.reset();entity_target_values_.clear();entity_old_values_.clear();entity_applied_values_.clear();entity_preflight_=false;
   installed_.reset();entity_installed_.reset();entity_installed_values_.clear();player_commands_.clear();player_cursor_=0;ready_=instances_ready_=capacity_checked_=false;attempt_=0;budget_={};
   cursor_=0;prefix_=0;failed_=written_=false;retired_=true;return step;

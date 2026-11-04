@@ -161,6 +161,9 @@ struct Constants final {
   std::uint32_t player_inline_sprite_first_offset;
   std::uint32_t player_inline_sprite_stride;
   std::uint32_t player_inline_sprite_count;
+  std::uint32_t player_sub_storage_offset;
+  std::uint32_t game_player_borrow_first_offset;
+  std::uint32_t game_player_borrow_count;
 
   std::uint32_t entity_text_td_rva;
   std::uint32_t entity_dummy_td_rva;

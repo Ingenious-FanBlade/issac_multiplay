@@ -35,7 +35,7 @@ struct EntityApplyPlan final {
 };
 struct EntityPlanLimits final {unsigned objects=16384,steps=131073,dependencies=262144;};
 EntityApplyPlan PlanEntityTarget(std::shared_ptr<const EntityTarget> target,
-    std::shared_ptr<const EntityTarget> applied={},EntityPlanLimits={});
+    std::shared_ptr<const EntityTarget> applied={},EntityPlanLimits={},bool owned_players=false);
 // 所有引用保留源字段身份；只有具名关系写入，历史/查询事实不伪装成EntityPtr。
 EntityDependency DescribeEntityDependency(const EntityObjectTarget &,const EntityReferenceTarget &);
 } // namespace cs::replica

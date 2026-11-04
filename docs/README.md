@@ -1,4 +1,6 @@
-> **tx-04-20 I01—I04（2026-11-04）**：[目录、PlayerTarget、正式只读来源及主审](design/tx-04-20/tx-04-20-foundation.md)、[逐签名应用目录](design/tx-04-20/player-application.json)、[R01—R16静态采用／否决合同](design/tx-04-20/player-native-static.md)。已接入两域同窗口／owner关联、roster／四备份槽／控制组、完整有限查询与12份新增内嵌ANM来源；指定GPT-6 Luna max研究，主智能体独立复读。I05—I40待推进；未构建、测试或启动游戏，完整原生Player支持尚未完成。下方保留初版规划事实。
+> **tx-04-20 I05—I10（2026-11-04）**：[投影、A→T身体／子owner计划、结构owner／集合／关系与必要逆向主审](design/tx-04-20/tx-04-20-structure.md)。正式合同升级player-target/source-v2，恢复装备与History按参查询；Key／实例／用途借用、base结构前缀、roster与Room发布、非roster／备份及跨域后置关系已接线。一个GPT-6 Luna max子智能体研究，主智能体独立复读；完整最终态／资源／角色adapter归I11以后，缺席写前拒绝，native_apply仍false。按用户要求直接提交；未构建、测试或启动游戏，I11—I40及I39统一E2E待推进。
+
+> **tx-04-20 I01—I04（2026-11-04，阶段记录）**：[目录、PlayerTarget、正式只读来源及主审](design/tx-04-20/tx-04-20-foundation.md)、[逐签名应用目录](design/tx-04-20/player-application.json)、[R01—R16静态采用／否决合同](design/tx-04-20/player-native-static.md)。已接入两域同窗口／owner关联、roster／四备份槽／控制组、完整有限查询与12份新增内嵌ANM来源；指定GPT-6 Luna max研究，主智能体独立复读。当时I05—I40待推进；未构建、测试或启动游戏，完整原生Player支持尚未完成。后续见上项，下方保留初版规划事实。
 
 > **tx-04-20 具体实现规划（2026-11-04）**：[I01—I40 全部任务、失败模型与 E01—E30 统一验收安排](design/tx-04-20/tx-04-20-implementation-plan.md)、[P01—P20 玩家状态、全部角色／身体族及15种武器](design/tx-04-20/tx-04-20-player-application.md)、[R01—R16 静态确认／必要逆向计划](design/tx-04-20/tx-04-20-native-research-plan.md)。覆盖四参与者、多身体／非活动／备份、装备／资源／武器、原生绘制、跨域依赖、唯一提交和失败退休；明确正式来源／投影与19单Isaac支撑的差额。本轮仅编写文档并统一静态审阅，全部实施和研究任务待执行，没有新增逆向结果、运行代码修改、构建或测试。
 

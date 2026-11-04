@@ -65,7 +65,13 @@
       "failure_prefix": "root/use/shape/source 前后不一致或读取失败时不发布该 body 值；保留合法空、未访问、Null 与失败差异，不改原生世界。",
       "cleanup": "只释放本地临时纯值/资源 pin；不调用游戏清理 API。",
       "unknown": "未活动/backup 的私有字段合法当前来源仍逐字段未知；公开关系可达不能替代私有writer witness，不能扩展 readiness3。",
-      "maps_to": ["I01-I05", "P01", "P20", "E22", "E27"]
+      "maps_to": [
+        "I01-I05",
+        "P01",
+        "P20",
+        "E22",
+        "E27"
+      ]
     },
     {
       "id": "R02",
@@ -84,7 +90,14 @@
       "failure_prefix": "普通分支 roster 已达64时分配前返回 Null；分配/ctor/roster push/Init/Room EntityList publish 是不同前缀，未证明中间异常自动撤销。InitTwin 不检查 SpawnCoPlayer2 返回值，Null 会在 0x7C8394 解引用。",
       "cleanup": "仅准确正常 owner 可清已发布对象；半构造对象不能走 RemoveCoPlayer 或全局 cleanup。AssignPlayerHUDs VA 0x980130 按 tx-04-17 已命名，不是纯关系函数。",
       "unknown": "异常展开、角色 Init 的全部自动生成与官方/玩法/资源副作用、Room 失败后清理完整性未闭合。PlayerType=-1 使用 Manager+0xD0/+0xD4/+0xD8 独立 vector、Init(1,2,0,seed)，不走常规 EntityList Add；SDK PlayerManager 仅0xC8，特殊容器所有权/退休 UNKNOWN。",
-      "maps_to": ["I06-I09", "I33", "P01", "P19", "E02", "E23"]
+      "maps_to": [
+        "I06-I09",
+        "I33",
+        "P01",
+        "P19",
+        "E02",
+        "E23"
+      ]
     },
     {
       "id": "R03",
@@ -102,7 +115,15 @@
       "failure_prefix": "目标未解析或类型/组冲突时不写边、不清为Null、不发布关系完成；冲突精确到关系/Key。",
       "cleanup": "边由创建/关联 owner 单一负责解绑；对原生 recursive removal 使用09已修正的索引升序和逐次重读 roster。",
       "unknown": "sub_player +0x1D84 是09已有J273点位但不在当前EntityPlayer.zhl成员声明；其完整写者闭包和所有身体关系的共享字段/owner仍需按采用consumer具名核对。",
-      "maps_to": ["I07-I10", "I17", "P01", "P10", "P15", "P19", "E04-E08"]
+      "maps_to": [
+        "I07-I10",
+        "I17",
+        "P01",
+        "P10",
+        "P15",
+        "P19",
+        "E04-E08"
+      ]
     },
     {
       "id": "R04",
@@ -119,7 +140,11 @@
       "failure_prefix": "部分字段写入失败时不提交A，记录首个字段前缀并停该scope；不将旧目标冒充新值。",
       "cleanup": "角色变化按显式适用字段表更新/清除旧专用值，不调用道具链。",
       "unknown": "未公开flash/draw缓存、特殊角色cache flags的writer与当前来源尚未核定；offset本身不授予读取。",
-      "maps_to": ["I11-I13", "P02-P05", "E09"]
+      "maps_to": [
+        "I11-I13",
+        "P02-P05",
+        "E09"
+      ]
     },
     {
       "id": "R05",
@@ -137,7 +162,13 @@
       "failure_prefix": "Container replacement failure blocks Player/weapon/costume readiness; legal empty, not applicable, unvisited and failed remain distinct.",
       "cleanup": "Container memory remains native owner/allocator; do not copy STL/vector headers across CRT or destroy an owner borrowed from Source.",
       "unknown": "VarData and role-specific charge units, allocator/resize/cleanup for dynamic slots, all linked derivations remain writer-specific UNKNOWN.",
-      "maps_to": ["I14-I15", "I20", "I26", "P06-P08", "E10-E11"]
+      "maps_to": [
+        "I14-I15",
+        "I20",
+        "I26",
+        "P06-P08",
+        "E10-E11"
+      ]
     },
     {
       "id": "R06",
@@ -153,7 +184,11 @@
       "failure_prefix": "A list/History read or install failure remains explicit; no default empty list in place of unvisited/failed. ",
       "cleanup": "Only exact effect/history/costume owner retires the corresponding container; no Update to decay effects. ",
       "unknown": "Whether native Player/HUD draw requires History backing and complete effect sharing/removal resource closure remain consumer-specific. ",
-      "maps_to": ["I16-I17", "P09-P10", "E12"]
+      "maps_to": [
+        "I16-I17",
+        "P09-P10",
+        "E12"
+      ]
     },
     {
       "id": "R07",
@@ -171,7 +206,12 @@
       "failure_prefix": "Not-loaded is explicit Null; resource replacement or partial Load closes draw admission and leaves old/new exact owner recorded; do not publish mixed resource pose.",
       "cleanup": "Stop draw admission, drain actual borrows/CPU queue, then resource owner reload/rebind and reopen only on full return; image pins do not retain Player/ANM/layer pointers.",
       "unknown": "All 13 ANM consumers by role/pass, Head/Hand/overlay/costume closure, GPU final-use boundary and private scalars headAnim/blink writers are not fully known.",
-      "maps_to": ["I18-I19", "I29", "P11-P12", "E13"]
+      "maps_to": [
+        "I18-I19",
+        "I29",
+        "P11-P12",
+        "E13"
+      ]
     },
     {
       "id": "R08",
@@ -189,7 +229,15 @@
       "failure_prefix": "Empty factory entry returns Null; returned allocation is immediately virtual-Init'd without a null check. A ClearReferences/Free exception leaves pointer uncleared; do not retry blindly. Subclass Init/allocator failures are not closed.",
       "cleanup": "Use unique slot owner after dependencies/refs are unlinked and draw in-flight has drained; no shallow copy or double Free.",
       "unknown": "W01-W15 subclass private fields, per-type init/spawn/render/retire side effects and full Entity dependencies not closed. Unsupported selected type fails before mutation; no Tears fallback.",
-      "maps_to": ["I10", "I20", "I29", "I33", "P13", "P15", "E14-E15"]
+      "maps_to": [
+        "I10",
+        "I20",
+        "I29",
+        "I33",
+        "P13",
+        "P15",
+        "E14-E15"
+      ]
     },
     {
       "id": "R09",
@@ -205,7 +253,13 @@
       "failure_prefix": "Missing/replaced child revokes borrow; no key/address-based inheritance. Unknown scope/pass prevents draw.",
       "cleanup": "Restore all temporary display fields after raw queue consumption; held Entity itself retires under its Entity owner exactly once.",
       "unknown": "Other held dynamic types and all role-specific draw owner closure remain unknown; Effect136 facts do not imply global held support.",
-      "maps_to": ["I21", "I24", "I29", "P14-P15", "E18"]
+      "maps_to": [
+        "I21",
+        "I24",
+        "I29",
+        "P14-P15",
+        "E18"
+      ]
     },
     {
       "id": "R10",
@@ -222,7 +276,14 @@
       "failure_prefix": "Scene 使用唯一原子提交；任一关系或组写入失败都撤销整个候选 Scene 的展示资格，保留其他组已复制的纯值，但不把半应用组提交为 A；不按 body count 合成 participant。",
       "cleanup": "Use tx09 recursive removal order; own non-roster 35/40 Soul/held relation separately. Do not free twice through root+child.",
       "unknown": "Client 16/17 in-place versus same-key replacement and complete Tainted Forgotten non-roster read/resource qualification still open.",
-      "maps_to": ["I21", "I23-I24", "I28", "P01", "P14-P16", "E04-E06"]
+      "maps_to": [
+        "I21",
+        "I23-I24",
+        "I28",
+        "P01",
+        "P14-P16",
+        "E04-E06"
+      ]
     },
     {
       "id": "R11",
@@ -239,7 +300,15 @@
       "failure_prefix": "Invalid slot or missing source relation is not an empty player; switching/replace partial failure keeps old/new owner phases distinct and blocks display/input reuse.",
       "cleanup": "Client retires only its mirror and unlinks its own owner; do not mutate or manually destroy Authority PlayerManager backup slot.",
       "unknown": "When never-updated backup private fields become valid, Lazarus Flip instance/container exchange, abnormal replace failure cleanup and native slot teardown owner remain unknown.",
-      "maps_to": ["I25-I26", "I28", "I33", "P01", "P07", "P19", "E07-E08"]
+      "maps_to": [
+        "I25-I26",
+        "I28",
+        "I33",
+        "P01",
+        "P07",
+        "P19",
+        "E07-E08"
+      ]
     },
     {
       "id": "R12",
@@ -256,7 +325,14 @@
       "failure_prefix": "A required private role datum/resource absence rejects that role target; ordinary Isaac fallback prohibited.",
       "cleanup": "Change role/shape invalidates all old role-specific containers, resources, weapon and entity owner references by typed owner.",
       "unknown": "All role-specific writers and role/pass reader sets are not exhaustively proven by selected layout fields or public getter names.",
-      "maps_to": ["I22", "I27", "I29", "P16", "E03", "E16"]
+      "maps_to": [
+        "I22",
+        "I27",
+        "I29",
+        "P16",
+        "E03",
+        "E16"
+      ]
     },
     {
       "id": "R13",
@@ -273,7 +349,13 @@
       "failure_prefix": "Draw exception/reentry or unknown pass stops visibility and retains resource owner; normal return alone does not mean GPU/CPU queue retired.",
       "cleanup": "Restore every temporary touched field after actual CPU queue consumption; drain/retain ANM/Image owners before replacement/retirement.",
       "unknown": "All roles x weapons x passes, blink/ghost/flight branches, remaining indirect callers, and final GPU use point are open; static contract does not establish pixels.",
-      "maps_to": ["I29", "I34", "P11-P16", "P19", "E20"]
+      "maps_to": [
+        "I29",
+        "I34",
+        "P11-P16",
+        "P19",
+        "E20"
+      ]
     },
     {
       "id": "R14",
@@ -290,7 +372,13 @@
       "failure_prefix": "Missing local display slot leaves HUD association unavailable; no substitution from ordinal or remote controller ID.",
       "cleanup": "Invalidate HUD mapping on body instance/shape change; retire through HUD owner, not borrowed Player pointer.",
       "unknown": "Minimal HUD structure required for each non-roster/inactive role and every Player draw path remains unspecified; full layout belongs tx27.",
-      "maps_to": ["I30-I31", "P17-P18", "E17", "E19", "E24"]
+      "maps_to": [
+        "I30-I31",
+        "P17-P18",
+        "E17",
+        "E19",
+        "E24"
+      ]
     },
     {
       "id": "R15",
@@ -308,7 +396,14 @@
       "failure_prefix": "Do not infer full cleanup from a throw/catch; unknown EH/context/allocator prefix keeps Client isolated with owner and first cause; don't repeat Remove/Free.",
       "cleanup": "Unlink refs/HUD/Weapon/costume, drain actual borrows/CPU queue, then owner-specific retire exactly once. For normal tx09 recursive cleanup use index sort and roster reread.",
       "unknown": "Per-role Init partially completed native cleanup, all backup/weapon normal teardown and arbitrary SEH recovery not closed; unknown retention is not normal success.",
-      "maps_to": ["I28", "I33-I34", "P19", "E21", "E23", "E25"]
+      "maps_to": [
+        "I28",
+        "I33-I34",
+        "P19",
+        "E21",
+        "E23",
+        "E25"
+      ]
     },
     {
       "id": "R16",
@@ -326,7 +421,51 @@
       "failure_prefix": "Record attempted before original; if call exits/throws after unknown prefix, preserve isolation and do not claim no mutation/rollback/complete state.",
       "cleanup": "Protection remains until all Player/ANM/Weapon borrows and relevant persistent writers have safely retired; hooks remain resident.",
       "unknown": "Full nested Lua/ItemPool/RNG/PGD closure of all Player Init types and role setters not exhaustively reversed; generic Init is consequently rejected.",
-      "maps_to": ["I32-I33", "I37", "P20", "E24-E25"]
+      "maps_to": [
+        "I32-I33",
+        "I37",
+        "P20",
+        "E24-E25"
+      ]
     }
-  ]
+  ],
+  "i05_i10_addendum": {
+    "implementation": "docs/design/tx-04-20/tx-04-20-structure.md",
+    "researcher": "GPT-6 Luna / max; static only",
+    "main_review": "independent IDA ctor/base Init/Player Free/Remove/callback chain and official SDK review",
+    "source_contract": "player-source-v2",
+    "target_contract": "player-target-v2",
+    "adopted": [
+      "game allocator + raw prezero + completed Player ctor + base Entity Init, base-only/role-uninitialized",
+      "separate roster/Room/local indices, no Join/SpawnCoPlayer2/InitTwin",
+      "typed storage links and four purpose-qualified borrows",
+      "Player Free only after own graph unlink, roster/Room detach, child owners/Weapon/HUD/global borrowers drained and callback guard valid"
+    ],
+    "addresses": {
+      "ctor_va": "0x74DC70",
+      "base_init_va": "0x6A4A20",
+      "player_free_va": "0x74E970",
+      "player_destructor_va": "0x74F260",
+      "entity_remove_va": "0x6A8000",
+      "remove_callback_helper_va": "0x84CA50",
+      "sub_storage_offset": "0x1D84",
+      "game_player_borrow_offsets": [
+        "0x1BB70",
+        "0x1BB74"
+      ]
+    },
+    "not_adopted": [
+      "whole Player Init",
+      "recursive RemoveCoPlayer as partial constructor rollback",
+      "all Weapon dynamic types treated as base+8",
+      "whole player complete or draw-ready from structure existence"
+    ],
+    "unknown": [
+      "ctor/Init/Free exceptional unwind",
+      "sub_storage full role-specific writer/getter meaning",
+      "complete I11-I29 final state/resource/role/Weapon/draw adapters and all owner retirement branches"
+    ],
+    "native_apply": false,
+    "runtime_acceptance": "I39-not-run; no build/test/game launch in I05-I10"
+  }
 }

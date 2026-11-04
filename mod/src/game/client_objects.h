@@ -8,6 +8,8 @@
 #include <vector>
 
 namespace cs::game {
+class ClientPlayers;
+struct ClientPlayerAdapter;
 // 纯值A→T计划与原生身份表分别拥有寿命；执行失败后不再按历史A继续差分。
 class ClientObjects final {
 public:
@@ -19,6 +21,8 @@ public:
   // 产品类别模块和Player20在候选进入前配置；不允许在在途执行中替换owner合同。
   bool ConfigureEntityOwners(ClientEntityOwners,std::vector<ClientEntityClassAdapter>) noexcept;
   ClientEntityOwners PlayerOwner() noexcept;
+  bool PlayerRebuildRequired() const noexcept;
+  bool ConfigurePlayerAdapter(ClientPlayerAdapter) noexcept;
   bool CancelPlanned() noexcept;
   ClientObjectStep Step(const ClientNativeRoots &,unsigned budget=16,bool finish=true) noexcept;
   bool InstancesReady() const noexcept { return instances_ready_; }
@@ -34,7 +38,10 @@ public:
   std::string TestInspect() const noexcept;
 #endif
 private:
+  unsigned OwnerCount() const noexcept;
   ClientNativeObjects *native_=nullptr;
+  std::unique_ptr<ClientPlayers> players_;
+  bool players_structured_=false,players_complete_=false;
   std::vector<ClientObjectCommand> commands_;
   std::unique_ptr<replica::Json> candidate_,committed_;
   std::unique_ptr<replica::Json> installed_;

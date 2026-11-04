@@ -59,7 +59,7 @@ EntityDependency DescribeEntityDependency(const EntityObjectTarget &o,const Enti
      (o.category==EntityCategory::Knife&&d.member=="Entity.Parent"))d.phase=EntityDependencyPhase::BeforeInit;
   return d;
 }
-EntityApplyPlan PlanEntityTarget(std::shared_ptr<const EntityTarget> t,std::shared_ptr<const EntityTarget> a,EntityPlanLimits limits){
+EntityApplyPlan PlanEntityTarget(std::shared_ptr<const EntityTarget> t,std::shared_ptr<const EntityTarget> a,EntityPlanLimits limits,bool owned_players){
   if(!limits.objects||limits.objects>16384||!limits.steps||limits.steps>131073||!limits.dependencies||limits.dependencies>262144)Fail("limits_only_tightening_allowed");
   if(!t||!t->revision||t->objects.size()>limits.objects)Fail("target_or_budget");
   EntityApplyPlan out;out.target=std::move(t);out.applied=std::move(a);
@@ -70,7 +70,7 @@ EntityApplyPlan PlanEntityTarget(std::shared_ptr<const EntityTarget> t,std::shar
     if(target.revision<before.revision)Fail("stale_revision");
     if(target.revision==before.revision){if(target.source!=before.source)Fail("revision_content_conflict");out.duplicate=true;return out;}
     old=Members(before);
-    if(std::set<SubjectKey>(target.player_keys.begin(),target.player_keys.end())!=std::set<SubjectKey>(before.player_keys.begin(),before.player_keys.end()))Fail("player_membership_change_requires_scene_player_stage");
+    if(!owned_players&&std::set<SubjectKey>(target.player_keys.begin(),target.player_keys.end())!=std::set<SubjectKey>(before.player_keys.begin(),before.player_keys.end()))Fail("player_membership_change_requires_scene_player_stage");
     // revision变化时仍复核跨域描述；Entity字节相同不能抹掉Grid侧Effect136描述变化。
   }
   std::set<SubjectKey> replace,remove;

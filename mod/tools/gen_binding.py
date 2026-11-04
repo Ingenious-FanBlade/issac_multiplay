@@ -74,6 +74,9 @@ CONSTANT_ORDER = [
     ('player_inline_sprite_first_offset', 'u32'),
     ('player_inline_sprite_stride', 'u32'),
     ('player_inline_sprite_count', 'u32'),
+    ('player_sub_storage_offset', 'u32'),
+    ('game_player_borrow_first_offset', 'u32'),
+    ('game_player_borrow_count', 'u32'),
 
     ('entity_text_td_rva', 'u32'),
     ('entity_dummy_td_rva', 'u32'),

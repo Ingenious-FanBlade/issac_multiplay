@@ -131,6 +131,29 @@ OMITTED_MEMBERS = {
     for member in members.split()
 }
 
+# I05：Player及其装备/History的消费者已进入正式目标，撤销19阶段的整组省略。
+# 参数查询的未调度/失败仍原样发送；完整有限槽及实际配置ID范围由正式reader采集，
+# 不能以库存能推出为由吞掉OnlyCountTrueItems/IgnoreSpoof/slot等不同语义。
+PLAYER_QUERY_REVIEW = {
+    member: "I05:player-target-v2保留参数/结果/Null/失败；有限槽完整采样，配置ID按实际范围；未调度不冒充完整。ClientPlayers子owner分别消费，History不得重放授予物品"
+    for member in tuple(OMITTED_MEMBERS)
+    if member.startswith(("EntityPlayer.", "Weapon.", "TemporaryEffects.", "History.", "PlayerManager."))
+}
+for member in PLAYER_QUERY_REVIEW:
+    del OMITTED_MEMBERS[member]
+RETAINED_QUERIES.update(PLAYER_QUERY_REVIEW)
+
+# P1/P2/P4/P5/P6的等价条件明确写入产品目录，不按文件名合并物理成员。
+PLAYER_PROJECTION_REVIEW = {
+    "P1": "仅显式resource_alias并且同owner/use/scope才等价；主/Body/13 inline/costume逐成员独立，文件名相等无别名含义",
+    "P2": "静态动画/NullFrame表由同版本本地ANM和同selector查询；动态图层/null选择器/texture替换/完整pose_runtime保留，资源更换或selector变化立即失效",
+    "P3": "Player/Weapon/TemporaryEffects/History/PlayerManager逐参数查询保留；库存/效果/槽列表各自独立，禁止用Has布尔替代计数/顺序/来源",
+    "P4": "仅NotScheduled压成同状态；Unavailable/ReadFailed/NotCaptured/Null/Empty保持区别，缺口阻止对应consumer就绪",
+    "P5": "图编号仅同组件内引用；Entity装备及Player History各自闭合，不能将node变成owner或跨组件别名",
+    "P6": "独立查询保留参数和真实结果/失败；不在Client调用玩法查询补值，不以普通默认槽推断全部槽",
+    "parameter_domains": "active0..3/pocket0..3/weapon0..4/trinket0..1；collectible当前配置ID×onlyTrue×ignoreSpoof；smelted当前trinket配置ID；任意字符串组名保持NotScheduled",
+}
+
 
 def consumer_review(member):
     """将显式复核结论逐成员写入目录，新成员不能自动继承省略结论。"""

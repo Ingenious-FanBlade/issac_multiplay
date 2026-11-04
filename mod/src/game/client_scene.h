@@ -157,7 +157,7 @@ private:
   unsigned retired_scope_count_=0;
   std::unique_ptr<replica::Json> target_, applied_;
   std::shared_ptr<const replica::RoomGridTarget> room_grid_target_,room_grid_applied_;
-  std::shared_ptr<const replica::PlayerTarget> player_target_;
+  std::shared_ptr<const replica::PlayerTarget> player_target_,player_applied_;
   replica::RoomGridPlan room_grid_plan_{};
   std::unique_ptr<ClientObjects> objects_;
   std::unique_ptr<ClientPresentation> presentation_;

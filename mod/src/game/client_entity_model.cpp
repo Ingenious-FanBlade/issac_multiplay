@@ -52,7 +52,7 @@ const char *ClientEntityCommonDisposition(const std::string &id) noexcept {
   if(results.count(id))return "authority-query-result;no-client-gameplay-consumer";
   return nullptr;
 }
-ClientObjectDescription ClientDescribeEntity(const replica::EntityObjectTarget &o,const std::vector<replica::EntityDependency> &dependencies,std::shared_ptr<const std::string> source){
+ClientObjectDescription ClientDescribeEntity(const replica::EntityObjectTarget &o,const std::vector<replica::EntityDependency> &dependencies,std::shared_ptr<const std::string> source,bool player_structure){
   ClientObjectDescription d;d.key={o.key.run,o.key.id,o.key.space};d.shape_revision=o.shape_revision;d.category=unsigned(o.category);
   d.full_entity=true;d.exists=o.exists;d.dead=o.dead;d.common_values=replica::Text(o.common.value);d.special_values=replica::Text(o.special.value);
   d.component_values=std::move(source);
@@ -68,6 +68,8 @@ ClientObjectDescription ClientDescribeEntity(const replica::EntityObjectTarget &
     relation.target=r.has_target?ClientObjectKey{r.target.run,r.target.id,r.target.space}:d.key;relation.expected=unsigned(r.expected);relation.kind=unsigned(r.kind);relation.is_null=r.is_null;
     relation.before_init=r.phase==replica::EntityDependencyPhase::BeforeInit;relation.value_only=r.phase==replica::EntityDependencyPhase::ValueOnly;d.relations.push_back(std::move(relation));}
   if(o.category==replica::EntityCategory::Player){
+    // 20的结构owner不继承19单Isaac的心量/绘制前置；完整值仍在同一不可变payload中。
+    if(player_structure)return d;
     ClientDescribeEntityPlayerDraw(o,d);
     ClientEntityField frame;frame.member="Entity.FrameCount";frame.kind=ClientEntityValueKind::Integer;frame.integer=Integer<std::int64_t>(At(fields,"Entity.FrameCount"));
     if(frame.integer<INT32_MIN||frame.integer>INT32_MAX)Fail("Entity.FrameCount","i32");d.common_fields.push_back(std::move(frame));

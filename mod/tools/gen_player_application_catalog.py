@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 from gen_entity_application_catalog import PLAYER_RELATED, RESOURCE_CLASSES
 from gen_replica_catalog import classify
+from replica_projection_policy import PLAYER_PROJECTION_REVIEW, consumer_review
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "mod/observation/isaac-cs-observation"
@@ -67,7 +68,7 @@ def generate():
                 "lifetime": "current-use/shape;resource-owner-generation;revoke-on-root-or-relation-change",
                 "same_window": "entity+player ordinary capture;History graph stays player-component-local",
                 "sharing": "per-body;explicit-source-relation-required;equal-values-do-not-prove-sharing",
-                "projection": {"ownership": ownership, "reason": reason, "review_task": "I05"},
+                "projection": {"ownership": ownership, "reason": reason, "review_task": "I05", "consumer_review": consumer_review(m["id"])},
                 "handling": "Authority-only-operation;install-final-result-through-state-member" if authority else "named-native-consumer-pending",
                 "consumer": "Authority" if authority else "ClientPlayers/" + task,
                 "installation": "never-replay-operation" if authority else "I02-owned-value;native-install-contract=" + research,
@@ -79,8 +80,10 @@ def generate():
             }
     research_path = ROOT / "docs/design/tx-04-20/player-native-contracts.json"
     return {"format": "isaac.cs.player.application-catalog", "version": 1,
-            "target_contract": "player-target-v1", "source_contract": "player-source-v1",
+            "target_contract": "player-target-v2", "source_contract": "player-source-v2",
+            "projection_review": PLAYER_PROJECTION_REVIEW,
             "native_apply": False, "runtime_acceptance": "I39-not-run",
+            "structure_implementation": {"plan": "mod/src/replica/player_plan.cpp", "owner": "mod/src/game/client_players.cpp", "native": "mod/src/game/client_players_native.cpp", "tasks": "I05-I10", "scope": "base-entity-initialized/role-uninitialized until named I11-I29 adapters;preflight rejects absent adapters", "scene_commit": "ClientScene only;native_apply remains false"},
             "members": list(rows.values()),
             "native_members": [{"id": "NativePlayer." + ("blood_gush" if i == 10 else "held" if i == 11 else "inline_" + str(i)),
                                 "source": "world_layout:player_inline_sprite_first_offset+i*player_inline_sprite_stride",
@@ -94,13 +97,14 @@ def generate():
                                 "cleanup": "I33;native-Player owns embedded-ANM;do-not-free-borrow", "research": "R07/R13/R15",
                                 "e2e": "E13/E20/E23", "runtime_status": "I39-not-run"} for i in range(1, 13)],
             "structures": [
-                {"id": n, "source": source, "consumer": consumer, "task": task, "status": "pure-value-source-and-parser;native-owner-pending"}
+                {"id": n, "source": source, "consumer": consumer, "task": task, "status": "I05-I10:typed-target-plan-and-structural-owner;final-state-adapters-pending-I11-I29"}
                 for n, source, consumer, task in [
                     ("roster_order", "player.roster", "ClientPlayers roster owner", "I08"),
                     ("body_membership", "entity+player subject/control-group membership", "ClientPlayers role-qualified borrow", "I09/I10"),
                     ("backup_slots", "PlayerManager.GetEsauJrState:0..3", "ClientPlayers explicit backup owner", "I26"),
                     ("equipment_slots", "entity.application_player:active0..3/pocket0..3/weapon0..4", "ClientPlayers equipment child owners", "I14/I15/I20"),
                     ("private_presentation", "entity.application_player.native_presentation", "Player draw;private fields require named current witness", "I18/I29"),
+                    ("native_membership", "player.bodies.native_membership:v1;source-v2;room/render/update/valid+four typed storage links", "ClientPlayers role-qualified borrow and relation owner", "I07/I09/I10"),
                 ]],
             "handoff_from_entity19": "docs/design/tx-04-19/entity-application.json:Player/PLAYER_RELATED;single-Isaac support retained",
             "static_research": json.loads(research_path.read_text(encoding="utf-8-sig")) if research_path.exists() else {"status": "I04-in-progress"}}

@@ -8,9 +8,9 @@ local function ref(p) return p and IsaacCSObservationNative.Reference(p) or {res
 function M.Capture(limits)
   read.Limits(limits); local c=shared.Model.Context(); local x,old=store:Begin()
   local out={location=x,bodies={},control_groups={},changes={},backup_slots={},sampling={cache_reused=false,freshness="ReadInCurrentNativeWindow"},previous_scope=old and old.context.scope or {status="NotCaptured"},resource_semantics="per_body_canonical_values;no_implicit_copy_or_shared_resource_inference"}
-  out.application_source={version=1,contract="player-source-v1",target="REPENTOGON-1.1.3/J273",entity_scope=x.entity_scope,pose_scope="same-ordinary-window"}
+  out.application_source={version=2,contract="player-source-v2",target="REPENTOGON-1.1.3/J273",entity_scope=x.entity_scope,pose_scope="same-ordinary-window"}
   out.roster={};out.membership={complete=true,source="qualified-native+public-roots+relationship-closure",count=0}
-  local nextState,groups={},{}
+  local nextState,groups,memberWitness={},{},{}
   local players,verify=shared.Players(c); local roster={}
   for i,p in ipairs(PlayerManager.GetPlayers()) do local r=ref(p);out.roster[#out.roster+1]={index=i-1,body=r}; if r.local_id then roster[r.local_id]=true end end
   for _,entry in ipairs(players) do
@@ -18,7 +18,10 @@ function M.Capture(limits)
     local relation=id.control_relation;local membership=id.control_group_membership
     local state={subject=id,player_type=p:GetPlayerType(),dead=p:IsDead(),is_sub_player=p:IsSubPlayer(),in_public_roster=roster[id.local_id] or false,membership=membership or {resolution="Unresolved",reason="no_qualified_cached_topology_membership"},control=relation or {resolution="Unresolved",reason="no_current_exact_pair_anchor"},controller_index=p.ControllerIndex,main_twin=ref(p:GetMainTwin()),other_twin=ref(p:GetOtherTwin()),sub_player=ref(p:GetSubPlayer()),parent=ref(p.Parent),child=ref(p.Child)}
     local before=old and old.data[id.local_id]
-    local body={subject=id,relations=state,canonical_state={schema="isaac.cs.entity",scope=x.entity_scope,subject=id,source_scope=x.entity_scope,validity="same_committed_native_window;target_field_coverage_applies"},history=read.Collect(p:GetHistory(),"History",c,0),continuity={previous_scope=before and old.context.scope,previous_location=before and old.context,kind=before and before.subject.use==id.use and "ObservedSameEntityUse" or "FirstObserved",cross_room=before and old.context.room_instance~=x.room_instance or false}}
+    local nativeMembership=IsaacCSObservationNative.PlayerApplicationMembership(p)
+    if nativeMembership.status~="Value" then read.Fail(c,"player_native_membership_unavailable") end
+    memberWitness[#memberWitness+1]={player=p,value=nativeMembership}
+    local body={subject=id,relations=state,native_membership=nativeMembership,canonical_state={schema="isaac.cs.entity",scope=x.entity_scope,subject=id,source_scope=x.entity_scope,validity="same_committed_native_window;target_field_coverage_applies"},history=read.Collect(p:GetHistory(),"History",c,0),continuity={previous_scope=before and old.context.scope,previous_location=before and old.context,kind=before and before.subject.use==id.use and "ObservedSameEntityUse" or "FirstObserved",cross_room=before and old.context.room_instance~=x.room_instance or false}}
     if x.entity_scope=="0" then read.Fail(c,"canonical_entity_not_scheduled") end
     out.bodies[#out.bodies+1]=body; nextState[id.local_id]=state
     if not before or not shared.Equal(before,state) then out.changes[#out.changes+1]={subject=id,kind=before and "RelationshipOrLifeStateChanged" or "FirstObserved",before=before or {status="NotCaptured"},after=state} end
@@ -35,6 +38,8 @@ function M.Capture(limits)
   for i=0,3 do out.backup_slots[#out.backup_slots+1]={index=i,body=ref(PlayerManager.GetEsauJrState(i)),source="PlayerManager.GetEsauJrState"} end
   if old then for id,state in pairs(old.data) do if not nextState[id] then out.changes[#out.changes+1]={subject=state.subject,kind="AbsentFromQualifiedSources",reason="not_destruction;binding_or_readiness_or_membership_invalidated",previous_scope=old.context.scope} end end end
   verify()
+  -- 同窗口结束重核集合；中途摘表/发布不能留下可删除或可渲染的旧资格。
+  for _,w in ipairs(memberWitness) do if not shared.Equal(w.value,IsaacCSObservationNative.PlayerApplicationMembership(w.player)) then read.Fail(c,"player_native_membership_changed") end end
   -- 根/关系重核失败也撤销成员完整性；不能让旧的true成为删除依据。
   out.membership.complete=c.complete
   local results=table.pack(read.Finish(out,c))

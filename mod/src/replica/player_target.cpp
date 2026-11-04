@@ -57,7 +57,7 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
   if(!entities)entities=std::make_shared<const EntityTarget>(ParseEntityTarget(model));
   if(entities->scope!=out->scope||entities->revision!=out->revision||entities->source!=At(At(model,"components"),"entity"))Error("entity","target_identity");out->entities=std::move(entities);
   const auto &component=At(At(model,"components"),"player"),&state=At(component,"state"),&src=At(state,"application_source");
-  if(U(At(src,"version"))!=1||!Is(Find(src,"contract"),"player-source-v1")||!Is(Find(src,"target"),"REPENTOGON-1.1.3/J273")||!Is(Find(src,"pose_scope"),"same-ordinary-window"))Error("source","contract_version");
+  if(U(At(src,"version"))!=2||!Is(Find(src,"contract"),"player-source-v2")||!Is(Find(src,"target"),"REPENTOGON-1.1.3/J273")||!Is(Find(src,"pose_scope"),"same-ordinary-window"))Error("source","contract_version");
   out->entity_capture=out->entities->capture;out->player_capture=Capture(component,out->revision);
   const auto &entity_capture=At(out->entities->source,"capture"),&player_capture=At(component,"capture");
   for(const char *k:{"outer","owner","mutation_before","mutation_after"})if(U(At(entity_capture,k))!=U(At(player_capture,k)))Error("capture","mixed_owner_token_or_mutation");
@@ -78,6 +78,19 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
     body.player_type=int(Small(At(relations,"player_type"),40));body.dead=Bool(At(relations,"dead"));body.is_sub_player=Bool(At(relations,"is_sub_player"));body.in_public_roster=Bool(At(relations,"in_public_roster"));
     if(entity.dead_known&&body.dead!=entity.dead)Error("body","dead_state_conflict");
     body.membership=Membership(At(relations,"membership"),out->scope);
+    const auto &native_membership=At(row,"native_membership");
+    if(U(At(native_membership,"version"))!=1)Error("native_membership","version");
+    if(Is(Find(native_membership,"status"),"Value")){
+      body.native_membership_known=true;body.room_member=Small(At(native_membership,"room_owners"),1)!=0;
+      body.render_member=Small(At(native_membership,"render_members"),1)!=0;body.update_member=Small(At(native_membership,"update_members"),1)!=0;
+      body.native_valid=Bool(At(native_membership,"valid"));
+      if(body.room_member&&!body.native_valid)Error("native_membership","room_owner_without_valid_use");
+      if((body.render_member||body.update_member)&&!body.room_member)Error("native_membership","consumer_without_room_owner");
+      const auto &links=At(native_membership,"links");
+      if(Is(Find(links,"status"),"Value"))for(const auto *name:{"sub_storage","twin_storage","backup_storage","replaced_storage"}){
+        auto ref=Ref(At(links,name),out->scope);if(ref.status!="KnownCurrent"&&ref.status!="Null")body.missing.push_back(std::string(name)+":"+ref.status);body.relations.emplace(name,std::move(ref));
+      }else body.missing.push_back("native_relationship_storage:Unavailable");
+    }else body.missing.push_back("native_membership:Unavailable");
     for(const char *name:{"main_twin","other_twin","sub_player","parent","child"}){
       auto ref=Ref(At(relations,name),out->scope);if(ref.status!="KnownCurrent"&&ref.status!="Null")body.missing.push_back(std::string(name)+":"+ref.status);body.relations.emplace(name,std::move(ref));
     }
@@ -88,7 +101,7 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
     body.missing.insert(body.missing.end(),entity.common.missing.begin(),entity.common.missing.end());body.missing.insert(body.missing.end(),fields.missing.begin(),fields.missing.end());
     const auto &resources=At(fields.value,"application_player_resources");if(U(At(resources,"version"))!=1)Error("player_resources","version");
     if(Is(Find(resources,"status"),"Value"))for(const char *name:{"inline_1","inline_2","inline_3","inline_4","inline_5","inline_6","inline_7","inline_8","inline_9","blood_gush","held","inline_12"})At(resources,name);Gaps(resources,"application_player_resources",body.missing);
-    const auto &extension=At(fields.value,"application_player");if(U(At(extension,"version"))!=1||!Is(Find(extension,"contract"),"player-source-v1"))Error("body_source","contract_version");
+    const auto &extension=At(fields.value,"application_player");if(U(At(extension,"version"))!=2||!Is(Find(extension,"contract"),"player-source-v2"))Error("body_source","contract_version");
     const auto &domains=At(extension,"slot_domains");
     for(const auto &domain:std::array<std::pair<const char *,unsigned>,4>{{{"active",4},{"pocket",4},{"weapon",5},{"trinket",2}}}){
       const auto &slots=Seq(At(domains,domain.first));if(slots.Size()!=domain.second)Error("slots","domain_size");for(unsigned i=0;i<slots.Size();++i)if(U(slots[i])!=i)Error("slots","domain_order");
@@ -100,7 +113,8 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
       const auto id=Str(At(m,"member"));if(id=="Entity.GetSprite")continue;
       if(const auto *v=Find(values,id.c_str()))Gaps(*v,id,body.missing);else body.missing.push_back(id+":MissingOrProjected");
     }
-    if(!body.membership.known)body.missing.push_back("membership:Unresolved");
+    // 备份/借用身体可没有参与者关系；存在性不依赖当前可输入资格。
+    if(!body.membership.known&&body.in_public_roster)body.missing.push_back("membership:Unresolved");
     out->bodies.push_back(std::move(body));
   }
   if(out->membership_complete&&seen.size()!=indices.size())Error("membership","entity_player_set_mismatch");
@@ -135,5 +149,5 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
 const Json &PlayerApplicationCatalog(){static const auto catalog=Parse(
 #include "player_application.inc"
 );return catalog;}
-Json PlayerCapabilities(){return Parse(R"({"id":"player-target-v1","source":"player-source-v1","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","participants":4,"group_bodies":64,"backup_slots":4,"active_slots":4,"pocket_slots":4,"weapon_slots":5,"native_apply":false,"scope":"same-window Entity body+Player relations/History;owned typed values","legacy":"single ordinary Isaac profile remains separate","private_source":"named-consumer-writer-qualified;not blanket PlayerUpdate eligibility","runtime_acceptance":"I39-not-run"})");}
+Json PlayerCapabilities(){return Parse(R"({"id":"player-target-v2","source":"player-source-v2","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","participants":4,"group_bodies":64,"backup_slots":4,"active_slots":4,"pocket_slots":4,"weapon_slots":5,"native_apply":false,"structure_owner":"key/use/shape/role-qualified;roster-room-render-control-backup-separated","scope":"same-window Entity body+Player relations/History;owned typed values","legacy":"single ordinary Isaac profile remains separate","private_source":"named-consumer-writer-qualified;not blanket PlayerUpdate eligibility","runtime_acceptance":"I39-not-run"})");}
 } // namespace cs::replica

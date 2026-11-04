@@ -9,7 +9,7 @@ local groups={
   weapons={"GetWeapon","GetActiveWeaponEntity","GetWeaponModifiers"},
 }
 function M.Describe(body,common,subject)
-  local out={version=1,contract="player-source-v1",status="Value",scope_rule="same-ordinary-entity-player-window",public_read_basis="qualified-public-root-or-completed-native-source;root-and-relations-rechecked",member_manifest={},slot_domains={active={0,1,2,3},pocket={0,1,2,3},weapon={0,1,2,3,4},trinket={0,1}},native_readiness=subject.native_readiness}
+  local out={version=2,contract="player-source-v2",status="Value",scope_rule="same-ordinary-entity-player-window",public_read_basis="qualified-public-root-or-completed-native-source;root-and-relations-rechecked",member_manifest={},slot_domains={active={0,1,2,3},pocket={0,1,2,3},weapon={0,1,2,3,4},trinket={0,1}},native_readiness=subject.native_readiness}
   -- manifest引用规范字段名；不复制另一份图定义，也不把投影省略误作读取成功。
   for group,names in pairs(groups) do
     local rows={};out.member_manifest[group]=rows

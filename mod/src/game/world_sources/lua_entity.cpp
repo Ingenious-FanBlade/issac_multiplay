@@ -13,6 +13,7 @@
 #include "runtime.h"
 #include <cstring>
 #include <cmath>
+#include <utility>
 namespace cs::game {
 #ifdef ISAACCS_E2E
 int ClientTestEntitySourceLua(lua_State *);
@@ -62,6 +63,43 @@ int GridApplication(lua_State *L) {return ClientGridCaptureLua(L);}
 int GridApplicationSprites(lua_State *L) {return ClientGridSpritesLua(L);}
 int MinimapDescriptor(lua_State *L) {return ClientMapDescriptorCaptureLua(L);}
 int MapApplication(lua_State *L) {return ClientMapStateCaptureLua(L);}
+// 当前专用关系只发布稳定引用；不把本地地址、getter派生语义或历史未初始化值发出去。
+void PlayerLink(lua_State *L,const char *name,Entity *entity){
+  const auto s=ObservationSubject(entity,false,false);lua_newtable(L);
+  constexpr const char *names[]={"Null","KnownCurrent","KnownHistorical","Unresolved","NotCaptured","UnsupportedTarget","Retired","AmbiguousReuse","CrossEpoch"};
+  lua_pushstring(L,names[s.status<9?s.status:3]);lua_setfield(L,-2,"resolution");
+  lua_pushinteger(L,1);lua_setfield(L,-2,"space");Decimal(L,"local_id",s.local);Decimal(L,"use",s.use);Decimal(L,"revision",s.revision);
+  lua_setfield(L,-2,name);
+}
+// 正式Player集合来源只数当前原生列表，不将roster/可输入资格推断为Room成员。
+int PlayerApplicationMembership(lua_State *L) {
+  auto *p=lua::GetLuabridgeUserdata<Entity_Player *>(L,1,lua::Metatables::ENTITY_PLAYER,"EntityPlayer");
+  lua_newtable(L);lua_pushinteger(L,1);lua_setfield(L,-2,"version");
+  const auto subject=ObservationSubject(p,false,false);
+  if(!IsMain()||!g_Game||!g_Game->_room||subject.status!=1){lua_pushstring(L,"Unavailable");lua_setfield(L,-2,"status");return 1;}
+  auto &list=g_Game->_room->_entityList;
+  unsigned owner=0,render=0,update=0;
+  for(auto entry:{std::make_pair(&list._mainEL,&owner),std::make_pair(&list._persistentEL,&owner),std::make_pair(&list._renderEL,&render),std::make_pair(&list._updateEL,&update)}){
+    const auto &values=*entry.first;
+    if(values._sublist||values._size>values._capacity||values._capacity>16384||(values._size&&!values._data)){
+      lua_pushstring(L,"Unavailable");lua_setfield(L,-2,"status");return 1;}
+    for(unsigned i=0;i<values._size;++i)*entry.second+=values._data[i]==p;
+  }
+  lua_pushstring(L,"Value");lua_setfield(L,-2,"status");
+  lua_pushinteger(L,owner);lua_setfield(L,-2,"room_owners");
+  lua_pushinteger(L,render);lua_setfield(L,-2,"render_members");
+  lua_pushinteger(L,update);lua_setfield(L,-2,"update_members");
+  lua_pushboolean(L,p->_valid);lua_setfield(L,-2,"valid");
+  lua_newtable(L);
+  if(subject.readiness>=2){
+    lua_pushstring(L,"Value");lua_setfield(L,-2,"status");
+    Entity *sub=nullptr;std::memcpy(&sub,reinterpret_cast<const unsigned char *>(p)+world::layout::LayoutConstants().player_sub_storage_offset,4);
+    PlayerLink(L,"sub_storage",sub);PlayerLink(L,"twin_storage",p->_twinPlayer.GetReference());
+    PlayerLink(L,"backup_storage",p->_backupPlayer);PlayerLink(L,"replaced_storage",p->_replacedPlayer);
+  }else {lua_pushstring(L,"Unavailable");lua_setfield(L,-2,"status");}
+  lua_setfield(L,-2,"links");
+  return 1;
+}
 // 官方 Lua 包装每次 new Vector 未回收；此处使用已声明 SDK Getter 的栈缓冲。
 int GridRenderPosition(lua_State *L) {
   auto *grid=lua::GetLuabridgeUserdata<GridEntity *>(L,1,lua::Metatables::GRID_ENTITY,"GridEntity");
@@ -401,6 +439,7 @@ void EnsureObservationLuaBridge() noexcept {
   lua_pushcfunction(L,SpriteRuntimePose);lua_setfield(L,-2,"SpriteRuntimePose");
   lua_pushcfunction(L,LaserPresentation);lua_setfield(L,-2,"LaserPresentation");
   lua_pushcfunction(L,EntityApplicationSprites);lua_setfield(L,-2,"EntityApplicationSprites");
+  lua_pushcfunction(L,PlayerApplicationMembership);lua_setfield(L,-2,"PlayerApplicationMembership");
   lua_pushcfunction(L,ClientEntityGeometryLua);lua_setfield(L,-2,"EntityApplicationGeometry");
   lua_pushcfunction(L,ClientEntityOwnedPresentationLua);lua_setfield(L,-2,"EntityApplicationOwned");
   lua_pushcfunction(L,ClientEntityNpcPresentationLua);lua_setfield(L,-2,"EntityApplicationNpc");

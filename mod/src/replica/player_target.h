@@ -22,6 +22,7 @@ struct PlayerBodyTarget final {
   std::uint64_t shape_revision=0;
   int player_type=0;
   bool dead=false,is_sub_player=false,in_public_roster=false;
+  bool native_membership_known=false,room_member=false,render_member=false,update_member=false,native_valid=false;
   PlayerMembershipTarget membership;
   std::map<std::string,PlayerReferenceTarget> relations;
   // Entity本体只存在一份；下标指向PlayerTarget.entities，History图仍在source内解析。

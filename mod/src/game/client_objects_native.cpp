@@ -408,7 +408,8 @@ bool ResolveEntity(void *context,const ClientNativeRoots &roots,const ClientObje
     const auto witness=o.players.find(key);
     if(witness==o.players.end()||witness->second.first!=out.instance||witness->second.second!=out.owner_epoch){reason="objects_player_instance_changed";return false;}
     auto *p=static_cast<Entity *>(out.object);
-    if(!p->_valid||!p->_exists||!p->ToPlayer()||std::find(o.game->_playerManager._playerList.begin(),o.game->_playerManager._playerList.end(),p)==o.game->_playerManager._playerList.end()){
+    if(o.external.player_current){if(!o.external.player_current(o.external.context,roots,key,out,reason))return false;}
+    else if(!p->_valid||!p->_exists||!p->ToPlayer()||std::find(o.game->_playerManager._playerList.begin(),o.game->_playerManager._playerList.end(),p)==o.game->_playerManager._playerList.end()){
       reason="objects_player_owner_not_current_roster";return false;}
   }return true;
 }
@@ -430,7 +431,8 @@ bool FormalReferences(ClientNativeObjects &o,const ClientNativeRoots &roots,Entr
 bool FormalCheckAll(ClientNativeObjects &o,const ClientNativeRoots &roots,const char *&reason){
   ResolveContext context{&o,&roots};
   for(const auto &p:o.players){ClientEntityBorrow borrow;if(!ResolveEntity(&context,roots,p.first,0,borrow,reason))return false;}
-  if(o.players.size()!=o.game->_playerManager._playerList.size()){reason="objects_formal_player_roster_count";return false;}
+  if(o.external.player_sets){if(!o.external.player_sets(o.external.context,roots,reason))return false;}
+  else if(o.players.size()!=o.game->_playerManager._playerList.size()){reason="objects_formal_player_roster_count";return false;}
   for(const auto &pair:o.entries)if(!pair.second.retired&&(!FormalUse(pair.second)||!pair.second.checked)){reason="objects_formal_unchecked_instance";return false;}
   auto &list=o.room->_entityList;
   for(auto *el:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL,&list._effectEL,&list._tempEL,&list._wispEL}){
@@ -521,7 +523,7 @@ bool FormalExecute(ClientNativeObjects &o,const ClientNativeRoots &roots,const C
 bool ClientNativeObjectsConfigure(ClientNativeObjects *o,const ClientEntityOwners &owners,const std::vector<ClientEntityClassAdapter> &adapters) noexcept {
   if(!o||!IsMain()||o->executing||o->uncertain||o->abandoned)return false;
   try{if(!o->configured){o->external=owners;o->adapters=adapters;o->configured=true;o->formal=true;}
-    return o->external.context==owners.context&&o->external.resolve==owners.resolve&&o->external.dependency==owners.dependency&&o->external.player_ready==owners.player_ready;}catch(...){return false;}
+    return o->external.context==owners.context&&o->external.resolve==owners.resolve&&o->external.dependency==owners.dependency&&o->external.player_ready==owners.player_ready&&o->external.player_current==owners.player_current&&o->external.player_sets==owners.player_sets&&o->external.player_draw==owners.player_draw;}catch(...){return false;}
 }
 namespace {
 bool ResolveOwnedPlayer(void *owner,const ClientNativeRoots &roots,const ClientObjectKey &key,unsigned expected,ClientEntityBorrow &out,const char *&reason) noexcept {
@@ -552,6 +554,16 @@ bool OwnedPlayerReady(void *owner,const ClientNativeRoots &roots,const ClientObj
 ClientEntityOwners ClientNativeObjectsPlayerOwner(ClientNativeObjects *o) noexcept {
   if(!IsMain()||!o||!o->player_token)return {};return {o->player_token.get(),ResolveOwnedPlayer,nullptr,OwnedPlayerReady,o->player_token};
 }
+namespace {
+bool ResolveObjectCandidate(void *owner,const ClientNativeRoots &roots,const ClientObjectKey &key,unsigned expected,ClientEntityBorrow &out,const char *&reason) noexcept {
+  auto *token=static_cast<ClientPlayerOwnerToken *>(owner);auto *o=token?token->owner:nullptr;
+  if(!o||!IsMain()||o->uncertain||o->executing||o->abandoned||!Current(*o,roots)){reason="objects_candidate_owner_retired_or_inflight";return false;}
+  ResolveContext context{o,&roots};return ResolveEntity(&context,roots,key,expected,out,reason);
+}
+}
+ClientEntityOwners ClientNativeObjectsEntityOwner(ClientNativeObjects *o) noexcept {
+  if(!IsMain()||!o||!o->player_token)return {};return {o->player_token.get(),ResolveObjectCandidate,nullptr,nullptr,o->player_token};
+}
 bool ClientNativeObjectsPreflight(ClientNativeObjects *o,const ClientNativeRoots &roots,const std::vector<ClientObjectDescription> &descriptions,const std::vector<ClientObjectKey> &players,const char *&reason) noexcept {
   if(!o||!Phase()||!Current(*o,roots)||!o->configured||o->uncertain||!ClientEntityDrawIsolationInstalled()){reason="objects_entity_preflight_context_or_draw_isolation";return false;}
   if(!ClientEntityOrdinaryTypeContext()){reason="objects_native_deathmatch_type_context";return false;}
@@ -567,7 +579,10 @@ bool ClientNativeObjectsPreflight(ClientNativeObjects *o,const ClientNativeRoots
     for(const auto &key:players){ClientEntityBorrow b;
       if(!o->external.resolve||!o->external.resolve(o->external.context,roots,key,0,b,reason)||!b.object||!b.instance||!b.owner_epoch||b.category!=0){reason="objects_player_dependency_not_ready";return false;}
       auto *p=static_cast<Entity *>(b.object);
-      if(!p->_valid||!p->_exists||!p->ToPlayer()||std::find(o->game->_playerManager._playerList.begin(),o->game->_playerManager._playerList.end(),p)==o->game->_playerManager._playerList.end()||std::find(addresses.begin(),addresses.end(),p)!=addresses.end()){
+      bool valid=false;
+      if(o->external.player_current)valid=o->external.player_current(o->external.context,roots,key,b,reason);
+      else valid=p->_valid&&p->_exists&&p->ToPlayer()&&std::find(o->game->_playerManager._playerList.begin(),o->game->_playerManager._playerList.end(),p)!=o->game->_playerManager._playerList.end();
+      if(!valid||std::find(addresses.begin(),addresses.end(),p)!=addresses.end()){
         reason="objects_player_owner_invalid_or_duplicate_body";return false;}
       const auto d=std::find_if(descriptions.begin(),descriptions.end(),[&](const auto &v){return v.key==key&&v.category==0;});
       if(d==descriptions.end()||!o->external.player_ready||!o->external.player_ready(o->external.context,roots,*d,b,reason)){
@@ -792,7 +807,9 @@ bool ClientNativeObjectsVisit(const ClientNativeObjects *o,void *context,ClientO
   if(o->formal){auto *mutable_owner=const_cast<ClientNativeObjects *>(o);const ClientNativeRoots roots{ o->game,o->room,o->room->_descriptor,o->room->_Camera };
     ResolveContext resolver{mutable_owner,&roots};
     for(const auto &p:o->players){if(o->entries.count(p.first))continue;ClientEntityBorrow b;const char *reason="objects_player_visit";
-      if(!ResolveEntity(&resolver,roots,p.first,0,b,reason)||!visitor(context,b.object,p.first,b.instance,1))return false;}
+      if(!ResolveEntity(&resolver,roots,p.first,0,b,reason))return false;
+      bool include=true;if(o->external.player_draw&&!o->external.player_draw(o->external.context,roots,p.first,b,include,reason))return false;
+      if(include&&!visitor(context,b.object,p.first,b.instance,1))return false;}
   }
   return true;
 }

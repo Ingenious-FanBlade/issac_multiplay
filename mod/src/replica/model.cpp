@@ -357,7 +357,8 @@ Json Capabilities(){auto out=Parse(R"({"protocol":1,"model":2,"game":"v1.9.7.12.
   out["supported"].PushBack(Value("entity-target-v1",allocator),allocator);
   auto player=PlayerCapabilities();Value player_contract;player_contract.CopyFrom(player,allocator);
   Put(out["model_categories"],"player_target",std::move(player_contract),allocator);
-  out["supported"].PushBack(Value("player-target-v1",allocator),allocator);return out;
+  out["required"].PushBack(Value("player-target-v2",allocator),allocator);
+  out["supported"].PushBack(Value("player-target-v2",allocator),allocator);return out;
 }
 Json Negotiate(const Value &local,const Value &remote){
   for(const auto *v:{&local,&remote}){

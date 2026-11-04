@@ -91,7 +91,13 @@ struct ClientEntityOwners final {
   bool (*player_ready)(void *,const ClientNativeRoots &,const ClientObjectDescription &,const ClientEntityBorrow &,const char *&) noexcept=nullptr;
   // 外部owner退休先使token失效；回调context在所有消费端释放前保持存活。
   std::shared_ptr<void> lifetime;
+  // Player20用具名owner验证非roster/非活动身体，不再把roster membership充当存在性。
+  bool (*player_current)(void *,const ClientNativeRoots &,const ClientObjectKey &,const ClientEntityBorrow &,const char *&) noexcept=nullptr;
+  bool (*player_sets)(void *,const ClientNativeRoots &,const char *&) noexcept=nullptr;
+  bool (*player_draw)(void *,const ClientNativeRoots &,const ClientObjectKey &,const ClientEntityBorrow &,bool &,const char *&) noexcept=nullptr;
 };
+// Entity只在当前主线程用途栈借用已构造实例；Player后置关系不能以draw全局缓存解析候选。
+ClientEntityOwners ClientNativeObjectsEntityOwner(ClientNativeObjects *) noexcept;
 // 类别适配负责自己的派生Init前置、资源、关系及清理；公共执行器统一掌握前缀和成员发布。
 // 回调地址与context属于产品模块，绝不从网络注册；任何回调失败都保留已进入前缀。
 struct ClientEntityClassAdapter final {
