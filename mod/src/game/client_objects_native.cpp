@@ -817,14 +817,22 @@ bool ClientNativeObjectsMatch(const ClientNativeObjects *o,const ClientObjectKey
   if(!o||!IsMain()||!o->committed||o->uncertain||o->executing||o->abandoned||g_Game!=o->game||!g_Game||g_Game->_room!=o->room)return false;
   const auto it=o->entries.find(key);
   if(it!=o->entries.end()){const auto &e=it->second;return e.checked&&CurrentUse(e)&&e.description.shape_revision==shape&&(!instance||e.instance==instance);}
-  for(const auto &p:o->player_draw)if(p.second.description.key==key&&p.second.description.shape_revision==shape&&CurrentUse(p.second)&&(!instance||p.second.instance==instance))return true;
+  for(const auto &p:o->player_draw)if(p.second.description.key==key&&p.second.description.shape_revision==shape&&ClientNativeObjectDrawDescription(p.first)&&(!instance||p.second.instance==instance))return true;
   return false;
 }
 const ClientObjectDescription *ClientNativeObjectDrawDescription(void *pointer) noexcept {
   auto *o=diagnostic_owner;
   if(!o||!IsMain()||!ClientBusy()||!o->committed||o->uncertain||o->executing||o->abandoned||o->game!=g_Game||!g_Game||g_Game->_room!=o->room)return nullptr;
   const auto cached=o->draw_values.find(static_cast<Entity *>(pointer));
-  if(cached!=o->draw_values.end()&&cached->second->checked&&CurrentUse(*cached->second))return &cached->second->description;
+  if(cached!=o->draw_values.end()&&cached->second->checked){const auto &e=*cached->second;
+    // 非roster备份可原生valid=false；可借用资格由Player唯一owner见证，不能套池Entity规则。
+    if(o->player_draw.count(static_cast<Entity *>(pointer))&&o->external.player_current){
+      const auto i=o->players.find(e.description.key);const char *reason="objects_player_draw_current";
+      if(i!=o->players.end()){ClientEntityBorrow b{e.entity,e.instance,i->second.second,0};
+        const ClientNativeRoots roots{o->game,o->room,o->room->_descriptor,o->room->_Camera};
+        if(o->external.player_current(o->external.context,roots,e.description.key,b,reason))return &e.description;}
+    }else if(CurrentUse(e))return &e.description;
+  }
   return nullptr;
 }
 void *ClientNativeObjectDrawAddress(const ClientObjectKey &key) noexcept {

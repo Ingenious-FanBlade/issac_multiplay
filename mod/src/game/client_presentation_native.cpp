@@ -3,6 +3,7 @@
 #include "game/client_presentation_native.h"
 #include "game/client_grid_native.h"
 #include "game/client_objects_native.h"
+#include "game/client_entity_adapters.h"
 #include "game/client_entity_draw_native.h"
 #include "game/client_entity_budget.h"
 #include "game/client_lifetime.h"
@@ -219,23 +220,26 @@ unsigned RenderZ(Entity *entity) noexcept {
   return reinterpret_cast<GetZ>(table[13])(entity);
 }
 // 列表中的每个非Player必须属于正式实例表；完整源成员不会被过滤成代表投影。
-bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &out,unsigned &count,const char *&reason) {
+bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &out,unsigned &count,bool full_players,const char *&reason) {
   const auto &list=room._entityList._renderEL;
   count=list._size;
   if(count>kMaximumRenderMembers||count>list._capacity||(count&&!list._data)){
     reason="presentation_render_list_budget";return false;
   }
-  if(game._playerManager._playerList.size()!=1){reason="presentation_requires_one_ordinary_player";return false;}
+  if(!full_players&&game._playerManager._playerList.size()!=1){reason="presentation_requires_one_ordinary_player";return false;}
   if(!room._gridWidth||!room._gridHeight||room._gridWidth>28||room._gridHeight>16||
      room._gridWidth*room._gridHeight>448){reason="presentation_room_geometry";return false;}
-  auto *player=game._playerManager._playerList[0];
-  if(!player||player->_playerType!=0){reason="presentation_player_shape";return false;}
+  auto *player=game._playerManager._playerList.empty()?nullptr:game._playerManager._playerList[0];
+  if(!full_players&&(!player||player->_playerType!=0)){reason="presentation_player_shape";return false;}
+  if(full_players)for(auto *body:game._playerManager._playerList){const auto *d=ClientNativeObjectDrawDescription(body);
+    if(!d||d->category!=0||!d->derived||!d->derived->player_full_draw){reason="presentation_roster_player_owner_not_ready";return false;}}
   unsigned players=0;
   std::set<Entity *> seen;
   for(unsigned i=0;i<count;++i){
     auto *entity=list._data[i];
     if(!entity||!entity->_valid){reason="presentation_invalid_member";return false;}
-    if(entity->_type==1){if(entity!=player){reason="presentation_foreign_player";return false;}++players;}
+    if(entity->_type==1){const auto *d=ClientNativeObjectDrawDescription(entity);
+      if((!full_players&&entity!=player)||(full_players&&(!d||d->category!=0||!d->derived||!d->derived->player_full_draw))){reason="presentation_foreign_player";return false;}++players;}
     else if(const auto *d=ClientNativeObjectDrawDescription(entity);!(d&&d->full_entity&&d->category>0&&d->category<13)&&
         (entity->_type!=1000||entity->_variant!=57||entity->_subtype>1)){
       // 记录真实多出的native成员；不把未知Entity过滤后冒认完整展示。
@@ -244,7 +248,7 @@ bool Members(Room &room,Game &game,std::array<Entity *,kMaximumRenderMembers> &o
     if(!seen.insert(entity).second){reason="presentation_duplicate_member";return false;}
     out[i]=entity;
   }
-  if(players!=1){reason="presentation_player_render_membership";return false;}
+  if(!full_players&&players!=1){reason="presentation_player_render_membership";return false;}
   if(!ClientGridMembersMatch(&room)){reason="presentation_grid_owner_or_membership";return false;}
   return true;
 }
@@ -432,6 +436,7 @@ void DrawBand(Room &room,unsigned limit,Vector &offset,int mode,bool reset=false
 struct ClientNativePresentation final {
   ClientPresentationDescription description{};
   Game *game=nullptr;Room *room=nullptr;
+  std::vector<Entity_Player *> player_roster;
   unsigned active=0;
   // 拓扑和排序每个T只核定一次；稳定draw只做线性寿命见证，换T立即重建。
   std::array<Entity *,kMaximumRenderMembers> entities{};
@@ -688,7 +693,7 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   const bool mirror=game._currentDimensionIdx==1&&(game._stageType==4||game._stageType==5)&&(game._stage==2||(game._stage==1&&(description.effective_curses&2)));
   if(mirror!=description.mirror)return {false,false,true,"presentation_mirror_source_conflict"};
   auto &entities=p->entities;unsigned count=0;const char *reason=nullptr;
-  if(!Members(room,game,entities,count,reason))return {false,false,true,reason};
+  if(!Members(room,game,entities,count,description.full_players,reason))return {false,false,true,reason};
   if(!FXOwnerMatches(*p,room))return {false,false,true,"presentation_foreign_fx_owner"};
   // Home专用pass直接消费Effect166/sub951，由19的真实Entity承载提供；不能用其它背景代画。
   if(description.special_light_pass)return {false,false,true,"presentation_dependency_I19_home_effect166_951"};
@@ -762,7 +767,10 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   room._fxLayers._fxParams.shadowAlpha=description.shadow_alpha;
   FullSort(room,entities,count);
   p->entity_count=count;p->render_storage=room._entityList._renderEL._data;
+  p->player_roster=game._playerManager._playerList;
   auto &hud=game._hud;auto &player_hud=hud._playerHUD[0];
+  for(unsigned i=0;i<8;++i)hud._playerHUD[i]._player=nullptr;
+  if(!game._playerManager._playerList.empty()){
   player_hud._player=game._playerManager._playerList[0];player_hud._HUD=&hud;player_hud._playerHudIndex=0;
   for(unsigned i=1;i<8;++i)hud._playerHUD[i]._player=nullptr;
   player_hud._redHeartFlashCountdown=std::int8_t(description.red_flash);
@@ -777,7 +785,8 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   }
   StatPlayer(hud._statHUD,0)=player_hud._player;StatPlayer(hud._statHUD,1)=nullptr;
   for(unsigned i=0;i<10;++i){const auto &s=description.stats[i];*Stats(hud._statHUD,0,i)={s.value,s.delta,s.previous,s.threshold,s.countdown};}
-  CombinedProbability(hud._statHUD)=description.combined_devil_angel;hud._isVisible=description.hud_visible;
+  }else {StatPlayer(hud._statHUD,0)=nullptr;StatPlayer(hud._statHUD,1)=nullptr;}
+  CombinedProbability(hud._statHUD)=description.combined_devil_angel;hud._isVisible=description.hud_visible&&!game._playerManager._playerList.empty();
   p->diagnostic_drawn=false;p->ready=true;return {true,true,false,"presentation_native_caches_ready"};
 }
 ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRoots &roots) {
@@ -799,10 +808,11 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     ~FXDrawContext(){game._curses=curses;lighting=old_lighting;water=old_water;std::memcpy(reinterpret_cast<unsigned char *>(&game)+0x25ac8,&temporary,4);}
   } fx_context(game,p->description);
   const auto &entities=p->entities;const unsigned count=p->entity_count;const auto &render=room._entityList._renderEL;
-  if(render._data!=p->render_storage||render._size!=count||render._size>render._capacity||!count||
-     game._playerManager._playerList.size()!=1||!game._playerManager._playerList[0]||game._playerManager._playerList[0]->_playerType!=0)return {false,false,true,"presentation_cached_topology_changed"};
+  if(render._data!=p->render_storage||render._size!=count||render._size>render._capacity||
+     game._playerManager._playerList!=p->player_roster||
+     (!p->description.full_players&&(!count||game._playerManager._playerList.size()!=1||!game._playerManager._playerList[0]||game._playerManager._playerList[0]->_playerType!=0)))return {false,false,true,"presentation_cached_topology_changed"};
   for(unsigned i=0;i<count;++i)if(render._data[i]!=entities[i]||!entities[i]||!entities[i]->_valid||
-      (entities[i]->_type==1&&entities[i]!=game._playerManager._playerList[0])||!ClientNativeObjectDrawDescription(entities[i]))
+      (!p->description.full_players&&entities[i]->_type==1&&entities[i]!=game._playerManager._playerList[0])||!ClientNativeObjectDrawDescription(entities[i]))
     return {false,false,true,"presentation_cached_instance_changed"};
   if(!ClientGridMembersMatch(&room))return {false,false,true,"presentation_cached_grid_owner_changed"};
   if(!FXDrawReady(*p,room)||!AuxOwnerMatches(*p,room))return {false,false,true,"presentation_fx_owner_changed"};
@@ -811,7 +821,7 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     return {false,false,true,"presentation_pass_resource_or_target_stack"};
   const bool first_diagnostic=Settings.diagnostics&&!p->diagnostic_drawn;
   // 仅显式诊断模式下记录每个已提交目标的首draw，不推进原生更新或改变排序/道具状态。
-  if(first_diagnostic){
+  if(first_diagnostic&&!game._playerManager._playerList.empty()){
     p->diagnostic_drawn=true;
     for(unsigned i=0;i<count;++i){
       const auto *entity=entities[i];int layer=0,bias=0;
@@ -882,7 +892,7 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
       }
     };
     trace_shadow("before");
-    room._entityList.RenderShadows(&room._renderScrollOffset);
+    if(count)room._entityList.RenderShadows(&room._renderScrollOffset);
     trace_shadow("after");
     if(first_diagnostic)ShadowDiagnostic("shadow_submitted",true);
     if(!restore.FinishOffscreen(shadow.image))return {false,false,true,"presentation_shadow_target_changed"};

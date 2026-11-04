@@ -77,7 +77,7 @@ bool ClientEntityInitIsolationInstalled() noexcept {
   }return random&&sound&&play;
 }
 bool ClientEntityDrawIsolationInstalled() noexcept {
-  const char *required[]={"client_entity_draw_npc","client_entity_draw_tear","client_entity_draw_projectile","client_entity_draw_bomb",
+  const char *required[]={"client_entity_draw_player","client_entity_shadow_player","client_player_palette","client_entity_draw_npc","client_entity_draw_tear","client_entity_draw_projectile","client_entity_draw_bomb",
     "client_entity_draw_familiar","client_entity_draw_knife","client_entity_draw_pickup","client_entity_draw_laser","client_entity_draw_slot",
     "client_entity_draw_effect","client_entity_draw_dummy","client_entity_shadow_base","client_entity_shadow_npc","client_entity_shadow_familiar",
     "client_entity_shadow_laser","client_entity_post_base","client_entity_post_laser","client_entity_draw_paused","client_entity_owned_final","native_text_render"};

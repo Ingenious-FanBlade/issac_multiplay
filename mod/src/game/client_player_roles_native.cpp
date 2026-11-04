@@ -1,6 +1,7 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/client_player_roles.h"
+#include "game/client_player_equipment.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/bridge.h"
 #include "runtime.h"
@@ -38,6 +39,41 @@ int ClientPlayerRoleCaptureLua(lua_State *L){
     lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");
   }catch(...){failed=true;}
   if(failed){lua_settop(L,top);return luaL_error(L,"player_role_capture_failed");}return 1;
+}
+// 与角色本体同一合法普通窗口复制有限槽；不调用带配方/HUD副作用的公开setter。
+int ClientPlayerSpecialCaptureLua(lua_State *L){
+  auto *p=lua::GetLuabridgeUserdata<Entity_Player *>(L,1,lua::Metatables::ENTITY_PLAYER,"EntityPlayer");
+  const auto subject=ObservationSubject(p,false);const int top=lua_gettop(L);bool failed=false;lua_newtable(L);Integer(L,"version",1);
+  lua_pushliteral(L,"same-ordinary-window");lua_setfield(L,-2,"scope");
+  if(!IsMain()||!p||subject.status!=1||subject.readiness<2){lua_pushliteral(L,"NotCaptured");lua_setfield(L,-2,"status");return 1;}
+  try{
+  if(p->_afterImageFrames.size()>16384)throw std::runtime_error("player_afterimage_budget");
+  ClientPlayerDrawCapture(L,p);
+  lua_newtable(L);unsigned image_index=0;for(const auto &image:p->_afterImageFrames){lua_newtable(L);Integer(L,"duration",image._duration);Point(L,"position",image._position);lua_rawseti(L,-2,++image_index);}lua_setfield(L,-2,"afterimages");
+  lua_newtable(L);for(unsigned i=0;i<16;++i){lua_pushinteger(L,p->_inventoryHistoryIdx[i]);lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"inventory_history");
+  lua_newtable(L);for(unsigned i=0;i<8;++i){lua_pushinteger(L,static_cast<unsigned char>(p->_bagOfCraftingContent[i]));lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"crafting");
+  Integer(L,"crafting_item",p->_bagOfCraftingOutput.collectibleType);Integer(L,"crafting_pool",p->_bagOfCraftingOutput.itemPoolType);
+  lua_newtable(L);for(unsigned i=0;i<6;++i){lua_pushinteger(L,static_cast<unsigned char>(p->_poopSpellQueue[i]));lua_rawseti(L,-2,i+1);}lua_setfield(L,-2,"poop");
+  lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");
+  }catch(...){failed=true;}
+  if(failed){lua_settop(L,top);return luaL_error(L,"player_special_capture_failed");}return 1;
+}
+// 有序槽按原位最终量安装，空槽也覆盖旧值；History下标已由全身体纯值预检核对。
+bool ClientPlayerSpecialFields(void *pointer,const ClientPlayerDescription &d,bool check,const char *&reason){
+  if(!Window()||!pointer||!d.special){reason="player_special_context_or_source";return false;}
+  auto &p=*static_cast<Entity_Player *>(pointer);const auto &s=*d.special;
+  if(!ClientPlayerDrawRecords(pointer,d,check,reason))return false;
+  decltype(p._afterImageFrames) images;for(const auto &image:s.afterimages){AfterImageFrame row{};row._duration=image.duration;row._position=Vector(image.position.x,image.position.y);images.push_back(row);}
+  if(check){if(p._afterImageFrames.size()!=images.size()){reason="player_afterimage_count_postcondition";return false;}
+    for(unsigned i=0;i<images.size();++i)if(p._afterImageFrames[i]._duration!=images[i]._duration||p._afterImageFrames[i]._position.x!=images[i]._position.x||p._afterImageFrames[i]._position.y!=images[i]._position.y){reason="player_afterimage_value_postcondition";return false;}}
+  else p._afterImageFrames.swap(images);
+  if(s.crafting_item&&(!g_Manager||!g_Manager->GetItemConfig()->GetCollectible(s.crafting_item))){reason="player_crafting_local_config";return false;}
+  for(unsigned i=0;i<16;++i){if(check){if(p._inventoryHistoryIdx[i]!=s.inventory_history[i]){reason="player_inventory_history_postcondition";return false;}}else p._inventoryHistoryIdx[i]=s.inventory_history[i];}
+  for(unsigned i=0;i<8;++i){if(check){if(static_cast<unsigned char>(p._bagOfCraftingContent[i])!=s.crafting[i]){reason="player_crafting_content_postcondition";return false;}}else p._bagOfCraftingContent[i]=char(s.crafting[i]);}
+  for(unsigned i=0;i<6;++i){if(check){if(static_cast<unsigned char>(p._poopSpellQueue[i])!=s.poop[i]){reason="player_poop_queue_postcondition";return false;}}else p._poopSpellQueue[i]=char(s.poop[i]);}
+  if(check){if(p._bagOfCraftingOutput.collectibleType!=s.crafting_item||p._bagOfCraftingOutput.itemPoolType!=s.crafting_pool){reason="player_crafting_result_postcondition";return false;}}
+  else {p._bagOfCraftingOutput.collectibleType=s.crafting_item;p._bagOfCraftingOutput.itemPoolType=s.crafting_pool;}
+  reason=check?"player_special_final_slots_checked":"player_special_final_slots_installed";return true;
 }
 // 只安装具名最终量；原生控制器保持中性，PlayerIndex是本机同T列表/角色语义而非网络身份。
 bool ClientPlayerRoleFields(void *pointer,const ClientPlayerDescription &d,bool check,const char *&reason){

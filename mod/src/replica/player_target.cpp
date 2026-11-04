@@ -61,6 +61,8 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
   if(!Is(Find(src,"final_state"),"player-final-state-v1"))Error("source","final_state_v1_required");
   if(!Is(Find(src,"equipment_state"),"player-equipment-state-v1"))Error("source","equipment_state_v1_required");
   if(!Is(Find(src,"role_state"),"player-role-state-v1"))Error("source","role_state_v1_required");
+  if(!Is(Find(src,"special_state"),"player-special-state-v1"))Error("source","special_state_v1_required");
+  if(!Is(Find(src,"draw_state"),"player-draw-state-v1"))Error("source","draw_state_v1_required");
   out->entity_capture=out->entities->capture;out->player_capture=Capture(component,out->revision);
   const auto &entity_capture=At(out->entities->source,"capture"),&player_capture=At(component,"capture");
   for(const char *k:{"outer","owner","mutation_before","mutation_after"})if(U(At(entity_capture,k))!=U(At(player_capture,k)))Error("capture","mixed_owner_token_or_mutation");
@@ -108,6 +110,7 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
     Gaps(final_state,"application_player_state",body.missing);
     const auto &equipment=At(fields.value,"application_player_equipment");if(U(At(equipment,"version"))!=1||!Is(Find(equipment,"scope"),"same-ordinary-window"))Error("player_equipment","version_or_window");Gaps(equipment,"application_player_equipment",body.missing);
     const auto &role=At(fields.value,"application_player_role");if(U(At(role,"version"))!=1||!Is(Find(role,"scope"),"same-ordinary-window"))Error("player_role","version_or_window");Gaps(role,"application_player_role",body.missing);
+    const auto &special=At(fields.value,"application_player_special");if(U(At(special,"version"))!=1||!Is(Find(special,"scope"),"same-ordinary-window"))Error("player_special","version_or_window");Gaps(special,"application_player_special",body.missing);
     if(Is(Find(resources,"status"),"Value"))for(const char *name:{"inline_1","inline_2","inline_3","inline_4","inline_5","inline_6","inline_7","inline_8","inline_9","blood_gush","held","inline_12"})At(resources,name);Gaps(resources,"application_player_resources",body.missing);
     const auto &extension=At(fields.value,"application_player");if(U(At(extension,"version"))!=2||!Is(Find(extension,"contract"),"player-source-v2"))Error("body_source","contract_version");
     const auto &domains=At(extension,"slot_domains");
@@ -151,11 +154,11 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
   for(const auto &body:out->bodies)if(body.membership.known&&!member_groups.count(body.key))Error("groups","missing_known_member");
   out->public_complete=out->membership_complete&&Is(Find(component,"coverage"),"Complete")&&out->missing.empty();
   for(const auto &body:out->bodies)if(!body.missing.empty())out->public_complete=false;
-  // 当前扩展只承诺公开来源；全角色私有draw读集未安装时不能提升native_source_complete。
+  // 具名私有draw来源已接入；完整域处置/隔离/提交仍归I31—I34，不由单个adapter提升范围声明。
   out->native_source_complete=false;out->source=Copy(component);return out;
 }
 const Json &PlayerApplicationCatalog(){static const auto catalog=Parse(
 #include "player_application.inc"
 );return catalog;}
-Json PlayerCapabilities(){return Parse(R"({"id":"player-target-v2","source":"player-source-v2","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","participants":4,"group_bodies":64,"backup_slots":4,"active_slots":4,"pocket_slots":4,"weapon_slots":5,"final_state":"player-final-state-v1","final_state_tasks":"I11-I15:implemented;I39-not-run","equipment_state":"player-equipment-state-v1","equipment_tasks":"I16-I20:implemented;I39-not-run","role_state":"player-role-state-v1","role_tasks":"I21-I25:implemented;I26-I40-pending;I39-not-run","vanilla_roles":"0..40 named C01-C17;special state I27 and full draw I29 remain separate","hologram":"native exists/type/twin/lower-player-index;no independent flag","history":"Scene-committed immutable per-body ordered view","native_apply":false,"structure_owner":"key/use/shape/role-qualified;roster-room-render-control-backup-separated","scope":"same-window Entity body+Player relations/History;owned typed values","legacy":"single ordinary Isaac profile remains separate","private_source":"named-consumer-writer-qualified;not blanket PlayerUpdate eligibility","runtime_acceptance":"I39-not-run"})");}
+Json PlayerCapabilities(){return Parse(R"({"id":"player-target-v2","source":"player-source-v2","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","participants":4,"group_bodies":64,"backup_slots":4,"active_slots":4,"pocket_slots":4,"weapon_slots":5,"final_state":"player-final-state-v1","final_state_tasks":"I11-I15:implemented;I39-not-run","equipment_state":"player-equipment-state-v1","equipment_tasks":"I16-I20:implemented;I39-not-run","role_state":"player-role-state-v1","role_tasks":"I21-I30:implemented;I31-I40-pending;I39-not-run","special_state":"player-special-state-v1","draw_state":"player-draw-state-v1","control":"committed pure group view;one intent stream;binding separate from shape","vanilla_roles":"0..40 named C01-C17;finite special state and native draw installed;I39 not run","hologram":"native exists/type/twin/lower-player-index;no independent flag","history":"Scene-committed immutable per-body ordered view","native_apply":false,"structure_owner":"key/use/shape/role-qualified;roster-room-render-control-backup-separated","scope":"same-window Entity body+Player relations/History;owned typed values","legacy":"single ordinary Isaac profile remains separate","private_source":"named-consumer-writer-qualified;not blanket PlayerUpdate eligibility","runtime_acceptance":"I39-not-run"})");}
 } // namespace cs::replica

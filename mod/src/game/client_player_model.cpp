@@ -72,6 +72,7 @@ std::shared_ptr<const ClientPlayerState> ClientDescribePlayerState(const replica
   }
   // 公开直接属性与同窗口backing必须一致；共享/计算型getter不套用这一等式。
   const auto &public_fields=At(body,"fields");
+  for(const auto &f:state->fields)if((f.member=="EntityPlayer.SamsonBerserkCharge"||f.member=="EntityPlayer.IBSCharge")&&Int<std::int32_t>(At(public_fields,f.member.c_str()))!=f.integer)Fail(f.member,"same_window_public_storage_conflict");
   for(const auto &f:state->fields)if(f.member=="EntityPlayer.Damage"||f.member=="EntityPlayer.MoveSpeed"||f.member=="EntityPlayer.MaxFireDelay"||f.member=="EntityPlayer.ShotSpeed"||f.member=="EntityPlayer.TearRange"||f.member=="EntityPlayer.TearHeight"||f.member=="EntityPlayer.TearFallingSpeed"||f.member=="EntityPlayer.TearFallingAcceleration"||f.member=="EntityPlayer.Luck"){
     if(Real(At(public_fields,f.member.c_str()))!=f.real)Fail(f.member,"same_window_public_storage_conflict");}
   state->collectibles=Integers(At(source,"collectibles"));state->voided=Integers(At(source,"voided"));

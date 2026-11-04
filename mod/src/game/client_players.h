@@ -7,7 +7,7 @@ struct ClientPlayerHistoryView;
 // 与ClientObjects共享T和唯一Scene提交；installed仅是候选，不能作为后续差分A。
 class ClientPlayers final {
 public:
-  ClientPlayers() noexcept=default;
+  ClientPlayers() noexcept;
   ~ClientPlayers();
   bool Prepare(std::shared_ptr<const replica::PlayerTarget>,const char *&) noexcept;
   bool Cancel() noexcept;
@@ -25,6 +25,7 @@ public:
   bool Visit(void *,ClientObjectVisitor) const noexcept;
   // 主线程只读取得最后Scene提交的身体历史；候选、取消或退休不污染HUD视图。
   std::shared_ptr<const ClientPlayerHistoryView> History(const ClientObjectKey &) const noexcept;
+  ClientObjectReference Backup(unsigned slot) const noexcept;
 private:
   std::unique_ptr<replica::PlayerApplyPlan> plan_;
   std::shared_ptr<const replica::PlayerTarget> applied_;

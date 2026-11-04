@@ -82,7 +82,7 @@ PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget> t,std::shar
       if(shape&&after.shape_revision==before.shape_revision)Fail("shape_changed_without_revision");
       if(replace)replacements.insert(key);
     }
-    // 当前逐角色原位换形和递归删除合同尚归I22—I28；显式整场景重建，不能当作setter。
+    // I28采用显式整场景换形/删除；逻辑Key寿命由Scene另存，不调用玩法setter或递归Remove。
     if(next==desired.end()||replace){p.rebuild_scene=true;p.steps.push_back({PlayerAction::Unlink,key,i,true});p.steps.push_back({PlayerAction::Remove,key,i,true});Children(p,&before,nullptr,ag,tg,ap,tp);}
   }
   for(const auto &[key,i]:desired){const auto &body=p.target->bodies[i];const auto prev=old.find(key);
@@ -100,6 +100,8 @@ PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget> t,std::shar
       // 武器私有资源及动态槽变化也撤销旧资源借用；不能只比较公开主Sprite。
       change.resources|=!MemberSame(x["application_player_equipment"],y["application_player_equipment"],"weapons",ag,tg);
       change.resources|=!MemberSame(x["application_player_equipment"],y["application_player_equipment"],"head_animation_hex",ag,tg);
+      change.resources|=!MemberSame(x["application_player_special"],y["application_player_special"],"images",ag,tg);
+      change.resources|=!MemberSame(x["application_player_special"],y["application_player_special"],"record_sprite",ag,tg);
     }
     change.relations=create||before->source["relations"]!=body.source["relations"];
     p.bodies.push_back(change);
@@ -141,5 +143,21 @@ PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget> t,std::shar
   for(const auto &[key,i]:desired)p.steps.push_back({PlayerAction::Check,key,i});
   p.cost=unsigned(p.steps.size()+p.children.size()+p.dependencies.size());
   if(p.cost>65536)Fail("plan_budget");return p;
+}
+std::shared_ptr<const PlayerLifecycle> PlanPlayerLifecycle(const PlayerTarget &target,const PlayerLifecycle *applied){
+  if(!target.membership_complete)Fail("partial_membership_cannot_remove_bodies");
+  auto next=std::make_shared<PlayerLifecycle>();if(applied&&applied->run==target.scope.run)*next=*applied;
+  next->run=target.scope.run;std::map<SubjectKey,std::uint64_t> current;
+  for(const auto &b:target.bodies){
+    if(next->retired.count(b.key))Fail("retired_body_key_cannot_revive");
+    const auto before=next->current.find(b.key);if(before!=next->current.end()&&b.shape_revision<before->second)Fail("lifetime_shape_regressed");
+    current.emplace(b.key,b.shape_revision);
+  }
+  // dead/ghost/非活动/非roster仍留在current；只有完整成员后态的真正缺席才退休Key。
+  for(const auto &[key,shape]:next->current)if(!current.count(key))next->retired.insert(key);
+  for(const auto &e:target.entities->objects)if(e.category==EntityCategory::Player&&e.presence==EntityMemberPresence::Retired){
+    if(current.count(e.key))Fail("current_and_retired_player_conflict");next->retired.insert(e.key);}
+  if(next->retired.size()+current.size()>(64u<<20))Fail("lifetime_node_budget");
+  next->current.swap(current);return next;
 }
 } // namespace cs::replica

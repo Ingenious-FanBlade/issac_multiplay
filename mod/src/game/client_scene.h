@@ -2,6 +2,8 @@
 #include "replica/model.h"
 #include "replica/room_grid_plan.h"
 #include "replica/player_target.h"
+#include "replica/player_plan.h"
+#include "game/client_player_control.h"
 #include "game/client_lifetime.h"
 #include "game/client_native_world.h"
 #include "game/client_grid_events.h"
@@ -116,6 +118,9 @@ public:
   ClientEntityEvents::Statistics EntityIndependentStatus() const noexcept {return entity_events_.Status();}
   // A仅在完整原生提交后有效，部分写入或退休不继续暴露旧提交版本。
   std::uint64_t AppliedRevision() const noexcept { return applied_valid_?applied_revision_:0; }
+  // 等待场景仍沿16发送意图；正式Player目标仅从唯一Scene提交A公开控制关系。
+  bool HasPlayerControl() const noexcept {return bool(player_target_)||bool(player_applied_);}
+  ClientPlayerControlView PlayerControl(unsigned ordinal) const noexcept;
   const ClientGenerations &Generations() const noexcept { return generations_; }
   bool HasNativePrefix() const noexcept { return native_dispatch_prefix_ || ClientNativeWorldHasPrefix(native_world_) || result_.native_written || result_.pending_owners; }
   // 分派原调用前记录“可能已执行”的不可逆前缀，直到 I8 实际退休后才可清除。
@@ -158,6 +163,7 @@ private:
   std::unique_ptr<replica::Json> target_, applied_;
   std::shared_ptr<const replica::RoomGridTarget> room_grid_target_,room_grid_applied_;
   std::shared_ptr<const replica::PlayerTarget> player_target_,player_applied_;
+  std::shared_ptr<const replica::PlayerLifecycle> player_lifecycle_,player_next_lifecycle_;
   replica::RoomGridPlan room_grid_plan_{};
   std::unique_ptr<ClientObjects> objects_;
   std::unique_ptr<ClientPresentation> presentation_;

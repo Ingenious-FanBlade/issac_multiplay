@@ -16,6 +16,8 @@ struct ClientEntityClassState final {
   bool player_minecart_draw=false;
   // 旧19只支持136；20的具名role来源可借通用持物，完整Player绘制仍由I29收束。
   bool player_composite_v1=false;
+  bool player_full_draw=false;
+  ClientPoseColor player_palette{};
   bool player_held_draw=false;
   std::uint64_t player_held_shape=0;
   std::int32_t player_held_item_state=0,player_held_pose=0;

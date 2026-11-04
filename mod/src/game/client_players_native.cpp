@@ -49,6 +49,8 @@ struct ClientNativePlayers final {
   std::map<ClientObjectKey,Entry> entries;
   std::vector<ClientPlayerDescription> desired;
   std::array<ClientObjectReference,4> backups{};
+  // 自有镜像槽只借本owner实例；不覆盖Authority PlayerManager的四个持久原生槽。
+  std::array<Entity_Player *,4> backup_players{};
   ClientNativeRoots roots{};
   ClientPlayerAdapter adapter;
   std::shared_ptr<Token> token;
@@ -81,6 +83,11 @@ bool ValidateSets(ClientNativePlayers &o,const char *&reason){
     auto found=o.entries.find(d.entity.key);if(found==o.entries.end()||!Current(o,found->second)){reason="players_roster_use";return false;}expected.push_back(found->second.player);}
   if(expected.size()!=roster.size()||!std::equal(expected.begin(),expected.end(),roster.begin())){reason="players_roster_order";return false;}
   auto &list=static_cast<Room *>(o.roots.room)->_entityList;
+  for(unsigned i=0;i<4;++i){const auto &r=o.backups[i];Entity_Player *expected=nullptr;
+    if(!r.present){reason="players_four_backup_slots_required";return false;}
+    if(!r.is_null){const auto entry=o.entries.find(r.target);if(entry==o.entries.end()||!Current(o,entry->second)){reason="players_backup_instance_not_current";return false;}expected=entry->second.player;}
+    if(o.backup_players[i]!=expected){reason="players_backup_slot_instance_postcondition";return false;}
+  }
   for(auto *l:{&list._mainEL,&list._persistentEL,&list._renderEL,&list._updateEL})if(!ListValid(*l)){reason="players_list_storage";return false;}
   for(const auto &pair:o.entries){const auto &e=pair.second;if(!Current(o,e)){reason="players_instance_or_shape_changed";return false;}
     const auto &d=e.description;
@@ -176,7 +183,7 @@ unsigned ClientNativePlayersOwnerCount(const ClientNativePlayers *o) noexcept {
 bool ClientNativePlayersBegin(ClientNativePlayers *o,const ClientNativeRoots &roots,std::uint64_t scope,std::uint64_t revision,const std::vector<ClientPlayerDescription> &values,const std::array<ClientObjectReference,4> &backups,const ClientPlayerAdapter &adapter,const char *&reason) noexcept {
   if(!o||!Phase()||o->fault||o->busy||o->retiring||!SameRoots(roots)||!scope||!revision||values.size()>256){reason="players_begin_context_or_budget";return false;}
   // 后续字段/资源/角色adapter未闭合时在第一次原生写前拒绝，不能制造半初始化可见身体。
-  if(!adapter.prepare||!adapter.install||!adapter.retire||!adapter.relations){reason="players_remaining_role_draw_adapters_pending_I26_I29";return false;}
+  if(!adapter.prepare||!adapter.install||!adapter.retire||!adapter.relations){reason="players_role_draw_adapter_incomplete";return false;}
   if(!ClientCallbackGuardReady()||!ClientLuaGuardReady()){reason="players_official_callbacks_or_persistence_guard_unavailable";return false;}
   try{
     if(o->revision&&revision<=o->revision){reason="players_native_revision_not_new";return false;}
@@ -240,6 +247,7 @@ ClientObjectStep ClientNativePlayersStructure(ClientNativePlayers *o) noexcept {
       for(unsigned i=0;i<o->desired.size();++i)for(const auto &d:o->desired)if(d.roster_index==int(i))ordered.push_back(o->entries.at(d.entity.key).player);
       // 使用真实vector操作，不复制容器头；进入前登记，分配失败也保留全部对象owner。
       changed=true;o->prefix|=Roster;roster.assign(ordered.begin(),ordered.end());
+      for(unsigned i=0;i<4;++i)o->backup_players[i]=o->backups[i].is_null?nullptr:o->entries.at(o->backups[i].target).player;
       auto &list=static_cast<Room *>(o->roots.room)->_entityList;
       auto &index=*reinterpret_cast<unsigned *>(reinterpret_cast<unsigned char *>(o->roots.room)+0x1214);
       if(!(o->prefix&Published)&&o->entries.size()==o->desired.size()&&ListValid(list._mainEL)&&ListValid(list._persistentEL)&&!list._mainEL._size&&!list._persistentEL._size)index=0;
@@ -252,7 +260,11 @@ ClientObjectStep ClientNativePlayersStructure(ClientNativePlayers *o) noexcept {
           reinterpret_cast<void (__thiscall *)(EntityList *,Entity *)>(Base+0x13d00)(&list,e.player);
         }else if(!d.room_member&&(e.prefix&Published)){ok=false;reason="players_room_membership_change_requires_scene_rebuild";break;}
         if(!d.room_member)e.player->_valid=d.native_valid;
-        if(!d.render_member)Erase(list._renderEL,e.player);if(!d.update_member)Erase(list._updateEL,e.player);
+        // exists/dead/ghost不决定EL资格；同实例的复活/可见变化按正式最终成员集合恢复。
+        for(const auto &member:{std::pair<EntityList_EL *,bool>{&list._renderEL,d.render_member},{&list._updateEL,d.update_member}}){
+          auto &l=*member.first;if(!member.second)Erase(l,e.player);
+          else if(!Count(l,e.player)){if(!ListValid(l)||l._size>=l._capacity)throw std::bad_alloc();l._data[l._size++]=e.player;}
+        }
       }
       if(ok){o->sets_ready=ValidateSets(*o,reason);ok=o->sets_ready;o->structure_ready=ok;}
     }
@@ -317,7 +329,7 @@ ClientObjectStep ClientNativePlayersRetire(ClientNativePlayers *o,const ClientNa
   if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeTeardown)!=ClientEntryDecision::CallOriginal)return Result(o,false,true,"players_retire_dispatch");
   bool ok=true,done=false;const char *reason="players_retire_progress";o->busy=true;
   try{
-    if(!o->unlinked){ClientEntityOwners none{};
+    if(!o->unlinked){ClientEntityOwners none{};o->backup_players={};
       for(auto &pair:o->entries){auto &e=pair.second;if(!e.player)continue;
         if((e.prefix&CtorEntered)&&!(e.prefix&Constructed)){ok=false;reason="players_partial_ctor_retained";break;}
         if(e.prefix&InitEntered){if(!(e.prefix&Initialized)){ok=false;reason="players_partial_init_retained";break;}

@@ -1,6 +1,8 @@
 #pragma once
 #include "replica/player_target.h"
 #include "replica/entity_plan.h"
+#include <map>
+#include <set>
 
 namespace cs::replica {
 // 计划只比较最后提交A和完整T；结构就绪与最终状态/资源/绘制资格分别推进。
@@ -32,4 +34,11 @@ struct PlayerApplyPlan final {
   unsigned cost=0;
 };
 PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget>,std::shared_ptr<const PlayerTarget> applied={});
+// 生命周期属于Scene连接，独立于为换形而销毁的native owner；只在完整T提交时提升。
+struct PlayerLifecycle final {
+  std::uint64_t run=0;
+  std::map<SubjectKey,std::uint64_t> current;
+  std::set<SubjectKey> retired;
+};
+std::shared_ptr<const PlayerLifecycle> PlanPlayerLifecycle(const PlayerTarget &,const PlayerLifecycle *);
 } // namespace cs::replica

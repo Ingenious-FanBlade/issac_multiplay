@@ -524,6 +524,10 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    if ident == 'client_player_palette':
+        return ['    // 仅Client已提交Player的纯表现色；Host/Off原链恰好一次。',
+                '    if(cs::game::ClientPlayerDrawPalette(output,player)) return output;',
+                '    cs::CallScope scope(record);', '    return super(output,player);']
     if ident == 'world_delirium_owner':
         return ['    // 专属原生owner只观察；无Init不制造Morph，异常不恢复资格。',
                 '    cs::game::WorldEntityReconfigurationScope owner(this,{&record.calls,&record.foreign,&record.completed});',

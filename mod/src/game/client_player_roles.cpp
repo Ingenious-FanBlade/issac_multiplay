@@ -1,5 +1,6 @@
 #include "game/client_player_roles.h"
 #include "game/client_player_state.h"
+#include "game/client_player_equipment.h"
 #include "game/client_entity_adapters.h"
 #include "replica/player_target.h"
 #include <algorithm>
@@ -56,6 +57,37 @@ std::shared_ptr<const ClientPlayerRoleState> ClientDescribePlayerRole(const repl
   if(target.x!=state->suplex_target.x||target.y!=state->suplex_target.y||land.x!=state->suplex_land.x||land.y!=state->suplex_land.y)Fail("same_window_suplex_vector_conflict");
   return state;
 }
+std::shared_ptr<const ClientPlayerSpecialState> ClientDescribePlayerSpecial(const replica::EntityObjectTarget &o){
+  const auto &body=std::get<replica::EntityClassValues<replica::EntityCategory::Player>>(o.payload).fields.value;
+  const auto &v=At(body,"application_player_special");
+  if(Int(At(v,"version"))!=1||!Is(v,"status","Value")||!Is(v,"scope","same-ordinary-window"))Fail("current_special_v1_required");
+  auto state=std::make_shared<ClientPlayerSpecialState>();
+  const auto array=[&](const char *name,auto &out,int low,int high){const auto &a=At(v,name);
+    if(!a.IsArray()||a.Size()!=out.size())Fail("special_complete_slot_domain_required");
+    for(unsigned i=0;i<out.size();++i){const int n=Int(a[i]);if(n<low||n>high)Fail("special_slot_range");out[i]=n;}};
+  array("inventory_history",state->inventory_history,-1,INT32_MAX);array("crafting",state->crafting,0,29);array("poop",state->poop,0,11);
+  state->crafting_item=Int(At(v,"crafting_item"));state->crafting_pool=Int(At(v,"crafting_pool"));
+  const auto &images_source=At(v,"images");if(!images_source.IsArray()||images_source.Size()!=2)Fail("two_player_draw_images_required");
+  for(unsigned i=0;i<2;++i){const auto &row=images_source[i];auto &image=state->images[i];image.present=Bool(At(row,"present"));if(!image.present)continue;
+    const auto &path=At(row,"image");if(!path.IsString()||!path.GetStringLength()||path.GetStringLength()>1024)Fail("player_draw_image_path");image.path.assign(path.GetString(),path.GetStringLength());if(image.path.find('\0')!=std::string::npos)Fail("player_draw_image_embedded_nul");
+    const auto u=[&](const char *name){int n=Int(At(row,name));if(n<0)Fail("player_image_parameter_range");return unsigned(n);};
+    image.shader=u("shader");image.stride=u("stride");image.min_filter=u("min_filter");image.mag_filter=u("mag_filter");image.wrap_s=u("wrap_s");image.wrap_t=u("wrap_t");
+    const auto &attributes=At(row,"attributes");if(!attributes.IsArray()||attributes.Size()>8)Fail("player_image_format");for(const auto &a:attributes.GetArray()){int n=Int(a);if(n<0||n>255)Fail("player_image_format_attribute");image.attributes.push_back(static_cast<unsigned char>(n));}
+  }
+  const auto &images=At(v,"afterimages");if(!(images.IsObject()&&images.ObjectEmpty())){
+    if(!images.IsArray()||images.Size()>16384)Fail("afterimage_sequence_or_budget");
+    for(const auto &row:images.GetArray())state->afterimages.push_back({Int(At(row,"duration")),Point(At(row,"position"))});
+  }
+  state->record_cursor=Int(At(v,"record_cursor"));const auto &records=At(v,"records");
+  if(!(records.IsObject()&&records.ObjectEmpty())){if(!records.IsArray()||records.Size()>16384)Fail("record_sequence_budget");
+    for(const auto &r:records.GetArray()){ClientPlayerSpecialState::Record row;row.position=Point(At(r,"position"));row.animation=Int(At(r,"animation"));row.frame=Int(At(r,"frame"));row.second_animation=Int(At(r,"second_animation"));row.second_frame=Int(At(r,"second_frame"));
+      if(row.animation< -1||row.second_animation< -1||(row.animation>=0&&row.frame<0)||(row.second_animation>=0&&row.second_frame<0))Fail("record_animation_or_frame");state->records.push_back(row);}}
+  if(state->record_cursor< -1||(state->record_cursor>=0&&unsigned(state->record_cursor)>=state->records.size()))Fail("record_cursor_index");
+  const auto &pose=At(v,"record_sprite");if(Is(pose,"status","Null")){state->record_sprite.loaded=false;state->record_sprite.exact_phase=true;state->record_sprite.champion_color_present=true;state->record_sprite.shaders_present=true;}
+  else {std::string why;if(!ClientParseResourcePose(pose,state->record_sprite,why))Fail(why.c_str());}
+  if(state->record_cursor>=0&&!state->record_sprite.loaded)Fail("active_record_sprite_unloaded");
+  if(state->crafting_item<0)Fail("crafting_item_range");return state;
+}
 // 整体关系校验只读T；任何缺副体/跨组/重叠/错shape在原生写前定位，不自动补造身体。
 void ClientPlayerRolesPrepare(const std::vector<ClientPlayerDescription> &bodies,const replica::PlayerTarget &target){
   std::map<ClientObjectKey,const ClientPlayerDescription *> index;
@@ -65,6 +97,12 @@ void ClientPlayerRolesPrepare(const std::vector<ClientPlayerDescription> &bodies
     if(!d.role||!d.state||d.player_type!=d.state->player_type||!index.emplace(d.entity.key,&d).second)Fail("body_source_or_type_conflict");}
   for(const auto &d:bodies){
     const auto &policy=*ClientPlayerRole(d.player_type);
+    if(!d.special||!d.equipment||!d.equipment->history)Fail("special_source_or_history_missing");
+    if(d.render_member&&(!d.special->images[0].present||!d.special->images[1].present))Fail("render_player_native_images_missing");
+    // TIsaac的槽是History下标，不是collectible ID；合法空槽保留-1，不按库存相等重排。
+    if(d.player_type==21)for(int slot:d.special->inventory_history)if(slot>=0&&unsigned(slot)>=d.equipment->history->items.size())Fail("inventory_history_index_outside_same_body_history");
+    // 703 VarData=1..4指向全局槽；零表示尚未取得槽。槽不能由ordinal或PlayerIndex推算。
+    for(unsigned i=0;i<4;++i)if(d.state->active[i].backup_slot>=0&&d.active_backups[i].is_null)Fail("esau_active_slot_backup_missing");
     if(d.roster_index>=0&&d.role->player_index!=d.roster_index)Fail("roster_source_player_index_conflict");
     const auto body=[&](const ClientObjectReference &r)->const ClientPlayerDescription *{
       if(r.is_null)return nullptr;const auto i=index.find(r.target);if(i==index.end())Fail("body_link_missing");const auto *peer=i->second;

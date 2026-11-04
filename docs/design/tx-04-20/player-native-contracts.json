@@ -540,10 +540,20 @@
     "implementation": "docs/design/tx-04-20/tx-04-20-equipment-installation.md",
     "source": "application_player_equipment-v1;same-ordinary-window;KnownCurrent/readiness>=2;named ctor/writer/consumer contract only",
     "model": "mod/src/game/client_player_equipment_model.cpp",
-    "native": ["mod/src/game/client_player_equipment_native.cpp", "mod/src/game/client_player_weapon_native.cpp"],
+    "native": [
+      "mod/src/game/client_player_equipment_native.cpp",
+      "mod/src/game/client_player_weapon_native.cpp"
+    ],
     "agent": "one GPT-6 Luna max read-only reverse agent;primary independently reviewed adopted code and official sources",
     "effects": {
-      "evidence": ["TemporaryEffects.zhl", "TemporaryEffect.zhl", "VA0x90A090", "VA0x90A150", "VA0x90A1B0", "VA0x90A220"],
+      "evidence": [
+        "TemporaryEffects.zhl",
+        "TemporaryEffect.zhl",
+        "VA0x90A090",
+        "VA0x90A150",
+        "VA0x90A1B0",
+        "VA0x90A220"
+      ],
       "layout": "cacheFlags u32+0;vector+4;evaluate bool+0x10;disabled bool+0x11;local Player owner+0x14",
       "entries": "ordered local ItemConfig type/id,Count,Cooldown;not inventory or HasEffect bool",
       "record_tail": "+0xC not a category;typed wrappers write0;unknown unexposed tail not transmitted or called a pointer-free field",
@@ -551,7 +561,14 @@
       "decision": "exact final mask/vector/flags/forms;no Add/Remove/Evaluate/transform replay"
     },
     "history": {
-      "evidence": ["LuaHistory.cpp", "LuaHistoryItem.cpp", "VA0x71BFD0", "VA0x71C160", "VA0x71C410", "VA0x71C490"],
+      "evidence": [
+        "LuaHistory.cpp",
+        "LuaHistoryItem.cpp",
+        "VA0x71BFD0",
+        "VA0x71C160",
+        "VA0x71C410",
+        "VA0x71C490"
+      ],
       "decision": "native vector + mutation-disabled byte0xC;component-local ordered History;Scene-committed immutable body view;no sharing by equality",
       "not_adopted": "+0x10 unknown;16 external inventoryHistoryIdx belong I27;Add/Remove also mutate indices and global HUD so never replay"
     },
@@ -571,21 +588,181 @@
       "rejected": "Destroy helper VA0x9CADE0 invokes destructive ClearReferences;Clear Removes Entity19 objects;Urn stops sound22/23;base dtor VA0x9C4FC0 mutates nonnull Player/Familiar owner",
       "type11_correction": "VA0x401E90 stores factory object0xBAE154;its vtable0xB31BBC creates Weapon_Bone VA0x9CB380;type11 is Notched Axe but actual dynamic Bone,not Deathmatch",
       "types": [
-        {"type":1,"class":"Tears","vtable":"0xB31EA4","bytes":"0x50","refs":["0x8"],"main":null},
-        {"type":2,"class":"Brimstone","vtable":"0xB31DB4","bytes":"0x4C","refs":["0x8","0x48"],"main":"0x48"},
-        {"type":3,"class":"Laser","vtable":"0xB31AAC","bytes":"0x50","refs":["0x8","0x44"],"main":"0x44"},
-        {"type":4,"class":"Knife","vtable":"0xB31D64","bytes":"0x54","refs":["0x8","0x44","0x48","0x4C","0x50"],"main":"0x44"},
-        {"type":5,"class":"Bombs","vtable":"0xB31A64","bytes":"0x48","refs":["0x8","0x44"],"main":"0x44"},
-        {"type":6,"class":"Rockets","vtable":"0xB31E5C","bytes":"0x48","refs":["0x8","0x44"],"main":"0x44"},
-        {"type":7,"class":"MonstrosLung","vtable":"0xB31DFC","bytes":"0x44","refs":["0x8"],"main":null},
-        {"type":8,"class":"Ludovico","vtable":"0xB31A1C","bytes":"0x48","refs":["0x8","0x44"],"main":"0x44"},
-        {"type":9,"class":"TechX","vtable":"0xB31CD4","bytes":"0x44","refs":["0x8"],"main":null},
-        {"type":10,"class":"Bone","vtable":"0xB31D1C","bytes":"0x60","refs":["0x8","0x44","0x48","0x4C","0x50","0x54","0x58"],"main":"0x44"},
-        {"type":11,"class":"Bone/NotchedAxe","vtable":"0xB31D1C","bytes":"0x60","refs":["0x8","0x44","0x48","0x4C","0x50","0x54","0x58"],"main":"0x44"},
-        {"type":12,"class":"UrnOfSouls","vtable":"0xB31B6C","bytes":"0x54","refs":["0x8","0x4C","0x50"],"main":"0x4C"},
-        {"type":13,"class":"SpiritSword","vtable":"0xB31EEC","bytes":"0x50","refs":["0x8","0x44"],"main":"0x44"},
-        {"type":14,"class":"Fetus","vtable":"0xB31C1C","bytes":"0x44","refs":["0x8"],"main":null},
-        {"type":15,"class":"UmbilicalWhip","vtable":"0xB31BC4","bytes":"0x48","refs":["0x8","0x44"],"main":"0x44"}
+        {
+          "type": 1,
+          "class": "Tears",
+          "vtable": "0xB31EA4",
+          "bytes": "0x50",
+          "refs": [
+            "0x8"
+          ],
+          "main": null
+        },
+        {
+          "type": 2,
+          "class": "Brimstone",
+          "vtable": "0xB31DB4",
+          "bytes": "0x4C",
+          "refs": [
+            "0x8",
+            "0x48"
+          ],
+          "main": "0x48"
+        },
+        {
+          "type": 3,
+          "class": "Laser",
+          "vtable": "0xB31AAC",
+          "bytes": "0x50",
+          "refs": [
+            "0x8",
+            "0x44"
+          ],
+          "main": "0x44"
+        },
+        {
+          "type": 4,
+          "class": "Knife",
+          "vtable": "0xB31D64",
+          "bytes": "0x54",
+          "refs": [
+            "0x8",
+            "0x44",
+            "0x48",
+            "0x4C",
+            "0x50"
+          ],
+          "main": "0x44"
+        },
+        {
+          "type": 5,
+          "class": "Bombs",
+          "vtable": "0xB31A64",
+          "bytes": "0x48",
+          "refs": [
+            "0x8",
+            "0x44"
+          ],
+          "main": "0x44"
+        },
+        {
+          "type": 6,
+          "class": "Rockets",
+          "vtable": "0xB31E5C",
+          "bytes": "0x48",
+          "refs": [
+            "0x8",
+            "0x44"
+          ],
+          "main": "0x44"
+        },
+        {
+          "type": 7,
+          "class": "MonstrosLung",
+          "vtable": "0xB31DFC",
+          "bytes": "0x44",
+          "refs": [
+            "0x8"
+          ],
+          "main": null
+        },
+        {
+          "type": 8,
+          "class": "Ludovico",
+          "vtable": "0xB31A1C",
+          "bytes": "0x48",
+          "refs": [
+            "0x8",
+            "0x44"
+          ],
+          "main": "0x44"
+        },
+        {
+          "type": 9,
+          "class": "TechX",
+          "vtable": "0xB31CD4",
+          "bytes": "0x44",
+          "refs": [
+            "0x8"
+          ],
+          "main": null
+        },
+        {
+          "type": 10,
+          "class": "Bone",
+          "vtable": "0xB31D1C",
+          "bytes": "0x60",
+          "refs": [
+            "0x8",
+            "0x44",
+            "0x48",
+            "0x4C",
+            "0x50",
+            "0x54",
+            "0x58"
+          ],
+          "main": "0x44"
+        },
+        {
+          "type": 11,
+          "class": "Bone/NotchedAxe",
+          "vtable": "0xB31D1C",
+          "bytes": "0x60",
+          "refs": [
+            "0x8",
+            "0x44",
+            "0x48",
+            "0x4C",
+            "0x50",
+            "0x54",
+            "0x58"
+          ],
+          "main": "0x44"
+        },
+        {
+          "type": 12,
+          "class": "UrnOfSouls",
+          "vtable": "0xB31B6C",
+          "bytes": "0x54",
+          "refs": [
+            "0x8",
+            "0x4C",
+            "0x50"
+          ],
+          "main": "0x4C"
+        },
+        {
+          "type": 13,
+          "class": "SpiritSword",
+          "vtable": "0xB31EEC",
+          "bytes": "0x50",
+          "refs": [
+            "0x8",
+            "0x44"
+          ],
+          "main": "0x44"
+        },
+        {
+          "type": 14,
+          "class": "Fetus",
+          "vtable": "0xB31C1C",
+          "bytes": "0x44",
+          "refs": [
+            "0x8"
+          ],
+          "main": null
+        },
+        {
+          "type": 15,
+          "class": "UmbilicalWhip",
+          "vtable": "0xB31BC4",
+          "bytes": "0x48",
+          "refs": [
+            "0x8",
+            "0x44"
+          ],
+          "main": "0x44"
+        }
       ]
     },
     "remaining": "I21-I40 roles/full draw/HUD/global retirement/Scene capability and unified E2E remain;native_apply=false;native_source_complete=false",
@@ -615,5 +792,31 @@
     "review": "one GPT-6 Luna max;primary directly reread Wiki/wrappers/leafs/Swap/held disassembly;corrected same-type sub initial misread and PositionOffset mislabel",
     "unknown": "BR twin/backup pointer identity not inferred;full role-specific private draw I27/I29 and abnormal lifecycle closure I33 remain separate",
     "notes": "docs/design/tx-04-20/player-i21-i25-native.md;tx-04-20-role-installation.md"
+  },
+  "i26_i30_special_draw_control": {
+    "tasks": "I26-I30",
+    "status": "implemented;I31-I40 pending;I39 not run;native_apply=false",
+    "source": "player-source-v2 requires special-state-v1 and draw-state-v1;application_player_special-v1;KnownCurrent current ordinary window",
+    "backup": "703 VarData0=unassigned;1..4=global slot0..3;7A3E73/7A3E8C;Client owns only mirror instance table;never modify Authority global slots",
+    "special": "inventory History index16;crafting8/output+pool;poop6;Samson+2070/IBS+2074;CraftingUseCharge+1F54",
+    "lifecycle": "complete membership only;Scene committed tombstones/shape survive native rebuild;dead/ghost/inactive/nonroster distinct;no Die/recursive Remove",
+    "draw": "native Player/Shadow/palette hooks;multi-body presentation roster/member cache;source Image identity/format;optional typed list/cursor+record ANM;no Pre/Update/events",
+    "resources": "Image strong at1FF8/2000;Source selected names/formats;native Player destructor unique owner;main+13 inline+costumes+recordSprite whole-frame native copy ctor/fastcall Swap/normal dtor",
+    "palette": "VA429440 ECX=Game+1BAA8;ret8;Source final ColorMod;Client Render-only query override;controllerIndex remains-1",
+    "record": "82E1C0 head/count/cursor/ANM;40-byte node,32-byte value;draw position+two animation/frame pairs;unconsumed authority update words not transported;native list reconstruction and cursor readback",
+    "corrections": [
+      "1F54 is crafting use charge,not Samson;84FC47 confirms2070",
+      "403160 is fastcall Swap ECX/EDX,no stack args,not thiscall assignment",
+      "1C48 is list count,not resource pointer;optional sequence fully represented",
+      "chargebar array has seven physical ANM"
+    ],
+    "control": "Scene committed pure group view;binding revision must equal Authority progress generation;one intent stream per ordinal;shape not connection generation",
+    "remaining": "I31 HUD/minimal dependencies;I32 usage isolation;I33 all-prefix retirement/failure;I34 full-range Scene capability;I35-I38 integration;I39 E2E;I40 results",
+    "authority_unknown": "EsauJr global backup slot reclaim after exit remains unproven;Client mirror normal lifetime does not clear those slots",
+    "review": "one GPT-6 Luna max;primary reread adopted decompilation/disassembly/official Wiki and SDK;no build/test/game or IDB mutation",
+    "notes": [
+      "docs/design/tx-04-20/player-i26-i30-native.md",
+      "docs/design/tx-04-20/tx-04-20-special-draw-control.md"
+    ]
   }
 }

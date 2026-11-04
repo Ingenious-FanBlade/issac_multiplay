@@ -28,11 +28,11 @@ EQUIPMENT_MEMBERS = {
     "EntityPlayer.GetWeapon", "EntityPlayer.FireDelay",
 }
 EQUIPMENT_OWNERS = {"TemporaryEffect", "HistoryItem", "CostumeSpriteDesc", "Weapon"}
-# 与产品角色注册表共源；0—40的安装责任可见，I27专用状态及I29绘制仍单独标记。
+# 与产品角色注册表共源；专用状态/绘制已接入，运行结果仍只由I39填写。
 VANILLA_ROLES = [
     {"type": int(t), "name": n, "family": "C" + f"{int(f):02}", "task": "I" + task,
      "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
-     "draw": "I29-pending", "runtime_status": "I39-not-run"}
+     "draw": "I29-native-pass+frame-resource-borrow;I39-not-run", "runtime_status": "I39-not-run"}
     for t, n, f, task in re.findall(r'CS_PLAYER_ROLE\((\d+),\s*"([^"]+)",\s*(\d+),\s*(\d+)\)',
         (ROOT / "mod/src/game/client_player_roles.inc").read_text(encoding="utf-8"))
 ]
@@ -40,6 +40,10 @@ ROLE_MEMBERS = {"EntityPlayer." + name for name in (
     "GetPlayerType", "GetPlayerIndex", "GetHeldEntity", "GetItemState", "GetSuplexState",
     "GetSuplexAimCountdown", "GetSuplexTargetPosition", "GetSuplexLandPosition",
     "GetMainTwin", "GetOtherTwin", "GetSubPlayer", "IsSubPlayer", "GetFlippedForm", "IsHologram")}
+SPECIAL_MEMBERS = {"EntityPlayer." + name for name in (
+    "GetBagOfCraftingContent", "GetBagOfCraftingSlot", "GetBagOfCraftingOutput", "GetBagOfCraftingOutputItemPool",
+    "GetPoopSpell", "GetPoopMana", "GetInventoryHistoryIndex", "GetInventoryCollectible", "GetMaxInventorySize",
+    "GetSoulCharge", "GetBloodCharge", "GetEveSumptoriumCharge", "SamsonBerserkCharge", "IBSCharge")}
 # 每一族指向实际实施责任；未实施的安装明确保留 pending，不能自动当作已处理。
 FAMILIES = [
     (r"History", "P10", "I17", "R06", "E12"),
@@ -132,11 +136,28 @@ def generate():
                     implementation="mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
                     implementation_status="implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
                     cleanup="held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement")
+            if not authority and m["id"] in SPECIAL_MEMBERS:
+                rows[key].update(task="I27", research="R05/R06/R12/R13", e2e="E10-E16/E18/E21",
+                    handling="I27:finite typed final state;public query semantics remain distinct",
+                    consumer="ClientPlayerSpecialFields;ClientPlayerStateFields;Player/Entity19/Weapon unique owners",
+                    installation="special-state-v1:history-index16/crafting8+output+pool/poop6;final soul/blood/Eve fields;never recipe/refill/spawn",
+                    implementation="mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_player_draw_native.cpp",
+                    implementation_status="I26-I30-implemented;I31-I40-pending;I39-not-run",
+                    cleanup="native Player owns finite slots/deque/Image;Entity19 owns clots/wisps/locusts/DarkEsau;no duplicate Player")
+            if not authority and m["id"] in {"PlayerManager.GetEsauJrState", "ActiveItemDesc.VarData"}:
+                rows[key].update(task="I26", research="R11", e2e="E08/E21/E23",
+                    handling="I26:explicit four-slot backup identity and per-active703 VarData association",
+                    consumer="ClientPlayers::Backup;ClientNativePlayers backup instance mirror;ClientPlayerStateFields",
+                    installation="VarData0 unassigned;1..4 source slot0..3;all local bodies acquired before mirror binding;never write Authority global slots",
+                    implementation="mod/src/game/client_players.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_player_model.cpp",
+                    implementation_status="I26-implemented;I39-not-run",
+                    cleanup="revoke mirror raw borrows then unique Player owner;Authority slot reclaim remains unproven")
     research_path = ROOT / "docs/design/tx-04-20/player-native-contracts.json"
     return {"format": "isaac.cs.player.application-catalog", "version": 1,
             "target_contract": "player-target-v2", "source_contract": "player-source-v2",
             "projection_review": PLAYER_PROJECTION_REVIEW,
             "native_apply": False, "runtime_acceptance": "I39-not-run",
+            "i26_i30_implementation": {"backup": "four source slots;typed703 VarData;native mirror instance table;no Authority global slot writes", "special": "complete finite inventory-History/crafting/poop and final role/effect/Weapon state;Samson+2070/IBS+2074 distinct from CraftingUseCharge+1F54", "lifecycle": "Scene-committed Key tombstones survive native rebuild;dead/ghost/inactive distinct;complete membership only", "draw": "native Player pass+Image source+Source palette;typed optional list/cursor+record Sprite;full ANM strong copies through CPU drain;hologram RNG render-only;no Pre/Update;multi-body presentation member cache", "control": "committed pure group view;one intent stream per ordinal;binding generation independent from shape;native controller=-1", "status": "implemented;no build/test/game;I31-I40 including I39 remain"},
             "role_implementation": {"tasks": "I21-I25", "source": "application_player_role-v1;same-use ordinary window;source-v2.role_state=player-role-state-v1", "model": "mod/src/game/client_player_roles.cpp", "native": "mod/src/game/client_player_roles_native.cpp", "registry": VANILLA_ROLES, "internal": "possessor -1/variant2 and other Baby/internal variants explicitly unsupported;undeclared Mod characters=tx-04-27", "relationships": "source storage and public main/other/sub/flipped remain distinct;whole-target group and shape validation;all-links-before-all-checks", "hologram": "actual native exists/type29-or38/twin/lower-player-index predicate;no invented flag", "status": "implemented-slice;I26-I40-pending;I39-not-run;native_apply=false"},
             "structure_implementation": {"plan": "mod/src/replica/player_plan.cpp", "owner": "mod/src/game/client_players.cpp", "native": "mod/src/game/client_players_native.cpp", "tasks": "I05-I10", "scope": "base-entity-initialized/role-uninitialized until named I11-I29 adapters;preflight rejects absent adapters", "scene_commit": "ClientScene only;native_apply remains false"},
             "final_state_implementation": {"tasks": "I11-I15", "source": "application_player_state-v1;same-use ordinary-window;no addresses or headers", "model": "mod/src/game/client_player_model.cpp", "native": "mod/src/game/client_player_state_native.cpp", "fields": sorted(STATE_FIELDS), "inventory": "counts/voided/wisps/smelted/trinkets;official Plus blocked+all innate groups including legacy and temporary timers", "slots": "active4/pocket4/queue;PartialCharge=f32 despite ZHL int;EsauJr typed backup slot", "status": "implemented-slice;I39-not-run;native_apply=false"},
@@ -152,7 +173,8 @@ def generate():
                                 "source_implementation": "mod/src/game/world_sources/lua_entity.cpp:EntityApplicationSprites",
                                 "consumer": "ClientPlayerEquipmentResources;I18/I19/I29", "installation": "implemented-independent-exact-pose;native-Player-owns-ANM;draw-admission-remains-I29",
                                 "cleanup": "I33;native-Player owns embedded-ANM;do-not-free-borrow", "research": "R07/R13/R15",
-                                "e2e": "E13/E20/E23", "runtime_status": "I39-not-run"} for i in range(1, 13)],
+                                "e2e": "E13/E20/E23", "runtime_status": "I39-not-run"} for i in range(1, 13)] + [
+                {"id": "NativePlayer.RecordSprite", "physical_offset": "0x1C50", "source": "application_player_special.record_sprite;ctor82E1C0;current ordinary window", "consumer": "ClientPlayerDrawResources;native82E340;whole-frame strong borrow", "installation": "independent complete exact ANM pose;record list/cursor separately typed;no Update", "cleanup": "native Player unique owner;restore after CPU drain", "task": "I29", "research": "R13", "runtime_status": "I39-not-run"}],
             "structures": [
                 {"id": n, "source": source, "consumer": consumer, "task": task, "status": "I05-I10:typed-target-plan-and-structural-owner;final-state-adapters-pending-I11-I29"}
                 for n, source, consumer, task in [

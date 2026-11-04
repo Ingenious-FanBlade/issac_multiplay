@@ -34,4 +34,5 @@ bool ClientEntityDrawOwnedFinal(void *entity,void *sprite,void *offset);
 bool ClientEntityDrawIsolationInstalled() noexcept;
 // 未知异常可能留下raw CPU借用；Scene不得仅凭队列为空就销毁其Entity/ANM owner。
 bool ClientEntityDrawDrained() noexcept;
+bool ClientPlayerDrawPalette(void *output,void *player) noexcept;
 } // namespace cs::game

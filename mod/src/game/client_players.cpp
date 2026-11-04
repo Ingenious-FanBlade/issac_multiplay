@@ -13,12 +13,14 @@ ClientObjectReference Ref(const replica::PlayerReferenceTarget &r){
   return {true,r.status=="Null",Key(r.key)};
 }
 }
+ClientPlayers::ClientPlayers() noexcept {adapter_=ClientPlayerBuiltinAdapter();}
 ClientPlayers::~ClientPlayers(){ClientNativePlayersDestroy(native_);}
 // 纯值预检不触碰原生；失败不替换上一计划或最后提交A。
 bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,const char *&reason) noexcept {
   if(begun_&&!ready_){reason="players_candidate_inflight";return false;}
   try{
     auto plan=std::make_unique<replica::PlayerApplyPlan>(replica::PlanPlayerTarget(std::move(target),applied_));
+    if(!plan->target->membership_complete)throw replica::ContractError("players:partial_membership_preserves_existing_bodies");
     std::vector<ClientPlayerDescription> values;std::map<ClientObjectKey,std::shared_ptr<const ClientPlayerHistoryView>> histories;
     auto source=std::make_shared<const std::string>(replica::Text(plan->target->entities->source));
     const auto equipment=ClientDescribePlayerEquipment(*plan->target);
@@ -27,6 +29,7 @@ bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,
       ClientPlayerDescription d;d.entity=ClientDescribeEntity(plan->target->entities->objects.at(body.entity_index),plan->dependencies,source,true);
       d.state=ClientDescribePlayerState(plan->target->entities->objects.at(body.entity_index));
       d.role=ClientDescribePlayerRole(plan->target->entities->objects.at(body.entity_index));
+      d.special=ClientDescribePlayerSpecial(plan->target->entities->objects.at(body.entity_index));
       if(d.role->is_sub!=body.is_sub_player)throw replica::ContractError("players:entity_player_sub_body_conflict");
       d.equipment=equipment.at(d.entity.key);histories.emplace(d.entity.key,d.equipment->history);
       for(unsigned i=0;i<4;++i){const int slot=d.state->active[i].backup_slot;
@@ -46,7 +49,7 @@ bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,
     }
     ClientPlayerRolesPrepare(values,*plan->target);
     // 先完成真实值/角色图预检；完整后续adapter缺席仍在世界写前拒绝，不用空回调放行。
-    if(!adapter_.prepare||!adapter_.install||!adapter_.retire||!adapter_.relations){reason="players_remaining_role_draw_adapters_pending_I26_I29";return false;}
+    if(!adapter_.prepare||!adapter_.install||!adapter_.retire||!adapter_.relations){reason="players_role_draw_adapter_incomplete";return false;}
     std::array<ClientObjectReference,4> backups;for(unsigned i=0;i<4;++i)backups[i]=Ref(plan->target->backup_slots[i]);
     plan_=std::move(plan);values_=std::move(values);candidate_histories_=std::move(histories);backups_=backups;begun_=written_=ready_=false;reason="players_plan_ready";return true;
   }catch(const std::exception &e){reason_=e.what();reason=reason_.c_str();return false;}catch(...){reason="players_plan_allocation";return false;}
@@ -80,5 +83,9 @@ ClientEntityOwners ClientPlayers::Owner() noexcept {return ClientNativePlayersOw
 bool ClientPlayers::Visit(void *context,ClientObjectVisitor visitor) const noexcept {return ClientNativePlayersVisit(native_,context,visitor);}
 std::shared_ptr<const ClientPlayerHistoryView> ClientPlayers::History(const ClientObjectKey &key) const noexcept {
   if(!applied_||written_)return {};const auto found=histories_.find(key);return found==histories_.end()?nullptr:found->second;
+}
+ClientObjectReference ClientPlayers::Backup(unsigned slot) const noexcept {
+  if(slot>=4||!applied_||written_)return {};
+  const auto &r=applied_->backup_slots[slot];return {true,r.status=="Null",Key(r.key)};
 }
 } // namespace cs::game

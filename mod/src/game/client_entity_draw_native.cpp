@@ -42,22 +42,43 @@ struct SpriteBorrow final {
   ~SpriteBorrow(){sprite._overlayRenderFirst=first;std::memcpy(reinterpret_cast<unsigned char *>(&sprite)+0x94,scalars.data(),scalars.size());
     for(unsigned i=0;i<layers.size();++i)std::memcpy(reinterpret_cast<unsigned char *>(&sprite._layerState[i])+0x20,layers[i].data(),layers[i].size());}
 };
+// Lazarus原生draw会对另一身体执行ANM copy/Swap/Reset，可能替换资源而非只改selector。
+// 保存真实ANM副本的strong直到外层CPU drain；J273 fastcall Swap修复两侧layer的owner。
+struct NativeSpriteBorrow final {
+  ANM2 &sprite;ANM2 *saved=nullptr;bool restore_entered=false,destructor_entered=false;
+  explicit NativeSpriteBorrow(ANM2 &s):sprite(s){
+    saved=static_cast<ANM2 *>(::operator new(sizeof(ANM2)));
+    try{saved->construct_from_copy(&s);}catch(...){ClientCallbackFault("player_draw_copy_ctor_prefix_retained");throw;}
+  }
+  // 原生异常后保留实际owner，不从析构栈盲目重试copy/Free。
+  void Restore(){if(!saved)return;if(restore_entered||destructor_entered)throw std::runtime_error("player_draw_restore_prefix_uncertain");
+    restore_entered=true;reinterpret_cast<void (__fastcall *)(ANM2 *,ANM2 *)>(Base+0x3160)(&sprite,saved);restore_entered=false;
+    destructor_entered=true;saved->destructor();::operator delete(saved);saved=nullptr;destructor_entered=false;
+  }
+};
 // 965:10、Familiar和持物借用当前Player；状态/选择器持有至最外层CPU队列退尽。
 struct PlayerBorrow final {
   Entity_Player &player;Entity *minecart=nullptr,*desired=nullptr;
   Entity *held=nullptr,*desired_held=nullptr;std::int32_t item_state=0,held_pose=0;
-  Vector position,position_offset,cart_offset;ColorMod color;bool visible=false,attached=false;
+  Vector position,position_offset,cart_offset;ColorMod color;bool visible=false,exists=false,dead=false,attached=false;
+  std::array<unsigned char,2> full_sprite_flags{};
+  std::array<float,6> body_scales{};
   std::uint32_t frame_base=0;const ClientObjectDescription &description;
   std::vector<std::unique_ptr<SpriteBorrow>> sprites;
+  std::vector<std::unique_ptr<NativeSpriteBorrow>> native_sprites;
   PlayerBorrow(Entity_Player &p,const ClientObjectDescription &d):player(p),minecart(p.GetMinecart()),position(p._pos),position_offset(p._posOffset),visible(p._visible),description(d){
     held=p.GetHeldEntity();held_pose=p._suplexState;std::memcpy(&item_state,reinterpret_cast<unsigned char *>(&p)+0x15f4,4);
     std::memcpy(&cart_offset,reinterpret_cast<unsigned char *>(&p)+0x205c,8);std::memcpy(&color,reinterpret_cast<unsigned char *>(&p)+0x1b8,sizeof(color));
     std::memcpy(&frame_base,reinterpret_cast<unsigned char *>(&p)+0x328,4);
-    sprites.push_back(std::make_unique<SpriteBorrow>(p._sprite));sprites.push_back(std::make_unique<SpriteBorrow>(p._bodySprite));
+    exists=p._exists;dead=p._dead;std::memcpy(&full_sprite_flags[0],reinterpret_cast<unsigned char *>(&p)+0x1398,1);std::memcpy(&full_sprite_flags[1],reinterpret_cast<unsigned char *>(&p)+0x139a,1);
+    std::memcpy(body_scales.data(),reinterpret_cast<unsigned char *>(&p)+0x14e8,sizeof(body_scales));
+    const auto keep=[&](ANM2 &s){if(d.derived->player_full_draw)native_sprites.push_back(std::make_unique<NativeSpriteBorrow>(s));else sprites.push_back(std::make_unique<SpriteBorrow>(s));};
+    keep(p._sprite);keep(p._bodySprite);
     if(d.derived->player_composite_v1){const auto &layout=world::layout::LayoutConstants();
-      for(unsigned i=1;i<layout.player_inline_sprite_count;++i)sprites.push_back(std::make_unique<SpriteBorrow>(*reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&p)+layout.player_inline_sprite_first_offset+i*layout.player_inline_sprite_stride)));}
+      for(unsigned i=1;i<layout.player_inline_sprite_count;++i)keep(*reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&p)+layout.player_inline_sprite_first_offset+i*layout.player_inline_sprite_stride));}
     if(p._costumeSpriteDescs.size()>16384)throw std::runtime_error("entity_player_draw_costume_budget");
-    for(auto &costume:p._costumeSpriteDescs)sprites.push_back(std::make_unique<SpriteBorrow>(costume._sprite));
+    for(auto &costume:p._costumeSpriteDescs)keep(costume._sprite);
+    if(d.derived->player_full_draw)keep(*reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&p)+0x1c50));
     for(const auto &r:d.relations)if(r.member=="Entity.GetMinecart"&&!r.is_null){desired=static_cast<Entity *>(ClientNativeObjectDrawAddress(r.target));if(!desired)throw std::runtime_error("entity_player_draw_minecart_key");}
     if(d.derived->player_minecart_draw&&(!desired||desired->_type!=965||desired->_variant!=10))throw std::runtime_error("entity_player_draw_minecart_shape");
     if(d.derived->player_held_draw){
@@ -71,6 +92,7 @@ struct PlayerBorrow final {
         auto *sprite=static_cast<ANM2 *>(ClientEntityAuxiliarySprite(desired_held,resource));if(!sprite)throw std::runtime_error("entity_player_held_auxiliary_resource");sprites.push_back(std::make_unique<SpriteBorrow>(*sprite));}
     }
   }
+  void RestoreResources(){for(auto &s:native_sprites)s->Restore();}
   void Attach(){for(auto &s:sprites)s->Attach();attached=true;player._minecart.SetReference(desired);
     player._heldEntity=desired_held;
     if(description.derived->player_held_draw){player._suplexState=description.derived->player_held_pose;std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x15f4,&description.derived->player_held_item_state,4);}
@@ -78,6 +100,7 @@ struct PlayerBorrow final {
     for(const auto &f:description.common_fields)if(f.member=="Entity.FrameCount"){const auto base=description.derived->draw.game_frame-std::uint32_t(f.integer);std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x328,&base,4);}
   }
   ~PlayerBorrow(){if(attached){player._minecart.SetReference(minecart);player._pos=position;player._posOffset=position_offset;player._visible=visible;
+    player._exists=exists;player._dead=dead;std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x1398,&full_sprite_flags[0],1);std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x139a,&full_sprite_flags[1],1);std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x14e8,body_scales.data(),sizeof(body_scales));
     player._heldEntity=held;player._suplexState=held_pose;std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x15f4,&item_state,4);
     std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x205c,&cart_offset,8);std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x1b8,&color,sizeof(color));std::memcpy(reinterpret_cast<unsigned char *>(&player)+0x328,&frame_base,4);}}
 };
@@ -175,7 +198,12 @@ ClientEntityFrameScope::ClientEntityFrameScope(const ClientNativeRoots &roots){
   for(auto *p:g_Game->_playerManager._playerList)player(p);
   // 非roster可见身体及被举起Player同样借用，不因列表位置失去完整Body/内嵌资源保护。
   for(unsigned i=0;i<list._size;++i)if(list._data[i]&&list._data[i]->_type==1)player(static_cast<Entity_Player *>(list._data[i]));
-  for(std::size_t i=0;i<state->players.size();++i){auto *held=state->players[i]->desired_held;if(held&&held->_type==1)player(static_cast<Entity_Player *>(held));}
+  for(std::size_t i=0;i<state->players.size();++i){auto &p=state->players[i]->player;
+    auto *held=state->players[i]->desired_held;if(held&&held->_type==1)player(static_cast<Entity_Player *>(held));
+    // Lazarus原生helper直接递归非roster backup，未必再次经过Render Hook；先封闭整个身体借用图。
+    for(auto *peer:{p.GetTwinPlayer(),p._backupPlayer,p._replacedPlayer})player(peer);
+    Entity_Player *sub=nullptr;std::memcpy(&sub,reinterpret_cast<unsigned char *>(&p)+world::layout::LayoutConstants().player_sub_storage_offset,4);player(sub);
+  }
   state->manager_frame=g_Manager->_framecount;std::memcpy(&state->game_frame,reinterpret_cast<unsigned char *>(g_Game)+0x25a70,4);
   std::memcpy(state->pickup.data(),reinterpret_cast<void *>(Base+0x7d0ca4),16);std::memcpy(state->familiar.data(),reinterpret_cast<void *>(Base+0x7d0674),16);
   state->installed=true;g_Manager->_framecount=state->source.manager_frame;std::memcpy(reinterpret_cast<unsigned char *>(g_Game)+0x25a70,&state->source.game_frame,4);
@@ -190,6 +218,7 @@ ClientEntityFrameScope::~ClientEntityFrameScope(){
     // 未知draw/队列异常保留全部owner和隔离；不能在未消费raw使用上释放选择器或强交还Off。
     state->uncertain=true;ClientCallbackFault("entity_frame_inflight_owner_retained");return;
   }
+  if(state){try{for(auto &p:state->players)p->RestoreResources();}catch(...){state->uncertain=true;ClientCallbackFault("player_frame_resource_restore_prefix_retained");return;}}
   if(frame==state_)frame=nullptr;delete state;
 }
 ClientEntityDrawScope::ClientEntityDrawScope(void *pointer,void *offset,unsigned pass){

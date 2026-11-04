@@ -46,6 +46,10 @@ local function snapshot(e,ctx,class)
       if out.body.application_player_state.status~="Value" then fail(ctx,"player_application_state:"..out.body.application_player_state.status) end
       out.body.application_player_role=nativeValue(native().PlayerApplicationRole(e:ToPlayer()),ctx)
       if out.body.application_player_role.status~="Value" then fail(ctx,"player_application_role:"..out.body.application_player_role.status) end
+      local special=native().PlayerApplicationSpecial(e:ToPlayer())
+      if special.status=="Value" then special.record_sprite=special.record_sprite:GetFilename()=="" and missing("Null","native_record_anm_unloaded") or value(special.record_sprite,"Sprite",ctx,1) end
+      out.body.application_player_special=nativeValue(special,ctx)
+      if out.body.application_player_special.status~="Value" then fail(ctx,"player_application_special:"..out.body.application_player_special.status) end
       local equipment=native().PlayerApplicationEquipment(e:ToPlayer())
       if equipment.status=="Value" then
         -- 原生补充只在本窗口借用；最终表只保留规范引用及精确姿态，空边逐名保留。

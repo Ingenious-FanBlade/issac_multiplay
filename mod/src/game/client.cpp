@@ -77,6 +77,7 @@ struct ClientRuntime final {
   bool physical_neutral=false;
   bool focused=false,ui_blocked=false,input_ready=false,fixture=false;
   InputTiming timing;
+  ClientPlayerControlView control;
   unsigned neutral_loops=0;
   unsigned fixture_cancel_stage=0;
   void *source=nullptr;
@@ -519,8 +520,17 @@ bool ClientManagerBoundary() noexcept {
       std::uint64_t target=0;
       // 16 的等待场景仍能向 Authority 发输入；已有目标的构建/替换窗口则清边沿并保持中性。
       const bool input_scene=c.scene.State()==ClientSceneState::Waiting||c.scene.DisplayReady();
+      const auto control=c.scene.PlayerControl(c.ordinal);
+      // 构建中的无视图不是新的绑定；停止发意图并清FIFO，保留旧身份用于重建后的比较。
+      if(c.scene.DisplayReady()){
+        if(!ClientPlayerControlSame(c.control,control)){Neutral(c);c.timing={};}
+        c.control=control;
+      }
+      // 观测binding_revision与Authority participant generation出自同一绑定；旧A不得给新代次发边沿。
+      const bool group_ready=!c.scene.HasPlayerControl()||
+          (control.present&&control.consumers&&control.binding_revision==c.generation);
       c.input_ready=!c.fixture&&input_scene&&!c.blocked&&c.progress.input_enabled&&c.state==State::AwaitingWorld&&
-                    c.progress.session_state==core::SessionState::Active&&c.generation&&
+                    group_ready&&c.progress.session_state==core::SessionState::Active&&c.generation&&
                     c.timing.Target(c.progress.server_tick,GetTickCount64(),target);
       ClientPollInput();
       if(!c.sampled_this_loop){++c.device_missing;Neutral(c,true);}

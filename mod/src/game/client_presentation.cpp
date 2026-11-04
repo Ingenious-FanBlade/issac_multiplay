@@ -1,5 +1,6 @@
 #include "game/client_presentation.h"
 #include "game/client_resource_model.h"
+#include "replica/player_target.h"
 #include <cmath>
 #include <stdexcept>
 #include <utility>
@@ -66,7 +67,7 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
        !Member(transition,"value").IsString()||std::string(Member(transition,"value").GetString())!="0")
       throw std::runtime_error("presentation_stable_room_transition_required");
     const int presentation_version=Integer(Member(v,"version"),2,4);
-    ClientPresentationDescription d;d.room_state=room_state;d.map=map_target;
+    ClientPresentationDescription d;d.room_state=room_state;d.map=map_target;d.full_players=replica::HasPlayerTarget(model);
     const auto &room=Member(Member(Member(model,"components"),"room"),"state");
     if(room.HasMember("map_sprites")){
       const auto &sprites=room["map_sprites"];if(!sprites.IsArray()||sprites.Size()!=2)throw std::runtime_error("presentation_minimap_poses");
