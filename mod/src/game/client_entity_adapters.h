@@ -14,7 +14,8 @@ struct ClientEntityClassState final {
   ClientPoseVector player_minecart_offset{};
   std::uint32_t player_minecart_sort_bits=0; // Y偏移还被原生按i32位模式排序，保留负零等位模式。
   bool player_minecart_draw=false;
-  // Effect136由真实Player持物分支绘制；仅同T的稳定Key/shape在Render栈内借用，不是完整Player应用。
+  // 旧19只支持136；20的具名role来源可借通用持物，完整Player绘制仍由I29收束。
+  bool player_composite_v1=false;
   bool player_held_draw=false;
   std::uint64_t player_held_shape=0;
   std::int32_t player_held_item_state=0,player_held_pose=0;

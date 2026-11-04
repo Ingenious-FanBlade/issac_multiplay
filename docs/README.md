@@ -1,3 +1,5 @@
+> **tx-04-20 I21—I25（2026-11-04）**：[通用持物、原版角色注册及双身体／sub／Flip结果安装](design/tx-04-20/tx-04-20-role-installation.md)、[Luna max必要逆向及主审纠错](design/tx-04-20/player-i21-i25-native.md)。增加同窗口role来源、41类型具名责任、全图关系校验及全体Link后全体Check；直接复读IsSub／main／other／hologram、Swap和通用held Render。未构建、测试或启动游戏；I26—I40与I39统一E2E待推进，native_apply仍false。
+
 > **tx-04-20 I11—I15（2026-11-04）**：[公共／生命／资源／完整库存／主动口袋槽最终量及必要逆向主审](design/tx-04-20/tx-04-20-state-installation.md)。正式同窗口补源、不可变解码、原生安装／回读和owner接线已接入；一个GPT-6 Luna max研究，主智能体复读并纠正PartialCharge／effective命名，补明Active+4为item_pool。未构建、测试或启动游戏；I16—I40及I39统一E2E待推进，完整native_apply仍false。
 
 > **tx-04-20 I05—I10（2026-11-04）**：[投影、A→T身体／子owner计划、结构owner／集合／关系与必要逆向主审](design/tx-04-20/tx-04-20-structure.md)。正式合同升级player-target/source-v2，恢复装备与History按参查询；Key／实例／用途借用、base结构前缀、roster与Room发布、非roster／备份及跨域后置关系已接线。一个GPT-6 Luna max子智能体研究，主智能体独立复读；完整最终态／资源／角色adapter归I11以后，缺席写前拒绝，native_apply仍false。按用户要求直接提交；未构建、测试或启动游戏，I11—I40及I39统一E2E待推进。

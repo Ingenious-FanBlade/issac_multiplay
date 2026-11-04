@@ -112,6 +112,6 @@ ClientObjectDescription ClientDescribeEntity(const replica::EntityObjectTarget &
       case ClientEntityValueKind::Color:f.color=Color(v);break;
     }d.common_fields.push_back(std::move(f));
   }
-  if(!player_structure)ClientDescribeEntityClass(o,d);return d;
+  if(o.category==replica::EntityCategory::Player)ClientDescribeEntityPlayerDraw(o,d);else ClientDescribeEntityClass(o,d);return d;
 }
 } // namespace cs::game

@@ -1,6 +1,6 @@
 # tx-04-20：四参与者、多身体 Player 客户端应用具体实现计划
 
-日期：2026-11-04。当前进度：**I01—I20目录、结构owner、最终量、效果／History／完整资源／costume／五槽武器已接入**，见[基础实现与主审](tx-04-20-foundation.md)、[I05—I10结构实现与必要逆向主审](tx-04-20-structure.md)、[逐签名应用目录](player-application.json)、[R01—R16研究结果](player-native-static.md)。I11—I15实现见[最终量安装](tx-04-20-state-installation.md)，I16—I20见[装备／资源安装及必要逆向主审](tx-04-20-equipment-installation.md)；I21—I40待推进。本轮未构建、测试或启动游戏。缺完整角色／draw adapter时写前明确拒绝，native_apply仍为false，不声明完整原生Player已应用。未闭合私有writer／角色／清理分支随具名adapter采用时补证，不能由结构合同外推支持。
+日期：2026-11-04。当前进度：**I01—I25目录、结构owner、最终量、装备资源／武器、持物及原版身体族已接入**，见[基础实现与主审](tx-04-20-foundation.md)、[I05—I10结构实现与必要逆向主审](tx-04-20-structure.md)、[逐签名应用目录](player-application.json)、[R01—R16研究结果](player-native-static.md)。I11—I15实现见[最终量安装](tx-04-20-state-installation.md)，I16—I20见[装备／资源安装及必要逆向主审](tx-04-20-equipment-installation.md)；I21—I25见[持物／角色安装及必要逆向主审](tx-04-20-role-installation.md)，I26—I40待推进。本轮未构建、测试或启动游戏。缺完整角色／draw adapter时写前明确拒绝，native_apply仍为false，不声明完整原生Player已应用。未闭合私有writer／角色／清理分支随具名adapter采用时补证，不能由结构合同外推支持。
 
 初版规划事实（同日，保留）：当时仅编写文档、阅读现有代码及本地资料，I01—I40均待实施，无新增逆向结果／运行代码／构建／测试。下文“应”“完成表现”继续表示完整实施要求，不自动表示已完成。
 
@@ -110,11 +110,11 @@ I01—I04当前交付见上方实现说明；下表保留完整任务内容。�
 | I18 | 已接入主Sprite及13真实内嵌ANM的完整精确姿态；完整draw归I29 | I03、I08，R07 | E13、E20；I39未运行 |
 | I19 | 已接入完整costume描述／候选换装／15层map及实际ANM清理 | I14、I16、I18，R07 | E13、E16；I39未运行 |
 | I20 | 已接入五槽及type1..15真实动态工厂／最终值／chargebar／全部具名EntityPtr与退休；11实际为Bone类 | I10、I15、I18，R08 | E14、E15、E18；I39未运行 |
-| I21 | 举持、投掷结果和复合依赖 | I10、I18、I20，R09 | E18 |
-| I22 | 普通角色和最终形态注册 | I11—I20，C01—C05 | E03、E16 |
-| I23 | Jacob／Esau 多组双身体 | I09—I20，R10 | E04、E05 |
-| I24 | Forgotten／Soul 两套身体语义 | I09—I21，R10 | E06 |
-| I25 | Tainted Lazarus／Flip／Birthright | I09—I20，R11 | E07 |
+| I21 | 已接入通用held Key／shape、ItemState／Suplex最终量及复合借用，不重演投掷 | I10、I18、I20，R09 | E18 |
+| I22 | 已逐个注册原版0—40及C族／内部形态分类；I27专用值和I29完整draw仍分责 | I11—I20，C01—C05 | E03、E16 |
+| I23 | 已接入多组19／20全图校验、双向twin／roster及独立身体状态／资源 | I09—I20，R10 | E04、E05 |
+| I24 | 已接入16／17单向非roster sub与35／40双向twin／held的不同合同 | I09—I21，R10 | E06 |
+| I25 | 已接入29／38 backup／Flip配对和原生索引派生hologram；全体Link后全体Check | I09—I20，R11 | E07 |
 | I26 | Esau Jr 四槽与备份恢复 | I09—I20，R11 | E08 |
 | I27 | 其他角色专用状态族 | I13—I22，R12，C02—C05／C11—C17；与I23—I26共用状态适配 | E16、E18 |
 | I28 | 死亡中存在性、换形、替换和删除 | I06—I27，R15 | E21、E23 |

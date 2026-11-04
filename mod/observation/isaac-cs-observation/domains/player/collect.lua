@@ -8,7 +8,7 @@ local function ref(p) return p and IsaacCSObservationNative.Reference(p) or {res
 function M.Capture(limits)
   read.Limits(limits); local c=shared.Model.Context(); local x,old=store:Begin()
   local out={location=x,bodies={},control_groups={},changes={},backup_slots={},sampling={cache_reused=false,freshness="ReadInCurrentNativeWindow"},previous_scope=old and old.context.scope or {status="NotCaptured"},resource_semantics="per_body_canonical_values;no_implicit_copy_or_shared_resource_inference"}
-  out.application_source={version=2,contract="player-source-v2",final_state="player-final-state-v1",equipment_state="player-equipment-state-v1",target="REPENTOGON-1.1.3/J273",entity_scope=x.entity_scope,pose_scope="same-ordinary-window"}
+  out.application_source={version=2,contract="player-source-v2",final_state="player-final-state-v1",equipment_state="player-equipment-state-v1",role_state="player-role-state-v1",target="REPENTOGON-1.1.3/J273",entity_scope=x.entity_scope,pose_scope="same-ordinary-window"}
   out.roster={};out.membership={complete=true,source="qualified-native+public-roots+relationship-closure",count=0}
   local nextState,groups,memberWitness={},{},{}
   local players,verify=shared.Players(c); local roster={}
@@ -16,7 +16,7 @@ function M.Capture(limits)
   for _,entry in ipairs(players) do
     local p,id=entry.player,entry.subject; c.objects=c.objects+1
     local relation=id.control_relation;local membership=id.control_group_membership
-    local state={subject=id,player_type=p:GetPlayerType(),dead=p:IsDead(),is_sub_player=p:IsSubPlayer(),in_public_roster=roster[id.local_id] or false,membership=membership or {resolution="Unresolved",reason="no_qualified_cached_topology_membership"},control=relation or {resolution="Unresolved",reason="no_current_exact_pair_anchor"},controller_index=p.ControllerIndex,main_twin=ref(p:GetMainTwin()),other_twin=ref(p:GetOtherTwin()),sub_player=ref(p:GetSubPlayer()),parent=ref(p.Parent),child=ref(p.Child)}
+    local state={subject=id,player_type=p:GetPlayerType(),dead=p:IsDead(),is_sub_player=p:IsSubPlayer(),in_public_roster=roster[id.local_id] or false,membership=membership or {resolution="Unresolved",reason="no_qualified_cached_topology_membership"},control=relation or {resolution="Unresolved",reason="no_current_exact_pair_anchor"},controller_index=p.ControllerIndex,main_twin=ref(p:GetMainTwin()),other_twin=ref(p:GetOtherTwin()),sub_player=ref(p:GetSubPlayer()),flipped_form=ref(p:GetFlippedForm()),parent=ref(p.Parent),child=ref(p.Child)}
     local before=old and old.data[id.local_id]
     local nativeMembership=IsaacCSObservationNative.PlayerApplicationMembership(p)
     if nativeMembership.status~="Value" then read.Fail(c,"player_native_membership_unavailable") end

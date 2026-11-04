@@ -590,5 +590,30 @@
     },
     "remaining": "I21-I40 roles/full draw/HUD/global retirement/Scene capability and unified E2E remain;native_apply=false;native_source_complete=false",
     "validation": "static source and primary IDA review only;no build/test/game launch;I39 not run"
+  },
+  "i21_i25_role_installation": {
+    "tasks": "I21-I25",
+    "implementation": "client_player_roles.cpp/client_player_roles_native.cpp;client_players_native.cpp;client_entity_draw_native.cpp",
+    "status": "implemented slice;I26-I40 pending;I39 not run;native_apply=false",
+    "source": "application_player_role-v1;player-source-v2.role_state=player-role-state-v1;KnownCurrent readiness>=2 same ordinary window",
+    "leafs": {
+      "IsSubPlayer": "VA0x74D9B0/RVA0x34D9B0;PlayerIndex+0x1610 sign bit",
+      "GetSubPlayer": "VA0x6D86D0/RVA0x2D86D0;raw+0x1D84",
+      "GetMainTwin": "VA0x413140/RVA0x13140;non-minus-one lower-index twin else self",
+      "GetOtherTwin": "VA0x413160/RVA0x13160;raw EntityPtr+0x1E4C",
+      "GetFlippedForm": "REP Lua_PlayerGetBackupPlayer;raw+0x1E50;not typed Null inference",
+      "IsHologram": "VA0x7D1C90/RVA0x3D1C90;exists/type29-or38/twin/nonself/lower-index;no independent flag"
+    },
+    "families": {
+      "JacobEsau": "reciprocal opposite19/20 twin;whole group/roster/source state kept distinct",
+      "ForgottenSoul": "opposite16/17;one-way roster to non-roster sub;Swap0x7C26DB-0x7C26ED exchanges PlayerType;Client uses complete rebuild",
+      "TaintedForgottenSoul": "35/40 reciprocal roster twins;held independent of Parent",
+      "Lazarus": "29/38 reciprocal raw backup;actual Birthright twin graph separately captured;do not assume backup==twin"
+    },
+    "held": "VA0x784A60;78558D checks hidden;7856D1 target virtual Render+0x14;Visible and Sprite scale+E4/+E8,rotation+EC,alpha+FC restored;Parent unchanged;no Hold/Throw replay",
+    "order": "all body storage/Weapon links before all body native public getter checks;Scene remains sole commit",
+    "review": "one GPT-6 Luna max;primary directly reread Wiki/wrappers/leafs/Swap/held disassembly;corrected same-type sub initial misread and PositionOffset mislabel",
+    "unknown": "BR twin/backup pointer identity not inferred;full role-specific private draw I27/I29 and abnormal lifecycle closure I33 remain separate",
+    "notes": "docs/design/tx-04-20/player-i21-i25-native.md;tx-04-20-role-installation.md"
   }
 }

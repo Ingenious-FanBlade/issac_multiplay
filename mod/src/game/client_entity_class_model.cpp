@@ -127,6 +127,8 @@ const char *ClientEntityClassDisposition(const std::string &id) noexcept {if(Rul
 void ClientDescribeEntityPlayerDraw(const replica::EntityObjectTarget &o,ClientObjectDescription &d){
   const auto &body=std::get<replica::EntityClassValues<replica::EntityCategory::Player>>(o.payload).fields.value;
   auto state=std::make_shared<ClientEntityClassState>();DrawInputs(body,*state);
+  if(body.HasMember("application_player_role")){const auto &role=body["application_player_role"];
+    if(Integer<unsigned>(At(role,"version"))!=1||!Is(role,"status","Value")||!Is(role,"scope","same-ordinary-window"))Fail("player_composite","current_role_source_required");state->player_composite_v1=true;}
   // +44c是公开BodySprite的AnimationState；136举持从它的真实null-frame取位置，不是GetHeldSprite。
   Pose(At(At(body,"fields"),"EntityPlayer.GetBodySprite"),"player_body",0,*state);
   const auto &held=At(At(body,"fields"),"EntityPlayer.GetHeldEntity");

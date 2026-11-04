@@ -1,5 +1,6 @@
 #include "game/client_entity_e2e.h"
 #include "IsaacRepentance.h"
+#include "binding/world_layout.h"
 #include "game/client_entity_draw_native.h"
 #include "game/client_entity_adapters.h"
 #include "game/bridge.h"
@@ -41,7 +42,7 @@ struct SpriteBorrow final {
   ~SpriteBorrow(){sprite._overlayRenderFirst=first;std::memcpy(reinterpret_cast<unsigned char *>(&sprite)+0x94,scalars.data(),scalars.size());
     for(unsigned i=0;i<layers.size();++i)std::memcpy(reinterpret_cast<unsigned char *>(&sprite._layerState[i])+0x20,layers[i].data(),layers[i].size());}
 };
-// 965:10、Familiar及136持物绘制借用当前Player；仅在draw栈安装所需输入，离栈归还。
+// 965:10、Familiar和持物借用当前Player；状态/选择器持有至最外层CPU队列退尽。
 struct PlayerBorrow final {
   Entity_Player &player;Entity *minecart=nullptr,*desired=nullptr;
   Entity *held=nullptr,*desired_held=nullptr;std::int32_t item_state=0,held_pose=0;
@@ -53,6 +54,8 @@ struct PlayerBorrow final {
     std::memcpy(&cart_offset,reinterpret_cast<unsigned char *>(&p)+0x205c,8);std::memcpy(&color,reinterpret_cast<unsigned char *>(&p)+0x1b8,sizeof(color));
     std::memcpy(&frame_base,reinterpret_cast<unsigned char *>(&p)+0x328,4);
     sprites.push_back(std::make_unique<SpriteBorrow>(p._sprite));sprites.push_back(std::make_unique<SpriteBorrow>(p._bodySprite));
+    if(d.derived->player_composite_v1){const auto &layout=world::layout::LayoutConstants();
+      for(unsigned i=1;i<layout.player_inline_sprite_count;++i)sprites.push_back(std::make_unique<SpriteBorrow>(*reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&p)+layout.player_inline_sprite_first_offset+i*layout.player_inline_sprite_stride)));}
     if(p._costumeSpriteDescs.size()>16384)throw std::runtime_error("entity_player_draw_costume_budget");
     for(auto &costume:p._costumeSpriteDescs)sprites.push_back(std::make_unique<SpriteBorrow>(costume._sprite));
     for(const auto &r:d.relations)if(r.member=="Entity.GetMinecart"&&!r.is_null){desired=static_cast<Entity *>(ClientNativeObjectDrawAddress(r.target));if(!desired)throw std::runtime_error("entity_player_draw_minecart_key");}
@@ -60,10 +63,12 @@ struct PlayerBorrow final {
     if(d.derived->player_held_draw){
       for(const auto &r:d.relations)if(r.member=="EntityPlayer.GetHeldEntity"&&!r.is_null)desired_held=static_cast<Entity *>(ClientNativeObjectDrawAddress(r.target));
       const auto *source=ClientNativeObjectDrawDescription(desired_held);
-      if(!desired_held||!source||source->category!=9||source->variant!=136||source->shape_revision!=d.derived->player_held_shape||
-         !desired_held->_exists||desired_held->_visible||desired_held->GetParent()!=&p)throw std::runtime_error("entity_player_draw_held136_owner_or_pose");
+      if(!desired_held||!source||source->shape_revision!=d.derived->player_held_shape||!desired_held->_exists)throw std::runtime_error("entity_player_draw_held_current_key_or_shape");
+      if(!d.derived->player_composite_v1&&(source->category!=9||source->variant!=136||desired_held->_visible||desired_held->GetParent()!=&p))throw std::runtime_error("entity_player_draw_held136_owner_or_pose");
       // Player Render临时变换持物并调用其原生Render；资源留在原owner，选择器/标量工作副本保护到外层drain。
       sprites.push_back(std::make_unique<SpriteBorrow>(desired_held->_sprite));
+      if(d.derived->player_composite_v1&&source->derived)for(const auto &resource:source->derived->resources){
+        auto *sprite=static_cast<ANM2 *>(ClientEntityAuxiliarySprite(desired_held,resource));if(!sprite)throw std::runtime_error("entity_player_held_auxiliary_resource");sprites.push_back(std::make_unique<SpriteBorrow>(*sprite));}
     }
   }
   void Attach(){for(auto &s:sprites)s->Attach();attached=true;player._minecart.SetReference(desired);
@@ -164,7 +169,13 @@ ClientEntityFrameScope::ClientEntityFrameScope(const ClientNativeRoots &roots){
   }
   // 17代表场景没有19的输入，不扩充其声明；原有表现流程仍可使用。
   if(!found){ready_=true;return;}
-  for(auto *p:g_Game->_playerManager._playerList){const auto *d=ClientNativeObjectDrawDescription(p);if(!d||!d->derived)throw std::runtime_error("entity_frame_player_ready_source");state->players.push_back(std::make_unique<PlayerBorrow>(*p,*d));}
+  std::set<Entity_Player *> borrowed;
+  const auto player=[&](Entity_Player *p){if(!p||!borrowed.insert(p).second)return;const auto *d=ClientNativeObjectDrawDescription(p);
+    if(!d||!d->derived)throw std::runtime_error("entity_frame_player_ready_source");state->players.push_back(std::make_unique<PlayerBorrow>(*p,*d));};
+  for(auto *p:g_Game->_playerManager._playerList)player(p);
+  // 非roster可见身体及被举起Player同样借用，不因列表位置失去完整Body/内嵌资源保护。
+  for(unsigned i=0;i<list._size;++i)if(list._data[i]&&list._data[i]->_type==1)player(static_cast<Entity_Player *>(list._data[i]));
+  for(std::size_t i=0;i<state->players.size();++i){auto *held=state->players[i]->desired_held;if(held&&held->_type==1)player(static_cast<Entity_Player *>(held));}
   state->manager_frame=g_Manager->_framecount;std::memcpy(&state->game_frame,reinterpret_cast<unsigned char *>(g_Game)+0x25a70,4);
   std::memcpy(state->pickup.data(),reinterpret_cast<void *>(Base+0x7d0ca4),16);std::memcpy(state->familiar.data(),reinterpret_cast<void *>(Base+0x7d0674),16);
   state->installed=true;g_Manager->_framecount=state->source.manager_frame;std::memcpy(reinterpret_cast<unsigned char *>(g_Game)+0x25a70,&state->source.game_frame,4);

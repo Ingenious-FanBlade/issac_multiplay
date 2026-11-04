@@ -44,6 +44,8 @@ local function snapshot(e,ctx,class)
     if class=="EntityPlayer" then
       out.body.application_player_state=nativeValue(native().PlayerApplicationState(e:ToPlayer()),ctx)
       if out.body.application_player_state.status~="Value" then fail(ctx,"player_application_state:"..out.body.application_player_state.status) end
+      out.body.application_player_role=nativeValue(native().PlayerApplicationRole(e:ToPlayer()),ctx)
+      if out.body.application_player_role.status~="Value" then fail(ctx,"player_application_role:"..out.body.application_player_role.status) end
       local equipment=native().PlayerApplicationEquipment(e:ToPlayer())
       if equipment.status=="Value" then
         -- 原生补充只在本窗口借用；最终表只保留规范引用及精确姿态，空边逐名保留。

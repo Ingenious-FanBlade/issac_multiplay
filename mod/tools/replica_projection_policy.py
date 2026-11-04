@@ -157,10 +157,10 @@ PLAYER_PROJECTION_REVIEW = {
 
 def consumer_review(member):
     """将显式复核结论逐成员写入目录，新成员不能自动继承省略结论。"""
-    if member == "EntityPlayer.GetHeldEntity":
-        return "tx-04-19 I24/I25：Effect136的原生Player持物draw按当前稳定Key/shape借用；完整Player状态由20负责"
-    if member in {"EntityPlayer.GetBodySprite", "EntityPlayer.GetItemState", "EntityPlayer.GetSuplexState"}:
-        return "tx-04-19 I24/I25：普通Isaac的136持物draw必需BodySprite/null-frame和当前状态；按来源安装或Render栈借用，不重放玩法"
+    if member == "EntityPlayer.GetHeldEntity" or member.startswith("EntityPlayer.GetSuplex") or member in {"EntityPlayer.GetBodySprite", "EntityPlayer.GetItemState"}:
+        return "tx-04-20 I21：同T的held Key/shape、完整Body null pose与最终ItemState/Suplex；通用父代画不重放投掷；19历史136合同保留"
+    if member in {"EntityPlayer.GetPlayerType", "EntityPlayer.GetPlayerIndex", "EntityPlayer.GetMainTwin", "EntityPlayer.GetOtherTwin", "EntityPlayer.GetSubPlayer", "EntityPlayer.IsSubPlayer", "EntityPlayer.GetFlippedForm", "EntityPlayer.IsHologram"}:
+        return "tx-04-20 I22-I25：具名原版角色注册、全身体关系预检和两阶段原生回读；Hologram按真实exists/type/twin/index导出；禁止角色操作补值"
     if member in OMITTED_MEMBERS:
         return OMITTED_MEMBERS[member][1]
     return RETAINED_QUERIES.get(member, "未声明省略；沿用原归属，新增消费者须逐成员复核")
@@ -168,6 +168,7 @@ def consumer_review(member):
 
 # I31保留的紧凑正式来源：它们不是Sprite别名，也不是夹具补值。
 ENTITY_COMPACT_CONSUMERS = {
+    "EntityPlayer.application_player_role": "I21-I25:current typed final ItemState/Suplex/index/sub-body;public getter cross-check;no Flip/Swap/InitTwin",
     "Entity.application_draw": "ClientEntityFrameScope;ClientEntityDrawScope;ordinary-window frame/subframe and two render RNG states",
     "EntityNPC.application_npc": "ClientEntityNpcCollections;three complete independent deques, including typed EntityPtr links",
     "EntityNPC.application_resources": "NPC overlay/effect real members;each owns exact resource_pose",

@@ -4,6 +4,8 @@
 
 I16—I20补充采用及主审见[装备／资源安装](tx-04-20-equipment-installation.md)：TemporaryEffects首字cache mask、History mutation-disabled／索引副作用、costume真实ANM owner、15类五槽Weapon工厂／全部EntityPtr／chargebar／窄Free。下文保留I04当时的未知；已补证项按该补充及机器索引解释，不能把未采用的玩法缓存或I21—I40误记完成。
 
+I21—I25后续补证见[角色／持物安装与主审](tx-04-20-role-installation.md)、[R09—R11具体研究及纠错](player-i21-i25-native.md)：main／other／sub／hologram的实际leaf、16／17单向相反类型补体、35／40双向twin、29／38 backup及通用held父代画。原R09—R11中的UNKNOWN保留原时点，补证不扩大到I26—I40或完整I29绘制。
+
 ## 0. 证据口径与共同边界
 
 - `PUBLIC`：本地原版 Wiki `F:/projects_isaac/IsaacDocs/docs`；官方 REPENTOGON 1.1.3 Wiki、wrapper、ZHL/SDK `F:/projects_isaac/REPENTOGON-1.1.3`。wrapper 说明 Getter 实际取值与拷贝/借用方式；ZHL 的成员布局本身只说明布局，不证明字段当前可读或资源已加载。

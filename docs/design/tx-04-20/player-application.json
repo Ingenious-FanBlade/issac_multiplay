@@ -14,6 +14,387 @@
   },
   "native_apply": false,
   "runtime_acceptance": "I39-not-run",
+  "role_implementation": {
+    "tasks": "I21-I25",
+    "source": "application_player_role-v1;same-use ordinary window;source-v2.role_state=player-role-state-v1",
+    "model": "mod/src/game/client_player_roles.cpp",
+    "native": "mod/src/game/client_player_roles_native.cpp",
+    "registry": [
+      {
+        "type": 0,
+        "name": "Isaac",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 1,
+        "name": "Magdalene",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 2,
+        "name": "Cain",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 3,
+        "name": "Judas",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 4,
+        "name": "BlueBaby",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 5,
+        "name": "Eve",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 6,
+        "name": "Samson",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 7,
+        "name": "Azazel",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 8,
+        "name": "Lazarus",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 9,
+        "name": "Eden",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 10,
+        "name": "Lost",
+        "family": "C02",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 11,
+        "name": "Lazarus2",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 12,
+        "name": "BlackJudas",
+        "family": "C01",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 13,
+        "name": "Lilith",
+        "family": "C03",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 14,
+        "name": "Keeper",
+        "family": "C02",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 15,
+        "name": "Apollyon",
+        "family": "C04",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 16,
+        "name": "Forgotten",
+        "family": "C07",
+        "task": "I24",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 17,
+        "name": "Soul",
+        "family": "C07",
+        "task": "I24",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 18,
+        "name": "Bethany",
+        "family": "C05",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 19,
+        "name": "Jacob",
+        "family": "C06",
+        "task": "I23",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 20,
+        "name": "Esau",
+        "family": "C06",
+        "task": "I23",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 21,
+        "name": "TaintedIsaac",
+        "family": "C11",
+        "task": "I27",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 22,
+        "name": "TaintedMagdalene",
+        "family": "C12",
+        "task": "I27",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 23,
+        "name": "TaintedCain",
+        "family": "C13",
+        "task": "I27",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 24,
+        "name": "TaintedJudas",
+        "family": "C12",
+        "task": "I27",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 25,
+        "name": "TaintedBlueBaby",
+        "family": "C14",
+        "task": "I27",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 26,
+        "name": "TaintedEve",
+        "family": "C15",
+        "task": "I27",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 27,
+        "name": "TaintedSamson",
+        "family": "C16",
+        "task": "I27",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 28,
+        "name": "TaintedAzazel",
+        "family": "C12",
+        "task": "I27",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 29,
+        "name": "TaintedLazarus",
+        "family": "C09",
+        "task": "I25",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 30,
+        "name": "TaintedEden",
+        "family": "C16",
+        "task": "I27",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 31,
+        "name": "TaintedLost",
+        "family": "C02",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 32,
+        "name": "TaintedLilith",
+        "family": "C03",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 33,
+        "name": "TaintedKeeper",
+        "family": "C02",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 34,
+        "name": "TaintedApollyon",
+        "family": "C04",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 35,
+        "name": "TaintedForgotten",
+        "family": "C08",
+        "task": "I24",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 36,
+        "name": "TaintedBethany",
+        "family": "C05",
+        "task": "I22",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 37,
+        "name": "TaintedJacob",
+        "family": "C17",
+        "task": "I27",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 38,
+        "name": "TaintedLazarus2",
+        "family": "C09",
+        "task": "I25",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 39,
+        "name": "TaintedJacob2",
+        "family": "C17",
+        "task": "I27",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      },
+      {
+        "type": 40,
+        "name": "TaintedSoul",
+        "family": "C08",
+        "task": "I24",
+        "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+        "draw": "I29-pending",
+        "runtime_status": "I39-not-run"
+      }
+    ],
+    "internal": "possessor -1/variant2 and other Baby/internal variants explicitly unsupported;undeclared Mod characters=tx-04-27",
+    "relationships": "source storage and public main/other/sub/flipped remain distinct;whole-target group and shape validation;all-links-before-all-checks",
+    "hologram": "actual native exists/type29-or38/twin/lower-player-index predicate;no invented flag",
+    "status": "implemented-slice;I26-I40-pending;I39-not-run;native_apply=false"
+  },
   "structure_implementation": {
     "plan": "mod/src/replica/player_plan.cpp",
     "owner": "mod/src/game/client_players.cpp",
@@ -23577,7 +23958,7 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "tx-04-19 I24/I25：普通Isaac的136持物draw必需BodySprite/null-frame和当前状态；按来源安装或Render栈借用，不重放玩法"
+        "consumer_review": "tx-04-20 I21：同T的held Key/shape、完整Body null pose与最终ItemState/Suplex；通用父代画不重放投掷；19历史136合同保留"
       },
       "handling": "I16-I20:typed-body-equipment;public-query-and-native-storage-semantics-kept-distinct",
       "consumer": "ClientPlayers/ClientPlayerEquipment;History exposes committed immutable body view",
@@ -26331,18 +26712,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+        "consumer_review": "tx-04-20 I22-I25：具名原版角色注册、全身体关系预检和两阶段原生回读；Hologram按真实exists/type/twin/index导出；禁止角色操作补值"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I27",
-      "installation": "I02-owned-value;native-install-contract=R12",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
-      "task": "I27",
-      "research": "R12",
-      "e2e": "E16",
+      "task": "I23-I25",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -27303,18 +27684,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "tx-04-19 I24/I25：Effect136的原生Player持物draw按当前稳定Key/shape借用；完整Player状态由20负责"
+        "consumer_review": "tx-04-20 I21：同T的held Key/shape、完整Body null pose与最终ItemState/Suplex；通用父代画不重放投掷；19历史136合同保留"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I21",
-      "installation": "I02-owned-value;native-install-contract=R09",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
       "task": "I21",
-      "research": "R09",
-      "e2e": "E18",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -27789,18 +28170,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "tx-04-19 I24/I25：普通Isaac的136持物draw必需BodySprite/null-frame和当前状态；按来源安装或Render栈借用，不重放玩法"
+        "consumer_review": "tx-04-20 I21：同T的held Key/shape、完整Body null pose与最终ItemState/Suplex；通用父代画不重放投掷；19历史136合同保留"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I21",
-      "installation": "I02-owned-value;native-install-contract=R09",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
       "task": "I21",
-      "research": "R09",
-      "e2e": "E18",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -28545,18 +28926,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+        "consumer_review": "tx-04-20 I22-I25：具名原版角色注册、全身体关系预检和两阶段原生回读；Hologram按真实exists/type/twin/index导出；禁止角色操作补值"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I09/I10",
-      "installation": "I02-owned-value;native-install-contract=R03",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
-      "task": "I09/I10",
-      "research": "R03",
-      "e2e": "E04/E05/E06/E07/E08",
+      "task": "I23-I25",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -30391,18 +30772,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+        "consumer_review": "tx-04-20 I22-I25：具名原版角色注册、全身体关系预检和两阶段原生回读；Hologram按真实exists/type/twin/index导出；禁止角色操作补值"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I09/I10",
-      "installation": "I02-owned-value;native-install-contract=R03",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
-      "task": "I09/I10",
-      "research": "R03",
-      "e2e": "E04/E05/E06/E07/E08",
+      "task": "I23-I25",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -30769,18 +31150,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+        "consumer_review": "tx-04-20 I22-I25：具名原版角色注册、全身体关系预检和两阶段原生回读；Hologram按真实exists/type/twin/index导出；禁止角色操作补值"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I09/I10",
-      "installation": "I02-owned-value;native-install-contract=R03",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
-      "task": "I09/I10",
-      "research": "R03",
-      "e2e": "E04/E05/E06/E07/E08",
+      "task": "I23-I25",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -30823,18 +31204,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+        "consumer_review": "tx-04-20 I22-I25：具名原版角色注册、全身体关系预检和两阶段原生回读；Hologram按真实exists/type/twin/index导出；禁止角色操作补值"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I27",
-      "installation": "I02-owned-value;native-install-contract=R12",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
-      "task": "I27",
-      "research": "R12",
-      "e2e": "E16",
+      "task": "I22",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -32551,18 +32932,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+        "consumer_review": "tx-04-20 I22-I25：具名原版角色注册、全身体关系预检和两阶段原生回读；Hologram按真实exists/type/twin/index导出；禁止角色操作补值"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I09/I10",
-      "installation": "I02-owned-value;native-install-contract=R03",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
-      "task": "I09/I10",
-      "research": "R03",
-      "e2e": "E04/E05/E06/E07/E08",
+      "task": "I23-I25",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -32605,18 +32986,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+        "consumer_review": "tx-04-20 I21：同T的held Key/shape、完整Body null pose与最终ItemState/Suplex；通用父代画不重放投掷；19历史136合同保留"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I21",
-      "installation": "I02-owned-value;native-install-contract=R09",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
       "task": "I21",
-      "research": "R09",
-      "e2e": "E18",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -32659,18 +33040,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+        "consumer_review": "tx-04-20 I21：同T的held Key/shape、完整Body null pose与最终ItemState/Suplex；通用父代画不重放投掷；19历史136合同保留"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I21",
-      "installation": "I02-owned-value;native-install-contract=R09",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
       "task": "I21",
-      "research": "R09",
-      "e2e": "E18",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -32713,18 +33094,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "tx-04-19 I24/I25：普通Isaac的136持物draw必需BodySprite/null-frame和当前状态；按来源安装或Render栈借用，不重放玩法"
+        "consumer_review": "tx-04-20 I21：同T的held Key/shape、完整Body null pose与最终ItemState/Suplex；通用父代画不重放投掷；19历史136合同保留"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I21",
-      "installation": "I02-owned-value;native-install-contract=R09",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
       "task": "I21",
-      "research": "R09",
-      "e2e": "E18",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -32767,18 +33148,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+        "consumer_review": "tx-04-20 I21：同T的held Key/shape、完整Body null pose与最终ItemState/Suplex；通用父代画不重放投掷；19历史136合同保留"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I21",
-      "installation": "I02-owned-value;native-install-contract=R09",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
       "task": "I21",
-      "research": "R09",
-      "e2e": "E18",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -36017,18 +36398,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+        "consumer_review": "tx-04-20 I22-I25：具名原版角色注册、全身体关系预检和两阶段原生回读；Hologram按真实exists/type/twin/index导出；禁止角色操作补值"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I27",
-      "installation": "I02-owned-value;native-install-contract=R12",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
-      "task": "I27",
-      "research": "R12",
-      "e2e": "E16",
+      "task": "I23-I25",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -36611,18 +36992,18 @@
         "ownership": "ReplicatedState",
         "reason": "公开纯值／关联／配置／姿态由显式域状态复制，缺口保留原状态",
         "review_task": "I05",
-        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+        "consumer_review": "tx-04-20 I22-I25：具名原版角色注册、全身体关系预检和两阶段原生回读；Hologram按真实exists/type/twin/index导出；禁止角色操作补值"
       },
-      "handling": "named-native-consumer-pending",
-      "consumer": "ClientPlayers/I09/I10",
-      "installation": "I02-owned-value;native-install-contract=R03",
-      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
-      "implementation": "mod/src/replica/player_target.cpp",
-      "implementation_status": "classified-not-native-installed",
+      "handling": "I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+      "consumer": "ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+      "installation": "application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+      "cleanup": "held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement",
+      "implementation": "mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+      "implementation_status": "implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
       "runtime_status": "not-run;I39",
-      "task": "I09/I10",
-      "research": "R03",
-      "e2e": "E04/E05/E06/E07/E08",
+      "task": "I23-I25",
+      "research": "R09/R10/R11",
+      "e2e": "E03-E07/E18/E22/E23",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {
@@ -62275,6 +62656,31 @@
       },
       "remaining": "I21-I40 roles/full draw/HUD/global retirement/Scene capability and unified E2E remain;native_apply=false;native_source_complete=false",
       "validation": "static source and primary IDA review only;no build/test/game launch;I39 not run"
+    },
+    "i21_i25_role_installation": {
+      "tasks": "I21-I25",
+      "implementation": "client_player_roles.cpp/client_player_roles_native.cpp;client_players_native.cpp;client_entity_draw_native.cpp",
+      "status": "implemented slice;I26-I40 pending;I39 not run;native_apply=false",
+      "source": "application_player_role-v1;player-source-v2.role_state=player-role-state-v1;KnownCurrent readiness>=2 same ordinary window",
+      "leafs": {
+        "IsSubPlayer": "VA0x74D9B0/RVA0x34D9B0;PlayerIndex+0x1610 sign bit",
+        "GetSubPlayer": "VA0x6D86D0/RVA0x2D86D0;raw+0x1D84",
+        "GetMainTwin": "VA0x413140/RVA0x13140;non-minus-one lower-index twin else self",
+        "GetOtherTwin": "VA0x413160/RVA0x13160;raw EntityPtr+0x1E4C",
+        "GetFlippedForm": "REP Lua_PlayerGetBackupPlayer;raw+0x1E50;not typed Null inference",
+        "IsHologram": "VA0x7D1C90/RVA0x3D1C90;exists/type29-or38/twin/nonself/lower-index;no independent flag"
+      },
+      "families": {
+        "JacobEsau": "reciprocal opposite19/20 twin;whole group/roster/source state kept distinct",
+        "ForgottenSoul": "opposite16/17;one-way roster to non-roster sub;Swap0x7C26DB-0x7C26ED exchanges PlayerType;Client uses complete rebuild",
+        "TaintedForgottenSoul": "35/40 reciprocal roster twins;held independent of Parent",
+        "Lazarus": "29/38 reciprocal raw backup;actual Birthright twin graph separately captured;do not assume backup==twin"
+      },
+      "held": "VA0x784A60;78558D checks hidden;7856D1 target virtual Render+0x14;Visible and Sprite scale+E4/+E8,rotation+EC,alpha+FC restored;Parent unchanged;no Hold/Throw replay",
+      "order": "all body storage/Weapon links before all body native public getter checks;Scene remains sole commit",
+      "review": "one GPT-6 Luna max;primary directly reread Wiki/wrappers/leafs/Swap/held disassembly;corrected same-type sub initial misread and PositionOffset mislabel",
+      "unknown": "BR twin/backup pointer identity not inferred;full role-specific private draw I27/I29 and abnormal lifecycle closure I33 remain separate",
+      "notes": "docs/design/tx-04-20/player-i21-i25-native.md;tx-04-20-role-installation.md"
     }
   }
 }

@@ -213,7 +213,8 @@ bool ClientObjects::PrepareTarget(const V &target,const V *applied,const char *&
       }
       if(!plan->duplicate&&!lifted.empty()){reason="objects_lifted_requires_effect136";return false;}
       if(!plan->duplicate)for(const auto &d:next)if(d.category==0&&d.derived&&d.derived->player_held_draw){
-        // 本轮仅补136持物显示；其它可举实体仍由Player20扩展，不能拿首个Effect或首Player代替引用。
+        // 20完整owner的通用持物由全目标角色预检；19历史支撑继续保留136窄合同。
+        if(plan->players)continue;
         const auto edge=std::find_if(d.relations.begin(),d.relations.end(),[](const auto &r){return r.member=="EntityPlayer.GetHeldEntity"&&!r.is_null;});
         if(edge==d.relations.end()){reason="objects_player_held_reference_missing";return false;}
         const auto held=std::find_if(next.begin(),next.end(),[&](const auto &v){return v.key==edge->target;});

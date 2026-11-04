@@ -2,6 +2,7 @@
 #include "game/client_entity_model.h"
 #include "game/client_player_state.h"
 #include "game/client_player_equipment.h"
+#include "game/client_player_roles.h"
 #include <algorithm>
 
 namespace cs::game {
@@ -18,8 +19,6 @@ bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,
   if(begun_&&!ready_){reason="players_candidate_inflight";return false;}
   try{
     auto plan=std::make_unique<replica::PlayerApplyPlan>(replica::PlanPlayerTarget(std::move(target),applied_));
-    // 完整T的执行依赖后续状态/资源/角色模块；缺席在世界写前返回具名未支持原因。
-    if(!adapter_.prepare||!adapter_.install||!adapter_.retire||!adapter_.relations){reason="players_state_resource_role_adapters_pending_I11_I29";return false;}
     std::vector<ClientPlayerDescription> values;std::map<ClientObjectKey,std::shared_ptr<const ClientPlayerHistoryView>> histories;
     auto source=std::make_shared<const std::string>(replica::Text(plan->target->entities->source));
     const auto equipment=ClientDescribePlayerEquipment(*plan->target);
@@ -27,6 +26,8 @@ bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,
       if(!body.native_membership_known)throw replica::ContractError("players:native_membership_unavailable");
       ClientPlayerDescription d;d.entity=ClientDescribeEntity(plan->target->entities->objects.at(body.entity_index),plan->dependencies,source,true);
       d.state=ClientDescribePlayerState(plan->target->entities->objects.at(body.entity_index));
+      d.role=ClientDescribePlayerRole(plan->target->entities->objects.at(body.entity_index));
+      if(d.role->is_sub!=body.is_sub_player)throw replica::ContractError("players:entity_player_sub_body_conflict");
       d.equipment=equipment.at(d.entity.key);histories.emplace(d.entity.key,d.equipment->history);
       for(unsigned i=0;i<4;++i){const int slot=d.state->active[i].backup_slot;
         d.active_backups[i]=slot<0?ClientObjectReference{true,true,{}}:Ref(plan->target->backup_slots[unsigned(slot)]);}
@@ -43,6 +44,9 @@ bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,
       if(adapter_.prepare&&!adapter_.prepare(adapter_.context,d,reason)){reason_=reason;reason=reason_.c_str();return false;}
       values.push_back(std::move(d));
     }
+    ClientPlayerRolesPrepare(values,*plan->target);
+    // 先完成真实值/角色图预检；完整后续adapter缺席仍在世界写前拒绝，不用空回调放行。
+    if(!adapter_.prepare||!adapter_.install||!adapter_.retire||!adapter_.relations){reason="players_remaining_role_draw_adapters_pending_I26_I29";return false;}
     std::array<ClientObjectReference,4> backups;for(unsigned i=0;i<4;++i)backups[i]=Ref(plan->target->backup_slots[i]);
     plan_=std::move(plan);values_=std::move(values);candidate_histories_=std::move(histories);backups_=backups;begun_=written_=ready_=false;reason="players_plan_ready";return true;
   }catch(const std::exception &e){reason_=e.what();reason=reason_.c_str();return false;}catch(...){reason="players_plan_allocation";return false;}

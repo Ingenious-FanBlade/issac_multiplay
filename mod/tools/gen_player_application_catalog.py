@@ -28,6 +28,18 @@ EQUIPMENT_MEMBERS = {
     "EntityPlayer.GetWeapon", "EntityPlayer.FireDelay",
 }
 EQUIPMENT_OWNERS = {"TemporaryEffect", "HistoryItem", "CostumeSpriteDesc", "Weapon"}
+# 与产品角色注册表共源；0—40的安装责任可见，I27专用状态及I29绘制仍单独标记。
+VANILLA_ROLES = [
+    {"type": int(t), "name": n, "family": "C" + f"{int(f):02}", "task": "I" + task,
+     "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
+     "draw": "I29-pending", "runtime_status": "I39-not-run"}
+    for t, n, f, task in re.findall(r'CS_PLAYER_ROLE\((\d+),\s*"([^"]+)",\s*(\d+),\s*(\d+)\)',
+        (ROOT / "mod/src/game/client_player_roles.inc").read_text(encoding="utf-8"))
+]
+ROLE_MEMBERS = {"EntityPlayer." + name for name in (
+    "GetPlayerType", "GetPlayerIndex", "GetHeldEntity", "GetItemState", "GetSuplexState",
+    "GetSuplexAimCountdown", "GetSuplexTargetPosition", "GetSuplexLandPosition",
+    "GetMainTwin", "GetOtherTwin", "GetSubPlayer", "IsSubPlayer", "GetFlippedForm", "IsHologram")}
 # 每一族指向实际实施责任；未实施的安装明确保留 pending，不能自动当作已处理。
 FAMILIES = [
     (r"History", "P10", "I17", "R06", "E12"),
@@ -110,11 +122,22 @@ def generate():
                     implementation="mod/src/game/client_player_equipment_model.cpp;mod/src/game/client_player_equipment_native.cpp;mod/src/game/client_player_weapon_native.cpp",
                     implementation_status="implemented-equipment-slice;remaining-role-draw-adapter-I21-I29;I39-not-run",
                     cleanup="unlink actual EntityPtr slots and weapon owner before virtual Free;costume ANM/native Player each destroyed once;unknown prefixes retained")
+            if not authority and m["id"] in ROLE_MEMBERS:
+                role_task = "I21" if m["id"] in {"EntityPlayer.GetHeldEntity", "EntityPlayer.GetItemState"} or "Suplex" in m["id"] else "I22" if m["id"] == "EntityPlayer.GetPlayerType" else "I23-I25"
+                rows[key].update(
+                    task=role_task, research="R09/R10/R11", e2e="E03-E07/E18/E22/E23",
+                    handling="I21-I25:final-composite-values+whole-target-vanilla-body-graph",
+                    consumer="ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
+                    installation="application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
+                    implementation="mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+                    implementation_status="implemented-role-slice;I26-I40-and-full-I29-draw-pending;I39-not-run",
+                    cleanup="held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement")
     research_path = ROOT / "docs/design/tx-04-20/player-native-contracts.json"
     return {"format": "isaac.cs.player.application-catalog", "version": 1,
             "target_contract": "player-target-v2", "source_contract": "player-source-v2",
             "projection_review": PLAYER_PROJECTION_REVIEW,
             "native_apply": False, "runtime_acceptance": "I39-not-run",
+            "role_implementation": {"tasks": "I21-I25", "source": "application_player_role-v1;same-use ordinary window;source-v2.role_state=player-role-state-v1", "model": "mod/src/game/client_player_roles.cpp", "native": "mod/src/game/client_player_roles_native.cpp", "registry": VANILLA_ROLES, "internal": "possessor -1/variant2 and other Baby/internal variants explicitly unsupported;undeclared Mod characters=tx-04-27", "relationships": "source storage and public main/other/sub/flipped remain distinct;whole-target group and shape validation;all-links-before-all-checks", "hologram": "actual native exists/type29-or38/twin/lower-player-index predicate;no invented flag", "status": "implemented-slice;I26-I40-pending;I39-not-run;native_apply=false"},
             "structure_implementation": {"plan": "mod/src/replica/player_plan.cpp", "owner": "mod/src/game/client_players.cpp", "native": "mod/src/game/client_players_native.cpp", "tasks": "I05-I10", "scope": "base-entity-initialized/role-uninitialized until named I11-I29 adapters;preflight rejects absent adapters", "scene_commit": "ClientScene only;native_apply remains false"},
             "final_state_implementation": {"tasks": "I11-I15", "source": "application_player_state-v1;same-use ordinary-window;no addresses or headers", "model": "mod/src/game/client_player_model.cpp", "native": "mod/src/game/client_player_state_native.cpp", "fields": sorted(STATE_FIELDS), "inventory": "counts/voided/wisps/smelted/trinkets;official Plus blocked+all innate groups including legacy and temporary timers", "slots": "active4/pocket4/queue;PartialCharge=f32 despite ZHL int;EsauJr typed backup slot", "status": "implemented-slice;I39-not-run;native_apply=false"},
             "equipment_implementation": {"tasks": "I16-I20", "source": "application_player_equipment-v1;current-use ordinary window;public Sprite/Costume/Weapon and independent Player History component graph", "model": "mod/src/game/client_player_equipment_model.cpp", "native": "mod/src/game/client_player_equipment_native.cpp;mod/src/game/client_player_weapon_native.cpp", "effects": "ordered local-config/count/cooldown;cacheFlags/disabled/evaluate;15 form counters;no Add/Remove/EvaluateItems", "history": "ordered native vector plus Scene-committed immutable per-body HUD view;no equality-based sharing inference", "resources": "main and 13 physical inline ANM;complete exact pose;headAnim bytes/string assignment from named 773990 writer;ordered costume vector and 15 layer map;empty clears old", "weapons": "five explicit slots;types1..15;actual dynamic vtables;per-slot generations;EntityPtr links;detach owner before native Free;no Fire/Update/ClearReferences replay", "status": "implemented-slice;I21-I40-pending;I39-not-run;native_apply=false"},

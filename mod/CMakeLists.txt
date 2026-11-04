@@ -53,7 +53,7 @@ add_custom_command(OUTPUT "${GENERATED}/entity_application.inc" "${GENERATED}/en
 add_custom_command(OUTPUT "${GENERATED}/player_application.inc" "${GENERATED}/player-application.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_player_application_catalog.py" --out "${GENERATED}"
   DEPENDS tools/gen_player_application_catalog.py tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py
-    src/game/client_player_fields.inc
+    src/game/client_player_fields.inc src/game/client_player_roles.inc
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-native-contracts.json" ${REPLICA_CATALOGS} VERBATIM)
 add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/projection_graph.cpp src/replica/codec.cpp src/replica/entity_target.cpp src/replica/entity_plan.cpp src/replica/player_target.cpp
   src/replica/room_grid_target.cpp src/replica/room_grid_plan.cpp src/replica/room_grid_budget.cpp src/replica/player_plan.cpp
@@ -95,6 +95,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/client_entity_model.cpp src/game/client_entity_common_native.cpp
   src/game/client_players.cpp src/game/client_players_native.cpp
   src/game/client_player_model.cpp src/game/client_player_state_native.cpp
+  src/game/client_player_roles.cpp src/game/client_player_roles_native.cpp
   src/game/client_player_equipment_model.cpp src/game/client_player_equipment_native.cpp src/game/client_player_weapon_native.cpp
   src/game/client_entity_class_model.cpp src/game/client_entity_adapters_native.cpp
   src/game/client_entity_collections_native.cpp
@@ -130,6 +131,7 @@ file(GENERATE OUTPUT "${ISAACCS_DLL_OUTPUT}/build-flavor.json"
 set_source_files_properties(src/game/world_sources/loot.cpp src/game/world_sources/lua_entity.cpp src/game/player_api.cpp src/game/client_native_bridge.cpp src/binding/definitions.cpp "${GENERATED}/hooks_generated.cpp"
   src/game/client_players_native.cpp
   src/game/client_player_state_native.cpp
+  src/game/client_player_roles_native.cpp
   src/game/client_player_equipment_native.cpp src/game/client_player_weapon_native.cpp
   src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_backdrop_native.cpp src/game/client_objects_native.cpp src/game/client_presentation_native.cpp src/game/client_resources_native.cpp
   src/game/client_entity_common_native.cpp src/game/client_resource_shaders_native.cpp src/game/client_entity_adapters_native.cpp src/game/client_entity_collections_native.cpp

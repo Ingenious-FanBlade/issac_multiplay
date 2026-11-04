@@ -9,10 +9,12 @@ enum class ClientPlayerUse : unsigned { Structure=1, State=2, Relations=4, Draw=
 enum class ClientPlayerPrefix : unsigned { Raw=1,CtorEntered=2,Constructed=4,InitEntered=8,Initialized=16,State=32,Resources=64,Roster=128,Published=256,Linked=512,Checked=1024,FreeEntered=2048 };
 struct ClientPlayerState;
 struct ClientPlayerEquipment;
+struct ClientPlayerRoleState;
 struct ClientPlayerDescription final {
   ClientObjectDescription entity;
   std::shared_ptr<const ClientPlayerState> state;
   std::shared_ptr<const ClientPlayerEquipment> equipment;
+  std::shared_ptr<const ClientPlayerRoleState> role;
   // Esau Jr VarData是槽号，不是地址；引用同T的四个备份槽，供I26角色adapter消费。
   std::array<ClientObjectReference,4> active_backups{};
   ClientObjectKey participant{},group{};
