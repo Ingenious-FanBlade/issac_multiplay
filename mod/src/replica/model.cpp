@@ -79,6 +79,11 @@ Json Parse(const std::string &s,Limits l){
 }
 std::string Text(const Value &v){rapidjson::StringBuffer b;rapidjson::Writer<rapidjson::StringBuffer> w(b);if(!v.Accept(w)) Fail("invalid_value");return {b.GetString(),b.GetSize()};}
 Json Copy(const Value &v){Json d;d.CopyFrom(v,d.GetAllocator());return d;}
+std::uint64_t OwnedValueUpperBound(const Value &v){
+  CheckValue(v);std::uint64_t bytes=65536;
+  const auto visit=[&](const auto &self,const Value &x)->void{const auto n=128ull+(x.IsString()?2ull*x.GetStringLength():0);if(n>UINT64_MAX-bytes)Fail("value_memory_overflow");bytes+=n;if(x.IsArray())for(const auto &e:x.GetArray())self(self,e);if(x.IsObject())for(auto i=x.MemberBegin();i!=x.MemberEnd();++i){self(self,i->name);self(self,i->value);}};
+  visit(visit,v);return bytes;
+}
 void CheckValue(const Value &v,Limits l){
   std::uint64_t nodes=0;Check(v,l,0,nodes);
   // 总字符串与节点开销也有上限，避免大量小字符串绕过单字符串限制。

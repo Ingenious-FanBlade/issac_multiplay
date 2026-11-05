@@ -92,10 +92,12 @@ Decision Validate(const RangeData &d,const Layouts &layouts,std::uint64_t limit)
 }
 Range Freeze(RangeData d,const Layouts &l,std::uint64_t limit){
   const auto before=Validate(d,l,limit);if(!before)Fail(before.reason);
+  // 分配前为独立副本申请额度；输入别名的租约不能替新内容付费。
+  const auto footprint=Footprint(d);auto lease=memory::Reserve(memory::Pool::Values,2*footprint+65536);
   // const shared_ptr本身不能阻止外部别名写树；边界总是深复制一次。
   for(auto &r:d.records)for(auto &f:r.fields)if(auto *v=std::get_if<std::shared_ptr<const Json>>(&f.value);v&&*v)*v=std::make_shared<const Json>(Copy(**v));
   if(d.components)d.components=std::make_shared<const Json>(Copy(*d.components));
-  const auto valid=Validate(d,l,limit);if(!valid)Fail(valid.reason);return std::make_shared<const RangeData>(std::move(d));
+  const auto valid=Validate(d,l,limit);if(!valid)Fail(valid.reason);lease->Resize(Footprint(d)+128);d.memory=std::move(lease);return std::make_shared<const RangeData>(std::move(d));
 }
 bool Equal(const RangeData &a,const RangeData &b){
   const auto &x=a.sample;const auto &y=b.sample;

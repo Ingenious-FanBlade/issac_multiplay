@@ -121,6 +121,9 @@ void Capture::Ordinary(const obs::LiveBatch &b) noexcept {
     Scope(c);loss_=b.loss;invalidation_=b.invalidation;
     if(last_tick_&&b.tick<=last_tick_&&b.epoch==source_epoch_)Fail("stream_ordinary_tick_repeated");
     std::array<Json,11> sources;
+    // 本次解析和分层临时副本也占展开池；不能等Freeze后才追记内存。
+    std::uint64_t source_bytes=11*65536;for(const auto &e:b.domains){if(e->stream_payload.size()>(256ull<<20)/16)Fail("stream_source_workspace_budget");source_bytes+=16ull*e->stream_payload.size();}
+    auto source_memory=memory::Reserve(memory::Pool::Values,source_bytes);
     std::array<const obs::ObservationEnvelope *,11> envelopes{};
     for(const auto &e:b.domains){
       const auto index=unsigned(e->domain)-1;if(index>=11||envelopes[index])Fail("stream_duplicate_domain");
@@ -217,6 +220,7 @@ void Capture::Ordinary(const obs::LiveBatch &b) noexcept {
     members_=std::move(members);latest_=std::move(publication);last_capture_=b.capture;last_tick_=b.tick;
     status_.ready=true;status_.ordinary++;status_.world_sequence=w->sample.sequence;status_.reason="stream_ordinary_committed";Collect();
   }catch(const ContractError &e){Invalidate(e.what());if(e.code.find("exhausted")!=std::string::npos)exhausted_=true;}
+  catch(const std::runtime_error &e){Invalidate(e.what());}
   catch(...){Invalidate("stream_capture_allocation_or_source");}
 }
 // 逐身体子帧依赖明确普通版本，不改完整成员、不提升整房序号、不调用原生更新。
@@ -225,6 +229,7 @@ void Capture::PlayerPost(const BodySample &b,const std::string &payload) noexcep
     if(!status_.ready||!registry_||!store_||b.epoch!=source_epoch_||b.run!=source_run_||b.room!=source_room_||!b.binding||!b.tick||!b.outer||!b.owner)Fail("player_post_scope_or_dependency");
     const auto structure=current_.find({RangeKind::Structure,"world-members",{}}),resources=current_.find({RangeKind::Resource,"native-resources",{}});
     if(structure==current_.end()||resources==current_.end())Fail("player_post_structure_missing");
+    auto source_memory=memory::Reserve(memory::Pool::Values,65536+16ull*payload.size());
     auto source=Parse(payload);if(Str(At(source,"contract"))!="player-fast-source-v1")Fail("player_post_source_schema");
     const auto member=Subject(At(source,"subject"),"Player",false);const auto current=members_.find(member.key);
     if(current==members_.end()||current->second!=member||member.use!=b.use||member.shape!=b.shape||Unsigned(source["subject"]["local_id"])!=b.local)Fail("player_post_identity_changed");

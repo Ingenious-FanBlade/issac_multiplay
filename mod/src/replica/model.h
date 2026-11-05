@@ -9,6 +9,7 @@
 #include <set>
 #include "world/common/contracts.h"
 #include "core/participant.h"
+#include "core/replication_memory.h"
 
 namespace cs::replica {
 using Json=rapidjson::Document;
@@ -29,7 +30,7 @@ struct Scope final {
   std::uint64_t session=0, connection=0, run=0, floor=0, dimension=0, room=0, scene=0;
   bool operator==(const Scope &) const = default;
 };
-struct Message final { Kind kind=Kind::Error; std::uint64_t sequence=0; Json body; };
+struct Message final { memory::Lease memory; Kind kind=Kind::Error; std::uint64_t sequence=0; Json body; };
 struct ContractError : std::exception {
   std::string code;
   explicit ContractError(std::string c):code(std::move(c)){}
@@ -39,6 +40,8 @@ Json Parse(const std::string &,Limits={});
 std::string Text(const Value &);
 Json Copy(const Value &);
 void CheckValue(const Value &,Limits={});
+// 深复制/派生计划在分配前使用保守上界；不是JSON文本长度，也不读取原生资源。
+std::uint64_t OwnedValueUpperBound(const Value &);
 void ValidateModel(const Value &);
 Value Decimal(std::uint64_t,Allocator &);
 std::uint64_t Unsigned(const Value &);

@@ -335,6 +335,7 @@ std::string ObservationCommand(const std::string &action) {
   auto &r=*job->recording;
   const bool ready=job->ready.load(std::memory_order_acquire);
   std::string bodies="\nplayer_post_columns=local/use/shape/binding/last_native_update_tick/last_capture_tick/ordinary/odd/not_updated/reason";
+  const auto pools=memory::ReplicationBudget()->Snapshot();for(unsigned i=0;i<pools.size();++i)bodies+="\nreplication_pool_"+std::to_string(i)+"="+std::to_string(pools[i].current)+"/"+std::to_string(pools[i].high_water)+"/"+std::to_string(pools[i].limit);
   if(ready)for(unsigned slot=0;slot<r.body_status.size();++slot){const auto &b=r.body_status[slot];if(!b.local&&!b.not_updated)continue;
     const auto row="\nplayer_post_"+std::to_string(slot)+"="+std::to_string(b.local)+"/"+std::to_string(b.use)+"/"+std::to_string(b.shape)+
       "/"+std::to_string(b.binding)+"/"+std::to_string(b.last_native_update_tick)+"/"+std::to_string(b.last_capture_tick)+

@@ -2,6 +2,7 @@
 #include "replica/player_target.h"
 #include <variant>
 #include <optional>
+#include "core/replication_memory.h"
 
 namespace cs::replica::stream {
 inline constexpr unsigned kSchema=1;
@@ -56,6 +57,7 @@ struct Layout final {
 };
 using Layouts=std::map<std::string,Layout>;
 struct RangeData final {
+  memory::Lease memory;
   WorldScope world;
   RangeId id;
   std::uint64_t revision=0;

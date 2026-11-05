@@ -11,13 +11,14 @@ void LiveConsumer::Invalidate(const char *reason) noexcept {pending_.clear();lat
 std::shared_ptr<const ObservationEnvelope> LiveConsumer::Own(const ObservationEnvelope &e){
   std::uint64_t bytes=sizeof(ObservationEnvelope)+128+2*(e.payload.size()+e.stream_payload.size()+e.schema.size()+e.result.range.size());
   for(const auto &r:e.result.reasons)bytes+=sizeof(std::string)+32+2*r.size();
+  auto lease=memory::Reserve(memory::Pool::Values,bytes);
   auto used=ledger_->bytes.load(std::memory_order_acquire);
   do {if(bytes>ledger_->limit||used>ledger_->limit-bytes)throw std::bad_alloc();}while(!ledger_->bytes.compare_exchange_weak(used,used+bytes,std::memory_order_acq_rel));
   const auto ledger=ledger_;
   ObservationEnvelope *copy=nullptr;
   try {copy=new ObservationEnvelope(e);}catch(...){ledger->bytes.fetch_sub(bytes,std::memory_order_acq_rel);throw;}
   // shared_ptr控制块分配失败会调用deleter，账本也恰好退还一次。
-  return {copy,[ledger,bytes](const ObservationEnvelope *p){delete p;ledger->bytes.fetch_sub(bytes,std::memory_order_acq_rel);}};
+  return {copy,[ledger,bytes,lease=std::move(lease)](const ObservationEnvelope *p){delete p;ledger->bytes.fetch_sub(bytes,std::memory_order_acq_rel);}};
 }
 void LiveConsumer::Receive(const ObservationEnvelope &e) noexcept {
   if(!status_.attached)return;

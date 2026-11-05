@@ -10,9 +10,12 @@ enum class State { Handshake, Waiting, Preparing, Active, Retiring, Stopped };
 enum class Codec : unsigned { None, Zstd };
 // 封套按连接/路由持有；范围正文中的WorldScope仍然可在全部Peer间共享。
 struct Message final {
+  memory::Lease memory;
   Kind kind=Kind::Error;
   std::uint64_t sequence=0,connection=0,route=0;
   Json body;
+  // 热范围直接持有完整DTO；只有冷适配器使用body的旧JSON视图。
+  Range range;
 };
 struct Header final {
   std::uint64_t connection=0,route=0,transfer=0;
@@ -31,20 +34,14 @@ std::vector<std::uint8_t> Encode(const Message &,Limits={});
 Message Decode(std::span<const std::uint8_t>,Limits={});
 Message RangeMessage(const RangeData &,std::uint64_t connection,std::uint64_t route);
 Range ReadRange(const Message &,const Layouts &,std::uint64_t value_budget=256ull<<20);
+RangeData RangeDataFromMessage(const Message &);
+// 固定payload schema=1；泛型树只用于声明的复杂值，绝不经过JSON文本往返。
+std::vector<std::uint8_t> EncodePayload(const Message &,Limits);
+void DecodePayload(std::span<const std::uint8_t>,Message &,Limits);
 // 先做完整嵌套形状检查；本地必需字段布局仍由ReadRange的可信Layouts约束。
 void ValidateRangePayload(const Message &);
-// I04固定64字节路由格式；授权预算/选择补片/大消息调度由I13—I17使用同一个头接入。
+// 固定64字节路由格式；授权预算/补片共用stream_transport的同一描述。
 Header ReadHeader(std::span<const std::uint8_t>,Limits={});
 std::vector<std::vector<std::uint8_t>> Fragment(const Message &,std::uint64_t transfer,Limits={});
-class Reassembler final {
-public:
-  explicit Reassembler(Limits l):limits_(l){}
-  // 协商在完整握手消息后生效；退休旧候选，不能让旧预算下的分配越过新上限。
-  void Configure(Limits limits) noexcept {pending_.clear();limits_=limits;}
-  bool Receive(std::span<const std::uint8_t>,std::uint64_t now,Message &);
-private:
-  struct Candidate {Header header;std::uint64_t started=0;std::size_t bytes=0;std::vector<std::vector<std::uint8_t>> parts;};
-  Limits limits_;
-  std::map<std::tuple<std::uint64_t,std::uint64_t,std::uint64_t>,Candidate> pending_;
-};
 } // namespace cs::replica::stream
+#include "replica/stream_transport.h"

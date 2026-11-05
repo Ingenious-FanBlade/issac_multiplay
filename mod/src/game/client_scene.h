@@ -184,6 +184,8 @@ private:
   replica::Scope waiting_scope_{}, target_scope_{}, applied_scope_{};
   std::array<replica::Scope,128> retired_scopes_{};
   unsigned retired_scope_count_=0;
+  // 冷应用的全部DOM/派生计划共用一次保守额度；A和T各持有独立租约，退休后才释放。
+  memory::Lease target_memory_,applied_memory_,planning_memory_;
   std::unique_ptr<replica::Json> target_, applied_;
   std::shared_ptr<const replica::RoomGridTarget> room_grid_target_,room_grid_applied_;
   std::shared_ptr<const replica::PlayerTarget> player_target_,player_applied_;

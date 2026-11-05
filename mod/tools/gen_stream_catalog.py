@@ -127,7 +127,7 @@ def generate():
             "player_post": "player-fast-source-v1;domains/common/stream.lua::Fast;actual-body-witness;main-Sprite-token;no relations/containers/parameter queries",
             "validity": "immutable acquired sample + target checked sample;bounded full reads for unclosed dirty coverage",
             "layouts": ["stream.context.v1", "stream.structure.v1", "stream.resource.v1", "stream.world.v1", "stream.player.v1"]},
-        "runtime": "I01-I10 capture implemented;I11 encoding/I19 publication/I23 application and I39 acceptance pending"}
+        "runtime": "I01-I15 capture/transport implemented;I19 publication/I23 application and I39 acceptance pending"}
 
 
 def main():

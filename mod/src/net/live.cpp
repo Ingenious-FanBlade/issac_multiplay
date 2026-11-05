@@ -72,8 +72,7 @@ r::Message Hello(std::uint64_t nonce) {
 }
 }
 r::Limits Limits() noexcept {
-  r::Limits l; l.bytes=65536;l.nodes=4096;l.depth=24;l.string_bytes=8192;
-  l.fragments=64;l.candidates=2;l.timeout_ms=1000;return l;
+  return s::HandshakeLimits();
 }
 std::uint64_t Random() {
   std::uint64_t n=0;
@@ -82,7 +81,7 @@ std::uint64_t Random() {
   return n;
 }
 bool IsPacket(std::span<const std::uint8_t> b) noexcept {
-  return b.size()>=4 && b[0]=='I' && b[1]=='C' && b[2]=='R' && (b[3]=='F'||b[3]=='S');
+  return b.size()>=4 && b[0]=='I' && b[1]=='C' && b[2]=='R' && (b[3]=='F'||b[3]=='S'||b[3]=='B');
 }
 Packets Pack(const r::Message &m,std::uint64_t &transfer) {
   if (transfer==UINT64_MAX) Fail("live_transfer_exhausted");
@@ -108,7 +107,7 @@ bool Reassembler::Receive(std::span<const std::uint8_t> bytes,std::uint64_t now,
   s::Message wire;if(!wire_.Receive(bytes,now,wire))return false;
   s::ValidateReceive(wire,authority_?s::Direction::ToAuthority:s::Direction::ToClient,
     wire.kind==s::Kind::Hello||wire.kind==s::Kind::Welcome?s::State::Handshake:s::State::Waiting);
-  out.sequence=wire.sequence;
+  out.sequence=wire.sequence;out.memory=wire.memory;
   if(wire.kind==s::Kind::Hello){out.kind=r::Kind::Hello;out.body=std::move(wire.body);return true;}
   if(wire.kind==s::Kind::Error&&!scope_.connection){out.kind=r::Kind::Error;out.body=std::move(wire.body);return true;}
   if(wire.kind==s::Kind::Welcome){scope_={Number(wire.body,"session"),wire.connection,1,1,1,1,1};out.kind=r::Kind::Welcome;out.body=std::move(wire.body);out.body.RemoveMember("session");}
@@ -116,7 +115,7 @@ bool Reassembler::Receive(std::span<const std::uint8_t> bytes,std::uint64_t now,
     if(wire.connection!=scope_.connection||wire.route!=1)Fail("live_v2_route_mismatch");
     if(wire.kind==s::Kind::Ready||wire.kind==s::Kind::Roster||wire.kind==s::Kind::Stop||wire.kind==s::Kind::Disconnect){
       const auto op=wire.kind==s::Kind::Ready?"ready":wire.kind==s::Kind::Roster?"roster":wire.kind==s::Kind::Stop?"stop":"disconnect";
-      out=Control(scope_,wire.sequence,op,std::move(wire.body));return true;
+      out=Control(scope_,wire.sequence,op,std::move(wire.body));out.memory=std::move(wire.memory);return true;
     }
     out.kind=wire.kind==s::Kind::Input?r::Kind::Input:wire.kind==s::Kind::InputAck?r::Kind::InputAck:wire.kind==s::Kind::Error?r::Kind::Error:r::Kind::Baseline;
     if(out.kind==r::Kind::Baseline)Fail("live_v2_world_not_connected");out.body=std::move(wire.body);
@@ -144,7 +143,7 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes,std::uint64_t now,
     if(nonce_ && nonce_!=nonce)Fail("live_nonce_conflict");
     auto agreed=s::Negotiate(GameCapabilities(),At(m.body,"capabilities"));
     // 当前连接控制只实现标准1200字节预算，不能静默违反更小的协商值。
-    assembler_.Configure(AgreedLimits(agreed));
+    assembler_.Configure(AgreedLimits(agreed));assembler_.Bind(scope_);
     nonce_=nonce;welcome_.kind=r::Kind::Welcome;welcome_.sequence=1;welcome_.body.SetObject();
     auto &a=welcome_.body.GetAllocator();Object(welcome_.body,"capabilities",agreed,a);
     r::Put(welcome_.body,"scope",r::ScopeValue(scope_,a),a);
@@ -193,7 +192,7 @@ Packets HostPeer::Progress(const protocol::Ack &p) {
     auto ack=Pack(r::InputProgress(scope_,ordinal_,p.generation,p.processed,p.processed_tick),transfer_);
     packets.insert(packets.end(),std::make_move_iterator(ack.begin()),std::make_move_iterator(ack.end()));
   }
-  return packets;
+  return s::Bundle(packets);
 }
 Packets HostPeer::Bye(const char *reason) {
   if(!nonce_)return {};r::Json p;p.SetObject();r::Put(p,"reason",std::string(reason),p.GetAllocator());
@@ -218,17 +217,24 @@ struct Client::State {
   bool welcomed=false,have_progress=false;
   protocol::Ack progress{};
   std::array<Intent,4> history{};unsigned history_size=0;
+  struct Queued final {memory::Lease memory;std::vector<std::uint8_t> bytes;};
+  std::deque<Queued> pending_send;
   ~State(){if(socket!=INVALID_SOCKET)closesocket(socket);if(wsa)WSACleanup();}
   void Emit(Event e) {if(!events.TryPush(e))Fail("live_client_event_queue_full");}
-  void SendPackets(const Packets &packets) {
-    for(const auto &p:packets) {
+  void FlushPackets() {
+    for(unsigned i=0;i<64&&!pending_send.empty();++i) {const auto &p=pending_send.front().bytes;
       const auto n=send(socket,reinterpret_cast<const char *>(p.data()),int(p.size()),0);
       if(n!=int(p.size())) {
         const auto error=WSAGetLastError();
         if(error==WSAEWOULDBLOCK||error==WSAENOBUFS||error==WSAECONNRESET||error==WSAENETRESET)return;
         Fail("live_client_send");
       }
+      pending_send.pop_front();
     }
+  }
+  void SendPackets(const Packets &packets) {
+    if(packets.size()>256-pending_send.size())Fail("live_client_send_queue_full");
+    for(const auto &p:packets){if(p.empty()||p.size()>1200)Fail("live_client_datagram_budget");auto lease=memory::Reserve(memory::Pool::Wire,p.size()+sizeof(Queued)+64);pending_send.push_back({std::move(lease),p});}FlushPackets();
   }
   void SendMessage(const r::Message &m){SendPackets(Pack(m,transfer));}
   void Ready() {
@@ -245,7 +251,7 @@ struct Client::State {
       const auto server=Number(m.body,"server_nonce");
       if(index<1||index>3||!next.session||!next.connection)Fail("live_welcome_identity");
       if(welcomed&&(scope!=next||ordinal!=index||server_nonce!=server))Fail("live_welcome_conflict");
-      auto agreed=s::Negotiate(GameCapabilities(),At(m.body,"capabilities"));assembler.Configure(AgreedLimits(agreed));
+      auto agreed=s::Negotiate(GameCapabilities(),At(m.body,"capabilities"));assembler.Configure(AgreedLimits(agreed));assembler.Bind(next);
       if(!welcomed) {scope=next;ordinal=unsigned(index);server_nonce=server;welcomed=true;
         Event e;e.type=Event::Type::Welcome;e.scope=scope;e.ordinal=ordinal;Emit(e);}
       last_receive=now;Ready();return;
@@ -285,6 +291,7 @@ struct Client::State {
       last_receive=GetTickCount64();
       while(!stop.load(std::memory_order_acquire)) {
         const auto now=GetTickCount64();
+        FlushPackets();
         if(now-last_receive>=timeout)Fail("live_peer_timeout");
         if(now-last_send>=250) {if(welcomed)Ready();else SendPackets(hello_packets);last_send=now;}
         Intent intent;
@@ -301,16 +308,19 @@ struct Client::State {
             SendMessage(r::InputIntent(scope,ordinal,v.generation,v.sequence,v.target,v.state));
           }
         }
-        fd_set reads;FD_ZERO(&reads);FD_SET(socket,&reads);timeval wait{0,10000};
+        fd_set reads;FD_ZERO(&reads);FD_SET(socket,&reads);timeval wait{0,2000};
         const auto ready=select(0,&reads,nullptr,nullptr,&wait);
         if(ready==SOCKET_ERROR)Fail("live_client_select");
         if(ready>0)for(unsigned n=0;n<64;++n) {
           std::array<std::uint8_t,1201> bytes{};const auto count=recv(socket,reinterpret_cast<char *>(bytes.data()),int(bytes.size()),0);
           if(count==SOCKET_ERROR){const auto error=WSAGetLastError();if(error==WSAEWOULDBLOCK)break;
             if(error==WSAECONNRESET||error==WSAENETRESET||error==WSAEMSGSIZE)continue;Fail("live_client_receive");}
-          r::Message m;if(assembler.Receive({bytes.data(),std::size_t(count)},GetTickCount64(),m))Receive(m);
+          const std::span<const std::uint8_t> packet(bytes.data(),std::size_t(count));
+          if(s::IsBundle(packet)){auto workspace=memory::Reserve(memory::Pool::Workspace,8192);const auto entries=s::Unbundle(packet);for(const auto &entry:entries){if(stop.load(std::memory_order_acquire))break;r::Message m;if(assembler.Receive(entry,GetTickCount64(),m))Receive(m);}}
+          else {r::Message m;if(assembler.Receive(packet,GetTickCount64(),m))Receive(m);}
         }
       }
+      pending_send.clear();
       if(welcomed) {r::Json p;p.SetObject();auto bye=Pack(Control(scope,++control,"disconnect",std::move(p)),transfer);
         for(unsigned i=0;i<3;++i)SendPackets(bye);}
     } catch(const std::exception &error) {Event e;e.type=Event::Type::Failed;Reason(e,error.what());events.TryPush(e);}

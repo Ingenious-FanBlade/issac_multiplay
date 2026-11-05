@@ -62,6 +62,8 @@ struct Worker::State {
   Endpoint endpoint{};
   // ICSR与历史输入工具共用监听socket，但每槽只选择一种协议与独立身份。
   std::unique_ptr<live::HostPeer> game_peer;
+  struct QueuedGame final {memory::Lease memory;std::vector<std::uint8_t> bytes;};
+  std::deque<QueuedGame> game_outgoing;
   bool game_candidate = false;
   std::uint64_t candidate_since = 0;
   SpscQueue<ReceivedInput, kReceiveCapacity> incoming;
@@ -211,7 +213,7 @@ struct Worker::State {
   }
   void BestEffortBye(ByeReason reason, std::uint64_t now) noexcept {
     if (game_peer) {
-      try { SendGame(game_peer->Bye(ByeReasonName(reason)), now); }
+      try { game_outgoing.clear();SendGame(game_peer->Bye(ByeReasonName(reason)), now); }
       catch (...) { CountError(Error::Payload); }
       published_state.store(PeerState::Retired, std::memory_order_release);
       return;
@@ -248,18 +250,23 @@ struct Worker::State {
   }
 
   // 正式ICSR数据报仍受1200字节限制；sendto失败不触及主线程对象。
+  void FlushGame(std::uint64_t now) noexcept {
+    for(unsigned i=0;i<kSendBudget&&!game_outgoing.empty();++i){const auto &bytes=game_outgoing.front().bytes;Packet packet{};packet.size=bytes.size();std::copy(bytes.begin(),bytes.end(),packet.bytes.begin());if(!SendPacket(packet,now))return;game_outgoing.pop_front();}
+  }
+  // 临时socket反压保留尚未发送的完整数据报；部分排队失败具名收口，不悄悄丢掉后半包。
   void SendGame(const live::Packets &packets, std::uint64_t now) noexcept {
-    for (const auto &bytes : packets) {
-      if (bytes.size() > kMaximumPacket) { Finish(ByeReason::InternalFailure); return; }
-      Packet packet{}; packet.size = bytes.size();
-      std::copy(bytes.begin(), bytes.end(), packet.bytes.begin());
-      SendPacket(packet, now);
-    }
+    try {
+      if(packets.size()>256-game_outgoing.size())throw replica::ContractError("live_send_queue_full");
+      for(const auto &bytes:packets){if(bytes.empty()||bytes.size()>kMaximumPacket)throw replica::ContractError("live_datagram_budget");auto lease=memory::Reserve(memory::Pool::Wire,bytes.size()+sizeof(QueuedGame)+64);game_outgoing.push_back({std::move(lease),bytes});}
+      FlushGame(now);
+    }catch(...){Finish(ByeReason::InternalFailure,Error::Payload);}
   }
   void ReceiveGame(std::span<const std::uint8_t> bytes, const sockaddr_in &source,
                    std::uint64_t now) noexcept {
     if (terminal.load(std::memory_order_acquire) != TerminalReason::None) return;
     try {
+      // 一次先检查完整容器，再逐条交已有owner；所有条目共用已经绑定的实际endpoint。
+      if(replica::stream::IsBundle(bytes)){auto workspace=memory::Reserve(memory::Pool::Workspace,8192);const auto entries=replica::stream::Unbundle(bytes);for(const auto &entry:entries)ReceiveGame(entry,source,now);return;}
       if (!game_peer) {
         std::uint64_t session = 0; std::memcpy(&session, identity.session.data(), sizeof(session));
         if (!session) session = 1;
@@ -469,6 +476,7 @@ struct Worker::State {
   }
   void SendBatch(std::uint64_t now) noexcept {
     if (game_peer) {
+      FlushGame(now);
       if (!game_peer->Established()) return;
       try {
         Ack ack{};
@@ -546,7 +554,7 @@ struct Worker::State {
         Sleep(2);
     } while (GetTickCount64() < end);
   }
-  // 不等待全员输入；select 最长 10ms，每轮收发工作量有界，可及时响应停止。
+  // 真实游戏按最近到期服务，最多2ms；历史工具仍保持10ms的有界轮询。
   void Run() noexcept {
     while (!stop.load(std::memory_order_acquire) &&
            terminal.load(std::memory_order_acquire) == TerminalReason::None) {
@@ -579,7 +587,8 @@ struct Worker::State {
       fd_set reads;
       FD_ZERO(&reads);
       FD_SET(socket, &reads);
-      timeval timeout{0, kPollMs * 1000};
+      unsigned wait_ms=kPollMs;for(unsigned i=1;i<peers.size();++i)if(peers[i]->game_peer||!peers[i]->game_outgoing.empty())wait_ms=2;
+      timeval timeout{0, long(wait_ms * 1000)};
       const auto ready = select(0, &reads, nullptr, nullptr, &timeout);
       if (ready == SOCKET_ERROR) {
         Finish(ByeReason::InternalFailure, Error::None, WSAGetLastError());
@@ -820,6 +829,7 @@ bool Worker::TransportFailed() const noexcept {
 }
 WorkerStatus Worker::Status(unsigned ordinal) const noexcept {
   WorkerStatus result{};
+  result.replication_memory=memory::ReplicationBudget()->Snapshot();
   if (!state_ || !ordinal || ordinal >= core::kMaximumParticipants)
     return result;
   const auto &s = *state_->peers[ordinal];

@@ -1,5 +1,7 @@
 # tx-04-21 I06—I10：同窗目标、动态来源、逐身体见证与身份
 
+> 后续进度（2026-11-05）：[I11—I15传输实现与主审](tx-04-21-transport.md)已完成，未构建／测试；I16以后和I39统一验收待继续。本文原交付时点的事实保留。
+
 日期：2026-11-05，Asia/Singapore。本轮完成 I06—I10 的实现和主智能体静态审阅。未构建、运行测试或启动游戏；I39 统一 P2 全 E01—E26 后再 P4 全套的安排不变。30/60 Hz 是来源调度机会，尚无实测频率、CPU、带宽或画面一致性结论。任务不另编号，不新增单元测试，不保留 tx/E2E artifact。
 
 入口：[实施清单](tx-04-21-implementation-plan.md)、[I01—I05 基础](tx-04-21-foundation.md)、[采用合同](tx-04-21-native-contracts.md)、[现行规范](../../refactor/project-conventions.md)。

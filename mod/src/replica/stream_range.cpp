@@ -1,4 +1,5 @@
 #include "replica/stream_codec.h"
+#include "replica/stream_capture.h"
 #include <set>
 
 namespace cs::replica::stream {
@@ -55,10 +56,11 @@ Message RangeMessage(const RangeData &d,std::uint64_t connection,std::uint64_t r
     switch(field.value.index()){case 0:break;case 1:v.SetBool(std::get<bool>(field.value));break;case 2:v.SetUint64(std::get<std::uint64_t>(field.value));break;case 3:v.SetInt64(std::get<std::int64_t>(field.value));break;case 4:v.SetDouble(std::get<double>(field.value));break;case 5:{const auto &text=std::get<std::string>(field.value);v.SetString(text.data(),rapidjson::SizeType(text.size()),a);break;}case 6:{const auto &tree=std::get<std::shared_ptr<const Json>>(field.value);if(!tree)Fail("stream_null_tree");v.CopyFrom(*tree,a);break;}default:Fail("stream_atom_tag");}Put(f,"value",std::move(v),a);fields.PushBack(f,a);}Put(r,"fields",std::move(fields),a);records.PushBack(r,a);}
   Put(p,"members",std::move(members),a);Put(p,"records",std::move(records),a);Put(p,"required",VersionValues(d.required,a),a);Number(p,"native_domains",d.native_domains,a);Number(p,"retained_domains",d.retained_domains,a);Number(p,"event_watermark",d.event_watermark,a);Value components;if(d.components)components.CopyFrom(*d.components,a);Put(p,"components",std::move(components),a);Put(b,"payload",std::move(p),a);ValidateMessage(m);return m;
 }
+RangeData RangeDataFromMessage(const Message &m){return m.range?*m.range:ParseData(m);}
 void ValidateRangePayload(const Message &m){
-  const auto d=ParseData(m);if(m.sequence!=d.sample.sequence)Fail("stream_range_sequence");
-  Layouts shapes;for(const auto &r:d.records){Layout l;l.kind=d.id.kind;for(const auto &f:r.fields){l.fields.push_back(f.id);l.types.emplace(f.id,unsigned(f.value.index()));l.nullable.push_back(f.id);l.empty.push_back(f.id);l.not_applicable.push_back(f.id);}if(auto old=shapes.find(r.layout);old!=shapes.end()&&old->second.fields!=l.fields)Fail("stream_inconsistent_layout");shapes.insert_or_assign(r.layout,std::move(l));}
-  const auto decision=Validate(d,shapes);if(!decision)Fail(decision.reason);
+  std::optional<RangeData> parsed;const auto &d=m.range?*m.range:parsed.emplace(ParseData(m));if(m.sequence!=d.sample.sequence)Fail("stream_range_sequence");
+  // 报文不能用自己携带的字段反推“完整布局”；使用本地声明的同一来源/应用schema。
+  const auto decision=Validate(d,CaptureLayouts());if(!decision)Fail(decision.reason);
 }
-Range ReadRange(const Message &m,const Layouts &l,std::uint64_t budget){ValidateMessage(m);return Freeze(ParseData(m),l,budget);}
+Range ReadRange(const Message &m,const Layouts &l,std::uint64_t budget){ValidateMessage(m);if(m.range){const auto decision=Validate(*m.range,l,budget);if(!decision)Fail(decision.reason);return m.range;}return Freeze(ParseData(m),l,budget);}
 } // namespace cs::replica::stream

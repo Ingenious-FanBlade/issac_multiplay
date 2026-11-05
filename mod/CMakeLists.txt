@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(IsaacCS LANGUAGES CXX)
+project(IsaacCS LANGUAGES C CXX)
 if(NOT MSVC OR NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
   message(FATAL_ERROR "IsaacCS requires MSVC v143 / Win32")
 endif()
@@ -10,6 +10,13 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
 # 新版 STL 的 constexpr mutex 初始化依赖新版 MSVCP140；游戏可先加载旧运行库。
 # 统一使用微软提供的兼容构造路径，让实际运行库初始化锁；所有链接单元保持一致。
 add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
+# 官方zstd源码静态并入同一Win32 /MD产物；不构建工具、测试或下载运行时DLL。
+file(GLOB ZSTD_SOURCES CONFIGURE_DEPENDS third_party/zstd/lib/common/*.c
+  third_party/zstd/lib/compress/*.c third_party/zstd/lib/decompress/*.c)
+add_library(isaac_cs_zstd STATIC ${ZSTD_SOURCES})
+target_include_directories(isaac_cs_zstd PUBLIC third_party/zstd/lib)
+target_compile_definitions(isaac_cs_zstd PRIVATE ZSTD_DISABLE_ASM ZSTD_LEGACY_SUPPORT=0)
+target_compile_options(isaac_cs_zstd PRIVATE /W3 /utf-8)
 # core 独立使用 C++20 标准库；不继承 SDK include、Win32 宏或游戏绑定依赖。
 add_library(isaac_cs_core STATIC src/core/session.cpp src/core/tick_clock.cpp
   src/core/tick_pipeline.cpp src/core/input_core.cpp src/core/participant.cpp)
@@ -63,13 +70,13 @@ add_custom_command(OUTPUT "${GENERATED}/stream_catalog.inc" "${GENERATED}/stream
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-application.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-application.json" VERBATIM)
 add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/projection_graph.cpp src/replica/codec.cpp src/replica/entity_target.cpp src/replica/entity_plan.cpp src/replica/player_target.cpp
-  src/replica/stream_model.cpp src/replica/stream_codec.cpp src/replica/stream_range.cpp src/replica/stream_capture.cpp
+  src/replica/stream_model.cpp src/replica/stream_codec.cpp src/replica/stream_binary.cpp src/replica/stream_transport.cpp src/replica/stream_range.cpp src/replica/stream_capture.cpp
   src/replica/room_grid_target.cpp src/replica/room_grid_plan.cpp src/replica/room_grid_budget.cpp src/replica/player_plan.cpp
   "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc" "${GENERATED}/entity_application.inc" "${GENERATED}/player_application.inc" "${GENERATED}/stream_catalog.inc")
 target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")
 target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_compile_definitions(isaac_cs_replica PUBLIC _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
-target_link_libraries(isaac_cs_replica PUBLIC isaac_cs_world)
+target_link_libraries(isaac_cs_replica PUBLIC isaac_cs_world PRIVATE isaac_cs_zstd)
 # 真实游戏连接复用复制合同，网络后台不引用SDK或游戏对象。
 target_sources(isaac_cs_net PRIVATE src/net/live.cpp)
 target_link_libraries(isaac_cs_net PUBLIC isaac_cs_replica)

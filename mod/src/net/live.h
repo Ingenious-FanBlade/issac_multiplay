@@ -16,7 +16,8 @@ replica::Message Control(const replica::Scope &, std::uint64_t sequence,
 // 当前输入桥的内部DTO适配v2显式消息；旧v1只供离线工具，真实socket不接受v1混合正文。
 class Reassembler final {
 public:
-  void Scope(replica::Scope s) noexcept {scope_=s;authority_=true;}
+  void Scope(replica::Scope s) noexcept {scope_=s;authority_=true;wire_.Authorize({s.connection,1,false,false,false,replica::stream::Direction::ToAuthority});}
+  void Bind(replica::Scope s) noexcept {scope_=s;wire_.Authorize({s.connection,1,true,false,false,authority_?replica::stream::Direction::ToAuthority:replica::stream::Direction::ToClient});}
   void Configure(replica::Limits l) noexcept {wire_.Configure(l);}
   bool Receive(std::span<const std::uint8_t>,std::uint64_t,replica::Message &);
 private:

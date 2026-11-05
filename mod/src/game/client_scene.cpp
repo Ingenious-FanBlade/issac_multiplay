@@ -281,6 +281,7 @@ void ClientScene::Begin(const replica::Scope &scope) noexcept {
   stop_requested_=recovery_attempted_=retirement_failed_=recovery_forbidden_=false;
   ClientNativeWorldDestroy(native_world_);native_world_=nullptr;objects_.reset();presentation_.reset();grids_.reset();
   grid_events_.Reset(scope);entity_events_.Reset(scope);rebuild_objects_.reset();rebuild_grids_.reset();rebuild_presentation_.reset();grids_planned_=grids_complete_=grids_retired_=references_complete_=false;
+  target_memory_.reset();applied_memory_.reset();planning_memory_.reset();
   applied_valid_=rebuild_pending_=objects_planned_=objects_retired_=pumping_=false;
   attempt_invalidated_=false;
   objects_complete_=presentation_retired_=false;
@@ -417,6 +418,13 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     if(applied_&&scope==applied_scope_&&revision<=applied_revision_) {
       FailureResult(ClientResultKind::WaitingDependency,"admit","already_applied_revision");return false;
     }
+    // 先为冷路径目标、确认副本、Room/Grid/Entity/Player计划及资源描述申请合计上界。
+    // 小DTO热路径由stream范围自身租约持有；这里不将原生图形资源算成自有纯值。
+    const auto value_bound=replica::OwnedValueUpperBound(value);
+    std::uint64_t roots=1;for(auto i=value["components"].MemberBegin();i!=value["components"].MemberEnd();++i){const auto &c=i->value;if(c.HasMember("state")&&c["state"].IsObject()&&c["state"].HasMember("objects")&&c["state"]["objects"].IsArray())roots+=c["state"]["objects"].Size();}
+    // 失败预检可能仍留有owner中的自有计划；累计保守额度直至完整替换或退休。
+    if(!planning_memory_)planning_memory_=memory::Reserve(memory::Pool::Values,0);
+    planning_memory_->Resize(planning_memory_->Bytes()+8*value_bound+8*65536*roots);
     auto domain=replica::ParseRoomGridTarget(value);
     auto players=replica::HasPlayerTarget(value)?replica::ParsePlayerTarget(value):nullptr;
     auto player_lifecycle=players?replica::PlanPlayerLifecycle(*players,player_lifecycle_.get()):nullptr;
@@ -472,7 +480,8 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     if(!need_rebuild&&native_world_&&!ClientNativeWorldHasPrefix(native_world_)){
       ClientNativeWorldDestroy(native_world_);native_world_=nullptr;
     }
-    target_=std::move(copy);target_scope_=scope;target_revision_=revision;
+    const auto previous_target_memory=target_memory_;
+    target_=std::move(copy);target_scope_=scope;target_revision_=revision;target_memory_=std::move(planning_memory_);
     stop_requested_=recovery_attempted_=retirement_failed_=recovery_forbidden_=false;
     room_grid_target_=std::move(domain);room_grid_plan_=std::move(domain_plan);
     player_target_=std::move(players);
@@ -501,6 +510,7 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
       std::snprintf(step.field.data(),step.field.size(),"%s",e.field.c_str());ClientPlayerDiagnostics d;d.Record(step,"admit");NotePlayerFailure(d);
       FailureResult(ClientResultKind::UnsupportedRequirement,"admit",e.what());return false;
     } catch(const replica::ContractError &e) {FailureResult(ClientResultKind::UnsupportedRequirement,"admit",e.what());return false;}
+    catch(const std::runtime_error &e) {FailureResult(ClientResultKind::BudgetExhausted,"admit",e.what());return false;}
     catch(...) {FailureResult(ClientResultKind::UnsupportedRequirement,"admit","invalid_or_unavailable_target");return false;}
 }
 void ClientScene::NoteNativeStep(const ClientNativeStep &step,const char *phase) noexcept {
@@ -638,11 +648,12 @@ void ClientScene::Pump() noexcept {
           const auto check=ClientNativeWorldCheckCommit(native_world_);NoteNativeStep(check,"native_commit");
           if(check.state==ClientNativeStepState::Ready){
             try{
+              const auto previous_applied_memory=applied_memory_;
               auto committed=std::make_unique<replica::Json>(replica::Copy(*target_));
               if(!objects_->Commit(result_.attempt)){Fail("objects_scene_commit_attempt");Release(graphics);Release(native);pumping_=false;return;}
               player_applied_=player_target_;
               player_lifecycle_=player_next_lifecycle_;
-              applied_=std::move(committed);applied_scope_=target_scope_;applied_revision_=target_revision_;
+              applied_=std::move(committed);applied_scope_=target_scope_;applied_revision_=target_revision_;applied_memory_=target_memory_;
               room_grid_applied_=room_grid_target_;
               room_grid_plan_.applied.reset();
               applied_valid_=true;state_=ClientSceneState::Displaying;
@@ -1018,7 +1029,8 @@ void ClientScene::FinishRetirementIfDrained() noexcept {
     rebuild_objects_.reset();rebuild_grids_.reset();rebuild_presentation_.reset();entity_events_.Reset(waiting_scope_);
     target_.reset();target_revision_=0;target_scope_={};
     room_grid_target_.reset();room_grid_plan_={};
-    player_target_.reset();player_applied_.reset();
+    player_target_.reset();player_applied_.reset();player_lifecycle_.reset();player_next_lifecycle_.reset();
+    target_memory_.reset();applied_memory_.reset();planning_memory_.reset();
     retirement_complete_=true;
     FailureResult(ClientResultKind::Retiring,"retired","native_safe_menu");
   }

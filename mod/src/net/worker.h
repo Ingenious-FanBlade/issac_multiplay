@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include "core/replication_memory.h"
 
 namespace cs::net {
 
@@ -67,6 +68,7 @@ struct ReceivedInput {
 // 原子字段的独立快照，计数可能相差一个工作线程迭代，不承诺整结构同一瞬间。
 // terminal 是粘性状态，不经过可丢弃队列；停止后也必须让主线程读到真实原因。
 struct WorkerStatus {
+  std::array<memory::Usage,3> replication_memory{};
   bool running = false, peer_locked = false;
   protocol::PeerState state = protocol::PeerState::Dormant;
   TerminalReason terminal = TerminalReason::None;

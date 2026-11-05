@@ -3,6 +3,7 @@
 #include <map>
 #include <memory>
 #include <atomic>
+#include "core/replication_memory.h"
 
 namespace cs::world::observation {
 inline constexpr std::uint32_t kLatestConsumer=1,kRecorderConsumer=2,kLiveConsumer=3;
