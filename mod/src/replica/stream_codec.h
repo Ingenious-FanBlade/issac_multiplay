@@ -3,7 +3,7 @@
 #include "replica/stream_model.h"
 
 namespace cs::replica::stream {
-enum class Kind : unsigned { Hello=1, Welcome, Ready, ScenePrepare, ScenePrepared, Range, ReceiveAck, ContextReady, AppliedAck, Resync, Cancel, Stop, Error, Roster, TickProgress, InputAck, Input, Disconnect };
+enum class Kind : unsigned { Hello=1, Welcome, Ready, ScenePrepare, ScenePrepared, Range, ReceiveAck, ContextReady, AppliedAck, Resync, Cancel, Stop, Error, Roster, TickProgress, InputAck, Input, Disconnect, OperationAck, Retire };
 enum class Lane : unsigned { Control=1, Baseline, Context, WorldDynamic, PlayerFast, Input };
 enum class Direction { ToAuthority, ToClient };
 enum class State { Handshake, Waiting, Preparing, Active, Retiring, Stopped };

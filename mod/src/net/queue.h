@@ -5,6 +5,10 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <memory>
+#include <mutex>
+#include <deque>
+#include <optional>
 
 namespace cs::net {
 
@@ -38,9 +42,7 @@ public:
     read_.store(Next(read), std::memory_order_release);
     return true;
   }
-  std::uint32_t Dropped() const noexcept {
-    return dropped_.load(std::memory_order_relaxed);
-  }
+  std::uint32_t Dropped() const noexcept { return dropped_.load(std::memory_order_relaxed); }
 
 private:
   static constexpr std::uint32_t Next(std::uint32_t value) noexcept {
@@ -50,5 +52,43 @@ private:
   alignas(64) std::atomic<std::uint32_t> write_{0};
   alignas(64) std::atomic<std::uint32_t> read_{0};
   std::atomic<std::uint32_t> dropped_{0};
+};
+// 自有不可变值的单生产者/单消费者队列；pop清空槽位，及时归还共享租约。
+template <class T, std::size_t Capacity> class OwnedQueue final {
+public:
+  bool TryPush(T value) noexcept {
+    const auto write = write_.load(std::memory_order_relaxed), next = (write + 1) % (Capacity + 1);
+    if (next == read_.load(std::memory_order_acquire))
+      return false;
+    values_[write] = std::move(value);
+    write_.store(next, std::memory_order_release);
+    return true;
+  }
+  bool TryPop(T &value) noexcept {
+    const auto read = read_.load(std::memory_order_relaxed);
+    if (read == write_.load(std::memory_order_acquire))
+      return false;
+    value = std::move(*values_[read]);
+    values_[read].reset();
+    read_.store((read + 1) % (Capacity + 1), std::memory_order_release);
+    return true;
+  }
+
+private:
+  std::array<std::optional<T>, Capacity + 1> values_{};
+  alignas(64) std::atomic<std::size_t> write_{0}, read_{0};
+};
+// 仅保留尚未取出的最新完整值；consumer取走后独占正在处理项，生产者不能覆盖它。
+template <class T> class Latest final {
+public:
+  void Put(std::shared_ptr<const T> value) noexcept {
+    value_.store(std::move(value), std::memory_order_release);
+  }
+  std::shared_ptr<const T> Take() noexcept {
+    return value_.exchange({}, std::memory_order_acq_rel);
+  }
+
+private:
+  std::atomic<std::shared_ptr<const T>> value_;
 };
 } // namespace cs::net

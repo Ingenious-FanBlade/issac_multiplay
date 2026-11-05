@@ -8,6 +8,7 @@
 #include "core/replication_memory.h"
 
 namespace cs::net {
+namespace live {struct Publication;}
 
 inline constexpr std::size_t kReceiveCapacity = 256, kSendCapacity = 256;
 // 配置只在Start前设置；Authority同时接受ICSR真实游戏Client与既有输入工具。
@@ -69,6 +70,12 @@ struct ReceivedInput {
 // terminal 是粘性状态，不经过可丢弃队列；停止后也必须让主线程读到真实原因。
 struct WorkerStatus {
   std::array<memory::Usage,3> replication_memory{};
+  // 线上字节包含IPv4/UDP开销；lane之和严格等于此值，重传同样计费。
+  std::uint64_t uplink_wire_bytes=0,uplink_budget_blocks=0;
+  std::array<std::uint64_t,4> uplink_lane_bytes{};
+  unsigned publication_phase=0;
+  std::uint64_t operation_retransmissions=0,operation_cancellations=0,operation_completed=0,operation_failed=0;
+  std::array<char,128> replication_first_failure{};
   bool running = false, peer_locked = false;
   protocol::PeerState state = protocol::PeerState::Dormant;
   TerminalReason terminal = TerminalReason::None;
@@ -104,6 +111,8 @@ public:
   Worker &operator=(const Worker &) = delete;
   StartResult Start(const WorkerConfig &config) noexcept;
   bool QueueAck(const protocol::Ack &ack) noexcept;
+  bool PublishWorld(std::shared_ptr<const live::Publication>) noexcept;
+  bool NeedsBaseline() noexcept;
   bool TryReceive(ReceivedInput &input, unsigned ordinal = 1) noexcept;
   // 单 Peer 退出只关闭自己的 Endpoint，监听线程和其他远端继续运行。
   void RequestPeerStop(unsigned ordinal, protocol::ByeReason reason) noexcept;

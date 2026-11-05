@@ -64,6 +64,19 @@ struct Worker::State {
   std::unique_ptr<live::HostPeer> game_peer;
   struct QueuedGame final {memory::Lease memory;std::vector<std::uint8_t> bytes;};
   std::deque<QueuedGame> game_outgoing;
+  live::Uplink uplink_owner;
+  live::Uplink *uplink=nullptr;
+  live::EncodingCache encoding_owner;
+  live::EncodingCache *encoding_cache=nullptr;
+  Latest<live::Publication> publications;
+  std::shared_ptr<const live::Publication> current_publication;
+  std::atomic<bool> baseline_requested{false};
+  std::atomic<std::uint64_t> uplink_wire{0},uplink_blocks{0};
+  std::atomic<unsigned> publication_phase{0};
+  std::array<std::atomic<std::uint64_t>,4> operation_statistics{};
+  std::array<char,128> replication_first_failure{};
+  std::atomic<bool> have_replication_failure{false};
+  std::array<std::atomic<std::uint64_t>,4> uplink_lanes{};
   bool game_candidate = false;
   std::uint64_t candidate_since = 0;
   SpscQueue<ReceivedInput, kReceiveCapacity> incoming;
@@ -127,6 +140,12 @@ struct Worker::State {
     terminal_at_ms.store(GetTickCount64(), std::memory_order_relaxed);
     terminal.store(TerminalFor(reason), std::memory_order_release);
   }
+  // 首因一次发布，后续停止/重试只能增加计数，不能覆盖诊断原值。
+  void ReplicationFailure(const char *reason) noexcept {
+    if(have_replication_failure.load(std::memory_order_relaxed))return;
+    strncpy_s(replication_first_failure.data(),replication_first_failure.size(),reason,_TRUNCATE);
+    have_replication_failure.store(true,std::memory_order_release);
+  }
   void StampAck(std::uint64_t sequence, std::uint64_t now,
                 const Ack &ack) noexcept {
     ack_stamps[stamp_cursor] = {sequence, now, ack.generation,
@@ -152,7 +171,7 @@ struct Worker::State {
   }
   // 非阻塞 UDP；只在完整 datagram 发出后提交序号，不为失败 sendto
   // 伪造发送成功。
-  bool SendPacket(const Packet &packet, std::uint64_t now,
+  bool RawSendPacket(const Packet &packet, std::uint64_t now,
                   bool ending = false) noexcept {
     const auto n =
         sendto(socket, reinterpret_cast<const char *>(packet.bytes.data()),
@@ -180,6 +199,18 @@ struct Worker::State {
     sent_bytes.fetch_add(packet.size, std::memory_order_relaxed);
     last_sent_ms = now;
     return true;
+  }
+  // 所有数据报在真实sendto成功后扣同一套总/Peer/lane令牌，背压不忙等。
+  bool SendPacket(const Packet &packet,std::uint64_t now,bool ending=false) noexcept {
+    if(!uplink)return RawSendPacket(packet,now,ending);
+    try {
+      const auto result=uplink->Transmit(ordinal,packet.View(),game_peer&&game_peer->Initializing(),now,[&](auto){
+        if(RawSendPacket(packet,now,ending))return replica::stream::SendResult::Sent;
+        return terminal.load(std::memory_order_acquire)==TerminalReason::InternalFailure?replica::stream::SendResult::Failed:replica::stream::SendResult::WouldBlock;
+      });
+      const auto &stats=uplink->Status(ordinal);uplink_wire.store(stats.wire_bytes,std::memory_order_relaxed);uplink_blocks.store(stats.blocked,std::memory_order_relaxed);for(unsigned i=0;i<4;++i)uplink_lanes[i].store(stats.lanes[i],std::memory_order_relaxed);
+      return result==replica::stream::SendResult::Sent;
+    }catch(...){Finish(ByeReason::InternalFailure,Error::Payload);return false;}
   }
   bool SendMessage(const Message &message, std::uint64_t now) noexcept {
     Packet packet{};
@@ -251,7 +282,7 @@ struct Worker::State {
 
   // 正式ICSR数据报仍受1200字节限制；sendto失败不触及主线程对象。
   void FlushGame(std::uint64_t now) noexcept {
-    for(unsigned i=0;i<kSendBudget&&!game_outgoing.empty();++i){const auto &bytes=game_outgoing.front().bytes;Packet packet{};packet.size=bytes.size();std::copy(bytes.begin(),bytes.end(),packet.bytes.begin());if(!SendPacket(packet,now))return;game_outgoing.pop_front();}
+    for(unsigned i=0;i<kSendBudget&&!game_outgoing.empty();++i){const auto &bytes=game_outgoing.front().bytes;if(game_peer&&!game_peer->OwnsPacket(bytes)){game_outgoing.pop_front();continue;}Packet packet{};packet.size=bytes.size();std::copy(bytes.begin(),bytes.end(),packet.bytes.begin());if(!SendPacket(packet,now))return;game_outgoing.pop_front();}
   }
   // 临时socket反压保留尚未发送的完整数据报；部分排队失败具名收口，不悄悄丢掉后半包。
   void SendGame(const live::Packets &packets, std::uint64_t now) noexcept {
@@ -263,7 +294,7 @@ struct Worker::State {
   }
   void ReceiveGame(std::span<const std::uint8_t> bytes, const sockaddr_in &source,
                    std::uint64_t now) noexcept {
-    if (terminal.load(std::memory_order_acquire) != TerminalReason::None) return;
+    if(!game_peer&&terminal.load(std::memory_order_acquire)!=TerminalReason::None)return;
     try {
       // 一次先检查完整容器，再逐条交已有owner；所有条目共用已经绑定的实际endpoint。
       if(replica::stream::IsBundle(bytes)){auto workspace=memory::Reserve(memory::Pool::Workspace,8192);const auto entries=replica::stream::Unbundle(bytes);for(const auto &entry:entries)ReceiveGame(entry,source,now);return;}
@@ -282,7 +313,8 @@ struct Worker::State {
         peer_port.store(ntohs(peer.sin_port), std::memory_order_relaxed);
         published_locked.store(true, std::memory_order_release);
       }
-      if (delivered) incoming.TryPush(input);
+      if(game_peer->Established()&&terminal.load(std::memory_order_acquire)==TerminalReason::None)published_state.store(PeerState::Established,std::memory_order_release);
+      if (delivered&&terminal.load(std::memory_order_acquire)==TerminalReason::None) incoming.TryPush(input);
       if (game_peer->Stopped()) {
         Finish(ByeReason::PeerBye);
         published_state.store(PeerState::Retired, std::memory_order_release);
@@ -290,7 +322,7 @@ struct Worker::State {
       last_receive_ms.store(game_peer->LastReceive(), std::memory_order_relaxed);
       valid_packets.fetch_add(1, std::memory_order_relaxed);
     } catch (const std::exception &error) {
-      CountError(Error::Payload);
+      ReplicationFailure(error.what());CountError(Error::Payload);
       try { if(game_peer)SendGame(game_peer->Reject(error.what()),now); }catch(...){}
       if (locked) { Finish(ByeReason::PeerProtocol, Error::Payload); BestEffortBye(ByeReason::PeerProtocol, now); }
       else { game_peer.reset(); game_candidate = false; }
@@ -474,6 +506,11 @@ struct Worker::State {
                          source, GetTickCount64());
     }
   }
+  // 已终止Peer仍在有界窗口回复完成结果；首因/输入资格不因重发改变。
+  void ServiceGameEnd(std::uint64_t now) noexcept {
+    if(!game_peer)return;
+    try {FlushGame(now);game_peer->Pump(now,*encoding_cache,[&](auto bytes){Packet packet{};packet.size=bytes.size();std::copy(bytes.begin(),bytes.end(),packet.bytes.begin());if(SendPacket(packet,now,true))return replica::stream::SendResult::Sent;return replica::stream::SendResult::WouldBlock;});}catch(...){CountError(Error::Payload);}
+  }
   void SendBatch(std::uint64_t now) noexcept {
     if (game_peer) {
       FlushGame(now);
@@ -481,12 +518,16 @@ struct Worker::State {
       try {
         Ack ack{};
         // 每轮只发布最新完整快照，避免高帧率主线程造成无界发送；输入ACK独立产生。
-        bool have = false;
-        for (unsigned i=0;i<kSendBudget && outgoing.TryPop(ack);++i) {heartbeat=ack;have=true;}
+        for (unsigned i=0;i<kSendBudget && outgoing.TryPop(ack);++i) heartbeat=ack;
         if(!(heartbeat.roster_mask&(1u<<ordinal)))return;
-        if (have || now-last_sent_ms>=config.heartbeat_ms)
-          SendGame(game_peer->Progress(heartbeat),now);
-      } catch (...) { Finish(ByeReason::InternalFailure,Error::Payload); }
+        SendGame(game_peer->Progress(heartbeat),now);
+        game_peer->Pump(now,*encoding_cache,[&](auto bytes){Packet packet{};packet.size=bytes.size();std::copy(bytes.begin(),bytes.end(),packet.bytes.begin());if(SendPacket(packet,now))return replica::stream::SendResult::Sent;return terminal.load(std::memory_order_acquire)==TerminalReason::InternalFailure?replica::stream::SendResult::Failed:replica::stream::SendResult::WouldBlock;});
+        publication_phase.store(game_peer->PublicationPhase(),std::memory_order_relaxed);
+        const auto &stats=game_peer->OperationStatistics();const std::array<std::uint64_t,4> counters{stats.retransmissions,stats.cancellations,stats.completed,stats.failed};for(unsigned i=0;i<4;++i)operation_statistics[i].store(counters[i],std::memory_order_relaxed);
+        if(!game_peer->FirstFailure().empty())ReplicationFailure(game_peer->FirstFailure().c_str());
+        if(game_peer->RequestBaseline())baseline_requested.store(true,std::memory_order_release);
+      } catch(const std::exception &error){ReplicationFailure(error.what());Finish(ByeReason::InternalFailure,Error::Payload);}
+      catch (...) {ReplicationFailure("live_network_exception");Finish(ByeReason::InternalFailure,Error::Payload);}
       return;
     }
     if (endpoint.State() != PeerState::Established)
@@ -556,13 +597,17 @@ struct Worker::State {
   }
   // 真实游戏按最近到期服务，最多2ms；历史工具仍保持10ms的有界轮询。
   void Run() noexcept {
+    unsigned round_robin=0;
     while (!stop.load(std::memory_order_acquire) &&
            terminal.load(std::memory_order_acquire) == TerminalReason::None) {
       const auto now = GetTickCount64();
-      for (unsigned i = 1; i < peers.size(); ++i) {
+      if(auto update=publications.Take())current_publication=std::move(update);
+      for (unsigned offset = 0; offset < peers.size()-1; ++offset) {
+        const unsigned i=1+(round_robin+offset)%(peers.size()-1);
         auto &p = *peers[i];
-        if (p.terminal.load(std::memory_order_acquire) != TerminalReason::None)
-          continue;
+        if(p.baseline_requested.exchange(false,std::memory_order_acq_rel))baseline_requested.store(true,std::memory_order_release);
+        if (p.terminal.load(std::memory_order_acquire) != TerminalReason::None){if(now-p.terminal_at_ms.load(std::memory_order_relaxed)<2000)p.ServiceGameEnd(now);continue;}
+        if(p.game_peer&&current_publication){try{p.game_peer->Offer(*current_publication,now);}catch(...){p.Finish(ByeReason::InternalFailure,Error::Payload);}}
         const auto requested = p.stop.load(std::memory_order_acquire);
         const bool timed_out = p.game_peer ? p.game_peer->LastReceive() && now-p.game_peer->LastReceive()>=config.peer_timeout_ms : p.endpoint.TimedOut(now);
         if (requested || timed_out) {
@@ -584,10 +629,11 @@ struct Worker::State {
                                   std::memory_order_release);
         }
       }
+      round_robin=(round_robin+1)%(peers.size()-1);
       fd_set reads;
       FD_ZERO(&reads);
       FD_SET(socket, &reads);
-      unsigned wait_ms=kPollMs;for(unsigned i=1;i<peers.size();++i)if(peers[i]->game_peer||!peers[i]->game_outgoing.empty())wait_ms=2;
+      unsigned wait_ms=kPollMs;for(unsigned i=1;i<peers.size();++i)if(peers[i]->game_peer){const auto wake=peers[i]->game_peer->NextWake(now);wait_ms=(std::min)(wait_ms,unsigned((std::min)(2ull,wake>now?wake-now:1)));}else if(!peers[i]->game_outgoing.empty())wait_ms=2;
       timeval timeout{0, long(wait_ms * 1000)};
       const auto ready = select(0, &reads, nullptr, nullptr, &timeout);
       if (ready == SOCKET_ERROR) {
@@ -611,6 +657,10 @@ struct Worker::State {
       p.published_state.store(p.game_peer ? PeerState::Retired : p.endpoint.State(), std::memory_order_release);
       p.running.store(false, std::memory_order_release);
     }
+    // 网络结束只排空可靠控制，不等待原生世界退休；主线程独立推进Scene生命周期。
+    const auto drain_start=GetTickCount64(),drain_until=drain_start+2000;
+    while(GetTickCount64()<drain_until){bool any=false,settled=true;const auto at=GetTickCount64();for(unsigned i=1;i<peers.size();++i)if(peers[i]->game_peer){any=true;peers[i]->ServiceGameEnd(at);settled=settled&&peers[i]->game_peer->NetworkSettled();}if(!any||(settled&&at-drain_start>=100))break;ReceiveBatch();Sleep(2);}
+    current_publication.reset();publications.Take();encoding_owner.Stop();
     CloseTransport();
     running.store(false, std::memory_order_release);
   }
@@ -727,6 +777,7 @@ StartResult Worker::Start(const WorkerConfig &config) noexcept {
       peer->owns_transport = false;
       peer->socket = state->socket;
       peer->ordinal = i;
+      peer->uplink=&state->uplink_owner;peer->encoding_cache=&state->encoding_owner;
       peer->config = config;
       peer->identity = state->identity;
       if (BCryptGenRandom(nullptr, peer->identity.nonce.data(),
@@ -776,6 +827,11 @@ bool Worker::QueueAck(const protocol::Ack &ack) noexcept {
              PeerState::Established &&
          p.outgoing.TryPush(ack);
 }
+bool Worker::PublishWorld(std::shared_ptr<const live::Publication> publication) noexcept {
+  if(!state_||state_->stop.load(std::memory_order_acquire))return false;
+  try{if(!publication)publication=std::make_shared<const live::Publication>();state_->publications.Put(std::move(publication));return true;}catch(...){state_->baseline_requested.store(true,std::memory_order_release);return false;}
+}
+bool Worker::NeedsBaseline() noexcept {return state_&&state_->baseline_requested.exchange(false,std::memory_order_acq_rel);}
 bool Worker::TryReceive(ReceivedInput &input, unsigned ordinal) noexcept {
   if (!state_ || !ordinal || ordinal >= core::kMaximumParticipants)
     return false;
@@ -837,6 +893,10 @@ WorkerStatus Worker::Status(unsigned ordinal) const noexcept {
   result.running = s.running.load(std::memory_order_acquire);
   result.state = s.published_state.load(std::memory_order_acquire);
   result.peer_locked = s.published_locked.load(std::memory_order_acquire);
+  result.publication_phase=s.publication_phase.load(std::memory_order_relaxed);
+  result.operation_retransmissions=s.operation_statistics[0].load(std::memory_order_relaxed);result.operation_cancellations=s.operation_statistics[1].load(std::memory_order_relaxed);result.operation_completed=s.operation_statistics[2].load(std::memory_order_relaxed);result.operation_failed=s.operation_statistics[3].load(std::memory_order_relaxed);
+  if(s.have_replication_failure.load(std::memory_order_acquire))result.replication_first_failure=s.replication_first_failure;
+  result.uplink_wire_bytes=s.uplink_wire.load(std::memory_order_relaxed);result.uplink_budget_blocks=s.uplink_blocks.load(std::memory_order_relaxed);for(unsigned i=0;i<4;++i)result.uplink_lane_bytes[i]=s.uplink_lanes[i].load(std::memory_order_relaxed);
   result.protocol_error = s.protocol_error.load(std::memory_order_relaxed);
   result.peer_bye = s.peer_bye.load(std::memory_order_relaxed);
   result.native_error = s.native_error.load(std::memory_order_relaxed);

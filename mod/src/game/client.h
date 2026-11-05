@@ -4,11 +4,14 @@
 #include "game/client_entity_events.h"
 #include <string>
 #include <memory>
+namespace cs::net::live {struct Event;}
 
 namespace cs::game {
 struct ClientPlayerDisplayView;
 // Client角色独立于Authority SessionRuntime，socket失败也不自动交还原生模拟。
 bool ClientBusy() noexcept;
+// I21/I22在主线程取自有网络值；再次复核当前连接/route，绝不从worker直接写Scene。
+bool ClientPollWorld(net::live::Event &) noexcept;
 const char *ClientStateName() noexcept;
 const char *StartClient(const std::string &ipv4, unsigned port, int device_key) noexcept;
 // E2E 只提供有明确来源的纯值目标，复用正式 Client 场景，不启动网络或本地模拟。

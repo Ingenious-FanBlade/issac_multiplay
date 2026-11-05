@@ -65,6 +65,7 @@ struct ClientRuntime final {
   replica::Scope scope{};
   net::protocol::Ack progress{};
   unsigned ordinal=0, roster=0;
+  std::uint64_t route=1;
   int device_key=0;
   std::uint64_t connection=0, sequence=0, input_ack=0, input_ack_tick=0,
                 last_target=0, last_tick=0, generation=0, sampled=0, sent=0,
@@ -471,6 +472,15 @@ bool ClientVisitEntityIndependent(void *context,ClientEntityEvents::Visitor visi
 bool ClientCompleteEntityIndependent(replica::Kind kind,std::uint64_t sequence,std::uint64_t source,const char *phase) noexcept {
   return IsMain()&&client&&ClientBusy()&&client->scene.CompleteEntityIndependent(kind,sequence,source,phase);
 }
+// 主线程再次确认当前路由；仅交付自有值，不改变Scene或Authority时钟。
+bool ClientPollWorld(net::live::Event &event) noexcept {
+  if(!IsMain()||!client||client->fixture||client->state!=State::AwaitingWorld)return false;
+  for(unsigned n=0;n<72&&client->network.PollWorld(event);++n){
+    if(event.scope==client->scope&&event.route==client->route&&event.ordinal==client->ordinal)return true;
+    event={};
+  }
+  return false;
+}
 // 该入口在FrameScope之后、完整Manager原链之前；从不推进Authority时钟。
 bool ClientManagerBoundary() noexcept {
   if(!ClientBusy())return false;
@@ -501,13 +511,17 @@ bool ClientManagerBoundary() noexcept {
           c.ordinal=event.ordinal;c.state=State::AwaitingWorld;
           Trace("client","event=welcome connection=%llu ordinal=%u session=%llu wire_connection=%llu",c.connection,c.ordinal,c.scope.session,c.scope.connection);break;
         case net::live::Event::Type::Progress:
+        case net::live::Event::Type::TickProgress:
           if(c.state!=State::AwaitingWorld)break;
-          if(c.scope!=event.scope||c.ordinal!=event.ordinal){Failure(c,"client_scope_conflict");break;}
+          if(c.scope!=event.scope||c.route!=event.route||c.ordinal!=event.ordinal){Failure(c,"client_scope_conflict");break;}
+          if(event.progress.eligibility_revision<c.progress.eligibility_revision)break;
           if(c.generation!=event.progress.generation) {
-            Neutral(c,true);c.timing={};c.generation=event.progress.generation;c.last_tick=0;
+            Neutral(c,true);c.network.RevokeInput();c.timing={};c.generation=event.progress.generation;c.last_tick=0;
             Trace("client","event=generation connection=%llu generation=%llu",c.connection,c.generation);
           }
-          c.progress=event.progress;c.roster=event.progress.roster_mask;c.timing.Observe(event);break;
+          if(event.progress.server_tick<c.progress.server_tick)break;
+          c.progress=event.progress;c.roster=event.progress.roster_mask;
+          if(event.type==net::live::Event::Type::TickProgress){if(!c.blocked)c.timing.Observe(event);else c.timing={};}break;
         case net::live::Event::Type::InputAck:
           if(c.state!=State::AwaitingWorld||event.scope!=c.scope||event.ordinal!=c.ordinal)break;
           if(event.progress.generation==c.generation&&event.progress.processed>=c.input_ack) {
@@ -515,6 +529,8 @@ bool ClientManagerBoundary() noexcept {
             c.input_ack=event.progress.processed;c.input_ack_tick=event.progress.processed_tick;
           }
           break;
+        case net::live::Event::Type::World:
+        case net::live::Event::Type::Control:Failure(c,"client_world_on_notification_queue");break;
         case net::live::Event::Type::Stopped:Failure(c,event.reason);break;
         case net::live::Event::Type::Failed:Failure(c,event.reason);break;
       }
@@ -529,7 +545,8 @@ bool ClientManagerBoundary() noexcept {
         Trace("client","event=off connection=%llu input_closed=1 worker_finished=1 local_run=0",c.connection);
       }
     } else if(c.state==State::Connecting||c.state==State::AwaitingWorld) {
-      c.sampled_this_loop=false;c.focused=Focused();c.ui_blocked=ClientUiBlocked();c.blocked=!c.focused||c.ui_blocked;
+      const bool was_blocked=c.blocked;c.sampled_this_loop=false;c.focused=Focused();c.ui_blocked=ClientUiBlocked();c.blocked=!c.focused||c.ui_blocked;
+      if(c.blocked&&!was_blocked){c.network.RevokeInput();c.timing={};}
       std::uint64_t target=0;
       // 16 的等待场景仍能向 Authority 发输入；已有目标的构建/替换窗口则清边沿并保持中性。
       const bool input_scene=c.scene.State()==ClientSceneState::Waiting||c.scene.DisplayReady();
@@ -554,7 +571,7 @@ bool ClientManagerBoundary() noexcept {
           Failure(c,"client_input_exhausted");
         else {
           auto sample=c.sample;sample.edge_flags=c.edge_count?c.edges[c.edge_head]:0;
-          net::live::Intent intent{sample,c.generation,c.sequence+1,target};
+          net::live::Intent intent{sample,c.generation,c.sequence+1,target,c.scope,c.route};
           if(c.network.Send(intent)) {
             ++c.sequence;++c.sent;c.last_target=target;c.last_tick=c.progress.server_tick;c.sample.edge_flags=0;
             c.sent_edge_mask|=sample.edge_flags;

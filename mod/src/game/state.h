@@ -61,6 +61,8 @@ struct SessionRuntime {
   std::array<core::Participant, core::kMaximumParticipants> players;
   core::TickPipeline pipeline{session, clock, players};
   core::TickBoundary boundary{};
+  std::uint64_t committed_sample_ms=0;
+  unsigned committed_kind=0;
   std::array<core::InputStateDraftV2, core::kMaximumParticipants> tick_input{};
   std::array<TickMetrics, core::kMaximumParticipants> metrics{};
   // 只记录恢复时序；不保存旧输入，不读取或写入武器蓄力，A/B 使用相同上限。

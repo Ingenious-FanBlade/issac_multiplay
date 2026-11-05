@@ -112,6 +112,9 @@ struct Input {
 struct Ack {
   // 仅ICSR roster使用的主线程输入资格；历史ICSN布局保持不变。
   bool input_enabled = false;
+  // 仅ICSR TickProgress使用：0普通/1 odd，来自实际已提交Authority边界。
+  unsigned authority_kind = 0;
+  std::uint64_t eligibility_revision = 0;
   // ICSR使用的主线程快照时间；不写入历史ICSN编码，也不作为Authority时钟。
   std::uint64_t server_sample_ms = 0;
   std::uint64_t server_tick = 0, client_id = kClients[1], accepted = 0,

@@ -3,6 +3,8 @@
 #include "game/remote_life.h"
 #include "game/state.h"
 #include "game/tick.h"
+#include "game/world_bridge.h"
+#include "net/live.h"
 #include "runtime.h"
 #include <algorithm>
 
@@ -215,6 +217,13 @@ void DrainPeer(SessionRuntime &r) noexcept {
 void PublishPeer(SessionRuntime &r) noexcept {
   if (r.mode != core::SessionMode::Host)
     return;
+  // 世界发布失败只撤复制来源；输入scheduler与Authority提交不等待编码或网络。
+  try {
+    if(r.network.NeedsBaseline())RequestLiveBaseline();
+    auto publication=std::make_shared<net::live::Publication>();
+    publication->baseline=CurrentLiveBaseline();publication->latest=CurrentLiveWorld();
+    publication->bodies=CurrentLiveBodies();r.network.PublishWorld(std::move(publication));
+  }catch(...){r.network.PublishWorld({});}
   std::uint32_t roster = 0;
   for (unsigned i = 0; i < core::kMaximumParticipants; ++i)
     if (r.session.HasParticipant(i))
@@ -227,7 +236,8 @@ void PublishPeer(SessionRuntime &r) noexcept {
     net::protocol::Ack ack;
     ack.roster_mask = roster;
     ack.server_tick = r.clock.Completed();
-    ack.server_sample_ms = GetTickCount64();
+    ack.server_sample_ms = r.committed_sample_ms?r.committed_sample_ms:GetTickCount64();
+    ack.authority_kind = r.committed_kind;
     ack.client_id = progress.client;
     ack.accepted = progress.last_accepted_sequence;
     ack.processed = progress.last_processed_sequence;

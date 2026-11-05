@@ -371,6 +371,8 @@ void EndManager(bool normal) noexcept {
     if (result == core::TickDecision::Committed &&
         r->pipeline.PublishCompleted(!Settings.diagnostics ||
                                      TraceDropped() == 0)) {
+      r->committed_sample_ms=GetTickCount64();
+      r->committed_kind=r->boundary.kind==core::TickKind::OddPlayer?1u:0u;
       if (r->boundary.kind == core::TickKind::StandardRoom)
         ++r->ticks_standard;
       else
@@ -678,6 +680,15 @@ std::string StatusFields() {
   n("net_valid", network.valid_packets);
   n("net_rx_bytes", network.received_bytes);
   n("net_tx_bytes", network.sent_bytes);
+  // 每Peer线上预算与可靠操作聚合；生产不开逐包明细，也能归约三端总上行。
+  if(r)for(unsigned ordinal=1;ordinal<core::kMaximumParticipants;++ordinal){
+    const auto status=r->network.Status(ordinal);const auto prefix="stream.peer."+std::to_string(ordinal)+".";
+    n((prefix+"wire_bytes").c_str(),status.uplink_wire_bytes);n((prefix+"budget_blocks").c_str(),status.uplink_budget_blocks);
+    for(unsigned lane=0;lane<4;++lane)n((prefix+"lane."+std::to_string(lane)).c_str(),status.uplink_lane_bytes[lane]);
+    n((prefix+"phase").c_str(),status.publication_phase);n((prefix+"retransmissions").c_str(),status.operation_retransmissions);n((prefix+"cancellations").c_str(),status.operation_cancellations);n((prefix+"completed").c_str(),status.operation_completed);n((prefix+"failed").c_str(),status.operation_failed);
+    out+=prefix+"first_failure="+status.replication_first_failure.data()+"\n";
+  }
+
   n("net_bye_attempts", network.bye_send_attempts);
   n("net_bye_sent", network.bye_sent_packets);
   n("net_native_error", network.native_error);

@@ -17,7 +17,7 @@ void WorldValue(const Value &v){Members(v,{"session","run","floor","dimension","
 void Versions(const Value &v){if(!v.IsArray()||v.Size()>64)Fail("stream_versions");std::set<std::string> seen;for(const auto &x:v.GetArray()){Members(x,{"kind","name","body","revision"});if(N(x,"kind")<1||N(x,"kind")>6)Fail("stream_range_kind");Text(x,"name");Positive(x,{"revision"});if((N(x,"kind")==6)==x["body"].IsNull())Fail("stream_version_body");if(!x["body"].IsNull()){Members(x["body"],{"run","id","space"});Positive(x["body"],{"run","id","space"});if(N(x["body"],"space")>14)Fail("stream_version_space");}if(!seen.insert(std::to_string(N(x,"kind"))+":"+S(x["name"])+":"+replica::Text(x["body"])).second)Fail("stream_duplicate_version");}}
 void U(std::vector<std::uint8_t> &b,std::uint64_t n,unsigned width){for(unsigned i=0;i<width;++i)b.push_back(std::uint8_t(n>>(8*i)));}
 struct Reader {std::span<const std::uint8_t> b;std::size_t p=0;std::uint64_t U(unsigned n){if(n>b.size()-p)Fail("stream_truncated");std::uint64_t x=0;for(unsigned i=0;i<n;++i)x|=std::uint64_t(b[p++])<<(8*i);return x;}};
-bool KnownKind(Kind k){return unsigned(k)>=1&&unsigned(k)<=18;}
+bool KnownKind(Kind k){return unsigned(k)>=1&&unsigned(k)<=20;}
 void Scope(const Value &b){WorldValue(At(b,"world"));}
 }
 Lane MessageLane(const Message &m){
@@ -43,12 +43,13 @@ void ValidateMessage(const Message &m){
     case Kind::AppliedAck:Members(b,{"world","versions","native_domains","retained_domains","event_watermark"});Scope(b);Versions(b["versions"]);if(b["versions"].Empty()||(N(b,"native_domains")&N(b,"retained_domains"))||((N(b,"native_domains")|N(b,"retained_domains"))&~2047ull))Fail("stream_applied_scope");N(b,"event_watermark");break;
     case Kind::Resync:Members(b,{"world","failed_revision","reason"});Scope(b);N(b,"failed_revision");Text(b,"reason");break;
     case Kind::Cancel:Members(b,{"transfer","reason"});Positive(b,{"transfer"});Text(b,"reason");break;
-    case Kind::Stop:case Kind::Disconnect:Members(b,{"reason"});Text(b,"reason");break;
+    case Kind::OperationAck:Members(b,{"operation","operation_sequence","stage","progress_sequence","reason"});Positive(b,{"operation_sequence","progress_sequence"});if(N(b,"operation")<1||N(b,"operation")>20||N(b,"stage")<1||N(b,"stage")>6)Fail("stream_operation_result");Text(b,"reason");break;
+    case Kind::Retire:case Kind::Stop:case Kind::Disconnect:Members(b,{"reason"});Text(b,"reason");break;
     case Kind::Error:Members(b,{"code","recoverable","detail"});Text(b,"code");Text(b,"detail",1024);if(!b["recoverable"].IsBool())Fail("stream_error_schema");break;
-    case Kind::Roster:Members(b,{"server_tick","participant","accepted","processed","processed_tick","processed_source","generation","state","roster","rejected","rejection_mask","input_enabled","server_sample_ms","server_send_ms","echo_client_ms","echo_server_ms"});
-      for(auto i=b.MemberBegin();i!=b.MemberEnd();++i)if(S(i->name)!="input_enabled")Unsigned(i->value);
+    case Kind::Roster:Members(b,{"eligibility_revision","server_tick","participant","accepted","processed","processed_tick","processed_source","generation","state","roster","rejected","rejection_mask","input_enabled","server_sample_ms","server_send_ms","echo_client_ms","echo_server_ms"});
+      Positive(b,{"eligibility_revision"});for(auto i=b.MemberBegin();i!=b.MemberEnd();++i)if(S(i->name)!="input_enabled")Unsigned(i->value);
       if(!b["input_enabled"].IsBool()||N(b,"participant")<1||N(b,"participant")>3||N(b,"roster")>15||!(N(b,"roster")&1)||!(N(b,"roster")&(1ull<<N(b,"participant")))||N(b,"state")>unsigned(core::SessionState::Failed)||N(b,"rejection_mask")>UINT32_MAX||N(b,"processed")>N(b,"accepted")||N(b,"processed_tick")>N(b,"server_tick")||N(b,"processed_source")>N(b,"processed"))Fail("stream_roster");break;
-    case Kind::TickProgress:Members(b,{"server_tick","kind","generation","input_enabled","sample_ms","send_ms","echo_client_ms","echo_server_ms"});Positive(b,{"server_tick","generation"});if(N(b,"kind")>1||!b["input_enabled"].IsBool()||N(b,"sample_ms")>N(b,"send_ms")||N(b,"echo_server_ms")>N(b,"send_ms"))Fail("stream_tick_progress");N(b,"echo_client_ms");break;
+    case Kind::TickProgress:Members(b,{"eligibility_revision","server_tick","kind","generation","input_enabled","sample_ms","send_ms","echo_client_ms","echo_server_ms"});Positive(b,{"eligibility_revision","server_tick","generation"});if(N(b,"kind")>1||!b["input_enabled"].IsBool()||N(b,"sample_ms")>N(b,"send_ms")||N(b,"echo_server_ms")>N(b,"send_ms"))Fail("stream_tick_progress");N(b,"echo_client_ms");break;
     case Kind::InputAck:Members(b,{"participant","generation","input_sequence","processed_tick"});if(N(b,"participant")<1||N(b,"participant")>3)Fail("stream_participant");Positive(b,{"generation","input_sequence","processed_tick"});if(N(b,"input_sequence")!=m.sequence)Fail("stream_input_sequence");break;
     case Kind::Input:{Members(b,{"participant","generation","input_sequence","target_tick","movement","aim","held","edge"});if(N(b,"participant")<1||N(b,"participant")>3||N(b,"held")>15||N(b,"edge")>15)Fail("stream_input_range");Positive(b,{"generation","input_sequence","target_tick"});if(N(b,"input_sequence")!=m.sequence)Fail("stream_input_sequence");for(const auto *k:{"movement","aim"}){if(!b[k].IsArray()||b[k].Size()!=2)Fail("stream_axis");for(const auto &x:b[k].GetArray())if(!x.IsInt()||x.GetInt() < -32767||x.GetInt()>32767)Fail("stream_axis");}core::InputStateDraftV2 v;v.move_x=std::int16_t(b["movement"][0].GetInt());v.move_y=std::int16_t(b["movement"][1].GetInt());v.aim_x=std::int16_t(b["aim"][0].GetInt());v.aim_y=std::int16_t(b["aim"][1].GetInt());v.held_flags=unsigned(N(b,"held"));v.edge_flags=unsigned(N(b,"edge"));if(!core::Valid(v))Fail("stream_noncanonical_input");break;}
     default:Fail("stream_unknown_kind");
@@ -57,16 +58,16 @@ void ValidateMessage(const Message &m){
 void ValidateReceive(const Message &m,Direction dir,State state){
   ValidateMessage(m);if(state==State::Stopped)Fail("stream_stopped");
   const bool to_host=m.kind==Kind::Hello||m.kind==Kind::Ready||m.kind==Kind::ScenePrepared||m.kind==Kind::ReceiveAck||m.kind==Kind::ContextReady||m.kind==Kind::AppliedAck||m.kind==Kind::Resync||m.kind==Kind::Input||m.kind==Kind::Disconnect;
-  const bool both=m.kind==Kind::Stop||m.kind==Kind::Disconnect||m.kind==Kind::Error||m.kind==Kind::Cancel;
+  const bool both=m.kind==Kind::Stop||m.kind==Kind::Disconnect||m.kind==Kind::Error||m.kind==Kind::Cancel||m.kind==Kind::Retire||m.kind==Kind::OperationAck;
   if(!both&&(to_host!=(dir==Direction::ToAuthority)))Fail("stream_wrong_direction");
   if(state==State::Handshake&&m.kind!=Kind::Hello&&m.kind!=Kind::Welcome&&m.kind!=Kind::Error&&m.kind!=Kind::Stop&&m.kind!=Kind::Disconnect)Fail("stream_handshake_state");
   if((m.kind==Kind::Range||m.kind==Kind::ContextReady||m.kind==Kind::AppliedAck||m.kind==Kind::Resync||m.kind==Kind::ScenePrepared)&&state!=State::Preparing&&state!=State::Active)Fail("stream_world_state");
-  if(state==State::Retiring&&m.kind!=Kind::Stop&&m.kind!=Kind::Disconnect&&m.kind!=Kind::Cancel&&m.kind!=Kind::Error&&m.kind!=Kind::ReceiveAck)Fail("stream_retiring_state");
+  if(state==State::Retiring&&m.kind!=Kind::Stop&&m.kind!=Kind::Disconnect&&m.kind!=Kind::Cancel&&m.kind!=Kind::Error&&m.kind!=Kind::ReceiveAck&&m.kind!=Kind::OperationAck&&m.kind!=Kind::Retire)Fail("stream_retiring_state");
 }
 Json Capabilities(){
   auto c=replica::Capabilities();c["protocol"].SetUint(2);auto &a=c.GetAllocator();c["required"].Clear();c["supported"].Clear();
   for(const auto *name:{"typed-values-v1","stable-keys-v1","replica-projection-v2","entity-target-v1","player-target-v2","icsrf-v2","stream-schema-v1","complete-ranges-schema-v1","receive-ack-schema-v1","precise-applied-schema-v1"}){c["required"].PushBack(Value(name,a),a);c["supported"].PushBack(Value(name,a),a);}
-  for(const auto *name:{"compact-payload-v1","small-bundle-v1","selective-receive-v1"}){c["required"].PushBack(Value(name,a),a);c["supported"].PushBack(Value(name,a),a);}
+  for(const auto *name:{"compact-payload-v1","small-bundle-v1","selective-receive-v1","reliable-operations-v1"}){c["required"].PushBack(Value(name,a),a);c["supported"].PushBack(Value(name,a),a);}
   Put(c,"framing",Value(2),a);Put(c,"stream_schema",Value(kSchema),a);Value compression(rapidjson::kArrayType);compression.PushBack(Value("none",a),a);compression.PushBack(Value("zstd-v1",a),a);Put(c,"compression",std::move(compression),a);
   Value world(rapidjson::kObjectType);const auto l=WorldLimits();for(const auto &[key,n]:std::initializer_list<std::pair<const char *,std::uint64_t>>{{"bytes",l.bytes},{"nodes",l.nodes},{"depth",l.depth},{"string_bytes",l.string_bytes},{"fragments",l.fragments},{"candidates",l.candidates},{"value_bytes",l.value_bytes},{"zstd_window_bytes",8ull<<20}})Put(world,key,Value(n),a);Put(c,"world_limits",std::move(world),a);return c;
 }

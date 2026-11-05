@@ -78,7 +78,7 @@ target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_compile_definitions(isaac_cs_replica PUBLIC _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
 target_link_libraries(isaac_cs_replica PUBLIC isaac_cs_world PRIVATE isaac_cs_zstd)
 # 真实游戏连接复用复制合同，网络后台不引用SDK或游戏对象。
-target_sources(isaac_cs_net PRIVATE src/net/live.cpp)
+target_sources(isaac_cs_net PRIVATE src/net/live.cpp src/net/stream_session.cpp)
 target_link_libraries(isaac_cs_net PUBLIC isaac_cs_replica)
 # E2E工具与正式DLL分开打包；同一库用于正式主线程纯值适配和统一验收。
 option(ISAACCS_BUILD_E2E_TOOLS "Build explicitly requested E2E tools outside product install tree" OFF)
