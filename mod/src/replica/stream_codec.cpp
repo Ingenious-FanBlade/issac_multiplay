@@ -1,4 +1,5 @@
 #include "replica/stream_codec.h"
+#include "replica/stream_e2e.h"
 #include <algorithm>
 #include <cstring>
 #include <set>
@@ -79,7 +80,11 @@ Json Negotiate(const Value &a,const Value &b){
   auto x=Copy(a),y=Copy(b);for(auto *v:{&x,&y}){v->RemoveMember("framing");v->RemoveMember("stream_schema");v->RemoveMember("compression");v->RemoveMember("world_limits");v->RemoveMember("fast_limits");}
   auto c=replica::Negotiate(x,y);auto &alloc=c.GetAllocator();Put(c,"framing",Value(kFraming),alloc);Put(c,"stream_schema",Value(kSchema),alloc);Value codecs(rapidjson::kArrayType);for(const auto &l:a["compression"].GetArray())for(const auto &r:b["compression"].GetArray())if(l==r){Value v;v.CopyFrom(l,alloc);codecs.PushBack(v,alloc);}Put(c,"compression",std::move(codecs),alloc);Value world(rapidjson::kObjectType);for(auto i=a["world_limits"].MemberBegin();i!=a["world_limits"].MemberEnd();++i){const auto key=S(i->name);Put(world,key.c_str(),Value((std::min)(Unsigned(i->value),N(b["world_limits"],key.c_str()))),alloc);}Put(c,"world_limits",std::move(world),alloc);Value fast(rapidjson::kObjectType);for(auto i=a["fast_limits"].MemberBegin();i!=a["fast_limits"].MemberEnd();++i){const auto key=S(i->name);Put(fast,key.c_str(),Value((std::min)(Unsigned(i->value),N(b["fast_limits"],key.c_str()))),alloc);}Put(c,"fast_limits",std::move(fast),alloc);return c;
 }
-std::vector<std::uint8_t> Encode(const Message &m,Limits l){if(!m.range)CheckValue(m.body,l);ValidateMessage(m);const auto payload=EncodePayload(m,l);if(payload.size()>l.bytes||payload.size()+40>l.bytes)Fail("stream_wire_budget");std::vector<std::uint8_t> b={'I','C','S','R'};b.reserve(payload.size()+40);U(b,kFraming,2);U(b,40,2);U(b,unsigned(m.kind),2);U(b,unsigned(MessageLane(m)),1);U(b,0,1);U(b,payload.size(),4);U(b,m.sequence,8);U(b,m.connection,8);U(b,m.route,8);b.insert(b.end(),payload.begin(),payload.end());return b;}
+std::vector<std::uint8_t> Encode(const Message &m,Limits l){if(!m.range)CheckValue(m.body,l);ValidateMessage(m);std::vector<std::uint8_t> payload;
+#ifdef ISAACCS_E2E
+if(!E2EWirePayload(m,l,payload))
+#endif
+payload=EncodePayload(m,l);if(payload.size()>l.bytes||payload.size()+40>l.bytes)Fail("stream_wire_budget");std::vector<std::uint8_t> b={'I','C','S','R'};b.reserve(payload.size()+40);U(b,kFraming,2);U(b,40,2);U(b,unsigned(m.kind),2);U(b,unsigned(MessageLane(m)),1);U(b,0,1);U(b,payload.size(),4);U(b,m.sequence,8);U(b,m.connection,8);U(b,m.route,8);b.insert(b.end(),payload.begin(),payload.end());return b;}
 Message Decode(std::span<const std::uint8_t> b,Limits l){if(b.size()<40||b.size()>l.bytes||std::memcmp(b.data(),"ICSR",4))Fail("stream_wire_header");Reader r{b,4};if(r.U(2)!=kFraming||r.U(2)!=40)Fail("stream_wire_version");Message m;m.kind=Kind(r.U(2));const auto lane=r.U(1);if(r.U(1))Fail("stream_wire_flags");const auto n=r.U(4);m.sequence=r.U(8);m.connection=r.U(8);m.route=r.U(8);if(n!=b.size()-40)Fail("stream_wire_length");DecodePayload(b.subspan(40),m,l);ValidateMessage(m);if(lane!=unsigned(MessageLane(m)))Fail("stream_wire_lane");return m;}
 Header ReadHeader(std::span<const std::uint8_t> b,Limits l){
   if(b.size()<64||b.size()>l.datagram||std::memcmp(b.data(),"ICRF",4))Fail("stream_fragment_header");Reader r{b,4};if(r.U(2)!=kFraming||r.U(2)!=64)Fail("stream_fragment_version");Header h;h.connection=r.U(8);h.route=r.U(8);h.transfer=r.U(8);h.wire_bytes=unsigned(r.U(4));h.decoded_bytes=unsigned(r.U(4));h.index=unsigned(r.U(4));h.count=unsigned(r.U(4));h.kind=Kind(r.U(2));h.lane=Lane(r.U(1));h.codec=Codec(r.U(1));h.payload=std::uint16_t(r.U(2));if(r.U(2)||r.U(8))Fail("stream_fragment_reserved");

@@ -4,6 +4,7 @@
 #include "game/lifecycle.h"
 #include "game/state.h"
 #include "game/tick.h"
+#include "replica/stream_e2e.h"
 #include <algorithm>
 #include <cmath>
 #include <exception>
@@ -228,6 +229,10 @@ bool SubmitInput(SessionRuntime &r) noexcept {
                           uint64_t tick) noexcept {
     const auto cmd = player.MakeCommand(value, tick);
     const auto result = r.pipeline.AcceptInput(0, cmd, generation);
+#ifdef ISAACCS_E2E
+    replica::stream::E2EInput("physical-input",{0,0,0,cmd.state.edge_flags,generation,cmd.sequence,cmd.target_tick,completed,{cmd.state.move_x,cmd.state.move_y,cmd.state.aim_x,cmd.state.aim_y}});
+    if(result==core::Decision::Expired)replica::stream::E2EInput("input-expired",{0,0,0,0,generation,cmd.sequence,cmd.target_tick,completed,{}});
+#endif
     Trace("submit",
           "ordinal=0 generation=%llu sample=%llu sequence=%llu target=%llu "
           "loop=%llu session_generation=%llu "

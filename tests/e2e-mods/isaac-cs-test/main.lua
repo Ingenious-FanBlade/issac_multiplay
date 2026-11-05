@@ -1,3 +1,6 @@
+-- 网络回归只允许Host运行旧动作；真实Client永不注册玩法夹具。
+local networkConfig=include("harness_config")
+if networkConfig.network_regression and networkConfig.node_role=="Client" then return end
 local tx21config=include("harness_config")
 if tx21config.tx=="tx-04-21" then include("tx21");return end
 local tx20config=include("harness_config")

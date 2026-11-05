@@ -115,6 +115,7 @@ public:
   const replica::Value *Published() const noexcept;
 #ifdef ISAACCS_E2E
   std::string TestInspect() const noexcept;
+  std::string TestStreamReject(unsigned tx,const std::string &name) noexcept;
 #endif
   void RenderPublished() noexcept;
   bool Borrow(ClientPurpose purpose,ClientBorrowToken &out) noexcept;

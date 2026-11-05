@@ -185,7 +185,7 @@ mod:AddCallback(ModCallbacks.MC_PRE_PICKUP_GET_LOOT_LIST,function(_,pickup)
  end
 end)
 mod:AddCallback(ModCallbacks.MC_PRE_UPDATE,function()
- if held and IsaacCSObservationNative.SourceSnapshotToken()~="" then return true end
+ if not config.network_regression and held and IsaacCSObservationNative.SourceSnapshotToken()~="" then return true end
 end)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED,function()
  sourceReady=true

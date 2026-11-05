@@ -125,7 +125,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/client_players.cpp src/game/client_players_native.cpp
   src/game/client_player_control.cpp
   src/game/client_player_view.cpp src/game/client_player_budget.cpp
-  src/game/client_player_isolation.cpp
+  src/game/client_player_isolation.cpp src/game/client_isolation.cpp
   src/game/client_player_model.cpp src/game/client_player_state_native.cpp
   src/game/client_player_roles.cpp src/game/client_player_roles_native.cpp
   src/game/client_player_draw_native.cpp

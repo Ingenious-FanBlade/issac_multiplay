@@ -21,7 +21,7 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_LEVEL,special.NewLevel)
 -- 官方公开pre回调返回false取消update；只冻结测试Source，保留真实构造/官方资源。
 for _,name in ipairs({"DECORATION","DOOR","FIRE","GRAVITY","LOCK","PIT","POOP","PRESSUREPLATE","ROCK","SPIKES","STAIRCASE","STATUE","TELEPORTER","TNT","TRAPDOOR","WEB"}) do
  local id=ModCallbacks["MC_PRE_GRID_ENTITY_"..name.."_UPDATE"]
- if id then mod:AddCallback(id,function() if frozen then return false end end) end
+ if id then mod:AddCallback(id,function() if frozen and not config.network_regression then return false end end) end
 end
 -- 环境会在清理后的同tick继续生成雨滴/水花；在真实Init回调退休非代表Effect。
 -- 仅测试Source构造普通Player/既有57承载，不从正式目标过滤存活Entity；雨水Room字段仍完整采集。
@@ -158,7 +158,7 @@ end
 -- 公开MC_PRE_UPDATE返回true暂停玩法；只在取得就绪后的正式后态后保持Source，Render/Manager仍运行。
 -- 停止正式观察时字面标识为空，立即恢复原版更新，保证菜单退出不被夹具卡住。
 mod:AddCallback(ModCallbacks.MC_PRE_UPDATE,function()
- if source_held and IsaacCSObservationNative.SourceSnapshotToken()~="" then return true end
+ if not config.network_regression and source_held and IsaacCSObservationNative.SourceSnapshotToken()~="" then return true end
 end)
 mod:AddCallback(ModCallbacks.MC_POST_RENDER,function()
  frames=frames+1

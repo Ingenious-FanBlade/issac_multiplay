@@ -5,6 +5,7 @@
 #include "game/state.h"
 #include "game/tick.h"
 #include "game/world_bridge.h"
+#include "replica/stream_e2e.h"
 #include <cmath>
 #include <exception>
 
@@ -116,6 +117,15 @@ ConsumerScope::ConsumerScope(void *value, ConsumerKind type) noexcept
 ConsumerScope::~ConsumerScope() noexcept {
   if (!main_)
     return;
+#ifdef ISAACCS_E2E
+  if(call_original_&&exceptions_==std::uncaught_exceptions()){
+   auto *r=Runtime();const auto ordinal=ControlledOrdinal(player);
+   if(r&&ordinal>=0&&r->pipeline.SimulationTick()&&!r->blocks){
+    const auto &p=r->players[ordinal];unsigned body=0;for(;body<r->topology[ordinal].body_count;++body)if(r->topology[ordinal].bodies[body].player==player)break;
+    if(body<r->topology[ordinal].body_count)replica::stream::E2EInput("native-consumer",{unsigned(ordinal),body,unsigned(r->boundary.kind==core::TickKind::OddPlayer),e2e_edge_queries,p.Generation(),p.CurrentSequence(),r->pipeline.SimulationTick(),r->pipeline.SimulationTick(),{p.Current().move_x,p.Current().move_y,p.Current().aim_x,p.Current().aim_y}});
+   }
+  }
+#endif
   if (consumer != this)
     ContextFault("consumer_scope_mismatch");
   consumer = previous;
@@ -126,6 +136,12 @@ ConsumerScope::~ConsumerScope() noexcept {
 // 全部相同才允许把两次原生读取当作同一快照。无 tick 的查询只进加载窗口汇总。
 void RecordQuery(unsigned ordinal, ConsumerKind type, QueryKind query,
                  int action, float result) noexcept {
+#ifdef ISAACCS_E2E
+  if(consumer&&query==QueryKind::Triggered&&std::isfinite(result)&&result!=0){
+   const unsigned bit=type==ConsumerKind::Bomb&&action==8?1u:type==ConsumerKind::Item&&action==9?2u:type==ConsumerKind::Pill&&action==10?4u:type==ConsumerKind::Drop&&action==11?8u:0u;
+   consumer->e2e_edge_queries|=bit;
+  }
+#endif
   if (!Settings.diagnostics)
     return;
   auto *r = Runtime();

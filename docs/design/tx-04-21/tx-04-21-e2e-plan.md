@@ -1,3 +1,5 @@
+> I38接线（2026-11-05）：唯一执行入口为 `scripts/run-tx-04-21.ps1`，真实节点、逐项回归、人工观察器和同tx恢复方式见[实现说明](tx-04-21-isolation-orchestration.md)。本次仅编写与静态复读，I39未执行，以下定量目标没有改为通过。
+
 # tx-04-21：先两人、后四人的统一 E2E 验收方案
 
 日期：2026-11-05。状态：**I31—I35的[场景／代理／版本对照与归约组件](tx-04-21-e2e-components.md)已编写，I36—I38整合及I39实际构建／运行尚未执行**。初版仅方案、尚无编排代码的历史事实保留。唯一完整执行入口仍待I38接通，拟为 `scripts/run-tx-04-21.ps1`＋`tools/harness/src/tx21.rs`，不是当前已有命令。配合[主计划](tx-04-21-implementation-plan.md)、[网络合同](tx-04-21-network-contract.md)和[研究计划](tx-04-21-native-research-plan.md)。

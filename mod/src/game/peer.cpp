@@ -5,6 +5,7 @@
 #include "game/tick.h"
 #include "game/world_bridge.h"
 #include "net/live.h"
+#include "replica/stream_e2e.h"
 #include "runtime.h"
 #include <algorithm>
 
@@ -190,6 +191,9 @@ void DrainPeer(SessionRuntime &r) noexcept {
         }
         const auto decision = r.players[ordinal].AcceptInput(
             cmd, r.players[ordinal].Generation(), r.clock.Completed());
+#ifdef ISAACCS_E2E
+        replica::stream::E2EInput(decision==core::Decision::Expired?"input-expired":"input-admit",{ordinal,0,0,cmd.state.edge_flags,r.players[ordinal].Generation(),cmd.sequence,cmd.target_tick,r.clock.Completed(),{cmd.state.move_x,cmd.state.move_y,cmd.state.aim_x,cmd.state.aim_y}});
+#endif
         ++p.admitted;
         Trace("submit",
               "ordinal=%u generation=%llu sequence=%llu target=%llu loop=%llu "

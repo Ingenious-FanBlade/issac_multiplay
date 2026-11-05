@@ -4,6 +4,8 @@
 #include "game/client_resources.h"
 #include "game/client_entity_draw_native.h"
 #include "game/client_player_isolation.h"
+#include "game/client_isolation.h"
+#include "replica/stream_e2e.h"
 #include "binding/offsets.h"
 #include "game/context.h"
 #include "game/input_a.h"
@@ -66,6 +68,9 @@ struct ClientRuntime final {
   std::vector<ClientOwnerFact> first_owners;
   bool owner_diagnostics_missing=false;
   bool have_scene_failure=false,terminal_frozen=false,recovery_requested=false,recovery_succeeded=false,stale=false,was_paused=false;
+#ifdef ISAACCS_E2E
+  bool visual_held=false;
+#endif
   unsigned native_rebuilds=0,recoveries=0;
   std::uint64_t recovery_started=0,recovery_sequence=0,failed_revision=0,stale_origin=0;
   replica::Scope recovery_scope{};
@@ -146,6 +151,8 @@ constexpr const char *kClientEntryNames[]={
 void CountDispatch(ClientRuntime &c,ClientEntry entry,ClientEntryDecision decision) noexcept {
   const auto index=unsigned(entry);
   if(index>=c.dispatch_original.size())return;
+  ClientIsolationObserve(decision==ClientEntryDecision::CallOriginal?ClientIsolationKind::NativeCall:
+    decision==ClientEntryDecision::ExpectedSkip?ClientIsolationKind::ExpectedSkip:ClientIsolationKind::RejectedEntry,kClientEntryNames[index]);
   auto &counter=decision==ClientEntryDecision::CallOriginal?c.dispatch_original[index]:
                 decision==ClientEntryDecision::ExpectedSkip?c.dispatch_expected[index]:
                 c.dispatch_fault[index];
@@ -190,6 +197,7 @@ void RememberFailure(ClientRuntime &c) noexcept {
 // 所有终态先封输入/发布，再由Manager真实退休；首因与后续清理错误分开。
 void Failure(ClientRuntime &c,const char *reason) noexcept {
   if(c.terminal_frozen)return;
+  ClientIsolationObserve(ClientIsolationKind::Fault,reason);
   RememberFailure(c);
   c.terminal_frozen=true;c.scene.CancelRecovery();
   Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};
@@ -201,6 +209,7 @@ void Failure(ClientRuntime &c,const char *reason) noexcept {
 // 只使用既有完整退休步骤；没有安全owner时保留隔离，不盲目重建旧T。
 void Recover(ClientRuntime &c,const char *reason) noexcept {
   if(c.terminal_frozen||c.state==State::Recovering)return;
+  ClientIsolationObserve(ClientIsolationKind::Recover,reason);
   const auto result=c.scene.Result();
   const bool written=c.scene.NetworkStream()?c.scene.StreamFailureWritten():(!c.scene.DisplayReady()&&(result.native_written||result.failure_executed_prefix||c.scene.HasNativePrefix()));
   const auto policy=replica::stream::ClassifyFailure(reason,written,!c.scene.StreamRecoverable());
@@ -258,6 +267,11 @@ const char *ClientStartUnavailable() noexcept {
 }
 }
 bool ClientBusy() noexcept {return client_active.load(std::memory_order_acquire);}
+// 仅主线程复制现有Scene身份；外线程诊断保留未知，不读取该控制块。
+ClientIsolationIdentity ClientIsolationCurrent() noexcept {
+ if(!IsMain()||!client)return {};const auto &g=client->scene.Generations();
+ return {client->connection,client->scope.connection,client->route,g.scene,g.instance,g.resource,g.lua,g.context,unsigned(client->scene.State())};
+}
 bool ClientPlayerBorrowAllowed() noexcept {
   return IsMain()&&ClientBusy()&&client&&(client->scene.State()==ClientSceneState::Applying||client->scene.DisplayReady());
 }
@@ -285,6 +299,7 @@ bool ClientDispatchIsolationInstalled() noexcept {
   return true;
 }
 void ClientCallbackFault(const char *reason) noexcept {
+  ClientIsolationObserve(ClientIsolationKind::Fault,reason);
   if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
   if(client&&ClientBusy()){
     if(client->callback_fault!=UINT64_MAX)++client->callback_fault;
@@ -292,10 +307,12 @@ void ClientCallbackFault(const char *reason) noexcept {
   }
 }
 void ClientCallbackSkipped() noexcept {
+  ClientIsolationObserve(ClientIsolationKind::LuaSkip,"gameplay_callback");
   if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
   if(client&&ClientBusy()&&client->callback_skipped!=UINT64_MAX)++client->callback_skipped;
 }
 void ClientCallbackOwnExecuted() noexcept {
+  ClientIsolationObserve(ClientIsolationKind::OwnLua,"own_menu_ui");
   if(!IsMain()){foreign_client.store(true,std::memory_order_release);return;}
   if(client&&ClientBusy()&&client->callback_own!=UINT64_MAX)++client->callback_own;
 }
@@ -393,6 +410,7 @@ void ClientDispatchReturned(ClientEntry entry) noexcept {
     if(client)Failure(*client,"client_dispatch_return_mismatch");return;
   }
   dispatch_frame.returned=true;
+  ClientIsolationObserve(ClientIsolationKind::NativeReturn,kClientEntryNames[unsigned(entry)]);
 }
 const char *ClientStateName() noexcept {
   if(!client)return "Off";
@@ -412,13 +430,28 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
     next->address=ipv4;next->device_key=device_key;next->config=Settings.stream;
     const auto error=next->network.Start(ipv4,std::uint16_t(port),Settings.peer_timeout_ms,next->config);
     if(*error)return error;
+    // 真实网络Client同样冻结原调用起点；不能只给离线fixture提供隔离见证。
+    size_t count=0;auto hooks=Hooks(count);
+    for(unsigned j=0;j<next->original_begin.size();++j)for(size_t i=0;i<count;++i)
+      if(std::strcmp(hooks[i]->id,kIsolationOriginals[j])==0)next->original_begin[j]=hooks[i]->calls.load();
     ForgetInputDevice();client=std::move(next);foreign_client=false;
     client_active.store(true,std::memory_order_release);
+    ClientIsolationObserve(ClientIsolationKind::Begin,"network_client");
     Trace("client","event=connecting connection=%llu address=%s port=%u key=%d local_run=0",connections,ipv4.c_str(),port,device_key);
     return "";
   } catch(...) {return "client_allocation";}
 }
 #ifdef ISAACCS_E2E
+// 只从真实已提交网络范围派生负向纯值，不使用本地文件或替代Client。
+std::string ClientTestStreamReject(const std::string &token,unsigned tx,const std::string &name) noexcept {
+ if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||client->fixture||!client->scene.NetworkStream())return "ok=0\nerror=network_negative_context\n";
+ return client->scene.TestStreamReject(tx,name);
+}
+// 使用本机收到的Authority锚点推算年龄，误差显式包含RTT与发布年龄。
+void ClientStreamAgeWitness(std::uint64_t source_tick) noexcept {
+ if(!IsMain()||!client||!client->timing.received_ms)return;const auto now=GetTickCount64();const auto &t=client->timing;
+ replica::stream::E2EAge(client->progress.server_tick,source_tick,now>=t.received_ms?now-t.received_ms:0,t.round_trip_ms+t.publication_age_ms,client->stale);
+}
 // 只读后态借用仍由Scene唯一提交资格决定，不用DTO取代原生检查。
 std::string ClientTestInspect(const std::string &token) noexcept {
   if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||(!client->fixture&&!client->scene.NetworkStream()))return "ok=0\nerror=inspect_context\n";
@@ -453,7 +486,7 @@ bool ClientTestCancelAfter(const std::string &token,unsigned stage) noexcept {
 // 统一实机验收在已发布真实场景检验owner拒绝；worker只携带自有纯值模型。
 std::string ClientTestExerciseOwnership(const std::string &token) noexcept {
   if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||
-     !ClientBusy()||!client||!client->fixture||!client->scene.DisplayReady())return "ok=0\nerror=client_ownership_context\n";
+     !ClientBusy()||!client||(!client->fixture&&!client->scene.NetworkStream())||!client->scene.DisplayReady())return "ok=0\nerror=client_ownership_context\n";
   try {
     auto values=replica::Copy(*client->scene.Published());const auto scope=replica::ReadScope(values["scope"]);
     const auto revision=replica::Unsigned(values["revision"]);bool accepted=true;
@@ -475,7 +508,7 @@ std::string ClientTestExerciseOwnership(const std::string &token) noexcept {
 }
 // VM不匹配是终止当前场景的故障，单独编排并由正式退休/重建恢复。
 std::string ClientTestExerciseVm(const std::string &token) noexcept {
-  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||!client->fixture||!client->scene.DisplayReady())return "ok=0\nerror=vm_exercise_context\n";
+  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||(!client->fixture&&!client->scene.NetworkStream())||!client->scene.DisplayReady())return "ok=0\nerror=vm_exercise_context\n";
   try {
     // 用真实独立Lua VM制造身份不匹配；保留游戏原根，并在同一栈释放旧借用和临时VM。
     void *vm=ClientTestCreateVm();if(!vm)return "ok=0\nerror=temporary_vm_allocation\n";
@@ -503,6 +536,7 @@ bool ClientAdmitTarget(const replica::Scope &scope,std::uint64_t revision,const 
 void StopClient() noexcept {
   if(!IsMain()||!ClientBusy())return;
   if(client->terminal_frozen||client->state==State::Retiring)return;
+  ClientIsolationObserve(ClientIsolationKind::Stop,"client_stop");
   client->terminal_frozen=true;client->stop_reason="client_stop";
   Neutral(*client,true);client->network.RevokeInput();client->input_ready=false;client->timing={};client->progress={};client->prepare.reset();client->retire_control.reset();client->state=State::Retiring;client->scene.Retire("client_stop");client->neutral_loops=0;client->network.Stop();
   Trace("client","event=retiring connection=%llu",client->connection);
@@ -639,7 +673,13 @@ bool ClientManagerBoundary() noexcept {
       }
       else if(c.scene.DisplayReady()&&c.state==State::AwaitingWorld){c.recovery_succeeded=true;c.stale_origin=now;}
     }
-    if(!c.fixture&&c.state==State::AwaitingWorld&&c.scene.DisplayReady()){
+    bool visual_hold=false;
+#ifdef ISAACCS_E2E
+    visual_hold=replica::stream::E2EVisualHeld();
+    if(c.visual_held&&!visual_hold){c.stale_origin=GetTickCount64();c.stale=false;}
+    c.visual_held=visual_hold;
+#endif
+    if(!c.fixture&&!visual_hold&&c.state==State::AwaitingWorld&&c.scene.DisplayReady()){
       const auto now=GetTickCount64();
       if(c.was_paused&&!c.progress.authority_paused)c.stale_origin=now;
       c.was_paused=c.progress.authority_paused;
@@ -655,6 +695,7 @@ bool ClientManagerBoundary() noexcept {
       if(!c.sampled_this_loop||c.physical_neutral)++c.neutral_loops;else c.neutral_loops=0;
       // 只有无原生执行前缀、无借用与在途使用时才能交还本地菜单。
       if((c.fixture||c.network.Finished())&&c.neutral_loops>=2&&MenuReady()&&c.scene.CanReturnToMenu()) {
+        ClientIsolationObserve(ClientIsolationKind::Retired,"scene_and_worker_drained");
         c.state=State::Off;ForgetInputDevice();client_active.store(false,std::memory_order_release);
         Trace("client","event=off connection=%llu input_closed=1 worker_finished=1 local_run=0",c.connection);
       }
@@ -688,6 +729,9 @@ bool ClientManagerBoundary() noexcept {
           net::live::Intent intent{sample,c.generation,c.sequence+1,target,c.scope,c.route};
           if(c.network.Send(intent)) {
             ++c.sequence;++c.sent;c.last_target=target;c.last_tick=c.progress.server_tick;c.sample.edge_flags=0;
+#ifdef ISAACCS_E2E
+            replica::stream::E2EInput("physical-input",{c.ordinal,0,0,sample.edge_flags,c.generation,c.sequence,target,c.progress.server_tick,{sample.move_x,sample.move_y,sample.aim_x,sample.aim_y}});
+#endif
             c.sent_edge_mask|=sample.edge_flags;
             if(c.edge_count){c.edge_head=(c.edge_head+1)%unsigned(c.edges.size());--c.edge_count;}
             if(Settings.diagnostics)Trace("client_input","connection=%llu ordinal=%u generation=%llu sequence=%llu target=%llu move=%d,%d aim=%d,%d held=%u edge=%u",c.connection,c.ordinal,c.generation,c.sequence,target,intent.state.move_x,intent.state.move_y,intent.state.aim_x,intent.state.aim_y,intent.state.held_flags,intent.state.edge_flags);
@@ -882,12 +926,13 @@ std::string ClientFields() {
   s+="client_world_applied="+std::string(client&&client->scene.DisplayReady()?"1":"0")+"\n";
   s+="client_ui_available="+std::string(ui_seen_ms&&GetTickCount64()-ui_seen_ms<=1000?"1":"0")+"\n";
   s+="client.ui_frames="+std::to_string(ui_frames)+"\n";
+  s+=ClientIsolationFields();
   if(!client)return s;
   const auto &c=*client;
   const auto result=c.scene.Result();
   s+="client.target_source="+std::string(c.fixture?"e2e_value_fixture":"network")+"\n";
   const auto add=[&](const char *name,std::uint64_t value){s+="client."+std::string(name)+"="+std::to_string(value)+"\n";};
-  if(c.fixture)for(unsigned i=0;i<c.original_begin.size();++i)add((std::string("original_begin.")+kIsolationOriginals[i]).c_str(),c.original_begin[i]);
+  for(unsigned i=0;i<c.original_begin.size();++i)add((std::string("original_begin.")+kIsolationOriginals[i]).c_str(),c.original_begin[i]);
   add("connection",c.connection);add("participant",c.ordinal);add("roster",c.roster);add("generation",c.generation);
   add("wire_session",c.scope.session);add("wire_connection",c.scope.connection);
   add("server_tick",c.progress.server_tick);add("sent",c.sent);add("sequence",c.sequence);

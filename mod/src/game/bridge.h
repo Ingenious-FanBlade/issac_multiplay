@@ -227,6 +227,10 @@ public:
   void *player = nullptr;
   ConsumerKind kind = ConsumerKind::None;
   ConsumerScope *previous = nullptr;
+#ifdef ISAACCS_E2E
+  // 同一次真实consumer中多次Triggered读取不冒充多次动作。
+  unsigned e2e_edge_queries=0;
+#endif
 
 private:
   InputLease lease_;

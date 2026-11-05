@@ -8,11 +8,16 @@ $ErrorActionPreference='Stop'
 $tx21Game=[IO.Path]::GetFullPath($GameRoot)
 $tx21Backup=[IO.Path]::GetFullPath($BackupDirectory)
 $tx21Record=Join-Path $tx21Backup 'deployment-state.json'
-if($tx21Backup.StartsWith($tx21Game+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Backup must be outside installation'}
+if($tx21Backup.Equals($tx21Game,[StringComparison]::OrdinalIgnoreCase) -or $tx21Backup.StartsWith($tx21Game+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Backup must be outside installation'}
 # 每个目标先核对绝对边界；还原仅处理此次显式部署过的文件，不递归删除安装目录。
 function Target([string]$relative){
  $resolved=[IO.Path]::GetFullPath((Join-Path $tx21Game $relative))
  if(-not $resolved.StartsWith($tx21Game+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Deployment path escaped game root'}
+ $probe=$resolved
+ while($probe -and $probe.StartsWith($tx21Game,[StringComparison]::OrdinalIgnoreCase)){
+  if((Test-Path -LiteralPath $probe) -and ((Get-Item -LiteralPath $probe).Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'Refuse reparse deployment path'}
+  if($probe -eq $tx21Game){break};$probe=Split-Path -Parent $probe
+ }
  return $resolved
 }
 if($Action -eq 'Install'){
@@ -22,7 +27,7 @@ if($Action -eq 'Install'){
  $manifest=Get-Content -LiteralPath (Join-Path $tx21Package 'deployment.json') -Raw | ConvertFrom-Json
  if($manifest.format -ne 'isaac.cs.deployment' -or $manifest.version -ne 1){throw 'Deployment manifest required'}
  New-Item -ItemType Directory -Path $tx21Backup | Out-Null
- $state=@{game=$tx21Game;package=$tx21Package;build=$manifest.build;files=@();complete=$false}
+ $state=@{game=$tx21Game;package=$tx21Package;build=$manifest.build;files=@();created_directories=@();complete=$false;restored=$false}
  foreach($file in $manifest.files){
   if($file.relative -like 'e2e-tools*'){continue}
   $destination=Target $file.relative
@@ -33,7 +38,14 @@ if($Action -eq 'Install'){
   if($existed){New-Item -ItemType Directory -Path (Split-Path -Parent $backup) -Force | Out-Null;Copy-Item -LiteralPath $destination -Destination $backup}
   $state.files+=@{relative=$file.relative;existed=$existed;original_source=if($existed){$destination}else{$null}}
   $state | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $tx21Record -Encoding utf8
-  New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+  $missing=@();$parent=Split-Path -Parent $destination
+  while($parent -ne $tx21Game -and -not (Test-Path -LiteralPath $parent)){$missing+=,$parent;$parent=Split-Path -Parent $parent}
+  [array]::Reverse($missing)
+  foreach($directory in $missing){
+   $state.created_directories+=,$directory
+   $state | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $tx21Record -Encoding utf8
+   New-Item -ItemType Directory -Path $directory | Out-Null
+  }
   Copy-Item -LiteralPath $source -Destination $destination -Force
  }
  $state.complete=$true
@@ -45,5 +57,12 @@ if($Action -eq 'Install'){
   $destination=Target $file.relative
   if($file.existed){$backup=Join-Path $tx21Backup ('original/'+$file.relative);Copy-Item -LiteralPath $backup -Destination $destination -Force}
   elseif(Test-Path -LiteralPath $destination -PathType Leaf){Remove-Item -LiteralPath $destination -Force}
+ }
+ # 只删除本次确实创建且仍为空的目录；不递归删除安装树或其它Mod内容。
+ $created=@($state.created_directories);[array]::Reverse($created)
+ foreach($directory in $created){
+  $resolved=[IO.Path]::GetFullPath($directory)
+  if(-not $resolved.StartsWith($tx21Game+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Restore directory escaped installation'}
+  if((Test-Path -LiteralPath $resolved -PathType Container) -and @(Get-ChildItem -LiteralPath $resolved -Force).Count -eq 0){Remove-Item -LiteralPath $resolved -Force}
  }
 }

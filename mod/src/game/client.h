@@ -19,6 +19,8 @@ const char *ClientTestBegin(const std::string &token, const replica::Scope &scop
 bool ClientTestCancelAfter(const std::string &token,unsigned stage) noexcept;
 std::string ClientTestExerciseOwnership(const std::string &token) noexcept;
 std::string ClientTestExerciseVm(const std::string &token) noexcept;
+std::string ClientTestStreamReject(const std::string &token,unsigned tx,const std::string &name) noexcept;
+void ClientStreamAgeWitness(std::uint64_t source_tick) noexcept;
 bool ClientAdmitTarget(const replica::Scope &scope, std::uint64_t revision,
                        const replica::Value &value) noexcept;
 // 正式HUD/角色展示的纯值入口；只在主线程取当前Scene A，旧快照不得继续冒作当前展示。

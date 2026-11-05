@@ -2,6 +2,7 @@
 #include "game/bridge.h"
 #include "game/client.h"
 #include "game/client_scene.h"
+#include "game/client_isolation.h"
 #include "game/context.h"
 #include "game/lifecycle.h"
 #include "game/persistence.h"
@@ -102,6 +103,16 @@ std::string Execute(std::string_view text, const char *source) {
     if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token)result="ok=0\nerror=stream_test_token_or_context\n";
     else if(mode=="on"||mode=="off"){in>>tail;if(!tail.empty())result="ok=0\nerror=arguments\n";else{replica::stream::E2ETrace(mode=="on");result="ok=1\n";}}
     else if(mode=="trace"&&(in>>x)&&!(in>>tail))result=replica::stream::E2ETracePage(x);
+    else if(mode=="clock"&&!(in>>tail))result="ok=1\nlocal_us="+std::to_string(replica::stream::MetricMicros())+"\n";
+    else if(mode=="visual"&&(in>>role)&&(role=="on"||role=="off")&&!(in>>tail)){replica::stream::E2EVisual(role=="on");result="ok=1\nvisual_neutral_only=1\n";}
+    else if(mode=="reject"&&(in>>x>>role)&&x>=18&&x<=20&&!(in>>tail))result=game::ClientTestStreamReject(token,unsigned(x),role);
+    else if(mode=="wire"&&(in>>role)&&!(in>>tail)){replica::stream::E2EWireArm(role);result="ok=1\n";}
+    else if(mode=="wire-status"&&!(in>>tail))result=replica::stream::E2EWireStatus();
+    else if(mode=="hello"&&(in>>x)&&!(in>>tail))result=replica::stream::E2EHelloPackets(x);
+    else if(mode=="observation-loss"&&!(in>>tail)){
+      // 只损伤诊断，不撤销来源、Scene或网络；E18仍须看到后续真实提交推进。
+      replica::stream::E2EObservationLoss();game::ClientIsolationObserve(game::ClientIsolationKind::ObservationLost,"e2e_observation_loss");result="ok=1\nobservation_loss_notified=1\n";
+    }
     else if(mode=="snapshot"&&(in>>x>>y)&&x<=UINT32_MAX&&y<=UINT32_MAX&&!(in>>tail))result=replica::stream::E2ESnapshotPage(unsigned(x),unsigned(y));
     else if(mode=="arm"&&(in>>role>>x>>y)&&x<=6&&!(in>>tail)){replica::stream::E2EArm(role,unsigned(x),y);result="ok=1\n";}
     else result="ok=0\nerror=stream_test_arguments\n";

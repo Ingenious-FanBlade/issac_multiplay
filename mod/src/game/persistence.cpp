@@ -1,4 +1,5 @@
 #include "game/persistence.h"
+#include "game/client_isolation.h"
 #include "binding/offsets.h"
 #include "game/context.h"
 #include "game/lifecycle.h"
@@ -96,6 +97,7 @@ void FinishCall(const char *entry, std::uint64_t call, std::uint64_t parent,
 }
 } // namespace
 void ObserveClientPersistenceDenied(const char *entry,bool lua) noexcept {
+  ClientIsolationObserve(lua?ClientIsolationKind::LuaPersistence:ClientIsolationKind::NativePersistence,entry);
   auto &counter=lua?client_denied_lua:client_denied_native;
   counter.fetch_add(1,std::memory_order_relaxed);
   if(IsMain())Trace("client_persistence","event=denied source=%s entry=%s loop=%llu",

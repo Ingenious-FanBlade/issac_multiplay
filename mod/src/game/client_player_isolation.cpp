@@ -1,4 +1,5 @@
 #include "game/client_player_isolation.h"
+#include "game/client_isolation.h"
 #include "game/bridge.h"
 #include "game/context.h"
 #include "runtime.h"
@@ -27,7 +28,7 @@ bool ClientPlayerRandomDenied() noexcept {
   if(!ClientBusy())return false;
   if(IsMain()&&!current)return false; // 18/19自己的具名局部表现流继续由其owner核定。
   // J273 Player ctor→Entity ctor和本方采用的基Init没有随机调用需求，不虚构白名单。
-  denied.fetch_add(1,std::memory_order_relaxed);ClientCallbackFault("player_unexpected_random_source");return true;
+  denied.fetch_add(1,std::memory_order_relaxed);ClientIsolationObserve(ClientIsolationKind::RandomRejected,"player_random");ClientCallbackFault("player_unexpected_random_source");return true;
 }
 std::uint64_t ClientPlayerRandomDenials() noexcept {return denied.load(std::memory_order_relaxed);}
 } // namespace cs::game

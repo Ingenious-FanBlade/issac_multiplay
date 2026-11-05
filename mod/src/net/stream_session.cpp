@@ -891,6 +891,10 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
   for(const auto &range:ranges) {
     if(applied_[range->id]>=range->revision){convergence_since_.erase(range->id);continue;}
     auto [wait,inserted]=convergence_since_.try_emplace(range->id,now);
+#ifdef ISAACCS_E2E
+    // 显式、有时限的画面审阅段不当作真实慢端；采样/发送/接收仍正常并单列区间。
+    if(s::E2EVisualNeutral()){wait->second=now;continue;}
+#endif
     if(!paused_&&now>=wait->second&&now-wait->second>=route_.config.stale_ms)stale_=true;
     if(!paused_&&now>=wait->second&&now-wait->second>=route_.config.recovery_ms){FailPublication("publication_not_converged");return sent;}
   }

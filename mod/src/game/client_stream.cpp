@@ -2,6 +2,7 @@
 #include "game/client_objects.h"
 #include "game/client_presentation.h"
 #include "game/client_scene.h"
+#include "game/client.h"
 #include "replica/stream_e2e.h"
 #include "game/context.h"
 #include "replica/stream_capture.h"
@@ -9,7 +10,11 @@
 #include <algorithm>
 #include <cstring>
 #include <optional>
+#include <limits>
 #include <windows.h>
+#ifdef ISAACCS_E2E
+#include <rapidjson/pointer.h>
+#endif
 
 namespace cs::game {
 namespace {
@@ -199,6 +204,7 @@ void ClientScene::CommitStream(const stream::Range &root, bool baseline) {
   if(baseline||root->id.kind==stream::RangeKind::WorldDynamic)stream_last_commit_=now;
   stream_metrics_.display_ready_ms=now;
 #ifdef ISAACCS_E2E
+  ClientStreamAgeWitness(root->sample.tick);
   // 精确提交当刻回读；诊断失败不得改变提交或制造ACK，缺测由E2E单独判定。
   if(stream::E2EWants("native",*root)){
     try{std::vector<stream::Version> versions;for(const auto &[id,commit]:s.committed)versions.push_back(commit.version);stream::E2ESnapshot("native",root,stream::Closure(s.store,*root),s.scope.connection,s.route,TestInspect(),versions);}catch(...){}
@@ -220,6 +226,14 @@ void ClientScene::PumpStream() noexcept {
       state_ == ClientSceneState::Retiring)
     return;
   auto &s = *stream_;
+  // 视觉中性段只暂留native提交；接纳、确认及Collect仍推进，不能积累整个高频历史。
+  const auto advance_native=[]() noexcept {
+#ifdef ISAACCS_E2E
+    return !stream::E2EVisualHeld();
+#else
+    return true;
+#endif
+  };
   try {
     if (s.inflight) {
       if (result_.native_committed && DisplayReady() &&
@@ -244,7 +258,7 @@ void ClientScene::PumpStream() noexcept {
         QueueStream(s, std::move(m));
       }
     }
-    if (!s.cold_started && s.manifest &&
+    if (advance_native() && !s.cold_started && s.manifest &&
         stream::DependenciesReady(s.store, *s.manifest)) {
       s.model_memory = memory::Reserve(memory::Pool::Values, 65536);
       stream::Measure measure(stream_metrics_,stream::CpuStage::NativePrepare);
@@ -260,7 +274,7 @@ void ClientScene::PumpStream() noexcept {
       return;
     }
     // 冷/结构提交立即先交付不可变确认，不能被连续的新结构反复抢先。
-    if (s.baseline_committed && !s.inflight && DisplayReady() &&
+    if (advance_native() && s.baseline_committed && !s.inflight && DisplayReady() &&
         !s.pending.empty() && !(s.ack_at == 0 && !s.acknowledgements.empty())) {
       const auto rebuild = [&](const stream::Range &root) {
         s.bodies.clear();
@@ -589,4 +603,79 @@ void ClientScene::PumpStream() noexcept {
     Fail("client_stream_exception");
   }
 }
+#ifdef ISAACCS_E2E
+// 原18—20写前失败在真实NetworkStream的同一Scene重放；全部输入来自已收到的不可变闭包。
+// 不改变wire/网络身份、不伪造有效世界；编码/路由错误仍由真实报文代理另外覆盖。
+std::string ClientScene::TestStreamReject(unsigned tx,const std::string &name) noexcept {
+ if(!IsMain()||TopOwner()!=Owner::Manager||!stream_||!stream_->skeleton||!DisplayReady()||tx<18||tx>20)return "ok=0\nerror=network_negative_requires_committed_A\n";
+ try {
+  auto &s=*stream_;const auto world=s.store.Applied().find({stream::RangeKind::WorldDynamic,"ordinary-room",{}});
+  if(world==s.store.Applied().end())throw replica::ContractError("negative_actual_world_missing");
+  auto model=stream::StructuralModel(s.store,*world->second,*s.skeleton,s.scope.connection);auto &a=model.GetAllocator();
+  const auto before=TestInspect();const auto old=AppliedRevision(),attempt=result_.attempt;
+  if(before.rfind("ok=1\n",0)!=0)throw replica::ContractError("negative_actual_native_inspect_unavailable");
+  if(old>=UINT64_MAX-2)throw replica::ContractError("negative_revision_exhausted");
+  model["revision"]=replica::Decimal(old+1,a);
+  const auto at=[&](const char *path)->replica::Value &{auto *v=rapidjson::Pointer(path).Get(model);if(!v)throw replica::ContractError(std::string("negative_actual_prerequisite:")+path);return *v;};
+  const auto entity=[&](bool player)->replica::Value &{auto &rows=at("/components/entity/state/objects");for(auto &row:rows.GetArray())if((std::strcmp(row["class"].GetString(),"EntityPlayer")==0)==player)return row;throw replica::ContractError("negative_actual_entity_class_missing");};
+  const auto unknown=[&](replica::Value &v){if(!v.IsObject()||!v.HasMember("target"))throw replica::ContractError("negative_actual_reference_missing");v["target"]["id"]=replica::Decimal(999999999,a);};
+  bool compatibility=false,rejected=false;std::string reason;
+  if(name.rfind("caps-",0)==0){
+   auto caps=replica::Capabilities();auto &ca=caps.GetAllocator();const auto suffix=name.substr(5);
+   if(suffix=="model")caps["model"].SetUint(999);
+   else if(suffix=="catalog")caps["model_categories"][tx==20?"player_target":"entity_target"]["catalog"].SetUint(0);
+   else if(suffix=="id"||suffix=="source")replica::Put(caps["model_categories"]["player_target"],suffix.c_str(),"e2e-incompatible",ca);
+   else throw replica::ContractError("negative_capability_name");
+   try{replica::Negotiate(replica::Capabilities(),caps);}catch(const std::exception &e){rejected=true;reason=e.what();}compatibility=true;
+  }else if(name=="retired-scope")at("/scope/scene")=replica::Decimal(0,a);
+  else if(name=="old"||name=="old-revision")model["revision"]=replica::Decimal(old?old-1:0,a);
+  else if(name=="conflict"||name=="same-revision-conflict"||name=="same-version-conflict"){model["revision"]=replica::Decimal(old,a);replica::Put(at("/components/entity/state"),"e2e_conflict",replica::Value(true),a);}
+  else if(name=="partial")at(tx==20?"/components/player/coverage":"/components/entity/coverage").SetString("Partial",a);
+  else if(name=="source-version")at(tx==20?"/components/player/state/application_source/version":"/components/entity/state/application_source/version").SetUint(999);
+  else if(name=="bad-route")at("/components/room/state/room_index").SetInt(-100);
+  else if(name=="bad-budget"){replica::Value rows(rapidjson::kArrayType);for(unsigned i=0;i<32769;++i)rows.PushBack(replica::Value(rapidjson::kObjectType),a);replica::Value budget(rapidjson::kObjectType);replica::Put(budget,"embers",std::move(rows),a);replica::Put(at("/components/grid/state"),"application_runtime_budget",std::move(budget),a);}
+  else if(name=="bad-pose"||name=="bad-resource")entity(false)["common"]["fields"]["Entity.GetSprite"]["fields"]["Sprite.GetFilename"].SetString("../invalid.anm2",a);
+  else if(name=="bad-class")entity(false)["class"].SetString("UnsupportedEntity",a);
+  else if(name=="bad-number")entity(false)["common"]["fields"]["Entity.Position"].SetDouble(std::numeric_limits<double>::infinity());
+  else if(name=="field-read-failed"||name=="field-truncated"||name=="shader-read-failed"){auto &fields=entity(false)["common"]["fields"];replica::Value v(rapidjson::kObjectType);replica::Put(v,"status",name=="field-truncated"?"Truncated":"ReadFailed",a);replica::Put(v,"reason","E2E real-network derived negative",a);if(name=="shader-read-failed")replica::Put(fields["Entity.GetSprite"]["fields"],"Sprite.HasCustomShader",std::move(v),a);else replica::Put(fields,"Entity.Position",std::move(v),a);}
+  else if(name=="bad-reference"||name=="missing-owner"){auto &row=entity(false);replica::Value reference;reference.CopyFrom(row["subject"],a);unknown(reference);if(name=="bad-reference")reference["target"]["space"].SetUint(2);replica::Put(row["common"]["fields"],"Entity.Parent",std::move(reference),a);}
+  else if(name=="held-owner-missing"||name=="held-owner-wrong-class"){auto &row=entity(true);replica::Value reference;reference.CopyFrom(row["subject"],a);if(name=="held-owner-missing")unknown(reference);replica::Put(row["body"]["fields"],"EntityPlayer.GetHeldEntity",std::move(reference),a);}
+  else if(name=="dangling-graph"){replica::Value v(rapidjson::kObjectType);replica::Put(v,"type","graph_ref",a);replica::Put(v,"node",replica::Value(999999999u),a);replica::Put(at("/components/entity/state"),"negative_graph",std::move(v),a);}
+  else if(name=="fx-blend-range"||name=="fx-blend-missing"){auto &layers=at("/components/room/state/presentation_runtime/room_fx/layers");bool found=false;for(auto &row:layers.GetArray())if(row.HasMember("blend_mode")){if(name=="fx-blend-range")row["blend_mode"].SetInt(3);else row.RemoveMember("blend_mode");found=true;break;}if(!found)throw replica::ContractError("negative_actual_generic_fx_missing");}
+  else if(name=="bad-bitset")replica::Put(entity(false)["common"]["fields"],"Entity.GetEntityFlags",replica::Value("invalid-bits",a),a);
+  else if(name=="player-scope")entity(true)["body"]["fields"]["EntityPlayer.GetPlayerType"].SetInt(20);
+  else if(name=="cross-scope")at("/components/player/state/bodies/0/subject/target/run").SetString("999999999",a);
+  else if(name=="mixed-window")at("/components/player/capture/owner").SetString("999999999",a);
+  else if(name=="missing-body")at("/components/player/state/bodies").PopBack();
+  else if(name=="missing-twin"){
+   auto &ps=at("/components/player/state");replica::Value key;bool found=false;
+   for(auto &body:ps["bodies"].GetArray())if(body["relations"]["in_public_roster"].IsBool()&&body["relations"]["in_public_roster"].GetBool()&&replica::Unsigned(body["relations"]["player_type"])==40){key.CopyFrom(body["subject"]["target"],a);found=true;break;}
+   if(!found)throw replica::ContractError("negative_actual_tainted_soul_twin_missing");
+   for(auto i=ps["bodies"].Begin();i!=ps["bodies"].End();)if((*i)["subject"]["target"]==key)i=ps["bodies"].Erase(i);else ++i;
+   ps["membership"]["count"].SetUint(ps["bodies"].Size());
+   auto &roster=ps["roster"];for(auto i=roster.Begin();i!=roster.End();)if((*i)["body"]["target"]==key)i=roster.Erase(i);else ++i;for(unsigned i=0;i<roster.Size();++i)roster[i]["index"].SetUint(i);
+   for(auto &group:ps["control_groups"].GetArray()){
+    auto &members=group["memberships"];for(auto i=members.Begin();i!=members.End();)if((*i)["subject"]["target"]==key)i=members.Erase(i);else ++i;
+    auto &bodies=group["bodies"];for(auto i=bodies.Begin();i!=bodies.End();)if((*i)["target"]==key)i=bodies.Erase(i);else ++i;
+   }
+   auto &es=at("/components/entity/state");auto &objects=es["objects"];for(auto i=objects.Begin();i!=objects.End();)if((*i)["subject"]["target"]==key)i=objects.Erase(i);else ++i;es["membership"]["count"].SetUint(objects.Size());
+  }
+  else if(name=="duplicate-body"||name=="budget"||name=="pool-budget"){auto &rows=at(tx==20?"/components/player/state/bodies":"/components/entity/state/objects");if(rows.Empty())throw replica::ContractError("negative_actual_members_missing");auto v=replica::Copy(tx==20?rows[0]:entity(false));for(unsigned i=0;i<(name=="duplicate-body"?1u:name=="pool-budget"?513u:258u);++i){replica::Value copy;copy.CopyFrom(v,a);if(name=="pool-budget")copy["subject"]["target"]["id"]=replica::Decimal(700000+i,a);rows.PushBack(std::move(copy),a);}at(tx==20?"/components/player/state/membership/count":"/components/entity/state/membership/count").SetUint(rows.Size());if(name=="pool-budget")at("/components/entity/state/membership/native_count").SetUint(rows.Size());}
+  else if(name=="unknown-role")at("/components/player/state/bodies/0/relations/player_type").SetUint(999);
+  else if(name=="width")at("/components/player/state/bodies/0/relations/membership/ordinal").SetUint64(4294967296ull);
+  else if(name=="unresolved"){auto &v=at("/components/player/state/bodies/0/relations/other_twin");v.SetObject();replica::Put(v,"status","Unresolved",a);replica::Put(v,"reason","E2E actual dependency rejected",a);}
+  else if(name=="backup-slot")at("/components/player/state/backup_slots/0/index").SetUint(4);
+  else if(name=="wrong-shape"){auto &v=at("/components/player/state/bodies/0/subject/shape_revision");v=replica::Decimal(replica::Unsigned(v)+1,a);}
+  else if(name=="wrong-group"){auto &groups=at("/components/player/state/control_groups");if(groups.Size()<2)throw replica::ContractError("negative_actual_second_group_missing");replica::Value other;other.CopyFrom(groups[1]["subject"]["target"],a);at("/components/player/state/bodies/0/relations/membership/control_group_local_id")=std::move(other);}
+  else if(name=="missing-final-state"||name=="missing-resource"){auto &body=entity(true)["body"];if(!body.RemoveMember(name=="missing-final-state"?"application_player_state":"application_player_resources"))throw replica::ContractError("negative_actual_player_application_missing");}
+  else if(name=="history-gap"){auto &v=at("/components/player/state/bodies/0/history");v.SetObject();replica::Put(v,"status","ReadFailed",a);replica::Put(v,"reason","E2E",a);}
+  else if(name=="self-held"){auto &row=entity(true);replica::Value ref;ref.CopyFrom(row["subject"],a);replica::Put(row["body"]["fields"],"EntityPlayer.GetHeldEntity",std::move(ref),a);}
+  else if(name=="native-claim")replica::Put(model,"native_applied",replica::Value(true),a);
+  else return "ok=0\nerror=network_negative_requires_named_stage_owner\n";
+  if(!compatibility){try{replica::ValidateModel(model);rejected=!AdmitTarget(s.scope,replica::Unsigned(model["revision"]),model);reason=result_.reason.data();}catch(const std::exception &e){rejected=true;reason=e.what();}}
+  const bool preserved=DisplayReady()&&AppliedRevision()==old&&result_.attempt==attempt&&TestInspect()==before;
+  return std::string("ok=1\nrejected=")+(rejected?"1":"0")+"\nA_preserved="+(preserved?"1":"0")+"\norigin=real_network_applied_closure_no_file_import\nlayer="+(compatibility?"capability_contract":"native_model_prewrite")+"\nreason="+reason+"\n";
+ }catch(const std::exception &e){return "ok=0\nerror="+std::string(e.what())+"\n";}catch(...){return "ok=0\nerror=network_negative_diagnostic_failure\n";}
+}
+#endif
 } // namespace cs::game
