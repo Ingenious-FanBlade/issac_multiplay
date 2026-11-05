@@ -2,6 +2,8 @@
   "evidence": "STATIC_CONFIRMED",
   "base": "0x400000",
   "functions": [
+    {"rva":"0x3A3A40","pattern":"53 8B DC 83 EC 08 83 E4 F8 83 C4 04 55 8B 6B 04 89 6C 24 04","type":"raw32 __thiscall(u32,u32)","entry":["tx-04-20 I39 Luna max与主审：ECX=Player，两个栈word，7A3A8F限制slot<=3，7A44A8 ret8。新槽new/ctor/虚Init后配置；已有槽复用。7A4217将旧active写Game+1BB24+4*VarData，正常返回且真实703/VarData/四槽/roster匹配后才保留旧active的具名状态owner资格；不补出生或PlayerUpdate。"]},
+    {"rva":"0x3C1F40","pattern":"55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1","type":"void __thiscall()","entry":["tx-04-20 I39 Luna max与主审：7C20F4分配2EA0/7C210D ctor/7C212B挂sub/7C213F同步虚Init/7C215C ret。PlayerIndex>=0的16/17根创建对端非roster身体；完整helper正常返回后且同use关系稳定才授予命名初始化证言，不补出生。"]},
     {"rva":"0x3862A0","pattern":"55 8B EC 83 E4 F8 51 56 6A 00 68 B1 01 00 00 8B F1 E8 ?? ?? ?? ??","type":"bool __thiscall(Vector*)","entry":["tx-04-20 I29主审：Player vtable+18=7862A0，HasCollectible433后返回true或调用base6AD450；沿唯一EntityList::RenderShadows外层共享buffer，不孤立调用。"]},
     {"rva":"0x29440","pattern":"55 8B EC 8B 45 0C 83 EC 18 33 D2 83 C1 60 8B 80 0C 16 00 00","type":"ColorMod* __thiscall(ColorMod*,Entity_Player*)","entry":["tx-04-20 I29主审：429440只按Game+1BAA8的四个controller值选palette并写11个float，4294C5 ret8；784CE6明确lea ecx,[Game+1BAA8]。Source复制最终色；Client仅Render用途覆写纯查询，不安装远端ControllerIndex。"]},
     {"rva":"0x9F3D0","pattern":"55 8B EC 6A FF 68 ?? ?? ?? ?? 64 A1 00 00 00 00 50 81 EC AC 00 00 00","type":"raw32 __thiscall()","entry":["tx-04-19 I34 Luna max与主审：49F3D0专属Delirium AI；6BF295/6BF297 case412以ECX=this调用，零栈参，4A11F8唯一正常ret，caller不消费返回。本方保存原始EAX32；两处虚Init49F61B/49FDAB及后续派生配置均在该owner内。只观察，不跳过/替换原AI。"]},

@@ -15,12 +15,12 @@ static_assert(kLuaObservationNodeBudget==obs::kNodeBudget);
 // 所有服务请求发生在 Manager 主线程边界；后台只消费 PublicationQueue 的自有值。
 obs::CapturePlan Plan() {
   obs::CapturePlan p;
-  p.domains.push_back({obs::DomainId::Entity,1u|4u|16u|32u,30,{}});
-  // 节点按用户要求统一放宽至64M；Grid仍有独立32MiB、其它域保留原字节上限。
+  p.domains.push_back({obs::DomainId::Entity,1u|4u|16u|32u,30,{16384,obs::kNodeBudget,12,obs::MaximumDomainBytes(obs::DomainId::Entity)}});
+  // 节点按用户要求统一放宽至64M；Entity/Grid有独立32MiB、其它域保留原字节上限。
   p.domains.push_back({obs::DomainId::Grid,1u|4u|16u|32u,30,{16384,obs::kNodeBudget,12,32ull<<20}});
   p.domains.push_back({obs::DomainId::Room,53u,30,{16384,obs::kNodeBudget,12,4ull<<20}});
   p.domains.push_back({obs::DomainId::Level,45u,30,{16384,obs::kNodeBudget,12,4ull<<20}});
-  for(unsigned d=5;d<=11;++d) p.domains.push_back({static_cast<obs::DomainId>(d),obs::SupportedPhases(static_cast<obs::DomainId>(d)),30,{16384,obs::kNodeBudget,12,(d==6||d>=8?8ull:1ull)<<20}});
+  for(unsigned d=5;d<=11;++d) p.domains.push_back({static_cast<obs::DomainId>(d),obs::SupportedPhases(static_cast<obs::DomainId>(d)),30,{obs::MaximumDomainObjects(static_cast<obs::DomainId>(d)),obs::kNodeBudget,12,(d==9?16ull:d==6||d>=8?8ull:1ull)<<20}});
   return p;
 }
 void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
@@ -287,7 +287,8 @@ ObservationSubjectValue ObservationSubject(void *object,bool registering,bool gr
   // 即使新run复用了地址且没有出生历史，也不能把当前身体误判为旧对象；撤绑/Init即撤销。
   const bool player_current=!grid&&result.control_active&&id->current_public_ready&&
       id->readiness==std::uint32_t(world::Readiness::CurrentPlayerUpdateWitness);
-  const bool reuse_current=player_current||(id->born&&id->readiness>=2&&id->revision==0&&(grid||id->current_public_ready));
+  const bool player_child_current=!grid&&id->current_public_ready&&(id->readiness==std::uint32_t(world::Readiness::PlayerChildInitCompleted)||id->readiness==std::uint32_t(world::Readiness::PlayerStateOwnerCompleted));
+  const bool reuse_current=player_current||player_child_current||(id->born&&id->readiness>=2&&id->revision==0&&(grid||id->current_public_ready));
   result.status=id->Retired()?6:registering?1:current&&(!id->reused||reuse_current)?1:id->reused?7:3;
   return result;
 }

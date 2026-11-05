@@ -166,7 +166,8 @@ end
 
 function M.Capture(limits)
   if limits then
-    LIMIT.objects=limits.objects; LIMIT.nodes=limits.nodes; LIMIT.depth=limits.depth; LIMIT.bytes=limits.bytes
+    -- 同时采用具名有限查询预算；不能只更新字节/节点而沿用上一个域的旧queries上限。
+    read.Limits(limits)
   end
   local ctx=context(); local list=Isaac.GetRoomEntities(); local subjects={}; local seen={}; local enumerationComplete=true
   -- 先登记全部主体，再读取字段／解析关系；Lua 枚举缺席不能推定销毁。

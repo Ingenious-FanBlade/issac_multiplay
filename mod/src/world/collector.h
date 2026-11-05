@@ -97,6 +97,10 @@ public:
   // 仅49F3D0已核定的Type412重配owner调用；不按普通NPCUpdate推导私有字段资格。
   std::uint32_t BeginDeliriumReconfiguration(std::uint32_t object) noexcept;
   void EndDeliriumReconfiguration(std::uint32_t token,bool normal) noexcept;
+  std::uint32_t BeginPlayerChildSource(std::uint32_t object,unsigned kind,unsigned slot) noexcept;
+  void EndPlayerChildSource(std::uint32_t token,bool normal,bool body_reached=true) noexcept;
+  // 必须在共享控制回调撤锚之前记录Replace前态；返回值仅用于不含地址的资格诊断。
+  std::uint32_t BeforePlayerReplaceSource(std::uint32_t manager,std::uint32_t old_body,std::uint32_t replacement) noexcept;
 
 private:
   struct Roots {
@@ -109,6 +113,8 @@ private:
     bool active = false;
   };
   // 固定回调栈；before 是 Grid/door 的真实旧槽，不把请求当释放结果。
+  // Replace前已初始化的Lazarus旧活动体证言；只跟随同一次真实替换，不借新身体资格。
+  struct PlayerReplaceState {std::uint32_t manager=0,old_body=0,new_body=0;unsigned old_type=0;std::uint64_t old_local=0,old_use=0,new_local=0,new_use=0,run=0;bool invalid=false;};
   struct Call {
     std::uint32_t id = 0, parent = 0, object = 0, before = 0;
     Observation observation = Observation::Factory;
@@ -119,7 +125,11 @@ private:
     std::uint32_t body_result = 0;
     std::uint32_t body_after = 0, before_grid = 0, grid_index = kNoGridIndex;
     bool body_slot_known = false, before_grid_door = false;
+    PlayerReplaceState player_replace{};
   };
+  void RememberPlayerReplaceState(Call &) noexcept;
+  void CompletePlayerReplaceState(const Call &) noexcept;
+  bool PlayerReplaceRoster(const Call &,bool completed) noexcept;
   bool Read(std::uint64_t address, void *value, std::size_t size) noexcept;
   template <class T> bool Value(std::uint64_t address, T &value) noexcept {
     return Read(address, &value, sizeof(value));
@@ -173,6 +183,8 @@ private:
   std::uint32_t authority_count_ = 0, game_frame_ = 0, grid_width_ = 0;
   std::array<Phase, 4> phases_{};
   std::array<Call, 64> calls_{};
+  // 只跨同一ObservationScope构造中的control_enter→enter两步；按深度与实参消耗，不能复用。
+  std::array<PlayerReplaceState,64> player_replace_before_control_{};
   // 地址只作同线程在途关联；local/use/birth/run/outer共同限定同一已观察出生。
   // entry不改身份；实际BaseInit才推进shape，正常helper返回才恢复派生读取。
   struct EntityReconfiguration final {
@@ -182,6 +194,23 @@ private:
   };
   std::array<EntityReconfiguration,8> entity_reconfigurations_{};
   std::uint32_t entity_reconfiguration_depth_=0,next_entity_reconfiguration_=0;
+  // 具名角色owner内真实Ctor/完整Init与存储迁移证言；嵌套正常收口并复核当前关系才授予4/5。
+  struct PlayerChildOwner {std::uint32_t token=0,object=0,call_depth=0,first=0,replacement=0;unsigned kind=0,slot=0,source_type=0;std::uint64_t local=0,use=0,run=0,replacement_local=0,replacement_use=0;};
+  // initialized要求同use真实完整Init或既有存储依据；esau_active另等实际替换和槽后态。
+  struct PlayerChildWitness {std::uint32_t object=0,parent=0,offset=0,peer=0;std::uint64_t local=0,use=0,parent_local=0,parent_use=0;bool complete=false,state_owner=false,pair_owner=false,invalid=false,ctor_seen=false,initialized=false,esau_active=false;};
+  std::array<PlayerChildOwner,16> player_child_owners_{};
+  std::array<PlayerChildWitness,256> player_child_witnesses_{};
+  unsigned player_child_depth_=0,player_child_count_=0;
+  std::uint32_t next_player_child_=0;
+  bool player_child_failed_=false;
+  void RememberPlayerChildCtor(const Identity &) noexcept;
+  bool PlayerChildRelation(const PlayerChildOwner &,PlayerChildWitness &) noexcept;
+  bool PlayerChildStillCurrent(const PlayerChildWitness &) noexcept;
+  bool PlayerEsauSlotCompleted(const PlayerChildOwner &,PlayerChildWitness &) noexcept;
+  void RememberPlayerEsauReplacement(std::uint32_t manager,std::uint32_t old_body,std::uint32_t replacement) noexcept;
+  bool PlayerEsauRestoreNoop(std::uint32_t object) noexcept;
+  void CompletePlayerEsauReplacement(const PlayerChildOwner &) noexcept;
+  bool PlayerLazarusRetired(const PlayerChildOwner &,PlayerChildWitness &) noexcept;
   EntityReconfiguration *EntityReconfigurationFor(std::uint32_t object) noexcept;
   std::array<PlayerAnchor, kControlAnchorCapacity> anchors_{};
   // 当前exact pair是否已观察正常PlayerUpdate；独立于创建owner赋予的字段读取依据。

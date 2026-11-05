@@ -3,6 +3,7 @@
 #include "game/context.h"
 #include "replica/model.h"
 #include "replica/entity_target.h"
+#include "replica/player_target.h"
 #include "replica/codec.h"
 #include "game/bridge.h"
 #include "game/client.h"
@@ -50,6 +51,10 @@ void ProjectEntity(replica::Json &m) {
     for(const auto name:{"common","body"}){auto &f=o[name]["fields"];const auto &allow=std::string(name)=="common"?common:player;
       for(auto i=f.MemberBegin();i!=f.MemberEnd();)if((std::string(name)=="body"&&!p)||!allow.count(std::string(i->name.GetString(),i->name.GetStringLength())))i=f.EraseMember(i);else ++i;}
   }
+  auto &ps=m["components"]["player"]["state"];if(ps.HasMember("application_source"))ps.RemoveMember("application_source");
+  for(auto &o:objects.GetArray())if(std::string(o["class"].GetString())=="EntityPlayer"){
+    auto &body=o["body"];for(auto i=body.MemberBegin();i!=body.MemberEnd();)if(std::string(i->name.GetString()).rfind("application_player",0)==0)i=body.EraseMember(i);else ++i;
+  }
   if(players!=1)throw replica::ContractError("fixture_exact_player_required");
   V profile(rapidjson::kObjectType);replica::Put(profile,"id","tx-04-17-representative-v1",a);
   replica::Put(profile,"source","tx18 formal consumer;source-full-<label>.json",a);
@@ -91,6 +96,9 @@ std::string ExportClientFixture(const std::string &token,const std::string &labe
     if(model["publishable"]!=true){
       // 中断材料保留具体域/字段原因，不将Partial说成空集合；仅E2E故障续测使用。
       Save(root/("source-incomplete-"+label+".json"),model);
+      // 投影可能按目录去掉派生Query；中断诊断另留原始值，不能从缺失的投影猜Getter。
+      replica::Json original(rapidjson::kArrayType);for(const auto &row:rows){replica::Value v;v.CopyFrom(row,original.GetAllocator());original.PushBack(std::move(v),original.GetAllocator());}
+      Save(root/("source-incomplete-observation-"+label+".json"),original);
       if(!c->e2e_grid_faults.empty()){std::ofstream diagnosis(root/("source-grid-identities-"+label+".json"),std::ios::binary);diagnosis<<c->e2e_grid_faults;}
       std::string error="fixture_source_not_complete";
       for(auto i=model["components"].MemberBegin();i!=model["components"].MemberEnd();++i)
@@ -101,13 +109,24 @@ std::string ExportClientFixture(const std::string &token,const std::string &labe
     const auto projection_bytes=replica::Text(model).size();
     if(entity19){
       // 不删墓碑、不筛活对象、不裁非Player字段；所有19消费者使用同一正式目标。
-      const auto target=replica::ParseEntityTarget(model);
+      const auto validation_started=GetTickCount64();
+      const auto target=std::make_shared<const replica::EntityTarget>(replica::ParseEntityTarget(model));
+      if(replica::HasPlayerTarget(model)){
+        const auto players=replica::ParsePlayerTarget(model,target);
+        if(!players->public_complete||!players->native_source_complete){
+          std::string why="fixture_player_source_incomplete";for(const auto &gap:players->missing)why+=":"+gap;
+          for(const auto &body:players->bodies)for(const auto &gap:body.missing)if(why.size()<4096)why+=":body="+std::to_string(body.key.id)+":"+gap;
+          throw replica::ContractError(why);
+        }
+      }
       replica::Value profile(rapidjson::kObjectType);auto &a=model.GetAllocator();
-      replica::Put(profile,"id","tx-04-19-non-player-v1",a);
+      const bool full_player=replica::HasPlayerTarget(model);
+      replica::Put(profile,"id",full_player?"tx-04-20-player-v2":"tx-04-19-non-player-v1",a);
       replica::Put(profile,"source","same-window formal CaptureRows;complete entity projection retained",a);
-      replica::Put(profile,"scope","all non-Player;ordinary Isaac support only;full Player=tx-04-20;not all-domain Applied",a);
-      replica::Put(profile,"source_members",replica::Value(target.source_member_count),a);
-      replica::Put(profile,"player_members",replica::Value(unsigned(target.player_keys.size())),a);
+      replica::Put(profile,"scope",full_player?"complete Entity and Player;not all-domain Applied":"all non-Player;ordinary Isaac support only;not all-domain Applied",a);
+      const auto validation_ms=GetTickCount64()-validation_started;
+      replica::Put(profile,"source_members",replica::Value(target->source_member_count),a);
+      replica::Put(profile,"player_members",replica::Value(unsigned(target->player_keys.size())),a);
       replica::Put(model,"client_profile",std::move(profile),a);
       replica::Json original(rapidjson::kArrayType);for(const auto &row:rows){replica::Value v;v.CopyFrom(row,original.GetAllocator());original.PushBack(std::move(v),original.GetAllocator());}
       Save(root/("observation-"+label+".json"),original);
@@ -115,6 +134,7 @@ std::string ExportClientFixture(const std::string &token,const std::string &labe
       replica::Put(metric,"capture_token",token_at_export,ma);
       replica::Put(metric,"raw_observation_bytes",replica::Decimal(raw_bytes,ma),ma);
       replica::Put(metric,"replica_projection_bytes",replica::Decimal(projection_bytes,ma),ma);
+      replica::Put(metric,"entity_player_validation_ms",replica::Decimal(validation_ms,ma),ma);
       replica::Put(metric,"comparison","same source raw vs current projection;not P1-P6 net improvement",ma);
       Save(root/("metrics-"+label+".json"),metric);
       if(c->e2e_entity_loss)throw replica::ContractError("fixture_independent_buffer_loss");
@@ -134,7 +154,8 @@ std::string ExportClientFixture(const std::string &token,const std::string &labe
     replica::ValidateModel(model);
     Save(root/(label+".json"),model);++revision;
     return "ok=1\nexported=1\nrevision="+std::to_string(revision)+"\nsource_tick="+std::to_string(ctx.authority_tick.value)+"\ncapture_token="+token_at_export+"\n";
-  }catch(const std::exception &e){return "ok=1\nexported=0\nerror="+std::string(e.what())+"\n";}catch(...){return "ok=0\nerror=fixture_export_allocation\n";}
+  }catch(const replica::PlayerContractError &e){return "ok=1\nexported=0\nerror="+std::string(e.what())+"\nplayer_body="+std::to_string(e.subject.id)+"\nplayer_field="+e.field+"\n";}
+  catch(const std::exception &e){return "ok=1\nexported=0\nerror="+std::string(e.what())+"\n";}catch(...){return "ok=0\nerror=fixture_export_allocation\n";}
 }
 std::string ImportClientIndependent(const std::string &token,const std::string &label) noexcept {
   if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||

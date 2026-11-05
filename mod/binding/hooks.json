@@ -12,6 +12,10 @@
     ]
   },
   "hooks": [
+    ["world_player_esau_owner","world","CsEntity","PlayerEsauSlotOwner","unsigned int","unsigned int slot, unsigned int flags","slot, flags","0x3A3A40","None",false,"",true,-20000,true],
+    ["world_player_sub_owner","world","CsEntity","PlayerSubBodyOwner","void","","","0x3C1F40","None",false,"",true,-20000,true],
+    ["world_player_type_owner","world","Entity_Player","ChangePlayerType","void","int playerType, bool keepHealth","playerType, keepHealth","0x3C4620","None",false,"",false,-20000,true],
+    ["world_player_full_init_owner","world","Entity_Player","Init","void","unsigned int type, unsigned int variant, unsigned int subtype, unsigned int initSeed","type, variant, subtype, initSeed","0x34F6A0","None",false,"",false,-20000,true],
     ["world_delirium_owner","world","CsEntity","DeliriumReconfiguration","unsigned int","","","0x9F3D0","None",false,"",true,-20000,true],
     ["e2e_dummy_acquire","client","CsEntityE2EFactory","AcquireDummy","Entity*","unsigned int type, bool force","type, force","0x2EC540","None",false,"",true,20000,true],
     ["native_level_random","world","Level","generate_dungeon","void","RNG* random","random","0x33AF60","None",false,"",false,-10000,true],

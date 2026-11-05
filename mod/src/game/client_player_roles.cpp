@@ -2,6 +2,7 @@
 #include "game/client_player_state.h"
 #include "game/client_player_equipment.h"
 #include "game/client_entity_adapters.h"
+#include "game/client_resource_model.h"
 #include "replica/player_target.h"
 #include <algorithm>
 #include <charconv>
@@ -14,7 +15,8 @@ namespace {
 using V=replica::Value;
 [[noreturn]] void Fail(const char *why){throw replica::ContractError(std::string("player_role:")+why);}
 const V &At(const V &v,const char *name){if(!v.IsObject()||!v.HasMember(name))Fail(name);return v[name];}
-bool Is(const V &v,const char *name,const char *value){const auto &s=At(v,name);return s.IsString()&&std::string(s.GetString(),s.GetStringLength())==value;}
+// 标记谓词允许键不存在；必需来源由调用处验证，不能把合法resource_pose误当缺Null状态。
+bool Is(const V &v,const char *name,const char *value){return v.IsObject()&&v.HasMember(name)&&v[name].IsString()&&std::string(v[name].GetString(),v[name].GetStringLength())==value;}
 int Int(const V &v){int result=0;const auto &n=v.IsObject()&&v.HasMember("type")&&Is(v,"type","int64")?At(v,"value"):v;
   if(n.IsInt())return n.GetInt();if(n.IsString()){const auto r=std::from_chars(n.GetString(),n.GetString()+n.GetStringLength(),result);if(r.ec==std::errc{}&&r.ptr==n.GetString()+n.GetStringLength())return result;}Fail("i32_required");}
 bool Bool(const V &v){if(!v.IsBool())Fail("boolean_required");return v.GetBool();}
@@ -106,7 +108,11 @@ void ClientPlayerRolesPrepare(const std::vector<ClientPlayerDescription> &bodies
   for(const auto &d:bodies){if(!ClientPlayerRole(d.player_type)||d.entity.variant)Fail(ClientPlayerRoleClassification(d.player_type,d.entity.variant));
     if(!d.role||!d.state||d.player_type!=d.state->player_type||!index.emplace(d.entity.key,&d).second)Fail("body_source_or_type_conflict");}
   for(const auto &d:bodies){
+    try{
     const auto &policy=*ClientPlayerRole(d.player_type);
+    // Esau Jr会把旧体的子关系转移给替代体，旧槽仍保存完整休眠存储；它不再承担活动角色的必需配对。
+    // Esau存储的Exists可仍为真；休眠由原生成员/消费资格决定，不把存在性当活动性。
+    const bool dormant=d.roster_index<0&&!d.native_valid&&!d.room_member&&!d.render_member&&!d.update_member&&!d.active&&!d.can_consume;
     if(!d.special||!d.equipment||!d.equipment->history)Fail("special_source_or_history_missing");
     if(d.render_member&&(!d.special->images[0].present||!d.special->images[1].present))Fail("render_player_native_images_missing");
     // TIsaac的槽是History下标，不是collectible ID；合法空槽保留-1，不按库存相等重排。
@@ -126,7 +132,7 @@ void ClientPlayerRolesPrepare(const std::vector<ClientPlayerDescription> &bodies
     if(!Same(Link(d,"main_twin"),main)||!Same(Link(d,"other_twin"),twin))Fail("native_main_other_twin_predicate_conflict");
     const bool hologram=d.entity.exists&&(d.player_type==29||d.player_type==38)&&peer&&peer!=&d&&peer->role->player_index!=-1&&peer->role->player_index<d.role->player_index;
     if(d.role->hologram!=hologram)Fail("hologram_native_predicate_conflict");
-    if(policy.family==6||policy.family==8){
+    if((policy.family==6||policy.family==8)&&!dormant){
       const int other=d.player_type==19?20:d.player_type==20?19:d.player_type==35?40:35;
       if(!peer||peer==&d||peer->player_type!=other||!Same(Link(*peer,"twin_storage"),Self(d)))Fail("paired_twin_missing_or_nonreciprocal");
       if((d.roster_index>=0)!=(peer->roster_index>=0))Fail("active_twin_roster_membership_conflict");
@@ -143,8 +149,13 @@ void ClientPlayerRolesPrepare(const std::vector<ClientPlayerDescription> &bodies
     }
     if(policy.family==9){
       const auto *backup=body(Link(d,"backup_storage"));
+      const bool active_pair=peer&&peer!=&d&&peer->player_type==67-d.player_type&&
+          d.roster_index>=0&&peer->roster_index>=0&&Same(Link(*peer,"twin_storage"),Self(d));
       // Flip两套状态保存在不同身体；Birthright只改变实际twin/roster结果，不在Client使用道具。
-      if(!backup||backup==&d||(backup->player_type!=29&&backup->player_type!=38)||!Same(Link(*backup,"backup_storage"),Self(d)))Fail("lazarus_flipped_pair_missing_or_nonreciprocal");
+      // 原版ChangePlayerType会保留已失效、无任何成员资格的旧38及双向backup，另一端已换普通角色。
+      // 只对此完全休眠的真实存储容许对端类型变化；活动/有效/绘制/消费身体仍要求29/38配对。
+      // Birthright的真实双活动体使用twin，backup/GetFlippedForm可为空；不能补造backup边。
+      if((!dormant&&!backup&&!active_pair)||(backup&&(backup==&d||(!dormant&&backup->player_type!=29&&backup->player_type!=38)||!Same(Link(*backup,"backup_storage"),Self(d)))))Fail("lazarus_flipped_pair_missing_or_nonreciprocal");
       if(peer&&(peer==&d||(peer->player_type!=29&&peer->player_type!=38)||!Same(Link(*peer,"twin_storage"),Self(d))))Fail("lazarus_birthright_twin_conflict");
     }
     // held拥有自己的Key与形态；隐藏是合法父代画，普通可见对象仍保留Source可见性。
@@ -155,6 +166,11 @@ void ClientPlayerRolesPrepare(const std::vector<ClientPlayerDescription> &bodies
       if(e==target.entities->objects.end()||e->presence!=replica::EntityMemberPresence::Current||!d.entity.derived||e->shape_revision!=d.entity.derived->player_held_shape)Fail("held_current_shape_required");
     }
     // 全组最多64身体、最多四组由PlayerTarget严格解析；这里不新增四身体上限。
+    }catch(const replica::PlayerContractError &){throw;}
+    catch(const replica::ContractError &error){
+      // 全图预检也保留实际失败体，不能沿用描述构建循环中最后一个身体的诊断。
+      throw replica::PlayerContractError(error.what(),{d.entity.key.run,d.entity.key.id,d.entity.key.space},{},error.what());
+    }
   }
   // 原生Render可以借被举起Player；禁止环导致递归代画，合法链按同T稳定Key终止。
   for(const auto &[held,holder]:holders){std::set<ClientObjectKey> seen{held};auto current=holder;

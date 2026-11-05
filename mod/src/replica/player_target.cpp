@@ -15,7 +15,7 @@ bool Is(const V *v,const char *s){return v&&v->IsString()&&std::string_view(v->G
 std::uint64_t U(const V &v){return Unsigned(v);}
 const V &Seq(const V &v){if(v.IsArray())return v;if(v.IsObject()&&v.ObjectEmpty()){static const V empty(rapidjson::kArrayType);return empty;}Error("sequence","array_or_explicit_empty_required");}
 bool Bool(const V &v){if(!v.IsBool())Error("boolean","type");return v.GetBool();}
-unsigned Small(const V &v,unsigned max){const auto n=U(v);if(n>max)Error("integer","range");return unsigned(n);}
+unsigned Small(const V &v,unsigned max,const char *field="integer"){const auto n=U(v);if(n>max)Error(field,"range");return unsigned(n);}
 const V &Scalar(const V &v){return Is(Find(v,"type"),"int64")?At(v,"value"):v;}
 SubjectKey Key(const V &v,const Scope &s,unsigned space){SubjectKey k{U(At(v,"run")),U(At(v,"id")),Small(At(v,"space"),14)};if(k.run!=s.run||!k.id||k.space!=space)Error("key","scope_or_space");return k;}
 PlayerReferenceTarget Ref(const V &v,const Scope &s,unsigned space=1){
@@ -42,6 +42,16 @@ void Gaps(const V &v,const std::string &p,std::vector<std::string> &out){
   if(const auto *status=Find(v,"status")){const auto s=Str(*status);if(s=="ReadFailed"||s=="NotCaptured"||s=="Unavailable"||s=="Truncated"||s=="Unsupported"||s=="Nonfinite"||s=="Unknown"||s=="NotScheduled")out.push_back(p+":"+s);}
   if(v.IsArray()){for(unsigned i=0;i<v.Size();++i)Gaps(v[i],p+"/"+std::to_string(i),out);}
   else if(v.IsObject())for(auto i=v.MemberBegin();i!=v.MemberEnd();++i)Gaps(i->value,p+"/"+Str(i->name),out);
+}
+// 复杂公开对象还带无请求参数的查询目录；这些NotScheduled继续原样保留，
+// 实际装备由完整有序effects/五Weapon槽及其具名字段安装，不在Client发起查询补算。
+// 只豁免未请求的这十个query；被调度后的ReadFailed等仍阻止对应consumer。
+void ManifestGaps(const V &v,const std::string &p,std::vector<std::string> &out){
+  if(v.IsObject()){
+    if(const auto *status=Find(v,"status")){const auto s=Str(*status);if(s=="ReadFailed"||s=="NotCaptured"||s=="Unavailable"||s=="Truncated"||s=="Unsupported"||s=="Nonfinite"||s=="Unknown"||s=="NotScheduled")out.push_back(p+":"+s);}
+    static const std::set<std::string> unrequested={"TemporaryEffects.GetCollectibleEffect","TemporaryEffects.GetCollectibleEffectNum","TemporaryEffects.GetNullEffect","TemporaryEffects.GetNullEffectNum","TemporaryEffects.GetTrinketEffect","TemporaryEffects.GetTrinketEffectNum","TemporaryEffects.HasCollectibleEffect","TemporaryEffects.HasNullEffect","TemporaryEffects.HasTrinketEffect","Weapon.IsItemAnimFinished"};
+    for(auto i=v.MemberBegin();i!=v.MemberEnd();++i){const auto name=Str(i->name);if(unrequested.count(name)&&Is(Find(i->value,"status"),"NotScheduled"))continue;ManifestGaps(i->value,p+"/"+name,out);}
+  }else if(v.IsArray())for(unsigned i=0;i<v.Size();++i)ManifestGaps(v[i],p+"/"+std::to_string(i),out);
 }
 }
 bool HasPlayerTarget(const V &model) noexcept {
@@ -89,8 +99,9 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
     const auto &native_membership=At(row,"native_membership");
     if(U(At(native_membership,"version"))!=1)Error("native_membership","version");
     if(Is(Find(native_membership,"status"),"Value")){
-      body.native_membership_known=true;body.room_member=Small(At(native_membership,"room_owners"),1)!=0;
-      body.render_member=Small(At(native_membership,"render_members"),1)!=0;body.update_member=Small(At(native_membership,"update_members"),1)!=0;
+      // 保留真实集合次数的拒绝，不将重复成员截成bool；错误定位到实际字段。
+      body.native_membership_known=true;body.room_member=Small(At(native_membership,"room_owners"),1,"native_membership.room_owners")!=0;
+      body.render_member=Small(At(native_membership,"render_members"),1,"native_membership.render_members")!=0;body.update_member=Small(At(native_membership,"update_members"),1,"native_membership.update_members")!=0;
       body.native_valid=Bool(At(native_membership,"valid"));
       if(body.room_member&&!body.native_valid)Error("native_membership","room_owner_without_valid_use");
       if((body.render_member||body.update_member)&&!body.room_member)Error("native_membership","consumer_without_room_owner");
@@ -125,7 +136,7 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
     const auto &manifest=At(extension,"member_manifest"),&values=At(fields.value,"fields");if(!manifest.IsObject())Error("manifest","object_required");
     for(auto group=manifest.MemberBegin();group!=manifest.MemberEnd();++group)for(const auto &m:Seq(group->value).GetArray()){
       const auto id=Str(At(m,"member"));if(id=="Entity.GetSprite")continue;
-      if(const auto *v=Find(values,id.c_str()))Gaps(*v,id,body.missing);else body.missing.push_back(id+":MissingOrProjected");
+      if(const auto *v=Find(values,id.c_str()))ManifestGaps(*v,id,body.missing);else body.missing.push_back(id+":MissingOrProjected");
     }
     // 备份/借用身体可没有参与者关系；存在性不依赖当前可输入资格。
     if(!body.membership.known&&body.in_public_roster)body.missing.push_back("membership:Unresolved");
@@ -166,5 +177,5 @@ std::shared_ptr<const PlayerTarget> ParsePlayerTarget(const V &model,std::shared
 const Json &PlayerApplicationCatalog(){static const auto catalog=Parse(
 #include "player_application.inc"
 );return catalog;}
-Json PlayerCapabilities(){return Parse(R"({"id":"player-target-v2","source":"player-source-v2","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","participants":4,"group_bodies":64,"backup_slots":4,"active_slots":4,"pocket_slots":4,"weapon_slots":5,"final_state":"player-final-state-v1","final_state_tasks":"I11-I15:implemented;I39-not-run","equipment_state":"player-equipment-state-v1","equipment_tasks":"I16-I20:implemented;I39-not-run","role_state":"player-role-state-v1","role_tasks":"I21-I37:implemented;I38-I40-pending;I39-not-run","special_state":"player-special-state-v1","draw_state":"player-draw-state-v1","hud_state":"player-hud-state-v1","control":"committed pure group view;one intent stream;binding separate from shape","vanilla_roles":"0..40 named C01-C17;finite special state and native draw installed;I39 not run","hologram":"native exists/type/twin/lower-player-index;no independent flag","history":"Scene-committed immutable per-body ordered view","native_apply":true,"diagnostics":"player-status-v1;bounded stable Key/field/role/prefix/retirement/recovery;no native addresses;recording independent","build_boundary":"product and E2E outputs separated;release Player catalog;test bridge and fault implementation excluded","display_view":"committed participant/body/slot and original captured queries;full HUD layout=tx27","isolation":"purpose-scoped RNG rejection;callbacks/gameplay/persistence/audio blocked through safe retirement","retirement":"all Player out-links before non-Player release;per-prefix ownership;safe complete-target rebuild once","scene_commit":"same attempt;body/relation/resource and Player domain;full Entity requires complete Player owner;no network ACK","limits":{"bodies":256,"plan_cost":65536,"references":262144,"resources":4096,"layers":65536,"source_bytes":33554432,"source_nodes":67108864,"owned_estimate_bytes":268435456,"aggregate_entries":1048576},"structure_owner":"key/use/shape/role-qualified;roster-room-render-control-backup-separated","scope":"same-window Entity body+Player relations/History;owned typed values","legacy":"single ordinary Isaac profile remains separate","private_source":"named-consumer-writer-qualified;not blanket PlayerUpdate eligibility","runtime_acceptance":"I39-not-run"})");}
+Json PlayerCapabilities(){return Parse(R"({"id":"player-target-v2","source":"player-source-v2","catalog":1,"model":2,"target":"REPENTOGON-1.1.3/J273","participants":4,"group_bodies":64,"backup_slots":4,"active_slots":4,"pocket_slots":4,"weapon_slots":5,"final_state":"player-final-state-v1","final_state_tasks":"I11-I15:implemented;I39-finite-matrix-passed","equipment_state":"player-equipment-state-v1","equipment_tasks":"I16-I20:implemented;I39-finite-matrix-passed","role_state":"player-role-state-v1","role_tasks":"I21-I40:complete;I39-finite-matrix-passed","special_state":"player-special-state-v1","draw_state":"player-draw-state-v1","hud_state":"player-hud-state-v1","control":"committed pure group view;one intent stream;binding separate from shape","vanilla_roles":"0..40 named C01-C17;basic final states and named special scenes passed;not all natural combinations","hologram":"native exists/type/twin/lower-player-index;no independent flag","history":"Scene-committed immutable per-body ordered view","native_apply":true,"diagnostics":"player-status-v1;bounded stable Key/field/role/prefix/retirement/recovery;no native addresses;recording independent","build_boundary":"product and E2E outputs separated;release Player catalog;test bridge and fault implementation excluded","display_view":"committed participant/body/slot and original captured queries;full HUD layout=tx27","isolation":"purpose-scoped RNG rejection;callbacks/gameplay/persistence/audio blocked through safe retirement","retirement":"all Player out-links before non-Player release;per-prefix ownership;safe complete-target rebuild once","scene_commit":"same attempt;body/relation/resource and Player domain;full Entity requires complete Player owner;no network ACK","limits":{"bodies":256,"plan_cost":65536,"references":262144,"resources":4096,"layers":65536,"source_bytes":33554432,"source_nodes":67108864,"owned_estimate_bytes":268435456,"aggregate_entries":1048576},"structure_owner":"key/use/shape/role-qualified;roster-room-render-control-backup-separated","scope":"same-window Entity body+Player relations/History;owned typed values","legacy":"single ordinary Isaac profile remains separate","private_source":"named-consumer-writer-qualified;not blanket PlayerUpdate eligibility","runtime_acceptance":"tx-04-20:I39-complete;114-logical-Source/cold-Client;21-invalid/3-compat/24-fault/4-cancel;18-49+5/19-65-regressions;finite named scenes;explicit unaffected-prefix reuse", "acceptance_document":"docs/design/tx-04-20/tx-04-20-e2e.md"})");}
 } // namespace cs::replica

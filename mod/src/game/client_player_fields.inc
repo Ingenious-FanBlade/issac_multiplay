@@ -12,6 +12,7 @@ CS_PLAYER_FIELD("EntityPlayer.CanFly",p._canFly,bool,Boolean)
 CS_PLAYER_FIELD("EntityPlayer.GetMovementDirection",p._moveDirection,std::int32_t,Integer)
 CS_PLAYER_FIELD("EntityPlayer.GetHeadDirection",p._headDirection,std::int32_t,Integer)
 CS_PLAYER_FIELD("EntityPlayer.GetDamageCooldown",p._damageCooldown,std::int32_t,Integer)
+// 官方GetBlinkLockTime对应头部fired-frame锁时；伤害闪隐实际由DamageCooldown余6驱动。
 CS_PLAYER_FIELD("NativePlayer.BlinkTime",p._blinkTime,std::int32_t,Integer)
 CS_PLAYER_FIELD("NativePlayer.HeadDirectionTime",p._headDirectionTime,std::int32_t,Integer)
 CS_PLAYER_FIELD("EntityPlayer.GetMaxHearts",p._maxHearts,std::int32_t,Integer)

@@ -934,6 +934,13 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
       ClientRoomWaterPreDraw(&room);
       if(!ClientNativeCpuQueuesEmpty())return {false,false,true,"presentation_water_prepass_inflight"};
     }
+    // 普通RoomRender804F1A在主层前设mode1，8061E8在Entity Post后清掉。
+    // library Room不经过该caller；只在本次Client绘制栈补足表现上下文，不改输入/玩法。
+    struct MainRenderMode {Room &room;int previous=0;bool active=true;
+      explicit MainRenderMode(Room &r):room(r){std::memcpy(&previous,reinterpret_cast<unsigned char *>(&r)+0x12bc,4);const int normal=1;std::memcpy(reinterpret_cast<unsigned char *>(&r)+0x12bc,&normal,4);}
+      void Restore(){if(active){std::memcpy(reinterpret_cast<unsigned char *>(&room)+0x12bc,&previous,4);active=false;}}
+      ~MainRenderMode(){Restore();}
+    } main_render_mode(room);
     // 原生Backdrop含floor/wall细节资源，原生Player含身体/头/服装组合，均非菜单Sprite。
     if(p->description.color_enabled)restore.Target(Surface(0x7e72e4).image,true);
     // FXLayers独立绘制入口仅消费已安装参数/pose，不调用Load/Update/随机。
@@ -979,6 +986,7 @@ ClientPresentationStep DrawImpl(ClientNativePresentation *p,const ClientNativeRo
     unsigned post_count=count;if(water)std::memcpy(&post_count,reinterpret_cast<unsigned char *>(&room._entityList)+0xa0,4);
     if(post_count>count)return {false,false,true,"presentation_entity_post_cursor"};
     for(unsigned i=0;i<post_count;++i){auto **table=*reinterpret_cast<void ***>(entities[i]);reinterpret_cast<void (__thiscall *)(Entity *)>(table[7])(entities[i]);}
+    main_render_mode.Restore();
     // light集合只由所选实体的真实native helper维护，包含普通Isaac必需的原生LightGradient。
     // 来源已选layer4 FX写同一light surface；不调用含共享随机的FXLayers Load/Update。
     if(has_light)SurfaceComposite(Surface(0x7e7398),KColor(1,1,1,p->description.lighting_alpha),BlendMode(0,4,7,8,7),true);

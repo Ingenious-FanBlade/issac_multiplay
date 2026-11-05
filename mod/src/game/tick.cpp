@@ -590,6 +590,9 @@ std::string StatusFields() {
   n("generation", r ? SessionGeneration(*r) : 0);
   n("session_generation", r ? SessionGeneration(*r) : 0);
   n("completed_tick", r ? r->clock.Completed() : 0);
+  // 只读描述最后实际提交owner；诊断/夹具可区分普通窗口与仅部分身体执行的Odd窗口。
+  n("completed_standard", r && r->clock.Completed() && r->boundary.kind==core::TickKind::StandardRoom);
+  n("completed_odd", r && r->clock.Completed() && r->boundary.kind==core::TickKind::OddPlayer);
   n("armed", Armed());
   n("current_tick", r ? r->pipeline.SimulationTick() : 0);
   n("ticks_standard", r ? r->ticks_standard : 0);

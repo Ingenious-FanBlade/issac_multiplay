@@ -32,6 +32,25 @@ WorldEntityReconfigurationScope::~WorldEntityReconfigurationScope() noexcept {
 void WorldEntityReconfigurationScope::Returned() noexcept {
   returned_=true;if(counters_.completed)counters_.completed->fetch_add(1,std::memory_order_relaxed);
 }
+WorldPlayerChildSourceScope::WorldPlayerChildSourceScope(void *object,unsigned kind,world::HookCounters counters,unsigned slot) noexcept
+    :counters_(counters),exceptions_(std::uncaught_exceptions()) {
+  if(counters_.calls)counters_.calls->fetch_add(1,std::memory_order_relaxed);
+  if(!IsMain()){if(counters_.foreign)counters_.foreign->fetch_add(1,std::memory_order_relaxed);world::ReportEntityReconfigurationFault(world::ObservationFault::WrongThread);return;}
+  capture_=CurrentWorldRecording();
+#ifdef ISAACCS_E2E
+  if(kind==4&&capture_&&Settings.diagnostics){const auto *id=capture_->identities.Find(world::ObjectDomain::Entity,world::PackWord(object));
+    Trace("world_esau_source_begin","local=%llu readiness=%u current_public=%u slot=%u",static_cast<unsigned long long>(id?id->local_id:0),id?id->readiness:0,unsigned(id&&id->current_public_ready),slot);}
+#endif
+  if(capture_&&capture_->collector)token_=capture_->collector->BeginPlayerChildSource(world::PackWord(object),kind,slot);
+}
+WorldPlayerChildSourceScope::~WorldPlayerChildSourceScope() noexcept {
+  const bool normal=returned_&&std::uncaught_exceptions()==exceptions_;
+  if(!normal)world::ReportEntityReconfigurationFault(world::ObservationFault::NativeException);
+  if(token_&&capture_&&capture_->collector)capture_->collector->EndPlayerChildSource(token_,normal,body_reached_);
+}
+void WorldPlayerChildSourceScope::Returned(bool body_reached) noexcept {
+  returned_=true;body_reached_=body_reached;if(counters_.completed)counters_.completed->fetch_add(1,std::memory_order_relaxed);
+}
 WorldCapture::~WorldCapture() {
   if(reserve_charged) ledger.Release(world::kObservationReserveBytes);
   if (faults.unreadable) {
@@ -98,6 +117,11 @@ void Leave(std::uint32_t call, std::uint32_t result, bool normal,
 std::uint32_t ControlEnter(world::Observation kind, std::uint32_t object,
                            const std::uint32_t *args,
                            std::uint32_t count) noexcept {
+  // ObservationScope先做control_enter再做enter；只读证言必须先于WorldRevokePlayer，输入仍原样撤销。
+  if(kind==world::Observation::Replace&&args&&count==2)if(auto *collector=Collector()){
+    const auto basis=collector->BeforePlayerReplaceSource(object,args[0],args[1]);
+    if(Settings.diagnostics&&!Settings.world_e2e_token.empty())Trace("world_player_replace_state","before_control_basis=%u",basis);
+  }
   auto *r = Runtime();
   if (!r || !r->core_started || r->finished || r->retiring || r->join_ordinal)
     return 0;
@@ -355,27 +379,34 @@ void WorldRefreshAnchors() noexcept {
   for(unsigned slot=0;slot<values.size();++slot) if(!(previous[slot]==values[slot]))
     ObservationControlChange(slot,previous[slot],values[slot],"observed_topology_or_lifecycle_refresh");
 }
-// 纯值来源只在已复核的普通窗口使用缓存拓扑；不额外全图扫描，不扩大输入消费资格。
+// 身体组成员与当前输入锚点分开：死亡／ghost可以仍在已复核的唯一组内，但不获得消费资格。
+// 只读本普通窗口的缓存拓扑，不增加逐consumer原生扫描；多组重叠、未知或跨房直接保留缺口。
 void ObservationPlayerMembership(void *object,ObservationSubjectValue &value) noexcept {
   auto c=CurrentWorldRecording();auto *r=Runtime();
-  if(!IsMain()||!c||!c->location_window||!r||r->finished||r->retiring||r->failure||r->blocks) return;
-  for(unsigned ordinal=0;ordinal<r->session.ParticipantLimit();++ordinal) {
-    if(!r->session.HasParticipant(ordinal)||!r->players[ordinal].BoundValid()) continue;
+  if(!IsMain()||!c||!c->location_window||!r||r->finished||r->retiring||r->failure||r->blocks)return;
+  unsigned found_ordinal=core::kMaximumParticipants,found_body=0;
+  for(unsigned ordinal=0;ordinal<r->session.ParticipantLimit();++ordinal){
+    if(!r->session.HasParticipant(ordinal))continue;
     const auto &topology=r->topology[ordinal];
-    if(!topology.known||!topology.unique||topology.pair!=r->players[ordinal].Bound()) continue;
-    for(unsigned i=0;i<topology.body_count;++i) if(topology.bodies[i].player==object) {
-      if(value.ordinal<4&&value.ordinal!=ordinal) return;
-      const auto session=SessionGeneration(*r);
-      if(c->control_sessions[ordinal]!=session) {
-        c->control_sessions[ordinal]=session;
-        c->participant_keys[ordinal]=c->observation.AllocateRelatedSubject(world::observation::IdentitySpace::Participant);
-        c->control_group_keys[ordinal]=c->observation.AllocateRelatedSubject(world::observation::IdentitySpace::ControlGroup);
-      }
-      value.ordinal=ordinal;value.participant=c->participant_keys[ordinal].local;value.group=c->control_group_keys[ordinal].local;
-      value.control_session=session;value.binding_revision=r->players[ordinal].Generation();value.device_revision=c->device_relation_revisions[ordinal];
-      value.group_known=true;value.body_role=unsigned(topology.bodies[i].role);value.body_active=topology.bodies[i].active;value.can_consume=topology.bodies[i].CanConsume();return;
+    if(!topology.run||!topology.known||!topology.unique||topology.fault!=TopologyFault::None||!(topology.room==r->topology[0].room))continue;
+    if(r->players[ordinal].BoundValid()&&topology.pair!=r->players[ordinal].Bound())continue;
+    for(unsigned i=0;i<topology.body_count;++i)if(topology.bodies[i].player==object){
+      if(found_ordinal!=core::kMaximumParticipants)return;
+      found_ordinal=ordinal;found_body=i;
     }
   }
+  if(found_ordinal==core::kMaximumParticipants||(value.ordinal<4&&value.ordinal!=found_ordinal))return;
+  const auto ordinal=found_ordinal;const auto session=SessionGeneration(*r);
+  if(c->control_sessions[ordinal]!=session){
+    c->control_sessions[ordinal]=session;
+    c->participant_keys[ordinal]=c->observation.AllocateRelatedSubject(world::observation::IdentitySpace::Participant);
+    c->control_group_keys[ordinal]=c->observation.AllocateRelatedSubject(world::observation::IdentitySpace::ControlGroup);
+  }
+  const auto &body=r->topology[ordinal].bodies[found_body];
+  value.ordinal=ordinal;value.participant=c->participant_keys[ordinal].local;value.group=c->control_group_keys[ordinal].local;
+  value.control_session=session;value.binding_revision=r->players[ordinal].Generation();value.device_revision=c->device_relation_revisions[ordinal];
+  value.group_known=true;value.body_role=unsigned(body.role);value.body_active=body.active;
+  value.can_consume=r->players[ordinal].BoundValid()&&body.CanConsume();
 }
 void WorldRevokePlayer(unsigned ordinal) noexcept {
   if (ordinal >= core::kMaximumParticipants)

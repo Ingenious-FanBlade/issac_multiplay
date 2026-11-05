@@ -24,7 +24,7 @@ ItemConfig_Item *Config(bool present,int type,int id){if(!present)return nullptr
   auto *item=type==0?c.GetNullItem(unsigned(id)):type==2?c.GetTrinket(unsigned(id)):c.GetCollectible(id);return item&&item->id==id&&item->type==type?item:nullptr;}
 bool Configs(const ClientPlayerEquipment &s,const char *&reason){for(const auto &e:s.effects)if(e.item_present&&!Config(true,e.type,e.id)){reason="player_effect_local_config";return false;}
   for(const auto &c:s.costumes)if(c.item_present&&!Config(true,c.item_type,c.item)){reason="player_costume_local_config";return false;}return true;}
-bool Pose(ANM2 &sprite,const ClientResourcePose &p,bool check,const char *&reason,bool *uncertain=nullptr){if(check){if(!ClientResourcePoseMatches(&sprite,p)){reason="player_resource_exact_postcondition";return false;}return true;}
+bool Pose(ANM2 &sprite,const ClientResourcePose &p,bool check,const char *&reason,bool *uncertain=nullptr){if(check){if(!ClientResourcePoseMatches(&sprite,p,&reason))return false;return true;}
   const auto result=ClientApplyResourcePose(&sprite,p);reason=result.reason;
   // 资源服务会捕获原生异常；实际成员已进入写入时，不能继续析构不确定的内嵌ANM。
   if(uncertain&&result.written&&!result.complete&&!std::strcmp(result.reason,"resource_native_exception"))*uncertain=true;
@@ -57,7 +57,8 @@ bool Costumes(ClientPlayerEquipmentOwner &owner,Entity_Player &p,const ClientPla
   if(owner.costume_generation==UINT64_MAX){reason="player_costume_generation_exhausted";return false;}
   auto &next=owner.candidate;AllocateCostumes(next,unsigned(s.costumes.size()));
   for(unsigned i=0;i<s.costumes.size();++i){auto &n=next.first[i];next.constructor_entered=true;n._sprite.constructor();next.constructor_entered=false;++next.constructed;++next.last;Meta(n,s.costumes[i],false);
-    if(!Pose(n._sprite,s.costumes[i].sprite,false,reason)){next.uncertain=true;return false;}}
+    // 已完成Ctor的候选只有未知原生写入才保留；写前预算/缺资源拒绝仍可唯一退休。
+    if(!Pose(n._sprite,s.costumes[i].sprite,false,reason,&next.uncertain))return false;}
   owner.displaced=actual;owner.displaced.constructed=unsigned(count);Publish(p,next);owner.installed=next.first;owner.installed_count=unsigned(s.costumes.size());++owner.costume_generation;next={};
   if(!Layers(p,s,false))return false;return ReleaseCostumes(owner.displaced,reason);}
 }

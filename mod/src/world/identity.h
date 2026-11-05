@@ -101,6 +101,9 @@ struct Identity final {
   }
   // 撤销“当前 Player 读取依据”；创建 owner 依据（2）不受影响。
   void RevokeCurrentWitness() noexcept {
+    // 具名原生owner的初始化/换槽证言属于当前use，独立于控制绑定；
+    // Init/Restore/Acquire/Destroy仍明确撤销，不能用此分支恢复旧输入或旧对象。
+    if(readiness==std::uint32_t(Readiness::PlayerChildInitCompleted)||readiness==std::uint32_t(Readiness::PlayerStateOwnerCompleted))return;
     current_public_ready = false;
     if (readiness ==
         static_cast<std::uint32_t>(Readiness::CurrentPlayerUpdateWitness))

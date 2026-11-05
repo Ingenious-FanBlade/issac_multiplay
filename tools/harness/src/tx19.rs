@@ -5,12 +5,12 @@ use serde_json::{Value,json};
 use std::{collections::{BTreeMap,BTreeSet},process::Command,thread,time::{Duration,Instant}};
 type Status=BTreeMap<String,String>;
 // 正式Lua整数保留int64标签；场景判据和库存计数使用真实值，不能把有标签整数读成0。
-fn num(v:&Value)->u64{let v=if v["type"]=="int64"{&v["value"]}else{v};v.as_u64().or_else(||v.as_str().and_then(|v|v.parse().ok())).unwrap_or(0)}
-fn n(s:&Status,k:&str)->u64{s.get(k).and_then(|v|v.parse().ok()).unwrap_or(0)}
-fn drawn(s:&Status)->u64{s.get("client.dispatch.presentation_draw").and_then(|v|v.split(',').next()).and_then(|v|v.parse().ok()).unwrap_or(0)}
-fn load(path:&std::path::Path)->Result<Value>{serde_json::from_str(&crate::read(path)?).map_err(|e|e.to_string())}
+pub(super) fn num(v:&Value)->u64{let v=if v["type"]=="int64"{&v["value"]}else{v};v.as_u64().or_else(||v.as_str().and_then(|v|v.parse().ok())).unwrap_or(0)}
+pub(super) fn n(s:&Status,k:&str)->u64{s.get(k).and_then(|v|v.parse().ok()).unwrap_or(0)}
+pub(super) fn drawn(s:&Status)->u64{s.get("client.dispatch.presentation_draw").and_then(|v|v.split(',').next()).and_then(|v|v.parse().ok()).unwrap_or(0)}
+pub(super) fn load(path:&std::path::Path)->Result<Value>{serde_json::from_str(&crate::read(path)?).map_err(|e|e.to_string())}
 // 同一Source token的图像只报告可比尺寸及像素差，最终派生draw/分层正确性由I34实际审图。
-fn image_pair(source:&std::path::Path,client:&std::path::Path)->Result<Value>{
+pub(super) fn image_pair(source:&std::path::Path,client:&std::path::Path)->Result<Value>{
  let a=std::fs::read(source).map_err(|e|e.to_string())?;let b=std::fs::read(client).map_err(|e|e.to_string())?;
  if a.len()<54||b.len()<54||a.get(18..26)!=b.get(18..26)||a.len()!=b.len(){return Err("Source/Client BMP dimensions differ".into())}
  let(mut changed,mut neutral,mut total,mut error)=(0u64,0u64,0u64,0u64);
@@ -21,11 +21,11 @@ fn image_pair(source:&std::path::Path,client:&std::path::Path)->Result<Value>{
  if total==0||neutral*100>total*98{return Err("Client renderer capture is blank".into())}
  Ok(json!({"pixels":total,"changed_pixels":changed,"mean_RGB_absolute_difference":error as f64/(total*3) as f64,"visual_review":"pending;no automatic equality claim"}))
 }
-fn objects(v:&Value)->Result<&Vec<Value>>{v["components"]["entity"]["state"]["objects"].as_array().ok_or("Entity objects required".into())}
+pub(super) fn objects(v:&Value)->Result<&Vec<Value>>{v["components"]["entity"]["state"]["objects"].as_array().ok_or("Entity objects required".into())}
 fn live(v:&Value)->bool{v["common"]["fields"]["Entity.Exists"]!=false}
-fn keys(v:&Value)->Result<BTreeSet<(u64,u64)>>{Ok(objects(v)?.iter().filter(|o|live(o)).map(|o|(num(&o["subject"]["target"]["run"]),num(&o["subject"]["target"]["id"]))).collect())}
+pub(super) fn keys(v:&Value)->Result<BTreeSet<(u64,u64)>>{Ok(objects(v)?.iter().filter(|o|live(o)).map(|o|(num(&o["subject"]["target"]["run"]),num(&o["subject"]["target"]["id"]))).collect())}
 // Source标签不能替代真实类别/子状态；缺目标后态就中止该次验收，不能无声缩小矩阵。
-fn scene_source(spec:&Value,target:&Value,independent:&Value)->Result<()> {
+pub(super) fn scene_source(spec:&Value,target:&Value,independent:&Value)->Result<()> {
  let label=spec["label"].as_str().ok_or("label")?;let rows=objects(target)?;
  let has=|class:&str|rows.iter().any(|o|o["class"]==class&&live(o));
  let expected=match spec["kind"].as_str().unwrap_or(""){
@@ -100,7 +100,7 @@ fn graph(v:&Value)->Result<()> {
  if refs.iter().any(|r|*r==0||defs.get(r)!=Some(&1)){return Err("projection component graph is not closed".into())}Ok(())
 }
 // 逐成员发送规则不随值变化；所有真实失败、动态层和精确pose仍由原始目标承载。
-fn projection(source:&Value,target:&Value,catalog:&Value)->Result<Value>{
+pub(super) fn projection(source:&Value,target:&Value,catalog:&Value)->Result<Value>{
  let omitted=catalog["members"].as_array().ok_or("replication catalog")?.iter().filter(|r|r["ownership"]=="NotReplicated")
   .filter_map(|r|r["id"].as_str().map(str::to_owned)).collect::<BTreeSet<_>>();
  let mut retained=BTreeMap::<String,u64>::new();
@@ -117,7 +117,7 @@ fn projection(source:&Value,target:&Value,catalog:&Value)->Result<Value>{
  Ok(json!({"omitted_catalog_members":omitted.len(),"retained_inputs":retained,"entity_projection_unchanged":true}))
 }
 impl Run {
- fn wait_tx19(&mut self,g:&win32::Game,c:&mut Control,label:&str,allow_failure:bool,p:impl Fn(&Status)->bool)->Result<Status>{
+ pub(super) fn wait_tx19(&mut self,g:&win32::Game,c:&mut Control,label:&str,allow_failure:bool,p:impl Fn(&Status)->bool)->Result<Status>{
   let until=Instant::now()+Duration::from_secs(90);
   loop{let s=self.watch_tx05(g,c,0)?;if p(&s){self.step(label,json!(s))?;return Ok(s)}
    if !allow_failure&&s.get("client.error").is_some_and(|v|!v.is_empty()){return Err(format!("{label} native failure: {s:?}"))}
@@ -132,7 +132,7 @@ impl Run {
    return Err(format!("{label} not admitted: {accepted:?}; phase={:?}; reason={:?}",status.get("client.native_phase"),status.get("client.native_reason")))
   }
   let s=self.wait_tx19(g,c,label,false,|s|n(s,"client_world_applied")==1&&n(s,"client.applied_revision")==revision)?;
-  if n(&s,"client.non_player_entity_applied")!=1||n(&s,"client.player_support_applied")!=1||n(&s,"client.full_entity_applied")!=0||n(&s,"client.native_committed_domains")&(1<<1)!=0{
+  if n(&s,"client.non_player_entity_applied")!=1||n(&s,"client.player_support_applied")!=1||n(&s,"client.full_entity_applied")!=u64::from(!target["components"]["player"]["state"]["application_source"].is_null()){
    return Err(format!("{label} inaccurate Entity applied range: {s:?}"))
   }
   Ok(s)
@@ -145,20 +145,71 @@ impl Run {
   if actual!=keys(target)?||actual.len()!=rows.as_array().unwrap().len(){return Err(format!("{label} native inventory differs from complete T"))}
   Ok(rows)
  }
- fn source_tx19(&mut self,g:&win32::Game,w:usize,c:&mut Control,scenes:&[Value])->Result<()> {
+ pub(super) fn source_tx19(&mut self,g:&win32::Game,w:usize,c:&mut Control,scenes:&[Value])->Result<()> {
   self.sequence(w,"start_run")?;c.wait("run_active","1",30)?;c.command("cs observe start")?;
   c.command(&format!("cs host {} 0",self.scenario["host_port"]))?;c.wait("session_state","Active",30)?;
   let token=self.report["token"].as_str().ok_or("token")?.to_owned();let mut samples=Vec::new();
+  let is20=self.report["tx"]=="tx-04-20";let mut remotes:Vec<crate::remote::Remote>=Vec::new();
+  // 同一tx续测只复用执行者明确指定的不受修复影响前缀；旧Scope和失败报告保持原样。
+  if is20 {if let Some(path)=self.scenario["source_run"].as_str(){let previous=std::path::PathBuf::from(path);let report=load(&previous.join("result.json"))?;
+   if report["tx"]!="tx-04-20"||report["node_role"]!="Source"||!report["evidence_error"].is_null()||report["cleanup_errors"].as_array().is_none_or(|v|v.iter().any(|v|!v.is_null())){return Err("Source prefix requires clean prior environment restoration".into())}
+   samples=load(&previous.join("source-progress.json"))?.as_array().ok_or("Source prefix samples")?.clone();let count=num(&self.scenario["source_reuse_prefix"])as usize;
+   if count==0||count>samples.len()||count>scenes.len(){return Err("explicit Source prefix count outside passed samples".into())}samples.truncate(count);
+   for(i,sample)in samples.iter_mut().enumerate(){let label=sample["label"].as_str().ok_or("Source prefix label")?.to_owned();
+    if sample["label"]!=scenes[i]["label"]||sample["export"]["exported"]!="1"{return Err("Source prefix label/export mismatch".into())}
+    let target=load(&previous.join(format!("runtime-world/client-targets/{label}.json")))?;crate::tx20::source_scene(&scenes[i],&target)?;
+    for stem in [label.clone(),format!("source-full-{label}"),format!("observation-{label}"),format!("independent-{label}")]{let to=self.out.join(format!("runtime-world/client-targets/{stem}.json"));crate::mkdir(to.parent().ok_or("prefix target parent")?)?;std::fs::copy(previous.join(format!("runtime-world/client-targets/{stem}.json")),to).map_err(|e|e.to_string())?;}
+    std::fs::copy(previous.join(format!("source-{label}.bmp")),self.out.join(format!("source-{label}.bmp"))).map_err(|e|e.to_string())?;sample["reused_from"]=json!(previous);
+   }
+   self.report["source_resume"]=json!({"directory":previous,"reused_prefix":count,"new_process_replays_preparation":true});
+   if scenes.iter().take(count).any(|s|s["kind"]=="player-input"){
+    let prior=&report["cases"]["E17.Source"];if prior["pass"]!=true{return Err("reused input scene lacks actual native displacement case".into())}
+    self.report["cases"]["E17.Source"]=prior.clone();
+   }
+   for (kind,id) in [("player-peer-exit","E08.SourceExit"),("player-land","E06.SourceThrow")]{if scenes.iter().take(count).any(|s|s["kind"]==kind){let prior=&report["cases"][id];if prior["pass"]!=true{return Err(format!("reused {kind} lacks actual source case"))}self.report["cases"][id]=prior.clone();}}
+  }}
+  let reused=samples.len();if reused>0{crate::write_json(&self.out.join("source-progress.json"),&json!(samples))?;c.command(&format!("cs client_test {token} sampling prepare"))?;}
   for(i,spec)in scenes.iter().enumerate(){let label=spec["label"].as_str().ok_or("scene label")?;
-   c.command(&format!("cs client_test {token} sampling capture19"))?;win32::key(w,"F8")?;
-   let until=Instant::now()+Duration::from_secs(90);
-   let mut restarted_host=false;let mut diagnosed=false;
-   let actual=loop{let current=self.watch_tx05(g,c,40)?;
+   // 输入验收在正常模拟速度下完成；重型逐域采集会超过远端100ms无进度中性策略。
+   // 只暂停全域查询，生命周期及统一输入仍正常；实际位移证明完成后恢复正式完整采集。
+   let input_scene=is20&&spec["kind"]=="player-input";
+   let esau_scene=is20&&spec["kind"]=="player-esau";
+   let exit_scene=is20&&spec["kind"]=="player-peer-exit";
+   let settle_scene=is20&&(matches!(spec["kind"].as_str(),Some("player-ghost"|"player-land"|"player-stress"|"player-hold"))||(spec["kind"]=="player-flash"&&num(&spec["cooldown"])==0));
+   if i<reused&&!input_scene&&!esau_scene{c.command(&format!("cs client_test {token} sampling {}",if spec["replay_capture"]==true{"capture19"}else{"prepare"}))?;}
+   if input_scene||esau_scene||exit_scene||settle_scene{c.command(&format!("cs client_test {token} sampling prepare"))?;self.wait_tx09(g,c,"player_input_sources",|s|n(s,"blocks")==0&&remotes.iter().enumerate().all(|(i,r)|r.snapshot().ack.is_some_and(|a|a.state==3&&a.generation==n(s,&format!("participant.{}.generation",i+1)))))?;}
+   if is20&&spec["kind"]=="player-input"{for (i,remote) in remotes.iter().enumerate(){
+    let movement=if i%2==0{[12000,0]}else{[-12000,0]};remote.script("tx20-multi-body",vec![crate::remote::Step{after:0,state:crate::remote::protocol::State{held:0,edge:0,movement,aim:[0,0]}}])?;
+   }}else if is20 {for remote in &remotes{remote.script("tx20-neutral",vec![crate::remote::Step{after:0,state:crate::remote::protocol::State::default()}])?;}}
+   if i>=reused&&!input_scene&&!esau_scene&&!exit_scene&&!settle_scene{c.command(&format!("cs client_test {token} sampling capture19"))?;}win32::key(w,"F8")?;
+   // 先让Source进入人数场景并解除上一窗口冻结；原生Join及控制重绑需要真实普通更新。
+   if is20 {let participants=num(&spec["participants"]).max(1);while remotes.len()+1<participants as usize {let ordinal=remotes.len()as u32+1;remotes.push(self.attach_tx09(g,c,1,ordinal)?);}}
+   if is20&&spec["kind"]=="player-peer-exit"{
+    // 用正式Bye退休持有备份的参与者；原版四槽保留，仍存活的组与Source来源分别检查。
+    c.command(&format!("cs client_test {token} sampling prepare"))?;
+    remotes.last().ok_or("backup peer exit remote missing")?.bye()?;
+    let state=self.wait_tx09(g,c,"backup_peer_retired",|s|n(s,"participant.3.retired")==1&&n(s,"participants")==3&&(0..3).all(|o|n(s,&format!("participant.{o}.bound"))==1))?;
+    if i>=reused{self.case("E08.SourceExit",true,json!({"state":state,"backup_slots_reclaimed":false}));}
+    else{self.step("replayed-backup-peer-retired",json!({"state":state,"formal_sample_reused":true}))?;}remotes.pop();
+    c.command(&format!("cs client_test {token} sampling capture19"))?;
+   }
+   if esau_scene{self.esau_inputs_tx20(g,c,w,&remotes,label,i as u64+1)?;if i>=reused{c.command(&format!("cs client_test {token} sampling capture19"))?;}}
+   // 完整多人来源较慢；允许原版加入特效在真实更新中自然结束，墙钟上限不当成模拟tick。
+   let until=Instant::now()+Duration::from_secs(if is20{300}else{90});
+   let mut restarted_host=false;let mut diagnosed=false;let mut input_captured=!input_scene;let mut settled_captured=!settle_scene;
+   let mut actual=loop{let current=self.watch_tx05(g,c,40)?;
     if spec["kind"]=="familiar-owner"&&!restarted_host&&current.get("session_state").map(String::as_str)==Some("Idle")&&n(&current,"run_active")==1{
      c.command(&format!("cs host {} 0",self.scenario["host_port"]))?;restarted_host=true;
     }
     let rows=self.live_fixture()?;
     if let Some(e)=rows.iter().find(|e|e["event"]=="fixture_error"){return Err(format!("Source {label}: {e}"))}
+    if !settled_captured&&rows.iter().any(|e|e["event"]=="native_settled"&&e["label"]==label&&num(&e["action"])==i as u64+1){
+     if i>=reused{c.command(&format!("cs client_test {token} sampling capture19"))?;}settled_captured=true;
+    }
+    if !input_captured&&rows.iter().any(|e|e["event"]=="input_complete"&&e["label"]==label&&num(&e["action"])==i as u64+1){
+     for remote in &remotes{if let Some(error)=remote.snapshot().error{return Err(format!("Source input remote: {error}"))}remote.script("tx20-input-complete-neutral",vec![crate::remote::Step{after:0,state:crate::remote::protocol::State::default()}])?;}
+     if i>=reused{c.command(&format!("cs client_test {token} sampling capture19"))?;}input_captured=true;
+    }
     if let Some(e)=rows.iter().find(|e|e["event"]=="ready"&&e["label"]==label&&num(&e["action"])==i as u64+1){
      // 日志不能承载密集库存的单行JSON；按同一action/label精确重组，缺块/重复/超界绝不算ready。
      let chunks=num(&e["inventory_chunks"]);if chunks==0{break e.clone()}
@@ -173,23 +224,34 @@ impl Run {
      if complete{if inventory.len()as u64!=count{return Err("Source inventory chunk count".into())}let mut actual=e.clone();actual["entities"]=json!(inventory);break actual}
     }
     // 诊断出口只读正式consumer自有值；允许保存Partial逐字段原因，不能当19成功目标。
-    if !diagnosed&&Instant::now()+Duration::from_secs(80)>=until&&rows.iter().any(|e|e["event"]=="capture_pending"&&e["label"]==label){
+    if !diagnosed&&Instant::now()+Duration::from_secs(if is20{290}else{80})>=until&&rows.iter().any(|e|e["event"]=="capture_pending"&&e["label"]==label){
      let diagnosis=c.request(&format!("cs client_test {token} export pending-{label}"))?;
      self.step("source-partial-diagnosis",json!({"label":label,"reply":diagnosis,"accepted_as_scene":false}))?;diagnosed=true;
     }
     if Instant::now()>=until{let diagnosis=rows.iter().rev().find(|e|(e["event"]=="capture_pending"||e["event"]=="action_pending")&&e["label"]==label);return Err(format!("Source {label} ready timeout: {diagnosis:?}"))}
    };
-   let until=Instant::now()+Duration::from_secs(45);
-   let exported=loop{let r=c.command(&format!("cs client_test {token} export19 {label}"))?;
-    if r.get("exported").map(String::as_str)==Some("1"){break r}
-    if Instant::now()>=until{return Err(format!("Source export {label}: {r:?}"))}self.watch_tx05(g,c,60)?;
-   };
+   if input_scene{actual["input_proof"]=self.live_fixture()?.iter().find(|e|e["event"]=="input_complete"&&e["label"]==label&&num(&e["action"])==i as u64+1).ok_or("Source input result event missing")?["players"].clone();}
+   if i<reused{continue;}
+   // ready后夹具已冻结此token；重复等待不会推进失败的后态，直接保留正式解析首因。
+   let exported=c.command(&format!("cs client_test {token} export19 {label}"))?;
+   if exported.get("exported").map(String::as_str)!=Some("1"){return Err(format!("Source export {label}: {exported:?}"))}
    if exported.get("capture_token").map(String::as_str)!=actual["capture_token"].as_str(){return Err(format!("{label} Source snapshot changed between ready and export"))}
    let root=self.out.join("runtime-world/client-targets");let raw=load(&root.join(format!("observation-{label}.json")))?;
    let entity=raw.as_array().ok_or("raw observations")?.iter().find(|r|r["schema"]=="isaac.cs.entity").ok_or("raw Entity envelope")?;
    let source_ids=entity["payload"]["objects"].as_array().ok_or("raw entity inventory")?.iter().map(|r|num(&r["subject"]["local_id"])).collect::<BTreeSet<_>>();
    for e in actual["entities"].as_array().ok_or("raw Source inventory")?{let id=num(&e["subject"]["local_id"]);if id==0||!source_ids.contains(&id){return Err(format!("{label} live Source entity missing from formal inventory: {e}"))}}
-   let target=load(&root.join(format!("{label}.json")))?;let independent=load(&root.join(format!("independent-{label}.json")))?;scene_source(spec,&target,&independent)?;
+   let target=load(&root.join(format!("{label}.json")))?;let independent=load(&root.join(format!("independent-{label}.json")))?;if is20 {crate::tx20::source_scene(spec,&target)?;
+    // pose的Knife普通目标和实际ready Render必须对齐；不能将稍后更新的画面当成该T的反例或PASS。
+    if spec["kind"]=="player-pose"{for e in actual["entities"].as_array().ok_or("pose inventory")?{if let Some(pose)=e.get("render_pose"){
+     // 原始本地ID与发送模型的规范Key是不同空间；同use对照原始普通观测，投影完整性另按正式模型核对。
+     let row=entity["payload"]["objects"].as_array().ok_or("pose ordinary inventory")?.iter().find(|o|o["subject"]["local_id"]==e["subject"]["local_id"]&&o["subject"]["use"]==e["subject"]["use"]).ok_or("pose current Knife")?;
+     let fields=&row["common"]["fields"];if fields["Entity.GetSprite"]["fields"]["Sprite.Rotation"].as_f64()!=pose["rotation"].as_f64()||fields["Entity.Position"]["x"].as_f64()!=pose["position"][0].as_f64()||fields["Entity.Position"]["y"].as_f64()!=pose["position"][1].as_f64(){return Err(format!("pose ordinary/Render Knife mismatch: {} / {pose}",row["subject"]))}
+    }}}
+    if spec["kind"]=="player-land"{let proof=self.live_fixture()?.iter().find(|e|e["event"]=="forgotten_landed"&&e["label"]==label&&num(&e["action"])==i as u64+1).cloned().ok_or("actual Tainted Forgotten landing proof missing")?;self.case("E06.SourceThrow",true,proof);}
+    if input_scene {let mut moved=BTreeSet::new();for e in actual["input_proof"].as_array().ok_or("native input displacement proof")?{let relation=&e["subject"]["control_relation"];let ordinal=num(&relation["ordinal"]);let slot=num(&relation["body_slot"]);let expected=if ordinal==2{-1.0}else{1.0};let dx=e["displacement"][0].as_f64().ok_or("actual input displacement")?;
+     if ordinal>0&&ordinal<4&&slot<2&&dx*expected>0.1 {let present=actual["entities"].as_array().ok_or("native input inventory")?.iter().any(|v|v["subject"]["local_id"]==e["subject"]["local_id"]&&v["subject"]["use"]==e["subject"]["use"]);if !present||!moved.insert((ordinal,slot)){return Err("input proof body identity changed/duplicated".into())}}
+    }if moved.len()!=6{return Err(format!("eight-body canonical consumers missing actual displacement: {moved:?}; {}",actual["input_proof"]))}self.case("E17.Source",true,json!({"moving_remote_bodies":6,"intent_streams":remotes.len(),"proof":actual["input_proof"]}));}
+   }else{scene_source(spec,&target,&independent)?;}
    let world=c.command("cs world status")?;if world.get("world_state").map(String::as_str)==Some("Recording"){return Err("Source unexpectedly depends on recorder".into())}
    win32::screenshot(w,&self.out.join(format!("source-{label}.bmp")))?;
    samples.push(json!({"label":label,"actual":actual,"export":exported,"recorder":world}));
@@ -225,6 +287,7 @@ impl Run {
  // 只在显式E2E文件内制造恶意T，逐项记录修改位置及写前保A，不伪装自然Source。
  fn negatives_tx19(&mut self,g:&win32::Game,c:&mut Control,base:&Value)->Result<()> {
   let token=self.report["token"].as_str().ok_or("token")?.to_owned();let r=num(&base["revision"]);let before=c.command("cs status")?;
+  let complete_player=base["components"]["player"]["state"]["application_source"]["contract"]=="player-source-v2";
   let invalids=["old-revision","same-revision-conflict","partial","source-version","field-read-failed","field-truncated","shader-read-failed","bad-class","bad-number","bad-bitset","bad-reference","missing-owner","dangling-graph","bad-resource","pool-budget","player-scope","fx-blend-range","fx-blend-missing","held-owner-missing","held-owner-wrong-class"];
   for name in invalids{
    let mut v=base.clone();crate::tx18::revision(&mut v,if name=="old-revision"{r.saturating_sub(1)}else if name=="same-revision-conflict"{r}else{r+1});
@@ -246,8 +309,12 @@ impl Run {
      let p=rows.iter_mut().find(|o|o["class"]=="EntityPlayer").ok_or("negative Player required")?;
      let mut held=p["subject"].clone();if name=="held-owner-missing"{held["target"]["id"]=json!("999999999");}
      p["body"]["fields"]["EntityPlayer.GetHeldEntity"]=held;
-     p["body"]["fields"]["EntityPlayer.GetItemState"]=json!({"type":"int64","value":"604"});
-     p["body"]["fields"]["EntityPlayer.GetSuplexState"]=json!({"type":"int64","value":"0"});
+     // 完整Player已支持持其他身体；本用例的自身目标仍必须因自持环拒绝。
+     // 不改其公开复合值，避免与role来源冲突后提前拒绝，遮蔽缺引用／自持判据。
+     if !complete_player{
+      p["body"]["fields"]["EntityPlayer.GetItemState"]=json!({"type":"int64","value":"604"});
+      p["body"]["fields"]["EntityPlayer.GetSuplexState"]=json!({"type":"int64","value":"0"});
+     }
     },
     _=>{let rows=entity["state"]["objects"].as_array_mut().ok_or("negative objects")?;
      let obj=rows.iter_mut().find(|o|if name=="player-scope"{o["class"]=="EntityPlayer"}else{o["class"]!="EntityPlayer"&&live(o)}).ok_or("negative requires actual class")?;
@@ -282,7 +349,8 @@ impl Run {
    if name=="held-owner-missing"&&!after.get("client.native_reason").is_some_and(|v|v.contains("required_reference_missing")){
     return Err(format!("held missing owner did not reach dependency rejection: {:?}",after.get("client.native_reason")))
    }
-   if name=="held-owner-wrong-class"&&!after.get("client.native_reason").is_some_and(|v|v.contains("objects_player_held_effect136_scope_or_shape")){
+   let held_reject=if complete_player{"held_self_or_multiple_holders"}else{"objects_player_held_effect136_scope_or_shape"};
+   if name=="held-owner-wrong-class"&&!after.get("client.native_reason").is_some_and(|v|v.contains(held_reject)){
     return Err(format!("held wrong class did not reach scoped preflight: {:?}",after.get("client.native_reason")))
    }
    self.step(&label,json!({"injection":"E2E pure-value target only","reply":result,"status":after}))?;
@@ -302,19 +370,24 @@ impl Run {
  fn failures_tx19(&mut self,g:&win32::Game,c:&mut Control,label:&str)->Result<()> {
   let token=self.report["token"].as_str().ok_or("token")?.to_owned();c.command("cs stop")?;c.wait("role","Off",45)?;
   let points=["acquire-before","acquire-after","init-before","init-after","fields-before","fields-after","resources-before","resources-after","publish-before","publish-after","references-before","references-after","check-before","check-after","draw-before","draw-after"];
-  let mut results=Vec::new();
+  let mut results=Vec::new();let target=load(&self.out.join(format!("runtime-world/client-targets/{label}.json")))?;
   for point in points{
    c.command(&format!("cs client_test {token} fault {point}"))?;
    let accepted=c.command(&format!("cs client_test {token} begin {label}"))?;if accepted.get("accepted").map(String::as_str)!=Some("1"){return Err(format!("{point} not admitted"))}
-   let failed=self.wait_tx19(g,c,point,true,|s|n(s,"client_world_applied")==0&&s.get("client.native_phase").map(String::as_str)==Some("retired"))?;
-   let hit=c.command(&format!("cs client_test {token} fault-status"))?;
-   if hit.get("hit").map(String::as_str)!=Some(point)||n(&hit,"hits")!=1||n(&failed,"client.full_entity_applied")!=0{return Err(format!("{point} injection did not reach actual prefix: {hit:?} {failed:?}"))}
-   // 已写失败后同一tx交付完整T重建，不从旧A接着差分。
-   let mut recovery=load(&self.out.join(format!("runtime-world/client-targets/{label}.json")))?;
-   let r=num(&recovery["revision"])+1;crate::tx18::revision(&mut recovery,r);
-   crate::write_json(&self.out.join("runtime-world/client-targets/fault-recover.json"),&recovery)?;
-   self.apply_tx19(g,c,"fault-recover",false)?;self.readback_tx19(c,&recovery,"fault-recover")?;
-   results.push(json!({"point":point,"failure":failed,"hit":hit,"recovery_revision":r}));
+   // 完整Player可在轮询前自动恢复；以常驻命中记录证明真实前缀，随后检查恢复后的原生对象。
+   let end=Instant::now()+std::time::Duration::from_secs(90);let hit=loop{
+    let hit=c.command(&format!("cs client_test {token} fault-status"))?;
+    if hit.get("hit").map(String::as_str)==Some(point)&&n(&hit,"hits")==1{break hit}
+    self.watch_tx05(g,c,60)?;if Instant::now()>=end{return Err(format!("{point} injection did not reach actual prefix: {hit:?}"))}
+   };
+   let state=self.wait_tx19(g,c,point,true,|s|n(s,"client_world_applied")==1||s.get("client.native_phase").map(String::as_str)==Some("retired"))?;
+   let recovery_revision=if n(&state,"client_world_applied")==0{
+    // 已写失败后交付完整T重建，不从旧A接着差分。
+    let mut recovery=target.clone();let r=num(&recovery["revision"])+1;crate::tx18::revision(&mut recovery,r);
+    crate::write_json(&self.out.join("runtime-world/client-targets/fault-recover.json"),&recovery)?;
+    self.apply_tx19(g,c,"fault-recover",false)?;self.readback_tx19(c,&recovery,"fault-recover")?;r
+   }else{self.readback_tx19(c,&target,point)?;num(&target["revision"])};
+   results.push(json!({"point":point,"state":state,"hit":hit,"recovery_revision":recovery_revision,"recovered":true}));
    c.command("cs stop")?;c.wait("role","Off",45)?;
    crate::write_json(&self.out.join("fault-progress.json"),&json!(results))?;
   }
@@ -394,12 +467,26 @@ impl Run {
   self.report["source_run"]=json!(source);self.snapshot("client_before")?;
   let catalog=load(&self.repo.join("out/repentogon/e2e/replication-catalog.json"))?;
   let token=self.report["token"].as_str().ok_or("token")?.to_owned();let mut session=Value::Null;let mut applied=Vec::new();let mut classes=BTreeSet::new();let mut slots=BTreeSet::new();let mut previous_players=BTreeSet::new();
+  // 仅复用同一Source、正常清理且未受编排修复影响的已完成场景；新进程仍冷建首尾目标。
+  let mut previous=Vec::<Value>::new();let mut previous_path=None;
+  if let Some(path)=self.scenario["client_previous_run"].as_str(){let dir=std::path::PathBuf::from(path);let old=load(&dir.join("result.json"))?;
+   if old["tx"]!="tx-04-19"||old["node_role"]!="Client"||old["source_run"]!=self.report["source_run"]||!old["evidence_error"].is_null()||old["cleanup_errors"].as_array().is_none_or(|v|v.iter().any(|v|!v.is_null())){return Err("Client prefix requires same Source and clean cleanup".into())}
+   previous=load(&dir.join("client-progress.json"))?.as_array().ok_or("Client prefix samples")?.clone();let count=num(&self.scenario["client_reuse_prefix"])as usize;
+   if count==0||count>previous.len()||count>scenes.len(){return Err("explicit unaffected Client prefix size required".into())}previous.truncate(count);
+   for(i,v)in previous.iter().enumerate(){if v["label"]!=scenes[i]["label"]||num(&v["status"]["client_world_applied"])!=1||v["native"].is_null(){return Err("Client prefix identity or native result missing".into())}}
+   self.report["client_resume"]=json!({"directory":dir,"reused_prefix":count,"cold_rebuild":["baseline","last-prefix-target"]});previous_path=Some(dir);
+  }
   for(i,spec)in scenes.iter().enumerate(){let label=spec["label"].as_str().ok_or("label")?;if samples[i]["label"]!=label{return Err("Source/Client sequence mismatch".into())}
    let root=self.out.join("runtime-world/client-targets");let target=load(&root.join(format!("{label}.json")))?;
    let source=load(&root.join(format!("source-full-{label}.json")))?;let audit=projection(&source,&target,&catalog)?;
    let player_keys=objects(&target)?.iter().filter(|o|o["class"]=="EntityPlayer").map(|o|(num(&o["subject"]["target"]["run"]),num(&o["subject"]["target"]["id"]))).collect::<BTreeSet<_>>();
    if spec["kind"]=="familiar-owner"&&player_keys==previous_players{return Err("Familiar owner did not actually change Player Key".into())}previous_players=player_keys;
    let actual_independent=load(&root.join(format!("independent-{label}.json")))?;scene_source(spec,&target,&actual_independent)?;
+   for o in objects(&target)?.iter().filter(|o|live(o)){classes.insert(o["class"].as_str().ok_or("class")?.to_owned());if o["class"]=="EntitySlot"{slots.insert(num(&o["common"]["fields"]["Entity.Variant"]));}}
+   if i<previous.len()&&i!=0&&i+1!=previous.len(){
+    std::fs::copy(previous_path.as_ref().ok_or("Client prefix path")?.join(format!("client-{label}.bmp")),self.out.join(format!("client-{label}.bmp"))).map_err(|e|e.to_string())?;
+    let mut value=previous[i].clone();value["reused_from"]=json!(previous_path);applied.push(value);continue;
+   }
    // 独立音画消费属于27；不能伪确认来腾出队列。必要时正常退休整个场景，显式记录新的冷重建。
    let rotate=i>0&&n(&c.command("cs status")?,"client.entity_independent_pending")>64;
    if i>0&&(session!=target["scope"]["session"]||rotate){c.command("cs stop")?;c.wait("role","Off",45)?;}
@@ -410,7 +497,6 @@ impl Run {
    let counters=c.command("cs counters")?;for name in ["start_game","game_update","room_update","entity_list","odd_helper","restore","post_update","player_update","join_pass"]{
     if n(&result,&format!("client.original_begin.{name}"))!=n(&counters,&format!("hook.{name}")){return Err(format!("{label} Client gameplay leaked: {name}"))}
    }
-   for o in objects(&target)?.iter().filter(|o|live(o)){classes.insert(o["class"].as_str().ok_or("class")?.to_owned());if o["class"]=="EntitySlot"{slots.insert(num(&o["common"]["fields"]["Entity.Variant"]));}}
    let independent=self.source_independent_tx19(&mut c,label,&actual_independent,&target)?;
    let after_independent=c.command("cs status")?;if n(&after_independent,"client.entity_independent_presented")!=0{return Err("independent result falsely acknowledged as displayed".into())}
    let repeats=if label=="dense"{20}else{2};for _ in 0..repeats{let duplicate=self.apply_tx19(g,&mut c,label,false)?;

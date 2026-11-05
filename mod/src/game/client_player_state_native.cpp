@@ -1,10 +1,11 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
-#include "EntityPlus.h"
+#include "game/client_player_spoof_layout.h"
 #include "game/client_player_state.h"
 #include "game/client_entity_e2e.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/bridge.h"
+#include "game/context.h"
 #include "runtime.h"
 #include <algorithm>
 #include <cmath>
@@ -23,16 +24,12 @@ constexpr unsigned Limit=16384;
 // 官方1.1.3 EntityPlus/ItemSpoofSystem源码布局；只改真实容器内容，保留原虚表及holder。
 // 禁用调试迭代器，使用与官方相同的v143 /MD；不向官方容器移交本地自定义allocator。
 static_assert(_ITERATOR_DEBUG_LEVEL==0,"Player最终容器要求官方Release STL ABI");
-struct Timed {int id,count,timer;};
-struct Innate {std::unordered_map<int,int> persistent;std::vector<Timed> temporary;std::unordered_map<int,int> totals;};
-struct Spoof {void *vptr;std::unordered_set<int> blocked;std::map<std::string,Innate> groups;};
-struct PlusItems {Spoof collectible,trinket;int last_type;};
-static_assert(sizeof(Innate)==sizeof(ItemSpoofSystem::InnateItems)&&sizeof(Spoof)==sizeof(ItemSpoofSystem::CollectibleSpoof)&&sizeof(Spoof)==sizeof(ItemSpoofSystem::TrinketSpoof)&&sizeof(PlusItems)==sizeof(ItemSpoofSystem::PlayerItemSpoofs),"官方1.1.3容器布局不匹配");
+using player_sdk::Timed;using player_sdk::Innate;using player_sdk::Spoof;using player_sdk::PlusItems;
 // holder由官方Entity ctor拥有，Plus由官方base Init拥有；读取不调用会分配的新建fallback。
 PlusItems *Items(Entity_Player &p){const auto address=(std::uintptr_t(p._entityExtraDataPtrUpperBytes)<<16)|p._entityExtraDataPtrLowerBytes;
-  if(!address)return nullptr;auto *plus=*reinterpret_cast<EntityPlus **>(address);
+  if(!address)return nullptr;auto *plus=*reinterpret_cast<player_sdk::PlusHeader **>(address);
   if(!plus||std::strcmp(typeid(*plus).name(),"class EntityPlayerPlus"))return nullptr;
-  return reinterpret_cast<PlusItems *>(&static_cast<EntityPlayerPlus *>(plus)->itemSpoofs);
+  return reinterpret_cast<PlusItems *>(reinterpret_cast<unsigned char *>(plus)+sizeof(player_sdk::PlusHeader));
 }
 void Number(lua_State *L,const char *key,float n){if(!std::isfinite(n))throw std::runtime_error("player_state_nonfinite");lua_pushnumber(L,n);lua_setfield(L,-2,key);}
 void Integer(lua_State *L,const char *key,std::int64_t n){lua_pushinteger(L,n);lua_setfield(L,-2,key);}
@@ -123,7 +120,6 @@ bool ClientPlayerStateFields(void *pointer,const ClientPlayerDescription &d,bool
   if(!pointer||!d.state||!IsMain()||!ClientBusy()||!HasOwner(Owner::Manager)||!ContextHealthy()||!ClientLuaGuardReady()||!ClientCallbackGuardReady()){reason="player_final_state_context";return false;}
   auto &p=*static_cast<Entity_Player *>(pointer);if(p._type!=1||p._playerType!=d.player_type||!ValidateConfig(*d.state,reason))return false;auto *items=Items(p);if(!items){reason="player_official_plus_owner_missing";return false;}
   const auto &s=*d.state;
-  if(!ClientEntityCommonFields(pointer,d.entity.common_fields,check,reason))return false;
   // 不适用成员仍保持NotApplicable语义；本地专用存储清零仅为退休旧角色缓存，不伪造Source读值。
   for(const auto &id:s.not_applicable){bool found=false,ok=true;
 #define CS_PLAYER_FIELD(name,field,type,kind) if(id==name){found=true;ok=Clear(field,check);}
@@ -151,6 +147,9 @@ bool ClientPlayerStateFields(void *pointer,const ClientPlayerDescription &d,bool
   const auto &q=s.queue;auto &n=Queue(p);auto *config=Config(q.item,q.type==2);
   if(check){if(n._item!=config||n._charge!=q.charge||n._flags!=q.flags||n._vardata!=q.var_data){reason="player_queue_native_postcondition";return false;}}
   else {n._item=config;n._charge=q.charge;n._flags=q.flags;n._vardata=q.var_data;}
+  // WaterClip公开getter的原链会查询HasCollectible；base Init不分配Player库存，
+  // 因此先安装真实库存与Plus容器，再调用公共字段的setter/getter，避免读取空库存。
+  if(!ClientEntityCommonFields(pointer,d.entity.common_fields,check,reason))return false;
   reason=check?"player_final_values_checked":"player_final_values_installed";return true;
 }
 bool ClientPlayerStateRetire(void *pointer,const char *&reason){

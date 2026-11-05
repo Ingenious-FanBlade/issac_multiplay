@@ -57,7 +57,12 @@ DWORD WINAPI Serve(void *) noexcept {
         PortRequest req{};
         req.id = ++sequence;
         req.enqueued_ms = GetTickCount64();
-        req.deadline_ms = req.enqueued_ms + 5000;
+        std::uint64_t wait_ms=5000;
+#if defined(ISAACCS_E2E)
+        // 完整观测／大目标遍历期间status也会排队；仅显式E2E构建给有界长等待，生产控制口仍为5秒。
+        wait_ms=60000;
+#endif
+        req.deadline_ms = req.enqueued_ms + wait_ms;
         strncpy_s(req.text, line.c_str(), _TRUNCATE);
         line.clear();
         Trace("control_request", "id=%llu text=%s enqueued_ms=%llu deadline_ms=%llu", req.id,

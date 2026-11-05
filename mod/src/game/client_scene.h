@@ -3,6 +3,7 @@
 #include "replica/room_grid_plan.h"
 #include "replica/player_target.h"
 #include "replica/player_plan.h"
+#include "replica/player_limits.h"
 #include "game/client_player_control.h"
 #include "game/client_lifetime.h"
 #include "game/client_native_world.h"
@@ -171,7 +172,9 @@ private:
     ClientPurpose purpose=ClientPurpose::NativeApply;
   };
   std::array<BorrowEntry,16> borrows_{};
-  std::array<RetainedEntry,16> retained_{};
+  // 一个Player资源子步骤内暂留main/13 inline/costume候选，释放须等用途借用退出。
+  // 覆盖已接纳的单身体1024 costume上限，并保留原有16 owner及其余内嵌资源余量。
+  std::array<RetainedEntry,replica::kPlayerCostumesPerBody+32> retained_{};
   std::uint64_t next_retained_=0;
   bool draining_=false;
   bool native_dispatch_prefix_=false;

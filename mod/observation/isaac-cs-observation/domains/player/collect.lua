@@ -28,8 +28,9 @@ function M.Capture(limits)
     local group=relation or membership
     if group and group.control_group_local_id and group.participant_local_id then
       local relation=group;local key=relation.control_group_local_id
-      if not groups[key] then groups[key]={participant={space=9,local_id=relation.participant_local_id},subject={space=10,local_id=key},ordinal=relation.ordinal,control_session=relation.control_session,binding_revision=relation.binding_revision,bodies={},memberships={},device={status="KnownCurrent",basis="current_exact_pair_anchor",lifetime="control_session_and_binding_revision",role=relation.ordinal==0 and "HostPhysicalInput" or "OwnedVirtualDevice"}}; out.control_groups[#out.control_groups+1]=groups[key] end
-      if id.control_relation then groups[key].bodies[#groups[key].bodies+1]=id end
+      if not groups[key] then groups[key]={participant={space=9,local_id=relation.participant_local_id},subject={space=10,local_id=key},ordinal=relation.ordinal,control_session=relation.control_session,binding_revision=relation.binding_revision,bodies={},memberships={},device={status="NotApplicable",basis="structural_membership_without_current_input_anchor",lifetime="control_session_and_binding_revision",role=relation.ordinal==0 and "HostPhysicalInput" or "OwnedVirtualDevice"}}; out.control_groups[#out.control_groups+1]=groups[key] end
+      -- 死亡／ghost组仍有成员，不能把当前不存在的输入绑定写成KnownCurrent设备。
+      if id.control_relation then groups[key].bodies[#groups[key].bodies+1]=id;groups[key].device.status="KnownCurrent";groups[key].device.basis="current_exact_pair_anchor" end
       groups[key].memberships[#groups[key].memberships+1]={subject=id,body_role=relation.body_role,active=relation.active,can_consume=relation.can_consume}
     end
   end

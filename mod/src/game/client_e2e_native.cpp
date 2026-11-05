@@ -83,9 +83,10 @@ void ClientTestDestroyVm(void *state) noexcept {if(IsMain()&&state)lua_close(sta
 std::string ClientTestExerciseNative(const std::string &token) noexcept {
   if(!IsMain()||TopOwner()!=Owner::Manager||!ClientBusy()||!ClientPersistenceBlocked()||
      Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!g_Game||!g_Manager||
-     !g_Game->_room||g_Game->_playerManager._playerList.size()!=1)return "ok=0\nerror=client_exercise_context\n";
+     !g_Game->_room||g_Game->_playerManager._playerList.empty())return "ok=0\nerror=client_exercise_context\n";
   try {
     auto *player=g_Game->_playerManager._playerList[0];const auto pos=player->_pos;
+    const auto roster=g_Game->_playerManager._playerList;std::vector<std::pair<Vector,int>> body_values;for(auto *p:roster)body_values.push_back({p->_pos,p->_redHearts});
     const auto hearts=player->_redHearts;auto *pgd=g_Manager->GetPersistentGameData();
     const auto counter=pgd->GetEventCounter(522);const auto random=ObservationGlobalRandomState(true);
     g_Game->Update();player->Update();g_Game->_roomTransition.Update();
@@ -108,6 +109,8 @@ std::string ClientTestExerciseNative(const std::string &token) noexcept {
     lua_settop(L,top);
     if(!lua_ok||pgd->GetEventCounter(522)!=counter||player->_pos.x!=pos.x||player->_pos.y!=pos.y||
        player->_redHearts!=hearts||ObservationGlobalRandomState(true)!=random)return "ok=0\nerror=client_isolation_changed\n";
+    if(roster!=g_Game->_playerManager._playerList)return "ok=0\nerror=client_isolation_roster_changed\n";
+    for(unsigned i=0;i<roster.size();++i)if(roster[i]->_pos.x!=body_values[i].first.x||roster[i]->_pos.y!=body_values[i].first.y||roster[i]->_redHearts!=body_values[i].second)return "ok=0\nerror=client_isolation_body_changed\n";
     return "ok=1\nisolation_exercise=1\nloading_exercise=1\n";
   }catch(...){return "ok=0\nerror=client_exercise_exception\n";}
 }

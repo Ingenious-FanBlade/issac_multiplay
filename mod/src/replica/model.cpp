@@ -83,7 +83,7 @@ void CheckValue(const Value &v,Limits l){
   std::uint64_t nodes=0;Check(v,l,0,nodes);
   // 总字符串与节点开销也有上限，避免大量小字符串绕过单字符串限制。
   std::uint64_t bytes=24;auto count=[&](auto &&self,const Value &x)->void{
-    bytes+=x.IsString()?std::uint64_t(x.GetStringLength())+5:9;if(bytes>l.bytes)Fail("value_byte_budget");
+    bytes+=x.IsString()?std::uint64_t(x.GetStringLength())+5:9;if(bytes>l.value_bytes)Fail("value_byte_budget");
     if(x.IsArray())for(const auto &e:x.GetArray())self(self,e);
     if(x.IsObject())for(auto i=x.MemberBegin();i!=x.MemberEnd();++i){self(self,i->name);self(self,i->value);}
   };count(count,v);

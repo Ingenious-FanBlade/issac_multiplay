@@ -75,6 +75,16 @@ CONSTANT_ORDER = [
     ('player_inline_sprite_stride', 'u32'),
     ('player_inline_sprite_count', 'u32'),
     ('player_sub_storage_offset', 'u32'),
+    ('player_twin_storage_offset', 'u32'),
+    ('player_backup_storage_offset', 'u32'),
+    ('player_replaced_storage_offset', 'u32'),
+    ('entity_valid_offset', 'u32'),
+    ('entity_exists_offset', 'u32'),
+    ('player_type_offset', 'u32'),
+    ('player_index_offset', 'u32'),
+    ('player_active_desc_first_offset', 'u32'),
+    ('player_active_desc_stride', 'u32'),
+    ('player_active_var_data_offset', 'u32'),
     ('game_player_borrow_first_offset', 'u32'),
     ('game_player_borrow_count', 'u32'),
 
@@ -529,6 +539,16 @@ def legacy_body(row):
         return ['    // 仅Client已提交Player的纯表现色；Host/Off原链恰好一次。',
                 '    if(cs::game::ClientPlayerDrawPalette(output,player)) return output;',
                 '    cs::CallScope scope(record);', '    return super(output,player);']
+    if ident == 'world_player_esau_owner':
+        return ['    // 703只观察真实换槽owner，保留原始返回word；不修改游戏槽或重演使用。',
+                '    cs::game::WorldPlayerChildSourceScope owner(this,4,{&record.calls,&record.foreign,&record.completed},slot);',
+                '    auto value=super(slot,flags);', '    owner.Returned();', '    return value;']
+    if ident in ('world_player_sub_owner', 'world_player_type_owner', 'world_player_full_init_owner'):
+        kind = {'world_player_sub_owner': 0, 'world_player_type_owner': 1, 'world_player_full_init_owner': 2}[ident]
+        args = {'world_player_sub_owner': '', 'world_player_type_owner': 'playerType, keepHealth', 'world_player_full_init_owner': 'type, variant, subtype, initSeed'}[ident]
+        return ['    // 具名角色owner只观察真实Ctor/完整返回，不补出生或PlayerUpdate。',
+                f'    cs::game::WorldPlayerChildSourceScope owner(this,{kind},{{&record.calls,&record.foreign,&record.completed}});',
+                f'    super({args});', '    owner.Returned();']
     if ident == 'world_delirium_owner':
         return ['    // 专属原生owner只观察；无Init不制造Morph，异常不恢复资格。',
                 '    cs::game::WorldEntityReconfigurationScope owner(this,{&record.calls,&record.foreign,&record.completed});',
@@ -805,6 +825,7 @@ def legacy_body(row):
             lines.append('    cs::game::SimulationScope simulation(cs::game::SimulationKind::Odd);')
         elif ident == 'player_update':
             lines.append('    cs::game::PlayerScope player_scope(this);')
+            lines.append('    cs::game::WorldPlayerChildSourceScope state_owner(this,3,{});')
         elif ident == 'player_native':
             lines.append('    cs::game::PlayerNativeReached(this);')
         elif ident == 'join_pass':
@@ -855,6 +876,8 @@ def legacy_body(row):
             if ident == 'shoot':
                 lines.append('    if (!consumer.CallOriginal()) return;')
         lines.append('    %ssuper(%s);' % ('auto result = ' if ret != 'void' else '', call))
+        if ident == 'player_update':
+            lines.append('    state_owner.Returned(player_scope.native_reached);')
         if ident == 'pgd_unlock':
             lines.append('    persistence.Returned(result);')
         if ident in ('entity_kill', 'revive_ghost', 'stage_transition',

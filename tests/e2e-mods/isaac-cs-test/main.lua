@@ -1,3 +1,5 @@
+local tx20config=include("harness_config")
+if tx20config.tx=="tx-04-20" then include("tx20");return end
 local tx19config=include("harness_config")
 if tx19config.tx=="tx-04-19" then include("tx19");return end
 -- 测试专用夹具；tx-04-05/06 临时配置启用跳帧与切房，tx-04-07 启用 B 死亡/复活/换层与激光观测。

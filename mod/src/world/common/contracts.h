@@ -42,6 +42,10 @@ struct ObservationReference final {
 };
 // 2026-11-03按用户要求先放宽节点容量；独立的字节/深度/对象约束继续生效。
 inline constexpr std::uint32_t kNodeBudget=64u<<20;
+// Entity承载完整Player及备份，和Grid同为32MiB；其它域维持16MiB最高上限。
+constexpr std::uint64_t MaximumDomainBytes(DomainId d) noexcept {return (d==DomainId::Entity||d==DomainId::Grid?32ull:16ull)<<20;}
+// Random同时计数每身体的完整原生流，八活动体及备份可超过Entity成员16384；仍按域分别有界。
+constexpr std::uint32_t MaximumDomainObjects(DomainId d) noexcept {return d==DomainId::Random?32768u:16384u;}
 struct Budget final { std::uint32_t objects=16384, nodes=kNodeBudget, depth=12; std::uint64_t bytes=16ull<<20; };
 struct DomainResult final {
   Coverage coverage=Coverage::NotScheduled;

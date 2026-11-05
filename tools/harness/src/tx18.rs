@@ -37,7 +37,16 @@ impl Run {
  // 不接受任意文件变化作为Host合法进度；Client单独基线覆盖从Begin到窗口正常关闭。
  pub(super) fn files_tx18(&mut self,name:&str)->Result<Value>{
   self.snapshot(name)?;let changes=crate::saves::changes(&self.out.join("client_before"),&self.out.join(name))?;
-  if changes.as_array().ok_or("file changes")?.iter().any(|v|v["bytes_changed"]==true&&!matches!(v["path"].as_str(),Some("documents/log.txt"|"documents/options.ini"))){return Err(format!("Client progress changed: {changes}"))}Ok(changes)
+  for v in changes.as_array().ok_or("file changes")?{if v["bytes_changed"]!=true{continue}let path=v["path"].as_str().ok_or("changed path")?;
+   if matches!(path,"documents/log.txt"|"documents/options.ini"){continue}
+   // Windows重新放置窗口会同步REPENTOGON的原版选项副本；仅豁免已观察的X/Y坐标，其他字节仍严格比较。
+   if path=="documents/Repentogon/vanilla_options.ini"{
+    let before=crate::read(&self.out.join("client_before").join(path))?;let after=crate::read(&self.out.join(name).join(path))?;
+    let keep=|s:&str|s.lines().filter(|s|!s.starts_with("WindowPosX=")&&!s.starts_with("WindowPosY=")).map(str::to_owned).collect::<Vec<_>>();
+    if keep(&before)==keep(&after){continue}
+   }
+   return Err(format!("Client progress changed: {changes}"))
+  }Ok(changes)
  }
  pub(super) fn scenes_tx18(&mut self,g:&win32::Game)->Result<()> {
   // 真实产品清单另建临时安装树；其中不得混入fixture/Rust/E2E配置。
@@ -240,6 +249,7 @@ impl Run {
    if n(&initial,&format!("client.original_begin.{name}"))!=n(&counters,&format!("hook.{name}")){return Err(format!("Client gameplay leaked {name}"))}}
   if n(&after,"persist_client_denied_native")<=n(&before,"persist_client_denied_native")||n(&after,"persist_client_denied_lua")<n(&before,"persist_client_denied_lua")+6{return Err("persistent front guards missing".into())}
   self.case("whole_client_window_gameplay_callback_rng_progress_guards",true,json!({"before":before,"after":after,"exercise":isolated}));
+  if self.scenario["player_environment_regression"]==true{self.player_environment_tx20(g,w,&mut c,&source)?;}
   c.command("cs stop")?;c.wait("role","Off",45)?;let files=self.files_tx18("client_after")?;self.case("client_persistence",true,files);
   // 真正窗口关闭发生在Client显示期，覆盖退休至Shutdown最后writer。
   self.apply_tx18(g,&mut c,"all-grids","begin")?;drop(c);if g.close()?!=0{return Err("Client exit".into())}

@@ -172,8 +172,11 @@ pub fn manifest(v: &Value, legacy: bool) -> Result<()> {
     if v["classes"] != json!(CLASSES) || v["sources"] != json!(SOURCES) {
         return Err("manifest classes/sources mismatch".into());
     }
-    if v["readiness_evidence"]
-        != json!({"0":"NO_OBSERVED_INIT","1":"BASE_INIT_RETURNED","2":"KNOWN_CREATION_OWNER_COMPLETED","3":"USER_ACCEPTED_CURRENT_PLAYER_UPDATE_WITNESS"})
+    // 旧录制继续按原四项读取；新增4只表示具名子体Init owner正常完成，不改写旧历史。
+    let readiness_legacy=json!({"0":"NO_OBSERVED_INIT","1":"BASE_INIT_RETURNED","2":"KNOWN_CREATION_OWNER_COMPLETED","3":"USER_ACCEPTED_CURRENT_PLAYER_UPDATE_WITNESS"});
+    let mut readiness_player=readiness_legacy.clone();readiness_player["4"]=json!("NAMED_PLAYER_CHILD_INIT_COMPLETED");
+    let mut readiness_state=readiness_player.clone();readiness_state["5"]=json!("NAMED_PLAYER_STATE_OWNER_COMPLETED");
+    if (v["readiness_evidence"]!=readiness_legacy&&v["readiness_evidence"]!=readiness_player&&v["readiness_evidence"]!=readiness_state)
         || v["hp_evidence"]
             != "USER_ACCEPTED_ASSUMPTION: generic Entity HP represents life; Player hearts remain separate"
         || v["current_player_read_rule"]

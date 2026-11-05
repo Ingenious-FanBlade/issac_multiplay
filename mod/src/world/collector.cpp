@@ -36,7 +36,7 @@ bool Collector::Recording() const noexcept {
          storage_.Diag().FaultReason() == Reason::None;
 }
 bool Collector::Drained() const noexcept {
-  return !depth_ && !entity_reconfiguration_depth_ && !lifecycle_depth_ && !outer_active_ && !pending_;
+  return !depth_ && !entity_reconfiguration_depth_ && !player_child_depth_ && !lifecycle_depth_ && !outer_active_ && !pending_;
 }
 Collector::EntityReconfiguration *Collector::EntityReconfigurationFor(std::uint32_t object) noexcept {
   if(!entity_reconfiguration_depth_)return nullptr;
@@ -1148,6 +1148,7 @@ std::uint32_t Collector::ObserveEnter(Observation kind, std::uint32_t object,
     Fault(Reason::Budget, "observation_stack");
     return 0;
   }
+  const auto before_control=player_replace_before_control_[depth_];player_replace_before_control_[depth_]={};
   auto &call = calls_[depth_];
   call = {};
   call.id = ++next_call_;
@@ -1157,6 +1158,19 @@ std::uint32_t Collector::ObserveEnter(Observation kind, std::uint32_t object,
   call.count = count;
   for (std::uint32_t i = 0; i < count; ++i)
     call.args[i] = args[i];
+  // LifecycleEnter会撤销原更新资格，必须先保存已具备的旧身体来源；这里只读真实Replace前态。
+  if(kind==Observation::Replace&&count==2){
+    if(before_control.manager==object&&before_control.old_body==args[0]&&before_control.new_body==args[1]&&before_control.run==run_)call.player_replace=before_control;
+    else RememberPlayerReplaceState(call);
+  }
+  if(kind==Observation::Init||kind==Observation::PlayerRestore||kind==Observation::PlayerCtor||kind==Observation::Destroy||kind==Observation::ManagerRestore||entity::Morph(kind))
+  {
+    const bool guarded_esau_restore=kind==Observation::PlayerRestore&&PlayerEsauRestoreNoop(object);
+    for(unsigned i=0;i<depth_;++i)if(kind==Observation::ManagerRestore||calls_[i].player_replace.old_body==object)calls_[i].player_replace.invalid=true;
+    for(unsigned i=0;i<player_child_count_;++i){auto &w=player_child_witnesses_[i];if(w.state_owner&&(kind==Observation::ManagerRestore||w.object==object||(w.pair_owner&&w.parent==object)))w.invalid=true;
+      if((w.initialized||w.esau_active)&&(kind==Observation::ManagerRestore||(w.object==object&&!guarded_esau_restore)))w.invalid=true;
+    }
+  }
   ++depth_;
   storage_.Diag().callbacks.fetch_add(1, std::memory_order_relaxed);
   const auto domain =
@@ -1367,6 +1381,15 @@ void Collector::ObserveLeave(std::uint32_t call_id, std::uint32_t result,
   Identity *id = nullptr;
   const bool completed = normal && call.body_reached && call.body_returned;
   if (completed && !stopping_ && storage_.Ready()) {
+    if(kind==Observation::Replace&&result&&call.body_result)CompletePlayerReplaceState(call);
+    // 703 helper本身不检查Replace的AL；只记录真实内层替换成功，外层还要核对roster/槽。
+    if(kind==Observation::Replace&&call.count==2&&result&&call.body_result){
+      for(unsigned i=0;i<player_child_depth_;++i){auto &o=player_child_owners_[i];if(o.kind!=4||o.object!=call.args[0])continue;
+        const auto *replacement=identities_.Find(ObjectDomain::Entity,call.args[1]);
+        if(!replacement||replacement->Retired()||(o.replacement&&(o.replacement!=call.args[1]||o.replacement_local!=replacement->local_id||o.replacement_use!=replacement->use))){player_child_failed_=true;continue;}
+        o.replacement=call.args[1];o.replacement_local=replacement->local_id;o.replacement_use=replacement->use;
+      }
+    }
     if (kind == Observation::Factory || kind == Observation::GridFactory ||
         kind == Observation::PlayerCtor || kind == Observation::GridCtor) {
       const auto address =
@@ -1386,6 +1409,7 @@ void Collector::ObserveLeave(std::uint32_t call_id, std::uint32_t result,
         }
         if (kind == Observation::PlayerCtor || kind == Observation::GridCtor)
           id->lifecycle = static_cast<std::uint32_t>(Lifecycle::Constructed);
+        if(kind==Observation::PlayerCtor)RememberPlayerChildCtor(*id);
       }
     } else if (kind == Observation::Publish) {
       id = Find(ObjectDomain::Entity, call.args[0]);

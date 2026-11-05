@@ -259,7 +259,7 @@ bool WriteManifest(WriterState &state) {
   j.Lit("},\n");
   Indent(j, 1);
   j.Lit("\"readiness_evidence\":{");
-  for (std::uint32_t i = 0; i < 4; ++i) {
+  for (std::uint32_t i = 0; i < 6; ++i) {
     if (i)
       j.Lit(",");
     j.Lit("\"");

@@ -80,9 +80,11 @@ PlayerApplyPlan PlanPlayerTarget(std::shared_ptr<const PlayerTarget> t,std::shar
     bool replace=false;
     if(next!=desired.end()){const auto &after=p.target->bodies[next->second];
       if(after.shape_revision<before.shape_revision)Fail("shape_revision_regressed");
-      const bool shape=after.player_type!=before.player_type||ShapeFieldsDiffer(*p.applied,before,*p.target,after);
-      replace=after.shape_revision!=before.shape_revision||shape;
-      if(shape&&after.shape_revision==before.shape_revision)Fail("shape_changed_without_revision");
+      const bool entity_shape=ShapeFieldsDiffer(*p.applied,before,*p.target,after);
+      // PlayerType由具名角色状态描述；正常ChangePlayerType不必执行Entity Init，
+      // 因而不伪造Entity revision。角色改变独立触发整场景重建及旧借用撤销。
+      replace=after.shape_revision!=before.shape_revision||after.player_type!=before.player_type||entity_shape;
+      if(entity_shape&&after.shape_revision==before.shape_revision)Fail("shape_changed_without_revision");
       if(replace)replacements.insert(key);
     }
     // I28采用显式整场景换形/删除；逻辑Key寿命由Scene另存，不调用玩法setter或递归Remove。

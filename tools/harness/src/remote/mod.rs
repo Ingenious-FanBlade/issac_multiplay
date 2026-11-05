@@ -26,7 +26,7 @@ pub struct Step {
     pub state: State,
 }
 enum Request {
-    Script(String, Vec<Step>),
+    Script(String, Vec<Step>, Option<u64>),
     ArmNextGeneration(String, Vec<Step>, u64, Duration),
     OldGeneration(u64, u64),
     ExpectTimeout,
@@ -134,6 +134,14 @@ impl Remote {
         self.state.lock().unwrap_or_else(|p| p.into_inner()).clone()
     }
     pub fn script(&self, label: &str, steps: Vec<Step>) -> Result<()> {
+        self.script_with_parity(label,steps,None)
+    }
+    // 仅E2E已知稳定普通窗口使用：单个边沿选择有该组原生consumer的目标tick，协议/生产Resolve不变。
+    pub fn script_on_tick_parity(&self,label:&str,steps:Vec<Step>,parity:u64)->Result<()> {
+        if parity>1{return Err("invalid_target_tick_parity".into())}
+        self.script_with_parity(label,steps,Some(parity))
+    }
+    fn script_with_parity(&self,label:&str,steps:Vec<Step>,parity:Option<u64>)->Result<()> {
         if steps.is_empty()
             || steps.len() > 128
             || steps[0].after != 0
@@ -142,7 +150,7 @@ impl Remote {
             return Err("script_steps_must_increase_from_zero".into());
         }
         self.tx
-            .try_send(Request::Script(label.into(), steps))
+            .try_send(Request::Script(label.into(), steps, parity))
             .map_err(|e| e.to_string())
     }
     pub fn silence(&self) -> Result<()> {
@@ -259,6 +267,7 @@ impl Worker {
         let mut history: VecDeque<Command> = VecDeque::new();
         let mut script: VecDeque<Step> = VecDeque::new();
         let mut script_base = 0;
+        let mut script_parity=None;
         let mut desired = State::default();
         let mut silent = false;
         let mut armed: Option<(String, Vec<Step>, u64, Instant)> = None;
@@ -321,7 +330,7 @@ impl Worker {
                         silent = true;
                         self.record(json!({"event":"silence"}))?;
                     }
-                    Ok(Request::Script(label, steps)) => {
+                    Ok(Request::Script(label, steps, parity)) => {
                         let ack = self
                             .endpoint
                             .ack
@@ -331,12 +340,13 @@ impl Worker {
                             return Err("script_before_active_generation".into());
                         }
                         script_base = ack.tick;
+                        script_parity=parity;
                         script = steps.into();
                         desired = State::default();
                         self.state.script_label = label.clone();
                         self.state.script_base = script_base;
                         self.state.script_generation = generation;
-                        self.record(json!({"event":"script","label":label,"base":script_base,"generation":generation}))?;
+                        self.record(json!({"event":"script","label":label,"base":script_base,"generation":generation,"target_tick_parity":parity}))?;
                     }
                     Err(mpsc::TryRecvError::Empty) => break,
                     Err(mpsc::TryRecvError::Disconnected) => {
@@ -423,6 +433,7 @@ impl Worker {
                     generation = ack.generation;
                     history.clear();
                     script.clear();
+                    script_parity=None;
                     desired = State::default();
                     last_sample = None;
                     // 新代次 Ack 即使 completed 未变也代表新的可用采样边界；
@@ -443,6 +454,7 @@ impl Worker {
                 if ack.state == 3 && armed.as_ref().is_some_and(|a| generation > a.2) {
                     let (label, steps, old, _) = armed.take().unwrap();
                     script_base = ack.tick;
+                    script_parity=None;
                     script = steps.into();
                     desired = State::default();
                     last_sample = None;
@@ -467,13 +479,17 @@ impl Worker {
                         history.clear();
                         desired = State::default();
                         script.clear();
+                        script_parity=None;
                     }
                     let mut edge = 0;
+                    let candidate_target=ack.tick.checked_add(if bootstrap&&active&&fresh{1}else{self.lead}).ok_or("target_overflow")?;
                     if active && fresh {
                         while script
                             .front()
                             .is_some_and(|s| ack.tick.saturating_sub(script_base) >= s.after)
                         {
+                            // 等下一次新鲜Ack的正确目标窗口；未发出的边沿没有被Resolve，不重发旧命令。
+                            if script.front().is_some_and(|s|s.state.edge!=0)&&script_parity.is_some_and(|p|candidate_target%2!=p){break;}
                             desired = script.pop_front().unwrap().state;
                             edge |= desired.edge;
                             desired.edge = 0;

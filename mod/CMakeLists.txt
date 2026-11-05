@@ -26,7 +26,7 @@ target_link_libraries(isaac_cs_net PUBLIC isaac_cs_core PRIVATE ws2_32 bcrypt)
 # world 采集：纯值模型/身份/存储/写入/观察策略。不依赖 SDK、游戏头或
 # runtime.h，也不调用任何原生函数；SDK-facing 接线在后续 game/world_bridge。
 add_library(isaac_cs_world STATIC src/world/model.cpp src/world/identity.cpp
-  src/world/storage.cpp src/world/writer.cpp src/world/observe.cpp src/world/collector.cpp
+  src/world/storage.cpp src/world/writer.cpp src/world/observe.cpp src/world/collector.cpp src/world/player_child_source.cpp
   src/world/common/contracts.cpp src/world/common/service.cpp src/world/common/publication.cpp
   src/world/common/native_source.cpp src/world/common/membership.cpp src/world/compatibility/min_read_v1.cpp src/world/compatibility/encode.cpp
   src/world/domains/entity/collect.cpp src/world/domains/grid/collect.cpp)
@@ -132,7 +132,7 @@ else()
   set(ISAACCS_BUILD_FLAVOR "product")
 endif()
 file(GENERATE OUTPUT "${ISAACCS_DLL_OUTPUT}/build-flavor.json"
-  CONTENT "{\"format\":\"isaac.cs.build\",\"version\":1,\"flavor\":\"${ISAACCS_BUILD_FLAVOR}\",\"e2e_tools\":$<IF:$<BOOL:${ISAACCS_BUILD_E2E_TOOLS}>,true,false>,\"player_contract\":\"player-target-v2\",\"player_diagnostics\":1,\"player_runtime_acceptance\":\"I39-not-run\"}\n")
+  CONTENT "{\"format\":\"isaac.cs.build\",\"version\":1,\"flavor\":\"${ISAACCS_BUILD_FLAVOR}\",\"e2e_tools\":$<IF:$<BOOL:${ISAACCS_BUILD_E2E_TOOLS}>,true,false>,\"player_contract\":\"player-target-v2\",\"player_diagnostics\":1,\"player_runtime_acceptance\":\"tx-04-20-I39-finite-matrix-passed\"}\n")
 # SDK 1.1.3 的生成头和 ASMPatcher.hpp 的 friend-static 声明不兼容当前 C++20。
 # SDK-facing 单元只使用 C++17 值接口；Join/输入/world 核心保持 C++20。
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。
@@ -166,4 +166,10 @@ target_compile_definitions(zhlIsaacCS PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_
 target_compile_options(zhlIsaacCS PRIVATE /EHs /W4 /Zi /utf-8 /wd4251 /wd4996)
 target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net isaac_cs_world isaac_cs_replica "${REPENTOGON_ROOT}/build/Release/libzhl.lib" "${REPENTOGON_ROOT}/build/Release/Lua5.3.3r.lib" ws2_32 bcrypt opengl32)
 target_link_options(zhlIsaacCS PRIVATE /DEBUG)
+# 只编译官方头的布局声明；其全局配置初始化不属于本DLL，不能链接或执行。
+add_library(isaac_cs_player_sdk_abi OBJECT src/game/client_player_sdk_abi.cpp)
+target_include_directories(isaac_cs_player_sdk_abi PRIVATE $<TARGET_PROPERTY:zhlIsaacCS,INCLUDE_DIRECTORIES>)
+target_compile_definitions(isaac_cs_player_sdk_abi PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
+target_compile_options(isaac_cs_player_sdk_abi PRIVATE /std:c++17 /utf-8 /EHsc)
+add_dependencies(zhlIsaacCS isaac_cs_player_sdk_abi)
 set_target_properties(zhlIsaacCS PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE "${ISAACCS_DLL_OUTPUT}")

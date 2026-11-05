@@ -2,7 +2,8 @@ if IsaacCSObservationValues then return IsaacCSObservationValues end
 -- 全部复制在游戏主线程完成；输出只有自有标量／表／规范主体键，不输出 userdata 或地址。
 local schemas = include("domains/entity/schema")
 local M = { SchemaVersion=2 }
-local LIMIT = {objects=16384, nodes=64*1024*1024, depth=12, bytes=16*1024*1024, queries=131072}
+-- 与完整Player目标的32MiB来源预算一致；八活动身体及非活动备份不能先被旧16MiB域预算截断。
+local LIMIT = {objects=16384, nodes=64*1024*1024, depth=12, bytes=32*1024*1024, queries=131072}
 local function missing(status, reason) return {status=status,reason=reason} end
 local function native() return IsaacCSObservationNative end
 local function protected(object, name, args, field, static)
@@ -154,7 +155,8 @@ value=function(object, typ, ctx, depth)
   if typ then typ=typ:gsub("%?","") end
   if typ and typ:find("^Entity") and not typ:find("^EntityConfig") and typ~="EntityDesc" and typ~="EntityRef" and typ~="EntityList" then
     local reference=native().Reference(object)
-    if reference.resolution=="Unresolved" or reference.resolution=="AmbiguousReuse" then fail(ctx,"reference:"..reference.resolution) end
+    -- 引用缺口保留实际Getter和本地身份，便于区分游戏陈旧关系与漏登记；不放宽Complete。
+    if reference.resolution=="Unresolved" or reference.resolution=="AmbiguousReuse" then fail(ctx,"reference:"..reference.resolution..":"..tostring(ctx.member)..":"..tostring(reference.local_id).."/"..tostring(reference.use)) end
     return reference
   end
   if typ=="EntityRef" then return native().Reference(object.Entity) end
@@ -423,7 +425,9 @@ function M.PlayerSources(ctx)
   local root=roots();local cursor=1
   while cursor<=#out do
     local p=out[cursor].player;cursor=cursor+1
-    for _,name in ipairs({"GetMainTwin","GetOtherTwin","GetSubPlayer"}) do
+    -- Lazarus的备用体可被HistoryHUD引用且地址曾复用；每个域都须登记当前Flip边，
+    -- 不能借上一域scope的登记，也不能把可读资格当成自动KnownCurrent。
+    for _,name in ipairs({"GetMainTwin","GetOtherTwin","GetSubPlayer","GetFlippedForm"}) do
       local target=p[name](p);add(target,name);witnesses[#witnesses+1]={owner=p,member=name,id=identity(target)}
     end
   end

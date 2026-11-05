@@ -1,5 +1,5 @@
 #include "IsaacRepentance.h"
-#include "binding/world_layout.h"
+#include "binding/world_layout_constants.h"
 #include "game/client_players_native.h"
 #include "game/client_player_state.h"
 #include "game/client_player_equipment.h"

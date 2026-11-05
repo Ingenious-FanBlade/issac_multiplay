@@ -1,6 +1,6 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
-#include "binding/world_layout.h"
+#include "binding/world_layout_constants.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
@@ -69,7 +69,10 @@ int MinimapDescriptor(lua_State *L) {return ClientMapDescriptorCaptureLua(L);}
 int MapApplication(lua_State *L) {return ClientMapStateCaptureLua(L);}
 // 当前专用关系只发布稳定引用；不把本地地址、getter派生语义或历史未初始化值发出去。
 void PlayerLink(lua_State *L,const char *name,Entity *entity){
-  const auto s=ObservationSubject(entity,false,false);lua_newtable(L);
+  auto s=ObservationSubject(entity,false,false);
+  // 原生槽的真实空指针是Null；身份注册表缺失只用于非空未知对象，不能混淆两者。
+  if(!entity)s.status=0;
+  lua_newtable(L);
   constexpr const char *names[]={"Null","KnownCurrent","KnownHistorical","Unresolved","NotCaptured","UnsupportedTarget","Retired","AmbiguousReuse","CrossEpoch"};
   lua_pushstring(L,names[s.status<9?s.status:3]);lua_setfield(L,-2,"resolution");
   lua_pushinteger(L,1);lua_setfield(L,-2,"space");Decimal(L,"local_id",s.local);Decimal(L,"use",s.use);Decimal(L,"revision",s.revision);
@@ -480,7 +483,8 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
     lua_pushinteger(L,nodes); lua_setfield(L,-2,"nodes");
     lua_pushinteger(L,depth); lua_setfield(L,-2,"depth");
     lua_pushinteger(L,limit); lua_setfield(L,-2,"bytes");
-    lua_pushinteger(L,domain==1?524288:domain==5?262144:131072); lua_setfield(L,-2,"queries");
+    // Entity含全部身体/备份及内嵌资源；与Grid同用有界524288次有限查询，字节/节点另有上限。
+    lua_pushinteger(L,domain<=1?524288:domain==5?262144:131072); lua_setfield(L,-2,"queries");
     if(!lua_isfunction(L,-2)||lua_pcall(L,1,6,0)!=LUA_OK) {
       const auto *error=lua_tostring(L,-1); result.reason=error?std::string(error).substr(0,256):"lua_capture_failed";
       lua_settop(L,top); return result;
@@ -492,7 +496,7 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
       const auto captured_objects=lua_tointeger(L,-4),captured_nodes=lua_tointeger(L,-3);
       if(captured_objects<0||captured_objects>objects||captured_nodes<0||captured_nodes>nodes) { result.complete=false; result.reason="lua_count_budget"; }
       else { result.objects=unsigned(captured_objects); result.nodes=unsigned(captured_nodes); }
-      const auto *reason=lua_tostring(L,-2); if(reason) result.reason=reason;
+      const auto *reason=lua_tostring(L,-2); if(reason&&*reason&&result.reason.empty()) result.reason=reason;
     } else result.reason="lua_payload_budget";
   } catch(...) { result.complete=false; result.reason="lua_owned_value_budget"; }
   lua_settop(L,top); return result;

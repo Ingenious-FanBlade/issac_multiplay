@@ -49,6 +49,9 @@ EntityDependency DescribeEntityDependency(const EntityObjectTarget &o,const Enti
   else if(returns=="EntityKnife")d.expected=EntityCategory::Knife;
   else if(returns=="EntityPickup"||returns=="EntityPickup, boolean")d.expected=EntityCategory::Pickup;
   else if(returns=="EntityEffect")d.expected=EntityCategory::Effect;
+  // NPC父子字段是共同EntityPtr别名；原版965:0矿车的ChildNPC真实指向Player乘员。
+  // 模型/原生层仍核对Entity.Parent/Child一致性，不把Lua声明类当实际对象的类证明。
+  if(d.member=="EntityNPC.ParentNPC"||d.member=="EntityNPC.ChildNPC")d.expected=EntityCategory::Unknown;
   if(d.member=="Entity.GetLastChild"||d.member=="Entity.GetLastParent"){
     d.kind=EntityDependencyKind::Historical;d.phase=EntityDependencyPhase::ValueOnly;
   }else if(d.member=="EntityNPC.GetSirenPlayerEntity"||d.member=="EntityNPC.GetPlayerTarget"||d.member=="EntityNPC.Pathfinder"||d.member.rfind("EntityNPC.QueryNPCs",0)==0||d.member=="EntityFamiliar.GetActiveWeaponEntity"||d.member=="EntityFamiliar.GetWeapon"||d.member=="EntityFamiliar.GetPathfinder"||d.member=="EntityFamiliar.GetItemConfig"){

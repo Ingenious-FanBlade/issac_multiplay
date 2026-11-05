@@ -6,6 +6,7 @@
 #include "game/client_entity_adapters.h"
 #include "game/client_entity_draw_native.h"
 #include "game/bridge.h"
+#include "game/context.h"
 #include "runtime.h"
 #include <cmath>
 #include <cstring>

@@ -5,6 +5,7 @@
 #include "game/client_player_equipment.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/bridge.h"
+#include "game/context.h"
 #include "runtime.h"
 #include <cmath>
 #include <cstring>

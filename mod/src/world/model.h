@@ -170,7 +170,11 @@ enum class Readiness : std::uint32_t {
   NoObservedInit = 0,
   BaseInitReturned = 1,
   CreationOwnerCompleted = 2,
-  CurrentPlayerUpdateWitness = 3
+  CurrentPlayerUpdateWitness = 3,
+  // 已观察Ctor、基Init和具名角色owner完整返回；不补出生、roster或PlayerUpdate历史。
+  PlayerChildInitCompleted = 4,
+  // 具名换槽owner正常完成后的当前存储依据；独立于输入绑定，真实生命周期仍撤销。
+  PlayerStateOwnerCompleted = 5
 };
 // 本轮 Authority tick 的类型；0 表示本轮不是有效 Authority 样本。
 enum class AuthorityKind : std::uint32_t { None = 0, StandardRoom = 1, OddPlayer = 2 };

@@ -110,9 +110,9 @@ constexpr const char *kOriginNames[3] = {"UNSET", "FIRST_OBSERVED",
 constexpr const char *kLifecycleNames[7] = {
     "UNKNOWN", "ACQUIRED", "PUBLISHED", "CONSTRUCTED", "REMOVE_REQUESTED",
     "RETIRING", "DESTROYED"};
-constexpr const char *kReadinessNames[4] = {
+constexpr const char *kReadinessNames[6] = {
     "NO_OBSERVED_INIT", "BASE_INIT_RETURNED", "KNOWN_CREATION_OWNER_COMPLETED",
-    "USER_ACCEPTED_CURRENT_PLAYER_UPDATE_WITNESS"};
+    "USER_ACCEPTED_CURRENT_PLAYER_UPDATE_WITNESS", "NAMED_PLAYER_CHILD_INIT_COMPLETED", "NAMED_PLAYER_STATE_OWNER_COMPLETED"};
 constexpr const char *kAuthorityKindNames[3] = {"NONE", "STANDARD_ROOM",
                                                 "ODD_PLAYER"};
 constexpr const char *kSourceNames[kSourceCount] = {
@@ -149,7 +149,7 @@ static_assert(std::size(kFieldStatusNames) == 5 &&
                   std::size(kEventKindNames) == 9 &&
                   std::size(kOriginNames) == 3 &&
                   std::size(kLifecycleNames) == 7 &&
-                  std::size(kReadinessNames) == 4 &&
+                  std::size(kReadinessNames) == 6 &&
                   std::size(kAuthorityKindNames) == 3 &&
                   std::size(kSourceNames) == kSourceCount,
               "名称表长度与枚举上限不符");

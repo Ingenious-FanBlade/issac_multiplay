@@ -4,6 +4,7 @@
 #include "game/client_player_isolation.h"
 #include "game/client_entity_draw_native.h"
 #include "game/bridge.h"
+#include "game/context.h"
 #include "runtime.h"
 #include <cstring>
 #include <new>

@@ -1,6 +1,6 @@
 #include "game/client_entity_e2e.h"
 #include "IsaacRepentance.h"
-#include "binding/world_layout.h"
+#include "binding/world_layout_constants.h"
 #include "game/client_entity_draw_native.h"
 #include "game/client_player_e2e.h"
 #include "game/client_entity_adapters.h"
@@ -61,11 +61,20 @@ struct NativeSpriteBorrow final {
     if(sprite_record_count>=replica::kPlayerResources)throw std::runtime_error("player_draw_resource_owner_budget");
     record=new NativeSpriteRecord;record->next=sprite_records;if(sprite_records)sprite_records->previous=record;sprite_records=record;++sprite_record_count;
     try{record->saved=static_cast<ANM2 *>(::operator new(sizeof(ANM2)));}catch(...){ForgetSpriteRecord(record);record=nullptr;throw;}
-    try{record->saved->construct_from_copy(&s);}catch(...){record->uncertain=true;ClientCallbackFault("player_draw_copy_ctor_prefix_retained");throw;}
+    try{record->saved->construct_from_copy(&s);
+      // 原生copy用于资源所有权复制，不保证完整保留正式姿态的全部标量。
+      // 单独保存这些已命名值；仍由真实copy管理字符串、动画数组和Image strong。
+      auto &saved=*record->saved;saved._overlayRenderFirst=s._overlayRenderFirst;
+      saved._offset=s._offset;saved._scale=s._scale;saved._rotation=s._rotation;
+      saved._color=s._color;saved._championColor=s._championColor;
+      saved._flipX=s._flipX;saved._flipY=s._flipY;saved._playbackSpeed=s._playbackSpeed;saved._bitflags=s._bitflags;
+    }catch(...){record->uncertain=true;ClientCallbackFault("player_draw_copy_ctor_prefix_retained");throw;}
   }
   // 原生异常后保留实际owner，不从析构栈盲目重试copy/Free。
   void Restore(){if(!record)return;auto &r=*record;if(r.uncertain||r.restore_entered||r.destructor_entered)throw std::runtime_error("player_draw_restore_prefix_uncertain");
-    r.restore_entered=true;reinterpret_cast<void (__fastcall *)(ANM2 *,ANM2 *)>(Base+0x3160)(&sprite,r.saved);r.restore_entered=false;
+    r.restore_entered=true;reinterpret_cast<void (__fastcall *)(ANM2 *,ANM2 *)>(Base+0x3160)(&sprite,r.saved);
+    // J273 Swap不交换offset和overlayFirst；显式恢复这两个已核定的值。
+    sprite._offset=r.saved->_offset;sprite._overlayRenderFirst=r.saved->_overlayRenderFirst;r.restore_entered=false;
     r.destructor_entered=true;r.saved->destructor();::operator delete(r.saved);r.saved=nullptr;r.destructor_entered=false;
     ForgetSpriteRecord(record);record=nullptr;
   }
@@ -101,9 +110,14 @@ struct PlayerBorrow final {
       if(!desired_held||!source||source->shape_revision!=d.derived->player_held_shape||!desired_held->_exists)throw std::runtime_error("entity_player_draw_held_current_key_or_shape");
       if(!d.derived->player_composite_v1&&(source->category!=9||source->variant!=136||desired_held->_visible||desired_held->GetParent()!=&p))throw std::runtime_error("entity_player_draw_held136_owner_or_pose");
       // Player Render临时变换持物并调用其原生Render；资源留在原owner，选择器/标量工作副本保护到外层drain。
-      sprites.push_back(std::make_unique<SpriteBorrow>(desired_held->_sprite));
-      if(d.derived->player_composite_v1&&source->derived)for(const auto &resource:source->derived->resources){
-        auto *sprite=static_cast<ANM2 *>(ClientEntityAuxiliarySprite(desired_held,resource));if(!sprite)throw std::runtime_error("entity_player_held_auxiliary_resource");sprites.push_back(std::make_unique<SpriteBorrow>(*sprite));}
+      // 被举起的完整Player已由外层去重身体图保存全部ANM。不得再挂旧selector借用，
+      // 否则Native Swap释放旧数组后，局部借用会把已失效指针重新装回该Player。
+      const bool held_player_full=desired_held->_type==1&&source->derived&&source->derived->player_full_draw;
+      if(!held_player_full){
+        sprites.push_back(std::make_unique<SpriteBorrow>(desired_held->_sprite));
+        if(d.derived->player_composite_v1&&source->derived)for(const auto &resource:source->derived->resources){
+          auto *sprite=static_cast<ANM2 *>(ClientEntityAuxiliarySprite(desired_held,resource));if(!sprite)throw std::runtime_error("entity_player_held_auxiliary_resource");sprites.push_back(std::make_unique<SpriteBorrow>(*sprite));}
+      }
     }
   }
   void RestoreResources(){for(auto &s:native_sprites)s->Restore();}

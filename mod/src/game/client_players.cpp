@@ -21,6 +21,8 @@ bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,
   ClientEntityTestMeasure measure("player_parse");
   if(begun_&&!ready_){reason="players_candidate_inflight";return false;}
   diagnostic_={};std::snprintf(diagnostic_.phase.data(),diagnostic_.phase.size(),"plan");
+  // 保留同一不可变目标的借用，异常时按实际失败Key恢复角色/shape，避免沿用末体摘要。
+  const auto diagnostic_source=target;
   try{
     auto plan=std::make_unique<replica::PlayerApplyPlan>(replica::PlanPlayerTarget(std::move(target),applied_));
     if(!plan->target->native_source_complete){
@@ -65,6 +67,10 @@ bool ClientPlayers::Prepare(std::shared_ptr<const replica::PlayerTarget> target,
     candidate_display_=std::move(display);budget_=budget;begun_=written_=ready_=false;reason="players_plan_ready";return true;
   }catch(const replica::PlayerContractError &e){
     diagnostic_.body=Key(e.subject);diagnostic_.dependency=Key(e.dependency);
+    diagnostic_.shape=0;diagnostic_.player_type=-1;diagnostic_.body_role=0;
+    if(diagnostic_source)for(const auto &body:diagnostic_source->bodies)if(Key(body.key)==diagnostic_.body){
+      diagnostic_.shape=body.shape_revision;diagnostic_.player_type=body.player_type;diagnostic_.body_role=body.membership.body_role;break;
+    }
     std::snprintf(diagnostic_.field.data(),diagnostic_.field.size(),"%s",e.field.c_str());
     reason_=e.what();reason=reason_.c_str();std::snprintf(diagnostic_.reason.data(),diagnostic_.reason.size(),"%s",reason);return false;
   }catch(const std::exception &e){reason_=e.what();reason=reason_.c_str();std::snprintf(diagnostic_.reason.data(),diagnostic_.reason.size(),"%s",reason);return false;}catch(...){reason="players_plan_allocation";return false;}

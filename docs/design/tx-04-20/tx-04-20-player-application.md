@@ -1,6 +1,6 @@
 # tx-04-20：玩家状态、角色与武器应用清单
 
-日期：2026-11-04。状态：**I01—I25实现已接入；I26—I40及I39统一运行验收待推进**。持物、原版0—40注册、Jacob／Esau、两套Forgotten和Lazarus当前实现见[角色安装及主审](tx-04-20-role-installation.md)。下表继续表示整个tx的覆盖要求，未完成I27专用值／I29完整绘制不能由注册表推导完成。配合[主计划 I01—I40](tx-04-20-implementation-plan.md)及[静态工作 R01—R16](tx-04-20-native-research-plan.md)使用。下列枚举来自本地 Wiki；角色语义沿用 09／13 已记录事实，Client 的具体构造、安装和清理仍需确认。枚举存在不等于当前已支持，也不代表所有私有布局已知。
+日期：2026-11-05。当前I01—I40完成；I39核心114逻辑场景、18全49与5完整Player环境、19全65及负向／故障／退出通过，I40目录与交接已更新，实际结果见[统一验收记录](tx-04-20-e2e.md)。下列P／C／W表保留完整需求及本地Wiki语义；实现与有限运行覆盖分别报告，枚举注册不能代替后态／画面验证。配合[主计划](tx-04-20-implementation-plan.md)、[逐签名目录](player-application.json)及[静态研究](tx-04-20-native-research-plan.md)使用。
 
 ## 1. 字段目录的建立方法
 
@@ -180,7 +180,9 @@ Exists、dead、ghost、in_roster、active、binding valid、retired 独立建�
 
 ## 3. C01—C17 全角色／身体族
 
-枚举入口：[本地 PlayerType](F:/projects_isaac/IsaacDocs/docs/enums/PlayerType.md)。0—40 是此本地文档列出的真实类型；41 是计数 sentinel，不能构造。目标是官方 REPENTOGON 1.1.3／J273，若本地文档与目标接口有差异由 R12 明确，不把新版 Wiki 数字直接写内存。
+枚举入口：[本地 PlayerType](F:/projects_isaac/IsaacDocs/docs/enums/PlayerType.md)。本 tx 的原版角色支持集合为 0—40；枚举中的 `NUM_PLAYER_TYPES=41` 是原版计数，不是可按该枚举名构造的角色，也不是动态角色配置的总上限。已加载的模组角色可以使用 41 及更高 ID，其合法性与映射须由实际配置及声明适配确定，不能只凭数值范围放行。目标是官方 REPENTOGON 1.1.3／J273，若本地文档与目标接口有差异由 R12 明确，不把新版 Wiki 数字直接写内存。
+
+2026-11-04 职责明确：下表覆盖原版角色及其基本应用；模组角色的身份、自定义状态、Lua 行为、专用表现和生命周期统一由 tx-04-27 的声明 Mod 适配处理，来源复用 tx-04-14。本 tx 保持现有窄适配接口，不提前实现通用 Mod 角色框架，也不因这项分工推迟下表原版族的必要状态／资源／关联。动态配置依据见 REPENTOGON 的 [EntityConfig::GetPlayer](F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityConfig.zhl) 与 [XMLDataHolder::AssignId](F:/projects_isaac/REPENTOGON-1.1.3/repentogon/Patches/XMLData.cpp)。
 
 | 族 | 类型／关系 | 本 tx 具体实现要求 | 任务／研究／E2E |
 | --- | --- | --- | --- |
@@ -235,3 +237,19 @@ Exists、dead、ghost、in_roster、active、binding valid、retired 独立建�
 I01 的目录至少有“已编目、正式来源、发送保留、原生处置、静态依据、已实现、运行后态、画面覆盖、未决原因”这些独立信息。只有实际实现的状态族及实际 E2E 场景能填完成；一个枚举值命中注册表不算该族通过。
 
 对角色／武器组合的缺口，明确是基本 adapter 缺失、必要私有来源缺失、owner／退休未知，还是29负责的额外组合覆盖。前面三种仍属本 tx 工作。未知 ABI／布局／释放不猜测，当前目标失败不截断；形成具名后续任务不能自动将本 tx 改判完成。
+
+## 6. I40实现边界与后续接口
+
+完整目标使用`player-source-v2`／`player-target-v2`，Entity本体与Player关系／History来自同一普通采样窗口。完整源、角色／装备／资源依赖和实际原生检查全部满足，才在同一Scene attempt提交Room、Grid、Entity、Player位（当前位集142）；旧单Isaac代表profile保持自己的范围，不能置完整Entity／Player位。此谓词不是网络Applied ACK，21／22负责真正下行、版本恢复与提交闭环。
+
+字段目录分别说明具名原生存储、提交后只读captured query和Authority-only操作；捕获查询保留原参数／状态／图根，不在Client重新运行任意Lua查询，也不把全部目录行冒称已独立验证所有参数。非活动来源允许本次已观察的完整创建owner2、具名子体／完整Init4、完整状态owner5；旧exact-pair PlayerUpdate读取依据3保持其会话限制，不扩展成任意备用体资格。Lazarus Birthright双活动twin与结构休眠backup分开核定，Exists本身不等同活动资格。
+
+四参与者、每组64身体、总256身体、4全局备份、4096资源、65536层、32MiB目标及256MiB纯值展开是拒绝上限，不是已运行的最大规模；本轮实际压力为15身体，含8活动／4全局备份及其他引用休眠体。Scene候选retained容量1056按单身体1024 costume和主／内嵌资源安装窗口配置，仍须等CPU／GPU／context借用安全退尽。完整成本和实际运行结果见[统一验收记录](tx-04-20-e2e.md)。
+
+| 后续tx | 接口与边界 |
+| --- | --- |
+| 21／22 | 同window目标、精确域位、具名拒绝原因、安全退休后完整T恢复一次；Authority普通／odd consumer实际缺席仍需分别处理，不能用processed ACK当实际消费 |
+| 23—26 | 稳定Key／use／shape／实例与成员资格分离；死亡仍存在、ghost、复活、换形、backup和组退出不能复活旧输入 |
+| 27 | 已提交participant／body／slot视图、原查询语义与真实动态HUD依赖；完整HUD布局、全局过场、独立音画及声明Mod角色适配仍属27 |
+| 28／29 | 原版0—40基本最终量／身体族和15武器动态工厂最终态；自然开火／全阶段、全部道具和角色组合、965:10专用乘员pass不从有限矩阵推导 |
+| 32 | 逐阶段CPU、IPC墙钟与整个进程内存分列；Source ordinary之后的原生插值／更新与截图时序分开，Client不以Update追帧；不承诺实时10Mbps或完整四端网络性能 |

@@ -18,6 +18,8 @@ struct Limits final {
   // 用户要求压缩优化前先放宽至64M节点；字节/深度约束独立，不按报文扩大。
   std::uint32_t bytes=32u<<20, nodes=world::observation::kNodeBudget, depth=64, string_bytes=2u<<20;
   std::uint32_t datagram=1200, candidates=2, fragments=32768, timeout_ms=5000;
+  // 串行化32MiB与纯值展开计量独立；大量短标量的DOM开销不能误算成更大的报文字节。
+  std::uint64_t value_bytes=256ull<<20;
 };
 enum class Kind : std::uint8_t { Hello=1, Welcome, Baseline, Delta, Event, Control, InputAck, AppliedAck, Error, ReceiveAck, Component, Input };
 enum class Lane : std::uint8_t { Input=1, Control, Recovery, State, Presentation };

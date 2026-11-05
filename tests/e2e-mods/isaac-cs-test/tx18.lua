@@ -29,7 +29,8 @@ end
 mod:AddCallback(ModCallbacks.MC_POST_EFFECT_INIT,function(_,e) if e.Variant~=57 then e:Remove() end end)
 local function clean()
  for _,e in ipairs(Isaac.GetRoomEntities()) do if not e:ToPlayer() then e:Remove() end end
- local p=Isaac.GetPlayer(0);p.Position=Game():GetRoom():GetCenterPos();p.Velocity=Vector.Zero;p:SetMinDamageCooldown(18000)
+ -- 每次Render会重新保护玩家；选可见半周期，避免ordinary的-1/-2帧与Render重设值跨闪隐边界。
+ local p=Isaac.GetPlayer(0);p.Position=Game():GetRoom():GetCenterPos();p.Velocity=Vector.Zero;p:SetMinDamageCooldown(18005)
  while p:GetNumBlueFlies()>0 do p:RemoveBlueFly() end
  while p:GetNumBlueSpiders()>0 do p:RemoveBlueSpider() end
  p.EntityCollisionClass=EntityCollisionClass.ENTCOLL_NONE

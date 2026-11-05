@@ -1,3 +1,5 @@
+tx-04-20 I39补充（2026-11-05）：[非活动Player来源、资源借用与绘制主审](../design/tx-04-20/player-i39-source.md)登记J273具名子体owner RVA3C1F40、ChangeType3C4620、完整Init34F6A0、Esau Jr owner3A3A40及Lazarus/Replace收口；读取资格4／5与当前exact-pair见证3分开，真正生命周期撤销。另核WaterClip库存依赖、ANM copy/Swap遗漏标量、普通Room主层mode1、Knife插值Update及伤害闪隐余6条件。新增Hook仍只经统一清单常驻安装，Source只观察正常owner返回，未增加原版Online/Isaac Sync操作；实际有限验收见[20记录](../design/tx-04-20/tx-04-20-e2e.md)。
+
 tx-04-18 I29补充：[Room/Grid统一验收与主审](../design/tx-04-18/tx-04-18-acceptance.md)登记Crawlspace FX适用性、Room+7220 byte、Minimap连续深度，以及Backdrop图形构建入口917910/墙面911310/装饰915890和两处直接实体分支。同时补充704FB0基Grid物理构造观察，覆盖工厂之外的直接Wall构造；Luna/max结论已经主审独立复读。实际Hook/条件shim仍只由`mod/binding/hooks.json`生成并常驻，不改下面旧机器索引的历史快照。
 
 # Hook 与逆向点位总入口

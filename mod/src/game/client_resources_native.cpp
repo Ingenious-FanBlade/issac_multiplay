@@ -42,7 +42,7 @@ ColorMod Color(const ClientPoseColor &v) {
 bool AnimationReady(ANM2 &sprite,const std::string &name,int frame,bool overlay) {
   if(name.empty()||frame<-1)return false;
   auto *data=sprite.GetAnimationData(name);
-  return data&&data->_length>0&&frame<data->_length&&data->_layerCount>=0&&data->_layerCount<=64&&
+  return data&&data->_length>=0&&(data->_length?frame<data->_length:frame==0)&&data->_layerCount>=0&&data->_layerCount<=64&&
       (!data->_layerCount||data->_animLayers)&&(!overlay||!name.empty());
 }
 // selector均按当前资源真实帧数校验；J273 null descriptor是16B、扩展frame stride54h。
@@ -61,10 +61,15 @@ bool LayerSelectors(const AnimationState &state,const std::vector<int> &layers) 
     if(count<0||(count&&!layer._animFrames)||layers[i]<-1||(count==0?layers[i]>0:layers[i]>=count))return false;}
   return true;
 }
-bool ExactPhase(AnimationState &state,float phase,const std::vector<int> &layers,const std::vector<int> &nulls) {
+// 原版Collectible的Empty长度为0，但可选中且停在phase0；不把它当无动画或可播放时间轴。
+bool PhaseInAnimation(const AnimationData &data,float phase,bool playing){
+  return data._length>=0&&std::isfinite(phase)&&
+      (data._length==0?phase==0&&!playing:phase<data._length&&(phase>=0||(!playing&&phase==-1)));
+}
+bool ExactPhase(AnimationState &state,float phase,bool playing,const std::vector<int> &layers,const std::vector<int> &nulls) {
   const auto *data=state._animData;
   if(!data)return phase==0&&layers.empty()&&nulls.empty();
-  if(!data||!std::isfinite(phase)||phase<-1||(phase<0&&phase!=-1)||phase>=data->_length||
+  if(!PhaseInAnimation(*data,phase,playing)||
      data->_layerCount!=int(layers.size())||data->_nullLayerCount!=int(nulls.size())||
      (!layers.empty()&&(!data->_animLayers||!state._layerFrames))||(!nulls.empty()&&!state._nullLayerFrames))return false;
   // 空层0/-1均不会被原生RenderFrame解引用；有帧层允许独立的-1隐藏姿态。
@@ -102,24 +107,24 @@ bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason,boo
     sprite._animState._animData=nullptr;
   }else{
     if(!sprite.SetAnimation(pose.animation.c_str(),true)){reason="resource_main_animation";return false;}
-    auto animation=pose.animation;sprite.SetFrame(&animation,pose.frame<0?0:pose.frame);
+    if(sprite._animState._animData&&sprite._animState._animData->_length>0){auto animation=pose.animation;sprite.SetFrame(&animation,pose.frame<0?0:pose.frame);}
   }
   if(pose.overlay_present){
     if(!sprite.SetOverlayAnimation(pose.overlay_animation.c_str(),true)){reason="resource_overlay_animation";return false;}
-    sprite.SetOverlayFrame(pose.overlay_animation.c_str(),pose.overlay_frame<0?0:pose.overlay_frame);
+    if(sprite._overlayAnimState._animData&&sprite._overlayAnimState._animData->_length>0)sprite.SetOverlayFrame(pose.overlay_animation.c_str(),pose.overlay_frame<0?0:pose.overlay_frame);
   }else{
     // 和公开 RemoveOverlay 一样，只撤销动画选择，不析构内嵌 AnimationState。
     sprite._overlayAnimState._animData=nullptr;
   }
-  if(!pose.exact_phase||!ExactPhase(sprite._animState,pose.main_phase,pose.main_selectors,pose.main_null_selectors)||
-     (pose.overlay_present&&!ExactPhase(sprite._overlayAnimState,pose.overlay_phase,pose.overlay_selectors,pose.overlay_null_selectors))){reason="resource_exact_phase";return false;}
+  if(!pose.exact_phase||!ExactPhase(sprite._animState,pose.main_phase,pose.main_playing,pose.main_selectors,pose.main_null_selectors)||
+     (pose.overlay_present&&!ExactPhase(sprite._overlayAnimState,pose.overlay_phase,pose.overlay_playing,pose.overlay_selectors,pose.overlay_null_selectors))){reason="resource_exact_phase";return false;}
   sprite._animState._isPlaying=pose.main_playing;sprite._overlayAnimState._isPlaying=pose.overlay_playing;
   sprite._animState._currentlyTriggeredEvents=0;sprite._animState._previouslyTriggeredEvents=0;
   sprite._overlayAnimState._currentlyTriggeredEvents=0;sprite._overlayAnimState._previouslyTriggeredEvents=0;
   for(const auto &layer:pose.layers){
     auto *native=sprite.GetLayer(int(layer.id));
-    if(!pose.animation.empty()&&layer.main_frame>=0)sprite.SetLayerFrame(int(layer.id),layer.main_frame);
-    if(pose.overlay_present&&layer.overlay_frame>=0)sprite._overlayAnimState.SetLayerFrame(int(layer.id),layer.overlay_frame);
+    if(!pose.animation.empty()&&sprite._animState._animData->_length>0&&layer.main_frame>=0)sprite.SetLayerFrame(int(layer.id),layer.main_frame);
+    if(pose.overlay_present&&sprite._overlayAnimState._animData->_length>0&&layer.overlay_frame>=0)sprite._overlayAnimState.SetLayerFrame(int(layer.id),layer.overlay_frame);
     native->_size=Vector(layer.size.x,layer.size.y);native->_pos=Vector(layer.position.x,layer.position.y);
     native->_cropOffset=Vector(layer.crop.x,layer.crop.y);native->_rotation=layer.rotation;
     native->_color=Color(layer.color);native->_visible=layer.visible;
@@ -141,7 +146,7 @@ bool ReusableGraphics(ANM2 &sprite,const ClientResourcePose &pose) {
   const auto animation=[](const AnimationState &state,const std::string &name,int frame,float phase,const std::vector<int> &layers,const std::vector<int> &nulls){
     if(name.empty())return !state._animData&&phase==0&&layers.empty()&&nulls.empty();
     const auto *d=state._animData;if(!d||d->_name!=name||!std::isfinite(state._animFrame)||frame!=int(std::floor(state._animFrame))||
-      !std::isfinite(phase)||phase<-1||(phase<0&&phase!=-1)||phase>=d->_length||d->_layerCount!=int(layers.size())||d->_nullLayerCount!=int(nulls.size())||
+      !PhaseInAnimation(*d,phase,state._isPlaying)||d->_layerCount!=int(layers.size())||d->_nullLayerCount!=int(nulls.size())||
       (!layers.empty()&&(!d->_animLayers||!state._layerFrames))||(!nulls.empty()&&!state._nullLayerFrames))return false;
     return LayerSelectors(state,layers)&&NullSelectors(state,nulls);
   };
@@ -212,16 +217,17 @@ ClientResourceResult ClientApplyResourcePose(void *pointer,const ClientResourceP
   }catch(...){owner->uncertain=true;result.reason="resource_native_exception";}
   ClientRetireGraphics(ticket);return result;
 }
-bool ClientResourcePoseMatches(void *pointer,const ClientResourcePose &pose) noexcept {
-  if(!pointer||!ResourceWindow())return false;
+bool ClientResourcePoseMatches(void *pointer,const ClientResourcePose &pose,const char **reason) noexcept {
+  const auto mismatch=[&](const char *field){if(reason)*reason=field;return false;};
+  if(!pointer||!ResourceWindow())return mismatch("resource_match_context");
   const auto &sprite=*static_cast<ANM2 *>(pointer);
-  if(sprite._animState._isPlaying!=pose.main_playing||sprite._overlayAnimState._isPlaying!=pose.overlay_playing)return false;
-  if(pose.champion_color_present&&!(sprite._championColor==Color(pose.champion_color)))return false;
-  if(!ClientResourceApplyShaders(pointer,pose,true))return false;
+  if(sprite._animState._isPlaying!=pose.main_playing||sprite._overlayAnimState._isPlaying!=pose.overlay_playing)return mismatch("resource_playing_postcondition");
+  if(pose.champion_color_present&&!(sprite._championColor==Color(pose.champion_color)))return mismatch("resource_champion_color_postcondition");
+  if(!ClientResourceApplyShaders(pointer,pose,true))return mismatch("resource_shader_postcondition");
   if(sprite._loaded!=pose.loaded||sprite._filename!=pose.path||sprite._layerCount!=pose.layers.size()||bool(sprite._animState._animData)!=!pose.animation.empty()||
-     (sprite._animState._animData&&(sprite._animState._animData->_name!=pose.animation||sprite._animState._animFrame!=pose.main_phase||sprite._animState._isPlaying!=pose.main_playing)))return false;
-  if(bool(sprite._overlayAnimState._animData)!=pose.overlay_present)return false;
-  if(pose.overlay_present&&(sprite._overlayAnimState._animData->_name!=pose.overlay_animation||sprite._overlayAnimState._animFrame!=pose.overlay_phase||sprite._overlayAnimState._isPlaying!=pose.overlay_playing))return false;
+     (sprite._animState._animData&&(sprite._animState._animData->_name!=pose.animation||sprite._animState._animFrame!=pose.main_phase||sprite._animState._isPlaying!=pose.main_playing)))return mismatch("resource_animation_postcondition");
+  if(bool(sprite._overlayAnimState._animData)!=pose.overlay_present)return mismatch("resource_overlay_presence_postcondition");
+  if(pose.overlay_present&&(sprite._overlayAnimState._animData->_name!=pose.overlay_animation||sprite._overlayAnimState._animFrame!=pose.overlay_phase||sprite._overlayAnimState._isPlaying!=pose.overlay_playing))return mismatch("resource_overlay_animation_postcondition");
   const auto sameState=[](const AnimationState &state,const std::vector<int> &layers,const std::vector<int> &nulls){
     if(!state._animData)return layers.empty()&&nulls.empty()&&state._currentlyTriggeredEvents==0&&state._previouslyTriggeredEvents==0;
     if(!state._animData||state._animData->_layerCount!=int(layers.size())||state._animData->_nullLayerCount!=int(nulls.size()))return false;
@@ -231,21 +237,21 @@ bool ClientResourcePoseMatches(void *pointer,const ClientResourcePose &pose) noe
     return state._currentlyTriggeredEvents==0&&state._previouslyTriggeredEvents==0;
   };
   if(!sameState(sprite._animState,pose.main_selectors,pose.main_null_selectors)||
-     (pose.overlay_present&&!sameState(sprite._overlayAnimState,pose.overlay_selectors,pose.overlay_null_selectors)))return false;
+     (pose.overlay_present&&!sameState(sprite._overlayAnimState,pose.overlay_selectors,pose.overlay_null_selectors)))return mismatch("resource_animation_selectors_postcondition");
   if(sprite._offset.x!=pose.offset.x||sprite._offset.y!=pose.offset.y||sprite._scale.x!=pose.scale.x||sprite._scale.y!=pose.scale.y||
      sprite._rotation!=pose.rotation||!(sprite._color==Color(pose.color))||sprite._flipX!=pose.flip_x||sprite._flipY!=pose.flip_y||
-     sprite._playbackSpeed!=pose.playback_speed||sprite._bitflags!=pose.flags||sprite._overlayRenderFirst!=pose.overlay_first)return false;
+     sprite._playbackSpeed!=pose.playback_speed||sprite._bitflags!=pose.flags||sprite._overlayRenderFirst!=pose.overlay_first)return mismatch("resource_pose_scalars_postcondition");
   for(const auto &layer:pose.layers){
-    if(layer.id>=sprite._layerCount)return false;
+    if(layer.id>=sprite._layerCount)return mismatch("resource_layer_count_postcondition");
     const auto &native=sprite._layerState[layer.id];
-    if(native._spriteSheetPath!=layer.sheet||!native._spriteSheetLoaded||!native._spriteSheet.image||!native._spriteSheet.counter)return false;
+    if(native._spriteSheetPath!=layer.sheet||!native._spriteSheetLoaded||!native._spriteSheet.image||!native._spriteSheet.counter)return mismatch("resource_sheet_postcondition");
     if(!native._layerData||native._layerData->ID!=layer.id||native._layerData->name!=layer.name||
        native._size.x!=layer.size.x||native._size.y!=layer.size.y||native._pos.x!=layer.position.x||native._pos.y!=layer.position.y||
        native._cropOffset.x!=layer.crop.x||native._cropOffset.y!=layer.crop.y||native._rotation!=layer.rotation||
        !(native._color==Color(layer.color))||native._visible!=layer.visible||native._flipX!=layer.flip_x||native._flipY!=layer.flip_y||
        native._bitflags!=layer.flags||native._wrapSMode!=layer.wrap_s||native._wrapTMode!=layer.wrap_t||
        native._blendMode._equation!=layer.blend[0]||native._blendMode._rgbSourceFactor!=layer.blend[1]||
-       native._blendMode._rgbDestFactor!=layer.blend[2]||native._blendMode._alphaSourceFactor!=layer.blend[3]||native._blendMode._alphaDestFactor!=layer.blend[4])return false;
+       native._blendMode._rgbDestFactor!=layer.blend[2]||native._blendMode._alphaSourceFactor!=layer.blend[3]||native._blendMode._alphaDestFactor!=layer.blend[4])return mismatch("resource_layer_pose_postcondition");
   }
   return true;
 }

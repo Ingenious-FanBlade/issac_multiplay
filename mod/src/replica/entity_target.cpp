@@ -113,15 +113,16 @@ void GraphNodes(const V &v,Graph &out){
   if(Is(Find(v,"type"),"table"))if(const auto *node=Find(v,"node"))out.emplace(U64(*node,"graph/node"),&v);
   for(auto i=v.MemberBegin();i!=v.MemberEnd();++i)GraphNodes(i->value,out);
 }
-void References(const V &v,const std::string &p,std::vector<EntityReferenceTarget> &out,const Graph &graph,std::set<std::uint64_t> &visiting,unsigned &budget){
+void References(const V &v,const std::string &p,std::vector<EntityReferenceTarget> &out,const Graph &graph,std::set<std::uint64_t> &visiting,unsigned &budget,unsigned &reference_count){
   if(!budget--)Error(p,"reference_graph_budget");
-  if(v.IsArray()){unsigned i=0;for(const auto &x:v.GetArray())References(x,p+"/"+std::to_string(i++),out,graph,visiting,budget);return;}
+  if(v.IsArray()){unsigned i=0;for(const auto &x:v.GetArray())References(x,p+"/"+std::to_string(i++),out,graph,visiting,budget,reference_count);return;}
   if(!v.IsObject())return;
   if(Is(Find(v,"type"),"graph_ref")){
     const auto node=U64(At(v,"node",p),p);const auto it=graph.find(node);if(it==graph.end())Error(p,"reference_graph_unresolved");
-    if(!visiting.insert(node).second)return;References(*it->second,p,out,graph,visiting,budget);visiting.erase(node);return;
+    if(!visiting.insert(node).second)return;References(*it->second,p,out,graph,visiting,budget,reference_count);visiting.erase(node);return;
   }
   if(Is(Find(v,"type"),"owner_qualified_domain_reference")){
+    if(++reference_count>262144)Error(p,"reference_budget");
     EntityReferenceTarget ref;ref.path=p;ref.owner_qualified=true;ref.status="OwnerQualified";
     if(const auto *c=Find(v,"contract"))ref.contract=Str(*c);
     else {if(const auto *s=Find(v,"schema"))ref.contract=Str(*s);if(const auto *f=Find(v,"field"))ref.contract+=":"+Str(*f);}
@@ -134,11 +135,12 @@ void References(const V &v,const std::string &p,std::vector<EntityReferenceTarge
     null_relation=(returns.rfind("Entity",0)==0&&returns.rfind("EntityConfig",0)!=0&&returns!="EntityDesc")||p.find("/application_links/links/")!=std::string::npos;
   }}
   if(Is(Find(v,"type"),"reference")||Is(Find(v,"resolution"),"Null")||null_relation){
+    if(++reference_count>262144)Error(p,"reference_budget");
     EntityReferenceTarget ref;ref.path=p;ref.status=Is(Find(v,"resolution"),"Null")?"Null":Str(At(v,"status",p));
     if(const auto *key=Find(v,"target")){ref.has_target=true;ref.target={U64(At(*key,"run",p),p),U64(At(*key,"id",p),p),unsigned(U64(At(*key,"space",p),p))};}
     out.push_back(std::move(ref));return;
   }
-  for(auto i=v.MemberBegin();i!=v.MemberEnd();++i)References(i->value,p+"/"+Str(i->name),out,graph,visiting,budget);
+  for(auto i=v.MemberBegin();i!=v.MemberEnd();++i)References(i->value,p+"/"+Str(i->name),out,graph,visiting,budget,reference_count);
 }
 using Policies=std::map<std::string,const V *>;
 const Policies &PoliciesById(){
@@ -158,7 +160,9 @@ EntityFields Fields(const V &section,const std::string &owner,const std::string 
     const auto id=Str(i->name);const auto *policy=EntityApplicationPolicy(id);
     if(!policy||Str((*policy)["owner"])!=owner)Error(path+"/"+id,"undeclared_or_wrong_owner");
     FieldType(i->value,*policy,path+"/"+id);
-    if(Gap(i->value))out.missing.push_back(id);
+    // external_reference保留其它规范域/Authority的来源状态，由具名consumer判断。
+    // 例如原版Online IsLocalPlayer被明确隔离，不能使完整C/S Player永远缺字段。
+    if(Str((*policy)["category"])!="external_reference"&&Gap(i->value))out.missing.push_back(id);
   }
   for(const auto &[id,policy]:PoliciesById()){
     if(Str((*policy)["owner"])!=owner||Str((*policy)["ownership"])!="ReplicatedState")continue;
@@ -229,7 +233,8 @@ EntityTarget ParseEntityTarget(const Value &model){
   // 原始全成员枚举、字段coverage与非Player子范围是三项事实；Partial字段不能改写枚举事实。
   out.membership_complete=complete.GetBool();
   out.non_player_complete=out.membership_complete;std::set<SubjectKey> seen;
-  Graph graph;GraphNodes(state,graph);unsigned reference_budget=1048576;
+  // 遍历包含有限查询的参数／标量及图别名展开，按节点上限计量；实际引用另限262144，不能把两种成本混用。
+  Graph graph;GraphNodes(state,graph);unsigned reference_budget=67108864,reference_count=0;
   for(const auto &row:rows.GetArray()){
     EntityObjectTarget object;const auto path="objects/"+std::to_string(out.objects.size());const auto &subject=At(row,"subject",path);
     object.key=Key(subject,out.scope,path);if(!seen.insert(object.key).second)Error(path,"duplicate_subject");
@@ -259,9 +264,9 @@ EntityTarget ParseEntityTarget(const Value &model){
     if(fields){if(const auto *v=Find(*fields,"Entity.Exists");v&&v->IsBool()){object.exists_known=true;object.exists=v->GetBool();}
       if(const auto *v=Find(*fields,"Entity.IsDead");v&&v->IsBool()){object.dead_known=true;object.dead=v->GetBool();}}
     TypeWitness(object,path);std::set<std::uint64_t> visiting;
-    References(object.common.value,path+"/common",object.references,graph,visiting,reference_budget);
-    std::visit([&](const auto &body_value){References(body_value.fields.value,path+"/body",object.references,graph,visiting,reference_budget);},object.payload);
-    if(object.delirium)References(object.special.value,path+"/special",object.references,graph,visiting,reference_budget);
+    References(object.common.value,path+"/common",object.references,graph,visiting,reference_budget,reference_count);
+    std::visit([&](const auto &body_value){References(body_value.fields.value,path+"/body",object.references,graph,visiting,reference_budget,reference_count);},object.payload);
+    if(object.delirium)References(object.special.value,path+"/special",object.references,graph,visiting,reference_budget,reference_count);
     out.objects.push_back(std::move(object));
   }
   out.source=Copy(component);return out;
@@ -273,11 +278,11 @@ Json EntityCapabilities(){return Parse(R"({
   "common_execution":"I05-I30;instances-then-Grid-then-links-checks;Scene-only-commit",
   "builtin_class_adapters":["NPC","Delirium-special","Tear","Projectile","Bomb","Laser","Knife","Pickup","Familiar","Effect","Slot1..18","NativeText","NativeDummy"],
   "class_source_contract":"entity-class-application-v3","non_player_native_apply":true,
-  "player_native_apply":"named-current-key-owner;builtin-one-ordinary-Isaac+BodySprite+held136-render-borrow;full-owner=tx-04-20",
-  "result_scope":"non_player_entity_applied+player_support_applied;full_entity_applied=false;no-network-ACK",
+  "player_native_apply":"complete Player owner when player-source-v2 present;legacy ordinary-Isaac profile remains separate",
+  "result_scope":"legacy=non_player_entity_applied+player_support_applied;complete Player owner in same attempt additionally sets full_entity_applied and Player domain;no-network-ACK",
   "independent":"Entity-only-bounded-history;exact-required-state-and-Key-shape-for-Render-Query;events-handoff27;no-event-watermark",
   "retirement":"stop-draw;drain-borrows;unlink;reverse-instance-class-retire;Grid;Room;unknown-prefix-retains-isolation",
-  "runtime_acceptance":"tx-04-19:I34;65-Source/65-cold-Client;20-invalid/2-compat/16-fault;named-scene-visual-reviewed","acceptance_document":"docs/design/tx-04-19/tx-04-19-acceptance.md","full_entity_domain_commit":false,
+  "runtime_acceptance":"tx-04-20:I39-regression;65-Source/65-cold-Client;20-invalid/2-compat/16-fault/4-cancel;explicit unaffected-prefix reuse;named-scene-visual-reviewed","acceptance_document":"docs/design/tx-04-20/tx-04-20-e2e.md","full_entity_domain_commit":true,"full_entity_domain_condition":"complete source and checked Player owner in same Scene attempt;legacy profile cannot set full Entity bit",
   "native_pool_capacities":{"NPC":512,"Tear":512,"Projectile":512,"Bomb":64,"Laser":128,"Knife":64,"Pickup":512,"Familiar":64,"Effect":1024,"Slot":128,"NativeText":128,"NativeDummy":128},
   "limits":{"objects":16384,"render_members":16384,"commands":131073,"references":262144,"curve_points":262144,"resources":4096,"resource_slots":16384,"bytes":33554432,"nodes":67108864,"depth":64,"independent_records":128,"independent_bytes":2097152,"independent_record_bytes":262144}
 })");}

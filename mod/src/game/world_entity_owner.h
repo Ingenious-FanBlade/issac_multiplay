@@ -18,4 +18,19 @@ private:
   int exceptions_=0;
   bool returned_=false;
 };
+// 包具名创建／换槽owner及实际Player Update中的hologram转backup，original恰一次。
+// 强持有原上下文，异常不发布子体初始化证言，Host/Off游戏行为保持原链。
+class WorldPlayerChildSourceScope final {
+public:
+  WorldPlayerChildSourceScope(void *,unsigned,world::HookCounters,unsigned slot=0) noexcept;
+  ~WorldPlayerChildSourceScope() noexcept;
+  void Returned(bool body_reached=true) noexcept;
+private:
+  std::shared_ptr<WorldCapture> capture_;
+  world::HookCounters counters_{};
+  std::uint32_t token_=0;
+  int exceptions_=0;
+  bool returned_=false;
+  bool body_reached_=true;
+};
 }
