@@ -7,6 +7,7 @@ pub mod reduce;
 pub mod regression;
 mod node;
 mod runner;
+mod interaction;
 use crate::Result;
 use serde_json::{Value,json};
 use std::{collections::BTreeMap,path::Path};
@@ -28,7 +29,8 @@ pub fn execute(driver:&mut dyn Driver,case:&Value,phase:&str)->Result<Value>{
     let plan=case.get(phase).and_then(Value::as_array).ok_or("tx21_phase_steps_missing")?;
     let started=std::time::Instant::now();let timeout=case["timeout_ms"].as_u64().ok_or("case_timeout_required")?;
     let mut facts=Vec::new();
-    let result=(||->Result<()>{for step in plan{
+    let result=(||->Result<()>{for (index,step) in plan.iter().enumerate(){
+        interaction::context(&format!("tx-04-21 / {phase} / {} / step {} of {} / {}",case["id"],index+1,plan.len(),step["op"]))?;
         if started.elapsed().as_millis()>timeout as u128{return Err("tx21_case_timeout_at_complete_step_boundary".into())}
         let fact=match step["op"].as_str().ok_or("tx21_step_op")?{
             "command"=>{let node=step["node"].as_str().ok_or("node")?;let text=step["text"].as_str().ok_or("command")?;let reply=driver.command(node,text)?;if reply.get("ok").map(String::as_str)!=Some("1"){return Err(format!("{}: {reply:?}",case["id"]))}json!(reply)},

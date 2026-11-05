@@ -1,6 +1,7 @@
 #include "runtime.h"
 #include "core/replication_memory.h"
 #include <fstream>
+#include <filesystem>
 #include <iterator>
 #include <rapidjson/document.h>
 #include <stdexcept>
@@ -31,6 +32,22 @@ Config ReadConfig() {
     if (!d.HasMember("enabled") || !d["enabled"].IsBool())
       throw std::runtime_error("enabled");
     c.enabled = d["enabled"].GetBool();
+    if(d.HasMember("e2e_ui")){
+#ifdef ISAACCS_E2E
+      const auto &v=d["e2e_ui"];
+      if(!v.IsObject()||!v.HasMember("enabled")||!v["enabled"].IsBool())throw std::runtime_error("e2e_ui.enabled");
+      c.e2e_ui_enabled=v["enabled"].GetBool();
+      // 入口固定为本次工程的本机信箱，远端节点不接受任意路径/脚本。
+      c.e2e_ui_directory=std::string(ISAACCS_REPOSITORY_ROOT)+"/out/tx-04-21-ui";
+      if(c.e2e_ui_enabled&&v.HasMember("directory")&&!v["directory"].IsString())throw std::runtime_error("e2e_ui.directory_type");
+      if(c.e2e_ui_enabled&&v.HasMember("directory")&&v["directory"].GetStringLength()){
+        const auto requested=std::filesystem::weakly_canonical(std::filesystem::u8path(v["directory"].GetString()));
+        if(requested!=std::filesystem::weakly_canonical(std::filesystem::u8path(c.e2e_ui_directory)))throw std::runtime_error("e2e_ui.directory");
+      }
+#else
+      throw std::runtime_error("e2e_ui_not_in_product");
+#endif
+    }
     if (d.HasMember("diagnostics")) {
       const auto &v = d["diagnostics"];
       if (!v.IsObject() || !v.HasMember("enabled") || !v["enabled"].IsBool())

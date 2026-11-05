@@ -13,6 +13,7 @@
 #include "ops/world_commands.h"
 #ifdef ISAACCS_E2E
 #include "ops/client_fixture.h"
+#include "ops/e2e_ui.h"
 #include "replica/stream_e2e.h"
 #include "game/client_entity_e2e.h"
 #include "game/client_player_e2e.h"
@@ -88,6 +89,9 @@ std::string Execute(std::string_view text, const char *source) {
   std::string result;
   if (prefix != "cs")
     result = "ok=0\nerror=unknown_prefix\n";
+#ifdef ISAACCS_E2E
+  else if (verb == "e2e_ui") result=E2eUiCommand(in);
+#endif
   else if (verb == "echo") {
     in >> arg >> extra;
     result = arg.empty() || !extra.empty() ? "ok=0\nerror=arguments\n"
@@ -388,7 +392,11 @@ std::string Execute(std::string_view text, const char *source) {
       result = "ok=0\nerror=arguments\n";
     else if (verb == "version")
       result = std::string("ok=1\ncommand_version=1\ndll_version=") + Version +
-               "\nrepentogon_version=" + RepentogonVersion + "\n";
+               "\nrepentogon_version=" + RepentogonVersion + "\n"
+#ifdef ISAACCS_E2E
+               +"e2e_ui_available="+std::to_string(Settings.e2e_ui_enabled)+"\n"
+#endif
+               ;
     else if (verb == "status" || verb == "counters" || verb == "ui_status") {
       if(verb=="ui_status")game::ClientUiHeartbeat();
       std::lock_guard lock(snapshot_lock);
@@ -417,7 +425,7 @@ std::string Execute(std::string_view text, const char *source) {
   // 记录所有命令来源及 Q14 的 Game 指针；cs 不进入原生命令分支。
   // status/counters 的完整响应走控制口；trace 只保留响应长度与结果，避免
   // 大快照挤入单个 3500 字节事件被截断。其它命令继续保留原始结果。
-  if (verb == "ui_status") {
+  if (verb == "ui_status" || verb == "e2e_ui") {
     // UI只读刷新不是逐tick诊断，不向生产日志写每帧状态查询明细。
   } else if (verb == "status" || verb == "counters" || verb == "stream")
     Trace("command",

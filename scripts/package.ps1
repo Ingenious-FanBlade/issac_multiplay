@@ -40,9 +40,18 @@ foreach($entry in $luaPackages){
     $destination=Join-Path $packageTarget $entry[1]
     New-Item -ItemType Directory -Path $destination -Force | Out-Null
     Copy-Item -Path (Join-Path $source '*') -Destination $destination -Recurse
+    if(-not $E2E -and $entry[0] -eq 'ui/isaac-cs-ui'){
+        Remove-Item -LiteralPath (Join-Path $destination 'e2e.lua')
+    }
 }
 # 默认Off、关闭录制/详细诊断/控制口，且没有E2E token；启用沿正常产品配置完成。
 Copy-Item -LiteralPath (Join-Path $packageRepo 'mod/config.example.json') -Destination (Join-Path $packageTarget 'Repentogon/isaac-cs/config.json')
+if($E2E){
+    # 引导安装仍默认Off；显式启用C/S后才显示本机测试面板。节点启动会覆盖此专用设置。
+    $configuration=Get-Content -LiteralPath (Join-Path $packageTarget 'Repentogon/isaac-cs/config.json') -Raw | ConvertFrom-Json -AsHashtable
+    $configuration.e2e_ui=@{enabled=$true}
+    $configuration | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath (Join-Path $packageTarget 'Repentogon/isaac-cs/config.json') -Encoding utf8
+}
 # 工具放在独立目录，不属于游戏加载树；产品包没有测试程序。
 if($E2E){
     New-Item -ItemType Directory -Path (Join-Path $packageTarget 'e2e-tools') -Force | Out-Null

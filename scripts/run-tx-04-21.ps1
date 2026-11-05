@@ -3,14 +3,23 @@ param(
  [string]$RunDirectory,
  [switch]$Resume,
  [string[]]$Rerun=@(),
- [string]$ReuseReason
+ [string]$ReuseReason,
+ [string]$UiDirectory,
+ [string]$UiSession
 )
 $ErrorActionPreference='Stop'
 $tx21Repo=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $tx21Spec=Get-Content -LiteralPath $Topology -Raw | ConvertFrom-Json -AsHashtable
 if($tx21Spec.format -ne 'isaac.cs.tx21.topology' -or $tx21Spec.nodes.Count -ne 4){throw 'Explicit Host plus three real Windows Client nodes required'}
+if($UiDirectory -and ($tx21Spec.nodes[0].id -ne 'host' -or $tx21Spec.nodes[0].computer -ne 'localhost')){throw 'In-game GUI requires the coordinator to be the local Host'}
 if(-not $RunDirectory){$RunDirectory=Join-Path $tx21Repo ('out/tx-04-21-'+[guid]::NewGuid().ToString('N'))}
 $tx21Run=[IO.Path]::GetFullPath($RunDirectory)
+if($Resume -and [string]::IsNullOrWhiteSpace($ReuseReason)){throw 'Resume requires explicit unaffected-result reuse reason and affected p2/E.. or p4/E.. reruns; no hashes'}
+if($UiDirectory){
+ $uiExpected=[IO.Path]::GetFullPath((Join-Path $tx21Repo 'out/tx-04-21-ui'))
+ if([IO.Path]::GetFullPath($UiDirectory) -ine $uiExpected -or $UiSession -cnotmatch '^[0-9a-f]{32}$'){throw 'Explicit local GUI mailbox/session required'}
+ if($tx21Run -ieq $uiExpected -or $uiExpected.StartsWith($tx21Run+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase) -or $tx21Run.StartsWith($uiExpected+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Run temporary directory must be separate from GUI settings'}
+}
 if($tx21Run -eq $tx21Repo -or $tx21Run -eq [IO.Path]::GetPathRoot($tx21Run)){throw 'Dedicated temporary leaf directory required'}
 $tx21Owner=Join-Path $tx21Run 'tx21-run.json'
 if(Test-Path -LiteralPath $tx21Run){
@@ -69,12 +78,13 @@ try{
  & (Join-Path $PSScriptRoot 'package.ps1') -OutputDirectory $tx21Product
  & (Join-Path $PSScriptRoot 'package.ps1') -E2E -OutputDirectory $tx21E2E
  $tx21Runtime=@{e2e_token=$tx21Saved.token;proxy_seed=$tx21Spec.proxy_seed;host_endpoint=$tx21Spec.host_endpoint;reuse_passes=[bool]$Resume;reuse_reason=$ReuseReason;rerun=$Rerun;nodes=@()}
- if($Resume -and [string]::IsNullOrWhiteSpace($ReuseReason)){throw 'Resume requires explicit unaffected-result reuse reason and affected p2/E.. or p4/E.. reruns; no hashes'}
+ if($UiDirectory){$tx21Runtime.ui_directory=$UiDirectory;$tx21Runtime.ui_session=$UiSession}
  $tx21Saved.nodes=@()
  foreach($entry in $tx21Spec.nodes){
   $node=@{};foreach($key in $entry.Keys){$node[$key]=$entry[$key]}
   if($node.id -notin @('host','client1','client2','client3')){throw 'Fixed readable node identity required'}
   $node.e2e_token=$tx21Saved.token;$node.agent_token=[guid]::NewGuid().ToString('N')+[guid]::NewGuid().ToString('N')
+  if($UiDirectory -and $node.id -eq 'host'){$node.ui_directory=$UiDirectory}
   $leaf='tx21-'+$tx21Saved.token+'-'+$tx21Saved.attempt+'-'+$node.id
   $node.work_directory=Join-Path $node.remote_work_root $leaf
   $node.run_directory=Join-Path $node.work_directory 'runtime'

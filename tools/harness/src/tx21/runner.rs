@@ -5,8 +5,8 @@ use serde_json::{Value,json};
 use std::{collections::{BTreeMap,BTreeSet},fs::{self,File},io::{self,Write,BufRead,BufReader},path::{Path,PathBuf},thread,time::{Duration,Instant}};
 
 // 人工只确认实际准备/画面/玩法语义；数值合同和缺测由程序判定，不能人工覆写失败。
-fn prompt(instruction:&str)->Result<String>{println!("\n{instruction}");io::stdout().flush().map_err(|e|e.to_string())?;let mut text=String::new();if io::stdin().read_line(&mut text).map_err(|e|e.to_string())?==0{return Err("必要人工配合缺席；保留同tx恢复信息".into())}let text=text.trim().to_owned();if text=="stop"{return Err("用户请求必要中断".into())}Ok(text)}
-fn confirm(instruction:&str)->Result<()>{if prompt(&format!("{instruction}\n准备好后输入 ready；stop 仅在需要中断时使用。"))?!="ready"{return Err("准备尚未确认，未启动或发键".into())}Ok(())}
+fn prompt(kind:&str,instruction:&str)->Result<String>{let text=if let Some(answer)=super::interaction::prompt(kind,instruction)?{answer}else{println!("\n{instruction}");io::stdout().flush().map_err(|e|e.to_string())?;let mut text=String::new();if io::stdin().read_line(&mut text).map_err(|e|e.to_string())?==0{return Err("必要人工配合缺席；保留同tx恢复信息".into())}text.trim().to_owned()};if text=="stop"{return Err("用户请求必要中断".into())}Ok(text)}
+fn confirm(instruction:&str)->Result<()>{if prompt("ready",&format!("{instruction}\n准备好后输入 ready；stop 仅在需要中断时使用。"))?!="ready"{return Err("准备尚未确认，未启动或发键".into())}Ok(())}
 fn map(v:Value)->Result<BTreeMap<String,String>>{serde_json::from_value(v).map_err(|e|e.to_string())}
 fn n(s:&BTreeMap<String,String>,key:&str)->Result<u64>{s.get(key).ok_or_else(||format!("缺少真实字段:{key}"))?.parse().map_err(|e|format!("{key}:{e}"))}
 fn load_events(path:&Path)->Result<Vec<Value>>{let mut rows=Vec::new();let mut bytes=0usize;for line in BufReader::new(File::open(path).map_err(|e|e.to_string())?).lines(){let line=line.map_err(|e|e.to_string())?;bytes+=line.len();if rows.len()>=2000000||bytes>128*1024*1024||line.len()>1048576{return Err("case trace requires predeclared smaller segment;no truncation".into())}rows.push(serde_json::from_str(&line).map_err(|e|e.to_string())?);}Ok(rows)}
@@ -58,7 +58,7 @@ impl Live {
  }
  fn review(&mut self,name:&str,extra:Value)->Result<Value>{
   let evidence=self.save_facts(name,extra)?;
-  let answer=prompt(&format!("{} / {name}：请审阅 {} 中的具名真实事实。核对本用例的动作、前后态、Key/版本、拒绝首因及实际画面。\n输入 observed 后跟具体观察（至少12个字符）；未观察到、缺测或不一致输入 fail 原因。不得把配置/调用成功当成实际结果。",self.case["id"],evidence["path"]))?;
+  let answer=prompt("observed",&format!("{} / {name}：请审阅 {} 中的具名真实事实。核对本用例的动作、前后态、Key/版本、拒绝首因及实际画面。\n输入 observed 后跟具体观察（至少12个字符）；未观察到、缺测或不一致输入 fail 原因。不得把配置/调用成功当成实际结果。",self.case["id"],evidence["path"]))?;
   let note=answer.strip_prefix("observed ").ok_or_else(||format!("{name}实际观察未通过:{answer}"))?;if note.chars().count()<12{return Err("具体观察说明不足".into())}
   let result=json!({"pass":true,"method":"explicit-human-semantic-review","check":name,"evidence":evidence,"observed":note});self.reviews.push(result.clone());write_json(&self.directory.join("reviews.json"),&json!(self.reviews))?;Ok(result)
  }
@@ -153,7 +153,7 @@ impl Driver for Live {
   if !keys.is_empty(){let state=self.node(node)?.call("window",json!({}))?;if state["focus"]["active"]!=true{confirm(&format!("请将 {node} 的已核实游戏窗口置前；停止手动输入后由编排器发送 {:?}。",keys))?;}}
   self.node(node)?.call("physical",json!({"keys":keys,"hold_ms":hold_ms}))?;Ok(())
  }
- fn human(&mut self,instruction:&str)->Result<()>{confirm(instruction)?;let answer=prompt("操作完成并已停止手动操作后输入 done；未完成输入 stop。");if answer?!="done"{return Err("人工窗口未完成".into())}Ok(())}
+ fn human(&mut self,instruction:&str)->Result<()>{confirm(instruction)?;let answer=prompt("done","操作完成并已停止手动操作后输入 done；未完成输入 stop。");if answer?!="done"{return Err("人工窗口未完成".into())}Ok(())}
  fn sample(&mut self,milliseconds:u64,mark:&Value)->Result<Value>{
   let mut marks=Vec::new();let token=self.token.clone();let phase=self.phase.clone();let load=string(mark,"load")?;
   let expected=cases::loads();let spec=&expected[load];
@@ -266,6 +266,7 @@ fn setup(config:&Value,case:&Value,phase:&str,directory:PathBuf)->Result<Live>{
 
 pub(super) fn run(config_path:&Path,out:&Path)->Result<()>{
  let config:Value=serde_json::from_str(&read(config_path)?).map_err(|e|e.to_string())?;mkdir(out)?;
+ super::interaction::initialize(&config)?;
  let nodes=config["nodes"].as_array().ok_or("真实拓扑节点")?;let mut endpoints=BTreeSet::new();
  if nodes.len()!=4{return Err("明确四个真实节点，P2仅启动前两台".into())}
  for(i,expected)in ["host","client1","client2","client3"].iter().enumerate(){let role=if i==0{"Host"}else{"Client"};if nodes[i]["id"]!=*expected||nodes[i]["role"]!=role||!endpoints.insert(string(&nodes[i],"agent_endpoint")?){return Err("节点顺序/角色/独立endpoint错误".into())}}
@@ -275,10 +276,11 @@ pub(super) fn run(config_path:&Path,out:&Path)->Result<()>{
   if phase=="p4"{for case in cases::phase_suite("p2")?{let id=string(&case,"id")?;if progress["p2"][id]["pass"]!=true{return Err(format!("P2仍未完成:{id}；未启动P4游戏"))}}}
   let suite=cases::phase_suite(phase)?;write_json(&out.join(format!("{phase}-cases.json")),&json!(suite))?;write_json(&out.join("regression-inventory.json"),&json!(regression::inventory()?))?;
   for case in suite{let id=string(&case,"id")?.to_owned();let rerun=config["rerun"].as_array().is_some_and(|v|v.iter().any(|x|x==&json!(format!("{phase}/{id}"))||x==&json!(phase)));
+   super::interaction::context(&format!("tx-04-21 / {phase} / {id}"))?;
    if reuse&&!rerun&&progress[phase][&id]["pass"]==true{continue}
    if case["e"]=="E26"{
     for prior in cases::phase_suite(phase)?.iter().filter(|c|c["e"]!="E26"){if progress[phase][string(prior,"id")?]["pass"]!=true{return Err(format!("{phase}子用例未完成:{prior}"))}}
-    progress[phase][&id]=json!({"pass":true,"method":"all-declared-subcases-and-cleanup-completed","runtime_final_review":prompt(&format!("{phase} E26：核对全部指标、图像、首因与续测及节点恢复记录；输入 reviewed 加具体结论，缺项输入 stop。"))?});
+    progress[phase][&id]=json!({"pass":true,"method":"all-declared-subcases-and-cleanup-completed","runtime_final_review":prompt("reviewed",&format!("{phase} E26：核对全部指标、图像、首因与续测及节点恢复记录；输入 reviewed 加具体结论，缺项输入 stop。"))?});
     if !progress[phase][&id]["runtime_final_review"].as_str().is_some_and(|s|s.starts_with("reviewed ")&&s.chars().count()>20){progress[phase][&id]["pass"]=json!(false);write_json(&progress_path,&progress)?;return Err("E26人工总审未完成".into())}write_json(&progress_path,&progress)?;continue;
    }
    let mut attempt=1u64;loop{
@@ -289,7 +291,7 @@ pub(super) fn run(config_path:&Path,out:&Path)->Result<()>{
     if result["pass"]==true{write_json(&progress_path,&progress)?;break}
     progress["failures"].as_array_mut().ok_or("failure history")?.push(json!({"phase":phase,"id":id,"result":result}));write_json(&progress_path,&progress)?;
     println!("同tx实际失败：{result}。请持续定位/修复；不降低负载、不跳过子项、不覆盖首因。");
-    let decision=prompt("修复完成且本次二进制/环境仍适合续测，输入 retry 加修复说明；需要重构建/部署或缺少配合时输入 stop，使用同一入口 -Resume 并显式列出受影响项。")?;
+    let decision=prompt("retry","修复完成且本次二进制/环境仍适合续测，输入 retry 加修复说明；需要重构建/部署或缺少配合时输入 stop，使用同一入口 -Resume 并显式列出受影响项。")?;
     if !decision.starts_with("retry ")||decision.chars().count()<12{return Err("必要中断；进度/失败/节点恢复记录已保留，同tx修复续测".into())}progress["failures"].as_array_mut().unwrap().last_mut().unwrap()["repair"]=json!(decision);write_json(&progress_path,&progress)?;attempt+=1;
    }
   }

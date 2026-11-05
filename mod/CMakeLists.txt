@@ -149,8 +149,9 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   "${GENERATED}/hooks_generated.cpp")
 # 文件导入/导出、故障注入与原生测试只进入显式 E2E DLL；正式目标没有这些实现。
 if(ISAACCS_BUILD_E2E_TOOLS)
-  target_sources(zhlIsaacCS PRIVATE src/ops/client_fixture.cpp src/game/client_e2e_native.cpp src/game/client_entity_e2e.cpp src/game/client_player_e2e.cpp src/game/world_sources/random_e2e.cpp)
+  target_sources(zhlIsaacCS PRIVATE src/ops/client_fixture.cpp src/ops/e2e_ui.cpp src/game/client_e2e_native.cpp src/game/client_entity_e2e.cpp src/game/client_player_e2e.cpp src/game/world_sources/random_e2e.cpp)
   target_compile_definitions(zhlIsaacCS PRIVATE ISAACCS_E2E=1)
+  target_compile_definitions(zhlIsaacCS PRIVATE "ISAACCS_REPOSITORY_ROOT=\"${CMAKE_CURRENT_SOURCE_DIR}/..\"")
   set(ISAACCS_DLL_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon/e2e")
   set(ISAACCS_BUILD_FLAVOR "e2e")
 else()

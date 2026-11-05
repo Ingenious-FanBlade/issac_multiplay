@@ -50,6 +50,8 @@ impl Node {
    let path=PathBuf::from(string(&self.config,"game_root")?).join("mods").join(name).join("disable.it");
    self.setting(&path,if flavor=="product"&&name=="isaac-cs-test"{Some(b"tx21 product has no fixture\n")}else{None})?;
   }
+  // 产品切换不能残留E2E界面源码；原部署由统一部署备份负责最终还原。
+  if flavor=="product"{let path=game.join("mods/isaac-cs-ui/e2e.lua");if path.is_file(){fs::remove_file(path).map_err(|e|e.to_string())?;}}
   Ok(json!({"flavor":flavor,"build":manifest["build"],"fixture_disabled":flavor=="product"}))
  }
  fn new(config:Value)->Result<Self>{
@@ -130,6 +132,8 @@ impl Node {
   config["diagnostics"]=json!({"enabled":false,"repeat_topology_reads":false});
   config["trace_dir"]=json!(self.attempt.join("runtime-trace"));
   config["world_record"]=if product{json!({"enabled":false})}else{json!({"enabled":false,"e2e_token":string(&self.config,"e2e_token")?,"output_dir":self.attempt.join("runtime-world")})};
+  // GUI只在本机Host的E2E版出现；产品和远端游戏不接入本机信箱。
+  if !product{config["e2e_ui"]=json!({"enabled":self.config["ui_directory"].is_string(),"directory":self.config["ui_directory"]});}
   write_json(&game.join("Repentogon/isaac-cs/config.json"),&config)?;
   if !product{
    let fixture=&p["fixture"];let tx=fixture["tx"].as_str().unwrap_or("tx-04-21");

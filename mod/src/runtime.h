@@ -63,6 +63,10 @@ struct Config {
   std::string world_output_dir = "isaac-cs/world";
   unsigned world_close_timeout_ms = 10000;
   std::string world_e2e_token; // 专用本地 E2E 配置；空串关闭所有测试入口。
+#ifdef ISAACCS_E2E
+  bool e2e_ui_enabled=false;
+  std::string e2e_ui_directory; // 本机Host专用信箱，产品配置不接受该字段。
+#endif
 };
 extern DWORD MainThread;
 extern uintptr_t Base;

@@ -12,6 +12,14 @@ local function parse(text)
     for key, value in text:gmatch("([^=\r\n]+)=([^\r\n]*)") do values[key] = value end
     return values
 end
+-- 只有E2E DLL显式公布能力才加载测试面板；产品包不包含e2e.lua。
+local acceptanceLoaded = false
+local function acceptance(version)
+    if not acceptanceLoaded and version.e2e_ui_available == "1" then
+        acceptanceLoaded = true
+        include("e2e")
+    end
+end
 if not ImGui then
     Isaac.DebugString("[isaac-cs-ui] unavailable: REPENTOGON ImGui API missing")
     return
@@ -86,6 +94,7 @@ ImGui.AddCallback(panel, ImGuiCallback.Render, function()
     end
     lastState = state
 end)
+acceptance(parse(command("cs version")))
 ImGui.SetVisible(panel, true)
 -- 纯菜单绘制回调：使用原生已有字体，不创建Sprite/World或自有图形/Lua借用资源。
 -- Manager Update在Client态冻结菜单导航；此提示保持可见，连接失败也不会显示本地游戏。
@@ -93,7 +102,10 @@ local ui = RegisterMod("Isaac CS UI", 1)
 local menuFrames, menuStatus = 0, {}
 ui:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, function()
     menuFrames = menuFrames + 1
-    if menuFrames == 1 or menuFrames % 15 == 0 then menuStatus = parse(command("cs ui_status")) end
+    if menuFrames == 1 or menuFrames % 15 == 0 then
+        menuStatus = parse(command("cs ui_status"))
+        acceptance(parse(command("cs version")))
+    end
     local status = menuStatus
     if status.role ~= "Client" then return end
     Isaac.RenderText("Isaac CS - " .. (status.client_state or "Connecting"), 30, 25, 1, 1, 1, 1)
