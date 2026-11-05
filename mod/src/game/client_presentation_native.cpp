@@ -686,6 +686,27 @@ private:
   struct Pose {Vector scale;float rotation=0;ColorMod color;};
   Room &room_;bool enabled_;std::array<Pose,2> previous_{};
 };
+template<class A,class B> bool SameImageSource(const A &a,const B &b){return a.image==b.image&&a.shader==b.shader&&a.min_filter==b.min_filter&&a.mag_filter==b.mag_filter&&a.wrap_s==b.wrap_s&&a.wrap_t==b.wrap_t&&a.vertex_stride==b.vertex_stride&&a.attributes==b.attributes;}
+bool StreamLayout(const ClientNativePresentation &p,const ClientPresentationDescription &d){const auto &a=p.description;
+  if(!p.ready||p.uncertain||p.retired||a.mirror!=d.mirror||a.mirror_shader!=d.mirror_shader||a.color_enabled!=d.color_enabled||a.shading_present!=d.shading_present||a.fx_layers.size()!=d.fx_layers.size()||a.ray_groups.size()!=d.ray_groups.size()||a.auxiliary.veins.size()!=d.auxiliary.veins.size()||a.auxiliary.roots!=d.auxiliary.roots||a.auxiliary.poop_poses.size()!=d.auxiliary.poop_poses.size()||a.auxiliary.poop_image_present!=d.auxiliary.poop_image_present||a.auxiliary.veins_present!=d.auxiliary.veins_present)return false;
+  if(!SameImageSource(a.minimap_question,d.minimap_question)||(d.shading_present&&!SameImageSource(a.shading,d.shading))||(d.auxiliary.poop_image_present&&!SameImageSource(a.auxiliary.poop_image,d.auxiliary.poop_image)))return false;
+  for(unsigned i=0;i<d.fx_layers.size();++i)if(a.fx_layers[i].id!=d.fx_layers[i].id||a.fx_layers[i].pass!=d.fx_layers[i].pass||a.fx_layers[i].poses.size()!=d.fx_layers[i].poses.size()||!SameImageSource(a.fx_layers[i],d.fx_layers[i]))return false;
+  for(unsigned i=0;i<d.ray_groups.size();++i){if(a.ray_groups[i].rays.size()!=d.ray_groups[i].rays.size())return false;for(unsigned j=0;j<d.ray_groups[i].rays.size();++j)if(!SameImageSource(a.ray_groups[i].rays[j],d.ray_groups[i].rays[j]))return false;}
+  for(unsigned i=0;i<d.auxiliary.veins.size();++i)if(a.auxiliary.veins[i].children!=d.auxiliary.veins[i].children)return false;return true;
+}
+// 同布局仅覆写已拥有数组中的完整最终值；不重建ANM/Image、原生vector或链接图。
+bool StreamPresentationValues(ClientNativePresentation &p,Room &room,const ClientPresentationDescription &d){
+  if(!FXOwnerMatches(p,room)||!AuxOwnerMatches(p,room)||!p.auxiliary)return false;
+  for(unsigned i=0;i<d.fx_layers.size();++i){const auto &s=d.fx_layers[i];auto &t=p.fx_installed[i];std::memcpy(&t.parameters[8],&s.color_branch,4);t.parameters[9]=s.mask_backdrop;t.parameters[10]=s.blend_mode;t.parameters[11]=s.mask?1u:0u;
+    for(unsigned j=0;j<s.poses.size();++j){const auto &v=s.poses[j];t.poses.begin[j]={v.x,v.y,v.velocity_x,v.velocity_y,v.flip_x,v.flip_y,{0,0}};}}
+  for(unsigned i=0;i<d.ray_groups.size();++i){const auto &s=d.ray_groups[i];auto &t=p.rays_installed[i];std::copy(s.geometry.begin(),s.geometry.end(),t.geometry);for(unsigned j=0;j<s.rays.size();++j){t.rays.begin[j].opacity=s.rays[j].opacity;t.rays.begin[j].speed=s.rays[j].speed;t.rays.begin[j].phase=s.rays[j].phase;}}
+  auto &aux=*p.auxiliary;for(unsigned i=0;i<d.auxiliary.poop_poses.size();++i){const auto &v=d.auxiliary.poop_poses[i];aux.poop[i]={v.x,v.y,v.velocity_x,v.velocity_y,v.flip_x,v.flip_y,{0,0}};}
+  for(unsigned i=0;i<d.auxiliary.veins.size();++i){const auto &s=d.auxiliary.veins[i];auto &n=aux.nodes[i];n.kind=s.kind;n.depth=s.depth;n.rotation=s.rotation;n.scale=s.scale;n.factor=s.factor;n.opacity=s.opacity;n.x=s.x;n.y=s.y;}
+  for(unsigned i=0;i<10;++i)RoomVeins(room)[i]=aux.nodes[aux.roots[i]];
+  std::memcpy(reinterpret_cast<unsigned char *>(&room._fxLayers)+0x54,d.auxiliary.poop_settings,sizeof(float)*4);room._fxLayers._poopFxColor=Color(d.auxiliary.poop_color);
+  if(d.auxiliary.veins_present)for(unsigned i=0;i<2;++i)if(d.auxiliary.vein_sprite_present[i]&&!ClientApplyResourcePose(reinterpret_cast<unsigned char *>(&room._fxLayers)+0x2c8+i*sizeof(ANM2),d.auxiliary.vein_sprites[i]).complete)return false;
+  auto *bytes=reinterpret_cast<unsigned char *>(&room._fxLayers);std::memcpy(bytes,d.fx_average.data(),sizeof(float)*2);std::memcpy(bytes+0xb0,d.fx_bounds.data(),sizeof(float)*4);SelectedRayGroup(room)=d.fx_ray_group;room._fxLayers._poopFxCountdown=d.fx_poop_countdown;room._fxLayers._loaded=d.fx_loaded;return true;
+}
 ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativeRoots &roots,const ClientPresentationDescription &description) {
   if(!p||p->active||p->uncertain||!Current(roots)||TopOwner()!=Owner::Manager||!ClientDispatchIsolationInstalled())return {false,false,true,"presentation_prepare_owner"};
   if(!GraphicsContext()||!ClientNativeCpuQueuesEmpty())return {false,false,false,"presentation_prepare_context_or_inflight"};
@@ -695,6 +716,8 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
   auto &entities=p->entities;unsigned count=0;const char *reason=nullptr;
   if(!Members(room,game,entities,count,description.full_players,reason))return {false,false,true,reason};
   if(!FXOwnerMatches(*p,room))return {false,false,true,"presentation_foreign_fx_owner"};
+  const bool stream=description.stream_values;if(stream&&!StreamLayout(*p,description))return {false,false,true,"presentation_stream_structure_required"};
+  const bool map_changed=!stream||p->description.stream_map_facts!=description.stream_map_facts;
   // Home专用pass直接消费Effect166/sub951，由19的真实Entity承载提供；不能用其它背景代画。
   if(description.special_light_pass)return {false,false,true,"presentation_dependency_I19_home_effect166_951"};
   if(game._seedEffects.AchievementUnlocksDisallowed()!=description.hud_seed_blocked)
@@ -706,22 +729,25 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
     p->previous_color_lerp=game._shouldLerpColorModState;p->previous_lightning=game._lightningIntensity;
     std::memcpy(&p->previous_darkness,reinterpret_cast<unsigned char *>(&game)+0x25a90,4);std::memcpy(&p->previous_darkness_scale,reinterpret_cast<unsigned char *>(&game)+0x25a94,4);p->environment_snapshot=true;}
   p->written=true;
-  if(!BuildAuxCandidate(*p,description,room))return {false,true,true,"presentation_auxiliary_resource_candidate"};
-  if(!BuildFXCandidate(*p,description))return {false,true,true,"presentation_fx_resource_candidate"};
-  if(!BuildRayCandidate(*p,description))return {false,true,true,"presentation_ray_resource_candidate"};
+  if(stream){if(!StreamPresentationValues(*p,room,description))return {false,true,true,"presentation_stream_values"};}
+  else{
+    if(!BuildAuxCandidate(*p,description,room))return {false,true,true,"presentation_auxiliary_resource_candidate"};
+    if(!BuildFXCandidate(*p,description))return {false,true,true,"presentation_fx_resource_candidate"};
+    if(!BuildRayCandidate(*p,description))return {false,true,true,"presentation_ray_resource_candidate"};
+  }
   // 7E08E0只保证具名native render surfaces/资源存在，不调用703E40的其余全局链。
   // 已读其全部分支：CreateProceduralImage/LoadImage/SetVertexFormat/filter/wrap，无模拟tick。
-  reinterpret_cast<void (__cdecl *)()>(Base+0x3e08e0)();
-  if(description.mirror){auto &pair=Surface(0x7e7340);auto *image=pair.image;
+  if(!stream)reinterpret_cast<void (__cdecl *)()>(Base+0x3e08e0)();
+  if(!stream&&description.mirror){auto &pair=Surface(0x7e7340);auto *image=pair.image;
     if(!image||!pair.counter||(image->_vertexFormatStride!=48&&image->_vertexFormatStride!=88))return {false,true,true,"presentation_mirror_surface"};
     if(!p->mirror_format_snapshot){p->previous_mirror_extended=image->_vertexFormatStride==88;p->mirror_format_snapshot=true;}
     image->SetVertexFormat(*reinterpret_cast<const KAGE_Graphics_ImageBase_VertexAttributeDescriptor *>(Base+(description.mirror_shader?0x788670:0x788760)));
     if(image->_vertexFormatStride!=(description.mirror_shader?48:88)||(description.mirror_shader&&!reinterpret_cast<KAGE_Graphics_Shader *>(Base+0x7ab294)->_initialized))return {false,true,true,"presentation_mirror_format_or_shader"};}
   // 6EFB70仅分配/配置全局图形surface；不使用703E40的Room/全局更新链。
-  if(description.color_enabled)reinterpret_cast<void (__cdecl *)()>(Base+0x2efb70)();
+  if(!stream&&description.color_enabled)reinterpret_cast<void (__cdecl *)()>(Base+0x2efb70)();
   if(!PassResourcesReady(description))return {false,true,true,"presentation_native_pass_resources"};
-  if(!LoadRoomLight(room,false)||!LoadRoomLight(room,true))return {false,true,true,"presentation_native_room_light_resources"};
-  if(description.shading_present&&!LoadFXImage(p->shading,description.shading))return {false,true,true,"presentation_shading_resource"};
+  if(!stream&&(!LoadRoomLight(room,false)||!LoadRoomLight(room,true)))return {false,true,true,"presentation_native_room_light_resources"};
+  if(!stream&&description.shading_present&&!LoadFXImage(p->shading,description.shading))return {false,true,true,"presentation_shading_resource"};
   if(!description.shading_present)p->shading=KAGE_SmartPointer_ImageBase{};
   auto &minimap=game._minimap;
   if(!p->map_snapshot){
@@ -734,18 +760,18 @@ ClientPresentationStep PrepareImpl(ClientNativePresentation *p,const ClientNativ
     reinterpret_cast<void (__thiscall *)(Minimap *)>(Base+0x565740)(&minimap);p->minimap_loaded=true;
   }
   if(!minimap._config[0]._mapSprite._loaded||!minimap._itemIconsSprite._loaded||
-     !LoadFXImage(QuestionImage(minimap),description.minimap_question,true))return {false,true,true,"presentation_minimap_resources"};
+     (!stream&&!LoadFXImage(QuestionImage(minimap),description.minimap_question,true)))return {false,true,true,"presentation_minimap_resources"};
   minimap._state=description.minimap_state;minimap._holdTime=0;minimap._shakeDuration=description.minimap_shake_duration;
   minimap._shakeOffset=Vector(description.minimap_shake[0],description.minimap_shake[1]);
   minimap._config[0]._alpha=description.minimap_small_alpha;minimap._config[1]._alpha=description.minimap_big_alpha;
   // Refresh 仅构建真实原生 Minimap surface；保存图标/flags 在该调用内借用正式来源。
   // 外层完整保存 renderer/target，内部 push/pop 不会破坏17已修复的深度提交顺序。
-  {RenderState restore;
+  if(map_changed){RenderState restore;
     if(!ClientMinimapBuild(&game,description.map.descriptors,description.map.state,description.effective_curses))return {false,true,true,"presentation_minimap_source_cache"};}
   if(description.minimap_poses_present)for(unsigned i=0;i<2;++i)
     if(!ClientApplyResourcePose(&minimap._config[i]._mapSprite,description.minimap_poses[i]).complete)
       return {false,true,true,"presentation_minimap_source_pose"};
-  InstallAuxCandidate(*p,room,description);InstallFXCandidate(*p,room,description);
+  if(!stream){InstallAuxCandidate(*p,room,description);InstallFXCandidate(*p,room,description);}
   game._screenShakeOffset=Vector(description.screen_shake[0],description.screen_shake[1]);
   room._renderScrollOffset=Vector(description.render_scroll[0],description.render_scroll[1]);
   // 环境字段全量安装，包括清零/清空与真实lerp后态；没有普通Update或重新处理颜色。
@@ -1087,6 +1113,13 @@ void ClientPresentationMinimapDiagnostic(void *value,bool after) noexcept {
       g_Game->_roomTransition._mode,transition,map._shakeOffset.x,map._shakeOffset.y,g_WIDTH,g_HEIGHT,sprite._loaded,
       sprite._animState._animData?sprite._animState._animData->_name.c_str():"",sprite._bitflags,sprite._color._tint[3],sprite._scale.x,sprite._scale.y,
       graphics.currentRenderTarget,graphics._shader);
+}
+bool ClientPresentationStreamCompatible(const ClientNativePresentation *p,const ClientPresentationDescription &d) noexcept {if(!IsMain()||!p)return false;try{return StreamLayout(*p,d);}catch(...){return false;}}
+ClientPresentationStep ClientPresentationFastSort(ClientNativePresentation *p,const ClientNativeRoots &roots) noexcept {
+  if(!p||!p->ready||p->active||p->uncertain||!Current(roots)||!GraphicsContext()||!ClientNativeCpuQueuesEmpty())return {false,false,true,"presentation_fast_sort_owner"};
+  ClientDispatchScope dispatch(ClientOperation::PresentMaintenance,ClientEntry::PresentationMaintenance);if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::PresentationMaintenance)!=ClientEntryDecision::CallOriginal)return {false,false,true,"presentation_fast_sort_dispatch"};
+  const char *reason="presentation_fast_sorted";bool ok=false;try{unsigned count=0;auto &room=*static_cast<Room *>(roots.room);auto &game=*static_cast<Game *>(roots.game);ok=Members(room,game,p->entities,count,p->description.full_players,reason);if(ok){FullSort(room,p->entities,count);p->entity_count=count;p->render_storage=room._entityList._renderEL._data;}}
+  catch(...){p->ready=false;p->uncertain=true;reason="presentation_fast_sort_exception";}ClientDispatchReturned(ClientEntry::PresentationMaintenance);ok=ok&&dispatch.Succeeded();return {ok,true,!ok,reason};
 }
 ClientPresentationStep ClientPresentationPrepare(ClientNativePresentation *p,const ClientNativeRoots &roots,const ClientPresentationDescription &d) noexcept {
   ClientDispatchScope dispatch(ClientOperation::PresentMaintenance,ClientEntry::PresentationMaintenance);

@@ -25,6 +25,7 @@ int ClientEntityOwnedPresentationLua(lua_State *);
 int ClientEntityNpcPresentationLua(lua_State *);
 int ClientPlayerStateCaptureLua(lua_State *);
 int ClientPlayerEquipmentCaptureLua(lua_State *);
+int ClientPlayerRenderCaptureLua(lua_State *);
 int ClientPlayerRoleCaptureLua(lua_State *);
 int ClientPlayerSpecialCaptureLua(lua_State *);
 namespace {
@@ -457,6 +458,7 @@ void EnsureObservationLuaBridge() noexcept {
   lua_pushcfunction(L,PlayerApplicationMembership);lua_setfield(L,-2,"PlayerApplicationMembership");
   lua_pushcfunction(L,ClientPlayerStateCaptureLua);lua_setfield(L,-2,"PlayerApplicationState");
   lua_pushcfunction(L,ClientPlayerEquipmentCaptureLua);lua_setfield(L,-2,"PlayerApplicationEquipment");
+  lua_pushcfunction(L,ClientPlayerRenderCaptureLua);lua_setfield(L,-2,"PlayerApplicationRender");
   lua_pushcfunction(L,ClientPlayerRoleCaptureLua);lua_setfield(L,-2,"PlayerApplicationRole");
   lua_pushcfunction(L,ClientPlayerSpecialCaptureLua);lua_setfield(L,-2,"PlayerApplicationSpecial");
   lua_pushcfunction(L,ClientEntityGeometryLua);lua_setfield(L,-2,"EntityApplicationGeometry");

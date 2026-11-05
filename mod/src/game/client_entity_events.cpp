@@ -4,12 +4,13 @@
 #include <string_view>
 
 namespace cs::game {
-void ClientEntityEvents::Reset(const replica::Scope &scope) noexcept {scope_=scope;entries_.clear();bytes_=0;retired_component_=retired_event_=0;}
+void ClientEntityEvents::Reset(const replica::Scope &scope) noexcept {scope_=scope;entries_.clear();bytes_=0;retired_component_=retired_event_=baseline_event_=0;}
 bool ClientEntityEvents::Admit(const replica::Message &message,const char *&reason) noexcept {
   try{
     if(message.kind!=replica::Kind::Component&&message.kind!=replica::Kind::Event){reason="entity_independent_kind";return false;}
     const auto encoded=replica::Encode(message);const auto &b=message.body;
     if(replica::ReadScope(b["scope"])!=scope_){reason="entity_independent_stale_scope";return false;}
+    if(message.kind==replica::Kind::Event&&replica::Unsigned(b["event_id"])<=baseline_event_){reason="entity_event_represented_by_committed_baseline";return true;}
     Entry next;auto &r=next.receipt;r.kind=message.kind;r.sequence=message.sequence;r.required_state=replica::Unsigned(b["required_state"]);
     if(r.kind==replica::Kind::Component){
       if(replica::Unsigned(b["domain"])!=unsigned(world::observation::DomainId::Entity)||std::string_view(b["coverage"].GetString())!="Complete"){reason="entity_independent_domain_or_coverage";return false;}

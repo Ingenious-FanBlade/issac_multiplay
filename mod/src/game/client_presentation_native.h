@@ -66,6 +66,8 @@ struct ClientPresentationAux final {
 };
 // 展示输入只含服务器最终值；原生指针只在当前主线程借用中解析。
 struct ClientPresentationDescription final {
+  bool stream_values=false;
+  std::vector<std::uint64_t> stream_map_facts;
   // 20正式身体集合由Player owner核定；旧17/18/19单Isaac profile继续独立。
   bool full_players=false;
   ClientRoomState room_state{};
@@ -129,6 +131,8 @@ ClientNativePresentation *ClientPresentationCreate() noexcept;
 void ClientPresentationDestroy(ClientNativePresentation *) noexcept;
 ClientPresentationStep ClientPresentationPrepare(ClientNativePresentation *,const ClientNativeRoots &,
                                                 const ClientPresentationDescription &) noexcept;
+bool ClientPresentationStreamCompatible(const ClientNativePresentation *,const ClientPresentationDescription &) noexcept;
+ClientPresentationStep ClientPresentationFastSort(ClientNativePresentation *,const ClientNativeRoots &) noexcept;
 ClientPresentationStep ClientPresentationDraw(ClientNativePresentation *,const ClientNativeRoots &) noexcept;
 ClientPresentationStep ClientPresentationRetire(ClientNativePresentation *,const ClientNativeRoots &) noexcept;
 // 正式观测扩展：只复制当前原生显示缓存，不重算概率、不运行HUD/Entity Update。

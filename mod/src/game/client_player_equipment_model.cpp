@@ -65,6 +65,18 @@ ClientObjectReference Ref(const V &v,std::uint64_t run){if(Is(v,"status","Null")
   ClientObjectKey key{Int<std::uint64_t>(At(k,"run")),Int<std::uint64_t>(At(k,"id")),Int<unsigned>(At(k,"space"))};if(key.run!=run||!key.id||key.space!=1)Fail("reference_scope");return {true,false,key};}
 void Config(const V &v,bool &present,int &id,int &type){present=!Is(v,"status","Null");if(!present)return;id=Int(Field(v,"ItemConfigItem.ID"));type=Int(Field(v,"ItemConfigItem.Type"));if(id<0||type<0||type>4)Fail("item_config_identity");}
 }
+// Body/Head同源渲染组独立解析，不复制或重放武器及库存玩法。
+static void RenderValues(ClientPlayerEquipment &out,const replica::EntityObjectTarget &o,const Graph &entity_graph,const replica::Value &body_value){
+  const auto &fields=At(body_value,"fields");
+  auto common=entity_graph.Value(o.common.value);out.main=Pose(Field(common,"Entity.GetSprite"));out.inline_sprites[0]=Pose(At(fields,"EntityPlayer.GetBodySprite"));
+  const auto &resources=At(body_value,"application_player_resources");if(!Is(resources,"status","Value")||Int<unsigned>(At(resources,"version"))!=1)Fail("inline_resource_source");
+  for(unsigned i=1;i<13;++i){const auto name=i==10?std::string("blood_gush"):i==11?std::string("held"):"inline_"+std::to_string(i);out.inline_sprites[i]=Pose(At(resources,name.c_str()));}
+  for(const auto *v:Seq(At(fields,"EntityPlayer.GetCostumeSpriteDescs"),1024)){ClientPlayerEquipment::Costume c;
+    Config(Field(*v,"CostumeSpriteDesc.GetItemConfig"),c.item_present,c.item,c.item_type);c.priority=Int(Field(*v,"CostumeSpriteDesc.GetPriority"));c.default_skin=Int(Field(*v,"CostumeSpriteDesc.GetDefaultSkinColor"));c.skin=Int(Field(*v,"CostumeSpriteDesc.GetSkinColor"));c.player_type=Int(Field(*v,"CostumeSpriteDesc.GetPlayerType"));
+    c.item_animation=Bool(Field(*v,"CostumeSpriteDesc.IsItemAnimPlaying"));c.flying=Bool(Field(*v,"CostumeSpriteDesc.IsFlying"));c.overlay=Bool(Field(*v,"CostumeSpriteDesc.HasOverlay"));c.skin_alt=Bool(Field(*v,"CostumeSpriteDesc.HasSkinAlt"));c.overwrite=Bool(Field(*v,"CostumeSpriteDesc.CanOverwriteColor"));c.state_only=Bool(Field(*v,"CostumeSpriteDesc.IsItemStateOnly"));c.sprite=Pose(Field(*v,"CostumeSpriteDesc.GetSprite"));out.costumes.push_back(std::move(c));}
+  const auto layers=Seq(At(fields,"EntityPlayer.GetCostumeLayerMap"),15);if(layers.size()!=15)Fail("costume_layer_map_15_required");for(unsigned i=0;i<15;++i){auto &l=out.layers[i];l.costume=Int(Named(*layers[i],"costumeIndex"));l.layer=Int(Named(*layers[i],"layerID"));l.priority=Int(Named(*layers[i],"priority"));l.body=Bool(Named(*layers[i],"isBodyLayer"));
+    if(l.costume<-1||(l.costume>=0&&(unsigned(l.costume)>=out.costumes.size()||l.layer<0||unsigned(l.layer)>=out.costumes[unsigned(l.costume)].sprite.layers.size())))Fail("costume_layer_dependency");}
+}
 static std::shared_ptr<const ClientPlayerEquipment> Describe(const replica::PlayerTarget &target,const replica::PlayerBodyTarget &body,const Graph &entity_graph,const Graph &player_graph){
   const auto &o=target.entities->objects.at(body.entity_index);
   const auto &raw=std::get<replica::EntityClassValues<replica::EntityCategory::Player>>(o.payload).fields.value;
@@ -80,14 +92,7 @@ static std::shared_ptr<const ClientPlayerEquipment> Describe(const replica::Play
   auto history=player_graph.Value(body.history);auto view=std::make_shared<ClientPlayerHistoryView>();view->body={body.key.run,body.key.id,body.key.space};view->entity_scope=target.entity_capture.scope;view->player_scope=target.player_capture.scope;view->revision=target.revision;view->shape=body.shape_revision;
   for(const auto *item:Seq(Field(history,"History.GetCollectiblesHistory"))){ClientPlayerHistoryView::Item x;
     x.time=Int(Field(*item,"HistoryItem.GetTime"));x.id=Int(Field(*item,"HistoryItem.GetItemID"));x.stage=Int(Field(*item,"HistoryItem.GetLevelStage"));x.stage_type=Int(Field(*item,"HistoryItem.GetStageType"));x.room=Int(Field(*item,"HistoryItem.GetRoomType"));x.pool=Int(Field(*item,"HistoryItem.GetItemPoolType"));x.trinket=Bool(Field(*item,"HistoryItem.IsTrinket"));view->items.push_back(x);}out->history=std::move(view);
-  auto common=entity_graph.Value(o.common.value);out->main=Pose(Field(common,"Entity.GetSprite"));out->inline_sprites[0]=Pose(At(fields,"EntityPlayer.GetBodySprite"));
-  const auto &resources=At(body_value,"application_player_resources");if(!Is(resources,"status","Value")||Int<unsigned>(At(resources,"version"))!=1)Fail("inline_resource_source");
-  for(unsigned i=1;i<13;++i){const auto name=i==10?std::string("blood_gush"):i==11?std::string("held"):"inline_"+std::to_string(i);out->inline_sprites[i]=Pose(At(resources,name.c_str()));}
-  for(const auto *v:Seq(At(fields,"EntityPlayer.GetCostumeSpriteDescs"),1024)){ClientPlayerEquipment::Costume c;
-    Config(Field(*v,"CostumeSpriteDesc.GetItemConfig"),c.item_present,c.item,c.item_type);c.priority=Int(Field(*v,"CostumeSpriteDesc.GetPriority"));c.default_skin=Int(Field(*v,"CostumeSpriteDesc.GetDefaultSkinColor"));c.skin=Int(Field(*v,"CostumeSpriteDesc.GetSkinColor"));c.player_type=Int(Field(*v,"CostumeSpriteDesc.GetPlayerType"));
-    c.item_animation=Bool(Field(*v,"CostumeSpriteDesc.IsItemAnimPlaying"));c.flying=Bool(Field(*v,"CostumeSpriteDesc.IsFlying"));c.overlay=Bool(Field(*v,"CostumeSpriteDesc.HasOverlay"));c.skin_alt=Bool(Field(*v,"CostumeSpriteDesc.HasSkinAlt"));c.overwrite=Bool(Field(*v,"CostumeSpriteDesc.CanOverwriteColor"));c.state_only=Bool(Field(*v,"CostumeSpriteDesc.IsItemStateOnly"));c.sprite=Pose(Field(*v,"CostumeSpriteDesc.GetSprite"));out->costumes.push_back(std::move(c));}
-  const auto layers=Seq(At(fields,"EntityPlayer.GetCostumeLayerMap"),15);if(layers.size()!=15)Fail("costume_layer_map_15_required");for(unsigned i=0;i<15;++i){auto &l=out->layers[i];l.costume=Int(Named(*layers[i],"costumeIndex"));l.layer=Int(Named(*layers[i],"layerID"));l.priority=Int(Named(*layers[i],"priority"));l.body=Bool(Named(*layers[i],"isBodyLayer"));
-    if(l.costume<-1||(l.costume>=0&&(unsigned(l.costume)>=out->costumes.size()||l.layer<0||unsigned(l.layer)>=out->costumes[unsigned(l.costume)].sprite.layers.size())))Fail("costume_layer_dependency");}
+  RenderValues(*out,o,entity_graph,body_value);
   const auto &weapons=At(fields,"EntityPlayer.GetWeapon");if(!Is(weapons,"kind","parameter_results"))Fail("five_weapon_slots_required");unsigned mask=0;
   const auto extras=Seq(At(extra,"weapons"),5);if(extras.size()!=5)Fail("five_native_weapon_slots_required");
   for(const auto *row:Seq(At(weapons,"values"),5)){const auto params=Seq(At(*row,"parameters"),1);if(params.size()!=1)Fail("weapon_slot_parameters");unsigned slot=Int<unsigned>(*params[0]);if(slot>=5||(mask&(1u<<slot)))Fail("weapon_slot_duplicate_or_range");mask|=1u<<slot;
@@ -119,6 +124,12 @@ std::map<ClientObjectKey,std::shared_ptr<const ClientPlayerEquipment>> ClientDes
     catch(const replica::PlayerContractError &){throw;}
     catch(const replica::ContractError &e){throw replica::PlayerContractError(e.what(),body.key,{},e.what());}
   }return out;
+}
+std::shared_ptr<const ClientPlayerEquipment> ClientStreamPlayerEquipment(const ClientPlayerEquipment &base,const replica::EntityObjectTarget &object){
+  replica::Json root(rapidjson::kObjectType);auto &a=root.GetAllocator();replica::Value common,body_value;common.CopyFrom(object.common.value,a);body_value.CopyFrom(std::get<replica::EntityClassValues<replica::EntityCategory::Player>>(object.payload).fields.value,a);
+  replica::Put(root,"common",std::move(common),a);replica::Put(root,"body",std::move(body_value),a);
+  const Graph graph(root);auto body=graph.Value(root["body"]);auto out=std::make_shared<ClientPlayerEquipment>(base);
+  out->head_animation=Bytes(At(At(body,"application_player_equipment"),"head_animation_hex"));out->costumes.clear();RenderValues(*out,object,graph,body);return out;
 }
 const char *ClientPlayerEquipmentDisposition(const std::string &id) noexcept {
   if(id.rfind("TemporaryEffect",0)==0||id=="EntityPlayer.GetEffects"||id=="EntityPlayer.GetPlayerFormCounter"||id=="EntityPlayer.HasPlayerForm")return "I16:ordered-effects+timers+forms;no-AddRemove-or-Evaluate";

@@ -99,6 +99,8 @@ struct RoomTarget final {
 };
 // 调用方只能收紧预算；依赖边也有上限，避免有界步骤配出无界邻接表。
 struct RoomGridLimits final {unsigned descriptors=526,grids=456,steps=8192,references=4096,dependency_edges=1048576;};
+// 持续流局部值只声明四域，不把局部DTO伪装成完整十一域Baseline。
+enum class RoomGridModelMode { CompleteWorld,StreamValues };
 // 只通过shared_ptr<const>发布；Source是独立自有DOM，保留全部原coverage及未消费字段。
 // 后续adapter按source_index取得专用字段，不持有Lua/SDK对象或外部DOM借用。
 struct RoomGridTarget final {
@@ -114,9 +116,9 @@ struct RoomGridTarget final {
   const Value &DescriptorState(const RoomDescriptorTarget &) const;
 private:
   RoomGridTarget()=default;
-  friend std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const Value &,RoomGridLimits);
+  friend std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const Value &,RoomGridLimits,RoomGridModelMode);
 };
-std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const Value &,RoomGridLimits={});
+std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const Value &,RoomGridLimits={},RoomGridModelMode=RoomGridModelMode::CompleteWorld);
 // 只声明解析/规划的合同和预算；完整原生applier必须在I25以后单独声明。
 Json RoomGridCapabilities();
 const Json &RoomGridApplicationCatalog();

@@ -272,11 +272,11 @@ collect=function(object,class,ctx,depth)
     if ctx.config_seen[key] then return {type="resource_ref",key=key} end
     ctx.config_seen[key]=true
   end
-  local out={type=class,fields={}}
+  local out={type=ctx.fast and class=="Sprite" and "stream_sprite_pose" or class,fields={}}
   if class=="Sprite" then
     local ok,pose=pcall(native().SpriteRuntimePose,object)
     if ok then out.pose_runtime=pose else fail(ctx,"sprite_runtime_pose");out.pose_runtime=missing("ReadFailed",textError(pose)) end
-    if ctx.stream_capture then
+    if ctx.stream_capture or ctx.fast then
       local known,generation=pcall(native().SpriteResourceGeneration,object)
       if known then out.resource_generation=generation else fail(ctx,"stream_resource_instance");out.resource_generation=missing("ReadFailed","stream_resource_instance") end
     end

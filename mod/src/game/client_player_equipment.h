@@ -1,7 +1,7 @@
 #pragma once
 #include "game/client_players_native.h"
 
-namespace cs::replica { struct PlayerTarget; struct PlayerBodyTarget; }
+namespace cs::replica { struct PlayerTarget; struct PlayerBodyTarget; struct EntityObjectTarget; }
 namespace cs::game {
 // History只表示同一身体的有序获得记录；与库存、共享Getter及本地HUD缓存分别拥有。
 struct ClientPlayerHistoryView final {
@@ -46,6 +46,8 @@ struct ClientPlayerEquipment final {
   std::array<Weapon,5> weapons{};
 };
 std::map<ClientObjectKey,std::shared_ptr<const ClientPlayerEquipment>> ClientDescribePlayerEquipment(const replica::PlayerTarget &);
+// 只替换同源Body/Head渲染组；库存、武器和History仍取精确普通依赖。
+std::shared_ptr<const ClientPlayerEquipment> ClientStreamPlayerEquipment(const ClientPlayerEquipment &,const replica::EntityObjectTarget &);
 const char *ClientPlayerEquipmentDisposition(const std::string &) noexcept;
 // 每个原生身体持有一个子owner；异常保留实际前缀，不能以重试Destroy掩盖不确定释放。
 struct ClientPlayerEquipmentOwner;
@@ -54,6 +56,8 @@ void ClientPlayerEquipmentDestroy(ClientPlayerEquipmentOwner *) noexcept;
 bool ClientPlayerEquipmentPreflight(const ClientPlayerDescription &,const char *&);
 bool ClientPlayerEquipmentFields(void *,const ClientPlayerDescription &,bool check,const char *&);
 bool ClientPlayerEquipmentResources(ClientPlayerEquipmentOwner *,void *,const ClientPlayerDescription &,bool check,const char *&);
+bool ClientPlayerRenderCompatible(ClientPlayerEquipmentOwner *,void *,const ClientPlayerEquipment &) noexcept;
+bool ClientPlayerRenderInstall(ClientPlayerEquipmentOwner *,void *,const ClientPlayerEquipment &,bool,const char *&);
 bool ClientPlayerEquipmentRelations(ClientPlayerEquipmentOwner *,void *,const ClientPlayerDescription &,const ClientEntityOwners &,const ClientNativeRoots &,bool check,bool clear,const char *&);
 bool ClientPlayerEquipmentRetire(ClientPlayerEquipmentOwner *,void *,const char *&);
 } // namespace cs::game

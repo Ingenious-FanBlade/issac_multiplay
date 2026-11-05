@@ -499,6 +499,13 @@ ClientNativeStep ClientNativeWorldFinalize(ClientNativeWorldOwner *o) noexcept {
   if(!dispatch.Succeeded())return Status(o,ClientNativeStepState::Failed,"native_finalize_dispatch_return");
   return step;
 }
+// 热值只进入既有ready owner的具名最终量分支；不会退回菜单构造路径。
+ClientNativeStep ClientNativeWorldRefresh(ClientNativeWorldOwner *o,const ClientNativeSceneDescription &d) noexcept {
+  if(!ClientNativeWorldCanReuse(o,d))return Status(o,ClientNativeStepState::Failed,"native_stream_structure_changed");
+  ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
+  if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeApply)!=ClientEntryDecision::CallOriginal)return Status(o,ClientNativeStepState::Failed,"native_stream_dispatch");
+  const auto result=PrepareImpl(o,d);ClientDispatchReturned(ClientEntry::NativeApply);if(!dispatch.Succeeded())return Status(o,ClientNativeStepState::Failed,"native_stream_dispatch_return");return result;
+}
 ClientNativeStep ClientNativeWorldRetire(ClientNativeWorldOwner *o) noexcept {
   ClientDispatchScope dispatch(ClientOperation::Retire,ClientEntry::NativeTeardown);
   if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeTeardown)!=ClientEntryDecision::CallOriginal)

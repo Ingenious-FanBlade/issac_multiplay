@@ -154,6 +154,15 @@ private:
   std::map<stream::RangeId, std::deque<std::uint64_t>> sent_history_;
   void Remember(const stream::Version &);
   bool WasSent(const stream::Version &) const noexcept;
+  // 已发送事实只保留值元数据；远端确认不能引用当前最新Publication冒认旧版本。
+  struct SentFact {
+    std::vector<stream::Version> dependencies;
+    std::uint64_t native=0,retained=0,watermark=0;
+  };
+  std::map<stream::Version,SentFact> sent_facts_;
+  struct NativeFact {std::uint64_t attempt=0,instance=0,resource=0;auto operator<=>(const NativeFact &) const = default;};
+  std::map<stream::Version,NativeFact> confirmed_;
+  void Track(const stream::Range &);
   struct Fast {
     stream::SharedBlob blob;
     unsigned part = 0;

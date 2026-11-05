@@ -18,9 +18,9 @@ const replica::PlayerControlGroupTarget *ClientPlayerDisplayView::Participant(un
   for(const auto &g:groups)if(g.ordinal==ordinal)return &g;return nullptr;
 }
 ClientPlayerDisplayView::Query ClientPlayerDisplayView::Captured(const ClientObjectKey &key,const std::string &member) const noexcept {
-  if(!source_)return {};
   const auto body=queries_.find(key);if(body==queries_.end())return {};
-  const auto query=body->second.find(member);return query==body->second.end()?Query{}:Query{query->second,&source_->entities->source};
+  const auto query=body->second.find(member);if(query==body->second.end())return {};const auto stream=stream_sources_.find(key);
+  return stream!=stream_sources_.end()?Query{query->second,stream->second.get()}:source_?Query{query->second,&source_->entities->source}:Query{};
 }
 // 候选视图在写世界前一次建立；只有Scene提交才能发布，失败/取消不污染旧A。
 std::shared_ptr<const ClientPlayerDisplayView> ClientDescribePlayerDisplay(
@@ -49,6 +49,16 @@ std::shared_ptr<const ClientPlayerDisplayView> ClientDescribePlayerDisplay(
     if(!found||!out->bodies.emplace(b.key,std::move(b)).second)throw replica::ContractError("player_display:body_identity");
   }
   if(out->bodies.size()!=target.bodies.size())throw replica::ContractError("player_display:body_set");
+  return out;
+}
+// 热提交只更新相应身体的不可变值/查询根；拓扑沿已提交结构，身体修订不冒充整房修订。
+std::shared_ptr<const ClientPlayerDisplayView> ClientDescribeStreamDisplay(const ClientPlayerDisplayView &base,const std::vector<ClientPlayerDescription> &values,const std::map<ClientObjectKey,std::shared_ptr<const replica::Json>> &sources,std::uint64_t revision){
+  auto out=std::make_shared<ClientPlayerDisplayView>(base);out->stream_revision=revision;
+  for(const auto &d:values){auto it=out->bodies.find(d.entity.key);auto raw=sources.find(d.entity.key);if(it==out->bodies.end()||raw==sources.end()||!d.equipment||!d.equipment->history)throw replica::ContractError("player_stream_display_body");
+    auto &b=it->second;b.state=d.state;b.equipment=d.equipment;b.special=d.special;b.role=d.role;b.exists=d.entity.exists;b.dead=d.entity.dead;b.sample_revision=revision;
+    out->stream_sources_[d.entity.key]=raw->second;auto &queries=out->queries_[d.entity.key];queries.clear();const auto &fields=(*raw->second)["body"]["fields"];for(auto f=fields.MemberBegin();f!=fields.MemberEnd();++f)queries.emplace(std::string(f->name.GetString(),f->name.GetStringLength()),&f->value);
+  }
+  if(values.size()==out->bodies.size()&&!values.empty()){out->entity_scope=values.front().equipment->history->entity_scope;out->player_scope=values.front().equipment->history->player_scope;out->source_.reset();}
   return out;
 }
 } // namespace cs::game

@@ -1,5 +1,6 @@
 #include "game/client_player_state.h"
 #include "replica/entity_target.h"
+#include <algorithm>
 #include <charconv>
 #include <cmath>
 #include <cstring>
@@ -88,5 +89,27 @@ std::shared_ptr<const ClientPlayerState> ClientDescribePlayerState(const replica
   const auto &q=At(source,"queue");state->queue={Int<int>(At(q,"item")),Int<int>(At(q,"type")),Int<int>(At(q,"charge")),Int<int>(At(q,"var_data")),Int<unsigned>(At(q,"flags"))};
   if(state->queue.type<0||state->queue.type>4||(state->queue.item&&state->queue.type==0))Fail("queue","item_type_or_id");
   Spoof(At(source,"collectible_spoof"),state->spoofs[0]);Spoof(At(source,"trinket_spoof"),state->spoofs[1]);return state;
+}
+ClientPlayerDescription ClientPlayerFastDescription(const ClientPlayerDescription &base,const ClientPlayerFastValues &fast){
+  ClientPlayerDescription out=base;auto state=std::make_shared<ClientPlayerState>(*base.state);
+  for(const auto &v:fast.player){auto old=std::find_if(state->fields.begin(),state->fields.end(),[&](const auto &x){return x.member==v.member;});if(old==state->fields.end())Fail(v.member,"fast_backing_missing");*old=v;}
+  for(const auto &v:fast.common){auto old=std::find_if(out.entity.common_fields.begin(),out.entity.common_fields.end(),[&](const auto &x){return x.member==v.member;});if(old==out.entity.common_fields.end())Fail(v.member,"fast_common_missing");*old=v;
+    if(v.member=="Entity.Position")out.entity.position=v.vector;else if(v.member=="Entity.Velocity")out.entity.velocity=v.vector;else if(v.member=="Entity.PositionOffset")out.entity.position_offset=v.vector;
+    else if(v.member=="Entity.Visible")out.entity.visible=v.boolean;else if(v.member=="Entity.Exists")out.entity.exists=v.boolean;else if(v.member=="Entity.IsDead")out.entity.dead=v.boolean;
+    else if(v.member=="Entity.DepthOffset")out.entity.depth=v.real;else if(v.member=="Entity.Size")out.entity.size=v.real;else if(v.member=="Entity.Mass")out.entity.mass=v.real;else if(v.member=="Entity.CollisionDamage")out.entity.collision_damage=v.real;
+    else if(v.member=="Entity.EntityCollisionClass")out.entity.entity_collision=int(v.integer);else if(v.member=="Entity.GridCollisionClass")out.entity.grid_collision=int(v.integer);}
+  out.state=std::move(state);out.equipment=fast.render;out.entity.resource=fast.sprite;return out;
+}
+std::vector<ClientEntityField> ClientStreamPlayerFields(const V &body,int type){std::vector<ClientEntityField> out;const auto &fields=At(body,"fields");
+  // 共享/转发Getter不是本身体backing。心量、货币、充能等私有值仍只由完整ordinary安装。
+  static const std::set<std::string> direct={"EntityPlayer.Damage","EntityPlayer.MoveSpeed","EntityPlayer.MaxFireDelay","EntityPlayer.ShotSpeed","EntityPlayer.TearRange","EntityPlayer.TearHeight","EntityPlayer.TearFallingSpeed","EntityPlayer.TearFallingAcceleration","EntityPlayer.Luck","EntityPlayer.CanFly","EntityPlayer.SamsonBerserkCharge","EntityPlayer.IBSCharge","EntityPlayer.TearFlags","EntityPlayer.TearColor","EntityPlayer.LaserColor","EntityPlayer.GetMovementDirection","EntityPlayer.GetHeadDirection","EntityPlayer.GetDamageCooldown"};
+  for(const auto &[id,rule]:Rules()){if(!direct.contains(id)||!fields.HasMember(id.c_str())||!ClientPlayerStateApplicable(id,type))continue;const auto &v=fields[id.c_str()];if(Is(v,"status","NotApplicable"))continue;ClientEntityField f;f.member=id;f.kind=rule.kind;
+    if(f.kind==ClientEntityValueKind::Integer){f.integer=Int<std::int64_t>(v);if(f.integer<rule.low||f.integer>rule.high)Fail(id,"native_width");}
+    else if(f.kind==ClientEntityValueKind::Real)f.real=Real(v);
+    else if(f.kind==ClientEntityValueKind::Boolean){if(!v.IsBool())Fail(id,"bool");f.boolean=v.GetBool();}
+    else if(f.kind==ClientEntityValueKind::Bits128){if(!Is(v,"type","bits128"))Fail(id,"bits128");const auto bits=[](const V &x){const auto &s=Is(x,"type","int64")?At(x,"value"):x;if((s.IsInt64()&&s.GetInt64()<0)||(s.IsString()&&s.GetStringLength()&&s.GetString()[0]=='-'))return std::uint64_t(Int<std::int64_t>(x));return Int<std::uint64_t>(x);};f.bits=bits(At(v,"low"));f.high_bits=bits(At(v,"high"));}
+    else if(f.kind==ClientEntityValueKind::Color){const char *t[]={"R","G","B","A"},*o[]={"RO","GO","BO"};for(unsigned i=0;i<4;++i)f.color.tint[i]=Real(At(v,t[i]));for(unsigned i=0;i<3;++i)f.color.offset[i]=Real(At(v,o[i]));const auto &entries=At(At(v,"GetColorize"),"entries");if(!entries.IsArray()||entries.Size()!=4)Fail(id,"colorize");unsigned mask=0;for(const auto &e:entries.GetArray()){const auto &key=At(e,"key");unsigned i=0;while(i<4&&(!key.IsString()||std::strcmp(key.GetString(),t[i])))++i;if(i==4||(mask&(1u<<i)))Fail(id,"colorize_keys");mask|=1u<<i;f.color.colorize[i]=Real(At(e,"value"));}}
+    else continue;out.push_back(std::move(f));
+  }return out;
 }
 } // namespace cs::game

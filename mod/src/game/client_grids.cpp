@@ -194,6 +194,22 @@ bool ClientGrids::PrepareTarget(const replica::RoomGridPlan &plan,const char *&r
   reason=reason_.c_str();return false;
 }
 bool ClientGrids::CancelPlanned() noexcept {if(cursor_||written_||failed_)return false;target_.reset();commands_.clear();planned_checks_.clear();return true;}
+bool ClientGrids::StreamCompatible(const replica::RoomGridTarget &target) const noexcept {
+  if(failed_||target_||!committed_||target.grids.size()!=committed_->grids.size())return false;
+  for(const auto &g:target.grids){auto old=std::find_if(committed_->grids.begin(),committed_->grids.end(),[&](const auto &v){return v.key==g.key;});if(old==committed_->grids.end()||old->instance_revision!=g.instance_revision||old->type!=g.type||old->variant!=g.variant||old->memberships!=g.memberships)return false;}
+  for(unsigned i=0;i<8;++i){const auto &a=target.room.doors[i],&b=committed_->room.doors[i];
+    if(a.slot!=b.slot||a.shape_allowed!=b.shape_allowed||a.descriptor_enabled!=b.descriptor_enabled||a.shape_target!=b.shape_target||a.actual_target!=b.actual_target||a.actual.is_null!=b.actual.is_null||a.actual.key!=b.actual.key||a.target_descriptor.is_null!=b.target_descriptor.is_null||a.target_descriptor.key!=b.target_descriptor.key||a.target_uninitialized!=b.target_uninitialized||a.route!=b.route)return false;}
+  return true;
+}
+std::vector<ClientGridDescription> ClientGrids::CompileStream(const replica::RoomGridTarget &target) const {
+  if(failed_||target_||!committed_||target.grids.size()!=committed_->grids.size())throw std::runtime_error("grid_stream_structure");std::vector<ClientGridDescription> out;
+  for(const auto &g:target.grids){auto old=std::find_if(committed_->grids.begin(),committed_->grids.end(),[&](const auto &v){return v.key==g.key;});if(old==committed_->grids.end()||old->instance_revision!=g.instance_revision||old->type!=g.type||old->variant!=g.variant||old->memberships!=g.memberships)throw std::runtime_error("grid_stream_instance");out.push_back(Parse(target,g));}return out;
+}
+ClientGridStep ClientGrids::InstallStream(const ClientNativeRoots &roots,const std::vector<ClientGridDescription> &values) noexcept {
+  if(failed_||target_||!committed_||values.size()!=checks_.size())return {false,false,true,0,0,"grid_stream_owner"};ClientGridStep step;bool written=false;
+  for(const auto operation:{ClientGridOperation::Change,ClientGridOperation::Check})for(const auto &d:values){ClientGridCommand c;c.operation=operation;c.value=d;step=ClientNativeGridsExecute(native_,roots,c);written|=step.written;if(step.failed||!step.done){failed_|=step.failed;step.written=written;return step;}}
+  try{checks_.clear();for(const auto &d:values)checks_.push_back({ClientGridOperation::Check,d});check_cursor_=0;}catch(...){failed_=true;return {false,true,true,step.prefix,step.owners,"grid_stream_commit_allocation"};}step.done=true;step.written=written;return step;
+}
 ClientGridStep ClientGrids::Step(const ClientNativeRoots &roots,unsigned budget) noexcept {
   if(failed_||!target_)return {false,written_,true,0,0,"grid_target_not_ready"};
   if(!budget||budget>16)return {false,written_,true,0,0,"grid_step_budget"};

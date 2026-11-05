@@ -119,15 +119,24 @@ def generate():
     return {"format": "isaac.cs.stream.catalog", "version": 1, "members": rows, "supplements": supplements,
         "native_members": native,
         "field_ids": ids,
-        "player_common_owner": "Entity public dynamic fields belong to PlayerFast for body keys;WorldDynamic excludes those fields;relations ordinary-joint",
+        "player_common_owner": "ordinary body-joint preserves complete final values;newer witnessed PlayerFast overlays only its declared safe public range;shared getters never become per-body backing writes;WorldDynamic records exclude Player bodies",
         "projection_review": "no new omissions;existing omitted queries keep exact documented consumers/local-asset equivalence;new consumers must restore source",
         "low_frequency_policy": "no proven complete dirty coverage => bounded full read;no cached-complete claim from notification alone",
         "capture_profiles": {
-            "ordinary": "stream-source-v1;pre-JSON scopes;full declared membership;private player state stays body-joint",
-            "player_post": "player-fast-source-v1;domains/common/stream.lua::Fast;actual-body-witness;main-Sprite-token;no relations/containers/parameter queries",
+            "ordinary": "stream-source-v1;pre-JSON scopes;complete ordinary body-joint;world.v2 carries all eleven real capture scopes;no cold-scope retagging",
+            "player_post": "player-fast-source-v1;actual-body-witness;main+13-inline+ordered-costume-render-poses;exact ordinary resource/config/map dependency;29/38 cross-body standalone gap;no weapons/inventory promotion",
             "validity": "immutable acquired sample + target checked sample;bounded full reads for unclosed dirty coverage",
-            "layouts": ["stream.context.v1", "stream.structure.v1", "stream.resource.v1", "stream.world.v1", "stream.player.v1"]},
-        "runtime": "I01-I15 capture/transport implemented;I19 publication/I23 application and I39 acceptance pending"}
+            "layouts": ["stream.context.v1", "stream.structure.v1", "stream.resource.v1", "stream.world.v2", "stream.player.v1"]},
+        "installation": {
+            "prepare": "net/live.cpp::Client::Prepare;old-route ScenePrepared echo;main-thread BeginStream;input/history revoked",
+            "cold": "ClientScene::AdmitStream/PumpStream -> ColdModel -> AdmitTarget/Pump;network values only",
+            "ordinary": "SubjectValues + four-domain Room/Grid/Level/Run DTO;existing native owners;complete step then range commit",
+            "body": "ClientPlayers::CompileFast;ClientNativePlayersFast;complete same-body render group;exact Resource/config/map + actual binding + same Scene;29/38 cross-body standalone gap;query facts retained, shared backing ordinary only",
+            "resources": "same ANM/image pair across frame/animation;preflight selectors;false reset only for equal layer/null counts",
+            "structure": "StructuralModel explicit closure;complete preflight then safe Scene rebuild;no gameplay RPC",
+            "ack": "native-range-commit-v1;per-result attempt/instance/resource/domain/watermark;dynamic 20Hz;baseline/structure immediate",
+            "acceptance": "I39 P2 full E01-E26 then P4 full suite;not run"},
+        "runtime": "I01-I25 implemented;I26-I40 and I39 unified runtime acceptance pending;no measured Hz/bandwidth/native network loop claim"}
 
 
 def main():

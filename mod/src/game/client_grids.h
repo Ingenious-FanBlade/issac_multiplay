@@ -19,6 +19,10 @@ public:
   using LiftedVisitor=bool (*)(void *,const replica::LiftedGridTarget &) noexcept;
   bool VisitLifted(void *,LiftedVisitor) const noexcept;
   ClientGridStep Check(const ClientNativeRoots &) noexcept;
+  // 门目标或原生容器布局变化必须撤销旧借用，交结构重建统一安装。
+  bool StreamCompatible(const replica::RoomGridTarget &) const noexcept;
+  std::vector<ClientGridDescription> CompileStream(const replica::RoomGridTarget &) const;
+  ClientGridStep InstallStream(const ClientNativeRoots &,const std::vector<ClientGridDescription> &) noexcept;
 private:
   ClientNativeGrids *native_=nullptr;
   std::vector<ClientGridCommand> commands_;

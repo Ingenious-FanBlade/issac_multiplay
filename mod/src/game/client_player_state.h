@@ -28,6 +28,7 @@ struct ClientPlayerState final {
 std::shared_ptr<const ClientPlayerState> ClientDescribePlayerState(const replica::EntityObjectTarget &);
 const char *ClientPlayerStateDisposition(const std::string &) noexcept;
 bool ClientPlayerStateApplicable(const std::string &,int player_type) noexcept;
+bool ClientPlayerScalarFields(void *,const std::vector<ClientEntityField> &,bool,const char *&) noexcept;
 // SDK实现只在当前主线程、当前use内安装/回读；后续完整adapter仍承担资源/角色/关系。
 bool ClientPlayerStateFields(void *,const ClientPlayerDescription &,bool check,const char *&);
 bool ClientPlayerStatePreflight(const ClientPlayerDescription &,const char *&);

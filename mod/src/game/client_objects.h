@@ -5,6 +5,8 @@
 #include "game/client_entity_budget.h"
 #include "game/client_player_budget.h"
 #include "game/client_player_diagnostics.h"
+#include "game/client_players_native.h"
+#include "replica/stream_materialize.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -38,6 +40,11 @@ public:
   ClientPlayerDiagnostics PlayerDiagnostics() const noexcept;
   std::shared_ptr<const ClientPlayerDisplayView> PlayerDisplay() const noexcept;
   bool PlayersCommitted(const replica::Scope &,std::uint64_t revision) const noexcept;
+  void CompileStream(const replica::stream::Store &,const replica::stream::RangeData &,
+      const replica::RoomGridTarget &,const std::map<replica::SubjectKey,replica::stream::Range> &,std::vector<ClientObjectDescription> &,std::vector<ClientPlayerDescription> &) const;
+  ClientPlayerFastValues CompileFast(const replica::stream::Store &,const replica::stream::RangeData &) const;
+  ClientObjectStep InstallStream(const ClientNativeRoots &,const std::vector<ClientObjectDescription> &,const std::vector<ClientPlayerDescription> &) noexcept;
+  ClientObjectStep InstallFast(const ClientPlayerFastValues &) noexcept;
   ClientObjectStep Retire(const ClientNativeRoots &) noexcept;
   bool Visit(void *context,ClientObjectVisitor visitor) const noexcept;
 #ifdef ISAACCS_E2E

@@ -3,6 +3,7 @@
 #include "replica/player_plan.h"
 #include "game/client_player_budget.h"
 #include "game/client_player_diagnostics.h"
+#include "replica/stream_materialize.h"
 
 namespace cs::game {
 struct ClientPlayerHistoryView;
@@ -30,6 +31,13 @@ public:
   std::shared_ptr<const ClientPlayerHistoryView> History(const ClientObjectKey &) const noexcept;
   std::shared_ptr<const ClientPlayerDisplayView> Display() const noexcept;
   bool Committed(const replica::Scope &,std::uint64_t revision) const noexcept;
+  // 稳定结构下的完整普通值与独立身体子帧分别编译；编译阶段不借用原生对象。
+  std::vector<ClientPlayerDescription> CompileStream(const replica::stream::Store &,const replica::stream::RangeData &,
+      const std::map<ClientObjectKey,replica::Json> &,const std::map<replica::SubjectKey,replica::stream::Range> &);
+  ClientPlayerFastValues CompileFast(const replica::stream::Store &,const replica::stream::RangeData &) const;
+  ClientObjectStep InstallStream(const std::vector<ClientPlayerDescription> &,const ClientEntityOwners &) noexcept;
+  ClientObjectStep InstallFast(const ClientPlayerFastValues &) noexcept;
+  const ClientObjectDescription *StreamDescription(const ClientObjectKey &key) const noexcept {for(const auto &d:values_)if(d.entity.key==key)return &d.entity;return nullptr;}
   ClientPlayerBudget Budget() const noexcept {return budget_;}
   ClientPlayerDiagnostics Diagnostics() const noexcept {return diagnostic_;}
 #ifdef ISAACCS_E2E

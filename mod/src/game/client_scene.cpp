@@ -4,6 +4,8 @@
 #include "game/client_grids.h"
 #include "game/client_presentation.h"
 #include "game/client_resource_model.h"
+#include "game/client_players.h"
+#include "replica/stream_capture.h"
 #include "game/client_entity_draw_native.h"
 #include "game/client_entity_e2e.h"
 #include "replica/room_geometry.h"
@@ -268,6 +270,8 @@ bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget 
   reason="native_scene_description_ready";return true;
 }
 }
+// 冷目标与分层普通范围共用同一具名纯值解释，不触碰原生对象。
+bool ClientDescribeSceneValues(const replica::Value &value,const replica::RoomGridTarget &target,ClientNativeSceneDescription &out,const char *&reason){return SceneDescription(value,target,out,reason);}
 ClientScene::ClientScene() noexcept=default;
 ClientScene::~ClientScene() {ClientNativeWorldDestroy(native_world_);}
 // 新连接只建立等待身份；从不把等待 Scope 的 run/room 伪装成原生场景。
@@ -275,6 +279,7 @@ void ClientScene::Begin(const replica::Scope &scope) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
   if(!CanReturnToMenu()){FailureResult(ClientResultKind::PartialNativeFailure,"begin","old_owner_inflight");state_=ClientSceneState::Failed;return;}
   waiting_scope_=scope;target_scope_={};applied_scope_={};target_.reset();applied_.reset();
+  stream_.reset();
   room_grid_target_.reset();room_grid_applied_.reset();room_grid_plan_={};
   player_target_.reset();player_applied_.reset();
   player_lifecycle_.reset();player_next_lifecycle_.reset();
@@ -427,6 +432,12 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     planning_memory_->Resize(planning_memory_->Bytes()+8*value_bound+8*65536*roots);
     auto domain=replica::ParseRoomGridTarget(value);
     auto players=replica::HasPlayerTarget(value)?replica::ParsePlayerTarget(value):nullptr;
+    if(stream_&&!stream_->baseline_committed&&stream_->manifest&&revision==stream_->manifest_revision){
+      const auto entities=players?players->entities:std::make_shared<const replica::EntityTarget>(replica::ParseEntityTarget(value));std::map<replica::SubjectKey,std::uint64_t> actual;
+      for(const auto &e:entities->objects)if(e.presence==replica::EntityMemberPresence::Current)actual.emplace(e.key,e.shape_revision);
+      for(const auto &g:domain->grids)if(!actual.emplace(g.key,g.instance_revision).second)throw replica::ContractError("client_stream_cold_member_alias");actual.emplace(domain->room.key,0);
+      if(actual.size()!=stream_->manifest->members.size())throw replica::ContractError("client_stream_cold_member_count");for(const auto &m:stream_->manifest->members){auto it=actual.find(m.key);if(it==actual.end()||it->second!=m.shape)throw replica::ContractError("client_stream_cold_member_shape");}
+    }
     auto player_lifecycle=players?replica::PlanPlayerLifecycle(*players,player_lifecycle_.get()):nullptr;
     // 身体移除/换实例采用显式安全重建；在退休A前完成T的全部纯值分析。
     const bool player_rebuild=players&&applied_valid_&&player_applied_&&
@@ -446,7 +457,7 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     if(changing_scope&&retired_scope_count_==retired_scopes_.size()){
       FailureResult(ClientResultKind::BudgetExhausted,"admit","retired_scope_budget");return false;
     }
-    const bool need_rebuild=state_==ClientSceneState::Failed||rebuild_pending_||player_rebuild||
+    const bool need_rebuild=(stream_&&stream_->structure_rebuild)||state_==ClientSceneState::Failed||rebuild_pending_||player_rebuild||
         (ClientNativeWorldHasPrefix(native_world_)&&
          (domain_plan.room==replica::RoomPlanKind::Rebuild||(state_!=ClientSceneState::Displaying&&
            !(state_==ClientSceneState::Preparing&&replica::CancelRoomGridPlan(result_.native_written,result_.executed_prefix)==replica::PlanCancellation::PreserveApplied))||
@@ -1032,6 +1043,7 @@ void ClientScene::FinishRetirementIfDrained() noexcept {
     player_target_.reset();player_applied_.reset();player_lifecycle_.reset();player_next_lifecycle_.reset();
     target_memory_.reset();applied_memory_.reset();planning_memory_.reset();
     retirement_complete_=true;
+    stream_.reset();
     FailureResult(ClientResultKind::Retiring,"retired","native_safe_menu");
   }
 }

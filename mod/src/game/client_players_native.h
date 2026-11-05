@@ -12,6 +12,7 @@ struct ClientPlayerState;
 struct ClientPlayerEquipment;
 struct ClientPlayerRoleState;
 struct ClientPlayerSpecialState;
+struct ClientPlayerDisplayView;
 struct ClientPlayerDescription final {
   ClientObjectDescription entity;
   std::shared_ptr<const ClientPlayerState> state;
@@ -41,6 +42,19 @@ struct ClientPlayerAdapter final {
   std::shared_ptr<void> lifetime;
 };
 struct ClientNativePlayers;
+// 逐身体最终值DTO；只有当前借用栈解析Key，不携带原生地址，不改变roster/结构代次。
+struct ClientPlayerFastValues final {
+  ClientObjectKey key{};
+  std::uint64_t shape=0,binding=0;
+  std::vector<ClientEntityField> common,player;
+  ClientResourcePose sprite;
+  std::shared_ptr<const ClientPlayerEquipment> render;
+  std::shared_ptr<const ClientPlayerDisplayView> display;
+};
+// 在写前构造完整预期值；原生安装成功后更新检查依据，禁止把旧DTO当作新后态。
+ClientPlayerDescription ClientPlayerFastDescription(const ClientPlayerDescription &,const ClientPlayerFastValues &);
+ClientObjectStep ClientNativePlayersFast(ClientNativePlayers *,const ClientPlayerFastValues &) noexcept;
+ClientObjectStep ClientNativePlayersStream(ClientNativePlayers *,const std::vector<ClientPlayerDescription> &,const ClientEntityOwners &) noexcept;
 ClientNativePlayers *ClientNativePlayersCreate() noexcept;
 void ClientNativePlayersDestroy(ClientNativePlayers *) noexcept;
 unsigned ClientNativePlayersOwnerCount(const ClientNativePlayers *) noexcept;

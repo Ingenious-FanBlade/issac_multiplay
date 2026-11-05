@@ -143,7 +143,7 @@ bool Reassembler::Receive(std::span<const std::uint8_t> b,std::uint64_t now,Mess
     auto workspace=memory::Reserve(memory::Pool::Workspace,std::uint64_t(h.decoded_bytes)+128);std::vector<std::uint8_t> decoded;
     if(h.codec==Codec::Zstd)Decompress(c.bytes,decoded,h.decoded_bytes);else decoded=c.bytes;
     if(decoded.size()<40)Fail("stream_decoded_header");for(unsigned j=24;j<40;++j)if(decoded[j])Fail("stream_shared_envelope");Set(decoded,24,h.connection);Set(decoded,32,h.route);
-    auto message=Decode(decoded,limits);if(message.kind!=h.kind||MessageLane(message)!=h.lane)Fail("stream_fragment_envelope_conflict");
+    auto message=stream::Decode(decoded,limits);if(message.kind!=h.kind||MessageLane(message)!=h.lane)Fail("stream_fragment_envelope_conflict");
     if(world&&(!message.range||message.range->world!=route_.scope))Fail("stream_world_scope_conflict");
     ValidateReceive(message,routed_?route_.direction:Direction::ToClient,route_.world?State::Preparing:route_.negotiated?State::Waiting:State::Handshake);
     c.complete=true;c.ack_due=now;out=std::move(message);++statistics_.decoded;statistics_.decoded_bytes+=h.decoded_bytes;statistics_.decode_us+=Micros()-decode_started;

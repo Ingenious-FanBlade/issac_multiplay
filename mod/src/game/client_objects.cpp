@@ -396,6 +396,30 @@ bool ClientObjects::Commit(std::uint64_t attempt) noexcept {
   if(players_&&players_->Active()&&!players_->Commit(attempt))return false;
   committed_=std::move(installed_);entity_applied_=std::move(entity_installed_);entity_applied_values_=std::move(entity_installed_values_);return true;
 }
+void ClientObjects::CompileStream(const replica::stream::Store &store,const replica::stream::RangeData &r,const replica::RoomGridTarget &room,const std::map<replica::SubjectKey,replica::stream::Range> &fast,std::vector<ClientObjectDescription> &entities,std::vector<ClientPlayerDescription> &players) const {
+  if(!ready_||failed_||!entity_applied_||candidate_||installed_)throw replica::ContractError("objects_stream_not_committed");
+  std::map<ClientObjectKey,replica::Json> raws;auto all=replica::stream::SubjectValues(store,r,"entity");
+  for(const auto &base:entity_applied_values_){if(!base.key.id)continue;auto found=all.find({base.key.run,base.key.id,base.key.space});if(found==all.end())throw replica::ContractError("objects_stream_subject_missing");auto raw=std::move(found->second);
+    if(base.category==0)raws.emplace(base.key,std::move(raw));else{auto object=ClientStreamEntity(base,raw);auto d=ClientDescribeStreamEntity(base,object);
+      if(d.category==9&&d.variant==136){const auto found=std::find_if(room.lifted.begin(),room.lifted.end(),[&](const auto &v){return v.owner==object.key;});if(found==room.lifted.end()||found->descriptor_null||!d.derived||room.grid_capture.tick!=r.sample.tick)throw replica::ContractError("objects_stream_lifted_same_window");auto state=std::make_shared<ClientEntityClassState>(*d.derived);const auto &g=found->descriptor;auto &v=state->lifted;v.type=g.type;v.variant=g.variant;v.state=g.state;v.spawn_count=g.spawn_count;v.spawn_seed=g.spawn_seed;v.var_data=g.var_data;v.initialized=g.initialized;v.variable_seed=g.variable_seed;state->has_lifted=true;d.derived=std::move(state);}
+      const auto a=std::find_if(entity_adapters_.begin(),entity_adapters_.end(),[&](const auto &a){return a.category==d.category;});const char *why="stream_class_preflight";if(a==entity_adapters_.end()||!a->prepare(a->context,d,why))throw replica::ContractError(why);entities.push_back(std::move(d));}}
+  if(!players_)throw replica::ContractError("objects_stream_full_player_owner_required");players=players_->CompileStream(store,r,raws,fast);
+}
+ClientPlayerFastValues ClientObjects::CompileFast(const replica::stream::Store &store,const replica::stream::RangeData &r) const {if(!players_||failed_||!ready_)throw replica::ContractError("objects_fast_owner");return players_->CompileFast(store,r);}
+ClientObjectStep ClientObjects::InstallFast(const ClientPlayerFastValues &v) noexcept {if(!players_)return {false,false,true,0,0,"objects_fast_no_players"};auto step=players_->InstallFast(v);if(step.done&&!step.failed){const auto *d=players_->StreamDescription(v.key);const char *reason="objects_fast_draw_description";if(!d||!ClientNativeObjectsRefreshPlayer(native_,*d,reason)){step.done=false;step.failed=true;step.reason=reason;failed_=true;}}return step;}
+ClientObjectStep ClientObjects::InstallStream(const ClientNativeRoots &roots,const std::vector<ClientObjectDescription> &entities,const std::vector<ClientPlayerDescription> &players) noexcept {
+  if(!ready_||failed_||candidate_||installed_||!players_)return {false,false,true,prefix_,OwnerCount(),"objects_stream_owner"};
+  // 全范围写前核对稳定Key/shape和已发布实例；改变结构必须先走Scene的结构事务。
+  for(const auto &d:entities)if(!ClientNativeObjectsMatch(native_,d.key,d.shape_revision,0))return {false,false,true,prefix_,OwnerCount(),"objects_stream_instance_changed"};
+  ClientObjectStep step;bool written=false;
+  for(const auto operation:{ClientObjectOperation::Fields,ClientObjectOperation::Resources})for(const auto &d:entities){ClientObjectCommand c;c.operation=operation;c.value=d;step=ClientNativeObjectsExecute(native_,roots,c);written|=step.written;if(step.failed||!step.done){step.written=written;failed_|=step.failed;return step;}}
+  step=players_->InstallStream(players,ClientNativeObjectsEntityOwner(native_));written|=step.written;if(step.failed||!step.done){step.written=written;failed_|=step.failed;return step;}
+  for(const auto &d:players){const char *why="objects_stream_player_description";if(!ClientNativeObjectsRefreshPlayer(native_,d.entity,why)){failed_=true;return {false,written,true,prefix_,OwnerCount(),why};}}
+  for(const auto operation:{ClientObjectOperation::References,ClientObjectOperation::Check})for(const auto &d:entities){ClientObjectCommand c;c.operation=operation;c.value=d;step=ClientNativeObjectsExecute(native_,roots,c);written|=step.written;if(step.failed||!step.done){step.written=written;failed_|=step.failed;return step;}}
+  // 纯值原描述与native draw描述共同推进；结构比较仍只在下一次完整事务中进行。
+  try{for(const auto &d:entities)for(auto &old:entity_applied_values_)if(old.key==d.key){old=d;break;}}catch(...){failed_=true;return {false,true,true,prefix_,OwnerCount(),"objects_stream_commit_allocation"};}
+  return {true,written,false,prefix_,OwnerCount(),"objects_stream_native_checked"};
+}
 ClientObjectStep ClientObjects::Retire(const ClientNativeRoots &roots) noexcept {
   // 双向关系先撤Player出边；非Player的正式Abandon随后撤其出边，再按唯一owner释放。
   if(players_){auto links=players_->Unlink(roots);if(!links.done)return links;}

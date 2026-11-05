@@ -602,6 +602,17 @@ bool ClientNativeObjectsPreflight(ClientNativeObjects *o,const ClientNativeRoots
     o->players=std::move(current_players);o->player_draw=std::move(player_draw);reason="objects_entity_dependencies_ready";return true;
   }catch(...){reason="objects_entity_preflight_allocation";return false;}
 }
+bool ClientNativeObjectsRefreshPlayer(ClientNativeObjects *o,const ClientObjectDescription &description,const char *&reason) noexcept {
+  if(!o||!Phase()||!o->committed||o->uncertain||o->executing||o->abandoned){reason="objects_player_stream_context";return false;}
+  try{const ClientNativeRoots roots{o->game,o->room,o->room->_descriptor,o->room->_Camera};
+    for(auto &pair:o->player_draw){auto &entry=pair.second;if(!(entry.description.key==description.key))continue;
+      const auto current=o->players.find(description.key);if(current==o->players.end()||entry.description.shape_revision!=description.shape_revision){reason="objects_player_stream_shape";return false;}
+      ClientEntityBorrow borrow{entry.entity,entry.instance,current->second.second,0};
+      if(!o->external.player_current||!o->external.player_current(o->external.context,roots,description.key,borrow,reason)||!o->external.player_ready||!o->external.player_ready(o->external.context,roots,description,borrow,reason))return false;
+      entry.description=description;reason="objects_player_stream_draw_current";return true;}
+    reason="objects_player_stream_missing";return false;
+  }catch(...){reason="objects_player_stream_description_allocation";return false;}
+}
 // 与6EEE60构造立即数和6EC540的valid扫描一致；只数空槽/本方可退休槽，不改游标或占用位。
 bool ClientNativeObjectsCapacity(ClientNativeObjects *o,const ClientNativeRoots &roots,const std::vector<ClientObjectDescription> &values,const char *&reason) noexcept {
   if(!o||!Phase()||!Current(*o,roots)||!o->game->_entityFactory){reason="objects_capacity_context";return false;}

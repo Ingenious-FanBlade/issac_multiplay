@@ -5,6 +5,8 @@
 #include "game/client_player_roles.h"
 #include "game/client_entity_e2e.h"
 #include <algorithm>
+#include "replica/stream_codec.h"
+#include "game/client_resource_model.h"
 
 namespace cs::game {
 namespace {
@@ -131,5 +133,50 @@ std::shared_ptr<const ClientPlayerHistoryView> ClientPlayers::History(const Clie
 ClientObjectReference ClientPlayers::Backup(unsigned slot) const noexcept {
   if(slot>=4||!applied_||written_)return {};
   const auto &r=applied_->backup_slots[slot];return {true,r.status=="Null",Key(r.key)};
+}
+namespace {
+const replica::Value &StreamAt(const replica::Value &v,const char *name){if(!v.IsObject()||!v.HasMember(name))throw replica::ContractError("players_stream_required");return v[name];}
+const replica::Value &FastTree(const replica::stream::RangeData &r){return **std::get_if<std::shared_ptr<const replica::Json>>(&r.records.at(0).fields.at(0).value);}
+// 新身体快值只覆盖它声明的公开字段；普通私有值仍来自精确ordinary闭包。
+void OverlayFast(replica::Json &raw,const replica::stream::RangeData &fast){auto &a=raw.GetAllocator();const auto &tree=FastTree(fast);
+  replica::stream::MergePiece(raw["common"],StreamAt(tree,"common"),a);replica::stream::MergePiece(raw["body"],StreamAt(tree,"body"),a);
+  auto &sprite=raw["common"]["fields"]["Entity.GetSprite"];replica::stream::MergePiece(sprite,StreamAt(tree,"sprite"),a);replica::stream::FinishPieces(raw,a,fast.revision);
+  // 九个公开直接float与私有backing在普通解析器中交叉核对；先保持同一选中时间线。
+  auto &body=raw["body"];if(body.HasMember("application_player_state")){auto &values=body["application_player_state"]["values"];const auto &fields=tree["body"]["fields"];
+    for(const auto *id:{"EntityPlayer.Damage","EntityPlayer.MoveSpeed","EntityPlayer.MaxFireDelay","EntityPlayer.ShotSpeed","EntityPlayer.TearRange","EntityPlayer.TearHeight","EntityPlayer.TearFallingSpeed","EntityPlayer.TearFallingAcceleration","EntityPlayer.Luck","EntityPlayer.SamsonBerserkCharge","EntityPlayer.IBSCharge"})if(fields.HasMember(id)){replica::Value value;value.CopyFrom(fields[id],a);replica::Put(values,id,std::move(value),a);}}
+}
+}
+std::vector<ClientPlayerDescription> ClientPlayers::CompileStream(const replica::stream::Store &store,const replica::stream::RangeData &range,const std::map<ClientObjectKey,replica::Json> &raws,const std::map<replica::SubjectKey,replica::stream::Range> &fast) {
+  if(!applied_||begun_||written_)throw replica::ContractError("players_stream_not_committed");
+  const auto player=replica::stream::DomainValue(store,range,"player");const auto &rows=StreamAt(player,"bodies");if(!rows.IsArray()||rows.Size()!=values_.size())throw replica::ContractError("players_stream_membership");std::vector<ClientPlayerDescription> out;
+  const replica::Value *captures=nullptr;for(const auto &record:range.records)if(record.member.key.space==7)captures=std::get<std::shared_ptr<const replica::Json>>(record.fields.at(1).value).get();if(!captures)throw replica::ContractError("players_stream_capture_scopes");
+  const auto capture=[&](const char *name){const auto &v=StreamAt(*captures,name);return replica::DomainCapture{range.revision,replica::Unsigned(StreamAt(v,"scope")),replica::Unsigned(StreamAt(v,"sequence")),replica::Unsigned(StreamAt(v,"authority_tick"))};};
+  std::map<ClientObjectKey,std::shared_ptr<const replica::Json>> sources;
+  for(const auto &base:values_){auto found=raws.find(base.entity.key);if(found==raws.end())throw replica::ContractError("players_stream_body_missing");auto raw=replica::Copy(found->second);
+    const replica::SubjectKey key{base.entity.key.run,base.entity.key.id,base.entity.key.space};auto f=fast.find(key);if(f!=fast.end()&&f->second->sample.tick>range.sample.tick)OverlayFast(raw,*f->second);
+    auto object=ClientStreamEntity(base.entity,raw);ClientPlayerDescription d=base;d.entity=ClientDescribeStreamEntity(base.entity,object);d.state=ClientDescribePlayerState(object);d.role=ClientDescribePlayerRole(object);d.special=ClientDescribePlayerSpecial(object);
+    // 私有完整状态继续来自ordinary；已选中的较新直接字段覆盖其同名backing，防止回退。
+    if(f!=fast.end()&&f->second->sample.tick>range.sample.tick){auto selected=std::make_shared<ClientPlayerState>(*d.state);for(const auto &value:ClientStreamPlayerFields(StreamAt(FastTree(*f->second),"body"),base.player_type)){auto old=std::find_if(selected->fields.begin(),selected->fields.end(),[&](const auto &v){return v.member==value.member;});if(old==selected->fields.end())throw replica::ContractError("players_fast_backing_missing");*old=value;}d.state=std::move(selected);}
+    // 每身体局部图单独解析；其余成员只提供稳定Key集合，避免N次复制全Entity DOM。
+    auto entities=std::make_shared<replica::EntityTarget>();entities->objects.push_back(std::move(object));entities->source=replica::Copy(raw);
+    for(const auto &e:applied_->entities->objects)if(e.key!=key){replica::EntityObjectTarget shell;shell.key=e.key;shell.presence=e.presence;entities->objects.push_back(std::move(shell));}
+    replica::PlayerTarget target;target.scope=applied_->scope;target.revision=range.revision;target.entity_capture=capture("entity");target.player_capture=capture("player");target.entities=entities;
+    const replica::Value *row=nullptr;for(const auto &r:rows.GetArray())if(StreamAt(StreamAt(r,"subject"),"target")==raw["subject"]["target"]){row=&r;break;}if(!row)throw replica::ContractError("players_stream_history_missing");
+    replica::PlayerBodyTarget body;body.key=key;body.shape_revision=base.entity.shape_revision;body.entity_index=0;body.history=replica::Copy(StreamAt(*row,"history"));target.source=replica::Copy(*row);target.bodies.push_back(std::move(body));
+    d.equipment=ClientDescribePlayerEquipment(target).at(d.entity.key);d.state_changed=d.resources_changed=true;sources.emplace(d.entity.key,std::make_shared<const replica::Json>(std::move(raw)));out.push_back(std::move(d));
+  }if(!display_)throw replica::ContractError("players_stream_display_missing");candidate_display_=ClientDescribeStreamDisplay(*display_,out,sources,range.revision);return out;
+}
+ClientPlayerFastValues ClientPlayers::CompileFast(const replica::stream::Store &store,const replica::stream::RangeData &r) const {
+  const auto key=Key(r.id.body);auto base=std::find_if(values_.begin(),values_.end(),[&](const auto &v){return v.entity.key==key;});if(base==values_.end()||base->entity.shape_revision!=r.members.at(0).shape||base->binding_revision!=r.sample.binding_revision)throw replica::ContractError("players_fast_shape_binding");
+  auto raw=replica::stream::SubjectValue(store,r,r.id.body,"entity");OverlayFast(raw,r);const auto &tree=FastTree(r);
+  ClientPlayerFastValues out;out.key=key;out.shape=r.members[0].shape;out.binding=r.sample.binding_revision;out.common=ClientStreamCommonFields(StreamAt(tree,"common"));out.player=ClientStreamPlayerFields(StreamAt(tree,"body"),base->player_type);std::string reason;
+  if(!ClientParseResourcePose(raw["common"]["fields"]["Entity.GetSprite"],out.sprite,reason))throw replica::ContractError(reason);
+  out.render=ClientStreamPlayerEquipment(*base->equipment,ClientStreamEntity(base->entity,raw));
+  if(!display_)throw replica::ContractError("players_fast_display_missing");out.display=ClientDescribeStreamDisplay(*display_,{ClientPlayerFastDescription(*base,out)},{{key,std::make_shared<const replica::Json>(std::move(raw))}},r.revision);return out;
+}
+ClientObjectStep ClientPlayers::InstallStream(const std::vector<ClientPlayerDescription> &values,const ClientEntityOwners &entities) noexcept {auto step=ClientNativePlayersStream(native_,values,entities);if(step.done&&!step.failed)try{values_=values;for(const auto &d:values)histories_[d.entity.key]=d.equipment->history;display_=std::move(candidate_display_);}catch(...){return {false,true,true,step.executed_prefix,step.pending_owners,"players_stream_value_commit_allocation"};}return step;}
+ClientObjectStep ClientPlayers::InstallFast(const ClientPlayerFastValues &v) noexcept {
+  try{auto base=std::find_if(values_.begin(),values_.end(),[&](const auto &d){return d.entity.key==v.key;});if(base==values_.end()||!v.display)return {false,false,true,0,0,"players_fast_value_owner"};auto expected=ClientPlayerFastDescription(*base,v);auto step=ClientNativePlayersFast(native_,v);if(step.done&&!step.failed){*base=std::move(expected);display_=v.display;}return step;}
+  catch(...){return {false,false,true,0,0,"players_fast_expected_allocation"};}
 }
 } // namespace cs::game

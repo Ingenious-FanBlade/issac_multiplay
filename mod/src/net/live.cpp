@@ -51,6 +51,8 @@ std::uint64_t Next(std::uint64_t &n) {
 }
 r::Json Capabilities() {
   auto caps = s::Capabilities();
+  // 真实DLL声明已接线的具名owner能力；纯模型Capabilities仍不冒充原生Client。
+  auto &a=caps.GetAllocator();for(const char *name:{"client-scene-entity-v1","client-scene-grid-v1","client-scene-room-v1","client-scene-player-v2"})caps["native_appliers"].PushBack(r::Value(name,a),a);
   auto &l = caps["limits"];
   const auto local = Limits();
   l["bytes"].SetUint(local.bytes);
@@ -62,6 +64,7 @@ r::Json Capabilities() {
 }
 r::Limits Agreed(const r::Value &v) {
   auto l = Limits();
+  for(const char *name:{"client-scene-entity-v1","client-scene-grid-v1","client-scene-room-v1","client-scene-player-v2"}){bool found=false;for(const auto &applier:At(v,"native_appliers").GetArray())if(applier.IsString()&&String(applier)==name)found=true;if(!found)Fail("live_native_applier_capability");}
   const auto &a = v["limits"];
   if (N(a, "datagram") != l.datagram || N(a, "bytes") < l.bytes || N(a, "fragments") < l.fragments)
     Fail("live_transport_budget");
@@ -151,6 +154,11 @@ Packets HostPeer::Pack(const s::Message &m) { return s::Fragment(m, Next(transfe
 bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, ReceivedInput &out,
                        const HostIdentity &identity) {
   const auto header = s::ReadHeader(bytes, s::WorldLimits());
+  if(prepared_echo_&&header.kind==s::Kind::ScenePrepared&&header.connection==route_.connection&&header.route==prepared_echo_->route){
+    s::Message replay;if(prepare_replay_.Receive(bytes,now,replay)){
+      if(replay.sequence!=prepared_echo_->sequence||replay.body!=prepared_echo_->body)Fail("live_prepare_replay_conflict");echo_pending_=true;last_receive_=now;
+    }return false;
+  }
   if (header.kind == s::Kind::Hello && route_.world)
     return false;
   if (header.kind != s::Kind::Hello &&
@@ -219,8 +227,11 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
     if (!baseline || publication_.State() != PublicationSender::Phase::Preparing ||
         ReadWorld(m.body["world"]) != baseline->world ||
         N(m.body, "manifest") != baseline->manifest->revision ||
-        N(m.body, "generation") != sent_.generation)
+        N(m.body, "generation") != prepare_generation_||N(m.body,"native_domains")!=baseline->manifest->native_domains||N(m.body,"retained_domains")!=baseline->manifest->retained_domains)
       Fail("live_prepared_identity");
+    // 确认在旧路由返回；Client收到同值echo才切换，丢包由小消息重复完成。
+    if(m.sequence!=prepare_sequence_)Fail("live_prepared_sequence");
+    prepare_replay_.Authorize(route_);prepared_echo_=std::make_shared<const s::Message>(std::move(m));echo_pending_=true;
     route_.epoch = Next(route_.epoch);
     route_.world = true;
     route_.scope = baseline->world;
@@ -266,6 +277,7 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes, std::uint64_t now, R
                        now);
     return false;
   }
+  if(m.kind==s::Kind::Input&&(!route_.world||publication_.State()!=PublicationSender::Phase::Active))return false;
   if (!established_ || m.kind != s::Kind::Input || N(m.body, "participant") != ordinal_)
     Fail("live_input_identity");
   ReceivedInput value{};
@@ -296,7 +308,8 @@ bool HostPeer::OwnsPacket(std::span<const std::uint8_t> packet) const noexcept {
       n |= std::uint64_t(packet[at + i]) << (8 * i);
     return n;
   };
-  return packet.size() >= 28 && read(8) == route_.connection && read(16) == route_.epoch;
+  return packet.size() >= 64 && read(8) == route_.connection && (read(16) == route_.epoch||
+      (prepared_echo_&&read(16)==prepared_echo_->route&&packet[48]==unsigned(s::Kind::ScenePrepared)&&packet[49]==0));
 }
 Packets HostPeer::Reply() {
   if (!reply_)
@@ -307,10 +320,12 @@ Packets HostPeer::Reply() {
 Packets HostPeer::Progress(const protocol::Ack &p) {
   const auto now = GetTickCount64();
   Packets packets;
-  const bool changed = p.generation != sent_.generation || p.input_enabled != sent_.input_enabled ||
+  const bool enabled=p.input_enabled&&route_.world&&publication_.State()==PublicationSender::Phase::Active;
+  const bool changed = p.generation != sent_.generation || enabled != sent_.input_enabled ||
                        p.session_state != sent_.session_state || p.roster_mask != sent_.roster_mask;
   const bool tick = p.server_tick != sent_.server_tick;
   sent_ = p;
+  sent_.input_enabled=enabled;
   if (changed || !eligibility_revision_)
     Next(eligibility_revision_);
   sent_.eligibility_revision = eligibility_revision_;
@@ -330,7 +345,7 @@ Packets HostPeer::Progress(const protocol::Ack &p) {
     N(m.body, "server_tick", p.server_tick, a);
     N(m.body, "kind", p.authority_kind, a);
     N(m.body, "generation", p.generation, a);
-    r::Put(m.body, "input_enabled", r::Value(p.input_enabled), a);
+    r::Put(m.body, "input_enabled", r::Value(enabled), a);
     N(m.body, "sample_ms", p.server_sample_ms, a);
     N(m.body, "send_ms", now, a);
     N(m.body, "echo_client_ms", echo_client_ms_, a);
@@ -374,6 +389,7 @@ void HostPeer::Offer(const Publication &p, std::uint64_t now) {
   publication_.Offer(p.baseline, p.latest, p.bodies);
   if (!p.latest) {
     if (had) {
+      operations_.CancelPending(now);
       auto m = Message(s::Kind::Retire, Next(control_));
       r::Put(m.body, "reason", std::string("host_source_withdrawn"), m.body.GetAllocator());
       operations_.Queue(std::make_shared<const s::Message>(std::move(m)), now);
@@ -389,7 +405,9 @@ void HostPeer::Offer(const Publication &p, std::uint64_t now) {
     N(m.body, "next_route", route_.epoch + 1, a);
     N(m.body, "manifest", publication_.Baseline()->manifest->revision, a);
     N(m.body, "generation", sent_.generation, a);
+    N(m.body,"native_domains",publication_.Baseline()->manifest->native_domains,a);N(m.body,"retained_domains",publication_.Baseline()->manifest->retained_domains,a);r::Put(m.body,"contract","complete-ranges-schema-v1",a);
     prepare_sequence_ = m.sequence;
+    prepare_generation_=sent_.generation;
     operations_.Queue(std::make_shared<const s::Message>(std::move(m)), now);
     publication_.Preparing();
   }
@@ -405,6 +423,7 @@ unsigned HostPeer::Pump(std::uint64_t now, EncodingCache &cache,
       Fail("live_socket_send");
     return result == s::SendResult::Sent;
   };
+  if(echo_pending_&&prepared_echo_&&transmit(*prepared_echo_))echo_pending_=false;
   operations_.Pump(now, transmit);
   if (!operations_.Failure().empty())
     Fail(operations_.Failure().c_str());
@@ -441,7 +460,7 @@ struct Client::State {
   std::atomic<bool> terminal_ready{false};
   bool terminal_delivered = false;
   struct Command {
-    enum class Type { Send, Authorize, Complete } type = Type::Send;
+    enum class Type { Send, Complete, Prepare } type = Type::Send;
     std::shared_ptr<const s::Message> message;
     s::Route route;
     std::uint64_t generation = 0;
@@ -463,6 +482,8 @@ struct Client::State {
   std::uint32_t timeout = 3000;
   bool welcomed = false, have_progress = false;
   protocol::Ack progress{};
+  std::shared_ptr<const s::Message> pending_prepare,prepared_response;
+  std::uint64_t prepare_due=0,prepare_started=0;
   std::array<Intent, 4> history{};
   unsigned history_size = 0;
   struct Queued {
@@ -575,6 +596,7 @@ struct Client::State {
         Event e;
         e.type = Event::Type::Welcome;
         e.scope = scope;
+        e.route = route.epoch;
         e.ordinal = ordinal;
         Emit(e);
       }
@@ -591,6 +613,16 @@ struct Client::State {
     if (m.kind == s::Kind::OperationAck) {
       operations.Acknowledge(m, now);
       return;
+    }
+    if(m.kind==s::Kind::ScenePrepared){
+      if(!pending_prepare||!prepared_response||m.sequence!=prepared_response->sequence||m.body!=prepared_response->body)Fail("live_prepare_confirmation");
+      Revoke();Intent old;while(intents.TryPop(old)){};
+      route.epoch=N(pending_prepare->body,"next_route");route.world=true;route.scope=ReadWorld(pending_prepare->body["world"]);scope=s::Connected(route.scope,route.connection);
+      assembler.Authorize(route);operations.Bind(route.connection,route.epoch);have_progress=false;progress={};roster_sequence=tick_sequence=0;input_ack_generation=input_ack_sequence=input_ack_tick=0;
+      timing_event.Take();roster_event.Take();input_ack_event.Take();Event old_event;while(reliable_world.TryPop(old_event)){};while(world_controls.TryPop(old_event)){};
+      {std::lock_guard lock(dynamic_mutex);dynamic.clear();}
+      published_route.store(route.epoch,std::memory_order_release);Event activated;activated.type=Event::Type::Prepared;activated.scope=scope;activated.route=route.epoch;activated.ordinal=ordinal;activated.world=pending_prepare;Emit(std::move(activated));
+      pending_prepare.reset();prepared_response.reset();return;
     }
     Event e;
     e.scope = scope;
@@ -688,6 +720,7 @@ struct Client::State {
       if (!operations.Admit(e.world, now))
         return;
       e.type = Event::Type::Control;
+      if(kind==s::Kind::ScenePrepare){Revoke();progress.input_enabled=false;have_progress=false;}
       if (cancel)
         assembler.Cancel(cancel);
       if (kind == s::Kind::Stop || kind == s::Kind::Disconnect) {
@@ -697,6 +730,7 @@ struct Client::State {
       } else if (kind == s::Kind::Cancel)
         operations.Finish({kind, sequence}, OperationStage::Complete, "transfer_cancelled", now);
       else if (kind == s::Kind::Retire) {
+        pending_prepare.reset();prepared_response.reset();
         Revoke();
         progress.input_enabled = false;
         have_progress = false;
@@ -743,19 +777,12 @@ struct Client::State {
         operations.Finish(c.operation, c.stage, c.reason.data(), now);
         continue;
       }
-      if (c.type == Command::Type::Authorize) {
-        if (c.route.connection != route.connection || c.route.epoch <= route.epoch ||
-            !c.route.world || !c.generation)
-          Fail("live_authorize_route");
-        Revoke();
-        route = c.route;
-        scope = s::Connected(route.scope, route.connection);
-        assembler.Authorize(route);
-        operations.Bind(route.connection, route.epoch);
-        have_progress = false;
-        progress = {};
-        published_route.store(route.epoch, std::memory_order_release);
-        continue;
+      if(c.type==Command::Type::Prepare){
+        if(!c.message||c.message->kind!=s::Kind::ScenePrepare||c.message->connection!=route.connection||c.message->route!=route.epoch)continue;
+        if(pending_prepare){if(pending_prepare->sequence!=c.message->sequence||pending_prepare->body!=c.message->body)Fail("live_pending_prepare_conflict");continue;}
+        Revoke();Intent old;while(intents.TryPop(old)){};have_progress=false;progress={};pending_prepare=c.message;
+        auto response=Make(s::Kind::ScenePrepared,c.message->sequence,route.connection,route.epoch);response.body=r::Copy(c.message->body);response.body.RemoveMember("next_route");
+        prepared_response=std::make_shared<const s::Message>(std::move(response));prepare_due=now;prepare_started=now;continue;
       }
       if (!c.message || c.message->connection != route.connection ||
           c.message->route != route.epoch)
@@ -795,6 +822,7 @@ struct Client::State {
         }
         Flush();
         Commands(now);
+        if(prepared_response&&now>=prepare_due){if(now<prepare_started||now-prepare_started>=2000)Fail("live_prepare_no_confirmation");SendMessage(*prepared_response);prepare_due=now+100;}
         if (terminal_ready.load(std::memory_order_acquire)) {
           if (!ending)
             ending = now;
@@ -1016,15 +1044,7 @@ bool Client::SendControl(std::shared_ptr<const s::Message> m) noexcept {
   c.message = std::move(m);
   return state_->commands.TryPush(std::move(c));
 }
-bool Client::Authorize(s::Route route, std::uint64_t generation) noexcept {
-  if (!state_ || Finished())
-    return false;
-  State::Command c;
-  c.type = State::Command::Type::Authorize;
-  c.route = route;
-  c.generation = generation;
-  return state_->commands.TryPush(std::move(c));
-}
+bool Client::Prepare(const Event &event) noexcept {if(!state_||Finished()||!event.world||event.world->kind!=s::Kind::ScenePrepare)return false;State::Command command;command.type=State::Command::Type::Prepare;command.message=event.world;return state_->commands.TryPush(std::move(command));}
 bool Client::Complete(const Event &event, OperationStage stage, const char *reason) noexcept {
   if (!state_ || Finished() || !event.world || !Operations::Reliable(event.world->kind) ||
       unsigned(stage) < 2 || unsigned(stage) > 5)

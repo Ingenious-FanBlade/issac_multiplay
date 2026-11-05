@@ -88,6 +88,8 @@ struct ClientObjectStep final {
   const char *phase="";
 };
 struct ClientNativeObjects;
+// Player唯一owner完成回读后，更新同实例绘制描述；不重新发布或构造身体。
+bool ClientNativeObjectsRefreshPlayer(ClientNativeObjects *,const ClientObjectDescription &,const char *&) noexcept;
 // 外部Player/跨域owner按稳定Key每次重新借用；不缓存Authority指针，也不回退到roster[0]。
 struct ClientEntityBorrow final {void *object=nullptr;std::uint64_t instance=0,owner_epoch=0;unsigned category=13;};
 using ClientEntityResolve=bool (*)(void *,const ClientNativeRoots &,const ClientObjectKey &,unsigned,ClientEntityBorrow &,const char *&) noexcept;

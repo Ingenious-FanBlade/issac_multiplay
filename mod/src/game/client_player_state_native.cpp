@@ -152,6 +152,15 @@ bool ClientPlayerStateFields(void *pointer,const ClientPlayerDescription &d,bool
   if(!ClientEntityCommonFields(pointer,d.entity.common_fields,check,reason))return false;
   reason=check?"player_final_values_checked":"player_final_values_installed";return true;
 }
+bool ClientPlayerScalarFields(void *pointer,const std::vector<ClientEntityField> &fields,bool check,const char *&reason) noexcept {
+  if(!pointer||!IsMain()||!ClientBusy()||!HasOwner(Owner::Manager)||!ContextHealthy()){reason="player_fast_scalar_context";return false;}auto &p=*static_cast<Entity_Player *>(pointer);
+  for(const auto &f:fields){bool found=false,ok=false;
+#define CS_PLAYER_FIELD(id,field,type,kind) if(f.member==id){found=true;ok=Store(field,f,check);}
+#include "game/client_player_fields.inc"
+#undef CS_PLAYER_FIELD
+    if(!found||!ok){reason="player_fast_scalar_postcondition";return false;}}
+  reason="player_fast_scalars_complete";return true;
+}
 bool ClientPlayerStateRetire(void *pointer,const char *&reason){
   if(!pointer||!IsMain()||!ClientBusy()){reason="player_state_retire_context";return false;}
   // 库存及Plus容器由原生Player/官方Plus析构，slice不重复释放；只撤本机配置借用。

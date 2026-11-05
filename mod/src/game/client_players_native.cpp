@@ -202,6 +202,45 @@ void ClientNativePlayersDestroy(ClientNativePlayers *o) noexcept {
 unsigned ClientNativePlayersOwnerCount(const ClientNativePlayers *o) noexcept {
   if(!IsMain()||!o)return 0;unsigned n=0;for(const auto &e:o->entries)n+=e.second.player!=nullptr;return n;
 }
+// 完整小步骤内先核全部实例，再安装/回读；失败前缀只交Scene退休，不重演玩法。
+ClientObjectStep ClientNativePlayersFast(ClientNativePlayers *o,const ClientPlayerFastValues &v) noexcept {
+  if(!o||!Phase()||o->busy||o->fault||!o->ready||!o->committed_revision||!SameRoots(o->roots))return Result(o,false,true,"players_fast_owner");
+  const auto it=o->entries.find(v.key);if(it==o->entries.end()||!Current(*o,it->second)||it->second.description.entity.shape_revision!=v.shape||it->second.description.binding_revision!=v.binding)return Result(o,false,true,"players_fast_instance_binding");
+  if(!Graphics())return Result(o,false,false,"players_fast_inflight");
+  if(it->second.description.player_type==29||it->second.description.player_type==38)return Result(o,false,false,"players_fast_cross_body_requires_ordinary");
+  if(!v.render||!ClientPlayerRenderCompatible(it->second.equipment,it->second.player,*v.render))return Result(o,false,false,"players_fast_resource_requires_ordinary");
+  for(const auto &f:v.common)if(f.member=="Entity.GetEntityFlags"&&((it->second.player->_flags^f.bits)&8))return Result(o,false,false,"players_fast_membership_requires_ordinary");
+  ClientPlayerDescription expected;try{expected=ClientPlayerFastDescription(it->second.description,v);}catch(...){return Result(o,false,true,"players_fast_expected_allocation");}
+  ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeApply)!=ClientEntryDecision::CallOriginal)return Result(o,false,true,"players_fast_dispatch");
+  auto &e=it->second;const char *reason="players_fast_complete";bool ok=false;o->busy=true;o->last_key=v.key;o->phase="fast";e.prefix|=State|Resources;o->prefix|=State|Resources;
+  try{ClientPlayerIsolationScope isolation(ClientPlayerOperation::Install);ok=isolation.Ready()&&
+      ClientEntityCommonFields(e.player,v.common,false,reason)&&ClientPlayerScalarFields(e.player,v.player,false,reason);
+    if(ok)ok=ClientPlayerRenderInstall(e.equipment,e.player,*v.render,false,reason);
+    if(ok)ok=Current(*o,e)&&ClientEntityCommonFields(e.player,v.common,true,reason)&&ClientPlayerScalarFields(e.player,v.player,true,reason)&&ClientPlayerRenderInstall(e.equipment,e.player,*v.render,true,reason);
+    if(ok)e.description=std::move(expected);
+  }catch(...){reason="players_fast_native_exception";}
+  o->busy=false;ClientDispatchReturned(ClientEntry::NativeApply);ok=ok&&dispatch.Succeeded();if(!ok){o->fault=true;o->ready=false;}
+  return Result(o,ok,!ok,reason,true);
+}
+ClientObjectStep ClientNativePlayersStream(ClientNativePlayers *o,const std::vector<ClientPlayerDescription> &values,const ClientEntityOwners &entities) noexcept {
+  if(!o||!Phase()||o->busy||o->fault||!o->ready||!SameRoots(o->roots)||values.size()!=o->desired.size())return Result(o,false,true,"players_stream_owner");
+  const char *reason="players_stream_complete";
+  try{for(const auto &d:values){auto it=o->entries.find(d.entity.key);if(it==o->entries.end()||!Current(*o,it->second)||d.entity.shape_revision!=it->second.description.entity.shape_revision||d.player_type!=it->second.description.player_type||!o->adapter.prepare(o->adapter.context,d,reason)||!ClientPlayerStatePreflight(d,reason)||!ClientPlayerEquipmentPreflight(d,reason))return Result(o,false,true,reason);}}
+  catch(...){return Result(o,false,true,"players_stream_preflight");}
+  if(!Graphics())return Result(o,false,false,"players_stream_inflight");
+  ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeApply)!=ClientEntryDecision::CallOriginal)return Result(o,false,true,"players_stream_dispatch");
+  bool ok=true;o->busy=true;o->ready=false;o->phase="stream";
+  try{ClientPlayerIsolationScope isolation(ClientPlayerOperation::Install);ok=isolation.Ready();
+    for(const auto &d:values){if(!ok)break;auto &e=o->entries.at(d.entity.key);o->last_key=d.entity.key;e.prefix|=State|Resources;o->prefix|=State|Resources;e.description=d;
+      ok=ClientPlayerStateFields(e.player,d,false,reason)&&ClientPlayerEquipmentFields(e.player,d,false,reason)&&ClientPlayerRoleFields(e.player,d,false,reason)&&o->adapter.install(o->adapter.context,e.player,d,false,false,reason)&&ClientPlayerEquipmentResources(e.equipment,e.player,d,false,reason)&&o->adapter.install(o->adapter.context,e.player,d,true,false,reason)&&ClientPlayerHudInstall(e.hud,e.player,d,false,reason);}
+    if(ok)for(auto &pair:o->entries)if(!Relations(*o,pair.second,entities,false,false,reason)){ok=false;break;}
+    if(ok)for(auto &pair:o->entries){auto &e=pair.second;const auto &d=e.description;RelationContext context{o,&entities};ClientEntityOwners resolver{&context,ResolveRelation};
+      if(!Current(*o,e)||!Relations(*o,e,entities,true,false,reason)||!ClientPlayerRoleRelations(e.player,d,resolver,o->roots,reason)||!ClientPlayerStateFields(e.player,d,true,reason)||!ClientPlayerEquipmentFields(e.player,d,true,reason)||!ClientPlayerRoleFields(e.player,d,true,reason)||!ClientPlayerEquipmentResources(e.equipment,e.player,d,true,reason)||!ClientPlayerHudInstall(e.hud,e.player,d,true,reason)||!o->adapter.install(o->adapter.context,e.player,d,false,true,reason)||!o->adapter.install(o->adapter.context,e.player,d,true,true,reason)){ok=false;break;}}
+    if(ok)ok=ValidateSets(*o,reason);
+    if(ok)o->desired=values;
+  }catch(...){ok=false;reason="players_stream_native_exception";}
+  o->busy=false;ClientDispatchReturned(ClientEntry::NativeApply);ok=ok&&dispatch.Succeeded();o->ready=ok;if(!ok)o->fault=true;return Result(o,ok,!ok,reason,true);
+}
 bool ClientNativePlayersBegin(ClientNativePlayers *o,const ClientNativeRoots &roots,std::uint64_t scope,std::uint64_t revision,const std::vector<ClientPlayerDescription> &values,const std::array<ClientObjectReference,4> &backups,const ClientPlayerAdapter &adapter,const char *&reason) noexcept {
   if(!o||!Phase()||o->fault||o->busy||o->retiring||!SameRoots(roots)||!scope||!revision||values.size()>replica::kPlayerBodies){reason="players_begin_context_or_budget";return false;}
   // 后续字段/资源/角色adapter未闭合时在第一次原生写前拒绝，不能制造半初始化可见身体。

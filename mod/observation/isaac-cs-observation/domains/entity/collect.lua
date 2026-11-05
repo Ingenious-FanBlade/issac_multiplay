@@ -197,10 +197,24 @@ function M.CapturePlayerFast(limits,p)
   local ctx=context();ctx.fast=true;ctx.objects=1
   local subject=native().Subject(p);ctx.owner=subject
   if subject.resolution~="KnownCurrent" then fail(ctx,"player_fast_identity") end
+  -- 29/38 RenderBody会跨读另一身体；单侧更新见证不能授予对侧同窗资格。
+  -- 完整ordinary来源继续负责合法组合，独立fast明确报告gap而不拼接新旧pair。
+  local playerType=p:GetPlayerType()
+  if playerType==29 or playerType==38 then fail(ctx,"player_fast_cross_body_requires_ordinary");return finish({contract="player-fast-source-v1",subject=subject},ctx) end
   local sprite=p:GetSprite();local generation=native().SpriteResourceGeneration(sprite)
   local out={contract="player-fast-source-v1",subject=subject,
     common=collect(p,"Entity",ctx,0),body=collect(p,"EntityPlayer",ctx,0),
     sprite=collect(sprite,"Sprite",ctx,0),resource_generation=generation}
+  local resources=native().EntityApplicationSprites(p,"EntityPlayer")
+  out.body.application_player_resources={version=1,status=resources.status}
+  if resources.status~="Value" then fail(ctx,"player_fast_inline_source") else
+    for _,name in ipairs({"inline_1","inline_2","inline_3","inline_4","inline_5","inline_6","inline_7","inline_8","inline_9","blood_gush","held","inline_12"}) do
+      local current=resources.player_sprites[name]
+      out.body.application_player_resources[name]=current:GetFilename()=="" and missing("Null","native_player_anm_unloaded") or value(current,"Sprite",ctx,1)
+    end
+  end
+  -- 仅头动画字符串，不读取武器/库存/玩法缓存；与本次身体更新见证共用采样时点。
+  out.body.application_player_equipment_dynamic=nativeValue(native().PlayerApplicationRender(p),ctx)
   -- 主Sprite只读一次；资源由精确Resource版本提供，不走旧冷投影的资源描述推导。
   out.sprite.type="stream_sprite_pose"
   if generation~=native().SpriteResourceGeneration(p:GetSprite()) then fail(ctx,"player_fast_resource_changed") end

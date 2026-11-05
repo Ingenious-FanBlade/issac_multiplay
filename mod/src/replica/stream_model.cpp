@@ -127,7 +127,7 @@ std::vector<Range> Store::Compose(const RangeData &m) const {
 Decision Store::Commit(const Version &v) noexcept {
   try {
     const auto r=Find(v);if(!r)return D(Admission::Invalid,"stream_unknown_commit");
-    for(const auto &d:r->dependencies){const auto a=applied_.find(d.id);if(a==applied_.end()||a->second->revision!=d.revision)return D(Admission::WaitingDependencies,"stream_commit_dependency");}
+    for(const auto &d:r->dependencies){const auto a=applied_.find(d.id);const bool later_world=r->id.kind==RangeKind::PlayerFast&&d.id.kind==RangeKind::WorldDynamic&&a!=applied_.end()&&a->second->revision>=d.revision;if(a==applied_.end()||(!later_world&&a->second->revision!=d.revision))return D(Admission::WaitingDependencies,"stream_commit_dependency");}
     for(const auto &d:r->required){const auto a=applied_.find(d.id);if(a==applied_.end()||a->second->revision!=d.revision)return D(Admission::WaitingDependencies,"stream_manifest_not_applied");}
     const auto members=Membership(*r,*this);if(!members)return members;
     if(const auto a=applied_.find(v.id);a!=applied_.end()&&a->second->revision>=v.revision)return D(a->second->revision==v.revision?Admission::Duplicate:Admission::Stale,"stream_commit_old");
@@ -142,6 +142,8 @@ Decision Store::Commit(const Version &v) noexcept {
   }catch(...){return D(Admission::OverBudget,"stream_commit_allocation");}
 }
 void Store::Reset(WorldScope s) noexcept {applied_.clear();values_.clear();world_=s;}
+void Store::ReleaseCold() noexcept {for(auto it=applied_.begin();it!=applied_.end();)if(it->first.kind==RangeKind::Manifest||it->second->components)it=applied_.erase(it);else ++it;for(auto it=values_.begin();it!=values_.end();)if(it->first.id.kind==RangeKind::Manifest||it->second->components)it=values_.erase(it);else ++it;}
+void Store::RevokeBodies() noexcept {for(auto it=applied_.begin();it!=applied_.end();)if(it->first.kind==RangeKind::PlayerFast)it=applied_.erase(it);else ++it;}
 void Store::Collect(const std::vector<Version> &roots){
   std::set<Version> keep;
   const auto visit=[&](const auto &self,const Version &v)->void{

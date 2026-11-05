@@ -554,6 +554,7 @@ void PublicationSender::Authorize(s::Route route, std::uint64_t now) {
   context_since_.clear();
   fully_sent_.clear();
   sent_history_.clear();
+  sent_facts_.clear();confirmed_.clear();
   fast_ = {};
   sent_at_.clear();
   fast_cursor_ = {};
@@ -566,10 +567,18 @@ void PublicationSender::Remember(const s::Version &version) {
   auto &history = sent_history_[version.id];
   if (std::find(history.begin(), history.end(), version.revision) != history.end())
     return;
-  if (history.size() == 128)
+  if (history.size() == 128) {
+    sent_facts_.erase({version.id,history.front()});confirmed_.erase({version.id,history.front()});
     history.pop_front();
+  }
   history.push_back(version.revision);
 }
+void PublicationSender::Track(const s::Range &r){const s::Version version{r->id,r->revision};if(sent_facts_.contains(version))return;
+  if(sent_facts_.size()>=8192)Fail("publication_sent_fact_capacity");SentFact f;f.dependencies=r->dependencies;
+  if(r->id.kind==s::RangeKind::Manifest){f.dependencies=r->required;f.native=r->native_domains;f.retained=r->retained_domains;f.watermark=r->event_watermark;}
+  else if(r->id.kind==s::RangeKind::WorldDynamic)f.native=baseline_->manifest->native_domains;
+  else if(r->id.kind==s::RangeKind::PlayerFast)f.native=1ull<<6;
+  sent_facts_.emplace(version,std::move(f));if(metadata_){std::uint64_t bytes=512ull<<10;for(const auto &[v,fact]:sent_facts_)bytes+=sizeof(v)+sizeof(fact)+v.id.name.capacity()+fact.dependencies.size()*256;metadata_->Resize(bytes);}}
 bool PublicationSender::WasSent(const s::Version &version) const noexcept {
   auto i = sent_history_.find(version.id);
   return i != sent_history_.end() &&
@@ -609,15 +618,28 @@ bool PublicationSender::ContextReady(const s::Message &m, std::uint64_t now) {
   return true;
 }
 bool PublicationSender::Applied(const s::Message &m) {
+  const auto reject=[&](const char *reason){if(failure_.empty())failure_=reason;return false;};
   if (!baseline_ || m.kind != s::Kind::AppliedAck || m.connection != route_.connection ||
       m.route != route_.epoch)
-    return false;
+    return reject("applied_ack_route");
   const auto &w = m.body["world"];
   const s::WorldScope world{r::Unsigned(w["session"]), r::Unsigned(w["run"]),
                             r::Unsigned(w["floor"]),   r::Unsigned(w["dimension"]),
                             r::Unsigned(w["room"]),    r::Unsigned(w["scene"])};
   if (world != route_.scope)
-    return false;
+    return reject("applied_ack_world");
+  // 先复核整组不可变提交事实；任何一项失败都不推进其它版本或释放内容。
+  std::vector<std::pair<s::Version,NativeFact>> facts;
+  for(const auto &result:m.body["results"].GetArray()){const auto version=Version(result["version"]);auto sent=sent_facts_.find(version);auto transfer=transfers_.find(version);
+    if(sent==sent_facts_.end()||(!WasSent(version)&&(transfer==transfers_.end()||!reliable_.AllSent(transfer->second))))return reject("applied_ack_unsent_version");
+    const auto &expected=sent->second;if(r::Unsigned(result["native_domains"])!=expected.native||r::Unsigned(result["retained_domains"])!=expected.retained||r::Unsigned(result["event_watermark"])!=expected.watermark)return reject("applied_ack_precise_range_or_watermark");
+    NativeFact fact{r::Unsigned(result["attempt"]),r::Unsigned(result["instance"]),r::Unsigned(result["resource"])};auto known=confirmed_.find(version);
+    if(known!=confirmed_.end()){if(known->second!=fact)return reject("applied_ack_committed_fact_conflict");}
+    else if(applied_.contains(version.id)&&applied_.at(version.id)>=version.revision)return reject("applied_ack_version_regression");
+    // 依赖必须确曾送给此Peer；收到一个任意较新版本不能证明旧依赖已发送。
+    for(const auto &d:expected.dependencies){auto t=transfers_.find(d);if(!WasSent(d)&&(t==transfers_.end()||!reliable_.AllSent(t->second)))return reject("applied_ack_unsent_dependency");}
+    facts.emplace_back(version,fact);
+  }
   if (phase_ == Phase::Active) {
     if ((r::Unsigned(m.body["native_domains"]) & ~baseline_->manifest->native_domains) ||
         (r::Unsigned(m.body["retained_domains"]) & ~baseline_->manifest->retained_domains))
@@ -639,6 +661,7 @@ bool PublicationSender::Applied(const s::Message &m) {
       context_since_.erase(version);
       applied_[version.id] = (std::max)(applied_[version.id], version.revision);
     }
+    for(const auto &[v,f]:facts)confirmed_.insert_or_assign(v,f);
     return true;
   }
   bool manifest = false;
@@ -653,7 +676,7 @@ bool PublicationSender::Applied(const s::Message &m) {
   if (!manifest || cold_cursor_ != cold_.size() ||
       r::Unsigned(m.body["native_domains"]) != baseline_->manifest->native_domains ||
       r::Unsigned(m.body["retained_domains"]) != baseline_->manifest->retained_domains ||
-      r::Unsigned(m.body["event_watermark"]) < baseline_->manifest->event_watermark)
+      r::Unsigned(m.body["event_watermark"]) != baseline_->manifest->event_watermark)
     return false;
   for (const auto &range : cold_) {
     const s::Version version{range->id, range->revision};
@@ -671,6 +694,7 @@ bool PublicationSender::Applied(const s::Message &m) {
     Remember({range->id, range->revision});
     applied_[range->id] = range->revision;
   }
+  for(const auto &[v,f]:facts)confirmed_.insert_or_assign(v,f);
   reliable_.GrantRate(47500);
   return true;
 }
@@ -717,6 +741,7 @@ void PublicationSender::Stop() noexcept {
   metadata_.reset();
   bodies_.clear();
   cold_.clear();
+  sent_facts_.clear();confirmed_.clear();
   cold_cursor_ = 0;
   queued_.clear();
   applied_.clear();
@@ -777,6 +802,7 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
     if (!blob)
       break;
     const auto id = next();
+    Track(range);
     reliable_.Start(std::move(blob), id, now);
     transfers_[{range->id, range->revision}] = id;
     pending_context_[{range->id, range->revision}] = id;
@@ -799,6 +825,7 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
           auto blob = cache.Get(range, route_.zstd, route_.world_limits);
           if (blob) {
             const auto id = next();
+            Track(range);
             reliable_.Start(std::move(blob), id, now);
             transfers_[{range->id, range->revision}] = id;
             pending_context_[{range->id, range->revision}] = id;
@@ -820,6 +847,7 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
          now - sent_at_[range->id] >= 200)) {
       auto blob = cache.Get(range, false, s::WorldLimits(true));
       if (blob) {
+        Track(range);
         if (fast_.size() >= 65)
           Fail("publication_fast_capacity");
         fast_.emplace(range->id, Fast{std::move(blob)});

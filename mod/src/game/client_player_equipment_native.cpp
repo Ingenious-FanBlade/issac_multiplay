@@ -76,6 +76,12 @@ int ClientPlayerEquipmentCaptureLua(lua_State *L){const auto started=ClientEntit
     ClientPlayerWeaponsCaptureLua(L,*p);lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");
   }catch(...){failed=true;}ClientEntityTestTime("player_source_equipment",ClientEntityTestClock()-started);if(failed){lua_settop(L,top);return luaL_error(L,"player_equipment_capture_failed");}return 1;
 }
+// 快速窗口只复制已正常更新身体的头动画字节，不遍历武器/库存，不推进原生动画。
+int ClientPlayerRenderCaptureLua(lua_State *L){auto *p=lua::GetLuabridgeUserdata<Entity_Player *>(L,1,lua::Metatables::ENTITY_PLAYER,"EntityPlayer");const auto subject=ObservationSubject(p,false);
+  if(!IsMain()||!p||subject.status!=1||subject.readiness<2||p->_headAnim.size()>2048)return luaL_error(L,"player_render_source_unavailable");
+  std::string bytes;const char *digits="0123456789abcdef";bytes.reserve(p->_headAnim.size()*2);for(unsigned char c:p->_headAnim){bytes.push_back(digits[c>>4]);bytes.push_back(digits[c&15]);}
+  lua_newtable(L);Integer(L,"version",1);lua_pushliteral(L,"Value");lua_setfield(L,-2,"status");lua_pushlstring(L,bytes.data(),bytes.size());lua_setfield(L,-2,"head_animation_hex");return 1;
+}
 ClientPlayerEquipmentOwner *ClientPlayerEquipmentCreate() noexcept {return IsMain()?new(std::nothrow) ClientPlayerEquipmentOwner:nullptr;}
 void ClientPlayerEquipmentDestroy(ClientPlayerEquipmentOwner *o) noexcept {if(!o||!IsMain()||o->fault||o->candidate.first||o->displaced.first)return;for(const auto &w:o->weapons)if(w.pointer||w.create_entered||w.uncertain)return;delete o;}
 bool ClientPlayerEquipmentPreflight(const ClientPlayerDescription &d,const char *&reason){if(!IsMain()||!d.equipment||!d.equipment->history||!(d.equipment->history->body==d.entity.key)||d.equipment->history->shape!=d.entity.shape_revision){reason="player_equipment_source_or_history_identity";return false;}
@@ -105,6 +111,24 @@ bool ClientPlayerEquipmentResources(ClientPlayerEquipmentOwner *owner,void *poin
     if(!Pose(p._sprite,s.main,check,reason,&owner->fault))return false;for(unsigned i=0;i<13;++i)if(!Pose(*reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&p)+0x41c+i*0x114),s.inline_sprites[i],check,reason,&owner->fault))return false;
     if(!Costumes(*owner,p,s,check,reason)||!ClientPlayerWeaponsInstall(*owner,p,d,check,reason))return false;return true;
   }catch(...){if(!check)owner->fault=true;reason="player_equipment_resource_exception_prefix_retained";return false;}}
+// 快速组只消费已登记的同实例资源；任何服装成员/图片变动等待可靠结构，不在热路构造。
+bool ClientPlayerRenderCompatible(ClientPlayerEquipmentOwner *o,void *pointer,const ClientPlayerEquipment &s) noexcept {
+  if(!Window()||!o||o->fault||o->retired||!pointer||o->player!=pointer)return false;
+  try{auto &p=*static_cast<Entity_Player *>(pointer);auto actual=View(p);if(actual.first!=o->installed||p._costumeSpriteDescs.size()!=s.costumes.size())return false;
+    if(!ClientResourcePoseReusable(&p._sprite,s.main))return false;
+    for(unsigned i=0;i<13;++i)if(!ClientResourcePoseReusable(reinterpret_cast<unsigned char *>(&p)+0x41c+i*0x114,s.inline_sprites[i]))return false;
+    for(unsigned i=0;i<s.costumes.size();++i){const auto &c=s.costumes[i];if(actual.first[i]._item!=Config(c.item_present,c.item_type,c.item)||!ClientResourcePoseReusable(&actual.first[i]._sprite,c.sprite))return false;}return true;
+  }catch(...){return false;}
+}
+bool ClientPlayerRenderInstall(ClientPlayerEquipmentOwner *o,void *pointer,const ClientPlayerEquipment &s,bool check,const char *&reason){
+  if(!Window()||!o||o->fault||!pointer||o->player!=pointer){reason="player_render_owner";return false;}auto &p=*static_cast<Entity_Player *>(pointer);
+  if(check){if(p._headAnim!=s.head_animation){reason="player_render_head";return false;}}else p._headAnim=s.head_animation;
+  if(!Pose(p._sprite,s.main,check,reason,&o->fault))return false;
+  for(unsigned i=0;i<13;++i)if(!Pose(*reinterpret_cast<ANM2 *>(reinterpret_cast<unsigned char *>(&p)+0x41c+i*0x114),s.inline_sprites[i],check,reason,&o->fault))return false;
+  auto actual=View(p);if(actual.first!=o->installed||p._costumeSpriteDescs.size()!=s.costumes.size()){reason="player_render_costume_owner";return false;}
+  for(unsigned i=0;i<s.costumes.size();++i)if(!Meta(actual.first[i],s.costumes[i],check)||!Pose(actual.first[i]._sprite,s.costumes[i].sprite,check,reason,&o->fault))return false;
+  return Layers(p,s,check);
+}
 bool ClientPlayerEquipmentRelations(ClientPlayerEquipmentOwner *o,void *p,const ClientPlayerDescription &d,const ClientEntityOwners &entities,const ClientNativeRoots &roots,bool check,bool clear,const char *&reason){
   // 字段阶段失败时子owner可能尚未进入资源前缀；clear仍核对五槽为空，允许安全退休已构造Player。
   if(!Window()||!o||!p||(o->player&&o->player!=p)||(!o->player&&!clear)||!d.equipment){reason="player_equipment_relation_context";return false;}return ClientPlayerWeaponsRelations(*o,*static_cast<Entity_Player *>(p),d,entities,roots,check,clear,reason);}

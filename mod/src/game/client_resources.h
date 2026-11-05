@@ -60,6 +60,8 @@ bool ClientNativeCpuQueuesEmpty() noexcept;
 ClientResourceResult ClientApplyResourcePose(void *sprite,const ClientResourcePose &) noexcept;
 // 可选首因供实际原生后态诊断使用；不改变完整匹配要求。
 bool ClientResourcePoseMatches(void *sprite,const ClientResourcePose &,const char **reason=nullptr) noexcept;
+// 写前核对现有图像/ANM是否可承接姿态；不Load、不构造、不改变selector。
+bool ClientResourcePoseReusable(void *,const ClientResourcePose &) noexcept;
 // 只在RegisterClasses后、bundled/mod脚本前包装四个具名setter；原setter恰好调用一次。
 bool ClientResourceInstallShaderBindings(void *lua_state) noexcept;
 // 当前Lua受保护调用内复制路径；只查询已观察路径，不猜测未知shader或保存userdata。

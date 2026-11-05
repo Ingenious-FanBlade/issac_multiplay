@@ -13,6 +13,7 @@ public:
   using Resolve=bool (*)(void *,const ClientObjectKey &,std::uint64_t) noexcept;
   struct Statistics final {unsigned pending=0,presented=0,expired=0,superseded=0;std::size_t bytes=0;};
   void Reset(const replica::Scope &) noexcept;
+  void BaselineEvents(std::uint64_t watermark) noexcept {baseline_event_=watermark;}
   bool Admit(const replica::Message &,const char *&) noexcept;
   bool Visit(std::uint64_t applied,std::uint64_t tick,void *resolver,Resolve,void *,Visitor) noexcept;
   bool Complete(replica::Kind,std::uint64_t sequence,std::uint64_t source,const char *phase,std::uint64_t applied) noexcept;
@@ -28,5 +29,6 @@ private:
   };
   replica::Scope scope_{};std::deque<Entry> entries_;
   std::size_t bytes_=0;std::uint64_t retired_component_=0,retired_event_=0;
+  std::uint64_t baseline_event_=0;
 };
 } // namespace cs::game

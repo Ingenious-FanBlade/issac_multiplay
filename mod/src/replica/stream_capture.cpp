@@ -1,4 +1,5 @@
 #include "replica/stream_capture.h"
+#include "replica/stream_materialize.h"
 #include <algorithm>
 #include <set>
 
@@ -32,13 +33,38 @@ std::uint64_t MainSprite(const Value &v){
     }else if(x.IsArray())for(const auto &item:x.GetArray())self(self,item);
   };visit(visit,v);return result;
 }
+// 逐身体快姿态只能引用精确普通依赖中同一ANM/服装集合。不同图编号按本地定义解析，
+// 不按路径/相同动画名猜测资源仍有效；成员或资源改变撤销快源，等下一完整ordinary。
+bool RenderResources(const Value &fast,const Value &ordinary){
+  using Index=std::map<std::uint64_t,const Value *>;Index left,right;
+  const auto index=[](const auto &self,const Value &v,Index &out)->void{if(v.IsObject()){if(v.HasMember("type")&&v["type"]=="table"&&v.HasMember("node"))out.emplace(Unsigned(v["node"]),&v);for(auto i=v.MemberBegin();i!=v.MemberEnd();++i)self(self,i->value,out);}else if(v.IsArray())for(const auto &x:v.GetArray())self(self,x,out);};index(index,fast,left);index(index,ordinary,right);
+  unsigned budget=1u<<20;
+  const auto compare=[&](const auto &self,const Value &x,const Value &y,unsigned depth)->bool{
+    if(!budget--||depth>64)return false;const Value *a=&x,*b=&y;
+    const auto resolve=[](const Value *&v,const Index &i){if(v->IsObject()&&v->HasMember("type")&&(*v)["type"]=="graph_ref"){auto f=i.find(Unsigned(At(*v,"node")));if(f==i.end())return false;v=f->second;}return true;};
+    if(!resolve(a,left)||!resolve(b,right))return false;
+    if(a->IsObject()&&a->HasMember("type")&&(*a)["type"]=="stream_sprite_pose")return b->IsObject()&&a->HasMember("resource_generation")&&b->HasMember("resource_generation")&&(*a)["resource_generation"]==(*b)["resource_generation"];
+    if(a->IsObject()&&a->HasMember("type")&&(*a)["type"]=="CostumeSpriteDesc"){
+      if(!b->IsObject()||!b->HasMember("fields"))return false;for(const char *name:{"CostumeSpriteDesc.GetItemConfig","CostumeSpriteDesc.GetSprite"})if(!self(self,At(At(*a,"fields"),name),At(At(*b,"fields"),name),depth+1))return false;return true;
+    }
+    if(a->IsObject()&&a->HasMember("type")&&(*a)["type"]=="table"){
+      if(!b->IsObject()||!b->HasMember("entries"))return false;const auto &ae=At(*a,"entries"),&be=At(*b,"entries");if(ae.IsObject()&&ae.ObjectEmpty())return be.IsObject()&&be.ObjectEmpty();if(!ae.IsArray()||!be.IsArray()||ae.Size()!=be.Size())return false;
+      for(const auto &e:ae.GetArray()){const Value *match=nullptr;for(const auto &f:be.GetArray())if(At(e,"key")==At(f,"key")){match=&At(f,"value");break;}if(!match||!self(self,At(e,"value"),*match,depth+1))return false;}return true;
+    }
+    if(a->IsObject()){if(!b->IsObject())return false;for(auto i=a->MemberBegin();i!=a->MemberEnd();++i){if(i->name=="node")continue;if(!b->HasMember(i->name)||!self(self,i->value,(*b)[i->name],depth+1))return false;}return true;}
+    if(a->IsArray()){if(!b->IsArray()||a->Size()!=b->Size())return false;for(unsigned i=0;i<a->Size();++i)if(!self(self,(*a)[i],(*b)[i],depth+1))return false;return true;}return *a==*b;
+  };
+  const auto &body=At(fast,"body"),&old=At(ordinary,"body");
+  for(const char *name:{"EntityPlayer.GetBodySprite","EntityPlayer.GetCostumeSpriteDescs","EntityPlayer.GetCostumeLayerMap"})if(!compare(compare,At(At(body,"fields"),name),At(At(old,"fields"),name),0))return false;
+  return compare(compare,At(body,"application_player_resources"),At(old,"application_player_resources"),0);
+}
 }
 const Layouts &CaptureLayouts(){
   static const Layouts layouts=[](){
     Layouts result;
     const auto add=[&](const char *name,RangeKind kind,unsigned fields){Layout l;l.kind=kind;for(unsigned i=1;i<=fields;++i){l.fields.push_back(i);l.types[i]=6;}result.emplace(name,std::move(l));};
     add("stream.context.v1",RangeKind::Context,1);add("stream.structure.v1",RangeKind::Structure,2);
-    add("stream.resource.v1",RangeKind::Resource,1);add("stream.world.v1",RangeKind::WorldDynamic,1);add("stream.player.v1",RangeKind::PlayerFast,1);
+    add("stream.resource.v1",RangeKind::Resource,1);add("stream.world.v2",RangeKind::WorldDynamic,2);add("stream.player.v1",RangeKind::PlayerFast,1);
     return result;
   }();return layouts;
 }
@@ -191,7 +217,14 @@ void Capture::Ordinary(const obs::LiveBatch &b) noexcept {
     RangeData world;world.world=world_;world.id={RangeKind::WorldDynamic,"ordinary-room",{}};world.sample=sample;world.complete=world.membership_complete=true;world.dependencies={V(s),V(r)};
     for(const auto &v:versions)if(v->id.kind==RangeKind::Context)world.dependencies.push_back(V(v));
     if(world.dependencies.size()>64)Fail("stream_context_dependency_budget");
-    for(const auto &[key,m]:members)if(m.category!="Player"){world.members.push_back(m);world.records.push_back({m,"stream.world.v1",{Tree(1,dynamic.at(key))}});}
+    Json captures(rapidjson::kObjectType);auto &ca=captures.GetAllocator();
+    // 普通结构适配保留每域真实scope/owner；不把冷Baseline的旧scope改tick冒充新采样。
+    for(unsigned d=0;d<11;++d){const auto &x=envelopes[d]->context;Value p(rapidjson::kObjectType);
+      for(const auto &[name,n]:std::initializer_list<std::pair<const char *,std::uint64_t>>{{"scope",x.scope},{"sequence",x.sequence},{"authority_tick",b.tick},{"outer",b.outer},{"owner",b.owner},{"mutation_before",b.mutation},{"mutation_after",b.mutation},{"source",x.source},{"source_version",x.source_version},{"event_watermark",x.event_watermark}})Put(p,name,Decimal(n,ca),ca);
+      Put(p,"phase","OrdinaryPost",ca);Put(captures,domains[d],std::move(p),ca);
+    }
+    const Value no_captures(rapidjson::kObjectType);
+    for(const auto &[key,m]:members)if(m.category!="Player"){world.members.push_back(m);world.records.push_back({m,"stream.world.v2",{Tree(1,dynamic.at(key)),Tree(2,key==room.key?static_cast<const Value &>(captures):no_captures)}});}
     auto w=Make(std::move(world),false);versions.push_back(w);
     auto publication=std::make_shared<Publication>();publication->world=world_;publication->world_dynamic=w;publication->ranges=versions;
     if(status_.baseline_requested){
@@ -237,6 +270,8 @@ void Capture::PlayerPost(const BodySample &b,const std::string &payload) noexcep
     for(const auto &record:resources->second->records)if(record.member.key==member.key)
       resource_generation=MainSprite(**std::get_if<std::shared_ptr<const Json>>(&record.fields.front().value));
     if(!resource_generation||resource_generation!=Unsigned(At(source,"resource_generation")))Fail("player_post_resource_changed");
+    const auto ordinary=SubjectValue(*store_,*latest_->world_dynamic,member.key,"entity");
+    if(!RenderResources(source,ordinary))Fail("player_post_resource_changed");
     if(const auto old=bodies_.find(member.key);old!=bodies_.end()&&old->second->sample.tick>=b.tick)Fail("player_post_duplicate_update");
     RangeData data;data.world=world_;data.id={RangeKind::PlayerFast,"body-dynamic",member.key};data.complete=data.membership_complete=true;
     data.sample.epoch=b.epoch;data.sample.tick=b.tick;data.sample.outer=b.outer;data.sample.owner=b.owner;data.sample.mutation=b.mutation;data.sample.loss=loss_;

@@ -114,4 +114,33 @@ ClientObjectDescription ClientDescribeEntity(const replica::EntityObjectTarget &
   }
   if(o.category==replica::EntityCategory::Player)ClientDescribeEntityPlayerDraw(o,d);else ClientDescribeEntityClass(o,d);return d;
 }
+replica::EntityObjectTarget ClientStreamEntity(const ClientObjectDescription &base,const V &raw){
+  replica::EntityObjectTarget o;o.key={base.key.run,base.key.id,base.key.space};o.shape_revision=base.shape_revision;o.category=replica::EntityCategory(base.category);o.presence=replica::EntityMemberPresence::Current;o.classification_supported=true;
+  const auto &subject=At(At(raw,"subject"),"target");if(Integer<std::uint64_t>(At(subject,"run"))!=o.key.run||Integer<std::uint64_t>(At(subject,"id"))!=o.key.id||Integer<unsigned>(At(subject,"space"))!=o.key.space||Integer<std::uint64_t>(At(At(raw,"subject"),"shape_revision"))!=o.shape_revision)Fail("stream","subject_use_or_shape");
+  o.common.value=replica::Copy(At(raw,"common"));const auto &body=At(raw,"body");
+  switch(o.category){
+#define CS_STREAM_CATEGORY(name) case replica::EntityCategory::name:{replica::EntityClassValues<replica::EntityCategory::name> p;p.fields.value=replica::Copy(body);o.payload=std::move(p);break;}
+    CS_STREAM_CATEGORY(Player) CS_STREAM_CATEGORY(NPC) CS_STREAM_CATEGORY(Tear) CS_STREAM_CATEGORY(Projectile) CS_STREAM_CATEGORY(Bomb) CS_STREAM_CATEGORY(Laser) CS_STREAM_CATEGORY(Knife) CS_STREAM_CATEGORY(Pickup) CS_STREAM_CATEGORY(Familiar) CS_STREAM_CATEGORY(Effect) CS_STREAM_CATEGORY(Slot) CS_STREAM_CATEGORY(NativeText) CS_STREAM_CATEGORY(NativeDummy)
+#undef CS_STREAM_CATEGORY
+    default:Fail("stream","unknown_category");
+  }
+  o.source_class=At(raw,"class").GetString();if(raw.HasMember("special")){o.delirium=true;o.special.value=replica::Copy(raw["special"]);}
+  const auto &fields=At(o.common.value,"fields");const auto &exists=At(fields,"Entity.Exists"),&dead=At(fields,"Entity.IsDead");if(!exists.IsBool()||!dead.IsBool())Fail("stream","existence");o.exists_known=o.dead_known=true;o.exists=exists.GetBool();o.dead=dead.GetBool();return o;
+}
+ClientObjectDescription ClientDescribeStreamEntity(const ClientObjectDescription &base,const replica::EntityObjectTarget &o){
+  std::vector<replica::EntityDependency> deps;for(const auto &r:base.relations){replica::EntityDependency d;d.source=o.key;d.target={r.target.run,r.target.id,r.target.space};d.has_target=!r.is_null;d.is_null=r.is_null;d.path=r.path;d.member=r.member;d.contract=r.contract;d.expected=replica::EntityCategory(r.expected);d.kind=replica::EntityDependencyKind(r.kind);d.phase=r.value_only?replica::EntityDependencyPhase::ValueOnly:r.before_init?replica::EntityDependencyPhase::BeforeInit:replica::EntityDependencyPhase::AfterInstances;deps.push_back(std::move(d));}
+  auto d=ClientDescribeEntity(o,deps,{},base.category==0);if(d.type!=base.type||d.variant!=base.variant||d.subtype!=base.subtype||d.seed!=base.seed)Fail("stream","structure_changed");
+  // Effect136保存描述由调用方从本次同窗Grid值补入，绝不沿用旧状态。
+  return d;
+}
+std::vector<ClientEntityField> ClientStreamCommonFields(const V &common){
+  // 复用完整公共解析器的同一位宽规则；fast未声明的字段从不补零或写入。
+  const auto &fields=At(common,"fields");std::vector<ClientEntityField> out;
+  for(const auto &[id,kind]:Installed()){if(!fields.HasMember(id.c_str()))continue;const auto &v=fields[id.c_str()];if(Is(v,"status","NotApplicable"))continue;ClientEntityField f;f.member=id;f.kind=kind;
+    switch(kind){case ClientEntityValueKind::Integer:f.integer=Integer<std::int64_t>(v);if(f.integer<INT32_MIN||f.integer>INT32_MAX)Fail(id,"i32");break;
+      case ClientEntityValueKind::Bits:{const auto &s=Scalar(v);f.bits=s.IsInt64()&&s.GetInt64()<0?std::uint64_t(s.GetInt64()):s.IsString()&&s.GetString()[0]=='-'?std::uint64_t(Integer<std::int64_t>(v)):Integer<std::uint64_t>(v);break;}
+      case ClientEntityValueKind::Real:f.real=Real(v);break;case ClientEntityValueKind::Boolean:if(!v.IsBool())Fail(id,"bool");f.boolean=v.GetBool();break;
+      case ClientEntityValueKind::Vector:f.vector=Vector(v);break;case ClientEntityValueKind::Color:f.color=Color(v);break;default:Fail(id,"fast_kind");}out.push_back(std::move(f));
+  }return out;
+}
 } // namespace cs::game

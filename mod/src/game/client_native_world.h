@@ -68,6 +68,7 @@ struct ClientNativeRoots final {void *game=nullptr,*room=nullptr,*descriptor=nul
 ClientNativeWorldOwner *ClientNativeWorldCreate() noexcept;
 void ClientNativeWorldDestroy(ClientNativeWorldOwner *) noexcept;
 ClientNativeStep ClientNativeWorldPrepare(ClientNativeWorldOwner *,const ClientNativeSceneDescription &) noexcept;
+ClientNativeStep ClientNativeWorldRefresh(ClientNativeWorldOwner *,const ClientNativeSceneDescription &) noexcept;
 // Backdrop.Init 的教程surface生成会读取真实首Player，必须在I2发布roster/EL后调用。
 ClientNativeStep ClientNativeWorldFinalize(ClientNativeWorldOwner *) noexcept;
 ClientNativeStep ClientNativeWorldCheckCommit(ClientNativeWorldOwner *) noexcept;

@@ -66,6 +66,16 @@ bool PhaseInAnimation(const AnimationData &data,float phase,bool playing){
   return data._length>=0&&std::isfinite(phase)&&
       (data._length==0?phase==0&&!playing:phase<data._length&&(phase>=0||(!playing&&phase==-1)));
 }
+// J273 405F50/406430只选本ANM动画。写前检查目标全部selector，避免写后才发现缺层。
+bool TargetSelectors(ANM2 &sprite,const std::string &name,int frame,float phase,bool playing,const std::vector<int> &layers,const std::vector<int> &nulls){
+  if(name.empty())return phase==0&&layers.empty()&&nulls.empty();auto *d=sprite.GetAnimationData(name);
+  bool owned=false;for(int i=0;sprite._animData&&i<sprite._animCount;++i)if(d==sprite._animData+i){owned=true;break;}
+  if(!owned||!d||!PhaseInAnimation(*d,phase,playing)||frame!=int(std::floor(phase))||d->_layerCount!=int(layers.size())||d->_nullLayerCount!=int(nulls.size())||(!layers.empty()&&!d->_animLayers))return false;
+  for(unsigned i=0;i<layers.size();++i){auto &l=d->_animLayers[i];const int n=l.GetFrameCount();if(n<0||(n&&!l._animFrames)||layers[i]<-1||(n?layers[i]>=n:layers[i]>0))return false;}
+  const unsigned char *descriptors=nullptr;std::memcpy(&descriptors,d->_nullLayersPtr,4);if(!nulls.empty()&&!descriptors)return false;
+  for(unsigned i=0;i<nulls.size();++i){const void *frames=nullptr;int n=0;std::memcpy(&frames,descriptors+i*16+8,4);std::memcpy(&n,descriptors+i*16+12,4);if(n<0||n>1000000||(n&&!frames)||nulls[i]<-1||(n?nulls[i]>=n:nulls[i]>0))return false;}return true;
+}
+bool SameSelectorStorage(const AnimationState &old,const AnimationData *next){return old._animData&&next&&old._animData->_layerCount==next->_layerCount&&old._animData->_nullLayerCount==next->_nullLayerCount&&(!next->_layerCount||old._layerFrames)&&(!next->_nullLayerCount||old._nullLayerFrames);}
 bool ExactPhase(AnimationState &state,float phase,bool playing,const std::vector<int> &layers,const std::vector<int> &nulls) {
   const auto *data=state._animData;
   if(!data)return phase==0&&layers.empty()&&nulls.empty();
@@ -89,6 +99,8 @@ bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason,boo
       phase>=-1&&(phase>=0||(!playing&&phase==-1))&&double(frame)==std::floor(double(phase));};
   if((!pose.animation.empty()&&!phase_valid(pose.frame,pose.main_phase,pose.main_playing))||
       (pose.overlay_present&&!phase_valid(pose.overlay_frame,pose.overlay_phase,pose.overlay_playing))){reason="resource_exact_phase";return false;}
+  if(!pose.exact_phase||!TargetSelectors(sprite,pose.animation,pose.frame,pose.main_phase,pose.main_playing,pose.main_selectors,pose.main_null_selectors)||
+     (pose.overlay_present&&!TargetSelectors(sprite,pose.overlay_animation,pose.overlay_frame,pose.overlay_phase,pose.overlay_playing,pose.overlay_selectors,pose.overlay_null_selectors))){reason="resource_target_selectors";return false;}
   for(const auto &layer:pose.layers){
     auto *native=sprite.GetLayer(int(layer.id));
     if(!native||!native->_layerData||native->_layerData->ID!=layer.id||native->_layerData->name!=layer.name){reason="resource_layer_identity";return false;}
@@ -106,12 +118,13 @@ bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason,boo
     // 这是已加载资源的显式状态，不选 Idle 代替，也不推进 Update 试图恢复。
     sprite._animState._animData=nullptr;
   }else{
-    if(!sprite.SetAnimation(pose.animation.c_str(),true)){reason="resource_main_animation";return false;}
-    if(sprite._animState._animData&&sprite._animState._animData->_length>0){auto animation=pose.animation;sprite.SetFrame(&animation,pose.frame<0?0:pose.frame);}
+    // reset=false仅在两种selector数量完全相同时采用；403EC0的resize分支不用于本方。
+    const bool reset=!SameSelectorStorage(sprite._animState,sprite.GetAnimationData(pose.animation));
+    if(!sprite.SetAnimation(pose.animation.c_str(),reset)){reason="resource_main_animation";return false;}
   }
   if(pose.overlay_present){
-    if(!sprite.SetOverlayAnimation(pose.overlay_animation.c_str(),true)){reason="resource_overlay_animation";return false;}
-    if(sprite._overlayAnimState._animData&&sprite._overlayAnimState._animData->_length>0)sprite.SetOverlayFrame(pose.overlay_animation.c_str(),pose.overlay_frame<0?0:pose.overlay_frame);
+    const bool reset=!SameSelectorStorage(sprite._overlayAnimState,sprite.GetAnimationData(pose.overlay_animation));
+    if(!sprite.SetOverlayAnimation(pose.overlay_animation.c_str(),reset)){reason="resource_overlay_animation";return false;}
   }else{
     // 和公开 RemoveOverlay 一样，只撤销动画选择，不析构内嵌 AnimationState。
     sprite._overlayAnimState._animData=nullptr;
@@ -123,8 +136,7 @@ bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason,boo
   sprite._overlayAnimState._currentlyTriggeredEvents=0;sprite._overlayAnimState._previouslyTriggeredEvents=0;
   for(const auto &layer:pose.layers){
     auto *native=sprite.GetLayer(int(layer.id));
-    if(!pose.animation.empty()&&sprite._animState._animData->_length>0&&layer.main_frame>=0)sprite.SetLayerFrame(int(layer.id),layer.main_frame);
-    if(pose.overlay_present&&sprite._overlayAnimState._animData->_length>0&&layer.overlay_frame>=0)sprite._overlayAnimState.SetLayerFrame(int(layer.id),layer.overlay_frame);
+    // 完整wire selector已经由ExactPhase安装；不再用时间帧重算并覆盖它。
     native->_size=Vector(layer.size.x,layer.size.y);native->_pos=Vector(layer.position.x,layer.position.y);
     native->_cropOffset=Vector(layer.crop.x,layer.crop.y);native->_rotation=layer.rotation;
     native->_color=Color(layer.color);native->_visible=layer.visible;
@@ -139,24 +151,20 @@ bool SetPose(ANM2 &sprite,const ClientResourcePose &pose,const char *&reason,boo
   if(!ClientResourceApplyShaders(&sprite,pose,false)){reason="resource_shader_install";return false;}
   reason="resource_complete";return true;
 }
-// 只复用当前实例中已验证的同文件、同图层Image及同动画整数帧；改变动画/帧走完整候选预检。
+// 同实例/文件/图像pair可跨帧与动画复用；所有目标selector在第一次写前验证。
 // 这使位置/颜色/旋转等姿态变化不重复Load/LoadGraphics，资源或实例变化立即失效。
 bool ReusableGraphics(ANM2 &sprite,const ClientResourcePose &pose) {
   if(!pose.loaded||!sprite._loaded||sprite._filename!=pose.path||sprite._layerCount!=pose.layers.size()||!pose.exact_phase)return false;
-  const auto animation=[](const AnimationState &state,const std::string &name,int frame,float phase,const std::vector<int> &layers,const std::vector<int> &nulls){
-    if(name.empty())return !state._animData&&phase==0&&layers.empty()&&nulls.empty();
-    const auto *d=state._animData;if(!d||d->_name!=name||!std::isfinite(state._animFrame)||frame!=int(std::floor(state._animFrame))||
-      !PhaseInAnimation(*d,phase,state._isPlaying)||d->_layerCount!=int(layers.size())||d->_nullLayerCount!=int(nulls.size())||
-      (!layers.empty()&&(!d->_animLayers||!state._layerFrames))||(!nulls.empty()&&!state._nullLayerFrames))return false;
-    return LayerSelectors(state,layers)&&NullSelectors(state,nulls);
-  };
-  if(!animation(sprite._animState,pose.animation,pose.frame,pose.main_phase,pose.main_selectors,pose.main_null_selectors)||
-    (pose.overlay_present?!animation(sprite._overlayAnimState,pose.overlay_animation,pose.overlay_frame,pose.overlay_phase,pose.overlay_selectors,pose.overlay_null_selectors):sprite._overlayAnimState._animData!=nullptr))return false;
+  if(!TargetSelectors(sprite,pose.animation,pose.frame,pose.main_phase,pose.main_playing,pose.main_selectors,pose.main_null_selectors)||
+     (pose.overlay_present&&!TargetSelectors(sprite,pose.overlay_animation,pose.overlay_frame,pose.overlay_phase,pose.overlay_playing,pose.overlay_selectors,pose.overlay_null_selectors)))return false;
   for(const auto &layer:pose.layers){auto *v=sprite.GetLayer(int(layer.id));
     if(!v||!v->_layerData||v->_layerData->ID!=layer.id||v->_layerData->name!=layer.name||v->_spriteSheetPath!=layer.sheet||
       !v->_spriteSheetLoaded||!v->_spriteSheet.image||!v->_spriteSheet.counter||v->_spriteSheet.image->GetWidth()<=0||v->_spriteSheet.image->GetHeight()<=0)return false;}
   return true;
 }
+}
+bool ClientResourcePoseReusable(void *pointer,const ClientResourcePose &pose) noexcept {
+  if(!pointer||!ResourceWindow())return false;try{auto &sprite=*static_cast<ANM2 *>(pointer);return pose.loaded?ReusableGraphics(sprite,pose):!sprite._loaded;}catch(...){return false;}
 }
 ClientResourceStatistics ClientResourcesStatistics() noexcept {return IsMain()?resource_statistics:ClientResourceStatistics{};}
 bool ClientNativeCpuQueuesEmpty() noexcept {

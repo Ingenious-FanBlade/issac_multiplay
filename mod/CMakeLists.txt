@@ -70,7 +70,7 @@ add_custom_command(OUTPUT "${GENERATED}/stream_catalog.inc" "${GENERATED}/stream
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-application.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-application.json" VERBATIM)
 add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/projection_graph.cpp src/replica/codec.cpp src/replica/entity_target.cpp src/replica/entity_plan.cpp src/replica/player_target.cpp
-  src/replica/stream_model.cpp src/replica/stream_codec.cpp src/replica/stream_binary.cpp src/replica/stream_transport.cpp src/replica/stream_range.cpp src/replica/stream_capture.cpp
+  src/replica/stream_model.cpp src/replica/stream_codec.cpp src/replica/stream_binary.cpp src/replica/stream_transport.cpp src/replica/stream_range.cpp src/replica/stream_capture.cpp src/replica/stream_materialize.cpp
   src/replica/room_grid_target.cpp src/replica/room_grid_plan.cpp src/replica/room_grid_budget.cpp src/replica/player_plan.cpp
   "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc" "${GENERATED}/entity_application.inc" "${GENERATED}/player_application.inc" "${GENERATED}/stream_catalog.inc")
 target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")
@@ -108,7 +108,7 @@ add_library(zhlIsaacCS SHARED src/bootstrap/mod_init.cpp src/binding/definitions
   src/game/world_sources/random_owners.cpp src/hooks/random_runtime.cpp
   "${REPENTOGON_ROOT}/libzhl/hde32/src/hde32.cpp"
   src/game/device_k.cpp src/game/join.cpp src/game/peer.cpp src/game/input_lease.cpp src/game/persistence.cpp
-  src/game/client.cpp src/game/client_scene.cpp src/game/client_native_bridge.cpp
+  src/game/client.cpp src/game/client_scene.cpp src/game/client_stream.cpp src/game/client_native_bridge.cpp
   src/game/client_native_world.cpp src/game/client_room_native.cpp src/game/client_backdrop_native.cpp src/game/client_objects.cpp src/game/client_objects_native.cpp
   src/game/client_entity_model.cpp src/game/client_entity_common_native.cpp
   src/game/client_players.cpp src/game/client_players_native.cpp

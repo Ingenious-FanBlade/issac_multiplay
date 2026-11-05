@@ -12,6 +12,7 @@
 #include "game/client_entity_budget.h"
 #include "game/client_player_budget.h"
 #include "game/client_player_diagnostics.h"
+#include "game/client_stream.h"
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -79,6 +80,11 @@ public:
   bool CanReturnToMenu() const noexcept;
   bool AdmitTarget(const replica::Scope &, std::uint64_t revision,
                    const replica::Value &) noexcept;
+  bool BeginStream(const replica::Scope &,std::uint64_t route,std::uint64_t manifest,std::uint64_t generation) noexcept;
+  bool AdmitStream(const replica::stream::Message &,const char *&reason) noexcept;
+  void PumpStream() noexcept;
+  std::shared_ptr<const replica::stream::Message> StreamControl() const noexcept;
+  void StreamControlSent() noexcept;
   bool AdmitGridIndependent(const replica::Message &,const char *&reason) noexcept;
   bool VisitGridIndependent(void *,ClientGridEvents::Visitor) noexcept;
   bool CompleteGridIndependent(std::uint64_t,std::uint64_t,const char *) noexcept;
@@ -167,6 +173,9 @@ private:
   void NotePlayerFailure(const ClientPlayerDiagnostics &) noexcept;
   void NoteObjectStep(const ClientObjectStep &,const char *phase) noexcept;
   void SetCommittedRange() noexcept;
+  void CommitStream(const replica::stream::Range &,bool baseline);
+  std::unique_ptr<ClientStreamState> stream_;
+  std::string stream_reason_;
   struct BorrowEntry final {
     std::uint64_t id=0,scene=0,owner_token=0;
     ClientPurpose purpose=ClientPurpose::NativeApply;

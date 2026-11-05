@@ -9,6 +9,7 @@ namespace cs::game {
 struct ClientPlayerDisplayBody final {
   ClientObjectKey key{},participant{},group{};
   std::uint64_t shape=0,control_session=0,binding_revision=0;
+  std::uint64_t sample_revision=0;
   unsigned ordinal=0,body_role=0;
   int player_type=0,roster_index=-1;
   bool membership_known=false,active=false,can_consume=false,exists=false,dead=false;
@@ -27,6 +28,7 @@ struct ClientPlayerDisplayView final {
   struct Query final {const replica::Value *value=nullptr,*component=nullptr;};
   replica::Scope scope{};
   std::uint64_t revision=0,entity_scope=0,player_scope=0;
+  std::uint64_t stream_revision=0;
   std::vector<replica::PlayerControlGroupTarget> groups;
   std::vector<replica::PlayerReferenceTarget> roster;
   std::array<replica::PlayerReferenceTarget,4> backups{};
@@ -39,9 +41,12 @@ private:
   std::shared_ptr<const replica::PlayerTarget> source_;
   // 地址只指向上方shared_ptr拥有的不可变纯值；建索引一次，HUD不再扫描组件JSON。
   std::map<ClientObjectKey,std::map<std::string,const replica::Value *>> queries_;
+  std::map<ClientObjectKey,std::shared_ptr<const replica::Json>> stream_sources_;
   friend std::shared_ptr<const ClientPlayerDisplayView> ClientDescribePlayerDisplay(
       std::shared_ptr<const replica::PlayerTarget>,const std::vector<ClientPlayerDescription> &);
+  friend std::shared_ptr<const ClientPlayerDisplayView> ClientDescribeStreamDisplay(const ClientPlayerDisplayView &,const std::vector<ClientPlayerDescription> &,const std::map<ClientObjectKey,std::shared_ptr<const replica::Json>> &,std::uint64_t);
 };
 std::shared_ptr<const ClientPlayerDisplayView> ClientDescribePlayerDisplay(
     std::shared_ptr<const replica::PlayerTarget>,const std::vector<ClientPlayerDescription> &);
+std::shared_ptr<const ClientPlayerDisplayView> ClientDescribeStreamDisplay(const ClientPlayerDisplayView &,const std::vector<ClientPlayerDescription> &,const std::map<ClientObjectKey,std::shared_ptr<const replica::Json>> &,std::uint64_t);
 } // namespace cs::game

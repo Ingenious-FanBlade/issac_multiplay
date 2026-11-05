@@ -165,10 +165,14 @@ const Value &RoomGridTarget::DescriptorState(const RoomDescriptorTarget &d) cons
 }
 
 // 解析先完成全部有界纯值校验，最后发布不可变T；无SDK调用，也不依赖录制文件。
-std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGridLimits limits){
+std::shared_ptr<const RoomGridTarget> ParseRoomGridTarget(const V &model,RoomGridLimits limits,RoomGridModelMode mode){
   if(!limits.descriptors||limits.descriptors>526||!limits.grids||limits.grids>456||!limits.references||limits.references>4096)Error("limits","only_tightening_allowed");
   const auto usage=MeasureRoomGridBudget(model);
-  ValidateModel(model);if(model["publishable"]!=true)Error("model","not_publishable");
+  ValidateModel(model);if(mode==RoomGridModelMode::CompleteWorld){if(model["publishable"]!=true)Error("model","not_publishable");}
+  else{
+    const auto &components=At(model,"components","model");if(model["publishable"]!=false||components.MemberCount()!=4)Error("stream","four_complete_domains_required");
+    for(const char *name:{"room","grid","level","run"}){const auto &c=At(components,name,"stream");if(!Is(At(c,"coverage",name),"Complete")||At(c,"membership_complete",name)!=true)Error(name,"complete_stream_values_required");}
+  }
   auto out=std::shared_ptr<RoomGridTarget>(new RoomGridTarget);out->budget=usage;out->scope=ReadScope(model["scope"]);out->revision=Unsigned(model["revision"]);
   const auto run=out->scope.run;if(!run||!out->scope.floor||!out->scope.dimension||!out->scope.room)Error("scope","world_scope_required");
   const auto &room=Component(model,"room",out->room_capture),&level=Component(model,"level",out->level_capture),&grid=Component(model,"grid",out->grid_capture);

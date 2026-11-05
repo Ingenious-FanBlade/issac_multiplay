@@ -12,6 +12,7 @@ using Packets = std::vector<std::vector<std::uint8_t>>;
 struct Event final {
   enum class Type {
     Welcome,
+    Prepared,
     Progress,
     TickProgress,
     InputAck,
@@ -82,10 +83,14 @@ private:
   bool established_ = false, stopped_ = false, reply_ = false, resync_ = false, ending_ = false;
   std::uint64_t nonce_ = 0, server_nonce_ = 0, transfer_ = 0, control_ = 0, roster_ = 0,
                 timing_ = 0, last_receive_ = 0, client_control_ = 0, roster_at_ = 0, timing_at_ = 0,
-                echo_client_ms_ = 0, echo_server_ms_ = 0, prepare_sequence_ = 0;
+                echo_client_ms_ = 0, echo_server_ms_ = 0, prepare_sequence_ = 0,prepare_generation_=0;
   protocol::Ack sent_{};
   std::uint64_t eligibility_revision_ = 0;
   std::shared_ptr<const stream::Message> welcome_;
+  // 旧路由只保留最后一次小准备确认，丢确认不会重新执行或接纳旧世界分片。
+  stream::Reassembler prepare_replay_{Limits()};
+  std::shared_ptr<const stream::Message> prepared_echo_;
+  bool echo_pending_=false;
   stream::Message Message(stream::Kind, std::uint64_t);
   Packets Pack(const stream::Message &);
 };
@@ -103,7 +108,7 @@ public:
   bool PollWorld(Event &) noexcept;
   // 主线程完成准备/原生操作后才发布结果；接收线程从不自行生成AppliedAck。
   bool SendControl(std::shared_ptr<const stream::Message>) noexcept;
-  bool Authorize(stream::Route, std::uint64_t generation) noexcept;
+  bool Prepare(const Event &) noexcept;
   bool Complete(const Event &, OperationStage, const char *reason) noexcept;
   void Stop() noexcept;
   bool Finished() const noexcept;

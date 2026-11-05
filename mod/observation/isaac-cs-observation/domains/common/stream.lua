@@ -14,6 +14,8 @@ local function scope(id,body)
 end
 -- 快速身体只开放当前公开标量/Vector/Color和当前Sprite姿态；关系、容器和按参查询由普通联合源负责。
 function M.Fast(spec)
+  -- Body/Head Render从同一身体读取内嵌ANM、服装和15项层映射，必须同组采样。
+  if spec.id=="EntityPlayer.GetBodySprite" or spec.id=="EntityPlayer.GetCostumeSpriteDescs" or spec.id=="EntityPlayer.GetCostumeLayerMap" or spec.owner=="CostumeSpriteDesc" or spec.id=="ItemConfigItem.ID" or spec.id=="ItemConfigItem.Type" then return true end
   if scope(spec.id,true)~="PlayerFast" then return false end
   if spec.category~="field" and spec.category~="query" then return false end
   local typ=(spec.returns or ""):gsub("%?","")
@@ -23,7 +25,7 @@ function M.Fast(spec)
       (typ=="LayerState" or typ=="BlendMode" or typ=="LayerStates[]" or typ=="string")
 end
 local nativeScopes={
-  application_links="Structure",application_player="Structure",application_player_role="Structure",
+  application_links="Structure",application_player="Structure",application_player_role="WorldDynamic",
   application_player_equipment="Structure",application_player_resources="Resource",application_resources="Resource",
   application_owned="WorldDynamic",application_geometry="WorldDynamic",application_runtime="WorldDynamic",
   application_player_state="WorldDynamic",application_player_special="WorldDynamic",application_draw="WorldDynamic",
@@ -35,9 +37,9 @@ local nativeScopes={
   subject="Structure",membership="Structure",memberships="Structure",class="Structure",casts="Structure",
   location="Context",descriptor="Structure",seeds="Structure",config="Resource",override_config="Resource",stage_config="Resource",
   doors="WorldDynamic",entities="Structure",grids="Structure",lifted_descriptors="Structure",
-  control_groups="Structure",roster="Structure",backup_slots="Structure",relations="Structure",native_membership="Structure"
+  control_groups="Structure",roster="Structure",backup_slots="Structure",relations="Structure",native_membership="Structure",canonical_state="Structure"
 }
-local metadata={coverage=true,sampling=true,previous_scope=true,sample_revision=true,source_scope=true,changes=true,continuity=true,canonical_state=true}
+local metadata={coverage=true,sampling=true,previous_scope=true,sample_revision=true,changes=true}
 -- 只分割有字段合同的树；无公开细分合同的私有值保留在普通联合范围，绝不猜成身体快写资格。
 local function split(value,fallback,body,domain)
   if type(value)~="table" then return {[fallback]=value} end
@@ -63,11 +65,9 @@ local function split(value,fallback,body,domain)
           local layer=scope(id,body)
           -- 独立PlayerFast仅来自更新见证；普通样本中的身体动态保留在联合后态。
           if body and layer=="PlayerFast" then layer="WorldDynamic" end
-          local fast=body and (value.type=="Entity" or value.type=="EntityPlayer") and specifications[id] and M.Fast(specifications[id])
           for group,piece in pairs(split(field,layer,body,domain)) do
-            if not fast or group=="Resource" or group=="Structure" or group=="Context" then
-              out[group]=out[group] or {};out[group].fields=out[group].fields or {};out[group].fields[id]=piece
-            end
+            -- ordinary保留完整身体后态；独立PlayerFast提交时再按采样时刻选择覆盖。
+            out[group]=out[group] or {};out[group].fields=out[group].fields or {};out[group].fields[id]=piece
           end
         end
       elseif key=="type" and type(v)=="string" or key=="version" then
@@ -77,14 +77,14 @@ local function split(value,fallback,body,domain)
         local state=v
         if key=="location" and type(v)=="table" then
           -- 取得时刻/源scope属于Publication.validity；楼层和离房内容不因当前HUD/采样scope变号而重发。
-          state={};for _,k in ipairs({"session","epoch","run","floor","dimension","descriptor","room_instance"}) do state[k]=v[k] end
+          state={};for _,k in ipairs({"session","epoch","run","floor","dimension","descriptor","room_instance","scope","entity_scope"}) do state[k]=v[k] end
         end
         local pieces=split(state,layer,body,domain)
         for group,piece in pairs(pieces) do add(group,key,piece) end
       end
     end
   end
-  for _,v in pairs(out) do if value.type then v.type=value.type end;if value.version then v.version=value.version end end
+  for _,v in pairs(out) do if value.type then v.type=value.type=="Sprite" and "stream_sprite_piece" or value.type end;if value.version then v.version=value.version end end
   return out
 end
 -- 拆范围后每条record仍是一张闭合的纯值图；从源中补入真实定义，保留环，不借别的range同号节点。

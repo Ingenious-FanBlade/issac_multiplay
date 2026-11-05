@@ -22,7 +22,7 @@
 
 namespace cs::game {
 namespace {
-enum class State { Off, Connecting, AwaitingWorld, Retiring, Failed };
+enum class State { Off, Connecting, AwaitingWorld, PreparingWorld, Retiring, Failed };
 constexpr const char *kIsolationOriginals[]={"start_game","game_update","room_update","entity_list","odd_helper","restore","post_update","player_update","join_pass"};
 // 输入目标只投影到预计抵达服务器的时刻；不推进本地/Authority时钟，不放行过期命令。
 // 速率由服务器实际提交tick与同机单调时间的差值建立；暂停/换代立即丢弃旧估计。
@@ -64,6 +64,9 @@ struct ClientRuntime final {
   State state=State::Connecting;
   replica::Scope scope{};
   net::protocol::Ack progress{};
+  std::optional<net::live::Event> prepare,retire_control;
+  bool prepare_sent=false;
+  std::array<std::uint64_t,6> prepare_progress{};
   unsigned ordinal=0, roster=0;
   std::uint64_t route=1;
   int device_key=0;
@@ -449,7 +452,7 @@ bool ClientAdmitTarget(const replica::Scope &scope,std::uint64_t revision,const 
 void StopClient() noexcept {
   if(!IsMain()||!ClientBusy())return;
   if(client->state==State::Retiring)return;
-  Neutral(*client,true);client->input_ready=false;client->state=State::Retiring;client->scene.Retire("client_stop");client->neutral_loops=0;client->network.Stop();
+  Neutral(*client,true);client->input_ready=false;client->prepare.reset();client->retire_control.reset();client->state=State::Retiring;client->scene.Retire("client_stop");client->neutral_loops=0;client->network.Stop();
   Trace("client","event=retiring connection=%llu",client->connection);
 }
 bool ClientAdmitGridIndependent(const replica::Message &message,const char *&reason) noexcept {
@@ -506,10 +509,17 @@ bool ClientManagerBoundary() noexcept {
       switch(event.type) {
         case net::live::Event::Type::Welcome:
           if(c.state!=State::Connecting)break;
-          c.scope=event.scope;c.scene.Begin(event.scope);
+          c.scope=event.scope;c.route=event.route;c.scene.Begin(event.scope);
           if(c.scene.State()==ClientSceneState::Failed){Failure(c,"client_scene_begin_failed");break;}
           c.ordinal=event.ordinal;c.state=State::AwaitingWorld;
           Trace("client","event=welcome connection=%llu ordinal=%u session=%llu wire_connection=%llu",c.connection,c.ordinal,c.scope.session,c.scope.connection);break;
+        case net::live::Event::Type::Prepared:{
+          if(c.state!=State::PreparingWorld||!c.prepare||!c.prepare_sent||!c.scene.CanReturnToMenu()||!event.world){Failure(c,"client_prepare_activation_state");break;}
+          const auto &p=c.prepare->world->body;if(event.route!=replica::Unsigned(p["next_route"])||event.scope!=replica::stream::Connected({replica::Unsigned(p["world"]["session"]),replica::Unsigned(p["world"]["run"]),replica::Unsigned(p["world"]["floor"]),replica::Unsigned(p["world"]["dimension"]),replica::Unsigned(p["world"]["room"]),replica::Unsigned(p["world"]["scene"])},c.scope.connection)){Failure(c,"client_prepare_activation_identity");break;}
+          Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};c.generation=0;c.control={};c.last_tick=c.last_target=0;c.scope=event.scope;c.route=event.route;c.scene.Begin(c.scope);
+          if(c.scene.State()==ClientSceneState::Failed||!c.scene.BeginStream(c.scope,c.route,replica::Unsigned(p["manifest"]),replica::Unsigned(p["generation"]))){Failure(c,"client_stream_begin");break;}
+          c.prepare.reset();c.prepare_sent=false;c.state=State::AwaitingWorld;break;
+        }
         case net::live::Event::Type::Progress:
         case net::live::Event::Type::TickProgress:
           if(c.state!=State::AwaitingWorld)break;
@@ -523,7 +533,7 @@ bool ClientManagerBoundary() noexcept {
           c.progress=event.progress;c.roster=event.progress.roster_mask;
           if(event.type==net::live::Event::Type::TickProgress){if(!c.blocked)c.timing.Observe(event);else c.timing={};}break;
         case net::live::Event::Type::InputAck:
-          if(c.state!=State::AwaitingWorld||event.scope!=c.scope||event.ordinal!=c.ordinal)break;
+          if(c.state!=State::AwaitingWorld||event.scope!=c.scope||event.route!=c.route||event.ordinal!=c.ordinal)break;
           if(event.progress.generation==c.generation&&event.progress.processed>=c.input_ack) {
             if(event.progress.processed>c.sequence){Failure(c,"client_ack_unsent");break;}
             c.input_ack=event.progress.processed;c.input_ack_tick=event.progress.processed_tick;
@@ -534,6 +544,35 @@ bool ClientManagerBoundary() noexcept {
         case net::live::Event::Type::Stopped:Failure(c,event.reason);break;
         case net::live::Event::Type::Failed:Failure(c,event.reason);break;
       }
+    }
+    // 产品世界只从网络自有值进入唯一Scene；文件/fixture入口不参与此路径。
+    for(unsigned n=0;!c.fixture&&(c.state==State::AwaitingWorld||c.state==State::PreparingWorld)&&n<16&&c.network.PollWorld(event);++n){
+      if(event.scope!=c.scope||event.route!=c.route||event.ordinal!=c.ordinal||!event.world)continue;
+      const auto &m=*event.world;
+      if(m.kind==replica::stream::Kind::ScenePrepare){
+        const auto &p=m.body;if(replica::Unsigned(p["world"]["session"])!=c.scope.session||replica::Unsigned(p["next_route"])!=c.route+1||replica::Unsigned(p["native_domains"])!=71||replica::Unsigned(p["retained_domains"])!=(2047u^71u)){Failure(c,"client_prepare_route_or_native_contract");break;}
+        if(c.prepare){if(c.prepare->world->sequence!=m.sequence||c.prepare->world->body!=m.body)Failure(c,"client_prepare_conflict");continue;}
+        Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};c.prepare=event;c.prepare_sent=false;c.prepare_progress={};c.state=State::PreparingWorld;
+        if(!c.scene.CanReturnToMenu())c.scene.Retire("network_scene_prepare");
+      }else if(m.kind==replica::stream::Kind::Retire){
+        Neutral(c,true);c.network.RevokeInput();c.input_ready=false;c.timing={};c.progress={};c.prepare.reset();c.retire_control=event;c.prepare_progress={};c.scene.Retire("network_source_retired");
+      }else if(m.kind==replica::stream::Kind::Range&&c.state==State::AwaitingWorld){const char *why="client_stream_admission";if(!c.scene.AdmitStream(m,why)){Failure(c,why);break;}}
+      else if(m.kind!=replica::stream::Kind::Cancel){Failure(c,"client_stream_control_kind");break;}
+    }
+    if(!c.fixture&&(c.prepare||c.retire_control)&&!c.scene.CanReturnToMenu()){
+      const auto r=c.scene.Result();const std::array<std::uint64_t,6> step{r.attempt,r.executed_prefix,r.native_owners,r.grid_prefix,r.grid_owners,r.pending_owners};
+      // 只报告真实完整退休步骤的变化；不以Manager心跳延长准备超时。
+      if(step!=c.prepare_progress&&c.network.Complete(c.prepare?*c.prepare:*c.retire_control,net::live::OperationStage::Executing,"native_retirement_progress"))c.prepare_progress=step;
+    }
+    if(!c.fixture&&c.state==State::PreparingWorld&&c.prepare&&!c.prepare_sent&&c.scene.CanReturnToMenu()){
+      if(!c.network.Prepare(*c.prepare))Failure(c,"client_prepare_queue");else c.prepare_sent=true;
+    }
+    if(!c.fixture&&c.retire_control&&c.scene.CanReturnToMenu()){
+      if(c.network.Complete(*c.retire_control,net::live::OperationStage::Complete,"native_scene_retired")){c.retire_control.reset();c.scene.Begin(c.scope);} // 成功排队后才释放真实退休结果。
+    }
+    if(!c.fixture&&c.state==State::AwaitingWorld&&!c.retire_control){
+      c.scene.PumpStream();for(unsigned n=0;n<16;++n){auto m=c.scene.StreamControl();if(!m||!c.network.SendControl(m))break;c.scene.StreamControlSent();}
+      if(c.scene.State()==ClientSceneState::Failed&&!c.scene.RecoveryPending())Failure(c,c.scene.Result().reason.data());
     }
     if(c.state==State::Retiring) {
       // 原生菜单可能在Input更新之前消费缓存；交还前刷新两轮真实松键，不能重放Client按键。
@@ -549,7 +588,7 @@ bool ClientManagerBoundary() noexcept {
       if(c.blocked&&!was_blocked){c.network.RevokeInput();c.timing={};}
       std::uint64_t target=0;
       // 16 的等待场景仍能向 Authority 发输入；已有目标的构建/替换窗口则清边沿并保持中性。
-      const bool input_scene=c.scene.State()==ClientSceneState::Waiting||c.scene.DisplayReady();
+      const bool input_scene=c.scene.DisplayReady();
       const auto control=c.scene.PlayerControl(c.ordinal);
       // 构建中的无视图不是新的绑定；停止发意图并清FIFO，保留旧身份用于重建后的比较。
       if(c.scene.DisplayReady()){
