@@ -14,6 +14,9 @@ public:
   ClientGridStep Step(const ClientNativeRoots &,unsigned budget=1) noexcept;
   ClientGridStep Retire(const ClientNativeRoots &) noexcept;
   bool Visit(void *context,ClientGridVisitor visitor) const noexcept;
+#ifdef ISAACCS_E2E
+  std::string TestInspect(const ClientNativeRoots &) const noexcept;
+#endif
   // 全部实例登记后解析依赖，允许合法环；不跨本次调用保存 Entity 裸指针。
   ClientGridStep ResolveReferences(const ClientObjects &,std::uint64_t attempt) noexcept;
   using LiftedVisitor=bool (*)(void *,const replica::LiftedGridTarget &) noexcept;

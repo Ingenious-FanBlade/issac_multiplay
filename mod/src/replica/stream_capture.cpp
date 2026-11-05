@@ -1,4 +1,5 @@
 #include "replica/stream_capture.h"
+#include "replica/stream_e2e.h"
 #include "replica/stream_materialize.h"
 #include <algorithm>
 #include <set>
@@ -131,7 +132,11 @@ Range Capture::Make(RangeData d,bool reuse){
   d.revision=Next();d.sample.sequence=d.revision;auto range=Freeze(std::move(d),layouts_);
   const auto decision=store_->Admit(range,layouts_);if(!decision)Fail(decision.reason);
   metrics_.Bind(world_);metrics_.Note(*range,FlowStage::Sample,MetricMicros()/1000);
-  current_[range->id]=range;return range;
+  current_[range->id]=range;
+#ifdef ISAACCS_E2E
+  if(E2EWants("source",*range))E2ESnapshot("source",range,Closure(*store_,*range),0,0);
+#endif
+  return range;
 }
 void Capture::Collect(){
   std::vector<Version> roots;for(const auto &[id,r]:current_)roots.push_back(V(r));

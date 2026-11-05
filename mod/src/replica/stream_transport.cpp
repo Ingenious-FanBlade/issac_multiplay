@@ -76,14 +76,14 @@ std::vector<std::uint8_t> Datagram(const Blob &blob,TransferKey key,std::uint32_
   if(l.datagram<=64||l.datagram>1200||!key.transfer||key.transfer==UINT64_MAX||blob.bytes.empty()||blob.bytes.size()>l.bytes||blob.decoded_bytes>l.bytes)Fail("stream_send_description");
   const auto chunk=l.datagram-64,count=(blob.bytes.size()+chunk-1)/chunk;if(!count||count>l.fragments||index>=count)Fail("stream_fragment_count");
   const auto offset=std::size_t(index)*chunk,n=(std::min)(std::size_t(chunk),blob.bytes.size()-offset);
-  std::vector<std::uint8_t> out={'I','C','R','F'};out.reserve(64+n);U(out,2,2);U(out,64,2);U(out,key.connection,8);U(out,key.route,8);U(out,key.transfer,8);U(out,blob.bytes.size(),4);U(out,blob.decoded_bytes,4);U(out,index,4);U(out,count,4);U(out,unsigned(blob.kind),2);U(out,unsigned(blob.lane),1);U(out,unsigned(blob.codec),1);U(out,n,2);U(out,0,2);U(out,0,8);out.insert(out.end(),blob.bytes.begin()+offset,blob.bytes.begin()+offset+n);ReadHeader(out,l);return out;
+  std::vector<std::uint8_t> out={'I','C','R','F'};out.reserve(64+n);U(out,kFraming,2);U(out,64,2);U(out,key.connection,8);U(out,key.route,8);U(out,key.transfer,8);U(out,blob.bytes.size(),4);U(out,blob.decoded_bytes,4);U(out,index,4);U(out,count,4);U(out,unsigned(blob.kind),2);U(out,unsigned(blob.lane),1);U(out,unsigned(blob.codec),1);U(out,n,2);U(out,0,2);U(out,0,8);out.insert(out.end(),blob.bytes.begin()+offset,blob.bytes.begin()+offset+n);ReadHeader(out,l);return out;
 }
 bool IsBundle(std::span<const std::uint8_t> b) noexcept {return b.size()>=4&&!std::memcmp(b.data(),"ICRB",4);}
 std::vector<std::vector<std::uint8_t>> Unbundle(std::span<const std::uint8_t> b){
-  if(!IsBundle(b)||b.size()>1200||b.size()<28)Fail("bundle_header");std::size_t p=4;if(Read(b,p,2)!=2||Read(b,p,2)!=28)Fail("bundle_version");const auto connection=Read(b,p,8),route=Read(b,p,8),count=Read(b,p,2);if(Read(b,p,2)||!count||count>16||!connection||!route||route==UINT64_MAX)Fail("bundle_description");std::vector<std::vector<std::uint8_t>> out;out.reserve(std::size_t(count));
+  if(!IsBundle(b)||b.size()>1200||b.size()<28)Fail("bundle_header");std::size_t p=4;if(Read(b,p,2)!=kFraming||Read(b,p,2)!=28)Fail("bundle_version");const auto connection=Read(b,p,8),route=Read(b,p,8),count=Read(b,p,2);if(Read(b,p,2)||!count||count>16||!connection||!route||route==UINT64_MAX)Fail("bundle_description");std::vector<std::vector<std::uint8_t>> out;out.reserve(std::size_t(count));
   for(unsigned i=0;i<count;++i){const auto n=Read(b,p,2),kind=Read(b,p,2),lane=Read(b,p,1);if(Read(b,p,1))Fail("bundle_reserved");const auto sequence=Read(b,p,8),transfer=Read(b,p,8);if(n>b.size()-p||n<2||n>1096||!sequence||sequence==UINT64_MAX||kind<1||kind>20)Fail("bundle_length_or_sequence");
     // 共用路由从容器恢复；子消息只传完整compact payload，不重复64/40字节封套。
-    Blob blob;blob.kind=Kind(kind);blob.lane=Lane(lane);blob.sequence=sequence;blob.decoded_bytes=unsigned(n+40);blob.bytes={'I','C','S','R'};blob.bytes.reserve(std::size_t(n+40));U(blob.bytes,2,2);U(blob.bytes,40,2);U(blob.bytes,kind,2);U(blob.bytes,lane,1);U(blob.bytes,0,1);U(blob.bytes,n,4);U(blob.bytes,sequence,8);U(blob.bytes,0,8);U(blob.bytes,0,8);blob.bytes.insert(blob.bytes.end(),b.begin()+p,b.begin()+p+std::size_t(n));out.push_back(Datagram(blob,{connection,route,transfer},0));p+=std::size_t(n);
+    Blob blob;blob.kind=Kind(kind);blob.lane=Lane(lane);blob.sequence=sequence;blob.decoded_bytes=unsigned(n+40);blob.bytes={'I','C','S','R'};blob.bytes.reserve(std::size_t(n+40));U(blob.bytes,kFraming,2);U(blob.bytes,40,2);U(blob.bytes,kind,2);U(blob.bytes,lane,1);U(blob.bytes,0,1);U(blob.bytes,n,4);U(blob.bytes,sequence,8);U(blob.bytes,0,8);U(blob.bytes,0,8);blob.bytes.insert(blob.bytes.end(),b.begin()+p,b.begin()+p+std::size_t(n));out.push_back(Datagram(blob,{connection,route,transfer},0));p+=std::size_t(n);
   }if(p!=b.size())Fail("bundle_trailing_bytes");return out;
 }
 std::vector<std::vector<std::uint8_t>> Bundle(const std::vector<std::vector<std::uint8_t>> &packets){
@@ -92,7 +92,7 @@ std::vector<std::vector<std::uint8_t>> Bundle(const std::vector<std::vector<std:
   for(const auto &p:packets){const auto h=ReadHeader(p);if(h.count!=1||h.codec!=Codec::None||!h.connection||p.size()<106){flush();out.push_back(p);continue;}
     const auto payload=p.size()-104;
     if(count&&(h.connection!=connection||h.route!=route||current.size()+22+payload>1200||count==16))flush();
-    if(!count){connection=h.connection;route=h.route;current={'I','C','R','B'};U(current,2,2);U(current,28,2);U(current,connection,8);U(current,route,8);U(current,0,2);U(current,0,2);}
+    if(!count){connection=h.connection;route=h.route;current={'I','C','R','B'};U(current,kFraming,2);U(current,28,2);U(current,connection,8);U(current,route,8);U(current,0,2);U(current,0,2);}
     U(current,payload,2);U(current,unsigned(h.kind),2);U(current,unsigned(h.lane),1);U(current,0,1);std::size_t at=80;U(current,Read(p,at,8),8);U(current,h.transfer,8);current.insert(current.end(),p.begin()+104,p.end());++count;
   }flush();return out;
 }

@@ -1,6 +1,6 @@
 # tx-04-21：先两人、后四人的统一 E2E 验收方案
 
-日期：2026-11-05。状态：**方案，未写编排代码，未构建／运行任何场景**。执行入口拟为 `scripts/run-tx-04-21.ps1`＋`tools/harness/src/tx21.rs`，不是当前已有命令。配合[主计划](tx-04-21-implementation-plan.md)、[网络合同](tx-04-21-network-contract.md)和[研究计划](tx-04-21-native-research-plan.md)。
+日期：2026-11-05。状态：**I31—I35的[场景／代理／版本对照与归约组件](tx-04-21-e2e-components.md)已编写，I36—I38整合及I39实际构建／运行尚未执行**。初版仅方案、尚无编排代码的历史事实保留。唯一完整执行入口仍待I38接通，拟为 `scripts/run-tx-04-21.ps1`＋`tools/harness/src/tx21.rs`，不是当前已有命令。配合[主计划](tx-04-21-implementation-plan.md)、[网络合同](tx-04-21-network-contract.md)和[研究计划](tx-04-21-native-research-plan.md)。
 
 I01—I38 全目标完成后才进入 I39；本 tx 只设一个整体验收入口，下面的网络档、角色负载和 E 编号是该入口内部覆盖。不存在提前 smoke／probe／单项自测；不新增实现后单元测试。失败先修复，同 tx 继续必要测试，不换编号或默认等下一轮指令。
 

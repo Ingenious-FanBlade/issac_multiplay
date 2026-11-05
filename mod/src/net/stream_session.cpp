@@ -1,4 +1,5 @@
 #include "net/stream_session.h"
+#include "replica/stream_e2e.h"
 #include <algorithm>
 #include <cstring>
 #include <thread>
@@ -47,7 +48,7 @@ bool Same(const s::Message &a, const s::Message &b) {
          a.route == b.route && a.body == b.body;
 }
 } // namespace
-void ObservePacket(s::Metrics &m,std::span<const std::uint8_t> b) noexcept {
+void ObservePacket(s::Metrics &m,std::span<const std::uint8_t> b,const char *direction) noexcept {
   try {
     std::array<std::uint64_t,4> costs{};unsigned messages=1;
     if(s::IsBundle(b)){
@@ -57,6 +58,9 @@ void ObservePacket(s::Metrics &m,std::span<const std::uint8_t> b) noexcept {
       if(at!=b.size())throw r::ContractError("metric_length");
     }else costs[Lane(s::ReadHeader(b).lane)]=b.size()+28;
     ++m.packets;m.payload_bytes+=b.size();m.wire_bytes+=b.size()+28;m.bundle_messages+=messages;for(unsigned i=0;i<4;++i){m.lane_bytes[i]+=costs[i];if(costs[i])++m.lane_packets[i];}
+#ifdef ISAACCS_E2E
+    s::E2EPacket(Read(b,8,8),Read(b,16,8),b.size()+28,costs,direction);
+#endif
   }catch(...){++m.missing;}
 }
 void Uplink::Bucket::Fill(std::uint64_t now) {
@@ -147,6 +151,9 @@ s::SendResult Uplink::Transmit(unsigned peer, std::span<const std::uint8_t> b, b
   status.payload_bytes+=b.size();
   status.bundle_messages+=s::IsBundle(b)?Read(b,24,2):1;
   status.wire_bytes += b.size() + 28;
+#ifdef ISAACCS_E2E
+  s::E2EPacket(Read(b,8,8),Read(b,16,8),b.size()+28,costs,"host-send");
+#endif
   return result;
 }
 bool Operations::Reliable(s::Kind k) noexcept {

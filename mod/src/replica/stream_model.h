@@ -1,11 +1,11 @@
 #pragma once
 #include "replica/player_target.h"
+#include "replica/stream_version.h"
 #include <variant>
 #include <optional>
 #include "core/replication_memory.h"
 
 namespace cs::replica::stream {
-inline constexpr unsigned kSchema=1;
 enum class RangeKind : unsigned { Manifest=1, Context, Structure, Resource, WorldDynamic, PlayerFast };
 enum class FieldStatus : unsigned { Value, Null, Empty, NotApplicable, Missing, NotScheduled, ReadFailed, Unsupported, Truncated };
 enum class CaptureKind : unsigned { Ordinary, OddPlayer };

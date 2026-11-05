@@ -25,6 +25,7 @@ mod tx17;
 mod tx18;
 mod tx19;
 mod tx20;
+mod tx21;
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -1263,6 +1264,7 @@ fn main() {
 }
 fn entry() -> Result<()> {
     let args = env::args().skip(1).collect::<Vec<_>>();
+    if args.first().map(String::as_str)==Some("tx21"){return tx21::cli(&args);}
     if args.first().map(String::as_str)==Some("tx15-reduce") { if args.len()!=2&&!(args.len()==3&&args[2]=="--retest-contract") {return Err("tx15-reduce <temporary-directory> [--retest-contract]".into());} return tx15::reduce_existing(std::path::Path::new(&args[1]),args.len()==3); }
     if args.first().map(String::as_str)==Some("tx14-reduce") { if args.len()!=2 {return Err("tx14-reduce <completed-tx-directory>".into());} return tx14::reduce_existing(std::path::Path::new(&args[1])); }
     if args.first().map(String::as_str)==Some("tx13-reduce") { if args.len()!=2 {return Err("tx13-reduce <completed-tx-directory>".into());} return tx13::reduce_existing(std::path::Path::new(&args[1])); }

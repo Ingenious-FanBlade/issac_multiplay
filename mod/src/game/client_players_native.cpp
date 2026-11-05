@@ -1,4 +1,5 @@
 #include "IsaacRepentance.h"
+#include "game/client_inspect_value.h"
 #include "binding/world_layout_constants.h"
 #include "game/client_players_native.h"
 #include "game/client_player_state.h"
@@ -432,6 +433,13 @@ std::string ClientNativePlayersInspect(ClientNativePlayers *o,const ClientEntity
       row.AddMember("instance",decimal(e.instance),a);row.AddMember("shape",decimal(d.entity.shape_revision),a);row.AddMember("prefix",e.prefix,a);
       row.AddMember("player_type",p._playerType,a);row.AddMember("player_index",p._playerIndex,a);row.AddMember("controller_index",p._controllerIndex,a);
       row.AddMember("exists",p._exists,a);row.AddMember("valid",p._valid,a);row.AddMember("red_hearts",p._redHearts,a);
+      rapidjson::Value fields(rapidjson::kObjectType);
+#define Raw ClientInspectRaw
+#define CS_PLAYER_FIELD(id,field,type,kind) if(ClientPlayerStateApplicable(id,p._playerType))ClientInspectField(fields,id,field,a);
+#include "game/client_player_fields.inc"
+#undef CS_PLAYER_FIELD
+#undef Raw
+      row.AddMember("fields",std::move(fields),a);
       rapidjson::Value position(rapidjson::kArrayType);position.PushBack(p._pos.x,a);position.PushBack(p._pos.y,a);row.AddMember("position",std::move(position),a);
       auto &list=static_cast<Room *>(o->roots.room)->_entityList;
       row.AddMember("room_members",Count(list._persistentEL,&p),a);row.AddMember("render_members",Count(list._renderEL,&p),a);row.AddMember("update_members",Count(list._updateEL,&p),a);

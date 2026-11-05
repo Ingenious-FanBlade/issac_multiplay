@@ -6,6 +6,7 @@
 #include "game/client_resource_model.h"
 #include "game/client_players.h"
 #include "replica/stream_capture.h"
+#include "replica/stream_e2e.h"
 #include "game/client_entity_draw_native.h"
 #include "game/client_entity_e2e.h"
 #include "replica/room_geometry.h"
@@ -720,7 +721,12 @@ ClientNativeRoots ClientScene::NativeRoots() const noexcept {
 }
 #ifdef ISAACCS_E2E
 std::string ClientScene::TestInspect() const noexcept {
-  return DisplayReady()&&objects_?objects_->TestInspect():"ok=0\nerror=inspect_not_committed\n";
+  if(!DisplayReady()||!objects_||!grids_)return "ok=0\nerror=inspect_not_committed\n";
+  try{const auto roots=ClientNativeWorldCheckCommit(native_world_);if(roots.state!=ClientNativeStepState::Ready)return "ok=0\nerror="+std::string(roots.reason)+"\n";
+    auto out=objects_->TestInspect();if(out.rfind("ok=1\n",0)!=0)return out;
+    const auto grid=grids_->TestInspect(ClientNativeWorldRoots(native_world_));if(grid.rfind("ok=1\n",0)!=0)return grid;
+    return out+grid.substr(5)+"native_domains="+std::to_string(result_.committed_domains>>1)+"\nattempt="+std::to_string(result_.attempt)+"\ninstance_generation="+std::to_string(generations_.instance)+"\nresource_generation="+std::to_string(generations_.resource)+"\nretained_domains_are_not_applied=1\n";
+  }catch(...){return "ok=0\nerror=inspect_allocation\n";}
 }
 #endif
 const replica::Value *ClientScene::Published() const noexcept {return DisplayReady()?applied_.get():nullptr;}
@@ -760,7 +766,11 @@ void ClientScene::RenderPublished() noexcept {
   replica::stream::Measure draw_measure(stream_metrics_,replica::stream::CpuStage::Draw);
   const auto step=presentation_->Render(ClientNativeWorldRoots(native_world_));
   if(step.failed){stream_write_failure_=network_stream_started_;Fail(step.reason);}
-  else if(step.done){stream_metrics_.rendered_local_ms=GetTickCount64();stream_metrics_.rendered_revision=result_.revision;}
+  else if(step.done){stream_metrics_.rendered_local_ms=GetTickCount64();stream_metrics_.rendered_revision=result_.revision;
+#ifdef ISAACCS_E2E
+    if(stream_){std::vector<replica::stream::Version> versions;for(const auto &[id,c]:stream_->committed)versions.push_back(c.version);replica::stream::E2ERender(stream_->scope.connection,stream_->route,versions,result_.revision);}
+#endif
+  }
   Release(graphics);
 }
 // 每个原生、Lua、图形用途都要求已知主线程和 owner；图形另要求当前 OS context。

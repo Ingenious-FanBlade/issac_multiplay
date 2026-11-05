@@ -9,6 +9,21 @@ if($BuildSdk) {
 $buildTree=if($E2E){'build/repentogon-e2e'}else{'build/repentogon'}
 $e2eTools=if($E2E){'ON'}else{'OFF'}
 $buildOutput=Join-Path $repoRoot $(if($E2E){'out/repentogon/e2e'}else{'out/repentogon'})
+# 配置文件在configure阶段生成；完成凭据必须在整次构建/资源复制成功后才重新写入。
+$buildReceipt=Join-Path $buildOutput 'build-complete.json'
+if(Test-Path -LiteralPath $buildReceipt){Remove-Item -LiteralPath $buildReceipt -Force}
+# Lua输出必须是本轮源树，不保留以前已删除的夹具或模块。递归清理前核对绝对路径。
+function Copy-BuildTree([string]$source,[string]$destination){
+    $resolved=[IO.Path]::GetFullPath($destination)
+    $outputRoot=[IO.Path]::GetFullPath($buildOutput)+[IO.Path]::DirectorySeparatorChar
+    if(-not $resolved.StartsWith($outputRoot,[StringComparison]::OrdinalIgnoreCase)){throw 'Build tree escaped selected flavor output'}
+    if(Test-Path -LiteralPath $resolved){
+        if((Get-Item -LiteralPath $resolved).Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Refuse reparse build output'}
+        Remove-Item -LiteralPath $resolved -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $resolved -Force | Out-Null
+    Copy-Item -Path (Join-Path $source '*') -Destination $resolved -Recurse -Force
+}
 & cmake -S (Join-Path $repoRoot 'mod') -B (Join-Path $repoRoot $buildTree) -G 'Visual Studio 17 2022' -A Win32 -T v143 "-DREPENTOGON_ROOT=$RepentogonRoot" "-DISAACCS_BUILD_E2E_TOOLS=$e2eTools"
 if($LASTEXITCODE) { throw 'IsaacCS configure failed' }
 & cmake --build (Join-Path $repoRoot $buildTree) --config Release -- /m:4 /v:minimal
@@ -33,9 +48,17 @@ Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/en
 Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/player-application.json') -Destination (Join-Path $buildOutput 'player-application.json')
 # 实时逐成员目录与嵌入DLL同源，构建本身仍不运行codec或游戏测试。
 Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/stream-catalog.json') -Destination (Join-Path $buildOutput 'stream-catalog.json')
+# 必需许可证跟随静态zstd发布；不需要另装zstd.dll。
+Copy-Item -LiteralPath (Join-Path $repoRoot 'mod/third_party/zstd/LICENSE') -Destination (Join-Path $buildOutput 'zstd-LICENSE.txt')
+if($E2E){
+    $fixtureOutput=Join-Path $buildOutput 'isaac-cs-test'
+    Copy-BuildTree (Join-Path $repoRoot 'tests/e2e-mods/isaac-cs-test') $fixtureOutput
+}
 
 # 正式观察 Lua 作为产品资源单独打包，测试夹具与 Rust 不混入模组目录。
 $observationOutput=Join-Path $buildOutput 'isaac-cs-observation'
-New-Item -ItemType Directory -Path $observationOutput -Force | Out-Null
-Copy-Item -Path (Join-Path $repoRoot 'mod/observation/isaac-cs-observation/*') -Destination $observationOutput -Recurse -Force
+Copy-BuildTree (Join-Path $repoRoot 'mod/observation/isaac-cs-observation') $observationOutput
 Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/stream_policy.lua') -Destination (Join-Path $observationOutput 'domains/common/stream_policy.lua') -Force
+$completedFiles=@()
+foreach($file in Get-ChildItem -LiteralPath $buildOutput -File){$completedFiles+=@{name=$file.Name;bytes=$file.Length;modified_utc=$file.LastWriteTimeUtc.ToString('o')}}
+@{format='isaac.cs.build.complete';version=1;flavor=if($E2E){'e2e'}else{'product'};files=$completedFiles;completed_utc=[DateTime]::UtcNow.ToString('o')} | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $buildReceipt -Encoding utf8

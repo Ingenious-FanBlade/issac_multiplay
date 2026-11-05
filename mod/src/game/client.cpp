@@ -421,7 +421,7 @@ const char *StartClient(const std::string &ipv4,unsigned port,int device_key) no
 #ifdef ISAACCS_E2E
 // 只读后态借用仍由Scene唯一提交资格决定，不用DTO取代原生检查。
 std::string ClientTestInspect(const std::string &token) noexcept {
-  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||!client->fixture)return "ok=0\nerror=inspect_context\n";
+  if(!IsMain()||TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token||!client||(!client->fixture&&!client->scene.NetworkStream()))return "ok=0\nerror=inspect_context\n";
   return client->scene.TestInspect();
 }
 // 测试会话只替换目标来源；启动保护、原生应用、失败隔离及退休仍走同一正式 owner。

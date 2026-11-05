@@ -2,6 +2,7 @@
 #include "game/client_objects.h"
 #include "game/client_presentation.h"
 #include "game/client_scene.h"
+#include "replica/stream_e2e.h"
 #include "game/context.h"
 #include "replica/stream_capture.h"
 #include "runtime.h"
@@ -197,6 +198,12 @@ void ClientScene::CommitStream(const stream::Range &root, bool baseline) {
   stream_metrics_.Note(*root,stream::FlowStage::Commit,now);
   if(baseline||root->id.kind==stream::RangeKind::WorldDynamic)stream_last_commit_=now;
   stream_metrics_.display_ready_ms=now;
+#ifdef ISAACCS_E2E
+  // 精确提交当刻回读；诊断失败不得改变提交或制造ACK，缺测由E2E单独判定。
+  if(stream::E2EWants("native",*root)){
+    try{std::vector<stream::Version> versions;for(const auto &[id,commit]:s.committed)versions.push_back(commit.version);stream::E2ESnapshot("native",root,stream::Closure(s.store,*root),s.scope.connection,s.route,TestInspect(),versions);}catch(...){}
+  }
+#endif
   if (baseline) {
     entity_events_.BaselineEvents(s.manifest->event_watermark);
     s.baseline_committed = true;

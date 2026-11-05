@@ -43,6 +43,14 @@ target_compile_definitions(isaac_cs_world PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 target_compile_options(isaac_cs_world PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_link_libraries(isaac_cs_world PUBLIC isaac_cs_core)
 set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
+# 发布元数据只读取同一源码版本表，不探测游戏，也不运行校验程序。
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/src/replica/stream_version.h" STREAM_VERSION_SOURCE)
+string(REGEX MATCH "kFraming=([0-9]+),kSchema=([0-9]+),kCompactSchema=([0-9]+)" _ "${STREAM_VERSION_SOURCE}")
+set(STREAM_FRAMING "${CMAKE_MATCH_1}")
+set(STREAM_SCHEMA "${CMAKE_MATCH_2}")
+set(STREAM_COMPACT "${CMAKE_MATCH_3}")
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/../VERSION" ISAACCS_VERSION)
+string(STRIP "${ISAACCS_VERSION}" ISAACCS_VERSION)
 # 复制层只依赖纯值观测合同与JSON库；生成目录属于产品协议，不包含游戏地址。
 file(GLOB REPLICA_CATALOGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/observation/isaac-cs-observation/*catalog.json")
 add_custom_command(OUTPUT "${GENERATED}/replication_catalog.inc" "${GENERATED}/replication-catalog.json"
@@ -65,6 +73,7 @@ add_custom_command(OUTPUT "${GENERATED}/player_application.inc" "${GENERATED}/pl
 add_custom_command(OUTPUT "${GENERATED}/stream_catalog.inc" "${GENERATED}/stream-catalog.json" "${GENERATED}/stream_policy.lua"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_stream_catalog.py" --out "${GENERATED}" --lua "${GENERATED}/stream_policy.lua"
   DEPENDS tools/gen_stream_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py ${REPLICA_CATALOGS}
+    src/replica/stream_version.h
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-21/stream-catalog.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-18/room-grid-application.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-application.json"
@@ -83,6 +92,8 @@ target_link_libraries(isaac_cs_net PUBLIC isaac_cs_replica)
 # E2E工具与正式DLL分开打包；同一库用于正式主线程纯值适配和统一验收。
 option(ISAACCS_BUILD_E2E_TOOLS "Build explicitly requested E2E tools outside product install tree" OFF)
 if(ISAACCS_BUILD_E2E_TOOLS)
+  target_compile_definitions(isaac_cs_replica PUBLIC ISAACCS_E2E=1)
+  target_sources(isaac_cs_replica PRIVATE src/replica/stream_e2e.cpp)
 set(ISAACCS_BUILD_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/../out/repentogon/e2e")
 add_executable(replica-contract ../tools/replica-contract/main.cpp)
 target_link_libraries(replica-contract PRIVATE isaac_cs_replica)
@@ -147,7 +158,7 @@ else()
   set(ISAACCS_BUILD_FLAVOR "product")
 endif()
 file(GENERATE OUTPUT "${ISAACCS_DLL_OUTPUT}/build-flavor.json"
-  CONTENT "{\"format\":\"isaac.cs.build\",\"version\":1,\"flavor\":\"${ISAACCS_BUILD_FLAVOR}\",\"e2e_tools\":$<IF:$<BOOL:${ISAACCS_BUILD_E2E_TOOLS}>,true,false>,\"player_contract\":\"player-target-v2\",\"player_diagnostics\":1,\"player_runtime_acceptance\":\"tx-04-20-I39-finite-matrix-passed\"}\n")
+  CONTENT "{\"format\":\"isaac.cs.build\",\"version\":2,\"product_version\":\"${ISAACCS_VERSION}\",\"flavor\":\"${ISAACCS_BUILD_FLAVOR}\",\"e2e_tools\":$<IF:$<BOOL:${ISAACCS_BUILD_E2E_TOOLS}>,true,false>,\"framing\":${STREAM_FRAMING},\"stream_schema\":${STREAM_SCHEMA},\"compact_schema\":${STREAM_COMPACT},\"target\":\"REPENTOGON-1.1.3-J273-Win32-v143-MD\",\"compression\":\"zstd-static\",\"stream_runtime_acceptance\":\"pending-I39\",\"player_contract\":\"player-target-v2\"}\n")
 # SDK 1.1.3 的生成头和 ASMPatcher.hpp 的 friend-static 声明不兼容当前 C++20。
 # SDK-facing 单元只使用 C++17 值接口；Join/输入/world 核心保持 C++20。
 # 显式覆盖逐文件标准，不降低整个 DLL 标准，也不修改 SDK 头或补丁/汇编行为。

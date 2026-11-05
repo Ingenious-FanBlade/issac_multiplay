@@ -140,6 +140,9 @@ ClientObjectStep ClientNativeObjectsAbandon(ClientNativeObjects *,const ClientNa
 // I4只在当前借用内枚举已提交的原生实例；地址不允许存入网络或跨帧队列。
 using ClientObjectVisitor=bool (*)(void *,void *,const ClientObjectKey &,std::uint64_t,unsigned) noexcept;
 bool ClientNativeObjectsVisit(const ClientNativeObjects *,void *,ClientObjectVisitor) noexcept;
+#ifdef ISAACCS_E2E
+bool ClientNativeObjectsInspectRelations(const ClientNativeObjects *,const char *&) noexcept;
+#endif
 bool ClientNativeObjectsCheckLifted(const ClientNativeObjects *,const ClientObjectKey &,const char *&) noexcept;
 // 独立记录只匹配当前Key/shape/本地实例；不因同地址或同revision复活旧use。
 bool ClientNativeObjectsMatch(const ClientNativeObjects *,const ClientObjectKey &,std::uint64_t,std::uint64_t) noexcept;

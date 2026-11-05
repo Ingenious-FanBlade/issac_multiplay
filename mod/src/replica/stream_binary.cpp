@@ -112,7 +112,7 @@ struct Reader final {
 Value WorldJson(WorldScope w,Allocator &a){Value v(rapidjson::kObjectType);const std::uint64_t ns[]={w.session,w.run,w.floor,w.dimension,w.room,w.scene};unsigned i=0;for(auto k:{"session","run","floor","dimension","room","scene"})Put(v,k,Decimal(ns[i++],a),a);return v;}
 Value VersionsJson(const std::vector<Version> &vs,Allocator &a){Value out(rapidjson::kArrayType);for(const auto &v:vs){Value x(rapidjson::kObjectType),key;Put(x,"kind",Decimal(unsigned(v.id.kind),a),a);Put(x,"name",v.id.name,a);if(v.id.body!=SubjectKey{}){key.SetObject();Put(key,"run",Decimal(v.id.body.run,a),a);Put(key,"id",Decimal(v.id.body.id,a),a);Put(key,"space",Decimal(v.id.body.space,a),a);}Put(x,"body",std::move(key),a);Put(x,"revision",Decimal(v.revision,a),a);out.PushBack(x,a);}return out;}
 void ReadBody(Reader &r,Message &m){
-  if(r.U(2)!=1)Fail("compact_payload_schema");
+  if(r.U(2)!=kCompactSchema)Fail("compact_payload_schema");
   if(m.kind==Kind::Range){auto d=r.RangeValue();if(r.build){d.memory=r.lease;m.range=std::make_shared<const RangeData>(std::move(d));}return;}
   if(r.build)m.body.SetObject();auto &a=r.arena.GetAllocator();for(const auto &slot:Schema(m.kind)){Value v;r.Nodes();r.Measure(256);switch(slot.type){
     case 'u':{const auto n=r.U();if(r.build)v=Decimal(n,a);break;}case 'b':v.SetBool(r.Bool());break;case 's':{const auto s=r.View();if(r.build)v.SetString(s.data(),rapidjson::SizeType(s.size()),a);break;}
@@ -125,7 +125,7 @@ void ReadBody(Reader &r,Message &m){
 }
 }
 std::vector<std::uint8_t> EncodePayload(const Message &m,Limits l){
-  Writer w{l};w.U(1,2);if(m.kind==Kind::Range){if(m.range)w.RangeValue(*m.range);else w.RangeValue(RangeDataFromMessage(m));}
+  Writer w{l};w.U(kCompactSchema,2);if(m.kind==Kind::Range){if(m.range)w.RangeValue(*m.range);else w.RangeValue(RangeDataFromMessage(m));}
   else for(const auto &slot:Schema(m.kind)){w.Nodes();const auto &v=At(m.body,slot.name);switch(slot.type){
     case 'u':w.U(Unsigned(v));break;case 'b':w.U(v.GetBool(),1);break;case 's':w.String({v.GetString(),v.GetStringLength()});break;
     case 'w':w.World({Unsigned(v["session"]),Unsigned(v["run"]),Unsigned(v["floor"]),Unsigned(v["dimension"]),Unsigned(v["room"]),Unsigned(v["scene"])});break;

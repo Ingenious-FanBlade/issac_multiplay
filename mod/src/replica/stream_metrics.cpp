@@ -1,4 +1,5 @@
 #include "replica/stream_metrics.h"
+#include "replica/stream_e2e.h"
 #include <algorithm>
 #include <cstring>
 #ifndef WIN32_LEAN_AND_MEAN
@@ -21,7 +22,11 @@ bool Metrics::Note(const RangeId &id,std::uint64_t revision,const Sample &sample
   if(!slot){++missing;return false;}
   if(!slot->used){slot->used=true;slot->kind=unsigned(id.kind);slot->body=id.body;std::memcpy(slot->name.data(),id.name.data(),id.name.size());}
   const auto s=unsigned(stage);if(revision<=slot->sequence[s])return false;
-  ++slot->counts[s];++stage_totals[s];slot->sequence[s]=revision;slot->tick[s]=sample.tick;slot->phase[s]=unsigned(id.kind==RangeKind::PlayerFast?world::observation::Phase::PlayerPost:world::observation::Phase::OrdinaryPost);slot->authority_kind[s]=unsigned(sample.kind);slot->at_ms[s]=now;return true;
+  ++slot->counts[s];++stage_totals[s];slot->sequence[s]=revision;slot->tick[s]=sample.tick;slot->phase[s]=unsigned(id.kind==RangeKind::PlayerFast?world::observation::Phase::PlayerPost:world::observation::Phase::OrdinaryPost);slot->authority_kind[s]=unsigned(sample.kind);slot->at_ms[s]=now;
+#ifdef ISAACCS_E2E
+  E2EFlow(this,id,revision,sample,stage);
+#endif
+  return true;
 }
 std::string Metrics::Fields(const std::string &prefix,unsigned page) const {
   std::string out;const auto add=[&](const std::string &key,std::uint64_t value){out+=prefix+key+"="+std::to_string(value)+"\n";};
@@ -36,8 +41,8 @@ std::string Metrics::Fields(const std::string &prefix,unsigned page) const {
   add("page",page);add("pages",32);
   for(unsigned i=(std::min)(page,32u)*4;i<(std::min)(page*4+4,128u);++i){const auto &f=flows[i];if(!f.used)continue;const auto p="range."+std::to_string(i)+".";out+=prefix+p+"name="+f.name.data()+"\n";add(p+"kind",f.kind);add(p+"body_run",f.body.run);add(p+"body_id",f.body.id);add(p+"body_space",f.body.space);
     for(unsigned j=0;j<unsigned(FlowStage::Count);++j){const auto q=p+stages[j];add(q+".count",f.counts[j]);add(q+".sequence",f.sequence[j]);add(q+".tick",f.tick[j]);add(q+".phase",f.phase[j]);add(q+".authority_kind",f.authority_kind[j]);add(q+".local_ms",f.at_ms[j]);}}
-  const char *cpu[]={"capture","encode","compress","queue","decode","native_prepare","native_apply","draw","network","ipc","native_retire"};
-  for(unsigned i=0;i<duration.size();++i){const auto &d=duration[i];const auto p="duration."+std::string(cpu[i])+".";add(p+"wall_count",d.count);add(p+"wall_total_us",d.total_us);add(p+"wall_max_us",d.max_us);const auto &c=cpu[i];add(p+"thread_cpu_count",c.count);add(p+"thread_cpu_total_us",c.total_us);add(p+"thread_cpu_max_us",c.max_us);for(unsigned j=0;j<32;++j)if(i==page%duration.size()&&d.buckets[j])add(p+"bucket_log2_us."+std::to_string(j),d.buckets[j]);}
+  const char *cpu_names[]={"capture","encode","compress","queue","decode","native_prepare","native_apply","draw","network","ipc","native_retire"};
+  for(unsigned i=0;i<duration.size();++i){const auto &d=duration[i];const auto p="duration."+std::string(cpu_names[i])+".";add(p+"wall_count",d.count);add(p+"wall_total_us",d.total_us);add(p+"wall_max_us",d.max_us);const auto &c=cpu[i];add(p+"thread_cpu_count",c.count);add(p+"thread_cpu_total_us",c.total_us);add(p+"thread_cpu_max_us",c.max_us);for(unsigned j=0;j<32;++j)if(i==page%duration.size()&&d.buckets[j])add(p+"bucket_log2_us."+std::to_string(j),d.buckets[j]);}
   add("histogram_stage",page%duration.size());
   out+=prefix+"clock=local_monotonic_per_owner_no_cross_device_subtraction\n";
   out+=prefix+"missing_stages=zero_count_means_not_captured\n";return out;

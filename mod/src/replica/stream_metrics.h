@@ -52,12 +52,19 @@ private:
   std::atomic<std::uint64_t> missed_{0};
 };
 std::uint64_t ThreadCpuMicros() noexcept;
+#ifdef ISAACCS_E2E
+void E2ETime(const Metrics *,CpuStage,std::uint64_t,std::uint64_t) noexcept;
+#endif
 inline std::uint64_t MetricMicros() noexcept {return std::uint64_t(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());}
 // CPU窗口和墙钟区间分别命名；不把不同设备绝对时钟相减。
 class Measure final {
 public:
   Measure(Metrics &m,CpuStage stage) noexcept:metrics_(m),stage_(stage),start_(MetricMicros()),cpu_start_(ThreadCpuMicros()){}
-  ~Measure(){metrics_.duration[unsigned(stage_)].Observe(MetricMicros()-start_);const auto end=ThreadCpuMicros();if(end!=UINT64_MAX&&cpu_start_!=UINT64_MAX&&end>=cpu_start_)metrics_.cpu[unsigned(stage_)].Observe(end-cpu_start_);else ++metrics_.missing;}
+  ~Measure(){const auto wall=MetricMicros()-start_,end=ThreadCpuMicros();const auto cpu=end!=UINT64_MAX&&cpu_start_!=UINT64_MAX&&end>=cpu_start_?end-cpu_start_:UINT64_MAX;metrics_.duration[unsigned(stage_)].Observe(wall);if(cpu!=UINT64_MAX)metrics_.cpu[unsigned(stage_)].Observe(cpu);else ++metrics_.missing;
+#ifdef ISAACCS_E2E
+    E2ETime(&metrics_,stage_,wall,cpu);
+#endif
+  }
 private:
   Metrics &metrics_;CpuStage stage_;std::uint64_t start_,cpu_start_;
 };

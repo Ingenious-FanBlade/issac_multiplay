@@ -12,6 +12,7 @@
 #include "ops/world_commands.h"
 #ifdef ISAACCS_E2E
 #include "ops/client_fixture.h"
+#include "replica/stream_e2e.h"
 #include "game/client_entity_e2e.h"
 #include "game/client_player_e2e.h"
 #endif
@@ -95,6 +96,17 @@ std::string Execute(std::string_view text, const char *source) {
     result=extra.empty()?ObservationCommand(arg):"ok=0\nerror=arguments\n";
   }
 #ifdef ISAACCS_E2E
+  else if(verb=="stream_test"){
+    try {
+    std::string token,mode,role,tail;std::uint64_t x=0,y=0;in>>token>>mode;
+    if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token)result="ok=0\nerror=stream_test_token_or_context\n";
+    else if(mode=="on"||mode=="off"){in>>tail;if(!tail.empty())result="ok=0\nerror=arguments\n";else{replica::stream::E2ETrace(mode=="on");result="ok=1\n";}}
+    else if(mode=="trace"&&(in>>x)&&!(in>>tail))result=replica::stream::E2ETracePage(x);
+    else if(mode=="snapshot"&&(in>>x>>y)&&x<=UINT32_MAX&&y<=UINT32_MAX&&!(in>>tail))result=replica::stream::E2ESnapshotPage(unsigned(x),unsigned(y));
+    else if(mode=="arm"&&(in>>role>>x>>y)&&x<=6&&!(in>>tail)){replica::stream::E2EArm(role,unsigned(x),y);result="ok=1\n";}
+    else result="ok=0\nerror=stream_test_arguments\n";
+    }catch(const std::exception &e){result="ok=0\nerror="+std::string(e.what())+"\n";}catch(...){result="ok=0\nerror=stream_test_diagnostic_allocation\n";}
+  }
   else if (verb == "world_test") {
     std::string token, mode, generation_text, value_text, trailing;
     in >> token >> generation_text >> mode >> value_text >> trailing;

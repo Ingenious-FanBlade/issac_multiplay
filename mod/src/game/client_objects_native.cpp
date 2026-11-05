@@ -525,6 +525,15 @@ bool ClientNativeObjectsConfigure(ClientNativeObjects *o,const ClientEntityOwner
   try{if(!o->configured){o->external=owners;o->adapters=adapters;o->configured=true;o->formal=true;}
     return o->external.context==owners.context&&o->external.resolve==owners.resolve&&o->external.dependency==owners.dependency&&o->external.player_ready==owners.player_ready&&o->external.player_current==owners.player_current&&o->external.player_sets==owners.player_sets&&o->external.player_draw==owners.player_draw;}catch(...){return false;}
 }
+#ifdef ISAACCS_E2E
+bool ClientNativeObjectsInspectRelations(const ClientNativeObjects *value,const char *&reason) noexcept {
+ if(!value||!IsMain()||!HasOwner(Owner::Manager)||!ClientBusy()||!ContextHealthy()||!value->committed||value->executing||value->uncertain||!value->game||!value->room||g_Game!=value->game||g_Game->_room!=value->room){reason="inspect_relations_context";return false;}
+ try{auto &o=*const_cast<ClientNativeObjects *>(value);ClientNativeRoots roots{o.game,o.room,o.room->_descriptor,o.room->_Camera};
+  for(auto &pair:o.entries)if(!pair.second.retired&&pair.second.description.type!=1){auto &e=pair.second;if(!e.checked||!FormalUse(e)||!MemberMatches(o.room->_entityList,*e.entity)||!FormalReferences(o,roots,e,e.description,true,false,reason))return false;}
+  reason="inspect_relations_native_checked";return true;
+ }catch(...){reason="inspect_relations_read";return false;}
+}
+#endif
 namespace {
 bool ResolveOwnedPlayer(void *owner,const ClientNativeRoots &roots,const ClientObjectKey &key,unsigned expected,ClientEntityBorrow &out,const char *&reason) noexcept {
   if(!IsMain()){reason="objects_player_owner_thread";return false;}

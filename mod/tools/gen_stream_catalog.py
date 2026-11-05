@@ -147,6 +147,10 @@ def main():
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     catalog = generate()
+    # 与C++和CMake读取同一版本表，不把生成器的副本当作协议定义。
+    version_text = (ROOT / "mod/src/replica/stream_version.h").read_text(encoding="utf-8")
+    framing, schema, compact = map(int, re.search(r"kFraming=(\d+),kSchema=(\d+),kCompactSchema=(\d+)", version_text).groups())
+    catalog["protocol"] = {"framing": framing, "stream_schema": schema, "compact_schema": compact}
     text = json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))
     (args.out / "stream-catalog.json").write_text(text, encoding="utf-8")
     if not args.json_only:

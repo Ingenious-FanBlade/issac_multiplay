@@ -553,7 +553,7 @@ struct Client::State {
   }
   s::SendResult SocketSend(std::span<const std::uint8_t> p) {
     const auto n = send(socket, reinterpret_cast<const char *>(p.data()), int(p.size()), 0);
-    if (n == int(p.size())){ObservePacket(transmit_metrics,p);return s::SendResult::Sent;}
+    if (n == int(p.size())){ObservePacket(transmit_metrics,p,"client-send");return s::SendResult::Sent;}
     const auto error = WSAGetLastError();
     if (error == WSAEWOULDBLOCK || error == WSAENOBUFS || error == WSAECONNRESET ||
         error == WSAENETRESET)

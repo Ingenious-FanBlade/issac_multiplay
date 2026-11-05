@@ -1,3 +1,5 @@
+local tx21config=include("harness_config")
+if tx21config.tx=="tx-04-21" then include("tx21");return end
 local tx20config=include("harness_config")
 if tx20config.tx=="tx-04-20" then include("tx20");return end
 local tx19config=include("harness_config")

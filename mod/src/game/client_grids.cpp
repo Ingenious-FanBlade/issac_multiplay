@@ -10,6 +10,14 @@
 #include <string_view>
 
 namespace cs::game {
+#ifdef ISAACCS_E2E
+std::string ClientTestInspectGrids(const ClientNativeGrids *) noexcept;
+std::string ClientGrids::TestInspect(const ClientNativeRoots &roots) const noexcept {
+ if(failed_||target_||!committed_||!native_)return "ok=0\nerror=grid_inspect_uncommitted\n";
+ for(const auto &check:checks_){const auto s=ClientNativeGridsExecute(native_,roots,check);if(s.failed||!s.done||s.written)return "ok=0\nerror="+std::string(s.reason)+"\n";}
+ return ClientTestInspectGrids(native_);
+}
+#endif
 namespace {
 using V=replica::Value;
 constexpr const char *casts[]={"Decoration","Door","Fire","Gravity","Lock","Pit","Poop","PressurePlate","Rock","Spikes","Stairs","Statue","Teleporter","TNT","TrapDoor","Wall","Web"};
