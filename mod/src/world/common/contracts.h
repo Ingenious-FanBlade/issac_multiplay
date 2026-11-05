@@ -32,6 +32,8 @@ struct ObservationContext final {
   Phase phase=Phase::OrdinaryPost;
   std::uint64_t outer=0, owner=0, mutation_before=0, mutation_after=0, event_watermark=0;
   std::uint32_t source=0, source_version=1, plan_revision=1;
+  // 仅供Service按同一实际普通采集机会调度，不是新增网络状态序号。
+  std::uint64_t capture_index=0;
 };
 struct ObservationReference final {
   SubjectKey source{}, target{};
@@ -81,6 +83,8 @@ struct Consumer final {
   void *owner=nullptr;
   void (*publish)(void *, const ObservationEnvelope &) noexcept=nullptr;
   CapturePlan plan{};
+  // 失效先于后续值交付；正式consumer可撤销候选，不受Recorder I/O结果影响。
+  void (*invalidate)(void *,const char *) noexcept=nullptr;
 };
 const char *CoverageName(Coverage) noexcept;
 const char *PhaseName(Phase) noexcept;

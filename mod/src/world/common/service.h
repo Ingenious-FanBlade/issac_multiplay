@@ -14,6 +14,7 @@ public:
   const CapturePlan &Plan() const noexcept { return plan_; }
   bool Active() const noexcept { return active_; }
   bool Needed(DomainId, Phase) const noexcept;
+  bool Due(DomainId,Phase,std::uint64_t capture) const noexcept;
   ObservationContext BeginScope(Phase, std::uint32_t source, std::uint64_t parent=0) noexcept;
   RequestResult PrepareScope(ObservationEnvelope envelope) noexcept;
   RequestResult CommitScope(std::uint64_t scope, Outcome outcome) noexcept;
@@ -25,7 +26,8 @@ public:
   // 关联空间使用同一分配 owner；Entity/Grid 的 local_id 仍由现有身份表唯一分配。
   SubjectKey AllocateRelatedSubject(IdentitySpace space) noexcept;
 private:
-  void MergePlan();
+  static CapturePlan MergePlan(const std::array<Consumer,4> &,std::uint32_t revision);
+  void NotifyInvalidation(const char *) noexcept;
   void Publish(const ObservationEnvelope &) noexcept;
   std::array<Consumer,4> consumers_{};
   std::array<std::optional<ObservationEnvelope>,32> pending_{};

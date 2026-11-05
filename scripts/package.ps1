@@ -14,6 +14,7 @@ $packageFiles=@(
     @('out/repentogon/room-grid-application.json','Repentogon/isaac-cs/room-grid-application.json'),
     @('out/repentogon/entity-application.json','Repentogon/isaac-cs/entity-application.json'),
     @('out/repentogon/player-application.json','Repentogon/isaac-cs/player-application.json'),
+    @('out/repentogon/stream-catalog.json','Repentogon/isaac-cs/stream-catalog.json'),
     @('out/repentogon/build-flavor.json','Repentogon/isaac-cs/build-flavor.json')
 )
 foreach($entry in $packageFiles){if(-not (Test-Path -LiteralPath (Join-Path $packageRepo $entry[0]) -PathType Leaf)){throw "Missing product build input: $($entry[0])"}}

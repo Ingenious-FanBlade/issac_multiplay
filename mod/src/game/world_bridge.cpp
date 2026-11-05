@@ -268,6 +268,9 @@ void StopWorldRecording() noexcept {
     collector->Stop();
   }
 }
+std::shared_ptr<const world::observation::LiveBatch> CurrentLiveCapture() noexcept {
+  return IsMain()&&recording&&recording->live_consumer&&recording->observation.Active()?recording->live.Latest():nullptr;
+}
 bool DetachClosedWorld(const std::shared_ptr<WorldRecording> &closed) noexcept {
   if (!IsMain() || recording != closed || !closed || !closed->collector ||
       !closed->collector->Drained() || !closed->storage.Closed())
@@ -292,12 +295,14 @@ void WorldFrameBegin(std::uint64_t loop) noexcept {
   frame_prepared = false;
   ObserveFailures(*collector);
   if (!collector->Participating()) {
+    recording->live.Invalidate("live_collector_not_participating");
     return;
   }
   collector->BeginOuter(loop, OwnerToken(Owner::Manager), RunActive());
   // 原生run/room撤销即取消活动上下文，不等待可选Lua回调或下一次30tick采集。
   auto &location=recording->hierarchy;
   if(location.valid&&(location.run!=collector->CurrentRunToken()||location.room!=collector->CurrentRoomToken())) {
+    recording->live.Invalidate("live_run_or_room_changed");
     location.Invalidate(location.run!=collector->CurrentRunToken());
     recording->latest_room={}; recording->latest_level={}; recording->latest_continuity={};
   }

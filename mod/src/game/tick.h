@@ -12,6 +12,8 @@ bool SoloBusy() noexcept;
 bool Busy() noexcept;
 bool Armed() noexcept;
 bool RuntimeHealthy() noexcept;
+// 仅有效Host会话请求Authority实时采集；Client、Solo、退休及失败均返回零。
+std::uint64_t LiveCaptureSession() noexcept;
 const char *StartSolo() noexcept;
 // 后续命令层只负责校验与排队；这里是唯一主线程 Host 创建/停止入口。
 const char *StartHost(const net::WorkerConfig &config,

@@ -177,6 +177,10 @@ bool SoloBusy() noexcept {
 bool HostBusy() noexcept {
   return Busy() && solo->mode == core::SessionMode::Host;
 }
+std::uint64_t LiveCaptureSession() noexcept {
+  auto *r=Runtime();if(!r||r->mode!=core::SessionMode::Host||r->finished||r->retiring||r->failure)return 0;
+  std::uint64_t session=0;std::memcpy(&session,r->session.Identity().session.data(),sizeof(session));return session?session:1;
+}
 bool Armed() noexcept { return Busy() && solo->core_started; }
 bool RuntimeHealthy() noexcept {
   if (!IsMain())

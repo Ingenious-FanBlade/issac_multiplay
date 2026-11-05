@@ -31,6 +31,8 @@ Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/ro
 Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/entity-application.json') -Destination (Join-Path $buildOutput 'entity-application.json')
 # Player目录与嵌入DLL来自同一构建树；E2E生成物不能覆盖正式发布目录。
 Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/player-application.json') -Destination (Join-Path $buildOutput 'player-application.json')
+# 实时逐成员目录与嵌入DLL同源，构建本身仍不运行codec或游戏测试。
+Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/stream-catalog.json') -Destination (Join-Path $buildOutput 'stream-catalog.json')
 
 # 正式观察 Lua 作为产品资源单独打包，测试夹具与 Rust 不混入模组目录。
 $observationOutput=Join-Path $buildOutput 'isaac-cs-observation'

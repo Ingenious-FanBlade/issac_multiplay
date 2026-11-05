@@ -59,9 +59,7 @@ void Record(void *owner,const obs::ObservationEnvelope &e) noexcept {
   catch(...) { c.publications.NoteLoss(); }
 }
 bool Scheduled(const WorldCapture &c,obs::DomainId domain,std::uint64_t capture) noexcept {
-  if(!c.observation.Needed(domain,obs::Phase::OrdinaryPost)) return false;
-  for(const auto &d:c.observation.Plan().domains) if(d.domain==domain) return capture%(d.interval?d.interval:1)==0;
-  return false;
+  return c.observation.Due(domain,obs::Phase::OrdinaryPost,capture);
 }
 // 只有相同run/room的稳定窗口可继承维度与描述；独立事件不能借用过时代次。
 void LocationContext(WorldCapture &c,obs::ObservationContext &out,std::uint64_t run,std::uint64_t room) noexcept {
@@ -80,6 +78,7 @@ obs::ObservationEnvelope Base(WorldCapture &c,obs::DomainId domain,const char *s
   e.context.outer=h.outer; e.context.owner=h.scope;
   e.context.mutation_before=e.context.mutation_after=h.mutation;
   e.context.event_watermark=h.event_watermark;
+  e.context.capture_index=h.capture;
   if(h.run) e.context.run={obs::Presence::Known,{c.session_key,c.epoch,h.run,obs::IdentitySpace::Run}};
   if(h.room) e.context.room={obs::Presence::Known,{c.session_key,c.epoch,h.room,obs::IdentitySpace::RoomInstance}};
   LocationContext(c,e.context,h.run,h.room);
@@ -171,6 +170,7 @@ void Commit(void *owner,bool committed,bool stable) noexcept {
     if(i>=6) FinishLuaObservation(i-2,scope,result.accepted);
     scope=0;
   }
+  c.live.Finish(committed,stable,c.observation.LossSequence());
 }
 void Event(void *owner,const world::LifecycleEvent &event) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
@@ -240,6 +240,7 @@ void Gap(void *owner,const world::GapRecord &gap) noexcept {
 }
 void WorldCapture::ConnectSources() noexcept { collector->SetCaptureSink({this,Lua,Native,Commit,Event,Gap}); }
 void WorldCapture::SetConsumers(bool formal,bool recorder) noexcept {
+ try {
   if(formal!=formal_consumer) {
     const auto result=formal?observation.AttachConsumer({1,this,Latest,Plan()}):observation.DetachConsumer(1);
     // 请求遭遇在途 scope 时保留原状态，下一主线程边界重试，不能伪报已接入。
@@ -249,9 +250,37 @@ void WorldCapture::SetConsumers(bool formal,bool recorder) noexcept {
     const auto result=recorder?observation.AttachConsumer({2,this,Record,Plan()}):observation.DetachConsumer(2);
     if(result.accepted) { recorder_consumer=recorder; if(recorder) {GlobalRandomCheckpoint();RandomSourcesCheckpoint();} }
   }
-  ArmObservationValueSources(observation.Active()&&(formal_consumer||recorder_consumer));
+  ArmObservationValueSources(observation.Active()&&!observation.Plan().domains.empty());
   ArmGlobalRandom(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));
   ArmRandomSources(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));
+ }catch(...){++formal_loss;live.Invalidate("consumer_plan_allocation");}
+}
+obs::RequestResult WorldCapture::SetLiveConsumer(bool active) noexcept {
+  if(active==live_consumer)return {true,active?"live_attached":"live_off"};
+  try {
+    auto plan=Plan();
+    // I05直接使用完整正式来源；窄动态/Context缓存由I06—I09接入，不能在此假装已测30/60Hz。
+    for(auto &d:plan.domains)d.interval=1;
+    const auto result=active?observation.AttachConsumer(live.Bind(std::move(plan))):observation.DetachConsumer(obs::kLiveConsumer);
+    live_request_reason=result.reason;
+    if(result.accepted){live_consumer=active;live.Attached(active);}
+    ArmObservationValueSources(observation.Active()&&!observation.Plan().domains.empty());
+    ArmGlobalRandom(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));
+    ArmRandomSources(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));
+    return result;
+  }catch(...){live_request_reason="live_plan_budget";return {false,live_request_reason};}
+}
+obs::RequestResult WorldCapture::UpdateLiveCapturePlan(obs::CapturePlan plan) noexcept {
+  if(!live_consumer)return {false,"live_not_attached"};
+  try {
+    const obs::DomainRequest *entity=nullptr,*player=nullptr;
+    for(const auto &d:plan.domains){if(d.domain==obs::DomainId::Entity)entity=&d;if(d.domain==obs::DomainId::Player)player=&d;}
+    if(player&&(player->phases&1u)&&(!entity||!(entity->phases&1u)||!entity->interval||player->interval%entity->interval))return {false,"live_player_requires_same_window_entity"};
+    // 接纳成功前不改Live自身计划；Service拒绝在途scope时可在下一Manager重试。
+    const auto result=observation.UpdateCapturePlan(obs::kLiveConsumer,plan);
+    if(result.accepted)live.PlanAccepted(std::move(plan));
+    live_request_reason=result.reason;return result;
+  }catch(...){live_request_reason="live_plan_budget";return {false,live_request_reason};}
 }
 bool ObservationLuaNeeded(const char *phase,bool grid) noexcept {
   auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->observation.Active()) return false;

@@ -42,12 +42,15 @@ struct WorldJob final {
   std::atomic<const char *> stage{""};
   HANDLE test_thread=nullptr;
   bool attached=false,stopping=false,formal=false;
+  std::uint64_t live_session=0;
 };
 std::shared_ptr<WorldJob> job;
 bool process_exit_pending=false,process_exit_released=false;
 std::uint64_t process_exit_started=0;
 std::string snapshot="ok=1\nworld_status_version=1\nworld_state=Off\nreason=NONE\n";
 std::uint64_t next_epoch=0;
+// 本次Host的准备失败保留首因并停止采集重试；下一会话重新取得独立owner，不拖累输入。
+std::uint64_t live_failed_session=0;
 constexpr std::uint64_t kObservationReserve=world::kObservationReserveBytes;
 void Fail(WorldJob &j,world::Reason reason,const char *stage) noexcept {
   auto expected=world::Reason::None;
@@ -270,7 +273,7 @@ void StopWorldCommand(std::uint64_t,std::uint32_t generation) noexcept {
   if(job->attached) r.SetConsumers(job->formal,false);
   if(job->ready.load(std::memory_order_acquire)) { q.stop_attempt=r.storage.Diag().last_attempt.load(); q.stop_events=r.storage.EventWatermark(); q.stop_gaps=r.storage.Diag().gaps_produced.load(); }
   q.stop.store(true,std::memory_order_release);
-  if(!job->formal) job->stopping=true;
+  if(!job->formal&&!job->live_session) job->stopping=true;
 }
 void CheckpointWorldCommand(std::uint64_t request,std::uint32_t generation,const char *label) noexcept {
   if(WorldCanCheckpoint()&&job->generation==generation) job->recording->collector->Checkpoint(request,label);
@@ -278,17 +281,27 @@ void CheckpointWorldCommand(std::uint64_t request,std::uint32_t generation,const
 void PumpWorldCommands() noexcept {
   if(!IsMain()) return;
   game::EnsureObservationLuaBridge();
-  if(!job) return;
   try {
+    // 正式Host本身持有采集需求；不要求执行observation start或world_record start。
+    const auto live_session=process_exit_pending?0:game::LiveCaptureSession();
+    if(live_session&&!job&&live_session!=live_failed_session&&!EnsureJob())live_failed_session=live_session;
+    if(!job)return;
+    const auto previous_live=job->live_session;
+    if(previous_live&&previous_live!=live_session&&job->attached)job->recording->live.Invalidate("live_session_retired");
+    job->live_session=live_session;
+    if(previous_live&&!live_session&&!job->formal&&!WorldCommandBusy())job->stopping=true;
     if(job->ready.load(std::memory_order_acquire)&&!job->closed.load()) {
       auto &r=*job->recording;
-      if(job->fault.load()!=world::Reason::None||r.storage.Status().fault.reason!=world::Reason::None) job->stopping=true;
+      if(job->fault.load()!=world::Reason::None||r.storage.Status().fault.reason!=world::Reason::None) {job->stopping=true;if(job->live_session)live_failed_session=job->live_session;}
       auto *q=job->consumer.get(); const bool qready=q&&q->ready.load(std::memory_order_acquire);
       if(!job->attached&&!job->stopping) {
         if(game::AttachPreparedWorld(job->recording)) job->attached=true;
         else { Fail(*job,world::Reason::PrepareFailed,"capture_attach"); job->stopping=true; }
       }
-      if(job->attached) r.SetConsumers(job->formal,qready&&!q->stop.load()&&!q->closed.load()&&q->fault.load()==world::Reason::None);
+      if(job->attached) {
+        r.SetConsumers(job->formal,qready&&!q->stop.load()&&!q->closed.load()&&q->fault.load()==world::Reason::None);
+        r.SetLiveConsumer(job->live_session&&!job->stopping);
+      }
       if(qready&&q->fault.load()!=world::Reason::None&&!q->stop.load()) StopWorldCommand(0,q->generation);
       if(job->attached&&r.faults.pending==9&&r.faults.reader_paused.load()) {
         auto &f=r.faults; f.pending=0; world::LifecycleEvent e{}; e.kind=world::EventKind::GapOrUnknown; e.result=0x54455354;
@@ -316,14 +329,17 @@ std::string ObservationCommand(const std::string &action) {
     if(!EnsureJob()) return "ok=0\nerror=capture_unavailable\n";
     job->formal=true; return "ok=1\nobservation_state=Preparing\n";
   }
-  if(action=="stop") { if(job) { job->formal=false; if(!WorldCommandBusy()) job->stopping=true; } return "ok=1\nobservation_state=Stopping\n"; }
+  if(action=="stop") { if(job) { job->formal=false; if(!WorldCommandBusy()&&!job->live_session) job->stopping=true; } return "ok=1\nobservation_state=Stopping\n"; }
   if(action!="status") return "ok=0\nerror=unknown_observation_verb\n";
-  if(!job) return "ok=1\nobservation_state=Off\n";
+  if(!job) return game::LiveCaptureSession()&&game::LiveCaptureSession()==live_failed_session?"ok=1\nobservation_state=Faulted\nlive_request_reason=live_capture_prepare_failed\n":"ok=1\nobservation_state=Off\n";
   auto &r=*job->recording;
   const bool ready=job->ready.load(std::memory_order_acquire);
   return "ok=1\nobservation_state="+std::string(job->stopping?"Stopping":job->attached?"Active":"Preparing")+
     "\nobservation_epoch="+std::to_string(r.epoch)+"\nformal_consumer="+std::to_string(job->formal)+
-    "\nrecording_consumer="+std::to_string(ready&&r.recorder_consumer)+"\npublication_count="+std::to_string(ready?r.observation.Published():0)+
+    "\nrecording_consumer="+std::to_string(ready&&r.recorder_consumer)+"\nlive_consumer="+std::to_string(ready&&r.live_consumer)+
+    "\nlive_request_reason="+std::string(ready?r.live_request_reason:"preparing")+
+    "\nlive_delivered="+std::to_string(ready?r.live.Status().delivered:0)+"\nlive_owned_bytes="+std::to_string(ready?r.live.Status().bytes:0)+
+    "\nlive_gap_reason="+std::string(ready?r.live.Status().reason:"preparing")+"\npublication_count="+std::to_string(ready?r.observation.Published():0)+
     "\nloss_sequence="+std::to_string(ready?r.observation.LossSequence():0)+"\nrecord_loss_sequence="+std::to_string(r.publications.LossSequence())+
     "\nlua_attempts="+std::to_string(ready?r.lua_attempts:0)+"\nlua_complete="+std::to_string(ready?r.lua_complete:0)+
     "\nlua_partial="+std::to_string(ready?r.lua_partial:0)+"\nentity_scope="+std::to_string(ready?r.latest_entity.context.scope:0)+

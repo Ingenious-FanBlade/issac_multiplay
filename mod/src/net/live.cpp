@@ -11,6 +11,7 @@
 
 namespace cs::net::live {
 namespace r = replica;
+namespace s = replica::stream;
 namespace {
 [[noreturn]] void Fail(const char *reason) { throw r::ContractError(reason); }
 std::string String(const r::Value &v) {
@@ -32,6 +33,9 @@ void Object(r::Value &v,const char *key,const r::Value &source,r::Allocator &a) 
 void Reason(Event &e, const char *reason) noexcept {
   strncpy_s(e.reason, reason, _TRUNCATE);
 }
+// 现阶段真实socket只授权小消息；完整世界预算在I14/I21独立授权，不能由schema能力扩大。
+r::Json GameCapabilities(){auto caps=s::Capabilities();const auto l=Limits();caps["limits"]["bytes"].SetUint(l.bytes);caps["limits"]["datagram"].SetUint(l.datagram);caps["limits"]["candidates"].SetUint(l.candidates);caps["limits"]["fragments"].SetUint(l.fragments);caps["limits"]["timeout_ms"].SetUint(l.timeout_ms);return caps;}
+r::Limits AgreedLimits(const r::Value &agreed){auto l=Limits();const auto &v=At(agreed,"limits");if(Number(v,"datagram")!=l.datagram||Number(v,"bytes")<l.bytes||Number(v,"fragments")<l.fragments)Fail("live_transport_budget");l.candidates=unsigned((std::min)(std::uint64_t(l.candidates),Number(v,"candidates")));l.timeout_ms=unsigned((std::min)(std::uint64_t(l.timeout_ms),Number(v,"timeout_ms")));return l;}
 // roster是主线程快照的完整最终值；零进度合法，不冒充InputAck或AppliedAck。
 r::Json ProgressValue(const protocol::Ack &p) {
   r::Json v; v.SetObject(); auto &a=v.GetAllocator();
@@ -63,7 +67,7 @@ protocol::Ack ReadProgress(const r::Value &v, unsigned ordinal) {
 }
 r::Message Hello(std::uint64_t nonce) {
   r::Message m; m.kind=r::Kind::Hello;m.sequence=1;m.body.SetObject();auto &a=m.body.GetAllocator();
-  Object(m.body,"capabilities",r::Capabilities(),a);N(m.body,"nonce",nonce,a);
+  Object(m.body,"capabilities",GameCapabilities(),a);N(m.body,"nonce",nonce,a);
   r::Put(m.body,"role",std::string("Client"),a);return m;
 }
 }
@@ -82,7 +86,42 @@ bool IsPacket(std::span<const std::uint8_t> b) noexcept {
 }
 Packets Pack(const r::Message &m,std::uint64_t &transfer) {
   if (transfer==UINT64_MAX) Fail("live_transfer_exhausted");
-  return r::Fragment(m,++transfer,Limits());
+  s::Message wire;wire.sequence=m.sequence;wire.body=r::Copy(m.body);
+  if(m.kind==r::Kind::Hello)wire.kind=s::Kind::Hello;
+  else {
+    const auto scope=r::ReadScope(At(m.body,"scope"));wire.connection=scope.connection;wire.route=1;wire.body.RemoveMember("scope");
+    if(m.kind==r::Kind::Welcome){wire.kind=s::Kind::Welcome;N(wire.body,"session",scope.session,wire.body.GetAllocator());}
+    else if(m.kind==r::Kind::Input)wire.kind=s::Kind::Input;
+    else if(m.kind==r::Kind::InputAck)wire.kind=s::Kind::InputAck;
+    else if(m.kind==r::Kind::Error)wire.kind=s::Kind::Error;
+    else if(m.kind==r::Kind::Control){
+      const auto op=String(At(m.body,"operation"));wire.body=r::Copy(At(m.body,"parameters"));
+      if(op=="ready")wire.kind=s::Kind::Ready;else if(op=="roster")wire.kind=s::Kind::Roster;
+      else if(op=="disconnect"||op=="stop"){wire.kind=op=="stop"?s::Kind::Stop:s::Kind::Disconnect;if(!wire.body.HasMember("reason"))r::Put(wire.body,"reason",std::string("client_disconnected"),wire.body.GetAllocator());}
+      else Fail("live_v2_control_unimplemented");
+    } else Fail("live_v2_world_not_connected");
+  }
+  return s::Fragment(wire,++transfer,Limits());
+}
+bool Reassembler::Receive(std::span<const std::uint8_t> bytes,std::uint64_t now,r::Message &out){
+  // header先限制到握手预算；I13/I21接入正式路由授权后才扩大世界候选。
+  s::Message wire;if(!wire_.Receive(bytes,now,wire))return false;
+  s::ValidateReceive(wire,authority_?s::Direction::ToAuthority:s::Direction::ToClient,
+    wire.kind==s::Kind::Hello||wire.kind==s::Kind::Welcome?s::State::Handshake:s::State::Waiting);
+  out.sequence=wire.sequence;
+  if(wire.kind==s::Kind::Hello){out.kind=r::Kind::Hello;out.body=std::move(wire.body);return true;}
+  if(wire.kind==s::Kind::Error&&!scope_.connection){out.kind=r::Kind::Error;out.body=std::move(wire.body);return true;}
+  if(wire.kind==s::Kind::Welcome){scope_={Number(wire.body,"session"),wire.connection,1,1,1,1,1};out.kind=r::Kind::Welcome;out.body=std::move(wire.body);out.body.RemoveMember("session");}
+  else {
+    if(wire.connection!=scope_.connection||wire.route!=1)Fail("live_v2_route_mismatch");
+    if(wire.kind==s::Kind::Ready||wire.kind==s::Kind::Roster||wire.kind==s::Kind::Stop||wire.kind==s::Kind::Disconnect){
+      const auto op=wire.kind==s::Kind::Ready?"ready":wire.kind==s::Kind::Roster?"roster":wire.kind==s::Kind::Stop?"stop":"disconnect";
+      out=Control(scope_,wire.sequence,op,std::move(wire.body));return true;
+    }
+    out.kind=wire.kind==s::Kind::Input?r::Kind::Input:wire.kind==s::Kind::InputAck?r::Kind::InputAck:wire.kind==s::Kind::Error?r::Kind::Error:r::Kind::Baseline;
+    if(out.kind==r::Kind::Baseline)Fail("live_v2_world_not_connected");out.body=std::move(wire.body);
+  }
+  r::Put(out.body,"scope",r::ScopeValue(scope_,out.body.GetAllocator()),out.body.GetAllocator());return true;
 }
 r::Message Control(const r::Scope &scope,std::uint64_t sequence,const char *operation,r::Json parameters) {
   if(!sequence)Fail("live_control_exhausted");
@@ -94,6 +133,7 @@ r::Message Control(const r::Scope &scope,std::uint64_t sequence,const char *oper
 HostPeer::HostPeer(std::uint64_t session,unsigned ordinal):ordinal_(ordinal) {
   // 等待世界期间的scope不冒充原生run；世界事务在后续任务分配新scope。
   scope_={session,Random(),1,1,1,1,1};server_nonce_=Random();
+  assembler_.Scope(scope_);
 }
 bool HostPeer::Receive(std::span<const std::uint8_t> bytes,std::uint64_t now,
                        ReceivedInput &out,const HostIdentity &identity) {
@@ -102,10 +142,9 @@ bool HostPeer::Receive(std::span<const std::uint8_t> bytes,std::uint64_t now,
   if(m.kind==r::Kind::Hello) {
     const auto nonce=Number(m.body,"nonce");
     if(nonce_ && nonce_!=nonce)Fail("live_nonce_conflict");
-    auto agreed=r::Negotiate(r::Capabilities(),At(m.body,"capabilities"));
+    auto agreed=s::Negotiate(GameCapabilities(),At(m.body,"capabilities"));
     // 当前连接控制只实现标准1200字节预算，不能静默违反更小的协商值。
-    if(Number(agreed["limits"],"datagram")!=1200 || Number(agreed["limits"],"bytes")<65536 ||
-       Number(agreed["limits"],"fragments")<64)Fail("live_transport_budget");
+    assembler_.Configure(AgreedLimits(agreed));
     nonce_=nonce;welcome_.kind=r::Kind::Welcome;welcome_.sequence=1;welcome_.body.SetObject();
     auto &a=welcome_.body.GetAllocator();Object(welcome_.body,"capabilities",agreed,a);
     r::Put(welcome_.body,"scope",r::ScopeValue(scope_,a),a);
@@ -145,10 +184,11 @@ Packets HostPeer::Reply() {
   if(!reply_)return {};reply_=false;return Pack(welcome_,transfer_);
 }
 Packets HostPeer::Progress(const protocol::Ack &p) {
+  if(roster_==UINT64_MAX)Fail("live_roster_exhausted");
   sent_=p;auto values=ProgressValue(p);auto &a=values.GetAllocator();
   N(values,"server_sample_ms",p.server_sample_ms,a);N(values,"server_send_ms",GetTickCount64(),a);
   N(values,"echo_client_ms",echo_client_ms_,a);N(values,"echo_server_ms",echo_server_ms_,a);
-  auto packets=Pack(Control(scope_,++control_,"roster",std::move(values)),transfer_);
+  auto packets=Pack(Control(scope_,++roster_,"roster",std::move(values)),transfer_);
   if(p.processed && p.processed_tick && p.generation) {
     auto ack=Pack(r::InputProgress(scope_,ordinal_,p.generation,p.processed,p.processed_tick),transfer_);
     packets.insert(packets.end(),std::make_move_iterator(ack.begin()),std::make_move_iterator(ack.end()));
@@ -171,7 +211,7 @@ struct Client::State {
   SOCKET socket=INVALID_SOCKET;bool wsa=false;
   std::atomic<bool> stop{false},finished{false};
   SpscQueue<Intent,256> intents;SpscQueue<Event,256> events;
-  r::Reassembler assembler{Limits()};
+  Reassembler assembler;
   r::Scope scope{};unsigned ordinal=0;
   std::uint64_t nonce=0,server_nonce=0,transfer=0,control=0,last_receive=0,last_send=0,roster_sequence=0;
   std::uint32_t timeout=3000;
@@ -205,7 +245,7 @@ struct Client::State {
       const auto server=Number(m.body,"server_nonce");
       if(index<1||index>3||!next.session||!next.connection)Fail("live_welcome_identity");
       if(welcomed&&(scope!=next||ordinal!=index||server_nonce!=server))Fail("live_welcome_conflict");
-      r::Negotiate(r::Capabilities(),At(m.body,"capabilities"));
+      auto agreed=s::Negotiate(GameCapabilities(),At(m.body,"capabilities"));assembler.Configure(AgreedLimits(agreed));
       if(!welcomed) {scope=next;ordinal=unsigned(index);server_nonce=server;welcomed=true;
         Event e;e.type=Event::Type::Welcome;e.scope=scope;e.ordinal=ordinal;Emit(e);}
       last_receive=now;Ready();return;

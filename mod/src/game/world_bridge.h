@@ -10,6 +10,7 @@
 #include "world/domains/level/model.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
+#include "world/common/live_consumer.h"
 
 namespace cs::game {
 // Text缓冲资格来自本use真实writer，不由Init/内存可读或旧池内容推断。
@@ -24,6 +25,7 @@ struct WorldCapture final {
   world::IdentityTable identities;
   std::unique_ptr<world::Collector> collector;
   world::observation::Service observation;
+  world::observation::LiveConsumer live;
   world::observation::PublicationQueue publications{ledger};
   std::uint64_t session_key=0,epoch=0;
   std::array<std::uint64_t,13> pending_scopes{};
@@ -42,6 +44,8 @@ struct WorldCapture final {
   std::uint64_t lua_run=0,lua_room=0;
   bool location_window=false;
   bool formal_consumer=false,recorder_consumer=false;
+  bool live_consumer=false;
+  const char *live_request_reason="live_off";
   std::uint64_t lua_attempts=0,lua_complete=0,lua_partial=0;
   std::uint64_t formal_loss=0;
   // 显式E2E仅保留最近一批不可用Grid身份诊断；不进入正式目标或生产日志。
@@ -70,6 +74,8 @@ struct WorldCapture final {
   std::array<world::observation::SubjectKey,4> participant_keys{},control_group_keys{};
   void ConnectSources() noexcept;
   void SetConsumers(bool formal,bool recorder) noexcept;
+  world::observation::RequestResult SetLiveConsumer(bool active) noexcept;
+  world::observation::RequestResult UpdateLiveCapturePlan(world::observation::CapturePlan plan) noexcept;
 };
 // 旧 C++ 桥名字只作源码适配；实际身份寿命属于采集服务，不再属于录制器。
 using WorldRecording=WorldCapture;
@@ -83,6 +89,8 @@ void StopWorldRecording() noexcept;
 // 调用方可保留 shared_ptr 读值状态；仅主线程访问上下文和 collector。
 std::shared_ptr<WorldRecording> CurrentWorldRecording() noexcept;
 bool WorldCaptureActive() noexcept;
+// 仅主线程取共享自有值；后台持有返回值不延长任何游戏对象/Lua借用。
+std::shared_ptr<const world::observation::LiveBatch> CurrentLiveCapture() noexcept;
 void WorldFrameBegin(std::uint64_t loop) noexcept;
 void WorldPreparePostState(bool normal) noexcept;
 core::TickPostState WorldPostState(std::uint64_t tick) noexcept;

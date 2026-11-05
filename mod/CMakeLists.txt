@@ -27,7 +27,7 @@ target_link_libraries(isaac_cs_net PUBLIC isaac_cs_core PRIVATE ws2_32 bcrypt)
 # runtime.h，也不调用任何原生函数；SDK-facing 接线在后续 game/world_bridge。
 add_library(isaac_cs_world STATIC src/world/model.cpp src/world/identity.cpp
   src/world/storage.cpp src/world/writer.cpp src/world/observe.cpp src/world/collector.cpp src/world/player_child_source.cpp
-  src/world/common/contracts.cpp src/world/common/service.cpp src/world/common/publication.cpp
+  src/world/common/contracts.cpp src/world/common/service.cpp src/world/common/publication.cpp src/world/common/live_consumer.cpp
   src/world/common/native_source.cpp src/world/common/membership.cpp src/world/compatibility/min_read_v1.cpp src/world/compatibility/encode.cpp
   src/world/domains/entity/collect.cpp src/world/domains/grid/collect.cpp)
 target_include_directories(isaac_cs_world PUBLIC src)
@@ -55,9 +55,17 @@ add_custom_command(OUTPUT "${GENERATED}/player_application.inc" "${GENERATED}/pl
   DEPENDS tools/gen_player_application_catalog.py tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py
     src/game/client_player_fields.inc src/game/client_player_roles.inc
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-native-contracts.json" ${REPLICA_CATALOGS} VERBATIM)
+add_custom_command(OUTPUT "${GENERATED}/stream_catalog.inc" "${GENERATED}/stream-catalog.json"
+  COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_stream_catalog.py" --out "${GENERATED}"
+  DEPENDS tools/gen_stream_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py ${REPLICA_CATALOGS}
+    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-21/stream-catalog.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-18/room-grid-application.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-application.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-application.json" VERBATIM)
 add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/projection_graph.cpp src/replica/codec.cpp src/replica/entity_target.cpp src/replica/entity_plan.cpp src/replica/player_target.cpp
+  src/replica/stream_model.cpp src/replica/stream_codec.cpp src/replica/stream_range.cpp
   src/replica/room_grid_target.cpp src/replica/room_grid_plan.cpp src/replica/room_grid_budget.cpp src/replica/player_plan.cpp
-  "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc" "${GENERATED}/entity_application.inc" "${GENERATED}/player_application.inc")
+  "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc" "${GENERATED}/entity_application.inc" "${GENERATED}/player_application.inc" "${GENERATED}/stream_catalog.inc")
 target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")
 target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_compile_definitions(isaac_cs_replica PUBLIC _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)

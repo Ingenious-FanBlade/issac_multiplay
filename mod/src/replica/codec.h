@@ -2,6 +2,9 @@
 #include "replica/model.h"
 #include <span>
 namespace cs::replica {
+// v1/v2共用无损值标签；顶层消息schema与传输版本分别由各协议检查。
+std::vector<std::uint8_t> EncodeValue(const Value &,Limits={});
+Json DecodeValue(std::span<const std::uint8_t>,Limits={});
 // 独立ICSR v1协议；固定小端头+有类型值树，不发送JSON envelope或C++内存。
 Lane MessageLane(Kind);
 std::vector<std::uint8_t> Encode(const Message &,Limits={});

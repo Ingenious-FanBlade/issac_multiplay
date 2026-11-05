@@ -1,3 +1,7 @@
+> **tx-04-21 I01—I05（2026-11-05）**：[基础实现与边界](design/tx-04-21/tx-04-21-foundation.md)、[逐成员实时目录](design/tx-04-21/stream-catalog.json)、[Luna max必要逆向及主审](design/tx-04-21/tx-04-21-native-contracts.md)。已接分层不可变范围／精确依赖、v2严格schema与Live小消息、正式consumer3及Host生命周期。未构建、测试或启动游戏；I06—I40与I39两人全套后四人整体验收待推进，未声明实时频率／带宽或网络世界应用完成。下方初版规划记录保持原事实。
+
+> **tx-04-21详细规划（2026-11-05，仅文档）**：[I01—I40实施计划](design/tx-04-21/tx-04-21-implementation-plan.md)、[频率／10 Mbps预算／分层完整状态与21—22边界](design/tx-04-21/tx-04-21-network-contract.md)、[R01—R09静态与必要逆向任务](design/tx-04-21/tx-04-21-native-research-plan.md)、[E01—E26统一E2E](design/tx-04-21/tx-04-21-e2e-plan.md)。按用户澄清，先在两人中跑通全部E01—E26及子用例／指标／回归，全部通过后再转四人整套重跑和扩展；不能只跑“两人适用项”。目标Player调度60 Hz、普通动态30 Hz、roster20 Hz，Host三端总上行10 Mbps、模组持续预算7.5 Mbps。目标不是实测值；未写运行代码、构建或测试。
+
 > **tx-04-20 I38—I40完成（2026-11-05）**：[统一编排与实际验收结果](design/tx-04-20/tx-04-20-e2e.md)覆盖核心114逻辑场景、18全49及5完整Player环境、19全65与全部负向／故障／退出；双配置构建和产品边界通过。[必要逆向与主审](design/tx-04-20/player-i39-source.md)、[能力目录与后续交接](design/tx-04-20/tx-04-20-player-application.md)保留真实失败和有限范围。21／22网络闭环、27完整HUD／声明Mod、28／29流程组合及32性能继续按路线图推进。下方保留此前阶段事实。
 
 > **tx-04-20 I36—I37（2026-11-04）**：[纯值状态／首因、真实原生 inspect、E2E 故障边界及构建发布接线](design/tx-04-20/tx-04-20-observability-build.md)已实现。产品与 E2E 的 DLL／工具／目录分开输出，Player 应用目录纳入发布清单。未构建、测试或启动游戏，按要求直接提交；I38—I40 及 I39 统一验收待推进。下方保留此前阶段事实。

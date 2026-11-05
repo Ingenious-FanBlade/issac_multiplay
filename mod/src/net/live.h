@@ -1,10 +1,11 @@
 #pragma once
 #include "net/worker.h"
 #include "replica/codec.h"
+#include "replica/stream_codec.h"
 #include <memory>
 
 namespace cs::net::live {
-// 游戏客户端采用15的ICSR合同；握手/名单预算独立收紧，不在此传输世界基线。
+// 真实游戏使用ICSR/ICRF v2；等待世界仍用小预算，不因协议支持而提前开放世界传输。
 replica::Limits Limits() noexcept;
 std::uint64_t Random();
 bool IsPacket(std::span<const std::uint8_t>) noexcept;
@@ -12,6 +13,17 @@ using Packets = std::vector<std::vector<std::uint8_t>>;
 Packets Pack(const replica::Message &, std::uint64_t &transfer);
 replica::Message Control(const replica::Scope &, std::uint64_t sequence,
                          const char *operation, replica::Json parameters);
+// 当前输入桥的内部DTO适配v2显式消息；旧v1只供离线工具，真实socket不接受v1混合正文。
+class Reassembler final {
+public:
+  void Scope(replica::Scope s) noexcept {scope_=s;authority_=true;}
+  void Configure(replica::Limits l) noexcept {wire_.Configure(l);}
+  bool Receive(std::span<const std::uint8_t>,std::uint64_t,replica::Message &);
+private:
+  replica::stream::Reassembler wire_{Limits()};
+  replica::Scope scope_{};
+  bool authority_=false;
+};
 
 // 单网络owner维护一个真实游戏Peer；主线程仍经原Worker队列处理输入和发布进度。
 class HostPeer final {
@@ -29,12 +41,12 @@ public:
   std::uint64_t LastReceive() const noexcept { return last_receive_; }
   std::uint64_t Nonce() const noexcept { return nonce_; }
 private:
-  replica::Reassembler assembler_{Limits()};
+  Reassembler assembler_;
   replica::Scope scope_{};
   unsigned ordinal_;
   bool established_ = false, stopped_ = false;
   std::uint64_t nonce_ = 0, server_nonce_ = 0, transfer_ = 0,
-                control_ = 0, last_receive_ = 0, client_control_ = 0;
+                control_ = 0, roster_ = 0, last_receive_ = 0, client_control_ = 0;
   // ready回显只估计传输时间，不信任或应用远端墙钟到游戏对象。
   std::uint64_t echo_client_ms_ = 0, echo_server_ms_ = 0;
   protocol::Ack sent_{};

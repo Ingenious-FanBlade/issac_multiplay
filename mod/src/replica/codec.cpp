@@ -100,6 +100,11 @@ Lane MessageLane(Kind k){
   switch(k){case Kind::Input:case Kind::InputAck:return Lane::Input;case Kind::Baseline:return Lane::Recovery;case Kind::Delta:case Kind::Component:return Lane::State;case Kind::Event:return Lane::Presentation;
     case Kind::Hello:case Kind::Welcome:case Kind::Control:case Kind::AppliedAck:case Kind::Error:case Kind::ReceiveAck:return Lane::Control;default:Fail("unknown_kind");}
 }
+std::vector<std::uint8_t> EncodeValue(const Value &v,Limits l){CheckValue(v,l);std::vector<std::uint8_t> out;Write(out,v,l);return out;}
+Json DecodeValue(std::span<const std::uint8_t> bytes,Limits l){
+  if(bytes.size()>l.bytes)Fail("wire_byte_budget");Json out;Reader reader{bytes,0,l};auto v=reader.Read(out.GetAllocator());static_cast<Value &>(out).Swap(v);
+  if(reader.p!=bytes.size())Fail("wire_trailing_bytes");CheckValue(out,l);auto utf8=Parse(Text(out),l);(void)utf8;return out;
+}
 std::vector<std::uint8_t> Encode(const Message &m,Limits l){
   CheckValue(m.body,l);Schema(m);std::vector<std::uint8_t> out={'I','C','S','R'};
   U(out,1,2);U(out,unsigned(m.kind),1);U(out,unsigned(MessageLane(m.kind)),1);U(out,0,4);U(out,0,4);U(out,m.sequence,8);
