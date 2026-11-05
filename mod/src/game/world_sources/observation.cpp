@@ -6,6 +6,7 @@
 #include "game/world_sources/value_source.h"
 #include "runtime.h"
 #include "replica/model.h"
+#include "game/tick.h"
 #include <cmath>
 #include <cstring>
 namespace cs::game {
@@ -20,7 +21,7 @@ obs::CapturePlan Plan() {
   p.domains.push_back({obs::DomainId::Grid,1u|4u|16u|32u,30,{16384,obs::kNodeBudget,12,32ull<<20}});
   p.domains.push_back({obs::DomainId::Room,53u,30,{16384,obs::kNodeBudget,12,4ull<<20}});
   p.domains.push_back({obs::DomainId::Level,45u,30,{16384,obs::kNodeBudget,12,4ull<<20}});
-  for(unsigned d=5;d<=11;++d) p.domains.push_back({static_cast<obs::DomainId>(d),obs::SupportedPhases(static_cast<obs::DomainId>(d)),30,{obs::MaximumDomainObjects(static_cast<obs::DomainId>(d)),obs::kNodeBudget,12,(d==9?16ull:d==6||d>=8?8ull:1ull)<<20}});
+  for(unsigned d=5;d<=11;++d) p.domains.push_back({static_cast<obs::DomainId>(d),obs::SupportedPhases(static_cast<obs::DomainId>(d))&~2u,30,{obs::MaximumDomainObjects(static_cast<obs::DomainId>(d)),obs::kNodeBudget,12,(d==9?16ull:d==6||d>=8?8ull:1ull)<<20}});
   return p;
 }
 void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
@@ -87,6 +88,10 @@ obs::ObservationEnvelope Base(WorldCapture &c,obs::DomainId domain,const char *s
 // 同一 native 复制窗口内顺序调用各域；任一最终来源变化由统一 Commit 撤销。
 void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects,const world::RawMembership *members) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
+  const bool streaming=c.live_consumer;
+  if(streaming&&c.stream_invalidation!=c.live.Status().invalidations){c.stream.Invalidate(c.live.Status().reason);c.stream_invalidation=c.live.Status().invalidations;}
+  const bool baseline=streaming&&c.stream.NeedsBaseline();
+  c.stream_read_resource_mutation=c.stream_resource_mutation;
   // 先读取room建立分层上下文，再由level与Entity/Grid在同批次引用。
   c.current_entity_scope=0;
   for(const unsigned index : {2u,3u,0u,1u,4u,5u,6u,7u,8u,9u,10u}) {
@@ -94,16 +99,22 @@ void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects
     const bool grid=index==1;
     if(!Scheduled(c,domain,h.capture)) continue;
     try {
+      const bool cold=!streaming||baseline||c.observation.ConsumerDue(obs::kLatestConsumer,domain,obs::Phase::OrdinaryPost,h.capture)||
+        c.observation.ConsumerDue(obs::kRecorderConsumer,domain,obs::Phase::OrdinaryPost,h.capture);
       EnsureObservationLuaBridge();
       const char *schemas[]={"isaac.cs.entity","isaac.cs.grid","isaac.cs.room","isaac.cs.level","isaac.cs.exploration","isaac.cs.room_save","isaac.cs.player","isaac.cs.run","isaac.cs.random","isaac.cs.presentation","isaac.cs.mod"};
-      auto e=Base(c,domain,schemas[index],h); e.context.source=2;
+      auto e=Base(c,domain,schemas[index],h); e.context.source=2;if(!cold)e.schema+=".stream";
       c.lua_objects=objects; c.lua_object_count=h.object_count; c.lua_members=members; c.lua_members_count=h.membership_count; c.lua_scope=e.context.scope; c.lua_run=h.run; c.lua_room=h.room; c.location_window=true;
       for(const auto &d:c.observation.Plan().domains) if(d.domain==domain) e.result.budget=d.budget;
       const auto budget=e.result.budget;
       // 原生随机流只编码一次，Lua仅取计数摘要；完整状态仍属于同一采集scope和字节预算。
-      const auto native_random=index==8?CaptureRandomSources():std::string{};
+      const auto native_random=index==8&&cold?CaptureRandomSources():std::string{};
       const auto reserved=(index>=2?64u:0u)+(native_random.empty()?0u:unsigned(native_random.size()+20));
-      auto result=[&]{ClientEntityTestMeasure measure("formal_lua_capture");return CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,reserved<budget.bytes?std::uint32_t(budget.bytes)-reserved:0,index);}();
+      auto result=[&]{
+        // Random是已声明AuthorityOnly；热范围不轮询整套随机/ItemPool再丢弃。冷源和Recorder仍读原合同。
+        if(streaming&&!cold&&index==8){LuaEntityResult r;r.available=r.complete=true;r.payload=r.stream_payload="{\"contract\":\"stream-source-v1\",\"context\":[{\"value\":{\"ownership\":\"AuthorityOnly\"}}],\"structure\":[],\"resource\":[],\"world\":[],\"bodies\":[],\"members\":[]}";return r;}
+        ClientEntityTestMeasure measure("formal_lua_capture");return CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,reserved<budget.bytes?std::uint32_t(budget.bytes)-reserved:0,index,streaming,cold);
+      }();
       if(index==8&&result.available&&!result.payload.empty()&&result.payload.back()=='}') {
         if(reserved<budget.bytes&&result.payload.size()+native_random.size()+20<=budget.bytes)
           result.payload.insert(result.payload.size()-1,",\"native_sources\":"+native_random);
@@ -115,7 +126,7 @@ void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects
       e.result.coverage=result.available?(result.complete?obs::Coverage::Complete:obs::Coverage::Partial):obs::Coverage::Failed;
       e.result.range=index>=7?"public-run-random-presentation-mod-v2;actual-call-and-render-separate;adapter-coverage-explicit":index>=4?"public-continuity-v2:scoped-history-save-collections-and-canonical-player-references":index>=2?"public-room-level-v2:identity-config-progress-environment-structure;explicit-query-parameters":grid?"public-grid-v2:all-derived-save-sprite-rng;finite-enums-and-explicit-queries":"public-entity-v2:state-and-finite-queries;unbounded-derived-queries:on-request;external-domains:explicit-references";
       if(!result.reason.empty()) e.result.reasons.push_back(result.reason);
-      e.result.objects=result.objects; e.result.nodes=result.nodes; e.result.bytes=result.payload.size(); e.payload=std::move(result.payload);
+      e.result.objects=result.objects; e.result.nodes=result.nodes; e.result.bytes=result.payload.size(); e.payload=std::move(result.payload);e.stream_payload=std::move(result.stream_payload);
       if(index>=2&&!e.payload.empty()&&e.payload.front()=='{') e.payload.insert(1,"\"sample_revision\":\""+std::to_string(e.context.scope)+"\",");
       e.result.bytes=e.payload.size();
       const auto scope=e.context.scope;
@@ -125,6 +136,7 @@ void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects
       } else if(index>=4) FinishLuaObservation(index,scope,false);
     } catch(...) { c.location_window=false; c.hierarchy.Invalidate(false); c.lua_objects=nullptr; c.lua_object_count=0; c.lua_members=nullptr; c.lua_members_count=0; c.observation.Invalidate("lua_scope_budget"); }
   }
+  if(streaming&&(c.stream_resource_depth||c.stream_read_resource_mutation!=c.stream_resource_mutation))c.observation.Invalidate("stream_resource_changed_during_capture");
 }
 void Native(void *owner,const world::BatchHeader &h,const world::RawObject *objects,const world::RawMembership *members) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
@@ -164,16 +176,28 @@ void Native(void *owner,const world::BatchHeader &h,const world::RawObject *obje
 }
 void Commit(void *owner,bool committed,bool stable) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
+  const bool resources_stable=!c.live_consumer||(!c.stream_resource_depth&&c.stream_read_resource_mutation==c.stream_resource_mutation);
+  committed=committed&&resources_stable;stable=stable&&resources_stable;
   if(!stable||!committed) { c.hierarchy.Invalidate(false); c.latest_room={}; c.latest_level={}; c.latest_continuity={}; }
   for(unsigned i=0;i<c.pending_scopes.size();++i) if(auto &scope=c.pending_scopes[i];scope) {
     const auto result=c.observation.CommitScope(scope,!stable?obs::Outcome::Invalidated:committed?obs::Outcome::AuthorityCommitted:obs::Outcome::Cancelled);
     if(i>=6) FinishLuaObservation(i-2,scope,result.accepted);
     scope=0;
   }
-  c.live.Finish(committed,stable,c.observation.LossSequence());
+  c.live.Finish(committed,stable,c.observation.LossSequence(),c.storage.EventWatermark());
+  if(c.live_consumer){
+    if(const auto values=c.live.Latest();committed&&stable&&values)c.stream.Ordinary(*values);
+    else c.stream.Invalidate(c.live.Status().reason);
+    c.stream_invalidation=c.live.Status().invalidations;
+  }
 }
 void Event(void *owner,const world::LifecycleEvent &event) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
+  if(c.live_consumer&&event.local_id){
+    const auto *id=c.identities.Find(event.domain?world::ObjectDomain::Grid:world::ObjectDomain::Entity,event.address);
+    if(id&&id->destroyed&&id->local_id==event.local_id&&id->use==event.use)
+      c.stream.PhysicalRetire(event.domain?2u:1u,c.epoch,event.local_id,event.use,event.revision,event.sequence,event.outer);
+  }
   if(Settings.diagnostics&&!Settings.world_e2e_token.empty()&&event.domain&&event.local_id&&
      !event.entering&&(event.kind==world::EventKind::NativeHook||event.kind==world::EventKind::GridPhysicalRetired))try {
     if(c.e2e_grid_events.size()==4096)c.e2e_grid_events.pop_front();
@@ -257,13 +281,22 @@ void WorldCapture::SetConsumers(bool formal,bool recorder) noexcept {
 }
 obs::RequestResult WorldCapture::SetLiveConsumer(bool active) noexcept {
   if(active==live_consumer)return {true,active?"live_attached":"live_off"};
+  if(active&&!StreamResourceHooksInstalled()){live_request_reason="stream_resource_hooks_unavailable";return {false,live_request_reason};}
   try {
     auto plan=Plan();
-    // I05直接使用完整正式来源；窄动态/Context缓存由I06—I09接入，不能在此假装已测30/60Hz。
-    for(auto &d:plan.domains)d.interval=1;
+    // 每个实际普通窗口产生30Hz机会；逐身体phase只在真实更新见证和outer提交后交付。
+    for(auto &d:plan.domains){d.interval=1;if(d.domain==obs::DomainId::Entity||d.domain==obs::DomainId::Player)d.phases|=2u;}
     const auto result=active?observation.AttachConsumer(live.Bind(std::move(plan))):observation.DetachConsumer(obs::kLiveConsumer);
     live_request_reason=result.reason;
-    if(result.accepted){live_consumer=active;live.Attached(active);}
+    if(result.accepted){
+      live_consumer=active;live.Attached(active);
+      if(active){
+        // 停采集期间的同址重建没有来源证言；重挂时丢弃旧地址表，代次计数绝不回绕或复用。
+        stream_resources.clear();body_status={};pending_bodies={};pending_body_bytes=0;
+        stream.Begin(LiveCaptureSession());
+      }else stream.Stop();
+      stream_invalidation=live.Status().invalidations;
+    }
     ArmObservationValueSources(observation.Active()&&!observation.Plan().domains.empty());
     ArmGlobalRandom(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));
     ArmRandomSources(observation.Needed(obs::DomainId::Random,obs::Phase::ActualCall));

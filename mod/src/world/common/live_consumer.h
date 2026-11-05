@@ -9,7 +9,7 @@ inline constexpr std::uint32_t kLatestConsumer=1,kRecorderConsumer=2,kLiveConsum
 // 自有值的账本随最后一个后台引用释放；不把主线程owner指针捕获到共享值析构中。
 struct LiveLedger final {std::atomic<std::uint64_t> bytes{0};std::uint64_t limit=256ull<<20;};
 struct LiveBatch final {
-  std::uint64_t session=0,epoch=0,capture=0,tick=0,outer=0,owner=0,mutation=0,loss=0,invalidation=0;
+  std::uint64_t session=0,epoch=0,capture=0,tick=0,outer=0,owner=0,mutation=0,loss=0,invalidation=0,event_watermark=0;
   std::uint32_t plan_revision=0;
   std::vector<std::shared_ptr<const ObservationEnvelope>> domains;
 };
@@ -25,7 +25,7 @@ public:
   Consumer Bind(CapturePlan plan);
   void PlanAccepted(CapturePlan plan) noexcept {plan_=std::move(plan);Invalidate("live_plan_changed");}
   void Attached(bool) noexcept;
-  void Finish(bool committed,bool stable,std::uint64_t loss) noexcept;
+  void Finish(bool committed,bool stable,std::uint64_t loss,std::uint64_t watermark=0) noexcept;
   void Invalidate(const char *) noexcept;
   std::shared_ptr<const LiveBatch> Latest() const noexcept {return latest_;}
   LiveStatus Status() const noexcept;

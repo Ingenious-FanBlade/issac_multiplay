@@ -91,6 +91,8 @@ public:
   Decision Commit(const Version &) noexcept;
   const std::map<RangeId,Range> &Applied() const noexcept {return applied_;}
   void Reset(WorldScope) noexcept;
+  // 根、已安装值与外部共享值共同保留依赖闭包；传输退尽后才回收旧版本。
+  void Collect(const std::vector<Version> &roots);
 private:
   WorldScope world_;
   std::uint64_t budget_;

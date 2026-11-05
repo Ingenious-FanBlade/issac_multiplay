@@ -71,6 +71,13 @@ bool Service::Due(DomainId id,Phase phase,std::uint64_t capture) const noexcept 
     if(d.domain==id&&(d.phases&(1u<<unsigned(phase)))&&(phase!=Phase::OrdinaryPost||(capture&&capture%d.interval==0)))return true;
   return false;
 }
+bool Service::ConsumerDue(std::uint32_t id,DomainId domain,Phase phase,std::uint64_t capture) const noexcept {
+  if(!Needed(domain,phase))return false;
+  for(const auto &c:consumers_)if(c.id==id)for(const auto &d:c.plan.domains)
+    if(d.domain==domain&&(d.phases&(1u<<unsigned(phase)))&&
+       (phase!=Phase::OrdinaryPost||(capture&&capture%d.interval==0)))return true;
+  return false;
+}
 ObservationContext Service::BeginScope(Phase phase,std::uint32_t source,std::uint64_t parent) noexcept {
   if(!active_)return {};
   if(scope_==UINT64_MAX||sequence_==UINT64_MAX) { active_=false;Invalidate("scope_sequence_exhausted");return {}; }
@@ -80,7 +87,7 @@ ObservationContext Service::BeginScope(Phase phase,std::uint32_t source,std::uin
 RequestResult Service::PrepareScope(ObservationEnvelope e) noexcept {
   if(!active_||e.context.epoch!=epoch_||e.context.session!=session_) return {false,"cross_epoch"};
   if(!e.context.scope||e.context.scope>scope_||!e.context.sequence||e.context.plan_revision!=plan_.revision||!Needed(e.domain,e.context.phase))return {false,"invalid_scope_or_plan"};
-  if(e.context.phase==Phase::OrdinaryPost&&(e.context.authority_tick.presence!=Presence::Known||!e.context.authority_tick.value||!e.context.outer||!e.context.owner)) return {false,"authority_context_required"};
+  if((e.context.phase==Phase::OrdinaryPost||e.context.phase==Phase::PlayerPost)&&(e.context.authority_tick.presence!=Presence::Known||!e.context.authority_tick.value||!e.context.outer||!e.context.owner)) return {false,"authority_context_required"};
   if(e.payload.size()>e.result.budget.bytes) { Invalidate("payload_budget");return {false,"payload_budget"}; }
   for(auto &p:pending_) if(p&&p->context.scope==e.context.scope) return {false,"duplicate_scope"};
   try { for(auto &p:pending_) if(!p) { p=std::move(e); return {true,"accepted"}; } }

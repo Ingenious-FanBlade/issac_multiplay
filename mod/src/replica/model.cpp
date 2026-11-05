@@ -151,15 +151,31 @@ const Value *Policy(const std::string &id){
 }
 
 void Registry::BindSource(std::uint64_t session,std::uint64_t epoch,const std::string &run){
-  if(session!=session_||!epoch||run.empty()||run=="0")Fail("invalid_source_generation");
+  if(session!=source_session_||!epoch||run.empty()||run=="0")Fail("invalid_source_generation");
   if(source_epoch_&&(source_epoch_!=epoch||source_run_!=run))Fail("source_run_or_epoch_changed");
   source_epoch_=epoch;source_run_=run;
+}
+void Registry::DeclareCurrent(unsigned space,const std::string &local,const std::string &use){
+  const auto name=std::to_string(space)+":"+local+":"+use;
+  if((space!=1&&space!=2)||local.empty()||use.empty()||use=="0"||retired_sources_.contains(name))Fail("stream_retired_or_invalid_source");
+  const auto base=std::to_string(space)+":"+local;
+  if(const auto old=current_uses_.find(base);old!=current_uses_.end()&&old->second!=use&&keys_.contains(name))Fail("stream_old_use_reappeared");
+  current_uses_[base]=use;
+}
+void Registry::RetireSource(unsigned space,const std::string &local,const std::string &use){
+  const auto base=std::to_string(space)+":"+local;
+  retired_sources_.insert(base+":"+use);
+  if(auto i=current_uses_.find(base);i!=current_uses_.end()&&i->second==use)current_uses_.erase(i);
 }
 Value Registry::Key(unsigned space,const std::string &local,const std::string &use,Allocator &a){
   if(!session_||!run_||space<1||space>14||local.empty()||local=="0") Fail("invalid_subject");
   const auto base=std::to_string(space)+":"+local;
   auto resolved=use;
-  if(!use.empty()){
+  if(strict_sources_&&(space==1||space==2)){
+    const auto current=current_uses_.find(base);
+    if(use.empty()){if(current==current_uses_.end())Fail("stream_reference_use_unknown");resolved=current->second;}
+    else if(!keys_.contains(base+":"+use)&&(current==current_uses_.end()||current->second!=use))Fail("stream_reference_not_declared");
+  }else if(!use.empty()){
     // 先遇到无use关联，再遇到其首个主体时合并占位key；已知旧use后的复用仍分配新ID。
     if(!current_uses_.count(base)){if(auto placeholder=keys_.find(base+":");placeholder!=keys_.end()){const auto id=placeholder->second;keys_.erase(placeholder);keys_.emplace(base+":"+use,id);}}
     current_uses_[base]=use;
@@ -179,13 +195,20 @@ Value Registry::ProjectValue(const Value &v,Allocator &a,std::uint64_t epoch,uns
   if(depth>64) Fail("projection_depth");
   if(v.IsArray()){Value out(rapidjson::kArrayType);for(const auto &x:v.GetArray())out.PushBack(ProjectValue(x,a,epoch,depth+1),a);return out;}
   if(!v.IsObject()) {Value out;out.CopyFrom(v,a);return out;}
-  if(v.HasMember("session")&&Unsigned(v["session"])!=session_) Fail("cross_session_subject");
+  if(v.HasMember("session")&&Unsigned(v["session"])!=source_session_) Fail("cross_session_subject");
   if(v.HasMember("epoch")&&v["epoch"].IsString()&&Unsigned(v["epoch"])!=epoch) Fail("cross_epoch_subject");
   if(v.HasMember("status")&&Str(v["status"])=="NotScheduled")return Status(a,"NotScheduled");
   // Entity／Grid与所有相关身份统一转换，绝不把本地Index／seed／地址当key。
   if(v.HasMember("space")&&v.HasMember("local_id")){
     Value out(rapidjson::kObjectType);const auto space=unsigned(Unsigned(v["space"]));
     const auto local=Str(v["local_id"]);std::string status=v.HasMember("resolution")?Str(v["resolution"]):v.HasMember("presence")&&Str(v["presence"])!="Known"?Str(v["presence"]):"KnownCurrent";
+    if(strict_sources_&&(space==1||space==2)&&status=="KnownCurrent"&&local!="0"&&!local.empty()){
+      const auto base=std::to_string(space)+":"+std::to_string(epoch)+"/"+local;
+      const auto current=current_uses_.find(base);
+      const auto use=v.HasMember("use")?Str(v["use"]):current==current_uses_.end()?std::string{}:current->second;
+      if(retired_sources_.contains(base+":"+use))Fail("stream_reference_retired");
+      if(current==current_uses_.end()||current->second!=use)Fail("stream_reference_use_conflict");
+    }
     Put(out,"type","reference",a);Put(out,"status",status,a);
     if(local!="0"&&!local.empty()&&(status=="KnownCurrent"||status=="KnownHistorical"||status=="Retired")){
       Put(out,"target",Key(space,std::to_string(epoch)+"/"+local,v.HasMember("use")?Str(v["use"]):"",a),a);
@@ -245,9 +268,9 @@ Json CaptureRows(const Scope &scope,std::uint64_t revision,const std::vector<Jso
   std::set<unsigned> domains;std::string window;bool complete=true;std::uint64_t watermark=0;std::uint64_t epoch=0;
   for(const auto &r:rows){
     if(Str(At(r,"format"))!="isaac.cs.observation"||Unsigned(At(r,"version"))!=2||Unsigned(At(r,"schema_version"))!=2)Fail("source_schema");
-    const auto &c=At(r,"context");if(Unsigned(At(c,"session"))!=scope.session)Fail("cross_session");
+    const auto &c=At(r,"context");if(Unsigned(At(c,"session"))!=registry.SourceSession())Fail("cross_session");
     const auto e=Unsigned(At(c,"epoch"));if(!epoch)epoch=e;else if(epoch!=e)Fail("cross_epoch");
-    const auto &run=At(c,"run");if(Str(At(run,"presence"))!="Known")Fail("source_run_unknown");registry.BindSource(scope.session,e,Str(At(run,"local_id")));
+    const auto &run=At(c,"run");if(Str(At(run,"presence"))!="Known")Fail("source_run_unknown");registry.BindSource(registry.SourceSession(),e,Str(At(run,"local_id")));
     const auto domain=unsigned(Unsigned(At(r,"domain")));if(domain<1||domain>11)Fail("unsupported_domain");
     const auto phase=Str(At(c,"phase"));const auto schema=Str(At(r,"schema"));
     if(schema!="isaac.cs."+std::string(DomainName(domain)))Fail("not_ordinary_domain_state");

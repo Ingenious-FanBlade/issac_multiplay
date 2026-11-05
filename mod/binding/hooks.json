@@ -12,6 +12,15 @@
     ]
   },
   "hooks": [
+    ["stream_resource_ctor","world","ANM2","constructor","void","","","0x2B00","None",false,"",false,-10000,true],
+    ["stream_resource_copy","world","ANM2","construct_from_copy","void","ANM2* right","right","0x2CD0","None",false,"",false,-10000,true],
+    ["stream_resource_destroy","world","ANM2","destructor","void","","","0x3790","None",false,"",false,-10000,true],
+    ["stream_resource_load","world","ANM2","Load","void","std_string& path, bool graphics","path, graphics","0x7AF0","None",false,"",false,-10000,true],
+    ["stream_resource_graphics","world","ANM2","LoadGraphics","void","bool value","value","0x7DA0","None",false,"",false,-10000,true],
+    ["stream_resource_reload","world","ANM2","Reload","void","","","0x7C40","None",false,"",false,-10000,true],
+    ["stream_resource_reset","world","ANM2","Reset","void","","","0x3530","None",false,"",false,-10000,true],
+    ["stream_resource_sheet","world","ANM2","ReplaceSpritesheet","bool","int layer, std_string& path","layer, path","0x7CD0","None",false,"",false,-10000,true],
+    ["stream_resource_swap","world","Isaac","SwapANM2","void","ANM2* left, ANM2* right","left, right","0x3160","None",true,"cdecl",false,-10000,true],
     ["world_player_esau_owner","world","CsEntity","PlayerEsauSlotOwner","unsigned int","unsigned int slot, unsigned int flags","slot, flags","0x3A3A40","None",false,"",true,-20000,true],
     ["world_player_sub_owner","world","CsEntity","PlayerSubBodyOwner","void","","","0x3C1F40","None",false,"",true,-20000,true],
     ["world_player_type_owner","world","Entity_Player","ChangePlayerType","void","int playerType, bool keepHealth","playerType, keepHealth","0x3C4620","None",false,"",false,-20000,true],

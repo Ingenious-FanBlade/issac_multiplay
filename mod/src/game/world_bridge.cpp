@@ -14,6 +14,36 @@
 #include <exception>
 
 namespace cs::game {
+StreamResourceScope::StreamResourceScope(void *object,bool retired) noexcept:exceptions_(std::uncaught_exceptions()) {
+  if(!IsMain())return;capture_=CurrentWorldRecording();
+  if(!capture_||!capture_->live_consumer){capture_.reset();return;}
+  auto &c=*capture_;++c.stream_resource_depth;retired_=retired;address_=world::PackWord(object);
+  if(c.stream_resource_mutation==UINT64_MAX){if(c.collector)c.collector->Fault(world::Reason::SequenceExhausted,"stream_resource_mutation");}
+  else ++c.stream_resource_mutation;
+  c.live.Invalidate("live_native_resource_changed");c.stream.Invalidate("stream_native_resource_changed");
+  try {
+    const auto address=world::PackWord(object);
+    if(retired)c.stream_resources.erase(address);
+    else {
+      if(c.next_stream_resource==UINT64_MAX||(!c.stream_resources.contains(address)&&c.stream_resources.size()>=65536))throw std::bad_alloc();
+      c.stream_resources[address]=++c.next_stream_resource;
+    }
+  }catch(...){c.observation.Invalidate("stream_resource_identity_budget");}
+}
+StreamResourceScope::~StreamResourceScope() noexcept {
+  if(!capture_)return;auto &c=*capture_;if(c.stream_resource_depth)--c.stream_resource_depth;
+  // 原生析构内部还会调用Reset；外层最终收口再次抹除，不能留下嵌套Reset分配的新token。
+  if(retired_)c.stream_resources.erase(address_);
+  if(!returned_||exceptions_!=std::uncaught_exceptions())c.observation.Invalidate("stream_resource_original_exception");
+}
+std::uint64_t StreamResourceGeneration(void *object) noexcept {
+  auto c=CurrentWorldRecording();if(!IsMain()||!c||!c->live_consumer||!object||c->stream_resource_depth)return 0;
+  try {
+    const auto address=world::PackWord(object);if(const auto it=c->stream_resources.find(address);it!=c->stream_resources.end())return it->second;
+    if(c->next_stream_resource==UINT64_MAX||c->stream_resources.size()>=65536)throw std::bad_alloc();
+    const auto next=++c->next_stream_resource;c->stream_resources.emplace(address,next);return next;
+  }catch(...){c->observation.Invalidate("stream_resource_identity_budget");return 0;}
+}
 WorldEntityReconfigurationScope::WorldEntityReconfigurationScope(void *object,world::HookCounters counters) noexcept
     :counters_(counters),exceptions_(std::uncaught_exceptions()) {
   if(counters_.calls)counters_.calls->fetch_add(1,std::memory_order_relaxed);
@@ -271,6 +301,19 @@ void StopWorldRecording() noexcept {
 std::shared_ptr<const world::observation::LiveBatch> CurrentLiveCapture() noexcept {
   return IsMain()&&recording&&recording->live_consumer&&recording->observation.Active()?recording->live.Latest():nullptr;
 }
+std::shared_ptr<const replica::stream::Publication> CurrentLiveWorld() noexcept {
+  return IsMain()&&recording&&recording->live_consumer&&recording->stream_invalidation==recording->live.Status().invalidations?recording->stream.Latest():nullptr;
+}
+std::shared_ptr<const replica::stream::Publication> CurrentLiveBaseline() noexcept {
+  return IsMain()&&recording&&recording->live_consumer&&recording->stream_invalidation==recording->live.Status().invalidations?recording->stream.Baseline():nullptr;
+}
+bool RequestLiveBaseline() noexcept {
+  if(!IsMain()||!recording||!recording->live_consumer)return false;
+  recording->stream.RequestBaseline();return true;
+}
+std::vector<std::shared_ptr<const replica::stream::Publication>> CurrentLiveBodies(){
+  return IsMain()&&recording&&recording->live_consumer&&recording->stream_invalidation==recording->live.Status().invalidations?recording->stream.Bodies():std::vector<std::shared_ptr<const replica::stream::Publication>>{};
+}
 bool DetachClosedWorld(const std::shared_ptr<WorldRecording> &closed) noexcept {
   if (!IsMain() || recording != closed || !closed || !closed->collector ||
       !closed->collector->Drained() || !closed->storage.Closed())
@@ -292,10 +335,13 @@ void WorldFrameBegin(std::uint64_t loop) noexcept {
       collector->Fault(world::Reason::PrepareFailed, "activate_prepared");
   }
   prepared_post = {};
+  recording->pending_bodies={};
+  recording->pending_body_bytes=0;
   frame_prepared = false;
   ObserveFailures(*collector);
   if (!collector->Participating()) {
     recording->live.Invalidate("live_collector_not_participating");
+    recording->stream.Invalidate("live_collector_not_participating");
     return;
   }
   collector->BeginOuter(loop, OwnerToken(Owner::Manager), RunActive());
@@ -303,6 +349,7 @@ void WorldFrameBegin(std::uint64_t loop) noexcept {
   auto &location=recording->hierarchy;
   if(location.valid&&(location.run!=collector->CurrentRunToken()||location.room!=collector->CurrentRoomToken())) {
     recording->live.Invalidate("live_run_or_room_changed");
+    recording->stream.Invalidate("live_run_or_room_changed");
     location.Invalidate(location.run!=collector->CurrentRunToken());
     recording->latest_room={}; recording->latest_level={}; recording->latest_continuity={};
   }
@@ -421,6 +468,7 @@ void WorldRevokePlayer(unsigned ordinal) noexcept {
       const auto slot=ordinal*kMaximumGroupBodies+b;
       const auto before=collector->CurrentAnchor(slot);
       collector->RevokePlayer(slot);
+      if(recording){recording->pending_body_bytes-=recording->pending_bodies[slot].payload.size();recording->pending_bodies[slot]={};recording->body_status[slot].reason="player_post_binding_revoked";}
       if(before.valid) ObservationControlChange(slot,before,{},"explicit_binding_revocation");
     }
 }
@@ -463,6 +511,21 @@ void WorldPreparePostState(bool normal) noexcept {
     ObserveFailures(*collector);
     prepared_post = collector->PreparePostState(normal);
     frame_prepared = true;
+    if(recording->live_consumer&&normal)for(unsigned slot=0;slot<world::kControlAnchorCapacity;++slot){
+      world::PlayerPostWitness before{},after{};
+      auto &state=recording->body_status[slot];
+      if(!collector->PlayerPost(slot,before)){if(collector->CurrentAnchor(slot).valid){++state.not_updated;state.reason="player_post_not_updated_or_revoked";recording->stream.BodyGap(state.reason);}continue;}
+      state.local=before.local;state.use=before.use;state.shape=before.shape;state.binding=before.anchor.generation;state.last_native_update_tick=before.tick;
+      const auto invalidation=recording->live.Status().invalidations;
+      auto value=CaptureLuaPlayerFast(reinterpret_cast<void *>(uintptr_t(before.anchor.player)));
+      if(!value.available||!value.complete||!collector->PlayerPost(slot,after)||before.local!=after.local||before.use!=after.use||before.shape!=after.shape||
+         before.tick!=after.tick||before.outer!=after.outer||before.mutation!=after.mutation||before.anchor!=after.anchor||invalidation!=recording->live.Status().invalidations){
+        state.reason="player_post_read_failed_or_changed";recording->stream.BodyGap(state.reason);continue;
+      }
+      if(value.payload.size()>(16ull<<20)-recording->pending_body_bytes){state.reason="player_post_candidate_budget";recording->stream.BodyGap(state.reason);continue;}
+      try{recording->pending_body_bytes+=value.payload.size();recording->pending_bodies[slot]={before,std::move(value.payload),invalidation};state.reason="player_post_await_outer_commit";}
+      catch(...){state.reason="player_post_candidate_budget";recording->stream.BodyGap(state.reason);}
+    }
     // 无 Authority 的 gap 已由采集器发布；没有 pending 世界值需要 core 提交。
   }
 }
@@ -488,8 +551,38 @@ void WorldPublishPostState(bool committed,
                            const core::TickPostState &post) noexcept {
   if (auto *collector = Collector())
     collector->PublishPostState(committed, post);
+  if(!recording||!recording->live_consumer)return;
+  if(recording->stream_invalidation!=recording->live.Status().invalidations){recording->stream.Invalidate(recording->live.Status().reason);recording->stream_invalidation=recording->live.Status().invalidations;}
+  for(unsigned slot=0;slot<recording->pending_bodies.size();++slot){
+    auto pending=std::move(recording->pending_bodies[slot]);recording->pending_bodies[slot]={};
+    if(pending.payload.empty())continue;
+    recording->pending_body_bytes-=pending.payload.size();auto &state=recording->body_status[slot];
+    world::PlayerPostWitness now{};const auto &w=pending.witness;
+    if(!committed||!Collector()||!Collector()->PlayerPost(slot,now)||now.anchor!=w.anchor||now.local!=w.local||now.use!=w.use||now.shape!=w.shape||now.tick!=w.tick||now.outer!=w.outer||now.mutation!=w.mutation||pending.invalidation!=recording->live.Status().invalidations){state.reason="player_post_outer_cancelled_or_changed";recording->stream.BodyGap(state.reason);continue;}
+    replica::stream::BodySample sample{recording->epoch,w.run,w.room,w.local,w.use,w.shape,w.tick,w.outer,w.owner,w.mutation,w.anchor.generation,
+      w.kind==world::AuthorityKind::OddPlayer?replica::stream::CaptureKind::OddPlayer:replica::stream::CaptureKind::Ordinary};
+    recording->stream.PlayerPost(sample,pending.payload);
+    state.last_capture_tick=w.tick;if(w.kind==world::AuthorityKind::OddPlayer)++state.odd;else ++state.ordinary;
+    state.reason=w.kind==world::AuthorityKind::OddPlayer?"player_post_odd_source_committed":"player_post_ordinary_source_committed";
+    try {
+      namespace obs=world::observation;
+      // 只有真实Clock提交才发布phase；Entity公共值和Player专用值拥有同一身体证言。
+      for(const auto domain:{obs::DomainId::Entity,obs::DomainId::Player}){
+        if(!recording->observation.Needed(domain,obs::Phase::PlayerPost))continue;
+        obs::ObservationEnvelope e;e.domain=domain;e.schema=domain==obs::DomainId::Entity?"isaac.cs.entity.player-post":"isaac.cs.player.player-post";
+        e.context=recording->observation.BeginScope(obs::Phase::PlayerPost,2);e.context.authority_tick={obs::Presence::Known,w.tick};
+        e.context.outer=w.outer;e.context.owner=w.owner;e.context.mutation_before=e.context.mutation_after=w.mutation;
+        e.context.run={obs::Presence::Known,{recording->session_key,recording->epoch,w.run,obs::IdentitySpace::Run}};
+        e.context.room={obs::Presence::Known,{recording->session_key,recording->epoch,w.room,obs::IdentitySpace::RoomInstance}};
+        e.result.coverage=obs::Coverage::Complete;e.result.range=w.kind==world::AuthorityKind::OddPlayer?"player-fast-source-v1;odd;actual-native-update":"player-fast-source-v1;ordinary;actual-native-update";
+        e.result.objects=1;e.payload=pending.payload;e.result.bytes=e.payload.size();const auto scope=e.context.scope;
+        if(recording->observation.PrepareScope(std::move(e)).accepted)recording->observation.CommitScope(scope,obs::Outcome::IndependentPublished);
+      }
+    }catch(...){recording->stream.BodyGap("player_post_notification_budget");}
+  }
 }
 void WorldFrameEnd() noexcept {
+  if(recording)for(auto &body:recording->pending_bodies)if(!body.payload.empty()){body={};recording->stream.BodyGap("player_post_missing_outer_commit");}
   if (auto *collector = Collector())
     collector->EndOuter();
 }

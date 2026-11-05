@@ -27,6 +27,12 @@ struct PlayerAnchor final {
   bool valid = false;
   bool operator==(const PlayerAnchor &) const = default;
 };
+// 当前outer内真实派生更新的逐身体证言；持久读取资格与本步是否更新是两件事。
+struct PlayerPostWitness final {
+  PlayerAnchor anchor{};
+  std::uint64_t local=0,use=0,shape=0,tick=0,outer=0,owner=0,mutation=0,run=0,room=0;
+  AuthorityKind kind=AuthorityKind::None;
+};
 
 // 采集服务的窄提交通知；录制器不拥有 Collector，也不能决定 Authority 是否提交。
 struct CaptureSink final {
@@ -86,6 +92,7 @@ public:
   void PlayerReturned(std::uint32_t ordinal, const PlayerAnchor &before,
                       const PlayerAnchor &after, std::uint64_t tick,
                       bool normal, bool body_reached) noexcept;
+  bool PlayerPost(std::uint32_t slot,PlayerPostWitness &out) noexcept;
   // 20 项观察入口的 call/parent 值；错线程只在观察策略层置原子故障位。
   std::uint32_t ObserveEnter(Observation observation, std::uint32_t object,
                             const std::uint32_t *args, std::uint32_t count) noexcept;
@@ -215,6 +222,7 @@ private:
   std::array<PlayerAnchor, kControlAnchorCapacity> anchors_{};
   // 当前exact pair是否已观察正常PlayerUpdate；独立于创建owner赋予的字段读取依据。
   std::array<PlayerAnchor, kControlAnchorCapacity> update_witnesses_{};
+  std::array<PlayerPostWitness,kControlAnchorCapacity> player_posts_{};
   // 来源顺序两遍读取，包含每个指针值；大工作表属于堆上 Collector，计入管理余量。
   std::array<std::uint32_t, kMembershipBudget> source_addresses_{};
   std::array<std::uint32_t, 460> fixed_addresses_{}; // Esau 4 + Grid 448 + door 8。

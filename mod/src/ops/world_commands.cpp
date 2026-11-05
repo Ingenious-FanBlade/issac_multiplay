@@ -334,12 +334,23 @@ std::string ObservationCommand(const std::string &action) {
   if(!job) return game::LiveCaptureSession()&&game::LiveCaptureSession()==live_failed_session?"ok=1\nobservation_state=Faulted\nlive_request_reason=live_capture_prepare_failed\n":"ok=1\nobservation_state=Off\n";
   auto &r=*job->recording;
   const bool ready=job->ready.load(std::memory_order_acquire);
+  std::string bodies="\nplayer_post_columns=local/use/shape/binding/last_native_update_tick/last_capture_tick/ordinary/odd/not_updated/reason";
+  if(ready)for(unsigned slot=0;slot<r.body_status.size();++slot){const auto &b=r.body_status[slot];if(!b.local&&!b.not_updated)continue;
+    const auto row="\nplayer_post_"+std::to_string(slot)+"="+std::to_string(b.local)+"/"+std::to_string(b.use)+"/"+std::to_string(b.shape)+
+      "/"+std::to_string(b.binding)+"/"+std::to_string(b.last_native_update_tick)+"/"+std::to_string(b.last_capture_tick)+
+      "/"+std::to_string(b.ordinary)+"/"+std::to_string(b.odd)+"/"+std::to_string(b.not_updated)+"/"+b.reason;
+    if(bodies.size()+row.size()>56000){bodies+="\nplayer_post_status_budget=exceeded";break;}bodies+=row;
+  }
   return "ok=1\nobservation_state="+std::string(job->stopping?"Stopping":job->attached?"Active":"Preparing")+
     "\nobservation_epoch="+std::to_string(r.epoch)+"\nformal_consumer="+std::to_string(job->formal)+
     "\nrecording_consumer="+std::to_string(ready&&r.recorder_consumer)+"\nlive_consumer="+std::to_string(ready&&r.live_consumer)+
     "\nlive_request_reason="+std::string(ready?r.live_request_reason:"preparing")+
     "\nlive_delivered="+std::to_string(ready?r.live.Status().delivered:0)+"\nlive_owned_bytes="+std::to_string(ready?r.live.Status().bytes:0)+
     "\nlive_gap_reason="+std::string(ready?r.live.Status().reason:"preparing")+"\npublication_count="+std::to_string(ready?r.observation.Published():0)+
+    "\nstream_ready="+std::to_string(ready&&r.stream.Status().ready)+"\nstream_reason="+(ready?r.stream.Status().reason:std::string("preparing"))+
+    "\nstream_ordinary="+std::to_string(ready?r.stream.Status().ordinary:0)+"\nstream_world_sequence="+std::to_string(ready?r.stream.Status().world_sequence:0)+
+    "\nstream_bodies="+std::to_string(ready?r.stream.Status().bodies:0)+"\nstream_body_gaps="+std::to_string(ready?r.stream.Status().body_gaps:0)+
+    "\nstream_body_reason="+(ready?r.stream.Status().body_reason:std::string("preparing"))+bodies+
     "\nloss_sequence="+std::to_string(ready?r.observation.LossSequence():0)+"\nrecord_loss_sequence="+std::to_string(r.publications.LossSequence())+
     "\nlua_attempts="+std::to_string(ready?r.lua_attempts:0)+"\nlua_complete="+std::to_string(ready?r.lua_complete:0)+
     "\nlua_partial="+std::to_string(ready?r.lua_partial:0)+"\nentity_scope="+std::to_string(ready?r.latest_entity.context.scope:0)+

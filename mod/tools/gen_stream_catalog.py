@@ -122,20 +122,37 @@ def generate():
         "player_common_owner": "Entity public dynamic fields belong to PlayerFast for body keys;WorldDynamic excludes those fields;relations ordinary-joint",
         "projection_review": "no new omissions;existing omitted queries keep exact documented consumers/local-asset equivalence;new consumers must restore source",
         "low_frequency_policy": "no proven complete dirty coverage => bounded full read;no cached-complete claim from notification alone",
-        "runtime": "I01 data only;I06-I09 capture/I23 application and I39 acceptance pending"}
+        "capture_profiles": {
+            "ordinary": "stream-source-v1;pre-JSON scopes;full declared membership;private player state stays body-joint",
+            "player_post": "player-fast-source-v1;domains/common/stream.lua::Fast;actual-body-witness;main-Sprite-token;no relations/containers/parameter queries",
+            "validity": "immutable acquired sample + target checked sample;bounded full reads for unclosed dirty coverage",
+            "layouts": ["stream.context.v1", "stream.structure.v1", "stream.resource.v1", "stream.world.v1", "stream.player.v1"]},
+        "runtime": "I01-I10 capture implemented;I11 encoding/I19 publication/I23 application and I39 acceptance pending"}
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--json-only", action="store_true")
+    parser.add_argument("--lua", type=Path)
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(generate(), ensure_ascii=False, separators=(",", ":"))
+    catalog = generate()
+    text = json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))
     (args.out / "stream-catalog.json").write_text(text, encoding="utf-8")
     if not args.json_only:
         (args.out / "stream_catalog.inc").write_text("std::string{}" + "".join(
             '+std::string(R"ICSS(' + text[i:i+8000] + ')ICSS")' for i in range(0, len(text), 8000)), encoding="utf-8")
+    if args.lua:
+        # 运行时来源只按显式字段目录分层；同名别名冲突保守交普通联合Context。
+        policies = {}
+        for row in catalog["members"]:
+            scope = row["scope"]
+            ident = row["id"]
+            policies[ident] = scope if ident not in policies or policies[ident] == scope else "Context"
+        args.lua.write_text("-- 由gen_stream_catalog.py生成的逐成员来源层；编号与目录同源。\nreturn {\n" +
+            "".join("[" + json.dumps(k, ensure_ascii=False) + "]=" + json.dumps(v) + ",\n"
+                    for k, v in sorted(policies.items())) + "}\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

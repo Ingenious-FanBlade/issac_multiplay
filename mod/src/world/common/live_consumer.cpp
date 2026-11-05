@@ -9,7 +9,7 @@ void LiveConsumer::Publish(void *owner,const ObservationEnvelope &e) noexcept {s
 void LiveConsumer::Invalidated(void *owner,const char *reason) noexcept {static_cast<LiveConsumer *>(owner)->Invalidate(reason);}
 void LiveConsumer::Invalidate(const char *reason) noexcept {pending_.clear();latest_.reset();++status_.invalidations;std::strncpy(status_.reason,reason?reason:"live_invalidated",sizeof(status_.reason)-1);status_.reason[sizeof(status_.reason)-1]=0;}
 std::shared_ptr<const ObservationEnvelope> LiveConsumer::Own(const ObservationEnvelope &e){
-  std::uint64_t bytes=sizeof(ObservationEnvelope)+128+2*(e.payload.size()+e.schema.size()+e.result.range.size());
+  std::uint64_t bytes=sizeof(ObservationEnvelope)+128+2*(e.payload.size()+e.stream_payload.size()+e.schema.size()+e.result.range.size());
   for(const auto &r:e.result.reasons)bytes+=sizeof(std::string)+32+2*r.size();
   auto used=ledger_->bytes.load(std::memory_order_acquire);
   do {if(bytes>ledger_->limit||used>ledger_->limit-bytes)throw std::bad_alloc();}while(!ledger_->bytes.compare_exchange_weak(used,used+bytes,std::memory_order_acq_rel));
@@ -21,6 +21,9 @@ std::shared_ptr<const ObservationEnvelope> LiveConsumer::Own(const ObservationEn
 }
 void LiveConsumer::Receive(const ObservationEnvelope &e) noexcept {
   if(!status_.attached)return;
+  // PlayerPost由正式身体owner独立收束，不撤销普通整房样本，也不从子帧生成删除。
+  if(e.context.phase==Phase::PlayerPost)return;
+  if(e.domain==DomainId::Random&&e.context.phase==Phase::ActualCall)return;
   if(e.kind!=RecordKind::State||e.context.phase!=Phase::OrdinaryPost){
     // 独立Render姿态有自己的scope，不把每次绘制当成普通世界变更或新普通样本。
     if(e.kind==RecordKind::State&&e.context.phase==Phase::Render)return;
@@ -39,7 +42,7 @@ void LiveConsumer::Receive(const ObservationEnvelope &e) noexcept {
     pending_.emplace(e.domain,Own(e));
   }catch(...){++status_.gaps;Invalidate("live_value_budget");}
 }
-void LiveConsumer::Finish(bool committed,bool stable,std::uint64_t loss) noexcept {
+void LiveConsumer::Finish(bool committed,bool stable,std::uint64_t loss,std::uint64_t watermark) noexcept {
   if(!status_.attached)return;
   if(!committed||!stable){Invalidate("live_uncommitted_or_mutated");return;}
   if(pending_.empty())return;
@@ -48,6 +51,7 @@ void LiveConsumer::Finish(bool committed,bool stable,std::uint64_t loss) noexcep
     // 缺任意当次要求域时整批不发布；未调度、Partial及真实空集合各自保留语义。
     for(const auto &d:plan_.domains)if((d.phases&1u)&&c.capture_index%d.interval==0&&!pending_.contains(d.domain)){++status_.gaps;Invalidate("live_required_domain_missing");return;}
     auto batch=std::make_shared<LiveBatch>();batch->session=c.session;batch->epoch=c.epoch;batch->capture=c.capture_index;batch->tick=c.authority_tick.value;batch->outer=c.outer;batch->owner=c.owner;batch->mutation=c.mutation_after;batch->loss=loss;batch->invalidation=status_.invalidations;batch->plan_revision=c.plan_revision;
+    batch->event_watermark=watermark;
     for(auto &[domain,e]:pending_){if(e->context.authority_tick.value!=batch->tick||e->context.plan_revision!=batch->plan_revision)throw std::runtime_error("live_context_mismatch");batch->domains.push_back(std::move(e));}
     pending_.clear();latest_=std::move(batch);++status_.delivered;std::strcpy(status_.reason,"live_committed_values");
   }catch(...){++status_.gaps;Invalidate("live_batch_budget_or_context");}

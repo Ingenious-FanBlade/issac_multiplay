@@ -191,6 +191,21 @@ function M.Capture(limits)
   verifyPlayers()
   return finish(out,ctx)
 end
+-- 读取发生在Manager尾的已核定逐身体窗口，不从Lua post回调推断原生调用已执行。
+function M.CapturePlayerFast(limits,p)
+  read.Limits(limits)
+  local ctx=context();ctx.fast=true;ctx.objects=1
+  local subject=native().Subject(p);ctx.owner=subject
+  if subject.resolution~="KnownCurrent" then fail(ctx,"player_fast_identity") end
+  local sprite=p:GetSprite();local generation=native().SpriteResourceGeneration(sprite)
+  local out={contract="player-fast-source-v1",subject=subject,
+    common=collect(p,"Entity",ctx,0),body=collect(p,"EntityPlayer",ctx,0),
+    sprite=collect(sprite,"Sprite",ctx,0),resource_generation=generation}
+  -- 主Sprite只读一次；资源由精确Resource版本提供，不走旧冷投影的资源描述推导。
+  out.sprite.type="stream_sprite_pose"
+  if generation~=native().SpriteResourceGeneration(p:GetSprite()) then fail(ctx,"player_fast_resource_changed") end
+  return finish(out,ctx)
+end
 function M.Event(name,class,object,...)
   local ctx=context(); ctx.objects=1
   -- Remove 回调只取真实事件主体，避免解引用已经进入销毁阶段的派生关联。

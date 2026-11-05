@@ -64,6 +64,15 @@ void RegisterHooks() {
 }
 } // namespace cs
 namespace cs::game {
+bool StreamResourceHooksInstalled() noexcept {
+  const char *required[]={"stream_resource_ctor","stream_resource_copy","stream_resource_destroy","stream_resource_load",
+    "stream_resource_graphics","stream_resource_reload","stream_resource_reset","stream_resource_sheet","stream_resource_swap"};
+  size_t count=0;auto hooks=Hooks(count);
+  for(const auto *id:required){bool found=false;for(size_t i=0;i<count;++i){const auto &h=*hooks[i];
+    if(!std::strcmp(h.id,id)){found=h.registered&&h.super&&*h.super;break;}}
+    if(!found)return false;
+  }return true;
+}
 // 构造前核对真实trampoline；持久保护从连接准备之前生效并延续到最后退出writer。
 bool ClientPlayerIsolationInstalled() noexcept {
   if(!IsMain())return false;

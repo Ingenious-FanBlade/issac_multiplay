@@ -11,7 +11,7 @@ enum class Presence : std::uint8_t { Known, Unknown, NotApplicable };
 enum class Phase : std::uint8_t { OrdinaryPost, PlayerPost, Lifecycle, Transition, Render, ActualCall };
 // 按域声明实际接线阶段：Room无Transition来源，Level无Render来源；未知请求明确拒绝。
 constexpr std::uint32_t SupportedPhases(DomainId domain) noexcept {
-  return domain==DomainId::Entity ? 53u : domain==DomainId::Grid ? 53u : domain==DomainId::Room ? 53u : domain==DomainId::Level ? 45u : domain==DomainId::Player ? 45u : domain>=DomainId::Exploration&&domain<=DomainId::RoomSave ? 13u : domain==DomainId::Run ? 45u : domain==DomainId::Random ? 37u : domain==DomainId::Presentation ? 53u : domain==DomainId::Mod ? 61u : 0u;
+  return domain==DomainId::Entity ? 55u : domain==DomainId::Grid ? 53u : domain==DomainId::Room ? 53u : domain==DomainId::Level ? 45u : domain==DomainId::Player ? 47u : domain>=DomainId::Exploration&&domain<=DomainId::RoomSave ? 13u : domain==DomainId::Run ? 45u : domain==DomainId::Random ? 37u : domain==DomainId::Presentation ? 53u : domain==DomainId::Mod ? 61u : 0u;
 }
 enum class RecordKind : std::uint8_t { State, Event, Relation, Coverage, Gap, Catalog };
 enum class Outcome : std::uint8_t { AuthorityCommitted, IndependentPublished, Cancelled, Invalidated };
@@ -75,6 +75,8 @@ struct ObservationEnvelope final {
   std::uint32_t version=2;
   DomainResult result{};
   std::string payload;
+  // 正式实时来源在Lua编码前分域；录制/旧模型仍只使用payload，不读取此产品热路径。
+  std::string stream_payload;
 };
 struct RequestResult final { bool accepted=false; const char *reason="unavailable"; };
 // 窄回调仅在主线程借用 const 值；需要后台使用时须复制到自有有界队列。

@@ -1,3 +1,5 @@
+> **tx-04-21 I06—I10（2026-11-05）**：[同窗目标、动态来源、逐身体见证与身份](design/tx-04-21/tx-04-21-capture.md)已实现并经静态主审。包含共享 Baseline/范围版本、编码前分层、ordinary/odd 逐身体来源、九个资源观察入口和统一 Registry/退休事实；GPT-6 Luna max 的必要逆向已由主智能体复读。未构建/测试/启动游戏；I11以后及I39统一P2全套→P4全套仍待推进，不宣称频率、性能或网络世界闭环已通过。
+
 > **tx-04-21 I01—I05（2026-11-05）**：[基础实现与边界](design/tx-04-21/tx-04-21-foundation.md)、[逐成员实时目录](design/tx-04-21/stream-catalog.json)、[Luna max必要逆向及主审](design/tx-04-21/tx-04-21-native-contracts.md)。已接分层不可变范围／精确依赖、v2严格schema与Live小消息、正式consumer3及Host生命周期。未构建、测试或启动游戏；I06—I40与I39两人全套后四人整体验收待推进，未声明实时频率／带宽或网络世界应用完成。下方初版规划记录保持原事实。
 
 > **tx-04-21详细规划（2026-11-05，仅文档）**：[I01—I40实施计划](design/tx-04-21/tx-04-21-implementation-plan.md)、[频率／10 Mbps预算／分层完整状态与21—22边界](design/tx-04-21/tx-04-21-network-contract.md)、[R01—R09静态与必要逆向任务](design/tx-04-21/tx-04-21-native-research-plan.md)、[E01—E26统一E2E](design/tx-04-21/tx-04-21-e2e-plan.md)。按用户澄清，先在两人中跑通全部E01—E26及子用例／指标／回归，全部通过后再转四人整套重跑和扩展；不能只跑“两人适用项”。目标Player调度60 Hz、普通动态30 Hz、roster20 Hz，Host三端总上行10 Mbps、模组持续预算7.5 Mbps。目标不是实测值；未写运行代码、构建或测试。
@@ -268,4 +270,5 @@
 - tx-04-12 已完成：[房间身份/构建、进度、环境及楼层结构观测](design/observation-expansion/tx-04-12-implementation.md)及[206项特殊房间/Greed补全](design/observation-expansion/tx-04-12-supplement.md)，同tx统一E2E 7/7 PASS，实际覆盖与边界见结果。
 
 - tx-04-20 I16—I20：[效果、History、完整身体资源、costume与五槽武器安装及必要逆向主审](design/tx-04-20/tx-04-20-equipment-installation.md)。I21—I40继续推进；本轮未构建或测试，完整native_apply仍为false。
+
 

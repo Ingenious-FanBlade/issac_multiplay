@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <set>
 #include "world/common/contracts.h"
 #include "core/participant.h"
 
@@ -52,7 +53,13 @@ const Value *Policy(const std::string &);
 // 稳定身份只从Authority已登记的源主体映射；每个实例有界，不回绕、不复用ID。
 class Registry final {
 public:
-  explicit Registry(std::uint64_t session,std::uint64_t run):session_(session),run_(run){}
+  explicit Registry(std::uint64_t session,std::uint64_t run,std::uint64_t source_session=0)
+      :session_(session),run_(run),source_session_(source_session?source_session:session){}
+  std::uint64_t SourceSession() const noexcept { return source_session_; }
+  void StrictSources() noexcept { strict_sources_=true; }
+  // 先登记当窗完整成员再投影引用；无use引用不得凭旧地址占位猜中当前实例。
+  void DeclareCurrent(unsigned space,const std::string &local,const std::string &use);
+  void RetireSource(unsigned space,const std::string &local,const std::string &use);
   void BindSource(std::uint64_t session,std::uint64_t epoch,const std::string &run);
   Value Key(unsigned space,const std::string &local,const std::string &use,Allocator &);
   // 所有普通/独立组件共用目录投影；完整根值完成后才处理组件内图引用。
@@ -61,10 +68,14 @@ public:
 private:
   Value ProjectValue(const Value &,Allocator &,std::uint64_t epoch,unsigned depth);
   std::uint64_t session_,run_,next_=0;
+  // 网络Authority session与进程内观测session分开；旧离线入口默认两者相同。
+  std::uint64_t source_session_=0;
   std::uint64_t source_epoch_=0;
   std::string source_run_;
   std::map<std::string,std::uint64_t> keys_;
   std::map<std::string,std::string> current_uses_;
+  bool strict_sources_=false;
+  std::set<std::string> retired_sources_;
 };
 // 每个component保留自己的capture kind、tick、scope和依赖；不把独立回调拼成原子世界。
 Json Capture(const Scope &,std::uint64_t revision,

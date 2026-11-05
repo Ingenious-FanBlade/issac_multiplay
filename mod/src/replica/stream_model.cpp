@@ -140,6 +140,19 @@ Decision Store::Commit(const Version &v) noexcept {
   }catch(...){return D(Admission::OverBudget,"stream_commit_allocation");}
 }
 void Store::Reset(WorldScope s) noexcept {applied_.clear();values_.clear();world_=s;}
+void Store::Collect(const std::vector<Version> &roots){
+  std::set<Version> keep;
+  const auto visit=[&](const auto &self,const Version &v)->void{
+    if(!keep.insert(v).second)return;
+    const auto i=values_.find(v);if(i==values_.end())return;
+    for(const auto &d:i->second->dependencies)self(self,d);
+    for(const auto &d:i->second->required)self(self,d);
+  };
+  for(const auto &v:roots)visit(visit,v);
+  for(const auto &[id,r]:applied_)visit(visit,Version{r->id,r->revision});
+  for(const auto &[v,r]:values_)if(r.use_count()>1)visit(visit,v);
+  for(auto i=values_.begin();i!=values_.end();)if(!keep.contains(i->first))i=values_.erase(i);else ++i;
+}
 Json ColdModel(const Store &store,const RangeData &m,std::uint64_t connection){
   Json out;out.SetObject();auto &a=out.GetAllocator();Value components(rapidjson::kObjectType);bool found=false;
   for(const auto &r:store.Compose(m))if(r->components){for(auto i=r->components->MemberBegin();i!=r->components->MemberEnd();++i){

@@ -254,6 +254,7 @@ void Collector::BeginOuter(std::uint64_t loop, std::uint64_t outer,
   loop_ = loop;
   outer_ = outer;
   authority_ = {};
+  player_posts_ = {};
   authority_count_ = 0;
   phases_ = {};
   outer_reason_ = Reason::None;
@@ -433,6 +434,7 @@ void Collector::RevokePlayer(std::uint32_t ordinal) noexcept {
   if (!active_ || ordinal >= anchors_.size())
     return;
   update_witnesses_[ordinal] = {};
+  player_posts_[ordinal] = {};
   auto *id = identities_.RevokeCurrentWitness(ordinal);
   if (id)
     Event(EventKind::CurrentPlayerReadWitness, Reason::NotReady, id);
@@ -489,7 +491,20 @@ void Collector::PlayerReturned(std::uint32_t ordinal,
                 false, false, 0, tick))
         update_witnesses_[ordinal] = before;
     }
+    player_posts_[ordinal]={before,id->local_id,id->use,id->revision,tick,outer_,0,mutation_,run_,room_,AuthorityKind::None};
   }
+}
+bool Collector::PlayerPost(std::uint32_t slot,PlayerPostWitness &out) noexcept {
+  out={};if(slot>=player_posts_.size())return false;
+  const auto &p=player_posts_[slot];Roots roots{};
+  if(!Recording()||!outer_active_||!prepared_||polluted_||depth_||lifecycle_depth_||lifecycle_episode_||
+     entity_reconfiguration_depth_||outer_reason_!=Reason::None||authority_count_!=1||!p.tick||p.tick!=authority_.tick||
+     p.outer!=outer_||p.mutation!=mutation_||p.run!=run_||p.room!=room_||p.anchor!=anchors_[slot]||
+     update_witnesses_[slot]!=p.anchor||!ReadRoots(roots)||roots!=roots_)return false;
+  const auto *id=identities_.Find(ObjectDomain::Entity,p.anchor.player);
+  if(!id||id->Retired()||!id->current_public_ready||id->local_id!=p.local||id->use!=p.use||id->revision!=p.shape)return false;
+  if(authority_.kind!=AuthorityKind::StandardRoom&&authority_.kind!=AuthorityKind::OddPlayer)return false;
+  out=p;out.kind=authority_.kind;out.owner=authority_.scope;return true;
 }
 
 // RTTI 只读分类：验证 COL/CHD/每个 BCD 的地址、签名与非虚单继承形状。

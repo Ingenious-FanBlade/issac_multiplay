@@ -11,6 +11,7 @@
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
 #include "world/common/live_consumer.h"
+#include "replica/stream_capture.h"
 
 namespace cs::game {
 // Text缓冲资格来自本use真实writer，不由Init/内存可读或旧池内容推断。
@@ -26,6 +27,22 @@ struct WorldCapture final {
   std::unique_ptr<world::Collector> collector;
   world::observation::Service observation;
   world::observation::LiveConsumer live;
+  replica::stream::Capture stream;
+  // 候选只跨同一Manager的prepare→clock提交，正常收束后再次逐槽复核。
+  struct PendingBody final {world::PlayerPostWitness witness;std::string payload;std::uint64_t invalidation=0;};
+  std::array<PendingBody,world::kControlAnchorCapacity> pending_bodies{};
+  std::uint64_t pending_body_bytes=0;
+  // 槽仅作当前绑定的本地索引；对外诊断同时给local/use/shape/binding，不将槽充当网络身份。
+  struct BodyStatus final {
+    std::uint64_t local=0,use=0,shape=0,binding=0,last_native_update_tick=0,last_capture_tick=0,ordinary=0,odd=0,not_updated=0;
+    const char *reason="player_post_never_updated";
+  };
+  std::array<BodyStatus,world::kControlAnchorCapacity> body_status{};
+  std::uint64_t stream_invalidation=0;
+  std::map<std::uint32_t,std::uint64_t> stream_resources;
+  std::uint64_t next_stream_resource=0;
+  std::uint64_t stream_resource_mutation=0,stream_read_resource_mutation=0;
+  unsigned stream_resource_depth=0;
   world::observation::PublicationQueue publications{ledger};
   std::uint64_t session_key=0,epoch=0;
   std::array<std::uint64_t,13> pending_scopes{};
@@ -91,6 +108,10 @@ std::shared_ptr<WorldRecording> CurrentWorldRecording() noexcept;
 bool WorldCaptureActive() noexcept;
 // 仅主线程取共享自有值；后台持有返回值不延长任何游戏对象/Lua借用。
 std::shared_ptr<const world::observation::LiveBatch> CurrentLiveCapture() noexcept;
+std::shared_ptr<const replica::stream::Publication> CurrentLiveWorld() noexcept;
+std::shared_ptr<const replica::stream::Publication> CurrentLiveBaseline() noexcept;
+bool RequestLiveBaseline() noexcept;
+std::vector<std::shared_ptr<const replica::stream::Publication>> CurrentLiveBodies();
 void WorldFrameBegin(std::uint64_t loop) noexcept;
 void WorldPreparePostState(bool normal) noexcept;
 core::TickPostState WorldPostState(std::uint64_t tick) noexcept;

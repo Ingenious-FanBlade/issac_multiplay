@@ -15,6 +15,7 @@ public:
   bool Active() const noexcept { return active_; }
   bool Needed(DomainId, Phase) const noexcept;
   bool Due(DomainId,Phase,std::uint64_t capture) const noexcept;
+  bool ConsumerDue(std::uint32_t,DomainId,Phase,std::uint64_t capture) const noexcept;
   ObservationContext BeginScope(Phase, std::uint32_t source, std::uint64_t parent=0) noexcept;
   RequestResult PrepareScope(ObservationEnvelope envelope) noexcept;
   RequestResult CommitScope(std::uint64_t scope, Outcome outcome) noexcept;

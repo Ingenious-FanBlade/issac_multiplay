@@ -38,3 +38,4 @@ Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/st
 $observationOutput=Join-Path $buildOutput 'isaac-cs-observation'
 New-Item -ItemType Directory -Path $observationOutput -Force | Out-Null
 Copy-Item -Path (Join-Path $repoRoot 'mod/observation/isaac-cs-observation/*') -Destination $observationOutput -Recurse -Force
+Copy-Item -LiteralPath (Join-Path (Join-Path $repoRoot $buildTree) 'generated/stream_policy.lua') -Destination (Join-Path $observationOutput 'domains/common/stream_policy.lua') -Force

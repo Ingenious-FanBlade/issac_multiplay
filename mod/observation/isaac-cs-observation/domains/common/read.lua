@@ -6,6 +6,8 @@ local M = { SchemaVersion=2 }
 local LIMIT = {objects=16384, nodes=64*1024*1024, depth=12, bytes=32*1024*1024, queries=131072}
 local function missing(status, reason) return {status=status,reason=reason} end
 local function native() return IsaacCSObservationNative end
+local streamSource
+local function stream() if not streamSource then streamSource=include("domains/common/stream") end;return streamSource end
 local function protected(object, name, args, field, static)
   return pcall(function()
     if field then return object[name] end
@@ -274,10 +276,14 @@ collect=function(object,class,ctx,depth)
   if class=="Sprite" then
     local ok,pose=pcall(native().SpriteRuntimePose,object)
     if ok then out.pose_runtime=pose else fail(ctx,"sprite_runtime_pose");out.pose_runtime=missing("ReadFailed",textError(pose)) end
+    if ctx.stream_capture then
+      local known,generation=pcall(native().SpriteResourceGeneration,object)
+      if known then out.resource_generation=generation else fail(ctx,"stream_resource_instance");out.resource_generation=missing("ReadFailed","stream_resource_instance") end
+    end
   end
   local handled={}
   for _,spec in ipairs(schemas[class] or {}) do
-    if not handled[spec.id] then
+    if not handled[spec.id] and (not ctx.fast or stream().Fast(spec) and spec.id~="Entity.GetSprite") then
       handled[spec.id]=true
       local alias=ctx.member_alias and ctx.member_alias(spec)
       if alias then out.fields[spec.id]=alias
@@ -346,6 +352,17 @@ local function encode(root)
 end
 local function finish(payload,ctx)
   payload.coverage={complete=ctx.complete,reasons=ctx.reasons,objects=ctx.objects,nodes=ctx.nodes,queries=ctx.queries}
+  local stream
+  if ctx.stream_capture and not ctx.fast then
+    local ok,partition=pcall(stream().Partition,payload,ctx.stream_domain,LIMIT.nodes)
+    local encoded,bytes
+    if ok then ok,encoded,bytes=pcall(encode,partition) end
+    if ok then stream=encoded else fail(ctx,"stream_partition_or_budget") end
+    if not ctx.stream_cold then
+      return stream or '{"status":"ReadFailed"}',ctx.complete,ctx.objects,ctx.nodes,
+        ctx.complete and "" or "stream_partition_or_source_gap",bytes or 0,stream
+    end
+  end
   local ok,json,bytes=pcall(encode,payload)
   if not ok then
     -- 字节预算超限时只裁剪已经复制的值，保留可交付前缀；绝不再次调用游戏 Getter。
@@ -388,15 +405,28 @@ local function finish(payload,ctx)
     end
     return '{"status":"Truncated","reason":"single_value_exceeds_payload_budget"}',false,ctx.objects,ctx.nodes,"single_value_exceeds_payload_budget"
   end
-  return json,ctx.complete,ctx.objects,ctx.nodes,ctx.complete and "" or "field_or_budget_gap",bytes
+  return json,ctx.complete,ctx.objects,ctx.nodes,ctx.complete and "" or "field_or_budget_gap",bytes,stream
 end
 
 -- 两域共用相同的有界值语义，schema 注册只合并声明，不执行 Getter。
 function M.AddSchemas(extra) for k,v in pairs(extra) do schemas[k]=v end end
 M.Encode=encode
 M.Collect=collect; M.Value=value; M.QueryValue=query; M.Finish=finish; M.Fail=fail; M.Missing=missing; M.Protected=protected
-function M.Context() return {complete=true,nodes=0,queries=0,objects=0,reasons={},seen={},config_seen={},sprite_names={},graph=0} end
-function M.Limits(limits) if limits then for k,v in pairs(limits) do LIMIT[k]=v end end return LIMIT end
+function M.Context()
+  local c={complete=true,nodes=0,queries=0,objects=0,reasons={},seen={},config_seen={},sprite_names={},graph=0,
+    stream_capture=LIMIT.stream_capture,stream_cold=LIMIT.stream_cold,stream_domain=LIMIT.stream_domain}
+  -- 产品分层只由本次根Capture消费一次，独立事件/嵌套Context没有普通采样资格。
+  LIMIT.stream_capture=false
+  return c
+end
+function M.Limits(limits) if limits then
+  -- 每次调用重置产品来源选择，避免上个域/逐身体读取污染Recorder或后继普通域。
+  -- 域内单独调整queries等预算不消费/清除尚未取得根Context的来源选择。
+  if limits.stream_capture~=nil then
+    LIMIT.stream_capture=limits.stream_capture;LIMIT.stream_cold=limits.stream_cold~=false;LIMIT.stream_domain=limits.stream_domain
+  end
+  for k,v in pairs(limits) do LIMIT[k]=v end
+end return LIMIT end
 -- 官方只读根返回的Player可使用公开Getter；不为旧native私有字段补造Init/更新见证。
 -- 所有借用仅在此窗口局部存在，采集结束重新核对公开root和关系边。
 function M.PlayerSources(ctx)

@@ -535,6 +535,21 @@ def legacy_flags(row):
 def legacy_body(row):
     """既有入口的 wrapper 体（保持 tx-04-07 已验收的适配语义不变）。"""
     ident, ret, call = row['id'], row['ret'], row['call']
+    if ident.startswith('stream_resource_'):
+        out = ['    // 只观察官方资源owner；Hook常驻，Host未采集时直接透传，原链恰好一次。',
+               '    cs::game::ActualValueScope observation;',
+               '    record.calls.fetch_add(1, std::memory_order_relaxed);',
+               '    if(!observation.main) record.foreign.fetch_add(1, std::memory_order_relaxed);']
+        if ident == 'stream_resource_swap':
+            out += ['    cs::game::StreamResourceScope left_owner(left), right_owner(right);',
+                    '    super(left,right);', '    left_owner.Returned();right_owner.Returned();']
+        else:
+            out += ['    cs::game::StreamResourceScope resource(this,%s);' % str(ident == 'stream_resource_destroy').lower(),
+                    '    %ssuper(%s);' % ('auto result=' if ret != 'void' else '', call),
+                    '    resource.Returned();']
+        out += ['    record.completed.fetch_add(1, std::memory_order_relaxed);']
+        if ret != 'void': out += ['    return result;']
+        return out
     if ident == 'client_player_palette':
         return ['    // 仅Client已提交Player的纯表现色；Host/Off原链恰好一次。',
                 '    if(cs::game::ClientPlayerDrawPalette(output,player)) return output;',

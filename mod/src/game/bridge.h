@@ -9,8 +9,25 @@ bool ClientObjectPreStatsIsolationInstalled() noexcept;
 #include <array>
 #include <cstdint>
 #include <string>
+#include <memory>
 
 namespace cs::game {
+struct WorldCapture;
+// SDK公开ANM2资源写入的只读观察：original恰好一次，进入即撤旧资格，异常保持撤销。
+class StreamResourceScope final {
+public:
+  explicit StreamResourceScope(void *object,bool retired=false) noexcept;
+  ~StreamResourceScope() noexcept;
+  void Returned() noexcept {returned_=true;}
+private:
+  std::shared_ptr<WorldCapture> capture_;
+  bool returned_=false;
+  bool retired_=false;
+  std::uint32_t address_=0;
+  int exceptions_=0;
+};
+std::uint64_t StreamResourceGeneration(void *object) noexcept;
+bool StreamResourceHooksInstalled() noexcept;
 std::string ClientTestExerciseNative(const std::string &token) noexcept;
 // E2E专有独立VM，只用于实际不同VM身份的受控拒绝，不替换游戏Lua根。
 void *ClientTestCreateVm() noexcept;

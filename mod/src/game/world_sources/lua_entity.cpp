@@ -2,6 +2,7 @@
 #include "LuaCore.h"
 #include "binding/world_layout_constants.h"
 #include "game/world_sources/lua_entity.h"
+#include "game/bridge.h"
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
 #include "game/client_presentation_native.h"
@@ -14,6 +15,7 @@
 #include <cstring>
 #include <cmath>
 #include <utility>
+#include <stdexcept>
 namespace cs::game {
 #ifdef ISAACCS_E2E
 int ClientTestEntitySourceLua(lua_State *);
@@ -340,6 +342,11 @@ int SpriteRuntimePose(lua_State *L) {
   for(unsigned i=0;i<3;++i){lua_pushnumber(L,champion._offset[i]);lua_rawseti(L,-2,i+9);}lua_setfield(L,-2,"champion_color");
   if(!ClientResourceCaptureShaderPaths(L,sprite))return luaL_error(L,"sprite_shader_paths");lua_setfield(L,-2,"shaders");return 1;
 }
+int SpriteResourceGeneration(lua_State *L){
+  auto *sprite=lua::GetLuabridgeUserdata<ANM2 *>(L,1,lua::Metatables::SPRITE,"Sprite");
+  const auto generation=StreamResourceGeneration(sprite);if(!generation)return luaL_error(L,"stream_resource_instance_unavailable");
+  const auto value=std::to_string(generation);lua_pushlstring(L,value.data(),value.size());return 1;
+}
 int RoomPresentation(lua_State *L) {return ClientPresentationCaptureLua(L);}
 int RoomConfigContents(lua_State *L) {return ClientRoomConfigCaptureLua(L);}
 int RoomApplication(lua_State *L) {return ClientRoomStateCaptureLua(L);}
@@ -444,6 +451,7 @@ void EnsureObservationLuaBridge() noexcept {
   {"PromptState",PromptState},{"RelatedSubject",RelatedSubject},{"CaptureContext",CaptureContext},{"SaveEntry",SaveEntry},{"Dimension",Dimension},{"Location",Location},{"Descriptor",Descriptor},{"LocationBoundary",LocationBoundary},{"LocationNeeded",LocationNeeded},{"PublishLocation",PublishLocation},{"GridCallbackView",GridCallbackView},{"GridSubject",GridSubject},{"GridReference",GridReference},{"SourceSnapshotToken",SourceSnapshotToken},{"GridSources",GridSources},{"GridRenderPosition",GridRenderPosition},{"GridNeeded",GridNeeded},{"PublishGridEvent",PublishGridEvent},{"PublishGridQuery",PublishGridQuery},{"Subject",RegisterSubject},{"Reference",Reference},{"Supplement",Supplement},{"Sources",Sources},{"SpriteNames",SpriteNames},{"Needed",Needed},{"PublishEvent",PublishEvent},{"PublishQuery",PublishQuery},{"PublishRender",PublishRender},{nullptr,nullptr}};
   luaL_setfuncs(L,funcs,0);
   lua_pushcfunction(L,SpriteRuntimePose);lua_setfield(L,-2,"SpriteRuntimePose");
+  lua_pushcfunction(L,SpriteResourceGeneration);lua_setfield(L,-2,"SpriteResourceGeneration");
   lua_pushcfunction(L,LaserPresentation);lua_setfield(L,-2,"LaserPresentation");
   lua_pushcfunction(L,EntityApplicationSprites);lua_setfield(L,-2,"EntityApplicationSprites");
   lua_pushcfunction(L,PlayerApplicationMembership);lua_setfield(L,-2,"PlayerApplicationMembership");
@@ -469,7 +477,7 @@ void EnsureObservationLuaBridge() noexcept {
   lua_setglobal(L,"IsaacCSObservationNative"); lua_settop(L,top);
 }
 // Coordinator 在复制窗口内部调用一次；错误返回自有原因，不让 Lua 异常越过 Authority。
-LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::uint32_t depth,std::uint32_t limit,unsigned domain) noexcept {
+LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::uint32_t depth,std::uint32_t limit,unsigned domain,bool stream,bool cold) noexcept {
   LuaEntityResult result; auto *L=State(); if(!L) { result.reason="lua_state_unavailable"; return result; }
   const auto top=lua_gettop(L);
   try {
@@ -483,23 +491,50 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
     lua_pushinteger(L,nodes); lua_setfield(L,-2,"nodes");
     lua_pushinteger(L,depth); lua_setfield(L,-2,"depth");
     lua_pushinteger(L,limit); lua_setfield(L,-2,"bytes");
+    lua_pushboolean(L,stream);lua_setfield(L,-2,"stream_capture");
+    lua_pushboolean(L,cold);lua_setfield(L,-2,"stream_cold");
+    lua_pushinteger(L,domain);lua_setfield(L,-2,"stream_domain");
     // Entity含全部身体/备份及内嵌资源；与Grid同用有界524288次有限查询，字节/节点另有上限。
     lua_pushinteger(L,domain<=1?524288:domain==5?262144:131072); lua_setfield(L,-2,"queries");
-    if(!lua_isfunction(L,-2)||lua_pcall(L,1,6,0)!=LUA_OK) {
+    if(!lua_isfunction(L,-2)||lua_pcall(L,1,7,0)!=LUA_OK) {
       const auto *error=lua_tostring(L,-1); result.reason=error?std::string(error).substr(0,256):"lua_capture_failed";
       lua_settop(L,top); return result;
     }
-    std::size_t bytes=0; const auto *payload=lua_tolstring(L,-6,&bytes);
+    std::size_t bytes=0; const auto *payload=lua_tolstring(L,-7,&bytes);
     if(payload&&bytes<=limit) {
       result.payload.assign(payload,bytes); result.available=true;
-      result.complete=lua_toboolean(L,-5)!=0;
-      const auto captured_objects=lua_tointeger(L,-4),captured_nodes=lua_tointeger(L,-3);
+      result.complete=lua_toboolean(L,-6)!=0;
+      const auto captured_objects=lua_tointeger(L,-5),captured_nodes=lua_tointeger(L,-4);
       if(captured_objects<0||captured_objects>objects||captured_nodes<0||captured_nodes>nodes) { result.complete=false; result.reason="lua_count_budget"; }
       else { result.objects=unsigned(captured_objects); result.nodes=unsigned(captured_nodes); }
-      const auto *reason=lua_tostring(L,-2); if(reason&&*reason&&result.reason.empty()) result.reason=reason;
+      const auto *reason=lua_tostring(L,-3); if(reason&&*reason&&result.reason.empty()) result.reason=reason;
+      std::size_t stream_bytes=0;const auto *partition=lua_tolstring(L,-1,&stream_bytes);
+      if(partition&&stream_bytes<=limit)result.stream_payload.assign(partition,stream_bytes);
+      else if(stream){result.complete=false;result.reason="stream_source_missing_or_budget";}
     } else result.reason="lua_payload_budget";
   } catch(...) { result.complete=false; result.reason="lua_owned_value_budget"; }
   lua_settop(L,top); return result;
+}
+LuaEntityResult CaptureLuaPlayerFast(void *player) noexcept {
+  LuaEntityResult result;auto *L=State();if(!L||!player){result.reason="player_fast_lua_unavailable";return result;}
+  const auto top=lua_gettop(L);
+  try {
+    lua_getglobal(L,"IsaacCSObservation");if(!lua_istable(L,-1))throw std::runtime_error("player_fast_module");
+    lua_getfield(L,-1,"CapturePlayerFast");lua_newtable(L);
+    lua_pushboolean(L,false);lua_setfield(L,-2,"stream_capture");
+    lua_pushinteger(L,1);lua_setfield(L,-2,"objects");lua_pushinteger(L,65536);lua_setfield(L,-2,"nodes");
+    lua_pushinteger(L,12);lua_setfield(L,-2,"depth");lua_pushinteger(L,1u<<20);lua_setfield(L,-2,"bytes");
+    lua_pushinteger(L,8192);lua_setfield(L,-2,"queries");
+    lua::luabridge::UserdataPtr::push(L,static_cast<Entity_Player *>(player),lua::Metatables::ENTITY_PLAYER);
+    if(lua_pcall(L,2,6,0)!=LUA_OK)throw std::runtime_error("player_fast_lua_read_failed");
+    std::size_t size=0;const auto *payload=lua_tolstring(L,-6,&size);
+    const auto objects=lua_tointeger(L,-4),nodes=lua_tointeger(L,-3);
+    if(!payload||size>(1u<<20)||objects!=1||nodes<0||nodes>65536)throw std::runtime_error("player_fast_source_budget");
+    result.payload.assign(payload,size);result.available=true;result.complete=lua_toboolean(L,-5)!=0;
+    result.objects=1;result.nodes=unsigned(nodes);if(const auto *reason=lua_tostring(L,-2))result.reason=reason;
+  }catch(const std::exception &e){result.reason=e.what();result.complete=false;}
+  catch(...){result.reason="player_fast_value_allocation";result.complete=false;}
+  lua_settop(L,top);return result;
 }
 }
 

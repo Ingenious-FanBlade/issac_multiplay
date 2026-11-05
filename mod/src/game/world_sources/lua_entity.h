@@ -6,7 +6,7 @@ namespace cs::game {
 // SDK适配头保持C++17；与公共合同的64M容量由非SDK协调器静态核对。
 inline constexpr std::uint32_t kLuaObservationNodeBudget=64u<<20;
 struct LuaEntityResult final {
-  std::string payload, reason;
+  std::string payload, reason, stream_payload;
   bool complete=false, available=false;
   std::uint32_t objects=0, nodes=0;
 };
@@ -67,7 +67,10 @@ void ObservationGridMemberships(void *grid,void *owner,void (*visit)(void *,std:
 bool ObservationValidGrid(void *grid) noexcept;
 void EnsureObservationLuaBridge() noexcept;
 LuaEntityResult CaptureLuaEntity(std::uint32_t objects=16384,std::uint32_t nodes=kLuaObservationNodeBudget,
-                                 std::uint32_t depth=12,std::uint32_t bytes=16u<<20,unsigned domain=0) noexcept;
+                                 std::uint32_t depth=12,std::uint32_t bytes=16u<<20,unsigned domain=0,
+                                 bool stream=false,bool cold=true) noexcept;
+// 仅在Collector逐身体见证复核后同步调用；借用Player不越过本次主线程窗口。
+LuaEntityResult CaptureLuaPlayerFast(void *player) noexcept;
 // 最终原生来源复核/Authority提交后才更新Lua纯值历史；取消窗口不得污染后继。
 void FinishLuaObservation(unsigned domain,std::uint64_t scope,bool committed) noexcept;
 std::string ObservationCaptureContext() noexcept;
