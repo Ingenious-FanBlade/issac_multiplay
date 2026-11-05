@@ -1,12 +1,22 @@
 //! 游戏内面板与备用窗口共用的有界文件信箱；不改变验收步骤或人工结论规则。
 use crate::Result;
 use serde_json::{json,Value};
-use std::{fs,path::{Path,PathBuf},sync::{Mutex,OnceLock,atomic::{AtomicU64,Ordering}},thread,time::Duration};
+use std::{collections::BTreeMap,fs,path::{Path,PathBuf},sync::{Mutex,OnceLock,atomic::{AtomicU64,Ordering}},thread,time::Duration};
 
 static DIRECTORY:OnceLock<PathBuf>=OnceLock::new();
 static SESSION:OnceLock<String>=OnceLock::new();
 static CONTEXT:Mutex<String>=Mutex::new(String::new());
 static NEXT:AtomicU64=AtomicU64::new(1);
+
+// 自动按键和采样共用同一组真实UI字段；缺字段/计数耗尽不能按默认零通过。
+fn counter(fields:&BTreeMap<String,String>,key:&str)->Result<u64>{fields.get(key).ok_or_else(||format!("UI实际字段缺失:{key}"))?.parse().map_err(|e|format!("{key}:{e}"))}
+pub(super) fn ui_quiet(fields:&BTreeMap<String,String>)->Result<bool>{
+ if counter(fields,"ui.counters_ok")?!=1{return Err("UI观察owner无效或计数耗尽".into())}
+ Ok(counter(fields,"ui.blocked")?==0&&counter(fields,"ui.clear_frames")?>=2&&counter(fields,"ui.handoff_pending")?==0&&counter(fields,"ui.worker_idle")?==1)
+}
+pub(super) fn ui_unchanged(before:&BTreeMap<String,String>,after:&BTreeMap<String,String>)->Result<bool>{
+ Ok(ui_quiet(after)?&&counter(before,"ui.render_callbacks")?==counter(after,"ui.render_callbacks")?&&counter(before,"ui.blocked_frames")?==counter(after,"ui.blocked_frames")?)
+}
 
 // 只有统一脚本显式传入本机信箱时启用；原终端入口继续使用原stdin。
 pub(super) fn initialize(config:&Value)->Result<()>{

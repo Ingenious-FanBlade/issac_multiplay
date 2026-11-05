@@ -147,13 +147,27 @@ impl Live {
  }
 }
 
+impl Live {
+ // 各机先取得真实连续空闲的Manager窗口；用户确实关闭UI后才固定采样起点。
+ fn quiet_ui(&mut self,id:&str)->Result<BTreeMap<String,String>>{
+  let token=self.token.clone();let mut wait_until=Instant::now()+Duration::from_secs(3);loop{
+   let before=self.command_ok(id,&format!("cs stream_test {token} clock"))?;
+   thread::sleep(Duration::from_millis(100));
+   let after=self.command_ok(id,&format!("cs stream_test {token} clock"))?;
+   if super::interaction::ui_unchanged(&before,&after)?{return Ok(after)}
+   if Instant::now()<wait_until{continue}
+   confirm(&format!("{id}：采样前请关闭控制台/ImGui和所有固定显示的本方面板，回到游戏前台并松开操作键；确认后保持关闭直到下一条操作提示。"))?;
+   wait_until=Instant::now()+Duration::from_secs(3);
+  }
+ }
+}
 impl Driver for Live {
  fn command(&mut self,node:&str,text:&str)->Result<BTreeMap<String,String>>{map(self.node(node)?.call("command",json!({"text":text}))?)}
  fn physical(&mut self,node:&str,keys:&[String],hold_ms:u64)->Result<()>{
   if !keys.is_empty(){let state=self.node(node)?.call("window",json!({}))?;if state["focus"]["active"]!=true{confirm(&format!("请将 {node} 的已核实游戏窗口置前；停止手动输入后由编排器发送 {:?}。",keys))?;}}
   self.node(node)?.call("physical",json!({"keys":keys,"hold_ms":hold_ms}))?;Ok(())
  }
- fn human(&mut self,instruction:&str)->Result<()>{confirm(instruction)?;let answer=prompt("done","操作完成并已停止手动操作后输入 done；未完成输入 stop。");if answer?!="done"{return Err("人工窗口未完成".into())}Ok(())}
+ fn human(&mut self,instruction:&str)->Result<()>{confirm(instruction)?;let answer=prompt("done","操作完成后关闭控制台/ImGui及固定显示窗口，松开操作键并停止手动操作，再输入 done；未完成输入 stop。");if answer?!="done"{return Err("人工窗口未完成".into())}Ok(())}
  fn sample(&mut self,milliseconds:u64,mark:&Value)->Result<Value>{
   let mut marks=Vec::new();let token=self.token.clone();let phase=self.phase.clone();let load=string(mark,"load")?;
   let expected=cases::loads();let spec=&expected[load];
@@ -164,7 +178,9 @@ impl Driver for Live {
    marks.push(json!({"node":id,"role":self.nodes[i].config["role"],"case_id":self.case["id"],"phase":phase,"load":load,"network":self.network,"class":if load=="L4"{"damage"}else if load=="recovered"{"recovery"}else{"stable"},"start_us":start,"end_us":start+milliseconds*1000,"fixed_before_start":true,"expected_flows":flows,"expected60_bodies":[],"body_deltas":[]}));
   }
   // 目录枚举结束后才固定各机自己的时钟区间；不把枚举成本算作无来源缺口。
-  for mark in &mut marks{let id=string(mark,"node")?.to_owned();let clock=self.command_ok(&id,&format!("cs stream_test {token} clock"))?;let start=n(&clock,"local_us")?;mark["start_us"]=json!(start);mark["end_us"]=json!(start+milliseconds*1000);}
+  // 所有需要人工关闭UI的准备先完成；固定首台起点后不再在别的机器弹准备提示。
+  for mark in &marks{let id=string(mark,"node")?.to_owned();self.quiet_ui(&id)?;}
+  for mark in &mut marks{let id=string(mark,"node")?.to_owned();let clock=self.command_ok(&id,&format!("cs stream_test {token} clock"))?;if !super::interaction::ui_quiet(&clock)?{return Err(format!("{id}固定采样起点时UI重新打开:{clock:?}"))}let start=n(&clock,"local_us")?;mark["start_us"]=json!(start);mark["end_us"]=json!(start+milliseconds*1000);mark["ui_before"]=json!(clock);}
   write_json(&self.directory.join("windows-pending.json"),&json!(marks))?;
   let deadline=Instant::now()+Duration::from_millis(milliseconds);let mut loads=Vec::new();let mut next_update=Instant::now();
   while Instant::now()<deadline{
@@ -172,6 +188,14 @@ impl Driver for Live {
    if let Some(actual)=actual{if !spec.is_null(){for(key,target)in [("participants","participants"),("npc","npc_min"),("attacks","attack_min")]{if let Some(min)=spec[target].as_u64(){if number(&actual,key)?<min{return Err(format!("{phase}真实负载不足:{key}:{actual}"))}}}loads.push(actual);}else if !spec.is_null(){return Err("稳定段缺少实际Host负载见证".into())}
    if Instant::now()>=next_update{println!("{} {phase} {load}：剩余 {} 秒，真实节点持续采集。",self.case["id"],deadline.saturating_duration_since(Instant::now()).as_secs());next_update=Instant::now()+Duration::from_secs(30);}
    thread::sleep(Duration::from_millis(250));
+  }
+  for mark in &mut marks{
+   let id=string(mark,"node")?.to_owned();let after=self.command_ok(&id,&format!("cs stream_test {token} clock"))?;
+   let before=map(mark["ui_before"].clone())?;
+   if !super::interaction::ui_unchanged(&before,&after)?{
+    return Err(format!("{id}采样受到控制台/ImGui或本方面板渲染干扰；该窗口无效，必须修复后同tx完整重测；before={before:?};after={after:?}"))
+   }
+   mark["ui_after"]=json!(after);
   }
   let rows=self.collect()?;
   let host_start=number(&marks[0],"start_us")?;let host_end=number(&marks[0],"end_us")?;

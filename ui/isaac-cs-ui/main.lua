@@ -14,7 +14,9 @@ local function parse(text)
 end
 -- 只有E2E DLL显式公布能力才加载测试面板；产品包不包含e2e.lua。
 local acceptanceLoaded = false
+local e2eBuild = false
 local function acceptance(version)
+    if version.command_version == "1" then e2eBuild = version.e2e_ui_available ~= nil end
     if not acceptanceLoaded and version.e2e_ui_available == "1" then
         acceptanceLoaded = true
         include("e2e")
@@ -55,6 +57,8 @@ local function controls(state)
 end
 controls("Disabled")
 ImGui.AddCallback(panel, ImGuiCallback.Render, function()
+    -- 只在E2E记录UI渲染接触，供采样拒绝固定显示/打开界面的干扰；产品没有该命令。
+    if e2eBuild then command("cs e2e_ui rendered") end
     frames = frames + 1
     if frames == 1 then Isaac.DebugString("[isaac-cs-ui] window-render") end
     if frames ~= 1 and frames % 60 ~= 0 then return end

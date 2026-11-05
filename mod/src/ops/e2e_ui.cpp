@@ -2,6 +2,8 @@
 #include "ops/e2e_ui.h"
 #include "game/bridge.h"
 #include "game/client.h"
+#include "game/context.h"
+#include <algorithm>
 #include <deque>
 #include <filesystem>
 #include <fstream>
@@ -16,12 +18,18 @@ namespace {
 namespace fs=std::filesystem;
 constexpr size_t Limit=16384;
 // worker终身只拥有值、句柄和路径，不持有游戏/Lua/窗口对象；DLL与线程随进程常驻。
-struct Request {std::string action,data;};
+struct Request {std::string action,data;bool resumes=false,nudged=false;};
 struct State {
  std::mutex mutex;std::deque<Request> requests;std::string snapshot="{}",error;
+ // 只由主线程使用的待交接队列，worker从不接触它。
+ std::deque<Request> pending;
  std::atomic<ULONGLONG> heartbeat{};HANDLE wake=nullptr;
+ std::atomic<bool> worker_idle{true};std::atomic<unsigned> queued{};
  fs::path root;HANDLE controller=nullptr;bool busy=false;bool ready=false;
 };
+State *shared=nullptr; // 主线程惰性创建；未打开面板时不启动文件worker。
+std::uint64_t rendered=0,seen_rendered=0,blocked_frames=0;
+unsigned clear_frames=0;
 std::string Json(const rapidjson::Value &value){rapidjson::StringBuffer out;rapidjson::Writer<rapidjson::StringBuffer> writer(out);value.Accept(writer);return {out.GetString(),out.GetSize()};}
 std::string Hex(std::string_view value){static constexpr char digits[]="0123456789abcdef";std::string out;out.reserve(value.size()*2);for(unsigned char b:value){out+=digits[b>>4];out+=digits[b&15];}return out;}
 std::string Unhex(std::string_view value){
@@ -99,6 +107,13 @@ void Reply(State &s,const std::string &text){
 DWORD WINAPI Serve(void *context) noexcept{
  auto &s=*static_cast<State *>(context);std::string error;
  for(;;){
+  std::deque<Request> requests;{std::lock_guard lock(s.mutex);requests.swap(s.requests);}
+  auto recent=s.heartbeat.load();
+  if(requests.empty()&&(!recent||GetTickCount64()-recent>=1500)){
+   // 不显示界面且没有工作时完全休眠，避免后台文件轮询污染自动采样。
+   s.heartbeat.compare_exchange_strong(recent,0);s.worker_idle.store(true);WaitForSingleObject(s.wake,INFINITE);continue;
+  }
+  s.worker_idle.store(false);
   try{
    Directory(fs::path(ISAACCS_REPOSITORY_ROOT)/L"out");Directory(s.root);Directory(s.root/L"responses");
    if(!fs::exists(s.root/L"profile.json")){
@@ -106,9 +121,9 @@ DWORD WINAPI Serve(void *context) noexcept{
     defaults.AddMember("topology","",a);
     defaults.AddMember("run_directory","",a);defaults.AddMember("resume",false,a);defaults.AddMember("rerun","",a);defaults.AddMember("reuse_reason","",a);Write(s.root/L"profile.json",Json(defaults));
    }
-   std::deque<Request> requests;{std::lock_guard lock(s.mutex);requests.swap(s.requests);}
    for(const auto &request:requests){
     try{
+     if(request.action=="error")throw std::runtime_error(request.data);
      if(request.action=="reply")Reply(s,request.data);
      else{if(Busy(s))throw std::runtime_error("controller_busy");Profile(s,request.data);if(request.action=="start")Launch(s);}
      error.clear();
@@ -121,20 +136,53 @@ DWORD WINAPI Serve(void *context) noexcept{
    auto text=Json(snapshot);if(text.size()>131072)throw std::runtime_error("ui_snapshot_limit");
    {std::lock_guard lock(s.mutex);s.snapshot=std::move(text);s.busy=busy;s.ready=true;s.error.clear();}
   }catch(const std::exception &e){std::lock_guard lock(s.mutex);s.error=e.what();}
+  s.queued.fetch_sub(unsigned(requests.size()));s.worker_idle.store(true);
   WaitForSingleObject(s.wake,400);
  }
 }
 State &Shared(){
- static State *s=[](){auto value=new State;value->root=fs::u8path(Settings.e2e_ui_directory);value->wake=CreateEventW(nullptr,FALSE,FALSE,nullptr);if(!value->wake)throw std::runtime_error("ui_wake");auto thread=CreateThread(nullptr,0,Serve,value,0,nullptr);if(!thread)throw std::runtime_error("ui_thread");CloseHandle(thread);return value;}();return *s;
+ if(!shared){auto value=new State;value->root=fs::u8path(Settings.e2e_ui_directory);value->wake=CreateEventW(nullptr,FALSE,FALSE,nullptr);if(!value->wake)throw std::runtime_error("ui_wake");auto thread=CreateThread(nullptr,0,Serve,value,0,nullptr);if(!thread)throw std::runtime_error("ui_thread");CloseHandle(thread);shared=value;}return *shared;
 }
 } // namespace
-std::string E2eUiCommand(std::istream &in){
- if(!Settings.e2e_ui_enabled)return "ok=0\nerror=e2e_ui_disabled\n";
+void E2eUiManagerReturned() noexcept{
+ if(!IsMain()||game::TopOwner()!=Owner::Manager||game::HasOwner(Owner::Render)||!game::ContextHealthy()||game::InBlockedContext())return;
  try{
-  auto &s=Shared();std::string verb,arg,extra;in>>verb>>arg>>extra;
+  const bool blocked=game::ClientUiBlocked();
+  if(blocked&&blocked_frames!=UINT64_MAX)++blocked_frames;
+  clear_frames=blocked||seen_rendered!=rendered?0:(std::min)(clear_frames+1,2u);seen_rendered=rendered;
+  if(!shared||shared->pending.empty())return;
+  auto &s=*shared;auto &request=s.pending.front();
+  if(request.resumes&&clear_frames<2){
+   if(blocked&&!request.nudged){
+    // Hide只改menuShown。WM_NULL让官方WndProc自行解除Console state=2；不写原生状态、不发键、不抢焦点。
+    void *dc=nullptr,*context=nullptr;
+    if(game::ClientRendererHandles(dc,context))request.nudged=PostMessageW(WindowFromDC(static_cast<HDC>(dc)),WM_NULL,0,0)!=FALSE;
+   }
+   return;
+  }
+  Request ready=request;
+  if(ready.action=="start"&&(game::RunActive()||game::Busy()||game::ClientBusy()))ready={"error","return_to_idle_menu_first"};
+  std::unique_lock lock(s.mutex,std::try_to_lock);if(!lock||s.requests.size()>=8)return;
+  s.requests.push_back(std::move(ready));s.queued.fetch_add(1);s.pending.pop_front();SetEvent(s.wake);
+ }catch(...){Trace("e2e_ui_error","manager_handoff_failed");}
+}
+std::string E2eUiFields(){
+ return "ui.blocked="+std::to_string(game::ClientUiBlocked())+"\nui.clear_frames="+std::to_string(clear_frames)+
+  "\nui.blocked_frames="+std::to_string(blocked_frames)+"\nui.render_callbacks="+std::to_string(rendered)+
+  "\nui.handoff_pending="+std::to_string(shared?shared->pending.size():0)+
+  "\nui.worker_idle="+std::to_string(!shared||(shared->worker_idle.load()&&shared->queued.load()==0&&shared->heartbeat.load()==0))+
+  "\nui.counters_ok="+std::to_string(IsMain()&&game::TopOwner()==Owner::Manager&&game::ContextHealthy()&&!game::InBlockedContext()&&rendered!=UINT64_MAX&&blocked_frames!=UINT64_MAX)+"\n";
+}
+std::string E2eUiCommand(std::istream &in){
+ try{
+  std::string verb,arg,extra;in>>verb>>arg>>extra;
   if(!extra.empty())return "ok=0\nerror=ui_arguments\n";
+  // 无文件worker的固定计数入口也用于远端E2E普通Session面板；产品不链接本单元。
+  if(verb=="rendered"&&arg.empty()){if(rendered!=UINT64_MAX)++rendered;return "ok=1\n";}
+  if(!Settings.e2e_ui_enabled)return "ok=0\nerror=e2e_ui_disabled\n";
+  auto &s=Shared();
   if(verb=="poll"&&arg.empty()){
-   s.heartbeat.store(GetTickCount64());std::unique_lock lock(s.mutex,std::try_to_lock);if(!lock)return "ok=0\nerror=ui_busy\n";
+   s.heartbeat.store(GetTickCount64());SetEvent(s.wake);std::unique_lock lock(s.mutex,std::try_to_lock);if(!lock)return "ok=0\nerror=ui_busy\n";
    return "ok=1\nready="+std::to_string(s.ready)+"\nerror="+s.error+"\ndata="+Hex(s.snapshot)+"\n";
   }
   // 上传有总量和块长上限；同一Lua主线程的完整提交才进入worker，不传原生对象。
@@ -142,10 +190,17 @@ std::string E2eUiCommand(std::istream &in){
   if(verb=="begin"&&(arg=="save"||arg=="start"||arg=="reply")){upload.clear();action=arg;return "ok=1\n";}
   if(verb=="chunk"&&!action.empty()){auto bytes=Unhex(arg);if(upload.size()+bytes.size()>Limit){action.clear();upload.clear();throw std::runtime_error("ui_upload_limit");}upload+=bytes;return "ok=1\n";}
   if(verb=="commit"&&arg.empty()&&!action.empty()){
-   if(action=="start"&&(game::RunActive()||game::Busy()||game::ClientBusy())){upload.clear();action.clear();return "ok=0\nerror=return_to_idle_menu_first\n";}
-   std::unique_lock lock(s.mutex,std::try_to_lock);if(!lock||s.requests.size()>=8)return "ok=0\nerror=ui_queue_busy\n";
+   Request request{action,upload};
+   if(action=="reply"){
+    rapidjson::Document reply;reply.Parse(upload.data(),upload.size());
+    if(reply.HasParseError()||!reply.IsObject()||!reply.HasMember("answer")||!reply["answer"].IsString())throw std::runtime_error("ui_reply_json");
+    const std::string answer=reply["answer"].GetString();request.resumes=answer!="stop"&&answer.rfind("fail ",0)!=0;
+   }
+   std::unique_lock lock(s.mutex,std::try_to_lock);if(!lock||s.queued.load()+s.pending.size()>=8)return "ok=0\nerror=ui_queue_busy\n";
    if(action!="reply"&&s.busy)return "ok=0\nerror=controller_busy\n";
-   s.requests.push_back({action,std::move(upload)});action.clear();SetEvent(s.wake);return "ok=1\nqueued=1\n";
+   s.pending.push_back(std::move(request));
+   if(action=="reply")s.heartbeat.store(0);
+   upload.clear();action.clear();return "ok=1\nqueued=1\n";
   }
   return "ok=0\nerror=ui_arguments\n";
  }catch(const std::exception &e){return std::string("ok=0\nerror=")+e.what()+"\n";}

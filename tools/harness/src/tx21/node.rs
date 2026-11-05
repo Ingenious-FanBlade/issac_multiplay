@@ -88,7 +88,7 @@ impl Node {
    self.last_status=Instant::now();self.status=self.command("cs status")?;let clock=self.command(&format!("cs stream_test {token} clock"))?;
    let local=clock.get("local_us").and_then(|s|s.parse::<u64>().ok()).ok_or("node_clock_missing")?;
    let counters=self.command("cs counters")?;let stream=self.command(if self.config["role"]=="Host"{"cs stream source 0"}else{"cs stream client 0"})?;
-   self.record(json!({"event":"status","local_us":local,"status":self.status,"counters":counters,"stream":stream}))?;
+   self.record(json!({"event":"status","local_us":local,"status":self.status,"counters":counters,"stream":stream,"ui_clock":clock}))?;
    let memory=win32::process_memory(self.game.as_ref().ok_or("game")?.pid())?;
    // 原生/全进程与自有池分列；没有发布池数据时保留空，不用工作集补造。
    let pools=["values","wire","workspace"].iter().enumerate().filter_map(|(i,pool)|{
@@ -105,6 +105,16 @@ impl Node {
   if wanted.is_empty()&&self.game.as_ref().is_none_or(|g|g.exited().is_some()){self.held=None;self.keys.clear();return Ok(json!({"released_owned_keys":true,"game_already_exited":true}))}
   if wanted.len()>16{return Err("node_key_count".into())}let w=self.game.as_ref().ok_or("node_game_missing")?.window()?;
   if !wanted.is_empty()&&win32::focus_state(w)["active"]!=true{return Err("node_confirmed_window_not_foreground_no_key_sent".into())}
+  if !wanted.is_empty()&&self.trace_enabled{
+   // 前台窗口不等于输入已解除屏蔽；必须等待真实Manager观察到UI关闭并完成交接。
+   let token=string(&self.config,"e2e_token")?.to_owned();let until=Instant::now()+Duration::from_secs(10);
+   loop{let clock=self.command(&format!("cs stream_test {token} clock"))?;
+    if clock.get("ok").map(String::as_str)!=Some("1"){return Err(format!("node_ui_readiness_missing:{clock:?}"))}
+    if super::interaction::ui_quiet(&clock)?{break}
+    if Instant::now()>=until{return Err(format!("node_ui_still_blocked_no_key_sent:{clock:?}"))}self.pump()?;thread::sleep(Duration::from_millis(50));
+   }
+   if win32::focus_state(w)["active"]!=true{return Err("node_focus_changed_during_ui_handoff_no_key_sent".into())}
+  }
   if self.held.is_none(){self.held=Some(win32::HeldKeys::new(w));}let keys=self.keys.difference(&wanted).cloned().collect::<Vec<_>>();
   for key in keys{self.held.as_mut().unwrap().release(&key)?;self.keys.remove(&key);}
   for key in wanted.difference(&self.keys).cloned().collect::<Vec<_>>(){self.held.as_mut().unwrap().press(&key)?;self.keys.insert(key);}

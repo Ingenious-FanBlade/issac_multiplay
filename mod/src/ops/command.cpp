@@ -28,6 +28,7 @@
 #include <fstream>
 #include <limits>
 #include <mutex>
+#include <optional>
 #include <sstream>
 namespace cs {
 namespace {
@@ -79,19 +80,29 @@ std::string state() {
 // 所有来源共用参数解析；变更入队，status/counters 读帧尾快照，witness
 // 只读当前主线程边界。
 std::string Execute(std::string_view text, const char *source) {
+#ifdef ISAACCS_E2E
+  // 本方面板的固定UI前缀不计正式IPC；其余命令仍从校验/解析之前完整计时。
+  constexpr std::string_view ui_prefix="cs e2e_ui";
+  const bool ui_call=text.substr(0,ui_prefix.size())==ui_prefix&&
+      (text.size()==ui_prefix.size()||text[ui_prefix.size()]==' '||text[ui_prefix.size()]=='\t');
+  std::optional<replica::stream::Measure> command_measure;
+  if(!ui_call)command_measure.emplace(command_metrics,replica::stream::CpuStage::Ipc);
+#else
   replica::stream::Measure command_measure(command_metrics,replica::stream::CpuStage::Ipc);
+#endif
   if (text.size() > 512 ||
       text.find_first_of("\r\n\0", 0, 3) != std::string_view::npos)
     return "ok=0\nerror=invalid_line\n";
   std::istringstream in{std::string(text)};
   std::string prefix, verb, arg, extra;
   in >> prefix >> verb;
+#ifdef ISAACCS_E2E
+  // UI刷新只有自有值/队列，不计入正式IPC阶段，也不从Render执行世界命令。
+  if(prefix=="cs"&&verb=="e2e_ui")return E2eUiCommand(in);
+#endif
   std::string result;
   if (prefix != "cs")
     result = "ok=0\nerror=unknown_prefix\n";
-#ifdef ISAACCS_E2E
-  else if (verb == "e2e_ui") result=E2eUiCommand(in);
-#endif
   else if (verb == "echo") {
     in >> arg >> extra;
     result = arg.empty() || !extra.empty() ? "ok=0\nerror=arguments\n"
@@ -107,7 +118,7 @@ std::string Execute(std::string_view text, const char *source) {
     if(!IsMain()||game::TopOwner()!=Owner::Manager||Settings.world_e2e_token.empty()||token!=Settings.world_e2e_token)result="ok=0\nerror=stream_test_token_or_context\n";
     else if(mode=="on"||mode=="off"){in>>tail;if(!tail.empty())result="ok=0\nerror=arguments\n";else{replica::stream::E2ETrace(mode=="on");result="ok=1\n";}}
     else if(mode=="trace"&&(in>>x)&&!(in>>tail))result=replica::stream::E2ETracePage(x);
-    else if(mode=="clock"&&!(in>>tail))result="ok=1\nlocal_us="+std::to_string(replica::stream::MetricMicros())+"\n";
+    else if(mode=="clock"&&!(in>>tail))result="ok=1\nlocal_us="+std::to_string(replica::stream::MetricMicros())+"\n"+E2eUiFields();
     else if(mode=="visual"&&(in>>role)&&(role=="on"||role=="off")&&!(in>>tail)){replica::stream::E2EVisual(role=="on");result="ok=1\nvisual_neutral_only=1\n";}
     else if(mode=="reject"&&(in>>x>>role)&&x>=18&&x<=20&&!(in>>tail))result=game::ClientTestStreamReject(token,unsigned(x),role);
     else if(mode=="wire"&&(in>>role)&&!(in>>tail)){replica::stream::E2EWireArm(role);result="ok=1\n";}
@@ -654,6 +665,9 @@ void FrameEnd(bool completed) noexcept {
   PumpWorldCommands();
   if (!completed)
     return;
+#ifdef ISAACCS_E2E
+  E2eUiManagerReturned();
+#endif
   PublishStatus();
   if (frame <= 3)
     Trace("frame_end", "frame=%llu", frame);

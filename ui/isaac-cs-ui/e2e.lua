@@ -26,8 +26,12 @@ local function send(action, value)
             if result.ok ~= "1" then break end
         end
         if result.ok == "1" then
-            -- 先解除ImGui输入屏蔽，再发布回答，避免后台先收到确认而输入仍被UI吞掉。
-            if action == "reply" then ImGui.Hide() end
+            -- 先关闭本方两个窗口及固定显示；Hide只改显示标志，实际解除屏蔽由后续Manager确认。
+            if action == "reply" then
+                ImGui.SetWindowPinned(panel, false);ImGui.SetVisible(panel, false)
+                ImGui.SetWindowPinned("isaac-cs-panel", false);ImGui.SetVisible("isaac-cs-panel", false)
+                ImGui.Hide()
+            end
             result = command("cs e2e_ui commit")
         end
     end
@@ -81,6 +85,9 @@ ImGui.AddElement(panel, panel.."-feedback", ImGuiElement.TextWrapped, "")
 ImGui.AddElement(panel, panel.."-help", ImGuiElement.TextWrapped, "After Start: exit this bootstrap game from its menu. The controller survives restarts.\nDuring product E24 / closed-game periods, use the separate confirmation window.\nThe panel is local Host only. Refocus the named game before physical input; UI never takes focus for you.")
 -- 仅可见窗口轮询；关闭界面后备用窗口接手，不增加Client玩法Lua白名单。
 ImGui.AddCallback(panel, ImGuiCallback.Render, function()
+    command("cs e2e_ui rendered")
+    -- 固定窗口在ImGui关闭后也会收到Render；此时不做JSON/hex/控件轮询。
+    if not ImGui.IsVisible() then return end
     frames=frames+1
     if frames ~= 1 and frames % 20 ~= 0 then return end
     local result=command("cs e2e_ui poll")

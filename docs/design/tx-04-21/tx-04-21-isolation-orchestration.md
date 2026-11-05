@@ -89,6 +89,16 @@ E2E的物理来源、canonical接纳/过期、真实普通/odd consumer正常返
 
 自有UI仍只有原来的一个`MC_MAIN_MENU_RENDER`回调，没有扩展Client玩法Lua白名单，也没有新增玩法回调。面板构建发生在UI初始化或该菜单回调，避免在ImGui遍历窗口集合时新增窗口。产品切换除不加载界面外，也移除先前E2E部署的`e2e.lua`；最终部署备份继续负责还原用户原文件。正常完成清理GUI本次输出/提示，仅保留界面配置和完成末态；必要中断保留运行位置、输出和恢复材料。ImGui桥、备用窗口、焦点交接和所有既有合同均归I39统一实机覆盖。
 
+### Render回调补充审阅与修正
+
+同日按用户提醒审阅ImGui Render阶段。先读本地原版Wiki的`Isaac.ExecuteCommand`与REPENTOGON Wiki的`ImGui`/`ImGuiCallback`，再读官方`CustomImGui.h::RunPreRenderCallbacks/RunCallback/DrawWindows`及`LuaImGui.cpp::Lua_ImGui_Hide`、`ImGui.cpp::windowProc_hook`。不涉及新的未知ABI/点位，无需逆向。本轮仍未构建或运行测试；以下为静态发现与源码修正。
+
+- **输入恢复过早**：官方`ImGui.Hide()`只设置`menuShown=false`，`Console::_state=2`由后续WndProc消息解除。前一版本Hide后直接让worker发回答，存在编排器过早发键的风险。现在Render只排队，`E2eUiManagerReturned`在原生Manager正常返回且无Render在途时处理；正向回答必须经过两个无本方UI渲染且原生Console未屏蔽的Manager周期才交给worker。必要时只向已经核定的renderer窗口投递`WM_NULL`，让官方WndProc自行处理显示切换；不写Console状态、不发键、不激活窗口。这两个周期不是Authority tick，不推进模拟、不复用旧边沿。start的活动run/会话检查也移至Manager。
+- **固定显示与性能混入**：官方固定窗口在`ImGui.IsVisible()==false`时仍会执行Render回调。现在正向回答前关闭并取消固定两个本方面板，验收面板在非交互状态只记固定计数，不做JSON/hex轮询；UI命令不计入正式IPC阶段。UI文件worker在没有可见轮询/待处理工作时休眠，正向回答提交时撤销轮询心跳，不把其磁盘刷新带入自动采样。
+- **实机前台不能证明UI已解除**：E2E自动发键除实际前台检查外，增加原生Console、连续空闲Manager、待交接回答及UI worker空闲检查，失败不发送新按键。`stream_test ... clock`提供这些纯值、累计UI屏蔽周期和本方面板Render次数；节点的低频状态同时保存这些实际字段。采样前先完成全体机器关闭UI的准备，再固定各机区间；结束时检查累计计数不变。任何缺字段、无效owner、计数耗尽、UI重新开启或固定显示渲染均不能通过该窗口，失败与必要的完整重测沿原同tx流程执行，不扣掉污染段来拼通过。
+
+Render中的状态读取、字符串/JSON处理和有界排队没有进入Scene安装、输入apply或原生生命周期；后台继续只持有自有值和OS句柄。既有Client菜单唯一白名单、绘制context/借用、Hook常驻与产品/E2E隔离均保持。操作上，自动动作和性能窗口期间保持控制台/ImGui及本方固定窗口关闭；需要查看进度时使用独立确认窗口，待下一条人工提示再打开游戏面板。I39须在原E08界面/控制台恢复及自动物理输入、E21等稳定/性能段、产品阶段和P2/P4完整流程中实际覆盖上述行为；这不是已实测通过的结论。
+
 `progress.json`记录每个P2/P4子项、尝试目录、首因与修复说明。失败后继续同tx定位/修复/重试；只有缺配合、需要重构建部署或实际无法自行收口时中断。`-Resume -ReuseReason <未受影响原因> -Rerun p2/E...,...`显式复用未受影响成功，公共修改要列出P2影响，再继续P4。没有哈希、旧解锁字段或独立作者要求。
 
 部署逐文件备份并在覆盖前写记录；额外选项/Mod启停标记另存原字节。恢复只复制原文件/删除本次新增单文件，创建的目录仅在仍为空时逐个删除。关闭失败不强杀，保留实际owner/诊断。正常全部完成后，脚本还原全部当前及历史尝试节点，注销helper任务，核对绝对临时目录和本次owner记录后清理。中断仅保留继续所需的进度、失败、节点/恢复路径和必要采样；不新增每tx归档artifact。
