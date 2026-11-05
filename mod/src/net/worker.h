@@ -1,6 +1,9 @@
 #pragma once
 
 #include "net/protocol.h"
+#include "replica/stream_config.h"
+#include "replica/stream_metrics.h"
+#include "replica/stream_transport.h"
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -15,7 +18,9 @@ inline constexpr std::size_t kReceiveCapacity = 256, kSendCapacity = 256;
 struct WorkerConfig {
   std::string bind_address = "0.0.0.0";
   std::uint16_t port = 27090;
-  std::uint32_t peer_timeout_ms = 3000, heartbeat_ms = 250;
+  std::uint32_t peer_timeout_ms = std::uint32_t(replica::stream::RuntimeConfig{}.peer_timeout_ms),
+                heartbeat_ms = std::uint32_t(replica::stream::RuntimeConfig{}.heartbeat_ms);
+  replica::stream::RuntimeConfig stream;
   protocol::Text build = protocol::TextId("isaac.cs.tx-04-09");
 };
 // 系统随机数生成的会话身份；主线程据此构造 Session，不能用对象地址替代。
@@ -72,8 +77,14 @@ struct WorkerStatus {
   std::array<memory::Usage,3> replication_memory{};
   // 线上字节包含IPv4/UDP开销；lane之和严格等于此值，重传同样计费。
   std::uint64_t uplink_wire_bytes=0,uplink_budget_blocks=0;
-  std::array<std::uint64_t,4> uplink_lane_bytes{};
+  std::array<std::uint64_t,4> uplink_lane_bytes{},uplink_lane_packets{};
   unsigned publication_phase=0;
+  bool stream_stale=false;
+  replica::stream::RuntimeConfig stream_config;
+  replica::stream::Metrics stream_metrics,encoder_metrics;
+  replica::Limits stream_limits,stream_fast_limits;
+  replica::stream::TransferStatistics stream_transfer;
+  std::uint64_t uplink_packets=0,uplink_payload_bytes=0,uplink_bundle_messages=0;
   std::uint64_t operation_retransmissions=0,operation_cancellations=0,operation_completed=0,operation_failed=0;
   std::array<char,128> replication_first_failure{};
   bool running = false, peer_locked = false;

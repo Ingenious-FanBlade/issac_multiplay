@@ -1,8 +1,10 @@
 #include "runtime.h"
+#include "core/replication_memory.h"
 #include <fstream>
 #include <iterator>
 #include <rapidjson/document.h>
 #include <stdexcept>
+#include <set>
 #include <ws2tcpip.h>
 namespace cs {
 // 配置缺失、格式错误或未知 schema 均默认关闭，不注册任何 Hook。
@@ -123,6 +125,26 @@ Config ReadConfig() {
         c.world_close_timeout_ms = v["close_timeout_ms"].GetUint();
       }
     }
+    // 严格接纳具名配置；未知字段、负数及溢出均拒绝，不悄悄采用另一档。
+    c.stream.peer_timeout_ms=c.peer_timeout_ms;
+    if(d.HasMember("stream")) {
+      const auto &v=d["stream"];
+      if(!v.IsObject())throw std::runtime_error("stream.object");
+      std::set<std::string> seen;
+      for(auto i=v.MemberBegin();i!=v.MemberEnd();++i) {
+        if(std::strlen(i->name.GetString())!=i->name.GetStringLength()||!seen.insert(i->name.GetString()).second)throw std::runtime_error("stream.duplicate_or_invalid_name");
+        bool known=false;
+#define CS_STREAM_PARSE(name,initial,lower,upper) if(std::strcmp(i->name.GetString(),#name)==0){if(!i->value.IsUint64())throw std::runtime_error("stream." #name);c.stream.name=i->value.GetUint64();known=true;}
+        CS_STREAM_SETTINGS(CS_STREAM_PARSE)
+#undef CS_STREAM_PARSE
+        for(const char *flag:{"acceptance_profile","borrow_initial_lanes"})if(std::strcmp(i->name.GetString(),flag)==0){if(!i->value.IsBool())throw std::runtime_error(flag);if(!std::strcmp(flag,"acceptance_profile"))c.stream.acceptance_profile=i->value.GetBool();else c.stream.borrow_initial_lanes=i->value.GetBool();known=true;}
+        if(!known)throw std::runtime_error("stream.unknown_field");
+      }
+      if(d.HasMember("host")&&d["host"].HasMember("peer_timeout_ms")&&c.stream.peer_timeout_ms!=c.peer_timeout_ms)throw std::runtime_error("stream.host_timeout_conflict");
+    }
+    if(const auto *why=c.stream.Validate();*why)throw std::runtime_error(why);
+    c.peer_timeout_ms=unsigned(c.stream.peer_timeout_ms);
+    if(c.enabled&&!memory::ReplicationBudget()->Configure({c.stream.value_pool_bytes,c.stream.wire_pool_bytes,c.stream.workspace_pool_bytes}))throw std::runtime_error("stream.pool_in_use");
     if (!c.enabled)
       c.reason = "config_disabled";
   } catch (const std::exception &e) {

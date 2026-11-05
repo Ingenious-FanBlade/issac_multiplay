@@ -35,6 +35,7 @@ bool ClientVisitEntityIndependent(void *,ClientEntityEvents::Visitor) noexcept;
 bool ClientCompleteEntityIndependent(replica::Kind,std::uint64_t,std::uint64_t,const char *) noexcept;
 void StopClient() noexcept;
 std::string ClientFields();
+std::string ClientStreamFields(unsigned page);
 void ClientUiHeartbeat() noexcept;
 // 仅在最外层Manager/受控Input owner执行；采样失败保持中性，绝不建立本地Player绑定。
 bool ClientDeviceReturned(void *device, bool success, unsigned polls, bool poll_ok);

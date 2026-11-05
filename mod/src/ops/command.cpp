@@ -65,6 +65,7 @@ std::string status_snapshot =
     "ok=1\nstatus_version=1\nstate=Disabled\nreason=initializing\n";
 std::string counter_snapshot;
 std::string last_error;
+replica::stream::Metrics command_metrics;
 std::string state() {
   for (auto c : Capabilities)
     if (!c)
@@ -75,6 +76,7 @@ std::string state() {
 // 所有来源共用参数解析；变更入队，status/counters 读帧尾快照，witness
 // 只读当前主线程边界。
 std::string Execute(std::string_view text, const char *source) {
+  replica::stream::Measure command_measure(command_metrics,replica::stream::CpuStage::Ipc);
   if (text.size() > 512 ||
       text.find_first_of("\r\n\0", 0, 3) != std::string_view::npos)
     return "ok=0\nerror=invalid_line\n";
@@ -342,6 +344,21 @@ std::string Execute(std::string_view text, const char *source) {
         result = "ok=0\nerror=queue_full\n";
       }
     }
+  } else if(verb=="stream") {
+    std::string target;unsigned page=0;in>>target;
+    if(!(in>>page)&&!in.eof())result="ok=0\nerror=stream_page\n";
+    else if(page>=32||(in.clear(),bool(in>>extra)))result="ok=0\nerror=arguments\n";
+    else if(target=="reload"){
+      // 只更新下次会话的流配置；运行中的输入、Hook和其他设置不热替换。
+      if(game::Busy()||game::ClientBusy()||game::TopOwner()!=Owner::Manager)result="ok=0\nerror=stream_configuration_in_use\n";
+      else{auto next=ReadConfig();if(!next.enabled)result="ok=0\nerror="+next.reason+"\n";else{Settings.stream=next.stream;Settings.peer_timeout_ms=next.peer_timeout_ms;result="ok=1\n"+Settings.stream.Fields("stream.requested.");}}
+    }
+    else if(target=="client")result=game::ClientStreamFields(page);
+    else if(target=="source")result=game::SourceStreamFields(page);
+    else if(target=="ipc")result="ok=1\n"+command_metrics.Fields("stream.ipc.",page);
+    else if(target=="config")result="ok=1\n"+Settings.stream.Fields("stream.requested.");
+    else if(target=="1"||target=="2"||target=="3")result=game::HostStreamFields(unsigned(target[0]-'0'),page);
+    else result="ok=0\nerror=stream_target\n";
   } else {
     in >> extra;
     if (!extra.empty())
@@ -379,7 +396,7 @@ std::string Execute(std::string_view text, const char *source) {
   // 大快照挤入单个 3500 字节事件被截断。其它命令继续保留原始结果。
   if (verb == "ui_status") {
     // UI只读刷新不是逐tick诊断，不向生产日志写每帧状态查询明细。
-  } else if (verb == "status" || verb == "counters")
+  } else if (verb == "status" || verb == "counters" || verb == "stream")
     Trace("command",
           "source=%s text=%.*s result_logged=0 result_bytes=%zu "
           "result_ok=%u g_game=%p frame=%llu",
@@ -516,6 +533,8 @@ void FrameBegin() noexcept {
           config.port = static_cast<uint16_t>(m.port);
           config.bind_address = Settings.host_bind_address;
           config.peer_timeout_ms = Settings.peer_timeout_ms;
+          config.stream = Settings.stream;
+          config.heartbeat_ms = unsigned(config.stream.heartbeat_ms);
           last_error = game::ClientBusy() ? "busy" : game::StartHost(config, m.character);
         }
         break;

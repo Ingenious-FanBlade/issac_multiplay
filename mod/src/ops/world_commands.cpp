@@ -334,12 +334,12 @@ std::string ObservationCommand(const std::string &action) {
   if(!job) return game::LiveCaptureSession()&&game::LiveCaptureSession()==live_failed_session?"ok=1\nobservation_state=Faulted\nlive_request_reason=live_capture_prepare_failed\n":"ok=1\nobservation_state=Off\n";
   auto &r=*job->recording;
   const bool ready=job->ready.load(std::memory_order_acquire);
-  std::string bodies="\nplayer_post_columns=local/use/shape/binding/last_native_update_tick/last_capture_tick/ordinary/odd/not_updated/reason";
+  std::string bodies="\nplayer_post_columns=local/use/shape/binding/last_native_update_tick/last_capture_tick/ordinary/odd/not_updated/actual_updates/qualified_samples/throttled/reason";
   const auto pools=memory::ReplicationBudget()->Snapshot();for(unsigned i=0;i<pools.size();++i)bodies+="\nreplication_pool_"+std::to_string(i)+"="+std::to_string(pools[i].current)+"/"+std::to_string(pools[i].high_water)+"/"+std::to_string(pools[i].limit);
   if(ready)for(unsigned slot=0;slot<r.body_status.size();++slot){const auto &b=r.body_status[slot];if(!b.local&&!b.not_updated)continue;
     const auto row="\nplayer_post_"+std::to_string(slot)+"="+std::to_string(b.local)+"/"+std::to_string(b.use)+"/"+std::to_string(b.shape)+
       "/"+std::to_string(b.binding)+"/"+std::to_string(b.last_native_update_tick)+"/"+std::to_string(b.last_capture_tick)+
-      "/"+std::to_string(b.ordinary)+"/"+std::to_string(b.odd)+"/"+std::to_string(b.not_updated)+"/"+b.reason;
+      "/"+std::to_string(b.ordinary)+"/"+std::to_string(b.odd)+"/"+std::to_string(b.not_updated)+"/"+std::to_string(b.actual_updates)+"/"+std::to_string(b.qualified_samples)+"/"+std::to_string(b.throttled)+"/"+b.reason;
     if(bodies.size()+row.size()>56000){bodies+="\nplayer_post_status_budget=exceeded";break;}bodies+=row;
   }
   return "ok=1\nobservation_state="+std::string(job->stopping?"Stopping":job->attached?"Active":"Preparing")+

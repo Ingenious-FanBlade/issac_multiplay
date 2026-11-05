@@ -1,4 +1,5 @@
 #pragma once
+#include "replica/stream_config.h"
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -54,7 +55,8 @@ struct Config {
   unsigned control_port = 27091, host_port = 27090;
   // Host 网络参数只在会话创建前复制，不提供运行中热修改。
   std::string host_bind_address = "0.0.0.0";
-  unsigned peer_timeout_ms = 3000;
+  unsigned peer_timeout_ms = unsigned(replica::stream::RuntimeConfig{}.peer_timeout_ms);
+  replica::stream::RuntimeConfig stream;
   std::string trace_dir = "isaac-cs/traces", log_level = "info", reason;
   // 允许注册独立 world 能力；不自动开始录制，目录和期限供命令层准备上下文。
   bool world_record_enabled = false;

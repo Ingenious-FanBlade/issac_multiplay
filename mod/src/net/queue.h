@@ -74,6 +74,9 @@ public:
     return true;
   }
 
+  // 仅用于聚合诊断的近似数量，不作为同步接纳条件。
+  std::size_t Size() const noexcept {const auto w=write_.load(std::memory_order_acquire),r=read_.load(std::memory_order_acquire);return (w+Capacity+1-r)%(Capacity+1);}
+
 private:
   std::array<std::optional<T>, Capacity + 1> values_{};
   alignas(64) std::atomic<std::size_t> write_{0}, read_{0};

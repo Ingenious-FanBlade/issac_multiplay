@@ -29,7 +29,7 @@ const Slots &Schema(Kind kind){
     {Kind::Stop,{{"reason",'s'}}},{Kind::Disconnect,{{"reason",'s'}}},
     {Kind::Error,{{"code",'s'},{"recoverable",'b'},{"detail",'s'}}},
     {Kind::Roster,{{"eligibility_revision",'u'},{"server_tick",'u'},{"participant",'u'},{"accepted",'u'},{"processed",'u'},{"processed_tick",'u'},{"processed_source",'u'},{"generation",'u'},{"state",'u'},{"roster",'u'},{"rejected",'u'},{"rejection_mask",'u'},{"input_enabled",'b'},{"server_sample_ms",'u'},{"server_send_ms",'u'},{"echo_client_ms",'u'},{"echo_server_ms",'u'}}},
-    {Kind::TickProgress,{{"eligibility_revision",'u'},{"server_tick",'u'},{"kind",'u'},{"generation",'u'},{"input_enabled",'b'},{"sample_ms",'u'},{"send_ms",'u'},{"echo_client_ms",'u'},{"echo_server_ms",'u'}}},
+    {Kind::TickProgress,{{"eligibility_revision",'u'},{"server_tick",'u'},{"kind",'u'},{"paused",'b'},{"generation",'u'},{"input_enabled",'b'},{"sample_ms",'u'},{"send_ms",'u'},{"echo_client_ms",'u'},{"echo_server_ms",'u'}}},
     {Kind::InputAck,{{"participant",'u'},{"generation",'u'},{"input_sequence",'u'},{"processed_tick",'u'}}},
     {Kind::Input,{{"participant",'u'},{"generation",'u'},{"input_sequence",'u'},{"target_tick",'u'},{"movement",'a'},{"aim",'a'},{"held",'u'},{"edge",'u'}}}
   };const auto i=all.find(kind);if(i==all.end())Fail("compact_unknown_schema");return i->second;

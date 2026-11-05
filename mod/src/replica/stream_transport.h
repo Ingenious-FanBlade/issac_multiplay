@@ -1,5 +1,6 @@
 #pragma once
 #include "replica/stream_codec.h"
+#include "replica/stream_config.h"
 #include <array>
 #include <functional>
 #include <deque>
@@ -8,6 +9,7 @@
 namespace cs::replica::stream {
 Limits HandshakeLimits() noexcept;
 Limits WorldLimits(bool fast=false) noexcept;
+Limits ConfiguredLimits(const RuntimeConfig &,bool fast=false) noexcept;
 bool Reliable(Lane) noexcept;
 // endpoint先由socket owner核对；每连接实例只接纳显式授权的route，报文不能自行扩权。
 struct Route final {
@@ -16,9 +18,12 @@ struct Route final {
   Direction direction=Direction::ToClient;
   Limits world_limits=WorldLimits();
   WorldScope scope{};
+  RuntimeConfig config;
+  Limits fast_limits=WorldLimits(true);
 };
 // 仅从严格协商结果取得本地上限；不接受报文Header作为预算来源。
 Limits NegotiatedWorldLimits(const Value &);
+Limits NegotiatedFastLimits(const Value &);
 struct TransferKey final {std::uint64_t connection=0,route=0,transfer=0;auto operator<=>(const TransferKey &) const = default;};
 // 共享blob只有逻辑正文；连接/route/transfer在发送单片时写入，不为三个Peer复制大消息。
 struct Blob final {
@@ -28,9 +33,10 @@ struct Blob final {
   Kind kind=Kind::Error;
   Lane lane=Lane::Control;
   Codec codec=Codec::None;
-  std::uint64_t sequence=0,encode_us=0,compression_us=0;
+  std::uint64_t sequence=0,encode_us=0,compression_us=0,encode_cpu_us=UINT64_MAX,compression_cpu_us=UINT64_MAX;
   WorldScope world{};
   RangeId range_id{};
+  Sample sample;
 };
 using SharedBlob=std::shared_ptr<const Blob>;
 SharedBlob EncodeBlob(const Message &,bool zstd,Limits=WorldLimits());
@@ -49,15 +55,17 @@ struct ReceiveBitmap final {
 // Karn规则由调用者排除重传样本；本地RTT估计不比较两台机器的绝对时钟。
 class RttEstimator final {
 public:
+  void Configure(const RuntimeConfig &c) noexcept {minimum_=c.rto_min_ms;maximum_=c.rto_max_ms;rto_=c.rto_initial_ms;}
   void Observe(std::uint64_t ms) noexcept;
   std::uint64_t Rto() const noexcept {return rto_;}
 private:
-  std::uint64_t mean_=0,variation_=0,rto_=200;
+  std::uint64_t mean_=0,variation_=0,rto_=RuntimeConfig{}.rto_initial_ms;
   bool initialized_=false;
+  std::uint64_t minimum_=RuntimeConfig{}.rto_min_ms,maximum_=RuntimeConfig{}.rto_max_ms;
 };
 // 截止同时受授予速率、剩余量和起始120秒约束；重复数据不刷新进度。
 std::uint64_t TransferDeadline(std::uint64_t started,std::uint64_t now,
-                               std::uint64_t remaining,std::uint64_t rate) noexcept;
+                               std::uint64_t remaining,std::uint64_t rate,const RuntimeConfig &config={}) noexcept;
 struct TransferStatistics final {
   std::uint64_t fragments=0,duplicates=0,conflicts=0,decoded=0,ack_windows=0,retransmitted=0;
   std::uint64_t payload_bytes=0,decoded_bytes=0,decode_us=0,expired=0;
@@ -77,6 +85,7 @@ public:
   void GrantRate(std::uint64_t bytes_per_second) noexcept {rate_=(std::max)(1ull,bytes_per_second);}
   std::uint64_t NextWake(std::uint64_t now) const noexcept;
   const TransferStatistics &Statistics() const noexcept {return statistics_;}
+  std::size_t Pending() const noexcept {return pending_.size();}
 private:
   struct Candidate final {
     Header header;
@@ -95,7 +104,7 @@ private:
   std::deque<std::uint64_t> retired_;
   std::uint64_t retired_before_=0;
   TransferStatistics statistics_;
-  std::uint64_t rate_=47500;
+  std::uint64_t rate_=RuntimeConfig{}.reliable_bytes_per_second;
   void Retire(std::uint64_t) noexcept;
 };
 enum class SendResult { Sent, WouldBlock, Failed };
@@ -134,7 +143,7 @@ private:
   std::uint64_t round_robin_=0;
   TransferStatistics statistics_;
   RttEstimator rtt_;
-  std::uint64_t rate_=47500;
+  std::uint64_t rate_=RuntimeConfig{}.reliable_bytes_per_second;
   std::deque<Result> results_;
 };
 } // namespace cs::replica::stream

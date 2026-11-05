@@ -70,7 +70,7 @@ add_custom_command(OUTPUT "${GENERATED}/stream_catalog.inc" "${GENERATED}/stream
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-application.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-application.json" VERBATIM)
 add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/projection_graph.cpp src/replica/codec.cpp src/replica/entity_target.cpp src/replica/entity_plan.cpp src/replica/player_target.cpp
-  src/replica/stream_model.cpp src/replica/stream_codec.cpp src/replica/stream_binary.cpp src/replica/stream_transport.cpp src/replica/stream_range.cpp src/replica/stream_capture.cpp src/replica/stream_materialize.cpp
+  src/replica/stream_config.cpp src/replica/stream_metrics.cpp src/replica/stream_model.cpp src/replica/stream_codec.cpp src/replica/stream_binary.cpp src/replica/stream_transport.cpp src/replica/stream_range.cpp src/replica/stream_capture.cpp src/replica/stream_materialize.cpp
   src/replica/room_grid_target.cpp src/replica/room_grid_plan.cpp src/replica/room_grid_budget.cpp src/replica/player_plan.cpp
   "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc" "${GENERATED}/entity_application.inc" "${GENERATED}/player_application.inc" "${GENERATED}/stream_catalog.inc")
 target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")

@@ -2,18 +2,23 @@
 #include "replica/stream_capture.h"
 #include "replica/stream_transport.h"
 #include <functional>
+#include "replica/stream_metrics.h"
 
 namespace cs::net::live {
 namespace stream = replica::stream;
+// 只记录实际物理包；共同头按条目摊销，统计缺失不影响协议处理。
+void ObservePacket(stream::Metrics &,std::span<const std::uint8_t>) noexcept;
 // 总桶与每Peer桶只有socket线程访问；P2也保留单Peer的312500 byte/s额度。
 class Uplink final {
 public:
+  Uplink() noexcept {Configure(stream::RuntimeConfig{});}
   using Send = stream::ReliableSender::Send;
+  void Configure(const stream::RuntimeConfig &) noexcept;
   stream::SendResult Transmit(unsigned peer, std::span<const std::uint8_t>, bool initializing,
                               std::uint64_t now, const Send &);
   struct Statistics {
-    std::uint64_t packets = 0, wire_bytes = 0, blocked = 0;
-    std::array<std::uint64_t, 4> lanes{};
+    std::uint64_t packets = 0, payload_bytes = 0, wire_bytes = 0, blocked = 0, bundle_messages = 0;
+    std::array<std::uint64_t, 4> lanes{},lane_packets{};
   };
   const Statistics &Status(unsigned peer) const { return stats_.at(peer); }
 
@@ -23,10 +28,11 @@ private:
     bool started = false;
     void Fill(std::uint64_t);
   };
-  Bucket total_{937500, 24576};
+  stream::RuntimeConfig config_;
+  Bucket total_{};
   struct Peer {
-    Bucket total{312500, 8192};
-    std::array<Bucket, 4> lanes{{{25000, 2048}, {120000, 4096}, {120000, 4096}, {47500, 8192}}};
+    Bucket total{};
+    std::array<Bucket, 4> lanes{};
   };
   std::array<Peer, 4> peers_{};
   std::array<Statistics, 4> stats_{};
@@ -53,6 +59,7 @@ public:
     std::uint64_t retransmissions = 0, cancellations = 0, completed = 0, failed = 0;
   };
   const Statistics &Status() const noexcept { return statistics_; }
+  void Configure(const stream::RuntimeConfig &c) noexcept {config_=c;rtt_.Configure(c);}
   void Bind(std::uint64_t connection, std::uint64_t route);
   void Queue(std::shared_ptr<const stream::Message>, std::uint64_t now);
   bool Admit(std::shared_ptr<const stream::Message>, std::uint64_t now);
@@ -82,6 +89,7 @@ private:
   stream::RttEstimator rtt_;
   std::string failure_;
   Statistics statistics_;
+  stream::RuntimeConfig config_;
   void Trim(std::map<OperationKey, Record> &, std::map<stream::Kind, std::uint64_t> &floor);
 };
 
@@ -93,6 +101,7 @@ public:
   EncodingCache(const EncodingCache &) = delete;
   EncodingCache &operator=(const EncodingCache &) = delete;
   void Stop() noexcept;
+  stream::Metrics Statistics() const noexcept;
   stream::SharedBlob Get(stream::Range, bool compressed, replica::Limits);
 
 private:
@@ -115,9 +124,9 @@ public:
   void Offer(std::shared_ptr<const stream::Publication> baseline,
              std::shared_ptr<const stream::Publication> latest,
              std::vector<std::shared_ptr<const stream::Publication>> bodies);
-  void Preparing() noexcept { phase_ = Phase::Preparing; }
+  void Preparing(std::uint64_t now) noexcept {phase_=Phase::Preparing;prepare_started_=now;}
   void Authorize(stream::Route, std::uint64_t now);
-  bool Applied(const stream::Message &);
+  bool Applied(const stream::Message &,std::uint64_t now);
   bool ContextReady(const stream::Message &, std::uint64_t now);
   bool NativeProgress(const stream::Message &, std::uint64_t now);
   void FailPublication(const char *reason);
@@ -129,6 +138,10 @@ public:
     reliable_.Cancel(id);
     FailPublication("remote_cancelled_transfer");
   }
+  const stream::Metrics &Statistics() const noexcept {return metrics_;}
+  const stream::TransferStatistics &TransferStatus() const noexcept {return reliable_.Statistics();}
+  bool Stale() const noexcept {return stale_;}
+  void AuthorityPaused(bool value,std::uint64_t now) noexcept;
   Phase State() const noexcept { return phase_; }
   bool Initializing() const noexcept { return phase_ != Phase::Active; }
   const std::shared_ptr<const stream::Publication> &Baseline() const noexcept { return baseline_; }
@@ -137,6 +150,10 @@ public:
 
 private:
   Phase phase_ = Phase::WaitingWorld;
+  stream::Metrics metrics_;
+  bool stale_=false,paused_=false;
+  std::uint64_t pause_started_=0,active_at_=0,applied_world_tick_=0;
+  std::map<stream::RangeId,std::uint64_t> convergence_since_;
   stream::Route route_;
   stream::ReliableSender reliable_;
   std::shared_ptr<const stream::Publication> baseline_, latest_;
@@ -147,6 +164,7 @@ private:
   std::map<stream::Version, std::uint64_t> transfers_;
   std::map<stream::Version, std::uint64_t> pending_context_;
   std::map<stream::Version, std::uint64_t> context_since_;
+  std::uint64_t prepare_started_=0;
   std::uint64_t started_ = 0, progress_ = 0, native_progress_ = 0;
   std::map<stream::RangeId, std::uint64_t> fully_sent_;
   std::map<stream::RangeId, std::uint64_t> sent_at_;
@@ -158,11 +176,13 @@ private:
   struct SentFact {
     std::vector<stream::Version> dependencies;
     std::uint64_t native=0,retained=0,watermark=0;
+    stream::Sample sample;
   };
   std::map<stream::Version,SentFact> sent_facts_;
   struct NativeFact {std::uint64_t attempt=0,instance=0,resource=0;auto operator<=>(const NativeFact &) const = default;};
   std::map<stream::Version,NativeFact> confirmed_;
   void Track(const stream::Range &);
+  void Encoded(const stream::Blob &);
   struct Fast {
     stream::SharedBlob blob;
     unsigned part = 0;

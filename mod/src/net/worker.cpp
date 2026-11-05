@@ -73,10 +73,17 @@ struct Worker::State {
   std::atomic<bool> baseline_requested{false};
   std::atomic<std::uint64_t> uplink_wire{0},uplink_blocks{0};
   std::atomic<unsigned> publication_phase{0};
+  std::atomic<bool> stream_stale{false};
+  replica::stream::MetricsMailbox stream_metrics,encoder_metrics;
+  std::uint64_t metrics_at=0;
+  replica::Limits stream_limits,stream_fast_limits;
+  mutable std::mutex stream_status_mutex;
+  replica::stream::TransferStatistics stream_transfer{};
+  std::atomic<std::uint64_t> uplink_packets{0},uplink_payload{0},uplink_messages{0};
   std::array<std::atomic<std::uint64_t>,4> operation_statistics{};
   std::array<char,128> replication_first_failure{};
   std::atomic<bool> have_replication_failure{false};
-  std::array<std::atomic<std::uint64_t>,4> uplink_lanes{};
+  std::array<std::atomic<std::uint64_t>,4> uplink_lanes{},uplink_lane_packets{};
   bool game_candidate = false;
   std::uint64_t candidate_since = 0;
   SpscQueue<ReceivedInput, kReceiveCapacity> incoming;
@@ -208,7 +215,7 @@ struct Worker::State {
         if(RawSendPacket(packet,now,ending))return replica::stream::SendResult::Sent;
         return terminal.load(std::memory_order_acquire)==TerminalReason::InternalFailure?replica::stream::SendResult::Failed:replica::stream::SendResult::WouldBlock;
       });
-      const auto &stats=uplink->Status(ordinal);uplink_wire.store(stats.wire_bytes,std::memory_order_relaxed);uplink_blocks.store(stats.blocked,std::memory_order_relaxed);for(unsigned i=0;i<4;++i)uplink_lanes[i].store(stats.lanes[i],std::memory_order_relaxed);
+      const auto &stats=uplink->Status(ordinal);uplink_packets.store(stats.packets);uplink_payload.store(stats.payload_bytes);uplink_messages.store(stats.bundle_messages);uplink_wire.store(stats.wire_bytes,std::memory_order_relaxed);uplink_blocks.store(stats.blocked,std::memory_order_relaxed);for(unsigned i=0;i<4;++i){uplink_lanes[i].store(stats.lanes[i],std::memory_order_relaxed);uplink_lane_packets[i].store(stats.lane_packets[i]);}
       return result==replica::stream::SendResult::Sent;
     }catch(...){Finish(ByeReason::InternalFailure,Error::Payload);return false;}
   }
@@ -301,7 +308,7 @@ struct Worker::State {
       if (!game_peer) {
         std::uint64_t session = 0; std::memcpy(&session, identity.session.data(), sizeof(session));
         if (!session) session = 1;
-        game_peer = std::make_unique<live::HostPeer>(session, ordinal);
+        game_peer = std::make_unique<live::HostPeer>(session, ordinal,config.stream);
         game_candidate = true; candidate_since = now; peer = source;
       }
       ReceivedInput input{};
@@ -523,6 +530,9 @@ struct Worker::State {
         SendGame(game_peer->Progress(heartbeat),now);
         game_peer->Pump(now,*encoding_cache,[&](auto bytes){Packet packet{};packet.size=bytes.size();std::copy(bytes.begin(),bytes.end(),packet.bytes.begin());if(SendPacket(packet,now))return replica::stream::SendResult::Sent;return terminal.load(std::memory_order_acquire)==TerminalReason::InternalFailure?replica::stream::SendResult::Failed:replica::stream::SendResult::WouldBlock;});
         publication_phase.store(game_peer->PublicationPhase(),std::memory_order_relaxed);
+        stream_stale.store(game_peer->Stale());
+        if(now>=metrics_at){stream_metrics.Publish(game_peer->Metrics());encoder_metrics.Publish(encoding_cache->Statistics());metrics_at=now+50;}
+        if(stream_status_mutex.try_lock()){stream_transfer=game_peer->TransferStatus();stream_limits=game_peer->EffectiveLimits();stream_fast_limits=game_peer->EffectiveFastLimits();stream_status_mutex.unlock();}
         const auto &stats=game_peer->OperationStatistics();const std::array<std::uint64_t,4> counters{stats.retransmissions,stats.cancellations,stats.completed,stats.failed};for(unsigned i=0;i<4;++i)operation_statistics[i].store(counters[i],std::memory_order_relaxed);
         if(!game_peer->FirstFailure().empty())ReplicationFailure(game_peer->FirstFailure().c_str());
         if(game_peer->RequestBaseline())baseline_requested.store(true,std::memory_order_release);
@@ -633,7 +643,7 @@ struct Worker::State {
       fd_set reads;
       FD_ZERO(&reads);
       FD_SET(socket, &reads);
-      unsigned wait_ms=kPollMs;for(unsigned i=1;i<peers.size();++i)if(peers[i]->game_peer){const auto wake=peers[i]->game_peer->NextWake(now);wait_ms=(std::min)(wait_ms,unsigned((std::min)(2ull,wake>now?wake-now:1)));}else if(!peers[i]->game_outgoing.empty())wait_ms=2;
+      unsigned wait_ms=kPollMs;for(unsigned i=1;i<peers.size();++i)if(peers[i]->game_peer){const auto wake=peers[i]->game_peer->NextWake(now);wait_ms=(std::min)(wait_ms,unsigned((std::min)(config.stream.bundle_wait_ms,wake>now?wake-now:1)));}else if(!peers[i]->game_outgoing.empty())wait_ms=2;
       timeval timeout{0, long(wait_ms * 1000)};
       const auto ready = select(0, &reads, nullptr, nullptr, &timeout);
       if (ready == SOCKET_ERROR) {
@@ -724,6 +734,7 @@ StartResult Worker::Start(const WorkerConfig &config) noexcept {
   if (started_)
     return {StartError::AlreadyStarted};
   started_ = true;
+  if (*config.stream.Validate()||config.peer_timeout_ms!=config.stream.peer_timeout_ms||config.heartbeat_ms!=config.stream.heartbeat_ms)return {StartError::Configuration};
   if (!config.port || !config.peer_timeout_ms || !config.heartbeat_ms ||
       config.heartbeat_ms >= config.peer_timeout_ms ||
       config.bind_address.empty() || config.bind_address.size() > 15 ||
@@ -732,6 +743,7 @@ StartResult Worker::Start(const WorkerConfig &config) noexcept {
   try {
     auto state = std::make_shared<State>();
     state->config = config;
+    state->uplink_owner.Configure(config.stream);
     // 随机身份在创建线程前生成，成功返回后不再修改；没有文件/构建哈希。
     auto random =
         BCryptGenRandom(nullptr, state->identity.session.data(),
@@ -893,10 +905,13 @@ WorkerStatus Worker::Status(unsigned ordinal) const noexcept {
   result.running = s.running.load(std::memory_order_acquire);
   result.state = s.published_state.load(std::memory_order_acquire);
   result.peer_locked = s.published_locked.load(std::memory_order_acquire);
+  result.stream_config=s.config.stream;result.stream_stale=s.stream_stale.load();result.stream_metrics=s.stream_metrics.Read();result.encoder_metrics=s.encoder_metrics.Read();
+  {std::lock_guard lock(s.stream_status_mutex);result.stream_transfer=s.stream_transfer;result.stream_limits=s.stream_limits;result.stream_fast_limits=s.stream_fast_limits;}
+  result.uplink_packets=s.uplink_packets.load();result.uplink_payload_bytes=s.uplink_payload.load();result.uplink_bundle_messages=s.uplink_messages.load();
   result.publication_phase=s.publication_phase.load(std::memory_order_relaxed);
   result.operation_retransmissions=s.operation_statistics[0].load(std::memory_order_relaxed);result.operation_cancellations=s.operation_statistics[1].load(std::memory_order_relaxed);result.operation_completed=s.operation_statistics[2].load(std::memory_order_relaxed);result.operation_failed=s.operation_statistics[3].load(std::memory_order_relaxed);
   if(s.have_replication_failure.load(std::memory_order_acquire))result.replication_first_failure=s.replication_first_failure;
-  result.uplink_wire_bytes=s.uplink_wire.load(std::memory_order_relaxed);result.uplink_budget_blocks=s.uplink_blocks.load(std::memory_order_relaxed);for(unsigned i=0;i<4;++i)result.uplink_lane_bytes[i]=s.uplink_lanes[i].load(std::memory_order_relaxed);
+  result.uplink_wire_bytes=s.uplink_wire.load(std::memory_order_relaxed);result.uplink_budget_blocks=s.uplink_blocks.load(std::memory_order_relaxed);for(unsigned i=0;i<4;++i){result.uplink_lane_bytes[i]=s.uplink_lanes[i].load(std::memory_order_relaxed);result.uplink_lane_packets[i]=s.uplink_lane_packets[i].load();}
   result.protocol_error = s.protocol_error.load(std::memory_order_relaxed);
   result.peer_bye = s.peer_bye.load(std::memory_order_relaxed);
   result.native_error = s.native_error.load(std::memory_order_relaxed);

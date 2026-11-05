@@ -70,9 +70,9 @@ const Layouts &CaptureLayouts(){
 }
 std::uint64_t Capture::Next(){if(next_revision_>=UINT64_MAX-1)Fail("stream_capture_sequence_exhausted");return ++next_revision_;}
 void Capture::Begin(std::uint64_t session) noexcept {
-  Stop();exhausted_=false;authority_session_=session;
+  Stop();metrics_={};exhausted_=false;authority_session_=session;
   try {
-    status_={};status_.reason=session?"stream_wait_ordinary":"stream_authority_missing";
+    status_={};status_.baseline_request_local_ms=MetricMicros()/1000;status_.reason=session?"stream_wait_ordinary":"stream_authority_missing";
     layouts_=CaptureLayouts();
   }catch(...){authority_session_=0;try{status_.reason="stream_layout_allocation";}catch(...){}}
 }
@@ -130,6 +130,7 @@ Range Capture::Make(RangeData d,bool reuse){
   if(reuse)if(const auto i=current_.find(d.id);i!=current_.end()&&Contents(*i->second,d))return i->second;
   d.revision=Next();d.sample.sequence=d.revision;auto range=Freeze(std::move(d),layouts_);
   const auto decision=store_->Admit(range,layouts_);if(!decision)Fail(decision.reason);
+  metrics_.Bind(world_);metrics_.Note(*range,FlowStage::Sample,MetricMicros()/1000);
   current_[range->id]=range;return range;
 }
 void Capture::Collect(){
@@ -139,6 +140,7 @@ void Capture::Collect(){
 }
 void Capture::Ordinary(const obs::LiveBatch &b) noexcept {
   if(!authority_session_||exhausted_)return;
+  Measure measure(metrics_,CpuStage::Capture);
   try {
     if(b.domains.size()!=11||!b.tick||!b.outer||!b.owner||(b.capture<=last_capture_&&b.epoch==source_epoch_))Fail("stream_ordinary_missing_or_repeated");
     const auto &c=b.domains.front()->context;
@@ -239,7 +241,7 @@ void Capture::Ordinary(const obs::LiveBatch &b) noexcept {
       manifest.native_domains=(1ull<<0)|(1ull<<1)|(1ull<<2)|(1ull<<6);manifest.retained_domains=2047ull&~manifest.native_domains;
       for(const auto &v:versions)manifest.required.push_back(V(v));
       auto m=Make(std::move(manifest),false);versions.push_back(m);publication->manifest=m;publication->ranges=versions;
-      baseline_=publication;status_.baseline_requested=false;
+      baseline_=publication;status_.baseline_requested=false;status_.baseline_published_local_ms=MetricMicros()/1000;
     }
     for(const auto &range:publication->ranges)publication->validity.push_back({V(range),range->sample,w->sample,b.invalidation});
     // 结构变更先撤旧身体视图；普通更新不把未更新身体重复发布成新子帧。
@@ -251,6 +253,7 @@ void Capture::Ordinary(const obs::LiveBatch &b) noexcept {
       if((body&&!bodies_.contains(i->first.body))||(joint&&!active.contains(i->first)))i=current_.erase(i);else ++i;
     }
     members_=std::move(members);latest_=std::move(publication);last_capture_=b.capture;last_tick_=b.tick;
+    for(const auto &r:latest_->ranges)metrics_.Note(*r,FlowStage::Publish,MetricMicros()/1000);
     status_.ready=true;status_.ordinary++;status_.world_sequence=w->sample.sequence;status_.reason="stream_ordinary_committed";Collect();
   }catch(const ContractError &e){Invalidate(e.what());if(e.code.find("exhausted")!=std::string::npos)exhausted_=true;}
   catch(const std::runtime_error &e){Invalidate(e.what());}
@@ -282,6 +285,7 @@ void Capture::PlayerPost(const BodySample &b,const std::string &payload) noexcep
     auto publication=std::make_shared<Publication>();publication->world=world_;publication->world_dynamic=latest_->world_dynamic;
     publication->ranges=latest_->ranges;publication->ranges.push_back(range);publication->player_fast=range;
     publication->validity=latest_->validity;publication->validity.push_back({V(range),range->sample,range->sample,invalidation_});
+    metrics_.Note(*range,FlowStage::Publish,MetricMicros()/1000);
     bodies_[member.key]=std::move(range);body_publications_[member.key]=std::move(publication);
     ++status_.bodies;status_.body_reason=b.kind==CaptureKind::OddPlayer?"player_post_odd_committed":"player_post_ordinary_committed";Collect();
   }catch(const ContractError &e){BodyGap(e.what());if(e.code=="player_post_resource_changed"||e.code=="player_post_resource_owner_ambiguous")Invalidate(e.what());}

@@ -284,8 +284,9 @@ obs::RequestResult WorldCapture::SetLiveConsumer(bool active) noexcept {
   if(active&&!StreamResourceHooksInstalled()){live_request_reason="stream_resource_hooks_unavailable";return {false,live_request_reason};}
   try {
     auto plan=Plan();
-    // 每个实际普通窗口产生30Hz机会；逐身体phase只在真实更新见证和outer提交后交付。
-    for(auto &d:plan.domains){d.interval=1;if(d.domain==obs::DomainId::Entity||d.domain==obs::DomainId::Player)d.phases|=2u;}
+    if(active)stream_config=Settings.stream;
+    // 默认每个实际普通窗口产生30Hz机会，降频使用冻结的整数间隔；逐身体phase只在真实更新见证和outer提交后交付。
+    for(auto &d:plan.domains){d.interval=unsigned(30/stream_config.world_hz);if(d.domain==obs::DomainId::Entity||d.domain==obs::DomainId::Player)d.phases|=2u;}
     const auto result=active?observation.AttachConsumer(live.Bind(std::move(plan))):observation.DetachConsumer(obs::kLiveConsumer);
     live_request_reason=result.reason;
     if(result.accepted){

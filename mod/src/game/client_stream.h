@@ -3,6 +3,7 @@
 #include "replica/stream_codec.h"
 #include "replica/stream_materialize.h"
 #include <deque>
+#include "replica/stream_config.h"
 
 namespace cs::game {
 bool ClientDescribeSceneValues(const replica::Value &,
@@ -22,6 +23,7 @@ struct ClientStreamState final {
       : scope(s), route(r), manifest_revision(m), generation(g),
         store(replica::stream::World(s)) {}
   replica::Scope scope;
+  replica::stream::RuntimeConfig config;
   std::uint64_t route = 0, manifest_revision = 0, generation = 0, control = 0,
                 ack_at = 0, progress_prefix = 0, progress_sequence = 0;
   replica::stream::Store store;

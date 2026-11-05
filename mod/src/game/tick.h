@@ -26,5 +26,7 @@ void FailRuntime(
     const char *reason,
     core::TickDecision decision = core::TickDecision::Cancelled) noexcept;
 std::string StatusFields();
+std::string HostStreamFields(unsigned ordinal,unsigned page);
+std::string SourceStreamFields(unsigned page);
 const char *StateName() noexcept;
 } // namespace cs::game

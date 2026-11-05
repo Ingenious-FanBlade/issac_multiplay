@@ -238,6 +238,7 @@ void PublishPeer(SessionRuntime &r) noexcept {
     ack.server_tick = r.clock.Completed();
     ack.server_sample_ms = r.committed_sample_ms?r.committed_sample_ms:GetTickCount64();
     ack.authority_kind = r.committed_kind;
+    ack.authority_paused = (r.blocks & Pause)!=0;
     ack.client_id = progress.client;
     ack.accepted = progress.last_accepted_sequence;
     ack.processed = progress.last_processed_sequence;

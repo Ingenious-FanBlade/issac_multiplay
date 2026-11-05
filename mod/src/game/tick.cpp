@@ -9,7 +9,9 @@
 #include "game/state.h"
 #include "game/world_bridge.h"
 #include "runtime.h"
+#include <algorithm>
 #include <bcrypt.h>
+#include <psapi.h>
 #include <cstdio>
 #include <exception>
 #include <limits>
@@ -516,6 +518,22 @@ bool BeginOddPlayer(void *player) noexcept {
   }
   return false;
 }
+// 详细聚合按页显式读取，网络值已复制；不跨线程借用任何游戏对象。
+std::string HostStreamFields(unsigned ordinal,unsigned page){
+  const auto *r=Runtime();if(!IsMain()||!r||ordinal<1||ordinal>3||page>=32)return "ok=0\nerror=stream_peer_unavailable\n";
+  const auto status=r->network.Status(ordinal);std::string out="ok=1\nstream_diagnostics_version=1\n";
+  out+=Settings.stream.Fields("stream.requested.");out+=status.stream_config.Fields("stream.effective.");out+=replica::stream::LimitsFields(status.stream_limits,"stream.negotiated.");out+=replica::stream::LimitsFields(status.stream_fast_limits,"stream.negotiated_fast.");
+  out+=status.stream_metrics.Fields("stream.publication.",page);out+=status.encoder_metrics.Fields("stream.shared_encoder.",page);
+  const auto add=[&](const char *name,std::uint64_t value){out+="stream."+std::string(name)+"="+std::to_string(value)+"\n";};
+  add("peer",ordinal);add("packets",status.uplink_packets);add("udp_payload_bytes",status.uplink_payload_bytes);add("wire_bytes",status.uplink_wire_bytes);add("bundle_messages",status.uplink_bundle_messages);add("budget_blocks",status.uplink_budget_blocks);add("stale",status.stream_stale);add("phase",status.publication_phase);
+  const auto &t=status.stream_transfer;add("fragments",t.fragments);add("retransmitted_fragments",t.retransmitted);add("expired_transfers",t.expired);
+  for(unsigned i=0;i<4;++i)out+="stream.lane."+std::to_string(i)+".wire_bytes="+std::to_string(status.uplink_lane_bytes[i])+"\nstream.lane."+std::to_string(i)+".packet_incidence="+std::to_string(status.uplink_lane_packets[i])+"\n";
+  out+="stream.first_failure="+std::string(status.replication_first_failure.data())+"\n";
+  PROCESS_MEMORY_COUNTERS_EX pm{};pm.cb=sizeof(pm);if(GetProcessMemoryInfo(GetCurrentProcess(),reinterpret_cast<PROCESS_MEMORY_COUNTERS *>(&pm),sizeof(pm))){add("process_private_bytes",pm.PrivateUsage);add("process_working_set_bytes",pm.WorkingSetSize);}else out+="stream.process_memory=unavailable\n";
+  for(unsigned i=0;i<3;++i){const auto &p=status.replication_memory[i];out+="stream.pool."+std::to_string(i)+"="+std::to_string(p.current)+"/"+std::to_string(p.high_water)+"/"+std::to_string(p.limit)+"\n";}
+  return out;
+}
+std::string SourceStreamFields(unsigned page){if(!IsMain()||page>=32)return "ok=0\nerror=stream_source_arguments\n";const auto c=CurrentWorldRecording();if(!c)return "ok=0\nerror=stream_source_off\n";auto out="ok=1\n"+c->stream.Statistics().Fields("stream.source.",page);out+="stream.source.baseline_request_local_ms="+std::to_string(c->stream.Status().baseline_request_local_ms)+"\nstream.source.baseline_published_local_ms="+std::to_string(c->stream.Status().baseline_published_local_ms)+"\n";for(unsigned i=page*2;i<(std::min)(unsigned(c->body_status.size()),page*2+2);++i){const auto &b=c->body_status[i];const auto prefix="stream.source.body."+std::to_string(i)+".";out+=prefix+"local="+std::to_string(b.local)+"\n"+prefix+"use="+std::to_string(b.use)+"\n"+prefix+"shape="+std::to_string(b.shape)+"\n"+prefix+"binding="+std::to_string(b.binding)+"\n"+prefix+"actual_updates="+std::to_string(b.actual_updates)+"\n"+prefix+"qualified_samples="+std::to_string(b.qualified_samples)+"\n"+prefix+"last_native_update_tick="+std::to_string(b.last_native_update_tick)+"\n"+prefix+"last_capture_tick="+std::to_string(b.last_capture_tick)+"\n"+prefix+"throttled="+std::to_string(b.throttled)+"\n";}return out;}
 std::string StatusFields() {
   auto *r = Runtime();
   std::string out =

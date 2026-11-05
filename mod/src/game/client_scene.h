@@ -13,6 +13,8 @@
 #include "game/client_player_budget.h"
 #include "game/client_player_diagnostics.h"
 #include "game/client_stream.h"
+#include "replica/stream_config.h"
+#include "replica/stream_metrics.h"
 #include <array>
 #include <atomic>
 #include <cstdint>
@@ -41,6 +43,12 @@ struct ClientBorrowToken final {
   ClientGenerations generations{};
   std::uint64_t owner_token=0;
   bool active=false;
+};
+// 失败时可复制的资源owner事实；不包含原生地址，也不授予跨线程借用资格。
+struct ClientOwnerFact final {
+  std::uint64_t ticket=0,resource=0,lua=0,context=0;
+  unsigned kind=0,phase=0,cpu=0,gpu=0;
+  bool failed=false;
 };
 // 结果是事件时点的纯值快照，不随场景后续变化自动刷新；native_committed 仅由完整原生提交设置。
 struct ClientApplyResult final {
@@ -80,9 +88,18 @@ public:
   bool CanReturnToMenu() const noexcept;
   bool AdmitTarget(const replica::Scope &, std::uint64_t revision,
                    const replica::Value &) noexcept;
-  bool BeginStream(const replica::Scope &,std::uint64_t route,std::uint64_t manifest,std::uint64_t generation) noexcept;
+  bool BeginStream(const replica::Scope &,std::uint64_t route,std::uint64_t manifest,std::uint64_t generation,replica::stream::RuntimeConfig config={},std::uint64_t prepare_received_ms=0) noexcept;
   bool AdmitStream(const replica::stream::Message &,const char *&reason) noexcept;
   void PumpStream() noexcept;
+  void ObserveStreamQueueAge(std::uint64_t us) noexcept {stream_metrics_.duration[unsigned(replica::stream::CpuStage::Queue)].Observe(us);}
+  bool NetworkStream() const noexcept {return network_stream_started_;}
+  bool StreamFailureWritten() const noexcept {return stream_write_failure_||(stream_&&(!stream_->baseline_committed||stream_->structure_rebuild)&&result_.native_written); }
+  bool StreamRecoverable() const noexcept {return !retirement_failed_&&!recovery_forbidden_&&result_.kind!=ClientResultKind::ContextOrThreadFault;}
+  bool RetirementFault() const noexcept {return retirement_failed_;}
+  std::vector<ClientOwnerFact> RetainedFacts() const;
+  const replica::stream::Metrics &StreamMetrics() const noexcept {return stream_metrics_;}
+  std::uint64_t LastStreamCommit() const noexcept {return stream_last_commit_;}
+
   std::shared_ptr<const replica::stream::Message> StreamControl() const noexcept;
   void StreamControlSent() noexcept;
   bool AdmitGridIndependent(const replica::Message &,const char *&reason) noexcept;
@@ -175,6 +192,9 @@ private:
   void SetCommittedRange() noexcept;
   void CommitStream(const replica::stream::Range &,bool baseline);
   std::unique_ptr<ClientStreamState> stream_;
+  replica::stream::Metrics stream_metrics_;
+  std::uint64_t stream_last_commit_=0;
+  bool network_stream_started_=false,stream_write_failure_=false;
   std::string stream_reason_;
   struct BorrowEntry final {
     std::uint64_t id=0,scene=0,owner_token=0;

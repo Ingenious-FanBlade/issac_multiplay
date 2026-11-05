@@ -44,7 +44,7 @@ struct Publication final {
 };
 class HostPeer final {
 public:
-  HostPeer(std::uint64_t session, unsigned ordinal);
+  HostPeer(std::uint64_t session, unsigned ordinal, stream::RuntimeConfig config={});
   bool Receive(std::span<const std::uint8_t>, std::uint64_t, ReceivedInput &, const HostIdentity &);
   Packets Reply();
   Packets Progress(const protocol::Ack &);
@@ -53,6 +53,11 @@ public:
   void Offer(const Publication &, std::uint64_t now);
   unsigned Pump(std::uint64_t now, EncodingCache &, const stream::ReliableSender::Send &);
   std::uint64_t NextWake(std::uint64_t now) const noexcept;
+  const stream::Metrics &Metrics() const noexcept {return publication_.Statistics();}
+  const stream::TransferStatistics &TransferStatus() const noexcept {return publication_.TransferStatus();}
+  replica::Limits EffectiveLimits() const noexcept {return route_.world_limits;}
+  replica::Limits EffectiveFastLimits() const noexcept {return route_.fast_limits;}
+  bool Stale() const noexcept {return publication_.Stale();}
   bool Initializing() const noexcept { return publication_.Initializing(); }
   bool OwnsPacket(std::span<const std::uint8_t>) const noexcept;
   bool NetworkSettled() const noexcept { return operations_.Settled(); }
@@ -61,6 +66,7 @@ public:
     return operations_.Status();
   }
   const std::string &FirstFailure() const noexcept {
+    if(!first_failure_.empty())return first_failure_;
     return operations_.Failure().empty() ? publication_.Failure() : operations_.Failure();
   }
   bool RequestBaseline() noexcept {
@@ -80,6 +86,12 @@ private:
   Operations operations_;
   PublicationSender publication_;
   unsigned ordinal_;
+  stream::RuntimeConfig config_;
+  unsigned native_failures_=0;
+  std::uint64_t recovery_started_=0;
+  bool recovering_=false;
+  std::string first_failure_;
+  void RequestRecovery(const char *,std::uint64_t,bool native=false);
   bool established_ = false, stopped_ = false, reply_ = false, resync_ = false, ending_ = false;
   std::uint64_t nonce_ = 0, server_nonce_ = 0, transfer_ = 0, control_ = 0, roster_ = 0,
                 timing_ = 0, last_receive_ = 0, client_control_ = 0, roster_at_ = 0, timing_at_ = 0,
@@ -101,9 +113,16 @@ public:
   ~Client();
   Client(const Client &) = delete;
   Client &operator=(const Client &) = delete;
-  const char *Start(const std::string &, std::uint16_t, std::uint32_t) noexcept;
+  const char *Start(const std::string &, std::uint16_t, std::uint32_t, stream::RuntimeConfig config={}) noexcept;
   bool Send(const Intent &) noexcept;
   void RevokeInput() noexcept;
+  // 停止旧世界接纳并撤输入；恢复请求须等主线程真实安全退休后另外排入。
+  bool SuspendWorld() noexcept;
+  stream::Metrics Metrics() const noexcept;
+  stream::Metrics TransmitMetrics() const noexcept;
+  stream::TransferStatistics TransferStatus() const noexcept;
+  replica::Limits EffectiveLimits() const noexcept;
+  replica::Limits EffectiveFastLimits() const noexcept;
   bool Poll(Event &) noexcept;
   bool PollWorld(Event &) noexcept;
   // 主线程完成准备/原生操作后才发布结果；接收线程从不自行生成AppliedAck。

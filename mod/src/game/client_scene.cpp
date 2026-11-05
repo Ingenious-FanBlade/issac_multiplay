@@ -279,7 +279,7 @@ void ClientScene::Begin(const replica::Scope &scope) noexcept {
   if(!IsMain()){foreign_fault_.store(true,std::memory_order_release);return;}
   if(!CanReturnToMenu()){FailureResult(ClientResultKind::PartialNativeFailure,"begin","old_owner_inflight");state_=ClientSceneState::Failed;return;}
   waiting_scope_=scope;target_scope_={};applied_scope_={};target_.reset();applied_.reset();
-  stream_.reset();
+  stream_.reset();network_stream_started_=stream_write_failure_=false;
   room_grid_target_.reset();room_grid_applied_.reset();room_grid_plan_={};
   player_target_.reset();player_applied_.reset();
   player_lifecycle_.reset();player_next_lifecycle_.reset();
@@ -541,8 +541,10 @@ void ClientScene::Pump() noexcept {
   pumping_=true;
   ContextWindow();DrainRetained();
   const bool retiring=state_==ClientSceneState::Retiring||state_==ClientSceneState::Failed;
+  if(retiring&&retirement_failed_){pumping_=false;return;} // 不确定前缀禁止重试析构。
   if(!DestructiveReady()){pumping_=false;return;}
   if(retiring){
+    replica::stream::Measure retirement_measure(stream_metrics_,replica::stream::CpuStage::NativeRetire);
     // 已停止展示与新借用后先撤本方映射，再让原生Room/Player/HUD单一owner真实退休。
     ClientBorrowToken borrow{};
     if(!Borrow(ClientPurpose::NativeRetire,borrow)){pumping_=false;return;}
@@ -577,6 +579,7 @@ void ClientScene::Pump() noexcept {
     Release(borrow);FinishRetirementIfDrained();pumping_=false;return;
   }
   if((state_!=ClientSceneState::Preparing&&state_!=ClientSceneState::Applying)||!target_){pumping_=false;return;}
+  replica::stream::Measure native_measure(stream_metrics_,replica::stream::CpuStage::NativeApply);
   if(!objects_planned_){
     const char *reason=nullptr;
     if(!objects_){try{objects_=std::make_unique<ClientObjects>();}catch(...){Fail("objects_allocation");pumping_=false;return;}}
@@ -695,8 +698,13 @@ bool ClientScene::PlayerDisplayCurrent(const std::shared_ptr<const ClientPlayerD
   return view&&view==PlayerDisplay();
 }
 // 仅在实际安全退休之后重建一次完整T；未知释放前缀会留住owner并关闭自动恢复。
+std::vector<ClientOwnerFact> ClientScene::RetainedFacts() const {
+  std::vector<ClientOwnerFact> out;if(!IsMain())return out;
+  for(const auto &r:retained_)if(r.ticket.id)out.push_back({r.ticket.id,r.generations.resource,r.generations.lua,r.generations.context,unsigned(r.kind),unsigned(r.phase),r.cpu_queued,r.gpu_queued,r.failed});
+  return out;
+}
 bool ClientScene::RecoveryPending() const noexcept {
-  return !stop_requested_&&!recovery_attempted_&&!retirement_failed_&&!recovery_forbidden_&&target_&&
+  return !stream_&&!stop_requested_&&!recovery_attempted_&&!retirement_failed_&&!recovery_forbidden_&&target_&&
     state_==ClientSceneState::Failed&&result_.kind!=ClientResultKind::ContextOrThreadFault;
 }
 const char *ClientScene::RecoveryState() const noexcept {
@@ -749,8 +757,10 @@ void ClientScene::RenderPublished() noexcept {
   if(!DisplayReady()||!presentation_||TopOwner()!=Owner::Render)return;
   ClientBorrowToken graphics{};
   if(!Borrow(ClientPurpose::Graphics,graphics))return;
+  replica::stream::Measure draw_measure(stream_metrics_,replica::stream::CpuStage::Draw);
   const auto step=presentation_->Render(ClientNativeWorldRoots(native_world_));
-  if(step.failed)Fail(step.reason);
+  if(step.failed){stream_write_failure_=network_stream_started_;Fail(step.reason);}
+  else if(step.done){stream_metrics_.rendered_local_ms=GetTickCount64();stream_metrics_.rendered_revision=result_.revision;}
   Release(graphics);
 }
 // 每个原生、Lua、图形用途都要求已知主线程和 owner；图形另要求当前 OS context。
@@ -986,7 +996,8 @@ void ClientScene::DrainRetained() noexcept {
     owner.releasing=true;
     if(!owner.release(owner.owned)){
       // false 表示释放可能已有原生执行前缀；禁止自动重试同一回调。
-      owner.releasing=false;owner.failed=true;
+      owner.releasing=false;owner.failed=true;retirement_failed_=true;
+      if(!result_.retirement_failure[0])std::snprintf(result_.retirement_failure.data(),result_.retirement_failure.size(),"native_release_failed");
       FailureResult(ClientResultKind::PartialNativeFailure,"drain","native_release_failed");
       state_=ClientSceneState::Failed;continue;
     }
@@ -1193,6 +1204,7 @@ void ClientScene::Retire(const char *reason) noexcept {
   rebuild_pending_=false;applied_valid_=false;result_.old_display_valid=false;
   stop_requested_=true;
   if(!result_.retirement_cause[0])std::snprintf(result_.retirement_cause.data(),result_.retirement_cause.size(),"%s",reason?reason:"stop");
+  stream_.reset(); // 只撤未执行纯值与确认，真实owner仍由下方退休链收口。
   state_=ClientSceneState::Retiring;FailureResult(ClientResultKind::Retiring,"retire",reason);
   for(auto &owner:retained_)if(owner.ticket.id)owner.retiring=true;
   DrainRetained();

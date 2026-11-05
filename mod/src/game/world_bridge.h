@@ -12,6 +12,7 @@
 #include "game/world_sources/random_sources.h"
 #include "world/common/live_consumer.h"
 #include "replica/stream_capture.h"
+#include "replica/stream_config.h"
 
 namespace cs::game {
 // Text缓冲资格来自本use真实writer，不由Init/内存可读或旧池内容推断。
@@ -28,13 +29,14 @@ struct WorldCapture final {
   world::observation::Service observation;
   world::observation::LiveConsumer live;
   replica::stream::Capture stream;
+  replica::stream::RuntimeConfig stream_config;
   // 候选只跨同一Manager的prepare→clock提交，正常收束后再次逐槽复核。
   struct PendingBody final {world::PlayerPostWitness witness;std::string payload;std::uint64_t invalidation=0;};
   std::array<PendingBody,world::kControlAnchorCapacity> pending_bodies{};
   std::uint64_t pending_body_bytes=0;
   // 槽仅作当前绑定的本地索引；对外诊断同时给local/use/shape/binding，不将槽充当网络身份。
   struct BodyStatus final {
-    std::uint64_t local=0,use=0,shape=0,binding=0,last_native_update_tick=0,last_capture_tick=0,ordinary=0,odd=0,not_updated=0;
+    std::uint64_t local=0,use=0,shape=0,binding=0,last_native_update_tick=0,last_capture_tick=0,ordinary=0,odd=0,not_updated=0,actual_updates=0,qualified_samples=0,throttled=0;
     const char *reason="player_post_never_updated";
   };
   std::array<BodyStatus,world::kControlAnchorCapacity> body_status{};

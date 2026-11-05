@@ -515,13 +515,16 @@ void WorldPreparePostState(bool normal) noexcept {
       world::PlayerPostWitness before{},after{};
       auto &state=recording->body_status[slot];
       if(!collector->PlayerPost(slot,before)){if(collector->CurrentAnchor(slot).valid){++state.not_updated;state.reason="player_post_not_updated_or_revoked";recording->stream.BodyGap(state.reason);}continue;}
+      ++state.actual_updates;
       state.local=before.local;state.use=before.use;state.shape=before.shape;state.binding=before.anchor.generation;state.last_native_update_tick=before.tick;
+      if(before.tick%(60/recording->stream_config.player_hz)){++state.throttled;continue;}
       const auto invalidation=recording->live.Status().invalidations;
       auto value=CaptureLuaPlayerFast(reinterpret_cast<void *>(uintptr_t(before.anchor.player)));
       if(!value.available||!value.complete||!collector->PlayerPost(slot,after)||before.local!=after.local||before.use!=after.use||before.shape!=after.shape||
          before.tick!=after.tick||before.outer!=after.outer||before.mutation!=after.mutation||before.anchor!=after.anchor||invalidation!=recording->live.Status().invalidations){
         state.reason="player_post_read_failed_or_changed";recording->stream.BodyGap(state.reason);continue;
       }
+      ++state.qualified_samples;
       if(value.payload.size()>(16ull<<20)-recording->pending_body_bytes){state.reason="player_post_candidate_budget";recording->stream.BodyGap(state.reason);continue;}
       try{recording->pending_body_bytes+=value.payload.size();recording->pending_bodies[slot]={before,std::move(value.payload),invalidation};state.reason="player_post_await_outer_commit";}
       catch(...){state.reason="player_post_candidate_budget";recording->stream.BodyGap(state.reason);}

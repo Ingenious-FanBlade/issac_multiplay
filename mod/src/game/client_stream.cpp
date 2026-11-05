@@ -68,14 +68,16 @@ bool StructuralDifference(const ClientStreamState &s,
 } // namespace
 bool ClientScene::BeginStream(const replica::Scope &scope, std::uint64_t route,
                               std::uint64_t manifest,
-                              std::uint64_t generation) noexcept {
+                              std::uint64_t generation, stream::RuntimeConfig config,std::uint64_t prepare_received_ms) noexcept {
   if (!IsMain() || TopOwner() != Owner::Manager ||
       state_ != ClientSceneState::Waiting || waiting_scope_ != scope ||
       !route || !manifest || !generation)
     return false;
   try {
+    if(*config.Validate())return false;
     stream_ =
         std::make_unique<ClientStreamState>(scope, route, manifest, generation);
+    stream_->config=config;network_stream_started_=true;stream_write_failure_=false;stream_metrics_.Bind(stream::World(scope),route);stream_metrics_.first_prepare_ms=prepare_received_ms?prepare_received_ms:GetTickCount64();stream_last_commit_=0;
     return true;
   } catch (...) {
     return false;
@@ -91,7 +93,8 @@ bool ClientScene::AdmitStream(const stream::Message &m,
     return false;
   }
   try {
-    auto range = stream::ReadRange(m, stream::CaptureLayouts());
+    auto range = stream::ReadRange(m, stream::CaptureLayouts(),stream_->config.value_pool_bytes);
+    stream_metrics_.Note(*range,stream::FlowStage::Receive,GetTickCount64());
     auto &s = *stream_;
     // 丢Applied ACK后的重复目标只补已存在的真实提交事实，不重入任何native步骤。
     if (const auto old = s.committed.find(range->id);
@@ -105,8 +108,7 @@ bool ClientScene::AdmitStream(const stream::Message &m,
     }
     const auto decision = s.store.Admit(range, stream::CaptureLayouts());
     reason = decision.reason;
-    if (decision.status == stream::Admission::Stale)
-      return true;
+    if (decision.status == stream::Admission::Stale){++stream_metrics_.stale_rejections;return true;}
     if (decision.status != stream::Admission::Complete &&
         decision.status != stream::Admission::WaitingDependencies &&
         decision.status != stream::Admission::Duplicate)
@@ -120,13 +122,12 @@ bool ClientScene::AdmitStream(const stream::Message &m,
         s.manifest = range;
     } else if (range->id.kind == stream::RangeKind::WorldDynamic ||
                range->id.kind == stream::RangeKind::PlayerFast) {
-      if (!s.pending.contains(range->id) && s.pending.size() >= 65) {
+      if (!s.pending.contains(range->id) && s.pending.size() >= s.config.dynamic_candidates) {
         reason = "client_stream_dynamic_capacity";
         return false;
       }
       auto i = s.pending.find(range->id);
-      if (i == s.pending.end() || i->second->revision < range->revision)
-        s.pending[range->id] = range;
+      if (i == s.pending.end() || i->second->revision < range->revision){if(i!=s.pending.end())++stream_metrics_.replacements;s.pending[range->id] = range;}
     }
     // ContextReady只确认纯值接纳；这里没有任何原生Applied行为。
     if (stream::Reliable(stream::MessageLane(m))) {
@@ -192,6 +193,10 @@ void ClientScene::CommitStream(const stream::Range &root, bool baseline) {
   s.acknowledgements.insert_or_assign(root->id, std::move(result));
   if (root->id.kind == stream::RangeKind::PlayerFast)
     s.bodies.insert_or_assign(root->id.body, root);
+  const auto now=GetTickCount64();
+  stream_metrics_.Note(*root,stream::FlowStage::Commit,now);
+  if(baseline||root->id.kind==stream::RangeKind::WorldDynamic)stream_last_commit_=now;
+  stream_metrics_.display_ready_ms=now;
   if (baseline) {
     entity_events_.BaselineEvents(s.manifest->event_watermark);
     s.baseline_committed = true;
@@ -235,6 +240,7 @@ void ClientScene::PumpStream() noexcept {
     if (!s.cold_started && s.manifest &&
         stream::DependenciesReady(s.store, *s.manifest)) {
       s.model_memory = memory::Reserve(memory::Pool::Values, 65536);
+      stream::Measure measure(stream_metrics_,stream::CpuStage::NativePrepare);
       auto model = stream::ColdModel(s.store, *s.manifest, s.scope.connection);
       s.model_memory->Resize(replica::OwnedValueUpperBound(model));
       auto skeleton = std::make_unique<replica::Json>(StreamSkeleton(model));
@@ -268,8 +274,7 @@ void ClientScene::PumpStream() noexcept {
                                              s.scope.connection);
         s.model_memory->Resize(replica::OwnedValueUpperBound(model));
         s.structure_rebuild = true;
-        if (!AdmitTarget(s.scope, root->revision, model))
-          throw replica::ContractError(result_.reason.data());
+        if (!AdmitTarget(s.scope, root->revision, model)){s.structure_rebuild=false;throw replica::ContractError(result_.reason.data());}
         s.inflight = root;
         s.pending.erase(root->id);
         s.progress_prefix = 0;
@@ -393,6 +398,8 @@ void ClientScene::PumpStream() noexcept {
             break;
           }
         }
+        stream::Measure apply_measure(stream_metrics_,stream::CpuStage::NativeApply);
+        stream_write_failure_=false;
         const auto previous_result = result_;
         if (next_attempt_ == UINT64_MAX)
           throw replica::ContractError("client_stream_attempt_exhausted");
@@ -413,7 +420,7 @@ void ClientScene::PumpStream() noexcept {
         if (body) {
           auto step = objects_->InstallFast(*body);
           NoteObjectStep(step, "player_fast");
-          written = step.written;
+          written = step.written;stream_write_failure_=written;
           ok = step.done && !step.failed;
           waiting = !step.done && !step.failed && !step.written;
           why = step.reason;
@@ -424,7 +431,7 @@ void ClientScene::PumpStream() noexcept {
             why = sorted.reason;
           }
         } else {
-          written = true;
+          written = true;stream_write_failure_=true;
           auto refreshed = ClientNativeWorldRefresh(native_world_, description);
           ok = refreshed.state == ClientNativeStepState::Ready;
           why = refreshed.reason;
@@ -475,7 +482,6 @@ void ClientScene::PumpStream() noexcept {
                                 : ClientResultKind::UnsupportedRequirement,
                         "stream", why);
           state_ = ClientSceneState::Failed;
-          CancelRecovery();
           return;
         }
         applied_valid_ = true;
@@ -488,7 +494,7 @@ void ClientScene::PumpStream() noexcept {
         if (body)
           result_.committed_domains =
               1u << unsigned(world::observation::DomainId::Player);
-        CommitStream(root, false);
+        CommitStream(root, false);stream_write_failure_=false;
         s.pending.erase(root->id);
         if (room) {
           s.installed_memory = std::move(dto_memory);
@@ -549,7 +555,7 @@ void ClientScene::PumpStream() noexcept {
         QueueStream(s, std::move(m));
       }
       if (s.acknowledgements.empty())
-        s.ack_at = now + 50;
+        s.ack_at = now + s.config.applied_ack_ms;
     }
     std::vector<stream::Version> roots;
     if (s.manifest && !s.baseline_committed)
@@ -563,11 +569,16 @@ void ClientScene::PumpStream() noexcept {
     for (const auto &[key, r] : s.bodies)
       roots.push_back({r->id, r->revision});
     s.store.Collect(roots);
+    stream_metrics_.Queue(s.controls.size());stream_metrics_.candidates=s.pending.size()+(s.inflight?1:0);stream_metrics_.retained=s.available.size()+s.bodies.size();
   } catch (const std::exception &e) {
-    CancelRecovery();
+    const auto policy=stream::ClassifyFailure(e.what(),stream_write_failure_);
+    if(DisplayReady()&&!stream_write_failure_&&policy.waitable){
+      // 写前依赖/预算暂缺时A仍有效；保留首因，超过状态年龄由连接级恢复收口。
+      if(!result_.failure_reason[0]){std::snprintf(result_.failure_reason.data(),result_.failure_reason.size(),"%s",e.what());std::snprintf(result_.failure_phase.data(),result_.failure_phase.size(),"stream_prewrite");}
+      return;
+    }
     Fail(e.what());
   } catch (...) {
-    CancelRecovery();
     Fail("client_stream_exception");
   }
 }

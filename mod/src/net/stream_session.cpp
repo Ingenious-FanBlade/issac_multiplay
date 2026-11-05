@@ -47,6 +47,18 @@ bool Same(const s::Message &a, const s::Message &b) {
          a.route == b.route && a.body == b.body;
 }
 } // namespace
+void ObservePacket(s::Metrics &m,std::span<const std::uint8_t> b) noexcept {
+  try {
+    std::array<std::uint64_t,4> costs{};unsigned messages=1;
+    if(s::IsBundle(b)){
+      messages=unsigned(Read(b,24,2));std::size_t at=28;std::uint64_t assigned=0;
+      if(!messages||messages>16||b.size()<=28)throw r::ContractError("metric_bundle");
+      for(unsigned i=0;i<messages;++i){const auto n=Read(b,at,2),lane=Read(b,at+4,1);if(lane<1||lane>6||at+22+n>b.size())throw r::ContractError("metric_lane");const auto cost=i+1==messages?b.size()+28-assigned:(22+n)*(b.size()+28)/(b.size()-28);costs[Lane(s::Lane(lane))]+=cost;assigned+=cost;at+=22+std::size_t(n);}
+      if(at!=b.size())throw r::ContractError("metric_length");
+    }else costs[Lane(s::ReadHeader(b).lane)]=b.size()+28;
+    ++m.packets;m.payload_bytes+=b.size();m.wire_bytes+=b.size()+28;m.bundle_messages+=messages;for(unsigned i=0;i<4;++i){m.lane_bytes[i]+=costs[i];if(costs[i])++m.lane_packets[i];}
+  }catch(...){++m.missing;}
+}
 void Uplink::Bucket::Fill(std::uint64_t now) {
   if (!started) {
     tokens = burst * 1000;
@@ -60,6 +72,7 @@ void Uplink::Bucket::Fill(std::uint64_t now) {
   tokens = (std::min)(burst * 1000, tokens + rate * elapsed);
   at = now;
 }
+void Uplink::Configure(const s::RuntimeConfig &c) noexcept {config_=c;total_={c.total_bytes_per_second,c.total_burst_bytes};for(auto &p:peers_){p.total={c.peer_bytes_per_second,c.peer_burst_bytes};p.lanes={{{c.control_bytes_per_second,c.control_burst_bytes},{c.player_bytes_per_second,c.player_burst_bytes},{c.world_bytes_per_second,c.world_burst_bytes},{c.reliable_bytes_per_second,c.reliable_burst_bytes}}};}}
 s::SendResult Uplink::Transmit(unsigned peer, std::span<const std::uint8_t> b, bool initializing,
                                std::uint64_t now, const Send &send) {
   if (!peer || peer >= peers_.size() || b.empty() || b.size() > 1200)
@@ -98,7 +111,7 @@ s::SendResult Uplink::Transmit(unsigned peer, std::span<const std::uint8_t> b, b
   auto debit = costs;
   for (auto &n : debit)
     n *= 1000;
-  if (initializing && debit[3] > p.lanes[3].tokens) {
+  if (initializing && config_.borrow_initial_lanes && debit[3] > p.lanes[3].tokens) {
     auto extra = debit[3] - p.lanes[3].tokens;
     debit[3] -= extra;
     for (unsigned i : {1u, 2u}) {
@@ -128,9 +141,11 @@ s::SendResult Uplink::Transmit(unsigned peer, std::span<const std::uint8_t> b, b
   p.total.tokens -= all;
   for (unsigned i = 0; i < 4; ++i) {
     p.lanes[i].tokens -= debit[i];
-    status.lanes[i] += costs[i];
+    status.lanes[i] += costs[i];if(costs[i])++status.lane_packets[i];
   }
   ++status.packets;
+  status.payload_bytes+=b.size();
+  status.bundle_messages+=s::IsBundle(b)?Read(b,24,2):1;
   status.wire_bytes += b.size() + 28;
   return result;
 }
@@ -295,8 +310,8 @@ void Operations::Pump(std::uint64_t now, const std::function<bool(const s::Messa
     return send(m);
   };
   for (auto &[key, v] : sent_) {
-    if (!Final(v.stage) && (now < v.progress || now - v.progress >= 2000 || now < v.started ||
-                            now - v.started >= 120000)) {
+    if (!Final(v.stage) && (now < v.progress || now - v.progress >= config_.progress_timeout_ms || now < v.started ||
+                            now - v.started >= config_.absolute_timeout_ms)) {
       v.stage = OperationStage::Failed;
       ++statistics_.failed;
       v.reason = "operation_no_progress_or_deadline";
@@ -318,8 +333,8 @@ void Operations::Pump(std::uint64_t now, const std::function<bool(const s::Messa
     }
   }
   for (auto &[key, v] : received_) {
-    if (!Final(v.stage) && (now < v.progress || now - v.progress >= 2000 || now < v.started ||
-                            now - v.started >= 120000)) {
+    if (!Final(v.stage) && (now < v.progress || now - v.progress >= config_.progress_timeout_ms || now < v.started ||
+                            now - v.started >= config_.absolute_timeout_ms)) {
       v.stage = OperationStage::Failed;
       ++v.progress_sequence;
       ++statistics_.failed;
@@ -360,7 +375,7 @@ std::uint64_t Operations::NextWake(std::uint64_t now) const noexcept {
   for (const auto *records : {&sent_, &received_})
     for (const auto &[key, v] : *records)
       if (!Final(v.stage) || !v.receipt)
-        next = (std::min)(next, (std::min)(v.due, v.progress + 2000));
+        next = (std::min)(next, (std::min)(v.due, v.progress + config_.progress_timeout_ms));
   return (std::max)(now, next);
 }
 
@@ -373,10 +388,12 @@ struct EncodingCache::State {
     s::SharedBlob blob;
     r::Limits limits;
     bool compressed = false, working = false;
+    std::uint64_t queued_us=s::MetricMicros();
     std::array<char, 128> error{};
   };
   std::mutex mutex;
   std::condition_variable wake;
+  s::Metrics metrics;
   bool stop = false, started = false;
   std::deque<std::shared_ptr<Entry>> entries;
   void Run() noexcept {
@@ -400,7 +417,7 @@ struct EncodingCache::State {
           i = std::find_if(entries.begin(), entries.end(),
                            [](const auto &e) { return !e->working && !e->blob && !e->error[0]; });
         work = *i;
-        work->working = true;
+        work->working = true;metrics.duration[unsigned(s::CpuStage::Queue)].Observe(s::MetricMicros()-work->queued_us);
       }
       s::SharedBlob blob;
       std::array<char, 128> error{};
@@ -432,6 +449,8 @@ struct EncodingCache::State {
         }
       {
         std::lock_guard lock(mutex);
+        if(blob){metrics.Bind(work->source->world);metrics.encoded_bytes+=blob->decoded_bytes;metrics.compressed_bytes+=blob->bytes.size();const auto lane=Lane(blob->lane);metrics.lane_encoded[lane]+=blob->decoded_bytes;metrics.lane_compressed[lane]+=blob->bytes.size();metrics.duration[unsigned(s::CpuStage::Encode)].Observe(blob->encode_us);if(blob->encode_cpu_us!=UINT64_MAX)metrics.cpu[unsigned(s::CpuStage::Encode)].Observe(blob->encode_cpu_us);else ++metrics.missing;if(work->compressed){metrics.duration[unsigned(s::CpuStage::Compress)].Observe(blob->compression_us);if(blob->compression_cpu_us!=UINT64_MAX)metrics.cpu[unsigned(s::CpuStage::Compress)].Observe(blob->compression_cpu_us);else ++metrics.missing;}}
+        metrics.Queue(entries.size());
         work->blob = std::move(blob);
         work->error = std::move(error);
       }
@@ -445,6 +464,7 @@ void EncodingCache::Stop() noexcept {
   state_->stop = true;
   state_->wake.notify_one();
 }
+s::Metrics EncodingCache::Statistics() const noexcept {std::unique_lock lock(state_->mutex,std::try_to_lock);if(!lock.owns_lock()){s::Metrics missing;missing.missing=1;return missing;}return state_->metrics;}
 s::SharedBlob EncodingCache::Get(s::Range range, bool compressed, r::Limits limits) {
   if (!range)
     Fail("publication_missing_range");
@@ -491,6 +511,11 @@ s::SharedBlob EncodingCache::Get(s::Range range, bool compressed, r::Limits limi
   state->wake.notify_one();
   return {};
 }
+void PublicationSender::AuthorityPaused(bool value,std::uint64_t now) noexcept {
+  if(value&&!paused_)pause_started_=now;
+  if(!value&&paused_){const auto elapsed=now>=pause_started_?now-pause_started_:0;for(auto &[id,at]:convergence_since_)at+=elapsed;}
+  paused_=value;
+}
 void PublicationSender::Offer(std::shared_ptr<const s::Publication> baseline,
                               std::shared_ptr<const s::Publication> latest,
                               std::vector<std::shared_ptr<const s::Publication>> bodies) {
@@ -533,6 +558,7 @@ void PublicationSender::Offer(std::shared_ptr<const s::Publication> baseline,
   trim(queued_);
   trim(applied_);
   trim(fully_sent_);
+  trim(convergence_since_);
   if (bodies_.size() > 64)
     Fail("publication_body_capacity");
 }
@@ -543,7 +569,7 @@ void PublicationSender::Authorize(s::Route route, std::uint64_t now) {
   native_progress_ = 0;
   route_ = route;
   reliable_.Authorize(route);
-  reliable_.GrantRate(47500);
+  reliable_.GrantRate(route_.config.borrow_initial_lanes?route_.config.peer_bytes_per_second-route_.config.control_bytes_per_second:route_.config.reliable_bytes_per_second);
   metadata_ = memory::Reserve(memory::Pool::Wire, 512ull << 10);
   cold_ = baseline_->ranges;
   cold_cursor_ = 0;
@@ -558,7 +584,8 @@ void PublicationSender::Authorize(s::Route route, std::uint64_t now) {
   fast_ = {};
   sent_at_.clear();
   fast_cursor_ = {};
-  failure_.clear();
+  convergence_since_.clear();stale_=false;active_at_=now;applied_world_tick_=0;
+  metrics_.Bind(route.scope,route.epoch);metrics_.first_prepare_ms=prepare_started_?prepare_started_:now;
   phase_ = Phase::Baseline;
 }
 void PublicationSender::Remember(const s::Version &version) {
@@ -573,8 +600,9 @@ void PublicationSender::Remember(const s::Version &version) {
   }
   history.push_back(version.revision);
 }
-void PublicationSender::Track(const s::Range &r){const s::Version version{r->id,r->revision};if(sent_facts_.contains(version))return;
-  if(sent_facts_.size()>=8192)Fail("publication_sent_fact_capacity");SentFact f;f.dependencies=r->dependencies;
+void PublicationSender::Encoded(const s::Blob &b){if(metrics_.Note(b.range_id,b.sequence,b.sample,s::FlowStage::Encode,s::MetricMicros()/1000)){metrics_.encoded_bytes+=b.decoded_bytes;metrics_.compressed_bytes+=b.bytes.size();const auto lane=Lane(b.lane);metrics_.lane_encoded[lane]+=b.decoded_bytes;metrics_.lane_compressed[lane]+=b.bytes.size();}}
+void PublicationSender::Track(const s::Range &r){const s::Version version{r->id,r->revision};if(sent_facts_.contains(version))return;metrics_.Note(*r,s::FlowStage::Publish,s::MetricMicros()/1000);
+  if(sent_facts_.size()>=8192)Fail("publication_sent_fact_capacity");SentFact f;f.dependencies=r->dependencies;f.sample=r->sample;
   if(r->id.kind==s::RangeKind::Manifest){f.dependencies=r->required;f.native=r->native_domains;f.retained=r->retained_domains;f.watermark=r->event_watermark;}
   else if(r->id.kind==s::RangeKind::WorldDynamic)f.native=baseline_->manifest->native_domains;
   else if(r->id.kind==s::RangeKind::PlayerFast)f.native=1ull<<6;
@@ -617,9 +645,9 @@ bool PublicationSender::ContextReady(const s::Message &m, std::uint64_t now) {
   }
   return true;
 }
-bool PublicationSender::Applied(const s::Message &m) {
+bool PublicationSender::Applied(const s::Message &m,std::uint64_t now) {
   const auto reject=[&](const char *reason){if(failure_.empty())failure_=reason;return false;};
-  if (!baseline_ || m.kind != s::Kind::AppliedAck || m.connection != route_.connection ||
+  if ((phase_!=Phase::Baseline&&phase_!=Phase::WaitingApplied&&phase_!=Phase::Active)||!baseline_ || m.kind != s::Kind::AppliedAck || m.connection != route_.connection ||
       m.route != route_.epoch)
     return reject("applied_ack_route");
   const auto &w = m.body["world"];
@@ -659,10 +687,12 @@ bool PublicationSender::Applied(const s::Message &m) {
       Remember(version);
       pending_context_.erase(version);
       context_since_.erase(version);
+      if(version.revision>applied_[version.id])convergence_since_.erase(version.id);
       applied_[version.id] = (std::max)(applied_[version.id], version.revision);
+      if(version.id.kind==s::RangeKind::WorldDynamic)applied_world_tick_=(std::max)(applied_world_tick_,sent_facts_.at(version).sample.tick);
     }
-    for(const auto &[v,f]:facts)confirmed_.insert_or_assign(v,f);
-    return true;
+    for(const auto &[v,f]:facts){confirmed_.insert_or_assign(v,f);auto sent=sent_facts_.find(v);if(sent!=sent_facts_.end()){metrics_.Note(v.id,v.revision,sent->second.sample,s::FlowStage::Ack,now);}}
+    metrics_.display_ready_ms=now;return true;
   }
   bool manifest = false;
   for (const auto &v : m.body["versions"].GetArray()) {
@@ -689,13 +719,15 @@ bool PublicationSender::Applied(const s::Message &m) {
       reliable_.Confirm(id);
   pending_context_.clear();
   context_since_.clear();
+  metrics_.display_ready_ms=now;
   phase_ = Phase::Active;
+  active_at_=now;convergence_since_.clear();if(baseline_->world_dynamic)applied_world_tick_=baseline_->world_dynamic->sample.tick;
   for (const auto &range : baseline_->ranges) {
     Remember({range->id, range->revision});
     applied_[range->id] = range->revision;
   }
-  for(const auto &[v,f]:facts)confirmed_.insert_or_assign(v,f);
-  reliable_.GrantRate(47500);
+  for(const auto &[v,f]:facts){confirmed_.insert_or_assign(v,f);metrics_.Note(v.id,v.revision,sent_facts_.at(v).sample,s::FlowStage::Ack,now);}
+  reliable_.GrantRate(route_.config.reliable_bytes_per_second);
   return true;
 }
 bool PublicationSender::Acknowledge(const s::Message &m, std::uint64_t now) {
@@ -752,10 +784,12 @@ void PublicationSender::Stop() noexcept {
   sent_history_.clear();
   fast_ = {};
   sent_at_.clear();
+  convergence_since_.clear();stale_=false;
   fast_cursor_ = {};
 }
 unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, EncodingCache &cache,
                                  const s::ReliableSender::Send &send) {
+  s::Measure network_measure(metrics_,s::CpuStage::Network);
   if (phase_ == Phase::Stopped || phase_ == Phase::WaitingWorld || phase_ == Phase::Preparing ||
       !latest_)
     return 0;
@@ -767,7 +801,7 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
   s::ReliableSender::Result result;
   while (reliable_.Poll(result)) {
     if (!result.complete) {
-      failure_ = result.reason;
+      if(failure_.empty())failure_ = result.reason;
       phase_ = Phase::Recovering;
       return 0;
     }
@@ -775,6 +809,7 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
       if (i->second == result.transfer) {
         fully_sent_[i->first.id] = i->first.revision;
         Remember(i->first);
+        if(auto fact=sent_facts_.find(i->first);fact!=sent_facts_.end())metrics_.Note(i->first.id,i->first.revision,fact->second.sample,s::FlowStage::Send,now);
         if (pending_context_.contains(i->first))
           context_since_[i->first] = now;
         i = transfers_.erase(i);
@@ -783,10 +818,10 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
   }
   if (phase_ == Phase::Recovering)
     return 0;
-  if ((phase_ != Phase::Active && (now < started_ || now - started_ >= 120000 || now < progress_ ||
-                                   now - progress_ >= 2000)) ||
+  if ((phase_ != Phase::Active && (now < started_ || now - started_ >= route_.config.absolute_timeout_ms || now < progress_ ||
+                                   now - progress_ >= route_.config.progress_timeout_ms)) ||
       std::any_of(context_since_.begin(), context_since_.end(),
-                  [&](const auto &v) { return now < v.second || now - v.second >= 2000; })) {
+                  [&](const auto &v) { return now < v.second || now - v.second >= route_.config.progress_timeout_ms; })) {
     FailPublication("publication_no_progress_or_deadline");
     return 0;
   }
@@ -802,7 +837,7 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
     if (!blob)
       break;
     const auto id = next();
-    Track(range);
+    Track(range);Encoded(*blob);
     reliable_.Start(std::move(blob), id, now);
     transfers_[{range->id, range->revision}] = id;
     pending_context_[{range->id, range->revision}] = id;
@@ -811,10 +846,11 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
     ++cold_cursor_;
   }
   unsigned sent = reliable_.Pump(now, 4, send);
+  for(const auto &[version,id]:transfers_)if(reliable_.AllSent(id)){const auto fact=sent_facts_.find(version);if(fact!=sent_facts_.end())metrics_.Note(version.id,version.revision,fact->second.sample,s::FlowStage::Send,now);}
   if (phase_ == Phase::Baseline && cold_cursor_ == cold_.size() && reliable_.Empty())
     phase_ = Phase::WaitingApplied;
   // 每个完整范围各保留一个在途发送游标及来源中的最新候选；按范围轮转，
-  // 大WorldDynamic不能挡住PlayerFast，最后静止后态也有独立200ms补发时刻。
+  // 大WorldDynamic不能挡住PlayerFast；未确认的最后静止后态每100ms补发。
   std::vector<s::Range> ranges;
   if (phase_ == Phase::Active) {
     for (const auto &range : latest_->ranges)
@@ -825,7 +861,7 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
           auto blob = cache.Get(range, route_.zstd, route_.world_limits);
           if (blob) {
             const auto id = next();
-            Track(range);
+            Track(range);Encoded(*blob);
             reliable_.Start(std::move(blob), id, now);
             transfers_[{range->id, range->revision}] = id;
             pending_context_[{range->id, range->revision}] = id;
@@ -837,17 +873,29 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
     if (latest_->world_dynamic)
       ranges.push_back(latest_->world_dynamic);
     for (const auto &body : bodies_)
-      if (body && body->player_fast)
-        ranges.push_back(body->player_fast);
+      if (body && body->player_fast) {
+        // 普通完整Player域已经实际提交时，旧快源不再需要发送；不伪造Fast ACK。
+        if(body->player_fast->sample.tick>applied_world_tick_)ranges.push_back(body->player_fast);
+        else convergence_since_.erase(body->player_fast->id);
+      }
   } else if (baseline_->world_dynamic)
     ranges.push_back(baseline_->world_dynamic);
+  stale_=false;
+  for(const auto &range:ranges) {
+    if(applied_[range->id]>=range->revision){convergence_since_.erase(range->id);continue;}
+    auto [wait,inserted]=convergence_since_.try_emplace(range->id,now);
+    if(!paused_&&now>=wait->second&&now-wait->second>=route_.config.stale_ms)stale_=true;
+    if(!paused_&&now>=wait->second&&now-wait->second>=route_.config.recovery_ms){FailPublication("publication_not_converged");return sent;}
+  }
+  metrics_.candidates=fast_.size()+pending_context_.size();metrics_.retained=sent_facts_.size();
   for (const auto &range : ranges)
     if (!fast_.contains(range->id) &&
         (queued_[range->id] != range->revision || !sent_at_.contains(range->id) ||
-         now - sent_at_[range->id] >= 200)) {
-      auto blob = cache.Get(range, false, s::WorldLimits(true));
+         (applied_[range->id]<range->revision&&now - sent_at_[range->id] >= route_.config.final_retry_ms))) {
+      auto blob = cache.Get(range, false, route_.fast_limits);
       if (blob) {
-        Track(range);
+        Track(range);Encoded(*blob);
+        if(queued_[range->id]==range->revision&&sent_at_.contains(range->id))++metrics_.repeated_range_transfers;
         if (fast_.size() >= 65)
           Fail("publication_fast_capacity");
         fast_.emplace(range->id, Fast{std::move(blob)});
@@ -866,7 +914,7 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
       work.transfer = next();
     auto lease = memory::Reserve(memory::Pool::Wire, 1200);
     const auto packet = s::Datagram(*work.blob, {route_.connection, route_.epoch, work.transfer},
-                                    work.part, s::WorldLimits(true));
+                                    work.part, route_.fast_limits);
     const auto result = send(packet);
     if (result == s::SendResult::WouldBlock)
       continue;
@@ -878,6 +926,7 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
       fully_sent_[current->first] = work.blob->sequence;
       Remember({current->first, work.blob->sequence});
       sent_at_[current->first] = now;
+      metrics_.Note(current->first,work.blob->sequence,work.blob->sample,s::FlowStage::Send,now);
       fast_.erase(current);
     }
   }

@@ -2,6 +2,7 @@
 #include "replica/stream_model.h"
 #include "world/common/live_consumer.h"
 #include <array>
+#include "replica/stream_metrics.h"
 
 namespace cs::replica::stream {
 // 来源与后续wire/apply共用固定外层布局；不由报文或运行中的游戏对象决定必需字段。
@@ -17,6 +18,7 @@ struct Publication final {
 };
 struct CaptureStatus final {
   std::uint64_t ordinary=0,bodies=0,invalidations=0,world_sequence=0,body_gaps=0;
+  std::uint64_t baseline_request_local_ms=0,baseline_published_local_ms=0;
   bool baseline_requested=true,ready=false;
   std::string reason="stream_capture_off",body_reason="player_post_not_updated";
 };
@@ -31,7 +33,7 @@ public:
   void Begin(std::uint64_t authority_session) noexcept;
   void Stop() noexcept;
   void Invalidate(const char *) noexcept;
-  void RequestBaseline() noexcept {status_.baseline_requested=true;}
+  void RequestBaseline() noexcept {if(!status_.baseline_requested)status_.baseline_request_local_ms=MetricMicros()/1000;status_.baseline_requested=true;}
   bool NeedsBaseline() const noexcept {return status_.baseline_requested;}
   void Ordinary(const world::observation::LiveBatch &) noexcept;
   void PlayerPost(const BodySample &,const std::string &payload) noexcept;
@@ -42,6 +44,7 @@ public:
   std::shared_ptr<const Publication> Latest() const noexcept {return status_.ready?latest_:nullptr;}
   std::shared_ptr<const Publication> Baseline() const noexcept {return status_.ready?baseline_:nullptr;}
   std::vector<std::shared_ptr<const Publication>> Bodies() const;
+  const Metrics &Statistics() const noexcept {return metrics_;}
   const Layouts &Schemas() const noexcept {return layouts_;}
 private:
   void Scope(const world::observation::ObservationContext &);
@@ -53,6 +56,7 @@ private:
   std::uint64_t next_run_=0,next_scene_=0,next_revision_=0,last_capture_=0,last_tick_=0,loss_=0,invalidation_=0;
   WorldScope world_{};
   CaptureStatus status_{};
+  Metrics metrics_;
   bool exhausted_=false;
   Layouts layouts_;
   std::unique_ptr<Registry> registry_;

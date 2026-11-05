@@ -1,4 +1,5 @@
 #include "replica/stream_transport.h"
+#include "replica/stream_metrics.h"
 #define ZSTD_STATIC_LINKING_ONLY
 #include <zstd.h>
 #include <algorithm>
@@ -46,7 +47,8 @@ void RouteHeader(const Header &h,const Route &route,bool routed){
 }
 }
 Limits HandshakeLimits() noexcept {Limits l;l.bytes=65536;l.nodes=4096;l.depth=24;l.string_bytes=8192;l.fragments=64;l.candidates=2;l.timeout_ms=1000;return l;}
-Limits WorldLimits(bool fast) noexcept {Limits l;l.timeout_ms=2000;if(fast){l.bytes=65536;l.nodes=32768;l.fragments=64;}return l;}
+Limits WorldLimits(bool fast) noexcept {Limits l;l.timeout_ms=2000;if(fast){l.candidates=65;l.bytes=65536;l.nodes=32768;l.fragments=64;}return l;}
+Limits ConfiguredLimits(const RuntimeConfig &c,bool fast) noexcept {auto l=WorldLimits(fast);l.bytes=unsigned(fast?c.fast_message_bytes:c.world_message_bytes);l.nodes=unsigned(fast?c.fast_nodes:c.world_nodes);l.fragments=unsigned(fast?64:c.fragments);l.candidates=unsigned(fast?c.dynamic_candidates:c.reliable_candidates);l.timeout_ms=unsigned(c.progress_timeout_ms);l.value_bytes=c.value_pool_bytes;return l;}
 Limits NegotiatedWorldLimits(const Value &caps){
   auto agreed=Negotiate(Capabilities(),caps);const auto &v=agreed["world_limits"];auto l=WorldLimits();
   l.bytes=unsigned(Unsigned(v["bytes"]));l.nodes=unsigned(Unsigned(v["nodes"]));l.depth=unsigned(Unsigned(v["depth"]));l.string_bytes=unsigned(Unsigned(v["string_bytes"]));l.fragments=unsigned(Unsigned(v["fragments"]));l.candidates=unsigned(Unsigned(v["candidates"]));l.value_bytes=Unsigned(v["value_bytes"]);return l;
@@ -57,10 +59,10 @@ SharedBlob EncodeBlob(const Message &m,bool compress,Limits limits){
   const auto lane=MessageLane(m);if(!Reliable(lane)){const auto cap=WorldLane(lane)?WorldLimits(true):HandshakeLimits();limits.bytes=(std::min)(limits.bytes,cap.bytes);limits.nodes=(std::min)(limits.nodes,cap.nodes);limits.depth=(std::min)(limits.depth,cap.depth);limits.string_bytes=(std::min)(limits.string_bytes,cap.string_bytes);limits.fragments=(std::min)(limits.fragments,cap.fragments);}
   if(compress&&!Reliable(lane))Fail("stream_compression_lane");
   // Encode同时持有payload与完整wire；工作区在函数退出/异常时归还。
-  auto workspace=memory::Reserve(memory::Pool::Workspace,2ull*limits.bytes);const auto started=Micros();auto wire=Encode(m,limits);const auto encoded=Micros();workspace->Resize(wire.capacity());
+  auto workspace=memory::Reserve(memory::Pool::Workspace,2ull*limits.bytes);const auto started=Micros(),cpu_started=ThreadCpuMicros();auto wire=Encode(m,limits);const auto encoded=Micros(),cpu_encoded=ThreadCpuMicros();workspace->Resize(wire.capacity());
   // 路由封套不属于共享内容；接收端按已经授权的分片头恢复这16字节再做严格解码。
   Set(wire,24,0);Set(wire,32,0);
-  auto blob=std::make_shared<Blob>();blob->decoded_bytes=std::uint32_t(wire.size());blob->sequence=m.sequence;blob->kind=m.kind;blob->lane=lane;if(m.range)blob->range_id=m.range->id;blob->encode_us=encoded-started;
+  auto blob=std::make_shared<Blob>();blob->decoded_bytes=std::uint32_t(wire.size());blob->sequence=m.sequence;blob->kind=m.kind;blob->lane=lane;if(m.range){blob->range_id=m.range->id;blob->sample=m.range->sample;}blob->encode_us=encoded-started;if(cpu_started!=UINT64_MAX&&cpu_encoded!=UINT64_MAX&&cpu_encoded>=cpu_started)blob->encode_cpu_us=cpu_encoded-cpu_started;
   if(WorldLane(lane)){if(m.range)blob->world=m.range->world;else {const auto &w=m.body["world"];blob->world={Unsigned(w["session"]),Unsigned(w["run"]),Unsigned(w["floor"]),Unsigned(w["dimension"]),Unsigned(w["room"]),Unsigned(w["scene"])};}}
   if(compress){
     const auto bound=ZSTD_compressBound(wire.size());Z(bound,"zstd_compress_bound");blob->memory=memory::Reserve(memory::Pool::Wire,bound+sizeof(Blob));blob->bytes.resize(bound);
@@ -68,7 +70,7 @@ SharedBlob EncodeBlob(const Message &m,bool compress,Limits limits){
     Z(ZSTD_CCtx_setParameter(ctx.get(),ZSTD_c_compressionLevel,3),"zstd_level_parameter");Z(ZSTD_CCtx_setParameter(ctx.get(),ZSTD_c_windowLog,23),"zstd_window_parameter");Z(ZSTD_CCtx_setParameter(ctx.get(),ZSTD_c_contentSizeFlag,1),"zstd_size_parameter");
     const auto n=ZSTD_compress2(ctx.get(),blob->bytes.data(),blob->bytes.size(),wire.data(),wire.size());Z(n,"zstd_compress_failed");if(n>limits.bytes)Fail("zstd_wire_budget");blob->bytes.resize(n);blob->codec=Codec::Zstd;
   }else {blob->memory=memory::Reserve(memory::Pool::Wire,wire.capacity()+sizeof(Blob));blob->bytes=std::move(wire);}
-  blob->compression_us=compress?Micros()-encoded:0;return blob;
+  blob->compression_us=compress?Micros()-encoded:0;const auto cpu_end=ThreadCpuMicros();if(compress&&cpu_encoded!=UINT64_MAX&&cpu_end!=UINT64_MAX&&cpu_end>=cpu_encoded)blob->compression_cpu_us=cpu_end-cpu_encoded;return blob;
 }
 std::vector<std::uint8_t> Datagram(const Blob &blob,TransferKey key,std::uint32_t index,Limits l){
   if(l.datagram<=64||l.datagram>1200||!key.transfer||key.transfer==UINT64_MAX||blob.bytes.empty()||blob.bytes.size()>l.bytes||blob.decoded_bytes>l.bytes)Fail("stream_send_description");
@@ -102,32 +104,33 @@ void RttEstimator::Observe(std::uint64_t ms) noexcept {
   ms=(std::min)(ms,10000ull);
   if(!initialized_){mean_=ms;variation_=ms/2;initialized_=true;}
   else {const auto delta=mean_>ms?mean_-ms:ms-mean_;variation_=(3*variation_+delta)/4;mean_=(7*mean_+ms)/8;}
-  rto_=std::clamp(mean_+(std::max)(1ull,4*variation_),100ull,1000ull);
+  rto_=std::clamp(mean_+(std::max)(1ull,4*variation_),minimum_,maximum_);
 }
-std::uint64_t TransferDeadline(std::uint64_t started,std::uint64_t now,std::uint64_t remaining,std::uint64_t rate) noexcept {
-  const auto absolute=started>UINT64_MAX-120000?UINT64_MAX:started+120000;
-  const auto duration=2000+(remaining*1000+(std::max)(1ull,rate)-1)/(std::max)(1ull,rate);
+std::uint64_t TransferDeadline(std::uint64_t started,std::uint64_t now,std::uint64_t remaining,std::uint64_t rate,const RuntimeConfig &config) noexcept {
+  const auto absolute=started>UINT64_MAX-config.absolute_timeout_ms?UINT64_MAX:started+config.absolute_timeout_ms;
+  const auto duration=10000+2*(remaining*1000+(std::max)(1ull,rate)-1)/(std::max)(1ull,rate);
   return (std::min)(absolute,now>UINT64_MAX-duration?UINT64_MAX:now+duration);
 }
 void Reassembler::Configure(Limits l) noexcept {pending_.clear();retired_.clear();retired_before_=0;limits_=HandshakeLimits();limits_.bytes=(std::min)(limits_.bytes,l.bytes);limits_.nodes=(std::min)(limits_.nodes,l.nodes);limits_.depth=(std::min)(limits_.depth,l.depth);limits_.string_bytes=(std::min)(limits_.string_bytes,l.string_bytes);limits_.fragments=(std::min)(limits_.fragments,l.fragments);limits_.candidates=(std::min)(limits_.candidates,l.candidates);limits_.timeout_ms=(std::min)(limits_.timeout_ms,l.timeout_ms);limits_.value_bytes=(std::min)(limits_.value_bytes,l.value_bytes);}
-void Reassembler::Authorize(Route r) noexcept {if(!routed_||r.connection!=route_.connection||r.epoch!=route_.epoch||r.world!=route_.world||r.zstd!=route_.zstd||r.negotiated!=route_.negotiated||r.scope!=route_.scope){pending_.clear();retired_.clear();retired_before_=0;}route_=r;routed_=true;}
+void Reassembler::Authorize(Route r) noexcept {if(!routed_||r.connection!=route_.connection||r.epoch!=route_.epoch||r.world!=route_.world||r.zstd!=route_.zstd||r.negotiated!=route_.negotiated||r.scope!=route_.scope){pending_.clear();retired_.clear();retired_before_=0;}route_=r;routed_=true;rate_=r.config.reliable_bytes_per_second;}
 void Reassembler::Retire(std::uint64_t transfer) noexcept {try{retired_.push_back(transfer);if(retired_.size()>128){retired_before_=(std::max)(retired_before_,retired_.front());retired_.pop_front();}}catch(...){retired_before_=(std::max)(retired_before_,transfer);}}
 void Reassembler::Cancel(std::uint64_t transfer) noexcept {for(auto i=pending_.begin();i!=pending_.end();)if(i->first.transfer==transfer)i=pending_.erase(i);else ++i;Retire(transfer);}
-void Reassembler::Expire(std::uint64_t now){for(auto i=pending_.begin();i!=pending_.end();){auto &c=i->second;const auto age=now>=c.started?now-c.started:UINT64_MAX,stall=now>=c.progress?now-c.progress:UINT64_MAX;const auto timeout=WorldLane(c.header.lane)?2000:limits_.timeout_ms;if(age>=120000||(!c.complete&&(stall>=timeout||now>=c.deadline))){Retire(i->first.transfer);i=pending_.erase(i);++statistics_.expired;}else ++i;}}
+void Reassembler::Expire(std::uint64_t now){for(auto i=pending_.begin();i!=pending_.end();){auto &c=i->second;const auto age=now>=c.started?now-c.started:UINT64_MAX,stall=now>=c.progress?now-c.progress:UINT64_MAX;const auto timeout=WorldLane(c.header.lane)?route_.config.progress_timeout_ms:limits_.timeout_ms;if(age>=route_.config.absolute_timeout_ms||(!c.complete&&(stall>=timeout||now>=c.deadline))){Retire(i->first.transfer);i=pending_.erase(i);++statistics_.expired;}else ++i;}}
 bool Reassembler::Receive(std::span<const std::uint8_t> b,std::uint64_t now,Message &out){
   // 小预算只读头后，才根据本地授权选择世界上限；每个数据报的lane不可自授额度。
-  const auto h=ReadHeader(b,WorldLimits());RouteHeader(h,route_,routed_);const bool world=WorldLane(h.lane);auto limits=world?WorldLimits(h.lane==Lane::WorldDynamic||h.lane==Lane::PlayerFast):limits_;
-  if(world){const auto &p=route_.world_limits;limits.bytes=(std::min)(limits.bytes,p.bytes);limits.nodes=(std::min)(limits.nodes,p.nodes);limits.depth=(std::min)(limits.depth,p.depth);limits.string_bytes=(std::min)(limits.string_bytes,p.string_bytes);limits.fragments=(std::min)(limits.fragments,p.fragments);limits.candidates=(std::min)(limits.candidates,p.candidates);limits.value_bytes=(std::min)(limits.value_bytes,p.value_bytes);}
+  const auto h=ReadHeader(b,WorldLimits());RouteHeader(h,route_,routed_);const bool world=WorldLane(h.lane);auto limits=world?ConfiguredLimits(route_.config,h.lane==Lane::WorldDynamic||h.lane==Lane::PlayerFast):limits_;
+  if(world){const auto &p=(h.lane==Lane::WorldDynamic||h.lane==Lane::PlayerFast)?route_.fast_limits:route_.world_limits;limits.bytes=(std::min)(limits.bytes,p.bytes);limits.nodes=(std::min)(limits.nodes,p.nodes);limits.depth=(std::min)(limits.depth,p.depth);limits.string_bytes=(std::min)(limits.string_bytes,p.string_bytes);limits.fragments=(std::min)(limits.fragments,p.fragments);limits.candidates=(std::min)(limits.candidates,p.candidates);limits.value_bytes=(std::min)(limits.value_bytes,p.value_bytes);}
   ReadHeader(b,limits);Expire(now);++statistics_.fragments;statistics_.payload_bytes+=b.size();
   const TransferKey key{h.connection,h.route,h.transfer};auto i=pending_.find(key);
   if(i==pending_.end()){
     if(h.transfer<=retired_before_||std::find(retired_.begin(),retired_.end(),h.transfer)!=retired_.end())return false;
-    unsigned active=0,fast=0;for(const auto &[k,c]:pending_)if(!c.complete){if(Reliable(c.header.lane))++active;else ++fast;}
-    if(Reliable(h.lane)?active>=limits.candidates:fast>=limits.candidates)Fail("stream_candidate_budget");
+    unsigned active=0,fast=0,control=0;for(const auto &[k,c]:pending_)if(!c.complete){if(Reliable(c.header.lane))++active;else if(WorldLane(c.header.lane))++fast;else ++control;}
+    // 控制候选保留独立容量；世界片再多也不能阻止Resync/Stop进入。
+    if(Reliable(h.lane)?active>=limits.candidates:WorldLane(h.lane)?fast>=limits.candidates:control>=limits_.candidates)Fail("stream_candidate_budget");
     // 完成历史允许淘汰，活动可靠依赖绝不为新目标让位；外部已借出的DTO租约独立存活。
     auto trim=[&]{for(auto x=pending_.begin();x!=pending_.end();++x)if(x->second.complete){Retire(x->first.transfer);pending_.erase(x);return true;}return false;};
     while(pending_.size()>=130&&trim()){}
-    Candidate c;c.header=h;c.started=c.progress=now;c.ack_due=now+50;c.deadline=TransferDeadline(now,now,h.wire_bytes,rate_);
+    Candidate c;c.header=h;c.started=c.progress=now;c.ack_due=now+route_.config.receive_ack_ms;c.deadline=TransferDeadline(now,now,h.wire_bytes,rate_,route_.config);
     const auto charge=std::uint64_t(h.wire_bytes)+(std::uint64_t(h.count)+63)/64*8+(h.count+255)/256+sizeof(Candidate)+128;
     for(;;){try{c.memory=memory::Reserve(memory::Pool::Wire,charge);break;}catch(const std::runtime_error &){if(!trim())Fail("stream_reassembly_pool_exhausted");}}
     c.bytes.resize(h.wire_bytes);c.bits.resize((h.count+63)/64);c.dirty.resize((h.count+255)/256);i=pending_.emplace(key,std::move(c)).first;
@@ -135,7 +138,7 @@ bool Reassembler::Receive(std::span<const std::uint8_t> b,std::uint64_t now,Mess
   auto &c=i->second;if(!Same(c.header,h)){Cancel(h.transfer);++statistics_.conflicts;Fail("stream_fragment_conflict");}
   const auto offset=std::size_t(h.index)*(limits.datagram-64);const auto bit=1ull<<(h.index%64);auto &word=c.bits[h.index/64];
   if(word&bit){if(std::memcmp(c.bytes.data()+offset,b.data()+64,h.payload)){Cancel(h.transfer);++statistics_.conflicts;Fail("stream_fragment_conflict");}++statistics_.duplicates;if(Reliable(h.lane)){c.dirty[h.index/256]=true;if(c.complete)c.ack_due=now;}return false;}
-  std::memcpy(c.bytes.data()+offset,b.data()+64,h.payload);word|=bit;++c.received;c.progress=now;c.deadline=TransferDeadline(c.started,now,std::uint64_t(h.count-c.received)*1228,rate_);c.dirty[h.index/256]=true;
+  std::memcpy(c.bytes.data()+offset,b.data()+64,h.payload);word|=bit;++c.received;c.progress=now;c.deadline=TransferDeadline(c.started,now,std::uint64_t(h.count-c.received)*1228,rate_,route_.config);c.dirty[h.index/256]=true;
   if(h.index+1==h.count||h.index>c.cursor)c.ack_due=now;while(c.cursor<h.count&&(c.bits[c.cursor/64]&(1ull<<(c.cursor%64))))++c.cursor;
   if(c.received!=h.count)return false;
   try {
@@ -153,24 +156,24 @@ bool Reassembler::Receive(std::span<const std::uint8_t> b,std::uint64_t now,Mess
 std::vector<ReceiveBitmap> Reassembler::Acks(std::uint64_t now,unsigned max_windows){
   Expire(now);std::vector<ReceiveBitmap> out;max_windows=(std::min)(max_windows,8u);
   for(auto &[key,c]:pending_){if(!Reliable(c.header.lane)||now<c.ack_due)continue;
-    if(c.complete&&out.size()<max_windows){ReceiveBitmap a;a.transfer=key.transfer;a.part_count=c.header.count;a.window=((c.header.count-1)/256)*256;a.complete=true;for(unsigned j=0;j<4;++j){const auto index=a.window/64+j;if(index<c.bits.size())a.bits[j]=c.bits[index];}out.push_back(a);std::fill(c.dirty.begin(),c.dirty.end(),false);c.ack_due=now+200;continue;}
+    if(c.complete&&out.size()<max_windows){ReceiveBitmap a;a.transfer=key.transfer;a.part_count=c.header.count;a.window=((c.header.count-1)/256)*256;a.complete=true;for(unsigned j=0;j<4;++j){const auto index=a.window/64+j;if(index<c.bits.size())a.bits[j]=c.bits[index];}out.push_back(a);std::fill(c.dirty.begin(),c.dirty.end(),false);c.ack_due=now+route_.config.rto_initial_ms;continue;}
     for(unsigned window=0;window<c.dirty.size()&&out.size()<max_windows;++window)if(c.dirty[window]){ReceiveBitmap a;a.transfer=key.transfer;a.part_count=c.header.count;a.window=window*256;for(unsigned j=0;j<4;++j)if(window*4+j<c.bits.size())a.bits[j]=c.bits[window*4+j];out.push_back(a);c.dirty[window]=false;}
-    c.ack_due=now+50;
+    c.ack_due=now+route_.config.receive_ack_ms;
   }statistics_.ack_windows+=out.size();return out;
 }
-std::uint64_t Reassembler::NextWake(std::uint64_t now) const noexcept {auto next=now+1000;for(const auto &[key,c]:pending_){next=(std::min)(next,c.started+120000);if(Reliable(c.header.lane))next=(std::min)(next,c.ack_due);if(!c.complete)next=(std::min)(next,c.progress+(WorldLane(c.header.lane)?2000:limits_.timeout_ms));}return (std::max)(now,next);}
-void ReliableSender::Authorize(Route r) noexcept {if(r.connection!=route_.connection||r.epoch!=route_.epoch||!r.negotiated||!r.world||r.zstd!=route_.zstd||r.scope!=route_.scope){transfers_.clear();last_transfer_=0;results_.clear();}route_=r;}
+std::uint64_t Reassembler::NextWake(std::uint64_t now) const noexcept {auto next=now+1000;for(const auto &[key,c]:pending_){next=(std::min)(next,c.started+route_.config.absolute_timeout_ms);if(Reliable(c.header.lane))next=(std::min)(next,c.ack_due);if(!c.complete)next=(std::min)(next,c.progress+(WorldLane(c.header.lane)?route_.config.progress_timeout_ms:limits_.timeout_ms));}return (std::max)(now,next);}
+void ReliableSender::Authorize(Route r) noexcept {if(r.connection!=route_.connection||r.epoch!=route_.epoch||!r.negotiated||!r.world||r.zstd!=route_.zstd||r.scope!=route_.scope){transfers_.clear();last_transfer_=0;results_.clear();}route_=r;rtt_.Configure(r.config);rate_=r.config.reliable_bytes_per_second;}
 void ReliableSender::Start(SharedBlob blob,std::uint64_t id,std::uint64_t now){
   if(!route_.negotiated||!route_.world||!route_.connection||!route_.epoch||!blob||!Reliable(blob->lane)||id<=last_transfer_||id==UINT64_MAX||!WorldValid(route_.scope)||blob->world!=route_.scope)Fail("stream_send_not_authorized");if(blob->codec==Codec::Zstd&&!route_.zstd)Fail("stream_codec_not_negotiated");if(transfers_.size()>=route_.world_limits.candidates)Fail("stream_send_candidate_budget");
   const auto count=(blob->bytes.size()+1135)/1136;if(!count||count>route_.world_limits.fragments||blob->bytes.size()>route_.world_limits.bytes||blob->decoded_bytes>route_.world_limits.bytes)Fail("stream_fragment_count_or_peer_budget");
-  Transfer t;t.blob=std::move(blob);t.id=id;t.started=t.progress=now;t.deadline=TransferDeadline(now,now,count*1228,rate_);t.count=unsigned(count);t.memory=memory::Reserve(memory::Pool::Wire,count*11+sizeof(Transfer)+128);t.sent.resize(count);t.acked.resize(count);t.sent_at.resize(count);t.retransmitted.resize(count);transfers_.emplace(id,std::move(t));last_transfer_=id;
+  Transfer t;t.blob=std::move(blob);t.id=id;t.started=t.progress=now;t.deadline=TransferDeadline(now,now,count*1228,rate_,route_.config);t.count=unsigned(count);t.memory=memory::Reserve(memory::Pool::Wire,count*11+sizeof(Transfer)+128);t.sent.resize(count);t.acked.resize(count);t.sent_at.resize(count);t.retransmitted.resize(count);transfers_.emplace(id,std::move(t));last_transfer_=id;
 }
 bool ReliableSender::Acknowledge(const Message &m,std::uint64_t now){
   if(m.connection!=route_.connection||m.route!=route_.epoch)Fail("stream_ack_route");const auto a=ReadAck(m);auto i=transfers_.find(a.transfer);if(i==transfers_.end())return false;auto &t=i->second;if(a.part_count!=t.count)Fail("stream_ack_count");
   for(unsigned j=0;j<256&&a.window+j<t.count;++j)if((a.bits[j/64]&(1ull<<(j%64)))&&!t.sent[a.window+j])Fail("stream_ack_unsent");
   if(a.complete&&std::find(t.sent.begin(),t.sent.end(),false)!=t.sent.end())Fail("stream_ack_unsent_completion");bool progress=false;
   for(unsigned j=0;j<256&&a.window+j<t.count;++j)if(a.bits[j/64]&(1ull<<(j%64))){if(!t.acked[a.window+j]){progress=true;if(!t.retransmitted[a.window+j]&&now>=t.sent_at[a.window+j])rtt_.Observe(now-t.sent_at[a.window+j]);}t.acked[a.window+j]=true;}
-  if(a.complete){if(results_.size()>=128)Fail("stream_result_queue_full");results_.push_back({a.transfer,true,"received_complete"});transfers_.erase(i);return true;}if(progress){t.progress=now;const auto remaining=std::count(t.acked.begin(),t.acked.end(),false);t.deadline=TransferDeadline(t.started,now,std::uint64_t(remaining)*1228,rate_);}return progress;
+  if(a.complete){if(results_.size()>=128)Fail("stream_result_queue_full");results_.push_back({a.transfer,true,"received_complete"});transfers_.erase(i);return true;}if(progress){t.progress=now;const auto remaining=std::count(t.acked.begin(),t.acked.end(),false);t.deadline=TransferDeadline(t.started,now,std::uint64_t(remaining)*1228,rate_,route_.config);}return progress;
 }
 void ReliableSender::Cancel(std::uint64_t id) noexcept {transfers_.erase(id);}
 bool ReliableSender::Poll(Result &out){if(results_.empty())return false;out=results_.front();results_.pop_front();return true;}
@@ -180,13 +183,13 @@ unsigned ReliableSender::Pump(std::uint64_t now,unsigned budget,const Send &send
   unsigned sent=0,remaining=unsigned(transfers_.size());auto i=transfers_.upper_bound(round_robin_);
   while(remaining&&sent<budget){if(i==transfers_.end())i=transfers_.begin();auto current=i++;auto &t=current->second;round_robin_=t.id;
     const auto quota=sent+(std::max)(1u,(budget-sent)/remaining);--remaining;
-    if(now<t.started||now-t.started>=120000||now>=t.deadline||now<t.progress||now-t.progress>=2000){if(results_.size()>=128)Fail("stream_result_queue_full");results_.push_back({t.id,false,"stream_transfer_no_progress_or_deadline"});transfers_.erase(current);++statistics_.expired;continue;}
+    if(now<t.started||now-t.started>=route_.config.absolute_timeout_ms||now>=t.deadline||now<t.progress||now-t.progress>=route_.config.progress_timeout_ms){if(results_.size()>=128)Fail("stream_result_queue_full");results_.push_back({t.id,false,"stream_transfer_no_progress_or_deadline"});transfers_.erase(current);++statistics_.expired;continue;}
     // 轮转寻找未发送/到期缺片；仅缺片RTO到期重发，已确认位永不重发。
     const bool probe=std::find(t.acked.begin(),t.acked.end(),false)==t.acked.end();
     unsigned examined=0;while(examined++<t.count&&sent<quota){const auto part=t.cursor++%t.count;if((t.acked[part]&&!(probe&&part+1==t.count))||(t.sent[part]&&now>=t.sent_at[part]&&now-t.sent_at[part]<rtt_.Rto()))continue;
-      auto lease=memory::Reserve(memory::Pool::Wire,1200);const auto packet=Datagram(*t.blob,{route_.connection,route_.epoch,t.id},part);const auto result=send(packet);if(result==SendResult::WouldBlock){t.cursor=part;return sent;}if(result==SendResult::Failed)Fail("stream_socket_send_failed");if(t.sent[part]){++statistics_.retransmitted;t.retransmitted[part]=true;}t.sent[part]=true;t.sent_at[part]=now;++sent;++statistics_.fragments;statistics_.payload_bytes+=packet.size();
+      auto lease=memory::Reserve(memory::Pool::Wire,1200);const auto packet=Datagram(*t.blob,{route_.connection,route_.epoch,t.id},part,route_.world_limits);const auto result=send(packet);if(result==SendResult::WouldBlock){t.cursor=part;return sent;}if(result==SendResult::Failed)Fail("stream_socket_send_failed");if(t.sent[part]){++statistics_.retransmitted;t.retransmitted[part]=true;}t.sent[part]=true;t.sent_at[part]=now;++sent;++statistics_.fragments;statistics_.payload_bytes+=packet.size();
     }
   }return sent;
 }
-std::uint64_t ReliableSender::NextWake(std::uint64_t now) const noexcept {std::uint64_t next=now+1000;for(const auto &[id,t]:transfers_){bool missing=false;next=(std::min)(next,(std::min)(t.progress+2000,t.deadline));for(unsigned i=0;i<t.count;++i)if(!t.acked[i]){missing=true;next=(std::min)(next,t.sent[i]?t.sent_at[i]+rtt_.Rto():now);}if(!missing)next=(std::min)(next,t.sent_at.back()+rtt_.Rto());}return (std::max)(now,next);}
+std::uint64_t ReliableSender::NextWake(std::uint64_t now) const noexcept {std::uint64_t next=now+1000;for(const auto &[id,t]:transfers_){bool missing=false;next=(std::min)(next,(std::min)(t.progress+route_.config.progress_timeout_ms,t.deadline));for(unsigned i=0;i<t.count;++i)if(!t.acked[i]){missing=true;next=(std::min)(next,t.sent[i]?t.sent_at[i]+rtt_.Rto():now);}if(!missing)next=(std::min)(next,t.sent_at.back()+rtt_.Rto());}return (std::max)(now,next);}
 } // namespace cs::replica::stream

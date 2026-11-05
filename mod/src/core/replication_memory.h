@@ -12,6 +12,8 @@ struct Usage final {std::uint64_t current=0,high_water=0,limit=0;};
 class Budget final {
 public:
   Budget():usage_{{{0,0,256ull<<20},{0,0,64ull<<20},{0,0,64ull<<20}}}{}
+  // 启动/空闲重载只能在本地硬上限内调整进程池；已有租约时保持原合同。
+  bool Configure(std::array<std::uint64_t,3> limits) noexcept {std::lock_guard lock(mutex_);for(unsigned i=0;i<3;++i)if(usage_[i].current||!limits[i]||limits[i]>std::array<std::uint64_t,3>{256ull<<20,64ull<<20,64ull<<20}[i])return false;for(unsigned i=0;i<3;++i)usage_[i].limit=limits[i];return true;}
   void Acquire(Pool p,std::uint64_t n){std::lock_guard lock(mutex_);auto &u=usage_[unsigned(p)];if(n>u.limit-u.current)throw std::runtime_error("replication_pool_exhausted");u.current+=n;if(u.current>u.high_water)u.high_water=u.current;}
   void Release(Pool p,std::uint64_t n) noexcept {std::lock_guard lock(mutex_);usage_[unsigned(p)].current-=n;}
   std::array<Usage,3> Snapshot() const noexcept {std::lock_guard lock(mutex_);return usage_;}
