@@ -148,7 +148,8 @@ enum class EventKind : std::uint32_t {
   GridPhysicalRetired = 4,
   CurrentPlayerReadWitness = 6,
   SourceMembershipSnapshot = 7,
-  NativeBody = 8 // 本轮追加：内层原生到达/正常返回，沿用同 call/parent。
+  NativeBody = 8, // 本轮追加：内层原生到达/正常返回，沿用同 call/parent。
+  CurrentEntityReadWitness = 9 // 具名非Spawn owner完整完成后的当前读取依据，不补出生。
 };
 // 对象所在域：Entity 与 Grid 的地址空间不合并。
 enum class ObjectDomain : std::uint32_t { Entity = 0, Grid = 1 };
@@ -174,7 +175,9 @@ enum class Readiness : std::uint32_t {
   // 已观察Ctor、基Init和具名角色owner完整返回；不补出生、roster或PlayerUpdate历史。
   PlayerChildInitCompleted = 4,
   // 具名换槽owner正常完成后的当前存储依据；独立于输入绑定，真实生命周期仍撤销。
-  PlayerStateOwnerCompleted = 5
+  PlayerStateOwnerCompleted = 5,
+  // J273 JoinPass直接Factory/Init/Publish的Effect；完整owner返回后授予，不是基础Init。
+  NativeJoinEffectCompleted = 6
 };
 // 本轮 Authority tick 的类型；0 表示本轮不是有效 Authority 样本。
 enum class AuthorityKind : std::uint32_t { None = 0, StandardRoom = 1, OddPlayer = 2 };

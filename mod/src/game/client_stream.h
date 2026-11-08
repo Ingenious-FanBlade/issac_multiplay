@@ -27,17 +27,20 @@ struct ClientStreamState final {
   std::uint64_t route = 0, manifest_revision = 0, generation = 0, control = 0,
                 ack_at = 0, progress_prefix = 0, progress_sequence = 0;
   replica::stream::Store store;
-  replica::stream::Range manifest, inflight;
+  // planning在已报告事务开始后固定目标；新候选仍可合并，不能替换正在预检的版本。
+  replica::stream::Range manifest, inflight, planning, acquiring;
+  // 结构依赖取得绑定一个精确目标；只有新依赖接纳才推进，Manager轮询不续期。
+  std::uint64_t transaction_started = 0, transaction_progress = 0;
+  std::size_t acquired_dependencies = 0;
   std::map<replica::stream::RangeId, replica::stream::Range> pending;
   std::map<replica::stream::RangeId, replica::stream::Range> available;
   std::map<replica::SubjectKey, replica::stream::Range> bodies;
-  std::map<replica::SubjectKey, memory::Lease> body_memory;
   std::map<replica::stream::RangeId, ClientStreamCommit> acknowledgements;
   std::map<replica::stream::RangeId, ClientStreamCommit> committed;
   std::deque<std::shared_ptr<const replica::stream::Message>> controls;
   std::unique_ptr<replica::Json> skeleton;
   memory::Lease metadata = memory::Reserve(memory::Pool::Values, 65536),
-                model_memory, installed_memory;
+                model_memory, skeleton_memory, installed_memory;
   bool cold_started = false, baseline_committed = false,
        structure_rebuild = false;
 };

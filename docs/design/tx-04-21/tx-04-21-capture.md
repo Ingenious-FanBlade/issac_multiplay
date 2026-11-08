@@ -1,5 +1,7 @@
 # tx-04-21 I06—I10：同窗目标、动态来源、逐身体见证与身份
 
+> 2026-11-07实施补充：原生应用域使用零基Entity=0／Grid=1／Room=2／Player=6，逐窗采样关联保留在同目标WorldDynamic。用户随后要求实施[完整采集链路性能方案](tx-04-21-capture-performance-plan.md)，现已接入同窗类型化值／64项块、单一后台Capture owner、有序控制、精确身体依赖、冷候选、延后回收及完整帧成本统计；未构建／实机复验。跨窗writer闭包未证明，全部必要字段仍FreshRead，`validity.checked`仍指本窗完整读取后的核对。以下原交付时点事实与本补充冲突的线程／编码描述以本补充为准；当前结果见[进度](tx-04-21-e2e-progress.md)。
+
 > 后续进度（2026-11-05）：[I21—I25网络原生安装与确认](tx-04-21-installation.md)及[I23静态研究与主审](tx-04-21-i23-native.md)已完成实现；Release纯编译／链接通过，未测试／启动游戏。I26以后及I39统一验收待继续。下文保留原交付时点事实。
 
 > 后续进度（2026-11-05）：[I16—I20可靠生命周期、预算、时序、Host发布与交接](tx-04-21-publication.md)已实现并经主智能体静态复读，未构建／测试；I21以后与I39统一验收待继续。以下原交付时点的事实保留。
@@ -20,15 +22,34 @@
 
 dirty、来源取消、loss、资源写入和 owner 变化先撤新目标资格，后续完整读取才可恢复适用性。已冻结的 Baseline 与依赖仍是其原采样时刻的历史目标；新冷端/恢复事务应先请求新 Baseline，不能把历史 Baseline 叫作当前 tick。没有按五秒或固定周期重建全域 Baseline。
 
+2026-11-08续验修复：主线程发布信封用采集session／epoch／run／room纯值键区分来源退休与同场景暂缺新候选。后者不取消网络已持有的精确历史目标，前者仍退休路由；活动来源长期未恢复继续使用原stale／recovery期限。Grid逐对象UPDATE只是诊断的`isaac.cs.grid.update`样本，不再当作Lifecycle撤销来源；完整ordinary照常读取Grid当前值，真实Spawn／Destroy／Hurt与native生命周期通知仍保留。`NeedsBaseline`不因普通dirty水位变化把已完成的冷请求重新置为未完成，新run／room与显式请求仍取得新的完整冷来源。
+
 ## I07：普通 WorldDynamic 与 Lua 来源分层
 
-`domains/common/stream.lua` 在正式 Lua 来源**编码前**按同源 `stream_policy.lua` 分层，未先生成全域大 JSON/DOM 再删热字段。原有只读 getter/私有补源只执行同一合并计划的一轮；Latest/Recorder 当次需要冷格式时同时编码旧 envelope，关闭录制不影响产品来源。`Random.stream` 明确为 AuthorityOnly，热路径不枚举整套 RNG/ItemPool 再丢弃；冷来源/录制仍使用原合同。
+2026-11-07起，正式来源经`CopyLuaSource`与`OwnedSource`在主线程封闭为类型化自有值；`read.lua`大型查询结果／图关联每64项封闭，仍来自同一窗口。`stream_source_value.cpp`在后台展开块，`stream_partition.cpp`沿同源成员目录完成原`stream.lua`的分层、采样关联抽取、装备拆分和图闭合，正式路径不再经过Lua JSON。旧Lua分层保留给兼容诊断路径。getter／私有补源仍只按同一合并计划读取一轮；Latest／Recorder需要时从同份来源编码，诊断失败与正式同步分开。`Random.stream`仍为AuthorityOnly，热路径不枚举整套RNG／ItemPool；冷来源／录制继续按原读取合同取得。
 
-固定外层布局由 `CaptureLayouts()` 提供：`stream.context.v1`、`stream.structure.v1`、`stream.resource.v1`、`stream.world.v1` 和 `stream.player.v1`。各 Record 持有已解析自有值树及固定字段编号；逐成员紧凑编码仍归 I11。普通目标保留完整 Entity/Grid/Room 成员、类别、use/shape、空间/姿态、门/机关和对应动态终值。Player 不加入 WorldDynamic 成员；尚未开放 PlayerPost 的私有/容器字段保留在 `body-joint/<key>` 普通联合 Context 中，由同一普通目标依赖。
+固定外层布局由 `CaptureLayouts()` 提供：`stream.context.v1`、`stream.structure.v1`、`stream.resource.v1`、`stream.world.v2` 和 `stream.player.v1`。各 Record 持有已解析自有值树及固定字段编号；逐成员紧凑编码仍归 I11。普通目标保留完整 Entity/Grid/Room 成员、类别、use/shape、空间/姿态、门/机关和对应动态终值。Player 不加入 WorldDynamic 成员；尚未开放 PlayerPost 的私有/容器字段保留在 `body-joint/<key>` 普通联合 Context 中，由同一普通目标依赖。
 
 普通源只在实际普通窗口正常完成后计一份新 WorldDynamic；odd 不补房间帧，重复 capture/tick 不发布。零值、Null、Empty 和完整空成员集合保留；Partial、枚举缺口、取消、源变化和预算错误不产生删除。完整缺席记作 `AbsentFromCompleteMembership;not_physical_destruction`，与正常析构后的物理退休分开。
 
-拆分后的每条 Record/每域 Context 都形成闭合的局部值图：从原来源补入实际存在的 graph 定义，保留环、明确局部节点编号，悬空/冲突/预算失败拒绝发布。不按内容推断对象别名，不做子树去重。观察历史、采样 scope 等元数据由 Sample/validity 和冷来源保留，不作为世界终值反复改变低频范围；楼层/离房 `location` 只保留真实身份。
+拆分后的每条 Record/每域 Context 都形成闭合的局部值图：从原来源补入实际存在的 graph 定义，保留环、明确局部节点编号，悬空/冲突/预算失败拒绝发布。不按内容推断对象别名，不做子树去重。通用观察历史按原合同由Sample／validity和冷来源保留；2026-11-07补明并修复：`location.scope/entity_scope`、Player来源／canonical scope／continuity、RoomSave集合source_scope／temporal_relation及Presentation canonical scope保留实际值，分层进入同目标WorldDynamic。稳定范围保留真实身份及业务内容，完整合并后同窗字段仍在原路径供安装器校验，不能删字段或补造新scope。
+
+### 2026-11-07：同tx的构建内存修复
+
+第69轮E02.cold-51的实际失败仍为Host Entity分层分配失败202次、无成功基线、Client等待世界超时；进程private峰值2,133,397,504字节，三池没有预算拒绝。第70轮来源SAX和装备子树修复尚无新run结果，不能据此推断具体地址空间上限或持续泄漏。
+
+本次继续修复纯值后台的副本和容器寿命，不改变完整采集范围、Query参数组合、三池额度或协议：
+
+- 分块展开直接发送到一个SAX构建栈，容器按实际项数一次分配；不先建立每块临时数组再拼接，所有输出字符串仍复制到目标arena。
+- 分层小对象按已知成员数取得容量，数组只为真正缺席的槽生成`stream_absent_piece`；有效Null与缺席分别记录，避免为随后被覆盖的所有槽预建小对象。
+- 图闭合在分层唯一树上原地排序、规范编号，只复制跨分区缺少的实际定义；原编号的locals/ids、环、冲突和悬空检查保持。装备和采样关联拆分的临时副本使用短命arena，不留在最终范围的arena中。
+- ordinary先验证十一域整窗，再暂留Entity/Grid完成全体身份登记；其它域逐个展开、分层和投影。每域投影完成即销毁该域中间arena，身份引用仍在完整登记之后处理。
+- Registry投影的数组预留实际槽数、小对象预留已知成员数，避免再次把Query包装扩大到默认16槽。冷模型共用原封套校验但逐域消费，最多保留当前一域的展开封套；最终`components`连同arena封闭移交，不深复制整个组件树。
+- 构建失败后尝试收集Store已无依赖的旧候选，避免部分范围已入库的失败重试累积旧版本。arena系统分配失败使用不分配内存的异常消息保留`requested`与该arena的`held`；其含义是实际chunk请求，不代表整个进程可用空间。
+
+E2E冷构建新增`capture-memory:partition`：依次记录capture、tick、domain零基编号、来源序列化字节估计、当前展开arena容量、分层arena容量、外层临时租约、单机毫秒。节点private采样与三池账本仍分别报告，不能互相代替。当前仍保留同窗自有来源、必要最终分层范围及冷组件；单域展开和身份投影也仍有临时内存，不声称已成为零复制系统。代码构建和同一E2E中的实际峰值、完整字段/图、基线发布及Client提交需要分别记录，不提前改判历史失败。
+
+E02.cold-54进一步把失败定位到首对象、仅4 KiB的分层arena。源码复核发现目录生成物还有1168段`std::string + std::string`链：当前MSVC在重新分配时保留各前缀临时值至完整表达式结束；9.88MB目录的全部前缀正文长度和达5.79GB（静态推导，非实际成功分配）。五个目录统一通过`cpp_catalog.py`生成单缓冲reserve/append，避免把文档目录初始化变成进程级峰值。FieldLayer直接查生成的`stream_field_layers.inc`静态表，和Lua策略共用冲突处理、排序及scope映射；字段、编号、目录正文和协议不变。这是同tx失败后的继续修复，是否越过原失败仍以新run为准。
 
 ## I08：逐身体 PlayerPost
 
@@ -44,7 +65,7 @@ dirty、来源取消、loss、资源写入和 owner 变化先撤新目标资格�
 
 Context 按十一域具名，身体普通联合状态按 Key 具名；Structure 和 Resource 独立版本。范围完整值、成员与依赖均相等才复用；WorldDynamic 和 PlayerFast 每次都需新真实样本。装备/关系/形态变化保留完整新范围；当前 Weapon 充能、effects 冷却和 head 动画等与装备成员分开，Sprite 定义与当前姿态分开，不因 HUD/采样 scope 改号使整个 room_save 重发。
 
-`Store::Collect` 保留当前根、已安装值、外部共享值以及其依赖闭包。每份普通/身体 Publication 持有完整自有依赖引用；即使后续换 Scene 或采集 owner 退休，在途者仍持有原不可变值，最后引用释放后才回收。Store 继续使用既有 256 MiB、8192 项和每范围 128 版本保护；全链/Peer 的统一计费仍归 I14，不把本轮纯值保护冒称完整传输预算。
+`Store::Collect` 保留当前根、已安装值、外部共享值以及其依赖闭包。每份普通/身体 Publication 持有完整自有依赖引用；即使后续换 Scene 或采集 owner 退休，在途者仍持有原不可变值，最后引用释放后才回收。Store 使用 512 MiB（2026-11-07随用户决定翻倍的值池同步）、8192 项和每范围 128 版本保护；全链/Peer 的统一计费仍归 I14，不把本轮纯值保护冒称完整传输预算。
 
 资源通过官方 API ABI 的九个常驻观察 Hook 维护本地失效代次。它是自有 token，不是地址、文件哈希或补造的原生出生证明；可能写入的调用即撤旧资格，原链恰好一次，未采集时透传。
 

@@ -44,7 +44,9 @@ if($Worker){
   $arguments=@{Topology=[string]$profile.topology;RunDirectory=[string]$profile.run_directory;UiDirectory=$uiRoot;UiSession=[string]$profile.session}
   if($profile.resume -eq $true){$arguments.Resume=$true;$arguments.ReuseReason=[string]$profile.reuse_reason;$arguments.Rerun=@($profile.rerun -split ',' | ForEach-Object {$_.Trim()} | Where-Object {$_})}
   & (Join-Path $PSScriptRoot 'run-tx-04-21.ps1') @arguments
-  Write-UiJson 'lifecycle.json' @{busy=$false;pid=$PID;complete=$true;message='P2/P4整体验收及部署还原完成。';run_directory=$profile.run_directory}
+  $finishedTopology=Get-Content -LiteralPath $profile.topology -Raw | ConvertFrom-Json -AsHashtable
+  $finishedMessage=if($finishedTopology.phase -eq 'p2'){'P2完整验收及部署还原完成；P4未执行，保留必要续验进度。'}else{'P2/P4整体验收及部署还原完成。'}
+  Write-UiJson 'lifecycle.json' @{busy=$false;pid=$PID;complete=$true;message=$finishedMessage;run_directory=$profile.run_directory}
  }catch{
   Write-UiJson 'lifecycle.json' @{busy=$false;pid=$PID;complete=$false;message=('必要中断：'+$_);run_directory=$profile.run_directory}
   exit 1
@@ -56,7 +58,7 @@ $uiMutex=[Threading.Mutex]::new($false,'Local\IsaacCS-tx04-21-UI')
 $uiAcquired=$false
 $child=$null
 try{
- try{$uiAcquired=$uiMutex.WaitOne(0)}catch[Threading.AbandonedMutexException]{$uiAcquired=$true}
+ try{$uiAcquired=$uiMutex.WaitOne(0)}catch [Threading.AbandonedMutexException]{$uiAcquired=$true}
  if(-not $uiAcquired){throw 'A tx-04-21 GUI controller is already active'}
  $previous=Read-UiJson 'lifecycle.json'
  $previousProcess=if($previous.busy){Get-Process -Id ([int]$previous.pid) -ErrorAction SilentlyContinue}else{$null}
@@ -65,7 +67,8 @@ try{
  if(-not $profile -or [string]::IsNullOrWhiteSpace($profile.topology)){throw '请先填写实际拓扑文件路径'}
  if(-not (Test-Path -LiteralPath $profile.topology -PathType Leaf)){throw '实际拓扑文件不存在，请先修正面板中的路径'}
  $topology=Get-Content -LiteralPath $profile.topology -Raw | ConvertFrom-Json -AsHashtable
- if($topology.format -ne 'isaac.cs.tx21.topology' -or $topology.nodes.Count -ne 4 -or $topology.nodes[0].id -ne 'host' -or $topology.nodes[0].computer -ne 'localhost'){throw 'GUI需要四个真实节点，且协调器为本机Host'}
+ $phase=if($topology.phase){[string]$topology.phase}else{'p2-p4'}
+ if($topology.format -ne 'isaac.cs.tx21.topology' -or $phase -notin @('p2','p2-p4') -or $topology.nodes.Count -notin @(2,4) -or ($phase -eq 'p2-p4' -and $topology.nodes.Count -ne 4) -or $topology.nodes[0].id -ne 'host' -or $topology.nodes[0].computer -ne 'localhost'){throw 'GUI需要本机Host：p2为两个真实节点，p2-p4为四个真实节点'}
  $profile.session=[guid]::NewGuid().ToString('N')
  if([string]::IsNullOrWhiteSpace($profile.run_directory)){$profile.run_directory=Join-Path $uiRepo ('out/tx-04-21-'+[guid]::NewGuid().ToString('N'))}
  if($profile.resume -eq $true -and [string]::IsNullOrWhiteSpace($profile.reuse_reason)){throw '续跑必须填写未受影响结果复用原因'}
@@ -113,7 +116,7 @@ public class Tx21PassiveForm : System.Windows.Forms.Form {
   $path=Join-Path $uiRoot ('responses/'+$current.id+'.json')
   $bytes=$uiUtf8.GetBytes((@{id=$current.id;answer=$Answer}|ConvertTo-Json -Compress))
   if($bytes.Length -gt 16384){throw '回答过长'}
-  try{$stream=[IO.File]::Open($path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,([IO.FileShare]::Read -bor [IO.FileShare]::Delete))}catch[IO.IOException]{return}
+  try{$stream=[IO.File]::Open($path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,([IO.FileShare]::Read -bor [IO.FileShare]::Delete))}catch [IO.IOException]{return}
   try{$stream.Write($bytes,0,$bytes.Length)}finally{$stream.Dispose()}
   $accept.Enabled=$false;$fail.Enabled=$false;$stop.Enabled=$false
  }

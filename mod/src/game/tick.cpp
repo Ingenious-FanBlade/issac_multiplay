@@ -1,4 +1,5 @@
 #include "game/tick.h"
+#include "core/capture_cost.h"
 #include "game/context.h"
 #include "game/input_a.h"
 #include "game/join.h"
@@ -531,9 +532,31 @@ std::string HostStreamFields(unsigned ordinal,unsigned page){
   out+="stream.first_failure="+std::string(status.replication_first_failure.data())+"\n";
   PROCESS_MEMORY_COUNTERS_EX pm{};pm.cb=sizeof(pm);if(GetProcessMemoryInfo(GetCurrentProcess(),reinterpret_cast<PROCESS_MEMORY_COUNTERS *>(&pm),sizeof(pm))){add("process_private_bytes",pm.PrivateUsage);add("process_working_set_bytes",pm.WorkingSetSize);}else out+="stream.process_memory=unavailable\n";
   for(unsigned i=0;i<3;++i){const auto &p=status.replication_memory[i];out+="stream.pool."+std::to_string(i)+"="+std::to_string(p.current)+"/"+std::to_string(p.high_water)+"/"+std::to_string(p.limit)+"\n";}
+  out+=memory::ReplicationBudget()->FailureFields();
   return out;
 }
-std::string SourceStreamFields(unsigned page){if(!IsMain()||page>=32)return "ok=0\nerror=stream_source_arguments\n";const auto c=CurrentWorldRecording();if(!c)return "ok=0\nerror=stream_source_off\n";auto out="ok=1\n"+c->stream.Statistics().Fields("stream.source.",page);out+="stream.source.baseline_request_local_ms="+std::to_string(c->stream.Status().baseline_request_local_ms)+"\nstream.source.baseline_published_local_ms="+std::to_string(c->stream.Status().baseline_published_local_ms)+"\n";for(unsigned i=page*2;i<(std::min)(unsigned(c->body_status.size()),page*2+2);++i){const auto &b=c->body_status[i];const auto prefix="stream.source.body."+std::to_string(i)+".";out+=prefix+"local="+std::to_string(b.local)+"\n"+prefix+"use="+std::to_string(b.use)+"\n"+prefix+"shape="+std::to_string(b.shape)+"\n"+prefix+"binding="+std::to_string(b.binding)+"\n"+prefix+"actual_updates="+std::to_string(b.actual_updates)+"\n"+prefix+"qualified_samples="+std::to_string(b.qualified_samples)+"\n"+prefix+"last_native_update_tick="+std::to_string(b.last_native_update_tick)+"\n"+prefix+"last_capture_tick="+std::to_string(b.last_capture_tick)+"\n"+prefix+"throttled="+std::to_string(b.throttled)+"\n";}return out;}
+std::string SourceStreamFields(unsigned page){
+  if(!IsMain()||page>=32)return "ok=0\nerror=stream_source_arguments\n";
+  const auto c=CurrentWorldRecording();if(!c)return "ok=0\nerror=stream_source_off\n";
+  auto out="ok=1\n"+c->stream.Statistics().Fields("stream.source.",page);
+  out+=capture::CostFields(page);
+  if(!page){const auto pools=memory::ReplicationBudget()->Snapshot();for(unsigned i=0;i<3;++i)out+="stream.pool."+std::to_string(i)+"="+std::to_string(pools[i].current)+"/"+std::to_string(pools[i].high_water)+"/"+std::to_string(pools[i].limit)+"\n";out+=memory::ReplicationBudget()->FailureFields();}
+  const auto &stream=c->stream.Status();const auto live=c->live.Status();
+  // 发布前失败也输出实际owner原因；零样本计数不能说明在等待哪个域或哪个提交边界。
+  out+="stream.source.ready="+std::to_string(stream.ready)+"\nstream.source.reason="+stream.reason+
+    "\nstream.source.live_reason="+live.reason+"\nstream.source.live_delivered="+std::to_string(live.delivered)+
+    "\nstream.source.live_gaps="+std::to_string(live.gaps)+"\nstream.source.live_invalidations="+std::to_string(live.invalidations)+
+    "\nstream.source.lua_attempts="+std::to_string(c->lua_attempts)+"\nstream.source.lua_partial="+std::to_string(c->lua_partial)+
+    "\nstream.source.baseline_request_local_ms="+std::to_string(stream.baseline_request_local_ms)+
+    "\nstream.source.baseline_published_local_ms="+std::to_string(stream.baseline_published_local_ms)+"\n";
+  for(unsigned i=page*2;i<(std::min)(unsigned(c->body_status.size()),page*2+2);++i){
+    const auto &b=c->body_status[i];const auto prefix="stream.source.body."+std::to_string(i)+".";
+    out+=prefix+"local="+std::to_string(b.local)+"\n"+prefix+"use="+std::to_string(b.use)+"\n"+prefix+"shape="+std::to_string(b.shape)+"\n"+prefix+"binding="+std::to_string(b.binding)+"\n"+prefix+"actual_updates="+std::to_string(b.actual_updates)+"\n"+prefix+"qualified_samples="+std::to_string(b.qualified_samples)+"\n"+prefix+"last_native_update_tick="+std::to_string(b.last_native_update_tick)+"\n"+prefix+"last_capture_tick="+std::to_string(b.last_capture_tick)+"\n"+prefix+"throttled="+std::to_string(b.throttled)+"\n";
+  }
+  for(unsigned i=page? page*2:0;i<(std::min)(unsigned(c->lua_partial_reasons.size()),page? page*2+2:unsigned(c->lua_partial_reasons.size()));++i)
+    out+="stream.source.domain."+std::to_string(i)+".reason="+c->lua_partial_reasons[i]+"\n";
+  return out;
+}
 std::string StatusFields() {
   auto *r = Runtime();
   std::string out =
@@ -690,6 +713,7 @@ std::string StatusFields() {
   n("net_rx_dropped", network.receive_queue_dropped);
   n("net_tx_dropped", network.send_queue_dropped);
   n("net_foreign", network.foreign_packets);
+  n("net_route_rejected", network.routing_rejected_packets);
   n("net_rx_errors", network.receive_errors);
   n("net_tx_errors", network.send_errors);
   n("net_dropped", network.foreign_packets + network.stale_packets +

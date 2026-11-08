@@ -1,13 +1,16 @@
 #include "game/client_presentation.h"
+#include "game/client_dto_memory.h"
 #include "game/client_resource_model.h"
 #include "replica/player_target.h"
 #include <cmath>
+#include <cstring>
 #include <stdexcept>
 #include <utility>
 #include <functional>
 #include <limits>
 
 namespace cs::game {
+std::uint64_t ClientPresentation::StreamValueBytes() const {return sizeof(*this)+dto_memory::Extra(target_)+ClientPresentationValueBytes(native_);}
 namespace {
 const replica::Value &Member(const replica::Value &v,const char *name) {
   if(!v.IsObject()||!v.HasMember(name))throw std::runtime_error(std::string("presentation_missing:")+name);
@@ -29,9 +32,19 @@ int Integer(const replica::Value &v,int low,int high) {
   return int(n);
 }
 std::uint32_t Word(const replica::Value &v){if(!v.IsUint64()||v.GetUint64()>UINT32_MAX)throw std::runtime_error("presentation_word");return std::uint32_t(v.GetUint64());}
-// FX的条件值是原生float，不能以不透明word绕过NaN/Inf检查。
-float FXCondition(const replica::Value &v){if(!v.IsNumber()||!std::isfinite(v.GetDouble())||std::abs(v.GetDouble())>std::numeric_limits<float>::max())
-  throw std::runtime_error("presentation_fx_nonfinite_condition");return float(v.GetDouble());}
+// v5只为96C620的零比较条件提供精确IEEE表示，并核对分类；坐标/颜色/速度仍走有限数检查。
+// 原生ctor未完整初始化此字，不能把实机ffffffff擅自命名为“初始化sentinel”或改成默认0。
+std::uint32_t FXCondition(const replica::Value &v,int version){
+  if(version>=5){
+    if(!v.IsObject()||v.MemberCount()!=3||!Member(v,"type").IsString()||std::string(Member(v,"type").GetString())!="float32_condition"||!Member(v,"classification").IsString())throw std::runtime_error("presentation_fx_condition_encoding");
+    const auto bits=Word(Member(v,"bits"));const auto exponent=bits&0x7f800000u,mantissa=bits&0x007fffffu;
+    const char *classification=exponent!=0x7f800000u?"Finite":mantissa?"NaN":bits&0x80000000u?"NegativeInfinity":"PositiveInfinity";
+    if(std::string(Member(v,"classification").GetString())!=classification)throw std::runtime_error("presentation_fx_condition_classification");
+    return bits;
+  }
+  if(!v.IsNumber()||!std::isfinite(v.GetDouble())||std::abs(v.GetDouble())>std::numeric_limits<float>::max())throw std::runtime_error("presentation_fx_nonfinite_condition");
+  const float value=float(v.GetDouble());std::uint32_t bits=0;std::memcpy(&bits,&value,4);return bits;
+}
 std::string Text(const replica::Value &v) {
   if(!v.IsString()||v.GetStringLength()>96)throw std::runtime_error("presentation_animation");
   return {v.GetString(),v.GetStringLength()};
@@ -66,7 +79,7 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
     if(!transition.IsObject()||!Member(transition,"type").IsString()||std::string(Member(transition,"type").GetString())!="int64"||
        !Member(transition,"value").IsString()||std::string(Member(transition,"value").GetString())!="0")
       throw std::runtime_error("presentation_stable_room_transition_required");
-    const int presentation_version=Integer(Member(v,"version"),2,4);
+    const int presentation_version=Integer(Member(v,"version"),2,5);
     ClientPresentationDescription d;d.room_state=room_state;d.map=map_target;d.full_players=replica::HasPlayerTarget(model);
     const auto &room=Member(Member(Member(model,"components"),"room"),"state");
     if(room.HasMember("map_sprites")){
@@ -201,14 +214,14 @@ bool ClientPresentation::PrepareTarget(const replica::Value &model,const char *&
     for(const auto &source:layers.GetArray()){
       ClientPresentationFX layer;
       layer.id=unsigned(Integer(Member(source,"id"),0,100000));layer.pass=unsigned(Integer(Member(source,"pass"),1,6));
-      layer.color_branch=FXCondition(Member(source,"color_branch"));layer.mask_backdrop=Word(Member(source,"mask_backdrop"));layer.mask=Boolean(Member(source,"mask"));
+      layer.color_condition_bits=FXCondition(Member(source,"color_branch"),presentation_version);layer.mask_backdrop=Word(Member(source,"mask_backdrop"));layer.mask=Boolean(Member(source,"mask"));
       image_description(source,layer);
       const bool generic=layer.pass==1||layer.pass==2||layer.pass==3||layer.pass==6;
       // v2/v3未采混合模式；仅未消费该字段的pass4/5可继续使用旧来源，generic缺值必须拒绝。
       if(generic||presentation_version>=4)layer.blend_mode=unsigned(Integer(Member(source,"blend_mode"),0,2));
       if(!generic&&layer.blend_mode)throw std::runtime_error("presentation_fx_unused_blend_mode");
-      if((layer.mask&&(!generic||layer.vertex_stride!=44||layer.color_branch!=0))||(!layer.mask&&layer.mask_backdrop)||
-         (!generic&&layer.color_branch!=0))throw std::runtime_error("presentation_fx_mask_format_conflict");
+      if((layer.mask&&(!generic||layer.vertex_stride!=44||(layer.color_condition_bits&0x7fffffffu)!=0))||(!layer.mask&&layer.mask_backdrop)||
+         (!generic&&(layer.color_condition_bits&0x7fffffffu)!=0))throw std::runtime_error("presentation_fx_mask_format_conflict");
       const auto &poses=Member(source,"poses");
       if(!poses.IsArray()||poses.Size()>256)throw std::runtime_error("presentation_fx_pose_budget");
       for(const auto &pose:poses.GetArray()){

@@ -68,6 +68,11 @@ def members():
             e['returns']='int[]'
             e['reason']='Wiki标题int与正文array冲突；官方Lua_EntityLaserGetHitList逐项返回整数table，采用int[]并保留原签名'
             e['sources'].append({'wiki':'repentogon-source','path':str(WIKIS[1][1].parent.parent/'repentogon/LuaInterfaces/Entities/LuaEntityLaser.cpp').replace('\\','/'),'line':114})
+        # 官方wrapper用lua_pushnumber返回double缓存值；Wiki的int标题不能截断小数或拒绝真实来源。
+        if e['id']=='EntityPlayer.GetTearsCap':
+            e['documented_returns']=e['returns'];e['returns']='double'
+            e['reason']='官方1.1.3 Lua_PlayerGetTearsCap返回GetCustomCacheValue的double；保留Wiki原始int签名'
+            e['sources'].append({'wiki':'repentogon-source','path':str(WIKIS[1][1].parent.parent/'repentogon/LuaInterfaces/Entities/LuaEntityPlayer.cpp').replace('\\','/'),'line':2857})
         # Angle标题int8的正文明确0..255，官方getter也零扩展uint8；保留原文而修正采用范围。
         if e['id']=='EntityDelirium.Angle':
             e['documented_returns']=e['returns'];e['returns']='uint8'

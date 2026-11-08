@@ -1,4 +1,6 @@
 #include "replica/model.h"
+#include "core/owned_source.h"
+#include "replica/stream_source_value.h"
 #include "replica/projection_graph.h"
 #include "replica/room_grid_target.h"
 #include "replica/entity_target.h"
@@ -49,7 +51,7 @@ const char *DomainName(unsigned d){
 }
 // 归属和未调度占位仅传状态；解释位于版本化目录，读取失败的诊断仍按原值保留。
 Value Status(Allocator &a,const std::string &status){
-  Value out(rapidjson::kObjectType);Put(out,"status",status,a);return out;
+  auto out=SizedObject(1,a);Put(out,"status",status,a);return out;
 }
 bool Same(const Value &a,const Value &b){return a==b;}
 void Model(const Value &v){
@@ -80,9 +82,31 @@ Json Parse(const std::string &s,Limits l){
 std::string Text(const Value &v){rapidjson::StringBuffer b;rapidjson::Writer<rapidjson::StringBuffer> w(b);if(!v.Accept(w)) Fail("invalid_value");return {b.GetString(),b.GetSize()};}
 Json Copy(const Value &v){Json d;d.CopyFrom(v,d.GetAllocator());return d;}
 std::uint64_t OwnedValueUpperBound(const Value &v){
-  CheckValue(v);std::uint64_t bytes=65536;
-  const auto visit=[&](const auto &self,const Value &x)->void{const auto n=128ull+(x.IsString()?2ull*x.GetStringLength():0);if(n>UINT64_MAX-bytes)Fail("value_memory_overflow");bytes+=n;if(x.IsArray())for(const auto &e:x.GetArray())self(self,e);if(x.IsObject())for(auto i=x.MemberBegin();i!=x.MemberEnd();++i){self(self,i->name);self(self,i->value);}};
-  visit(visit,v);return bytes;
+  CheckValue(v);
+  // CopyFrom与本计量器接受完全相同的SAX顺序：字符串先分配，容器在End时一次精确分配。
+  // 按当前SDK的8字节对齐、自有chunk和UTF8内联字符串布局模拟，不创建另一份DOM。
+  struct CopyArena final : rapidjson::BaseReaderHandler<rapidjson::UTF8<>,CopyArena> {
+    std::uint64_t capacity=0,remaining=0;
+    void Allocate(std::uint64_t n){
+      if(!n)return;if(n>UINT64_MAX-7)Fail("value_memory_overflow");n=(n+7)&~7ull;
+      if(n>remaining){const auto chunk=(std::max)(kJsonArenaChunk,n);if(chunk>UINT64_MAX-capacity)Fail("value_memory_overflow");capacity+=chunk;remaining=chunk;}
+      remaining-=n;
+    }
+    bool String(const char *,rapidjson::SizeType n,bool copy){if(copy&&n>sizeof(Value)-3)Allocate(std::uint64_t(n)+1);return true;}
+    bool Key(const char *s,rapidjson::SizeType n,bool copy){return String(s,n,copy);}
+    bool EndArray(rapidjson::SizeType n){Allocate(std::uint64_t(n)*sizeof(Value));return true;}
+    bool EndObject(rapidjson::SizeType n){Allocate(std::uint64_t(n)*sizeof(Value::Member));return true;}
+  } arena;
+  static_assert(sizeof(Value)==16||sizeof(Value)==24);
+  if(!v.Accept(arena))Fail("value_memory_measure");
+  const auto headers=(arena.capacity/kJsonArenaChunk+1)*64;
+  if(arena.capacity>UINT64_MAX-sizeof(Json)||headers>UINT64_MAX-arena.capacity-sizeof(Json))Fail("value_memory_overflow");
+  return arena.capacity+headers+sizeof(Json);
+}
+std::uint64_t OwnedJsonBytes(const Json &v){
+  // RapidJSON缺少const GetAllocator；这里只读取Capacity，不修改值树或分配器。
+  const auto capacity=const_cast<Json &>(v).GetAllocator().Capacity();
+  return capacity+(capacity/kJsonArenaChunk+1)*64+sizeof(Json);
 }
 void CheckValue(const Value &v,Limits l){
   std::uint64_t nodes=0;Check(v,l,0,nodes);
@@ -190,7 +214,7 @@ Value Registry::Key(unsigned space,const std::string &local,const std::string &u
     if(keys_.size()>=262144||next_==UINT64_MAX) Fail("identity_exhausted");
     it=keys_.emplace(name,++next_).first;
   }
-  Value out(rapidjson::kObjectType);Put(out,"run",Decimal(run_,a),a);Put(out,"space",Value(space),a);Put(out,"id",Decimal(it->second,a),a);return out;
+  auto out=SizedObject(3,a);Put(out,"run",Decimal(run_,a),a);Put(out,"space",Value(space),a);Put(out,"id",Decimal(it->second,a),a);return out;
 }
 Value Registry::Project(const Value &v,Allocator &a,std::uint64_t epoch){
   auto out=ProjectValue(v,a,epoch,0);PruneProjectionGraph(out);return out;
@@ -198,14 +222,14 @@ Value Registry::Project(const Value &v,Allocator &a,std::uint64_t epoch){
 // 递归阶段只处理显式成员归属，绝不按结果值决定省略；图闭合检查在整组件完成后执行。
 Value Registry::ProjectValue(const Value &v,Allocator &a,std::uint64_t epoch,unsigned depth){
   if(depth>64) Fail("projection_depth");
-  if(v.IsArray()){Value out(rapidjson::kArrayType);for(const auto &x:v.GetArray())out.PushBack(ProjectValue(x,a,epoch,depth+1),a);return out;}
+  if(v.IsArray()){Value out(rapidjson::kArrayType);out.Reserve(v.Size(),a);for(const auto &x:v.GetArray())out.PushBack(ProjectValue(x,a,epoch,depth+1),a);return out;}
   if(!v.IsObject()) {Value out;out.CopyFrom(v,a);return out;}
   if(v.HasMember("session")&&Unsigned(v["session"])!=source_session_) Fail("cross_session_subject");
   if(v.HasMember("epoch")&&v["epoch"].IsString()&&Unsigned(v["epoch"])!=epoch) Fail("cross_epoch_subject");
   if(v.HasMember("status")&&Str(v["status"])=="NotScheduled")return Status(a,"NotScheduled");
   // Entity／Grid与所有相关身份统一转换，绝不把本地Index／seed／地址当key。
   if(v.HasMember("space")&&v.HasMember("local_id")){
-    Value out(rapidjson::kObjectType);const auto space=unsigned(Unsigned(v["space"]));
+    auto out=SizedObject(3+unsigned(v.HasMember("revision"))+unsigned(v.HasMember("construction_revision"))+unsigned(v.HasMember("control_relation"))+unsigned(v.HasMember("control_group_membership")),a);const auto space=unsigned(Unsigned(v["space"]));
     const auto local=Str(v["local_id"]);std::string status=v.HasMember("resolution")?Str(v["resolution"]):v.HasMember("presence")&&Str(v["presence"])!="Known"?Str(v["presence"]):"KnownCurrent";
     if(strict_sources_&&(space==1||space==2)&&status=="KnownCurrent"&&local!="0"&&!local.empty()){
       const auto base=std::to_string(space)+":"+std::to_string(epoch)+"/"+local;
@@ -227,7 +251,9 @@ Value Registry::ProjectValue(const Value &v,Allocator &a,std::uint64_t epoch,uns
   // 显式只读Query把成员名放在值中；它也遵守同一目录，不能借result包装绕过发送选择。
   const auto *query=v.HasMember("member")&&v["member"].IsString()&&v.HasMember("parameters")&&v.HasMember("result")?Policy(Str(v["member"])):nullptr;
   const bool omitted_query=query&&Str((*query)["ownership"])=="NotReplicated";
-  Value out(rapidjson::kObjectType);
+  // 来源的小Query/值包装按已知成员数分配，避免身份投影重新放大整个域。
+  auto out=SizedObject(v.MemberCount()+unsigned(omitted_query&&!v.HasMember("status"))+
+    unsigned(v.HasMember("type")&&v["type"]=="Sprite"&&!v.HasMember("resource")),a);
   for(auto it=v.MemberBegin();it!=v.MemberEnd();++it){
     const auto key=Str(it->name);
     if(IsInternal(key)) Fail("native_pointer_or_handle");
@@ -238,10 +264,10 @@ Value Registry::ProjectValue(const Value &v,Allocator &a,std::uint64_t epoch,uns
       const auto ownership=Str((*p)["ownership"]);if(ownership=="NotReplicated")continue;
       x=Status(a,ownership);
     }else if(key=="fields"&&it->value.IsObject()){
-      x.SetObject();
+      x=SizedObject(it->value.MemberCount(),a);
       for(auto f=it->value.MemberBegin();f!=it->value.MemberEnd();++f){
         const auto id=Str(f->name);const auto *rule=Policy(id);Value field;
-        if(!rule){field.SetObject();Put(field,"status","Unsupported",a);Put(field,"reason","undeclared_member",a);}
+        if(!rule){field=SizedObject(2,a);Put(field,"status","Unsupported",a);Put(field,"reason","undeclared_member",a);}
         else if(Str((*rule)["ownership"])!="ReplicatedState") {const auto ownership=Str((*rule)["ownership"]);if(ownership=="NotReplicated")continue;field=Status(a,ownership);}
         else field=ProjectValue(f->value,a,epoch,depth+1);
         x.AddMember(String(id,a),field,a);
@@ -266,12 +292,15 @@ Value Registry::ProjectValue(const Value &v,Allocator &a,std::uint64_t epoch,uns
   return out;
 }
 
-Json CaptureRows(const Scope &scope,std::uint64_t revision,const std::vector<Json> &rows,Registry &registry){
+// 共用完整窗口校验，但每次只取得一域封套；冷构建不并存十一棵展开来源树。
+template<class RowAt>
+Json CaptureFromRows(const Scope &scope,std::uint64_t revision,std::size_t count,RowAt row_at,Registry &registry){
   Json out(rapidjson::kObjectType);auto &a=out.GetAllocator();ReadScope(ScopeValue(scope,a));if(!revision)Fail("zero_revision");
   Put(out,"format","isaac.cs.replica.model",a);Put(out,"scope",ScopeValue(scope,a),a);Put(out,"revision",Decimal(revision,a),a);
   Value components(rapidjson::kObjectType),missing(rapidjson::kArrayType);
   std::set<unsigned> domains;std::string window;bool complete=true;std::uint64_t watermark=0;std::uint64_t epoch=0;
-  for(const auto &r:rows){
+  for(std::size_t index=0;index<count;++index){
+    const auto &r=row_at(index);
     if(Str(At(r,"format"))!="isaac.cs.observation"||Unsigned(At(r,"version"))!=2||Unsigned(At(r,"schema_version"))!=2)Fail("source_schema");
     const auto &c=At(r,"context");if(Unsigned(At(c,"session"))!=registry.SourceSession())Fail("cross_session");
     const auto e=Unsigned(At(c,"epoch"));if(!epoch)epoch=e;else if(epoch!=e)Fail("cross_epoch");
@@ -308,8 +337,21 @@ Json CaptureRows(const Scope &scope,std::uint64_t revision,const std::vector<Jso
   Put(out,"publishable",Value(complete),a);Put(out,"event_watermark",Decimal(watermark,a),a);
   Put(out,"native_applied",Value(false),a);ValidateModel(out);return out;
 }
+Json CaptureRows(const Scope &scope,std::uint64_t revision,const std::vector<Json> &rows,Registry &registry){
+  return CaptureFromRows(scope,revision,rows.size(),[&](std::size_t index)->const Json &{return rows[index];},registry);
+}
 Json Capture(const Scope &scope,std::uint64_t revision,const std::vector<world::observation::ObservationEnvelope> &values,Registry &registry){
-  std::vector<Json> rows;rows.reserve(values.size());for(const auto &v:values)rows.push_back(Parse(world::observation::EncodeEnvelope(v)));return CaptureRows(scope,revision,rows,registry);
+  return CaptureFromRows(scope,revision,values.size(),[&](std::size_t index){
+    const auto &v=values[index];
+    if(!v.owned_source)return Parse(world::observation::EncodeEnvelope(v));
+    // 只编码小封套元数据；来源正文直接从同窗纯值投影，冷构建不恢复大JSON往返。
+    auto metadata=v;metadata.payload.clear();metadata.stream_payload.clear();metadata.owned_source.reset();
+    auto envelope=Parse(world::observation::EncodeEnvelope(metadata));auto row=stream::ExpandSource(v.owned_source);Value payload=std::move(static_cast<Value &>(row));row.SetObject();
+    for(auto i=envelope.MemberBegin();i!=envelope.MemberEnd();++i)if(std::strcmp(i->name.GetString(),"payload")){Value value;value.CopyFrom(i->value,row.GetAllocator());Put(row,i->name.GetString(),std::move(value),row.GetAllocator());}
+    Put(row,"payload",std::move(payload),row.GetAllocator());
+    if(unsigned(v.domain)>=3&&row["payload"].IsObject())Put(row["payload"],"sample_revision",Decimal(v.context.scope,row.GetAllocator()),row.GetAllocator());
+    return row;
+  },registry);
 }
 // 独立回调／Render／查询是自己的component，不获得普通完整世界采样资格。
 Message Independent(const Scope &scope,const Value &r,Registry &registry){

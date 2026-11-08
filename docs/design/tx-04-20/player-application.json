@@ -33496,7 +33496,7 @@
       "id": "EntityPlayer.GetTearsCap",
       "owner": "EntityPlayer",
       "parameters": " ",
-      "returns": "int",
+      "returns": "double",
       "source_mappings": [
         {
           "catalog": "entity-catalog.json",
@@ -33506,17 +33506,11 @@
               "wiki": "repentogon",
               "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityPlayer.md",
               "line": 914
-            }
-          ]
-        },
-        {
-          "catalog": "continuity-catalog.json",
-          "category": "canonical_reference",
-          "sources": [
+            },
             {
-              "wiki": "repentogon",
-              "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityPlayer.md",
-              "line": 914
+              "wiki": "repentogon-source",
+              "path": "F:/projects_isaac/REPENTOGON-1.1.3/repentogon/LuaInterfaces/Entities/LuaEntityPlayer.cpp",
+              "line": 2857
             }
           ]
         }
@@ -60756,6 +60750,49 @@
       "task": "I20",
       "research": "R08",
       "e2e": "E14/E15",
+      "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
+    },
+    {
+      "id": "EntityPlayer.GetTearsCap",
+      "owner": "EntityPlayer",
+      "parameters": " ",
+      "returns": "int",
+      "source_mappings": [
+        {
+          "catalog": "continuity-catalog.json",
+          "category": "canonical_reference",
+          "sources": [
+            {
+              "wiki": "repentogon",
+              "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityPlayer.md",
+              "line": 914
+            }
+          ]
+        }
+      ],
+      "source_version": 2,
+      "family": "P16",
+      "parameter_range": "signature-specific;unscheduled-query-is-not-complete-enumeration",
+      "character_applicability": "source-API-conditions;never-assume-Isaac-heart-or-roster-rules",
+      "lifetime": "current-use/shape;resource-owner-generation;revoke-on-root-or-relation-change",
+      "same_window": "entity+player ordinary capture;History graph stays player-component-local",
+      "sharing": "per-body;explicit-source-relation-required;equal-values-do-not-prove-sharing",
+      "projection": {
+        "ownership": "ReplicatedState",
+        "reason": "引用同窗口规范Entity／Player状态，不复制第二份身体",
+        "review_task": "I05",
+        "consumer_review": "未声明省略；沿用原归属，新增消费者须逐成员复核"
+      },
+      "handling": "I31:captured-readonly-query;native-storage-only-where-named-below",
+      "consumer": "ClientPlayerDisplayView::Captured;native installer only for named dispositions",
+      "installation": "ClientPlayerDisplayView::Captured;original-parameters/status/graph-root;no-local-query-replay",
+      "cleanup": "I33;body/child-resource owner;borrow-generation invalidation",
+      "implementation": "mod/src/replica/player_target.cpp;mod/src/game/client_player_view.cpp",
+      "implementation_status": "readonly-captured-result;not-a-native-storage-claim",
+      "runtime_status": "named-scene coverage only;captured queries are not independent native query replay;not every parameter or nonempty optional branch",
+      "task": "I27",
+      "research": "R12",
+      "e2e": "E16",
       "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct"
     },
     {

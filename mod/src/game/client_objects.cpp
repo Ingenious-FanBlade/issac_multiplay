@@ -1,5 +1,6 @@
 #include "game/client_entity_e2e.h"
 #include "game/client_objects.h"
+#include "game/client_dto_memory.h"
 #include "game/client_players.h"
 #include "replica/player_target.h"
 #include "game/client_resource_model.h"
@@ -14,6 +15,7 @@
 #include <string_view>
 
 namespace cs::game {
+std::uint64_t ClientObjects::StreamValueBytes() const {return ClientNativeObjectsValueBytes(native_)+(players_?players_->StreamValueBytes():0);}
 namespace {
 using V=replica::Value;
 constexpr unsigned kObjectBudget=kClientEntityMembers,kPlanBudget=kClientEntityCommands;
@@ -416,6 +418,10 @@ ClientObjectStep ClientObjects::InstallStream(const ClientNativeRoots &roots,con
   step=players_->InstallStream(players,ClientNativeObjectsEntityOwner(native_));written|=step.written;if(step.failed||!step.done){step.written=written;failed_|=step.failed;return step;}
   for(const auto &d:players){const char *why="objects_stream_player_description";if(!ClientNativeObjectsRefreshPlayer(native_,d.entity,why)){failed_=true;return {false,written,true,prefix_,OwnerCount(),why};}}
   for(const auto operation:{ClientObjectOperation::References,ClientObjectOperation::Check})for(const auto &d:entities){ClientObjectCommand c;c.operation=operation;c.value=d;step=ClientNativeObjectsExecute(native_,roots,c);written|=step.written;if(step.failed||!step.done){step.written=written;failed_|=step.failed;return step;}}
+  // 单体检查不恢复联合owner的发布资格；以同一正式完整成员检查收口本次热事务。
+  ClientObjectCommand complete;complete.operation=ClientObjectOperation::Check;complete.value.full_entity=true;
+  step=ClientNativeObjectsExecute(native_,roots,complete);written|=step.written;
+  if(step.failed||!step.done){step.written=written;failed_|=step.failed;return step;}
   // 纯值原描述与native draw描述共同推进；结构比较仍只在下一次完整事务中进行。
   try{for(const auto &d:entities)for(auto &old:entity_applied_values_)if(old.key==d.key){old=d;break;}}catch(...){failed_=true;return {false,true,true,prefix_,OwnerCount(),"objects_stream_commit_allocation"};}
   return {true,written,false,prefix_,OwnerCount(),"objects_stream_native_checked"};

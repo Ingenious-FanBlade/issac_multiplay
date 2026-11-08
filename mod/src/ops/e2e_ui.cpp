@@ -3,6 +3,8 @@
 #include "game/bridge.h"
 #include "game/client.h"
 #include "game/context.h"
+#include "game/tick.h"
+#include "game/topology.h"
 #include <algorithm>
 #include <deque>
 #include <filesystem>

@@ -50,6 +50,15 @@ impl Node {
    let path=PathBuf::from(string(&self.config,"game_root")?).join("mods").join(name).join("disable.it");
    self.setting(&path,if flavor=="product"&&name=="isaac-cs-test"{Some(b"tx21 product has no fixture\n")}else{None})?;
   }
+  // 真实网络验收只加载本项目模组；逐目录记录原禁用标记，正常收尾恢复，避免现有玩法Mod介入裁决。
+  let mods=PathBuf::from(string(&self.config,"game_root")?).join("mods");
+  for entry in fs::read_dir(&mods).map_err(|e|e.to_string())?{
+   let entry=entry.map_err(|e|e.to_string())?;let kind=entry.file_type().map_err(|e|e.to_string())?;
+   if kind.is_symlink(){return Err("third_party_mod_symlink_requires_explicit_owner".into())}
+   if !kind.is_dir(){continue}let name=entry.file_name();
+   if ["isaac-cs-ui","isaac-cs-observation","isaac-cs-test"].iter().any(|own|name==std::ffi::OsStr::new(own)){continue}
+   self.setting(&entry.path().join("disable.it"),Some(b"tx21 temporary isolation;restored after acceptance\n"))?;
+  }
   // 产品切换不能残留E2E界面源码；原部署由统一部署备份负责最终还原。
   if flavor=="product"{let path=game.join("mods/isaac-cs-ui/e2e.lua");if path.is_file(){fs::remove_file(path).map_err(|e|e.to_string())?;}}
   Ok(json!({"flavor":flavor,"build":manifest["build"],"fixture_disabled":flavor=="product"}))
@@ -74,7 +83,9 @@ impl Node {
   if !self.trace_enabled||self.last_pump.elapsed()<Duration::from_millis(50){return Ok(())}self.last_pump=Instant::now();
   if self.game.as_ref().and_then(|g|g.exited()).is_some(){self.trace_enabled=false;return Ok(())}
   let token=string(&self.config,"e2e_token")?.to_owned();
-  for _ in 0..128{
+  // 页数和单轮时间均有界，持续产生事件时也及时处理状态、停止和退出请求。
+  let drain_started=Instant::now();
+  for _ in 0..16{
    let r=self.command(&format!("cs stream_test {token} trace {}",self.cursor))?;
    if r.get("ok").map(String::as_str)!=Some("1"){return Err(format!("node_trace_rejected:{r:?}"))}
    let page:Value=serde_json::from_str(r.get("data").ok_or("node_trace_data")?).map_err(|e|e.to_string())?;
@@ -82,13 +93,17 @@ impl Node {
    let rows=page["rows"].as_array().ok_or("node_trace_rows")?;
    if number(&page,"first")?>self.cursor.saturating_add(1)&&self.cursor>0{self.record(json!({"event":"missing","reason":"trace cursor gap"}))?;}
    for row in rows{self.record(row.clone())?;}
-   let next=number(&page,"next")?;let done=rows.len()<32||next==self.cursor;self.cursor=next;if done{break}
+   let more=page["more"].as_bool().ok_or("node_trace_more_missing")?;
+   let next=number(&page,"next")?;let done=!more||next==self.cursor;self.cursor=next;
+   if done||drain_started.elapsed()>=Duration::from_millis(200){break}
   }
   if self.last_status.elapsed()>=Duration::from_secs(1){
    self.last_status=Instant::now();self.status=self.command("cs status")?;let clock=self.command(&format!("cs stream_test {token} clock"))?;
    let local=clock.get("local_us").and_then(|s|s.parse::<u64>().ok()).ok_or("node_clock_missing")?;
    let counters=self.command("cs counters")?;let stream=self.command(if self.config["role"]=="Host"{"cs stream source 0"}else{"cs stream client 0"})?;
-   self.record(json!({"event":"status","local_us":local,"status":self.status,"counters":counters,"stream":stream,"ui_clock":clock}))?;
+   // 读取现有有界累计计时，失败收尾前也保留各域来源成本；不另触发采集。
+   let source_timings=self.command(&format!("cs client_test {token} fault-status"))?;
+   self.record(json!({"event":"status","local_us":local,"status":self.status,"counters":counters,"stream":stream,"ui_clock":clock,"source_timings":source_timings}))?;
    let memory=win32::process_memory(self.game.as_ref().ok_or("game")?.pid())?;
    // 原生/全进程与自有池分列；没有发布池数据时保留空，不用工作集补造。
    let pools=["values","wire","workspace"].iter().enumerate().filter_map(|(i,pool)|{
@@ -96,6 +111,8 @@ impl Node {
     if values.len()!=3{return None}Some(json!({"name":pool,"current":values[0],"high_water":values[1],"limit":values[2]}))
    }).collect::<Vec<_>>();
    self.record(json!({"event":"memory","local_us":local,"private_bytes":memory["private_bytes"],"working_set":memory["working_set"],"pools":pools}))?;
+   // 慢主线程观测完成后再开始间隔，避免每个RPC之间连续执行整组状态命令。
+   self.last_status=Instant::now();
   }
   if let Some(f)=&mut self.events{f.flush().map_err(|e|e.to_string())?;}Ok(())
  }
@@ -124,6 +141,8 @@ impl Node {
  fn launch(&mut self,p:&Value)->Result<Value>{
   if self.game.as_ref().is_some_and(|g|g.exited().is_none()){return Err("node_existing_owned_game".into())}
   if win32::processes()?.iter().any(|s|s.eq_ignore_ascii_case("isaac-ng.exe")){return Err("node_other_game_process_present".into())}
+  // 人工确认后再次读取，Steam可能在等待期间退出；失败时尚未修改本轮选项、配置或存档快照。
+  win32::steam_ready()?;
   self.control=None;self.held=None;self.keys.clear();self.trace_enabled=false;self.launches+=1;self.finished=None;
   self.attempt=self.root.join(format!("launch-{}",self.launches));mkdir(&self.attempt)?;
   self.events=Some(OpenOptions::new().create_new(true).write(true).open(self.attempt.join("events.jsonl")).map_err(|e|e.to_string())?);self.rows=0;self.bytes=0;self.cursor=0;
@@ -131,6 +150,20 @@ impl Node {
   if self.config["allow_background"]==true{
    let save=PathBuf::from(string(&self.config,"save_directory")?);
    for relative in ["options.ini","Repentogon/vanilla_options.ini"]{let path=save.join(relative);if path.is_file(){let text=read(&path)?;let mut found=false;let patched=text.split_inclusive('\n').map(|line|{if line.trim().starts_with("PauseOnFocusLost="){found=true;format!("PauseOnFocusLost=0{}",if line.ends_with("\r\n"){"\r\n"}else if line.ends_with('\n'){"\n"}else{""})}else{line.to_owned()}}).collect::<String>();if !found{return Err("PauseOnFocusLost_missing_no_guessed_option".into())}self.setting(&path,Some(patched.as_bytes()))?;}}
+  }
+  // REPENTOGON的SkipIntro会跳过原始Cutscene::Show；实机已出现queued索引无效的过场结束越界读取。
+  // 验收临时走正常开场初始化，再由实际画面确认后跳过动画；只改公开选项，退出时还原原文件。
+  // Host与VM均实际命中相同原生越界；仅本轮临时覆盖，两端用户原始SkipIntro偏好随设置日志恢复。
+  let intro_options=PathBuf::from(string(&self.config,"save_directory")?).join("Repentogon/options.ini");
+  if intro_options.is_file(){
+   let text=read(&intro_options)?;let mut tweaks=false;let mut changed=false;
+   let patched=text.split_inclusive('\n').map(|line|{
+    let trimmed=line.trim();if trimmed.starts_with('[')&&trimmed.ends_with(']'){tweaks=trimmed=="[VanillaTweaks]";}
+    if tweaks&&line.split_once('=').is_some_and(|(key,value)|key.trim()=="SkipIntro"&&value.trim()!="0"){
+     changed=true;format!("SkipIntro = 0{}",if line.ends_with("\r\n"){"\r\n"}else if line.ends_with('\n'){"\n"}else{""})
+    }else{line.to_owned()}
+   }).collect::<String>();
+   if changed{self.setting(&intro_options,Some(patched.as_bytes()))?;}
   }
   let mut roots=saves::SaveRoots::discover(PathBuf::from(string(&self.config,"save_directory")?))?;
   let data=game.join("data");if !data.exists(){mkdir(&data)?;write_json(&self.attempt.join("created-mod-data.json"),&json!({"path":data,"created_empty_for_observation":true}))?;}roots.mod_data=Some(data);
@@ -152,7 +185,8 @@ impl Node {
    let text=format!("-- 本次统一入口的临时配置，部署还原记录负责恢复。\nreturn {{tx={tx:?},node_role={role:?},token={:?},participants={},network_regression=true,actions_json={},scenes_json={}}}\n",string(&self.config,"e2e_token")?,number(p,"participants")?,lua(&fixture["actions"])?,lua(&fixture["scenes"])?);
    fs::write(game.join("mods/isaac-cs-test/harness_config.lua"),text).map_err(|e|e.to_string())?;
   }
-  self.game=Some(win32::Game::launch(&game,&self.attempt.join("launcher"))?);
+  // 拓扑始终填写安装根目录；原生启动必须进入REPENTOGON运行目录，和部署/配置路径保持一致。
+  self.game=Some(win32::Game::launch(&game.join("Repentogon"),&self.attempt.join("launcher"))?);
   let g=self.game.as_ref().unwrap();Ok(json!({"pid":g.pid(),"windows":win32::windows(g.pid()),"launch":self.launches,"directory":self.attempt,"flavor":p["flavor"]}))
  }
  fn finish(&mut self)->Result<Value>{
@@ -170,13 +204,16 @@ impl Node {
  fn dispatch(&mut self,op:&str,p:&Value)->Result<Value>{match op{
   "hello"=>Ok(json!({"node":self.config["id"],"machine":std::env::var("COMPUTERNAME").map_err(|e|e.to_string())?,"role":self.config["role"],"game_root":self.config["game_root"],"protocol":1})),
   "install"=>self.install(string(p,"flavor")?),
+  "steam-ready"=>win32::steam_ready(),
   "launch"=>self.launch(p),
   "command"=>Ok(json!(self.command(string(p,"text")?)?)),
   "trace-on"=>{let token=string(&self.config,"e2e_token")?.to_owned();let r=self.command(&format!("cs stream_test {token} on"))?;if r.get("ok").map(String::as_str)!=Some("1"){return Err(format!("trace enable:{r:?}"))}self.trace_enabled=true;self.last_pump=Instant::now()-Duration::from_secs(1);Ok(json!(r))},
   "physical"=>self.physical(p),
   "window"=>{let g=self.game.as_ref().ok_or("node_game_missing")?;Ok(json!({"pid":g.pid(),"exited":g.exited(),"windows":win32::windows(g.pid()),"focus":g.window().ok().map(win32::focus_state)}))},
   "screen"=>{let g=self.game.as_ref().ok_or("node_game_missing")?;let w=g.window()?;win32::screenshot(w,&self.attempt.join("screen.bmp"))?;Ok(json!({"pid":g.pid(),"window":w,"bytes":fs::metadata(self.attempt.join("screen.bmp")).map_err(|e|e.to_string())?.len()}))},
-  "artifact"=>{let path=match string(p,"name")?{"events"=>self.attempt.join("events.jsonl"),"screen"=>self.attempt.join("screen.bmp"),"game-log"=>PathBuf::from(string(&self.config,"game_root")?).join("repentogon.log"),_=>return Err("node_artifact_name".into())};let mut f=File::open(path).map_err(|e|e.to_string())?;let total=f.metadata().map_err(|e|e.to_string())?.len();if total>FILE_LIMIT{return Err("node_artifact_bound".into())}let offset=number(p,"offset")?;if offset>total{return Err("node_artifact_offset".into())}f.seek(SeekFrom::Start(offset)).map_err(|e|e.to_string())?;let mut b=vec![0;32768];let n=f.read(&mut b).map_err(|e|e.to_string())?;b.truncate(n);Ok(json!({"offset":offset,"next":offset+n as u64,"total":total,"hex":hex(&b)}))},
+  // Lua DebugString的夹具事实在实际存档目录log.txt；REPENTOGON自身日志不是夹具日志。
+  // 首片冻结本次读取末尾，后续增长留给下一次观察，不能无限追赶活日志。
+  "artifact"=>{let path=match string(p,"name")?{"events"=>self.attempt.join("events.jsonl"),"screen"=>self.attempt.join("screen.bmp"),"game-log"=>PathBuf::from(string(&self.config,"save_directory")?).join("log.txt"),_=>return Err("node_artifact_name".into())};let mut f=File::open(path).map_err(|e|e.to_string())?;let current=f.metadata().map_err(|e|e.to_string())?.len();let total=match p.get("end").filter(|v|!v.is_null()){Some(_)=>number(p,"end")?,None=>current};if total>FILE_LIMIT||total>current{return Err("node_artifact_bound_or_shrank".into())}let offset=number(p,"offset")?;if offset>total{return Err("node_artifact_offset".into())}f.seek(SeekFrom::Start(offset)).map_err(|e|e.to_string())?;let mut b=vec![0;(total-offset).min(524288)as usize];let n=f.read(&mut b).map_err(|e|e.to_string())?;b.truncate(n);Ok(json!({"offset":offset,"next":offset+n as u64,"total":total,"hex":hex(&b)}))},
   "finish"=>self.finish(),
   "shutdown"=>{let result=self.finish();if self.game.as_ref().is_some_and(|g|g.exited().is_none()){return Err("原生进程未退休，保持隔离并保留恢复材料".into())}self.restore_settings()?;self.shutdown=true;Ok(result.unwrap_or_else(|e|json!({"game_exited":true,"diagnostic_failure":e,"settings_restored":true})))},
   _=>Err(format!("node_unknown_operation:{op}"))
@@ -191,7 +228,7 @@ pub(super) fn serve(path:&Path)->Result<()>{
  let token=string(&config,"agent_token")?.to_owned();if token.len()<32||token.len()>128{return Err("node_agent_token".into())}
  let listener=TcpListener::bind(string(&config,"agent_listen")?).map_err(|e|e.to_string())?;let mut node=Node::new(config)?;
  while !node.shutdown{
-  let(mut stream,_)=listener.accept().map_err(|e|e.to_string())?;stream.set_read_timeout(Some(Duration::from_millis(50))).map_err(|e|e.to_string())?;stream.set_write_timeout(Some(Duration::from_secs(10))).map_err(|e|e.to_string())?;
+  let(mut stream,_)=listener.accept().map_err(|e|e.to_string())?;stream.set_nodelay(true).map_err(|e|e.to_string())?;stream.set_read_timeout(Some(Duration::from_millis(50))).map_err(|e|e.to_string())?;stream.set_write_timeout(Some(Duration::from_secs(10))).map_err(|e|e.to_string())?;
   let mut pending=Vec::new();let mut bytes=[0u8;8192];let mut authenticated=false;let accepted=Instant::now();
   loop{
    match stream.read(&mut bytes){Ok(0)=>break,Ok(n)=>pending.extend_from_slice(&bytes[..n]),Err(e)if matches!(e.kind(),std::io::ErrorKind::WouldBlock|std::io::ErrorKind::TimedOut)=>{},Err(e)=>return Err(e.to_string())}
@@ -201,7 +238,7 @@ pub(super) fn serve(path:&Path)->Result<()>{
     if request["token"]!=token{break}authenticated=true;
     let result=node.dispatch(string(&request,"op")?,&request["payload"]);
     let response=match result{Ok(data)=>json!({"id":request["id"],"ok":true,"data":data}),Err(error)=>json!({"id":request["id"],"ok":false,"error":error})};
-    let text=serde_json::to_vec(&response).map_err(|e|e.to_string())?;stream.write_all(&text).and_then(|_|stream.write_all(b"\n")).map_err(|e|e.to_string())?;
+    let mut text=serde_json::to_vec(&response).map_err(|e|e.to_string())?;text.push(b'\n');stream.write_all(&text).map_err(|e|e.to_string())?;
    }
    if authenticated{if let Err(e)=node.pump(){node.trace_enabled=false;let _=node.record(json!({"event":"missing","reason":e}));}}
    if node.shutdown||!authenticated&&accepted.elapsed()>Duration::from_secs(10){break}
@@ -215,10 +252,11 @@ pub(super) fn serve(path:&Path)->Result<()>{
 // 协调器只调用固定RPC；每条回复绑定请求号，网络错误不变成缺字段的成功。
 pub(super) struct Peer {pub config:Value,stream:TcpStream,pending:Vec<u8>,id:u64}
 impl Peer {
- pub fn connect(config:Value)->Result<Self>{let address=string(&config,"agent_endpoint")?.parse().map_err(|e|format!("agent endpoint:{e}"))?;let until=Instant::now()+Duration::from_secs(90);let stream=loop{match TcpStream::connect_timeout(&address,Duration::from_millis(500)){Ok(stream)=>break stream,Err(e)=>{if Instant::now()>=until{return Err(format!("真实节点未准备:{}:{e}",config["id"]))}thread::sleep(Duration::from_millis(100));}}};stream.set_read_timeout(Some(Duration::from_secs(180))).map_err(|e|e.to_string())?;stream.set_write_timeout(Some(Duration::from_secs(10))).map_err(|e|e.to_string())?;Ok(Self{config,stream,pending:Vec::new(),id:0})}
+ pub fn connect(config:Value)->Result<Self>{let address=string(&config,"agent_endpoint")?.parse().map_err(|e|format!("agent endpoint:{e}"))?;let until=Instant::now()+Duration::from_secs(90);let stream=loop{match TcpStream::connect_timeout(&address,Duration::from_millis(500)){Ok(stream)=>break stream,Err(e)=>{if Instant::now()>=until{return Err(format!("真实节点未准备:{}:{e}",config["id"]))}thread::sleep(Duration::from_millis(100));}}};stream.set_nodelay(true).map_err(|e|e.to_string())?;stream.set_read_timeout(Some(Duration::from_secs(180))).map_err(|e|e.to_string())?;stream.set_write_timeout(Some(Duration::from_secs(10))).map_err(|e|e.to_string())?;Ok(Self{config,stream,pending:Vec::new(),id:0})}
  pub fn call(&mut self,op:&str,payload:Value)->Result<Value>{
-  self.id+=1;let text=json!({"id":self.id,"token":self.config["agent_token"],"op":op,"payload":payload}).to_string();if text.len()>1048576{return Err("RPC request budget".into())}self.stream.write_all(text.as_bytes()).and_then(|_|self.stream.write_all(b"\n")).map_err(|e|e.to_string())?;
+  self.id+=1;let mut text=json!({"id":self.id,"token":self.config["agent_token"],"op":op,"payload":payload}).to_string();if text.len()>1048576{return Err("RPC request budget".into())}text.push('\n');self.stream.write_all(text.as_bytes()).map_err(|e|e.to_string())?;
   loop{if let Some(end)=self.pending.iter().position(|b|*b==b'\n'){let line=self.pending.drain(..=end).collect::<Vec<_>>();let v:Value=serde_json::from_slice(&line).map_err(|e|e.to_string())?;if number(&v,"id")?!=self.id{return Err("RPC reply identity".into())}if v["ok"]!=true{return Err(format!("{} {op}: {}",self.config["id"],v["error"]))}return Ok(v["data"].clone())}let mut b=[0u8;8192];let n=self.stream.read(&mut b).map_err(|e|e.to_string())?;if n==0{return Err("RPC disconnected".into())}self.pending.extend_from_slice(&b[..n]);if self.pending.len()>4*1024*1024{return Err("RPC reply budget".into())}}
  }
- pub fn download(&mut self,name:&str,path:&Path)->Result<()>{let mut f=File::create(path).map_err(|e|e.to_string())?;let mut offset=0;loop{let r=self.call("artifact",json!({"name":name,"offset":offset}))?;let next=number(&r,"next")?;let bytes=unhex(string(&r,"hex")?)?;if next!=offset+bytes.len()as u64||next>FILE_LIMIT{return Err("artifact page mismatch".into())}f.write_all(&bytes).map_err(|e|e.to_string())?;offset=next;if offset==number(&r,"total")?{return Ok(())}}}
+ pub fn download(&mut self,name:&str,path:&Path)->Result<()>{let mut f=File::create(path).map_err(|e|e.to_string())?;let mut offset=0;let mut end=None;loop{let r=self.call("artifact",json!({"name":name,"offset":offset,"end":end}))?;let total=number(&r,"total")?;if end.is_some_and(|old|old!=total){return Err("artifact snapshot end changed".into())}end=Some(total);let next=number(&r,"next")?;let bytes=unhex(string(&r,"hex")?)?;if next!=offset+bytes.len()as u64||next>total||total>FILE_LIMIT||next==offset&&offset!=total{return Err("artifact page mismatch".into())}f.write_all(&bytes).map_err(|e|e.to_string())?;offset=next;if offset==total{return Ok(())}}}
 }
+

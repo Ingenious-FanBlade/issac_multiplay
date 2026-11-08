@@ -76,8 +76,11 @@ enum class Admission { Complete, WaitingDependencies, Duplicate, Stale, Conflict
 struct Decision final { Admission status=Admission::Invalid; const char *reason="stream_invalid"; explicit operator bool() const noexcept {return status==Admission::Complete;} };
 const Json &Catalog();
 // Freeze不接收调用者仍可修改的shared_ptr，深复制复杂值后才公开const所有权。
-Range Freeze(RangeData,const Layouts &,std::uint64_t byte_limit=256ull<<20);
-Decision Validate(const RangeData &,const Layouts &,std::uint64_t byte_limit=256ull<<20) noexcept;
+Range Freeze(RangeData,const Layouts &,std::uint64_t byte_limit=memory::kReplicationPoolCeilings[0]);
+// 只有封闭的Capture构造器可以移交已自有的树；通用/网络入口仍使用防御性Freeze。
+class CaptureOwnership final {friend class Capture;CaptureOwnership()=default;};
+Range FreezeCaptured(RangeData,const Layouts &,CaptureOwnership,const memory::Lease &prepaid,std::uint64_t byte_limit=memory::kReplicationPoolCeilings[0]);
+Decision Validate(const RangeData &,const Layouts &,std::uint64_t byte_limit=memory::kReplicationPoolCeilings[0]) noexcept;
 std::uint64_t Footprint(const RangeData &);
 bool Equal(const RangeData &,const RangeData &);
 WorldScope World(const Scope &) noexcept;
@@ -85,7 +88,7 @@ Scope Connected(const WorldScope &,std::uint64_t connection);
 // 范围仓库仅接纳纯值，不产生原生ACK；一个逻辑视图按显式版本组合，永不隐式继承旧动态字段。
 class Store final {
 public:
-  explicit Store(WorldScope scope,std::uint64_t budget=256ull<<20):world_(scope),budget_(budget){}
+  explicit Store(WorldScope scope,std::uint64_t budget=memory::kReplicationPoolCeilings[0]):world_(scope),budget_(budget){}
   Decision Admit(Range,const Layouts &) noexcept;
   Range Find(const Version &) const noexcept;
   std::vector<Range> Compose(const RangeData &manifest) const;
@@ -104,5 +107,6 @@ private:
   std::map<RangeId,Range> applied_;
 };
 // 只在冷构建中生成一次连接视图；共享源内容本身从不嵌入某Peer的connection。
+std::uint64_t ColdModelUpperBound(const Store &,const RangeData &manifest);
 Json ColdModel(const Store &,const RangeData &manifest,std::uint64_t connection);
 } // namespace cs::replica::stream

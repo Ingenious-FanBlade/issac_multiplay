@@ -55,33 +55,34 @@ string(STRIP "${ISAACCS_VERSION}" ISAACCS_VERSION)
 file(GLOB REPLICA_CATALOGS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/observation/isaac-cs-observation/*catalog.json")
 add_custom_command(OUTPUT "${GENERATED}/replication_catalog.inc" "${GENERATED}/replication-catalog.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_replica_catalog.py" --out "${GENERATED}"
-  DEPENDS tools/gen_replica_catalog.py tools/replica_projection_policy.py ${REPLICA_CATALOGS} VERBATIM)
+  DEPENDS tools/gen_replica_catalog.py tools/cpp_catalog.py tools/replica_projection_policy.py ${REPLICA_CATALOGS} VERBATIM)
 add_custom_command(OUTPUT "${GENERATED}/room_grid_application.inc" "${GENERATED}/room-grid-application.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_room_grid_catalog.py" --out "${GENERATED}"
-  DEPENDS tools/gen_room_grid_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py ${REPLICA_CATALOGS} VERBATIM)
+  DEPENDS tools/gen_room_grid_catalog.py tools/gen_replica_catalog.py tools/cpp_catalog.py tools/replica_projection_policy.py ${REPLICA_CATALOGS} VERBATIM)
 add_custom_command(OUTPUT "${GENERATED}/entity_application.inc" "${GENERATED}/entity-application.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_entity_application_catalog.py" --out "${GENERATED}"
   # 静态合同随功能目录生成；修改研究索引也必须更新嵌入目录，避免残留旧采用约束。
-  DEPENDS tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py
+  DEPENDS tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/cpp_catalog.py tools/replica_projection_policy.py
     src/game/client_entity_fields.inc src/game/client_entity_class_fields.inc src/game/client_entity_links.inc
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-native-contracts.json" ${REPLICA_CATALOGS} VERBATIM)
 add_custom_command(OUTPUT "${GENERATED}/player_application.inc" "${GENERATED}/player-application.json"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_player_application_catalog.py" --out "${GENERATED}"
-  DEPENDS tools/gen_player_application_catalog.py tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py
+  DEPENDS tools/gen_player_application_catalog.py tools/gen_entity_application_catalog.py tools/gen_replica_catalog.py tools/cpp_catalog.py tools/replica_projection_policy.py
     src/game/client_player_fields.inc src/game/client_player_roles.inc
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-native-contracts.json" ${REPLICA_CATALOGS} VERBATIM)
-add_custom_command(OUTPUT "${GENERATED}/stream_catalog.inc" "${GENERATED}/stream-catalog.json" "${GENERATED}/stream_policy.lua"
+add_custom_command(OUTPUT "${GENERATED}/stream_catalog.inc" "${GENERATED}/stream-catalog.json" "${GENERATED}/stream_policy.lua" "${GENERATED}/stream_names_by_text.inc" "${GENERATED}/stream_names_by_code.inc" "${GENERATED}/stream_field_layers.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_stream_catalog.py" --out "${GENERATED}" --lua "${GENERATED}/stream_policy.lua"
-  DEPENDS tools/gen_stream_catalog.py tools/gen_replica_catalog.py tools/replica_projection_policy.py ${REPLICA_CATALOGS}
+  DEPENDS tools/gen_stream_catalog.py tools/gen_replica_catalog.py tools/cpp_catalog.py tools/replica_projection_policy.py ${REPLICA_CATALOGS}
     src/replica/stream_version.h
+    src/replica/stream_fixed_names.json
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-21/stream-catalog.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-18/room-grid-application.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-application.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-application.json" VERBATIM)
-add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/projection_graph.cpp src/replica/codec.cpp src/replica/entity_target.cpp src/replica/entity_plan.cpp src/replica/player_target.cpp
-  src/replica/stream_config.cpp src/replica/stream_metrics.cpp src/replica/stream_model.cpp src/replica/stream_codec.cpp src/replica/stream_binary.cpp src/replica/stream_transport.cpp src/replica/stream_range.cpp src/replica/stream_capture.cpp src/replica/stream_materialize.cpp
+add_library(isaac_cs_replica STATIC src/replica/model.cpp src/replica/stream_source_value.cpp src/replica/projection_graph.cpp src/replica/codec.cpp src/replica/entity_target.cpp src/replica/entity_plan.cpp src/replica/player_target.cpp
+  src/replica/stream_config.cpp src/replica/stream_metrics.cpp src/replica/stream_capture_cost.cpp src/replica/stream_model.cpp src/replica/stream_codec.cpp src/replica/stream_binary.cpp src/replica/stream_transport.cpp src/replica/stream_range.cpp src/replica/stream_capture.cpp src/replica/stream_capture_worker.cpp src/replica/stream_partition.cpp src/replica/stream_materialize.cpp
   src/replica/room_grid_target.cpp src/replica/room_grid_plan.cpp src/replica/room_grid_budget.cpp src/replica/player_plan.cpp
-  "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc" "${GENERATED}/entity_application.inc" "${GENERATED}/player_application.inc" "${GENERATED}/stream_catalog.inc")
+  "${GENERATED}/replication_catalog.inc" "${GENERATED}/room_grid_application.inc" "${GENERATED}/entity_application.inc" "${GENERATED}/player_application.inc" "${GENERATED}/stream_catalog.inc" "${GENERATED}/stream_names_by_text.inc" "${GENERATED}/stream_names_by_code.inc" "${GENERATED}/stream_field_layers.inc")
 target_include_directories(isaac_cs_replica PUBLIC src "${REPENTOGON_ROOT}/libs/rapidjson/include" PRIVATE "${GENERATED}")
 target_compile_options(isaac_cs_replica PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_compile_definitions(isaac_cs_replica PUBLIC _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING)
@@ -183,6 +184,7 @@ set_source_files_properties(src/game/world_sources/loot.cpp src/game/world_sourc
   src/hooks/backdrop_patch.cpp
   PROPERTIES COMPILE_OPTIONS "/std:c++17")
 target_include_directories(zhlIsaacCS PRIVATE src "${GENERATED}" "${REPENTOGON_ROOT}/include" "${REPENTOGON_ROOT}/libzhl"
+  "${REPENTOGON_ROOT}/repentogon/LuaInterfaces"
   "${REPENTOGON_ROOT}/repentogon/Patches"
   "${REPENTOGON_ROOT}/libs/rapidjson/include/rapidjson"
   "${REPENTOGON_ROOT}/libs/rapidjson/include" "${REPENTOGON_ROOT}/libs/rapidxml" "${REPENTOGON_ROOT}/libs/lua")

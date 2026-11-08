@@ -1,5 +1,9 @@
 #include "runtime.h"
 #include <cstring>
+#ifdef ISAACCS_E2E
+#include "replica/stream_e2e.h"
+#include <charconv>
+#endif
 namespace cs {
 namespace {
 std::atomic<bool> stop{};
@@ -19,6 +23,13 @@ DWORD WINAPI Serve(void *) noexcept {
   SOCKET peer = INVALID_SOCKET;
   try {
     uint64_t sequence = 0;
+#ifdef ISAACCS_E2E
+    // 显式测试token在启动时冻结；后台只读自有诊断值，不读取游戏或Lua根。
+    const auto trace_prefix=Settings.world_e2e_token.empty()?std::string{}:
+      "cs stream_test "+Settings.world_e2e_token+" trace ";
+    const auto snapshot_prefix=Settings.world_e2e_token.empty()?std::string{}:
+      "cs stream_test "+Settings.world_e2e_token+" snapshot ";
+#endif
     // 同时只接收一个连接，用 socket 超时限制停滞客户端。
     while (!stop) {
       fd_set fds;
@@ -54,6 +65,35 @@ DWORD WINAPI Serve(void *) noexcept {
           line.push_back(c);
           continue;
         }
+#ifdef ISAACCS_E2E
+        if(!snapshot_prefix.empty()&&line.rfind(snapshot_prefix,0)==0){
+          // 快照已是自有不可变文本；后台只分页纯值，不读游戏根或执行原生回读。
+          const auto first=line.data()+snapshot_prefix.size(),last=line.data()+line.size();
+          unsigned slot=0,page=0;const auto a=std::from_chars(first,last,slot);
+          std::string reply;
+          if(a.ec!=std::errc{}||a.ptr==last||*a.ptr!=' ')reply="ok=0\nerror=stream_snapshot_cursor\n";
+          else {const auto b=std::from_chars(a.ptr+1,last,page);
+            if(b.ec!=std::errc{}||b.ptr!=last)reply="ok=0\nerror=stream_snapshot_cursor\n";
+            else try{reply=replica::stream::E2ESnapshotPage(slot,page);}
+            catch(const std::exception &e){reply="ok=0\nerror="+std::string(e.what())+"\n";}
+            catch(...){reply="ok=0\nerror=stream_snapshot_read_allocation\n";}
+          }
+          if(reply.size()>600000)reply="ok=0\nerror=stream_snapshot_reply_budget\n";
+          line.clear();connected=SendAll(peer,reply+".\n");continue;
+        }
+        if(!trace_prefix.empty()&&line.rfind(trace_prefix,0)==0){
+          // 纯值分页不等待Manager下一帧，避免低帧率时诊断自身溢出；其余命令仍排主线程。
+          const auto first=line.data()+trace_prefix.size(),last=line.data()+line.size();
+          std::uint64_t cursor=0;const auto parsed=std::from_chars(first,last,cursor);
+          std::string reply;
+          if(parsed.ec!=std::errc{}||parsed.ptr!=last)reply="ok=0\nerror=stream_trace_cursor\n";
+          else try{reply=replica::stream::E2ETracePage(cursor);}
+          catch(const std::exception &e){reply="ok=0\nerror="+std::string(e.what())+"\n";}
+          catch(...){reply="ok=0\nerror=stream_trace_read_allocation\n";}
+          if(reply.size()>60000)reply="ok=0\nerror=stream_trace_reply_budget\n";
+          line.clear();connected=SendAll(peer,reply+".\n");continue;
+        }
+#endif
         PortRequest req{};
         req.id = ++sequence;
         req.enqueued_ms = GetTickCount64();

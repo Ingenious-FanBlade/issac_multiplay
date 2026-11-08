@@ -2,11 +2,15 @@
 // SDK-facing C++17 适配，只跨边界传递已复制的值，不导出 lua_State 或 Entity*。
 #include <cstdint>
 #include <string>
+#include <memory>
+namespace cs::capture {class OwnedSource;}
 namespace cs::game {
 // SDK适配头保持C++17；与公共合同的64M容量由非SDK协调器静态核对。
 inline constexpr std::uint32_t kLuaObservationNodeBudget=64u<<20;
 struct LuaEntityResult final {
   std::string payload, reason, stream_payload;
+  std::shared_ptr<const capture::OwnedSource> owned_source;
+  std::uint64_t owned_bytes=0;
   bool complete=false, available=false;
   std::uint32_t objects=0, nodes=0;
 };

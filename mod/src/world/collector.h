@@ -104,6 +104,9 @@ public:
   // 仅49F3D0已核定的Type412重配owner调用；不按普通NPCUpdate推导私有字段资格。
   std::uint32_t BeginDeliriumReconfiguration(std::uint32_t object) noexcept;
   void EndDeliriumReconfiguration(std::uint32_t token,bool normal) noexcept;
+  // JoinPass会绕过Game::Spawn直接创建烟雾；只接受本次实际Factory+Init+Publish闭包。
+  std::uint32_t BeginJoinEffectSource() noexcept;
+  void EndJoinEffectSource(std::uint32_t token,bool normal) noexcept;
   std::uint32_t BeginPlayerChildSource(std::uint32_t object,unsigned kind,unsigned slot) noexcept;
   void EndPlayerChildSource(std::uint32_t token,bool normal,bool body_reached=true) noexcept;
   // 必须在共享控制回调撤锚之前记录Replace前态；返回值仅用于不含地址的资格诊断。
@@ -201,6 +204,10 @@ private:
   };
   std::array<EntityReconfiguration,8> entity_reconfigurations_{};
   std::uint32_t entity_reconfiguration_depth_=0,next_entity_reconfiguration_=0;
+  struct JoinEffectWitness {std::uint32_t address=0;std::uint64_t local=0,use=0;bool initialized=false;};
+  std::array<JoinEffectWitness,64> join_effect_witnesses_{};
+  std::uint32_t join_effect_token_=0,next_join_effect_token_=0,join_effect_depth_=0,join_effect_count_=0;
+  std::uint64_t join_effect_run_=0,join_effect_outer_=0;
   // 具名角色owner内真实Ctor/完整Init与存储迁移证言；嵌套正常收口并复核当前关系才授予4/5。
   struct PlayerChildOwner {std::uint32_t token=0,object=0,call_depth=0,first=0,replacement=0;unsigned kind=0,slot=0,source_type=0;std::uint64_t local=0,use=0,run=0,replacement_local=0,replacement_use=0;};
   // initialized要求同use真实完整Init或既有存储依据；esau_active另等实际替换和槽后态。

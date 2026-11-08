@@ -1,6 +1,8 @@
 #include "game/client_entity_e2e.h"
+#include "replica/stream_resource_e2e.h"
 #include "game/world_bridge.h"
 #include "game/world_sources/lua_entity.h"
+#include "core/capture_cost.h"
 #include "world/compatibility/encode.h"
 #include "binding/world_layout.h"
 #include "game/world_sources/value_source.h"
@@ -27,6 +29,7 @@ obs::CapturePlan Plan() {
 void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
   try {
+    if(e.owned_source&&e.payload.empty()){++c.formal_loss;return;}
 #ifdef ISAACCS_E2E
     if(!Settings.world_e2e_token.empty()&&e.domain==obs::DomainId::Entity&&e.context.phase!=obs::Phase::OrdinaryPost){
       if(c.e2e_entity_independent.size()>=4096||c.e2e_entity_bytes+e.payload.size()>(8u<<20))c.e2e_entity_loss=true;
@@ -56,6 +59,7 @@ void Latest(void *owner,const obs::ObservationEnvelope &e) noexcept {
 }
 void Record(void *owner,const obs::ObservationEnvelope &e) noexcept {
   auto &c=*static_cast<WorldCapture *>(owner);
+  if(e.owned_source&&e.payload.empty()){c.publications.NoteLoss();return;}
   try { if(!c.publications.Push(obs::EncodeEnvelope(e))) Trace("observation_record_loss","epoch=%llu loss=%llu",c.epoch,c.publications.LossSequence()); }
   catch(...) { c.publications.NoteLoss(); }
 }
@@ -87,6 +91,7 @@ obs::ObservationEnvelope Base(WorldCapture &c,obs::DomainId domain,const char *s
 }
 // 同一 native 复制窗口内顺序调用各域；任一最终来源变化由统一 Commit 撤销。
 void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects,const world::RawMembership *members) noexcept {
+  capture::Cost cost(capture::CostPart::Lua);
   auto &c=*static_cast<WorldCapture *>(owner);
   const bool streaming=c.live_consumer;
   if(streaming&&c.stream_invalidation!=c.live.Status().invalidations){c.stream.Invalidate(c.live.Status().reason);c.stream_invalidation=c.live.Status().invalidations;}
@@ -99,8 +104,9 @@ void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects
     const bool grid=index==1;
     if(!Scheduled(c,domain,h.capture)) continue;
     try {
-      const bool cold=!streaming||baseline||c.observation.ConsumerDue(obs::kLatestConsumer,domain,obs::Phase::OrdinaryPost,h.capture)||
+      const bool diagnostic=!streaming||c.observation.ConsumerDue(obs::kLatestConsumer,domain,obs::Phase::OrdinaryPost,h.capture)||
         c.observation.ConsumerDue(obs::kRecorderConsumer,domain,obs::Phase::OrdinaryPost,h.capture);
+      const bool cold=diagnostic||baseline;
       EnsureObservationLuaBridge();
       const char *schemas[]={"isaac.cs.entity","isaac.cs.grid","isaac.cs.room","isaac.cs.level","isaac.cs.exploration","isaac.cs.room_save","isaac.cs.player","isaac.cs.run","isaac.cs.random","isaac.cs.presentation","isaac.cs.mod"};
       auto e=Base(c,domain,schemas[index],h); e.context.source=2;if(!cold)e.schema+=".stream";
@@ -112,14 +118,18 @@ void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects
       const auto reserved=(index>=2?64u:0u)+(native_random.empty()?0u:unsigned(native_random.size()+20));
       auto result=[&]{
         // Random是已声明AuthorityOnly；热范围不轮询整套随机/ItemPool再丢弃。冷源和Recorder仍读原合同。
-        if(streaming&&!cold&&index==8){LuaEntityResult r;r.available=r.complete=true;r.payload=r.stream_payload="{\"contract\":\"stream-source-v1\",\"context\":[{\"value\":{\"ownership\":\"AuthorityOnly\"}}],\"structure\":[],\"resource\":[],\"world\":[],\"bodies\":[],\"members\":[]}";return r;}
-        ClientEntityTestMeasure measure("formal_lua_capture");return CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,reserved<budget.bytes?std::uint32_t(budget.bytes)-reserved:0,index,streaming,cold);
+        if(streaming&&!cold&&index==8){LuaEntityResult r;r.available=r.complete=true;
+          r.owned_source=capture::OwnedSource::Create([](replica::Json &v,std::uint64_t &bytes){v.SetObject();replica::Put(v,"ownership","AuthorityOnly",v.GetAllocator());bytes=29;});r.owned_bytes=r.owned_source->Bytes();return r;}
+        // E2E按域记录同一次真实采集耗时，定位主线程长窗，不重复调用来源。
+        const char *timing[]={"formal_lua_entity","formal_lua_grid","formal_lua_room","formal_lua_level","formal_lua_exploration","formal_lua_room_save","formal_lua_player","formal_lua_run","formal_lua_random","formal_lua_presentation","formal_lua_mod"};
+        ClientEntityTestMeasure measure("formal_lua_capture"),domain_measure(timing[index]);return CaptureLuaEntity(budget.objects,budget.nodes,budget.depth,reserved<budget.bytes?std::uint32_t(budget.bytes)-reserved:0,index,streaming,diagnostic);
       }();
-      if(index==8&&result.available&&!result.payload.empty()&&result.payload.back()=='}') {
+      if(index==8&&cold&&result.available&&!result.payload.empty()&&result.payload.back()=='}') {
         if(reserved<budget.bytes&&result.payload.size()+native_random.size()+20<=budget.bytes)
           result.payload.insert(result.payload.size()-1,",\"native_sources\":"+native_random);
         else { result.complete=false;result.reason="native_random_combined_payload_budget"; }
       }
+      c.lua_partial_reasons[index]=result.available&&result.complete?std::string{}:result.reason.substr(0,1024);
       if(index==0) { ++c.lua_attempts; if(result.available&&result.complete) ++c.lua_complete; else ++c.lua_partial; }
       c.lua_objects=nullptr; c.lua_object_count=0; c.lua_members=nullptr; c.lua_members_count=0; c.location_window=false;
       LocationContext(c,e.context,h.run,h.room);
@@ -127,8 +137,9 @@ void Lua(void *owner,const world::BatchHeader &h,const world::RawObject *objects
       e.result.range=index>=7?"public-run-random-presentation-mod-v2;actual-call-and-render-separate;adapter-coverage-explicit":index>=4?"public-continuity-v2:scoped-history-save-collections-and-canonical-player-references":index>=2?"public-room-level-v2:identity-config-progress-environment-structure;explicit-query-parameters":grid?"public-grid-v2:all-derived-save-sprite-rng;finite-enums-and-explicit-queries":"public-entity-v2:state-and-finite-queries;unbounded-derived-queries:on-request;external-domains:explicit-references";
       if(!result.reason.empty()) e.result.reasons.push_back(result.reason);
       e.result.objects=result.objects; e.result.nodes=result.nodes; e.result.bytes=result.payload.size(); e.payload=std::move(result.payload);e.stream_payload=std::move(result.stream_payload);
+      e.owned_source=std::move(result.owned_source);e.owned_bytes=result.owned_bytes;
       if(index>=2&&!e.payload.empty()&&e.payload.front()=='{') e.payload.insert(1,"\"sample_revision\":\""+std::to_string(e.context.scope)+"\",");
-      e.result.bytes=e.payload.size();
+      e.result.bytes=(std::max)(std::uint64_t(e.payload.size()),e.owned_bytes);
       const auto scope=e.context.scope;
       if(c.observation.PrepareScope(std::move(e)).accepted) {
         c.pending_scopes[index>=2?index+2:grid?3:0]=scope;
@@ -175,6 +186,7 @@ void Native(void *owner,const world::BatchHeader &h,const world::RawObject *obje
   } catch(...) { c.observation.Invalidate("native_projection_budget"); }
 }
 void Commit(void *owner,bool committed,bool stable) noexcept {
+  capture::Cost cost(capture::CostPart::Handoff);
   auto &c=*static_cast<WorldCapture *>(owner);
   const bool resources_stable=!c.live_consumer||(!c.stream_resource_depth&&c.stream_read_resource_mutation==c.stream_resource_mutation);
   committed=committed&&resources_stable;stable=stable&&resources_stable;
@@ -186,13 +198,20 @@ void Commit(void *owner,bool committed,bool stable) noexcept {
   }
   c.live.Finish(committed,stable,c.observation.LossSequence(),c.storage.EventWatermark());
   if(c.live_consumer){
-    if(const auto values=c.live.Latest();committed&&stable&&values)c.stream.Ordinary(*values);
+    if(const auto values=c.live.Latest();committed&&stable&&values)c.stream.Ordinary(values);
     else c.stream.Invalidate(c.live.Status().reason);
     c.stream_invalidation=c.live.Status().invalidations;
   }
 }
 void Event(void *owner,const world::LifecycleEvent &event) noexcept {
+  capture::Cost cost(capture::CostPart::Control);
   auto &c=*static_cast<WorldCapture *>(owner);
+#ifdef ISAACCS_E2E
+  // 创建相关调用只输出既有call/parent与原生返回；供缺资格定位，不改变正式来源状态。
+  const auto op=static_cast<world::Observation>(event.observation);
+  if(event.kind==world::EventKind::CurrentEntityReadWitness||(event.call&&(op==world::Observation::Factory||op==world::Observation::Init||op==world::Observation::Spawn||op==world::Observation::PlayerCreate||op==world::Observation::PlayerCtor)))
+    replica::stream::E2ESourceLifecycle({unsigned(event.kind),unsigned(event.reason),event.observation,event.local_id,event.use,event.birth,event.readiness,event.call,event.parent,event.entering,event.address,event.result},event.args,event.arg_count);
+#endif
   if(c.live_consumer&&event.local_id){
     const auto *id=c.identities.Find(event.domain?world::ObjectDomain::Grid:world::ObjectDomain::Entity,event.address);
     if(id&&id->destroyed&&id->local_id==event.local_id&&id->use==event.use)
@@ -318,6 +337,11 @@ obs::RequestResult WorldCapture::UpdateLiveCapturePlan(obs::CapturePlan plan) no
 }
 bool ObservationLuaNeeded(const char *phase,bool grid) noexcept {
   auto c=CurrentWorldRecording(); if(!IsMain()||!c||!c->observation.Active()) return false;
+  // Grid逐对象UPDATE是独立诊断样本，普通同步已在同窗完整读取Grid。
+  // Live不因此再读一遍对象或把每次正常更新冒充生命周期撤销；显式诊断仍按原计划读取。
+  if(grid&&phase&&!std::strcmp(phase,"Update"))return
+    c->observation.ConsumerDue(obs::kLatestConsumer,obs::DomainId::Grid,obs::Phase::Lifecycle,0)||
+    c->observation.ConsumerDue(obs::kRecorderConsumer,obs::DomainId::Grid,obs::Phase::Lifecycle,0);
   return c->observation.Needed(grid?world::observation::DomainId::Grid:world::observation::DomainId::Entity,phase&&!std::strcmp(phase,"Lifecycle")?world::observation::Phase::Lifecycle:phase&&!std::strcmp(phase,"Render")?world::observation::Phase::Render:world::observation::Phase::ActualCall);
 }
 ObservationSubjectValue ObservationSubject(void *object,bool registering,bool grid) noexcept {
@@ -351,7 +375,8 @@ ObservationSubjectValue ObservationSubject(void *object,bool registering,bool gr
   const bool player_current=!grid&&result.control_active&&id->current_public_ready&&
       id->readiness==std::uint32_t(world::Readiness::CurrentPlayerUpdateWitness);
   const bool player_child_current=!grid&&id->current_public_ready&&(id->readiness==std::uint32_t(world::Readiness::PlayerChildInitCompleted)||id->readiness==std::uint32_t(world::Readiness::PlayerStateOwnerCompleted));
-  const bool reuse_current=player_current||player_child_current||(id->born&&id->readiness>=2&&id->revision==0&&(grid||id->current_public_ready));
+  const bool join_effect_current=!grid&&id->current_public_ready&&id->readiness==std::uint32_t(world::Readiness::NativeJoinEffectCompleted)&&id->revision==0;
+  const bool reuse_current=player_current||player_child_current||join_effect_current||(id->born&&id->readiness>=2&&id->revision==0&&(grid||id->current_public_ready));
   result.status=id->Retired()?6:registering?1:current&&(!id->reused||reuse_current)?1:id->reused?7:3;
   return result;
 }
@@ -610,7 +635,9 @@ bool ObservationPublishLua(const char *payload,std::size_t bytes,bool complete,s
   try {
     namespace obs=world::observation;
     obs::ObservationEnvelope e; e.domain=grid?obs::DomainId::Grid:obs::DomainId::Entity; e.schema=grid?(phase==2?"isaac.cs.grid.render":phase==1?"isaac.cs.grid.query":"isaac.cs.grid.lua-event"):phase==3?"isaac.cs.entity.actual-call":phase==2?"isaac.cs.entity.render":phase==1?"isaac.cs.entity.query":"isaac.cs.entity.lua-event"; e.kind=phase==1||phase==2?obs::RecordKind::State:obs::RecordKind::Event;
-    e.context=c->observation.BeginScope(phase==2?obs::Phase::Render:phase==1||phase==3?obs::Phase::ActualCall:obs::Phase::Lifecycle,phase==3?1:2);
+    // 正常Grid更新独立于出生/销毁事件；即使Recorder启用，也不使Live每帧撤销已取得值。
+    if(grid&&phase==4){e.schema="isaac.cs.grid.update";e.kind=obs::RecordKind::State;}
+    e.context=c->observation.BeginScope(phase==2?obs::Phase::Render:phase==1||phase==3||phase==4?obs::Phase::ActualCall:obs::Phase::Lifecycle,phase==3?1:2);
     e.context.outer=c->collector->CurrentOuterToken();
     e.context.mutation_before=e.context.mutation_after=c->collector->CurrentMutation();
     if(const auto run=c->collector->CurrentRunToken()) e.context.run={obs::Presence::Known,{c->session_key,c->epoch,run,obs::IdentitySpace::Run}};

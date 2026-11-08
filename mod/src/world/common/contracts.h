@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <memory>
+
+namespace cs::capture {class OwnedSource;}
 
 namespace cs::world::observation {
 enum class DomainId : std::uint16_t { Entity=1, Grid, Room, Level, Exploration, RoomSave, Player, Run, Random, Presentation, Mod };
@@ -77,6 +80,9 @@ struct ObservationEnvelope final {
   std::string payload;
   // 正式实时来源在Lua编码前分域；录制/旧模型仍只使用payload，不读取此产品热路径。
   std::string stream_payload;
+  // 正式来源直接持有封闭的当前窗口纯值；诊断文本可选，后台分层不再解析Lua JSON。
+  std::shared_ptr<const capture::OwnedSource> owned_source;
+  std::uint64_t owned_bytes=0;
 };
 struct RequestResult final { bool accepted=false; const char *reason="unavailable"; };
 // 窄回调仅在主线程借用 const 值；需要后台使用时须复制到自有有界队列。

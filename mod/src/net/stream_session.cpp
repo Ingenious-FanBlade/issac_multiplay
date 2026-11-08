@@ -1,4 +1,5 @@
 #include "net/stream_session.h"
+#include "replica/stream_encoding_e2e.h"
 #include "replica/stream_e2e.h"
 #include <algorithm>
 #include <cstring>
@@ -302,7 +303,7 @@ void Operations::Pump(std::uint64_t now, const std::function<bool(const s::Messa
     if (result_sequence_ == UINT64_MAX - 1)
       Fail("operation_result_sequence_exhausted");
     s::Message m;
-    m.memory = memory::Reserve(memory::Pool::Values, 8192);
+    m.memory = memory::Reserve(memory::Pool::Values, 8192, "operation_control");
     m.kind = s::Kind::OperationAck;
     m.sequence = ++result_sequence_;
     m.connection = connection_;
@@ -319,6 +320,10 @@ void Operations::Pump(std::uint64_t now, const std::function<bool(const s::Messa
   for (auto &[key, v] : sent_) {
     if (!Final(v.stage) && (now < v.progress || now - v.progress >= config_.progress_timeout_ms || now < v.started ||
                             now - v.started >= config_.absolute_timeout_ms)) {
+#ifdef ISAACCS_E2E
+      // 首次超时保留真实操作kind/sequence及已取得进度，不以笼统连接错误丢掉定位依据。
+      s::E2EStreamProgress("operation-sent-timeout",{key.sequence,unsigned(key.kind),unsigned(v.stage),v.progress_sequence,v.started,now,v.progress,now>=v.progress?now-v.progress:0});
+#endif
       v.stage = OperationStage::Failed;
       ++statistics_.failed;
       v.reason = "operation_no_progress_or_deadline";
@@ -392,6 +397,8 @@ struct EncodingCache::State {
   struct Entry {
     memory::Lease memory;
     s::Range source;
+    // 已编码缓存只保留弱身份，报文不再需要旧版本的完整DOM；编码期间source才持强引用。
+    std::weak_ptr<const s::RangeData> identity;
     s::SharedBlob blob;
     r::Limits limits;
     bool compressed = false, working = false;
@@ -448,7 +455,16 @@ struct EncodingCache::State {
               continue;
             }
           }
-          std::strncpy(error.data(), e.what(), error.size() - 1);
+          // 保留实际失败范围和字节数，区分冷目标与快范围预算，不靠提高上限排错。
+          try{
+            auto detail=std::string(e.what())+":kind="+std::to_string(unsigned(work->source->id.kind))+"/"+work->source->id.name;
+            try{detail+="/bytes="+std::to_string(s::MeasureRangePayload(*work->source)+40);}catch(...){}
+            detail+="/limit="+std::to_string(work->limits.bytes);
+            std::strncpy(error.data(),detail.c_str(),error.size()-1);
+          }catch(...){std::strncpy(error.data(), e.what(), error.size() - 1);}
+#ifdef ISAACCS_E2E
+          s::E2EEncodingSource(*work->source,error.data());
+#endif
           break;
         } catch (...) {
           std::strncpy(error.data(), "publication_encoding_exception", error.size() - 1);
@@ -456,10 +472,13 @@ struct EncodingCache::State {
         }
       {
         std::lock_guard lock(mutex);
+        if(!blob&&!error[0])std::strncpy(error.data(),"publication_encoding_attempts_exhausted",error.size()-1);
         if(blob){metrics.Bind(work->source->world);metrics.encoded_bytes+=blob->decoded_bytes;metrics.compressed_bytes+=blob->bytes.size();const auto lane=Lane(blob->lane);metrics.lane_encoded[lane]+=blob->decoded_bytes;metrics.lane_compressed[lane]+=blob->bytes.size();metrics.duration[unsigned(s::CpuStage::Encode)].Observe(blob->encode_us);if(blob->encode_cpu_us!=UINT64_MAX)metrics.cpu[unsigned(s::CpuStage::Encode)].Observe(blob->encode_cpu_us);else ++metrics.missing;if(work->compressed){metrics.duration[unsigned(s::CpuStage::Compress)].Observe(blob->compression_us);if(blob->compression_cpu_us!=UINT64_MAX)metrics.cpu[unsigned(s::CpuStage::Compress)].Observe(blob->compression_cpu_us);else ++metrics.missing;}}
         metrics.Queue(entries.size());
         work->blob = std::move(blob);
         work->error = std::move(error);
+        work->working = false;
+        work->source.reset();
       }
     }
   }
@@ -480,7 +499,7 @@ s::SharedBlob EncodingCache::Get(s::Range range, bool compressed, r::Limits limi
   if (state->stop)
     Fail("publication_encoder_stopped");
   for (auto &entry : state->entries)
-    if (entry->source == range && entry->compressed == compressed &&
+    if (entry->identity.lock() == range && entry->compressed == compressed &&
         entry->limits.bytes == limits.bytes && entry->limits.nodes == limits.nodes &&
         entry->limits.value_bytes == limits.value_bytes && entry->limits.depth == limits.depth &&
         entry->limits.string_bytes == limits.string_bytes &&
@@ -492,8 +511,9 @@ s::SharedBlob EncodingCache::Get(s::Range range, bool compressed, r::Limits limi
   // 尚未编码的动态可以被同范围完整新值替换；可靠冷依赖与正在编码项不覆盖。
   for (auto i = state->entries.begin(); i != state->entries.end();) {
     const auto &e = *i;
-    if (unsigned(e->source->id.kind) >= 5 && unsigned(range->id.kind) >= 5 && !e->working &&
-        e->source->world == range->world && e->source->id == range->id)
+    const auto source=e->identity.lock();
+    if (!source || (unsigned(source->id.kind) >= 5 && unsigned(range->id.kind) >= 5 && !e->working &&
+        source->world == range->world && source->id == range->id))
       i = state->entries.erase(i);
     else
       ++i;
@@ -507,6 +527,7 @@ s::SharedBlob EncodingCache::Get(s::Range range, bool compressed, r::Limits limi
   }
   auto entry = std::make_shared<State::Entry>();
   entry->memory = memory::Reserve(memory::Pool::Wire, sizeof(State::Entry) + 128);
+  entry->identity = range;
   entry->source = std::move(range);
   entry->limits = limits;
   entry->compressed = compressed;
@@ -520,14 +541,15 @@ s::SharedBlob EncodingCache::Get(s::Range range, bool compressed, r::Limits limi
 }
 void PublicationSender::AuthorityPaused(bool value,std::uint64_t now) noexcept {
   if(value&&!paused_)pause_started_=now;
-  if(!value&&paused_){const auto elapsed=now>=pause_started_?now-pause_started_:0;for(auto &[id,at]:convergence_since_)at+=elapsed;}
+  if(!value&&paused_){const auto elapsed=now>=pause_started_?now-pause_started_:0;for(auto &[id,at]:convergence_since_)at+=elapsed;if(missing_source_at_)missing_source_at_+=elapsed;}
   paused_=value;
 }
 void PublicationSender::Offer(std::shared_ptr<const s::Publication> baseline,
                               std::shared_ptr<const s::Publication> latest,
                               std::vector<std::shared_ptr<const s::Publication>> bodies) {
   if (!latest) {
-    Stop();
+    // 同场景没有合格的新候选；保留已冻结的冷/普通在途目标及其精确依赖。
+    latest_.reset();bodies_.clear();
     return;
   }
   if (!baseline_ || baseline_->world != latest->world ||
@@ -539,10 +561,12 @@ void PublicationSender::Offer(std::shared_ptr<const s::Publication> baseline,
   }
   // 有效冷目标在途时固定；最新普通/逐身体候选只替换尚未执行的完整集合。
   latest_ = std::move(latest);
+  missing_source_at_=0;
   bodies_ = std::move(bodies);
   std::set<s::RangeId> keep;
   for (const auto &range : latest_->ranges)
     keep.insert(range->id);
+  if(dynamic_target_)for(const auto &range:dynamic_target_->ranges)keep.insert(range->id);
   if (baseline_)
     for (const auto &range : baseline_->ranges)
       keep.insert(range->id);
@@ -574,6 +598,7 @@ void PublicationSender::Authorize(s::Route route, std::uint64_t now) {
     Fail("publication_world_not_prepared");
   started_ = progress_ = now;
   native_progress_ = 0;
+  native_target_={};native_started_=native_at_=0;
   route_ = route;
   reliable_.Authorize(route);
   reliable_.GrantRate(route_.config.borrow_initial_lanes?route_.config.peer_bytes_per_second-route_.config.control_bytes_per_second:route_.config.reliable_bytes_per_second);
@@ -589,6 +614,7 @@ void PublicationSender::Authorize(s::Route route, std::uint64_t now) {
   sent_history_.clear();
   sent_facts_.clear();confirmed_.clear();
   fast_ = {};
+  dynamic_target_.reset();
   sent_at_.clear();
   fast_cursor_ = {};
   convergence_since_.clear();stale_=false;active_at_=now;applied_world_tick_=0;
@@ -608,7 +634,15 @@ void PublicationSender::Remember(const s::Version &version) {
   history.push_back(version.revision);
 }
 void PublicationSender::Encoded(const s::Blob &b){if(metrics_.Note(b.range_id,b.sequence,b.sample,s::FlowStage::Encode,s::MetricMicros()/1000)){metrics_.encoded_bytes+=b.decoded_bytes;metrics_.compressed_bytes+=b.bytes.size();const auto lane=Lane(b.lane);metrics_.lane_encoded[lane]+=b.decoded_bytes;metrics_.lane_compressed[lane]+=b.bytes.size();}}
-void PublicationSender::Track(const s::Range &r){const s::Version version{r->id,r->revision};if(sent_facts_.contains(version))return;metrics_.Note(*r,s::FlowStage::Publish,s::MetricMicros()/1000);
+void PublicationSender::Track(const s::Range &r){const s::Version version{r->id,r->revision};
+#ifdef ISAACCS_E2E
+  // arm可能在该版本首次发送后到达；再次发送仍可选择同一精确闭包，不能选Capture中未发送的候选。
+  if(s::E2EWants("source",*r)){
+    const auto select=[&](const std::shared_ptr<const s::Publication> &p){if(!p)return false;const auto i=std::find(p->ranges.begin(),p->ranges.end(),r);if(i==p->ranges.end())return false;s::E2ESourceSelected(r,p->ranges,route_.connection,route_.epoch);return true;};
+    if(!select(dynamic_target_)&&!select(baseline_))for(const auto &body:bodies_)if(select(body))break;
+  }
+#endif
+  if(sent_facts_.contains(version))return;metrics_.Note(*r,s::FlowStage::Publish,s::MetricMicros()/1000);
   if(sent_facts_.size()>=8192)Fail("publication_sent_fact_capacity");SentFact f;f.dependencies=r->dependencies;f.sample=r->sample;
   if(r->id.kind==s::RangeKind::Manifest){f.dependencies=r->required;f.native=r->native_domains;f.retained=r->retained_domains;f.watermark=r->event_watermark;}
   else if(r->id.kind==s::RangeKind::WorldDynamic)f.native=baseline_->manifest->native_domains;
@@ -649,6 +683,10 @@ bool PublicationSender::ContextReady(const s::Message &m, std::uint64_t now) {
     pending_context_.erase(i);
     context_since_.erase(version);
     progress_ = now;
+#ifdef ISAACCS_E2E
+    const auto site=std::string("host-context-ready:")+std::to_string(unsigned(version.id.kind))+"/"+version.id.name;
+    s::E2EStreamProgress(site.c_str(),{version.revision,0,unsigned(phase_),pending_context_.size(),0,now,dynamic_target_&&dynamic_target_->world_dynamic?dynamic_target_->world_dynamic->revision:0,reliable_.Active()});
+#endif
   }
   return true;
 }
@@ -696,6 +734,7 @@ bool PublicationSender::Applied(const s::Message &m,std::uint64_t now) {
       context_since_.erase(version);
       if(version.revision>applied_[version.id])convergence_since_.erase(version.id);
       applied_[version.id] = (std::max)(applied_[version.id], version.revision);
+      if(native_target_.revision&&version.id==native_target_.id&&version.revision>=native_target_.revision){native_target_={};native_started_=native_at_=0;}
       if(version.id.kind==s::RangeKind::WorldDynamic)applied_world_tick_=(std::max)(applied_world_tick_,sent_facts_.at(version).sample.tick);
     }
     for(const auto &[v,f]:facts){confirmed_.insert_or_assign(v,f);auto sent=sent_facts_.find(v);if(sent!=sent_facts_.end()){metrics_.Note(v.id,v.revision,sent->second.sample,s::FlowStage::Ack,now);}}
@@ -738,6 +777,8 @@ bool PublicationSender::Applied(const s::Message &m,std::uint64_t now) {
   return true;
 }
 bool PublicationSender::Acknowledge(const s::Message &m, std::uint64_t now) {
+  // 外层仍核对当前连接/路由；撤销后的迟到分片ACK不得送进已清空授权的可靠发送器。
+  if(phase_==Phase::WaitingWorld||phase_==Phase::Preparing||phase_==Phase::Recovering||phase_==Phase::Stopped)return false;
   const auto transfer = r::Unsigned(m.body["transfer"]);
   const auto changed = reliable_.Acknowledge(m, now);
   if (changed) {
@@ -749,11 +790,39 @@ bool PublicationSender::Acknowledge(const s::Message &m, std::uint64_t now) {
   return changed;
 }
 bool PublicationSender::NativeProgress(const s::Message &m, std::uint64_t now) {
+#ifdef ISAACCS_E2E
+  s::E2EStreamProgress("host-received",{r::Unsigned(m.body["operation_sequence"]),r::Unsigned(m.body["progress_sequence"]),unsigned(phase_),native_progress_,native_started_,now,native_target_.revision,0});
+#endif
   if (!baseline_ || !baseline_->manifest || m.connection != route_.connection ||
       m.route != route_.epoch || r::Unsigned(m.body["operation"]) != unsigned(s::Kind::Range) ||
-      r::Unsigned(m.body["operation_sequence"]) != baseline_->manifest->revision ||
       r::Unsigned(m.body["stage"]) != unsigned(OperationStage::Executing))
     return false;
+  if(phase_==Phase::Active){
+    // 已完成冷目标的迟到进度只按原精确版本识别并丢弃，不建立活动事务或刷新期限。
+    if(std::string(m.body["reason"].GetString())=="native_complete_step"&&
+       r::Unsigned(m.body["operation_sequence"])==baseline_->manifest->revision)
+      return WasSent({baseline_->manifest->id,baseline_->manifest->revision});
+    const std::string reason=m.body["reason"].GetString();
+    if(reason!="native_structural_step"&&reason!="native_structural_dependencies")return false;
+    const auto revision=r::Unsigned(m.body["operation_sequence"]);
+    const auto fact=std::find_if(sent_facts_.begin(),sent_facts_.end(),[&](const auto &v){return v.first.id.kind==s::RangeKind::WorldDynamic&&v.first.revision==revision;});
+    if(fact==sent_facts_.end()||!WasSent(fact->first))return false;
+    // 纯依赖进度只适用于确有未应用结构／资源版本的已发送目标，普通值不能冒用。
+    if(reason=="native_structural_dependencies"&&std::none_of(fact->second.dependencies.begin(),fact->second.dependencies.end(),[&](const auto &d){return (d.id.kind==s::RangeKind::Structure||d.id.kind==s::RangeKind::Resource)&&applied_[d.id]!=d.revision;}))return false;
+    // UDP可在Applied ACK后送达旧进度；仅已确认的同一版本可无副作用忽略。
+    if(applied_[fact->first.id]>=revision)return confirmed_.contains(fact->first);
+    if(native_target_.revision&&native_target_!=fact->first)return false;
+    const auto step=r::Unsigned(m.body["progress_sequence"]);
+    if(step>native_progress_){
+      if(!native_target_.revision){native_target_=fact->first;native_started_=now;}
+      native_progress_=step;native_at_=now;
+#ifdef ISAACCS_E2E
+      s::E2EStreamProgress("host-advanced",{revision,step,unsigned(phase_),0,native_started_,now,native_target_.revision,0});
+#endif
+    }
+    return true;
+  }
+  if(r::Unsigned(m.body["operation_sequence"])!=baseline_->manifest->revision)return false;
   const s::Version version{baseline_->manifest->id, baseline_->manifest->revision};
   auto i = transfers_.find(version);
   if (!WasSent(version) && (i == transfers_.end() || !reliable_.AllSent(i->second)))
@@ -771,12 +840,15 @@ void PublicationSender::FailPublication(const char *reason) {
   phase_ = Phase::Recovering;
   reliable_.Authorize({});
   fast_.clear();
+  dynamic_target_.reset();
+  native_target_={};native_started_=native_at_=0;
 }
 void PublicationSender::Stop() noexcept {
   phase_ = Phase::Stopped;
   reliable_.Authorize({});
   baseline_.reset();
   latest_.reset();
+  dynamic_target_.reset();
   metadata_.reset();
   bodies_.clear();
   cold_.clear();
@@ -792,13 +864,14 @@ void PublicationSender::Stop() noexcept {
   fast_ = {};
   sent_at_.clear();
   convergence_since_.clear();stale_=false;
+  native_target_={};native_started_=native_at_=0;
   fast_cursor_ = {};
+  missing_source_at_=0;
 }
 unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, EncodingCache &cache,
                                  const s::ReliableSender::Send &send) {
   s::Measure network_measure(metrics_,s::CpuStage::Network);
-  if (phase_ == Phase::Stopped || phase_ == Phase::WaitingWorld || phase_ == Phase::Preparing ||
-      !latest_)
+  if (phase_ == Phase::Stopped || phase_ == Phase::WaitingWorld || phase_ == Phase::Preparing)
     return 0;
   const auto next = [&] {
     if (transfer == UINT64_MAX - 1)
@@ -825,10 +898,27 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
   }
   if (phase_ == Phase::Recovering)
     return 0;
+  if(phase_==Phase::Active&&!latest_){
+    if(!missing_source_at_)missing_source_at_=now;
+    if(!paused_&&now>=missing_source_at_&&now-missing_source_at_>=route_.config.recovery_ms){
+      FailPublication("publication_source_not_refreshed");return 0;
+    }
+  }else missing_source_at_=0;
+  if(phase_==Phase::Active&&native_target_.revision&&
+     (now<native_started_||now-native_started_>=route_.config.absolute_timeout_ms||
+      now<native_at_||now-native_at_>=route_.config.progress_timeout_ms)){
+    FailPublication("publication_structural_no_progress_or_deadline");return 0;
+  }
   if ((phase_ != Phase::Active && (now < started_ || now - started_ >= route_.config.absolute_timeout_ms || now < progress_ ||
                                    now - progress_ >= route_.config.progress_timeout_ms)) ||
       std::any_of(context_since_.begin(), context_since_.end(),
                   [&](const auto &v) { return now < v.second || now - v.second >= route_.config.progress_timeout_ms; })) {
+#ifdef ISAACCS_E2E
+    for(const auto &[version,at]:context_since_)if(now<at||now-at>=route_.config.progress_timeout_ms){
+      const auto site=std::string("host-context-timeout:")+std::to_string(unsigned(version.id.kind))+"/"+version.id.name;
+      s::E2EStreamProgress(site.c_str(),{version.revision,pending_context_.at(version),unsigned(phase_),pending_context_.size(),started_,now,at,now>=at?now-at:0});break;
+    }
+#endif
     FailPublication("publication_no_progress_or_deadline");
     return 0;
   }
@@ -859,8 +949,10 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
   // 每个完整范围各保留一个在途发送游标及来源中的最新候选；按范围轮转，
   // 大WorldDynamic不能挡住PlayerFast；未确认的最后静止后态每100ms补发。
   std::vector<s::Range> ranges;
-  if (phase_ == Phase::Active) {
-    for (const auto &range : latest_->ranges)
+  if (phase_ == Phase::Active && (dynamic_target_ || latest_)) {
+    if(!dynamic_target_)dynamic_target_=latest_;
+    // 两个可靠槽也必须逐项交付同一个在途普通目标声明的版本，不能随latest逐帧换集合。
+    for (const auto &range : dynamic_target_->ranges)
       if (range->id.kind == s::RangeKind::Context || range->id.kind == s::RangeKind::Structure ||
           range->id.kind == s::RangeKind::Resource) {
         if (queued_[range->id] != range->revision && reliable_.Active() < 2 &&
@@ -874,29 +966,45 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
             pending_context_[{range->id, range->revision}] = id;
             context_since_[{range->id, range->revision}] = now;
             queued_[range->id] = range->revision;
+#ifdef ISAACCS_E2E
+            // 记录真正移交可靠owner的依赖及所服务普通目标，不能用采样事实冒充已经发出。
+            const auto site=std::string("host-dependency-queued:")+std::to_string(unsigned(range->id.kind))+"/"+range->id.name;
+            s::E2EStreamProgress(site.c_str(),{range->revision,id,unsigned(phase_),pending_context_.size(),0,now,dynamic_target_->world_dynamic?dynamic_target_->world_dynamic->revision:0,reliable_.Active()});
+#endif
           }
         }
       }
-    if (latest_->world_dynamic)
-      ranges.push_back(latest_->world_dynamic);
+    if (dynamic_target_->world_dynamic)
+      ranges.push_back(dynamic_target_->world_dynamic);
     for (const auto &body : bodies_)
       if (body && body->player_fast) {
+        // 尚未选中的未来普通目标不能借当前Context集合发送身体子帧。
+        if(dynamic_target_->world_dynamic&&std::any_of(body->player_fast->dependencies.begin(),body->player_fast->dependencies.end(),[&](const auto &d){return d.id.kind==s::RangeKind::WorldDynamic&&d.revision>dynamic_target_->world_dynamic->revision;}))continue;
         // 普通完整Player域已经实际提交时，旧快源不再需要发送；不伪造Fast ACK。
         if(body->player_fast->sample.tick>applied_world_tick_)ranges.push_back(body->player_fast);
         else convergence_since_.erase(body->player_fast->id);
       }
-  } else if (baseline_->world_dynamic)
+  } else if (phase_!=Phase::Active && baseline_ && baseline_->world_dynamic)
     ranges.push_back(baseline_->world_dynamic);
-  stale_=false;
-  for(const auto &range:ranges) {
+  stale_=missing_source_at_&&!paused_&&now>=missing_source_at_&&now-missing_source_at_>=route_.config.stale_ms;
+  // 冷目标尚在传输/原生构建时由上面的进度与绝对期限约束；
+  // 只有收到真实Baseline Applied ACK进入Active后，才按已显示状态的年龄恢复。
+  // 否则合法的多步骤冷安装会被2秒动态未收敛规则提前撤销。
+  for(const auto &range:ranges) if(phase_==Phase::Active) {
     if(applied_[range->id]>=range->revision){convergence_since_.erase(range->id);continue;}
     auto [wait,inserted]=convergence_since_.try_emplace(range->id,now);
+    // 原生结构写入期间不存在可展示的新后态；沿用事务的真实进度/绝对期限，普通动态仍为原2秒。
+    if(native_target_.revision){wait->second=now;continue;}
 #ifdef ISAACCS_E2E
     // 显式、有时限的画面审阅段不当作真实慢端；采样/发送/接收仍正常并单列区间。
     if(s::E2EVisualNeutral()){wait->second=now;continue;}
 #endif
     if(!paused_&&now>=wait->second&&now-wait->second>=route_.config.stale_ms)stale_=true;
-    if(!paused_&&now>=wait->second&&now-wait->second>=route_.config.recovery_ms){FailPublication("publication_not_converged");return sent;}
+    if(!paused_&&now>=wait->second&&now-wait->second>=route_.config.recovery_ms){
+#ifdef ISAACCS_E2E
+      s::E2EStreamProgress("host-dynamic-timeout",{range->revision,native_progress_,unsigned(phase_),unsigned(range->id.kind),wait->second,now,native_target_.revision,now-wait->second});
+#endif
+      FailPublication("publication_not_converged");return sent;}
   }
   metrics_.candidates=fast_.size()+pending_context_.size();metrics_.retained=sent_facts_.size();
   for (const auto &range : ranges)
@@ -941,6 +1049,9 @@ unsigned PublicationSender::Pump(std::uint64_t now, std::uint64_t &transfer, Enc
       fast_.erase(current);
     }
   }
+  // 发送完成不等于应用完成；每Peer固定唯一活动目标至真实Applied ACK，latest独立合并。
+  if(phase_==Phase::Active&&dynamic_target_&&dynamic_target_->world_dynamic&&applied_[dynamic_target_->world_dynamic->id]>=dynamic_target_->world_dynamic->revision)dynamic_target_.reset();
   return sent;
 }
 } // namespace cs::net::live
+

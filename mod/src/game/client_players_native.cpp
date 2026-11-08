@@ -2,6 +2,7 @@
 #include "game/client_inspect_value.h"
 #include "binding/world_layout_constants.h"
 #include "game/client_players_native.h"
+#include "game/client_dto_memory.h"
 #include "game/client_player_state.h"
 #include "game/client_player_equipment.h"
 #include "game/client_player_roles.h"
@@ -196,6 +197,7 @@ ClientNativePlayers *ClientNativePlayersCreate() noexcept {
   if(!Phase()||next_player_epoch==UINT64_MAX)return nullptr;
   try{auto o=std::make_unique<ClientNativePlayers>();o->token=std::make_shared<Token>();o->token->owner=o.get();o->epoch=++next_player_epoch;return o.release();}catch(...){return nullptr;}
 }
+std::uint64_t ClientNativePlayersValueBytes(const ClientNativePlayers *o){if(!o)return 0;std::uint64_t n=sizeof(*o)+dto_memory::Extra(o->desired);for(const auto &p:o->entries)n+=sizeof(p)+64+dto_memory::Extra(p.second.description);return n;}
 void ClientNativePlayersDestroy(ClientNativePlayers *o) noexcept {
   if(!o||!IsMain()||o->busy)return;for(const auto &p:o->entries)if(p.second.player)return;
   o->token->owner=nullptr;delete o;

@@ -22,8 +22,8 @@ namespace cs::replica::stream {
   X(world_message_bytes,33554432,65536,33554432) X(fast_message_bytes,65536,1200,65536) \
   X(world_nodes,67108864,32768,67108864) X(fast_nodes,32768,1024,32768) \
   X(fragments,32768,64,32768) X(reliable_candidates,2,1,2) X(dynamic_candidates,65,1,65) \
-  X(value_pool_bytes,268435456,1048576,268435456) X(wire_pool_bytes,67108864,1048576,67108864) \
-  X(workspace_pool_bytes,67108864,1048576,67108864)
+  X(value_pool_bytes,536870912,1048576,536870912) X(wire_pool_bytes,134217728,1048576,134217728) \
+  X(workspace_pool_bytes,134217728,1048576,134217728)
 struct RuntimeConfig final {
 #define CS_STREAM_FIELD(name,value,min,max) std::uint64_t name=value;
   CS_STREAM_SETTINGS(CS_STREAM_FIELD)

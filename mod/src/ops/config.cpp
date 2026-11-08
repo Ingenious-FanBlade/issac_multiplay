@@ -151,7 +151,8 @@ Config ReadConfig() {
       for(auto i=v.MemberBegin();i!=v.MemberEnd();++i) {
         if(std::strlen(i->name.GetString())!=i->name.GetStringLength()||!seen.insert(i->name.GetString()).second)throw std::runtime_error("stream.duplicate_or_invalid_name");
         bool known=false;
-#define CS_STREAM_PARSE(name,initial,lower,upper) if(std::strcmp(i->name.GetString(),#name)==0){if(!i->value.IsUint64())throw std::runtime_error("stream." #name);c.stream.name=i->value.GetUint64();known=true;}
+        // 宏参数不能叫name，否则会连同RapidJSON成员的i->name一起被替换。
+#define CS_STREAM_PARSE(setting,initial,lower,upper) if(std::strcmp(i->name.GetString(),#setting)==0){if(!i->value.IsUint64())throw std::runtime_error("stream." #setting);c.stream.setting=i->value.GetUint64();known=true;}
         CS_STREAM_SETTINGS(CS_STREAM_PARSE)
 #undef CS_STREAM_PARSE
         for(const char *flag:{"acceptance_profile","borrow_initial_lanes"})if(std::strcmp(i->name.GetString(),flag)==0){if(!i->value.IsBool())throw std::runtime_error(flag);if(!std::strcmp(flag,"acceptance_profile"))c.stream.acceptance_profile=i->value.GetBool();else c.stream.borrow_initial_lanes=i->value.GetBool();known=true;}

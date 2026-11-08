@@ -39,6 +39,7 @@ public:
   ClientObjectStep InstallFast(const ClientPlayerFastValues &) noexcept;
   const ClientObjectDescription *StreamDescription(const ClientObjectKey &key) const noexcept {for(const auto &d:values_)if(d.entity.key==key)return &d.entity;return nullptr;}
   ClientPlayerBudget Budget() const noexcept {return budget_;}
+  std::uint64_t StreamValueBytes() const;
   ClientPlayerDiagnostics Diagnostics() const noexcept {return diagnostic_;}
 #ifdef ISAACCS_E2E
   std::string TestInspect(const ClientEntityOwners &) const noexcept;

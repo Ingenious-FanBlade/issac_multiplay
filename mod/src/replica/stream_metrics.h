@@ -8,7 +8,7 @@
 namespace cs::replica::stream {
 std::string LimitsFields(const Limits &,const std::string &prefix);
 enum class FlowStage : unsigned { Witness, Sample, Publish, Encode, Send, Receive, Commit, Ack, Count };
-enum class CpuStage : unsigned { Capture, Encode, Compress, Queue, Decode, NativePrepare, NativeApply, Draw, Network, Ipc, NativeRetire, Count };
+enum class CpuStage : unsigned { Capture, Encode, Compress, Queue, Decode, NativePrepare, NativeApply, Draw, Network, Ipc, NativeRetire, Build, MainCapture, FrameInterval, SourceLua, SourceNative, SourceCopy, SourceControl, SourceHandoff, Count };
 // 固定对数桶保留计数/总量/最大值；生产不保存每tick日志或无界历史。
 struct Duration final {
   std::uint64_t count=0,total_us=0,max_us=0;

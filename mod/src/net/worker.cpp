@@ -900,6 +900,7 @@ WorkerStatus Worker::Status(unsigned ordinal) const noexcept {
   result.replication_memory=memory::ReplicationBudget()->Snapshot();
   if (!state_ || !ordinal || ordinal >= core::kMaximumParticipants)
     return result;
+  result.routing_rejected_packets=state_->foreign_packets.load(std::memory_order_relaxed);
   const auto &s = *state_->peers[ordinal];
   result.terminal = s.terminal.load(std::memory_order_acquire);
   result.running = s.running.load(std::memory_order_acquire);

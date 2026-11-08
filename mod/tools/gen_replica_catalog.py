@@ -3,6 +3,7 @@ import argparse
 import json
 import pathlib
 import re
+from cpp_catalog import string_expression
 from replica_projection_policy import OMITTED_MEMBERS, consumer_review
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -86,8 +87,7 @@ def main():
     text = json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))
     (args.out / "replication-catalog.json").write_text(text, encoding="utf-8")
     # C++原始字符串嵌入产品目录，正式adapter不依赖磁盘录制或测试包。
-    chunks = [text[i:i+8000] for i in range(0, len(text), 8000)]
-    (args.out / "replication_catalog.inc").write_text('std::string{}' + ''.join('+std::string(R"ICSR(' + part + ')ICSR")' for part in chunks), encoding="utf-8")
+    (args.out / "replication_catalog.inc").write_text(string_expression(text, "ICSR"), encoding="utf-8")
 
 
 if __name__ == "__main__":

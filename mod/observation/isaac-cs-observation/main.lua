@@ -38,7 +38,7 @@ for _,kind in ipairs({"DECORATION","DOOR","FIRE","GRAVITY","LOCK","PIT","POOP","
     local name="MC_POST_GRID_ENTITY_"..kind.."_"..phase
     if ModCallbacks[name] then mod:AddCallback(ModCallbacks[name],function(_,object)
       local n=IsaacCSObservationNative
-      if n and n.GridNeeded(phase=="RENDER" and "Render" or "Lifecycle") then
+      if n and n.GridNeeded(phase=="RENDER" and "Render" or "Update") then
         local ok,err=pcall(grid.Event,name,object,phase=="RENDER")
         if not ok then grid.Error(name,err,phase=="RENDER") end
       end

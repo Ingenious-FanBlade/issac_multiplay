@@ -1,6 +1,7 @@
 """tx-04-21逐签名实时责任目录；生成产品数据，不执行测试或读取游戏。"""
 import argparse
 import json
+from cpp_catalog import string_expression
 import re
 from pathlib import Path
 from gen_replica_catalog import classify
@@ -17,6 +18,49 @@ RESOURCE_OWNERS = {"AnimationData", "AnimationLayer", "AnimationFrame", "Image",
 # 构造、引用和资源定义必须普通联合提交；其余具名最终量保守地每个合格窗口刷新。
 STRUCTURE = re.compile(r"(?:^|\.)(?:Type|Variant|SubType|InitSeed|GetPlayerType|GetPlayerIndex|GetMainTwin|GetOtherTwin|GetSubPlayer|IsSubPlayer|GetFlippedForm|IsHologram|GetHeldEntity|Parent|Child|SpawnerEntity|Target|GetWeapon|GetEffects|GetHistory|GetCostumeSpriteDescs|GetCostumeLayerMap|GetCollectiblesList|GetVoidedCollectiblesList|GetWispCollectiblesList|GetSpoofedCollectiblesList|GetSmeltedTrinkets|GetSmeltedTrinketDesc|QueuedItem|GetPocketItem|GetActiveItemDesc)$")
 RESOURCE = re.compile(r"(?:Filename|SpritesheetPath|GetSpritesheetPath|GetAllAnimationData|GetLayerID|GetName|GetTexture|Shader|Path)$")
+
+
+def capture_freshness():
+    """本轮不宣称writer闭包：字段仍同窗重读，范围复用只发生在后台精确比较之后。"""
+    return {"mode": "FreshRead", "stable_reuse": False,
+            "source": "qualified-main-thread-window;sealed-owned-values;no-Lua-or-native-borrow-in-worker",
+            "changes": "all declared getters reread;resource/save/config writer closure not established",
+            "failure": "incomplete/window-change/loss/budget => no new complete publication",
+            "version_reuse": "exact full-range equality;original acquired sample plus current checked sample"}
+
+
+def protocol_names(catalog):
+    """构建时展开固定名称表；握手线程不解析数MiB目录，也不动态建立名称字典。"""
+    fixed = json.loads((ROOT / "mod/src/replica/stream_fixed_names.json").read_text(encoding="utf-8"))
+    names, codes = {}, {}
+
+    def add(code, name):
+        if name in names:
+            return
+        if not code or code in codes:
+            raise ValueError("compact_name_definition")
+        names[name], codes[code] = code, name
+
+    for index, name in enumerate(fixed, 1):
+        add(index * 4, name)
+    members = {}
+    for row in catalog["members"]:
+        members[row["id"]] = min(members.get(row["id"], row["field"]), row["field"])
+    # 保留退休签名的旧编号，新增/修改签名不能重排已有名称。
+    for wire, field in catalog["field_ids"].items():
+        parts = wire.split("|", 2)
+        if len(parts) == 3 and "." in parts[1]:
+            ident = parts[1]
+            members[ident] = min(members.get(ident, field), field)
+    owners = {}
+    for name, field in members.items():
+        owner = name.split(".", 1)[0]
+        owners[owner] = min(owners.get(owner, field), field)
+    for name, field in sorted(members.items()):
+        add(field * 4 + 1, name)
+    for name, field in sorted(owners.items()):
+        add(field * 4 + 2, name)
+    return [(code, name) for name, code in names.items()]
 
 
 def disposition(m, domain, ownership):
@@ -98,6 +142,7 @@ def generate():
                 "baseline": scope not in {"AuthorityOnly", "Presentation"} and ownership != "NotReplicated",
                 "completeness": "Value/Null/Empty/NotApplicable/Missing/NotScheduled/ReadFailed/Unsupported/Truncated-distinct",
                 "default_legal": False, "invalidation": invalidation,
+                "capture_freshness": capture_freshness(),
                 "joint_commit": "membership/shape/equipment/references/held/twin/weapon-owner;ordinary-only",
                 "applications": links, "readonly_consumer": "ClientPlayerDisplayView::Captured" if domain == "player" else "retained-model-context",
                 "projection": consumer_review(m["id"]), "tasks": "I06-I09/I11/I23-I24", "research": "R01/R03/R06",
@@ -115,6 +160,7 @@ def generate():
                 "binding": "body:PlayerFast-only-after-I08/R03;other:WorldDynamic;resource-definition:Resource",
                 "joint_commit": "all cross-object and owner/layout changes ordinary-joint",
                 "invalidation": "root/use/shape/borrow/resource/Lua/loss/mutation;no-unproven-cache",
+                "capture_freshness": capture_freshness(),
                 "tasks": "I06-I09/I23-I24", "research": "R01/R03/R04/R06", "e2e": "E02/E05/E09/E18"})
     return {"format": "isaac.cs.stream.catalog", "version": 1, "members": rows, "supplements": supplements,
         "native_members": native,
@@ -123,9 +169,12 @@ def generate():
         "projection_review": "no new omissions;existing omitted queries keep exact documented consumers/local-asset equivalence;new consumers must restore source",
         "low_frequency_policy": "no proven complete dirty coverage => bounded full read;no cached-complete claim from notification alone",
         "capture_profiles": {
-            "ordinary": "stream-source-v1;pre-JSON scopes;complete ordinary body-joint;world.v2 carries all eleven real capture scopes;no cold-scope retagging",
+            "ordinary": "main-thread FreshRead -> immutable owned values/64-item blocks -> single worker stream-source-v1 partition;no formal Lua JSON;complete ordinary body-joint;world.v2 carries all eleven real capture scopes;no cold-scope retagging",
             "player_post": "player-fast-source-v1;actual-body-witness;main+13-inline+ordered-costume-render-poses;exact ordinary resource/config/map dependency;29/38 cross-body standalone gap;no weapons/inventory promotion",
             "validity": "immutable acquired sample + target checked sample;bounded full reads for unclosed dirty coverage",
+            "handoff": "one building+one latest ordinary;independent pinned cold;8 latest body slots;256 ordered controls;generation+watermark revoke;exact required_capture never rebound",
+            "retirement": "bounded 16384 live-or-retired owners;final value destruction on reclaimer;all retained values and metadata charged to existing pools",
+            "freshness": capture_freshness(),
             "layouts": ["stream.context.v1", "stream.structure.v1", "stream.resource.v1", "stream.world.v2", "stream.player.v1"]},
         "installation": {
             "prepare": "net/live.cpp::Client::Prepare;old-route ScenePrepared echo;main-thread BeginStream;input/history revoked",
@@ -154,15 +203,25 @@ def main():
     text = json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))
     (args.out / "stream-catalog.json").write_text(text, encoding="utf-8")
     if not args.json_only:
-        (args.out / "stream_catalog.inc").write_text("std::string{}" + "".join(
-            '+std::string(R"ICSS(' + text[i:i+8000] + ')ICSS")' for i in range(0, len(text), 8000)), encoding="utf-8")
+        (args.out / "stream_catalog.inc").write_text(string_expression(text, "ICSS"), encoding="utf-8")
+        names = protocol_names(catalog)
+        for order, key in (("text", lambda row: row[1]), ("code", lambda row: row[0])):
+            (args.out / f"stream_names_by_{order}.inc").write_text("".join(
+                "{" + str(code) + "ULL," + json.dumps(name, ensure_ascii=False) + "},\n"
+                for code, name in sorted(names, key=key)), encoding="utf-8")
+    # C++与Lua共用同一份已消歧策略；后台分层不为查scope解析整份研究/说明目录。
+    policies = {}
+    for row in catalog["members"]:
+        scope = row["scope"]
+        ident = row["id"]
+        policies[ident] = scope if ident not in policies or policies[ident] == scope else "Context"
+    if not args.json_only:
+        layers = {"Structure": "Structure", "Resource": "Resource", "WorldDynamic": "WorldLayer",
+                  "PlayerFast": "WorldLayer", "SubjectDynamic": "WorldLayer"}
+        (args.out / "stream_field_layers.inc").write_text("".join(
+            "{" + json.dumps(ident, ensure_ascii=False) + "," + layers.get(scope, "Context") + "},\n"
+            for ident, scope in sorted(policies.items())), encoding="utf-8")
     if args.lua:
-        # 运行时来源只按显式字段目录分层；同名别名冲突保守交普通联合Context。
-        policies = {}
-        for row in catalog["members"]:
-            scope = row["scope"]
-            ident = row["id"]
-            policies[ident] = scope if ident not in policies or policies[ident] == scope else "Context"
         args.lua.write_text("-- 由gen_stream_catalog.py生成的逐成员来源层；编号与目录同源。\nreturn {\n" +
             "".join("[" + json.dumps(k, ensure_ascii=False) + "]=" + json.dumps(v) + ",\n"
                     for k, v in sorted(policies.items())) + "}\n", encoding="utf-8")

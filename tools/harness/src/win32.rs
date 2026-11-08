@@ -136,6 +136,10 @@ struct BitmapInfo {
 #[link(name = "kernel32")]
 unsafe extern "system" {
     fn SetThreadExecutionState(flags:u32)->u32;
+    fn GetCurrentProcess() -> Handle;
+    fn GetCurrentProcessId() -> u32;
+    fn ProcessIdToSessionId(pid: u32, session: *mut u32) -> Bool;
+    fn QueryFullProcessImageNameW(process: Handle, flags: u32, name: *mut u16, size: *mut u32) -> Bool;
     fn CreateProcessW(
         app: *const u16,
         cmd: *mut u16,
@@ -238,6 +242,9 @@ unsafe extern "system" {
 }
 #[link(name = "advapi32")]
 unsafe extern "system" {
+    fn OpenProcessToken(process: Handle, access: u32, token: *mut Handle) -> Bool;
+    fn GetTokenInformation(token: Handle, class: u32, data: Handle, bytes: u32, needed: *mut u32) -> Bool;
+    fn EqualSid(first: Handle, second: Handle) -> Bool;
     fn RegGetValueW(
         key: Handle,
         subkey: *const u16,
@@ -286,6 +293,69 @@ pub fn steam_path() -> Result<PathBuf, String> {
         ordinary_path(Path::new(
             &String::from_utf16(&data[..n]).map_err(|e| e.to_string())?,
         ))
+    }
+}
+
+// 启动前只读检查当前交互用户的Steam登录、进程和Windows令牌上下文；不启动Steam或代填账户。
+// ActiveUser只转为布尔值，不把账户标识写入诊断；这不能代替游戏实际启动后的Steam初始化结果。
+pub fn steam_ready() -> Result<Value, String> {
+    unsafe {
+        let registry_dword = |name: &str| -> Result<u32, String> {
+            let mut value = 0u32;
+            let mut bytes = 4;
+            let status = RegGetValueW(0x80000001usize as Handle,
+                wide(r"Software\Valve\Steam\ActiveProcess").as_ptr(), wide(name).as_ptr(),
+                0x10, null_mut(), (&mut value as *mut u32).cast(), &mut bytes);
+            if status != 0 { return Err(format!("Steam未就绪，请在当前Windows用户下启动并登录Steam（{name}: {status}）")); }
+            Ok(value)
+        };
+        let pid = registry_dword("pid")?;
+        if pid == 0 || registry_dword("ActiveUser")? == 0 {
+            return Err("Steam未就绪：尚无已登录的活动客户端，请完成Steam初始化后重试".into());
+        }
+        let process = OpenProcess(0x1000, 0, pid);
+        if process.is_null() { return Err("无法读取Steam活动进程，请检查是否已退出或使用了其他账户／权限".into()); }
+        let result = (|| {
+            let mut image = [0u16; 32768];
+            let mut count = image.len() as u32;
+            if QueryFullProcessImageNameW(process, 0, image.as_mut_ptr(), &mut count) == 0 {
+                return Err(error("QueryFullProcessImageNameW Steam"));
+            }
+            let image = PathBuf::from(String::from_utf16(&image[..count as usize]).map_err(|e|e.to_string())?);
+            if !image.to_string_lossy().eq_ignore_ascii_case(&steam_path()?.join("steam.exe").to_string_lossy()) {
+                return Err("Steam活动PID与安装目录不符，请重新打开Steam".into());
+            }
+            let mut own_session = 0;
+            let mut steam_session = 0;
+            if ProcessIdToSessionId(GetCurrentProcessId(), &mut own_session) == 0
+                || ProcessIdToSessionId(pid, &mut steam_session) == 0 { return Err(error("ProcessIdToSessionId Steam")); }
+            if own_session != steam_session { return Err("Steam和测试节点不在同一交互会话，请在游戏所用桌面登录Steam".into()); }
+            // 按SID及提升状态比较真实访问令牌，避免仅凭同一SessionId误认runas启动的另一账户。
+            let context = |handle: Handle| -> Result<(Vec<usize>, u32), String> {
+                let mut token = null_mut();
+                if OpenProcessToken(handle, 8, &mut token) == 0 { return Err(error("OpenProcessToken Steam")); }
+                let result = (|| {
+                    let mut user = vec![0usize; 128];
+                    let mut needed = 0;
+                    let mut elevated = 0u32;
+                    if GetTokenInformation(token, 1, user.as_mut_ptr().cast(), (user.len()*size_of::<usize>()) as u32, &mut needed) == 0
+                        || GetTokenInformation(token, 20, (&mut elevated as *mut u32).cast(), 4, &mut needed) == 0 {
+                        return Err(error("GetTokenInformation Steam"));
+                    }
+                    Ok((user, elevated))
+                })();
+                CloseHandle(token);
+                result
+            };
+            let (own_user, own_elevation) = context(GetCurrentProcess())?;
+            let (steam_user, steam_elevation) = context(process)?;
+            if EqualSid(own_user[0] as Handle, steam_user[0] as Handle) == 0 || own_elevation != steam_elevation {
+                return Err("Steam与游戏必须使用同一Windows账户和提升状态，请用普通用户桌面启动Steam".into());
+            }
+            Ok(json!({"steam_pid":pid,"logged_in":true,"session":own_session,"same_user":true,"same_elevation":true}))
+        })();
+        CloseHandle(process);
+        result
     }
 }
 

@@ -17,7 +17,15 @@ struct Live {
  armed:Vec<Value>,measurements:Vec<Value>,closed:bool,product:bool,capacity:Option<Value>,
 }
 // 任一准备/观察异常也尝试关闭本方游戏；失败材料留在本次目录，绝不强杀外部进程。
-impl Drop for Live {fn drop(&mut self){if !self.closed{let ids=self.nodes.iter().filter_map(|p|p.config["id"].as_str().map(str::to_owned)).collect::<Vec<_>>();for id in ids{if let Ok(peer)=self.node(&id){let _=peer.call("physical",json!({"keys":[],"hold_ms":0}));let _=peer.call("finish",json!({}));}}}}}
+impl Drop for Live {fn drop(&mut self){if !self.closed{
+ let ids=self.nodes.iter().filter_map(|p|p.config["id"].as_str().map(str::to_owned)).collect::<Vec<_>>();let mut cleanup=Vec::new();
+ for id in ids.into_iter().rev(){if let Ok(peer)=self.node(&id){
+  let released=peer.call("physical",json!({"keys":[],"hold_ms":0}));let finished=peer.call("finish",json!({}));
+  // setup尚未返回时的真实退出/文件差异也保留；不能因主失败发生得早而吞掉收尾事实。
+  cleanup.push(json!({"node":id,"release":released.as_ref().ok(),"release_error":released.err(),"finish":finished.as_ref().ok(),"finish_error":finished.err()}));
+ }}
+ let _=write_json(&self.directory.join("failure-cleanup-facts.json"),&json!(cleanup));
+}}}
 impl Live {
  fn node(&mut self,id:&str)->Result<&mut Peer>{self.nodes.iter_mut().find(|p|p.config["id"]==id).ok_or_else(||format!("真实节点缺席:{id}"))}
  fn command_ok(&mut self,id:&str,text:&str)->Result<BTreeMap<String,String>>{let r=self.command(id,text)?;if r.get("ok").map(String::as_str)!=Some("1"){return Err(format!("{id} {text}:{r:?}"))}Ok(r)}
@@ -32,10 +40,39 @@ impl Live {
    let before=self.status("host")?;let packets=hello.iter().filter(|(k,_)|k.starts_with("packet.")).map(|(_,v)|super::node::unhex(v)).collect::<Result<Vec<_>>>()?;if packets.is_empty(){return Err("容量探针没有真实编码Hello".into())}
    for packet in &packets{if socket.send(packet).map_err(|e|e.to_string())?!=packet.len(){return Err("容量探针未完整发送".into())}}
    let mut bytes=[0u8;1201];let received=socket.recv(&mut bytes);
-   if i<fill{let count=received.map_err(|e|format!("菜单槽未产生真实Welcome:{e}"))?;let part=proxy::parts(&bytes[..count])?;if !part.iter().any(|p|p.kind==2){return Err("容量探针未获Welcome，不能冒称已填满".into())}facts.push(json!({"probe":i,"welcome":true,"bytes":count,"source":socket.local_addr().map_err(|e|e.to_string())?}));}
-   else{if received.is_ok(){return Err("满菜单仍回复/接纳了第四个endpoint".into())}let until=Instant::now()+Duration::from_secs(5);let after=loop{let s=self.status("host")?;if n(&s,"net_foreign")?.saturating_sub(n(&before,"net_foreign")?)>=packets.len()as u64{break s}if Instant::now()>=until{return Err("第四Hello没有实际Host容量拒绝计数，不能按超时通过".into())}thread::sleep(Duration::from_millis(100));};facts.push(json!({"probe":i,"rejected":true,"before":before,"after":after,"sent_fragments":packets.len()}));}
+   if i<fill{
+    // 菜单能力声明本身会分片；必须收齐同一真实Welcome，不能把首片当作完整握手。
+    let mut count=received.map_err(|e|format!("菜单槽未产生真实Welcome:{e}"))?;
+    let deadline=Instant::now()+Duration::from_secs(5);
+    let mut expected=None;let mut fragments=BTreeMap::<u32,Vec<u8>>::new();let mut replies=Vec::new();
+    loop{
+     let parts=proxy::parts(&bytes[..count])?;let kinds=parts.iter().map(|p|p.kind).collect::<Vec<_>>();
+     replies.push(super::node::hex(&bytes[..count]));
+     let mut current=facts.clone();current.push(json!({"probe":i,"welcome":false,"kinds":kinds,"replies":replies,"source":socket.local_addr().map_err(|e|e.to_string())?}));
+     write_json(&self.directory.join("capacity-probes.json"),&json!(current))?;
+     if parts.len()!=1||!bytes.starts_with(b"ICRF")||parts[0].kind!=2{return Err(format!("容量探针实际回复kind={kinds:?}，未获完整Welcome"))}
+     let part=&parts[0];let scope=bytes[8..24].to_vec();
+     if part.count>64||part.codec!=0{return Err("容量Welcome超出握手分片/编码预算".into())}
+     let identity=(part.transfer,part.count,scope);if let Some(old)=&expected{if old!=&identity{return Err("容量Welcome分片身份冲突".into())}}else{expected=Some(identity)}
+     if let Some(old)=fragments.get(&part.index){if old.as_slice()!=&bytes[..count]{return Err("容量Welcome同片异值".into())}}else{fragments.insert(part.index,bytes[..count].to_vec());}
+     if fragments.values().map(Vec::len).sum::<usize>()>65536+64*64{return Err("容量Welcome总量超出握手预算".into())}
+     if fragments.len()==part.count as usize{break}
+     let remaining=deadline.saturating_duration_since(Instant::now());if remaining.is_zero(){return Err("容量Welcome分片未收齐".into())}
+     socket.set_read_timeout(Some(remaining)).map_err(|e|e.to_string())?;count=socket.recv(&mut bytes).map_err(|e|format!("容量Welcome分片未收齐:{e}"))?;
+    }
+    facts.push(json!({"probe":i,"welcome":true,"complete_fragments":fragments.len(),"replies":replies,"source":socket.local_addr().map_err(|e|e.to_string())?}));
+    write_json(&self.directory.join("capacity-probes.json"),&json!(facts))?;
+   }
+   else{if received.is_ok(){return Err("满菜单仍回复/接纳了第四个endpoint".into())}let until=Instant::now()+Duration::from_secs(5);let after=loop{let s=self.status("host")?;if n(&s,"net_route_rejected")?.saturating_sub(n(&before,"net_route_rejected")?)>=packets.len()as u64{break s}if Instant::now()>=until{return Err("第四Hello没有实际Host路由容量拒绝计数，不能按超时通过".into())}thread::sleep(Duration::from_millis(100));};facts.push(json!({"probe":i,"rejected":true,"before":before,"after":after,"sent_fragments":packets.len()}));write_json(&self.directory.join("capacity-probes.json"),&json!(facts))?;}
    probes.push(socket);
-  }let result=json!({"pass":true,"actual":facts,"real_game_clients":self.clients().len(),"probes":"negative handshake only;not gameplay/positive Client substitutes"});self.capacity=Some(result.clone());Ok(result)
+  }
+  let result=json!({"pass":true,"actual":facts,"real_game_clients":self.clients().len(),"probes":"negative handshake only;not gameplay/positive Client substitutes"});self.capacity=Some(result.clone());
+  // 负向端点被拒绝时，原有真实Client必须仍保持菜单连接；不能以其已断连掩盖满员测试失败。
+  for id in self.clients(){let status=self.status(&id)?;if status.get("client_state").map(String::as_str)!=Some("AwaitingWorld")||n(&status,"client_world_applied")?!=0{
+   self.save_facts("capacity-real-client-unhealthy",json!({"node":id,"status":status,"capacity":result}))?;
+   return Err(format!("容量拒绝已命中，但真实{id}没有保持AwaitingWorld，必须修复连接后续验"))
+  }}
+  Ok(result)
  }
  fn wait(&mut self,id:&str,key:&str,value:&str,timeout:u64)->Result<BTreeMap<String,String>>{let until=Instant::now()+Duration::from_millis(timeout);loop{let s=self.status(id)?;if s.get(key).map(String::as_str)==Some(value){return Ok(s)}if Instant::now()>=until{return Err(format!("{id}等待{key}={value}超时:{s:?}"))}thread::sleep(Duration::from_millis(100));}}
  fn log(&mut self,id:&str)->Result<String>{let path=self.directory.join(format!("{id}-game.log"));self.node(id)?.download("game-log",&path)?;read(&path)}
@@ -52,7 +89,7 @@ impl Live {
    let id=string(&self.nodes[i].config,"id")?.to_owned();let window=self.node(&id)?.call("window",json!({}))?;
    if !window["exited"].is_null(){let log=self.log(&id)?;nodes.push(json!({"node":id,"window":window,"already_exited":true,"log_bytes":log.len(),"IPC_after_exit":"unavailable,never synthesized"}));}
    else if self.product{let screen=self.screenshot(&id,&Value::Null)?;let log=self.log(&id)?;nodes.push(json!({"node":id,"window":window,"screen":screen,"log_bytes":log.len(),"product_external_only":true}));}
-   else{nodes.push(json!({"node":id,"window":window,"status":self.status(&id)?,"stream":self.command(&id,if i==0{"cs stream source 0"}else{"cs stream client 0"})?,"counters":self.command_ok(&id,"cs counters")?}));}
+   else{let token=self.token.clone();nodes.push(json!({"node":id,"window":window,"status":self.status(&id)?,"stream":self.command(&id,if i==0{"cs stream source 0"}else{"cs stream client 0"})?,"counters":self.command_ok(&id,"cs counters")?,"timings":self.command_ok(&id,&format!("cs client_test {token} fault-status"))?}));}
   }
   let value=json!({"check":name,"case":self.case["id"],"nodes":nodes,"extra":extra,"observation":"raw real game values;missing fields never default to zero"});let path=self.directory.join(format!("facts-{}.json",self.reviews.len()));write_json(&path,&value)?;Ok(json!({"path":path,"facts":value}))
  }
@@ -68,6 +105,33 @@ impl Live {
    if n(&s,"client.isolation.persistence_blocked")?!=1||n(&s,"client.player_random_denied")?>0{return Err(format!("{id}持久/随机隔离异常:{s:?}"))}
    facts.push(json!({"node":id,"status":s,"counters":c}));
   }Ok(json!({"pass":!facts.is_empty(),"facts":facts,"requires_final_files_and_shutdown_witness":true}))
+ }
+ // 双方读取正在使用的冻结配置；不以部署文件或Client单方声明代替Host实际Peer预算。
+ fn effective_config(&mut self)->Result<Value>{
+  let mut actual=Vec::new();
+  for (index,id) in self.clients().into_iter().enumerate(){
+   let host=self.command_ok("host",&format!("cs stream {} 0",index+1))?;
+   let client=self.command_ok(&id,"cs stream client 0")?;
+   for (owner,fields) in [("host",&host),(id.as_str(),&client)]{
+    for (key,value) in [("player_hz",60),("world_hz",30),("roster_hz",20),("timing_hz",60),
+     ("total_bytes_per_second",937500),("peer_bytes_per_second",312500),
+     ("total_burst_bytes",24576),("peer_burst_bytes",8192),("cross_peer_borrow",0),
+     ("reserved_peer_slots",3),("frozen",1),
+     ("value_pool_bytes",536870912),("wire_pool_bytes",134217728),("workspace_pool_bytes",134217728)]{
+     if n(fields,&format!("stream.effective.{key}"))?!=value{return Err(format!("{owner}实际冻结配置不符:{key}:{fields:?}"))}
+    }
+    // 用户要求三池翻倍；同时核对正在使用的账本，不能只看配置文件或请求值。
+    for (pool,limit) in [536870912u64,134217728,134217728].into_iter().enumerate(){
+     let key=format!("stream.pool.{pool}");let actual=fields.get(&key).and_then(|s|s.rsplit('/').next()).and_then(|s|s.parse::<u64>().ok());
+     if actual!=Some(limit){return Err(format!("{owner}实际内存池额度不符:{key}:{actual:?}"))}
+    }
+    if fields.get("stream.effective.profile").map(String::as_str)!=Some("acceptance-fixed-peer"){
+     return Err(format!("{owner}未使用实际固定Peer配置:{fields:?}"))
+    }
+   }
+   actual.push(json!({"client":id,"host_peer":index+1,"host":host,"client_effective":client}));
+  }
+  self.review("effective-config-fixed-p2-share",json!({"actual":actual,"cross_peer_borrow":false}))
  }
  fn index(&mut self,id:&str,revision:Option<&Value>,timeout:u64)->Result<Value>{let until=Instant::now()+Duration::from_millis(timeout);loop{let token=self.token.clone();let r=self.command_ok(id,&format!("cs stream_test {token} snapshot 0 0"))?;let rows:Value=serde_json::from_str(r.get("data").ok_or("snapshot_index")?).map_err(|e|e.to_string())?;if let Some(row)=rows.as_array().ok_or("snapshot_index_array")?.iter().find(|r|revision.is_none_or(|v|r["revision"]==*v)){return Ok(row.clone())}if Instant::now()>=until{return Err(format!("{id}精确版本未取得"))}thread::sleep(Duration::from_millis(50));}}
  fn aligned(&mut self,kind:u64)->Result<Value>{
@@ -135,15 +199,21 @@ impl Live {
  fn finish(&mut self)->Result<Value>{
   if self.closed{return Ok(json!({"already_closed":true}))}self.restore()?;
   // 客户端先正式退休，再关闭真实进程；失败继续保留隔离，不强杀进程。
-  let mut facts=Vec::new();let ids=self.nodes.iter().map(|p|p.config["id"].as_str().unwrap_or("").to_owned()).collect::<Vec<_>>();
+  let mut facts=Vec::new();let mut save_failures=Vec::new();let ids=self.nodes.iter().map(|p|p.config["id"].as_str().unwrap_or("").to_owned()).collect::<Vec<_>>();
   for id in ids.iter().rev(){let r=self.node(id)?.call("finish",json!({}))?;
    if r["game_exited"]!=true{return Err(format!("{id}真实进程尚未退出"))}
    if r["exit_code"]!=0{return Err(format!("{id}退出状态异常/缺测:{r}"))}
-   if id!="host"{for row in r["save_changes"].as_array().ok_or("Client save comparison missing")?{let path=string(row,"path")?.to_lowercase();let volatile=path.ends_with("/log.txt")||path.ends_with("/cmd_history.txt")||path.ends_with(".ini")||path.contains("inputconfigs");if row["bytes_changed"]==true&&!volatile{return Err(format!("{id}访客持久字节改变:{row}"))}}}
-   let trace_path=self.directory.join(format!("{id}-events.jsonl"));self.node(id)?.download("events",&trace_path)?;let _=self.log(id)?;facts.push(json!({"node":id,"result":r}));
+   // 正文完全相同的已知加载计数元数据单列，不当作访客进度污染；缺少分类仍按正文变化处理。
+   // 存档差异先记下，继续正常关闭Host，不能因Client比较失败而遗留另一端游戏。
+   if id!="host"{for row in r["save_changes"].as_array().ok_or("Client save comparison missing")?{let path=string(row,"path")?.to_lowercase();let volatile=path.ends_with("/log.txt")||path.ends_with("/cmd_history.txt")||path.ends_with(".ini")||path.contains("inputconfigs");let metadata_only=row["container_metadata_only"]==true&&row["progress_bytes_changed"]==false;if row["bytes_changed"]==true&&!volatile&&!metadata_only{let parts=path.split('/').collect::<Vec<_>>();let label=if parts.len()>2&&parts[0]=="steam_remote"{format!("steam_remote/<account>/{}",parts[2..].join("/"))}else{path};save_failures.push(format!("{id}访客进度或结构字节改变:{label}"));}}}
+   facts.push(json!({"node":id,"result":r}));
   }
   if let Some(p)=self.proxy.take(){let summary=p.finish()?;write_json(&self.directory.join("proxy-result.json"),&summary)?;facts.push(summary);}
-  self.closed=true;Ok(json!({"pass":true,"facts":facts}))
+  self.closed=true;
+  let cleanup=json!({"pass":save_failures.is_empty(),"facts":facts,"save_failures":save_failures});write_json(&self.directory.join("cleanup-facts.json"),&cleanup)?;
+  // 双方都正常退出并记录存档事实后才复制诊断，慢下载不能把Host继续留在运行中的战斗场景。
+  for id in ids.iter().rev(){let trace_path=self.directory.join(format!("{id}-events.jsonl"));self.node(id)?.download("events",&trace_path)?;let _=self.log(id)?;}
+  if !save_failures.is_empty(){return Err(save_failures.join(";"))}Ok(cleanup)
  }
 }
 
@@ -185,7 +255,15 @@ impl Driver for Live {
   let deadline=Instant::now()+Duration::from_millis(milliseconds);let mut loads=Vec::new();let mut next_update=Instant::now();
   while Instant::now()<deadline{
    let log=self.log("host")?;let actual=log.lines().rev().filter_map(|l|l.find('{').and_then(|at|serde_json::from_str::<Value>(&l[at..]).ok())).find(|r|r["event"]=="load"&&r["token"]==self.token);
-   if let Some(actual)=actual{if !spec.is_null(){for(key,target)in [("participants","participants"),("npc","npc_min"),("attacks","attack_min")]{if let Some(min)=spec[target].as_u64(){if number(&actual,key)?<min{return Err(format!("{phase}真实负载不足:{key}:{actual}"))}}}loads.push(actual);}else if !spec.is_null(){return Err("稳定段缺少实际Host负载见证".into())}
+   // 实际负载缺席与未达下限分别失败；负载记录始终属于真实Host采样。
+   if let Some(actual)=actual{
+    if !spec.is_null(){
+     for(key,target)in [("participants","participants"),("npc","npc_min"),("attacks","attack_min")]{
+      if let Some(min)=spec[target].as_u64(){if number(&actual,key)?<min{return Err(format!("{phase}真实负载不足:{key}:{actual}"))}}
+     }
+    }
+    loads.push(actual);
+   }else if !spec.is_null(){return Err("稳定段缺少实际Host负载见证".into())}
    if Instant::now()>=next_update{println!("{} {phase} {load}：剩余 {} 秒，真实节点持续采集。",self.case["id"],deadline.saturating_duration_since(Instant::now()).as_secs());next_update=Instant::now()+Duration::from_secs(30);}
    thread::sleep(Duration::from_millis(250));
   }
@@ -236,6 +314,7 @@ impl Driver for Live {
  fn restore(&mut self)->Result<()>{for id in self.nodes.iter().map(|p|p.config["id"].as_str().unwrap_or("").to_owned()).collect::<Vec<_>>(){self.node(&id)?.call("physical",json!({"keys":[],"hold_ms":0}))?;let token=self.token.clone();let _=self.command(&id,&format!("cs stream_test {token} visual off"));}if let Some(p)=&self.proxy{for i in 0..self.clients().len(){p.profile(i,Profile::N0,0)?;}}Ok(())}
  fn observe(&mut self,check:&str,p:&Value,timeout:u64)->Result<Value>{
   match check{
+   "effective-config-fixed-p2-share"=>self.effective_config(),
    "negotiation-refused-before-large-allocation"=>{let id=self.clients().first().cloned().ok_or("真实Client")?;if let Some(capacity)=self.capacity.clone(){let s=self.status(&id)?;if n(&s,"client_world_applied")?!=0{return Err("容量负向在菜单前提不成立".into())}return self.review(check,json!({"status":s,"actual_capacity":capacity}))}let until=Instant::now()+Duration::from_millis(timeout);loop{let s=self.status(&id)?;if matches!(s.get("client_state").map(String::as_str),Some("Retiring"|"Failed"|"Off"))&&n(&s,"client_world_applied")?==0{return self.review(check,json!({"status":s,"wire":p}))}if Instant::now()>=until{return Err(format!("错误协商未在世界分配前拒绝:{s:?}"))}thread::sleep(Duration::from_millis(100));}},
    "host-fixture-action"=>{let action=string(p,"action")?;let result=self.fixture_ready("host",action)?;Ok(json!({"pass":true,"actual":result}))},
    "physical-input-script"=>{let ordinal=number(p,"participant")?as usize;let id=self.nodes.get(ordinal).ok_or("真实参与者缺席")?.config["id"].as_str().ok_or("node id")?.to_owned();let keys: BTreeMap<String,String>=serde_json::from_value(self.nodes[ordinal].config["keys"].clone()).map_err(|e|e.to_string())?;super::physical_script(self,&id,string(p,"script")?,&keys)?;self.review(check,p.clone())},
@@ -261,7 +340,7 @@ impl Driver for Live {
 
 // 每个case新的实际会话便于冷端、停止/故障和来源前缀完全归属；不提供单项试跑入口。
 fn setup(config:&Value,case:&Value,phase:&str,directory:PathBuf)->Result<Live>{
- let count=if phase=="p2"{2}else{4};let all=config["nodes"].as_array().ok_or("真实节点目录")?;if all.len()!=4{return Err("明确Host和三个真实Client；P2只启动前两个游戏".into())}mkdir(&directory)?;
+ let count=if phase=="p2"{2}else{4};let all=config["nodes"].as_array().ok_or("真实节点目录")?;if all.len()<count{return Err(format!("{phase}需要{count}个真实节点"))}mkdir(&directory)?;
  let token=string(config,"e2e_token")?.to_owned();let mut nodes=Vec::new();let mut machines=BTreeSet::new();
  for cfg in all.iter().take(count){let mut peer=Peer::connect(cfg.clone())?;let hello=peer.call("hello",json!({}))?;if hello["role"]!=cfg["role"]||hello["node"]!=cfg["id"]||!machines.insert(string(&hello,"machine")?.to_lowercase()){return Err(format!("真实跨设备身份重复/错误:{hello}"))}nodes.push(peer);}
  let host_address=config["host_endpoint"].as_str().ok_or("真实Host socket")?.parse().map_err(|e|format!("Host endpoint:{e}"))?;
@@ -271,6 +350,8 @@ fn setup(config:&Value,case:&Value,phase:&str,directory:PathBuf)->Result<Live>{
  let product=case["e"]=="E24"||case["id"].as_str().is_some_and(|s|s.starts_with("E23.product-"));let flavor=if product{"product"}else{"e2e"};
  live.product=product;
  for i in 0..count{let id=string(&live.nodes[i].config,"id")?.to_owned();live.nodes[i].call("install",json!({"flavor":flavor}))?;
+  // 在请求玩家配合之前报告节点本身的Steam问题，避免无效启动把运行库报错混成联机失败。
+  live.nodes[i].call("steam-ready",json!({}))?;
   confirm(&format!("{phase} {}：即将在 {id} 启动真实 {flavor} 游戏。只跳开场，到标题/选档页停止手动操作。{}",case["id"],if live.nodes[i].config["allow_background"]==true{"本次按配置暂设PauseOnFocusLost=0，结束还原原文件。"}else{"保持现有失焦设置。"}))?;
   let legacy=case[phase].as_array().into_iter().flatten().find(|s|s["check"]=="network-regression-entry").map(|s|s["entry"].clone());
   let actions=case[phase].as_array().into_iter().flatten().filter(|s|s["check"]=="host-fixture-action").map(|s|s["action"].clone()).collect::<Vec<_>>();
@@ -292,11 +373,16 @@ pub(super) fn run(config_path:&Path,out:&Path)->Result<()>{
  let config:Value=serde_json::from_str(&read(config_path)?).map_err(|e|e.to_string())?;mkdir(out)?;
  super::interaction::initialize(&config)?;
  let nodes=config["nodes"].as_array().ok_or("真实拓扑节点")?;let mut endpoints=BTreeSet::new();
- if nodes.len()!=4{return Err("明确四个真实节点，P2仅启动前两台".into())}
- for(i,expected)in ["host","client1","client2","client3"].iter().enumerate(){let role=if i==0{"Host"}else{"Client"};if nodes[i]["id"]!=*expected||nodes[i]["role"]!=role||!endpoints.insert(string(&nodes[i],"agent_endpoint")?){return Err("节点顺序/角色/独立endpoint错误".into())}}
+ // 明确的P2模式覆盖完整两人清单；缺少P4设备不能阻止本阶段，也不能冒称整tx通过。
+ let phase=config["phase"].as_str().unwrap_or("p2-p4");
+ let phases:&[&str]=match phase{"p2"=>&["p2"],"p2-p4"=>&["p2","p4"],_=>return Err("phase必须为p2或p2-p4".into())};
+ let required=if phase=="p2"{2}else{4};if nodes.len()!=required{return Err(format!("{phase}需要{required}个明确真实节点"))}
+ for(i,expected)in ["host","client1","client2","client3"].iter().take(required).enumerate(){let role=if i==0{"Host"}else{"Client"};if nodes[i]["id"]!=*expected||nodes[i]["role"]!=role||!endpoints.insert(string(&nodes[i],"agent_endpoint")?){return Err("节点顺序/角色/独立endpoint错误".into())}}
  let progress_path=out.join("progress.json");let mut progress:Value=if progress_path.exists(){serde_json::from_str(&read(&progress_path)?).map_err(|e|e.to_string())?}else{json!({"format":"isaac.cs.tx21.progress","version":1,"p2":{},"p4":{},"failures":[],"complete":false})};
+ // 新一次续验先撤销整体完成标记；历史逐项事实仍供显式复用和受影响重跑。
+ progress["complete"]=json!(false);progress["requested_complete"]=json!(false);progress["p2_complete"]=json!(false);progress["p4_complete"]=json!(false);write_json(&progress_path,&progress)?;
  let reuse=config["reuse_passes"]==true;if reuse&&config["reuse_reason"].as_str().is_none_or(|s|s.trim().is_empty()){return Err("复用必须说明未受影响原因，不比较哈希".into())}
- for phase in ["p2","p4"]{
+ for &phase in phases{
   if phase=="p4"{for case in cases::phase_suite("p2")?{let id=string(&case,"id")?;if progress["p2"][id]["pass"]!=true{return Err(format!("P2仍未完成:{id}；未启动P4游戏"))}}}
   let suite=cases::phase_suite(phase)?;write_json(&out.join(format!("{phase}-cases.json")),&json!(suite))?;write_json(&out.join("regression-inventory.json"),&json!(regression::inventory()?))?;
   for case in suite{let id=string(&case,"id")?.to_owned();let rerun=config["rerun"].as_array().is_some_and(|v|v.iter().any(|x|x==&json!(format!("{phase}/{id}"))||x==&json!(phase)));
@@ -314,13 +400,17 @@ pub(super) fn run(config_path:&Path,out:&Path)->Result<()>{
     let result=match result{Ok(r)=>r,Err(e)=>json!({"pass":false,"failure":e,"attempt":attempt,"directory":dir})};write_json(&dir.join("result.json"),&result)?;progress[phase][&id]=result.clone();
     if result["pass"]==true{write_json(&progress_path,&progress)?;break}
     progress["failures"].as_array_mut().ok_or("failure history")?.push(json!({"phase":phase,"id":id,"result":result}));write_json(&progress_path,&progress)?;
-    println!("同tx实际失败：{result}。请持续定位/修复；不降低负载、不跳过子项、不覆盖首因。");
+    // 完整事实已经写入result.json；终端只显示首因，避免重复展开全部字段和账户路径。
+    let failure=result["failure"].as_str().or_else(||result["execution"]["failure"].as_str()).or_else(||result["cleanup_failure"].as_str()).or_else(||result["execution"]["cleanup_failure"].as_str()).unwrap_or("执行或收尾未通过");
+    println!("同tx实际失败：{phase}/{id}：{}。完整记录：{}。保留首因后修复。",failure.chars().take(1000).collect::<String>(),dir.join("result.json").display());
     let decision=prompt("retry","修复完成且本次二进制/环境仍适合续测，输入 retry 加修复说明；需要重构建/部署或缺少配合时输入 stop，使用同一入口 -Resume 并显式列出受影响项。")?;
     if !decision.starts_with("retry ")||decision.chars().count()<12{return Err("必要中断；进度/失败/节点恢复记录已保留，同tx修复续测".into())}progress["failures"].as_array_mut().unwrap().last_mut().unwrap()["repair"]=json!(decision);write_json(&progress_path,&progress)?;attempt+=1;
    }
   }
  }
  for cfg in config["nodes"].as_array().ok_or("nodes")?{let mut peer=Peer::connect(cfg.clone())?;peer.call("shutdown",json!({}))?;}
- progress["complete"]=json!(true);write_json(&progress_path,&progress)?;
- println!("P2与P4全部实际子项已完成；返回统一脚本恢复部署与清理临时目录。只有脚本恢复成功才结束本次验收。");Ok(())
+ progress["p2_complete"]=json!(true);progress["requested_complete"]=json!(true);
+ if phase=="p2-p4"{progress["p4_complete"]=json!(true);}
+ progress["complete"]=json!(progress["p4_complete"]==true);write_json(&progress_path,&progress)?;
+ println!("{phase}所选阶段全部实际子项已完成；返回统一脚本还原部署/设置。仅P2完成不代表P4或整个tx通过。");Ok(())
 }

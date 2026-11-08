@@ -29,6 +29,33 @@ function M.State(rng)
   local s=M.byObject[rng]
   return {stream=s and s.subject or {resolution="Unresolved",reason="owner_not_registered;not_inferred_from_seed"},seed=tostring(rng:GetSeed()),shift=rng:GetShiftIdx()}
 end
+-- 登记参数各自来自独立Context，node从1起算；合入普通域前复制并重编号，
+-- 不改登记表、历史参数或共享/环关系，也不能把不同参数图的同号node当成同一对象。
+local function parametersInScope(root,c)
+  local ids,definitions,references={},{},{}
+  local function id(old)
+    if not ids[old] then c.graph=c.graph+1;ids[old]=c.graph end
+    return ids[old]
+  end
+  local function copy(v,depth)
+    if depth>64 or c.nodes>=R.Limits().nodes then error("random_parameter_graph_budget") end
+    c.nodes=c.nodes+1
+    if type(v)~="table" then return v end
+    if v.type=="table" and v.node then
+      if definitions[v.node] and definitions[v.node]~=v then error("random_parameter_graph_conflict") end
+      definitions[v.node]=v
+    elseif v.type=="graph_ref" then references[v.node]=true end
+    local out={}
+    for k,value in pairs(v) do
+      out[k]=k=="node" and (v.type=="table" or v.type=="graph_ref") and id(value) or copy(value,depth+1)
+    end
+    return out
+  end
+  local ok,result=pcall(copy,root,0)
+  if ok then for node in pairs(references) do if not definitions[node] then ok=false;result="random_parameter_graph_missing";break end end end
+  if not ok then R.Fail(c,"random_parameter_graph_invalid");return R.Missing("ReadFailed",result) end
+  return result
+end
 function M.Install()
   Calls.Class("RNG",{Next=true,Previous=true,RandomInt=true,RandomFloat=true,RandomVector=true,SetSeed=true},6,function(_,a)return M.State(a[1]) end,function(_,a,_,_,_)return M.State(a[1]) end)
   local methods={};for _,s in ipairs(schemas.ItemPool) do if s.category=="operation" or s.category=="actual_call" then methods[s.member]=true end end
@@ -69,7 +96,9 @@ function M.Capture(limits)
   -- 不跨生命周期解引用缓存的原生RNG；仅本窗口已取得资格的Getter/适配reader刷新状态。
   for _,s in pairs(M.streams) do
     s.freshness=s.state.source_scope==x.scope and "ReadInCurrentNativeWindow" or "HistoricalObservedState;not_polled_without_owner_qualification"
-    out.streams[#out.streams+1]=s;c.objects=c.objects+1
+    local observed={};for key,v in pairs(s) do observed[key]=v end
+    observed.parameters=parametersInScope(s.parameters,c)
+    out.streams[#out.streams+1]=observed;c.objects=c.objects+1
   end
   -- 登记预算耗尽必须使域显式Partial，不能仅漏掉新成员而保持Complete。
   out.registry_status=(M.registration_failures or 0)>0 and "Truncated" or "CompleteWithinObservedSources"

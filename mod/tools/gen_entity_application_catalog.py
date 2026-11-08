@@ -2,6 +2,7 @@
 import argparse
 import json
 import re
+from cpp_catalog import string_expression
 from pathlib import Path
 from gen_replica_catalog import classify
 from replica_projection_policy import consumer_review, ENTITY_COMPACT_CONSUMERS
@@ -197,7 +198,7 @@ def main():
     data = generate()
     text = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     (args.out / "entity-application.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (args.out / "entity_application.inc").write_text('std::string{}' + ''.join('+std::string(R"ICSEA(' + text[i:i+8000] + ')ICSEA")' for i in range(0, len(text), 8000)), encoding="utf-8")
+    (args.out / "entity_application.inc").write_text(string_expression(text, "ICSEA"), encoding="utf-8")
     if args.docs:
         (ROOT / "docs/design/tx-04-19/entity-application.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

@@ -186,7 +186,9 @@ impl Control {
                     return Err("control disconnected".into());
                 }
                 count += line.len();
-                if count > 65536 {
+                // 仅自有E2E快照大页允许较大回复，其它控制命令保持原有界限。
+                let limit = if text.starts_with("cs stream_test ") && text.contains(" snapshot ") { 600000 } else { 65536 };
+                if count > limit {
                     return Err("oversize response".into());
                 }
                 let line = line.trim_end();

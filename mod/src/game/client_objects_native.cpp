@@ -2,6 +2,7 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/client_objects_native.h"
+#include "game/client_dto_memory.h"
 #include "game/client_entity_draw_native.h"
 #include "game/client_entity_budget.h"
 #include "game/bridge.h"
@@ -612,7 +613,9 @@ bool ClientNativeObjectsPreflight(ClientNativeObjects *o,const ClientNativeRoots
   }catch(...){reason="objects_entity_preflight_allocation";return false;}
 }
 bool ClientNativeObjectsRefreshPlayer(ClientNativeObjects *o,const ClientObjectDescription &description,const char *&reason) noexcept {
-  if(!o||!Phase()||!o->committed||o->uncertain||o->executing||o->abandoned){reason="objects_player_stream_context";return false;}
+  // 普通联合事务已撤committed但仍需暂存Player新描述；这里只核对当前实例，不授予展示。
+  // 全体成员/关系检查成功后由FormalCheckAll恢复发布，失败/不确定owner仍禁止更新。
+  if(!o||!Phase()||o->uncertain||o->executing||o->abandoned){reason="objects_player_stream_context";return false;}
   try{const ClientNativeRoots roots{o->game,o->room,o->room->_descriptor,o->room->_Camera};
     for(auto &pair:o->player_draw){auto &entry=pair.second;if(!(entry.description.key==description.key))continue;
       const auto current=o->players.find(description.key);if(current==o->players.end()||entry.description.shape_revision!=description.shape_revision){reason="objects_player_stream_shape";return false;}
@@ -653,6 +656,12 @@ bool ClientNativeObjectsCapacity(ClientNativeObjects *o,const ClientNativeRoots 
 ClientNativeObjects *ClientNativeObjectsCreate() noexcept {
   if(!Phase())return nullptr;
   try{auto owner=std::make_unique<ClientNativeObjects>();owner->player_token=std::make_shared<ClientPlayerOwnerToken>();owner->player_token->owner=owner.get();return owner.release();}catch(...){return nullptr;}
+}
+std::uint64_t ClientNativeObjectsValueBytes(const ClientNativeObjects *o){
+  if(!o)return 0;std::uint64_t n=sizeof(*o);
+  for(const auto &p:o->entries)n+=sizeof(p)+64+dto_memory::Extra(p.second.description);
+  for(const auto &p:o->player_draw)n+=sizeof(p)+64+dto_memory::Extra(p.second.description);
+  return n;
 }
 unsigned ClientNativeObjectsOwnerCount(const ClientNativeObjects *o) noexcept {
   if(!IsMain()||!o)return 0;unsigned count=o->uncertain_pool_use?1u:0u;

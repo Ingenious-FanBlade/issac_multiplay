@@ -1,6 +1,6 @@
 #pragma once
 // tx-04-15 独立复制合同：只拥有纯值，不依赖SDK、Lua、游戏地址或录制状态。
-#include <rapidjson/document.h>
+#include "core/value_types.h"
 #include <cstdint>
 #include <exception>
 #include <map>
@@ -12,16 +12,13 @@
 #include "core/replication_memory.h"
 
 namespace cs::replica {
-using Json=rapidjson::Document;
-using Value=rapidjson::Value;
-using Allocator=rapidjson::Document::AllocatorType;
 // 协议边界预算；协商只能收紧，不允许来自报文的长度扩大分配上限。
 struct Limits final {
   // 用户要求压缩优化前先放宽至64M节点；字节/深度约束独立，不按报文扩大。
   std::uint32_t bytes=32u<<20, nodes=world::observation::kNodeBudget, depth=64, string_bytes=2u<<20;
   std::uint32_t datagram=1200, candidates=2, fragments=32768, timeout_ms=5000;
   // 串行化32MiB与纯值展开计量独立；大量短标量的DOM开销不能误算成更大的报文字节。
-  std::uint64_t value_bytes=256ull<<20;
+  std::uint64_t value_bytes=memory::kReplicationPoolCeilings[0];
 };
 enum class Kind : std::uint8_t { Hello=1, Welcome, Baseline, Delta, Event, Control, InputAck, AppliedAck, Error, ReceiveAck, Component, Input };
 enum class Lane : std::uint8_t { Input=1, Control, Recovery, State, Presentation };
@@ -42,6 +39,8 @@ Json Copy(const Value &);
 void CheckValue(const Value &,Limits={});
 // 深复制/派生计划在分配前使用保守上界；不是JSON文本长度，也不读取原生资源。
 std::uint64_t OwnedValueUpperBound(const Value &);
+// 已构造DOM按实际arena容量计费，包含默认chunk的头部与文档owner。
+std::uint64_t OwnedJsonBytes(const Json &);
 void ValidateModel(const Value &);
 Value Decimal(std::uint64_t,Allocator &);
 std::uint64_t Unsigned(const Value &);

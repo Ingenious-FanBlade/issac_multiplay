@@ -3,6 +3,7 @@
 #include "world/common/live_consumer.h"
 #include <array>
 #include "replica/stream_metrics.h"
+#include "core/owned_source.h"
 
 namespace cs::replica::stream {
 // 来源与后续wire/apply共用固定外层布局；不由报文或运行中的游戏对象决定必需字段。
@@ -10,6 +11,7 @@ const Layouts &CaptureLayouts();
 // 一份发布持有精确版本闭包；网络拿共享引用，不复制三个世界，也不拥有游戏对象。
 struct Publication final {
   struct Validity final {Version version;Sample acquired,checked;std::uint64_t invalidation=0;};
+  memory::Lease memory;
   WorldScope world;
   Range manifest,world_dynamic,player_fast;
   std::vector<Range> ranges;
@@ -20,14 +22,17 @@ struct CaptureStatus final {
   std::uint64_t ordinary=0,bodies=0,invalidations=0,world_sequence=0,body_gaps=0;
   std::uint64_t baseline_request_local_ms=0,baseline_published_local_ms=0;
   bool baseline_requested=true,ready=false;
-  std::string reason="stream_capture_off",body_reason="player_post_not_updated";
+  // 默认摘要不分配字符串；预算失败时返回不可发布的空摘要也不能再次触发分配异常。
+  std::string reason,body_reason;
 };
 // 逐身体证言只含身份和实际更新事实；原生地址留在Collector/桥的同步栈内。
 struct BodySample final {
   std::uint64_t epoch=0,run=0,room=0,local=0,use=0,shape=0,tick=0,outer=0,owner=0,mutation=0,binding=0;
   CaptureKind kind=CaptureKind::Ordinary;
+  // 依赖采样在主线程交接时冻结；后台不得把被合并的ordinary重新绑定到另一个tick。
+  std::uint64_t required_capture=0;
 };
-// 主线程唯一Host owner。普通窗口读完全部必需来源后才原子换目标；失败不会发布半套成员/删除。
+// 单一构建worker独占Host owner；它只读取主线程已经封闭的纯值和证言。
 class Capture final {
 public:
   void Begin(std::uint64_t authority_session) noexcept;
@@ -36,7 +41,7 @@ public:
   void RequestBaseline() noexcept {if(!status_.baseline_requested)status_.baseline_request_local_ms=MetricMicros()/1000;status_.baseline_requested=true;}
   bool NeedsBaseline() const noexcept {return status_.baseline_requested;}
   void Ordinary(const world::observation::LiveBatch &) noexcept;
-  void PlayerPost(const BodySample &,const std::string &payload) noexcept;
+  void PlayerPost(const BodySample &,const capture::Source &) noexcept;
   void BodyGap(const char *) noexcept;
   void PhysicalRetire(unsigned space,std::uint64_t epoch,std::uint64_t local,std::uint64_t use,
                       std::uint64_t shape,std::uint64_t event,std::uint64_t outer) noexcept;
@@ -49,7 +54,7 @@ public:
 private:
   void Scope(const world::observation::ObservationContext &);
   Member Subject(const Value &,const std::string &category,bool declare);
-  Range Make(RangeData,bool reuse);
+  Range Make(RangeData,bool reuse,const memory::Lease &prepaid);
   void Collect();
   std::uint64_t Next();
   std::uint64_t authority_session_=0,source_session_=0,source_epoch_=0,source_run_=0,source_room_=0;

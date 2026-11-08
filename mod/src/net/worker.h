@@ -74,6 +74,8 @@ struct ReceivedInput {
 // 原子字段的独立快照，计数可能相差一个工作线程迭代，不承诺整结构同一瞬间。
 // terminal 是粘性状态，不经过可丢弃队列；停止后也必须让主线程读到真实原因。
 struct WorkerStatus {
+  // 共享socket在选定Peer之前的拒绝计数，不能误用某个Peer的foreign计数代替。
+  std::uint64_t routing_rejected_packets=0;
   std::array<memory::Usage,3> replication_memory{};
   // 线上字节包含IPv4/UDP开销；lane之和严格等于此值，重传同样计费。
   std::uint64_t uplink_wire_bytes=0,uplink_budget_blocks=0;

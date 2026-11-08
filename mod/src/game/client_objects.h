@@ -37,6 +37,7 @@ public:
   bool MatchIndependent(const ClientObjectKey &,std::uint64_t shape,std::uint64_t instance) const noexcept;
   ClientEntityBudget Budget() const noexcept {auto b=budget_;b.completed=unsigned(cursor_+player_cursor_);return b;}
   ClientPlayerBudget PlayerBudget() const noexcept;
+  std::uint64_t StreamValueBytes() const;
   ClientPlayerDiagnostics PlayerDiagnostics() const noexcept;
   std::shared_ptr<const ClientPlayerDisplayView> PlayerDisplay() const noexcept;
   bool PlayersCommitted(const replica::Scope &,std::uint64_t revision) const noexcept;

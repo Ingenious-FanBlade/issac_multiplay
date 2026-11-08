@@ -1,4 +1,5 @@
 #include "game/client_players.h"
+#include "game/client_dto_memory.h"
 #include "game/client_entity_model.h"
 #include "game/client_player_state.h"
 #include "game/client_player_equipment.h"
@@ -9,6 +10,12 @@
 #include "game/client_resource_model.h"
 
 namespace cs::game {
+std::uint64_t ClientPlayers::StreamValueBytes() const {
+  std::uint64_t n=sizeof(*this)+dto_memory::Extra(values_)+dto_memory::Extra(histories_)+dto_memory::Extra(candidate_histories_)+ClientNativePlayersValueBytes(native_);
+  if(display_&&dto_memory::First(display_.get()))n+=display_->StreamValueBytes();
+  if(candidate_display_&&dto_memory::First(candidate_display_.get()))n+=candidate_display_->StreamValueBytes();
+  return n;
+}
 namespace {
 ClientObjectKey Key(const replica::SubjectKey &v){return {v.run,v.id,v.space};}
 ClientObjectReference Ref(const replica::PlayerReferenceTarget &r){

@@ -1,6 +1,21 @@
 #include "game/client_player_view.h"
+#include "game/client_dto_memory.h"
 
 namespace cs::game {
+std::uint64_t ClientPlayerDisplayView::StreamValueBytes() const {
+  // 当前视图复制出的分组、名单、查询索引与字符串均独立计费。
+  std::uint64_t n=sizeof(*this)+groups.capacity()*sizeof(replica::PlayerControlGroupTarget)+roster.capacity()*sizeof(replica::PlayerReferenceTarget);
+  for(const auto &g:groups)n+=(g.members.capacity()+g.bodies.capacity())*sizeof(replica::SubjectKey)+32;
+  for(const auto &r:roster)n+=dto_memory::Extra(r.status);
+  for(const auto &r:backups)n+=dto_memory::Extra(r.status);
+  for(const auto &[key,b]:bodies){
+    n+=sizeof(key)+sizeof(b)+64+dto_memory::Extra(b.state)+dto_memory::Extra(b.equipment)+dto_memory::Extra(b.role)+dto_memory::Extra(b.special);
+    for(const auto &[name,r]:b.relations)n+=sizeof(name)+sizeof(r)+64+dto_memory::Extra(name)+dto_memory::Extra(r.status);
+  }
+  for(const auto &[key,queries]:queries_){n+=sizeof(key)+sizeof(queries)+64;for(const auto &[name,value]:queries)n+=sizeof(name)+sizeof(value)+64+dto_memory::Extra(name);}
+  for(const auto &[key,source]:stream_sources_){n+=sizeof(key)+sizeof(source)+64;if(source&&dto_memory::First(source.get()))n+=replica::OwnedJsonBytes(*source)+32;}
+  return n;
+}
 const ClientEntityField *ClientPlayerDisplayBody::Field(const std::string &name) const noexcept {
   if(state)for(const auto &f:state->fields)if(f.member==name)return &f;
   return nullptr; // NotApplicable/未声明保持缺席，不能补成0。

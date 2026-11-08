@@ -4,7 +4,9 @@
 #include <windows.h>
 #include <bcrypt.h>
 #include "net/live.h"
+#include "replica/stream_e2e.h"
 #include "net/queue.h"
+#include "replica/stream_clock_e2e.h"
 #include <algorithm>
 #include <cstring>
 
@@ -36,7 +38,7 @@ void Reason(Event &e, const char *reason) noexcept { strncpy_s(e.reason, reason,
 s::Message Make(s::Kind kind, std::uint64_t sequence, std::uint64_t connection,
                 std::uint64_t route) {
   s::Message m;
-  m.memory = memory::Reserve(memory::Pool::Values, 8192);
+  m.memory = memory::Reserve(memory::Pool::Values, 8192, "live_control");
   m.kind = kind;
   m.sequence = sequence;
   m.connection = connection;
@@ -120,17 +122,31 @@ s::Message Roster(const protocol::Ack &p, unsigned ordinal, std::uint64_t sequen
   return m;
 }
 void Timing(Event &e, const r::Value &v, const char *sample, const char *sent) {
+  // GetTickCount64在受支持Windows环境通常以10—16ms量化。两台机器各自
+  // 的区间差可相差两次量化，不能把正常15ms负RTT误认成时钟倒退。
+  // 仍拒绝各机内部顺序错误与超出32ms的矛盾，不比较异机绝对时钟。
+  constexpr std::uint64_t quantum_ms = 16;
   const auto now = e.received_ms, send = N(v, sent), echo = N(v, "echo_client_ms"),
              received = N(v, "echo_server_ms");
   e.progress.server_sample_ms = N(v, sample);
   if (!echo || echo > now || e.progress.server_sample_ms > send || received > send ||
-      ((send - received) > (now - echo) && (send - received) - (now - echo) > 2))
+      ((send - received) > (now - echo) && (send - received) - (now - echo) > 2 * quantum_ms)) {
+#ifdef ISAACCS_E2E
+    s::E2EClockRejected(echo,now,received,send,e.progress.server_sample_ms);
+#endif
     Fail("live_clock_range");
+  }
   e.round_trip_ms = now - echo >= send - received ? (now - echo) - (send - received) : 0;
   e.publication_age_ms = send - e.progress.server_sample_ms;
+  // RTT差的两次量化、发布区间及接收后区间各一次，合计保守误差64ms。
+  // 不把负差夹零后当作无误差，也不伪增实测RTT用于N0网络判定。
+  e.timing_uncertainty_ms = 4 * quantum_ms;
 }
 } // namespace
 r::Limits Limits() noexcept { return s::HandshakeLimits(); }
+#ifdef ISAACCS_E2E
+r::Json E2EHandshakeCapabilities() { return Capabilities(s::RuntimeConfig{}); }
+#endif
 std::uint64_t Random() {
   std::uint64_t n = 0;
   if (BCryptGenRandom(nullptr, reinterpret_cast<PUCHAR>(&n), sizeof(n),
@@ -405,16 +421,20 @@ void HostPeer::RequestRecovery(const char *reason,std::uint64_t now,bool native)
 void HostPeer::Offer(const Publication &p, std::uint64_t now) {
   if(ending_||stopped_)return;
   const bool had = bool(publication_.Baseline());
-  publication_.Offer(p.baseline, p.latest, p.bodies);
-  if (!p.latest) {
+  // 来源退休/换场景必须撤销路由；普通更新期间暂缺新候选只撤新目标资格。
+  // 网络已经持有的不可变冷目标继续按原sample传输，不能因每帧dirty反复取消。
+  if (!p.source[0] || (source_[0] && source_!=p.source)) {
+    publication_.Stop();
     if (had) {
       operations_.CancelPending(now);
       auto m = Message(s::Kind::Retire, Next(control_));
       r::Put(m.body, "reason", std::string("host_source_withdrawn"), m.body.GetAllocator());
       operations_.Queue(std::make_shared<const s::Message>(std::move(m)), now);
     }
-    return;
   }
+  source_=p.source;
+  if(!source_[0])return;
+  publication_.Offer(p.baseline, p.latest, p.bodies);
   if (established_ && sent_.generation &&
       publication_.State() == PublicationSender::Phase::WaitingWorld && publication_.Baseline() &&
       publication_.Baseline()->manifest) {
@@ -537,6 +557,11 @@ struct Client::State {
     terminal_event.scope = scope;
     terminal_event.route = route.epoch;
     Reason(terminal_event, reason);
+#ifdef ISAACCS_E2E
+    // 即使主线程仍在预检，也记录worker自身的真实终态；诊断失败不改变终态发布。
+    try{const auto site=std::string("client-worker-terminal:")+reason;
+      s::E2EStreamProgress(site.c_str(),{0,0,unsigned(type),0,0,GetTickCount64(),0,0});}catch(...){}
+#endif
     terminal_ready.store(true, std::memory_order_release);
   }
   void Emit(Event e) {
@@ -653,7 +678,9 @@ struct Client::State {
       assembler.Authorize(route);operations.Bind(route.connection,route.epoch);have_progress=false;progress={};roster_sequence=tick_sequence=0;input_ack_generation=input_ack_sequence=input_ack_tick=0;
       // 主线程是值队列唯一consumer；旧路由由Poll/PollWorld过滤并释放。
       {std::lock_guard lock(dynamic_mutex);dynamic.clear();}
-      published_route.store(route.epoch,std::memory_order_release);Event activated;activated.type=Event::Type::Prepared;activated.scope=scope;activated.route=route.epoch;activated.ordinal=ordinal;activated.world=pending_prepare;Emit(std::move(activated));
+      published_route.store(route.epoch,std::memory_order_release);Event activated;activated.type=Event::Type::Prepared;activated.scope=scope;activated.route=route.epoch;activated.ordinal=ordinal;activated.world=pending_prepare;
+      // 路由激活与退休共用有序控制队列，先于其后的Range交付；不能跨两个队列竞速。
+      if(!urgent_controls.TryPush(std::move(activated)))Fail("live_prepare_activation_capacity");
       pending_prepare.reset();prepared_response.reset();return;
     }
     Event e;
@@ -1130,3 +1157,4 @@ bool Client::Finished() const noexcept {
   return !state_ || state_->finished.load(std::memory_order_acquire);
 }
 } // namespace cs::net::live
+

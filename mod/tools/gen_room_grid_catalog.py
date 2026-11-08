@@ -2,6 +2,7 @@
 import argparse
 import json
 import pathlib
+from cpp_catalog import string_expression
 from gen_replica_catalog import classify
 from replica_projection_policy import consumer_review
 
@@ -191,7 +192,7 @@ def main():
     data = generate()
     (args.out / "room-grid-application.json").write_text(json.dumps(data, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
     text = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
-    (args.out / "room_grid_application.inc").write_text("std::string{}"+"".join('+std::string(R"ICSA('+text[i:i+8000]+')ICSA")' for i in range(0, len(text), 8000)), encoding="utf-8")
+    (args.out / "room_grid_application.inc").write_text(string_expression(text, "ICSA"), encoding="utf-8")
 
 
 if __name__ == "__main__":

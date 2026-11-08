@@ -156,7 +156,8 @@ private:
   std::map<stream::RangeId,std::uint64_t> convergence_since_;
   stream::Route route_;
   stream::ReliableSender reliable_;
-  std::shared_ptr<const stream::Publication> baseline_, latest_;
+  // 在途普通目标保留其完整依赖集合，最新候选独立替换；不能只发送新Context而饿死旧目标。
+  std::shared_ptr<const stream::Publication> baseline_, latest_, dynamic_target_;
   std::vector<std::shared_ptr<const stream::Publication>> bodies_;
   std::vector<stream::Range> cold_;
   std::size_t cold_cursor_ = 0;
@@ -166,6 +167,11 @@ private:
   std::map<stream::Version, std::uint64_t> context_since_;
   std::uint64_t prepare_started_=0;
   std::uint64_t started_ = 0, progress_ = 0, native_progress_ = 0;
+  // 同场景只暂缺新候选时继续在途事务，但不能无限期保留陈旧活动世界。
+  std::uint64_t missing_source_at_=0;
+  // 活动期结构事务绑定已完整发送的精确普通版本；进度不能无限延长绝对期限。
+  stream::Version native_target_{};
+  std::uint64_t native_started_=0,native_at_=0;
   std::map<stream::RangeId, std::uint64_t> fully_sent_;
   std::map<stream::RangeId, std::uint64_t> sent_at_;
   memory::Lease metadata_;

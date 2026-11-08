@@ -57,6 +57,7 @@ ClientObjectStep ClientNativePlayersFast(ClientNativePlayers *,const ClientPlaye
 ClientObjectStep ClientNativePlayersStream(ClientNativePlayers *,const std::vector<ClientPlayerDescription> &,const ClientEntityOwners &) noexcept;
 ClientNativePlayers *ClientNativePlayersCreate() noexcept;
 void ClientNativePlayersDestroy(ClientNativePlayers *) noexcept;
+std::uint64_t ClientNativePlayersValueBytes(const ClientNativePlayers *);
 unsigned ClientNativePlayersOwnerCount(const ClientNativePlayers *) noexcept;
 bool ClientNativePlayersBegin(ClientNativePlayers *,const ClientNativeRoots &,std::uint64_t scope,std::uint64_t revision,
     const std::vector<ClientPlayerDescription> &,const std::array<ClientObjectReference,4> &,const ClientPlayerAdapter &,const char *&) noexcept;

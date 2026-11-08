@@ -26626,18 +26626,24 @@
       "class": "EntityPlayer",
       "member": "GetTearsCap",
       "signature": "int GetTearsCap ( )",
-      "returns": "int",
+      "returns": "double",
       "parameters": " ",
       "category": "query",
-      "reason": "",
+      "reason": "官方1.1.3 Lua_PlayerGetTearsCap返回GetCustomCacheValue的double；保留Wiki原始int签名",
       "sources": [
         {
           "wiki": "repentogon",
           "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityPlayer.md",
           "line": 914
+        },
+        {
+          "wiki": "repentogon-source",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/repentogon/LuaInterfaces/Entities/LuaEntityPlayer.cpp",
+          "line": 2857
         }
       ],
       "id": "EntityPlayer.GetTearsCap",
+      "documented_returns": "int",
       "schema": "isaac.cs.entity",
       "schema_version": 2,
       "target": "REPENTOGON 1.1.3 / Repentance+ v1.9.7.12.J273",

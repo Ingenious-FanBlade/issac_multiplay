@@ -16,17 +16,20 @@ struct WorldCapture;
 // SDK公开ANM2资源写入的只读观察：original恰好一次，进入即撤旧资格，异常保持撤销。
 class StreamResourceScope final {
 public:
-  explicit StreamResourceScope(void *object,bool retired=false) noexcept;
+  explicit StreamResourceScope(void *object,bool retired=false,bool constructing=false,void *copy_source=nullptr,const char *operation="unspecified") noexcept;
   ~StreamResourceScope() noexcept;
   void Returned() noexcept {returned_=true;}
 private:
   std::shared_ptr<WorldCapture> capture_;
   bool returned_=false;
   bool retired_=false;
+  bool constructing_=false;
+  bool affects_source_=false;
+  std::uint64_t copied_generation_=0;
   std::uint32_t address_=0;
   int exceptions_=0;
 };
-std::uint64_t StreamResourceGeneration(void *object) noexcept;
+std::uint64_t StreamResourceGeneration(void *object,bool copied_value=false) noexcept;
 bool StreamResourceHooksInstalled() noexcept;
 std::string ClientTestExerciseNative(const std::string &token) noexcept;
 // E2E专有独立VM，只用于实际不同VM身份的受控拒绝，不替换游戏Lua根。

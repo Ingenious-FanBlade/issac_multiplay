@@ -26,6 +26,7 @@ public:
   bool StreamCompatible(const replica::RoomGridTarget &) const noexcept;
   std::vector<ClientGridDescription> CompileStream(const replica::RoomGridTarget &) const;
   ClientGridStep InstallStream(const ClientNativeRoots &,const std::vector<ClientGridDescription> &) noexcept;
+  std::uint64_t StreamValueBytes() const;
 private:
   ClientNativeGrids *native_=nullptr;
   std::vector<ClientGridCommand> commands_;

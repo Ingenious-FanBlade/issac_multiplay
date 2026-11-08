@@ -541,10 +541,19 @@ def legacy_body(row):
                '    record.calls.fetch_add(1, std::memory_order_relaxed);',
                '    if(!observation.main) record.foreign.fetch_add(1, std::memory_order_relaxed);']
         if ident == 'stream_resource_swap':
-            out += ['    cs::game::StreamResourceScope left_owner(left), right_owner(right);',
+            out += ['    cs::game::StreamResourceScope left_owner(left,false,false,nullptr,"stream_resource_swap"), right_owner(right,false,false,nullptr,"stream_resource_swap");',
                     '    super(left,right);', '    left_owner.Returned();right_owner.Returned();']
         else:
-            out += ['    cs::game::StreamResourceScope resource(this,%s);' % str(ident == 'stream_resource_destroy').lower(),
+            resource_object = 'this'
+            if ident == 'stream_resource_sheet':
+                # J273 407CD0在层号无效或路径逐字节相同时直接返回false，不写loaded或资源。
+                # 仍调用原链恰一次；只排除已核实的原生无写分支，不按文件名猜测无变化。
+                out += ['    const bool may_change=!observation.main || (layer>=0 && layer<static_cast<int>(this->_layerCount) && (!this->_layerState || this->_layerState[layer]._spriteSheetPath!=path));']
+                resource_object = 'may_change?this:nullptr'
+            out += ['    cs::game::StreamResourceScope resource(%s,%s,%s,%s,"%s");' % (resource_object,
+                        str(ident == 'stream_resource_destroy').lower(),
+                        str(ident in ('stream_resource_ctor','stream_resource_copy')).lower(),
+                        'right' if ident == 'stream_resource_copy' else 'nullptr',ident),
                     '    %ssuper(%s);' % ('auto result=' if ret != 'void' else '', call),
                     '    resource.Returned();']
         out += ['    record.completed.fetch_add(1, std::memory_order_relaxed);']
@@ -845,6 +854,7 @@ def legacy_body(row):
             lines.append('    cs::game::PlayerNativeReached(this);')
         elif ident == 'join_pass':
             lines.append('    cs::game::JoinScope join_scope(this);')
+            lines.append('    cs::game::WorldJoinEffectSourceScope join_effect_source;')
         elif ident == 'input_update':
             lines += ['    cs::game::InputLease input_lease(cs::game::HostBusy() || cs::game::ClientBusy());',
                       '    if (!input_lease.Ready()) {',
@@ -893,6 +903,8 @@ def legacy_body(row):
         lines.append('    %ssuper(%s);' % ('auto result = ' if ret != 'void' else '', call))
         if ident == 'player_update':
             lines.append('    state_owner.Returned(player_scope.native_reached);')
+        if ident == 'join_pass':
+            lines.append('    join_effect_source.Returned();')
         if ident == 'pgd_unlock':
             lines.append('    persistence.Returned(result);')
         if ident in ('entity_kill', 'revive_ghost', 'stage_transition',

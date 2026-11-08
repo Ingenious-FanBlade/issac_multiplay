@@ -37,6 +37,8 @@ struct ClientPlayerDisplayView final {
   const replica::PlayerControlGroupTarget *Participant(unsigned ordinal) const noexcept;
   // 派生心量/共享结果保留Authority真实查询及参数；component提供同域graph_ref的唯一解析根。
   Query Captured(const ClientObjectKey &,const std::string &member) const noexcept;
+  // 自有查询根与索引的实际容量；冷source仍由Scene完整计划租约持有。
+  std::uint64_t StreamValueBytes() const;
 private:
   std::shared_ptr<const replica::PlayerTarget> source_;
   // 地址只指向上方shared_ptr拥有的不可变纯值；建索引一次，HUD不再扫描组件JSON。

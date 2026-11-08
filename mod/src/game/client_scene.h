@@ -73,6 +73,10 @@ struct ClientApplyResult final {
   std::array<char,48> recovery{};
   std::array<char,32> failure_phase{};
   std::array<char,96> failure_reason{};
+  // 等待原因仅为纯值诊断，不冒充失败；连接恢复时随真实Result保存首次现场。
+  std::array<char,128> stream_wait_reason{};
+  std::uint64_t stream_wait_revision=0;
+  unsigned stream_wait_kind=0;
   // 当前Player步骤与首次Player失败分开；自动恢复、后续退休和新phase不覆盖首因。
   ClientPlayerDiagnostics player_step{},player_failure{};
   std::array<char,192> retirement_cause{},retirement_failure{};
@@ -99,6 +103,8 @@ public:
   std::vector<ClientOwnerFact> RetainedFacts() const;
   const replica::stream::Metrics &StreamMetrics() const noexcept {return stream_metrics_;}
   std::uint64_t LastStreamCommit() const noexcept {return stream_last_commit_;}
+  // 陈旧提示仍按最后提交；真实结构事务由同一2秒无进度／120秒绝对期限收口。
+  bool StreamTransactionActive(std::uint64_t now) const noexcept;
 
   std::shared_ptr<const replica::stream::Message> StreamControl() const noexcept;
   void StreamControlSent() noexcept;

@@ -1,6 +1,7 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/client_grid_native.h"
+#include "game/client_dto_memory.h"
 #include "game/client_lifetime.h"
 #include "game/bridge.h"
 #include "game/context.h"
@@ -280,6 +281,7 @@ ClientGridStep Execute(ClientNativeGrids *owner,const ClientNativeRoots &roots,c
 }
 }
 ClientNativeGrids *ClientNativeGridsCreate() noexcept {return IsMain()&&ClientBusy()?new(std::nothrow) ClientNativeGrids:nullptr;}
+std::uint64_t ClientNativeGridsValueBytes(const ClientNativeGrids *o){if(!o)return 0;std::uint64_t n=sizeof(*o);for(const auto &p:o->entries)n+=sizeof(p)+64+sizeof(*p.second)+dto_memory::Extra(p.second->description);return n;}
 bool ClientNativeGridsBeginAttempt(ClientNativeGrids *owner) noexcept {
   if(!owner||!IsMain()||TopOwner()!=Owner::Manager||!ClientBusy()||owner->uncertain)return false;
   // 只清本次执行元数据；已提交实例、构造前缀与本地单调代次保留。

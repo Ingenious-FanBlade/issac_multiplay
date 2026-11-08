@@ -9,6 +9,11 @@ local context,collect,value,query,finish,fail,missing,protected=read.Context,rea
 local LIMIT=read.Limits()
 local conversions={ {"ToPlayer","EntityPlayer"},{"ToNPC","EntityNPC"},{"ToTear","EntityTear"},{"ToProjectile","EntityProjectile"},{"ToBomb","EntityBomb"},{"ToLaser","EntityLaser"},{"ToKnife","EntityKnife"},{"ToPickup","EntityPickup"},{"ToFamiliar","EntityFamiliar"},{"ToEffect","EntityEffect"},{"ToSlot","EntitySlot"} }
 local function context() return read.Context() end
+-- 缺资格时保留实际引用解析和readiness，不能把同址歧义笼统归成初始化未完成。
+local function qualification(e)
+  local q=native().Reference(e)
+  return tostring(q.resolution).."/r="..tostring(q.native_readiness).."/id="..tostring(q.local_id).."/use="..tostring(q.use)
+end
 -- 原生补充的普通表也消耗同一64M节点预算；不能因避开Value的图编码而漏计。
 local function nativeValue(v,ctx)
   local function account(x)
@@ -74,7 +79,7 @@ local function snapshot(e,ctx,class)
     if resources.status=="Value" then
       -- C++返回的固定声明列完整保留；nil也必须带名写出Null，不能被Lua pairs省略。
       for _,name in ipairs(resources.link_names) do out.body.application_links.links[name]=value(resources.links[name],"Entity",ctx,1) end
-    else fail(ctx,"entity_application_links:"..resources.status) end
+    else fail(ctx,"entity_application_links:"..resources.status..":"..class..":"..tostring(e.Type).."/"..tostring(e.Variant)..":"..qualification(e)) end
     if class=="EntityBomb" then
       out.body.application_runtime={version=1,status=resources.status,values={}}
       if resources.status=="Value" then out.body.application_runtime.values["NativeBomb.CostumeDrawEnabled"]=resources.bomb_costume_draw_enabled end
@@ -114,7 +119,7 @@ local function snapshot(e,ctx,class)
         local owned=nativeValue(native().EntityApplicationOwned(e,class=="EntityFamiliar" and 8 or 9),ctx)
         if owned.status=="Value" then
           for i,sprite in ipairs(owned.sprites) do owned.sprites[i]=sprite:GetFilename()=="" and missing("Null","native_owned_anm_unloaded") or value(sprite,"Sprite",ctx,1) end
-        else fail(ctx,"entity_owned_presentation:"..owned.status) end
+        else fail(ctx,"entity_owned_presentation:"..owned.status..":"..class..":"..tostring(e.Type).."/"..tostring(e.Variant)..":"..qualification(e)) end
         out.body.application_owned=owned
       end
     end
@@ -225,7 +230,12 @@ function M.Event(name,class,object,...)
   -- Remove 回调只取真实事件主体，避免解引用已经进入销毁阶段的派生关联。
   local payload={event=name,subject=native().Subject(object)}
   payload.arguments=value({...},nil,ctx,0)
-  if name~="MC_POST_ENTITY_REMOVE" then payload.object=snapshot(object,ctx,class) end
+  -- INIT仍在原生构造链内：Player.GetEnterPosition此时可对尚未建好的Room宽度除零，
+  -- Lua pcall无法隔离该原生异常。这里只保留实际初始化事件、身份及参数；
+  -- 完整公共字段仍由构造返回后的OrdinaryPost域采集，不删目录、不用默认值补造。
+  if name:match("_INIT$") then
+    payload.object={subject=payload.subject,status="NotScheduled",reason="init_before_stable_snapshot",next_phase="OrdinaryPost"}
+  elseif name~="MC_POST_ENTITY_REMOVE" then payload.object=snapshot(object,ctx,class) end
   local json,complete,objects,nodes,reason=finish(payload,ctx)
   native().PublishEvent(json,complete,objects,nodes,reason)
 end

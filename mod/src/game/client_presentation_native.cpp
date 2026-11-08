@@ -1,6 +1,7 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
 #include "game/client_presentation_native.h"
+#include "game/client_dto_memory.h"
 #include "game/client_grid_native.h"
 #include "game/client_objects_native.h"
 #include "game/client_entity_adapters.h"
@@ -463,6 +464,7 @@ struct ClientNativePresentation final {
   unsigned minimap_diagnostic=0;
 };
 ClientNativePresentation *ClientPresentationCreate() noexcept {return IsMain()?new(std::nothrow) ClientNativePresentation:nullptr;}
+std::uint64_t ClientPresentationValueBytes(const ClientNativePresentation *p){return p?sizeof(*p)+dto_memory::Extra(p->description):0;}
 void ClientPresentationDestroy(ClientNativePresentation *p) noexcept {
   if(p&&IsMain()&&!p->active&&(!p->written||p->retired))delete p;
 }
@@ -592,7 +594,7 @@ bool BuildFXCandidate(ClientNativePresentation &p,const ClientPresentationDescri
     auto &target=p.fx_candidate[p.fx_candidate_count];new(&target) NativeFX;
     ++p.fx_candidate_count;target.id=source.id;
     // 仅填已核消费者读取的字段；未采用的原生word保持本方零初始化，不复制未知内存。
-    target.parameters[4]=source.pass;std::memcpy(&target.parameters[8],&source.color_branch,4);
+    target.parameters[4]=source.pass;target.parameters[8]=source.color_condition_bits;
     target.parameters[9]=source.mask_backdrop;target.parameters[10]=source.blend_mode;target.parameters[11]=source.mask?1u:0u;
     // 真实selected Image路径来自Authority当前资源；不按seed或XML重新挑选overlay。
     if(!LoadFXImage(target.image,source))return false;
@@ -697,7 +699,7 @@ bool StreamLayout(const ClientNativePresentation &p,const ClientPresentationDesc
 // 同布局仅覆写已拥有数组中的完整最终值；不重建ANM/Image、原生vector或链接图。
 bool StreamPresentationValues(ClientNativePresentation &p,Room &room,const ClientPresentationDescription &d){
   if(!FXOwnerMatches(p,room)||!AuxOwnerMatches(p,room)||!p.auxiliary)return false;
-  for(unsigned i=0;i<d.fx_layers.size();++i){const auto &s=d.fx_layers[i];auto &t=p.fx_installed[i];std::memcpy(&t.parameters[8],&s.color_branch,4);t.parameters[9]=s.mask_backdrop;t.parameters[10]=s.blend_mode;t.parameters[11]=s.mask?1u:0u;
+  for(unsigned i=0;i<d.fx_layers.size();++i){const auto &s=d.fx_layers[i];auto &t=p.fx_installed[i];t.parameters[8]=s.color_condition_bits;t.parameters[9]=s.mask_backdrop;t.parameters[10]=s.blend_mode;t.parameters[11]=s.mask?1u:0u;
     for(unsigned j=0;j<s.poses.size();++j){const auto &v=s.poses[j];t.poses.begin[j]={v.x,v.y,v.velocity_x,v.velocity_y,v.flip_x,v.flip_y,{0,0}};}}
   for(unsigned i=0;i<d.ray_groups.size();++i){const auto &s=d.ray_groups[i];auto &t=p.rays_installed[i];std::copy(s.geometry.begin(),s.geometry.end(),t.geometry);for(unsigned j=0;j<s.rays.size();++j){t.rays.begin[j].opacity=s.rays[j].opacity;t.rays.begin[j].speed=s.rays[j].speed;t.rays.begin[j].phase=s.rays[j].phase;}}
   auto &aux=*p.auxiliary;for(unsigned i=0;i<d.auxiliary.poop_poses.size();++i){const auto &v=d.auxiliary.poop_poses[i];aux.poop[i]={v.x,v.y,v.velocity_x,v.velocity_y,v.flip_x,v.flip_y,{0,0}};}
@@ -1268,15 +1270,21 @@ bool LuaCaptureFX(lua_State *L,Room &room) {
     presentation_capture_failure="fx_pass";const auto pass=fx.parameters[4];if(pass<1||pass>6)return false;
     const bool generic=pass==1||pass==2||pass==3||pass==6;unsigned char mask_byte=0;
     if(generic)std::memcpy(&mask_byte,reinterpret_cast<const unsigned char *>(&fx)+0x48,1);
-    const bool mask=mask_byte!=0;float color_branch=0;std::uint32_t mask_backdrop=0;
-    if(generic&&!mask)std::memcpy(&color_branch,reinterpret_cast<const unsigned char *>(&fx)+0x3c,4);
-    if(generic&&mask)std::memcpy(&mask_backdrop,reinterpret_cast<const unsigned char *>(&fx)+0x40,4);
+    const bool mask=mask_byte!=0;std::uint32_t color_condition_bits=0,mask_backdrop=0;
+    // 96C620先以count>0进入pose循环，才读取+3c/+40；空层没有这些条件值的来源合同。
+    // 与未采用的mask/pass分支一样输出规范0，不读取未消费字；采用的IEEE条件位完整复制。
+    if(generic&&!mask&&fx.count>0)std::memcpy(&color_condition_bits,reinterpret_cast<const unsigned char *>(&fx)+0x3c,4);
+    if(generic&&mask&&fx.count>0)std::memcpy(&mask_backdrop,reinterpret_cast<const unsigned char *>(&fx)+0x40,4);
     // pass1/2/3/6绘制前按实际+44调用BlendMode构造；不从图片、XML或id推测混合模式。
     const unsigned blend_mode=generic?fx.parameters[10]:0;
-    presentation_capture_failure="fx_color_condition";if(!std::isfinite(color_branch))return false;
     presentation_capture_failure="fx_blend_mode";if(blend_mode>2)return false;
     lua_createtable(L,0,12);LuaNumber(L,"id",float(fx.id));LuaNumber(L,"pass",float(pass));
-    LuaNumber(L,"color_branch",color_branch);LuaBoolean(L,"mask",mask);lua_pushinteger(L,mask_backdrop);lua_setfield(L,-2,"mask_backdrop");
+    // 只在这个非算术条件上表达NaN/Inf分类，不把非有限JSON number送进通用数值/pose路径。
+    lua_createtable(L,0,3);lua_pushliteral(L,"float32_condition");lua_setfield(L,-2,"type");
+    const auto exponent=color_condition_bits&0x7f800000u,mantissa=color_condition_bits&0x007fffffu;
+    const char *classification=exponent!=0x7f800000u?"Finite":mantissa?"NaN":color_condition_bits&0x80000000u?"NegativeInfinity":"PositiveInfinity";
+    lua_pushstring(L,classification);lua_setfield(L,-2,"classification");lua_pushinteger(L,color_condition_bits);lua_setfield(L,-2,"bits");lua_setfield(L,-2,"color_branch");
+    LuaBoolean(L,"mask",mask);lua_pushinteger(L,mask_backdrop);lua_setfield(L,-2,"mask_backdrop");
     LuaNumber(L,"blend_mode",float(blend_mode));
     presentation_capture_failure="fx_image_path_or_format";if(!LuaFXImageName(L,image->_name))return false;
     LuaNumber(L,"min_filter",float(image->_minFilterMode));LuaNumber(L,"mag_filter",float(image->_magFilterMode));
@@ -1339,7 +1347,7 @@ int ClientPresentationCaptureLua(void *state) {
   float floor[11]{},wall[11]{},shadow[5]{},light[5]{};
   CopyColor(room._floorColor,floor);CopyColor(room._wallColor,wall);
   CopyColor(room._fxLayers._fxParams.shadowColor,shadow);CopyColor(room._fxLayers._fxParams.lightColor,light);
-  lua_createtable(L,0,40);LuaNumber(L,"version",4);
+  lua_createtable(L,0,40);LuaNumber(L,"version",5);
   const unsigned curses=EffectiveCurses(*g_Game);
   const bool mirror=g_Game->_currentDimensionIdx==1&&(g_Game->_stageType==4||g_Game->_stageType==5)&&(g_Game->_stage==2||(g_Game->_stage==1&&(curses&2)));
   LuaBoolean(L,"mirror",mirror);LuaBoolean(L,"mirror_shader",g_Manager&&*reinterpret_cast<const bool *>(reinterpret_cast<const unsigned char *>(g_Manager)+0x2a204));

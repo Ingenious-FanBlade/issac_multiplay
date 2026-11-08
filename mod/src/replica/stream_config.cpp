@@ -30,7 +30,10 @@ std::string RuntimeConfig::Fields(const std::string &prefix) const {
 }
 // 未解释owner优先停止，已知写后前缀只能先退休；写前暂缺可保留A等待。
 FailurePolicy ClassifyFailure(const char *reason,bool written,bool unsafe) noexcept {
-  const auto has=[&](const char *s){return reason&&std::strstr(reason,s);};
+  // 缺成员的诊断后缀只提供定位，不让字段名里的resource/context等词改变稳定首因分类。
+  constexpr char missing[]="stream_materialize_missing:";
+  const auto stable=reason&&!std::strncmp(reason,missing,sizeof(missing)-1)?"stream_materialize_missing":reason;
+  const auto has=[&](const char *s){return stable&&std::strstr(stable,s);};
   if(unsafe||has("owner_unknown")||has("unexplained")||has("exception")||has("thread")||has("context")||has("retire")||has("unbalanced"))return {FailureClass::Owner,"owner_uncertain","场景无法安全退休",false,false};
   if(has("recovery")||has("retry_failed"))return {FailureClass::Recovery,"recovery_failed","场景恢复失败",false,false};
   if(has("capability")||has("unsupported")||has("schema")||has("conflict"))return {FailureClass::Capability,"capability_or_contract","版本或能力不兼容",false,false};

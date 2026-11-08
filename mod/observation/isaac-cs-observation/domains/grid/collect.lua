@@ -96,14 +96,14 @@ function M.Event(name,g,render,...)
   if render then c.owner=id; payload.sprite=read.Collect(g:GetSprite(),"Sprite",c,0)
   else payload.object=snapshot(g,c) end
   local json,complete,objects,nodes,reason=read.Finish(payload,c)
-  native().PublishGridEvent(json,complete,objects,nodes,reason,render)
+  native().PublishGridEvent(json,complete,objects,nodes,reason,render,c.runtime)
 end
 -- 失败保留具体回调与净化错误文本，不能吞掉失败后伪称完整。
 function M.Error(name,err,render)
   local c=context(); read.Fail(c,"grid_callback_copy")
   local reason=type(err)=="string" and err:gsub("0x%x+","<local>"):sub(1,512) or "grid_callback_copy"
   local json,complete,objects,nodes,detail=read.Finish({event=name,status="ReadFailed",reason=reason},c)
-  native().PublishGridEvent(json,complete,objects,nodes,detail,render)
+  native().PublishGridEvent(json,complete,objects,nodes,detail,render,name:find("_UPDATE")~=nil)
 end
 function M.Query(owner,class,member,args)
   -- Effect136的保存描述保持Entity身份，显式查询记录真实当前值而不制造Grid出生。

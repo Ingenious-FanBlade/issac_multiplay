@@ -41,7 +41,7 @@ std::string Metrics::Fields(const std::string &prefix,unsigned page) const {
   add("page",page);add("pages",32);
   for(unsigned i=(std::min)(page,32u)*4;i<(std::min)(page*4+4,128u);++i){const auto &f=flows[i];if(!f.used)continue;const auto p="range."+std::to_string(i)+".";out+=prefix+p+"name="+f.name.data()+"\n";add(p+"kind",f.kind);add(p+"body_run",f.body.run);add(p+"body_id",f.body.id);add(p+"body_space",f.body.space);
     for(unsigned j=0;j<unsigned(FlowStage::Count);++j){const auto q=p+stages[j];add(q+".count",f.counts[j]);add(q+".sequence",f.sequence[j]);add(q+".tick",f.tick[j]);add(q+".phase",f.phase[j]);add(q+".authority_kind",f.authority_kind[j]);add(q+".local_ms",f.at_ms[j]);}}
-  const char *cpu_names[]={"capture","encode","compress","queue","decode","native_prepare","native_apply","draw","network","ipc","native_retire"};
+  const char *cpu_names[]={"capture","encode","compress","queue","decode","native_prepare","native_apply","draw","network","ipc","native_retire","build","main_capture","frame_interval","source_lua","source_native","source_copy","source_control","source_handoff"};
   for(unsigned i=0;i<duration.size();++i){const auto &d=duration[i];const auto p="duration."+std::string(cpu_names[i])+".";add(p+"wall_count",d.count);add(p+"wall_total_us",d.total_us);add(p+"wall_max_us",d.max_us);const auto &c=cpu[i];add(p+"thread_cpu_count",c.count);add(p+"thread_cpu_total_us",c.total_us);add(p+"thread_cpu_max_us",c.max_us);for(unsigned j=0;j<32;++j)if(i==page%duration.size()&&d.buckets[j])add(p+"bucket_log2_us."+std::to_string(j),d.buckets[j]);}
   add("histogram_stage",page%duration.size());
   out+=prefix+"clock=local_monotonic_per_owner_no_cross_device_subtraction\n";

@@ -429,8 +429,8 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     const auto value_bound=replica::OwnedValueUpperBound(value);
     std::uint64_t roots=1;for(auto i=value["components"].MemberBegin();i!=value["components"].MemberEnd();++i){const auto &c=i->value;if(c.HasMember("state")&&c["state"].IsObject()&&c["state"].HasMember("objects")&&c["state"]["objects"].IsArray())roots+=c["state"]["objects"].Size();}
     // 失败预检可能仍留有owner中的自有计划；累计保守额度直至完整替换或退休。
-    if(!planning_memory_)planning_memory_=memory::Reserve(memory::Pool::Values,0);
-    planning_memory_->Resize(planning_memory_->Bytes()+8*value_bound+8*65536*roots);
+    if(!planning_memory_)planning_memory_=memory::Reserve(memory::Pool::Values,0,"client_target_plan");
+    planning_memory_->Resize(planning_memory_->Bytes()+8*value_bound+8*replica::kJsonArenaChunk*roots);
     auto domain=replica::ParseRoomGridTarget(value);
     auto players=replica::HasPlayerTarget(value)?replica::ParsePlayerTarget(value):nullptr;
     if(stream_&&!stream_->baseline_committed&&stream_->manifest&&revision==stream_->manifest_revision){
@@ -1053,6 +1053,10 @@ void ClientScene::FinishRetirementIfDrained() noexcept {
     catch(...){Fail("room_grid_rebuild_plan_unavailable");return;}
     if(rebuild_objects_&&rebuild_grids_&&rebuild_presentation_){
       objects_=std::move(rebuild_objects_);grids_=std::move(rebuild_grids_);presentation_=std::move(rebuild_presentation_);
+      // A的DOM/域计划已清空，旧原生及纯值owner也已实际析构；剩余T由target_memory_计费。
+      // 不能在原生退休前释放，也不能拖到T提交而让已消失的A继续占用整份保守预算。
+      applied_memory_.reset();
+      if(stream_)stream_->installed_memory.reset();
       if(!objects_->BeginAttempt(result_.attempt)){Fail("objects_prepared_rebuild_attempt");return;}
       objects_planned_=grids_planned_=true;
     }
@@ -1236,3 +1240,4 @@ bool ClientScene::CanReturnToMenu() const noexcept {
          !active_native_&&!active_lua_&&!active_graphics_&&!active_observation_&&!active_dispatch_&&!applied_;
 }
 } // namespace cs::game
+

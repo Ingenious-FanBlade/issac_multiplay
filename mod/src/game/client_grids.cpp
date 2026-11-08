@@ -1,4 +1,5 @@
 #include "game/client_grids.h"
+#include "game/client_dto_memory.h"
 #include "game/client_objects.h"
 #include "game/client_resource_model.h"
 #include <algorithm>
@@ -10,6 +11,7 @@
 #include <string_view>
 
 namespace cs::game {
+std::uint64_t ClientGrids::StreamValueBytes() const {return sizeof(*this)+dto_memory::Extra(checks_)+ClientNativeGridsValueBytes(native_);}
 #ifdef ISAACCS_E2E
 std::string ClientTestInspectGrids(const ClientNativeGrids *) noexcept;
 std::string ClientGrids::TestInspect(const ClientNativeRoots &roots) const noexcept {

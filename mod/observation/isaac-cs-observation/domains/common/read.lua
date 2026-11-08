@@ -8,15 +8,16 @@ local function missing(status, reason) return {status=status,reason=reason} end
 local function native() return IsaacCSObservationNative end
 local streamSource
 local function stream() if not streamSource then streamSource=include("domains/common/stream") end;return streamSource end
-local function protected(object, name, args, field, static)
-  return pcall(function()
-    if field then return object[name] end
-    local fn=object[name]
-    if type(fn)~="function" then error("interface_unavailable:"..name) end
-    if static then return fn(table.unpack(args or {},1,args and (args.n or #args) or 0)) end
-    return fn(object, table.unpack(args or {},1,args and (args.n or #args) or 0))
-  end)
+local emptyArgs={}
+-- 复用调用函数，避免每个getter生成闭包和空参数表；属性查找与调用仍在同一pcall内。
+local function invoke(object,name,args,field,static)
+  if field then return object[name] end
+  local fn=object[name]
+  if type(fn)~="function" then error("interface_unavailable:"..name) end
+  if static then return fn(table.unpack(args or emptyArgs,1,args and (args.n or #args) or 0)) end
+  return fn(object,table.unpack(args or emptyArgs,1,args and (args.n or #args) or 0))
 end
+local function protected(object,name,args,field,static) return pcall(invoke,object,name,args,field,static) end
 local function textError(value)
   -- Lua 错误仅保留成员语义，不将 userdata 的本地地址混入规范值。
   return type(value)=="string" and value:gsub("0x%x+","<local>"):sub(1,256) or "lua_error"
@@ -25,6 +26,12 @@ local function fail(ctx,reason)
   ctx.complete=false
   ctx.reasons[reason]=(ctx.reasons[reason] or 0)+1
 end
+-- 返回具名Partial首因，避免流投影只报告笼统缺口而丢失实际不可读成员。
+local function partialReason(ctx,prefix)
+  local keys={};for key in pairs(ctx.reasons) do keys[#keys+1]=key end;table.sort(keys)
+  local shown={};for i=1,math.min(8,#keys) do shown[#shown+1]=keys[i] end
+  return (prefix or "field_or_budget_gap")..":"..table.concat(shown,","):sub(1,768)
+end
 local function array(values) return {kind="array",values=values} end
 local function typeName(value)
   local ok, name=pcall(function() return getmetatable(value).__type end)
@@ -32,6 +39,33 @@ local function typeName(value)
 end
 local normalize={ ["ItemConfig Item"]="ItemConfigItem", ["ItemConfig_Item"]="ItemConfigItem", ["ItemConfig_Costume"]="ItemConfigCostume", ["ItemConfig Costume"]="ItemConfigCostume", ["PlayerTypesActiveItemDesc"]="ActiveItemDesc", ["PlayerTypesPosVel"]="PosVel", ["Pathfinder"]="PathFinder", ["LayerStates"]="LayerState", ["const Color"]="Color", ["const Vector"]="Vector", ["EntityPlayer, boolean"]="EntityPlayer" }
 local collect, value, query
+-- 目录是声明数据；只预编译去重/快源选择，不缓存任何游戏字段或查询结果。
+local compiled,compiledFast={},{}
+local function members(class,fast)
+  local cache=fast and compiledFast or compiled
+  if not cache[class] then
+    local out,seen={},{}
+    for _,spec in ipairs(schemas[class] or emptyArgs) do
+      if not seen[spec.id] and (not fast or stream().Fast(spec) and spec.id~="Entity.GetSprite") then
+        seen[spec.id]=true;out[#out+1]=spec
+      end
+    end
+    cache[class]=out
+  end
+  return cache[class]
+end
+-- 大型查询/关联数组每64项立即复制到自有块；Lua不再保留完整结果大树。
+-- 所有块都在当前同步调用中取得，组装不跨tick；后台只展开纯值，不运行Lua。
+local function chunks(ctx) return {current={},blocks={},count=0,owned=ctx.stream_owned} end
+local function appendChunk(out,item)
+  out.current[#out.current+1]=item;out.count=out.count+1
+  if out.owned and #out.current==64 then out.blocks[#out.blocks+1]=native().SealOwnedBlock(out.current);out.current={} end
+end
+local function finishChunks(out)
+  if #out.blocks==0 then return out.current end
+  if #out.current>0 then out.blocks[#out.blocks+1]=native().SealOwnedBlock(out.current) end
+  return native().JoinOwnedBlocks(out.blocks)
+end
 -- 原版文档的显示别名仍指向 REPENTOGON 的同一只读关联结构。
 normalize.PlayerPocketItem="PocketItem"
 normalize.HistoryItems="HistoryItem"
@@ -82,13 +116,17 @@ local function parameterSets(object, spec, ctx)
       if not ok then fail(ctx,"player_config_ids");return nil end
       ctx.player_config_ids[key]=ids
     end
+    -- 同一个合法窗口内全部身体共享只读参数集合；配置ID仍在本窗取得，动态查询结果从不缓存。
+    ctx.player_parameter_sets=ctx.player_parameter_sets or {}
+    if ctx.player_parameter_sets[name] then return ctx.player_parameter_sets[name] end
     local out={}
     for _,id in ipairs(ctx.player_config_ids[key]) do
       if name=="GetCollectibleNum" then
-        for _,only in ipairs({false,true}) do for _,ignore in ipairs({false,true}) do out[#out+1]={id,only,ignore} end end
+        out[#out+1]={id,false,false};out[#out+1]={id,false,true}
+        out[#out+1]={id,true,false};out[#out+1]={id,true,true}
       else out[#out+1]={id} end
     end
-    return out
+    ctx.player_parameter_sets[name]=out;return out
   end
   if name=="GetBagOfCraftingSlot" then local r={} for i=0,7 do r[#r+1]={i} end return r end
   if name=="GetCard" or name=="GetPill" or name=="GetPocketItem" then return {{0},{1},{2},{3}} end
@@ -182,15 +220,16 @@ value=function(object, typ, ctx, depth)
   if type(object)=="table" then
     if ctx.seen[object] then return {type="graph_ref",node=ctx.seen[object]} end
     ctx.graph=ctx.graph+1; ctx.seen[object]=ctx.graph
-    local node={type="table",node=ctx.graph,entries={}}
+    local node={type="table",node=ctx.graph};local entries=chunks(ctx)
     local keys={}; for k in pairs(object) do if #keys>=LIMIT.nodes-ctx.nodes then fail(ctx,"table_key_budget");break end;keys[#keys+1]=k end
     table.sort(keys,function(a,b) return type(a)==type(b) and tostring(a)<tostring(b) or type(a)<type(b) end)
     for _,k in ipairs(keys) do
       if ctx.nodes>=LIMIT.nodes then fail(ctx,"table_budget"); node.truncated=true; break end
       local elementType=typ and typ:gsub("%[%]","") or nil
-      node.entries[#node.entries+1]={key=value(k,nil,ctx,depth+1),value=value(object[k],elementType,ctx,depth+1)}
+      appendChunk(entries,{key=value(k,nil,ctx,depth+1),value=value(object[k],elementType,ctx,depth+1)})
     end
     if #keys==0 then node.status="Empty" end
+    node.entries=finishChunks(entries)
     return node
   end
   if typ=="VectorList" or typ=="EffectList" or typ=="EntityList" then
@@ -266,6 +305,9 @@ query=function(object,spec,args,ctx,depth)
 end
 
 collect=function(object,class,ctx,depth)
+  -- E2E累计同一次真实读取的类别耗时；父子计时含嵌套，不相加当作整帧成本。
+  local profileStage=ctx.profile_start and (class=="Sprite" and 3 or class=="EntityPlayer" and 4 or class=="ItemConfigItem" and 5 or class=="AnimationData" and 6)
+  local profileStart=profileStage and native().SourceClock()
   -- 配置 counterpart 可能成环，按公开逻辑键记录引用；userdata 包装地址不进入身份。
   if class=="EntityConfigPlayer" then
     local key="EntityConfigPlayer:"..tostring(object:GetPlayerType())
@@ -281,25 +323,48 @@ collect=function(object,class,ctx,depth)
       if known then out.resource_generation=generation else fail(ctx,"stream_resource_instance");out.resource_generation=missing("ReadFailed","stream_resource_instance") end
     end
   end
-  local handled={}
-  for _,spec in ipairs(schemas[class] or {}) do
-    if not handled[spec.id] and (not ctx.fast or stream().Fast(spec) and spec.id~="Entity.GetSprite") then
-      handled[spec.id]=true
+  for _,spec in ipairs(members(class,ctx.fast)) do
       local alias=ctx.member_alias and ctx.member_alias(spec)
       if alias then out.fields[spec.id]=alias
       elseif ctx.runtime and (spec.returns=="Sprite" or spec.category=="parameter_query" or spec.member=="GetRNG" or spec.member=="GetRenderPosition") then
         -- 独立更新只复制运行字段；资源与静态参数查询由普通域窗口负责。
       elseif spec.category=="field" or spec.category=="query" then
-        out.fields[spec.id]=query(object,spec,{},ctx,depth)
+        out.fields[spec.id]=query(object,spec,emptyArgs,ctx,depth)
       elseif spec.category=="parameter_query" then
         local sets=parameterSets(object,spec,ctx)
         if sets then
-          local results={}
-          for _,args in ipairs(sets) do
-            if ctx.queries>=LIMIT.queries then fail(ctx,"query_budget"); results[#results+1]=missing("Truncated","query_budget"); break end
-            results[#results+1]={parameters=value(args,nil,ctx,depth+1),value=query(object,spec,args,ctx,depth)}
+          local matrix=spec.owner=="EntityPlayer" and (spec.member=="GetCollectibleNum" or spec.member=="GetActiveItemSlot")
+          if ctx.stream_owned and matrix and #sets<=LIMIT.queries-ctx.queries then
+            -- 正式矩阵直接写入自有块；参数图编号仍属于本窗ctx，重复身体引用沿用原图语义。
+            -- 失败只报告Partial，不回退再次调用可能带公开回调的getter。
+            local ok,block,complete,graph,nodes=pcall(native().PlayerScalarQueriesOwned,object,spec.member,sets,ctx.seen,ctx.graph,LIMIT.nodes-ctx.nodes)
+            ctx.queries=ctx.queries+#sets
+            if ok then
+              ctx.graph=graph;ctx.nodes=ctx.nodes+nodes
+              if not complete then fail(ctx,"read:"..spec.id) end
+              out.fields[spec.id]={kind="parameter_results",values=block}
+            else fail(ctx,"player_scalar_batch");out.fields[spec.id]=missing("ReadFailed","player_scalar_batch") end
+          else
+          local results=chunks(ctx)
+          local bulk,bulkFailed
+          if matrix and #sets<=LIMIT.queries-ctx.queries then
+            local ok,values=pcall(native().PlayerScalarQueries,object,spec.member,sets)
+            if ok and #values==#sets then bulk=values else bulkFailed=true;fail(ctx,"player_scalar_batch") end
           end
-          out.fields[spec.id]={kind="parameter_results",values=results}
+          for _,args in ipairs(sets) do
+            if ctx.queries>=LIMIT.queries then fail(ctx,"query_budget"); appendChunk(results,missing("Truncated","query_budget")); break end
+            local parameters=value(args,nil,ctx,depth+1)
+            local answer
+            if bulkFailed then answer=missing("ReadFailed","player_scalar_batch")
+            elseif bulk then
+              ctx.queries=ctx.queries+1;local row=bulk[results.count+1]
+              if row.ok then answer=value(row.value,spec.returns,ctx,depth+1)
+              else fail(ctx,"read:"..spec.id);answer=missing("ReadFailed",textError(row.error)) end
+            else answer=query(object,spec,args,ctx,depth) end
+            appendChunk(results,{parameters=parameters,value=answer})
+          end
+          out.fields[spec.id]={kind="parameter_results",values=finishChunks(results)}
+          end
         else out.fields[spec.id]={status="NotScheduled",reason="derived_query_requires_explicit_parameters",signature=spec.parameters} end
       elseif spec.category=="domain_value" and ctx.domain_member then
         out.fields[spec.id]=ctx.domain_member(object,spec,ctx,depth)
@@ -319,16 +384,23 @@ collect=function(object,class,ctx,depth)
       elseif spec.category=="derived_query" then
         out.fields[spec.id]={status="NotScheduled",reason="derived_query_requires_explicit_parameters",signature=spec.parameters}
       end
-    end
   end
+  if profileStage then native().SourceTime(ctx.stream_domain,profileStage,profileStart) end
   return out
 end
 
 -- 自有 JSON 编码器保留空集合、非有限值和整数精度；预算不足返回明确缺口而非截断 JSON。
 local function encode(root)
   local parts,bytes={},0
+  -- 同次编码内复用短字符串的完整转义结果；64KiB上限，调用结束即释放，不复用旧状态值。
+  local quoted,quotedBytes={},0
   local function emit(s) bytes=bytes+#s; if bytes>LIMIT.bytes then error("payload_byte_budget") end; parts[#parts+1]=s end
-  local function quote(s) return '"'..s:gsub('[%z\1-\31\\"]',function(c) return string.format('\\u%04x',c:byte()) end)..'"' end
+  local function quote(s)
+    if quoted[s] then return quoted[s] end
+    local escaped='"'..s:gsub('[%z\1-\31\\"]',function(c) return string.format('\\u%04x',c:byte()) end)..'"'
+    if #s<=128 and quotedBytes+#s+#escaped<=65536 then quoted[s]=escaped;quotedBytes=quotedBytes+#s+#escaped end
+    return escaped
+  end
   local function write(v,depth)
     if depth>LIMIT.depth*4 then error("json_depth_budget") end
     local t=type(v)
@@ -338,7 +410,7 @@ local function encode(root)
       emit(math.type(v)=="integer" and tostring(v) or v==0 and 1/v<0 and "-0.0" or string.format("%.17g",v))
     elseif t=="boolean" then emit(v and "true" or "false")
     elseif t=="table" then
-      local isArray=#v>0
+      local isArray=#v>0 or streamSource and streamSource.IsJsonArray(v)
       emit(isArray and "[" or "{")
       local first=true
       if isArray then for _,x in ipairs(v) do if not first then emit(",") end; first=false; write(x,depth+1) end
@@ -346,24 +418,47 @@ local function encode(root)
         for _,k in ipairs(keys) do if not first then emit(",") end; first=false; emit(quote(tostring(k))); emit(":"); write(v[k],depth+1) end
       end
       emit(isArray and "]" or "}")
+    elseif t=="userdata" then emit(native().OwnedBlockText(v))
     else error("borrowed_value_in_payload") end
   end
   write(root,0); return table.concat(parts),bytes
 end
 local function finish(payload,ctx)
+  local profiling=ctx.profile_start and native().SourceTime
+  if profiling then native().SourceTime(ctx.stream_domain,0,ctx.profile_start) end
   payload.coverage={complete=ctx.complete,reasons=ctx.reasons,objects=ctx.objects,nodes=ctx.nodes,queries=ctx.queries}
-  local stream
+  -- 正式来源交给C++有界值写入器；分层/闭图/身份投影由后台完成。
+  -- 诊断请求从同一已取得值编码，不再为Baseline在Lua主线程重复编码整域。
+  if ctx.stream_owned then
+    local json,bytes="",0
+    if ctx.stream_cold then
+      local ok;ok,json,bytes=pcall(encode,payload)
+      if not ok then json="";bytes=0 end -- 诊断失败不撤销独立的正式纯值来源。
+    end
+    return json,ctx.complete,ctx.objects,ctx.nodes,ctx.complete and "" or partialReason(ctx),bytes,payload
+  end
+  -- 输出正文与stream()模块读取函数分别命名，不能让局部nil遮蔽投影入口。
+  local streamPayload
   if ctx.stream_capture and not ctx.fast then
+    local started=profiling and native().SourceClock()
     local ok,partition=pcall(stream().Partition,payload,ctx.stream_domain,LIMIT.nodes)
+    if profiling then native().SourceTime(ctx.stream_domain,1,started);started=native().SourceClock() end
     local encoded,bytes
     if ok then ok,encoded,bytes=pcall(encode,partition) end
-    if ok then stream=encoded else fail(ctx,"stream_partition_or_budget") end
+    if profiling then native().SourceTime(ctx.stream_domain,2,started) end
+    if ok then streamPayload=encoded
+    else
+      -- 保存实际投影/编码错误；不能让统一缺正文原因抹掉图冲突或具体预算首因。
+      fail(ctx,"stream_partition_or_budget:"..textError(encoded or partition))
+    end
     if not ctx.stream_cold then
-      return stream or '{"status":"ReadFailed"}',ctx.complete,ctx.objects,ctx.nodes,
-        ctx.complete and "" or "stream_partition_or_source_gap",bytes or 0,stream
+      return streamPayload or '{"status":"ReadFailed"}',ctx.complete,ctx.objects,ctx.nodes,
+        ctx.complete and "" or partialReason(ctx,"stream_partition_or_source_gap"),bytes or 0,streamPayload
     end
   end
+  local started=profiling and native().SourceClock()
   local ok,json,bytes=pcall(encode,payload)
+  if profiling then native().SourceTime(ctx.stream_domain,2,started) end
   if not ok then
     -- 字节预算超限时只裁剪已经复制的值，保留可交付前缀；绝不再次调用游戏 Getter。
     ctx.complete=false; payload.coverage.complete=false; payload.coverage.reasons.payload_byte_or_depth_budget=1
@@ -405,25 +500,27 @@ local function finish(payload,ctx)
     end
     return '{"status":"Truncated","reason":"single_value_exceeds_payload_budget"}',false,ctx.objects,ctx.nodes,"single_value_exceeds_payload_budget"
   end
-  return json,ctx.complete,ctx.objects,ctx.nodes,ctx.complete and "" or "field_or_budget_gap",bytes,stream
+  return json,ctx.complete,ctx.objects,ctx.nodes,ctx.complete and "" or partialReason(ctx),bytes,streamPayload
 end
 
 -- 两域共用相同的有界值语义，schema 注册只合并声明，不执行 Getter。
-function M.AddSchemas(extra) for k,v in pairs(extra) do schemas[k]=v end end
+function M.AddSchemas(extra) for k,v in pairs(extra) do schemas[k]=v;compiled[k]=nil;compiledFast[k]=nil end end
 M.Encode=encode
 M.Collect=collect; M.Value=value; M.QueryValue=query; M.Finish=finish; M.Fail=fail; M.Missing=missing; M.Protected=protected
 function M.Context()
   local c={complete=true,nodes=0,queries=0,objects=0,reasons={},seen={},config_seen={},sprite_names={},graph=0,
-    stream_capture=LIMIT.stream_capture,stream_cold=LIMIT.stream_cold,stream_domain=LIMIT.stream_domain}
+    stream_capture=LIMIT.stream_capture,stream_cold=LIMIT.stream_cold,stream_domain=LIMIT.stream_domain,stream_owned=LIMIT.stream_owned}
+  if c.stream_capture and native().SourceClock then c.profile_start=native().SourceClock() end
   -- 产品分层只由本次根Capture消费一次，独立事件/嵌套Context没有普通采样资格。
   LIMIT.stream_capture=false
+  LIMIT.stream_owned=false
   return c
 end
 function M.Limits(limits) if limits then
   -- 每次调用重置产品来源选择，避免上个域/逐身体读取污染Recorder或后继普通域。
   -- 域内单独调整queries等预算不消费/清除尚未取得根Context的来源选择。
   if limits.stream_capture~=nil then
-    LIMIT.stream_capture=limits.stream_capture;LIMIT.stream_cold=limits.stream_cold~=false;LIMIT.stream_domain=limits.stream_domain
+    LIMIT.stream_capture=limits.stream_capture;LIMIT.stream_cold=limits.stream_cold~=false;LIMIT.stream_domain=limits.stream_domain;LIMIT.stream_owned=limits.stream_owned==true
   end
   for k,v in pairs(limits) do LIMIT[k]=v end
 end return LIMIT end

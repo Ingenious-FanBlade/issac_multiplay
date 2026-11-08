@@ -88,7 +88,7 @@ RequestResult Service::PrepareScope(ObservationEnvelope e) noexcept {
   if(!active_||e.context.epoch!=epoch_||e.context.session!=session_) return {false,"cross_epoch"};
   if(!e.context.scope||e.context.scope>scope_||!e.context.sequence||e.context.plan_revision!=plan_.revision||!Needed(e.domain,e.context.phase))return {false,"invalid_scope_or_plan"};
   if((e.context.phase==Phase::OrdinaryPost||e.context.phase==Phase::PlayerPost)&&(e.context.authority_tick.presence!=Presence::Known||!e.context.authority_tick.value||!e.context.outer||!e.context.owner)) return {false,"authority_context_required"};
-  if(e.payload.size()>e.result.budget.bytes) { Invalidate("payload_budget");return {false,"payload_budget"}; }
+  if(e.payload.size()>e.result.budget.bytes||e.owned_bytes>e.result.budget.bytes) { Invalidate("payload_budget");return {false,"payload_budget"}; }
   for(auto &p:pending_) if(p&&p->context.scope==e.context.scope) return {false,"duplicate_scope"};
   try { for(auto &p:pending_) if(!p) { p=std::move(e); return {true,"accepted"}; } }
   catch(...) { Invalidate("scope_allocation");return {false,"budget"}; }
@@ -99,7 +99,7 @@ void Service::Publish(const ObservationEnvelope &e) noexcept {
   for(const auto &c:consumers_) if(c.id) for(const auto &d:c.plan.domains)
     if(d.domain==e.domain&&(d.phases&(1u<<unsigned(e.context.phase)))&&
        (e.context.phase!=Phase::OrdinaryPost||!e.context.capture_index||e.context.capture_index%d.interval==0)) {
-      if(e.payload.size()>d.budget.bytes||e.result.objects>d.budget.objects||e.result.nodes>d.budget.nodes){if(c.invalidate)c.invalidate(c.owner,"consumer_delivery_budget");}
+      if(e.payload.size()>d.budget.bytes||e.owned_bytes>d.budget.bytes||e.result.objects>d.budget.objects||e.result.nodes>d.budget.nodes){if(c.invalidate)c.invalidate(c.owner,"consumer_delivery_budget");}
       else c.publish(c.owner,e);break;
     }
   publishing_=false; ++published_;

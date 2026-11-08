@@ -1,5 +1,7 @@
 #include "IsaacRepentance.h"
 #include "LuaCore.h"
+#include "game/world_sources/lua_owned_source.h"
+#include "LuaEntitySaveState.h"
 #include "binding/world_layout_constants.h"
 #include "game/world_sources/lua_entity.h"
 #include "game/bridge.h"
@@ -11,13 +13,25 @@
 #include "game/client_grid_native.h"
 #include "game/client_map_native.h"
 #include "game/client_backdrop_native.h"
+#include "replica/stream_resource_e2e.h"
 #include "runtime.h"
+#include "game/client_entity_e2e.h"
+#include <cstdio>
 #include <cstring>
 #include <cmath>
 #include <utility>
 #include <stdexcept>
+#include <string_view>
 namespace cs::game {
 #ifdef ISAACCS_E2E
+// 已观测ANM入口在主线程仍有效；构造前不读未初始化字段，随后立即复制纯值。
+void E2EResourceChangeFromNative(void *object,std::uint32_t address,std::uint64_t generation,bool reading,bool retired,bool constructing,bool copying,const char *operation) noexcept {
+  if(!IsMain())return;
+  const auto *anm=static_cast<const ANM2 *>(object);
+  const bool available=!constructing&&anm->_filename.size()<=1024;
+  replica::stream::E2EResourceChange(address,generation,reading,retired,constructing,copying,
+    available?anm->_filename.c_str():nullptr,available,available&&anm->_loaded,operation);
+}
 int ClientTestEntitySourceLua(lua_State *);
 #endif
 int ClientEntityGeometryLua(lua_State *);
@@ -29,6 +43,20 @@ int ClientPlayerRenderCaptureLua(lua_State *);
 int ClientPlayerRoleCaptureLua(lua_State *);
 int ClientPlayerSpecialCaptureLua(lua_State *);
 namespace {
+#ifdef ISAACCS_E2E
+// 纯计时诊断只接收固定域／阶段编号，不读游戏对象，也不把耗时混入同步值。
+int SourceClockLua(lua_State *L){lua_pushinteger(L,lua_Integer(ClientEntityTestClock()));return 1;}
+int SourceTimeLua(lua_State *L){
+  const auto domain=luaL_checkinteger(L,1),stage=luaL_checkinteger(L,2),start=luaL_checkinteger(L,3);
+  constexpr const char *domains[]={"entity","grid","room","level","exploration","room_save","player","run","random","presentation","mod"};
+  constexpr const char *stages[]={"collect","partition","encode","sprite","player_fields","item_config","animation"};
+  const auto now=ClientEntityTestClock();
+  if(domain>=0&&domain<11&&stage>=0&&stage<7&&start>=0&&now>=std::uint64_t(start)){
+    char name[80];std::snprintf(name,sizeof(name),"source_%s_%s",domains[domain],stages[stage]);ClientEntityTestTime(name,now-std::uint64_t(start));
+  }
+  return 0;
+}
+#endif
 lua_State *State() noexcept { return IsMain()&&g_LuaEngine ? g_LuaEngine->_state : nullptr; }
 void Decimal(lua_State *L,const char *key,std::uint64_t value) {
   const auto s=std::to_string(value); lua_pushlstring(L,s.data(),s.size()); lua_setfield(L,-2,key);
@@ -70,6 +98,110 @@ int GridApplication(lua_State *L) {return ClientGridCaptureLua(L);}
 int GridApplicationSprites(lua_State *L) {return ClientGridSpritesLua(L);}
 int MinimapDescriptor(lua_State *L) {return ClientMapDescriptorCaptureLua(L);}
 int MapApplication(lua_State *L) {return ClientMapStateCaptureLua(L);}
+// 官方SaveStateVector的公开Get逐槽返回同一vector元素；一次复制八个已公开字段，
+// 不保存vector地址、不以长度/seed推断未改变，也不调用保存/还原操作。
+int GridSaveValues(lua_State *L){
+  if(!IsMain())return luaL_error(L,"save_grid_wrong_thread");
+  auto *view=lua::GetRawUserdata<Lua_GridEntitiesSaveStateVector *>(L,1,lua::metatables::GridEntitiesSaveStateVectorMT);
+  if(!IsMain()||!view||!view->data)return luaL_error(L,"save_grid_source_unavailable");
+  const auto limit=luaL_checkinteger(L,2);const auto size=view->data->size();
+  if(limit<0||limit>16384||size>std::size_t(limit))return luaL_error(L,"save_grid_source_budget");
+  const auto *data=view->data->data();lua_createtable(L,int(size),0);
+  for(std::size_t i=0;i<size;++i){const auto &v=data[i];lua_createtable(L,8,0);lua_pushboolean(L,v._initialized);lua_rawseti(L,-2,1);
+    const std::int64_t fields[]={v._spawnCount,v._spawnSeed,v._state,v._type,v._varData,v._variableSeed,v._variant};
+    for(unsigned j=0;j<7;++j){char text[32];const auto count=std::snprintf(text,sizeof(text),"%lld",static_cast<long long>(fields[j]));lua_pushlstring(L,text,std::size_t(count));lua_rawseti(L,-2,j+2);}lua_rawseti(L,-2,lua_Integer(i+1));}
+  if(view->data->data()!=data||view->data->size()!=size)return luaL_error(L,"save_grid_source_changed");return 1;
+}
+// 批量调用原公开Lua绑定，保留GetCollectibleNum的IgnoreSpoof处理及所有已接入回调。
+// 不用原生库存计数冒充四种参数组合；结果在本窗逐项取得，错误逐项返回。
+int PlayerScalarQueries(lua_State *L){
+  if(!IsMain())return luaL_error(L,"player_batch_wrong_thread");
+  lua::GetLuabridgeUserdata<Entity_Player *>(L,1,lua::Metatables::ENTITY_PLAYER,"EntityPlayer");
+  const auto *name=luaL_checkstring(L,2);
+  if(std::strcmp(name,"GetCollectibleNum")&&std::strcmp(name,"GetActiveItemSlot"))return luaL_error(L,"player_batch_member");
+  luaL_checktype(L,3,LUA_TTABLE);const auto count=lua_rawlen(L,3);if(count>131072)return luaL_error(L,"player_batch_budget");
+  lua_getfield(L,1,name);const auto fn=lua_absindex(L,-1);if(!lua_isfunction(L,fn))return luaL_error(L,"player_batch_missing");
+  lua_createtable(L,int(count),0);const auto out=lua_absindex(L,-1);
+  for(std::size_t i=1;i<=count;++i){lua_rawgeti(L,3,lua_Integer(i));const auto args=lua_absindex(L,-1);const auto length=lua_rawlen(L,args);
+    if(length>3)return luaL_error(L,"player_batch_arguments");lua_pushvalue(L,fn);lua_pushvalue(L,1);for(std::size_t j=1;j<=length;++j)lua_rawgeti(L,args,lua_Integer(j));
+    const auto ok=lua_pcall(L,int(length)+1,1,0)==LUA_OK;lua_createtable(L,0,2);lua_pushboolean(L,ok);lua_setfield(L,-2,"ok");lua_pushvalue(L,-2);lua_setfield(L,-2,ok?"value":"error");lua_rawseti(L,out,lua_Integer(i));lua_pop(L,2);
+  }return 1;
+}
+// 正式来源直接封闭查询矩阵，不再先构造数万个Lua参数/整数包装表再逐个复制。
+// 每项仍调用同一个公开绑定一次，四种bool组合、真实错误及参数图别名完全保留。
+int PlayerScalarQueriesOwned(lua_State *L){
+  if(!IsMain())return luaL_error(L,"player_batch_wrong_thread");
+  lua::GetLuabridgeUserdata<Entity_Player *>(L,1,lua::Metatables::ENTITY_PLAYER,"EntityPlayer");
+  const auto *name=luaL_checkstring(L,2);
+  const bool collectible=std::strcmp(name,"GetCollectibleNum")==0;
+  if(!collectible&&std::strcmp(name,"GetActiveItemSlot"))return luaL_error(L,"player_batch_member");
+  luaL_checktype(L,3,LUA_TTABLE);luaL_checktype(L,4,LUA_TTABLE);
+  auto graph=luaL_checkinteger(L,5);const auto node_limit=luaL_checkinteger(L,6);
+  const auto count=lua_rawlen(L,3);const unsigned arity=collectible?3u:1u;
+  if(count>131072||graph<0||node_limit<0||node_limit>(64u<<20))return luaL_error(L,"player_batch_budget");
+  // 先检查整张声明参数表；拒绝时不部分执行后又退回旧路径重读。
+  for(std::size_t i=1;i<=count;++i){lua_rawgeti(L,3,lua_Integer(i));
+    if(!lua_istable(L,-1)||lua_rawlen(L,-1)!=arity)return luaL_error(L,"player_batch_arguments");
+    for(unsigned j=1;j<=arity;++j){lua_rawgeti(L,-1,j);const bool valid=j==1?lua_isinteger(L,-1):lua_isboolean(L,-1);lua_pop(L,1);if(!valid)return luaL_error(L,"player_batch_argument_type");}lua_pop(L,1);}
+  // seen表扩容可能触发Lua长跳转，须在建立C++来源owner之前完成；负编号标记首次定义。
+  lua_createtable(L,int(count),0);const auto ids=lua_absindex(L,-1);std::uint64_t consumed=0;
+  for(std::size_t i=1;i<=count;++i){lua_rawgeti(L,3,lua_Integer(i));const auto args=lua_absindex(L,-1);
+    lua_pushvalue(L,args);lua_rawget(L,4);const bool known=!lua_isnil(L,-1);const auto id=known?lua_tointeger(L,-1):++graph;lua_pop(L,1);
+    consumed+=2+(known?0:2*arity);if(consumed>std::uint64_t(node_limit))return luaL_error(L,"player_batch_value_budget");
+    if(!known){lua_pushvalue(L,args);lua_pushinteger(L,id);lua_rawset(L,4);}
+    lua_pushinteger(L,known?id:-id);lua_rawseti(L,ids,lua_Integer(i));lua_pop(L,1);}
+  lua_getfield(L,1,name);const auto fn=lua_absindex(L,-1);if(!lua_isfunction(L,fn))return luaL_error(L,"player_batch_missing");
+  auto *block=NewOwnedBlock(L);const auto top=lua_gettop(L);
+  bool complete=true;
+  try{
+    ClientEntityTestMeasure timing("player_scalar_owned");
+    block->source=capture::OwnedSource::CreateGraph([&](replica::Json &out,std::uint64_t &bytes,std::uint64_t &nodes,auto &){
+      auto generate=[&](auto &h){
+        const auto add=[&](std::uint64_t n){if(n>(32u<<20)-bytes)throw std::runtime_error("player_batch_bytes");bytes+=n;};
+        const auto node=[&](){if(++nodes>(64u<<20))throw std::runtime_error("player_batch_nodes");};
+        const auto quoted=[&](const char *s,std::size_t size){add(2);for(std::size_t i=0;i<size;++i){const auto c=static_cast<unsigned char>(s[i]);add(c<32||c=='\\'||c=='"'?6:1);}};
+        const auto key=[&](const char *s){const auto size=std::strlen(s);quoted(s,size);add(1);h.Key(s,rapidjson::SizeType(size),true);};
+        const auto str=[&](const char *s,std::size_t size){node();quoted(s,size);h.String(s,rapidjson::SizeType(size),true);};
+        const auto text=[&](const char *s){str(s,std::strlen(s));};
+        const auto object=[&](){node();add(2);h.StartObject();};
+        const auto end_object=[&](unsigned n){if(n)add(n-1);h.EndObject(n);};
+        const auto array=[&](){node();add(2);h.StartArray();};
+        const auto end_array=[&](unsigned n){if(n)add(n-1);h.EndArray(n);};
+        const auto integer=[&](lua_Integer n,bool typed){char buffer[32];const auto size=std::snprintf(buffer,sizeof(buffer),"%lld",static_cast<long long>(n));
+          if(typed){object();key("type");text("int64");key("value");str(buffer,unsigned(size));end_object(2);}
+          else {node();add(unsigned(size));h.Int64(n);}};
+        const auto scalar=[&](int at){if(lua_isinteger(L,at))integer(lua_tointeger(L,at),true);
+          else if(lua_isboolean(L,at)){const bool b=lua_toboolean(L,at)!=0;node();add(b?4:5);h.Bool(b);}
+          else if(lua_type(L,at)==LUA_TNUMBER&&std::isfinite(lua_tonumber(L,at))){node();add(32);h.Double(lua_tonumber(L,at));}
+          else throw std::runtime_error("player_batch_scalar");};
+        array();
+        for(std::size_t i=1;i<=count;++i){
+          lua_rawgeti(L,3,lua_Integer(i));const auto args=lua_absindex(L,-1);
+          lua_rawgeti(L,ids,lua_Integer(i));const auto marked=lua_tointeger(L,-1);lua_pop(L,1);const bool known=marked>0;const auto id=known?marked:-marked;
+          lua_pushvalue(L,fn);lua_pushvalue(L,1);for(unsigned j=1;j<=arity;++j)lua_rawgeti(L,args,j);
+          const bool ok=lua_pcall(L,int(arity)+1,1,0)==LUA_OK;const auto answer=lua_absindex(L,-1);
+          object();key("parameters");object();key("type");text(known?"graph_ref":"table");key("node");integer(id,false);
+          if(!known){key("entries");array();for(unsigned j=1;j<=arity;++j){object();key("key");integer(j,true);key("value");lua_rawgeti(L,args,j);scalar(-1);lua_pop(L,1);end_object(2);}end_array(arity);}end_object(known?2:3);
+          key("value");
+          if(ok)scalar(answer);
+          else {
+            complete=false;object();key("status");text("ReadFailed");key("reason");
+            // 与Lua textError相同，只保留有界语义文本，移除本地十六进制地址。
+            char clean[257]{};std::size_t size=0,used=0;const char *error=lua_type(L,answer)==LUA_TSTRING?lua_tolstring(L,answer,&size):"lua_error";
+            if(lua_type(L,answer)!=LUA_TSTRING)size=9;
+            for(std::size_t at=0;at<size&&used<256;){const auto hex=[](char c){return c>='0'&&c<='9'||c>='a'&&c<='f'||c>='A'&&c<='F';};
+              if(at+2<size&&error[at]=='0'&&error[at+1]=='x'&&hex(error[at+2])){at+=2;while(at<size&&hex(error[at]))++at;for(const char c:std::string_view("<local>"))if(used<256)clean[used++]=c;}
+              else clean[used++]=error[at++];}
+            str(clean,used);end_object(2);
+          }
+          end_object(2);lua_settop(L,top);
+        }
+        end_array(unsigned(count));return true;
+      };out.Populate(generate);
+    });
+  }catch(...){lua_settop(L,top);return luaL_error(L,"player_owned_batch_failed");}
+  lua_settop(L,top);lua_pushboolean(L,complete);lua_pushinteger(L,graph);lua_pushinteger(L,lua_Integer(consumed));return 4;
+}
 // 当前专用关系只发布稳定引用；不把本地地址、getter派生语义或历史未初始化值发出去。
 void PlayerLink(lua_State *L,const char *name,Entity *entity){
   auto s=ObservationSubject(entity,false,false);
@@ -345,7 +477,11 @@ int SpriteRuntimePose(lua_State *L) {
 }
 int SpriteResourceGeneration(lua_State *L){
   auto *sprite=lua::GetLuabridgeUserdata<ANM2 *>(L,1,lua::Metatables::SPRITE,"Sprite");
-  const auto generation=StreamResourceGeneration(sprite);if(!generation)return luaL_error(L,"stream_resource_instance_unavailable");
+  // Lua公开的userdata存储范围可直接证明按值所有权，不猜vtable或私有包装偏移。
+  const auto storage=reinterpret_cast<std::uintptr_t>(lua_touserdata(L,1));
+  const auto address=reinterpret_cast<std::uintptr_t>(sprite);const auto size=lua_rawlen(L,1);
+  const bool copied=storage&&address>=storage&&address-storage<=size&&sizeof(ANM2)<=size-(address-storage);
+  const auto generation=StreamResourceGeneration(sprite,copied);if(!generation)return luaL_error(L,"stream_resource_instance_unavailable");
   const auto value=std::to_string(generation);lua_pushlstring(L,value.data(),value.size());return 1;
 }
 int RoomPresentation(lua_State *L) {return ClientPresentationCaptureLua(L);}
@@ -429,7 +565,7 @@ int Publish(lua_State *L,unsigned phase,bool grid=false) {
 int PublishEvent(lua_State *L) { return Publish(L,false); }
 int PublishQuery(lua_State *L) { return Publish(L,true); }
 int PublishRender(lua_State *L) { return Publish(L,2); }
-int PublishGridEvent(lua_State *L) { return Publish(L,lua_toboolean(L,6)?2:0,true); }
+int PublishGridEvent(lua_State *L) { return Publish(L,lua_toboolean(L,6)?2:lua_toboolean(L,7)?4:0,true); }
 int PublishGridQuery(lua_State *L) { return Publish(L,1,true); }
 }
 void EnsureObservationLuaBridge() noexcept {
@@ -444,6 +580,7 @@ void EnsureObservationLuaBridge() noexcept {
 #ifdef ISAACCS_E2E
   {"TestNativeRandomSources",LuaTestNativeRandomSources},
   {"TestEntitySource",ClientTestEntitySourceLua},
+  {"SourceClock",SourceClockLua},{"SourceTime",SourceTimeLua},
 #endif
   {"NativeRandomSources",LuaNativeRandomSources},{"RegisterRandomSource",LuaRegisterRandomSource},{"GlobalRandomState",LuaGlobalRandomState},
 #ifdef ISAACCS_E2E
@@ -453,6 +590,15 @@ void EnsureObservationLuaBridge() noexcept {
   luaL_setfuncs(L,funcs,0);
   lua_pushcfunction(L,SpriteRuntimePose);lua_setfield(L,-2,"SpriteRuntimePose");
   lua_pushcfunction(L,SpriteResourceGeneration);lua_setfield(L,-2,"SpriteResourceGeneration");
+  lua_pushcfunction(L,GridSaveValues);lua_setfield(L,-2,"GridSaveValues");
+  lua_pushcfunction(L,PlayerScalarQueries);lua_setfield(L,-2,"PlayerScalarQueries");
+  lua_pushcfunction(L,PlayerScalarQueriesOwned);lua_setfield(L,-2,"PlayerScalarQueriesOwned");
+  lua_pushcfunction(L,SealOwnedBlock);lua_setfield(L,-2,"SealOwnedBlock");
+  lua_pushcfunction(L,JoinOwnedBlocks);lua_setfield(L,-2,"JoinOwnedBlocks");
+  lua_pushcfunction(L,OwnedBlockText);lua_setfield(L,-2,"OwnedBlockText");
+  lua_pushcfunction(L,OwnedBlockEqual);lua_setfield(L,-2,"OwnedBlockEqual");
+  // GC只释放自有handle，最后的大树释放由有界回收owner执行。
+  if(luaL_newmetatable(L,kOwnedBlockMetatable)){lua_pushcfunction(L,OwnedBlockGc);lua_setfield(L,-2,"__gc");}lua_pop(L,1);
   lua_pushcfunction(L,LaserPresentation);lua_setfield(L,-2,"LaserPresentation");
   lua_pushcfunction(L,EntityApplicationSprites);lua_setfield(L,-2,"EntityApplicationSprites");
   lua_pushcfunction(L,PlayerApplicationMembership);lua_setfield(L,-2,"PlayerApplicationMembership");
@@ -494,7 +640,9 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
     lua_pushinteger(L,depth); lua_setfield(L,-2,"depth");
     lua_pushinteger(L,limit); lua_setfield(L,-2,"bytes");
     lua_pushboolean(L,stream);lua_setfield(L,-2,"stream_capture");
+    lua_pushboolean(L,stream);lua_setfield(L,-2,"stream_owned");
     lua_pushboolean(L,cold);lua_setfield(L,-2,"stream_cold");
+    // Lua分层与SourceTime共用modules的零基下标，不传一基Observation DomainId。
     lua_pushinteger(L,domain);lua_setfield(L,-2,"stream_domain");
     // Entity含全部身体/备份及内嵌资源；与Grid同用有界524288次有限查询，字节/节点另有上限。
     lua_pushinteger(L,domain<=1?524288:domain==5?262144:131072); lua_setfield(L,-2,"queries");
@@ -511,29 +659,36 @@ LuaEntityResult CaptureLuaEntity(std::uint32_t objects,std::uint32_t nodes,std::
       else { result.objects=unsigned(captured_objects); result.nodes=unsigned(captured_nodes); }
       const auto *reason=lua_tostring(L,-3); if(reason&&*reason&&result.reason.empty()) result.reason=reason;
       std::size_t stream_bytes=0;const auto *partition=lua_tolstring(L,-1,&stream_bytes);
-      if(partition&&stream_bytes<=limit)result.stream_payload.assign(partition,stream_bytes);
-      else if(stream){result.complete=false;result.reason="stream_source_missing_or_budget";}
+      if(stream&&lua_istable(L,-1)){result.owned_source=CopyLuaSource(L,-1,nodes,limit);result.owned_bytes=result.owned_source->Bytes();}
+      else if(!stream&&partition&&stream_bytes<=limit)result.stream_payload.assign(partition,stream_bytes);
+      else if(stream){result.complete=false;
+        // 正式流必须提供类型化正文，不能因旧Lua返回字符串而静默退回主线程JSON热路径。
+        if(result.reason.empty())result.reason="stream_owned_source_missing_or_budget";
+        else result.reason+=";stream_owned_source_missing_or_budget";
+      }
     } else result.reason="lua_payload_budget";
   } catch(...) { result.complete=false; result.reason="lua_owned_value_budget"; }
   lua_settop(L,top); return result;
 }
 LuaEntityResult CaptureLuaPlayerFast(void *player) noexcept {
+  capture::Cost cost(capture::CostPart::Lua);
   LuaEntityResult result;auto *L=State();if(!L||!player){result.reason="player_fast_lua_unavailable";return result;}
   const auto top=lua_gettop(L);
   try {
     lua_getglobal(L,"IsaacCSObservation");if(!lua_istable(L,-1))throw std::runtime_error("player_fast_module");
     lua_getfield(L,-1,"CapturePlayerFast");lua_newtable(L);
     lua_pushboolean(L,false);lua_setfield(L,-2,"stream_capture");
+    lua_pushboolean(L,true);lua_setfield(L,-2,"stream_owned");
+    lua_pushboolean(L,false);lua_setfield(L,-2,"stream_cold");
     lua_pushinteger(L,1);lua_setfield(L,-2,"objects");lua_pushinteger(L,65536);lua_setfield(L,-2,"nodes");
     lua_pushinteger(L,12);lua_setfield(L,-2,"depth");lua_pushinteger(L,1u<<20);lua_setfield(L,-2,"bytes");
     lua_pushinteger(L,8192);lua_setfield(L,-2,"queries");
     lua::luabridge::UserdataPtr::push(L,static_cast<Entity_Player *>(player),lua::Metatables::ENTITY_PLAYER);
-    if(lua_pcall(L,2,6,0)!=LUA_OK)throw std::runtime_error("player_fast_lua_read_failed");
-    std::size_t size=0;const auto *payload=lua_tolstring(L,-6,&size);
-    const auto objects=lua_tointeger(L,-4),nodes=lua_tointeger(L,-3);
-    if(!payload||size>(1u<<20)||objects!=1||nodes<0||nodes>65536)throw std::runtime_error("player_fast_source_budget");
-    result.payload.assign(payload,size);result.available=true;result.complete=lua_toboolean(L,-5)!=0;
-    result.objects=1;result.nodes=unsigned(nodes);if(const auto *reason=lua_tostring(L,-2))result.reason=reason;
+    if(lua_pcall(L,2,7,0)!=LUA_OK)throw std::runtime_error("player_fast_lua_read_failed");
+    const auto objects=lua_tointeger(L,-5),nodes=lua_tointeger(L,-4);
+    if(!lua_istable(L,-1)||objects!=1||nodes<0||nodes>65536)throw std::runtime_error("player_fast_source_budget");
+    result.owned_source=CopyLuaSource(L,-1,65536,1u<<20);result.owned_bytes=result.owned_source->Bytes();result.available=true;result.complete=lua_toboolean(L,-6)!=0;
+    result.objects=1;result.nodes=unsigned(nodes);if(const auto *reason=lua_tostring(L,-3))result.reason=reason;
   }catch(const std::exception &e){result.reason=e.what();result.complete=false;}
   catch(...){result.reason="player_fast_value_allocation";result.complete=false;}
   lua_settop(L,top);return result;

@@ -225,6 +225,7 @@ void PublishPeer(SessionRuntime &r) noexcept {
   try {
     if(r.network.NeedsBaseline())RequestLiveBaseline();
     auto publication=std::make_shared<net::live::Publication>();
+    publication->source=CurrentLiveSource();
     publication->baseline=CurrentLiveBaseline();publication->latest=CurrentLiveWorld();
     publication->bodies=CurrentLiveBodies();r.network.PublishWorld(std::move(publication));
   }catch(...){r.network.PublishWorld({});}

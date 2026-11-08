@@ -8,6 +8,18 @@ fn required(v:&Value,k:&str)->Result<u64>{n(&v[k]).ok_or_else(||format!("metric_
 fn percentile(v:&[u64],p:f64)->Option<u64>{if v.is_empty(){return None}let mut values=v.to_vec();values.sort_unstable();Some(values[((values.len() as f64*p).ceil() as usize).saturating_sub(1).min(values.len()-1)])}
 fn summary(v:&[u64])->Value{json!({"count":v.len(),"p95":percentile(v,0.95),"p99":percentile(v,0.99),"max":v.iter().max(),"mean":if v.is_empty(){None}else{Some(v.iter().map(|x|*x as f64).sum::<f64>()/v.len() as f64)}})}
 
+// 完整Manager入口间隔包含原生模拟、渲染和所有模组窗口；不能用后台Build耗时替代Host帧预算。
+fn host_frames(rows:&[&Value],begin:u64,end:u64)->Result<Value>{
+ let mut frames=rows.iter().filter(|r|r["event"]=="duration"&&n(&r["stage"])==Some(13)).copied().collect::<Vec<_>>();
+ frames.sort_by_key(|r|n(&r["local_us"]));let mut spans=Vec::new();let mut bins=vec![0u64;((end-begin).div_ceil(1000000))as usize];
+ let(mut over,mut run,mut run_us,mut longest,mut longest_us)=(0u64,0u64,0u64,0u64,0u64);
+ for r in frames{let time=required(r,"local_us")?;let span=required(r,"wall_us")?;spans.push(span);bins[((time-begin)/1000000)as usize]+=1;
+  if span>20000{over+=1;run+=1;run_us=run_us.saturating_add(span);longest=longest.max(run);longest_us=longest_us.max(run_us);}else{run=0;run_us=0;}}
+ let complete_bins=bins.iter().enumerate().filter(|(i,_)|(*i as u64+1)*1000000<=end-begin).map(|(_,v)|*v).collect::<Vec<_>>();
+ let pass=!spans.is_empty()&&over==0&&!complete_bins.is_empty()&&complete_bins.iter().all(|v|*v>=50);
+ Ok(json!({"interval_us":summary(&spans),"one_second_frames":bins,"complete_second_min_fps":complete_bins.iter().min(),"over20ms":over,"longest_over20ms_frames":longest,"longest_over20ms_us":longest_us,"pass":pass,"scope":"all measured frames;initial/structure/loading retained by declared window class;no mean-FPS substitution"}))
+}
+
 // cursor按进程单调序号读取；后台ring溢出直接写缺测事实，不能提高频率分母。
 pub fn drain(driver:&mut dyn Driver,node:&str,token:&str,cursor:&mut u64,out:&mut File)->Result<usize>{let mut count=0;for _ in 0..128{
  let r=driver.command(node,&format!("cs stream_test {token} trace {cursor}"))?;if r.get("ok").map(String::as_str)!=Some("1"){return Err(format!("trace_unavailable:{node}"))}
@@ -42,12 +54,13 @@ pub fn window(events:&[Value],mark:&Value)->Result<Value>{
  let mut eligibility=Vec::new();for body in mark["body_deltas"].as_array().into_iter().flatten(){let updates=required(body,"actual_updates")?;let qualified=required(body,"qualified_samples")?;let coverage=if updates==0{None}else{Some(qualified as f64/updates as f64)};eligibility.push(json!({"body":body["body"],"actual_updates":updates,"qualified_samples":qualified,"actual_update_hz":updates as f64/seconds,"qualified_hz":qualified as f64/seconds,"coverage":coverage,"pass":coverage.is_some_and(|v|v>=0.97),"absence_reason":body["absence_reason"]}));}
  let mut witnesses=BTreeMap::<String,[BTreeSet<u64>;2]>::new();for r in &rows{if r["event"]!="body-witness"{continue}let key=format!("{}/{}/{}/{}",r["local"],r["use"],r["shape"],r["binding"]);let stage=required(r,"stage")? as usize;if stage>1{return Err("body_witness_stage".into())}witnesses.entry(key).or_default()[stage].insert(required(r,"tick")?);}
  if !witnesses.is_empty(){eligibility.clear();for(body,stages)in witnesses{let updates=stages[0].len();let qualified=stages[1].intersection(&stages[0]).count();let coverage=if updates==0{None}else{Some(qualified as f64/updates as f64)};eligibility.push(json!({"native_identity":body,"actual_updates":updates,"qualified_samples":qualified,"actual_update_hz":updates as f64/seconds,"qualified_hz":qualified as f64/seconds,"coverage":coverage,"pass":coverage.is_some_and(|v|v>=0.97),"absence_reason":"see same-window Source body status;unqualified updates retained in denominator"}));}}
- let timing=times.iter().map(|(k,v)|(k.clone(),summary(v))).collect::<BTreeMap<_,_>>();let hot=if mark["role"]=="Host"{vec!["0/cpu_us"]}else{vec!["6/cpu_us"]};let cpu=hot.iter().all(|key|times.get(*key).is_some_and(|v|percentile(v,0.95).is_some_and(|n|n<=2000)&&percentile(v,0.99).is_some_and(|n|n<=4000)));
+ let timing=times.iter().map(|(k,v)|(k.clone(),summary(v))).collect::<BTreeMap<_,_>>();let hot=if mark["role"]=="Host"{vec!["12/cpu_us","12/wall_us"]}else{vec!["6/cpu_us"]};let cpu=hot.iter().all(|key|times.get(*key).is_some_and(|v|percentile(v,0.95).is_some_and(|n|n<=2000)&&percentile(v,0.99).is_some_and(|n|n<=4000)));
+ let frames=if mark["role"]=="Host"{host_frames(&rows,begin,end)?}else{Value::Null};let frame_pass=mark["role"]!="Host"||frames["pass"]==true;
  let missing=events.iter().filter(|e|e["node"]==node&&e["event"]=="missing").count();
  let expected=mark["expected_flows"].as_array().ok_or("expected_flow_inventory_required")?;let absent=expected.iter().filter(|f|!flow_results.iter().any(|r|r["range"]==f["range"]&&r["stage"]==f["stage"])).cloned().collect::<Vec<_>>();
  let frequency=flow_results.iter().all(|r|r["frequency_pass"]!=false&&r["coverage_pass"]!=false);let gaps=flow_results.iter().filter(|r|r["stage"]==6&&matches!(n(&r["range"]["kind"]),Some(5|6))).all(|r|r["gaps_over100ms"]==0);
  let budget_pass=if mark["role"]=="Host"{!bandwidth.is_empty()&&bandwidth.iter().all(|(key,b)|class=="initial"&&key.contains("/lane/")||b["pass"]==true)}else{true};
- Ok(json!({"node":node,"window":mark,"seconds":seconds,"flows":flow_results,"eligibility":eligibility,"bandwidth":bandwidth,"bandwidth_pass":budget_pass,"lane_total_consistent":lane_consistent,"timing":timing,"cpu_missing":cpu_missing,"missing_trace":missing,"absent_expected_flows":absent,"N0_stable_performance_enforced":enforce,"frequency_pass":frequency,"gap_pass":gaps,"cpu_pass":cpu,"pass":!expected.is_empty()&&absent.is_empty()&&missing==0&&frequency&&(!enforce||gaps&&cpu)&&cpu_missing==0&&lane_consistent&&budget_pass&&(!enforce||eligibility.iter().all(|e|e["pass"]==true)&&!eligibility.is_empty())}))
+ Ok(json!({"node":node,"window":mark,"seconds":seconds,"flows":flow_results,"eligibility":eligibility,"bandwidth":bandwidth,"bandwidth_pass":budget_pass,"lane_total_consistent":lane_consistent,"timing":timing,"host_frames":frames,"frame_pass":frame_pass,"hot_cost_basis":"Host stage12 sums exclusive main-thread collection per frame;stage11 background build is separate","cpu_missing":cpu_missing,"missing_trace":missing,"absent_expected_flows":absent,"N0_stable_performance_enforced":enforce,"frequency_pass":frequency,"gap_pass":gaps,"cpu_pass":cpu,"pass":!expected.is_empty()&&absent.is_empty()&&missing==0&&frequency&&(!enforce||gaps&&cpu&&frame_pass)&&cpu_missing==0&&lane_consistent&&budget_pass&&(!enforce||eligibility.iter().all(|e|e["pass"]==true)&&!eligibility.is_empty())}))
 }
 
 // 延迟只接纳同机跨度，状态年龄用同设备收到的Authority锚点和源tick推算；误差显式保留。

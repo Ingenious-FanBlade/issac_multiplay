@@ -30,13 +30,18 @@ void ValidateMessage(const Message &);
 void ValidateReceive(const Message &,Direction,State);
 Json Capabilities();
 Json Negotiate(const Value &,const Value &);
-std::vector<std::uint8_t> Encode(const Message &,Limits={});
+// 可传入调用者工作区租约，返回后继续覆盖wire至压缩/所有权交接完成。
+std::vector<std::uint8_t> Encode(const Message &,Limits={},memory::Lease workspace={});
 Message Decode(std::span<const std::uint8_t>,Limits={});
 Message RangeMessage(const RangeData &,std::uint64_t connection,std::uint64_t route);
-Range ReadRange(const Message &,const Layouts &,std::uint64_t value_budget=256ull<<20);
+Range ReadRange(const Message &,const Layouts &,std::uint64_t value_budget=memory::kReplicationPoolCeilings[0]);
 RangeData RangeDataFromMessage(const Message &);
-// 固定payload schema=1；泛型树只用于声明的复杂值，绝不经过JSON文本往返。
-std::vector<std::uint8_t> EncodePayload(const Message &,Limits);
+// 固定payload schema=2；具名结构/字段编号与最短整数保持原值，未知形状仍保留完整树。
+std::vector<std::uint8_t> EncodePayload(const Message &,Limits,std::uint64_t expected_bytes=0);
+// 调用者先完成消息形状校验；计量与正式编码采用同一节点/深度/字符串约束。
+std::uint64_t MeasurePayload(const Message &,Limits);
+// 对已持有的纯值计量同一编码器的真实长度；不创建网络消息、不提升发送上限。
+std::uint64_t MeasureRangePayload(const RangeData &);
 void DecodePayload(std::span<const std::uint8_t>,Message &,Limits);
 // 先做完整嵌套形状检查；本地必需字段布局仍由ReadRange的可信Layouts约束。
 void ValidateRangePayload(const Message &);

@@ -1,9 +1,11 @@
 #include "replica/stream_model.h"
+#include "core/deferred_values.h"
 #include "replica/codec.h"
 #include <algorithm>
 #include <cmath>
 #include <set>
 #include <bit>
+#include <cstring>
 
 namespace cs::replica::stream {
 namespace {
@@ -13,9 +15,34 @@ bool ScopeValid(const WorldScope &s){return s.session&&s.run&&s.floor&&s.dimensi
 bool Id(const RangeId &id){return unsigned(id.kind)>=1&&unsigned(id.kind)<=6&&!id.name.empty()&&id.name.size()<=128&&(id.kind==RangeKind::PlayerFast?Key(id.body):id.body==SubjectKey{});}
 bool Versions(const std::vector<Version> &vs){std::set<RangeId> ids;for(const auto &v:vs)if(!Id(v.id)||!v.revision||!ids.insert(v.id).second)return false;return true;}
 bool Has(const std::vector<std::uint32_t> &v,std::uint32_t id){return std::find(v.begin(),v.end(),id)!=v.end();}
+// 与纯值codec判等语义一致：整数种类/双精度bits及数组顺序保留，对象键顺序无关。
+// 常见同序成员线性比较；不为每次ordinary比较重新排序、分配和编码两份完整字节树。
+bool ValueEqual(const Value &a,const Value &b){
+  if(a.GetType()!=b.GetType())return false;
+  if(a.IsNull())return true;
+  if(a.IsBool())return a.GetBool()==b.GetBool();
+  if(a.IsNumber()){
+    if(a.IsUint64()!=b.IsUint64()||a.IsInt64()!=b.IsInt64()||a.IsDouble()!=b.IsDouble())return false;
+    if(a.IsUint64())return a.GetUint64()==b.GetUint64();
+    if(a.IsInt64())return a.GetInt64()==b.GetInt64();
+    return std::bit_cast<std::uint64_t>(a.GetDouble())==std::bit_cast<std::uint64_t>(b.GetDouble());
+  }
+  if(a.IsString())return a.GetStringLength()==b.GetStringLength()&&!std::memcmp(a.GetString(),b.GetString(),a.GetStringLength());
+  if(a.IsArray()){if(a.Size()!=b.Size())return false;for(rapidjson::SizeType i=0;i<a.Size();++i)if(!ValueEqual(a[i],b[i]))return false;return true;}
+  if(a.MemberCount()!=b.MemberCount())return false;
+  bool same_order=true;auto right=b.MemberBegin();
+  for(auto left=a.MemberBegin();left!=a.MemberEnd();++left,++right)if(!ValueEqual(left->name,right->name)){same_order=false;break;}
+  right=b.MemberBegin();
+  for(auto left=a.MemberBegin();left!=a.MemberEnd();++left){
+    if(!same_order)right=b.FindMember(left->name);
+    if(right==b.MemberEnd()||!ValueEqual(left->value,right->value))return false;
+    if(same_order)++right;
+  }
+  return true;
+}
 bool AtomEqual(const Atom &a,const Atom &b){
   if(a.index()!=b.index())return false;
-  if(const auto *v=std::get_if<std::shared_ptr<const Json>>(&a)){const auto &w=std::get<std::shared_ptr<const Json>>(b);return *v&&w?EncodeValue(**v)==EncodeValue(*w):!*v&&!w;}
+  if(const auto *v=std::get_if<std::shared_ptr<const Json>>(&a)){const auto &w=std::get<std::shared_ptr<const Json>>(b);return *v&&w?ValueEqual(**v,*w):!*v&&!w;}
   if(const auto *v=std::get_if<double>(&a))return std::bit_cast<std::uint64_t>(*v)==std::bit_cast<std::uint64_t>(std::get<double>(b));
   return a==b;
 }
@@ -29,8 +56,7 @@ Decision Membership(const RangeData &r,const Store &store){
   return D(Admission::Complete,"stream_membership_ready");
 }
 std::uint64_t ArenaBytes(const Json &v){
-  // RapidJSON没有const GetAllocator；这里只调用allocator的const Capacity观察分配，不修改值树。
-  return const_cast<Json &>(v).GetAllocator().Capacity()+sizeof(Json);
+  return OwnedJsonBytes(v);
 }
 void Pure(const Value &v){
   if(v.IsArray())for(const auto &x:v.GetArray())Pure(x);
@@ -93,17 +119,31 @@ Decision Validate(const RangeData &d,const Layouts &layouts,std::uint64_t limit)
 Range Freeze(RangeData d,const Layouts &l,std::uint64_t limit){
   const auto before=Validate(d,l,limit);if(!before)Fail(before.reason);
   // 分配前为独立副本申请额度；输入别名的租约不能替新内容付费。
-  const auto footprint=Footprint(d);auto lease=memory::Reserve(memory::Pool::Values,2*footprint+65536);
+  std::uint64_t bound=Footprint(d)+128;
+  const auto account=[&](const Json &v){bound-=OwnedJsonBytes(v);bound+=OwnedValueUpperBound(v);};
+  for(const auto &r:d.records)for(const auto &f:r.fields)if(const auto *v=std::get_if<std::shared_ptr<const Json>>(&f.value);v&&*v)account(**v);
+  if(d.components)account(*d.components);
+  // 输入树由调用者租约持有；此处只预付将独立拥有的新树及容器，不重复计入旧副本。
+  auto lease=memory::Reserve(memory::Pool::Values,bound,"range_freeze");
   // const shared_ptr本身不能阻止外部别名写树；边界总是深复制一次。
   for(auto &r:d.records)for(auto &f:r.fields)if(auto *v=std::get_if<std::shared_ptr<const Json>>(&f.value);v&&*v)*v=std::make_shared<const Json>(Copy(**v));
   if(d.components)d.components=std::make_shared<const Json>(Copy(*d.components));
-  const auto valid=Validate(d,l,limit);if(!valid)Fail(valid.reason);lease->Resize(Footprint(d)+128);d.memory=std::move(lease);return std::make_shared<const RangeData>(std::move(d));
+  const auto valid=Validate(d,l,limit);if(!valid)Fail(valid.reason);const auto actual=Footprint(d)+128;if(actual>bound)Fail("stream_freeze_footprint");lease->Resize(actual);d.memory=std::move(lease);return memory::DeferredValue<RangeData>(std::move(d));
+}
+Range FreezeCaptured(RangeData d,const Layouts &l,CaptureOwnership,const memory::Lease &prepaid,std::uint64_t limit){
+  // Capture的Tree只接局部唯一DOM或深复制const来源，不对外暴露可变别名。
+  // 即使具备移交资格仍执行完整图/身份/字段/依赖校验；use_count不是封闭性的证明。
+  const auto valid=Validate(d,l,limit);if(!valid)Fail(valid.reason);
+  const auto bytes=Footprint(d)+128;d.memory=memory::Reserve(memory::Pool::Values,0,"range_capture_transfer");
+  if(!prepaid||bytes>prepaid->Bytes())Fail("stream_capture_transfer_budget");
+  d.memory->TransferFrom(*prepaid,bytes);
+  return memory::DeferredValue<RangeData>(std::move(d));
 }
 bool Equal(const RangeData &a,const RangeData &b){
   const auto &x=a.sample;const auto &y=b.sample;
   return a.world==b.world&&a.id==b.id&&a.revision==b.revision&&a.complete==b.complete&&a.membership_complete==b.membership_complete&&a.dependencies==b.dependencies&&a.members==b.members&&a.records==b.records&&a.required==b.required&&a.native_domains==b.native_domains&&a.retained_domains==b.retained_domains&&a.event_watermark==b.event_watermark&&
     x.epoch==y.epoch&&x.sequence==y.sequence&&x.tick==y.tick&&x.outer==y.outer&&x.owner==y.owner&&x.mutation==y.mutation&&x.loss==y.loss&&x.last_native_update_tick==y.last_native_update_tick&&x.required_world_sequence==y.required_world_sequence&&x.binding_revision==y.binding_revision&&x.kind==y.kind&&
-    (a.components&&b.components?EncodeValue(*a.components)==EncodeValue(*b.components):!a.components&&!b.components);
+    (a.components&&b.components?ValueEqual(*a.components,*b.components):!a.components&&!b.components);
 }
 Range Store::Find(const Version &v) const noexcept {const auto i=values_.find(v);return i==values_.end()?Range{}:i->second;}
 Decision Store::Admit(Range r,const Layouts &l) noexcept {
@@ -156,6 +196,20 @@ void Store::Collect(const std::vector<Version> &roots){
   for(const auto &[id,r]:applied_)visit(visit,Version{r->id,r->revision});
   for(const auto &[v,r]:values_)if(r.use_count()>1)visit(visit,v);
   for(auto i=values_.begin();i!=values_.end();)if(!keep.contains(i->first))i=values_.erase(i);else ++i;
+}
+std::uint64_t ColdModelUpperBound(const Store &store,const RangeData &m){
+  std::uint64_t bytes=65536;
+  const auto add=[&](std::uint64_t n){if(n>UINT64_MAX-bytes)Fail("value_memory_overflow");bytes+=n;};
+  // 深复制前计入每个组件及版本重写的新字符串；移除旧成员不会归还arena空间。
+  for(const auto &r:store.Compose(m))if(r->components){
+    // 多份值合入同一arena会改变chunk边界；冷模型仍给合并与版本重写留保守废尾额度。
+    add(2*OwnedValueUpperBound(*r->components)+65536);
+    const auto visit=[&](const auto &self,const Value &v)->void{
+      if(v.IsArray())for(const auto &x:v.GetArray())self(self,x);
+      if(v.IsObject()){if(v.HasMember("required_revision"))add(128);for(auto i=v.MemberBegin();i!=v.MemberEnd();++i)self(self,i->value);}
+    };visit(visit,*r->components);
+  }
+  return bytes;
 }
 Json ColdModel(const Store &store,const RangeData &m,std::uint64_t connection){
   Json out;out.SetObject();auto &a=out.GetAllocator();Value components(rapidjson::kObjectType);bool found=false;

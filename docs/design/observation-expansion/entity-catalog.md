@@ -1111,7 +1111,7 @@
 | `EntityPlayer.GetTearMovementInheritance` | `Vector GetTearMovementInheritance ( Vector ShotDirection )` | bounded_parameter_query  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityPlayer.md)（行1410） |
 | `EntityPlayer.GetTearPoisonDamage` | `float GetTearPoisonDamage ( )` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityPlayer.md)（行1415） |
 | `EntityPlayer.GetTearRangeModifier` | `int GetTearRangeModifier ( )` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityPlayer.md)（行1420）<br>[repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityPlayer.md)（行905） |
-| `EntityPlayer.GetTearsCap` | `int GetTearsCap ( )` | public_lua_copy  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityPlayer.md)（行914） |
+| `EntityPlayer.GetTearsCap` | `int GetTearsCap ( )` | public_lua_copy 官方1.1.3 Lua_PlayerGetTearsCap返回GetCustomCacheValue的double；保留Wiki原始int签名 | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityPlayer.md)（行914）<br>[repentogon-source](F:/projects_isaac/REPENTOGON-1.1.3/repentogon/LuaInterfaces/Entities/LuaEntityPlayer.cpp)（行2857） |
 | `EntityPlayer.GetTotalActiveCharge` | `int GetTotalActiveCharge ( ActiveSlot Slot )` | bounded_parameter_query  | [repentogon](F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/EntityPlayer.md)（行919） |
 | `EntityPlayer.GetTotalDamageTaken` | `int GetTotalDamageTaken ( )` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityPlayer.md)（行1427） |
 | `EntityPlayer.GetTractorBeam` | `Entity GetTractorBeam ( )` | public_lua_copy  | [vanilla](F:/projects_isaac/IsaacDocs/docs/EntityPlayer.md)（行1432） |

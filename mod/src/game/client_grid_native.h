@@ -61,6 +61,7 @@ struct ClientNativeGrids;
 ClientNativeGrids *ClientNativeGridsCreate() noexcept;
 bool ClientNativeGridsBeginAttempt(ClientNativeGrids *) noexcept;
 void ClientNativeGridsDestroy(ClientNativeGrids *) noexcept;
+std::uint64_t ClientNativeGridsValueBytes(const ClientNativeGrids *);
 ClientGridStep ClientNativeGridsExecute(ClientNativeGrids *,const ClientNativeRoots &,const ClientGridCommand &) noexcept;
 ClientGridStep ClientNativeGridsBindDoors(ClientNativeGrids *,const ClientNativeRoots &,const std::array<ClientGridDoorBinding,8> &) noexcept;
 ClientGridStep ClientNativeGridsRetire(ClientNativeGrids *,const ClientNativeRoots &) noexcept;

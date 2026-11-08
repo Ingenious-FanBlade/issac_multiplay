@@ -1,4 +1,5 @@
 #include "game/client_grids.h"
+#include "game/client_dto_memory.h"
 #include "game/client_objects.h"
 #include "game/client_presentation.h"
 #include "game/client_scene.h"
@@ -19,12 +20,20 @@
 namespace cs::game {
 namespace {
 namespace stream = replica::stream;
+// 未完成的预检/写入可能已把纯值保存在候选或原生owner；临时副本退尽后保留剩余预付。
+// 下一次写前重新计量实际仍持有的数据，或实际退休后释放，不能随异常栈提前归还。
+struct FailedDtoReservation final {
+  ClientStreamState &stream;
+  memory::Lease prepaid;
+  bool complete=false;
+  ~FailedDtoReservation(){if(!complete&&prepaid){if(!stream.installed_memory)stream.installed_memory=std::move(prepaid);else stream.installed_memory->TransferFrom(*prepaid,prepaid->Bytes());}}
+};
 std::shared_ptr<stream::Message> StreamMessage(ClientStreamState &s,
                                                stream::Kind kind) {
   if (s.control >= UINT64_MAX - 1)
     throw replica::ContractError("client_stream_control_exhausted");
   auto m = std::make_shared<stream::Message>();
-  m->memory = memory::Reserve(memory::Pool::Values, 8192);
+  m->memory = memory::Reserve(memory::Pool::Values, 8192, "client_stream_control");
   m->kind = kind;
   m->sequence = ++s.control;
   m->connection = s.scope.connection;
@@ -43,6 +52,20 @@ void QueueStream(ClientStreamState &s,
   stream::ValidateMessage(*m);
   s.controls.push_back(std::move(m));
 }
+// 结构依赖实际取得与原生步骤共用精确目标；先入网络队列再执行耗时预检。
+void StreamNativeProgress(ClientStreamState &s,const stream::Range &root,unsigned phase,std::uint64_t prefix,bool dependencies=false){
+  auto m=StreamMessage(s,stream::Kind::OperationAck);m->body.RemoveMember("world");auto &a=m->body.GetAllocator();
+  replica::Put(m->body,"operation",replica::Decimal(unsigned(stream::Kind::Range),a),a);
+  replica::Put(m->body,"operation_sequence",replica::Decimal(root->revision,a),a);
+  replica::Put(m->body,"stage",replica::Decimal(2,a),a);
+  replica::Put(m->body,"progress_sequence",replica::Decimal(++s.progress_sequence,a),a);
+  replica::Put(m->body,"reason",dependencies?"native_structural_dependencies":root->id.kind==stream::RangeKind::Manifest?"native_complete_step":"native_structural_step",a);
+  QueueStream(s,std::move(m));
+  if(root->id.kind==stream::RangeKind::WorldDynamic){const auto now=GetTickCount64();if(!s.transaction_started)s.transaction_started=now;s.transaction_progress=now;}
+#ifdef ISAACCS_E2E
+  stream::E2EStreamProgress("client-queued",{root->revision,s.progress_sequence,phase,prefix,0,GetTickCount64(),0,0});
+#endif
+}
 void StreamReady(ClientStreamState &s, const stream::Range &r) {
   auto m = StreamMessage(s, stream::Kind::ContextReady);
   replica::Put(
@@ -52,11 +75,31 @@ void StreamReady(ClientStreamState &s, const stream::Range &r) {
   QueueStream(s, std::move(m));
 }
 replica::Json StreamSkeleton(const replica::Value &model) {
-  auto out = replica::Copy(model);
-  for (auto i = out["components"].MemberBegin();
-       i != out["components"].MemberEnd(); ++i)
-    if (std::strcmp(i->name.GetString(), "random"))
-      i->value.RemoveMember("state");
+  // 直接复制保留字段；先复制整图再RemoveMember会让被删的state继续占据arena。
+  replica::Json out(rapidjson::kObjectType);
+  auto &a = out.GetAllocator();
+  for (auto i = model.MemberBegin(); i != model.MemberEnd(); ++i) {
+    replica::Value key, value;
+    key.CopyFrom(i->name, a);
+    if (std::strcmp(i->name.GetString(), "components"))
+      value.CopyFrom(i->value, a);
+    else {
+      value.SetObject();
+      for (auto c = i->value.MemberBegin(); c != i->value.MemberEnd(); ++c) {
+        replica::Value name, component(rapidjson::kObjectType);
+        name.CopyFrom(c->name, a);
+        for (auto f = c->value.MemberBegin(); f != c->value.MemberEnd(); ++f) {
+          if (std::strcmp(c->name.GetString(), "random") &&
+              !std::strcmp(f->name.GetString(), "state")) continue;
+          replica::Value field, own;
+          field.CopyFrom(f->name, a); own.CopyFrom(f->value, a);
+          component.AddMember(field, own, a);
+        }
+        value.AddMember(name, component, a);
+      }
+    }
+    out.AddMember(key, value, a);
+  }
   return out;
 }
 bool StructuralDifference(const ClientStreamState &s,
@@ -70,6 +113,24 @@ bool StructuralDifference(const ClientStreamState &s,
         return true;
     }
   return false;
+}
+// World正文已经声明结构版本；不需要借未齐备闭包猜测此次是否属于结构准备。
+bool DeclaresStructuralChange(const ClientStreamState &s,const stream::RangeData &root){
+  for(const auto &d:root.dependencies)
+    if(d.id.kind==stream::RangeKind::Structure||d.id.kind==stream::RangeKind::Resource){
+      const auto old=s.store.Applied().find(d.id);
+      if(old==s.store.Applied().end()||old->second->revision!=d.revision)return true;
+    }
+  return false;
+}
+bool NativeDtoUses(const stream::RangeData &range){
+  // 热安装仅重组Entity/Player与Room/Grid/Level/Run；其它五域仍完整保留并按接收租约计费。
+  // 不为从未读入本次DTO的保留Context再次预留八份副本，未知范围仍保守计入。
+  if(range.components||range.id.kind==stream::RangeKind::Manifest)return false;
+  if(range.id.kind==stream::RangeKind::Context)
+    for(const char *name:{"context/exploration","context/room_save","context/random","context/presentation","context/mod"})
+      if(range.id.name==name)return false;
+  return true;
 }
 } // namespace
 bool ClientScene::BeginStream(const replica::Scope &scope, std::uint64_t route,
@@ -92,7 +153,8 @@ bool ClientScene::BeginStream(const replica::Scope &scope, std::uint64_t route,
 bool ClientScene::AdmitStream(const stream::Message &m,
                               const char *&reason) noexcept {
   if (!IsMain() || TopOwner() != Owner::Manager || !stream_ ||
-      state_ == ClientSceneState::Retiring ||
+      (state_ == ClientSceneState::Retiring &&
+       !(rebuild_pending_&&stream_->structure_rebuild&&stream_->inflight&&!stop_requested_&&!retirement_failed_)) ||
       state_ == ClientSceneState::Failed ||
       m.connection != stream_->scope.connection || m.route != stream_->route) {
     reason = "client_stream_route_or_owner";
@@ -170,6 +232,12 @@ void ClientScene::StreamControlSent() noexcept {
   if (IsMain() && stream_ && !stream_->controls.empty())
     stream_->controls.pop_front();
 }
+bool ClientScene::StreamTransactionActive(std::uint64_t now) const noexcept {
+  if(!stream_||!stream_->transaction_started||!stream_->transaction_progress)return false;
+  const auto &s=*stream_;
+  return now>=s.transaction_started&&now-s.transaction_started<s.config.absolute_timeout_ms&&
+         now>=s.transaction_progress&&now-s.transaction_progress<s.config.progress_timeout_ms;
+}
 void ClientScene::CommitStream(const stream::Range &root, bool baseline) {
   auto &s = *stream_;
   for (const auto &range : stream::Closure(s.store, *root)) {
@@ -201,7 +269,7 @@ void ClientScene::CommitStream(const stream::Range &root, bool baseline) {
     s.bodies.insert_or_assign(root->id.body, root);
   const auto now=GetTickCount64();
   stream_metrics_.Note(*root,stream::FlowStage::Commit,now);
-  if(baseline||root->id.kind==stream::RangeKind::WorldDynamic)stream_last_commit_=now;
+  if(baseline||root->id.kind==stream::RangeKind::WorldDynamic){stream_last_commit_=now;s.transaction_started=s.transaction_progress=0;}
   stream_metrics_.display_ready_ms=now;
 #ifdef ISAACCS_E2E
   ClientStreamAgeWitness(root->sample.tick);
@@ -221,11 +289,27 @@ void ClientScene::CommitStream(const stream::Range &root, bool baseline) {
   s.structure_rebuild = false;
 }
 void ClientScene::PumpStream() noexcept {
+#ifdef ISAACCS_E2E
+  // 只读真实条件，定位结构退休时控制泵是否进入及哪项条件阻止，绝不由诊断推进步骤。
+  if(stream_&&stream_->inflight&&stream_->structure_rebuild&&state_==ClientSceneState::Retiring){
+    const auto site=std::string("client-retire-pump:rebuild=")+std::to_string(rebuild_pending_)+
+      "/stop="+std::to_string(stop_requested_)+"/failed="+std::to_string(retirement_failed_)+
+      "/pumping="+std::to_string(pumping_)+"/main="+std::to_string(IsMain())+"/owner="+std::to_string(unsigned(TopOwner()));
+    stream::E2EStreamProgress(site.c_str(),{stream_->inflight->revision,stream_->progress_sequence,unsigned(state_),result_.executed_prefix,0,GetTickCount64(),0,0});
+  }
+#endif
   if (!IsMain() || TopOwner() != Owner::Manager || !stream_ || pumping_ ||
-      state_ == ClientSceneState::Failed ||
-      state_ == ClientSceneState::Retiring)
+      state_ == ClientSceneState::Failed)
     return;
   auto &s = *stream_;
+  // 结构替换的真实退休阶段仍需报告进度；普通停止/失败退休绝不继续本路由。
+  if(state_==ClientSceneState::Retiring&&
+     !(rebuild_pending_&&s.structure_rebuild&&s.inflight&&!stop_requested_&&!retirement_failed_))return;
+  const auto wait=[&](const char *why,const stream::Range &root=stream::Range{}){
+    std::snprintf(result_.stream_wait_reason.data(),result_.stream_wait_reason.size(),"%s",why);
+    result_.stream_wait_kind=root?unsigned(root->id.kind):0;
+    result_.stream_wait_revision=root?root->revision:0;
+  };
   // 视觉中性段只暂留native提交；接纳、确认及Collect仍推进，不能积累整个高频历史。
   const auto advance_native=[]() noexcept {
 #ifdef ISAACCS_E2E
@@ -235,50 +319,55 @@ void ClientScene::PumpStream() noexcept {
 #endif
   };
   try {
+    wait(s.baseline_committed?"no_pending":"baseline_dependencies",s.manifest);
     if (s.inflight) {
+      wait("native_inflight",s.inflight);
       if (result_.native_committed && DisplayReady() &&
           result_.revision == s.inflight->revision) {
         CommitStream(s.inflight,
                      s.inflight->id.kind == stream::RangeKind::Manifest);
         s.inflight.reset();
         s.model_memory.reset();
-      } else if (result_.executed_prefix > s.progress_prefix) {
+      } else if (result_.executed_prefix != s.progress_prefix) {
+        // 退休结束会重置原生步骤计数；变化才是进度，不能假设跨阶段数值一直递增。
         s.progress_prefix = result_.executed_prefix;
-        auto m = StreamMessage(s, stream::Kind::OperationAck);
-        m->body.RemoveMember("world");
-        auto &a = m->body.GetAllocator();
-        replica::Put(m->body, "operation",
-                     replica::Decimal(unsigned(stream::Kind::Range), a), a);
-        replica::Put(m->body, "operation_sequence",
-                     replica::Decimal(s.manifest_revision, a), a);
-        replica::Put(m->body, "stage", replica::Decimal(2, a), a);
-        replica::Put(m->body, "progress_sequence",
-                     replica::Decimal(++s.progress_sequence, a), a);
-        replica::Put(m->body, "reason", "native_complete_step", a);
-        QueueStream(s, std::move(m));
+        StreamNativeProgress(s,s.inflight,unsigned(state_),result_.executed_prefix);
       }
     }
     if (advance_native() && !s.cold_started && s.manifest &&
         stream::DependenciesReady(s.store, *s.manifest)) {
-      s.model_memory = memory::Reserve(memory::Pool::Values, 65536);
+      // 合成模型只活到本次Pump返回；AdmitTarget的独立副本由计划租约持有。
+      auto model_memory = memory::Reserve(memory::Pool::Values, stream::ColdModelUpperBound(s.store, *s.manifest), "client_cold_model");
       stream::Measure measure(stream_metrics_,stream::CpuStage::NativePrepare);
       auto model = stream::ColdModel(s.store, *s.manifest, s.scope.connection);
-      s.model_memory->Resize(replica::OwnedValueUpperBound(model));
+      if(replica::OwnedJsonBytes(model)>model_memory->Bytes())
+        throw replica::ContractError("client_stream_cold_footprint");
+      model_memory->Resize(replica::OwnedJsonBytes(model));
+      auto skeleton_memory = memory::Reserve(memory::Pool::Values, replica::OwnedValueUpperBound(model), "client_skeleton");
       auto skeleton = std::make_unique<replica::Json>(StreamSkeleton(model));
+      if(replica::OwnedJsonBytes(*skeleton)>skeleton_memory->Bytes())
+        throw replica::ContractError("client_stream_skeleton_footprint");
+      skeleton_memory->Resize(replica::OwnedJsonBytes(*skeleton));
       if (!AdmitTarget(s.scope, s.manifest_revision, model))
         throw replica::ContractError(result_.reason.data());
       s.skeleton = std::move(skeleton);
+      s.skeleton_memory = std::move(skeleton_memory);
       s.cold_started = true;
       s.inflight = s.manifest;
+      wait("cold_native_target",s.manifest);
       s.progress_prefix = 0;
       return;
     }
     // 冷/结构提交立即先交付不可变确认，不能被连续的新结构反复抢先。
+    if(s.baseline_committed&&s.ack_at==0&&!s.acknowledgements.empty())wait("baseline_ack_queued");
     if (advance_native() && s.baseline_committed && !s.inflight && DisplayReady() &&
-        !s.pending.empty() && !(s.ack_at == 0 && !s.acknowledgements.empty())) {
+        (s.acquiring||s.planning||!s.pending.empty()) && !(s.ack_at == 0 && !s.acknowledgements.empty())) {
       const auto rebuild = [&](const stream::Range &root) {
+        stream::Measure prepare_measure(stream_metrics_,stream::CpuStage::NativePrepare);
+#ifdef ISAACCS_E2E
+        stream::E2EStreamProgress("client-preflight-begin",{root->revision,s.progress_sequence,unsigned(state_),result_.executed_prefix,0,GetTickCount64(),0,0});
+#endif
         s.bodies.clear();
-        s.body_memory.clear();
         for (auto i = s.committed.begin(); i != s.committed.end();)
           if (i->first.kind == stream::RangeKind::PlayerFast)
             i = s.committed.erase(i);
@@ -290,17 +379,36 @@ void ClientScene::PumpStream() noexcept {
             p = s.pending.erase(p);
           else
             ++p;
-        s.model_memory = memory::Reserve(memory::Pool::Values, 65536);
+        s.model_memory = memory::Reserve(memory::Pool::Values, 65536, "client_structural_model");
         auto model = stream::StructuralModel(s.store, *root, *s.skeleton,
                                              s.scope.connection);
         s.model_memory->Resize(replica::OwnedValueUpperBound(model));
         s.structure_rebuild = true;
         if (!AdmitTarget(s.scope, root->revision, model)){s.structure_rebuild=false;throw replica::ContractError(result_.reason.data());}
         s.inflight = root;
-        s.pending.erase(root->id);
-        s.progress_prefix = 0;
+        const auto pending=s.pending.find(root->id);
+        if(pending!=s.pending.end()&&pending->second->revision<=root->revision)s.pending.erase(pending);
+        // 完整预检实际完成后，下一Manager先报告事务起点，再报告退休/建立的实际步骤。
+        s.progress_prefix = UINT32_MAX;
+#ifdef ISAACCS_E2E
+        stream::E2EStreamProgress("client-preflight-complete",{root->revision,s.progress_sequence,unsigned(state_),result_.executed_prefix,0,GetTickCount64(),0,0});
+#endif
       };
+      if(s.planning){const auto root=s.planning;rebuild(root);s.planning.reset();return;}
+      const auto queue_rebuild=[&](const stream::Range &root){
+        s.planning=root;StreamNativeProgress(s,root,unsigned(state_),result_.executed_prefix);
+        wait("structural_preflight_queued",root);
+      };
+      if(s.acquiring){
+        const auto root=s.acquiring;
+        const auto count=std::count_if(root->dependencies.begin(),root->dependencies.end(),[&](const auto &d){return bool(s.store.Find(d));});
+        if(std::size_t(count)>s.acquired_dependencies){s.acquired_dependencies=std::size_t(count);StreamNativeProgress(s,root,unsigned(state_),count,true);}
+        if(stream::DependenciesReady(s.store,*root)){s.acquiring.reset();queue_rebuild(root);return;}
+        wait("structural_dependencies",root);
+      }
       for (auto it = s.pending.begin(); it != s.pending.end();) {
+        // 一个正在准备的精确目标之外，只合并最新候选，不执行或重复取得其它目标。
+        if(s.acquiring)break;
         auto root = it->second;
         const auto applied = s.store.Applied().find(root->id);
         if (applied != s.store.Applied().end() &&
@@ -309,6 +417,13 @@ void ClientScene::PumpStream() noexcept {
           continue;
         }
         if (!stream::DependenciesReady(s.store, *root)) {
+          wait("dependency_closure",root);
+          for(const auto &d:root->dependencies)if(!s.store.Find(d)){
+            std::snprintf(result_.stream_wait_reason.data(),result_.stream_wait_reason.size(),"missing_dependency:%u/%llu",unsigned(d.id.kind),d.revision);break;}
+          if(root->id.kind==stream::RangeKind::WorldDynamic&&DeclaresStructuralChange(s,*root)){
+            s.acquiring=root;s.acquired_dependencies=std::count_if(root->dependencies.begin(),root->dependencies.end(),[&](const auto &d){return bool(s.store.Find(d));});
+            StreamNativeProgress(s,root,unsigned(state_),s.acquired_dependencies,true);break;
+          }
           ++it;
           continue;
         }
@@ -323,6 +438,7 @@ void ClientScene::PumpStream() noexcept {
               compatible = false;
           }
           if (!compatible) {
+            wait("body_dependency_not_applied",root);
             ++it;
             continue;
           }
@@ -336,16 +452,23 @@ void ClientScene::PumpStream() noexcept {
         }
         if (root->id.kind == stream::RangeKind::WorldDynamic &&
             StructuralDifference(s, *root)) {
-          rebuild(root);
+          queue_rebuild(root);
           break;
         }
-        if (!GraphicsWindowValid() || !DestructiveReady() ||
-            !ClientNativeCpuQueuesEmpty())
-          break;
+        if (!GraphicsWindowValid()){wait("graphics_window",root);break;}
+        if (!DestructiveReady()){wait(ClientNativeCpuQueuesEmpty()?"destructive_owner_or_draw":"image_cpu_queues",root);break;}
+        if (!ClientNativeCpuQueuesEmpty()){wait("image_cpu_queues",root);break;}
+        // 在任何新原生写入前取得计量工作区与当前持有者预算；A仍保持原有完整计划额度。
+        dto_memory::Scope retained_count;
+        const auto retained_bytes=[&](){retained_count.Reset();return 65536+ClientNativeWorldValueBytes(native_world_)+objects_->StreamValueBytes()+grids_->StreamValueBytes()+presentation_->StreamValueBytes();};
+        if(!s.installed_memory)s.installed_memory=memory::Reserve(memory::Pool::Values,retained_bytes(),"client_installed_dto");
+        else s.installed_memory->Resize(retained_bytes());
         std::uint64_t dto_bound = 65536;
         for (const auto &r : stream::Closure(s.store, *root))
-          dto_bound += 8 * stream::Footprint(*r);
-        auto dto_memory = memory::Reserve(memory::Pool::Values, dto_bound);
+          if(NativeDtoUses(*r))dto_bound += 8 * stream::Footprint(*r);
+        wait("native_dto_budget",root);
+        auto dto_memory = memory::Reserve(memory::Pool::Values, dto_bound, "client_dynamic_dto");
+        FailedDtoReservation failed_dto{s,dto_memory};
         std::vector<ClientObjectDescription> entities;
         std::vector<ClientPlayerDescription> players;
         std::vector<ClientGridDescription> grid_values;
@@ -365,7 +488,7 @@ void ClientScene::PumpStream() noexcept {
             throw replica::ContractError(why);
           if (!ClientNativeWorldCanReuse(native_world_, description) ||
               !grids_->StreamCompatible(*room)) {
-            rebuild(root);
+            queue_rebuild(root);
             break;
           }
           grid_values = grids_->CompileStream(*room);
@@ -415,7 +538,7 @@ void ClientScene::PumpStream() noexcept {
           }
           presentation_->StreamMapFacts(std::move(facts));
           if (!presentation_->StreamCompatible()) {
-            rebuild(root);
+            queue_rebuild(root);
             break;
           }
         }
@@ -505,6 +628,14 @@ void ClientScene::PumpStream() noexcept {
           state_ = ClientSceneState::Failed;
           return;
         }
+        // 只有正式安装/检查成功后才按实际容器容量计量；临时编译副本不继续占整个八倍额度。
+        // 增长从本次已预付租约原子转交，总占用不变；旧持有者已被替换后才允许缩回。
+        const auto retained=retained_bytes();
+        if(retained>s.installed_memory->Bytes()){
+          const auto growth=retained-s.installed_memory->Bytes();
+          if(growth>dto_memory->Bytes())throw replica::ContractError("client_dynamic_retained_footprint");
+          s.installed_memory->TransferFrom(*dto_memory,growth);
+        }else s.installed_memory->Resize(retained);
         applied_valid_ = true;
         state_ = ClientSceneState::Displaying;
         FailureResult(ClientResultKind::NativeCommitted, "stream_committed",
@@ -518,8 +649,6 @@ void ClientScene::PumpStream() noexcept {
         CommitStream(root, false);stream_write_failure_=false;
         s.pending.erase(root->id);
         if (room) {
-          s.installed_memory = std::move(dto_memory);
-          s.body_memory.clear();
           for (auto p = s.available.begin(); p != s.available.end();)
             if (p->second->sample.tick <= root->sample.tick &&
                 std::none_of(root->dependencies.begin(),
@@ -528,8 +657,8 @@ void ClientScene::PumpStream() noexcept {
               p = s.available.erase(p);
             else
               ++p;
-        } else
-          s.body_memory.insert_or_assign(root->id.body, std::move(dto_memory));
+        }
+        failed_dto.complete=true;
         break;
       }
     }
@@ -583,6 +712,8 @@ void ClientScene::PumpStream() noexcept {
       roots.push_back({s.manifest->id, s.manifest->revision});
     if (s.inflight)
       roots.push_back({s.inflight->id, s.inflight->revision});
+    if(s.planning)roots.push_back({s.planning->id,s.planning->revision});
+    if(s.acquiring)roots.push_back({s.acquiring->id,s.acquiring->revision});
     for (const auto &[id, r] : s.pending)
       roots.push_back({id, r->revision});
     for (const auto &[id, r] : s.available)
@@ -594,6 +725,7 @@ void ClientScene::PumpStream() noexcept {
   } catch (const std::exception &e) {
     const auto policy=stream::ClassifyFailure(e.what(),stream_write_failure_);
     if(DisplayReady()&&!stream_write_failure_&&policy.waitable){
+      std::snprintf(result_.stream_wait_reason.data(),result_.stream_wait_reason.size(),"prewrite_rejected");
       // 写前依赖/预算暂缺时A仍有效；保留首因，超过状态年龄由连接级恢复收口。
       if(!result_.failure_reason[0]){std::snprintf(result_.failure_reason.data(),result_.failure_reason.size(),"%s",e.what());std::snprintf(result_.failure_phase.data(),result_.failure_phase.size(),"stream_prewrite");}
       return;
@@ -616,7 +748,7 @@ std::string ClientScene::TestStreamReject(unsigned tx,const std::string &name) n
   if(before.rfind("ok=1\n",0)!=0)throw replica::ContractError("negative_actual_native_inspect_unavailable");
   if(old>=UINT64_MAX-2)throw replica::ContractError("negative_revision_exhausted");
   model["revision"]=replica::Decimal(old+1,a);
-  const auto at=[&](const char *path)->replica::Value &{auto *v=rapidjson::Pointer(path).Get(model);if(!v)throw replica::ContractError(std::string("negative_actual_prerequisite:")+path);return *v;};
+  const auto at=[&](const char *path)->replica::Value &{auto *v=rapidjson::GenericPointer<replica::Value>(path).Get(model);if(!v)throw replica::ContractError(std::string("negative_actual_prerequisite:")+path);return *v;};
   const auto entity=[&](bool player)->replica::Value &{auto &rows=at("/components/entity/state/objects");for(auto &row:rows.GetArray())if((std::strcmp(row["class"].GetString(),"EntityPlayer")==0)==player)return row;throw replica::ContractError("negative_actual_entity_class_missing");};
   const auto unknown=[&](replica::Value &v){if(!v.IsObject()||!v.HasMember("target"))throw replica::ContractError("negative_actual_reference_missing");v["target"]["id"]=replica::Decimal(999999999,a);};
   bool compatibility=false,rejected=false;std::string reason;
@@ -679,3 +811,5 @@ std::string ClientScene::TestStreamReject(unsigned tx,const std::string &name) n
 }
 #endif
 } // namespace cs::game
+
+

@@ -1,3 +1,9 @@
+> 最新续验：第44轮array-slots-v1候选的E01九项均已实际通过、双方正常退出；第45轮编入精确值树比较优化后继续E02及E03—E26。数组修复和4KiB实际分配粒度尚未取得E02全项通过，P2整体未完成，P4未执行。具体事实与原始失败见[编排说明](tx-04-21-isolation-orchestration.md)。
+
+> 2026-11-07最新候选：新增必需能力array-slots-v1以修复固定数组分层的稀疏槽截断，旧无此能力的E01九项仅为历史，新候选正在重跑E01及E02—E26。自有DOM改4KiB真实chunk并同步内存计量，池限未改。此前E02均未全项通过，P2整体未完成、P4未执行；实际轮次与失败见[编排说明](tx-04-21-isolation-orchestration.md)。
+
+> 2026-11-07同tx实机修复：compact-payload-v1实际普通范围为345388/452393字节，超过64KiB；候选v2采用追加的静态键/字段编号、具名闭合结构、最短可逆整数与仅完全可逆时的f32编码，保留非有限拒绝及负零，未知形状仍完整发送。同步更换required/supported为compact-payload-v2和payload版本2，旧端不得静默接收。分层修复保留域嵌套Sprite泄漏，以及将未加载Sprite的完整当前值放入每窗重读的显式Resource依赖；所有值和变化仍保留。保护上限及快速不压缩规则未变。第34轮v2的E01九项已实际通过并正常收尾；名称表为构建时只读数组。E02冷构建及后续全套尚未完成，不按估算外推体积/频率通过；下面v1为历史，旧E01结果不充当v2验收。
+
 # tx-04-21 I11—I15：紧凑编码、压缩、路由预算与选择性补片
 
 > 后续进度（2026-11-05）：[I21—I25网络原生安装与确认](tx-04-21-installation.md)及[I23静态研究与主审](tx-04-21-i23-native.md)已完成实现；Release纯编译／链接通过，未测试／启动游戏。I26以后及I39统一验收待继续。下文保留原交付时点事实。
@@ -42,7 +48,7 @@ Host roster＋InputAck 已实际调用 Bundle，Host/Client socket 路径均处�
 
 ## I14：同一进程的三池账本
 
-`core/replication_memory.h` 提供进程内共享 Budget、不可复制 Charge 与共享 Lease：Values=256MiB、Wire=64MiB、Workspace=64MiB。申请在对应分配前，失败不扩大额度；每池暴露 current/high_water/limit。共享引用不重新收费，内容复制必须有新预留。账本只管理纯值，析构不调用主线程或原生资源。
+`core/replication_memory.h` 提供进程内共享 Budget、不可复制 Charge 与共享 Lease：Values=512MiB、Wire=128MiB、Workspace=128MiB（2026-11-07按用户要求在修复重复预留后翻倍）。申请在对应分配前，失败不自动扩大额度；每池暴露 current/high_water/limit。共享引用不重新收费，内容复制必须有新预留；临时预付向真实保留分配的转交不增加总额度。账本只管理纯值，析构不调用主线程或原生资源。
 
 | owner | 池与释放时机 |
 | --- | --- |

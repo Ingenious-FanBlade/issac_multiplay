@@ -196,6 +196,37 @@ pub fn apply_slot_baseline(intervals: &mut [Value], disabled_ran: bool) {
     }
 }
 
+// REPENTOGON 09R 存档的末尾八字节为加载计数和容器校验字段，均不属于进度正文。
+// 只有已知RGON槽文件、相同长度/头部、全部正文相同且计数确实改变时才单独归类；
+// 不重算或校验校验值，也不放行正文、头部、长度变化或单独的校验字段损坏。
+fn container_counter_change(name: &str, before: &Path, after: &Path) -> Result<Option<Value>> {
+    let base=Path::new(name).file_name().and_then(|n|n.to_str()).unwrap_or("").to_lowercase();
+    if !(1..=3).any(|slot|base==format!("rgon_persistentgamedata{slot}.dat")
+        ||base==format!("rgon_steam_persistentgamedata{slot}.dat"))
+        ||!before.is_file()||!after.is_file(){return Ok(None)}
+    let mut a=fs::File::open(before).map_err(|e|e.to_string())?;
+    let mut b=fs::File::open(after).map_err(|e|e.to_string())?;
+    let length=a.metadata().map_err(|e|e.to_string())?.len();
+    if length<28||length!=b.metadata().map_err(|e|e.to_string())?.len(){return Ok(None)}
+    let mut left=[0u8;65536];let mut right=[0u8;65536];
+    a.read_exact(&mut left[..16]).map_err(|e|e.to_string())?;
+    b.read_exact(&mut right[..16]).map_err(|e|e.to_string())?;
+    if &left[..16]!=b"ISAACNGSAVE09R  "||left[..16]!=right[..16]{return Ok(None)}
+    let mut remaining=length-24;
+    while remaining>0{let count=remaining.min(left.len() as u64) as usize;
+        a.read_exact(&mut left[..count]).map_err(|e|e.to_string())?;
+        b.read_exact(&mut right[..count]).map_err(|e|e.to_string())?;
+        if left[..count]!=right[..count]{return Ok(None)}remaining-=count as u64;
+    }
+    a.read_exact(&mut left[..8]).map_err(|e|e.to_string())?;
+    b.read_exact(&mut right[..8]).map_err(|e|e.to_string())?;
+    let old=u32::from_le_bytes(left[..4].try_into().unwrap());
+    let new=u32::from_le_bytes(right[..4].try_into().unwrap());
+    if old==new{return Ok(None)}
+    Ok(Some(json!({"kind":"repentogon_09r_load_counter_and_container_checksum",
+        "counter_before":old,"counter_after":new,"progress_body_identical":true})))
+}
+
 // 直接比较内容，不计算摘要；附带时间变化，按每次启动独立归因。
 // D27（用户决定）：判定不看每日备份 save_backups 中的任何存档，快照仍原样复制作原始证据。
 pub fn changes(before: &Path, after: &Path) -> Result<Value> {
@@ -234,10 +265,15 @@ pub fn changes(before: &Path, after: &Path) -> Result<Value> {
         let before_state = &am["files"][name];
         let after_state = &bm["files"][name];
         if bytes_changed || before_state != after_state {
+            let metadata=if bytes_changed{container_counter_change(name,&before.join(name),&after.join(name))?}else{None};
+            let metadata_only=metadata.is_some();
             changed.push(json!({"path":name,"bytes_changed":bytes_changed,
-                "allowed":!bytes_changed || allowed_change(name),
+                "progress_bytes_changed":bytes_changed&&!metadata_only,
+                "container_metadata_only":metadata_only,"container_metadata":metadata,
+                "allowed":!bytes_changed || metadata_only || allowed_change(name),
                 "before":before_state,"after":after_state,
-                "possible_source":if bytes_changed {"game or REPENTOGON save synchronization; attribution UNKNOWN"}
+                "possible_source":if metadata_only {"REPENTOGON container metadata only; writer attribution UNKNOWN"}
+                    else if bytes_changed {"game or REPENTOGON save synchronization; attribution UNKNOWN"}
                     else {"timestamp only; identical bytes"}}));
         }
     }

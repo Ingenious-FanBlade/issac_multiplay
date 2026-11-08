@@ -1,5 +1,7 @@
 #include "game/world_bridge.h"
+#include "core/capture_cost.h"
 #include "replica/stream_e2e.h"
+#include "replica/stream_resource_e2e.h"
 #include "game/world_entity_owner.h"
 #include "binding/world_layout.h"
 #include "game/bridge.h"
@@ -15,38 +17,106 @@
 #include <exception>
 
 namespace cs::game {
-StreamResourceScope::StreamResourceScope(void *object,bool retired) noexcept:exceptions_(std::uncaught_exceptions()) {
-  if(!IsMain())return;capture_=CurrentWorldRecording();
+WorldJoinEffectSourceScope::WorldJoinEffectSourceScope() noexcept:exceptions_(std::uncaught_exceptions()) {
+  capture::Cost cost(capture::CostPart::Control);
+  if(!IsMain()){world::ReportEntityReconfigurationFault(world::ObservationFault::WrongThread);return;}
+  capture_=CurrentWorldRecording();if(capture_&&capture_->collector)token_=capture_->collector->BeginJoinEffectSource();
+}
+WorldJoinEffectSourceScope::~WorldJoinEffectSourceScope() noexcept {
+  capture::Cost cost(capture::CostPart::Control);
+  const bool normal=returned_&&std::uncaught_exceptions()==exceptions_;
+  if(!normal)world::ReportEntityReconfigurationFault(world::ObservationFault::NativeException);
+  if(token_&&capture_&&capture_->collector)capture_->collector->EndJoinEffectSource(token_,normal);
+}
+StreamResourceScope::StreamResourceScope(void *object,bool retired,bool constructing,void *copy_source,const char *operation) noexcept:exceptions_(std::uncaught_exceptions()) {
+  if(!IsMain()||!object)return;capture_=CurrentWorldRecording();
+  capture::Cost cost(capture::CostPart::Control);
   if(!capture_||!capture_->live_consumer){capture_.reset();return;}
-  auto &c=*capture_;++c.stream_resource_depth;retired_=retired;address_=world::PackWord(object);
-  if(c.stream_resource_mutation==UINT64_MAX){if(c.collector)c.collector->Fault(world::Reason::SequenceExhausted,"stream_resource_mutation");}
-  else ++c.stream_resource_mutation;
-  c.live.Invalidate("live_native_resource_changed");c.stream.Invalidate("stream_native_resource_changed");
+  auto &c=*capture_;retired_=retired;constructing_=constructing;address_=world::PackWord(object);
+  const auto old=c.stream_resources.find(address_);
+  const auto prior=old==c.stream_resources.end()?WorldCapture::StreamResourceIdentity{}:old->second;
+  affects_source_=old!=c.stream_resources.end()&&old->second.observed&&!old->second.temporary;
+  // 未进入来源闭包的UI/新对象不能使整房样本作废；已经观测的真实owner仍进入即撤资格。
+  if(affects_source_){
+#ifdef ISAACCS_E2E
+    E2EResourceChangeFromNative(object,address_,old->second.generation,c.location_window,retired,constructing,copy_source!=nullptr,operation);
+#endif
+    ++c.stream_resource_depth;
+    if(c.stream_resource_mutation==UINT64_MAX){if(c.collector)c.collector->Fault(world::Reason::SequenceExhausted,"stream_resource_mutation");}
+    else ++c.stream_resource_mutation;
+    c.live.Invalidate("live_native_resource_changed");c.stream.Invalidate("stream_native_resource_changed");
+  }
   try {
-    const auto address=world::PackWord(object);
+    const auto address=address_;
     if(retired)c.stream_resources.erase(address);
     else {
-      if(c.next_stream_resource==UINT64_MAX||(!c.stream_resources.contains(address)&&c.stream_resources.size()>=65536))throw std::bad_alloc();
-      c.stream_resources[address]=++c.next_stream_resource;
+      if(c.next_stream_resource>=UINT64_MAX-1||(!c.stream_resources.contains(address)&&c.stream_resources.size()>=65536))throw std::bad_alloc();
+      const bool temporary=prior.temporary||(constructing&&c.location_window);
+      const bool observed=prior.observed&&!constructing;
+      std::uint64_t copy_generation=prior.constructing?prior.copy_generation:0;
+      std::uint32_t copy_address=prior.constructing?prior.copy_address:0;
+      if(copy_source){
+        const auto source=world::PackWord(copy_source);
+        if(source==address)throw std::bad_alloc();
+        auto it=c.stream_resources.find(source);
+        if(it==c.stream_resources.end()){
+          if(c.stream_resources.size()>=65535)throw std::bad_alloc();
+          it=c.stream_resources.emplace(source,WorldCapture::StreamResourceIdentity{++c.next_stream_resource,temporary,false}).first;
+        }
+        // 按值返回可经临时对象再复制到Lua；只沿已经确认的只读临时copy来源归并。
+        auto origin=it;
+        for(unsigned depth=0;depth<16&&origin->second.temporary&&origin->second.copy_generation;++depth){
+          const auto parent=c.stream_resources.find(origin->second.copy_address);
+          if(parent==c.stream_resources.end()||parent==origin||parent->second.generation!=origin->second.copy_generation)break;
+          origin=parent;
+        }
+        if(temporary&&!origin->second.temporary)origin->second.observed=true;
+        copy_generation=origin->second.generation;copy_address=origin->first;
+        if(temporary)copied_generation_=copy_generation;
+      }
+      if(c.next_stream_resource==UINT64_MAX)throw std::bad_alloc();
+      c.stream_resources[address]={copied_generation_?copied_generation_:++c.next_stream_resource,observed,temporary,
+        copy_generation,copy_address,constructing||prior.constructing};
     }
   }catch(...){c.observation.Invalidate("stream_resource_identity_budget");}
 }
 StreamResourceScope::~StreamResourceScope() noexcept {
-  if(!capture_)return;auto &c=*capture_;if(c.stream_resource_depth)--c.stream_resource_depth;
+  if(!capture_)return;auto &c=*capture_;if(affects_source_&&c.stream_resource_depth)--c.stream_resource_depth;
+  capture::Cost cost(capture::CostPart::Control);
+  // copy原链内部Reset不能把读取副本改成独立世界资源；只在原链正常返回后恢复来源代次。
+  if(copied_generation_&&returned_&&exceptions_==std::uncaught_exceptions()){
+    if(auto it=c.stream_resources.find(address_);it!=c.stream_resources.end())it->second.generation=copied_generation_;
+  }
+  if(constructing_)if(auto it=c.stream_resources.find(address_);it!=c.stream_resources.end())it->second.constructing=false;
   // 原生析构内部还会调用Reset；外层最终收口再次抹除，不能留下嵌套Reset分配的新token。
   if(retired_)c.stream_resources.erase(address_);
   if(!returned_||exceptions_!=std::uncaught_exceptions())c.observation.Invalidate("stream_resource_original_exception");
 }
-std::uint64_t StreamResourceGeneration(void *object) noexcept {
+std::uint64_t StreamResourceGeneration(void *object,bool copied_value) noexcept {
   auto c=CurrentWorldRecording();if(!IsMain()||!c||!c->live_consumer||!object||c->stream_resource_depth)return 0;
+  capture::Cost cost(capture::CostPart::Control);
   try {
-    const auto address=world::PackWord(object);if(const auto it=c->stream_resources.find(address);it!=c->stream_resources.end())return it->second;
+    const auto address=world::PackWord(object);if(const auto it=c->stream_resources.find(address);it!=c->stream_resources.end()){
+      // userdata内嵌ANM由Lua持有，是getter返回值而非世界owner；其析构不得撤销世界。
+      if(copied_value){
+        if(it->second.copy_generation){
+          const auto source=c->stream_resources.find(it->second.copy_address);
+          if(source==c->stream_resources.end()||source->second.generation!=it->second.copy_generation)return 0;
+          if(!source->second.temporary)source->second.observed=true;
+          it->second.generation=it->second.copy_generation;
+        }
+        it->second.temporary=true;it->second.observed=false;
+      }
+      if(!it->second.temporary)it->second.observed=true;
+      return it->second.generation;
+    }
     if(c->next_stream_resource==UINT64_MAX||c->stream_resources.size()>=65536)throw std::bad_alloc();
-    const auto next=++c->next_stream_resource;c->stream_resources.emplace(address,next);return next;
+    const auto next=++c->next_stream_resource;c->stream_resources.emplace(address,WorldCapture::StreamResourceIdentity{next,!copied_value,copied_value});return next;
   }catch(...){c->observation.Invalidate("stream_resource_identity_budget");return 0;}
 }
 WorldEntityReconfigurationScope::WorldEntityReconfigurationScope(void *object,world::HookCounters counters) noexcept
     :counters_(counters),exceptions_(std::uncaught_exceptions()) {
+  capture::Cost cost(capture::CostPart::Control);
   if(counters_.calls)counters_.calls->fetch_add(1,std::memory_order_relaxed);
   if(!IsMain()){
     if(counters_.foreign)counters_.foreign->fetch_add(1,std::memory_order_relaxed);
@@ -56,6 +126,7 @@ WorldEntityReconfigurationScope::WorldEntityReconfigurationScope(void *object,wo
   if(capture_&&capture_->collector)token_=capture_->collector->BeginDeliriumReconfiguration(world::PackWord(object));
 }
 WorldEntityReconfigurationScope::~WorldEntityReconfigurationScope() noexcept {
+  capture::Cost cost(capture::CostPart::Control);
   const bool normal=returned_&&std::uncaught_exceptions()==exceptions_;
   if(!normal)world::ReportEntityReconfigurationFault(world::ObservationFault::NativeException);
   if(token_&&capture_&&capture_->collector)capture_->collector->EndDeliriumReconfiguration(token_,normal);
@@ -65,6 +136,7 @@ void WorldEntityReconfigurationScope::Returned() noexcept {
 }
 WorldPlayerChildSourceScope::WorldPlayerChildSourceScope(void *object,unsigned kind,world::HookCounters counters,unsigned slot) noexcept
     :counters_(counters),exceptions_(std::uncaught_exceptions()) {
+  capture::Cost cost(capture::CostPart::Control);
   if(counters_.calls)counters_.calls->fetch_add(1,std::memory_order_relaxed);
   if(!IsMain()){if(counters_.foreign)counters_.foreign->fetch_add(1,std::memory_order_relaxed);world::ReportEntityReconfigurationFault(world::ObservationFault::WrongThread);return;}
   capture_=CurrentWorldRecording();
@@ -75,6 +147,7 @@ WorldPlayerChildSourceScope::WorldPlayerChildSourceScope(void *object,unsigned k
   if(capture_&&capture_->collector)token_=capture_->collector->BeginPlayerChildSource(world::PackWord(object),kind,slot);
 }
 WorldPlayerChildSourceScope::~WorldPlayerChildSourceScope() noexcept {
+  capture::Cost cost(capture::CostPart::Control);
   const bool normal=returned_&&std::uncaught_exceptions()==exceptions_;
   if(!normal)world::ReportEntityReconfigurationFault(world::ObservationFault::NativeException);
   if(token_&&capture_&&capture_->collector)capture_->collector->EndPlayerChildSource(token_,normal,body_reached_);
@@ -129,6 +202,7 @@ void ObserveFailures(world::Collector &collector) noexcept {
 std::uint32_t Enter(world::Observation kind, std::uint32_t object,
                     const std::uint32_t *args, std::uint32_t count,
                     bool native) noexcept {
+  capture::Cost cost(capture::CostPart::Control);
   auto *collector = Collector();
   return collector
              ? (native ? collector->NativeEnter(kind, object, args, count)
@@ -137,6 +211,7 @@ std::uint32_t Enter(world::Observation kind, std::uint32_t object,
 }
 void Leave(std::uint32_t call, std::uint32_t result, bool normal,
            bool native) noexcept {
+  capture::Cost cost(capture::CostPart::Control);
   if (auto *collector = Collector()) {
     if (native)
       collector->NativeLeave(call, result, normal);
@@ -148,6 +223,7 @@ void Leave(std::uint32_t call, std::uint32_t result, bool normal,
 std::uint32_t ControlEnter(world::Observation kind, std::uint32_t object,
                            const std::uint32_t *args,
                            std::uint32_t count) noexcept {
+  capture::Cost cost(capture::CostPart::Control);
   // ObservationScope先做control_enter再做enter；只读证言必须先于WorldRevokePlayer，输入仍原样撤销。
   if(kind==world::Observation::Replace&&args&&count==2)if(auto *collector=Collector()){
     const auto basis=collector->BeforePlayerReplaceSource(object,args[0],args[1]);
@@ -193,6 +269,7 @@ std::uint32_t ControlEnter(world::Observation kind, std::uint32_t object,
   return mask;
 }
 void ControlLeave(std::uint32_t mask, bool normal) noexcept {
+  capture::Cost cost(capture::CostPart::Control);
   auto *r = Runtime();
   if (!r || !mask)
     return;
@@ -216,6 +293,7 @@ void ControlLeave(std::uint32_t mask, bool normal) noexcept {
 }
 // 原生成功才转移根来源；这里不读对象、不授予输入，后续稳定入口重新验证完整图。
 void ControlReplace(std::uint32_t old_value, std::uint32_t new_value) noexcept {
+  capture::Cost cost(capture::CostPart::Control);
   auto *r = Runtime();
   if (!r || r->finished || !old_value || !new_value)
     return;
@@ -305,6 +383,14 @@ std::shared_ptr<const world::observation::LiveBatch> CurrentLiveCapture() noexce
 std::shared_ptr<const replica::stream::Publication> CurrentLiveWorld() noexcept {
   return IsMain()&&recording&&recording->live_consumer&&recording->stream_invalidation==recording->live.Status().invalidations?recording->stream.Latest():nullptr;
 }
+// 只核对真实来源寿命，不把普通dirty/后台未完成当作场景退休。
+std::array<std::uint64_t,4> CurrentLiveSource() noexcept {
+  if(!IsMain()||!recording||!recording->live_consumer||!recording->observation.Active()||
+     !recording->collector||!recording->collector->Participating()||!RunActive())return {};
+  const auto run=recording->collector->CurrentRunToken(),room=recording->collector->CurrentRoomToken();
+  if(!run||!room)return {};
+  return {recording->session_key,recording->epoch,run,room};
+}
 std::shared_ptr<const replica::stream::Publication> CurrentLiveBaseline() noexcept {
   return IsMain()&&recording&&recording->live_consumer&&recording->stream_invalidation==recording->live.Status().invalidations?recording->stream.Baseline():nullptr;
 }
@@ -326,6 +412,8 @@ bool DetachClosedWorld(const std::shared_ptr<WorldRecording> &closed) noexcept {
   return true;
 }
 void WorldFrameBegin(std::uint64_t loop) noexcept {
+  capture::FrameBegin(loop,recording&&recording->live_consumer&&RunActive());
+  capture::Cost cost(capture::CostPart::Native);
   auto *collector = Collector();
   if (!collector)
     return;
@@ -351,12 +439,14 @@ void WorldFrameBegin(std::uint64_t loop) noexcept {
   if(location.valid&&(location.run!=collector->CurrentRunToken()||location.room!=collector->CurrentRoomToken())) {
     recording->live.Invalidate("live_run_or_room_changed");
     recording->stream.Invalidate("live_run_or_room_changed");
+    recording->stream.RequestBaseline();
     location.Invalidate(location.run!=collector->CurrentRunToken());
     recording->latest_room={}; recording->latest_level={}; recording->latest_continuity={};
   }
   WorldRefreshAnchors();
 }
 world::PlayerAnchor WorldPlayerAnchor(unsigned ordinal, void *player) noexcept {
+  capture::Cost cost(capture::CostPart::Native);
   world::PlayerAnchor anchor{};
   auto *collector = Collector();
   if (!collector || !collector->Recording())
@@ -392,6 +482,7 @@ std::uint64_t WorldEntityLocalId(void *player) noexcept {
              : 0;
 }
 void WorldRefreshAnchors() noexcept {
+  capture::Cost cost(capture::CostPart::Native);
   auto *collector = Collector();
   auto *r = Runtime();
   if (!collector || !r)
@@ -462,6 +553,7 @@ void ObservationPlayerMembership(void *object,ObservationSubjectValue &value) no
   value.can_consume=r->players[ordinal].BoundValid()&&body.CanConsume();
 }
 void WorldRevokePlayer(unsigned ordinal) noexcept {
+  capture::Cost cost(capture::CostPart::Control);
   if (ordinal >= core::kMaximumParticipants)
     return;
   if (auto *collector = Collector())
@@ -469,12 +561,13 @@ void WorldRevokePlayer(unsigned ordinal) noexcept {
       const auto slot=ordinal*kMaximumGroupBodies+b;
       const auto before=collector->CurrentAnchor(slot);
       collector->RevokePlayer(slot);
-      if(recording){recording->pending_body_bytes-=recording->pending_bodies[slot].payload.size();recording->pending_bodies[slot]={};recording->body_status[slot].reason="player_post_binding_revoked";}
+      if(recording){const auto &source=recording->pending_bodies[slot].source;if(source)recording->pending_body_bytes-=source->Bytes();recording->pending_bodies[slot]={};recording->body_status[slot].reason="player_post_binding_revoked";}
       if(before.valid) ObservationControlChange(slot,before,{},"explicit_binding_revocation");
     }
 }
 void WorldPlayerReturned(unsigned ordinal, const world::PlayerAnchor &before,
                          std::uint64_t tick, bool normal, bool body) noexcept {
+  capture::Cost cost(capture::CostPart::Native);
   auto *collector = Collector();
   auto *r = Runtime();
   if (!collector || !r || ordinal >= core::kMaximumParticipants)
@@ -492,6 +585,7 @@ void WorldPlayerReturned(unsigned ordinal, const world::PlayerAnchor &before,
 }
 void WorldNativeReturned(const core::TickBoundary &boundary,
                          std::uint64_t tick) noexcept {
+  capture::Cost cost(capture::CostPart::Native);
   if (auto *collector = Collector()) {
     WorldRefreshAnchors();
     collector->NativeReturned({boundary.loop, OwnerToken(Owner::Manager), tick,
@@ -502,6 +596,7 @@ void WorldNativeReturned(const core::TickBoundary &boundary,
   }
 }
 void WorldPreparePostState(bool normal) noexcept {
+  capture::Cost cost(capture::CostPart::Native);
   if (auto *collector = Collector()) {
     if (!collector->Participating()) {
       prepared_post = {};
@@ -532,8 +627,8 @@ void WorldPreparePostState(bool normal) noexcept {
 #ifdef ISAACCS_E2E
       replica::stream::E2EBody(before.local,before.use,before.shape,before.anchor.generation,before.tick,1);
 #endif
-      if(value.payload.size()>(16ull<<20)-recording->pending_body_bytes){state.reason="player_post_candidate_budget";recording->stream.BodyGap(state.reason);continue;}
-      try{recording->pending_body_bytes+=value.payload.size();recording->pending_bodies[slot]={before,std::move(value.payload),invalidation};state.reason="player_post_await_outer_commit";}
+      if(value.owned_bytes>(16ull<<20)-recording->pending_body_bytes){state.reason="player_post_candidate_budget";recording->stream.BodyGap(state.reason);continue;}
+      try{recording->pending_body_bytes+=value.owned_bytes;recording->pending_bodies[slot]={before,std::move(value.owned_source),invalidation};state.reason="player_post_await_outer_commit";}
       catch(...){state.reason="player_post_candidate_budget";recording->stream.BodyGap(state.reason);}
     }
     // 无 Authority 的 gap 已由采集器发布；没有 pending 世界值需要 core 提交。
@@ -559,47 +654,55 @@ core::TickPostState WorldPostState(std::uint64_t tick) noexcept {
 }
 void WorldPublishPostState(bool committed,
                            const core::TickPostState &post) noexcept {
+  capture::Cost cost(capture::CostPart::Handoff);
   if (auto *collector = Collector())
     collector->PublishPostState(committed, post);
   if(!recording||!recording->live_consumer)return;
   if(recording->stream_invalidation!=recording->live.Status().invalidations){recording->stream.Invalidate(recording->live.Status().reason);recording->stream_invalidation=recording->live.Status().invalidations;}
   for(unsigned slot=0;slot<recording->pending_bodies.size();++slot){
     auto pending=std::move(recording->pending_bodies[slot]);recording->pending_bodies[slot]={};
-    if(pending.payload.empty())continue;
-    recording->pending_body_bytes-=pending.payload.size();auto &state=recording->body_status[slot];
+    if(!pending.source)continue;
+    recording->pending_body_bytes-=pending.source->Bytes();auto &state=recording->body_status[slot];
     world::PlayerPostWitness now{};const auto &w=pending.witness;
     if(!committed||!Collector()||!Collector()->PlayerPost(slot,now)||now.anchor!=w.anchor||now.local!=w.local||now.use!=w.use||now.shape!=w.shape||now.tick!=w.tick||now.outer!=w.outer||now.mutation!=w.mutation||pending.invalidation!=recording->live.Status().invalidations){state.reason="player_post_outer_cancelled_or_changed";recording->stream.BodyGap(state.reason);continue;}
     replica::stream::BodySample sample{recording->epoch,w.run,w.room,w.local,w.use,w.shape,w.tick,w.outer,w.owner,w.mutation,w.anchor.generation,
       w.kind==world::AuthorityKind::OddPlayer?replica::stream::CaptureKind::OddPlayer:replica::stream::CaptureKind::Ordinary};
-    recording->stream.PlayerPost(sample,pending.payload);
+    recording->stream.PlayerPost(sample,pending.source);
     state.last_capture_tick=w.tick;if(w.kind==world::AuthorityKind::OddPlayer)++state.odd;else ++state.ordinary;
     state.reason=w.kind==world::AuthorityKind::OddPlayer?"player_post_odd_source_committed":"player_post_ordinary_source_committed";
     try {
       namespace obs=world::observation;
       // 只有真实Clock提交才发布phase；Entity公共值和Player专用值拥有同一身体证言。
       for(const auto domain:{obs::DomainId::Entity,obs::DomainId::Player}){
-        if(!recording->observation.Needed(domain,obs::Phase::PlayerPost))continue;
+        if(!recording->observation.ConsumerDue(obs::kLatestConsumer,domain,obs::Phase::PlayerPost,0)&&
+           !recording->observation.ConsumerDue(obs::kRecorderConsumer,domain,obs::Phase::PlayerPost,0))continue;
         obs::ObservationEnvelope e;e.domain=domain;e.schema=domain==obs::DomainId::Entity?"isaac.cs.entity.player-post":"isaac.cs.player.player-post";
         e.context=recording->observation.BeginScope(obs::Phase::PlayerPost,2);e.context.authority_tick={obs::Presence::Known,w.tick};
         e.context.outer=w.outer;e.context.owner=w.owner;e.context.mutation_before=e.context.mutation_after=w.mutation;
         e.context.run={obs::Presence::Known,{recording->session_key,recording->epoch,w.run,obs::IdentitySpace::Run}};
         e.context.room={obs::Presence::Known,{recording->session_key,recording->epoch,w.room,obs::IdentitySpace::RoomInstance}};
         e.result.coverage=obs::Coverage::Complete;e.result.range=w.kind==world::AuthorityKind::OddPlayer?"player-fast-source-v1;odd;actual-native-update":"player-fast-source-v1;ordinary;actual-native-update";
-        e.result.objects=1;e.payload=pending.payload;e.result.bytes=e.payload.size();const auto scope=e.context.scope;
+        e.result.objects=1;e.payload=capture::SourceText(pending.source);e.result.bytes=e.payload.size();const auto scope=e.context.scope;
         if(recording->observation.PrepareScope(std::move(e)).accepted)recording->observation.CommitScope(scope,obs::Outcome::IndependentPublished);
       }
     }catch(...){recording->stream.BodyGap("player_post_notification_budget");}
   }
 }
 void WorldFrameEnd() noexcept {
-  if(recording)for(auto &body:recording->pending_bodies)if(!body.payload.empty()){body={};recording->stream.BodyGap("player_post_missing_outer_commit");}
+  {
+  capture::Cost cost(capture::CostPart::Control);
+  if(recording)for(auto &body:recording->pending_bodies)if(body.source){body={};recording->stream.BodyGap("player_post_missing_outer_commit");}
+  if(recording)recording->pending_body_bytes=0;
   if (auto *collector = Collector())
     collector->EndOuter();
+  }
+  capture::FrameEnd();
 }
 
 WorldBoundaryScope::WorldBoundaryScope(WorldBoundary kind, const void *object,
                                        bool enabled) noexcept
     : kind_(kind), exceptions_(std::uncaught_exceptions()) {
+  capture::Cost cost(capture::CostPart::Control);
   auto *collector = Collector();
   if (!enabled || !collector || !collector->Recording())
     return;
@@ -623,6 +726,7 @@ WorldBoundaryScope::WorldBoundaryScope(WorldBoundary kind, const void *object,
     collector->EnterStage(StageFor(kind), scope_, world::PackWord(object));
 }
 WorldBoundaryScope::~WorldBoundaryScope() noexcept {
+  capture::Cost cost(capture::CostPart::Control);
   auto *collector = Collector();
   if (!active_ || !collector)
     return;

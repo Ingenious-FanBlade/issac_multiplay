@@ -13,7 +13,8 @@ bool Is(const Value &v, const char *key, const char *s) {
 }
 const Value &At(const Value &v, const char *key) {
   if (!v.IsObject() || !v.HasMember(key))
-    Fail("stream_materialize_missing");
+    throw ContractError(std::string("stream_materialize_missing:")+key+
+                        (v.IsObject()?":object":v.IsArray()?":array":":scalar"));
   return v[key];
 }
 const Value &Tree(const Record &r) {
@@ -146,6 +147,9 @@ struct Merger {
   void Merge(Value &out, Value &piece, unsigned depth = 0) {
     if (depth > 64)
       Fail("stream_merge_depth");
+    // 片段占位只表示本层没有这个槽的值；真实Null和显式空集合仍按原合同合并。
+    if(Is(piece,"type","stream_absent_piece"))return;
+    if(Is(out,"type","stream_absent_piece")){out.Swap(piece);return;}
     if (Is(out, "type", "table") && Is(piece, "type", "table")) {
       if (out.HasMember("node") && piece.HasMember("node"))
         aliases[Unsigned(piece["node"])] = Unsigned(out["node"]);
@@ -302,12 +306,27 @@ void MergePiece(Value &out, const Value &v, Allocator &a) {
   m.Redirect(out);
 }
 void FinishPieces(Value &v, Allocator &a, std::uint64_t revision) {
+  if(Is(v,"type","stream_absent_piece"))Fail("stream_incomplete_array_piece");
+  // 仅在失败回溯时追加路径，不让正常逐字段重组为诊断反复创建字符串。
+  const auto descend=[&](Value &child,const auto &label){
+    try{FinishPieces(child,a,revision);}catch(const ContractError &e){
+      if(e.code.starts_with("stream_materialize_missing:")&&e.code.size()<1024)
+        throw ContractError(e.code+"/"+label());
+      throw;
+    }
+  };
   if (v.IsArray())
-    for (auto &x : v.GetArray())
-      FinishPieces(x, a, revision);
+    for (rapidjson::SizeType i=0;i<v.Size();++i)
+      descend(v[i],[&]{return std::to_string(i);});
   else if (v.IsObject()) {
+    // 装备固定成员与当前值先按同一普通目标合并，再递归完成Sprite等跨层子片段。
+    if(v.HasMember("application_player_equipment_dynamic")){
+      if(!v.HasMember("application_player_equipment"))Fail("stream_equipment_structure_missing");
+      MergePiece(v["application_player_equipment"],v["application_player_equipment_dynamic"],a);
+      v.RemoveMember("application_player_equipment_dynamic");
+    }
     for (auto i = v.MemberBegin(); i != v.MemberEnd(); ++i)
-      FinishPieces(i->value, a, revision);
+      descend(i->value,[&]{return std::string(i->name.GetString(),i->name.GetStringLength());});
     if (Is(v, "type", "stream_sprite_piece") ||
         Is(v, "type", "stream_sprite_pose")) {
       Put(v, "type", "resource_pose", a);
@@ -331,13 +350,6 @@ void FinishPieces(Value &v, Allocator &a, std::uint64_t revision) {
     }
     if (v.HasMember("required_revision"))
       Put(v, "required_revision", Decimal(revision, a), a);
-    if (v.HasMember("application_player_equipment_dynamic")) {
-      if (!v.HasMember("application_player_equipment"))
-        Fail("stream_equipment_structure_missing");
-      MergePiece(v["application_player_equipment"],
-                 v["application_player_equipment_dynamic"], a);
-      v.RemoveMember("application_player_equipment_dynamic");
-    }
   }
 }
 Json SubjectValue(const Store &store, const RangeData &root, SubjectKey key,

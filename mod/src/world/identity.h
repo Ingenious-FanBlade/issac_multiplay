@@ -105,8 +105,8 @@ struct Identity final {
     // Init/Restore/Acquire/Destroy仍明确撤销，不能用此分支恢复旧输入或旧对象。
     if(readiness==std::uint32_t(Readiness::PlayerChildInitCompleted)||readiness==std::uint32_t(Readiness::PlayerStateOwnerCompleted))return;
     current_public_ready = false;
-    if (readiness ==
-        static_cast<std::uint32_t>(Readiness::CurrentPlayerUpdateWitness))
+    if (readiness == static_cast<std::uint32_t>(Readiness::CurrentPlayerUpdateWitness) ||
+        readiness == static_cast<std::uint32_t>(Readiness::NativeJoinEffectCompleted))
       readiness = static_cast<std::uint32_t>(Readiness::NoObservedInit);
   }
   void SetOrdinal(std::uint32_t value) noexcept { ordinal = value; }

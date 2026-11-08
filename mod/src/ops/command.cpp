@@ -12,6 +12,7 @@
 #include "game/world_bridge.h"
 #include "ops/world_commands.h"
 #ifdef ISAACCS_E2E
+#include "net/live.h"
 #include "ops/client_fixture.h"
 #include "ops/e2e_ui.h"
 #include "replica/stream_e2e.h"
@@ -123,7 +124,7 @@ std::string Execute(std::string_view text, const char *source) {
     else if(mode=="reject"&&(in>>x>>role)&&x>=18&&x<=20&&!(in>>tail))result=game::ClientTestStreamReject(token,unsigned(x),role);
     else if(mode=="wire"&&(in>>role)&&!(in>>tail)){replica::stream::E2EWireArm(role);result="ok=1\n";}
     else if(mode=="wire-status"&&!(in>>tail))result=replica::stream::E2EWireStatus();
-    else if(mode=="hello"&&(in>>x)&&!(in>>tail))result=replica::stream::E2EHelloPackets(x);
+    else if(mode=="hello"&&(in>>x)&&!(in>>tail))result=replica::stream::E2EHelloPackets(x,net::live::E2EHandshakeCapabilities());
     else if(mode=="observation-loss"&&!(in>>tail)){
       // 只损伤诊断，不撤销来源、Scene或网络；E18仍须看到后续真实提交推进。
       replica::stream::E2EObservationLoss();game::ClientIsolationObserve(game::ClientIsolationKind::ObservationLost,"e2e_observation_loss");result="ok=1\nobservation_loss_notified=1\n";
@@ -178,7 +179,12 @@ std::string Execute(std::string_view text, const char *source) {
       replica::Json profile;const bool projected=model.HasMember("client_profile");
       if(projected){profile=replica::Copy(model["client_profile"]);model.RemoveMember("client_profile");}
       const auto sequence=replica::Unsigned(model["revision"]);
-      {game::ClientEntityTestMeasure measure("codec_baseline");model=replica::Decode(replica::Encode({replica::Kind::Baseline,sequence,std::move(model)})).body;}
+      {
+        // Message包含内存租约字段，显式填写消息语义，避免旧聚合位置误绑到租约。
+        game::ClientEntityTestMeasure measure("codec_baseline");
+        replica::Message message;message.kind=replica::Kind::Baseline;message.sequence=sequence;message.body=std::move(model);
+        model=replica::Decode(replica::Encode(message)).body;
+      }
       if(projected){replica::Value v;v.CopyFrom(profile,model.GetAllocator());replica::Put(model,"client_profile",std::move(v),model.GetAllocator());}
       replica::ValidateModel(model);const auto scope=replica::ReadScope(model["scope"]);
       const auto revision=replica::Unsigned(model["revision"]);

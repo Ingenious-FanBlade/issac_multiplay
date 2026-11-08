@@ -11,7 +11,7 @@
 #include "game/world_sources/global_random.h"
 #include "game/world_sources/random_sources.h"
 #include "world/common/live_consumer.h"
-#include "replica/stream_capture.h"
+#include "replica/stream_capture_worker.h"
 #include "replica/stream_config.h"
 
 namespace cs::game {
@@ -28,10 +28,10 @@ struct WorldCapture final {
   std::unique_ptr<world::Collector> collector;
   world::observation::Service observation;
   world::observation::LiveConsumer live;
-  replica::stream::Capture stream;
+  replica::stream::CaptureWorker stream;
   replica::stream::RuntimeConfig stream_config;
   // 候选只跨同一Manager的prepare→clock提交，正常收束后再次逐槽复核。
-  struct PendingBody final {world::PlayerPostWitness witness;std::string payload;std::uint64_t invalidation=0;};
+  struct PendingBody final {world::PlayerPostWitness witness;capture::Source source;std::uint64_t invalidation=0;};
   std::array<PendingBody,world::kControlAnchorCapacity> pending_bodies{};
   std::uint64_t pending_body_bytes=0;
   // 槽仅作当前绑定的本地索引；对外诊断同时给local/use/shape/binding，不将槽充当网络身份。
@@ -41,7 +41,13 @@ struct WorldCapture final {
   };
   std::array<BodyStatus,world::kControlAnchorCapacity> body_status{};
   std::uint64_t stream_invalidation=0;
-  std::map<std::uint32_t,std::uint64_t> stream_resources;
+  // 资源代次只作为纯值身份；只读getter临时副本继承来源资源代次，不冒充世界owner。
+  struct StreamResourceIdentity final {
+    std::uint64_t generation=0;bool observed=false,temporary=false;
+    // Lua按值返回的ANM保留真实copy来源；嵌套Reset完成后才能确认该别名。
+    std::uint64_t copy_generation=0;std::uint32_t copy_address=0;bool constructing=false;
+  };
+  std::map<std::uint32_t,StreamResourceIdentity> stream_resources;
   std::uint64_t next_stream_resource=0;
   std::uint64_t stream_resource_mutation=0,stream_read_resource_mutation=0;
   unsigned stream_resource_depth=0;
@@ -55,6 +61,8 @@ struct WorldCapture final {
   std::size_t entity_render_bytes=0;
   // 跨房三域及新增四域只保存自有值；Player本体引用同批Entity scope，不重复采集。
   std::array<world::observation::ObservationEnvelope,7> latest_continuity{};
+  // 每个Lua来源的最近实际Partial原因，仅供诊断；不改变完整采集或发布资格。
+  std::array<std::string,11> lua_partial_reasons{};
   GlobalRandomMirror global_random{};
   std::shared_ptr<RandomRegistry> random_sources=MakeRandomRegistry();
   world::observation::ObservationEnvelope latest_global_random{};
@@ -110,6 +118,7 @@ std::shared_ptr<WorldRecording> CurrentWorldRecording() noexcept;
 bool WorldCaptureActive() noexcept;
 // 仅主线程取共享自有值；后台持有返回值不延长任何游戏对象/Lua借用。
 std::shared_ptr<const world::observation::LiveBatch> CurrentLiveCapture() noexcept;
+std::array<std::uint64_t,4> CurrentLiveSource() noexcept;
 std::shared_ptr<const replica::stream::Publication> CurrentLiveWorld() noexcept;
 std::shared_ptr<const replica::stream::Publication> CurrentLiveBaseline() noexcept;
 bool RequestLiveBaseline() noexcept;

@@ -53,13 +53,19 @@ Limits NegotiatedWorldLimits(const Value &caps){
   auto agreed=Negotiate(Capabilities(),caps);const auto &v=agreed["world_limits"];auto l=WorldLimits();
   l.bytes=unsigned(Unsigned(v["bytes"]));l.nodes=unsigned(Unsigned(v["nodes"]));l.depth=unsigned(Unsigned(v["depth"]));l.string_bytes=unsigned(Unsigned(v["string_bytes"]));l.fragments=unsigned(Unsigned(v["fragments"]));l.candidates=unsigned(Unsigned(v["candidates"]));l.value_bytes=Unsigned(v["value_bytes"]);return l;
 }
+Limits NegotiatedFastLimits(const Value &caps){
+  // 快通道使用自己的协商字节/节点/候选/分片上限；其余模型预算沿用共同的世界上限。
+  auto agreed=Negotiate(Capabilities(),caps);const auto &v=agreed["fast_limits"],&world=agreed["world_limits"];auto l=WorldLimits(true);
+  l.bytes=unsigned(Unsigned(v["bytes"]));l.nodes=unsigned(Unsigned(v["nodes"]));l.fragments=unsigned(Unsigned(v["fragments"]));l.candidates=unsigned(Unsigned(v["candidates"]));
+  l.depth=unsigned(Unsigned(world["depth"]));l.string_bytes=unsigned(Unsigned(world["string_bytes"]));l.value_bytes=Unsigned(world["value_bytes"]);return l;
+}
 bool Reliable(Lane lane) noexcept {return lane==Lane::Baseline||lane==Lane::Context;}
 SharedBlob EncodeBlob(const Message &m,bool compress,Limits limits){
   if(limits.datagram<=64||limits.datagram>1200)Fail("stream_datagram_budget");
   const auto lane=MessageLane(m);if(!Reliable(lane)){const auto cap=WorldLane(lane)?WorldLimits(true):HandshakeLimits();limits.bytes=(std::min)(limits.bytes,cap.bytes);limits.nodes=(std::min)(limits.nodes,cap.nodes);limits.depth=(std::min)(limits.depth,cap.depth);limits.string_bytes=(std::min)(limits.string_bytes,cap.string_bytes);limits.fragments=(std::min)(limits.fragments,cap.fragments);}
   if(compress&&!Reliable(lane))Fail("stream_compression_lane");
-  // Encode同时持有payload与完整wire；工作区在函数退出/异常时归还。
-  auto workspace=memory::Reserve(memory::Pool::Workspace,2ull*limits.bytes);const auto started=Micros(),cpu_started=ThreadCpuMicros();auto wire=Encode(m,limits);const auto encoded=Micros(),cpu_encoded=ThreadCpuMicros();workspace->Resize(wire.capacity());
+  // Encode先计量实际payload，再为同时存活的payload/wire计费；返回后只保留wire容量。
+  auto workspace=memory::Reserve(memory::Pool::Workspace,0);const auto started=Micros(),cpu_started=ThreadCpuMicros();auto wire=Encode(m,limits,workspace);const auto encoded=Micros(),cpu_encoded=ThreadCpuMicros();workspace->Resize(wire.capacity());
   // 路由封套不属于共享内容；接收端按已经授权的分片头恢复这16字节再做严格解码。
   Set(wire,24,0);Set(wire,32,0);
   auto blob=std::make_shared<Blob>();blob->decoded_bytes=std::uint32_t(wire.size());blob->sequence=m.sequence;blob->kind=m.kind;blob->lane=lane;if(m.range){blob->range_id=m.range->id;blob->sample=m.range->sample;}blob->encode_us=encoded-started;if(cpu_started!=UINT64_MAX&&cpu_encoded!=UINT64_MAX&&cpu_encoded>=cpu_started)blob->encode_cpu_us=cpu_encoded-cpu_started;
@@ -97,7 +103,7 @@ std::vector<std::vector<std::uint8_t>> Bundle(const std::vector<std::vector<std:
   }flush();return out;
 }
 Message AckMessage(const ReceiveBitmap &ack,std::uint64_t sequence,Route route){
-  Message m;m.memory=memory::Reserve(memory::Pool::Values,131072);m.kind=Kind::ReceiveAck;m.sequence=sequence;m.connection=route.connection;m.route=route.epoch;m.body.SetObject();auto &a=m.body.GetAllocator();Put(m.body,"transfer",Decimal(ack.transfer,a),a);Put(m.body,"part_count",Decimal(ack.part_count,a),a);Put(m.body,"window",Decimal(ack.window,a),a);Value bits(rapidjson::kArrayType);for(auto n:ack.bits)bits.PushBack(Value(n),a);Put(m.body,"bitmap",std::move(bits),a);Put(m.body,"complete",Value(ack.complete),a);ValidateMessage(m);return m;
+  Message m;m.memory=memory::Reserve(memory::Pool::Values,131072,"fragment_ack");m.kind=Kind::ReceiveAck;m.sequence=sequence;m.connection=route.connection;m.route=route.epoch;m.body.SetObject();auto &a=m.body.GetAllocator();Put(m.body,"transfer",Decimal(ack.transfer,a),a);Put(m.body,"part_count",Decimal(ack.part_count,a),a);Put(m.body,"window",Decimal(ack.window,a),a);Value bits(rapidjson::kArrayType);for(auto n:ack.bits)bits.PushBack(Value(n),a);Put(m.body,"bitmap",std::move(bits),a);Put(m.body,"complete",Value(ack.complete),a);ValidateMessage(m);return m;
 }
 ReceiveBitmap ReadAck(const Message &m){ValidateMessage(m);if(m.kind!=Kind::ReceiveAck)Fail("stream_not_receive_ack");ReceiveBitmap a;a.transfer=Unsigned(m.body["transfer"]);a.part_count=unsigned(Unsigned(m.body["part_count"]));a.window=unsigned(Unsigned(m.body["window"]));for(unsigned i=0;i<4;++i)a.bits[i]=Unsigned(m.body["bitmap"][i]);a.complete=m.body["complete"].GetBool();return a;}
 void RttEstimator::Observe(std::uint64_t ms) noexcept {
@@ -193,3 +199,4 @@ unsigned ReliableSender::Pump(std::uint64_t now,unsigned budget,const Send &send
 }
 std::uint64_t ReliableSender::NextWake(std::uint64_t now) const noexcept {std::uint64_t next=now+1000;for(const auto &[id,t]:transfers_){bool missing=false;next=(std::min)(next,(std::min)(t.progress+route_.config.progress_timeout_ms,t.deadline));for(unsigned i=0;i<t.count;++i)if(!t.acked[i]){missing=true;next=(std::min)(next,t.sent[i]?t.sent_at[i]+rtt_.Rto():now);}if(!missing)next=(std::min)(next,t.sent_at.back()+rtt_.Rto());}return (std::max)(now,next);}
 } // namespace cs::replica::stream
+

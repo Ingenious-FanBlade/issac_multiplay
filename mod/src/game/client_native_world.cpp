@@ -1,5 +1,6 @@
 #include "IsaacRepentance.h"
 #include "game/client_native_world.h"
+#include "game/client_dto_memory.h"
 #include "replica/room_geometry.h"
 #include "game/bridge.h"
 #include "game/context.h"
@@ -219,6 +220,7 @@ bool PlayersCurrent(const ClientNativeWorldOwner &o) noexcept {
 ClientNativeWorldOwner *ClientNativeWorldCreate() noexcept {
   return ManagerPhase()?new(std::nothrow) ClientNativeWorldOwner:nullptr;
 }
+std::uint64_t ClientNativeWorldValueBytes(const ClientNativeWorldOwner *o){return o?sizeof(*o)+dto_memory::Extra(o->description):0;}
 void ClientNativeWorldDestroy(ClientNativeWorldOwner *o) noexcept {
   if(!o||!IsMain()||(!o->retired&&o->written))return;
   delete o;

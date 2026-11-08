@@ -134,6 +134,7 @@ bool ClientEntityCommonFields(void *,const std::vector<ClientEntityField> &,bool
 ClientNativeObjects *ClientNativeObjectsCreate() noexcept;
 unsigned ClientNativeObjectsOwnerCount(const ClientNativeObjects *) noexcept;
 void ClientNativeObjectsDestroy(ClientNativeObjects *) noexcept;
+std::uint64_t ClientNativeObjectsValueBytes(const ClientNativeObjects *);
 ClientObjectStep ClientNativeObjectsExecute(ClientNativeObjects *,const ClientNativeRoots &,const ClientObjectCommand &) noexcept;
 // 全场景先处理没有Room成员的已Init池use，再撤映射；已发布实例由NativeWorld单一owner清理。
 ClientObjectStep ClientNativeObjectsAbandon(ClientNativeObjects *,const ClientNativeRoots &) noexcept;

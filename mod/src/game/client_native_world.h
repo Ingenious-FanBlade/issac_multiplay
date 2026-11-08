@@ -67,6 +67,8 @@ struct ClientNativeWorldOwner;
 struct ClientNativeRoots final {void *game=nullptr,*room=nullptr,*descriptor=nullptr,*camera=nullptr;};
 ClientNativeWorldOwner *ClientNativeWorldCreate() noexcept;
 void ClientNativeWorldDestroy(ClientNativeWorldOwner *) noexcept;
+// 只读本方描述容器容量，不读取游戏对象或图像分配。
+std::uint64_t ClientNativeWorldValueBytes(const ClientNativeWorldOwner *);
 ClientNativeStep ClientNativeWorldPrepare(ClientNativeWorldOwner *,const ClientNativeSceneDescription &) noexcept;
 ClientNativeStep ClientNativeWorldRefresh(ClientNativeWorldOwner *,const ClientNativeSceneDescription &) noexcept;
 // Backdrop.Init 的教程surface生成会读取真实首Player，必须在I2发布roster/EL后调用。

@@ -6,10 +6,26 @@ local store=shared.Store(true)
 local M={SchemaVersion=2}
 -- 固定保存Grid列声明一次；每槽仍有独立SaveEntry和值，不重复长字段名和namespace。
 local gridColumns={"GridEntityDesc.Initialized","GridEntityDesc.SpawnCount","GridEntityDesc.SpawnSeed","GridEntityDesc.State","GridEntityDesc.Type","GridEntityDesc.VarData","GridEntityDesc.VariableSeed","GridEntityDesc.Variant"}
+-- 有类型的精确比较保留旧编码区分的正/负零；整数包装、真实空集合和缺口逐字段比较。
+local function equalValues(a,b)
+  if type(a)~=type(b) then return false end
+  if type(a)=="number" then return a==b and (a~=0 or 1/a==1/b) end
+  if type(a)=="userdata" then return IsaacCSObservationNative.OwnedBlockEqual(a,b) end
+  if type(a)~="table" then return a==b end
+  for k,v in pairs(a) do if not equalValues(v,b[k]) then return false end end
+  for k in pairs(b) do if a[k]==nil then return false end end
+  return true
+end
 local function copyVector(vector,kind,c)
   local size=#vector; local out={}
   c.objects=c.objects+1 -- 域对象是保存容器；行数由nodes/queries/bytes独立约束。
   if size<0 or size>16384 then read.Fail(c,"save_container_budget") end
+  -- 仍在当前窗口完整读取，批量桥只消除逐槽userdata及八次pcall，不获得跨窗复用资格。
+  if kind=="grid" and size<=16384 and c.nodes+size*8<=read.Limits().nodes and c.queries+size*8<=read.Limits().queries then
+    local ok,rows=pcall(IsaacCSObservationNative.GridSaveValues,vector,16384)
+    if ok then c.nodes=c.nodes+size*8;c.queries=c.queries+size*8;return rows,size end
+    read.Fail(c,"save_grid_bulk_read");return {},size
+  end
   for i=0,math.min(size,16384)-1 do
     if c.nodes>=read.Limits().nodes or c.objects>=16384 then read.Fail(c,"save_node_or_object_budget"); break end
     local copied=read.Collect(vector:Get(i),kind=="grid" and "GridEntityDesc" or "EntitiesSaveState",c,0)
@@ -31,8 +47,8 @@ function M.Capture(limits)
   local nextState={}
   local function collection(owner,key,vector,kind,construction)
     local values,size=copyVector(vector,kind,c); local before=old and old.data[key]
-    local encoded=read.Encode(values)
-    local unchanged=before and before.construction==construction and before.encoded==encoded
+    -- 比较有类型的当前值；不为判等先编码JSON，保存项身份仍只依赖真实内容修订与ordinal。
+    local unchanged=before and before.construction==construction and equalValues(before.values,values)
     local revision=unchanged and before.revision or before and before.revision+1 or 1
     local entries={}
     for i,v in ipairs(values) do
@@ -42,7 +58,7 @@ function M.Capture(limits)
       else entries[#entries+1]={subject={space=8,local_id=id,session=x.session,epoch=x.epoch},ordinal=i-1,value=v,relation={resolution="Unresolved",reason="public_save_API_has_no_native_entity_or_restore_identity;seed_and_index_not_identity"}} end
     end
     local ids={}; for i,e in ipairs(entries) do ids[i]=kind=="grid" and e.local_id or e.subject.local_id end
-    nextState[key]={encoded=encoded,ids=ids,revision=revision,construction=construction}
+    nextState[key]={values=values,ids=ids,revision=revision,construction=construction}
     if not unchanged then out.changes[#out.changes+1]={owner=owner,collection=kind,revision=tostring(revision),previous_revision=before and tostring(before.revision),kind=before and "CollectionReplaced" or "FirstObserved",previous_scope=old and old.context.scope} end
     return {owner=owner,kind=kind,revision=tostring(revision),count=size,entries=entries,status=size==0 and "Empty" or "Present",encoding=kind=="grid" and "grid_columns_v2" or "named_fields_v1",columns=kind=="grid" and gridColumns or nil,column_types=kind=="grid" and {"boolean","int64_decimal","int64_decimal","int64_decimal","int64_decimal","int64_decimal","int64_decimal","int64_decimal"} or nil,entry_namespace={space=8,session=x.session,epoch=x.epoch},entry_relation={resolution="Unresolved",reason="public_save_API_has_no_native_entity_or_restore_identity;seed_and_index_not_identity"},identity_basis="immutable_collection_revision_and_ordinal;not_native_object_continuity",source_scope=x.scope}
   end

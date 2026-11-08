@@ -5,6 +5,10 @@
 
 namespace cs::net::live {
 replica::Limits Limits() noexcept;
+#ifdef ISAACCS_E2E
+// 容量负向只借用真实DLL的纯值能力声明；不构造Client、不发送Ready，也不获得原生世界。
+replica::Json E2EHandshakeCapabilities();
+#endif
 std::uint64_t Random();
 bool IsPacket(std::span<const std::uint8_t>) noexcept;
 using Packets = std::vector<std::vector<std::uint8_t>>;
@@ -26,6 +30,8 @@ struct Event final {
   unsigned ordinal = 0;
   protocol::Ack progress{};
   std::uint64_t received_ms = 0, round_trip_ms = 0, publication_age_ms = 0;
+  // 单调钟量化误差独立于测得RTT；输入投影与年龄见证必须计入该上界。
+  std::uint64_t timing_uncertainty_ms = 0;
   std::shared_ptr<const stream::Message> world;
   char reason[128]{};
 };
@@ -39,6 +45,9 @@ struct Intent final {
 };
 // 正式采集的共享信封；一次采集/编码供全部Peer，版本与身体来源保持各自时间线。
 struct Publication final {
+  // 采集会话/epoch/run/room是主线程核对的连续性键，不含原生地址。
+  // 同一键下暂缺新候选不等于撤销已交付网络的历史目标；全零表示明确退休。
+  std::array<std::uint64_t,4> source{};
   std::shared_ptr<const stream::Publication> baseline, latest;
   std::vector<std::shared_ptr<const stream::Publication>> bodies;
 };
@@ -85,6 +94,7 @@ private:
   replica::Scope scope_{};
   Operations operations_;
   PublicationSender publication_;
+  std::array<std::uint64_t,4> source_{};
   unsigned ordinal_;
   stream::RuntimeConfig config_;
   unsigned native_failures_=0;

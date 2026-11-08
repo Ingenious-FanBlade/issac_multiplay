@@ -31,8 +31,9 @@ struct ClientPresentationFX final {
   std::vector<ClientPresentationFXPose> poses;
   // generic pass在9E17B0消费+44混合模式；0覆盖、1透明、2叠加，不能用零默认值替代来源。
   unsigned blend_mode=0;
-  // 96C620实际消费+3c的浮点条件、+40的背景整数和+48的bool；其它word不进网络合同。
-  float color_branch=0;
+  // 96C620对+3c只做与0的IEEE比较；实机存在NaN，按已解释的f32条件位保留，非算术数值。
+  // +40为背景整数，+48为bool；未知其它word不进合同，也不为+3c补初始化历史。
+  std::uint32_t color_condition_bits=0;
   std::uint32_t mask_backdrop=0;
   bool mask=false;
 };
@@ -129,6 +130,7 @@ struct ClientPresentationStep final {
 struct ClientNativePresentation;
 ClientNativePresentation *ClientPresentationCreate() noexcept;
 void ClientPresentationDestroy(ClientNativePresentation *) noexcept;
+std::uint64_t ClientPresentationValueBytes(const ClientNativePresentation *);
 ClientPresentationStep ClientPresentationPrepare(ClientNativePresentation *,const ClientNativeRoots &,
                                                 const ClientPresentationDescription &) noexcept;
 bool ClientPresentationStreamCompatible(const ClientNativePresentation *,const ClientPresentationDescription &) noexcept;

@@ -2,6 +2,7 @@
 import argparse
 import json
 import re
+from cpp_catalog import string_expression
 from pathlib import Path
 from gen_entity_application_catalog import PLAYER_RELATED, RESOURCE_CLASSES
 from gen_replica_catalog import classify
@@ -233,7 +234,7 @@ def main():
     catalog = generate()
     data = json.dumps(catalog, ensure_ascii=False, separators=(",", ":"))
     (args.out / "player-application.json").write_text(data + "\n", encoding="utf-8")
-    (args.out / "player_application.inc").write_text("std::string{}" + "".join('+std::string(R"ICSP(' + data[i:i+8000] + ')ICSP")' for i in range(0, len(data), 8000)), encoding="utf-8")
+    (args.out / "player_application.inc").write_text(string_expression(data, "ICSP"), encoding="utf-8")
     if args.docs:
         (ROOT / "docs/design/tx-04-20/player-application.json").write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

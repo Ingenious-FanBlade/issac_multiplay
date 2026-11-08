@@ -71,7 +71,7 @@ Host session 通过 `PumpWorldCommands→LiveCaptureSession` 自动取得正式�
 
 当前 Live 计划以完整正式来源每个合格 ordinary 机会取得十一域，I06—I09 再接 Baseline／低频有效性和 typed窄来源；**这不是2ms性能或30／60Hz达标结论**。同一合并计划只执行一轮正式 Lua 域读取，旧 native 兼容投影不进入 Live，不按 Peer 重扫。
 
-`world/common/live_consumer.*` 在短借用回调内复制一份受256MiB账本约束的自有 envelope；同窗 tick／outer／owner／mutation／plan 和全部当次必需域正常 commit 后才公开 `shared_ptr<const LiveBatch>`。多个 Peer 使用同一批值。最后后台引用释放时归还账本，不回调已退休主线程 owner。独立 Render 不冒充 ordinary；odd-only 是原样 gap，不补世界帧。取消、loss、mutation、读失败／Partial、run／room／plan／session变化撤销候选并保留具名原因。Recorder I/O 的失败不作为 Live 或输入成功条件。
+`world/common/live_consumer.*` 在短借用回调内复制一份受512MiB账本约束（2026-11-07随用户决定翻倍的值池同步）的自有 envelope；同窗 tick／outer／owner／mutation／plan 和全部当次必需域正常 commit 后才公开 `shared_ptr<const LiveBatch>`。多个 Peer 使用同一批值。最后后台引用释放时归还账本，不回调已退休主线程 owner。独立 Render 不冒充 ordinary；odd-only 是原样 gap，不补世界帧。取消、loss、mutation、读失败／Partial、run／room／plan／session变化撤销候选并保留具名原因。Recorder I/O 的失败不作为 Live 或输入成功条件。
 
 `CurrentLiveCapture()` 仅主线程取得自有共享批次；I06／I19 再接来源与网络世界身份、不可变目标和发布。`observation status` 增加 Live 挂接、拒绝原因、交付数、持有字节及 gap 原因。当前没有网络世界快照、PlayerPost、后台游戏指针、文件桥或新原生写入。
 

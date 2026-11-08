@@ -36,7 +36,32 @@ bool Collector::Recording() const noexcept {
          storage_.Diag().FaultReason() == Reason::None;
 }
 bool Collector::Drained() const noexcept {
-  return !depth_ && !entity_reconfiguration_depth_ && !player_child_depth_ && !lifecycle_depth_ && !outer_active_ && !pending_;
+  return !depth_ && !entity_reconfiguration_depth_ && !join_effect_token_ && !player_child_depth_ && !lifecycle_depth_ && !outer_active_ && !pending_;
+}
+std::uint32_t Collector::BeginJoinEffectSource() noexcept {
+  if(GetCurrentThreadId()!=memory_.main_thread||!Recording()||!run_active_||!outer_active_)return 0;
+  if(join_effect_token_||next_join_effect_token_==UINT32_MAX){Fault(Reason::UnpairedScope,"join_effect_owner_reentry_or_sequence");return 0;}
+  join_effect_token_=++next_join_effect_token_;join_effect_depth_=depth_;join_effect_count_=0;
+  join_effect_run_=run_;join_effect_outer_=outer_;storage_.Diag().callbacks.fetch_add(1,std::memory_order_relaxed);
+  return join_effect_token_;
+}
+void Collector::EndJoinEffectSource(std::uint32_t token,bool normal) noexcept {
+  if(!token)return;
+  if(token!=join_effect_token_){Fault(Reason::UnpairedScope,"join_effect_owner_pair");return;}
+  const bool valid=normal&&Recording()&&depth_==join_effect_depth_&&run_==join_effect_run_&&outer_==join_effect_outer_;
+  // RVA591360的直接工厂支路在虚Init之后仍写成员/Publish；只在整个owner正常返回后读取。
+  // 不为旧对象补Ctor或Birth；同次Factory取得、Init返回、Publish和local/use必须全部成立。
+  if(valid)for(unsigned i=0;i<join_effect_count_;++i){const auto &w=join_effect_witnesses_[i];
+    auto *id=identities_.Find(ObjectDomain::Entity,w.address);
+    if(!w.initialized||!id||id->local_id!=w.local||id->use!=w.use||id->Retired()||id->revision||!id->candidate||id->owner_scope||!id->published||id->readiness!=unsigned(Readiness::BaseInitReturned))continue;
+    std::uint32_t vptr=0;bool base=false;
+    if(Classify(ObjectDomain::Entity,w.address,vptr,base)!=Class::Effect||!base)continue;
+    id->readiness=unsigned(Readiness::NativeJoinEffectCompleted);id->current_public_ready=true;id->candidate=false;
+    Event(EventKind::CurrentEntityReadWitness,Reason::None,id);
+  }
+  join_effect_token_=0;join_effect_count_=0;storage_.Diag().callbacks.fetch_sub(1,std::memory_order_relaxed);
+  if(!normal||depth_!=join_effect_depth_)Fault(Reason::UnpairedScope,"join_effect_owner_return");
+  CloseIfDrained();
 }
 Collector::EntityReconfiguration *Collector::EntityReconfigurationFor(std::uint32_t object) noexcept {
   if(!entity_reconfiguration_depth_)return nullptr;
@@ -1252,6 +1277,8 @@ std::uint32_t Collector::ObserveEnter(Observation kind, std::uint32_t object,
     id->current_public_ready = false;
   }
   if (id && (kind == Observation::Init || kind == Observation::GridInit)) {
+    if(kind==Observation::Init&&join_effect_token_)
+      for(unsigned i=0;i<join_effect_count_;++i){auto &w=join_effect_witnesses_[i];if(w.address==id->address&&w.local==id->local_id&&w.use==id->use)w.initialized=false;}
     bool known_owner = CreationOwner(domain) != 0;
     if(kind==Observation::Init&&EntityReconfigurationFor(object))known_owner=true;
     for (std::uint32_t i = 0; i + 1 < depth_; ++i)
@@ -1425,6 +1452,10 @@ void Collector::ObserveLeave(std::uint32_t call_id, std::uint32_t result,
         if (kind == Observation::PlayerCtor || kind == Observation::GridCtor)
           id->lifecycle = static_cast<std::uint32_t>(Lifecycle::Constructed);
         if(kind==Observation::PlayerCtor)RememberPlayerChildCtor(*id);
+        if(kind==Observation::Factory&&join_effect_token_&&call.count&&call.args[0]==1000&&id->candidate&&!id->owner_scope){
+          if(join_effect_count_==join_effect_witnesses_.size())Fault(Reason::Budget,"join_effect_witness_budget");
+          else join_effect_witnesses_[join_effect_count_++]={id->address,id->local_id,id->use,false};
+        }
       }
     } else if (kind == Observation::Publish) {
       id = Find(ObjectDomain::Entity, call.args[0]);
@@ -1439,6 +1470,8 @@ void Collector::ObserveLeave(std::uint32_t call_id, std::uint32_t result,
       if (id) {
         if (kind == Observation::Init || kind == Observation::GridInit)
           id->MarkInitReturned();
+        if(kind==Observation::Init&&join_effect_token_&&call.count&&call.args[0]==1000)
+          for(unsigned i=0;i<join_effect_count_;++i){auto &w=join_effect_witnesses_[i];if(w.address==id->address&&w.local==id->local_id&&w.use==id->use)w.initialized=true;}
         if (entity::Morph(kind)) {
           id->readiness =
               static_cast<std::uint32_t>(Readiness::CreationOwnerCompleted);
