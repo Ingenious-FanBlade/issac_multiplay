@@ -1,6 +1,6 @@
 # 4：Entity 子类
 
-状态：设计稿，未实施。上级：[总计划](README.md)。
+状态：部分实施。Familiar／Knife／Bomb 的布局、公开成员回映射和专用表现已接入生成链，未知字节与计时分支缺口保留，见[本轮实现](implementation-4-familiar-knife-bomb.md)；其余子类仍按各节设计推进。上级：[总计划](README.md)。
 
 ## 目标
 
@@ -28,7 +28,8 @@
   - **Slot、Projectile**：池步长比 SDK 各多 8 字节，多出的 0x548—0x54F、0x470—0x477 先归为未知。
   - **池步长是上界**：实际 sizeof 可能因对齐小于步长（例如 Effect 的 ctor 只写到 +0x4B8）。步长内、ctor 不写的尾部字节，核实后归为填充。
 - **其余专用池**：Text 池步长 0x530，Dummy 0x410（同上研究），按设计中的“布局编号”按虚表区分。
-- **Delirium**：`EntityDelirium` 有 8 项，位于 0xBC8—0xBE0；NativeText 有 2 项，位于 0x410—0x414。
+- **Delirium**：`EntityDelirium` 的 8 项公开字段位于 `Entity_NPC` 的 0xBC8—0xBE3，AI 实际使用到 0xBEB，见 4.2。
+- **NativeText**：有 2 项，位于 0x410—0x414。
 - **Projectile 的特殊情况**：已核偏移从 0x358 开始，落在 Entity 公共区内，本步要查清它与公共 DepthOffset 的关系。
 - **现有专用内容**（`client_entity_adapters.h`）：
   - Laser 四份几何容器（optimized／unoptimized 采样点、indices、bezier）；
@@ -48,7 +49,7 @@
 - **布局编号**：每个子类一个布局编号。Host 按虚表（RTTI）确定布局编号，不只看 `_type`，因此 Text、Dummy 这类特殊虚表能区分开。
 - **子类状态块**：按变化频率拆分，例如 Laser 的几何容器单独成块，Tear 的运动参数与外观参数分开。
 - **附加块**：辅助 Sprite、拥有型表现、Laser 几何、Pickup 循环等变长内容各自成块，元素布局按第 2 步的规则处理。
-- **专用形态**：Delirium、Effect136 等沿用现有具名 owner 的语义，只更换数据来源。
+- **专用形态**：Effect136 等沿用现有具名 owner 的语义，只更换数据来源。Delirium 不是原生子类，做成 NPC 的变体臂，见 4.2。
 - **核对重点**：子类区间中未知字节数很大，NPC 有 2896 字节，现只核了 113 字节。必须先用 J273 反编译划出构造函数、Init 和 Update 写入的范围，再逐段归类；不能把整段未知区当成填充。
 
 ### 4.1 EntityEffect 块划分（修订稿，2026-11-08）
@@ -315,9 +316,133 @@ ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发�
 - **结果**：改大只会放宽越界检查。
 - **未验证**：本次没有运行生成器或构建，由第 15 步的统一验收覆盖。
 
+### 4.2 NPC 的 Delirium 变体臂（设计稿，2026-11-08）
+
+本节取代“Delirium 沿用现有具名 owner 语义”的笼统说法。事实来自 J273 静态分析，没有运行游戏，标明“推断”的未实测。表格都是草稿，实施后以 `layouts/` 的输出为准。
+
+#### 4.2.1 为什么是变体臂，不是子类
+
+- **原生没有这个类**：J273 RTTI 的 `Entity_*` 共 13 个（本步开头表中的 10 个，加 Player、Text、Dummy），没有 Delirium。
+- **同虚表、同池**：Type 412 进 NPC 默认池（[entity-native-static](../tx-04-19/entity-native-static.md) 第 23、28 行），虚表就是 `Entity_NPC`，按虚表分不出来。
+- **`EntityDelirium` 只是 Lua 接口**：REPENTOGON 的元表以 `ENTITY_NPC` 为 `__parent`，底下仍是 `Entity_NPC*`（`LuaDelirium.cpp:260-262`）；8 个字段就声明在 `Entity_NPC` 里（`EntityNPC.zhl:137-144`）。
+
+不过这段字节只对 Type 412 有意义（见 4.2.2），归属随形态字段而不同，这正是变体臂要解决的问题（第 1 步 `variants`）。
+
+#### 4.2.2 J273 事实
+
+对 `.text` 扫描了 `+0xBC8—0xBEB` 的全部 disp32 直接寻址。经基址计算的访问看不到；`0x6ED4B0`、`0x903730`、`0x9041E0`、`0x925C00`、`0x98C690`、`0x98C7E0`、`0x98CCC0`、`0x98DDA0` 的命中上下文不像 NPC，未逐个定类。
+
+- **写入者**：Delirium AI `0x49F3D0`、`0x4A1A30`、`0x4A2720`；NPC ctor `0x6B4520`、Init `0x6B4A50`（`Entity_NPC` 虚表 +4）；`0x670200` 在判定 Type 412 后写红色模式位。
+- **其他读者**：
+  - `0x44EF70`、`0x45A450`、`0x45B130`、`0x474720`、`0x485F10`、`0x4AC220`、`0x4BF700` 这 7 个函数只读 `+BC8`，判断是否为 0 或与 `_type` 比较，用来区分当前是否由 Delirium 代跑。
+  - `0x6C9510`（虚表 +0x5C）对 Type 412 用 BossType／BossVariant 代替自身类型。
+  - NPC Render `0x6CEC90` 不读这一段。
+- **池槽残留（推断）**：Init 只清 `+BC8`、`+BCC`、`+BD0—BD3`、`+BE8`。ctor 只在工厂建池时运行（唯一引用在 `0x6EF009`），且只写 `+BE0`、`+BE4`；两者都没有范围清零。所以普通 NPC 的 `+BD8—BE7` 在池槽复用后可能留着上一只 Delirium 的值。
+- **变身不改 `_type`**：`0x49F3D0` 保存 `+0x28／+0x2C`，临时换成 BossType／BossVariant 运行，返回前恢复。tx-04-19 实测也是 BossType 20、Type 仍为 412（[验收记录](../tx-04-19/tx-04-19-acceptance.md)第 27 行）。
+- **BossType 有两条改写路径**：变身分支经虚 Init 重配；state 8 分支中，如果 Boss AI 改了 `_type`，AI 直接把新值写回 `+BC8／+BCC`，只重载主 Sprite（`0x49EC80`），不经过 Init。
+- **打包字段**：
+  - `+BD8` 的四个字节分别是弹幕编号、剩余次数、继续概率、相位计数（`0x4A1A30`），`+BDC` 低字节是 Angle。REPENTOGON 的 `AttackID` 是这四个字节合成的 u32，只有低字节是编号。
+  - `+BE0` 被当作 64 位读取，但 `+BE4` 的全部 disp32 写入点都写 0，有效内容在低 32 位。
+- **`+BE8` 是 EntityPtr 槽位**：形态 410 时由 Child（`+0x3C0`）写入，序列与 `EntityPtr::SetReference 0x858760` 相同（`0x4C8EE0` 摘旧、`0x4C79D0` 挂新）。除 Init 外只有 `0x49F3D0` 访问，公开接口也没有。
+- **变化频率**：state 8 下，AI 每个 tick 都改 `+BD0`（递减）、`+BD8`（相位计数加 1，形态 45、84:10 除外）和 `+BE0`。
+
+#### 4.2.3 变体臂
+
+| 布局 | 选择字段 `type` | 0xBC8—0xBEB | 附加块 |
+| --- | --- | --- | --- |
+| `NPC` | 其他 | 权威，36 字节，不发送 | — |
+| `NPC.Delirium` | 412 | 见 4.2.4 | DL0、DL1 |
+
+- **选臂顺序**：先按虚表确定 `Entity_NPC`，再读 `type` 选臂，与 Effect 读 `variant` 相同（第 10 步 10.2）。类别仍由虚表决定，这不是“按 type 选布局”。
+- **选择字段成立**：`type` 已标 `shape`；生成器按展开后的字节段查选择字段，继承自 `Entity` 的字段可用（[gen_state_layout.py](../../../mod/tools/gen_state_layout.py) 的 `Compiler.make_variants()`，按 `variants['selector']` 查找展开后的 `ranges`；不用易过期的固定行号）。
+- **基础臂归为权威**：字节类别里没有“不适用”。这段对普通 NPC 没有玩法含义，Client 也不运行 AI；不发送，残留值也就不会上线。
+- **采集时机**：`type` 只有在 AI 之外才是 412。采集窗口不能落在 `0x49F3D0` 内，沿用现有“owner 未退尽不提交采集”的规则（[验收记录](../tx-04-19/tx-04-19-acceptance.md)第 152 行）。
+- **编号**：布局编号和块号在实施 NPC 条目时分配，DL0、DL1 接在 NPC 共有块之后。
+
+#### 4.2.4 原生字节归属（草稿）
+
+**NPC.Delirium 原生字节归属（0xBC8—0xBEB）**
+
+| 0x000—0xBC7【—】公共部分与 NPC 前段，见各自表格 | 0xBC8 u32 BossType【状态】当前变身的 Boss 类型，形态字段 | 0xBCC u32 BossVariant【状态】当前变身的 Boss 变体，形态字段 | 0xBD0 u16 TransformationTimer【状态】距下次变身的帧数 | 0xBD2 u8 RemainingAttacks【状态】变身前剩余攻击次数 | 0xBD3 u8 StateD【状态】Delirium 内部状态机 | 0xBD4—0xBD7 4B【未知】无 disp32 访问，疑似对齐填充，待证实 | 0xBD8 u32 AttackID【状态】弹幕打包值，见 4.2.2 | 0xBDC u8 Angle【状态】弹幕角度，0—255 | 0xBDD—0xBDF 3B【未知】写入时恒为 0，疑似位域填充，待证实 | 0xBE0 u32 Cycle【状态】红色模式与传送计时打包值 | 0xBE4—0xBE7 4B【未知】全部写入点写 0，疑似填充，待证实 | 0xBE8 EntityPtr companion【权威】形态 410 的伴随实体，只有 AI 使用 | 0xBEC—0xF5F【—】NPC 其余部分，待划定 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+
+**未知字节合计**：11 字节。
+
+#### 4.2.5 状态块
+
+| 块 | 适用布局 | 内容 | 长度 | 变化频率 |
+| --- | --- | --- | --- | --- |
+| DL0 形态 | `NPC.Delirium` | BossType、BossVariant | 8B | 低：只在变身时变化 |
+| DL1 动态 | `NPC.Delirium` | TransformationTimer、RemainingAttacks、StateD、AttackID、Angle、Cycle | 13B | 高：state 8 下每个 AI tick 变化 |
+
+**DL0 形态（8 字节）**：复制 `[0xBC8,0xBD0)`。
+
+| +0x00 u32 BossType：当前变身的 Boss 类型 | +0x04 u32 BossVariant：当前变身的 Boss 变体 |
+|---|---|
+
+**DL1 动态（13 字节）**：复制 `[0xBD0,0xBD4)`、`[0xBD8,0xBDD)`、`[0xBE0,0xBE4)`。
+
+| +0x00 u16 TransformationTimer：距下次变身的帧数 | +0x02 u8 RemainingAttacks：变身前剩余攻击次数 | +0x03 u8 StateD：内部状态机 | +0x04 u32 AttackID：弹幕打包值 | +0x08 u8 Angle：弹幕角度 | +0x09 u32 Cycle：红色模式与传送计时打包值 |
+|---|---|---|---|---|---|
+
+划分理由：
+
+- **DL0 单独成块**：它的变化走形态路径，不和高频字段混在一起。
+- **DL1 独立于 NPC 主块**：它每个 tick 都变，独立成块才不会连带 NPC 主块重发。块本身只有 13 字节，一个房间通常只有一只 Delirium，带宽可以忽略。
+- **不做帧锚点**：这些计数只在 state 8 前进，并由 AI 按条件改写，属于第 3 步列出的条件计时，不能按全局帧线性还原。
+
+#### 4.2.6 形态变化
+
+- **形态字段**：`BossType`、`BossVariant` 标 `shape`。第 3 步列的是 Entity 公共形态字段，这两个由本臂追加。
+- **检测方式**：第 11 步比较当前布局全部 `shape` 字段的值，不写死 type、variant。这样经 Init 和不经 Init 的两条路径都能覆盖。
+- **布局编号不变**：变身不改 `type`，成员始终是 `NPC.Delirium`。
+- **`world_delirium_owner` 保留，职责收窄**：旧路径用它在 Init 时升 shape（`mod/src/world/collector.cpp:1317-1321`）。新路径由字段比较换代，它只负责在变身内的 Init 之后恢复 `+0x177` 的读取资格（规范第 11 节），不再升 shape，否则同一次变身会换代两次。
+- **Client**：按第 13 步 13.2 退休旧实例、按新形态构造，不调用 AI，也不重新抽 Boss。
+- **专用 draw 限制不变**：变到 Type 835、906、920、921 等形态时，仍按 [tx-04-19-class-application](../tx-04-19/tx-04-19-class-application.md) 第 47 行写前拒绝，不因分臂放宽。
+
+#### 4.2.7 写入方式与校验
+
+- **写入方式**：DL0、DL1 全部字段用 `direct`。现有 Client 按这些宽度直接写入（`client_entity_class_fields.inc:22-29`），J273 的 AI 也是普通赋值。
+- **校验**：字段都是定宽整数，按原宽度写回，不需要额外校验。
+- **`+BE8` 不写**：归为权威，Client 上保持 Init 写入的 0。
+
+#### 4.2.8 公开成员回映射
+
+| 公开成员 | 映射 |
+| --- | --- |
+| BossType、BossVariant | DL0 |
+| TransformationTimer、RemainingAttacks、StateD、AttackID、Angle、Cycle | DL1 |
+| GetTeleportationTimer | 派生：`(Cycle >> 15) & 0x3FF`（`LuaDelirium.cpp:211`） |
+| IsRedMode | 派生：`((Cycle >> 7) & 0xFF) != 0`（`LuaDelirium.cpp:191`） |
+| SetRedMode、SetTeleportationTimer、Transform | 不适用：操作，不是状态 |
+
+#### 4.2.9 同步修改的文档（2026-11-08 已完成）
+
+- **第 1 步**：`variants` 增加 NPC 的例子。
+- **第 3 步**：3.1 注明子类可以追加形态字段。
+- **第 10 步**：读取规则增加 `world_delirium_owner` 的资格见证；10.2 增加 NPC 选臂和采集时机。
+- **第 11 步**：11.2 的 shape 判定改为按布局的 `shape` 字段；增加对应失败方式。
+- **第 14 步**：14.3 注明该 Hook 保留及其职责。
+
+布局源没有改动，`entity.json` 的 NPC 条目在实施第 4 步时写入，布局版本届时递增。
+
+### 4.3 Familiar、Knife、Bomb 本轮实现（2026-11-08）
+
+布局源为 `mod/binding/state/entity-classes.json`，布局版本 16。本节记录实际实现范围；不把未知字节归属和第 15 步验收提前写成完成。生成表分别见 [Familiar](layouts/EntityFamiliar.md)、[Knife](layouts/EntityKnife.md)、[Bomb](layouts/EntityBomb.md)，证据与主审见[静态证据](familiar-knife-bomb-evidence.md)。
+
+- 三类继承 Entity 的 E0—E9，子类块从 10 起。Familiar／Knife／Bomb 编号分别为 120／121／122；Familiar 的 48／231 变体臂为 123／124，分别传送 IsaacsBodyData 和 AbyssLocustData，不在 Client 创建其他未知玩法 owner。
+- Familiar `+0xDB8` 的 ANM2 与主 Sprite 独立；Bomb `+0x464` 的五份 ANM2 按 0x114 步长分别投影。外观、动画、图层分别成块；共享 payload 和 Sprite vector 的元素也按子块投影，避免动画变化重发整组资源。
+- Familiar.Player `+0x410` 按裸借用映射；KnifePlus.hitboxSource 按 EntityPtr 映射。派生 Plus 沿用同一份 E9 伴随来源，不重复发送基类字段。
+- Familiar FireCooldown、Bomb `+0x410` 保留明确方向的 mode/value 锚点声明。尚未核定活动条件必须报 Gap，条目保持“推断”。HeadFrameDelay 的线性计时语义没有证据，改为直接保存公开 i32 原值，不要求计时方向。Bomb `+0x414` 完整用途未知，继续不复制。
+- 恢复旧路径已同步的 Knife `+0x4F4/+0x4F8/+0x4FC/+0x500` 和 Familiar `+0xDAC` 五个 EntityPtr 槽；以身份／待登记句柄采集，后台转成员序号，Client 经引用 owner 恢复。Knife `+0x4E7` 降为“推断”的原始 u8，不强加未证明的 bool 0/1 约束。
+- 蝗虫两组 Sprite 的 `count_groups` 合计上限为 16384，不是每组各自独立允许 16384；同组各投影 count 必须一致，数字检查表与生成文档来自同一源。
+- 原生范围按 J273 池步长 F30／520／9D8；Knife SDK 的 E78 仅作差异记录。完整未知列表和各嵌套对象的未知均由生成表保留，本轮不声明类型字节完整。
+
+详细交付、编译与后续第 10／13／14 步接线责任见[实现说明](implementation-4-familiar-knife-bomb.md)。
+
 ## 改动范围
 
-- 布局源 `state/entity.json` 中的十个子类条目和专用块；其中 Effect 按 4.1 分为 6 个变体臂布局。
+- 布局源 `state/entity.json` 中的十个子类条目和专用块；其中 Effect 按 4.1 分为 6 个变体臂布局，NPC 按 4.2 增加 Delirium 变体臂。
 - Effect 的 Timeout 换算函数和 `effect_timeout` writer。
 - Client 类别写入由生成表分派，取代 `ClientEntityClassState.fields` 的字符串匹配。专用容器继续沿用现有写入函数，例如 `ClientEntityCollections`。
 
@@ -335,6 +460,10 @@ ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发�
 - **Effect 到期帧基准不一致**：两端换算 Timeout 用的帧基准不同，例如 Client 误用自己的 `Game+0x25A70`；或者装好新的 world 帧后，没有按新的 game_frame 重写 Timeout。
 - **Effect 轨迹失控**：轨迹节点数没有上限或含非有限值；整条轨迹每帧重发，超出带宽。
 - **Effect 格子描述重复**：举起的格子描述在 Effect 和 Grid 两处各发一份，而且内容不一致。
+- **Delirium 变身漏检**：只比较 type、variant，BossType 变化没有走形态路径，Client 的旧实例继续接收新形态的块。
+- **Delirium 选错臂**：采集窗口落在 `0x49F3D0` 内，`type` 是临时的 Boss 类型，对象被套上基础臂。
+- **发送池槽残留**：把普通 NPC 的 `+BD8—BE7` 当状态发送，内容是上一只 Delirium 留下的值。
+- **Delirium 重复换代**：`world_delirium_owner` 和字段比较各升一次 shape，同一次变身退休两次实例。
 
 ## 完成内容
 
@@ -355,3 +484,8 @@ ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发�
 - Effect 的 MinRadius、MaxRadius、Rotation、Scale 的实际变化频率。如果高频，移入 FX0。
 - 轨迹节点 64 字节布局的 J273 核对，以及节点数上限。
 - 三种 payload 以外，其他变体的 ExtraData 在 Client 上是否有消费者。
+- Delirium：
+  - `+BD4—BD7`、`+BDD—BDF`、`+BE4—BE7` 共 11 字节能否证实为填充；
+  - 普通 NPC 的 `+BD8—BE7` 池槽残留是否真实发生；
+  - DL1 的六个字段在 Client 上没有原生消费者（不运行 AI），现按 `ReplicatedState` 保留发送，第 15 步后可以再判断是否改归权威；
+  - `+BE8` 归为权威的前提是 Client 无消费者；第 15 步如果发现形态 410 的画面依赖它，再改为引用。

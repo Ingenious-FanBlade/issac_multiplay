@@ -40,7 +40,7 @@
 
 ### 3.1 字节归属要点
 
-- **身份与分类**：type、variant、subtype、spawner 均为状态。这些字段一变化就是形态变化（shape），走成员表的结构路径（第 11 步）。
+- **身份与分类**：type、variant、subtype、spawner 均为状态。这些字段一变化就是形态变化（shape），走成员表的结构路径（第 11 步）。子类可以用 `shape` 标记追加形态字段，例如 Delirium 变身时 `_type` 不变，由 BossType／BossVariant 表示形态（第 4 步 4.2.6）。
 - **索引**：`_index`、`_collisionIndex` 归本地，不用作网络身份。现有描述中的 `authority_index` 只用于相同 Z 值时的绘制次序，归为换算，语义不变。
 - **RNG**：`_dropRNG` 归权威。
 - **种子**：`_initSeed` 归状态，Client 绘制和构造需要它（`ClientObjectDescription.seed`）。

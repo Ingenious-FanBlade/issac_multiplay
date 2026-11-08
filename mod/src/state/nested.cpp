@@ -193,6 +193,15 @@ std::uint16_t ResolveReference(std::uint32_t address, ReferenceResolver resolver
     Fail(field, "reference_not_in_membership");
   return result;
 }
+CapturedReference CaptureReference(std::uint32_t address, ReferenceCapture capture, std::string_view field) {
+  if (!address) return {};
+  if (!capture.identify_or_reserve) Fail(field, "reference_capture_owner_missing");
+  const auto result = capture.identify_or_reserve(capture.context, address);
+  if (!result.handle || (result.kind != CapturedReferenceKind::Identity &&
+                         result.kind != CapturedReferenceKind::Pending))
+    Fail(field, "reference_identity_or_reservation_missing");
+  return result;
+}
 ResourceTable::ResourceTable(std::uint64_t epoch) : epoch_(epoch) {
   if (!epoch) Fail("resource", "zero_epoch");
 }

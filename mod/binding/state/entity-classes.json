@@ -1,0 +1,2925 @@
+{
+  "types": [
+    {
+      "type": "EntityFamiliarPlus",
+      "layout": 16,
+      "native_size": "0x1c",
+      "parent": "EntityPlus",
+      "rtti": {
+        "name": "官方REP扩展；由已核实体类与既存holder限定动态类型",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": "0x10",
+          "size": "0x8",
+          "name": "cached_multiplier",
+          "type": "optional<f32>",
+          "category": "权威",
+          "semantics": "Host倍率回调缓存；读取getter可能触发回调计算，正式采集不调用",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x18",
+          "size": "0x4",
+          "name": "cached_multiplier_player",
+          "type": "uintptr_t",
+          "category": "本地",
+          "semantics": "缓存归属的本进程Player地址；不作身份",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": []
+    },
+    {
+      "type": "EntityKnifePlus",
+      "layout": 17,
+      "native_size": "0x14",
+      "parent": "EntityPlus",
+      "rtti": {
+        "name": "官方REP扩展；由已核实体类与既存holder限定动态类型",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": "0x10",
+          "size": "0x4",
+          "name": "hitbox_source",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "REP近战hitbox来源；EntityPtr owner维护反向引用",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 1,
+          "name": "KnifePlus hitbox来源",
+          "sequence": "world",
+          "fields": [
+            "hitbox_source"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": []
+    },
+    {
+      "type": "FamiliarIsaacsBodyData",
+      "layout": 18,
+      "native_size": "0x578",
+      "parent": null,
+      "rtti": {
+        "name": ".?AVIsaacsBodyData@IsaacRepentancePlus@@",
+        "rva": "0x7d169c"
+      },
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "body_vtable",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "IsaacsBodyData原生虚表；由现有具名owner构造",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x114",
+          "name": "body_sprite_0",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立Sprite；外观、动画和图层分别投影，禁止复制本地资源地址",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x118",
+          "size": "0x114",
+          "name": "body_sprite_1",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立Sprite；外观、动画和图层分别投影，禁止复制本地资源地址",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x22c",
+          "size": "0x114",
+          "name": "body_sprite_2",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立Sprite；外观、动画和图层分别投影，禁止复制本地资源地址",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x340",
+          "size": "0x114",
+          "name": "body_sprite_3",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立Sprite；外观、动画和图层分别投影，禁止复制本地资源地址",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x454",
+          "size": "0x114",
+          "name": "body_sprite_4",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立Sprite；外观、动画和图层分别投影，禁止复制本地资源地址",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x568",
+          "size": "0x4",
+          "name": "body_index_0",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "身体绘制选择索引；负数表示跳过，保留有符号值",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x56c",
+          "size": "0x4",
+          "name": "body_index_1",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "身体绘制选择索引；负数表示跳过，保留有符号值",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x570",
+          "size": "0x4",
+          "name": "body_index_2",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "身体绘制选择索引；负数表示跳过，保留有符号值",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x574",
+          "size": "0x4",
+          "name": "body_index_3",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "身体绘制选择索引；负数表示跳过，保留有符号值",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "身体payload外观与索引",
+          "sequence": "world",
+          "fields": [
+            "body_index_0",
+            "body_index_1",
+            "body_index_2",
+            "body_index_3",
+            "body_sprite_0#0",
+            "body_sprite_1#0",
+            "body_sprite_2#0",
+            "body_sprite_3#0",
+            "body_sprite_4#0"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "身体payload动画",
+          "sequence": "world",
+          "fields": [
+            "body_sprite_0#1",
+            "body_sprite_1#1",
+            "body_sprite_2#1",
+            "body_sprite_3#1",
+            "body_sprite_4#1"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "身体payload图层",
+          "sequence": "world",
+          "fields": [
+            "body_sprite_0#2",
+            "body_sprite_1#2",
+            "body_sprite_2#2",
+            "body_sprite_3#2",
+            "body_sprite_4#2"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": []
+    },
+    {
+      "type": "FamiliarAbyssLocustData",
+      "layout": 19,
+      "native_size": "0x58",
+      "parent": null,
+      "rtti": {
+        "name": ".?AVAbyssLocustData@IsaacRepentancePlus@@",
+        "rva": "0x7d16d0"
+      },
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "locust_vtable",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "AbyssLocustData原生虚表；由具名owner构造",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x18",
+          "name": "unknown_4_1b",
+          "type": "bytes[24]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x1c",
+          "size": "0x8",
+          "name": "locust_gameplay_tree",
+          "type": "tree-header",
+          "category": "权威",
+          "semantics": "Host玩法树；Client现有owner只建本地空sentinel，不浅拷贝节点",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x24",
+          "size": "0xc",
+          "name": "locust_sprites_a",
+          "type": "std::vector<ANM2>",
+          "category": "容器",
+          "semantics": "第一组完整Sprite元素；两组合计不超过16384元素；各投影count必须一致，每个投影另受128MiB编码预算与全局池预算约束，超限报Gap，不截断",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "ANM2",
+            "stride": "0x114",
+            "limit": 16384,
+            "storage": "vector",
+            "host": "read_native_vector",
+            "client": "install_locust_sprites_a",
+            "projections": [
+              0,
+              1,
+              2
+            ],
+            "max_bytes": 134217728
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x30",
+          "size": "0xc",
+          "name": "locust_sprites_b",
+          "type": "std::vector<ANM2>",
+          "category": "容器",
+          "semantics": "第二组完整Sprite元素；两组合计不超过16384元素；各投影count必须一致，每个投影另受128MiB编码预算与全局池预算约束，超限报Gap，不截断",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "ANM2",
+            "stride": "0x114",
+            "limit": 16384,
+            "storage": "vector",
+            "host": "read_native_vector",
+            "client": "install_locust_sprites_b",
+            "projections": [
+              0,
+              1,
+              2
+            ],
+            "max_bytes": 134217728
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x3c",
+          "size": "0x4",
+          "name": "unknown_3c_3f",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x40",
+          "size": "0xc",
+          "name": "locust_gameplay_vector",
+          "type": "vector-header",
+          "category": "权威",
+          "semantics": "Host专用4字节元素容器；元素语义未闭合，不在Client重建玩法集合",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x4c",
+          "size": "0x4",
+          "name": "locust_external_link",
+          "type": "EntityPtr",
+          "category": "权威",
+          "semantics": "外部反向引用关联；Client专用payload保持为空，不复制Host关系",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x50",
+          "size": "0x1",
+          "name": "locust_unknown_50",
+          "type": "u8",
+          "category": "未知",
+          "semantics": "旧研究记录为bool，未闭合实际消费者与含义，不升级为可复制状态",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x51",
+          "size": "0x7",
+          "name": "unknown_51_57",
+          "type": "bytes[7]",
+          "category": "未知",
+          "semantics": "尚未核定的原生尾部；池步长不证明填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "蝗虫Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "locust_sprites_a#0",
+            "locust_sprites_b#0"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "蝗虫Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "locust_sprites_a#1",
+            "locust_sprites_b#1"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "蝗虫Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "locust_sprites_a#2",
+            "locust_sprites_b#2"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "count_groups": [
+        {
+          "name": "locust_sprites_total",
+          "fields": [
+            "locust_sprites_a",
+            "locust_sprites_b"
+          ],
+          "limit": 16384,
+          "evidence": "mod/src/game/client_entity_class_model.cpp::Owned，AbyssLocust两组合计<=16384"
+        }
+      ]
+    },
+    {
+      "type": "EntityFamiliar",
+      "layout": 120,
+      "native_size": "0xf30",
+      "parent": "Entity",
+      "rtti": {
+        "name": ".?AVEntity_Familiar@IsaacRepentancePlus@@",
+        "rva": "0x7d1310"
+      },
+      "ranges": [
+        {
+          "offset": "0x410",
+          "size": "0x4",
+          "name": "familiar_player",
+          "type": "Entity_Player*",
+          "category": "引用",
+          "semantics": "所属Player裸借用；不是EntityPtr，不调用带队形玩法副作用的Player setter",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "familiar_player_to_member",
+            "client": "install_familiar_player_borrow"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x414",
+          "size": "0x4",
+          "name": "unknown_414_417",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x418",
+          "size": "0x1e0",
+          "name": "history_storage_unknown",
+          "type": "bytes[480]",
+          "category": "未知",
+          "semantics": "ctor清零60组8B；元素语义与全部消费者未闭合",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x5f8",
+          "size": "0x4",
+          "name": "move_delay_num",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "相对Player的移动延迟帧数参数；REP Wiki GetMoveDelayNum/SetMoveDelayNum；不是从名字推定的倒计时",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x5fc",
+          "size": "0x750",
+          "name": "pathfinder",
+          "type": "NPCAI_Pathfinder",
+          "category": "权威",
+          "semantics": "Host寻路与移动模拟；Client不运行AI；不复制内嵌_entity回指、路径marker和计时器",
+          "status": "SDK声明",
+          "evidence": "SDK NPCAI_Pathfinder.zhl size0x750；Familiar ctor606F00调用7D97D0；Client Update隔离"
+        },
+        {
+          "offset": "0xd4c",
+          "size": "0x4",
+          "name": "fire_cooldown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "FireCooldown按变体可加、可减；不能一律倒计时",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md；state/entity_counters.h；方向/活动条件未全部核定时必须Gap",
+          "wire": {
+            "kind": "convert",
+            "type": "u64",
+            "host": "fire_cooldown_to_anchor",
+            "client": "fire_cooldown_from_anchor"
+          },
+          "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
+        },
+        {
+          "offset": "0xd50",
+          "size": "0x4",
+          "name": "head_frame_delay",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "公开HeadFrameDelay原始i32；尚未证明为线性计时器，直接保留当前值，不要求方向/时钟资格",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md：HeadFrameDelay计时语义未闭合，原始i32不要求时钟换算",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd54",
+          "size": "0x4",
+          "name": "move_direction",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "移动方向",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd58",
+          "size": "0x4",
+          "name": "shoot_direction",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "射击方向",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd5c",
+          "size": "0x4",
+          "name": "last_direction",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "上次方向",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd60",
+          "size": "0x4",
+          "name": "orbit_angle_offset",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "轨道角度偏移",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd64",
+          "size": "0x8",
+          "name": "orbit_distance",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "轨道椭圆半径",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd6c",
+          "size": "0x4",
+          "name": "orbit_speed",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "轨道转速",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd70",
+          "size": "0x4",
+          "name": "orbit_layer",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "轨道层，-1表示未加入",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd74",
+          "size": "0x1",
+          "name": "is_follower",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "跟随队列标记",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd75",
+          "size": "0x1",
+          "name": "is_delayed",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "延迟队列标记",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd76",
+          "size": "0x6",
+          "name": "unknown_d76_d7b",
+          "type": "bytes[6]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0xd7c",
+          "size": "0x4",
+          "name": "coins",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "持有硬币",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd80",
+          "size": "0x4",
+          "name": "hearts",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "持有红心",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd84",
+          "size": "0x4",
+          "name": "keys",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "持有钥匙",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd88",
+          "size": "0x4",
+          "name": "familiar_state",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "跟班状态",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd8c",
+          "size": "0x4",
+          "name": "room_clear_count",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "房间清理计数",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xd90",
+          "size": "0x1c",
+          "name": "unknown_d90_dab",
+          "type": "bytes[28]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0xdac",
+          "size": "0x4",
+          "name": "familiar_related",
+          "type": "EntityPtr",
+          "category": "引用",
+          "status": "已核",
+          "semantics": "NativeFamiliar.Related独立关系槽；目标按同帧身份/待登记句柄采集，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "evidence": "mod/src/game/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          }
+        },
+        {
+          "offset": "0xdb0",
+          "size": "0x4",
+          "name": "weapon_owner",
+          "type": "Weapon*",
+          "category": "权威",
+          "semantics": "Host武器玩法owner；Render不直接消费此槽；不把裸指针复制到Client",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0xdb4",
+          "size": "0x1",
+          "name": "is_lil_delirium",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "小谵妄形态标记",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xdb5",
+          "size": "0x3",
+          "name": "unknown_db5_db7",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0xdb8",
+          "size": "0x114",
+          "name": "familiar_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立Sprite；外观、动画和图层分别投影，禁止复制本地资源地址",
+          "status": "已核",
+          "evidence": "J273 ctor606F00：VA606FCB调用ANM2 ctor，ECX=this+DB8；Render61E360",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xecc",
+          "size": "0x8",
+          "name": "familiar_extra",
+          "type": "shared-owner",
+          "category": "权威",
+          "semantics": "基础臂私有玩法ExtraData；48/231另用已核typed payload臂",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0xed4",
+          "size": "0x4",
+          "name": "item_config",
+          "type": "ItemConfig_Item*",
+          "category": "资源",
+          "semantics": "完整ItemConfig资源标识；Null与有效配置区分",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "target": "item-config",
+            "host": "item_config_to_resource",
+            "client": "item_config_from_resource"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xed8",
+          "size": "0x4",
+          "name": "unknown_ed8_edb",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0xedc",
+          "size": "0x2c",
+          "name": "dirt_color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "跟班泥土颜色",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "ColorMod"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xf08",
+          "size": "0x4",
+          "name": "unknown_f08_f0b",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0xf0c",
+          "size": "0x4",
+          "name": "wisp_collectible_type",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "魂火道具类型，SDK声明",
+          "status": "SDK声明",
+          "evidence": "SDK EntityFamiliar.zhl _wispCollectibleType +F0C",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xf10",
+          "size": "0x18",
+          "name": "unknown_f10_f27",
+          "type": "bytes[24]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0xf28",
+          "size": "0x4",
+          "name": "target_index_tree_sentinel",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "本进程目标Index/计数树的sentinel指针；元素具体用途仍未闭合，不发送节点地址",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md；主审61DB46—61DB6D经4521A0读取Target+20为key"
+        },
+        {
+          "offset": "0xf2c",
+          "size": "0x4",
+          "name": "unknown_f2c_f2f",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "与目标Index树实现相邻的控制字，精确语义未闭合，不以模板符号推定",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 10,
+          "name": "F0 计时与方向",
+          "sequence": "world",
+          "fields": [
+            "head_frame_delay",
+            "fire_cooldown",
+            "move_direction",
+            "shoot_direction",
+            "last_direction",
+            "orbit_angle_offset",
+            "familiar_state"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "F1 跟班参数",
+          "sequence": "world",
+          "fields": [
+            "move_delay_num",
+            "orbit_distance",
+            "orbit_speed",
+            "orbit_layer",
+            "is_follower",
+            "is_delayed",
+            "coins",
+            "hearts",
+            "keys",
+            "room_clear_count",
+            "is_lil_delirium",
+            "wisp_collectible_type"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "F2 所属关系与配置",
+          "sequence": "world",
+          "fields": [
+            "familiar_player",
+            "item_config",
+            "familiar_related"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "F3 颜色",
+          "sequence": "world",
+          "fields": [
+            "dirt_color"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "F4 附加Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "familiar_sprite#0"
+          ]
+        },
+        {
+          "id": 15,
+          "name": "F5 附加Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "familiar_sprite#1"
+          ]
+        },
+        {
+          "id": 16,
+          "name": "F6 附加Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "familiar_sprite#2"
+          ]
+        }
+      ],
+      "conversions": {
+        "fire_cooldown_to_anchor": "只按已核原生分支选择EntityCounterMode Frozen/Increasing/Decreasing；EncodeEntityCounter以Host game_frame形成u64：低32位mode，高32位value；活跃时钟或方向未知报Gap，不把未知当Frozen。FireCooldown按变体可加、可减；不能一律倒计时",
+        "fire_cooldown_from_anchor": "先ValidEntityCounter拒绝mode>2，用最近已应用world game_frame调用DecodeEntityCounter；保留有符号值及回绕，不推进AI/爆炸；每个world展示时钟变化由第13步重写。"
+      },
+      "validators": {
+        "orbit_angle_offset": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "orbit_speed": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "is_follower": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "is_delayed": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "is_lil_delirium": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [
+        {
+          "id": "EntityFamiliar.CanBeDamagedByEnemies",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host敌人伤害资格查询；Client不执行伤害或敌人碰撞，最终HP与表现由Entity公共块安装。"
+        },
+        {
+          "id": "EntityFamiliar.CanBeDamagedByLasers",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host激光伤害资格查询；Client不执行激光伤害判定。"
+        },
+        {
+          "id": "EntityFamiliar.CanBeDamagedByProjectiles",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host弹体伤害资格查询；Client不执行弹体碰撞伤害判定。"
+        },
+        {
+          "id": "EntityFamiliar.CanBlockProjectiles",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host阻挡弹体资格查询；Client不模拟碰撞/阻挡，不靠重跑查询生成世界变化。"
+        },
+        {
+          "id": "EntityFamiliar.CanCharm",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host魅惑资格查询；Client不裁决状态施加，使用Entity公共状态的最终结果。"
+        },
+        {
+          "id": "EntityFamiliar.Coins",
+          "disposition": "field",
+          "fields": [
+            "coins"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.FireCooldown",
+          "disposition": "field",
+          "fields": [
+            "fire_cooldown"
+          ],
+          "reason": "原生i32按已核分支换算为mode/value帧锚；活动条件尚未闭合时报Gap，不能伪装为静态原值"
+        },
+        {
+          "id": "EntityFamiliar.GetActiveWeaponEntity",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host Weapon虚函数查询结果；当前Client不构造这份玩法Weapon，不能把其本地对象地址当作状态。"
+        },
+        {
+          "id": "EntityFamiliar.GetActiveWeaponNumFired",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host Weapon射击累计查询；Client不执行射击裁决，保留Host职责。"
+        },
+        {
+          "id": "EntityFamiliar.GetDirtColor",
+          "disposition": "field",
+          "fields": [
+            "dirt_color"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.GetFollowerPriority",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host跟随队列排序查询；队列维护与跟随移动在Authority，Client应用最终位置和显式IsFollower/IsDelayed状态。"
+        },
+        {
+          "id": "EntityFamiliar.GetItemConfig",
+          "disposition": "field",
+          "fields": [
+            "item_config"
+          ],
+          "reason": "ItemConfig指针转换到完整配置资源表标识"
+        },
+        {
+          "id": "EntityFamiliar.GetMoveDelayNum",
+          "disposition": "field",
+          "fields": [
+            "move_delay_num"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.GetMultiplier",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host倍率回调求值与EntityFamiliarPlus缓存；Lua getter可能为补缓存执行原生函数和回调，正式采集不调用，Client不重演倍率裁决。"
+        },
+        {
+          "id": "EntityFamiliar.GetPathfinder",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host内嵌NPCAI_Pathfinder +5FC；路径搜索与移动模拟属于Authority，Client不运行寻路。"
+        },
+        {
+          "id": "EntityFamiliar.GetWeapon",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host Weapon owner +DB0；Client不运行Weapon玩法，也不浅拷贝对象指针。"
+        },
+        {
+          "id": "EntityFamiliar.HeadFrameDelay",
+          "disposition": "field",
+          "fields": [
+            "head_frame_delay"
+          ],
+          "reason": "已核公开i32原值；计时语义未闭合，不强加锚点转换或活动时钟资格"
+        },
+        {
+          "id": "EntityFamiliar.Hearts",
+          "disposition": "field",
+          "fields": [
+            "hearts"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.IsCharmed",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host魅惑关系/规则查询；Client不重演玩法归属，已确认的状态效果与关系由对应块安装。"
+        },
+        {
+          "id": "EntityFamiliar.IsDelayed",
+          "disposition": "field",
+          "fields": [
+            "is_delayed"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.IsFollower",
+          "disposition": "field",
+          "fields": [
+            "is_follower"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.IsLilDelirium",
+          "disposition": "field",
+          "fields": [
+            "is_lil_delirium"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.Keys",
+          "disposition": "field",
+          "fields": [
+            "keys"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.LastDirection",
+          "disposition": "field",
+          "fields": [
+            "last_direction"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.MoveDirection",
+          "disposition": "field",
+          "fields": [
+            "move_direction"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.OrbitAngleOffset",
+          "disposition": "field",
+          "fields": [
+            "orbit_angle_offset"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.OrbitDistance",
+          "disposition": "field",
+          "fields": [
+            "orbit_distance"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.OrbitLayer",
+          "disposition": "field",
+          "fields": [
+            "orbit_layer"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.OrbitSpeed",
+          "disposition": "field",
+          "fields": [
+            "orbit_speed"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.Player",
+          "disposition": "field",
+          "fields": [
+            "familiar_player"
+          ],
+          "reason": "裸借用关系经成员表转换并维护生命周期，不按EntityPtr布局处理"
+        },
+        {
+          "id": "EntityFamiliar.RoomClearCount",
+          "disposition": "field",
+          "fields": [
+            "room_clear_count"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.ShootDirection",
+          "disposition": "field",
+          "fields": [
+            "shoot_direction"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityFamiliar.State",
+          "disposition": "field",
+          "fields": [
+            "familiar_state"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "NativeFamiliar.Related",
+          "disposition": "field",
+          "fields": [
+            "familiar_related"
+          ],
+          "reason": "旧client_entity_links.inc已核并同步的EntityPtr关系；保留独立Key与反向登记，不因退役旧路径丢失"
+        }
+      ],
+      "public_owners": [
+        "EntityFamiliar"
+      ],
+      "notes": "第4步本轮子类布局；未知字节保持明确缺口，不能宣称完整或已通过第15步验收。",
+      "companions": [
+        {
+          "name": "entity_plus",
+          "type": "EntityFamiliarPlus",
+          "semantics": "继承E9收窄为当前派生Plus；只借用既存holder，前后复读来源；公共覆盖不重复发送",
+          "evidence": "官方EntityPlus.h/.cpp；CustomCache.cpp；ASMEntityKnife.cpp",
+          "status": "已核",
+          "host": "read_existing_EntityFamiliarPlus",
+          "client": "install_existing_EntityFamiliarPlus"
+        }
+      ],
+      "variants": {
+        "selector": "variant",
+        "arms": [
+          {
+            "name": "IsaacsBody",
+            "values": [
+              48
+            ],
+            "layout": 123,
+            "ranges": [
+              {
+                "offset": "0xecc",
+                "size": "0x8",
+                "name": "familiar_extra",
+                "type": "shared-owner",
+                "category": "容器",
+                "semantics": "经具体vtable检查的可选payload；u16 count只允许0/1，存在时完整投影元素；缺失与读取失败区分",
+                "status": "已核",
+                "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+                "wire": {
+                  "kind": "container",
+                  "element": "FamiliarIsaacsBodyData",
+                  "stride": "0x578",
+                  "limit": 1,
+                  "storage": "array",
+                  "host": "read_familiar_IsaacsBody",
+                  "client": "install_familiar_IsaacsBody",
+                  "count_from": "typed_shared_owner_present",
+                  "projections": [
+                    0,
+                    1,
+                    2
+                  ]
+                },
+                "read_requires": "entity-current-window"
+              }
+            ],
+            "blocks": [
+              {
+                "id": 17,
+                "name": "F7 IsaacsBody 身体payload外观与索引",
+                "sequence": "world",
+                "fields": [
+                  "familiar_extra#0"
+                ]
+              },
+              {
+                "id": 18,
+                "name": "F8 IsaacsBody 身体payload动画",
+                "sequence": "world",
+                "fields": [
+                  "familiar_extra#1"
+                ]
+              },
+              {
+                "id": 19,
+                "name": "F9 IsaacsBody 身体payload图层",
+                "sequence": "world",
+                "fields": [
+                  "familiar_extra#2"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "AbyssLocust",
+            "values": [
+              231
+            ],
+            "layout": 124,
+            "ranges": [
+              {
+                "offset": "0xecc",
+                "size": "0x8",
+                "name": "familiar_extra",
+                "type": "shared-owner",
+                "category": "容器",
+                "semantics": "经具体vtable检查的可选payload；u16 count只允许0/1，存在时完整投影元素；缺失与读取失败区分",
+                "status": "已核",
+                "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+                "wire": {
+                  "kind": "container",
+                  "element": "FamiliarAbyssLocustData",
+                  "stride": "0x58",
+                  "limit": 1,
+                  "storage": "array",
+                  "host": "read_familiar_AbyssLocust",
+                  "client": "install_familiar_AbyssLocust",
+                  "count_from": "typed_shared_owner_present",
+                  "projections": [
+                    0,
+                    1,
+                    2
+                  ]
+                },
+                "read_requires": "entity-current-window"
+              }
+            ],
+            "blocks": [
+              {
+                "id": 17,
+                "name": "F7 AbyssLocust 蝗虫Sprite外观",
+                "sequence": "world",
+                "fields": [
+                  "familiar_extra#0"
+                ]
+              },
+              {
+                "id": 18,
+                "name": "F8 AbyssLocust 蝗虫Sprite动画",
+                "sequence": "world",
+                "fields": [
+                  "familiar_extra#1"
+                ]
+              },
+              {
+                "id": 19,
+                "name": "F9 AbyssLocust 蝗虫Sprite图层",
+                "sequence": "world",
+                "fields": [
+                  "familiar_extra#2"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "EntityKnife",
+      "layout": 121,
+      "native_size": "0x520",
+      "parent": "Entity",
+      "rtti": {
+        "name": ".?AVEntity_Knife@IsaacRepentancePlus@@",
+        "rva": "0x7d1590"
+      },
+      "ranges": [
+        {
+          "offset": "0x410",
+          "size": "0x10",
+          "name": "knife_tear_flags",
+          "type": "BitSet128",
+          "category": "状态",
+          "semantics": "刀的128位眼泪效果",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "BitSet128"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x420",
+          "size": "0x10",
+          "name": "unknown_420_42f",
+          "type": "bytes[16]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x430",
+          "size": "0x4",
+          "name": "knife_scale",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "刀缩放",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x434",
+          "size": "0x4",
+          "name": "unknown_434_437",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x438",
+          "size": "0x4",
+          "name": "knife_rotation",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "刀旋转",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x43c",
+          "size": "0x4",
+          "name": "rotation_offset",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "刀旋转偏移",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x440",
+          "size": "0x4",
+          "name": "unknown_440_443",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x444",
+          "size": "0x4",
+          "name": "knife_distance",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "当前投掷距离",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x448",
+          "size": "0x4",
+          "name": "knife_velocity",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "当前投掷速度",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x44c",
+          "size": "0x10",
+          "name": "unknown_44c_45b",
+          "type": "bytes[16]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x45c",
+          "size": "0x4",
+          "name": "max_distance",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "最大投掷距离",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x460",
+          "size": "0x4",
+          "name": "charge",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "蓄力最终值",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x464",
+          "size": "0x1",
+          "name": "knife_is_flying",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "刀投掷状态",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x465",
+          "size": "0x1",
+          "name": "is_swinging",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "挥砍状态",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x466",
+          "size": "0x2",
+          "name": "unknown_466_467",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x468",
+          "size": "0x54",
+          "name": "homing_path_unknown",
+          "type": "bytes[84]",
+          "category": "未知",
+          "semantics": "已核独立路径对象边界与四容器；元素完整语义尚未闭合，不复制未知内部头或轨迹",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x4bc",
+          "size": "0x8",
+          "name": "unknown_4bc_4c3",
+          "type": "bytes[8]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x4c4",
+          "size": "0x4",
+          "name": "path_offset",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "路径偏移",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4c8",
+          "size": "0x4",
+          "name": "path_follow_speed",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "跟随路径速度",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4cc",
+          "size": "0xc",
+          "name": "unknown_4cc_4d7",
+          "type": "bytes[12]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x4d8",
+          "size": "0xc",
+          "name": "knife_hit_indices",
+          "type": "std::vector<u32>",
+          "category": "容器",
+          "semantics": "本体Host命中索引vector；公开getter可能沿Parent共享另一把Knife的vector",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "u32",
+            "stride": "0x4",
+            "limit": 16384,
+            "storage": "vector",
+            "host": "read_native_vector",
+            "client": "install_authority_hit_indices"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4e4",
+          "size": "0x1",
+          "name": "unknown_4e4_4e4",
+          "type": "bytes[1]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x4e5",
+          "size": "0x1",
+          "name": "knife_prism_touched",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "已应用棱镜",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4e6",
+          "size": "0x1",
+          "name": "knife_multidimensional_touched",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "已应用多维",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4e7",
+          "size": "0x1",
+          "name": "share_parent_hit_list",
+          "type": "u8",
+          "category": "状态",
+          "semantics": "原始父链选择字节：非零沿Type8 Parent继续找命中表，零停止；完整业务语义未闭合，不假定只含0/1",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4e8",
+          "size": "0x2",
+          "name": "unknown_4e8_4e9",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x4ea",
+          "size": "0x1",
+          "name": "is_spin_attack",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "旋转攻击状态",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4eb",
+          "size": "0x9",
+          "name": "unknown_4eb_4f3",
+          "type": "bytes[9]",
+          "category": "未知",
+          "semantics": "尚未核定的原生尾部；池步长不证明填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x4f4",
+          "size": "0x4",
+          "name": "knife_linked_a",
+          "type": "EntityPtr",
+          "category": "引用",
+          "status": "已核",
+          "semantics": "NativeKnife.LinkedA独立关系槽；目标按同帧身份/待登记句柄采集，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "evidence": "mod/src/game/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          }
+        },
+        {
+          "offset": "0x4f8",
+          "size": "0x4",
+          "name": "knife_linked_b",
+          "type": "EntityPtr",
+          "category": "引用",
+          "status": "已核",
+          "semantics": "NativeKnife.LinkedB独立关系槽；目标按同帧身份/待登记句柄采集，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "evidence": "mod/src/game/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          }
+        },
+        {
+          "offset": "0x4fc",
+          "size": "0x4",
+          "name": "knife_child_a",
+          "type": "EntityPtr",
+          "category": "引用",
+          "status": "已核",
+          "semantics": "NativeKnife.ChildA独立关系槽；目标按同帧身份/待登记句柄采集，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "evidence": "mod/src/game/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          }
+        },
+        {
+          "offset": "0x500",
+          "size": "0x4",
+          "name": "knife_child_b",
+          "type": "EntityPtr",
+          "category": "引用",
+          "status": "已核",
+          "semantics": "NativeKnife.ChildB独立关系槽；目标按同帧身份/待登记句柄采集，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "evidence": "mod/src/game/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          }
+        },
+        {
+          "offset": "0x504",
+          "size": "0x1c",
+          "name": "unknown_504_51f",
+          "type": "bytes[28]",
+          "category": "未知",
+          "semantics": "尚未核定的原生尾部；池步长不证明填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 10,
+          "name": "K0 当前运动",
+          "sequence": "world",
+          "fields": [
+            "knife_rotation",
+            "knife_distance",
+            "knife_velocity",
+            "charge",
+            "knife_is_flying",
+            "is_swinging",
+            "path_offset",
+            "is_spin_attack"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "K1 参数",
+          "sequence": "world",
+          "fields": [
+            "knife_tear_flags",
+            "knife_scale",
+            "rotation_offset",
+            "max_distance",
+            "path_follow_speed",
+            "knife_prism_touched",
+            "knife_multidimensional_touched",
+            "share_parent_hit_list"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "K2 本体Host命中集合",
+          "sequence": "world",
+          "fields": [
+            "knife_hit_indices"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "K3 独立实体关系",
+          "sequence": "world",
+          "fields": [
+            "knife_linked_a",
+            "knife_linked_b",
+            "knife_child_a",
+            "knife_child_b"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "knife_scale": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "knife_rotation": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "rotation_offset": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "knife_distance": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "knife_velocity": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "max_distance": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "charge": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "knife_is_flying": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "is_swinging": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "path_offset": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "path_follow_speed": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "knife_prism_touched": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "knife_multidimensional_touched": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "is_spin_attack": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [
+        {
+          "id": "EntityKnife.Charge",
+          "disposition": "field",
+          "fields": [
+            "charge"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.GetHitList",
+          "disposition": "derived",
+          "fields": [
+            "knife_hit_indices",
+            "share_parent_hit_list",
+            "parent",
+            "@entity_member_graph"
+          ],
+          "reason": "93A2F0按+4E7沿Type8 Parent查找本体vector+4D8；同版本完整成员图推导，缺失/循环报Gap，不复制原生getter的无界循环"
+        },
+        {
+          "id": "EntityKnife.GetHitboxParentKnife",
+          "disposition": "field",
+          "fields": [
+            "entity_plus"
+          ],
+          "reason": "EntityKnifePlus +10 EntityPtr；getter仅在目标为Knife时返回引用，否则为Null；Client经SetReference维护关系"
+        },
+        {
+          "id": "EntityKnife.GetIsSpinAttack",
+          "disposition": "field",
+          "fields": [
+            "is_spin_attack"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.GetIsSwinging",
+          "disposition": "field",
+          "fields": [
+            "is_swinging"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.GetKnifeDistance",
+          "disposition": "field",
+          "fields": [
+            "knife_distance"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.GetKnifeVelocity",
+          "disposition": "field",
+          "fields": [
+            "knife_velocity"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.GetRenderZ",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "原生虚函数排序查询；当前目录归Host事实，不在Client重演查询或以结果覆盖本地index；绘制上下文沿用公共块职责。"
+        },
+        {
+          "id": "EntityKnife.IsFlying",
+          "disposition": "field",
+          "fields": [
+            "knife_is_flying"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.IsMultidimensionalTouched",
+          "disposition": "field",
+          "fields": [
+            "knife_multidimensional_touched"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.IsPrismTouched",
+          "disposition": "field",
+          "fields": [
+            "knife_prism_touched"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.MaxDistance",
+          "disposition": "field",
+          "fields": [
+            "max_distance"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.PathFollowSpeed",
+          "disposition": "field",
+          "fields": [
+            "path_follow_speed"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.PathOffset",
+          "disposition": "field",
+          "fields": [
+            "path_offset"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.Rotation",
+          "disposition": "field",
+          "fields": [
+            "knife_rotation"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.RotationOffset",
+          "disposition": "field",
+          "fields": [
+            "rotation_offset"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.Scale",
+          "disposition": "field",
+          "fields": [
+            "knife_scale"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityKnife.TearFlags",
+          "disposition": "field",
+          "fields": [
+            "knife_tear_flags"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "NativeKnife.LinkedA",
+          "disposition": "field",
+          "fields": [
+            "knife_linked_a"
+          ],
+          "reason": "旧client_entity_links.inc已核并同步的EntityPtr关系；保留独立Key与反向登记，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeKnife.LinkedB",
+          "disposition": "field",
+          "fields": [
+            "knife_linked_b"
+          ],
+          "reason": "旧client_entity_links.inc已核并同步的EntityPtr关系；保留独立Key与反向登记，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeKnife.ChildA",
+          "disposition": "field",
+          "fields": [
+            "knife_child_a"
+          ],
+          "reason": "旧client_entity_links.inc已核并同步的EntityPtr关系；保留独立Key与反向登记，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeKnife.ChildB",
+          "disposition": "field",
+          "fields": [
+            "knife_child_b"
+          ],
+          "reason": "旧client_entity_links.inc已核并同步的EntityPtr关系；保留独立Key与反向登记，不因退役旧路径丢失"
+        }
+      ],
+      "public_owners": [
+        "EntityKnife"
+      ],
+      "sdk_size": "0xe78",
+      "notes": "第4步本轮子类布局；未知字节保持明确缺口，不能宣称完整或已通过第15步验收。",
+      "companions": [
+        {
+          "name": "entity_plus",
+          "type": "EntityKnifePlus",
+          "semantics": "继承E9收窄为当前派生Plus；只借用既存holder，前后复读来源；公共覆盖不重复发送",
+          "evidence": "官方EntityPlus.h/.cpp；CustomCache.cpp；ASMEntityKnife.cpp",
+          "status": "已核",
+          "host": "read_existing_EntityKnifePlus",
+          "client": "install_existing_EntityKnifePlus"
+        }
+      ]
+    },
+    {
+      "type": "EntityBomb",
+      "layout": 122,
+      "native_size": "0x9d8",
+      "parent": "Entity",
+      "rtti": {
+        "name": ".?AVEntity_Bomb@IsaacRepentancePlus@@",
+        "rva": "0x7d149c"
+      },
+      "ranges": [
+        {
+          "offset": "0x410",
+          "size": "0x4",
+          "name": "explosion_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "Bomb+410按变体/分支选择增、减或稳定参数；不把所有Bomb锚到同一到期帧",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md；state/entity_counters.h；方向/活动条件未全部核定时必须Gap",
+          "wire": {
+            "kind": "convert",
+            "type": "u64",
+            "host": "explosion_countdown_to_anchor",
+            "client": "explosion_countdown_from_anchor"
+          },
+          "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
+        },
+        {
+          "offset": "0x414",
+          "size": "0x4",
+          "name": "unknown_414_417",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x418",
+          "size": "0x4",
+          "name": "explosion_damage",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "爆炸伤害",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x41c",
+          "size": "0x4",
+          "name": "fall_speed",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "下落速度",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x420",
+          "size": "0x4",
+          "name": "fall_acceleration",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "下落加速度；不是TearFlags",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x424",
+          "size": "0x4",
+          "name": "unknown_424_427",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x428",
+          "size": "0x4",
+          "name": "rocket_angle",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "火箭角度",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x42c",
+          "size": "0x4",
+          "name": "rocket_speed",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "火箭速度",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x430",
+          "size": "0x4",
+          "name": "unknown_430_433",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x434",
+          "size": "0x4",
+          "name": "bomb_scale",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "炸弹专用缩放",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x438",
+          "size": "0x10",
+          "name": "bomb_flags",
+          "type": "BitSet128",
+          "category": "状态",
+          "semantics": "128位炸弹眼泪效果",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "BitSet128"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x448",
+          "size": "0x1",
+          "name": "is_fetus",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "胎儿炸弹",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x449",
+          "size": "0x3",
+          "name": "unknown_449_44b",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x44c",
+          "size": "0x4",
+          "name": "radius_multiplier",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "爆炸范围倍率",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x450",
+          "size": "0xc",
+          "name": "unknown_450_45b",
+          "type": "bytes[12]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x45c",
+          "size": "0x1",
+          "name": "bomb_prism_touched",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "棱镜效果已应用",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x45d",
+          "size": "0x5",
+          "name": "unknown_45d_461",
+          "type": "bytes[5]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不作填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x462",
+          "size": "0x1",
+          "name": "costume_draw_enabled",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "五层costume独立绘制开关；不是加载请求",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x463",
+          "size": "0x1",
+          "name": "load_costumes_request",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "Host懒资源重建请求；Client安装最终资源后保持false，不重演Reset/Load",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        },
+        {
+          "offset": "0x464",
+          "size": "0x114",
+          "name": "costume_0",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立Sprite；外观、动画和图层分别投影，禁止复制本地资源地址",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x578",
+          "size": "0x114",
+          "name": "costume_1",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立Sprite；外观、动画和图层分别投影，禁止复制本地资源地址",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x68c",
+          "size": "0x114",
+          "name": "costume_2",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立Sprite；外观、动画和图层分别投影，禁止复制本地资源地址",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x7a0",
+          "size": "0x114",
+          "name": "costume_3",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立Sprite；外观、动画和图层分别投影，禁止复制本地资源地址",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x8b4",
+          "size": "0x114",
+          "name": "costume_4",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立Sprite；外观、动画和图层分别投影，禁止复制本地资源地址",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x9c8",
+          "size": "0xc",
+          "name": "bomb_hit_list",
+          "type": "std::vector<u32>",
+          "category": "容器",
+          "semantics": "Host碰撞命中索引纯值；不当作实体身份，不供Client碰撞消费",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "u32",
+            "stride": "0x4",
+            "limit": 16384,
+            "storage": "vector",
+            "host": "read_native_vector",
+            "client": "install_authority_hit_indices"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x9d4",
+          "size": "0x4",
+          "name": "unknown_9d4_9d7",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生尾部；池步长不证明填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/familiar-knife-bomb-evidence.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 10,
+          "name": "B0 运动与计时",
+          "sequence": "world",
+          "fields": [
+            "explosion_countdown",
+            "fall_speed",
+            "fall_acceleration",
+            "rocket_angle",
+            "rocket_speed"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "B1 炸弹参数",
+          "sequence": "world",
+          "fields": [
+            "explosion_damage",
+            "bomb_scale",
+            "bomb_flags",
+            "is_fetus",
+            "radius_multiplier",
+            "bomb_prism_touched",
+            "costume_draw_enabled"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "B2 costume外观",
+          "sequence": "world",
+          "fields": [
+            "costume_0#0",
+            "costume_1#0",
+            "costume_2#0",
+            "costume_3#0",
+            "costume_4#0"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "B3 costume动画",
+          "sequence": "world",
+          "fields": [
+            "costume_0#1",
+            "costume_1#1",
+            "costume_2#1",
+            "costume_3#1",
+            "costume_4#1"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "B4 costume图层",
+          "sequence": "world",
+          "fields": [
+            "costume_0#2",
+            "costume_1#2",
+            "costume_2#2",
+            "costume_3#2",
+            "costume_4#2"
+          ]
+        },
+        {
+          "id": 15,
+          "name": "B5 Host命中列表",
+          "sequence": "world",
+          "fields": [
+            "bomb_hit_list"
+          ]
+        }
+      ],
+      "conversions": {
+        "explosion_countdown_to_anchor": "只按已核原生分支选择EntityCounterMode Frozen/Increasing/Decreasing；EncodeEntityCounter以Host game_frame形成u64：低32位mode，高32位value；活跃时钟或方向未知报Gap，不把未知当Frozen。Bomb+410按变体/分支选择增、减或稳定参数；不把所有Bomb锚到同一到期帧",
+        "explosion_countdown_from_anchor": "先ValidEntityCounter拒绝mode>2，用最近已应用world game_frame调用DecodeEntityCounter；保留有符号值及回绕，不推进AI/爆炸；每个world展示时钟变化由第13步重写。"
+      },
+      "validators": {
+        "explosion_damage": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "fall_speed": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "fall_acceleration": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "rocket_angle": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "rocket_speed": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "bomb_scale": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "is_fetus": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "radius_multiplier": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "bomb_prism_touched": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "costume_draw_enabled": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [
+        {
+          "id": "EntityBomb.ExplosionDamage",
+          "disposition": "field",
+          "fields": [
+            "explosion_damage"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityBomb.Flags",
+          "disposition": "field",
+          "fields": [
+            "bomb_flags"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityBomb.GetCostumeLayerSprite",
+          "disposition": "field",
+          "fields": [
+            "costume_0#0",
+            "costume_0#1",
+            "costume_0#2",
+            "costume_1#0",
+            "costume_1#1",
+            "costume_1#2",
+            "costume_2#0",
+            "costume_2#1",
+            "costume_2#2",
+            "costume_3#0",
+            "costume_3#1",
+            "costume_3#2",
+            "costume_4#0",
+            "costume_4#1",
+            "costume_4#2"
+          ],
+          "reason": "索引0—4映射五个内嵌ANM2的外观、动画和图层"
+        },
+        {
+          "id": "EntityBomb.GetExplosionCountdown",
+          "disposition": "field",
+          "fields": [
+            "explosion_countdown"
+          ],
+          "reason": "原生i32按已核分支换算为mode/value帧锚；活动条件尚未闭合时报Gap，不能伪装为静态原值"
+        },
+        {
+          "id": "EntityBomb.GetFallAcceleration",
+          "disposition": "field",
+          "fields": [
+            "fall_acceleration"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityBomb.GetFallSpeed",
+          "disposition": "field",
+          "fields": [
+            "fall_speed"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityBomb.GetHitList",
+          "disposition": "field",
+          "fields": [
+            "bomb_hit_list"
+          ],
+          "reason": "保留Host原始u32命中索引列表；不投影为实体身份或运行Client碰撞"
+        },
+        {
+          "id": "EntityBomb.GetRocketAngle",
+          "disposition": "field",
+          "fields": [
+            "rocket_angle"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityBomb.GetRocketSpeed",
+          "disposition": "field",
+          "fields": [
+            "rocket_speed"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityBomb.GetScale",
+          "disposition": "field",
+          "fields": [
+            "bomb_scale"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityBomb.IsFetus",
+          "disposition": "field",
+          "fields": [
+            "is_fetus"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityBomb.IsLoadingCostumes",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host懒重建请求+463；Client安装五份最终Sprite并清pending，不运行资源重建"
+        },
+        {
+          "id": "EntityBomb.IsPrismTouched",
+          "disposition": "field",
+          "fields": [
+            "bomb_prism_touched"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        },
+        {
+          "id": "EntityBomb.RadiusMultiplier",
+          "disposition": "field",
+          "fields": [
+            "radius_multiplier"
+          ],
+          "reason": "已核原生字段与现有Client最终值写入对应；见该字段证据"
+        }
+      ],
+      "public_owners": [
+        "EntityBomb"
+      ],
+      "notes": "第4步本轮子类布局；未知字节保持明确缺口，不能宣称完整或已通过第15步验收。"
+    }
+  ]
+}

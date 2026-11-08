@@ -70,6 +70,8 @@ struct Member {
 };
 // 具名处理器在主线程接线时绑定一次，逐字段写入使用 layout/field 数字索引。
 struct ClientField { std::uint16_t layout, field; Operation operation; const char *handler; };
+// 同一slot是同一个原生容器的各投影；不同slot才参与合计上限。
+struct CountConstraint { std::uint16_t layout, group, slot, field, limit; };
 struct Variant { std::uint16_t base, arm; std::uint32_t selector_offset; std::int32_t value; };
 // 嵌套布局可从父资源/容器位置获得语义输入；上下文不冒充为对象内的字节或重复发送字段。
 struct ContextField { std::uint16_t layout; const char *name, *type, *semantics, *evidence; };
@@ -84,6 +86,10 @@ std::span<const Validator> Validators() noexcept;
 std::span<const NativeRange> NativeRanges() noexcept;
 std::span<const Member> Members() noexcept;
 std::span<const ClientField> ClientFields() noexcept;
+std::span<const CountConstraint> CountConstraints() noexcept;
+// counts按布局字段索引排列；调用方在完整同版本状态中取数，不能用0补缺失投影。
+// Host复制元素前及Client写入前分别调用；本函数不分配内存，也不读取游戏对象。
+bool ValidContainerCountGroups(std::uint16_t layout, std::span<const std::uint16_t> counts) noexcept;
 std::span<const Variant> Variants() noexcept;
 std::span<const ContextField> ContextFields() noexcept;
 const Layout *FindLayout(std::uint16_t id) noexcept;

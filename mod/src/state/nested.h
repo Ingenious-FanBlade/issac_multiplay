@@ -78,6 +78,20 @@ struct ReferenceResolver {
 };
 std::uint16_t ResolveReference(std::uint32_t address, ReferenceResolver, std::string_view field);
 
+// Host采集的是当前代的纯值身份句柄，成员序号只在后台组帧时分配。
+// Pending表示同窗新实体的待登记预约；句柄不可为0，不能用裸地址充当句柄。
+enum class CapturedReferenceKind : std::uint8_t { Null, Identity, Pending, Invalid };
+struct CapturedReference {
+  CapturedReferenceKind kind = CapturedReferenceKind::Null;
+  std::uint64_t handle = 0;
+};
+struct ReferenceCapture {
+  void *context;
+  // owner在合法主线程窗口查询或预约身份，返回同代句柄；不把原生地址交给后台。
+  CapturedReference (*identify_or_reserve)(void *, std::uint32_t) noexcept;
+};
+CapturedReference CaptureReference(std::uint32_t address, ReferenceCapture, std::string_view field);
+
 // 资源号在一个 epoch 内只追加，0xFFFF 保留为空；已分配的号永不改指向其他路径。
 // 可靠资源发布及帧依赖检查由第 9/11/12 步接线；本层提供原子安装和有界查找。
 // 每张表由单线程 owner 持有；跨线程交接复制纯值更新，不能共享会被追加失效的视图。

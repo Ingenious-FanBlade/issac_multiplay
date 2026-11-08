@@ -32,7 +32,7 @@ stage11—18（[tx-04-21 采集性能方案](../tx-04-21/tx-04-21-capture-perfor
 
 ordinary 窗口、PlayerPost 窗口，以及规范第 11 节的条件读取规则（例如 `removedByFactory`）。
 
-第 3 步的生成表把读取资格写在 `Field.read_requirement` 和 `CopyRange.read_requirement` 上（`entity-current-window`、`current-entity-byte-0x177`、`entity-current-window-and-confirmed-timer-clock`、`entity-current-window-and-confirmed-color-clock`）。本步必须为每种资格提供真实见证，不能从布局声明推导授权。条件计时由字段 owner 给出已核的实际递减条件；活动但时钟关系未知时报缺口，不能用 mode=0 冒充停走。EntityPlus 只经 `ReadEntityExtension` 读取已存在的来源（[第 3 步实现](implementation-3.md)）。
+第 3 步的生成表把读取资格写在 `Field.read_requirement` 和 `CopyRange.read_requirement` 上（`entity-current-window`、`current-entity-byte-0x177`、`entity-current-window-and-confirmed-timer-clock`、`entity-current-window-and-confirmed-color-clock`）。本步必须为每种资格提供真实见证，不能从布局声明推导授权。条件计时由字段 owner 给出已核的实际递减条件；活动但时钟关系未知时报缺口，不能用 mode=0 冒充停走。EntityPlus 只经 `ReadEntityExtension` 读取已存在的来源（[第 3 步实现](implementation-3.md)）。Delirium 变身内的 Init 之后，`current-entity-byte-0x177` 的资格仍由 `world_delirium_owner` 见证恢复（第 4 步 4.2.6）。
 
 ## 设计
 
@@ -45,11 +45,16 @@ ordinary 窗口、PlayerPost 窗口，以及规范第 11 节的条件读取规�
 
 - **建立映射**：会话开始时，在后台按 `rtti` 名找到 J273 的类型描述符，建立“虚表地址 → 布局编号”映射表。
 - **主线程查表**：主线程读取对象的虚表指针后查表。查不到时报具名缺口（`unknown_vtable`），该对象不采集，不能按 `_type` 猜测布局。
-- **选臂**：如果类型声明了变体臂（第 1 步 `variants`），查到虚表之后还要读选择字段，按变体集合选定布局编号，例如 Effect 读 `Entity._variant`（第 4 步 4.1.2）。
+- **选臂**：如果类型声明了变体臂（第 1 步 `variants`），查到虚表之后还要读选择字段，按变体集合选定布局编号，例如 Effect 读 `Entity._variant`（第 4 步 4.1.2），NPC 读 `Entity._type`（第 4 步 4.2）。
   - 未列出的取值使用基础臂。
   - 选择字段读取失败时报具名缺口，该对象不采集，不能退回基础臂。
+  - Delirium 的 AI 会临时把 `_type/_variant` 换成 Boss，返回前恢复。采集窗口不能落在 `0x49F3D0` 内，沿用 owner 未退尽不提交采集的规则。
 
 ### 10.3 复制计划的执行
+
+第 4 步子类计数的 `entity-current-window-and-confirmed-subclass-counter-clock` 需要字段 owner 给出实际增／减／停走分支；未知方向或活动时钟关系报 Gap。Familiar／Knife 的 E9 使用收窄后的派生 Plus，Knife 可复用 `ReadKnifeExtension`。容器投影既检查元素数，也检查生成的 `Field.max_size` 与全局池预算；所有投影来自同一个窗口和同一组元素，不截断。
+
+HeadFrameDelay 不属于已核线性计时，直接复制原始 i32。`ReadKnifeExtension` 接收会话 owner 核定的 Knife／KnifePlus 具体虚表绑定，只遍历前后两次 holder 链：先判目标类型，非 Knife 返回 Null；Knife 交 `ReferenceCapture::identify_or_reserve` 得到同代 Identity／Pending 纯值句柄，新成员不因尚无序号而失败。回调负责有界预约，不得向后台交原生地址；最终序号在后台分配。计数组按生成的 `CountConstraint`／`ValidContainerCountGroups` 检查，蝗虫两组合计最多 16384，投影重复 count 不重复计数。
 
 生成器为每个布局产出一份操作序列（`state_capture.inc`）。主线程按顺序执行：
 

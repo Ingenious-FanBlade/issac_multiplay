@@ -19,7 +19,16 @@
 | [Weapon](Weapon.md) | 13 | 68 | 20 | 否 |
 | [TemporaryEffect](TemporaryEffect.md) | 14 | 16 | 4 | 否 |
 | [EntityPlus](EntityPlus.md) | 15 | 16 | 5 | 否 |
+| [EntityFamiliarPlus](EntityFamiliarPlus.md) | 16 | 28 | 5 | 否 |
+| [EntityKnifePlus](EntityKnifePlus.md) | 17 | 20 | 5 | 否 |
+| [FamiliarIsaacsBodyData](FamiliarIsaacsBodyData.md) | 18 | 1400 | 70 | 否 |
+| [FamiliarAbyssLocustData](FamiliarAbyssLocustData.md) | 19 | 88 | 36 | 否 |
 | [Entity](Entity.md) | 100 | 1040 | 335 | 否 |
 | [EntityEffect](EntityEffect.md) | 101 | 1216 | 422 | 否 |
 | [EntityEffect_TearFlags](EntityEffect_TearFlags.md) | 102 | 1216 | 422 | 否 |
 | [EntityEffect_GridDesc](EntityEffect_GridDesc.md) | 103 | 1216 | 409 | 否 |
+| [EntityFamiliar](EntityFamiliar.md) | 120 | 3888 | 906 | 否 |
+| [EntityKnife](EntityKnife.md) | 121 | 1312 | 521 | 否 |
+| [EntityBomb](EntityBomb.md) | 122 | 2520 | 441 | 否 |
+| [EntityFamiliar_IsaacsBody](EntityFamiliar_IsaacsBody.md) | 123 | 3888 | 906 | 否 |
+| [EntityFamiliar_AbyssLocust](EntityFamiliar_AbyssLocust.md) | 124 | 3888 | 906 | 否 |

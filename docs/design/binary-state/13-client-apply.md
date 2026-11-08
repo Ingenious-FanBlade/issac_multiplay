@@ -50,6 +50,8 @@
 
 - **`direct` 需要证据**：一个字段只有在证实“直接写内存不会破坏不变量”之后，才能用 `direct`。证据可以是 J273 中对该字段的写入点只有普通赋值，或者现有原生写入正是直接写入。没有证据的字段一律用 `writer`。
 - **引用和资源**：引用字段按成员序号查 Client 本地实例表，得到原生地址后写入。目标还没构造时，该块延后到目标构造之后再写，按依赖排序。资源字段按资源序号找到本地路径，交给现有的资源 owner 加载。
+- **子类 EntityPtr 必须保留**：Knife `+4F4/+4F8/+4FC/+500`、Familiar `+DAC` 和 KnifePlus.hitboxSource 经 `SetReference` 维护反向登记，不 memcpy 裸槽。目标先构造，退休先撤边，再退各自独立实例；不能让派生 ClearReferences 沿未撤关系再次 Remove 其他成员。
+- **Bomb 懒重建请求**：`+463` 虽归 Host 权威、不采集，Client 仍必须在最终主 Sprite／五份 costume 安装完毕后清为 false，并保持旧执行器的读回检查（`client_entity_adapters_native.cpp` 的 Bomb 分支）。不能因“权威不采集”而省略本地清除，或用 Flags setter 再次置 pending；第 14 步退役旧路径时保留这个行为。
 
 ### 13.2 结构路径
 
@@ -91,6 +93,7 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
   - `Manager._framecount`（`+0x4A8B8`）、Pickup 绘制 RNG（VA `0xBD0CA4`）、Familiar 绘制 RNG（VA `0xBD0674`）← 影子状态中的绘制输入块 D0（第 8 步 8.2.1）。D0 与展示时钟来自同一个 world 帧。
 - **帧锚点字段**：`Entity+0x328`、`Room+0x11F0` 的基准按原值写回，不再逐次重新锚定。展示期间，FrameCount 和 `Room:GetFrameCount()` 由原生 getter 用"时钟 − 基准"自然得出。
 - **Effect Timeout**：每装好一个新的 world 帧，按新的时钟把全部 Effect 的 Timeout 重写为"到期帧 − 时钟"（`effect_timeout`）。
+- **第 4 步子类计数**：Familiar FireCooldown／Bomb 的明确方向锚点先经 `ValidEntityCounter` 校验，再用同一展示时钟调用 `DecodeEntityCounter`；HeadFrameDelay 直接安装原始 i32，不参与计时换算。只还原已核分支的值，不运行射击／爆炸等玩法；未知活动条件由 Host 报缺口。共享 payload／Sprite vector 的分块投影计数须一致，并经 `ValidContainerCountGroups` 核对合计，蝗虫两组合计最多 16384。真实编码长度不得超过 `Field.max_size`，全部依赖齐备后交具名 owner 一次安装。
 - **条件计时**（第 3 步）：Entity 状态倒计时和暂停计时用 `DisplayCountdown`，毒／火伤害相位和 ColorParams Lifespan 用 `DisplaySignedCounter`，都以展示时钟还原；校验 mode 后才写入，`mode=0` 保持原值。Client 不重演删除和伤害规则，颜色元素的增删只来自 Host 容器。EntityPlus 的 optional 由原生 owner 赋值（`DecodeFlyingOverride`／`DecodeWaterOverride`），不 memcpy。
 - **对照与校正**：E2E 对照（第 15 步）和漂移校正读取这些字段时，用同一个时钟换算。
 

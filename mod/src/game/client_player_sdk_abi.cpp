@@ -12,6 +12,10 @@ static_assert(offsetof(EntityPlus,waterClipInfoFlagsOverride)==8);
 static_assert(offsetof(std::_Optional_destruct_base<bool>,_Has_value)==1);
 static_assert(offsetof(std::_Optional_destruct_base<std::uint32_t>,_Has_value)==4);
 static_assert(sizeof(std::unique_ptr<EntityPlus>)==4);
+// 第4步派生Plus只收窄既存伴随来源；公共前缀仍与第3步相同。
+static_assert(sizeof(EntityFamiliarPlus)==0x1c && offsetof(EntityFamiliarPlus,cachedMultiplier)==0x10);
+static_assert(offsetof(EntityFamiliarPlus,cachedMultiplierPlayer)==0x18);
+static_assert(sizeof(EntityKnifePlus)==0x14 && offsetof(EntityKnifePlus,hitboxSource)==0x10);
 static_assert(sizeof(Innate)==sizeof(ItemSpoofSystem::InnateItems));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::CollectibleSpoof));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::TrinketSpoof));

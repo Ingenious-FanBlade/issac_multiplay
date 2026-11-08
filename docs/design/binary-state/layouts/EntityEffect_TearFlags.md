@@ -1,6 +1,6 @@
 # EntityEffect_TearFlags
 
-由唯一布局源生成。布局编号 102；布局版本 12；原生大小 0x4C0；未知 422B；完整：否。
+由唯一布局源生成。布局编号 102；布局版本 16；原生大小 0x4C0；未知 422B；完整：否。
 
 第1步使用第4步已核字段演示继承、块和变体；完整6臂、附属owner及公开Effect目录由第4步接管。未知区不复制，所有臂均不宣称完整。 原生范围直接复核于J273 Effect池VA0x6EEE60/RVA0x2EEE60：VA0x6EEE9B传步长0x4C0、VA0x6EEE96传容量0x400；ctor VA0x5CCEAF写Effect虚表，TD VA0xBD1270/RVA0x7D1270，主审已复读。
 

@@ -32,28 +32,64 @@ Source Existing(const ReadWindow &window, std::uint32_t entity, std::string_view
   if (!source.data) throw Gap(field, "entity_plus_data_missing");
   return source;
 }
+bool SameSource(const Source &a, const Source &b) noexcept {
+  return a.upper == b.upper && a.lower == b.lower && a.holder == b.holder && a.data == b.data;
+}
+// 共用叶子读取只使用本次已核data；派生读取不再次遍历holder链。
+EntityExtensionState Common(const ReadWindow &window, std::uint32_t data, std::string_view field) {
+  EntityExtensionState result;
+  // MSVC Win32 Release optional<bool>：value +4，engaged +5；未设置时不读取 value。
+  const auto flying_set = Read<std::uint8_t>(window, data, 5, field);
+  if (flying_set > 1) throw Gap(field, "entity_plus_flying_engaged");
+  if (flying_set) {
+    const auto value = Read<std::uint8_t>(window, data, 4, field);
+    if (value > 1) throw Gap(field, "entity_plus_flying_value");
+    result.flying = static_cast<std::int8_t>(value);
+  }
+  // optional<uint32_t>：value +8，engaged +12；未设置时负载与内部填隙均不复制。
+  const auto water_set = Read<std::uint8_t>(window, data, 12, field);
+  if (water_set > 1) throw Gap(field, "entity_plus_water_engaged");
+  if (water_set) result.water = (std::uint64_t{1} << 32) | Read<std::uint32_t>(window, data, 8, field);
+  return result;
+}
 }
 
 EntityExtensionState ReadEntityExtension(const ReadWindow &window, std::uint32_t entity,
                                          std::string_view field) {
   window.Require(field);
   const auto before = Existing(window, entity, field);
-  EntityExtensionState result;
-  // MSVC Win32 Release optional<bool>：value +4，engaged +5；未设置时不读取 value。
-  const auto flying_set = Read<std::uint8_t>(window, before.data, 5, field);
-  if (flying_set > 1) throw Gap(field, "entity_plus_flying_engaged");
-  if (flying_set) {
-    const auto value = Read<std::uint8_t>(window, before.data, 4, field);
-    if (value > 1) throw Gap(field, "entity_plus_flying_value");
-    result.flying = static_cast<std::int8_t>(value);
-  }
-  // optional<uint32_t>：value +8，engaged +12；未设置时负载与内部填隙均不复制。
-  const auto water_set = Read<std::uint8_t>(window, before.data, 12, field);
-  if (water_set > 1) throw Gap(field, "entity_plus_water_engaged");
-  if (water_set) result.water = (std::uint64_t{1} << 32) | Read<std::uint32_t>(window, before.data, 8, field);
+  const auto result = Common(window, before.data, field);
   const auto after = Existing(window, entity, field);
-  if (before.upper != after.upper || before.lower != after.lower || before.data != after.data)
+  if (!SameSource(before, after))
     throw Gap(field, "entity_plus_source_changed");
+  window.Require(field);
+  return result;
+}
+
+KnifeExtensionState ReadKnifeExtension(const ReadWindow &window, std::uint32_t entity,
+                                        KnifeExtensionBindings bindings, ReferenceCapture capture,
+                                        std::string_view field) {
+  window.Require(field);
+  if (!bindings.knife_vtable || !bindings.knife_plus_vtable)
+    throw Gap(field, "knife_plus_bindings_missing");
+  // 在访问派生字段前核定两层动态类型；不能只凭_type=8解释未知对象。
+  if (Read<std::uint32_t>(window, entity, 0, field) != bindings.knife_vtable ||
+      Read<std::uint32_t>(window, entity, 0x28, field) != 8)
+    throw Gap(field, "knife_plus_wrong_class");
+  const auto before = Existing(window, entity, field);
+  if (Read<std::uint32_t>(window, before.data, 0, field) != bindings.knife_plus_vtable)
+    throw Gap(field, "knife_plus_wrong_dynamic_type");
+  KnifeExtensionState result{Common(window, before.data, field), {}};
+  const auto target = Read<std::uint32_t>(window, before.data, 0x10, field);
+  // 先遵守官方getter的非Knife→nil规则，不为无关实体查询或预约成员身份。
+  if (target && Read<std::uint32_t>(window, target, 0x28, field) == 8) {
+    if (Read<std::uint32_t>(window, target, 0, field) != bindings.knife_vtable)
+      throw Gap(field, "knife_plus_target_dynamic_type");
+    result.hitbox_source = CaptureReference(target, capture, field);
+  }
+  if (!SameSource(before, Existing(window, entity, field)) ||
+      Read<std::uint32_t>(window, before.data, 0, field) != bindings.knife_plus_vtable)
+    throw Gap(field, "knife_plus_source_changed");
   window.Require(field);
   return result;
 }
