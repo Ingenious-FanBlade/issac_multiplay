@@ -1,6 +1,6 @@
 # 4：Entity 子类
 
-状态：部分实施。Familiar／Knife／Bomb 以及 Tear／Pickup／Laser 的布局、公开成员回映射和专用表现已接入生成链，未知字节与计时分支缺口保留，见[前三类实现](implementation-4-familiar-knife-bomb.md)和[本轮三类实现](implementation-4-tear-pickup-laser.md)；其余子类仍按各节设计推进。上级：[总计划](README.md)。
+状态：部分实施。Familiar／Knife／Bomb、Tear／Pickup／Laser 和 Slot／Projectile／Effect 的布局、公开成员回映射和专用表现已接入生成链，未知字节与计时分支缺口保留，见[前三类实现](implementation-4-familiar-knife-bomb.md)、[中间三类实现](implementation-4-tear-pickup-laser.md)和[本轮三类实现](implementation-4-slot-projectile-effect.md)；NPC／Delirium／Text／Dummy 等剩余专用形态仍按各节推进。上级：[总计划](README.md)。
 
 ## 目标
 
@@ -55,6 +55,8 @@
 ### 4.1 EntityEffect 块划分（修订稿，2026-11-08）
 
 本节是 EntityEffect 的块划分修订稿。它取代[总计划 5.1](README.md#51-示例entityeffect草稿) 中 EntityEffect 的字节归属和 69 字节单块，5.1 今后只作表格格式示例。本节表格都是草稿，生成器建成后以 `layouts/` 的输出为准。
+
+**2026-11-09 实施修订**：以下草稿中基础臂／三个附属臂的 16B 不透明 VarData 复制没有充分证据，已撤销；`0x420—0x43F` 维持未知，FX2 显式预留。四种 TearFlags 与 GridDesc 臂分别保留已核状态。ANM2 经第 2 步展开后包括默认动画名和主／叠加动画的选择器数组，因此外观与动画均可能变长，不能套用草稿的 30／120B 动画常数。MrMe／SpriteTrail／PickupGhost 以 `shared-owner` 间接投影实现 FX3—FX5，首块 u8 present，其余块无重复 count；每份 Sprite 的图层 count 单独保存。缺失 owner 使用最短全零编码，见[本轮实现](implementation-4-slot-projectile-effect.md)及[生成表](layouts/README.md)。下方原草稿保留设计演变，不作为覆盖当前生成表的声明。
 
 #### 4.1.1 补充的输入事实
 
@@ -450,9 +452,19 @@ ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发�
 - 三个 Plus 的派生音效、重抽和重新采样请求归 Host，公共覆盖只经一份 E9。条件计时不凭字段名判定；未知活动分支明确报 Gap。
 - 原生范围为 0x848／0x6F0／0x568，未知与 SDK 声明保持实际等级。本轮只生成布局与纯编译，不宣称类型字节完整、正式采集已接通或第 15 步验收完成。
 
+### 4.5 Slot、Projectile、Effect 本轮实现（2026-11-09）
+
+布局版本 23。Slot／Projectile 为 128／129；Effect 保留 101／102／103 并增加 104／105／106 三个附属臂，payload／节点为 25—28。见[实现与边界](implementation-4-slot-projectile-effect.md)、[必要逆向与主审](slot-projectile-effect-evidence.md)，完整字节和二进制单行表由生成器输出。
+
+- Slot 八个数值与独立奖励 ANM2 分块；Timeout 保留 i16，复杂状态机计数不猜全局线性方向。奖励编号不替代最终 Sprite，不在 Client 重演购买／派奖。
+- Projectile 的 DepthOffset 直接回映射到继承的 E4 `depth_offset +0x358`，仅发送一次。两项 flags 各 u64，ChangeTimeout 保存公开变更参数，不误建递减倒计时。
+- Effect 普通 VarData 未核定则不复制；TearFlags／GridDesc 按变体分开。三种具体 payload 不发送虚表、共享控制块或 deque header，经单一原生 owner 安装全部同版本投影。
+- `state/owned_payload.*` 有界处理 u8 present、尾块存在性依赖和缺失值最短全零规范；未知动态类型或读取失败不得当作不存在。
+- SDK 大小与池步长分别记录；公开目录已回映射，根对象和 payload 未知仍在各自生成表中，不能据此宣称字节完整或第 15 步通过。
+
 ## 改动范围
 
-- 布局源 `state/entity.json` 中的十个子类条目和专用块；其中 Effect 按 4.1 分为 6 个变体臂布局，NPC 按 4.2 增加 Delirium 变体臂。
+- 布局源 `state/entity-classes.json`、`state/entity-effect.json` 中的子类条目和专用块；其中 Effect 按 4.1 分为 6 个变体臂布局，NPC 按 4.2 增加 Delirium 变体臂。
 - Effect 的 Timeout 换算函数和 `effect_timeout` writer。
 - Client 类别写入由生成表分派，取代 `ClientEntityClassState.fields` 的字符串匹配。专用容器继续沿用现有写入函数，例如 `ClientEntityCollections`。
 
@@ -484,7 +496,7 @@ ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发�
 
 - NPC、Familiar 子类区的大段未知字节，需要先估算核对工作量，再决定拆分次序。Knife 按池步长只有 272 字节，不再属于大段未知。
 - Knife、Slot、Projectile 的实际 sizeof 与池步长尾部字节的归属（填充还是未知）。
-- Projectile 在 0x358 的字段与公共 DepthOffset 的关系。
+- Projectile 在 0x358 的字段已核定为公共 DepthOffset 别名，映射到 E4；不再列为未知。
 - Effect：
   - 实际 sizeof 是 0x4C0 还是 0x4BC；
   - 0x484—0x493 内联容器的类型；

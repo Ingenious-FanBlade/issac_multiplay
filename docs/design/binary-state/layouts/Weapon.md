@@ -1,8 +1,8 @@
 # Weapon
 
-由唯一布局源生成。布局编号 13；布局版本 20；原生大小 0x44；未知 20B；完整：否。
+由唯一布局源生成。布局编号 13；布局版本 23；原生大小 0x44；未知 20B；完整：否。
 
-**范围仅为已核基类前缀，不是动态对象分配大小；具体子类仍需完整布局。**
+**范围仅为已核前缀，不是动态对象分配大小；具体对象仍需完整布局。**
 
 sdk_size 0x40 不是完整基础构造足迹。仅声明到 ctor 写入的 0x44 base_prefix，不能代表动态分配大小；Weapon 子类真实 allocation size 由第5步按 factory/RTTI 接管。GetMaxCharge 是虚函数且父类实现返回 0；IsAxisAligned 还依赖 owner 类/道具条件；IsItemAnimFinished 查询 owner 动画状态；GetMainEntity 为虚函数/子类行为。故不声明 Weapon public_owner。 主审复读基类GetMainEntity槽VA0x9C4E70仅xor eax,eax;ret，不据此推定+8为主实体。 RTTI主审纠错：TypeDescriptor在VA0xBD1218（RVA0x7D1218），VA0xBD1220只是名字起点；Weapon COL VA0xB452C8的+0xC直接指向BD1218。
 

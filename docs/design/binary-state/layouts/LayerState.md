@@ -1,6 +1,6 @@
 # LayerState
 
-由唯一布局源生成。布局编号 6；布局版本 20；原生大小 0xA0；未知 4B；完整：否。
+由唯一布局源生成。布局编号 6；布局版本 23；原生大小 0xA0；未知 4B；完整：否。
 
 LayerState.HasCustomShader 与 HasCustomChampionShader 由 REPENTOGON Anm2Extras.cpp 的 ANM2* / LayerState* 旁表提供，非 J273 +0x31、非 ANM2 +0x108/+0x10C；需第8步旁表布局和资源路径接线。GetSpritesheet 返回实际 Image 对象，+0x98 的资源身份仍需核对名字唯一性/程序图像；+0x08 路径不能替代它，因为 SetSpriteSheet 仅更换 smart pointer、过滤/环绕和 loaded 状态，不改路径字符串。
 

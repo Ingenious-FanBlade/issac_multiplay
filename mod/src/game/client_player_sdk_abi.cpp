@@ -21,6 +21,12 @@ static_assert(sizeof(EntityTearPlus)==0x18 && offsetof(EntityTearPlus,initSound)
 static_assert(sizeof(EntityPickupPlus)==0x14 && offsetof(EntityPickupPlus,canRerollOverride)==0x10);
 static_assert(sizeof(EntityLaserPlus)==0x1c && offsetof(EntityLaserPlus,recalculateSamplesNextUpdate)==0x10);
 static_assert(offsetof(EntityLaserPlus,initSound)==0x14);
+// 第4步Slot字段严格保持官方声明宽度；SDK大小与J273池步长分开记录。
+static_assert(sizeof(Entity_Slot)==0x548 && offsetof(Entity_Slot,_state)==0x410);
+static_assert(offsetof(Entity_Slot,_timeout)==0x41c && sizeof(Entity_Slot::_timeout)==2);
+static_assert(offsetof(Entity_Slot,_prizeAnm2)==0x42c && offsetof(Entity_Slot,_prizeCollectible)==0x540);
+static_assert(sizeof(Entity_Projectile)==0x470 && sizeof(Entity_Effect)==0x490);
+static_assert(offsetof(Entity_Effect,_varData)==0x420);
 static_assert(sizeof(Innate)==sizeof(ItemSpoofSystem::InnateItems));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::CollectibleSpoof));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::TrinketSpoof));

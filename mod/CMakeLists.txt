@@ -53,7 +53,7 @@ add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_w
   DEPENDS tools/gen_state_layout.py ${STATE_LAYOUT_SOURCES}
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-application.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-application.json" VERBATIM)
-add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp
+add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp
   "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc"
   "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc")
 target_include_directories(isaac_cs_state PUBLIC src PRIVATE "${GENERATED}")

@@ -1,6 +1,6 @@
 # AnimationState
 
-由唯一布局源生成。布局编号 5；布局版本 20；原生大小 0x20；未知 3B；完整：否。
+由唯一布局源生成。布局编号 5；布局版本 23；原生大小 0x20；未知 3B；完整：否。
 
 两个帧数组是独立选择器，不是 _animFrame 的派生值。SetLayerFrame 与 NullFrame 路径分别校验并更新数组；长度来自当前 AnimationData 的 layer_count/null_layer_count，不能使用 ANM2 总层数。
 

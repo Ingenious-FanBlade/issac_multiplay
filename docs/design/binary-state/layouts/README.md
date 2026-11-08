@@ -28,10 +28,17 @@
 | [EntityLaserPlus](EntityLaserPlus.md) | 22 | 28 | 8 | 否 |
 | [HomingLaserBezier](HomingLaserBezier.md) | 23 | 24 | 0 | 是 |
 | [HomingLaser](HomingLaser.md) | 24 | 84 | 0 | 是 |
+| [EffectMrMeData](EffectMrMeData.md) | 25 | 296 | 30 | 否 |
+| [EffectTrailNode](EffectTrailNode.md) | 26 | 64 | 0 | 否 |
+| [EffectSpriteTrailData](EffectSpriteTrailData.md) | 27 | 24 | 0 | 否 |
+| [EffectPickupGhostData](EffectPickupGhostData.md) | 28 | 1112 | 56 | 否 |
 | [Entity](Entity.md) | 100 | 1040 | 335 | 否 |
-| [EntityEffect](EntityEffect.md) | 101 | 1216 | 422 | 否 |
+| [EntityEffect](EntityEffect.md) | 101 | 1216 | 438 | 否 |
 | [EntityEffect_TearFlags](EntityEffect_TearFlags.md) | 102 | 1216 | 422 | 否 |
 | [EntityEffect_GridDesc](EntityEffect_GridDesc.md) | 103 | 1216 | 409 | 否 |
+| [EntityEffect_MrMe](EntityEffect_MrMe.md) | 104 | 1216 | 438 | 否 |
+| [EntityEffect_SpriteTrail](EntityEffect_SpriteTrail.md) | 105 | 1216 | 438 | 否 |
+| [EntityEffect_PickupGhost](EntityEffect_PickupGhost.md) | 106 | 1216 | 438 | 否 |
 | [EntityFamiliar](EntityFamiliar.md) | 120 | 3888 | 906 | 否 |
 | [EntityKnife](EntityKnife.md) | 121 | 1312 | 521 | 否 |
 | [EntityBomb](EntityBomb.md) | 122 | 2520 | 441 | 否 |
@@ -40,3 +47,5 @@
 | [EntityTear](EntityTear.md) | 125 | 2120 | 478 | 否 |
 | [EntityPickup](EntityPickup.md) | 126 | 1776 | 448 | 否 |
 | [EntityLaser](EntityLaser.md) | 127 | 1384 | 421 | 否 |
+| [EntitySlot](EntitySlot.md) | 128 | 1360 | 367 | 否 |
+| [EntityProjectile](EntityProjectile.md) | 129 | 1144 | 379 | 否 |

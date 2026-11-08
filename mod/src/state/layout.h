@@ -29,6 +29,8 @@ struct Field {
   std::uint32_t native_offset, native_size, wire_offset, min_size, max_size;
   Operation operation;
   const char *name, *type, *handler, *target, *storage, *count_source;
+  // storage=shared-owner时native_offset指向8B holder；仅嵌套投影0带u8 present。
+  // payload须经具名owner读取/重建；其余投影使用同目标版本的存在性，不能直接加偏移。
   std::uint16_t nested_layout;
   std::uint8_t nested_block; // 255 表示整个嵌套状态，其余值只投影该子块。
   std::uint32_t limit, native_stride;

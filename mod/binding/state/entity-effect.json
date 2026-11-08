@@ -1,6 +1,442 @@
 {
   "types": [
     {
+      "type": "EffectMrMeData",
+      "layout": 25,
+      "native_size": "0x128",
+      "parent": null,
+      "rtti": {
+        "name": ".?AVMrMeData@IsaacRepentancePlus@@",
+        "rva": "0x7d14cc"
+      },
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "mr_vtable",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "具体payload虚表；只供本地动态类型检查",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "unknown_4_7",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不因构造清零或对齐归为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        },
+        {
+          "offset": "0x8",
+          "size": "0x114",
+          "name": "mr_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "MrMe最终Sprite",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x11c",
+          "size": "0xc",
+          "name": "unknown_11c_127",
+          "type": "bytes[12]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；池步长只界定范围，不证明尾部是填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "MrMe 外观",
+          "sequence": "world",
+          "fields": [
+            "mr_sprite#0"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "MrMe 动画",
+          "sequence": "world",
+          "fields": [
+            "mr_sprite#1"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "MrMe 图层",
+          "sequence": "world",
+          "fields": [
+            "mr_sprite#2"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": []
+    },
+    {
+      "type": "EffectTrailNode",
+      "layout": 26,
+      "native_size": "0x40",
+      "extent": "base_prefix",
+      "notes": "0x40仅为当前消费者已访问到的记录前缀；实际producer分配大小和记录步长尚未闭合，不能宣称完整动态对象。+0x38只保留32位绘制参数原值，不命名为Rotation。真实读取/重建须先核定记录布局，不能据现有适配器的64B注释直接安装。",
+      "parent": null,
+      "rtti": {
+        "name": "",
+        "rva": "0x0"
+      },
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x8",
+          "name": "trail_position",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "轨迹节点位置",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x8",
+          "size": "0x2c",
+          "name": "trail_color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "轨迹节点颜色",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ColorMod"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x34",
+          "size": "0x4",
+          "name": "trail_scale",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "节点缩放原值",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x38",
+          "size": "0x4",
+          "name": "trail_render_word",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "经XMM3透传到绘制记录的32位模式；尚未证明为Rotation，不施加浮点有限值约束",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x3c",
+          "size": "0x4",
+          "name": "trail_alpha",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "节点透明度原值",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "轨迹节点",
+          "sequence": "world",
+          "fields": [
+            "trail_position",
+            "trail_color",
+            "trail_scale",
+            "trail_render_word",
+            "trail_alpha"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "trail_scale": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "trail_alpha": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [],
+      "public_owners": []
+    },
+    {
+      "type": "EffectSpriteTrailData",
+      "layout": 27,
+      "native_size": "0x18",
+      "parent": null,
+      "rtti": {
+        "name": ".?AVSpriteTrailData@IsaacRepentancePlus@@",
+        "rva": "0x7d155c"
+      },
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "trail_vtable",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "SpriteTrailData具体虚表",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x14",
+          "name": "trail_nodes",
+          "type": "std::deque<EffectTrailNode>",
+          "category": "容器",
+          "semantics": "有序轨迹投影；当前64B记录前缀/步长仍待producer核定，不复制proxy/map/capacity/offset等进程状态",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "EffectTrailNode",
+            "stride": 64,
+            "limit": 16384,
+            "storage": "array",
+            "count_from": "typed_trail_owner_count",
+            "host": "read_effect_trail_nodes",
+            "client": "rebuild_effect_trail_nodes"
+          },
+          "read_requires": "entity-current-window-and-confirmed-trail-record-layout"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "轨迹头（仅根投影的present）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 1,
+          "name": "轨迹节点",
+          "sequence": "world",
+          "fields": [
+            "trail_nodes"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": []
+    },
+    {
+      "type": "EffectPickupGhostData",
+      "layout": 28,
+      "native_size": "0x458",
+      "parent": null,
+      "rtti": {
+        "name": ".?AVPickupGhostData@IsaacRepentancePlus@@",
+        "rva": "0x7d1630"
+      },
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "ghost_vtable",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "PickupGhostData具体虚表",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x114",
+          "name": "ghost_sprite_0",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "幽影独立Sprite；包括未使用槽的最终资源与状态",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x118",
+          "size": "0x114",
+          "name": "ghost_sprite_1",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "幽影独立Sprite；包括未使用槽的最终资源与状态",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x22c",
+          "size": "0x114",
+          "name": "ghost_sprite_2",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "幽影独立Sprite；包括未使用槽的最终资源与状态",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x340",
+          "size": "0x114",
+          "name": "ghost_sprite_3",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "幽影独立Sprite；包括未使用槽的最终资源与状态",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x454",
+          "size": "0x4",
+          "name": "ghost_count",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "有效幽影数；合法范围0—4",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "幽影数量与外观",
+          "sequence": "world",
+          "fields": [
+            "ghost_count",
+            "ghost_sprite_0#0",
+            "ghost_sprite_1#0",
+            "ghost_sprite_2#0",
+            "ghost_sprite_3#0"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "幽影动画",
+          "sequence": "world",
+          "fields": [
+            "ghost_sprite_0#1",
+            "ghost_sprite_1#1",
+            "ghost_sprite_2#1",
+            "ghost_sprite_3#1"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "幽影图层",
+          "sequence": "world",
+          "fields": [
+            "ghost_sprite_0#2",
+            "ghost_sprite_1#2",
+            "ghost_sprite_2#2",
+            "ghost_sprite_3#2"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "ghost_count": {
+          "kind": "range",
+          "scalar": "i32",
+          "min": 0,
+          "max": 4
+        }
+      },
+      "members": [],
+      "public_owners": []
+    },
+    {
       "type": "EntityEffect",
       "native_size": "0x4c0",
       "parent": "Entity",
@@ -22,7 +458,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x414",
@@ -36,7 +473,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x418",
@@ -50,7 +488,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x41c",
@@ -64,27 +503,13 @@
         },
         {
           "offset": "0x420",
-          "size": "0x10",
-          "name": "variant_data",
-          "type": "BitSet128",
-          "category": "状态",
-          "semantics": "按变体解释的不透明16字节，基础臂语义待第4步补证",
-          "status": "SDK声明",
-          "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.6 基础臂VarData写入待核",
-          "wire": {
-            "kind": "copy",
-            "type": "BitSet128"
-          }
-        },
-        {
-          "offset": "0x430",
-          "size": "0x10",
-          "name": "gap_430",
-          "type": "bytes[16]",
+          "size": "0x20",
+          "name": "variant_unknown",
+          "type": "bytes[32]",
           "category": "未知",
-          "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
+          "semantics": "按变体任意复用的数据区；基础臂没有已核逐字节语义，不把SDK占位BitSet128当通用状态",
           "status": "未知",
-          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
         },
         {
           "offset": "0x440",
@@ -108,7 +533,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x454",
@@ -122,7 +548,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x458",
@@ -136,7 +563,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x45c",
@@ -152,7 +580,8 @@
             "type": "i32",
             "host": "ExpireFrame",
             "client": "RemainingFrames"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x460",
@@ -166,7 +595,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x464",
@@ -180,7 +610,8 @@
           "wire": {
             "kind": "copy",
             "type": "u8"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x465",
@@ -204,7 +635,8 @@
           "wire": {
             "kind": "copy",
             "type": "Vector"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x470",
@@ -218,7 +650,8 @@
           "wire": {
             "kind": "copy",
             "type": "i32"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x474",
@@ -232,7 +665,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x478",
@@ -246,7 +680,8 @@
           "wire": {
             "kind": "copy",
             "type": "f32"
-          }
+          },
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0x47c",
@@ -319,11 +754,10 @@
         },
         {
           "id": 12,
-          "name": "FX2 变体数据",
+          "name": "FX2 变体数据（基础臂未知，预留）",
           "sequence": "world",
-          "fields": [
-            "variant_data"
-          ]
+          "fields": [],
+          "reserved": true
         }
       ],
       "conversions": {
@@ -364,10 +798,143 @@
           "scalar": "u8"
         }
       },
-      "members": [],
-      "public_owners": [],
+      "members": [
+        {
+          "id": "EntityEffect.m_Height",
+          "disposition": "field",
+          "fields": [
+            "height"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.FallingSpeed",
+          "disposition": "field",
+          "fields": [
+            "falling_speed"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.FallingAcceleration",
+          "disposition": "field",
+          "fields": [
+            "falling_acceleration"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.State",
+          "disposition": "field",
+          "fields": [
+            "state"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.Timeout",
+          "disposition": "field",
+          "fields": [
+            "expire_frame"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.MinRadius",
+          "disposition": "field",
+          "fields": [
+            "min_radius"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.MaxRadius",
+          "disposition": "field",
+          "fields": [
+            "max_radius"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.LifeSpan",
+          "disposition": "field",
+          "fields": [
+            "lifespan"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.IsFollowing",
+          "disposition": "field",
+          "fields": [
+            "following"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.ParentOffset",
+          "disposition": "field",
+          "fields": [
+            "parent_offset"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.DamageSource",
+          "disposition": "field",
+          "fields": [
+            "damage_source"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.Rotation",
+          "disposition": "field",
+          "fields": [
+            "rotation"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.Scale",
+          "disposition": "field",
+          "fields": [
+            "scale"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityEffect.GetTearFlags",
+          "disposition": "not_applicable",
+          "fields": [],
+          "reason": "仅54/113/126/167 TearFlags臂可读；普通变体不套用SDK占位类型"
+        },
+        {
+          "id": "NativeEffect.TearFlags",
+          "disposition": "not_applicable",
+          "fields": [],
+          "reason": "仅TearFlags臂适用，不能跨臂读写"
+        },
+        {
+          "id": "EntityEffect.GetGridEntityDesc",
+          "disposition": "not_applicable",
+          "fields": [],
+          "reason": "仅136 GridDesc臂提供完整描述，Grid域不重复发送"
+        },
+        {
+          "id": "EntityEffect.IsPlayerCreep",
+          "disposition": "derived",
+          "fields": [
+            "variant"
+          ],
+          "reason": "公开静态查询只取决于variant；复用E0形态字段"
+        }
+      ],
+      "public_owners": [
+        "EntityEffect"
+      ],
       "sdk_size": "0x490",
-      "notes": "第1步使用第4步已核字段演示继承、块和变体；完整6臂、附属owner及公开Effect目录由第4步接管。未知区不复制，所有臂均不宣称完整。 原生范围直接复核于J273 Effect池VA0x6EEE60/RVA0x2EEE60：VA0x6EEE9B传步长0x4C0、VA0x6EEE96传容量0x400；ctor VA0x5CCEAF写Effect虚表，TD VA0xBD1270/RVA0x7D1270，主审已复读。",
+      "notes": "第4步Effect六臂布局。基础臂0x420复用区未经逐变体核定，不复制不透明内存；附属owner按具体RTTI间接投影且经原生共享owner替换。未知仍明确列出，第15步统一验收。",
       "variants": {
         "selector": "variant",
         "arms": [
@@ -393,7 +960,46 @@
                 "wire": {
                   "kind": "copy",
                   "type": "BitSet128"
-                }
+                },
+                "read_requires": "entity-current-window"
+              },
+              {
+                "offset": "0x430",
+                "size": "0x10",
+                "name": "flags_unknown",
+                "type": "bytes[16]",
+                "category": "未知",
+                "semantics": "TearFlags以外复用字节尚未核定",
+                "status": "未知",
+                "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+              }
+            ],
+            "blocks": [
+              {
+                "id": 12,
+                "name": "FX2 眼泪效果位",
+                "sequence": "world",
+                "fields": [
+                  "variant_data"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "id": "EntityEffect.GetTearFlags",
+                "disposition": "field",
+                "fields": [
+                  "variant_data"
+                ],
+                "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+              },
+              {
+                "id": "NativeEffect.TearFlags",
+                "disposition": "field",
+                "fields": [
+                  "variant_data"
+                ],
+                "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
               }
             ]
           },
@@ -416,7 +1022,8 @@
                 "wire": {
                   "kind": "copy",
                   "type": "i32"
-                }
+                },
+                "read_requires": "entity-current-window"
               },
               {
                 "offset": "0x424",
@@ -430,7 +1037,8 @@
                 "wire": {
                   "kind": "copy",
                   "type": "i32"
-                }
+                },
+                "read_requires": "entity-current-window"
               },
               {
                 "offset": "0x428",
@@ -444,7 +1052,8 @@
                 "wire": {
                   "kind": "copy",
                   "type": "i32"
-                }
+                },
+                "read_requires": "entity-current-window"
               },
               {
                 "offset": "0x42c",
@@ -458,7 +1067,8 @@
                 "wire": {
                   "kind": "copy",
                   "type": "i32"
-                }
+                },
+                "read_requires": "entity-current-window"
               },
               {
                 "offset": "0x430",
@@ -472,7 +1082,8 @@
                 "wire": {
                   "kind": "copy",
                   "type": "u32"
-                }
+                },
+                "read_requires": "entity-current-window"
               },
               {
                 "offset": "0x434",
@@ -486,7 +1097,8 @@
                 "wire": {
                   "kind": "copy",
                   "type": "i32"
-                }
+                },
+                "read_requires": "entity-current-window"
               },
               {
                 "offset": "0x438",
@@ -500,7 +1112,8 @@
                 "wire": {
                   "kind": "copy",
                   "type": "u8"
-                }
+                },
+                "read_requires": "entity-current-window"
               },
               {
                 "offset": "0x439",
@@ -524,7 +1137,8 @@
                 "wire": {
                   "kind": "copy",
                   "type": "u32"
-                }
+                },
+                "read_requires": "entity-current-window"
               }
             ],
             "blocks": [
@@ -549,7 +1163,189 @@
                 "kind": "boolean",
                 "scalar": "u8"
               }
-            }
+            },
+            "members": [
+              {
+                "id": "EntityEffect.GetGridEntityDesc",
+                "disposition": "field",
+                "fields": [
+                  "grid_type",
+                  "grid_variant",
+                  "grid_state",
+                  "grid_spawn_count",
+                  "grid_spawn_seed",
+                  "grid_var_data",
+                  "grid_initialized",
+                  "grid_variable_seed"
+                ],
+                "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+              }
+            ]
+          },
+          {
+            "name": "MrMe",
+            "layout": 104,
+            "values": [
+              108
+            ],
+            "ranges": [
+              {
+                "offset": "0x4b4",
+                "size": "0x8",
+                "name": "extra_data",
+                "type": "shared-owner<EffectMrMeData>",
+                "category": "容器",
+                "semantics": "经具体RTTI核定的可选payload；只有投影0带u8 present；不存在时各块为最短全零编码；同目标版本由单一原生owner安装",
+                "status": "已核",
+                "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+                "wire": {
+                  "kind": "nested",
+                  "type": "EffectMrMeData",
+                  "storage": "shared-owner",
+                  "projections": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "host": "read_effect_MrMe_owner",
+                  "client": "install_effect_MrMe_owner"
+                },
+                "read_requires": "entity-current-window"
+              }
+            ],
+            "blocks": [
+              {
+                "id": 13,
+                "name": "FX3 附属存在与外观",
+                "sequence": "world",
+                "fields": [
+                  "extra_data#0"
+                ]
+              },
+              {
+                "id": 14,
+                "name": "FX4 附属动态",
+                "sequence": "world",
+                "fields": [
+                  "extra_data#1"
+                ]
+              },
+              {
+                "id": 15,
+                "name": "FX5 附属图层",
+                "sequence": "world",
+                "fields": [
+                  "extra_data#2"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "SpriteTrail",
+            "layout": 105,
+            "values": [
+              166
+            ],
+            "ranges": [
+              {
+                "offset": "0x4b4",
+                "size": "0x8",
+                "name": "extra_data",
+                "type": "shared-owner<EffectSpriteTrailData>",
+                "category": "容器",
+                "semantics": "经具体RTTI核定的可选payload；只有投影0带u8 present；不存在时各块为最短全零编码；同目标版本由单一原生owner安装",
+                "status": "已核",
+                "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+                "wire": {
+                  "kind": "nested",
+                  "type": "EffectSpriteTrailData",
+                  "storage": "shared-owner",
+                  "projections": [
+                    0,
+                    1
+                  ],
+                  "host": "read_effect_SpriteTrail_owner",
+                  "client": "install_effect_SpriteTrail_owner"
+                },
+                "read_requires": "entity-current-window"
+              }
+            ],
+            "blocks": [
+              {
+                "id": 13,
+                "name": "FX3 附属存在与外观",
+                "sequence": "world",
+                "fields": [
+                  "extra_data#0"
+                ]
+              },
+              {
+                "id": 14,
+                "name": "FX4 附属动态",
+                "sequence": "world",
+                "fields": [
+                  "extra_data#1"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "PickupGhost",
+            "layout": 106,
+            "values": [
+              191
+            ],
+            "ranges": [
+              {
+                "offset": "0x4b4",
+                "size": "0x8",
+                "name": "extra_data",
+                "type": "shared-owner<EffectPickupGhostData>",
+                "category": "容器",
+                "semantics": "经具体RTTI核定的可选payload；只有投影0带u8 present；不存在时各块为最短全零编码；同目标版本由单一原生owner安装",
+                "status": "已核",
+                "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+                "wire": {
+                  "kind": "nested",
+                  "type": "EffectPickupGhostData",
+                  "storage": "shared-owner",
+                  "projections": [
+                    0,
+                    1,
+                    2
+                  ],
+                  "host": "read_effect_PickupGhost_owner",
+                  "client": "install_effect_PickupGhost_owner"
+                },
+                "read_requires": "entity-current-window"
+              }
+            ],
+            "blocks": [
+              {
+                "id": 13,
+                "name": "FX3 附属存在与外观",
+                "sequence": "world",
+                "fields": [
+                  "extra_data#0"
+                ]
+              },
+              {
+                "id": 14,
+                "name": "FX4 附属动态",
+                "sequence": "world",
+                "fields": [
+                  "extra_data#1"
+                ]
+              },
+              {
+                "id": 15,
+                "name": "FX5 附属图层",
+                "sequence": "world",
+                "fields": [
+                  "extra_data#2"
+                ]
+              }
+            ]
           }
         ]
       }

@@ -95,6 +95,7 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 - **Effect Timeout**：每装好一个新的 world 帧，按新的时钟把全部 Effect 的 Timeout 重写为"到期帧 − 时钟"（`effect_timeout`）。
 - **第 4 步子类计数**：Familiar FireCooldown／Bomb 的明确方向锚点先经 `ValidEntityCounter` 校验，再用同一展示时钟调用 `DecodeEntityCounter`；HeadFrameDelay 直接安装原始 i32，不参与计时换算。只还原已核分支的值，不运行射击／爆炸等玩法；未知活动条件由 Host 报缺口。共享 payload／Sprite vector 的分块投影计数须一致，并经 `ValidContainerCountGroups` 核对合计，蝗虫两组合计最多 16384。真实编码长度不得超过 `Field.max_size`，全部依赖齐备后交具名 owner 一次安装。
 - **Tear／Pickup／Laser**：这些子类的条件计时同样随 world 展示时钟还原，必须区分正值减到零停走与无夹限有符号计数，不能统一套用 `DecodeEntityCounter`。Tear 三份、Pickup 两份辅助 ANM2 分别交资源 owner；HomingLaser 四个 vector 由各自 owner 构造候选，完整同版本依赖就绪后安装，保留本地 self，不运行 CalculateSamples。Pickup 循环道具 count≤8，安装时清除未用槽并恢复 u32 count；不得重建 Flip 保存玩法对象。Tear／Pickup／Laser 的全部独立关系槽先解析成员身份，经 SetReference 安装、在退休前撤边，防止原生 Remove 误删仍存活的独立对象。见[本轮实现](implementation-4-tear-pickup-laser.md)。
+- **Slot／Projectile／Effect**：Slot 安装独立奖励 ANM2 与真实 i16／u16 字段，不运行 SetPrizeCollectible／开奖；Projectile DepthOffset 复用 E4，ChangeTimeout 不当递减计数。Effect 三个附属臂先用 `DecodeSharedOwnerProjection` 核 present、尾块依赖及缺失值最短全零；存在时再递归校验 payload。全部同目标版本投影齐备后创建具体候选，经 `0x606310` 替换共享 owner，不逐投影换 owner。FX1 IsFollowing／ParentOffset 依赖 E8 Parent；136 描述仅此一份。见[实现边界](implementation-4-slot-projectile-effect.md)。
 - **条件计时**（第 3 步）：Entity 状态倒计时和暂停计时用 `DisplayCountdown`，毒／火伤害相位和 ColorParams Lifespan 用 `DisplaySignedCounter`，都以展示时钟还原；校验 mode 后才写入，`mode=0` 保持原值。Client 不重演删除和伤害规则，颜色元素的增删只来自 Host 容器。EntityPlus 的 optional 由原生 owner 赋值（`DecodeFlyingOverride`／`DecodeWaterOverride`），不 memcpy。
 - **对照与校正**：E2E 对照（第 15 步）和漂移校正读取这些字段时，用同一个时钟换算。
 

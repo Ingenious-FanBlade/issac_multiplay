@@ -1,6 +1,6 @@
 # ColorParams
 
-由唯一布局源生成。布局编号 11；布局版本 20；原生大小 0x3C；未知 2B；完整：否。
+由唯一布局源生成。布局编号 11；布局版本 23；原生大小 0x3C；未知 2B；完整：否。
 
 构造函数将两个 duration 初始化为 -1。REP 官方 Lua getters/setters 明确区分 +0x30 Duration 与 +0x34 Lifespan，不能折叠为一个持续时间。 第3步J273主审确认Lifespan(+34)每次颜色更新无条件dec，Duration(+30)不递减；Lifespan改为条件有符号锚点。
 

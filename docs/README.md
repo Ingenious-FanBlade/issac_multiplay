@@ -1,3 +1,5 @@
+> **原生二进制状态同步重构第 4 步：Slot／Projectile／Effect（2026-11-09）**：[实现说明](design/binary-state/implementation-4-slot-projectile-effect.md)、[必要逆向与主审](design/binary-state/slot-projectile-effect-evidence.md)和[生成布局表](design/binary-state/layouts/README.md)。三类布局、Effect 六个变体臂、三种附属 owner 与公开成员回映射已接入生成链，布局版本 23。基础 Effect 未核 VarData 不复制，Projectile DepthOffset 复用公共字段，Slot 保留真实16位字段。未知与后续采集／应用接线责任明确保留；普通 Release 纯编译／链接通过，没有测试、部署或启动游戏，第 15 步统一验收。
+
 > **原生二进制状态同步重构第 4 步：Tear／Pickup／Laser（2026-11-08）**：[实现说明](design/binary-state/implementation-4-tear-pickup-laser.md)、[必要逆向与主审](design/binary-state/tear-pickup-laser-evidence.md)和[生成布局表](design/binary-state/layouts/README.md)。三类布局、派生 Plus、独立辅助 Sprite、全部已核引用槽、Pickup 循环道具与 Laser 四份几何容器已接入生成链，布局版本 20。未知字节与条件计时缺口照实保留；普通 Release 纯编译／链接通过，没有测试或启动游戏，第 15 步统一验收。
 
 > **原生二进制状态同步重构第 4 步：Familiar／Knife／Bomb（2026-11-08）**：[实现说明](design/binary-state/implementation-4-familiar-knife-bomb.md)、[必要逆向与主审](design/binary-state/familiar-knife-bomb-evidence.md)和[生成布局表](design/binary-state/layouts/README.md)。三类布局、派生 Plus、辅助 Sprite、Familiar 两种专用 payload 与公开成员回映射已接入生成链，布局版本 16。未知字节与未闭合的计时条件明确保留，不能宣称类型完整；Release 纯编译／链接通过，没有测试或启动游戏，第 15 步统一验收。

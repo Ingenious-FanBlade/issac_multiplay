@@ -58,6 +58,8 @@ HeadFrameDelay 不属于已核线性计时，直接复制原始 i32。`ReadKnife
 
 第 4 步新增 Tear／Pickup／Laser 同样按 RTTI 查布局，不按 `_type` 猜派生 Plus。Tear 七槽、Pickup 四槽、Laser 十三槽沿用身份／Pending 采集，后台转成员序号；不得在主线程提前要求全部新实体已有网络序号。HomingLaser 的 `laser_self` 是本地自回指，不跟随或发送；五个投影在同一窗口读取，四个 vector 各自上限 16384，递归校验浮点和实际累计字节预算。Pickup 循环数组是内嵌八项数组，不是指针数组：先读 `+0x5C0` u32 count，超过八项报 Gap，仅复制 `+0x5A0` 有效前缀，前后复读计数／窗口；FlipSaveState 不采集其玩法对象。完整字段与计时条件见[本轮实现](implementation-4-tear-pickup-laser.md)。
 
+Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](implementation-4-slot-projectile-effect.md)。Slot 的奖励 ANM2 与主 Sprite 独立读取；Projectile 的 DepthOffset 只读取继承 E4 一次。Effect `shared-owner` 字段的偏移指向 holder，必须读前后 holder／具体 RTTI／生命周期见证，全部投影来自同一个 payload 和窗口。缺失输出规范化最短全零，未知类型或读失败报 Gap，不能按缺失处理；严禁把生成的 payload 偏移直接加到根 Entity。Trail 0x40 仅为已访问前缀，实际记录布局／stride须先核定，不能按旧注释直接读取；没有 `entity-current-window-and-confirmed-trail-record-layout` 则报 Gap。普通变体的 `0x420—0x43F` 未核，FX2 预留不复制。Timeout 每窗从原值重算到期帧，停走或非线性变化会使锚点变化并重新发送，不依赖所有变体都恰好递减一次的假设。
+
 生成器为每个布局产出一份操作序列（`state_capture.inc`）。主线程按顺序执行：
 
 | 操作 | 动作 |

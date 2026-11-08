@@ -6671,6 +6671,763 @@
       ],
       "sdk_size": "0x568",
       "notes": "第4步Tear/Pickup/Laser布局；SDK声明与未知逐段保留，第10/13步接入真实采集/应用，第15步唯一整体验收。"
+    },
+    {
+      "type": "EntitySlot",
+      "layout": 128,
+      "native_size": "0x550",
+      "parent": "Entity",
+      "rtti": {
+        "name": ".?AVEntity_Slot@IsaacRepentancePlus@@",
+        "rva": "0x7d20b0"
+      },
+      "ranges": [
+        {
+          "offset": "0x410",
+          "size": "0x4",
+          "name": "slot_state",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "机器当前状态",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x414",
+          "size": "0x4",
+          "name": "prize_type",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "奖励类型；不在Client开奖或支付",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x418",
+          "size": "0x2",
+          "name": "unknown_418_419",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不因构造清零或对齐归为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        },
+        {
+          "offset": "0x41a",
+          "size": "0x2",
+          "name": "shell_animation",
+          "type": "i16",
+          "category": "状态",
+          "semantics": "贝壳游戏动画索引；原生有符号16位",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i16"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x41c",
+          "size": "0x2",
+          "name": "slot_timeout",
+          "type": "i16",
+          "category": "状态",
+          "semantics": "原生有符号16位状态机计数；含递增与重置，不按通用倒计时换算",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i16"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x41e",
+          "size": "0x2",
+          "name": "unknown_41e_41f",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不因构造清零或对齐归为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        },
+        {
+          "offset": "0x420",
+          "size": "0x4",
+          "name": "donation_value",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "当前捐款值；只安装最终值",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x424",
+          "size": "0x4",
+          "name": "trigger_timer",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "触发计时数原值；不据字段名称猜测帧锚点",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x428",
+          "size": "0x2",
+          "name": "unknown_428_429",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不因构造清零或对齐归为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        },
+        {
+          "offset": "0x42a",
+          "size": "0x2",
+          "name": "touch",
+          "type": "u16",
+          "category": "状态",
+          "semantics": "原生触碰状态16位模式",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u16"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x42c",
+          "size": "0x114",
+          "name": "prize_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立奖励Sprite完整外观、动画与图层；不能由道具编号本地重抽",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x540",
+          "size": "0x4",
+          "name": "prize_collectible",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "奖品道具标识；与最终奖励Sprite独立保存",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x544",
+          "size": "0xc",
+          "name": "unknown_544_54f",
+          "type": "bytes[12]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；池步长只界定范围，不证明尾部是填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 10,
+          "name": "S0 状态与奖励",
+          "sequence": "world",
+          "fields": [
+            "slot_state",
+            "prize_type",
+            "shell_animation",
+            "donation_value",
+            "trigger_timer",
+            "touch",
+            "prize_collectible"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "S1 状态机计数",
+          "sequence": "world",
+          "fields": [
+            "slot_timeout"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "S2 奖励Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "prize_sprite#0"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "S3 奖励Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "prize_sprite#1"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "S4 奖励Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "prize_sprite#2"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {},
+      "members": [
+        {
+          "id": "EntitySlot.GetState",
+          "disposition": "field",
+          "fields": [
+            "slot_state"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntitySlot.GetPrizeType",
+          "disposition": "field",
+          "fields": [
+            "prize_type"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntitySlot.GetShellGameAnimationIndex",
+          "disposition": "field",
+          "fields": [
+            "shell_animation"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntitySlot.GetTimeout",
+          "disposition": "field",
+          "fields": [
+            "slot_timeout"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntitySlot.GetDonationValue",
+          "disposition": "field",
+          "fields": [
+            "donation_value"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntitySlot.GetTriggerTimerNum",
+          "disposition": "field",
+          "fields": [
+            "trigger_timer"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntitySlot.GetTouch",
+          "disposition": "field",
+          "fields": [
+            "touch"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntitySlot.GetPrizeCollectible",
+          "disposition": "field",
+          "fields": [
+            "prize_collectible"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntitySlot.GetPrizeSprite",
+          "disposition": "field",
+          "fields": [
+            "prize_sprite#0",
+            "prize_sprite#1",
+            "prize_sprite#2"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        }
+      ],
+      "public_owners": [
+        "EntitySlot"
+      ],
+      "sdk_size": "0x548",
+      "notes": "第4步Slot布局；覆盖变体1—18的共同原生布局，不执行Update/派奖/SetPrizeCollectible。未知和Wiki高位描述冲突均保留；第15步统一验收。"
+    },
+    {
+      "type": "EntityProjectile",
+      "layout": 129,
+      "native_size": "0x478",
+      "parent": "Entity",
+      "rtti": {
+        "name": ".?AVEntity_Projectile@IsaacRepentancePlus@@",
+        "rva": "0x7d13d8"
+      },
+      "ranges": [
+        {
+          "offset": "0x410",
+          "size": "0x4",
+          "name": "projectile_height",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "弹幕高度",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x414",
+          "size": "0x4",
+          "name": "projectile_falling_speed",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "弹幕下落速度",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x418",
+          "size": "0x4",
+          "name": "projectile_falling_accel",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "弹幕下落加速度",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x41c",
+          "size": "0x4",
+          "name": "projectile_damage",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "弹幕独立伤害值；不同于公共CollisionDamage",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x420",
+          "size": "0x4",
+          "name": "projectile_scale",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "弹幕缩放",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x424",
+          "size": "0x4",
+          "name": "homing_strength",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "追踪强度",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x428",
+          "size": "0x4",
+          "name": "curving_strength",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "曲线强度",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x42c",
+          "size": "0x4",
+          "name": "acceleration",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "速度倍率参数",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x430",
+          "size": "0x8",
+          "name": "unknown_430_437",
+          "type": "bytes[8]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不因构造清零或对齐归为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        },
+        {
+          "offset": "0x438",
+          "size": "0x8",
+          "name": "projectile_flags",
+          "type": "u64",
+          "category": "状态",
+          "semantics": "64位弹幕效果位；不误用Tear BitSet128",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u64"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x440",
+          "size": "0x8",
+          "name": "unknown_440_447",
+          "type": "bytes[8]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不因构造清零或对齐归为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        },
+        {
+          "offset": "0x448",
+          "size": "0x4",
+          "name": "wiggle_frame_offset",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "摆动帧偏移参数原值",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x44c",
+          "size": "0x4",
+          "name": "unknown_44c_44f",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；不读取、不复制、不因构造清零或对齐归为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        },
+        {
+          "offset": "0x450",
+          "size": "0x8",
+          "name": "change_flags",
+          "type": "u64",
+          "category": "状态",
+          "semantics": "切换后的64位效果位",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u64"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x458",
+          "size": "0x4",
+          "name": "change_velocity",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "切换后的速度参数",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x45c",
+          "size": "0x4",
+          "name": "change_timeout",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "ChangeTimeout公开参数原值；未见逐帧递减，不从名字推导倒计时或FrameCount算法",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x460",
+          "size": "0x18",
+          "name": "unknown_460_477",
+          "type": "bytes[24]",
+          "category": "未知",
+          "semantics": "尚未核定的原生字节；池步长只界定范围，不证明尾部是填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 10,
+          "name": "PR0 运动与表现",
+          "sequence": "world",
+          "fields": [
+            "projectile_height",
+            "projectile_falling_speed",
+            "projectile_falling_accel",
+            "projectile_damage",
+            "projectile_scale",
+            "homing_strength",
+            "curving_strength",
+            "acceleration"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "PR1 效果与变更",
+          "sequence": "world",
+          "fields": [
+            "projectile_flags",
+            "wiggle_frame_offset",
+            "change_flags",
+            "change_velocity",
+            "change_timeout"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "projectile_height": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "projectile_falling_speed": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "projectile_falling_accel": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "projectile_damage": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "projectile_scale": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "homing_strength": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "curving_strength": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "acceleration": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "change_velocity": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [
+        {
+          "id": "EntityProjectile.Height",
+          "disposition": "field",
+          "fields": [
+            "projectile_height"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.FallingSpeed",
+          "disposition": "field",
+          "fields": [
+            "projectile_falling_speed"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.FallingAccel",
+          "disposition": "field",
+          "fields": [
+            "projectile_falling_accel"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.Damage",
+          "disposition": "field",
+          "fields": [
+            "projectile_damage"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.Scale",
+          "disposition": "field",
+          "fields": [
+            "projectile_scale"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.HomingStrength",
+          "disposition": "field",
+          "fields": [
+            "homing_strength"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.CurvingStrength",
+          "disposition": "field",
+          "fields": [
+            "curving_strength"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.Acceleration",
+          "disposition": "field",
+          "fields": [
+            "acceleration"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.ProjectileFlags",
+          "disposition": "field",
+          "fields": [
+            "projectile_flags"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.WiggleFrameOffset",
+          "disposition": "field",
+          "fields": [
+            "wiggle_frame_offset"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.ChangeFlags",
+          "disposition": "field",
+          "fields": [
+            "change_flags"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.ChangeVelocity",
+          "disposition": "field",
+          "fields": [
+            "change_velocity"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.ChangeTimeout",
+          "disposition": "field",
+          "fields": [
+            "change_timeout"
+          ],
+          "reason": "已核原生来源与最终值安装对应；具体证据见字段目录"
+        },
+        {
+          "id": "EntityProjectile.DepthOffset",
+          "disposition": "field",
+          "fields": [
+            "depth_offset"
+          ],
+          "reason": "公开别名指向继承的Entity+0x358；只在E4发送一次，不建立第二份子类字段"
+        }
+      ],
+      "public_owners": [
+        "EntityProjectile"
+      ],
+      "sdk_size": "0x470",
+      "notes": "第4步Projectile布局；SDK本类无字段声明，数值字段依据J273与现有已核目录。公共DepthOffset仅继承一次；未知尾部不作填充，第15步统一验收。"
     }
   ]
 }

@@ -230,6 +230,8 @@ class Compiler:
             if kind == 'nested' and self.types.get(wire.get('type'), {}).get('pure_value'):
                 wire['kind'] = kind = 'copy'  # 纯值成员内联，允许与父块相邻状态合并。
             require(kind in OPERATIONS, where, '缺少合法传输操作')
+            require('storage' not in wire or kind == 'container' or
+                    (kind == 'nested' and wire['storage'] == 'shared-owner'), where, 'storage只适用于容器或间接共享owner')
             require('projections' not in wire or kind in {'nested', 'container'}, where, '只有嵌套类型或复杂容器元素可以按子块投影')
             require('max_bytes' not in wire or kind == 'container', where, '只有容器可以声明独立编码字节预算')
             if kind == 'copy':
@@ -246,7 +248,14 @@ class Compiler:
                 require(width == item['size'], where, 'copy 宽度与原生值不一致')
             elif kind == 'nested':
                 require(wire.get('type') in self.types and wire['type'] != entry['type'], where, '未知或自递归嵌套类型')
-                require(integer(self.types[wire['type']]['native_size']) == item['size'], where, '嵌套对象大小不一致')
+                if wire.get('storage') == 'shared-owner':
+                    # holder两字只标记间接来源；具体payload逐字段投影，绝不按根对象内嵌读取。
+                    require(item['size'] == 8 and item['category'] == '容器', where, '共享owner必须是8字节holder')
+                    require(nonempty(wire.get('host')) and nonempty(wire.get('client')), where, '共享owner缺少具名读取/重建处理器')
+                    require(not self.types[wire['type']].get('pure_value'), where, '共享owner必须保留具体payload布局')
+                else:
+                    require('storage' not in wire, where, '内嵌对象不能声明容器存储')
+                    require(integer(self.types[wire['type']]['native_size']) == item['size'], where, '嵌套对象大小不一致')
             elif kind in {'reference', 'resource', 'convert'}:
                 require(nonempty(wire.get('host')) and nonempty(wire.get('client')), where, '缺少具名双端处理器')
                 require(scalar_size(wire.get('type', '')) is not None, where, '转换结果必须是定长值')
@@ -382,6 +391,10 @@ class Compiler:
                         minimum, maximum = child['min'], child['max']
                     else:
                         minimum, maximum = nested['min'], nested['max']
+                    # 可选owner仅首个投影携带u8 present；缺失时各投影保留最短全零编码。
+                    # 其它投影依赖同目标版本首块的present，不另加容器count或复制holder。
+                    if wire.get('storage') == 'shared-owner' and wire.get('block', 0) == 0:
+                        minimum, maximum = minimum + 1, maximum + 1
                 else:
                     element = wire['element']
                     if element in self.expanded:
@@ -501,7 +514,7 @@ class Compiler:
         for item in self.expanded[name]['ranges']:
             wire = item.get('wire', {})
             nested = wire.get('type')
-            if wire.get('kind') in {'copy', 'nested'} and nested in self.expanded:
+            if wire.get('kind') in {'copy', 'nested'} and wire.get('storage') != 'shared-owner' and nested in self.expanded:
                 for child in self.native_ranges(nested):
                     value = copy.deepcopy(child)
                     value['offset'] += item['offset']
@@ -575,7 +588,7 @@ def emit(compiler, plans, out, docs):
         native_cells = [f'0x{r["offset"]:X} {r["type"]} {r["name"]}【{r["category"]}】{r["semantics"]}（{r["size"]}B；{r["status"]}）' for r in p['native_ranges']]
         body = f'# {e["type"]}\n\n由唯一布局源生成。布局编号 {lid}；布局版本 {integer(compiler.version["version"])}；原生大小 0x{e["native_size"]:X}；未知 {p["unknown"]}B；完整：{"是" if p["complete"] else "否"}。\n\n'
         if prefix:
-            body += '**范围仅为已核基类前缀，不是动态对象分配大小；具体子类仍需完整布局。**\n\n'
+            body += '**范围仅为已核前缀，不是动态对象分配大小；具体对象仍需完整布局。**\n\n'
         if e.get('notes'):
             body += e['notes'] + '\n\n'
         if e.get('variant_values'):
@@ -601,6 +614,8 @@ def emit(compiler, plans, out, docs):
                     typename += '（见该类型状态表）'
                     if f['nested_block'] != 255:
                         typename += f' 子块{f["nested_block"]}'
+                    if f['storage'] == 'shared-owner':
+                        typename = ('u8 present + ' if f['nested_block'] in {0, 255} else '') + typename + '（间接owner；缺失时最短全零）'
                 if f['companion']:
                     typename += '（伴随源，无根对象偏移）'
                 cells.append(f'{offset} {typename} {f["name"]}：{f["semantics"]}')

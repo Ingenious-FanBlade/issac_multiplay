@@ -48,7 +48,7 @@
 - `count_groups`：多个原生容器共用的元素数总上限，包含名称、字段名、limit 和证据；例如蝗虫两组 Sprite 合计最多 16384。生成到 `CountConstraint`，同容器各子块投影必须同 count，求和时只计一次。`ValidContainerCountGroups` 检查完整同版本计数，Host 复制元素前及 Client 写入前分别调用。
 - `members`：公开成员到布局字段的回映射。
 - `contexts`：嵌套类型的已核父上下文，例如所属资源号和容器元素序号。派生成员用 `@名称` 回映射；上下文不冒充原生字节，也不重复发送。
-- `extent`：默认 `object`。只有已核基类前缀、尚不代表具体动态对象大小时写 `base_prefix`；此类布局不能宣称完整，例如 Weapon。
+- `extent`：默认 `object`。只有已核前缀、尚不代表具体动态对象大小时写 `base_prefix`；此类布局不能宣称完整，例如 Weapon 基类，以及实际记录分配／步长尚未闭合的 Trail 消费前缀。
 - 第 3 步补充：`companions` 表示另有原生字节表的伴随对象，以具名 Host/Client owner 解析；生成字段明确为 `FieldSource::Companion`，没有根对象偏移，不把 EntityPlus 伪造成 Entity 内嵌字段。父类的伴随来源随继承保留。
 - 第 4 步补充：子类可用同名 `companions` 把来源收窄到派生类型，例如 Familiar／Knife 的 EntityPlus；生成器校验真实继承关系，不重复发送公共前缀，也不允许替换成无关类型。
 - 第 3 步补充：`read_requires` 保留特殊读取资格，生成到字段和合并区间；资格不同的区间不合并。`shape` 生成到字段元数据。`world-or-player-body` 表示公共块在普通 Entity 使用 world，在 Player 使用 body，供第 5/10/11 步接线。
@@ -74,6 +74,7 @@
 - **断开条件**：遇到填充、未知、本地、引用、资源、容器、换算字节都要断开。证实为填充的字节也断开，保证 memcmp 只比较有语义的字节。
 - **复制顺序**：区间按原生偏移升序复制，在状态块中按块内字段顺序排列。
 - **嵌套拆块**：复杂嵌套的 `wire.projections` 可以把子块分别放入父块（用 `字段名#子块号` 引用），要求所有子块恰好各一次。这样 Entity 的 E4/E5/E6 可复用 ANM2 一份字节事实。
+- **间接共享 owner**（第 4 步）：`kind=nested, storage=shared-owner` 的原生段必须为 8B holder 且归属“容器”，必须给出具名 Host／Client 处理器；payload 大小来自独立布局，不能按 holder 内嵌读取。投影 0 带 u8 present，其余投影依赖同目标版本存在性；缺失 owner 时各投影使用最短全零编码。根对象的原生表只计 holder，payload 的未知字节单独统计。编码与有界解码由 `state/owned_payload.*` 提供。
 - **容器元素拆块**：复杂容器的 `wire.projections` 同样投影元素子块。每个投影带自己的 u16 count；同一目标版本的投影计数必须一致，Client 在全部依赖就绪后由同一 owner 安装。Familiar 的两组蝗虫 Sprite 和共享 payload 据此拆分外观／动画／图层。
 - **容器字节预算**：`wire.max_bytes` 可另限每个容器字段／投影的完整编码大小（含 u16 count），不改变 `limit` 的元素数边界。生成的 `Field.max_size` 取二者约束的较小值，采集／解码还须检查实际编码长度和全局池预算，超限报缺口，不截断。这样复杂 ANM2 容器不会因逐级理论最大值相乘而溢出 u32。
 
