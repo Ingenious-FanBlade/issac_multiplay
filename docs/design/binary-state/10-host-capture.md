@@ -32,6 +32,8 @@ stage11—18（[tx-04-21 采集性能方案](../tx-04-21/tx-04-21-capture-perfor
 
 ordinary 窗口、PlayerPost 窗口，以及规范第 11 节的条件读取规则（例如 `removedByFactory`）。
 
+第 3 步的生成表把读取资格写在 `Field.read_requirement` 和 `CopyRange.read_requirement` 上（`entity-current-window`、`current-entity-byte-0x177`、`entity-current-window-and-confirmed-timer-clock`、`entity-current-window-and-confirmed-color-clock`）。本步必须为每种资格提供真实见证，不能从布局声明推导授权。条件计时由字段 owner 给出已核的实际递减条件；活动但时钟关系未知时报缺口，不能用 mode=0 冒充停走。EntityPlus 只经 `ReadEntityExtension` 读取已存在的来源（[第 3 步实现](implementation-3.md)）。
+
 ## 设计
 
 ### 10.1 位置与时机

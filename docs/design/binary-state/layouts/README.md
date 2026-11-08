@@ -18,7 +18,8 @@
 | [ActiveItemDesc](ActiveItemDesc.md) | 12 | 32 | 0 | 是 |
 | [Weapon](Weapon.md) | 13 | 68 | 20 | 否 |
 | [TemporaryEffect](TemporaryEffect.md) | 14 | 16 | 4 | 否 |
-| [Entity](Entity.md) | 100 | 1040 | 1032 | 否 |
-| [EntityEffect](EntityEffect.md) | 101 | 1216 | 1119 | 否 |
-| [EntityEffect_TearFlags](EntityEffect_TearFlags.md) | 102 | 1216 | 1119 | 否 |
-| [EntityEffect_GridDesc](EntityEffect_GridDesc.md) | 103 | 1216 | 1106 | 否 |
+| [EntityPlus](EntityPlus.md) | 15 | 16 | 5 | 否 |
+| [Entity](Entity.md) | 100 | 1040 | 335 | 否 |
+| [EntityEffect](EntityEffect.md) | 101 | 1216 | 422 | 否 |
+| [EntityEffect_TearFlags](EntityEffect_TearFlags.md) | 102 | 1216 | 422 | 否 |
+| [EntityEffect_GridDesc](EntityEffect_GridDesc.md) | 103 | 1216 | 409 | 否 |

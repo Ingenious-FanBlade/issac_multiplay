@@ -2536,9 +2536,9 @@
           "name": "duration",
           "type": "i32",
           "category": "状态",
-          "semantics": "duration1；公开 GetDuration/SetDuration",
+          "semantics": "duration1/Duration；颜色淡出分母，当前更新路径不递减，保留直接状态",
           "status": "已核",
-          "evidence": "ColorParams.zhl +0x30；官方 LuaColorParams.cpp 的 GetDuration/SetDuration 直接读取写入 _duration1",
+          "evidence": "ColorParams.zhl +0x30；官方 LuaColorParams.cpp 的 GetDuration/SetDuration 直接读取写入 _duration1；第3步核对J273颜色更新循环，递减位置为+34，+30仅作比例分母",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -2549,14 +2549,17 @@
           "size": "0x4",
           "name": "lifespan",
           "type": "i32",
-          "category": "状态",
-          "semantics": "duration2；公开 GetLifespan/SetLifespan",
+          "category": "换算",
+          "semantics": "duration2/Lifespan；原生颜色更新无条件有符号递减，负值也递减，仅结果0时移除元素；使用无夹限条件计时锚点",
           "status": "已核",
-          "evidence": "ColorParams.zhl +0x34；官方 LuaColorParams.cpp 的 GetLifespan/SetLifespan 直接读取写入 _duration2",
+          "evidence": "ColorParams.zhl +0x34；官方 LuaColorParams.cpp 的 GetLifespan/SetLifespan 直接读取写入 _duration2；J273 Entity::Update VA0x6AA122读+34、VA0x6AA12A dec、VA0x6AA12E写，VA0x6AA13B检查0并删除；主审已复读",
           "wire": {
-            "kind": "copy",
-            "type": "i32"
-          }
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "color_lifespan_to_anchor",
+            "client": "color_lifespan_from_anchor"
+          },
+          "read_requires": "entity-current-window-and-confirmed-color-clock"
         },
         {
           "offset": "0x38",
@@ -2612,7 +2615,10 @@
           ]
         }
       ],
-      "conversions": {},
+      "conversions": {
+        "color_lifespan_to_anchor": "只在已核颜色更新时钟与Host帧同速时用SignedCounterAnchor Decreasing：mode1=value=game_frame+counter；停走mode0保存原值。对0/负同样处理，不套正倒计时哨兵规则。",
+        "color_lifespan_from_anchor": "先校验mode；用最近world game_frame按模2^32还原有符号Lifespan，不在零夹限；元素删除只来自Host容器状态，不在Client重演。"
+      },
       "validators": {
         "fadeout": {
           "kind": "boolean",
@@ -2646,7 +2652,7 @@
           "fields": [
             "lifespan"
           ],
-          "reason": "映射 _duration2 / +0x34。"
+          "reason": "映射_duration2/+34的有符号条件递减锚点；不是Duration分母，也不是负值停走的普通倒计时。"
         },
         {
           "id": "ColorParams.GetFadeout",
@@ -2676,7 +2682,7 @@
       "public_owners": [
         "ColorParams"
       ],
-      "notes": "构造函数将两个 duration 初始化为 -1。REP 官方 Lua getters/setters 明确区分 +0x30 Duration 与 +0x34 Lifespan，不能折叠为一个持续时间。"
+      "notes": "构造函数将两个 duration 初始化为 -1。REP 官方 Lua getters/setters 明确区分 +0x30 Duration 与 +0x34 Lifespan，不能折叠为一个持续时间。 第3步J273主审确认Lifespan(+34)每次颜色更新无条件dec，Duration(+30)不递减；Lifespan改为条件有符号锚点。"
     },
     {
       "type": "ActiveItemDesc",

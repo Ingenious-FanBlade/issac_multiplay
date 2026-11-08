@@ -1,0 +1,2643 @@
+{
+  "types": [
+    {
+      "type": "EntityPlus",
+      "native_size": "0x10",
+      "extent": "base_prefix",
+      "parent": null,
+      "rtti": {
+        "name": "REPENTOGON扩展基类，非J273内置RTTI",
+        "rva": 0
+      },
+      "layout": 15,
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "vtable",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "REP扩展本地虚表",
+          "status": "已核",
+          "evidence": "EntityPlus.h虚析构；client_player_sdk_abi.cpp；PlusHeader sizeof16"
+        },
+        {
+          "offset": 4,
+          "size": 2,
+          "name": "flying_override",
+          "type": "optional<bool>",
+          "category": "换算",
+          "semantics": "未设置=-1，false=0，true=1；只在engaged时读payload",
+          "status": "已核",
+          "evidence": "EntityPlus.h；MSVC optional:70-75；state/entity_extension.cpp",
+          "wire": {
+            "kind": "convert",
+            "type": "i8",
+            "host": "entity_plus_flying_to_value",
+            "client": "entity_plus_flying_from_value"
+          }
+        },
+        {
+          "offset": 6,
+          "size": 2,
+          "name": "unknown_6_7",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "成员间对齐区尚未对已安装REP二进制核定；不复制",
+          "status": "未知",
+          "evidence": "官方EntityPlus成员顺序与Win32 ABI"
+        },
+        {
+          "offset": 8,
+          "size": 5,
+          "name": "water_override",
+          "type": "optional<u32>::value_and_engaged",
+          "category": "换算",
+          "semantics": "Null=0，有值=(1<<32)|u32；只读取有效payload，不复制optional内部尾字节",
+          "status": "已核",
+          "evidence": "EntityPlus.h；MSVC optional:70-75；state/entity_extension.cpp",
+          "wire": {
+            "kind": "convert",
+            "type": "u64",
+            "host": "entity_plus_water_to_value",
+            "client": "entity_plus_water_from_value"
+          }
+        },
+        {
+          "offset": 13,
+          "size": 3,
+          "name": "unknown_d_f",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "optional内部尾部对齐区未对已安装REP二进制核定；不复制",
+          "status": "未知",
+          "evidence": "MSVC optional与EntityPlus Win32 ABI"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "EntityPlus 公共可选覆盖",
+          "sequence": "world",
+          "fields": [
+            "flying_override",
+            "water_override"
+          ]
+        }
+      ],
+      "conversions": {
+        "entity_plus_flying_to_value": "先读engaged，未设置编码-1，否则读取0/1；不读未设置payload。",
+        "entity_plus_flying_from_value": "DecodeFlyingOverride校验-1/0/1，交原生owner赋optional。",
+        "entity_plus_water_to_value": "先读engaged，Null编码0，有值位32置1；不读未设置payload。",
+        "entity_plus_water_from_value": "DecodeWaterOverride只接受0或高32位为1，交原生owner赋optional。"
+      },
+      "validators": {
+        "flying_override": {
+          "kind": "enum",
+          "scalar": "i8",
+          "values": [
+            -1,
+            0,
+            1
+          ]
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "notes": "官方1.1.3扩展基类前缀；Player/Familiar等Plus派生类由第4/5步描述。5B未知对齐不发送，不能宣称完整动态扩展。"
+    },
+    {
+      "type": "Entity",
+      "native_size": "0x410",
+      "parent": null,
+      "rtti": {
+        "name": ".?AVEntity@IsaacRepentancePlus@@",
+        "rva": "0x7D1244"
+      },
+      "layout": 100,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "vtable",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "原生虚表；不作为线上状态或地址",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:classes.Entity"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x10",
+          "name": "unknown_4_13",
+          "type": "bytes[16]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x14",
+          "size": "0x4",
+          "name": "pending_damage",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "Host待结算伤害缓冲；Client不执行TakeDamage或伤害结算，最终HP和表现另按状态安装",
+          "status": "已核",
+          "evidence": "J273 HasMortalDamage getter VA0x6A8810 movss xmm0,[ecx+14]，VA0x6A8815与+380 HP比较；Init VA0x6A4D92清零；主审已复读原指令"
+        },
+        {
+          "offset": "0x18",
+          "size": "0x8",
+          "name": "unknown_18_1f",
+          "type": "bytes[8]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x20",
+          "size": "0x4",
+          "name": "authority_order",
+          "type": "u32",
+          "category": "换算",
+          "semantics": "Host index 转绘制同Z排序值；不覆盖Client本地索引或用作网络身份",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:fields.index；client_entity_model.cpp:authority_index；client_entity_draw_native.cpp",
+          "wire": {
+            "kind": "convert",
+            "type": "u32",
+            "host": "entity_index_to_draw_order",
+            "client": "entity_draw_order_to_description"
+          }
+        },
+        {
+          "offset": "0x24",
+          "size": "0x4",
+          "name": "collision_index",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "当前进程碰撞索引；不作为网络身份",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x28",
+          "size": "0x4",
+          "name": "type",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "实体Type；形态变化走结构事务",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:fields.type；J273 VA0x6A4A35写+0x28",
+          "shape": true,
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x2c",
+          "size": "0x4",
+          "name": "variant",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "实体Variant；形态变化走结构事务",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:fields.variant；J273 VA0x6A4A3B写+0x2C",
+          "shape": true,
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x30",
+          "size": "0x4",
+          "name": "subtype",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "实体SubType；形态变化走结构事务",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:fields.subtype；J273 VA0x6A4A41写+0x30",
+          "shape": true,
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x34",
+          "size": "0x4",
+          "name": "spawner_type",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "生成者Type；分类和结构描述",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "shape": true,
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x38",
+          "size": "0x4",
+          "name": "spawner_variant",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "生成者Variant；分类和结构描述",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "shape": true,
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x3c",
+          "size": "0xc",
+          "name": "unknown_3c_47",
+          "type": "bytes[12]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x48",
+          "size": "0x114",
+          "name": "sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "Entity内嵌主Sprite，字节事实复用ANM2，分别投影外观/动画/图层",
+          "status": "已核",
+          "evidence": "J273 ctor VA0x6A398E lea ecx,[edi+48]，VA0x6A39BB调用ANM2 ctor VA0x402B00；主审已复读指令边界；嵌套语义见第2步ANM2",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "offset": "0x15c",
+          "size": "0x4",
+          "name": "shadow_size",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "阴影尺寸",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x160",
+          "size": "0x8",
+          "name": "unknown_160_167",
+          "type": "bytes[8]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x168",
+          "size": "0x8",
+          "name": "flags",
+          "type": "u64",
+          "category": "状态",
+          "semantics": "EntityFlags 64位位集",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:fields.flags；Init VA0x6A4D7B/0x6A4D85",
+          "wire": {
+            "kind": "copy",
+            "type": "u64"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x170",
+          "size": "0x1",
+          "name": "valid",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "对象有效资格原值",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:fields.valid",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x171",
+          "size": "0x1",
+          "name": "visible",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "公开可见开关",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:fields.visible",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x172",
+          "size": "0x1",
+          "name": "exists",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "存在状态",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:fields.exists",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x173",
+          "size": "0x1",
+          "name": "dead",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "死亡状态",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:fields.dead",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x174",
+          "size": "0x1",
+          "name": "unknown_174_174",
+          "type": "bytes[1]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x175",
+          "size": "0x1",
+          "name": "unknown_175",
+          "type": "u8",
+          "category": "未知",
+          "semantics": "slot4在暂存位置时写1，Init写0；所有读取者及用途尚未闭合，不据两次赋值判定为可复制bool",
+          "status": "未知",
+          "evidence": "J273 Entity slot4 VA0x6AC2A0；VA0x6AC320 mov byte [edi+175h],1；主审已复读"
+        },
+        {
+          "offset": "0x176",
+          "size": "0x1",
+          "name": "unknown_176_176",
+          "type": "bytes[1]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x177",
+          "size": "0x1",
+          "name": "removed_by_factory",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "当前removedByFactory字节；仅满足规范第11节已创建owner或exact-pair PlayerUpdate资格才可采集",
+          "status": "已核",
+          "evidence": "规范第11节 USER_ACCEPTED_CURRENT_ENTITY_BYTE；mod/binding/world_layout.json:removed_by_factory；Init VA0x6A4BD6跨字段清零不代替当前资格",
+          "read_requires": "current-entity-byte-0x177",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x178",
+          "size": "0xc",
+          "name": "unknown_178_183",
+          "type": "bytes[12]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x184",
+          "size": "0x4",
+          "name": "grid_collision_class",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "格子碰撞类别",
+          "status": "已核",
+          "evidence": "官方Entity.zhl +184；J273 IsFlying VA0x6A7C90读+184并与0/1/2/3比较；不得将Init VA0x6A4BDF的+188=4写误当成+184",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x188",
+          "size": "0x4",
+          "name": "entity_collision_class",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "实体碰撞类别",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x18c",
+          "size": "0x2",
+          "name": "unknown_18c_18d",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x18e",
+          "size": "0x2",
+          "name": "entity_plus_holder_upper",
+          "type": "u16",
+          "category": "本地",
+          "semantics": "EntityPlusHolder地址高16位；不可进入复制区间",
+          "status": "已核",
+          "evidence": "官方 repentogon/Patches/EntityPlus.cpp:InitEntityPlusHolder/GetEntityPlusHolder"
+        },
+        {
+          "offset": "0x190",
+          "size": "0x1",
+          "name": "collides_with_grid",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "当前格子碰撞标志",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x191",
+          "size": "0x1",
+          "name": "unknown_191_191",
+          "type": "bytes[1]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x192",
+          "size": "0x2",
+          "name": "entity_plus_holder_lower",
+          "type": "u16",
+          "category": "本地",
+          "semantics": "EntityPlusHolder地址低16位；不可进入复制区间",
+          "status": "已核",
+          "evidence": "官方 repentogon/Patches/EntityPlus.cpp:InitEntityPlusHolder/GetEntityPlusHolder"
+        },
+        {
+          "offset": "0x194",
+          "size": "0x10",
+          "name": "unknown_194_1a3",
+          "type": "bytes[16]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x1a4",
+          "size": "0x8",
+          "name": "screen_position_cache",
+          "type": "Vector",
+          "category": "本地",
+          "semantics": "当前Client屏幕/Camera坐标缓存；已核Render由世界坐标和屏幕参数计算，不跨进程复制",
+          "status": "已核",
+          "evidence": "J273 vtable槽5=VA0x6AC4E0；VA0x6AC646/0x6AC64A写+1A4/+1A8，VA0x6AC64F调用主Sprite Render；依赖position/position_offset和本地屏幕参数；主审已复读"
+        },
+        {
+          "offset": "0x1ac",
+          "size": "0xc",
+          "name": "color_params",
+          "type": "std::vector<ColorParams>",
+          "category": "容器",
+          "semantics": "有序颜色覆盖参数；元素递归投影，不发送容器头",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "container",
+            "element": "ColorParams",
+            "stride": 60,
+            "limit": 65535,
+            "storage": "vector",
+            "host": "read_entity_color_params",
+            "client": "rebuild_entity_color_params"
+          }
+        },
+        {
+          "offset": "0x1b8",
+          "size": "0x2c",
+          "name": "color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "当前最终颜色",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "nested",
+            "type": "ColorMod"
+          }
+        },
+        {
+          "offset": "0x1e4",
+          "size": "0x2c",
+          "name": "splat_color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "溅射颜色",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "nested",
+            "type": "ColorMod"
+          }
+        },
+        {
+          "offset": "0x210",
+          "size": "0x4",
+          "name": "fire_damage_cooldown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 fire_damage_cooldown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA396 / dec 0x6AA3A0 / store 0x6AA3A1测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x214",
+          "size": "0x4",
+          "name": "damage_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 damage_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3A7 / dec 0x6AA3B1 / store 0x6AA3B2测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x218",
+          "size": "0x4",
+          "name": "freeze_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 freeze_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3B8 / store 0x6AA3CD测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x21c",
+          "size": "0x4",
+          "name": "poison_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 poison_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3EE测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x220",
+          "size": "0x4",
+          "name": "slowing_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 slowing_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA42C测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x224",
+          "size": "0x4",
+          "name": "charmed_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 charmed_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA476测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x228",
+          "size": "0x4",
+          "name": "confusion_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 confusion_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA4E3测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x22c",
+          "size": "0x4",
+          "name": "midas_freeze_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 midas_freeze_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA646测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x230",
+          "size": "0x4",
+          "name": "fear_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 fear_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA52B测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x234",
+          "size": "0x4",
+          "name": "burn_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 burn_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA5B7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x238",
+          "size": "0x4",
+          "name": "boss_status_effect_cooldown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 boss_status_effect_cooldown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA9DC / dec 0x6AA9E6 / store 0x6AA9E7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x23c",
+          "size": "0x4",
+          "name": "shrink_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态倒计时 shrink_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA58F测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x240",
+          "size": "0x38",
+          "name": "unknown_240_277",
+          "type": "bytes[56]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x278",
+          "size": "0x4",
+          "name": "poison_damage",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "毒伤害强度",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x27c",
+          "size": "0x4",
+          "name": "burn_damage",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "灼烧伤害强度",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x280",
+          "size": "0x54",
+          "name": "unknown_280_2d3",
+          "type": "bytes[84]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x2d4",
+          "size": "0x4",
+          "name": "mass",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "质量",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x2d8",
+          "size": "0x8",
+          "name": "unknown_2d8_2df",
+          "type": "bytes[8]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x2e0",
+          "size": "0x4",
+          "name": "poison_damage_timer",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生毒伤害相位，有对应flag且实际Update分支执行时++并按20取模；使用无夹限有符号递增锚点，不当倒计时或负哨兵",
+          "status": "已核",
+          "evidence": "J273 Entity::Update VA0x6A9CF0，毒/火分支对应flag0x40/0x1000，读取+2E0/+2E4后inc；entity-common-evidence.md，主审采用前核原始指令",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_phase_to_anchor",
+            "client": "entity_phase_from_anchor"
+          }
+        },
+        {
+          "offset": "0x2e4",
+          "size": "0x4",
+          "name": "burn_damage_timer",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生火伤害相位，有对应flag且实际Update分支执行时++并按20取模；使用无夹限有符号递增锚点，不当倒计时或负哨兵",
+          "status": "已核",
+          "evidence": "J273 Entity::Update VA0x6A9CF0，毒/火分支对应flag0x40/0x1000，读取+2E0/+2E4后inc；entity-common-evidence.md，主审采用前核原始指令",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_phase_to_anchor",
+            "client": "entity_phase_from_anchor"
+          }
+        },
+        {
+          "offset": "0x2e8",
+          "size": "0x4",
+          "name": "bleeding_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态计时 bleeding_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA67D测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x2ec",
+          "size": "0x4",
+          "name": "unknown_2ec_2ef",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x2f0",
+          "size": "0x4",
+          "name": "magnetized_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态计时 magnetized_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA77E测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x2f4",
+          "size": "0x4",
+          "name": "baited_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态计时 baited_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA7C2测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x2f8",
+          "size": "0x4",
+          "name": "knockback_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态计时 knockback_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA926测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x2fc",
+          "size": "0x4",
+          "name": "weakness_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态计时 weakness_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA8C7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x300",
+          "size": "0x4",
+          "name": "ice_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态计时 ice_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA95D测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x304",
+          "size": "0x4",
+          "name": "brimstone_mark_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态计时 brimstone_mark_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA9A7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x308",
+          "size": "0x8",
+          "name": "knockback_direction",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "击退方向",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x310",
+          "size": "0x4",
+          "name": "unknown_310_313",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "附属owner/引用候选，生命周期及用途未闭合，不复制",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x314",
+          "size": "0x8",
+          "name": "pause_held_position",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "暂停位置路径保存的坐标，pause_timer递减后仍为正时原生从此还原Position；不能仅由当前Position派生",
+          "status": "已核",
+          "evidence": "J273位置路径VA0x6C03B0；VA0x6C089C取+314、0x6C08A2写+33C，VA0x6C08A8取+318、0x6C08AE写+340；Init VA0x6A4E87初始化该Vector；主审已复读原始指令",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x31c",
+          "size": "0x4",
+          "name": "pause_timer",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "原生状态计时 pause_timer；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "status": "已核",
+          "evidence": "SDK Entity.zhl +31C；J273位置路径VA0x6C03B0，在VA0x6C0887读、0x6C088D测试正、0x6C0891减一、0x6C0892写回；主审已复读；全部调用资格未闭合，需实际clock见证",
+          "read_requires": "entity-current-window-and-confirmed-timer-clock",
+          "wire": {
+            "kind": "convert",
+            "type": "u32[2]",
+            "host": "entity_countdown_to_anchor",
+            "client": "entity_countdown_from_anchor"
+          }
+        },
+        {
+          "offset": "0x320",
+          "size": "0x8",
+          "name": "unknown_320_327",
+          "type": "bytes[8]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x328",
+          "size": "0x4",
+          "name": "frame_base",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "Host帧空间中的FrameCount基准；原值发送，FrameCount=world.game_frame-frame_base",
+          "status": "已核",
+          "evidence": "J273 VA0x6A5290/RVA0x2A5290 FrameCount getter：Game+0x25A70-Entity+0x328；Init VA0x6A4B2B读全局帧、VA0x6A4B31写+328；登记VA0x84F385（主审见entity-common-evidence.md）",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x32c",
+          "size": "0x4",
+          "name": "spawn_grid_index",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "出生格子序号，未绑定为-1；不是帧计数",
+          "status": "已核",
+          "evidence": "J273 Init VA0x6A4B46写-1；公开getter VA0x6EB980读取+0x32C（VA0x6EB986是ret）；详见entity-common-evidence.md及implementation-3.md主审",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x330",
+          "size": "0x4",
+          "name": "selected_config",
+          "type": "EntityConfig_Entity*",
+          "category": "资源",
+          "semantics": "原生实际选中的配置项；可为空，与REP按当前Type/Variant/SubType重新查询配置的API分别处理；发送稳定资源序号",
+          "status": "已核",
+          "evidence": "J273 GetBossID VA0x7DF5F0取Entity+330，非空VA0x7DF5FA取config+30；登记VA0x84F3E4/0x84F3E9；主审已复读",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "host": "entity_selected_config_to_resource",
+            "client": "entity_selected_config_from_resource",
+            "target": "entity-configs"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x334",
+          "size": "0x8",
+          "name": "target_position",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "目标位置",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x33c",
+          "size": "0x8",
+          "name": "position",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "当前坐标",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x344",
+          "size": "0x8",
+          "name": "staged_position",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "插值前暂存坐标/历史位置；不能仅由当前position重建",
+          "status": "已核",
+          "evidence": "J273 vtable VA0xB18224槽4=0x6AC2A0；VA0x6AC2E8写+344、VA0x6AC2F1写+348；主审已复读原始指令；旧tx-03的6B0EB0不是当前点位",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x34c",
+          "size": "0x8",
+          "name": "position_offset",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "位置偏移",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x354",
+          "size": "0x4",
+          "name": "render_z_offset",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "绘制Z偏移",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；client_entity_fields.inc；J273公共Lua绑定主审见tx-04-19",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x358",
+          "size": "0x4",
+          "name": "depth_offset",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "公开DepthOffset；不是SDK +0x2B0",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x35c",
+          "size": "0x4",
+          "name": "sorting_layer",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "绘制排序层",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；client_entity_fields.inc；J273公共Lua绑定主审见tx-04-19",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x360",
+          "size": "0x8",
+          "name": "velocity",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "当前速度",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x368",
+          "size": "0x4",
+          "name": "unknown_368_36b",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x36c",
+          "size": "0x4",
+          "name": "friction",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "摩擦系数",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x370",
+          "size": "0x4",
+          "name": "size",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "实体尺寸",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x374",
+          "size": "0x8",
+          "name": "size_multi",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "尺寸倍率",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x37c",
+          "size": "0x4",
+          "name": "unknown_37c_37f",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x380",
+          "size": "0x4",
+          "name": "hit_points",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "当前生命值",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x384",
+          "size": "0x4",
+          "name": "max_hit_points",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "最大生命值",
+          "status": "已核",
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x388",
+          "size": "0x4",
+          "name": "collision_damage",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "碰撞伤害",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x38c",
+          "size": "0x10",
+          "name": "unknown_38c_39b",
+          "type": "bytes[16]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x39c",
+          "size": "0x4",
+          "name": "speed_multiplier",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "移动速度倍率",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x3a0",
+          "size": "0x10",
+          "name": "unknown_3a0_3af",
+          "type": "bytes[16]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x3b0",
+          "size": "0x1",
+          "name": "invincible",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "无敌状态",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x3b1",
+          "size": "0x3",
+          "name": "unknown_3b1_3b3",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x3b4",
+          "size": "0x4",
+          "name": "shrink_status_1",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "缩小插值状态1",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x3b8",
+          "size": "0x4",
+          "name": "shrink_status_2",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "缩小插值状态2",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x3bc",
+          "size": "0x4",
+          "name": "parent",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "实体引用 parent；经当前成员表与EntityPtr owner恢复",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json；Entity.zhl；J273 EntityPtr::SetReference VA0x858760",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "host": "entity_reference_to_member",
+            "client": "entity_reference_from_member",
+            "target": "entities"
+          }
+        },
+        {
+          "offset": "0x3c0",
+          "size": "0x4",
+          "name": "child",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "实体引用 child；经当前成员表与EntityPtr owner恢复",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json；Entity.zhl；J273 EntityPtr::SetReference VA0x858760",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "host": "entity_reference_to_member",
+            "client": "entity_reference_from_member",
+            "target": "entities"
+          }
+        },
+        {
+          "offset": "0x3c4",
+          "size": "0x4",
+          "name": "target",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "实体引用 target；经当前成员表与EntityPtr owner恢复",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json；Entity.zhl；J273 EntityPtr::SetReference VA0x858760",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "host": "entity_reference_to_member",
+            "client": "entity_reference_from_member",
+            "target": "entities"
+          }
+        },
+        {
+          "offset": "0x3c8",
+          "size": "0x4",
+          "name": "spawner",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "实体引用 spawner；经当前成员表与EntityPtr owner恢复",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json；Entity.zhl；J273 EntityPtr::SetReference VA0x858760",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "host": "entity_reference_to_member",
+            "client": "entity_reference_from_member",
+            "target": "entities"
+          }
+        },
+        {
+          "offset": "0x3cc",
+          "size": "0x4",
+          "name": "incoming_reference_tree",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "反向EntityPtr观察者树的本地根节点地址，随本地引用owner重建",
+          "status": "已核",
+          "evidence": "J273 ctor VA0x6A3E32分配节点，VA0x6A3E50把新节点写至this+3CC；EntityPtr::SetReference VA0x858760及ClearReferences VA0x6A8060维护本地反向集合"
+        },
+        {
+          "offset": "0x3d0",
+          "size": "0x4",
+          "name": "incoming_reference_control",
+          "type": "u32",
+          "category": "未知",
+          "semantics": "反向引用集合相邻控制字；仅Ctor清零不足以证明归属/计数语义，保持未知，不复制",
+          "status": "未知",
+          "evidence": "J273 ctor VA0x6A3E2B写this+3D0=0；EntityPtr::SetReference维护反向集合；本地树计数"
+        },
+        {
+          "offset": "0x3d4",
+          "size": "0x4",
+          "name": "minecart",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "实体引用 minecart；经当前成员表与EntityPtr owner恢复",
+          "status": "SDK声明",
+          "evidence": "mod/binding/world_layout.json；Entity.zhl；J273 EntityPtr::SetReference VA0x858760",
+          "read_requires": "entity-current-window",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "host": "entity_reference_to_member",
+            "client": "entity_reference_from_member",
+            "target": "entities"
+          }
+        },
+        {
+          "offset": "0x3d8",
+          "size": "0x4",
+          "name": "unknown_3d8_3db",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x3dc",
+          "size": "0x10",
+          "name": "drop_rng",
+          "type": "RNG",
+          "category": "权威",
+          "semantics": "掉落RNG种子与游标只属于Host；不发送、不安装到Client",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:drop_rng；第2步RNG布局"
+        },
+        {
+          "offset": "0x3ec",
+          "size": "0x4",
+          "name": "init_seed",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "构造和表现种子；不是网络身份",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:init_seed；J273 Init VA0x6A4A47",
+          "shape": true,
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x3f0",
+          "size": "0x18",
+          "name": "unknown_3f0_407",
+          "type": "bytes[24]",
+          "category": "未知",
+          "semantics": "SDK与现有J273资料尚未解释；不复制、不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x408",
+          "size": "0x4",
+          "name": "lua_bridge_ref",
+          "type": "LuaBridgeRef*",
+          "category": "本地",
+          "semantics": "当前进程Lua桥引用，不发送",
+          "status": "SDK声明",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        },
+        {
+          "offset": "0x40c",
+          "size": "0x4",
+          "name": "unknown_40c_40f",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "对象尾部未解释字节，不当作填充",
+          "status": "未知",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "E0 分类与形态",
+          "sequence": "world",
+          "fields": [
+            "authority_order",
+            "type",
+            "variant",
+            "subtype",
+            "spawner_type",
+            "spawner_variant",
+            "spawn_grid_index",
+            "selected_config",
+            "init_seed"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "E1 运动",
+          "sequence": "world-or-player-body",
+          "fields": [
+            "knockback_direction",
+            "pause_held_position",
+            "target_position",
+            "position",
+            "staged_position",
+            "position_offset",
+            "velocity",
+            "size_multi",
+            "speed_multiplier"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "E2 生命与碰撞",
+          "sequence": "world",
+          "fields": [
+            "flags",
+            "valid",
+            "visible",
+            "exists",
+            "dead",
+            "removed_by_factory",
+            "grid_collision_class",
+            "entity_collision_class",
+            "collides_with_grid",
+            "mass",
+            "frame_base",
+            "friction",
+            "size",
+            "hit_points",
+            "max_hit_points",
+            "collision_damage",
+            "invincible"
+          ]
+        },
+        {
+          "id": 3,
+          "name": "E3 状态效果与计时锚点",
+          "sequence": "world",
+          "fields": [
+            "fire_damage_cooldown",
+            "damage_countdown",
+            "freeze_countdown",
+            "poison_countdown",
+            "slowing_countdown",
+            "charmed_countdown",
+            "confusion_countdown",
+            "midas_freeze_countdown",
+            "fear_countdown",
+            "burn_countdown",
+            "boss_status_effect_cooldown",
+            "shrink_countdown",
+            "poison_damage",
+            "burn_damage",
+            "poison_damage_timer",
+            "burn_damage_timer",
+            "bleeding_countdown",
+            "magnetized_countdown",
+            "baited_countdown",
+            "knockback_countdown",
+            "weakness_countdown",
+            "ice_countdown",
+            "brimstone_mark_countdown",
+            "pause_timer",
+            "shrink_status_1",
+            "shrink_status_2"
+          ]
+        },
+        {
+          "id": 4,
+          "name": "E4 外观与主Sprite外观",
+          "sequence": "world-or-player-body",
+          "fields": [
+            "shadow_size",
+            "color",
+            "splat_color",
+            "render_z_offset",
+            "depth_offset",
+            "sorting_layer",
+            "sprite#0"
+          ]
+        },
+        {
+          "id": 5,
+          "name": "E5 主Sprite动画",
+          "sequence": "world-or-player-body",
+          "fields": [
+            "sprite#1"
+          ]
+        },
+        {
+          "id": 6,
+          "name": "E6 主Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "sprite#2"
+          ]
+        },
+        {
+          "id": 7,
+          "name": "E7 颜色参数",
+          "sequence": "world",
+          "fields": [
+            "color_params"
+          ]
+        },
+        {
+          "id": 8,
+          "name": "E8 实体引用",
+          "sequence": "world",
+          "fields": [
+            "parent",
+            "child",
+            "target",
+            "spawner",
+            "minecart"
+          ]
+        },
+        {
+          "id": 9,
+          "name": "E9 REPENTOGON扩展",
+          "sequence": "world",
+          "fields": [
+            "entity_plus"
+          ]
+        }
+      ],
+      "companions": [
+        {
+          "name": "entity_plus",
+          "type": "EntityPlus",
+          "semantics": "只读split upper/lower→既存EntityPlusHolder→data，前后复读来源；不调用可分配GetEntityPlus",
+          "evidence": "官方repentogon/Patches/EntityPlus.cpp:19-65,75-101,118-120；state/entity_extension.cpp",
+          "status": "已核",
+          "host": "read_existing_entity_plus",
+          "client": "install_existing_entity_plus"
+        }
+      ],
+      "contexts": {
+        "world_game_frame": {
+          "type": "u32",
+          "semantics": "最近已应用world帧携带的Host Game+0x25A70；不是Client本地帧",
+          "evidence": "总计划帧锚点；第9/11/13步"
+        },
+        "room_water_clip": {
+          "type": "Room-water-context",
+          "semantics": "Game+0x18300房间来源以及Room helper VA0x81CB10的条件；第7/8步提供纯值来源，不调用Lua getter",
+          "evidence": "J273 WaterClipInfo VA0x6B2F70；Effect variant15、spawnerType807分支调用VA0x81CB10，主审已反编译"
+        },
+        "entity_config_table": {
+          "type": "entity-configs",
+          "semantics": "Manager EntityConfig完整配置资源表；按Type/Variant/SubType查询且保留Null，资源安装由第8/9/13步接线",
+          "evidence": "官方LuaEntityConfig.cpp:9-27直接调用GetEntity(type,variant,subtype)"
+        },
+        "entity_member_graph": {
+          "type": "resolved-member-graph",
+          "semantics": "当前world成员表与完整解析的Parent/Child关系；含当前成员自身序号；缺失和环报缺口",
+          "evidence": "第9/12步成员表合同；J273 GetLastParent VA0x6A4010/GetLastChild VA0x6A4030"
+        },
+        "water_clip_class_inputs": {
+          "type": "Entity-subclass-water-inputs",
+          "semantics": "Pickup原生+0x534；Player道具62的有效库存查询输入；完整WaterClipInfo的动画输入复用Sprite叠加状态。子类/库存来源归第4/5步，未接入时报缺口",
+          "evidence": "J273 VA0x6B3069/0x6B3280..0x6B32AA读Pickup+534；VA0x6B3261调用Player查询VA0x7699D0；主审已反编译，未重演玩法或Lua查询"
+        }
+      },
+      "conversions": {
+        "entity_index_to_draw_order": "仅取Host _index的绘制排序语义，不建立网络身份。",
+        "entity_draw_order_to_description": "写自有绘制描述authority_order，不覆盖原生Entity索引。",
+        "entity_countdown_to_anchor": "字段 owner 必须提供已核的实际递减条件；运行的正倒计时转 mode=1/Host到期帧，停走及零/负哨兵转 mode=0/原值；条件不明报缺口，不默认全局线性。 活跃但时钟关系未知时必须报缺口，不得用mode0冒充停走。",
+        "entity_countdown_from_anchor": "校验mode；用最近已应用world game_frame还原，运行倒计时下限为0；停走/哨兵保留原值。",
+        "entity_phase_to_anchor": "SignedCounterAnchor Increasing：实际已核更新时钟同速时mode1保存game_frame-counter；未执行/停走mode0保存当前原值，0和负也会在活动时递增；不猜测clock。 活跃但时钟关系未知时必须报缺口，不得用mode0冒充停走。",
+        "entity_phase_from_anchor": "校验mode，用最近已应用world game_frame按模2^32还原递增相位，不夹限、不在Client执行毒/火伤害逻辑。"
+      },
+      "validators": {
+        "shadow_size": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "valid": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "visible": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "exists": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "dead": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "removed_by_factory": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "collides_with_grid": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "poison_damage": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "burn_damage": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "mass": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "depth_offset": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "friction": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "size": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "hit_points": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "max_hit_points": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "collision_damage": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "speed_multiplier": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "shrink_status_1": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "shrink_status_2": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "invincible": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [
+        {
+          "id": "Entity.CanDevolve",
+          "disposition": "authority",
+          "reason": "Host敌人退化玩法资格；Client只安装Host确定的成员形态，不在本地决定退化。"
+        },
+        {
+          "id": "Entity.CanShutDoors",
+          "disposition": "authority",
+          "reason": "Host房门关闭玩法资格；Client安装Room域确定的门状态，不根据本地Entity查询决定开关门。"
+        },
+        {
+          "id": "Entity.Child",
+          "disposition": "field",
+          "fields": [
+            "child"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.CollidesWithGrid",
+          "disposition": "field",
+          "fields": [
+            "collides_with_grid"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.CollisionDamage",
+          "disposition": "field",
+          "fields": [
+            "collision_damage"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.Color",
+          "disposition": "field",
+          "fields": [
+            "color"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.ComputeStatusEffectDuration",
+          "disposition": "authority",
+          "reason": "依赖调用时长与EntityRef参数的Host状态效果规则计算；不重演玩法查询。"
+        },
+        {
+          "id": "Entity.DepthOffset",
+          "disposition": "field",
+          "fields": [
+            "depth_offset"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.DropSeed",
+          "disposition": "authority",
+          "reason": "Host掉落RNG种子/游标；RNG字节归权威，不在Client复制或推进。"
+        },
+        {
+          "id": "Entity.EntityCollisionClass",
+          "disposition": "field",
+          "fields": [
+            "entity_collision_class"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.Exists",
+          "disposition": "field",
+          "fields": [
+            "exists"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.FlipX",
+          "disposition": "field",
+          "fields": [
+            "sprite#0"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.FrameCount",
+          "disposition": "derived",
+          "fields": [
+            "frame_base",
+            "@world_game_frame"
+          ],
+          "reason": "Host帧空间内作模2^32减法；展示时钟只取最近已应用world帧。"
+        },
+        {
+          "id": "Entity.Friction",
+          "disposition": "field",
+          "fields": [
+            "friction"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetBaitedCountdown",
+          "disposition": "field",
+          "fields": [
+            "baited_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetBleedingCountdown",
+          "disposition": "field",
+          "fields": [
+            "bleeding_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetBossID",
+          "disposition": "derived",
+          "reason": "J273 VA0x7DF5F0：实际selected_config为空返回0，否则取配置+0x30 BossID；不能只用Entity.Type代替。",
+          "fields": [
+            "selected_config"
+          ]
+        },
+        {
+          "id": "Entity.GetBossStatusEffectCooldown",
+          "disposition": "field",
+          "fields": [
+            "boss_status_effect_cooldown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetBrimstoneMarkCountdown",
+          "disposition": "field",
+          "fields": [
+            "brimstone_mark_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetBurnCountdown",
+          "disposition": "field",
+          "fields": [
+            "burn_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetBurnDamageTimer",
+          "disposition": "field",
+          "fields": [
+            "burn_damage_timer"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetCharmedCountdown",
+          "disposition": "field",
+          "fields": [
+            "charmed_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetColorParams",
+          "disposition": "field",
+          "fields": [
+            "color_params"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetConfusionCountdown",
+          "disposition": "field",
+          "fields": [
+            "confusion_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetDamageCountdown",
+          "disposition": "field",
+          "fields": [
+            "damage_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetEntityConfigEntity",
+          "disposition": "derived",
+          "reason": "官方LuaEntityConfig.cpp:9-27按当前三形态字段查Manager配置，保留Null；与+330实际选中配置指针区分。",
+          "fields": [
+            "type",
+            "variant",
+            "subtype",
+            "@entity_config_table"
+          ]
+        },
+        {
+          "id": "Entity.GetEntityFlags",
+          "disposition": "field",
+          "fields": [
+            "flags"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetFearCountdown",
+          "disposition": "field",
+          "fields": [
+            "fear_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetFireDamageCooldown",
+          "disposition": "field",
+          "fields": [
+            "fire_damage_cooldown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetFreezeCountdown",
+          "disposition": "field",
+          "fields": [
+            "freeze_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetHitListIndex",
+          "disposition": "authority",
+          "reason": "Host碰撞系统的本地hit-list索引；Client不运行碰撞模拟，也不把它当网络身份。"
+        },
+        {
+          "id": "Entity.GetIceCountdown",
+          "disposition": "field",
+          "fields": [
+            "ice_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetKnockbackCountdown",
+          "disposition": "field",
+          "fields": [
+            "knockback_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetKnockbackDirection",
+          "disposition": "field",
+          "fields": [
+            "knockback_direction"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetLastChild",
+          "disposition": "derived",
+          "reason": "J273 0x6A4030沿引用链到末端，空首边返回SELF；Wiki写nil与静态getter冲突，留待第15步对照；不执行native遍历，缺边/环报缺口。",
+          "fields": [
+            "child",
+            "@entity_member_graph"
+          ]
+        },
+        {
+          "id": "Entity.GetLastParent",
+          "disposition": "derived",
+          "reason": "J273 0x6A4010沿引用链到末端，空首边返回SELF；Wiki写nil与静态getter冲突，留待第15步对照；不执行native遍历，缺边/环报缺口。",
+          "fields": [
+            "parent",
+            "@entity_member_graph"
+          ]
+        },
+        {
+          "id": "Entity.GetMagnetizedCountdown",
+          "disposition": "field",
+          "fields": [
+            "magnetized_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetMidasFreezeCountdown",
+          "disposition": "field",
+          "fields": [
+            "midas_freeze_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetMinecart",
+          "disposition": "field",
+          "fields": [
+            "minecart"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetPauseTime",
+          "disposition": "field",
+          "fields": [
+            "pause_timer"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetPoisonCountdown",
+          "disposition": "field",
+          "fields": [
+            "poison_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetPoisonDamageTimer",
+          "disposition": "field",
+          "fields": [
+            "poison_damage_timer"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetPosVel",
+          "disposition": "derived",
+          "reason": "官方LuaEntity.cpp:113只构建PosVel(*_pos,*_velocity)，无需独立查询或额外状态。",
+          "fields": [
+            "position",
+            "velocity"
+          ]
+        },
+        {
+          "id": "Entity.GetShadowSize",
+          "disposition": "field",
+          "fields": [
+            "shadow_size"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetShrinkCountdown",
+          "disposition": "field",
+          "fields": [
+            "shrink_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetSlowingCountdown",
+          "disposition": "field",
+          "fields": [
+            "slowing_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetSpeedMultiplier",
+          "disposition": "field",
+          "fields": [
+            "speed_multiplier"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GetSprite",
+          "disposition": "field",
+          "fields": [
+            "sprite#0",
+            "sprite#1",
+            "sprite#2"
+          ],
+          "reason": "主Sprite的外观、动画和图层子块共同构成当前ANM2，不只回映外观。"
+        },
+        {
+          "id": "Entity.GetWaterClipFlags",
+          "disposition": "derived",
+          "fields": [
+            "entity_plus",
+            "type",
+            "variant",
+            "subtype",
+            "spawner_type",
+            "sorting_layer",
+            "position_offset",
+            "hit_points",
+            "grid_collision_class",
+            "sprite#1",
+            "@water_clip_class_inputs",
+            "@room_water_clip"
+          ],
+          "reason": "J273 VA0x6B2F70按分类/排序层/偏移Y/HP及子类/Game条件构造WaterClipInfo；REP只覆盖flags。明确依赖Pickup+534、Player道具62查询与Room helper等，后续域尚须接线，不能把最终flags冒充nullable override。"
+        },
+        {
+          "id": "Entity.GetWeaknessCountdown",
+          "disposition": "field",
+          "fields": [
+            "weakness_countdown"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.GridCollisionClass",
+          "disposition": "field",
+          "fields": [
+            "grid_collision_class"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.HasFullHealth",
+          "disposition": "derived",
+          "fields": [
+            "hit_points",
+            "max_hit_points"
+          ],
+          "reason": "J273 VA0x6A52B0/0x6A52B8直接比较HP>=MaxHP，已核movss/comiss；非有限值由状态校验拒绝。"
+        },
+        {
+          "id": "Entity.HasMortalDamage",
+          "disposition": "authority",
+          "reason": "J273 VA0x6A8810/0x6A8815比较Host pending_damage+14>=HP+380；缓冲归Host伤害结算，Client不执行该玩法查询，不能仅用HP派生。",
+          "fields": [
+            "pending_damage"
+          ]
+        },
+        {
+          "id": "Entity.HitPoints",
+          "disposition": "field",
+          "fields": [
+            "hit_points"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.IgnoreEffectFromFriendly",
+          "disposition": "authority",
+          "reason": "依赖EntityRef参数和阵营规则的Host伤害/状态效果判定；Client不执行该玩法规则。"
+        },
+        {
+          "id": "Entity.Index",
+          "disposition": "field",
+          "fields": [
+            "authority_order"
+          ],
+          "reason": "保留Host绘制排序值，不把原生索引复用为网络身份。"
+        },
+        {
+          "id": "Entity.InitSeed",
+          "disposition": "field",
+          "fields": [
+            "init_seed"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.IsBoss",
+          "disposition": "authority",
+          "reason": "Host Boss玩法分类；Client Boss HUD属于第8步Presentation域，不能据此声称Client查询API已重建。"
+        },
+        {
+          "id": "Entity.IsDead",
+          "disposition": "field",
+          "fields": [
+            "dead"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.IsEnemy",
+          "disposition": "authority",
+          "reason": "Host敌人分类玩法查询；Client不运行AI/战斗判定，表现使用服务器状态。"
+        },
+        {
+          "id": "Entity.IsFlying",
+          "disposition": "derived",
+          "fields": [
+            "entity_plus",
+            "grid_collision_class"
+          ],
+          "reason": "J273 VA0x6A7C90只读+184，返回值为0/1/2/3之一；REP EntityPlus nullable覆盖优先。主审已反编译，并读官方覆盖顺序。"
+        },
+        {
+          "id": "Entity.IsInvincible",
+          "disposition": "field",
+          "fields": [
+            "invincible"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.IsVisible",
+          "disposition": "field",
+          "fields": [
+            "visible"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.IsVulnerableEnemy",
+          "disposition": "authority",
+          "reason": "Host可受击敌人玩法查询；Client不运行伤害规则，最终HP/死亡/表现由Host发布。"
+        },
+        {
+          "id": "Entity.Mass",
+          "disposition": "field",
+          "fields": [
+            "mass"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.MaxHitPoints",
+          "disposition": "field",
+          "fields": [
+            "max_hit_points"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.Parent",
+          "disposition": "field",
+          "fields": [
+            "parent"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.Position",
+          "disposition": "field",
+          "fields": [
+            "position"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.PositionOffset",
+          "disposition": "field",
+          "fields": [
+            "position_offset"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.RenderZOffset",
+          "disposition": "field",
+          "fields": [
+            "render_z_offset"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.Size",
+          "disposition": "field",
+          "fields": [
+            "size"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.SizeMulti",
+          "disposition": "field",
+          "fields": [
+            "size_multi"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.SortingLayer",
+          "disposition": "field",
+          "fields": [
+            "sorting_layer"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.SpawnerEntity",
+          "disposition": "field",
+          "fields": [
+            "spawner"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.SpawnerType",
+          "disposition": "field",
+          "fields": [
+            "spawner_type"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.SpawnerVariant",
+          "disposition": "field",
+          "fields": [
+            "spawner_variant"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.SpawnGridIndex",
+          "disposition": "field",
+          "reason": "J273 getter直接读取+0x32C；-1为未绑定的原生状态，不作为网络身份。",
+          "fields": [
+            "spawn_grid_index"
+          ]
+        },
+        {
+          "id": "Entity.SplatColor",
+          "disposition": "field",
+          "fields": [
+            "splat_color"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.SpriteOffset",
+          "disposition": "field",
+          "fields": [
+            "sprite#0"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.SpriteRotation",
+          "disposition": "field",
+          "fields": [
+            "sprite#0"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.SpriteScale",
+          "disposition": "field",
+          "fields": [
+            "sprite#0"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.SubType",
+          "disposition": "field",
+          "fields": [
+            "subtype"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.Target",
+          "disposition": "field",
+          "fields": [
+            "target"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.TargetPosition",
+          "disposition": "field",
+          "fields": [
+            "target_position"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.Type",
+          "disposition": "field",
+          "fields": [
+            "type"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.Variant",
+          "disposition": "field",
+          "fields": [
+            "variant"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.Velocity",
+          "disposition": "field",
+          "fields": [
+            "velocity"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        },
+        {
+          "id": "Entity.Visible",
+          "disposition": "field",
+          "fields": [
+            "visible"
+          ],
+          "reason": "原生成员/条件锚点；主Sprite公开别名复用对应ANM2子块，不重复发送。"
+        }
+      ],
+      "public_owners": [
+        "Entity"
+      ],
+      "notes": "第3步Entity公共目录；未知字节、SDK声明和跨域依赖明确保留。E0含形态元数据，E1/E4/E5在Player切换为body。正式采集与原生应用在第10/13步接线；此处不代表完整同步已运行。"
+    }
+  ]
+}

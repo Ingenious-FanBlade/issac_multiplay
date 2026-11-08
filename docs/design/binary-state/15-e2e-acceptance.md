@@ -24,7 +24,7 @@
 
 | 能力 | 内容 |
 | --- | --- |
-| Lua 对照 | Host 侧用观测 Lua 读取公开成员，按回映射表（`state_members.inc`）与同一次采集的二进制状态逐成员比较；Client 侧在原生写入完成后读取同样的成员，与 Host 来源比较。“派生”成员只在 Client 侧比较。 |
+| Lua 对照 | Host 侧用观测 Lua 读取公开成员，按回映射表（`state_members.inc`）与同一次采集的二进制状态逐成员比较；Client 侧在原生写入完成后读取同样的成员，与 Host 来源比较。“派生”成员只在 Client 侧比较。`Entity.GetLastParent`／`GetLastChild` 在首边为空时，J273 静态 getter 返回自身而 Wiki 写 nil，本项以实际结果为准并记录差异（第 3 步）。 |
 | 未知区探测 | 对每个布局的未知区间，附加一份诊断复制计划，在覆盖的场景中逐采集记录是否变化。输出每个区间的结论：变化、未变化或未覆盖 |
 | 帧统计 | 每个布局、每个块的字节数和变化频率，Baseline 大小按布局拆分，Host 与 Client 的分段耗时 |
 | 故障注入 | 对状态帧、成员表、资源表注入以下错误：截断、错 record_bytes、错 block_mask、错 epoch、版本回退、非法值。另可临时屏蔽 D0，构造 record_count=0 的空帧（E33） |

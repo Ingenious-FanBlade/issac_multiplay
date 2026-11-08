@@ -4,10 +4,12 @@
 #include <string_view>
 
 namespace cs::state {
-// 所有偏移都针对自有字节缓冲；生成表不含游戏对象地址或可跨线程使用的指针。
+// 生成表只含相对偏移和纯值元数据，不含游戏对象地址或可跨线程使用的原生指针。
 inline constexpr std::uint32_t kDynamicOffset = UINT32_MAX;
 inline constexpr std::uint16_t kNullIndex = UINT16_MAX;
 enum class Operation : std::uint8_t { Copy, Convert, Reference, Resource, Container, Nested };
+// 伴随对象由具名 owner 在同一主线程窗口解析；不能对根对象直接加偏移读取。
+enum class FieldSource : std::uint8_t { Object, Companion };
 enum class Category : std::uint8_t { State, Convert, Reference, Resource, Container, Local, Derived, Authority, Padding, Unknown };
 enum class Validation : std::uint8_t { None, Finite, Boolean, Range, Enum };
 struct Layout {
@@ -30,16 +32,21 @@ struct Field {
   std::uint16_t nested_layout;
   std::uint8_t nested_block; // 255 表示整个嵌套状态，其余值只投影该子块。
   std::uint32_t limit, native_stride;
+  FieldSource source;
+  bool shape; // 该字段变化必须经过成员形态/结构事务。
+  const char *read_requirement; // 采集owner必须提供的读取资格，不由生成表虚构见证。
 };
 struct CopyRange {
   std::uint16_t layout;
   std::uint8_t block;
   std::uint32_t native_offset, wire_offset, size;
+  const char *read_requirement;
 };
 struct Block {
   std::uint16_t layout;
   std::uint8_t id;
   bool body;
+  bool player_body; // Entity 公共块在 Player 布局中切换到逐身体序列。
   const char *name;
   std::uint32_t min_size, max_size;
 };
@@ -79,4 +86,7 @@ std::span<const ClientField> ClientFields() noexcept;
 std::span<const Variant> Variants() noexcept;
 std::span<const ContextField> ContextFields() noexcept;
 const Layout *FindLayout(std::uint16_t id) noexcept;
+// 接收布局号和布局内索引，只索引可信生成表；网络不能提供任意原生偏移或处理器地址。
+const Field *FindField(std::uint16_t layout, std::uint16_t index) noexcept;
+const ClientField *FindClientField(std::uint16_t layout, std::uint16_t index) noexcept;
 }

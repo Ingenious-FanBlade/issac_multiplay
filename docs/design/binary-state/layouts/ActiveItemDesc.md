@@ -1,6 +1,6 @@
 # ActiveItemDesc
 
-由唯一布局源生成。布局编号 12；布局版本 8；原生大小 0x20；未知 0B；完整：是。
+由唯一布局源生成。布局编号 12；布局版本 11；原生大小 0x20；未知 0B；完整：是。
 
 REP ZHL 的 ActiveItemDesc +0x04 _unk 在 J273 AddCollectible 写入路径中已核为 item_pool；SDK 的 PartialCharge int 声明错误，J273 Lua closure 按 float 读写 +0x18。
 

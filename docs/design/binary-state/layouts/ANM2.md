@@ -1,6 +1,6 @@
 # ANM2
 
-由唯一布局源生成。布局编号 7；布局版本 8；原生大小 0x114；未知 14B；完整：否。
+由唯一布局源生成。布局编号 7；布局版本 11；原生大小 0x114；未知 14B；完整：否。
 
 Sprite.HasCustomShader 与 HasCustomChampionShader 来自 REPENTOGON Anm2Extras.cpp 外部旁表，不是 ANM2 +0x108/+0x10C；Sprite.IsLoaded 保守作为状态保留，不能仅凭加载缓存名省略。未声明 Sprite public_owner，待第8步接入 shader 旁表和实际 Image 资源路径。_animDefaultName 是可写 std::string：J273 Load 拷贝缓存串到 +0x18，SetAnimation 只改当前 AnimationData，不构成不可变证明。
 

@@ -48,6 +48,8 @@
 - `members`：公开成员到布局字段的回映射。
 - `contexts`：嵌套类型的已核父上下文，例如所属资源号和容器元素序号。派生成员用 `@名称` 回映射；上下文不冒充原生字节，也不重复发送。
 - `extent`：默认 `object`。只有已核基类前缀、尚不代表具体动态对象大小时写 `base_prefix`；此类布局不能宣称完整，例如 Weapon。
+- 第 3 步补充：`companions` 表示另有原生字节表的伴随对象，以具名 Host/Client owner 解析；生成字段明确为 `FieldSource::Companion`，没有根对象偏移，不把 EntityPlus 伪造成 Entity 内嵌字段。父类的伴随来源随继承保留。
+- 第 3 步补充：`read_requires` 保留特殊读取资格，生成到字段和合并区间；资格不同的区间不合并。`shape` 生成到字段元数据。`world-or-player-body` 表示公共块在普通 Entity 使用 world，在 Player 使用 body，供第 5/10/11 步接线。
 - `variants`：变体臂，可选。用于同一个原生类按某个字段的取值采用不同字节归属的情况，例如 Effect 的 0x420 复用区和 ExtraData（第 4 步 4.1.2）。
   - **内容**：选择字段，以及每个臂的名称、变体集合、布局编号，和该臂覆盖的 `ranges`、`blocks`。
   - **默认臂**：未列出的取值使用基础臂。

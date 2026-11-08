@@ -87,6 +87,10 @@
         "shape": {
           "type": "boolean"
         },
+        "read_requires": {
+          "type": "string",
+          "minLength": 1
+        },
         "wire": {
           "$ref": "#/$defs/wire"
         }
@@ -180,7 +184,8 @@
         "sequence": {
           "enum": [
             "world",
-            "body"
+            "body",
+            "world-or-player-body"
           ]
         },
         "fields": {
@@ -495,6 +500,23 @@
             "object",
             "base_prefix"
           ]
+        },
+        "companions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type", "semantics", "evidence", "status", "host", "client"],
+            "properties": {
+              "name": {"type": "string", "pattern": "^[A-Za-z_][A-Za-z_0-9]*$"},
+              "type": {"type": "string", "minLength": 1},
+              "semantics": {"type": "string", "minLength": 1},
+              "evidence": {"type": "string", "minLength": 1},
+              "status": {"enum": ["已核", "SDK声明", "推断", "未知"]},
+              "host": {"type": "string", "minLength": 1},
+              "client": {"type": "string", "minLength": 1}
+            },
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false

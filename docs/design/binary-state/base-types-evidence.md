@@ -115,6 +115,8 @@
 - 官方 LuaColorParams.cpp 的 Get/SetDuration 直接访问 _duration1；Get/SetLifespan 直接访问 _duration2；Get/SetFadeout 和 Get/SetShared 分别访问两个 bool。
 - RTTI：非多态类型，无 RTTI。
 
+第 3 步补充：J273 Entity 颜色更新在 VA `0x6AA122/0x6AA12A/0x6AA12E` 对 `+0x34` Lifespan 无条件有符号递减，负值也继续减，仅结果为零时移除元素；`+0x30` Duration 只作淡出比例分母。布局版本 10 将 Lifespan 改为条件、有符号、无夹限的帧锚点，Duration 仍直接复制。普通正倒计时的“负哨兵保持／到期夹零”不适用于此字段，见[第 3 步实现](implementation-3.md)。
+
 ### ActiveItemDesc，32 字节；公开 owner 为 ActiveItemDesc
 
 - +0x00 item ID；+0x04 item_pool；+0x08 charge；+0x0C batteryCharge；+0x10 subCharge；+0x14 timedRechargeCooldown：六个 i32。

@@ -1,3 +1,5 @@
+> **原生二进制状态同步重构第 3 步（2026-11-08）**：[实现说明](design/binary-state/implementation-3.md)、[Entity 公共证据](design/binary-state/entity-common-evidence.md)与[生成布局](design/binary-state/layouts/Entity.md)。Entity `[0,0x410)` 全部字节已有归属，生成 E0—E9 共 77 个字段／投影和 23 个直接复制区间，布局版本 11；另有 EntityPlus 只读来源、条件计时锚点和 Client 数字字段查询。Entity 仍有 335B 未知，不宣称类型完整。基础库和完整 DLL 的 Release 纯编译／链接通过；没有测试、部署或启动游戏，第 15 步统一整体验收。
+
 > **原生二进制状态同步重构第 0—2 步（2026-11-08）**：[实现说明](design/binary-state/implementation-0-2.md)、[基础类型证据](design/binary-state/base-types-evidence.md)与[生成布局表](design/binary-state/layouts/README.md)。唯一 JSON 布局源、四份生成表、14 种基础类型及有界容器／引用／资源共用代码已落地，基础库和完整 DLL 的 Release 纯编译／链接通过。必要逆向由 GPT-6 Luna（max）执行，主智能体复读并纠正了字段类型、选择器、颜色空间及 RTTI 偏移等结论；未知和跨域未决照实保留。没有测试、部署或启动游戏，第 15 步统一整体验收。
 
 > **原生二进制状态同步重构（2026-11-08，仅计划文档）**：[总计划与 0—15 步设计](design/binary-state/README.md)。按用户决定，Host 改为 C++ 原生采集，状态按类型的二进制布局连续排布，以 memcpy 复制、memcmp 判断变化；完整性按字节归属判定，Baseline 也统一使用二进制格式。步骤直接用数字编号，第 15 步是唯一的统一整体验收（[规范第 17 节](refactor/project-conventions.md)）。tx-04-21 中与之冲突的采集和同步设计以新目录为准，事实与失败记录保留。本轮没有修改代码，也没有构建、测试或启动游戏。

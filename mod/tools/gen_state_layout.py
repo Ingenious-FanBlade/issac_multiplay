@@ -158,6 +158,7 @@ class Compiler:
         entry.setdefault('validators', {})
         entry.setdefault('conversions', {})
         entry.setdefault('contexts', {})
+        entry.setdefault('companions', [])
         require(isinstance(entry.get('rtti'), dict) and 'name' in entry['rtti'] and 'rva' in entry['rtti'], name, '缺少 RTTI 声明（值类型可为空）')
         require(0 <= integer(entry['rtti']['rva']) <= DYNAMIC, name, 'RTTI RVA 超过 u32')
         if entry.get('parent'):
@@ -172,6 +173,7 @@ class Compiler:
             entry['conversions'] = {**parent['conversions'], **entry['conversions']}
             entry['contexts'] = {**parent['contexts'], **entry['contexts']}
             entry['members'] = copy.deepcopy(parent['members']) + entry['members']
+            entry['companions'] = copy.deepcopy(parent['companions']) + entry['companions']
         self.validate_ranges(entry)
         self.expanded[name] = entry
         self.expand_stack.remove(name)
@@ -289,6 +291,13 @@ class Compiler:
         self.plan_stack.add(name)
         entry = self.expanded[name]
         ranges = {r['name']: r for r in entry['ranges']}
+        # 伴随对象有自己的原生字节目录；这里只建立 owner 链，绝不伪造根对象偏移。
+        for companion in entry['companions']:
+            key, child = companion['name'], companion['type']
+            require(key not in ranges and child in self.expanded and child != name, name + '.' + key, '伴随源名称冲突或类型不存在')
+            ranges[key] = dict(companion, offset=DYNAMIC, size=0, category='状态',
+                               companion=True, wire=dict(kind='nested', type=child,
+                               host=companion['host'], client=companion['client']))
         # ANM2 等嵌套对象的外观、动画和图层进入父类不同块；原生字节归属仍只声明一次。
         projected = {}
         for key, item in ranges.items():
@@ -312,7 +321,7 @@ class Compiler:
             require(number > previous_block, name, '块必须按编号升序排列')
             previous_block = number
             ids.add(number)
-            require(block.get('sequence') in {'world', 'body'} and nonempty(block.get('name')), name, '块缺少序列或语义名称')
+            require(block.get('sequence') in {'world', 'body', 'world-or-player-body'} and nonempty(block.get('name')), name, '块缺少序列或语义名称')
             low, high, dynamic = 0, 0, False
             for key in block['fields']:
                 where = name + '.' + key
@@ -353,20 +362,23 @@ class Compiler:
                              nested_layout=nested['entry']['layout'] if nested else 0,
                              nested_block=wire.get('block', 255),
                              limit=integer(wire.get('limit', 0)), stride=integer(wire.get('stride', 0)),
+                             companion=item.get('companion', False),
+                             shape=item.get('shape', False), read_requirement=item.get('read_requires', ''),
                              semantics=item['semantics'], source=item)
                 require(len(fields) < 65535, where, '字段索引超过 u16')
                 fields.append(field)
                 if kind == 'copy':
                     # wire 紧邻和 native 紧邻都成立才合并；跨块、换算、指针和未知均断开。
-                    if copies and copies[-1]['block'] == number and not dynamic and copies[-1]['offset'] + copies[-1]['size'] == item['offset'] and copies[-1]['wire'] + copies[-1]['size'] == offset and len(fields) >= 2 and fields[-2]['operation'] == 'Copy':
+                    if copies and copies[-1]['block'] == number and not dynamic and copies[-1]['offset'] + copies[-1]['size'] == item['offset'] and copies[-1]['wire'] + copies[-1]['size'] == offset and len(fields) >= 2 and fields[-2]['operation'] == 'Copy' and copies[-1]['read_requirement'] == field['read_requirement']:
                         copies[-1]['size'] += item['size']
                     else:
-                        copies.append(dict(block=number, offset=item['offset'], wire=offset, size=item['size']))
+                        copies.append(dict(block=number, offset=item['offset'], wire=offset, size=item['size'], read_requirement=field['read_requirement']))
                 low, high = low + minimum, high + maximum
                 dynamic |= minimum != maximum
             require(low <= high < DYNAMIC, name, '块大小溢出')
             require(block['fields'] or block.get('reserved'), name, '空块必须明确 reserved')
-            blocks.append(dict(id=number, name=block['name'], body=block['sequence'] == 'body', min=low, max=high))
+            blocks.append(dict(id=number, name=block['name'], body=block['sequence'] == 'body',
+                               player_body=block['sequence'] == 'world-or-player-body', min=low, max=high))
         require(ids == set(range(len(ids))), name, '块号必须从 0 连续编号，预留块需显式声明')
         require(seen == set(projected), name, '有状态字段或嵌套子块未归入块')
         if entry.get('pure_value'):
@@ -406,7 +418,7 @@ class Compiler:
                     require(validator.get('kind') == 'boolean' and validator.get('scalar') in {'bool', 'u8'}, name + '.' + f['name'], '布尔状态缺少 0/1 校验')
         native_ranges = self.native_ranges(name)
         unknown = sum(r['size'] for r in native_ranges if r['category'] == '未知')
-        complete = entry.get('extent', 'object') == 'object' and not unknown and all(r['status'] == '已核' for r in entry['ranges']) and all(self.plans[f['type']]['complete'] for f in fields if f['nested_layout'])
+        complete = entry.get('extent', 'object') == 'object' and not unknown and all(r['status'] == '已核' for r in entry['ranges'] + entry['companions']) and all(self.plans[f['type']]['complete'] for f in fields if f['nested_layout'])
         result = dict(entry=entry, fields=fields, blocks=blocks, copies=copies, unknown=unknown,
                       native_ranges=native_ranges, complete=complete, min=sum(b['min'] for b in blocks), max=sum(b['max'] for b in blocks))
         self.plans[name] = result
@@ -486,7 +498,7 @@ def emit(compiler, plans, out, docs):
         first_block += len(p['blocks'])
         first_copy += len(p['copies'])
         for c in sorted(p['copies'], key=lambda c: (c['block'], c['offset'])):
-            capture.append(f'  {{{lid}, {c["block"]}, {c["offset"]}, {c["wire"]}u, {c["size"]}}},\n')
+            capture.append(f'  {{{lid}, {c["block"]}, {c["offset"]}, {c["wire"]}u, {c["size"]}, {quote(c["read_requirement"])}}},\n')
         for key, v in e['validators'].items():
             field = next(f for f in p['fields'] if f['name'] == key)
             values = ','.join(str(n) for n in v.get('values', []))
@@ -506,7 +518,8 @@ def emit(compiler, plans, out, docs):
         if not p['blocks']:
             body += table(['无发送字节：该类型没有可复制状态']) + '\n'
         for b in p['blocks']:
-            body += f'块 {b["id"]}：{b["name"]}（{"body" if b["body"] else "world"}，{b["min"]}—{b["max"]}B）：\n\n'
+            sequence = 'world；Player 为 body' if b['player_body'] else 'body' if b['body'] else 'world'
+            body += f'块 {b["id"]}：{b["name"]}（{sequence}，{b["min"]}—{b["max"]}B）：\n\n'
             cells = []
             for f in p['fields']:
                 if f['block'] != b['id']:
@@ -519,18 +532,23 @@ def emit(compiler, plans, out, docs):
                     typename += '（见该类型状态表）'
                     if f['nested_block'] != 255:
                         typename += f' 子块{f["nested_block"]}'
+                if f['companion']:
+                    typename += '（伴随源，无根对象偏移）'
                 cells.append(f'{offset} {typename} {f["name"]}：{f["semantics"]}')
             body += table(cells or ['无发送字节：显式预留块']) + '\n'
         body += '证据：\n\n' + '\n'.join(f'- `{r["name"]}`：{r["evidence"]}' for r in p['native_ranges']) + '\n'
+        if e['companions']:
+            body += '\n伴随来源（不属于上述原生对象字节）：\n\n' + '\n'.join(f'- `{c["name"]}` → `{c["type"]}`：{c["semantics"]}；{c["evidence"]}（{c["status"]}）' for c in e['companions']) + '\n'
         write(docs / (e['type'] + '.md'), body)
     wire += ['}};\n', array('Block', 'kStateBlocks', sum(len(p['blocks']) for p in plans))]
     for p in plans:
         for b in p['blocks']:
-            wire.append(f'  {{{p["entry"]["layout"]}, {b["id"]}, {str(b["body"]).lower()}, {quote(b["name"])}, {b["min"]}, {b["max"]}}},\n')
+            wire.append(f'  {{{p["entry"]["layout"]}, {b["id"]}, {str(b["body"]).lower()}, {str(b["player_body"]).lower()}, {quote(b["name"])}, {b["min"]}, {b["max"]}}},\n')
     wire += ['}};\n', array('Field', 'kStateFields', count_fields)]
     for p in plans:
         for f in p['fields']:
-            wire.append(f'  {{{f["layout"]}, {f["index"]}, {f["block"]}, {f["native_offset"]}, {f["native_size"]}, {f["wire_offset"]}u, {f["min_size"]}, {f["max_size"]}, Operation::{f["operation"]}, {quote(f["name"])}, {quote(f["type"])}, {quote(f["host"])}, {quote(f["target"])}, {quote(f["storage"])}, {quote(f["count_source"])}, {f["nested_layout"]}, {f["nested_block"]}, {f["limit"]}, {f["stride"]}}},\n')
+            source = 'Companion' if f['companion'] else 'Object'
+            wire.append(f'  {{{f["layout"]}, {f["index"]}, {f["block"]}, {f["native_offset"]}u, {f["native_size"]}, {f["wire_offset"]}u, {f["min_size"]}, {f["max_size"]}, Operation::{f["operation"]}, {quote(f["name"])}, {quote(f["type"])}, {quote(f["host"])}, {quote(f["target"])}, {quote(f["storage"])}, {quote(f["count_source"])}, {f["nested_layout"]}, {f["nested_block"]}, {f["limit"]}, {f["stride"]}, FieldSource::{source}, {str(f["shape"]).lower()}, {quote(f["read_requirement"])}}},\n')
     wire += ['}};\n', array('NativeRange', 'kStateNativeRanges', sum(len(p['native_ranges']) for p in plans))]
     for p in plans:
         for r in p['native_ranges']:

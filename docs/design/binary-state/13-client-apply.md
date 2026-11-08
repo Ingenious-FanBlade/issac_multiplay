@@ -91,6 +91,7 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
   - `Manager._framecount`（`+0x4A8B8`）、Pickup 绘制 RNG（VA `0xBD0CA4`）、Familiar 绘制 RNG（VA `0xBD0674`）← 影子状态中的绘制输入块 D0（第 8 步 8.2.1）。D0 与展示时钟来自同一个 world 帧。
 - **帧锚点字段**：`Entity+0x328`、`Room+0x11F0` 的基准按原值写回，不再逐次重新锚定。展示期间，FrameCount 和 `Room:GetFrameCount()` 由原生 getter 用"时钟 − 基准"自然得出。
 - **Effect Timeout**：每装好一个新的 world 帧，按新的时钟把全部 Effect 的 Timeout 重写为"到期帧 − 时钟"（`effect_timeout`）。
+- **条件计时**（第 3 步）：Entity 状态倒计时和暂停计时用 `DisplayCountdown`，毒／火伤害相位和 ColorParams Lifespan 用 `DisplaySignedCounter`，都以展示时钟还原；校验 mode 后才写入，`mode=0` 保持原值。Client 不重演删除和伤害规则，颜色元素的增删只来自 Host 容器。EntityPlus 的 optional 由原生 owner 赋值（`DecodeFlyingOverride`／`DecodeWaterOverride`），不 memcpy。
 - **对照与校正**：E2E 对照（第 15 步）和漂移校正读取这些字段时，用同一个时钟换算。
 
 ## 改动范围
