@@ -1,0 +1,3301 @@
+{
+  "types": [
+    {
+      "type": "Vector",
+      "native_size": "0x8",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 1,
+      "pure_value": true,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "x",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "X 分量",
+          "status": "已核",
+          "evidence": "J273 VA0x9E5BC0/RVA0x5E5BC0 Lerp；0x9E5BE6/0x9E5BEB读两f32、0x9E5BEF写第二分量（imagebase 0x400000）；Vector2.zhl",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "y",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "Y 分量",
+          "status": "已核",
+          "evidence": "J273 VA0x9E5BC0/RVA0x5E5BC0 Lerp；0x9E5BE6/0x9E5BEB读两f32、0x9E5BEF写第二分量（imagebase 0x400000）；Vector2.zhl",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "二维向量",
+          "sequence": "body",
+          "fields": [
+            "x",
+            "y"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "x": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "y": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [
+        {
+          "id": "Vector.X",
+          "disposition": "field",
+          "fields": [
+            "x"
+          ],
+          "reason": "实例 X 分量。"
+        },
+        {
+          "id": "Vector.Y",
+          "disposition": "field",
+          "fields": [
+            "y"
+          ],
+          "reason": "实例 Y 分量。"
+        },
+        {
+          "id": "Vector.GetAngleDegrees",
+          "disposition": "derived",
+          "fields": [
+            "x",
+            "y"
+          ],
+          "reason": "由 X/Y 计算角度，不是独立存储字段。"
+        }
+      ],
+      "public_owners": [
+        "Vector"
+      ],
+      "notes": "J273 SDK 所列 Vector 为两个连续 f32；角度公开成员可由两分量派生。"
+    },
+    {
+      "type": "ColorMod",
+      "native_size": "0x2C",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 2,
+      "pure_value": true,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "tint_r",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "tint RGBA 的 R 分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "tint_g",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "tint RGBA 的 G 分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x8",
+          "size": "0x4",
+          "name": "tint_b",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "tint RGBA 的 B 分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0xC",
+          "size": "0x4",
+          "name": "tint_a",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "tint RGBA 的 A 分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x10",
+          "size": "0x4",
+          "name": "colorize_r",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "colorize RGBA 的 R 分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x14",
+          "size": "0x4",
+          "name": "colorize_g",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "colorize RGBA 的 G 分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x18",
+          "size": "0x4",
+          "name": "colorize_b",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "colorize RGBA 的 B 分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x1C",
+          "size": "0x4",
+          "name": "colorize_a",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "colorize RGBA 的 A 分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x20",
+          "size": "0x4",
+          "name": "offset_r",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "offset RGB 的 R 分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x24",
+          "size": "0x4",
+          "name": "offset_g",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "offset RGB 的 G 分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x28",
+          "size": "0x4",
+          "name": "offset_b",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "offset RGB 的 B 分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "颜色变换",
+          "sequence": "body",
+          "fields": [
+            "tint_r",
+            "tint_g",
+            "tint_b",
+            "tint_a",
+            "colorize_r",
+            "colorize_g",
+            "colorize_b",
+            "colorize_a",
+            "offset_r",
+            "offset_g",
+            "offset_b"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "tint_r": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tint_g": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tint_b": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tint_a": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "colorize_r": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "colorize_g": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "colorize_b": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "colorize_a": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "offset_r": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "offset_g": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "offset_b": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [
+        {
+          "id": "Color.A",
+          "disposition": "field",
+          "fields": [
+            "tint_a"
+          ],
+          "reason": "Color 实例 Alpha 对应 tint[3]。"
+        },
+        {
+          "id": "Color.B",
+          "disposition": "field",
+          "fields": [
+            "tint_b"
+          ],
+          "reason": "Color 实例 Blue 对应 tint[2]。"
+        },
+        {
+          "id": "Color.BO",
+          "disposition": "field",
+          "fields": [
+            "offset_b"
+          ],
+          "reason": "Color 实例 Blue Offset 对应 offset[2]。"
+        },
+        {
+          "id": "Color.G",
+          "disposition": "field",
+          "fields": [
+            "tint_g"
+          ],
+          "reason": "Color 实例 Green 对应 tint[1]。"
+        },
+        {
+          "id": "Color.GO",
+          "disposition": "field",
+          "fields": [
+            "offset_g"
+          ],
+          "reason": "Color 实例 Green Offset 对应 offset[1]。"
+        },
+        {
+          "id": "Color.R",
+          "disposition": "field",
+          "fields": [
+            "tint_r"
+          ],
+          "reason": "Color 实例 Red 对应 tint[0]。"
+        },
+        {
+          "id": "Color.RO",
+          "disposition": "field",
+          "fields": [
+            "offset_r"
+          ],
+          "reason": "Color 实例 Red Offset 对应 offset[0]。"
+        },
+        {
+          "id": "Color.GetTint",
+          "disposition": "field",
+          "fields": [
+            "tint_r",
+            "tint_g",
+            "tint_b",
+            "tint_a"
+          ],
+          "reason": "官方 GetTint 将 _tint[0..3] 暴露为 RGBA。"
+        },
+        {
+          "id": "Color.GetColorize",
+          "disposition": "field",
+          "fields": [
+            "colorize_r",
+            "colorize_g",
+            "colorize_b",
+            "colorize_a"
+          ],
+          "reason": "官方 GetColorize 将 _colorize[0..3] 暴露为 RGBA。"
+        },
+        {
+          "id": "Color.GetOffset",
+          "disposition": "field",
+          "fields": [
+            "offset_r",
+            "offset_g",
+            "offset_b"
+          ],
+          "reason": "官方 GetOffset 将 _offset[0..2] 暴露为 RGB。"
+        },
+        {
+          "id": "Color.EmberFade",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.LaserAlmond",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.LaserChocolate",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.LaserCoal",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.LaserFireMind",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.LaserHoming",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.LaserIpecac",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.LaserMother",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.LaserNumberOne",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.LaserPoison",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.LaserSoy",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileCageBlue",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileCorpseClusterDark",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileCorpseClusterLight",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileCorpseGreen",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileCorpsePink",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileCorpseWhite",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileCorpseYellow",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileFireWave",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileHoming",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileHushBlue",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileHushGreen",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileHushYellow",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileIpecac",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileMegaSatanBlack",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileMegaSatanWhite",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileSoy",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.ProjectileTar",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.TearAlmond",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.TearChocolate",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.TearCoal",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.TearCommonCold",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.TearHoming",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.TearIpecac",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.TearNumberOne",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.TearScorpio",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.TearSerpentsKiss",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.TearSoy",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        },
+        {
+          "id": "Color.TearTar",
+          "disposition": "not_applicable",
+          "reason": "静态 Color 常量，不是 Color 实例字段；值来自 REP Lua 初始化脚本。"
+        }
+      ],
+      "public_owners": [
+        "Color"
+      ],
+      "notes": "Color 映射到 ColorMod。REP Lua 取色接口逐数组读 _tint、_colorize、_offset；39 个具名常量及 EmberFade 是全局静态颜色，均不映射为实例字段。"
+    },
+    {
+      "type": "KColor",
+      "native_size": "0x14",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 3,
+      "pure_value": true,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "red",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "红色分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "green",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "绿色分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x8",
+          "size": "0x4",
+          "name": "blue",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "蓝色分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0xC",
+          "size": "0x4",
+          "name": "alpha",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "透明度分量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x10",
+          "size": "0x4",
+          "name": "color_space",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "颜色空间标记：已核0=RGB、1=sRGB、2=HSL；不将当前观察标签冒充穷举集合",
+          "status": "已核",
+          "evidence": "J273 VA0x9E39F0：+0x9E3A01检查输入space=1，+0x9E3A37写输出0；VA0x9E37B0检查RGB0，VA0x9E3BA0检查HSL2/输出0；imagebase 0x400000；主审已复读；VA0x9E3DF0成功转换分支在VA0x9E3EB0写结果标签1；分派表VA0xAB1E00有三组三项；其他标签未作穷举排除",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "颜色分量与颜色空间",
+          "sequence": "body",
+          "fields": [
+            "red",
+            "green",
+            "blue",
+            "alpha",
+            "color_space"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "red": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "green": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "blue": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "alpha": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "color_space": {
+          "kind": "enum",
+          "scalar": "u32",
+          "values": [
+            0,
+            1,
+            2
+          ]
+        }
+      },
+      "members": [
+        {
+          "id": "KColor.Red",
+          "disposition": "field",
+          "fields": [
+            "red"
+          ],
+          "reason": "公开 Red 分量。"
+        },
+        {
+          "id": "KColor.Green",
+          "disposition": "field",
+          "fields": [
+            "green"
+          ],
+          "reason": "公开 Green 分量。"
+        },
+        {
+          "id": "KColor.Blue",
+          "disposition": "field",
+          "fields": [
+            "blue"
+          ],
+          "reason": "公开 Blue 分量。"
+        },
+        {
+          "id": "KColor.Alpha",
+          "disposition": "field",
+          "fields": [
+            "alpha"
+          ],
+          "reason": "公开 Alpha 分量。"
+        }
+      ],
+      "public_owners": [
+        "KColor"
+      ],
+      "notes": "KColor+0x10已由J273颜色空间转换核为u32标记，不是padding或无语义opaque32；0=RGB、1=sRGB、2=HSL已直接观察，未将三标签当作穷举合法值集合。四个f32分量按颜色空间解释，第四分量为Alpha。 当前原生安装仅接受已核标签0/1/2；其他标签应报未支持缺口并补证，不据此宣称它们在全程序中非法。"
+    },
+    {
+      "type": "BlendMode",
+      "native_size": "0x14",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 4,
+      "pure_value": true,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "equation",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "混合方程",
+          "status": "已核",
+          "evidence": "J273 VA 0x9E17B0（RVA 0x5E17B0，imagebase 0x400000）BlendMode::GetMode；官方 BlendMode.zhl；Global.zhl:3340-3362，LuaBlendMode.cpp 校验合法枚举",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "rgb_source_factor",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "RGB 源因子",
+          "status": "已核",
+          "evidence": "J273 VA 0x9E17B0（RVA 0x5E17B0，imagebase 0x400000）BlendMode::GetMode；官方 BlendMode.zhl；Global.zhl:3340-3362，LuaBlendMode.cpp 校验合法枚举",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0x8",
+          "size": "0x4",
+          "name": "rgb_destination_factor",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "RGB 目标因子",
+          "status": "已核",
+          "evidence": "J273 VA 0x9E17B0（RVA 0x5E17B0，imagebase 0x400000）BlendMode::GetMode；官方 BlendMode.zhl；Global.zhl:3340-3362，LuaBlendMode.cpp 校验合法枚举",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0xC",
+          "size": "0x4",
+          "name": "alpha_source_factor",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "Alpha 源因子",
+          "status": "已核",
+          "evidence": "J273 VA 0x9E17B0（RVA 0x5E17B0，imagebase 0x400000）BlendMode::GetMode；官方 BlendMode.zhl；Global.zhl:3340-3362，LuaBlendMode.cpp 校验合法枚举",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0x10",
+          "size": "0x4",
+          "name": "alpha_destination_factor",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "Alpha 目标因子",
+          "status": "已核",
+          "evidence": "J273 VA 0x9E17B0（RVA 0x5E17B0，imagebase 0x400000）BlendMode::GetMode；官方 BlendMode.zhl；Global.zhl:3340-3362，LuaBlendMode.cpp 校验合法枚举",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "混合模式",
+          "sequence": "body",
+          "fields": [
+            "equation",
+            "rgb_source_factor",
+            "rgb_destination_factor",
+            "alpha_source_factor",
+            "alpha_destination_factor"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "equation": {
+          "kind": "enum",
+          "scalar": "u32",
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "rgb_source_factor": {
+          "kind": "enum",
+          "scalar": "u32",
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        "rgb_destination_factor": {
+          "kind": "enum",
+          "scalar": "u32",
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        "alpha_source_factor": {
+          "kind": "enum",
+          "scalar": "u32",
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        "alpha_destination_factor": {
+          "kind": "enum",
+          "scalar": "u32",
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        }
+      },
+      "members": [
+        {
+          "id": "BlendMode.Equation",
+          "disposition": "field",
+          "fields": [
+            "equation"
+          ],
+          "reason": "混合方程 DWORD。"
+        },
+        {
+          "id": "BlendMode.RGBSourceFactor",
+          "disposition": "field",
+          "fields": [
+            "rgb_source_factor"
+          ],
+          "reason": "RGB 源因子 DWORD。"
+        },
+        {
+          "id": "BlendMode.RGBDestinationFactor",
+          "disposition": "field",
+          "fields": [
+            "rgb_destination_factor"
+          ],
+          "reason": "RGB 目标因子 DWORD。"
+        },
+        {
+          "id": "BlendMode.AlphaSourceFactor",
+          "disposition": "field",
+          "fields": [
+            "alpha_source_factor"
+          ],
+          "reason": "Alpha 源因子 DWORD。"
+        },
+        {
+          "id": "BlendMode.AlphaDestinationFactor",
+          "disposition": "field",
+          "fields": [
+            "alpha_destination_factor"
+          ],
+          "reason": "Alpha 目标因子 DWORD。"
+        }
+      ],
+      "public_owners": [
+        "BlendMode"
+      ],
+      "notes": "SDK 声明与 J273 GetMode 写入均确认连续五个 DWORD 的成员顺序；合法值来自官方 Global.zhl 的混合枚举。"
+    },
+    {
+      "type": "AnimationState",
+      "native_size": "0x20",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 5,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "animation_owner",
+          "type": "ANM2*",
+          "category": "本地",
+          "semantics": "回指所属 ANM2；由上层对象关系确定",
+          "status": "已核",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl；SetLayerFrame VA0x40439E取state+0 owner，VA0x4043A0访问owner+0x80层数"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "active_animation",
+          "type": "AnimationData*",
+          "category": "资源",
+          "semantics": "当前动画资源项；序号由 ANM2 文件表解析，空指针使用资源空值标记",
+          "status": "已核",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "host": "anm2_animation_to_index",
+            "client": "anm2_animation_from_index",
+            "target": "anm2-animation-table"
+          }
+        },
+        {
+          "offset": "0x8",
+          "size": "0x4",
+          "name": "layer_frames",
+          "type": "int*",
+          "category": "容器",
+          "semantics": "各图层 AnimationFrame 内部序号选择器，长度取当前 AnimationData._layerCount",
+          "status": "已核",
+          "evidence": "J273 VA 0x404390 SetLayerFrame 使用 state+0x08 并按当前动画层映射写选择器；AnimationState.zhl 注释；数组不可从 _animFrame 重建",
+          "wire": {
+            "kind": "container",
+            "element": "i32",
+            "limit": 65535,
+            "stride": 4,
+            "storage": "array",
+            "host": "read_layer_frame_selectors",
+            "client": "write_layer_frame_selectors",
+            "count_from": "active_animation.layer_count"
+          }
+        },
+        {
+          "offset": "0xC",
+          "size": "0x4",
+          "name": "null_layer_frames",
+          "type": "int*",
+          "category": "容器",
+          "semantics": "各空层 AnimationFrame 内部序号选择器，长度取当前 AnimationData._nullLayerCount",
+          "status": "已核",
+          "evidence": "J273 VA 0x4040B0 AdvanceNullLayerPosition 读写 state+0x0C；计数从当前 AnimationData+0x24 读取；数组不可从 _animFrame 重建",
+          "wire": {
+            "kind": "container",
+            "element": "i32",
+            "limit": 65535,
+            "stride": 4,
+            "storage": "array",
+            "host": "read_null_layer_frame_selectors",
+            "client": "write_null_layer_frame_selectors",
+            "count_from": "active_animation.null_layer_count"
+          }
+        },
+        {
+          "offset": "0x10",
+          "size": "0x4",
+          "name": "anim_frame",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "动画当前帧值",
+          "status": "已核",
+          "evidence": "J273 AdvancePosition VA0x4041A0/RVA0x41A0：VA0x4041B2以movss读+0x10、VA0x404239写floor(frame)+1；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x14",
+          "size": "0x1",
+          "name": "is_playing",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "播放开关",
+          "status": "SDK声明",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x15",
+          "size": "0x3",
+          "name": "unknown_15_17",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "SDK 字段间未解释的三个字节；不认作填充",
+          "status": "未知",
+          "evidence": "AnimationState.zhl 在 bool +0x14 后对齐至 i32 +0x18；未证明这些字节永不变化"
+        },
+        {
+          "offset": "0x18",
+          "size": "0x4",
+          "name": "currently_triggered_events",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "当前事件触发位掩码",
+          "status": "已核",
+          "evidence": "J273 AnimationState::IsEventTriggered 读取 this+0x18（imagebase 0x400000）；官方 AnimationState.zhl",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x1C",
+          "size": "0x4",
+          "name": "previously_triggered_events",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "上次事件触发位掩码",
+          "status": "已核",
+          "evidence": "J273 AnimationState::WasEventTriggered 读取 this+0x1C（imagebase 0x400000）；官方 AnimationState.zhl",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "动画选择",
+          "sequence": "body",
+          "fields": [
+            "active_animation"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "帧选择器",
+          "sequence": "body",
+          "fields": [
+            "layer_frames",
+            "null_layer_frames"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "播放位置",
+          "sequence": "body",
+          "fields": [
+            "anim_frame",
+            "is_playing"
+          ]
+        },
+        {
+          "id": 3,
+          "name": "事件掩码",
+          "sequence": "body",
+          "fields": [
+            "currently_triggered_events",
+            "previously_triggered_events"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "anim_frame": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "is_playing": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "notes": "两个帧数组是独立选择器，不是 _animFrame 的派生值。SetLayerFrame 与 NullFrame 路径分别校验并更新数组；长度来自当前 AnimationData 的 layer_count/null_layer_count，不能使用 ANM2 总层数。"
+    },
+    {
+      "type": "LayerState",
+      "native_size": "0xA0",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 6,
+      "contexts": {
+        "owner_file": {
+          "type": "u16",
+          "semantics": "所属 ANM2 文件资源表序号",
+          "evidence": "由父 ANM2.file_name 提供，不增加 LayerState 原生字节；REPENTOGON LuaSprite.cpp 中 GetLayerID/GetName/GetDefaultSpritesheetPath 调用对应 LayerState 方法"
+        },
+        "element_index": {
+          "type": "u16",
+          "semantics": "所属 ANM2 LayerState 数组中的层序号",
+          "evidence": "J273 ANM2::Load VA 0x407AF0（imagebase 0x400000）按数组顺序建立 LayerState；VA 0x407BC9 记录名为 shadow 的层序号"
+        }
+      },
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "layer_data",
+          "type": "LayerData*",
+          "category": "派生",
+          "semantics": "由所属 ANM2 文件及数组序号定位的资源定义",
+          "status": "推断",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "animation_owner",
+          "type": "ANM2*",
+          "category": "本地",
+          "semantics": "所属 ANM2 回指，不作为网络状态",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics"
+        },
+        {
+          "offset": "0x8",
+          "size": "0x18",
+          "name": "spritesheet_path",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "当前 spritesheet 路径字符串，转换为图像资源号",
+          "status": "SDK声明",
+          "evidence": "LayerState.zhl +0x08 std::string；LuaSprite.cpp GetSpritesheetPath 直接返回 GetSpritesheetPath().c_str()",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "host": "layer_spritesheet_path_to_resource",
+            "client": "layer_spritesheet_path_from_resource",
+            "target": "image-table"
+          }
+        },
+        {
+          "offset": "0x20",
+          "size": "0x4",
+          "name": "min_filter_mode",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "缩小过滤模式",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0x24",
+          "size": "0x4",
+          "name": "mag_filter_mode",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "放大过滤模式",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0x28",
+          "size": "0x4",
+          "name": "wrap_s_mode",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "S 方向环绕模式",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0x2C",
+          "size": "0x4",
+          "name": "wrap_t_mode",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "T 方向环绕模式",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0x30",
+          "size": "0x1",
+          "name": "sprite_sheet_loaded",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "原生图层加载标志；保守按状态保留，客户端须先完成相应资源准备",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x31",
+          "size": "0x1",
+          "name": "unknown_31",
+          "type": "u8",
+          "category": "未知",
+          "semantics": "J273 LoadGraphics 将该字节清零；具体语义未明，绝非已证填充",
+          "status": "未知",
+          "evidence": "J273 VA 0x407DA0 LoadGraphics 内 VA 0x407F7A 写 LayerState+0x31=0；imagebase 0x400000"
+        },
+        {
+          "offset": "0x32",
+          "size": "0x1",
+          "name": "flip_x",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "水平翻转",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x33",
+          "size": "0x1",
+          "name": "flip_y",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "垂直翻转",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x34",
+          "size": "0x8",
+          "name": "size",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "图层尺寸",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x3C",
+          "size": "0x4",
+          "name": "rotation",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "图层旋转角度",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x40",
+          "size": "0x8",
+          "name": "position",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "图层位置",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x48",
+          "size": "0x2C",
+          "name": "color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "图层 ColorMod",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "nested",
+            "type": "ColorMod"
+          }
+        },
+        {
+          "offset": "0x74",
+          "size": "0x1",
+          "name": "visible",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "图层显示开关",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x75",
+          "size": "0x3",
+          "name": "unknown_75_77",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "SDK 布局间未说明的三个字节；不认作填充",
+          "status": "未知",
+          "evidence": "LayerState.zhl 在 visible +0x74 后以 BlendMode +0x78 对齐；没有不变证据"
+        },
+        {
+          "offset": "0x78",
+          "size": "0x14",
+          "name": "blend_mode",
+          "type": "BlendMode",
+          "category": "状态",
+          "semantics": "图层混合模式的五 DWORD 值",
+          "status": "已核",
+          "evidence": "J273 VA 0x9E17B0（RVA 0x5E17B0，imagebase 0x400000）BlendMode::GetMode；官方 BlendMode.zhl",
+          "wire": {
+            "kind": "nested",
+            "type": "BlendMode"
+          }
+        },
+        {
+          "offset": "0x8C",
+          "size": "0x4",
+          "name": "render_flags",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "图层渲染位标志",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0x90",
+          "size": "0x8",
+          "name": "crop_offset",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "图层裁剪偏移",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x98",
+          "size": "0x8",
+          "name": "image_selection",
+          "type": "KAGE_SmartPointer_ImageBase",
+          "category": "资源",
+          "semantics": "实际 ImageBase 选择；Host 由 ImageBase._name 形成资源身份，客户端重建引用；稳定唯一性仍待第8步核",
+          "status": "推断",
+          "evidence": "SmartPointer.zhl：+0 image、+4 refcount control block；KAGE_Graphics_Image.zhl：ImageBase::_name 在 +0x3C；LayerState::SetSpriteSheet 会替换整个 smart pointer",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "host": "image_base_name_to_resource",
+            "client": "image_base_resource_to_smart_pointer",
+            "target": "image-table"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "贴图资源",
+          "sequence": "body",
+          "fields": [
+            "spritesheet_path",
+            "image_selection"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "图层外观",
+          "sequence": "body",
+          "fields": [
+            "min_filter_mode",
+            "mag_filter_mode",
+            "wrap_s_mode",
+            "wrap_t_mode",
+            "sprite_sheet_loaded",
+            "flip_x",
+            "flip_y",
+            "size",
+            "rotation",
+            "position",
+            "color",
+            "visible",
+            "blend_mode",
+            "render_flags",
+            "crop_offset"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "flip_x": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "flip_y": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "rotation": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "visible": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "sprite_sheet_loaded": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [
+        {
+          "id": "LayerState.GetBlendMode",
+          "disposition": "field",
+          "fields": [
+            "blend_mode"
+          ],
+          "reason": "直接读取 BlendMode 五 DWORD。"
+        },
+        {
+          "id": "LayerState.GetColor",
+          "disposition": "field",
+          "fields": [
+            "color"
+          ],
+          "reason": "直接读取图层 ColorMod。"
+        },
+        {
+          "id": "LayerState.GetCropOffset",
+          "disposition": "field",
+          "fields": [
+            "crop_offset"
+          ],
+          "reason": "直接读取裁剪 Vector。"
+        },
+        {
+          "id": "LayerState.GetDefaultSpritesheetPath",
+          "disposition": "derived",
+          "fields": [
+            "@owner_file",
+            "@element_index"
+          ],
+          "reason": "由所属 ANM2 文件与数组层序定位默认贴图路径。"
+        },
+        {
+          "id": "LayerState.GetFlipX",
+          "disposition": "field",
+          "fields": [
+            "flip_x"
+          ],
+          "reason": "读取水平翻转。"
+        },
+        {
+          "id": "LayerState.GetFlipY",
+          "disposition": "field",
+          "fields": [
+            "flip_y"
+          ],
+          "reason": "读取垂直翻转。"
+        },
+        {
+          "id": "LayerState.GetLayerID",
+          "disposition": "derived",
+          "fields": [
+            "@owner_file",
+            "@element_index"
+          ],
+          "reason": "J273/SDK 按所属 ANM2 与层顺序给出公开层 ID。"
+        },
+        {
+          "id": "LayerState.GetName",
+          "disposition": "derived",
+          "fields": [
+            "@owner_file",
+            "@element_index"
+          ],
+          "reason": "由所属 ANM2 文件及层定义读取名称。"
+        },
+        {
+          "id": "LayerState.GetPos",
+          "disposition": "field",
+          "fields": [
+            "position"
+          ],
+          "reason": "直接读取图层位置。"
+        },
+        {
+          "id": "LayerState.GetRenderFlags",
+          "disposition": "field",
+          "fields": [
+            "render_flags"
+          ],
+          "reason": "读取渲染 flags。"
+        },
+        {
+          "id": "LayerState.GetRotation",
+          "disposition": "field",
+          "fields": [
+            "rotation"
+          ],
+          "reason": "直接读取旋转角度。"
+        },
+        {
+          "id": "LayerState.GetSize",
+          "disposition": "field",
+          "fields": [
+            "size"
+          ],
+          "reason": "直接读取尺寸。"
+        },
+        {
+          "id": "LayerState.GetSpritesheetPath",
+          "disposition": "field",
+          "fields": [
+            "spritesheet_path"
+          ],
+          "reason": "读取 +0x08 的路径字符串；不等价于实际 image smart pointer。"
+        },
+        {
+          "id": "LayerState.GetWrapSMode",
+          "disposition": "field",
+          "fields": [
+            "wrap_s_mode"
+          ],
+          "reason": "读取 S 环绕模式。"
+        },
+        {
+          "id": "LayerState.GetWrapTMode",
+          "disposition": "field",
+          "fields": [
+            "wrap_t_mode"
+          ],
+          "reason": "读取 T 环绕模式。"
+        },
+        {
+          "id": "LayerState.IsVisible",
+          "disposition": "field",
+          "fields": [
+            "visible"
+          ],
+          "reason": "读取可见标志。"
+        }
+      ],
+      "public_owners": [],
+      "notes": "LayerState.HasCustomShader 与 HasCustomChampionShader 由 REPENTOGON Anm2Extras.cpp 的 ANM2* / LayerState* 旁表提供，非 J273 +0x31、非 ANM2 +0x108/+0x10C；需第8步旁表布局和资源路径接线。GetSpritesheet 返回实际 Image 对象，+0x98 的资源身份仍需核对名字唯一性/程序图像；+0x08 路径不能替代它，因为 SetSpriteSheet 仅更换 smart pointer、过滤/环绕和 loaded 状态，不改路径字符串。"
+    },
+    {
+      "type": "ANM2",
+      "native_size": "0x114",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 7,
+      "contexts": {
+        "owner_file": {
+          "type": "u16",
+          "semantics": "所属 ANM2 文件资源表序号",
+          "evidence": "ANM2 +0x00 file_name 资源；用于 Sprite/LayerState 的父资源上下文，不增加原生字节"
+        }
+      },
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x18",
+          "name": "file_name",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "ANM2 文件路径资源号",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "host": "anm2_file_path_to_resource",
+            "client": "anm2_file_path_from_resource",
+            "target": "anm2-files"
+          }
+        },
+        {
+          "offset": "0x18",
+          "size": "0x18",
+          "name": "default_animation_name",
+          "type": "std::string",
+          "category": "容器",
+          "semantics": "默认动画名字符串；load 阶段读取，保留有界字节串，不当作不可变文件派生量",
+          "status": "已核",
+          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl",
+          "wire": {
+            "kind": "container",
+            "element": "u8",
+            "limit": 65535,
+            "stride": 1,
+            "storage": "string",
+            "host": "read_anm2_default_name",
+            "client": "assign_anm2_default_name"
+          }
+        },
+        {
+          "offset": "0x30",
+          "size": "0x20",
+          "name": "main_state",
+          "type": "AnimationState",
+          "category": "状态",
+          "semantics": "主动画状态与独立图层/空层帧选择器",
+          "status": "SDK声明",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl",
+          "wire": {
+            "kind": "nested",
+            "type": "AnimationState"
+          }
+        },
+        {
+          "offset": "0x50",
+          "size": "0x20",
+          "name": "overlay_state",
+          "type": "AnimationState",
+          "category": "状态",
+          "semantics": "叠加动画状态与独立图层/空层帧选择器",
+          "status": "SDK声明",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl",
+          "wire": {
+            "kind": "nested",
+            "type": "AnimationState"
+          }
+        },
+        {
+          "offset": "0x70",
+          "size": "0x1",
+          "name": "overlay_render_first",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "叠加动画先绘制开关",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x71",
+          "size": "0x3",
+          "name": "unknown_71_73",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "SDK 字段间未解释字节；不认作填充",
+          "status": "未知",
+          "evidence": "ANM2.zhl 中 overlayRenderFirst +0x70 与 AnimationData* +0x74 间未命名"
+        },
+        {
+          "offset": "0x74",
+          "size": "0x4",
+          "name": "animation_data",
+          "type": "AnimationData*",
+          "category": "派生",
+          "semantics": "由 ANM2 文件动画表建立的资源数组首址",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x78",
+          "size": "0x4",
+          "name": "animation_count",
+          "type": "i32",
+          "category": "派生",
+          "semantics": "由 ANM2 文件动画表确定的动画数量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x7C",
+          "size": "0x4",
+          "name": "layer_states",
+          "type": "LayerState*",
+          "category": "容器",
+          "semantics": "按 layer_count 遍历图层实例状态",
+          "status": "已核",
+          "evidence": "ANM2.zhl +0x7C；LayerState 实例步长 0xA0；J273 VA 0x407AF0 按该数组顺序处理图层",
+          "wire": {
+            "kind": "container",
+            "element": "LayerState",
+            "limit": 65535,
+            "stride": "0xA0",
+            "storage": "array",
+            "host": "read_anm2_layer_states",
+            "client": "rebuild_anm2_layer_states",
+            "count_field": "layer_count"
+          }
+        },
+        {
+          "offset": "0x80",
+          "size": "0x4",
+          "name": "layer_count",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "由 ANM2 文件图层数组确定的图层数",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x84",
+          "size": "0x4",
+          "name": "null_layer_names",
+          "type": "std::string*",
+          "category": "派生",
+          "semantics": "由文件建立的空层名称表",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x88",
+          "size": "0x4",
+          "name": "null_layer_count",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "由文件建立的空层名称数量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x8C",
+          "size": "0x4",
+          "name": "event_names",
+          "type": "std::string*",
+          "category": "派生",
+          "semantics": "由文件建立的事件名表",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x90",
+          "size": "0x4",
+          "name": "event_count",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "由文件建立的事件数量",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation"
+        },
+        {
+          "offset": "0x94",
+          "size": "0x8",
+          "name": "offset",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "绘制偏移",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x9C",
+          "size": "0x8",
+          "name": "scale",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "绘制缩放",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0xA4",
+          "size": "0x4",
+          "name": "rotation",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "全局旋转",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0xA8",
+          "size": "0x2C",
+          "name": "color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "全局颜色",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "nested",
+            "type": "ColorMod"
+          }
+        },
+        {
+          "offset": "0xD4",
+          "size": "0x2C",
+          "name": "champion_color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "精英色调",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "nested",
+            "type": "ColorMod"
+          }
+        },
+        {
+          "offset": "0x100",
+          "size": "0x1",
+          "name": "flip_x",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "水平翻转",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x101",
+          "size": "0x1",
+          "name": "flip_y",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "垂直翻转",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x102",
+          "size": "0x2",
+          "name": "unknown_102_103",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "SDK 字段间未解释字节；不认作填充",
+          "status": "未知",
+          "evidence": "ANM2.zhl 在 flip bool +0x100/+0x101 与 playbackSpeed +0x104 之间留空"
+        },
+        {
+          "offset": "0x104",
+          "size": "0x4",
+          "name": "playback_speed",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "播放速度",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x108",
+          "size": "0x1",
+          "name": "unknown_108",
+          "type": "u8",
+          "category": "未知",
+          "semantics": "初始化为零但语义未明；不作为 shader 状态",
+          "status": "未知",
+          "evidence": "J273 ANM2 ctor VA 0x403530 初始化周围字段；REP shader 扩展另在 Anm2Extras 旁表"
+        },
+        {
+          "offset": "0x109",
+          "size": "0x1",
+          "name": "loaded",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "公开 IsLoaded 的原生值；客户端资源 owner 完成准备后按目标状态安装",
+          "status": "已核",
+          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x10A",
+          "size": "0x2",
+          "name": "unknown_10A_10B",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "+0x109 与 shadowLayerIndex +0x10C 间未解释字节",
+          "status": "未知",
+          "evidence": "ANM2.zhl 与 J273 Load 对该两字节未给出语义"
+        },
+        {
+          "offset": "0x10C",
+          "size": "0x4",
+          "name": "shadow_layer_index",
+          "type": "i32",
+          "category": "派生",
+          "semantics": "资源中名称为 shadow 的 LayerState 数组序号；不存在时为 -1",
+          "status": "已核",
+          "evidence": "J273 Load VA 0x407AF0：VA 0x407B59 初始化 -1；VA 0x407BC9 在层名等于 shadow 时写当前层序号"
+        },
+        {
+          "offset": "0x110",
+          "size": "0x4",
+          "name": "render_flags",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "ANM2 渲染位标志",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "外观与资源",
+          "sequence": "body",
+          "fields": [
+            "file_name",
+            "overlay_render_first",
+            "offset",
+            "scale",
+            "rotation",
+            "color",
+            "champion_color",
+            "flip_x",
+            "flip_y",
+            "playback_speed",
+            "loaded",
+            "render_flags",
+            "default_animation_name"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "动画与独立选择器",
+          "sequence": "body",
+          "fields": [
+            "main_state",
+            "overlay_state"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "图层状态",
+          "sequence": "body",
+          "fields": [
+            "layer_states"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "overlay_render_first": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "rotation": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "flip_x": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "flip_y": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "playback_speed": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "loaded": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [
+        {
+          "id": "Sprite.Color",
+          "disposition": "field",
+          "fields": [
+            "color"
+          ],
+          "reason": "ANM2 全局 ColorMod。"
+        },
+        {
+          "id": "Sprite.FlipX",
+          "disposition": "field",
+          "fields": [
+            "flip_x"
+          ],
+          "reason": "水平翻转。"
+        },
+        {
+          "id": "Sprite.FlipY",
+          "disposition": "field",
+          "fields": [
+            "flip_y"
+          ],
+          "reason": "垂直翻转。"
+        },
+        {
+          "id": "Sprite.GetAllLayers",
+          "disposition": "field",
+          "fields": [
+            "layer_states"
+          ],
+          "reason": "读取有序 LayerState 数组。"
+        },
+        {
+          "id": "Sprite.GetAnimation",
+          "disposition": "field",
+          "fields": [
+            "main_state"
+          ],
+          "reason": "映射主动画选择/状态；底层动画选择由 AnimationState.active_animation 资源项表示。"
+        },
+        {
+          "id": "Sprite.GetCurrentAnimationData",
+          "disposition": "field",
+          "fields": [
+            "main_state"
+          ],
+          "reason": "主动画状态内的当前 AnimationData 选择。"
+        },
+        {
+          "id": "Sprite.GetDefaultAnimation",
+          "disposition": "field",
+          "fields": [
+            "default_animation_name"
+          ],
+          "reason": "默认动画名字符串。"
+        },
+        {
+          "id": "Sprite.GetDefaultAnimationName",
+          "disposition": "field",
+          "fields": [
+            "default_animation_name"
+          ],
+          "reason": "默认动画名字符串。"
+        },
+        {
+          "id": "Sprite.GetFilename",
+          "disposition": "field",
+          "fields": [
+            "file_name"
+          ],
+          "reason": "ANM2 文件资源身份。"
+        },
+        {
+          "id": "Sprite.GetFrame",
+          "disposition": "field",
+          "fields": [
+            "main_state"
+          ],
+          "reason": "主动画当前帧及选择器由 main_state 表示。"
+        },
+        {
+          "id": "Sprite.GetLayerCount",
+          "disposition": "derived",
+          "fields": [
+            "@owner_file"
+          ],
+          "reason": "层数来自所属 ANM2 资源文件。"
+        },
+        {
+          "id": "Sprite.GetOverlayAnimation",
+          "disposition": "field",
+          "fields": [
+            "overlay_state"
+          ],
+          "reason": "叠加动画状态。"
+        },
+        {
+          "id": "Sprite.GetOverlayAnimationData",
+          "disposition": "field",
+          "fields": [
+            "overlay_state"
+          ],
+          "reason": "叠加动画当前资源项。"
+        },
+        {
+          "id": "Sprite.GetOverlayFrame",
+          "disposition": "field",
+          "fields": [
+            "overlay_state"
+          ],
+          "reason": "叠加动画当前帧及选择器。"
+        },
+        {
+          "id": "Sprite.GetRenderFlags",
+          "disposition": "field",
+          "fields": [
+            "render_flags"
+          ],
+          "reason": "ANM2 渲染 flags。"
+        },
+        {
+          "id": "Sprite.Offset",
+          "disposition": "field",
+          "fields": [
+            "offset"
+          ],
+          "reason": "绘制偏移。"
+        },
+        {
+          "id": "Sprite.PlaybackSpeed",
+          "disposition": "field",
+          "fields": [
+            "playback_speed"
+          ],
+          "reason": "播放速度。"
+        },
+        {
+          "id": "Sprite.Rotation",
+          "disposition": "field",
+          "fields": [
+            "rotation"
+          ],
+          "reason": "旋转角度。"
+        },
+        {
+          "id": "Sprite.Scale",
+          "disposition": "field",
+          "fields": [
+            "scale"
+          ],
+          "reason": "绘制缩放。"
+        },
+        {
+          "id": "Sprite.IsLoaded",
+          "disposition": "field",
+          "fields": [
+            "loaded"
+          ],
+          "reason": "公开 IsLoaded 不能凭本地缓存假设省略，保守保留原生布尔状态。"
+        }
+      ],
+      "public_owners": [],
+      "notes": "Sprite.HasCustomShader 与 HasCustomChampionShader 来自 REPENTOGON Anm2Extras.cpp 外部旁表，不是 ANM2 +0x108/+0x10C；Sprite.IsLoaded 保守作为状态保留，不能仅凭加载缓存名省略。未声明 Sprite public_owner，待第8步接入 shader 旁表和实际 Image 资源路径。_animDefaultName 是可写 std::string：J273 Load 拷贝缓存串到 +0x18，SetAnimation 只改当前 AnimationData，不构成不可变证明。"
+    },
+    {
+      "type": "RNG",
+      "native_size": "0x10",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 8,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "伪随机状态 seed；仅权威端推进",
+          "status": "已核",
+          "evidence": "J273 VA 0x7DF4A0 SetSeed、0x7DF4E0 RandomInt、0x7DF540 RandomFloat、0x7DF5B0 Next（imagebase 0x400000）；官方 RNG.zhl"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "shift_1",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Xorshift 参数一；仅权威端使用",
+          "status": "已核",
+          "evidence": "J273 VA 0x7DF4A0 SetSeed、0x7DF4E0 RandomInt、0x7DF540 RandomFloat、0x7DF5B0 Next（imagebase 0x400000）；官方 RNG.zhl"
+        },
+        {
+          "offset": "0x8",
+          "size": "0x4",
+          "name": "shift_2",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Xorshift 参数二；仅权威端使用",
+          "status": "已核",
+          "evidence": "J273 VA 0x7DF4A0 SetSeed、0x7DF4E0 RandomInt、0x7DF540 RandomFloat、0x7DF5B0 Next（imagebase 0x400000）；官方 RNG.zhl"
+        },
+        {
+          "offset": "0xC",
+          "size": "0x4",
+          "name": "shift_3",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Xorshift 参数三；仅权威端使用",
+          "status": "已核",
+          "evidence": "J273 VA 0x7DF4A0 SetSeed、0x7DF4E0 RandomInt、0x7DF540 RandomFloat、0x7DF5B0 Next（imagebase 0x400000）；官方 RNG.zhl"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "J273 SetSeed 写入全部四 DWORD；RandomInt/RandomFloat/Next 读取三个 shift 并更新 seed。此类型是 authority-only，不加入发送块。"
+    },
+    {
+      "type": "BitSet128",
+      "native_size": "0x10",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 9,
+      "pure_value": true,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "ll",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "低 64 位低 DWORD",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\BitSet128.zhl；成员与四个 DWORD 的位运算定义；J273 SetTearFlags VA0x672BF0/RVA0x272BF0，VA0x673619 movups读取值参数16B、VA0x67361D movups写Tear+0x428；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "lh",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "低 64 位高 DWORD",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\BitSet128.zhl；成员与四个 DWORD 的位运算定义；J273 SetTearFlags VA0x672BF0/RVA0x272BF0，VA0x673619 movups读取值参数16B、VA0x67361D movups写Tear+0x428；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0x8",
+          "size": "0x4",
+          "name": "hl",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "高 64 位低 DWORD",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\BitSet128.zhl；成员与四个 DWORD 的位运算定义；J273 SetTearFlags VA0x672BF0/RVA0x272BF0，VA0x673619 movups读取值参数16B、VA0x67361D movups写Tear+0x428；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0xC",
+          "size": "0x4",
+          "name": "hh",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "高 64 位高 DWORD",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\BitSet128.zhl；成员与四个 DWORD 的位运算定义；J273 SetTearFlags VA0x672BF0/RVA0x272BF0，VA0x673619 movups读取值参数16B、VA0x67361D movups写Tear+0x428；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "128 位位集",
+          "sequence": "body",
+          "fields": [
+            "ll",
+            "lh",
+            "hl",
+            "hh"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "四个u32的顺序由官方构造函数参数ll/lh/hl/hh明确；J273 SetTearFlags按16B值参数原样复制，按128位保留。"
+    },
+    {
+      "type": "EntityPtr",
+      "native_size": "0x4",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 10,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "entity",
+          "type": "Entity*",
+          "category": "引用",
+          "semantics": "实体智能引用；只发送成员表内实体序号，不发送地址",
+          "status": "已核",
+          "evidence": "J273 VA 0x858760 EntityPtr::SetReference（RVA 0x458760，imagebase 0x400000）；官方 EntityPtr.zhl",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entity-members",
+            "host": "entity_pointer_to_member_index",
+            "client": "entity_pointer_from_member_index"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "实体引用",
+          "sequence": "body",
+          "fields": [
+            "entity"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "EntityPtr::SetReference 会维护 Entity 内引用登记链；网络只解析稳定成员索引，不能直接复制指针。"
+    },
+    {
+      "type": "ColorParams",
+      "native_size": "0x3C",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 11,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "priority",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "颜色参数优先级",
+          "status": "已核",
+          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x4",
+          "size": "0x2C",
+          "name": "color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "颜色变换值",
+          "status": "已核",
+          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）",
+          "wire": {
+            "kind": "nested",
+            "type": "ColorMod"
+          }
+        },
+        {
+          "offset": "0x30",
+          "size": "0x4",
+          "name": "duration",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "duration1；公开 GetDuration/SetDuration",
+          "status": "已核",
+          "evidence": "ColorParams.zhl +0x30；官方 LuaColorParams.cpp 的 GetDuration/SetDuration 直接读取写入 _duration1",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x34",
+          "size": "0x4",
+          "name": "lifespan",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "duration2；公开 GetLifespan/SetLifespan",
+          "status": "已核",
+          "evidence": "ColorParams.zhl +0x34；官方 LuaColorParams.cpp 的 GetLifespan/SetLifespan 直接读取写入 _duration2",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x38",
+          "size": "0x1",
+          "name": "fadeout",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "淡出开关",
+          "status": "已核",
+          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x39",
+          "size": "0x1",
+          "name": "shared",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "共享标志",
+          "status": "已核",
+          "evidence": "官方 ColorParams.zhl；REPENTOGON\\LuaInterfaces\\LuaColorParams.cpp（Get/Set Duration、Lifespan、Fadeout、Shared）",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x3A",
+          "size": "0x2",
+          "name": "unknown_3A_3B",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "SDK 类型大小尾端尚未解释的两个字节",
+          "status": "未知",
+          "evidence": "ColorParams.zhl 声明到 +0x39；没有证据可把 +0x3A..+0x3B 认作填充"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "颜色参数",
+          "sequence": "body",
+          "fields": [
+            "priority",
+            "color",
+            "duration",
+            "lifespan",
+            "fadeout",
+            "shared"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "fadeout": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "shared": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [
+        {
+          "id": "ColorParams.GetColor",
+          "disposition": "field",
+          "fields": [
+            "color"
+          ],
+          "reason": "公开颜色值。"
+        },
+        {
+          "id": "ColorParams.GetDuration",
+          "disposition": "field",
+          "fields": [
+            "duration"
+          ],
+          "reason": "映射 _duration1 / +0x30。"
+        },
+        {
+          "id": "ColorParams.GetLifespan",
+          "disposition": "field",
+          "fields": [
+            "lifespan"
+          ],
+          "reason": "映射 _duration2 / +0x34。"
+        },
+        {
+          "id": "ColorParams.GetFadeout",
+          "disposition": "field",
+          "fields": [
+            "fadeout"
+          ],
+          "reason": "淡出 bool。"
+        },
+        {
+          "id": "ColorParams.GetPriority",
+          "disposition": "field",
+          "fields": [
+            "priority"
+          ],
+          "reason": "优先级 i32。"
+        },
+        {
+          "id": "ColorParams.GetShared",
+          "disposition": "field",
+          "fields": [
+            "shared"
+          ],
+          "reason": "共享 bool。"
+        }
+      ],
+      "public_owners": [
+        "ColorParams"
+      ],
+      "notes": "构造函数将两个 duration 初始化为 -1。REP 官方 Lua getters/setters 明确区分 +0x30 Duration 与 +0x34 Lifespan，不能折叠为一个持续时间。"
+    },
+    {
+      "type": "ActiveItemDesc",
+      "native_size": "0x20",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 12,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "item_id",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "主动道具配置 ID",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "item_pool",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "加入道具时记录的 ItemPool 来源",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-20/tx-04-20-state-installation.md:38；J273 AddCollectible VA 0x758F00 于 VA 0x759864 写入最后一个 item pool 参数",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x8",
+          "size": "0x4",
+          "name": "charge",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "充能数",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0xC",
+          "size": "0x4",
+          "name": "battery_charge",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "电池充能数",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x10",
+          "size": "0x4",
+          "name": "sub_charge",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "子充能数",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x14",
+          "size": "0x4",
+          "name": "timed_recharge_cooldown",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "定时充能冷却",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x18",
+          "size": "0x4",
+          "name": "partial_charge",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "部分充能进度；公开类型为 float",
+          "status": "已核",
+          "evidence": "player-i39-source.md:71；J273 VA 0x863B93 写 getter closure 的 offset 0x18、VA 0x863BB9 以 PartialCharge 注册；VA 0x863C4E 写 setter closure offset；VA 0x8A4510/0x8A4570 以 movss 读写（imagebase 0x400000）",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x1C",
+          "size": "0x4",
+          "name": "var_data",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "道具关联 VarData",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ActiveItemDesc.zhl；docs/design/tx-04-20/tx-04-20-state-installation.md:37-38；player-i39-source.md:71",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "主动道具描述",
+          "sequence": "body",
+          "fields": [
+            "item_id",
+            "item_pool",
+            "charge",
+            "battery_charge",
+            "sub_charge",
+            "timed_recharge_cooldown",
+            "partial_charge",
+            "var_data"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "partial_charge": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [
+        {
+          "id": "ActiveItemDesc.BatteryCharge",
+          "disposition": "field",
+          "fields": [
+            "battery_charge"
+          ],
+          "reason": "电池充能。"
+        },
+        {
+          "id": "ActiveItemDesc.Charge",
+          "disposition": "field",
+          "fields": [
+            "charge"
+          ],
+          "reason": "普通充能。"
+        },
+        {
+          "id": "ActiveItemDesc.Item",
+          "disposition": "field",
+          "fields": [
+            "item_id"
+          ],
+          "reason": "主动道具配置 ID。"
+        },
+        {
+          "id": "ActiveItemDesc.PartialCharge",
+          "disposition": "field",
+          "fields": [
+            "partial_charge"
+          ],
+          "reason": "浮点部分充能，不按 SDK int 声明传输。"
+        },
+        {
+          "id": "ActiveItemDesc.SubCharge",
+          "disposition": "field",
+          "fields": [
+            "sub_charge"
+          ],
+          "reason": "子充能。"
+        },
+        {
+          "id": "ActiveItemDesc.TimedRechargeCooldown",
+          "disposition": "field",
+          "fields": [
+            "timed_recharge_cooldown"
+          ],
+          "reason": "定时冷却。"
+        },
+        {
+          "id": "ActiveItemDesc.VarData",
+          "disposition": "field",
+          "fields": [
+            "var_data"
+          ],
+          "reason": "道具关联 VarData。"
+        }
+      ],
+      "public_owners": [
+        "ActiveItemDesc"
+      ],
+      "notes": "REP ZHL 的 ActiveItemDesc +0x04 _unk 在 J273 AddCollectible 写入路径中已核为 item_pool；SDK 的 PartialCharge int 声明错误，J273 Lua closure 按 float 读写 +0x18。"
+    },
+    {
+      "type": "Weapon",
+      "native_size": "0x44",
+      "sdk_size": "0x40",
+      "extent": "base_prefix",
+      "parent": null,
+      "rtti": {
+        "name": ".?AVWeapon@IsaacRepentancePlus@@",
+        "rva": "0x7D1218"
+      },
+      "layout": 13,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "vtable",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "原生 Weapon 虚表指针",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582；J273 VA0x9C4ED9写Weapon vtable，主审已复读"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "owner",
+          "type": "Entity*",
+          "category": "引用",
+          "semantics": "Weapon 所属实体",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entity-members",
+            "host": "weapon_owner_to_member_index",
+            "client": "weapon_owner_from_member_index"
+          }
+        },
+        {
+          "offset": "0x8",
+          "size": "0x4",
+          "name": "unknown_entity_pointer",
+          "type": "Entity*",
+          "category": "未知",
+          "semantics": "SDK 中曾注释为 Entity* _entity；J273 ctor 置空，但用途及与 GetMainEntity 的关系未核",
+          "status": "未知",
+          "evidence": "Weapon.zhl +0x08 注释掉的 Entity*；J273 VA 0x9C4EB0 ctor 初始化 null"
+        },
+        {
+          "offset": "0xC",
+          "size": "0x4",
+          "name": "fire_delay",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "当前射击冷却",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x10",
+          "size": "0x4",
+          "name": "max_fire_delay",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "最大射击冷却",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x14",
+          "size": "0x4",
+          "name": "charge",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "武器充能",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x18",
+          "size": "0x8",
+          "name": "unknown_18_1F",
+          "type": "bytes[8]",
+          "category": "未知",
+          "semantics": "J273 ctor 初始化 +0x18=1.0f、+0x1C=0；字段语义未核",
+          "status": "未知",
+          "evidence": "J273 Weapon ctor VA0x9C4EB0：VA0x9C4EED/0x9C4F58写+0x18=1.0f，VA0x9C4F3A写+0x1C=0；语义未核，主审已复读"
+        },
+        {
+          "offset": "0x20",
+          "size": "0x8",
+          "name": "direction",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "武器方向",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582",
+          "wire": {
+            "kind": "nested",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x28",
+          "size": "0x8",
+          "name": "axis_parameters",
+          "type": "f32[2]",
+          "category": "状态",
+          "semantics": "IsAxisAligned 读取的两个 float 参数；业务语义未明，按有限 float 保留",
+          "status": "推断",
+          "evidence": "J273 Weapon::IsAxisAligned VA 0x9C5090 读取 this+0x28 与 +0x2C；具体含义未核",
+          "wire": {
+            "kind": "copy",
+            "type": "f32[2]"
+          }
+        },
+        {
+          "offset": "0x30",
+          "size": "0x4",
+          "name": "weapon_type",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "武器类型",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x34",
+          "size": "0x4",
+          "name": "modifiers",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "武器修改标志",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          }
+        },
+        {
+          "offset": "0x38",
+          "size": "0x4",
+          "name": "num_fired",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "已发射数量",
+          "status": "SDK声明",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\Weapon.zhl；J273 VA 0x9C4EB0 ctor、0x9C5200 Init、0x9C5090 IsAxisAligned（imagebase 0x400000）；player-application.json:62582",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x3C",
+          "size": "0x4",
+          "name": "unknown_3C",
+          "type": "u32",
+          "category": "未知",
+          "semantics": "SDK 未声明；J273 ctor 写零，语义未核",
+          "status": "未知",
+          "evidence": "J273 Weapon ctor VA 0x9C4EB0 初始化 +0x3C"
+        },
+        {
+          "offset": "0x40",
+          "size": "0x4",
+          "name": "unknown_40",
+          "type": "u32",
+          "category": "未知",
+          "semantics": "J273 Weapon ctor 写入范围超过 SDK sizeof(Weapon)=0x40；+0x40 字节归属未核",
+          "status": "未知",
+          "evidence": "J273 Weapon ctor VA 0x9C4EB0 写 this+0x40；player-application.json:62582"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "武器基础状态",
+          "sequence": "body",
+          "fields": [
+            "owner",
+            "fire_delay",
+            "max_fire_delay",
+            "charge",
+            "direction",
+            "axis_parameters",
+            "weapon_type",
+            "modifiers",
+            "num_fired"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "fire_delay": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "max_fire_delay": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "charge": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "axis_parameters": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [
+        {
+          "id": "Weapon.GetCharge",
+          "disposition": "field",
+          "fields": [
+            "charge"
+          ],
+          "reason": "基类直接 getter 读取 +0x14。"
+        },
+        {
+          "id": "Weapon.GetDirection",
+          "disposition": "field",
+          "fields": [
+            "direction"
+          ],
+          "reason": "基类直接 getter 读取 Vector +0x20。"
+        },
+        {
+          "id": "Weapon.GetFireDelay",
+          "disposition": "field",
+          "fields": [
+            "fire_delay"
+          ],
+          "reason": "基类直接 getter 读取 +0x0C。"
+        },
+        {
+          "id": "Weapon.GetMaxFireDelay",
+          "disposition": "field",
+          "fields": [
+            "max_fire_delay"
+          ],
+          "reason": "基类直接 getter 读取 +0x10。"
+        },
+        {
+          "id": "Weapon.GetModifiers",
+          "disposition": "field",
+          "fields": [
+            "modifiers"
+          ],
+          "reason": "基类直接 getter 读取 +0x34。"
+        },
+        {
+          "id": "Weapon.GetNumFired",
+          "disposition": "field",
+          "fields": [
+            "num_fired"
+          ],
+          "reason": "基类直接 getter 读取 +0x38。"
+        },
+        {
+          "id": "Weapon.GetOwner",
+          "disposition": "field",
+          "fields": [
+            "owner"
+          ],
+          "reason": "基类直接 getter 读取 owner 引用 +0x04。"
+        },
+        {
+          "id": "Weapon.GetWeaponType",
+          "disposition": "field",
+          "fields": [
+            "weapon_type"
+          ],
+          "reason": "基类直接 getter 读取 +0x30。"
+        }
+      ],
+      "public_owners": [],
+      "notes": "sdk_size 0x40 不是完整基础构造足迹。仅声明到 ctor 写入的 0x44 base_prefix，不能代表动态分配大小；Weapon 子类真实 allocation size 由第5步按 factory/RTTI 接管。GetMaxCharge 是虚函数且父类实现返回 0；IsAxisAligned 还依赖 owner 类/道具条件；IsItemAnimFinished 查询 owner 动画状态；GetMainEntity 为虚函数/子类行为。故不声明 Weapon public_owner。 主审复读基类GetMainEntity槽VA0x9C4E70仅xor eax,eax;ret，不据此推定+8为主实体。 RTTI主审纠错：TypeDescriptor在VA0xBD1218（RVA0x7D1218），VA0xBD1220只是名字起点；Weapon COL VA0xB452C8的+0xC直接指向BD1218。"
+    },
+    {
+      "type": "TemporaryEffect",
+      "native_size": "0x10",
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（非多态值类型）",
+        "rva": 0
+      },
+      "layout": 14,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "item",
+          "type": "ItemConfig_Item*",
+          "category": "资源",
+          "semantics": "效果配置表序号；表项必须保留配置type与id，不能只发送裸id",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\TemporaryEffect.zhl；docs/design/tx-04-19/entity-application.json TemporaryEffect.*",
+          "wire": {
+            "kind": "resource",
+            "type": "u16",
+            "host": "temporary_effect_config_to_index",
+            "client": "temporary_effect_config_from_index",
+            "target": "item-config"
+          }
+        },
+        {
+          "offset": "0x4",
+          "size": "0x4",
+          "name": "count",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "效果叠加数",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\TemporaryEffect.zhl；docs/design/tx-04-19/entity-application.json TemporaryEffect.*；J273 AddEffect VA0x90A090/RVA0x50A090：VA0x90A0E3加count(+4)，VA0x90A0E9加cooldown(+8)，插入元素步长0x10；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x8",
+          "size": "0x4",
+          "name": "cooldown",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "效果冷却",
+          "status": "已核",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\TemporaryEffect.zhl；docs/design/tx-04-19/entity-application.json TemporaryEffect.*；J273 AddEffect VA0x90A090/RVA0x50A090：VA0x90A0E3加count(+4)，VA0x90A0E9加cooldown(+8)，插入元素步长0x10；主审已复读",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0xC",
+          "size": "0x4",
+          "name": "unknown_0C",
+          "type": "u32",
+          "category": "未知",
+          "semantics": "SDK 对象大小 0x10 中未声明的末尾 DWORD；尚未证明可当填充",
+          "status": "未知",
+          "evidence": "TemporaryEffect.zhl 只命名 +0x00 item、+0x04 count、+0x08 cooldown；J273 +0x0C 用途未核；J273 VA0x90A194把新记录尾字置0，VA0x90A0D0/0x90A0D3按16B复制传入记录；不能仅以常见零值判为padding，主审已复读"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "临时效果",
+          "sequence": "body",
+          "fields": [
+            "item",
+            "count",
+            "cooldown"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {},
+      "members": [
+        {
+          "id": "TemporaryEffect.Cooldown",
+          "disposition": "field",
+          "fields": [
+            "cooldown"
+          ],
+          "reason": "公开冷却。"
+        },
+        {
+          "id": "TemporaryEffect.Count",
+          "disposition": "field",
+          "fields": [
+            "count"
+          ],
+          "reason": "公开效果数量。"
+        },
+        {
+          "id": "TemporaryEffect.Item",
+          "disposition": "field",
+          "fields": [
+            "item"
+          ],
+          "reason": "公开配置项身份。"
+        }
+      ],
+      "public_owners": [
+        "TemporaryEffect"
+      ],
+      "notes": "+0x0C 必须保留为未知字节范围；官方 SDK 声明结构大小 0x10，但只有前三个字段，未证明末尾 DWORD 是填充。"
+    }
+  ]
+}

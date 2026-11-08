@@ -1,5 +1,7 @@
 # tx-04-21：发送频率、分层状态与 10 Mbps 网络合同
 
+> 2026-11-08 起，采集／同步设计已由[原生二进制状态同步重构](../binary-state/README.md)取代；本文事实与失败记录保留，正文不改。
+
 > 2026-11-07采集性能修复已写入、未构建／测试：正式来源在主线程同窗封闭，单一worker负责分层／Registry／Store和发布；未启用跨窗UnchangedWitness，framing／stream schema／compact仍为2／1／2。Host成本改用每帧排他采集总和stage12，后台Build单列stage11，完整帧间隔stage13同时检查20ms及逐秒至少50帧。正常30／60 Hz、带宽、三池512／128／128 MiB与超时合同不降低；实际是否达标见恢复后的同tx统一E2E，当前不能宣称通过。详见[方案实施记录](tx-04-21-capture-performance-plan.md)。
 
 > I11—I15后续进度（2026-11-05）：[传输实现](tx-04-21-transport.md)已接 compact-payload-v1、zstd-v1、ICRB v2、三池账本与位图补片；运行指标仍未实测。下方原设计目标与历史状态保留。

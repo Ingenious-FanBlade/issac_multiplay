@@ -1,0 +1,693 @@
+{
+  "types": [
+    {
+      "type": "Entity",
+      "native_size": "0x410",
+      "parent": null,
+      "rtti": {
+        "name": ".?AVEntity@IsaacRepentancePlus@@",
+        "rva": "0x7D1244"
+      },
+      "layout": 100,
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "vtable",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "原生虚表，仅当前进程使用",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:classes.Entity；docs/research/tx-04-08-st5-static-confirmation.md"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x28",
+          "name": "pending_common_prefix",
+          "type": "bytes[40]",
+          "category": "未知",
+          "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+        },
+        {
+          "offset": "0x2c",
+          "size": "0x4",
+          "name": "variant",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "形态选择字段；变化必须更新成员形态",
+          "status": "已核",
+          "evidence": "mod/binding/world_layout.json:fields.variant；J273 VA 0x6A4A3B 写 +0x2C（imagebase 0x400000）",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "shape": true
+        },
+        {
+          "offset": "0x30",
+          "size": "0x3e0",
+          "name": "pending_common_suffix",
+          "type": "bytes[992]",
+          "category": "未知",
+          "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "E0（第3步补齐）",
+          "sequence": "world",
+          "fields": [
+            "variant"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "E1（第3步补齐）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 2,
+          "name": "E2（第3步补齐）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 3,
+          "name": "E3（第3步补齐）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 4,
+          "name": "E4（第3步补齐）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 5,
+          "name": "E5（第3步补齐）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 6,
+          "name": "E6（第3步补齐）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 7,
+          "name": "E7（第3步补齐）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 8,
+          "name": "E8（第3步补齐）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        },
+        {
+          "id": 9,
+          "name": "E9（第3步补齐）",
+          "sequence": "world",
+          "fields": [],
+          "reserved": true
+        }
+      ],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "第1步生成链种子，完整Entity字节归属与E0—E9由第3步补齐；此处不是完整Entity实现。"
+    },
+    {
+      "type": "EntityEffect",
+      "native_size": "0x4c0",
+      "parent": "Entity",
+      "rtti": {
+        "name": ".?AVEntity_Effect@IsaacRepentancePlus@@",
+        "rva": "0x7D1270"
+      },
+      "layout": 101,
+      "ranges": [
+        {
+          "offset": "0x410",
+          "size": "0x4",
+          "name": "height",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "离地高度，粒子作纵向速度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x414",
+          "size": "0x4",
+          "name": "falling_speed",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "下落速度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x418",
+          "size": "0x4",
+          "name": "falling_acceleration",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "下落加速度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x41c",
+          "size": "0x4",
+          "name": "gap_41c",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+        },
+        {
+          "offset": "0x420",
+          "size": "0x10",
+          "name": "variant_data",
+          "type": "BitSet128",
+          "category": "状态",
+          "semantics": "按变体解释的不透明16字节，基础臂语义待第4步补证",
+          "status": "SDK声明",
+          "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.6 基础臂VarData写入待核",
+          "wire": {
+            "kind": "copy",
+            "type": "BitSet128"
+          }
+        },
+        {
+          "offset": "0x430",
+          "size": "0x10",
+          "name": "gap_430",
+          "type": "bytes[16]",
+          "category": "未知",
+          "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+        },
+        {
+          "offset": "0x440",
+          "size": "0x10",
+          "name": "gap_440",
+          "type": "bytes[16]",
+          "category": "未知",
+          "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+        },
+        {
+          "offset": "0x450",
+          "size": "0x4",
+          "name": "state",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "效果自定状态",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x454",
+          "size": "0x4",
+          "name": "min_radius",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "冲击波最小半径",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x458",
+          "size": "0x4",
+          "name": "max_radius",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "冲击波最大半径",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x45c",
+          "size": "0x4",
+          "name": "expire_frame",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "Timeout换算为Host到期帧，Client由展示时钟还原",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.5；Effect Init VA0x5CD1E7",
+          "wire": {
+            "kind": "convert",
+            "type": "i32",
+            "host": "ExpireFrame",
+            "client": "RemainingFrames"
+          }
+        },
+        {
+          "offset": "0x460",
+          "size": "0x4",
+          "name": "lifespan",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "效果寿命",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x464",
+          "size": "0x1",
+          "name": "following",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "是否跟随父实体",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          }
+        },
+        {
+          "offset": "0x465",
+          "size": "0x3",
+          "name": "gap_465",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+        },
+        {
+          "offset": "0x468",
+          "size": "0x8",
+          "name": "parent_offset",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "相对父实体的偏移",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "Vector"
+          }
+        },
+        {
+          "offset": "0x470",
+          "size": "0x4",
+          "name": "damage_source",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "伤害来源实体类型",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          }
+        },
+        {
+          "offset": "0x474",
+          "size": "0x4",
+          "name": "rotation",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "旋转",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x478",
+          "size": "0x4",
+          "name": "scale",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "缩放",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          }
+        },
+        {
+          "offset": "0x47c",
+          "size": "0x2c",
+          "name": "gap_47c",
+          "type": "bytes[44]",
+          "category": "未知",
+          "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+        },
+        {
+          "offset": "0x4a8",
+          "size": "0xc",
+          "name": "authority_vector",
+          "type": "std::vector",
+          "category": "权威",
+          "semantics": "仅Authority更新消费的私有容器，头与内容均不传输",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.1；client_entity_class_model.cpp:178-179"
+        },
+        {
+          "offset": "0x4b4",
+          "size": "0x8",
+          "name": "extra_data",
+          "type": "shared_owner",
+          "category": "权威",
+          "semantics": "基础臂仅Authority使用；第4步分别研究拥有型表现臂",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.2；client_entity_class_model.cpp:93-95"
+        },
+        {
+          "offset": "0x4bc",
+          "size": "0x4",
+          "name": "gap_4bc",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 10,
+          "name": "FX0 计时与下落",
+          "sequence": "world",
+          "fields": [
+            "height",
+            "falling_speed",
+            "falling_acceleration",
+            "state",
+            "expire_frame"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "FX1 参数",
+          "sequence": "world",
+          "fields": [
+            "min_radius",
+            "max_radius",
+            "lifespan",
+            "following",
+            "parent_offset",
+            "damage_source",
+            "rotation",
+            "scale"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "FX2 变体数据",
+          "sequence": "world",
+          "fields": [
+            "variant_data"
+          ]
+        }
+      ],
+      "conversions": {
+        "ExpireFrame": "mod/src/state/anchors.h：Host帧加Timeout，模2^32；不读取Lua",
+        "RemainingFrames": "mod/src/state/anchors.h：到期帧减已应用world展示帧，模2^32；第13步负责写+0x45C"
+      },
+      "validators": {
+        "height": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "falling_speed": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "falling_acceleration": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "min_radius": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "max_radius": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "rotation": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "scale": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "following": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "sdk_size": "0x490",
+      "notes": "第1步使用第4步已核字段演示继承、块和变体；完整6臂、附属owner及公开Effect目录由第4步接管。未知区不复制，所有臂均不宣称完整。 原生范围直接复核于J273 Effect池VA0x6EEE60/RVA0x2EEE60：VA0x6EEE9B传步长0x4C0、VA0x6EEE96传容量0x400；ctor VA0x5CCEAF写Effect虚表，TD VA0xBD1270/RVA0x7D1270，主审已复读。",
+      "variants": {
+        "selector": "variant",
+        "arms": [
+          {
+            "name": "TearFlags",
+            "layout": 102,
+            "values": [
+              54,
+              113,
+              126,
+              167
+            ],
+            "ranges": [
+              {
+                "offset": "0x420",
+                "size": "0x10",
+                "name": "variant_data",
+                "type": "BitSet128",
+                "category": "状态",
+                "semantics": "效果携带的眼泪效果位，按128位原样传输",
+                "status": "已核",
+                "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.1；NativeEffect.TearFlags@0x420",
+                "wire": {
+                  "kind": "copy",
+                  "type": "BitSet128"
+                }
+              }
+            ]
+          },
+          {
+            "name": "GridDesc",
+            "layout": 103,
+            "values": [
+              136
+            ],
+            "ranges": [
+              {
+                "offset": "0x420",
+                "size": "0x4",
+                "name": "grid_type",
+                "type": "i32",
+                "category": "状态",
+                "semantics": "被举起格子类型",
+                "status": "已核",
+                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+                "wire": {
+                  "kind": "copy",
+                  "type": "i32"
+                }
+              },
+              {
+                "offset": "0x424",
+                "size": "0x4",
+                "name": "grid_variant",
+                "type": "i32",
+                "category": "状态",
+                "semantics": "被举起格子变体",
+                "status": "已核",
+                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+                "wire": {
+                  "kind": "copy",
+                  "type": "i32"
+                }
+              },
+              {
+                "offset": "0x428",
+                "size": "0x4",
+                "name": "grid_state",
+                "type": "i32",
+                "category": "状态",
+                "semantics": "被举起格子状态",
+                "status": "已核",
+                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+                "wire": {
+                  "kind": "copy",
+                  "type": "i32"
+                }
+              },
+              {
+                "offset": "0x42c",
+                "size": "0x4",
+                "name": "grid_spawn_count",
+                "type": "i32",
+                "category": "状态",
+                "semantics": "格子生成计数",
+                "status": "已核",
+                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+                "wire": {
+                  "kind": "copy",
+                  "type": "i32"
+                }
+              },
+              {
+                "offset": "0x430",
+                "size": "0x4",
+                "name": "grid_spawn_seed",
+                "type": "u32",
+                "category": "状态",
+                "semantics": "格子生成种子",
+                "status": "已核",
+                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+                "wire": {
+                  "kind": "copy",
+                  "type": "u32"
+                }
+              },
+              {
+                "offset": "0x434",
+                "size": "0x4",
+                "name": "grid_var_data",
+                "type": "i32",
+                "category": "状态",
+                "semantics": "格子自定数据",
+                "status": "已核",
+                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+                "wire": {
+                  "kind": "copy",
+                  "type": "i32"
+                }
+              },
+              {
+                "offset": "0x438",
+                "size": "0x1",
+                "name": "grid_initialized",
+                "type": "bool",
+                "category": "状态",
+                "semantics": "格子描述已初始化",
+                "status": "已核",
+                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+                "wire": {
+                  "kind": "copy",
+                  "type": "u8"
+                }
+              },
+              {
+                "offset": "0x439",
+                "size": "0x3",
+                "name": "grid_gap_439",
+                "type": "bytes[3]",
+                "category": "未知",
+                "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
+                "status": "未知",
+                "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+              },
+              {
+                "offset": "0x43c",
+                "size": "0x4",
+                "name": "grid_variable_seed",
+                "type": "u32",
+                "category": "状态",
+                "semantics": "格子变化种子",
+                "status": "已核",
+                "evidence": "docs/design/tx-04-19/entity-application.json:class_native；client_entity_class_fields.inc",
+                "wire": {
+                  "kind": "copy",
+                  "type": "u32"
+                }
+              }
+            ],
+            "blocks": [
+              {
+                "id": 12,
+                "name": "FX2 格子描述",
+                "sequence": "world",
+                "fields": [
+                  "grid_type",
+                  "grid_variant",
+                  "grid_state",
+                  "grid_spawn_count",
+                  "grid_spawn_seed",
+                  "grid_var_data",
+                  "grid_initialized",
+                  "grid_variable_seed"
+                ]
+              }
+            ],
+            "validators": {
+              "grid_initialized": {
+                "kind": "boolean",
+                "scalar": "u8"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

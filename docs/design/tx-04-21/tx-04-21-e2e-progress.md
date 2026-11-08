@@ -1,5 +1,7 @@
 # tx-04-21 双人 E2E 当前进度
 
+> 2026-11-08 起按[原生二进制状态同步重构](../binary-state/README.md)推进：本文的暂停／Resume 方式不再执行，E01—E26 修订后并入[第 15 步统一整体验收](../binary-state/15-e2e-acceptance.md)；本文事实与失败记录保留，正文不改。
+
 ## 2026-11-08 第74—75轮构建及界面停止
 
 第74轮仅构建失败：新查询块reader把Lua长度和unsigned参数个数放在同一个auto声明，MSVC报告C3538；已拆开声明。第75轮产品／E2E／harness构建和部署成功，包含下节GetTearsCap类型修正、直接查询块及类别计时。计划补测`E01.stream-schema`、`E01.compact-schema`、`E01.valid-menu`后继续E02；其余原E01结果仅按未触及的拒绝路径复用。

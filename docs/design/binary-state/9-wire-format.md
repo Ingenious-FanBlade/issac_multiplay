@@ -49,7 +49,7 @@
 
 ### 9.3 状态帧头（26 字节，草稿）
 
-| +0x00 u16 layout_version：布局版本，两端必须相同 | +0x02 u8 stream：0=world 序列，1=body 序列 | +0x03 u8 flags：bit0=base 为 0 的完整帧，其余位必须为 0 | +0x04 u32 member_epoch：帧中成员序号依据的成员表版本 | +0x08 u32 resource_epoch：帧中资源序号依据的资源表版本 | +0x0C u32 base_version：此帧以哪个已确认版本为起点，0 表示从空状态开始 | +0x10 u32 target_version：应用此帧后达到的版本 | +0x14 u32 game_frame：采集时的 Host 游戏帧，用于诊断和插值 | +0x18 u16 record_count：随后的记录数 |
+| +0x00 u16 layout_version：布局版本，两端必须相同 | +0x02 u8 stream：0=world 序列，1=body 序列 | +0x03 u8 flags：bit0=base 为 0 的完整帧，其余位必须为 0 | +0x04 u32 member_epoch：帧中成员序号依据的成员表版本 | +0x08 u32 resource_epoch：帧中资源序号依据的资源表版本 | +0x0C u32 base_version：此帧以哪个已确认版本为起点，0 表示从空状态开始 | +0x10 u32 target_version：应用此帧后达到的版本 | +0x14 u32 game_frame：采集时的 Host 游戏帧；Client 用作展示时钟，由帧锚点还原计数（第 13 步 13.6），也用于诊断和插值 | +0x18 u16 record_count：随后的记录数 |
 |---|---|---|---|---|---|---|---|---|
 ### 9.4 记录头（12 字节，草稿）
 

@@ -89,6 +89,9 @@
   - Camera、EntityList、FXLayers、RailManager 等内部对象：按对象内容单独核对布局，指针本身归本地。
   - `_redDoorOutlines` 中的 Effect 指针归“引用”。
 - **寻路数据**：`_gridPaths[456]` 可能由格子布局派生，本步要确认 Client 原生逻辑是否会重建它；无法确认的归为状态。
+- **房间帧基准**（帧锚点，总计划第 4 节）：
+  - `Room+0x11F0` 是 `Room:GetFrameCount()` 的基准帧：GetFrameCount = 全局帧 − 基准（`client_room_native.cpp:132-135`）。它归状态，原值发送，放入 R1。
+  - Client 用展示时钟还原 GetFrameCount（第 13 步 13.6）。现有每次展示前重新锚定的做法，改用原值后不再需要。
 - **Backdrop 与 Room 尾部**：Backdrop（约 21 KB）和 0x1BC8 之后的大段内容，要先用 J273 划出构造函数与 Update 写入范围，再逐段归类。
 
 ### 7.2 状态块（初步划分，本步定稿）
@@ -96,7 +99,7 @@
 | 块 | 序列 | 内容 |
 | --- | --- | --- |
 | R0 房间身份 | world | 描述序号、类型、尺寸、配置标识、维度 |
-| R1 房间动态 | world | 清理延迟、红心伤害标记、Greed 计时、减速、水、雨、熔岩、和平主义 |
+| R1 房间动态 | world | 房间帧基准 `+0x11F0`（帧锚点，原值）、清理延迟、红心伤害标记、Greed 计时、减速、水、雨、熔岩、和平主义 |
 | R2 房间表现 | world | 地面色、墙面色、Backdrop 状态、FX 参数、ColorModifier、Camera、滚动偏移 |
 | R3 门映射 | world | 8 个门槽的 Grid 成员序号与门格子序号 |
 | R4 房间效果 | world | TemporaryEffects、红门轮廓引用、RailManager |

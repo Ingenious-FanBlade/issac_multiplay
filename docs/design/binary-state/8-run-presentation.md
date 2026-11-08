@@ -25,7 +25,7 @@
 | 0x1D9AC | HUD，0x5C90 字节 |
 | 0x2363C | PauseScreen |
 | 0x25444 | Minimap，0x628 字节 |
-| 0x25A70 | 帧计数 |
+| 0x25A70 | 帧计数 `_frameCount`，由帧头 game_frame 承载（见 8.2） |
 | 0x25A84 | 屏幕震动偏移 |
 | 0x25AC0 | `_gameStateFlags`（u64） |
 | 0x25ACC—0x25AEC | 恶魔房、宝箱房、星象房、捐款等计数 |
@@ -40,6 +40,22 @@
 | 0x67FD4 | Console |
 
 `Seeds` 包含自定义局标记、开局种子、RNG、14 个楼层种子、玩家初始种子和种子效果数。
+
+### 绘制输入（Game 之外）
+
+Pickup、Familiar 等的原生 Render 还读写 Game 之外的四项全局值。现有实现把它们作为绘制输入复制：
+
+| 位置 | 内容 | 证据 |
+| --- | --- | --- |
+| `Manager+0x4A8B8` | `_framecount`，u32。Manager 每次 Update 加 1，低位决定是否走 Odd 路 | `Manager.zhl`（[Entity 来源研究](../tx-04-19/entity-source-research.md)第 50 行）；`0x92E8B1` 检查低位（[ST2 笔记](../../research/tx-04-08-st2-agent-notes.md)第 9 行） |
+| `Game::IsPaused()` | 暂停判断，VA `0x6F92A0`。Render 的 subframe 为“暂停时 0，否则 `(_framecount+1)%2`” | 同上研究第 52—54 行 |
+| VA `0xBD0CA4`（RVA `0x7D0CA4`） | Pickup 绘制用的全局 inline xorshift，4×u32：种子加三个 shift | Pickup Render `0x6E35D0` 读写（[应用合同](../tx-04-19/entity-application-contracts.md)第 130、260 行） |
+| VA `0xBD0674`（RVA `0x7D0674`） | Familiar 绘制用的全局 inline xorshift，4×u32 | Familiar Render `0x61E360` 在 `0x61E533` 读、`0x61E5A3` 写回（[Entity 原生静态研究](../tx-04-19/entity-native-static.md)第 73 行） |
+
+现有处理：
+- **采集**：Host 在同一普通采集窗口复制 manager_frame、game_frame、subframe、paused 和两份 RNG，不推进它们（`mod/src/game/world_sources/lua_entity.cpp:368-380`）。它们作为 `application_draw` 挂在 Player 记录上，属于 World 层（`mod/src/replica/stream_partition.cpp:36`）。
+- **校验**：版本与同窗标记、subframe 与 paused 和 manager_frame 一致、种子不为 0、shift 不超过 31（`mod/src/game/client_entity_class_model.cpp:118-124`）。
+- **安装**：draw 的 FrameScope 开始时换入 Host 值（`mod/src/game/client_entity_draw_native.cpp:238-241`），结束时恢复 Client 原值（同文件 136-145 行）。Client 自己的值不会被常驻改写。
 
 ### 公开成员（`stream-catalog.json`）
 
@@ -75,10 +91,25 @@
   - 每一项归为派生，都要给出 Client 重建路径的证据。
 - **ColorModState**：三份 ColorModState 归状态，对应房间色调的渐变。
 - **音乐音效**：MusicManager 和 SFXManager 是全局单例，按现有应用目录的职责逐项归属。音效播放是事件，不是状态，沿用现有事件通道，不纳入状态帧。
+- **Game 帧计数**：`Game+0x25A70` 由 world 帧头的 game_frame 承载，也就是 Client 的展示时钟（第 13 步 13.6），不进入 Run 块，也不进入下面的绘制输入块。
+
+#### 8.2.1 绘制输入块 D0
+
+全局只有一份，作为 Presentation 记录的一个块随 world 帧发送，取代现有挂在每个 Player 上的 `application_draw`。状态布局共 37 字节：
+
+| +0 u32 manager_frame【状态】Host 的 `Manager._framecount` | +4 u8 paused【换算】Host `Game::IsPaused()` 的结果，0 或 1 | +5 u32[4] pickup_random【状态】Pickup 绘制 xorshift：种子、三个 shift | +21 u32[4] familiar_random【状态】Familiar 绘制 xorshift：种子、三个 shift |
+| --- | --- | --- | --- |
+
+- **subframe 不发送**：归派生，Client 按“paused 为 1 时取 0，否则 `(manager_frame+1)%2`”算出。
+- **manager_frame 不套帧锚点**：Manager 每次 Update 加 1，Game 只在 `_framecount` 低位为 0 的 Manager 帧推进（ST2 笔记第 9 行），暂停时 game_frame 还会停住，两者没有固定差值。它全局只有 4 字节，随帧发送的代价可以忽略。因此 D0 几乎每帧都在变化，静止场景的帧通常也带着 D0，空帧（第 11 步 11.3）只在 D0 也不变时出现。
+- **两份绘制 RNG 归状态**：它们只被 Render 读写，不参与玩法，是 8.3 中“RNG 归权威”的例外。Client 用 Host 的值，Pickup、Familiar 的绘制效果才与 Host 一致。
+- **同窗**：D0 与帧头 game_frame 必须来自同一普通采集窗口，沿用现有 `same-ordinary-window` 合同。
+- **安装**：不常驻写入 Client 的全局值。展示期间随展示时钟一起借用（第 13 步 13.6）：进入时换入，结束时恢复；Render 推进后的 RNG 值随恢复丢弃，下一帧再使用 Host 的新值。
+- **校验**：种子不为 0，shift 不超过 31，paused 只取 0 或 1。这些取值范围写进布局源，不合格时按第 9 步 9.8“字段取值合法”整帧拒绝。
 
 ### 8.3 Random
 
-ItemPool 和 RNG 整体归权威，不进入状态帧。如果 Client 显示需要其中某个结果（例如道具池剩余状态影响 HUD），按换算处理：发送结果，不发送 RNG。
+ItemPool 和 RNG 整体归权威，不进入状态帧。如果 Client 显示需要其中某个结果（例如道具池剩余状态影响 HUD），按换算处理：发送结果，不发送 RNG。唯一的例外是 8.2 中只用于绘制的两份全局 RNG。
 
 ### 8.4 Mod 域例外
 
@@ -95,7 +126,8 @@ ItemPool 和 RNG 整体归权威，不进入状态帧。如果 Client 显示需�
 
 ## 改动范围
 
-- 布局源 `state/run.json`、`state/presentation.json`。
+- 布局源 `state/run.json`、`state/presentation.json`，其中包括绘制输入块 D0。
+- 删除 Player 记录上的 `application_draw`，绘制安装改读影子状态中的 D0（第 13 步 13.6）。
 - Mod 域的二进制编码器，Host 端为 C++ 读 Lua 表，Client 端负责解码。
 - Run 和 Presentation 的 Client 写入函数，改为由影子状态输入。
 
@@ -106,11 +138,17 @@ ItemPool 和 RNG 整体归权威，不进入状态帧。如果 Client 显示需�
 - **Mod 表循环引用**：Mod 表中的循环和共享节点重复编码，或者无限递归。
 - **Mod 读取超时**：Mod adapter 抛错或耗时过长，挤占主线程预算。adapter 读取要单独计时，超时降频并报缺口。
 - **全局单例时机错误**：MusicManager 等全局单例在会话外或主线程窗口外被读取。
+- **绘制输入错窗**：D0 与帧头 game_frame 来自不同的采集窗口，subframe 与帧计数相位错开，Pickup、Familiar 的绘制效果与 Host 不一致。
+- **绘制输入常驻写入**：D0 直接写进 Client 的全局值而不是展示期间借用，或者展示结束后没有恢复，污染 Client 本地的 Render 状态。
+- **绘制 RNG 误归权威**：两份绘制 RNG 被当作玩法 RNG 不发送，Client 用自己的值绘制，效果与 Host 不同。
 
 ## 完成内容
 
 - **字节归属与表格**：Run、Presentation 的字节归属完成，带证据；单行表由生成器产出。
-- **回映射**：Random 全部有回映射。
+- **回映射**：四个域的公开成员全部有回映射：
+  - run 的 93 个、presentation 的 55 个 `ReplicatedState` 成员，各自映射到布局字段、某组字段的派生，或者说明为何归 Host 权威或不适用；
+  - run 的 87 个、presentation 的 70 个 `AuthorityOnly` 成员，以及 random 的 54 个成员，确认确实落在权威或本地字节上，没有漏判为状态；
+  - mod 的 2 个 `ReplicatedState` 成员映射到具名 adapter 的 schema（8.4）。
 - **Mod 编码**：Mod 域二进制编码的单行表在第 9 步画出。
 
 ## 未决问题

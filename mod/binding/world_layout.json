@@ -226,11 +226,11 @@
       "col_rva": "0x7437E4",
       "td_rva": "0x7D13D8",
       "td_name": ".?AVEntity_Projectile@IsaacRepentancePlus@@",
-      "object_size": "0x470",
+      "object_size": "0x478",
       "free_slot_rva": "0x24F470",
       "init_rva": "0x24F4B0",
       "init_source": "vtable slot 1（与基类 Init 0x2A4A20 不同）",
-      "evidence": "ST5 §1；0701 为 64 位 projectile flags。",
+      "evidence": "ST5 §1；0701 为 64 位 projectile flags。对象大小按 J273 Projectile 池步长 0x478（EntityFactory 构造 0x6EEE60，stride 指令 0x6EEF28，tx-04-19 entity-i26-i30-native）；SDK Entity_Projectile.zhl 声明 0x470，2026-11-08 更正（binary-state 第 4 步输入事实）。",
       "bases": [
         {"td_rva": "0x7D13D8", "td_name": ".?AVEntity_Projectile@IsaacRepentancePlus@@", "mdisp": 0, "pdisp": -1, "vdisp": 0, "attributes": "0x40", "supported": true},
         {"td_rva": "0x7D1244", "td_name": ".?AVEntity@IsaacRepentancePlus@@", "mdisp": 0, "pdisp": -1, "vdisp": 0, "attributes": "0x40", "supported": true}
@@ -277,11 +277,11 @@
       "col_rva": "0x743618",
       "td_rva": "0x7D1270",
       "td_name": ".?AVEntity_Effect@IsaacRepentancePlus@@",
-      "object_size": "0x490",
+      "object_size": "0x4C0",
       "free_slot_rva": "0x1CCF30",
       "init_rva": "0x1CD070",
       "init_source": "vtable slot 1（与基类 Init 0x2A4A20 不同）",
-      "evidence": "ST5 §1；0401–0403 偏移见 ST3 字段表。",
+      "evidence": "ST5 §1；0401–0403 偏移见 ST3 字段表。对象大小按 J273 Effect 池步长 0x4C0（池构造 0x6EEE9B，tx-04-19 entity-native-static／entity-i26-i30-native），ctor 0x5CCEA0 写到 +0x4B8；SDK Entity_Effect.zhl 声明 0x490，2026-11-08 更正（binary-state 第 4 步 4.1）。",
       "bases": [
         {"td_rva": "0x7D1270", "td_name": ".?AVEntity_Effect@IsaacRepentancePlus@@", "mdisp": 0, "pdisp": -1, "vdisp": 0, "attributes": "0x40", "supported": true},
         {"td_rva": "0x7D1244", "td_name": ".?AVEntity@IsaacRepentancePlus@@", "mdisp": 0, "pdisp": -1, "vdisp": 0, "attributes": "0x40", "supported": true}

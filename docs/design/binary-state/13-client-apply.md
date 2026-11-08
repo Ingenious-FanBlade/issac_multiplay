@@ -44,7 +44,7 @@
 | 写入方式 | 含义 |
 | --- | --- |
 | `direct` | 按原生偏移把状态字节原样写回，即复制计划的逆操作。相邻的 `direct` 字段合并成一次 memcpy |
-| `writer:<名称>` | 调用具名的原生写入函数。例如 Sprite 加载、`SetAnimation`、容器重建、引用解析，以及现有的已核写入路径 |
+| `writer:<名称>` | 调用具名的原生写入函数。例如 Sprite 加载、`SetAnimation`、容器重建、引用解析、Effect Timeout 由到期帧还原（`effect_timeout`，第 4 步 4.1.5），以及现有的已核写入路径 |
 | `construct` | 只在构造时使用，热路径变化时触发形态事务。例如 type、variant |
 | `derive` | 不写入，由 Client 原生逻辑重建，需要第 3—8 步给出证据 |
 
@@ -66,17 +66,32 @@
 
 ### 13.4 漂移校正
 
-Client 的原生对象在本地运行时可能偏离影子状态。例如本地动画推进，或者 Client 原生 Update 改写了字段。Host 只在块变化时发送，如果块没有变化，Client 的偏离就不会被纠正。
+Client 的原生对象可能偏离影子状态。Client 不运行原生 Update，但 Render 和维护 helper 仍会写部分字段，例如维护姿态时推进动画，或者 base draw 写屏幕坐标缓存。Host 只在块变化时发送，如果块没有变化，Client 的偏离就不会被纠正。
 
 - **检测方式**：Client 用与 Host 相同的复制计划，读取本地原生对象，再与影子状态逐块 memcmp。不一致的块加入下一批次重写。
 - **执行频率**：轮转执行，每帧只检查一部分成员，总耗时计入安装预算。
-- **待核问题**：Client 端原生 Update 是否运行、哪些字段本地会自然推进，沿用现有规则，本步要逐类核对。核对结果决定哪些块需要每帧校正，哪些只需要轮转检查。
+- **前提（已定）**：Client 不运行原生 Update。这是 tx-04-17 的隔离设计：现有 Client 拦截 Game、Room、EntityList、Player、PostUpdate 等入口（`client.cpp:28,142-146`），本地不会按玩法推进任何字段。
+- **待核问题**：可能造成偏离的只剩 Client 仍在运行的原生路径，即 Render 和维护 helper。例如 base draw `0x6AC4E0` 会写 Entity `+0x1A4/+0x1A8`（tx-04-17 R3）。本步逐类核对这些路径会写哪些字段，据此决定哪些块需要每帧校正，哪些只需要轮转检查。
 
 ### 13.5 退役的部分
 
 - `client_entity_fields.inc` 中按字符串匹配的分派，改为生成的索引分派表。
 - 描述结构中的 `std::vector<ClientGridField> fields` 等字符串字段。
 - `GetWaterClipFlags` 改为原生写入；无法原生写入时，在第 3 步给出证据并归为派生或换算。
+- Player 记录上的 `application_draw` 及其 JSON 校验（`client_entity_class_model.cpp:118-124`），改读影子状态中的绘制输入块 D0（13.6）。
+- draw 期间逐实体重新锚定 `+0x328`（`client_entity_draw_native.cpp:128,185,195`），以及每次展示前重新锚定 `Room+0x11F0`（`client_room_native.cpp:132-135`）。它们由 13.6 的展示时钟取代。
+
+### 13.6 展示时钟与帧锚点
+
+- **定义**：展示时钟是 Client 最近已应用 world 帧头中的 game_frame（第 9 步 9.3）。
+  - 它只在装好新的 world 帧后前进。Host 在静止场景中也发送空帧（第 11 步 11.3），所以时钟会照常推进。
+  - Client 自己的 `Game+0x25A70` 不代表 Host 时间，不能作为换算基准。
+- **展示期间**：沿用现有借用方式（`client_presentation_native.cpp:826-829`、`client_entity_draw_native.cpp:238-241`），进入展示时换入下列 Host 值，结束后恢复 Client 原值（同文件 136-145 行）：
+  - `Game._frameCount`（`+0x25A70`）← 展示时钟；
+  - `Manager._framecount`（`+0x4A8B8`）、Pickup 绘制 RNG（VA `0xBD0CA4`）、Familiar 绘制 RNG（VA `0xBD0674`）← 影子状态中的绘制输入块 D0（第 8 步 8.2.1）。D0 与展示时钟来自同一个 world 帧。
+- **帧锚点字段**：`Entity+0x328`、`Room+0x11F0` 的基准按原值写回，不再逐次重新锚定。展示期间，FrameCount 和 `Room:GetFrameCount()` 由原生 getter 用"时钟 − 基准"自然得出。
+- **Effect Timeout**：每装好一个新的 world 帧，按新的时钟把全部 Effect 的 Timeout 重写为"到期帧 − 时钟"（`effect_timeout`）。
+- **对照与校正**：E2E 对照（第 15 步）和漂移校正读取这些字段时，用同一个时钟换算。
 
 ## 改动范围
 
@@ -92,6 +107,10 @@ Client 的原生对象在本地运行时可能偏离影子状态。例如本地�
 - **校正形成振荡**：漂移校正与本地自然推进的字段来回改写。这类字段应改为每帧覆盖，或者归为派生。
 - **漂移检查超预算**：检查本身超出主线程预算。
 - **结构事务中写热块**：在结构事务中途写热块，对象处于半构造状态。
+- **展示时钟错位**：
+  - 展示期间没有换入展示时钟，或者用 Client 自己的 `Game+0x25A70` 换算，导致 FrameCount、`Room:GetFrameCount()` 和 Timeout 错位；
+  - 装好新帧后没有重写 Timeout。
+- **绘制输入未借用或未恢复**：展示期间没有换入 D0，Pickup、Familiar 用 Client 本地的 RNG 和 Manager 帧绘制；或者展示结束后没有恢复，Client 的全局值被常驻改写。
 
 ## 完成内容
 
@@ -101,4 +120,4 @@ Client 的原生对象在本地运行时可能偏离影子状态。例如本地�
 ## 未决问题
 
 - 哪些字段可以用 `direct`，需要第 3—8 步逐字段给出证据。
-- Client 原生 Update 对各类成员的影响范围。
+- Client 仍在运行的原生路径（Render、维护 helper）会改写哪些状态字段。这决定哪些块需要漂移校正。

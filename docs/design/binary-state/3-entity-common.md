@@ -44,6 +44,12 @@
 - **索引**：`_index`、`_collisionIndex` 归本地，不用作网络身份。现有描述中的 `authority_index` 只用于相同 Z 值时的绘制次序，归为换算，语义不变。
 - **RNG**：`_dropRNG` 归权威。
 - **种子**：`_initSeed` 归状态，Client 绘制和构造需要它（`ClientObjectDescription.seed`）。
+- **帧基准**（帧锚点，总计划第 4 节）：
+  - `+0x328` 是 FrameCount 的基准帧：FrameCount = 全局帧 − 基准（`client_entity_common_native.cpp:51-56`）。它的值处于 Host 帧空间，归状态，原值发送。
+  - FrameCount 本身每帧加 1；如果发送它，每个实体的 E2 都要每帧重发。
+  - Client 写回基准原值，再用展示时钟还原 FrameCount（第 13 步 13.6）。
+  - 现有 draw 每次绘制前都按 Host 帧重新锚定基准（`client_entity_draw_native.cpp:128,185,195`），改用原值后不再需要。
+  - 基准的写入点（Init 或其他路径）待 J273 核对。
 - **REPENTOGON 扩展**：0x18E 和 0x192 两段归本地，不发送。扩展数据另设布局，在主线程窗口内经该指针读取；指针的拼合方式以 REPENTOGON 官方源码为证。
 - **Lua 引用**：`_luaBridgeRef` 归本地。
 - **未覆盖字节**：SDK 没有覆盖的字节必须逐段列为未知，再用 J273 反编译和 Lua 绑定逐段消解。
@@ -54,7 +60,7 @@
 | --- | --- | --- |
 | E0 分类 | world | type、variant、subtype、spawner、initSeed |
 | E1 运动 | world；Player 为 body | pos、posOffset、velocity、TargetPosition、knockbackDirection、SizeMulti 等 |
-| E2 生命与碰撞 | world | flags、valid／visible／exists／dead、HP、mass、size、friction、碰撞类、无敌、FrameCount（换算） |
+| E2 生命与碰撞 | world | flags、valid／visible／exists／dead、HP、mass、size、friction、碰撞类、无敌、帧基准 `+0x328`（帧锚点，原值） |
 | E3 状态效果 | world | 各类倒计时、伤害计时、毒／火伤害值、缩小状态 |
 | E4 外观 | world；Player 为 body | 主 Sprite 定长外观块、DepthOffset、RenderZOffset、SortingLayer、Color、SplatColor、shadowSize |
 | E5 动画 | world；Player 为 body | 主 Sprite 的主动画与叠加动画状态 |
@@ -74,7 +80,7 @@
 
 - **用 SDK 名称直接映射**：例如把 +0x2B0 当成 DepthOffset。
 - **合并区间混入扩展指针**：区间吞入 0x18E 或 0x192，结果是发出地址，并且每个进程的值都不同。
-- **FrameCount 原样复制**：把基准帧原样发送，Client 上的帧差就是错的。
+- **帧基准与时钟不配套**：Client 写回了 Host 的帧基准，却用自己的 `Game+0x25A70` 计算 FrameCount，帧差错误（Client 不运行 Game::Update，该值不代表 Host 时间）；或者改为发送 FrameCount 本身，E2 每帧都要重发。
 - **removedByFactory 越权读取**：违背第 11 节的条件读取该字节。
 - **引用目标不在成员表**：例如引用指向已离表的实体；这种情况必须报缺口，不能写 Null 冒充。
 - **形态变化走了热路径**：形态变化没有经过结构事务，Client 的旧实例接收了新类别的块。

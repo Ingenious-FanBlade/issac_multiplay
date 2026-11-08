@@ -1,6 +1,6 @@
 # 2：基础值类型与嵌套规则
 
-状态：设计稿，未实施。上级：[总计划](README.md)。
+状态：基础布局、共用代码和本轮静态核对已入源，普通 Release 纯编译／链接通过（2026-11-08）；仍有明确的 SDK 声明、未知区与跨域未决，见末节。上级：[总计划](README.md)。实现入口：[第 0—2 步实现说明](implementation-0-2.md)。下方手写表仍为实施前草稿，当前事实以布局源、生成表和证据文档为准。
 
 ## 目标
 
@@ -8,23 +8,23 @@
 
 ## 输入事实
 
-基础类型的 SDK 声明，均来自 REPENTOGON 1.1.3 `libzhl/functions/*.zhl`，未经 J273 反编译核对：
+基础类型的原 SDK 声明来自 REPENTOGON 1.1.3 `libzhl/functions/*.zhl`。本表保留 SDK 大小口径，J273 核对、差异和未知区见[基础类型证据](base-types-evidence.md)及[生成布局](layouts/README.md)：
 
 | 类型 | 大小 | SDK 字段 |
 | --- | --- | --- |
 | `Vector` | 0x8 | x、y 两个 f32 |
 | `ColorMod` | 0x2C | `_tint[4]` 0x0、`_colorize[4]` 0x10、`_offset[3]` 0x20 |
 | `KColor` | 0x14 | RGBA 四个 f32，另有 `_unk` i32 0x10 |
-| `BlendMode` | 0x14 | SDK 未声明字段，Client 现从 Lua `LayerState.GetBlendMode` 取值（`client_resource_model.cpp:91`） |
+| `BlendMode` | 0x14 | SDK 实际声明五个 u32：equation、RGB source/destination、alpha source/destination；J273 连续五 DWORD 已核 |
 | `AnimationState` | 0x20 | `_animation` 0x0、`_animData` 0x4、`_layerFrames` 0x8、`_nullLayerFrames` 0xC、`_animFrame` 0x10、`_isPlaying` 0x14、`_currentlyTriggeredEvents` 0x18、`_previouslyTriggeredEvents` 0x1C |
 | `LayerState` | 0xA0 | 见下文原生表 |
 | `ANM2` | 0x114 | 见下文原生表 |
 | `RNG` | 0x10 | seed 加三个 shift |
 | `BitSet128` | 0x10 | 128 位 |
 | `EntityPtr` | 0x4 | `Entity* _ref` |
-| `ColorParams` | 0x3C | `_priority` 0x0、`_color` ColorMod 0x4，其余未声明 |
+| `ColorParams` | 0x3C | `_priority` 0x0、`_color` 0x4、duration1 0x30、duration2 0x34、fadeout 0x38、shared 0x39；末尾 2B 待核 |
 | `ActiveItemDesc` | 0x20 | SDK 声明 8 个字段 |
-| `Weapon` | 0x40 | SDK 声明 8 个字段 |
+| `Weapon` | 0x40（SDK） | SDK 声明 8 个字段；J273 构造已写到 +0x40，已核基类前缀至少到 0x44，具体动态大小由第 5 步按工厂确认 |
 | `TemporaryEffect` | 0x10 | SDK 声明 3 个字段 |
 
 MSVC 32 位下，`std::string` 为 0x18 字节，`std::vector` 为 0xC 字节（begin、end、capacity 三个指针）。
@@ -92,11 +92,19 @@ Client 写入变长容器时，不能把字节 memcpy 回原生容器，必须�
 | 0x000 std::string filename【资源】anm2 文件路径，转成资源表序号 | 0x018 std::string animDefaultName【派生】默认动画名，由文件决定，待核 | 0x030 AnimationState animState【状态】主动画，见 AnimationState 表 | 0x050 AnimationState overlayAnimState【状态】叠加动画 | 0x070 bool overlayRenderFirst【状态】叠加层先绘制 | 0x071—0x073 3B【未知】疑似填充 | 0x074 AnimationData* animData【派生】动画表，由文件决定 | 0x078 i32 animCount【派生】动画数 | 0x07C LayerState* layerState【容器】图层数组首址 | 0x080 u32 layerCount【容器】图层数 | 0x084 std::string* nullLayerNames【派生】空层名表 | 0x088 u32 numNullLayers【派生】空层数 | 0x08C std::string* eventNames【派生】事件名表 | 0x090 u32 numEvents【派生】事件数 | 0x094 Vector offset【状态】绘制偏移 | 0x09C Vector scale【状态】缩放 | 0x0A4 f32 rotation【状态】旋转 | 0x0A8 ColorMod color【状态】颜色 | 0x0D4 ColorMod championColor【状态】精英色 | 0x100 bool flipX【状态】水平翻转 | 0x101 bool flipY【状态】垂直翻转 | 0x102—0x103 2B【未知】 | 0x104 f32 playbackSpeed【状态】播放速度 | 0x108 1B【未知】 | 0x109 bool loaded【状态】已加载 | 0x10A—0x10F 6B【未知】 | 0x110 u32 bitflags【状态】渲染标志 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
-ANM2 的状态拆成两块：定长外观块（文件序号、两份动画状态、偏移、缩放、颜色等）和变长图层块（`u16 count + count×LayerState 状态`）。每个 LayerState 状态的元素布局由本步定稿。
+ANM2 的状态拆成三部分：
+
+- **定长外观**：文件序号、偏移、缩放、旋转、颜色、精英色、翻转、播放速度等。
+- **动画**：主动画与叠加动画两份 AnimationState，草稿为 2×15 字节。
+- **变长图层**：`u16 count + count×LayerState 状态`。
+
+动画状态在播放时每帧变化，外观很少变化。把两者分开，动画推进时就不必重发外观。Entity 中这三部分分别对应第 3 步的 E4、E5、E6；附属 Sprite 按同样方式拆分（第 4 步 4.1）。每个 LayerState 状态的元素布局由本步定稿。
 
 ### 2.3 资源表
 
 资源路径（anm2 文件、贴图、shader 等）不逐帧携带字符串。Host 维护资源表，把路径映射成 `u16` 序号，资源表随成员表走可靠通道发送（第 9 步）。同一路径重新加载、贴图替换（官方 `LuaSprite.cpp` 的 Image 替换直接调用 `LayerState::SetSpriteSheet`），会表现为图层状态或资源序号的变化，由 memcmp 发现，不依赖 Hook 覆盖率。
+
+**主审补充**：官方 `SetSpriteSheet` 不改 `_spriteSheetPath`。实际 Image 选择与公开路径必须分别归属，不能仅比较路径来判断贴图未变。REPENTOGON 自定义 shader 位于官方扩展旁表，独立的原生扩展来源归第 8 步，不能塞进 J273 对象的未知字节或冒充已覆盖。
 
 ## 改动范围
 
@@ -114,11 +122,20 @@ ANM2 的状态拆成两块：定长外观块（文件序号、两份动画状态
 
 ## 完成内容
 
-- **核对与入源**：上述类型全部完成 J273 核对，写入布局源，生成两张单行表。
-- **规则落地**：嵌套规则由生成器强制执行，资源表格式在第 9 步定稿。
+- **核对与入源**：14 种类型均已写入布局源，逐字节记录归属、证据和状态；J273 逆向由 GPT-6 Luna（max）进行，主智能体复读关键指令后合并。生成表由普通构建产出。没有将其余 SDK 声明或未知区自动提升为已核。
+- **规则落地**：嵌套规则、容器读写接口、引用转换和资源表已实现，代码位置见实现说明。资源表的线格式在第 9 步定稿。
+
+### 已核定的草稿纠错
+
+- `AnimationState` 两组选择器可独立修改，不能由 `_animFrame` 派生；长度来自当前 `AnimationData+0x1C/+0x24`，不能使用 Sprite 总层数。状态长度为 `19 + 4×(当前动画层数 + 当前动画空层数)`，取代草稿的固定 15B。
+- `ANM2._animDefaultName` 在加载与拷贝中可赋值，本次保留为状态，不凭“未见 setter”判为派生。
+- `BlendMode` 是五个连续 u32，分别对应混合方程及四个混合因子。
+- `Vector` 两个 f32、`ColorMod` 的 4/4/3 分组和 `BitSet128` 的 16B ABI 均有 J273 直接证据。`KColor+0x10` 是 u32 颜色空间标记，已核 RGB/sRGB/HSL 标签 0/1/2，必须保留；不是填充或语义不明的尾字。
+- `ActiveItemDesc+0x4` 是 `item_pool`；`PartialCharge+0x18` 实际为 f32，SDK 的 int 声明错误。
+- `Weapon` 构造已写到 +0x40，基类前缀和具体动态对象大小必须分开。
 
 ## 未决问题
 
-- `AnimationState._layerFrames`、`_nullLayerFrames` 是否只由帧号派生。
-- `ANM2._animDefaultName` 在运行时是否会被修改。
-- `BlendMode` 的内部字段。
+- **明确未知字节**：AnimationState `0x15—0x17`；LayerState `0x31、0x75—0x77`；ANM2 `0x45—0x47、0x65—0x67`（两份内嵌 AnimationState 的未知区），以及 `0x71—0x73、0x102—0x103、0x108、0x10A—0x10B`；ColorParams `0x3A—0x3B`；Weapon `0x8—0xB、0x18—0x1F、0x3C—0x43`；TemporaryEffect `0xC—0xF`。ANM2 合计 14B，按全部 14 个类型条目统计为 47B（类型间的嵌套实例分别计入各自类型）。其余仅 SDK 声明或推断的范围仍按原标签保留，不宣称全部已核。第 15 步未知区探测继续保留。
+- **值域边界**：KColor 当前只将已直接核定的颜色空间标签 0/1/2 纳入原生安装校验；其他标签应报未支持缺口并补证，不声称这些标签在全程序均非法，也不据此宣称原版所有取值已验收。
+- 具体动态 Weapon 布局归第 5 步；官方扩展 shader 旁表及原生资源访问归第 8 步，不改变第 17 节的正式原生采集要求。
