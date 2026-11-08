@@ -74,7 +74,8 @@ struct Variant { std::uint16_t base, arm; std::uint32_t selector_offset; std::in
 // 嵌套布局可从父资源/容器位置获得语义输入；上下文不冒充为对象内的字节或重复发送字段。
 struct ContextField { std::uint16_t layout; const char *name, *type, *semantics, *evidence; };
 // 这组只读视图由同一次布局生成提供给后续采集、解码、写入和 E2E 对照。
-std::uint32_t LayoutVersion() noexcept;
+// 布局版本与第 9 步帧头 layout_version 同为 u16，两端按整数直接比较。
+std::uint16_t LayoutVersion() noexcept;
 std::span<const Layout> Layouts() noexcept;
 std::span<const Field> Fields() noexcept;
 std::span<const CopyRange> CopyRanges() noexcept;

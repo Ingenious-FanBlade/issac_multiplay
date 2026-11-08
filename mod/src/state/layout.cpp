@@ -9,7 +9,7 @@ namespace {
 #include "state_client.inc"
 #include "state_members.inc"
 }
-std::uint32_t LayoutVersion() noexcept { return kStateLayoutVersion; }
+std::uint16_t LayoutVersion() noexcept { return kStateLayoutVersion; }
 std::span<const Layout> Layouts() noexcept { return kStateLayouts; }
 std::span<const Field> Fields() noexcept { return kStateFields; }
 std::span<const CopyRange> CopyRanges() noexcept { return kStateCopyRanges; }
@@ -20,9 +20,11 @@ std::span<const Member> Members() noexcept { return kStateMembers; }
 std::span<const ClientField> ClientFields() noexcept { return kStateClientFields; }
 std::span<const Variant> Variants() noexcept { return kStateVariants; }
 std::span<const ContextField> ContextFields() noexcept { return kStateContexts; }
+// 布局号可能来自线上数据：先对生成的直接索引做边界检查再取表项，常数时间且不分配。
 const Layout *FindLayout(std::uint16_t id) noexcept {
-  for (const auto &layout : kStateLayouts) if (layout.id == id) return &layout;
-  return nullptr;
+  if (id >= kStateLayoutSlots.size()) return nullptr;
+  const auto slot = kStateLayoutSlots[id];
+  return slot == kNullIndex ? nullptr : &kStateLayouts[slot];
 }
 const Field *FindField(std::uint16_t id, std::uint16_t index) noexcept {
   const auto *layout = FindLayout(id);

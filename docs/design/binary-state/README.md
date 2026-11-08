@@ -1,6 +1,6 @@
 # 原生二进制状态同步重构：总计划
 
-日期：2026-11-08（Asia/Singapore）。状态：**第 0—3 步实现与本轮静态核对已落地，普通 Release 纯编译／链接通过**。入口为[第 0—2 步实现](implementation-0-2.md)、[第 3 步实现](implementation-3.md)、[基础类型证据](base-types-evidence.md)、[Entity 公共证据](entity-common-evidence.md)和[生成布局表](layouts/README.md)。当前布局版本 11。基础类型与 Entity 的 SDK 声明、未知字节及跨域未决仍保留，不表示完整同步已可运行；第 4—14 步待实施。0—14 步没有测试，第 15 步是唯一统一整体验收。
+日期：2026-11-08（Asia/Singapore）。状态：**第 0—3 步实现与本轮静态核对已落地，普通 Release 纯编译／链接通过**。入口为[第 0—2 步实现](implementation-0-2.md)、[第 3 步实现](implementation-3.md)、[基础类型证据](base-types-evidence.md)、[Entity 公共证据](entity-common-evidence.md)和[生成布局表](layouts/README.md)。当前布局版本 12。基础类型与 Entity 的 SDK 声明、未知字节及跨域未决仍保留，不表示完整同步已可运行；第 4—14 步待实施。0—14 步没有测试，第 15 步是唯一统一整体验收。
 
 本目录保存这次重构的总计划和逐步设计。按用户 2026-11-08 的要求，步骤**直接用数字编号，从 0 开始**，不再使用 `tx-0x-0x`；文件名为 `<编号>-<主题>.md`。旧 tx 文档中的事实和失败记录保持原样；与本目录冲突的设计以本目录为准，具体范围见第 6 节。
 

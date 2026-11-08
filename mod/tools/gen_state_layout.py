@@ -122,7 +122,8 @@ class Compiler:
         self.source = source
         self.version = read_json(source / 'version.json')
         require(self.version.get('format') == 'isaac.cs.binary-state-layout', 'version', '布局源格式不匹配')
-        require(0 < integer(self.version['version']) <= DYNAMIC, 'version', '版本必须是 u32 正整数')
+        # 帧头 layout_version 是 u16，布局源不能声明线上放不下的版本。
+        require(0 < integer(self.version['version']) <= 0xFFFF, 'version', '版本必须是 u16 正整数')
         require(isinstance(self.version.get('domains'), list) and self.version['domains'] and len(self.version['domains']) == len(set(self.version['domains'])), 'version', '域清单为空或重复')
         self.types = {}
         schema = read_json(source / 'schema.json')
@@ -193,6 +194,9 @@ class Compiler:
             require(item['status'] in STATUS, where, '非法证据状态')
             for key in ('name', 'type', 'semantics', 'evidence'):
                 require(nonempty(item.get(key)), where, f'缺少 {key}')
+            # 标量和 bytes[N] 标签会进入生成表与文档，声明宽度必须等于实际字节数。
+            declared = scalar_size(item['type'])
+            require(declared is None or declared == item['size'], where, '类型标签宽度与 size 不一致')
             require(item['name'] not in names, where, '重复字段名称')
             names.add(item['name'])
             transmitted = item['category'] in {'状态', '换算', '引用', '资源', '容器'}
@@ -484,7 +488,7 @@ def emit(compiler, plans, out, docs):
     def array(typ, name, count):
         return f'constexpr std::array<{typ}, {count}> {name} = {{{{\n'
     count_fields = sum(len(p['fields']) for p in plans)
-    wire = [header, f"constexpr std::uint32_t kStateLayoutVersion = {integer(compiler.version['version'])};\n", array('Layout', 'kStateLayouts', len(plans))]
+    wire = [header, f"constexpr std::uint16_t kStateLayoutVersion ={integer(compiler.version['version'])};\n", array('Layout', 'kStateLayouts', len(plans))]
     capture = [header, array('CopyRange', 'kStateCopyRanges', sum(len(p['copies']) for p in plans))]
     client = [header, array('Validator', 'kStateValidators', sum(len(p['entry']['validators']) for p in plans))]
     members = [header, array('Member', 'kStateMembers', sum(len(p['entry']['members']) for p in plans))]
@@ -540,7 +544,12 @@ def emit(compiler, plans, out, docs):
         if e['companions']:
             body += '\n伴随来源（不属于上述原生对象字节）：\n\n' + '\n'.join(f'- `{c["name"]}` → `{c["type"]}`：{c["semantics"]}；{c["evidence"]}（{c["status"]}）' for c in e['companions']) + '\n'
         write(docs / (e['type'] + '.md'), body)
-    wire += ['}};\n', array('Block', 'kStateBlocks', sum(len(p['blocks']) for p in plans))]
+    # 布局号到表下标的直接索引：布局号稀疏但上限很小，按线上布局号查询时不必线性扫描。
+    slots = [65535] * (max(p['entry']['layout'] for p in plans) + 1)
+    for position, p in enumerate(plans):
+        slots[p['entry']['layout']] = position
+    wire += ['}};\n', array('std::uint16_t', 'kStateLayoutSlots', len(slots)), ','.join(map(str, slots)) + '\n', '}};\n',
+             array('Block', 'kStateBlocks', sum(len(p['blocks']) for p in plans))]
     for p in plans:
         for b in p['blocks']:
             wire.append(f'  {{{p["entry"]["layout"]}, {b["id"]}, {str(b["body"]).lower()}, {str(b["player_body"]).lower()}, {quote(b["name"])}, {b["min"]}, {b["max"]}}},\n')
