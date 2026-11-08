@@ -56,6 +56,8 @@ ordinary 窗口、PlayerPost 窗口，以及规范第 11 节的条件读取规�
 
 HeadFrameDelay 不属于已核线性计时，直接复制原始 i32。`ReadKnifeExtension` 接收会话 owner 核定的 Knife／KnifePlus 具体虚表绑定，只遍历前后两次 holder 链：先判目标类型，非 Knife 返回 Null；Knife 交 `ReferenceCapture::identify_or_reserve` 得到同代 Identity／Pending 纯值句柄，新成员不因尚无序号而失败。回调负责有界预约，不得向后台交原生地址；最终序号在后台分配。计数组按生成的 `CountConstraint`／`ValidContainerCountGroups` 检查，蝗虫两组合计最多 16384，投影重复 count 不重复计数。
 
+第 4 步新增 Tear／Pickup／Laser 同样按 RTTI 查布局，不按 `_type` 猜派生 Plus。Tear 七槽、Pickup 四槽、Laser 十三槽沿用身份／Pending 采集，后台转成员序号；不得在主线程提前要求全部新实体已有网络序号。HomingLaser 的 `laser_self` 是本地自回指，不跟随或发送；五个投影在同一窗口读取，四个 vector 各自上限 16384，递归校验浮点和实际累计字节预算。Pickup 循环数组是内嵌八项数组，不是指针数组：先读 `+0x5C0` u32 count，超过八项报 Gap，仅复制 `+0x5A0` 有效前缀，前后复读计数／窗口；FlipSaveState 不采集其玩法对象。完整字段与计时条件见[本轮实现](implementation-4-tear-pickup-laser.md)。
+
 生成器为每个布局产出一份操作序列（`state_capture.inc`）。主线程按顺序执行：
 
 | 操作 | 动作 |

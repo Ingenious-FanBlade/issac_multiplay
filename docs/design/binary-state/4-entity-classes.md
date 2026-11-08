@@ -1,6 +1,6 @@
 # 4：Entity 子类
 
-状态：部分实施。Familiar／Knife／Bomb 的布局、公开成员回映射和专用表现已接入生成链，未知字节与计时分支缺口保留，见[本轮实现](implementation-4-familiar-knife-bomb.md)；其余子类仍按各节设计推进。上级：[总计划](README.md)。
+状态：部分实施。Familiar／Knife／Bomb 以及 Tear／Pickup／Laser 的布局、公开成员回映射和专用表现已接入生成链，未知字节与计时分支缺口保留，见[前三类实现](implementation-4-familiar-knife-bomb.md)和[本轮三类实现](implementation-4-tear-pickup-laser.md)；其余子类仍按各节设计推进。上级：[总计划](README.md)。
 
 ## 目标
 
@@ -439,6 +439,16 @@ ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发�
 - 原生范围按 J273 池步长 F30／520／9D8；Knife SDK 的 E78 仅作差异记录。完整未知列表和各嵌套对象的未知均由生成表保留，本轮不声明类型字节完整。
 
 详细交付、编译与后续第 10／13／14 步接线责任见[实现说明](implementation-4-familiar-knife-bomb.md)。
+
+### 4.4 Tear、Pickup、Laser 本轮实现（2026-11-08）
+
+布局版本 20，唯一源仍为 `mod/binding/state/entity-classes.json`。布局编号 125／126／127，继承 E0—E9，子类块从 10 开始。完整生成表见 [Tear](layouts/EntityTear.md)、[Pickup](layouts/EntityPickup.md)、[Laser](layouts/EntityLaser.md)，交付与后续接线见[本轮实现](implementation-4-tear-pickup-laser.md)，静态逆向及主审见[证据](tear-pickup-laser-evidence.md)。
+
+- Tear 三份辅助 ANM2 的外观／动画／图层独立投影，七个引用槽和命中索引分别保留，不借带副作用的 Height／Scale／TearFlags setter 恢复最终状态。
+- Pickup 保留两份 ANM2、四个引用槽、八项有界循环道具；FlipSaveState 为 Host 玩法保存对象，Client 不重建。价格与图形最终值分别安装，不调用 SetPrice／InitFlipState 触发玩法。
+- Laser 保留原始有符号采样模式、十三个引用槽，以及单独成表的 HomingLaser；其 self 回指不发送。四份几何容器独立建模，Bezier 保留六个 f32 槽，不运行 CalculateSamples。
+- 三个 Plus 的派生音效、重抽和重新采样请求归 Host，公共覆盖只经一份 E9。条件计时不凭字段名判定；未知活动分支明确报 Gap。
+- 原生范围为 0x848／0x6F0／0x568，未知与 SDK 声明保持实际等级。本轮只生成布局与纯编译，不宣称类型字节完整、正式采集已接通或第 15 步验收完成。
 
 ## 改动范围
 

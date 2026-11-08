@@ -23,4 +23,18 @@ constexpr std::int32_t DecodeEntityCounter(std::uint32_t display_frame, std::uin
   return DisplaySignedCounter(display_frame, {mode == EntityCounterMode::Frozen ? 0u : 1u, value},
     mode == EntityCounterMode::Increasing ? CounterDirection::Increasing : CounterDirection::Decreasing);
 }
+// 正值倒计时独立于上面的无夹限有符号计数：低32位0=原值、1=到期帧，高32位value。
+// advances必须由字段owner提供已核活动条件；未知时钟必须先报Gap，不能传false冒充停走。
+std::uint64_t EncodeEntityCountdown(std::uint32_t game_frame, std::int32_t remaining,
+                                    bool advances) noexcept;
+bool ValidEntityCountdown(std::uint64_t encoded) noexcept;
+// 调用前校验编码；以最近已应用world展示时钟还原，正值到零停走，负哨兵保持原值。
+std::int32_t DecodeEntityCountdown(std::uint32_t display_frame, std::uint64_t encoded) noexcept;
+// Laser Timeout同时存在正值归零和Shrink中递减到负值的路径；字段专属mode不能与递增计数混用。
+enum class LaserTimeoutClock : std::uint32_t { Frozen = 0, PositiveCountdown = 1, SignedDecreasing = 2 };
+std::uint64_t EncodeLaserTimeout(std::uint32_t game_frame, std::int32_t timeout,
+                                 LaserTimeoutClock clock) noexcept;
+bool ValidLaserTimeout(std::uint64_t encoded) noexcept;
+// mode=1到零停走，mode=2保留负值和回绕；不在Client重演移除、Shrink或伤害。
+std::int32_t DecodeLaserTimeout(std::uint32_t display_frame, std::uint64_t encoded) noexcept;
 }

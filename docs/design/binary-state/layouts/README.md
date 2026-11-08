@@ -23,6 +23,11 @@
 | [EntityKnifePlus](EntityKnifePlus.md) | 17 | 20 | 5 | 否 |
 | [FamiliarIsaacsBodyData](FamiliarIsaacsBodyData.md) | 18 | 1400 | 70 | 否 |
 | [FamiliarAbyssLocustData](FamiliarAbyssLocustData.md) | 19 | 88 | 36 | 否 |
+| [EntityTearPlus](EntityTearPlus.md) | 20 | 24 | 5 | 否 |
+| [EntityPickupPlus](EntityPickupPlus.md) | 21 | 20 | 7 | 否 |
+| [EntityLaserPlus](EntityLaserPlus.md) | 22 | 28 | 8 | 否 |
+| [HomingLaserBezier](HomingLaserBezier.md) | 23 | 24 | 0 | 是 |
+| [HomingLaser](HomingLaser.md) | 24 | 84 | 0 | 是 |
 | [Entity](Entity.md) | 100 | 1040 | 335 | 否 |
 | [EntityEffect](EntityEffect.md) | 101 | 1216 | 422 | 否 |
 | [EntityEffect_TearFlags](EntityEffect_TearFlags.md) | 102 | 1216 | 422 | 否 |
@@ -32,3 +37,6 @@
 | [EntityBomb](EntityBomb.md) | 122 | 2520 | 441 | 否 |
 | [EntityFamiliar_IsaacsBody](EntityFamiliar_IsaacsBody.md) | 123 | 3888 | 906 | 否 |
 | [EntityFamiliar_AbyssLocust](EntityFamiliar_AbyssLocust.md) | 124 | 3888 | 906 | 否 |
+| [EntityTear](EntityTear.md) | 125 | 2120 | 478 | 否 |
+| [EntityPickup](EntityPickup.md) | 126 | 1776 | 448 | 否 |
+| [EntityLaser](EntityLaser.md) | 127 | 1384 | 421 | 否 |

@@ -2920,6 +2920,3757 @@
         "EntityBomb"
       ],
       "notes": "第4步本轮子类布局；未知字节保持明确缺口，不能宣称完整或已通过第15步验收。"
+    },
+    {
+      "type": "EntityTearPlus",
+      "layout": 20,
+      "native_size": "0x18",
+      "parent": "EntityPlus",
+      "rtti": {
+        "name": "官方REP扩展；由已核实体类与既存holder限定动态类型",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": "0x10",
+          "size": "0x8",
+          "name": "init_sound",
+          "type": "optional<u32>",
+          "category": "权威",
+          "semantics": "Host眼泪初始化音效覆盖；Client不重演初始化音效",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": []
+    },
+    {
+      "type": "EntityPickupPlus",
+      "layout": 21,
+      "native_size": "0x14",
+      "parent": "EntityPlus",
+      "rtti": {
+        "name": "官方REP扩展；由已核实体类与既存holder限定动态类型",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": "0x10",
+          "size": "0x2",
+          "name": "can_reroll_override",
+          "type": "optional<bool>",
+          "category": "权威",
+          "semantics": "Host重抽资格覆盖；Client不执行重抽裁决",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x12",
+          "size": "0x2",
+          "name": "unknown_12_13",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生尾部；池步长不是填充证据",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": []
+    },
+    {
+      "type": "EntityLaserPlus",
+      "layout": 22,
+      "native_size": "0x1c",
+      "parent": "EntityPlus",
+      "rtti": {
+        "name": "官方REP扩展；由已核实体类与既存holder限定动态类型",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": "0x10",
+          "size": "0x1",
+          "name": "recalculate_samples_next_update",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "Host下次更新时清空四容器的请求；Client安装最终几何，不重算",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x11",
+          "size": "0x3",
+          "name": "unknown_11_13",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x14",
+          "size": "0x8",
+          "name": "init_sound",
+          "type": "optional<u32>",
+          "category": "权威",
+          "semantics": "Host激光初始化音效覆盖；Client不重演初始化音效",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": []
+    },
+    {
+      "type": "HomingLaserBezier",
+      "layout": 23,
+      "native_size": "0x18",
+      "parent": null,
+      "rtti": {
+        "name": "内嵌值类型，无独立RTTI",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x18",
+          "name": "coefficients",
+          "type": "f32[6]",
+          "category": "状态",
+          "semantics": "CalculateSamples按24字节步长读取六个浮点槽；具体控制点成员名未知",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32[6]"
+          },
+          "read_requires": "entity-current-window"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "Bezier六浮点原值",
+          "sequence": "world",
+          "fields": [
+            "coefficients"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "coefficients": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [],
+      "public_owners": [],
+      "pure_value": true
+    },
+    {
+      "type": "HomingLaser",
+      "layout": 24,
+      "native_size": "0x54",
+      "parent": null,
+      "rtti": {
+        "name": "内嵌值类型，无独立RTTI",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": "0x0",
+          "size": "0x4",
+          "name": "laser_self",
+          "type": "uintptr_t",
+          "category": "本地",
+          "semantics": "所属Laser的本地自回指；保留工厂构造结果，不作为跨实体引用",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x4",
+          "size": "0x8",
+          "name": "origin",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "几何起点",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0xc",
+          "size": "0x8",
+          "name": "end_point",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "几何端点；与Laser公开EndPoint是独立字段",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x14",
+          "size": "0x4",
+          "name": "parameter",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "采样参数原值；不推断未知业务名称",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x18",
+          "size": "0x4",
+          "name": "sample_num",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "原生采样参数计数，不等同当前vector长度",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x1c",
+          "size": "0xc",
+          "name": "optimized",
+          "type": "std::vector<Vector>",
+          "category": "容器",
+          "semantics": "独立拥有的激光几何容器；有限值/数量/全局池预算校验，候选构造成功后交换，不调用CalculateSamples",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "Vector",
+            "stride": "0x8",
+            "limit": 16384,
+            "storage": "vector",
+            "host": "read_native_vector",
+            "client": "install_laser_optimized"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x28",
+          "size": "0xc",
+          "name": "unoptimized",
+          "type": "std::vector<Vector>",
+          "category": "容器",
+          "semantics": "独立拥有的激光几何容器；有限值/数量/全局池预算校验，候选构造成功后交换，不调用CalculateSamples",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "Vector",
+            "stride": "0x8",
+            "limit": 16384,
+            "storage": "vector",
+            "host": "read_native_vector",
+            "client": "install_laser_unoptimized"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x34",
+          "size": "0xc",
+          "name": "indices",
+          "type": "std::vector<i32>",
+          "category": "容器",
+          "semantics": "独立拥有的激光几何容器；有限值/数量/全局池预算校验，候选构造成功后交换，不调用CalculateSamples",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "i32",
+            "stride": "0x4",
+            "limit": 16384,
+            "storage": "vector",
+            "host": "read_native_vector",
+            "client": "install_laser_indices"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x40",
+          "size": "0x4",
+          "name": "cursor",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "原生i32槽+0x40的当前原值；旧适配器命名cursor，具体业务含义未核，不强加游标范围",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x44",
+          "size": "0x4",
+          "name": "spacing",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "原生f32槽+0x44的当前原值；旧适配器命名spacing，具体业务含义未核，不推断为物理间距",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x48",
+          "size": "0xc",
+          "name": "bezier",
+          "type": "std::vector<HomingLaserBezier>",
+          "category": "容器",
+          "semantics": "独立拥有的激光几何容器；有限值/数量/全局池预算校验，候选构造成功后交换，不调用CalculateSamples",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "HomingLaserBezier",
+            "stride": "0x18",
+            "limit": 16384,
+            "storage": "vector",
+            "host": "read_native_vector",
+            "client": "install_laser_bezier"
+          },
+          "read_requires": "entity-current-window"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 0,
+          "name": "几何标量",
+          "sequence": "world",
+          "fields": [
+            "origin",
+            "end_point",
+            "parameter",
+            "sample_num",
+            "cursor",
+            "spacing"
+          ]
+        },
+        {
+          "id": 1,
+          "name": "几何容器 optimized",
+          "sequence": "world",
+          "fields": [
+            "optimized"
+          ]
+        },
+        {
+          "id": 2,
+          "name": "几何容器 unoptimized",
+          "sequence": "world",
+          "fields": [
+            "unoptimized"
+          ]
+        },
+        {
+          "id": 3,
+          "name": "几何容器 indices",
+          "sequence": "world",
+          "fields": [
+            "indices"
+          ]
+        },
+        {
+          "id": 4,
+          "name": "几何容器 bezier",
+          "sequence": "world",
+          "fields": [
+            "bezier"
+          ]
+        }
+      ],
+      "conversions": {},
+      "validators": {
+        "origin": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "end_point": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "parameter": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "spacing": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [],
+      "public_owners": []
+    },
+    {
+      "type": "EntityTear",
+      "layout": 125,
+      "native_size": "0x848",
+      "parent": "Entity",
+      "rtti": {
+        "name": ".?AVEntity_Tear@IsaacRepentancePlus@@",
+        "rva": "0x7d152c"
+      },
+      "ranges": [
+        {
+          "offset": "0x410",
+          "size": "0x4",
+          "name": "tear_height",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "离地高度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x414",
+          "size": "0x4",
+          "name": "tear_falling_speed",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "下落速度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x418",
+          "size": "0x4",
+          "name": "tear_falling_acceleration",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "下落加速度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x41c",
+          "size": "0x4",
+          "name": "homing_friction",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "追踪摩擦",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x420",
+          "size": "0x4",
+          "name": "tear_scale",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "眼泪当前缩放",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x424",
+          "size": "0x4",
+          "name": "tear_base_scale",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "眼泪基础缩放",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x428",
+          "size": "0x10",
+          "name": "tear_flags",
+          "type": "BitSet128",
+          "category": "状态",
+          "semantics": "完整128位眼泪效果",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "BitSet128"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x438",
+          "size": "0x4",
+          "name": "tear_wait_frames",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "663F90:6643A4正值分支在664408减1；Parent空仍递减，父状态分支可能先写1使其当次归零；活动/重置关系由owner核定；发送正倒计时锚点，未知活动条件报Gap",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；主审复读所列J273原始指令；state/entity_counters.cpp",
+          "wire": {
+            "kind": "convert",
+            "type": "u64",
+            "host": "tear_wait_frames_to_anchor",
+            "client": "tear_wait_frames_from_anchor"
+          },
+          "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
+        },
+        {
+          "offset": "0x43c",
+          "size": "0x8",
+          "name": "continue_velocity",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "继续移动的速度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x444",
+          "size": "0xc",
+          "name": "tear_hit_indices",
+          "type": "std::vector<u32>",
+          "category": "容器",
+          "semantics": "Host命中索引纯值；不当实体身份，不启用Client碰撞",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "u32",
+            "stride": "0x4",
+            "limit": 16384,
+            "storage": "vector",
+            "host": "read_native_vector",
+            "client": "install_authority_hit_indices"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x450",
+          "size": "0x4",
+          "name": "tear_index",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "Host眼泪原始索引，不作跨进程实体身份",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x454",
+          "size": "0x4",
+          "name": "tear_base_damage",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "基础伤害",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x458",
+          "size": "0x4",
+          "name": "tear_rotation",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "眼泪旋转",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x45c",
+          "size": "0x4",
+          "name": "scale_anim_num",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "缩放动画序号",
+          "status": "SDK声明",
+          "evidence": "sdk:EntityTear.zhl",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x460",
+          "size": "0x4",
+          "name": "knockback_multiplier",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "击退倍率",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x464",
+          "size": "0x4",
+          "name": "dead_eye_intensity",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "DeadEye强度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x468",
+          "size": "0x1",
+          "name": "tear_multidimensional_touched",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "多维效果已触碰",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x469",
+          "size": "0x1",
+          "name": "tear_prism_touched",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "棱镜已触碰",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x46a",
+          "size": "0xe",
+          "name": "unknown_46a_477",
+          "type": "bytes[14]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x478",
+          "size": "0x4",
+          "name": "stick_target",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "眼泪独立引用槽，部分原生清理分支还会级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x47c",
+          "size": "0x8",
+          "name": "stick_diff",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "粘附相对位置",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x484",
+          "size": "0x4",
+          "name": "tear_stick_timer",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "663F90:66EFC2进入粘附分支先dec，66EFC8再以有符号>0判定；不夹零，前置flags/目标分支仍需完整见证；仅核定分支可发有符号减计数锚点，未知报Gap",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；主审复读所列J273原始指令；state/entity_counters.h",
+          "wire": {
+            "kind": "convert",
+            "type": "u64",
+            "host": "tear_stick_timer_to_anchor",
+            "client": "tear_stick_timer_from_anchor"
+          },
+          "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
+        },
+        {
+          "offset": "0x488",
+          "size": "0x4",
+          "name": "tear_child_a",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "眼泪独立引用槽，部分原生清理分支还会级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x48c",
+          "size": "0x4",
+          "name": "tear_peer",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "眼泪独立引用槽，部分原生清理分支还会级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x490",
+          "size": "0x4",
+          "name": "tear_child_b",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "眼泪独立引用槽，部分原生清理分支还会级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x494",
+          "size": "0x4",
+          "name": "tear_link_a",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "眼泪独立引用槽，部分原生清理分支还会级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x498",
+          "size": "0x4",
+          "name": "tear_link_b",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "眼泪独立引用槽，部分原生清理分支还会级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x49c",
+          "size": "0x4",
+          "name": "tear_child_c",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "眼泪独立引用槽，部分原生清理分支还会级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4a0",
+          "size": "0xc",
+          "name": "unknown_4a0_4ab",
+          "type": "bytes[12]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x4ac",
+          "size": "0x114",
+          "name": "tear_halo_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "眼泪独立辅助Sprite；与主Sprite分别安装最终资源姿态",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x5c0",
+          "size": "0x114",
+          "name": "tear_effect_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "眼泪独立辅助Sprite；与主Sprite分别安装最终资源姿态",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x6d4",
+          "size": "0x114",
+          "name": "dead_eye_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "眼泪独立辅助Sprite；与主Sprite分别安装最终资源姿态",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x7e8",
+          "size": "0x1",
+          "name": "can_trigger_streak_end",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "可终止连击",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x7e9",
+          "size": "0x3",
+          "name": "unknown_7e9_7eb",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x7ec",
+          "size": "0x8",
+          "name": "pos_displacement",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "位置位移",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x7f4",
+          "size": "0x8",
+          "name": "tear_parent_offset",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "相对父实体偏移",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x7fc",
+          "size": "0x24",
+          "name": "unknown_7fc_81f",
+          "type": "bytes[36]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x820",
+          "size": "0x4",
+          "name": "tear_range",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "眼泪射程",
+          "status": "SDK声明",
+          "evidence": "sdk:EntityTear.zhl",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x824",
+          "size": "0x24",
+          "name": "unknown_824_847",
+          "type": "bytes[36]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生尾部；池步长不是填充证据",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 10,
+          "name": "T0 运动",
+          "sequence": "world",
+          "fields": [
+            "tear_height",
+            "tear_falling_speed",
+            "tear_falling_acceleration",
+            "continue_velocity",
+            "tear_rotation",
+            "stick_diff",
+            "pos_displacement",
+            "tear_parent_offset"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "T1 眼泪参数",
+          "sequence": "world",
+          "fields": [
+            "homing_friction",
+            "tear_scale",
+            "tear_base_scale",
+            "tear_flags",
+            "tear_index",
+            "tear_base_damage",
+            "scale_anim_num",
+            "knockback_multiplier",
+            "dead_eye_intensity",
+            "tear_multidimensional_touched",
+            "tear_prism_touched",
+            "can_trigger_streak_end",
+            "tear_range"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "T2 计时",
+          "sequence": "world",
+          "fields": [
+            "tear_wait_frames",
+            "tear_stick_timer"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "T3 独立引用",
+          "sequence": "world",
+          "fields": [
+            "stick_target",
+            "tear_child_a",
+            "tear_peer",
+            "tear_child_b",
+            "tear_link_a",
+            "tear_link_b",
+            "tear_child_c"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "T4 Host命中集合",
+          "sequence": "world",
+          "fields": [
+            "tear_hit_indices"
+          ]
+        },
+        {
+          "id": 15,
+          "name": "T5 辅助Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "tear_halo_sprite#0",
+            "tear_effect_sprite#0",
+            "dead_eye_sprite#0"
+          ]
+        },
+        {
+          "id": 16,
+          "name": "T6 辅助Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "tear_halo_sprite#1",
+            "tear_effect_sprite#1",
+            "dead_eye_sprite#1"
+          ]
+        },
+        {
+          "id": 17,
+          "name": "T7 辅助Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "tear_halo_sprite#2",
+            "tear_effect_sprite#2",
+            "dead_eye_sprite#2"
+          ]
+        }
+      ],
+      "conversions": {
+        "tear_wait_frames_to_anchor": "已核当前字段真实活动/重置分支后用EncodeEntityCountdown(game_frame,value,advances)。u64低32位mode0=原值/1=到期帧，高32位value。正值才锚到到期帧；零和负哨兵保留。未知分支/时钟关系报Gap，不默认停走。663F90:6643A4正值分支在664408减1；Parent空仍递减，父状态分支可能先写1使其当次归零；活动/重置关系由owner核定",
+        "tear_wait_frames_from_anchor": "先ValidEntityCountdown，再用最近已应用world game_frame调用DecodeEntityCountdown；mode1减到零停走，mode0保留原值与负哨兵；不运行Remove/更新/重抽逻辑。",
+        "tear_stick_timer_to_anchor": "仅在当前字段真实活动分支与Host game_frame关系已核时调用EncodeEntityCounter(Frozen/Decreasing)；低32位mode0=原值/2=有符号递减锚点，高32位value。不得发送Increasing，也不将未知编码为Frozen。663F90:66EFC2进入粘附分支先dec，66EFC8再以有符号>0判定；不夹零，前置flags/目标分支仍需完整见证",
+        "tear_stick_timer_from_anchor": "先ValidEntityCounter并拒绝本字段未使用的Increasing(mode1)，再用最近已应用world game_frame调用DecodeEntityCounter；保留负数与回绕，不夹零，不运行粘附/旋转逻辑。"
+      },
+      "validators": {
+        "tear_height": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tear_falling_speed": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tear_falling_acceleration": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "homing_friction": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tear_scale": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tear_base_scale": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "continue_velocity": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tear_base_damage": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tear_rotation": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "knockback_multiplier": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "dead_eye_intensity": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tear_multidimensional_touched": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "tear_prism_touched": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "stick_diff": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "can_trigger_streak_end": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "pos_displacement": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tear_parent_offset": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "tear_range": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [
+        {
+          "id": "EntityTear.Height",
+          "disposition": "field",
+          "fields": [
+            "tear_height"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.FallingSpeed",
+          "disposition": "field",
+          "fields": [
+            "tear_falling_speed"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.FallingAcceleration",
+          "disposition": "field",
+          "fields": [
+            "tear_falling_acceleration"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.HomingFriction",
+          "disposition": "field",
+          "fields": [
+            "homing_friction"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.Scale",
+          "disposition": "field",
+          "fields": [
+            "tear_scale"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.BaseScale",
+          "disposition": "field",
+          "fields": [
+            "tear_base_scale"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.TearFlags",
+          "disposition": "field",
+          "fields": [
+            "tear_flags"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.WaitFrames",
+          "disposition": "field",
+          "fields": [
+            "tear_wait_frames"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.ContinueVelocity",
+          "disposition": "field",
+          "fields": [
+            "continue_velocity"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.TearIndex",
+          "disposition": "field",
+          "fields": [
+            "tear_index"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.BaseDamage",
+          "disposition": "field",
+          "fields": [
+            "tear_base_damage"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.Rotation",
+          "disposition": "field",
+          "fields": [
+            "tear_rotation"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.KnockbackMultiplier",
+          "disposition": "field",
+          "fields": [
+            "knockback_multiplier"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.GetDeadEyeIntensity",
+          "disposition": "field",
+          "fields": [
+            "dead_eye_intensity"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.IsMultidimensionalTouched",
+          "disposition": "field",
+          "fields": [
+            "tear_multidimensional_touched"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.IsPrismTouched",
+          "disposition": "field",
+          "fields": [
+            "tear_prism_touched"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.ParentOffset",
+          "disposition": "field",
+          "fields": [
+            "tear_parent_offset"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.StickDiff",
+          "disposition": "field",
+          "fields": [
+            "stick_diff"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.StickTimer",
+          "disposition": "field",
+          "fields": [
+            "tear_stick_timer"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.StickTarget",
+          "disposition": "field",
+          "fields": [
+            "stick_target"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.CanTriggerStreakEnd",
+          "disposition": "field",
+          "fields": [
+            "can_trigger_streak_end"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.PosDisplacement",
+          "disposition": "field",
+          "fields": [
+            "pos_displacement"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.GetHitList",
+          "disposition": "field",
+          "fields": [
+            "tear_hit_indices"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.GetTearHaloSprite",
+          "disposition": "field",
+          "fields": [
+            "tear_halo_sprite#0",
+            "tear_halo_sprite#1",
+            "tear_halo_sprite#2"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.GetTearEffectSprite",
+          "disposition": "field",
+          "fields": [
+            "tear_effect_sprite#0",
+            "tear_effect_sprite#1",
+            "tear_effect_sprite#2"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.GetDeadEyeSprite",
+          "disposition": "field",
+          "fields": [
+            "dead_eye_sprite#0",
+            "dead_eye_sprite#1",
+            "dead_eye_sprite#2"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityTear.Bounced",
+          "disposition": "not_applicable",
+          "fields": [],
+          "reason": "Repentance已移除此成员；只保留Null/NotApplicable，不伪造原生字段"
+        },
+        {
+          "id": "NativeTear.ChildA",
+          "disposition": "field",
+          "fields": [
+            "tear_child_a"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeTear.Peer",
+          "disposition": "field",
+          "fields": [
+            "tear_peer"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeTear.ChildB",
+          "disposition": "field",
+          "fields": [
+            "tear_child_b"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeTear.LinkA",
+          "disposition": "field",
+          "fields": [
+            "tear_link_a"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeTear.LinkB",
+          "disposition": "field",
+          "fields": [
+            "tear_link_b"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeTear.ChildC",
+          "disposition": "field",
+          "fields": [
+            "tear_child_c"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        }
+      ],
+      "public_owners": [
+        "EntityTear"
+      ],
+      "companions": [
+        {
+          "name": "entity_plus",
+          "type": "EntityTearPlus",
+          "semantics": "E9只收窄既存伴随来源的动态类型，公共前缀不重复发送；派生玩法字段不在Client复活",
+          "evidence": "repentogon/Patches/EntityPlus.h/.cpp；docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "status": "已核",
+          "host": "read_existing_EntityTearPlus",
+          "client": "install_existing_EntityTearPlus"
+        }
+      ],
+      "sdk_size": "0x848",
+      "notes": "第4步Tear/Pickup/Laser布局；SDK声明与未知逐段保留，第10/13步接入真实采集/应用，第15步唯一整体验收。"
+    },
+    {
+      "type": "EntityPickup",
+      "layout": 126,
+      "native_size": "0x6f0",
+      "parent": "Entity",
+      "rtti": {
+        "name": ".?AVEntity_Pickup@IsaacRepentancePlus@@",
+        "rva": "0x7d146c"
+      },
+      "ranges": [
+        {
+          "offset": "0x410",
+          "size": "0x114",
+          "name": "price_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立价格Sprite",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x524",
+          "size": "0x4",
+          "name": "pickup_charge",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "拾取物充能",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x528",
+          "size": "0x4",
+          "name": "options_pickup_index",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "选择组索引",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x52c",
+          "size": "0x1",
+          "name": "touched",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "已触碰",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x52d",
+          "size": "0x1",
+          "name": "unknown_52d_52d",
+          "type": "bytes[1]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x52e",
+          "size": "0x1",
+          "name": "force_blind",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "强制隐藏道具",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x52f",
+          "size": "0x5",
+          "name": "unknown_52f_533",
+          "type": "bytes[5]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x534",
+          "size": "0x4",
+          "name": "price",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "最终价格",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x538",
+          "size": "0x1",
+          "name": "auto_update_price",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "价格自动更新标志",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x539",
+          "size": "0x3",
+          "name": "unknown_539_53b",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x53c",
+          "size": "0x4",
+          "name": "shop_item_id",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "商店位置标识",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x540",
+          "size": "0x4",
+          "name": "pickup_timeout",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "6E0650:6E269A正值减1，到零Remove；前面存在DropDelay早退、变体/全局条件重置4，未到本段不能按全局帧推进；发送正倒计时锚点，未知活动条件报Gap",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；主审复读所列J273原始指令；state/entity_counters.cpp",
+          "wire": {
+            "kind": "convert",
+            "type": "u64",
+            "host": "pickup_timeout_to_anchor",
+            "client": "pickup_timeout_from_anchor"
+          },
+          "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
+        },
+        {
+          "offset": "0x544",
+          "size": "0x4",
+          "name": "pickup_wait",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "6E0650:6E26B6仅正值减1，零和负值保持；前面存在早退，不能只看Wait>0认定活动；发送正倒计时锚点，未知活动条件报Gap",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；主审复读所列J273原始指令；state/entity_counters.cpp",
+          "wire": {
+            "kind": "convert",
+            "type": "u64",
+            "host": "pickup_wait_to_anchor",
+            "client": "pickup_wait_from_anchor"
+          },
+          "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
+        },
+        {
+          "offset": "0x548",
+          "size": "0xc",
+          "name": "unknown_548_553",
+          "type": "bytes[12]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x554",
+          "size": "0x4",
+          "name": "pickup_drop_delay",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "6E0650:6E0685正值且Entity+188==0才减1并早退；+188!=0直接清零后继续；非正值保持；发送正倒计时锚点，未知活动条件报Gap",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；主审复读所列J273原始指令；state/entity_counters.cpp",
+          "wire": {
+            "kind": "convert",
+            "type": "u64",
+            "host": "pickup_drop_delay_to_anchor",
+            "client": "pickup_drop_delay_from_anchor"
+          },
+          "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
+        },
+        {
+          "offset": "0x558",
+          "size": "0x2c",
+          "name": "unknown_558_583",
+          "type": "bytes[44]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x584",
+          "size": "0x4",
+          "name": "pickup_state",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "拾取物状态",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x588",
+          "size": "0x4",
+          "name": "unknown_588_58b",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x58c",
+          "size": "0x4",
+          "name": "pickup_related",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "拾取物独立关系槽；Ghost/MegaChest不由Client额外生成；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x590",
+          "size": "0x4",
+          "name": "pickup_ghost",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "拾取物独立关系槽；Ghost/MegaChest不由Client额外生成；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x594",
+          "size": "0x4",
+          "name": "mega_chest_left",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "拾取物独立关系槽；Ghost/MegaChest不由Client额外生成；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x598",
+          "size": "0x4",
+          "name": "mega_chest_right",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "拾取物独立关系槽；Ghost/MegaChest不由Client额外生成；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x59c",
+          "size": "0x4",
+          "name": "pickup_var_data",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "拾取物变体数据",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x5a0",
+          "size": "0x20",
+          "name": "collectible_cycle",
+          "type": "u32[8]",
+          "category": "容器",
+          "semantics": "循环道具有效前缀；count超过8报Gap，空集合清除；由owner同时写count和清零未用槽",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "u32",
+            "stride": "0x4",
+            "limit": 8,
+            "storage": "array",
+            "host": "read_pickup_cycle",
+            "client": "install_pickup_cycle",
+            "count_field": "cycle_count"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x5c0",
+          "size": "0x4",
+          "name": "cycle_count",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "collectible_cycle的原生有效元素数；线上u16 count已携带，Client同一owner恢复",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x5c4",
+          "size": "0x4",
+          "name": "unknown_5c4_5c7",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x5c8",
+          "size": "0x8",
+          "name": "flip_save_state",
+          "type": "KAGE_SmartPointer_EntitySaveState",
+          "category": "权威",
+          "semantics": "Host Flip玩法保存对象及控制块；Client安装已抽取的两个Sprite，不重建保存对象或复制指针",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；sdk:EntityPickup.zhl／SmartPointer.zhl"
+        },
+        {
+          "offset": "0x5d0",
+          "size": "0x114",
+          "name": "alternate_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "独立替代底座Sprite；不运行Flip保存/抽取逻辑",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "ANM2",
+            "projections": [
+              0,
+              1,
+              2
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x6e4",
+          "size": "0xc",
+          "name": "unknown_6e4_6ef",
+          "type": "bytes[12]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生尾部；池步长不是填充证据",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 10,
+          "name": "P0 计时",
+          "sequence": "world",
+          "fields": [
+            "pickup_timeout",
+            "pickup_wait",
+            "pickup_drop_delay"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "P1 拾取物参数",
+          "sequence": "world",
+          "fields": [
+            "pickup_charge",
+            "options_pickup_index",
+            "touched",
+            "force_blind",
+            "price",
+            "auto_update_price",
+            "shop_item_id",
+            "pickup_state",
+            "pickup_var_data"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "P2 独立引用",
+          "sequence": "world",
+          "fields": [
+            "pickup_related",
+            "pickup_ghost",
+            "mega_chest_left",
+            "mega_chest_right"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "P3 循环道具",
+          "sequence": "world",
+          "fields": [
+            "collectible_cycle"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "P4 辅助Sprite外观",
+          "sequence": "world",
+          "fields": [
+            "price_sprite#0",
+            "alternate_sprite#0"
+          ]
+        },
+        {
+          "id": 15,
+          "name": "P5 辅助Sprite动画",
+          "sequence": "world",
+          "fields": [
+            "price_sprite#1",
+            "alternate_sprite#1"
+          ]
+        },
+        {
+          "id": 16,
+          "name": "P6 辅助Sprite图层",
+          "sequence": "world",
+          "fields": [
+            "price_sprite#2",
+            "alternate_sprite#2"
+          ]
+        }
+      ],
+      "conversions": {
+        "pickup_timeout_to_anchor": "已核当前字段真实活动/重置分支后用EncodeEntityCountdown(game_frame,value,advances)。u64低32位mode0=原值/1=到期帧，高32位value。正值才锚到到期帧；零和负哨兵保留。未知分支/时钟关系报Gap，不默认停走。6E0650:6E269A正值减1，到零Remove；前面存在DropDelay早退、变体/全局条件重置4，未到本段不能按全局帧推进",
+        "pickup_timeout_from_anchor": "先ValidEntityCountdown，再用最近已应用world game_frame调用DecodeEntityCountdown；mode1减到零停走，mode0保留原值与负哨兵；不运行Remove/更新/重抽逻辑。",
+        "pickup_wait_to_anchor": "已核当前字段真实活动/重置分支后用EncodeEntityCountdown(game_frame,value,advances)。u64低32位mode0=原值/1=到期帧，高32位value。正值才锚到到期帧；零和负哨兵保留。未知分支/时钟关系报Gap，不默认停走。6E0650:6E26B6仅正值减1，零和负值保持；前面存在早退，不能只看Wait>0认定活动",
+        "pickup_wait_from_anchor": "先ValidEntityCountdown，再用最近已应用world game_frame调用DecodeEntityCountdown；mode1减到零停走，mode0保留原值与负哨兵；不运行Remove/更新/重抽逻辑。",
+        "pickup_drop_delay_to_anchor": "已核当前字段真实活动/重置分支后用EncodeEntityCountdown(game_frame,value,advances)。u64低32位mode0=原值/1=到期帧，高32位value。正值才锚到到期帧；零和负哨兵保留。未知分支/时钟关系报Gap，不默认停走。6E0650:6E0685正值且Entity+188==0才减1并早退；+188!=0直接清零后继续；非正值保持",
+        "pickup_drop_delay_from_anchor": "先ValidEntityCountdown，再用最近已应用world game_frame调用DecodeEntityCountdown；mode1减到零停走，mode0保留原值与负哨兵；不运行Remove/更新/重抽逻辑。"
+      },
+      "validators": {
+        "touched": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "force_blind": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "auto_update_price": {
+          "kind": "boolean",
+          "scalar": "u8"
+        }
+      },
+      "members": [
+        {
+          "id": "EntityPickup.Charge",
+          "disposition": "field",
+          "fields": [
+            "pickup_charge"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.OptionsPickupIndex",
+          "disposition": "field",
+          "fields": [
+            "options_pickup_index"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.Touched",
+          "disposition": "field",
+          "fields": [
+            "touched"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.IsBlind",
+          "disposition": "field",
+          "fields": [
+            "force_blind"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.Price",
+          "disposition": "field",
+          "fields": [
+            "price"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.AutoUpdatePrice",
+          "disposition": "field",
+          "fields": [
+            "auto_update_price"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.ShopItemId",
+          "disposition": "field",
+          "fields": [
+            "shop_item_id"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.Timeout",
+          "disposition": "field",
+          "fields": [
+            "pickup_timeout"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.Wait",
+          "disposition": "field",
+          "fields": [
+            "pickup_wait"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.GetDropDelay",
+          "disposition": "field",
+          "fields": [
+            "pickup_drop_delay"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.State",
+          "disposition": "field",
+          "fields": [
+            "pickup_state"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.GetVarData",
+          "disposition": "field",
+          "fields": [
+            "pickup_var_data"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.GetCollectibleCycle",
+          "disposition": "field",
+          "fields": [
+            "collectible_cycle"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.GetPickupGhost",
+          "disposition": "field",
+          "fields": [
+            "pickup_ghost"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.GetMegaChestLeftCollectible",
+          "disposition": "field",
+          "fields": [
+            "mega_chest_left"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.GetMegaChestRightCollectible",
+          "disposition": "field",
+          "fields": [
+            "mega_chest_right"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.GetPriceSprite",
+          "disposition": "field",
+          "fields": [
+            "price_sprite#0",
+            "price_sprite#1",
+            "price_sprite#2"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityPickup.CanReroll",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host重抽资格查询依赖原生逻辑与Plus覆盖，Client不执行重抽"
+        },
+        {
+          "id": "EntityPickup.GetCoinValue",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host拾取价值裁决，Client不执行收集"
+        },
+        {
+          "id": "EntityPickup.GetFlipCollectible",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host Flip保存对象中的道具，Client安装最终alt Sprite，不复活玩法SaveState"
+        },
+        {
+          "id": "EntityPickup.HasFlipData",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host Flip保存对象是否存在；Client不重建玩法SaveState"
+        },
+        {
+          "id": "EntityPickup.GetAlternatePedestal",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host替代底座选择查询；Client接收最终alternate Sprite"
+        },
+        {
+          "id": "EntityPickup.IsShopItem",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host商店裁决查询；Client安装已发送价格与独立price Sprite"
+        },
+        {
+          "id": "NativePickup.Related",
+          "disposition": "field",
+          "fields": [
+            "pickup_related"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        }
+      ],
+      "public_owners": [
+        "EntityPickup"
+      ],
+      "companions": [
+        {
+          "name": "entity_plus",
+          "type": "EntityPickupPlus",
+          "semantics": "E9只收窄既存伴随来源的动态类型，公共前缀不重复发送；派生玩法字段不在Client复活",
+          "evidence": "repentogon/Patches/EntityPlus.h/.cpp；docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "status": "已核",
+          "host": "read_existing_EntityPickupPlus",
+          "client": "install_existing_EntityPickupPlus"
+        }
+      ],
+      "sdk_size": "0x6f0",
+      "notes": "第4步Tear/Pickup/Laser布局；SDK声明与未知逐段保留，第10/13步接入真实采集/应用，第15步唯一整体验收。"
+    },
+    {
+      "type": "EntityLaser",
+      "layout": 127,
+      "native_size": "0x568",
+      "parent": "Entity",
+      "rtti": {
+        "name": ".?AVEntity_Laser@IsaacRepentancePlus@@",
+        "rva": "0x7d140c"
+      },
+      "ranges": [
+        {
+          "offset": "0x410",
+          "size": "0x8",
+          "name": "laser_parent_offset",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "相对父实体偏移",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x418",
+          "size": "0x4",
+          "name": "start_angle",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "起始角度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x41c",
+          "size": "0x4",
+          "name": "laser_angle",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "当前角度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x420",
+          "size": "0x4",
+          "name": "last_angle",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "上次角度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x424",
+          "size": "0x4",
+          "name": "unknown_424_427",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x428",
+          "size": "0x10",
+          "name": "laser_tear_flags",
+          "type": "BitSet128",
+          "category": "状态",
+          "semantics": "完整128位眼泪效果",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "BitSet128"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x438",
+          "size": "0x20",
+          "name": "unknown_438_457",
+          "type": "bytes[32]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x458",
+          "size": "0x4",
+          "name": "laser_timeout",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "94C940:950AC0正值且+175==0才递减到零，Shrink分支94FD2A可继续减到负值；SubType(+0x30)为1/2/3走954310，也有Timeout读写/重置；按实际分支发送专属锚点，完整活动条件未知报Gap",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；主审94FD2A/94FD48、950AC0—950B59原始指令；state/entity_counters.cpp",
+          "wire": {
+            "kind": "convert",
+            "type": "u64",
+            "host": "laser_timeout_to_anchor",
+            "client": "laser_timeout_from_anchor"
+          },
+          "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
+        },
+        {
+          "offset": "0x45c",
+          "size": "0x1",
+          "name": "first_update",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "首次更新标志",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x45d",
+          "size": "0x1",
+          "name": "sample_mode_raw",
+          "type": "i8",
+          "category": "状态",
+          "semantics": "有符号采样模式，保留-1/0/1；公开bool由非零派生",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x45e",
+          "size": "0x1",
+          "name": "shrink",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "收缩标志",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x45f",
+          "size": "0x1",
+          "name": "unknown_45f_45f",
+          "type": "bytes[1]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x460",
+          "size": "0x4",
+          "name": "laser_length",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "激光长度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x464",
+          "size": "0x54",
+          "name": "homing_geometry",
+          "type": "HomingLaser",
+          "category": "状态",
+          "semantics": "独立几何标量和四个容器分别投影；保留本地self，不复制原生vector头",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "nested",
+            "type": "HomingLaser",
+            "projections": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4b8",
+          "size": "0x4",
+          "name": "curve_strength",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "曲线强度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4bc",
+          "size": "0x4",
+          "name": "laser_radius",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "激光半径",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4c0",
+          "size": "0x1",
+          "name": "active_rotating",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "正在主动旋转",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4c1",
+          "size": "0x3",
+          "name": "unknown_4c1_4c3",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x4c4",
+          "size": "0x4",
+          "name": "laser_rotation_delay",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "94C940:94CAF9仅activeRotating非零；94CB16任意非零Delay到94CC29减1，负值也递减，零转入旋转逻辑；另有Update早退与子类型分支；仅核定分支可发有符号减计数锚点，未知报Gap",
+          "status": "推断",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md；主审复读所列J273原始指令；state/entity_counters.h",
+          "wire": {
+            "kind": "convert",
+            "type": "u64",
+            "host": "laser_rotation_delay_to_anchor",
+            "client": "laser_rotation_delay_from_anchor"
+          },
+          "read_requires": "entity-current-window-and-confirmed-subclass-counter-clock"
+        },
+        {
+          "offset": "0x4c8",
+          "size": "0x4",
+          "name": "rotation_degrees",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "旋转角度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4cc",
+          "size": "0x4",
+          "name": "rotation_speed",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "旋转速度",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4d0",
+          "size": "0x4",
+          "name": "laser_max_distance",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "最大距离",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4d4",
+          "size": "0x4",
+          "name": "homing_type",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "追踪类型",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4d8",
+          "size": "0x8",
+          "name": "laser_end_point",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "公开EndPoint原值，与HomingLaser内嵌端点各自保留",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4e0",
+          "size": "0x4",
+          "name": "laser_scale",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "激光缩放",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4e4",
+          "size": "0x1",
+          "name": "disable_follow_parent",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "禁用跟随父实体",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4e5",
+          "size": "0x3",
+          "name": "unknown_4e5_4e7",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x4e8",
+          "size": "0x4",
+          "name": "bounce_laser",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4ec",
+          "size": "0x4",
+          "name": "laser_linked",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4f0",
+          "size": "0x4",
+          "name": "start_offset_mode_opaque32",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "不透明原始32位分支参数，不猜测业务名",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4f4",
+          "size": "0x4",
+          "name": "black_hp_drop_chance",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "黑心掉落概率",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4f8",
+          "size": "0x4",
+          "name": "laser_child_a",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x4fc",
+          "size": "0x4",
+          "name": "laser_child_b",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x500",
+          "size": "0x1",
+          "name": "laser_multidimensional_touched",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "多维效果已触碰",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x501",
+          "size": "0x3",
+          "name": "unknown_501_503",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x504",
+          "size": "0x4",
+          "name": "laser_split_a",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x508",
+          "size": "0x4",
+          "name": "laser_split_b",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x50c",
+          "size": "0x4",
+          "name": "laser_split_c",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x510",
+          "size": "0x4",
+          "name": "laser_split_d",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x514",
+          "size": "0x1",
+          "name": "laser_prism_touched",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "棱镜已触碰",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x515",
+          "size": "0x1",
+          "name": "one_hit",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "一次命中标志",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x516",
+          "size": "0x1",
+          "name": "grid_hit",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "格子命中标志",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x517",
+          "size": "0x1",
+          "name": "unknown_517_517",
+          "type": "bytes[1]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x518",
+          "size": "0x1",
+          "name": "disable_init_sound",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "Host初始化音效禁用标志，Client不执行PlayInitSound",
+          "status": "已核",
+          "evidence": "sdk:EntityLaser.zhl；repentogon/Patches/EntityPlus.cpp"
+        },
+        {
+          "offset": "0x519",
+          "size": "0x3",
+          "name": "unknown_519_51b",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x51c",
+          "size": "0x4",
+          "name": "damage_multiplier",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "伤害倍率",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "f32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x520",
+          "size": "0xc",
+          "name": "laser_hit_indices",
+          "type": "std::vector<u32>",
+          "category": "容器",
+          "semantics": "Host原始命中索引；不当实体身份，不启用Client碰撞",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "container",
+            "element": "u32",
+            "stride": "0x4",
+            "limit": 16384,
+            "storage": "vector",
+            "host": "read_native_vector",
+            "client": "install_authority_hit_indices"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x52c",
+          "size": "0x4",
+          "name": "laser_related",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x530",
+          "size": "0x4",
+          "name": "laser_terminal_a",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x534",
+          "size": "0x4",
+          "name": "laser_terminal_b",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x538",
+          "size": "0x4",
+          "name": "laser_terminal_c",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x53c",
+          "size": "0x4",
+          "name": "laser_peer",
+          "type": "EntityPtr",
+          "category": "引用",
+          "semantics": "激光独立引用槽；956C60撤反向登记，956E90可能级联Remove；采集身份/待登记句柄，后台转成员序号；Client经SetReference维护，退休先撤边",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "wire": {
+            "kind": "reference",
+            "type": "u16",
+            "target": "entities",
+            "host": "entity_reference_to_identity",
+            "client": "entity_reference_from_member"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x540",
+          "size": "0x20",
+          "name": "unknown_540_55f",
+          "type": "bytes[32]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生字节；不复制，不把清零、对齐或池尾部推定为填充",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        },
+        {
+          "offset": "0x560",
+          "size": "0x4",
+          "name": "chained_lasers",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "链式激光数量",
+          "status": "已核",
+          "evidence": "docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "wire": {
+            "kind": "copy",
+            "type": "i32"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x564",
+          "size": "0x4",
+          "name": "unknown_564_567",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未核定语义的原生尾部；池步长不是填充证据",
+          "status": "未知",
+          "evidence": "docs/design/binary-state/tear-pickup-laser-evidence.md"
+        }
+      ],
+      "blocks": [
+        {
+          "id": 10,
+          "name": "L0 角度与运动",
+          "sequence": "world",
+          "fields": [
+            "laser_parent_offset",
+            "start_angle",
+            "laser_angle",
+            "last_angle",
+            "laser_length",
+            "rotation_degrees",
+            "laser_end_point"
+          ]
+        },
+        {
+          "id": 11,
+          "name": "L1 激光参数",
+          "sequence": "world",
+          "fields": [
+            "laser_tear_flags",
+            "first_update",
+            "sample_mode_raw",
+            "shrink",
+            "curve_strength",
+            "laser_radius",
+            "active_rotating",
+            "rotation_speed",
+            "laser_max_distance",
+            "homing_type",
+            "laser_scale",
+            "disable_follow_parent",
+            "start_offset_mode_opaque32",
+            "black_hp_drop_chance",
+            "laser_multidimensional_touched",
+            "laser_prism_touched",
+            "one_hit",
+            "grid_hit",
+            "damage_multiplier",
+            "chained_lasers"
+          ]
+        },
+        {
+          "id": 12,
+          "name": "L2 计时",
+          "sequence": "world",
+          "fields": [
+            "laser_timeout",
+            "laser_rotation_delay"
+          ]
+        },
+        {
+          "id": 13,
+          "name": "L3 独立引用",
+          "sequence": "world",
+          "fields": [
+            "bounce_laser",
+            "laser_linked",
+            "laser_child_a",
+            "laser_child_b",
+            "laser_split_a",
+            "laser_split_b",
+            "laser_split_c",
+            "laser_split_d",
+            "laser_related",
+            "laser_terminal_a",
+            "laser_terminal_b",
+            "laser_terminal_c",
+            "laser_peer"
+          ]
+        },
+        {
+          "id": 14,
+          "name": "L4 HomingLaser 标量",
+          "sequence": "world",
+          "fields": [
+            "homing_geometry#0"
+          ]
+        },
+        {
+          "id": 15,
+          "name": "L5 HomingLaser 优化采样点",
+          "sequence": "world",
+          "fields": [
+            "homing_geometry#1"
+          ]
+        },
+        {
+          "id": 16,
+          "name": "L6 HomingLaser 未优化采样点",
+          "sequence": "world",
+          "fields": [
+            "homing_geometry#2"
+          ]
+        },
+        {
+          "id": 17,
+          "name": "L7 HomingLaser 索引",
+          "sequence": "world",
+          "fields": [
+            "homing_geometry#3"
+          ]
+        },
+        {
+          "id": 18,
+          "name": "L8 HomingLaser Bezier",
+          "sequence": "world",
+          "fields": [
+            "homing_geometry#4"
+          ]
+        },
+        {
+          "id": 19,
+          "name": "L9 Host命中集合",
+          "sequence": "world",
+          "fields": [
+            "laser_hit_indices"
+          ]
+        }
+      ],
+      "conversions": {
+        "laser_timeout_to_anchor": "用EncodeLaserTimeout。u64低32位mode0=真实停走原值、1=仅正值到期帧、2=无夹限有符号递减锚点，高32位value。必须由owner核定当前helper/早退/暂停/Shrink分支；SubType(+0x30)=1/2/3的954310也访问/重置Timeout，完整活动条件未闭合时报Gap，不能从Timeout符号或Shrink单字节猜时钟。",
+        "laser_timeout_from_anchor": "先ValidLaserTimeout，再以最近已应用world game_frame调用DecodeLaserTimeout；mode1到零停走，mode2允许负值；不重演Shrink/Remove/伤害。",
+        "laser_rotation_delay_to_anchor": "仅在当前字段真实活动分支与Host game_frame关系已核时调用EncodeEntityCounter(Frozen/Decreasing)；低32位mode0=原值/2=有符号递减锚点，高32位value。不得发送Increasing，也不将未知编码为Frozen。94C940:94CAF9仅activeRotating非零；94CB16任意非零Delay到94CC29减1，负值也递减，零转入旋转逻辑；另有Update早退与子类型分支",
+        "laser_rotation_delay_from_anchor": "先ValidEntityCounter并拒绝本字段未使用的Increasing(mode1)，再用最近已应用world game_frame调用DecodeEntityCounter；保留负数与回绕，不夹零，不运行粘附/旋转逻辑。"
+      },
+      "validators": {
+        "laser_parent_offset": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "start_angle": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "laser_angle": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "last_angle": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "first_update": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "shrink": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "laser_length": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "curve_strength": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "laser_radius": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "active_rotating": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "rotation_degrees": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "rotation_speed": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "laser_max_distance": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "laser_end_point": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "laser_scale": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "disable_follow_parent": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "black_hp_drop_chance": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "laser_multidimensional_touched": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "laser_prism_touched": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "one_hit": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "grid_hit": {
+          "kind": "boolean",
+          "scalar": "u8"
+        },
+        "damage_multiplier": {
+          "kind": "finite",
+          "scalar": "f32"
+        }
+      },
+      "members": [
+        {
+          "id": "EntityLaser.ParentOffset",
+          "disposition": "field",
+          "fields": [
+            "laser_parent_offset"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.StartAngleDegrees",
+          "disposition": "field",
+          "fields": [
+            "start_angle"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.AngleDegrees",
+          "disposition": "field",
+          "fields": [
+            "laser_angle"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.Angle",
+          "disposition": "field",
+          "fields": [
+            "laser_angle"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.LastAngleDegrees",
+          "disposition": "field",
+          "fields": [
+            "last_angle"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.TearFlags",
+          "disposition": "field",
+          "fields": [
+            "laser_tear_flags"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.Timeout",
+          "disposition": "field",
+          "fields": [
+            "laser_timeout"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GetTimeout",
+          "disposition": "field",
+          "fields": [
+            "laser_timeout"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.FirstUpdate",
+          "disposition": "field",
+          "fields": [
+            "first_update"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.Shrink",
+          "disposition": "field",
+          "fields": [
+            "shrink"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GetShrink",
+          "disposition": "field",
+          "fields": [
+            "shrink"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.LaserLength",
+          "disposition": "field",
+          "fields": [
+            "laser_length"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.CurveStrength",
+          "disposition": "field",
+          "fields": [
+            "curve_strength"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.Radius",
+          "disposition": "field",
+          "fields": [
+            "laser_radius"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.IsActiveRotating",
+          "disposition": "field",
+          "fields": [
+            "active_rotating"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.RotationDelay",
+          "disposition": "field",
+          "fields": [
+            "laser_rotation_delay"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.RotationDegrees",
+          "disposition": "field",
+          "fields": [
+            "rotation_degrees"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.RotationSpd",
+          "disposition": "field",
+          "fields": [
+            "rotation_speed"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.MaxDistance",
+          "disposition": "field",
+          "fields": [
+            "laser_max_distance"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.HomingType",
+          "disposition": "field",
+          "fields": [
+            "homing_type"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.EndPoint",
+          "disposition": "field",
+          "fields": [
+            "laser_end_point"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GetEndPoint",
+          "disposition": "field",
+          "fields": [
+            "laser_end_point"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GetScale",
+          "disposition": "field",
+          "fields": [
+            "laser_scale"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.DisableFollowParent",
+          "disposition": "field",
+          "fields": [
+            "disable_follow_parent"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GetDisableFollowParent",
+          "disposition": "field",
+          "fields": [
+            "disable_follow_parent"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.BounceLaser",
+          "disposition": "field",
+          "fields": [
+            "bounce_laser"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.BlackHpDropChance",
+          "disposition": "field",
+          "fields": [
+            "black_hp_drop_chance"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.IsMultidimensionalTouched",
+          "disposition": "field",
+          "fields": [
+            "laser_multidimensional_touched"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.IsPrismTouched",
+          "disposition": "field",
+          "fields": [
+            "laser_prism_touched"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.OneHit",
+          "disposition": "field",
+          "fields": [
+            "one_hit"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GetOneHit",
+          "disposition": "field",
+          "fields": [
+            "one_hit"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GridHit",
+          "disposition": "field",
+          "fields": [
+            "grid_hit"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GetDamageMultiplier",
+          "disposition": "field",
+          "fields": [
+            "damage_multiplier"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GetNumChainedLasers",
+          "disposition": "field",
+          "fields": [
+            "chained_lasers"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GetHitList",
+          "disposition": "field",
+          "fields": [
+            "laser_hit_indices"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.sample_mode_raw",
+          "disposition": "field",
+          "fields": [
+            "sample_mode_raw"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.start_offset_mode_opaque32",
+          "disposition": "field",
+          "fields": [
+            "start_offset_mode_opaque32"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.HomingLaser",
+          "disposition": "field",
+          "fields": [
+            "homing_geometry#0",
+            "homing_geometry#1",
+            "homing_geometry#2",
+            "homing_geometry#3",
+            "homing_geometry#4"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GetSamples",
+          "disposition": "field",
+          "fields": [
+            "homing_geometry#1"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.GetNonOptimizedSamples",
+          "disposition": "field",
+          "fields": [
+            "homing_geometry#2"
+          ],
+          "reason": "已核原生字段及最终值owner；不执行带副作用的公开setter"
+        },
+        {
+          "id": "EntityLaser.SampleLaser",
+          "disposition": "derived",
+          "fields": [
+            "sample_mode_raw"
+          ],
+          "reason": "公开getter只返回原始有符号采样模式!=0；不能把-1与1合并为线上bool"
+        },
+        {
+          "id": "EntityLaser.IsSampleLaser",
+          "disposition": "derived",
+          "fields": [
+            "sample_mode_raw"
+          ],
+          "reason": "公开getter只返回原始有符号采样模式!=0；不能把-1与1合并为线上bool"
+        },
+        {
+          "id": "EntityLaser.CalculateEndPoint",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host几何计算操作；Client安装最终公开端点与四组几何，不调用重算"
+        },
+        {
+          "id": "EntityLaser.GetRenderZ",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host虚函数排序查询；公共显示上下文承担排序，不拿本地index重算"
+        },
+        {
+          "id": "EntityLaser.IsCircleLaser",
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host形态分类查询；Client不重演查询，绘制依赖的原始模式/几何保留"
+        },
+        {
+          "id": "NativeLaser.Linked",
+          "disposition": "field",
+          "fields": [
+            "laser_linked"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeLaser.ChildA",
+          "disposition": "field",
+          "fields": [
+            "laser_child_a"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeLaser.ChildB",
+          "disposition": "field",
+          "fields": [
+            "laser_child_b"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeLaser.SplitA",
+          "disposition": "field",
+          "fields": [
+            "laser_split_a"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeLaser.SplitB",
+          "disposition": "field",
+          "fields": [
+            "laser_split_b"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeLaser.SplitC",
+          "disposition": "field",
+          "fields": [
+            "laser_split_c"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeLaser.SplitD",
+          "disposition": "field",
+          "fields": [
+            "laser_split_d"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeLaser.Related",
+          "disposition": "field",
+          "fields": [
+            "laser_related"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeLaser.TerminalA",
+          "disposition": "field",
+          "fields": [
+            "laser_terminal_a"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeLaser.TerminalB",
+          "disposition": "field",
+          "fields": [
+            "laser_terminal_b"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeLaser.TerminalC",
+          "disposition": "field",
+          "fields": [
+            "laser_terminal_c"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        },
+        {
+          "id": "NativeLaser.Peer",
+          "disposition": "field",
+          "fields": [
+            "laser_peer"
+          ],
+          "reason": "旧client_entity_links.inc已同步独立关系；保留同帧身份和反向关系owner，不因退役旧路径丢失"
+        }
+      ],
+      "public_owners": [
+        "EntityLaser"
+      ],
+      "companions": [
+        {
+          "name": "entity_plus",
+          "type": "EntityLaserPlus",
+          "semantics": "E9只收窄既存伴随来源的动态类型，公共前缀不重复发送；派生玩法字段不在Client复活",
+          "evidence": "repentogon/Patches/EntityPlus.h/.cpp；docs/design/binary-state/tear-pickup-laser-evidence.md",
+          "status": "已核",
+          "host": "read_existing_EntityLaserPlus",
+          "client": "install_existing_EntityLaserPlus"
+        }
+      ],
+      "sdk_size": "0x568",
+      "notes": "第4步Tear/Pickup/Laser布局；SDK声明与未知逐段保留，第10/13步接入真实采集/应用，第15步唯一整体验收。"
     }
   ]
 }

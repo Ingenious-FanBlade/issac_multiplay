@@ -17,3 +17,5 @@
 - `complete` 是生成值：存在未知字节、未核声明或不完整嵌套时为 false。它只描述原生布局事实；不表示同步、应用或 E2E 已完成。
 
 `entity.json` 是第 3 步的 Entity 公共部分（E0—E9）和 EntityPlus 公共前缀。`entity-effect.json` 继承它，是第 1 步的继承/变体首批输入；Effect 的全部变体与附属 owner 属于第 4 步。未知字节照实保留并继续生成，不能把它们当成可发布的完整 Entity 或 Effect 支持。
+
+`entity-classes.json` 已接入第 4 步的 Familiar／Knife／Bomb／Tear／Pickup／Laser 及其伴随对象、几何与已核专用表现。版本 20 增加后三类；它们的条件计时、私有未知和 SDK 声明照实保留。HomingLaser 四组容器分别投影，Pickup 循环数组只发有效前缀和 u16 count；三类新增引用不因旧 Lua／JSON 路径退役而丢失。

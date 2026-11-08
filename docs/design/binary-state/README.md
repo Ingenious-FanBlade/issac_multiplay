@@ -1,6 +1,6 @@
 # 原生二进制状态同步重构：总计划
 
-日期：2026-11-08（Asia/Singapore）。状态：**第 0—3 步已落地，第 4 步的 Familiar／Knife／Bomb 布局与专用表现已接入生成链，普通 Release 纯编译／链接通过**。入口为[第 0—2 步实现](implementation-0-2.md)、[第 3 步实现](implementation-3.md)、[第 4 步本轮实现](implementation-4-familiar-knife-bomb.md)和[生成布局表](layouts/README.md)。当前布局版本 16。SDK 声明、未知字节、子类计时分支和跨域未决照实保留，不表示类型完整或同步已可运行；第 4 步其余子类和第 5—14 步待实施。0—14 步没有测试，第 15 步是唯一统一整体验收。
+日期：2026-11-08（Asia/Singapore）。状态：**第 0—3 步已落地，第 4 步的 Familiar／Knife／Bomb 和 Tear／Pickup／Laser 布局与专用表现已接入生成链，普通 Release 纯编译／链接通过**。入口为[第 0—2 步实现](implementation-0-2.md)、[第 3 步实现](implementation-3.md)、[Familiar／Knife／Bomb 实现](implementation-4-familiar-knife-bomb.md)、[Tear／Pickup／Laser 实现](implementation-4-tear-pickup-laser.md)和[生成布局表](layouts/README.md)。当前布局版本 20。SDK 声明、未知字节、子类计时分支和跨域未决照实保留，不表示类型完整或同步已可运行；第 4 步其余子类和第 5—14 步待实施。0—14 步没有测试，第 15 步是唯一统一整体验收。
 
 本目录保存这次重构的总计划和逐步设计。按用户 2026-11-08 的要求，步骤**直接用数字编号，从 0 开始**，不再使用 `tx-0x-0x`；文件名为 `<编号>-<主题>.md`。旧 tx 文档中的事实和失败记录保持原样；与本目录冲突的设计以本目录为准，具体范围见第 6 节。
 

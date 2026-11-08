@@ -16,6 +16,11 @@ static_assert(sizeof(std::unique_ptr<EntityPlus>)==4);
 static_assert(sizeof(EntityFamiliarPlus)==0x1c && offsetof(EntityFamiliarPlus,cachedMultiplier)==0x10);
 static_assert(offsetof(EntityFamiliarPlus,cachedMultiplierPlayer)==0x18);
 static_assert(sizeof(EntityKnifePlus)==0x14 && offsetof(EntityKnifePlus,hitboxSource)==0x10);
+// 三类Plus只同步公共前缀；派生字段由Host使用，未知对齐字节不作填充推断。
+static_assert(sizeof(EntityTearPlus)==0x18 && offsetof(EntityTearPlus,initSound)==0x10);
+static_assert(sizeof(EntityPickupPlus)==0x14 && offsetof(EntityPickupPlus,canRerollOverride)==0x10);
+static_assert(sizeof(EntityLaserPlus)==0x1c && offsetof(EntityLaserPlus,recalculateSamplesNextUpdate)==0x10);
+static_assert(offsetof(EntityLaserPlus,initSound)==0x14);
 static_assert(sizeof(Innate)==sizeof(ItemSpoofSystem::InnateItems));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::CollectibleSpoof));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::TrinketSpoof));

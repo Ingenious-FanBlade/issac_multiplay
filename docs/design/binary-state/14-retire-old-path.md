@@ -53,6 +53,8 @@
 - **传输**：通道、可靠发送、分片重组、合包、zstd、内存池。
 - **Client 原生写入层**：原生写入函数、结构事务和退休流程。
 
+第 4 步 Tear／Pickup／Laser 已在新布局源中接管的旧行为不能随字符串表一起丢失：Tear 三份辅助 Sprite／七槽关系，Pickup 两份 Sprite／四槽关系／八项循环，Laser 十三槽关系／原始有符号采样模式／四份几何容器均须保留数字入口；引用退休先撤边，几何不调用 CalculateSamples，FlipSaveState 不复活。TearPlus／PickupPlus／LaserPlus 的派生声音、重抽和重采样请求仍属 Host。具体字段和边界见[本轮实现](implementation-4-tear-pickup-laser.md)。
+
 ### 14.4 文档同步
 
 - **索引**：更新 `docs/README.md` 和 `docs/hooks/README.md` 中受影响的入口。

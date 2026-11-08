@@ -1,3 +1,5 @@
+> **原生二进制状态同步重构第 4 步：Tear／Pickup／Laser（2026-11-08）**：[实现说明](design/binary-state/implementation-4-tear-pickup-laser.md)、[必要逆向与主审](design/binary-state/tear-pickup-laser-evidence.md)和[生成布局表](design/binary-state/layouts/README.md)。三类布局、派生 Plus、独立辅助 Sprite、全部已核引用槽、Pickup 循环道具与 Laser 四份几何容器已接入生成链，布局版本 20。未知字节与条件计时缺口照实保留；普通 Release 纯编译／链接通过，没有测试或启动游戏，第 15 步统一验收。
+
 > **原生二进制状态同步重构第 4 步：Familiar／Knife／Bomb（2026-11-08）**：[实现说明](design/binary-state/implementation-4-familiar-knife-bomb.md)、[必要逆向与主审](design/binary-state/familiar-knife-bomb-evidence.md)和[生成布局表](design/binary-state/layouts/README.md)。三类布局、派生 Plus、辅助 Sprite、Familiar 两种专用 payload 与公开成员回映射已接入生成链，布局版本 16。未知字节与未闭合的计时条件明确保留，不能宣称类型完整；Release 纯编译／链接通过，没有测试或启动游戏，第 15 步统一验收。
 
 > **原生二进制状态同步重构第 3 步（2026-11-08）**：[实现说明](design/binary-state/implementation-3.md)、[Entity 公共证据](design/binary-state/entity-common-evidence.md)与[生成布局](design/binary-state/layouts/Entity.md)。Entity `[0,0x410)` 全部字节已有归属，生成 E0—E9 共 77 个字段／投影和 23 个直接复制区间，布局版本 12；另有 EntityPlus 只读来源、条件计时锚点和 Client 数字字段查询。Entity 仍有 335B 未知，不宣称类型完整。基础库和完整 DLL 的 Release 纯编译／链接通过；没有测试、部署或启动游戏，第 15 步统一整体验收。
