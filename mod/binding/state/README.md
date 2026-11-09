@@ -5,6 +5,8 @@
 布局源任何改动都必须手工递增版本。版本 1 是首次创建，尚未用于网络握手；第 9 步接入握手后，两端直接比较整数版本。版本是 u16 正整数，与帧头 `layout_version` 同宽。
 
 - `ranges` 按原生偏移排列；子类只写父类大小之后的范围，生成时展开父类，完整覆盖 `[0,native_size)`。未知区必须具名，不能自动补为填充。标量和 `bytes[N]` 类型标签的宽度必须等于 `size`。
+- 独立RTTI但无尾部成员的等大派生类（Dummy）允许与父类相同大小；此时子类`ranges`必须为空，不能覆盖父类字节归属。
+- `storage=c-string`是最多256B的内联零终止字节串，不是MSVC string头或复杂内联数组。u16线上上限必须为原生容量减一，必须声明真实写入资格；线上不含NUL，Host不读取终止后的尾部，Client暂存时验证无内嵌NUL并补一个终止符。
 - 原生文档和 `NativeRanges` 还会展开内嵌类型，保留各子成员实际归属，父／子证据状态取较弱者；未知计数包括内嵌未知字节。容器指向的外部元素按其元素布局另行处理，不计作容器头自身的字节。
 - `wire.kind=copy` 只允许定长标量、数组和逐成员核定的纯值类型。复杂嵌套类型用 `nested`，容器用 `container`；转换、引用和资源都必须声明双端具名处理器。
 - 嵌套状态可用 `wire.projections=[0,1,2]` 拆到父类型不同块，父块分别引用 `字段名#0`、`字段名#1`、`字段名#2`；所有实际产生发送字节的子块必须各出现一次；空预留子块可省略，原编号保持；既存空投影合法且不产生负载。这样 Entity 的 Sprite 外观、动画、图层能独立变化，不重抄 ANM2 字节事实。
@@ -52,4 +54,6 @@
 
 版本42按docs/design/binary-state/npc-synchronization-review.md修正：Delirium两Boss选择值归Host并撤销shape，17／18空预留；ControllerId只换算0/1/2受控UI表现，不发送或安装本地设备键，原公开raw查询归Host；新增144号NpcOverlaySprite仅排除由主Sprite null-frame绘制前覆写的Scale。N0为25B，N4最小238B，两NPC最小均710B；未知586／597B与Pathfinder SDK声明保持。来源谓词未核定必须Gap，正式reader/adapter仍待第10/13步；本轮不运行测试。
 
-当前版本43闭合NPC受控UI来源：Manager+4AFB8是原版NetplayManager，8E7550为IsIdxLocalPlayer，版本42“本地设备可用性”解释错误。C/S仅用F1C哨兵输出0/2，已实现state/npc_presentation.h/.cpp的ReadNpcControlledUi／DecodeNpcControlledUi；去掉特殊来源未决资格，枚举拒绝1，不读取原版Online或调用getter。线上大小与UNKNOWN不变；正式窗口/绘制接线仍归第10/13步，未运行测试。见docs/design/binary-state/npc-control-ui-evidence.md。
+版本43闭合NPC受控UI来源：Manager+4AFB8是原版NetplayManager，8E7550为IsIdxLocalPlayer，版本42“本地设备可用性”解释错误。C/S仅用F1C哨兵输出0/2，已实现state/npc_presentation.h/.cpp的ReadNpcControlledUi／DecodeNpcControlledUi；去掉特殊来源未决资格，枚举拒绝1，不读取原版Online或调用getter。线上大小与UNKNOWN不变；正式窗口/绘制接线仍归第10/13步，未运行测试。见docs/design/binary-state/npc-control-ui-evidence.md。
+
+当前版本44接入entity-text-dummy.json：Text145／variant2缩放146／Dummy147；Text只发有效原始字节前缀与RGBA，counter仅146发送，duration／此固定字体不消费的颜色空间标签留Host，通用KColor20B不变。新增c-string容量／资格声明与ReadCStringInto／StageCStringInto；等大派生仅允许空ranges。Text339B／Dummy335B未知及Dummy历史屏幕cache依赖／自然来源缺口保持。实际窗口／writer／draw接线仍归第10／13步，第15步前不测试。见docs/design/binary-state/text-dummy-evidence.md与implementation-4-text-dummy.md。

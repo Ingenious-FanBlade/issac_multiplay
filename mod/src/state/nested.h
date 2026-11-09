@@ -44,6 +44,10 @@ NativeElementView ReadCountedArrayInto(const ReadWindow &, std::uint32_t pointer
                                        std::uint32_t stride, std::uint16_t limit, std::span<std::byte> storage, std::string_view field);
 std::span<const std::byte> ReadStringInto(const ReadWindow &, std::uint32_t header, std::uint16_t limit,
                                          std::span<std::byte> storage, std::string_view field);
+// Text内联字节串仅扫描至首个零，再复读该前缀（含零）；不读取、编码或比较尾部旧槽数据。
+// 调用者须先持有生成字段要求的本use写入见证；本函数只检查窗口和有界字节，不补造见证。
+std::span<const std::byte> ReadCStringInto(const ReadWindow &, std::uint32_t address, std::uint16_t capacity,
+                                          std::span<std::byte> storage, std::string_view field);
 // 自有分配包装用于冷路径；正式逐帧采集应使用上面的 Into 接口。
 NativeElements ReadVector(const ReadWindow &, std::uint32_t header, std::uint32_t stride,
                           std::uint16_t limit, std::string_view field);
@@ -61,6 +65,9 @@ std::span<const std::byte> EncodeElementsInto(std::uint16_t count, std::span<con
 struct ElementPayload { std::uint16_t count; std::span<const std::byte> bytes; };
 ElementPayload DecodeElements(std::span<const std::byte>, std::uint16_t limit,
                               std::uint32_t fixed_element_size, std::size_t max_bytes, std::string_view field);
+// 线上仍为u16长度+原始前缀，不猜UTF-8；拒绝内嵌零。Client暂存时另补终止符，后续owner只安装此有效区。
+std::span<const std::byte> StageCStringInto(std::span<const std::byte> encoded, std::uint16_t capacity,
+                                           std::span<std::byte> storage, std::string_view field);
 
 // Client 通过具名原生 owner 建立临时容器，全部成功才交换到目标；实现不得 memcpy 容器头。
 // 回调对象只在当前主线程栈使用。分配/构造/销毁策略由第 13 步的各原生 owner 提供。

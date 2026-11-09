@@ -1,6 +1,6 @@
 # EntityPickup
 
-由唯一布局源生成。布局编号 126；布局版本 43；原生大小 0x6F0；未知 448B；完整：否。
+由唯一布局源生成。布局编号 126；布局版本 44；原生大小 0x6F0；未知 448B；完整：否。
 
 第4步Tear/Pickup/Laser布局；SDK声明与未知逐段保留，第10/13步接入真实采集/应用，第15步唯一整体验收。 版本35按Pickup／Slot展示复核排除Host输入；Pickup保留Price／DropDelay及两份辅助Sprite，Slot保留奖品Sprite，未知不变，后续步骤接线。
 

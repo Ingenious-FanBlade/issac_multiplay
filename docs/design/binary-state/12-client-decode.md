@@ -1,5 +1,7 @@
 # 12：Client 解码、校验与影子状态
 
+版本44 Text／Dummy按[逐段证据](text-dummy-evidence.md)解码145／146／147。TX1必须为u16 count＋精确count原始字节，count≤255、无内嵌NUL，非UTF8允许；`StageCStringInto`只在自有256B暂存区补NUL。TX0为四个有限f32，TX2只在146有i32 counter，145的12号块预留；不得等待duration／颜色空间标签或Dummy专有负载。Manager帧／pause依赖同world展示上下文，缺失不可换用本地帧。旧独立Render来源保持原scope，不拼为当前普通快照。实际帧解码／影子状态接线仍属本步后续工作。
+
 状态：设计稿，未实施。上级：[总计划](README.md)。
 
 ## 目标

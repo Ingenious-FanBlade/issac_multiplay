@@ -1,6 +1,8 @@
 # 4：Entity 子类
 
-**2026-11-09 当前版本43：NPC受控UI来源未决已闭合。** [静态证据与纠错](npc-control-ui-evidence.md)核定8E7550为原版NetplayManager::IsIdxLocalPlayer，撤销上轮“本地设备可用性”的误解。C/S只以NPC+F1C的-1哨兵生成0/2受控表现，不读取原版联机对象；新增ReadNpcControlledUi／DecodeNpcControlledUi，拒绝旧模式1。布局长度、根未知586／597B及其他未决保持，正式窗口／绘制接线仍按第10／13步；第15步之前不运行测试。
+**2026-11-09 当前版本44：Text／Dummy布局与字段职责。** [静态证据及同步决定](text-dummy-evidence.md)与[实施记录](implementation-4-text-dummy.md)接入145号Text、146号variant2缩放臂、147号Dummy。Text只发有效字节前缀／最终RGBA，counter仅缩放臂发送；duration和此固定字体不消费的KColor标签留Host，通用KColor保持20B。Dummy无专有尾部，继承公共状态。新增c-string读取／暂存及等大派生支持；Text339B／Dummy335B未知、Dummy不可见分支的历史屏幕缓存依赖与自然来源缺口保留。普通Release／Win32产品纯编译与链接通过，未运行测试，正式窗口／绘制接线仍在第10／13步。
+
+**2026-11-09 版本43：NPC受控UI来源未决已闭合。** [静态证据与纠错](npc-control-ui-evidence.md)核定8E7550为原版NetplayManager::IsIdxLocalPlayer，撤销上轮“本地设备可用性”的误解。C/S只以NPC+F1C的-1哨兵生成0/2受控表现，不读取原版联机对象；新增ReadNpcControlledUi／DecodeNpcControlledUi，拒绝旧模式1。布局长度、根未知586／597B及其他未决保持，正式窗口／绘制接线仍按第10／13步；第15步之前不运行测试。
 
 **2026-11-09 版本42：NPC同步职责修正。** [逐段复核](npc-synchronization-review.md)取消Delirium BossType／Variant的8B传输与无根据的shape换代；ControllerId本地设备键改为1B受控UI表现，禁止跨进程raw写入；OverlayEffect新增144号场景视图，8B Scale由当前主Sprite null-frame派生。五项原生绘制标量、真实引用、三deque与必要双Sprite保持。NPC／Delirium最小负载均710B，未知586／597B及Pathfinder SDK声明不变；实际控制UI来源／adapter仍待第10／13步，不运行测试。
 
@@ -14,7 +16,7 @@
 
 **2026-11-09 版本37（历史范围）：Laser／Homing采样、运动与计时。** [Laser／Homing采样、运动与计时复核](laser-homing-synchronization-review.md)保留optimized／unoptimized两组最终点列与当前角度、长度、完整效果位、原始采样模式、MaxDistance／GridHit、公开EndPoint和+4F0展示分支输入；19项Laser更新输入、六项Homing标量、indices中间点缓存及Bezier／系数留Host。indices原生类型纠正为8B双f32点对，旧i32步长记录错误。L2／L4／L7／L8及Homing子块0／3／4预留，父投影仅1／2；撤销两个Laser计时锚点。最小Laser542→439B，未知421B不变。源、生成器和第10／12／13／14／15步合同已修订，未构建或测试；运行时仍待接线。
 
-状态：部分实施。Familiar／Knife／Bomb、Tear／Pickup／Laser 和 Slot／Projectile／Effect 的布局、公开成员回映射和专用表现已接入生成链，未知字节与计时分支缺口保留，见[前三类实现](implementation-4-familiar-knife-bomb.md)、[中间三类实现](implementation-4-tear-pickup-laser.md)和[本轮三类实现](implementation-4-slot-projectile-effect.md)；NPC／Delirium布局迁移见[本轮实现](implementation-4-npc.md)，Text／Dummy等剩余专用形态和全部已知缺口仍按各节推进。上级：[总计划](README.md)。
+状态：部分实施。Familiar／Knife／Bomb、Tear／Pickup／Laser 和 Slot／Projectile／Effect 的布局、公开成员回映射和专用表现已接入生成链，未知字节与计时分支缺口保留，见[前三类实现](implementation-4-familiar-knife-bomb.md)、[中间三类实现](implementation-4-tear-pickup-laser.md)和[本轮三类实现](implementation-4-slot-projectile-effect.md)；NPC／Delirium布局迁移见[本轮实现](implementation-4-npc.md)，Text／Dummy布局与字段职责见[版本44实现](implementation-4-text-dummy.md)，全部已知缺口仍按各节推进。上级：[总计划](README.md)。
 
 ## 目标
 
@@ -322,6 +324,12 @@ Delirium十个唯一公开ReplicatedState全部归Host查询；BossType／Varian
 
 布局版本 **27**。Knife `+0x504—0x51B` 的六个f32保留独立K4（24B），具体用途为父刀距离、相对角度、局部偏移X／Y、本刀分裂触发距离和碰撞方向角，证据升级“已核”。`+0x518`由HandleCollision消费，前轮称绘制字段有误，已更名`knife_tail_collision_angle`；不在Client执行碰撞。末四字节仍按现有证据等级保留。Slot／Projectile／Effect本轮更正原生归属，不增加运行中的采集、安装或回调执行；第10／13步必须遵循本地地址不传输、Host玩法不重演的约束。完整改动和普通编译结果见[本轮落地说明](implementation-4-first-four.md)。
 
+### 4.7 Text与Dummy（版本44，2026-11-09）
+
+唯一源`state/entity-text-dummy.json`、[逐段证据](text-dummy-evidence.md)及[生成表](layouts/README.md)为现行合同。Text按RTTI选145，再以variant2选146；Dummy只按真实RTTI选147，不能用type964冒充。Text TX0为RGBA16B，TX1为u16 count加0—255原始字节，TX2仅146有counter4B，基础臂显式预留。duration不上线；KColor末字已核颜色空间，固定Text draw不消费，通用20B布局不变。读串须当前use/revision真实writer，Init／复用／退休撤销资格；空串、缩短、非UTF8及未终止分别处理。
+
+Dummy无尾部字节／专用字符串，标签由公共Type/Variant派生，使用本地Font2；正常可见分支使用公共Screen公式。不可见时公共Render不刷新cache但标签继续读cache，此历史依赖不能假称无条件派生，须在第13步闭合具名来源，缺失报Gap；本轮没有猜测8B跨视口负载。Text尾字52C—52F保持UNKNOWN；两类继承的公共未知不变，不能据已生成布局宣称类型完整或运行验收通过。
+
 ## 改动范围
 
 - 布局源 `state/entity-classes.json`、`state/entity-effect.json` 中的子类条目和专用块；其中 Effect 按 4.1 分为 6 个变体臂布局，NPC 按 4.2 增加 Delirium 变体臂。
@@ -354,7 +362,7 @@ Delirium十个唯一公开ReplicatedState全部归Host查询；BossType／Varian
 
 ## 未决问题
 
-NPC受控UI的来源问题已在版本43[闭合并纠正](npc-control-ui-evidence.md)，不再要求逆向原版Online slot5或读取其记录。下列其他UNKNOWN、Text／Dummy及各域后续接线不因此成为已完成。
+NPC受控UI的来源问题已在版本43[闭合并纠正](npc-control-ui-evidence.md)，不再要求逆向原版Online slot5或读取其记录。Text／Dummy布局及职责已按版本44实施；下列其他UNKNOWN与各域后续接线不因此成为已完成。
 
 - **原前四项的剩余部分**（工作量／次序、DepthOffset、对象范围和已核字段结论见 4.6）：
   - NPC／Familiar 按 4.6 的次序实施剩余归属；工作量估算已经完成，不等于未知字节已清零。

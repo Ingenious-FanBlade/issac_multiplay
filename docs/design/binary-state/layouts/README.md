@@ -64,3 +64,6 @@
 | [EntityNPC](EntityNPC.md) | 142 | 3936 | 586 | 否 |
 | [EntityNPC_Delirium](EntityNPC_Delirium.md) | 143 | 3936 | 597 | 否 |
 | [NpcOverlaySprite](NpcOverlaySprite.md) | 144 | 276 | 14 | 否 |
+| [EntityText](EntityText.md) | 145 | 1328 | 339 | 否 |
+| [EntityText_Scaled](EntityText_Scaled.md) | 146 | 1328 | 339 | 否 |
+| [EntityDummy](EntityDummy.md) | 147 | 1040 | 335 | 否 |

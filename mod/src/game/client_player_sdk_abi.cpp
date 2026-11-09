@@ -33,6 +33,8 @@ static_assert(offsetof(Entity_NPC,_pathfinder)==0x414 && offsetof(Entity_NPC,_st
 static_assert(offsetof(Entity_NPC,_deliriumBossType)==0xbc8 && offsetof(Entity_NPC,_deliriumCycleID)==0xbe0);
 static_assert(offsetof(Entity_NPC,_dirtColor)==0xcac && offsetof(Entity_NPC,_hitList)==0xf00);
 static_assert(offsetof(Entity_NPC,_controllerID)==0xf1c && offsetof(Entity_NPC,_sirenPlayerEntity)==0xf40);
+// Text专用颜色的SDK ABI为RGBA16B加末字4B；本步只发送标准字体实际消费的RGBA。
+static_assert(sizeof(KColor)==0x14 && offsetof(KColor,_alpha)==0xc && offsetof(KColor,_unk)==0x10);
 static_assert(sizeof(Innate)==sizeof(ItemSpoofSystem::InnateItems));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::CollectibleSpoof));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::TrinketSpoof));

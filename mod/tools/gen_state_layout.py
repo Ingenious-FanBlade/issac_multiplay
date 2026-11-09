@@ -171,7 +171,10 @@ class Compiler:
         require(0 <= integer(entry['rtti']['rva']) <= DYNAMIC, name, 'RTTI RVA 超过 u32')
         if entry.get('parent'):
             parent = self.expand(entry['parent'])
-            require(parent['native_size'] < entry['native_size'], name, '父类大小必须小于子类')
+            # Dummy有独立RTTI但无尾部成员，允许等大继承；不能借此覆盖父类字节。
+            require(parent['native_size'] <= entry['native_size'] and
+                    (parent['native_size'] < entry['native_size'] or not entry['ranges']),
+                    name, '子类不得小于父类，等大继承不得声明额外字节')
             entry['ranges'] = copy.deepcopy(parent['ranges']) + entry['ranges']
             parent_ids = {b['id'] for b in parent['blocks']}
             require(not parent_ids.intersection(b['id'] for b in entry['blocks']), name, '子类覆盖父类块号')
@@ -276,11 +279,18 @@ class Compiler:
                 width = scalar_size(element)
                 require(width is not None or element in self.types, where, '未知容器元素类型')
                 require(integer(wire['stride']) == (width if width is not None else integer(self.types[element]['native_size'])), where, '容器元素原生步长不一致')
-                require(wire.get('storage') in {'vector', 'string', 'array', 'deque'}, where, '容器必须指定 vector/string/array/deque')
+                require(wire.get('storage') in {'vector', 'string', 'array', 'deque', 'c-string'}, where, '容器必须指定 vector/string/array/deque/c-string')
                 if wire['storage'] == 'vector':
                     require(item['size'] == 12, where, 'J273 vector 头必须为 12 字节')
                 elif wire['storage'] == 'string':
                     require(item['size'] == 24 and element == 'u8', where, 'J273 string 必须为 24 字节字节串')
+                elif wire['storage'] == 'c-string':
+                    # Text是内联终止字节串，没有string头或独立count；终止后的旧槽数据不上线。
+                    require(element == 'u8' and item['type'] == f'bytes[{item["size"]}]' and
+                            1 < item['size'] <= 256 and integer(wire['limit']) == item['size'] - 1 and
+                            not any(key in wire for key in ('inline_count', 'count_field', 'count_from', 'projections')) and
+                            nonempty(item.get('read_requires')), where,
+                            '内联终止串须声明容量、容量减一上限及真实写入资格，不能伪造计数源')
                 elif wire['storage'] == 'deque':
                     # NPC三组容器的真实ABI；不能把20B头当vector或连续数组复制。
                     require(item['size'] == 20 and integer(wire['stride']) in {4, 8}, where,

@@ -175,6 +175,26 @@ std::span<const std::byte> ReadStringInto(const ReadWindow &window, std::uint32_
                                          std::span<std::byte> storage, std::string_view field) {
   return CopyStringInto(window, StringHeader(window, header, limit, field), storage, field);
 }
+std::span<const std::byte> ReadCStringInto(const ReadWindow &window, std::uint32_t address, std::uint16_t capacity,
+                                          std::span<std::byte> storage, std::string_view field) {
+  window.Require(field);
+  // 当前已核内联串最大256B；固定栈暂存避免逐实体分配，也不全量读取未初始化尾部。
+  if (capacity < 2 || capacity > 256 || !address ||
+      std::uint64_t(address) + capacity > UINT32_MAX || storage.size() < capacity)
+    Fail(field, "cstring_capture_bounds");
+  for (std::uint16_t i = 0; i < capacity; ++i) {
+    window.Copy(address + i, storage.subspan(i, 1), field);
+    if (storage[i] != std::byte{}) continue;
+    std::array<std::byte, 256> repeated{};
+    const auto terminated = storage.first(std::size_t(i) + 1);
+    window.Copy(address, std::span(repeated).first(terminated.size()), field);
+    if (!std::equal(terminated.begin(), terminated.end(), repeated.begin()))
+      Fail(field, "cstring_source_changed");
+    window.Require(field);
+    return storage.first(i);
+  }
+  Fail(field, "cstring_unterminated");
+}
 Bytes EncodeElements(std::uint16_t count, std::span<const std::byte> projected,
                      std::size_t max_bytes, std::string_view field) {
   if (max_bytes < 2 || projected.size() > max_bytes - 2 || (!count && !projected.empty()))
@@ -200,6 +220,18 @@ ElementPayload DecodeElements(std::span<const std::byte> bytes, std::uint16_t li
   if (count > limit || (!count && bytes.size() != 2) ||
       (width && std::uint64_t(count) * width != bytes.size() - 2)) Fail(field, "container_wire_count");
   return {count, bytes.subspan(2)};
+}
+std::span<const std::byte> StageCStringInto(std::span<const std::byte> encoded, std::uint16_t capacity,
+                                           std::span<std::byte> storage, std::string_view field) {
+  if (capacity < 2 || capacity > 256 || storage.size() < capacity) Fail(field, "cstring_stage_bounds");
+  const auto payload = DecodeElements(encoded, static_cast<std::uint16_t>(capacity - 1), 1,
+                                      std::size_t(capacity) + 1, field);
+  if (std::find(payload.bytes.begin(), payload.bytes.end(), std::byte{}) != payload.bytes.end())
+    Fail(field, "cstring_embedded_zero");
+  // 编码输入可与暂存区重叠；完成全部校验后才修改自有缓冲，终止后的旧尾部不属于同步状态。
+  if (payload.count) std::memmove(storage.data(), payload.bytes.data(), payload.count);
+  storage[payload.count] = std::byte{};
+  return storage.first(std::size_t(payload.count) + 1);
 }
 void RebuildContainer(const ReadWindow &window, ContainerBuilder &builder,
                       std::span<const std::span<const std::byte>> elements,

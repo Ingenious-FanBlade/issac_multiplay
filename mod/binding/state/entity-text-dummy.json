@@ -1,0 +1,97 @@
+{
+  "types": [
+    {
+      "type": "EntityText",
+      "layout": 145,
+      "native_size": "0x530",
+      "parent": "Entity",
+      "rtti": {"name": ".?AVEntity_Text@IsaacRepentancePlus@@", "rva": "0x7d2030"},
+      "ranges": [
+        {
+          "offset": "0x410", "size": "0x4", "name": "text_counter", "type": "i32", "category": "权威",
+          "semantics": "Host更新计数；基础Text绘制不读取，仅variant2的Scaled臂保留真实缩放消费者；Client不推进计数或按其移除",
+          "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md"
+        },
+        {
+          "offset": "0x414", "size": "0x4", "name": "text_duration", "type": "i32", "category": "权威",
+          "semantics": "Host淡出/闪烁颜色与移除输入；最终RGBA及成员生命周期分别同步，Render不读取duration，不做计时锚点或Client到期移除",
+          "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md"
+        },
+        {
+          "offset": "0x418", "size": "0x100", "name": "text_bytes", "type": "bytes[256]", "category": "容器",
+          "semantics": "内联零终止原始字节串，仅发送首个零之前0—255B；无编码假设。Init不初始化，必须有本use/revision真实writer见证；终止后的旧槽数据不读取或复制",
+          "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md",
+          "read_requires": "text-current-use-writer",
+          "wire": {"kind": "container", "storage": "c-string", "element": "u8", "stride": 1, "limit": 255, "host": "read_text_bytes", "client": "install_text_bytes"}
+        },
+        {
+          "offset": "0x518", "size": "0x10", "name": "text_rgba", "type": "f32[4]", "category": "状态",
+          "semantics": "固定Text字体路径实际读取的最终RGBA；与公共Sprite ColorMod分开，保留Host已计算淡出/闪烁，不在Client调用Update重算",
+          "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md",
+          "read_requires": "entity-current-window", "wire": {"kind": "copy", "type": "f32[4]"}
+        },
+        {
+          "offset": "0x528", "size": "0x4", "name": "text_color_space", "type": "u32", "category": "权威",
+          "semantics": "KColor颜色空间标签，非填充也非未知opaque。Text固定FontSettings关闭callback，字体仅传递末字；最终Image Render只取前16B，不消费标签。此具体Text路径不传该值，通用KColor布局仍保留20B",
+          "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md；docs/design/binary-state/base-types-evidence.md"
+        },
+        {
+          "offset": "0x52c", "size": "0x4", "name": "text_unknown_52c", "type": "bytes[4]", "category": "未知",
+          "semantics": "0x530池步长及删除析构size证明对象上界；未核尾字用途，不能由未见直接访问推成填充，不读取或上线",
+          "status": "未知", "evidence": "docs/design/binary-state/text-dummy-evidence.md"
+        }
+      ],
+      "blocks": [
+        {"id": 10, "name": "TX0 最终文本颜色", "sequence": "world", "fields": ["text_rgba"]},
+        {"id": 11, "name": "TX1 有效文本字节", "sequence": "world", "fields": ["text_bytes"]},
+        {"id": 12, "name": "TX2 variant2绘制计数（基础臂预留）", "sequence": "world", "fields": [], "reserved": true}
+      ],
+      "conversions": {},
+      "validators": {"text_rgba": {"kind": "finite", "scalar": "f32"}},
+      "contexts": {
+        "text_presentation": {
+          "type": "world-presentation-context",
+          "semantics": "同一已应用world的Manager展示帧和pause；variant2取pause?0:(manager_frame+1)%2，不能用GameFrame/AuthorityTick/Client本地帧替换。字体为本地已加载Font6，屏幕尺寸/渲染offset由Client展示owner提供。旧独立Render样本保持原scope，不拼接普通状态",
+          "evidence": "docs/design/binary-state/text-dummy-evidence.md；第7/8/10/13步"
+        }
+      },
+      "members": [
+        {"id": "NativeText.counter", "disposition": "authority", "fields": [], "reason": "基础臂无绘制消费者；variant2独立臂才发送counter"},
+        {"id": "NativeText.duration", "disposition": "authority", "fields": [], "reason": "仅Host更新淡出/闪烁与移除；Client消费最终RGBA及结构生命周期"},
+        {"id": "NativeText.text", "disposition": "field", "fields": ["text_bytes"], "reason": "同use真实writer见证下的完整有效原始字节前缀；不是string对象或UTF-8假设"},
+        {"id": "NativeText.draw_color", "disposition": "derived", "fields": ["text_rgba"], "reason": "此固定Text draw最终颜色投影；KColor标签在此路径无消费者，不比较旧完整20B原值；通用KColor合同保持"},
+        {"id": "NativeText.draw_phase", "disposition": "derived", "fields": ["@text_presentation"], "reason": "基础臂不使用counter缩放，独立Render来源不并入普通快照；展示owner提供同world上下文"}
+      ],
+      "public_owners": ["NativeText"],
+      "variants": {
+        "selector": "variant",
+        "arms": [
+          {
+            "name": "Scaled", "layout": 146, "values": [2],
+            "ranges": [
+              {
+                "offset": "0x410", "size": "0x4", "name": "text_counter", "type": "i32", "category": "状态",
+                "semantics": "variant2 Render直接读取的有符号counter，与同world Manager/pause子帧计算缩放；保持精确原值，不套递减到期锚点，不在Client推进或用于退休",
+                "status": "已核", "evidence": "docs/design/binary-state/text-dummy-evidence.md",
+                "read_requires": "entity-current-window", "wire": {"kind": "copy", "type": "i32"}
+              }
+            ],
+            "blocks": [{"id": 12, "name": "TX2 variant2绘制计数", "sequence": "world", "fields": ["text_counter"]}],
+            "members": [
+              {"id": "NativeText.counter", "disposition": "field", "fields": ["text_counter"], "reason": "5CC723读取并参与缩放，只有variant2有此消费者"},
+              {"id": "NativeText.draw_phase", "disposition": "derived", "fields": ["text_counter", "@text_presentation"], "reason": "size=4-2.5*clamp((subframe+2*counter)/8,0,1)；Manager帧与pause上下文必须同一world"}
+            ]
+          }
+        ]
+      },
+      "notes": "第4步版本44：Text保留真实绘制依赖，duration与颜色标签留Host，counter仅Scaled146臂发送。339B根未知含公共335B和尾字4B；当前use写入资格、正式采集/安装/绘制接线归第10/13步，第15步统一验收。"
+    },
+    {
+      "type": "EntityDummy", "layout": 147, "native_size": "0x410", "parent": "Entity",
+      "rtti": {"name": ".?AVEntity_Dummy@IsaacRepentancePlus@@", "rva": "0x7d2164"},
+      "ranges": [], "blocks": [], "conversions": {}, "validators": {}, "members": [],
+      "public_owners": [],
+      "notes": "第4步版本44：独立RTTI的等大派生类，没有专有尾部或待传标签串，旧目录也没有NativeDummy专有成员owner。Render以公共Type/Variant格式化e%d.%d，经公共屏幕坐标与本地Font2绘制；公共E0—E9/Plus照常继承。公共Render仅在exists/visible为真时刷新屏幕cache，后续标签无同等判断；其历史/跨视口依赖须第13步闭合，缺来源报Gap，不能假称无条件派生。335B公共未知保留。Factory Create(964)取NPC，正式取得须真实Dummy预构造空槽owner，不能改vptr或假造自然来源。"
+    }
+  ]
+}

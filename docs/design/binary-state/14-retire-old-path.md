@@ -1,5 +1,7 @@
 # 14：退役旧路径与产品边界
 
+版本44 Text／Dummy按[字段复核](text-dummy-evidence.md)退役旧正式Lua／JSON字段链，但保留与Recorder无关的本use/revision真实writer资格；不能把Text Update／Render唯一常驻Hook误删或重复安装。独立`native-text-render-v1`仍为独立观测／对照scope，不能作为普通状态拼接来源。旧duration／KColor末字raw安装与全量漂移比较在切换时撤销，通用KColor20B合同不变；Dummy真实池／Plus／New／Delete／退休owner保留，E2E桥不进入产品。Dummy历史屏幕cache的已知依赖未闭合前保持具体Gap，不以旧完整目录或本地缓存掩盖。
+
 状态：设计稿，未实施。上级：[总计划](README.md)。
 
 ## 目标

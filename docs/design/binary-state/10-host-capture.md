@@ -1,5 +1,7 @@
 # 10：Host 采集器
 
+版本44 Text／Dummy合同见[逐段证据](text-dummy-evidence.md)。在RTTI后选Text145／variant2的146／Dummy147；文本只读当前use/revision已观察writer的有效NUL前缀，使用`ReadCStringInto`，不复制整个256B。writer资格须从旧观测上下文迁到独立正式owner，Init／复用／退休撤销；没有见证报Gap，不能借Recorder开启或调用Update补齐。TX0只读最终RGBA16B，TX2仅146读取counter，duration／颜色空间标签不上线。Manager帧／pause沿同world展示上下文供应，不混入旧独立Render来源；Dummy继承公共状态，历史屏幕缓存分支来源缺失保持Gap，不用当前位置替换。此处是第10步后续接线要求，本轮未切换运行路径。
+
 状态：设计稿，未实施。上级：[总计划](README.md)。
 
 ## 目标
