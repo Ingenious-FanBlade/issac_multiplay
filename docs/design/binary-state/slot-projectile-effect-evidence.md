@@ -1,5 +1,15 @@
 # Slot、Projectile、Effect 静态证据
 
+> 版本40后续结论见[Effect五项未决](effect-next-five-evidence.md)：VarData新增具名臂，Timeout已找到101双减和141刷新，Trail上限127，ExtraData具体类型仍三种。下文原始证据、当时未决及失败保留，已解决的条目不作为当前缺口重复处理。
+
+> 版本38后续复核：[Effect各臂与附属payload](effect-synchronization-review.md)撤销六项公共更新输入、TearFlags与136描述；保留真实展示参数及三种payload。MrMe原16B未知已核为Host状态；Trail606190明确分配并复制64B，旧前缀／producer未定位限制由新证据解决；Ghost仅发有效前缀，Offset／Scale绘制派生，原四槽UNKNOWN仍保留。下文旧同步决定与未决仅代表原时点，现行以版本38源／生成表为准；未构建或测试，运行时仍待接线。
+
+> 版本36后续复核：[Projectile运动与展示参数复核](projectile-synchronization-review.md)将Projectile追踪／曲线／加速／下落／摆动及Scale／ProjectileFlags共八项留Host，保留Render直接消费的Height；公共EntityFlags、最终位置／偏移／尺寸和Sprite保持。私有+440及+460／+464的展示来源仍UNKNOWN，未构建或测试。下文旧传输与原值比较约定保留原时点，现行以版本36源及生成表为准，运行时仍待后续步骤接线。
+
+
+> 版本35后续复核：[Pickup／Slot选择、交互与奖励复核](pickup-slot-synchronization-review.md)将Pickup选择组／触碰／自动价格／商店标识等输入、Timeout／Wait和未来循环列表，以及Slot八项参数留Host。Price／DropDelay、最终主／辅助Sprite与真实引用保留；Slot奖品+460／+470精确对应当前动画指针／is_playing。下文旧传输／原值比较约定保留原时点，现行以版本35唯一源及生成表为准；未构建或测试。
+
+
 日期：2026-11-09。范围：第 4 步的 Entity_Slot、Entity_Projectile、Entity_Effect。仅记录本地 REPENTOGON 1.1.3 SDK、现有研究记录和 J273 IDA 静态观察；没有运行游戏、探针、构建、测试或哈希校验。
 
 ## 证据标记与目标数据库

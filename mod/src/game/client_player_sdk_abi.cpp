@@ -27,6 +27,12 @@ static_assert(offsetof(Entity_Slot,_timeout)==0x41c && sizeof(Entity_Slot::_time
 static_assert(offsetof(Entity_Slot,_prizeAnm2)==0x42c && offsetof(Entity_Slot,_prizeCollectible)==0x540);
 static_assert(sizeof(Entity_Projectile)==0x470 && sizeof(Entity_Effect)==0x490);
 static_assert(offsetof(Entity_Effect,_varData)==0x420);
+// 第4步NPC复用SDK前缀；复合deque和辅助Sprite的偏移另以J273静态指令核定。
+static_assert(sizeof(Entity_NPC)==0xf60 && sizeof(NPCAI_Pathfinder)==0x750);
+static_assert(offsetof(Entity_NPC,_pathfinder)==0x414 && offsetof(Entity_NPC,_state)==0xb64);
+static_assert(offsetof(Entity_NPC,_deliriumBossType)==0xbc8 && offsetof(Entity_NPC,_deliriumCycleID)==0xbe0);
+static_assert(offsetof(Entity_NPC,_dirtColor)==0xcac && offsetof(Entity_NPC,_hitList)==0xf00);
+static_assert(offsetof(Entity_NPC,_controllerID)==0xf1c && offsetof(Entity_NPC,_sirenPlayerEntity)==0xf40);
 static_assert(sizeof(Innate)==sizeof(ItemSpoofSystem::InnateItems));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::CollectibleSpoof));
 static_assert(sizeof(Spoof)==sizeof(ItemSpoofSystem::TrinketSpoof));

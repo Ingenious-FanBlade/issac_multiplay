@@ -1,5 +1,13 @@
 # Entity_Tear、Entity_Pickup、Entity_Laser 静态逆向证据
 
+> 版本37后续复核：[Laser／Homing采样、运动与计时复核](laser-homing-synchronization-review.md)只保留optimized／unoptimized最终点列和真实展示标量；十九项Laser输入、六项Homing标量、indices中间点缓存与Bezier／系数留Host，撤销两个Laser计时锚点。J273 Homing+34实际为8B双f32点对vector，本文旧i32／4B步长记录错误；原记录保留，不按旧类型继续传输。L2／L4／L7／L8预留，当前以版本37唯一源及生成表为准；未构建或测试，旧运行执行器仍待后续退役。
+
+> 版本35后续复核：[Pickup／Slot选择、交互与奖励复核](pickup-slot-synchronization-review.md)将Pickup选择组／触碰／自动价格／商店标识等输入、Timeout／Wait和未来循环列表，以及Slot八项参数留Host。Price／DropDelay、最终主／辅助Sprite与真实引用保留；Slot奖品+460／+470精确对应当前动画指针／is_playing。下文旧传输／原值比较约定保留原时点，现行以版本35唯一源及生成表为准；未构建或测试。
+
+
+> 版本34后续复核：[Knife／Bomb／Tear参数展示复核](knife-bomb-tear-synchronization-review.md)将Knife10／Bomb11／Tear21个攻击、运动与计时参数范围留Host；撤销三个计时锚点，保留真实绘制输入、最终Sprite和Bomb pending清除。下文旧的参数传输／计时见证要求保留原时点，现行传输以版本34唯一源及生成表为准；未构建或测试，运行接线仍待后续步骤。
+
+
 状态：第 4 步子类静态逆向记录。GPT-6 Luna（max）执行逆向子任务，主智能体复读原始指令和官方源码后采用、纠正并接入布局。逆向子任务没有运行游戏、构建、测试、探针或校验脚本，没有修改 IDB；主智能体随后完成布局版本 20 的普通 Release 纯编译／链接。尚未闭合的字节与语义明确保留 UNKNOWN。
 
 ## IDB 与证据范围

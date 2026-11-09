@@ -1,3 +1,19 @@
+二进制布局版本42（2026-11-09）：[NPC职责复核](../design/binary-state/npc-synchronization-review.md)复读49F3D0原type恢复、6CFFD1/6CFFDA缩放覆写、6D027C/6D0337→8E7550本地设备谓词。取消Boss选择8B与shape、raw设备键及OverlayEffect原Scale；没有新增Hook或执行游戏／测试，正式表现adapter待后续接线。
+
+二进制布局版本41（2026-11-09）：[NPC静态证据](../design/binary-state/npc-evidence.md)复读J273 ctor／Init／Update／Render／Shadow、大小／RTTI和三deque。六项真实绘制参数、双ANM2、复合引用与Delirium结构shape进入生成链；AI／Siren actor留Host，223B本类未知及Pathfinder声明保留。无新增Hook或实机操作，普通Release编译／链接成功，没有运行测试。
+
+二进制布局版本38（2026-11-09）：[Effect各臂与payload复核](../design/binary-state/effect-synchronization-review.md)区分Render／Light与Host更新；撤销六项参数、TearFlags／136描述的传输，保留三种表现payload。补核MrMe四项私有状态、Trail606190的64B分配／复制及Ghost有效前缀和绘制派生Offset／Scale。没有安装新Hook、构建或测试。
+
+二进制布局版本39（2026-11-09）：[Player/HUD装备及Plus复核](../design/binary-state/player-equipment-plus-synchronization-review.md)核835B40主动槽、758850进度条、60C1F0鞭主实体、415350水面分派与官方Plus hook；新增Whip135／TemporaryEffects136及Familiar D76来源。裁剪八项非展示范围，保留效果cooldown及两nullable；没有安装Hook、构建或测试。
+
+二进制布局版本37（2026-11-09）：[Laser／Homing采样、运动与计时复核](../design/binary-state/laser-homing-synchronization-review.md)确认optimized供Laser绘制、unoptimized供Type7 Room Light；indices为8B双f32中间点缓存，旧i32类型错误，Bezier与采样标量及十九项Laser更新输入留Host。直接展示字段保留，两个Laser锚点撤销；原生Interpolate仍属模拟。没有安装新Hook、构建或测试。
+
+二进制布局版本36（2026-11-09）：[Projectile运动与展示参数复核](../design/binary-state/projectile-synchronization-review.md)确认659460在+440开关下借Height临时改写+350，公共EntityFlags与私有+460／+464用于特效绘制；八项运动／规则输入归Host，原生Interpolate仍属模拟且不在Client放行。私有展示来源未闭合与375B未知保持；没有安装新Hook、构建或测试。
+
+二进制布局版本35（2026-11-09）：[Pickup／Slot选择、交互与奖励复核](../design/binary-state/pickup-slot-synchronization-review.md)确认Pickup Price／DropDelay的WaterClip／Render消费者，排除Host选择／触碰／定价输入、未来循环列表及Slot八项参数；Slot奖品ANM2+34／+44分别为当前动画指针／is_playing，继续保留最终Sprite。原生宽度、未知和历史记录不变，没有安装新Hook、构建或测试。
+
+二进制布局版本34（2026-11-09）：[Knife／Bomb／Tear参数展示复核](../design/binary-state/knife-bomb-tear-synchronization-review.md)核对Render／Shadow／PostRender、Room Light、排序／WaterClip及原生Interpolate，42个Host参数不上线。保留Knife拖影输入、Bomb最终costume／开关及pending清除、Tear效果位／DeadEye；Bomb懒资源重建的间接消费者依既有Client隔离合同处理。原未知和历史证据不变，没有安装新Hook、构建或测试。
+
 tx-04-20 I39补充（2026-11-05）：[非活动Player来源、资源借用与绘制主审](../design/tx-04-20/player-i39-source.md)登记J273具名子体owner RVA3C1F40、ChangeType3C4620、完整Init34F6A0、Esau Jr owner3A3A40及Lazarus/Replace收口；读取资格4／5与当前exact-pair见证3分开，真正生命周期撤销。另核WaterClip库存依赖、ANM copy/Swap遗漏标量、普通Room主层mode1、Knife插值Update及伤害闪隐余6条件。新增Hook仍只经统一清单常驻安装，Source只观察正常owner返回，未增加原版Online/Isaac Sync操作；实际有限验收见[20记录](../design/tx-04-20/tx-04-20-e2e.md)。
 
 tx-04-18 I29补充：[Room/Grid统一验收与主审](../design/tx-04-18/tx-04-18-acceptance.md)登记Crawlspace FX适用性、Room+7220 byte、Minimap连续深度，以及Backdrop图形构建入口917910/墙面911310/装饰915890和两处直接实体分支。同时补充704FB0基Grid物理构造观察，覆盖工厂之外的直接Wall构造；Luna/max结论已经主审独立复读。实际Hook/条件shim仍只由`mod/binding/hooks.json`生成并常驻，不改下面旧机器索引的历史快照。
@@ -139,3 +155,5 @@ rel32/入口表中的字节是源码expected指令；vtable指针字节以IDA im
 - [cs-t0/raw-apply-catalog-v4.json](../../cs-t0/raw-apply-catalog-v4.json)
 
 - [源码原生定位常量](source-address-constants.json)：153条RVA/对象偏移命名记录，与各模块末尾补录表对应。
+二进制布局版本40（2026-11-09）：[Effect后续五项证据](../design/binary-state/effect-next-five-evidence.md)核定传播／Timer等VarData复用、Timeout局部与公共递减、Rotation／Scale动态写、Trail尾部裁至127和三种ExtraData RTTI闭合范围。未新增Hook或实机操作，未运行测试。
+

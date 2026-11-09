@@ -47,8 +47,9 @@
 - `validators`：取值范围、枚举集合、有限浮点、容器上限。
 - `count_groups`：多个原生容器共用的元素数总上限，包含名称、字段名、limit 和证据；例如蝗虫两组 Sprite 合计最多 16384。生成到 `CountConstraint`，同容器各子块投影必须同 count，求和时只计一次。`ValidContainerCountGroups` 检查完整同版本计数，Host 复制元素前及 Client 写入前分别调用。
 - `members`：公开成员到布局字段的回映射。
+- **回映射不强制发送**：已有公开目录行改归 Host 权威时保留该行，使用 `disposition=authority` 并移除旧状态依赖；同步删除原生范围的 `wire`、对应 validator 和块内字段。空块显式 `reserved=true`，不前移后续块号。不能用旧 E2E 原值相等要求反向恢复不必要的同步，见[版本 28 职责复核](synchronization-field-review.md)。
 - `contexts`：嵌套类型的已核父上下文，例如所属资源号和容器元素序号。派生成员用 `@名称` 回映射；上下文不冒充原生字节，也不重复发送。
-- `extent`：默认 `object`。只有已核前缀、尚不代表具体动态对象大小时写 `base_prefix`；此类布局不能宣称完整，例如 Weapon 基类，以及实际记录分配／步长尚未闭合的 Trail 消费前缀。
+- `extent`：默认 `object`。只有已核前缀、尚不代表具体动态对象大小时写 `base_prefix`；此类布局不能宣称完整，例如 Weapon 基类。Trail节点自版本38起已有606190的0x40分配与完整复制证据，不再是base_prefix。
 - 第 3 步补充：`companions` 表示另有原生字节表的伴随对象，以具名 Host/Client owner 解析；生成字段明确为 `FieldSource::Companion`，没有根对象偏移，不把 EntityPlus 伪造成 Entity 内嵌字段。父类的伴随来源随继承保留。
 - 第 4 步补充：子类可用同名 `companions` 把来源收窄到派生类型，例如 Familiar／Knife 的 EntityPlus；生成器校验真实继承关系，不重复发送公共前缀，也不允许替换成无关类型。
 - 第 3 步补充：`read_requires` 保留特殊读取资格，生成到字段和合并区间；资格不同的区间不合并。`shape` 生成到字段元数据。`world-or-player-body` 表示公共块在普通 Entity 使用 world，在 Player 使用 body，供第 5/10/11 步接线。
@@ -73,10 +74,11 @@
 - **合并条件**：只合并同一状态块内、类别都是“状态”、在原生内存中首尾相接的字段。
 - **断开条件**：遇到填充、未知、本地、引用、资源、容器、换算字节都要断开。证实为填充的字节也断开，保证 memcmp 只比较有语义的字节。
 - **复制顺序**：区间按原生偏移升序复制，在状态块中按块内字段顺序排列。
-- **嵌套拆块**：复杂嵌套的 `wire.projections` 可以把子块分别放入父块（用 `字段名#子块号` 引用），要求所有子块恰好各一次。这样 Entity 的 E4/E5/E6 可复用 ANM2 一份字节事实。
+- **嵌套拆块**：复杂嵌套的 `wire.projections` 可以把子块分别放入父块（用 `字段名#子块号` 引用），要求所有实际产生发送字节的子块恰好各一次；空预留子块可省略，原编号保持；既存空投影合法且不产生负载。这样 Entity 的 E4/E5/E6 可复用 ANM2 一份字节事实。
 - **间接共享 owner**（第 4 步）：`kind=nested, storage=shared-owner` 的原生段必须为 8B holder 且归属“容器”，必须给出具名 Host／Client 处理器；payload 大小来自独立布局，不能按 holder 内嵌读取。投影 0 带 u8 present，其余投影依赖同目标版本存在性；缺失 owner 时各投影使用最短全零编码。根对象的原生表只计 holder，payload 的未知字节单独统计。编码与有界解码由 `state/owned_payload.*` 提供。
 - **容器元素拆块**：复杂容器的 `wire.projections` 同样投影元素子块。每个投影带自己的 u16 count；同一目标版本的投影计数必须一致，Client 在全部依赖就绪后由同一 owner 安装。Familiar 的两组蝗虫 Sprite 和共享 payload 据此拆分外观／动画／图层。
 - **容器字节预算**：`wire.max_bytes` 可另限每个容器字段／投影的完整编码大小（含 u16 count），不改变 `limit` 的元素数边界。生成的 `Field.max_size` 取二者约束的较小值，采集／解码还须检查实际编码长度和全局池预算，超限报缺口，不截断。这样复杂 ANM2 容器不会因逐级理论最大值相乘而溢出 u32。
+- **J273 deque（版本41）**：`wire.storage=deque`显式声明20B原生头，只允许已核4B EntityPtr／8B Vector步长，归并后按同一u16 count＋投影元素格式编码。生成器不把头作为普通复制区间；`ReadDequeInto`处理16B块、环形逻辑顺序与合法窗口，Client具名owner保留本地proxy并重建map／blocks。详见[NPC证据](npc-evidence.md)。
 
 ### 1.4 生成器拒绝生成的情况
 
@@ -116,3 +118,5 @@
 
 - **格式已定**：沿用 JSON，与现有生成链一致；生成器内置 schema 所用结构检查，不要求额外 Python 包。
 - 回映射中“派生”的判定，需要第 3—8 步逐类给出依据。
+
+版本38支持显式 `wire.inline_count`：固定内联复杂数组按槽数×原生步长覆盖范围，线上上限不得超过物理容量；原生字节表展开全部物理槽位，即使有效前缀为空也保留各槽UNKNOWN。普通 `storage=array` 也可能是指针／具名owner归并，只有显式inline_count才按内联数组展开。Effect191的四槽ANM2采用这一声明，线状态只发有效前缀；专用视图134只把该场景绘制前完全覆写的Offset／Scale归派生，通用ANM2不变。见[Effect复核](effect-synchronization-review.md)。

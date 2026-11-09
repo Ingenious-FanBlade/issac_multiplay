@@ -1,8 +1,12 @@
 # 第 2 步：基础类型 J273 静态证据
 
+> 版本39后续复核：[Player装备与Plus消费者](player-equipment-plus-synchronization-review.md)撤销ActiveItemDesc两项与Weapon五项传输，TemporaryEffect三值保留；新增135号实际Whip主引用及136号TemporaryEffects外层disabled／列表。下文原存储／类型／UNKNOWN和历史失败保持原时点，当前传输以唯一源／生成表为准；未构建或测试。
+
 目标为 REPENTOGON 1.1.3 SDK 与 Isaac v1.9.7.12.J273 Win32。以下 IDA 地址均为 VA，imagebase = 0x400000；RVA = VA − 0x400000。状态标记统一为：**已核**（J273 指令或官方实现直接确认）、**SDK声明**（官方 ZHL/源码声明，尚无独立 J273 访问证据）、**推断**（可解释且采取保守映射）、**未知**（语义未明，按字节保留，不视为填充）。
 
 布局唯一输入已写入 mod/binding/state/base.json。本文记录可复核依据和未闭合项；未知项不以 SDK 名字、构造初值或对齐假设填成确定语义。
+
+> 版本32同步职责补充：见[动画／资源／颜色职责复核](animation-resource-synchronization-review.md)。下列地址／语义发现保留原事实；两组事件位、两个loaded原始字节和ColorParams输入不再按原方案发送。is_playing／anim_frame／playback_speed有官方绘制插值依赖，资源选择与最终完整ColorMod保留，具体当前字节归属见生成表。
 
 ## 类型逐字节归属
 

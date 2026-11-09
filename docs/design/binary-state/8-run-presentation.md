@@ -89,6 +89,7 @@ Pickup、Familiar 等的原生 Render 还读写 Game 之外的四项全局值。
   - 例如：HUD 消息、Minimap 显示状态中由 Host 决定的项。
   - 由玩家、房间状态派生的显示，Client 原生逻辑会重建，归派生。
   - 每一项归为派生，都要给出 Client 重建路径的证据。
+- **Sprite资源与颜色**：版本32按[动画／资源／颜色职责复核](animation-resource-synchronization-review.md)保留资源选择、实际Image／shader和最终完整ColorMod；不传ColorParams时间线或Host加载维护字节。资源存在性由可空文件资源号表示，等待／失败／成功由Client资源owner维护；路径变化不能替代实际Image变化。主／叠加事件掩码不上线，一次性音画仍由事件通道处理。本步尚未核定的HUD／UI资源owner须核实际绘制消费者，不把Entity四层直接调用的阴性检索外推为全域覆盖；is_playing／anim_frame／playback_speed的官方绘制插值依赖继续保留。
 - **ColorModState**：三份 ColorModState 归状态，对应房间色调的渐变。
 - **音乐音效**：MusicManager 和 SFXManager 是全局单例，按现有应用目录的职责逐项归属。音效播放是事件，不是状态，沿用现有事件通道，不纳入状态帧。
 - **Game 帧计数**：`Game+0x25A70` 由 world 帧头的 game_frame 承载，也就是 Client 的展示时钟（第 13 步 13.6），不进入 Run 块，也不进入下面的绘制输入块。
@@ -155,3 +156,5 @@ ItemPool 和 RNG 整体归权威，不进入状态帧。如果 Client 显示需�
 
 - HUD（0x5C90）和 Minimap 的核对范围，即哪些部分必须同步。
 - Mod 域是否需要提供注册新 adapter 的公开接口，还是只保留现有具名 adapter。
+
+**版本39 Player／HUD装备依赖**：[装备与Plus复核](player-equipment-plus-synchronization-review.md)核定PlayerHUD::RenderActiveItem835B40直接／间接使用四主动槽六值、TemporaryEffects分类／count、ItemConfig、Player角色／库存及Game challenge；还在836093读首个slot0／1 Weapon的type12分支。Player758850的进度条依真实slot7／slot6公式与各内嵌Sprite，角色27另读704效果cooldown及配置cooldown；不得把有最终costume当作查询已经可用。HUD资源／image/bookImage／flash／布局等未核owner仍须本步准备，不放行832C10整个PlayerHUD Update刷新缓存。官方1072／1073等有效结果及HUD回调按声明Mod适配／表现隔离承接，不能在Client调用玩法Lua补齐。Plus公共覆盖由Scene415350的水面／反射分派实际消费，主体Room／Player依赖仍在；本轮不宣称完整HUD实现或测试通过。

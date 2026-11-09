@@ -141,9 +141,15 @@
         "stride": {
           "$ref": "#/$defs/integer"
         },
+        "inline_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
         "storage": {
           "enum": [
             "vector",
+            "deque",
             "string",
             "array",
             "shared-owner"

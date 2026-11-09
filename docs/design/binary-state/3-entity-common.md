@@ -2,6 +2,10 @@
 
 状态：第 3 步布局、共用实现与本轮静态核对已落地，Release 纯编译／链接通过（2026-11-08），没有测试。Entity 仍有明确未知字节和跨域未决，不能宣称类型完整或同步已可运行。上级：[总计划](README.md)；[实现说明](implementation-3.md)、[静态证据](entity-common-evidence.md)、[生成布局](layouts/Entity.md)。下方输入事实与初步划块保留设计语境，当前字段、大小和顺序以唯一布局源及生成表为准。
 
+**当前版本31修订**：见[公共字段复核](entity-common-synchronization-review.md)及[valid／exists／dead再复核](entity-lifecycle-synchronization-review.md)。版本30排除的33个范围保持；版本31再移出公共valid，由Client本地owner维护。exists／dead及有展示用途的碰撞／尺寸／速度参数保留；Player特殊身体激活资格由第5步P7结构接管，不能一律置true或据room_member猜测。下文版本12完成数量是历史事实，当前数量以生成表为准。
+
+**版本32动画与颜色修订**：[动画／资源／颜色职责复核](animation-resource-synchronization-review.md)将主／附属Sprite事件掩码归Host、loaded原字节归本地；资源存在性保留于可空文件资源号，实际Image与路径独立。is_playing／playback_speed及最终完整ColorMod保留。Entity.color_params整组归Host，E7为空预留，不再生成颜色元素writer或计时锚点；当前公共最小状态391B。
+
 ## 目标
 
 完成 `Entity` 公共部分（0x000—0x40F）的字节归属，以及内嵌主 Sprite（`ANM2 _sprite`，0x048—0x15B）在 Entity 中的用法；划分状态块，产出两张单行表。
@@ -40,7 +44,7 @@
 
 ### 3.1 字节归属要点
 
-- **身份与分类**：type、variant、subtype、spawner 均为状态。这些字段一变化就是形态变化（shape），走成员表的结构路径（第 11 步）。子类可以用 `shape` 标记追加形态字段，例如 Delirium 变身时 `_type` 不变，由 BossType／BossVariant 表示形态（第 4 步 4.2.6）。
+- **身份与分类**：type、variant、subtype、spawner 均为状态。这些字段一变化就是形态变化（shape），走成员表的结构路径（第 11 步）。子类只有在Client原生结构确有依赖时才用`shape`追加字段；版本42核定Delirium BossType／BossVariant只是Host AI选择，最终资源独立供应，已撤销其shape（见[NPC复核](npc-synchronization-review.md)）。
 - **索引**：`_index`、`_collisionIndex` 归本地，不用作网络身份。现有描述中的 `authority_index` 只用于相同 Z 值时的绘制次序，归为换算，语义不变。
 - **RNG**：`_dropRNG` 归权威。
 - **种子**：`_initSeed` 归状态，Client 绘制和构造需要它（`ClientObjectDescription.seed`）。
@@ -59,13 +63,13 @@
 | 块 | 序列 | 内容 |
 | --- | --- | --- |
 | E0 分类 | world | type、variant、subtype、spawner、initSeed |
-| E1 运动 | world；Player 为 body | pos、posOffset、velocity、TargetPosition、knockbackDirection、SizeMulti 等 |
-| E2 生命与碰撞 | world | flags、valid／visible／exists／dead、HP、mass、size、friction、碰撞类、无敌、帧基准 `+0x328`（帧锚点，原值） |
-| E3 状态效果 | world | 各类倒计时、伤害计时、毒／火伤害值、缩小状态 |
+| E1 运动 | world；Player 为 body | pos、posOffset、velocity、TargetPosition、SizeMulti、SpeedMultiplier；版本30排除击退方向、暂停保存和原生半帧历史位置 |
+| E2 生命与碰撞 | world | flags、visible／exists／dead、HP、size、碰撞类别、帧基准`+0x328`；版本30排除工厂标志、当前碰撞结果、mass、friction、接触伤害和无敌裁决，版本31再排除公共valid |
+| E3 缩小状态 | world | 两项缩小状态；版本30的20个公共倒计时、毒／火伤害相位及强度全部归Host，不再编码 |
 | E4 外观 | world；Player 为 body | 主 Sprite 定长外观块、DepthOffset、RenderZOffset、SortingLayer、Color、SplatColor、shadowSize |
 | E5 动画 | world；Player 为 body | 主 Sprite 的主动画与叠加动画状态 |
 | E6 图层 | world | 主 Sprite 图层变长块 |
-| E7 颜色参数 | world | `_colorParams` 变长块 |
+| E7 原颜色参数（预留） | world | 版本32起为空；`_colorParams`及元素只归Host，不编码 |
 | E8 引用 | world | Parent、Child、Target、SpawnerEntity、Minecart |
 | E9 扩展 | world | REPENTOGON EntityPlus 扩展数据（布局在本步核定） |
 
@@ -82,12 +86,12 @@
 - **伴随源被当作对象内存**：EntityPlus 经 split pointer → holder → data 只读解析，不能把其字段拼成 Entity 内的假偏移，也不能调用会分配的 `GetEntityPlus`。来源缺失、变化或 generation 失效时应报缺口。
 - **可选值复制了无效负载**：optional 未设置时其 payload 无定义，线上必须用明确的 Null 编码，并且不得读取未设置的负载；Null、false、0 是不同状态。
 - **条件计时器误用全局时钟**：状态计时器可能被暂停、免疫或状态分支阻断。锚点必须保留启停条件及零／负哨兵，不能用一次看到的递减推导无条件线性计时。
-- **有符号计数误套哨兵规则**：ColorParams Lifespan 负值也递减，毒／火伤害相位是递增计数；不能套用普通正倒计时的负值停走和零夹限。时钟关系不明时报缺口，不能以“冻结”编码冒充已经核定的停走。
+- **恢复已排除颜色时间线**：ColorParams Lifespan负值也递减的原生事实保留，但版本32起不采集／还原该队列或核定颜色更新时钟。不得为展示淡出放行Entity::Update；应安装主Sprite最终ColorMod。其他真正保留的有符号展示计数仍不能误套普通倒计时哨兵。
 - **跨域查询伪造派生**：需要配置、房间、子类或查询参数的公开成员不能仅凭 Entity 公共字段声称已重建；回映射必须明确依赖或 Host 权威职责。
 - **用 SDK 名称直接映射**：例如把 +0x2B0 当成 DepthOffset。
 - **合并区间混入扩展指针**：区间吞入 0x18E 或 0x192，结果是发出地址，并且每个进程的值都不同。
 - **帧基准与时钟不配套**：Client 写回了 Host 的帧基准，却用自己的 `Game+0x25A70` 计算 FrameCount，帧差错误（Client 不运行 Game::Update，该值不代表 Host 时间）；或者改为发送 FrameCount 本身，E2 每帧都要重发。
-- **removedByFactory 越权读取**：违背第 11 节的条件读取该字节。
+- **工厂标志越权写入／读取**：版本30不采集或安装removedByFactory；Host生命周期观测若仍需读取它，仍须遵守规范第11节，不能把布局排除理解为取消读取资格。
 - **引用目标不在成员表**：例如引用指向已离表的实体；这种情况必须报缺口，不能写 Null 冒充。
 - **形态变化走了热路径**：形态变化没有经过结构事务，Client 的旧实例接收了新类别的块。
 
@@ -101,6 +105,8 @@
 ## 未决问题
 
 - `GetWaterClipFlags` 没有一个可直接复制的 Entity 字段；nullable override 已核，vanilla 计算依赖及对应房间／子类输入继续按证据和第 4／5／7／8／13 步接线，不能把 getter 最终值冒充 override。
-- 条件计数的实际更新时钟与启停见证由第 10 步接入；活动路径无法证明与展示帧关系时报缺口，不能以冻结编码掩盖未知。Client 时间还原和原生 owner 赋值属于第 13 步。
+- 版本30排除的公共计数及版本32排除的ColorParams不再需要采集时钟见证；其他实际保留的展示计时仍须核定活动时钟，未知时报缺口。版本31不再生成公共valid安装字段；Player结构激活资格由第5／13步明确编码及owner，不能根据删除E2字段而省略特殊身体角色。
 - Entity 原生未知区和 EntityPlus 对齐未知区继续保留，第 15 步才做未知区观察。父子链 getter 无首边返回自身与 Wiki nil 描述的差异同样留待第 15 步对照。
 - EntityPlus 子类字段归第 4／5 步，主 Sprite 的实际 Image／shader 旁表资源接线归第 8 步。旧运行路径仍按第 13／14 步统一接入和退役。
+
+**版本39 Plus复核**：[Player装备与Plus复核](player-equipment-plus-synchronization-review.md)保留公共E9两项nullable共9B：Player GetWaterClipInfo通过IsFlying决定水面偏移，官方hook可覆写完整water flags，Scene415350在415398／4153D2／4153EA直接消费；不能丢Null／false／有效零差异。标准optional只在已正常构造、同代、正确动态类的本地holder/data上赋值，相关Room／Player／库存／资源先就绪，不以getter fallback分配补缺。KnifePlus的hitboxSource已核只供生成／Lua玩法，正式ReadKnifeExtension接口移除；其他派生Plus已排除项保持。原生未知不因接口删除而消除。

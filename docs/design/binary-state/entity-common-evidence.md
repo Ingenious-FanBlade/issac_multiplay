@@ -1,6 +1,10 @@
 # 第 3 步：Entity 公共字节证据
 
+> 版本39后续复核：[装备与Plus](player-equipment-plus-synchronization-review.md)以Scene415350→GetWaterClipInfo及官方hook正面消费者保留飞行／水面nullable；KnifePlus hitboxSource仅Host生成／Lua用途，正式身份读取接口撤销。其他已排除派生Plus项保持，本轮未构建或测试。
+
 状态：本轮静态研究及主审已完成，SDK 声明、推断和 UNKNOWN 继续保留，没有测试。本文件记录 Entity `[0,0x410)` 的证据，不把 SDK 声明升级成 J273 事实；主 Sprite 复用[第 2 步](base-types-evidence.md#anm2-276-字节)。实施选择和未采纳推导见[主审说明](implementation-3.md)。
+
+> 当前同步职责见[版本30公共复核](entity-common-synchronization-review.md)；本文保留第3步原始用途及历史传输推导，不能把用途已核直接理解为需要同步。
 
 ## 证据标记
 
@@ -51,7 +55,7 @@
 | `0x192–0x194` | `u16 _entityExtraDataPtrLowerBytes` | 本地 EntityPlus holder 指针低 16 位；不发送。 | SDK 字段声明；REP 源码与 `+0x18E` 拼为一个 32-bit 指针。 |
 | `0x194–0x1A4` | `4×f32`（候选） | UNKNOWN。Init 在 `+0x194/+0x198` 与 `+0x19C/+0x1A0` 分别写 2 个浮点初值；尚未证明它们是可由 Position/Velocity 持续派生的缓存。 | J273 直接：`0x6A4BF7–0x6A4C0F`、`0x6A4C17–0x6A4C2F`；语义 UNKNOWN。 |
 | `0x1A4–0x1AC` | `Vector` 屏幕坐标缓存 | 本地：Render 由世界坐标和本地屏幕参数写入，不发送，Client 由原生 Render 重新生成。 | J273 直接（主审复读）：slot 5 `0x6AC4E0` 的 `0x6AC646/0x6AC64A` 写 `+0x1A4/+0x1A8`，`0x6AC64F` 调主 Sprite 渲染；不得用缓存替代基础位置字段。 |
-| `0x1AC–0x1B8` | 32-bit `std::vector<ColorParams>` 头，`0x0C` bytes | 容器。头内是本进程 begin/end/capacity 指针；复制 ColorParams 元素为变长容器状态，不复制原指针。 | SDK 声明 `Entity.zhl:208`；REP `LuaEntity.cpp:490–527` 提供枚举、替换、清空元素路径。J273 Update `0x6AA10E–0x6AA22F` 遍历元素并更新其 lifespan，见后文。 |
+| `0x1AC–0x1B8` | 32-bit `std::vector<ColorParams>` 头，`0x0C` bytes | 容器。头内是本进程 begin/end/capacity 指针；原先复制ColorParams元素的方案自版本32改归Host，头与元素均不发送；最终Entity.Color与主Sprite ColorMod单独同步，见[动画／资源／颜色复核](animation-resource-synchronization-review.md)。 | SDK 声明 `Entity.zhl:208`；REP `LuaEntity.cpp:490–527` 提供枚举、替换、清空元素路径。J273 Update `0x6AA10E–0x6AA22F` 遍历元素并更新其 lifespan，见后文。 |
 | `0x1B8–0x1E4` | `ColorMod`，`0x2C` bytes；公开 `Entity.Color` | Entity 自身颜色状态。它在 Entity 上，不是内嵌 Sprite 的 ANM2 颜色。 | J273 公共字段目录 `client_entity_fields.inc:52` 以原始偏移映射；Init `0x6A4AE1` 将 `this+0x1B8` 交给颜色构造/初始化路径。 |
 | `0x1E4–0x210` | `ColorMod`，`0x2C` bytes；公开 `Entity.SplatColor` | 死亡溅落颜色状态。 | J273 直接：Init `0x6A4A66–0x6A4ACA` 覆盖 11 个 f32；公共字段目录 `client_entity_fields.inc:53`。 |
 | `0x210–0x214` | `i32 _fireDamageCountdown` | 火焰伤害冷却，与 +0x234 Burn 状态倒计时分开。 | SDK 声明；J273 `Entity::Update` `0x6AA396` 仅在值 `>0` 时减一。 |
@@ -243,6 +247,8 @@ Entity vftable VA `0xB18224`（RVA `0x718224`）前一槽 `0xB18220` 为 COL 指
 - 主审没有仅凭构造清零把 +0x3D0 认成计数，保留 UNKNOWN；+0x175 也未升格为 bool。+0x314/+0x318 则有向 Position 回写的直接证据，作为独立保存坐标纳入状态。
 - 研究首报曾将 FrameCount 配为 0x6A4280，已按登记顺序与原始指令更正为 0x6A5290；SpawnGridIndex 的读取指令是 0x6EB980，0x6EB986 为 ret。历史 tx-03 的 slot 4／5 地址属于旧点位，本轮采用当前虚表的 0x6AC2A0／0x6AC4E0。
 - 首版把 +0x408—0x410 整段视为 LuaBridgeRef 指针、把 0x6A4BDF 的 +0x188 写入归给 +0x184，已更正为 4B 指针和准确目标；+0x40C—0x410 继续未知。反编译注释行号也不能代替实际访存指令，健康查询与链遍历地址已按原始指令订正。
+
+> 版本30同步必要性另见[Entity公共复核](entity-common-synchronization-review.md)：本文保留原始用途、计数方向及历史传输判断；用途正确不等于Client需要发送。本轮排除的33个范围不再要求计时锚点或历史位置保真传输，UNKNOWN不变。
 
 ## 未闭合项目
 

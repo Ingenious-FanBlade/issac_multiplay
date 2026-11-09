@@ -1,5 +1,16 @@
 # 第 4 步：Familiar、Knife、Bomb 实现说明
 
+> 版本39后续修订：[装备与Plus复核](player-equipment-plus-synchronization-review.md)将KnifePlus.hitboxSource归Host、块1预留，删除正式ReadKnifeExtension身份读取接口；下文原提前编号失败及修复保留原事实。Familiar新增原D76展示抑制字节，未知只据正面证据少1B；公共Plus9B及其余已排除项保持。本轮未构建或测试，运行接线仍待后续步骤。
+
+> 版本34后续复核：[Knife／Bomb／Tear参数展示复核](knife-bomb-tear-synchronization-review.md)将Knife10／Bomb11／Tear21个攻击、运动与计时参数范围留Host；撤销三个计时锚点，保留真实绘制输入、最终Sprite和Bomb pending清除。下文旧的参数传输／计时见证要求保留原时点，现行传输以版本34唯一源及生成表为准；未构建或测试，运行接线仍待后续步骤。
+
+
+> 版本33修订：[Familiar参数／充能／绳索复核](familiar-synchronization-review.md)将11个轨道／计数／方向参数共48B归Host，保留真实展示输入；新增80最终充能结果及240绳索节点／Sprite布局。下文版本16的传输决定由当前源取代，原生事实和编译记录保留；本轮未构建／测试，具名执行器与owner尚未实现。
+
+> 版本29修订：原生关系事实保留；23条内部关系不再同步，Familiar+DAC仅variant240布局130保留。当前采用范围及生命周期边界见[24项关系复核](internal-entity-relations-review.md)，不执行本文旧的全关系原值同步要求。
+
+> 版本28修订：本文保留当时的布局和编译事实；Knife K4、四类命中历史及另外七个玩法范围的当前传输职责，以[同步字段复核](synchronization-field-review.md)和当前生成表为准。旧原值同步／比较约定不再执行。
+
 日期：2026-11-08（Asia/Singapore）。范围是[第 4 步](4-entity-classes.md)的三个子类与已有专用表现，不代表第 4 步全部完成。逆向由用户指定的 GPT-6 Luna max 子智能体执行，主智能体复读当前 IDB 原始指令和官方源码后采用。只做静态分析、源码编辑、布局生成与纯编译；0—14 步不测试，第 15 步统一整体验收。
 
 ## 本轮交付与边界

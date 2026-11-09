@@ -53,6 +53,14 @@ Client 在后台线程中完成三件事：
 
 旧的 `Parse*Target`、`DomainModel`、`SubjectValues`、`stream_materialize` 不再使用，在第 14 步移除。`ClientScene` 的提交语义不变，但输入改为应用批次和类型化视图。
 
+**版本33 Familiar负载**：按[Familiar参数／充能／绳索复核](familiar-synchronization-review.md)只对实际线上字段校验：Incubus amount为i32且0—100；240四个payload投影count仅0／1并一致，非空payload的节点数为1—16384、XYZ有限，全部同目标版本齐备。原始轨道／方向／HeadFrameDelay／Hearts／Keys／RoomClearCount不上线，不为它们构造拒绝负载。节点数0的下限及owner存在性不能只交给通用u16上限检查；不把未知类型／读取失败当缺失。
+
+**版本34 Knife／Bomb／Tear负载**：按[Knife／Bomb／Tear参数展示复核](knife-bomb-tear-synchronization-review.md)只解码实际保留字段；42个Host范围及其三个u64锚点不进入影子状态／校验／应用批次。Bomb B0、Tear T0／T2等reserved空块不作为构造必收的状态块，不因空块存在而等待不存在的负载；其他实际块及资源仍须完整。旧布局负载由整数版本不一致拒绝，不做逐字段兼容补丁。
+
+**版本35 Pickup／Slot负载**：按[Pickup／Slot选择、交互与奖励复核](pickup-slot-synchronization-review.md)只解码实际保留字段，原19项字段／容器与Pickup Timeout／Wait锚点不进入影子状态或应用批次。Pickup P3、Slot S0／S1预留且不等待不存在的负载；不再检查已撤销循环列表的线上count，其他真实容器／资源约束保持。DropDelay的条件编码与Price、辅助Sprite／关系仍须同目标版本完整。
+
+**版本36 Projectile负载**：按[Projectile运动与展示参数复核](projectile-synchronization-review.md)只保留PR0的Height及继承状态／资源；八项Host输入不进入影子状态或应用批次，PR1预留不作为构造必收负载。Height有限值和真实资源／引用约束保持；不构造已撤销字段的拒绝负载。私有展示来源尚未闭合，不以合法解码当前已知字段声称画面完整。
+
 ## 改动范围
 
 - 新增：解码器、影子状态、应用批次。
@@ -76,3 +84,12 @@ Client 在后台线程中完成三件事：
 ## 未决问题
 
 - 加载画面等主线程长时间不取批次的情况：批次上限是多少，Resync 的门限怎么定。这些只是运行参数，不是推进 gate。
+
+**版本37 Laser负载**：按[Laser／Homing采样、运动与计时复核](laser-homing-synchronization-review.md)只解码L5／L6的optimized／unoptimized最终点列及真实展示标量；L2／L4／L7／L8与Homing子块0／3／4预留，不等待空负载或构造虚拟投影。十九项Laser输入、六项Homing标量、indices／Bezier与系数不进入影子状态，两个Laser锚点撤销。两组独立count各自≤16384，有限值、预算、来源／版本及资源约束保持；不要求优化与未优化点数相等。旧indices i32类型记录已纠正，不再保留其4B线上codec。
+
+**版本38 Effect负载**：按[Effect各臂与payload复核](effect-synchronization-review.md)FX0仅8B、FX1仅21B；全部FX2空预留不作为构造必收负载。已排除六参数、TearFlags与136描述不进入影子状态／validator／应用批次。Ghost只解码有效Sprite前缀，三投影u16 count必须同目标版本相同且≤4，由此重建原生i32 count，不另收count原值；present=0时三个count为0且各投影最短全零。视图134没有Offset／Scale负载，通用ANM2不变；源原生i32负数由第10步编码前拒绝。Trail节点已核完整64B，保持u32绘制参数原位及其余真实浮点、资源、预算校验，不恢复Rotation误名。
+
+**版本39装备／Plus负载**：按[完整复核](player-equipment-plus-synchronization-review.md)ActiveItemDesc24B、Weapon16B、Whip135号18B、TemporaryEffect10B、TemporaryEffects136号disabled＋u16 count及完整列表；四主动槽／五Weapon槽存在性、顺序与动态形态不可缺。只解码真正上线的保留字段与Whip真实引用，已撤销八范围不进影子状态／validator。KnifePlus子块1空预留不等待负载；公共两nullable仍严格保持-1／0／1和0／高32位恰为1编码。Familiar D76只接0／1，新增外层disabled只接0／1；配置资源与type/id、原生f32、真实引用、计数及全局字节预算照常核对，不能把坏资源或来源失败伪装为空槽／空列表。
+**版本40 Effect后续五项解码合同**：见[证据与落地](effect-next-five-evidence.md)。整数布局版本40；接受生成表的11个Effect布局，102不再包含113，113只接受141；未知／不匹配形态拒绝，不能按负载相同回退旧臂。FX0按16B解码State／Timeout到期帧／Rotation／Scale，FX1按13B解码LifeSpan／following／ParentOffset；不使用旧8／21B常数，FX2空预留不等待。Trail u16 count只接受0—127，count=128及以上拒绝，真实节点块最大8130B；present=0和present=1且count=0保持不同语义，不能截断或把多余字节丢弃。FX0／FX1浮点及引用／资源／目标版本／累计预算约束不变。137—141中不上线的VarData原值、函数地址和未知字节不进入影子模型，也不为其虚构线上validator；未知非空owner由Host报缺口，不在Client解码成任意新payload。未运行测试。
+
+**版本42 NPC现行合同**：两NPC布局N0固定25B：前24B五项原生值、末1B controlled_ui_mode仅0/1/2。17／18空预留，不接收旧8B／13B；两臂没有专属shape值。N4采用144号OverlayEffect视图加通用副ANM2，最小238B，前者没有Scale负载。全部资源／真实引用与点列依赖保持同目标版本，不能接受Host设备编号、任意原生偏移或把mode写回F1C。见[完整复核](npc-synchronization-review.md)。

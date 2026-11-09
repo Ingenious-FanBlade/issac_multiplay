@@ -52,13 +52,13 @@ ordinary 窗口、PlayerPost 窗口，以及规范第 11 节的条件读取规�
 
 ### 10.3 复制计划的执行
 
-第 4 步子类计数的 `entity-current-window-and-confirmed-subclass-counter-clock` 需要字段 owner 给出实际增／减／停走分支；未知方向或活动时钟关系报 Gap。Familiar／Knife 的 E9 使用收窄后的派生 Plus，Knife 可复用 `ReadKnifeExtension`。容器投影既检查元素数，也检查生成的 `Field.max_size` 与全局池预算；所有投影来自同一个窗口和同一组元素，不截断。
+第 4 步子类计数的 `entity-current-window-and-confirmed-subclass-counter-clock` 需要字段 owner 给出实际增／减／停走分支；未知方向或活动时钟关系报 Gap。Familiar／Knife的E9保留正确派生Plus来源，但版本39起均只读取公共nullable覆盖，可复用`ReadEntityExtension`，不读取Knife hitboxSource。容器投影既检查元素数，也检查生成的 `Field.max_size` 与全局池预算；所有投影来自同一个窗口和同一组元素，不截断。
 
-HeadFrameDelay 不属于已核线性计时，直接复制原始 i32。`ReadKnifeExtension` 接收会话 owner 核定的 Knife／KnifePlus 具体虚表绑定，只遍历前后两次 holder 链：先判目标类型，非 Knife 返回 Null；Knife 交 `ReferenceCapture::identify_or_reserve` 得到同代 Identity／Pending 纯值句柄，新成员不因尚无序号而失败。回调负责有界预约，不得向后台交原生地址；最终序号在后台分配。计数组按生成的 `CountConstraint`／`ValidContainerCountGroups` 检查，蝗虫两组合计最多 16384，投影重复 count 不重复计数。
+版本33起HeadFrameDelay归Host，不再复制或核定同步时钟。版本39又将KnifePlus.hitboxSource留Host，删除正式ReadKnifeExtension及其身份预约；公共两optional仍经现有链前后复读。新增WeaponUmbilicalWhip的+44真实主引用才需要当前窗口的Identity／Pending预约，后台分配成员序号，不向后台交地址或提前要求新实体已经编号。计数组按生成的 `CountConstraint`／`ValidContainerCountGroups` 检查，蝗虫两组合计最多 16384，投影重复 count 不重复计数。
 
-第 4 步新增 Tear／Pickup／Laser 同样按 RTTI 查布局，不按 `_type` 猜派生 Plus。Tear 七槽、Pickup 四槽、Laser 十三槽沿用身份／Pending 采集，后台转成员序号；不得在主线程提前要求全部新实体已有网络序号。HomingLaser 的 `laser_self` 是本地自回指，不跟随或发送；五个投影在同一窗口读取，四个 vector 各自上限 16384，递归校验浮点和实际累计字节预算。Pickup 循环数组是内嵌八项数组，不是指针数组：先读 `+0x5C0` u32 count，超过八项报 Gap，仅复制 `+0x5A0` 有效前缀，前后复读计数／窗口；FlipSaveState 不采集其玩法对象。完整字段与计时条件见[本轮实现](implementation-4-tear-pickup-laser.md)。
+第 4 步新增 Tear／Pickup／Laser 同样按 RTTI 查布局，不按 `_type` 猜派生 Plus。按版本29后的实际线上引用采集Tear StickTarget、Pickup公开三槽与Laser BounceLaser，使用身份／Pending，后台转成员序号；23条内部Host关系不恢复采集，不得在主线程提前要求全部新实体已有网络序号。HomingLaser 的 `laser_self` 是本地自回指，不跟随或发送；版本37只在同一窗口读取optimized／unoptimized两个投影，各自count上限16384、独立点数，递归校验浮点及实际累计字节预算；不读Homing六标量、indices中间缓存、Bezier输入或系数。版本35起Pickup循环数组及count留Host，不再遍历或为其count建同步Gap；FlipSaveState继续不采集其玩法对象。历史字段与计时发现见[本轮实现](implementation-4-tear-pickup-laser.md)，Tear两个计时的现行排除见下方版本34合同。
 
-Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](implementation-4-slot-projectile-effect.md)。Slot 的奖励 ANM2 与主 Sprite 独立读取；Projectile 的 DepthOffset 只读取继承 E4 一次。Effect `shared-owner` 字段的偏移指向 holder，必须读前后 holder／具体 RTTI／生命周期见证，全部投影来自同一个 payload 和窗口。缺失输出规范化最短全零，未知类型或读失败报 Gap，不能按缺失处理；严禁把生成的 payload 偏移直接加到根 Entity。Trail 0x40 仅为已访问前缀，实际记录布局／stride须先核定，不能按旧注释直接读取；没有 `entity-current-window-and-confirmed-trail-record-layout` 则报 Gap。普通变体的 `0x420—0x43F` 未核，FX2 预留不复制。Timeout 每窗从原值重算到期帧，停走或非线性变化会使锚点变化并重新发送，不依赖所有变体都恰好递减一次的假设。
+Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](implementation-4-slot-projectile-effect.md)。Slot 的奖励 ANM2 与主 Sprite 独立读取；Projectile 的 DepthOffset 只读取继承 E4 一次。Effect `shared-owner` 字段的偏移指向 holder，必须读前后 holder／具体 RTTI／生命周期见证，全部投影来自同一个 payload 和窗口。缺失输出规范化最短全零，未知类型或读失败报 Gap，不能按缺失处理；严禁把生成的 payload 偏移直接加到根 Entity。版本38已由606190的明确new(0x40)及完整复制核定Trail节点：按deque逻辑顺序遍历独立节点指针，不能当连续数组；不再要求旧confirmed-trail-record-layout读取资格。Ghost只采集0—4有效Sprite前缀，ANM2 Offset／Scale不上线，原生i32 count收窄前检查，三个投影同一窗口／前缀。普通变体的 `0x420—0x43F` 未核，FX2 预留不复制。Timeout 每窗从原值重算到期帧，停走或非线性变化会使锚点变化并重新发送，不依赖所有变体都恰好递减一次的假设。
 
 生成器为每个布局产出一份操作序列（`state_capture.inc`）。主线程按顺序执行：
 
@@ -74,6 +74,16 @@ Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](im
 - **一个对象一层保护**：每个对象的计划在一个 SEH 保护块内执行（一个对象一次，不是一个字段一次）。发生访问异常时，该对象的整条记录作废并报具名缺口，不写入半条记录。
 - **地址来源**：对象地址只来自已核的枚举来源，以及 Collector 已校验的成员关系，不跟随任意指针。
 - **条件读取**：带条件的字段（规范第 11 节）由计划中的条件操作控制，条件不满足时写入“不可读”标记。
+
+版本30的33个Entity公共排除范围见[职责复核](entity-common-synchronization-review.md)，版本31再从E2移出valid，见[生命周期再复核](entity-lifecycle-synchronization-review.md)。上述范围不执行公共状态复制；removedByFactory及valid仍可在合法Host身份／生命周期观测中读取。Player结构源所需的独立激活资格继续由第5步接管，不能连同公共valid字段一起静默删除。版本32再按[动画／资源／颜色职责复核](animation-resource-synchronization-review.md)移出ColorParams容器及颜色锚点；事件位不采集，ANM2.loaded只参与可空文件资源选择，不作为独立状态，LayerState.loaded不采集。最终颜色、独立selector、is_playing／playback_speed、实际Image与路径继续采集；子类及Player真实展示计时保持各自合同。Host资源转换失败报Gap，不编码为空资源。
+
+版本33另按[Familiar参数／充能／绳索复核](familiar-synchronization-review.md)排除Familiar11个轨道／方向／计数范围，不为HeadFrameDelay取时钟。80只从稳定Weapon来源复现已核纯字段公式，编码最终0—100整数amount，不调用getter或序列化Weapon。240从具体UmbilicalBabyData按逻辑deque顺序采XYZ和Sprite；不复制map／环偏移／代理／节点模拟字节，非空payload节点数0、未知动态类型、非法map或来源变化报Gap。四payload投影count一致且同窗口，不能把读取失败编码为缺失。
+
+版本34按[Knife／Bomb／Tear参数展示复核](knife-bomb-tear-synchronization-review.md)排除Knife10／Bomb11／Tear21个参数范围；生成的复制、换算和线上校验不再读取它们。Bomb ExplosionCountdown与Tear WaitFrames／StickTimer不再建立锚点或时钟见证，原Host分支未知不因此阻止展示采集。仍采集Knife拖影输入、Bomb最终主／五份costume及开关、Tear效果位／DeadEye与三份辅助Sprite；公共最终Position／PositionOffset和Sprite姿态不能由已排除输入重算或省略。
+
+版本35按[Pickup／Slot选择、交互与奖励复核](pickup-slot-synchronization-review.md)撤销Pickup选择组／触碰／自动价格／商店标识等输入、Timeout／Wait锚点和未来循环列表，以及Slot八项交互／状态／奖励输入；不读取、遍历或为它们取得同步时钟。Pickup仍读Price和DropDelay：前者供WaterClip，后者正值隐藏Render，不能只凭Visible或最终Sprite省略。保留主／辅助Sprite、真实引用与DropDelay活动条件见证；Slot奖品动画／播放状态属于ANM2，不能误解为被排除的机器状态。
+
+版本36按[Projectile运动与展示参数复核](projectile-synchronization-review.md)不再复制Projectile的FallingSpeed／FallingAccel／HomingStrength／CurvingStrength／Acceleration／WiggleFrameOffset／Scale／ProjectileFlags；WiggleFrameOffset不新增时钟／锚点要求。Height有直接Render消费，继续读有限f32，并与公共最终PositionOffset、位置／Velocity、尺寸和Sprite同窗。私有+440及+460／+464展示来源仍待第4步补齐，UNKNOWN不读、不伪造零或称完整；公共EntityFlags与Game帧展示来源保持。
 
 ### 10.4 缓冲区
 
@@ -129,3 +139,12 @@ Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](im
 
 - 低频轮转的分片大小和一整轮的周期。
 - 身体槽数量 8 是否继续足够；Esau、Tainted Lazarus 等多身体情况下要核对上限。
+
+版本37按[Laser／Homing采样、运动与计时复核](laser-homing-synchronization-review.md)不采集Laser十九项更新／运动／计时输入及Homing中间数据；Timeout／RotationDelay不再要求同步时钟见证或制造Gap，原生分支UNKNOWN保持。当前Angle／Length／完整TearFlags／sample_mode_raw／MaxDistance／GridHit／公开EndPoint／+4F0与两组最终点列同窗读取，公共最终位置／偏移／尺寸与Sprite各自保持。两组容器不要求点数相等，但均须来自同一目标版本和稳定生命周期。
+
+**版本38 Effect采集**：按[Effect各臂与payload复核](effect-synchronization-review.md)不采集Height／FallingSpeed／FallingAcceleration／MinRadius／MaxRadius／DamageSource、四个TearFlags变体的完整128位或136描述八成员；不为这些Host输入建立同步Gap、原值或时钟见证。State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale及独立payload继续同窗采集。MrMe新增四项Host私有范围不读，仍读取其最终ANM2；Trail最终64B节点不本地推算；Ghost三投影count一致、每个count≤4且实际总字节在预算内，读取失败／错RTTI不能伪装缺失或截短前缀。
+
+**版本39 Player装备／Plus采集**：按[完整复核](player-equipment-plus-synchronization-review.md)四主动槽只读六值，五Weapon槽按真实vtable／type读取四个展示值及15号主引用；不得用0x44前缀当实际动态大小。TemporaryEffects采集disabled及完整原顺序vector，配置保留type/id，count／cooldown不由库存／costume猜测；mask／evaluate不采集。合法Player装备窗口与前后来源、实际字节和16384预算保持；不得触发Lua getter／回调、PlayerHUD Update或任何重算。EntityPlus两nullable保持ReadEntityExtension的engaged先读／未设payload不读，不能把缺holder当Null。Knife hitboxSource不读取、预约、校验或制造Gap，其他已排除Plus项不恢复。Familiar新增D76原bool与主体同窗读，不由Weapon／is_follower推导。
+**版本40 Effect后续五项采集合同**：见[证据与落地](effect-next-five-evidence.md)。按生成的11个布局选臂，102为54／126／167、141为113；137—140分别处理传播、Timer、生成请求和30／153计数的原生归属，不采集这些Host输入或函数地址，FX2始终预留，残余UNKNOWN不补零。每窗以同窗F／T重算Timeout锚点，101双减、141刷新及负值／停走均允许锚点变化；Rotation／Scale归FX0（16B），FX1为LifeSpan／following／ParentOffset（13B）。Trail只在正常Update及后置裁剪完成的完整尾窗读取逻辑0—127个完整64B节点，源数量先按原生宽度检查，最大节点块8130B；超限报Gap，不截断／抽样，不读取中途的128。所有Effect先检查holder资格：非附属臂必须空，附属臂非空时RTTI必须与variant匹配；未知／不匹配／读取失败不能伪装缺失或继续发布。此资格检查不等于采集或传输holder地址；仍须前后核生命周期、主线程及实际字节预算。具名接线仍由本步实施，未运行测试。
+
+**版本42 NPC现行合同**：NPC142／Delirium143的BossType／Variant及AI值不采集为线上字段，17／18均空预留，不因它们改变安排shape。N0保留五个原生绘制值及u8受控UI模式；F1C仅在主线程供具名转换使用，匹配来源的具体动态谓词/只读公式未核定则Gap，不调用未知虚函数、Lua getter或默认true。使用entity-current-window-and-confirmed-npc-control-ui-source资格，设备ID不进入自有线上缓冲或后台。OverlayEffect144排除Scale读取，其他姿态／资源与三deque保持；仍在Delirium AI owner退尽后选臂。见[完整复核](npc-synchronization-review.md)。

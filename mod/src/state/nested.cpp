@@ -130,6 +130,39 @@ NativeElementView ReadVectorInto(const ReadWindow &window, std::uint32_t header,
                                  std::uint16_t limit, std::span<std::byte> storage, std::string_view field) {
   return CopyElementsInto(window, VectorHeader(window, header, stride, field), stride, limit, storage, field);
 }
+NativeElementView ReadDequeInto(const ReadWindow &window, std::uint32_t header, std::uint32_t stride,
+                                std::uint16_t limit, std::span<std::byte> storage, std::string_view field) {
+  // 只接受本轮核定的EntityPtr/Vector步长，不把MSVC其他元素大小的块规则外推到这里。
+  if (stride != 4 && stride != 8) Fail(field, "deque_stride_unconfirmed");
+  std::array<std::byte, 20> before{}, after{};
+  window.Copy(header, before, field);
+  const auto proxy = U32(before, 0), map = U32(before, 4), capacity = U32(before, 8);
+  const auto offset = U32(before, 12), count = U32(before, 16), per_block = 16 / stride;
+  if (!proxy || !limit || count > limit ||
+      (!capacity ? (map || offset || count) :
+       (!map || capacity < 8 || capacity > 32768 || (capacity & (capacity - 1)) ||
+        count > std::uint64_t(capacity) * per_block || std::uint64_t(map) + capacity * 4 > UINT32_MAX)))
+    Fail(field, "deque_header_invalid");
+  const auto size = std::size_t(count) * stride;
+  if (size > storage.size()) Fail(field, "container_capture_storage_exhausted");
+  // offset可跨过map尾部；64位逻辑索引加环形掩码避免u32相加溢出及物理顺序误读。
+  for (std::uint32_t copied = 0; copied < count;) {
+    const auto index = std::uint64_t(offset) + copied;
+    const auto slot = static_cast<std::uint32_t>((index / per_block) & (capacity - 1));
+    const auto in_block = static_cast<std::uint32_t>(index % per_block);
+    std::array<std::byte, 4> pointer{};
+    window.Copy(map + slot * 4, pointer, field);
+    const auto block = U32(pointer, 0);
+    if (!block || std::uint64_t(block) + 16 > UINT32_MAX) Fail(field, "deque_block_invalid");
+    const auto take = (std::min)(count - copied, per_block - in_block);
+    window.Copy(block + in_block * stride, storage.subspan(std::size_t(copied) * stride,
+                                                        std::size_t(take) * stride), field);
+    copied += take;
+  }
+  window.Copy(header, after, field);
+  if (before != after) Fail(field, "deque_source_changed");
+  return {static_cast<std::uint16_t>(count), stride, storage.first(size)};
+}
 NativeElementView ReadArrayInto(const ReadWindow &window, std::uint32_t header, std::uint32_t stride,
                                 std::uint16_t limit, std::span<std::byte> storage, std::string_view field) {
   return CopyElementsInto(window, ArrayHeader(window, header, field), stride, limit, storage, field);

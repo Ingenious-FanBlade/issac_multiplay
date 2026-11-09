@@ -1,8 +1,13 @@
 # Familiar、Knife、Bomb 静态证据
 
+> 版本34后续复核：[Knife／Bomb／Tear参数展示复核](knife-bomb-tear-synchronization-review.md)将Knife10／Bomb11／Tear21个攻击、运动与计时参数范围留Host；撤销三个计时锚点，保留真实绘制输入、最终Sprite和Bomb pending清除。下文旧的参数传输／计时见证要求保留原时点，现行传输以版本34唯一源及生成表为准；未构建或测试，运行接线仍待后续步骤。
+
+
 日期：2026-11-08。目标为 J273 `isaac-ng-v1.9.7.12.exe.unpacked.exe`，IDA ImageBase `0x400000`。本记录来自只读 IDA、REPENTOGON v1.1.3 SDK／源码和本地 IsaacDocs Wiki；没有改名、改类型或保存 IDB，没有运行游戏、测试、校验脚本或哈希。
 
 本记录覆盖 Entity 子类区。Entity 公共前缀 `[0,0x410)` 由第 3 步处理。所有对象上界采用 J273 `EntityFactory` 池步长：Familiar `0xF30`、Knife `0x520`、Bomb `0x9D8`。Knife SDK 的 `Entity_Knife : 0xE78` 超出 J273 池步长，越界成员不成立。以下未证实的区域保留为 UNKNOWN；构造函数清零不等于填充。
+
+> 版本33职责与补证：[Familiar参数／充能／绳索复核](familiar-synchronization-review.md)补入HeadFrameDelay真实更新分支、轨道／计数／方向的Host归属、Incubus只读充能公式和Gello 0x158 payload／0x78节点／Sprite布局。以下为原轮发现与失败记录，旧“状态／引用必须发送”或“写入者未知”的表述保留历史语境，以新复核及当前源为准。
 
 ## 入口、RTTI 与虚函数
 

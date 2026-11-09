@@ -66,34 +66,6 @@ EntityExtensionState ReadEntityExtension(const ReadWindow &window, std::uint32_t
   return result;
 }
 
-KnifeExtensionState ReadKnifeExtension(const ReadWindow &window, std::uint32_t entity,
-                                        KnifeExtensionBindings bindings, ReferenceCapture capture,
-                                        std::string_view field) {
-  window.Require(field);
-  if (!bindings.knife_vtable || !bindings.knife_plus_vtable)
-    throw Gap(field, "knife_plus_bindings_missing");
-  // 在访问派生字段前核定两层动态类型；不能只凭_type=8解释未知对象。
-  if (Read<std::uint32_t>(window, entity, 0, field) != bindings.knife_vtable ||
-      Read<std::uint32_t>(window, entity, 0x28, field) != 8)
-    throw Gap(field, "knife_plus_wrong_class");
-  const auto before = Existing(window, entity, field);
-  if (Read<std::uint32_t>(window, before.data, 0, field) != bindings.knife_plus_vtable)
-    throw Gap(field, "knife_plus_wrong_dynamic_type");
-  KnifeExtensionState result{Common(window, before.data, field), {}};
-  const auto target = Read<std::uint32_t>(window, before.data, 0x10, field);
-  // 先遵守官方getter的非Knife→nil规则，不为无关实体查询或预约成员身份。
-  if (target && Read<std::uint32_t>(window, target, 0x28, field) == 8) {
-    if (Read<std::uint32_t>(window, target, 0, field) != bindings.knife_vtable)
-      throw Gap(field, "knife_plus_target_dynamic_type");
-    result.hitbox_source = CaptureReference(target, capture, field);
-  }
-  if (!SameSource(before, Existing(window, entity, field)) ||
-      Read<std::uint32_t>(window, before.data, 0, field) != bindings.knife_plus_vtable)
-    throw Gap(field, "knife_plus_source_changed");
-  window.Require(field);
-  return result;
-}
-
 std::optional<bool> DecodeFlyingOverride(std::int8_t value, std::string_view field) {
   if (value == -1) return std::nullopt;
   if (value == 0 || value == 1) return value != 0;

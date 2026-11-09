@@ -1,3 +1,29 @@
+> **NPC布局同步职责修正（2026-11-09，版本42）**：[逐段复核](design/binary-state/npc-synchronization-review.md)。取消Delirium BossType／Variant传输及无根据的shape重建；ControllerId改1B受控UI结果，OverlayEffect Scale由主Sprite当前null-frame派生。保留真实绘制输入／完整三deque／双Sprite必要状态，UNKNOWN不变。实际reader／adapter待第10／13步，第15步统一验收。
+
+> **原生二进制第4步：Entity_NPC（2026-11-09，版本41）**：[实现说明](design/binary-state/implementation-4-npc.md)、[静态证据](design/binary-state/npc-evidence.md)及[生成布局](design/binary-state/layouts/EntityNPC.md)。NPC／Delirium、三组deque、双辅助Sprite与44个唯一成员回映射已接入生成链；NPC本类223B未知及寻路声明边界保留。普通Release编译／链接通过，没有测试、部署或启动游戏；第10／13步接线、第15步统一验收。
+
+> **原生二进制布局版本38：Effect各臂与附属payload（2026-11-09）**：[同步必要性与消费者](design/binary-state/effect-synchronization-review.md)。撤销六项更新输入、TearFlags与136描述；MrMe／Trail／Ghost必要表现保留，Ghost改有效前缀并派生Offset／Scale，Trail64B分配已核。源与生成表及后续合同已修订，未构建或测试，实际同步仍待接线。
+
+> **原生二进制布局版本39：Player装备与Plus（2026-11-09）**：[具体消费者及安装依赖](design/binary-state/player-equipment-plus-synchronization-review.md)。ActiveItemDesc32→24B、Weapon42→16B、KnifePlus11→9B；TemporaryEffect三值保留，新增Whip主引用、效果disabled／列表及Familiar D76标志。原已排除Plus项不恢复；源、生成表和后续计划已更新，未构建或测试，正式接线仍待后续步骤。
+
+> **原生二进制布局版本37：Laser／Homing职责（2026-11-09）**：[复核结论与证据](design/binary-state/laser-homing-synchronization-review.md)。保留optimized／unoptimized最终点列与直接展示输入；十九项Laser更新输入、六项Homing标量、indices中间缓存和Bezier／系数留Host，撤销两个计时锚点。indices原生类型纠正为8B点对，旧i32记录错误。最小Laser542→439B、未知421B保持；已生成表，未构建或测试，第15步统一验收。
+
+> **原生二进制布局版本36：Projectile职责（2026-11-09）**：[逐项复核与依据](design/binary-state/projectile-synchronization-review.md)。追踪／曲线／加速／下落／摆动及Scale／ProjectileFlags八项共36B留Host；Height因Render临时偏移保留，最小状态431→395B。公共最终姿态／资源保持；私有+440与+460／+464展示来源仍UNKNOWN，不能称画面完整。已生成表，未构建或测试，第15步统一验收。
+
+> **原生二进制布局版本35：Pickup／Slot职责（2026-11-09）**：[逐项复核与依据](design/binary-state/pickup-slot-synchronization-review.md)。选择组／触碰／自动价格／商店标识、机器状态／捐款／触发／奖品输入及未来循环队列等20个原生范围留Host，撤销19项原线上字段／容器和Pickup两个锚点。Price／DropDelay与最终Sprite因真实展示消费者保留；最小Pickup703B／Slot538B，未知不变。未构建或测试，第15步统一验收。
+
+> **原生二进制布局版本34：Knife／Bomb／Tear参数职责（2026-11-09）**：[逐项复核与依据](design/binary-state/knife-bomb-tear-synchronization-review.md)。42个攻击／运动／计时范围归Host，包含Charge／MaxDistance、爆炸计时／伤害／范围及BaseDamage／KnockbackMultiplier／WaitFrames，撤销三个同步锚点。保留真实拖影／costume／DeadEye及Light输入和最终姿态，未知不变。最小状态Knife422B／Bomb1127B／Tear854B；未构建或测试，第15步统一验收。
+
+> **原生二进制布局版本33：Familiar职责与两项表现（2026-11-09）**：[逐项复核与证据](design/binary-state/familiar-synchronization-review.md)。11个轨道／计数／方向范围共48B留Host；新增Incubus最终充能amount和Gello绳索XYZ／Sprite布局，保留已有真实展示依赖。基础Familiar最小613B；新增payload／节点未知和运行时owner接线仍未完成。未构建或测试，第15步统一验收。
+
+> **原生二进制布局版本32：动画／资源／颜色职责（2026-11-09）**：[复核结论与依据](design/binary-state/animation-resource-synchronization-review.md)。移出动画事件位、两个loaded原始字节和完整ColorParams队列，保留可空资源选择、实际Image、官方插值所需播放字段及完整11分量最终颜色；Entity最小状态391B。唯一布局源和后续接线／验收计划已修订，资源执行器待实施。未构建或测试，第15步统一验收。
+
+> **原生二进制布局版本29：24项内部关系（2026-11-09）**：[逐槽复核与布局修订](design/binary-state/internal-entity-relations-review.md)。23项留Host；Familiar+DAC仅variant240／布局130保留展示引用，绳索payload仍待补齐。Room Light对Laser未优化采样点的依赖已核，继续保留。未运行测试，第15步统一验收。
+
+> **原生二进制布局版本28：同步职责修订（2026-11-09）**：[字段复核、调整和未决](design/binary-state/synchronization-field-review.md)。17个已明确的玩法范围改归Host权威，同步更新布局源、生成表和后续计划；Familiar间接展示输入保留，variant80充能展示缺口明确记录。普通Release编译／链接成功，未运行测试，第15步统一验收。
+
+> **原生二进制状态同步重构第4步：原未决前四项（2026-11-09）**：[处理与落地](design/binary-state/implementation-4-first-four.md)、[静态证据及主审](design/binary-state/step4-first-four-evidence.md)。NPC／Familiar研究规模与顺序已确定，DepthOffset别名复核闭合；Knife尾部六个f32接入独立K4，Slot进度指针和Projectile回调指针归本地，Effect两个Vector及传播／生成参数完成具名归属。版本27，普通Release编译／链接成功；Knife分裂／碰撞参数与Effect传播／生成用途已核，六段空白的填充假设及证据边界继续保留，未运行测试或游戏，第15步统一验收。
+
 > **原生二进制状态同步重构第 4 步：Slot／Projectile／Effect（2026-11-09）**：[实现说明](design/binary-state/implementation-4-slot-projectile-effect.md)、[必要逆向与主审](design/binary-state/slot-projectile-effect-evidence.md)和[生成布局表](design/binary-state/layouts/README.md)。三类布局、Effect 六个变体臂、三种附属 owner 与公开成员回映射已接入生成链，布局版本 23。基础 Effect 未核 VarData 不复制，Projectile DepthOffset 复用公共字段，Slot 保留真实16位字段。未知与后续采集／应用接线责任明确保留；普通 Release 纯编译／链接通过，没有测试、部署或启动游戏，第 15 步统一验收。
 
 > **原生二进制状态同步重构第 4 步：Tear／Pickup／Laser（2026-11-08）**：[实现说明](design/binary-state/implementation-4-tear-pickup-laser.md)、[必要逆向与主审](design/binary-state/tear-pickup-laser-evidence.md)和[生成布局表](design/binary-state/layouts/README.md)。三类布局、派生 Plus、独立辅助 Sprite、全部已核引用槽、Pickup 循环道具与 Laser 四份几何容器已接入生成链，布局版本 20。未知字节与条件计时缺口照实保留；普通 Release 纯编译／链接通过，没有测试或启动游戏，第 15 步统一验收。
@@ -74,7 +100,6 @@
 
 > **tx-04-18 I09—I25续作（2026-11-02）**：引用、最终path/碰撞与邻接结果、Grid原生分层绘制、独立记录、失败退休和唯一Scene提交已接线，GPT-6 Luna/max研究经主智能体直接复读审阅，完整纯构建成功。见[场景集成与实际边界](design/tx-04-18/tx-04-18-scene-integration.md)。I26—I30待推进，I29统一实机验收未执行；下方此前待集成状态保留原阶段语境。
 
-
 > **tx-04-14 已完成（2026-10-31）**：[整局、随机选择、HUD/独立表现、Mod及真实StageAPI实现与统一验收](design/observation-expansion/tx-04-14-implementation.md)。6/6 PASS、21/21场景、84个指定四域scope；[记录/适配合同](design/observation-expansion/run-mod-schema.md)。下方早期计划状态保留原时点。
 
 > **tx-04-13已完成（2026-10-31）**：[探索、离房保存与玩家跨房观测](design/observation-expansion/tx-04-13-implementation.md)已通过统一E2E 5/5，31/31场景、124个指定正式scope；不受影响的已完成项目复用，失败和边界如实保留，临时材料已清理。
@@ -84,7 +109,6 @@
 > **tx-04-10 已完成（2026-10-30）**：[公共接口、域拆分、完整 Entity 观测与统一 E2E 结果](design/observation-expansion/tx-04-10-implementation.md)。最终 5/5 PASS，14 条完整 Entity 后态含 4 条四组八身体后态；采集与录制独立，v1/v2 同读取投影通过，测试临时材料已清理。Grid 全量及其他域仍待 tx-04-11—14，下方历史时点不改判。
 
 # C/S研究与状态同步文档
-
 
 > **tx-04-19 I31—I33（2026-11-03）**：[投影、构建边界与统一编排](design/tx-04-19/tx-04-19-e2e-integration.md)、[Luna max来源研究／主审](design/tx-04-19/entity-i31-i33-native.md)。P1—P6新消费者复核、正式全非Player导出、产品／E2E分离、全类别Source／冷Client、故障退休及18完整回归统一入口已接线。按会话要求直接提交，未构建／测试／启动游戏；I34及I35待推进，不冒称运行验收或完整Player／Entity域提交。
 
@@ -297,4 +321,5 @@
 
 - tx-04-20 I16—I20：[效果、History、完整身体资源、costume与五槽武器安装及必要逆向主审](design/tx-04-20/tx-04-20-equipment-installation.md)。I21—I40继续推进；本轮未构建或测试，完整native_apply仍为false。
 
+> **原生二进制布局版本40：Effect后续五项未决（2026-11-09）**：[静态证据与落地](design/binary-state/effect-next-five-evidence.md)。补入五个VarData具名臂，Rotation／Scale移动态FX0，Trail上限127；Timeout有双减／刷新，ExtraData仍为三种具体payload。未知保留，正式采集／安装待后续步骤；未运行测试，第15步统一验收。
 

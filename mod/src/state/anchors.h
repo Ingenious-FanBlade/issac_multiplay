@@ -27,7 +27,8 @@ constexpr std::int32_t DisplayCountdown(std::uint32_t display_frame, CountdownAn
   const auto remaining = std::bit_cast<std::int32_t>(anchor.value - display_frame);
   return remaining > 0 ? remaining : 0;
 }
-// 原生无夹限计数与普通正倒计时分开：颜色Lifespan连负值也递减，毒/火伤害相位递增。
+// 原生无夹限计数与普通正倒计时分开，方向由具体展示布局指定。
+// Entity毒/火相位自版本30、ColorParams时间线自版本32归Host；其他展示计数继续复用。
 // 方向由布局处理器固定，线上仍是mode/value两字，不发送每帧变化的计数。
 enum class CounterDirection : std::uint8_t { Increasing, Decreasing };
 struct SignedCounterAnchor { std::uint32_t mode, value; };

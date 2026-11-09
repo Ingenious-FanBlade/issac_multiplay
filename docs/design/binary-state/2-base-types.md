@@ -1,6 +1,10 @@
 # 2：基础值类型与嵌套规则
 
+**2026-11-09 当前版本39：Player装备与Plus展示依赖。** [完整消费者与安装复核](player-equipment-plus-synchronization-review.md)将ActiveItemDesc来源池／定时充能冷却、Weapon五项非展示输入及KnifePlus.hitboxSource留Host；保留主动槽六值、Weapon充能三值与类型、TemporaryEffect三值及Plus公共nullable覆盖。新增135号UmbilicalWhip真实主引用、136号TemporaryEffects外层disabled／列表，并补Familiar+D76绘制抑制字节。原已排除Plus项不恢复，其他UNKNOWN保持。源、生成表、正式Plus读取接口和第5／8／10—15步已修订，未构建或测试，运行时仍待接线。
+
 状态：基础布局、共用代码和本轮静态核对已入源，普通 Release 纯编译／链接通过（2026-11-08）；仍有明确的 SDK 声明、未知区与跨域未决，见末节。上级：[总计划](README.md)。实现入口：[第 0—2 步实现说明](implementation-0-2.md)。下方手写表仍为实施前草稿，当前事实以布局源、生成表和证据文档为准。
+
+**版本32合同（未改变项继续适用）**：[动画／资源／颜色职责复核](animation-resource-synchronization-review.md)取代下方草稿中的事件位、loaded与ColorParams传输要求。事件位留Host；ANM2.loaded由本地资源owner维护，资源有无并入file_name可空资源号；图层loaded为本地加载／重载维护，路径与实际Image独立发送。ColorParams队列不传，最终ColorMod保留全部11个f32。is_playing、anim_frame及playback_speed有官方绘制插值消费者，继续同步。生成表与唯一布局源为当前字段依据；下方初稿表保留原设计语境，不能恢复已排除字段。
 
 ## 目标
 
@@ -28,6 +32,8 @@
 | `TemporaryEffect` | 0x10 | SDK 声明 3 个字段 |
 
 MSVC 32 位下，`std::string` 为 0x18 字节，`std::vector` 为 0xC 字节（begin、end、capacity 三个指针）。
+
+版本41补入NPC已核的MSVC Release deque：头0x14B含proxy／map／capacity／logical offset／count，引用元素4B、点元素8B，分配块16B。`ReadDequeInto`归并有效元素到预分配区，不复制或传输容器头；前后重读头用于拒绝来源变化，元素只复制一次。线上仍为u16 count＋递归投影元素，Client按具名游戏allocator／EntityPtr owner重建。完整边界见[NPC证据](npc-evidence.md)，不把该ABI外推到其他元素大小。
 
 ## 设计
 
@@ -116,7 +122,7 @@ ANM2 的状态拆成三部分：
 
 - **对齐判断错误**：把对齐字节当成状态，memcmp 误判；或者把状态当成填充，导致漏字段（例如 `0x31 unk`）。
 - **派生判断错误**：认定由文件决定的值，实际在运行时可改（例如默认动画名），Client 因此漏写。
-- **容器指针失效**：容器指针在复制过程中被游戏改写。只能在主线程合法窗口内读取，并且只能读一次。
+- **容器指针失效**：容器指针在复制过程中被游戏改写。只能在主线程合法窗口内读取，有效元素只复制一次；具名reader可在前后重读头拒绝来源变化，不能以重读拼接不同代次数据。
 - **BlendMode 不明**：内部布局没核清，导致混合方式写错。
 - **资源表不同步**：资源序号先于资源表到达 Client，或资源表重编号后，旧帧中的序号被误解为新路径。
 
@@ -127,7 +133,7 @@ ANM2 的状态拆成三部分：
 
 ### 已核定的草稿纠错
 
-- `AnimationState` 两组选择器可独立修改，不能由 `_animFrame` 派生；长度来自当前 `AnimationData+0x1C/+0x24`，不能使用 Sprite 总层数。状态长度为 `19 + 4×(当前动画层数 + 当前动画空层数)`，取代草稿的固定 15B。
+- `AnimationState` 两组选择器可独立修改，不能由 `_animFrame` 派生；长度来自当前 `AnimationData+0x1C/+0x24`，不能使用 Sprite 总层数。初次实施状态长度为 `19 + 4×(当前动画层数 + 当前动画空层数)`，取代草稿的固定15B；版本32移出8B事件位后为 `11 + 4×(当前动画层数 + 当前动画空层数)`。
 - `ANM2._animDefaultName` 在加载与拷贝中可赋值，本次保留为状态，不凭“未见 setter”判为派生。
 - `BlendMode` 是五个连续 u32，分别对应混合方程及四个混合因子。
 - `Vector` 两个 f32、`ColorMod` 的 4/4/3 分组和 `BitSet128` 的 16B ABI 均有 J273 直接证据。`KColor+0x10` 是 u32 颜色空间标记，已核 RGB/sRGB/HSL 标签 0/1/2，必须保留；不是填充或语义不明的尾字。
@@ -139,3 +145,5 @@ ANM2 的状态拆成三部分：
 - **明确未知字节**：AnimationState `0x15—0x17`；LayerState `0x31、0x75—0x77`；ANM2 `0x45—0x47、0x65—0x67`（两份内嵌 AnimationState 的未知区），以及 `0x71—0x73、0x102—0x103、0x108、0x10A—0x10B`；ColorParams `0x3A—0x3B`；Weapon `0x8—0xB、0x18—0x1F、0x3C—0x43`；TemporaryEffect `0xC—0xF`。ANM2 合计 14B，按全部 14 个类型条目统计为 47B（类型间的嵌套实例分别计入各自类型）。其余仅 SDK 声明或推断的范围仍按原标签保留，不宣称全部已核。第 15 步未知区探测继续保留。
 - **值域边界**：KColor 当前只将已直接核定的颜色空间标签 0/1/2 纳入原生安装校验；其他标签应报未支持缺口并补证，不声称这些标签在全程序均非法，也不据此宣称原版所有取值已验收。
 - 具体动态 Weapon 布局归第 5 步；官方扩展 shader 旁表及原生资源访问归第 8 步，不改变第 17 节的正式原生采集要求。
+
+版本39的装备三类以[Player装备与Plus复核](player-equipment-plus-synchronization-review.md)为准：ActiveItemDesc仅六值24B，Weapon基础仅四值16B，TemporaryEffect三值10B保持。新增135号真实UmbilicalWhip主引用及136号TemporaryEffects外层显示开关／有序列表；前缀、动态分配、外部元素与未知分别建模。旧表／原值writer不构成传输必要性，未构建或测试。

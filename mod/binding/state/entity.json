@@ -27,9 +27,9 @@
           "name": "flying_override",
           "type": "optional<bool>",
           "category": "换算",
-          "semantics": "未设置=-1，false=0，true=1；只在engaged时读payload",
+          "semantics": "官方IsFlying hook的未设／false／true覆盖；Player GetWaterClipInfo VA0x6B31C3通过IsFlying决定水面偏移，实际绘制经虚槽消费，保留三态。",
           "status": "已核",
-          "evidence": "EntityPlus.h；MSVC optional:70-75；state/entity_extension.cpp",
+          "evidence": "EntityPlus.h；MSVC optional:70-75；state/entity_extension.cpp；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "convert",
             "type": "i8",
@@ -53,9 +53,9 @@
           "name": "water_override",
           "type": "optional<u32>::value_and_engaged",
           "category": "换算",
-          "semantics": "Null=0，有值=(1<<32)|u32；只读取有效payload，不复制optional内部尾字节",
+          "semantics": "官方GetWaterClipInfo hook在super后覆写完整bitFlags；水面／镜面展示使用，保留Null／有效零／完整u32，不只同步effective flags或直接传optional字节。",
           "status": "已核",
-          "evidence": "EntityPlus.h；MSVC optional:70-75；state/entity_extension.cpp",
+          "evidence": "EntityPlus.h；MSVC optional:70-75；state/entity_extension.cpp；docs/design/binary-state/player-equipment-plus-synchronization-review.md",
           "wire": {
             "kind": "convert",
             "type": "u64",
@@ -104,7 +104,7 @@
       },
       "members": [],
       "public_owners": [],
-      "notes": "官方1.1.3扩展基类前缀；Player/Familiar等Plus派生类由第4/5步描述。5B未知对齐不发送，不能宣称完整动态扩展。"
+      "notes": "官方1.1.3扩展基类前缀；Player/Familiar等Plus派生类由第4/5步描述。5B未知对齐不发送，不能宣称完整动态扩展。 版本39复核保留两nullable展示输入，安装依赖已有同类holder/data、当前Player/Room/资源与ABI；不调用会分配的GetEntityPlus做采集，缺失不当Null。"
     },
     {
       "type": "Entity",
@@ -337,15 +337,10 @@
           "size": "0x1",
           "name": "valid",
           "type": "bool",
-          "category": "状态",
-          "semantics": "对象有效资格原值",
+          "category": "本地",
+          "semantics": "本进程对象/列表/池有效资格，由Client构造、发布和退休owner维护，不进入公共E2；Player活动/备用身体的原生激活资格由第5步P7结构角色单独接管，不能一律置true，也不声称等于room_member。",
           "status": "已核",
-          "evidence": "mod/binding/world_layout.json:fields.valid",
-          "wire": {
-            "kind": "copy",
-            "type": "u8"
-          },
-          "read_requires": "entity-current-window"
+          "evidence": "mod/binding/world_layout.json:fields.valid；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md；版本31复核：ctor VA0x6A39D4清零，AddEntity VA0x413D0B检查/0x413D9C置1，Player RenderHead 0x783707消费角色资格；docs/design/binary-state/entity-lifecycle-synchronization-review.md"
         },
         {
           "offset": "0x171",
@@ -368,9 +363,9 @@
           "name": "exists",
           "type": "bool",
           "category": "状态",
-          "semantics": "存在状态",
+          "semantics": "公共Render VA0x6AC4ED及多类Render读取+172；成员在表不代表可绘制，保留当前展示存在状态。",
           "status": "已核",
-          "evidence": "mod/binding/world_layout.json:fields.exists",
+          "evidence": "mod/binding/world_layout.json:fields.exists；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md；版本31复核独立性：docs/design/binary-state/entity-lifecycle-synchronization-review.md；旧Esau exists=true/valid=false反例及J273 Kill/Remove分离保留",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -383,9 +378,9 @@
           "name": "dead",
           "type": "bool",
           "category": "状态",
-          "semantics": "死亡状态",
+          "semantics": "Player Render VA0x785F3B和Room Light VA0x7FF848读取+173；死亡展示与成员退休不同，保留。",
           "status": "已核",
-          "evidence": "mod/binding/world_layout.json:fields.dead",
+          "evidence": "mod/binding/world_layout.json:fields.dead；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md；版本31复核独立性：docs/design/binary-state/entity-lifecycle-synchronization-review.md；旧Esau exists=true/valid=false反例及J273 Kill/Remove分离保留",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -427,15 +422,10 @@
           "size": "0x1",
           "name": "removed_by_factory",
           "type": "bool",
-          "category": "状态",
-          "semantics": "当前removedByFactory字节；仅满足规范第11节已创建owner或exact-pair PlayerUpdate资格才可采集",
+          "category": "本地",
+          "semantics": "当前进程工厂删除/REP EntityManager记账字节；Client由本地构造/退休owner维护，不写入Host原值。规范第11节的只读资格仍适用于需要该字节的Host生命周期观测。",
           "status": "已核",
-          "evidence": "规范第11节 USER_ACCEPTED_CURRENT_ENTITY_BYTE；mod/binding/world_layout.json:removed_by_factory；Init VA0x6A4BD6跨字段清零不代替当前资格",
-          "read_requires": "current-entity-byte-0x177",
-          "wire": {
-            "kind": "copy",
-            "type": "u8"
-          }
+          "evidence": "规范第11节 USER_ACCEPTED_CURRENT_ENTITY_BYTE；mod/binding/world_layout.json:removed_by_factory；Init VA0x6A4BD6跨字段清零不代替当前资格；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x178",
@@ -468,9 +458,9 @@
           "name": "entity_collision_class",
           "type": "i32",
           "category": "状态",
-          "semantics": "实体碰撞类别",
+          "semantics": "公共PostRender VA0x6ACCA7/0x6ACCCD、Laser PostRender VA0x956FC9/0x956FFC按+188选择调试碰撞几何颜色，保留。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -502,15 +492,10 @@
           "size": "0x1",
           "name": "collides_with_grid",
           "type": "bool",
-          "category": "状态",
-          "semantics": "当前格子碰撞标志",
+          "category": "权威",
+          "semantics": "Host本tick格子碰撞结果；用于玩法后续处理，Client不重演格子碰撞。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
-          "wire": {
-            "kind": "copy",
-            "type": "u8"
-          },
-          "read_requires": "entity-current-window"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x191",
@@ -557,20 +542,10 @@
           "size": "0xc",
           "name": "color_params",
           "type": "std::vector<ColorParams>",
-          "category": "容器",
-          "semantics": "有序颜色覆盖参数；元素递归投影，不发送容器头",
+          "category": "权威",
+          "semantics": "Host有序颜色覆盖／淡出队列；Client不运行颜色合成，传Entity.Color与主Sprite最终ColorMod即可；容器头与元素均不传输",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
-          "read_requires": "entity-current-window",
-          "wire": {
-            "kind": "container",
-            "element": "ColorParams",
-            "stride": 60,
-            "limit": 65535,
-            "storage": "vector",
-            "host": "read_entity_color_params",
-            "client": "rebuild_entity_color_params"
-          }
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "offset": "0x1b8",
@@ -607,204 +582,120 @@
           "size": "0x4",
           "name": "fire_damage_cooldown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 fire_damage_cooldown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA396 / dec 0x6AA3A0 / store 0x6AA3A1测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA396 / dec 0x6AA3A0 / store 0x6AA3A1测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x214",
           "size": "0x4",
           "name": "damage_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 damage_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3A7 / dec 0x6AA3B1 / store 0x6AA3B2测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3A7 / dec 0x6AA3B1 / store 0x6AA3B2测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x218",
           "size": "0x4",
           "name": "freeze_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 freeze_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3B8 / store 0x6AA3CD测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3B8 / store 0x6AA3CD测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x21c",
           "size": "0x4",
           "name": "poison_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 poison_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3EE测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA3EE测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x220",
           "size": "0x4",
           "name": "slowing_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 slowing_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA42C测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA42C测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x224",
           "size": "0x4",
           "name": "charmed_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 charmed_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA476测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA476测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x228",
           "size": "0x4",
           "name": "confusion_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 confusion_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA4E3测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA4E3测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x22c",
           "size": "0x4",
           "name": "midas_freeze_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 midas_freeze_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA646测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA646测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x230",
           "size": "0x4",
           "name": "fear_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 fear_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA52B测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA52B测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x234",
           "size": "0x4",
           "name": "burn_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 burn_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA5B7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA5B7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x238",
           "size": "0x4",
           "name": "boss_status_effect_cooldown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 boss_status_effect_cooldown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA9DC / dec 0x6AA9E6 / store 0x6AA9E7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA9DC / dec 0x6AA9E6 / store 0x6AA9E7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x23c",
           "size": "0x4",
           "name": "shrink_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态倒计时 shrink_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA58F测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA58F测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x240",
@@ -821,30 +712,20 @@
           "size": "0x4",
           "name": "poison_damage",
           "type": "f32",
-          "category": "状态",
-          "semantics": "毒伤害强度",
+          "category": "权威",
+          "semantics": "Host毒伤害强度；最终HP和毒效果表现另行同步，Client不计算伤害。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
-          "wire": {
-            "kind": "copy",
-            "type": "f32"
-          },
-          "read_requires": "entity-current-window"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x27c",
           "size": "0x4",
           "name": "burn_damage",
           "type": "f32",
-          "category": "状态",
-          "semantics": "灼烧伤害强度",
+          "category": "权威",
+          "semantics": "Host灼烧伤害强度；最终HP和火效果表现另行同步，Client不计算伤害。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
-          "wire": {
-            "kind": "copy",
-            "type": "f32"
-          },
-          "read_requires": "entity-current-window"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x280",
@@ -861,15 +742,10 @@
           "size": "0x4",
           "name": "mass",
           "type": "f32",
-          "category": "状态",
-          "semantics": "质量",
+          "category": "权威",
+          "semantics": "Host碰撞/物理模拟参数；Client不运行碰撞或原生Interpolate，展示使用最终姿态。SDK声明等级保留。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
-          "wire": {
-            "kind": "copy",
-            "type": "f32"
-          },
-          "read_requires": "entity-current-window"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2d8",
@@ -886,51 +762,30 @@
           "size": "0x4",
           "name": "poison_damage_timer",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生毒伤害相位，有对应flag且实际Update分支执行时++并按20取模；使用无夹限有符号递增锚点，不当倒计时或负哨兵",
+          "category": "权威",
+          "semantics": "Host毒/火伤害节奏递增相位（mod 20）；不是展示时钟输入。Client接收最终HP、颜色和效果成员，不执行毒/火伤害，不采集、不编码、不安装此相位。",
           "status": "已核",
-          "evidence": "J273 Entity::Update VA0x6A9CF0，毒/火分支对应flag0x40/0x1000，读取+2E0/+2E4后inc；entity-common-evidence.md，主审采用前核原始指令",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_phase_to_anchor",
-            "client": "entity_phase_from_anchor"
-          }
+          "evidence": "J273 Entity::Update VA0x6A9CF0，毒/火分支对应flag0x40/0x1000，读取+2E0/+2E4后inc；entity-common-evidence.md，主审采用前核原始指令；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2e4",
           "size": "0x4",
           "name": "burn_damage_timer",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生火伤害相位，有对应flag且实际Update分支执行时++并按20取模；使用无夹限有符号递增锚点，不当倒计时或负哨兵",
+          "category": "权威",
+          "semantics": "Host毒/火伤害节奏递增相位（mod 20）；不是展示时钟输入。Client接收最终HP、颜色和效果成员，不执行毒/火伤害，不采集、不编码、不安装此相位。",
           "status": "已核",
-          "evidence": "J273 Entity::Update VA0x6A9CF0，毒/火分支对应flag0x40/0x1000，读取+2E0/+2E4后inc；entity-common-evidence.md，主审采用前核原始指令",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_phase_to_anchor",
-            "client": "entity_phase_from_anchor"
-          }
+          "evidence": "J273 Entity::Update VA0x6A9CF0，毒/火分支对应flag0x40/0x1000，读取+2E0/+2E4后inc；entity-common-evidence.md，主审采用前核原始指令；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2e8",
           "size": "0x4",
           "name": "bleeding_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态计时 bleeding_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA67D测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA67D测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2ec",
@@ -947,117 +802,70 @@
           "size": "0x4",
           "name": "magnetized_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态计时 magnetized_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA77E测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA77E测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2f4",
           "size": "0x4",
           "name": "baited_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态计时 baited_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA7C2测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA7C2测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2f8",
           "size": "0x4",
           "name": "knockback_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态计时 knockback_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA926测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA926测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x2fc",
           "size": "0x4",
           "name": "weakness_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态计时 weakness_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA8C7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA8C7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x300",
           "size": "0x4",
           "name": "ice_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态计时 ice_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA95D测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA95D测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x304",
           "size": "0x4",
           "name": "brimstone_mark_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态计时 brimstone_mark_countdown；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA9A7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl 命名；J273 Entity::Update VA0x6A9CF0：0x6AA9A7测试正值后递减；entity-common-evidence.md。锚点是条件换算合同，不声称与global frame无条件等速。；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x308",
           "size": "0x8",
           "name": "knockback_direction",
           "type": "Vector",
-          "category": "状态",
-          "semantics": "击退方向",
+          "category": "权威",
+          "semantics": "Host击退/位置更新输入；展示安装最终位置、速度和姿态，不重演击退。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
-          "read_requires": "entity-current-window",
-          "wire": {
-            "kind": "nested",
-            "type": "Vector"
-          }
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x310",
@@ -1074,32 +882,20 @@
           "size": "0x8",
           "name": "pause_held_position",
           "type": "Vector",
-          "category": "状态",
-          "semantics": "暂停位置路径保存的坐标，pause_timer递减后仍为正时原生从此还原Position；不能仅由当前Position派生",
+          "category": "权威",
+          "semantics": "Host位置更新的暂停保存坐标；+31C仍正时回写最终Position。Client不运行该路径，接收最终Position，不以当前坐标伪造Host保存历史。",
           "status": "已核",
-          "evidence": "J273位置路径VA0x6C03B0；VA0x6C089C取+314、0x6C08A2写+33C，VA0x6C08A8取+318、0x6C08AE写+340；Init VA0x6A4E87初始化该Vector；主审已复读原始指令",
-          "wire": {
-            "kind": "nested",
-            "type": "Vector"
-          },
-          "read_requires": "entity-current-window"
+          "evidence": "J273位置路径VA0x6C03B0；VA0x6C089C取+314、0x6C08A2写+33C，VA0x6C08A8取+318、0x6C08AE写+340；Init VA0x6A4E87初始化该Vector；主审已复读原始指令；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x31c",
           "size": "0x4",
           "name": "pause_timer",
           "type": "i32",
-          "category": "换算",
-          "semantics": "原生状态计时 pause_timer；u32[2]={mode,value}条件帧锚点，禁止无条件发送每帧计数",
+          "category": "权威",
+          "semantics": "Host状态持续/伤害/击退/暂停玩法计时；Client不运行Entity Update或位置更新，不重演到期清标志/生成/伤害。展示读取已同步的最终flags、颜色、Sprite、位置和子类表现，不采集、不编码、不安装此计数。",
           "status": "已核",
-          "evidence": "SDK Entity.zhl +31C；J273位置路径VA0x6C03B0，在VA0x6C0887读、0x6C088D测试正、0x6C0891减一、0x6C0892写回；主审已复读；全部调用资格未闭合，需实际clock见证",
-          "read_requires": "entity-current-window-and-confirmed-timer-clock",
-          "wire": {
-            "kind": "convert",
-            "type": "u32[2]",
-            "host": "entity_countdown_to_anchor",
-            "client": "entity_countdown_from_anchor"
-          }
+          "evidence": "SDK Entity.zhl +31C；J273位置路径VA0x6C03B0，在VA0x6C0887读、0x6C088D测试正、0x6C0891减一、0x6C0892写回；主审已复读；全部调用资格未闭合，需实际clock见证；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x320",
@@ -1194,15 +990,10 @@
           "size": "0x8",
           "name": "staged_position",
           "type": "Vector",
-          "category": "状态",
-          "semantics": "插值前暂存坐标/历史位置；不能仅由当前position重建",
+          "category": "权威",
+          "semantics": "Host原生Interpolate槽保存的半帧前坐标；Client不调用该槽。只同步最终位置/速度；如需网络展示插值，以已应用快照构建本地历史，不复制Host这份历史。",
           "status": "已核",
-          "evidence": "J273 vtable VA0xB18224槽4=0x6AC2A0；VA0x6AC2E8写+344、VA0x6AC2F1写+348；主审已复读原始指令；旧tx-03的6B0EB0不是当前点位",
-          "wire": {
-            "kind": "nested",
-            "type": "Vector"
-          },
-          "read_requires": "entity-current-window"
+          "evidence": "J273 vtable VA0xB18224槽4=0x6AC2A0；VA0x6AC2E8写+344、VA0x6AC2F1写+348；主审已复读原始指令；旧tx-03的6B0EB0不是当前点位；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x34c",
@@ -1294,15 +1085,10 @@
           "size": "0x4",
           "name": "friction",
           "type": "f32",
-          "category": "状态",
-          "semantics": "摩擦系数",
+          "category": "权威",
+          "semantics": "Host运动/Interpolate输入；Client不运行原生半帧运动，展示使用最终位置、速度和Sprite。",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
-          "wire": {
-            "kind": "copy",
-            "type": "f32"
-          },
-          "read_requires": "entity-current-window"
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x370",
@@ -1310,9 +1096,9 @@
           "name": "size",
           "type": "f32",
           "category": "状态",
-          "semantics": "实体尺寸",
+          "semantics": "公共/Laser PostRender VA0x6ACC90/0x956FB4及Room Light VA0x7FFD4C读取+370；保留展示/调试几何尺寸。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1325,9 +1111,9 @@
           "name": "size_multi",
           "type": "Vector",
           "category": "状态",
-          "semantics": "尺寸倍率",
+          "semantics": "Familiar展示helper VA0x6473C5与公共PostRender VA0x6ACCF8读取+374；保留最终尺寸倍率。",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -1379,15 +1165,10 @@
           "size": "0x4",
           "name": "collision_damage",
           "type": "f32",
-          "category": "状态",
-          "semantics": "碰撞伤害",
+          "category": "权威",
+          "semantics": "Host接触伤害裁决输入；Client不重演碰撞伤害，最终HP和效果成员照常同步。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
-          "wire": {
-            "kind": "copy",
-            "type": "f32"
-          },
-          "read_requires": "entity-current-window"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x38c",
@@ -1405,9 +1186,9 @@
           "name": "speed_multiplier",
           "type": "f32",
           "category": "状态",
-          "semantics": "移动速度倍率",
+          "semantics": "Effect Render variant172/subtype1 VA0x6039A0读取+39C参与展示方向旋转；保留，不能只按名称归运动玩法。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1429,15 +1210,10 @@
           "size": "0x1",
           "name": "invincible",
           "type": "bool",
-          "category": "状态",
-          "semantics": "无敌状态",
+          "category": "权威",
+          "semantics": "Host伤害可受性裁决开关；不是Player独立伤害闪烁计时。Client同步最终死亡/HP/颜色/姿态，不执行伤害裁决。",
           "status": "SDK声明",
-          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
-          "wire": {
-            "kind": "copy",
-            "type": "u8"
-          },
-          "read_requires": "entity-current-window"
+          "evidence": "REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x3b1",
@@ -1678,11 +1454,8 @@
           "name": "E1 运动",
           "sequence": "world-or-player-body",
           "fields": [
-            "knockback_direction",
-            "pause_held_position",
             "target_position",
             "position",
-            "staged_position",
             "position_offset",
             "velocity",
             "size_multi",
@@ -1695,53 +1468,22 @@
           "sequence": "world",
           "fields": [
             "flags",
-            "valid",
             "visible",
             "exists",
             "dead",
-            "removed_by_factory",
             "grid_collision_class",
             "entity_collision_class",
-            "collides_with_grid",
-            "mass",
             "frame_base",
-            "friction",
             "size",
             "hit_points",
-            "max_hit_points",
-            "collision_damage",
-            "invincible"
+            "max_hit_points"
           ]
         },
         {
           "id": 3,
-          "name": "E3 状态效果与计时锚点",
+          "name": "E3 缩小状态",
           "sequence": "world",
           "fields": [
-            "fire_damage_cooldown",
-            "damage_countdown",
-            "freeze_countdown",
-            "poison_countdown",
-            "slowing_countdown",
-            "charmed_countdown",
-            "confusion_countdown",
-            "midas_freeze_countdown",
-            "fear_countdown",
-            "burn_countdown",
-            "boss_status_effect_cooldown",
-            "shrink_countdown",
-            "poison_damage",
-            "burn_damage",
-            "poison_damage_timer",
-            "burn_damage_timer",
-            "bleeding_countdown",
-            "magnetized_countdown",
-            "baited_countdown",
-            "knockback_countdown",
-            "weakness_countdown",
-            "ice_countdown",
-            "brimstone_mark_countdown",
-            "pause_timer",
             "shrink_status_1",
             "shrink_status_2"
           ]
@@ -1778,11 +1520,10 @@
         },
         {
           "id": 7,
-          "name": "E7 颜色参数",
+          "name": "E7 原颜色参数（预留）",
           "sequence": "world",
-          "fields": [
-            "color_params"
-          ]
+          "fields": [],
+          "reserved": true
         },
         {
           "id": 8,
@@ -1845,20 +1586,12 @@
       },
       "conversions": {
         "entity_index_to_draw_order": "仅取Host _index的绘制排序语义，不建立网络身份。",
-        "entity_draw_order_to_description": "写自有绘制描述authority_order，不覆盖原生Entity索引。",
-        "entity_countdown_to_anchor": "字段 owner 必须提供已核的实际递减条件；运行的正倒计时转 mode=1/Host到期帧，停走及零/负哨兵转 mode=0/原值；条件不明报缺口，不默认全局线性。 活跃但时钟关系未知时必须报缺口，不得用mode0冒充停走。",
-        "entity_countdown_from_anchor": "校验mode；用最近已应用world game_frame还原，运行倒计时下限为0；停走/哨兵保留原值。",
-        "entity_phase_to_anchor": "SignedCounterAnchor Increasing：实际已核更新时钟同速时mode1保存game_frame-counter；未执行/停走mode0保存当前原值，0和负也会在活动时递增；不猜测clock。 活跃但时钟关系未知时必须报缺口，不得用mode0冒充停走。",
-        "entity_phase_from_anchor": "校验mode，用最近已应用world game_frame按模2^32还原递增相位，不夹限、不在Client执行毒/火伤害逻辑。"
+        "entity_draw_order_to_description": "写自有绘制描述authority_order，不覆盖原生Entity索引。"
       },
       "validators": {
         "shadow_size": {
           "kind": "finite",
           "scalar": "f32"
-        },
-        "valid": {
-          "kind": "boolean",
-          "scalar": "u8"
         },
         "visible": {
           "kind": "boolean",
@@ -1872,31 +1605,7 @@
           "kind": "boolean",
           "scalar": "u8"
         },
-        "removed_by_factory": {
-          "kind": "boolean",
-          "scalar": "u8"
-        },
-        "collides_with_grid": {
-          "kind": "boolean",
-          "scalar": "u8"
-        },
-        "poison_damage": {
-          "kind": "finite",
-          "scalar": "f32"
-        },
-        "burn_damage": {
-          "kind": "finite",
-          "scalar": "f32"
-        },
-        "mass": {
-          "kind": "finite",
-          "scalar": "f32"
-        },
         "depth_offset": {
-          "kind": "finite",
-          "scalar": "f32"
-        },
-        "friction": {
           "kind": "finite",
           "scalar": "f32"
         },
@@ -1912,10 +1621,6 @@
           "kind": "finite",
           "scalar": "f32"
         },
-        "collision_damage": {
-          "kind": "finite",
-          "scalar": "f32"
-        },
         "speed_multiplier": {
           "kind": "finite",
           "scalar": "f32"
@@ -1927,10 +1632,6 @@
         "shrink_status_2": {
           "kind": "finite",
           "scalar": "f32"
-        },
-        "invincible": {
-          "kind": "boolean",
-          "scalar": "u8"
         }
       },
       "members": [
@@ -1954,19 +1655,19 @@
         },
         {
           "id": "Entity.CollidesWithGrid",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "collides_with_grid"
           ],
-          "reason": "直接对应原生+0x190的collides_with_grid，按原值发送。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.CollisionDamage",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "collision_damage"
           ],
-          "reason": "直接对应原生+0x388的collision_damage，按原值发送。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.Color",
@@ -2029,27 +1730,27 @@
         },
         {
           "id": "Entity.Friction",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "friction"
           ],
-          "reason": "直接对应原生+0x36C的friction，按原值发送。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetBaitedCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "baited_countdown"
           ],
-          "reason": "对应原生+0x2F4的baited_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetBleedingCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "bleeding_countdown"
           ],
-          "reason": "对应原生+0x2E8的bleeding_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetBossID",
@@ -2061,67 +1762,65 @@
         },
         {
           "id": "Entity.GetBossStatusEffectCooldown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "boss_status_effect_cooldown"
           ],
-          "reason": "对应原生+0x238的boss_status_effect_cooldown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetBrimstoneMarkCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "brimstone_mark_countdown"
           ],
-          "reason": "对应原生+0x304的brimstone_mark_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetBurnCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "burn_countdown"
           ],
-          "reason": "对应原生+0x234的burn_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetBurnDamageTimer",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "burn_damage_timer"
           ],
-          "reason": "对应原生+0x2E4的递增相位burn_damage_timer；按有符号锚点发送，Client用展示时钟还原，不重演毒/火伤害节奏。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetCharmedCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "charmed_countdown"
           ],
-          "reason": "对应原生+0x224的charmed_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetColorParams",
-          "disposition": "field",
-          "fields": [
-            "color_params"
-          ],
-          "reason": "对应原生+0x1AC的ColorParams向量；逐元素投影发送，不发送容器头。"
+          "disposition": "authority",
+          "fields": [],
+          "reason": "Host颜色覆盖队列；最终Entity.Color和主Sprite.color已同步，Client不重演颜色合成或还原该队列。版本32见docs/design/binary-state/animation-resource-synchronization-review.md"
         },
         {
           "id": "Entity.GetConfusionCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "confusion_countdown"
           ],
-          "reason": "对应原生+0x228的confusion_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetDamageCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "damage_countdown"
           ],
-          "reason": "对应原生+0x214的damage_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetEntityConfigEntity",
@@ -2144,27 +1843,27 @@
         },
         {
           "id": "Entity.GetFearCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "fear_countdown"
           ],
-          "reason": "对应原生+0x230的fear_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetFireDamageCooldown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "fire_damage_cooldown"
           ],
-          "reason": "对应原生+0x210的fire_damage_cooldown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetFreezeCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "freeze_countdown"
           ],
-          "reason": "对应原生+0x218的freeze_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetHitListIndex",
@@ -2173,27 +1872,27 @@
         },
         {
           "id": "Entity.GetIceCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "ice_countdown"
           ],
-          "reason": "对应原生+0x300的ice_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetKnockbackCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "knockback_countdown"
           ],
-          "reason": "对应原生+0x2F8的knockback_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetKnockbackDirection",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "knockback_direction"
           ],
-          "reason": "直接对应原生+0x308的knockback_direction，按原值发送。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetLastChild",
@@ -2215,19 +1914,19 @@
         },
         {
           "id": "Entity.GetMagnetizedCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "magnetized_countdown"
           ],
-          "reason": "对应原生+0x2F0的magnetized_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetMidasFreezeCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "midas_freeze_countdown"
           ],
-          "reason": "对应原生+0x22C的midas_freeze_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetMinecart",
@@ -2239,27 +1938,27 @@
         },
         {
           "id": "Entity.GetPauseTime",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "pause_timer"
           ],
-          "reason": "对应原生+0x31C的pause_timer；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。暂停期间仅同步最终位置与姿态。"
         },
         {
           "id": "Entity.GetPoisonCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "poison_countdown"
           ],
-          "reason": "对应原生+0x21C的poison_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetPoisonDamageTimer",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "poison_damage_timer"
           ],
-          "reason": "对应原生+0x2E0的递增相位poison_damage_timer；按有符号锚点发送，Client用展示时钟还原，不重演毒/火伤害节奏。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetPosVel",
@@ -2280,19 +1979,19 @@
         },
         {
           "id": "Entity.GetShrinkCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "shrink_countdown"
           ],
-          "reason": "对应原生+0x23C的shrink_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetSlowingCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "slowing_countdown"
           ],
-          "reason": "对应原生+0x220的slowing_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GetSpeedMultiplier",
@@ -2333,11 +2032,11 @@
         },
         {
           "id": "Entity.GetWeaknessCountdown",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "weakness_countdown"
           ],
-          "reason": "对应原生+0x2FC的weakness_countdown；按条件帧锚点发送，Client用展示时钟还原计数，不发送逐帧变化的值。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.GridCollisionClass",
@@ -2422,11 +2121,11 @@
         },
         {
           "id": "Entity.IsInvincible",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "invincible"
           ],
-          "reason": "直接对应原生+0x3B0的invincible，按原值发送。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.IsVisible",
@@ -2443,11 +2142,11 @@
         },
         {
           "id": "Entity.Mass",
-          "disposition": "field",
+          "disposition": "authority",
           "fields": [
             "mass"
           ],
-          "reason": "直接对应原生+0x2D4的mass，按原值发送。"
+          "reason": "对应Host玩法状态，按版本30的Entity公共同步职责复核不传输、不安装，不要求Host与Client原值相等；字段证据和公开观测职责保留。"
         },
         {
           "id": "Entity.MaxHitPoints",
@@ -2637,7 +2336,7 @@
       "public_owners": [
         "Entity"
       ],
-      "notes": "第3步Entity公共目录；未知字节、SDK声明和跨域依赖明确保留。E0含形态元数据，E1/E4/E5在Player切换为body。正式采集与原生应用在第10/13步接线；此处不代表完整同步已运行。"
+      "notes": "第3步Entity公共目录；未知字节、SDK声明和跨域依赖明确保留。E0含形态元数据，E1/E4/E5在Player切换为body。正式采集与原生应用在第10/13步接线；此处不代表完整同步已运行。 版本30移除33个公共范围的线上职责（32个Host玩法范围、1个本地工厂标志）；保留valid/exists/dead及真实绘制参数，详见entity-common-synchronization-review.md。 版本31进一步撤销公共valid的wire/validator/handler，原生资格归本地owner；exists/dead保留，Player激活资格的结构信息由第5步P7另行接管，见entity-lifecycle-synchronization-review.md。"
     }
   ]
 }

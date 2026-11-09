@@ -2,6 +2,8 @@
 
 日期：2026-11-08。对应 [第 0 步](0-baseline.md)、[第 1 步](1-layout-source.md)、[第 2 步](2-base-types.md)。本次没有启动游戏或执行测试；第 15 步仍是整个重构的唯一统一整体验收。
 
+> 版本32职责修订：[动画／资源／颜色职责复核](animation-resource-synchronization-review.md)取代本文旧事件掩码、loaded原字节及ColorParams队列／颜色锚点的上线要求。is_playing／anim_frame／playback_speed与最终完整ColorMod继续同步；可空资源选择与本地准备分开。下文保留原时点实现、逆向事实和编译记录，不表示新资源执行器或E2E已完成。
+
 ## 实现范围
 
 第 0 步复读现行规范、独立工程入口和六份旧文档顶部的替代说明。保留开始前已有的计划修订及 `world_layout.json` 尺寸更正，没有提交、回退或覆盖既有工作，也没有续跑旧 tx-04-21 的 E2E。

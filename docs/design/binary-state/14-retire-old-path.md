@@ -48,12 +48,24 @@
 
 ### 14.3 保留不动的部分
 
-- **Hook**：统一 Hook 清单保持常驻、按会话逻辑启停。新采集使用现有窗口，不新增 Hook。其中 `world_delirium_owner` 保留，只负责 Delirium 变身内 Init 之后的读取资格；shape 换代改由字段比较完成，旧路径退役时要去掉它升 shape 的逻辑（第 4 步 4.2.6）。
+- **Hook**：统一 Hook 清单保持常驻、按会话逻辑启停。新采集使用现有窗口，不新增 Hook。其中 `world_delirium_owner` 保留，只负责 Delirium 变身内 Init 之后的读取资格；仅由真实公共shape字段比较决定结构换代；BossType／Variant自版本42留Host，旧路径退役时须去掉它无条件升shape的逻辑（第 4 步 4.2.6）。
 - **身份**：`IdentityTable`、`Registry`。
 - **传输**：通道、可靠发送、分片重组、合包、zstd、内存池。
 - **Client 原生写入层**：原生写入函数、结构事务和退休流程。
 
-第 4 步 Tear／Pickup／Laser 已在新布局源中接管的旧行为不能随字符串表一起丢失：Tear 三份辅助 Sprite／七槽关系，Pickup 两份 Sprite／四槽关系／八项循环，Laser 十三槽关系／原始有符号采样模式／四份几何容器均须保留数字入口；引用退休先撤边，几何不调用 CalculateSamples，FlipSaveState 不复活。TearPlus／PickupPlus／LaserPlus 的派生声音、重抽和重采样请求仍属 Host。具体字段和边界见[本轮实现](implementation-4-tear-pickup-laser.md)。
+第4步的关系职责按版本29保留，参数与容器以版本37为准，不能用旧应用目录要求恢复已排除同步：Tear保留三份辅助Sprite及StickTarget，Pickup保留两份Sprite／公开Ghost和MegaChest三关系，未来循环数组自版本35起留Host，Laser保留BounceLaser／原始有符号采样模式／optimized与unoptimized两组最终点列及实际展示标量；Knife四槽、Tear六槽、Pickup私有一槽、Laser十二槽的旧Source／安装／原值比较在接线时退役。Familiar +DAC仅variant240布局130保留展示引用，其他变体不发。被排除的目标仍是独立成员；撤边和本地空槽／正常析构保护不可随旧表删除。几何不调用CalculateSamples，FlipSaveState不复活。TearPlus／PickupPlus／LaserPlus的派生声音、重抽和重采样请求仍属Host。见[关系职责复核](internal-entity-relations-review.md)，早期实现记录保留原时点。
+
+版本30另按[Entity公共职责](entity-common-synchronization-review.md)退役旧公共计时、伤害、物理输入及历史位置的Source／安装／原值比较。版本31再移除公共valid字段／handler／热比较，由本地构造与发布owner及Player P7结构接管；P7尚未完成前保留旧Player结构源的独立激活资格信息，不得把“移出E2”误作删除该信息。exists／dead继续同步，不调用Kill／Remove替代最终状态。见[生命周期再复核](entity-lifecycle-synchronization-review.md)。
+
+版本32另按[动画／资源／颜色职责复核](animation-resource-synchronization-review.md)接管资源存在性、路径／实际Image及本地准备owner后，退役旧事件位原值比较、loaded直接写入／跨端原值相等要求，以及ColorParams队列与颜色锚点的Source／安装／漂移比较。保留事件位本地清理、空↔非空资源正常退休、加载失败不ACK、完整selector及最终11分量颜色；保留is_playing／playback_speed的官方绘制依赖。新具名资源handler未接通前不能删去旧资源owner或声称替代完成；历史记录不改判。
+
+版本33按[Familiar参数／充能／绳索复核](familiar-synchronization-review.md)退役Familiar11个参数范围的旧Source／安装／原值比较。保留FireCooldown／State／Coins等真实展示源；80接入最终amount缓存／展示adapter，240接入typed payload、逻辑deque和430E40 owner后，才算接管相应缺口。新节点／payload未知仍不写入；不得因新表存在就删除旧生命周期保护或宣称可玩完整。
+
+版本34按[Knife／Bomb／Tear参数展示复核](knife-bomb-tear-synchronization-review.md)退役42个参数范围的旧Source／写入／原值相等要求，撤销Bomb ExplosionCountdown与Tear WaitFrames／StickTimer锚点及漂移比较。保留Knife拖影输入、Tear效果位／DeadEye和Room Light、全部主／辅助Sprite及公共最终绘制偏移；Bomb pending清除和读回继续保留。不得通过调用LoadCostumes、ResetSpriteScale、Height／Scale setter、Update或Interpolate重建已排除输入的效果。通用entity_counters仍服务其他线上计数，不连带删除。
+
+版本35按[Pickup／Slot选择、交互与奖励复核](pickup-slot-synchronization-review.md)退役Pickup选择组／触碰／自动价格／商店标识等输入、Timeout／Wait锚点及未来循环数组的Source／安装／原值比较，以及Slot八项交互／状态／奖励字段。保留Price与WaterClip、DropDelay展示时钟、所有主／辅助Sprite和真实引用；本地循环安全空初始化、奖品动画／is_playing、价格Sprite资源owner不能随旧字段一起删除。不得用交互、定价、开奖或SetPrizeCollectible重算最终画面；整局HUD／进度域自己的捐款总额等来源独立保留。
+
+版本36按[Projectile运动与展示参数复核](projectile-synchronization-review.md)退役Projectile八项运动／效果输入的旧Source／安装／原值相等要求；Damage／Change保持原排除，PR1预留。保留Height、公共EntityFlags／最终偏移／尺寸／Sprite和DepthOffset单份来源，以及Game帧展示借用；Height临时改写须精确恢复。不能通过Interpolate、Update或本地+470回调恢复曲线／摆动。私有展示UNKNOWN及其未完成接线仍如实保留，不因旧字段减少而称完整。
 
 ### 14.4 文档同步
 
@@ -82,3 +94,12 @@
 ## 未决问题
 
 - 冷路径（场景准备）中是否还有依赖旧 JSON 的部分没有被第 11 步的 Baseline 完全取代，需要在实现第 11 步时逐项核对。
+
+版本37按[Laser／Homing采样、运动与计时复核](laser-homing-synchronization-review.md)退役十九项Laser更新／运动／计时输入、六项Homing标量、indices中间缓存／Bezier与六f32系数的旧Source、writer、validator及原值／漂移比较；两个Laser锚点和旧indices i32／4B步长假设一并退役。原生indices已纠正为8B点对，旧SDK／执行器错误保留在历史说明，不能将旧路径误写成已修复。L2／L4／L7／L8及Homing子块0／3／4空预留不要求接收或安装。只安装两组最终点列与真实展示输入，保持本地self／空缓存owner、失败候选清理和正常析构；不得恢复采样、更新、半帧、接触或生成模拟。
+
+**版本38 Effect退役**：按[Effect各臂与payload复核](effect-synchronization-review.md)撤销六项公共更新参数、四变体TearFlags完整128位、136描述八成员的旧Source／writer／validator／原值与漂移比较；136旧room-grid `lifted_descriptors`同样退役，不转移到另一同步域。Ghost旧四份固定Sprite、独立i32 count和Offset／Scale原值路径退役，改有效前缀三投影与专用视图134，保留无效槽正常清理。Trail旧base_prefix／producer未定位读取限制由606190正面证据解决，不能继续报已解决的布局Gap；节点仍完整64B且不连续。MrMe四项Host内部范围不新增同步。保留State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale、三种真实payload、引用与资源及本地owner，禁止通过旧路径重演玩法。本轮只改声明和生成链，未声称旧运行路径已经完成退役。
+
+**版本39装备／Plus退役**：按[完整复核](player-equipment-plus-synchronization-review.md)退役ActiveItemDesc来源池／定时充能冷却、Weapon owner／FireDelay／Direction／axis_parameters／NumFired及Knife hitboxSource的旧Source／writer／validator／原值与漂移比较；正式ReadKnifeExtension接口已删除，旧Lua／JSON运行链的实际切换仍归本步。旧MaxCharge／两份chargebar重复负载改由保留字段及已核动态公式重建，不以旧比较要求恢复多余字段。保留Whip真实主引用、五槽类型与存在性、主动槽六项输入、TemporaryEffect三值及外层disabled；外层mask／evaluate请求和本地Player地址不再复制。Plus公共两nullable与同类holder／optional owner保持，已排除的各派生Plus项不恢复；所有旧本地边／容器经正常owner清理，不能memcpy零或恢复Update／Fire／HUD Update／采样／重抽。
+**版本40 Effect后续五项退役合同**：见[证据与落地](effect-next-five-evidence.md)。清理旧FX0=8B／FX1=21B常数、102接收113的旧映射、Trail通用16384上限，以及“静止Effect所有锚点必不重发”的判断；统一改用版本40生成表和完整尾窗127上限。旧119回调／120生成／传播请求及113两标量不得作为新同步字段恢复，VarData残余UNKNOWN仍不上线。未知非空／错variant holder须报告，不借旧Source兜底或按空继续。保留三种表现payload及其正常资源／容器／共享owner生命周期，不增加Hook或重演玩法。本轮布局及合同已更新，正式旧运行链的退役仍由本步实施，未运行测试。
+
+**版本42 NPC现行合同**：正式迁移按N0—N6和当前144视图退役旧NPC Lua／JSON字段／资源来源；DL0／DL1均预留，旧BossType／Variant、raw ControllerId及OverlayEffect原Scale不得作为fallback保留传输或写回。保留Delirium Init读取资格owner，移除无条件shape增加；所有已排除AI／命中／本地owner及UNKNOWN边界保持。见[完整复核](npc-synchronization-review.md)。

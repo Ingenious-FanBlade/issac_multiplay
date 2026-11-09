@@ -1,5 +1,15 @@
 # 第 4 步：Slot、Projectile、Effect 实现说明
 
+> 版本38后续修订：[Effect各臂与附属payload复核](effect-synchronization-review.md)取代下文Effect旧传输决定。六项参数、TearFlags及136描述归Host；MrMe独立Sprite、Trail完整64B节点保留；Ghost只发0—4有效Sprite，Offset／Scale派生且count由投影重建。MrMe16B原未知及Trail真实分配有新正面证据，其他UNKNOWN保持。源、生成表和后续合同已更新；本轮未构建或测试，下文版本23普通编译事实保留原时点。
+
+> 版本36后续复核：[Projectile运动与展示参数复核](projectile-synchronization-review.md)将Projectile追踪／曲线／加速／下落／摆动及Scale／ProjectileFlags共八项留Host，保留Render直接消费的Height；公共EntityFlags、最终位置／偏移／尺寸和Sprite保持。私有+440及+460／+464的展示来源仍UNKNOWN，未构建或测试。下文旧传输与原值比较约定保留原时点，现行以版本36源及生成表为准，运行时仍待后续步骤接线。
+
+
+> 版本35后续复核：[Pickup／Slot选择、交互与奖励复核](pickup-slot-synchronization-review.md)将Pickup选择组／触碰／自动价格／商店标识等输入、Timeout／Wait和未来循环列表，以及Slot八项参数留Host。Price／DropDelay、最终主／辅助Sprite与真实引用保留；Slot奖品+460／+470精确对应当前动画指针／is_playing。下文旧传输／原值比较约定保留原时点，现行以版本35唯一源及生成表为准；未构建或测试。
+
+
+> 版本28修订：本文保留当时的布局和编译事实；Knife K4、四类命中历史及另外七个玩法范围的当前传输职责，以[同步字段复核](synchronization-field-review.md)和当前生成表为准。旧原值同步／比较约定不再执行。
+
 日期：2026-11-09（Asia/Singapore）。本轮实施第 4 步中的三个类别，继承既有 Entity E0—E9。必要静态逆向由用户指定的一个 GPT-6 Luna（max）子智能体执行，主智能体复读官方 SDK／Lua 源码、J273 指令和 RTTI 后采用；[证据及主审](slot-projectile-effect-evidence.md)保留纠错与未知。本轮不代表第 4 步全部完成，也不代表同步已经接通。
 
 ## 布局与范围

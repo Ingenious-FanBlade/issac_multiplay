@@ -234,6 +234,7 @@ class Compiler:
                     (kind == 'nested' and wire['storage'] == 'shared-owner'), where, 'storage只适用于容器或间接共享owner')
             require('projections' not in wire or kind in {'nested', 'container'}, where, '只有嵌套类型或复杂容器元素可以按子块投影')
             require('max_bytes' not in wire or kind == 'container', where, '只有容器可以声明独立编码字节预算')
+            require('inline_count' not in wire or kind == 'container', where, '只有容器可以声明内联数组槽数')
             if kind == 'copy':
                 require(item['category'] == '状态', where, '只能复制有语义的状态字节')
                 require(item['type'] == wire.get('type') or (item['type'] == 'bool' and wire.get('type') == 'u8'), where, 'copy 不能把原生指针/容器/复杂类型改名为裸字节')
@@ -275,14 +276,25 @@ class Compiler:
                 width = scalar_size(element)
                 require(width is not None or element in self.types, where, '未知容器元素类型')
                 require(integer(wire['stride']) == (width if width is not None else integer(self.types[element]['native_size'])), where, '容器元素原生步长不一致')
-                require(wire.get('storage') in {'vector', 'string', 'array'}, where, '容器必须指定 vector/string/array')
+                require(wire.get('storage') in {'vector', 'string', 'array', 'deque'}, where, '容器必须指定 vector/string/array/deque')
                 if wire['storage'] == 'vector':
                     require(item['size'] == 12, where, 'J273 vector 头必须为 12 字节')
                 elif wire['storage'] == 'string':
                     require(item['size'] == 24 and element == 'u8', where, 'J273 string 必须为 24 字节字节串')
+                elif wire['storage'] == 'deque':
+                    # NPC三组容器的真实ABI；不能把20B头当vector或连续数组复制。
+                    require(item['size'] == 20 and integer(wire['stride']) in {4, 8}, where,
+                            'J273已核deque必须为20B头、4B引用或8B点元素')
                 else:
                     count = wire.get('count_field')
                     require((nonempty(count) and count in {r['name'] for r in entry['ranges']}) or nonempty(wire.get('count_from')), where, '数组缺少计数字段或具名 owner 计数来源')
+                # 内联数组的全部槽位都有原生字节归属；线上只发送当前有效前缀。
+                # 普通 array 也可由本地指针解析，不能只按 size 或名称猜它是内联数组。
+                if 'inline_count' in wire:
+                    count = integer(wire['inline_count'])
+                    require(wire['storage'] == 'array' and element in self.types and
+                            item['size'] == count * integer(wire['stride']) and
+                            integer(wire['limit']) <= count, where, '内联数组范围、步长或上限不一致')
         require(end == entry['native_size'], entry['type'], '原生对象尾部未覆盖')
 
     def make_variants(self):
@@ -348,10 +360,12 @@ class Compiler:
                 require(child_type in self.expanded, name + '.' + key,
                         '投影元素必须是已声明的复杂布局，收到: ' + str(child_type))
                 nested = self.plan(child_type)
-                expected = {b['id'] for b in nested['blocks']}
+                # 实际发送子块必须投影，空预留子块允许省略；兼容既有空投影，原块号不变。
+                expected = {b['id'] for b in nested['blocks'] if b['max'] != 0}
+                allowed = {b['id'] for b in nested['blocks']}
                 actual = set(wire['projections'])
-                require(actual == expected, name + '.' + key,
-                        f'子块投影不完整：元素 {child_type}，缺少 {sorted(expected - actual)}，非法 {sorted(actual - expected)}')
+                require(expected <= actual <= allowed, name + '.' + key,
+                        f'子块投影不完整：元素 {child_type}，缺少 {sorted(expected - actual)}，非法 {sorted(actual - allowed)}')
                 for block_id in wire['projections']:
                     virtual = copy.deepcopy(item)
                     virtual['name'] = f'{key}#{block_id}'
@@ -514,15 +528,22 @@ class Compiler:
         for item in self.expanded[name]['ranges']:
             wire = item.get('wire', {})
             nested = wire.get('type')
-            if wire.get('kind') in {'copy', 'nested'} and wire.get('storage') != 'shared-owner' and nested in self.expanded:
-                for child in self.native_ranges(nested):
-                    value = copy.deepcopy(child)
-                    value['offset'] += item['offset']
-                    value['name'] = item['name'] + '.' + child['name']
-                    value['semantics'] = item['semantics'] + '：' + child['semantics']
-                    value['evidence'] = item['evidence'] + '；嵌套字段：' + child['evidence']
-                    value['status'] = max((item['status'], child['status']), key=confidence.__getitem__)
-                    result.append(value)
+            inline_count = wire.get('inline_count', 0)
+            if inline_count:
+                nested = wire['element']
+            if inline_count or (wire.get('kind') in {'copy', 'nested'} and wire.get('storage') != 'shared-owner' and nested in self.expanded):
+                # 即使有效前缀为空，未发送槽位中的 UNKNOWN 也不能从原生目录消失。
+                children = self.native_ranges(nested)
+                for index in range(inline_count or 1):
+                    for child in children:
+                        value = copy.deepcopy(child)
+                        value['offset'] += item['offset'] + (index * integer(wire['stride']) if inline_count else 0)
+                        prefix = item['name'] + (f'[{index}]' if inline_count else '')
+                        value['name'] = prefix + '.' + child['name']
+                        value['semantics'] = item['semantics'] + '：' + child['semantics']
+                        value['evidence'] = item['evidence'] + '；嵌套字段：' + child['evidence']
+                        value['status'] = max((item['status'], child['status']), key=confidence.__getitem__)
+                        result.append(value)
             else:
                 result.append(item)
         self.native_cache[name] = result

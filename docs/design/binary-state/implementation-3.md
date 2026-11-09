@@ -2,6 +2,10 @@
 
 日期：2026-11-08（Asia/Singapore）。对应[第 3 步](3-entity-common.md)。本步只进行资料分析、静态反编译、布局生成和纯编译；没有测试、游戏启动、注入或部署。整个重构仍在第 15 步统一整体验收。
 
+> 版本32职责修订：[动画／资源／颜色职责复核](animation-resource-synchronization-review.md)取代本文旧事件掩码、loaded原字节及ColorParams队列／颜色锚点的上线要求。is_playing／anim_frame／playback_speed与最终完整ColorMod继续同步；可空资源选择与本地准备分开。下文保留原时点实现、逆向事实和编译记录，不表示新资源执行器或E2E已完成。
+
+> 后续同步职责修订：本文记录版本12的实现事实。版本30按[Entity公共复核](entity-common-synchronization-review.md)撤销33个范围的传输，取代下文毒／火相位、公共倒计时、暂停保存／半帧历史位置及工厂标志的上线要求；原始发现和编译记录保留。
+
 ## 布局和生成表
 
 `mod/binding/state/entity.json` 接管 Entity 公共部分 `[0,0x410)`，并声明独立的 EntityPlus 公共前缀。Entity 从原来的 `entity-effect.json` 生成链种子中移出，Effect 及其变体继续继承这一份公共事实，不复制第二套 Entity 字段。

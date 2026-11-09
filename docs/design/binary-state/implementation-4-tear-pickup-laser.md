@@ -1,5 +1,17 @@
 # 第 4 步：Tear、Pickup、Laser 实现说明
 
+> 版本37后续复核：[Laser／Homing采样、运动与计时复核](laser-homing-synchronization-review.md)只保留optimized／unoptimized最终点列和真实展示标量；十九项Laser输入、六项Homing标量、indices中间点缓存与Bezier／系数留Host，撤销两个Laser计时锚点。J273 Homing+34实际为8B双f32点对vector，本文旧i32／4B步长记录错误；原记录保留，不按旧类型继续传输。L2／L4／L7／L8预留，当前以版本37唯一源及生成表为准；未构建或测试，旧运行执行器仍待后续退役。
+
+> 版本35后续复核：[Pickup／Slot选择、交互与奖励复核](pickup-slot-synchronization-review.md)将Pickup选择组／触碰／自动价格／商店标识等输入、Timeout／Wait和未来循环列表，以及Slot八项参数留Host。Price／DropDelay、最终主／辅助Sprite与真实引用保留；Slot奖品+460／+470精确对应当前动画指针／is_playing。下文旧传输／原值比较约定保留原时点，现行以版本35唯一源及生成表为准；未构建或测试。
+
+
+> 版本34后续复核：[Knife／Bomb／Tear参数展示复核](knife-bomb-tear-synchronization-review.md)将Knife10／Bomb11／Tear21个攻击、运动与计时参数范围留Host；撤销三个计时锚点，保留真实绘制输入、最终Sprite和Bomb pending清除。下文旧的参数传输／计时见证要求保留原时点，现行传输以版本34唯一源及生成表为准；未构建或测试，运行接线仍待后续步骤。
+
+
+> 版本29修订：原生关系事实保留；23条内部关系不再同步，Familiar+DAC仅variant240布局130保留。当前采用范围及生命周期边界见[24项关系复核](internal-entity-relations-review.md)，不执行本文旧的全关系原值同步要求。
+
+> 版本28修订：本文保留当时的布局和编译事实；Knife K4、四类命中历史及另外七个玩法范围的当前传输职责，以[同步字段复核](synchronization-field-review.md)和当前生成表为准。旧原值同步／比较约定不再执行。
+
 日期：2026-11-08（Asia/Singapore）。本轮实施[第 4 步](4-entity-classes.md)中的三个子类，不代表第 4 步全部完成。用户指定 GPT-6 Luna（max）子智能体完成必要静态逆向，主智能体复读官方源码、J273 RTTI／虚表、构造与关键指令后采用，详见[证据与主审](tear-pickup-laser-evidence.md)。0—14 步只做静态分析、编辑、布局生成和纯编译；第 15 步是唯一整体验收。
 
 ## 交付范围

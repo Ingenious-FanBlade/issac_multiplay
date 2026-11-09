@@ -78,6 +78,8 @@
 
 `ResourceTable` 消息结构为：`u32 epoch` + `u32 前一 epoch` + `u16 项数` + 若干表项。资源序号只增不改：同一 run 内一个序号始终对应同一路径，从而避免旧帧中的序号被误读。
 
+版本32的资源字段允许`0xFFFF`（`kNullIndex`）表示Host未选择资源，不占资源表项。ANM2文件选择据Host loaded形成这一可空资源号，不再追加独立loaded布尔。已选择非Null但Client尚未准备／失败时仍为该目标资源，不能改成Null或提前AppliedAck；图层路径与实际Image资源号保持独立，具体身份限制见[动画／资源复核](animation-resource-synchronization-review.md)。
+
 ### 9.7 Mod 值编码（草稿）
 
 | +0x0 u8 tag：0=nil，1=false，2=true，3=i32，4=f64，5=字符串，6=表，7=实体引用，8=Grid 引用，9=Vector，10=Color，11=KColor，12=共享节点回指 | +0x1 值：按 tag 编码，i32 为 4 字节，f64 为 8 字节，字符串为 u16 长度＋字节，表为 u16 项数＋键值对，引用为 u16 成员序号，回指为 u16 节点序号 |
@@ -131,3 +133,5 @@
 
 - body 序列按 Peer 计数，还是按 Peer×身体分别计数。
 - 帧头中 game_frame 是否需要 u64。
+**版本40 Effect布局引用**：见[后续五项处理](effect-next-five-evidence.md)。记录与帧头格式不变，整数布局版本递增为40；新增137—141及102移出113由生成布局表分派。所有Effect FX0=16B、FX1=13B，FX2空预留，Trail节点块为u16 count＋count×64B、count≤127（最大8130B）。不将原生VarData／holder地址塞入扩展块，不复用旧8／21B或16384上限。其他容器的独立上限不受影响，真实记录／帧字节预算保持；未运行测试。
+

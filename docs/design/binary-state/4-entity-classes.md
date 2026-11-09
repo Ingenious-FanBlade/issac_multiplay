@@ -1,14 +1,38 @@
 # 4：Entity 子类
 
-状态：部分实施。Familiar／Knife／Bomb、Tear／Pickup／Laser 和 Slot／Projectile／Effect 的布局、公开成员回映射和专用表现已接入生成链，未知字节与计时分支缺口保留，见[前三类实现](implementation-4-familiar-knife-bomb.md)、[中间三类实现](implementation-4-tear-pickup-laser.md)和[本轮三类实现](implementation-4-slot-projectile-effect.md)；NPC／Delirium／Text／Dummy 等剩余专用形态仍按各节推进。上级：[总计划](README.md)。
+**2026-11-09 当前版本42：NPC同步职责修正。** [逐段复核](npc-synchronization-review.md)取消Delirium BossType／Variant的8B传输与无根据的shape换代；ControllerId本地设备键改为1B受控UI表现，禁止跨进程raw写入；OverlayEffect新增144号场景视图，8B Scale由当前主Sprite null-frame派生。五项原生绘制标量、真实引用、三deque与必要双Sprite保持。NPC／Delirium最小负载均710B，未知586／597B及Pathfinder SDK声明不变；实际控制UI来源／adapter仍待第10／13步，不运行测试。
+
+**2026-11-09 版本41：Entity_NPC。** [实现说明](implementation-4-npc.md)与[静态证据](npc-evidence.md)将NPC142／Delirium143、双辅助Sprite、三组deque及44个唯一公开成员回映射接入生成链。保留真实绘制参数与8B变身shape，AI计数留Host；新增无分配deque读取接口。NPC本类223B未知、根586／597B未知与Pathfinder声明边界保留。普通Release纯编译／链接通过，没有运行测试；实际采集／安装仍待第10／13步。
+
+**2026-11-09 版本40：Effect后续五项未决。** [证据与处理](effect-next-five-evidence.md)补入137—141号VarData臂，原101—106不重排；Rotation／Scale移FX0、Trail上限127。Timeout存在双减和刷新，不再要求全部静止Effect锚点不重发；三种原生ExtraData之外未发现新具体类型。已知归属落源，未知与后续运行接线保留，本批没有运行测试。
+
+**2026-11-09 版本39：Player装备与Plus展示依赖。** [完整消费者与安装复核](player-equipment-plus-synchronization-review.md)将ActiveItemDesc来源池／定时充能冷却、Weapon五项非展示输入及KnifePlus.hitboxSource留Host；保留主动槽六值、Weapon充能三值与类型、TemporaryEffect三值及Plus公共nullable覆盖。新增135号UmbilicalWhip真实主引用、136号TemporaryEffects外层disabled／列表，并补Familiar+D76绘制抑制字节。原已排除Plus项不恢复，其他UNKNOWN保持。源、生成表、正式Plus读取接口和第5／8／10—15步已修订，未构建或测试，运行时仍待接线。
+
+**2026-11-09 版本38（Effect合同继续适用）：Effect各臂与附属payload。** [Effect同步职责复核](effect-synchronization-review.md)撤销六项公共更新输入、TearFlags全128位与136描述八成员；State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale及三种表现payload保留。Ghost只发0—4有效Sprite前缀，Offset／Scale派生、i32 count由投影计数重建；MrMe原16B未知核为Host内部状态，Trail找到64B分配与完整复制。六臂编号不变，FX2均预留；公共Effect最小444→420B。源、生成表和第6／10／12／13／14／15步合同已修订，未构建或测试，运行时仍待接线。
+
+**2026-11-09 版本37（历史范围）：Laser／Homing采样、运动与计时。** [Laser／Homing采样、运动与计时复核](laser-homing-synchronization-review.md)保留optimized／unoptimized两组最终点列与当前角度、长度、完整效果位、原始采样模式、MaxDistance／GridHit、公开EndPoint和+4F0展示分支输入；19项Laser更新输入、六项Homing标量、indices中间点缓存及Bezier／系数留Host。indices原生类型纠正为8B双f32点对，旧i32步长记录错误。L2／L4／L7／L8及Homing子块0／3／4预留，父投影仅1／2；撤销两个Laser计时锚点。最小Laser542→439B，未知421B不变。源、生成器和第10／12／13／14／15步合同已修订，未构建或测试；运行时仍待接线。
+
+状态：部分实施。Familiar／Knife／Bomb、Tear／Pickup／Laser 和 Slot／Projectile／Effect 的布局、公开成员回映射和专用表现已接入生成链，未知字节与计时分支缺口保留，见[前三类实现](implementation-4-familiar-knife-bomb.md)、[中间三类实现](implementation-4-tear-pickup-laser.md)和[本轮三类实现](implementation-4-slot-projectile-effect.md)；NPC／Delirium布局迁移见[本轮实现](implementation-4-npc.md)，Text／Dummy等剩余专用形态和全部已知缺口仍按各节推进。上级：[总计划](README.md)。
 
 ## 目标
+
+**版本36修订（历史范围）**：[Projectile运动与展示参数复核](projectile-synchronization-review.md)排除Projectile八项追踪／曲线／加速／下落／摆动／Scale／规则位输入，共36B，PR1预留；保留真实Render Height、公共最终位置／偏移／尺寸和Sprite，最小状态395B。ProjectileFlags与公共EntityFlags分开，后者保持。私有+440开关与+460／+464位置虽有Render消费者，其来源／布局仍UNKNOWN，375B未知不变，不以只剩Height就宣称类型或画面完整。运行接线仍待第10／13步，未构建或测试；当前以版本37源及生成表为准。
+
+**版本35修订**：[Pickup／Slot选择、交互与奖励复核](pickup-slot-synchronization-review.md)将20个原生范围归Host，撤销19项原线上字段／容器及Pickup Timeout／Wait两个锚点；Pickup P3、Slot S0／S1预留，编号不前移。Pickup Price／DropDelay因WaterClip／Render消费者保留，两份辅助Sprite与公开三引用保持；Slot只需最终主／奖品Sprite，奖品动画指针与is_playing继续由ANM2投影供应。Client不定价、交互、循环Morph、开奖、支付或运行SetPrizeCollectible。最小Pickup703B／Slot538B，未知448B／363B不变；本轮未构建或测试。下文旧实施记录保留原时点，当前传输以版本37源及生成表为准。
+
+**版本34修订**：[Knife／Bomb／Tear参数展示复核](knife-bomb-tear-synchronization-review.md)排除Knife10／Bomb11／Tear21个参数范围，共181B原线状态；三个计时锚点撤销，Bomb B0及Tear T0／T2保留空块号。保留Knife拖影和飞行输入、Bomb最终costume／绘制开关与pending清除、Tear效果位／DeadEye及全部辅助Sprite。最终位置／公共绘制偏移和Sprite姿态独立同步，不运行原生Interpolate、爆炸、击退或资源懒重建。原生事实、证据等级和UNKNOWN不变；下文实施小节按原时点保留，当前传输以生成表为准。未构建或测试。
+
+**版本33修订**：[Familiar参数／充能／绳索复核](familiar-synchronization-review.md)排除Familiar11个参数范围（48B）；保留已核FireCooldown／State／Coins／IsFollower展示依赖。80新增布局131的最终充能i32，Host按已核只读公式换算，Client不创建Weapon。240布局130保留真实DAC引用，补齐132号节点XYZ与133号typed payload的Sprite／逻辑节点四投影；共享owner安装使用Familiar的430E40，不混用Effect的606310。布局、证据和计划已补入，运行时采集／展示／owner仍待第10／13步；新增未知和第15步验收照实保留。
+
+**历史修订（版本29）**：[24项内部关系展示复核](internal-entity-relations-review.md)将Knife4／Tear6／Pickup1／Laser12共23槽归权威；Familiar +DAC基础臂亦归权威，只在新增variant240布局130保留引用。同步撤销线上字段／回映射依赖，Knife K3显式预留。Familiar240的UmbilicalBabyData绳索payload已确认有绘制消费者但尚未完整建模；不能因关系已保留就声称该变体完整。Room Light对Laser未优化采样点的依赖已核；版本37续研后只保留optimized／unoptimized两组最终点列。
+
+**版本28修订（历史范围）**：[同步职责复核](synchronization-field-review.md)取代下文版本16—27中对Knife K4、四类命中历史和另外七个玩法范围的传输约定；共17个范围归权威。原生偏移、用途、证据等级和未知区保持。Familiar充能／状态／硬币／跟随标记有间接展示消费者；variant80 Weapon充能结果仍未接线。当前以版本37源及生成表为准，历史实施记录保留原时点。
 
 完成十个 Entity 子类在公共部分之后（0x410 起）的字节归属和状态块，并覆盖现有的专用形态：Text、Dummy、Delirium、Effect136 搬起的格子、拥有型表现等。
 
 ## 输入事实
 
-各子类的对象大小以 J273 `EntityFactory` 池步长为准（构造 `0x6EEE60`，见 [Entity 池静态研究](../tx-04-19/entity-i26-i30-native.md)第 11—24 行与 [Entity 原生静态研究](../tx-04-19/entity-native-static.md)第 13—26 行），SDK 声明大小只作对照；子类字节数按池步长减 0x410 计算。已核偏移来自 `entity-application.json` 的 `class_native`：
+各子类的**字节归属范围**以 J273 `EntityFactory` 池步长为准（构造 `0x6EEE60`，见 [Entity 池静态研究](../tx-04-19/entity-i26-i30-native.md)第 11—24 行与 [Entity 原生静态研究](../tx-04-19/entity-native-static.md)第 13—26 行）；仅池步长本身不等于已证明原生 C++ `sizeof`；本轮Knife／Slot／Projectile／Effect另经删除析构size参数互证，见4.6。SDK 声明大小只作对照；子类字节数按池步长减 0x410 计算。下表已核字段统计是初始 `entity-application.json` 的 `class_native` 口径，当前剩余工作量见 4.6：
 
 | 类型 | J273 池步长 | SDK 声明 | 子类字节数 | SDK 字段数 | 已核字段数 | 已核字节数 | 已核偏移范围 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -25,14 +49,14 @@
 
 - **池步长与 SDK 不一致的四类**：Knife、Slot、Effect、Projectile。对象范围和未知区一律按池步长划定，不按 SDK 声明。
   - **Knife**：SDK 声明 0xE78，池步长只有 0x520（`entity-native-static.md:67`）。SDK 中偏移超过 0x520 的字段在 J273 不成立，本步逐项排除；子类区按 272 字节核对，而不是 2664 字节。
-  - **Slot、Projectile**：池步长比 SDK 各多 8 字节，多出的 0x548—0x54F、0x470—0x477 先归为未知。
-  - **池步长是上界**：实际 sizeof 可能因对齐小于步长（例如 Effect 的 ctor 只写到 +0x4B8）。步长内、ctor 不写的尾部字节，核实后归为填充。
+  - **Slot、Projectile**：池步长比 SDK 各多 8 字节。初轮把多出的 0x548—0x54F、0x470—0x477 归未知；续研已分别分离前4B为进度对象指针和回调函数指针，后4B仍未知。
+  - **大小与填充分开判断**：初轮只有池步长上界；续研由删除析构size参数核定这四类的实际sizeof与步长相同。Effect构造只写到+0x4B8不意味着sizeof止于0x4BC，也不能证明后4B为填充。只有字节归属得到证明后才改变未知分类。
 - **其余专用池**：Text 池步长 0x530，Dummy 0x410（同上研究），按设计中的“布局编号”按虚表区分。
 - **Delirium**：`EntityDelirium` 的 8 项公开字段位于 `Entity_NPC` 的 0xBC8—0xBE3，AI 实际使用到 0xBEB，见 4.2。
 - **NativeText**：有 2 项，位于 0x410—0x414。
-- **Projectile 的特殊情况**：已核偏移从 0x358 开始，落在 Entity 公共区内，本步要查清它与公共 DepthOffset 的关系。
+- **Projectile 的公共别名（已闭合）**：`DepthOffset +0x358` 与 Entity 公共字段共用同一对原生访问器；生成布局只在 E4 保存一次，不增加子类字段。2026-11-09 再次复读两组注册和读写指令，见 4.6。
 - **现有专用内容**（`client_entity_adapters.h`）：
-  - Laser 四份几何容器（optimized／unoptimized 采样点、indices、bezier）；
+  - Laser 两组最终几何容器（optimized／unoptimized采样点）；indices中间缓存与Bezier输入自版本37起留Host；
   - Pickup 循环道具；
   - NPC 复合绘制路径（两份 deque）；
   - Effect136 搬起的格子描述；
@@ -47,276 +71,106 @@
 ## 设计
 
 - **布局编号**：每个子类一个布局编号。Host 按虚表（RTTI）确定布局编号，不只看 `_type`，因此 Text、Dummy 这类特殊虚表能区分开。
-- **子类状态块**：按变化频率拆分，例如 Laser 的几何容器单独成块，Tear 的运动参数与外观参数分开。
-- **附加块**：辅助 Sprite、拥有型表现、Laser 几何、Pickup 循环等变长内容各自成块，元素布局按第 2 步的规则处理。
+- **子类状态块**：按变化频率拆分，例如 Laser 的几何容器单独成块，Tear 的效果位／DeadEye与辅助Sprite投影分开；版本34起不传Tear运动输入和两个玩法计时。
+- **附加块**：辅助Sprite、拥有型表现和Laser几何等实际展示内容各自成块，元素布局按第2步处理；版本35起Pickup未来循环队列归Host，不再作为Client容器。
 - **专用形态**：Effect136 等沿用现有具名 owner 的语义，只更换数据来源。Delirium 不是原生子类，做成 NPC 的变体臂，见 4.2。
 - **核对重点**：子类区间中未知字节数很大，NPC 有 2896 字节，现只核了 113 字节。必须先用 J273 反编译划出构造函数、Init 和 Update 写入的范围，再逐段归类；不能把整段未知区当成填充。
 
-### 4.1 EntityEffect 块划分（修订稿，2026-11-08）
+### 4.1 EntityEffect 各臂与附属payload（版本40，2026-11-09）
 
-本节是 EntityEffect 的块划分修订稿。它取代[总计划 5.1](README.md#51-示例entityeffect草稿) 中 EntityEffect 的字节归属和 69 字节单块，5.1 今后只作表格格式示例。本节表格都是草稿，生成器建成后以 `layouts/` 的输出为准。
+现行依据为[Effect后续五项证据](effect-next-five-evidence.md)、[版本38职责复核](effect-synchronization-review.md)、唯一源 `mod/binding/state/entity-effect.json` 和[完整生成表](layouts/README.md)。本节取代旧69B单块及2026-11-08草稿的传输决定；原始逆向事实、失败和旧编译结果保留在[初轮证据](slot-projectile-effect-evidence.md)与[实施记录](implementation-4-slot-projectile-effect.md)。版本40纯编译状态见新增证据，未运行测试，采集／安装仍待接线。
 
-**2026-11-09 实施修订**：以下草稿中基础臂／三个附属臂的 16B 不透明 VarData 复制没有充分证据，已撤销；`0x420—0x43F` 维持未知，FX2 显式预留。四种 TearFlags 与 GridDesc 臂分别保留已核状态。ANM2 经第 2 步展开后包括默认动画名和主／叠加动画的选择器数组，因此外观与动画均可能变长，不能套用草稿的 30／120B 动画常数。MrMe／SpriteTrail／PickupGhost 以 `shared-owner` 间接投影实现 FX3—FX5，首块 u8 present，其余块无重复 count；每份 Sprite 的图层 count 单独保存。缺失 owner 使用最短全零编码，见[本轮实现](implementation-4-slot-projectile-effect.md)及[生成表](layouts/README.md)。下方原草稿保留设计演变，不作为覆盖当前生成表的声明。
+#### 4.1.1 输入事实与展示边界
 
-#### 4.1.1 补充的输入事实
+- Effect原生大小0x4C0；Init `5CD070`、Update `5D35D0`、Interpolate `5D1960`、Render `600E60`。池步长与删除析构相互印证大小，不能据此把未知字节归为填充。
+- `+420—+43F` 是随variant复用的区域。四种TearFlags与136完整32B GridEntityDesc是已核原生含义；它们当前都没有Client原生展示消费者，归Host。137—141号臂补入传播、119定时器、120生成、30／153计数及113伤害／尺寸基准；这些已核用途不上线。未核变体和各臂空白保持未知，不复制opaque数据；119的`+420`是本进程函数地址。
+- State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale有真实Render／Light消费者，继续同步。Height／FallingSpeed／FallingAcceleration／MinRadius／MaxRadius／DamageSource只供Host更新；传播、生成请求和私有vector仍归Host。最终公共位置／PositionOffset、Sprite／图层和独立成员各自同步，Client不调用Update／Interpolate恢复。
+- `+4B4/+4B8`为payload／控制块共享holder，只有108／166／191的已核表现payload传输。两字地址本身不发送，经具体RTTI核定后读取外部对象，Client用`606310`正常替换，不能把payload偏移加到根Effect。
 
-- **实际对象大小**：
-  - J273 中 Effect 池的步长是 0x4C0（[entity-native-static](../tx-04-19/entity-native-static.md) 第 15、92 行；[entity-i26-i30-native](../tx-04-19/entity-i26-i30-native.md) 第 21 行），不是 SDK 声明的 0x490。`world_layout.json` 原来也记为 0x490，已于 2026-11-08 更正为 0x4C0。
-  - ctor `0x5CCEA0` 初始化了 +0x484—0x490、+0x4A8—0x4B0 两组内联容器，并清零 +0x4B4／+0x4B8（[entity-i15-i19-native](../tx-04-19/entity-i15-i19-native.md) 第 183 行）。
-  - 因此按 0x490 划范围会漏掉 48 字节。子类区实为 0x410—0x4BF，共 176 字节。
-- **0x420 是变体复用区**（同文件第 181 行）：
-  - variant 54、113、126、167 的前 16 字节是 TearFlags（BitSet128），官方 wrapper 只允许这四个变体读写；
-  - variant 136（GRID_ENTITY_PROJECTILE_HELPER）从 0x420 起是完整的 `GridEntityDesc`，大小 0x20，一直到 0x43F（`GridEntityDesc.zhl`）。[应用合同](../tx-04-19/entity-application-contracts.md)第 42 行要求不得按 16 字节截断；
-  - 其他变体按各自需要使用这段，尚未逐个核对。
-- **ExtraData 共享 owner**：
-  - +0x4B4／+0x4B8 两个字分别是 payload 指针和控制块。替换 payload 必须经 `0x606310`，不能直接写指针。
-  - Render `0x600E60` 只消费三种 payload（[entity-i15-i19-native](../tx-04-19/entity-i15-i19-native.md) 第 187—195 行）：
-    - 108 MR_ME：`MrMeData`，内含 1 个 ANM2；
-    - 166 SPRITE_TRAIL：`SpriteTrailData`，轨迹节点队列，每个节点 64 字节（`client_entity_owned_native.cpp:35-36`）；
-    - 191 PICKUP_GHOST：`PickupGhostData`，内含 ANM2[4] 和 i32 count。
-  - 其他变体如果有 payload，只供 Authority 使用，现有 Client 记为 AuthorityOnly（`client_entity_class_model.cpp:93-95`）。
-- **私有容器**：+0x4A8 起的 vector 只供 Authority 更新，Render 没有消费者（`client_entity_class_model.cpp:178-179`，`lua_entity.cpp:423`）。
-- **现有写入方式**：13 个字段、TearFlags 和 136 的格子描述，Client 都直接写内存（`client_entity_adapters_native.cpp:120-137`，`client_entity_class_fields.inc:160-173`），可作为 `direct` 的证据。ExtraData 由 `ClientEntityOwnedPresentation` 用游戏分配器和共享 owner 重建。
-- **变化频率**：
-  - 本地 Wiki（`IsaacDocs/docs/EntityEffect.md`）说明 Timeout 每帧递减，自定义效果也一样，后者从 −1 开始；
-  - m_Height 用作粒子的纵向速度；
-  - 其他字段大多在生成或状态切换时设置，实际频率由第 15 步实测。
+#### 4.1.2 十一个布局臂
 
-#### 4.1.2 变体臂：同一个类，多个布局编号
+先按虚表确定Effect，再读公共variant选臂；成员生命期内布局固定，variant变化走形态事务。原布局编号不因线内容缩小而合并或重排。
 
-0x420 区和 ExtraData 的字节归属随变体不同，同一组字节无法只用一种归属描述。修订如下：
+| 布局／variant | 复用区 | 附属payload与发送块 |
+| --- | --- | --- |
+| 101 基础，其余未核variant | 32B未知 | 合法holder为空；非空未知类型报Gap，FX2预留 |
+| 102 TearFlags，54／126／167 | 前16B眼泪效果位归Host，后16B未知；167后半确有Init写入，完整语义仍未核 | FX2预留，不再发BitSet128 |
+| 103 GridDesc，136 | 八成员29B归Host，三个未知字节保持 | FX2预留；主Sprite／持物关系展示，Effect和Grid域均不发描述 |
+| 104 MrMe，108 | 同基础臂 | FX3—FX5：present＋独立ANM2三投影 |
+| 105 SpriteTrail，166 | 同基础臂 | FX3—FX4：present＋有序完整节点 |
+| 106 PickupGhost，191 | 同基础臂 | FX3—FX5：present＋0—4个有效Sprite的三投影 |
+| 137 Propagation，32／44／45／46／53／204 | 完整32B后继传播输入归Host | FX2预留 |
+| 138 Timer，119 | callback本地，interval／remaining归Host，余20B未知 | FX2预留，Client不执行回调 |
+| 139 SpawnRequest，120 | Type／Variant归Host，余24B未知 | FX2预留，Client不Spawn |
+| 140 DustCountdown，30／153 | +424 u32移除计数归Host，余28B未知 | FX2预留 |
+| 141 TearFlags113，113 | flags及+430／+434伤害／尺寸基准归Host，后8B未知 | FX2预留，保留两项TearFlags公开回映射 |
 
-- **按变体分布局**：Entity_Effect 分成下表 6 个布局编号，称为变体臂。Host 先按虚表确定类，再读 `Entity._variant` 选臂，未列出的变体使用基础臂。布局仍然以虚表为准，不按 `_type` 猜。
-- **布局编号不变**：variant 变化本来就算形态变化（第 3 步 3.1），要走成员表，所以一个成员在生命期内布局编号不变。Client 只看成员表就知道该成员有哪些块、各块多长，"收齐全部块才可构造"的判定因此是确定的。
-- **对其他步骤的要求**：布局源要支持变体臂（第 1 步 1.1），布局识别要增加选臂（第 10 步 10.2），见 4.1.9。
+136由Host creator交换真实Grid ANM2至Effect主Sprite。Client保留Player HeldEntity、GetItemState、GetSuplexState、BodySprite／空层姿态及暂时置可见的绘制借用，不由描述重新构造active Grid，也不重演投掷／落地；落地结果由Host作为真实成员发布。
 
-| 布局 | 变体 | 0x420—0x43F | 0x4B4—0x4BB ExtraData | 附加块 |
-| --- | --- | --- | --- | --- |
-| `Effect` | 其他 | 0x420—0x42F 不透明 VarData；0x430—0x43F 未知 | 权威 | — |
-| `Effect.TearFlags` | 54、113、126、167 | 0x420—0x42F TearFlags；0x430—0x43F 未知 | 权威 | — |
-| `Effect.GridDesc` | 136 | 完整 GridEntityDesc | 权威 | — |
-| `Effect.MrMe` | 108 | 同基础臂 | 容器：0 或 1 个 MrMeData | FX3—FX5 |
-| `Effect.SpriteTrail` | 166 | 同基础臂 | 容器：0 或 1 个 SpriteTrailData | FX3—FX4 |
-| `Effect.PickupGhost` | 191 | 同基础臂 | 容器：0 或 1 个 PickupGhostData | FX3—FX5 |
+#### 4.1.3 原生字节归属与payload
 
-ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发送，只发送 payload 是否存在，以及 payload 的状态。payload 的字节归属见 4.1.3。
+完整原生单行表见[基础臂](layouts/EntityEffect.md)、[TearFlags](layouts/EntityEffect_TearFlags.md)、[GridDesc](layouts/EntityEffect_GridDesc.md)及三个附属臂；不得以本节摘要替代完整0—sizeof归属。
 
-#### 4.1.3 原生字节归属（草稿）
+| MrMeData25：0x0 vptr【本地】 | 0x4 i32目标处理分支【权威】 | 0x8 ANM2独立Sprite【逐字段】 | 0x11C i32暂存碰撞类别【权威】 | 0x120 i32格子序号【权威】 | 0x124 i32动作计数【权威】 |
+|---|---|---|---|---|---|
 
-各臂的不同只在变体复用区和 ExtraData 两格，下面先列共用部分，再分臂列出这两处。生成器会为每个臂各输出一张完整表格。
-
-**EntityEffect 原生字节归属（子类区 0x410—0x4BF，各臂共用）**
-
-| 0x000—0x40F Entity【—】公共部分，见 Entity 表 | 0x410 f32 m_Height【状态】离地高度，粒子用作纵向速度 | 0x414 f32 FallingSpeed【状态】下落速度 | 0x418 f32 FallingAcceleration【状态】下落加速度 | 0x41C—0x41F 4B【未知】尚无证据 | 0x420—0x43F 32B 变体复用区【按臂】见下方变体区表 | 0x440—0x44F 16B【未知】尚无证据 | 0x450 i32 State【状态】效果自定状态，Init 写 0 | 0x454 f32 MinRadius【状态】冲击波最小半径 | 0x458 f32 MaxRadius【状态】冲击波最大半径 | 0x45C i32 Timeout【换算】剩余时间，每帧递减，Init 写 −1；发送到期帧，见 4.1.5 | 0x460 i32 LifeSpan【状态】寿命，Init 写 1 | 0x464 bool IsFollowing【状态】是否跟随 Parent | 0x465—0x467 3B【未知】疑似对齐填充，待证实 | 0x468 Vector ParentOffset【状态】相对 Parent 的偏移，见 Vector 表 | 0x470 i32 DamageSource【状态】伤害来源实体类型 | 0x474 f32 Rotation【状态】旋转 | 0x478 f32 Scale【状态】缩放 | 0x47C—0x483 8B【未知】尚无证据 | 0x484—0x493 16B【未知】ctor 初始化的内联容器头，类型待核 | 0x494—0x4A7 20B【未知】尚无证据 | 0x4A8 std::vector 私有容器【权威】只供 Authority 更新，Client 没有消费者 | 0x4B4 ExtraData 共享 owner 8B【按臂】payload 指针与控制块，见 4.1.2 | 0x4BC—0x4BF 4B【未知】池步长内的尾部，可能是对齐 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-
-**变体区 0x420—0x43F：基础臂与三个附属臂**
-
-| 0x420 BitSet128 VarData【状态】按变体使用的 16 字节，不透明复制 | 0x430—0x43F 16B【未知】是否被个别变体使用，待核 |
+| SpriteTrailData27：0x0 vptr【本地】 | 0x4 deque头20B【容器】按逻辑顺序遍历独立节点指针；不发送proxy／map／容量／逻辑offset |
 |---|---|
 
-**变体区 0x420—0x43F：TearFlags 臂**
-
-| 0x420 BitSet128 TearFlags【状态】效果携带的眼泪效果位 | 0x430—0x43F 16B【未知】尚无证据 |
-|---|---|
-
-**变体区 0x420—0x43F：GridDesc 臂**
-
-| 0x420 i32 type【状态】被举起格子的类型 | 0x424 i32 variant【状态】格子变体 | 0x428 i32 state【状态】格子状态 | 0x42C i32 spawnCount【状态】生成计数 | 0x430 u32 spawnSeed【状态】生成种子 | 0x434 i32 varData【状态】格子自定数据 | 0x438 bool initialized【状态】描述已初始化 | 0x439—0x43B 3B【未知】疑似对齐填充，待证实 | 0x43C u32 variableSeed【状态】变化种子 |
-|---|---|---|---|---|---|---|---|---|
-
-**MrMeData 原生字节归属（0x128）**
-
-| 0x000 vptr【本地】MrMeData 虚表 | 0x004 4B【未知】未知或填充 | 0x008 ANM2 sprite【状态】MrMe 的 Sprite，见 ANM2 表 | 0x11C—0x127 12B【未知】尚无证据 |
-|---|---|---|---|
-
-**SpriteTrailData 原生字节归属（0x18）**
-
-| 0x00 vptr【本地】SpriteTrailData 虚表 | 0x04 deque 头 20B【容器】轨迹节点队列，元素见轨迹节点表 |
-|---|---|
-
-**PickupGhostData 原生字节归属（0x458）**
-
-| 0x000 vptr【本地】PickupGhostData 虚表 | 0x004 ANM2[4] sprites【状态】四个幽影 Sprite，见 ANM2 表 | 0x454 i32 count【状态】有效幽影数，0—4 |
-|---|---|---|
-
-**轨迹节点原生字节归属（64 字节，推断）**
-
-节点布局来自现有代码注释（`client_entity_owned_native.cpp:35`）。tx-04-19 记录中部分字段语义仍为 UNKNOWN，本步需要用 J273 核对。
-
-| 0x00 Vector Position【状态】节点位置 | 0x08 ColorMod Color【状态】节点颜色，见 ColorMod 表 | 0x34 f32 Scale【状态】缩放 | 0x38 f32 Rotation【状态】旋转 | 0x3C f32 Alpha【状态】透明度 |
+| EffectTrailNode26：0x0 Vector历史位置【状态】 | 0x8 ColorMod完整44B【状态】 | 0x34 f32宽度／距离筛选输入【状态】 | 0x38 u32累计绘制参数位模式【状态】不是Rotation | 0x3C f32 alpha【状态】 |
 |---|---|---|---|---|
 
-**未知字节合计**：GridDesc 臂 74 字节，其余各臂 87 字节。总计划 5.1 按 0x490 计算，只算出 59 字节。
+节点producer在`5DA3C6`调用`606190`，后者明确分配0x40并完整复制64B，旧“只知前缀／stride待核”已解决。当前点列不能等价推回累计参数、衰减和已退休历史，全部64B保留。`storage=array`指reader归并输出，原生deque不是连续数组。
+
+| PickupGhostData28：0x0 vptr【本地】 | 0x4 ANM2[4]共0x450B【逐槽归属，线上只发有效前缀】 | 0x454 i32 count【派生】由三投影一致的u16数量重建 |
+|---|---|---|
+
+Ghost采用[专用ANM2视图134](layouts/EffectPickupGhostSprite.md)：Offset与Scale共16B由`602F4E—602F68`在每次绘制前完全覆写，归派生；其他资源、动画、独立选择器、图层和颜色保持。通用ANM2布局7与MrMe不变。全部四槽仍展开原生归属，未使用槽不发送但每槽14B未知继续保留。MrMe仅其外部16B有新证据，未知30→14B；根对象未知不变。
 
 #### 4.1.4 状态块
 
-**块号规则**：所有 Entity 布局的 E0—E9 固定为块 0—9，子类块从 10 开始编号。Effect 的块全部属于 world 序列。
+E0—E9保持公共块号；所有Effect块属于world。下面是实际格式，不再采用旧ANM2定长动画常数。
 
-| 块号 | 块 | 适用布局 | 内容 | 长度 | 变化频率 |
-| --- | --- | --- | --- | --- | --- |
-| 0—9 | E0—E9 | 全部 | Entity 公共部分，见第 3 步 3.2 | 见第 3 步 | — |
-| 10 | FX0 计时与下落 | 全部 | m_Height、FallingSpeed、FallingAcceleration、State、Timeout（换算为到期帧） | 20B | 高：粒子每帧变化 |
-| 11 | FX1 参数 | 全部 | MinRadius、MaxRadius、LifeSpan、IsFollowing、ParentOffset、DamageSource、Rotation、Scale | 33B | 低 |
-| 12 | FX2 变体数据 | 全部 | 按臂：VarData、TearFlags 或 GridEntityDesc | 16B；GridDesc 臂 29B | 低 |
-| 13 | FX3 附属头 | MrMe、SpriteTrail、PickupGhost | 存在标记和 Sprite 外观；SpriteTrail 只有存在标记 | 按臂 | 低 |
-| 14 | FX4 附属动态 | 同上 | Sprite 动画状态，或轨迹节点 | MrMe 30B；PickupGhost 120B；SpriteTrail 变长 | 高 |
-| 15 | FX5 附属图层 | MrMe、PickupGhost | 附属 Sprite 的图层 | 变长 | 低 |
+| FX0块10：+0 i32 State | +4 i32 expire_frame：Timeout到期帧 | +8 f32 Rotation | +12 f32 Scale；共16B |
+|---|---|---|---|
 
-划分理由：
-
-- **原单块的问题**：总计划 5.1 把 14 个字段放在一个 69 字节块里，下落中的粒子每帧都要重发全部 69 字节。拆分后，粒子每帧只发 FX0 的 20 字节。
-- **memcpy 次数**：FX0 和 FX1 各需 3 次 memcpy，比原方案多 2 次。读取的仍是同几条缓存行，CPU 成本可以忽略；带宽优先。
-- **附属块**：ANM2 按第 3 步 E4／E5 的拆法，分成外观、动画、图层三部分。
-
-**FX0 计时与下落（20 字节）**：复制 `[0x410,0x41C)`、`[0x450,0x454)`，再换算 Timeout。
-
-| +0x00 f32 m_Height：离地高度，粒子纵向速度 | +0x04 f32 FallingSpeed：下落速度 | +0x08 f32 FallingAcceleration：下落加速度 | +0x0C i32 State：效果自定状态 | +0x10 i32 expire_frame：Timeout 到期的 Host 全局帧，见 4.1.5 |
-|---|---|---|---|---|
-
-**FX1 参数（33 字节）**：复制 `[0x454,0x45C)`、`[0x460,0x465)`、`[0x468,0x47C)`。
-
-| +0x00 f32 MinRadius：冲击波最小半径 | +0x04 f32 MaxRadius：冲击波最大半径 | +0x08 i32 LifeSpan：寿命 | +0x0C u8 IsFollowing：是否跟随 Parent，0／1 | +0x0D Vector ParentOffset：相对 Parent 的偏移 | +0x15 i32 DamageSource：伤害来源实体类型 | +0x19 f32 Rotation：旋转 | +0x1D f32 Scale：缩放 |
-|---|---|---|---|---|---|---|---|
-
-**FX2 变体数据：基础臂与三个附属臂（16 字节）**：复制 `[0x420,0x430)`。
-
-| +0x00 BitSet128 VarData：按变体使用的 16 字节原样 |
-|---|
-
-**FX2 变体数据：TearFlags 臂（16 字节）**：复制 `[0x420,0x430)`。
-
-| +0x00 BitSet128 TearFlags：眼泪效果位 |
-|---|
-
-**FX2 变体数据：GridDesc 臂（29 字节）**：复制 `[0x420,0x439)`、`[0x43C,0x440)`。
-
-| +0x00 i32 type：被举起格子的类型 | +0x04 i32 variant：格子变体 | +0x08 i32 state：格子状态 | +0x0C i32 spawnCount：生成计数 | +0x10 u32 spawnSeed：生成种子 | +0x14 i32 varData：格子自定数据 | +0x18 u8 initialized：描述已初始化，0／1 | +0x19 u32 variableSeed：变化种子 |
-|---|---|---|---|---|---|---|---|
-
-**FX3—FX5：MrMe 臂**
-
-| +0x00 u8 present：MrMeData 是否存在，0／1 | +0x01 ANM2 外观 sprite：MrMe Sprite 的定长外观部分，同第 3 步 E4 中的主 Sprite 部分 |
-|---|---|
-
-| +0x00 AnimationState anim：主动画，见 AnimationState 表 | +0x0F AnimationState overlay：叠加动画 |
-|---|---|
-
-| +0x00 u16 count：图层数 | +0x02 count×LayerState layers：各图层状态，见 LayerState 状态表 |
-|---|---|
-
-**FX3—FX4：SpriteTrail 臂**
-
-| +0x00 u8 present：SpriteTrailData 是否存在，0／1 |
-|---|
-
-| +0x00 u16 count：节点数 | +0x02 count×TrailNode nodes：轨迹节点，见轨迹节点状态表 |
-|---|---|
-
-**轨迹节点状态布局（64 字节）**
-
-| +0x00 Vector Position：节点位置 | +0x08 ColorMod Color：节点颜色 | +0x34 f32 Scale：缩放 | +0x38 f32 Rotation：旋转 | +0x3C f32 Alpha：透明度 |
-|---|---|---|---|---|
-
-**FX3—FX5：PickupGhost 臂**
-
-| +0x00 u8 present：PickupGhostData 是否存在，0／1 | +0x01 i32 count：有效幽影数，0—4 | +0x05 4×ANM2 外观 sprites：四个幽影 Sprite 的定长外观部分 |
+| FX1块11：+0 i32 LifeSpan | +4 u8 IsFollowing | +5 Vector ParentOffset；共13B |
 |---|---|---|
 
-| +0x00 8×AnimationState anims：四个 Sprite 各自的主动画与叠加动画，共 120 字节 |
-|---|
+FX2块12在全部十一个Effect布局均为空预留，不作为构造必收负载。FX3块13首字节为u8 present，仅首投影带此标记；后续投影不重复存在标记。MrMe尾接ANM2外观／动画／图层，变长部分依真实资源及选择器；Trail FX4为u16 count＋count×64B。Ghost每投影独立u16 count＋对应有效Sprite内容，三计数必须相同且≤4，不另发原生i32 count。Trail的count上限127，节点块最大8130B；正常Update尾部裁剪完成后才可采集。
 
-| +0x00 u16 count：图层总数 | +0x02 count×(u8 sprite + LayerState) layers：图层所属 Sprite 序号 0—3，以及图层状态 |
-|---|---|
+present=0时各投影为其最短全零编码，Ghost三个count均0。所有附属投影、成员关系与资源在同目标版本齐备后由同一owner一次提交，不逐块换owner。最小公共Effect444→420B，TearFlags460→420B，GridDesc473→420B；其他下界见复核报告，不代表实测带宽。
 
-**附属臂的两条约定**：
+#### 4.1.5 Timeout到期帧（保留用户已采纳转换）
 
-- **存在标记**：附属 owner 最多一个元素，不是 `std::vector`，所以用定长块中的 `u8 present` 表示是否存在，不套用 `u16 count` 规则。
-- **补零**：present 为 0 时，同块其余字节必须全部为 0，相关变长块的 count 为 0。这样 memcmp 结果稳定。
+Render真实消费Timeout，继续每个采集窗从原值重算`A=F+T`，Client以已应用world帧的展示时钟还原`T=A−F`，均按模2^32。只在原生恰好递减的分支锚点不变；负值、冻结、重置和跳变可能使其持续更新。版本40核到101局部递减后仍可进入公共正值递减、141可刷新常数，不将这些路径误作每帧仅减一次。旧“所有Effect无条件逐帧递减／静止必不重发”不是J273契约。Client不在两个已应用帧间自行预测，不运行Update，并在新world帧应用后重写`+45C`；同一时钟用于读回比较。
 
-#### 4.1.5 Timeout 换算为到期帧（用户 2026-11-08 采纳）
+#### 4.1.6 写入、校验与生命周期
 
-- **问题**：所有 Effect 的 Timeout 每帧都递减。如果原样复制，每个 Effect 每帧至少产生一条记录（12 字节记录头加 20 字节 FX0）。world 预算默认每秒 120000 字节，30 Hz 下每帧约 4000 字节；约 125 个只有 Timeout 在变的 Effect（地面血迹、creep 等）就会占满。
-- **做法**：按帧锚点规则（总计划第 4 节），Host 发送 `expire_frame = 全局帧（Game+0x25A70）+ Timeout`，类型 i32。Timeout 按帧递减时到期帧保持不变；SetTimeout 或变体逻辑改写 Timeout 时，到期帧随之改变，块照常发送。
-- **Client 不运行原生 Update**：
-  - 这是 tx-04-17 已采纳的隔离设计，现有 Client 拦截 Game、Room、EntityList、Player 等 Update 入口（`client.cpp:28,142-146`）。
-  - 因此 Client 本地不会推进 Timeout，它自己的 `Game+0x25A70` 也不代表 Host 时间。Client 以展示时钟（第 13 步 13.6）还原 Timeout。
-- **Client 写入**：
-  - `writer:effect_timeout` 直接写 +0x45C，不经过原生 Update；
-  - 计算式为 Timeout = expire_frame − 展示时钟，按 u32 相减后转成 i32；
-  - 每装好一个新的 world 帧，展示时钟随之前进，Client 就把所有 Effect 的 Timeout 重写一遍。每个对象只是一次减法加一次 4 字节写入。
-- **一致性**：Client 上的 Timeout 总是"已应用版本"那一帧的值，与同一版本的其他状态一致；丢帧时停在上一个已应用帧，也和其余状态一致。漂移校正读回时用同一个展示时钟换算，不会误报。
-- **正确性**：换算只影响发送量，不影响正确性。递减不规则时（例如冻结），到期帧会变化，块被重新发送。
-
-#### 4.1.6 写入方式与校验
-
-| 字段 | 写入方式 | 依据 |
-| --- | --- | --- |
-| FX0、FX1 中除 Timeout 外的字段 | `direct` | 现有 Client 直接写入（`client_entity_adapters_native.cpp:120-127`） |
-| Timeout | `writer:effect_timeout` | 见 4.1.5 |
-| TearFlags | `direct` | 同上，按 Bits128 写 |
-| GridEntityDesc 的 8 个字段 | `direct` | `client_entity_adapters_native.cpp:134-136` |
-| 基础臂 VarData | 待核 | 现有 Client 不写这些变体的 VarData，Render `0x600E60` 也未见直接读取。核对 J273 中的写入点后，定为 `direct`，或改归派生、不适用 |
-| ExtraData 的存在与 payload | `writer:ClientEntityOwnedPresentation` | 用游戏分配器构造具体类型，经 `0x606310` 替换。不 memcpy owner，不伪造虚表 |
-| +0x4A8 私有容器 | 不写 | 归为权威 |
-
-- **写入顺序**：IsFollowing 和 ParentOffset 与 Parent（E8）属于同一组关系，原生 `FollowParent 0x4522E0` 会同时设置这三项。如果 E8 因 Parent 尚未构造而延后，并且 IsFollowing 为 1，那么 FX1 也必须一起延后。
-- **校验**：
-  - 所有 f32（含轨迹节点）必须是有限值；
-  - IsFollowing、initialized、present 只能是 0 或 1；
-  - present 为 0 时其余字节必须为 0；
-  - PickupGhost 的 count ≤ 4；
-  - 轨迹节点数不超过布局上限。现有代码上限是 16384，本步按带宽重新确定。
+- 只安装FX0／FX1保留字段及真实payload。IsFollowing／ParentOffset依赖同版本公共Parent，MrMe另依赖Target及主Sprite CarryPos；不得因裁剪Host字段删掉绘制依赖。
+- 实际线上f32与Vector／ColorMod必须有限；Trail `+38`保持u32位模式。following／present仅0或1；Ghost原生i32 count编码收窄前拒绝负数／>4，三投影计数一致；Trail count≤127，不能截断／抽样或在原生Update追加后、裁剪前采集。真实字节预算保持，不截断。
+- 共享payload前后holder／RTTI／生命周期稳定，缺失、读取失败、未知类型分别处理，不能把失败当空。Ghost缩短／归零／再增长经本地ANM2 owner清理旧槽，所有候选失败不得部分替换。
+- vptr、控制块、deque头与本地资源由正常owner构造／替换／析构；不memcpy活容器，不放行原生Update／Interpolate、Trail追加／衰减、Ghost选loot、传播／Spawn或格子落地。Ghost派生Offset／Scale与其他draw临时写入须精确恢复。
 
 #### 4.1.7 公开成员回映射
 
-| 公开成员 | 映射 |
+| 公开成员 | 现行归属 |
 | --- | --- |
-| m_Height、FallingSpeed、FallingAcceleration、State | FX0 |
-| Timeout | FX0 `expire_frame`（换算） |
-| MinRadius、MaxRadius、LifeSpan、IsFollowing、ParentOffset、DamageSource、Rotation、Scale | FX1 |
-| GetTearFlags、HasTearFlags | TearFlags 臂的 FX2；其他臂不适用 |
-| GetGridEntityDesc | GridDesc 臂的 FX2；其他臂不适用 |
-| IsPlayerCreep | 派生：Wiki 声明为以 variant 为参数的静态函数，只取决于 E0 的 variant |
-| AddTearFlags、ClearTearFlags、SetTearFlags、SetTimeout、SetRadii、SetDamageSource、FollowParent、CreateLight、CreateLootPreview | 不适用：操作，不是状态 |
+| m_Height／FallingSpeed／FallingAcceleration／MinRadius／MaxRadius／DamageSource | authority：Host更新输入，不编码／安装／比较原值 |
+| State／Timeout／Rotation／Scale | FX0；Timeout换算，旋转／缩放按动态字段处理 |
+| LifeSpan／IsFollowing／ParentOffset | FX1实际展示输入 |
+| GetTearFlags／NativeEffect.TearFlags | 四个适用variant归authority，其余不适用；不恢复FX2 |
+| GetGridEntityDesc | 136归authority，其余不适用；不移回Grid域 |
+| IsPlayerCreep | 由公共variant派生 |
+| setters、FollowParent、CreateLight、CreateLootPreview | 操作，不作为状态重演 |
 
 #### 4.1.8 典型帧
 
-- **下落的粒子（基础臂）**：E1、E5、FX0 变化，`block_mask` 为第 1、5、10 位（0x422）。子类部分每帧 20 字节，原方案是 69 字节。
-- **静止的地面效果**：只有 Timeout 在变，换算后块都不变化，通常整条记录都不发送。原方案每帧至少发送 12 字节记录头加 69 字节。
-- **SPRITE_TRAIL**：轨迹每帧增加节点，FX4 整块重发，大小为 count×64 字节，是 Effect 中最占带宽的块。
+粒子只更新最终公共位置／偏移／Sprite，不重发三个Host下落参数；State／Timeout有实际变化时FX0按规则发送。Trail最终节点增长／缩短重发FX4完整逻辑序列，不能仅发count。Ghost只对当前有效前缀发送各投影，count改变时三个投影同目标版本提交；不把未使用槽的变化当作网络变化。
 
-#### 4.1.9 同步修改的文档（2026-11-08 已完成）
+#### 4.1.9 配套步骤与唯一验收
 
-本节引出的配套修改已同步到下列文档，FrameCount 按同一规则一并处理：
-
-- **总计划**：
-  - 第 3.1 节"换算"一行的例子从 FrameCount 改为 Effect Timeout；
-  - 第 4 节新增帧锚点规则；
-  - 第 5.1 节注明 EntityEffect 示例已由本节取代。
-- **第 0 步**：术语表增加"变体臂""帧锚点""展示时钟"。
-- **第 1 步**：
-  - `native_size` 以 J273 实际大小为准；
-  - 增加 `variants` 变体臂；
-  - 写入块号规则；
-  - 增加变体臂相关的拒绝条件。
-- **第 2 步**：ANM2 拆成外观、动画、图层三部分，与第 3 步 E4／E5／E6 一致。
-- **第 3 步**：E2 不再发送 FrameCount，改为原值发送帧基准 `+0x328`。
-- **第 6 步**：Effect136 举起的格子由 FX2 承载，Grid 域不另发一份。
-- **第 7 步**：`Room+0x11F0` 帧基准按同一规则放入 R1。
-- **第 9 步**：帧头 game_frame 兼作 Client 展示时钟。
-- **第 10 步**：10.2 增加选臂；10.3 的换算例子改为 Timeout。
-- **第 11 步**：没有变化块时也发送空帧，推进展示时钟。
-- **第 13 步**：
-  - 增加 `effect_timeout` writer 和 13.6 展示时钟；
-  - 13.4 改为已定：Client 不运行原生 Update；
-  - 退役 draw 期间逐对象重新锚定帧基准的代码。
-
-`world_layout.json` 中 Effect 的 `object_size` 也已更正为 0x4C0，Projectile 更正为 0x478（池步长，见输入事实），`evidence` 中注明了依据。Knife、Slot 不在该文件中，Door 已分列 `factory_allocation_size` 0x2F0。
-
-- **影响范围**：这个值只在生成器中使用，一是作为字段偏移越界检查的上限，二是写进 `world_layout.inc` 的类表（`mod/tools/gen_binding.py:1085-1097,1224-1230,1418-1423`）。运行时代码不读取 `ClassSpec::object_size`。
-- **结果**：改大只会放宽越界检查。
-- **未验证**：本次没有运行生成器或构建，由第 15 步的统一验收覆盖。
+第6步撤销136重复描述；第10步只采集真实展示输入与最终payload；第12步不等待FX2空块，校验实际count／present／资源；第13步维护同版本依赖、具体owner与draw借用；第14步退役已排除原值、旧writer／validator／漂移比较及lifted_descriptors同步。第15步沿用E09／E25／E32、E13／E17、E29、E28、E34与E27覆盖最终画面、payload前缀与生命周期、拒绝路径、模拟隔离、Timeout及未知，未提前执行。
 
 ### 4.2 NPC 的 Delirium 变体臂（设计稿，2026-11-08）
 
@@ -348,75 +202,51 @@ ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发�
 - **`+BE8` 是 EntityPtr 槽位**：形态 410 时由 Child（`+0x3C0`）写入，序列与 `EntityPtr::SetReference 0x858760` 相同（`0x4C8EE0` 摘旧、`0x4C79D0` 挂新）。除 Init 外只有 `0x49F3D0` 访问，公开接口也没有。
 - **变化频率**：state 8 下，AI 每个 tick 都改 `+BD0`（递减）、`+BD8`（相位计数加 1，形态 45、84:10 除外）和 `+BE0`。
 
-#### 4.2.3 变体臂
+#### 4.2.3 变体臂（版本42）
 
-| 布局 | 选择字段 `type` | 0xBC8—0xBEB | 附加块 |
+142号EntityNPC与143号EntityNPC_Delirium均已入源，仍先按RTTI确定NPC，再以继承的type字段选臂。type412臂用于保留BC8—BEB的真实字节归属和11B UNKNOWN，不代表它多出Client状态。完整表见[142](layouts/EntityNPC.md)、[143](layouts/EntityNPC_Delirium.md)。
+
+| 布局 | 选择字段type | BC8—BEB归属 | 17／18块 |
 | --- | --- | --- | --- |
-| `NPC` | 其他 | 权威，36 字节，不发送 | — |
-| `NPC.Delirium` | 412 | 见 4.2.4 | DL0、DL1 |
+| 142 | 其他 | 36B普通不适用Host区域，可能池槽残留不上线 | 两块均空预留 |
+| 143 | 412 | BossType／Variant和其余AI值共25B归Host，11B未知 | 两块均空预留 |
 
-- **选臂顺序**：先按虚表确定 `Entity_NPC`，再读 `type` 选臂，与 Effect 读 `variant` 相同（第 10 步 10.2）。类别仍由虚表决定，这不是“按 type 选布局”。
-- **选择字段成立**：`type` 已标 `shape`；生成器按展开后的字节段查选择字段，继承自 `Entity` 的字段可用（[gen_state_layout.py](../../../mod/tools/gen_state_layout.py) 的 `Compiler.make_variants()`，按 `variants['selector']` 查找展开后的 `ranges`；不用易过期的固定行号）。
-- **基础臂归为权威**：字节类别里没有“不适用”。这段对普通 NPC 没有玩法含义，Client 也不运行 AI；不发送，残留值也就不会上线。
-- **采集时机**：`type` 只有在 AI 之外才是 412。采集窗口不能落在 `0x49F3D0` 内，沿用现有“owner 未退尽不提交采集”的规则（[验收记录](../tx-04-19/tx-04-19-acceptance.md)第 152 行）。
-- **编号**：布局编号和块号在实施 NPC 条目时分配，DL0、DL1 接在 NPC 共有块之后。
+#### 4.2.4 原生归属（版本42）
 
-#### 4.2.4 原生字节归属（草稿）
+| +BC8 u32 BossType【权威】 | +BCC u32 BossVariant【权威】 | +BD0 u16 TransformationTimer【权威】 | +BD2 u8 RemainingAttacks【权威】 | +BD3 u8 StateD【权威】 | +BD4 4B【未知】 | +BD8 u32 AttackID【权威】四字节打包 | +BDC u8 Angle【权威】 | +BDD 3B【未知】 | +BE0 u32 Cycle【权威】 | +BE4 4B【未知】 | +BE8 EntityPtr companion【权威】 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
 
-**NPC.Delirium 原生字节归属（0xBC8—0xBEB）**
+11B未知保持。旧草稿13B DL1已在版本41归Host；版本42进一步撤销8B DL0及两个shape标记。旧“已标shape所以必须同步”是循环理由：Client不运行Delirium AI/碰撞/资源选择，最终ANM2与几何独立供应，原生RTTI／大小／稳定type均未因此改变。具体证据见[复核](npc-synchronization-review.md)。
 
-| 0x000—0xBC7【—】公共部分与 NPC 前段，见各自表格 | 0xBC8 u32 BossType【状态】当前变身的 Boss 类型，形态字段 | 0xBCC u32 BossVariant【状态】当前变身的 Boss 变体，形态字段 | 0xBD0 u16 TransformationTimer【状态】距下次变身的帧数 | 0xBD2 u8 RemainingAttacks【状态】变身前剩余攻击次数 | 0xBD3 u8 StateD【状态】Delirium 内部状态机 | 0xBD4—0xBD7 4B【未知】无 disp32 访问，疑似对齐填充，待证实 | 0xBD8 u32 AttackID【状态】弹幕打包值，见 4.2.2 | 0xBDC u8 Angle【状态】弹幕角度，0—255 | 0xBDD—0xBDF 3B【未知】写入时恒为 0，疑似位域填充，待证实 | 0xBE0 u32 Cycle【状态】红色模式与传送计时打包值 | 0xBE4—0xBE7 4B【未知】全部写入点写 0，疑似填充，待证实 | 0xBE8 EntityPtr companion【权威】形态 410 的伴随实体，只有 AI 使用 | 0xBEC—0xF5F【—】NPC 其余部分，待划定 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+#### 4.2.5 NPC共有块
 
-**未知字节合计**：11 字节。
+| 块号 | 当前内容 | 最小字节 |
+| --- | --- | ---: |
+| 10 N0 | State、ProjectileDelay、Vector V1、I2、ChampionColorIdx及u8受控UI模式 | 25 |
+| 11 N1 | u16 EntityRef＋u16 count＋有序复合引用成员序号 | 4 |
+| 12／13 N2／N3 | 各自u16 count＋有序Vector次／主路径 | 各2 |
+| 14／15／16 N4／N5／N6 | OverlayEffect场景Sprite144与通用副ANM2的外观／动画／图层 | 238／44／4 |
+| 17／18 | 原DL0／DL1空预留，不接收旧负载 | 0 |
 
-#### 4.2.5 状态块
-
-| 块 | 适用布局 | 内容 | 长度 | 变化频率 |
-| --- | --- | --- | --- | --- |
-| DL0 形态 | `NPC.Delirium` | BossType、BossVariant | 8B | 低：只在变身时变化 |
-| DL1 动态 | `NPC.Delirium` | TransformationTimer、RemainingAttacks、StateD、AttackID、Angle、Cycle | 13B | 高：state 8 下每个 AI tick 变化 |
-
-**DL0 形态（8 字节）**：复制 `[0xBC8,0xBD0)`。
-
-| +0x00 u32 BossType：当前变身的 Boss 类型 | +0x04 u32 BossVariant：当前变身的 Boss 变体 |
-|---|---|
-
-**DL1 动态（13 字节）**：复制 `[0xBD0,0xBD4)`、`[0xBD8,0xBDD)`、`[0xBE0,0xBE4)`。
-
-| +0x00 u16 TransformationTimer：距下次变身的帧数 | +0x02 u8 RemainingAttacks：变身前剩余攻击次数 | +0x03 u8 StateD：内部状态机 | +0x04 u32 AttackID：弹幕打包值 | +0x08 u8 Angle：弹幕角度 | +0x09 u32 Cycle：红色模式与传送计时打包值 |
+| N0：+0 i32 State | +4 i32 ProjectileDelay | +8 Vector V1 | +16 i32 I2 | +20 i32 ChampionColorIdx | +24 u8 controlled_ui_mode；共25B |
 |---|---|---|---|---|---|
 
-划分理由：
+三deque各≤16384，完整逻辑序列与owner合同不变。ControllerId不再作为raw i32传输：0=无控制者、1=来源受控UI谓词抑制、2=来源允许。Host须核定本地来源谓词，否则Gap；Client只存表现旁表，第13步专用绘制adapter消费，不写F1C、不注册/重绑输入设备。+CD8只有Scale由同版本主Sprite null-frame重建，其他资源／姿态及+DEC保持；详见[144号表](layouts/NpcOverlaySprite.md)。普通NPC与Delirium最小均710B，含公共391B，不含帧头与实际变长负载。根未知586／597B、本类223B不变。
 
-- **DL0 单独成块**：它的变化走形态路径，不和高频字段混在一起。
-- **DL1 独立于 NPC 主块**：它每个 tick 都变，独立成块才不会连带 NPC 主块重发。块本身只有 13 字节，一个房间通常只有一只 Delirium，带宽可以忽略。
-- **不做帧锚点**：这些计数只在 state 8 前进，并由 AI 按条件改写，属于第 3 步列出的条件计时，不能按全局帧线性还原。
+#### 4.2.6 资源变化与生命周期
 
-#### 4.2.6 形态变化
+- Delirium的BossType／Variant不属于Client shape；变身仅更新实际改变的资源、姿态、公共最终状态与真实引用，不退休重建同一NPC。
+- 只有公共真实shape或其他已证实原生结构字段变化才走第11／13步结构事务；不能把Host AI选择器重新加入shape集合。
+- `world_delirium_owner`仍在Init后恢复当前字节读取资格，不能无条件推进shape。采集仍须在49F3D0 owner退尽后，不能用临时Boss type选错臂。
+- 835固定前两引用与真实NPC点列、906／920子体Sprite、921次路径、951:3邻点和965:10跨Player依赖保持，缺当前依赖则写前失败。Player+C18绝不按NPC解释。
 
-- **形态字段**：`BossType`、`BossVariant` 标 `shape`。第 3 步列的是 Entity 公共形态字段，这两个由本臂追加。
-- **检测方式**：第 11 步比较当前布局全部 `shape` 字段的值，不写死 type、variant。这样经 Init 和不经 Init 的两条路径都能覆盖。
-- **布局编号不变**：变身不改 `type`，成员始终是 `NPC.Delirium`。
-- **`world_delirium_owner` 保留，职责收窄**：旧路径用它在 Init 时升 shape（`mod/src/world/collector.cpp:1317-1321`）。新路径由字段比较换代，它只负责在变身内的 Init 之后恢复 `+0x177` 的读取资格（规范第 11 节），不再升 shape，否则同一次变身会换代两次。
-- **Client**：按第 13 步 13.2 退休旧实例、按新形态构造，不调用 AI，也不重新抽 Boss。
-- **专用 draw 限制不变**：变到 Type 835、906、920、921 等形态时，仍按 [tx-04-19-class-application](../tx-04-19/tx-04-19-class-application.md) 第 47 行写前拒绝，不因分臂放宽。
+#### 4.2.7 写入与校验
 
-#### 4.2.7 写入方式与校验
-
-- **写入方式**：DL0、DL1 全部字段用 `direct`。现有 Client 按这些宽度直接写入（`client_entity_class_fields.inc:22-29`），J273 的 AI 也是普通赋值。
-- **校验**：字段都是定宽整数，按原宽度写回，不需要额外校验。
-- **`+BE8` 不写**：归为权威，Client 上保持 Init 写入的 0。
+两臂17／18均预留，Boss选择／AI值无writer、读回或漂移比较。N0五个真实原生绘制值按可信字段宽度安装，受控UI模式只能0/1/2并存入同key/generation自有表现值，不能直接写本地设备键。OverlayEffect Scale只在已核draw窗口派生并恢复；不得将该规则扩展到其他Sprite。BE8及五个Host私有关系只按本地owner正常撤登记，不触发级联Remove。
 
 #### 4.2.8 公开成员回映射
 
-| 公开成员 | 映射 |
-| --- | --- |
-| BossType、BossVariant | DL0 |
-| TransformationTimer、RemainingAttacks、StateD、AttackID、Angle、Cycle | DL1 |
-| GetTeleportationTimer | 派生：`(Cycle >> 15) & 0x3FF`（`LuaDelirium.cpp:211`） |
-| IsRedMode | 派生：`((Cycle >> 7) & 0xFF) != 0`（`LuaDelirium.cpp:191`） |
-| SetRedMode、SetTeleportationTimer、Transform | 不适用：操作，不是状态 |
+Delirium十个唯一公开ReplicatedState全部归Host查询；BossType／Variant、条件计数及两个Cycle派生查询的原始语义/公式仍保留在版本41事实中，但不伪造Client可还原值。NPC GetControllerId同样归Host raw查询，u8受控UI模式不可反解设备ID。ParentNPC／ChildNPC／FlyingOverride仍复用公共状态，其余必要公开值保留真实字段映射。总44个唯一成员均有显式归属。
 
 #### 4.2.9 同步修改的文档（2026-11-08 已完成）
 
@@ -426,11 +256,11 @@ ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发�
 - **第 11 步**：11.2 的 shape 判定改为按布局的 `shape` 字段；增加对应失败方式。
 - **第 14 步**：14.3 注明该 Hook 保留及其职责。
 
-布局源没有改动，`entity.json` 的 NPC 条目在实施第 4 步时写入，布局版本届时递增。
+以上为2026-11-08文档设计时点；2026-11-09已在`entity-classes.json`落实142／143，整数版本41，见[本轮实现](implementation-4-npc.md)。旧“布局源没有改动”的状态已结束，原设计事实与未核字节保持。
 
 ### 4.3 Familiar、Knife、Bomb 本轮实现（2026-11-08）
 
-布局源为 `mod/binding/state/entity-classes.json`，布局版本 16。本节记录实际实现范围；不把未知字节归属和第 15 步验收提前写成完成。生成表分别见 [Familiar](layouts/EntityFamiliar.md)、[Knife](layouts/EntityKnife.md)、[Bomb](layouts/EntityBomb.md)，证据与主审见[静态证据](familiar-knife-bomb-evidence.md)。
+布局源为 `mod/binding/state/entity-classes.json`，本节记录版本16当时的实际实现范围；后续版本33已排除HeadFrameDelay等11个参数，并补入80／240的展示负载，当前传输以本页顶部及生成表为准。原生发现、遗漏修复和编译事实保留，不把未知字节归属和第15步验收提前写成完成。生成表分别见 [Familiar](layouts/EntityFamiliar.md)、[Knife](layouts/EntityKnife.md)、[Bomb](layouts/EntityBomb.md)，证据与主审见[静态证据](familiar-knife-bomb-evidence.md)。
 
 - 三类继承 Entity 的 E0—E9，子类块从 10 起。Familiar／Knife／Bomb 编号分别为 120／121／122；Familiar 的 48／231 变体臂为 123／124，分别传送 IsaacsBodyData 和 AbyssLocustData，不在 Client 创建其他未知玩法 owner。
 - Familiar `+0xDB8` 的 ANM2 与主 Sprite 独立；Bomb `+0x464` 的五份 ANM2 按 0x114 步长分别投影。外观、动画、图层分别成块；共享 payload 和 Sprite vector 的元素也按子块投影，避免动画变化重发整组资源。
@@ -444,7 +274,7 @@ ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发�
 
 ### 4.4 Tear、Pickup、Laser 本轮实现（2026-11-08）
 
-布局版本 20，唯一源仍为 `mod/binding/state/entity-classes.json`。布局编号 125／126／127，继承 E0—E9，子类块从 10 开始。完整生成表见 [Tear](layouts/EntityTear.md)、[Pickup](layouts/EntityPickup.md)、[Laser](layouts/EntityLaser.md)，交付与后续接线见[本轮实现](implementation-4-tear-pickup-laser.md)，静态逆向及主审见[证据](tear-pickup-laser-evidence.md)。
+本节保留版本20当时的实现事实；版本34／35／37已分别排除攻击／运动输入、Pickup交互输入／未来队列及Laser采样中间数据与计时。现行传输以本页顶部、版本37源及生成表为准。原布局版本20的唯一源为 `mod/binding/state/entity-classes.json`。布局编号 125／126／127，继承 E0—E9，子类块从 10 开始。完整生成表见 [Tear](layouts/EntityTear.md)、[Pickup](layouts/EntityPickup.md)、[Laser](layouts/EntityLaser.md)，交付与后续接线见[本轮实现](implementation-4-tear-pickup-laser.md)，静态逆向及主审见[证据](tear-pickup-laser-evidence.md)。
 
 - Tear 三份辅助 ANM2 的外观／动画／图层独立投影，七个引用槽和命中索引分别保留，不借带副作用的 Height／Scale／TearFlags setter 恢复最终状态。
 - Pickup 保留两份 ANM2、四个引用槽、八项有界循环道具；FlipSaveState 为 Host 玩法保存对象，Client 不重建。价格与图形最终值分别安装，不调用 SetPrice／InitFlipState 触发玩法。
@@ -462,6 +292,34 @@ ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发�
 - `state/owned_payload.*` 有界处理 u8 present、尾块存在性依赖和缺失值最短全零规范；未知动态类型或读取失败不得当作不存在。
 - SDK 大小与池步长分别记录；公开目录已回映射，根对象和 payload 未知仍在各自生成表中，不能据此宣称字节完整或第 15 步通过。
 
+### 4.6 前四项未决的工作量与拆分（2026-11-09）
+
+本轮范围按原未决清单的前四个顶层条目固定，第三条虽已写明 DepthOffset 核定，仍计作其中一条。必要逆向由一个 GPT-6 Luna（max）子智能体执行，主智能体审阅；[静态证据及主审](step4-first-four-evidence.md)记录对象尾部与 Effect 的结论。此处拆分的是第 4 步内部研究次序，不新增 tx、测试或推进前置条件。
+
+**NPC／Familiar 工作量估算**以当前布局和既有 owner 证据为依据，不再把全部子类字节减去旧公开字段字节当作未知量：
+
+| 对象 | 已有结构依据 | 尚需处理的实际范围与工作量 |
+| --- | --- | --- |
+| Familiar | 子类共 2848B；`+0x5FC` 寻路对象 1872B 已按 SDK 声明归权威；`+0xDB8` ANM2 276B 可复用基础布局 | 子类自身未知 **557B／9 段**，其中 `+0x418—0x5F7` 占 480B，其余八段合计 77B。根表 906B 未知另含公共 Entity 335B、内嵌 ANM2 14B，不能重复算作 Familiar 专有研究。寻路的 SDK 证据升级、条件计时和 payload 完整性另计，不能由未知数较小宣称完成。 |
+| NPC | 子类共 2896B；SDK 寻路 `+0x414—0xB63` 1872B；既有双 ANM2 `+0xCD8/+0xDEC` 共 552B；三组 deque `+0xBF0/+0xC04/+0xC18` 头共 60B | 以上结构以外剩 **412B** 的混合区域，含已核公开值、Delirium 臂、ColorMod、引用／容器及未知，不是 412B 全部未知。版本41已迁入生成源：NPC本类未知223B／15段，根586B另含公共335B及双ANM2共28B；Delirium根597B另加臂内11B。寻路声明等级与外部deque元素仍单列，不能由根未知数宣称完整。deque 的外部元素与具名 owner 工作不包含在 60B 头大小中。 |
+
+采用以下次序；规模是相对核对量，不承诺固定工时：
+
+1. **共享寻路边界（中）**：一起核 NPC `+0x414` 与 Familiar `+0x5FC` 的构造／重置／调用链，区分 Host AI 数据与实际展示依赖；不因名称一口气把所有空白归权威。
+2. **NPC 已有表现结构（中至大）**：迁入双 ANM2、三组 deque、已核公开字段和 Delirium 变体臂；按实际消费者补 owner／引用／资源合同。复用[既有复合绘制证据](../tx-04-19/entity-i20-i25-native.md)，保留 Player 与 NPC 的布局隔离。
+3. **Familiar 480B 历史区（中）**：核 `+0x418—0x5F7` 的元素、索引／长度规则、写入者与消费者。60 组 8B 清零只是构造事实，不能直接声明为 Vector 数组或填充。
+4. **Familiar 八段零散区（中）**：优先 `+0xD90—0xDAB` 容器候选、`+0xED8` owner 邻接区和 `+0xF28/+0xF2C` 树控制关系，再处理其余小段；已有字节原样保留至语义闭合。
+5. **NPC 剩余混合区与变体消费者（大）**：按 `[0xB64,0xBF0)`、`[0xC2C,0xCD8)`、`[0xF00,0xF60)` 收敛；每段区分共用值、特定形态、引用、权威和未知。该项通常比简单移植 ANM2 耗时，不能用只扫构造函数替代。
+6. **零散尾部与证据等级收尾（中，依实际发现调整）**：合并复核未证明的 padding、SDK 声明和跨函数活动条件；静态证据不足的字节继续列未知，第 15 步统一观察，不提前执行未知区探测。
+
+**DepthOffset 复核**：Entity 注册 `VA 0x84F33F/0x84F344/0x84F349` 与 Projectile 注册 `0x8514CF/0x8514D4/0x8514D9` 均绑定 `0x431380/0x4313A0`。setter 在 `0x431388` 写 `float [ecx+0x358]`，getter 在 `0x4313A0` 读同一位置。`entity-classes.json` 的公开成员回映射已经指向父类 `depth_offset`，故本项只清理过期未决，不再添加线字段。SDK `_depthOffset +0x2B0` 仍不是此公开字段。
+
+**对象大小与尾部**：工厂向 MSVC EH 数组构造器传入本类 ctor／dtor、数量与单元素大小；Knife／Slot／Projectile／Effect 分别为 `0x520／0x550／0x478／0x4C0`。续研又在四类 vtable slot0 的删除析构包装器中核到同样的显式 size 参数：`VA 0x939C00／0x659A54／0x64F487／0x5CCFA2`，均先压大小、再压对象地址、调用释放函数后回收8B参数。两条编译器路径共同核定 J273 的 `sizeof`，Effect不是`0x4BC`。Hex-Rays伪码隐藏了第二个参数，结论以原始指令为准。尾部填充与否另判，大小本身不能证明字段语义。Slot `+0x548` 已确定为进度对象借用指针，Projectile `+0x470` 已确定为回调函数指针，分别按本地归属；它们都不是填充。末四字节的全映像候选已按实际对象复核，支持尾部填充假设；尚不能把源级填充与未使用保留成员区分，继续保留证据边界。
+
+**Effect 指定区间**：`+0x440` 模式、`+0x444` 来源关系和 `+0x448` 角度用于 `0x5D3280 → 0x633330` 的玩法传播；来源槽会登记到目标的反向引用集合。`+0x47C—0x4A7` 在 variant 203 的 `0x5D3480` 中组成生成请求：类型、变体、位置、速度、spawner、subtype、seed、第八参数和出生格子序号。两个 Vector 代替旧“16B 容器头”描述。布局按这些实际边界逐段命名，归权威且具体用途证据升级“已核”：这些玩法输入只由Host消费，Client不复制其地址或重演传播／生成；原版全部关系生命周期没有被证明，也不是本次新增的Client操作。`+0x41C`、`+0x44C`、`+0x4BC` 的四字节段仍未知，限定范围内没有直接位移命中不等于填充证据。
+
+布局版本 **27**。Knife `+0x504—0x51B` 的六个f32保留独立K4（24B），具体用途为父刀距离、相对角度、局部偏移X／Y、本刀分裂触发距离和碰撞方向角，证据升级“已核”。`+0x518`由HandleCollision消费，前轮称绘制字段有误，已更名`knife_tail_collision_angle`；不在Client执行碰撞。末四字节仍按现有证据等级保留。Slot／Projectile／Effect本轮更正原生归属，不增加运行中的采集、安装或回调执行；第10／13步必须遵循本地地址不传输、Host玩法不重演的约束。完整改动和普通编译结果见[本轮落地说明](implementation-4-first-four.md)。
+
 ## 改动范围
 
 - 布局源 `state/entity-classes.json`、`state/entity-effect.json` 中的子类条目和专用块；其中 Effect 按 4.1 分为 6 个变体臂布局，NPC 按 4.2 增加 Delirium 变体臂。
@@ -476,38 +334,31 @@ ExtraData 在三个附属臂中归为"容器"：指针和控制块本身不发�
 - **容器读取越界**：几何容器读取时没核 begin、end，或者超过上限。
 - **复活拥有型对象**：在 Client 上重建了不应存在的玩法 actor，例如 NPC +0xF40。
 - **按 SDK 大小划范围**：Effect 按 0x490 划定对象范围，漏掉 0x490—0x4BF 的私有容器和 ExtraData；Slot、Projectile 漏掉尾部 8 字节；Knife 按 0xE78 读取，越过对象进入池中下一个槽。
-- **Effect 选错变体臂**：variant 136 按基础臂只发 16 字节，格子描述被截断；或者把四个变体以外的 VarData 当成 TearFlags。
+- **Effect 选错变体臂**：113仍按旧102选臂，或把未核变体的VarData当TearFlags／传播输入；136描述自版本38起归Host，不能恢复旧16B或32B同步负载。
 - **Effect 直接复制 ExtraData**：复制 owner 指针或 memcpy payload，没有经游戏分配器和 `0x606310` 重建。
 - **Effect 跟随关系先写**：IsFollowing 为 1 的 FX1 先于 Parent（E8）写入，而 Parent 目标还没有构造。
 - **Effect 到期帧基准不一致**：两端换算 Timeout 用的帧基准不同，例如 Client 误用自己的 `Game+0x25A70`；或者装好新的 world 帧后，没有按新的 game_frame 重写 Timeout。
 - **Effect 轨迹失控**：轨迹节点数没有上限或含非有限值；整条轨迹每帧重发，超出带宽。
 - **Effect 格子描述重复**：举起的格子描述在 Effect 和 Grid 两处各发一份，而且内容不一致。
-- **Delirium 变身漏检**：只比较 type、variant，BossType 变化没有走形态路径，Client 的旧实例继续接收新形态的块。
+- **Delirium 资源变化漏发**：稳定公共shape下没有比较最终资源／姿态块，误以为必须先发BossType或结构换代才刷新画面。
 - **Delirium 选错臂**：采集窗口落在 `0x49F3D0` 内，`type` 是临时的 Boss 类型，对象被套上基础臂。
 - **发送池槽残留**：把普通 NPC 的 `+BD8—BE7` 当状态发送，内容是上一只 Delirium 留下的值。
-- **Delirium 重复换代**：`world_delirium_owner` 和字段比较各升一次 shape，同一次变身退休两次实例。
+- **Delirium 无根据换代**：仅Host Boss选择／AI重配变化时，`world_delirium_owner`或旧Boss shape逻辑仍退休重建同一NPC；版本42只按真实公共结构字段决定换代。
 
-## 完成内容
+## 完成标准（本步尚未全部满足）
 
 - **字节归属与表格**：十个子类和专用形态的字节归属全部完成，带证据，两张单行表由生成器产出。
 - **回映射**：子类全部 `ReplicatedState` 成员都有回映射。
 
 ## 未决问题
 
-- NPC、Familiar 子类区的大段未知字节，需要先估算核对工作量，再决定拆分次序。Knife 按池步长只有 272 字节，不再属于大段未知。
-- Knife、Slot、Projectile 的实际 sizeof 与池步长尾部字节的归属（填充还是未知）。
-- Projectile 在 0x358 的字段已核定为公共 DepthOffset 别名，映射到 E4；不再列为未知。
-- Effect：
-  - 实际 sizeof 是 0x4C0 还是 0x4BC；
-  - 0x484—0x493 内联容器的类型；
-  - 0x41C、0x440—0x44F、0x47C—0x483、0x494—0x4A7 的用途。
-- Effect 基础臂 VarData 的写入方式；0x430—0x43F 是否被其他变体使用。
-- Effect 的 Timeout 是否严格每个游戏帧减 1。这只影响省下多少流量，不影响正确性。
-- Effect 的 MinRadius、MaxRadius、Rotation、Scale 的实际变化频率。如果高频，移入 FX0。
-- 轨迹节点 64 字节布局的 J273 核对，以及节点数上限。
-- 三种 payload 以外，其他变体的 ExtraData 在 Client 上是否有消费者。
+- **原前四项的剩余部分**（工作量／次序、DepthOffset、对象范围和已核字段结论见 4.6）：
+  - NPC／Familiar 按 4.6 的次序实施剩余归属；工作量估算已经完成，不等于未知字节已清零。
+  - Knife六个f32的用途已闭合；`+0x51C—0x51F`、Slot `+0x54C—0x54F`、Projectile `+0x474—0x477` 尚无填充证明。Slot `+0x548` 与 Projectile `+0x470` 已从未知中分离为本地指针。
+  - Effect `+0x41C—0x41F`、`+0x44C—0x44F`、`+0x4BC—0x4BF` 未知；传播／生成参数的专用用途及Host归属已闭合，未新增Client引用写入或玩法执行，因而不把原版关系全生命周期穷尽继续列作该项同步依赖。`+0x484—0x493` 已证明是两个 Vector，不再作为待核容器。
+- **Effect剩余事项**：[本轮五项处理结果](effect-next-five-evidence.md)已落源；仍须核对未核variant／167后半及各臂残余UNKNOWN，第10／13步接通具名reader／writer，第15步观察实际分支／频率与未知间接访问边界。已核的Timeout非线性结论、FX0分块、Trail64B／127上限和三种具体ExtraData不再列作原泛化问题重做。
 - Delirium：
   - `+BD4—BD7`、`+BDD—BDF`、`+BE4—BE7` 共 11 字节能否证实为填充；
   - 普通 NPC 的 `+BD8—BE7` 池槽残留是否真实发生；
-  - DL1 的六个字段在 Client 上没有原生消费者（不运行 AI），现按 `ReplicatedState` 保留发送，第 15 步后可以再判断是否改归权威；
+  - 版本41已将DL1六字段作为Host权威写入原生归属，块18空预留；版本42进一步将BossType／Variant归Host，DL0也空预留。无需再以“尚未入源”重复安排实现，实际采集／结构安装仍待第10／13步；不提前运行测试；
   - `+BE8` 归为权威的前提是 Client 无消费者；第 15 步如果发现形态 410 的画面依赖它，再改为引用。

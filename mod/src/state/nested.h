@@ -34,6 +34,10 @@ struct NativeElements { std::uint16_t count; std::uint32_t stride; Bytes bytes; 
 struct NativeElementView { std::uint16_t count; std::uint32_t stride; std::span<const std::byte> bytes; };
 NativeElementView ReadVectorInto(const ReadWindow &, std::uint32_t header, std::uint32_t stride,
                                  std::uint16_t limit, std::span<std::byte> storage, std::string_view field);
+// J273 Release deque 为20B头、16B元素块；按逻辑顺序归并，保留空与损坏的区别。
+// EntityPtr元素仍是当前栈的原生暂存，必须立即转为CapturedReference，不能交给后台。
+NativeElementView ReadDequeInto(const ReadWindow &, std::uint32_t header, std::uint32_t stride,
+                                std::uint16_t limit, std::span<std::byte> storage, std::string_view field);
 NativeElementView ReadArrayInto(const ReadWindow &, std::uint32_t pointer_and_count, std::uint32_t stride,
                                 std::uint16_t limit, std::span<std::byte> storage, std::string_view field);
 NativeElementView ReadCountedArrayInto(const ReadWindow &, std::uint32_t pointer_field, std::uint32_t count,

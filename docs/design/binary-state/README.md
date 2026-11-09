@@ -1,8 +1,38 @@
 # 原生二进制状态同步重构：总计划
 
-日期：2026-11-08；更新：2026-11-09（Asia/Singapore）。状态：**第 0—3 步已落地，第 4 步的 Familiar／Knife／Bomb、Tear／Pickup／Laser 和 Slot／Projectile／Effect 布局与专用表现已接入生成链，普通 Release 纯编译／链接通过**。入口为[第 0—2 步实现](implementation-0-2.md)、[第 3 步实现](implementation-3.md)、[Familiar／Knife／Bomb 实现](implementation-4-familiar-knife-bomb.md)、[Tear／Pickup／Laser 实现](implementation-4-tear-pickup-laser.md)、[Slot／Projectile／Effect 实现](implementation-4-slot-projectile-effect.md)和[生成布局表](layouts/README.md)。当前布局版本 23。SDK 声明、未知字节、子类计时分支和跨域未决照实保留，不表示类型完整或同步已可运行；第 4 步 NPC／Delirium／Text／Dummy 等剩余专用形态和第 5—14 步待实施。0—14 步没有测试，第 15 步是唯一统一整体验收。
+**2026-11-09 当前版本42：NPC同步职责修正。** [逐段复核](npc-synchronization-review.md)取消Delirium BossType／Variant的8B传输与无根据的shape换代；ControllerId本地设备键改为1B受控UI表现，禁止跨进程raw写入；OverlayEffect新增144号场景视图，8B Scale由当前主Sprite null-frame派生。五项原生绘制标量、真实引用、三deque与必要双Sprite保持。NPC／Delirium最小负载均710B，未知586／597B及Pathfinder SDK声明不变；实际控制UI来源／adapter仍待第10／13步，不运行测试。
+
+**2026-11-09 版本41：Entity_NPC。** [实现说明](implementation-4-npc.md)与[静态证据](npc-evidence.md)将NPC142／Delirium143、双辅助Sprite、三组deque及44个唯一公开成员回映射接入生成链。保留真实绘制参数与8B变身shape，AI计数留Host；新增无分配deque读取接口。NPC本类223B未知、根586／597B未知与Pathfinder声明边界保留。普通Release纯编译／链接通过，没有运行测试；实际采集／安装仍待第10／13步。
+
+**2026-11-09 版本40：Effect后续五项未决。** [静态证据与落地](effect-next-five-evidence.md)补入137—141号VarData具名臂，已核范围留Host／本地、其余UNKNOWN保留；Rotation／Scale移入FX0，Trail逻辑节点上限收紧为127。核到101可双减Timeout及141刷新常数，修正静止必不重发的验收表述；原生ExtraData仍为三种具体payload。正式reader／writer待第10／13步，测试只在第15步。
+
+**2026-11-09 版本39：Player装备与Plus展示依赖。** [完整消费者与安装复核](player-equipment-plus-synchronization-review.md)将ActiveItemDesc来源池／定时充能冷却、Weapon五项非展示输入及KnifePlus.hitboxSource留Host；保留主动槽六值、Weapon充能三值与类型、TemporaryEffect三值及Plus公共nullable覆盖。新增135号UmbilicalWhip真实主引用、136号TemporaryEffects外层disabled／列表，并补Familiar+D76绘制抑制字节。原已排除Plus项不恢复，其他UNKNOWN保持。源、生成表、正式Plus读取接口和第5／8／10—15步已修订，未构建或测试，运行时仍待接线。
+
+**2026-11-09 版本38（Effect合同继续适用）：Effect各臂与附属payload。** [Effect同步职责复核](effect-synchronization-review.md)撤销六项公共更新输入、TearFlags全128位与136描述八成员；State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale及三种表现payload保留。Ghost只发0—4有效Sprite前缀，Offset／Scale派生、i32 count由投影计数重建；MrMe原16B未知核为Host内部状态，Trail找到64B分配与完整复制。六臂编号不变，FX2均预留；公共Effect最小444→420B。源、生成表和第6／10／12／13／14／15步合同已修订，未构建或测试，运行时仍待接线。
+
+日期：2026-11-08；更新：2026-11-09（Asia/Singapore）。状态：**第 0—3 步已落地，第 4 步的 Familiar／Knife／Bomb、Tear／Pickup／Laser 和 Slot／Projectile／Effect 布局与专用表现已接入生成链，普通 Release 纯编译／链接通过**。入口为[第 0—2 步实现](implementation-0-2.md)、[第 3 步实现](implementation-3.md)、[Familiar／Knife／Bomb 实现](implementation-4-familiar-knife-bomb.md)、[Tear／Pickup／Laser 实现](implementation-4-tear-pickup-laser.md)、[Slot／Projectile／Effect 实现](implementation-4-slot-projectile-effect.md)和[生成布局表](layouts/README.md)。当前布局版本42（NPC现行职责见[复核](npc-synchronization-review.md)，版本41初轮事实保留，未运行测试）；[第4步原未决前四项](implementation-4-first-four.md)已完成工作量估算与DepthOffset复核，补入Knife尾部六个f32、更正Slot／Projectile本地指针和Effect生成参数归属，续研核定Knife六值的分裂／碰撞用途与Effect参数的Host归属，六段空白的填充假设及证据边界仍保留。SDK 声明、未知字节、子类计时分支和跨域未决照实保留，不表示类型完整或同步已可运行；第4步NPC／Delirium已迁入布局源，仍有未知与后续接线；Text／Dummy等剩余专用形态和第5—14步待实施。0—14 步没有测试，第 15 步是唯一统一整体验收。
+
+**2026-11-09 版本37（历史范围）：Laser／Homing采样、运动与计时。** [Laser／Homing采样、运动与计时复核](laser-homing-synchronization-review.md)保留optimized／unoptimized两组最终点列与当前角度、长度、完整效果位、原始采样模式、MaxDistance／GridHit、公开EndPoint和+4F0展示分支输入；19项Laser更新输入、六项Homing标量、indices中间点缓存及Bezier／系数留Host。indices原生类型纠正为8B双f32点对，旧i32步长记录错误。L2／L4／L7／L8及Homing子块0／3／4预留，父投影仅1／2；撤销两个Laser计时锚点。最小Laser542→439B，未知421B不变。源、生成器和第10／12／13／14／15步合同已修订，未构建或测试；运行时仍待接线。
 
 本目录保存这次重构的总计划和逐步设计。按用户 2026-11-08 的要求，步骤**直接用数字编号，从 0 开始**，不再使用 `tx-0x-0x`；文件名为 `<编号>-<主题>.md`。旧 tx 文档中的事实和失败记录保持原样；与本目录冲突的设计以本目录为准，具体范围见第 6 节。
+
+**2026-11-09 版本28同步职责修订（历史范围）。** [字段同步职责复核](synchronization-field-review.md)把 Knife K4 六值／命中父链选择字节、Knife／Bomb／Tear／Laser 四组命中历史、Projectile 伤害／三项延迟变更参数、Laser 掉落概率／伤害倍率共 17 个范围改归 Host 权威，并同步撤销线上字段、校验及公开成员的状态回映射。旧空块号保留。Familiar 充能／状态／硬币等已有真实展示消费者，继续同步；variant80 经 Weapon 查询充能的展示缺口已记录，未虚构已实现。其余候选仅在依赖闭合后调整，UNKNOWN 保持。没有测试，唯一功能整体验收仍是第 15 步。
+
+**2026-11-09 版本29：24项内部关系展示复核（历史范围）。** [逐槽结论及证据](internal-entity-relations-review.md)：Knife4／Tear6／Pickup1／Laser12共23项留Host；Familiar+DAC仅variant240的绳索分段有展示依赖，新增布局130保留真实引用，其余Familiar臂不发送。Knife K3显式预留，原有块号不前移。240的UmbilicalBabyData绳索payload仍待补齐，不能声称展示完整。Room Light已证实读取Laser未优化采样点，继续保留该容器。布局源、回映射和第13／14／15步同步修订；没有测试。
+
+**2026-11-09 版本30：Entity公共同步职责复核（历史范围，valid由版本31纠正）。** [逐项结论与静态依据](entity-common-synchronization-review.md)：33个公共范围撤销传输，其中32个为Host玩法状态，removedByFactory为本地工厂生命周期。包含毒／火伤害相位、20个公共计时器（含PauseTimer）、暂停保存／半帧历史位置及部分伤害／物理输入；每个Entity最小负载减少223B。valid／exists／dead有实际绘制消费者，继续保留；碰撞类别、尺寸及Effect使用的速度倍率同样保留。布局源、生成表、回映射及第5／10／13／14／15步同步修订，不改变UNKNOWN或历史证据等级，没有测试。
+
+**2026-11-09 版本31：valid／exists／dead再复核（历史范围）。** [结论和证据](entity-lifecycle-synchronization-review.md)：撤回“Render读取valid就必须公共同步”的判断。valid移出Entity E2，由Client本地构造／发布／退休owner维护；Player活动／备用身体的结构资格仍须由第5步P7接管，现有证据不能证明valid与room_member等价，也不能删除旧Player结构源的独立资格信息。exists／dead继续同步：存在性与激活／成员分离已有历史反例，死亡状态有实际展示消费者，未证明可由HP等价替代。公共最小状态进一步由411B降为410B，UNKNOWN不变；没有测试。
+
+**2026-11-09 版本32：动画／资源／颜色职责复核（历史范围）。** [动画／资源／颜色职责复核](animation-resource-synchronization-review.md)撤销两组AnimationState事件位、两个loaded原始布尔及完整ColorParams队列的独立传输；资源有无并入file_name可空资源号，路径与实际Image仍分开。官方InterpolV2绘制读取is_playing／anim_frame／playback_speed，继续保留；最终颜色保留全部11个ColorMod分量。Entity E7及原事件／颜色块保留空块号，公共最小状态410B→391B。唯一布局源、生成表及第2／3／8／9／10／13／14／15步同步修订，资源执行器和未核owner仍待接线，没有构建或测试。
+
+**2026-11-09 版本33：Familiar参数、Incubus充能与Gello绳索。** [Familiar参数／充能／绳索复核](familiar-synchronization-review.md)将11个轨道／计数／方向范围共48B归Host；FireCooldown／State／Coins等真实展示输入保留。新增variant80布局131的最终充能amount（不重建玩法Weapon），variant240布局130补入133号UmbilicalBabyData及132号XYZ节点，四投影同版本提交。基础Familiar最小661B→613B，80为617B，240缺失payload时623B。新payload仍有58B未知、每外部节点另108B未知；具名采集／展示／owner尚待第10／13步，不表示可玩或验收通过。本轮没有构建或测试。
+
+**2026-11-09 版本34：Knife／Bomb／Tear攻击、运动与计时。** [Knife／Bomb／Tear参数展示复核](knife-bomb-tear-synchronization-review.md)将42个范围归Host，撤销Charge／MaxDistance、爆炸计时／伤害／范围、BaseDamage／KnockbackMultiplier／WaitFrames等输入及三个计时锚点。Knife保留拖影距离／速度、旋转偏移、飞行状态和效果位，Bomb保留最终五份costume及绘制开关并清pending，Tear保留效果位／DeadEye强度／三份辅助Sprite。最小状态分别450→422B、1181→1127B、953→854B；UNKNOWN不变。唯一源、生成表与第10／12／13／14／15步已修订；运行时仍待接线，没有构建或测试。
+
+**2026-11-09 版本35：Pickup／Slot选择、交互与奖励。** [Pickup／Slot选择、交互与奖励复核](pickup-slot-synchronization-review.md)将Pickup12／Slot8个原生范围留Host，撤销19项原线上字段／容器：选择组、触碰、自动价格、商店标识、机器状态／捐款／触发／奖品输入及未来循环列表等；Pickup Timeout／Wait两个锚点撤销。Price有WaterClip消费者、DropDelay直接控制Render，继续同步；Slot保留主／奖品Sprite，精确回映射其动画指针与is_playing。最小Pickup744→703B、Slot564→538B，另省循环列表元素；未知不变。源、生成表和第10／12／13／14／15步已联动，未构建或测试，运行时仍待接线。
+
+**2026-11-09 版本36：Projectile（历史范围）运动与展示参数。** [Projectile运动与展示参数复核](projectile-synchronization-review.md)将追踪／曲线／加速／下落速度及加速度／摆动六项输入与Scale、ProjectileFlags共八项留Host，最小状态431→395B，PR1预留。Height因Render临时偏移有真实消费者保留；公共EntityFlags、最终位置／绘制偏移、尺寸和Sprite保持，DepthOffset仍只继承一次。私有+440及+460／+464的展示来源仍UNKNOWN，375B未知不变，不能称画面完整。源、生成表及第10／12／13／14／15步已修订，未构建或测试，运行时仍待接线。
 
 ## 1. 目标与用户决定
 
@@ -63,7 +93,7 @@
 | 资源 | 指向资源或配置的指针 | 是，转成稳定标识 | `ANM2._animData` 转成动画序号；房间配置指针转成配置标识 |
 | 容器 | `std::vector`、`std::string` 等容器头 | 是，发送元素数和元素 | `Entity._colorParams`（`+0x1AC`） |
 | 本地 | 只在本进程有意义：虚表、缓存指针、锁、Lua 引用、自有对象回指 | 否 | `Entity._luaBridgeRef`；NPC `+0xF40` 拥有的玩法对象指针 |
-| 派生 | 可由已发送状态重新得到 | 否 | 只有确认 Client 写入路径或原生逻辑会重建时才可归入此类，否则归为状态 |
+| 派生 | 可由已发送状态重新得到 | 否 | 只有确认 Client 写入路径或原生逻辑会重建时才可归入此类；未证明同步必要性时保留证据边界，不因无法派生就自动归状态 |
 | 权威 | 只属于 Host 的玩法状态，Client 不应拥有 | 否 | RNG 种子与游标（沿用 Random 热路径 AuthorityOnly 先例，`mod/src/game/world_sources/observation.cpp:120-122`） |
 | 填充 | 已证实没有语义的对齐字节 | 否 | 必须有证据，不能凭“看起来是填充”认定 |
 | 未知 | 尚未确定 | 否，但必须列出 | 每段都要记录位置和长度 |
@@ -74,6 +104,7 @@
 - **SDK 名称不等于公开语义**：SDK 的 `_depthOffset`（`+0x2B0`）并不是公开的 `DepthOffset`，后者实际在 `+0x358`（`mod/src/game/client_entity_fields.inc:5`）。只有 SDK 声明、尚未核对 J273 的条目，状态必须标为“SDK 声明”。
 - **“完整”的定义**：一个类型的未知字节数为 0；或者每段未知字节都已在 E2E 未知区探测（第 15 步）中确认，在覆盖场景里不发生变化，并写明理由。未知字节既不复制，也不能宣称完整。
 - **公开成员回映射**：旧目录中的公开成员改为核对表。每个 `ReplicatedState` 成员都要映射到某个布局字段、某组字段的派生、Host 权威或明确的不适用，用来检查字节归属是否有遗漏（第 1 步生成）。
+- **同步必要性**：用途已核、公开 getter 存在、旧目录曾发送或不能由其他字段推导，均不单独构成同步理由。按 Client 的结构、原生绘制／展示维护／HUD 实际依赖决定传输；纯玩法输入／历史归权威，本地 owner／地址归本地。排除传输不删除字节归属和证据。具体调整、保留理由及未决见[字段职责复核](synchronization-field-review.md)。
 - **Mod 域例外**：第三方 Mod 的自定义状态是 Lua 表，没有原生布局，不适用字节归属，处理方式见第 8 步。
 
 ## 4. 新数据流

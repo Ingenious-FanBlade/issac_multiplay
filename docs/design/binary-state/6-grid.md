@@ -93,7 +93,7 @@ J273 的 `GridFactory` 按类型分配对象，分配请求见 [Grid 种类静�
 - **身份**：沿用现有 Grid 身份，即房间身份、格子序号和类别。
 - **门**：门和装饰可能出现在同一格子序号上，按现有 door_aliases 规则区分。门槽映射作为房间块的一部分发送（第 7 步），不放进 Grid 记录。
 - **形态变化**：type 或 RTTI 变化即为形态变化，走结构路径（第 11 步）。
-- **被举起的格子**：Effect 136 举起的格子不占格子槽，也不是活动 Grid。它的描述存放在 Effect +0x420 起的 32 字节中，由第 4 步 4.1 的 FX2（GridDesc 臂）承载。Grid 域不再另发一份；现有 room-grid 目标中的 `grid/lifted_descriptors`（`mod/src/replica/room_grid_target.cpp:239-255`）并入 Effect 记录。
+- **被举起的格子**：Effect136不占格子槽，也不是活动Grid。版本38按[Effect复核](effect-synchronization-review.md)将其+0x420的32B描述（八个有名成员29B）留Host；Effect FX2与Grid域均不发描述，旧`grid/lifted_descriptors`同步在第14步退役。Client接收真实最终Effect主Sprite、State及Player持物／BodySprite关系与姿态，不重演举起、投掷、落地或还原格子；落地后真实Grid／Entity由Host正常发布。
 
 ### 6.3 状态块（初步划分，本步定稿）
 
@@ -119,7 +119,7 @@ J273 的 `GridFactory` 按类型分配对象，分配请求见 [Grid 种类静�
 - **重复构造**：形态变化没有走结构事务，或复用旧实例时重复调用构造函数。
 - **RNG 误判**：RNG 被误判为 Client 所需状态，导致权威状态外泄；或者反过来，Client 实际需要却被判为权威。
 - **槽位越界**：格子槽读取越过 447，或者把 `_doors[8]` 当成独立的成员来源，造成重复。
-- **举起的格子重复**：格子描述在 Grid 域和 Effect FX2 中各发一份，而且内容不一致。
+- **恢复Host举持描述同步**：版本38已排除的136描述被旧lifted_descriptors或FX2重新传入，甚至触发Client还原active Grid；应只用真实最终成员及持物展示状态。
 
 ## 完成内容
 
