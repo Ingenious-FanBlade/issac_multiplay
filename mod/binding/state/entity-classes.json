@@ -6124,13 +6124,23 @@
         },
         {
           "offset": "0x430",
-          "size": "0x8",
-          "name": "unknown_430_437",
-          "type": "bytes[8]",
+          "size": "0x4",
+          "name": "orbit_distance_parameter",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "Host绕行轨迹距离比例参数：Init清0；516D0E写80，65534E/65536A及6554F8/655514在正阈值条件下用于长度除法；持有者死亡等已核分支清0。仅轨迹更新消费，具体物理单位不外推。",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+        },
+        {
+          "offset": "0x434",
+          "size": "0x4",
+          "name": "projectile_unknown_434_437",
+          "type": "bytes[4]",
           "category": "未知",
-          "semantics": "尚未核定的原生字节；不读取、不复制、不因构造清零或对齐归为填充",
+          "semantics": "本轮未取得该4B的实际成员语义或填充证明；相邻f32/64位flags的边界不能代替证明。",
           "status": "未知",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md"
+          "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
         },
         {
           "offset": "0x438",
@@ -6144,13 +6154,38 @@
         },
         {
           "offset": "0x440",
-          "size": "0x8",
-          "name": "unknown_440_447",
-          "type": "bytes[8]",
+          "size": "0x1",
+          "name": "height_render_mode",
+          "type": "u8",
+          "category": "状态",
+          "semantics": "Render只以零/非零决定是否临时减去Height。ctor/Init清0，FireProjectiles从ProjectileParams未公开+A4原始字节复制；不擅自限为0/1，不重建发射参数或玩法。",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "u8"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x441",
+          "size": "0x3",
+          "name": "projectile_unknown_441_443",
+          "type": "bytes[3]",
           "category": "未知",
-          "semantics": "尚未核定的原生字节；不读取、不复制、不因构造清零或对齐归为填充；Render在65946B／6597B8读取+440的byte控制Height临时偏移，余字节及完整生产／生命周期仍未闭合，保持UNKNOWN，不归Host或填充",
+          "semantics": "开关后的3B没有语义/填充证据，不扩大byte开关为DWORD。",
           "status": "未知",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/projectile-synchronization-review.md"
+          "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+        },
+        {
+          "offset": "0x444",
+          "size": "0x4",
+          "name": "projectile_animation_cache_key",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Init=-1，Update按variant/Scale及动画组生成100—1100等缓存键，变化才选择最终Sprite动画；Client同步最终ANM2，不传此Host重选缓存。",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
         },
         {
           "offset": "0x448",
@@ -6204,13 +6239,28 @@
         },
         {
           "offset": "0x460",
-          "size": "0x10",
-          "name": "unknown_460_46f",
-          "type": "bytes[16]",
-          "category": "未知",
-          "semantics": "ctor清零的四个dword；完整语义未闭合，不把初始化视为填充；Render在6594D9／6594EE／659582读取+460／+464的f32作为私有位置输入，完整来源／原生布局尚未闭合，保持UNKNOWN且不伪造零值",
-          "status": "未知",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md；docs/design/binary-state/projectile-synchronization-review.md"
+          "size": "0x8",
+          "name": "freeze_render_position",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "65729D—6572AA在原生冻结触发条件满足时从当前Position复制的绘制锚点；FLAG_FREEZE的特殊Render直接使用，不能以当前Position替代。ctor清0、Init复制模块零填充默认Vector，清FLAG_FREEZE并Remove的64FA3A—64FA71支路中清回默认；同窗采集两分量。",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md",
+          "wire": {
+            "kind": "copy",
+            "type": "Vector"
+          },
+          "read_requires": "entity-current-window"
+        },
+        {
+          "offset": "0x468",
+          "size": "0x8",
+          "name": "orbit_parent_velocity_cache",
+          "type": "Vector",
+          "category": "权威",
+          "semantics": "ctor/Init清零；父对象绕行分支6552C7从Velocity扣除此缓存，655467按8B Vector赋值保存父Velocity。仅Host运动历史，不属于冻结位置或展示，Client不运行原生Update重演。",
+          "status": "已核",
+          "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
         },
         {
           "offset": "0x470",
@@ -6248,11 +6298,24 @@
           "sequence": "world",
           "fields": [],
           "reserved": true
+        },
+        {
+          "id": 12,
+          "name": "PR2 高度开关与冻结绘制锚点",
+          "sequence": "world",
+          "fields": [
+            "height_render_mode",
+            "freeze_render_position"
+          ]
         }
       ],
       "conversions": {},
       "validators": {
         "projectile_height": {
+          "kind": "finite",
+          "scalar": "f32"
+        },
+        "freeze_render_position": {
           "kind": "finite",
           "scalar": "f32"
         }
@@ -6351,7 +6414,7 @@
         "EntityProjectile"
       ],
       "sdk_size": "0x470",
-      "notes": "第4步Projectile布局；SDK本类无字段声明，数值字段依据J273与现有已核目录。公共DepthOffset仅继承一次；未知尾部不作填充，第15步统一验收。 版本36将八项运动／效果参数共36B留Host，PR1预留；保留真实Render Height，公共DepthOffset仍只继承一次。Render私有+440及+460／+464的展示缺口仍UNKNOWN，不表示类型完整或运行时接线完成。"
+      "notes": "第4步版本45：+440原始零/非零开关及+460冻结Vector的ctor/Init/生产/绘制链已闭合，PR0保留4B Height，追加PR2的9B开关/冻结锚点，PR1仍空预留，最小状态404B。+430轨迹参数、+444动画缓存、+468父速度历史留Host。根未知350B：公共335B及本类434四字节、441三字节、44C四字节、474四字节；未将空白当填充。运行采集/安装仍归第10/13步，第15步唯一验收。"
     },
     {
       "type": "EntityNPC",

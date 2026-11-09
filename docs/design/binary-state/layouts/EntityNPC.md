@@ -1,6 +1,6 @@
 # EntityNPC
 
-由唯一布局源生成。布局编号 142；布局版本 44；原生大小 0xF60；未知 586B；完整：否。
+由唯一布局源生成。布局编号 142；布局版本 45；原生大小 0xF60；未知 586B；完整：否。
 
 第4步版本43。受控UI来源已闭合：8E7550属于原版NetplayManager::IsIdxLocalPlayer，不能引入C/S。ReadNpcControlledUi只读F1C并输出0/2，Decode拒绝旧模式1；正式窗口/绘制接线仍归第10/13步。BossType/Variant留Host、17/18预留、OverlayEffect Scale派生、UNKNOWN与SDK边界保持。
 

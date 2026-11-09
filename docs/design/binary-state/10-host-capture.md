@@ -1,5 +1,7 @@
 # 10：Host 采集器
 
+版本45 Projectile／Effect残余按[静态证据](projectile-effect-residual-evidence.md)接线：Projectile同一完整窗口复制PR0的Height（4B）及新增PR2的440原始u8／460双f32冻结锚点（9B），与公共flags／PositionOffset／资源同版本，不能读Init中途或用当前Position替代锚点；430／444／468的Host轨迹／动画缓存／父速度历史不采集。Effect167选148，19／71／194选149，54／126仍102；新臂不增加线上字段。119按callback条件发现的DamageFlags不能作为全部119统一可读字段，通用UNKNOWN保持，不能发送本进程callback地址；41C／44C／4BC仍不读。原五项合同不变。
+
 版本44 Text／Dummy合同见[逐段证据](text-dummy-evidence.md)。在RTTI后选Text145／variant2的146／Dummy147；文本只读当前use/revision已观察writer的有效NUL前缀，使用`ReadCStringInto`，不复制整个256B。writer资格须从旧观测上下文迁到独立正式owner，Init／复用／退休撤销；没有见证报Gap，不能借Recorder开启或调用Update补齐。TX0只读最终RGBA16B，TX2仅146读取counter，duration／颜色空间标签不上线。Manager帧／pause沿同world展示上下文供应，不混入旧独立Render来源；Dummy继承公共状态，历史屏幕缓存分支来源缺失保持Gap，不用当前位置替换。此处是第10步后续接线要求，本轮未切换运行路径。
 
 状态：设计稿，未实施。上级：[总计划](README.md)。

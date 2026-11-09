@@ -1,5 +1,7 @@
 # 15：E2E 适配与统一整体验收
 
+**版本45 Projectile／Effect残余覆盖（仅本步执行）**：按[逐项证据](projectile-effect-residual-evidence.md)，E09／E25／E28比较Projectile Height＋440零／非零开关＋独立冻结锚点，覆盖锚点不等于当前Position、默认锚点、冻结结束／Remove、非零PositionOffset、Shadow／水面及draw精确恢复；不为测试触发Client冻结随机或原生Update／Interpolate。E13／E17拒绝PR0／PR2截断及非法浮点，u8=2等非零原值应合法，勿误当bool。Effect覆盖148的167、149的19／71／194、原102的54／126及119已知／其他callback，不开放不适用公开API、不比较不上线的伤害元数据、内部flags或callback地址。E27观察Projectile本类434四字节／441三字节／44C四字节／474四字节及公共335B；Effect按新残余表保留167的434及438后8B、119按callback复用区、其他未核variant、三段41C／44C／4BC和其他空白，不用阴性结果伪造填充。此前五项既有覆盖保持，不新增独立验收编号；本轮未执行测试。
+
 **版本44 Text／Dummy覆盖口径（仅在本步执行）**：按[字段决定](text-dummy-evidence.md)，E09／E25覆盖145基础臂、146的variant2、147真实Dummy RTTI，Text最终RGBA／字节与variant2缩放、Dummy正常可见标签与公共Sprite；不比较Text duration／颜色空间标签，也不为基础臂发counter。E13／E17拒绝count256／65535、长度不符、内嵌NUL／未终止、失效窗口、来源变化、旧版本／错臂及RGBA非有限值；非UTF8、空串和255B有效前缀合法。E28／E29覆盖writer缺席、slot复用／Init／退休撤销、长→短→空串、同world Manager／pause切换、字体未加载、无Update／Interpolate／到期Remove及draw恢复；跨视口与Dummy visible切换／Baseline进入不可见实例的历史屏幕cache依赖必须实际闭合，缺来源如实记Gap，不能按当前位置重画后记通过。E27包括Text52C—52F和两类公共335B未知。Dummy自然来源未核事实保持，不用Spawn964生成的NPC代测或宣称自然可达；合法测试池桥仍仅限E2E构建。第4步本轮未执行上述测试。
 
 状态：设计稿，未实施。上级：[总计划](README.md)。

@@ -1,5 +1,7 @@
 # 14：退役旧路径与产品边界
 
+版本45[Projectile／Effect残余](projectile-effect-residual-evidence.md)切换时，Projectile三个新原生展示字段直接来自生成布局，不能继续依赖旧Lua目录没有这三项而宣称展示齐备；不恢复430／444／468等Host参数。Effect167移148、19／71／194选149，需同步退役旧102含167的分派，保持公开API资格范围；119 callback特例不升级为通用字段或调用入口。UNKNOWN与旧静态失败记录保留，已完成的五项不重做。
+
 版本44 Text／Dummy按[字段复核](text-dummy-evidence.md)退役旧正式Lua／JSON字段链，但保留与Recorder无关的本use/revision真实writer资格；不能把Text Update／Render唯一常驻Hook误删或重复安装。独立`native-text-render-v1`仍为独立观测／对照scope，不能作为普通状态拼接来源。旧duration／KColor末字raw安装与全量漂移比较在切换时撤销，通用KColor20B合同不变；Dummy真实池／Plus／New／Delete／退休owner保留，E2E桥不进入产品。Dummy历史屏幕cache的已知依赖未闭合前保持具体Gap，不以旧完整目录或本地缓存掩盖。
 
 状态：设计稿，未实施。上级：[总计划](README.md)。

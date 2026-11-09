@@ -48,7 +48,7 @@
 | [EntityPickup](EntityPickup.md) | 126 | 1776 | 448 | 否 |
 | [EntityLaser](EntityLaser.md) | 127 | 1384 | 421 | 否 |
 | [EntitySlot](EntitySlot.md) | 128 | 1360 | 363 | 否 |
-| [EntityProjectile](EntityProjectile.md) | 129 | 1144 | 375 | 否 |
+| [EntityProjectile](EntityProjectile.md) | 129 | 1144 | 350 | 否 |
 | [EntityFamiliar_UmbilicalBaby](EntityFamiliar_UmbilicalBaby.md) | 130 | 3888 | 905 | 否 |
 | [EntityFamiliar_Incubus](EntityFamiliar_Incubus.md) | 131 | 3888 | 905 | 否 |
 | [UmbilicalRopeNode](UmbilicalRopeNode.md) | 132 | 120 | 108 | 否 |
@@ -67,3 +67,5 @@
 | [EntityText](EntityText.md) | 145 | 1328 | 339 | 否 |
 | [EntityText_Scaled](EntityText_Scaled.md) | 146 | 1328 | 339 | 否 |
 | [EntityDummy](EntityDummy.md) | 147 | 1040 | 335 | 否 |
+| [EntityEffect_ChainLightning](EntityEffect_ChainLightning.md) | 148 | 1216 | 362 | 否 |
+| [EntityEffect_InternalTearFlags](EntityEffect_InternalTearFlags.md) | 149 | 1216 | 366 | 否 |

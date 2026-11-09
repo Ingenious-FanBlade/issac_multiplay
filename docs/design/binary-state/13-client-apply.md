@@ -1,5 +1,7 @@
 # 13：Client 原生应用
 
+版本45按[展示来源及残余边界](projectile-effect-residual-evidence.md)安装Projectile新1B开关和独立8B冻结锚点；同版本公共FLAG_FREEZE决定原生分支，不能按最新Position重建锚点或执行冻结随机逻辑。Height临时改写公共PositionOffset.y仍须保存并精确恢复，保留同world Game展示帧；430／444／468不装或漂移比较。Effect按148／149新臂，只安装既有实际展示字段／payload，不执行ChainLightning生成、伤害或Timer callback，不把167的434、119通用尾部及三段空白当可写状态。原五项决定保持；正式owner接线尚待本步。
+
 版本44 Text／Dummy安装按[证据及未决](text-dummy-evidence.md)：文本经有界暂存验证后只安装有效前缀＋NUL，空串／缩短不得复活旧尾巴；TX0安装最终RGBA，固定Text字体包装保留本地正常KColor标签初值，不写／比较Host标签。counter仅146安装，按同world Manager／pause与原生32位运算计算缩放；不推进Update／Interpolate、不装duration或按其退休。字体使用本地Font6，视口／渲染offset由展示owner提供。Dummy仅真实预构造空槽owner取得，继承公共状态／Plus，标签由Type/Variant及本地Font2派生；visible=false导致公共屏幕cache未刷新的历史依赖必须闭合具名来源，未闭合报Gap，不能把当前Screen或旧本地cache当权威值。draw借用状态须精确恢复，不引入原版Online／Isaac Sync。这里约束后续接线，不代表本轮已实现运行应用。
 
 状态：设计稿，未实施。上级：[总计划](README.md)。

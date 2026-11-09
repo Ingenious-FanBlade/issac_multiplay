@@ -1,6 +1,6 @@
 # EntitySlot
 
-由唯一布局源生成。布局编号 128；布局版本 44；原生大小 0x550；未知 363B；完整：否。
+由唯一布局源生成。布局编号 128；布局版本 45；原生大小 0x550；未知 363B；完整：否。
 
 第4步Slot布局；覆盖变体1—18的共同原生布局，不执行Update/派奖/SetPrizeCollectible。未知和Wiki高位描述冲突均保留；第15步统一验收。 版本35按Pickup／Slot展示复核排除Host输入；Pickup保留Price／DropDelay及两份辅助Sprite，Slot保留奖品Sprite，未知不变，后续步骤接线。
 

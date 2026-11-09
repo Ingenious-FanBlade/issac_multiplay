@@ -1,6 +1,6 @@
 # NpcOverlaySprite
 
-由唯一布局源生成。布局编号 144；布局版本 44；原生大小 0x114；未知 14B；完整：否。
+由唯一布局源生成。布局编号 144；布局版本 45；原生大小 0x114；未知 14B；完整：否。
 
 仅EntityNPC+CD8的OverlayEffect场景视图。+9C Scale由主Sprite当前OverlayEffect null-frame+10/+14在6CFFD1/6CFFDA完全覆写；不传宿主原Scale，draw scope精确恢复。其他ANM2及NPC+DEC保持通用布局。
 

@@ -1,5 +1,7 @@
 # 12：Client 解码、校验与影子状态
 
+版本45按[残余结论](projectile-effect-residual-evidence.md)保持Projectile PR0为4B f32 Height，并解码新增PR2的9B：u8 height_render_mode／Vector freeze_render_position，偏移0／1；浮点必须有限，u8按零／非零解释，不能以bool校验错误拒绝2等原始值，也不能未对齐强转。Effect新增148／149，167不再接受102；19／71／194不开放公开TearFlags，FX2仍预留。119 callback专用尾部及其余UNKNOWN不进入影子状态，不接收地址或假造DamageFlags负载。实际帧解码接线仍为本步后续工作。
+
 版本44 Text／Dummy按[逐段证据](text-dummy-evidence.md)解码145／146／147。TX1必须为u16 count＋精确count原始字节，count≤255、无内嵌NUL，非UTF8允许；`StageCStringInto`只在自有256B暂存区补NUL。TX0为四个有限f32，TX2只在146有i32 counter，145的12号块预留；不得等待duration／颜色空间标签或Dummy专有负载。Manager帧／pause依赖同world展示上下文，缺失不可换用本地帧。旧独立Render来源保持原scope，不拼为当前普通快照。实际帧解码／影子状态接线仍属本步后续工作。
 
 状态：设计稿，未实施。上级：[总计划](README.md)。

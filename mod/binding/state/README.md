@@ -56,4 +56,6 @@
 
 版本43闭合NPC受控UI来源：Manager+4AFB8是原版NetplayManager，8E7550为IsIdxLocalPlayer，版本42“本地设备可用性”解释错误。C/S仅用F1C哨兵输出0/2，已实现state/npc_presentation.h/.cpp的ReadNpcControlledUi／DecodeNpcControlledUi；去掉特殊来源未决资格，枚举拒绝1，不读取原版Online或调用getter。线上大小与UNKNOWN不变；正式窗口/绘制接线仍归第10/13步，未运行测试。见docs/design/binary-state/npc-control-ui-evidence.md。
 
-当前版本44接入entity-text-dummy.json：Text145／variant2缩放146／Dummy147；Text只发有效原始字节前缀与RGBA，counter仅146发送，duration／此固定字体不消费的颜色空间标签留Host，通用KColor20B不变。新增c-string容量／资格声明与ReadCStringInto／StageCStringInto；等大派生仅允许空ranges。Text339B／Dummy335B未知及Dummy历史屏幕cache依赖／自然来源缺口保持。实际窗口／writer／draw接线仍归第10／13步，第15步前不测试。见docs/design/binary-state/text-dummy-evidence.md与implementation-4-text-dummy.md。
+版本44接入entity-text-dummy.json：Text145／variant2缩放146／Dummy147；Text只发有效原始字节前缀与RGBA，counter仅146发送，duration／此固定字体不消费的颜色空间标签留Host，通用KColor20B不变。新增c-string容量／资格声明与ReadCStringInto／StageCStringInto；等大派生仅允许空ranges。Text339B／Dummy335B未知及Dummy历史屏幕cache依赖／自然来源缺口保持。实际窗口／writer／draw接线仍归第10／13步，第15步前不测试。见docs/design/binary-state/text-dummy-evidence.md与implementation-4-text-dummy.md。
+
+当前版本45按docs/design/binary-state/projectile-effect-residual-evidence.md收窄剩余：Projectile+440原始u8开关及+460冻结Vector共9B状态，PR0保持4B、PR2新增9B，最小404B；+430轨迹参数／+444动画缓存／+468父速度历史留Host，根未知350B。Effect148独立167（430伤害快照归Host，434及438后8B未知），149处理19/71/194内部flags，不扩大公开API资格；119的430—437仅在6FC690回调下核为DamageFlags，通用未知保持。三段41C/44C/4BC和其余空白不升级填充。此前五项不重做，正式接线／唯一验收仍归第10/13/15步。

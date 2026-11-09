@@ -861,7 +861,7 @@
           "category": "未知",
           "semantics": "全映像直接/跨边界候选与邻近取址复核未确认Effect本体的语义访问；四字节位于三个f32与变体区之间。SDK BitSet128仅声明四个u32，不能以此证明8B对齐；仍属未知，不读取、不复制",
           "status": "未知",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/design/binary-state/step4-first-four-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
         },
         {
           "offset": "0x420",
@@ -869,9 +869,9 @@
           "name": "variant_unknown",
           "type": "bytes[32]",
           "category": "未知",
-          "semantics": "未核变体的复用区；已核传播／定时器／生成／30与153计数／113两标量另有137—141臂，余者不因Init清零或无直接展示命中归填充／权威。",
+          "semantics": "未核variant复用区；前16B公共Init清零不证明用途，后16B默认不初始化。已核传播/Timer/生成/计数/113及167/19/71/194另选臂，其他variant保持UNKNOWN。",
           "status": "未知",
-          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-next-five-evidence.md"
+          "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-next-five-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
         },
         {
           "offset": "0x440",
@@ -911,7 +911,7 @@
           "category": "未知",
           "semantics": "传播参数之后、State之前的四字节；全映像45条MEM/33函数按实际对象排除，邻近+0x444关系槽仅4B，+0x43C向量仅8B。聚合体边界及对齐原因仍缺正面证据，不把阴性搜索升级为已核填充",
           "status": "未知",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/design/binary-state/step4-first-four-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
         },
         {
           "offset": "0x450",
@@ -1003,7 +1003,7 @@
           "category": "未知",
           "semantics": "本步骤未核定，保留具名字节缺口，待第3/4步研究",
           "status": "未知",
-          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区"
+          "evidence": "docs/design/binary-state/3-entity-common.md；4-entity-classes.md：尚未核定区；docs/design/binary-state/projectile-effect-residual-evidence.md"
         },
         {
           "offset": "0x468",
@@ -1178,7 +1178,7 @@
           "category": "未知",
           "semantics": "对象大小由数组构造及删除析构共同核定为0x4C0；全映像30条MEM/21函数按对象来源排除，+0x4B4共享holder仅8B止于4BB。支持尾部填充假设但保留未知，不缩短对象范围、不复制",
           "status": "未知",
-          "evidence": "docs/design/binary-state/step4-first-four-evidence.md"
+          "evidence": "docs/design/binary-state/step4-first-four-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
         }
       ],
       "blocks": [
@@ -1353,7 +1353,7 @@
         "EntityEffect"
       ],
       "sdk_size": "0x490",
-      "notes": "版本38：六臂保留原布局号。六项公共更新输入、TearFlags全128位和136描述八成员归Host，FX2均预留；展示State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale保留。MrMe／Trail／Ghost按具体RTTI投影；Ghost只发送有效Sprite前缀。基础复用区和原UNKNOWN继续保留，不能宣称全部变体完整。 版本40：已核VarData另分137—141，102保留54／126／167；共11布局，FX2始终预留。Rotation／Scale移FX0，FX0=16B／FX1=13B；Timeout每窗重算。非附属holder非空或错RTTI报Gap；Trail最多127节点。见docs/design/binary-state/effect-next-five-evidence.md",
+      "notes": "版本38：六臂保留原布局号。六项公共更新输入、TearFlags全128位和136描述八成员归Host，FX2均预留；展示State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale保留。MrMe／Trail／Ghost按具体RTTI投影；Ghost只发送有效Sprite前缀。基础复用区和原UNKNOWN继续保留，不能宣称全部变体完整。 版本40：已核VarData另分137—141，102保留54／126／167；共11布局，FX2始终预留。Rotation／Scale移FX0，FX0=16B／FX1=13B；Timeout每窗重算。非附属holder非空或错RTTI报Gap；Trail最多127节点。见docs/design/binary-state/effect-next-five-evidence.md 版本45仅处理残余：167独立148，+430生产语义核为Host伤害快照，+434常数槽及438后8B仍未知；19/71/194内部flags选149但不开放公开API；119尾部按callback复用，6FC690特例不覆盖全部119。三段41C/44C/4BC及465空白保持UNKNOWN。原五项（Timeout/分块/Trail/payload等）不重做，13个布局的正式接线与验收仍在第10/13/15步。",
       "variants": {
         "selector": "variant",
         "arms": [
@@ -1362,8 +1362,7 @@
             "layout": 102,
             "values": [
               54,
-              126,
-              167
+              126
             ],
             "ranges": [
               {
@@ -1382,9 +1381,9 @@
                 "name": "flags_unknown",
                 "type": "bytes[16]",
                 "category": "未知",
-                "semantics": "54／126／167的后16B未完整核定；167的5D06F9／5D0703确实写430=3.5、434=1，但不能只凭初值赋予完整语义或套113布局。",
+                "semantics": "54/126后16B仍无逐字段语义证据；已从本臂分出167，不套113或传播结构，不由无展示命中认定填充。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/design/binary-state/slot-projectile-effect-evidence.md；docs/design/binary-state/effect-next-five-evidence.md；docs/design/binary-state/projectile-effect-residual-evidence.md"
               }
             ],
             "blocks": [
@@ -1824,13 +1823,33 @@
               },
               {
                 "offset": "0x42c",
-                "size": "0x14",
-                "name": "timer_unknown_42c_43f",
-                "type": "bytes[20]",
+                "size": "0x4",
+                "name": "timer_unknown_42c_42f",
+                "type": "bytes[4]",
                 "category": "未知",
-                "semantics": "Timer其余字节未核，不能因不调用回调而归填充。",
+                "semantics": "callback之外的4B未核；不因420—428初始化而推定此字清零。",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/effect-next-five-evidence.md"
+                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+              },
+              {
+                "offset": "0x430",
+                "size": "0x8",
+                "name": "timer_callback_specific_430_437",
+                "type": "bytes[8]",
+                "category": "未知",
+                "semantics": "当callback==本映像6FC690时：6FBFED/6FBFFE写入64位DamageFlags，6FC716/6FC722读出并交6FAF60伤害处理；其他callback的含义/初始化未闭合，通用119仍保留UNKNOWN，不读取或发送。",
+                "status": "未知",
+                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+              },
+              {
+                "offset": "0x438",
+                "size": "0x8",
+                "name": "timer_unknown_438_43f",
+                "type": "bytes[8]",
+                "category": "未知",
+                "semantics": "Timer后8B仍无具体语义或填充证据。",
+                "status": "未知",
+                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
               }
             ],
             "blocks": [
@@ -2009,6 +2028,118 @@
                 "disposition": "authority",
                 "fields": [],
                 "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/design/binary-state/effect-synchronization-review.md"
+              }
+            ]
+          },
+          {
+            "name": "ChainLightning",
+            "layout": 148,
+            "values": [
+              167
+            ],
+            "ranges": [
+              {
+                "offset": "0x420",
+                "size": "0x10",
+                "name": "variant_data",
+                "type": "BitSet128",
+                "category": "权威",
+                "semantics": "Host 眼泪效果判定／伤害与派生生成输入；当前展示不读取此范围，不编码／安装／漂移比较；最终主Sprite、实体关系和落地后的真实成员另行同步。",
+                "status": "已核",
+                "evidence": "docs/design/binary-state/4-entity-classes.md:4.1.1；NativeEffect.TearFlags@0x420；docs/design/binary-state/effect-synchronization-review.md"
+              },
+              {
+                "offset": "0x430",
+                "size": "0x4",
+                "name": "chain_spawn_damage_snapshot",
+                "type": "f32",
+                "category": "权威",
+                "semantics": "Init写3.5；Game::ChainLightning7037A0在7039BA保存最终CollisionDamage。已核为Host生成时的伤害快照，不是展示输入；后续独立消费者未定位，不套113更新公式。",
+                "status": "已核",
+                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+              },
+              {
+                "offset": "0x434",
+                "size": "0x4",
+                "name": "chain_unknown_unit_scalar",
+                "type": "f32",
+                "category": "未知",
+                "semantics": "Init5D0703及Game::ChainLightning7039C2写f32 1；未定位后续消费者，不能仅凭常量或与113同址命名为size_ratio。",
+                "status": "未知",
+                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+              },
+              {
+                "offset": "0x438",
+                "size": "0x8",
+                "name": "chain_unknown_438_43f",
+                "type": "bytes[8]",
+                "category": "未知",
+                "semantics": "167后8B仍缺具体生产/消费者和完整初始化证据，不套用其他variant结构。",
+                "status": "未知",
+                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+              }
+            ],
+            "blocks": [
+              {
+                "id": 12,
+                "name": "FX2 ChainLightning（Host及未知，预留）",
+                "sequence": "world",
+                "fields": [],
+                "reserved": true
+              }
+            ],
+            "members": [
+              {
+                "id": "EntityEffect.GetTearFlags",
+                "disposition": "authority",
+                "fields": [],
+                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/design/binary-state/effect-synchronization-review.md"
+              },
+              {
+                "id": "NativeEffect.TearFlags",
+                "disposition": "authority",
+                "fields": [],
+                "reason": "仅Host读取／维护；原生展示不消费，Client不重演玩法。见docs/design/binary-state/effect-synchronization-review.md"
+              }
+            ]
+          },
+          {
+            "name": "InternalTearFlags",
+            "layout": 149,
+            "values": [
+              19,
+              71,
+              194
+            ],
+            "ranges": [
+              {
+                "offset": "0x420",
+                "size": "0x10",
+                "name": "internal_tear_flags",
+                "type": "BitSet128",
+                "category": "权威",
+                "semantics": "19按16B效果位决定/清除Host伤害效果；71与126共享的非dead且subtype!=1分支亦读取16B；194将完整16B传677940伤害处理。公共Init清前16B，当前展示不消费；这三variant不因此获得公开TearFlags API资格。",
+                "status": "已核",
+                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+              },
+              {
+                "offset": "0x430",
+                "size": "0x10",
+                "name": "internal_flags_unknown_430_43f",
+                "type": "bytes[16]",
+                "category": "未知",
+                "semantics": "19/71/194的后16B没有随前16B位运算获得语义或初始化证明；继续UNKNOWN。",
+                "status": "未知",
+                "evidence": "docs/design/binary-state/projectile-effect-residual-evidence.md"
+              }
+            ],
+            "blocks": [
+              {
+                "id": 12,
+                "name": "FX2 内部效果位（Host及未知，预留）",
+                "sequence": "world",
+                "fields": [],
+                "reserved": true
               }
             ]
           }

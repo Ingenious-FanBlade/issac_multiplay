@@ -1,6 +1,8 @@
 # 4：Entity 子类
 
-**2026-11-09 当前版本44：Text／Dummy布局与字段职责。** [静态证据及同步决定](text-dummy-evidence.md)与[实施记录](implementation-4-text-dummy.md)接入145号Text、146号variant2缩放臂、147号Dummy。Text只发有效字节前缀／最终RGBA，counter仅缩放臂发送；duration和此固定字体不消费的KColor标签留Host，通用KColor保持20B。Dummy无专有尾部，继承公共状态。新增c-string读取／暂存及等大派生支持；Text339B／Dummy335B未知、Dummy不可见分支的历史屏幕缓存依赖与自然来源缺口保留。普通Release／Win32产品纯编译与链接通过，未运行测试，正式窗口／绘制接线仍在第10／13步。
+**2026-11-09 当前版本45：Projectile展示来源与Effect残余。** [J273静态证据与逐臂结论](projectile-effect-residual-evidence.md)闭合Projectile+440开关、+460/+464冻结绘制锚点的构造／Init／生产链，新增9B独立PR2，PR0保留4B Height、最小状态404B、根未知350B。Effect新增148号167臂与149号19/71/194内部flags臂，167的+430核为Host生成伤害快照；+434及后8B仍未知。119尾部确认一个callback的8B DamageFlags特例，通用臂仍保持未知。41C／44C／4BC没有语义或填充证明；此前五项不重做。普通Release／Win32产品纯编译与链接通过，未运行测试；正式接线仍按第10／13步。
+
+**2026-11-09 版本44：Text／Dummy布局与字段职责。** [静态证据及同步决定](text-dummy-evidence.md)与[实施记录](implementation-4-text-dummy.md)接入145号Text、146号variant2缩放臂、147号Dummy。Text只发有效字节前缀／最终RGBA，counter仅缩放臂发送；duration和此固定字体不消费的KColor标签留Host，通用KColor保持20B。Dummy无专有尾部，继承公共状态。新增c-string读取／暂存及等大派生支持；Text339B／Dummy335B未知、Dummy不可见分支的历史屏幕缓存依赖与自然来源缺口保留。普通Release／Win32产品纯编译与链接通过，未运行测试，正式窗口／绘制接线仍在第10／13步。
 
 **2026-11-09 版本43：NPC受控UI来源未决已闭合。** [静态证据与纠错](npc-control-ui-evidence.md)核定8E7550为原版NetplayManager::IsIdxLocalPlayer，撤销上轮“本地设备可用性”的误解。C/S只以NPC+F1C的-1哨兵生成0/2受控表现，不读取原版联机对象；新增ReadNpcControlledUi／DecodeNpcControlledUi，拒绝旧模式1。布局长度、根未知586／597B及其他未决保持，正式窗口／绘制接线仍按第10／13步；第15步之前不运行测试。
 
@@ -80,9 +82,9 @@
 - **专用形态**：Effect136 等沿用现有具名 owner 的语义，只更换数据来源。Delirium 不是原生子类，做成 NPC 的变体臂，见 4.2。
 - **核对重点**：子类区间中未知字节数很大，NPC 有 2896 字节，现只核了 113 字节。必须先用 J273 反编译划出构造函数、Init 和 Update 写入的范围，再逐段归类；不能把整段未知区当成填充。
 
-### 4.1 EntityEffect 各臂与附属payload（版本40，2026-11-09）
+### 4.1 EntityEffect 各臂与附属payload（版本45，2026-11-09）
 
-现行依据为[Effect后续五项证据](effect-next-five-evidence.md)、[版本38职责复核](effect-synchronization-review.md)、唯一源 `mod/binding/state/entity-effect.json` 和[完整生成表](layouts/README.md)。本节取代旧69B单块及2026-11-08草稿的传输决定；原始逆向事实、失败和旧编译结果保留在[初轮证据](slot-projectile-effect-evidence.md)与[实施记录](implementation-4-slot-projectile-effect.md)。版本40纯编译状态见新增证据，未运行测试，采集／安装仍待接线。
+现行残余归属以[版本45证据](projectile-effect-residual-evidence.md)为准，既有五项依据为[Effect后续五项证据](effect-next-five-evidence.md)、[版本38职责复核](effect-synchronization-review.md)、唯一源 `mod/binding/state/entity-effect.json` 和[完整生成表](layouts/README.md)。本节取代旧69B单块及2026-11-08草稿的传输决定；原始逆向事实、失败和旧编译结果保留在[初轮证据](slot-projectile-effect-evidence.md)与[实施记录](implementation-4-slot-projectile-effect.md)。版本40纯编译状态见新增证据，未运行测试，采集／安装仍待接线。
 
 #### 4.1.1 输入事实与展示边界
 
@@ -91,14 +93,14 @@
 - State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale有真实Render／Light消费者，继续同步。Height／FallingSpeed／FallingAcceleration／MinRadius／MaxRadius／DamageSource只供Host更新；传播、生成请求和私有vector仍归Host。最终公共位置／PositionOffset、Sprite／图层和独立成员各自同步，Client不调用Update／Interpolate恢复。
 - `+4B4/+4B8`为payload／控制块共享holder，只有108／166／191的已核表现payload传输。两字地址本身不发送，经具体RTTI核定后读取外部对象，Client用`606310`正常替换，不能把payload偏移加到根Effect。
 
-#### 4.1.2 十一个布局臂
+#### 4.1.2 十三个布局臂
 
 先按虚表确定Effect，再读公共variant选臂；成员生命期内布局固定，variant变化走形态事务。原布局编号不因线内容缩小而合并或重排。
 
 | 布局／variant | 复用区 | 附属payload与发送块 |
 | --- | --- | --- |
 | 101 基础，其余未核variant | 32B未知 | 合法holder为空；非空未知类型报Gap，FX2预留 |
-| 102 TearFlags，54／126／167 | 前16B眼泪效果位归Host，后16B未知；167后半确有Init写入，完整语义仍未核 | FX2预留，不再发BitSet128 |
+| 102 TearFlags，54／126 | 前16B眼泪效果位归Host，后16B未知；167已分到148 | FX2预留，不再发BitSet128 |
 | 103 GridDesc，136 | 八成员29B归Host，三个未知字节保持 | FX2预留；主Sprite／持物关系展示，Effect和Grid域均不发描述 |
 | 104 MrMe，108 | 同基础臂 | FX3—FX5：present＋独立ANM2三投影 |
 | 105 SpriteTrail，166 | 同基础臂 | FX3—FX4：present＋有序完整节点 |
@@ -108,6 +110,8 @@
 | 139 SpawnRequest，120 | Type／Variant归Host，余24B未知 | FX2预留，Client不Spawn |
 | 140 DustCountdown，30／153 | +424 u32移除计数归Host，余28B未知 | FX2预留 |
 | 141 TearFlags113，113 | flags及+430／+434伤害／尺寸基准归Host，后8B未知 | FX2预留，保留两项TearFlags公开回映射 |
+| 148 ChainLightning，167 | flags及+430生成伤害快照归Host；+434常数槽及后8B仍未知 | FX2预留，不套113公式 |
+| 149 InternalTearFlags，19／71／194 | 内部flags16B归Host，后16B未知；不开放公开TearFlags API | FX2预留 |
 
 136由Host creator交换真实Grid ANM2至Effect主Sprite。Client保留Player HeldEntity、GetItemState、GetSuplexState、BodySprite／空层姿态及暂时置可见的绘制借用，不由描述重新构造active Grid，也不重演投掷／落地；落地结果由Host作为真实成员发布。
 
@@ -141,7 +145,7 @@ E0—E9保持公共块号；所有Effect块属于world。下面是实际格式�
 | FX1块11：+0 i32 LifeSpan | +4 u8 IsFollowing | +5 Vector ParentOffset；共13B |
 |---|---|---|
 
-FX2块12在全部十一个Effect布局均为空预留，不作为构造必收负载。FX3块13首字节为u8 present，仅首投影带此标记；后续投影不重复存在标记。MrMe尾接ANM2外观／动画／图层，变长部分依真实资源及选择器；Trail FX4为u16 count＋count×64B。Ghost每投影独立u16 count＋对应有效Sprite内容，三计数必须相同且≤4，不另发原生i32 count。Trail的count上限127，节点块最大8130B；正常Update尾部裁剪完成后才可采集。
+FX2块12在全部十三个Effect布局均为空预留，不作为构造必收负载。FX3块13首字节为u8 present，仅首投影带此标记；后续投影不重复存在标记。MrMe尾接ANM2外观／动画／图层，变长部分依真实资源及选择器；Trail FX4为u16 count＋count×64B。Ghost每投影独立u16 count＋对应有效Sprite内容，三计数必须相同且≤4，不另发原生i32 count。Trail的count上限127，节点块最大8130B；正常Update尾部裁剪完成后才可采集。
 
 present=0时各投影为其最短全零编码，Ghost三个count均0。所有附属投影、成员关系与资源在同目标版本齐备后由同一owner一次提交，不逐块换owner。最小公共Effect444→420B，TearFlags460→420B，GridDesc473→420B；其他下界见复核报告，不代表实测带宽。
 
@@ -362,13 +366,15 @@ Dummy无尾部字节／专用字符串，标签由公共Type/Variant派生，使
 
 ## 未决问题
 
+- **Projectile版本45后剩余**：+440与+460/+464的指定展示来源已闭合；本类仍有434—437、441—443、44C—44F、474—477共15B未知（加公共335B）。见[残余证据](projectile-effect-residual-evidence.md)。正式采集／安装／draw恢复接线归第10／13步，不能据静态闭合宣称运行已覆盖。
+
 NPC受控UI的来源问题已在版本43[闭合并纠正](npc-control-ui-evidence.md)，不再要求逆向原版Online slot5或读取其记录。Text／Dummy布局及职责已按版本44实施；下列其他UNKNOWN与各域后续接线不因此成为已完成。
 
 - **原前四项的剩余部分**（工作量／次序、DepthOffset、对象范围和已核字段结论见 4.6）：
   - NPC／Familiar 按 4.6 的次序实施剩余归属；工作量估算已经完成，不等于未知字节已清零。
   - Knife六个f32的用途已闭合；`+0x51C—0x51F`、Slot `+0x54C—0x54F`、Projectile `+0x474—0x477` 尚无填充证明。Slot `+0x548` 与 Projectile `+0x470` 已从未知中分离为本地指针。
   - Effect `+0x41C—0x41F`、`+0x44C—0x44F`、`+0x4BC—0x4BF` 未知；传播／生成参数的专用用途及Host归属已闭合，未新增Client引用写入或玩法执行，因而不把原版关系全生命周期穷尽继续列作该项同步依赖。`+0x484—0x493` 已证明是两个 Vector，不再作为待核容器。
-- **Effect剩余事项**：[本轮五项处理结果](effect-next-five-evidence.md)已落源；仍须核对未核variant／167后半及各臂残余UNKNOWN，第10／13步接通具名reader／writer，第15步观察实际分支／频率与未知间接访问边界。已核的Timeout非线性结论、FX0分块、Trail64B／127上限和三种具体ExtraData不再列作原泛化问题重做。
+- **Effect剩余事项**：[本轮五项处理结果](effect-next-five-evidence.md)已落源；版本45已核19/71/194内部flags、167伤害快照及119一个callback闭包；其余未核variant、167的434及438后8B、各臂残余UNKNOWN保持，第10／13步接通具名reader／writer，第15步观察实际分支／频率与未知间接访问边界。已核的Timeout非线性结论、FX0分块、Trail64B／127上限和三种具体ExtraData不再列作原泛化问题重做。
 - Delirium：
   - `+BD4—BD7`、`+BDD—BDF`、`+BE4—BE7` 共 11 字节能否证实为填充；
   - 普通 NPC 的 `+BD8—BE7` 池槽残留是否真实发生；
