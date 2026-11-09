@@ -136,4 +136,4 @@ Slot／Projectile／Effect 同样归入既有条目：E09／E25覆盖Slot 1—18
 
 其中Type964是NPC Render的静态数值分支；实机场景必须先有真实NPC RTTI及合法producer，不能把同数值的NativeDummy强套NPC布局。未取得来源时如实记未覆盖，不造V1或假对象满足用例。
 
-**版本42 NPC现行合同**：当前验收合同改为：两个NPC布局17／18均空，Delirium经Init及不经Init的变身只更新实际资源／姿态／引用，稳定公共shape时不发生成员离开/加入或额外换代。覆盖受控UI模式0/1/2、Host/Client设备编号不同及Client本地设备变化、403独立HP条保持；必须由确认来源提供谓词，未知应Gap。覆盖OverlayEffect同版本null-frame双Scale派生与draw后恢复，并证明+DEC／通用ANM2未被裁剪。五个必要标量、EntityRef、完整三deque、各复合draw及UNKNOWN沿用既有范围。只在第15步实际执行。见[完整复核](npc-synchronization-review.md)。
+**版本43 NPC现行合同**：受控UI覆盖F1C=-1→0及其他合法来源值→2、C/S本机/远端参与者相同展示语义、来源变化/窗口失效/读取失败报Gap、线上1/其他非法值拒绝、Client设备变化不改变已应用表现。用同一次整体验收确认reader不读Manager/NetplayManager、不调用IsIdxLocalPlayer或slot5；Client两个受控UI整段和Spawner远端淡出整段均不借原版Online筛选。保留403独立HP路径及所有原有可见/资源条件；Delirium资源变化不强制换代、OverlayEffect Scale恢复、五标量/完整点列/引用/UNKNOWN范围保持。未提前执行。见[来源闭合](npc-control-ui-evidence.md)。

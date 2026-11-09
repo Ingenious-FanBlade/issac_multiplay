@@ -1,6 +1,6 @@
 # Entity
 
-由唯一布局源生成。布局编号 100；布局版本 42；原生大小 0x410；未知 335B；完整：否。
+由唯一布局源生成。布局编号 100；布局版本 43；原生大小 0x410；未知 335B；完整：否。
 
 第3步Entity公共目录；未知字节、SDK声明和跨域依赖明确保留。E0含形态元数据，E1/E4/E5在Player切换为body。正式采集与原生应用在第10/13步接线；此处不代表完整同步已运行。 版本30移除33个公共范围的线上职责（32个Host玩法范围、1个本地工厂标志）；保留valid/exists/dead及真实绘制参数，详见entity-common-synchronization-review.md。 版本31进一步撤销公共valid的wire/validator/handler，原生资格归本地owner；exists/dead保留，Player激活资格的结构信息由第5步P7另行接管，见entity-lifecycle-synchronization-review.md。
 

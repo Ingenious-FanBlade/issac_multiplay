@@ -69,3 +69,5 @@ tx-03-12[派生绘制研究](../research/tx-03-12-derived-render-sprite-lifecycl
 布局版本41，NPC142／Delirium143。当前J273 vtable VA B187D0、TypeDescriptor VA BD1344；ctor6B4520、Init6B4A50、Update6C03B0、Render6CEC90、Shadow6D0650、ClearReferences6B4E60。上述旧表为历史目标，不替代本轮核定。对象sizeof0xF60由池步长与删除析构参数互证，三deque位于BF0／C04／C18、双ANM2位于CD8／DEC，C48另有用途未核的第四头。详见[静态证据／传输职责](../design/binary-state/npc-evidence.md)与[实现说明](../design/binary-state/implementation-4-npc.md)。未新增Hook或运行测试。
 
 版本42的[同步职责修正](../design/binary-state/npc-synchronization-review.md)取代版本41旧传输决定：Delirium只更新最终状态／资源，不因Host Boss选择器强制结构换代；+F1C只换算受控UI三态，不复制进程内设备键；+CD8 Scale在6CFFD1／6CFFDA由主Sprite null-frame覆写，新增144视图派生。实际reader／adapter仍待第10／13步，没有安装新Hook或运行测试。
+
+版本43：[受控UI来源闭合与纠错](../design/binary-state/npc-control-ui-evidence.md)。Manager+4AFB8是原版NetplayManager，8E7550为IsIdxLocalPlayer，不是本地设备可用性。正式C/S reader只读NPC F1C，输出0/2，拒绝旧1；第13步NPC draw在6D025D／6D0314及Spawner分支6CF09D按整段绕开原版联机读取，不能只拦函数call。未安装新Hook或执行实机测试。

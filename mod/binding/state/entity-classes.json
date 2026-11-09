@@ -6812,16 +6812,16 @@
           "name": "controlled_ui_mode",
           "type": "i32",
           "category": "换算",
-          "semantics": "本地ControllerId不传输；换算为0无控制者、1受控但UI被来源谓词抑制、2受控且允许UI。只进入成员表现旁表，不写回F1C或绑定输入设备。",
+          "semantics": "C/S受控NPC UI：F1C=-1换算0，其余原值换算2；1为已撤销的原版Online筛选结果。只传表现值，不写原生ControllerId或绑定输入，不读取NetplayManager。",
           "status": "已核",
-          "evidence": "docs/design/binary-state/npc-synchronization-review.md；J273 6D025D—6D0283、6D0314—6D033E、8E7550",
+          "evidence": "docs/design/binary-state/npc-control-ui-evidence.md；Manager.zhl +4AFB8为NetplayManager；NetplayManager.zhl确认8E7550是IsIdxLocalPlayer",
           "wire": {
             "kind": "convert",
             "type": "u8",
             "host": "npc_controller_to_ui_mode",
             "client": "install_npc_control_ui_mode"
           },
-          "read_requires": "entity-current-window-and-confirmed-npc-control-ui-source"
+          "read_requires": "entity-current-window"
         },
         {
           "offset": "0xf20",
@@ -7026,8 +7026,8 @@
         }
       ],
       "conversions": {
-        "npc_controller_to_ui_mode": "同一合法主线程窗口读F1C。-1输出0；其他值按6D027C/6D0337实际8E7550来源谓词输出1或2。源集合为空/无匹配ID的原生结果为true；匹配时嵌入+3F8对象slot5必须先有具体动态类型、只读字段公式及当前来源证据，不能调用未知虚函数、Lua getter或以默认true掩盖未知。无法核定则Gap。最终只交u8，不交设备地址/编号，也不由Player ordinal猜替。",
-        "install_npc_control_ui_mode": "校验0/1/2后只保存同key/generation/目标版本的自有表现值；不把u8写入F1C，不重建/注册设备、不改变Player控制归属。第13步具名NPC绘制adapter仅在6D025D和6D0314两处分支消费mode：0跳过受控分支，1抑制，2放行，前面的403物品独立HP分支保持原逻辑。不得复用Client本机8E7550结果；实际reader/adapter尚待第10/13步接线。"
+        "npc_controller_to_ui_mode": "ReadNpcControlledUi在合法C/S主线程窗口只读NPC+F1C的i32并复读来源一致性，-1输出0，其他值输出2；不猜控制者编号范围，不调用Lua/原生getter，不读取Manager+4AFB8或调用IsIdxLocalPlayer/其slot5。原版Online本地/远端筛选不是C/S输入或展示来源。窗口、地址、读取失败或来源变化报Gap。实现见state/npc_presentation.cpp；实际窗口接线归第10步。",
+        "install_npc_control_ui_mode": "DecodeNpcControlledUi仅接受0/2，拒绝1及其他值。结果只存同key/generation/目标版本的成员表现旁表，不写F1C、注册设备或改变Player控制归属。第13步具名NPC绘制adapter在进入6D025D/6D0314的整段控制条件时直接以mode选择跳过或展示，绕过随后原版NetplayManager读取及IsIdxLocalPlayer；403物品独立HP路径保持。不能仅hook两个函数call留下前面的原版vector读取，也不能全局改8E7550。来源已闭合，实际安装/绘制接线仍归第13步。"
       },
       "validators": {
         "controlled_ui_mode": {
@@ -7035,7 +7035,6 @@
           "scalar": "u8",
           "values": [
             0,
-            1,
             2
           ]
         }
@@ -7159,7 +7158,7 @@
           "id": "EntityNPC.GetControllerId",
           "disposition": "authority",
           "fields": [],
-          "reason": "进程内设备键属于Host查询；跨端只保留不可反解设备ID的controlled_ui_mode表现结果；docs/design/binary-state/npc-synchronization-review.md"
+          "reason": "Host控制者编号查询，不跨端用于原版Online本地玩家判断；C/S仅同步是否受控的0/2表现结果；docs/design/binary-state/npc-control-ui-evidence.md"
         },
         {
           "id": "EntityNPC.GetDarkRedChampionRegenTimer",
@@ -7533,7 +7532,7 @@
           }
         ]
       },
-      "notes": "第4步版本42。NPC/Delirium结构仍由公共真实shape决定；BossType/Variant留Host，块17/18预留。ControllerId只换算受控UI三态，不能跨进程复制本地设备键；OverlayEffect只排除已证明绘制前覆写的Scale。全部UNKNOWN与SDK声明保持，正式reader/adapter待第10/13步。"
+      "notes": "第4步版本43。受控UI来源已闭合：8E7550属于原版NetplayManager::IsIdxLocalPlayer，不能引入C/S。ReadNpcControlledUi只读F1C并输出0/2，Decode拒绝旧模式1；正式窗口/绘制接线仍归第10/13步。BossType/Variant留Host、17/18预留、OverlayEffect Scale派生、UNKNOWN与SDK边界保持。"
     },
     {
       "type": "NpcOverlaySprite",

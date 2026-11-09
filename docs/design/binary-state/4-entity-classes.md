@@ -1,6 +1,8 @@
 # 4：Entity 子类
 
-**2026-11-09 当前版本42：NPC同步职责修正。** [逐段复核](npc-synchronization-review.md)取消Delirium BossType／Variant的8B传输与无根据的shape换代；ControllerId本地设备键改为1B受控UI表现，禁止跨进程raw写入；OverlayEffect新增144号场景视图，8B Scale由当前主Sprite null-frame派生。五项原生绘制标量、真实引用、三deque与必要双Sprite保持。NPC／Delirium最小负载均710B，未知586／597B及Pathfinder SDK声明不变；实际控制UI来源／adapter仍待第10／13步，不运行测试。
+**2026-11-09 当前版本43：NPC受控UI来源未决已闭合。** [静态证据与纠错](npc-control-ui-evidence.md)核定8E7550为原版NetplayManager::IsIdxLocalPlayer，撤销上轮“本地设备可用性”的误解。C/S只以NPC+F1C的-1哨兵生成0/2受控表现，不读取原版联机对象；新增ReadNpcControlledUi／DecodeNpcControlledUi，拒绝旧模式1。布局长度、根未知586／597B及其他未决保持，正式窗口／绘制接线仍按第10／13步；第15步之前不运行测试。
+
+**2026-11-09 版本42：NPC同步职责修正。** [逐段复核](npc-synchronization-review.md)取消Delirium BossType／Variant的8B传输与无根据的shape换代；ControllerId本地设备键改为1B受控UI表现，禁止跨进程raw写入；OverlayEffect新增144号场景视图，8B Scale由当前主Sprite null-frame派生。五项原生绘制标量、真实引用、三deque与必要双Sprite保持。NPC／Delirium最小负载均710B，未知586／597B及Pathfinder SDK声明不变；实际控制UI来源／adapter仍待第10／13步，不运行测试。
 
 **2026-11-09 版本41：Entity_NPC。** [实现说明](implementation-4-npc.md)与[静态证据](npc-evidence.md)将NPC142／Delirium143、双辅助Sprite、三组deque及44个唯一公开成员回映射接入生成链。保留真实绘制参数与8B变身shape，AI计数留Host；新增无分配deque读取接口。NPC本类223B未知、根586／597B未知与Pathfinder声明边界保留。普通Release纯编译／链接通过，没有运行测试；实际采集／安装仍待第10／13步。
 
@@ -231,7 +233,7 @@ Render真实消费Timeout，继续每个采集窗从原值重算`A=F+T`，Client
 | N0：+0 i32 State | +4 i32 ProjectileDelay | +8 Vector V1 | +16 i32 I2 | +20 i32 ChampionColorIdx | +24 u8 controlled_ui_mode；共25B |
 |---|---|---|---|---|---|
 
-三deque各≤16384，完整逻辑序列与owner合同不变。ControllerId不再作为raw i32传输：0=无控制者、1=来源受控UI谓词抑制、2=来源允许。Host须核定本地来源谓词，否则Gap；Client只存表现旁表，第13步专用绘制adapter消费，不写F1C、不注册/重绑输入设备。+CD8只有Scale由同版本主Sprite null-frame重建，其他资源／姿态及+DEC保持；详见[144号表](layouts/NpcOverlaySprite.md)。普通NPC与Delirium最小均710B，含公共391B，不含帧头与实际变长负载。根未知586／597B、本类223B不变。
+三deque各≤16384，完整逻辑序列与owner合同不变。ControllerId不作为raw i32传输：版本43只允许0=无控制者、2=受控，模式1无效。来源已闭合为C/S窗口只读F1C的-1哨兵，不读取原版NetplayManager；ReadNpcControlledUi／DecodeNpcControlledUi已落地，Client只存表现旁表，正式窗口与整段绘制条件绕行归第10／13步。+CD8只有Scale由同版本主Sprite null-frame重建，其他资源／姿态及+DEC保持；详见[144号表](layouts/NpcOverlaySprite.md)。普通NPC与Delirium最小均710B，含公共391B，不含帧头与实际变长负载。根未知586／597B、本类223B不变。
 
 #### 4.2.6 资源变化与生命周期
 
@@ -242,7 +244,7 @@ Render真实消费Timeout，继续每个采集窗从原值重算`A=F+T`，Client
 
 #### 4.2.7 写入与校验
 
-两臂17／18均预留，Boss选择／AI值无writer、读回或漂移比较。N0五个真实原生绘制值按可信字段宽度安装，受控UI模式只能0/1/2并存入同key/generation自有表现值，不能直接写本地设备键。OverlayEffect Scale只在已核draw窗口派生并恢复；不得将该规则扩展到其他Sprite。BE8及五个Host私有关系只按本地owner正常撤登记，不触发级联Remove。
+两臂17／18均预留，Boss选择／AI值无writer、读回或漂移比较。N0五个真实原生绘制值按可信字段宽度安装，受控UI模式自版本43只能0/2并存入同key/generation自有表现值，不能直接写本地设备键。OverlayEffect Scale只在已核draw窗口派生并恢复；不得将该规则扩展到其他Sprite。BE8及五个Host私有关系只按本地owner正常撤登记，不触发级联Remove。
 
 #### 4.2.8 公开成员回映射
 
@@ -351,6 +353,8 @@ Delirium十个唯一公开ReplicatedState全部归Host查询；BossType／Varian
 - **回映射**：子类全部 `ReplicatedState` 成员都有回映射。
 
 ## 未决问题
+
+NPC受控UI的来源问题已在版本43[闭合并纠正](npc-control-ui-evidence.md)，不再要求逆向原版Online slot5或读取其记录。下列其他UNKNOWN、Text／Dummy及各域后续接线不因此成为已完成。
 
 - **原前四项的剩余部分**（工作量／次序、DepthOffset、对象范围和已核字段结论见 4.6）：
   - NPC／Familiar 按 4.6 的次序实施剩余归属；工作量估算已经完成，不等于未知字节已清零。

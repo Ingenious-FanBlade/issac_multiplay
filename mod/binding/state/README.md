@@ -50,4 +50,6 @@
 
 版本41新增EntityNPC142／Delirium143及N0—N6／DL0，三组真实deque使用20B头、4／8B元素，schema与生成器显式识别storage=deque。ReadDequeInto在合法主线程窗口无分配归并到预分配区，引用暂存立即转当前身份；双辅助ANM2三投影保持。六项绘制标量、真实EntityRef／复合引用及两组点列进入布局，Delirium AI计数与其他已核Host输入留Host，块18空预留。NPC本类223B／根586B与Delirium根597B未知及Pathfinder SDK声明边界保持；公开44个唯一成员显式回映射。普通Release产品编译／链接通过，没有运行测试，实际接线仍待第10／13／14步。见docs/design/binary-state/implementation-4-npc.md与npc-evidence.md。
 
-当前版本42按docs/design/binary-state/npc-synchronization-review.md修正：Delirium两Boss选择值归Host并撤销shape，17／18空预留；ControllerId只换算0/1/2受控UI表现，不发送或安装本地设备键，原公开raw查询归Host；新增144号NpcOverlaySprite仅排除由主Sprite null-frame绘制前覆写的Scale。N0为25B，N4最小238B，两NPC最小均710B；未知586／597B与Pathfinder SDK声明保持。来源谓词未核定必须Gap，正式reader/adapter仍待第10/13步；本轮不运行测试。
+版本42按docs/design/binary-state/npc-synchronization-review.md修正：Delirium两Boss选择值归Host并撤销shape，17／18空预留；ControllerId只换算0/1/2受控UI表现，不发送或安装本地设备键，原公开raw查询归Host；新增144号NpcOverlaySprite仅排除由主Sprite null-frame绘制前覆写的Scale。N0为25B，N4最小238B，两NPC最小均710B；未知586／597B与Pathfinder SDK声明保持。来源谓词未核定必须Gap，正式reader/adapter仍待第10/13步；本轮不运行测试。
+
+当前版本43闭合NPC受控UI来源：Manager+4AFB8是原版NetplayManager，8E7550为IsIdxLocalPlayer，版本42“本地设备可用性”解释错误。C/S仅用F1C哨兵输出0/2，已实现state/npc_presentation.h/.cpp的ReadNpcControlledUi／DecodeNpcControlledUi；去掉特殊来源未决资格，枚举拒绝1，不读取原版Online或调用getter。线上大小与UNKNOWN不变；正式窗口/绘制接线仍归第10/13步，未运行测试。见docs/design/binary-state/npc-control-ui-evidence.md。

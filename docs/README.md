@@ -1,3 +1,5 @@
+> **第4步NPC受控UI来源闭合（2026-11-09，版本43）**：[证据与纠错](design/binary-state/npc-control-ui-evidence.md)。官方接口核定8E7550属于原版NetplayManager，撤销上轮设备可用性解释。新增只读NPC F1C的reader与0/2解码，拒绝模式1，不引入原版Online；正式窗口/绘制接线归第10/13步，其他未知保持，第15步统一验收。
+
 > **NPC布局同步职责修正（2026-11-09，版本42）**：[逐段复核](design/binary-state/npc-synchronization-review.md)。取消Delirium BossType／Variant传输及无根据的shape重建；ControllerId改1B受控UI结果，OverlayEffect Scale由主Sprite当前null-frame派生。保留真实绘制输入／完整三deque／双Sprite必要状态，UNKNOWN不变。实际reader／adapter待第10／13步，第15步统一验收。
 
 > **原生二进制第4步：Entity_NPC（2026-11-09，版本41）**：[实现说明](design/binary-state/implementation-4-npc.md)、[静态证据](design/binary-state/npc-evidence.md)及[生成布局](design/binary-state/layouts/EntityNPC.md)。NPC／Delirium、三组deque、双辅助Sprite与44个唯一成员回映射已接入生成链；NPC本类223B未知及寻路声明边界保留。普通Release编译／链接通过，没有测试、部署或启动游戏；第10／13步接线、第15步统一验收。

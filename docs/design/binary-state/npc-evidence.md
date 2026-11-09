@@ -1,3 +1,5 @@
+> 版本43补充：[受控UI来源已闭合](npc-control-ui-evidence.md)，模式仅0/2，不读取原版NetplayManager；上轮误解与纠正保留。
+
 > **版本42后续复核**：[NPC同步职责复核](npc-synchronization-review.md)取代下文版本41传输决定。BossType／Variant取消8B传输与shape；ControllerId不复制本地设备键，改1B受控UI模式；+CD8 OverlayEffect仅排除绘制前完全覆写的8B Scale，使用144号场景视图。NPC／Delirium最小状态均710B，UNKNOWN和SDK边界不变；实际控制UI来源／adapter仍待第10／13步。下文保留版本41原始静态事实与编译记录。
 
 # 第4步 Entity_NPC：J273静态证据与布局

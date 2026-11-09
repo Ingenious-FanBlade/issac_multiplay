@@ -1,6 +1,6 @@
 # ColorParams
 
-由唯一布局源生成。布局编号 11；布局版本 42；原生大小 0x3C；未知 2B；完整：否。
+由唯一布局源生成。布局编号 11；布局版本 43；原生大小 0x3C；未知 2B；完整：否。
 
 版本32：整个ColorParams时间线留Host，布局11只保留原生字节归属与空块，不发送元素。J273 Entity::Update VA0x6AA10E—0x6AA22F计算覆盖／淡出，并在0x6AA221调用0x4029B0写主Sprite+0xA8最终颜色；Client不运行该Update。Duration分母与Lifespan剩余次数仍不同，负Lifespan仍递减这一原生事实不变；不再需要颜色锚点／读取时钟／容器writer。未知+3A/+3B仍为2B，ColorMod本身的11个分量继续完整同步。
 

@@ -1,3 +1,5 @@
+> **版本43纠正／闭合**：[NPC受控UI来源证据](npc-control-ui-evidence.md)核定Manager+4AFB8是原版NetplayManager，8E7550是IsIdxLocalPlayer。下文版本42将其解释为本地设备可用性是静态分析错误，不能据此接入原版Online。当前C/S只读NPC F1C哨兵得到0/2，新增原生reader及解码，旧模式1拒绝；原始记录保留，完整窗口／绘制接线仍归第10／13步。
+
 # Entity_NPC同步职责复核
 
 日期：2026-11-09（Asia/Singapore）。Mode：PR Review。范围为第4步NPC142／Delirium143的全部专有已知原生段、UNKNOWN边界、实际绘制消费者、公共依赖及生成声明；公共Entity／ANM2沿用此前复核，不重复扩大到全仓库。生成文件只由唯一源重生成，不手工修补。本轮仅静态反编译／源码审阅和普通产品编译，不运行测试；brooks-review的测试步骤按项目规范让位于第15步统一验收。

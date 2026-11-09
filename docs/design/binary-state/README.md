@@ -1,6 +1,8 @@
 # 原生二进制状态同步重构：总计划
 
-**2026-11-09 当前版本42：NPC同步职责修正。** [逐段复核](npc-synchronization-review.md)取消Delirium BossType／Variant的8B传输与无根据的shape换代；ControllerId本地设备键改为1B受控UI表现，禁止跨进程raw写入；OverlayEffect新增144号场景视图，8B Scale由当前主Sprite null-frame派生。五项原生绘制标量、真实引用、三deque与必要双Sprite保持。NPC／Delirium最小负载均710B，未知586／597B及Pathfinder SDK声明不变；实际控制UI来源／adapter仍待第10／13步，不运行测试。
+**2026-11-09 当前版本43：NPC受控UI来源未决已闭合。** [静态证据与纠错](npc-control-ui-evidence.md)核定8E7550为原版NetplayManager::IsIdxLocalPlayer，撤销上轮“本地设备可用性”的误解。C/S只以NPC+F1C的-1哨兵生成0/2受控表现，不读取原版联机对象；新增ReadNpcControlledUi／DecodeNpcControlledUi，拒绝旧模式1。布局长度、根未知586／597B及其他未决保持，正式窗口／绘制接线仍按第10／13步；第15步之前不运行测试。
+
+**2026-11-09 版本42：NPC同步职责修正。** [逐段复核](npc-synchronization-review.md)取消Delirium BossType／Variant的8B传输与无根据的shape换代；ControllerId本地设备键改为1B受控UI表现，禁止跨进程raw写入；OverlayEffect新增144号场景视图，8B Scale由当前主Sprite null-frame派生。五项原生绘制标量、真实引用、三deque与必要双Sprite保持。NPC／Delirium最小负载均710B，未知586／597B及Pathfinder SDK声明不变；实际控制UI来源／adapter仍待第10／13步，不运行测试。
 
 **2026-11-09 版本41：Entity_NPC。** [实现说明](implementation-4-npc.md)与[静态证据](npc-evidence.md)将NPC142／Delirium143、双辅助Sprite、三组deque及44个唯一公开成员回映射接入生成链。保留真实绘制参数与8B变身shape，AI计数留Host；新增无分配deque读取接口。NPC本类223B未知、根586／597B未知与Pathfinder声明边界保留。普通Release纯编译／链接通过，没有运行测试；实际采集／安装仍待第10／13步。
 
@@ -10,7 +12,7 @@
 
 **2026-11-09 版本38（Effect合同继续适用）：Effect各臂与附属payload。** [Effect同步职责复核](effect-synchronization-review.md)撤销六项公共更新输入、TearFlags全128位与136描述八成员；State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale及三种表现payload保留。Ghost只发0—4有效Sprite前缀，Offset／Scale派生、i32 count由投影计数重建；MrMe原16B未知核为Host内部状态，Trail找到64B分配与完整复制。六臂编号不变，FX2均预留；公共Effect最小444→420B。源、生成表和第6／10／12／13／14／15步合同已修订，未构建或测试，运行时仍待接线。
 
-日期：2026-11-08；更新：2026-11-09（Asia/Singapore）。状态：**第 0—3 步已落地，第 4 步的 Familiar／Knife／Bomb、Tear／Pickup／Laser 和 Slot／Projectile／Effect 布局与专用表现已接入生成链，普通 Release 纯编译／链接通过**。入口为[第 0—2 步实现](implementation-0-2.md)、[第 3 步实现](implementation-3.md)、[Familiar／Knife／Bomb 实现](implementation-4-familiar-knife-bomb.md)、[Tear／Pickup／Laser 实现](implementation-4-tear-pickup-laser.md)、[Slot／Projectile／Effect 实现](implementation-4-slot-projectile-effect.md)和[生成布局表](layouts/README.md)。当前布局版本42（NPC现行职责见[复核](npc-synchronization-review.md)，版本41初轮事实保留，未运行测试）；[第4步原未决前四项](implementation-4-first-four.md)已完成工作量估算与DepthOffset复核，补入Knife尾部六个f32、更正Slot／Projectile本地指针和Effect生成参数归属，续研核定Knife六值的分裂／碰撞用途与Effect参数的Host归属，六段空白的填充假设及证据边界仍保留。SDK 声明、未知字节、子类计时分支和跨域未决照实保留，不表示类型完整或同步已可运行；第4步NPC／Delirium已迁入布局源，仍有未知与后续接线；Text／Dummy等剩余专用形态和第5—14步待实施。0—14 步没有测试，第 15 步是唯一统一整体验收。
+日期：2026-11-08；更新：2026-11-09（Asia/Singapore）。状态：**第 0—3 步已落地，第 4 步的 Familiar／Knife／Bomb、Tear／Pickup／Laser 和 Slot／Projectile／Effect 布局与专用表现已接入生成链，普通 Release 纯编译／链接通过**。入口为[第 0—2 步实现](implementation-0-2.md)、[第 3 步实现](implementation-3.md)、[Familiar／Knife／Bomb 实现](implementation-4-familiar-knife-bomb.md)、[Tear／Pickup／Laser 实现](implementation-4-tear-pickup-laser.md)、[Slot／Projectile／Effect 实现](implementation-4-slot-projectile-effect.md)和[生成布局表](layouts/README.md)。当前布局版本43（NPC受控UI来源见[闭合与纠错](npc-control-ui-evidence.md)，旧版本事实保留，未运行测试）；[第4步原未决前四项](implementation-4-first-four.md)已完成工作量估算与DepthOffset复核，补入Knife尾部六个f32、更正Slot／Projectile本地指针和Effect生成参数归属，续研核定Knife六值的分裂／碰撞用途与Effect参数的Host归属，六段空白的填充假设及证据边界仍保留。SDK 声明、未知字节、子类计时分支和跨域未决照实保留，不表示类型完整或同步已可运行；第4步NPC／Delirium已迁入布局源，仍有未知与后续接线；Text／Dummy等剩余专用形态和第5—14步待实施。0—14 步没有测试，第 15 步是唯一统一整体验收。
 
 **2026-11-09 版本37（历史范围）：Laser／Homing采样、运动与计时。** [Laser／Homing采样、运动与计时复核](laser-homing-synchronization-review.md)保留optimized／unoptimized两组最终点列与当前角度、长度、完整效果位、原始采样模式、MaxDistance／GridHit、公开EndPoint和+4F0展示分支输入；19项Laser更新输入、六项Homing标量、indices中间点缓存及Bezier／系数留Host。indices原生类型纠正为8B双f32点对，旧i32步长记录错误。L2／L4／L7／L8及Homing子块0／3／4预留，父投影仅1／2；撤销两个Laser计时锚点。最小Laser542→439B，未知421B不变。源、生成器和第10／12／13／14／15步合同已修订，未构建或测试；运行时仍待接线。
 

@@ -1,3 +1,5 @@
+二进制布局版本43（2026-11-09）：[NPC受控UI来源闭合](../design/binary-state/npc-control-ui-evidence.md)以Manager.zhl／NetplayManager.zhl／官方Player.IsLocalPlayer确认8E7550身份，纠正本地设备解释。源仅取NPC F1C哨兵并输出0/2；记录两处UI及Spawner淡出整段绕行要求，没有安装Hook或触及原版Online运行状态。
+
 二进制布局版本42（2026-11-09）：[NPC职责复核](../design/binary-state/npc-synchronization-review.md)复读49F3D0原type恢复、6CFFD1/6CFFDA缩放覆写、6D027C/6D0337→8E7550本地设备谓词。取消Boss选择8B与shape、raw设备键及OverlayEffect原Scale；没有新增Hook或执行游戏／测试，正式表现adapter待后续接线。
 
 二进制布局版本41（2026-11-09）：[NPC静态证据](../design/binary-state/npc-evidence.md)复读J273 ctor／Init／Update／Render／Shadow、大小／RTTI和三deque。六项真实绘制参数、双ANM2、复合引用与Delirium结构shape进入生成链；AI／Siren actor留Host，223B本类未知及Pathfinder声明保留。无新增Hook或实机操作，普通Release编译／链接成功，没有运行测试。
