@@ -1,3 +1,5 @@
+> **2026-11-10 当前范围调整**：[二进制重构](design/binary-state/README.md)先跑通原版内容；第三方 Mod 的状态、角色／资源／绘制、StageAPI、Lua adapter 及原 E31 已移至[Mod 适配后续方案](design/mod-adaptation.md)，不属于当前 0—15 步实现或验收条件。官方 REPENTOGON／J273 路线、原版完整内容、四参与者／多身体与性能目标保持。本次仅修订文档，未构建、测试或启动游戏。
+
 > **第8步Presentation静态核对（2026-11-10）**：[同步必要性与原生证据](design/binary-state/presentation-synchronization-review.md)、[45类型字节账本](design/binary-state/presentation-byte-ledger.md)、[141行旧公开目录回映射](design/binary-state/presentation-member-map.md)。保留最终HUD／实际图像与官方星象房行，剔除显示生产历史；地图查看与音量设置归各端本地，持续音频另有当前状态。UNKNOWN和来源缺口照实保留，正式布局与接线未实施，本轮不构建／测试。
 
 > **第8步Run原生归属核对（2026-11-10，版本56）**：[同步职责与证据](design/binary-state/run-synchronization-review.md)、[191行同源回映射](design/binary-state/layouts/run-catalog-run-members.md)与[GameRun布局](design/binary-state/layouts/GameRun.md)已落地。9个新布局230—238；当前固定负载132B，生成／波次／历史／264624B回溯留Host，只保留明确显示用途、7项种子显示选择和ascent bit48。修正ScoreSheet SDK过时布局，结算16个最终值64B；TimeCounter使用同world帧基准。Run视图的跨域委派／UNKNOWN仍明示，Presentation与正式reader／writer尚待后续。Release／Win32状态库纯编译通过，无测试。以下记录保留原时点。

@@ -1,4 +1,6 @@
-# 8：Run、Presentation、Random 与 Mod
+# 8：Run、Presentation 与 Random
+
+**2026-11-10 范围调整**：本步只负责原版整局、表现与随机源。第三方 Mod 的 Lua 来源、具名 adapter、状态编码、角色／HUD 回调适配和未决问题已移至[独立后续方案](../mod-adaptation.md)，不属于本步完成条件。下方较早进度记录按原时点保留。
 
 **2026-11-10 Presentation静态核对完成（正式布局／接线未实施）**：[同步必要性与具体证据](presentation-synchronization-review.md)、[45类型／连续视图的原生字节账本](presentation-byte-ledger.md)及[141行旧公开目录回映射](presentation-member-map.md)。保留最终心格／实际图像／动态HUD／History顺序和StatHUD三值；previous／threshold留Host，官方星象房第8行保留。地图本地查看与world事实分开；持续声音需要当前状态，一次性声音走事件，Host音量／后端对象不复制。程序图／shader旁表ABI／Pause后缀／转场payload等UNKNOWN及具体来源缺口保持；正式Presentation布局／运行接线未实施，本轮未改生产布局版本、未构建或测试。以下记录保留各自时点。
 
@@ -14,11 +16,11 @@
 
 **第5步P6—P8交接（2026-11-09，未实现）**：[设计及具体消费者](5-player-p6-p8.md)将原始History／16索引／form计数留Host；本步必须同步82FA10实际两个HistoryHUD槽的owner／有序visual_id／Image和真实PlayerHUD+6A4库存图像列表，保持负ID、633及88000 shader分支、四人多身体的选择／布局，不按counts重排。还核到97C300→966680→9BAC90在Render内重算分数并涉及随机，9679FA实际读取Game+25C90总分；本步捕获既有生产完成后的最终缓存并隔离该用途重算，不以“Render可达”为由恢复sub图／全部心量生产输入或额外Host重算。703四槽只作Host恢复，实际主动显示不解析它们，P4 VarData保持。Player两Image strong／palette／动态HUD owner仍须本步补齐；P8的残影及当前记录＋1C50 Sprite由Player owner处理，不重复维护。版本仍46，没有新代码或测试。
 
-状态：Run静态归属、布局源与191行回映射已完成；跨域委派／未知照实保留；正式运行接线及其余部分未实施。上级：[总计划](README.md)。
+状态：Run静态归属、布局源与191行回映射已完成；跨域委派／未知照实保留；正式运行接线及其余部分未实施；Mod适配已迁出当前范围。上级：[总计划](README.md)。
 
 ## 目标
 
-完成整局（Game 中 Level 之后的部分）、表现（HUD、小地图、音乐音效等）和随机源的字节归属。确定 Mod 域这个唯一例外的二进制承载方式。
+完成原版整局（Game 中 Level 之后的部分）、表现（HUD、小地图、音乐音效等）和随机源的字节归属。
 
 ## 输入事实
 
@@ -78,12 +80,10 @@ Pickup、Familiar 等的原生 Render 还读写 Game 之外的四项全局值。
 | run | 191 | Game 122、Seeds 28、ChallengeParam 28、Ambush 12、DailyChallenge 1 | ReplicatedState 93、AuthorityOnly 87、NotReplicated 11 |
 | presentation | 141 | HUD 31、MusicManager 28、Font 16、ColorModifier 12、GenericPrompt 11、SFXManager 10 等 | ReplicatedState 55、AuthorityOnly 70 |
 | random | 54 | ItemPool 37、RNG 17 | 全部 AuthorityOnly 或 NotReplicated |
-| mod | 12 | — | ReplicatedState 2 |
 
 ### 现有处理
 
 - **Random 热路径**：已是 AuthorityOnly，不轮询（`mod/src/game/world_sources/observation.cpp:120-122`）；冷源附加原生随机流。
-- **Mod 域**：用具名只读 adapter 注册（`domains/mod/collect.lua`），经有界对象图复制（`domains/mod/graph.lua`）；已有 StageAPI adapter。
 - **Game之外的owner**：Music与SoundEffects分别内嵌于Manager+29DF8／+2A160。Font有Manager九个内嵌实例及Lua自建实例，不能视为唯一全局单例；来源和生命周期须逐owner绑定，详见[字节核对](presentation-synchronization-review.md)。
 
 ## 设计
@@ -127,32 +127,20 @@ Pickup、Familiar 等的原生 Render 还读写 Game 之外的四项全局值。
 
 ItemPool 和 RNG 整体归权威，不进入状态帧。如果 Client 显示需要其中某个结果（例如道具池剩余状态影响 HUD），按换算处理：发送结果，不发送 RNG。唯一的例外是 8.2 中只用于绘制的两份全局 RNG。
 
-### 8.4 Mod 域例外
+### 8.4 当前范围
 
-第三方 Mod 的状态是 Lua 表，没有原生布局，无法按字节归属。处理方式：
-
-- **采集**：保留具名只读 adapter，只在 ordinary 窗口以低频读取。这是正式同步中唯一保留的 Lua 读取。
-- **编码**：不再生成 JSON，改用自描述二进制编码：
-  - 每个值写 `u8 类型标记` 加值；类型包括 nil、bool、i32、f64、字符串、表、实体引用、Grid 引用、Vector、Color、KColor。
-  - 表写成 `u16 项数` 加键值对。
-  - 实体和 Grid 引用写成成员序号。
-- **分块与比较**：每个 adapter 的输出作为一个块，用 memcmp 判断变化。
-- **预算与失败**：沿用 `graph.lua` 的节点、项数、字节和深度预算。超出预算时报具名缺口，不截断后冒充完整。
-- **完整性口径**：Mod 域不计入“按字节归属完整”，只按 adapter 声明的 schema 判断完整。
+正式同步只采集原版所需的原生状态和具名最终显示结果，不加载第三方 Mod adapter。原 Mod 域设计已迁至[后续方案](../mod-adaptation.md)，本步无需实现其编码器或注册接口；Lua 只用于目录／语义核对和 E2E 对照。
 
 ## 改动范围
 
 - 布局源 `state/run.json`、`state/presentation.json`，其中包括绘制输入块 D0。
 - 删除 Player 记录上的 `application_draw`，绘制安装改读影子状态中的 D0（第 13 步 13.6）。
-- Mod 域的二进制编码器，Host 端为 C++ 读 Lua 表，Client 端负责解码。
 - Run 和 Presentation 的 Client 写入函数，改为由影子状态输入。
 
 ## 失败方式
 
 - **回溯状态外泄**：`_glowingHourglassStates` 被误归为状态，单帧发送 260 KB；或者 Client 写入后破坏本地回溯。
 - **派生判断不实**：HUD 中的项被判为派生，Client 实际不会重建，显示缺失。
-- **Mod 表循环引用**：Mod 表中的循环和共享节点重复编码，或者无限递归。
-- **Mod 读取超时**：Mod adapter 抛错或耗时过长，挤占主线程预算。adapter 读取要单独计时，超时降频并报缺口。
 - **全局单例时机错误**：MusicManager 等全局单例在会话外或主线程窗口外被读取。
 - **绘制输入错窗**：D0 与帧头 game_frame 来自不同的采集窗口，subframe 与帧计数相位错开，Pickup、Familiar 的绘制效果与 Host 不一致。
 - **绘制输入常驻写入**：D0 直接写进 Client 的全局值而不是展示期间借用，或者展示结束后没有恢复，污染 Client 本地的 Render 状态。
@@ -161,15 +149,12 @@ ItemPool 和 RNG 整体归权威，不进入状态帧。如果 Client 显示需�
 ## 完成内容
 
 - **字节归属与表格**：Run、Presentation 的字节归属完成，带证据；单行表由生成器产出。
-- **回映射**：四个域的公开成员全部有回映射：
+- **回映射**：三个域的公开成员全部有回映射：
   - run 的 93 个、presentation 的 55 个 `ReplicatedState` 成员，各自映射到布局字段、某组字段的派生，或者说明为何归 Host 权威或不适用；
   - run 的 87 个、presentation 的 70 个 `AuthorityOnly` 成员，以及 random 的 54 个成员，确认确实落在权威或本地字节上，没有漏判为状态；
-  - mod 的 2 个 `ReplicatedState` 成员映射到具名 adapter 的 schema（8.4）。
-- **Mod 编码**：Mod 域二进制编码的单行表在第 9 步画出。
 
 ## 未决问题
 
 - HUD（0x5C90）和Minimap（0x628）的声明范围与同步职责已登记；正式`state/presentation.json`和运行接线尚未实施。消息／程序图完整recipe、shader旁表物理ABI、Pause后缀、Nightmare条件payload、挑战32最终标记及音频已选sample／逻辑voice来源等仍按[具体缺口](presentation-synchronization-review.md)落实；UNKNOWN不补零，不以目录已回映射宣称完整。
-- Mod 域是否需要提供注册新 adapter 的公开接口，还是只保留现有具名 adapter。
 
-**版本39 Player／HUD装备依赖**：[装备与Plus复核](player-equipment-plus-synchronization-review.md)核定PlayerHUD::RenderActiveItem835B40直接／间接使用四主动槽六值、TemporaryEffects分类／count、ItemConfig、Player角色／库存及Game challenge；还在836093读首个slot0／1 Weapon的type12分支。Player758850的进度条依真实slot7／slot6公式与各内嵌Sprite，角色27另读704效果cooldown及配置cooldown；不得把有最终costume当作查询已经可用。HUD资源／image/bookImage／flash／布局等未核owner仍须本步准备，不放行832C10整个PlayerHUD Update刷新缓存。官方1072／1073等有效结果及HUD回调按声明Mod适配／表现隔离承接，不能在Client调用玩法Lua补齐。Plus公共覆盖由Scene415350的水面／反射分派实际消费，主体Room／Player依赖仍在；本轮不宣称完整HUD实现或测试通过。
+**版本39 Player／HUD装备依赖**：[装备与Plus复核](player-equipment-plus-synchronization-review.md)核定PlayerHUD::RenderActiveItem835B40直接／间接使用四主动槽六值、TemporaryEffects分类／count、ItemConfig、Player角色／库存及Game challenge；还在836093读首个slot0／1 Weapon的type12分支。Player758850的进度条依真实slot7／slot6公式与各内嵌Sprite，角色27另读704效果cooldown及配置cooldown；不得把有最终costume当作查询已经可用。HUD资源／image/bookImage／flash／布局等未核owner仍须本步准备，不放行832C10整个PlayerHUD Update刷新缓存。官方1072／1073等第三方回调结果及HUD回调适配已归[Mod后续方案](../mod-adaptation.md)，不作为当前原版实现条件；Client仍不能调用玩法Lua补齐显示。Plus公共覆盖由Scene415350的水面／反射分派实际消费，主体Room／Player依赖仍在；本轮不宣称完整HUD实现或测试通过。

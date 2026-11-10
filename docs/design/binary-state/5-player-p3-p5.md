@@ -57,7 +57,7 @@ Pocket的ID语义按type分派：PILL为完整PillColor及修饰位，CARD为Car
 
 - blocked ID集合；
 - `HasInnate(id)`／`GetInnateCount(id)`：遍历分组，读取persistent counts和temporary的**cachedTotals**；
-- 角色XML innate、reworked规则及调用context；这些由相同配置／官方代码和声明Mod适配提供，不能靠修改普通库存来伪造。
+- 角色XML innate、reworked规则及调用context；当前原版由相同配置／官方代码提供，不能靠修改普通库存来伪造。第三方变更另归[Mod后续方案](../mod-adaptation.md)。
 
 这些原生展示查询**不读取group key、temporary条目的顺序、timer或lastPlayerType**。因此不再复制旧I14的完整管理模型。Host直接遍历已存在的官方容器，将全部分组（包括空字符串legacy组）中persistent与temporary.cachedTotals按ID有界相加，产出：
 
@@ -73,7 +73,7 @@ Host不调用会分配的GetEntityPlayerPlus、GetInnateTotalCounts、Lua getter
 
 投影要求官方正常非负计数不变量，合并用足够宽的临时整数检查i32边界；异常负项、溢出或不明来源报Gap，不抵消为0后假装等价。使用**当前cachedTotals**，不额外遍历到期列表重算“应该是什么”，不推进timer。来源端另对遍历的group数、persistent／cachedTotals总条目数和暂存字节作有界限制，沿既有16384聚合保护与总预算；不能只有最终去重ID数受限而遍历任意多组。预算失败不截断为部分投影。
 
-Client在已构造的真实PlayerPlus内直接交换候选容器：blocked写本地集合，innate汇总放入一个**本地固定名**的展示组，其persistent counts为线上总数，temporary列表与缓存均为空。这保留标准容器和官方查询的不变量；**不能只写temporary.cachedTotals而留下空list**。原group名、临时／永久身份与到期逻辑不复原，也不对外宣称原group查询可用；有实际Mod展示需求时由声明adapter承接。
+Client在已构造的真实PlayerPlus内直接交换候选容器：blocked写本地集合，innate汇总放入一个**本地固定名**的展示组，其persistent counts为线上总数，temporary列表与缓存均为空。这保留标准容器和官方查询的不变量；**不能只写temporary.cachedTotals而留下空list**。原group名、临时／永久身份与到期逻辑不复原，也不对外宣称原group查询可用；额外Mod展示需求已归[独立后续方案](../mod-adaptation.md)，不属于本轮实现条件。
 
 只换内容，保留官方虚表和owner。禁用ItemSpoof UpdateTemporaryTimers／CheckPlayerType／公开Block／Add／Remove／SetGroup等玩法调用；这些函数会触发EvaluateItems、costume或回调。`lastPlayerType`是触发管理缓存，不从Host传输；Client owner随已提交P7角色初始化它，不能拿CheckPlayerType刷新。Host到期后只在有效计数变化时发布P3，timer每tick递减不应导致P3重发。
 
@@ -163,7 +163,7 @@ VarData既影响max／min可用充能，也参与特殊图像，不能按“玩�
 - Item=0时，835B40不进入该Item的配置／充能绘制。**先读Item，再把其余五值编码为0，不读旧payload**；Client解码拒绝非规范空槽，直接清本地五个展示存储。原生来源池／调度字段由本地正常初始化保留，不写Host值。空slot是明确状态，不能与采集失败混同。
 - occupied的PartialCharge只要求有限，整数按实际i32；没有证据将所有道具charge钳到6、partial钳到0—1或VarData当u8。合法Item须解析实际配置，不以原版枚举上限屏蔽已声明资源。
 - 四槽作为一个world目标提交，Pocket的ActiveSlot+1与P4一致。Esau Jr 703的VarData=0／1—4保留原数值；P6—P8进一步核对已裁掉P7四备份槽的下行依赖，实际主动显示不解析该Host存储。不给它套地址解释，不调用703使用链，也不写Host PlayerManager备份数组。
-- 只直接装六值；不调用AddCollectible／Use／AddCharge／FullCharge／ControlActiveItem／EvaluateItems。官方1072／1073等有效Mod结果由声明adapter承接，Client不执行玩法Lua补值，也不放行完整832C10 PlayerHUD Update。
+- 只直接装六值；不调用AddCollectible／Use／AddCharge／FullCharge／ControlActiveItem／EvaluateItems。官方1072／1073等第三方回调结果适配已迁至[Mod后续方案](../mod-adaptation.md)，不作为本轮原版实现条件；Client不执行玩法Lua补值，也不放行完整832C10 PlayerHUD Update。
 
 ## 5. P5：五个Weapon槽，按真实动态类型裁剪
 
@@ -194,7 +194,7 @@ VarData既影响max／min可用充能，也参与特殊图像，不能按“玩�
 
 本表地址、factory分配大小、mask均为**十六进制**，type与线上负载B数为十进制。slot6公式保留原f32落栈、阈值与除法顺序；例如9C5E80检查`charge<=1 && charge<max`，不是一个跨武器通用ratio。12／15原本就不进它，5／6／8在读取Charge前返回；不传三值不会改变其零值与真实Disappear动画。
 
-普通所有非空槽仍传真实i32 WeaponType，不能由vtable反推10／11，也不能删掉“非充能”槽而改变首个非空选择。type16是枚举计数，不是可构造武器；未知工厂／vtable或声明Mod武器要独立适配，报实际Gap，不回落base Weapon或伪装成Tears。Familiar80仍用自己的最终amount，不恢复其玩法Weapon。
+普通所有非空槽仍传真实i32 WeaponType，不能由vtable反推10／11，也不能删掉“非充能”槽而改变首个非空选择。type16是枚举计数，不是可构造武器；未知工厂／vtable报实际Gap，不回落base Weapon或伪装成Tears；第三方Mod武器已归[后续适配方案](../mod-adaptation.md)，不要求本轮实现。Familiar80仍用自己的最终amount，不恢复其玩法Weapon。
 
 ### 5.2 基类前缀的单行归属表
 

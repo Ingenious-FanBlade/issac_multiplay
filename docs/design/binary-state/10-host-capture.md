@@ -126,7 +126,7 @@ Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](im
   - 只复制P0逻辑组及E1／E4／E5／E6中属于Player的部分，写入对应身体槽；P0组包括10号本体快块和19—24号Sprite投影，详见第5步前三块设计，P1／P2仍只读ordinary。
   - 没有 PlayerPost 资格的身体，由 ordinary 窗口补采（沿用现有的 ordinary body-joint 语义）。
 - **普通**：ordinary 窗口按约 30 Hz 采集全部普通成员和房间、楼层的动态块。
-- **低频轮转**：描述表 L1／L2、Mod 域、Run／Presentation 中的大块内容分片轮转读取。
+- **低频轮转**：描述表 L1／L2、Run／Presentation 中的大块原版内容分片轮转读取。Mod 域的 Lua 低频采集已迁至[后续方案](../mod-adaptation.md)，不接入当前正式采集器。
   - 每个窗口只读一片，一整轮的周期由第 11 步按预算定稿。
   - 房间切换、楼层切换等已知事件触发立即全量重读。
   - 不依赖“通知完整”来跳过读取。

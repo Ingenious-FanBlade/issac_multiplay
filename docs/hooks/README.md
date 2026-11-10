@@ -1,3 +1,5 @@
+> **2026-11-10 当前范围**：[原生二进制重构](../design/binary-state/README.md)先跑通原版内容，官方 REPENTOGON／J273 路线保持；第三方 Mod／StageAPI 适配已迁至[独立后续方案](../design/mod-adaptation.md)，不作为当前实现或验收条件。下方历史点位与观察保留原时点。
+
 二进制布局版本43（2026-11-09）：[NPC受控UI来源闭合](../design/binary-state/npc-control-ui-evidence.md)以Manager.zhl／NetplayManager.zhl／官方Player.IsLocalPlayer确认8E7550身份，纠正本地设备解释。源仅取NPC F1C哨兵并输出0/2；记录两处UI及Spawner淡出整段绕行要求，没有安装Hook或触及原版Online运行状态。
 
 二进制布局版本42（2026-11-09）：[NPC职责复核](../design/binary-state/npc-synchronization-review.md)复读49F3D0原type恢复、6CFFD1/6CFFDA缩放覆写、6D027C/6D0337→8E7550本地设备谓词。取消Boss选择8B与shape、raw设备键及OverlayEffect原Scale；没有新增Hook或执行游戏／测试，正式表现adapter待后续接线。

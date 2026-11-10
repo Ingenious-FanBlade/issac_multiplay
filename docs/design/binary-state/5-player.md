@@ -127,6 +127,6 @@ body序列只包含P0逻辑组及父快块，不含P1／P2。P0并非单一大�
 
 UmbilicalWhip主实体先构造再用EntityPtr绑定，Familiar还需同版本Player关系、PlayerType32／619库存、IsFollower及新D76抑制字节；不能把这些条件当作AI而删除。TemporaryEffects的disabled与完整列表同目标版本安装，配置保留type/id及角色704环使用的config.cooldown，不能用最终costume或库存替代记录。所有效果计时只装已应用帧原值，不更新／到期。
 
-HUD图像、bookImage、chargebar资源与flash／布局缓存由第8步具体owner准备，不运行完整PlayerHUD Update、Add/Use/Charge操作或EvaluateItems。官方1072／1073等回调的Mod有效结果由声明adapter承接，Client不执行Host玩法Lua补值。五个Weapon经已核factory／Init建立本地对象；只写保留字段及15号主引用，其他原生引用保持正常空owner。替换时先正常撤边、owner=null，再窄Free；不调用会Remove独立实体或停音的ClearReferences／DestroyWeapon。
+HUD图像、bookImage、chargebar资源与flash／布局缓存由第8步具体owner准备，不运行完整PlayerHUD Update、Add/Use/Charge操作或EvaluateItems。官方1072／1073等第三方回调的有效结果适配已迁至[Mod后续方案](../mod-adaptation.md)，不作为当前原版实现条件；Client不执行Host玩法Lua补值。五个Weapon经已核factory／Init建立本地对象；只写保留字段及15号主引用，其他原生引用保持正常空owner。替换时先正常撤边、owner=null，再窄Free；不调用会Remove独立实体或停音的ClearReferences／DestroyWeapon。
 
 公共Plus飞行／水面覆盖继续由原生owner赋optional，玩家专属Plus已登记174号字节表与P3官方成员投影，仍有9B未知及后半偏移ABI推导限制。角色、库存、资源、Room、效果、Weapon与主体需要同目标版本和合法生命周期；完整Player／HUD接线及全部未知仍按原步骤完成，不能以本次布局生成称为已可玩。

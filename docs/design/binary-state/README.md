@@ -1,5 +1,7 @@
 # 原生二进制状态同步重构：总计划
 
+**2026-11-10 范围调整：当前先跑通原版。** 第三方 Mod 适配已迁至目录外的[Mod 适配后续方案](../mod-adaptation.md)，包含自定义状态／角色／资源／绘制、StageAPI、Lua adapter、自描述编码及原 E31。它们不属于本次 0—15 步的实现和验收条件；当前正式同步不保留 Mod 域的 Lua 读取例外。官方 REPENTOGON 加载器、J273 目标和原版所需的官方扩展 owner 保持，原版全部必要内容、四参与者／多身体及性能目标保持；历史 Mod 事实和未决问题在后续方案与原记录中保留。
+
 **2026-11-10 第6步剩余描述编码完成**：[影子状态描述实现](grid-description-implementation.md)提供正式`ClientGridDescription`、17类同源数字索引与自有不可变投影，移出字符串字段；旧JSON链明确命名为`LegacyClientGrid*`等待后续换接。线布局未改，UNKNOWN与第10／12／13步运行边界保持，不运行测试。
 
 **2026-11-10 第8步Presentation静态字节核对**：[同步职责与证据](presentation-synchronization-review.md)、[45类型／连续视图账本](presentation-byte-ledger.md)及[141行公开成员回映射](presentation-member-map.md)。最终心格／实际图像／动态HUD／History顺序和StatHUD三值保留，previous／threshold及生产器不上线；官方星象房行保留。地图本地查看与world事实分开，持续声音须状态、一次性声音走事件，Host音量／后端对象不复制。程序图／shader旁表ABI／Pause后缀／转场条件payload等UNKNOWN及具体来源缺口保持；正式Presentation布局／运行接线未实施，本轮未改生产布局版本、未构建或测试。以下记录保留各自时点。
@@ -84,6 +86,8 @@
 6. **布局用单行表格画出**：每个类型都要画出状态二进制布局，每一格写清类型和语义，见第 5 节。
 7. **新目录与数字编号**：即本目录。
 
+2026-11-10 补充决定：本轮先完成原版内容的完整同步闭环；第三方 Mod 适配独立保存，后续另行推进。范围调整不表示游戏已经跑通，本次只修订方案。
+
 性能和网络目标沿用 [tx-04-21 E2E 方案第 3.1 节](../tx-04-21/tx-04-21-e2e-plan.md)，本次不放宽：
 
 - **Host 帧率**：不低于 50 FPS，即 20 ms 整帧。
@@ -143,7 +147,7 @@
 - **“完整”的定义**：一个类型的未知字节数为 0；或者每段未知字节都已在 E2E 未知区探测（第 15 步）中确认，在覆盖场景里不发生变化，并写明理由。未知字节既不复制，也不能宣称完整。
 - **公开成员回映射**：旧目录中的公开成员改为核对表。每个 `ReplicatedState` 成员都要映射到某个布局字段、某组字段的派生、Host 权威或明确的不适用，用来检查字节归属是否有遗漏（第 1 步生成）。
 - **同步必要性**：用途已核、公开 getter 存在、旧目录曾发送或不能由其他字段推导，均不单独构成同步理由。按 Client 的结构、原生绘制／展示维护／HUD 实际依赖决定传输；纯玩法输入／历史归权威，本地 owner／地址归本地。排除传输不删除字节归属和证据。具体调整、保留理由及未决见[字段职责复核](synchronization-field-review.md)。
-- **Mod 域例外**：第三方 Mod 的自定义状态是 Lua 表，没有原生布局，不适用字节归属，处理方式见第 8 步。
+- **范围边界**：第三方 Mod 自定义状态的 schema、Lua 来源和完整性要求已迁至[后续方案](../mod-adaptation.md)，不计入当前字节归属与原版完成条件。
 
 ## 4. 新数据流
 
@@ -217,7 +221,7 @@ Client
 
 | 旧内容 | 位置 | 处理 |
 | --- | --- | --- |
-| 公开 Lua 优先、自有只读观测 Lua 作为正式采集来源 | [规范第 15 节](../../refactor/project-conventions.md)、[观测扩展总览](../observation-expansion/README.md)、[REPENTOGON 适配设计](../repentogon-refactor.md) | 正式同步改为原生二进制。Lua 观测只保留两种用途：E2E 对照，以及 Mod 域例外（第 8、14 步） |
+| 公开 Lua 优先、自有只读观测 Lua 作为正式采集来源 | [规范第 15 节](../../refactor/project-conventions.md)、[观测扩展总览](../observation-expansion/README.md)、[REPENTOGON 适配设计](../repentogon-refactor.md) | 当前正式同步改为原生二进制。Lua 观测用于目录／语义核对和 E2E 对照；Mod 域正式来源迁至[独立后续方案](../mod-adaptation.md) |
 | Host 采集性能修复方案 | [tx-04-21 采集性能方案](../tx-04-21/tx-04-21-capture-performance-plan.md) | 整体取代。成本口径 stage11—18 和有界交接的思路继续沿用 |
 | 逐成员实时目录、`field_ids`、按字段名分层 | [tx-04-21 基础](../tx-04-21/tx-04-21-foundation.md)、`stream-catalog.json`、`mod/tools/gen_stream_catalog.py`、`mod/src/replica/stream_partition.cpp` | 由第 1 步的布局源取代；成员目录改为回映射核对表 |
 | `Field`／`Atom`／`Layout` 范围模型，“永不隐式继承旧动态字段” | `mod/src/replica/stream_model.h:30-58,88`、[tx-04-21 网络合同](../tx-04-21/tx-04-21-network-contract.md) | 改为状态帧、块变化版本和显式继承已确认版本（第 9、11 步） |
@@ -250,14 +254,14 @@ Client
 | 5 | [EntityPlayer](5-player.md) | Player 0x2EA0、内嵌 Sprite、容器、身体快源块 | 3 |
 | 6 | [GridEntity](6-grid.md) | Grid 公共部分和各子类 | 2 |
 | 7 | [Room、Level、RoomSave 与 Exploration](7-room-level.md) | 房间、楼层、描述表和保存集合 | 2、6 |
-| 8 | [Run、Presentation、Random 与 Mod](8-run-presentation.md) | 整局、HUD／地图、RNG 权威和 Mod 例外 | 2 |
+| 8 | [Run、Presentation 与 Random](8-run-presentation.md) | 原版整局、HUD／地图及 RNG 权威／必要绘制输入 | 2 |
 | 9 | [线格式](9-wire-format.md) | 状态帧、记录、块、成员表、资源表和校验 | 1 |
 | 10 | [Host 采集器](10-host-capture.md) | 主线程复制、换算、引用、容器和交接 | 1—9 |
 | 11 | [Host 变化检测、增量与发布](11-host-publish.md) | 块比较、变化版本、按 Peer 组帧和 Baseline | 9、10 |
 | 12 | [Client 解码、校验与影子状态](12-client-decode.md) | 校验、版本接受规则和影子状态 | 9 |
 | 13 | [Client 原生应用](13-client-apply.md) | 冷热路径写入、描述结构替换和漂移校正 | 12 |
 | 14 | [退役旧路径与产品边界](14-retire-old-path.md) | 移除 Lua／JSON 热路径，划清产品与 E2E 构建边界 | 10—13 |
-| 15 | [E2E 适配与统一整体验收](15-e2e-acceptance.md) | Lua 对照、未知区探测、E01—E26 修订、新增 E27—E35 和唯一整体验收 | 0—14 |
+| 15 | [E2E 适配与统一整体验收](15-e2e-acceptance.md) | 原版 Lua 对照、未知区探测、E01—E26 修订及 E27—E30、E32—E35；原 E31 已迁出 | 0—14 |
 
 步骤 3—8 是字节归属研究，需要对 J273 做静态反编译，可以交叉进行；第 9 步只依赖布局源格式，可以与 3—8 并行。
 
@@ -279,7 +283,7 @@ Client
 ## 9. 未决问题与需要用户决定的事项
 
 1. **代码起点（2026-11-08 已定）**：用户已提交为 `87bae3e`（157 个文件，+6265／−532），含第 70—75 轮修复和本计划文档，作为重构起点，见第 0 步。
-2. **Mod 域**：没有原生布局，计划保留只读 Lua 来源并以低频自描述二进制块发送，见第 8 步。这是“按字节归属”的唯一例外。
+2. **Mod 适配（2026-11-10 已迁出）**：设计与未决问题见[独立后续方案](../mod-adaptation.md)，不再作为本轮未完成项或验收条件。当前先跑通原版。
 3. **tx-04-21 验收（2026-11-08 已定）**：tx-04-21 未完成的统一验收并入第 15 步，不再按原 tx 续跑；[进度文档](../tx-04-21/tx-04-21-e2e-progress.md)顶部已标注。
 4. **依赖其他状态的计算结果**：例如 `GetCollectibleNum` 的结果依赖库存、效果等多处状态。它们能否全部由已发送的字节在 Client 重建，要在第 5 步和回映射中逐项确认；不能重建的，按“换算”或“权威”归类。
 5. **未知字节**：第 3—8 步的工作量取决于各类型的未知字节数量。EntityPlayer 0x2EA0 字节、Game 0x680E8 字节的完整核对规模最大，第 5、8 步需要先给出范围划分。

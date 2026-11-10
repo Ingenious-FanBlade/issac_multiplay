@@ -12,7 +12,7 @@
 
 先读现行规范、本地原版 `EntityPlayer`／`TemporaryEffect`／`TemporaryEffects`，REP `CostumeSpriteDesc`／`History`／`HistoryItem`，再读官方 ZHL、`LuaCostumeSpriteDesc.cpp`、`LuaHistory*.cpp`、`LuaEntityPlayer.cpp` 及既有 I16—I30 安装／逆向记录。随后只读核对 IDA 的 J273 指令、反编译、调用与字段使用；VA 减 `400000` 为 RVA。没有游戏启动、构建、测试、校验脚本、哈希或 IDB 修改。
 
-本轮在此前32个 Entity／Player／HUD／Scene 展示根上加入 `HistoryHUD::Render 82FA10`。跟随五层直接调用，遇五个通用库存查询入口停止，得到33根、611个函数；另读库存查询递归、效果 leaf、costume 生产器、History／HUD 生产器及具体虚调用合同。位移命中逐项检查基址：例如 `785419`、`7FC540` 的 `+118` 是 Entity 颜色尾值，**不是 CostumeSpriteDesc.priority**。此范围不声称覆盖全部程序、间接函数或第三方 Mod；声明 Mod 的 Lua 消费仍按第8步适配，不为它恢复整个旧查询字典。
+本轮在此前32个 Entity／Player／HUD／Scene 展示根上加入 `HistoryHUD::Render 82FA10`。跟随五层直接调用，遇五个通用库存查询入口停止，得到33根、611个函数；另读库存查询递归、效果 leaf、costume 生产器、History／HUD 生产器及具体虚调用合同。位移命中逐项检查基址：例如 `785419`、`7FC540` 的 `+118` 是 Entity 颜色尾值，**不是 CostumeSpriteDesc.priority**。此范围不声称覆盖全部程序、间接函数或第三方 Mod；第三方 Mod 的 Lua 消费适配已迁至[后续方案](../mod-adaptation.md)，不再归第8步，也不为它恢复整个旧查询字典。
 
 原生指令是静态事实；下面的裁剪、规范空值、显示投影与 C/S 结构记录是设计决定。特别区分“没有展示读取”与“读取发生在不得放行的生产器中”。
 
@@ -227,7 +227,7 @@ Client构造正常本地vector，安装真实配置借用、count及704 cooldown
 
 `71C410/71C490`通过History后的`+14`更新16索引，不能因这些函数越出History大小就把后续64B误算成History自身。form leaf `7A1CC0`检查`+2010`、CoopGhost与counter≥3；本轮展示闭包没有该leaf或对应计数直接读取，外观／属性已由最终ANM、costume及HUD缓存承接。无需再发15个counter或15个HasPlayerForm布尔；不调用IncrementPlayerFormCounter触发变身。
 
-Client不安装HostHistory／禁用位／索引，也不向本地永久进度写获得史；其本地History维持正常构造的空容器和本地owner，16索引为初始化空值。旧`ClientPlayers::History`完整远端视图与Captured form／History字典按第14步退出正式消费；若声明的纯界面Mod确实需要历史，单独声明Mod schema和用途，不借此恢复整个原生History下行。合法Continue、Flip／恢复仍在Host执行，Client接收恢复后当前显示结果。
+Client不安装HostHistory／禁用位／索引，也不向本地永久进度写获得史；其本地History维持正常构造的空容器和本地owner，16索引为初始化空值。旧`ClientPlayers::History`完整远端视图与Captured form／History字典按第14步退出正式消费；第三方界面Mod额外需要的历史视图已迁至[后续方案](../mod-adaptation.md)，届时单独声明schema和用途，不借此恢复整个原生History下行。合法Continue、Flip／恢复仍在Host执行，Client接收恢复后当前显示结果。
 
 ### 5.4 残影是真正的显示历史，要保留
 
