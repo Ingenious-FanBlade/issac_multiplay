@@ -40,6 +40,7 @@ struct Field {
   const char *read_requirement; // 采集owner必须提供的读取资格，不由生成表虚构见证。
   std::uint16_t fixed_count; // 非零时没有线上u16 count，必须恰好处理全部固定槽。
   std::uint32_t value_mask; // 换算位投影；Host先mask再比较，Client只更新已核位。
+  std::uint8_t count_bytes; // 容器计数宽度：0为固定槽／非容器，1为u8，2为默认u16。
 };
 struct CopyRange {
   std::uint16_t layout;

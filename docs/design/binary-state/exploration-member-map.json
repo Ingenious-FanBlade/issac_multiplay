@@ -1,0 +1,3011 @@
+{
+  "format": "isaac.cs.exploration-member-review",
+  "revision": 1,
+  "date": "2026-11-10",
+  "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273 / Win32",
+  "source_catalog": "docs/design/tx-04-21/stream-catalog.json",
+  "ordinal_base": 0,
+  "scope": "全部原始99行；保留重载／null／空参数／旧归属；仅设计目录，非生产schema或Getter兼容",
+  "production_layout_version": 56,
+  "production_changed": false,
+  "tests_run": false,
+  "semantic_unknown_policy": "职责已判定不等于私有payload全部已知；EntitySaveState通用74B／type5视图70B、GridDesc3B及Minimap嵌套未知保持",
+  "summary": {
+    "total": 99,
+    "owners": {
+      "Level": 87,
+      "Minimap": 12
+    },
+    "decisions": {
+      "authority": 69,
+      "derived": 4,
+      "delegated": 6,
+      "reference": 1,
+      "structural": 4,
+      "field": 4,
+      "converted": 3,
+      "sdk_conflict": 1,
+      "local": 5,
+      "resource": 2
+    }
+  },
+  "members": [
+    {
+      "source_ordinal": 643,
+      "original_source_ordinal": 643,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 644,
+      "wire_name": "continuity-catalog.json|Level.AddAngelRoomChance| float Chance |void",
+      "id": "Level.AddAngelRoomChance",
+      "parameters": " float Chance ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 20
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2781
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 644,
+      "original_source_ordinal": 644,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 645,
+      "wire_name": "continuity-catalog.json|Level.AddCurse| LevelCurse Curse, boolean ShowName |void",
+      "id": "Level.AddCurse",
+      "parameters": " LevelCurse Curse, boolean ShowName ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 25
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2782
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 645,
+      "original_source_ordinal": 645,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 646,
+      "wire_name": "continuity-catalog.json|Level.ApplyBlueMapEffect| |void",
+      "id": "Level.ApplyBlueMapEffect",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 32
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2783
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 646,
+      "original_source_ordinal": 646,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 647,
+      "wire_name": "continuity-catalog.json|Level.ApplyCompassEffect| boolean Persistent |void",
+      "id": "Level.ApplyCompassEffect",
+      "parameters": " boolean Persistent ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 37
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2784
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 647,
+      "original_source_ordinal": 647,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 648,
+      "wire_name": "continuity-catalog.json|Level.ApplyMapEffect| |void",
+      "id": "Level.ApplyMapEffect",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 42
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2785
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 648,
+      "original_source_ordinal": 648,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 649,
+      "wire_name": "continuity-catalog.json|Level.CanOpenChallengeRoom| int RoomIndex |boolean",
+      "id": "Level.CanOpenChallengeRoom",
+      "parameters": " int RoomIndex ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 47
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2786
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 649,
+      "original_source_ordinal": 649,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 650,
+      "wire_name": "continuity-catalog.json|Level.CanPlaceRoom| RoomConfigRoom RoomConfigToPlace, int GridIndex, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false |boolean",
+      "id": "Level.CanPlaceRoom",
+      "parameters": " RoomConfigRoom RoomConfigToPlace, int GridIndex, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 10
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2787
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 650,
+      "original_source_ordinal": 650,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 651,
+      "wire_name": "continuity-catalog.json|Level.CanPlaceRoom| RoomShape RoomShape, DoorMask DoorMask, int GridIndex, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false |boolean",
+      "id": "Level.CanPlaceRoom",
+      "parameters": " RoomShape RoomShape, DoorMask DoorMask, int GridIndex, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 11
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2788
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 651,
+      "original_source_ordinal": 651,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 652,
+      "wire_name": "continuity-catalog.json|Level.CanPlaceRoomAtDoor| RoomConfigRoom RoomConfigToPlace, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |boolean",
+      "id": "Level.CanPlaceRoomAtDoor",
+      "parameters": " RoomConfigRoom RoomConfigToPlace, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 18
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2789
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 652,
+      "original_source_ordinal": 652,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 653,
+      "wire_name": "continuity-catalog.json|Level.CanPlaceRoomAtDoor| RoomShape RoomShape, DoorMask DoorMask, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |boolean",
+      "id": "Level.CanPlaceRoomAtDoor",
+      "parameters": " RoomShape RoomShape, DoorMask DoorMask, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 19
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2790
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 653,
+      "original_source_ordinal": 653,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 654,
+      "wire_name": "continuity-catalog.json|Level.CanSpawnDevilRoom| |boolean",
+      "id": "Level.CanSpawnDevilRoom",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 53
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2791
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 654,
+      "original_source_ordinal": 654,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 655,
+      "wire_name": "continuity-catalog.json|Level.CanSpawnDoorOutline| int RoomIdx, DoorSlot DoorSlot |boolean",
+      "id": "Level.CanSpawnDoorOutline",
+      "parameters": " int RoomIdx, DoorSlot DoorSlot ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 26
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2792
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 655,
+      "original_source_ordinal": 655,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 656,
+      "wire_name": "continuity-catalog.json|Level.CanStageHaveCurseOfLabyrinth| LevelStage Stage |boolean",
+      "id": "Level.CanStageHaveCurseOfLabyrinth",
+      "parameters": " LevelStage Stage ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 58
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2793
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 656,
+      "original_source_ordinal": 656,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 657,
+      "wire_name": "continuity-catalog.json|Level.ChangeRoom| int RoomIndex, int Dimension = -1 |void",
+      "id": "Level.ChangeRoom",
+      "parameters": " int RoomIndex, int Dimension = -1 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 63
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2794
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 657,
+      "original_source_ordinal": 657,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 658,
+      "wire_name": "continuity-catalog.json|Level.DisableDevilRoom| |void",
+      "id": "Level.DisableDevilRoom",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 71
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2795
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 658,
+      "original_source_ordinal": 658,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 659,
+      "wire_name": "continuity-catalog.json|Level.DungeonReturnPosition|None|Vector",
+      "id": "Level.DungeonReturnPosition",
+      "parameters": null,
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 462
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2796
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 659,
+      "original_source_ordinal": 659,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 660,
+      "wire_name": "continuity-catalog.json|Level.DungeonReturnRoomIndex|None|int",
+      "id": "Level.DungeonReturnRoomIndex",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 467
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2797
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 660,
+      "original_source_ordinal": 660,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 661,
+      "wire_name": "continuity-catalog.json|Level.EnterDoor|None|int",
+      "id": "Level.EnterDoor",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 472
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2798
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 661,
+      "original_source_ordinal": 661,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 662,
+      "wire_name": "continuity-catalog.json|Level.FindValidRoomPlacementLocations| RoomConfigRoom RoomConfig, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |int[]",
+      "id": "Level.FindValidRoomPlacementLocations",
+      "parameters": " RoomConfigRoom RoomConfig, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "int[]",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 30
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2799
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 662,
+      "original_source_ordinal": 662,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 663,
+      "wire_name": "continuity-catalog.json|Level.FindValidRoomPlacementLocations| RoomShape RoomShape = 1, DoorMask DoorMask = -1, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |int[]",
+      "id": "Level.FindValidRoomPlacementLocations",
+      "parameters": " RoomShape RoomShape = 1, DoorMask DoorMask = -1, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "int[]",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 31
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2800
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 663,
+      "original_source_ordinal": 663,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 664,
+      "wire_name": "continuity-catalog.json|Level.ForceHorsemanBoss| int Seed |boolean",
+      "id": "Level.ForceHorsemanBoss",
+      "parameters": " int Seed ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 76
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2801
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 664,
+      "original_source_ordinal": 664,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 665,
+      "wire_name": "continuity-catalog.json|Level.GetAbsoluteStage| |LevelStage",
+      "id": "Level.GetAbsoluteStage",
+      "parameters": " ",
+      "type": "LevelStage",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 81
+        }
+      ],
+      "decision": "derived",
+      "destination": "@L0.stage/stage_type + @Run.difficulty + @Presentation",
+      "reason": "纯元数据/显示语义，不增设原始Getter字段；完整GetAbsoluteStage公式未在本轮宣称实现",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2802
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 665,
+      "original_source_ordinal": 665,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 666,
+      "wire_name": "continuity-catalog.json|Level.GetAngelRoomChance| |float",
+      "id": "Level.GetAngelRoomChance",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 93
+        }
+      ],
+      "decision": "delegated",
+      "destination": "@Presentation.StatHUD.final_values",
+      "reason": "本API angel chance是182F4权重，不等于最终HUD概率；只同步正常Host显示缓存，不重算",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2803
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 666,
+      "original_source_ordinal": 666,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 667,
+      "wire_name": "continuity-catalog.json|Level.GetCanSeeEverything| |boolean",
+      "id": "Level.GetCanSeeEverything",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 104
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostVisibility -> L1.display_flags/L2",
+      "reason": "可见性生产输入；最终DisplayFlags、有效诅咒和地图结果承接，不复制Host查看/更新状态",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2804
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 667,
+      "original_source_ordinal": 667,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 668,
+      "wire_name": "continuity-catalog.json|Level.GetCurrentRoom| |Room",
+      "id": "Level.GetCurrentRoom",
+      "parameters": " ",
+      "type": "Room",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 109
+        }
+      ],
+      "decision": "reference",
+      "destination": "@CurrentWorld.Room",
+      "reason": "已有当前Room owner与结构身份；不复制地址，也不运行初始化",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2805
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 668,
+      "original_source_ordinal": 668,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 669,
+      "wire_name": "continuity-catalog.json|Level.GetCurrentRoomDesc| |RoomDescriptor",
+      "id": "Level.GetCurrentRoomDesc",
+      "parameters": " ",
+      "type": "RoomDescriptor",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 114
+        }
+      ],
+      "decision": "structural",
+      "destination": "L1/L3 + @OrderedOrdinaryDescriptorMembers",
+      "reason": "活动有序成员和物理源槽/三维映射承接；不调用73AD10的fallback初始化或随机/递归路由补采",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2806
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 669,
+      "original_source_ordinal": 669,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 670,
+      "wire_name": "continuity-catalog.json|Level.GetCurrentRoomIndex| |int",
+      "id": "Level.GetCurrentRoomIndex",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 127
+        }
+      ],
+      "decision": "field",
+      "destination": "L0.current_entry_index",
+      "reason": "保留入口象限／负特殊房间，不用GridIndex代替",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2807
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 670,
+      "original_source_ordinal": 670,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 671,
+      "wire_name": "continuity-catalog.json|Level.GetCurseName| |string",
+      "id": "Level.GetCurseName",
+      "parameters": " ",
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 137
+        }
+      ],
+      "decision": "delegated",
+      "destination": "@Presentation.LevelName/CurseText",
+      "reason": "保留实际已选文本/资源；challenge44逐房主题和官方CustomStageName不能仅由L0复算；实际显示批次待接线",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2808
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 671,
+      "original_source_ordinal": 671,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 672,
+      "wire_name": "continuity-catalog.json|Level.GetCurses| |LevelCurse",
+      "id": "Level.GetCurses",
+      "parameters": " ",
+      "type": "LevelCurse",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 142
+        }
+      ],
+      "decision": "converted",
+      "destination": "L0.effective_curses",
+      "reason": "742450的最终组合；原始+C、temporary和seed强制/阻止均不独立下发",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2809
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 672,
+      "original_source_ordinal": 672,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 673,
+      "wire_name": "continuity-catalog.json|Level.GetDevilAngelRoomRNG| |RNG",
+      "id": "Level.GetDevilAngelRoomRNG",
+      "parameters": " ",
+      "type": "RNG",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 147
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2810
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 673,
+      "original_source_ordinal": 673,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 674,
+      "wire_name": "continuity-catalog.json|Level.GetDimension| |Dimension",
+      "id": "Level.GetDimension",
+      "parameters": " ",
+      "type": "Dimension",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 40
+        }
+      ],
+      "decision": "converted",
+      "destination": "L0.dimension",
+      "reason": "原生i32核0..2后编码u8；不发送默认-1",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2811
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 674,
+      "original_source_ordinal": 674,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 675,
+      "wire_name": "continuity-catalog.json|Level.GetDungeonPlacementSeed| |int",
+      "id": "Level.GetDungeonPlacementSeed",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 152
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2812
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 675,
+      "original_source_ordinal": 675,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 676,
+      "wire_name": "continuity-catalog.json|Level.GetEnterPosition| |Vector",
+      "id": "Level.GetEnterPosition",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 157
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2813
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 676,
+      "original_source_ordinal": 676,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 677,
+      "wire_name": "continuity-catalog.json|Level.GetForceSpecialQuest| |SpecialQuest",
+      "id": "Level.GetForceSpecialQuest",
+      "parameters": " ",
+      "type": "SpecialQuest",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 45
+        }
+      ],
+      "decision": "authority",
+      "destination": "@LevelASM.ForceSpecialQuest",
+      "reason": "对象外生成参数，非Game偏移；结果由实际拓扑/门/显示承接",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2814
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 677,
+      "original_source_ordinal": 677,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 678,
+      "wire_name": "continuity-catalog.json|Level.GetGenerationRNG| |RNG",
+      "id": "Level.GetGenerationRNG",
+      "parameters": " ",
+      "type": "RNG",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 52
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2815
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 678,
+      "original_source_ordinal": 678,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 679,
+      "wire_name": "continuity-catalog.json|Level.GetGreedWavesClearedWithoutRedHeartDamage| |int",
+      "id": "Level.GetGreedWavesClearedWithoutRedHeartDamage",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 56
+        }
+      ],
+      "decision": "sdk_conflict",
+      "destination": "@SDK18204 != @Native18374 (HostOnly)",
+      "reason": "官方LuaLevel.cpp错误读取dimension2/grid120映射；真实计数由7455D7/80BEAB核到18374，二者均不作为Client状态",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2816
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 679,
+      "original_source_ordinal": 679,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 680,
+      "wire_name": "continuity-catalog.json|Level.GetHeartPicked| |boolean",
+      "id": "Level.GetHeartPicked",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 162
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2817
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 680,
+      "original_source_ordinal": 680,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 681,
+      "wire_name": "continuity-catalog.json|Level.GetLastBossRoomListIndex| |int",
+      "id": "Level.GetLastBossRoomListIndex",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 167
+        }
+      ],
+      "decision": "converted",
+      "destination": "L0.current_is_last_boss",
+      "reason": "原始索引留Host；L0匹配bool在所有模式保留：97D0EA Greed HUD及803313普通TrapDoor Light都需要",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "room-descriptor-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2818
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 681,
+      "original_source_ordinal": 681,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 682,
+      "wire_name": "continuity-catalog.json|Level.GetLastRoomDesc| |RoomDescriptor",
+      "id": "Level.GetLastRoomDesc",
+      "parameters": " ",
+      "type": "RoomDescriptor",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 172
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2819
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 682,
+      "original_source_ordinal": 682,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 683,
+      "wire_name": "continuity-catalog.json|Level.GetMyosotisPickups| |EntitiesSaveStateVector",
+      "id": "Level.GetMyosotisPickups",
+      "parameters": " ",
+      "type": "EntitiesSaveStateVector",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 60
+        }
+      ],
+      "decision": "authority",
+      "destination": "@Host.MyosotisQueue + @Entity.CreatedPickup",
+      "reason": "跨层保存/生成留Host，实际创建的Pickup独立同步，不在Client Restore",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2820
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 683,
+      "original_source_ordinal": 683,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 684,
+      "wire_name": "continuity-catalog.json|Level.GetName| |string",
+      "id": "Level.GetName",
+      "parameters": " ",
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 177
+        }
+      ],
+      "decision": "delegated",
+      "destination": "@Presentation.LevelName/CurseText",
+      "reason": "保留实际已选文本/资源；challenge44逐房主题和官方CustomStageName不能仅由L0复算；实际显示批次待接线",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2821
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 684,
+      "original_source_ordinal": 684,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 685,
+      "wire_name": "continuity-catalog.json|Level.GetNeighboringRooms| int GridIndex, RoomShape RoomShape, Dimension Dimension = -1 |table",
+      "id": "Level.GetNeighboringRooms",
+      "parameters": " int GridIndex, RoomShape RoomShape, Dimension Dimension = -1 ",
+      "type": "table",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 65
+        }
+      ],
+      "decision": "derived",
+      "destination": "@DescriptorTopology",
+      "reason": "从同world已安装配置形状、三维占用和源槽关系作具名纯结构查询；不是重跑放房/连门",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2822
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 685,
+      "original_source_ordinal": 685,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 686,
+      "wire_name": "continuity-catalog.json|Level.GetNonCompleteRoomIndex| |int",
+      "id": "Level.GetNonCompleteRoomIndex",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 182
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2823
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 686,
+      "original_source_ordinal": 686,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 687,
+      "wire_name": "continuity-catalog.json|Level.GetPlanetariumChance| |float",
+      "id": "Level.GetPlanetariumChance",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 187
+        }
+      ],
+      "decision": "delegated",
+      "destination": "@Presentation.StatHUD.final_values",
+      "reason": "本API angel chance是182F4权重，不等于最终HUD概率；只同步正常Host显示缓存，不重算",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2824
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 687,
+      "original_source_ordinal": 687,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 688,
+      "wire_name": "continuity-catalog.json|Level.GetPreviousRoomIndex| |int",
+      "id": "Level.GetPreviousRoomIndex",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 193
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2825
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 688,
+      "original_source_ordinal": 688,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 689,
+      "wire_name": "continuity-catalog.json|Level.GetRandomRoomIndex| boolean IAmErrorRoom, int Seed |int",
+      "id": "Level.GetRandomRoomIndex",
+      "parameters": " boolean IAmErrorRoom, int Seed ",
+      "type": "int",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 198
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2826
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 689,
+      "original_source_ordinal": 689,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 690,
+      "wire_name": "continuity-catalog.json|Level.GetRoomByIdx| int RoomIdx, int Dimension = -1 |RoomDescriptor",
+      "id": "Level.GetRoomByIdx",
+      "parameters": " int RoomIdx, int Dimension = -1 ",
+      "type": "RoomDescriptor",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 203
+        }
+      ],
+      "decision": "structural",
+      "destination": "L1/L3 + @OrderedOrdinaryDescriptorMembers",
+      "reason": "活动有序成员和物理源槽/三维映射承接；不调用73AD10的fallback初始化或随机/递归路由补采",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2827
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 690,
+      "original_source_ordinal": 690,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 691,
+      "wire_name": "continuity-catalog.json|Level.GetRoomCount| |int",
+      "id": "Level.GetRoomCount",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 226
+        }
+      ],
+      "decision": "structural",
+      "destination": "L1/L3 + @OrderedOrdinaryDescriptorMembers",
+      "reason": "活动有序成员和物理源槽/三维映射承接；不调用73AD10的fallback初始化或随机/递归路由补采",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2828
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 691,
+      "original_source_ordinal": 691,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 692,
+      "wire_name": "continuity-catalog.json|Level.GetRooms| |RoomDescriptor List",
+      "id": "Level.GetRooms",
+      "parameters": " ",
+      "type": "RoomDescriptor List",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 231
+        }
+      ],
+      "decision": "structural",
+      "destination": "L1/L3 + @OrderedOrdinaryDescriptorMembers",
+      "reason": "活动有序成员和物理源槽/三维映射承接；不调用73AD10的fallback初始化或随机/递归路由补采",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2829
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 692,
+      "original_source_ordinal": 692,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 693,
+      "wire_name": "continuity-catalog.json|Level.GetStage| |LevelStage",
+      "id": "Level.GetStage",
+      "parameters": " ",
+      "type": "LevelStage",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 246
+        }
+      ],
+      "decision": "field",
+      "destination": "L0.stage",
+      "reason": "多个原生Room/HUD/地图消费者需要当前stage，不能仅传楼层名称",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2830
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 693,
+      "original_source_ordinal": 693,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 694,
+      "wire_name": "continuity-catalog.json|Level.GetStageType| |StageType",
+      "id": "Level.GetStageType",
+      "parameters": " ",
+      "type": "StageType",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 251
+        }
+      ],
+      "decision": "field",
+      "destination": "L0.stage_type",
+      "reason": "当前全局stageType参与镜面与显示；挑战44逐房主题另由资源结果承接",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2831
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 694,
+      "original_source_ordinal": 694,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 695,
+      "wire_name": "continuity-catalog.json|Level.GetStartingRoomIndex| |int",
+      "id": "Level.GetStartingRoomIndex",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 260
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2832
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 695,
+      "original_source_ordinal": 695,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 696,
+      "wire_name": "continuity-catalog.json|Level.GetStateFlag| LevelStateFlag LevelStateFlag|boolean",
+      "id": "Level.GetStateFlag",
+      "parameters": " LevelStateFlag LevelStateFlag",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 266
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelFlags -> @FinalWorldResults",
+      "reason": "24个flags原值均不作为通用查询字典下发；最终地图/门/实体/音画仍必需",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2833
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 696,
+      "original_source_ordinal": 696,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 697,
+      "wire_name": "continuity-catalog.json|Level.GreedModeWave|None|int",
+      "id": "Level.GreedModeWave",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 481
+        }
+      ],
+      "decision": "field",
+      "destination": "L0.greed_wave",
+      "reason": "97D371显示%d/%d；只读真实Greed当前wave，非Greed规范0",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2834
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 697,
+      "original_source_ordinal": 697,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 698,
+      "wire_name": "continuity-catalog.json|Level.HasAbandonedMineshaft| |boolean",
+      "id": "Level.HasAbandonedMineshaft",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 90
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2835
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 698,
+      "original_source_ordinal": 698,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 699,
+      "wire_name": "continuity-catalog.json|Level.HasBossChallenge| |boolean",
+      "id": "Level.HasBossChallenge",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 271
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2836
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 699,
+      "original_source_ordinal": 699,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 700,
+      "wire_name": "continuity-catalog.json|Level.HasMirrorDimension| |boolean",
+      "id": "Level.HasMirrorDimension",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 95
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2837
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 700,
+      "original_source_ordinal": 700,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 701,
+      "wire_name": "continuity-catalog.json|Level.HasPhotoDoor| |boolean",
+      "id": "Level.HasPhotoDoor",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 100
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2838
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 701,
+      "original_source_ordinal": 701,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 702,
+      "wire_name": "continuity-catalog.json|Level.InitializeDevilAngelRoom| boolean ForceAngel, boolean ForceDevil |void",
+      "id": "Level.InitializeDevilAngelRoom",
+      "parameters": " boolean ForceAngel, boolean ForceDevil ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 276
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2839
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 702,
+      "original_source_ordinal": 702,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 703,
+      "wire_name": "continuity-catalog.json|Level.IsAltStage| |boolean",
+      "id": "Level.IsAltStage",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 289
+        }
+      ],
+      "decision": "derived",
+      "destination": "@L0.stage/stage_type + @Run.difficulty + @Presentation",
+      "reason": "纯元数据/显示语义，不增设原始Getter字段；完整GetAbsoluteStage公式未在本轮宣称实现",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2840
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 703,
+      "original_source_ordinal": 703,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 704,
+      "wire_name": "continuity-catalog.json|Level.IsAscent| |boolean",
+      "id": "Level.IsAscent",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 295
+        }
+      ],
+      "decision": "delegated",
+      "destination": "@Run.ascent_display_bit48",
+      "reason": "第8步已核bit48显示投影，Level不重复复制Game全flags",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2841
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 704,
+      "original_source_ordinal": 704,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 705,
+      "wire_name": "continuity-catalog.json|Level.IsDevilRoomDisabled| |boolean",
+      "id": "Level.IsDevilRoomDisabled",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 301
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2842
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 705,
+      "original_source_ordinal": 705,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 706,
+      "wire_name": "continuity-catalog.json|Level.IsNextStageAvailable| |boolean",
+      "id": "Level.IsNextStageAvailable",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 306
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2843
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 706,
+      "original_source_ordinal": 706,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 707,
+      "wire_name": "continuity-catalog.json|Level.IsPreAscent| |boolean",
+      "id": "Level.IsPreAscent",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 312
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostRoute + @Presentation.FinalTransition",
+      "reason": "路线/生成资格留Host；实际Nightmare/背景/转场由显示owner承接，不恢复Game bit47原值",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2844
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 707,
+      "original_source_ordinal": 707,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 708,
+      "wire_name": "continuity-catalog.json|Level.IsStageAvailable| LevelStage Level, StageType Stage |void",
+      "id": "Level.IsStageAvailable",
+      "parameters": " LevelStage Level, StageType Stage ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 105
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostStageUnlockEligibility",
+      "reason": "本地Wiki列出解锁资格查询；只由Host决定路线，不查Client本地成就/解锁，不新增返回值字段",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2845
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 708,
+      "original_source_ordinal": 708,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 709,
+      "wire_name": "continuity-catalog.json|Level.LeaveDoor|None|int",
+      "id": "Level.LeaveDoor",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 486
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2846
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 709,
+      "original_source_ordinal": 709,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 710,
+      "wire_name": "continuity-catalog.json|Level.MakeRedRoomDoor| int CurrentRoomIdx, DoorSlot Slot |boolean",
+      "id": "Level.MakeRedRoomDoor",
+      "parameters": " int CurrentRoomIdx, DoorSlot Slot ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 318
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2847
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 710,
+      "original_source_ordinal": 710,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 711,
+      "wire_name": "continuity-catalog.json|Level.PlaceRoom| LevelGeneratorEntry Room, RoomConfigRoom RoomConfig, int Seed |boolean",
+      "id": "Level.PlaceRoom",
+      "parameters": " LevelGeneratorEntry Room, RoomConfigRoom RoomConfig, int Seed ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 110
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2848
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 711,
+      "original_source_ordinal": 711,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 712,
+      "wire_name": "continuity-catalog.json|Level.QueryRoomTypeIndex| RoomType RoomType, boolean Visited, RNG rng, boolean IgnoreGroup = false |int",
+      "id": "Level.QueryRoomTypeIndex",
+      "parameters": " RoomType RoomType, boolean Visited, RNG rng, boolean IgnoreGroup = false ",
+      "type": "int",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 328
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2849
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 712,
+      "original_source_ordinal": 712,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 713,
+      "wire_name": "continuity-catalog.json|Level.RemoveCompassEffect| |void",
+      "id": "Level.RemoveCompassEffect",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 333
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2850
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 713,
+      "original_source_ordinal": 713,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 714,
+      "wire_name": "continuity-catalog.json|Level.RemoveCurses| LevelCurse Curses |void",
+      "id": "Level.RemoveCurses",
+      "parameters": " LevelCurse Curses ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 338
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2851
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 714,
+      "original_source_ordinal": 714,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 715,
+      "wire_name": "continuity-catalog.json|Level.SetCanSeeEverything| boolean Value |void",
+      "id": "Level.SetCanSeeEverything",
+      "parameters": " boolean Value ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 349
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2852
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 715,
+      "original_source_ordinal": 715,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 716,
+      "wire_name": "continuity-catalog.json|Level.SetForceSpecialQuest| SpecialQuest Quest |void",
+      "id": "Level.SetForceSpecialQuest",
+      "parameters": " SpecialQuest Quest ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 119
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2853
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 716,
+      "original_source_ordinal": 716,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 717,
+      "wire_name": "continuity-catalog.json|Level.SetGreedWavesClearedWithoutRedHeartDamage| int WavesCleared |void",
+      "id": "Level.SetGreedWavesClearedWithoutRedHeartDamage",
+      "parameters": " int WavesCleared ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 126
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2854
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 717,
+      "original_source_ordinal": 717,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 718,
+      "wire_name": "continuity-catalog.json|Level.SetHeartPicked| |void",
+      "id": "Level.SetHeartPicked",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 354
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2855
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 718,
+      "original_source_ordinal": 718,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 719,
+      "wire_name": "continuity-catalog.json|Level.SetName| string Name |void",
+      "id": "Level.SetName",
+      "parameters": " string Name ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 130
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2856
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 719,
+      "original_source_ordinal": 719,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 720,
+      "wire_name": "continuity-catalog.json|Level.SetNextStage| |void",
+      "id": "Level.SetNextStage",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 359
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2857
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 720,
+      "original_source_ordinal": 720,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 721,
+      "wire_name": "continuity-catalog.json|Level.SetRedHeartDamage| |void",
+      "id": "Level.SetRedHeartDamage",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 364
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2858
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 721,
+      "original_source_ordinal": 721,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 722,
+      "wire_name": "continuity-catalog.json|Level.SetStage| int StageOffset, int StageTypeOffset |void",
+      "id": "Level.SetStage",
+      "parameters": " int StageOffset, int StageTypeOffset ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 369
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2859
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 722,
+      "original_source_ordinal": 722,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 723,
+      "wire_name": "continuity-catalog.json|Level.SetStateFlag| LevelStateFlag LevelStateFlag, boolean Val |void",
+      "id": "Level.SetStateFlag",
+      "parameters": " LevelStateFlag LevelStateFlag, boolean Val ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 408
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2860
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 723,
+      "original_source_ordinal": 723,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 724,
+      "wire_name": "continuity-catalog.json|Level.ShowMap| |void",
+      "id": "Level.ShowMap",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 413
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2861
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 724,
+      "original_source_ordinal": 724,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 725,
+      "wire_name": "continuity-catalog.json|Level.ShowName| boolean Sticky |void",
+      "id": "Level.ShowName",
+      "parameters": " boolean Sticky ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 418
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2862
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 725,
+      "original_source_ordinal": 725,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 726,
+      "wire_name": "continuity-catalog.json|Level.TryPlaceRoom| RoomConfigRoom RoomConfigToPlace, int GridIndex, Dimension Dimension = -1, int Seed = 0, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false |RoomDescriptor",
+      "id": "Level.TryPlaceRoom",
+      "parameters": " RoomConfigRoom RoomConfigToPlace, int GridIndex, Dimension Dimension = -1, int Seed = 0, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false ",
+      "type": "RoomDescriptor",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 134
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2863
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 726,
+      "original_source_ordinal": 726,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 727,
+      "wire_name": "continuity-catalog.json|Level.TryPlaceRoomAtDoor| RoomConfigRoom RoomConfigToPlace, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, int Seed = 0, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |RoomDescriptor",
+      "id": "Level.TryPlaceRoomAtDoor",
+      "parameters": " RoomConfigRoom RoomConfigToPlace, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, int Seed = 0, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "RoomDescriptor",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 198
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2864
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 727,
+      "original_source_ordinal": 727,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 728,
+      "wire_name": "continuity-catalog.json|Level.UncoverHiddenDoor| int CurrentRoomIdx, DoorSlot Slot |void",
+      "id": "Level.UncoverHiddenDoor",
+      "parameters": " int CurrentRoomIdx, DoorSlot Slot ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 423
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2865
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 728,
+      "original_source_ordinal": 728,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 729,
+      "wire_name": "continuity-catalog.json|Level.Update| |void",
+      "id": "Level.Update",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 428
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2866
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 729,
+      "original_source_ordinal": 729,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 730,
+      "wire_name": "continuity-catalog.json|Level.UpdateVisibility| |void",
+      "id": "Level.UpdateVisibility",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 433
+        }
+      ],
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "level-synchronization-review.md"
+      ],
+      "shared_semantics": {
+        "map": "level-member-map.json",
+        "source_ordinal": 2867
+      },
+      "capture_owner": "复用现有Level／RoomDescriptor唯一owner；本域不重复采集／建字段"
+    },
+    {
+      "source_ordinal": 730,
+      "original_source_ordinal": 730,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 731,
+      "wire_name": "continuity-catalog.json|Minimap.GetDisplayedSize| |Vector",
+      "id": "Minimap.GetDisplayedSize",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 21
+        }
+      ],
+      "decision": "derived",
+      "destination": "@LocalMinimap.DisplayedSize",
+      "reason": "视口／展开alpha／本地config bounds派生；Wiki未展开时47×47不构成Host状态字段",
+      "native_source": "963540 / 本地MinimapConfig",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    },
+    {
+      "source_ordinal": 731,
+      "original_source_ordinal": 731,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 732,
+      "wire_name": "continuity-catalog.json|Minimap.GetHoldTime| |int",
+      "id": "Minimap.GetHoldTime",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 26
+        }
+      ],
+      "decision": "local",
+      "destination": "@LocalMinimap.ViewInput",
+      "reason": "本地Map长按历史，不强制其它端展开，不复制Host输入",
+      "native_source": "Minimap+08 u32",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    },
+    {
+      "source_ordinal": 732,
+      "original_source_ordinal": 732,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 733,
+      "wire_name": "continuity-catalog.json|Minimap.GetIconsSprite| |Sprite",
+      "id": "Minimap.GetIconsSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 30
+        }
+      ],
+      "decision": "resource",
+      "destination": "@Presentation.Minimap.IconsAppearance + L2",
+      "reason": "只保留实际资源／必要可变图层外观；每个房间图标由L1/L2驱动，不把指针或最后一帧当完整地图",
+      "native_source": "Minimap+500 ANM2",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    },
+    {
+      "source_ordinal": 733,
+      "original_source_ordinal": 733,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 734,
+      "wire_name": "continuity-catalog.json|Minimap.GetItemIconsSprite| |Sprite",
+      "id": "Minimap.GetItemIconsSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 34
+        }
+      ],
+      "decision": "resource",
+      "destination": "@Presentation.Minimap.ItemIconsAppearance + @Presentation.MapBadgeList",
+      "reason": "道具／诅咒徽标必须有最终有序列表；逐项SetFrame使最后Sprite帧不等价整列；资源唯一owner承接",
+      "native_source": "Minimap+2D8 ANM2 / 966300",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    },
+    {
+      "source_ordinal": 734,
+      "original_source_ordinal": 734,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 735,
+      "wire_name": "continuity-catalog.json|Minimap.GetShakeDuration| |int",
+      "id": "Minimap.GetShakeDuration",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 38
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostMinimap.ShakeProducer",
+      "reason": "只控制随机offset生产，Client使用最终Vector，不重放倒计时／随机",
+      "native_source": "Minimap+61C i32 / 965DB0",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    },
+    {
+      "source_ordinal": 735,
+      "original_source_ordinal": 735,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 736,
+      "wire_name": "continuity-catalog.json|Minimap.GetShakeOffset| |Vector",
+      "id": "Minimap.GetShakeOffset",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 42
+        }
+      ],
+      "decision": "delegated",
+      "destination": "@Presentation.Minimap.ShakeOffset",
+      "reason": "同world最终二维偏移由Render直接消费；只有这一份owner，不从Client RNG重建",
+      "native_source": "Minimap+620 Vector / 966680",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    },
+    {
+      "source_ordinal": 736,
+      "original_source_ordinal": 736,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 737,
+      "wire_name": "continuity-catalog.json|Minimap.GetState| |MinimapState",
+      "id": "Minimap.GetState",
+      "parameters": " ",
+      "type": "MinimapState",
+      "old_ownership": "ReplicatedState",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 46
+        }
+      ],
+      "decision": "local",
+      "destination": "@LocalMinimap.ViewState",
+      "reason": "NORMAL／EXPANDED／EXPANDED_OPAQUE是本地查看状态，world显示限制另施加",
+      "native_source": "Minimap+00 i32",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    },
+    {
+      "source_ordinal": 737,
+      "original_source_ordinal": 737,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 738,
+      "wire_name": "continuity-catalog.json|Minimap.Refresh| |void",
+      "id": "Minimap.Refresh",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 50
+        }
+      ],
+      "decision": "local",
+      "destination": "@SafeMinimapCacheAdapter; native Refresh forbidden",
+      "reason": "命令不下行；原生965D60→9635B0有FBO及challenge32随机选择，只能使用同world已核结果的受控缓存adapter",
+      "native_source": "965D60 -> 9635B0",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    },
+    {
+      "source_ordinal": 738,
+      "original_source_ordinal": 738,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 739,
+      "wire_name": "continuity-catalog.json|Minimap.SetHoldTime| int Time |void",
+      "id": "Minimap.SetHoldTime",
+      "parameters": " int Time ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 54
+        }
+      ],
+      "decision": "local",
+      "destination": "@LocalMinimap.ViewInput",
+      "reason": "本地UI写入不网络回放，不经原版Online动作历史",
+      "native_source": "Minimap+08 u32",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    },
+    {
+      "source_ordinal": 739,
+      "original_source_ordinal": 739,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 740,
+      "wire_name": "continuity-catalog.json|Minimap.SetShakeDuration| int Duration |void",
+      "id": "Minimap.SetShakeDuration",
+      "parameters": " int Duration ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 58
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostMinimap.ShakeProducer -> @Presentation.Minimap.ShakeOffset",
+      "reason": "Host生产控制命令不下行；Client只应用实际最终offset",
+      "native_source": "Minimap+61C i32",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    },
+    {
+      "source_ordinal": 740,
+      "original_source_ordinal": 740,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 741,
+      "wire_name": "continuity-catalog.json|Minimap.SetShakeOffset| Vector Offset |void",
+      "id": "Minimap.SetShakeOffset",
+      "parameters": " Vector Offset ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 62
+        }
+      ],
+      "decision": "authority",
+      "destination": "@HostMinimap.ShakeProducer -> @Presentation.Minimap.ShakeOffset",
+      "reason": "不回放Setter命令；结果由唯一Presentation状态owner承接",
+      "native_source": "Minimap+620 Vector",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    },
+    {
+      "source_ordinal": 741,
+      "original_source_ordinal": 741,
+      "original_source_schema": "isaac.cs.exploration",
+      "field": 742,
+      "wire_name": "continuity-catalog.json|Minimap.SetState| MinimapState State |void",
+      "id": "Minimap.SetState",
+      "parameters": " MinimapState State ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Minimap.md",
+          "line": 66
+        }
+      ],
+      "decision": "local",
+      "destination": "@LocalMinimap.ViewState",
+      "reason": "各端自行查看，Host命令不强制访客状态；world强制显示资格独立处理",
+      "native_source": "Minimap+00 i32",
+      "evidence": [
+        "room-save-exploration-synchronization-review.md",
+        "presentation-synchronization-review.md"
+      ]
+    }
+  ],
+  "supplements": [
+    {
+      "id": "MinimapConfig.borderSprite[2]",
+      "original_catalog_member": false,
+      "decision": "resource",
+      "reason": "小／大地图边框独立实际资源，公开12行缺席不等于可省略",
+      "evidence": "presentation-byte-ledger.json:MinimapConfig"
+    },
+    {
+      "id": "MapBadgeList",
+      "original_catalog_member": false,
+      "decision": "converted",
+      "destination": "@Presentation.MapBadgeList (unregistered design)",
+      "reason": "966300的最多7项最终有序icons／curses，1B count + i8[count]；不能只发Sprite最后一帧或揭图flags",
+      "evidence": "J273 VA966300; level-synchronization-review.md:81",
+      "wire_design": {
+        "count_type": "u8",
+        "maximum_count": 7,
+        "element_type": "i8",
+        "allowed_ids": [
+          -9,
+          -8,
+          -7,
+          -6,
+          -5,
+          -4,
+          -3,
+          -2,
+          -1,
+          0,
+          1,
+          2,
+          4,
+          5
+        ],
+        "minimum_bytes": 1,
+        "maximum_bytes": 8,
+        "production_registered": false
+      }
+    },
+    {
+      "id": "L1 exploration / L2 save icons / challenge32 map context",
+      "original_catalog_member": false,
+      "decision": "delegated",
+      "reason": "唯一地图事实：完整DisplayFlags、visited非零、五位flags、OR/max图标、Host已选锚点／窗口；不另建exploration重复块",
+      "evidence": "room-descriptor-byte-ledger.json; room-random-handoff.json"
+    },
+    {
+      "id": "LevelStateFlag map/blue-map/full-map/compass",
+      "original_catalog_member": false,
+      "decision": "authority",
+      "reason": "原四bool仅为观测；正式同步用最终显示事实，实际道具徽标独立，不能从这些flag补值",
+      "evidence": "level-member-map.json; mod/observation/isaac-cs-observation/domains/exploration/collect.lua"
+    }
+  ]
+}

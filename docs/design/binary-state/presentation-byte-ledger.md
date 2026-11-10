@@ -1,5 +1,7 @@
 # 第8步 Presentation：原生字节核对账本
 
+**2026-11-10修订2**：[第7步显示／资源补证](room-display-resource-design.md)将Minimap+614..61B核为独立Lost问号ImageStrongPair，直属UNKNOWN23→15B；原8B未知记录保存在JSON的display_resource_revision，其余字节／未知不变。生产版本56，无测试。
+
 2026-11-10。源：[presentation-byte-ledger.json](presentation-byte-ledger.json)。判定依据与待办见[presentation-synchronization-review.md](presentation-synchronization-review.md)。
 
 **设计核对表，未进入正式布局生成链。** 本轮不修改生产布局版本，不表示第8步整体、正式采集／安装或E2E完成。每个声明边界显式列出所有字节；UNKNOWN、SDK声明与前缀限制照实保留。外部容器元素及资源派生体不计入根的固定字节；被归Host／本地的外层不会因嵌套ANM2的通用归属而恢复发送。
@@ -30,7 +32,7 @@
 | HistoryHUD | 0x2C | 3B（不含嵌套） | 已登记整个声明范围 |
 | HUD | 0x5C90 | 169B（不含嵌套） | 已登记整个声明范围 |
 | MinimapConfig | 0x160 | 12B（不含嵌套） | 已登记整个声明范围 |
-| Minimap | 0x628 | 23B（不含嵌套） | 已登记整个声明范围 |
+| Minimap | 0x628 | 15B（不含嵌套） | 已登记整个声明范围 |
 | ColorModState | 0x18 | 0B（不含嵌套） | 已登记整个声明范围 |
 | GenericPrompt | 0x134 | 4B（不含嵌套） | 已登记整个声明范围 |
 | ItemOverlayDefinition | 0x58 | 4B（不含嵌套） | 已登记整个声明范围 |
@@ -258,7 +260,7 @@
 
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Minimap.zhl; Wiki Minimap.md; J273 965DB0/965D60/9635B0/963540/966680
 
-| 0x0—0x3 i32 state【本地；已核】本地查看/展开状态 → 不同步Host按键；world强制隐藏由独立最终资格控制 | 0x4—0x4 bool hold_mode【本地；已核】本地map按住/释放转换历史 → 不发送，不读取原版Online输入 | 0x5—0x7 bytes[3] unknown_5_7【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x8—0xB u32 hold_time【本地；已核】Map动作长按时间 → 不发送；C/S本地UI采样 | 0xC—0xF f32 unknown_float【未知；未知】SDK仅给_unkFloat，没有语义证据 → 不发送；保留UNKNOWN | 0x10—0x17 bytes[8] unknown_10_17【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x18—0x2D7 MinimapConfig[2] configs【容器；已核】小/大地图两份缓存 → 分开最终资源、world事实和本地视口 | 0x2D8—0x3EB ANM2 item_icons【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x3EC—0x4FF ANM2 pickup_sprite【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → SDK称seems unused不是证明；保留字节事实，具体无消费者投影不发，不宣称可安全删除资源 | 0x500—0x613 ANM2 icons【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x614—0x61B bytes[8] unknown_614_61B【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x61C—0x61F i32 shake_duration【权威；已核】965DB0用随机生成震动的控制倒计时 → 不发送；不调用其随机生产器 | 0x620—0x627 Vector shake_offset【状态；已核】Render直接使用的最终震动偏移 → 同步同world两值，不从Client RNG重算 |
+| 0x0—0x3 i32 state【本地；已核】本地查看/展开状态 → 不同步Host按键；world强制隐藏由独立最终资格控制 | 0x4—0x4 bool hold_mode【本地；已核】本地map按住/释放转换历史 → 不发送，不读取原版Online输入 | 0x5—0x7 bytes[3] unknown_5_7【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x8—0xB u32 hold_time【本地；已核】Map动作长按时间 → 不发送；C/S本地UI采样 | 0xC—0xF f32 unknown_float【未知；未知】SDK仅给_unkFloat，没有语义证据 → 不发送；保留UNKNOWN | 0x10—0x17 bytes[8] unknown_10_17【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x18—0x2D7 MinimapConfig[2] configs【容器；已核】小/大地图两份缓存 → 分开最终资源、world事实和本地视口 | 0x2D8—0x3EB ANM2 item_icons【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x3EC—0x4FF ANM2 pickup_sprite【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → SDK称seems unused不是证明；保留字节事实，具体无消费者投影不发，不宣称可安全删除资源 | 0x500—0x613 ANM2 icons【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x614—0x61B ImageStrongPair question_image【资源；已核】Lost独立问号图像；965BDE加载minimap_questionmark.png，965BFF..965C0C赋入+614，966680直接消费 → Presentation实际可空图像资源引用；地址／control本地，不是iconsSprite某帧 | 0x61C—0x61F i32 shake_duration【权威；已核】965DB0用随机生成震动的控制倒计时 → 不发送；不调用其随机生产器 | 0x620—0x627 Vector shake_offset【状态；已核】Render直接使用的最终震动偏移 → 同步同world两值，不从Client RNG重算 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## ColorModState

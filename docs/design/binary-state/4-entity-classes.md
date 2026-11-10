@@ -119,7 +119,7 @@
 
 #### 4.1.3 原生字节归属与payload
 
-完整原生单行表见[基础臂](layouts/EntityEffect.md)、[TearFlags](layouts/EntityEffect_TearFlags.md)、[GridDesc](layouts/EntityEffect_GridDesc.md)及三个附属臂；不得以本节摘要替代完整0—sizeof归属。
+完整原生单行表见[基础臂](layouts/04-entity-classes/EntityEffect.md)、[TearFlags](layouts/04-entity-classes/EntityEffect_TearFlags.md)、[GridDesc](layouts/04-entity-classes/EntityEffect_GridDesc.md)及三个附属臂；不得以本节摘要替代完整0—sizeof归属。
 
 | MrMeData25：0x0 vptr【本地】 | 0x4 i32目标处理分支【权威】 | 0x8 ANM2独立Sprite【逐字段】 | 0x11C i32暂存碰撞类别【权威】 | 0x120 i32格子序号【权威】 | 0x124 i32动作计数【权威】 |
 |---|---|---|---|---|---|
@@ -135,7 +135,7 @@
 | PickupGhostData28：0x0 vptr【本地】 | 0x4 ANM2[4]共0x450B【逐槽归属，线上只发有效前缀】 | 0x454 i32 count【派生】由三投影一致的u16数量重建 |
 |---|---|---|
 
-Ghost采用[专用ANM2视图134](layouts/EffectPickupGhostSprite.md)：Offset与Scale共16B由`602F4E—602F68`在每次绘制前完全覆写，归派生；其他资源、动画、独立选择器、图层和颜色保持。通用ANM2布局7与MrMe不变。全部四槽仍展开原生归属，未使用槽不发送但每槽14B未知继续保留。MrMe仅其外部16B有新证据，未知30→14B；根对象未知不变。
+Ghost采用[专用ANM2视图134](layouts/04-entity-classes/EffectPickupGhostSprite.md)：Offset与Scale共16B由`602F4E—602F68`在每次绘制前完全覆写，归派生；其他资源、动画、独立选择器、图层和颜色保持。通用ANM2布局7与MrMe不变。全部四槽仍展开原生归属，未使用槽不发送但每槽14B未知继续保留。MrMe仅其外部16B有新证据，未知30→14B；根对象未知不变。
 
 #### 4.1.4 状态块
 
@@ -216,7 +216,7 @@ Render真实消费Timeout，继续每个采集窗从原值重算`A=F+T`，Client
 
 #### 4.2.3 变体臂（版本46）
 
-142号EntityNPC与143号EntityNPC_Delirium均已入源，仍先按RTTI确定NPC，再以继承的type字段选臂。type412臂用于保留BC8—BEB的真实字节归属和4B UNKNOWN，不代表它多出Client状态。完整表见[142](layouts/EntityNPC.md)、[143](layouts/EntityNPC_Delirium.md)。
+142号EntityNPC与143号EntityNPC_Delirium均已入源，仍先按RTTI确定NPC，再以继承的type字段选臂。type412臂用于保留BC8—BEB的真实字节归属和4B UNKNOWN，不代表它多出Client状态。完整表见[142](layouts/04-entity-classes/EntityNPC.md)、[143](layouts/04-entity-classes/EntityNPC_Delirium.md)。
 
 | 布局 | 选择字段type | BC8—BEB归属 | 17／18块 |
 | --- | --- | --- | --- |
@@ -243,7 +243,7 @@ Render真实消费Timeout，继续每个采集窗从原值重算`A=F+T`，Client
 | N0：+0 i32 State | +4 i32 ProjectileDelay | +8 Vector V1 | +16 i32 I2 | +20 i32 ChampionColorIdx | +24 u8 controlled_ui_mode；共25B |
 |---|---|---|---|---|---|
 
-三deque各≤16384，完整逻辑序列与owner合同不变。ControllerId不作为raw i32传输：版本43只允许0=无控制者、2=受控，模式1无效。来源已闭合为C/S窗口只读F1C的-1哨兵，不读取原版NetplayManager；ReadNpcControlledUi／DecodeNpcControlledUi已落地，Client只存表现旁表，正式窗口与整段绘制条件绕行归第10／13步。+CD8只有Scale由同版本主Sprite null-frame重建，其他资源／姿态及+DEC保持；详见[144号表](layouts/NpcOverlaySprite.md)。普通NPC与Delirium最小均710B，含公共391B，不含帧头与实际变长负载。版本46根未知586／590B，NPC本类223B和其他嵌套未知保持。
+三deque各≤16384，完整逻辑序列与owner合同不变。ControllerId不作为raw i32传输：版本43只允许0=无控制者、2=受控，模式1无效。来源已闭合为C/S窗口只读F1C的-1哨兵，不读取原版NetplayManager；ReadNpcControlledUi／DecodeNpcControlledUi已落地，Client只存表现旁表，正式窗口与整段绘制条件绕行归第10／13步。+CD8只有Scale由同版本主Sprite null-frame重建，其他资源／姿态及+DEC保持；详见[144号表](layouts/04-entity-classes/NpcOverlaySprite.md)。普通NPC与Delirium最小均710B，含公共391B，不含帧头与实际变长负载。版本46根未知586／590B，NPC本类223B和其他嵌套未知保持。
 
 #### 4.2.6 资源变化与生命周期
 
@@ -272,7 +272,7 @@ Delirium十个唯一公开ReplicatedState全部归Host查询；BossType／Varian
 
 ### 4.3 Familiar、Knife、Bomb 本轮实现（2026-11-08）
 
-布局源为 `mod/binding/state/entity-classes.json`，本节记录版本16当时的实际实现范围；后续版本33已排除HeadFrameDelay等11个参数，并补入80／240的展示负载，当前传输以本页顶部及生成表为准。原生发现、遗漏修复和编译事实保留，不把未知字节归属和第15步验收提前写成完成。生成表分别见 [Familiar](layouts/EntityFamiliar.md)、[Knife](layouts/EntityKnife.md)、[Bomb](layouts/EntityBomb.md)，证据与主审见[静态证据](familiar-knife-bomb-evidence.md)。
+布局源为 `mod/binding/state/entity-classes.json`，本节记录版本16当时的实际实现范围；后续版本33已排除HeadFrameDelay等11个参数，并补入80／240的展示负载，当前传输以本页顶部及生成表为准。原生发现、遗漏修复和编译事实保留，不把未知字节归属和第15步验收提前写成完成。生成表分别见 [Familiar](layouts/04-entity-classes/EntityFamiliar.md)、[Knife](layouts/04-entity-classes/EntityKnife.md)、[Bomb](layouts/04-entity-classes/EntityBomb.md)，证据与主审见[静态证据](familiar-knife-bomb-evidence.md)。
 
 - 三类继承 Entity 的 E0—E9，子类块从 10 起。Familiar／Knife／Bomb 编号分别为 120／121／122；Familiar 的 48／231 变体臂为 123／124，分别传送 IsaacsBodyData 和 AbyssLocustData，不在 Client 创建其他未知玩法 owner。
 - Familiar `+0xDB8` 的 ANM2 与主 Sprite 独立；Bomb `+0x464` 的五份 ANM2 按 0x114 步长分别投影。外观、动画、图层分别成块；共享 payload 和 Sprite vector 的元素也按子块投影，避免动画变化重发整组资源。
@@ -286,7 +286,7 @@ Delirium十个唯一公开ReplicatedState全部归Host查询；BossType／Varian
 
 ### 4.4 Tear、Pickup、Laser 本轮实现（2026-11-08）
 
-本节保留版本20当时的实现事实；版本34／35／37已分别排除攻击／运动输入、Pickup交互输入／未来队列及Laser采样中间数据与计时。现行传输以本页顶部、版本37源及生成表为准。原布局版本20的唯一源为 `mod/binding/state/entity-classes.json`。布局编号 125／126／127，继承 E0—E9，子类块从 10 开始。完整生成表见 [Tear](layouts/EntityTear.md)、[Pickup](layouts/EntityPickup.md)、[Laser](layouts/EntityLaser.md)，交付与后续接线见[本轮实现](implementation-4-tear-pickup-laser.md)，静态逆向及主审见[证据](tear-pickup-laser-evidence.md)。
+本节保留版本20当时的实现事实；版本34／35／37已分别排除攻击／运动输入、Pickup交互输入／未来队列及Laser采样中间数据与计时。现行传输以本页顶部、版本37源及生成表为准。原布局版本20的唯一源为 `mod/binding/state/entity-classes.json`。布局编号 125／126／127，继承 E0—E9，子类块从 10 开始。完整生成表见 [Tear](layouts/04-entity-classes/EntityTear.md)、[Pickup](layouts/04-entity-classes/EntityPickup.md)、[Laser](layouts/04-entity-classes/EntityLaser.md)，交付与后续接线见[本轮实现](implementation-4-tear-pickup-laser.md)，静态逆向及主审见[证据](tear-pickup-laser-evidence.md)。
 
 - Tear 三份辅助 ANM2 的外观／动画／图层独立投影，七个引用槽和命中索引分别保留，不借带副作用的 Height／Scale／TearFlags setter 恢复最终状态。
 - Pickup 保留两份 ANM2、四个引用槽、八项有界循环道具；FlipSaveState 为 Host 玩法保存对象，Client 不重建。价格与图形最终值分别安装，不调用 SetPrice／InitFlipState 触发玩法。

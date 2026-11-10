@@ -1,6 +1,6 @@
 # 5：EntityPlayer
 
-**2026-11-09 第5步正式布局源与生成完成，版本47**：[实现说明](implementation-5-player.md)与[EntityPlayer生成表](layouts/EntityPlayer.md)。唯一源`mod/binding/state/player.json`新增150—197共48个布局，Player197共25块；条件效果、动态Weapon、固定槽、Plus投影及1265条应用行／97条补充成员已正式生成。Player／Plus未知仍3707B／9B，Plus ABI模型不升级证据。Release／Win32产品纯编译与链接通过，没有运行测试；第8—14步实际接线及第15步统一验收仍未完成。以下较早记录保留原时点。
+**2026-11-09 第5步正式布局源与生成完成，版本47**：[实现说明](implementation-5-player.md)与[EntityPlayer生成表](layouts/05-player/EntityPlayer.md)。唯一源`mod/binding/state/player.json`新增150—197共48个布局，Player197共25块；条件效果、动态Weapon、固定槽、Plus投影及1265条应用行／97条补充成员已正式生成。Player／Plus未知仍3707B／9B，Plus ABI模型不升级证据。Release／Win32产品纯编译与链接通过，没有运行测试；第8—14步实际接线及第15步统一验收仍未完成。以下较早记录保留原时点。
 
 **2026-11-09 第5步前两项设计工作完成（未生成／未实现）**：[统一原生字节账本](player-byte-ledger.md)覆盖Player 2EA0h、保存／移动箱／动态装备及PlayerPlus等58种类型；根对象239个直接范围，递归UNKNOWN仍3707B。Plus A8h及后半偏移明确为静态ABI模型，未知9B，不能称官方DLL实测。[成员逐行回映射](player-member-map.md)保留1265条旧应用行及重载，另列14条native、77条具名宏与6条结构，旧Entity目录逐行交叉引用。原版通信+268C及待移除效果队列不上线；无调用方的Captured通用字典退出设计，真实原生显示查询走具名最终决定，具体缓存／批次布局仍归第8/9步。剩余为唯一Player布局源／正式生成与采集、安装、退役接线；版本仍46，没有构建或测试。以下较早记录保留各自时点。
 

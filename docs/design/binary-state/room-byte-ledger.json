@@ -1,0 +1,5049 @@
+{
+  "format": "isaac.cs.room-native-review",
+  "revision": 2,
+  "date": "2026-11-10",
+  "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273 / Win32",
+  "role": "静态设计；不是生产state/room.json，不改变生产layout_version=56",
+  "evidence_policy": "连续字节登记不等于语义全部已知；UNKNOWN不发送但不能宣称已解决；无运行时新结论",
+  "types": [
+    {
+      "name": "Room",
+      "native_size": 30872,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+      "note": "无vtable：+0是初始化字节；本表仅Room及所列固定内嵌对象，不代表Level／RoomDescriptor完成。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 1,
+          "name": "initialized",
+          "type": "bool",
+          "category": "本地",
+          "semantics": "原生构造／Init状态；809590未初始化返回-1",
+          "synchronization": "Client owner正常构建后本地维护；线上用记录存在性／有效资格，不覆盖构造字节",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 1,
+          "size": 1,
+          "name": "first_update_control",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "7F7F60首帧分支读取；不等于当前画面存在性",
+          "synchronization": "留Host；不让Client Room.Update消费",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 2,
+          "size": 2,
+          "name": "unknown_2_3",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "未知"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "descriptor",
+          "type": "RoomDescriptor*",
+          "category": "引用",
+          "semantics": "当前实际描述owner；不是+0",
+          "synchronization": "转当前world内descriptor身份／维度；本地解析，第7步Level侧承接",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "room_type",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "当前实际结构值；宽高含边界",
+          "synchronization": "R0；改变结构走同world重建，不执行配置spawn",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "grid_width",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "当前实际结构值；宽高含边界",
+          "synchronization": "R0；改变结构走同world重建，不执行配置spawn",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "grid_height",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "当前实际结构值；宽高含边界",
+          "synchronization": "R0；改变结构走同world重建，不执行配置spawn",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 20,
+          "size": 16,
+          "name": "bounds",
+          "type": "f32[4]",
+          "category": "状态",
+          "semantics": "实际房间边界，特殊Dungeon边界不能只由shape名猜测",
+          "synchronization": "R0；同几何版本安装；L形area/tile可由已核规则派生",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 36,
+          "size": 1792,
+          "name": "grid_slots",
+          "type": "GridEntity*[448]",
+          "category": "引用",
+          "semantics": "原生真实448槽；SDK数组写447少一项",
+          "synchronization": "第6步成员身份／格序号承接；不发448个进程地址",
+          "evidence": "7E0190逐448析构；7DFFF0..7E0004清0x720=448指针+8门；Room.zhl",
+          "status": "已核"
+        },
+        {
+          "offset": 1828,
+          "size": 32,
+          "name": "door_slots",
+          "type": "GridEntityDoor*[8]",
+          "category": "引用",
+          "semantics": "实际八门槽，允许与grid槽别名；不能按门的primary Slot反推",
+          "synchronization": "R3八项nullable成员引用；同world解析，保留别名，不驱动过门FSM",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 1860,
+          "size": 32,
+          "name": "door_grid_positions",
+          "type": "i32[8]",
+          "category": "状态",
+          "semantics": "八门实际格序号",
+          "synchronization": "R3；几何边界检查，不合并Door目标descriptor索引",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 1892,
+          "size": 4,
+          "name": "tinted_rock_index",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "已选蓝石格索引，-1为空；不是额外Grid实例身份",
+          "synchronization": "留Host；真实GridRock外观／已选帧由第6步承接",
+          "evidence": "852DAF→431770；7E9C7B初始化-1；7E3800消费",
+          "status": "已核"
+        },
+        {
+          "offset": 1896,
+          "size": 4,
+          "name": "dungeon_rock_index",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "已选夹层石头索引；815D20还按Game状态返回-1",
+          "synchronization": "留Host；真实GridRock／入口显示另承接，不在Client按索引生成",
+          "evidence": "852DB9→815D20读this[474]；7EA1B1..7EA27C；713C8E",
+          "status": "已核"
+        },
+        {
+          "offset": 1900,
+          "size": 1792,
+          "name": "grid_paths",
+          "type": "i32[448]",
+          "category": "权威",
+          "semantics": "448格动态寻路cost；原SDK456个DWORD覆盖进后面的独立WORD表",
+          "synchronization": "留Host；不为Client碰撞／寻路或Getter原值相等发送",
+          "evidence": "J273 7F91AA..7F924C；55BD00/546130；4FC240/5464B0/55BEC0/564BC0；Room.zhl的456声明错误",
+          "status": "已核"
+        },
+        {
+          "offset": 3692,
+          "size": 896,
+          "name": "npc_grid_reservations",
+          "type": "i16[448]",
+          "category": "权威",
+          "semantics": "NPC目标格占用／重选避让计时；正值会阻止55BD00选格，1..99每三帧衰减，其他值保持",
+          "synchronization": "留Host；不与DWORD path合并、不在Client重跑选格；原E8C..11EB的864B归入本表",
+          "evidence": "J273 7F91AA..7F924C；55BD00/546130；4FC240/5464B0/55BEC0/564BC0；Room.zhl的456声明错误",
+          "status": "已核"
+        },
+        {
+          "offset": 4588,
+          "size": 4,
+          "name": "room_clear_delay",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "清房触发延迟；官方quickRoomClear还修改该逻辑",
+          "synchronization": "留Host；最终门／奖励Entity／Greed显示另发，不为Getter相等传生产倒计时",
+          "evidence": "Room.zhl；ASMRoom.cpp::SetRoomClearDelay/CanTriggerRoomClear；7F969B附近",
+          "status": "已核"
+        },
+        {
+          "offset": 4592,
+          "size": 4,
+          "name": "frame_baseline",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "809590：Game+25A70减此基准；+0无效时返回-1",
+          "synchronization": "R1原值；使用同world GameFrame，重复显示不改锚点",
+          "evidence": "809590..8095AA原始指令；7E8AD0写GameFrame",
+          "status": "已核"
+        },
+        {
+          "offset": 4596,
+          "size": 2,
+          "name": "init_update_control",
+          "type": "u8[2]",
+          "category": "权威",
+          "semantics": "11F4更新分支；11F5初始化置1",
+          "synchronization": "留Host；不放行Room.Update",
+          "evidence": "7F7F60；7E8AD0",
+          "status": "已核"
+        },
+        {
+          "offset": 4598,
+          "size": 1,
+          "name": "textured_pit_dirty",
+          "type": "u8",
+          "category": "派生",
+          "semantics": "坑mask surface本地重建通知",
+          "synchronization": "不上线；完整Grid／纹理依赖提交后本地dirty，重建81BB30，不放行混合PreRender",
+          "evidence": "70ED00/8044D6/8044E1/81BB30；tx-04-18-integration-native-research.md",
+          "status": "已核"
+        },
+        {
+          "offset": 4599,
+          "size": 1,
+          "name": "unknown_11F7_11F7",
+          "type": "bytes[1]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "未知"
+        },
+        {
+          "offset": 4600,
+          "size": 4,
+          "name": "camera",
+          "type": "Camera*",
+          "category": "本地",
+          "semantics": "正常构造Camera owner",
+          "synchronization": "不传地址；Camera视图另表；不复制ring／执行Update",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 4604,
+          "size": 8,
+          "name": "surface_origin",
+          "type": "Vector",
+          "category": "派生",
+          "semantics": "由本端g_WIDTH/g_HEIGHT产生的surface原点",
+          "synchronization": "本地按明确公式重建；不安装Host分辨率偏移",
+          "evidence": "7E012F..7E013F；703F05..703F46；client_presentation_native.cpp::MaintainRoomSurfaceOrigin",
+          "status": "已核"
+        },
+        {
+          "offset": 4612,
+          "size": 8,
+          "name": "render_scroll",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "当前实际Room滚动输入；Game屏幕震动仍有独立owner",
+          "synchronization": "R2同world显示值；不运行Camera.DoUpdate；本端视口换算独立",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 4620,
+          "size": 1,
+          "name": "red_heart_damage",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "恶魔／天使机会等玩法生产输入",
+          "synchronization": "留Host；StatHUD最终机会走第8步；不是额外画面bool",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 4621,
+          "size": 3,
+          "name": "unknown_120D_120F",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "未知"
+        },
+        {
+          "offset": 4624,
+          "size": 4,
+          "name": "broken_watch_state",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "速度模式输入，不是Room的展示时钟",
+          "synchronization": "留Host；实体最终状态和显示时相各有owner",
+          "evidence": "7E0580读this[1156]；Room::GetBrokenWatchState语义",
+          "status": "已核"
+        },
+        {
+          "offset": 4628,
+          "size": 4,
+          "name": "next_entity_index",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "原生Entity.Index分配计数，不是网络稳定身份",
+          "synchronization": "留Host；正式实体身份／必要排序index由Entity域承接，不复制分配器游标",
+          "evidence": "7E1550清零并按mainEL重编号；4249D0等Spawn owner先取后增Room+1214写Entity+20",
+          "status": "已核"
+        },
+        {
+          "offset": 4632,
+          "size": 1024,
+          "name": "entity_list",
+          "type": "EntityList",
+          "category": "容器",
+          "semantics": "主／绘制／更新／持久等多索引",
+          "synchronization": "正式Entity成员／有序绘制关系承接；本地自建EL，不发对象头或全部查询缓存",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核",
+          "native_type": "EntityList",
+          "native_count": 1
+        },
+        {
+          "offset": 5656,
+          "size": 1432,
+          "name": "fx_layers",
+          "type": "FXLayers",
+          "category": "容器",
+          "semantics": "随机选图／有序pose／ray／vein和FX参数",
+          "synchronization": "R2/R4按子表投影；容器地址、生产器和隐藏残留不复制",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核",
+          "native_type": "FXLayers",
+          "native_count": 1
+        },
+        {
+          "offset": 7088,
+          "size": 4,
+          "name": "boss_id",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "boss头像选择输入，不是Entity type",
+          "synchronization": "Room raw不上线；真实BossIntro／HUD显示身份资源交第8步，不能漏掉显示结果",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 7092,
+          "size": 4,
+          "name": "second_boss_id",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "双Boss第二头像ID；相同Boss时可为0，不能当双Boss存在位",
+          "synchronization": "Room raw不上线；实际BossIntro显示资源归第8步",
+          "evidence": "原绑定852EEF→8236C0读+1BB4；7E9163清零／7E9286写；8258D7双ID送823D10",
+          "status": "已核"
+        },
+        {
+          "offset": 7096,
+          "size": 4,
+          "name": "deaths_list_target",
+          "type": "EntityPtr",
+          "category": "权威",
+          "semantics": "死亡名单当前选中目标的本地注册引用",
+          "synchronization": "原值留Host；已生成Effect109及其Entity关系承接标记，不由Room重复创建",
+          "evidence": "7F7610：物品530检查、EntityPtr注销／重绑、生成Effect109标记及奖励；Wiki CollectibleType530=DEATHS_LIST",
+          "status": "已核"
+        },
+        {
+          "offset": 7100,
+          "size": 1,
+          "name": "deaths_list_done",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "死亡名单失败／已结束或奖励已处理的控制位；5CCC10读取",
+          "synchronization": "留Host；奖励／属性和标记消失使用实际Entity／Player结果",
+          "evidence": "7F7610：物品530检查、EntityPtr注销／重绑、生成Effect109标记及奖励；Wiki CollectibleType530=DEATHS_LIST",
+          "status": "已核"
+        },
+        {
+          "offset": 7101,
+          "size": 3,
+          "name": "unknown_1BBD_1BBF",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未解释；不能凭对齐、清零或检索未命中认作填充",
+          "synchronization": "不读不发；窄字段读写跳过该范围，保留未决",
+          "evidence": "7F7610：物品530检查、EntityPtr注销／重绑、生成Effect109标记及奖励；Wiki CollectibleType530=DEATHS_LIST",
+          "status": "未知"
+        },
+        {
+          "offset": 7104,
+          "size": 8,
+          "name": "deaths_list_reward_position",
+          "type": "Vector",
+          "category": "权威",
+          "semantics": "名单完成后的奖励生成位置；零向量时由Player附近择位",
+          "synchronization": "留Host；实际生成Pickup位置／属性由Entity域发送，不重跑择位／随机／Spawn",
+          "evidence": "7F7610：物品530检查、EntityPtr注销／重绑、生成Effect109标记及奖励；Wiki CollectibleType530=DEATHS_LIST",
+          "status": "已核"
+        },
+        {
+          "offset": 7112,
+          "size": 21112,
+          "name": "backdrop",
+          "type": "Backdrop",
+          "category": "资源",
+          "semantics": "背景资源／程序纹理／四Sprite",
+          "synchronization": "R2资源结果；详见子表，禁止整块复制或按ID重抽",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核",
+          "native_type": "Backdrop",
+          "native_count": 1
+        },
+        {
+          "offset": 28224,
+          "size": 276,
+          "name": "light_gradient_sprite",
+          "type": "ANM2",
+          "category": "派生",
+          "semantics": "正常本地LightGradient／SpotLight资源；绘制逐灯覆写scale／颜色等",
+          "synchronization": "不发通用整Sprite；若实际资源／图层被改变，发必要资源覆盖；最终light pass另有结果，不放行玩法查询",
+          "evidence": "7E8E34/7E9009 Load；803E20/7FC110/801BE0；client_presentation_native.cpp::RoomLight",
+          "status": "已核",
+          "native_type": "ANM2",
+          "native_count": 1
+        },
+        {
+          "offset": 28500,
+          "size": 276,
+          "name": "spot_light_sprite",
+          "type": "ANM2",
+          "category": "派生",
+          "semantics": "正常本地LightGradient／SpotLight资源；绘制逐灯覆写scale／颜色等",
+          "synchronization": "不发通用整Sprite；若实际资源／图层被改变，发必要资源覆盖；最终light pass另有结果，不放行玩法查询",
+          "evidence": "7E8E34/7E9009 Load；803E20/7FC110/801BE0；client_presentation_native.cpp::RoomLight",
+          "status": "已核",
+          "native_type": "ANM2",
+          "native_count": 1
+        },
+        {
+          "offset": 28776,
+          "size": 8,
+          "name": "room_update_counters",
+          "type": "i32[2]",
+          "category": "权威",
+          "semantics": "Init按RoomType设计数，更新维护",
+          "synchronization": "留Host",
+          "evidence": "7E8AD0；7F7F60",
+          "status": "已核"
+        },
+        {
+          "offset": 28784,
+          "size": 20,
+          "name": "shop_restock_deque",
+          "type": "deque<ShopRestockDesc>",
+          "category": "容器",
+          "semantics": "MSVC deque头；补货队列产生新Pickup与涨价",
+          "synchronization": "整队列留Host；已生成Pickup／实际价格由Entity/HUD承接；不ShopRestock／TriggerRestock",
+          "evidence": "Room.zhl；7DFB8C..7DFBC7；7E0190::4927C0",
+          "status": "已核"
+        },
+        {
+          "offset": 28804,
+          "size": 64,
+          "name": "ambient_gain_smoothing",
+          "type": "f32[16]",
+          "category": "换算",
+          "semantics": "火／水流／环境等16份当前音量平滑缓存；静态表另含soundID、步长、增益、跨房保留标记",
+          "synchronization": "不下发原64B；第8步实际持续voice必须含已选sample和最终world逻辑gain／pitch／pan，不能将声音一起删掉",
+          "evidence": "7E0880按AAD0E0的16×10h表停止／清零；7F5950逐项平滑后调用908530；Wiki SoundEffect473/476等",
+          "status": "已核"
+        },
+        {
+          "offset": 28868,
+          "size": 28,
+          "name": "shockwave_a",
+          "type": "RoomShockwave",
+          "category": "换算",
+          "semantics": "第一份波纹显示与推进输入混合",
+          "synchronization": "只发本相位最终波纹pass参数；不发未来max／speed／推进历史",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核",
+          "native_type": "RoomShockwave",
+          "native_count": 1
+        },
+        {
+          "offset": 28896,
+          "size": 28,
+          "name": "shockwave_b",
+          "type": "RoomShockwave",
+          "category": "换算",
+          "semantics": "第二份波纹显示与推进输入混合",
+          "synchronization": "与A分别提供最终结果／存在性，不混成一个timer",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核",
+          "native_type": "RoomShockwave",
+          "native_count": 1
+        },
+        {
+          "offset": 28924,
+          "size": 4,
+          "name": "shockwave_aux_control",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Init置0，未来流程控制",
+          "synchronization": "留Host；具体命名未决",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "物理写入已核"
+        },
+        {
+          "offset": 28928,
+          "size": 276,
+          "name": "shockwave_overlay_sprite",
+          "type": "ANM2",
+          "category": "换算",
+          "semantics": "Render强制Idle／临时帧；含特殊背景分支",
+          "synchronization": "只发当前实际资源／必要层覆盖／显示结果；不推进动画，不把旧动画状态当稳定输入",
+          "evidence": "804500；7F7F60；7E8AD0",
+          "status": "已核",
+          "native_type": "ANM2",
+          "native_count": 1
+        },
+        {
+          "offset": 29204,
+          "size": 4,
+          "name": "wall_blood_duration",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "EmitBloodFromWalls的Duration；452520首参数写入，Room.Update递减",
+          "synchronization": "留Host；已产生血Effect／贴图结果由相应Entity／资源承接",
+          "evidence": "852DE1→452520；7F7F60",
+          "status": "已核"
+        },
+        {
+          "offset": 29208,
+          "size": 4,
+          "name": "wall_blood_count",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "EmitBloodFromWalls的Count；452520次参数写入",
+          "synchronization": "留Host；不为重复显示生成血效果",
+          "evidence": "852DE1→452520",
+          "status": "已核"
+        },
+        {
+          "offset": 29212,
+          "size": 4,
+          "name": "puddle_decoration_count",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "GridDecoration选择动画时的Puddle计数；已有非零值则排除另一个Puddle候选，选中后自增",
+          "synchronization": "留Host；实际装饰Grid的资源／动画结果由第6步承接，不恢复候选随机选择",
+          "evidence": "7E8CD0清零；973990读取／973A82递增，973250匹配Puddle字符串",
+          "status": "已核"
+        },
+        {
+          "offset": 29216,
+          "size": 1,
+          "name": "subframe_render_flag",
+          "type": "u8",
+          "category": "换算",
+          "semantics": "Render波纹半帧时读；SDK将此地址声明int slowdown",
+          "synchronization": "最终波纹结果包含该相位；不独立发int，不读取高3B",
+          "evidence": "804500波纹packet分支；tx-04-18-acceptance.md slowdown纠正",
+          "status": "已核"
+        },
+        {
+          "offset": 29217,
+          "size": 3,
+          "name": "unknown_7221_7223",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "官方Hush激光补丁经错误SDK _slowdownDuration对+7220作int读取时会连带读本3B；真实J273字节语义仍未明",
+          "synchronization": "不发；该补丁为Host模拟判定，不把这次过宽读取当作正确int字段证明，也不称padding",
+          "evidence": "ASMEntityNPC.cpp::IsRoomSlow；Room.zhl int+7220；HasSlowDown原绑定实际+722C",
+          "status": "未知"
+        },
+        {
+          "offset": 29220,
+          "size": 4,
+          "name": "pending_boss_deathspawn_count",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Boss deathspawn计数；NPC路径增量，TriggerBossDeath先减再决定奖励，Update检查漏触发并写当前Boss数",
+          "synchronization": "留Host；实际奖励／BossIntro等结果另承接，不为Client重放死亡／清房流程",
+          "evidence": "6B4E0B增量；7F430A/7F4323/7F4329；7F9358..7F93A1；原生TriggerBossDeath日志",
+          "status": "已核"
+        },
+        {
+          "offset": 29224,
+          "size": 2,
+          "name": "room_logic_flags",
+          "type": "u8[2]",
+          "category": "权威",
+          "semantics": "Init和Update使用的逻辑标记",
+          "synchronization": "留Host",
+          "evidence": "7E8AD0",
+          "status": "已核"
+        },
+        {
+          "offset": 29226,
+          "size": 2,
+          "name": "unknown_722A_722B",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "未知"
+        },
+        {
+          "offset": 29228,
+          "size": 4,
+          "name": "slowdown_duration",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "真正HasSlowDown/SetSlowDown计时；SDK误指+7220",
+          "synchronization": "留Host；452550只将当前值提高到max(current,arg)，非展示相位",
+          "evidence": "852D9B→452550；852DA5→452540读this[7307]",
+          "status": "已核"
+        },
+        {
+          "offset": 29232,
+          "size": 4,
+          "name": "troll_bomb_spawn_timer",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "705270某动作分支写35；Update在正值且模5为0时生成type4/variant3炸弹再递减",
+          "synchronization": "留Host；只发送实际已生成Bomb Entity，不在Client用计时重演Spawn",
+          "evidence": "705CED写23h；7FA998..7FAA0F；Wiki BombVariant3=BOMB_TROLL",
+          "status": "已核"
+        },
+        {
+          "offset": 29236,
+          "size": 8,
+          "name": "deferred_grid_cleanup",
+          "type": "std::set<i32> header",
+          "category": "容器",
+          "semantics": "格子破坏／路径变化后待处理的格序号集合；每次正常Update处理并清空",
+          "synchronization": "留Host；不复制树／key队列，也不在Client重放Destroy/Update",
+          "evidence": "7EFDB0/7EFFB0→4DF2F0；7F9098..7F911A；7E0190树析构",
+          "status": "已核"
+        },
+        {
+          "offset": 29244,
+          "size": 4,
+          "name": "greed_wave_timer",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "PressurePlate／Door／HUD直接显示依赖",
+          "synchronization": "R1原值，允许负特殊值；不在Client递减／生成波次",
+          "evidence": "Room.zhl；grid-pressure-door-evidence.md",
+          "status": "已核"
+        },
+        {
+          "offset": 29248,
+          "size": 4,
+          "name": "water_amount",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "水绘制模式／透明度及已有Entity/Grid消费者",
+          "synchronization": "R2；不能仅换成bool",
+          "evidence": "816250/816BB0；Room.zhl",
+          "status": "已核"
+        },
+        {
+          "offset": 29252,
+          "size": 20,
+          "name": "water_start",
+          "type": "KColor",
+          "category": "换算",
+          "semantics": "水色插值端点；非各自独立最终画面",
+          "synchronization": "只取816BB0实际最终KColor＋三乘色浮点；原四KColor不上线",
+          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支",
+          "status": "已核",
+          "native_type": "KColor",
+          "native_count": 1
+        },
+        {
+          "offset": 29272,
+          "size": 20,
+          "name": "water_multiplier_start",
+          "type": "KColor",
+          "category": "换算",
+          "semantics": "水色插值端点；非各自独立最终画面",
+          "synchronization": "只取816BB0实际最终KColor＋三乘色浮点；原四KColor不上线",
+          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支",
+          "status": "已核",
+          "native_type": "KColor",
+          "native_count": 1
+        },
+        {
+          "offset": 29292,
+          "size": 20,
+          "name": "water_target",
+          "type": "KColor",
+          "category": "换算",
+          "semantics": "水色插值端点；非各自独立最终画面",
+          "synchronization": "只取816BB0实际最终KColor＋三乘色浮点；原四KColor不上线",
+          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支",
+          "status": "已核",
+          "native_type": "KColor",
+          "native_count": 1
+        },
+        {
+          "offset": 29312,
+          "size": 20,
+          "name": "water_multiplier_target",
+          "type": "KColor",
+          "category": "换算",
+          "semantics": "水色插值端点；非各自独立最终画面",
+          "synchronization": "只取816BB0实际最终KColor＋三乘色浮点；原四KColor不上线",
+          "evidence": "816BB0：含默认FX色／seed79覆盖／duration>=0分支",
+          "status": "已核",
+          "native_type": "KColor",
+          "native_count": 1
+        },
+        {
+          "offset": 29332,
+          "size": 8,
+          "name": "water_lerp_duration_countdown",
+          "type": "i32[2]",
+          "category": "换算",
+          "semantics": "duration<0使用FX色；0取目标；>0按clamp插值",
+          "synchronization": "最终32B water shader投影；Client不计时，不调用颜色setter",
+          "evidence": "816BB0；7F7F60递减countdown",
+          "status": "已核"
+        },
+        {
+          "offset": 29340,
+          "size": 4,
+          "name": "unknown_729C_729F",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "尚未解释；不能凭对齐、清零或检索未命中认作填充",
+          "synchronization": "不读不发；窄字段读写跳过该范围，保留未决",
+          "evidence": "J273已核相邻Countdown+7298和FirstEnemyDead+72A0；未取得本4B独立消费者",
+          "status": "未知"
+        },
+        {
+          "offset": 29344,
+          "size": 1,
+          "name": "first_enemy_dead",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "首个敌人死亡资格；NPC死亡路径置位，Init连同pacifist清零",
+          "synchronization": "留Host；已产生奖励／最终显示状态由各自owner承接",
+          "evidence": "6B4380/6B4390；6D1E33/6D2079；7E8C4D",
+          "status": "已核"
+        },
+        {
+          "offset": 29345,
+          "size": 1,
+          "name": "pacifist",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "无伤／攻击等玩法条件；Familiar碰撞／NPC逻辑读取",
+          "synchronization": "留Host；最终属性／表现已由各自域承接",
+          "evidence": "LuaEntityPlayer.cpp::IsPacifist；60E7F0/61F7B0/6BA580；816BA0",
+          "status": "已核"
+        },
+        {
+          "offset": 29346,
+          "size": 2,
+          "name": "unknown_72A2_72A3",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "未知"
+        },
+        {
+          "offset": 29348,
+          "size": 44,
+          "name": "floor_color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "实际11浮点颜色；Grid/Door会临时借用",
+          "synchronization": "R2完整44B；与Grid同world，不能取Client本地楼层色",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核",
+          "native_type": "ColorMod",
+          "native_count": 1
+        },
+        {
+          "offset": 29392,
+          "size": 44,
+          "name": "wall_color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "实际11浮点颜色；Grid/Door会临时借用",
+          "synchronization": "R2完整44B；与Grid同world，不能取Client本地楼层色",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核",
+          "native_type": "ColorMod",
+          "native_count": 1
+        },
+        {
+          "offset": 29436,
+          "size": 4,
+          "name": "delayed_sound460_counter",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "延迟声音460及之后空间pan生产的计数；-1未激活",
+          "synchronization": "原计时留Host；第8步发送实际voice/event与逻辑pan，重复baseline不重播",
+          "evidence": "7E167D初始化-1；7FC04D置0；7F5950在10帧播放460、之后按楼层距离维护pan",
+          "status": "已核"
+        },
+        {
+          "offset": 29440,
+          "size": 8,
+          "name": "killed_npc_history",
+          "type": "std::list<KilledNPCRecord> header",
+          "category": "容器",
+          "semantics": "实际是链表头／count，不是原账本猜测的tree；32B节点含8B链接＋24B记录",
+          "synchronization": "历史整体留Host；不为Client建立回生／奖励历史或复制节点地址",
+          "evidence": "815FB0正常NPC死亡记录；6D2098/6D20AC调用；7F4240消费271/272历史判定；最大32项",
+          "status": "已核"
+        },
+        {
+          "offset": 29448,
+          "size": 8,
+          "name": "per_pass_light_tree",
+          "type": "tree header",
+          "category": "派生",
+          "semantics": "803E20／804500每pass清树后遍历Entity/Grid重新填充",
+          "synchronization": "本地同pass重建；不能把Host旧树地址／节点线上化；纯显示light依赖须齐全",
+          "evidence": "803E20 clear→7FC110/801BE0；804500 clear→801110",
+          "status": "已核"
+        },
+        {
+          "offset": 29456,
+          "size": 24,
+          "name": "temporary_effects",
+          "type": "TemporaryEffects",
+          "category": "权威",
+          "semantics": "Room效果容器与更新控制，不等于Player效果实例",
+          "synchronization": "列表留Host；已核Render效果481等取最终显示资格；Entity颜色／Run结果各归原owner",
+          "evidence": "Room.zhl；804500::90A490(481)；7E0580；player-equipment-plus-synchronization-review.md",
+          "status": "已核",
+          "native_type": "RoomTemporaryEffects",
+          "native_count": 1
+        },
+        {
+          "offset": 29480,
+          "size": 80,
+          "name": "output_grid_groups",
+          "type": "std::set<i32>[10]",
+          "category": "容器",
+          "semantics": "10个事件输出组的格序号集合；8B树头，节点+10为i32 grid index",
+          "synchronization": "留Host；不传组表驱动Client格子动作；当前Grid／Entity后态另发",
+          "evidence": "Wiki Room.TriggerOutput/RoomEventOutput；817F30枚举10组grid索引；818250逐组触发格子／Effect120／callback",
+          "status": "已核",
+          "native_type": "RoomOutputSetHeader",
+          "native_count": 10
+        },
+        {
+          "offset": 29560,
+          "size": 120,
+          "name": "output_callbacks",
+          "type": "vector<void(*)()>[10]",
+          "category": "容器",
+          "semantics": "每组12B begin/end/cap；元素4B原生函数地址，818250真正调用(*fn)()",
+          "synchronization": "绝不发送或安装Host函数指针，不将TriggerOutput当同步命令",
+          "evidence": "Wiki Room.TriggerOutput/RoomEventOutput；817F30枚举10组grid索引；818250逐组触发格子／Effect120／callback",
+          "status": "已核",
+          "native_type": "RoomCallbackVector",
+          "native_count": 10
+        },
+        {
+          "offset": 29680,
+          "size": 4,
+          "name": "plum_flute_reward_clock",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "BossID84场景的无伤时间／离场哨兵；-1使奖励选择650（Plum Flute）",
+          "synchronization": "留Host；实际Boss Entity／奖励Pickup发送；BossID不是EntityType84",
+          "evidence": "43AA60写GameFrame/检查900帧/写-1；7F0DE0检查bossId84和650；Wiki CollectibleType650",
+          "status": "已核"
+        },
+        {
+          "offset": 29684,
+          "size": 96,
+          "name": "rain_spawn_regions",
+          "type": "RainSpawnRegion[4]",
+          "category": "权威",
+          "semantics": "最多4份区域，每份origin和两基向量共24B；819530按index*24构造",
+          "synchronization": "不发生成区域／采样随机；实际雨Effect135与持续音频结果由相应域承接",
+          "evidence": "819530写73F4/73F8/73FC/7400/7404/7408；8199D0依count以24B步长随机Spawn",
+          "status": "已核",
+          "native_type": "RainSpawnRegion",
+          "native_count": 4
+        },
+        {
+          "offset": 29780,
+          "size": 4,
+          "name": "rain_spawner_count",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "雨滴生成区域数量，819530构造／8199D0更新",
+          "synchronization": "留Host；实际雨滴／雾Entity与ambient voice另发；不凭数量在Client创建",
+          "evidence": "Room.zhl；819530/8199D0/819C20；7F5950",
+          "status": "已核"
+        },
+        {
+          "offset": 29784,
+          "size": 4,
+          "name": "rain_intensity",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "生成雨效果的强度，不是当前雨滴位置",
+          "synchronization": "留Host；当前已产生的Entity和持续音频意图由第4/8步承接",
+          "evidence": "Room Wiki；8199D0；7F5950",
+          "status": "已核"
+        },
+        {
+          "offset": 29788,
+          "size": 1,
+          "name": "rain_control_flag",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "819530清零的生成控制字节",
+          "synchronization": "留Host",
+          "evidence": "819530",
+          "status": "已核"
+        },
+        {
+          "offset": 29789,
+          "size": 3,
+          "name": "unknown_745D_745F",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "未知"
+        },
+        {
+          "offset": 29792,
+          "size": 8,
+          "name": "water_current",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "816BB0向shader packet写当前水流",
+          "synchronization": "R2两个f32；声音／粒子用Host实际结果，不调用SetWaterCurrent来产生它们",
+          "evidence": "816BB0；LuaRoom.cpp::Lua_RoomSetWaterCurrent",
+          "status": "已核"
+        },
+        {
+          "offset": 29800,
+          "size": 728,
+          "name": "rails",
+          "type": "RailManager",
+          "category": "容器",
+          "semantics": "轨道字节和绘制Sprite；不是GridEntity",
+          "synchronization": "R4有效extent字节＋资源／层覆盖；按子表处理",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核",
+          "native_type": "RailManager",
+          "native_count": 1
+        },
+        {
+          "offset": 30528,
+          "size": 4,
+          "name": "lava_intensity",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "GridLight／纹理坑表面直接读取；不只用于ComputeColorModifier",
+          "synchronization": "R2必须保留；不要因最终整屏颜色另发而删除",
+          "evidence": "801C9F/801ECA；81BE0E；70CD10/70CD70；818540",
+          "status": "已核"
+        },
+        {
+          "offset": 30532,
+          "size": 32,
+          "name": "red_door_outline_refs",
+          "type": "EntityPtr[8]",
+          "category": "权威",
+          "semantics": "UpdateRedKey维护的Effect引用／通知关系；不是门槽本身",
+          "synchronization": "对象指针不发；实际轮廓Effect按独立Entity成员绘制，不由此创建或级联删除",
+          "evidence": "Room.zhl；7DFFAF构造8个4B wrapper，7E0190对应5787D0",
+          "status": "已核"
+        },
+        {
+          "offset": 30564,
+          "size": 4,
+          "name": "special_room_counter",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Update负特殊房间分支倒计时并播放／生成",
+          "synchronization": "留Host",
+          "evidence": "7F7F60 +7764分支",
+          "status": "已核"
+        },
+        {
+          "offset": 30568,
+          "size": 2,
+          "name": "room_action_flags",
+          "type": "u8[2]",
+          "category": "权威",
+          "semantics": "拥有物653检查／批量实体处理控制",
+          "synchronization": "留Host；不安装以触发Client玩法",
+          "evidence": "7F7F60 +7768/+7769",
+          "status": "已核"
+        },
+        {
+          "offset": 30570,
+          "size": 2,
+          "name": "unknown_776A_776B",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "未知"
+        },
+        {
+          "offset": 30572,
+          "size": 296,
+          "name": "hell_backdrop",
+          "type": "RoomHellBackdrop",
+          "category": "换算",
+          "semantics": "SDK未列的横向地狱背景连续视图；有混合Update",
+          "synchronization": "R2活动资格／实际资源与current显示位移；禁止82EE90移动实体",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "已核",
+          "native_type": "RoomHellBackdrop",
+          "native_count": 1
+        },
+        {
+          "offset": 30868,
+          "size": 1,
+          "name": "room_bulk_action_pending",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "Room.Update批量处理实体后清零；不属于背景绘制输入",
+          "synchronization": "留Host；不由Client消费",
+          "evidence": "7F7F60 Room+7894",
+          "status": "已核"
+        },
+        {
+          "offset": 30869,
+          "size": 3,
+          "name": "unknown_7895_7897",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "声明边界内未解释尾部，不能称填充",
+          "synchronization": "不读不发；保留具名缺口",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+          "status": "未知"
+        }
+      ],
+      "direct_unknown_bytes": 28
+    },
+    {
+      "name": "Backdrop",
+      "native_size": 21112,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+      "note": "程序纹理以内容资源或已证无随机recipe承接；旧RNG轨迹是历史实现，不是新方案默认负载。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 8,
+          "name": "floor_buffer",
+          "type": "ImageStrongPair",
+          "category": "资源",
+          "semantics": "本地FBO/Image owner；内容可为程序生成结果",
+          "synchronization": "发送实际被采用内容资源／完整recipe；control、GL/FBO、本地batch不发",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "ImageStrongPair",
+          "native_count": 1
+        },
+        {
+          "offset": 8,
+          "size": 8,
+          "name": "walls_buffer",
+          "type": "ImageStrongPair",
+          "category": "资源",
+          "semantics": "本地FBO/Image owner；内容可为程序生成结果",
+          "synchronization": "发送实际被采用内容资源／完整recipe；control、GL/FBO、本地batch不发",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "ImageStrongPair",
+          "native_count": 1
+        },
+        {
+          "offset": 16,
+          "size": 8,
+          "name": "floor_surface_2",
+          "type": "ImageStrongPair",
+          "category": "资源",
+          "semantics": "本地FBO/Image owner；内容可为程序生成结果",
+          "synchronization": "发送实际被采用内容资源／完整recipe；control、GL/FBO、本地batch不发",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "ImageStrongPair",
+          "native_count": 1
+        },
+        {
+          "offset": 24,
+          "size": 8,
+          "name": "temp_backdrop_surface",
+          "type": "ImageStrongPair",
+          "category": "资源",
+          "semantics": "本地FBO/Image owner；内容可为程序生成结果",
+          "synchronization": "发送实际被采用内容资源／完整recipe；control、GL/FBO、本地batch不发",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "ImageStrongPair",
+          "native_count": 1
+        },
+        {
+          "offset": 32,
+          "size": 1,
+          "name": "surface2_selected",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "Render检查的floor surface选择字节",
+          "synchronization": "有实际消费者的资源分支选择保留，不发送仅loaded缓存",
+          "evidence": "90BD90清+20；804500检查Room+1BE8",
+          "status": "已核"
+        },
+        {
+          "offset": 33,
+          "size": 3,
+          "name": "unknown_21_23",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0；本轮补读：90BD90/90C1F0/917870/918A60/9191F0：只接受+20 bool，+21..23仍无独立语义",
+          "status": "未知"
+        },
+        {
+          "offset": 36,
+          "size": 8,
+          "name": "gfx",
+          "type": "ImageStrongPair",
+          "category": "资源",
+          "semantics": "当前真实图像选择，不是裸地址",
+          "synchronization": "实际采用的资源引用；不强读已释放构建输入",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "ImageStrongPair",
+          "native_count": 1
+        },
+        {
+          "offset": 44,
+          "size": 8,
+          "name": "water_gfx",
+          "type": "ImageStrongPair",
+          "category": "资源",
+          "semantics": "当前真实图像选择，不是裸地址",
+          "synchronization": "实际采用的资源引用；不强读已释放构建输入",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "ImageStrongPair",
+          "native_count": 1
+        },
+        {
+          "offset": 52,
+          "size": 8,
+          "name": "normal_floor_gfx",
+          "type": "ImageStrongPair",
+          "category": "资源",
+          "semantics": "当前真实图像选择，不是裸地址",
+          "synchronization": "实际采用的资源引用；不强读已释放构建输入",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "ImageStrongPair",
+          "native_count": 1
+        },
+        {
+          "offset": 60,
+          "size": 276,
+          "name": "floor_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "18/26/35等特殊背景与MegaSatan真实Sprite分支",
+          "synchronization": "必要资源／主overlay／层姿态；非采用分支不读取旧值",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "ANM2",
+          "native_count": 1
+        },
+        {
+          "offset": 336,
+          "size": 4,
+          "name": "backdrop_id",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "0..62实际背景身份，不能与RoomType混同",
+          "synchronization": "保留实际ID；ID本身不代表最终纹理内容",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核"
+        },
+        {
+          "offset": 340,
+          "size": 19908,
+          "name": "configurations",
+          "type": "BackdropConfig[63]",
+          "category": "资源",
+          "semantics": "XML本地配置库；不是63份动态状态",
+          "synchronization": "只解析实际使用资源／显示参数；不发送全部63配置或共享std::string头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "BackdropConfig",
+          "native_count": 63
+        },
+        {
+          "offset": 20248,
+          "size": 8,
+          "name": "surface_min",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "实际背景surface范围；SDK只称unkVec1/2",
+          "synchronization": "保留实际向量；不额外赋予未经证明语义",
+          "evidence": "917870；816BB0；82EFD0/82F210",
+          "status": "已核"
+        },
+        {
+          "offset": 20256,
+          "size": 8,
+          "name": "surface_max",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "实际背景surface范围；SDK只称unkVec1/2",
+          "synchronization": "保留实际向量；不额外赋予未经证明语义",
+          "evidence": "917870；816BB0；82EFD0/82F210",
+          "status": "已核"
+        },
+        {
+          "offset": 20264,
+          "size": 16,
+          "name": "rng",
+          "type": "RNG",
+          "category": "权威",
+          "semantics": "背景构建流；构建包含随机选择和Spawn",
+          "synchronization": "留Host，不是第三个D0绘制例外；结果由纹理／Sprite／Entity承接",
+          "evidence": "random-synchronization-review.md；917910→911310→915890",
+          "status": "已核",
+          "native_type": "RNG",
+          "native_count": 1
+        },
+        {
+          "offset": 20280,
+          "size": 4,
+          "name": "construction_seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "构建seed不是最终纹理身份",
+          "synchronization": "留Host；不按seed重放装饰／生成",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核"
+        },
+        {
+          "offset": 20284,
+          "size": 276,
+          "name": "wall_detail_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "实际嵌套动画与资源",
+          "synchronization": "只发实际采用显示；controls按C/S本地绑定显示，Host设备按钮选择不强加访客",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "ANM2",
+          "native_count": 1
+        },
+        {
+          "offset": 20560,
+          "size": 276,
+          "name": "controls_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "实际嵌套动画与资源",
+          "synchronization": "只发实际采用显示；controls按C/S本地绑定显示，Host设备按钮选择不强加访客",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "ANM2",
+          "native_count": 1
+        },
+        {
+          "offset": 20836,
+          "size": 276,
+          "name": "controls_buttons_sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "实际嵌套动画与资源",
+          "synchronization": "只发实际采用显示；controls按C/S本地绑定显示，Host设备按钮选择不强加访客",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Backdrop.zhl；90BD90；917870/917910；918A60/9191F0",
+          "status": "已核",
+          "native_type": "ANM2",
+          "native_count": 1
+        }
+      ],
+      "direct_unknown_bytes": 3,
+      "residual_review": "90BD90/90C1F0/917870/918A60/9191F0：只接受+20 bool，+21..23仍无独立语义"
+    },
+    {
+      "name": "BackdropConfig",
+      "native_size": 316,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "id",
+          "type": "u32",
+          "category": "资源",
+          "semantics": "本地已加载配置／构建参数",
+          "synchronization": "稳定资源配置；不用这些参数在Client随机选纹理",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 24,
+          "name": "gfx",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 28,
+          "size": 24,
+          "name": "water_gfx",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 52,
+          "size": 24,
+          "name": "l_floor",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 76,
+          "size": 24,
+          "name": "n_floor",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 100,
+          "size": 4,
+          "name": "walls",
+          "type": "u32",
+          "category": "资源",
+          "semantics": "本地已加载配置／构建参数",
+          "synchronization": "稳定资源配置；不用这些参数在Client随机选纹理",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "已核"
+        },
+        {
+          "offset": 104,
+          "size": 4,
+          "name": "wall_variants",
+          "type": "u32",
+          "category": "资源",
+          "semantics": "本地已加载配置／构建参数",
+          "synchronization": "稳定资源配置；不用这些参数在Client随机选纹理",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "已核"
+        },
+        {
+          "offset": 108,
+          "size": 4,
+          "name": "floors",
+          "type": "u32",
+          "category": "资源",
+          "semantics": "本地已加载配置／构建参数",
+          "synchronization": "稳定资源配置；不用这些参数在Client随机选纹理",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "已核"
+        },
+        {
+          "offset": 112,
+          "size": 4,
+          "name": "floor_variants",
+          "type": "u32",
+          "category": "资源",
+          "semantics": "本地已加载配置／构建参数",
+          "synchronization": "稳定资源配置；不用这些参数在Client随机选纹理",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "已核"
+        },
+        {
+          "offset": 116,
+          "size": 1,
+          "name": "full_image",
+          "type": "bool",
+          "category": "资源",
+          "semantics": "实际XML fullimage构建模式，非u32 unk1",
+          "synchronization": "结果纹理路线不额外发构建模式；若使用recipe，须显式包含该模式，禁止读高3B",
+          "evidence": "90B9C0只写+74 byte和+138 word；90C3D0解析fullimage/waterpitsmode/reversewatergfx；90E080分别复制三byte",
+          "status": "已核"
+        },
+        {
+          "offset": 117,
+          "size": 3,
+          "name": "unknown_75_77",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未解释；不能凭对齐、清零或检索未命中认作填充",
+          "synchronization": "不读不发；窄字段读写跳过该范围，保留未决",
+          "evidence": "90B9C0只写+74 byte和+138 word；90C3D0解析fullimage/waterpitsmode/reversewatergfx；90E080分别复制三byte",
+          "status": "未知"
+        },
+        {
+          "offset": 120,
+          "size": 24,
+          "name": "props",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 144,
+          "size": 24,
+          "name": "rocks",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 168,
+          "size": 24,
+          "name": "pit",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 192,
+          "size": 24,
+          "name": "water_pit",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 216,
+          "size": 24,
+          "name": "bridge",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 240,
+          "size": 24,
+          "name": "door",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 264,
+          "size": 24,
+          "name": "hole_in_wall",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 288,
+          "size": 24,
+          "name": "spikes",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "配置路径；SSO／allocator本地",
+          "synchronization": "实际采用资源走稳定目录；不复制字符串对象头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/BackdropConfig.zhl；917910/911310",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 312,
+          "size": 1,
+          "name": "water_pits_mode",
+          "type": "u8",
+          "category": "资源",
+          "semantics": "实际水坑图形模式byte，SDK的u32过宽",
+          "synchronization": "稳定配置／实际资源用途承接，不能打包邻接reverse为一个u32",
+          "evidence": "90B9C0只写+74 byte和+138 word；90C3D0解析fullimage/waterpitsmode/reversewatergfx；90E080分别复制三byte",
+          "status": "已核"
+        },
+        {
+          "offset": 313,
+          "size": 1,
+          "name": "reverse_water_gfx",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "91AC70::RenderWater把GameFrame/2相位乘-1的真实绘制条件",
+          "synchronization": "需要保留当前采用配置的这一个方向bool，或等价最终有符号水面相位；纹理像素本身不能代替",
+          "evidence": "90B9C0只写+74 byte和+138 word；90C3D0解析fullimage/waterpitsmode/reversewatergfx；90E080分别复制三byte；91ACEB..91AD05读取Backdrop+id*13C+28D",
+          "status": "已核"
+        },
+        {
+          "offset": 314,
+          "size": 2,
+          "name": "unknown_13A_13B",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未解释；不能凭对齐、清零或检索未命中认作填充",
+          "synchronization": "不读不发；窄字段读写跳过该范围，保留未决",
+          "evidence": "90B9C0只写+74 byte和+138 word；90C3D0解析fullimage/waterpitsmode/reversewatergfx；90E080分别复制三byte",
+          "status": "未知"
+        }
+      ],
+      "direct_unknown_bytes": 5
+    },
+    {
+      "name": "FXLayers",
+      "native_size": 1432,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXLayers.zhl；7DF8F0；96C620/96CE20/96DB20/96EA50",
+      "note": "仅实际采用的有序层／ray组／poop／vein；动态元素另表，父资格不满足时不读旧payload。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 8,
+          "name": "average_player_pos",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "ray屏幕位置计算实际消费",
+          "synchronization": "保留同world实际显示输入；不能以本端单身体重算",
+          "evidence": "96CE20",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 1,
+          "name": "loaded",
+          "type": "bool",
+          "category": "换算",
+          "semantics": "native pass活动条件",
+          "synchronization": "规范present；不复制未构造对象／强设loaded",
+          "evidence": "96CE20/96DB20",
+          "status": "已核"
+        },
+        {
+          "offset": 9,
+          "size": 3,
+          "name": "unknown_9_B",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXLayers.zhl；7DF8F0；96C620/96CE20/96DB20/96EA50；本轮补读：7DF8F0/968E10/96BF40/96BD30及所有已核pass；+9..B仍未知",
+          "status": "未知"
+        },
+        {
+          "offset": 12,
+          "size": 12,
+          "name": "config_stage_type_backdrop",
+          "type": "u32[3]",
+          "category": "权威",
+          "semantics": "旧配置选择／load输入；源码注释仅提示名",
+          "synchronization": "原值不发；实际选图和pass另发；不是无证padding",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXLayers.zhl；7DF8F0；96C620/96CE20/96DB20/96EA50",
+          "status": "SDK注释／消费职责"
+        },
+        {
+          "offset": 24,
+          "size": 12,
+          "name": "layers",
+          "type": "vector<FX>",
+          "category": "容器",
+          "semantics": "0x4C步长的实际选层",
+          "synchronization": "只发有序实际pass/资源/有效pose；不发vector头",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXLayers.zhl；7DF8F0；96C620/96CE20/96DB20/96EA50",
+          "status": "已核"
+        },
+        {
+          "offset": 36,
+          "size": 12,
+          "name": "ray_groups",
+          "type": "vector<RayGroup>",
+          "category": "容器",
+          "semantics": "0x2C步长组",
+          "synchronization": "只发实际选择组及其有序成员；不发未选组／重新选组",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXLayers.zhl；7DF8F0；96C620/96CE20/96DB20/96EA50",
+          "status": "已核"
+        },
+        {
+          "offset": 48,
+          "size": 4,
+          "name": "selected_ray_group",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "-1无光线组，否则实际选中索引",
+          "synchronization": "规范optional选中组；不需要复制全部候选组和原始索引",
+          "evidence": "96CE20",
+          "status": "已核"
+        },
+        {
+          "offset": 52,
+          "size": 4,
+          "name": "poop_countdown",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "draw当>0采用；>150与<=150不同alpha曲线",
+          "synchronization": "只发最终present与alpha；不在Client递减",
+          "evidence": "96CE20",
+          "status": "已核"
+        },
+        {
+          "offset": 56,
+          "size": 76,
+          "name": "poop_fx",
+          "type": "FXPoop",
+          "category": "换算",
+          "semantics": "原生完整FX内嵌体；7DF9EF/7DF9F2直接以FXLayers+38调用967D40构造",
+          "synchronization": "只发poop当前present／实际alpha／图像／ColorMod与有效pose；其余生成／过滤参数不发",
+          "evidence": "7DF9EF..7DF9F2；96E570/96BF40/96CE20",
+          "status": "已核",
+          "native_type": "FXPoop",
+          "native_count": 1
+        },
+        {
+          "offset": 132,
+          "size": 44,
+          "name": "poop_color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "poop实际draw颜色",
+          "synchronization": "present时发11个float；最终alpha资格另发",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXLayers.zhl；7DF8F0；96C620/96CE20/96DB20/96EA50",
+          "status": "已核",
+          "native_type": "ColorMod",
+          "native_count": 1
+        },
+        {
+          "offset": 176,
+          "size": 16,
+          "name": "bounds",
+          "type": "Vector[2]",
+          "category": "状态",
+          "semantics": "FX和ray屏幕变换读取边界",
+          "synchronization": "同world显示值；不能从XML默认值猜",
+          "evidence": "96C620/96DB20/96CE20",
+          "status": "已核"
+        },
+        {
+          "offset": 192,
+          "size": 520,
+          "name": "vein_roots",
+          "type": "Vein[10]",
+          "category": "容器",
+          "semantics": "10根内嵌节点，child可指外部节点",
+          "synchronization": "首根child存在时发有界图；child转索引，不传地址；无图时不读残留标量",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXLayers.zhl；7DF8F0；96C620/96CE20/96DB20/96EA50",
+          "status": "已核",
+          "native_type": "Vein",
+          "native_count": 10
+        },
+        {
+          "offset": 712,
+          "size": 552,
+          "name": "vein_sprites",
+          "type": "ANM2[2]",
+          "category": "状态",
+          "semantics": "节点kind选择两份Sprite；draw覆写scale／rotation／颜色",
+          "synchronization": "图存在时保留资源／实际姿态／层覆盖；三项覆写值由节点派生",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXLayers.zhl；7DF8F0；96C620/96CE20/96DB20/96EA50",
+          "status": "已核",
+          "native_type": "ANM2",
+          "native_count": 2
+        },
+        {
+          "offset": 1264,
+          "size": 8,
+          "name": "vein_update_vector",
+          "type": "Vector",
+          "category": "权威",
+          "semantics": "旧SDK注释提示相关向量；EA50/EAB0不作draw输入",
+          "synchronization": "不发；未赋未经核定业务名",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXLayers.zhl；7DF8F0；96C620/96CE20/96DB20/96EA50",
+          "status": "SDK注释／已读消费者"
+        },
+        {
+          "offset": 1272,
+          "size": 160,
+          "name": "params",
+          "type": "FXParams",
+          "category": "换算",
+          "semantics": "FX配置到最终water/light/color的输入",
+          "synchronization": "以子表用途投影；不复制全A0",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXLayers.zhl；7DF8F0；96C620/96CE20/96DB20/96EA50",
+          "status": "已核",
+          "native_type": "FXParams",
+          "native_count": 1
+        }
+      ],
+      "direct_unknown_bytes": 3,
+      "residual_review": "7DF8F0/968E10/96BF40/96BD30及所有已核pass；+9..B仍未知"
+    },
+    {
+      "name": "FXParams",
+      "native_size": 160,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXParams.zhl；967B00；818540/8134C0/803E20/816BB0",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 20,
+          "name": "room_color",
+          "type": "KColor",
+          "category": "权威",
+          "semantics": "配置色，非Game current ColorModState",
+          "synchronization": "不发；最终Game current六值由第8步唯一承接",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXParams.zhl；967B00；818540/8134C0/803E20/816BB0",
+          "status": "已核",
+          "native_type": "KColor",
+          "native_count": 1
+        },
+        {
+          "offset": 20,
+          "size": 8,
+          "name": "brightness_contrast",
+          "type": "f32[2]",
+          "category": "权威",
+          "semantics": "整屏颜色生产输入",
+          "synchronization": "不发；不调用Compute/UpdateColorModifier",
+          "evidence": "818540；LuaRoom.cpp::Lua_RoomColorModifierUpdate",
+          "status": "已核"
+        },
+        {
+          "offset": 28,
+          "size": 1,
+          "name": "use_water_v2",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "实际水面反射pass选择",
+          "synchronization": "R2模式；本地图形选项另管",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXParams.zhl；967B00；818540/8134C0/803E20/816BB0",
+          "status": "已核"
+        },
+        {
+          "offset": 29,
+          "size": 3,
+          "name": "unknown_1D_1F",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXParams.zhl；967B00；818540/8134C0/803E20/816BB0；本轮补读：967B00/96BCA0/818540/816BB0：+1C bool后3B仍无语义，不发A0宽块",
+          "status": "未知"
+        },
+        {
+          "offset": 32,
+          "size": 20,
+          "name": "water_color",
+          "type": "KColor",
+          "category": "换算",
+          "semantics": "默认水色，可被seed79及Room插值覆盖",
+          "synchronization": "只发816BB0最终water参数，不能仅发这个默认色",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXParams.zhl；967B00；818540/8134C0/803E20/816BB0",
+          "status": "已核",
+          "native_type": "KColor",
+          "native_count": 1
+        },
+        {
+          "offset": 52,
+          "size": 20,
+          "name": "water_multiplier",
+          "type": "KColor",
+          "category": "换算",
+          "semantics": "默认水色，可被seed79及Room插值覆盖",
+          "synchronization": "只发816BB0最终water参数，不能仅发这个默认色",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXParams.zhl；967B00；818540/8134C0/803E20/816BB0",
+          "status": "已核",
+          "native_type": "KColor",
+          "native_count": 1
+        },
+        {
+          "offset": 72,
+          "size": 4,
+          "name": "shadow_alpha",
+          "type": "f32",
+          "category": "换算",
+          "semantics": "8134C0叠楼层／物品／实体决定最终光照强度",
+          "synchronization": "只发最终lighting_alpha；不在Client调用依赖玩法的Getter",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXParams.zhl；967B00；818540/8134C0/803E20/816BB0",
+          "status": "已核"
+        },
+        {
+          "offset": 76,
+          "size": 20,
+          "name": "shadow_color",
+          "type": "KColor",
+          "category": "换算",
+          "semantics": "叠pitch/darkness/lightning等规则前颜色",
+          "synchronization": "只发实际shadow_fill/light_tint和pass资格",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXParams.zhl；967B00；818540/8134C0/803E20/816BB0",
+          "status": "已核",
+          "native_type": "KColor",
+          "native_count": 1
+        },
+        {
+          "offset": 96,
+          "size": 20,
+          "name": "light_color",
+          "type": "KColor",
+          "category": "换算",
+          "semantics": "叠pitch/darkness/lightning等规则前颜色",
+          "synchronization": "只发实际shadow_fill/light_tint和pass资格",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/FXParams.zhl；967B00；818540/8134C0/803E20/816BB0",
+          "status": "已核",
+          "native_type": "KColor",
+          "native_count": 1
+        },
+        {
+          "offset": 116,
+          "size": 44,
+          "name": "water_effect_color",
+          "type": "ColorMod",
+          "category": "权威",
+          "semantics": "5CD070 Effect.Init多处分支取址用于已产生Effect颜色",
+          "synchronization": "Room不重复发；Entity最终Color由第3/4步承接，不在Client重跑Effect.Init",
+          "evidence": "5CEB9E/5CED93/5CFA73/5CFAFF/5CFC8E/5CFDD1；Effect Init=5CD070",
+          "status": "已核",
+          "native_type": "ColorMod",
+          "native_count": 1
+        }
+      ],
+      "direct_unknown_bytes": 3,
+      "residual_review": "967B00/96BCA0/818540/816BB0：+1C bool后3B仍无语义，不发A0宽块"
+    },
+    {
+      "name": "FXPose",
+      "native_size": 20,
+      "evidence": "96C620/96DB20/96CE20；原生0x14步长",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 8,
+          "name": "position",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "实际有序纹理偏移",
+          "synchronization": "发送两个f32",
+          "evidence": "96C620/96DB20/96CE20；原生0x14步长",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 8,
+          "name": "velocity",
+          "type": "Vector",
+          "category": "权威",
+          "semantics": "位置推进／Host颜色采样查询输入；当前draw不读这8B",
+          "synchronization": "不发；Client不运行颜色采样查询补生产，最终Entity颜色由Entity域承接",
+          "evidence": "96BF40位置生产；96E3C0采样pass4图片时读FXPose+8/+C；96C620/96DB20/96CE20实际draw",
+          "status": "已读消费者"
+        },
+        {
+          "offset": 16,
+          "size": 2,
+          "name": "flip_x_y",
+          "type": "u8[2]",
+          "category": "状态",
+          "semantics": "实际flip条件",
+          "synchronization": "两个规范bool或两位mask；不复制尾部未知2B",
+          "evidence": "96C620/96DB20/96CE20；原生0x14步长",
+          "status": "已核"
+        },
+        {
+          "offset": 18,
+          "size": 2,
+          "name": "unknown_12_13",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "声明边界内未解释尾部，不能称填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "96C620/96DB20/96CE20；原生0x14步长；本轮补读：9703B0按20B构造只写16B＋2flip；96C620/96DB20/96CE20不读+12..13，仍非padding证明",
+          "status": "未知"
+        }
+      ],
+      "direct_unknown_bytes": 2,
+      "residual_review": "9703B0按20B构造只写16B＋2flip；96C620/96DB20/96CE20不读+12..13，仍非padding证明"
+    },
+    {
+      "name": "FX",
+      "native_size": 76,
+      "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "id",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "配置／生成身份；实际draw不按该值重新选",
+          "synchronization": "不上线；保留实际pass／图像即可",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 8,
+          "name": "image",
+          "type": "ImageStrongPair",
+          "category": "资源",
+          "semantics": "已选图像与实际sampler/format",
+          "synchronization": "有资格的资源引用，control本地",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核",
+          "native_type": "ImageStrongPair",
+          "native_count": 1
+        },
+        {
+          "offset": 12,
+          "size": 12,
+          "name": "poses",
+          "type": "vector<FXPose>",
+          "category": "容器",
+          "semantics": "实际有序pose",
+          "synchronization": "只发有效prefix；不发头／容量",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核"
+        },
+        {
+          "offset": 24,
+          "size": 4,
+          "name": "count",
+          "type": "i32",
+          "category": "派生",
+          "semantics": "draw使用数量",
+          "synchronization": "由集合长度表达，保留0的清空语义",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核"
+        },
+        {
+          "offset": 28,
+          "size": 16,
+          "name": "velocity_ranges",
+          "type": "f32[4]",
+          "category": "权威",
+          "semantics": "XML xMin/xMax/yMin/yMax；生成每pose速度的四端点",
+          "synchronization": "留Host；有序当前pose位置／flip发送，不重新抽速度",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "已核"
+        },
+        {
+          "offset": 44,
+          "size": 4,
+          "name": "pass",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "实际pass1..6选择",
+          "synchronization": "同步；未知pass不当空／不执行",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核"
+        },
+        {
+          "offset": 48,
+          "size": 4,
+          "name": "stage_filter",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "配置stage经旧编号换算后保存，供967DB0筛选",
+          "synchronization": "不发候选过滤条件；实际被采用层／资源发送",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "已核"
+        },
+        {
+          "offset": 52,
+          "size": 4,
+          "name": "alt_stage_mask",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "XML altStages过滤mask",
+          "synchronization": "不发；不在Client按楼层重新选层",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "已核"
+        },
+        {
+          "offset": 56,
+          "size": 1,
+          "name": "only_default_backdrop",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "配置onlyDefaultBackdrop筛选条件",
+          "synchronization": "不发；实际选层已知",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "已核"
+        },
+        {
+          "offset": 57,
+          "size": 1,
+          "name": "parallax_mode",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "XML parallax存在时置1；96BF40据此按平均Player位置生成pose位置",
+          "synchronization": "模式留Host，实际当前pose发送；不复制跟随生产器",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "已核"
+        },
+        {
+          "offset": 58,
+          "size": 2,
+          "name": "unknown_3A_3B",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未解释；不能凭对齐、清零或检索未命中认作填充",
+          "synchronization": "不读不发；窄字段读写跳过该范围，保留未决",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "未知"
+        },
+        {
+          "offset": 60,
+          "size": 4,
+          "name": "color_condition",
+          "type": "f32 condition",
+          "category": "换算",
+          "semantics": "generic非mask且count>0分支比较==0",
+          "synchronization": "只发is_zero条件；NaN/Inf都按原==0语义归非零，不让其进入坐标浮点",
+          "evidence": "96C620：value==0 || lightingAlpha*0.1<=0.9",
+          "status": "已核"
+        },
+        {
+          "offset": 64,
+          "size": 4,
+          "name": "mask_backdrop",
+          "type": "u32",
+          "category": "换算",
+          "semantics": "mask且count>0判断是否35",
+          "synchronization": "只发is_35布尔；不把非采用分支原值读上网",
+          "evidence": "96C620",
+          "status": "已核"
+        },
+        {
+          "offset": 68,
+          "size": 4,
+          "name": "blend_mode",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "pass1/2/3/6 BlendMode实际选择",
+          "synchronization": "仅实际分支发；不按Image猜",
+          "evidence": "96CE20/96CC00/96CD10/96E2B0",
+          "status": "已核"
+        },
+        {
+          "offset": 72,
+          "size": 1,
+          "name": "mask",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "generic分支shader选择",
+          "synchronization": "仅适用pass发规范bool；余3B未知",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核"
+        },
+        {
+          "offset": 73,
+          "size": 3,
+          "name": "unknown_49_4B",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "声明边界内未解释尾部，不能称填充",
+          "synchronization": "不读不发；保留具名缺口",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "未知"
+        }
+      ],
+      "direct_unknown_bytes": 5
+    },
+    {
+      "name": "Ray",
+      "native_size": 20,
+      "evidence": "96CE20实际20B步长；96F760/970060析构",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "opacity",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "sin／pow曲线乘数",
+          "synchronization": "发实际值",
+          "evidence": "96CE20实际20B步长；96F760/970060析构",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "speed",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "Render末尾只用于phase+=speed，当前quad已提交",
+          "synchronization": "不发；受控draw撤销写回／禁止跨本地Render累计",
+          "evidence": "96CE20末尾",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "phase",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "当前正弦相位",
+          "synchronization": "取正常Host该pass实际使用相位；同world重复展示从同一相位开始",
+          "evidence": "96CE20实际20B步长；96F760/970060析构",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 8,
+          "name": "image",
+          "type": "ImageStrongPair",
+          "category": "资源",
+          "semantics": "实际有序光束图像",
+          "synchronization": "资源引用；control本地",
+          "evidence": "96CE20实际20B步长；96F760/970060析构",
+          "status": "已核",
+          "native_type": "ImageStrongPair",
+          "native_count": 1
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "RayGroup",
+      "native_size": 44,
+      "evidence": "96CE20组步长44B；client_presentation_native.cpp::NativeRayGroup",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 28,
+          "name": "geometry",
+          "type": "f32[7]",
+          "category": "状态",
+          "semantics": "实际光线组边界与几何因子",
+          "synchronization": "仅选中组发送；本地视口变换另管",
+          "evidence": "96CE20组步长44B；client_presentation_native.cpp::NativeRayGroup",
+          "status": "已核"
+        },
+        {
+          "offset": 28,
+          "size": 12,
+          "name": "rays",
+          "type": "vector<Ray>",
+          "category": "容器",
+          "semantics": "实际有序光线",
+          "synchronization": "仅选中非空组；不能对空组运行先除成员数的native分支",
+          "evidence": "96CE20组步长44B；client_presentation_native.cpp::NativeRayGroup",
+          "status": "已核"
+        },
+        {
+          "offset": 40,
+          "size": 1,
+          "name": "stage_matched",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "Load实际阶段匹配资格，决定是否纳入组vector",
+          "synchronization": "留Host；只发送真正选中组",
+          "evidence": "968E10解析stages token，以b后缀置高byte、匹配时置低byte；96F8A0只复制+28/+29两字节",
+          "status": "已核"
+        },
+        {
+          "offset": 41,
+          "size": 1,
+          "name": "stage_b_suffix",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "stages token的b后缀标记；不是绘制相位",
+          "synchronization": "留Host；不发原始过滤候选",
+          "evidence": "968E10解析stages token，以b后缀置高byte、匹配时置低byte；96F8A0只复制+28/+29两字节",
+          "status": "已核"
+        },
+        {
+          "offset": 42,
+          "size": 2,
+          "name": "unknown_2A_2B",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未解释；不能凭对齐、清零或检索未命中认作填充",
+          "synchronization": "不读不发；窄字段读写跳过该范围，保留未决",
+          "evidence": "968E10解析stages token，以b后缀置高byte、匹配时置低byte；96F8A0只复制+28/+29两字节",
+          "status": "未知"
+        }
+      ],
+      "direct_unknown_bytes": 2
+    },
+    {
+      "name": "Vein",
+      "native_size": 52,
+      "evidence": "96EA50/96EAB0；Room ctor10×0x34；tx-04-18-room-application.md",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "kind",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "实际两Sprite选择",
+          "synchronization": "发送，拒绝超已核0/1范围",
+          "evidence": "96EA50/96EAB0；Room ctor10×0x34；tx-04-18-room-application.md",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 12,
+          "name": "children",
+          "type": "Vein*[3]",
+          "category": "引用",
+          "semantics": "三个有序child",
+          "synchronization": "有界自有图索引／Null；不传地址；循环／深度／预算失败不能截断",
+          "evidence": "96EA50/96EAB0；Room ctor10×0x34；tx-04-18-room-application.md",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "unknown_10_13",
+          "type": "bytes[4]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "96EA50/96EAB0；Room ctor10×0x34；tx-04-18-room-application.md；本轮补读：96ED60把+10复制给child；业务名未定且96EAB0不消费，4B仍未知；+30单byte退休控制已单列",
+          "status": "未知"
+        },
+        {
+          "offset": 20,
+          "size": 16,
+          "name": "rotation_scale_factor_opacity",
+          "type": "f32[4]",
+          "category": "状态",
+          "semantics": "节点最终绘制变换与透明度",
+          "synchronization": "发送；Sprite对应字段由本节点覆写，不重复发",
+          "evidence": "96EA50/96EAB0；Room ctor10×0x34；tx-04-18-room-application.md",
+          "status": "已核"
+        },
+        {
+          "offset": 36,
+          "size": 4,
+          "name": "depth",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "alpha计算实际消费",
+          "synchronization": "发送；不把它当递归安全深度替代结构检查",
+          "evidence": "96EA50/96EAB0；Room ctor10×0x34；tx-04-18-room-application.md",
+          "status": "已核"
+        },
+        {
+          "offset": 40,
+          "size": 8,
+          "name": "position",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "节点绘制位置",
+          "synchronization": "发送",
+          "evidence": "96EA50/96EAB0；Room ctor10×0x34；tx-04-18-room-application.md",
+          "status": "已核"
+        },
+        {
+          "offset": 48,
+          "size": 1,
+          "name": "retire_or_shrink",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "树生长／收缩控制字节；继承到child，影响后续factor和删除",
+          "synchronization": "不发；当前factor／opacity／图拓扑已有实际显示后态",
+          "evidence": "967AA0清+30单字节；96F090沿child传播／清除并驱动收缩／退休；96EAB0不读此flag",
+          "status": "已核"
+        },
+        {
+          "offset": 49,
+          "size": 3,
+          "name": "unknown_31_33",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未解释；不能凭对齐、清零或检索未命中认作填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "967AA0清+30单字节；96F090沿child传播／清除并驱动收缩／退休；96EAB0不读此flag；本轮补读：96ED60把+10复制给child；业务名未定且96EAB0不消费，4B仍未知；+30单byte退休控制已单列",
+          "status": "未知"
+        }
+      ],
+      "direct_unknown_bytes": 7,
+      "residual_review": "96ED60把+10复制给child；业务名未定且96EAB0不消费，4B仍未知；+30单byte退休控制已单列"
+    },
+    {
+      "name": "RailManager",
+      "native_size": 728,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RailManager.zhl；9B7C70/9B7F00；7DFF75..7DFF91",
+      "note": "SDK_gridflags[447]少一项：sprite从+1C4开始，flags实际448字节恰好接上。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "room",
+          "type": "Room*",
+          "category": "本地",
+          "semantics": "回指本地Room",
+          "synchronization": "由本地owner构造；不发",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RailManager.zhl；9B7C70/9B7F00；7DFF75..7DFF91",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 448,
+          "name": "grid_flags",
+          "type": "u8[448]",
+          "category": "状态",
+          "semantics": "0..447实际轨道，255无轨；不是Grid槽成员",
+          "synchronization": "只读width*height真实extent；线上u16 extent＋有序字节；尾部不读，本地清255",
+          "evidence": "9B7C70允许<=1BF；9B7F00；Room最大28×16",
+          "status": "已核"
+        },
+        {
+          "offset": 452,
+          "size": 276,
+          "name": "sprite",
+          "type": "ANM2",
+          "category": "换算",
+          "semantics": "native绘制每格强制rail/pitrail、帧",
+          "synchronization": "只发实际资源／非覆写图层与overlay外观；main动画帧由旗标派生；SetAnimation会重建索引数组须正确借用",
+          "evidence": "9B7C70/9B7F00→405F50/403DE0；tx-04-18-room-application.md",
+          "status": "已核",
+          "native_type": "ANM2",
+          "native_count": 1
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "Camera",
+      "native_size": 148,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Camera.zhl；91C730/91E920/91EBF0/91EC20",
+      "note": "跟随算法与视口本地；Host强制焦点的显示意图有独立optional投影，不能抹掉。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 96,
+          "name": "rings",
+          "type": "CameraRing[6]",
+          "category": "本地",
+          "semantics": "6个环形历史，容量60/90/300/15/4/120",
+          "synchronization": "不传指针／容量／历史；必要强制焦点只投影最后有效Vector",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Camera.zhl；91C730/91E920/91EBF0/91EC20",
+          "status": "已核",
+          "native_type": "CameraRing",
+          "native_count": 6
+        },
+        {
+          "offset": 96,
+          "size": 8,
+          "name": "follow_accumulator",
+          "type": "Vector",
+          "category": "本地",
+          "semantics": "跟随历史／滤波中间值",
+          "synchronization": "不发；最终Room.render_scroll与C/S镜头策略消费明确当前值",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Camera.zhl；91C730/91E920/91EBF0/91EC20",
+          "status": "已核"
+        },
+        {
+          "offset": 104,
+          "size": 4,
+          "name": "room",
+          "type": "Room*",
+          "category": "本地",
+          "semantics": "回指本地Room",
+          "synchronization": "构造owner提供，不写Host地址",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Camera.zhl；91C730/91E920/91EBF0/91EC20",
+          "status": "已核"
+        },
+        {
+          "offset": 108,
+          "size": 8,
+          "name": "current_scroll",
+          "type": "Vector",
+          "category": "本地",
+          "semantics": "跟随／本地视口数值；current_scroll有实际可见性消费者",
+          "synchronization": "不整体复制五向量；共享画面用Room.scroll，若选本端镜头则由独立C/S纯UI策略维护",
+          "evidence": "91C730；91E920；Room+1204",
+          "status": "已核"
+        },
+        {
+          "offset": 116,
+          "size": 8,
+          "name": "viewport_half_size",
+          "type": "Vector",
+          "category": "本地",
+          "semantics": "跟随／本地视口数值；current_scroll有实际可见性消费者",
+          "synchronization": "不整体复制五向量；共享画面用Room.scroll，若选本端镜头则由独立C/S纯UI策略维护",
+          "evidence": "91C730；91E920；Room+1204",
+          "status": "已核"
+        },
+        {
+          "offset": 124,
+          "size": 8,
+          "name": "follow_target",
+          "type": "Vector",
+          "category": "本地",
+          "semantics": "跟随／本地视口数值；current_scroll有实际可见性消费者",
+          "synchronization": "不整体复制五向量；共享画面用Room.scroll，若选本端镜头则由独立C/S纯UI策略维护",
+          "evidence": "91C730；91E920；Room+1204",
+          "status": "已核"
+        },
+        {
+          "offset": 132,
+          "size": 8,
+          "name": "follow_previous",
+          "type": "Vector",
+          "category": "本地",
+          "semantics": "跟随／本地视口数值；current_scroll有实际可见性消费者",
+          "synchronization": "不整体复制五向量；共享画面用Room.scroll，若选本端镜头则由独立C/S纯UI策略维护",
+          "evidence": "91C730；91E920；Room+1204",
+          "status": "已核"
+        },
+        {
+          "offset": 140,
+          "size": 1,
+          "name": "should_override",
+          "type": "bool",
+          "category": "换算",
+          "semantics": "Camera强制焦点资格，IsPosVisible可读focus ring最后项",
+          "synchronization": "需要时发optional focus意图／最后有效坐标；不发完整ring／重放SetFocus/Update",
+          "evidence": "91E920；91EBF0；LuaCamera.cpp",
+          "status": "已核"
+        },
+        {
+          "offset": 141,
+          "size": 3,
+          "name": "unknown_8D_8F",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Camera.zhl；91C730/91E920/91EBF0/91EC20；本轮补读：91C730/91EBF0/91EC20/91E920/更新族：+8C bool与+90 f32之间3B仍未知",
+          "status": "未知"
+        },
+        {
+          "offset": 144,
+          "size": 4,
+          "name": "smoothing",
+          "type": "f32",
+          "category": "本地",
+          "semantics": "本地跟随算法参数",
+          "synchronization": "不发；冻结显示不运行跟随算法",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Camera.zhl；91C730/91E920/91EBF0/91EC20",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 3,
+      "residual_review": "91C730/91EBF0/91EC20/91E920/更新族：+8C bool与+90 f32之间3B仍未知"
+    },
+    {
+      "name": "CameraRing",
+      "native_size": 16,
+      "evidence": "91EF60/91EFE0；91C730；91E920",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "data",
+          "type": "Vector*",
+          "category": "本地",
+          "semantics": "本地环形缓冲管理",
+          "synchronization": "不上线；focus projection仅在实际count>0且边界合法时取最后有效Vector",
+          "evidence": "91EF60/91EFE0；91C730；91E920",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "capacity",
+          "type": "i32",
+          "category": "本地",
+          "semantics": "本地环形缓冲管理",
+          "synchronization": "不上线；focus projection仅在实际count>0且边界合法时取最后有效Vector",
+          "evidence": "91EF60/91EFE0；91C730；91E920",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "count",
+          "type": "i32",
+          "category": "本地",
+          "semantics": "本地环形缓冲管理",
+          "synchronization": "不上线；focus projection仅在实际count>0且边界合法时取最后有效Vector",
+          "evidence": "91EF60/91EFE0；91C730；91E920",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "head",
+          "type": "i32",
+          "category": "本地",
+          "semantics": "本地环形缓冲管理",
+          "synchronization": "不上线；focus projection仅在实际count>0且边界合法时取最后有效Vector",
+          "evidence": "91EF60/91EFE0；91C730；91E920",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "RoomShockwave",
+      "native_size": 28,
+      "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 8,
+          "name": "origin",
+          "type": "Vector",
+          "category": "换算",
+          "semantics": "本次波纹中心",
+          "synchronization": "只发实际采用的最终pass输入；不以空值代替不适用",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "radius",
+          "type": "f32",
+          "category": "换算",
+          "semantics": "推进参数与当前绘制计算混用",
+          "synchronization": "只发最终半帧radius／包络／中心／pass资格；未用未来值不上线",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "strength",
+          "type": "f32",
+          "category": "换算",
+          "semantics": "推进参数与当前绘制计算混用",
+          "synchronization": "只发最终半帧radius／包络／中心／pass资格；未用未来值不上线",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "speed",
+          "type": "f32",
+          "category": "换算",
+          "semantics": "推进参数与当前绘制计算混用",
+          "synchronization": "只发最终半帧radius／包络／中心／pass资格；未用未来值不上线",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0",
+          "status": "已核"
+        },
+        {
+          "offset": 20,
+          "size": 4,
+          "name": "current",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "推进参数与当前绘制计算混用",
+          "synchronization": "只发最终半帧radius／包络／中心／pass资格；未用未来值不上线",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0",
+          "status": "已核"
+        },
+        {
+          "offset": 24,
+          "size": 4,
+          "name": "maximum",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "推进参数与当前绘制计算混用",
+          "synchronization": "只发最终半帧radius／包络／中心／pass资格；未用未来值不上线",
+          "evidence": "7DFBCB..7DFC4D；7F7F60；804500波纹；8131D0",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "RoomHellBackdrop",
+      "native_size": 296,
+      "evidence": "7DFFC4..7DFFE6；82E960/82EE90/82EFD0/82F210",
+      "note": "连续内嵌显示组件视图；此边界来自后续Room独立flag，不是SDK独立类sizeof断言。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "room",
+          "type": "Room*",
+          "category": "本地",
+          "semantics": "回指当前Room",
+          "synchronization": "不发",
+          "evidence": "7DFFC4..7DFFE6；82E960/82EE90/82EFD0/82F210",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 276,
+          "name": "sprite",
+          "type": "ANM2",
+          "category": "状态",
+          "semantics": "地狱背景实际资源、层与当前帧",
+          "synchronization": "活动时保留实际资源／必要姿态；pass临时色／quad按明确绘制规则处理",
+          "evidence": "7DFFC4..7DFFE6；82E960/82EE90/82EFD0/82F210",
+          "status": "已核",
+          "native_type": "ANM2",
+          "native_count": 1
+        },
+        {
+          "offset": 280,
+          "size": 1,
+          "name": "active",
+          "type": "bool",
+          "category": "换算",
+          "semantics": "82F210入口检查的当前资格",
+          "synchronization": "线上present／当前活动分支，不能由本地Stage重新猜",
+          "evidence": "7DFFC4..7DFFE6；82E960/82EE90/82EFD0/82F210",
+          "status": "已核"
+        },
+        {
+          "offset": 281,
+          "size": 3,
+          "name": "unknown_119_11B",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "7DFFC4..7DFFE6；82E960/82EE90/82EFD0/82F210；本轮补读：82E960/82EE90/82EFD0/82F210：活动+118后3B仍未知",
+          "status": "未知"
+        },
+        {
+          "offset": 284,
+          "size": 4,
+          "name": "display_offset",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "82F210读this[71]的实际当前滚动坐标",
+          "synchronization": "发当前值，不按Client帧／speed外推",
+          "evidence": "7DFFC4..7DFFE6；82E960/82EE90/82EFD0/82F210",
+          "status": "已核"
+        },
+        {
+          "offset": 288,
+          "size": 8,
+          "name": "speed_and_accumulator",
+          "type": "f32[2]",
+          "category": "权威",
+          "semantics": "82EE90还用speed移动实体／累计下次offset",
+          "synchronization": "留Host；禁止调用完整Update",
+          "evidence": "7DFFC4..7DFFE6；82E960/82EE90/82EFD0/82F210",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 3,
+      "residual_review": "82E960/82EE90/82EFD0/82F210：活动+118后3B仍未知"
+    },
+    {
+      "name": "EntityList",
+      "native_size": 1024,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList.zhl；413270/413740；Entity域同步职责",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 32,
+          "name": "collision_partitions",
+          "type": "NativeSpatialIndex*[8]",
+          "category": "本地",
+          "semantics": "八个实体空间分区／碰撞索引的本地指针",
+          "synchronization": "不传指针或分区网格，不在Client执行碰撞生产；最终Entity后态和显示顺序另承接",
+          "evidence": "413270分配8份24h分区索引；415880清索引→417860/417A90处理碰撞；413740逐个析构",
+          "status": "已核"
+        },
+        {
+          "offset": 32,
+          "size": 16,
+          "name": "main",
+          "type": "EntityListEL",
+          "category": "容器",
+          "semantics": "原生分类索引，不是八套Entity身份",
+          "synchronization": "本地从正式成员和有序render关系建索引；不复制更新列表／缓存",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList.zhl；413270/413740；Entity域同步职责",
+          "status": "已核",
+          "native_type": "EntityListEL",
+          "native_count": 1
+        },
+        {
+          "offset": 48,
+          "size": 16,
+          "name": "persistent",
+          "type": "EntityListEL",
+          "category": "容器",
+          "semantics": "原生分类索引，不是八套Entity身份",
+          "synchronization": "本地从正式成员和有序render关系建索引；不复制更新列表／缓存",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList.zhl；413270/413740；Entity域同步职责",
+          "status": "已核",
+          "native_type": "EntityListEL",
+          "native_count": 1
+        },
+        {
+          "offset": 64,
+          "size": 16,
+          "name": "update",
+          "type": "EntityListEL",
+          "category": "容器",
+          "semantics": "原生分类索引，不是八套Entity身份",
+          "synchronization": "本地从正式成员和有序render关系建索引；不复制更新列表／缓存",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList.zhl；413270/413740；Entity域同步职责",
+          "status": "已核",
+          "native_type": "EntityListEL",
+          "native_count": 1
+        },
+        {
+          "offset": 80,
+          "size": 16,
+          "name": "render",
+          "type": "EntityListEL",
+          "category": "容器",
+          "semantics": "原生分类索引，不是八套Entity身份",
+          "synchronization": "本地从正式成员和有序render关系建索引；不复制更新列表／缓存",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList.zhl；413270/413740；Entity域同步职责",
+          "status": "已核",
+          "native_type": "EntityListEL",
+          "native_count": 1
+        },
+        {
+          "offset": 96,
+          "size": 16,
+          "name": "effect",
+          "type": "EntityListEL",
+          "category": "容器",
+          "semantics": "原生分类索引，不是八套Entity身份",
+          "synchronization": "本地从正式成员和有序render关系建索引；不复制更新列表／缓存",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList.zhl；413270/413740；Entity域同步职责",
+          "status": "已核",
+          "native_type": "EntityListEL",
+          "native_count": 1
+        },
+        {
+          "offset": 112,
+          "size": 16,
+          "name": "temp",
+          "type": "EntityListEL",
+          "category": "容器",
+          "semantics": "原生分类索引，不是八套Entity身份",
+          "synchronization": "本地从正式成员和有序render关系建索引；不复制更新列表／缓存",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList.zhl；413270/413740；Entity域同步职责",
+          "status": "已核",
+          "native_type": "EntityListEL",
+          "native_count": 1
+        },
+        {
+          "offset": 128,
+          "size": 16,
+          "name": "buffer_template",
+          "type": "EntityListEL",
+          "category": "容器",
+          "semantics": "原生分类索引，不是八套Entity身份",
+          "synchronization": "本地从正式成员和有序render关系建索引；不复制更新列表／缓存",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList.zhl；413270/413740；Entity域同步职责",
+          "status": "已核",
+          "native_type": "EntityListEL",
+          "native_count": 1
+        },
+        {
+          "offset": 144,
+          "size": 16,
+          "name": "wisp",
+          "type": "EntityListEL",
+          "category": "容器",
+          "semantics": "原生分类索引，不是八套Entity身份",
+          "synchronization": "本地从正式成员和有序render关系建索引；不复制更新列表／缓存",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList.zhl；413270/413740；Entity域同步职责",
+          "status": "已核",
+          "native_type": "EntityListEL",
+          "native_count": 1
+        },
+        {
+          "offset": 160,
+          "size": 8,
+          "name": "render_pass_cursor",
+          "type": "u32[2]",
+          "category": "派生",
+          "semantics": "Room.Render在Room+12B8/+12BC写当前绘制游标／pass",
+          "synchronization": "本地受控pass维护；不发Host上次绘制scratch",
+          "evidence": "804500写Room+12B8/+12BC；相对EntityList为+A0/+A4",
+          "status": "已核"
+        },
+        {
+          "offset": 168,
+          "size": 8,
+          "name": "alive_enemy_counts",
+          "type": "i32[2]",
+          "category": "权威",
+          "semantics": "新加入增量与已统计敌人数；GetAliveEnemiesCount钳sum到非负",
+          "synchronization": "留Host；不为了Getter相等发送计数缓存",
+          "evidence": "4524E0/452500汇总Room[1200..1203]；413D00/413EC0增量；414764..4147A1轮转／清零",
+          "status": "已核"
+        },
+        {
+          "offset": 176,
+          "size": 8,
+          "name": "alive_boss_counts",
+          "type": "i32[2]",
+          "category": "权威",
+          "semantics": "新加入增量与已统计Boss数；GetAliveBossesCount钳sum到非负",
+          "synchronization": "留Host；真实Boss／HUD显示另承接",
+          "evidence": "4524E0/452500汇总Room[1200..1203]；413D00/413EC0增量；414764..4147A1轮转／清零",
+          "status": "已核"
+        },
+        {
+          "offset": 184,
+          "size": 4,
+          "name": "enemy_count_scratch",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Update循环中的敌人计数／阈值scratch",
+          "synchronization": "留Host；不是显示状态",
+          "evidence": "4524E0/452500汇总Room[1200..1203]；413D00/413EC0增量；414764..4147A1轮转／清零",
+          "status": "已核"
+        },
+        {
+          "offset": 188,
+          "size": 4,
+          "name": "enemy_damage_inflicted",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "本帧敌人总伤害；Wiki用于伤害充能，不是画面强度",
+          "synchronization": "留Host；当前充能／属性HUD已由Player/Presentation承接",
+          "evidence": "852C8D→844750读Room float[1205]=12D4；相对EntityList为+BC",
+          "status": "已核"
+        },
+        {
+          "offset": 192,
+          "size": 4,
+          "name": "previous_enemy_count",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Update统计快照，4147A1写本轮统计数",
+          "synchronization": "留Host；不重复同步派生计数",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核"
+        },
+        {
+          "offset": 196,
+          "size": 12,
+          "name": "collision_pair_bits",
+          "type": "vector storage header",
+          "category": "本地",
+          "semantics": "415880按参与碰撞实体数N²准备的位存储",
+          "synchronization": "不复制头或collision pair结果；Client不模拟碰撞",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核"
+        },
+        {
+          "offset": 208,
+          "size": 4,
+          "name": "collision_pair_cursor",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "碰撞pair处理游标，415880每轮清零",
+          "synchronization": "不上线",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核"
+        },
+        {
+          "offset": 212,
+          "size": 4,
+          "name": "collision_subject_count",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "415880按实际参与实体编号得到的碰撞规模",
+          "synchronization": "不上线；不是网络成员数",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核"
+        },
+        {
+          "offset": 216,
+          "size": 8,
+          "name": "shadow_image",
+          "type": "ImageStrongPair",
+          "category": "资源",
+          "semantics": "构造加载gfx/shadow.png；RenderShadows直接使用本地资源",
+          "synchronization": "正常本地标准资源owner；不发Image/control地址，不复制查询／更新系统",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核",
+          "native_type": "ImageStrongPair",
+          "native_count": 1
+        },
+        {
+          "offset": 224,
+          "size": 8,
+          "name": "type_query_cache",
+          "type": "map<(Type,Variant,Subtype),EntityListEL> header",
+          "category": "本地",
+          "semantics": "416820仅Cache=true时查询／建立本帧类型查询缓存；树节点44B",
+          "synchronization": "不发缓存或借用EL；正式Entity成员／身份已独立承接",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核"
+        },
+        {
+          "offset": 232,
+          "size": 4,
+          "name": "online_checksum_pending_word",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "原版Online比较生成器的待处理4B",
+          "synchronization": "C/S不读取／复制／计算；不执行相关函数",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核"
+        },
+        {
+          "offset": 236,
+          "size": 1,
+          "name": "online_checksum_pending_bytes",
+          "type": "u8",
+          "category": "本地",
+          "semantics": "原版Online pending byte数，非普通UI bool",
+          "synchronization": "C/S不读取／复制／计算",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核"
+        },
+        {
+          "offset": 237,
+          "size": 3,
+          "name": "unknown_ED_EF",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未解释；不能凭对齐、清零或检索未命中认作填充",
+          "synchronization": "不读不发；窄字段读写跳过该范围，保留未决",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "未知"
+        },
+        {
+          "offset": 240,
+          "size": 4,
+          "name": "online_checksum_accumulator",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "原版Online内部比较累计值，初值FEDCBA76",
+          "synchronization": "C/S不读取／复制／计算，不作为任何推进／一致性条件",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核"
+        },
+        {
+          "offset": 244,
+          "size": 4,
+          "name": "online_checksum_control",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "原版Online分支的累计控制，ctor置1",
+          "synchronization": "不接入C/S",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核"
+        },
+        {
+          "offset": 248,
+          "size": 768,
+          "name": "online_frames",
+          "type": "OriginalOnlineEntityFrame[32]",
+          "category": "本地",
+          "semantics": "原版Online分支32帧环；每帧事件vector、6EB740返回值及比较值",
+          "synchronization": "全768B不进入C/S；不创建／回放／比较该环",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核",
+          "native_type": "OriginalOnlineEntityFrame",
+          "native_count": 32
+        },
+        {
+          "offset": 1016,
+          "size": 4,
+          "name": "online_frame_head",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "原版Online环头，按0x1F取模",
+          "synchronization": "不上线，不借作C/S时钟",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核"
+        },
+        {
+          "offset": 1020,
+          "size": 4,
+          "name": "online_frame_count",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "原版Online环有效帧数，最多32",
+          "synchronization": "不上线，不借作C/S完整性条件",
+          "evidence": "413270/413740/413A30；415880重建并处理N²碰撞pair bitset；4154D0阴影资源；416820缓存查询；413F00 Online分支",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 3
+    },
+    {
+      "name": "EntityListEL",
+      "native_size": 16,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList_EL.zhl；client_presentation_native.cpp::Members/FullSort",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 1,
+          "name": "sublist",
+          "type": "bool",
+          "category": "本地",
+          "semantics": "是否借用子列表的内存所有权条件",
+          "synchronization": "不发；本地独立owner维护",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList_EL.zhl；client_presentation_native.cpp::Members/FullSort",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 1,
+          "size": 3,
+          "name": "unknown_1_3",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList_EL.zhl；client_presentation_native.cpp::Members/FullSort；本轮补读：SDK bool+0与ptr+4；构造／Destroy／QueryType只按已核成员访问，+1..3仍未知",
+          "status": "未知"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "data",
+          "type": "Entity**",
+          "category": "本地",
+          "semantics": "EL本地数组管理；其中顺序语义由正式Entity关系承接",
+          "synchronization": "不上线原生头；保留真实render tie顺序，不按地址排序",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList_EL.zhl；client_presentation_native.cpp::Members/FullSort",
+          "status": "SDK声明＋既有应用"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "capacity",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "EL本地数组管理；其中顺序语义由正式Entity关系承接",
+          "synchronization": "不上线原生头；保留真实render tie顺序，不按地址排序",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList_EL.zhl；client_presentation_native.cpp::Members/FullSort",
+          "status": "SDK声明＋既有应用"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "size",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "EL本地数组管理；其中顺序语义由正式Entity关系承接",
+          "synchronization": "不上线原生头；保留真实render tie顺序，不按地址排序",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/EntityList_EL.zhl；client_presentation_native.cpp::Members/FullSort",
+          "status": "SDK声明＋既有应用"
+        }
+      ],
+      "direct_unknown_bytes": 3,
+      "residual_review": "SDK bool+0与ptr+4；构造／Destroy／QueryType只按已核成员访问，+1..3仍未知"
+    },
+    {
+      "name": "RoomTemporaryEffects",
+      "native_size": 24,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/TemporaryEffects.zhl；804500/7F7F60；布局136",
+      "note": "与Player的同名对象不同实例：父用途限定为Host，未知仍按物理字节列出。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "cache_mask",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "效果重算控制",
+          "synchronization": "留Host",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/TemporaryEffects.zhl；804500/7F7F60；布局136",
+          "status": "既有布局136"
+        },
+        {
+          "offset": 4,
+          "size": 12,
+          "name": "effects",
+          "type": "vector<TemporaryEffect>",
+          "category": "容器",
+          "semantics": "效果生产列表",
+          "synchronization": "Room列表留Host；仅实际显示条件有具名投影",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/TemporaryEffects.zhl；804500/7F7F60；布局136",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 2,
+          "name": "evaluate_disabled",
+          "type": "bool[2]",
+          "category": "权威",
+          "semantics": "更新／禁用条件",
+          "synchronization": "不发原值；最终实际显示资格由正常Host分支取结果",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/TemporaryEffects.zhl；804500/7F7F60；布局136",
+          "status": "已核"
+        },
+        {
+          "offset": 18,
+          "size": 2,
+          "name": "unknown_12_13",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/TemporaryEffects.zhl；804500/7F7F60；布局136；本轮补读：SDK bool+10/+11与ptr+14；已有布局136不解释+12..13，本轮不改其证据等级",
+          "status": "未知"
+        },
+        {
+          "offset": 20,
+          "size": 4,
+          "name": "player",
+          "type": "Entity_Player*",
+          "category": "本地",
+          "semantics": "实例回指，不是网络玩家身份",
+          "synchronization": "不发地址",
+          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/TemporaryEffects.zhl；804500/7F7F60；布局136",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 2,
+      "residual_review": "SDK bool+10/+11与ptr+14；已有布局136不解释+12..13，本轮不改其证据等级"
+    },
+    {
+      "name": "Vector",
+      "native_size": 8,
+      "base_prefix": false,
+      "evidence": "mod/binding/state/base.json::Vector",
+      "note": "继承当前生产源的证据等级与UNKNOWN；本核对不扩大通用Sprite公开API或线格式。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "x",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "X 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA0x9E5BC0/RVA0x5E5BC0 Lerp；0x9E5BE6/0x9E5BEB读两f32、0x9E5BEF写第二分量（imagebase 0x400000）；Vector2.zhl",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "y",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "Y 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA0x9E5BC0/RVA0x5E5BC0 Lerp；0x9E5BE6/0x9E5BEB读两f32、0x9E5BEF写第二分量（imagebase 0x400000）；Vector2.zhl",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "ColorMod",
+      "native_size": 44,
+      "base_prefix": false,
+      "evidence": "mod/binding/state/base.json::ColorMod",
+      "note": "继承当前生产源的证据等级与UNKNOWN；本核对不扩大通用Sprite公开API或线格式。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "tint_r",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "tint RGBA 的 R 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "tint_g",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "tint RGBA 的 G 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "tint_b",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "tint RGBA 的 B 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "tint_a",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "tint RGBA 的 A 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "colorize_r",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "colorize RGBA 的 R 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "status": "已核"
+        },
+        {
+          "offset": 20,
+          "size": 4,
+          "name": "colorize_g",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "colorize RGBA 的 G 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "status": "已核"
+        },
+        {
+          "offset": 24,
+          "size": 4,
+          "name": "colorize_b",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "colorize RGBA 的 B 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "status": "已核"
+        },
+        {
+          "offset": 28,
+          "size": 4,
+          "name": "colorize_a",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "colorize RGBA 的 A 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "status": "已核"
+        },
+        {
+          "offset": 32,
+          "size": 4,
+          "name": "offset_r",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "offset RGB 的 R 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "status": "已核"
+        },
+        {
+          "offset": 36,
+          "size": 4,
+          "name": "offset_g",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "offset RGB 的 G 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "status": "已核"
+        },
+        {
+          "offset": 40,
+          "size": 4,
+          "name": "offset_b",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "offset RGB 的 B 分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ColorMod.zhl；REPENTOGON\\LuaInterfaces\\LuaColor.cpp:8-80、132-169；J273 ctor VA0x402760/RVA0x2760初始化11字；VA0x67E940/RVA0x27E940按tint[0..3]、colorize[4..7]、offset[8..10]处理float；主审已复读",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "KColor",
+      "native_size": 20,
+      "base_prefix": false,
+      "evidence": "mod/binding/state/base.json::KColor",
+      "note": "继承当前生产源的证据等级与UNKNOWN；本核对不扩大通用Sprite公开API或线格式。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "red",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "红色分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "green",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "绿色分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "blue",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "蓝色分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "alpha",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "透明度分量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\KColor.zhl；docs/design/tx-04-19/entity-application.json 中 KColor RGBA+opaque32；J273 VA0x9E39F0转换前三个f32并复制+0xC Alpha，+0x10颜色空间另行处理",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "color_space",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "颜色空间标记：已核0=RGB、1=sRGB、2=HSL；不将当前观察标签冒充穷举集合",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA0x9E39F0：+0x9E3A01检查输入space=1，+0x9E3A37写输出0；VA0x9E37B0检查RGB0，VA0x9E3BA0检查HSL2/输出0；imagebase 0x400000；主审已复读；VA0x9E3DF0成功转换分支在VA0x9E3EB0写结果标签1；分派表VA0xAB1E00有三组三项；其他标签未作穷举排除",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "AnimationState",
+      "native_size": 32,
+      "base_prefix": false,
+      "evidence": "mod/binding/state/base.json::AnimationState",
+      "note": "继承当前生产源的证据等级与UNKNOWN；本核对不扩大通用Sprite公开API或线格式。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "animation_owner",
+          "type": "ANM2*",
+          "category": "本地",
+          "semantics": "回指所属 ANM2；由上层对象关系确定",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl；SetLayerFrame VA0x40439E取state+0 owner，VA0x4043A0访问owner+0x80层数",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "active_animation",
+          "type": "AnimationData*",
+          "category": "资源",
+          "semantics": "当前动画资源项；序号由 ANM2 文件表解析，空指针使用资源空值标记",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "layer_frames",
+          "type": "int*",
+          "category": "容器",
+          "semantics": "各图层 AnimationFrame 内部序号选择器，长度取当前 AnimationData._layerCount",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA 0x404390 SetLayerFrame 使用 state+0x08 并按当前动画层映射写选择器；AnimationState.zhl 注释；数组不可从 _animFrame 重建",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "null_layer_frames",
+          "type": "int*",
+          "category": "容器",
+          "semantics": "各空层 AnimationFrame 内部序号选择器，长度取当前 AnimationData._nullLayerCount",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA 0x4040B0 AdvanceNullLayerPosition 读写 state+0x0C；计数从当前 AnimationData+0x24 读取；数组不可从 _animFrame 重建",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "anim_frame",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "动画当前帧值",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 AdvancePosition VA0x4041A0/RVA0x41A0：VA0x4041B2以movss读+0x10、VA0x404239写floor(frame)+1；主审已复读",
+          "status": "已核"
+        },
+        {
+          "offset": 20,
+          "size": 1,
+          "name": "is_playing",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "播放标志兼绘制插值输入；直接安装最终值，不授权Client推进动画",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl；REPENTOGON/Patches/InterpolV2.cpp:34读取_isPlaying；版本32复核见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 21,
+          "size": 3,
+          "name": "unknown_15_17",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "SDK 字段间未解释的三个字节；不认作填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "AnimationState.zhl 在 bool +0x14 后对齐至 i32 +0x18；未证明这些字节永不变化；本轮补读：403DE0/402CD0/403160及已核draw：+14 bool后3B未找到独立语义；仍未知",
+          "status": "未知"
+        },
+        {
+          "offset": 24,
+          "size": 4,
+          "name": "currently_triggered_events",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Host动画事件消费位；Client安装最终姿态，不推进或重放事件，构造／换动画后本地清零",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 AnimationState::IsEventTriggered 读取 this+0x18（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md",
+          "status": "已核"
+        },
+        {
+          "offset": 28,
+          "size": 4,
+          "name": "previously_triggered_events",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Host动画事件历史位；不表示可靠事件队列，不进入Client状态或漂移比较",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 AnimationState::WasEventTriggered 读取 this+0x1C（imagebase 0x400000）；官方 AnimationState.zhl；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 3,
+      "residual_review": "403DE0/402CD0/403160及已核draw：+14 bool后3B未找到独立语义；仍未知"
+    },
+    {
+      "name": "LayerState",
+      "native_size": 160,
+      "base_prefix": false,
+      "evidence": "mod/binding/state/base.json::LayerState",
+      "note": "继承当前生产源的证据等级与UNKNOWN；本核对不扩大通用Sprite公开API或线格式。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "layer_data",
+          "type": "LayerData*",
+          "category": "派生",
+          "semantics": "由所属 ANM2 文件及数组序号定位的资源定义",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "推断"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "animation_owner",
+          "type": "ANM2*",
+          "category": "本地",
+          "semantics": "所属 ANM2 回指，不作为网络状态",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 8,
+          "size": 24,
+          "name": "spritesheet_path",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "spritesheet路径元数据资源号；与实际Image选择独立，路径变更不授权Client抢先重载",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "LayerState.zhl +0x08 std::string；LuaSprite.cpp GetSpritesheetPath 直接返回 GetSpritesheetPath().c_str()",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 32,
+          "size": 4,
+          "name": "min_filter_mode",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "缩小过滤模式",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 36,
+          "size": 4,
+          "name": "mag_filter_mode",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "放大过滤模式",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 40,
+          "size": 4,
+          "name": "wrap_s_mode",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "S 方向环绕模式",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 44,
+          "size": 4,
+          "name": "wrap_t_mode",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "T 方向环绕模式",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 48,
+          "size": 1,
+          "name": "sprite_sheet_loaded",
+          "type": "bool",
+          "category": "本地",
+          "semantics": "本地图层资源加载／重载维护标志；ReplaceSpritesheet可置false同时保留旧Image，不跨进程复制，也不按Host原值覆盖Client加载结果",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 49,
+          "size": 1,
+          "name": "unknown_31",
+          "type": "u8",
+          "category": "未知",
+          "semantics": "J273 LoadGraphics 将该字节清零；具体语义未明，绝非已证填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "J273 VA 0x407DA0 LoadGraphics 内 VA 0x407F7A 写 LayerState+0x31=0；imagebase 0x400000；本轮补读：402CD0只单字节复制+31，407F7A清零；无证据将其当shader；+75..77仍未知",
+          "status": "未知"
+        },
+        {
+          "offset": 50,
+          "size": 1,
+          "name": "flip_x",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "水平翻转",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 51,
+          "size": 1,
+          "name": "flip_y",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "垂直翻转",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 52,
+          "size": 8,
+          "name": "size",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "图层尺寸",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 60,
+          "size": 4,
+          "name": "rotation",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "图层旋转角度",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 64,
+          "size": 8,
+          "name": "position",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "图层位置",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 72,
+          "size": 44,
+          "name": "color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "图层 ColorMod",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 116,
+          "size": 1,
+          "name": "visible",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "图层显示开关",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 117,
+          "size": 3,
+          "name": "unknown_75_77",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "SDK 布局间未说明的三个字节；不认作填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "LayerState.zhl 在 visible +0x74 后以 BlendMode +0x78 对齐；没有不变证据；本轮补读：402CD0只单字节复制+31，407F7A清零；无证据将其当shader；+75..77仍未知",
+          "status": "未知"
+        },
+        {
+          "offset": 120,
+          "size": 20,
+          "name": "blend_mode",
+          "type": "BlendMode",
+          "category": "状态",
+          "semantics": "图层混合模式的五 DWORD 值",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA 0x9E17B0（RVA 0x5E17B0，imagebase 0x400000）BlendMode::GetMode；官方 BlendMode.zhl",
+          "status": "已核"
+        },
+        {
+          "offset": 140,
+          "size": 4,
+          "name": "render_flags",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "图层渲染位标志",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 144,
+          "size": 8,
+          "name": "crop_offset",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "图层裁剪偏移",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\LayerState.zhl；J273 VA 0x407DA0 LoadGraphics",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 152,
+          "size": 8,
+          "name": "image_selection",
+          "type": "KAGE_SmartPointer_ImageBase",
+          "category": "资源",
+          "semantics": "当前实际ImageBase选择，Null使用0xFFFF；Host由ImageBase._name形成资源身份，Client重建引用；重名／程序图像身份仍待第8步核",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "SmartPointer.zhl：+0 image、+4 refcount control block；KAGE_Graphics_Image.zhl：ImageBase::_name 在 +0x3C；LayerState::SetSpriteSheet 会替换整个 smart pointer",
+          "status": "推断"
+        }
+      ],
+      "direct_unknown_bytes": 4,
+      "residual_review": "402CD0只单字节复制+31，407F7A清零；无证据将其当shader；+75..77仍未知"
+    },
+    {
+      "name": "ANM2",
+      "native_size": 276,
+      "base_prefix": false,
+      "evidence": "mod/binding/state/base.json::ANM2",
+      "note": "继承当前生产源的证据等级与UNKNOWN；本核对不扩大通用Sprite公开API或线格式。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 24,
+          "name": "file_name",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "可空ANM2文件资源选择；Host loaded=false编码0xFFFF，true编码文件资源号；不以路径非空猜测存在性",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；J273 Render VA0x4059E0读取+109；Reset VA0x403530清文件／资源及loaded，Load VA0x407B52置1；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 24,
+          "size": 24,
+          "name": "default_animation_name",
+          "type": "std::string",
+          "category": "容器",
+          "semantics": "默认动画名字符串；load 阶段读取，保留有界字节串，不当作不可变文件派生量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA 0x407AF0 Load 调 VA 0x409680；VA 0x4099D4/0x4099E9 将 cache 字符串复制到 this+0x18；SetAnimation VA 0x405F50 只切换 AnimationData。REP ANM2.zhl",
+          "status": "已核"
+        },
+        {
+          "offset": 48,
+          "size": 32,
+          "name": "main_state",
+          "type": "AnimationState",
+          "category": "状态",
+          "semantics": "主动画状态与独立图层/空层帧选择器",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 80,
+          "size": 32,
+          "name": "overlay_state",
+          "type": "AnimationState",
+          "category": "状态",
+          "semantics": "叠加动画状态与独立图层/空层帧选择器",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 VA 0x404390（RVA 0x4390）SetLayerFrame；VA 0x4040B0（RVA 0x40B0）AdvanceNullLayerPosition；官方 AnimationState.zhl",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 112,
+          "size": 1,
+          "name": "overlay_render_first",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "叠加动画先绘制开关",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 113,
+          "size": 3,
+          "name": "unknown_71_73",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "SDK 字段间未解释字节；不认作填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "ANM2.zhl 中 overlayRenderFirst +0x70 与 AnimationData* +0x74 间未命名；本轮补读：402CD0单字节复制+108，403160交换，403530 word清108/109；仅证明copy／reset，不证明其业务含义；71..73/102..103/10A..10B仍未知",
+          "status": "未知"
+        },
+        {
+          "offset": 116,
+          "size": 4,
+          "name": "animation_data",
+          "type": "AnimationData*",
+          "category": "派生",
+          "semantics": "由 ANM2 文件动画表建立的资源数组首址",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "已核"
+        },
+        {
+          "offset": 120,
+          "size": 4,
+          "name": "animation_count",
+          "type": "i32",
+          "category": "派生",
+          "semantics": "由 ANM2 文件动画表确定的动画数量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "已核"
+        },
+        {
+          "offset": 124,
+          "size": 4,
+          "name": "layer_states",
+          "type": "LayerState*",
+          "category": "容器",
+          "semantics": "按 layer_count 遍历图层实例状态",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "ANM2.zhl +0x7C；LayerState 实例步长 0xA0；J273 VA 0x407AF0 按该数组顺序处理图层",
+          "status": "已核"
+        },
+        {
+          "offset": 128,
+          "size": 4,
+          "name": "layer_count",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "由 ANM2 文件图层数组确定的图层数",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "已核"
+        },
+        {
+          "offset": 132,
+          "size": 4,
+          "name": "null_layer_names",
+          "type": "std::string*",
+          "category": "派生",
+          "semantics": "由文件建立的空层名称表",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "已核"
+        },
+        {
+          "offset": 136,
+          "size": 4,
+          "name": "null_layer_count",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "由文件建立的空层名称数量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "已核"
+        },
+        {
+          "offset": 140,
+          "size": 4,
+          "name": "event_names",
+          "type": "std::string*",
+          "category": "派生",
+          "semantics": "由文件建立的事件名表",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "已核"
+        },
+        {
+          "offset": 144,
+          "size": 4,
+          "name": "event_count",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "由文件建立的事件数量",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "已核"
+        },
+        {
+          "offset": 148,
+          "size": 8,
+          "name": "offset",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "绘制偏移",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 156,
+          "size": 8,
+          "name": "scale",
+          "type": "Vector",
+          "category": "状态",
+          "semantics": "绘制缩放",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 164,
+          "size": 4,
+          "name": "rotation",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "全局旋转",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 168,
+          "size": 44,
+          "name": "color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "全局颜色",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 212,
+          "size": 44,
+          "name": "champion_color",
+          "type": "ColorMod",
+          "category": "状态",
+          "semantics": "精英色调",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 256,
+          "size": 1,
+          "name": "flip_x",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "水平翻转",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 257,
+          "size": 1,
+          "name": "flip_y",
+          "type": "bool",
+          "category": "状态",
+          "semantics": "垂直翻转",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 258,
+          "size": 2,
+          "name": "unknown_102_103",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "SDK 字段间未解释字节；不认作填充",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "ANM2.zhl 在 flip bool +0x100/+0x101 与 playbackSpeed +0x104 之间留空；本轮补读：402CD0单字节复制+108，403160交换，403530 word清108/109；仅证明copy／reset，不证明其业务含义；71..73/102..103/10A..10B仍未知",
+          "status": "未知"
+        },
+        {
+          "offset": 260,
+          "size": 4,
+          "name": "playback_speed",
+          "type": "f32",
+          "category": "状态",
+          "semantics": "播放速度兼绘制插值的半帧比例输入；不在Client推进动画",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation；REPENTOGON/Patches/InterpolV2.cpp按_playbackSpeed计算lerpappend；版本32见docs/design/binary-state/animation-resource-synchronization-review.md",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 264,
+          "size": 1,
+          "name": "unknown_108",
+          "type": "u8",
+          "category": "未知",
+          "semantics": "初始化为零但语义未明；不作为 shader 状态",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "J273 ANM2 ctor VA 0x403530 初始化周围字段；REP shader 扩展另在 Anm2Extras 旁表；本轮补读：402CD0单字节复制+108，403160交换，403530 word清108/109；仅证明copy／reset，不证明其业务含义；71..73/102..103/10A..10B仍未知",
+          "status": "未知"
+        },
+        {
+          "offset": 265,
+          "size": 1,
+          "name": "loaded",
+          "type": "bool",
+          "category": "本地",
+          "semantics": "本地ANM2构造／加载／重置结果；Host只用它确定file_name的可空资源选择，Client由资源owner完成准备后维护，不直接传布尔字节",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 Load VA 0x407AF0 的 VA 0x407B52 写 +0x109=1；属于本地资源生命周期状态；J273 IsLoaded VA0x41B820/RVA0x1B820直接return this[0x109]，主审已复读；版本32同步职责复核：docs/design/binary-state/animation-resource-synchronization-review.md",
+          "status": "已核"
+        },
+        {
+          "offset": 266,
+          "size": 2,
+          "name": "unknown_10A_10B",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "+0x109 与 shadowLayerIndex +0x10C 间未解释字节",
+          "synchronization": "不读不发；已读消费者不提供该范围的必要显示值，语义UNKNOWN保留，不称填充",
+          "evidence": "ANM2.zhl 与 J273 Load 对该两字节未给出语义；本轮补读：402CD0单字节复制+108，403160交换，403530 word清108/109；仅证明copy／reset，不证明其业务含义；71..73/102..103/10A..10B仍未知",
+          "status": "未知"
+        },
+        {
+          "offset": 268,
+          "size": 4,
+          "name": "shadow_layer_index",
+          "type": "i32",
+          "category": "派生",
+          "semantics": "资源中名称为 shadow 的 LayerState 数组序号；不存在时为 -1",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "J273 Load VA 0x407AF0：VA 0x407B59 初始化 -1；VA 0x407BC9 在层名等于 shadow 时写当前层序号",
+          "status": "已核"
+        },
+        {
+          "offset": 272,
+          "size": 4,
+          "name": "render_flags",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "ANM2 渲染位标志",
+          "synchronization": "仅复用字节事实；是否发送取决于外层已核Presentation用途",
+          "evidence": "F:\\projects_isaac\\REPENTOGON-1.1.3\\libzhl\\functions\\ANM2.zhl；J273 VA 0x407AF0 Load、VA 0x405F50 SetAnimation",
+          "status": "SDK声明"
+        }
+      ],
+      "direct_unknown_bytes": 8,
+      "residual_review": "402CD0单字节复制+108，403160交换，403530 word清108/109；仅证明copy／reset，不证明其业务含义；71..73/102..103/10A..10B仍未知"
+    },
+    {
+      "name": "ImageStrongPair",
+      "native_size": 8,
+      "base_prefix": false,
+      "evidence": "J273 smart-pointer helpers",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "image",
+          "type": "ImageBase*",
+          "category": "资源",
+          "semantics": "当前实际选中的图像",
+          "synchronization": "资源号／具名程序图像结果；不传地址",
+          "evidence": "408110/4082B0/408950",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "control",
+          "type": "Control*",
+          "category": "本地",
+          "semantics": "引用计数、析构及所有权",
+          "synchronization": "不发送；本地正常owner",
+          "evidence": "408110/4082B0/408950",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "RNG",
+      "native_size": 16,
+      "evidence": "RNG.zhl；J273 VA7DF4A0/7DF4E0/7DF540/7DF5B0；random-synchronization-review.md §3",
+      "note": "普通owner默认Host；两个纯绘制实例另有独立视图，不把该默认传播为它们的发送决定",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "当前xorshift状态；推进覆盖本字，不是身份",
+          "synchronization": "留Host；原值、存储地址与控制历史不进入状态帧",
+          "evidence": "RNG.zhl；J273 VA7DF4A0/7DF4E0/7DF540/7DF5B0；random-synchronization-review.md §3",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "shift_1",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "右移量；参数不是独立cursor",
+          "synchronization": "留Host；原值、存储地址与控制历史不进入状态帧",
+          "evidence": "RNG.zhl；J273 VA7DF4A0/7DF4E0/7DF540/7DF5B0；random-synchronization-review.md §3",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "shift_2",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "左移量",
+          "synchronization": "留Host；原值、存储地址与控制历史不进入状态帧",
+          "evidence": "RNG.zhl；J273 VA7DF4A0/7DF4E0/7DF540/7DF5B0；random-synchronization-review.md §3",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "shift_3",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "最后右移量",
+          "synchronization": "留Host；原值、存储地址与控制历史不进入状态帧",
+          "evidence": "RNG.zhl；J273 VA7DF4A0/7DF4E0/7DF540/7DF5B0；random-synchronization-review.md §3",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "FXPoop",
+      "native_size": 76,
+      "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+      "note": "FXLayers+38内嵌同样4Ch的FX；以poop专用资格及最终alpha读取，不走generic pass规则。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "id",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "配置／生成身份；实际draw不按该值重新选",
+          "synchronization": "不上线；保留实际pass／图像即可",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 8,
+          "name": "image",
+          "type": "ImageStrongPair",
+          "category": "资源",
+          "semantics": "已选图像与实际sampler/format",
+          "synchronization": "有资格的资源引用，control本地",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核",
+          "native_type": "ImageStrongPair",
+          "native_count": 1
+        },
+        {
+          "offset": 12,
+          "size": 12,
+          "name": "poses",
+          "type": "vector<FXPose>",
+          "category": "容器",
+          "semantics": "实际有序pose",
+          "synchronization": "只发有效prefix；不发头／容量",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核"
+        },
+        {
+          "offset": 24,
+          "size": 4,
+          "name": "count",
+          "type": "i32",
+          "category": "派生",
+          "semantics": "draw使用数量",
+          "synchronization": "由集合长度表达，保留0的清空语义",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核"
+        },
+        {
+          "offset": 28,
+          "size": 16,
+          "name": "velocity_ranges",
+          "type": "f32[4]",
+          "category": "权威",
+          "semantics": "XML xMin/xMax/yMin/yMax；生成每pose速度的四端点",
+          "synchronization": "留Host；有序当前pose位置／flip发送，不重新抽速度",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "已核"
+        },
+        {
+          "offset": 44,
+          "size": 4,
+          "name": "pass",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "实际pass1..6选择",
+          "synchronization": "poop的这些通用配置／pass位不作直接draw输入，不读不发；使用poop实际图像、颜色、有效pose和最终alpha",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核实例用途"
+        },
+        {
+          "offset": 48,
+          "size": 4,
+          "name": "stage_filter",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "配置stage经旧编号换算后保存，供967DB0筛选",
+          "synchronization": "不发候选过滤条件；实际被采用层／资源发送",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "已核"
+        },
+        {
+          "offset": 52,
+          "size": 4,
+          "name": "alt_stage_mask",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "XML altStages过滤mask",
+          "synchronization": "不发；不在Client按楼层重新选层",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "已核"
+        },
+        {
+          "offset": 56,
+          "size": 1,
+          "name": "only_default_backdrop",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "配置onlyDefaultBackdrop筛选条件",
+          "synchronization": "不发；实际选层已知",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "已核"
+        },
+        {
+          "offset": 57,
+          "size": 1,
+          "name": "parallax_mode",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "XML parallax存在时置1；96BF40据此按平均Player位置生成pose位置",
+          "synchronization": "模式留Host，实际当前pose发送；不复制跟随生产器",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "已核"
+        },
+        {
+          "offset": 58,
+          "size": 2,
+          "name": "unknown_3A_3B",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未解释；不能凭对齐、清零或检索未命中认作填充",
+          "synchronization": "不读不发；窄字段读写跳过该范围，保留未决",
+          "evidence": "968E10解析numLayers/xMin/xMax/yMin/yMax/layer/stage/altStages/parallax/onlyDefaultBackdrop/backdrop/blendMode/useBGShader；967D40；96BF40",
+          "status": "未知"
+        },
+        {
+          "offset": 60,
+          "size": 4,
+          "name": "color_condition",
+          "type": "f32 condition",
+          "category": "权威",
+          "semantics": "generic非mask且count>0分支比较==0",
+          "synchronization": "poop的这些通用配置／pass位不作直接draw输入，不读不发；使用poop实际图像、颜色、有效pose和最终alpha",
+          "evidence": "96C620：value==0 || lightingAlpha*0.1<=0.9",
+          "status": "已核实例用途"
+        },
+        {
+          "offset": 64,
+          "size": 4,
+          "name": "mask_backdrop",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "mask且count>0判断是否35",
+          "synchronization": "poop的这些通用配置／pass位不作直接draw输入，不读不发；使用poop实际图像、颜色、有效pose和最终alpha",
+          "evidence": "96C620",
+          "status": "已核实例用途"
+        },
+        {
+          "offset": 68,
+          "size": 4,
+          "name": "blend_mode",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "pass1/2/3/6 BlendMode实际选择",
+          "synchronization": "poop的这些通用配置／pass位不作直接draw输入，不读不发；使用poop实际图像、颜色、有效pose和最终alpha",
+          "evidence": "96CE20/96CC00/96CD10/96E2B0",
+          "status": "已核实例用途"
+        },
+        {
+          "offset": 72,
+          "size": 1,
+          "name": "mask",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "generic分支shader选择",
+          "synchronization": "poop的这些通用配置／pass位不作直接draw输入，不读不发；使用poop实际图像、颜色、有效pose和最终alpha",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "已核实例用途"
+        },
+        {
+          "offset": 73,
+          "size": 3,
+          "name": "unknown_49_4B",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "声明边界内未解释尾部，不能称填充",
+          "synchronization": "不读不发；保留具名缺口",
+          "evidence": "967D40构造；96C620；96CC00/96CD10/96CE20/96DB20/96DF80/96E2B0",
+          "status": "未知"
+        }
+      ],
+      "direct_unknown_bytes": 5
+    },
+    {
+      "name": "RoomOutputSetHeader",
+      "native_size": 8,
+      "evidence": "7DFE55；817F30；818250",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "head",
+          "type": "TreeNode*",
+          "category": "本地",
+          "semantics": "MSVC std::set的本地sentinel／root owner",
+          "synchronization": "不发地址或遍历为同步数据",
+          "evidence": "817F30/818250",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "size",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "事件组内格序号个数",
+          "synchronization": "整组留Host，不为C/S发送计数",
+          "evidence": "7E8AD0清理10组",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "RoomCallbackVector",
+      "native_size": 12,
+      "evidence": "818250 group*12的begin/end；7E0190逐12B析构",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "begin",
+          "type": "void(**)()",
+          "category": "本地",
+          "semantics": "函数指针数组begin",
+          "synchronization": "不传、不安装、不远程调用",
+          "evidence": "818250",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "end",
+          "type": "void(**)()",
+          "category": "本地",
+          "semantics": "已注册函数末端",
+          "synchronization": "不传",
+          "evidence": "818250",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "capacity",
+          "type": "void(**)()",
+          "category": "本地",
+          "semantics": "本地vector容量尾",
+          "synchronization": "不传",
+          "evidence": "7E0190",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "RainSpawnRegion",
+      "native_size": 24,
+      "evidence": "819530构建；8199D0 +24逐区随机生成Effect135",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 8,
+          "name": "origin",
+          "type": "Vector",
+          "category": "权威",
+          "semantics": "雨采样区域origin",
+          "synchronization": "不传；实际Effect后态另发",
+          "evidence": "819530/8199D0",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 8,
+          "name": "basis_a",
+          "type": "Vector",
+          "category": "权威",
+          "semantics": "采样区域基向量A",
+          "synchronization": "不传",
+          "evidence": "819530/8199D0",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 8,
+          "name": "basis_b",
+          "type": "Vector",
+          "category": "权威",
+          "semantics": "采样区域基向量B",
+          "synchronization": "不传",
+          "evidence": "819530/8199D0",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "OriginalOnlineEntityFrame",
+      "native_size": 24,
+      "evidence": "413050六DWORD构造；413F00原版Online条件分支；4130F0→417EB0按56B元素析构",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "frame",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "原版Online帧号",
+          "synchronization": "不进入C/S",
+          "evidence": "413F00",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 12,
+          "name": "events",
+          "type": "vector<OriginalOnlineEvent56>",
+          "category": "本地",
+          "semantics": "原版56B实体事件vector头",
+          "synchronization": "不进入C/S、不建立原版事件owner",
+          "evidence": "413050/4130F0/417EB0",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "native_comparison_input",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "原版Online正常路径保存的6EB740返回值；不将未核业务名当同步RNG",
+          "synchronization": "不读取或计算作为C/S一致性输入",
+          "evidence": "413F00末尾",
+          "status": "已核"
+        },
+        {
+          "offset": 20,
+          "size": 4,
+          "name": "comparison_value",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "原版Online实体比较累计值",
+          "synchronization": "不读取或计算作为C/S一致性输入",
+          "evidence": "413F00末尾",
+          "status": "已核"
+        }
+      ],
+      "direct_unknown_bytes": 0
+    },
+    {
+      "name": "KilledNPCRecord",
+      "native_size": 24,
+      "evidence": "815FB0：分配32B链表node，+8写16B＋8B；本视图只覆盖payload",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 8,
+          "name": "position",
+          "type": "Vector",
+          "category": "权威",
+          "semantics": "死亡记录位置",
+          "synchronization": "历史留Host",
+          "evidence": "815FB0",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "type",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "记录NPC类型，部分类型归一",
+          "synchronization": "历史留Host",
+          "evidence": "815FB0",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 2,
+          "name": "variant",
+          "type": "i16",
+          "category": "权威",
+          "semantics": "记录variant窄值",
+          "synchronization": "历史留Host",
+          "evidence": "815FB0",
+          "status": "已核"
+        },
+        {
+          "offset": 14,
+          "size": 2,
+          "name": "subtype",
+          "type": "i16",
+          "category": "权威",
+          "semantics": "记录subtype窄值",
+          "synchronization": "历史留Host",
+          "evidence": "815FB0",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Entity+3EC的记录seed",
+          "synchronization": "不下发历史／重生输入",
+          "evidence": "815FB0",
+          "status": "已核"
+        },
+        {
+          "offset": 20,
+          "size": 1,
+          "name": "friendly",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "flags的友好状态投影",
+          "synchronization": "历史留Host；当前实体另有后态",
+          "evidence": "815FB0",
+          "status": "已核"
+        },
+        {
+          "offset": 21,
+          "size": 3,
+          "name": "unknown_15_17",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "尚未解释；不能凭对齐、清零或检索未命中认作填充",
+          "synchronization": "不读不发；窄字段读写跳过该范围，保留未决",
+          "evidence": "815FB0构建的24B栈payload高3B尚无独立来源，不能补零读取",
+          "status": "未知"
+        }
+      ],
+      "direct_unknown_bytes": 3
+    }
+  ],
+  "wire_drafts": [
+    {
+      "name": "R0 RoomGeometry",
+      "size": 36,
+      "fields": [
+        [
+          0,
+          4,
+          "i32 descriptor_index"
+        ],
+        [
+          4,
+          4,
+          "i32 dimension"
+        ],
+        [
+          8,
+          4,
+          "u32 room_type"
+        ],
+        [
+          12,
+          4,
+          "u32 width"
+        ],
+        [
+          16,
+          4,
+          "u32 height"
+        ],
+        [
+          20,
+          16,
+          "f32 bounds[4]"
+        ]
+      ],
+      "note": "world/epoch身份、资源版本由外层提供；配置与descriptor归Level，非重新生成命令"
+    },
+    {
+      "name": "R1 RoomTiming",
+      "size": 8,
+      "fields": [
+        [
+          0,
+          4,
+          "u32 frame_baseline"
+        ],
+        [
+          4,
+          4,
+          "i32 greed_wave_timer"
+        ]
+      ],
+      "note": "以同world GameFrame解释；不在Client推进"
+    },
+    {
+      "name": "WaterShaderResult",
+      "size": 32,
+      "fields": [
+        [
+          0,
+          20,
+          "KColor final_color"
+        ],
+        [
+          20,
+          12,
+          "f32 final_multiplier_rgb[3]"
+        ]
+      ],
+      "note": "816BB0最终：color.alpha已乘waterAmount、multiplier已按waterAmount归一；KColor空间标签保留；不是四端点＋timer"
+    },
+    {
+      "name": "FXPoseVisual",
+      "size": 10,
+      "fields": [
+        [
+          0,
+          8,
+          "Vector position"
+        ],
+        [
+          8,
+          1,
+          "u8 flip_x"
+        ],
+        [
+          9,
+          1,
+          "u8 flip_y"
+        ]
+      ],
+      "note": "不发8B速度／2B未知；有序有效prefix，count另由容器编码"
+    },
+    {
+      "name": "RayVisual",
+      "size": 10,
+      "fields": [
+        [
+          0,
+          4,
+          "f32 opacity"
+        ],
+        [
+          4,
+          4,
+          "f32 phase_used"
+        ],
+        [
+          8,
+          2,
+          "u16 image_resource"
+        ]
+      ],
+      "note": "不发speed／control；实际选组、geometry与显示资格另有记录"
+    },
+    {
+      "name": "PoopEnvelope",
+      "size": 5,
+      "fields": [
+        [
+          0,
+          1,
+          "u8 present"
+        ],
+        [
+          1,
+          4,
+          "f32 actual_alpha"
+        ]
+      ],
+      "note": "图像、颜色和有效pose独立资源/容器；present=false只发首字节"
+    }
+  ],
+  "deferred": [
+    "Level/Game prefix",
+    "RoomDescriptor/RoomConfig对象布局",
+    "RoomSave/Exploration",
+    "正式采集／安装／资源结果来源与第9步最终编码"
+  ],
+  "residual_revision": {
+    "date": "2026-11-10",
+    "baseline_direct_unknown": {
+      "Room": 1290,
+      "Backdrop": 3,
+      "BackdropConfig": 4,
+      "FXLayers": 39,
+      "FXParams": 3,
+      "FXPose": 2,
+      "FX": 31,
+      "Ray": 0,
+      "RayGroup": 4,
+      "Vein": 8,
+      "RailManager": 0,
+      "Camera": 3,
+      "CameraRing": 0,
+      "RoomShockwave": 0,
+      "RoomHellBackdrop": 3,
+      "EntityList": 884,
+      "EntityListEL": 3,
+      "RoomTemporaryEffects": 2,
+      "Vector": 0,
+      "ColorMod": 0,
+      "KColor": 0,
+      "AnimationState": 3,
+      "LayerState": 4,
+      "ANM2": 8,
+      "ImageStrongPair": 0,
+      "RNG": 0
+    },
+    "original_room_unknown_ranges": [
+      {
+        "offset": 2,
+        "size": 2,
+        "name": "unknown_2_3",
+        "type": "bytes[2]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 3724,
+        "size": 864,
+        "name": "unknown_E8C_11EB",
+        "type": "bytes[864]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 4599,
+        "size": 1,
+        "name": "unknown_11F7_11F7",
+        "type": "bytes[1]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 4621,
+        "size": 3,
+        "name": "unknown_120D_120F",
+        "type": "bytes[3]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 4628,
+        "size": 4,
+        "name": "unknown_1214_1217",
+        "type": "bytes[4]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 7100,
+        "size": 4,
+        "name": "unknown_1BBC_1BBF",
+        "type": "bytes[4]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 7104,
+        "size": 8,
+        "name": "room_aux_vector",
+        "type": "Vector",
+        "category": "未知",
+        "semantics": "Init清零；尚未闭合全部生产与消费",
+        "synchronization": "不读不发；不能因清零称派生",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 28804,
+        "size": 64,
+        "name": "room_output_scratch",
+        "type": "bytes[64]",
+        "category": "未知",
+        "semantics": "ctor清64B；未核具体业务／元素关系",
+        "synchronization": "不读不发；不把清零当填充",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 29217,
+        "size": 3,
+        "name": "unknown_7221_7223",
+        "type": "bytes[3]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 29226,
+        "size": 2,
+        "name": "unknown_722A_722B",
+        "type": "bytes[2]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 29236,
+        "size": 8,
+        "name": "room_pending_tree",
+        "type": "tree header",
+        "category": "未知",
+        "semantics": "构造／析构有8B树头；元素语义和全部消费者未闭合",
+        "synchronization": "不上线；不得遍历未知节点／当vector读取",
+        "evidence": "7DFC78..7DFC8E；7E0190；7F7F60",
+        "status": "未知"
+      },
+      {
+        "offset": 29340,
+        "size": 5,
+        "name": "unknown_729C_72A0",
+        "type": "bytes[5]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 29346,
+        "size": 2,
+        "name": "unknown_72A2_72A3",
+        "type": "bytes[2]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 29436,
+        "size": 4,
+        "name": "unknown_72FC_72FF",
+        "type": "bytes[4]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 29440,
+        "size": 8,
+        "name": "room_aux_tree",
+        "type": "tree header",
+        "category": "未知",
+        "semantics": "原生有独立树owner；未核元素语义",
+        "synchronization": "不发未知树；不得将owner存在当显示结果已覆盖",
+        "evidence": "7DFDBA..7DFDC7；7E0190::81CED0；816122/816155",
+        "status": "未知"
+      },
+      {
+        "offset": 29480,
+        "size": 80,
+        "name": "room_output_headers",
+        "type": "header8[10]",
+        "category": "未知",
+        "semantics": "ctor构造10×8B，dtor对应清理；未知业务payload",
+        "synchronization": "不读取元素、不按普通vector发；保留未知",
+        "evidence": "7DFE55；7E0190::41FDC0",
+        "status": "未知"
+      },
+      {
+        "offset": 29560,
+        "size": 120,
+        "name": "room_output_vectors",
+        "type": "header12[10]",
+        "category": "未知",
+        "semantics": "ctor构造10×12B，dtor对应清理；未知业务payload",
+        "synchronization": "不读取元素；保留未知",
+        "evidence": "7DFE73；7E0190::4101E0",
+        "status": "未知"
+      },
+      {
+        "offset": 29680,
+        "size": 100,
+        "name": "unknown_73F0_7453",
+        "type": "bytes[100]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 29789,
+        "size": 3,
+        "name": "unknown_745D_745F",
+        "type": "bytes[3]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 30570,
+        "size": 2,
+        "name": "unknown_776A_776B",
+        "type": "bytes[2]",
+        "category": "未知",
+        "semantics": "本轮未解释；包括未核字段／可能对齐，不能称填充",
+        "synchronization": "不读不发；保留具名缺口，不以零值或旧堆数据补齐",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      },
+      {
+        "offset": 30869,
+        "size": 3,
+        "name": "unknown_7895_7897",
+        "type": "bytes[3]",
+        "category": "未知",
+        "semantics": "声明边界内未解释尾部，不能称填充",
+        "synchronization": "不读不发；保留具名缺口",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Room.zhl；J273 VA7DF8F0/7E0190/7E8AD0/7F7F60/804500",
+        "status": "未知"
+      }
+    ],
+    "evidence": "room-residual-evidence.md",
+    "note": "新证据覆盖旧猜测；未动生产版本56或测试"
+  },
+  "display_dependencies": [
+    {
+      "name": "Backdrop.reverse_water_gfx",
+      "source": "actual BackdropConfig+139；Backdrop+id*13C+28D",
+      "decision": "需要1B方向或等价当前有符号phase；不是纹理构建RNG，不发送整个配置DWORD"
+    },
+    {
+      "name": "Room.ambient_voices",
+      "source": "Room+7084的16 current gain＋AAD0E0配置；正常已选voice/sample路径",
+      "decision": "需要第8步持续voice结果；不能因原64B不上线删掉环境声音；完整sample／逻辑音量来源仍待接线"
+    }
+  ],
+  "opaque_nested_payloads": [
+    {
+      "owner": "EntityList.collision_partitions",
+      "native_element_size": 36,
+      "count": 8,
+      "status": "只核空间分区／碰撞owner与对象大小，内部完整ABI未展开",
+      "decision": "本地Host索引，不发、不深复制、不执行Client碰撞",
+      "evidence": "413270/413740/415880"
+    },
+    {
+      "owner": "OriginalOnlineEntityFrame.events",
+      "native_element_size": 56,
+      "status": "已核vector元素步长与析构；56B事件内部语义未展开",
+      "decision": "原版Online私有，不为C/S读取、复制、回放或比较",
+      "evidence": "413F00；4130F0→417EB0"
+    },
+    {
+      "owner": "EntityList.type_query_cache",
+      "native_node_size": 44,
+      "status": "已核key三元组、借用EL与节点大小；节点全ABI及间隙未另建连续视图",
+      "decision": "本地查询缓存不上线，EntityListEL自身3B未知另列",
+      "evidence": "416820"
+    },
+    {
+      "owner": "Room.shop_restock_deque",
+      "status": "补货生产owner已核；动态ShopRestockDesc完整布局未展开，不从deque头猜元素大小",
+      "decision": "整体Host；实际Pickup／价格另发",
+      "evidence": "原Room账本与Room.Update生产链"
+    },
+    {
+      "owner": "RoomTemporaryEffects.entries",
+      "status": "本视图只覆盖18h头；动态效果条目完整类型由效果域承接，未在本轮冒称已核",
+      "decision": "列表／生产控制Host；效果481等已知绘制资格另取最终结果",
+      "evidence": "TemporaryEffects.zhl；804500"
+    }
+  ]
+}

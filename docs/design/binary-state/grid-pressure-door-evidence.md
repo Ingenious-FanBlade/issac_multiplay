@@ -4,7 +4,7 @@
 
 **这两类的全部对象范围均已登记归属并进入正式生成源。** 原生语义仍有 UNKNOWN：PressurePlate 根 **31B**、Door 根 **32B**。结合版本51八类、版本52七类，Grid 的全部17个派生类现均有原生字节表和状态二进制表；全119项目录回映射、GridEntityPlus合法来源及第7—14步实际运行接线仍未全部完成，不能宣称整个重构或第6步所有工作完成。
 
-本轮发现工作区七类已经完成到版本52，因此保留202—223及其原始记录，追加 **224—228** 到 [grid-classes.json](../../../mod/binding/state/grid-classes.json)：224非随机Light描述、225门主颜色、226门主Sprite、227 PressurePlate、228 Door。完整单行原生／二进制表由生成器输出，见 [PressurePlate](layouts/GridEntityPressurePlate.md)、[Door](layouts/GridEntityDoor.md)。
+本轮发现工作区七类已经完成到版本52，因此保留202—223及其原始记录，追加 **224—228** 到 [grid-classes.json](../../../mod/binding/state/grid-classes.json)：224非随机Light描述、225门主颜色、226门主Sprite、227 PressurePlate、228 Door。完整单行原生／二进制表由生成器输出，见 [PressurePlate](layouts/06-grid/GridEntityPressurePlate.md)、[Door](layouts/06-grid/GridEntityDoor.md)。
 
 ## 1. 同步决定
 
@@ -99,7 +99,9 @@ Door Render `707FA1` 在任何绘制之前比较主Sprite `ColorMod.tint_a`（�
 
 ### 目标索引、标志和Light依赖
 
-Wiki的TargetRoomIndex说明只提转场动画，不能作为“此值不影响显示”的证明：`8028AE—8028BB` 是明确的反例。线上保留i32索引和target_room_type，**不调用Client原生过门FSM**。索引必须在同world的Level描述／特殊目标映射中解析到Client自有描述；Light读取目标Flags `40000h`。当前RoomConfig.type35、维度、stage suffix、主Sprite layer3／layer5及动画／帧也是正面依赖，由第7／8步上下文与实际资源承接。当前房型+15C不能冒充当前RoomConfig.type。
+Wiki的TargetRoomIndex说明只提转场动画，不能作为“此值不影响显示”的证明：`8028AE—8028BB` 是明确的反例。线上保留i32索引和target_room_type，**不调用Client原生过门FSM**。索引必须在同world的Level描述／特殊目标映射中解析到Client自有描述；Light读取目标Flags `40000h`。当前Data.StageId==35（Home）、维度、stage suffix、主Sprite layer3／layer5及动画／帧也是正面依赖，由第7／8步上下文与实际资源承接。Door房型+15C不能代替Data.StageId或Type。
+
+**2026-11-10纠错**：本段原写“RoomConfig.type35”，字段名误认。补查`802758/80275E/802761`的Game→Room→descriptor→Data链和`80276C cmp DWORD [eax],23h`，实际读配置+0 StageId。原错误在此如实保留，现行以StageId35为准；详见[第7步资源设计](room-display-resource-design.md#1-资料与本轮纠错)。只更正依赖说明，不改Door状态字段／类型号／版本。
 
 door_flags只发 `(raw & 0x20)!=0`。工厂没有初始化该word，Client本地owner先中性初始化0，再只设置／清除该位并保留其它本地位；不把其余Host规则位带到Client。资源、目标描述或同world关系未就绪报Gap，不把非法索引解成空、不套旧JSON的值域限制、不读取本地进度／Online来猜。
 

@@ -158,7 +158,7 @@ bool MapState(const replica::Value *room,const replica::RoomGridTarget &target,C
   return true;
 }
 // 只读取15已经表达的具名值；缺字段不以菜单、seed或本地模拟补齐。
-bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget &target,ClientNativeSceneDescription &out,const char *&reason) {
+bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget &target,LegacyClientNativeSceneDescription &out,const char *&reason) {
   const auto *components=Member(&model,"components");
   const auto *room=Member(Member(components,"room"),"state");
   const auto *level=Member(Member(components,"level"),"state");
@@ -215,7 +215,7 @@ bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget 
     // 两份完整资源描述独立交给SDK owner；不能用查找键相同抹掉Override差异。
     // 地图占用由Data描述；Override是替换配置，不能用它的房形推翻实际已发布占用。
     const auto &c=d.data.is_null?d.override_data:d.data;
-    ClientNativeDescriptorDescription v;const auto &p=d.location;
+    LegacyClientNativeDescriptorDescription v;const auto &p=d.location;
     v.key_run=d.key.run;v.key_id=d.key.id;v.construction_revision=d.construction_revision;
     v.grid=p.native_grid_origin;v.safe=p.safe_grid_index;v.list=p.list_index;v.dimension=p.dimension;v.storage=p.storage_index;v.source_slot=p.source_slot;
     v.occupied_count=unsigned(p.occupied.size());std::copy(p.occupied.begin(),p.occupied.end(),v.occupied.begin());
@@ -272,7 +272,7 @@ bool SceneDescription(const replica::Value &model,const replica::RoomGridTarget 
 }
 }
 // 冷目标与分层普通范围共用同一具名纯值解释，不触碰原生对象。
-bool ClientDescribeSceneValues(const replica::Value &value,const replica::RoomGridTarget &target,ClientNativeSceneDescription &out,const char *&reason){return SceneDescription(value,target,out,reason);}
+bool ClientDescribeSceneValues(const replica::Value &value,const replica::RoomGridTarget &target,LegacyClientNativeSceneDescription &out,const char *&reason){return SceneDescription(value,target,out,reason);}
 ClientScene::ClientScene() noexcept=default;
 ClientScene::~ClientScene() {ClientNativeWorldDestroy(native_world_);}
 // 新连接只建立等待身份；从不把等待 Scope 的 run/room 伪装成原生场景。
@@ -444,7 +444,7 @@ bool ClientScene::AdmitTarget(const replica::Scope &scope,std::uint64_t revision
     const bool player_rebuild=players&&applied_valid_&&player_applied_&&
         (players->scope!=player_applied_->scope||replica::PlanPlayerTarget(players,player_applied_).rebuild_scene);
     auto domain_plan=replica::PlanRoomGridTarget(domain,applied_valid_?room_grid_applied_:nullptr);
-    ClientNativeSceneDescription description{};const char *reason=nullptr;
+    LegacyClientNativeSceneDescription description{};const char *reason=nullptr;
     if(!SceneDescription(value,*domain,description,reason)){
       FailureResult(ClientResultKind::UnsupportedRequirement,"admit",reason);return false;
     }

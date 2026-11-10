@@ -14,7 +14,7 @@ schema和生成器新增 `storage=deque`，只接受本轮已核20B头及4／8B�
 
 保留State／ProjectileDelay／V1／I2／ChampionColorIdx／ControllerId，是因为实际draw消费者读取它们。冷却、Scale输入、再生、群组、命中历史、DirtColor、五个私有AI／退休关系和Delirium高频AI值留Host；+F40拥有的Siren actor保持本地，不构造第二个玩法Player。Pathfinder1872B仍是SDK声明边界，内部语义未完整核清，不因不上线就把证据提升为逐成员已核。
 
-生成的完整单行表：[EntityNPC](layouts/EntityNPC.md)、[EntityNPC_Delirium](layouts/EntityNPC_Delirium.md)。根未知分别586／597B，其中共同Entity335B、两份ANM2各14B、NPC本类223B，Delirium另11B。NPC本类未知共15段，包含+C48第四个deque、+C80颜色段等已见访问但用途未闭合的字节；不复制、不补零、不标填充。最小状态含公共391B后为721／729B，不含外层帧和实际变长资源／点列，不作为带宽实测。
+生成的完整单行表：[EntityNPC](layouts/04-entity-classes/EntityNPC.md)、[EntityNPC_Delirium](layouts/04-entity-classes/EntityNPC_Delirium.md)。根未知分别586／597B，其中共同Entity335B、两份ANM2各14B、NPC本类223B，Delirium另11B。NPC本类未知共15段，包含+C48第四个deque、+C80颜色段等已见访问但用途未闭合的字节；不复制、不补零、不标填充。最小状态含公共391B后为721／729B，不含外层帧和实际变长资源／点列，不作为带宽实测。
 
 第10步须把当前窗口、具名读取处理器、资源及引用预约接入正式采集；第12／13步须按数字字段解码并经真实容器／EntityPtr／ANM2 owner安装，依赖齐备后同版本提交，继续保护906／920子体资源与835真实NPC点列。951:3的邻点索引、835固定前两引用及Deathmatch的Player隔离继续按已核draw合同检查。第14步退役旧Lua／JSON NPC链；本轮没有切换运行链或新增Hook。Text／Dummy仍待第4步后续实施，UNKNOWN仍需研究及第15步统一覆盖。
 

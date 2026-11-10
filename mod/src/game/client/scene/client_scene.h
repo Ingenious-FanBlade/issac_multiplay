@@ -237,7 +237,7 @@ private:
   ClientGridEvents grid_events_;
   ClientEntityEvents entity_events_;
   ClientNativeWorldOwner *native_world_=nullptr;
-  ClientNativeSceneDescription native_description_{};
+  LegacyClientNativeSceneDescription native_description_{};
   bool applied_valid_=false,rebuild_pending_=false,objects_planned_=false,
        objects_retired_=false,pumping_=false,attempt_invalidated_=false,
        objects_complete_=false,presentation_retired_=false,retirement_complete_=false;

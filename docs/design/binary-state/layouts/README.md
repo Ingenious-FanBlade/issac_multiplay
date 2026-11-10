@@ -1,164 +1,21 @@
-# 生成布局索引
+# 按总计划步骤归类的生成布局索引
 
-只修改 `mod/binding/state/`。未知和未核声明照实保留，不能据本表宣称原生同步已可用。
+上级：[二进制重构总计划](../README.md#7-步骤)。按总计划步骤号阅读，步骤号与布局编号分别管理；各步骤内按布局编号排列。
 
-| 类型 | 布局编号 | 原生字节 | 未知字节 | 完整 |
-|---|---|---|---|---|
-| [Vector](Vector.md) | 1 | 8 | 0 | 是 |
-| [ColorMod](ColorMod.md) | 2 | 44 | 0 | 是 |
-| [KColor](KColor.md) | 3 | 20 | 0 | 是 |
-| [BlendMode](BlendMode.md) | 4 | 20 | 0 | 是 |
-| [AnimationState](AnimationState.md) | 5 | 32 | 3 | 否 |
-| [LayerState](LayerState.md) | 6 | 160 | 4 | 否 |
-| [ANM2](ANM2.md) | 7 | 276 | 14 | 否 |
-| [RNG](RNG.md) | 8 | 16 | 0 | 是 |
-| [BitSet128](BitSet128.md) | 9 | 16 | 0 | 是 |
-| [EntityPtr](EntityPtr.md) | 10 | 4 | 0 | 是 |
-| [ColorParams](ColorParams.md) | 11 | 60 | 2 | 否 |
-| [ActiveItemDesc](ActiveItemDesc.md) | 12 | 32 | 0 | 是 |
-| [Weapon](Weapon.md) | 13 | 68 | 20 | 否 |
-| [TemporaryEffect](TemporaryEffect.md) | 14 | 16 | 4 | 否 |
-| [EntityPlus](EntityPlus.md) | 15 | 16 | 5 | 否 |
-| [EntityFamiliarPlus](EntityFamiliarPlus.md) | 16 | 28 | 5 | 否 |
-| [EntityKnifePlus](EntityKnifePlus.md) | 17 | 20 | 5 | 否 |
-| [FamiliarIsaacsBodyData](FamiliarIsaacsBodyData.md) | 18 | 1400 | 70 | 否 |
-| [FamiliarAbyssLocustData](FamiliarAbyssLocustData.md) | 19 | 88 | 36 | 否 |
-| [EntityTearPlus](EntityTearPlus.md) | 20 | 24 | 5 | 否 |
-| [EntityPickupPlus](EntityPickupPlus.md) | 21 | 20 | 7 | 否 |
-| [EntityLaserPlus](EntityLaserPlus.md) | 22 | 28 | 8 | 否 |
-| [HomingLaserBezier](HomingLaserBezier.md) | 23 | 24 | 0 | 是 |
-| [HomingLaser](HomingLaser.md) | 24 | 84 | 0 | 是 |
-| [EffectMrMeData](EffectMrMeData.md) | 25 | 296 | 14 | 否 |
-| [EffectTrailNode](EffectTrailNode.md) | 26 | 64 | 0 | 是 |
-| [EffectSpriteTrailData](EffectSpriteTrailData.md) | 27 | 24 | 0 | 是 |
-| [EffectPickupGhostData](EffectPickupGhostData.md) | 28 | 1112 | 56 | 否 |
-| [Entity](Entity.md) | 100 | 1040 | 335 | 否 |
-| [EntityEffect](EntityEffect.md) | 101 | 1216 | 382 | 否 |
-| [EntityEffect_TearFlags](EntityEffect_TearFlags.md) | 102 | 1216 | 366 | 否 |
-| [EntityEffect_GridDesc](EntityEffect_GridDesc.md) | 103 | 1216 | 353 | 否 |
-| [EntityEffect_MrMe](EntityEffect_MrMe.md) | 104 | 1216 | 382 | 否 |
-| [EntityEffect_SpriteTrail](EntityEffect_SpriteTrail.md) | 105 | 1216 | 382 | 否 |
-| [EntityEffect_PickupGhost](EntityEffect_PickupGhost.md) | 106 | 1216 | 382 | 否 |
-| [EntityFamiliar](EntityFamiliar.md) | 120 | 3888 | 905 | 否 |
-| [EntityKnife](EntityKnife.md) | 121 | 1312 | 497 | 否 |
-| [EntityBomb](EntityBomb.md) | 122 | 2520 | 441 | 否 |
-| [EntityFamiliar_IsaacsBody](EntityFamiliar_IsaacsBody.md) | 123 | 3888 | 905 | 否 |
-| [EntityFamiliar_AbyssLocust](EntityFamiliar_AbyssLocust.md) | 124 | 3888 | 905 | 否 |
-| [EntityTear](EntityTear.md) | 125 | 2120 | 478 | 否 |
-| [EntityPickup](EntityPickup.md) | 126 | 1776 | 448 | 否 |
-| [EntityLaser](EntityLaser.md) | 127 | 1384 | 421 | 否 |
-| [EntitySlot](EntitySlot.md) | 128 | 1360 | 363 | 否 |
-| [EntityProjectile](EntityProjectile.md) | 129 | 1144 | 350 | 否 |
-| [EntityFamiliar_UmbilicalBaby](EntityFamiliar_UmbilicalBaby.md) | 130 | 3888 | 905 | 否 |
-| [EntityFamiliar_Incubus](EntityFamiliar_Incubus.md) | 131 | 3888 | 905 | 否 |
-| [UmbilicalRopeNode](UmbilicalRopeNode.md) | 132 | 120 | 108 | 否 |
-| [FamiliarUmbilicalBabyData](FamiliarUmbilicalBabyData.md) | 133 | 344 | 58 | 否 |
-| [EffectPickupGhostSprite](EffectPickupGhostSprite.md) | 134 | 276 | 14 | 否 |
-| [WeaponUmbilicalWhip](WeaponUmbilicalWhip.md) | 135 | 72 | 20 | 否 |
-| [TemporaryEffects](TemporaryEffects.md) | 136 | 24 | 2 | 否 |
-| [EntityEffect_Propagation](EntityEffect_Propagation.md) | 137 | 1216 | 350 | 否 |
-| [EntityEffect_Timer](EntityEffect_Timer.md) | 138 | 1216 | 370 | 否 |
-| [EntityEffect_SpawnRequest](EntityEffect_SpawnRequest.md) | 139 | 1216 | 374 | 否 |
-| [EntityEffect_DustCountdown](EntityEffect_DustCountdown.md) | 140 | 1216 | 378 | 否 |
-| [EntityEffect_TearFlags113](EntityEffect_TearFlags113.md) | 141 | 1216 | 358 | 否 |
-| [EntityNPC](EntityNPC.md) | 142 | 3936 | 586 | 否 |
-| [EntityNPC_Delirium](EntityNPC_Delirium.md) | 143 | 3936 | 590 | 否 |
-| [NpcOverlaySprite](NpcOverlaySprite.md) | 144 | 276 | 14 | 否 |
-| [EntityText](EntityText.md) | 145 | 1328 | 339 | 否 |
-| [EntityText_Scaled](EntityText_Scaled.md) | 146 | 1328 | 339 | 否 |
-| [EntityDummy](EntityDummy.md) | 147 | 1040 | 335 | 否 |
-| [EntityEffect_ChainLightning](EntityEffect_ChainLightning.md) | 148 | 1216 | 362 | 否 |
-| [EntityEffect_InternalTearFlags](EntityEffect_InternalTearFlags.md) | 149 | 1216 | 366 | 否 |
-| [PlayerTemporaryEffects](PlayerTemporaryEffects.md) | 150 | 24 | 2 | 否 |
-| [PlayerCostumeMap](PlayerCostumeMap.md) | 151 | 16 | 3 | 否 |
-| [CostumeSpriteDesc](CostumeSpriteDesc.md) | 152 | 304 | 16 | 否 |
-| [PocketItem](PocketItem.md) | 153 | 8 | 0 | 是 |
-| [QueueItemData](QueueItemData.md) | 154 | 16 | 0 | 是 |
-| [SmeltedTrinketDesc](SmeltedTrinketDesc.md) | 155 | 4 | 0 | 是 |
-| [AfterImageFrame](AfterImageFrame.md) | 156 | 12 | 0 | 是 |
-| [History](History.md) | 157 | 20 | 3 | 否 |
-| [HistoryItem](HistoryItem.md) | 158 | 28 | 3 | 否 |
-| [BagOfCraftingOutput](BagOfCraftingOutput.md) | 159 | 8 | 0 | 是 |
-| [EntityDescHost](EntityDescHost.md) | 160 | 28 | 3 | 否 |
-| [ConsumableData](ConsumableData.md) | 161 | 32 | 2 | 否 |
-| [ImageStrongPair](ImageStrongPair.md) | 162 | 8 | 0 | 是 |
-| [PlayerHUDStrongPair](PlayerHUDStrongPair.md) | 163 | 8 | 0 | 是 |
-| [OptionalDrawSequence](OptionalDrawSequence.md) | 164 | 292 | 18 | 否 |
-| [DrawRecordNode](DrawRecordNode.md) | 165 | 40 | 8 | 否 |
-| [SavedHistory](SavedHistory.md) | 166 | 20 | 8 | 否 |
-| [GameStatePlayer](GameStatePlayer.md) | 167 | 1468 | 1408 | 否 |
-| [FamiliarData](FamiliarData.md) | 168 | 52 | 12 | 否 |
-| [NativeCommunicationDisplay](NativeCommunicationDisplay.md) | 169 | 2056 | 102 | 否 |
-| [ItemSpoof](ItemSpoof.md) | 170 | 44 | 0 | 是 |
-| [InnateItems](InnateItems.md) | 171 | 76 | 0 | 是 |
-| [TemporaryInnateItem](TemporaryInnateItem.md) | 172 | 12 | 0 | 是 |
-| [PlayerItemSpoofs](PlayerItemSpoofs.md) | 173 | 92 | 0 | 是 |
-| [EntityPlayerPlus](EntityPlayerPlus.md) | 174 | 168 | 9 | 否 |
-| [EntitySaveStateStrongPair](EntitySaveStateStrongPair.md) | 175 | 8 | 0 | 是 |
-| [EntitySaveState](EntitySaveState.md) | 176 | 120 | 74 | 否 |
-| [PlayerItemCount](PlayerItemCount.md) | 177 | 8 | 0 | 是 |
-| [PlayerInnateCount](PlayerInnateCount.md) | 178 | 8 | 0 | 是 |
-| [PlayerActiveItemDesc](PlayerActiveItemDesc.md) | 179 | 32 | 0 | 是 |
-| [PlayerTemporaryEffect](PlayerTemporaryEffect.md) | 180 | 16 | 4 | 否 |
-| [PlayerWeaponTears](PlayerWeaponTears.md) | 181 | 80 | 28 | 否 |
-| [PlayerWeaponBrimstone](PlayerWeaponBrimstone.md) | 182 | 76 | 20 | 否 |
-| [PlayerWeaponLaser](PlayerWeaponLaser.md) | 183 | 80 | 24 | 否 |
-| [PlayerWeaponKnife](PlayerWeaponKnife.md) | 184 | 84 | 16 | 否 |
-| [PlayerWeaponBombs](PlayerWeaponBombs.md) | 185 | 72 | 16 | 否 |
-| [PlayerWeaponRockets](PlayerWeaponRockets.md) | 186 | 72 | 16 | 否 |
-| [PlayerWeaponMonstrosLung](PlayerWeaponMonstrosLung.md) | 187 | 68 | 16 | 否 |
-| [PlayerWeaponLudovico](PlayerWeaponLudovico.md) | 188 | 72 | 16 | 否 |
-| [PlayerWeaponTechX](PlayerWeaponTechX.md) | 189 | 68 | 16 | 否 |
-| [PlayerWeaponBoneAxe](PlayerWeaponBoneAxe.md) | 190 | 96 | 20 | 否 |
-| [PlayerWeaponUrn](PlayerWeaponUrn.md) | 191 | 84 | 24 | 否 |
-| [PlayerWeaponSpiritSword](PlayerWeaponSpiritSword.md) | 192 | 80 | 24 | 否 |
-| [PlayerWeaponFetus](PlayerWeaponFetus.md) | 193 | 68 | 16 | 否 |
-| [PlayerWeaponWhip](PlayerWeaponWhip.md) | 194 | 72 | 16 | 否 |
-| [PlayerParticipant](PlayerParticipant.md) | 195 | 0 | 0 | 是 |
-| [PlayerControlGroup](PlayerControlGroup.md) | 196 | 0 | 0 | 是 |
-| [EntityPlayer](EntityPlayer.md) | 197 | 11936 | 3707 | 否 |
-| [GridEntityDesc](GridEntityDesc.md) | 198 | 32 | 3 | 否 |
-| [GridEntity](GridEntity.md) | 199 | 340 | 17 | 否 |
-| [GridLayerState](GridLayerState.md) | 200 | 160 | 4 | 否 |
-| [GridSprite](GridSprite.md) | 201 | 276 | 14 | 否 |
-| [GridFloorSprite](GridFloorSprite.md) | 202 | 276 | 14 | 否 |
-| [GridFireEmberAnimation](GridFireEmberAnimation.md) | 203 | 32 | 3 | 否 |
-| [GridFireEmberSprite](GridFireEmberSprite.md) | 204 | 276 | 14 | 否 |
-| [GridFireEmber](GridFireEmber.md) | 205 | 24 | 0 | 是 |
-| [GridEntityDecoration](GridEntityDecoration.md) | 206 | 340 | 17 | 否 |
-| [GridEntityGravity](GridEntityGravity.md) | 207 | 340 | 17 | 否 |
-| [GridEntityStairs](GridEntityStairs.md) | 208 | 340 | 17 | 否 |
-| [GridEntityTeleporter](GridEntityTeleporter.md) | 209 | 340 | 17 | 否 |
-| [GridEntityWall](GridEntityWall.md) | 210 | 340 | 17 | 否 |
-| [GridEntityWeb](GridEntityWeb.md) | 211 | 340 | 17 | 否 |
-| [GridEntityTrapDoor](GridEntityTrapDoor.md) | 212 | 344 | 17 | 否 |
-| [GridEntityFire](GridEntityFire.md) | 213 | 912 | 45 | 否 |
-| [GridRockLayerState](GridRockLayerState.md) | 214 | 160 | 4 | 否 |
-| [GridRockSprite](GridRockSprite.md) | 215 | 276 | 14 | 否 |
-| [GridStatueUnusedSprite](GridStatueUnusedSprite.md) | 216 | 276 | 14 | 否 |
-| [GridEntityLock](GridEntityLock.md) | 217 | 344 | 20 | 否 |
-| [GridEntityPit](GridEntityPit.md) | 218 | 344 | 20 | 否 |
-| [GridEntitySpikes](GridEntitySpikes.md) | 219 | 344 | 17 | 否 |
-| [GridEntityStatue](GridEntityStatue.md) | 220 | 344 | 17 | 否 |
-| [GridEntityTNT](GridEntityTNT.md) | 221 | 344 | 17 | 否 |
-| [GridEntityPoop](GridEntityPoop.md) | 222 | 412 | 19 | 否 |
-| [GridEntityRock](GridEntityRock.md) | 223 | 408 | 17 | 否 |
-| [GridNonrandomLightDesc](GridNonrandomLightDesc.md) | 224 | 32 | 3 | 否 |
-| [GridDoorTint](GridDoorTint.md) | 225 | 44 | 0 | 是 |
-| [GridDoorSprite](GridDoorSprite.md) | 226 | 276 | 14 | 否 |
-| [GridEntityPressurePlate](GridEntityPressurePlate.md) | 227 | 636 | 31 | 否 |
-| [GridEntityDoor](GridEntityDoor.md) | 228 | 752 | 32 | 否 |
-| [GridEntityPlus](GridEntityPlus.md) | 229 | 12 | 0 | 是 |
-| [RunSeeds](RunSeeds.md) | 230 | 92 | 3 | 否 |
-| [RunAmbush](RunAmbush.md) | 231 | 76 | 3 | 否 |
-| [RunChallengeParam](RunChallengeParam.md) | 232 | 164 | 19 | 否 |
-| [RunDailyChallenge](RunDailyChallenge.md) | 233 | 180 | 22 | 否 |
-| [RunScoreSheet](RunScoreSheet.md) | 234 | 144 | 3 | 否 |
-| [RunColorModState](RunColorModState.md) | 235 | 24 | 0 | 是 |
-| [RunGameStateFlags](RunGameStateFlags.md) | 236 | 8 | 0 | 是 |
-| [GameRun](GameRun.md) | 237 | 426216 | 150600 | 否 |
-| [RunSeedEffectNode](RunSeedEffectNode.md) | 238 | 20 | 2 | 否 |
+布局内容只修改 `mod/binding/state/`；目录与索引由 `mod/tools/gen_state_layout.py` 同源生成。未知和未核声明照实保留，不能据本表宣称原生同步已可用。
 
-公开目录：[grid-catalog 全部 119 行](grid-catalog-members.md)。
+以布局源所属步骤归类，变体与附属类型随所属域；共享类型只保存一份。第7步已登记的显示／资源结构仍随第7步，后续协议与运行职责见对应计划，不以目录位置宣称已实现。
 
-公开目录：[run-catalog run域全部 191 行](run-catalog-run-members.md)。
+第0—1步负责起点与生成机制，没有单独类型表；第9—15步的线格式、采集、发布、解码、应用、退役与验收文档见总计划，当前不创建空目录。
+
+| 总计划步骤 | 布局表数 | 公开目录表数 |
+|---|---|---|
+| [2：基础值类型与嵌套规则](02-base-types/README.md) | 16 | 0 |
+| [3：Entity 公共与主 Sprite](03-entity-common/README.md) | 2 | 0 |
+| [4：Entity 子类](04-entity-classes/README.md) | 47 | 0 |
+| [5：EntityPlayer](05-player/README.md) | 48 | 0 |
+| [6：GridEntity](06-grid/README.md) | 32 | 1 |
+| [7：Room、Level、RoomSave 与 Exploration](07-room-level/README.md) | 71 | 4 |
+| [8：Run、Presentation 与 Random](08-run-presentation/README.md) | 9 | 1 |
+
+旧证据路径仅保留 [EntitySaveState](EntitySaveState.md) 和 [GridEntityDesc](GridEntityDesc.md) 两个跳转页，正式表见对应步骤目录。

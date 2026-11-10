@@ -1,5 +1,7 @@
 # 原生二进制布局源
 
+生成布局文档按总计划步骤存放在 `docs/design/binary-state/layouts/02-base-types/` 至 `08-run-presentation/`；总索引与各步骤索引由生成器同时维护。目录号是计划步骤号，不是布局编号或版本号；变体随其所属域，共享类型不重复生成。第7步已登记的显示／资源结构仍随第7步归档。布局源中引用的 `layouts/EntitySaveState.md`、`layouts/GridEntityDesc.md` 旧证据路径保留跳转页。
+
 ## 版本56：第8步Run归属
 
 `run.json`新增230—238：RunSeeds／RunAmbush／RunChallengeParam／RunDailyChallenge／RunScoreSheet／RunColorModState／RunGameStateFlags／GameRun／RunSeedEffectNode。证据见`docs/design/binary-state/run-synchronization-review.md`。GameRun只是Run视图，跨域委派与原生孔不冒充已核或本地；191条目录保留原行序、签名与旧归属说明。只传有实际显示用途的当前值、7项种子显示选择、ascent bit48和最终分数，RNG／波次控制／回溯／生成历史留Host。新handler尚待第10／13步；第15步前无测试。
@@ -106,3 +108,15 @@ TrapDoor计数、Fire计时／样式／粒子速度归Host；粒子原生24B、�
 - `catalog_rows`以目录＋一基ordinal保留全部1265行及原签名（含null／空串），`catalog_aliases`保留1244条Entity目录逐行链接，`supplementary_rows`保留14 native／77旧宏／6结构。原目录保持原事实，不把回映射当可执行getter字典。
 
 生成表中的新handler、条件、mask及预算只是正式接线元数据，不能代替第8—14步owner实现。通用12／13／14／135／136继续保留原合同，不冒充Player专用179／180／181—194。第15步前没有测试。
+
+## 版本57：第7步生产源与生成
+
+`room.json`／`level.json`新增239—309共71个布局，四域原stream目录597行全部登记并生成。实现与当前边界见`docs/design/binary-state/implementation-7-room-level.md`；设计ledger／member-map不是构建输入。Room13个world块，L0=22B、L1=53B、L2=1—12B、L3=1014B、D1=1B、配置15B。Room直属UNKNOWN28B、静态内嵌递归613B，Level22B，指针后动态payload及外部owner未知另计。
+
+生成器支持零步长的自有复杂结果列表、带正式target的合成资源引用及显式u8／默认u16计数；`Field.count_bytes`为0／1／2，不改变既有固定槽格式。旧stream目录只在生成器内存中适配原返回类型／owner／domain，按四个source_schema范围登记，不扩大其他owner的覆盖声明。新资源空间为`room-config-visual`和`shader-table`。
+
+Resource Context的头与typed固定值已登记，完整payload／blob／recipe调度、具体GPU枚举／leaf ABI和实际缓存／reader／writer仍归第9—13步；不能把表里的handler名称当成已绑定运行实现。Release／Win32状态库纯编译通过，第15步前不运行测试。
+
+## 第7步影子描述视图（布局版本保持57）
+
+正式生成器同时产出`state_room_view.inc`：Room／Level／Descriptor／配置的52个语义角色映射、必需块、真实Grid／Door布局及L2动态帧bit／上限均取同一生产源。消费者是`client_room_description.h/.cpp`，只接完整已递归校验的影子记录，持有自有不可变负载；不执行Lua／SDK／网络调度或原生安装。接口和构建情况见`docs/design/binary-state/room-level-description-implementation.md`。没有改线字段或清除UNKNOWN；第15步前不运行测试。

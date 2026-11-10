@@ -43,18 +43,20 @@ target_compile_definitions(isaac_cs_world PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX)
 target_compile_options(isaac_cs_world PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_link_libraries(isaac_cs_world PUBLIC isaac_cs_core)
 set(GENERATED "${CMAKE_CURRENT_BINARY_DIR}/generated")
-# 原生二进制布局与旧 stream 目录分开生成；0—2 步仅提供共用表和嵌套基础设施。
+# 原生二进制布局与旧 stream 目录分开生成；已登记域共用正式复制／解码及嵌套表。
 # 第 10—14 步再接入正式同步并退役旧路径，这里不改变运行中的采集与协议。
 file(GLOB STATE_LAYOUT_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/binding/state/*.json")
 add_custom_command(OUTPUT "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc"
   "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc" "${GENERATED}/state_grid_view.inc"
+  "${GENERATED}/state_room_view.inc"
   COMMAND ${Python3_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/tools/gen_state_layout.py"
     --out "${GENERATED}" --docs "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/binary-state/layouts"
   DEPENDS tools/gen_state_layout.py ${STATE_LAYOUT_SOURCES} binding/world_layout.json
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-19/entity-application.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-20/player-application.json"
     "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/grid-catalog.json"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/run-catalog.json" VERBATIM)
+    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/observation-expansion/run-catalog.json"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../docs/design/tx-04-21/stream-catalog.json" VERBATIM)
 add_library(isaac_cs_state STATIC src/state/layout.cpp src/state/nested.cpp src/state/owned_payload.cpp src/state/entity_extension.cpp src/state/entity_counters.cpp src/state/npc_presentation.cpp
   "${GENERATED}/state_capture.inc" "${GENERATED}/state_wire.inc"
   "${GENERATED}/state_client.inc" "${GENERATED}/state_members.inc")
@@ -68,6 +70,13 @@ target_include_directories(isaac_cs_grid_description PUBLIC src PRIVATE "${GENER
 target_compile_features(isaac_cs_grid_description PUBLIC cxx_std_20)
 target_compile_options(isaac_cs_grid_description PRIVATE /W4 /Zi /utf-8 /EHsc)
 target_link_libraries(isaac_cs_grid_description PUBLIC isaac_cs_state)
+# 第7步Room／Level描述只消费完整影子值；实际解码调度和原生安装仍由第12/13步接线。
+add_library(isaac_cs_room_description STATIC src/game/client/room/client_room_description.cpp
+  "${GENERATED}/state_room_view.inc")
+target_include_directories(isaac_cs_room_description PUBLIC src PRIVATE "${GENERATED}")
+target_compile_features(isaac_cs_room_description PUBLIC cxx_std_20)
+target_compile_options(isaac_cs_room_description PRIVATE /W4 /Zi /utf-8 /EHsc)
+target_link_libraries(isaac_cs_room_description PUBLIC isaac_cs_state)
 # 发布元数据只读取同一源码版本表，不探测游戏，也不运行校验程序。
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/src/replica/stream_version.h" STREAM_VERSION_SOURCE)
 string(REGEX MATCH "kFraming=([0-9]+),kSchema=([0-9]+),kCompactSchema=([0-9]+)" _ "${STREAM_VERSION_SOURCE}")
@@ -240,7 +249,7 @@ target_include_directories(zhlIsaacCS PRIVATE "${REPENTOGON_ROOT}/libs/zydis/inc
   "${REPENTOGON_ROOT}/libs/zydis/dependencies/zycore/include")
 target_compile_definitions(zhlIsaacCS PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
 target_compile_options(zhlIsaacCS PRIVATE /EHs /W4 /Zi /utf-8 /wd4251 /wd4996)
-target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net isaac_cs_world isaac_cs_replica isaac_cs_grid_description "${REPENTOGON_ROOT}/build/Release/libzhl.lib" "${REPENTOGON_ROOT}/build/Release/Lua5.3.3r.lib" ws2_32 bcrypt opengl32)
+target_link_libraries(zhlIsaacCS PRIVATE isaac_cs_core isaac_cs_net isaac_cs_world isaac_cs_replica isaac_cs_grid_description isaac_cs_room_description "${REPENTOGON_ROOT}/build/Release/libzhl.lib" "${REPENTOGON_ROOT}/build/Release/Lua5.3.3r.lib" ws2_32 bcrypt opengl32)
 target_link_options(zhlIsaacCS PRIVATE /DEBUG)
 # 只编译官方头的布局声明；其全局配置初始化不属于本DLL，不能链接或执行。
 add_library(isaac_cs_player_sdk_abi OBJECT src/game/client/player/client_player_sdk_abi.cpp)

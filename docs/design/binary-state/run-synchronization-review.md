@@ -1,6 +1,6 @@
 # 第 8 步 Run：原生字节与同步职责核对
 
-2026-11-10；目标为官方 REPENTOGON 1.1.3 / v1.9.7.12.J273 Win32。本次只完成 **Run 的静态归属、布局与公开目录回映射**，不把 Presentation、Random、Mod 或正式采集／安装宣称为完成。布局源为 [`run.json`](../../../mod/binding/state/run.json)，整数布局版本 56；生成表从 [GameRun](layouts/GameRun.md) 进入。没有运行游戏、测试、getter 或随机选择。
+2026-11-10；目标为官方 REPENTOGON 1.1.3 / v1.9.7.12.J273 Win32。本次只完成 **Run 的静态归属、布局与公开目录回映射**，不把 Presentation、Random、Mod 或正式采集／安装宣称为完成。布局源为 [`run.json`](../../../mod/binding/state/run.json)，整数布局版本 56；生成表从 [GameRun](layouts/08-run-presentation/GameRun.md) 进入。没有运行游戏、测试、getter 或随机选择。
 
 ## 1. 资料顺序与证据口径
 
@@ -105,13 +105,13 @@ Game真实分配：932AB3 `push 680E8h`→operator new→932ACF 调6ED4B0；与S
 | Game+66968..66993、669EC | 前者没有具体语义，不以构造写零当padding；后者6F7A80读取并以`clamp(value/90,0,1)`绘制整屏覆盖，Update还触发转场，显示结果须独立承接 |
 | 当前challenge／daily参数名称、分数14值＋完成楼层／时间、最终HUD进度图标 | 分别绑定当前run／目标world／正常Host显示批次；缺批次不填默认值。原始ChallengeParam名称不等于所有HUD最终文本；当前Game缓存与Leaderboard冻结副本分开，ScoreSheet缓存不授权重算或调用Show |
 
-D0的ManagerFrame、paused、两份纯绘制RNG保留既有8.2.1合同，本轮不改它们，不把玩法RNG放进D0。Render inline glitch／随机四边形等已有交接同样保留。
+历史D0原保留ManagerFrame、paused与两份纯绘制RNG，后收紧为13B两seed草稿；同日[第7步与Random交接](room-random-handoff.md)已进一步改为**5B Manager相位／paused＋逐用途正常已产生alpha／资格**，两个游标／shift／guard均不上线。正常显示批次的world／presentation／资源修订和结果缓存／adapter仍待接线，不由Client全局访问顺序分配样本。Render inline glitch／随机四边形等已有具体结果交接保持，GameRun固定132B负载不含D0或这些Presentation批次。
 
 ## 5. 目录与完成口径
 
 原始 `docs/design/observation-expansion/run-catalog.json` 的 **191条run行**逐行写入GameRun的`catalog_rows`，保留原始全局ordinal、签名、null／空白和两个Fadein／Fadeout重载，不按ID去重。每行理由记录旧stream目录的ReplicatedState／AuthorityOnly／NotReplicated；旧目录保留历史事实，不重写为本轮结论。
 
-同源[191行汇总表](layouts/run-catalog-run-members.md)由普通构建生成：9行field／15行derived／155行authority／12行not_applicable。旧归属93／87／11全部逐行保留。`version.json.catalog_complete_scopes`只声明此共享目录的run域完整性，构建按原始ordinal检查191行，不迫使同文件其它三域提前完成。
+同源[191行汇总表](layouts/08-run-presentation/run-catalog-run-members.md)由普通构建生成：9行field／15行derived／155行authority／12行not_applicable。旧归属93／87／11全部逐行保留。`version.json.catalog_complete_scopes`只声明此共享目录的run域完整性，构建按原始ordinal检查191行，不迫使同文件其它三域提前完成。
 
 明确的状态回映射指向GameRun生成字段；跨域已有／待接入结果指向带来源的`@context`；命令与随机选择归authority；本地纯转换／API对象入口归not_applicable或具名上下文。没有恢复191项通用Getter字典。Ambush.GetNextWaves即使复制rng，也会临时改变RoomConfig权重（官方LuaAmbush.cpp），不能作为正式只读补源。
 

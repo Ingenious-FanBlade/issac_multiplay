@@ -4,7 +4,7 @@
 
 ## 范围与正式入口
 
-**119行全部进入正式生成源**：[`grid.json`](../../../mod/binding/state/grid.json)与[`grid-classes.json`](../../../mod/binding/state/grid-classes.json)的`catalog_rows`。逐行处置、原签名、真实布局、字段、原生偏移／函数依据，见同源生成的[119行汇总表](layouts/grid-catalog-members.md)。不另维护一份设计JSON或人工字段镜像。
+**119行全部进入正式生成源**：[`grid.json`](../../../mod/binding/state/grid.json)与[`grid-classes.json`](../../../mod/binding/state/grid-classes.json)的`catalog_rows`。逐行处置、原签名、真实布局、字段、原生偏移／函数依据，见同源生成的[119行汇总表](layouts/06-grid/grid-catalog-members.md)。不另维护一份设计JSON或人工字段镜像。
 
 正式输入是[原Grid公开目录](../observation-expansion/grid-catalog.json)的全部119行；它也是[旧应用目录](../tx-04-18/room-grid-application.json)开头`source_schema=isaac.cs.grid`的119行来源。本文／生成表的一基行号N对应旧应用成员数组的一基行号N及其零基`source_ordinal=N-1`。旧应用目录后续Room／资源等655行不在本次范围；不改写其实施状态或历史事实，也不把它们纳入Grid的完成声明。
 

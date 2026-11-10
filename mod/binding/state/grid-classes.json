@@ -5748,8 +5748,8 @@
         },
         "door_display_dependencies": {
           "type": "same-world-door-Light-and-aliases",
-          "semantics": "target_room_index须经同world Level描述表/特殊目标映射解析到Client自有descriptor，Light读其Flags&40000；当前RoomConfig.type35、维度、stage suffix、主Sprite layer3/layer5与当前动画/帧依实际资源和第7/8步来源提供。负索引保留，不把未知目标当空或调用Host getter补值；Room八槽alias/候选/route独立归第7步结构，不按这些标量启动Client换房。",
-          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；VA801BE0/8021A8/8028AE/802A16"
+          "semantics": "target_room_index须经同world Level描述表/特殊目标映射解析到Client自有descriptor，Light读其Flags&40000；当前Data.StageId==35(Home)、维度、stage suffix、主Sprite layer3/layer5与当前动画/帧依实际资源和第7/8步来源提供。2026-11-10补核80276C读配置+0，旧说明RoomConfig.type35字段名误认，历史纠错见证据文档；不改字段/类型号/布局版本。负索引保留，不把未知目标当空或调用Host getter补值；Room八槽alias/候选/route独立归第7步结构，不按这些标量启动Client换房。",
+          "evidence": "docs/design/binary-state/grid-pressure-door-evidence.md；docs/design/binary-state/room-display-resource-design.md；VA801BE0/8021A8/802758/802761/80276C/8028AE/802A16"
         }
       },
       "members": [

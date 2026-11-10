@@ -1,0 +1,989 @@
+{
+  "format": "isaac.cs.room-display-resource-design",
+  "revision": 1,
+  "date": "2026-11-10",
+  "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273 / Win32",
+  "status": "设计补齐；生产布局/缓存/reader/writer/图形adapter待实施；layout_version仍56；未构建或测试",
+  "authoritative_document": "room-display-resource-design.md",
+  "native_types": [
+    {
+      "name": "RoomConfig_Room",
+      "native_size": 92,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomConfigRoom.zhl；Wiki RoomConfig_Room；J273 80276C/9666E3/9635B0/816BB0",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "StageId",
+          "type": "i32",
+          "category": "资源",
+          "synchronization": "RoomConfigVisual.stage_id；Home正面显示依赖",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "Mode",
+          "type": "i32",
+          "category": "权威",
+          "synchronization": "Host定位元数据，不发；官方Lua修正原Wiki userdata",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "Type",
+          "type": "i32",
+          "category": "资源",
+          "synchronization": "RoomConfigVisual.type；独立于StageId",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "Variant",
+          "type": "u32",
+          "category": "权威",
+          "synchronization": "Host定位/生成；实际资源由结果承接",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "Subtype",
+          "type": "i32",
+          "category": "资源",
+          "synchronization": "RoomConfigVisual.subtype；地图和subtype89 Light",
+          "status": "已核"
+        },
+        {
+          "offset": 20,
+          "size": 24,
+          "name": "Name",
+          "type": "std::string",
+          "category": "权威",
+          "synchronization": "不复制string；实际显示文字归Presentation，配置调试名不发",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 44,
+          "size": 4,
+          "name": "Difficulty",
+          "type": "i32",
+          "category": "权威",
+          "synchronization": "Host选房条件",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 48,
+          "size": 4,
+          "name": "InitialWeight",
+          "type": "f32",
+          "category": "权威",
+          "synchronization": "Host选房初始权重",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 52,
+          "size": 4,
+          "name": "Weight",
+          "type": "f32",
+          "category": "权威",
+          "synchronization": "Host可变权重；不影响15B显示投影时不发布",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 56,
+          "size": 4,
+          "name": "Doors",
+          "type": "u32",
+          "category": "权威",
+          "synchronization": "生成候选门；实际八门与AllowedDoors由R3/L1承接",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 60,
+          "size": 4,
+          "name": "QuestDoors",
+          "type": "bitset32",
+          "category": "权威",
+          "synchronization": "生成/任务门；实际门对象由Grid和R3承接",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 64,
+          "size": 4,
+          "name": "Spawns",
+          "type": "RoomSpawn*",
+          "category": "权威",
+          "synchronization": "不读取/发送生成候选图或地址",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 68,
+          "size": 2,
+          "name": "SpawnCount",
+          "type": "u16",
+          "category": "权威",
+          "synchronization": "生成数组长度不下行",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 70,
+          "size": 1,
+          "name": "Width",
+          "type": "i8",
+          "category": "资源",
+          "synchronization": "RoomConfigVisual.width；配置内域尺寸，非R0实际grid extent",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 71,
+          "size": 1,
+          "name": "Height",
+          "type": "i8",
+          "category": "资源",
+          "synchronization": "RoomConfigVisual.height",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 72,
+          "size": 4,
+          "name": "Shape",
+          "type": "i32",
+          "category": "换算",
+          "synchronization": "RoomConfigVisual.shape:u8，先检查1..12，不能截断",
+          "status": "已核"
+        },
+        {
+          "offset": 76,
+          "size": 4,
+          "name": "Flags",
+          "type": "bitset32",
+          "category": "权威",
+          "synchronization": "完整位语义未穷尽；实际Entity/Grid/背景结果承接",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 80,
+          "size": 8,
+          "name": "MergedData",
+          "type": "RoomConfig_Room*[2]",
+          "category": "权威",
+          "synchronization": "Host合并生成图；不递归下发",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 88,
+          "size": 4,
+          "name": "OriginalVariant",
+          "type": "u32",
+          "category": "权威",
+          "synchronization": "Host定位元数据/生成，不进入显示投影",
+          "status": "SDK声明"
+        }
+      ]
+    },
+    {
+      "name": "RoomConfig_Stage",
+      "native_size": 196,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomConfigStage.zhl；LuaInterfaces/Room/LuaRoomConfigStage.cpp；Wiki RoomConfigStage",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "id",
+          "type": "u32",
+          "category": "权威",
+          "synchronization": "库身份；已选RoomConfigVisual.stage_id独立提供",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 4,
+          "size": 24,
+          "name": "displayName",
+          "type": "std::string",
+          "category": "换算",
+          "synchronization": "实际已选显示文字归Presentation；不整库复制",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 28,
+          "size": 24,
+          "name": "playerSpot",
+          "type": "std::string",
+          "category": "资源",
+          "synchronization": "实际选用图像/Sprite归转场资源；不按stage重新选",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 52,
+          "size": 24,
+          "name": "bossSpot",
+          "type": "std::string",
+          "category": "资源",
+          "synchronization": "实际boss intro资源由Presentation提供",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 76,
+          "size": 24,
+          "name": "suffix",
+          "type": "std::string",
+          "category": "换算",
+          "synchronization": "所选实际Sprite/Image/具名显示上下文承接；不传生产库",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 100,
+          "size": 88,
+          "name": "rooms",
+          "type": "RoomSet[2]",
+          "category": "权威",
+          "synchronization": "Normal/Greed候选库不下发；GetRoomSet可能加载",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 188,
+          "size": 4,
+          "name": "musicId",
+          "type": "i32",
+          "category": "权威",
+          "synchronization": "生产选择；已选音乐意图由音频owner承接",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 192,
+          "size": 4,
+          "name": "backdrop",
+          "type": "i32",
+          "category": "权威",
+          "synchronization": "默认背景选择；实际纹理/分支由Room显示结果承接",
+          "status": "SDK声明"
+        }
+      ]
+    },
+    {
+      "name": "RoomSet",
+      "native_size": 44,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomSet.zhl；LuaRoomConfigStage.cpp::GetRoomSet",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 24,
+          "name": "filepath",
+          "type": "std::string",
+          "category": "权威",
+          "synchronization": "Host候选库来源，不下行",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 24,
+          "size": 4,
+          "name": "configs",
+          "type": "RoomConfig_Room*",
+          "category": "权威",
+          "synchronization": "Host库/分配，不复制地址或全数组",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 28,
+          "size": 4,
+          "name": "count",
+          "type": "u32",
+          "category": "权威",
+          "synchronization": "Host库计数，不成为Client活动描述数量",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 32,
+          "size": 8,
+          "name": "variantSetMap",
+          "type": "std::map header",
+          "category": "本地",
+          "synchronization": "原生索引管理；不传树/地址",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 40,
+          "size": 1,
+          "name": "loaded",
+          "type": "bool",
+          "category": "本地",
+          "synchronization": "Host库加载资格；Client资源ready独立",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 41,
+          "size": 3,
+          "name": "unknown_29_2B",
+          "type": "bytes[3]",
+          "category": "未知",
+          "synchronization": "保持UNKNOWN，不读不发",
+          "status": "未知"
+        }
+      ]
+    },
+    {
+      "name": "RoomSpawn",
+      "native_size": 16,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomSpawn.zhl；Wiki RoomConfig_Spawn",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 2,
+          "name": "X",
+          "type": "u16",
+          "category": "权威",
+          "synchronization": "Host放置候选；实际Entity/Grid位置另发",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 2,
+          "size": 2,
+          "name": "Y",
+          "type": "u16",
+          "category": "权威",
+          "synchronization": "Host放置候选",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "Entries",
+          "type": "RoomEntry*",
+          "category": "权威",
+          "synchronization": "候选数组/地址不发",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 8,
+          "size": 1,
+          "name": "CountEntries",
+          "type": "u8",
+          "category": "权威",
+          "synchronization": "候选数不发；不能按旧Lua int宽读",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 9,
+          "size": 3,
+          "name": "unknown_09_0B",
+          "type": "bytes[3]",
+          "category": "未知",
+          "synchronization": "保持UNKNOWN，不读不发",
+          "status": "未知"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "SumWeights",
+          "type": "f32",
+          "category": "权威",
+          "synchronization": "Host抽选权重；不调用PickEntry",
+          "status": "SDK声明"
+        }
+      ]
+    },
+    {
+      "name": "RoomEntry",
+      "native_size": 12,
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomEntry.zhl；Wiki RoomConfig_Entry",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "type",
+          "type": "u32",
+          "category": "权威",
+          "synchronization": "生成候选type，不是活动Entity结构身份",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 4,
+          "size": 2,
+          "name": "variant",
+          "type": "u16",
+          "category": "权威",
+          "synchronization": "生成候选，不发",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 6,
+          "size": 2,
+          "name": "subtype",
+          "type": "u16",
+          "category": "权威",
+          "synchronization": "生成候选，不发",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "weight",
+          "type": "f32",
+          "category": "权威",
+          "synchronization": "Host抽选，不发",
+          "status": "SDK声明"
+        }
+      ]
+    },
+    {
+      "name": "DestinationQuad",
+      "native_size": 32,
+      "evidence": "官方DestinationQuad.zhl；Wiki renderer/DestinationQuad",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 8,
+          "name": "topLeft",
+          "type": "Vector",
+          "category": "状态",
+          "synchronization": "surface内局部四点，非Host屏幕坐标",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 8,
+          "size": 8,
+          "name": "topRight",
+          "type": "Vector",
+          "category": "状态",
+          "synchronization": "surface内局部四点，非Host屏幕坐标",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 16,
+          "size": 8,
+          "name": "bottomLeft",
+          "type": "Vector",
+          "category": "状态",
+          "synchronization": "surface内局部四点，非Host屏幕坐标",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 24,
+          "size": 8,
+          "name": "bottomRight",
+          "type": "Vector",
+          "category": "状态",
+          "synchronization": "surface内局部四点，非Host屏幕坐标",
+          "status": "SDK声明"
+        }
+      ]
+    },
+    {
+      "name": "SourceQuad",
+      "native_size": 36,
+      "evidence": "官方SourceQuad.zhl；Wiki renderer/SourceQuad",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 32,
+          "name": "points",
+          "type": "DestinationQuad",
+          "category": "状态",
+          "synchronization": "Quad recipe源四点",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 32,
+          "size": 4,
+          "name": "coordinateSpace",
+          "type": "i32",
+          "category": "换算",
+          "synchronization": "检查0/1后转u8 source_space；不得丢弃或混用pixel/UV",
+          "status": "SDK声明"
+        }
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "scope": "双配置",
+      "synchronize": "RoomConfigVisual + L1的两个独立u16资源引用",
+      "exclude": "原生配置地址、候选库、Spawn/Merged图、全量Getter状态",
+      "owner": "Level/资源"
+    },
+    {
+      "scope": "背景surface",
+      "synchronize": "实际消费的文件图像/完整有序recipe/精确像素内容与extent",
+      "exclude": "RNG/seed/Init重放/未使用scratch/FBO或GL对象",
+      "owner": "Room/资源"
+    },
+    {
+      "scope": "背景Sprite",
+      "synchronize": "实际采用的资源/姿态/完整图层外观",
+      "exclude": "未采用候选/Host教程设备图标",
+      "owner": "Room/本地输入UI"
+    },
+    {
+      "scope": "水面",
+      "synchronize": "最终色32B/模式/flow/实际Image/所用有符号phase",
+      "exclude": "端点/timer/重复reversewatergfx/Client重新插值",
+      "owner": "Room"
+    },
+    {
+      "scope": "光照",
+      "synchronize": "最终shadow fill/light tint/alpha/world资格/特殊背景分支",
+      "exclude": "生产查询/玩家物品Getter重放/去重树",
+      "owner": "Room"
+    },
+    {
+      "scope": "波纹",
+      "synchronize": "两份有效world center/radius_used/gain_used",
+      "exclude": "未来speed/current/maximum/Host归一化屏幕坐标",
+      "owner": "Room"
+    },
+    {
+      "scope": "FX",
+      "synchronize": "实际层/pose/选中ray/poop alpha/vein图/轨道",
+      "exclude": "未选候选/速度/未来计时/雨或Minecart生成",
+      "owner": "Room/Entity"
+    },
+    {
+      "scope": "地图知识",
+      "synchronize": "L0/L1/L2/L3完整可显示事实",
+      "exclude": "Host当前视口前缀/四揭图生产bool/保存体",
+      "owner": "Level"
+    },
+    {
+      "scope": "地图资源",
+      "synchronize": "两config border/icons/itemIcons实际外观",
+      "exclude": "Host已裁剪FBO/UI展开输入",
+      "owner": "Presentation/资源"
+    },
+    {
+      "scope": "地图焦点",
+      "synchronize": "正常Host已选MapFocusResult/对应描述/地图版本",
+      "exclude": "DecorationSeed/再次随机/未核169数组下标",
+      "owner": "Presentation"
+    },
+    {
+      "scope": "地图徽标",
+      "synchronize": "有序最多7项MapBadgeList",
+      "exclude": "仅Sprite最后帧/新增物品或curse查询字典",
+      "owner": "Presentation"
+    },
+    {
+      "scope": "地图本地操作",
+      "synchronize": "本地state/holdTime/alpha/窗口/排版",
+      "exclude": "Host按键历史和本地Options下行",
+      "owner": "Client本地"
+    },
+    {
+      "scope": "地图附带时间分数",
+      "synchronize": "既有Run时间/challenge/difficulty/最终总分缓存",
+      "exclude": "9BAC90分数重算/随机/进度提交",
+      "owner": "Run/Presentation"
+    },
+    {
+      "scope": "镜面矿车图标",
+      "synchronize": "既有L0/Run ascent/difficulty/配置Subtype的纯派生",
+      "exclude": "新增两份Getter bool/全部Game flags",
+      "owner": "Client纯地图adapter"
+    },
+    {
+      "scope": "相机",
+      "synchronize": "必要ForcedCameraFocus/Room scroll",
+      "exclude": "ring历史/Host视口/设备或Online选择规则",
+      "owner": "Room/Client本地"
+    },
+    {
+      "scope": "楼层/转场/音频",
+      "synchronize": "实际选中文字/图像/Sprite/sample/voice",
+      "exclude": "全RoomConfigStage库及Set/Unload/抽选命令",
+      "owner": "Presentation/音频"
+    },
+    {
+      "scope": "Lost问号图像",
+      "synchronize": "Presentation question_image:u16实际可空图像资源引用；默认文件可复用既有资源",
+      "exclude": "原生Image*/control、将其当iconsSprite帧、Host裁剪地图FBO",
+      "owner": "Presentation/资源"
+    }
+  ],
+  "wire_views": [
+    {
+      "name": "RoomConfigVisual",
+      "bytes": 15,
+      "fields": [
+        [
+          "stage_id",
+          "i32",
+          4
+        ],
+        [
+          "type",
+          "i32",
+          4
+        ],
+        [
+          "subtype",
+          "i32",
+          4
+        ],
+        [
+          "width",
+          "i8",
+          1
+        ],
+        [
+          "height",
+          "i8",
+          1
+        ],
+        [
+          "shape",
+          "u8",
+          1
+        ]
+      ],
+      "note": "独立nullable资源项；Shape只允许1..12；没有原生layout号"
+    },
+    {
+      "name": "ResourceEntryHeader",
+      "bytes": 7,
+      "fields": [
+        [
+          "index",
+          "u16",
+          2
+        ],
+        [
+          "kind",
+          "u8",
+          1
+        ],
+        [
+          "payload_bytes",
+          "u32",
+          4
+        ]
+      ],
+      "note": "kind0/1/2路径；3配置；4recipe；5像素描述。替代9.6旧草稿，版本56不接受"
+    },
+    {
+      "name": "SurfacePixelsDescriptor",
+      "bytes": 16,
+      "fields": [
+        [
+          "logical_w",
+          "u16",
+          2
+        ],
+        [
+          "logical_h",
+          "u16",
+          2
+        ],
+        [
+          "stored_w",
+          "u16",
+          2
+        ],
+        [
+          "stored_h",
+          "u16",
+          2
+        ],
+        [
+          "format",
+          "u8",
+          1
+        ],
+        [
+          "origin",
+          "u8",
+          1
+        ],
+        [
+          "alpha_encoding",
+          "u8",
+          1
+        ],
+        [
+          "color_encoding",
+          "u8",
+          1
+        ],
+        [
+          "content_bytes",
+          "u32",
+          4
+        ]
+      ],
+      "note": "当前format0 RGBA8，origin0 GL下起，alpha/color0按原生编码保留；不无声变换精度"
+    },
+    {
+      "name": "ResourceBlobChunkHeader",
+      "bytes": 14,
+      "fields": [
+        [
+          "resource_epoch",
+          "u32",
+          4
+        ],
+        [
+          "index",
+          "u16",
+          2
+        ],
+        [
+          "offset",
+          "u32",
+          4
+        ],
+        [
+          "bytes",
+          "u32",
+          4
+        ]
+      ],
+      "note": "随后bytes个自有内容字节；可靠Context，不是另一个world格式"
+    },
+    {
+      "name": "BackdropBinding",
+      "min_bytes": 2,
+      "max_bytes": 23,
+      "note": "u16 count<=7，随后count*(slot:u8,resource:u16)；slot由生成器固定登记；引用真正消费的surface或图像"
+    },
+    {
+      "name": "BackdropExtent",
+      "bytes": 16,
+      "fields": [
+        [
+          "surface_extent_a",
+          "Vector",
+          8
+        ],
+        [
+          "surface_extent_b",
+          "Vector",
+          8
+        ]
+      ],
+      "note": "Backdrop+4F18/+4F20；不是Host窗口大小"
+    },
+    {
+      "name": "WaterVisual",
+      "min_bytes": 1,
+      "max_bytes": 48,
+      "fields_when_present": [
+        [
+          "present",
+          "u8",
+          1
+        ],
+        [
+          "mode",
+          "u8",
+          1
+        ],
+        [
+          "image",
+          "u16",
+          2
+        ],
+        [
+          "phase_used",
+          "f32",
+          4
+        ],
+        [
+          "flow",
+          "Vector",
+          8
+        ],
+        [
+          "water_shader_result",
+          "KColor+3*f32",
+          32
+        ]
+      ],
+      "note": "唯一结果投影，复用原32B色和flow，不另发reverse位；present不是waterAmount；phase只供91AC70背景水纹，816BB0的2*game_frame从同批帧头派生，不能混为同一相位"
+    },
+    {
+      "name": "RoomLightingResult",
+      "min_bytes": 1,
+      "max_bytes": 46,
+      "note": "mask:u8；bit0 shadow_fill KColor20；bit1 light_tint KColor20；bit2 lighting_alpha f32；bit3 special_background u8；world资格不含Host本地Options"
+    },
+    {
+      "name": "RoomWaveResult",
+      "min_bytes": 1,
+      "max_bytes": 33,
+      "note": "active_mask:u8低2位；每活动位Vector world_center+f32 radius_used+f32 gain_used=16B；本地viewport变换"
+    },
+    {
+      "name": "ForcedCameraFocus",
+      "min_bytes": 1,
+      "max_bytes": 9,
+      "note": "present:u8 + present1时Vector focus；没有ring历史"
+    },
+    {
+      "name": "MapFocusResult",
+      "min_bytes": 1,
+      "max_bytes": 7,
+      "note": "present:u8 + present1时focus_safe_index:i32 + descriptor_member:u16；同地图/成员/资源版本；必要时按两config分开"
+    },
+    {
+      "name": "MapBadgeList",
+      "min_bytes": 1,
+      "max_bytes": 8,
+      "note": "复用已有设计：count:u8<=7 + i8[count]，非负0/1/2/4/5；负-1..-9"
+    },
+    {
+      "name": "SurfaceRecipeHeader",
+      "bytes": 16,
+      "fields": [
+        [
+          "recipe_layout",
+          "u16",
+          2
+        ],
+        [
+          "image_geometry",
+          "SurfacePixelsDescriptor前12B",
+          12
+        ],
+        [
+          "operation_count",
+          "u16",
+          2
+        ]
+      ],
+      "note": "只接受已登记layout，0..4096条，目标为自有离屏surface"
+    },
+    {
+      "name": "SurfaceRecipeClear",
+      "bytes": 21,
+      "fields": [
+        [
+          "op",
+          "u8",
+          1
+        ],
+        [
+          "clear_color",
+          "KColor",
+          20
+        ]
+      ],
+      "note": "op=0；有序执行，不能继承未提供旧内容"
+    },
+    {
+      "name": "SurfaceRecipeQuad",
+      "bytes": 196,
+      "fields": [
+        [
+          "op",
+          "u8",
+          1
+        ],
+        [
+          "image",
+          "u16",
+          2
+        ],
+        [
+          "shader",
+          "u16",
+          2
+        ],
+        [
+          "blend_view",
+          "u8",
+          1
+        ],
+        [
+          "sampler_view",
+          "u8",
+          1
+        ],
+        [
+          "source_space",
+          "u8",
+          1
+        ],
+        [
+          "source_points",
+          "f32[8]",
+          32
+        ],
+        [
+          "destination_points",
+          "f32[8]",
+          32
+        ],
+        [
+          "vertex_colors",
+          "KColor[4]",
+          80
+        ],
+        [
+          "color_mod",
+          "ColorMod",
+          44
+        ]
+      ],
+      "note": "op=1，source_space为0 pixel/1 UV；首个layout只允许普通ColorOffset和固定blend/sampler视图，不执行任意GPU命令"
+    },
+    {
+      "name": "MinimapQuestionImageBinding",
+      "bytes": 2,
+      "fields": [
+        [
+          "question_image",
+          "u16",
+          2
+        ]
+      ],
+      "note": "嵌入既有Presentation地图资源绑定，同world/资源版本；独立于两边框及icons/itemIcons；FFFF仅明确空"
+    }
+  ],
+  "resource_policy": {
+    "immutable_index": true,
+    "null_index": 65535,
+    "path_bytes_max": 4096,
+    "blob_chunk_bytes_max": 262144,
+    "pixel_bytes_max": 16777216,
+    "pixel_dimension_max": 2048,
+    "recipe_operation_max": 4096,
+    "dependency_depth_max": 16,
+    "pending_context_bytes_max": 33554432,
+    "initial_prepare_bytes_target": 1048576,
+    "initial_prepare_seconds_target": 10,
+    "total_sustained_upload_bps_target": 7500000,
+    "note": "保护上限是设计值，非实测。资源/recipe/压缩blob也计首次准备和三端预算；不能无声降质/截断/改预算。禁止哈希。"
+  },
+  "source_corrections": [
+    {
+      "old": "RoomConfig.type35",
+      "current": "RoomConfig.StageId==35（Home）",
+      "evidence": "802758/80275E/802761/80276C；9666CD/9666D3/9666D6/9666DD/9666E3",
+      "effect": "更正文档与grid-classes.json字段说明，不改变状态字段/编号/版本"
+    },
+    {
+      "old": "Wiki Image.GetTexelRegion returns four floats per pixel",
+      "current": "本地官方Lua分配4字节/像素；J273 GetTexelRegion按RGBA/UNSIGNED_BYTE读回",
+      "evidence": "LuaRender.cpp:339..356；A4C860/A4C863/A4C868/A4C879",
+      "effect": "C++资源读回leaf；检查溢出、尺寸、有效内容、GPU格式和图形状态；不调用Lua包装"
+    },
+    {
+      "old": "Minimap+614..61B unknown_614_61B 8B",
+      "current": "ImageStrongPair question_image，Lost分支的独立实际图像资源",
+      "evidence": "965BDE/965BFF/965C0C；966680；client_presentation_native.cpp::QuestionImage",
+      "effect": "Presentation账本修订2，Minimap直属UNKNOWN23→15B，旧记录保留"
+    }
+  ],
+  "unknowns": [
+    "RoomSet+29..2B共3B；RoomSpawn+9..B共3B",
+    "Room直属28B、Level22B及既有嵌套/保存体/官方私有owner未知保持",
+    "程序surface精确GPU格式/上传leaf ABI、recipe完整写入追踪/实际固定shader注册仍待实现核定",
+    "字节归属登记不表示Flags业务位、完整生成算法或整个RoomConfig根1E28h已解释"
+  ],
+  "source_notes": [
+    "BackdropBinding slot是最终绘制用途，原surface selector消解为实际引用，不复制七个非Null候选；按具名pass分开。",
+    "MapFocusResult.present0仅非挑战32或world不适用，本地折叠不使其缺席。",
+    "Minimap+614..61B补证后直属UNKNOWN15B；其余原生未知保持。"
+  ]
+}

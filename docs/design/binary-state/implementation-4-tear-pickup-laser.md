@@ -46,7 +46,7 @@ HomingLaser 的五个子块分别投影到 Laser 的标量和四个几何块。�
 
 以上 mode 语义由具体字段的生成处理器固定，不能将 Laser Timeout 的 mode 1 当成 `EntityCounterMode::Increasing`。所有还原均使用最近已应用 world 的 game_frame，展示时钟更新后重新写入计时原值。
 
-每类从零到 J273 池步长全部显式归属，未知保持未知；构造清零和池尾部都不是填充证明。完整表与未知清单见 [Tear](layouts/EntityTear.md)、[Pickup](layouts/EntityPickup.md)、[Laser](layouts/EntityLaser.md)。公开目录回映射齐全不等于字节完整，更不表示原生同步已可运行。
+每类从零到 J273 池步长全部显式归属，未知保持未知；构造清零和池尾部都不是填充证明。完整表与未知清单见 [Tear](layouts/04-entity-classes/EntityTear.md)、[Pickup](layouts/04-entity-classes/EntityPickup.md)、[Laser](layouts/04-entity-classes/EntityLaser.md)。公开目录回映射齐全不等于字节完整，更不表示原生同步已可运行。
 
 | 根对象 | 原生范围 | 未知字节 | 其中公共 Entity／内嵌 ANM2／本类独有 |
 | --- | --- | ---: | --- |

@@ -8,7 +8,7 @@
 namespace cs::game {
 bool ClientDescribeSceneValues(const replica::Value &,
                                const replica::RoomGridTarget &,
-                               ClientNativeSceneDescription &, const char *&);
+                               LegacyClientNativeSceneDescription &, const char *&);
 // 主线程不可变提交事实；范围、attempt、实例/资源代次与世界提交分别保留。
 struct ClientStreamCommit final {
   replica::Scope scope{};

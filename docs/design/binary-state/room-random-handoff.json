@@ -1,0 +1,329 @@
+{
+  "format": "isaac.cs.step7-random-handoff",
+  "revision": 1,
+  "date": "2026-11-10",
+  "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273 Win32",
+  "status": "静态同步职责／来源交接核对完成；正式布局、reader、writer与运行验收未实施",
+  "production_layout_version": 56,
+  "native_addresses": "VA；imagebase=0x400000；RVA=VA-0x400000",
+  "source_order": [
+    "IsaacDocs本地Wiki",
+    "REPENTOGON 1.1.3本地Wiki/官方源码",
+    "J273只读静态补证"
+  ],
+  "handoffs": [
+    {
+      "id": "R7R01",
+      "scope": "Game/Level生成流",
+      "native": "Game+182D4..182E3，16B；Level.GetGenerationRNG是同一owner别名",
+      "decision": "HostOnly",
+      "synchronization": "只发送已生成的结构、实际配置／资源、Grid／Entity结果",
+      "excluded": "seed、shift、游标、生成器和别名流身份",
+      "host_source": "现有Game原生owner；不为正式下行读取此流",
+      "client_consumer": "第7步结构／资源投影",
+      "evidence": [
+        "LuaLevel.cpp:336..337",
+        "Game.zhl"
+      ],
+      "remaining_implementation": "正式布局排除原值，结果reader仍待10/13步"
+    },
+    {
+      "id": "R7R02",
+      "scope": "恶魔／天使生成流",
+      "native": "Game+182E4..182F3，独立16B",
+      "decision": "HostOnly",
+      "synchronization": "实际房间、门、奖励及StatHUD最终概率",
+      "excluded": "完整RNG和angel生产权重，不与+182D4合并",
+      "host_source": "74D6F0返回this+182E4；743970正常消费",
+      "client_consumer": "Room/Level/Entity/Presentation各自结果",
+      "evidence": [
+        "853542/878DB8→74D6F0",
+        "743970",
+        "IsaacDocs/Level.md:GetDevilAngelRoomRNG"
+      ],
+      "remaining_implementation": "结果采集／安装待实现"
+    },
+    {
+      "id": "R7R03",
+      "scope": "Backdrop生成",
+      "native": "Backdrop+4F28的16B流，+4F38的4B construction seed",
+      "decision": "ResultState",
+      "synchronization": "实际floor/wall/采用surface内容、已选Sprite／图层及独立装饰Entity",
+      "excluded": "RNG前后态、装饰抽取轨迹、构建seed；不运行Backdrop.Init/SetBackdropType补图",
+      "host_source": "正常917910→911310→915890生产完成后的实际资源；911310/915890还Spawn Effect",
+      "client_consumer": "受控背景draw与Client自有资源",
+      "evidence": [
+        "REPENTOGON Room.md:SetBackdropType",
+        "Backdrop.md:GetFloorImage/GetWallImage",
+        "911310/915890"
+      ],
+      "remaining_implementation": "程序图合法内容leaf、资源版本／预算及adapter待10/13步；不以路径或seed冒充内容"
+    },
+    {
+      "id": "R7R04",
+      "scope": "FX／雨生成",
+      "native": "FX速度端点、过滤条件／pose速度、ray选择／推进、vein退休及Room雨区域",
+      "decision": "ResultState",
+      "synchronization": "实际有效pose／选中ray／vein图、当前phase／opacity、真实雨Entity及声音",
+      "excluded": "候选、未来控制、随机输入和生成区域；不重跑Load/Update/雨Spawn",
+      "host_source": "正常FX/Entity生产的当前后态；ray draw的相位写回单独约束",
+      "client_consumer": "R2/R4及Entity/音频结果",
+      "evidence": [
+        "REPENTOGON FXLayers.md",
+        "Room.md:SetRainIntensity",
+        "96BF40/96CE20/96EA50",
+        "819530/8199D0"
+      ],
+      "remaining_implementation": "具体资源／变长记录与受控pass待接线"
+    },
+    {
+      "id": "R7R05",
+      "scope": "descriptor生成／保存／商店",
+      "native": "descriptor四seed、+94的16B类别和+A4的8B补货次数；保存随机状态",
+      "decision": "HostOnly",
+      "synchronization": "实际商品／Price Sprite／地图最终图标，当前Error颜色单独见R7R06",
+      "excluded": "生成类别、补货／花费历史、原seed、保存RNG和Restore命令",
+      "host_source": "正常Host已产出Entity/价格和L2聚合；不额外GetShopItemPrice或补货",
+      "client_consumer": "Entity/Player/地图结果",
+      "evidence": [
+        "RoomDescriptor.md",
+        "809640/80A2E0/80ACA0/80B5A0",
+        "room-descriptor-synchronization-review.md"
+      ],
+      "remaining_implementation": "完整RoomSave目录不计作本次完成；下行不要求遍历无显示用途的保存字段"
+    },
+    {
+      "id": "R7R06",
+      "scope": "Error当前颜色",
+      "native": "descriptor.SpawnSeed作为纯整数公式输入；不修改RNG对象",
+      "decision": "ResultState",
+      "synchronization": "D1 error_is_modeling_clay:u8（1B）；若最终颜色已完整承接则不重复发；图像另发实际结果",
+      "excluded": "SpawnSeed原值、完整效果ID、恒真的effect>0、重跑HistoryHUD.Recompute或伪造getter返回",
+      "host_source": "IsaacRepentance_static.cpp:588的u32变换；当前合法seed变化时重算该谓词",
+      "client_consumer": "具名官方HistoryHUD颜色adapter，结合真实Player ModelingClay效果／最终颜色",
+      "evidence": [
+        "IsaacRepentance_static.cpp:588..596",
+        "ASMHud.cpp:207/223",
+        "NUM_TRINKETS=190; ERROR=75; MODELING_CLAY=166"
+      ],
+      "remaining_implementation": "1B设计沿用最新Descriptor核对；实际颜色与Image source/writer仍待接线"
+    },
+    {
+      "id": "R7R07",
+      "scope": "挑战32地图选择",
+      "native": "9635B0内栈RNG：DecorationSeed、shift(1,5,16)，9636C7抽活动描述",
+      "decision": "ResultState",
+      "synchronization": "Host已选SafeGridIndex锚点及对应描述稳定关系；与地图配置／维表／L2结果同版本",
+      "excluded": "DecorationSeed、栈RNG、重新抽选；不只发送孤立标记而遗漏地图窗口／描述上下文",
+      "host_source": "正常9635B0在9636C7后取选中描述+4，再按原生规则处理焦点；不是额外Refresh",
+      "client_consumer": "具名地图adapter用已选结果确定窗口／标记和本地排版",
+      "evidence": [
+        "IsaacDocs/enums/Challenge.md:32",
+        "9635B0/9636C7；v192[46*choice+1]",
+        "后续裁剪窗口与描述读取"
+      ],
+      "remaining_implementation": "原生焦点钳到0..169且后续索引；169不得被当作合法13×13数组下标直接安装。线标量i32与nullable描述关系及安全adapter待9/10/13步"
+    },
+    {
+      "id": "R7R08",
+      "scope": "地图震动",
+      "native": "Minimap+61C生产timer；+620/+624最终offset",
+      "decision": "ResultState",
+      "synchronization": "最终Vector偏移8B，沿用Presentation单一owner",
+      "excluded": "timer、全局随机状态、Minimap.Update及Host查看按键",
+      "host_source": "965DB0正常生产后的最终offset，不额外调用6EB4B0",
+      "client_consumer": "966680最终draw，查看／缩放／排版按本地UI",
+      "evidence": [
+        "965DB0调用6EB4B0后cos/sin",
+        "966680读取+620/+624"
+      ],
+      "remaining_implementation": "源缓存／正式布局接线待实现"
+    },
+    {
+      "id": "R7R09",
+      "scope": "音效选样本随机流",
+      "native": "BD0F40..BD0F4F，16B，初始化shift(5,27,8)，guard C01050本地",
+      "decision": "HostOnly",
+      "synchronization": "实际已选sample资源及逻辑voice身份／生命周期",
+      "excluded": "此RNG、guard、按soundID再次随机Play和后端指针",
+      "host_source": "907C60正常通过FrameDelay抑制后，907DA7推进并以sampleCount取余；907DBB后已定sample",
+      "client_consumer": "指定sample的本地音频资源／voice，不走原生随机Play",
+      "evidence": [
+        "IsaacDocs/SFXManager.md:Play FrameDelay说明",
+        "SFXManager.zhl",
+        "907C60/907DA7/907DBB"
+      ],
+      "remaining_implementation": "选样本与voice代次关联及非随机本地播放leaf待10/13步"
+    },
+    {
+      "id": "R7R10",
+      "scope": "环境voice结果",
+      "native": "Room+7084的16份gain、+72FC延迟声音460及pan；908530可能调用907C60",
+      "decision": "ResultState",
+      "synchronization": "实际sample、loop／开始停止／当前逻辑gain/pitch/pan和持续相位；按voice维护baseline",
+      "excluded": "Room平滑数组、生成计时、Host Options乘数、后端音量、仅按soundID折叠多voice",
+      "host_source": "907C60的原始Volume及已选sample；907F60正常AdjustVolume前的逻辑值；908070 pitch；7F5950正常pan写入",
+      "client_consumer": "Presentation音频；本地音量／静音作用于逻辑值，重复state不Play",
+      "evidence": [
+        "7F5950/908530/907C60/907F60/908070",
+        "sound record440B/sample stride56B；sample+44为已乘本地选项的后端音量",
+        "sound460 pan的mono限制"
+      ],
+      "remaining_implementation": "完整意图缓存、停止／clear、跨房生命周期和sample来源仍待实施；不得反除静音量"
+    },
+    {
+      "id": "R7R11",
+      "scope": "Pickup随机绘制",
+      "native": "BD0CA4流；6E3805写Pickup+684（alt ANM2+5D0 + ColorMod+ A8 + alpha+C）",
+      "decision": "ResultState",
+      "synchronization": "每个具名subject/use/pass/occurrence的known-not-used或已产生alpha f32；最大5B标量payload",
+      "excluded": "两个seed之一、shift／guard、全局访问次序复演；不在Client推进此流",
+      "host_source": "正常6E3805后／6E384E提交前复制；由同次受控调用给出分支资格，不采旧Sprite残留",
+      "client_consumer": "替换原生资格／随机产生段，只借用已产生alpha；CPU消费完成后恢复本地Sprite",
+      "evidence": [
+        "6E35D0",
+        "exists/visible/dropDelay、variant100、+594、+6D9和Room+12BC!=5条件",
+        "ANM2.zhl:_color+A8"
+      ],
+      "remaining_implementation": "正常Host结果缓存与Client窄分支adapter待实现；不得额外Render补源"
+    },
+    {
+      "id": "R7R12",
+      "scope": "Familiar随机绘制",
+      "native": "BD0674流；61E604生成栈ColorMod.alpha，61E60D推颜色栈，函数末pop",
+      "decision": "ResultState",
+      "synchronization": "每个具名subject/use/pass/occurrence的known-not-used或已产生alpha f32；最大5B标量payload",
+      "excluded": "原始seed、Host颜色栈地址／容器、为资格复制全部Player依赖或普通后态猜值",
+      "host_source": "正常61E604后／61E60D前复制f32；真实owner谓词7D1C90仅由Host正常路径裁决",
+      "client_consumer": "受控Familiar draw按资格压入本地临时ColorMod并对称pop；其它颜色／资源与隔离依赖仍须满足",
+      "evidence": [
+        "61E360/61E604/61E60D/7D1C90",
+        "402A70把44B ColorMod推本地栈"
+      ],
+      "remaining_implementation": "正常结果缓存、局部颜色栈借用与重复pass身份待10/13步"
+    },
+    {
+      "id": "R7R13",
+      "scope": "Room有序绘制关系",
+      "native": "EntityList+50的renderEL，与碰撞／查询／原版Online区分",
+      "decision": "ResultState",
+      "synchronization": "实际显示成员、必要Host顺序／稳定引用及draw use关系",
+      "excluded": "本地指针、完整EL、collision bitset、查询树、原版Online比较／事件环；不以本地排序猜随机分配",
+      "host_source": "正常源显示关系；413D00按GetRenderZ插入，同Z插入顺序不能由Client index排序代替",
+      "client_consumer": "本地成员与深度显示顺序；逐用途alpha结果独立于Client全局随机消费顺序",
+      "evidence": [
+        "EntityList.zhl",
+        "413D00",
+        "client_presentation_native.cpp::FullSort按Z/authority_index排序"
+      ],
+      "remaining_implementation": "正式关系／pass与递归调用身份接线待实现；不宣称旧FullSort已保真"
+    },
+    {
+      "id": "R7R14",
+      "scope": "显示时钟／水面方向",
+      "native": "GameFrame、Room帧基准、Greed timer、water current与BackdropConfig+139",
+      "decision": "ResultState",
+      "synchronization": "已有world时钟／原值帧基准、必要Greed timer、当前water结果和1B反向方向或等价phase",
+      "excluded": "Client墙钟补推进、RNG伪造相位、四水色端点／未来timer的重演",
+      "host_source": "当前同world字段与正常最终shader结果；91AC70直接消费reverse",
+      "client_consumer": "具名纯显示pass，重复显示保持结果，不推进ray/水色生产",
+      "evidence": [
+        "809590/816BB0/91AC70",
+        "room-residual-evidence.md"
+      ],
+      "remaining_implementation": "正式writer仍待实现"
+    },
+    {
+      "id": "R7R15",
+      "scope": "Grid Light具体seed用途",
+      "native": "既有Grid Desc SpawnSeed与同world GameFrame；与Grid对象+2C RNG分开",
+      "decision": "ResultState",
+      "synchronization": "沿用第6步已核SpawnSeed及时间／route等实际显示依赖，不重复增加Random记录",
+      "excluded": "Grid对象RNG、GreedModeRNG、把例外外推Backdrop或任意Render",
+      "host_source": "第6步正式Grid字段与真实世界上下文",
+      "client_consumer": "已核具体Light纯显示adapter",
+      "evidence": [
+        "grid-common-synchronization-review.md",
+        "grid-pressure-door-evidence.md",
+        "random-synchronization-review.md §7"
+      ],
+      "remaining_implementation": "既有Grid/Room/Run跨域writer仍待实施"
+    }
+  ],
+  "result_contract": {
+    "scope": "同run/world/state_revision + presentation_revision + subject/use/shape/pass/occurrence + resource_revision",
+    "clock_source": "该正常Host展示批次实际采用的Manager相位／暂停资格；不能用普通模拟后态与另一次Render结果拼批次",
+    "known_states": {
+      "0": "正常Host已确认本用途没有随机覆盖，仅1B",
+      "1": "正常Host已产生alpha，随后f32，共5B"
+    },
+    "missing": "未执行／未产生／读失败不是state0或alpha0；缺必要来源报Gap，不ACK最新不完整状态",
+    "capture": "观察正常Host生产后即时拷入自有缓冲；不额外Render/抽取/Phantom，不恢复Host正常流",
+    "apply": "绕过两个原生随机段与其资格查询，按具名结果消费；Client新可见调用无对应源时不猜结果；Authority tick不等待结果",
+    "repeat": "已完成同版本批次不可变；重复显示复用，换world/use/generation撤销；不按GameFrame单独拼批次"
+  },
+  "wire_drafts": [
+    {
+      "name": "D0",
+      "size": 5,
+      "fields": [
+        {
+          "offset": 0,
+          "size": 4,
+          "type": "u32",
+          "name": "manager_frame"
+        },
+        {
+          "offset": 4,
+          "size": 1,
+          "type": "u8",
+          "name": "paused"
+        }
+      ]
+    },
+    {
+      "name": "DrawRandomResult",
+      "max_size": 5,
+      "fields": [
+        {
+          "offset": 0,
+          "size": 1,
+          "type": "u8",
+          "name": "state"
+        },
+        {
+          "offset": 1,
+          "size": 4,
+          "type": "f32",
+          "name": "alpha",
+          "when": "state==1"
+        }
+      ],
+      "note": "外层身份/批次/变长头不计入5B；不是每Entity固定只存一个alpha"
+    },
+    {
+      "name": "D1.ErrorColor",
+      "size": 1,
+      "fields": [
+        {
+          "offset": 0,
+          "size": 1,
+          "type": "bool:u8",
+          "name": "error_is_modeling_clay"
+        }
+      ],
+      "note": "若最终颜色已承接则不重复发"
+    },
+    {
+      "name": "MapChoiceAnchor",
+      "scalar_size": 4,
+      "note": "i32选中SafeGridIndex处理后锚点，另带稳定描述关系／地图上下文；4B不是完整地图包大小"
+    }
+  ],
+  "supersedes": [
+    "旧D0 37B及13B全局游标重放草稿；历史事实保留",
+    "当前Error完整ID 2B草稿，以最新Descriptor的1B颜色谓词为准"
+  ],
+  "unknowns": "Room28B、Level22B及所有嵌套／私有ABI未知不由本核对消除；不为“不下发”改称padding",
+  "execution": "仅资料、静态IDB与设计文档；未构建、执行目标函数或测试"
+}

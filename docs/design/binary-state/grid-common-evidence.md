@@ -4,7 +4,7 @@
 
 日期：2026-11-10（Asia/Singapore）。范围仅为公共前缀 `[0,0x154)` 及内嵌 `GridEntityDesc`，不推进子类字节归属。目标为 J273，IDA imagebase `0x400000`；下文地址为 VA，RVA 统一减去 `0x400000`。本轮只做文件阅读、静态反编译、原始指令核对、布局生成与产品纯编译，没有测试、游戏启动、注入或部署，没有修改 IDB。
 
-正式源为 [`mod/binding/state/grid.json`](../../../mod/binding/state/grid.json)，布局版本 **48**：`GridEntityDesc=198`、`GridEntity=199`。两张单行表由普通构建生成，见 [Desc](layouts/GridEntityDesc.md) 和 [Grid 公共部分](layouts/GridEntity.md)。后者明确为 `base_prefix`，不能拿来识别或复制整个派生对象。
+正式源为 [`mod/binding/state/grid.json`](../../../mod/binding/state/grid.json)，布局版本 **48**：`GridEntityDesc=198`、`GridEntity=199`。两张单行表由普通构建生成，见 [Desc](layouts/06-grid/GridEntityDesc.md) 和 [Grid 公共部分](layouts/06-grid/GridEntity.md)。后者明确为 `base_prefix`，不能拿来识别或复制整个派生对象。
 
 ## 结论与证据边界
 

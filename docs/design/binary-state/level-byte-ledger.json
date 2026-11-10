@@ -1,0 +1,1546 @@
+{
+  "format": "isaac.cs.level-native-review",
+  "revision": 2,
+  "date": "2026-11-10",
+  "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273 / Win32",
+  "role": "静态设计核对；不是生产state/level.json，不改变layout_version=56",
+  "types": [
+    {
+      "name": "LevelGamePrefix",
+      "native_size": 100624,
+      "evidence": "REPENTOGON libzhl/functions/Game.zhl；J273 6ED4B0/73EB10/7415E0/741E00",
+      "note": "这是Game的Level连续视图，不是改写SDK sizeof(Level)。外部Room、RoomConfig和保存元素未在本轮完整展开；-19不采集。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "stage",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "当前楼层阶段",
+          "synchronization": "L0.stage",
+          "evidence": "REPENTOGON libzhl/functions/Game.zhl；J273 6ED4B0/73EB10/7415E0/741E00；803E20/804500/97C300",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "stage_type",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "当前全局楼层变体；挑战44逐房主题另取实际资源",
+          "synchronization": "L0.stage_type",
+          "evidence": "REPENTOGON libzhl/functions/Game.zhl；J273 6ED4B0/73EB10/7415E0/741E00；749600/740290",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 1,
+          "name": "boss_challenge",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "挑战房生成／可开启性输入",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "844780；SDK Game._bossChallenge",
+          "status": "已核"
+        },
+        {
+          "offset": 9,
+          "size": 1,
+          "name": "devil_room_disabled",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "恶魔房生成禁止",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "Game.zhl；7415E0 byte+9；7DF710",
+          "status": "已核"
+        },
+        {
+          "offset": 10,
+          "size": 2,
+          "name": "unknown_A_B",
+          "type": "bytes",
+          "category": "未知",
+          "semantics": "未获得语义或填充证明；清零不构成填充证据",
+          "synchronization": "不读不发；保留UNKNOWN",
+          "evidence": "REPENTOGON libzhl/functions/Game.zhl；J273 6ED4B0/73EB10/7415E0/741E00",
+          "status": "未知"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "raw_curses",
+          "type": "u32",
+          "category": "换算",
+          "semantics": "未合并temporary／强制／阻止的原始诅咒",
+          "synchronization": "只发L0.effective_curses；不发原值",
+          "evidence": "742450；6F55C0/6F5750；966300/966680",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 1,
+          "name": "heart_picked",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "本层拾心玩法记录",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "74D680返回this+10；431660置1；7415E0",
+          "status": "已核"
+        },
+        {
+          "offset": 17,
+          "size": 1,
+          "name": "can_see_everything",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "地图可见性生产输入",
+          "synchronization": "不发原值；最终DisplayFlags／地图结果由L1/L2承接",
+          "evidence": "844790返回this+11；5B3460写；原版Wiki Level",
+          "status": "已核"
+        },
+        {
+          "offset": 18,
+          "size": 2,
+          "name": "unknown_12_13",
+          "type": "bytes",
+          "category": "未知",
+          "semantics": "未获得语义或填充证明；清零不构成填充证据",
+          "synchronization": "不读不发；保留UNKNOWN",
+          "evidence": "REPENTOGON libzhl/functions/Game.zhl；J273 6ED4B0/73EB10/7415E0/741E00",
+          "status": "未知"
+        },
+        {
+          "offset": 20,
+          "size": 93288,
+          "name": "grid_rooms",
+          "type": "RoomDescriptor[507]",
+          "category": "容器",
+          "semantics": "普通物理描述存储；不能等同507个活动房间",
+          "synchronization": "L1按活动身份投影；资源／地图结果另块；禁止整块复制",
+          "evidence": "Game.zhl；6ED4B0构造527×B8；7332F0；7415E0",
+          "status": "已核"
+        },
+        {
+          "offset": 93308,
+          "size": 3312,
+          "name": "off_grid_minus1_through_minus18",
+          "type": "RoomDescriptor[18]",
+          "category": "容器",
+          "semantics": "离图源槽-1至-18；ListIndex可为负",
+          "synchronization": "L1实际活动／被引用描述，源槽有符号，不能用ListIndex寻址",
+          "evidence": "RoomDescriptor.zhl；732E90；73AD10；GridRooms Wiki",
+          "status": "已核"
+        },
+        {
+          "offset": 96620,
+          "size": 184,
+          "name": "off_grid_minus19_deathmatch",
+          "type": "excluded RoomDescriptor",
+          "category": "本地",
+          "semantics": "原版Deathmatch存储槽525；C/S隔离",
+          "synchronization": "不采不发不安装，不复用原版Online对象",
+          "evidence": "GridRooms Wiki -19；现行规范；tx-04-18-foundation.md",
+          "status": "已核"
+        },
+        {
+          "offset": 96804,
+          "size": 184,
+          "name": "off_grid_minus20_lil_portal",
+          "type": "RoomDescriptor",
+          "category": "容器",
+          "semantics": "Lil Portal槽526；reset(false)保留其特殊寿命",
+          "synchronization": "L1实际所需投影；不触发reset／新建房间",
+          "evidence": "732E90 i=526例外；GridRooms Wiki",
+          "status": "已核"
+        },
+        {
+          "offset": 96988,
+          "size": 2028,
+          "name": "room_offset",
+          "type": "i32[3][169]",
+          "category": "容器",
+          "semantics": "每维169个物理描述源槽；包含官方旧Level两个错误别名的位置",
+          "synchronization": "L3固定507×u16，FFFF为空；不按ListIndex重建",
+          "evidence": "606D10 imul 2A4/add 17ADC；7332F0；7415E0拷贝7EC",
+          "status": "已核"
+        },
+        {
+          "offset": 99016,
+          "size": 4,
+          "name": "current_room_offset",
+          "type": "i32*",
+          "category": "派生",
+          "semantics": "当前维度映射的本地别名",
+          "synchronization": "不发地址；Client建立指向自身数组的别名",
+          "evidence": "606D1A；739F02/739FD8；9635EC",
+          "status": "已核"
+        },
+        {
+          "offset": 99020,
+          "size": 4,
+          "name": "ordinary_room_count",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "有序普通房间成员数量",
+          "synchronization": "结构成员集合承接，不重复发裸计数",
+          "evidence": "Game.zhl；7332F0；73AF40；7415E0；9635B0",
+          "status": "已核"
+        },
+        {
+          "offset": 99024,
+          "size": 4,
+          "name": "starting_room_index",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "楼层生成与返回起点",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "Game.zhl；73EB10置84；7415E0",
+          "status": "已核"
+        },
+        {
+          "offset": 99028,
+          "size": 16,
+          "name": "generation_rng",
+          "type": "RNG",
+          "category": "权威",
+          "semantics": "楼层生成游标／shift",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "Game.zhl；73EB10；73AF60；Random核对",
+          "status": "已核"
+        },
+        {
+          "offset": 99044,
+          "size": 16,
+          "name": "devil_angel_room_rng",
+          "type": "RNG",
+          "category": "权威",
+          "semantics": "恶魔／天使房生成RNG，独立于generation_rng",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "74D6F0返回+182E4；743970消费；random-synchronization-review.md",
+          "status": "已核"
+        },
+        {
+          "offset": 99060,
+          "size": 4,
+          "name": "angel_room_chance_modifier",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "AddAngelRoomChance累积量；不是最终StatHUD概率",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "7DF730返回；659800累加；7EF590消费",
+          "status": "已核"
+        },
+        {
+          "offset": 99064,
+          "size": 8,
+          "name": "native_interop_holder",
+          "type": "opaque local holder[8]",
+          "category": "本地",
+          "semantics": "本地互操作holder，具体C++类名未核",
+          "synchronization": "不传两个字／地址；不猜Lua或通信ABI",
+          "evidence": "6ED4B0初始化；732C50/6EFB09经vtable+0C与本地callback退休",
+          "status": "已核"
+        },
+        {
+          "offset": 99072,
+          "size": 4,
+          "name": "current_room",
+          "type": "Room*",
+          "category": "引用",
+          "semantics": "当前world的原生Room owner",
+          "synchronization": "结构引用，不传地址；完整Room布局属于本步另一任务",
+          "evidence": "Game.zhl；732D20；本地Room owner",
+          "status": "已核"
+        },
+        {
+          "offset": 99076,
+          "size": 4,
+          "name": "current_entry_index",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "进入房间的象限索引，允许特殊负房间",
+          "synchronization": "L0.current_entry_index",
+          "evidence": "Game.zhl；73AF00；73AD10；Level Wiki",
+          "status": "已核"
+        },
+        {
+          "offset": 99080,
+          "size": 4,
+          "name": "previous_room_index",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "前一房间的跨房控制状态",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "739DE0；7415E0/741E00；744060",
+          "status": "已核"
+        },
+        {
+          "offset": 99084,
+          "size": 4,
+          "name": "current_dimension",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "当前维度0..2；不是查询默认-1",
+          "synchronization": "L0.dimension为u8；实际维表别名本地派生",
+          "evidence": "Game.zhl；739DE0；606D10；803E20/804500",
+          "status": "已核"
+        },
+        {
+          "offset": 99088,
+          "size": 4,
+          "name": "previous_dimension",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "前一房间维度",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "739DE0；7415E0；73AF20",
+          "status": "已核"
+        },
+        {
+          "offset": 99092,
+          "size": 4,
+          "name": "last_boss_room_list_index",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "Boss选择身份；Greed HUD比较当前描述ListIndex",
+          "synchronization": "只发L0.current_is_last_boss真实匹配，所有模式保留；不能在非Greed清零",
+          "evidence": "97D0EA；97C300；733D25；本轮补核803313/815B80/748900普通TrapDoor Light",
+          "status": "已核"
+        },
+        {
+          "offset": 99096,
+          "size": 4,
+          "name": "leave_door",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "离开门／过房FSM输入",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "739DE0；74B530；Level Wiki LeaveDoor",
+          "status": "已核"
+        },
+        {
+          "offset": 99100,
+          "size": 4,
+          "name": "enter_door",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "进入门／过房与原生创建控制",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "739DE0；815430/7EE350/79EA20；Level Wiki EnterDoor",
+          "status": "已核"
+        },
+        {
+          "offset": 99104,
+          "size": 8,
+          "name": "dungeon_return_position",
+          "type": "Vector",
+          "category": "权威",
+          "semantics": "地牢返回坐标",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "57B270；844760；744060；7415E0",
+          "status": "已核"
+        },
+        {
+          "offset": 99112,
+          "size": 4,
+          "name": "dungeon_return_room_index",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "地牢返回房间",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "57B2A0；744060；7415E0",
+          "status": "已核"
+        },
+        {
+          "offset": 99116,
+          "size": 4,
+          "name": "dungeon_placement_seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "房间放置／随机生成输入",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "606D00；73EB10；LuaLevel.cpp GetRoomPlacementSeed",
+          "status": "已核"
+        },
+        {
+          "offset": 99120,
+          "size": 4,
+          "name": "extra_boss_list_index",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Void等Boss选择保存",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "733D2B与lastBoss同赋值；6494AD消费",
+          "status": "已核"
+        },
+        {
+          "offset": 99124,
+          "size": 4,
+          "name": "greed_wave",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "当前Greed波次；不是波次seed数组",
+          "synchronization": "L0.greed_wave；非Greed规范0且不读残留",
+          "evidence": "97D371格式化%d/%d；74D700 setter；Game.zhl",
+          "status": "已核"
+        },
+        {
+          "offset": 99128,
+          "size": 48,
+          "name": "greed_wave_seeds",
+          "type": "u32[12]",
+          "category": "权威",
+          "semantics": "十二个波次seed",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "73DEB8起循环12次生成；7415E0/741E00复制三组16B",
+          "status": "已核"
+        },
+        {
+          "offset": 99176,
+          "size": 4,
+          "name": "greed_wave_progress",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "波次生产／清理进度；不作为当前wave显示",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "7E5D60/7F7420/7FBDD0；7415E0对wave取较小值",
+          "status": "已核"
+        },
+        {
+          "offset": 99180,
+          "size": 4,
+          "name": "greed_wave_spawn_control",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Greed波次生成控制缓存",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "80BF98比较；80C18C写；7415E0",
+          "status": "已核"
+        },
+        {
+          "offset": 99184,
+          "size": 4,
+          "name": "greed_treasure_room_index",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "Greed宝物房图标分支输入",
+          "synchronization": "只发每描述L1.greed_treasure_icon；不适用规范false",
+          "evidence": "96437B比较GridIndex，选择IconTreasureRoomGreed",
+          "status": "已核"
+        },
+        {
+          "offset": 99188,
+          "size": 4,
+          "name": "greed_undamaged_wave_streak",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "真实连续无红心伤害波次；官方简化Level错误读18204",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "7455D7清零；80BE88读取；80BEAB递增；LuaLevel.cpp:52-60",
+          "status": "已核"
+        },
+        {
+          "offset": 99192,
+          "size": 4,
+          "name": "portal0_return_room",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "第一组portal返回房间",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "744250三字stride；739F53；7415E0",
+          "status": "已核"
+        },
+        {
+          "offset": 99196,
+          "size": 4,
+          "name": "portal0_return_argument",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "第一组portal返回参数；不替代实际Entity状态",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "744287；433779读取",
+          "status": "已核"
+        },
+        {
+          "offset": 99200,
+          "size": 1,
+          "name": "portal0_return_flag",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "第一组portal返回条件字节",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "744291；7415E0保存复制不证明其后三字节填充",
+          "status": "已核"
+        },
+        {
+          "offset": 99201,
+          "size": 3,
+          "name": "unknown_18381_18383",
+          "type": "bytes",
+          "category": "未知",
+          "semantics": "未获得语义或填充证明；清零不构成填充证据",
+          "synchronization": "不读不发；保留UNKNOWN",
+          "evidence": "REPENTOGON libzhl/functions/Game.zhl；J273 6ED4B0/73EB10/7415E0/741E00",
+          "status": "未知"
+        },
+        {
+          "offset": 99204,
+          "size": 4,
+          "name": "portal1_return_room",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "第二组portal返回房间",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "744250 stride0C；739F49；7415E0",
+          "status": "已核"
+        },
+        {
+          "offset": 99208,
+          "size": 4,
+          "name": "portal1_return_argument",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "第二组portal返回参数",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "744250 n2=1；7415E0",
+          "status": "已核"
+        },
+        {
+          "offset": 99212,
+          "size": 1,
+          "name": "portal1_return_flag",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "第二组portal返回条件字节",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "744250 n2=1 byte；7415E0整字复制不补语义",
+          "status": "已核"
+        },
+        {
+          "offset": 99213,
+          "size": 3,
+          "name": "unknown_1838D_1838F",
+          "type": "bytes",
+          "category": "未知",
+          "semantics": "未获得语义或填充证明；清零不构成填充证据",
+          "synchronization": "不读不发；保留UNKNOWN",
+          "evidence": "REPENTOGON libzhl/functions/Game.zhl；J273 6ED4B0/73EB10/7415E0/741E00",
+          "status": "未知"
+        },
+        {
+          "offset": 99216,
+          "size": 4,
+          "name": "item_random_attempt_count",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "随机阈值的本层累加输入，未强加具体物品名",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "6FD5F0读取并加24h比较随机100；6FD701递增",
+          "status": "已核"
+        },
+        {
+          "offset": 99220,
+          "size": 8,
+          "name": "mama_mega_world_origin",
+          "type": "Vector",
+          "category": "权威",
+          "semantics": "Mama Mega传播的世界起点",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "745A30按格子/离图位置计算后写18394/18398；745AC7置flag",
+          "status": "已核"
+        },
+        {
+          "offset": 99228,
+          "size": 4,
+          "name": "level_state_flags",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "真实24位楼层玩法标志；1822C是错误SDK别名",
+          "synchronization": "不发全flags；DisplayFlags／地图／门／音画承接结果",
+          "evidence": "4F3CA0；4242A0；745AC7；LevelStateFlag Wiki",
+          "status": "已核"
+        },
+        {
+          "offset": 99232,
+          "size": 1,
+          "name": "initializing_level",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "Level::Init中为1、结束置0的生命周期标记",
+          "synchronization": "不发；采集见初始化中必须报Gap",
+          "evidence": "73EB10置1/0；749633与745641分支",
+          "status": "已核"
+        },
+        {
+          "offset": 99233,
+          "size": 3,
+          "name": "unknown_183A1_183A3",
+          "type": "bytes",
+          "category": "未知",
+          "semantics": "未获得语义或填充证明；清零不构成填充证据",
+          "synchronization": "不读不发；保留UNKNOWN",
+          "evidence": "REPENTOGON libzhl/functions/Game.zhl；J273 6ED4B0/73EB10/7415E0/741E00",
+          "status": "未知"
+        },
+        {
+          "offset": 99236,
+          "size": 12,
+          "name": "myosotis_pickups",
+          "type": "std::vector<EntitySaveState>",
+          "category": "权威",
+          "semantics": "下层搬运的拾取保存队列",
+          "synchronization": "不发头/元素；Host创建的真实Pickup由Entity域承接",
+          "evidence": "Game.zhl；LuaLevel.cpp GetMyosotisPickups；73EB10清队列",
+          "status": "已核"
+        },
+        {
+          "offset": 99248,
+          "size": 676,
+          "name": "challenge44_theme_field0",
+          "type": "f32[169]",
+          "category": "权威",
+          "semantics": "挑战44主题插值图第一场",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果；实际Room主题资源与名称仍必需",
+          "evidence": "749790生成；749600查表；740290选名",
+          "status": "已核"
+        },
+        {
+          "offset": 99924,
+          "size": 676,
+          "name": "challenge44_theme_field1",
+          "type": "f32[169]",
+          "category": "权威",
+          "semantics": "挑战44主题插值图第二场",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果；实际Room主题资源与名称仍必需",
+          "evidence": "749790生成；749600查表；740290选名",
+          "status": "已核"
+        },
+        {
+          "offset": 100600,
+          "size": 1,
+          "name": "floor_spawn_latch",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "本层一次性玩法生成锁存；具体功能名未定",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "611AF1检查；611C8E置1；732DE5清零",
+          "status": "已核"
+        },
+        {
+          "offset": 100601,
+          "size": 3,
+          "name": "unknown_188F9_188FB",
+          "type": "bytes",
+          "category": "未知",
+          "semantics": "未获得语义或填充证明；清零不构成填充证据",
+          "synchronization": "不读不发；保留UNKNOWN",
+          "evidence": "REPENTOGON libzhl/functions/Game.zhl；J273 6ED4B0/73EB10/7415E0/741E00",
+          "status": "未知"
+        },
+        {
+          "offset": 100604,
+          "size": 4,
+          "name": "death_certificate_return_door",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Death Certificate返回门",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "74B59F保存18318；739F15读取；7415E0",
+          "status": "已核"
+        },
+        {
+          "offset": 100608,
+          "size": 4,
+          "name": "death_certificate_return_room",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Death Certificate返回当前房间",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "74B565保存18304；739ED0；6F7874",
+          "status": "已核"
+        },
+        {
+          "offset": 100612,
+          "size": 1,
+          "name": "death_certificate_return_dimension",
+          "type": "i8",
+          "category": "权威",
+          "semantics": "Death Certificate返回当前维度",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "74B582；739EE8 movsx byte；6F7866",
+          "status": "已核"
+        },
+        {
+          "offset": 100613,
+          "size": 3,
+          "name": "unknown_18905_18907",
+          "type": "bytes",
+          "category": "未知",
+          "semantics": "未获得语义或填充证明；清零不构成填充证据",
+          "synchronization": "不读不发；保留UNKNOWN",
+          "evidence": "REPENTOGON libzhl/functions/Game.zhl；J273 6ED4B0/73EB10/7415E0/741E00",
+          "status": "未知"
+        },
+        {
+          "offset": 100616,
+          "size": 4,
+          "name": "death_certificate_previous_room",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Death Certificate保存的先前房间",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "74B571保存18308；739EDC",
+          "status": "已核"
+        },
+        {
+          "offset": 100620,
+          "size": 1,
+          "name": "death_certificate_previous_dimension",
+          "type": "i8",
+          "category": "权威",
+          "semantics": "Death Certificate保存的先前维度；超出SDK sizeof(Level)但仍在Game前缀内",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "6ED4B0；74B591保存18310；739F08读取",
+          "status": "已核"
+        },
+        {
+          "offset": 100621,
+          "size": 3,
+          "name": "unknown_1890D_1890F",
+          "type": "bytes",
+          "category": "未知",
+          "semantics": "未获语义或填充证明",
+          "synchronization": "不读不发；保留UNKNOWN",
+          "evidence": "REPENTOGON libzhl/functions/Game.zhl；J273 6ED4B0/73EB10/7415E0/741E00",
+          "status": "未知"
+        }
+      ],
+      "extent": "game_prefix_view",
+      "sdk_declared_size": 100620
+    },
+    {
+      "name": "RoomDescriptor",
+      "native_size": 184,
+      "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；本轮补证809640/80A2E0/80ACA0/80B5A0/801BE0/803E20/ASMHud.cpp",
+      "note": "184B直属范围已登记，原94..AB的24B改为商店类别/补货次数，直属未归属字节为0；GreedSubType业务名仍依SDK，Flags高位语义和外部配置/保存体未知不因此消失。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "grid_index",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "描述身份字段；物理source-slot与原始ListIndex分开",
+          "synchronization": "L1.grid_index:i32",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；73AD10；Wiki RoomDescriptor",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "safe_grid_index",
+          "type": "i32",
+          "category": "状态",
+          "semantics": "描述身份字段；物理source-slot与原始ListIndex分开",
+          "synchronization": "L1.safe_grid_index:i32",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；73AD10；Wiki RoomDescriptor",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "list_index",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "描述身份字段；物理source-slot与原始ListIndex分开",
+          "synchronization": "原值不发；物理source-slot独立；L0.current_is_last_boss在所有模式保留真实匹配",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；73AD10；Wiki RoomDescriptor；815B80；801BE0在803313调用，748900普通路线可true而Greed恒false",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "dimension",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "描述身份字段；物理source-slot与原始ListIndex分开",
+          "synchronization": "L1.dimension:u8，仅0..2",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；73AD10；Wiki RoomDescriptor",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "data",
+          "type": "RoomConfig_Room*",
+          "category": "资源",
+          "semantics": "独立可空的已选配置；不发送原生指针",
+          "synchronization": "L1.data:u16配置引用，FFFF空；配置资源表待正式注册",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；原版Wiki OverrideData；tx-04-18-foundation.md",
+          "status": "已核"
+        },
+        {
+          "offset": 20,
+          "size": 4,
+          "name": "override_data",
+          "type": "RoomConfig_Room*",
+          "category": "资源",
+          "semantics": "独立可空的已选配置；不发送原生指针",
+          "synchronization": "L1.override_data:u16配置引用，FFFF空；配置资源表待正式注册",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；原版Wiki OverrideData；tx-04-18-foundation.md",
+          "status": "已核"
+        },
+        {
+          "offset": 24,
+          "size": 4,
+          "name": "allowed_doors",
+          "type": "u32",
+          "category": "换算",
+          "semantics": "当前允许门槽mask；与Doors[]和实际门存在性分开",
+          "synchronization": "L1.allowed_doors:u8低8位",
+          "evidence": "RoomDescriptor.zhl；LuaRoomDescriptor.cpp修复AllowedDoors；9635B0 Void框线",
+          "status": "已核"
+        },
+        {
+          "offset": 28,
+          "size": 32,
+          "name": "doors",
+          "type": "i32[8]",
+          "category": "状态",
+          "semantics": "八个门槽的结构目标；允许无实门的有效目标",
+          "synchronization": "L1.doors:8×i32，保留-100/-101等特殊值",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；REPENTOGON Wiki Doors",
+          "status": "已核"
+        },
+        {
+          "offset": 60,
+          "size": 4,
+          "name": "display_flags",
+          "type": "u32",
+          "category": "状态",
+          "semantics": "最终地图可见性／阴影／图标标志",
+          "synchronization": "L1.display_flags:u32；不执行可见性生产器",
+          "evidence": "9638BC；96430F；9644EC；Level Wiki UpdateVisibility",
+          "status": "已核"
+        },
+        {
+          "offset": 64,
+          "size": 4,
+          "name": "visited_count",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "累计访问次数；显示只判断非零",
+          "synchronization": "L1.visited:u8(value!=0)，原累计留Host",
+          "evidence": "96447E/9644E6；RoomDescriptor Wiki VisitedCount",
+          "status": "已核"
+        },
+        {
+          "offset": 68,
+          "size": 4,
+          "name": "flags",
+          "type": "u32",
+          "category": "换算",
+          "semantics": "Flags混合玩法输入和实际显示条件；高位业务语义未穷尽",
+          "synchronization": "L1.display_bits:u8，原bit0/10/11/18/5→线上bit0/1/2/3/4，其余零；bit2/9的最终lighting/pass、bit6实际音乐及其它结果由具名owner承接；不发全flags",
+          "evidence": "964037；963EF5；964392；97C300；grid-pressure-door-evidence.md Door Light Flags&40000；801BE0 Pit读取20h；804500特殊坑重绘；803E20献祭bit2/pitch-black；8134C0",
+          "status": "已核",
+          "bit_semantics_not_exhaustive": true
+        },
+        {
+          "offset": 72,
+          "size": 2,
+          "name": "total_money_spent",
+          "type": "u16 storage (SDK i16)",
+          "category": "权威",
+          "semantics": "花费累积，原生按无符号40阈值判断；不是Client支付命令",
+          "synchronization": "留Host；不重演支付/解锁，实际价格由Pickup承接",
+          "evidence": "SDK int16_t；7CF3EF..7CF3FC Game→Room→descriptor加16位；7CF400 unsigned cmp 28h；7CF415→903930解锁",
+          "status": "已核"
+        },
+        {
+          "offset": 74,
+          "size": 2,
+          "name": "clear_count",
+          "type": "i16",
+          "category": "权威",
+          "semantics": "累计清理计数；当前clear另由bit投影",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；7E5DF2/7FBDF4的16位递增及后续movzx",
+          "status": "已核"
+        },
+        {
+          "offset": 76,
+          "size": 4,
+          "name": "greed_subtype",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Greed生成／特殊房间内容输入；私有语义依SDK",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；733010/6F4F20确证本4B保存搬移；具体业务名仍SDK声明",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 80,
+          "size": 2,
+          "name": "poop_count",
+          "type": "i16",
+          "category": "权威",
+          "semantics": "保存／生成计数",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0",
+          "status": "已核"
+        },
+        {
+          "offset": 82,
+          "size": 2,
+          "name": "tainted_keeper_coin_spawns",
+          "type": "i16",
+          "category": "权威",
+          "semantics": "重进房防刷硬币计数",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；REPENTOGON Wiki GetTaintedKeeperCoinSpawns",
+          "status": "已核"
+        },
+        {
+          "offset": 84,
+          "size": 4,
+          "name": "pits_count",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "生成坑洞计数；实际Grid/水面另承接",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0",
+          "status": "已核"
+        },
+        {
+          "offset": 88,
+          "size": 4,
+          "name": "decoration_seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "背景／装饰生成输入；challenge32地图选择输入",
+          "synchronization": "原值留Host；实际背景由Room资源承接，challenge32已选地图标记另提供",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；9635B0 challenge32；Wiki DecorationSeed",
+          "status": "已核"
+        },
+        {
+          "offset": 92,
+          "size": 4,
+          "name": "spawn_seed",
+          "type": "u32",
+          "category": "换算",
+          "semantics": "实体出生／Error饰品效果选择输入",
+          "synchronization": "原seed及完整Error效果ID留Host；D1只发u8布尔error_is_modeling_clay供最终颜色adapter；效果>0在目标版恒真；实际Image仍由Presentation承接",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；Wiki SpawnSeed；官方GetErrorTrinketEffect说明；IsaacRepentance_static.cpp:588；NUM_TRINKETS=190；ASMHud.cpp:62/207/223",
+          "status": "已核"
+        },
+        {
+          "offset": 96,
+          "size": 4,
+          "name": "award_seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "清理奖励和商店生成输入",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；Wiki AwardSeed",
+          "status": "已核"
+        },
+        {
+          "offset": 100,
+          "size": 4,
+          "name": "boss_death_seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Boss死亡生成输入",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0",
+          "status": "已核"
+        },
+        {
+          "offset": 104,
+          "size": 12,
+          "name": "saved_grid_entities",
+          "type": "std::vector<GridEntityDesc>",
+          "category": "容器",
+          "semantics": "离房Grid保存；固定初始448×20h分配",
+          "synchronization": "保存头/完整元素不发；有效type18只设置L2.icon_mask.bit14，固定帧0不发",
+          "evidence": "6EBB10分配3823h/对齐32B；964B6D..964BA2扫描type18",
+          "status": "已核"
+        },
+        {
+          "offset": 116,
+          "size": 12,
+          "name": "saved_entities",
+          "type": "std::vector<EntitySaveState>",
+          "category": "容器",
+          "semantics": "离房实体保存；78h元素有地图消费者",
+          "synchronization": "完整保存体/类型/variant/subtype/顺序不发；Host纯聚合L2图标mask及必要选中帧，缺席1B/存在3..12B",
+          "evidence": "6EBB10按30 DWORD步长reserve；9635B0读type/variant/subtype/+14/+28/+2C",
+          "status": "已核"
+        },
+        {
+          "offset": 128,
+          "size": 8,
+          "name": "restricted_grid_indexes",
+          "type": "std::set<int>",
+          "category": "权威",
+          "semantics": "房间生成限制；不是本轮地图消费者",
+          "synchronization": "不读不发元素/树头；不要求为同步实现树遍历",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；官方LuaRoomDescriptor.cpp",
+          "status": "已核"
+        },
+        {
+          "offset": 136,
+          "size": 12,
+          "name": "saved_effects",
+          "type": "std::vector<EntitySaveState>",
+          "category": "权威",
+          "semantics": "离房效果保存，当前Effect独立投影",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；6EBB10第二个78h元素vector",
+          "status": "已核"
+        },
+        {
+          "offset": 148,
+          "size": 16,
+          "name": "shop_item_generation_kinds",
+          "type": "i16[8]",
+          "category": "权威",
+          "semantics": "八个ShopItemID槽的生成类别，不是最终Pickup subtype；类别完整业务名未强行命名",
+          "synchronization": "全部留Host；只下发实际Pickup/当前Price/价格Sprite；不在Client补货或定价",
+          "evidence": "809640/809F4B初始化写；80A2E0按word+2*slot读取后选variant/池；80A8EF/80B5DC价格分支",
+          "status": "已核"
+        },
+        {
+          "offset": 164,
+          "size": 8,
+          "name": "shop_restock_counts",
+          "type": "u8[8]",
+          "category": "权威",
+          "semantics": "八槽饱和补货次数；ctor不初始化本8B，商店初始化才清零；当前价格由次数参与产生",
+          "synchronization": "全部留Host；只下发实际Pickup/当前Price/价格Sprite；不在Client补货或定价",
+          "evidence": "809689清8B；80AD15..80AD22在FF前递增；80B6FD movzx并三角增价/封顶99",
+          "status": "已核"
+        },
+        {
+          "offset": 172,
+          "size": 2,
+          "name": "shop_item_index",
+          "type": "i16",
+          "category": "权威",
+          "semantics": "商店生成槽位",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；Wiki ShopItemIdx",
+          "status": "已核"
+        },
+        {
+          "offset": 174,
+          "size": 2,
+          "name": "shop_discount_index",
+          "type": "i16",
+          "category": "权威",
+          "semantics": "商店折扣生成槽位",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；Wiki ShopItemDiscountIdx",
+          "status": "已核"
+        },
+        {
+          "offset": 176,
+          "size": 4,
+          "name": "delirium_distance",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Void生成／Boss选择距离",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；J273 ctor6EBB10/dtor6EBF40；公开字段原绑定852A6A..852B77；Minimap缓存9635B0；Wiki DeliriumDistance",
+          "status": "已核"
+        },
+        {
+          "offset": 180,
+          "size": 4,
+          "name": "group",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "传送随机选择的分组",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RoomDescriptor.zhl；REPENTOGON Wiki GetGroup",
+          "status": "已核"
+        }
+      ]
+    },
+    {
+      "name": "LevelRoomOffsetEntry",
+      "native_size": 4,
+      "evidence": "Game+17ADC，三个169项视图",
+      "note": "官方Level._greedwavesclearedwithoutredheartdamage=+18204实际是dimension2/grid120；_levelStateFlag=+1822C实际是dimension2/grid130。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "physical_descriptor_slot",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "-1或0..526物理源槽；不是自由ListIndex",
+          "synchronization": "L3 u16；FFFF空；槽525 Deathmatch不得引用",
+          "evidence": "606D10；7332F0；7415E0",
+          "status": "已核"
+        }
+      ]
+    },
+    {
+      "name": "RNG",
+      "native_size": 16,
+      "evidence": "RNG.zhl；Random静态核对",
+      "note": "仅Level生成实例的职责；不覆盖两个纯绘制实例的特殊合同。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "当前随机游标",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RNG.zhl；random-synchronization-review.md",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "shift1",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "第一右移",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RNG.zhl；random-synchronization-review.md",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "shift2",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "左移",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RNG.zhl；random-synchronization-review.md",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "shift3",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "最后右移",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "RNG.zhl；random-synchronization-review.md",
+          "status": "已核"
+        }
+      ]
+    },
+    {
+      "name": "LevelTemporaryCurseField",
+      "native_size": 4,
+      "evidence": "Game+25AC8的4B字段视图，不是新增原生对象",
+      "note": "",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "temporary_curses",
+          "type": "u32",
+          "category": "换算",
+          "semantics": "Game+25AC8独立运行时诅咒输入",
+          "synchronization": "仅参与Host有效诅咒投影，不重复发送此原值",
+          "evidence": "742450；6F55C0/6F5750；run-synchronization-review.md",
+          "status": "已核"
+        }
+      ]
+    },
+    {
+      "name": "LevelASM",
+      "native_size": 4,
+      "evidence": "官方Level.h：int ForceSpecialQuest；Win32四字节",
+      "note": "没有核定官方DLL全局RVA；不按Game偏移采集。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "force_special_quest",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "官方对象外生成参数，level init前重置",
+          "synchronization": "留Host；不作为Client状态或操作命令；仅同步具名最终显示／结构结果",
+          "evidence": "repentogon/LuaInterfaces/Level.h与LuaLevel.cpp；ASMLevel.cpp",
+          "status": "已核"
+        }
+      ]
+    },
+    {
+      "name": "LevelCustomStageNameABI",
+      "native_size": 24,
+      "evidence": "官方LuaLevel.cpp静态std::string CustomStageName",
+      "note": "24B是MSVC32模型，实际官方DLL地址和ABI未独立核定；不能据此读取。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 16,
+          "name": "sso_or_data",
+          "type": "MSVC string storage",
+          "category": "本地",
+          "semantics": "小字符串或本地堆指针；仅声明ABI模型",
+          "synchronization": "不读模型偏移；实际已选文字由Presentation承接",
+          "evidence": "LuaLevel.cpp:43/146；MSVC32 string模型",
+          "status": "ABI模型"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "size",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "模型中的逻辑长度",
+          "synchronization": "不发string对象",
+          "evidence": "同上",
+          "status": "ABI模型"
+        },
+        {
+          "offset": 20,
+          "size": 4,
+          "name": "capacity",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "模型中的容量／SSO选择",
+          "synchronization": "不发地址／容量",
+          "evidence": "同上",
+          "status": "ABI模型"
+        }
+      ],
+      "extent": "abi_model"
+    }
+  ],
+  "wire_views": [
+    {
+      "name": "L0_LevelContext",
+      "size": 22,
+      "fields": [
+        {
+          "offset": 0,
+          "size": 4,
+          "type": "u32",
+          "name": "stage",
+          "meaning": "当前阶段"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "type": "u32",
+          "name": "stage_type",
+          "meaning": "当前全局楼层变体"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "type": "u32",
+          "name": "effective_curses",
+          "meaning": "Host最终组合诅咒"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "type": "i32",
+          "name": "current_entry_index",
+          "meaning": "入口象限／特殊负房间"
+        },
+        {
+          "offset": 16,
+          "size": 1,
+          "type": "u8",
+          "name": "dimension",
+          "meaning": "已安装维度0..2"
+        },
+        {
+          "offset": 17,
+          "size": 4,
+          "type": "i32",
+          "name": "greed_wave",
+          "meaning": "Greed当前波次；非Greed规范0"
+        },
+        {
+          "offset": 21,
+          "size": 1,
+          "type": "u8",
+          "name": "current_is_last_boss",
+          "meaning": "当前ListIndex匹配lastBoss；所有模式真实值，供Greed HUD及普通路线TrapDoor Light"
+        }
+      ]
+    },
+    {
+      "name": "L1_RoomDescriptorDisplay",
+      "size": 53,
+      "fields": [
+        {
+          "offset": 0,
+          "size": 4,
+          "type": "i32",
+          "name": "grid_index",
+          "meaning": "描述原始GridIndex"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "type": "i32",
+          "name": "safe_grid_index",
+          "meaning": "描述原始SafeGridIndex"
+        },
+        {
+          "offset": 8,
+          "size": 1,
+          "type": "u8",
+          "name": "dimension",
+          "meaning": "描述维度0..2"
+        },
+        {
+          "offset": 9,
+          "size": 2,
+          "type": "u16",
+          "name": "data",
+          "meaning": "基础配置引用，FFFF为空"
+        },
+        {
+          "offset": 11,
+          "size": 2,
+          "type": "u16",
+          "name": "override_data",
+          "meaning": "替换配置独立引用，FFFF为空"
+        },
+        {
+          "offset": 13,
+          "size": 1,
+          "type": "u8",
+          "name": "allowed_doors",
+          "meaning": "低八门槽mask"
+        },
+        {
+          "offset": 14,
+          "size": 32,
+          "type": "i32[8]",
+          "name": "doors",
+          "meaning": "八个结构目标，含特殊路由值"
+        },
+        {
+          "offset": 46,
+          "size": 4,
+          "type": "u32",
+          "name": "display_flags",
+          "meaning": "最终地图显示标志"
+        },
+        {
+          "offset": 50,
+          "size": 1,
+          "type": "u8",
+          "name": "visited",
+          "meaning": "VisitedCount!=0"
+        },
+        {
+          "offset": 51,
+          "size": 1,
+          "type": "u8",
+          "name": "display_bits",
+          "meaning": "clear/red_room/devil_treasure/blue_redirect/has_water五位，其余零"
+        },
+        {
+          "offset": 52,
+          "size": 1,
+          "type": "u8",
+          "name": "greed_treasure_icon",
+          "meaning": "Greed特殊宝物房图标最终开关，不适用为false"
+        }
+      ]
+    },
+    {
+      "name": "L3_LevelOccupancy",
+      "size": 1014,
+      "fields": [
+        {
+          "offset": 0,
+          "size": 1014,
+          "type": "u16[3][169]",
+          "name": "physical_descriptor_slots",
+          "meaning": "源槽0..526或FFFF；不允许525/未提供/不活动描述"
+        }
+      ]
+    },
+    {
+      "name": "D1_CurrentDescriptorVisual",
+      "size": 1,
+      "fields": [
+        {
+          "offset": 0,
+          "size": 1,
+          "type": "u8 bool",
+          "name": "error_is_modeling_clay",
+          "meaning": "仅当前必要颜色owner的Error→ModelingClay条件；当前world一份、随值变化更新；原效果ID不发、不伪造数值Getter；已传完整最终颜色时不重复发送"
+        }
+      ]
+    },
+    {
+      "name": "L2_FinalSavedMapIcons",
+      "variable_size": "present=0:1B; present=1:3+popcount(icon_mask & 0x2B9B)B，3..12B",
+      "fields": [
+        {
+          "offset": 0,
+          "size": 1,
+          "type": "u8",
+          "name": "present",
+          "meaning": "未显示/不适用为0；来源失败为Gap"
+        },
+        {
+          "offset": 1,
+          "size": 2,
+          "type": "u16 if present",
+          "name": "icon_mask",
+          "meaning": "16类图标完整聚合，含bit14楼梯/bit15 Portal；不含房型图标"
+        },
+        {
+          "offset": 3,
+          "size": "popcount(mask & 0x2B9B)",
+          "type": "u8[] if present",
+          "name": "selected_frames",
+          "meaning": "仅存在的动态类别，按bit升序；固定帧0不发"
+        }
+      ],
+      "categories": [
+        {
+          "bit": 0,
+          "name": "heart",
+          "max_frame": 9,
+          "frame_on_wire": true
+        },
+        {
+          "bit": 1,
+          "name": "coin",
+          "max_frame": 3,
+          "frame_on_wire": true
+        },
+        {
+          "bit": 2,
+          "name": "golden_bomb",
+          "max_frame": 0,
+          "frame_on_wire": false
+        },
+        {
+          "bit": 3,
+          "name": "key",
+          "max_frame": 2,
+          "frame_on_wire": true
+        },
+        {
+          "bit": 4,
+          "name": "bomb",
+          "max_frame": 1,
+          "frame_on_wire": true
+        },
+        {
+          "bit": 5,
+          "name": "card",
+          "max_frame": 0,
+          "frame_on_wire": false
+        },
+        {
+          "bit": 6,
+          "name": "collectible",
+          "max_frame": 0,
+          "frame_on_wire": false
+        },
+        {
+          "bit": 7,
+          "name": "pill",
+          "max_frame": 1,
+          "frame_on_wire": true
+        },
+        {
+          "bit": 8,
+          "name": "battery",
+          "max_frame": 1,
+          "frame_on_wire": true
+        },
+        {
+          "bit": 9,
+          "name": "chest",
+          "max_frame": 9,
+          "frame_on_wire": true
+        },
+        {
+          "bit": 10,
+          "name": "trinket",
+          "max_frame": 0,
+          "frame_on_wire": false
+        },
+        {
+          "bit": 11,
+          "name": "slot_machine",
+          "max_frame": 8,
+          "frame_on_wire": true
+        },
+        {
+          "bit": 12,
+          "name": "rune",
+          "max_frame": 0,
+          "frame_on_wire": false
+        },
+        {
+          "bit": 13,
+          "name": "beggar",
+          "max_frame": 5,
+          "frame_on_wire": true
+        },
+        {
+          "bit": 14,
+          "name": "stairs",
+          "max_frame": 0,
+          "frame_on_wire": false
+        },
+        {
+          "bit": 15,
+          "name": "portal",
+          "max_frame": 0,
+          "frame_on_wire": false
+        }
+      ],
+      "host_rules": {
+        "predicate": "type5 intStorage3!=0或targetPosition==(0,0)排除；按原生短路读取；无关保存字段不读作状态",
+        "heart": "subtype2→0,3→5,4→9,6→6,7→8,8→3,10→4,11→7,12→2,default→1；同类取max",
+        "coin": "subtype2/6→1,3→2,7→3,default→0；同类取max",
+        "key": "subtype2→1,4→2,default→0；同类取max",
+        "bomb": "subtype4→1,其它0；同类取max",
+        "pill": "(subtype&0x7FF)==14→1,其它0；同类取max",
+        "battery": "subtype4→1,其它0；同类取max",
+        "card_rune": "variant300：实际Host固定CardConfig有效且type==2→rune，否则card；只读正常配置，不抽卡",
+        "chest": "6EAA70认可50/60/360/51/53/52/54/390/55/56/57/58，另认可69；51→1,52→0,53→7,56→6,57→9,60→8,69→(subtype==2)+2,360→5,其它认可值→4；同类取max",
+        "fixed_pickup_categories": "variant42→golden_bomb，100→collectible，350→trinket，均固定帧0；其它未采用variant不产生图标",
+        "slot": "type6 variant14排除；2→machine3,3→machine4,4/6→beggar0,5/15→beggar2,7→beggar3,8/11→machine1,9→beggar4,10→machine6,12→machine0,13→beggar5,16→machine5,17→machine7,18→beggar1,19→machine8,default→machine2；同类取max",
+        "portal": "type1000/variant161/subtype980→bit15，重复幂等",
+        "stairs": "SavedGrid有效元素任一type18→bit14，重复幂等",
+        "count_order": "保存图标个数由popcount(mask)给出；原房型图标另计；保留绘制上限筛选前的聚合，不复制Host本地显示前缀"
+      },
+      "evidence": "9635B0：v203=0、各frame清零；逐项OR mask／取max；964B6D扫描Grid18；之后才做布局/显示上限"
+    }
+  ],
+  "external_contracts": [
+    "L2最终图标mask＋必要帧缺席1B/存在3..12B；D1 Error当前颜色谓词1B；实际reader/draw及challenge32已选位置仍待接线",
+    "配置资源表、Room/RoomConfig/RoomSave完整类型、原生显示adapter：另有任务，UNKNOWN不消失",
+    "Byte归属表的外层权威／本地不恢复嵌套通用布局的发送决定"
+  ],
+  "history": [
+    {
+      "revision": 1,
+      "scope": "上轮Level静态核对",
+      "facts": "RoomDescriptor直属24B未知；L1四位flags；L0非Greed Boss匹配清零；Error显示跨域委派；SavedEntities曾误写计数／顺序影响图标选择",
+      "superseded_by": "room-descriptor-synchronization-review.md",
+      "corrections": "24B商店表；第五HasWater；所有模式Boss匹配；当前Error颜色谓词1B；L2 OR/max与数量／顺序无关；仅设计，旧历史保持"
+    }
+  ]
+}

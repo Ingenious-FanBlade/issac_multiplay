@@ -42,7 +42,7 @@ Player整记录格式下界2773B，不含第9步记录头；各块可变内容�
 
 ## 原生事实与逐行回映射
 
-[EntityPlayer生成表](layouts/EntityPlayer.md)完整覆盖0—2E9F，递归UNKNOWN仍 **3707B**；[EntityPlayerPlus](layouts/EntityPlayerPlus.md)仍 **9B**。Plus大小A8h及后半偏移继续是官方声明＋本地Release ABI模型，未升级为官方DLL实测；公共E9只发原EntityPlus前缀，P3经独立官方成员owner访问itemSpoofs，不按推导偏移直接写Plus。
+[EntityPlayer生成表](layouts/05-player/EntityPlayer.md)完整覆盖0—2E9F，递归UNKNOWN仍 **3707B**；[EntityPlayerPlus](layouts/05-player/EntityPlayerPlus.md)仍 **9B**。Plus大小A8h及后半偏移继续是官方声明＋本地Release ABI模型，未升级为官方DLL实测；公共E9只发原EntityPlus前缀，P3经独立官方成员owner访问itemSpoofs，不按推导偏移直接写Plus。
 
 14种Weapon view保留真实分配大小、未知尾部和factory用途。2026-11-09只读J273的vtable[-1]→COL+0Ch→TypeDescriptor再次登记RTTI；例如Tears的vtable B31EA4／COL B456D0／TD RVA7D3998，Whip的B31BC4／B45A08／RVA7D1664。这里是静态读取，没有IDA修改或运行观察。
 

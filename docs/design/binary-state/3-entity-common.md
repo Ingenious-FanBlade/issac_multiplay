@@ -1,6 +1,6 @@
 # 3：Entity 公共部分与主 Sprite
 
-状态：第 3 步布局、共用实现与本轮静态核对已落地，Release 纯编译／链接通过（2026-11-08），没有测试。Entity 仍有明确未知字节和跨域未决，不能宣称类型完整或同步已可运行。上级：[总计划](README.md)；[实现说明](implementation-3.md)、[静态证据](entity-common-evidence.md)、[生成布局](layouts/Entity.md)。下方输入事实与初步划块保留设计语境，当前字段、大小和顺序以唯一布局源及生成表为准。
+状态：第 3 步布局、共用实现与本轮静态核对已落地，Release 纯编译／链接通过（2026-11-08），没有测试。Entity 仍有明确未知字节和跨域未决，不能宣称类型完整或同步已可运行。上级：[总计划](README.md)；[实现说明](implementation-3.md)、[静态证据](entity-common-evidence.md)、[生成布局](layouts/03-entity-common/Entity.md)。下方输入事实与初步划块保留设计语境，当前字段、大小和顺序以唯一布局源及生成表为准。
 
 **当前版本31修订**：见[公共字段复核](entity-common-synchronization-review.md)及[valid／exists／dead再复核](entity-lifecycle-synchronization-review.md)。版本30排除的33个范围保持；版本31再移出公共valid，由Client本地owner维护。exists／dead及有展示用途的碰撞／尺寸／速度参数保留；Player特殊身体激活资格由第5步P7结构接管，不能一律置true或据room_member猜测。下文版本12完成数量是历史事实，当前数量以生成表为准。
 

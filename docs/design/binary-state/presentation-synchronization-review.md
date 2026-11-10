@@ -1,5 +1,13 @@
 # 第8步 Presentation：原生字节与同步职责核对
 
+**2026-11-10 第7步显示／资源设计补齐**：[本轮设计](room-display-resource-design.md)替代下文“资源内容／地图adapter设计待补”的旧范围，具体实现仍待接线。地图采用完整事实＋本地纯合成，不复制Host裁剪FBO；Home隐藏读Data.StageId35且Type16。资源按不可变typed payload管理，程序图可用完整有序recipe或精确像素；SourceQuad保留pixel／UV空间，RGBA8读回依据及图形状态保护已明示。MapFocusResult／MapBadgeList／最终震动及实际资源由本步唯一拥有，水光波纹归Room；具体source／GPU ABI／正式布局未完成，除下述8B问号补证外其余UNKNOWN保持，版本56，无测试。
+
+同轮补证Minimap+614..61B为独立Lost问号ImageStrongPair：965BDE加载文件、965BFF..965C0C赋入+614，966680直接绘制，既有QuestionImage适配亦使用它。必须承接实际图像资源，不能只发icons／itemIcons；[账本修订2](presentation-byte-ledger.md)将本8B从UNKNOWN转资源，Minimap直属未知23→15B，旧记录留JSON，其余未知不变。
+
+**2026-11-10 RoomSave／Exploration目录交接**：[两域核对](room-save-exploration-synchronization-review.md#5-exploration不另建一套地图真值)明确地图徽标不等于保存图标或揭图flag：966300按有效物品／诅咒生成最多7项有序icons／curses，逐项SetFrame，Sprite最终帧不能表示整列。Presentation唯一持有MapBadgeList草稿`u8 count + i8[count]`（1—8B），负ID−1..−9为curses、非负仅0/1/2/4/5；原优先级及7项上限保持，位置／间隔本地派生。实际资源／可变外观、边框、震动与world限制继续承接；不增加原始Level四揭图bool或Host展开输入。正式缓存／布局／reader／writer未实施，UNKNOWN不变，本轮无测试。
+
+**2026-11-10 RoomDescriptor显示交接**：[专门核对](room-descriptor-synchronization-review.md)补D1当前world的Error→ModelingClay颜色谓词u8 bool（1B）：官方ASMHud的>0在目标版恒真，完整效果ID无须发。实际Image仍来自Host缓存，具名颜色adapter使用D1及真实Player ModelingClay/颜色上下文，不伪造数值Getter、重算History或读取Client本地SpawnSeed。L2保存地图结果只发16类mask及必要帧，存在3..12B，楼梯/Portal为位，challenge32仍取Host已选位置；这些是自有地图数据，不是Restore保存体。另补HasWater第五位及所有模式Boss匹配的Pit/TrapDoor Light上下文。正式来源、资源与adapter待接线，本轮无测试。
+
 2026-11-10；目标为官方 REPENTOGON 1.1.3／v1.9.7.12.J273 Win32。完成本轮 **Presentation 的静态字节登记、同步必要性核对和旧公开目录回映射**；这不是第8步整体或正式同步实现完成。设计账本为 [JSON](presentation-byte-ledger.json)／[原生单行表](presentation-byte-ledger.md)，公开成员为 [JSON](presentation-member-map.json)／[逐行表](presentation-member-map.md)。本轮不修改生产布局版本，不接入 `state/presentation.json`、Hook、reader、writer，不构建、不运行游戏或测试。UNKNOWN和来源缺口仍明确保留。
 
 ## 1. 资料顺序与证据等级
@@ -62,7 +70,7 @@
 
 `966680 Render`直接消费+620/+624当前震动；+61C只驱动Update生产，故只传最终offset，不传倒计时或随机流。这里`965DB0`确实调用`6EB4B0`全局随机，再用cos/sin形成偏移，不能把三角函数本身误叫随机。大小查询`963540`由本地config bounds／alpha计算；本地缓存不因Player状态已安装就自动存在。
 
-真正的缓存路径是`965D60 Refresh → 9635B0`，包含descriptor／探索／保存图标、FBO绘制及挑战32特殊当前标记的随机选择。普通路径可在来源完整、线程／生命周期／图形状态保护及确定分支下重建；**挑战32必须提供Host已经选择的最终标记或完整有证据的recipe，不能调用随机再选**。现有`client_map_native.cpp::ClientMinimapBuild`已明确拒绝challenge32，这个限制保留为历史事实，不能把旧可运行窄路径称为全地图覆盖。
+真正的缓存路径是`965D60 Refresh → 9635B0`，包含descriptor／探索／保存图标、FBO绘制及挑战32特殊当前标记的随机选择。普通路径可在来源完整、线程／生命周期／图形状态保护及确定分支下重建；**挑战32必须提供Host已选SafeGridIndex锚点、对应描述关系与地图版本，不能调用随机再选**。[第7步交接补证](room-random-handoff.md#4-地图与error只保留真正消费者所需结果)确认它还影响裁剪窗口和描述上下文，仅标记位置不充分；原生169边界不得直接作为13×13下标。现有`client_map_native.cpp::ClientMinimapBuild`已明确拒绝challenge32，这个限制保留为历史事实，不能把旧可运行窄路径称为全地图覆盖。
 
 官方`MinimapConfig.zhl::Render`的签名命中 **4ECA30**，反编译实际switch NPC状态、创建Entity、开火和播放音效，与地图不符。这个SDK函数标签不作为调用依据。`MinimapPatches.cpp`还在原地图图像提交前显式设ColorOffset shader；该本地图形状态维护必须保留。既有黑框漏失记录不能由只同步_iconsSprite解决，border Sprite有独立实际资源／图层外观。
 
@@ -118,7 +126,7 @@ Music有两组0x184 stream set，各为主流＋6层、mask与混音参数；Cro
 
 ## 8. 后续正式布局与唯一验收
 
-本轮保留D0的37B设计及两份纯Render RNG例外；subframe仍派生，进入/退出绘制借用并恢复。不把音频选择或其他玩法随机流纳入D0，也不把cos/sin当RNG。UI正常Host生产后的最终缓存／显示批次须独立封存，不额外调用getter、Recompute、Lua玩法、随机或资源生产器补值。
+历史D0先由37B收紧为13B两seed草稿，同日[第7步与Random核对](room-random-handoff.md)进一步选择逐用途实际随机结果，**当前D0为5B，仅Manager相位／paused**。Pickup／Familiar的正常已产生alpha与资格另成具名结果批次，绑定真实world／presentation修订及资源／pass／重复调用身份，不由Client全局访问顺序分配样本。两个绘制seed／shift／guard及新核BD0F40音效选样本流均不上线；音频取已选sample与逻辑voice。subframe仍派生，临时Sprite／颜色栈／CPU队列恢复须后续接通。UI正常生产后的最终缓存／批次独立封存，不额外getter、Recompute、Lua、随机或资源生产器补值。上述仍是设计，具体缓存／source／adapter未实施。
 
 正式`state/presentation.json`和线格式尚未生成；下表是**草稿逻辑投影**，偏移只在各小记录内成立。记录头、subject/use/shape、版本、存在性／空集合、资源目录与预算由第8/9步统一定稿；未核源不能填零或忽略后ACK。
 

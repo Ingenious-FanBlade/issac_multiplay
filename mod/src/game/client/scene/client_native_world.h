@@ -8,14 +8,16 @@
 #include "game/client/room/client_backdrop_native.h"
 
 namespace cs::game {
+// 本文件的Legacy描述仅供尚未退役的JSON链使用；正式二进制描述见client_room_description.h。
+// 不提供从新描述补造seed／保存体的兼容转换；实际原生writer在第13步换接。
 // 背景配置属于Room内嵌Backdrop，不修改共享XML/Host资源；字符串只接受逻辑资源路径。
-struct ClientBackdropConfiguration final {
+struct LegacyClientBackdropConfiguration final {
   std::array<std::string,12> paths{};
   std::array<unsigned,7> values{};
-  bool operator==(const ClientBackdropConfiguration &b) const {return paths==b.paths&&values==b.values;}
+  bool operator==(const LegacyClientBackdropConfiguration &b) const {return paths==b.paths&&values==b.values;}
 };
 // SDK边界只接收具名纯值；Key只用于核对本地承载代次，不分配身份、不携带对象指针。
-struct ClientNativeDescriptorDescription final {
+struct LegacyClientNativeDescriptorDescription final {
   std::uint64_t key_run=0,key_id=0,construction_revision=0;
   int grid=0,safe=0,list=0,dimension=0,storage=-1,source_slot=0;
   std::array<int,4> occupied{};
@@ -29,7 +31,7 @@ struct ClientNativeDescriptorDescription final {
   std::uint32_t spawn=0,decoration=0,award=0;
 };
 // 正式Key仍由15身份表持有；各索引只用于已核版本的原生数组有界寻址。
-struct ClientNativeSceneDescription final {
+struct LegacyClientNativeSceneDescription final {
   int stage=0,stage_type=0,difficulty=0,challenge=0;
   int config_stage=0,config_mode=0,room_type=0,subtype=0;
   std::uint32_t variant=0;
@@ -37,7 +39,7 @@ struct ClientNativeSceneDescription final {
   int grid_width=0,grid_height=0;
   int room_index=0,grid_index=0,list_index=0,safe_grid_index=0,dimension=0,enter_door=-1,starting_index=0;
   // 首项为当前descriptor，其余为正式来源实际提供的相关descriptor；不补造未知条目。
-  std::vector<ClientNativeDescriptorDescription> descriptors;
+  std::vector<LegacyClientNativeDescriptorDescription> descriptors;
   int allowed_doors=0,descriptor_flags=0,visited_count=0,clear_count=0;
   int door_targets[8]{};
   std::uint32_t spawn_seed=0,decoration_seed=0,award_seed=0;
@@ -48,7 +50,7 @@ struct ClientNativeSceneDescription final {
   float camera_x=0,camera_y=0;
   ClientMapTarget map;
   ClientRoomState room_state{};
-  ClientBackdropConfiguration backdrop_config{};
+  LegacyClientBackdropConfiguration backdrop_config{};
   ClientBackdropWallTrace backdrop_wall_trace{};
   std::array<float,4> backdrop_surface_inputs{};
   std::array<ClientResourcePose,4> backdrop_sprites{};
@@ -69,8 +71,8 @@ ClientNativeWorldOwner *ClientNativeWorldCreate() noexcept;
 void ClientNativeWorldDestroy(ClientNativeWorldOwner *) noexcept;
 // 只读本方描述容器容量，不读取游戏对象或图像分配。
 std::uint64_t ClientNativeWorldValueBytes(const ClientNativeWorldOwner *);
-ClientNativeStep ClientNativeWorldPrepare(ClientNativeWorldOwner *,const ClientNativeSceneDescription &) noexcept;
-ClientNativeStep ClientNativeWorldRefresh(ClientNativeWorldOwner *,const ClientNativeSceneDescription &) noexcept;
+ClientNativeStep ClientNativeWorldPrepare(ClientNativeWorldOwner *,const LegacyClientNativeSceneDescription &) noexcept;
+ClientNativeStep ClientNativeWorldRefresh(ClientNativeWorldOwner *,const LegacyClientNativeSceneDescription &) noexcept;
 // Backdrop.Init 的教程surface生成会读取真实首Player，必须在I2发布roster/EL后调用。
 ClientNativeStep ClientNativeWorldFinalize(ClientNativeWorldOwner *) noexcept;
 ClientNativeStep ClientNativeWorldCheckCommit(ClientNativeWorldOwner *) noexcept;
@@ -78,5 +80,5 @@ ClientNativeStep ClientNativeWorldRetire(ClientNativeWorldOwner *) noexcept;
 ClientNativeRoots ClientNativeWorldRoots(ClientNativeWorldOwner *) noexcept;
 bool ClientNativeWorldHasPrefix(const ClientNativeWorldOwner *) noexcept;
 bool ClientNativeWorldSafeMenu(const ClientNativeWorldOwner *) noexcept;
-bool ClientNativeWorldCanReuse(const ClientNativeWorldOwner *,const ClientNativeSceneDescription &) noexcept;
+bool ClientNativeWorldCanReuse(const ClientNativeWorldOwner *,const LegacyClientNativeSceneDescription &) noexcept;
 } // namespace cs::game

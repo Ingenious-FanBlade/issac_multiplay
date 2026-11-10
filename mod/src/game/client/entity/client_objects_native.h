@@ -1,5 +1,6 @@
 #pragma once
 #include "game/client/scene/client_native_world.h"
+#include "game/client/common/client_object_key.h"
 #include "game/client/resources/client_resources.h"
 #include <array>
 #include <cstdint>
@@ -8,15 +9,6 @@
 #include <vector>
 
 namespace cs::game {
-// 稳定身份与地址分开；本地实例号只在本场景单调增加，不进入网络模型。
-struct ClientObjectKey final {
-  std::uint64_t run=0,id=0;
-  unsigned space=0;
-  bool operator==(const ClientObjectKey &v) const noexcept { return run==v.run&&id==v.id&&space==v.space; }
-  bool operator<(const ClientObjectKey &v) const noexcept {
-    return run!=v.run?run<v.run:space!=v.space?space<v.space:id<v.id;
-  }
-};
 struct ClientObjectReference final { bool present=false,is_null=false;ClientObjectKey target{}; };
 // C++17 SDK边界只接收自有值；字段状态由纯值层解释，不向原生传JSON地址。
 enum class ClientEntityValueKind : unsigned { Integer, Bits, Real, Boolean, Vector, Color, Bits128 };

@@ -129,7 +129,7 @@ P0是**逻辑快源组**，不把所有 Sprite 拼成每次必发的一大块。
 | +0 u16 count：与P6真实costume有序目录完全相同 | +2 ANM2#k[count] costume_projection：k分别为0／1／2，不包含任何原生vector头 |
 |---|---|
 
-这些范围的原生字节归属逐槽展开[ANM2表](layouts/ANM2.md)，并不将13×0x114全部归状态。每份ANM2原有14B未知、self／地址／加载状态／事件位的归属保持。loaded=false只形成既有可空资源语义，不读无效数组，也不擅自补零；源未准备好与Host明确Null分开。
+这些范围的原生字节归属逐槽展开[ANM2表](layouts/02-base-types/ANM2.md)，并不将13×0x114全部归状态。每份ANM2原有14B未知、self／地址／加载状态／事件位的归属保持。loaded=false只形成既有可空资源语义，不读无效数组，也不擅自补零；源未准备好与Host明确Null分开。
 
 P6只拥有costume有序目录、配置／属性／层映射等结构信息及其版本，不再重复拥有这些已转P0的Sprite投影或headAnim。主Sprite的E6提升到body，避免动画与其独立层状态采自两种频率后互相覆盖。第8步负责实际Image／shader旁表，不能把已有路径字段当成全部图像资源。
 

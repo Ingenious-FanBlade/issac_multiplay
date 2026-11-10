@@ -1,6 +1,26 @@
 # 原生二进制状态同步重构：总计划
 
+布局文档入口：[按总任务步骤归类的生成布局索引](layouts/README.md)。`layouts/02-base-types` 至 `08-run-presentation` 对应下方第 2—8 步，步骤内按布局编号排列；变体和附属类型随所属域，共享类型只保留一份。目录整理不改变布局版本、字节归属、未知项或各步完成状态。
+
+**2026-11-10 第7步影子描述生成层完成，版本仍57**：[实现与边界](room-level-description-implementation.md)。`ClientDescribeRoomLevel`生成Room／Level／Descriptor／独立双配置的自有不可变描述；52个数字字段角色及L2帧界同源生成，完整显示投影保留，同world结构／占用／八门依赖核定一次。旧场景／描述／背景配置输入明确改名Legacy，未构造新旧兼容桥。描述库及产品Release／Win32纯编译／链接通过，无测试；UNKNOWN及Host来源／GPU／第12解码调度／第13原生安装保持未完成。
+
+**2026-11-10 第7步生产布局源与生成完成，版本57**：[实现与边界](implementation-7-room-level.md)。正式`room.json`／`level.json`新增239—309共71个布局；Room13个world块，L0=22B／L1=53B／L2=1—12B／L3=1014B／D1=1B，15B配置与背景／FX／水光波纹／焦点及必要地图结果已登记。四域597行回映射、四份C++表和全部布局表同源生成；资源字段、复杂自有结果列表和u8计数进入schema。Room直属28B／静态内嵌递归613B、Level22B及外部UNKNOWN保持。Release／Win32状态库纯编译通过；正式生产缓存、GPU ABI、完整协议和reader／writer／adapter仍待后续，未运行测试。下列版本56及更早记录保留各自时点。
+
+**2026-11-10 第7步必要显示／资源设计补齐**：[设计与来源](room-display-resource-design.md)、[机器表](room-display-resource-design.json)。15B配置显示投影与不可变typed资源替代完整配置／生成图；程序背景提供完整有序recipe或精确内容，RGBA8／SourceQuad坐标空间和图形状态保护明确。水光波纹／焦点及纯地图adapter、完整可显示事实／本地独立查看、资源依赖与预算已定；Home读StageId35而非Type35，现行说明已更正并保留原错误。生产布局／source／GPU ABI／writer待实施，版本56，未构建或测试。
+
+**2026-11-10 第7步RoomSave／Exploration目录核对完成**：[职责与证据](room-save-exploration-synchronization-review.md)、[RoomSave98行](room-save-member-map.md)及[Exploration99行](exploration-member-map.md)。完整保存体／备份与揭图生产标志留Host；L0/L1探索事实、L2保存图标／楼梯／Portal、实际回访Entity/Grid及必要地图资源／最终震动承接。地图查看／长按留本地，最多7项有序道具／诅咒徽标另由Presentation的MapBadgeList草稿1—8B承接。补记Getter实际类型、Grid Clear不改变长度、ESSM原字段与公开语义不同及回调阶段；保存体74B等UNKNOWN保持。正式来源／编码／adapter仍待后续，版本56，无构建或测试。
+
+**2026-11-10 第7步与Random交接静态核对完成**：[15项同步决定／原生补证](room-random-handoff.md)及[机器表](room-random-handoff.json)。生成流与全部私有游标留Host；实际背景／FX、地图选择上下文、音频sample／voice和逐用途随机alpha承接。D0由37／13B草稿改5B，仅Manager相位／paused；新核BD0F40选样本流不上线，挑战32含SafeGridIndex锚点／窗口而非孤立标记，Error沿用最新1B颜色谓词。Random账本修订2共24视图，54行目录保留。正式来源缓存／资源／adapter待9/10/12/13步，生产版本56，无构建或测试。
+
+**2026-11-10 第7步RoomDescriptor专门核对完成**：[职责／证据](room-descriptor-synchronization-review.md)、[6类型／视图账本](room-descriptor-byte-ledger.md)及[44行目录](room-descriptor-member-map.md)。B8h原24B未知核为16B商店生成类别＋8B补货次数，均留Host；直属未知24→0，保存体／配置及SDK语义边界保持。纠正上轮两项遗漏：HasWater是Pit Light／重绘的直接输入，L1同53B改五位投影；当前Boss匹配普通TrapDoor也用，所有模式保留。当前Error颜色谓词D1仅1B，L2只取最终图标mask及必要帧，存在3..12B，楼梯/Portal为位，不发seed／全保存体。Level设计／目录已回写修订2；正式资源表／reader／draw未接，生产版本56，无构建或测试。以下旧24B／四位／清零条目保留其时点。
+
+**2026-11-10 第7步Level静态字节核对完成**：[职责与J273证据](level-synchronization-review.md)、[7类型／视图账本](level-byte-ledger.md)、[131行回映射](level-member-map.md)。Game楼层前缀核到18910，SDK大小1890C单列；官方简化Level两个字段落入维表，真实flags／Greed连续无红心伤害波次为1839C／18374，错误API事实保留。只同步身份／有效诅咒／拓扑、双配置及地图／HUD／Door所需投影，生成／返回／全flags／保存历史留Host；保存图标及楼梯结果不能丢。根22B／描述24B未知保持，L0/L1/L3设计22／53每描述／1014B；地图批次／配置资源表及生产接线未完成。未改生产版本56，未构建或测试。以下记录保留各自时点。
+
+**2026-11-10 第7步Room续核（修订2）**：[1290B与嵌套补证](room-residual-evidence.md)、[职责](room-synchronization-review.md)、[32类型／视图账本](room-byte-ledger.md)及[269行回映射](room-member-map.md)。Room7898h现91个直接范围，直属UNKNOWN1290→28B；EntityList884→3B、FXLayers39→3B、FX31→5B，其他嵌套未知另计。纠正456-DWORD为两张各448项的DWORD path／WORD占格表，真实slowdown为+722C。函数指针、生成队列／历史、碰撞／查询缓存和原版Online环不进入C/S；实际环境voice及+139反向水面方向必须承接。首轮26视图／85范围作为历史基线保留；纹理／最终结果来源、正式布局／接线仍待实施，生产版本56，无构建或测试。
+
 **2026-11-10 范围调整：当前先跑通原版。** 第三方 Mod 适配已迁至目录外的[Mod 适配后续方案](../mod-adaptation.md)，包含自定义状态／角色／资源／绘制、StageAPI、Lua adapter、自描述编码及原 E31。它们不属于本次 0—15 步的实现和验收条件；当前正式同步不保留 Mod 域的 Lua 读取例外。官方 REPENTOGON 加载器、J273 目标和原版所需的官方扩展 owner 保持，原版全部必要内容、四参与者／多身体及性能目标保持；历史 Mod 事实和未决问题在后续方案与原记录中保留。
+
+**2026-11-10 第8步Random静态核对完成**：[职责／J273证据](random-synchronization-review.md)、[23类型／字段视图字节账本](random-byte-ledger.md)及[54行成员回映射](random-member-map.md)。玩法流／池／运行库引擎留Host，药丸／预览等实际显示结果另承接；补核ItemPool+664饰品流、保存体+218实际vector<bool>和Game+182E4恶魔／天使流。两份绘制流仅发seed，固定shift与guard不上线，D0草稿37→13B；完整取样相位／消费序列与最终结果来源尚待接线。UNKNOWN和ABI模型边界保持，未改生产版本56，未构建或测试。以下记录保留各自时点。
 
 **2026-11-10 第6步剩余描述编码完成**：[影子状态描述实现](grid-description-implementation.md)提供正式`ClientGridDescription`、17类同源数字索引与自有不可变投影，移出字符串字段；旧JSON链明确命名为`LegacyClientGrid*`等待后续换接。线布局未改，UNKNOWN与第10／12／13步运行边界保持，不运行测试。
 
@@ -8,7 +28,7 @@
 
 **2026-11-10 第8步Run静态归属，版本56**：[Run职责核对](run-synchronization-review.md)及`run.json`新增230—238，回映射原目录全部191条run行。只保留具体显示消费者所需当前值、7项种子显示投影、ascent bit48及最终分数；生成／波次／历史／回溯与持久资格留Host。两黑暗浮点保留，ColorModifier只发current。GameFrame与TimeCounter、Game当前daily与Manager预告来源分别核定。Presentation实际owner／跨域委派与UNKNOWN明确保留，新handler与正式接线仍待后续；纯编译结果见Run核对，无测试。以下条目保留原时点。
 
-**2026-11-10 第6步119行公开成员回映射完成，版本55**：[说明与证据](grid-member-map.md)、[逐行汇总表](layouts/grid-catalog-members.md)。119个原始行全部进入正式布局源及代码生成，保留三个重复ID／原签名；16行字段、28行派生、74行Host权威、1行不适用。补清GetBigRockFrame无符号比较，ReducedSpawnRate明确已移除；各根UNKNOWN及线字段保持。第6步静态布局、Plus来源及成员目录工作均已登记；实际reader／writer与绘制adapter仍待后续。Release／Win32状态库纯编译成功，无测试。以下条目保留原时点。
+**2026-11-10 第6步119行公开成员回映射完成，版本55**：[说明与证据](grid-member-map.md)、[逐行汇总表](layouts/06-grid/grid-catalog-members.md)。119个原始行全部进入正式布局源及代码生成，保留三个重复ID／原签名；16行字段、28行派生、74行Host权威、1行不适用。补清GetBigRockFrame无符号比较，ReducedSpawnRate明确已移除；各根UNKNOWN及线字段保持。第6步静态布局、Plus来源及成员目录工作均已登记；实际reader／writer与绘制adapter仍待后续。Release／Win32状态库纯编译成功，无测试。以下条目保留原时点。
 
 **2026-11-10 第6步GridEntityPlus静态来源完成，版本54**：[来源／ABI／生命周期与同步决定](grid-plus-water-source-evidence.md)核定官方448×12B共享旁表，新增229本地ABI目录、零线字段。只发每实例最终u32，optional／地址／重置历史不上线；Factory／Init重置共享项，Free／换房不假定自动清。纠正Lock不进入官方六Hook、忽略旁表；现有C/S六wrapper也漏Lock，第13步补第七点。各根UNKNOWN／最小状态不变；全119项逐行回映射及正式reader／writer尚未完成，无测试。以下条目保留原时点。
 
@@ -20,9 +40,9 @@
 
 **2026-11-10 第6步公共同步职责复核，版本50**：[具体消费者与纠错](grid-common-synchronization-review.md)撤销CollisionClass原值，改发按实例最终WaterClipFlags；主Sprite使用GridLayerState200／GridSprite201，移出默认动画名／待加载图层路径，并补Dataminer地址派生的最终两位纹理选择。G0仍24B、G1固定94B、公共最小状态142B，根UNKNOWN仍17B，资源／姿态与原证据等级保留。Release／Win32状态库纯编译通过；正式来源／writer／绘制adapter及子类仍待后续，无测试。以下条目保留原时点。 冠军shader只保留前四float16B，载体后七值28B留Host，普通ColorMod仍完整11值。
 
-**2026-11-10 第6步公共字节归属，版本48**：[证据与职责](grid-common-evidence.md)、[公共生成表](layouts/GridEntity.md)及[描述生成表](layouts/GridEntityDesc.md)。新增Desc198／Grid199，公共340B逐字节登记，递归UNKNOWN17B（Desc3B＋ANM2 14B）；G0仅24B，公共最小状态171B。SpawnSeed因Light临时绘制RNG保留，SpawnCount／VarData／Initialized／VariableSeed／SpawnFrame与对象_rng留Host。Grid为根＋17个派生、共18个RTTI；本轮只处理公共前缀，子类、GridEntityPlus水面旁表／全119项回映射和实际接线仍待完成。0—14步无测试，第15步唯一统一验收。以下记录保留原时点。
+**2026-11-10 第6步公共字节归属，版本48**：[证据与职责](grid-common-evidence.md)、[公共生成表](layouts/06-grid/GridEntity.md)及[描述生成表](layouts/06-grid/GridEntityDesc.md)。新增Desc198／Grid199，公共340B逐字节登记，递归UNKNOWN17B（Desc3B＋ANM2 14B）；G0仅24B，公共最小状态171B。SpawnSeed因Light临时绘制RNG保留，SpawnCount／VarData／Initialized／VariableSeed／SpawnFrame与对象_rng留Host。Grid为根＋17个派生、共18个RTTI；本轮只处理公共前缀，子类、GridEntityPlus水面旁表／全119项回映射和实际接线仍待完成。0—14步无测试，第15步唯一统一验收。以下记录保留原时点。
 
-**2026-11-09 第5步正式布局源与生成完成，版本47**：[实现说明](implementation-5-player.md)与[EntityPlayer生成表](layouts/EntityPlayer.md)。唯一源`mod/binding/state/player.json`新增150—197共48个布局，Player197共25块；条件效果、动态Weapon、固定槽、Plus投影及1265条应用行／97条补充成员已正式生成。Player／Plus未知仍3707B／9B，Plus ABI模型不升级证据。Release／Win32产品纯编译与链接通过，没有运行测试；第8—14步实际接线及第15步统一验收仍未完成。以下较早记录保留原时点。
+**2026-11-09 第5步正式布局源与生成完成，版本47**：[实现说明](implementation-5-player.md)与[EntityPlayer生成表](layouts/05-player/EntityPlayer.md)。唯一源`mod/binding/state/player.json`新增150—197共48个布局，Player197共25块；条件效果、动态Weapon、固定槽、Plus投影及1265条应用行／97条补充成员已正式生成。Player／Plus未知仍3707B／9B，Plus ABI模型不升级证据。Release／Win32产品纯编译与链接通过，没有运行测试；第8—14步实际接线及第15步统一验收仍未完成。以下较早记录保留原时点。
 
 **2026-11-09 第5步前两项设计工作完成（未生成／未实现）**：[统一原生字节账本](player-byte-ledger.md)覆盖Player 2EA0h、保存／移动箱／动态装备及PlayerPlus等58种类型；根对象239个直接范围，递归UNKNOWN仍3707B。Plus A8h及后半偏移明确为静态ABI模型，未知9B，不能称官方DLL实测。[成员逐行回映射](player-member-map.md)保留1265条旧应用行及重载，另列14条native、77条具名宏与6条结构，旧Entity目录逐行交叉引用。原版通信+268C及待移除效果队列不上线；无调用方的Captured通用字典退出设计，真实原生显示查询走具名最终决定，具体缓存／批次布局仍归第8/9步。剩余为唯一Player布局源／正式生成与采集、安装、退役接线；版本仍46，没有构建或测试。以下较早记录保留各自时点。
 
@@ -193,7 +213,7 @@ Client
   - 未知或填充区也单独占一格，写明长度和现有判断。
 - **嵌套类型**：如果嵌套类型有自己的表，可以占一格并注明“见某某表”，例如 `Vector`、`ColorMod`。变长容器写成 `u16 count + count×元素类型`，元素类型另有表。
 - **头部和帧结构也要画**：记录头、状态帧头、成员表项等线格式结构同样画单行表（第 9 步）。
-- **生成方式**：第 1 步的生成器从布局源产出表格，放在 `layouts/<类型>.md`。各步设计稿中手写的表要标“草稿”，生成器建成后以生成结果为准，避免文档与代码不一致。
+- **生成方式**：第 1 步的生成器从布局源产出表格，放在 `layouts/<步骤目录>/<类型>.md`。各步设计稿中手写的表要标“草稿”，生成器建成后以生成结果为准，避免文档与代码不一致。
 
 ### 5.1 示例：EntityEffect（草稿）
 

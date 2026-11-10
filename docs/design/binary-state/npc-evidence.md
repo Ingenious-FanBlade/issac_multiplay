@@ -68,7 +68,7 @@ Client owner需要保留原ctor proxy，以游戏allocator建立候选map与16B 
 
 ## 原生归属和线布局
 
-完整单行原生表与逐块单行二进制表由唯一源生成：[NPC](layouts/EntityNPC.md)、[Delirium](layouts/EntityNPC_Delirium.md)。下面只摘独立子块，公共E0—E9不重复定义。
+完整单行原生表与逐块单行二进制表由唯一源生成：[NPC](layouts/04-entity-classes/EntityNPC.md)、[Delirium](layouts/04-entity-classes/EntityNPC_Delirium.md)。下面只摘独立子块，公共E0—E9不重复定义。
 
 | N0块10：+0 i32 State | +4 i32 ProjectileDelay | +8 Vector V1（双f32） | +16 i32 I2 | +20 i32 ChampionColorIdx | +24 i32 ControllerId；共28B |
 |---|---|---|---|---|---|

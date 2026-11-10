@@ -70,7 +70,7 @@
 
 ## 4. 现行归属、线布局及后续步骤
 
-原生Delirium段的现行单行表如下；整个0—F60表由唯一源生成，见[完整布局](layouts/EntityNPC_Delirium.md)。
+原生Delirium段的现行单行表如下；整个0—F60表由唯一源生成，见[完整布局](layouts/04-entity-classes/EntityNPC_Delirium.md)。
 
 | +BC8 u32 BossType【权威】 | +BCC u32 BossVariant【权威】 | +BD0 u16 TransformationTimer【权威】 | +BD2 u8 RemainingAttacks【权威】 | +BD3 u8 StateD【权威】 | +BD4 bytes[4]【未知】 | +BD8 u64弹幕打包存储【权威】 | +BE0 u64 Cycle打包存储【权威】 | +BE8 EntityPtr companion【权威】；共36B |
 |---|---|---|---|---|---|---|---|---|

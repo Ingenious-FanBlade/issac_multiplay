@@ -6,6 +6,7 @@
 import argparse
 import copy
 import json
+import posixpath
 import re
 import sys
 from pathlib import Path
@@ -20,6 +21,32 @@ SCALARS = {'u8': 1, 'bool': 1, 'i8': 1, 'u16': 2, 'i16': 2,
            'u32': 4, 'i32': 4, 'f32': 4, 'u64': 8, 'i64': 8, 'f64': 8, 'bytes': 1}
 STATUS = {'已核', 'SDK声明', '推断', '未知'}
 DYNAMIC = 0xFFFFFFFF
+
+# 文档目录沿用总计划步骤号；布局编号与线格式不参与文档归类。
+DOC_STEPS = {
+    '02-base-types': ('2：基础值类型与嵌套规则', '2-base-types.md'),
+    '03-entity-common': ('3：Entity 公共与主 Sprite', '3-entity-common.md'),
+    '04-entity-classes': ('4：Entity 子类', '4-entity-classes.md'),
+    '05-player': ('5：EntityPlayer', '5-player.md'),
+    '06-grid': ('6：GridEntity', '6-grid.md'),
+    '07-room-level': ('7：Room、Level、RoomSave 与 Exploration', '7-room-level.md'),
+    '08-run-presentation': ('8：Run、Presentation 与 Random', '8-run-presentation.md'),
+}
+DOC_DOMAIN_STEPS = {
+    'base.json': '02-base-types', 'entity.json': '03-entity-common',
+    'entity-effect.json': '04-entity-classes', 'entity-classes.json': '04-entity-classes',
+    'entity-text-dummy.json': '04-entity-classes', 'player.json': '05-player',
+    'grid.json': '06-grid', 'grid-classes.json': '06-grid',
+    'room.json': '07-room-level', 'level.json': '07-room-level',
+    'run.json': '08-run-presentation',
+}
+# 正式布局源中的历史证据仍引用这两个旧路径，保留跳转页，不改写证据或布局版本。
+DOC_LEGACY_PATHS = {'EntitySaveState': '05-player', 'GridEntityDesc': '06-grid'}
+
+
+def doc_path(compiler, name):
+    """同一类型只保留一份正式表，跨步骤引用使用其归属目录。"""
+    return f'{compiler.doc_steps[name]}/{name}.md'
 
 
 def read_json(path):
@@ -132,6 +159,7 @@ class Compiler:
                 len(resource_tables) == len(set(resource_tables)), 'version.resource_tables', '资源表清单为空、重名或非法')
         self.resource_tables = set(resource_tables)
         self.types = {}
+        self.doc_steps = {}
         schema = read_json(source / 'schema.json')
         for domain in self.version['domains']:
             require(re.fullmatch(r'[a-z][a-z0-9_-]*\.json', domain), domain, '非法域文件名')
@@ -142,6 +170,7 @@ class Compiler:
                 require(re.fullmatch(r'[A-Za-z_][A-Za-z_0-9]*', name), name, '非法类型名')
                 require(name not in self.types, name, '重复类型')
                 self.types[name] = copy.deepcopy(entry)
+                self.doc_steps[name] = DOC_DOMAIN_STEPS[domain]
         self.expanded = {}
         self.plans = {}
         self.native_cache = {}
@@ -276,6 +305,7 @@ class Compiler:
                     (kind == 'nested' and wire['storage'] == 'shared-owner'), where, 'storage只适用于容器或间接共享owner')
             require('projections' not in wire or kind in {'nested', 'container'}, where, '只有嵌套类型或复杂容器元素可以按子块投影')
             require('max_bytes' not in wire or kind == 'container', where, '只有容器可以声明独立编码字节预算')
+            require('count_type' not in wire or kind == 'container', where, '计数宽度只适用于容器')
             require('inline_count' not in wire or kind == 'container', where, '只有容器可以声明内联数组槽数')
             if kind == 'copy':
                 require(item['category'] == '状态', where, '只能复制有语义的状态字节')
@@ -398,6 +428,7 @@ class Compiler:
                 variant['public_owners'] = []
                 self.validate_ranges(variant)
                 self.expanded[variant['type']] = variant
+                self.doc_steps[variant['type']] = self.doc_steps[name]
 
     def plan(self, name):
         if name in self.plans:
@@ -409,18 +440,29 @@ class Compiler:
         # C/S元数据没有游戏内偏移；生成FieldSource::Synthetic，绝不能落入memcpy计划。
         for item in entry['synthetic_fields']:
             key = item['name']
-            require(key not in ranges and scalar_size(item['type']) is not None, name + '.' + key, '合成字段重名或不是已核值类型')
+            require(key not in ranges, name + '.' + key, '合成字段重名')
             require(item['host'] in entry['conversions'] and item['client'] in entry['conversions'], name + '.' + key, '合成值缺少双端语义')
             wire = item.get('wire', dict(kind='convert', type=item['type'], host=item['host'], client=item['client']))
             if wire['kind'] == 'container':
-                require(wire.get('storage') == 'array' and scalar_size(wire.get('element', '')) == integer(wire.get('stride', 0)) and
+                element = wire.get('element', '')
+                # 显示结果列表由自有缓存提供，复杂元素按登记布局解码；零步长禁止把缓存误当原生数组。
+                aggregate = wire.get('storage') == 'aggregate'
+                require(((aggregate and integer(wire.get('stride', 0)) == 0 and element in self.expanded) or
+                         (wire.get('storage') == 'array' and scalar_size(element) is not None and
+                          scalar_size(element) == integer(wire.get('stride', 0)))) and
+                        item['type'] == element and
                         0 < wire.get('limit', 0) <= 65535 and wire.get('host') == item['host'] and wire.get('client') == item['client'] and
-                        not any(k in wire for k in ('fixed_count', 'inline_count', 'projections')), name + '.' + key, '合成容器必须是具名纯值数组')
+                        not any(k in wire for k in ('fixed_count', 'inline_count', 'projections')), name + '.' + key, '合成容器必须是具名纯值数组或零步长复杂结果列表')
             else:
-                require(wire['kind'] in {'convert', 'reference'} and wire.get('type') == item['type'] and
+                require(scalar_size(item['type']) is not None, name + '.' + key, '合成标量不是已核值类型')
+                require(wire['kind'] in {'convert', 'reference', 'resource'} and wire.get('type') == item['type'] and
                         wire.get('host') == item['host'] and wire.get('client') == item['client'], name + '.' + key, '合成标量规则不一致')
                 if wire['kind'] == 'reference':
                     require(item['type'] == 'u16' and nonempty(wire.get('target')), name + '.' + key, '合成引用缺少身份空间')
+                if wire['kind'] == 'resource':
+                    require(item['type'] == 'u16' and wire.get('target') in self.resource_tables,
+                            name + '.' + key, '合成资源引用必须是u16并绑定已登记资源表')
+                require('count_type' not in wire, name + '.' + key, '合成标量不能声明容器计数')
             ranges[key] = dict(item, offset=DYNAMIC, size=0, category='换算', synthetic=True,
                                wire=wire)
         # 伴随对象有自己的原生字节目录；这里只建立 owner 链，绝不伪造根对象偏移。
@@ -505,13 +547,16 @@ class Compiler:
                         width = scalar_size(element)
                     count = wire.get('fixed_count')
                     child_min = (next(b['min'] for b in nested['blocks'] if b['id'] == wire['block']) if 'block' in wire else nested['min']) if nested else width
-                    minimum, maximum = (count * child_min, count * width) if count else (2, 2 + integer(wire['limit']) * width)
+                    count_bytes = 1 if wire.get('count_type') == 'u8' else 2
+                    require(count_bytes == 2 or (not count and wire['limit'] <= 255), where, 'u8计数不允许固定槽或超过255个元素')
+                    minimum, maximum = (count * child_min, count * width) if count else (count_bytes, count_bytes + integer(wire['limit']) * width)
                     # 元素数上限与编码字节预算分别约束；复杂元素嵌套不能乘出无界理论分配。
                     # 实际编码/解码仍须检查真实长度，超预算报缺口，不能截断元素或降低count。
                     maximum = min(maximum, integer(wire.get('max_bytes', maximum)))
                 if 'when' in wire:
                     require(kind != 'copy', where, '条件字段须经具名处理器，不能无条件合并复制')
                     minimum = 0
+                require(minimum <= maximum, where, '字段编码预算小于格式下界')
                 offset = DYNAMIC if dynamic else low
                 field = dict(layout=entry['layout'], index=len(fields), block=number,
                              native_offset=item['offset'], native_size=item['size'], wire_offset=offset,
@@ -524,6 +569,7 @@ class Compiler:
                              limit=integer(wire.get('limit', 0)), stride=integer(wire.get('stride', 0)),
                              companion=item.get('companion', False),
                              synthetic=item.get('synthetic', False), fixed_count=wire.get('fixed_count', 0),
+                             count_bytes=(0 if wire.get('fixed_count') else (1 if wire.get('count_type') == 'u8' else 2)) if kind == 'container' else 0,
                              mask=integer(wire.get('mask', 0)), condition=wire.get('when'),
                              choices=wire.get('choices', []),
                              shape=item.get('shape', False), read_requirement=item.get('read_requires', ''),
@@ -668,7 +714,14 @@ class Compiler:
             path = (ROOT / rel).resolve()
             require(path.is_relative_to(ROOT), rel, '目录输入越出仓库')
             data = read_json(path)
-            sources[rel] = data['members']
+            # 旧stream目录的原返回类型叫type且没有owner；仅在内存中适配，原文件和签名保持。
+            # 它按source_schema分域登记逐行处置，不扩大其他既有public_owners的覆盖声明。
+            stream = data.get('format') == 'isaac.cs.stream.catalog'
+            sources[rel] = [dict(member, owner=member['id'].split('.', 1)[0],
+                                 returns=member['type'], domain=member['source_schema'].removeprefix('isaac.cs.'))
+                            for member in data['members']] if stream else data['members']
+            if stream:
+                continue
             for member in data['members']:
                 if member.get('ownership') == 'ReplicatedState':
                     expected.setdefault(member['owner'], set()).add(member['id'])
@@ -836,10 +889,83 @@ def emit_grid_description(compiler, plans, out):
     write(out / 'state_grid_view.inc', ''.join(body))
 
 
+def emit_room_description(compiler, plans, out):
+    """第7步只生成已登记字段的数字索引；不另写一份线偏移或保存图标帧界。"""
+    groups = [
+        ('Room', 'Room', ['descriptor', 'dimension', 'room_type', 'grid_width', 'grid_height', 'bounds',
+          'frame_baseline', 'greed_wave_timer', 'floor_color', 'wall_color', 'water_amount', 'lava_intensity',
+          'render_scroll', 'door_slots', 'door_grid_positions', 'backdrop', 'fx_layers', 'water_visual',
+          'lighting', 'waves', 'forced_focus', 'rails', 'hell_backdrop', 'wave_sprite_present', 'shockwave_overlay_sprite']),
+        ('LevelGamePrefix', 'Level', ['stage', 'stage_type', 'effective_curses', 'current_entry_index',
+          'current_dimension', 'greed_wave', 'current_is_last_boss', 'room_offset', 'current_visual']),
+        ('RoomDescriptor', 'Descriptor', ['grid_index', 'safe_grid_index', 'dimension', 'data', 'override_data',
+          'allowed_doors', 'doors', 'display_flags', 'visited_count', 'flags', 'greed_treasure_icon', 'map_icons']),
+        ('RoomConfig_Room', 'Configuration', ['StageId', 'Type', 'Subtype', 'Width', 'Height', 'Shape'])]
+    by_name = {p['entry']['type']: p for p in plans}
+    selected = [by_name[name] for name, _, _ in groups if name in by_name]
+    require(not selected or len(selected) == len(groups), 'RoomDescription', 'Room／Level描述所需正式根必须一起登记')
+    role_count = sum(len(fields) for _, _, fields in groups)
+    body = ['// 与正式布局同源生成；不得在描述层手写布局号、线偏移或图标帧界。\n',
+            f'constexpr std::size_t kWorldDescriptionRoles = {role_count};\n',
+            f'constexpr std::size_t kWorldDescriptionMaxFields = {max((len(p["fields"]) for p in selected), default=1)};\n',
+            array('WorldDescriptionPlan', 'kWorldDescriptionPlans', len(selected))]
+    start = 0
+    for name, kind, roles in groups:
+        if name in by_name:
+            plan = by_name[name]
+            fields = {f['name']: f for f in plan['fields']}
+            require(set(fields) == set(roles) and all(f['wire_offset'] != DYNAMIC for f in fields.values()),
+                    name, '描述角色未覆盖全部字段或根字段不再有固定起点，须同步更新描述视图')
+            ids = [65535] * role_count
+            for i, role in enumerate(roles):
+                ids[start + i] = fields[role]['index']
+            mask = sum(1 << b['id'] for b in plan['blocks'] if b['max'])
+            body.append(f'  {{ClientWorldDescriptionKind::{kind}, {plan["entry"]["layout"]}, {mask}u, '
+                        + '{' + ','.join(map(str, ids)) + '}},\n')
+        start += len(roles)
+    body.append('}};\n')
+    # L2只解析明确登记的九个按位条件帧，不从旧保存体／图标名字重新推断类别。
+    frames = []
+    offsets = [0, 0, 0]
+    if selected:
+        outer = {f['name']: f for f in by_name['FinalSavedMapIcons']['fields']}
+        payload = {f['name']: f for f in by_name['SavedMapIconPayload']['fields']}
+        offsets = [outer['present']['wire_offset'], outer['payload']['wire_offset'], payload['icon_mask']['wire_offset']]
+        require(offsets == [0, 1, 0] and payload['icon_mask']['min_size'] == 2,
+                'FinalSavedMapIcons', '图标presence／mask不再是当前有界编码')
+        for key, f in payload.items():
+            if key == 'icon_mask':
+                continue
+            match = re.fullmatch(r'frame_bit(\d+)', key)
+            require(match and f['type'] == 'u8' and f['condition'] and f['condition']['field'] == 'icon_mask',
+                    'SavedMapIconPayload.' + key, '图标动态帧不再是mask的具名u8条件字段')
+            bit = int(match[1])
+            predicate = by_name['SavedMapIconPayload']['entry']['conversions'][f['condition']['predicate']]
+            validator = by_name['SavedMapIconPayload']['entry']['validators'][key]
+            require(0 <= bit < 16 and predicate == f'(icon_mask & {1 << bit})!=0' and
+                    validator['kind'] == 'range' and validator['min'] == 0 and 0 <= validator['max'] <= 255,
+                    key, '图标谓词或帧界不符合正式按位解码合同')
+            frames.append((bit, validator['max']))
+        require([bit for bit, _ in frames] == sorted(set(bit for bit, _ in frames)),
+                'SavedMapIconPayload', '图标帧必须按唯一bit升序排列')
+    body += [f'constexpr std::array<std::uint32_t,3> kSavedIconOffsets = {{{",".join(map(str, offsets))}}};\n',
+             array('SavedIconFramePlan', 'kSavedIconFrames', len(frames))]
+    for bit, maximum in frames:
+        body.append(f'  {{{bit}, {maximum}}},\n')
+    body.append('}};\n')
+    door_layout = by_name.get('GridEntityDoor', {}).get('entry', {}).get('layout', 0)
+    body.append(f'constexpr std::uint16_t kWorldDoorLayout = {door_layout};\n')
+    grids = sorted(p['entry']['layout'] for p in plans if p['entry'].get('parent') == 'GridEntity')
+    body.append(f'constexpr std::array<std::uint16_t,{len(grids)}> kWorldGridLayouts = '
+                + '{' + ','.join(map(str, grids)) + '};\n')
+    write(out / 'state_room_view.inc', ''.join(body))
+
+
 def emit(compiler, plans, out, docs):
     """四份 .inc 共享相同字段索引；代码表、协议偏移与文档在一次构建内同时更新。"""
     header = '// 由 gen_state_layout.py 生成；只修改 mod/binding/state/*.json。\n'
     emit_grid_description(compiler, plans, out)
+    emit_room_description(compiler, plans, out)
     count_fields = sum(len(p['fields']) for p in plans)
     wire = [header, f"constexpr std::uint16_t kStateLayoutVersion ={integer(compiler.version['version'])};\n", array('Layout', 'kStateLayouts', len(plans))]
     capture = [header, array('CopyRange', 'kStateCopyRanges', sum(len(p['copies']) for p in plans))]
@@ -889,7 +1015,7 @@ def emit(compiler, plans, out, docs):
                 offset = '顺序变长偏移' if f['wire_offset'] == DYNAMIC else f'+0x{f["wire_offset"]:X}'
                 typename = f['type']
                 if f['operation'] == 'Container':
-                    typename = f'{typename}[{f["fixed_count"]}]（固定槽，无count）' if f['fixed_count'] else f'u16 count + count×{typename}（上限{f["limit"]}）'
+                    typename = f'{typename}[{f["fixed_count"]}]（固定槽，无count）' if f['fixed_count'] else f'u{8*f["count_bytes"]} count + count×{typename}（上限{f["limit"]}）'
                     if f['nested_block'] != 255:
                         typename += f' 子块{f["nested_block"]}'
                 if f['operation'] == 'Nested':
@@ -931,7 +1057,7 @@ def emit(compiler, plans, out, docs):
                 body += '| ' + ' | '.join(v.replace('|', '\\|').replace('\n', ' ') for v in cells) + ' |\n'
         if e.get('catalog_aliases'):
             body += f'\n另一公开目录的逐行交叉链接：{len({(a["catalog"], a["ordinal"]) for a in e["catalog_aliases"]})}个来源行，共{len(e["catalog_aliases"])}条目标行链接；见同源`CatalogAliases()`生成表，重复签名不去重。\n'
-        write(docs / (e['type'] + '.md'), body)
+        write(docs / doc_path(compiler, e['type']), body)
     # 布局号到表下标的直接索引：布局号稀疏但上限很小，按线上布局号查询时不必线性扫描。
     slots = [65535] * (max(p['entry']['layout'] for p in plans) + 1)
     for position, p in enumerate(plans):
@@ -945,7 +1071,7 @@ def emit(compiler, plans, out, docs):
     for p in plans:
         for f in p['fields']:
             source = 'Companion' if f['companion'] else 'Synthetic' if f['synthetic'] else 'Object'
-            wire.append(f'  {{{f["layout"]}, {f["index"]}, {f["block"]}, {f["native_offset"]}u, {f["native_size"]}, {f["wire_offset"]}u, {f["min_size"]}, {f["max_size"]}, Operation::{f["operation"]}, {quote(f["name"])}, {quote(f["type"])}, {quote(f["host"])}, {quote(f["target"])}, {quote(f["storage"])}, {quote(f["count_source"])}, {f["nested_layout"]}, {f["nested_block"]}, {f["limit"]}, {f["stride"]}, FieldSource::{source}, {str(f["shape"]).lower()}, {quote(f["read_requirement"])}, {f["fixed_count"]}, {f["mask"]}u}},\n')
+            wire.append(f'  {{{f["layout"]}, {f["index"]}, {f["block"]}, {f["native_offset"]}u, {f["native_size"]}, {f["wire_offset"]}u, {f["min_size"]}, {f["max_size"]}, Operation::{f["operation"]}, {quote(f["name"])}, {quote(f["type"])}, {quote(f["host"])}, {quote(f["target"])}, {quote(f["storage"])}, {quote(f["count_source"])}, {f["nested_layout"]}, {f["nested_block"]}, {f["limit"]}, {f["stride"]}, FieldSource::{source}, {str(f["shape"]).lower()}, {quote(f["read_requirement"])}, {f["fixed_count"]}, {f["mask"]}u, {f["count_bytes"]}}},\n')
     wire += ['}};\n', array('NativeRange', 'kStateNativeRanges', sum(len(p['native_ranges']) for p in plans))]
     for p in plans:
         for r in p['native_ranges']:
@@ -1010,12 +1136,29 @@ def emit(compiler, plans, out, docs):
     members.append('}};\n')
     for filename, content in [('state_wire.inc', wire), ('state_capture.inc', capture), ('state_client.inc', client), ('state_members.inc', members)]:
         write(out / filename, ''.join(content))
-    index = '# 生成布局索引\n\n只修改 `mod/binding/state/`。未知和未核声明照实保留，不能据本表宣称原生同步已可用。\n\n'
-    index += '| 类型 | 布局编号 | 原生字节 | 未知字节 | 完整 |\n|---|---|---|---|---|\n'
-    index += ''.join(f'| [{p["entry"]["type"]}]({p["entry"]["type"]}.md) | {p["entry"]["layout"]} | {p["entry"]["native_size"]} | {p["unknown"]} | {"是" if p["complete"] else "否"} |\n' for p in plans)
+    index = '# 按总计划步骤归类的生成布局索引\n\n'
+    index += '上级：[二进制重构总计划](../README.md#7-步骤)。按总计划步骤号阅读，步骤号与布局编号分别管理；各步骤内按布局编号排列。\n\n'
+    index += '布局内容只修改 `mod/binding/state/`；目录与索引由 `mod/tools/gen_state_layout.py` 同源生成。未知和未核声明照实保留，不能据本表宣称原生同步已可用。\n\n'
+    index += '以布局源所属步骤归类，变体与附属类型随所属域；共享类型只保存一份。第7步已登记的显示／资源结构仍随第7步，后续协议与运行职责见对应计划，不以目录位置宣称已实现。\n\n'
+    index += '第0—1步负责起点与生成机制，没有单独类型表；第9—15步的线格式、采集、发布、解码、应用、退役与验收文档见总计划，当前不创建空目录。\n\n'
+    index += '| 总计划步骤 | 布局表数 | 公开目录表数 |\n|---|---|---|\n'
+    step_indexes = {}
+    catalog_counts = {step: 0 for step in DOC_STEPS}
+    for catalog, domain in compiler.catalog_outputs:
+        step = catalog_doc_step(catalog, domain)
+        catalog_counts[step] += 1
+    for step, (title, plan_file) in DOC_STEPS.items():
+        selected = [p for p in plans if compiler.doc_steps[p['entry']['type']] == step]
+        index += f'| [{title}]({step}/README.md) | {len(selected)} | {catalog_counts[step]} |\n'
+        body = f'# {title}：生成布局\n\n[返回布局总索引](../README.md) · [对应总计划步骤](../../{plan_file})\n\n'
+        body += '按布局编号排列；共享类型通过引用复用，不重复生成。未知字节与完整标志只描述布局事实，不表示采集、应用或验收已完成。\n\n'
+        body += '| 类型 | 布局编号 | 原生字节 | 未知字节 | 完整 |\n|---|---|---|---|---|\n'
+        body += ''.join(f'| [{p["entry"]["type"]}]({p["entry"]["type"]}.md) | {p["entry"]["layout"]} | {p["entry"]["native_size"]} | {p["unknown"]} | {"是" if p["complete"] else "否"} |\n' for p in selected)
+        step_indexes[step] = body
     # 汇总表和C++逐行表共用正式布局源；保留重复ID的公开名及原始签名以便人工阅读。
     for catalog, domain in compiler.catalog_outputs:
         filename = Path(catalog).stem + ('-' + domain if domain else '') + '-members.md'
+        step = catalog_doc_step(catalog, domain)
         rows = sorted((item for item in compiler.catalog_rows[catalog]
                        if domain is None or compiler.catalog_sources[catalog][item[1]['ordinal'] - 1].get('domain') == domain),
                       key=lambda item: item[1]['ordinal'])
@@ -1032,12 +1175,28 @@ def emit(compiler, plans, out, docs):
             source = compiler.catalog_sources[catalog][row['ordinal'] - 1]
             cells = [str(row['ordinal']), row['id'] + ' / ' + source.get('member', row['id']),
                      json.dumps(row['parameters'], ensure_ascii=False) + ' / ' + json.dumps(row['returns'], ensure_ascii=False),
-                     f'[{entry["type"]} ({entry["layout"]})]({entry["type"]}.md)：' + ','.join(row['fields']),
+                     f'[{entry["type"]} ({entry["layout"]})]({posixpath.relpath(doc_path(compiler, entry["type"]), step)})：' + ','.join(row['fields']),
                      row['disposition'] + '；' + row['route'], row['reason']]
             body += '| ' + ' | '.join(v.replace('|', '\\|').replace('\n', ' ') for v in cells) + ' |\n'
-        write(docs / filename, body)
-        index += f'\n公开目录：[{Path(catalog).stem} {domain + "域" if domain else ""}全部 {len(rows)} 行]({filename})。\n'
+        write(docs / step / filename, body)
+        step_indexes[step] += f'\n公开目录：[{Path(catalog).stem} {domain + "域" if domain else ""}全部 {len(rows)} 行]({filename})。\n'
+    for step, body in step_indexes.items():
+        write(docs / step / 'README.md', body)
+    index += '\n旧证据路径仅保留 [EntitySaveState](EntitySaveState.md) 和 [GridEntityDesc](GridEntityDesc.md) 两个跳转页，正式表见对应步骤目录。\n'
+    for name, step in DOC_LEGACY_PATHS.items():
+        write(docs / (name + '.md'), f'# {name}：旧证据路径\n\n正式布局已归入 [{name}]({step}/{name}.md)。\n\n本页仅保留布局源中既有证据路径；原生字节归属、状态布局及未知项以正式表为准。\n')
     write(docs / 'README.md', index)
+
+
+def catalog_doc_step(catalog, domain):
+    """公开目录随总计划所属步骤归档，不根据布局编号或生成先后排序。"""
+    if Path(catalog).stem == 'grid-catalog':
+        return '06-grid'
+    if Path(catalog).stem == 'run-catalog':
+        return '08-run-presentation'
+    if Path(catalog).stem == 'stream-catalog' and domain in {'room', 'level', 'room_save', 'exploration'}:
+        return '07-room-level'
+    raise ValueError(f'{catalog}:{domain}: 尚未登记公开目录的总计划步骤')
 
 
 def table(cells):

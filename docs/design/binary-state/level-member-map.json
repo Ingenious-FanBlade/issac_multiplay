@@ -1,0 +1,3167 @@
+{
+  "format": "isaac.cs.level-member-review",
+  "revision": 2,
+  "date": "2026-11-10",
+  "source_catalog": "docs/design/tx-04-21/stream-catalog.json",
+  "application_catalog": "docs/design/tx-04-18/room-grid-application.json",
+  "ordinal_base": 0,
+  "scope": "原始source_schema=isaac.cs.level的全部131行；保留Level87/RoomDescriptor44；设计回映射，非生产public_owners/Getter兼容实现",
+  "members": [
+    {
+      "source_ordinal": 2781,
+      "original_source_ordinal": 42,
+      "application_ordinals": [
+        161
+      ],
+      "field": 2782,
+      "wire_name": "room-level-catalog.json|Level.AddAngelRoomChance| float Chance |void",
+      "id": "Level.AddAngelRoomChance",
+      "parameters": " float Chance ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 20
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2782,
+      "original_source_ordinal": 43,
+      "application_ordinals": [
+        162
+      ],
+      "field": 2783,
+      "wire_name": "room-level-catalog.json|Level.AddCurse| LevelCurse Curse, boolean ShowName |void",
+      "id": "Level.AddCurse",
+      "parameters": " LevelCurse Curse, boolean ShowName ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 25
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2783,
+      "original_source_ordinal": 44,
+      "application_ordinals": [
+        163
+      ],
+      "field": 2784,
+      "wire_name": "room-level-catalog.json|Level.ApplyBlueMapEffect| |void",
+      "id": "Level.ApplyBlueMapEffect",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 32
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2784,
+      "original_source_ordinal": 45,
+      "application_ordinals": [
+        164
+      ],
+      "field": 2785,
+      "wire_name": "room-level-catalog.json|Level.ApplyCompassEffect| boolean Persistent |void",
+      "id": "Level.ApplyCompassEffect",
+      "parameters": " boolean Persistent ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 37
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2785,
+      "original_source_ordinal": 46,
+      "application_ordinals": [
+        165
+      ],
+      "field": 2786,
+      "wire_name": "room-level-catalog.json|Level.ApplyMapEffect| |void",
+      "id": "Level.ApplyMapEffect",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 42
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2786,
+      "original_source_ordinal": 47,
+      "application_ordinals": [
+        166
+      ],
+      "field": 2787,
+      "wire_name": "room-level-catalog.json|Level.CanOpenChallengeRoom| int RoomIndex |boolean",
+      "id": "Level.CanOpenChallengeRoom",
+      "parameters": " int RoomIndex ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 47
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2787,
+      "original_source_ordinal": 48,
+      "application_ordinals": [
+        167
+      ],
+      "field": 2788,
+      "wire_name": "room-level-catalog.json|Level.CanPlaceRoom| RoomConfigRoom RoomConfigToPlace, int GridIndex, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false |boolean",
+      "id": "Level.CanPlaceRoom",
+      "parameters": " RoomConfigRoom RoomConfigToPlace, int GridIndex, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 10
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2788,
+      "original_source_ordinal": 49,
+      "application_ordinals": [
+        168
+      ],
+      "field": 2789,
+      "wire_name": "room-level-catalog.json|Level.CanPlaceRoom| RoomShape RoomShape, DoorMask DoorMask, int GridIndex, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false |boolean",
+      "id": "Level.CanPlaceRoom",
+      "parameters": " RoomShape RoomShape, DoorMask DoorMask, int GridIndex, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 11
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2789,
+      "original_source_ordinal": 50,
+      "application_ordinals": [
+        169
+      ],
+      "field": 2790,
+      "wire_name": "room-level-catalog.json|Level.CanPlaceRoomAtDoor| RoomConfigRoom RoomConfigToPlace, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |boolean",
+      "id": "Level.CanPlaceRoomAtDoor",
+      "parameters": " RoomConfigRoom RoomConfigToPlace, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 18
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2790,
+      "original_source_ordinal": 51,
+      "application_ordinals": [
+        170
+      ],
+      "field": 2791,
+      "wire_name": "room-level-catalog.json|Level.CanPlaceRoomAtDoor| RoomShape RoomShape, DoorMask DoorMask, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |boolean",
+      "id": "Level.CanPlaceRoomAtDoor",
+      "parameters": " RoomShape RoomShape, DoorMask DoorMask, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 19
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2791,
+      "original_source_ordinal": 52,
+      "application_ordinals": [
+        171
+      ],
+      "field": 2792,
+      "wire_name": "room-level-catalog.json|Level.CanSpawnDevilRoom| |boolean",
+      "id": "Level.CanSpawnDevilRoom",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 53
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2792,
+      "original_source_ordinal": 53,
+      "application_ordinals": [
+        172
+      ],
+      "field": 2793,
+      "wire_name": "room-level-catalog.json|Level.CanSpawnDoorOutline| int RoomIdx, DoorSlot DoorSlot |boolean",
+      "id": "Level.CanSpawnDoorOutline",
+      "parameters": " int RoomIdx, DoorSlot DoorSlot ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 26
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2793,
+      "original_source_ordinal": 54,
+      "application_ordinals": [
+        173
+      ],
+      "field": 2794,
+      "wire_name": "room-level-catalog.json|Level.CanStageHaveCurseOfLabyrinth| LevelStage Stage |boolean",
+      "id": "Level.CanStageHaveCurseOfLabyrinth",
+      "parameters": " LevelStage Stage ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 58
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2794,
+      "original_source_ordinal": 55,
+      "application_ordinals": [
+        174
+      ],
+      "field": 2795,
+      "wire_name": "room-level-catalog.json|Level.ChangeRoom| int RoomIndex, int Dimension = -1 |void",
+      "id": "Level.ChangeRoom",
+      "parameters": " int RoomIndex, int Dimension = -1 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 63
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2795,
+      "original_source_ordinal": 56,
+      "application_ordinals": [
+        175
+      ],
+      "field": 2796,
+      "wire_name": "room-level-catalog.json|Level.DisableDevilRoom| |void",
+      "id": "Level.DisableDevilRoom",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 71
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2796,
+      "original_source_ordinal": 57,
+      "application_ordinals": [
+        176
+      ],
+      "field": 2797,
+      "wire_name": "room-level-catalog.json|Level.DungeonReturnPosition|None|Vector",
+      "id": "Level.DungeonReturnPosition",
+      "parameters": null,
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 462
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2797,
+      "original_source_ordinal": 58,
+      "application_ordinals": [
+        177
+      ],
+      "field": 2798,
+      "wire_name": "room-level-catalog.json|Level.DungeonReturnRoomIndex|None|int",
+      "id": "Level.DungeonReturnRoomIndex",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 467
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2798,
+      "original_source_ordinal": 59,
+      "application_ordinals": [
+        178
+      ],
+      "field": 2799,
+      "wire_name": "room-level-catalog.json|Level.EnterDoor|None|int",
+      "id": "Level.EnterDoor",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 472
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2799,
+      "original_source_ordinal": 60,
+      "application_ordinals": [
+        179
+      ],
+      "field": 2800,
+      "wire_name": "room-level-catalog.json|Level.FindValidRoomPlacementLocations| RoomConfigRoom RoomConfig, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |int[]",
+      "id": "Level.FindValidRoomPlacementLocations",
+      "parameters": " RoomConfigRoom RoomConfig, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "int[]",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 30
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2800,
+      "original_source_ordinal": 61,
+      "application_ordinals": [
+        180
+      ],
+      "field": 2801,
+      "wire_name": "room-level-catalog.json|Level.FindValidRoomPlacementLocations| RoomShape RoomShape = 1, DoorMask DoorMask = -1, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |int[]",
+      "id": "Level.FindValidRoomPlacementLocations",
+      "parameters": " RoomShape RoomShape = 1, DoorMask DoorMask = -1, Dimension Dimension = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "int[]",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 31
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2801,
+      "original_source_ordinal": 62,
+      "application_ordinals": [
+        181
+      ],
+      "field": 2802,
+      "wire_name": "room-level-catalog.json|Level.ForceHorsemanBoss| int Seed |boolean",
+      "id": "Level.ForceHorsemanBoss",
+      "parameters": " int Seed ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 76
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2802,
+      "original_source_ordinal": 63,
+      "application_ordinals": [
+        182
+      ],
+      "field": 2803,
+      "wire_name": "room-level-catalog.json|Level.GetAbsoluteStage| |LevelStage",
+      "id": "Level.GetAbsoluteStage",
+      "parameters": " ",
+      "type": "LevelStage",
+      "old_ownership": "ReplicatedState",
+      "decision": "derived",
+      "destination": "@L0.stage/stage_type + @Run.difficulty + @Presentation",
+      "reason": "纯元数据/显示语义，不增设原始Getter字段；完整GetAbsoluteStage公式未在本轮宣称实现",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 81
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2803,
+      "original_source_ordinal": 64,
+      "application_ordinals": [
+        183
+      ],
+      "field": 2804,
+      "wire_name": "room-level-catalog.json|Level.GetAngelRoomChance| |float",
+      "id": "Level.GetAngelRoomChance",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "decision": "delegated",
+      "destination": "@Presentation.StatHUD.final_values",
+      "reason": "本API angel chance是182F4权重，不等于最终HUD概率；只同步正常Host显示缓存，不重算",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 93
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2804,
+      "original_source_ordinal": 65,
+      "application_ordinals": [
+        184
+      ],
+      "field": 2805,
+      "wire_name": "room-level-catalog.json|Level.GetCanSeeEverything| |boolean",
+      "id": "Level.GetCanSeeEverything",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostVisibility -> L1.display_flags/L2",
+      "reason": "可见性生产输入；最终DisplayFlags、有效诅咒和地图结果承接，不复制Host查看/更新状态",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 104
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2805,
+      "original_source_ordinal": 66,
+      "application_ordinals": [
+        185
+      ],
+      "field": 2806,
+      "wire_name": "room-level-catalog.json|Level.GetCurrentRoom| |Room",
+      "id": "Level.GetCurrentRoom",
+      "parameters": " ",
+      "type": "Room",
+      "old_ownership": "ReplicatedState",
+      "decision": "reference",
+      "destination": "@CurrentWorld.Room",
+      "reason": "已有当前Room owner与结构身份；不复制地址，也不运行初始化",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 109
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2806,
+      "original_source_ordinal": 67,
+      "application_ordinals": [
+        186
+      ],
+      "field": 2807,
+      "wire_name": "room-level-catalog.json|Level.GetCurrentRoomDesc| |RoomDescriptor",
+      "id": "Level.GetCurrentRoomDesc",
+      "parameters": " ",
+      "type": "RoomDescriptor",
+      "old_ownership": "ReplicatedState",
+      "decision": "structural",
+      "destination": "L1/L3 + @OrderedOrdinaryDescriptorMembers",
+      "reason": "活动有序成员和物理源槽/三维映射承接；不调用73AD10的fallback初始化或随机/递归路由补采",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 114
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2807,
+      "original_source_ordinal": 68,
+      "application_ordinals": [
+        187
+      ],
+      "field": 2808,
+      "wire_name": "room-level-catalog.json|Level.GetCurrentRoomIndex| |int",
+      "id": "Level.GetCurrentRoomIndex",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "L0.current_entry_index",
+      "reason": "保留入口象限／负特殊房间，不用GridIndex代替",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 127
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2808,
+      "original_source_ordinal": 69,
+      "application_ordinals": [
+        188
+      ],
+      "field": 2809,
+      "wire_name": "room-level-catalog.json|Level.GetCurseName| |string",
+      "id": "Level.GetCurseName",
+      "parameters": " ",
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "decision": "delegated",
+      "destination": "@Presentation.LevelName/CurseText",
+      "reason": "保留实际已选文本/资源；challenge44逐房主题和官方CustomStageName不能仅由L0复算；实际显示批次待接线",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 137
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2809,
+      "original_source_ordinal": 70,
+      "application_ordinals": [
+        189
+      ],
+      "field": 2810,
+      "wire_name": "room-level-catalog.json|Level.GetCurses| |LevelCurse",
+      "id": "Level.GetCurses",
+      "parameters": " ",
+      "type": "LevelCurse",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "L0.effective_curses",
+      "reason": "742450的最终组合；原始+C、temporary和seed强制/阻止均不独立下发",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 142
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2810,
+      "original_source_ordinal": 71,
+      "application_ordinals": [
+        190
+      ],
+      "field": 2811,
+      "wire_name": "room-level-catalog.json|Level.GetDevilAngelRoomRNG| |RNG",
+      "id": "Level.GetDevilAngelRoomRNG",
+      "parameters": " ",
+      "type": "RNG",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 147
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2811,
+      "original_source_ordinal": 72,
+      "application_ordinals": [
+        191
+      ],
+      "field": 2812,
+      "wire_name": "room-level-catalog.json|Level.GetDimension| |Dimension",
+      "id": "Level.GetDimension",
+      "parameters": " ",
+      "type": "Dimension",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "L0.dimension",
+      "reason": "原生i32核0..2后编码u8；不发送默认-1",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 40
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2812,
+      "original_source_ordinal": 73,
+      "application_ordinals": [
+        192
+      ],
+      "field": 2813,
+      "wire_name": "room-level-catalog.json|Level.GetDungeonPlacementSeed| |int",
+      "id": "Level.GetDungeonPlacementSeed",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 152
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2813,
+      "original_source_ordinal": 74,
+      "application_ordinals": [
+        193
+      ],
+      "field": 2814,
+      "wire_name": "room-level-catalog.json|Level.GetEnterPosition| |Vector",
+      "id": "Level.GetEnterPosition",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 157
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2814,
+      "original_source_ordinal": 75,
+      "application_ordinals": [
+        194
+      ],
+      "field": 2815,
+      "wire_name": "room-level-catalog.json|Level.GetForceSpecialQuest| |SpecialQuest",
+      "id": "Level.GetForceSpecialQuest",
+      "parameters": " ",
+      "type": "SpecialQuest",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@LevelASM.ForceSpecialQuest",
+      "reason": "对象外生成参数，非Game偏移；结果由实际拓扑/门/显示承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 45
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2815,
+      "original_source_ordinal": 76,
+      "application_ordinals": [
+        195
+      ],
+      "field": 2816,
+      "wire_name": "room-level-catalog.json|Level.GetGenerationRNG| |RNG",
+      "id": "Level.GetGenerationRNG",
+      "parameters": " ",
+      "type": "RNG",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 52
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2816,
+      "original_source_ordinal": 77,
+      "application_ordinals": [
+        196
+      ],
+      "field": 2817,
+      "wire_name": "room-level-catalog.json|Level.GetGreedWavesClearedWithoutRedHeartDamage| |int",
+      "id": "Level.GetGreedWavesClearedWithoutRedHeartDamage",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "sdk_conflict",
+      "destination": "@SDK18204 != @Native18374 (HostOnly)",
+      "reason": "官方LuaLevel.cpp错误读取dimension2/grid120映射；真实计数由7455D7/80BEAB核到18374，二者均不作为Client状态",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 56
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2817,
+      "original_source_ordinal": 78,
+      "application_ordinals": [
+        197
+      ],
+      "field": 2818,
+      "wire_name": "room-level-catalog.json|Level.GetHeartPicked| |boolean",
+      "id": "Level.GetHeartPicked",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 162
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2818,
+      "original_source_ordinal": 79,
+      "application_ordinals": [
+        198
+      ],
+      "field": 2819,
+      "wire_name": "room-level-catalog.json|Level.GetLastBossRoomListIndex| |int",
+      "id": "Level.GetLastBossRoomListIndex",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "L0.current_is_last_boss",
+      "reason": "原始索引留Host；L0匹配bool在所有模式保留：97D0EA Greed HUD及803313普通TrapDoor Light都需要",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 167
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2819,
+      "original_source_ordinal": 80,
+      "application_ordinals": [
+        199
+      ],
+      "field": 2820,
+      "wire_name": "room-level-catalog.json|Level.GetLastRoomDesc| |RoomDescriptor",
+      "id": "Level.GetLastRoomDesc",
+      "parameters": " ",
+      "type": "RoomDescriptor",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 172
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2820,
+      "original_source_ordinal": 81,
+      "application_ordinals": [
+        200
+      ],
+      "field": 2821,
+      "wire_name": "room-level-catalog.json|Level.GetMyosotisPickups| |EntitiesSaveStateVector",
+      "id": "Level.GetMyosotisPickups",
+      "parameters": " ",
+      "type": "EntitiesSaveStateVector",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@Host.MyosotisQueue + @Entity.CreatedPickup",
+      "reason": "跨层保存/生成留Host，实际创建的Pickup独立同步，不在Client Restore",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 60
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2821,
+      "original_source_ordinal": 82,
+      "application_ordinals": [
+        201
+      ],
+      "field": 2822,
+      "wire_name": "room-level-catalog.json|Level.GetName| |string",
+      "id": "Level.GetName",
+      "parameters": " ",
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "decision": "delegated",
+      "destination": "@Presentation.LevelName/CurseText",
+      "reason": "保留实际已选文本/资源；challenge44逐房主题和官方CustomStageName不能仅由L0复算；实际显示批次待接线",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 177
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2822,
+      "original_source_ordinal": 83,
+      "application_ordinals": [
+        202
+      ],
+      "field": 2823,
+      "wire_name": "room-level-catalog.json|Level.GetNeighboringRooms| int GridIndex, RoomShape RoomShape, Dimension Dimension = -1 |table",
+      "id": "Level.GetNeighboringRooms",
+      "parameters": " int GridIndex, RoomShape RoomShape, Dimension Dimension = -1 ",
+      "type": "table",
+      "old_ownership": "ReplicatedState",
+      "decision": "derived",
+      "destination": "@DescriptorTopology",
+      "reason": "从同world已安装配置形状、三维占用和源槽关系作具名纯结构查询；不是重跑放房/连门",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 65
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2823,
+      "original_source_ordinal": 84,
+      "application_ordinals": [
+        203
+      ],
+      "field": 2824,
+      "wire_name": "room-level-catalog.json|Level.GetNonCompleteRoomIndex| |int",
+      "id": "Level.GetNonCompleteRoomIndex",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 182
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2824,
+      "original_source_ordinal": 85,
+      "application_ordinals": [
+        204
+      ],
+      "field": 2825,
+      "wire_name": "room-level-catalog.json|Level.GetPlanetariumChance| |float",
+      "id": "Level.GetPlanetariumChance",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "decision": "delegated",
+      "destination": "@Presentation.StatHUD.final_values",
+      "reason": "本API angel chance是182F4权重，不等于最终HUD概率；只同步正常Host显示缓存，不重算",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 187
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2825,
+      "original_source_ordinal": 86,
+      "application_ordinals": [
+        205
+      ],
+      "field": 2826,
+      "wire_name": "room-level-catalog.json|Level.GetPreviousRoomIndex| |int",
+      "id": "Level.GetPreviousRoomIndex",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 193
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2826,
+      "original_source_ordinal": 87,
+      "application_ordinals": [
+        206
+      ],
+      "field": 2827,
+      "wire_name": "room-level-catalog.json|Level.GetRandomRoomIndex| boolean IAmErrorRoom, int Seed |int",
+      "id": "Level.GetRandomRoomIndex",
+      "parameters": " boolean IAmErrorRoom, int Seed ",
+      "type": "int",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 198
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2827,
+      "original_source_ordinal": 88,
+      "application_ordinals": [
+        207
+      ],
+      "field": 2828,
+      "wire_name": "room-level-catalog.json|Level.GetRoomByIdx| int RoomIdx, int Dimension = -1 |RoomDescriptor",
+      "id": "Level.GetRoomByIdx",
+      "parameters": " int RoomIdx, int Dimension = -1 ",
+      "type": "RoomDescriptor",
+      "old_ownership": "ReplicatedState",
+      "decision": "structural",
+      "destination": "L1/L3 + @OrderedOrdinaryDescriptorMembers",
+      "reason": "活动有序成员和物理源槽/三维映射承接；不调用73AD10的fallback初始化或随机/递归路由补采",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 203
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2828,
+      "original_source_ordinal": 89,
+      "application_ordinals": [
+        208
+      ],
+      "field": 2829,
+      "wire_name": "room-level-catalog.json|Level.GetRoomCount| |int",
+      "id": "Level.GetRoomCount",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "structural",
+      "destination": "L1/L3 + @OrderedOrdinaryDescriptorMembers",
+      "reason": "活动有序成员和物理源槽/三维映射承接；不调用73AD10的fallback初始化或随机/递归路由补采",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 226
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2829,
+      "original_source_ordinal": 90,
+      "application_ordinals": [
+        209
+      ],
+      "field": 2830,
+      "wire_name": "room-level-catalog.json|Level.GetRooms| |RoomDescriptor List",
+      "id": "Level.GetRooms",
+      "parameters": " ",
+      "type": "RoomDescriptor List",
+      "old_ownership": "ReplicatedState",
+      "decision": "structural",
+      "destination": "L1/L3 + @OrderedOrdinaryDescriptorMembers",
+      "reason": "活动有序成员和物理源槽/三维映射承接；不调用73AD10的fallback初始化或随机/递归路由补采",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 231
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2830,
+      "original_source_ordinal": 91,
+      "application_ordinals": [
+        210
+      ],
+      "field": 2831,
+      "wire_name": "room-level-catalog.json|Level.GetStage| |LevelStage",
+      "id": "Level.GetStage",
+      "parameters": " ",
+      "type": "LevelStage",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "L0.stage",
+      "reason": "多个原生Room/HUD/地图消费者需要当前stage，不能仅传楼层名称",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 246
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2831,
+      "original_source_ordinal": 92,
+      "application_ordinals": [
+        211
+      ],
+      "field": 2832,
+      "wire_name": "room-level-catalog.json|Level.GetStageType| |StageType",
+      "id": "Level.GetStageType",
+      "parameters": " ",
+      "type": "StageType",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "L0.stage_type",
+      "reason": "当前全局stageType参与镜面与显示；挑战44逐房主题另由资源结果承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 251
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2832,
+      "original_source_ordinal": 93,
+      "application_ordinals": [
+        212
+      ],
+      "field": 2833,
+      "wire_name": "room-level-catalog.json|Level.GetStartingRoomIndex| |int",
+      "id": "Level.GetStartingRoomIndex",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 260
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2833,
+      "original_source_ordinal": 94,
+      "application_ordinals": [
+        213
+      ],
+      "field": 2834,
+      "wire_name": "room-level-catalog.json|Level.GetStateFlag| LevelStateFlag LevelStateFlag|boolean",
+      "id": "Level.GetStateFlag",
+      "parameters": " LevelStateFlag LevelStateFlag",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "decision": "authority",
+      "destination": "@HostLevelFlags -> @FinalWorldResults",
+      "reason": "24个flags原值均不作为通用查询字典下发；最终地图/门/实体/音画仍必需",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 266
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2834,
+      "original_source_ordinal": 95,
+      "application_ordinals": [
+        214
+      ],
+      "field": 2835,
+      "wire_name": "room-level-catalog.json|Level.GreedModeWave|None|int",
+      "id": "Level.GreedModeWave",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "L0.greed_wave",
+      "reason": "97D371显示%d/%d；只读真实Greed当前wave，非Greed规范0",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 481
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2835,
+      "original_source_ordinal": 96,
+      "application_ordinals": [
+        215
+      ],
+      "field": 2836,
+      "wire_name": "room-level-catalog.json|Level.HasAbandonedMineshaft| |boolean",
+      "id": "Level.HasAbandonedMineshaft",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 90
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2836,
+      "original_source_ordinal": 97,
+      "application_ordinals": [
+        216
+      ],
+      "field": 2837,
+      "wire_name": "room-level-catalog.json|Level.HasBossChallenge| |boolean",
+      "id": "Level.HasBossChallenge",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 271
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2837,
+      "original_source_ordinal": 98,
+      "application_ordinals": [
+        217
+      ],
+      "field": 2838,
+      "wire_name": "room-level-catalog.json|Level.HasMirrorDimension| |boolean",
+      "id": "Level.HasMirrorDimension",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 95
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2838,
+      "original_source_ordinal": 99,
+      "application_ordinals": [
+        218
+      ],
+      "field": 2839,
+      "wire_name": "room-level-catalog.json|Level.HasPhotoDoor| |boolean",
+      "id": "Level.HasPhotoDoor",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 100
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2839,
+      "original_source_ordinal": 100,
+      "application_ordinals": [
+        219
+      ],
+      "field": 2840,
+      "wire_name": "room-level-catalog.json|Level.InitializeDevilAngelRoom| boolean ForceAngel, boolean ForceDevil |void",
+      "id": "Level.InitializeDevilAngelRoom",
+      "parameters": " boolean ForceAngel, boolean ForceDevil ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 276
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2840,
+      "original_source_ordinal": 101,
+      "application_ordinals": [
+        220
+      ],
+      "field": 2841,
+      "wire_name": "room-level-catalog.json|Level.IsAltStage| |boolean",
+      "id": "Level.IsAltStage",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "derived",
+      "destination": "@L0.stage/stage_type + @Run.difficulty + @Presentation",
+      "reason": "纯元数据/显示语义，不增设原始Getter字段；完整GetAbsoluteStage公式未在本轮宣称实现",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 289
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2841,
+      "original_source_ordinal": 102,
+      "application_ordinals": [
+        221
+      ],
+      "field": 2842,
+      "wire_name": "room-level-catalog.json|Level.IsAscent| |boolean",
+      "id": "Level.IsAscent",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "delegated",
+      "destination": "@Run.ascent_display_bit48",
+      "reason": "第8步已核bit48显示投影，Level不重复复制Game全flags",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 295
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2842,
+      "original_source_ordinal": 103,
+      "application_ordinals": [
+        222
+      ],
+      "field": 2843,
+      "wire_name": "room-level-catalog.json|Level.IsDevilRoomDisabled| |boolean",
+      "id": "Level.IsDevilRoomDisabled",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 301
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2843,
+      "original_source_ordinal": 104,
+      "application_ordinals": [
+        223
+      ],
+      "field": 2844,
+      "wire_name": "room-level-catalog.json|Level.IsNextStageAvailable| |boolean",
+      "id": "Level.IsNextStageAvailable",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGenerationDecision -> @FinalTopology/Entity",
+      "reason": "玩法/放房/路线谓词；官方镜面/矿井还受ForceSpecialQuest影响；只同步已裁决结构与实际表现，不在Client重跑决策",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 306
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2844,
+      "original_source_ordinal": 105,
+      "application_ordinals": [
+        224
+      ],
+      "field": 2845,
+      "wire_name": "room-level-catalog.json|Level.IsPreAscent| |boolean",
+      "id": "Level.IsPreAscent",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostRoute + @Presentation.FinalTransition",
+      "reason": "路线/生成资格留Host；实际Nightmare/背景/转场由显示owner承接，不恢复Game bit47原值",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 312
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2845,
+      "original_source_ordinal": 106,
+      "application_ordinals": [
+        225
+      ],
+      "field": 2846,
+      "wire_name": "room-level-catalog.json|Level.IsStageAvailable| LevelStage Level, StageType Stage |void",
+      "id": "Level.IsStageAvailable",
+      "parameters": " LevelStage Level, StageType Stage ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "@HostStageUnlockEligibility",
+      "reason": "本地Wiki列出解锁资格查询；只由Host决定路线，不查Client本地成就/解锁，不新增返回值字段",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 105
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2846,
+      "original_source_ordinal": 107,
+      "application_ordinals": [
+        226
+      ],
+      "field": 2847,
+      "wire_name": "room-level-catalog.json|Level.LeaveDoor|None|int",
+      "id": "Level.LeaveDoor",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostLevelSimulation",
+      "reason": "返回/过门/生成/计数/随机/玩法选择输入；同步最终结构、Entity和转场，无必要复制原始值或为Getter额外执行程序",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 486
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2847,
+      "original_source_ordinal": 108,
+      "application_ordinals": [
+        227
+      ],
+      "field": 2848,
+      "wire_name": "room-level-catalog.json|Level.MakeRedRoomDoor| int CurrentRoomIdx, DoorSlot Slot |boolean",
+      "id": "Level.MakeRedRoomDoor",
+      "parameters": " int CurrentRoomIdx, DoorSlot Slot ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 318
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2848,
+      "original_source_ordinal": 109,
+      "application_ordinals": [
+        228
+      ],
+      "field": 2849,
+      "wire_name": "room-level-catalog.json|Level.PlaceRoom| LevelGeneratorEntry Room, RoomConfigRoom RoomConfig, int Seed |boolean",
+      "id": "Level.PlaceRoom",
+      "parameters": " LevelGeneratorEntry Room, RoomConfigRoom RoomConfig, int Seed ",
+      "type": "boolean",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 110
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2849,
+      "original_source_ordinal": 110,
+      "application_ordinals": [
+        229
+      ],
+      "field": 2850,
+      "wire_name": "room-level-catalog.json|Level.QueryRoomTypeIndex| RoomType RoomType, boolean Visited, RNG rng, boolean IgnoreGroup = false |int",
+      "id": "Level.QueryRoomTypeIndex",
+      "parameters": " RoomType RoomType, boolean Visited, RNG rng, boolean IgnoreGroup = false ",
+      "type": "int",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 328
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2850,
+      "original_source_ordinal": 111,
+      "application_ordinals": [
+        230
+      ],
+      "field": 2851,
+      "wire_name": "room-level-catalog.json|Level.RemoveCompassEffect| |void",
+      "id": "Level.RemoveCompassEffect",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 333
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2851,
+      "original_source_ordinal": 112,
+      "application_ordinals": [
+        231
+      ],
+      "field": 2852,
+      "wire_name": "room-level-catalog.json|Level.RemoveCurses| LevelCurse Curses |void",
+      "id": "Level.RemoveCurses",
+      "parameters": " LevelCurse Curses ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 338
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2852,
+      "original_source_ordinal": 113,
+      "application_ordinals": [
+        232
+      ],
+      "field": 2853,
+      "wire_name": "room-level-catalog.json|Level.SetCanSeeEverything| boolean Value |void",
+      "id": "Level.SetCanSeeEverything",
+      "parameters": " boolean Value ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 349
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2853,
+      "original_source_ordinal": 114,
+      "application_ordinals": [
+        233
+      ],
+      "field": 2854,
+      "wire_name": "room-level-catalog.json|Level.SetForceSpecialQuest| SpecialQuest Quest |void",
+      "id": "Level.SetForceSpecialQuest",
+      "parameters": " SpecialQuest Quest ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 119
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2854,
+      "original_source_ordinal": 115,
+      "application_ordinals": [
+        234
+      ],
+      "field": 2855,
+      "wire_name": "room-level-catalog.json|Level.SetGreedWavesClearedWithoutRedHeartDamage| int WavesCleared |void",
+      "id": "Level.SetGreedWavesClearedWithoutRedHeartDamage",
+      "parameters": " int WavesCleared ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 126
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2855,
+      "original_source_ordinal": 116,
+      "application_ordinals": [
+        235
+      ],
+      "field": 2856,
+      "wire_name": "room-level-catalog.json|Level.SetHeartPicked| |void",
+      "id": "Level.SetHeartPicked",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 354
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2856,
+      "original_source_ordinal": 117,
+      "application_ordinals": [
+        236
+      ],
+      "field": 2857,
+      "wire_name": "room-level-catalog.json|Level.SetName| string Name |void",
+      "id": "Level.SetName",
+      "parameters": " string Name ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 130
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2857,
+      "original_source_ordinal": 118,
+      "application_ordinals": [
+        237
+      ],
+      "field": 2858,
+      "wire_name": "room-level-catalog.json|Level.SetNextStage| |void",
+      "id": "Level.SetNextStage",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 359
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2858,
+      "original_source_ordinal": 119,
+      "application_ordinals": [
+        238
+      ],
+      "field": 2859,
+      "wire_name": "room-level-catalog.json|Level.SetRedHeartDamage| |void",
+      "id": "Level.SetRedHeartDamage",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 364
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2859,
+      "original_source_ordinal": 120,
+      "application_ordinals": [
+        239
+      ],
+      "field": 2860,
+      "wire_name": "room-level-catalog.json|Level.SetStage| int StageOffset, int StageTypeOffset |void",
+      "id": "Level.SetStage",
+      "parameters": " int StageOffset, int StageTypeOffset ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 369
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2860,
+      "original_source_ordinal": 121,
+      "application_ordinals": [
+        240
+      ],
+      "field": 2861,
+      "wire_name": "room-level-catalog.json|Level.SetStateFlag| LevelStateFlag LevelStateFlag, boolean Val |void",
+      "id": "Level.SetStateFlag",
+      "parameters": " LevelStateFlag LevelStateFlag, boolean Val ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 408
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2861,
+      "original_source_ordinal": 122,
+      "application_ordinals": [
+        241
+      ],
+      "field": 2862,
+      "wire_name": "room-level-catalog.json|Level.ShowMap| |void",
+      "id": "Level.ShowMap",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 413
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2862,
+      "original_source_ordinal": 123,
+      "application_ordinals": [
+        242
+      ],
+      "field": 2863,
+      "wire_name": "room-level-catalog.json|Level.ShowName| boolean Sticky |void",
+      "id": "Level.ShowName",
+      "parameters": " boolean Sticky ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 418
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2863,
+      "original_source_ordinal": 124,
+      "application_ordinals": [
+        243
+      ],
+      "field": 2864,
+      "wire_name": "room-level-catalog.json|Level.TryPlaceRoom| RoomConfigRoom RoomConfigToPlace, int GridIndex, Dimension Dimension = -1, int Seed = 0, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false |RoomDescriptor",
+      "id": "Level.TryPlaceRoom",
+      "parameters": " RoomConfigRoom RoomConfigToPlace, int GridIndex, Dimension Dimension = -1, int Seed = 0, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false, boolean AllowNoNeighbors = false ",
+      "type": "RoomDescriptor",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 134
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2864,
+      "original_source_ordinal": 125,
+      "application_ordinals": [
+        244
+      ],
+      "field": 2865,
+      "wire_name": "room-level-catalog.json|Level.TryPlaceRoomAtDoor| RoomConfigRoom RoomConfigToPlace, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, int Seed = 0, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |RoomDescriptor",
+      "id": "Level.TryPlaceRoomAtDoor",
+      "parameters": " RoomConfigRoom RoomConfigToPlace, RoomDescriptor NeighborRoomDescriptor, DoorSlot DoorSlot, int Seed = 0, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "RoomDescriptor",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Level.md",
+          "line": 198
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2865,
+      "original_source_ordinal": 126,
+      "application_ordinals": [
+        245
+      ],
+      "field": 2866,
+      "wire_name": "room-level-catalog.json|Level.UncoverHiddenDoor| int CurrentRoomIdx, DoorSlot Slot |void",
+      "id": "Level.UncoverHiddenDoor",
+      "parameters": " int CurrentRoomIdx, DoorSlot Slot ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 423
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2866,
+      "original_source_ordinal": 127,
+      "application_ordinals": [
+        246
+      ],
+      "field": 2867,
+      "wire_name": "room-level-catalog.json|Level.Update| |void",
+      "id": "Level.Update",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 428
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 2867,
+      "original_source_ordinal": 128,
+      "application_ordinals": [
+        247
+      ],
+      "field": 2868,
+      "wire_name": "room-level-catalog.json|Level.UpdateVisibility| |void",
+      "id": "Level.UpdateVisibility",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Level.md",
+          "line": 433
+        }
+      ],
+      "evidence": "level-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3090,
+      "original_source_ordinal": 351,
+      "application_ordinals": [
+        470
+      ],
+      "field": 3091,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.AddRestrictedGridIndex| int GridIndex |void",
+      "id": "RoomDescriptor.AddRestrictedGridIndex",
+      "parameters": " int GridIndex ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 30
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3091,
+      "original_source_ordinal": 352,
+      "application_ordinals": [
+        471
+      ],
+      "field": 3092,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.AllowedDoors|None|DoorSet",
+      "id": "RoomDescriptor.AllowedDoors",
+      "parameters": null,
+      "type": "DoorSet",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "L1.allowed_doors",
+      "reason": "官方修复为有效低八位mask；Void地图框线消费；不同于实际门存在性",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 23
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 10
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3092,
+      "original_source_ordinal": 353,
+      "application_ordinals": [
+        472
+      ],
+      "field": 3093,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.AwardSeed|None|int",
+      "id": "RoomDescriptor.AwardSeed",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 31
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3093,
+      "original_source_ordinal": 354,
+      "application_ordinals": [
+        473
+      ],
+      "field": 3094,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.BossDeathSeed|None|int",
+      "id": "RoomDescriptor.BossDeathSeed",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 147
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3094,
+      "original_source_ordinal": 355,
+      "application_ordinals": [
+        474
+      ],
+      "field": 3095,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.ChallengeDone|None|boolean",
+      "id": "RoomDescriptor.ChallengeDone",
+      "parameters": null,
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 36
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3095,
+      "original_source_ordinal": 356,
+      "application_ordinals": [
+        475
+      ],
+      "field": 3096,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.Clear|None|boolean",
+      "id": "RoomDescriptor.Clear",
+      "parameters": null,
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "L1.display_bits.bit0",
+      "reason": "当前clear位为地图/Greed HUD消费；不因此生成清理奖励",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 41
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3096,
+      "original_source_ordinal": 357,
+      "application_ordinals": [
+        476
+      ],
+      "field": 3097,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.ClearCount|None|int",
+      "id": "RoomDescriptor.ClearCount",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostRoomHistory",
+      "reason": "累计计数不发送；当前clear由display_bits承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 46
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3097,
+      "original_source_ordinal": 358,
+      "application_ordinals": [
+        477
+      ],
+      "field": 3098,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.CreateGroup| string groupName |int",
+      "id": "RoomDescriptor.CreateGroup",
+      "parameters": " string groupName ",
+      "type": "int",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 126
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3098,
+      "original_source_ordinal": 359,
+      "application_ordinals": [
+        478
+      ],
+      "field": 3099,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.Data|None|RoomConfigRoom",
+      "id": "RoomDescriptor.Data",
+      "parameters": null,
+      "type": "RoomConfigRoom",
+      "old_ownership": "ReplicatedState",
+      "decision": "resource",
+      "destination": "L1.data + @RoomConfigurationResource",
+      "reason": "已选基础配置，独立nullable u16资源；实际配置表待注册",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 51
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3099,
+      "original_source_ordinal": 360,
+      "application_ordinals": [
+        479
+      ],
+      "field": 3100,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.DecorationSeed|None|int",
+      "id": "RoomDescriptor.DecorationSeed",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 56
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3100,
+      "original_source_ordinal": 361,
+      "application_ordinals": [
+        480
+      ],
+      "field": 3101,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.DeliriumDistance|None|int",
+      "id": "RoomDescriptor.DeliriumDistance",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 61
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3101,
+      "original_source_ordinal": 362,
+      "application_ordinals": [
+        481
+      ],
+      "field": 3102,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.DisplayFlags|None|int",
+      "id": "RoomDescriptor.DisplayFlags",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "L1.display_flags",
+      "reason": "最终地图显示值；不执行原生可见性生产器",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 66
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3102,
+      "original_source_ordinal": 363,
+      "application_ordinals": [
+        482
+      ],
+      "field": 3103,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.Doors|None|int[]",
+      "id": "RoomDescriptor.Doors",
+      "parameters": null,
+      "type": "int[]",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "L1.doors",
+      "reason": "八个i32结构目标，保留特殊路由；目标存在不等于实际门存在",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 151
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3103,
+      "original_source_ordinal": 364,
+      "application_ordinals": [
+        483
+      ],
+      "field": 3104,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.Flags|None|RoomDescriptor",
+      "id": "RoomDescriptor.Flags",
+      "parameters": null,
+      "type": "RoomDescriptor",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "L1.display_bits",
+      "reason": "五位原生0/10/11/18/5→线上0..4；sacrifice/pitch-black最终lighting及音乐/背景另承接；不回放全flags",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 100
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3104,
+      "original_source_ordinal": 365,
+      "application_ordinals": [
+        484
+      ],
+      "field": 3105,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetDecoSaveState| |EntitiesSaveStateVector",
+      "id": "RoomDescriptor.GetDecoSaveState",
+      "parameters": " ",
+      "type": "EntitiesSaveStateVector",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostRoomSave + @Entity.CurrentEffects",
+      "reason": "离房效果保存不复制，当前显示Effect由Entity域承接；无已核地图消费者",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 34
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3105,
+      "original_source_ordinal": 366,
+      "application_ordinals": [
+        485
+      ],
+      "field": 3106,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetDimension| |Dimension",
+      "id": "RoomDescriptor.GetDimension",
+      "parameters": " ",
+      "type": "Dimension",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "L1.dimension",
+      "reason": "原生i32核0..2后发送u8",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 38
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3106,
+      "original_source_ordinal": 367,
+      "application_ordinals": [
+        486
+      ],
+      "field": 3107,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetEntitiesSaveState| |EntitiesSaveStateVector",
+      "id": "RoomDescriptor.GetEntitiesSaveState",
+      "parameters": " ",
+      "type": "EntitiesSaveStateVector",
+      "old_ownership": "ReplicatedState",
+      "decision": "delegated",
+      "destination": "L2.icon_mask/selected_frames",
+      "reason": "Host过滤后按原生OR/max聚合；不发保存数量/顺序/type/variant/subtype；存在时仅3..12B，保留Slot default和全部选中帧",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 43
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3107,
+      "original_source_ordinal": 368,
+      "application_ordinals": [
+        487
+      ],
+      "field": 3108,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetErrorTrinketEffect| |TrinketType",
+      "id": "RoomDescriptor.GetErrorTrinketEffect",
+      "parameters": " ",
+      "type": "TrinketType",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "D1.error_is_modeling_clay + @Presentation.ActualImage/ColorContext; numeric result HostOnly",
+      "reason": "官方效果范围恒为1..189（零seed为75），>0无需发；实际Image已另传，仅需1B是否等于ModelingClay供颜色adapter；不替代数值Getter或推进RNG",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 47
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3108,
+      "original_source_ordinal": 369,
+      "application_ordinals": [
+        488
+      ],
+      "field": 3109,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetGridEntitiesSaveState| |GridEntitiesSaveStateVector",
+      "id": "RoomDescriptor.GetGridEntitiesSaveState",
+      "parameters": " ",
+      "type": "GridEntitiesSaveStateVector",
+      "old_ownership": "ReplicatedState",
+      "decision": "delegated",
+      "destination": "L2.icon_mask.bit14",
+      "reason": "20h有效元素任一type18只设置楼梯bit；固定帧0不发，不复制保存体/头/seed",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 53
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3109,
+      "original_source_ordinal": 370,
+      "application_ordinals": [
+        489
+      ],
+      "field": 3110,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetGroup||int",
+      "id": "RoomDescriptor.GetGroup",
+      "parameters": "",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 103
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3110,
+      "original_source_ordinal": 371,
+      "application_ordinals": [
+        490
+      ],
+      "field": 3111,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetGroupByName| string groupName |int?",
+      "id": "RoomDescriptor.GetGroupByName",
+      "parameters": " string groupName ",
+      "type": "int?",
+      "old_ownership": "NotReplicated",
+      "decision": "local",
+      "destination": "@OfficialLocalGroupRegistry",
+      "reason": "官方进程内分组名称注册表；分组用于Host传送抽选，不复制注册表或私有ID",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 136
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3111,
+      "original_source_ordinal": 372,
+      "application_ordinals": [
+        491
+      ],
+      "field": 3112,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetNeighboringRooms| |table",
+      "id": "RoomDescriptor.GetNeighboringRooms",
+      "parameters": " ",
+      "type": "table",
+      "old_ownership": "ReplicatedState",
+      "decision": "derived",
+      "destination": "@DescriptorTopology",
+      "reason": "从同world已安装配置形状、三维占用和源槽关系作具名纯结构查询；不是重跑放房/连门",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 57
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3112,
+      "original_source_ordinal": 373,
+      "application_ordinals": [
+        492
+      ],
+      "field": 3113,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetRestrictedGridIndexes| |int[]",
+      "id": "RoomDescriptor.GetRestrictedGridIndexes",
+      "parameters": " ",
+      "type": "int[]",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 78
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3113,
+      "original_source_ordinal": 374,
+      "application_ordinals": [
+        493
+      ],
+      "field": 3114,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetTaintedKeeperCoinSpawns| |int",
+      "id": "RoomDescriptor.GetTaintedKeeperCoinSpawns",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 82
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3114,
+      "original_source_ordinal": 375,
+      "application_ordinals": [
+        494
+      ],
+      "field": 3115,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetValidNeighborPlacementLocations| RoomConfigRoom RoomConfig, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |int[]",
+      "id": "RoomDescriptor.GetValidNeighborPlacementLocations",
+      "parameters": " RoomConfigRoom RoomConfig, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "int[]",
+      "old_ownership": "NotReplicated",
+      "decision": "authority",
+      "destination": "@HostRoomPlacement",
+      "reason": "玩法放房候选查询，不是Client拓扑所需字段；不运行放房判断补源",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 87
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3115,
+      "original_source_ordinal": 376,
+      "application_ordinals": [
+        495
+      ],
+      "field": 3116,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GetValidNeighborPlacementLocations| RoomShape RoomShape = 1, DoorMask DoorMask = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false |int[]",
+      "id": "RoomDescriptor.GetValidNeighborPlacementLocations",
+      "parameters": " RoomShape RoomShape = 1, DoorMask DoorMask = -1, boolean AllowMultipleDoors = true, boolean AllowSpecialNeighbors = false ",
+      "type": "int[]",
+      "old_ownership": "NotReplicated",
+      "decision": "authority",
+      "destination": "@HostRoomPlacement",
+      "reason": "玩法放房候选查询，不是Client拓扑所需字段；不运行放房判断补源",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 88
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3116,
+      "original_source_ordinal": 377,
+      "application_ordinals": [
+        496
+      ],
+      "field": 3117,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.GridIndex|None|int",
+      "id": "RoomDescriptor.GridIndex",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "L1.grid_index",
+      "reason": "描述的原始GridIndex，允许L型缺口，不能充当入口象限",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 105
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3117,
+      "original_source_ordinal": 378,
+      "application_ordinals": [
+        497
+      ],
+      "field": 3118,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.HasWater|None|boolean",
+      "id": "RoomDescriptor.HasWater",
+      "parameters": null,
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "L1.display_bits.bit4 + @Room.FinalWater",
+      "reason": "801BE0的Pit及804500 Backdrop32重绘直接检查原bit5；不能只用waterAmount/水色/WaterClip代替",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 141
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3118,
+      "original_source_ordinal": 379,
+      "application_ordinals": [
+        498
+      ],
+      "field": 3119,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.InitSeeds| RNG RNG |void",
+      "id": "RoomDescriptor.InitSeeds",
+      "parameters": " RNG RNG ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 95
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3119,
+      "original_source_ordinal": 380,
+      "application_ordinals": [
+        499
+      ],
+      "field": 3120,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.ListIndex|None|int",
+      "id": "RoomDescriptor.ListIndex",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "@PhysicalSourceSlot + L0.current_is_last_boss",
+      "reason": "不以可变ListIndex作存储下标；物理源槽独立，L0匹配bool供所有模式的HUD/TrapDoor Light",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 146
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3120,
+      "original_source_ordinal": 381,
+      "application_ordinals": [
+        500
+      ],
+      "field": 3121,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.NoReward|None|boolean",
+      "id": "RoomDescriptor.NoReward",
+      "parameters": null,
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 155
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3121,
+      "original_source_ordinal": 382,
+      "application_ordinals": [
+        501
+      ],
+      "field": 3122,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.OverrideData|None|RoomConfigRoom",
+      "id": "RoomDescriptor.OverrideData",
+      "parameters": null,
+      "type": "RoomConfigRoom",
+      "old_ownership": "ReplicatedState",
+      "decision": "resource",
+      "destination": "L1.override_data + @RoomConfigurationResource",
+      "reason": "与基础配置独立；不合并成单个Type/Variant或随机重选",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 160
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3122,
+      "original_source_ordinal": 383,
+      "application_ordinals": [
+        502
+      ],
+      "field": 3123,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.PitsCount|None|int",
+      "id": "RoomDescriptor.PitsCount",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 165
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3123,
+      "original_source_ordinal": 384,
+      "application_ordinals": [
+        503
+      ],
+      "field": 3124,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.PoopCount|None|int",
+      "id": "RoomDescriptor.PoopCount",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 170
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3124,
+      "original_source_ordinal": 385,
+      "application_ordinals": [
+        504
+      ],
+      "field": 3125,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.PressurePlatesTriggered|None|boolean",
+      "id": "RoomDescriptor.PressurePlatesTriggered",
+      "parameters": null,
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 175
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3125,
+      "original_source_ordinal": 386,
+      "application_ordinals": [
+        505
+      ],
+      "field": 3126,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.SacrificeDone|None|boolean",
+      "id": "RoomDescriptor.SacrificeDone",
+      "parameters": null,
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "delegated",
+      "destination": "@Room.FinalLighting/Pass",
+      "reason": "原bit2在803E20影响献祭房最终shadow fill；不发原位，Room实际lighting必须承接，不归为无显示历史",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 180
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3126,
+      "original_source_ordinal": 387,
+      "application_ordinals": [
+        506
+      ],
+      "field": 3127,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.SafeGridIndex|None|int",
+      "id": "RoomDescriptor.SafeGridIndex",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "L1.safe_grid_index",
+      "reason": "原始安全格子索引；不能代替完整占用映射",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 185
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3127,
+      "original_source_ordinal": 388,
+      "application_ordinals": [
+        507
+      ],
+      "field": 3128,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.SetGroup| int group |void",
+      "id": "RoomDescriptor.SetGroup",
+      "parameters": " int group ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 113
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3128,
+      "original_source_ordinal": 389,
+      "application_ordinals": [
+        508
+      ],
+      "field": 3129,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.SetTaintedKeeperCoinSpawns| int Num |void",
+      "id": "RoomDescriptor.SetTaintedKeeperCoinSpawns",
+      "parameters": " int Num ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "HostOnly",
+      "reason": "具名修改/生成/抽选/更新命令，只在Host执行；结果走正式状态，不向Client回放调用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/RoomDescriptor.md",
+          "line": 99
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3129,
+      "original_source_ordinal": 390,
+      "application_ordinals": [
+        509
+      ],
+      "field": 3130,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.ShopItemDiscountIdx|None|int",
+      "id": "RoomDescriptor.ShopItemDiscountIdx",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 198
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3130,
+      "original_source_ordinal": 391,
+      "application_ordinals": [
+        510
+      ],
+      "field": 3131,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.ShopItemIdx|None|int",
+      "id": "RoomDescriptor.ShopItemIdx",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 226
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3131,
+      "original_source_ordinal": 392,
+      "application_ordinals": [
+        511
+      ],
+      "field": 3132,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.SpawnSeed|None|int",
+      "id": "RoomDescriptor.SpawnSeed",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "D1.error_is_modeling_clay; raw seed/effect ID HostOnly",
+      "reason": "出生生产seed及完整效果ID留Host；从合法当前seed按官方纯整数式求是否ModelingClay，D1仅1B；实际图像另承接，不在离房描述重复",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 259
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3132,
+      "original_source_ordinal": 393,
+      "application_ordinals": [
+        512
+      ],
+      "field": 3133,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.SurpriseMiniboss|None|boolean",
+      "id": "RoomDescriptor.SurpriseMiniboss",
+      "parameters": null,
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "@HostGeneration/RoomSave -> @FinalWorldResults",
+      "reason": "生成/奖励/防刷/传送选择/保存历史留Host；实际Entity/Grid/地图/音画继续由具名owner承接",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 264
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    },
+    {
+      "source_ordinal": 3133,
+      "original_source_ordinal": 394,
+      "application_ordinals": [
+        513
+      ],
+      "field": 3134,
+      "wire_name": "room-level-catalog.json|RoomDescriptor.VisitedCount|None|int",
+      "id": "RoomDescriptor.VisitedCount",
+      "parameters": null,
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "converted",
+      "destination": "L1.visited",
+      "reason": "地图只检查非零，累计历史留Host",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/RoomDescriptor.md",
+          "line": 268
+        }
+      ],
+      "evidence": "room-descriptor-synchronization-review.md"
+    }
+  ],
+  "history": [
+    {
+      "revision": 1,
+      "room_descriptor_unknown": 24,
+      "corrections": "五位flags/当前Boss bool所有模式/D1 Error/L2地图事实；上轮实际未实现，见专门核对"
+    }
+  ]
+}

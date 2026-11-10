@@ -44,7 +44,7 @@ struct DescriptorScalars final {
   }
 };
 // I06只用已核有界数组，不调用会首次构造静态fallback、或解释-100/-101路由的Getter。
-RoomDescriptor *DescriptorStorage(Game &g,const ClientNativeDescriptorDescription &d) noexcept {
+RoomDescriptor *DescriptorStorage(Game &g,const LegacyClientNativeDescriptorDescription &d) noexcept {
   if(d.source_slot>=-20&&d.source_slot<=-1&&d.source_slot!=-19&&d.storage==-1)
     return &g._negativeGridRooms[-d.source_slot-1];
   return !d.source_slot&&d.storage>=0&&d.storage<507?&g._gridRooms[d.storage]:nullptr;
@@ -57,7 +57,7 @@ void CurrentOffsets(Game &g,std::uint32_t bits) noexcept {std::memcpy(g.pad2,&bi
 struct ConfigurationPair final {RoomConfig_Room *data=nullptr,*override_data=nullptr;};
 // SDK以bitset<8>声明这两处4字节存储；按J273实际word保留全部原始位，不经构造器截掉高位。
 template <class T> std::uint32_t ConfigurationBits(const T &value){static_assert(sizeof(T)==4);std::uint32_t bits=0;std::memcpy(&bits,&value,4);return bits;}
-void ApplyDescriptor(RoomDescriptor &d,const ClientNativeDescriptorDescription &s,const ConfigurationPair &configs) noexcept {
+void ApplyDescriptor(RoomDescriptor &d,const LegacyClientNativeDescriptorDescription &s,const ConfigurationPair &configs) noexcept {
   d.GridIndex=s.grid;d.SafeGridIndex=s.safe;d.ListIndex=s.list;d.Dimension=s.dimension;
   d.Data=configs.data;d.OverrideData=configs.override_data;
   d.AllowedDoors=s.allowed;d.Flags=s.flags;d.VisitedCount=s.visited;d.ClearCount=std::int16_t(s.clear_count);
@@ -132,7 +132,7 @@ bool GraphicsContext() noexcept {
   return ClientRendererHandles(dc,context)&&dc&&context&&
          dc==wglGetCurrentDC()&&context==wglGetCurrentContext();
 }
-bool DescriptionValid(const ClientNativeSceneDescription &d) noexcept {
+bool DescriptionValid(const LegacyClientNativeSceneDescription &d) noexcept {
   // 窄房有效区域不等于数组尺寸；采用来源实际grid_width/height，最多448格。
   if(d.descriptors.empty()||d.descriptors.size()>526)return false;
   bool storage[527]{},occupied[507]{};
@@ -179,7 +179,7 @@ struct ClientNativeWorldOwner final {
   RoomDescriptor *descriptor=nullptr;
   RoomConfig_Room *config=nullptr;
   Camera *camera=nullptr;
-  ClientNativeSceneDescription description{};
+  LegacyClientNativeSceneDescription description{};
   // 保存所有将被改写的已构造标量；不复制容器、不析构descriptor，不读取Online槽。
   std::array<DescriptorScalars,527> old_descriptors{};
   std::array<std::uint32_t,507> old_offsets{};
@@ -231,7 +231,7 @@ ClientNativeRoots ClientNativeWorldRoots(ClientNativeWorldOwner *o) noexcept {
 }
 bool ClientNativeWorldHasPrefix(const ClientNativeWorldOwner *o) noexcept {return o&&o->written&&!o->retired;}
 bool ClientNativeWorldSafeMenu(const ClientNativeWorldOwner *o) noexcept {return !o||o->retired||!o->written;}
-bool ClientNativeWorldCanReuse(const ClientNativeWorldOwner *o,const ClientNativeSceneDescription &d) noexcept {
+bool ClientNativeWorldCanReuse(const ClientNativeWorldOwner *o,const LegacyClientNativeSceneDescription &d) noexcept {
   if(!IsMain()||!o||!o->ready||o->uncertain||o->retired)return false;
   const auto &a=o->description;
   if(a.descriptors.size()!=d.descriptors.size())return false;
@@ -247,7 +247,7 @@ bool ClientNativeWorldCanReuse(const ClientNativeWorldOwner *o,const ClientNativ
 }
 
 // 每轮只推进一个完整原生子步骤；调用前先记录责任，失败不冒称旧场景仍完整。
-static ClientNativeStep PrepareImpl(ClientNativeWorldOwner *o,const ClientNativeSceneDescription &d) noexcept {
+static ClientNativeStep PrepareImpl(ClientNativeWorldOwner *o,const LegacyClientNativeSceneDescription &d) noexcept {
   if(!o||!ManagerPhase())return Status(o,ClientNativeStepState::Failed,"native_prepare_owner");
   if(!DescriptionValid(d))return Status(o,ClientNativeStepState::Failed,"native_scene_description");
   if(o->uncertain||o->retire_phase||o->retired)return Status(o,ClientNativeStepState::Failed,"native_prepare_cancelled");
@@ -482,7 +482,7 @@ static ClientNativeStep RetireImpl(ClientNativeWorldOwner *o) noexcept {
   }catch(...){o->uncertain=true;return Status(o,ClientNativeStepState::Failed,"native_retire_exception");}
 }
 // 用途根覆盖本次完整子步骤；任何意外Update/完整Render入口都由外层常驻dispatcher拒绝。
-ClientNativeStep ClientNativeWorldPrepare(ClientNativeWorldOwner *o,const ClientNativeSceneDescription &d) noexcept {
+ClientNativeStep ClientNativeWorldPrepare(ClientNativeWorldOwner *o,const LegacyClientNativeSceneDescription &d) noexcept {
   ClientDispatchScope dispatch(ClientOperation::Build,ClientEntry::NativeBuild);
   if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeBuild)!=ClientEntryDecision::CallOriginal)
     return Status(o,ClientNativeStepState::Failed,"native_build_dispatch");
@@ -502,7 +502,7 @@ ClientNativeStep ClientNativeWorldFinalize(ClientNativeWorldOwner *o) noexcept {
   return step;
 }
 // 热值只进入既有ready owner的具名最终量分支；不会退回菜单构造路径。
-ClientNativeStep ClientNativeWorldRefresh(ClientNativeWorldOwner *o,const ClientNativeSceneDescription &d) noexcept {
+ClientNativeStep ClientNativeWorldRefresh(ClientNativeWorldOwner *o,const LegacyClientNativeSceneDescription &d) noexcept {
   if(!ClientNativeWorldCanReuse(o,d))return Status(o,ClientNativeStepState::Failed,"native_stream_structure_changed");
   ClientDispatchScope dispatch(ClientOperation::Apply,ClientEntry::NativeApply);
   if(!dispatch.Ready()||ClientDispatchBefore(ClientEntry::NativeApply)!=ClientEntryDecision::CallOriginal)return Status(o,ClientNativeStepState::Failed,"native_stream_dispatch");

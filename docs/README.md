@@ -1,10 +1,28 @@
+> **2026-11-10 第7步Room／Level影子描述生成层完成**：[接口、失败方式与构建结果](design/binary-state/room-level-description-implementation.md)。新增正式完整影子记录→自有不可变Room／Level／Descriptor／双配置描述，52个角色及L2帧界同源生成；旧输入明确改名Legacy。描述库及产品Release／Win32纯编译／链接通过，版本仍57、UNKNOWN保持，无测试；实际采集、解码调度和原生安装仍按后续步骤实施。
+
+> **2026-11-10 第7步生产布局源与生成完成，版本57**：[实现与边界](design/binary-state/implementation-7-room-level.md)。正式room／level源新增71个布局239—309，含固定楼层／描述投影、15B配置、必要背景／FX／水光波纹／焦点及地图结果；四域597行、C++表与布局表已同源生成。状态库Release／Win32纯编译通过，UNKNOWN保持，正式来源缓存／协议／GPU ABI／reader／writer／adapter仍待后续；未运行任何测试。以下较早记录保留原时点。
+
+> **2026-11-10 第7步必要显示／资源设计补齐**：[设计与证据](design/binary-state/room-display-resource-design.md)、[机器表](design/binary-state/room-display-resource-design.json)。明确15B配置显示投影、typed不可变资源、程序背景完整recipe／精确内容、水光波纹／焦点和纯地图adapter；生成配方／RNG／保存体留Host，地图查看／视口留本地。纠正Home条件读StageId35而非Type35；资源像素格式／坐标空间、依赖／预算及9—15步合同已回写。设计完成，生产布局／source／GPU ABI／安装仍待实施，版本56，未构建或测试。
+
+> **2026-11-10 第7步RoomSave／Exploration目录核对完成**：[同步决定与证据](design/binary-state/room-save-exploration-synchronization-review.md)、[RoomSave98行](design/binary-state/room-save-member-map.md)及[Exploration99行](design/binary-state/exploration-member-map.md)。完整保存体／备份、ESSM内部ID与揭图生产标志留Host；探索事实复用L0/L1，保存图标／楼梯／Portal复用L2，回访对象归Entity/Grid。地图展开／长按留本地；实际资源／震动及最多7项有序道具／诅咒徽标必需，MapBadgeList草稿1—8B归Presentation。公开API类型／Clear／ESSM字段差异已记录，UNKNOWN保持，正式布局与接线待后续，版本56，无构建或测试。
+
+> **2026-11-10 第7步与Random交接静态核对完成**：[15项同步决定／原生补证](design/binary-state/room-random-handoff.md)及[机器表](design/binary-state/room-random-handoff.json)。生成流与全部私有游标留Host；实际背景／FX、地图选择上下文、音频sample／voice和逐用途随机alpha承接。D0由37／13B草稿改5B，仅Manager相位／paused；新核BD0F40选样本流不上线，挑战32含SafeGridIndex锚点／窗口而非孤立标记，Error沿用最新1B颜色谓词。Random账本修订2共24视图，54行目录保留。正式来源缓存／资源／adapter待9/10/12/13步，生产版本56，无构建或测试。
+
+> **2026-11-10 第7步RoomDescriptor专门核对完成**：[职责／J273证据](design/binary-state/room-descriptor-synchronization-review.md)、[6类型／输入视图账本](design/binary-state/room-descriptor-byte-ledger.md)及[44行目录](design/binary-state/room-descriptor-member-map.md)。B8h原24B未知核为16B商店类别＋8B补货次数，均留Host；直属未归属字节24→0，SDK语义／保存体／配置未知仍保留。补HasWater第五显示位及所有模式Boss匹配，纠正上轮非Greed清零；L1仍53B。当前Error颜色谓词D1=1B，L2只发最终16类图标mask及必要帧，存在3..12B，楼梯/Portal为位，完整seed／保存体不上线。Level已同步设计修订2，实际来源／资源／显示adapter待接线，生产版本56，无构建或测试。下方旧记录保留各自时点。
+
+> **2026-11-10 第7步Level静态核对完成**：[同步职责与J273证据](design/binary-state/level-synchronization-review.md)、[7类型／视图字节账本](design/binary-state/level-byte-ledger.md)及[131行回映射](design/binary-state/level-member-map.md)。核到Game楼层前缀18910，官方简化Level的两处错误偏移位于房间映射内，真实flags／Greed连续无红心伤害波次为1839C／18374。身份／有效诅咒／拓扑、双配置与实际地图／HUD／Door投影保留，生成／过房／全flags／保存历史留Host；保存图标及楼梯结果不能遗漏。根22B／描述24B未知保留，配置资源／地图最终批次与正式接线尚待后续，版本56，无构建或测试。
+
+> **2026-11-10 第7步Room续核（修订2）**：[剩余字节补证](design/binary-state/room-residual-evidence.md)、[职责](design/binary-state/room-synchronization-review.md)、[32类型／视图账本](design/binary-state/room-byte-ledger.md)和[269行回映射](design/binary-state/room-member-map.md)。Room7898h连续登记91段，直属UNKNOWN1290→28B；EntityList884→3B，其他嵌套未知按实例保留。SDK的456-DWORD应为448-DWORD path＋448-WORD占格表，真正slowdown在+722C。输出函数指针／死亡历史／雨区域／碰撞缓存及原版Online环不下发；实际环境voice及水面反向方向必须保留。原26视图／85段基线保留在修订记录，生产布局／来源／安装仍待实施；版本56，无构建或测试。
+
 > **2026-11-10 当前范围调整**：[二进制重构](design/binary-state/README.md)先跑通原版内容；第三方 Mod 的状态、角色／资源／绘制、StageAPI、Lua adapter 及原 E31 已移至[Mod 适配后续方案](design/mod-adaptation.md)，不属于当前 0—15 步实现或验收条件。官方 REPENTOGON／J273 路线、原版完整内容、四参与者／多身体与性能目标保持。本次仅修订文档，未构建、测试或启动游戏。
+
+> **2026-11-10 第8步Random静态核对完成**：[职责／J273证据](design/binary-state/random-synchronization-review.md)、[23类型／字段视图字节账本](design/binary-state/random-byte-ledger.md)及[54行成员回映射](design/binary-state/random-member-map.md)。玩法流／池／运行库引擎留Host，药丸／预览等实际显示结果另承接；补核ItemPool+664饰品流、保存体+218实际vector<bool>和Game+182E4恶魔／天使流。两份绘制流仅发seed，固定shift与guard不上线，D0草稿37→13B；完整取样相位／消费序列与最终结果来源尚待接线。UNKNOWN和ABI模型边界保持，未改生产版本56，未构建或测试。以下记录保留各自时点。
 
 > **第8步Presentation静态核对（2026-11-10）**：[同步必要性与原生证据](design/binary-state/presentation-synchronization-review.md)、[45类型字节账本](design/binary-state/presentation-byte-ledger.md)、[141行旧公开目录回映射](design/binary-state/presentation-member-map.md)。保留最终HUD／实际图像与官方星象房行，剔除显示生产历史；地图查看与音量设置归各端本地，持续音频另有当前状态。UNKNOWN和来源缺口照实保留，正式布局与接线未实施，本轮不构建／测试。
 
-> **第8步Run原生归属核对（2026-11-10，版本56）**：[同步职责与证据](design/binary-state/run-synchronization-review.md)、[191行同源回映射](design/binary-state/layouts/run-catalog-run-members.md)与[GameRun布局](design/binary-state/layouts/GameRun.md)已落地。9个新布局230—238；当前固定负载132B，生成／波次／历史／264624B回溯留Host，只保留明确显示用途、7项种子显示选择和ascent bit48。修正ScoreSheet SDK过时布局，结算16个最终值64B；TimeCounter使用同world帧基准。Run视图的跨域委派／UNKNOWN仍明示，Presentation与正式reader／writer尚待后续。Release／Win32状态库纯编译通过，无测试。以下记录保留原时点。
+> **第8步Run原生归属核对（2026-11-10，版本56）**：[同步职责与证据](design/binary-state/run-synchronization-review.md)、[191行同源回映射](design/binary-state/layouts/08-run-presentation/run-catalog-run-members.md)与[GameRun布局](design/binary-state/layouts/08-run-presentation/GameRun.md)已落地。9个新布局230—238；当前固定负载132B，生成／波次／历史／264624B回溯留Host，只保留明确显示用途、7项种子显示选择和ascent bit48。修正ScoreSheet SDK过时布局，结算16个最终值64B；TimeCounter使用同world帧基准。Run视图的跨域委派／UNKNOWN仍明示，Presentation与正式reader／writer尚待后续。Release／Win32状态库纯编译通过，无测试。以下记录保留原时点。
 
-> **第6步119行Grid公开成员回映射（2026-11-10，版本55）已完成**：[映射说明](design/binary-state/grid-member-map.md)及[同源逐行汇总](design/binary-state/layouts/grid-catalog-members.md)。119行含三个重复ID均保留原签名与独立行号：16字段／28派生／74Host／1不适用。正式源与生成接通，第6步静态研究目录齐备，UNKNOWN和后续运行接线边界保持；Release／Win32状态库纯编译成功，无测试。以下记录保留原时点。
+> **第6步119行Grid公开成员回映射（2026-11-10，版本55）已完成**：[映射说明](design/binary-state/grid-member-map.md)及[同源逐行汇总](design/binary-state/layouts/06-grid/grid-catalog-members.md)。119行含三个重复ID均保留原签名与独立行号：16字段／28派生／74Host／1不适用。正式源与生成接通，第6步静态研究目录齐备，UNKNOWN和后续运行接线边界保持；Release／Win32状态库纯编译成功，无测试。以下记录保留原时点。
 
 > **第6步GridEntityPlus（2026-11-10，版本54）**：[来源／ABI／生命周期与同步决定](design/binary-state/grid-plus-water-source-evidence.md)已核定官方448×12B共享旁表，229仅本地ABI表。只发每实例最终u32，optional／地址／重置历史不上线；Lock忽略官方覆盖，现有六C/S wrapper漏Lock，后续须补第七点。实际reader／writer及全119项回映射仍待完成，无测试。以下记录保留原时点。
 
@@ -16,9 +34,9 @@
 
 > **第6步公共同步职责复核（2026-11-10，版本50）**：[具体判定与纠错](design/binary-state/grid-common-synchronization-review.md)。CollisionClass原值留Host，改发最终WaterClipFlags；Grid主Sprite移出默认名／图层路径，保留实际Image／姿态并补Dataminer故障纹理最终两位。新增展示视图200／201，G0为24B、G1固定94B、公共最小142B，根UNKNOWN17B保持。Release／Win32状态库纯编译通过，未测试；实际来源／安装／绘制adapter仍待后续。以下条目保留原时点。 冠军色只保留前四实际GPU参数16B，其余28B留Host，普通颜色11值保持。
 
-> **第6步公共Grid字节归属（2026-11-10，版本48）**：[逐段证据](design/binary-state/grid-common-evidence.md)、[Grid生成表](design/binary-state/layouts/GridEntity.md)及[Desc生成表](design/binary-state/layouts/GridEntityDesc.md)。340B公共前缀已登记归属，UNKNOWN仍17B；Desc四项16B、G0为24B、公共最小状态171B。SpawnSeed保留Light用途，其余来源Init／玩法元数据及对象_rng留Host；子类、Plus旁表、全目录与实际接线待完成。没有测试，第15步统一验收。以下条目保留原时点。
+> **第6步公共Grid字节归属（2026-11-10，版本48）**：[逐段证据](design/binary-state/grid-common-evidence.md)、[Grid生成表](design/binary-state/layouts/06-grid/GridEntity.md)及[Desc生成表](design/binary-state/layouts/06-grid/GridEntityDesc.md)。340B公共前缀已登记归属，UNKNOWN仍17B；Desc四项16B、G0为24B、公共最小状态171B。SpawnSeed保留Light用途，其余来源Init／玩法元数据及对象_rng留Host；子类、Plus旁表、全目录与实际接线待完成。没有测试，第15步统一验收。以下条目保留原时点。
 
-> **第5步正式Player布局源与生成完成（2026-11-09，版本47）**：[实现说明](design/binary-state/implementation-5-player.md)、[Player生成表](design/binary-state/layouts/EntityPlayer.md)。新增48个布局，正式生成P0—P8共25块及1265条应用行／97条补充成员；UNKNOWN仍3707B／Plus9B。Release／Win32产品纯编译／链接通过，无测试或实机操作；实际运行接线按第8—14步、第15步唯一统一验收。以下条目保留各自原时点。
+> **第5步正式Player布局源与生成完成（2026-11-09，版本47）**：[实现说明](design/binary-state/implementation-5-player.md)、[Player生成表](design/binary-state/layouts/05-player/EntityPlayer.md)。新增48个布局，正式生成P0—P8共25块及1265条应用行／97条补充成员；UNKNOWN仍3707B／Plus9B。Release／Win32产品纯编译／链接通过，无测试或实机操作；实际运行接线按第8—14步、第15步唯一统一验收。以下条目保留各自原时点。
 
 > **第5步前两项设计工作完成（2026-11-09）**：[统一字节账本](design/binary-state/player-byte-ledger.md)与[逐行回映射](design/binary-state/player-member-map.md)已补齐，覆盖58种类型、1265条旧应用行及补充原生／结构，UNKNOWN和Plus ABI推导等级明确保留。原版通信、恢复历史与玩法查询不因存在getter而同步；真正显示结果由具名owner承接。正式Player布局生成和运行接线仍待完成，版本46；没有构建或测试。
 
@@ -34,7 +52,7 @@
 
 > **NPC布局同步职责修正（2026-11-09，版本42）**：[逐段复核](design/binary-state/npc-synchronization-review.md)。取消Delirium BossType／Variant传输及无根据的shape重建；ControllerId改1B受控UI结果，OverlayEffect Scale由主Sprite当前null-frame派生。保留真实绘制输入／完整三deque／双Sprite必要状态，UNKNOWN不变。实际reader／adapter待第10／13步，第15步统一验收。
 
-> **原生二进制第4步：Entity_NPC（2026-11-09，版本41）**：[实现说明](design/binary-state/implementation-4-npc.md)、[静态证据](design/binary-state/npc-evidence.md)及[生成布局](design/binary-state/layouts/EntityNPC.md)。NPC／Delirium、三组deque、双辅助Sprite与44个唯一成员回映射已接入生成链；NPC本类223B未知及寻路声明边界保留。普通Release编译／链接通过，没有测试、部署或启动游戏；第10／13步接线、第15步统一验收。
+> **原生二进制第4步：Entity_NPC（2026-11-09，版本41）**：[实现说明](design/binary-state/implementation-4-npc.md)、[静态证据](design/binary-state/npc-evidence.md)及[生成布局](design/binary-state/layouts/04-entity-classes/EntityNPC.md)。NPC／Delirium、三组deque、双辅助Sprite与44个唯一成员回映射已接入生成链；NPC本类223B未知及寻路声明边界保留。普通Release编译／链接通过，没有测试、部署或启动游戏；第10／13步接线、第15步统一验收。
 
 > **原生二进制布局版本38：Effect各臂与附属payload（2026-11-09）**：[同步必要性与消费者](design/binary-state/effect-synchronization-review.md)。撤销六项更新输入、TearFlags与136描述；MrMe／Trail／Ghost必要表现保留，Ghost改有效前缀并派生Offset／Scale，Trail64B分配已核。源与生成表及后续合同已修订，未构建或测试，实际同步仍待接线。
 
@@ -64,7 +82,7 @@
 
 > **原生二进制状态同步重构第 4 步：Familiar／Knife／Bomb（2026-11-08）**：[实现说明](design/binary-state/implementation-4-familiar-knife-bomb.md)、[必要逆向与主审](design/binary-state/familiar-knife-bomb-evidence.md)和[生成布局表](design/binary-state/layouts/README.md)。三类布局、派生 Plus、辅助 Sprite、Familiar 两种专用 payload 与公开成员回映射已接入生成链，布局版本 16。未知字节与未闭合的计时条件明确保留，不能宣称类型完整；Release 纯编译／链接通过，没有测试或启动游戏，第 15 步统一验收。
 
-> **原生二进制状态同步重构第 3 步（2026-11-08）**：[实现说明](design/binary-state/implementation-3.md)、[Entity 公共证据](design/binary-state/entity-common-evidence.md)与[生成布局](design/binary-state/layouts/Entity.md)。Entity `[0,0x410)` 全部字节已有归属，生成 E0—E9 共 77 个字段／投影和 23 个直接复制区间，布局版本 12；另有 EntityPlus 只读来源、条件计时锚点和 Client 数字字段查询。Entity 仍有 335B 未知，不宣称类型完整。基础库和完整 DLL 的 Release 纯编译／链接通过；没有测试、部署或启动游戏，第 15 步统一整体验收。
+> **原生二进制状态同步重构第 3 步（2026-11-08）**：[实现说明](design/binary-state/implementation-3.md)、[Entity 公共证据](design/binary-state/entity-common-evidence.md)与[生成布局](design/binary-state/layouts/03-entity-common/Entity.md)。Entity `[0,0x410)` 全部字节已有归属，生成 E0—E9 共 77 个字段／投影和 23 个直接复制区间，布局版本 12；另有 EntityPlus 只读来源、条件计时锚点和 Client 数字字段查询。Entity 仍有 335B 未知，不宣称类型完整。基础库和完整 DLL 的 Release 纯编译／链接通过；没有测试、部署或启动游戏，第 15 步统一整体验收。
 
 > **原生二进制状态同步重构第 0—2 步（2026-11-08）**：[实现说明](design/binary-state/implementation-0-2.md)、[基础类型证据](design/binary-state/base-types-evidence.md)与[生成布局表](design/binary-state/layouts/README.md)。唯一 JSON 布局源、四份生成表、14 种基础类型及有界容器／引用／资源共用代码已落地，基础库和完整 DLL 的 Release 纯编译／链接通过。必要逆向由 GPT-6 Luna（max）执行，主智能体复读并纠正了字段类型、选择器、颜色空间及 RTTI 偏移等结论；未知和跨域未决照实保留。没有测试、部署或启动游戏，第 15 步统一整体验收。
 

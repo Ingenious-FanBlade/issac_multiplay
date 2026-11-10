@@ -217,6 +217,12 @@
             }
           },
           "additionalProperties": false
+        },
+        "count_type": {
+          "enum": [
+            "u8",
+            "u16"
+          ]
         }
       },
       "additionalProperties": false
@@ -391,11 +397,24 @@
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "required": ["type", "semantics", "evidence"],
+            "required": [
+              "type",
+              "semantics",
+              "evidence"
+            ],
             "properties": {
-              "type": {"type": "string", "minLength": 1},
-              "semantics": {"type": "string", "minLength": 1},
-              "evidence": {"type": "string", "minLength": 1}
+              "type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "semantics": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 1
+              }
             },
             "additionalProperties": false
           }

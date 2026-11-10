@@ -45,9 +45,9 @@
 
 | 根对象 | 原生范围 | 原生未知字节 | 生成表 |
 | --- | --- | ---: | --- |
-| Familiar（含两臂的根对象） | 0xF30 | 906B | [Familiar](layouts/EntityFamiliar.md) |
-| Knife | 0x520 | 521B | [Knife](layouts/EntityKnife.md) |
-| Bomb | 0x9D8 | 441B | [Bomb](layouts/EntityBomb.md) |
+| Familiar（含两臂的根对象） | 0xF30 | 906B | [Familiar](layouts/04-entity-classes/EntityFamiliar.md) |
+| Knife | 0x520 | 521B | [Knife](layouts/04-entity-classes/EntityKnife.md) |
+| Bomb | 0x9D8 | 441B | [Bomb](layouts/04-entity-classes/EntityBomb.md) |
 
 以上包含公共 Entity 和内嵌 ANM2 的未知。伴随 Plus 的 5B、IsaacsBodyData 的 70B、AbyssLocustData 的 36B 及其变长 Sprite 元素内部未知另在各自表中列出，不把它们混成根对象中的字节。
 

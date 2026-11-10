@@ -1,10 +1,18 @@
 # 8：Run、Presentation 与 Random
 
+**2026-11-10 第7步版本57交接**：Room／Level及必要显示固定值已进入唯一源，详见[实现说明](implementation-7-room-level.md)。MapFocus300—301、MapBadgeList302、独立问号资源303已登记，Presentation后续复用这些布局与唯一owner；原生Minimap及其他Presentation布局／实际来源仍待本步实施。下方版本56及更早段落保留原时点。
+
+**2026-11-10 第7步必要显示／资源设计交接**：[补齐设计](room-display-resource-design.md)明确typed不可变配置／图像／surface recipe／内容资源及同world结果批次。Presentation用自有地图adapter消费完整L0—L3、两边框／icons／itemIcons资源、MapFocusResult和MapBadgeList；展开／视口／Options留本地，不调用混合Map Render内的分数重算。水光波纹／世界强制焦点归Room，地图资源／最终震动／转场显示归本步，不重复owner。Home条件为Data.StageId35且Type16；旧Door“type35”已更正。正式注册／source／图形adapter待实施，版本56，无构建或测试。
+
 **2026-11-10 范围调整**：本步只负责原版整局、表现与随机源。第三方 Mod 的 Lua 来源、具名 adapter、状态编码、角色／HUD 回调适配和未决问题已移至[独立后续方案](../mod-adaptation.md)，不属于本步完成条件。下方较早进度记录按原时点保留。
+
+**2026-11-10 第8步Random静态核对完成**：[职责／J273证据](random-synchronization-review.md)、[修订2的24类型／字段视图账本](random-byte-ledger.md)及[54行成员回映射](random-member-map.md)。玩法流／池／运行库引擎留Host，药丸／预览等实际显示结果另承接；补核ItemPool+664饰品流、保存体+218实际vector<bool>和Game+182E4恶魔／天使流。同日第7步交接进一步改为逐用途随机结果，D0从37／13B草稿收紧为5B；两seed／shift／guard均不上线，新增BD0F40音效选样本字段视图，完整结果缓存与adapter尚待接线。UNKNOWN和ABI模型边界保持，未改生产版本56，未构建或测试。以下记录保留各自时点。
 
 **2026-11-10 Presentation静态核对完成（正式布局／接线未实施）**：[同步必要性与具体证据](presentation-synchronization-review.md)、[45类型／连续视图的原生字节账本](presentation-byte-ledger.md)及[141行旧公开目录回映射](presentation-member-map.md)。保留最终心格／实际图像／动态HUD／History顺序和StatHUD三值；previous／threshold留Host，官方星象房第8行保留。地图本地查看与world事实分开；持续声音需要当前状态，一次性声音走事件，Host音量／后端对象不复制。程序图／shader旁表ABI／Pause后缀／转场payload等UNKNOWN及具体来源缺口保持；正式Presentation布局／运行接线未实施，本轮未改生产布局版本、未构建或测试。以下记录保留各自时点。
 
-**2026-11-10 Run 原生归属核对，版本56**：见[同步职责与静态证据](run-synchronization-review.md)、[GameRun生成表](layouts/GameRun.md)。`run.json`新增230—238，覆盖Run子对象、Game的Run视图与191条公开目录行。撤销本页旧8.1“整组flags／计数／楼层种子都发”的草稿决定：只留明确的当前显示值、7项种子显示选择、ascent bit48与最终分数缓存；波次控制、生成RNG、历史与回溯留Host。两项黑暗浮点都有直接绘制消费者，均保留；current ColorModifier之外的target／lerp留Host。GameFrame与TimeCounter分开；DailyChallenge的Game当前run副本与Manager菜单／预告副本分开。Presentation的具体资源／缓存／shader交接逐项保留，不把委派区域或未知孔标成本地。新handler均待10／13步接线，Presentation／Random／Mod部分尚未完成，无测试。下文冲突草稿仅保留原时点。
+**2026-11-10 Room环境音交接（待实施）**：[Room续核第4节](room-residual-evidence.md#4-环境声音原64b不发声音不能消失)核定Room+7084为16份环境gain平滑缓存，AAD0E0另有soundID／步长／增益／跨房保留标记；+72FC为延迟sound460及pan生产计时。原缓存／计时留Host，火／水流／雨等实际声音不能删除。正常Host已选voice／sample与最终world逻辑gain／pitch／pan由音频域承接，不发含Options乘数的后端值；baseline须能恢复持续声、停止／clear和重复状态不重播。这里仅补到具名逻辑增益来源，实际sample、voice身份／生命周期与完整意图缓存仍待接线，没有新运行结论或测试。
+
+**2026-11-10 Run 原生归属核对，版本56**：见[同步职责与静态证据](run-synchronization-review.md)、[GameRun生成表](layouts/08-run-presentation/GameRun.md)。`run.json`新增230—238，覆盖Run子对象、Game的Run视图与191条公开目录行。撤销本页旧8.1“整组flags／计数／楼层种子都发”的草稿决定：只留明确的当前显示值、7项种子显示选择、ascent bit48与最终分数缓存；波次控制、生成RNG、历史与回溯留Host。两项黑暗浮点都有直接绘制消费者，均保留；current ColorModifier之外的target／lerp留Host。GameFrame与TimeCounter分开；DailyChallenge的Game当前run副本与Manager菜单／预告副本分开。Presentation的具体资源／缓存／shader交接逐项保留，不把委派区域或未知孔标成本地。新handler均待10／13步接线，Presentation／Random／Mod部分尚未完成，无测试。下文冲突草稿仅保留原时点。
 
 **版本53 Grid展示上下文（待实施）**：[PressurePlate／Door](grid-pressure-door-evidence.md)的计时文字需要Host GameFrame、同world Room.greedWaveTimer与Game.screenShakeOffset(+25A84)，本地字体/字宽和视口照常提供；有符号timer算术/闪烁不按Client墙钟推进。Door主alpha入口/墙色与extra可见分支之外，GridLight仍独立运行，依赖同world维度/当前RoomConfig、stage suffix及目标descriptor和layer3/5实际资源。房间颜色与Light借用必须恢复；缺来源报Gap，不开启Update/Reward/解锁来补显示。
 
@@ -16,7 +24,9 @@
 
 **第5步P6—P8交接（2026-11-09，未实现）**：[设计及具体消费者](5-player-p6-p8.md)将原始History／16索引／form计数留Host；本步必须同步82FA10实际两个HistoryHUD槽的owner／有序visual_id／Image和真实PlayerHUD+6A4库存图像列表，保持负ID、633及88000 shader分支、四人多身体的选择／布局，不按counts重排。还核到97C300→966680→9BAC90在Render内重算分数并涉及随机，9679FA实际读取Game+25C90总分；本步捕获既有生产完成后的最终缓存并隔离该用途重算，不以“Render可达”为由恢复sub图／全部心量生产输入或额外Host重算。703四槽只作Host恢复，实际主动显示不解析它们，P4 VarData保持。Player两Image strong／palette／动态HUD owner仍须本步补齐；P8的残影及当前记录＋1C50 Sprite由Player owner处理，不重复维护。版本仍46，没有新代码或测试。
 
-状态：Run静态归属、布局源与191行回映射已完成；跨域委派／未知照实保留；正式运行接线及其余部分未实施；Mod适配已迁出当前范围。上级：[总计划](README.md)。
+**2026-11-10 第7步两域目录交接**：[RoomSave／Exploration核对](room-save-exploration-synchronization-review.md)要求Presentation唯一承接实际地图图标／边框资源、最终震动、world显示限制，以及966300产生的最多7项有序道具／诅咒徽标。MapBadgeList为`u8 count + i8[count]`，1—8B草稿；不能用Host地图展开状态、四个揭图bool或Sprite最后一帧替代整列。正式结果缓存／布局／资源与adapter待实施，版本56，无测试。
+
+状态：Run静态归属、布局源与191行回映射已完成；Presentation与Random静态字节及目录核对已完成；跨域委派／未知照实保留。Presentation正式布局及正式运行接线尚未完成；Mod适配已迁出当前范围。上级：[总计划](README.md)。
 
 ## 目标
 
@@ -109,23 +119,23 @@ Pickup、Familiar 等的原生 Render 还读写 Game 之外的四项全局值。
 - **音乐音效**：以[意图／事件／本地后端边界](presentation-synchronization-review.md#7-音频意图事件与本地后端)为准。一次性声音走已选sample事件；持续loop／ambient及音乐crossfade／jingle还须当前voice状态供baseline／重连恢复，重复状态不重播。后端音量含Host Options乘数，不能直接下发或在静音时反除；Client保留自身音量／静音。FrameDelay是重复播放节流，不是启动延迟。
 - **Game 帧计数**：`Game+0x25A70` 由 world 帧头的 game_frame 承载，也就是 Client 的展示时钟（第 13 步 13.6），不进入 Run 块，也不进入下面的绘制输入块。
 
-#### 8.2.1 绘制输入块 D0
+#### 8.2.1 绘制输入块 D0与逐用途随机结果
 
-全局只有一份，作为 Presentation 记录的一个块随 world 帧发送，取代现有挂在每个 Player 上的 `application_draw`。状态布局共 37 字节：
+2026-11-10按[第7步与Random交接](room-random-handoff.md)修订：当前D0仅5B，原37B／13B全局游标草稿已替代，生产版本仍56。具体原生结果点、资格和批次合同见交接第3节。
 
-| +0 u32 manager_frame【状态】Host 的 `Manager._framecount` | +4 u8 paused【换算】Host `Game::IsPaused()` 的结果，0 或 1 | +5 u32[4] pickup_random【状态】Pickup 绘制 xorshift：种子、三个 shift | +21 u32[4] familiar_random【状态】Familiar 绘制 xorshift：种子、三个 shift |
-| --- | --- | --- | --- |
+| +0 u32 manager_frame（4B） | +4 u8 paused（1B） |
+|---|---|
 
-- **subframe 不发送**：归派生，Client 按“paused 为 1 时取 0，否则 `(manager_frame+1)%2`”算出。
-- **manager_frame 不套帧锚点**：Manager 每次 Update 加 1，Game 只在 `_framecount` 低位为 0 的 Manager 帧推进（ST2 笔记第 9 行），暂停时 game_frame 还会停住，两者没有固定差值。它全局只有 4 字节，随帧发送的代价可以忽略。因此 D0 几乎每帧都在变化，静止场景的帧通常也带着 D0，空帧（第 11 步 11.3）只在 D0 也不变时出现。
-- **两份绘制 RNG 归状态**：它们只被 Render 读写，不参与玩法，是 8.3 中“RNG 归权威”的例外。Client 用 Host 的值，Pickup、Familiar 的绘制效果才与 Host 一致。
-- **同窗**：D0 与帧头 game_frame 必须来自同一普通采集窗口，沿用现有 `same-ordinary-window` 合同。
-- **安装**：不常驻写入 Client 的全局值。展示期间随展示时钟一起借用（第 13 步 13.6）：进入时换入，结束时恢复；Render 推进后的 RNG 值随恢复丢弃，下一帧再使用 Host 的新值。
-- **校验**：种子不为 0，shift 不超过 31，paused 只取 0 或 1。这些取值范围写进布局源，不合格时按第 9 步 9.8“字段取值合法”整帧拒绝。
+- GameFrame在world帧头；Manager每次Update相位与Game模拟帧不能用固定差换算，保留独立值。subframe仍按paused为1取0，否则(manager_frame+1)%2派生。
+- Pickup的6E3805已产生alt pedestal alpha、Familiar的61E604已产生栈ColorMod.alpha，按具名subject/use/shape/pass/调用身份发送资格及f32结果，不发送BD0CA4／BD0674 seed、shift或guard，不推进Client这两流。
+- 标量记录`state:u8`，0为正常Host已确认无随机覆盖；1随后有alpha:f32，最大5B。外层身份／容器／批次另计，多个pass／递归不能折叠为一份最后值。缺源／未产生不填0或不适用。
+- 结果绑定真实world state revision、presentation revision及资源版本，不能从普通窗口seed或仅GameFrame猜消费相位。只捕获正常Host结果，不额外Render／抽取；Authority tick不等显示批次。
+- Client在两个具名随机／资格分支使用结果；Familiar本地颜色栈对称push/pop，Pickup临时Sprite与CPU消费后恢复。重复展示复用同一不可变批次，换房／use退休撤销，不依赖本地排序分配随机样本。
+- 未注册正式布局号、具体缓存／source／writer及预算仍待第9/10/12/13步，不将本草稿作为版本56记录接受。
 
 ### 8.3 Random
 
-ItemPool 和 RNG 整体归权威，不进入状态帧。如果 Client 显示需要其中某个结果（例如道具池剩余状态影响 HUD），按换算处理：发送结果，不发送 RNG。唯一的例外是 8.2 中只用于绘制的两份全局 RNG。
+以[Random职责核对](random-synchronization-review.md)和[逐字节表](random-byte-ledger.md)为准。玩法RNG、ItemPool／BossPool及恢复体、全局Random／独立MT／CRT／Lua引擎均留Host，不创建Random网络记录。旧54行回映射为51行Host与3行实际显示结果交接；后者不是原Getter或全量参数字典。药丸必须保留按身体／槽位裁决的揭示、effect和实际名称／图像，Loot预览保留实际有序显示，不在Client抽取或解引用未知RNG*。8.2的两个具名纯绘制用途取已产生alpha／资格，游标也不上线；正式结果批次／来源／adapter仍待接线。
 
 ### 8.4 当前范围
 
@@ -144,14 +154,14 @@ ItemPool 和 RNG 整体归权威，不进入状态帧。如果 Client 显示需�
 - **全局单例时机错误**：MusicManager 等全局单例在会话外或主线程窗口外被读取。
 - **绘制输入错窗**：D0 与帧头 game_frame 来自不同的采集窗口，subframe 与帧计数相位错开，Pickup、Familiar 的绘制效果与 Host 不一致。
 - **绘制输入常驻写入**：D0 直接写进 Client 的全局值而不是展示期间借用，或者展示结束后没有恢复，污染 Client 本地的 Render 状态。
-- **绘制 RNG 误归权威**：两份绘制 RNG 被当作玩法 RNG 不发送，Client 用自己的值绘制，效果与 Host 不同。
+- **随机绘制结果归属错误**：误发两个旧seed／shift／guard，或按本地顺序复演；将旧alpha／缺源当本次结果，忽略pass／递归／world与资源修订。
 
 ## 完成内容
 
 - **字节归属与表格**：Run、Presentation 的字节归属完成，带证据；单行表由生成器产出。
 - **回映射**：三个域的公开成员全部有回映射：
   - run 的 93 个、presentation 的 55 个 `ReplicatedState` 成员，各自映射到布局字段、某组字段的派生，或者说明为何归 Host 权威或不适用；
-  - run 的 87 个、presentation 的 70 个 `AuthorityOnly` 成员，以及 random 的 54 个成员，确认确实落在权威或本地字节上，没有漏判为状态；
+  - run 的 87 个、presentation 的 70 个 `AuthorityOnly` 成员，以及random的54个成员逐行审阅；Random已区分51条Host及3条实际显示结果交接，具名绘制实例单独登记，不按普通RNG归属丢掉画面；
 
 ## 未决问题
 

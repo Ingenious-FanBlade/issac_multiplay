@@ -33,7 +33,7 @@ inline bool First(const void *p){if(!p)return false;if(!active)return true;if(ac
  X(ClientPlayerState::Innate) X(ClientPlayerState::Spoof) X(ClientPlayerState) \
  X(ClientPlayerHistoryView) X(ClientPlayerEquipment::Costume) X(ClientPlayerEquipment::Weapon) X(ClientPlayerEquipment) \
  X(ClientPlayerSpecialState::Hud::Heart) X(ClientPlayerSpecialState::Image) X(ClientPlayerSpecialState) X(ClientPlayerDescription) \
- X(ClientNativeDescriptorDescription) X(ClientNativeSceneDescription) X(ClientMapDescriptor) X(ClientMapTarget) X(ClientRoomState) \
+ X(LegacyClientNativeDescriptorDescription) X(LegacyClientNativeSceneDescription) X(ClientMapDescriptor) X(ClientMapTarget) X(ClientRoomState) \
  X(ClientPresentationHeart) X(ClientPresentationFX) X(ClientPresentationRay) X(ClientPresentationRayGroup) X(ClientPresentationAux) X(ClientPresentationDescription)
 #define CS_DECLARE_DTO_EXTRA(T) inline std::uint64_t Extra(const T &);
 CS_DTO_MEMORY_TYPES(CS_DECLARE_DTO_EXTRA)
@@ -79,11 +79,11 @@ inline std::uint64_t Extra(const ClientPlayerSpecialState &v){return Extra(v.hud
 inline std::uint64_t Extra(const ClientPlayerDescription &v){return Extra(v.entity)+Extra(v.state)+Extra(v.equipment)+Extra(v.role)+Extra(v.special)+Extra(v.body_relations);}
 inline std::uint64_t Extra(const replica::RoomSpawnValue &v){return Extra(v.entries);}
 inline std::uint64_t Extra(const replica::RoomConfiguration &v){return Extra(v.content_version)+Extra(v.name)+Extra(v.spawns)+Extra(v.merged);}
-inline std::uint64_t Extra(const ClientNativeDescriptorDescription &v){return Extra(v.data)+Extra(v.override_data);}
+inline std::uint64_t Extra(const LegacyClientNativeDescriptorDescription &v){return Extra(v.data)+Extra(v.override_data);}
 inline std::uint64_t Extra(const ClientMapDescriptor &v){return Extra(v.icons);}
 inline std::uint64_t Extra(const ClientMapTarget &v){return Extra(v.descriptors);}
 inline std::uint64_t Extra(const ClientRoomState &v){return Extra(v.grid_paths)+Extra(v.rail_sprite);}
-inline std::uint64_t Extra(const ClientNativeSceneDescription &v){return Extra(v.descriptors)+Extra(v.map)+Extra(v.room_state)+Extra(v.backdrop_config.paths)+Extra(v.backdrop_wall_trace.steps)+Extra(v.backdrop_sprites);}
+inline std::uint64_t Extra(const LegacyClientNativeSceneDescription &v){return Extra(v.descriptors)+Extra(v.map)+Extra(v.room_state)+Extra(v.backdrop_config.paths)+Extra(v.backdrop_wall_trace.steps)+Extra(v.backdrop_sprites);}
 inline std::uint64_t Extra(const ClientPresentationHeart &v){return Extra(v.animation)+Extra(v.overlay);}
 inline std::uint64_t Extra(const ClientPresentationFX &v){return Extra(v.attributes)+Extra(v.image)+Extra(v.poses);}
 inline std::uint64_t Extra(const ClientPresentationRay &v){return Extra(v.attributes)+Extra(v.image);}

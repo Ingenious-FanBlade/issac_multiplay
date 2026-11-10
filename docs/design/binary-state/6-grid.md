@@ -4,9 +4,9 @@
 
 本轮新增`isaac_cs_grid_description`库及完整Release／Win32 `zhlIsaacCS.dll`纯编译／链接通过，E2E工具关闭。并行产品构建停滞后中止，改串行MSBuild完成，具体记录见上方实现说明；没有测试、部署或游戏操作。
 
-**2026-11-10 版本55：剩余119行公开成员逐行回映射完成**。见[映射说明与证据](grid-member-map.md)及[同源生成的119行汇总](layouts/grid-catalog-members.md)。正式源保留三个重复ID的各自原行／签名：16行字段、28行派生、74行Host权威、1行不适用；不适用项为Repentance已移除的ReducedSpawnRate。补清GetBigRockFrame按u32比较Variant的原始语义，未改变线字段／各根UNKNOWN。第6步公共及17派生归属、Plus来源ABI与成员目录静态工作均已登记；实际运行接线仍归后续步骤。普通Release／Win32状态库生成与纯编译成功，无测试，第15步统一验收。以下版本记录保留各自原时点。
+**2026-11-10 版本55：剩余119行公开成员逐行回映射完成**。见[映射说明与证据](grid-member-map.md)及[同源生成的119行汇总](layouts/06-grid/grid-catalog-members.md)。正式源保留三个重复ID的各自原行／签名：16行字段、28行派生、74行Host权威、1行不适用；不适用项为Repentance已移除的ReducedSpawnRate。补清GetBigRockFrame按u32比较Variant的原始语义，未改变线字段／各根UNKNOWN。第6步公共及17派生归属、Plus来源ABI与成员目录静态工作均已登记；实际运行接线仍归后续步骤。普通Release／Win32状态库生成与纯编译成功，无测试，第15步统一验收。以下版本记录保留各自原时点。
 
-**2026-11-10 版本54：GridEntityPlus来源／ABI／生命周期静态核定完成**。见[旁表证据与同步决定](grid-plus-water-source-evidence.md)及[229号ABI表](layouts/GridEntityPlus.md)：官方DLL内448×12B共享表，payload+4／engaged+8，Factory返回后与Init进入前清同索引项，没有Free／换房／C/S停用清理Hook。G0只发最终完整u32，不传optional／填充／地址／重置历史。纠正：官方六Hook不含Lock，Lock忽略旁表；现有六个C/S wrapper也漏Lock，第13步必须补第七覆盖点。各Grid根大小／UNKNOWN不变，全119项逐行回映射仍待完成；实际reader／writer归第10／13步。以下版本条目保留原时点，本轮无测试。
+**2026-11-10 版本54：GridEntityPlus来源／ABI／生命周期静态核定完成**。见[旁表证据与同步决定](grid-plus-water-source-evidence.md)及[229号ABI表](layouts/06-grid/GridEntityPlus.md)：官方DLL内448×12B共享表，payload+4／engaged+8，Factory返回后与Init进入前清同索引项，没有Free／换房／C/S停用清理Hook。G0只发最终完整u32，不传optional／填充／地址／重置历史。纠正：官方六Hook不含Lock，Lock忽略旁表；现有六个C/S wrapper也漏Lock，第13步必须补第七覆盖点。各Grid根大小／UNKNOWN不变，全119项逐行回映射仍待完成；实际reader／writer归第10／13步。以下版本条目保留原时点，本轮无测试。
 
 **2026-11-10 版本53：PressurePlate／Door字节归属完成**。[静态证据与职责](grid-pressure-door-evidence.md)追加224—228：两类描述不发无消费者的临时Light种子，PressurePlate主Sprite用202、TimerPlate用201；Door主Sprite用226（颜色仅alpha入口布尔）、extra用201，target类型／i32描述索引／ExtraVisible与Light bit0x20保留。previous缓存／四字符串／NextGreedAnimation／GreedModeRNG等留Host，纠正旧Door+154 coin-mode误归（实际dword计数）。Door2EC最后4B是string capacity，27F仍未知；根UNKNOWN31／32B，最小212／223B，生成及Release状态库纯编译通过、无测试。全部17派生现有归属表；全目录／Plus来源／正式接线仍待完成。
 
@@ -16,7 +16,7 @@
 
 **2026-11-10版本50复核**：[同步必要性与纠错](grid-common-synchronization-review.md)取代上一轮的CollisionClass直接传输及完整通用Sprite复用。Desc198四项16B不变；Grid199的G0为desc16＋index4＋最终WaterClipFlags4，原生+3C留Host、Client本地中性初始化。新增GridLayerState200／GridSprite201，移出默认动画名／待加载路径，保留实际Image等并补Dataminer故障纹理最终选择1B；G1固定94B，公共最小状态142B，根UNKNOWN仍17B。子类、来源owner／绘制与运行接线仍待完成，本轮无测试。 冠军色只保留前四float16B，其余28B不上线，普通Sprite／Layer ColorMod完整11值不变。以下版本48说明保留原时点。
 
-状态：**2026-11-10 公共部分字节归属与正式生成源已落地（版本48）**，见[公共字节证据](grid-common-evidence.md)、[Grid公共生成表](layouts/GridEntity.md)及[Desc生成表](layouts/GridEntityDesc.md)。340B公共前缀递归UNKNOWN仍17B，不能称完整类型；17个子类、Plus旁表与全目录回映射尚未完成，实际采集／安装仍待第10／13步。没有运行测试，第15步唯一统一验收。上级：[总计划](README.md)。
+状态：**2026-11-10 公共部分字节归属与正式生成源已落地（版本48）**，见[公共字节证据](grid-common-evidence.md)、[Grid公共生成表](layouts/06-grid/GridEntity.md)及[Desc生成表](layouts/06-grid/GridEntityDesc.md)。340B公共前缀递归UNKNOWN仍17B，不能称完整类型；17个子类、Plus旁表与全目录回映射尚未完成，实际采集／安装仍待第10／13步。没有运行测试，第15步唯一统一验收。上级：[总计划](README.md)。
 
 ## 目标
 
@@ -150,7 +150,7 @@ J273 的 `GridFactory` 按类型分配对象，分配请求见 [Grid 种类静�
 
 - **字节归属与表格**：公共部分及17个派生（共18个RTTI）均已建立完整范围归属及两张单行生成表。UNKNOWN照实保留，不能称全部语义已知；公开目录及旁表来源现也已登记，运行采集／安装归后续步骤。
 - **旁表来源**：版本54已核官方共享数组、12B ABI、读取owner、生命周期及六族／Lock例外；229只有本地字节表，无发送块。实际绑定／读取与第七Lock覆盖点仍分别归第10／13步。
-- **回映射**：版本55将119行全部写入正式`catalog_rows`，按原目录行保留属性／方法重名、null／空白参数、返回值、真实布局／字段和逐行依据；同源生成`state_members.inc`及[汇总表](layouts/grid-catalog-members.md)。16行字段／28行派生／74行权威／1行不适用，不承诺任意公开API兼容或恢复旧Host字段相等要求。
+- **回映射**：版本55将119行全部写入正式`catalog_rows`，按原目录行保留属性／方法重名、null／空白参数、返回值、真实布局／字段和逐行依据；同源生成`state_members.inc`及[汇总表](layouts/06-grid/grid-catalog-members.md)。16行字段／28行派生／74行权威／1行不适用，不承诺任意公开API兼容或恢复旧Host字段相等要求。
 - **描述编码**：`ClientDescribeGrid`及只读类型化描述已实现；生成计划覆盖17个真实类和27个工厂type。完整影子记录的数字投影、可选Seed、最终u32水面值、Door布尔／i32、Fire16B粒子与Rock有序偏移均不依赖旧字符串字段。原生执行器／门绑定保留，旧调用链仅明确更名为legacy；第10／12／13步运行接线不算本次已经完成。
 
 版本48公共部分的实现和完整DLL编译记录见[原证据](grid-common-evidence.md)。版本50公共最小142B、根17B未知，版本51八类及版本52七类的原结果保持，见[八类](grid-eight-subclasses-evidence.md)／[七类](grid-seven-subclasses-evidence.md)。版本53追加224—228，PressurePlate／Door最小212／223B，根31／32B未知，见[证据与纯编译记录](grid-pressure-door-evidence.md)。全部17派生已建表，版本54已完成水面旁表来源与ABI核定，版本55已完成全119行回映射；实际运行绑定／最终水面owner／Lock覆盖点／glitch绘制adapter／Fire与Rock容器／Door目标解析及draw恢复仍未接通，按第7／8／10／13步负责，不因静态目录完成称运行验收通过。

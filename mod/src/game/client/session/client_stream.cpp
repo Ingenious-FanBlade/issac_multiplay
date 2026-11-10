@@ -474,7 +474,7 @@ void ClientScene::PumpStream() noexcept {
         std::vector<LegacyClientGridDescription> grid_values;
         std::optional<ClientPlayerFastValues> body;
         std::shared_ptr<const replica::RoomGridTarget> room;
-        ClientNativeSceneDescription description;
+        LegacyClientNativeSceneDescription description;
         std::optional<replica::Json> partial;
         if (root->id.kind == stream::RangeKind::PlayerFast)
           body = objects_->CompileFast(s.store, *root);

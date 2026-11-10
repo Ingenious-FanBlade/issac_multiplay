@@ -69,7 +69,7 @@
 | `state_wire.inc` | 每个布局、每个块在线上的偏移、大小、元素类型和上限 |
 | `state_client.inc` | Client 解码校验表与写入分派表，按字段索引分派，不比较字符串 |
 | `state_members.inc` | 公开成员回映射，供 E2E Lua 对照（第 15 步）和覆盖报告使用 |
-| `docs/design/binary-state/layouts/<类型>.md` | 两张单行表格，格式见[总计划第 5 节](README.md#5-布局表格要求) |
+| `docs/design/binary-state/layouts/<步骤目录>/<类型>.md` | 两张单行表格，格式见[总计划第 5 节](README.md#5-布局表格要求) |
 
 ### 1.3 区间合并规则
 

@@ -19,7 +19,7 @@
 | 470—473 function* | 本地，既有决定保持 | 原生更新回调，不发送或调用 |
 | 474—477 4B | UNKNOWN，既有边界保持 | 对象大小0x478不证明尾字填充 |
 
-原生复制与线布局仍由[EntityProjectile生成表](layouts/EntityProjectile.md)给出。PR0块10保持4B Height；PR1块11继续空预留；追加PR2块12的9B：height_render_mode u8及freeze_render_position Vector，线偏移0／1。Client按memcpy／数字字段解码，不能把未对齐Vector强转为原生结构。开关与冻结锚点独立分块，避免Height变化时重复发送这9B。最小总状态395→404B；这是公共动态部分取最短的布局算术，不是带宽实测。UNKNOWN 375→350B，其中公共335B、本类15B；消除的是有正面用途证据的25B，不是将空白猜成填充。
+原生复制与线布局仍由[EntityProjectile生成表](layouts/04-entity-classes/EntityProjectile.md)给出。PR0块10保持4B Height；PR1块11继续空预留；追加PR2块12的9B：height_render_mode u8及freeze_render_position Vector，线偏移0／1。Client按memcpy／数字字段解码，不能把未对齐Vector强转为原生结构。开关与冻结锚点独立分块，避免Height变化时重复发送这9B。最小总状态395→404B；这是公共动态部分取最短的布局算术，不是带宽实测。UNKNOWN 375→350B，其中公共335B、本类15B；消除的是有正面用途证据的25B，不是将空白猜成填充。
 
 ### 1.1 初始化与发射生产者
 

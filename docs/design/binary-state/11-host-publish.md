@@ -1,14 +1,8 @@
 # 11：Host 变化检测、增量与发布
 
-**版本47布局来源（2026-11-09）**：[第5步正式源／生成](implementation-5-player.md)已完成，EntityPlayer=197，participant／control-group=195／196，Player主动槽=179，条件效果=180，动态Weapon=181—194；物理0—24及条件／固定槽／预算元数据以唯一源和生成表为准。以下版本46／草稿／待生成表述保留原时点；本步骤的运行接线仍未实施，不能因布局已生成就提前接收、采集、安装或宣称验收通过。
-
-**第5步P6—P8发布合同（2026-11-09，未实现）**：[后三块定稿](5-player-p6-p8.md)在world物理16／17／18分别memcmp规范投影。costume生产元数据、map priority、非704 cooldown、原始History／索引／forms和未选回放节点不参与变化；实际残影duration／位置和704 cooldown变化仍会重发。P6 revision统一覆盖Player的跨身体目录／资源结构／P7借用变化，与P7和同拓扑P0先ordinary提交，再接受相等revision的body；不把普通计数或充能变化升级shape。新增纯C/S组／participant记录按成员表关联，roster／组／激活不同于普通Entity热状态；sub／replaced／703四槽不产生Client引用闭包。当前46未实现这些新投影，没有测试。
-
-**第5步P3—P5变化合同（2026-11-09，未实现）**：[P3—P5设计](5-player-p3-p5.md)的world物理13／14／15分别比较／版本。无序容器规范排序，innate合并有效计数后再memcmp，不因timer／group管理变化重发；P4空槽旧payload与P5非展示Modifiers位／恒零充能输入不参与变化。装备结构／资源选择变化先随ordinary的P6拓扑提交，普通充能变化不升级shape；不将被裁字段的旧读回要求放回生成布局。实际三端／多身体带宽仍在第15步验收，版本仍46。
-
-**第5步快源拆块补充（2026-11-09，待实现）**：[P0—P2设计](5-player-p0-p2.md)中的P0是逻辑组，10及19—24号物理块各自memcmp／版本变化；普通动画变化不能重发13份ANM2的整个外观。Player父E6与E1／E4／E5同body目标；P1／P2仍world。P6拓扑变更先经ordinary发布，P0携带相等的render_topology_revision，不以原生地址稳定或哈希替代内容比较。全量下界不当作逐帧带宽，最终仍在第15步按三端扇出与多身体验收。布局版本仍46，无Player发布实现或测试。
-
 状态：设计稿，未实施。上级：[总计划](README.md)。
+
+**2026-11-10 各域交接统一整理**：现行入口为11.7“各域变化与发布交接清单”，按来源、特殊约束、版本依赖与待落实项登记全部相关域。本次静态审阅的布局源为57；布局入源、运行接线和第15步验收分别说明。本次只改本文档，不修改实现／布局源／生成表，不构建、不运行测试。
 
 ## 目标
 
@@ -56,7 +50,7 @@ Baseline、增量和 Resync 使用同一套机制。
 3. **比较**：world 版本号加 1，逐块 memcmp。
    - 字节不同：覆盖块存储，变化版本设为当前版本，写入变化日志。
    - 字节相同：不做任何事。
-4. **不完整采集**：主线程标为不完整的采集（第 10 步），只更新它完整覆盖的成员；版本号不递增，不对外发布。
+4. **不完整采集**：主线程标为不完整的采集不推进发布版本，不据缺读推断离开，也不得覆盖用于变化判断／ACK继承的已发布块或成员集合。若暂存其中完整片段，须与已发布基线分开，待合法完整目标重新比较；具体缓存策略在本步实现，不让未发布字节被下一次memcmp误判为已经发送。
 
 body 序列用同样的流程，使用独立的版本号和独立的块存储。body 记录只包含 body 块。
 
@@ -65,7 +59,7 @@ body 序列用同样的流程，使用独立的版本号和独立的块存储。
 - **收集范围**：已确认版本为 A 的 Peer，它的帧包含所有变化版本大于 A 的块，以及这些块所属的成员记录。
   - 变化日志能覆盖 A 时，取 A+1 到当前版本各日志的并集。
   - 覆盖不了时，扫描全部块存储（几千个块，后台可以承受）。
-- **共享编码**：已确认版本相同的 Peer 共享同一份编码和压缩结果。
+- **共享编码**：只有序列范围、base/target、成员／资源epoch、布局及专用依赖均相同的Peer才共享正文／压缩结果；仅已确认版本号相同不够。
 - **空帧**：没有变化块时，也要发送 record_count=0 的帧，正文只有 26 字节帧头。
   - Client 用帧头的 game_frame 推进展示时钟（第 13 步 13.6）。这样在静止场景中，FrameCount、Timeout 等由帧锚点还原的值也能正确前进。
   - 空帧同样参与确认，用来推进已确认版本。
@@ -91,6 +85,32 @@ body 序列用同样的流程，使用独立的版本号和独立的块存储。
 - **成员序号**：成员离开后，等所有 Peer 已确认的成员表 epoch 都越过这次离开，才放回空闲池。
 - **资源序号**：同一 run 内资源序号不回收。
 
+### 11.7 各域变化与发布交接清单
+
+来源与规范字节以[第9步9.10](9-wire-format.md)、[第10步10.7](10-host-capture.md)及版本57的唯一源为准。比较对象是已合法取得的自有投影／内容，不是含指针、UNKNOWN、容器头或Host生产历史的原生对象。以下是发布器尚待落实的合同；未注册结果仍须先按第9步登记，不能按草稿直接发包。
+
+| 域与来源 | 本步特殊约束 | 身份／版本依赖 | 待落实项 |
+|---|---|---|---|
+| 公共封装／身份／容器：[第9步](9-wire-format.md)、本页11.1—11.6 | 按生成物理块及规范长度memcmp，空预留不造零长字段；引用先完整登记再转号，计数／choice／条件变长不按固定原生尺寸比较。不完整源不污染已发布基线或触发假离开 | key/use/shape、member/resource epoch与各序列base/target分别维护；真实结构字段决定shape | 变化日志／块存储／Pending关联、完整目标缓存与按Peer发布接线，日志溢出走全量块扫描 |
+| Entity公共／Sprite／Plus：[公共职责](entity-common-synchronization-review.md)、[资源复核](animation-resource-synchronization-review.md) | 分开比较外观／动画／图层，保留最终完整颜色及nullable；事件位、loaded、valid、ColorParams及已裁计时不产生更新 | 实际资源／引用和目标成员匹配；exists/dead变化不同于成员离开，资源变化不自动升级shape | 生成块存储与成员退休／重建关联，不因旧原值检查恢复被裁字段 |
+| Familiar：[typed结果](familiar-synchronization-review.md) | amount按最终整数，240绳索Sprite／节点完整投影，蝗虫／IsaacsBody按实际有序内容比较；轨道生产历史不重发 | payload存在性／投影count、真实DAC、资源和目标版本一致 | 多投影变化合并与计数组闭包；缺源不当空、不能只看count或指针稳定 |
+| Knife／Bomb／Tear／Pickup／Slot：[三类](knife-bomb-tear-synchronization-review.md)、[拾取／机器](pickup-slot-synchronization-review.md) | 发布最终姿态／costume／价格Sprite／奖品Sprite、Knife拖影及Price／DropDelay等保留输入；P4空槽等规范化之外不比较被裁攻击／循环／开奖历史 | 辅助Sprite／真实引用同目标；Price与图像、计时与该world时钟保持关系 | 每物理投影独立变化；普通数值／资源变化不无据变shape，不靠未来循环或奖励输入重建图像 |
+| Laser／Projectile：[最终几何](laser-homing-synchronization-review.md)、[PR2](projectile-effect-residual-evidence.md) | 两Laser点列独立变化，空→非空及缩短都按实际字节；Projectile Height及原始u8／冻结Vector保留，采样／轨迹生产输入不上线 | 点列／标量／资源同目标，PR2锚点不能由当前位置替代 | 完整几何／空集合发布与跨块关联，不因不同点数或未变化Height漏掉PR2 |
+| Effect：[当前分块／计时](effect-next-five-evidence.md) | FX0/1按16/13B；A=F+T变化才决定锚点重发，静止位置不证明锚点不变。Trail0..127、Ghost0..4及typed存在性按实际全序比较 | 新world帧更新展示时钟；Parent、payload／资源与目标一致，空Trail不同于缺失 | 正式全部臂及多投影闭包，预留块与已裁请求不发；非线性Timeout通过实际锚点变化承接 |
+| NPC／Delirium／Text／Dummy：[NPC](npc-control-ui-evidence.md)、[Delirium](delirium-residual-evidence.md)、[Text](text-dummy-evidence.md) | 0/2 UI、双Sprite／三deque、Text原始字节与counter按当前布局比较。Delirium Boss AI／BE8不加shape；独立companion仍正常入表 | 稳定RTTI／公共shape及当前use；Text当前writer、Dummy必要历史显示源独立 | 真实结构与资源变化分流，不能用同数值type代替RTTI或把未知显示缺口发为默认 |
+| Player body与P6/P7：[正式Player](implementation-5-player.md) | 10及19—24各物理块独立变化；普通动画不能重发全部13份外观。P6比较有序目录／资源结构与跨身体借用实际内容，P7组／激活是结构数据 | P6/P7及对应P0拓扑先ordinary提交，body只用相等render_topology_revision；participant/group与多身体分开 | 旧fast候选撤销、ordinary body-joint、按Peer body序列／ACK范围与64KiB超限路径；不等待全员 |
+| Player P1—P8其余：[P3—P5](5-player-p3-p5.md)、[P6—P8](5-player-p6-p8.md) | 有效innate规范聚合，无序map按声明排序；P4空槽旧值、P5非展示位／恒零充能、非704 cooldown及原始History不触发变化；残影／704真实变化仍发 | world物理11—18与装备／资源／拓扑依赖一致，普通充能不升级shape | 聚合规范字节／条件记录变化和各预算闭包，不按全原生backing做memcmp |
+| Grid公共／17派生：[第6步](6-grid.md)、[水面来源](grid-plus-water-source-evidence.md) | 完整u32 water、glitch两位和按nested_layout的资源／条件Sprite、Fire有效粒子、Rock有序碎块分别比较；Collision／原始optional／旧残留不上线 | Room色／几何、Door目标／Light、实例use与资源一致；同index别名不是同一C/S对象 | 规范派生／条件值与跨域版本关联；源变化即失效，不沿旧仅默认Sprite或water≤255假设 |
+| Room／背景／FX：[版本57](implementation-7-room-level.md)、[显示设计](room-display-resource-design.md) | 239物理块及实际绑定／pose／ray／vein／rail完整结果比较；最终water/lighting/wave/focus，flow只一份。权重／RNG／生产队列或Host视口变化不发布 | 同world几何、八门、内容资源及显示修订；结果外层pass／调用身份不能只靠GameFrame | 完整可显示目录和结果批次的变化／失效调度，旧room退役后不继续发布旧图像／FX |
+| Level／Descriptor／保存与探索：[版本57](implementation-7-room-level.md)、[两域](room-save-exploration-synchronization-review.md) | L0/L1/L3比较真实窄投影／映射，L2比较最终OR/max mask／帧；保存重复数和顺序不改变聚合时不重发，原位结果变化仍需发现。无关flags／全保存体不比较 | 有序活动描述、物理源槽／代次、双配置、地图与资源同world；探索可回退，不要求单调增长 | 低频轮转失效／完整重读和结构事务闭包；不能只看visited/clear/count或通知覆盖 |
+| Run：[Run职责](run-synchronization-review.md) | TimeCounter基准而非每帧原计数；GameFrame帧头唯一更新，current颜色、黑暗、最终分数及窄bool按实际结果比较；生成历史不发 | 当前Game与冻结结算owner分别匹配显示修订；空帧仍推进已应用时钟 | 132B各块变化、最终分数／资格结果与UI批次关联，不能把基准不变误作时钟可停 |
+| HUD／地图／UI：[Presentation](presentation-synchronization-review.md)、[地图设计](room-display-resource-design.md) | 最终心格、Stat三值、有序History／实际图像、消息／转场pass；MapFocusPair、徽标顺序／问号图与world限制保留，Host展开／Options不发 | 身体归组、L0—L3、资源、地图／显示修订同目标；本地视口不能裁掉全目录 | 未注册结果的正式组帧／限速与不可变批次；持续UI不得靠重播Show命令恢复 |
+| D0／随机结果：[逐用途交接](room-random-handoff.md) | D0=5B，alpha按已确认用途／调用身份发布；两个seed／全局流不上线，不能用本地顺序或最后值合并重复调用 | world/presentation、subject/use/shape、pass／递归及资源依赖齐备；缺批次不是state0 | 具名结果注册、批次替换／退休与必要源缺口处理；Authority tick不等待结果或ACK |
+| 配置／图像／shader资源：[typed资源](room-display-resource-design.md)、9.6 | 15B或实际内容变更分配新不可变号，路径与Image独立；先资源依赖闭包／blob，再发引用它的状态。固定头304—309不是完整消息 | 资源epoch与内容／recipe依赖、目标world及各Peer真实ready/ACK对应，不按同名复用 | 完整kind／blob／有序recipe调度、耗尽恢复与候选资源寿命；Context、压缩blob、结构全计首次1MiB/10秒及持续7.5Mbps |
+| Music／SFX／环境声：[音频职责](presentation-synchronization-review.md)、[实际sample](room-random-handoff.md) | 事件发布已选sample且去重，持续voice／crossfade/jingle状态供Baseline恢复；不同voice不能按soundID合并，重复状态不重播。Host音量／节流游标不发 | sample资源、voice代次／相位、场景和开始停止clear关系明确；事件不能直接套latest-only状态丢弃语义 | 第9步事件／状态封装与本步可靠调度、生命周期和预算统计，不用“仅currentId／仅事件”代替完整声音 |
+
+共享编码必须匹配完整依赖键；目标过大可以延后并合并，不能截断成员／条件投影后ACK。Baseline=base0与增量复用同一规范字节，保留真实空帧及最后变化后静止的收敛。变化日志长度、轮转周期、长期落后恢复阈值和全通道计费仍待本步落实，第15步统一验收；本次不运行这些路径。
+
 ## 改动范围
 
 - CaptureWorker 的后台处理改为本步的流程。
@@ -111,10 +131,28 @@ body 序列用同样的流程，使用独立的版本号和独立的块存储。
 
 ## 完成内容
 
-- **实现与编译**：后台处理流程与组帧实现完成，纯编译通过。
+本次仅完成文档整理与静态审阅；以下为本步骤后续实施／验收需要交付的内容，不表示已经实现、编译或通过测试。
+
+- **实现交付**：需完成后台变化处理、完整目标缓存、组帧与确认恢复，并在实施阶段完成相应纯产品编译；本次未实现或构建。
 - **验证安排**：Baseline、增量、丢包自愈、Resync，都由第 15 步的 E2E 覆盖。
 
 ## 未决问题
 
 - 变化日志环的长度 N。
 - 长期落后时转为 Baseline 的门限。这里的门限只是一个运行参数，不是推进 gate。
+
+## 历史修订提示与原分域补充
+
+以下保留原页首与原正文中的修订补充，按各自时点阅读；旧版本号、未生成／待注册和原位置措辞不覆盖上文现行清单。版本47的Player和版本57的Room／Level已经入源，完整消息／结果批次及运行owner仍按各项实际状态说明；历史失败、UNKNOWN及尚未观察的事实不改判。
+
+**原页首提示**
+
+**2026-11-10 第7步显示／资源发布合同（待实施）**：按[补齐设计](room-display-resource-design.md#7-批次变化与安全应用)只比较自有规范投影／内容；配置权重、Spawn／Merged、背景RNG、Host地图查看和其它不下行输入变化不发布。配置15B／实际内容变更生成新不可变资源号，先传依赖闭包与完整blob，再发引用它的目标world／显示批次；不能在旧号改像素或按图像同名复用。程序资源和recipe／压缩blob纳入首次准备及三端总带宽，不扩大原1MiB／10秒／7.5Mbps目标。Authority不等待显示／资源／全员ACK；实际source与调度待实施，无测试。
+
+**版本47布局来源（2026-11-09）**：[第5步正式源／生成](implementation-5-player.md)已完成，EntityPlayer=197，participant／control-group=195／196，Player主动槽=179，条件效果=180，动态Weapon=181—194；物理0—24及条件／固定槽／预算元数据以唯一源和生成表为准。以下版本46／草稿／待生成表述保留原时点；本步骤的运行接线仍未实施，不能因布局已生成就提前接收、采集、安装或宣称验收通过。
+
+**第5步P6—P8发布合同（2026-11-09，未实现）**：[后三块定稿](5-player-p6-p8.md)在world物理16／17／18分别memcmp规范投影。costume生产元数据、map priority、非704 cooldown、原始History／索引／forms和未选回放节点不参与变化；实际残影duration／位置和704 cooldown变化仍会重发。P6 revision统一覆盖Player的跨身体目录／资源结构／P7借用变化，与P7和同拓扑P0先ordinary提交，再接受相等revision的body；不把普通计数或充能变化升级shape。新增纯C/S组／participant记录按成员表关联，roster／组／激活不同于普通Entity热状态；sub／replaced／703四槽不产生Client引用闭包。当前46未实现这些新投影，没有测试。
+
+**第5步P3—P5变化合同（2026-11-09，未实现）**：[P3—P5设计](5-player-p3-p5.md)的world物理13／14／15分别比较／版本。无序容器规范排序，innate合并有效计数后再memcmp，不因timer／group管理变化重发；P4空槽旧payload与P5非展示Modifiers位／恒零充能输入不参与变化。装备结构／资源选择变化先随ordinary的P6拓扑提交，普通充能变化不升级shape；不将被裁字段的旧读回要求放回生成布局。实际三端／多身体带宽仍在第15步验收，版本仍46。
+
+**第5步快源拆块补充（2026-11-09，待实现）**：[P0—P2设计](5-player-p0-p2.md)中的P0是逻辑组，10及19—24号物理块各自memcmp／版本变化；普通动画变化不能重发13份ANM2的整个外观。Player父E6与E1／E4／E5同body目标；P1／P2仍world。P6拓扑变更先经ordinary发布，P0携带相等的render_topology_revision，不以原生地址稳定或哈希替代内容比较。全量下界不当作逐帧带宽，最终仍在第15步按三端扇出与多身体验收。布局版本仍46，无Player发布实现或测试。
