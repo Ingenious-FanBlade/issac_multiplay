@@ -22,6 +22,12 @@ std::span<const ClientField> ClientFields() noexcept { return kStateClientFields
 std::span<const CountConstraint> CountConstraints() noexcept { return kStateCountConstraints; }
 std::span<const Variant> Variants() noexcept { return kStateVariants; }
 std::span<const ContextField> ContextFields() noexcept { return kStateContexts; }
+std::span<const FieldCondition> FieldConditions() noexcept { return kStateConditions; }
+std::span<const LayoutChoice> LayoutChoices() noexcept { return kStateChoices; }
+std::span<const CatalogRow> CatalogRows() noexcept { return kStateCatalogRows; }
+std::span<const SupplementaryMember> SupplementaryMembers() noexcept { return kStateSupplementaryMembers; }
+std::span<const CatalogAlias> CatalogAliases() noexcept { return kStateCatalogAliases; }
+std::span<const LayoutBudget> LayoutBudgets() noexcept { return kStateBudgets; }
 // 布局号可能来自线上数据：先对生成的直接索引做边界检查再取表项，常数时间且不分配。
 const Layout *FindLayout(std::uint16_t id) noexcept {
   if (id >= kStateLayoutSlots.size()) return nullptr;

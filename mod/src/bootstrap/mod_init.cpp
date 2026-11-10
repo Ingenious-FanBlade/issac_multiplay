@@ -1,7 +1,7 @@
 #include "binding/offsets.h"
 #include "libzhl.h"
 #include "runtime.h"
-#include "game/world_bridge.h"
+#include "game/observation/world_bridge.h"
 #include "hooks/random_runtime.h"
 namespace cs {
 DWORD MainThread = 0;

@@ -1,5 +1,25 @@
 # 14：退役旧路径与产品边界
 
+**2026-11-10 Presentation退役补充（待实施）**：按[字节与职责核对](presentation-synchronization-review.md)退役StatHUD五值全复制、三份ColorModState全同步、SFX全靠事件、Font唯一单例及Host地图展开/本地后端音量相等要求。保留最终心格/实际图像/动态HUD/History顺序、官方星象房行、current六值及持续voice状态。不能因旧141行未列Minimap/HUDMessage/Nightmare而删负载，不能据SDK标签调用4ECA30；历史失败和UNKNOWN保持。本轮未退役运行代码、未测试。
+
+**版本54 Grid水面退役（待实施）**：按[旁表核定及Lock纠错](grid-plus-water-source-evidence.md)把正式来源／u32 typed view／每实例应用和Lock第七覆盖点一起接通，再退出旧JSON的water<=255限制及getter全量回验。不能把尚未接线的高位u32或Lock记成已支持；不引入optional／填充／共享表复制，不要求Client与Host的旁表原值／重置历史相等，也不通过公开Set／Reset补齐画面。
+
+**版本53 两类旧链退役（待实施）**：按[新字节职责](grid-pressure-door-evidence.md)退出旧Door previous／四动画名／current类型／Slot／Direction／Busted原值同步与查询相等，保留真实Room槽映射／双Sprite最终旋转与姿态；删除误把Door+154当bool的door_animation_mode，+28C完整flags改1B Light位投影。NextGreedAnimation内容／借用、GreedModeRNG及两类SpawnSeed不回流新路径；Door原颜色相等改入口布尔＋墙色，TimerPlate／extra保持真实颜色及资源。旧文档与失败历史保留，实际owner接通后退役，不用旧JSON写入或Lua getter给typed路径补缺源。
+
+**版本51 八类Grid旧链退役补充（待实施）**：按[新字节合同](grid-eight-subclasses-evidence.md)移除旧fire_timer／fire_style、ember vx/vy的写入／原值相等要求；五类必覆写主Sprite颜色和Fire第三Sprite残留主帧／选择器也不再比较。保留真实粒子位置／age／maxLife、模板主资源／is_playing、完整overlay、三份Sprite独立资源／图层／glitch及正常本地生命周期。不能把旧JSON的4096粒子预算或完整24B元素直接沿用为新线格式（最多5条、每项16B），也不能让旧通用Sprite反向恢复被裁字段。历史记录不改写，实际来源／安装／绘制接通后才退役旧链。
+
+**版本50 Grid退役补充（待实施）**：按[职责复核](grid-common-synchronization-review.md)在来源与应用owner接好后，退出CollisionClass原值写入／相等、Grid默认动画名和图层spritesheet_path同步／回读，以及旧八项Desc／SpawnFrame要求。保留实际Image、显式动画／selector、原链各一次与安全构造／退休；不能为旧JSON回验再复制Host碰撞、加载请求或旁表optional。最终water_clip_flags和glitch_draw_bits进入正式typed view，不回退到Lua／通用字典，后者必须接通纹理adapter后才能退出旧本地地址随机依赖。 Grid冠军色载体后七值28B也退出写入／比较；保留前四GPU参数和普通颜色11值。
+
+**版本47布局来源（2026-11-09）**：[第5步正式源／生成](implementation-5-player.md)已完成，EntityPlayer=197，participant／control-group=195／196，Player主动槽=179，条件效果=180，动态Weapon=181—194；物理0—24及条件／固定槽／预算元数据以唯一源和生成表为准。以下版本46／草稿／待生成表述保留原时点；本步骤的运行接线仍未实施，不能因布局已生成就提前接收、采集、安装或宣称验收通过。
+
+**第5步逐行回映射退役补充（2026-11-09，未实施）**：[1265行新归属](player-member-map.md)保留旧目录身份供追溯，正式路径不再建立ClientPlayerDisplayView的泛化queries_／Captured表，也不按公开getter全量回读相等。P0—P8及第8步实际HUD／具名显示决定owner就绪后一起迁移消费，避免先删必要显示来源。原版通信域和待移除效果队列不进入新状态；不得用旧JSON、原版设备／Online或全量Plus缓存补齐。
+
+**第5步P6—P8退役合同（2026-11-09，未实现）**：[同步职责定稿](5-player-p6-p8.md)退役costume生产元数据／map priority的旧结构比较、native sub／replaced／703四槽的Client写入与全量getter回读、非704 cooldown、原始History／16索引／form字典及完整回放队列下行。保留C/S发现／输入拓扑、真实twin／backup／held和独立激活资格，不能因裁native sub就删SubPlayer组成员。实际HistoryHUD／库存图像列表／分数新owner与Render重算隔离就绪后再切旧消费，不留下空HUD，也不回退Lua／旧查询字典补缺。P8当前记录用真实0／1本地list及ANM，残影完整保留；版本仍46，本轮没有切换运行路径或测试。
+
+**第5步P3—P5后续裁剪（2026-11-09，未实施）**：[新合同](5-player-p3-p5.md)取消旧I14完整innate group／临时list／timer与voided复制要求，改blocked＋有效计数投影；queued charge／VarData／无关flags、crafting池／重复输出原值不再回填，实际HUD结果owner仍须完成。P4空槽不用旧payload做相等条件。P5退出统一四值假定，五种恒零类型不传充能、其它类型只发公式mask，旧MaxCharge／axisAligned／两份chargebar／Host owner及所有攻击关系不恢复，Whip主引用例外保持。原运行来源／writer／预检／漂移对照须一起迁移，不能由旧Captured或JSON反填掩盖缺口；当前版本46通用13／135源未被本次设计改动，旧事实保留。
+
+**第5步P0—P2裁剪合同（2026-11-09，待实现）**：[具体字段职责](5-player-p0-p2.md)取代旧Player final-state表的“全部字段必需”假定：六项属性栏由Presentation缓存承接，cacheFlags／攻击模板／头部锁时等留Host，EternalHearts／BoneHeartsMask原值不传；不得由旧Captured或Lua全树回填。保留五项758850直接Render充能及P2健康／资源原值，不能把展示缓存方案扩大为删除所有原生输入。迁移同时落实P0投影与P6拓扑owner、八类后续Player块及未知；历史测试与失败保留，本轮布局版本仍46，没有退役运行代码。
+
 版本45[Projectile／Effect残余](projectile-effect-residual-evidence.md)切换时，Projectile三个新原生展示字段直接来自生成布局，不能继续依赖旧Lua目录没有这三项而宣称展示齐备；不恢复430／444／468等Host参数。Effect167移148、19／71／194选149，需同步退役旧102含167的分派，保持公开API资格范围；119 callback特例不升级为通用字段或调用入口。UNKNOWN与旧静态失败记录保留，已完成的五项不重做。
 
 版本44 Text／Dummy按[字段复核](text-dummy-evidence.md)退役旧正式Lua／JSON字段链，但保留与Recorder无关的本use/revision真实writer资格；不能把Text Update／Render唯一常驻Hook误删或重复安装。独立`native-text-render-v1`仍为独立观测／对照scope，不能作为普通状态拼接来源。旧duration／KColor末字raw安装与全量漂移比较在切换时撤销，通用KColor20B合同不变；Dummy真实池／Plus／New／Delete／退休owner保留，E2E桥不进入产品。Dummy历史屏幕cache的已知依赖未闭合前保持具体Gap，不以旧完整目录或本地缓存掩盖。
@@ -107,3 +127,6 @@
 **版本40 Effect后续五项退役合同**：见[证据与落地](effect-next-five-evidence.md)。清理旧FX0=8B／FX1=21B常数、102接收113的旧映射、Trail通用16384上限，以及“静止Effect所有锚点必不重发”的判断；统一改用版本40生成表和完整尾窗127上限。旧119回调／120生成／传播请求及113两标量不得作为新同步字段恢复，VarData残余UNKNOWN仍不上线。未知非空／错variant holder须报告，不借旧Source兜底或按空继续。保留三种表现payload及其正常资源／容器／共享owner生命周期，不增加Hook或重演玩法。本轮布局及合同已更新，正式旧运行链的退役仍由本步实施，未运行测试。
 
 **版本43 NPC现行合同**：旧0/1/2本地设备谓词方案已撤销：删除其来源/回退及特殊未决资格，不读取或Hook原版NetplayManager；C/S只保留ReadNpcControlledUi的0/2。raw ControllerId不传不写，旧模式1不接受。正式迁移仍覆盖N0—N6、完整三deque、真实引用和双Sprite，17/18空预留，其他Host/UNKNOWN/生命周期边界保持。见[来源闭合](npc-control-ui-evidence.md)。
+
+
+**版本46 Delirium退役合同**：按[静态处理](delirium-residual-evidence.md)切断旧EntityDelirium字符串字段的Client原值安装与无条件shape逻辑；新增两个u64只是原生字节归属，不得接回旧AI writer。BE8不上线、不预约、不连带Remove，companion仍按正常成员生命周期保留／退休，不因删掉旧专用来源而漏掉独立NPC。world_delirium_owner继续常驻，仅在合法重配收口恢复读取资格；143稳定type选臂及BD4未知保持，记录到的原生池复用机制不作为可发送旧值的理由。实际切换仍属本步。

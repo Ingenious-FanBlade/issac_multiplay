@@ -474,7 +474,7 @@
     "review": "one GPT-6 Luna max read-only research; main independently reread native registration/getters, AddCollectible writer and official Plus source",
     "implementation": "docs/design/tx-04-20/tx-04-20-state-installation.md",
     "source": "application_player_state-v1;same-use/same-ordinary-window;player-source-v2.final_state=player-final-state-v1",
-    "native_fields": "mod/src/game/client_player_fields.inc",
+    "native_fields": "mod/src/game/client/player/client_player_fields.inc",
     "contracts": [
       {
         "id": "active_item_pool",
@@ -539,10 +539,10 @@
     "date": "2026-11-04",
     "implementation": "docs/design/tx-04-20/tx-04-20-equipment-installation.md",
     "source": "application_player_equipment-v1;same-ordinary-window;KnownCurrent/readiness>=2;named ctor/writer/consumer contract only",
-    "model": "mod/src/game/client_player_equipment_model.cpp",
+    "model": "mod/src/game/client/player/client_player_equipment_model.cpp",
     "native": [
-      "mod/src/game/client_player_equipment_native.cpp",
-      "mod/src/game/client_player_weapon_native.cpp"
+      "mod/src/game/client/player/client_player_equipment_native.cpp",
+      "mod/src/game/client/player/client_player_weapon_native.cpp"
     ],
     "agent": "one GPT-6 Luna max read-only reverse agent;primary independently reviewed adopted code and official sources",
     "effects": {

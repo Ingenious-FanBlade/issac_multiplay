@@ -1,3 +1,5 @@
+> **版本46 Delirium未决事项（2026-11-09）**：[静态证据与归属修订](delirium-residual-evidence.md)核定两个8B Host打包存储，BDD／BE4共7B移出独立未知；BD4—BD7的4B仍无填充证明，根未知597→590B，最小线状态仍710B、17／18空预留。池槽残留已有静态可达路径但未实测；补核4A13B0的独立companion创建／BE8登记，BE8继续留Host。实际接线仍归第10／13／14步，唯一功能验收在第15步。 下文保留旧版本记录；BE8仅49F3D0访问的旧结论已纠正。
+
 > 版本43补充：[受控UI来源已闭合](npc-control-ui-evidence.md)，模式仅0/2，不读取原版NetplayManager；上轮误解与纠正保留。
 
 > **版本42后续复核**：[NPC同步职责复核](npc-synchronization-review.md)取代下文版本41传输决定。BossType／Variant取消8B传输与shape；ControllerId不复制本地设备键，改1B受控UI模式；+CD8 OverlayEffect仅排除绘制前完全覆写的8B Scale，使用144号场景视图。NPC／Delirium最小状态均710B，UNKNOWN和SDK边界不变；实际控制UI来源／adapter仍待第10／13步。下文保留版本41原始静态事实与编译记录。

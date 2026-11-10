@@ -1,3 +1,33 @@
+> **第8步Presentation静态核对（2026-11-10）**：[同步必要性与原生证据](design/binary-state/presentation-synchronization-review.md)、[45类型字节账本](design/binary-state/presentation-byte-ledger.md)、[141行旧公开目录回映射](design/binary-state/presentation-member-map.md)。保留最终HUD／实际图像与官方星象房行，剔除显示生产历史；地图查看与音量设置归各端本地，持续音频另有当前状态。UNKNOWN和来源缺口照实保留，正式布局与接线未实施，本轮不构建／测试。
+
+> **第8步Run原生归属核对（2026-11-10，版本56）**：[同步职责与证据](design/binary-state/run-synchronization-review.md)、[191行同源回映射](design/binary-state/layouts/run-catalog-run-members.md)与[GameRun布局](design/binary-state/layouts/GameRun.md)已落地。9个新布局230—238；当前固定负载132B，生成／波次／历史／264624B回溯留Host，只保留明确显示用途、7项种子显示选择和ascent bit48。修正ScoreSheet SDK过时布局，结算16个最终值64B；TimeCounter使用同world帧基准。Run视图的跨域委派／UNKNOWN仍明示，Presentation与正式reader／writer尚待后续。Release／Win32状态库纯编译通过，无测试。以下记录保留原时点。
+
+> **第6步119行Grid公开成员回映射（2026-11-10，版本55）已完成**：[映射说明](design/binary-state/grid-member-map.md)及[同源逐行汇总](design/binary-state/layouts/grid-catalog-members.md)。119行含三个重复ID均保留原签名与独立行号：16字段／28派生／74Host／1不适用。正式源与生成接通，第6步静态研究目录齐备，UNKNOWN和后续运行接线边界保持；Release／Win32状态库纯编译成功，无测试。以下记录保留原时点。
+
+> **第6步GridEntityPlus（2026-11-10，版本54）**：[来源／ABI／生命周期与同步决定](design/binary-state/grid-plus-water-source-evidence.md)已核定官方448×12B共享旁表，229仅本地ABI表。只发每实例最终u32，optional／地址／重置历史不上线；Lock忽略官方覆盖，现有六C/S wrapper漏Lock，后续须补第七点。实际reader／writer及全119项回映射仍待完成，无测试。以下记录保留原时点。
+
+> **第6步PressurePlate／Door（2026-11-10，版本53）**：[字节归属与同步决定](design/binary-state/grid-pressure-door-evidence.md)已生成224—228。TimerPlate／extra、Door目标类型／索引／ExtraVisible及Light位保留；历史缓存／动画名／玩法RNG留Host，主颜色按实际覆写裁剪。根UNKNOWN31／32B，Release状态库纯编译通过，无测试。全部17派生均有归属表，完整目录／Plus来源及运行接线仍待完成。
+
+> **第6步指定七类（2026-11-10，版本52）**：[字节归属与同步决定](design/binary-state/grid-seven-subclasses-evidence.md)已生成Lock／Pit／Spikes／Statue／TNT／Poop／Rock。TNT+154等控制计数、Poop40B伤害EntityRef及Statue尾部裸指针留Host；Statue自身Sprite不上线。Rock保留碎块资源／有序偏移，state2主姿态残留和layer0旧位置条件排除。根UNKNOWN为20／20／17／17／17／19／17B，Release状态库纯编译通过，无测试；PressurePlate／Door、全目录与实际接线尚未完成。以下记录保留原时点。
+
+> **第6步指定八类（2026-11-10，版本51）**：[字节归属与同步决定](design/binary-state/grid-eight-subclasses-evidence.md)已生成Decoration／Gravity／Stairs／Teleporter／Wall／Web／TrapDoor／Fire。TrapDoor计数与Fire冷却／样式／粒子速度不上线；保留真实绘制输入，并排除五类必覆写颜色和粒子模板旧主帧／选择器。UNKNOWN七类17B／Fire45B，Release状态库纯编译通过，无测试；当时剩九类／全目录／实际接线尚未完成。
+
+> **第6步公共同步职责复核（2026-11-10，版本50）**：[具体判定与纠错](design/binary-state/grid-common-synchronization-review.md)。CollisionClass原值留Host，改发最终WaterClipFlags；Grid主Sprite移出默认名／图层路径，保留实际Image／姿态并补Dataminer故障纹理最终两位。新增展示视图200／201，G0为24B、G1固定94B、公共最小142B，根UNKNOWN17B保持。Release／Win32状态库纯编译通过，未测试；实际来源／安装／绘制adapter仍待后续。以下条目保留原时点。 冠军色只保留前四实际GPU参数16B，其余28B留Host，普通颜色11值保持。
+
+> **第6步公共Grid字节归属（2026-11-10，版本48）**：[逐段证据](design/binary-state/grid-common-evidence.md)、[Grid生成表](design/binary-state/layouts/GridEntity.md)及[Desc生成表](design/binary-state/layouts/GridEntityDesc.md)。340B公共前缀已登记归属，UNKNOWN仍17B；Desc四项16B、G0为24B、公共最小状态171B。SpawnSeed保留Light用途，其余来源Init／玩法元数据及对象_rng留Host；子类、Plus旁表、全目录与实际接线待完成。没有测试，第15步统一验收。以下条目保留原时点。
+
+> **第5步正式Player布局源与生成完成（2026-11-09，版本47）**：[实现说明](design/binary-state/implementation-5-player.md)、[Player生成表](design/binary-state/layouts/EntityPlayer.md)。新增48个布局，正式生成P0—P8共25块及1265条应用行／97条补充成员；UNKNOWN仍3707B／Plus9B。Release／Win32产品纯编译／链接通过，无测试或实机操作；实际运行接线按第8—14步、第15步唯一统一验收。以下条目保留各自原时点。
+
+> **第5步前两项设计工作完成（2026-11-09）**：[统一字节账本](design/binary-state/player-byte-ledger.md)与[逐行回映射](design/binary-state/player-member-map.md)已补齐，覆盖58种类型、1265条旧应用行及补充原生／结构，UNKNOWN和Plus ABI推导等级明确保留。原版通信、恢复历史与玩法查询不因存在getter而同步；真正显示结果由具名owner承接。正式Player布局生成和运行接线仍待完成，版本46；没有构建或测试。
+
+> **第5步P6—P8设计完成（2026-11-09，未实现）**：[服装／结构／效果与History定稿](design/binary-state/5-player-p6-p8.md)。costume保留最终目录／map；身体保留twin／backup／held、独立激活和C/S组结构，sub／replaced／703四槽留Host；效果只传704 cooldown，原始History／索引／forms不上线，残影与当前可绘记录保留。真实HUD图像列表及Render内分数重算结果归第8步。P0—P8设计完成，全字节账本／生成／运行接线仍未完成；版本仍46，无构建或测试，第15步统一验收。
+
+> **第5步P3—P5设计完成（2026-11-09，未实现）**：[库存／主动槽／Weapon定稿](design/binary-state/5-player-p3-p5.md)。P3按展示消费者保留当前输入与有效innate投影，管理时限及三组有界阴性输入留Host；P4为96B并规范空槽；P5按真实动态类裁恒零输入／无关Modifiers位，为1—91B，Whip主引用保留。P0—P5设计完成，跨域计算查询显示来源、P6—P8／全字节闭合／运行接线仍明确待完成。版本仍46，没有构建或测试，第15步统一验收。
+
+> **第5步前三块设计完成（2026-11-09，未实现）**：[P0／P1／P2设计与J273消费者](design/binary-state/5-player-p0-p2.md)。P0保留真实表现／五项Render充能并拆Sprite投影；P1为1B CanFly，属性栏最终缓存归Presentation；P2为77B，保留特殊健康显示与资源输入，裁掉已有最终逐心缓存承接的两项原值。布局版本仍46，其它Player块、全字节归属及运行接线待完成；没有构建或测试，第15步统一验收。
+
+> **版本46 Delirium未决事项（2026-11-09）**：[静态证据与归属修订](design/binary-state/delirium-residual-evidence.md)核定两个8B Host打包存储，BDD／BE4共7B移出独立未知；BD4—BD7的4B仍无填充证明，根未知597→590B，最小线状态仍710B、17／18空预留。池槽残留已有静态可达路径但未实测；补核4A13B0的独立companion创建／BE8登记，BE8继续留Host。实际接线仍归第10／13／14步，唯一功能验收在第15步。
+
 > **第4步NPC受控UI来源闭合（2026-11-09，版本43）**：[证据与纠错](design/binary-state/npc-control-ui-evidence.md)。官方接口核定8E7550属于原版NetplayManager，撤销上轮设备可用性解释。新增只读NPC F1C的reader与0/2解码，拒绝模式1，不引入原版Online；正式窗口/绘制接线归第10/13步，其他未知保持，第15步统一验收。
 
 > **NPC布局同步职责修正（2026-11-09，版本42）**：[逐段复核](design/binary-state/npc-synchronization-review.md)。取消Delirium BossType／Variant传输及无根据的shape重建；ControllerId改1B受控UI结果，OverlayEffect Scale由主Sprite当前null-frame派生。保留真实绘制输入／完整三deque／双Sprite必要状态，UNKNOWN不变。实际reader／adapter待第10／13步，第15步统一验收。
@@ -324,4 +354,5 @@
 - tx-04-20 I16—I20：[效果、History、完整身体资源、costume与五槽武器安装及必要逆向主审](design/tx-04-20/tx-04-20-equipment-installation.md)。I21—I40继续推进；本轮未构建或测试，完整native_apply仍为false。
 
 > **原生二进制布局版本40：Effect后续五项未决（2026-11-09）**：[静态证据与落地](design/binary-state/effect-next-five-evidence.md)。补入五个VarData具名臂，Rotation／Scale移动态FX0，Trail上限127；Timeout有双减／刷新，ExtraData仍为三种具体payload。未知保留，正式采集／安装待后续步骤；未运行测试，第15步统一验收。
+> **第6步描述编码（2026-11-10）已完成**：[ClientGridDescription影子记录生成](design/binary-state/grid-description-implementation.md)已实现，正式描述使用同源数字投影并共享自有不可变字节；旧JSON链改用LegacyClientGrid类型，实际采集／解码调度／原生安装留后续步骤。线布局及UNKNOWN不变，本轮不运行测试。
 

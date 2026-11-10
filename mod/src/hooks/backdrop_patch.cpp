@@ -1,5 +1,5 @@
 #include "runtime.h"
-#include "game/bridge.h"
+#include "game/common/bridge.h"
 #include "ASMPatcher.hpp"
 #include <string>
 namespace cs {

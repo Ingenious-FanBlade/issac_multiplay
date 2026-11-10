@@ -10,27 +10,27 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "mod/observation/isaac-cs-observation"
 PARSER = "mod/src/replica/room_grid_target.cpp:ParseRoomGridTarget"
 PLAN = "mod/src/replica/room_grid_plan.cpp:PlanRoomGridTarget"
-NATIVE = "mod/src/game/client_native_world.cpp:PrepareImpl/RetireImpl"
+NATIVE = "mod/src/game/client/scene/client_native_world.cpp:PrepareImpl/RetireImpl"
 ROOM_NATIVE = {
-    "I07": "mod/src/replica/room_grid_target.cpp:ConfigValue;mod/src/game/client_native_world.cpp:ResolveConfiguration/OwnConfiguration",
-    "I08": "mod/src/replica/room_geometry.h;mod/src/game/client_room_native.cpp:ClientRoomStateApply",
-    "I09": "mod/src/game/client_scene.cpp:RoomState;mod/src/game/client_room_native.cpp:ClientRoomStateApply/ClientRoomFrameMaintain",
-    "I10": "mod/src/game/client_native_world.cpp:FinalizeImpl;mod/src/game/client_presentation_native.cpp:DrawImpl",
-    "I11": "mod/src/game/client_presentation.cpp:PrepareTarget;mod/src/game/client_presentation_native.cpp:LuaCaptureAux/BuildAuxCandidate/DrawImpl/ColorComposite",
-    "I12": "mod/src/game/client_room_native.cpp:ClientRoomStateCaptureLua/ClientRoomRailsDraw;mod/src/replica/room_geometry.h",
-    "I13": "mod/src/game/client_map_native.cpp;mod/src/game/client_scene.cpp:MapState;mod/src/game/client_presentation_native.cpp:PrepareImpl",
+    "I07": "mod/src/replica/room_grid_target.cpp:ConfigValue;mod/src/game/client/scene/client_native_world.cpp:ResolveConfiguration/OwnConfiguration",
+    "I08": "mod/src/replica/room_geometry.h;mod/src/game/client/room/client_room_native.cpp:ClientRoomStateApply",
+    "I09": "mod/src/game/client/scene/client_scene.cpp:RoomState;mod/src/game/client/room/client_room_native.cpp:ClientRoomStateApply/ClientRoomFrameMaintain",
+    "I10": "mod/src/game/client/scene/client_native_world.cpp:FinalizeImpl;mod/src/game/client/presentation/client_presentation_native.cpp:DrawImpl",
+    "I11": "mod/src/game/client/presentation/client_presentation.cpp:PrepareTarget;mod/src/game/client/presentation/client_presentation_native.cpp:LuaCaptureAux/BuildAuxCandidate/DrawImpl/ColorComposite",
+    "I12": "mod/src/game/client/room/client_room_native.cpp:ClientRoomStateCaptureLua/ClientRoomRailsDraw;mod/src/replica/room_geometry.h",
+    "I13": "mod/src/game/client/room/client_map_native.cpp;mod/src/game/client/scene/client_scene.cpp:MapState;mod/src/game/client/presentation/client_presentation_native.cpp:PrepareImpl",
 }
 GRID_NATIVE = {
-    "I14": "mod/src/game/client_grids.cpp:PrepareTarget/Step/Retire;mod/src/game/client_grid_native.cpp:Entry",
-    "I15": "mod/src/game/client_grid_native.cpp:Execute/Remove/ClientGridWaterClip;mod/binding/hooks.json",
-    "I16": "mod/src/game/client_grids.cpp:Parse;mod/src/game/client_grid_native.cpp:Common/FieldsThunk",
-    "I17": "mod/src/game/client_grids.cpp:Parse;mod/src/game/client_grid_native.cpp:Runtime/Resources",
-    "I18": "mod/src/replica/room_grid_target.cpp;mod/src/game/client_grid_native.cpp:ClientNativeGridsBindDoors/Unpublish",
-    "I19": "mod/src/game/client_grids.cpp:ResolveReferences/VisitLifted",
-    "I20": "mod/src/game/client_scene.cpp:RoomState;mod/src/game/client_room_native.cpp:ClientRoomStateApply;mod/src/game/client_native_world.cpp:ClientNativeWorldCheckCommit",
-    "I21": "mod/src/game/client_resources_native.cpp;mod/src/game/client_grid_native.cpp:ClientGridDraw;mod/src/game/client_presentation_native.cpp:DrawImpl",
-    "I22": "mod/src/game/client_grid_events.cpp;mod/src/game/client_scene.cpp:AdmitGridIndependent",
-    "I23": "mod/src/game/client_grids.cpp:Retire;mod/src/game/client_grid_native.cpp:Remove;mod/src/game/client_scene.cpp:Pump",
+    "I14": "mod/src/game/client/grid/client_grids.cpp:PrepareTarget/Step/Retire;mod/src/game/client/grid/client_grid_native.cpp:Entry",
+    "I15": "mod/src/game/client/grid/client_grid_native.cpp:Execute/Remove/ClientGridWaterClip;mod/binding/hooks.json",
+    "I16": "mod/src/game/client/grid/client_grids.cpp:Parse;mod/src/game/client/grid/client_grid_native.cpp:Common/FieldsThunk",
+    "I17": "mod/src/game/client/grid/client_grids.cpp:Parse;mod/src/game/client/grid/client_grid_native.cpp:Runtime/Resources",
+    "I18": "mod/src/replica/room_grid_target.cpp;mod/src/game/client/grid/client_grid_native.cpp:ClientNativeGridsBindDoors/Unpublish",
+    "I19": "mod/src/game/client/grid/client_grids.cpp:ResolveReferences/VisitLifted",
+    "I20": "mod/src/game/client/scene/client_scene.cpp:RoomState;mod/src/game/client/room/client_room_native.cpp:ClientRoomStateApply;mod/src/game/client/scene/client_native_world.cpp:ClientNativeWorldCheckCommit",
+    "I21": "mod/src/game/client/resources/client_resources_native.cpp;mod/src/game/client/grid/client_grid_native.cpp:ClientGridDraw;mod/src/game/client/presentation/client_presentation_native.cpp:DrawImpl",
+    "I22": "mod/src/game/client/grid/client_grid_events.cpp;mod/src/game/client/scene/client_scene.cpp:AdmitGridIndependent",
+    "I23": "mod/src/game/client/grid/client_grids.cpp:Retire;mod/src/game/client/grid/client_grid_native.cpp:Remove;mod/src/game/client/scene/client_scene.cpp:Pump",
 }
 # 仍发送的事实保留在T；参数查询是否发送以模型v2清单为准，未来任务说明不是已有消费者。
 ROOM_FACT_CONSUMERS = {

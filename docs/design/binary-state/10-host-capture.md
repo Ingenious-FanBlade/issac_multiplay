@@ -1,5 +1,29 @@
 # 10：Host 采集器
 
+**2026-11-10 Presentation来源合同（待实施）**：按[字节与同步职责核对](presentation-synchronization-review.md)采实际内嵌/动态PlayerHUD、最终心格/实际Image/有序列表及StatHUD0—8行value/delta/countdown；不采previous/threshold/dirty/本地视口。消息/程序图/前帧纹理须实际内容或完整recipe，名字不足；shader旁表ABI未核不猜偏移。地图取Host最终world标记/震动，音频取正常Host已选sample及逻辑voice意图，不重新随机或直接下发含Options乘数的后端音量。显示批次或来源缺失报具名Gap，不执行HUD/Map/Overlay Update、概率/分数重算、ShowHallucination或Lua补值。本轮无测试。
+
+**版本56 Run来源合同（reader待实施）**：[Run核对](run-synchronization-review.md)与230—238只采已声明的当前Run／显示字段，不读整块Game、生成RNG、stage种子、Ambush生产器或回溯体。Game+25A70归帧头，+25A74 TimeCounter独立；只投影flags bit48与SeedEffect 8/9/10/29/30/78/79。树采用已核14B节点／+54头／+58计数的有界只读来源，不调用构造、增删或随机Getter。分数采9BAC90正常生产后的14值及+38完成楼层／+4C真正时间，共64B；+40是vector头，SDK旧u32时间声明不可用，Game当前缓存与Leaderboard冻结副本按owner分开。HUD进度图标采97C300真实显示批次的最终判定，缺批次报Gap，不额外Host重算或本地进度查询。Game当前daily与Manager菜单／预告对象分开。跨域显示输入逐项见核对第4节，不把委派当无负载；同run/world、主线程／资格与版本稳定后复制到自有缓冲。
+
+**版本54 Grid水面来源（实际reader待实施）**：按[已核官方ABI与生命周期](grid-plus-water-source-evidence.md)绑定本地`zhlREPENTOGON.dll`的448×12B静态数组（RVA62E650）。六族有界先读slot+8的engaged，仅为1时读+4 u32；未设置不读payload／填充，缺模块／错误ABI／读失败或窗口变化为Gap，不能当Null。真实RTTI为Lock时完全跳过旁表，只读Host+3C合成38／57。模块CRT、当前root/use／Room成员与index及完整主线程窗口保持稳定，Factory整链返回／Init整链完成后取当前值；同index别名共享输入，但每实例分别计算最终值，不从未见过的Free／换房补造清表。只发最终u32，不调用GetGridEntityPlus／Lua／getter／Init；229是ABI目录，不作为companion／线记录。
+
+**版本53 PressurePlate／Door采集（待实施）**：按[实际消费者](grid-pressure-door-evidence.md)选择227／228，描述224仅12B；SpawnSeed／GreedRNG／下一动画名／Door历史缓存、四字符串及玩法值不采为负载。PressurePlate主202／Timer201；Door主226／extra201，主alpha有限性核对后仅发正值判断1B，+28C只发bit0x20的1B投影。Door target类型／i32索引／ExtraVisible和独立双Sprite仍采，同world目标descriptor／墙色、Pressure计时文字上下文由第7/8步提供，缺源报Gap。27F及两类根31／32B UNKNOWN不读；全部17派生已建表不等于运行采集owner已接通。
+
+**版本51 八类Grid采集合同（待实施）**：按[逐类证据](grid-eight-subclasses-evidence.md)选择206—213实际RTTI布局，五类主Sprite经202不采旧color，Wall／Teleporter／Fire保留颜色。TrapDoor+154、Fire+268/+26C、ember速度不上线；Fire第二／第三Sprite分别201／204，第三主动画按203只采资源与is_playing，不读上次粒子的主帧／两组选择器。粒子state有符号>=4投影空，<4按24B原生步长只读每项位置8B及age/maxLife8B，核0..5条和0<=age<maxLife<=29，不能截断／补零。三份Sprite各自的glitch最终选择、真实资源／Image和独立overlay按同world采集。容器／Init／资源资格不足报Gap；根UNKNOWN七类17B、Fire45B保持。本轮仅生成／纯编译，无正式reader或测试。
+
+**版本50 Grid公共采集修订（运行接线待实施）**：按[同步职责复核](grid-common-synchronization-review.md)，CollisionClass不再作为下行字段，只在实际Lock族按需读其原值合成最终水面结果；同`grid-current-window`与合法旁表owner应用nullable覆盖，生成完整u32 `water_clip_flags`，未知类／来源或可空状态不明报Gap，不调用getter／Lua补值。主Sprite用GridSprite201／图层200，跳过默认动画名和spritesheet_path，不遍历／发其字节；保留实际Image与姿态。新增`glitch_draw_bits`只在Host自有纯值RNG按当前Sprite地址／shift35求两次RandomInt(2)的最终低两位，不调用游戏RNG、改对象_rng或传指针／种子。两合成字段没有原生偏移，须绑定真实对象/角色/use/shape并继承根读取窗口；合法源访问／handler仍待实现，不能因生成表存在就宣称可采集。以下版本48的collision直传／通用Sprite复用要求由本段取代。 冠军色只复制前16B四float，不读取后28B作为下行；普通颜色完整11值保持。
+
+**版本48 Grid公共采集合同（2026-11-10，运行接线待实施）**：按[公共归属](grid-common-evidence.md)只编码Desc198的type／variant／state／SpawnSeed四项16B、Grid199的index／collision及主ANM2三个投影。`grid-current-window`要求主线程ordinary完整窗口、RTTI／来源房间／membership与index关系及原有来源Init资格稳定；嵌套读取继承根资格，布局本身不制造见证。不采集Desc三个未知字节、Host SpawnCount／VarData／Initialized／VariableSeed／SpawnFrame或对象_rng作为下行负载；Host为资格读取Initialized与发送它是两回事。Light使用SpawnSeed加同world Host GameFrame，不调用玩法Update／随机getter补算；本轮没有旁表reader，GridEntityPlus覆盖与Room／Run上下文仍需后续正式owner。不能把公共前缀199按RTTI当作所有派生对象的完整布局。
+
+**版本47布局来源（2026-11-09）**：[第5步正式源／生成](implementation-5-player.md)已完成，EntityPlayer=197，participant／control-group=195／196，Player主动槽=179，条件效果=180，动态Weapon=181—194；物理0—24及条件／固定槽／预算元数据以唯一源和生成表为准。以下版本46／草稿／待生成表述保留原时点；本步骤的运行接线仍未实施，不能因布局已生成就提前接收、采集、安装或宣称验收通过。
+
+**第5步字节账本／回映射补充（2026-11-09，未实现）**：[统一归属](player-byte-ledger.md)与[具名显示决定](player-member-map.md)只登记设计，不以58个类型／1265条目录行扩大读集。Host只复制已声明投影与已产出的自有显示缓冲，显示adapter必须固定有界、预分配；不为填表额外调用getter／Lua或二读全图。原版通信+268C、+2E94待移除效果队列、原始保存体与Plus调度／重入／设备恢复状态不采作下行；发现／合法生命周期读取另有用途，不成为同步边。Plus静态A8 ABI模型不授权按推断偏移读写官方对象。
+
+**第5步P6—P8采集合同（2026-11-09，未实现）**：[原生区间／条件投影](5-player-p6-p8.md)只复制P6配置／isFlying／hasOverlay及最终map选择／layer／body标志；负map不读残留layer但仍保留body标志。P7复制真实twin／backup／held、角色／索引和独立激活／列表／C/S结构见证；sub／replaced／703四槽可用于Host发现，不进入下行闭包。P8有序配置／count全部采集，cooldown仅collectible704读取；另复制全部实际残影、当前可绘节点及额外1C50 ANM2，不读取未选节点负载、原始History／16索引／forms。head／cursor链合法性按稳定owner见证与变化时有界检查；D=0不读无效旧负载。统一Player拓扑变化撤销旧fast候选。HUD图像列表／分数缓存由第8步具体owner采集，不调用getter、Recompute、Update或966680内分数生产链补值；无热路径分配。版本仍46，没有新reader代码或测试。
+
+**第5步P3—P5后续合同（2026-11-09，未实现）**：按[具体区间／投影](5-player-p3-p5.md)只在ordinary采集每身体backing。P3复制完整逻辑counts／实际槽与材料／法术，wisp和附加查询值分开；从现有正确Plus容器把blocked及persistent＋temporary.cachedTotals合并为有序有效计数，不读group字符串／到期list／timer，不调用分配型getter／Save／Load／随机或Online补值。P3三组特殊输入经32根有界参数核对留Host，不能静默上线。P4先读Item，空槽不读旧五值，occupied三段各24B。P5先核factory动态类／type，再按十类／五恒零类取字段与公式mask；只Whip读44引用，其余动态攻击边及UNKNOWN不读。构造尺寸不是采集memcpy长度，别名地址不是网络身份。版本仍46，无新reader代码或测试。
+
+**第5步P0—P2设计合同（2026-11-09，未实现）**：按[直接消费者与区间](5-player-p0-p2.md)接入P0标量／字符串及19—24号Sprite投影，Player父E6也走body；P1为1B CanFly，P2为77B／11段复制，二者只读ordinary。P0拓扑元数据要比较实际内容，不能只看vector指针／count，变化先发布P6。758850在Render内读五项充能，必须保留；不读无消费者的Player属性生产链、cacheFlags、EternalHearts／BoneHeartsMask原值或旧Captured全字典。其最终HUD缓存由第8步采集。未准备身体与不明字段资格报Gap，不借证言、不调用getter／Update补值。当前版本46没有新增Player采集代码。
+
 版本45 Projectile／Effect残余按[静态证据](projectile-effect-residual-evidence.md)接线：Projectile同一完整窗口复制PR0的Height（4B）及新增PR2的440原始u8／460双f32冻结锚点（9B），与公共flags／PositionOffset／资源同版本，不能读Init中途或用当前Position替代锚点；430／444／468的Host轨迹／动画缓存／父速度历史不采集。Effect167选148，19／71／194选149，54／126仍102；新臂不增加线上字段。119按callback条件发现的DamageFlags不能作为全部119统一可读字段，通用UNKNOWN保持，不能发送本进程callback地址；41C／44C／4BC仍不读。原五项合同不变。
 
 版本44 Text／Dummy合同见[逐段证据](text-dummy-evidence.md)。在RTTI后选Text145／variant2的146／Dummy147；文本只读当前use/revision已观察writer的有效NUL前缀，使用`ReadCStringInto`，不复制整个256B。writer资格须从旧观测上下文迁到独立正式owner，Init／复用／退休撤销；没有见证报Gap，不能借Recorder开启或调用Update补齐。TX0只读最终RGBA16B，TX2仅146读取counter，duration／颜色空间标签不上线。Manager帧／pause沿同world展示上下文供应，不混入旧独立Render来源；Dummy继承公共状态，历史屏幕缓存分支来源缺失保持Gap，不用当前位置替换。此处是第10步后续接线要求，本轮未切换运行路径。
@@ -99,7 +123,7 @@ Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](im
 ### 10.5 频率分层
 
 - **body**：每个合格身体在 PlayerPost 窗口内执行 Player 的 body 块计划。
-  - 只复制 P0 以及 E1／E4／E5 中属于 Player 的部分，写入对应的身体槽。
+  - 只复制P0逻辑组及E1／E4／E5／E6中属于Player的部分，写入对应身体槽；P0组包括10号本体快块和19—24号Sprite投影，详见第5步前三块设计，P1／P2仍只读ordinary。
   - 没有 PlayerPost 资格的身体，由 ordinary 窗口补采（沿用现有的 ordinary body-joint 语义）。
 - **普通**：ordinary 窗口按约 30 Hz 采集全部普通成员和房间、楼层的动态块。
 - **低频轮转**：描述表 L1／L2、Mod 域、Run／Presentation 中的大块内容分片轮转读取。
@@ -152,3 +176,6 @@ Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](im
 **版本40 Effect后续五项采集合同**：见[证据与落地](effect-next-five-evidence.md)。按生成的11个布局选臂，102为54／126／167、141为113；137—140分别处理传播、Timer、生成请求和30／153计数的原生归属，不采集这些Host输入或函数地址，FX2始终预留，残余UNKNOWN不补零。每窗以同窗F／T重算Timeout锚点，101双减、141刷新及负值／停走均允许锚点变化；Rotation／Scale归FX0（16B），FX1为LifeSpan／following／ParentOffset（13B）。Trail只在正常Update及后置裁剪完成的完整尾窗读取逻辑0—127个完整64B节点，源数量先按原生宽度检查，最大节点块8130B；超限报Gap，不截断／抽样，不读取中途的128。所有Effect先检查holder资格：非附属臂必须空，附属臂非空时RTTI必须与variant匹配；未知／不匹配／读取失败不能伪装缺失或继续发布。此资格检查不等于采集或传输holder地址；仍须前后核生命周期、主线程及实际字节预算。具名接线仍由本步实施，未运行测试。
 
 **版本43 NPC现行合同**：ReadNpcControlledUi已实现，本步将生成处理器npc_controller_to_ui_mode绑定该函数；只在已核NPC RTTI与当前C/S ordinary窗口读F1C，-1→0，其余i32→2。来源复读不一致、地址/读取/窗口失效报Gap；不调用Lua、IsIdxLocalPlayer或任何slot5，不读取Manager+4AFB8。原特殊“confirmed-npc-control-ui-source”未决资格已删除，使用与其他NPC字段相同的entity-current-window见证。实际ordinary owner接线仍归本步。其他N0—N6、Delirium空块和双Sprite合同不变。见[来源闭合](npc-control-ui-evidence.md)。
+
+
+**版本46 Delirium读取合同**：见[原未决静态处理](delirium-residual-evidence.md)。143的BD8／BE0两个8B原生打包值和BE8仍为Host，不产生capture操作或身份预约；142的36B Host区域同样不读取，既不能发送池槽旧值，也不能把非412 companion当作整个原生段无用途。只在49F3D0 owner退尽、稳定type恢复及同use／generation见证有效后选臂；Init后的资格依既有owner恢复，不新增Hook或无条件shape。独立companion必须与其他真实NPC一样进入成员与最终资源／几何采集，不能因BE8不传而漏成员。专有UNKNOWN只剩BD4四字节，根590B；数据来源改变不等于这些字节可读。实际ordinary接线仍属本步。

@@ -1,5 +1,35 @@
 # 原生二进制布局源
 
+## 版本56：第8步Run归属
+
+`run.json`新增230—238：RunSeeds／RunAmbush／RunChallengeParam／RunDailyChallenge／RunScoreSheet／RunColorModState／RunGameStateFlags／GameRun／RunSeedEffectNode。证据见`docs/design/binary-state/run-synchronization-review.md`。GameRun只是Run视图，跨域委派与原生孔不冒充已核或本地；191条目录保留原行序、签名与旧归属说明。只传有实际显示用途的当前值、7项种子显示选择、ascent bit48和最终分数，RNG／波次控制／回溯／生成历史留Host。新handler尚待第10／13步；第15步前无测试。
+
+## 版本54：GridEntityPlus外部水面来源
+
+`grid.json`新增229号12B本地ABI表（vptr4、payload4、engaged1、已核对齐3），无发送块；199的4B `water_clip_flags`仍为最终结果。官方1.1.3 DLL表RVA62E650、448项、stride12，来源／调用ABI／Factory与Init重置及共享生命周期见`docs/design/binary-state/grid-plus-water-source-evidence.md`。六族应用nullable覆盖，Lock忽略它并按Host collision合成；现有六C/S wrapper不足，第13步须补Lock第七点。无复制optional、读未设置payload、写官方旁表或回放Set／Reset；各Grid根大小和UNKNOWN不变。实际运行绑定／reader／writer未接线，全119项逐行回映射未完成，第15步前无测试。
+
+## 版本53：PressurePlate／Door
+
+`grid-classes.json`追加224非随机Light描述、225Door主颜色、226Door主Sprite、227PressurePlate、228Door，保留此前202—223。证据见`docs/design/binary-state/grid-pressure-door-evidence.md`。两类G0用12B描述（不发无消费者的临时Light种子），公共198/其它类不变；Pressure主202/Timer201，Door主226/extra201。Door颜色只传1B alpha正值入口，其余从同world墙色取得；+28C只传bit0x20布尔，target类型/i32索引/ExtraVisible保留，previous/动画名/玩法控制值及RNG留Host。Door2EC为string capacity，27F未知；根31/32B，最小212/223B，Release状态库纯编译通过，无测试。17派生均已建表，完整目录与正式owner仍待后续。
+
+## 版本52：第6步指定七类
+
+`grid-classes.json`新增214—216专用视图、217—223实际Lock／Pit／Spikes／Statue／TNT／Poop／Rock。证据见`docs/design/binary-state/grid-seven-subclasses-evidence.md`。TNT的`_frameCount+154`等计时、Poop40B EntityRef、Statue尾部Entity*均归Host；Statue自身无Sprite负载但原生UNKNOWN仍保留。Rock只在可绘碎块态采RubbleAnim资源和有序Vector，主姿态／layer0位置以父state和层序号控制存在性，覆写残留不读不发，其余独立姿态与原色保留。条件／具名纯值嵌套不再降为无条件memcpy。
+
+七根UNKNOWN分别20／20／17／17／17／19／17B，完整标志仍否。Release／Win32状态库纯编译通过；具名reader／writer／绘制与生命周期owner尚未实际接线，Rock多pass overlay最终来源仍须明确。未运行测试，第15步唯一统一验收。PressurePlate、Door及全119项回映射仍待完成；以下段落保留历史时点。
+
+## 版本51：第6步指定八类
+
+`grid-classes.json`登记202—213：地板色主Sprite视图、Fire粒子主动画／模板／元素，以及Decoration／Gravity／Stairs／Teleporter／Wall／Web／TrapDoor／Fire。字节证据与实际同步决定见`docs/design/binary-state/grid-eight-subclasses-evidence.md`。
+
+`native_view_of`保留原类型全部原生字节边界、名称和UNKNOWN；真实派生类型可用`nested_views`将父类的直接等大嵌套字段选择为该明确视图，块号及父子原生布局不改。这是生成时完整字节模型，不允许覆写父类范围或把指针改成copy。五类202不发必覆写的44B颜色，Wall／Teleporter／Fire仍保留；Fire203不发逐粒子SetFrame必覆写的主帧／两组选择器，仍发is_playing和真实主资源，overlay不裁。后续reader/writer必须按nested_layout递归，不能硬编码公共布局号。
+
+TrapDoor计数、Fire计时／样式／粒子速度归Host；粒子原生24B、线16B，普通完整窗口最多5条，state>=4投影空，age/maxLife继续供原生绘制。七类根未知17B、Fire45B，最小98／142／372B；不是整个第6步或运行接线完成。Release状态库纯编译通过，无测试，第15步统一验收。
+
+版本50按`docs/design/binary-state/grid-common-synchronization-review.md`收紧`grid.json`：Grid199的+3C碰撞原值归Host，G0改用4B synthetic最终水面值；GridLayerState200不发路径、GridSprite201不发默认名且增加1B synthetic故障纹理选择。G1固定94B，公共最小状态142B，根UNKNOWN17B不变；合成值没有原生偏移，不能落入memcpy或直接写游戏对象。通用ANM2／其它Sprite原布局保持各自合同。所有具名来源／安装／绘制handler仍待正式接线；此前版本48段落保留原时点。 冠军参数只传+D4前四float16B，+E4—FF七值留Host；其它ColorMod不裁剪。
+
+版本48新增`grid.json`：Desc198的四项展示输入为16B，公共Grid199为`base_prefix`，G0—G3最小状态171B。340B公共前缀递归保留17B UNKNOWN（Desc3B＋ANM2 14B）；SpawnSeed有Light展示消费者，对象_rng及来源Init／玩法元数据不上线。子类、Plus水面旁表、119项全目录与实际窗口／安装owner尚未接入；本轮`public_owners=[]`不宣称全域覆盖。证据见`docs/design/binary-state/grid-common-evidence.md`。这不改变前轮Player等布局内容，重新生成的旧表仅更新整数布局版本。
+
 `version.json` 指定整数布局版本、域文件和公开成员核对目录。`schema.json` 描述域文件结构；`gen_state_layout.py` 在普通构建中执行结构与跨类型语义检查，同时生成代码表和 `docs/design/binary-state/layouts/`。不运行游戏或测试，不计算哈希。
 
 布局源任何改动都必须手工递增版本。版本 1 是首次创建，尚未用于网络握手；第 9 步接入握手后，两端直接比较整数版本。版本是 u16 正整数，与帧头 `layout_version` 同宽。
@@ -58,4 +88,21 @@
 
 版本44接入entity-text-dummy.json：Text145／variant2缩放146／Dummy147；Text只发有效原始字节前缀与RGBA，counter仅146发送，duration／此固定字体不消费的颜色空间标签留Host，通用KColor20B不变。新增c-string容量／资格声明与ReadCStringInto／StageCStringInto；等大派生仅允许空ranges。Text339B／Dummy335B未知及Dummy历史屏幕cache依赖／自然来源缺口保持。实际窗口／writer／draw接线仍归第10／13步，第15步前不测试。见docs/design/binary-state/text-dummy-evidence.md与implementation-4-text-dummy.md。
 
-当前版本45按docs/design/binary-state/projectile-effect-residual-evidence.md收窄剩余：Projectile+440原始u8开关及+460冻结Vector共9B状态，PR0保持4B、PR2新增9B，最小404B；+430轨迹参数／+444动画缓存／+468父速度历史留Host，根未知350B。Effect148独立167（430伤害快照归Host，434及438后8B未知），149处理19/71/194内部flags，不扩大公开API资格；119的430—437仅在6FC690回调下核为DamageFlags，通用未知保持。三段41C/44C/4BC和其余空白不升级填充。此前五项不重做，正式接线／唯一验收仍归第10/13/15步。
+版本45按docs/design/binary-state/projectile-effect-residual-evidence.md收窄剩余：Projectile+440原始u8开关及+460冻结Vector共9B状态，PR0保持4B、PR2新增9B，最小404B；+430轨迹参数／+444动画缓存／+468父速度历史留Host，根未知350B。Effect148独立167（430伤害快照归Host，434及438后8B未知），149处理19/71/194内部flags，不扩大公开API资格；119的430—437仅在6FC690回调下核为DamageFlags，通用未知保持。三段41C/44C/4BC和其余空白不升级填充。此前五项不重做，正式接线／唯一验收仍归第10/13/15步。
+
+当前版本46按docs/design/binary-state/delirium-residual-evidence.md处理Delirium原未决：BD8—BDF和BE0—BE7改为两个Host u64打包存储；官方AttackID／Cycle仍u32、Angle仍u8，SDK编译断言固定其宽度。BDD三字节是已核五u8拼装高位，BE4四字节是实际双字SHRD读取的一部分，不再独立未知；BD4四字节仍UNKNOWN，根未知597→590B。非412臂不读取这36B，不能误称所有非412 NPC都无用途；池复用保留值有静态可达路径但未实测。4A13B0创建的companion是独立成员，BE8继续归Host，不预约／安装／级联Remove；最小710B及17／18空预留不变。正式接线及唯一验收仍归第10／13／14／15步，未运行测试。
+
+## 版本47：正式Player源
+
+`player.json`登记150—197共48个布局；Player197继承Entity，P0—P8与Sprite三投影共25块。`docs/design/binary-state/implementation-5-player.md`说明职责、预算、生成与后续接线；设计ledger／member-map不作为生成输入。Player根UNKNOWN3707B、Plus9B保持。
+
+- `native_type/native_count`只展开原生内嵌字节，包括不上线的保存体；父范围的Host／本地用途约束子字段，未知仍保留，不伪造线字段。
+- `fixed_count`必须等于真实inline_count及limit，线上不附u16 count；普通复杂容器仍按各投影count及max_bytes限制。
+- `storage=aggregate`必须声明stride=0：没有一对一原生元素，只能由具名官方成员owner归并成已声明纯值结果；不得把结果pair宽度当原map节点步长。
+- `kind=choice`用于已声明slots-mask动态槽，生成允许的view_layout集合；每个view一个值块。类型、空槽、Modifiers mask及Whip真引用不能按指针地址猜测。
+- `wire.when`依赖同块先行无条件定长字段及具名谓词；条件不成立时不读取负载，也没有该段线上字节。谓词语义在conversions声明，后续reader／decoder注册实现。
+- `synthetic_fields`是无原生偏移的C/S自有值；`extent=protocol`只允许native_size=0、无父类及无ranges，不分配游戏对象。`block_sequences`只调整本类继承块的序列。
+- `record_limit/body_limit`生成总预算元数据；Player为32MiB／64KiB，body超限改ordinary，不能截断投影。
+- `catalog_rows`以目录＋一基ordinal保留全部1265行及原签名（含null／空串），`catalog_aliases`保留1244条Entity目录逐行链接，`supplementary_rows`保留14 native／77旧宏／6结构。原目录保持原事实，不把回映射当可执行getter字典。
+
+生成表中的新handler、条件、mask及预算只是正式接线元数据，不能代替第8—14步owner实现。通用12／13／14／135／136继续保留原合同，不冒充Player专用179／180／181—194。第15步前没有测试。

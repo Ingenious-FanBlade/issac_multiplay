@@ -1,5 +1,5 @@
-#include "game/context.h"
-#include "game/device_k.h"
+#include "game/common/context.h"
+#include "game/participants/device_k.h"
 #include "runtime.h"
 #include "ops/world_commands.h"
 #include <cstdio>

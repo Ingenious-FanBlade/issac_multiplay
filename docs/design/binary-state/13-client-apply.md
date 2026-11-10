@@ -1,5 +1,31 @@
 # 13：Client 原生应用
 
+**第6步描述接口已实现，原生接线仍待本步**：见[影子描述实现](grid-description-implementation.md)。从第12步完整影子记录调用`ClientDescribeGrid`，通过语义角色取得同源数字字段及真实nested_layout投影，不能把旧JSON `LegacyClientGridDescription`强转为正式描述。本步再把正式描述接入原生执行器／门绑定、资源owner、容器与绘制；当前执行器仍显式消费legacy命令，Plus／Lock等既有运行缺口保持。不得因描述生成成功就回AppliedAck。
+
+**2026-11-10 Presentation安装合同（待实施）**：依[核对结论](presentation-synchronization-review.md)按C/S真实身体/显示组与目标版本安装8内嵌及动态HUD、最终心格/实际图像/有序列表、StatHUD三值，不恢复previous/threshold/dirty。97E4A0/97EB40/834930含Online选择，使用具名C/S分派；禁止965DB0，挑战32无最终标记不得随机补绘，SDK误标4ECA30绝不调用。地图展开/holdTime/视口及音量/静音归各端本地；屏幕/Prompt/转场/死亡仅执行已核最终pass，不执行提交/退出/健康/解锁。one-shot去重，持续voice支持baseline/停止/clear且重复state不Play。未知来源/图像失败不可填默认后ACK，正式接线/第15步验收仍待完成。
+
+**版本56 Run应用合同（owner待实施）**：[Run核对](run-synchronization-review.md)的Run身份／时间、当前颜色／黑暗／震动／闪电／眩晕、分数与窄显示投影只进入具名显示owner。种子7位与ascent bit48在已声明绘制／只读显示范围借用并恢复；不替换原生种子树、整组flags、Host模式对象或本地进度，不调用SetStartSeed／SetStateFlag／Ambush／每日Init／挑战完成。97C300→966680内9BAC90分数重算须隔离；HUD禁用成就图标取Host真实批次，不能查Client资格补值。TimeCounter不代替GameFrame，target／lerp颜色不再安装，两个黑暗浮点有直接消费者均保留。非Run的Pause／UI／转场／shader／当前标题等按核对第4节逐项接线，缺同world来源不ACK。
+
+**版本54 Grid水面应用（待实施）**：按[七族与官方旁表合同](grid-plus-water-source-evidence.md)安装每实例／use最终u32。现有六wrapper漏掉Lock，必须经统一清单给J273 VA70CCE0补第七常驻覆盖点，原链一次后写out.bitFlags；所有七族out+4 float由原链置0。未补Lock不能ACK其结果，不能改Host collision／虚表或官方共享旁表补缺。本地+3C先中性初始化，六族与Lock都消费C/S自有结果，绝不重演Set／Reset／Init。候选工厂会清同index官方slot，故最终结果不能存在官方表中；停用／退休只撤C/S结果与借用，Hook常驻且非C/S原样透传。
+
+**版本53 PressurePlate／Door应用（待实施）**：按[逐类合同](grid-pressure-door-evidence.md)安装227／228；TimerPlate与extra各用真实内嵌ANM2／201，不用值副本、variant或本地loaded字节冒充资格。Door主226把1B入口值安装成本地alpha0/1，实际颜色借用同world完整墙色并恢复；extra自身颜色保留，Light独立不随主入口跳过。+28C先本地中性初始化，仅设置/清除bit0x20，不写Host整word；target索引以同world目标映射解析，不能启动过门FSM。禁止安装previous／四动画名／NextGreedAnimation／RNG或调用PlayAnimation／SetRoomTypes／Reward／Direction setter补画面；旧door_animation_mode误用字节退出，+154为Host dword计数。释放先撤全部门别名并drain绘制，再正常析构双ANM2／四string；缺目标/资源/墙色/计时来源不ACK。
+
+**版本51 八类Grid应用合同（待实施）**：按[逐类职责](grid-eight-subclasses-evidence.md)以真实工厂构造206—213，不调用Init／PostInit／Update／Hurt／Destroy补状态。五类202主Sprite借用同world Room.floorColor并恢复，Wall非16房间必须保留201颜色。TrapDoor计数、Fire计时／样式及ember速度不写Host原值；Fire线上16B粒子重建到本地24B元素，速度中性且绝不模拟，vector存储遵守本地owner／Free前detach和drain。第三Sprite按204／203安装，主帧与两组选择器由实际age/maxLife和主资源frameCount逐粒子重建，is_playing／playbackSpeed／overlay保留；SetFrame产生的帧／选择器／事件临时修改须精确恢复，不能派发Host动画事件。三份Sprite各自消费glitch最终选择；state>=4空列表不代表重演熄灭或删除Grid。未知／资源／owner失败不ACK，实际writer／draw恢复尚未实现。
+
+**版本50 Grid公共应用修订（待实施）**：按[复核](grid-common-synchronization-review.md)先由本地构造owner把+3C初始化为中性0，再将完整u32 water_clip_flags安装到per-instance owner，六个wrapper保留original各一次并覆盖最终结果，不复制Host碰撞或永久污染按index共享的REP旁表。Sprite201／图层200只按实际资源／Image与显式动画安装，不按Host默认名／待加载路径调用Play或LoadGraphics。glitch_draw_bits须由同world Dataminer pass中的具名RenderFrame/source-quad adapter消费，阻止原生／REP再按Client地址随机并精确恢复临时状态；不可用Sprite Rotation/FlipX替代纹理source-quad变换。实际ABI／资源／pass／adapter未闭合时保留Gap，禁止用默认值ACK；此段取代版本48的collision写入与完整通用Sprite复用要求。 冠军参数只写+D4—E3的四float，不覆盖+E4—FF七值，不据旧完整ColorMod回读要求恢复28B；普通颜色完整11值保持。
+
+**版本48 Grid公共应用合同（2026-11-10，运行接线待实施）**：按[实际消费者](grid-common-evidence.md)安装Desc的四项展示输入、index／collision及主Sprite投影；旧`Common/CommonMatches`的八项Desc／spawn_frame写入与原值比较应在本步／第14步退出。来源Initialized不上线，工厂构造／资源准备／发布均由Client本地owner见证，不为查询相等重演Init／PostInit／Update或恢复奖励／玩法_rng。Position由同房间width推导，屏幕位置按Client本地视口换算；Light临时随机使用同world Host帧＋SpawnSeed。Plus水面nullable旁表、Room颜色／压力板文字及其它上下文未接入前如实报缺口，不能用0冒充Null或宣称仅主Sprite足够。子类仍按真实布局后续接入，199仅公共前缀。
+
+**版本47布局来源（2026-11-09）**：[第5步正式源／生成](implementation-5-player.md)已完成，EntityPlayer=197，participant／control-group=195／196，Player主动槽=179，条件效果=180，动态Weapon=181—194；物理0—24及条件／固定槽／预算元数据以唯一源和生成表为准。以下版本46／草稿／待生成表述保留原时点；本步骤的运行接线仍未实施，不能因布局已生成就提前接收、采集、安装或宣称验收通过。
+
+**第5步统一映射安装补充（2026-11-09，未实现）**：[逐行回映射](player-member-map.md)是裁剪归属，不是完整公共API兼容承诺。Client仅在批准绘制上下文消费具名最终决定，不能在一般玩法路径放行有Online／进度／RNG分支的getter；缺少具体缓存时报具名Gap。原版通信+268C分支保持关闭，不写Host通信选择／计数或把两ANM并入P0；正常本地资源仍按自身owner析构。+2E94队列不安装，效果只用P8当前列表。Plus使用官方成员和正常owner，Host缓存／重入／恢复状态不写入，不依据推导A8表强行修正内存。
+
+**第5步P6—P8安装合同（2026-11-09，未实现）**：[候选／结构／退休次序](5-player-p6-p8.md)要求先准备全体Player／C/S组／资源，再绑定真实twin／backup／held及roster／列表／独立激活资格，共同提交统一P6拓扑。普通热块不得写valid；非room独立激活只由本方正常初始化、独占且不属于可复用工厂池的Player结构owner安装。costume只写保留元数据及最终map，效果只写配置／count和704 cooldown，其余冷却本地中性；P8维护正常残影deque与0／1当前记录list及1C50 ANM2。sub／replaced／703四槽、原始History／索引／forms和完整回放队列不安装／不做原值漂移比较；其实际HUD图像列表／分数由第8步owner安装，并隔离Render内9BAC90重算。CPU drain后撤raw／EntityPtr借用及ANM强引用，不沿互惠关系级联Free，不调用AddCostume／效果Update／Flip／Use703或HUD Recompute补状态。版本仍46，尚无新writer或测试。
+
+**第5步P3—P5待实现合同（2026-11-09）**：按[投影／owner细则](5-player-p3-p5.md)直接安装当前库存／槽／材料，queued仅饰品配置／golden，P4仅六值且空槽清展示负载；不执行获取／使用／充能／到期操作。Plus以本地固定展示组persistent承载有效innate，temporary list与缓存都为空，保留真实官方虚表／容器owner，禁用公开mutator／CheckPlayerType／计时更新；不伪造只有cachedTotals非空的内部状态。P5按真实factory类型构造，五恒零类不写被裁充能，十类只更新公式mask位，Whip真引用保留，其余边保持正常本地owner并按动态类完整撤边后窄Free。Host槽别名按独立本地槽承载，不复用一个指针重复Free；禁用ClearReferences／DestroyWeapon级联Remove／停音。P3特殊查询含Online／RNG等依赖仍须由第8步具体显示路径闭合，缺失不能放行整个getter或旧Lua补值。版本仍46，无新writer或测试。
+
+**第5步P0—P2待实现合同（2026-11-09）**：[必要值及安装依赖](5-player-p0-p2.md)。只安装P0真实闪隐／六比例／headAnim／ItemState／SuplexState／五充能及Sprite投影，P1 CanFly和P2的77B原生存储；不为裁剪字段调用EvaluateItems、Shooting、Player／HUD Update或UpdateHearts。属性栏五值缓存与普通／动态逐心缓存由第8步具体owner安装，EternalHearts／BoneHeartsMask原值不作漂移相等要求。P6有序拓扑版本／资源未匹配、P7角色与held／主备关系未就绪时不装P0也不ACK。758850是Render消费者，不能删五计数；ControllerIndex保持-1，C/S表现选择不使用Host设备键或原版Online getter补值。当前版本46无Player新writer接线。
+
 版本45按[展示来源及残余边界](projectile-effect-residual-evidence.md)安装Projectile新1B开关和独立8B冻结锚点；同版本公共FLAG_FREEZE决定原生分支，不能按最新Position重建锚点或执行冻结随机逻辑。Height临时改写公共PositionOffset.y仍须保存并精确恢复，保留同world Game展示帧；430／444／468不装或漂移比较。Effect按148／149新臂，只安装既有实际展示字段／payload，不执行ChainLightning生成、伤害或Timer callback，不把167的434、119通用尾部及三段空白当可写状态。原五项决定保持；正式owner接线尚待本步。
 
 版本44 Text／Dummy安装按[证据及未决](text-dummy-evidence.md)：文本经有界暂存验证后只安装有效前缀＋NUL，空串／缩短不得复活旧尾巴；TX0安装最终RGBA，固定Text字体包装保留本地正常KColor标签初值，不写／比较Host标签。counter仅146安装，按同world Manager／pause与原生32位运算计算缩放；不推进Update／Interpolate、不装duration或按其退休。字体使用本地Font6，视口／渲染offset由展示owner提供。Dummy仅真实预构造空槽owner取得，继承公共状态／Plus，标签由Type/Variant及本地Font2派生；visible=false导致公共屏幕cache未刷新的历史依赖必须闭合具名来源，未闭合报Gap，不能把当前Screen或旧本地cache当权威值。draw借用状态须精确恢复，不引入原版Online／Isaac Sync。这里约束后续接线，不代表本轮已实现运行应用。
@@ -155,3 +181,6 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 **版本40 Effect后续五项安装合同**：见[证据与落地](effect-next-five-evidence.md)。按11布局及其生成表安装；FX0的Rotation／Scale随State／Timeout同目标版本提交，FX1仍须等待E8 Parent，不能继续按旧8／21B字段偏移写入。每个已应用world帧对全部Effect以该帧F还原T=A−F，不预测、不夹限负数、不调用Update或SetTimeout补递减；101双减／141刷新反映为Host发送的新锚点。Trail正常owner只重建逻辑0—127个独立64B节点，保持全序、零alpha边界节点和全部参数；不运行追加／裁剪／衰减，空payload不同于缺失。原生ExtraData只允许既有108／166／191三种具体类型，全部投影齐备后经606310一次替换，错variant／未知类型不造fallback。137—141已排除输入不安装、不回调、不Spawn／传播；未知字节及无效holder不会变成原生写入目标。实际接线仍由本步完成，未运行测试。
 
 **版本43 NPC现行合同**：C/S受控UI只以同版本0/2旁表结果消费：第一段6D025D入口，0走6D02C5、2走6D0285；第二段6D0314入口，0走6D03AC、2走6D0340。必须绕过整段Manager+4AFB8读取及原版IsIdxLocalPlayer，不能只替换6D027C/6D0337调用。403物品独立HP条路径、Sprite后续就绪/alpha及可见检查保持；不写F1C，不注册/重绑输入，不全局Hook8E7550。NPC另在6CF09D读取NetplayManager作Spawner为Player时的远端淡出筛选，C/S采用无原版远端筛选语义，具名draw adapter须绕开该整段至6CF0EB，不为它新增网络字段。该点列入本步既有隔离接线，未提前安装Hook。Boss选择不重建、OverlayEffect Scale派生及其他复合owner合同保持。见[来源闭合](npc-control-ui-evidence.md)。
+
+
+**版本46 Delirium安装合同**：见[companion消费与绘制依赖](delirium-residual-evidence.md)。两个Host u64打包值、Boss选择和BE8均无writer／读回／漂移比较，不能扩大官方u32／u8接口或恢复旧字符串字段写入。410的Child与4A13B0生成的companion按真实独立成员及现行公共关系／资源展示，不根据BE8创建第二个NPC或连带Remove；本地Init空槽保持为空，异常非空交合法owner，不能裸清登记。稳定公共shape下的资源／姿态改变仍更新实际块，不强制退休重建根NPC。143根UNKNOWN为590B，BD4—BD7不写；17／18空预留、710B下界和其他NPC合同保持。实际安装接线仍属本步。

@@ -1,0 +1,2799 @@
+{
+  "format": "isaac.cs.presentation-member-review",
+  "revision": 1,
+  "date": "2026-11-10",
+  "source_catalog": "docs/design/tx-04-21/stream-catalog.json",
+  "scope": "仅原始source_schema=isaac.cs.presentation逐行保留；补充接口另列，不声称已实现Getter兼容",
+  "members": [
+    {
+      "source_ordinal": 3179,
+      "field": 3180,
+      "wire_name": "run-catalog.json|ColorModifier.A|None|float",
+      "id": "ColorModifier.A",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "GameColorView.current.strength",
+      "reason": "仅最终current实例；FXParams配置/target/lerp不是相同实例，不为保持任意ColorModifier对象相等复制它们",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 22
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3180,
+      "field": 3181,
+      "wire_name": "run-catalog.json|ColorModifier.B|None|float",
+      "id": "ColorModifier.B",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "GameColorView.current.b",
+      "reason": "仅最终current实例；FXParams配置/target/lerp不是相同实例，不为保持任意ColorModifier对象相等复制它们",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 27
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3181,
+      "field": 3182,
+      "wire_name": "run-catalog.json|ColorModifier.Brightness|None|float",
+      "id": "ColorModifier.Brightness",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "GameColorView.current.brightness",
+      "reason": "仅最终current实例；FXParams配置/target/lerp不是相同实例，不为保持任意ColorModifier对象相等复制它们",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 31
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3182,
+      "field": 3183,
+      "wire_name": "run-catalog.json|ColorModifier.ColorModifier| float R = 1, float G = 1, float B = 1, float A = 0, float Brightness = 0, float Contrast = 1 |ColorModifier",
+      "id": "ColorModifier.ColorModifier",
+      "parameters": " float R = 1, float G = 1, float B = 1, float A = 0, float Brightness = 0, float Contrast = 1 ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地纯值构造／运算",
+      "reason": "不是网络命令或全局实例状态；实际结果由所属owner承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 18
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3183,
+      "field": 3184,
+      "wire_name": "run-catalog.json|ColorModifier.Contrast|None|float",
+      "id": "ColorModifier.Contrast",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "GameColorView.current.contrast",
+      "reason": "仅最终current实例；FXParams配置/target/lerp不是相同实例，不为保持任意ColorModifier对象相等复制它们",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3184,
+      "field": 3185,
+      "wire_name": "run-catalog.json|ColorModifier.G|None|float",
+      "id": "ColorModifier.G",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "GameColorView.current.g",
+      "reason": "仅最终current实例；FXParams配置/target/lerp不是相同实例，不为保持任意ColorModifier对象相等复制它们",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 39
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3185,
+      "field": 3186,
+      "wire_name": "run-catalog.json|ColorModifier.R|None|float",
+      "id": "ColorModifier.R",
+      "parameters": null,
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "GameColorView.current.r",
+      "reason": "仅最终current实例；FXParams配置/target/lerp不是相同实例，不为保持任意ColorModifier对象相等复制它们",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 43
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3186,
+      "field": 3187,
+      "wire_name": "run-catalog.json|ColorModifier.__add| ColorModifier right |ColorModifier",
+      "id": "ColorModifier.__add",
+      "parameters": " ColorModifier right ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地纯值构造／运算",
+      "reason": "不是网络命令或全局实例状态；实际结果由所属owner承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 48
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3187,
+      "field": 3188,
+      "wire_name": "run-catalog.json|ColorModifier.__div| ColorModifier right |ColorModifier",
+      "id": "ColorModifier.__div",
+      "parameters": " ColorModifier right ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地纯值构造／运算",
+      "reason": "不是网络命令或全局实例状态；实际结果由所属owner承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 53
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3188,
+      "field": 3189,
+      "wire_name": "run-catalog.json|ColorModifier.__eq| ColorModifier right |ColorModifier",
+      "id": "ColorModifier.__eq",
+      "parameters": " ColorModifier right ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地纯值构造／运算",
+      "reason": "不是网络命令或全局实例状态；实际结果由所属owner承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 58
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3189,
+      "field": 3190,
+      "wire_name": "run-catalog.json|ColorModifier.__mul| ColorModifier right |ColorModifier",
+      "id": "ColorModifier.__mul",
+      "parameters": " ColorModifier right ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地纯值构造／运算",
+      "reason": "不是网络命令或全局实例状态；实际结果由所属owner承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 63
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3190,
+      "field": 3191,
+      "wire_name": "run-catalog.json|ColorModifier.__sub| ColorModifier right |ColorModifier",
+      "id": "ColorModifier.__sub",
+      "parameters": " ColorModifier right ",
+      "type": "ColorModifier",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地纯值构造／运算",
+      "reason": "不是网络命令或全局实例状态；实际结果由所属owner承接",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ColorModifier.md",
+          "line": 68
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3196,
+      "field": 3197,
+      "wire_name": "run-catalog.json|Font.DrawString| string String, float PositionX, float PositionY, KColor RenderColor, int BoxWidth = 0, boolean Center = false |void",
+      "id": "Font.DrawString",
+      "parameters": " string String, float PositionX, float PositionY, KColor RenderColor, int BoxWidth = 0, boolean Center = false ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 44
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Font.md",
+          "line": 17
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3197,
+      "field": 3198,
+      "wire_name": "run-catalog.json|Font.DrawString| string String, float PositionX, float PositionY, float sizeX, float sizeY, KColor RenderColor, FontRenderSettings settings |void",
+      "id": "Font.DrawString",
+      "parameters": " string String, float PositionX, float PositionY, float sizeX, float sizeY, KColor RenderColor, FontRenderSettings settings ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 46
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3198,
+      "field": 3199,
+      "wire_name": "run-catalog.json|Font.DrawStringScaled| string String, float PositionX, float PositionY, float ScaleX, float ScaleY, KColor RenderColor, int BoxWidth = 0, boolean Center = false |void",
+      "id": "Font.DrawStringScaled",
+      "parameters": " string String, float PositionX, float PositionY, float ScaleX, float ScaleY, KColor RenderColor, int BoxWidth = 0, boolean Center = false ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 76
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Font.md",
+          "line": 23
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3199,
+      "field": 3200,
+      "wire_name": "run-catalog.json|Font.DrawStringScaledUTF8| string String, float PositionX, float PositionY, float ScaleX, float ScaleY, KColor RenderColor, int BoxWidth = 0, boolean Center = false |void",
+      "id": "Font.DrawStringScaledUTF8",
+      "parameters": " string String, float PositionX, float PositionY, float ScaleX, float ScaleY, KColor RenderColor, int BoxWidth = 0, boolean Center = false ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 97
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Font.md",
+          "line": 28
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3200,
+      "field": 3201,
+      "wire_name": "run-catalog.json|Font.DrawStringUTF8| string String, float PositionX, float PositionY, KColor RenderColor, int BoxWidth = 0, boolean Center = false |void",
+      "id": "Font.DrawStringUTF8",
+      "parameters": " string String, float PositionX, float PositionY, KColor RenderColor, int BoxWidth = 0, boolean Center = false ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 118
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Font.md",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3201,
+      "field": 3202,
+      "wire_name": "run-catalog.json|Font.Font| |Font",
+      "id": "Font.Font",
+      "parameters": " ",
+      "type": "Font",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 24
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3202,
+      "field": 3203,
+      "wire_name": "run-catalog.json|Font.Font| string FontPath |Font,boolean",
+      "id": "Font.Font",
+      "parameters": " string FontPath ",
+      "type": "Font,boolean",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Font.md",
+          "line": 10
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3203,
+      "field": 3204,
+      "wire_name": "run-catalog.json|Font.GetBaselineHeight| |int",
+      "id": "Font.GetBaselineHeight",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 145
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3204,
+      "field": 3205,
+      "wire_name": "run-catalog.json|Font.GetCharacterWidth| char Character |int",
+      "id": "Font.GetCharacterWidth",
+      "parameters": " char Character ",
+      "type": "int",
+      "old_ownership": "NotReplicated",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 150
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3205,
+      "field": 3206,
+      "wire_name": "run-catalog.json|Font.GetLineHeight| |int",
+      "id": "Font.GetLineHeight",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 155
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3206,
+      "field": 3207,
+      "wire_name": "run-catalog.json|Font.GetStringWidth| string String |int",
+      "id": "Font.GetStringWidth",
+      "parameters": " string String ",
+      "type": "int",
+      "old_ownership": "NotReplicated",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 160
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Font.md",
+          "line": 38
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3207,
+      "field": 3208,
+      "wire_name": "run-catalog.json|Font.GetStringWidthUTF8| string String |int",
+      "id": "Font.GetStringWidthUTF8",
+      "parameters": " string String ",
+      "type": "int",
+      "old_ownership": "NotReplicated",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 168
+        },
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/Font.md",
+          "line": 43
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3208,
+      "field": 3209,
+      "wire_name": "run-catalog.json|Font.IsLoaded| |boolean",
+      "id": "Font.IsLoaded",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 173
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3209,
+      "field": 3210,
+      "wire_name": "run-catalog.json|Font.Load| string FilePath |void",
+      "id": "Font.Load",
+      "parameters": " string FilePath ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 178
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3210,
+      "field": 3211,
+      "wire_name": "run-catalog.json|Font.SetMissingCharacter| char MissingCharacter |void",
+      "id": "Font.SetMissingCharacter",
+      "parameters": " char MissingCharacter ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 207
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3211,
+      "field": 3212,
+      "wire_name": "run-catalog.json|Font.Unload| |void",
+      "id": "Font.Unload",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "not_applicable",
+      "destination": "本地匹配字体资源／安全文字绘制调用",
+      "reason": "Font有多个owner；度量、loaded由本地资源准备/查询，不要求Host原始字节相等；声明UI的内容/资源recipe另有owner",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/Font.md",
+          "line": 212
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3334,
+      "field": 3335,
+      "wire_name": "run-catalog.json|GenericPrompt.GenericPrompt| |GenericPrompt",
+      "id": "GenericPrompt.GenericPrompt",
+      "parameters": " ",
+      "type": "GenericPrompt",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GenericPrompt.md",
+          "line": 42
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3335,
+      "field": 3336,
+      "wire_name": "run-catalog.json|GenericPrompt.GetCurrentSelection| |int",
+      "id": "GenericPrompt.GetCurrentSelection",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "共享Prompt最终选择外观／本地Prompt本地",
+      "reason": "Yes/No高亮与提交命令分开；不能把Host选择写入访客本地确认框",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GenericPrompt.md",
+          "line": 48
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3336,
+      "field": 3337,
+      "wire_name": "run-catalog.json|GenericPrompt.GetSprite| |Sprite",
+      "id": "GenericPrompt.GetSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "GenericPrompt.paper",
+      "reason": "共享world Prompt最终资源/姿态；本地菜单Prompt不上线，不能跨owner串用",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GenericPrompt.md",
+          "line": 57
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3337,
+      "field": 3338,
+      "wire_name": "run-catalog.json|GenericPrompt.GetSubmittedSelection| |int",
+      "id": "GenericPrompt.GetSubmittedSelection",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "Host Prompt提交结果",
+      "reason": "0/1/2是决策生产输入，Client状态安装不执行提交，也不承诺此Getter跨端原值相等",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GenericPrompt.md",
+          "line": 62
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3338,
+      "field": 3339,
+      "wire_name": "run-catalog.json|GenericPrompt.Initialize| boolean SmallPrompt = false |void",
+      "id": "GenericPrompt.Initialize",
+      "parameters": " boolean SmallPrompt = false ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GenericPrompt.md",
+          "line": 72
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3339,
+      "field": 3340,
+      "wire_name": "run-catalog.json|GenericPrompt.IsActive| |boolean",
+      "id": "GenericPrompt.IsActive",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "derived",
+      "destination": "共享Prompt实际存在性/最终paper姿态，或本地Prompt",
+      "reason": "82CB90读主动画与is_playing；不为生成它执行Update(ProcessInput=true)",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GenericPrompt.md",
+          "line": 76
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3340,
+      "field": 3341,
+      "wire_name": "run-catalog.json|GenericPrompt.Render| |void",
+      "id": "GenericPrompt.Render",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GenericPrompt.md",
+          "line": 81
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3341,
+      "field": 3342,
+      "wire_name": "run-catalog.json|GenericPrompt.SetImageToVictoryRun| |void",
+      "id": "GenericPrompt.SetImageToVictoryRun",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GenericPrompt.md",
+          "line": 86
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3342,
+      "field": 3343,
+      "wire_name": "run-catalog.json|GenericPrompt.SetText| string Text1 = \"\", string Text2 = \"\", string Text3 = \"\", string Text4 = \"\", string Text5 = \"\", |void",
+      "id": "GenericPrompt.SetText",
+      "parameters": " string Text1 = \"\", string Text2 = \"\", string Text3 = \"\", string Text4 = \"\", string Text5 = \"\", ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GenericPrompt.md",
+          "line": 90
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3343,
+      "field": 3344,
+      "wire_name": "run-catalog.json|GenericPrompt.Show| |void",
+      "id": "GenericPrompt.Show",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GenericPrompt.md",
+          "line": 97
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3344,
+      "field": 3345,
+      "wire_name": "run-catalog.json|GenericPrompt.Update| boolean ProcessInput |void",
+      "id": "GenericPrompt.Update",
+      "parameters": " boolean ProcessInput ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/GenericPrompt.md",
+          "line": 102
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3345,
+      "field": 3346,
+      "wire_name": "run-catalog.json|HUD.AssignPlayerHUDs| |void",
+      "id": "HUD.AssignPlayerHUDs",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 18
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3346,
+      "field": 3347,
+      "wire_name": "run-catalog.json|HUD.FlashChargeBar| EntityPlayer Player, ActiveSlot ActiveSlot |void",
+      "id": "HUD.FlashChargeBar",
+      "parameters": " EntityPlayer Player, ActiveSlot ActiveSlot ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 23
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3347,
+      "field": 3348,
+      "wire_name": "run-catalog.json|HUD.FlashRedHearts| EntityPlayer Player |void",
+      "id": "HUD.FlashRedHearts",
+      "parameters": " EntityPlayer Player ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 21
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3348,
+      "field": 3349,
+      "wire_name": "run-catalog.json|HUD.GetBossHPBarFill| |float",
+      "id": "HUD.GetBossHPBarFill",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "HUD.boss_fill",
+      "reason": "97F7A0实际读取，负值表示隐藏，不能仅从HP或把值夹到0..1重建",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 25
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3349,
+      "field": 3350,
+      "wire_name": "run-catalog.json|HUD.GetCardsPillsSprite| |Sprite",
+      "id": "HUD.GetCardsPillsSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "HUD.cards_pills",
+      "reason": "实际Sprite资源/外观及独立姿态；必覆写帧/比例按具体绘制pass派生，原生指针/事件位/loaded不传",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 29
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3350,
+      "field": 3351,
+      "wire_name": "run-catalog.json|HUD.GetChargeBarSprite| |Sprite",
+      "id": "HUD.GetChargeBarSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "HUD.charge_bar",
+      "reason": "实际Sprite资源/外观及独立姿态；必覆写帧/比例按具体绘制pass派生，原生指针/事件位/loaded不传",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3351,
+      "field": 3352,
+      "wire_name": "run-catalog.json|HUD.GetCoopMenuSprite| |Sprite",
+      "id": "HUD.GetCoopMenuSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "not_applicable",
+      "destination": "C/S本地参与者面板",
+      "reason": "原版Join/Online选择面板不进入C/S；若复用美术仅本地加载，不复制其选择/设备状态",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 37
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3352,
+      "field": 3353,
+      "wire_name": "run-catalog.json|HUD.GetCraftingSprite| |Sprite",
+      "id": "HUD.GetCraftingSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "HUD.crafting",
+      "reason": "实际Sprite资源/外观及独立姿态；必覆写帧/比例按具体绘制pass派生，原生指针/事件位/loaded不传",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 41
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3353,
+      "field": 3354,
+      "wire_name": "run-catalog.json|HUD.GetFortuneSprite| |Sprite",
+      "id": "HUD.GetFortuneSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "HUD.fortune",
+      "reason": "实际Sprite资源/外观及独立姿态；必覆写帧/比例按具体绘制pass派生，原生指针/事件位/loaded不传",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 45
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3354,
+      "field": 3355,
+      "wire_name": "run-catalog.json|HUD.GetHeartsSprite| |Sprite",
+      "id": "HUD.GetHeartsSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "HUD.hearts",
+      "reason": "实际Sprite资源/外观及独立姿态；必覆写帧/比例按具体绘制pass派生，原生指针/事件位/loaded不传",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 49
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3355,
+      "field": 3356,
+      "wire_name": "run-catalog.json|HUD.GetHistoryHUD| |HistoryHUD",
+      "id": "HUD.GetHistoryHUD",
+      "parameters": " ",
+      "type": "HistoryHUD",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "HUD.history_hud",
+      "reason": "本地root，内容为两列实际owner及有序最终图像，不代表完整原始History",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 53
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3356,
+      "field": 3357,
+      "wire_name": "run-catalog.json|HUD.GetInventorySprite| |Sprite",
+      "id": "HUD.GetInventorySprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "HUD.inventory",
+      "reason": "实际Sprite资源/外观及独立姿态；必覆写帧/比例按具体绘制pass派生，原生指针/事件位/loaded不传",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 57
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3357,
+      "field": 3358,
+      "wire_name": "run-catalog.json|HUD.GetPickupsHUDSprite| |Sprite",
+      "id": "HUD.GetPickupsHUDSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "HUD.pickup",
+      "reason": "实际Sprite资源/外观及独立姿态；必覆写帧/比例按具体绘制pass派生，原生指针/事件位/loaded不传",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 61
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3358,
+      "field": 3359,
+      "wire_name": "run-catalog.json|HUD.GetPlayerHUD| int Index = 0 |PlayerHUD",
+      "id": "HUD.GetPlayerHUD",
+      "parameters": " int Index = 0 ",
+      "type": "PlayerHUD",
+      "old_ownership": "NotReplicated",
+      "decision": "projection",
+      "destination": "HUD.players[index0..7]",
+      "reason": "按真实C/S身体与显示槽查本地承载；原版设备/Online索引不复制",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 65
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3359,
+      "field": 3360,
+      "wire_name": "run-catalog.json|HUD.GetPlayerStreakSprite| int Index = 0 |Sprite",
+      "id": "HUD.GetPlayerStreakSprite",
+      "parameters": " int Index = 0 ",
+      "type": "Sprite",
+      "old_ownership": "NotReplicated",
+      "decision": "projection",
+      "destination": "HUD.message_players[index0..3].streak",
+      "reason": "实际Sprite资源/外观及独立姿态；必覆写帧/比例按具体绘制pass派生，原生指针/事件位/loaded不传",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 69
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3360,
+      "field": 3361,
+      "wire_name": "run-catalog.json|HUD.GetPoopSpellSprite| |Sprite",
+      "id": "HUD.GetPoopSpellSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "HUD.poop_spells",
+      "reason": "实际Sprite资源/外观及独立姿态；必覆写帧/比例按具体绘制pass派生，原生指针/事件位/loaded不传",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 76
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3361,
+      "field": 3362,
+      "wire_name": "run-catalog.json|HUD.GetStackedStreakSprite| int Index = 0 |Sprite",
+      "id": "HUD.GetStackedStreakSprite",
+      "parameters": " int Index = 0 ",
+      "type": "Sprite",
+      "old_ownership": "NotReplicated",
+      "decision": "projection",
+      "destination": "HUD.message_stack[index0..5].streak",
+      "reason": "实际Sprite资源/外观及独立姿态；必覆写帧/比例按具体绘制pass派生，原生指针/事件位/loaded不传",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 81
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3362,
+      "field": 3363,
+      "wire_name": "run-catalog.json|HUD.GetStreakSprite| |Sprite",
+      "id": "HUD.GetStreakSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "HUD.message_main.streak",
+      "reason": "实际Sprite资源/外观及独立姿态；必覆写帧/比例按具体绘制pass派生，原生指针/事件位/loaded不传",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 88
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3363,
+      "field": 3364,
+      "wire_name": "run-catalog.json|HUD.InvalidateActiveItem| EntityPlayer Player, ActiveSlot ActiveSlot |void",
+      "id": "HUD.InvalidateActiveItem",
+      "parameters": " EntityPlayer Player, ActiveSlot ActiveSlot ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 29
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3364,
+      "field": 3365,
+      "wire_name": "run-catalog.json|HUD.InvalidateCraftingItem| EntityPlayer Player |void",
+      "id": "HUD.InvalidateCraftingItem",
+      "parameters": " EntityPlayer Player ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3365,
+      "field": 3366,
+      "wire_name": "run-catalog.json|HUD.IsVisible| |boolean",
+      "id": "HUD.IsVisible",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "HUD.visible＋同world NO_HUD",
+      "reason": "Host world可见资格与本地显示偏好分开",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 41
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3366,
+      "field": 3367,
+      "wire_name": "run-catalog.json|HUD.PostUpdate| |void",
+      "id": "HUD.PostUpdate",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 46
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3367,
+      "field": 3368,
+      "wire_name": "run-catalog.json|HUD.Render| |void",
+      "id": "HUD.Render",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 50
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3368,
+      "field": 3369,
+      "wire_name": "run-catalog.json|HUD.SetBossHPBarFill| float percent |void",
+      "id": "HUD.SetBossHPBarFill",
+      "parameters": " float percent ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HUD.md",
+          "line": 93
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3369,
+      "field": 3370,
+      "wire_name": "run-catalog.json|HUD.SetVisible| boolean Visible = false |void",
+      "id": "HUD.SetVisible",
+      "parameters": " boolean Visible = false ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 54
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3370,
+      "field": 3371,
+      "wire_name": "run-catalog.json|HUD.ShowFortuneText| string MainString, string SecondaryString, ... |void",
+      "id": "HUD.ShowFortuneText",
+      "parameters": " string MainString, string SecondaryString, ... ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 59
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3371,
+      "field": 3372,
+      "wire_name": "run-catalog.json|HUD.ShowItemText| EntityPlayer Player, ItemConfigItem Item|void",
+      "id": "HUD.ShowItemText",
+      "parameters": " EntityPlayer Player, ItemConfigItem Item",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 86
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3372,
+      "field": 3373,
+      "wire_name": "run-catalog.json|HUD.ShowItemText| EntityPlayer Player, ItemConfigItem Item, boolean StackUpText |void",
+      "id": "HUD.ShowItemText",
+      "parameters": " EntityPlayer Player, ItemConfigItem Item, boolean StackUpText ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 89
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3373,
+      "field": 3374,
+      "wire_name": "run-catalog.json|HUD.ShowItemText| string MainString, string SecondaryString, boolean IsCurseDisplay = false |void",
+      "id": "HUD.ShowItemText",
+      "parameters": " string MainString, string SecondaryString, boolean IsCurseDisplay = false ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 64
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3374,
+      "field": 3375,
+      "wire_name": "run-catalog.json|HUD.ShowItemText| string MainString, string SecondaryString, boolean IsCurseDisplay = false, boolean StackUpText |void",
+      "id": "HUD.ShowItemText",
+      "parameters": " string MainString, string SecondaryString, boolean IsCurseDisplay = false, boolean StackUpText ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 66
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3375,
+      "field": 3376,
+      "wire_name": "run-catalog.json|HUD.Update| |void",
+      "id": "HUD.Update",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/HUD.md",
+          "line": 112
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3376,
+      "field": 3377,
+      "wire_name": "run-catalog.json|HistoryHUD.GetCollectibleOffsets| int PlayerIndex, CollectibleType[] IDs = nil, boolean IncludeNotVisible = false |Vector[]",
+      "id": "HistoryHUD.GetCollectibleOffsets",
+      "parameters": " int PlayerIndex, CollectibleType[] IDs = nil, boolean IncludeNotVisible = false ",
+      "type": "Vector[]",
+      "old_ownership": "NotReplicated",
+      "decision": "not_applicable",
+      "destination": "最终展示列表投影＋本地位置/裁切，不承诺旧Getter全语义",
+      "reason": "旧带原始ID/饰品种类过滤的Getter依赖History原字段；不为兼容API恢复获得史，也不把最终visual_id冒充原始ID",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUD.md",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3377,
+      "field": 3378,
+      "wire_name": "run-catalog.json|HistoryHUD.GetCollectibles| int PlayerIndex, CollectibleType[] IDs = nil, boolean IncludeNotVisible = false |HistoryHUDItems[]",
+      "id": "HistoryHUD.GetCollectibles",
+      "parameters": " int PlayerIndex, CollectibleType[] IDs = nil, boolean IncludeNotVisible = false ",
+      "type": "HistoryHUDItems[]",
+      "old_ownership": "NotReplicated",
+      "decision": "not_applicable",
+      "destination": "最终展示列表投影＋本地位置/裁切，不承诺旧Getter全语义",
+      "reason": "旧带原始ID/饰品种类过滤的Getter依赖History原字段；不为兼容API恢复获得史，也不把最终visual_id冒充原始ID",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUD.md",
+          "line": 25
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3378,
+      "field": 3379,
+      "wire_name": "run-catalog.json|HistoryHUD.GetItems| int PlayerIndex, boolean IncludeNotVisible = false |HistoryHUDItems[]",
+      "id": "HistoryHUD.GetItems",
+      "parameters": " int PlayerIndex, boolean IncludeNotVisible = false ",
+      "type": "HistoryHUDItems[]",
+      "old_ownership": "NotReplicated",
+      "decision": "not_applicable",
+      "destination": "最终展示列表投影＋本地位置/裁切，不承诺旧Getter全语义",
+      "reason": "旧带原始ID/饰品种类过滤的Getter依赖History原字段；不为兼容API恢复获得史，也不把最终visual_id冒充原始ID",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUD.md",
+          "line": 32
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3379,
+      "field": 3380,
+      "wire_name": "run-catalog.json|HistoryHUD.GetPlayer| int PlayerIndex |EntityPlayer",
+      "id": "HistoryHUD.GetPlayer",
+      "parameters": " int PlayerIndex ",
+      "type": "EntityPlayer",
+      "old_ownership": "NotReplicated",
+      "decision": "reference",
+      "destination": "HistoryHUD.players[index0..1].player",
+      "reason": "实际两个原生显示列的StateRef；不能按参与者序号推断",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUD.md",
+          "line": 37
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3380,
+      "field": 3381,
+      "wire_name": "run-catalog.json|HistoryHUD.GetPosition| |Vector",
+      "id": "HistoryHUD.GetPosition",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "decision": "derived",
+      "destination": "本地History布局",
+      "reason": "官方GetPosition按本地屏幕/HUDOffset/ExtraHUDStyle计算，不发Host屏幕坐标",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUD.md",
+          "line": 42
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3381,
+      "field": 3382,
+      "wire_name": "run-catalog.json|HistoryHUD.GetTrinketOffsets| int PlayerIndex, TrinketType[] IDs = nil, boolean IncludeNotVisible = false |Vector[]",
+      "id": "HistoryHUD.GetTrinketOffsets",
+      "parameters": " int PlayerIndex, TrinketType[] IDs = nil, boolean IncludeNotVisible = false ",
+      "type": "Vector[]",
+      "old_ownership": "NotReplicated",
+      "decision": "not_applicable",
+      "destination": "最终展示列表投影＋本地位置/裁切，不承诺旧Getter全语义",
+      "reason": "旧带原始ID/饰品种类过滤的Getter依赖History原字段；不为兼容API恢复获得史，也不把最终visual_id冒充原始ID",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUD.md",
+          "line": 46
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3382,
+      "field": 3383,
+      "wire_name": "run-catalog.json|HistoryHUD.GetTrinkets| int PlayerIndex, TrinketType[] IDs = nil, boolean IncludeNotVisible = false |HistoryHUDItems[]",
+      "id": "HistoryHUD.GetTrinkets",
+      "parameters": " int PlayerIndex, TrinketType[] IDs = nil, boolean IncludeNotVisible = false ",
+      "type": "HistoryHUDItems[]",
+      "old_ownership": "NotReplicated",
+      "decision": "not_applicable",
+      "destination": "最终展示列表投影＋本地位置/裁切，不承诺旧Getter全语义",
+      "reason": "旧带原始ID/饰品种类过滤的Getter依赖History原字段；不为兼容API恢复获得史，也不把最终visual_id冒充原始ID",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUD.md",
+          "line": 51
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3383,
+      "field": 3384,
+      "wire_name": "run-catalog.json|HistoryHUDItem.GetHistoryItem| |HistoryItem",
+      "id": "HistoryHUDItem.GetHistoryItem",
+      "parameters": " ",
+      "type": "HistoryItem",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "HistoryHUDItem.history_origin（不上线）",
+      "reason": "公开Getter读原始History_HistoryItem；Render只需visual_id@0和Image@4，不能把最终visual_id冒充原API原始itemID/trinket/time或完整HistoryItem",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUDItem.md",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3384,
+      "field": 3385,
+      "wire_name": "run-catalog.json|HistoryHUDItem.GetItemID| |int",
+      "id": "HistoryHUDItem.GetItemID",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "HistoryHUDItem.history_origin（不上线）",
+      "reason": "公开Getter读原始History_HistoryItem；Render只需visual_id@0和Image@4，不能把最终visual_id冒充原API原始itemID/trinket/time或完整HistoryItem",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUDItem.md",
+          "line": 17
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3385,
+      "field": 3386,
+      "wire_name": "run-catalog.json|HistoryHUDItem.GetRenderOffset| |Vector",
+      "id": "HistoryHUDItem.GetRenderOffset",
+      "parameters": " ",
+      "type": "Vector",
+      "old_ownership": "ReplicatedState",
+      "decision": "derived",
+      "destination": "实际列表index＋本地History布局",
+      "reason": "官方LuaHistoryHUD.cpp按本地columns/iconSize/visibleCount计算，不传Host屏幕坐标",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUDItem.md",
+          "line": 21
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3386,
+      "field": 3387,
+      "wire_name": "run-catalog.json|HistoryHUDItem.GetTime| |int",
+      "id": "HistoryHUDItem.GetTime",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "HistoryHUDItem.history_origin（不上线）",
+      "reason": "公开Getter读原始History_HistoryItem；Render只需visual_id@0和Image@4，不能把最终visual_id冒充原API原始itemID/trinket/time或完整HistoryItem",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUDItem.md",
+          "line": 26
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3387,
+      "field": 3388,
+      "wire_name": "run-catalog.json|HistoryHUDItem.IsTrinket| |boolean",
+      "id": "HistoryHUDItem.IsTrinket",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "HistoryHUDItem.history_origin（不上线）",
+      "reason": "公开Getter读原始History_HistoryItem；Render只需visual_id@0和Image@4，不能把最终visual_id冒充原API原始itemID/trinket/time或完整HistoryItem",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUDItem.md",
+          "line": 30
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3388,
+      "field": 3389,
+      "wire_name": "run-catalog.json|HistoryHUDItem.IsVisible| |boolean",
+      "id": "HistoryHUDItem.IsVisible",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "derived",
+      "destination": "实际列表index＋本地History布局",
+      "reason": "官方LuaHistoryHUD.cpp按本地columns/iconSize/visibleCount计算，不传Host屏幕坐标",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/HistoryHUDItem.md",
+          "line": 34
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3389,
+      "field": 3390,
+      "wire_name": "run-catalog.json|ItemOverlay.GetDelay| |int",
+      "id": "ItemOverlay.GetDelay",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "ItemOverlay.delay（不上线）",
+      "reason": "WAITING倒计时只生产未来可见性；直接发送当前可见性",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ItemOverlay.md",
+          "line": 21
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3390,
+      "field": 3391,
+      "wire_name": "run-catalog.json|ItemOverlay.GetMegaMushPlayerSprite| |Sprite",
+      "id": "ItemOverlay.GetMegaMushPlayerSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "ItemOverlay.mega_mush_player",
+      "reason": "实际独立Sprite",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ItemOverlay.md",
+          "line": 25
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3391,
+      "field": 3392,
+      "wire_name": "run-catalog.json|ItemOverlay.GetOverlayID| |Giantbook",
+      "id": "ItemOverlay.GetOverlayID",
+      "parameters": " ",
+      "type": "Giantbook",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "ItemOverlay.overlay_id",
+      "reason": "最终类型影响Render分支，不回放Show",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ItemOverlay.md",
+          "line": 29
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3392,
+      "field": 3393,
+      "wire_name": "run-catalog.json|ItemOverlay.GetPlayer| |EntityPlayer",
+      "id": "ItemOverlay.GetPlayer",
+      "parameters": " ",
+      "type": "EntityPlayer",
+      "old_ownership": "ReplicatedState",
+      "decision": "reference",
+      "destination": "ItemOverlay.player",
+      "reason": "MegaMush锚点实际StateRef",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ItemOverlay.md",
+          "line": 37
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3393,
+      "field": 3394,
+      "wire_name": "run-catalog.json|ItemOverlay.GetSprite| |Sprite",
+      "id": "ItemOverlay.GetSprite",
+      "parameters": " ",
+      "type": "Sprite",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "ItemOverlay.sprite",
+      "reason": "实际主Sprite",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ItemOverlay.md",
+          "line": 41
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3394,
+      "field": 3395,
+      "wire_name": "run-catalog.json|ItemOverlay.Show| Giantbook GiantbookID, int Delay = 3, EntityPlayer = nil |void",
+      "id": "ItemOverlay.Show",
+      "parameters": " Giantbook GiantbookID, int Delay = 3, EntityPlayer = nil ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/ItemOverlay.md",
+          "line": 45
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3440,
+      "field": 3441,
+      "wire_name": "run-catalog.json|MusicManager.Crossfade| Music ID, float FadeRate = 0.08 |void",
+      "id": "MusicManager.Crossfade",
+      "parameters": " Music ID, float FadeRate = 0.08 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3441,
+      "field": 3442,
+      "wire_name": "run-catalog.json|MusicManager.Crossfade| Music MusicId, float FadeRate = 0.08 |void",
+      "id": "MusicManager.Crossfade",
+      "parameters": " Music MusicId, float FadeRate = 0.08 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/MusicManager.md",
+          "line": 9
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3442,
+      "field": 3443,
+      "wire_name": "run-catalog.json|MusicManager.Disable| |void",
+      "id": "MusicManager.Disable",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 40
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3443,
+      "field": 3444,
+      "wire_name": "run-catalog.json|MusicManager.DisableLayer| int LayerId = 0 |void",
+      "id": "MusicManager.DisableLayer",
+      "parameters": " int LayerId = 0 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 45
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3444,
+      "field": 3445,
+      "wire_name": "run-catalog.json|MusicManager.Enable| |void",
+      "id": "MusicManager.Enable",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 50
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3445,
+      "field": 3446,
+      "wire_name": "run-catalog.json|MusicManager.EnableLayer| int LayerId = 0, boolean Instant = false |void",
+      "id": "MusicManager.EnableLayer",
+      "parameters": " int LayerId = 0, boolean Instant = false ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 55
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3446,
+      "field": 3447,
+      "wire_name": "run-catalog.json|MusicManager.Fadein| Music ID, float Volume = 1, float FadeRate = 0.08 |void",
+      "id": "MusicManager.Fadein",
+      "parameters": " Music ID, float Volume = 1, float FadeRate = 0.08 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 60
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3447,
+      "field": 3448,
+      "wire_name": "run-catalog.json|MusicManager.Fadein| Music MusicId, float Volume = 1, float Volume = 0.08 |void",
+      "id": "MusicManager.Fadein",
+      "parameters": " Music MusicId, float Volume = 1, float Volume = 0.08 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/MusicManager.md",
+          "line": 14
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3448,
+      "field": 3449,
+      "wire_name": "run-catalog.json|MusicManager.Fadeout| float FadeRate = 0.08 |void",
+      "id": "MusicManager.Fadeout",
+      "parameters": " float FadeRate = 0.08 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 65
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3449,
+      "field": 3450,
+      "wire_name": "run-catalog.json|MusicManager.GetCurrentJingleID| |Music",
+      "id": "MusicManager.GetCurrentJingleID",
+      "parameters": " ",
+      "type": "Music",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "Music当前jingle逻辑voice",
+      "reason": "官方+32A扩展ID及countdown条件，不等同全部后端播放状态",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/MusicManager.md",
+          "line": 27
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3450,
+      "field": 3451,
+      "wire_name": "run-catalog.json|MusicManager.GetCurrentMusicID| |Music",
+      "id": "MusicManager.GetCurrentMusicID",
+      "parameters": " ",
+      "type": "Music",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "Music当前已选资源/voice",
+      "reason": "crossfade两voice需共同记录，不能只发一个ID",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 70
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3451,
+      "field": 3452,
+      "wire_name": "run-catalog.json|MusicManager.GetCurrentPitch| |float",
+      "id": "MusicManager.GetCurrentPitch",
+      "parameters": " ",
+      "type": "float",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "Music.pitch",
+      "reason": "当前有效pitch，目标/后端句柄留Host/本地",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/MusicManager.md",
+          "line": 32
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3452,
+      "field": 3453,
+      "wire_name": "run-catalog.json|MusicManager.GetQueuedMusicID| |Music",
+      "id": "MusicManager.GetQueuedMusicID",
+      "parameters": " ",
+      "type": "Music",
+      "old_ownership": "ReplicatedState",
+      "decision": "authority",
+      "destination": "Music.queued_id（不作下行状态）",
+      "reason": "未来续播控制由Host实际决策/事件接管，不放行Client Gameplay选曲",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 75
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3453,
+      "field": 3454,
+      "wire_name": "run-catalog.json|MusicManager.IsEnabled| |boolean",
+      "id": "MusicManager.IsEnabled",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "world音乐期望＋本地用户静音",
+      "reason": "不以覆写本地Options求跨端Getter相等",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 80
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3454,
+      "field": 3455,
+      "wire_name": "run-catalog.json|MusicManager.IsLayerEnabled| int LayerId = 0 |boolean",
+      "id": "MusicManager.IsLayerEnabled",
+      "parameters": " int LayerId = 0 ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "decision": "projection",
+      "destination": "Music逻辑voice六位layer mask",
+      "reason": "参数0..5仅访问已承载六位；不是任意查询字典",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 85
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3455,
+      "field": 3456,
+      "wire_name": "run-catalog.json|MusicManager.MusicManager| |MusicManager",
+      "id": "MusicManager.MusicManager",
+      "parameters": " ",
+      "type": "MusicManager",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 19
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3456,
+      "field": 3457,
+      "wire_name": "run-catalog.json|MusicManager.Pause| |void",
+      "id": "MusicManager.Pause",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 90
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3457,
+      "field": 3458,
+      "wire_name": "run-catalog.json|MusicManager.PitchSlide| float TargetPitch |void",
+      "id": "MusicManager.PitchSlide",
+      "parameters": " float TargetPitch ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 95
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3458,
+      "field": 3459,
+      "wire_name": "run-catalog.json|MusicManager.Play| Music ID, float Volume = 1 |void",
+      "id": "MusicManager.Play",
+      "parameters": " Music ID, float Volume = 1 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 100
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3459,
+      "field": 3460,
+      "wire_name": "run-catalog.json|MusicManager.Play| Music MusicId, int Volume = -1 |void",
+      "id": "MusicManager.Play",
+      "parameters": " Music MusicId, int Volume = -1 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/MusicManager.md",
+          "line": 19
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3460,
+      "field": 3461,
+      "wire_name": "run-catalog.json|MusicManager.PlayJingle| Music MusicId, int Duration = 140 |void",
+      "id": "MusicManager.PlayJingle",
+      "parameters": " Music MusicId, int Duration = 140 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/MusicManager.md",
+          "line": 36
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3461,
+      "field": 3462,
+      "wire_name": "run-catalog.json|MusicManager.Queue| Music ID |void",
+      "id": "MusicManager.Queue",
+      "parameters": " Music ID ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 107
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3462,
+      "field": 3463,
+      "wire_name": "run-catalog.json|MusicManager.ResetPitch| |void",
+      "id": "MusicManager.ResetPitch",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 112
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3463,
+      "field": 3464,
+      "wire_name": "run-catalog.json|MusicManager.Resume| |void",
+      "id": "MusicManager.Resume",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 117
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3464,
+      "field": 3465,
+      "wire_name": "run-catalog.json|MusicManager.SetCurrentPitch| float Pitch |void",
+      "id": "MusicManager.SetCurrentPitch",
+      "parameters": " float Pitch ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/MusicManager.md",
+          "line": 40
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3465,
+      "field": 3466,
+      "wire_name": "run-catalog.json|MusicManager.StopJingle| |void",
+      "id": "MusicManager.StopJingle",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/MusicManager.md",
+          "line": 44
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3466,
+      "field": 3467,
+      "wire_name": "run-catalog.json|MusicManager.UpdateVolume| |void",
+      "id": "MusicManager.UpdateVolume",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 122
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3467,
+      "field": 3468,
+      "wire_name": "run-catalog.json|MusicManager.VolumeSlide| float TargetVolume, float FadeRate = 0.08 |void",
+      "id": "MusicManager.VolumeSlide",
+      "parameters": " float TargetVolume, float FadeRate = 0.08 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+          "line": 128
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3468,
+      "field": 3469,
+      "wire_name": "run-catalog.json|PlayerHUD.GetHUD| |HUD",
+      "id": "PlayerHUD.GetHUD",
+      "parameters": " ",
+      "type": "HUD",
+      "old_ownership": "ReplicatedState",
+      "decision": "derived",
+      "destination": "本地所属HUD root",
+      "reason": "本地回指，不发送HUD*",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUD.md",
+          "line": 29
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3469,
+      "field": 3470,
+      "wire_name": "run-catalog.json|PlayerHUD.GetHeartByIndex| int Index |PlayerHUDHeart",
+      "id": "PlayerHUD.GetHeartByIndex",
+      "parameters": " int Index ",
+      "type": "PlayerHUDHeart",
+      "old_ownership": "NotReplicated",
+      "decision": "projection",
+      "destination": "PlayerHUD.hearts[index0..23]",
+      "reason": "固定物理槽的最终心格，不重跑UpdateHearts",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUD.md",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3470,
+      "field": 3471,
+      "wire_name": "run-catalog.json|PlayerHUD.GetHearts| |PlayerHUDHeart[]",
+      "id": "PlayerHUD.GetHearts",
+      "parameters": " ",
+      "type": "PlayerHUDHeart[]",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "PlayerHUD.hearts[24]",
+      "reason": "全部24个最终心格",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUD.md",
+          "line": 24
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3471,
+      "field": 3472,
+      "wire_name": "run-catalog.json|PlayerHUD.GetIndex| |int",
+      "id": "PlayerHUD.GetIndex",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "projection",
+      "destination": "C/S显示槽关系",
+      "reason": "不把原版联机index或设备键当网络身份",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUD.md",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3472,
+      "field": 3473,
+      "wire_name": "run-catalog.json|PlayerHUD.GetLayout| |PlayerHUDLayout",
+      "id": "PlayerHUD.GetLayout",
+      "parameters": " ",
+      "type": "PlayerHUDLayout",
+      "old_ownership": "ReplicatedState",
+      "decision": "derived",
+      "destination": "C/S身体显示分组＋本地排版",
+      "reason": "97E4A0含Online依赖，不放行原GetPlayerHUDLayout；采用具名C/S布局决定",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUD.md",
+          "line": 37
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3473,
+      "field": 3474,
+      "wire_name": "run-catalog.json|PlayerHUD.GetPlayer| |EntityPlayer",
+      "id": "PlayerHUD.GetPlayer",
+      "parameters": " ",
+      "type": "EntityPlayer",
+      "old_ownership": "ReplicatedState",
+      "decision": "reference",
+      "destination": "PlayerHUD.player",
+      "reason": "实际身体StateRef",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUD.md",
+          "line": 41
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3474,
+      "field": 3475,
+      "wire_name": "run-catalog.json|PlayerHUD.RenderActiveItem| ActiveSlot Slot, Vector Position, float Alpha = 1.0, float Scale = 1.0 |void",
+      "id": "PlayerHUD.RenderActiveItem",
+      "parameters": " ActiveSlot Slot, Vector Position, float Alpha = 1.0, float Scale = 1.0 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常生产／命令，不在Client重放",
+      "reason": "命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUD.md",
+          "line": 45
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3475,
+      "field": 3476,
+      "wire_name": "run-catalog.json|PlayerHUDHeart.GetFlashType| |int",
+      "id": "PlayerHUDHeart.GetFlashType",
+      "parameters": " ",
+      "type": "int",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "PlayerHUDHeart.flash_type",
+      "reason": "最终心格实际Render消费者；动画指针转所属资源ID/有界名称，本地正常持有",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUDHeart.md",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3476,
+      "field": 3477,
+      "wire_name": "run-catalog.json|PlayerHUDHeart.GetHeartAnim| |string",
+      "id": "PlayerHUDHeart.GetHeartAnim",
+      "parameters": " ",
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "PlayerHUDHeart.animation",
+      "reason": "最终心格实际Render消费者；动画指针转所属资源ID/有界名称，本地正常持有",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUDHeart.md",
+          "line": 24
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3477,
+      "field": 3478,
+      "wire_name": "run-catalog.json|PlayerHUDHeart.GetHeartOverlayAnim| |string",
+      "id": "PlayerHUDHeart.GetHeartOverlayAnim",
+      "parameters": " ",
+      "type": "string",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "PlayerHUDHeart.overlay_animation",
+      "reason": "最终心格实际Render消费者；动画指针转所属资源ID/有界名称，本地正常持有",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUDHeart.md",
+          "line": 28
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3478,
+      "field": 3479,
+      "wire_name": "run-catalog.json|PlayerHUDHeart.IsEternalHeartOverlayVisible| |boolean",
+      "id": "PlayerHUDHeart.IsEternalHeartOverlayVisible",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "PlayerHUDHeart.eternal",
+      "reason": "最终心格实际Render消费者；动画指针转所属资源ID/有界名称，本地正常持有",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUDHeart.md",
+          "line": 32
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3479,
+      "field": 3480,
+      "wire_name": "run-catalog.json|PlayerHUDHeart.IsFadingHeart| |boolean",
+      "id": "PlayerHUDHeart.IsFadingHeart",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "PlayerHUDHeart.fading",
+      "reason": "最终心格实际Render消费者；动画指针转所属资源ID/有界名称，本地正常持有",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUDHeart.md",
+          "line": 36
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3480,
+      "field": 3481,
+      "wire_name": "run-catalog.json|PlayerHUDHeart.IsGoldenHeartOverlayVisible| |boolean",
+      "id": "PlayerHUDHeart.IsGoldenHeartOverlayVisible",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "PlayerHUDHeart.golden",
+      "reason": "最终心格实际Render消费者；动画指针转所属资源ID/有界名称，本地正常持有",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUDHeart.md",
+          "line": 40
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3481,
+      "field": 3482,
+      "wire_name": "run-catalog.json|PlayerHUDHeart.IsVisible| |boolean",
+      "id": "PlayerHUDHeart.IsVisible",
+      "parameters": " ",
+      "type": "boolean",
+      "old_ownership": "ReplicatedState",
+      "decision": "field",
+      "destination": "PlayerHUDHeart.visible",
+      "reason": "最终心格实际Render消费者；动画指针转所属资源ID/有界名称，本地正常持有",
+      "sources": [
+        {
+          "wiki": "repentogon",
+          "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/PlayerHUDHeart.md",
+          "line": 44
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3499,
+      "field": 3500,
+      "wire_name": "run-catalog.json|SFXManager.AdjustPitch| SoundEffect ID, float Pitch |void",
+      "id": "SFXManager.AdjustPitch",
+      "parameters": " SoundEffect ID, float Pitch ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常SFX控制／本地后端执行adapter",
+      "reason": "不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/SFXManager.md",
+          "line": 33
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3500,
+      "field": 3501,
+      "wire_name": "run-catalog.json|SFXManager.AdjustVolume| SoundEffect ID, float Volume |void",
+      "id": "SFXManager.AdjustVolume",
+      "parameters": " SoundEffect ID, float Volume ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常SFX控制／本地后端执行adapter",
+      "reason": "不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/SFXManager.md",
+          "line": 38
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3501,
+      "field": 3502,
+      "wire_name": "run-catalog.json|SFXManager.GetAmbientSoundVolume| SoundEffect ID |float",
+      "id": "SFXManager.GetAmbientSoundVolume",
+      "parameters": " SoundEffect ID ",
+      "type": "float",
+      "old_ownership": "NotReplicated",
+      "decision": "not_applicable",
+      "destination": "本地音频后端／具名持续voice目标视图",
+      "reason": "后端是否播放/音量含本地设置，不要求Host原始查询结果相等；持续声音目标另同步",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/SFXManager.md",
+          "line": 43
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3502,
+      "field": 3503,
+      "wire_name": "run-catalog.json|SFXManager.IsPlaying| SoundEffect ID |boolean",
+      "id": "SFXManager.IsPlaying",
+      "parameters": " SoundEffect ID ",
+      "type": "boolean",
+      "old_ownership": "NotReplicated",
+      "decision": "not_applicable",
+      "destination": "本地音频后端／具名持续voice目标视图",
+      "reason": "后端是否播放/音量含本地设置，不要求Host原始查询结果相等；持续声音目标另同步",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/SFXManager.md",
+          "line": 48
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3503,
+      "field": 3504,
+      "wire_name": "run-catalog.json|SFXManager.Play| SoundEffect ID, float Volume = 1, int FrameDelay = 2, boolean Loop = false, float Pitch = 1, float Pan = 0 |void",
+      "id": "SFXManager.Play",
+      "parameters": " SoundEffect ID, float Volume = 1, int FrameDelay = 2, boolean Loop = false, float Pitch = 1, float Pan = 0 ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常SFX控制／本地后端执行adapter",
+      "reason": "不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/SFXManager.md",
+          "line": 53
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3504,
+      "field": 3505,
+      "wire_name": "run-catalog.json|SFXManager.Preload| SoundEffect ID |void",
+      "id": "SFXManager.Preload",
+      "parameters": " SoundEffect ID ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常SFX控制／本地后端执行adapter",
+      "reason": "不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/SFXManager.md",
+          "line": 58
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3505,
+      "field": 3506,
+      "wire_name": "run-catalog.json|SFXManager.SFXManager| |SFXManager",
+      "id": "SFXManager.SFXManager",
+      "parameters": " ",
+      "type": "SFXManager",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常SFX控制／本地后端执行adapter",
+      "reason": "不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/SFXManager.md",
+          "line": 19
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3506,
+      "field": 3507,
+      "wire_name": "run-catalog.json|SFXManager.SetAmbientSound| SoundEffect ID, float Volume, float Pitch |void",
+      "id": "SFXManager.SetAmbientSound",
+      "parameters": " SoundEffect ID, float Volume, float Pitch ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常SFX控制／本地后端执行adapter",
+      "reason": "不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/SFXManager.md",
+          "line": 63
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3507,
+      "field": 3508,
+      "wire_name": "run-catalog.json|SFXManager.Stop| SoundEffect ID |void",
+      "id": "SFXManager.Stop",
+      "parameters": " SoundEffect ID ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常SFX控制／本地后端执行adapter",
+      "reason": "不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/SFXManager.md",
+          "line": 68
+        }
+      ]
+    },
+    {
+      "source_ordinal": 3508,
+      "field": 3509,
+      "wire_name": "run-catalog.json|SFXManager.StopLoopingSounds| |void",
+      "id": "SFXManager.StopLoopingSounds",
+      "parameters": " ",
+      "type": "void",
+      "old_ownership": "AuthorityOnly",
+      "decision": "authority",
+      "destination": "Host正常SFX控制／本地后端执行adapter",
+      "reason": "不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟",
+      "sources": [
+        {
+          "wiki": "vanilla",
+          "path": "F:/projects_isaac/IsaacDocs/docs/SFXManager.md",
+          "line": 73
+        }
+      ]
+    }
+  ],
+  "supplements": [
+    {
+      "owner": "HUDMessage",
+      "source": "官方LuaHUD.cpp::RegisterHUDMessage",
+      "members": [
+        "GetSprite",
+        "IsShowing",
+        "Hide",
+        "Show",
+        "GetMainText",
+        "SetMainText",
+        "GetSubText",
+        "SetSubText"
+      ],
+      "destination": "当前showing/streak/text_image；文本语义按声明UI独立承载，命令不上线"
+    },
+    {
+      "owner": "Minimap",
+      "source": "官方LuaMinimap.cpp/Wiki Minimap.md",
+      "members": [
+        "GetDisplayedSize",
+        "GetHoldTime",
+        "GetIconsSprite",
+        "GetItemIconsSprite",
+        "GetShakeDuration",
+        "GetShakeOffset",
+        "GetState",
+        "Refresh",
+        "SetHoldTime",
+        "SetShakeDuration",
+        "SetShakeOffset",
+        "SetState"
+      ],
+      "destination": "最终world标记/震动offset/资源；state/holdTime/尺寸本地，shakeDuration生产器留Host，Refresh命令不回放"
+    },
+    {
+      "owner": "NightmareScene",
+      "source": "官方LuaNightmareScene.cpp",
+      "members": [
+        "GetBackgroundSprite",
+        "GetBubbleSprite",
+        "GetPlayerExtraPortraitSprite",
+        "GetProgressBarMap",
+        "GetProgressBarSprite",
+        "IsDogmaNightmare"
+      ],
+      "destination": "当前资源/14项有序路线/场景/最终pass，未知payload不静默省略"
+    },
+    {
+      "owner": "PlayerHUD",
+      "source": "官方LuaPlayerHUD.cpp",
+      "members": [
+        "GetFlashRedHearts",
+        "GetFlashSoulHearts",
+        "GetFlashGoldHearts",
+        "SetFlashRedHearts",
+        "SetFlashSoulHearts",
+        "SetFlashGoldHearts"
+      ],
+      "destination": "三色当前显示计时；setter命令不回放，额外以实际1.1.3注册名为准"
+    },
+    {
+      "owner": "Native",
+      "source": "本文与原生字节账本",
+      "members": [
+        "D0",
+        "secondary_charge_bar",
+        "dynamic_PlayerHUD",
+        "holy_mantle_visible",
+        "drop_display_scale",
+        "boss_images",
+        "inventory_visuals",
+        "crafting_image",
+        "fortune_image",
+        "game_screen_passes",
+        "audio_active_voices",
+        "shader_extras"
+      ],
+      "destination": "具名原生/自有最终值owner；不是把旧目录数量当完整边界"
+    }
+  ]
+}

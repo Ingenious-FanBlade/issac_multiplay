@@ -1,10 +1,10 @@
 #include "runtime.h"
 #include "ops/e2e_ui.h"
-#include "game/bridge.h"
-#include "game/client.h"
-#include "game/context.h"
-#include "game/tick.h"
-#include "game/topology.h"
+#include "game/common/bridge.h"
+#include "game/client/session/client.h"
+#include "game/common/context.h"
+#include "game/authority/tick.h"
+#include "game/participants/topology.h"
 #include <algorithm>
 #include <deque>
 #include <filesystem>

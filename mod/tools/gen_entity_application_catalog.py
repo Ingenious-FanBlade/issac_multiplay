@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "mod/observation/isaac-cs-observation/entity-catalog.json"
 PARSER = "mod/src/replica/entity_target.cpp:ParseEntityTarget"
 RESEARCH = ROOT / "docs/design/tx-04-19/entity-native-contracts.json"
-COMMON_FIELDS = ROOT / "mod/src/game/client_entity_fields.inc"
-CLASS_FIELDS = ROOT / "mod/src/game/client_entity_class_fields.inc"
+COMMON_FIELDS = ROOT / "mod/src/game/client/entity/client_entity_fields.inc"
+CLASS_FIELDS = ROOT / "mod/src/game/client/entity/client_entity_class_fields.inc"
 # 分类来自公开转换/专用RTTI见证；数值Type只用于交叉检查，绝不按范围猜NPC。
 CLASSES = {
     "EntityPlayer": ("Player", "tx-04-20", "external-player-owner", "E13"),
@@ -75,7 +75,7 @@ def generate():
         if match:
             kind, member, storage = match.groups()
             common_native[member] = {"declaration": kind, "storage": storage, "scope": "non-Player;Player20-owner",
-                                     "write_and_check": "mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"}
+                                     "write_and_check": "mod/src/game/client/entity/client_entity_common_native.cpp:ClientEntityCommonFields"}
     # 派生表与公共表同样来自产品声明，目录不执行任何原生检查。
     class_native = {}
     for line in CLASS_FIELDS.read_text(encoding="utf-8-sig").splitlines():
@@ -83,7 +83,7 @@ def generate():
         if match:
             category, member, offset, native_type, kind = match.groups()
             class_native[member] = {"category": int(category), "offset": offset, "native_type": native_type, "kind": kind,
-                                    "write_and_check": "mod/src/game/client_entity_adapters_native.cpp:Fields"}
+                                    "write_and_check": "mod/src/game/client/entity/client_entity_adapters_native.cpp:Fields"}
     rows = []
     for ordinal, m in enumerate(catalog["members"]):
         task, responsibility, reason, e2e = route(m)
@@ -121,18 +121,18 @@ def generate():
         if m["id"] in common_native and ownership == "ReplicatedState":
             rows[-1]["native_status"] = "I08-common-path-implemented;non-Player-only;Player20"
             rows[-1]["local_storage"] = common_native[m["id"]]["storage"]
-            rows[-1]["implementation"] = "mod/src/game/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client_entity_common_native.cpp:ClientEntityCommonFields"
+            rows[-1]["implementation"] = "mod/src/game/client/entity/client_entity_model.cpp:ClientDescribeEntity;mod/src/game/client/entity/client_entity_common_native.cpp:ClientEntityCommonFields"
         elif m["id"] in class_native and ownership == "ReplicatedState":
             rows[-1]["native_status"] = "I11-I25-final-field-path-implemented;I29-Scene-only-commit"
             rows[-1]["local_storage"] = class_native[m["id"]]
-            rows[-1]["implementation"] = "mod/src/game/client_entity_class_model.cpp:ClientDescribeEntityClass;mod/src/game/client_entity_adapters_native.cpp:Fields"
+            rows[-1]["implementation"] = "mod/src/game/client/entity/client_entity_class_model.cpp:ClientDescribeEntityClass;mod/src/game/client/entity/client_entity_adapters_native.cpp:Fields"
         elif m["class"] in {"EntityNPC", "EntityDelirium", "EntityTear", "EntityProjectile", "EntityBomb", "EntityLaser", "EntityKnife", "EntityPickup", "EntityFamiliar", "EntityEffect", "EntitySlot", "NativeText", "NativeDummy"} and ownership == "ReplicatedState":
             rows[-1]["native_status"] = "I10-I25-explicit-field-disposition;I29-Scene-only-commit"
             rows[-1]["local_storage"] = "ClientEntityClassDisposition:resource/native-reference/Authority-fact/complete-typed-collection/optional-bool/removed-API;NPC-three-deques=stable-keys/value-streams;Siren-owned-gameplay-actor=Authority-fact;Effect136=checked-Grid18-handoff"
-            rows[-1]["implementation"] = "mod/src/game/client_entity_class_model.cpp:ClientEntityClassDisposition;mod/src/game/client_entity_adapters_native.cpp"
+            rows[-1]["implementation"] = "mod/src/game/client/entity/client_entity_class_model.cpp:ClientEntityClassDisposition;mod/src/game/client/entity/client_entity_adapters_native.cpp"
         elif responsibility == "typed_reference":
             rows[-1]["native_status"] = "I09-typed-plan-and-common-EntityPtr-implemented;named-owner-required"
-            rows[-1]["implementation"] = "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client_objects_native.cpp:FormalReferences"
+            rows[-1]["implementation"] = "mod/src/replica/entity_plan.cpp:DescribeEntityDependency;mod/src/game/client/entity/client_objects_native.cpp:FormalReferences"
     # 结构型补充与公开行使用同一责任目录，不能靠测试夹具补表现源。
     return {"format": "isaac.cs.entity.application-catalog", "version": 1, "model_version": 2,
             "acceptance_scope": {"document": ACCEPTANCE_DOC, "scope": "category-scene;not-every-member-value-or-variant", "full_entity_domain_commit": False, "network_ack": False},
@@ -142,7 +142,7 @@ def generate():
                 "retained_parameter_queries": ["EntityBomb.GetCostumeLayerSprite", "Sprite.HasCustomShader", "Sprite.HasCustomChampionShader", "LayerState.HasCustomShader", "LayerState.HasCustomChampionShader"],
                 "graph": "one closed graph per complete component;no new Sprite alias", "runtime_acceptance": RUNTIME_ACCEPTANCE},
             "class_execution": {"registered": ["NPC", "Delirium-special", "Tear", "Projectile", "Bomb", "Laser", "Knife", "Pickup", "Familiar", "Effect", "Slot1..18", "NativeText", "NativeDummy"],
-                                "model": "mod/src/game/client_entity_class_model.cpp", "native": "mod/src/game/client_entity_adapters_native.cpp",
+                                "model": "mod/src/game/client/entity/client_entity_class_model.cpp", "native": "mod/src/game/client/entity/client_entity_adapters_native.cpp",
                                 "resources": "main/overlay/layers/exact-phase/champion-color/shader;NPC two ANM;Tear three ANM;Bomb five costumes;Knife shared DeadEye;Pickup price/alternate;Slot prize;five typed ExtraData families",
                                 "native_links": "client_entity_links.inc;public class references;Familiar Player raw scoped borrow;Knife Plus leaf;Null-explicit;official-EntityPtr-helper",
                                 "source_contract": "entity-class-application-v3;same-window draw inputs;current Player render borrow;full Player state=20",
@@ -152,10 +152,10 @@ def generate():
                                 "native_type_context": "ordinary Source/preflight/frame require Game Deathmatch state <2;835 path reads only real NPC Type10..999;Player C28 belongs to ANM2 layerCount, never a path",
                                 "scene_commit": "I29-single-Scene-commit;non-Player-range-only", "native_draw_dispatch": "I25 implemented;dynamic main/shadow/noarg post/Room-light;water indirect hooks;Authority frame RNG borrow;final Abyss ANM;Text font", "runtime_acceptance": RUNTIME_ACCEPTANCE},
             "common_execution": {"tasks": "I05-I09", "plan": "mod/src/replica/entity_plan.cpp:PlanEntityTarget",
-                                 "executor": "mod/src/game/client_objects.cpp:ClientObjects;mod/src/game/client_objects_native.cpp:FormalExecute",
+                                 "executor": "mod/src/game/client/entity/client_objects.cpp:ClientObjects;mod/src/game/client/entity/client_objects_native.cpp:FormalExecute",
                                  "class_native_apply": True, "scope": "non-Player;full-Player20", "scene_commit": "I29-single-Scene-commit;non-Player-range-only", "runtime_acceptance": RUNTIME_ACCEPTANCE},
             # I04研究索引是资料与采用约束，不把静态审阅升级为原生支持或运行通过。
-            "player_handoff": {"catalog": "docs/design/tx-04-20/player-application.json", "target": "player-target-v2", "native_apply": False, "implementation": "mod/src/replica/player_target.cpp;mod/src/game/client_players.cpp"},
+            "player_handoff": {"catalog": "docs/design/tx-04-20/player-application.json", "target": "player-target-v2", "native_apply": False, "implementation": "mod/src/replica/player_target.cpp;mod/src/game/client/player/client_players.cpp"},
             "static_research_context": {"kind": "pre-I34-static-record", "runtime_authority": ACCEPTANCE_DOC,
                                         "note": "原研究时点的pending/UNKNOWN保留；当前运行范围看顶层acceptance_scope，不把旧字段作为推进前置"},
             "static_research": json.loads(RESEARCH.read_text(encoding="utf-8-sig")),

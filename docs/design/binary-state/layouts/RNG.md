@@ -1,6 +1,6 @@
 # RNG
 
-由唯一布局源生成。布局编号 8；布局版本 45；原生大小 0x10；未知 0B；完整：是。
+由唯一布局源生成。布局编号 8；布局版本 56；原生大小 0x10；未知 0B；完整：是。
 
 J273 SetSeed 写入全部四 DWORD；RandomInt/RandomFloat/Next 读取三个 shift 并更新 seed。此类型是 authority-only，不加入发送块。
 

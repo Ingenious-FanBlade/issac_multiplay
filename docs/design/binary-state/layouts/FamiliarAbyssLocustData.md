@@ -1,6 +1,6 @@
 # FamiliarAbyssLocustData
 
-由唯一布局源生成。布局编号 19；布局版本 45；原生大小 0x58；未知 36B；完整：否。
+由唯一布局源生成。布局编号 19；布局版本 56；原生大小 0x58；未知 36B；完整：否。
 
 原生字节归属：
 
@@ -39,4 +39,4 @@
 
 容器计数约束（同一容器各投影count相同，按容器去重求和）：
 
-- `locust_sprites_total`：locust_sprites_a + locust_sprites_b ≤ 16384；mod/src/game/client_entity_class_model.cpp::Owned，AbyssLocust两组合计<=16384
+- `locust_sprites_total`：locust_sprites_a + locust_sprites_b ≤ 16384；mod/src/game/client/entity/client_entity_class_model.cpp::Owned，AbyssLocust两组合计<=16384

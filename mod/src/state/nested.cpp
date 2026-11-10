@@ -132,8 +132,9 @@ NativeElementView ReadVectorInto(const ReadWindow &window, std::uint32_t header,
 }
 NativeElementView ReadDequeInto(const ReadWindow &window, std::uint32_t header, std::uint32_t stride,
                                 std::uint16_t limit, std::span<std::byte> storage, std::string_view field) {
-  // 只接受本轮核定的EntityPtr/Vector步长，不把MSVC其他元素大小的块规则外推到这里。
-  if (stride != 4 && stride != 8) Fail(field, "deque_stride_unconfirmed");
+  // EntityPtr/Vector沿既有4/8B规则；Player残影12B每块只有一个元素，实际分配12B。
+  // 不把16B当成统一分配大小，也不把其它MSVC元素类型的块规则外推到这里。
+  if (stride != 4 && stride != 8 && stride != 12) Fail(field, "deque_stride_unconfirmed");
   std::array<std::byte, 20> before{}, after{};
   window.Copy(header, before, field);
   const auto proxy = U32(before, 0), map = U32(before, 4), capacity = U32(before, 8);
@@ -153,7 +154,7 @@ NativeElementView ReadDequeInto(const ReadWindow &window, std::uint32_t header, 
     std::array<std::byte, 4> pointer{};
     window.Copy(map + slot * 4, pointer, field);
     const auto block = U32(pointer, 0);
-    if (!block || std::uint64_t(block) + 16 > UINT32_MAX) Fail(field, "deque_block_invalid");
+    if (!block || std::uint64_t(block) + per_block * stride > UINT32_MAX) Fail(field, "deque_block_invalid");
     const auto take = (std::min)(count - copied, per_block - in_block);
     window.Copy(block + in_block * stride, storage.subspan(std::size_t(copied) * stride,
                                                         std::size_t(take) * stride), field);

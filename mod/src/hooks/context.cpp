@@ -1,5 +1,5 @@
-#include "game/context.h"
-#include "game/tick.h"
+#include "game/common/context.h"
+#include "game/authority/tick.h"
 #include "runtime.h"
 #include <exception>
 namespace cs {

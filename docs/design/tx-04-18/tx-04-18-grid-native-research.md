@@ -2,6 +2,8 @@
 
 日期：2026-11-02。目标二进制为 Isaac/REPENTOGON v1.9.7.12.J273，IDA image base `0x400000`。
 
+> 2026-11-10补充：二进制重构版本52的[七类字节与同步复核](../binary-state/grid-seven-subclasses-evidence.md)取代本文相关上线决定，并纠正Poop默认EntityRef向量来源：原始指令从BEB900/BEB904全局地址读取，不是反编译标注的a7栈来源。下文保留原时点记录与未决，不追溯改写。
+
 ## 范围与证据
 
 本笔记用于 I13—I18 的本地 GridEntity 纯值安装、资源安装、销毁与渲染研究。先核对了 [项目规范](../../refactor/project-conventions.md)、[I13—I18 实施计划](tx-04-18-implementation-plan.md)、[Grid 逐类任务](tx-04-18-grid-application.md)，再查本地原版 Wiki `F:\projects_isaac\IsaacDocs\docs`、REPENTOGON Wiki `F:\projects_isaac\REPENTOGON-1.1.3\docs\docs`、源码及 `include/IsaacRepentance.h`、`libzhl/functions/*.zhl`、`mod/binding/hooks.json`，最后用 IDA MCP 只读核对 J273 反汇编/反编译。没有运行游戏、probe、测试，没有修改代码或 IDB。

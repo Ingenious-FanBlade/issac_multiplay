@@ -47,6 +47,8 @@
 - `validators`：取值范围、枚举集合、有限浮点、容器上限。
 - `count_groups`：多个原生容器共用的元素数总上限，包含名称、字段名、limit 和证据；例如蝗虫两组 Sprite 合计最多 16384。生成到 `CountConstraint`，同容器各子块投影必须同 count，求和时只计一次。`ValidContainerCountGroups` 检查完整同版本计数，Host 复制元素前及 Client 写入前分别调用。
 - `members`：公开成员到布局字段的回映射。
+- 共享公开目录可在`version.json.catalog_complete_scopes`声明`{"catalog":"原目录路径","domain":"run"}`，按原始一基行号完整覆盖该domain并生成专用汇总表；不要求尚未研究的同文件其它域提前入源，也不按重复ID去重。这是普通构建的源一致性处理，不是额外测试。
+- `catalog_rows`：保留来源目录＋一基行号、ID、owner、原parameters／returns、处置、正式字段／上下文及理由；重复ID不合并。类型级`catalog_complete`仍要求该类型覆盖完整目录；版本55增加`version.json.catalog_complete`，允许一个目录的行分布在多个真实布局，按原行号聚合且恰好一次。普通构建同源生成完整目录汇总文档；Grid119行见[映射说明](grid-member-map.md)。
 - **回映射不强制发送**：已有公开目录行改归 Host 权威时保留该行，使用 `disposition=authority` 并移除旧状态依赖；同步删除原生范围的 `wire`、对应 validator 和块内字段。空块显式 `reserved=true`，不前移后续块号。不能用旧 E2E 原值相等要求反向恢复不必要的同步，见[版本 28 职责复核](synchronization-field-review.md)。
 - `contexts`：嵌套类型的已核父上下文，例如所属资源号和容器元素序号。派生成员用 `@名称` 回映射；上下文不冒充原生字节，也不重复发送。
 - `extent`：默认 `object`。只有已核前缀、尚不代表具体动态对象大小时写 `base_prefix`；此类布局不能宣称完整，例如 Weapon 基类。Trail节点自版本38起已有606190的0x40分配与完整复制证据，不再是base_prefix。

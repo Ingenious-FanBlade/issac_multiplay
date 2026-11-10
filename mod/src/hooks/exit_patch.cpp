@@ -1,6 +1,6 @@
 // tx-04-08 E：main 最后的关闭判断常驻桥。原 cmp 只执行一次，未请求关闭时纯透传。
 #include "runtime.h"
-#include "game/bridge.h"
+#include "game/common/bridge.h"
 #include "ops/world_commands.h"
 #include "ASMPatcher.hpp"
 #include "binding/offsets.h"

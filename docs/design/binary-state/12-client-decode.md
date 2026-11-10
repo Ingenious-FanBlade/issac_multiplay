@@ -1,5 +1,19 @@
 # 12：Client 解码、校验与影子状态
 
+**第6步Grid描述生成接口已落地**：见[实现](grid-description-implementation.md)。本步后续对完整已接受记录提供`ClientGridShadowRecordView`：每块带key／use／shape／layout及最后变化版本，保留本目标未变化的旧块，reserved空块可缺席。递归验证资源、ANM2、选择器、图层、Rock条件存在性及目标epoch后才能调用`ClientDescribeGrid`；它仅核根结构并生成自有只读描述，不替代本步解码器，也不表示原生安装成功。
+
+**版本50 Grid解码修订（待实施）**：按[复核](grid-common-synchronization-review.md)解码Desc198／Grid199与展示视图200／201。G0的water_clip_flags是完整u32最终值，无0—255窄限制，不是原生+3C或REP optional内存；G1的glitch_draw_bits仅接受0—3，结果绑定同subject/use/shape/Sprite角色。拒绝旧版本、截断、无效资源／index／来源绑定及glitch高位。默认名与图层路径不再有负载，不沿用旧字段偏移；UNKNOWN、实际图像和所有保留姿态校验保持。合成字段source为Synthetic，解码只写影子值，不能根据伪原生offset写对象；安装／绘制owner未就绪不得ACK。 冠军参数按16B f32[4]解码并检查四值有限，不能按44B ColorMod读越界；普通颜色11值校验保持。
+
+**版本47布局来源（2026-11-09）**：[第5步正式源／生成](implementation-5-player.md)已完成，EntityPlayer=197，participant／control-group=195／196，Player主动槽=179，条件效果=180，动态Weapon=181—194；物理0—24及条件／固定槽／预算元数据以唯一源和生成表为准。以下版本46／草稿／待生成表述保留原时点；本步骤的运行接线仍未实施，不能因布局已生成就提前接收、采集、安装或宣称验收通过。
+
+**第5步P6—P8解码合同（2026-11-09，未实现）**：[草稿格式及合法性](5-player-p6-p8.md)规定P6为111＋4C B，三项P0 costume count须一致；map负源折成FFFF／layer0，body标记仍保留，Host明确Null ANM与Client资源未准备不能混同。P7精确21B，校验独立激活／列表蕴含、roster唯一稠密顺序、同组身体／active_anchors及引用use／shape；不要求valid等于room或Exists，不接收sub／replaced／703四槽。C/S group为21＋2N B、participant／group分别空间9／10，实际layout号待生成。P8保留有序效果，配置必须非Null，仅collectible704条目10B，其余6B；disabled独立，残影每项12B，D=0无负载，D=1当前记录24B＋实际ANM2、second=-1时second_frame=0，恰好消费整块。原始History／16索引／forms不作缺字段；16／17／18只走world。版本46尚未注册本草稿，不提前接收。
+
+**第5步P3—P5待实现合同（2026-11-09）**：按[草稿格式](5-player-p3-p5.md)解码P3的70B前缀／完整dense长度／有序map与blocked＋有效innate；不要求group／timer／voided／queued charge等已裁字段。四Pocket的ID按真实type解释，空type保留u32，非空ACTIVE_ITEM解成slot+1；queued只接受饰品配置与golden投影。P4精确96B，空Item的五值必须为规范零，occupied partial要求有限，不套0—1或通用charge6上限。P5 mask只许低5位，按槽序核view_layout／type／精确长度；十类为16B值、5／6／8／12为4B、15为6B，Modifiers拒绝超出分型mask的位，Whip引用按成员表解析。三块只能world；当前46尚未注册这些Player草稿layout，不提前接收。
+
+**第5步P0—P2待实现合同（2026-11-09）**：见[草稿布局及边界](5-player-p0-p2.md)。P0本体为64＋L字节，headAnim原始字节L≤2048；19—24为13槽及costume的三类ANM2投影，三count须相等且匹配已安装P6拓扑版本。Player父E6同body；body不得夹带P1／P2。P1只接受1B bool；P2精确77B，extraLives为i16、BlackHearts为原始掩码，其余按具名宽度，不套0—99／red≤max统一条件。EternalHearts／BoneHeartsMask、六项Player模拟stats与cacheFlags不要求出现在Player记录。拟定块号0—24仍在32块内；实际Player布局尚未生成，当前版本仍46，不提前接受这些草稿负载。
+
+**版本46 Delirium口径**：见[静态处理](delirium-residual-evidence.md)。整数布局版本按当前46比较；两个新增u64只是Host原生归属，线上字段／长度不变，143的17／18仍空预留，受控UI仍只接受0/2。不接收旧DL0／DL1负载，不由缺失AI值或BE8补造Client状态；本轮未运行测试。
+
 版本45按[残余结论](projectile-effect-residual-evidence.md)保持Projectile PR0为4B f32 Height，并解码新增PR2的9B：u8 height_render_mode／Vector freeze_render_position，偏移0／1；浮点必须有限，u8按零／非零解释，不能以bool校验错误拒绝2等原始值，也不能未对齐强转。Effect新增148／149，167不再接受102；19／71／194不开放公开TearFlags，FX2仍预留。119 callback专用尾部及其余UNKNOWN不进入影子状态，不接收地址或假造DamageFlags负载。实际帧解码接线仍为本步后续工作。
 
 版本44 Text／Dummy按[逐段证据](text-dummy-evidence.md)解码145／146／147。TX1必须为u16 count＋精确count原始字节，count≤255、无内嵌NUL，非UTF8允许；`StageCStringInto`只在自有256B暂存区补NUL。TX0为四个有限f32，TX2只在146有i32 counter，145的12号块预留；不得等待duration／颜色空间标签或Dummy专有负载。Manager帧／pause依赖同world展示上下文，缺失不可换用本地帧。旧独立Render来源保持原scope，不拼为当前普通快照。实际帧解码／影子状态接线仍属本步后续工作。

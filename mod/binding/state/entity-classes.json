@@ -485,7 +485,7 @@
             "locust_sprites_b"
           ],
           "limit": 16384,
-          "evidence": "mod/src/game/client_entity_class_model.cpp::Owned，AbyssLocust两组合计<=16384"
+          "evidence": "mod/src/game/client/entity/client_entity_class_model.cpp::Owned，AbyssLocust两组合计<=16384"
         }
       ]
     },
@@ -753,7 +753,7 @@
           "category": "状态",
           "semantics": "相对Player的移动延迟帧数参数；REP Wiki GetMoveDelayNum/SetMoveDelayNum；不是从名字推定的倒计时",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -795,7 +795,7 @@
           "category": "权威",
           "semantics": "原生射击／动画选择更新计数；不同分支读写，不能统一当线性计时器；版本33留Host，Client安装最终位置／动画，不复制该输入或运行原生更新",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md：HeadFrameDelay计时语义未闭合，原始i32不要求时钟换算；docs/design/binary-state/familiar-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md：HeadFrameDelay计时语义未闭合，原始i32不要求时钟换算；docs/design/binary-state/familiar-synchronization-review.md"
         },
         {
           "offset": "0xd54",
@@ -805,7 +805,7 @@
           "category": "权威",
           "semantics": "移动方向枚举；版本33留Host，Client安装最终位置／动画，不复制该输入或运行原生更新",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
         },
         {
           "offset": "0xd58",
@@ -815,7 +815,7 @@
           "category": "权威",
           "semantics": "射击方向枚举；版本33留Host，Client安装最终位置／动画，不复制该输入或运行原生更新",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
         },
         {
           "offset": "0xd5c",
@@ -825,7 +825,7 @@
           "category": "权威",
           "semantics": "上次方向枚举／历史；版本33留Host，Client安装最终位置／动画，不复制该输入或运行原生更新",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
         },
         {
           "offset": "0xd60",
@@ -835,7 +835,7 @@
           "category": "权威",
           "semantics": "轨道角度偏移；版本33留Host，Client安装最终位置／动画，不复制该输入或运行原生更新",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
         },
         {
           "offset": "0xd64",
@@ -845,7 +845,7 @@
           "category": "权威",
           "semantics": "轨道椭圆半径；版本33留Host，Client安装最终位置／动画，不复制该输入或运行原生更新",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
         },
         {
           "offset": "0xd6c",
@@ -855,7 +855,7 @@
           "category": "权威",
           "semantics": "轨道转速；版本33留Host，Client安装最终位置／动画，不复制该输入或运行原生更新",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
         },
         {
           "offset": "0xd70",
@@ -865,7 +865,7 @@
           "category": "权威",
           "semantics": "轨道层，-1表示未加入；版本33留Host，Client安装最终位置／动画，不复制该输入或运行原生更新",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
         },
         {
           "offset": "0xd74",
@@ -875,7 +875,7 @@
           "category": "状态",
           "semantics": "跟随队列标记；Render/Shadow的VA0x60C190读取+D74决定Player鞭形态借用；不是可随AI一起删去的纯编队标记",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/synchronization-field-review.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/synchronization-field-review.md",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -890,7 +890,7 @@
           "category": "状态",
           "semantics": "延迟队列标记",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -930,7 +930,7 @@
           "category": "状态",
           "semantics": "持有硬币；Render调用VA0x647310；variant231从+D7C取配置子型用于Sprite缩放，须保留",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/synchronization-field-review.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/synchronization-field-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -945,7 +945,7 @@
           "category": "权威",
           "semantics": "持有红心；版本33留Host，Client安装最终位置／动画，不复制该输入或运行原生更新",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
         },
         {
           "offset": "0xd84",
@@ -955,7 +955,7 @@
           "category": "权威",
           "semantics": "持有钥匙；版本33留Host，Client安装最终位置／动画，不复制该输入或运行原生更新",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
         },
         {
           "offset": "0xd88",
@@ -965,7 +965,7 @@
           "category": "状态",
           "semantics": "跟班状态；VA0x62C0C0和VA0x647310分别读取+D88控制充能/淡出；须保留",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/synchronization-field-review.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/synchronization-field-review.md",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -980,7 +980,7 @@
           "category": "权威",
           "semantics": "房间清理计数；版本33留Host，Client安装最终位置／动画，不复制该输入或运行原生更新",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/familiar-synchronization-review.md"
         },
         {
           "offset": "0xd90",
@@ -1000,7 +1000,7 @@
           "category": "权威",
           "status": "已核",
           "semantics": "非variant240的Host内部关系，不作为通用展示输入；variant240另由专用布局臂保留绳索分段所需引用，不对其他变体发送",
-          "evidence": "mod/src/game/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md"
         },
         {
           "offset": "0xdb0",
@@ -1020,7 +1020,7 @@
           "category": "状态",
           "semantics": "小谵妄形态标记",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -1103,7 +1103,7 @@
           "category": "状态",
           "semantics": "跟班泥土颜色",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
           "wire": {
             "kind": "copy",
             "type": "ColorMod"
@@ -1635,7 +1635,7 @@
                 "category": "引用",
                 "status": "已核",
                 "semantics": "仅variant240的绳索展示依赖：Render只测试此关系是否为空，选择后半段/全段；当前保留真实成员引用投影，不写伪非空地址，不借关系重演Remove",
-                "evidence": "mod/src/game/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md；J273 VA0x61F551..0x61F560→0x4308D0；版本33绳索payload见docs/design/binary-state/familiar-synchronization-review.md",
+                "evidence": "mod/src/game/client/entity/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md；J273 VA0x61F551..0x61F560→0x4308D0；版本33绳索payload见docs/design/binary-state/familiar-synchronization-review.md",
                 "read_requires": "entity-current-window",
                 "wire": {
                   "kind": "reference",
@@ -1797,7 +1797,7 @@
           "category": "状态",
           "semantics": "刀的128位眼泪效果",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
           "wire": {
             "kind": "copy",
             "type": "BitSet128"
@@ -1822,7 +1822,7 @@
           "category": "权威",
           "semantics": "Host缩放／攻击参数；Client安装主Sprite及图层最终scale，不调用生成／缩放setter；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x434",
@@ -1842,7 +1842,7 @@
           "category": "权威",
           "semantics": "Host运动／攻击朝向输入；Client安装最终Sprite rotation；Render实际读取的rotation_offset另行保留；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x43c",
@@ -1852,7 +1852,7 @@
           "category": "状态",
           "semantics": "刀旋转偏移",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1877,7 +1877,7 @@
           "category": "状态",
           "semantics": "当前投掷距离",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1892,7 +1892,7 @@
           "category": "状态",
           "semantics": "当前投掷速度",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1917,7 +1917,7 @@
           "category": "权威",
           "semantics": "Host投掷距离上限，Update用当前距离／上限与Charge计算轨迹；Client不解算投掷；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x460",
@@ -1927,7 +1927,7 @@
           "category": "权威",
           "semantics": "Host投掷蓄力输入；不是Familiar或Player充能条结果，Client不解算投掷；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x464",
@@ -1937,7 +1937,7 @@
           "category": "状态",
           "semantics": "刀投掷状态",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -1952,7 +1952,7 @@
           "category": "权威",
           "semantics": "Host挥砍状态机输入；最终成员、位置及动画单独同步；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x466",
@@ -1992,7 +1992,7 @@
           "category": "权威",
           "semantics": "Host寻路／轨迹局部偏移；Client接收最终位置，不执行InitHomingPath或Update；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x4c8",
@@ -2002,7 +2002,7 @@
           "category": "权威",
           "semantics": "Host路径推进速度；Client不推进原生路径；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x4cc",
@@ -2042,7 +2042,7 @@
           "category": "权威",
           "semantics": "Host棱镜分裂去重／历史；Client接收最终分裂成员与颜色；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x4e6",
@@ -2052,7 +2052,7 @@
           "category": "权威",
           "semantics": "Host多维分裂去重／历史；Client接收最终分裂成员与姿态；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x4e7",
@@ -2082,7 +2082,7 @@
           "category": "权威",
           "semantics": "Host旋转攻击状态机输入；最终动画／姿态单独同步；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x4eb",
@@ -2102,7 +2102,7 @@
           "category": "权威",
           "status": "已核",
           "semantics": "原生EntityPtr反向登记关系；Host负责生成/更新/关联或级联清理，当前Client展示不读取该关系；不采集身份、不编码、不安装，目标的最终成员和姿态独立同步",
-          "evidence": "mod/src/game/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md"
         },
         {
           "offset": "0x4f8",
@@ -2112,7 +2112,7 @@
           "category": "权威",
           "status": "已核",
           "semantics": "原生EntityPtr反向登记关系；Host负责生成/更新/关联或级联清理，当前Client展示不读取该关系；不采集身份、不编码、不安装，目标的最终成员和姿态独立同步",
-          "evidence": "mod/src/game/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md"
         },
         {
           "offset": "0x4fc",
@@ -2122,7 +2122,7 @@
           "category": "权威",
           "status": "已核",
           "semantics": "原生EntityPtr反向登记关系；Host负责生成/更新/关联或级联清理，当前Client展示不读取该关系；不采集身份、不编码、不安装，目标的最终成员和姿态独立同步",
-          "evidence": "mod/src/game/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md"
         },
         {
           "offset": "0x500",
@@ -2132,7 +2132,7 @@
           "category": "权威",
           "status": "已核",
           "semantics": "原生EntityPtr反向登记关系；Host负责生成/更新/关联或级联清理，当前Client展示不读取该关系；不采集身份、不编码、不安装，目标的最终成员和姿态独立同步",
-          "evidence": "mod/src/game/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_links.inc；docs/design/tx-04-19/entity-i15-i19-native.md；docs/design/binary-state/familiar-knife-bomb-evidence.md；docs/design/binary-state/internal-entity-relations-review.md"
         },
         {
           "offset": "0x504",
@@ -2465,7 +2465,7 @@
           "category": "权威",
           "semantics": "Host爆炸伤害裁决输入；Client接收最终伤害结果与独立爆炸效果；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x41c",
@@ -2475,7 +2475,7 @@
           "category": "权威",
           "semantics": "Host下落积分速度；Client使用最终公共Position／PositionOffset和Sprite姿态；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x420",
@@ -2485,7 +2485,7 @@
           "category": "权威",
           "semantics": "Host下落积分加速度；Client不推进下落或触地爆炸；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x424",
@@ -2505,7 +2505,7 @@
           "category": "权威",
           "semantics": "Host火箭运动方向；最终位置／Sprite rotation单独同步；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x42c",
@@ -2515,7 +2515,7 @@
           "category": "权威",
           "semantics": "Host火箭运动速度；Client不推进火箭；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x430",
@@ -2535,7 +2535,7 @@
           "category": "权威",
           "semantics": "Host更新／costume重建的缩放输入；Client安装主Sprite及五份costume最终scale，禁止调用6A2420；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x438",
@@ -2545,7 +2545,7 @@
           "category": "权威",
           "semantics": "Host爆炸效果／costume资源选择输入；Client安装最终资源、图层和独立效果，并保持+463=false，不运行6A2420；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x448",
@@ -2555,7 +2555,7 @@
           "category": "权威",
           "semantics": "Host胎儿炸弹行为分支；Client安装最终成员与资源姿态；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x449",
@@ -2575,7 +2575,7 @@
           "category": "权威",
           "semantics": "Host爆炸范围倍率；与ExplosionDamage一起传入6FBEA0裁决，Client不重演爆炸；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x450",
@@ -2595,7 +2595,7 @@
           "category": "权威",
           "semantics": "Host棱镜处理历史／更新输入；公开低字节语义及相邻未知保持原证据边界；不采集、不编码、不安装或漂移比较此Host原值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md；docs/design/binary-state/knife-bomb-tear-synchronization-review.md"
         },
         {
           "offset": "0x45d",
@@ -2615,7 +2615,7 @@
           "category": "状态",
           "semantics": "五层costume独立绘制开关；不是加载请求",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
+          "evidence": "mod/src/game/client/entity/client_entity_class_fields.inc；docs/design/tx-04-19/entity-i10-i14-native.md；entity-i15-i19-native.md",
           "wire": {
             "kind": "copy",
             "type": "u8"
@@ -6562,9 +6562,9 @@
           "name": "delirium_inactive",
           "type": "bytes[36]",
           "category": "权威",
-          "semantics": "普通NPC不使用Delirium臂；池槽可能残留，不发送，不据此宣称填充",
+          "semantics": "非412臂不读取或发送此Host区域；Delirium伴随NPC亦可被AI helper消费其中打包值，普通池复用也可保留旧值；不等同无用途或填充",
           "status": "已核",
-          "evidence": "docs/design/binary-state/npc-evidence.md"
+          "evidence": "docs/design/binary-state/delirium-residual-evidence.md"
         },
         {
           "offset": "0xbec",
@@ -7456,59 +7456,29 @@
                 "name": "delirium_unknown_bd4",
                 "type": "bytes[4]",
                 "category": "未知",
-                "semantics": "未核；无直接位移命中不能证明填充",
+                "semantics": "两个8B打包存储前的4B空白；符合对齐假设，但无源级成员或填充的正面证明；不读、不传、不补零",
                 "status": "未知",
-                "evidence": "docs/design/binary-state/npc-evidence.md"
+                "evidence": "docs/design/binary-state/delirium-residual-evidence.md"
               },
               {
                 "offset": "0xbd8",
-                "size": "0x4",
-                "name": "delirium_attack_id",
-                "type": "u32",
+                "size": "0x8",
+                "name": "delirium_attack_pack",
+                "type": "u64",
                 "category": "权威",
-                "semantics": "完整四字节弹幕打包值，不仅低字节编号",
+                "semantics": "Host弹幕8B打包存储：低四字节为编号/剩余次数/继续概率/相位，下一字节为Angle；4A26CA/4A26D0完整写入双u32，高24位由五次u8拼装归零。公开AttackID仅低u32、Angle仅+BDC的u8；BDD—BDF不是独立未知或源级填充",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/npc-evidence.md"
-              },
-              {
-                "offset": "0xbdc",
-                "size": "0x1",
-                "name": "delirium_angle",
-                "type": "u8",
-                "category": "权威",
-                "semantics": "Host弹幕角度",
-                "status": "已核",
-                "evidence": "docs/design/binary-state/npc-evidence.md"
-              },
-              {
-                "offset": "0xbdd",
-                "size": "0x3",
-                "name": "delirium_unknown_bdd",
-                "type": "bytes[3]",
-                "category": "未知",
-                "semantics": "未核；写入值为零不证明填充",
-                "status": "未知",
-                "evidence": "docs/design/binary-state/npc-evidence.md"
+                "evidence": "J273 VA 0x4A267C—0x4A26D0、0x49FA14/0x49FA1F；docs/design/binary-state/delirium-residual-evidence.md"
               },
               {
                 "offset": "0xbe0",
-                "size": "0x4",
-                "name": "delirium_cycle",
-                "type": "u32",
+                "size": "0x8",
+                "name": "delirium_cycle_pack",
+                "type": "u64",
                 "category": "权威",
-                "semantics": "Host红色模式/传送打包值",
+                "semantics": "Host Cycle的8B打包存储，原生双u32读取后以SHRD解出7/8/10/10位分量，末分量bits25—34跨入BE4；已核重打包路径将高u32写0，不能据此抹去高字读取。公开Cycle及其派生查询只读低u32；不是新增u64公开API或Client状态",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/npc-evidence.md"
-              },
-              {
-                "offset": "0xbe4",
-                "size": "0x4",
-                "name": "delirium_unknown_be4",
-                "type": "bytes[4]",
-                "category": "未知",
-                "semantics": "64位访问上半字；恒零写不证明填充",
-                "status": "未知",
-                "evidence": "docs/design/binary-state/npc-evidence.md"
+                "evidence": "J273 VA 0x49FC3F—0x49FCCB、0x4A2748—0x4A2780、0x6B45B8/0x6B45C2；docs/design/binary-state/delirium-residual-evidence.md"
               },
               {
                 "offset": "0xbe8",
@@ -7516,9 +7486,9 @@
                 "name": "delirium_companion",
                 "type": "EntityPtr",
                 "category": "权威",
-                "semantics": "Host形态410伴随关系，仅AI消费",
+                "semantics": "Host伴随NPC登记槽；49F3D0借用形态410的Child，4A13B0也经424340→Game::Spawn创建并登记独立成员。用于代跑AI/伤害/清场，不作为Client绘制引用；Client保持本地空槽，画面与退休由独立成员和实际线上关系驱动",
                 "status": "已核",
-                "evidence": "docs/design/binary-state/npc-evidence.md"
+                "evidence": "J273 VA 0x4A0165—0x4A0196、0x4A14F1—0x4A1522、0x4A1140—0x4A11D8；docs/design/binary-state/delirium-residual-evidence.md"
               }
             ],
             "blocks": [
@@ -7595,7 +7565,7 @@
           }
         ]
       },
-      "notes": "第4步版本43。受控UI来源已闭合：8E7550属于原版NetplayManager::IsIdxLocalPlayer，不能引入C/S。ReadNpcControlledUi只读F1C并输出0/2，Decode拒绝旧模式1；正式窗口/绘制接线仍归第10/13步。BossType/Variant留Host、17/18预留、OverlayEffect Scale派生、UNKNOWN与SDK边界保持。"
+      "notes": "第4步版本46。Delirium的BD8—BDF与BE0—BE7为两个Host u64打包存储，官方AttackID/Cycle仍u32、Angle仍u8；BD4的4B仍未知，根590B，普通NPC根586B。非412臂不读取可能的companion AI值或池槽残留，静态可达不冒称实测。BE8的两条登记路径与独立成员展示已核，继续留Host；BossType/Variant不触发shape，17/18空预留，OverlayEffect Scale派生。受控UI只读F1C输出0/2并拒绝1，不读取原版NetplayManager；其他UNKNOWN/SDK边界保持。正式窗口/绘制接线仍归第10/13步，第15步统一验收。"
     },
     {
       "type": "NpcOverlaySprite",

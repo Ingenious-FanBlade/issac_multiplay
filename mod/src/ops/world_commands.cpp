@@ -1,9 +1,9 @@
 #include "ops/world_commands.h"
 #include "runtime.h"
 #include "binding/world_layout.h"
-#include "game/world_bridge.h"
-#include "game/world_sources/lua_entity.h"
-#include "game/tick.h"
+#include "game/observation/world_bridge.h"
+#include "game/observation/sources/lua_entity.h"
+#include "game/authority/tick.h"
 #include "world/observe.h"
 #include <algorithm>
 #include <array>

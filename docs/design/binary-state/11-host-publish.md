@@ -1,5 +1,13 @@
 # 11：Host 变化检测、增量与发布
 
+**版本47布局来源（2026-11-09）**：[第5步正式源／生成](implementation-5-player.md)已完成，EntityPlayer=197，participant／control-group=195／196，Player主动槽=179，条件效果=180，动态Weapon=181—194；物理0—24及条件／固定槽／预算元数据以唯一源和生成表为准。以下版本46／草稿／待生成表述保留原时点；本步骤的运行接线仍未实施，不能因布局已生成就提前接收、采集、安装或宣称验收通过。
+
+**第5步P6—P8发布合同（2026-11-09，未实现）**：[后三块定稿](5-player-p6-p8.md)在world物理16／17／18分别memcmp规范投影。costume生产元数据、map priority、非704 cooldown、原始History／索引／forms和未选回放节点不参与变化；实际残影duration／位置和704 cooldown变化仍会重发。P6 revision统一覆盖Player的跨身体目录／资源结构／P7借用变化，与P7和同拓扑P0先ordinary提交，再接受相等revision的body；不把普通计数或充能变化升级shape。新增纯C/S组／participant记录按成员表关联，roster／组／激活不同于普通Entity热状态；sub／replaced／703四槽不产生Client引用闭包。当前46未实现这些新投影，没有测试。
+
+**第5步P3—P5变化合同（2026-11-09，未实现）**：[P3—P5设计](5-player-p3-p5.md)的world物理13／14／15分别比较／版本。无序容器规范排序，innate合并有效计数后再memcmp，不因timer／group管理变化重发；P4空槽旧payload与P5非展示Modifiers位／恒零充能输入不参与变化。装备结构／资源选择变化先随ordinary的P6拓扑提交，普通充能变化不升级shape；不将被裁字段的旧读回要求放回生成布局。实际三端／多身体带宽仍在第15步验收，版本仍46。
+
+**第5步快源拆块补充（2026-11-09，待实现）**：[P0—P2设计](5-player-p0-p2.md)中的P0是逻辑组，10及19—24号物理块各自memcmp／版本变化；普通动画变化不能重发13份ANM2的整个外观。Player父E6与E1／E4／E5同body目标；P1／P2仍world。P6拓扑变更先经ordinary发布，P0携带相等的render_topology_revision，不以原生地址稳定或哈希替代内容比较。全量下界不当作逐帧带宽，最终仍在第15步按三端扇出与多身体验收。布局版本仍46，无Player发布实现或测试。
+
 状态：设计稿，未实施。上级：[总计划](README.md)。
 
 ## 目标

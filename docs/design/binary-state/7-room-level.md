@@ -1,5 +1,7 @@
 # 7：Room、Level、RoomSave 与 Exploration
 
+**版本53 Grid显示依赖（待本步实际接入）**：[PressurePlate／Door证据](grid-pressure-door-evidence.md)要求同world的Room.greedWaveTimer(+723C)、floorColor(+72A4)、wallColor(+72D0)、真实八门槽关系，以及Door target_room_index到Client自有目标descriptor/特殊目标的映射（Light读Flags&40000）。索引保留有符号负特殊值，current RoomConfig.type35不能用Door.current_room_type替代；未知目标不能当空或本地进度默认值。主/extra显示与结构关系分开提交，不用primary Slot/Direction/target索引触发Client过门FSM；本文旧设计尚不表示这些owner已实现。
+
 状态：设计稿，未实施。上级：[总计划](README.md)。
 
 ## 目标

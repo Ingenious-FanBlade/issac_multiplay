@@ -1,6 +1,38 @@
 # 原生二进制状态同步重构：总计划
 
-**2026-11-09 当前版本45：Projectile展示来源与Effect残余。** [J273静态证据与逐臂结论](projectile-effect-residual-evidence.md)闭合Projectile+440开关、+460/+464冻结绘制锚点的构造／Init／生产链，新增9B独立PR2，PR0保留4B Height、最小状态404B、根未知350B。Effect新增148号167臂与149号19/71/194内部flags臂，167的+430核为Host生成伤害快照；+434及后8B仍未知。119尾部确认一个callback的8B DamageFlags特例，通用臂仍保持未知。41C／44C／4BC没有语义或填充证明；此前五项不重做。普通Release／Win32产品纯编译与链接通过，未运行测试；正式接线仍按第10／13步。
+**2026-11-10 第6步剩余描述编码完成**：[影子状态描述实现](grid-description-implementation.md)提供正式`ClientGridDescription`、17类同源数字索引与自有不可变投影，移出字符串字段；旧JSON链明确命名为`LegacyClientGrid*`等待后续换接。线布局未改，UNKNOWN与第10／12／13步运行边界保持，不运行测试。
+
+**2026-11-10 第8步Presentation静态字节核对**：[同步职责与证据](presentation-synchronization-review.md)、[45类型／连续视图账本](presentation-byte-ledger.md)及[141行公开成员回映射](presentation-member-map.md)。最终心格／实际图像／动态HUD／History顺序和StatHUD三值保留，previous／threshold及生产器不上线；官方星象房行保留。地图本地查看与world事实分开，持续声音须状态、一次性声音走事件，Host音量／后端对象不复制。程序图／shader旁表ABI／Pause后缀／转场条件payload等UNKNOWN及具体来源缺口保持；正式Presentation布局／运行接线未实施，本轮未改生产布局版本、未构建或测试。以下记录保留各自时点。
+
+**2026-11-10 第8步Run静态归属，版本56**：[Run职责核对](run-synchronization-review.md)及`run.json`新增230—238，回映射原目录全部191条run行。只保留具体显示消费者所需当前值、7项种子显示投影、ascent bit48及最终分数；生成／波次／历史／回溯与持久资格留Host。两黑暗浮点保留，ColorModifier只发current。GameFrame与TimeCounter、Game当前daily与Manager预告来源分别核定。Presentation实际owner／跨域委派与UNKNOWN明确保留，新handler与正式接线仍待后续；纯编译结果见Run核对，无测试。以下条目保留原时点。
+
+**2026-11-10 第6步119行公开成员回映射完成，版本55**：[说明与证据](grid-member-map.md)、[逐行汇总表](layouts/grid-catalog-members.md)。119个原始行全部进入正式布局源及代码生成，保留三个重复ID／原签名；16行字段、28行派生、74行Host权威、1行不适用。补清GetBigRockFrame无符号比较，ReducedSpawnRate明确已移除；各根UNKNOWN及线字段保持。第6步静态布局、Plus来源及成员目录工作均已登记；实际reader／writer与绘制adapter仍待后续。Release／Win32状态库纯编译成功，无测试。以下条目保留原时点。
+
+**2026-11-10 第6步GridEntityPlus静态来源完成，版本54**：[来源／ABI／生命周期与同步决定](grid-plus-water-source-evidence.md)核定官方448×12B共享旁表，新增229本地ABI目录、零线字段。只发每实例最终u32，optional／地址／重置历史不上线；Factory／Init重置共享项，Free／换房不假定自动清。纠正Lock不进入官方六Hook、忽略旁表；现有C/S六wrapper也漏Lock，第13步补第七点。各根UNKNOWN／最小状态不变；全119项逐行回映射及正式reader／writer尚未完成，无测试。以下条目保留原时点。
+
+**2026-11-10 第6步PressurePlate／Door完成，版本53**：[字节归属与同步职责](grid-pressure-door-evidence.md)追加224—228。TimerPlate／ExtraSprite、Door目标类型／描述索引／ExtraVisible及Light bit0x20保留；previous缓存、四动画名、NextGreedAnimation、GreedModeRNG与门玩法控制值留Host。PressurePlate主色派生；Door主色仅发alpha入口布尔，其余取同world墙色；两类专用描述不发无实际Light消费者的SpawnSeed。根UNKNOWN31／32B，最小212／223B。Release状态库纯编译通过，无测试。至此全部17派生均有字节／线格式生成表，完整目录、Plus合法来源及正式运行接线仍待完成。以下条目保留原时点。
+
+**2026-11-10 第6步指定七类完成，版本52**：[字节归属与同步职责](grid-seven-subclasses-evidence.md)将Lock／Pit／Spikes／Statue／TNT／Poop／Rock接入217—223，214—216为专用视图。TNT+154爆炸计数、其余控制计时、Poop尾部40B伤害EntityRef及Statue实体裸指针留Host；Statue自身无Sprite负载。Rock保留碎块动画资源／有序偏移，state2主动画残留和layer0旧位置不读不发，真实overlay／原色保留。根UNKNOWN依次20／20／17／17／17／19／17B；Release状态库纯编译通过，无测试。PressurePlate／Door、全119项及正式运行接线仍待完成；以下条目保留原时点。
+
+**2026-11-10 第6步指定八类完成，版本51**：[字节归属与同步职责](grid-eight-subclasses-evidence.md)将Decoration／Gravity／Stairs／Teleporter／Wall／Web／TrapDoor／Fire及四种专用视图接入202—213布局。五类主Sprite省去必覆写的44B颜色，TrapDoor计数及Fire计时／样式／粒子速度留Host；Fire两Sprite与16B有序粒子保留，第三Sprite主帧／选择器派生、播放插值开关保留。根UNKNOWN七类17B／Fire45B，最小98／142／372B。Release／Win32状态库纯编译通过，没有测试；其余九类、全目录、正式运行接线仍待完成。以下条目保留原时点。
+
+**2026-11-10 第6步公共同步职责复核，版本50**：[具体消费者与纠错](grid-common-synchronization-review.md)撤销CollisionClass原值，改发按实例最终WaterClipFlags；主Sprite使用GridLayerState200／GridSprite201，移出默认动画名／待加载图层路径，并补Dataminer地址派生的最终两位纹理选择。G0仍24B、G1固定94B、公共最小状态142B，根UNKNOWN仍17B，资源／姿态与原证据等级保留。Release／Win32状态库纯编译通过；正式来源／writer／绘制adapter及子类仍待后续，无测试。以下条目保留原时点。 冠军shader只保留前四float16B，载体后七值28B留Host，普通ColorMod仍完整11值。
+
+**2026-11-10 第6步公共字节归属，版本48**：[证据与职责](grid-common-evidence.md)、[公共生成表](layouts/GridEntity.md)及[描述生成表](layouts/GridEntityDesc.md)。新增Desc198／Grid199，公共340B逐字节登记，递归UNKNOWN17B（Desc3B＋ANM2 14B）；G0仅24B，公共最小状态171B。SpawnSeed因Light临时绘制RNG保留，SpawnCount／VarData／Initialized／VariableSeed／SpawnFrame与对象_rng留Host。Grid为根＋17个派生、共18个RTTI；本轮只处理公共前缀，子类、GridEntityPlus水面旁表／全119项回映射和实际接线仍待完成。0—14步无测试，第15步唯一统一验收。以下记录保留原时点。
+
+**2026-11-09 第5步正式布局源与生成完成，版本47**：[实现说明](implementation-5-player.md)与[EntityPlayer生成表](layouts/EntityPlayer.md)。唯一源`mod/binding/state/player.json`新增150—197共48个布局，Player197共25块；条件效果、动态Weapon、固定槽、Plus投影及1265条应用行／97条补充成员已正式生成。Player／Plus未知仍3707B／9B，Plus ABI模型不升级证据。Release／Win32产品纯编译与链接通过，没有运行测试；第8—14步实际接线及第15步统一验收仍未完成。以下较早记录保留原时点。
+
+**2026-11-09 第5步前两项设计工作完成（未生成／未实现）**：[统一原生字节账本](player-byte-ledger.md)覆盖Player 2EA0h、保存／移动箱／动态装备及PlayerPlus等58种类型；根对象239个直接范围，递归UNKNOWN仍3707B。Plus A8h及后半偏移明确为静态ABI模型，未知9B，不能称官方DLL实测。[成员逐行回映射](player-member-map.md)保留1265条旧应用行及重载，另列14条native、77条具名宏与6条结构，旧Entity目录逐行交叉引用。原版通信+268C及待移除效果队列不上线；无调用方的Captured通用字典退出设计，真实原生显示查询走具名最终决定，具体缓存／批次布局仍归第8/9步。剩余为唯一Player布局源／正式生成与采集、安装、退役接线；版本仍46，没有构建或测试。以下较早记录保留各自时点。
+
+**2026-11-09 第5步P6—P8设计完成（未实现，版本仍46）**：[设计与J273证据](5-player-p6-p8.md)。P6为111＋4C B最终costume目录／map；P7为21B身体结构＋C/S组记录，独立激活资格保留，native sub／replaced／703四槽留Host；P8裁非704 cooldown、原始History／16索引／forms与未选回放节点，保留实际效果、残影、当前可绘记录／额外Sprite。最终图像列表及Render内分数重算的缓存交第8步，不能放行生产器补算。P0—P8九块设计完成，全Player字节账本、PlayerPlus、回映射／生成与运行接线仍待完成；没有构建或测试，第15步唯一统一验收。
+
+**2026-11-09 第5步P3—P5设计完成（未实现，版本仍46）**：[设计、原生消费者与字节归属](5-player-p3-p5.md)。P3保留展示库存／四口袋／材料／法术与blocked＋有效innate投影，voided／管理时限等留Host；32根有界参数核对将三组特殊输入留Host，跨域计算查询最终显示来源未决照实列出；P4固定96B并规范空槽；P5为1—91B，按15种真实动态类裁五种恒零输入与非展示Modifiers位，保留Whip主引用。P0—P5设计已完成，P6—P8、全Player字节闭合、生成及运行接线仍待完成；没有构建或测试，第15步统一验收。
+
+**2026-11-09 第5步P0—P2设计完成（未实现，布局版本仍46）**：[原生消费者、同步必要性与草稿布局](5-player-p0-p2.md)。P0核定真实闪隐、比例／headAnim及五项Render充能，按投影拆分Sprite并增加P6拓扑依赖；P1为1B CanFly，六项属性栏结果归Presentation；P2为77B，保留特殊健康显示原值及Jar／额外生命等直接输入，EternalHearts／BoneHeartsMask原值由最终逐心缓存承接。P3—P8、全Player字节表、布局生成及运行接线仍待完成。只改设计文档，没有构建或测试，第15步仍是唯一统一验收。
+
+**2026-11-09 当前版本46：Delirium未决事项。** [静态证据与归属修订](delirium-residual-evidence.md)核定两个8B Host打包存储，7B移出独立未知；BD4—BD7的4B保持未知，Delirium根597→590B，NPC仍586B，最小线状态仍均710B且17／18空预留。池槽残留有静态可达路径但未实测；补齐4A13B0独立companion的创建／BE8登记，当前展示依赖闭合为真实成员和已有线上关系，BE8继续留Host。正式运行接线仍归第10／13／14步，测试只在第15步；旧版本条目保留原时点事实。
+
+**2026-11-09 版本45：Projectile展示来源与Effect残余。** [J273静态证据与逐臂结论](projectile-effect-residual-evidence.md)闭合Projectile+440开关、+460/+464冻结绘制锚点的构造／Init／生产链，新增9B独立PR2，PR0保留4B Height、最小状态404B、根未知350B。Effect新增148号167臂与149号19/71/194内部flags臂，167的+430核为Host生成伤害快照；+434及后8B仍未知。119尾部确认一个callback的8B DamageFlags特例，通用臂仍保持未知。41C／44C／4BC没有语义或填充证明；此前五项不重做。普通Release／Win32产品纯编译与链接通过，未运行测试；正式接线仍按第10／13步。
 
 **2026-11-09 版本44：Text／Dummy。** [字段职责与J273证据](text-dummy-evidence.md)及[实现说明](implementation-4-text-dummy.md)将Text145／variant2缩放146／Dummy147接入布局生成链。Text保留有效原始字节前缀与最终RGBA，counter仅146传输；duration与此固定字体不消费的颜色空间标签留Host，通用KColor20B保持。新增有界c-string读取／暂存和无尾部等大派生支持。Text339B／Dummy335B根未知、Dummy不可见标签历史缓存及自然来源缺口保持；普通Release／Win32产品纯编译与链接通过；第10／13步仍须接入实际窗口／owner，第15步前不运行测试。
 
@@ -16,7 +48,7 @@
 
 **2026-11-09 版本38（Effect合同继续适用）：Effect各臂与附属payload。** [Effect同步职责复核](effect-synchronization-review.md)撤销六项公共更新输入、TearFlags全128位与136描述八成员；State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale及三种表现payload保留。Ghost只发0—4有效Sprite前缀，Offset／Scale派生、i32 count由投影计数重建；MrMe原16B未知核为Host内部状态，Trail找到64B分配与完整复制。六臂编号不变，FX2均预留；公共Effect最小444→420B。源、生成表和第6／10／12／13／14／15步合同已修订，未构建或测试，运行时仍待接线。
 
-日期：2026-11-08；更新：2026-11-09（Asia/Singapore）。状态：**第 0—3 步已落地，第 4 步的 Familiar／Knife／Bomb、Tear／Pickup／Laser 和 Slot／Projectile／Effect 布局与专用表现已接入生成链，普通 Release 纯编译／链接通过**。入口为[第 0—2 步实现](implementation-0-2.md)、[第 3 步实现](implementation-3.md)、[Familiar／Knife／Bomb 实现](implementation-4-familiar-knife-bomb.md)、[Tear／Pickup／Laser 实现](implementation-4-tear-pickup-laser.md)、[Slot／Projectile／Effect 实现](implementation-4-slot-projectile-effect.md)和[生成布局表](layouts/README.md)。当前布局版本45（Projectile／Effect残余见[新证据](projectile-effect-residual-evidence.md)；Text／Dummy见[字段证据](text-dummy-evidence.md)；NPC受控UI来源见[闭合与纠错](npc-control-ui-evidence.md)，旧版本事实保留，未运行测试）；[第4步原未决前四项](implementation-4-first-four.md)已完成工作量估算与DepthOffset复核，补入Knife尾部六个f32、更正Slot／Projectile本地指针和Effect生成参数归属，续研核定Knife六值的分裂／碰撞用途与Effect参数的Host归属，六段空白的填充假设及证据边界仍保留。SDK 声明、未知字节、子类计时分支和跨域未决照实保留，不表示类型完整或同步已可运行；第4步NPC／Delirium已迁入布局源，仍有未知与后续接线；Text／Dummy布局及字段职责已接入版本44（见[text-dummy-evidence.md](text-dummy-evidence.md)），未知与Dummy历史屏幕缓存依赖保持；第5—14步待实施。0—14 步没有测试，第 15 步是唯一统一整体验收。
+日期：2026-11-08；更新：2026-11-09（Asia/Singapore）。状态：**第 0—3 步已落地，第 4 步的 Familiar／Knife／Bomb、Tear／Pickup／Laser 和 Slot／Projectile／Effect 布局与专用表现已接入生成链，普通 Release 纯编译／链接通过**。入口为[第 0—2 步实现](implementation-0-2.md)、[第 3 步实现](implementation-3.md)、[Familiar／Knife／Bomb 实现](implementation-4-familiar-knife-bomb.md)、[Tear／Pickup／Laser 实现](implementation-4-tear-pickup-laser.md)、[Slot／Projectile／Effect 实现](implementation-4-slot-projectile-effect.md)和[生成布局表](layouts/README.md)。当前布局版本47（Player正式源见[第5步实现](implementation-5-player.md)；Delirium未决见[本轮处理](delirium-residual-evidence.md)；Projectile／Effect残余见[新证据](projectile-effect-residual-evidence.md)；Text／Dummy见[字段证据](text-dummy-evidence.md)；NPC受控UI来源见[闭合与纠错](npc-control-ui-evidence.md)，旧版本事实保留，未运行测试）；[第4步原未决前四项](implementation-4-first-four.md)已完成工作量估算与DepthOffset复核，补入Knife尾部六个f32、更正Slot／Projectile本地指针和Effect生成参数归属，续研核定Knife六值的分裂／碰撞用途与Effect参数的Host归属，六段空白的填充假设及证据边界仍保留。SDK 声明、未知字节、子类计时分支和跨域未决照实保留，不表示类型完整或同步已可运行；第4步NPC／Delirium已迁入布局源，仍有未知与后续接线；Text／Dummy布局及字段职责已接入版本44（见[text-dummy-evidence.md](text-dummy-evidence.md)），未知与Dummy历史屏幕缓存依赖保持；第5步正式布局源／生成已完成，第6—14步及Player实际运行接线仍待实施。0—14 步没有测试，第 15 步是唯一统一整体验收。
 
 **2026-11-09 版本37（历史范围）：Laser／Homing采样、运动与计时。** [Laser／Homing采样、运动与计时复核](laser-homing-synchronization-review.md)保留optimized／unoptimized两组最终点列与当前角度、长度、完整效果位、原始采样模式、MaxDistance／GridHit、公开EndPoint和+4F0展示分支输入；19项Laser更新输入、六项Homing标量、indices中间点缓存及Bezier／系数留Host。indices原生类型纠正为8B双f32点对，旧i32步长记录错误。L2／L4／L7／L8及Homing子块0／3／4预留，父投影仅1／2；撤销两个Laser计时锚点。最小Laser542→439B，未知421B不变。源、生成器和第10／12／13／14／15步合同已修订，未构建或测试；运行时仍待接线。
 
@@ -138,6 +170,7 @@ Client
   - `Room+0x11F0` 帧基准：`Room:GetFrameCount()` = 时钟 − 基准，基准原值发送（第 7 步）；
   - Effect Timeout：换算为到期帧 = 全局帧 + Timeout（第 4 步 4.1.5）。
 - **其他字段**：其余帧计数类字段在第 3—8 步按同一规则逐个核对。
+- **Run TimeCounter（版本56）**：Game+25A74是可修改i32，6F7889／6F7894／6F789D证实它与GameFrame同分支递增；发送u32基准`game_frame - bit_cast<u32>(TimeCounter)`。Client按已应用world帧头减基准再还原i32，按模2^32保留原符号；改时／回溯自然改变基准，不用本地时钟或把它等同GameFrame。见[Run核对](run-synchronization-review.md)。
 - **空帧**：静止场景中虽然没有块变化，Host 仍要发送空帧，用来推进展示时钟（第 11 步）。
 
 ## 5. 布局表格要求

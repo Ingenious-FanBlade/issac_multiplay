@@ -18,7 +18,7 @@ CLASSES = PLAYER_RELATED | RESOURCE_CLASSES | {
     "ItemConfigCard", "ItemConfigPillEffect", "EffectList", "PosVel", "BitSet128"}
 # I11—I15与生产端同表取成员；目录不因任务编号完成而把其它查询/资源标成已安装。
 STATE_FIELDS = set(re.findall(r'CS_PLAYER_FIELD\("([^"]+)"',
-    (ROOT / "mod/src/game/client_player_fields.inc").read_text(encoding="utf-8")))
+    (ROOT / "mod/src/game/client/player/client_player_fields.inc").read_text(encoding="utf-8")))
 STATE_CONTAINERS = {"EntityPlayer." + name for name in (
     "GetCollectiblesList", "GetVoidedCollectiblesList", "GetWispCollectiblesList", "GetSpoofedCollectiblesList",
     "GetSmeltedTrinkets", "GetSmeltedTrinketDesc", "GetTrinket", "IsCollectibleBlocked", "IsTrinketBlocked",
@@ -26,7 +26,7 @@ STATE_CONTAINERS = {"EntityPlayer." + name for name in (
 STATE_SLOTS = {"EntityPlayer.GetActiveItemDesc", "EntityPlayer.SecondaryActiveItem", "EntityPlayer.GetPocketItem", "EntityPlayer.QueuedItem"}
 # 只把资源解析器实际消费的具名成员标为原生pose后端；其余动画元数据／任意查询仍保留只读处置。
 RESOURCE_POSE_MEMBERS = set(re.findall(r'"((?:Sprite|LayerState|BlendMode)\.[^"]+)"',
-    (ROOT / "mod/src/game/client_resource_model.cpp").read_text(encoding="utf-8")))
+    (ROOT / "mod/src/game/client/resources/client_resource_model.cpp").read_text(encoding="utf-8")))
 # 只把已经存在的具名安装器登记为实现；操作接口始终保持Authority-only。
 EQUIPMENT_MEMBERS = {
     "EntityPlayer.GetEffects", "EntityPlayer.HasPlayerForm", "EntityPlayer.GetPlayerFormCounter",
@@ -41,7 +41,7 @@ VANILLA_ROLES = [
      "resources": "I18-I20:per-body-final-state;no-starting-item-or-random-replay",
      "draw": "I29-native-pass+frame-resource-borrow", "runtime_status": RUNTIME_ACCEPTANCE + ";basic type final state;not all natural combinations"}
     for t, n, f, task in re.findall(r'CS_PLAYER_ROLE\((\d+),\s*"([^"]+)",\s*(\d+),\s*(\d+)\)',
-        (ROOT / "mod/src/game/client_player_roles.inc").read_text(encoding="utf-8"))
+        (ROOT / "mod/src/game/client/player/client_player_roles.inc").read_text(encoding="utf-8"))
 ]
 ROLE_MEMBERS = {"EntityPlayer." + name for name in (
     "GetPlayerType", "GetPlayerIndex", "GetHeldEntity", "GetItemState", "GetSuplexState",
@@ -112,7 +112,7 @@ def generate():
                 "consumer": "Authority" if authority else "ClientPlayerDisplayView::Captured;native installer only for named dispositions",
                 "installation": "never-replay-operation" if authority else "ClientPlayerDisplayView::Captured;original-parameters/status/graph-root;no-local-query-replay",
                 "cleanup": "no-Client-operation-owner" if authority else "I33;body/child-resource owner;borrow-generation invalidation",
-                "implementation": "mod/src/replica/player_target.cpp;mod/src/game/client_player_view.cpp" if not authority else "Authority-only;no-Replica-RPC",
+                "implementation": "mod/src/replica/player_target.cpp;mod/src/game/client/player/client_player_view.cpp" if not authority else "Authority-only;no-Replica-RPC",
                 "implementation_status": "readonly-captured-result;not-a-native-storage-claim" if not authority else "Authority-only;no-Client-operation", "runtime_status": "Authority-only;no Client operation" if authority else RUNTIME_MEMBER,
                 "task": task, "research": research, "e2e": e2e,
                 "absence": "Missing/Null/Empty/Unavailable/ReadFailed/NotCaptured remain distinct",
@@ -122,7 +122,7 @@ def generate():
                 row.update(handling="I11-I15:typed-final-native-storage;no-gameplay-replay",
                            consumer="ClientPlayers/ClientPlayerStateFields;HUD keeps original public query semantics",
                            installation="application_player_state-v1;per-body native backing;local-config lookup;complete containers;role-NotApplicable is distinct",
-                           implementation="mod/src/game/client_player_model.cpp;mod/src/game/client_player_state_native.cpp;mod/src/game/client_player_fields.inc",
+                           implementation="mod/src/game/client/player/client_player_model.cpp;mod/src/game/client/player/client_player_state_native.cpp;mod/src/game/client/player/client_player_fields.inc",
                            implementation_status="implemented-named-final-native-storage;integrated-with-complete-Player-owner",
                            cleanup="Player/official-Plus own containers;queue config borrow revoked before Free;no double destruction")
             if not authority and (m["id"] in EQUIPMENT_MEMBERS or owner in EQUIPMENT_OWNERS):
@@ -130,7 +130,7 @@ def generate():
                     handling="I16-I20:typed-body-equipment;public-query-and-native-storage-semantics-kept-distinct",
                     consumer="ClientPlayers/ClientPlayerEquipment;History exposes committed immutable body view",
                     installation="application_player_equipment-v1;effects/forms;Player-domain History;main+13-inline poses;costume vector/map;five typed Weapon owners",
-                    implementation="mod/src/game/client_player_equipment_model.cpp;mod/src/game/client_player_equipment_native.cpp;mod/src/game/client_player_weapon_native.cpp",
+                    implementation="mod/src/game/client/player/client_player_equipment_model.cpp;mod/src/game/client/player/client_player_equipment_native.cpp;mod/src/game/client/player/client_player_weapon_native.cpp",
                     implementation_status="implemented-named-equipment-and-frame-resource-owner",
                     cleanup="unlink actual EntityPtr slots and weapon owner before virtual Free;costume ANM/native Player each destroyed once;unknown prefixes retained")
             if not authority and m["id"] in ROLE_MEMBERS:
@@ -140,7 +140,7 @@ def generate():
                     handling="I21-I25:final-composite-values+whole-target-vanilla-body-graph",
                     consumer="ClientPlayerRolesPrepare/ClientPlayerRoleFields/ClientPlayerRoleRelations;general-held-frame-borrow",
                     installation="application_player_role-v1;native storage then all-body links then public native getter checks;no InitTwin/Swap/Flip/Hold/Throw/Suplex",
-                    implementation="mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+                    implementation="mod/src/game/client/player/client_player_roles.cpp;mod/src/game/client/player/client_player_roles_native.cpp;mod/src/game/client/player/client_players_native.cpp;mod/src/game/client/entity/client_entity_draw_native.cpp",
                     implementation_status="implemented-role-graph;Birthright active twins and structurally dormant backups distinguished",
                     cleanup="held raw borrow and twin/sub/backup/replaced links detach for all bodies before unique child/native owner retirement")
             if not authority and m["id"] in SPECIAL_MEMBERS:
@@ -148,7 +148,7 @@ def generate():
                     handling="I27:finite typed final state;public query semantics remain distinct",
                     consumer="ClientPlayerSpecialFields;ClientPlayerStateFields;Player/Entity19/Weapon unique owners",
                     installation="special-state-v1:history-index16/crafting8+output+pool/poop6;final soul/blood/Eve fields;never recipe/refill/spawn",
-                    implementation="mod/src/game/client_player_roles.cpp;mod/src/game/client_player_roles_native.cpp;mod/src/game/client_player_draw_native.cpp",
+                    implementation="mod/src/game/client/player/client_player_roles.cpp;mod/src/game/client/player/client_player_roles_native.cpp;mod/src/game/client/player/client_player_draw_native.cpp",
                     implementation_status="implemented-special-state-and-native-draw;full HUD layout=tx27",
                     cleanup="native Player owns finite slots/deque/Image;Entity19 owns clots/wisps/locusts/DarkEsau;no duplicate Player")
             if not authority and m["id"] in {"PlayerManager.GetEsauJrState", "ActiveItemDesc.VarData"}:
@@ -156,7 +156,7 @@ def generate():
                     handling="I26:explicit four-slot backup identity and per-active703 VarData association",
                     consumer="ClientPlayers::Backup;ClientNativePlayers backup instance mirror;ClientPlayerStateFields",
                     installation="VarData0 unassigned;1..4 source slot0..3;all local bodies acquired before mirror binding;never write Authority global slots",
-                    implementation="mod/src/game/client_players.cpp;mod/src/game/client_players_native.cpp;mod/src/game/client_player_model.cpp",
+                    implementation="mod/src/game/client/player/client_players.cpp;mod/src/game/client/player/client_players_native.cpp;mod/src/game/client/player/client_player_model.cpp",
                     implementation_status="implemented-four-real-backup-slots;source-qualified-state-owner",
                     cleanup="revoke mirror raw borrows then unique Player owner;Authority slot reclaim remains outside Client ownership")
             if not authority and m["id"] in RESOURCE_POSE_MEMBERS:
@@ -164,7 +164,7 @@ def generate():
                     handling="named-native-resource-pose-backing;public getter and local asset metadata remain distinct",
                     consumer="ClientParseResourcePose/ClientApplyResourcePose/ClientResourcePoseMatches;Player frame borrow",
                     installation="complete ANM/layer pose and selectors;validated local resource identity;no Update",
-                    implementation="mod/src/game/client_resource_model.cpp;mod/src/game/client_resources_native.cpp;mod/src/game/client_entity_draw_native.cpp",
+                    implementation="mod/src/game/client/resources/client_resource_model.cpp;mod/src/game/client/resources/client_resources_native.cpp;mod/src/game/client/entity/client_entity_draw_native.cpp",
                     implementation_status="implemented-shared-resource-owner;nullable and zero-length animation semantics preserved",
                     cleanup="own ANM/Image/selector generations;CPU/GPU drain;explicit scalar restoration after native copy/Swap")
     research_path = ROOT / "docs/design/tx-04-20/player-native-contracts.json"
@@ -191,10 +191,10 @@ def generate():
                 "cost": "E2E aggregate source/parse/apply/draw/retire durations;status process working-set/private bytes separate from owned-value estimate;no realtime bandwidth claim",
                 "status": "implemented;integrated Scene ownership;runtime result separately reported"},
             "i26_i30_implementation": {"backup": "four source slots;typed703 VarData;native mirror instance table;no Authority global slot writes", "special": "complete finite inventory-History/crafting/poop and final role/effect/Weapon state;Samson+2070/IBS+2074 distinct from CraftingUseCharge+1F54", "lifecycle": "Scene-committed Key tombstones survive native rebuild;dead/ghost/inactive distinct;complete membership only", "draw": "native Player pass+Image source+Source palette;typed optional list/cursor+record Sprite;full ANM strong copies through CPU drain;hologram RNG render-only;no Pre/Update;multi-body presentation member cache", "control": "committed pure group view;one intent stream per ordinal;binding generation independent from shape;native controller=-1", "status": "implemented;native presentation and immutable control view;runtime result separately reported"},
-            "role_implementation": {"tasks": "I21-I25", "source": "application_player_role-v1;same-use ordinary window;source-v2.role_state=player-role-state-v1", "model": "mod/src/game/client_player_roles.cpp", "native": "mod/src/game/client_player_roles_native.cpp", "registry": VANILLA_ROLES, "internal": "possessor -1/variant2 and other Baby/internal variants explicitly unsupported;undeclared Mod characters=tx-04-27", "relationships": "source storage and public main/other/sub/flipped remain distinct;whole-target group and shape validation;all-links-before-all-checks", "hologram": "actual native exists/type29-or38/twin/lower-player-index predicate;no invented flag", "status": "implemented-complete-role-owner;native_apply=true;runtime result separately reported"},
-            "structure_implementation": {"plan": "mod/src/replica/player_plan.cpp", "owner": "mod/src/game/client_players.cpp", "native": "mod/src/game/client_players_native.cpp", "tasks": "I05-I10", "scope": "base-entity-initialized/role-uninitialized until named I11-I29 adapters;preflight rejects absent adapters", "scene_commit": "ClientScene only;complete body/relation/resource checks before Player+full Entity domain bits;legacy remains separate"},
-            "final_state_implementation": {"tasks": "I11-I15", "source": "application_player_state-v1;same-use ordinary-window;no addresses or headers", "model": "mod/src/game/client_player_model.cpp", "native": "mod/src/game/client_player_state_native.cpp", "fields": sorted(STATE_FIELDS), "inventory": "counts/voided/wisps/smelted/trinkets;official Plus blocked+all innate groups including legacy and temporary timers", "slots": "active4/pocket4/queue;PartialCharge=f32 despite ZHL int;EsauJr typed backup slot", "status": "implemented-named-final-state;native_apply=true;runtime result separately reported"},
-            "equipment_implementation": {"tasks": "I16-I20", "source": "application_player_equipment-v1;current-use ordinary window;public Sprite/Costume/Weapon and independent Player History component graph", "model": "mod/src/game/client_player_equipment_model.cpp", "native": "mod/src/game/client_player_equipment_native.cpp;mod/src/game/client_player_weapon_native.cpp", "effects": "ordered local-config/count/cooldown;cacheFlags/disabled/evaluate;15 form counters;no Add/Remove/EvaluateItems", "history": "ordered native vector plus Scene-committed immutable per-body HUD view;no equality-based sharing inference", "resources": "main and 13 physical inline ANM;complete exact pose;headAnim bytes/string assignment from named 773990 writer;ordered costume vector and 15 layer map;empty clears old", "weapons": "five explicit slots;types1..15;actual dynamic vtables;per-slot generations;EntityPtr links;detach owner before native Free;no Fire/Update/ClearReferences replay", "status": "implemented-complete-equipment-owner;native_apply=true;runtime result separately reported"},
+            "role_implementation": {"tasks": "I21-I25", "source": "application_player_role-v1;same-use ordinary window;source-v2.role_state=player-role-state-v1", "model": "mod/src/game/client/player/client_player_roles.cpp", "native": "mod/src/game/client/player/client_player_roles_native.cpp", "registry": VANILLA_ROLES, "internal": "possessor -1/variant2 and other Baby/internal variants explicitly unsupported;undeclared Mod characters=tx-04-27", "relationships": "source storage and public main/other/sub/flipped remain distinct;whole-target group and shape validation;all-links-before-all-checks", "hologram": "actual native exists/type29-or38/twin/lower-player-index predicate;no invented flag", "status": "implemented-complete-role-owner;native_apply=true;runtime result separately reported"},
+            "structure_implementation": {"plan": "mod/src/replica/player_plan.cpp", "owner": "mod/src/game/client/player/client_players.cpp", "native": "mod/src/game/client/player/client_players_native.cpp", "tasks": "I05-I10", "scope": "base-entity-initialized/role-uninitialized until named I11-I29 adapters;preflight rejects absent adapters", "scene_commit": "ClientScene only;complete body/relation/resource checks before Player+full Entity domain bits;legacy remains separate"},
+            "final_state_implementation": {"tasks": "I11-I15", "source": "application_player_state-v1;same-use ordinary-window;no addresses or headers", "model": "mod/src/game/client/player/client_player_model.cpp", "native": "mod/src/game/client/player/client_player_state_native.cpp", "fields": sorted(STATE_FIELDS), "inventory": "counts/voided/wisps/smelted/trinkets;official Plus blocked+all innate groups including legacy and temporary timers", "slots": "active4/pocket4/queue;PartialCharge=f32 despite ZHL int;EsauJr typed backup slot", "status": "implemented-named-final-state;native_apply=true;runtime result separately reported"},
+            "equipment_implementation": {"tasks": "I16-I20", "source": "application_player_equipment-v1;current-use ordinary window;public Sprite/Costume/Weapon and independent Player History component graph", "model": "mod/src/game/client/player/client_player_equipment_model.cpp", "native": "mod/src/game/client/player/client_player_equipment_native.cpp;mod/src/game/client/player/client_player_weapon_native.cpp", "effects": "ordered local-config/count/cooldown;cacheFlags/disabled/evaluate;15 form counters;no Add/Remove/EvaluateItems", "history": "ordered native vector plus Scene-committed immutable per-body HUD view;no equality-based sharing inference", "resources": "main and 13 physical inline ANM;complete exact pose;headAnim bytes/string assignment from named 773990 writer;ordered costume vector and 15 layer map;empty clears old", "weapons": "five explicit slots;types1..15;actual dynamic vtables;per-slot generations;EntityPtr links;detach owner before native Free;no Fire/Update/ClearReferences replay", "status": "implemented-complete-equipment-owner;native_apply=true;runtime result separately reported"},
             "retained_candidate_capacity": 1056,
             "capacity_semantics": "guard limits are not tested maxima;actual matrix max15 bodies,8 active,4 global backups;not realtime bandwidth",
             "members": list(rows.values()),
@@ -205,7 +205,7 @@ def generate():
                                 "read_basis": "same-use current public readiness;completed creation owner2, named child/full-init4 or state-owner5;current exact-pair witness3 stays separate;ctor is not Load proof",
                                 "source_lifetime": "current entity ordinary window;revoke on use/owner loss",
                                 "sharing": "independent-physical-member;no-filename-alias", "same_window": "entity+player",
-                                "source_implementation": "mod/src/game/world_sources/lua_entity.cpp:EntityApplicationSprites",
+                                "source_implementation": "mod/src/game/observation/sources/lua_entity.cpp:EntityApplicationSprites",
                                 "consumer": "ClientPlayerEquipmentResources;I18/I19/I29", "installation": "implemented-independent-exact-pose;native-Player-owns-ANM;integrated-I29-draw-admission",
                                 "cleanup": "I33;native-Player owns embedded-ANM;do-not-free-borrow", "research": "R07/R13/R15",
                                 "e2e": "E13/E20/E23", "runtime_status": RUNTIME_MEMBER} for i in range(1, 13)] + [

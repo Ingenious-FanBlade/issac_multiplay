@@ -1,6 +1,8 @@
 # 4：Entity 子类
 
-**2026-11-09 当前版本45：Projectile展示来源与Effect残余。** [J273静态证据与逐臂结论](projectile-effect-residual-evidence.md)闭合Projectile+440开关、+460/+464冻结绘制锚点的构造／Init／生产链，新增9B独立PR2，PR0保留4B Height、最小状态404B、根未知350B。Effect新增148号167臂与149号19/71/194内部flags臂，167的+430核为Host生成伤害快照；+434及后8B仍未知。119尾部确认一个callback的8B DamageFlags特例，通用臂仍保持未知。41C／44C／4BC没有语义或填充证明；此前五项不重做。普通Release／Win32产品纯编译与链接通过，未运行测试；正式接线仍按第10／13步。
+**2026-11-09 当前版本46：Delirium未决事项。** [静态证据与处理](delirium-residual-evidence.md)将BD8—BDF、BE0—BE7核为Host的两个8B打包存储，原BDD三字节及BE4四字节不再独立未知；BD4—BD7的4B仍无填充证明。根未知597→590B，普通NPC仍586B，两臂最小线状态仍710B、17／18空预留。池槽残留已有静态可达路径，未作实机观察；补核4A13B0的独立companion创建与BE8登记，当前展示依赖闭合为独立成员／实际线上关系，BE8继续留Host。正式接线仍归第10／13步，第15步统一验收；下文旧版本记录保留各自时点。
+
+**2026-11-09 版本45：Projectile展示来源与Effect残余。** [J273静态证据与逐臂结论](projectile-effect-residual-evidence.md)闭合Projectile+440开关、+460/+464冻结绘制锚点的构造／Init／生产链，新增9B独立PR2，PR0保留4B Height、最小状态404B、根未知350B。Effect新增148号167臂与149号19/71/194内部flags臂，167的+430核为Host生成伤害快照；+434及后8B仍未知。119尾部确认一个callback的8B DamageFlags特例，通用臂仍保持未知。41C／44C／4BC没有语义或填充证明；此前五项不重做。普通Release／Win32产品纯编译与链接通过，未运行测试；正式接线仍按第10／13步。
 
 **2026-11-09 版本44：Text／Dummy布局与字段职责。** [静态证据及同步决定](text-dummy-evidence.md)与[实施记录](implementation-4-text-dummy.md)接入145号Text、146号variant2缩放臂、147号Dummy。Text只发有效字节前缀／最终RGBA，counter仅缩放臂发送；duration和此固定字体不消费的KColor标签留Host，通用KColor保持20B。Dummy无专有尾部，继承公共状态。新增c-string读取／暂存及等大派生支持；Text339B／Dummy335B未知、Dummy不可见分支的历史屏幕缓存依赖与自然来源缺口保留。普通Release／Win32产品纯编译与链接通过，未运行测试，正式窗口／绘制接线仍在第10／13步。
 
@@ -190,9 +192,11 @@ Render真实消费Timeout，继续每个采集窗从原值重算`A=F+T`，Client
 - **同虚表、同池**：Type 412 进 NPC 默认池（[entity-native-static](../tx-04-19/entity-native-static.md) 第 23、28 行），虚表就是 `Entity_NPC`，按虚表分不出来。
 - **`EntityDelirium` 只是 Lua 接口**：REPENTOGON 的元表以 `ENTITY_NPC` 为 `__parent`，底下仍是 `Entity_NPC*`（`LuaDelirium.cpp:260-262`）；8 个字段就声明在 `Entity_NPC` 里（`EntityNPC.zhl:137-144`）。
 
-不过这段字节只对 Type 412 有意义（见 4.2.2），归属随形态字段而不同，这正是变体臂要解决的问题（第 1 步 `variants`）。
+稳定type412用143号专用归属臂；其余NPC用142号Host区域。版本46补核：非412的Delirium companion也可能由AI helper消费打包值，不能把“同步不读取普通臂”解释成“原生从不使用”；见[新证据](delirium-residual-evidence.md)。变体选择仍用合法窗口恢复后的稳定type，不用临时Boss类型或池槽旧值。
 
 #### 4.2.2 J273 事实
+
+以下保留初轮静态记录；版本46已纠正BDD／BE4的字节归属及“除Init外只有49F3D0访问BE8”的遗漏，池残留升级为静态可达路径但未实测。现行结论见[Delirium未决处理](delirium-residual-evidence.md)和下面4.2.3—4.2.8。
 
 对 `.text` 扫描了 `+0xBC8—0xBEB` 的全部 disp32 直接寻址。经基址计算的访问看不到；`0x6ED4B0`、`0x903730`、`0x9041E0`、`0x925C00`、`0x98C690`、`0x98C7E0`、`0x98CCC0`、`0x98DDA0` 的命中上下文不像 NPC，未逐个定类。
 
@@ -210,21 +214,21 @@ Render真实消费Timeout，继续每个采集窗从原值重算`A=F+T`，Client
 - **`+BE8` 是 EntityPtr 槽位**：形态 410 时由 Child（`+0x3C0`）写入，序列与 `EntityPtr::SetReference 0x858760` 相同（`0x4C8EE0` 摘旧、`0x4C79D0` 挂新）。除 Init 外只有 `0x49F3D0` 访问，公开接口也没有。
 - **变化频率**：state 8 下，AI 每个 tick 都改 `+BD0`（递减）、`+BD8`（相位计数加 1，形态 45、84:10 除外）和 `+BE0`。
 
-#### 4.2.3 变体臂（版本42）
+#### 4.2.3 变体臂（版本46）
 
-142号EntityNPC与143号EntityNPC_Delirium均已入源，仍先按RTTI确定NPC，再以继承的type字段选臂。type412臂用于保留BC8—BEB的真实字节归属和11B UNKNOWN，不代表它多出Client状态。完整表见[142](layouts/EntityNPC.md)、[143](layouts/EntityNPC_Delirium.md)。
+142号EntityNPC与143号EntityNPC_Delirium均已入源，仍先按RTTI确定NPC，再以继承的type字段选臂。type412臂用于保留BC8—BEB的真实字节归属和4B UNKNOWN，不代表它多出Client状态。完整表见[142](layouts/EntityNPC.md)、[143](layouts/EntityNPC_Delirium.md)。
 
 | 布局 | 选择字段type | BC8—BEB归属 | 17／18块 |
 | --- | --- | --- | --- |
-| 142 | 其他 | 36B普通不适用Host区域，可能池槽残留不上线 | 两块均空预留 |
-| 143 | 412 | BossType／Variant和其余AI值共25B归Host，11B未知 | 两块均空预留 |
+| 142 | 其他 | 36B Host区域；可含companion AI值或普通池槽残留，不读取／上线 | 两块均空预留 |
+| 143 | 412 | BossType／Variant、两个8B打包值及其余AI／关系共32B归Host，4B未知 | 两块均空预留 |
 
-#### 4.2.4 原生归属（版本42）
+#### 4.2.4 原生归属（版本46）
 
-| +BC8 u32 BossType【权威】 | +BCC u32 BossVariant【权威】 | +BD0 u16 TransformationTimer【权威】 | +BD2 u8 RemainingAttacks【权威】 | +BD3 u8 StateD【权威】 | +BD4 4B【未知】 | +BD8 u32 AttackID【权威】四字节打包 | +BDC u8 Angle【权威】 | +BDD 3B【未知】 | +BE0 u32 Cycle【权威】 | +BE4 4B【未知】 | +BE8 EntityPtr companion【权威】 |
-|---|---|---|---|---|---|---|---|---|---|---|---|
+| +BC8 u32 BossType【权威】 | +BCC u32 BossVariant【权威】 | +BD0 u16 TransformationTimer【权威】 | +BD2 u8 RemainingAttacks【权威】 | +BD3 u8 StateD【权威】 | +BD4 4B【未知】 | +BD8 u64弹幕打包存储【权威】 | +BE0 u64 Cycle打包存储【权威】 | +BE8 EntityPtr companion【权威】 |
+|---|---|---|---|---|---|---|---|---|
 
-11B未知保持。旧草稿13B DL1已在版本41归Host；版本42进一步撤销8B DL0及两个shape标记。旧“已标shape所以必须同步”是循环理由：Client不运行Delirium AI/碰撞/资源选择，最终ANM2与几何独立供应，原生RTTI／大小／稳定type均未因此改变。具体证据见[复核](npc-synchronization-review.md)。
+版本46将BDD的3B核为五个u8拼装的8B弹幕存储高位，将BE4的4B核为原生Cycle双字存储上半字，后者以SHRD参与bits25—34的读取；两者不是源级填充。仅BD4—BD7的4B保持UNKNOWN，详见[指令与边界](delirium-residual-evidence.md)。官方AttackID／Cycle仍是u32、Angle仍是u8；原生打包存储不扩大公开接口。旧草稿13B DL1已在版本41归Host；版本42进一步撤销8B DL0及两个shape标记，当前继续不传输或重演AI，最终资源独立供应。
 
 #### 4.2.5 NPC共有块
 
@@ -239,7 +243,7 @@ Render真实消费Timeout，继续每个采集窗从原值重算`A=F+T`，Client
 | N0：+0 i32 State | +4 i32 ProjectileDelay | +8 Vector V1 | +16 i32 I2 | +20 i32 ChampionColorIdx | +24 u8 controlled_ui_mode；共25B |
 |---|---|---|---|---|---|
 
-三deque各≤16384，完整逻辑序列与owner合同不变。ControllerId不作为raw i32传输：版本43只允许0=无控制者、2=受控，模式1无效。来源已闭合为C/S窗口只读F1C的-1哨兵，不读取原版NetplayManager；ReadNpcControlledUi／DecodeNpcControlledUi已落地，Client只存表现旁表，正式窗口与整段绘制条件绕行归第10／13步。+CD8只有Scale由同版本主Sprite null-frame重建，其他资源／姿态及+DEC保持；详见[144号表](layouts/NpcOverlaySprite.md)。普通NPC与Delirium最小均710B，含公共391B，不含帧头与实际变长负载。根未知586／597B、本类223B不变。
+三deque各≤16384，完整逻辑序列与owner合同不变。ControllerId不作为raw i32传输：版本43只允许0=无控制者、2=受控，模式1无效。来源已闭合为C/S窗口只读F1C的-1哨兵，不读取原版NetplayManager；ReadNpcControlledUi／DecodeNpcControlledUi已落地，Client只存表现旁表，正式窗口与整段绘制条件绕行归第10／13步。+CD8只有Scale由同版本主Sprite null-frame重建，其他资源／姿态及+DEC保持；详见[144号表](layouts/NpcOverlaySprite.md)。普通NPC与Delirium最小均710B，含公共391B，不含帧头与实际变长负载。版本46根未知586／590B，NPC本类223B和其他嵌套未知保持。
 
 #### 4.2.6 资源变化与生命周期
 
@@ -250,7 +254,7 @@ Render真实消费Timeout，继续每个采集窗从原值重算`A=F+T`，Client
 
 #### 4.2.7 写入与校验
 
-两臂17／18均预留，Boss选择／AI值无writer、读回或漂移比较。N0五个真实原生绘制值按可信字段宽度安装，受控UI模式自版本43只能0/2并存入同key/generation自有表现值，不能直接写本地设备键。OverlayEffect Scale只在已核draw窗口派生并恢复；不得将该规则扩展到其他Sprite。BE8及五个Host私有关系只按本地owner正常撤登记，不触发级联Remove。
+两臂17／18均预留，Boss选择／AI打包值无writer、读回或漂移比较。N0五个真实原生绘制值按可信字段宽度安装，受控UI模式自版本43只能0/2并存入同key/generation自有表现值，不能直接写本地设备键。OverlayEffect Scale只在已核draw窗口派生并恢复；不得将该规则扩展到其他Sprite。BE8继续不安装，独立companion按成员表和最终状态展示／退休；本地空槽保持为空，异常非空由合法owner处理，不能裸清或触发级联Remove。五个Host私有关系同样只按本地owner正常撤登记。
 
 #### 4.2.8 公开成员回映射
 
@@ -376,7 +380,7 @@ NPC受控UI的来源问题已在版本43[闭合并纠正](npc-control-ui-evidenc
   - Effect `+0x41C—0x41F`、`+0x44C—0x44F`、`+0x4BC—0x4BF` 未知；传播／生成参数的专用用途及Host归属已闭合，未新增Client引用写入或玩法执行，因而不把原版关系全生命周期穷尽继续列作该项同步依赖。`+0x484—0x493` 已证明是两个 Vector，不再作为待核容器。
 - **Effect剩余事项**：[本轮五项处理结果](effect-next-five-evidence.md)已落源；版本45已核19/71/194内部flags、167伤害快照及119一个callback闭包；其余未核variant、167的434及438后8B、各臂残余UNKNOWN保持，第10／13步接通具名reader／writer，第15步观察实际分支／频率与未知间接访问边界。已核的Timeout非线性结论、FX0分块、Trail64B／127上限和三种具体ExtraData不再列作原泛化问题重做。
 - Delirium：
-  - `+BD4—BD7`、`+BDD—BDF`、`+BE4—BE7` 共 11 字节能否证实为填充；
-  - 普通 NPC 的 `+BD8—BE7` 池槽残留是否真实发生；
-  - 版本41已将DL1六字段作为Host权威写入原生归属，块18空预留；版本42进一步将BossType／Variant归Host，DL0也空预留。无需再以“尚未入源”重复安排实现，实际采集／结构安装仍待第10／13步；不提前运行测试；
-  - `+BE8` 归为权威的前提是 Client 无消费者；第 15 步如果发现形态 410 的画面依赖它，再改为引用。
+  - 版本46[已处理原四项](delirium-residual-evidence.md)：BDD／BE4共7B核为两个打包存储的一部分；AI值已入源且不上线；补齐BE8的创建／消费／绘制依赖后继续归Host，不再保留泛化的“410可能需要引用”前置条件。
+  - **仍未知的4B**：`+BD4—BD7`符合对齐假设，缺少源级填充或保留成员的正面证明；保持UNKNOWN，不能宣称Delirium字节完整。第15步E27保留此范围。
+  - **只剩实机事实待观察**：普通NPC池复用保留BD8—BE7已有静态可达路径，但未实测；第15步按同槽新use记录，不提前运行测试，也不把它当作继续实现的前置条件。
+  - 第10／13／14步接线依现行合同推进：稳定type412选143、owner退尽后采集、真实成员及最终表现安装、删除旧AI writer和无条件shape；本轮不越步宣称运行链完成。

@@ -1,6 +1,6 @@
 #include "hooks/random_runtime.h"
-#include "game/world_sources/random_sources.h"
-#include "game/client_player_isolation.h"
+#include "game/observation/sources/random_sources.h"
+#include "game/client/isolation/client_player_isolation.h"
 #include "runtime.h"
 #include "mologie_detours.h"
 #include <array>

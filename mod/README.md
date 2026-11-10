@@ -1,3 +1,5 @@
+当前原生游戏适配层的文件结构与职责见 [`src/game/README.md`](src/game/README.md)。2026-11-10 的目录整理保留文件名与功能入口；以下阶段记录中的旧路径按该索引定位。
+
 # tx-04-19 I05—I09 公共应用入口
 
 稳定实例/Player owner、正式EntityTarget的A→T阶段计划、原生构造/发布、公共字段写回/真实后态与分类型引用已接入`src/replica/entity_plan.*`和`src/game/client_objects*`，公共字段表为`src/game/client_entity_fields.inc`。见[实现与静态主审](../docs/design/tx-04-19/tx-04-19-common-application.md)。Win32 Release纯构建成功；尚不表示I11—I22类别adapter、I29唯一场景提交或I34整体验收已完成，不提前运行分项测试。下方保留18已验收范围。

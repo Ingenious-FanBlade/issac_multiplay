@@ -2,8 +2,8 @@
 #include "hook_capacity.h"
 #include "runtime.h"
 #include "hooks/random_runtime.h"
-#include "game/client_player_isolation.h"
-#include "game/bridge.h"
+#include "game/client/isolation/client_player_isolation.h"
+#include "game/common/bridge.h"
 #include <cstring>
 namespace cs {
 namespace {

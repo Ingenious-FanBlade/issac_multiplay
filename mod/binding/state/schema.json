@@ -93,6 +93,14 @@
         },
         "wire": {
           "$ref": "#/$defs/wire"
+        },
+        "native_type": {
+          "type": "string"
+        },
+        "native_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
         }
       },
       "additionalProperties": false
@@ -110,7 +118,8 @@
             "reference",
             "resource",
             "container",
-            "nested"
+            "nested",
+            "choice"
           ]
         },
         "type": {
@@ -153,7 +162,11 @@
             "string",
             "c-string",
             "array",
-            "shared-owner"
+            "shared-owner",
+            "ordered-map",
+            "set",
+            "aggregate",
+            "slots-mask"
           ]
         },
         "count_field": {
@@ -172,6 +185,38 @@
             "minimum": 0,
             "maximum": 31
           }
+        },
+        "fixed_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "mask": {
+          "$ref": "#/$defs/integer"
+        },
+        "choices": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "when": {
+          "type": "object",
+          "required": [
+            "field",
+            "predicate"
+          ],
+          "properties": {
+            "field": {
+              "type": "string"
+            },
+            "predicate": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -250,12 +295,35 @@
     },
     "count_group": {
       "type": "object",
-      "required": ["name", "fields", "limit", "evidence"],
+      "required": [
+        "name",
+        "fields",
+        "limit",
+        "evidence"
+      ],
       "properties": {
-        "name": {"type": "string", "minLength": 1},
-        "fields": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
-        "limit": {"type": "integer", "minimum": 1, "maximum": 65535},
-        "evidence": {"type": "string", "minLength": 1}
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        }
       },
       "additionalProperties": false
     },
@@ -315,6 +383,23 @@
         "pure_value": {
           "type": "boolean"
         },
+        "native_view_of": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nested_views": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["type", "semantics", "evidence"],
+            "properties": {
+              "type": {"type": "string", "minLength": 1},
+              "semantics": {"type": "string", "minLength": 1},
+              "evidence": {"type": "string", "minLength": 1}
+            },
+            "additionalProperties": false
+          }
+        },
         "notes": {
           "type": "string"
         },
@@ -346,7 +431,9 @@
         },
         "count_groups": {
           "type": "array",
-          "items": {"$ref": "#/$defs/count_group"}
+          "items": {
+            "$ref": "#/$defs/count_group"
+          }
         },
         "validators": {
           "type": "object",
@@ -526,25 +613,310 @@
         "extent": {
           "enum": [
             "object",
-            "base_prefix"
+            "base_prefix",
+            "protocol"
           ]
         },
         "companions": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["name", "type", "semantics", "evidence", "status", "host", "client"],
+            "required": [
+              "name",
+              "type",
+              "semantics",
+              "evidence",
+              "status",
+              "host",
+              "client"
+            ],
             "properties": {
-              "name": {"type": "string", "pattern": "^[A-Za-z_][A-Za-z_0-9]*$"},
-              "type": {"type": "string", "minLength": 1},
-              "semantics": {"type": "string", "minLength": 1},
-              "evidence": {"type": "string", "minLength": 1},
-              "status": {"enum": ["已核", "SDK声明", "推断", "未知"]},
-              "host": {"type": "string", "minLength": 1},
-              "client": {"type": "string", "minLength": 1}
+              "name": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z_0-9]*$"
+              },
+              "type": {
+                "type": "string",
+                "minLength": 1
+              },
+              "semantics": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "enum": [
+                  "已核",
+                  "SDK声明",
+                  "推断",
+                  "未知"
+                ]
+              },
+              "host": {
+                "type": "string",
+                "minLength": 1
+              },
+              "client": {
+                "type": "string",
+                "minLength": 1
+              },
+              "when": {
+                "type": "object",
+                "required": [
+                  "field",
+                  "predicate"
+                ],
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  },
+                  "predicate": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
             },
             "additionalProperties": false
           }
+        },
+        "synthetic_fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/synthetic"
+          }
+        },
+        "catalog_rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/catalog_row"
+          }
+        },
+        "catalog_complete": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "block_sequences": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": [
+              "world",
+              "body",
+              "world-or-player-body"
+            ]
+          }
+        },
+        "supplementary_rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/supplementary_row"
+          }
+        },
+        "record_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967294
+        },
+        "body_limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4294967294
+        },
+        "catalog_aliases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/catalog_alias"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "synthetic": {
+      "type": "object",
+      "required": [
+        "name",
+        "type",
+        "semantics",
+        "evidence",
+        "host",
+        "client"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "semantics": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        },
+        "host": {
+          "type": "string",
+          "minLength": 1
+        },
+        "client": {
+          "type": "string",
+          "minLength": 1
+        },
+        "wire": {
+          "$ref": "#/$defs/wire"
+        },
+        "shape": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "catalog_row": {
+      "type": "object",
+      "required": [
+        "catalog",
+        "ordinal",
+        "id",
+        "owner",
+        "parameters",
+        "returns",
+        "disposition",
+        "fields",
+        "route",
+        "reason"
+      ],
+      "properties": {
+        "catalog": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "route": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "parameters": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "returns": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "disposition": {
+          "enum": [
+            "field",
+            "derived",
+            "authority",
+            "not_applicable"
+          ]
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "supplementary_row": {
+      "type": "object",
+      "required": [
+        "source",
+        "ordinal",
+        "id",
+        "disposition",
+        "fields",
+        "route",
+        "reason",
+        "detail"
+      ],
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "route": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "disposition": {
+          "enum": [
+            "field",
+            "derived",
+            "authority",
+            "not_applicable"
+          ]
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "catalog_alias": {
+      "type": "object",
+      "required": [
+        "catalog",
+        "ordinal",
+        "target_catalog",
+        "target_ordinal"
+      ],
+      "properties": {
+        "catalog": {
+          "type": "string"
+        },
+        "target_catalog": {
+          "type": "string"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "target_ordinal": {
+          "type": "integer",
+          "minimum": 1
         }
       },
       "additionalProperties": false

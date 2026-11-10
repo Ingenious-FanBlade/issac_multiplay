@@ -15,7 +15,7 @@ CATEGORIES = dict(zip(
     ['状态', '换算', '引用', '资源', '容器', '本地', '派生', '权威', '填充', '未知'],
     ['State', 'Convert', 'Reference', 'Resource', 'Container', 'Local', 'Derived', 'Authority', 'Padding', 'Unknown']))
 OPERATIONS = {'copy': 'Copy', 'convert': 'Convert', 'reference': 'Reference',
-              'resource': 'Resource', 'container': 'Container', 'nested': 'Nested'}
+              'resource': 'Resource', 'container': 'Container', 'nested': 'Nested', 'choice': 'Choice'}
 SCALARS = {'u8': 1, 'bool': 1, 'i8': 1, 'u16': 2, 'i16': 2,
            'u32': 4, 'i32': 4, 'f32': 4, 'u64': 8, 'i64': 8, 'f64': 8, 'bytes': 1}
 STATUS = {'已核', 'SDK声明', '推断', '未知'}
@@ -156,7 +156,9 @@ class Compiler:
         self.expand_stack.add(name)
         entry = copy.deepcopy(self.types[name])
         entry['native_size'] = integer(entry['native_size'])
-        require(0 < entry['native_size'] <= 0x1000000, name, '非法原生大小')
+        require((0 < entry['native_size'] <= 0x1000000) or
+                (entry['native_size'] == 0 and entry.get('extent') == 'protocol' and not entry['ranges'] and not entry.get('parent')),
+                name, '非法原生大小；纯协议记录必须明确无原生对象')
         entry['layout'] = integer(entry['layout'])
         require(0 < entry['layout'] < 65535 and entry['layout'] not in self.ids, name, '布局编号重复或越界')
         self.ids.add(entry['layout'])
@@ -167,6 +169,9 @@ class Compiler:
         entry.setdefault('contexts', {})
         entry.setdefault('companions', [])
         entry.setdefault('count_groups', [])
+        entry.setdefault('synthetic_fields', [])
+        entry.setdefault('catalog_rows', [])
+        entry.setdefault('supplementary_rows', [])
         require(isinstance(entry.get('rtti'), dict) and 'name' in entry['rtti'] and 'rva' in entry['rtti'], name, '缺少 RTTI 声明（值类型可为空）')
         require(0 <= integer(entry['rtti']['rva']) <= DYNAMIC, name, 'RTTI RVA 超过 u32')
         if entry.get('parent'):
@@ -185,6 +190,7 @@ class Compiler:
             entry['contexts'] = {**parent['contexts'], **entry['contexts']}
             entry['members'] = copy.deepcopy(parent['members']) + entry['members']
             entry['count_groups'] = copy.deepcopy(parent['count_groups']) + entry['count_groups']
+            entry['synthetic_fields'] = copy.deepcopy(parent['synthetic_fields']) + entry['synthetic_fields']
             # 派生实体可把同名Plus伴随源收窄成派生Plus；公共块仍只发送一次。
             # 只有真实继承关系允许替换，不能借同名来源改解释成无关对象。
             companions = {c['name']: copy.deepcopy(c) for c in parent['companions']}
@@ -200,7 +206,34 @@ class Compiler:
                 companions[companion['name']] = copy.deepcopy(companion)
             require(len(entry['companions']) == len({c['name'] for c in entry['companions']}), name, '子类伴随来源重名')
             entry['companions'] = list(companions.values())
+            # Player只调整自己继承块的序列，不改变普通Entity或父类字段布局。
+            for block_id, sequence in entry.get('block_sequences', {}).items():
+                require(int(block_id) in parent_ids, name, '只能调整真实父块的序列')
+                next(b for b in entry['blocks'] if b['id'] == int(block_id))['sequence'] = sequence
+        # 同一原生对象可有不同绘制视图；父类字节位置和块号保持不变，
+        # 只替换明确声明的等大内嵌视图，避免为子类重复发送必被绘制覆写的值。
+        for field, view in entry.get('nested_views', {}).items():
+            require(entry.get('parent'), name, '内嵌视图替换只适用于真实派生类')
+            item = next((r for r in entry['ranges'] if r['name'] == field), None)
+            require(item and item in parent['ranges'] and item.get('wire', {}).get('kind') == 'nested'
+                    and 'storage' not in item['wire'] and 'native_type' not in item,
+                    name + '.' + field, '只能替换父类直接内嵌的状态视图')
+            child = self.expand(view['type'])
+            require(child.get('native_view_of') == item['wire']['type'] and
+                    child['native_size'] == item['size'], name + '.' + field,
+                    '替换须声明原视图且保持原生大小')
+            item['type'] = item['wire']['type'] = view['type']
+            item['semantics'], item['evidence'] = view['semantics'], view['evidence']
         self.validate_ranges(entry)
+        if entry.get('native_view_of'):
+            original = self.expand(entry['native_view_of'])
+            require(not entry.get('parent') and entry['native_size'] == original['native_size'] and
+                    [(r['name'], r['offset'], r['size']) for r in entry['ranges']] ==
+                    [(r['name'], r['offset'], r['size']) for r in original['ranges']],
+                    name, '原生视图必须保留原类型全部字节边界与名称')
+            require(all(a['category'] != '未知' or b['category'] == '未知'
+                        for a, b in zip(original['ranges'], entry['ranges'])),
+                    name, '展示视图不得消除原生未知字节')
         self.expanded[name] = entry
         self.expand_stack.remove(name)
         return entry
@@ -224,16 +257,22 @@ class Compiler:
             require(declared is None or declared == item['size'], where, '类型标签宽度与 size 不一致')
             require(item['name'] not in names, where, '重复字段名称')
             names.add(item['name'])
+            if 'native_type' in item:
+                child = self.types.get(item['native_type'])
+                require(child and item['size'] == integer(child['native_size']) * item.get('native_count', 1),
+                        where, '原生递归类型或数组范围不一致')
             transmitted = item['category'] in {'状态', '换算', '引用', '资源', '容器'}
             require(transmitted == ('wire' in item), where, '状态字段必须且仅能声明一份 wire 规则')
             if not transmitted:
                 continue
             wire = item['wire']
             kind = wire.get('kind')
-            if kind == 'nested' and self.types.get(wire.get('type'), {}).get('pure_value'):
+            # 条件或具名来源必须保留嵌套分派，不能把不存在的8B位置降为无条件memcpy。
+            if (kind == 'nested' and self.types.get(wire.get('type'), {}).get('pure_value')
+                    and 'when' not in wire and not wire.get('host') and not wire.get('client')):
                 wire['kind'] = kind = 'copy'  # 纯值成员内联，允许与父块相邻状态合并。
             require(kind in OPERATIONS, where, '缺少合法传输操作')
-            require('storage' not in wire or kind == 'container' or
+            require('storage' not in wire or kind in {'container', 'choice'} or
                     (kind == 'nested' and wire['storage'] == 'shared-owner'), where, 'storage只适用于容器或间接共享owner')
             require('projections' not in wire or kind in {'nested', 'container'}, where, '只有嵌套类型或复杂容器元素可以按子块投影')
             require('max_bytes' not in wire or kind == 'container', where, '只有容器可以声明独立编码字节预算')
@@ -272,14 +311,17 @@ class Compiler:
                     require(wire['host'] in entry['conversions'] and wire['client'] in entry['conversions'], where, '换算处理器没有语义声明')
             elif kind == 'container':
                 require(nonempty(wire.get('element')) and 0 < integer(wire.get('limit', 0)) < 65536, where, '容器没有元素类型或 u16 上限')
-                require(integer(wire.get('stride', 0)) > 0 and nonempty(wire.get('host')) and nonempty(wire.get('client')), where, '容器缺少原生步长/读取/重建处理器')
+                # 聚合投影没有一对一原生元素：stride必须为0，禁止把map分组按结果pair步进。
+                aggregate = wire.get('storage') == 'aggregate'
+                require((integer(wire.get('stride', 0)) == 0 if aggregate else integer(wire.get('stride', 0)) > 0) and
+                        nonempty(wire.get('host')) and nonempty(wire.get('client')), where, '容器缺少原生步长/具名聚合/重建处理器')
                 element = wire['element']
                 if 'max_bytes' in wire:
                     require(2 <= integer(wire['max_bytes']) < DYNAMIC, where, '容器编码预算必须容纳u16计数且小于u32边界')
                 width = scalar_size(element)
                 require(width is not None or element in self.types, where, '未知容器元素类型')
-                require(integer(wire['stride']) == (width if width is not None else integer(self.types[element]['native_size'])), where, '容器元素原生步长不一致')
-                require(wire.get('storage') in {'vector', 'string', 'array', 'deque', 'c-string'}, where, '容器必须指定 vector/string/array/deque/c-string')
+                require(aggregate or integer(wire['stride']) == (width if width is not None else integer(self.types[element]['native_size'])), where, '容器元素原生步长不一致')
+                require(wire.get('storage') in {'vector', 'string', 'array', 'deque', 'c-string', 'ordered-map', 'set', 'aggregate'}, where, '容器存储未登记')
                 if wire['storage'] == 'vector':
                     require(item['size'] == 12, where, 'J273 vector 头必须为 12 字节')
                 elif wire['storage'] == 'string':
@@ -293,11 +335,11 @@ class Compiler:
                             '内联终止串须声明容量、容量减一上限及真实写入资格，不能伪造计数源')
                 elif wire['storage'] == 'deque':
                     # NPC三组容器的真实ABI；不能把20B头当vector或连续数组复制。
-                    require(item['size'] == 20 and integer(wire['stride']) in {4, 8}, where,
-                            'J273已核deque必须为20B头、4B引用或8B点元素')
+                    require(item['size'] == 20 and integer(wire['stride']) in {4, 8, 12}, where,
+                            'J273已核deque必须为20B头、4B引用/8B点/12B残影元素')
                 else:
                     count = wire.get('count_field')
-                    require((nonempty(count) and count in {r['name'] for r in entry['ranges']}) or nonempty(wire.get('count_from')), where, '数组缺少计数字段或具名 owner 计数来源')
+                    require('fixed_count' in wire or (nonempty(count) and count in {r['name'] for r in entry['ranges']}) or nonempty(wire.get('count_from')), where, '数组缺少计数字段或具名 owner 计数来源')
                 # 内联数组的全部槽位都有原生字节归属；线上只发送当前有效前缀。
                 # 普通 array 也可由本地指针解析，不能只按 size 或名称猜它是内联数组。
                 if 'inline_count' in wire:
@@ -305,6 +347,18 @@ class Compiler:
                     require(wire['storage'] == 'array' and element in self.types and
                             item['size'] == count * integer(wire['stride']) and
                             integer(wire['limit']) <= count, where, '内联数组范围、步长或上限不一致')
+                if 'fixed_count' in wire:
+                    require(wire['storage'] == 'array' and wire['fixed_count'] == wire.get('inline_count') == wire['limit'],
+                            where, '固定数组必须发送全部真实物理槽，且不编码count')
+            elif kind == 'choice':
+                require(wire.get('storage') == 'slots-mask' and 0 < wire.get('limit', 0) <= 8 and
+                        item['size'] == wire['limit'] * 4 and nonempty(wire.get('host')) and nonempty(wire.get('client')),
+                        where, '动态槽必须声明真实指针槽数及具名双端owner')
+                choices = wire.get('choices', [])
+                require(choices and len(choices) == len(set(choices)) and all(c in self.types for c in choices), where, '动态布局集合缺失或重复')
+            if 'mask' in wire:
+                require(kind == 'convert' and wire['type'] == 'u32' and 0 < integer(wire['mask']) <= 0xFFFFFFFF,
+                        where, '位投影只能声明u32具名换算')
         require(end == entry['native_size'], entry['type'], '原生对象尾部未覆盖')
 
     def make_variants(self):
@@ -352,6 +406,23 @@ class Compiler:
         self.plan_stack.add(name)
         entry = self.expanded[name]
         ranges = {r['name']: r for r in entry['ranges']}
+        # C/S元数据没有游戏内偏移；生成FieldSource::Synthetic，绝不能落入memcpy计划。
+        for item in entry['synthetic_fields']:
+            key = item['name']
+            require(key not in ranges and scalar_size(item['type']) is not None, name + '.' + key, '合成字段重名或不是已核值类型')
+            require(item['host'] in entry['conversions'] and item['client'] in entry['conversions'], name + '.' + key, '合成值缺少双端语义')
+            wire = item.get('wire', dict(kind='convert', type=item['type'], host=item['host'], client=item['client']))
+            if wire['kind'] == 'container':
+                require(wire.get('storage') == 'array' and scalar_size(wire.get('element', '')) == integer(wire.get('stride', 0)) and
+                        0 < wire.get('limit', 0) <= 65535 and wire.get('host') == item['host'] and wire.get('client') == item['client'] and
+                        not any(k in wire for k in ('fixed_count', 'inline_count', 'projections')), name + '.' + key, '合成容器必须是具名纯值数组')
+            else:
+                require(wire['kind'] in {'convert', 'reference'} and wire.get('type') == item['type'] and
+                        wire.get('host') == item['host'] and wire.get('client') == item['client'], name + '.' + key, '合成标量规则不一致')
+                if wire['kind'] == 'reference':
+                    require(item['type'] == 'u16' and nonempty(wire.get('target')), name + '.' + key, '合成引用缺少身份空间')
+            ranges[key] = dict(item, offset=DYNAMIC, size=0, category='换算', synthetic=True,
+                               wire=wire)
         # 伴随对象有自己的原生字节目录；这里只建立 owner 链，绝不伪造根对象偏移。
         for companion in entry['companions']:
             key, child = companion['name'], companion['type']
@@ -359,6 +430,8 @@ class Compiler:
             ranges[key] = dict(companion, offset=DYNAMIC, size=0, category='状态',
                                companion=True, wire=dict(kind='nested', type=child,
                                host=companion['host'], client=companion['client']))
+            if 'when' in companion:
+                ranges[key]['wire']['when'] = companion['when']
         # ANM2 等嵌套对象的外观、动画和图层进入父类不同块；原生字节归属仍只声明一次。
         projected = {}
         for key, item in ranges.items():
@@ -419,6 +492,10 @@ class Compiler:
                     # 其它投影依赖同目标版本首块的present，不另加容器count或复制holder。
                     if wire.get('storage') == 'shared-owner' and wire.get('block', 0) == 0:
                         minimum, maximum = minimum + 1, maximum + 1
+                elif kind == 'choice':
+                    choices = [self.plan(child) for child in wire['choices']]
+                    require(all(len(p['blocks']) == 1 for p in choices), where, '动态槽view必须只有一个值块')
+                    minimum, maximum = 1, 1 + wire['limit'] * (2 + max(p['max'] for p in choices))
                 else:
                     element = wire['element']
                     if element in self.expanded:
@@ -426,21 +503,29 @@ class Compiler:
                         width = next(b['max'] for b in nested['blocks'] if b['id'] == wire['block']) if 'block' in wire else nested['max']
                     else:
                         width = scalar_size(element)
-                    minimum, maximum = 2, 2 + integer(wire['limit']) * width
+                    count = wire.get('fixed_count')
+                    child_min = (next(b['min'] for b in nested['blocks'] if b['id'] == wire['block']) if 'block' in wire else nested['min']) if nested else width
+                    minimum, maximum = (count * child_min, count * width) if count else (2, 2 + integer(wire['limit']) * width)
                     # 元素数上限与编码字节预算分别约束；复杂元素嵌套不能乘出无界理论分配。
                     # 实际编码/解码仍须检查真实长度，超预算报缺口，不能截断元素或降低count。
                     maximum = min(maximum, integer(wire.get('max_bytes', maximum)))
+                if 'when' in wire:
+                    require(kind != 'copy', where, '条件字段须经具名处理器，不能无条件合并复制')
+                    minimum = 0
                 offset = DYNAMIC if dynamic else low
                 field = dict(layout=entry['layout'], index=len(fields), block=number,
                              native_offset=item['offset'], native_size=item['size'], wire_offset=offset,
                              min_size=minimum, max_size=maximum, operation=OPERATIONS[kind],
-                             name=key, type=wire.get('type', wire.get('element')), host=wire.get('host', ''),
+                             name=key, type=wire.get('type', wire.get('element', 'layout-choice')), host=wire.get('host', ''),
                              client=wire.get('client', ''), target=wire.get('target', ''),
                              storage=wire.get('storage', ''), count_source=wire.get('count_field', wire.get('count_from', '')),
                              nested_layout=nested['entry']['layout'] if nested else 0,
                              nested_block=wire.get('block', 255),
                              limit=integer(wire.get('limit', 0)), stride=integer(wire.get('stride', 0)),
                              companion=item.get('companion', False),
+                             synthetic=item.get('synthetic', False), fixed_count=wire.get('fixed_count', 0),
+                             mask=integer(wire.get('mask', 0)), condition=wire.get('when'),
+                             choices=wire.get('choices', []),
                              shape=item.get('shape', False), read_requirement=item.get('read_requires', ''),
                              semantics=item['semantics'], source=item)
                 require(len(fields) < 65535, where, '字段索引超过 u16')
@@ -463,6 +548,14 @@ class Compiler:
             require(len(blocks) == 1 and all(f['operation'] == 'Copy' and f['wire_offset'] == f['native_offset'] for f in fields)
                     and sum(f['native_size'] for f in fields) == entry['native_size'], name, '纯值类型必须逐成员按原生顺序内联且没有未复制字节')
         known = {f['name'] for f in fields}
+        for f in fields:
+            condition = f['condition']
+            if condition:
+                selector = next((v for v in fields if v['name'] == condition['field']), None)
+                require(selector and selector['block'] == f['block'] and selector['index'] < f['index'] and
+                        selector['min_size'] == selector['max_size'] and not selector['condition'], name + '.' + f['name'],
+                        '条件选择器必须是同块先行无条件定长值')
+                require(condition['predicate'] in entry['conversions'], name + '.' + f['name'], '条件谓词缺少具名语义')
         for key, context in entry['contexts'].items():
             require(re.fullmatch(r'[A-Za-z_][A-Za-z_0-9]*', key), name, '非法上下文名称')
             require(all(nonempty(context.get(prop)) for prop in ('type', 'semantics', 'evidence')), name + '.' + key, '上下文缺少类型、语义或证据')
@@ -521,10 +614,14 @@ class Compiler:
                                                   field=f['index'], limit=group['limit']))
         native_ranges = self.native_ranges(name)
         unknown = sum(r['size'] for r in native_ranges if r['category'] == '未知')
-        complete = entry.get('extent', 'object') == 'object' and not unknown and all(r['status'] == '已核' for r in entry['ranges'] + entry['companions']) and all(self.plans[f['type']]['complete'] for f in fields if f['nested_layout'])
+        complete = entry.get('extent', 'object') in {'object', 'protocol'} and not unknown and all(r['status'] == '已核' for r in entry['ranges'] + entry['companions']) and all(self.plans[f['type']]['complete'] for f in fields if f['nested_layout'])
+        minimum, maximum = sum(b['min'] for b in blocks), sum(b['max'] for b in blocks)
+        if 'record_limit' in entry:
+            require(minimum <= entry['record_limit'] < DYNAMIC, name, '记录预算小于布局下界或溢出')
+            maximum = min(maximum, entry['record_limit'])
         result = dict(entry=entry, fields=fields, blocks=blocks, copies=copies, unknown=unknown,
                       native_ranges=native_ranges, count_constraints=count_constraints, count_groups=groups,
-                      complete=complete, min=sum(b['min'] for b in blocks), max=sum(b['max'] for b in blocks))
+                      complete=complete, min=minimum, max=maximum)
         self.plans[name] = result
         self.plan_stack.remove(name)
         return result
@@ -537,22 +634,26 @@ class Compiler:
         confidence = {'已核': 0, 'SDK声明': 1, '推断': 2, '未知': 3}
         for item in self.expanded[name]['ranges']:
             wire = item.get('wire', {})
-            nested = wire.get('type')
-            inline_count = wire.get('inline_count', 0)
+            nested = item.get('native_type', wire.get('type'))
+            inline_count = item.get('native_count', wire.get('inline_count', 0))
             if inline_count:
-                nested = wire['element']
-            if inline_count or (wire.get('kind') in {'copy', 'nested'} and wire.get('storage') != 'shared-owner' and nested in self.expanded):
+                nested = item.get('native_type', wire.get('element', nested))
+            if inline_count or ('native_type' in item) or (wire.get('kind') in {'copy', 'nested'} and wire.get('storage') != 'shared-owner' and nested in self.expanded):
                 # 即使有效前缀为空，未发送槽位中的 UNKNOWN 也不能从原生目录消失。
                 children = self.native_ranges(nested)
                 for index in range(inline_count or 1):
                     for child in children:
                         value = copy.deepcopy(child)
-                        value['offset'] += item['offset'] + (index * integer(wire['stride']) if inline_count else 0)
+                        stride = self.expanded[nested]['native_size']
+                        value['offset'] += item['offset'] + (index * stride if inline_count else 0)
                         prefix = item['name'] + (f'[{index}]' if inline_count else '')
                         value['name'] = prefix + '.' + child['name']
                         value['semantics'] = item['semantics'] + '：' + child['semantics']
                         value['evidence'] = item['evidence'] + '；嵌套字段：' + child['evidence']
                         value['status'] = max((item['status'], child['status']), key=confidence.__getitem__)
+                        # 不上线的保存体仍展开未知；内嵌状态不能反向恢复被裁的Host输入。
+                        if item['category'] in {'权威', '本地'} and value['category'] not in {'未知', '填充', '本地'}:
+                            value['category'] = item['category']
                         result.append(value)
             else:
                 result.append(item)
@@ -562,10 +663,12 @@ class Compiler:
     def catalogs(self):
         """仅要求已声明接管的 owner；后续域未入源前明确不宣称全域目录覆盖。"""
         expected = {}
+        sources = {}
         for rel in self.version['catalogs']:
             path = (ROOT / rel).resolve()
             require(path.is_relative_to(ROOT), rel, '目录输入越出仓库')
             data = read_json(path)
+            sources[rel] = data['members']
             for member in data['members']:
                 if member.get('ownership') == 'ReplicatedState':
                     expected.setdefault(member['owner'], set()).add(member['id'])
@@ -578,6 +681,79 @@ class Compiler:
                 require(owner not in owners and owner in expected, owner, '重复或不存在的公开 owner')
                 owners.add(owner)
                 require(expected[owner].issubset(mapped), owner, 'ReplicatedState 缺少回映射: ' + ', '.join(sorted(expected[owner] - set(mapped))))
+        # 正式逐行回映射不能按ID或签名去重；保留目录原始null与空字符串。
+        catalog_rows = {}
+        for plan in self.plans.values():
+            entry = plan['entry']
+            rows = entry['catalog_rows']
+            covered = {}
+            for row in rows:
+                catalog = row['catalog']
+                require(catalog in self.version['catalogs'], entry['type'], '逐行来源未登记')
+                source = sources[catalog]
+                ordinal = row['ordinal']
+                require(0 < ordinal <= len(source) and ordinal not in covered.setdefault(catalog, set()), catalog, '目录行越界或重复')
+                covered[catalog].add(ordinal)
+                actual = source[ordinal - 1]
+                require(all(row[key] == actual.get(key) for key in ('id', 'owner', 'parameters', 'returns')), f'{catalog}:{ordinal}', '目录行身份或原签名不一致')
+                self.validate_member(entry, plan, row)
+                catalog_rows.setdefault(catalog, []).append((entry, row))
+            for catalog in entry.get('catalog_complete', []):
+                require(catalog in self.version['catalogs'], entry['type'], '全量目录未登记')
+                require(covered.get(catalog) == set(range(1, len(sources[catalog]) + 1)), catalog, '逐行回映射未覆盖完整目录')
+            supplementary_keys = set()
+            for row in entry['supplementary_rows']:
+                key = row['source'], row['ordinal']
+                require(key not in supplementary_keys, entry['type'], '补充成员来源行重复')
+                supplementary_keys.add(key)
+                self.validate_member(entry, plan, row)
+            alias_keys = set()
+            for alias in entry.get('catalog_aliases', []):
+                catalog, ordinal, target = alias['catalog'], alias['ordinal'], alias['target_ordinal']
+                require(catalog in sources and 0 < ordinal <= len(sources[catalog]), entry['type'], '交叉目录来源行不存在')
+                row = next((r for r in rows if r['ordinal'] == target and r['catalog'] == alias['target_catalog']), None)
+                require(row and all(row[k] == sources[catalog][ordinal - 1].get(k) for k in ('id', 'owner', 'parameters', 'returns')),
+                        entry['type'], '交叉目录目标行不存在或原签名不同')
+                key = catalog, ordinal, alias['target_catalog'], target
+                require(key not in alias_keys, entry['type'], '交叉目录链接重复')
+                alias_keys.add(key)
+
+        # 一个公开域可分布在多个真实布局中；完整声明按原目录行聚合，不能按ID去重。
+        # 只检查显式声明的目录，不把尚未研究的Room等域变成当前工作的前置条件。
+        complete = self.version.get('catalog_complete', [])
+        require(isinstance(complete, list) and all(isinstance(c, str) for c in complete) and
+                len(complete) == len(set(complete)), 'version.catalog_complete', '完整目录声明非法或重复')
+        for catalog in complete:
+            require(catalog in sources, catalog, '全量目录未登记')
+            ordinals = [row['ordinal'] for _, row in catalog_rows.get(catalog, [])]
+            require(len(ordinals) == len(set(ordinals)) and
+                    set(ordinals) == set(range(1, len(sources[catalog]) + 1)), catalog, '跨布局逐行回映射缺失或重复')
+        # 四域共用的目录可以只完成其中一个真实domain；按原始行号检查，
+        # 不能强迫未研究的Presentation/Random/Mod入源，也不能漏掉新的Run行。
+        scopes = self.version.get('catalog_complete_scopes', [])
+        require(isinstance(scopes, list), 'version.catalog_complete_scopes', '分域完整目录声明必须是数组')
+        outputs = [(catalog, None) for catalog in complete]
+        for scope in scopes:
+            require(isinstance(scope, dict) and set(scope) == {'catalog', 'domain'},
+                    'version.catalog_complete_scopes', '分域声明只允许catalog与domain')
+            catalog, domain = scope['catalog'], scope['domain']
+            require(isinstance(catalog, str) and catalog in sources and isinstance(domain, str) and
+                    re.fullmatch(r'[a-z][a-z0-9_-]*', domain), 'version.catalog_complete_scopes', '目录未登记或domain非法')
+            require((catalog, domain) not in outputs and catalog not in complete, catalog, '分域完整声明重复')
+            expected_rows = {i for i, member in enumerate(sources[catalog], 1) if member.get('domain') == domain}
+            ordinals = [row['ordinal'] for _, row in catalog_rows.get(catalog, []) if row['ordinal'] in expected_rows]
+            require(expected_rows and len(ordinals) == len(set(ordinals)) and set(ordinals) == expected_rows,
+                    catalog + ':' + domain, '分域逐行回映射缺失或重复')
+            outputs.append((catalog, domain))
+        self.catalog_outputs = outputs
+        self.catalog_rows = catalog_rows
+        self.catalog_sources = sources
+
+    def validate_member(self, entry, plan, member):
+        """逐行处置引用正式字段或明确的跨域上下文；保留未来adapter尚未实施的边界。"""
+        known = {f['name'] for f in plan['fields']} | {'@' + k for k in entry['contexts']}
+        require(all(k in known for k in member.get('fields', [])), member['id'], '逐行回映射指向不存在的正式字段/上下文')
+        require(member['disposition'] not in {'field', 'derived'} or member.get('fields'), member['id'], '逐行状态/派生缺少来源')
 
     def compile(self):
         for name in self.types:
@@ -589,11 +765,81 @@ class Compiler:
         return sorted(self.plans.values(), key=lambda p: p['entry']['layout'])
 
 
+def array(typ, name, count):
+    """各类代码表共用的数组声明；Grid与普通布局生成保持同一作用域。"""
+    return f'constexpr std::array<{typ}, {count}> {name} = {{{{\n'
+
+
+def emit_grid_description(compiler, plans, out):
+    """为第6步描述视图生成语义角色到数字字段的映射，不复制另一份原生偏移账本。"""
+    roles = ['desc', 'grid_index', 'water_clip_flags',
+             'sprite#0', 'sprite#1', 'sprite#2',
+             'fire_sprite#0', 'fire_sprite#1', 'fire_sprite#2',
+             'ember_sprite#0', 'ember_sprite#1', 'ember_sprite#2',
+             'timer_plate#0', 'timer_plate#1', 'timer_plate#2',
+             'extra_sprite#0', 'extra_sprite#1', 'extra_sprite#2',
+             'embers', 'rubble_animation', 'rubble_offsets',
+             'target_room_type', 'extra_visible', 'target_room_index', 'door_flags']
+    selected = []
+    for plan in plans:
+        entry = plan['entry']
+        ancestor = entry
+        while ancestor.get('parent') and ancestor['type'] != 'GridEntity':
+            ancestor = compiler.expanded[ancestor['parent']]
+        if ancestor['type'] == 'GridEntity' and entry['type'] != 'GridEntity':
+            selected.append(plan)
+    # 尚未研究Grid的源也可生成空视图；一旦接入真实类，所有发送字段必须有明确角色。
+    body = ['// 同源生成的Grid描述计划；只修改正式布局源和生成器。\n',
+            f'static_assert(std::size_t(ClientGridFieldRole::Count) == {len(roles)});\n',
+            array('GridDescriptionPlan', 'kGridDescriptionPlans', len(selected))]
+    for plan in selected:
+        entry = plan['entry']
+        fields = {f['name']: f for f in plan['fields']}
+        require(set(fields).issubset(roles), entry['type'], 'Grid发送字段缺少类型化描述角色')
+        require(all(f['wire_offset'] != DYNAMIC for f in plan['fields']), entry['type'], 'Grid根视图需要明确的块内字段起点')
+        desc = fields['desc']
+        desc_fields = {f['name']: f for f in compiler.plans[desc['type']]['fields']}
+        require(all(f['min_size'] == f['max_size'] == 4 for f in desc_fields.values()),
+                entry['type'], 'Grid描述标量不再是当前32位值，须同步调整类型化读取')
+        offsets = [desc_fields[n]['wire_offset'] if n in desc_fields else DYNAMIC
+                   for n in ('type', 'variant', 'state', 'spawn_seed')]
+        require(all(offset != DYNAMIC for offset in offsets[:3]), entry['type'], 'Grid描述缺少三个固定展示标量')
+        mask = sum(1 << b['id'] for b in plan['blocks'] if b['max'])
+        ids = [fields[n]['index'] if n in fields else 65535 for n in roles]
+        for prefix in ('sprite', 'fire_sprite', 'ember_sprite', 'timer_plate', 'extra_sprite'):
+            group = [fields.get(f'{prefix}#{i}') for i in range(3)]
+            if any(group):
+                require(all(group) and len({f['nested_layout'] for f in group}) == 1 and
+                        [f['nested_block'] for f in group] == [0, 1, 2], entry['type'], 'Grid三份Sprite投影不一致')
+        # 两个值容器有明确固定元素codec；源变更须同步维护读取器，不能默读旧偏移。
+        for name, size, expected in (
+                ('embers', 16, {'position': (0, 8), 'age': (8, 4), 'max_life': (12, 4)}),
+                ('rubble_offsets', 8, {'x': (0, 4), 'y': (4, 4)})):
+            if name in fields:
+                element = compiler.plans[fields[name]['type']]
+                actual = {f['name']: (f['wire_offset'], f['min_size']) for f in element['fields']}
+                require(actual == expected and len(element['blocks']) == 1 and
+                        element['blocks'][0]['min'] == element['blocks'][0]['max'] == size,
+                        entry['type'], 'Grid固定值容器codec与正式元素布局不一致')
+        body.append(f'  {{{entry["layout"]}, {mask}u, {{{",".join(map(str, ids))}}}, '
+                    + '{' + ','.join(f'{v}u' for v in offsets) + '}},\n')
+    body.append('}};\n')
+    # 工厂type→RTTI事实复用已有world_layout，不再手写第二份27类switch。
+    world = read_json(ROOT / 'mod/binding/world_layout.json')
+    by_name = {p['entry']['type']: p['entry']['layout'] for p in selected}
+    kinds = sorted((g for g in world['grid_types'] if g['rtti']), key=lambda g: g['value']) if selected else []
+    require(all('GridEntity' + g['rtti'] in by_name for g in kinds), 'GridFactory', '工厂真实类没有描述视图')
+    body.append(array('GridFactoryType', 'kGridFactoryTypes', len(kinds)))
+    for kind in kinds:
+        body.append(f'  {{{kind["value"]}, {by_name["GridEntity" + kind["rtti"]]}}},\n')
+    body.append('}};\n')
+    write(out / 'state_grid_view.inc', ''.join(body))
+
+
 def emit(compiler, plans, out, docs):
     """四份 .inc 共享相同字段索引；代码表、协议偏移与文档在一次构建内同时更新。"""
     header = '// 由 gen_state_layout.py 生成；只修改 mod/binding/state/*.json。\n'
-    def array(typ, name, count):
-        return f'constexpr std::array<{typ}, {count}> {name} = {{{{\n'
+    emit_grid_description(compiler, plans, out)
     count_fields = sum(len(p['fields']) for p in plans)
     wire = [header, f"constexpr std::uint16_t kStateLayoutVersion ={integer(compiler.version['version'])};\n", array('Layout', 'kStateLayouts', len(plans))]
     capture = [header, array('CopyRange', 'kStateCopyRanges', sum(len(p['copies']) for p in plans))]
@@ -604,7 +850,8 @@ def emit(compiler, plans, out, docs):
         e, lid = p['entry'], p['entry']['layout']
         parent = compiler.expanded[e['parent']]['layout'] if e.get('parent') else 0
         prefix = e.get('extent', 'object') == 'base_prefix'
-        wire.append(f'  {{{lid}, {parent}, {quote(e["type"])}, {e["native_size"]}, {p["unknown"]}, {len(p["blocks"])}, {str(p["complete"]).lower()}, {str(prefix).lower()}, {quote(e["rtti"]["name"])}, {integer(e["rtti"]["rva"])}, {first_field}, {len(p["fields"])}, {first_block}, {first_copy}, {len(p["copies"])}}},\n')
+        protocol = e.get('extent') == 'protocol'
+        wire.append(f'  {{{lid}, {parent}, {quote(e["type"])}, {e["native_size"]}, {p["unknown"]}, {len(p["blocks"])}, {str(p["complete"]).lower()}, {str(prefix).lower()}, {str(protocol).lower()}, {quote(e["rtti"]["name"])}, {integer(e["rtti"]["rva"])}, {first_field}, {len(p["fields"])}, {first_block}, {first_copy}, {len(p["copies"])}}},\n')
         first_field += len(p['fields'])
         first_block += len(p['blocks'])
         first_copy += len(p['copies'])
@@ -613,7 +860,9 @@ def emit(compiler, plans, out, docs):
         for key, v in e['validators'].items():
             field = next(f for f in p['fields'] if f['name'] == key)
             values = ','.join(str(n) for n in v.get('values', []))
-            client.append(f'  {{{lid}, {field["index"]}, Validation::{v["kind"].title()}, {quote(v["scalar"])}, {v.get("min", 0)}, {v.get("max", 0)}, {quote(values)}}},\n')
+            # Validator上下界为double；大u64上界用浮点字面量，避免C++十进制整数常量溢出。
+            bounds = [repr(float(v.get(k, 0))) if abs(v.get(k, 0)) > 2**53 else str(v.get(k, 0)) for k in ('min', 'max')]
+            client.append(f'  {{{lid}, {field["index"]}, Validation::{v["kind"].title()}, {quote(v["scalar"])}, {bounds[0]}, {bounds[1]}, {quote(values)}}},\n')
         for m in e['members']:
             members.append(f'  {{{lid}, {quote(m["id"])}, {quote(m["disposition"])}, {quote(",".join(m.get("fields", [])))}, {quote(m["reason"])}}},\n')
         native_cells = [f'0x{r["offset"]:X} {r["type"]} {r["name"]}【{r["category"]}】{r["semantics"]}（{r["size"]}B；{r["status"]}）' for r in p['native_ranges']]
@@ -622,9 +871,11 @@ def emit(compiler, plans, out, docs):
             body += '**范围仅为已核前缀，不是动态对象分配大小；具体对象仍需完整布局。**\n\n'
         if e.get('notes'):
             body += e['notes'] + '\n\n'
+        if e.get('record_limit'):
+            body += f'记录编码预算≤{e["record_limit"]}B；body组≤{e.get("body_limit", 0)}B，超出body预算改ordinary body-joint，超记录或帧总预算报缺口，不截断。各块上限不能同时取满。\n\n'
         if e.get('variant_values'):
             body += f'变体选择字段 `{e["variant_selector"]}`，取值：{e["variant_values"]}。\n\n'
-        body += '原生字节归属：\n\n' + table(native_cells) + '\n'
+        body += '原生字节归属：\n\n' + table(native_cells or ['纯C/S协议记录：没有原生对象字节，不得向游戏地址加偏移']) + '\n'
         body += f'状态二进制布局（总计 {p["min"]}—{p["max"]}B，不含第 9 步记录头）：\n\n'
         if not p['blocks']:
             body += table(['无发送字节：该类型没有可复制状态']) + '\n'
@@ -638,7 +889,7 @@ def emit(compiler, plans, out, docs):
                 offset = '顺序变长偏移' if f['wire_offset'] == DYNAMIC else f'+0x{f["wire_offset"]:X}'
                 typename = f['type']
                 if f['operation'] == 'Container':
-                    typename = f'u16 count + count×{typename}（上限{f["limit"]}）'
+                    typename = f'{typename}[{f["fixed_count"]}]（固定槽，无count）' if f['fixed_count'] else f'u16 count + count×{typename}（上限{f["limit"]}）'
                     if f['nested_block'] != 255:
                         typename += f' 子块{f["nested_block"]}'
                 if f['operation'] == 'Nested':
@@ -649,6 +900,14 @@ def emit(compiler, plans, out, docs):
                         typename = ('u8 present + ' if f['nested_block'] in {0, 255} else '') + typename + '（间接owner；缺失时最短全零）'
                 if f['companion']:
                     typename += '（伴随源，无根对象偏移）'
+                if f['synthetic']:
+                    typename += '（C/S自有元数据，无原生偏移）'
+                if f['operation'] == 'Choice':
+                    typename = 'u8 present_mask + 按槽序(u16 view_layout + view值)；允许：' + '、'.join(f['choices'])
+                if f['condition']:
+                    typename += f'（仅{f["condition"]["predicate"]}({f["condition"]["field"]})成立时存在）'
+                if f['mask']:
+                    typename += f'（只保留0x{f["mask"]:X}位）'
                 cells.append(f'{offset} {typename} {f["name"]}：{f["semantics"]}')
             body += table(cells or ['无发送字节：显式预留块']) + '\n'
         body += '证据：\n\n' + '\n'.join(f'- `{r["name"]}`：{r["evidence"]}' for r in p['native_ranges']) + '\n'
@@ -657,6 +916,21 @@ def emit(compiler, plans, out, docs):
         if p['count_groups']:
             body += '\n容器计数约束（同一容器各投影count相同，按容器去重求和）：\n\n' + '\n'.join(
                 f'- `{g["name"]}`：' + ' + '.join(g['fields']) + f' ≤ {g["limit"]}；{g["evidence"]}' for g in p['count_groups']) + '\n'
+        if e['catalog_rows']:
+            body += '\n逐行公开目录回映射（来源目录＋一基行号；保留重载和原签名）：\n\n'
+            body += '| 来源行 | ID | parameters / returns（JSON原值） | 处置／正式来源 | 依据 |\n|---|---|---|---|---|\n'
+            for row in e['catalog_rows']:
+                cells = [row['catalog'] + ':' + str(row['ordinal']), row['id'],
+                         json.dumps(row['parameters'], ensure_ascii=False) + ' / ' + json.dumps(row['returns'], ensure_ascii=False),
+                         row['disposition'] + ' → ' + ','.join(row.get('fields', [])) + '；' + row['route'], row['reason']]
+                body += '| ' + ' | '.join(v.replace('|', '\\|').replace('\n', ' ') for v in cells) + ' |\n'
+        if e['supplementary_rows']:
+            body += '\n补充成员逐行回映射：\n\n| 来源行 | ID | 处置／来源 | 原始定位与依据 |\n|---|---|---|---|\n'
+            for row in e['supplementary_rows']:
+                cells = [row['source'] + ':' + str(row['ordinal']), row['id'], row['disposition'] + ' → ' + ','.join(row['fields']), row['detail'] + '；' + row['reason']]
+                body += '| ' + ' | '.join(v.replace('|', '\\|').replace('\n', ' ') for v in cells) + ' |\n'
+        if e.get('catalog_aliases'):
+            body += f'\n另一公开目录的逐行交叉链接：{len({(a["catalog"], a["ordinal"]) for a in e["catalog_aliases"]})}个来源行，共{len(e["catalog_aliases"])}条目标行链接；见同源`CatalogAliases()`生成表，重复签名不去重。\n'
         write(docs / (e['type'] + '.md'), body)
     # 布局号到表下标的直接索引：布局号稀疏但上限很小，按线上布局号查询时不必线性扫描。
     slots = [65535] * (max(p['entry']['layout'] for p in plans) + 1)
@@ -670,8 +944,8 @@ def emit(compiler, plans, out, docs):
     wire += ['}};\n', array('Field', 'kStateFields', count_fields)]
     for p in plans:
         for f in p['fields']:
-            source = 'Companion' if f['companion'] else 'Object'
-            wire.append(f'  {{{f["layout"]}, {f["index"]}, {f["block"]}, {f["native_offset"]}u, {f["native_size"]}, {f["wire_offset"]}u, {f["min_size"]}, {f["max_size"]}, Operation::{f["operation"]}, {quote(f["name"])}, {quote(f["type"])}, {quote(f["host"])}, {quote(f["target"])}, {quote(f["storage"])}, {quote(f["count_source"])}, {f["nested_layout"]}, {f["nested_block"]}, {f["limit"]}, {f["stride"]}, FieldSource::{source}, {str(f["shape"]).lower()}, {quote(f["read_requirement"])}}},\n')
+            source = 'Companion' if f['companion'] else 'Synthetic' if f['synthetic'] else 'Object'
+            wire.append(f'  {{{f["layout"]}, {f["index"]}, {f["block"]}, {f["native_offset"]}u, {f["native_size"]}, {f["wire_offset"]}u, {f["min_size"]}, {f["max_size"]}, Operation::{f["operation"]}, {quote(f["name"])}, {quote(f["type"])}, {quote(f["host"])}, {quote(f["target"])}, {quote(f["storage"])}, {quote(f["count_source"])}, {f["nested_layout"]}, {f["nested_block"]}, {f["limit"]}, {f["stride"]}, FieldSource::{source}, {str(f["shape"]).lower()}, {quote(f["read_requirement"])}, {f["fixed_count"]}, {f["mask"]}u}},\n')
     wire += ['}};\n', array('NativeRange', 'kStateNativeRanges', sum(len(p['native_ranges']) for p in plans))]
     for p in plans:
         for r in p['native_ranges']:
@@ -687,6 +961,23 @@ def emit(compiler, plans, out, docs):
     for p in plans:
         for name, context in p['entry']['contexts'].items():
             wire.append(f'  {{{p["entry"]["layout"]}, {quote(name)}, {quote(context["type"])}, {quote(context["semantics"])}, {quote(context["evidence"])}}},\n')
+    wire += ['}};\n', array('FieldCondition', 'kStateConditions', sum(bool(f['condition']) for p in plans for f in p['fields']))]
+    for p in plans:
+        for f in p['fields']:
+            if f['condition']:
+                selector = next(v['index'] for v in p['fields'] if v['name'] == f['condition']['field'])
+                wire.append(f'  {{{f["layout"]}, {f["index"]}, {selector}, {quote(f["condition"]["predicate"])}}},\n')
+    wire += ['}};\n', array('LayoutChoice', 'kStateChoices', sum(len(f['choices']) for p in plans for f in p['fields']))]
+    for p in plans:
+        for f in p['fields']:
+            for child in f['choices']:
+                wire.append(f'  {{{f["layout"]}, {f["index"]}, {compiler.expanded[child]["layout"]}}},\n')
+    wire.append('}};\n')
+    wire.append(array('LayoutBudget', 'kStateBudgets', sum('record_limit' in p['entry'] for p in plans)))
+    for p in plans:
+        e = p['entry']
+        if 'record_limit' in e:
+            wire.append(f'  {{{e["layout"]}, {e["record_limit"]}u, {e.get("body_limit", 0)}u}},\n')
     wire.append('}};\n')
     capture.append('}};\n')
     client += ['}};\n// 处理器名只在注册时绑定，热路径不比较成员名。\n', array('ClientField', 'kStateClientFields', count_fields)]
@@ -698,12 +989,54 @@ def emit(compiler, plans, out, docs):
         for c in p['count_constraints']:
             client.append(f'  {{{c["layout"]}, {c["group"]}, {c["slot"]}, {c["field"]}, {c["limit"]}}},\n')
     client.append('}};\n')
+    members += ['}};\n', array('CatalogRow', 'kStateCatalogRows', sum(len(p['entry']['catalog_rows']) for p in plans))]
+    for p in plans:
+        for row in p['entry']['catalog_rows']:
+            strings = [row['catalog'], row['id'], row['owner'], row['parameters'] or '', row['returns'] or '']
+            tail = [row['disposition'], ','.join(row.get('fields', [])), row['route'], row['reason']]
+            members.append(f'  {{{p["entry"]["layout"]}, {row["ordinal"]}, ' + ', '.join(quote(v) for v in strings) + ', ' +
+                           ', '.join(str(row[k] is None).lower() for k in ('parameters', 'returns')) + ', ' + ', '.join(quote(v) for v in tail) + '},\n')
+    members.append('}};\n')
+    members.append(array('CatalogAlias', 'kStateCatalogAliases', sum(len(p['entry'].get('catalog_aliases', [])) for p in plans)))
+    for p in plans:
+        for a in p['entry'].get('catalog_aliases', []):
+            members.append(f'  {{{p["entry"]["layout"]}, {a["ordinal"]}, {a["target_ordinal"]}, {quote(a["catalog"])}, {quote(a["target_catalog"])}}},\n')
+    members.append('}};\n')
+    members.append(array('SupplementaryMember', 'kStateSupplementaryMembers', sum(len(p['entry']['supplementary_rows']) for p in plans)))
+    for p in plans:
+        for row in p['entry']['supplementary_rows']:
+            values = [row['source'], row['id'], row['disposition'], ','.join(row['fields']), row['route'], row['detail'], row['reason']]
+            members.append(f'  {{{p["entry"]["layout"]}, {row["ordinal"]}, ' + ', '.join(quote(v) for v in values) + '},\n')
     members.append('}};\n')
     for filename, content in [('state_wire.inc', wire), ('state_capture.inc', capture), ('state_client.inc', client), ('state_members.inc', members)]:
         write(out / filename, ''.join(content))
     index = '# 生成布局索引\n\n只修改 `mod/binding/state/`。未知和未核声明照实保留，不能据本表宣称原生同步已可用。\n\n'
     index += '| 类型 | 布局编号 | 原生字节 | 未知字节 | 完整 |\n|---|---|---|---|---|\n'
     index += ''.join(f'| [{p["entry"]["type"]}]({p["entry"]["type"]}.md) | {p["entry"]["layout"]} | {p["entry"]["native_size"]} | {p["unknown"]} | {"是" if p["complete"] else "否"} |\n' for p in plans)
+    # 汇总表和C++逐行表共用正式布局源；保留重复ID的公开名及原始签名以便人工阅读。
+    for catalog, domain in compiler.catalog_outputs:
+        filename = Path(catalog).stem + ('-' + domain if domain else '') + '-members.md'
+        rows = sorted((item for item in compiler.catalog_rows[catalog]
+                       if domain is None or compiler.catalog_sources[catalog][item[1]['ordinal'] - 1].get('domain') == domain),
+                      key=lambda item: item[1]['ordinal'])
+        body = f'# {Path(catalog).stem}：逐行公开成员回映射\n\n'
+        body += f'布局版本 {compiler.version["version"]}；来源 `{catalog}`，共 {len(rows)} 行。由正式布局源生成；行号从1开始，重复ID不去重。\n\n'
+        if domain:
+            body += f'本表只完成原目录的 `{domain}` 域，其它域不在本次完整声明中。\n\n'
+        body += '这里只声明目录处置与正式布局依赖，不代表运行reader／writer、绘制adapter或第15步验收已经完成。\n\n'
+        counts = {kind: sum(row['disposition'] == kind for _, row in rows)
+                  for kind in ('field', 'derived', 'authority', 'not_applicable')}
+        body += '处置统计：' + '；'.join(f'{kind}={count}' for kind, count in counts.items()) + '。\n\n'
+        body += '| 来源行 | ID／公开名 | parameters / returns（JSON原值） | 正式布局／字段 | 处置／职责 | 逐行依据 |\n|---|---|---|---|---|---|\n'
+        for entry, row in rows:
+            source = compiler.catalog_sources[catalog][row['ordinal'] - 1]
+            cells = [str(row['ordinal']), row['id'] + ' / ' + source.get('member', row['id']),
+                     json.dumps(row['parameters'], ensure_ascii=False) + ' / ' + json.dumps(row['returns'], ensure_ascii=False),
+                     f'[{entry["type"]} ({entry["layout"]})]({entry["type"]}.md)：' + ','.join(row['fields']),
+                     row['disposition'] + '；' + row['route'], row['reason']]
+            body += '| ' + ' | '.join(v.replace('|', '\\|').replace('\n', ' ') for v in cells) + ' |\n'
+        write(docs / filename, body)
+        index += f'\n公开目录：[{Path(catalog).stem} {domain + "域" if domain else ""}全部 {len(rows)} 行]({filename})。\n'
     write(docs / 'README.md', index)
 
 

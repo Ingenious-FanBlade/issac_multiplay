@@ -1,3 +1,5 @@
+> **版本46 Delirium未决事项（2026-11-09）**：[静态证据与归属修订](delirium-residual-evidence.md)核定两个8B Host打包存储，BDD／BE4共7B移出独立未知；BD4—BD7的4B仍无填充证明，根未知597→590B，最小线状态仍710B、17／18空预留。池槽残留已有静态可达路径但未实测；补核4A13B0的独立companion创建／BE8登记，BE8继续留Host。实际接线仍归第10／13／14步，唯一功能验收在第15步。 下文保留旧版本记录；BE8仅49F3D0访问的旧结论已纠正。
+
 > **版本43纠正／闭合**：[NPC受控UI来源证据](npc-control-ui-evidence.md)核定Manager+4AFB8是原版NetplayManager，8E7550是IsIdxLocalPlayer。下文版本42将其解释为本地设备可用性是静态分析错误，不能据此接入原版Online。当前C/S只读NPC F1C哨兵得到0/2，新增原生reader及解码，旧模式1拒绝；原始记录保留，完整窗口／绘制接线仍归第10／13步。
 
 # Entity_NPC同步职责复核

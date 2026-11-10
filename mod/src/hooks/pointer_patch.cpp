@@ -1,6 +1,6 @@
 #include "binding/offsets.h"
-#include "game/bridge.h"
-#include "game/topology.h"
+#include "game/common/bridge.h"
+#include "game/participants/topology.h"
 #include "runtime.h"
 #include <cmath>
 namespace cs {

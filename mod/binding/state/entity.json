@@ -555,7 +555,7 @@
           "category": "状态",
           "semantics": "当前最终颜色",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -570,7 +570,7 @@
           "category": "状态",
           "semantics": "溅射颜色",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -963,7 +963,7 @@
           "category": "状态",
           "semantics": "目标位置",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -1018,7 +1018,7 @@
           "category": "状态",
           "semantics": "绘制Z偏移",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；client_entity_fields.inc；J273公共Lua绑定主审见tx-04-19",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；client_entity_fields.inc；J273公共Lua绑定主审见tx-04-19",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -1033,7 +1033,7 @@
           "category": "状态",
           "semantics": "公开DepthOffset；不是SDK +0x2B0",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1048,7 +1048,7 @@
           "category": "状态",
           "semantics": "绘制排序层",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；client_entity_fields.inc；J273公共Lua绑定主审见tx-04-19",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；client_entity_fields.inc；J273公共Lua绑定主审见tx-04-19",
           "wire": {
             "kind": "copy",
             "type": "i32"
@@ -1088,7 +1088,7 @@
           "category": "权威",
           "semantics": "Host运动/Interpolate输入；Client不运行原生半帧运动，展示使用最终位置、速度和Sprite。",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；同步职责：docs/design/binary-state/entity-common-synchronization-review.md（2026-11-09静态复核；不改变原证据等级）"
         },
         {
           "offset": "0x370",
@@ -1113,7 +1113,7 @@
           "category": "状态",
           "semantics": "Familiar展示helper VA0x6473C5与公共PostRender VA0x6ACCF8读取+374；保留最终尺寸倍率。",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md；2026-11-09 J273原始指令/伪代码复读，见entity-common-synchronization-review.md",
           "read_requires": "entity-current-window",
           "wire": {
             "kind": "nested",
@@ -1138,7 +1138,7 @@
           "category": "状态",
           "semantics": "当前生命值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
@@ -1153,7 +1153,7 @@
           "category": "状态",
           "semantics": "最大生命值",
           "status": "已核",
-          "evidence": "mod/src/game/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
+          "evidence": "mod/src/game/client/entity/client_entity_fields.inc：tx-04-19 J273内置Lua注册和访问器逐项主审；REPENTOGON-1.1.3/libzhl/functions/Entity.zhl；docs/design/binary-state/entity-common-evidence.md",
           "wire": {
             "kind": "copy",
             "type": "f32"
