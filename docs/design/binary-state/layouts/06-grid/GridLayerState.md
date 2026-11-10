@@ -1,6 +1,6 @@
 # GridLayerState
 
-由唯一布局源生成。布局编号 200；布局版本 57；原生大小 0xA0；未知 4B；完整：否。
+由唯一布局源生成。布局编号 200；布局版本 58；原生大小 0xA0；未知 4B；完整：否。
 
 版本50仅Grid主Sprite图层展示视图；原生LayerState完整0xA0与4B UNKNOWN保留，证据等级不升级。+08路径元数据归Host，实际Image/filter/wrap及完整颜色/几何/混合/可见/flags保留；不能用旧JSON资源路径回读恢复LoadGraphics。见grid-common-synchronization-review.md，正式资源owner仍待第8/10/13步。
 

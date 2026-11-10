@@ -1,6 +1,6 @@
 # RoomDescriptorRestockCounts
 
-由唯一布局源生成。布局编号 274；布局版本 57；原生大小 0x8；未知 0B；完整：是。
+由唯一布局源生成。布局编号 274；布局版本 58；原生大小 0x8；未知 0B；完整：是。
 
 内嵌于descriptor+A4，商店Init前不由ctor获得读取资格。 原始静态证据保持；运行reader／writer尚待第10/13步接线。
 

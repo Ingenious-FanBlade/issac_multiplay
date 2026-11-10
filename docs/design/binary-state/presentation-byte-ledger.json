@@ -1,6 +1,6 @@
 {
   "format": "isaac.cs.presentation-native-review",
-  "revision": 2,
+  "revision": 5,
   "date": "2026-11-10",
   "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273 / Win32",
   "role": "设计阶段逐字节核对账本；不是生产state/presentation.json或运行时代码；不改变layout_version",
@@ -2994,40 +2994,62 @@
       "name": "MusicStream",
       "native_size": 52,
       "base_prefix": false,
-      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
-      "note": "",
+      "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+      "note": "修订4撤销旧+0C=pitch及+2C播放游标推断；直属UNKNOWN24→4B，后端对象ABI另计。",
       "ranges": [
         {
           "offset": 0,
           "size": 4,
-          "name": "audio_handle",
-          "type": "AudioStream*",
+          "name": "audio_source",
+          "type": "SoundSourceBase*",
           "category": "本地",
-          "semantics": "本地音频后端对象",
-          "synchronization": "绝不发送",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+          "semantics": "本地音频source强引用的对象指针",
+          "synchronization": "不发送；本地adapter管理",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
           "offset": 4,
           "size": 4,
-          "name": "unknown_4_7",
-          "type": "bytes[4]",
-          "category": "未知",
-          "semantics": "未取得字段用途或填充证明",
-          "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
-          "status": "未知"
+          "name": "audio_control",
+          "type": "ReferenceCount*",
+          "category": "本地",
+          "semantics": "强引用pair的本地control；9F76E0/9F7CA0建立",
+          "synchronization": "不发送；不当作播放身份",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
         },
         {
           "offset": 8,
-          "size": 3,
-          "name": "play_loop_pause",
-          "type": "u8[3]",
+          "size": 1,
+          "name": "loop",
+          "type": "bool",
           "category": "换算",
-          "semantics": "当前播放/循环/暂停控制状态",
-          "synchronization": "具名音乐/循环声音最终语义，不原样memcpy此组",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+          "semantics": "当前source循环请求",
+          "synchronization": "对应具名voice的有效循环状态",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 9,
+          "size": 1,
+          "name": "pending_play",
+          "type": "bool",
+          "category": "本地",
+          "semantics": "Play提交后置1，正常后端playing查询可清零；并非已出声",
+          "synchronization": "不发raw；记录实际提交及结果",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 10,
+          "size": 1,
+          "name": "paused",
+          "type": "bool",
+          "category": "换算",
+          "semantics": "正常Pause/Resume维护的source暂停标志",
+          "synchronization": "不复制后端paused镜像；仅承接有明确world用途的voice期望暂停",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
@@ -3037,74 +3059,96 @@
           "type": "bytes[1]",
           "category": "未知",
           "semantics": "未取得字段用途或填充证明",
-          "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+          "synchronization": "不读取、不发送；保留具名缺口",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "未知"
         },
         {
           "offset": 12,
           "size": 4,
-          "name": "pitch",
+          "name": "backend_volume",
           "type": "f32",
-          "category": "换算",
-          "semantics": "当前音调",
-          "synchronization": "同步有效最终pitch，不传本地后端地址",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+          "category": "本地",
+          "semantics": "后端音量缓存；旧pitch误名已撤销",
+          "synchronization": "不直接发送、不反除Options",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
           "offset": 16,
-          "size": 12,
-          "name": "unknown_10_1B",
-          "type": "bytes[12]",
-          "category": "未知",
-          "semantics": "未取得字段用途或填充证明",
-          "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
-          "status": "未知"
+          "size": 4,
+          "name": "pan",
+          "type": "f32",
+          "category": "换算",
+          "semantics": "当前pan请求/缓存；非mono有效分支另核",
+          "synchronization": "只承接实际生效的voice参数",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 20,
+          "size": 4,
+          "name": "pitch",
+          "type": "f32",
+          "category": "换算",
+          "semantics": "真实source pitch；7D5C40写+14并调用vtable+58",
+          "synchronization": "当前有效pitch随voice承接",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 24,
+          "size": 4,
+          "name": "config_gain",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "音乐/分层配置mul，参与最终混音",
+          "synchronization": "留Host；最终voice gain已经承接mul，不重复发或再乘一次",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
         },
         {
           "offset": 28,
           "size": 4,
-          "name": "volume",
+          "name": "layer_gain",
           "type": "f32",
-          "category": "换算",
-          "semantics": "当前流音量",
-          "synchronization": "只同步剥离本地Options音量后的逻辑增益",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+          "category": "权威",
+          "semantics": "当前声部权重，不是后端最终volume",
+          "synchronization": "留Host；最终voice gain已经承接层权重，不再发第二套混音输入",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
           "offset": 32,
           "size": 4,
-          "name": "target_volume",
+          "name": "target_layer_gain",
           "type": "f32",
           "category": "权威",
-          "semantics": "音量滑动目标",
-          "synchronization": "最终增益承接；原生值含本地设置，不直接发送",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+          "semantics": "声部权重目标；由layer mask等生产",
+          "synchronization": "不把目标当当前gain",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
           "offset": 36,
           "size": 4,
-          "name": "fade_rate",
+          "name": "layer_fade_rate",
           "type": "f32",
           "category": "权威",
-          "semantics": "增益生产速率",
-          "synchronization": "最终增益/具名事件承接",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+          "semantics": "当前声部权重平滑速率",
+          "synchronization": "正常生产结果承接",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
           "offset": 40,
           "size": 1,
-          "name": "playing",
+          "name": "active",
           "type": "bool",
-          "category": "换算",
-          "semantics": "本地流播放结果",
-          "synchronization": "期望播放语义与本地准备结果分开",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+          "category": "本地",
+          "semantics": "流活动维护标志；不等价于后端已出声",
+          "synchronization": "后端活动维护缓存不上线；world逻辑存续/退休须由独立用途来源建立",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
@@ -3114,31 +3158,31 @@
           "type": "bytes[3]",
           "category": "未知",
           "semantics": "未取得字段用途或填充证明",
-          "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+          "synchronization": "不读取、不发送；保留具名缺口",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "未知"
         },
         {
           "offset": 44,
           "size": 4,
-          "name": "playback_counter",
+          "name": "update_count",
           "type": "u32",
           "category": "本地",
-          "semantics": "后端维护计数",
-          "synchronization": "不发送，精确时基尚无证明",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
-          "status": "推断"
+          "semantics": "7D7B90正常Update计数；>10才查询后端活动状态",
+          "synchronization": "不上线；不能作为秒/采样游标",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
         },
         {
           "offset": 48,
           "size": 4,
-          "name": "unknown_30_33",
-          "type": "bytes[4]",
-          "category": "未知",
-          "semantics": "未取得字段用途或填充证明",
-          "synchronization": "不读取、不发送；保留具名缺口",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
-          "status": "未知"
+          "name": "parent_set",
+          "type": "MusicStreamSet*",
+          "category": "本地",
+          "semantics": "最终gain读取父组+174；无父时不乘组gain",
+          "synchronization": "不发地址；自有voice组关系承接",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
         }
       ]
     },
@@ -3146,7 +3190,7 @@
       "name": "MusicStreamSet",
       "native_size": 388,
       "base_prefix": false,
-      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+      "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
       "note": "",
       "ranges": [
         {
@@ -3156,7 +3200,7 @@
           "type": "MusicStream[7]",
           "category": "本地",
           "semantics": "主流+六layer，各0x34",
-          "synchronization": "本地构造；线上用最终选中曲目/六层mask/逻辑增益",
+          "synchronization": "只保留有逻辑用途的并存voice最终资源/参数；不发送固定14个原生空槽",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
           "status": "已核",
           "native_type": "MusicStream",
@@ -3167,9 +3211,9 @@
           "size": 4,
           "name": "layers",
           "type": "u32",
-          "category": "换算",
+          "category": "权威",
           "semantics": "六个layer开关，7D8A40实际读取",
-          "synchronization": "发低6位最终mask，不局限旧无参getter",
+          "synchronization": "留Host；已发每voice最终gain时无需另发六位mask",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
           "status": "已核"
         },
@@ -3178,9 +3222,9 @@
           "size": 4,
           "name": "mix_mode",
           "type": "u32",
-          "category": "换算",
+          "category": "权威",
           "semantics": "layer影响主流的最终混音分支",
-          "synchronization": "纳入具名逻辑混音结果；不靠Client gameplay重算",
+          "synchronization": "留Host；最终voice gain承接模式效果，没有另行网络消费者",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
           "status": "已核"
         },
@@ -3189,9 +3233,9 @@
           "size": 4,
           "name": "volume",
           "type": "f32",
-          "category": "换算",
-          "semantics": "流组当前最终音量，含本地Options乘数",
-          "synchronization": "不得直接发送；从真实控制调用记录逻辑增益，0音量不可反除",
+          "category": "权威",
+          "semantics": "流组当前gain；多个正常writer已乘Options，不能反除恢复全部world意图",
+          "synchronization": "Options前最终voice gain唯一承接；原生组current和混音树不下行，完整writer仍未闭合",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
           "status": "已核"
         },
@@ -3245,19 +3289,19 @@
       "name": "MusicEntry",
       "native_size": 96,
       "base_prefix": false,
-      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
-      "note": "除SDK名称外保持UNKNOWN；7D8360检验entry+44资源存在不等于已解出整条音频配置。",
+      "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+      "note": "修订4据7D60A0解析/实际存储及7D5CC0消费者补证；直属UNKNOWN72→2B。长解析函数bad-SP告警不作异常ABI闭合。",
       "ranges": [
         {
           "offset": 0,
           "size": 4,
-          "name": "unknown_0_3",
-          "type": "bytes[4]",
-          "category": "未知",
-          "semantics": "未取得字段用途或填充证明",
-          "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
-          "status": "未知"
+          "name": "config_id",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "XML曲目ID，解析写入",
+          "synchronization": "实际资源/voice承接；不复制配置对象",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
         },
         {
           "offset": 4,
@@ -3266,20 +3310,150 @@
           "type": "std::string",
           "category": "本地",
           "semantics": "XML曲目名称",
-          "synchronization": "本地资源匹配",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
-          "status": "SDK声明"
+          "synchronization": "资源目录匹配",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
         },
         {
           "offset": 28,
-          "size": 68,
-          "name": "unknown_1C_5F",
-          "type": "bytes[68]",
+          "size": 24,
+          "name": "intro",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "已解析intro文件；存在时先播并排入main",
+          "synchronization": "实际资源依赖；不发string对象",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 52,
+          "size": 24,
+          "name": "main",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "已解析主文件路径；+44是该string长度成员",
+          "synchronization": "实际文件资源；不发string对象",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 76,
+          "size": 1,
+          "name": "loop",
+          "type": "bool",
+          "category": "资源",
+          "semantics": "主文件loop配置",
+          "synchronization": "当前voice有效循环语义",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 77,
+          "size": 1,
+          "name": "layer_mode",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "分层混音模式；模式2可抑制主声部",
+          "synchronization": "最终实际声部gain承接",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 78,
+          "size": 2,
+          "name": "unknown_4E_4F",
+          "type": "bytes[2]",
           "category": "未知",
           "semantics": "未取得字段用途或填充证明",
           "synchronization": "不读取、不发送；保留具名缺口",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "未知"
+        },
+        {
+          "offset": 80,
+          "size": 4,
+          "name": "gain",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "XML mul；复制到主流+18",
+          "synchronization": "留Host；实际voice最终gain承接mul，不作为Client重复混音输入",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 84,
+          "size": 4,
+          "name": "layer_fade_speed",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "XML layerfadespeed；复制到流+24",
+          "synchronization": "实际当前权重承接",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 88,
+          "size": 4,
+          "name": "layer_defs",
+          "type": "MusicLayerDefinition*",
+          "category": "本地",
+          "semantics": "已分配34h步长层定义数组；含new[]计数头",
+          "synchronization": "只在合法配置owner存活期间读取；不发地址",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 92,
+          "size": 4,
+          "name": "layer_count",
+          "type": "u32",
+          "category": "本地",
+          "semantics": "配置层数；消费端只处理6物理layer槽",
+          "synchronization": "不把任意数量当网络允许集",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        }
+      ]
+    },
+    {
+      "name": "MusicLayerDefinition",
+      "native_size": 52,
+      "base_prefix": false,
+      "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+      "note": "音乐分层资源定义，不是MusicStream；两个24B字符串及mul，直属未知0B。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 24,
+          "name": "intro",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "分层intro路径",
+          "synchronization": "已选实际资源引用，不发原生string",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 24,
+          "size": 24,
+          "name": "main",
+          "type": "std::string",
+          "category": "资源",
+          "semantics": "分层main路径",
+          "synchronization": "已选实际资源引用，不发原生string",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 48,
+          "size": 4,
+          "name": "gain",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "分层mul，复制到对应MusicStream+18",
+          "synchronization": "留Host；实际voice最终gain已含该配置mul",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
         }
       ]
     },
@@ -3287,7 +3461,7 @@
       "name": "Music",
       "native_size": 872,
       "base_prefix": false,
-      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+      "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
       "note": "",
       "ranges": [
         {
@@ -3308,7 +3482,7 @@
           "type": "MusicStreamSet[2]",
           "category": "容器",
           "semantics": "两组0x184，crossfade时两者都可能发声",
-          "synchronization": "逻辑两voice当前状态；旧currentId单值不足",
+          "synchronization": "所有并存逻辑voice的最终参数；原生两组buffer及空槽不是网络结构",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
           "status": "已核",
           "native_type": "MusicStreamSet",
@@ -3321,7 +3495,7 @@
           "type": "u32",
           "category": "资源",
           "semantics": "当前曲目资源身份",
-          "synchronization": "发资源身份；不把数值ID跨mod版本直接当路径",
+          "synchronization": "只作为Host绑定实际曲目文件的来源；最终voice资源已有时不另发currentId Getter",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
           "status": "已核"
         },
@@ -3341,9 +3515,9 @@
           "size": 4,
           "name": "pitch",
           "type": "f32",
-          "category": "状态",
+          "category": "权威",
           "semantics": "当前有效pitch",
-          "synchronization": "同步；不是音量偏好",
+          "synchronization": "留Host作生产输入；每voice最终pitch已承接时不另发全局pitch",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
           "status": "已核"
         },
@@ -3374,9 +3548,9 @@
           "size": 1,
           "name": "enabled",
           "type": "bool",
-          "category": "换算",
+          "category": "权威",
           "semantics": "游戏请求与用户MusicEnabled需分开",
-          "synchronization": "不覆写Client本地静音/音量，发world期望",
+          "synchronization": "不发混合enabled字段；明确world影响由voice最终gain/pause/存续承接，个人Mute独立",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
           "status": "已核"
         },
@@ -3396,9 +3570,9 @@
           "size": 2,
           "name": "jingle_id",
           "type": "u16",
-          "category": "资源",
-          "semantics": "官方Hook塞入原生空隙的jingle ID",
-          "synchronization": "官方扩展，非原版字段；countdown<=0时公开ID为0",
+          "category": "本地",
+          "semantics": "官方Hook在super后写的jingle ID；原生拒绝启动时也可能更新",
+          "synchronization": "本地官方诊断ID，不作独立网络状态；实际有效jingle资源/实例另承接",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
           "status": "已核"
         },
@@ -3418,22 +3592,22 @@
         {
           "offset": 864,
           "size": 4,
-          "name": "jingle_gain",
+          "name": "background_ducking",
           "type": "f32",
-          "category": "换算",
-          "semantics": "jingle混音有效量",
-          "synchronization": "只发逻辑增益，后端音量不等于Host意图",
+          "category": "权威",
+          "semantics": "7D7DA0产生的背景音乐ducking当前量；非jingle流自身gain",
+          "synchronization": "留Host；最终voice gain已承接ducking，不重复发送",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
-          "status": "SDK声明"
+          "status": "已核"
         },
         {
           "offset": 868,
           "size": 4,
           "name": "jingle_countdown",
           "type": "i32",
-          "category": "换算",
-          "semantics": "jingle剩余保持相位",
-          "synchronization": "具名voice剩余时相；重复state不可重新PlayJingle",
+          "category": "权威",
+          "semantics": "jingle保持倒计时；公开ID读它，<=0不证明淡出已停止",
+          "synchronization": "留Host倒计时，不发剩余值或当游标；逻辑事件时点/必要段落另核",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
           "status": "已核"
         }
@@ -3443,41 +3617,41 @@
       "name": "SoundSample",
       "native_size": 56,
       "base_prefix": false,
-      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
-      "note": "",
+      "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+      "note": "修订4直属UNKNOWN16→4B；资源加载/声音实例身份分开，sample+28为pan，+34为配置weight。",
       "ranges": [
         {
           "offset": 0,
           "size": 24,
           "name": "path",
           "type": "std::string",
-          "category": "本地",
-          "semantics": "具体sample资源路径",
-          "synchronization": "事件须记录Host已选sample身份，不能在Client随机选",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+          "category": "资源",
+          "semantics": "已选sample文件元数据；实际加载解析路径另绑定",
+          "synchronization": "实际文件资源身份；不发string或在Client随机",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
           "offset": 24,
           "size": 4,
-          "name": "audio_handle",
-          "type": "AudioStream*",
+          "name": "audio_source",
+          "type": "SoundSourceBase*",
           "category": "本地",
-          "semantics": "本地音频对象",
-          "synchronization": "不发送",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+          "semantics": "本地source强引用对象指针",
+          "synchronization": "本地adapter拥有",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
           "offset": 28,
           "size": 4,
-          "name": "unknown_1C_1F",
-          "type": "bytes[4]",
-          "category": "未知",
-          "semantics": "未取得字段用途或填充证明",
-          "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
-          "status": "未知"
+          "name": "audio_control",
+          "type": "ReferenceCount*",
+          "category": "本地",
+          "semantics": "9F76E0/9F7CA0建立的本地强引用control",
+          "synchronization": "不上线",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
         },
         {
           "offset": 32,
@@ -3485,20 +3659,31 @@
           "name": "loop",
           "type": "bool",
           "category": "换算",
-          "semantics": "持续loop语义",
-          "synchronization": "循环集合记录当前状态",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+          "semantics": "当前source循环请求；StopLooping还查后端有效loop",
+          "synchronization": "只承接明确world用途voice的loop请求；不复制后端查询/缓存",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
           "offset": 33,
-          "size": 2,
-          "name": "play_pause",
-          "type": "u8[2]",
+          "size": 1,
+          "name": "pending_play",
+          "type": "bool",
           "category": "本地",
-          "semantics": "本地后端播放维护",
-          "synchronization": "不发送raw",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+          "semantics": "Play提交后置1；正常playing查询可清零",
+          "synchronization": "不作网络身份或声学确认",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 34,
+          "size": 1,
+          "name": "paused",
+          "type": "bool",
+          "category": "本地",
+          "semantics": "与通用source wrapper相同的暂停缓存",
+          "synchronization": "本地/具名world暂停分开",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
@@ -3508,31 +3693,31 @@
           "type": "bytes[1]",
           "category": "未知",
           "semantics": "未取得字段用途或填充证明",
-          "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+          "synchronization": "不读取、不发送；保留具名缺口",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "未知"
         },
         {
           "offset": 36,
           "size": 4,
-          "name": "volume",
+          "name": "backend_volume",
           "type": "f32",
           "category": "本地",
-          "semantics": "含Options SFX音量的后端最终音量",
-          "synchronization": "不发送raw；具名调用保留逻辑音量",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+          "semantics": "乘Host Options后后端音量；不同正常路径clamp不同",
+          "synchronization": "不直接发、不反除；Options前逻辑量及规则另记",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
           "offset": 40,
           "size": 4,
-          "name": "unknown_28_2B",
-          "type": "bytes[4]",
-          "category": "未知",
-          "semantics": "未取得字段用途或填充证明",
-          "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
-          "status": "未知"
+          "name": "pan",
+          "type": "f32",
+          "category": "换算",
+          "semantics": "9F7970及Room sound460内联路径写入；非mono可能不生效",
+          "synchronization": "有world用途时保留pan语义与资源规则；不传播后端失败/请求缓存为跨端事实",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
         },
         {
           "offset": 44,
@@ -3540,32 +3725,43 @@
           "name": "pitch",
           "type": "f32",
           "category": "换算",
-          "semantics": "sample最终音调",
-          "synchronization": "事件/持续voice结果",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+          "semantics": "当前source pitch",
+          "synchronization": "voice参数/Start实际结果",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
           "offset": 48,
           "size": 1,
-          "name": "streaming",
+          "name": "load_on_play",
           "type": "bool",
           "category": "本地",
-          "semantics": "是否按需加载的本地模式",
-          "synchronization": "不发送",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+          "semantics": "1走Play内正常加载，0可预载；旧streaming名称撤销",
+          "synchronization": "加载策略及后端状态本地",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "已核"
         },
         {
           "offset": 49,
-          "size": 7,
-          "name": "unknown_31_37",
-          "type": "bytes[7]",
+          "size": 3,
+          "name": "unknown_31_33",
+          "type": "bytes[3]",
           "category": "未知",
           "semantics": "未取得字段用途或填充证明",
           "synchronization": "不读取、不发送；保留具名缺口",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "未知"
+        },
+        {
+          "offset": 52,
+          "size": 4,
+          "name": "config_weight",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "907AA6将XML weight的atoi结果写此；907C60选样本未读本字",
+          "synchronization": "不重新按配置抽取，实际已选sample承接",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
         }
       ]
     },
@@ -3573,8 +3769,8 @@
       "name": "SoundEffect",
       "native_size": 440,
       "base_prefix": false,
-      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
-      "note": "",
+      "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+      "note": "修订4直属UNKNOWN30→2B；+19C是真实配置ID，不撤销+0是最近Play帧的纠错。",
       "ranges": [
         {
           "offset": 0,
@@ -3628,8 +3824,8 @@
           "name": "logical_volume",
           "type": "f32",
           "category": "权威",
-          "semantics": "最近Play写入的逻辑volume，不代表全部并存voice",
-          "synchronization": "不能当完整SFX快照；记录真实调用结果",
+          "semantics": "最近Play或AdjustVolume写入的sound级逻辑volume；不能表示不同slot历史",
+          "synchronization": "按实际命中voice缓存逻辑gain；不能当完整SFX快照",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
           "status": "已核"
         },
@@ -3657,14 +3853,36 @@
         },
         {
           "offset": 410,
-          "size": 30,
-          "name": "unknown_19A_1B7",
-          "type": "bytes[30]",
+          "size": 2,
+          "name": "unknown_19A_19B",
+          "type": "bytes[2]",
           "category": "未知",
           "semantics": "未取得字段用途或填充证明",
           "synchronization": "不读取、不发送；保留具名缺口",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
           "status": "未知"
+        },
+        {
+          "offset": 412,
+          "size": 4,
+          "name": "config_id",
+          "type": "i32",
+          "category": "本地",
+          "semantics": "真实配置ID；90783F解析写+19C，SDK+0误名",
+          "synchronization": "声音调用/资源身份匹配，不发本地对象",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 416,
+          "size": 24,
+          "name": "name",
+          "type": "std::string",
+          "category": "本地",
+          "semantics": "XML sound名称，构造/解析/析构均有对应操作",
+          "synchronization": "资源目录匹配，不发原生string",
+          "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+          "status": "已核"
         }
       ]
     },
@@ -3672,8 +3890,8 @@
       "name": "SoundEffects",
       "native_size": 24,
       "base_prefix": false,
-      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
-      "note": "SFXManager.zhl的size0是空壳声明；Manager+2A160..2A177实际SoundEffects18B，下一字段OptionsConfig+2A178。",
+      "evidence": "本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md",
+      "note": "SFXManager.zhl的size0是空壳声明；Manager+2A160..2A177实际SoundEffects18B，下一字段OptionsConfig+2A178。 修订4另核+14为modifier恢复步长；直属UNKNOWN4→0B。",
       "ranges": [
         {
           "offset": 0,
@@ -3702,22 +3920,22 @@
           "size": 4,
           "name": "volume_modifier",
           "type": "f32",
-          "category": "换算",
-          "semantics": "ClearVolumeModifier/Play消费的逻辑乘数",
-          "synchronization": "持续voice/事件记录有效逻辑音量，不复制全局混音设置",
+          "category": "权威",
+          "semantics": "Play/Adjust/ClearVolumeModifier消费的乘数；全部world/本地writer分类未闭合",
+          "synchronization": "最终world voice gain唯一承接；不再发乘数/平滑器，world/个人writer来源仍待分离",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
           "status": "已核"
         },
         {
           "offset": 20,
           "size": 4,
-          "name": "unknown_14_17",
-          "type": "bytes[4]",
-          "category": "未知",
-          "semantics": "未取得字段用途或填充证明",
-          "synchronization": "不读取、不发送；保留具名缺口",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
-          "status": "未知"
+          "name": "modifier_recovery_step",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "Manager92EB03读取；未暂停时令+10向1恢复的步长，92A19E构造初值0.005",
+          "synchronization": "原生步长/平滑器留Host；正常恢复后的Options前乘数及voice实际gain承接",
+          "evidence": "929E80构造92A194/92A19E；正常Manager Update92EAE4—92EB3E；presentation-audio-sources.md",
+          "status": "已核"
         }
       ]
     },
@@ -4224,11 +4442,11 @@
           "size": 4,
           "name": "shader",
           "type": "u32",
-          "category": "资源",
-          "semantics": "预定义shader选择",
-          "synchronization": "稳定shader资源/布局身份，不发GL handle",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/KAGE_Graphics_Image.zhl；ImagePatches.cpp；LuaRender.cpp:Renderer_CreateImage",
-          "status": "SDK声明"
+          "category": "本地",
+          "semantics": "Image自动选择/抑制shader的本地模式；3用于抑制，不等于ShaderType枚举",
+          "synchronization": "不直接把模式原数当资源ID；实际固定pass/GraphicsManager.shader映射AACAB0内置表",
+          "evidence": "官方ImageUtils.hpp::SubmitQuadForShader；KAGE_Graphics_Image.zhl；67DA3C→AACAB0",
+          "status": "已核"
         },
         {
           "offset": 36,
@@ -4391,16 +4609,16 @@
       "native_size": 572,
       "base_prefix": false,
       "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
-      "note": "",
+      "note": " 修订3补正常surface内容来源与逐层额外肖像临时变换采集点；原生孔保持。",
       "ranges": [
         {
           "offset": 0,
           "size": 4,
           "name": "mode",
           "type": "i32",
-          "category": "换算",
+          "category": "权威",
           "semantics": "Render只处理2/3等阶段",
-          "synchronization": "发最终显示pass选择，不作为ChangeRoom命令",
+          "synchronization": "留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核"
         },
@@ -4411,7 +4629,7 @@
           "type": "u32[2]",
           "category": "权威",
           "semantics": "过渡计数/总时长生产输入",
-          "synchronization": "发最终遮罩/进度，不在Client推进FSM",
+          "synchronization": "留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "推断"
         },
@@ -4420,9 +4638,9 @@
           "size": 4,
           "name": "scroll_progress",
           "type": "f32",
-          "category": "换算",
+          "category": "权威",
           "semantics": "滑动绘制当前比例",
-          "synchronization": "最终遮罩/位移结果",
+          "synchronization": "留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核"
         },
@@ -4431,9 +4649,9 @@
           "size": 4,
           "name": "direction",
           "type": "i32",
-          "category": "换算",
+          "category": "权威",
           "semantics": "转场可见滑动方向",
-          "synchronization": "最终pass参数，不驱动房间切换",
+          "synchronization": "留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核"
         },
@@ -4444,7 +4662,7 @@
           "type": "i32[2]",
           "category": "权威",
           "semantics": "目标roomIndex/dimension",
-          "synchronization": "结构owner单独接手；不把显示参数当加载命令",
+          "synchronization": "结构事务唯一接管；显示只引用已有结构身份，不发目标房间命令",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "SDK声明"
         },
@@ -4453,9 +4671,9 @@
           "size": 4,
           "name": "transition_style",
           "type": "i32",
-          "category": "换算",
+          "category": "权威",
           "semantics": "Render遮罩样式选择",
-          "synchronization": "最终pass选择/参数",
+          "synchronization": "留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核"
         },
@@ -4477,7 +4695,7 @@
           "type": "ImageStrongPair",
           "category": "资源",
           "semantics": "实际Image与本地引用计数control",
-          "synchronization": "本地重建的前场景surface；不能只发Image名称，见来源缺口",
+          "synchronization": "正常Host已完成的实际surface内容或完整已核recipe；分别绑定结构/资源版本；见presentation-resource-screen-sources.md，不只靠名字或重新Render旧房",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核",
           "native_type": "ImageStrongPair",
@@ -4490,7 +4708,7 @@
           "type": "ImageStrongPair",
           "category": "资源",
           "semantics": "实际Image与本地引用计数control",
-          "synchronization": "本地下个场景surface，结构版本共同准备",
+          "synchronization": "正常Host已完成的实际surface内容或完整已核recipe；分别绑定结构/资源版本；见presentation-resource-screen-sources.md，不只靠名字或重新Render旧房",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核",
           "native_type": "ImageStrongPair",
@@ -4527,7 +4745,7 @@
           "type": "map<int,ANM2>",
           "category": "容器",
           "semantics": "按层ID的额外肖像Sprite",
-          "synchronization": "发具名逻辑项与Sprite，树节点本地；原生cos/sin旋转由帧参数派生，不另发随机偏移",
+          "synchronization": "只发实际被采用的逐layer主/叠加最终贡献；原map/未经变换Sprite及变换生产输入不上线",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核"
         },
@@ -4536,9 +4754,9 @@
           "size": 8,
           "name": "scroll_offset",
           "type": "Vector",
-          "category": "状态",
+          "category": "权威",
           "semantics": "转场绘制偏移",
-          "synchronization": "同步最终两值或等价具名pass参数",
+          "synchronization": "留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核",
           "native_type": "Vector",
@@ -4560,9 +4778,9 @@
           "size": 4,
           "name": "boss_intro",
           "type": "i32",
-          "category": "换算",
+          "category": "权威",
           "semantics": "boss intro实际分支选择",
-          "synchronization": "最终pass存在性，不调用StartBossIntro",
+          "synchronization": "留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
           "status": "已核"
         }
@@ -4580,9 +4798,9 @@
           "size": 4,
           "name": "mode",
           "type": "u32",
-          "category": "换算",
+          "category": "权威",
           "semantics": "2淡入/3淡出等分支",
-          "synchronization": "发最终遮罩有效性，不驱动FSM",
+          "synchronization": "本路线只发最终遮罩颜色/alpha/存在性；原mode/计时/render_kind留Host，不按SDK bool重放",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/StageTransition.zhl；J273 909E60",
           "status": "已核"
         },
@@ -4593,7 +4811,7 @@
           "type": "u32[2]",
           "category": "权威",
           "semantics": "Render unsigned current/duration",
-          "synchronization": "发最终alpha；分母零不能运行原链补值",
+          "synchronization": "本路线只发最终遮罩颜色/alpha/存在性；原mode/计时/render_kind留Host，不按SDK bool重放",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/StageTransition.zhl；J273 909E60",
           "status": "已核"
         },
@@ -4613,9 +4831,9 @@
           "size": 4,
           "name": "render_kind",
           "type": "i32",
-          "category": "换算",
+          "category": "权威",
           "semantics": "909E60按DWORD==5决定白色；SDK只声明_sameStage bool",
-          "synchronization": "最终遮罩色/alpha；不能按SDK bool吞掉其余三字节",
+          "synchronization": "本路线只发最终遮罩颜色/alpha/存在性；原mode/计时/render_kind留Host，不按SDK bool重放",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/StageTransition.zhl；J273 909E60",
           "status": "已核"
         },
@@ -4637,7 +4855,7 @@
       "native_size": 1516,
       "base_prefix": false,
       "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
-      "note": "8FAC20含实体/配置绘制与未核payload；不能直接放行整函数或仅发四Sprite宣称完整。412A90/412AC0为cos/sin；+4B1属于+3A8 Sprite.loaded，不是独立外层字段。",
+      "note": "8FAC20含实体/配置绘制与未核payload；不能直接放行整函数或仅发四Sprite宣称完整。412A90/412AC0为cos/sin；+4B1属于+3A8 Sprite.loaded，不是独立外层字段。 修订3核定+360配置索引和+4C0队列头，直属未知61→37B；正常消费后的有序贡献取代未名payload交接，原始未知保留于修订历史。",
       "ranges": [
         {
           "offset": 0,
@@ -4646,7 +4864,7 @@
           "type": "i32",
           "category": "换算",
           "semantics": "实际绘制根开关",
-          "synchronization": "同步最终存在性/场景阶段",
+          "synchronization": "只承接当前完整贡献批次的有效性/存在语义，不发原生流程状态或启动Show",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核"
         },
@@ -4655,9 +4873,9 @@
           "size": 4,
           "name": "display_frame",
           "type": "u32",
-          "category": "状态",
+          "category": "权威",
           "semantics": "进度条/图标闪烁读本场景帧",
-          "synchronization": "同步场景显示相位，不以GameFrame代替",
+          "synchronization": "留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核"
         },
@@ -4679,7 +4897,7 @@
           "type": "ANM2",
           "category": "容器",
           "semantics": "内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传",
-          "synchronization": "同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update",
+          "synchronization": "只承接该Sprite每次实际主/叠加有序贡献的资源/姿态；保留必要ANM2插值字段，不复制完整生产owner",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核",
           "native_type": "ANM2",
@@ -4692,7 +4910,7 @@
           "type": "ANM2",
           "category": "容器",
           "semantics": "内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传",
-          "synchronization": "同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update",
+          "synchronization": "只承接该Sprite每次实际主/叠加有序贡献的资源/姿态；保留必要ANM2插值字段，不复制完整生产owner",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核",
           "native_type": "ANM2",
@@ -4705,7 +4923,7 @@
           "type": "ANM2",
           "category": "容器",
           "semantics": "内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传",
-          "synchronization": "同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update",
+          "synchronization": "只承接该Sprite每次实际主/叠加有序贡献的资源/姿态；保留必要ANM2插值字段，不复制完整生产owner",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核",
           "native_type": "ANM2",
@@ -4716,31 +4934,31 @@
           "size": 4,
           "name": "progress_alpha",
           "type": "f32",
-          "category": "状态",
+          "category": "权威",
           "semantics": "进度背景当前透明量",
-          "synchronization": "同步最终值",
+          "synchronization": "留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核"
         },
         {
           "offset": 864,
           "size": 4,
-          "name": "unknown_360_363",
-          "type": "bytes[4]",
-          "category": "未知",
-          "semantics": "未取得字段用途或填充证明",
-          "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
-          "status": "未知"
+          "name": "selected_config_index",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Host选中Nightmare配置字符串条目的索引",
+          "synchronization": "留Host；同步实际可见Sprite/图像贡献",
+          "evidence": "8FBE7B—8FBE9A按此索引读取配置字符串集合",
+          "status": "已核"
         },
         {
           "offset": 868,
           "size": 4,
           "name": "progress_stage",
           "type": "i32",
-          "category": "状态",
+          "category": "权威",
           "semantics": "实际进度阶段选择",
-          "synchronization": "同步，不能从当前floor猜完整路线",
+          "synchronization": "留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核"
         },
@@ -4749,9 +4967,9 @@
           "size": 1,
           "name": "progress_flag",
           "type": "bool",
-          "category": "状态",
+          "category": "权威",
           "semantics": "进度路线绘制分支",
-          "synchronization": "同步最终显示结果",
+          "synchronization": "留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核"
         },
@@ -4771,9 +4989,9 @@
           "size": 56,
           "name": "progress_map",
           "type": "i32[14]",
-          "category": "状态",
+          "category": "权威",
           "semantics": "公开14项最终路线图",
-          "synchronization": "同步有序14值，非全局生成器",
+          "synchronization": "留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核"
         },
@@ -4795,7 +5013,7 @@
           "type": "ANM2",
           "category": "容器",
           "semantics": "内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传",
-          "synchronization": "同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update",
+          "synchronization": "只承接该Sprite每次实际主/叠加有序贡献的资源/姿态；保留必要ANM2插值字段，不复制完整生产owner",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核",
           "native_type": "ANM2",
@@ -4806,22 +5024,35 @@
           "size": 1,
           "name": "bubble_visible",
           "type": "bool",
-          "category": "状态",
+          "category": "权威",
           "semantics": "bubble绘制开关",
-          "synchronization": "同步",
+          "synchronization": "留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核"
         },
         {
           "offset": 1213,
-          "size": 23,
-          "name": "unknown_4BD_4D3",
-          "type": "bytes[23]",
+          "size": 3,
+          "name": "unknown_4BD_4BF",
+          "type": "bytes[3]",
           "category": "未知",
           "semantics": "未取得字段用途或填充证明",
           "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
-          "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
+          "evidence": "presentation-resource-screen-sources.md；J273 VA−RVA=0x400000；本轮仅静态核对",
           "status": "未知"
+        },
+        {
+          "offset": 1216,
+          "size": 20,
+          "name": "snapshot_queue",
+          "type": "NightmareSnapshotQueue",
+          "category": "容器",
+          "semantics": "正常Show维护的Host条件显示队列；20B头及32B元素见独立表",
+          "synchronization": "不发原生队列/历史；8FAF1A—8FB178等正常消费后记录有序最终显示贡献",
+          "evidence": "8FC0DA—8FC151；8FC8DE—8FC943；8FAF1A—8FAF87",
+          "status": "已核",
+          "native_type": "NightmareSnapshotQueue",
+          "native_count": 1
         },
         {
           "offset": 1236,
@@ -4830,7 +5061,7 @@
           "type": "ANM2",
           "category": "容器",
           "semantics": "内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传",
-          "synchronization": "同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update",
+          "synchronization": "只承接该Sprite每次实际主/叠加有序贡献的资源/姿态；保留必要ANM2插值字段，不复制完整生产owner",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核",
           "native_type": "ANM2",
@@ -4841,9 +5072,9 @@
           "size": 1,
           "name": "dogma",
           "type": "bool",
-          "category": "状态",
+          "category": "权威",
           "semantics": "Dogma nightmare显示类型",
-          "synchronization": "同步实际显示分支",
+          "synchronization": "留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发",
           "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
           "status": "已核"
         },
@@ -5430,6 +5661,233 @@
           "status": "已核"
         }
       ]
+    },
+    {
+      "name": "NightmareSnapshotQueue",
+      "native_size": 20,
+      "base_prefix": false,
+      "evidence": "J273 Show8FBE00及Render8FAC20，目标版实布局，不由通用deque ABI外推",
+      "note": "Host生产容器；一块32B仅一元素；未知外部对象完整ABI不由此核定。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "proxy",
+          "type": "pointer",
+          "category": "本地",
+          "semantics": "容器proxy，Show构造/交换并维护回指",
+          "synchronization": "不传",
+          "evidence": "8FC0BD—8FC110",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "map",
+          "type": "pointer",
+          "category": "本地",
+          "semantics": "本进程32B单元素块指针表",
+          "synchronization": "不传地址",
+          "evidence": "8FC112—8FC124；8FC90D—8FC929",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "map_size",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host块指针表容量",
+          "synchronization": "不传容器容量",
+          "evidence": "8FC12A—8FC136；8FC8E7—8FC906",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "offset",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host队首偏移",
+          "synchronization": "不传队列生产历史",
+          "evidence": "8FC13C—8FC148；8FAF2B—8FAF3F",
+          "status": "已核"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "size",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host队列元素数",
+          "synchronization": "只消费正常已采用结果；不发送历史集合",
+          "evidence": "8FC14E—8FC154；8FC943",
+          "status": "已核"
+        }
+      ]
+    },
+    {
+      "name": "NightmareSnapshot",
+      "native_size": 32,
+      "base_prefix": false,
+      "evidence": "J273 8FC916—8FC943分配/复制；8FAF1A—8FB178四slot消费",
+      "note": "只说明该32B记录的存储和用途，不宣称所指实体/配置对象内部完整。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 24,
+          "name": "config_text",
+          "type": "std::string",
+          "category": "权威",
+          "semantics": "正常Show保存的配置字符串",
+          "synchronization": "不重放生产；最终已选资源/显示结果承接",
+          "evidence": "8FC916分配20h；8FC932复制24B string",
+          "status": "已核"
+        },
+        {
+          "offset": 24,
+          "size": 4,
+          "name": "source0",
+          "type": "pointer",
+          "category": "本地",
+          "semantics": "第一个已选显示来源对象/配置；kind由实际Item/Boss slot决定",
+          "synchronization": "不发/不跨线程持有；正常消费后复制显示结果",
+          "evidence": "8FC93D；8FAF87；8FB0E3—8FB178",
+          "status": "已核"
+        },
+        {
+          "offset": 28,
+          "size": 4,
+          "name": "source1",
+          "type": "pointer",
+          "category": "本地",
+          "semantics": "第二个已选显示来源对象/配置；含实体专用Sprite路径",
+          "synchronization": "不发/不跨线程持有；正常消费后复制显示结果",
+          "evidence": "8FC940；8FAF87；8FB093—8FB0D6",
+          "status": "已核"
+        }
+      ]
+    },
+    {
+      "name": "BossOverlayDefinition",
+      "native_size": 56,
+      "base_prefix": false,
+      "evidence": "J273 41C2F0构造/41C3D0解析/41CD30选择，Game ctor五份步长38h",
+      "note": "五份静态生产定义不下行；每份3B未知不称padding。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "id",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "bossoverlays.xml entry id",
+          "synchronization": "生产配置留Host",
+          "evidence": "41C3D0 parser写+11C+38*id；41C2F0",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 24,
+          "name": "anm2_path",
+          "type": "std::string",
+          "category": "权威",
+          "semantics": "配置选择的ANM2路径",
+          "synchronization": "只传当前实际Sprite资源，不发五份定义",
+          "evidence": "41C3D0 anm2root/anm2；41CD62",
+          "status": "已核"
+        },
+        {
+          "offset": 28,
+          "size": 24,
+          "name": "animation_name",
+          "type": "std::string",
+          "category": "权威",
+          "semantics": "配置选择的动画名",
+          "synchronization": "只传当前实际姿态",
+          "evidence": "41C3D0 anim；41CD8F—41CE0D",
+          "status": "已核"
+        },
+        {
+          "offset": 52,
+          "size": 1,
+          "name": "persist",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "配置persist；Update据此决定结束",
+          "synchronization": "不运行Update生产",
+          "evidence": "41C3D0 persist；41CB74",
+          "status": "已核"
+        },
+        {
+          "offset": 53,
+          "size": 3,
+          "name": "unknown_35_37",
+          "type": "bytes[3]",
+          "category": "未知",
+          "semantics": "未取得字段用途或填充证明",
+          "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+          "evidence": "presentation-resource-screen-sources.md；J273 VA−RVA=0x400000；本轮仅静态核对",
+          "status": "未知"
+        }
+      ]
+    },
+    {
+      "name": "BossOverlay",
+      "native_size": 564,
+      "base_prefix": false,
+      "evidence": "Game+1D294..1D4C7；6ED4B0构造；6F0F76加载bossoverlays.xml；41CC80绘制",
+      "note": "静态识别的原生连续对象；并非SDK GenericPopup。直属0B未知，五份定义共15B未知、ANM2未知另计。",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "active",
+          "type": "i32",
+          "category": "换算",
+          "semantics": "当前Boss覆盖画面是否存在",
+          "synchronization": "当前有效贡献的存在性；已有贡献批次表达时不再重复active位",
+          "evidence": "41CC86；41CE14",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "selected_entry",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "当前0..4配置选择；entry3的Update有进度/切房副作用",
+          "synchronization": "当前实际Sprite承接；选择命令不上线",
+          "evidence": "41CD51—41CD72；41CB9F—41CC53",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 276,
+          "name": "sprite",
+          "type": "ANM2",
+          "category": "容器",
+          "semantics": "当前实际Sprite/资源；Render重设视口比例",
+          "synchronization": "当前资源/姿态；比例按Client视口除480/270派生",
+          "evidence": "41CCB0—41CD0F",
+          "status": "已核",
+          "native_type": "ANM2",
+          "native_count": 1
+        },
+        {
+          "offset": 284,
+          "size": 280,
+          "name": "definitions",
+          "type": "BossOverlayDefinition[5]",
+          "category": "容器",
+          "semantics": "从bossoverlays.xml解析的五份Host生产定义",
+          "synchronization": "不发送生产定义；嵌套未知保持",
+          "evidence": "6ED4B0五份38h构造；6F0F76；41C3D0",
+          "status": "已核",
+          "native_type": "BossOverlayDefinition",
+          "native_count": 5
+        }
+      ]
     }
   ],
   "external_ranges": [
@@ -5437,15 +5895,29 @@
       "owner": "Game",
       "start": "0x1D294",
       "end": "0x1D4C8",
-      "classification": "UNKNOWN",
-      "reason": "相邻UI owner与边界未核，不能套旧GenericPopup声明大小"
+      "classification": "已识别BossOverlay，见独立字节表",
+      "reason": "6F0F76加载bossoverlays.xml；直属未知0B，嵌套定义15B及ANM2未知另计"
     },
     {
       "owner": "Game",
       "start": "0x24430",
+      "end": "0x24440",
+      "classification": "UNKNOWN",
+      "reason": "PauseScreen SDK前缀外；本轮未核这16B的完整用途"
+    },
+    {
+      "owner": "Game",
+      "start": "0x24440",
+      "end": "0x24441",
+      "classification": "本地/原版Online排除",
+      "reason": "PauseScreen+E04；98DF32/98DF69和98E23D/98E2B9控制密码显示，98D1AD切换；不读取原版Online补C/S显示"
+    },
+    {
+      "owner": "Game",
+      "start": "0x24441",
       "end": "0x25444",
       "classification": "UNKNOWN",
-      "reason": "PauseScreen SDK前缀之后区域；98DDA0还有相对E04正面读取，不能宣称整个区域本地或padding"
+      "reason": "其余Pause后缀及后续owner边界不能由已核密码1B外推，继续保留"
     },
     {
       "owner": "Game",
@@ -5515,5 +5987,1194 @@
     },
     "evidence": "965BDE/965BFF/965C0C；966680 Lost分支；client_presentation_native.cpp::QuestionImage",
     "note": "旧未知如实保留；其他Minimap/嵌套未知不变；生产版本56，无测试"
+  },
+  "resource_screen_source_revision": {
+    "date": "2026-11-10",
+    "source": "presentation-resource-screen-sources.md",
+    "previous_nightmare_ranges": [
+      {
+        "offset": 864,
+        "size": 4,
+        "name": "unknown_360_363",
+        "type": "bytes[4]",
+        "category": "未知",
+        "semantics": "未取得字段用途或填充证明",
+        "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
+        "status": "未知"
+      },
+      {
+        "offset": 1213,
+        "size": 23,
+        "name": "unknown_4BD_4D3",
+        "type": "bytes[23]",
+        "category": "未知",
+        "semantics": "未取得字段用途或填充证明",
+        "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20",
+        "status": "未知"
+      }
+    ],
+    "previous_image_shader_range": {
+      "offset": 32,
+      "size": 4,
+      "name": "shader",
+      "type": "u32",
+      "category": "资源",
+      "semantics": "预定义shader选择",
+      "synchronization": "稳定shader资源/布局身份，不发GL handle",
+      "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/KAGE_Graphics_Image.zhl；ImagePatches.cpp；LuaRender.cpp:Renderer_CreateImage",
+      "status": "SDK声明"
+    },
+    "previous_room_surface_ranges": [
+      {
+        "offset": 40,
+        "size": 8,
+        "name": "previous_surface",
+        "type": "ImageStrongPair",
+        "category": "资源",
+        "semantics": "实际Image与本地引用计数control",
+        "synchronization": "本地重建的前场景surface；不能只发Image名称，见来源缺口",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
+        "status": "已核",
+        "native_type": "ImageStrongPair",
+        "native_count": 1
+      },
+      {
+        "offset": 48,
+        "size": 8,
+        "name": "next_surface",
+        "type": "ImageStrongPair",
+        "category": "资源",
+        "semantics": "实际Image与本地引用计数control",
+        "synchronization": "本地下个场景surface，结构版本共同准备",
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0",
+        "status": "已核",
+        "native_type": "ImageStrongPair",
+        "native_count": 1
+      }
+    ],
+    "previous_external_ranges": [
+      {
+        "owner": "Game",
+        "start": "0x1D294",
+        "end": "0x1D4C8",
+        "classification": "UNKNOWN",
+        "reason": "相邻UI owner与边界未核，不能套旧GenericPopup声明大小"
+      },
+      {
+        "owner": "Game",
+        "start": "0x24430",
+        "end": "0x25444",
+        "classification": "UNKNOWN",
+        "reason": "PauseScreen SDK前缀之后区域；98DDA0还有相对E04正面读取，不能宣称整个区域本地或padding"
+      }
+    ],
+    "previous_nightmare_direct_unknown_bytes": 61,
+    "current_nightmare_direct_unknown_bytes": 37,
+    "note": "保留旧未知与旧判断；新增四类型共49类型/视图；模式4核为原版Deathmatch排除；生产版本57，未构建或测试"
+  },
+  "audio_source_revision": {
+    "date": "2026-11-10",
+    "revision": 4,
+    "production_layout_version": 57,
+    "sources": "presentation-audio-sources.md",
+    "previous_types": {
+      "MusicStream": {
+        "name": "MusicStream",
+        "native_size": 52,
+        "base_prefix": false,
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+        "note": "",
+        "ranges": [
+          {
+            "offset": 0,
+            "size": 4,
+            "name": "audio_handle",
+            "type": "AudioStream*",
+            "category": "本地",
+            "semantics": "本地音频后端对象",
+            "synchronization": "绝不发送",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 4,
+            "size": 4,
+            "name": "unknown_4_7",
+            "type": "bytes[4]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "未知"
+          },
+          {
+            "offset": 8,
+            "size": 3,
+            "name": "play_loop_pause",
+            "type": "u8[3]",
+            "category": "换算",
+            "semantics": "当前播放/循环/暂停控制状态",
+            "synchronization": "具名音乐/循环声音最终语义，不原样memcpy此组",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 11,
+            "size": 1,
+            "name": "unknown_B_B",
+            "type": "bytes[1]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "未知"
+          },
+          {
+            "offset": 12,
+            "size": 4,
+            "name": "pitch",
+            "type": "f32",
+            "category": "换算",
+            "semantics": "当前音调",
+            "synchronization": "同步有效最终pitch，不传本地后端地址",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 16,
+            "size": 12,
+            "name": "unknown_10_1B",
+            "type": "bytes[12]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "未知"
+          },
+          {
+            "offset": 28,
+            "size": 4,
+            "name": "volume",
+            "type": "f32",
+            "category": "换算",
+            "semantics": "当前流音量",
+            "synchronization": "只同步剥离本地Options音量后的逻辑增益",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 32,
+            "size": 4,
+            "name": "target_volume",
+            "type": "f32",
+            "category": "权威",
+            "semantics": "音量滑动目标",
+            "synchronization": "最终增益承接；原生值含本地设置，不直接发送",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 36,
+            "size": 4,
+            "name": "fade_rate",
+            "type": "f32",
+            "category": "权威",
+            "semantics": "增益生产速率",
+            "synchronization": "最终增益/具名事件承接",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 40,
+            "size": 1,
+            "name": "playing",
+            "type": "bool",
+            "category": "换算",
+            "semantics": "本地流播放结果",
+            "synchronization": "期望播放语义与本地准备结果分开",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 41,
+            "size": 3,
+            "name": "unknown_29_2B",
+            "type": "bytes[3]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "未知"
+          },
+          {
+            "offset": 44,
+            "size": 4,
+            "name": "playback_counter",
+            "type": "u32",
+            "category": "本地",
+            "semantics": "后端维护计数",
+            "synchronization": "不发送，精确时基尚无证明",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "推断"
+          },
+          {
+            "offset": 48,
+            "size": 4,
+            "name": "unknown_30_33",
+            "type": "bytes[4]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "未知"
+          }
+        ]
+      },
+      "MusicStreamSet": {
+        "name": "MusicStreamSet",
+        "native_size": 388,
+        "base_prefix": false,
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+        "note": "",
+        "ranges": [
+          {
+            "offset": 0,
+            "size": 364,
+            "name": "streams",
+            "type": "MusicStream[7]",
+            "category": "本地",
+            "semantics": "主流+六layer，各0x34",
+            "synchronization": "本地构造；线上用最终选中曲目/六层mask/逻辑增益",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核",
+            "native_type": "MusicStream",
+            "native_count": 7
+          },
+          {
+            "offset": 364,
+            "size": 4,
+            "name": "layers",
+            "type": "u32",
+            "category": "换算",
+            "semantics": "六个layer开关，7D8A40实际读取",
+            "synchronization": "发低6位最终mask，不局限旧无参getter",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 368,
+            "size": 4,
+            "name": "mix_mode",
+            "type": "u32",
+            "category": "换算",
+            "semantics": "layer影响主流的最终混音分支",
+            "synchronization": "纳入具名逻辑混音结果；不靠Client gameplay重算",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 372,
+            "size": 4,
+            "name": "volume",
+            "type": "f32",
+            "category": "换算",
+            "semantics": "流组当前最终音量，含本地Options乘数",
+            "synchronization": "不得直接发送；从真实控制调用记录逻辑增益，0音量不可反除",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 376,
+            "size": 4,
+            "name": "target_volume",
+            "type": "f32",
+            "category": "权威",
+            "semantics": "流组目标音量",
+            "synchronization": "不传，最终逻辑增益承接",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 380,
+            "size": 4,
+            "name": "fade_rate",
+            "type": "f32",
+            "category": "权威",
+            "semantics": "流组淡入淡出生产速率",
+            "synchronization": "不传原生生产器值",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 384,
+            "size": 1,
+            "name": "playing",
+            "type": "bool",
+            "category": "本地",
+            "semantics": "组播放维护状态",
+            "synchronization": "本地后端维护，逻辑期望另外承载",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 385,
+            "size": 3,
+            "name": "unknown_181_183",
+            "type": "bytes[3]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "未知"
+          }
+        ]
+      },
+      "MusicEntry": {
+        "name": "MusicEntry",
+        "native_size": 96,
+        "base_prefix": false,
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+        "note": "除SDK名称外保持UNKNOWN；7D8360检验entry+44资源存在不等于已解出整条音频配置。",
+        "ranges": [
+          {
+            "offset": 0,
+            "size": 4,
+            "name": "unknown_0_3",
+            "type": "bytes[4]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "未知"
+          },
+          {
+            "offset": 4,
+            "size": 24,
+            "name": "name",
+            "type": "std::string",
+            "category": "本地",
+            "semantics": "XML曲目名称",
+            "synchronization": "本地资源匹配",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "SDK声明"
+          },
+          {
+            "offset": 28,
+            "size": 68,
+            "name": "unknown_1C_5F",
+            "type": "bytes[68]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "未知"
+          }
+        ]
+      },
+      "Music": {
+        "name": "Music",
+        "native_size": 872,
+        "base_prefix": false,
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+        "note": "",
+        "ranges": [
+          {
+            "offset": 0,
+            "size": 4,
+            "name": "current_stream",
+            "type": "u32",
+            "category": "本地",
+            "semantics": "两组crossfade缓冲选择",
+            "synchronization": "不发后端槽号；发稳定逻辑voice身份",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 4,
+            "size": 776,
+            "name": "stream_sets",
+            "type": "MusicStreamSet[2]",
+            "category": "容器",
+            "semantics": "两组0x184，crossfade时两者都可能发声",
+            "synchronization": "逻辑两voice当前状态；旧currentId单值不足",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核",
+            "native_type": "MusicStreamSet",
+            "native_count": 2
+          },
+          {
+            "offset": 780,
+            "size": 4,
+            "name": "current_id",
+            "type": "u32",
+            "category": "资源",
+            "semantics": "当前曲目资源身份",
+            "synchronization": "发资源身份；不把数值ID跨mod版本直接当路径",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 784,
+            "size": 4,
+            "name": "queued_id",
+            "type": "u32",
+            "category": "权威",
+            "semantics": "原生待播放控制",
+            "synchronization": "需要续播时记录Host实际选择/事件；不授权Client按游戏条件选曲",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 788,
+            "size": 4,
+            "name": "pitch",
+            "type": "f32",
+            "category": "状态",
+            "semantics": "当前有效pitch",
+            "synchronization": "同步；不是音量偏好",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 792,
+            "size": 4,
+            "name": "target_pitch",
+            "type": "f32",
+            "category": "权威",
+            "semantics": "pitch滑动目标",
+            "synchronization": "不传；同步最终pitch/具名控制事件",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 796,
+            "size": 12,
+            "name": "entries",
+            "type": "vector<MusicEntry>",
+            "category": "本地",
+            "semantics": "曲目配置/后端资源池",
+            "synchronization": "不传容器地址/配置实例；资源目录匹配",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 808,
+            "size": 1,
+            "name": "enabled",
+            "type": "bool",
+            "category": "换算",
+            "semantics": "游戏请求与用户MusicEnabled需分开",
+            "synchronization": "不覆写Client本地静音/音量，发world期望",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 809,
+            "size": 1,
+            "name": "unknown_329_329",
+            "type": "bytes[1]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "未知"
+          },
+          {
+            "offset": 810,
+            "size": 2,
+            "name": "jingle_id",
+            "type": "u16",
+            "category": "资源",
+            "semantics": "官方Hook塞入原生空隙的jingle ID",
+            "synchronization": "官方扩展，非原版字段；countdown<=0时公开ID为0",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          },
+          {
+            "offset": 812,
+            "size": 52,
+            "name": "jingle_stream",
+            "type": "MusicStream",
+            "category": "本地",
+            "semantics": "独立jingle音频流",
+            "synchronization": "语义voice状态/开始事件；本地构造",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核",
+            "native_type": "MusicStream",
+            "native_count": 1
+          },
+          {
+            "offset": 864,
+            "size": 4,
+            "name": "jingle_gain",
+            "type": "f32",
+            "category": "换算",
+            "semantics": "jingle混音有效量",
+            "synchronization": "只发逻辑增益，后端音量不等于Host意图",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "SDK声明"
+          },
+          {
+            "offset": 868,
+            "size": 4,
+            "name": "jingle_countdown",
+            "type": "i32",
+            "category": "换算",
+            "semantics": "jingle剩余保持相位",
+            "synchronization": "具名voice剩余时相；重复state不可重新PlayJingle",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp",
+            "status": "已核"
+          }
+        ]
+      },
+      "SoundSample": {
+        "name": "SoundSample",
+        "native_size": 56,
+        "base_prefix": false,
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+        "note": "",
+        "ranges": [
+          {
+            "offset": 0,
+            "size": 24,
+            "name": "path",
+            "type": "std::string",
+            "category": "本地",
+            "semantics": "具体sample资源路径",
+            "synchronization": "事件须记录Host已选sample身份，不能在Client随机选",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 24,
+            "size": 4,
+            "name": "audio_handle",
+            "type": "AudioStream*",
+            "category": "本地",
+            "semantics": "本地音频对象",
+            "synchronization": "不发送",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 28,
+            "size": 4,
+            "name": "unknown_1C_1F",
+            "type": "bytes[4]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "未知"
+          },
+          {
+            "offset": 32,
+            "size": 1,
+            "name": "loop",
+            "type": "bool",
+            "category": "换算",
+            "semantics": "持续loop语义",
+            "synchronization": "循环集合记录当前状态",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 33,
+            "size": 2,
+            "name": "play_pause",
+            "type": "u8[2]",
+            "category": "本地",
+            "semantics": "本地后端播放维护",
+            "synchronization": "不发送raw",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 35,
+            "size": 1,
+            "name": "unknown_23_23",
+            "type": "bytes[1]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "未知"
+          },
+          {
+            "offset": 36,
+            "size": 4,
+            "name": "volume",
+            "type": "f32",
+            "category": "本地",
+            "semantics": "含Options SFX音量的后端最终音量",
+            "synchronization": "不发送raw；具名调用保留逻辑音量",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 40,
+            "size": 4,
+            "name": "unknown_28_2B",
+            "type": "bytes[4]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口，不宣称语义完整",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "未知"
+          },
+          {
+            "offset": 44,
+            "size": 4,
+            "name": "pitch",
+            "type": "f32",
+            "category": "换算",
+            "semantics": "sample最终音调",
+            "synchronization": "事件/持续voice结果",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 48,
+            "size": 1,
+            "name": "streaming",
+            "type": "bool",
+            "category": "本地",
+            "semantics": "是否按需加载的本地模式",
+            "synchronization": "不发送",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 49,
+            "size": 7,
+            "name": "unknown_31_37",
+            "type": "bytes[7]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "未知"
+          }
+        ]
+      },
+      "SoundEffect": {
+        "name": "SoundEffect",
+        "native_size": 440,
+        "base_prefix": false,
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+        "note": "",
+        "ranges": [
+          {
+            "offset": 0,
+            "size": 4,
+            "name": "last_play_frame",
+            "type": "i32",
+            "category": "本地",
+            "semantics": "907C60写ManagerFrame/2，SDK误名_id",
+            "synchronization": "不作为SoundEffect ID同步",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 4,
+            "size": 4,
+            "name": "next_allowed_frame",
+            "type": "i32",
+            "category": "权威",
+            "semantics": "重复播放节流截止帧",
+            "synchronization": "不发；FrameDelay不是声音启动延迟",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 8,
+            "size": 392,
+            "name": "samples",
+            "type": "SoundSample[7]",
+            "category": "本地",
+            "semantics": "七个物理sample槽，实际数量由+190限定",
+            "synchronization": "不发原生数组；选中资源由事件/持续voice结果承接",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核",
+            "native_type": "SoundSample",
+            "native_count": 7
+          },
+          {
+            "offset": 400,
+            "size": 4,
+            "name": "sample_count",
+            "type": "u32",
+            "category": "本地",
+            "semantics": "可选sample数",
+            "synchronization": "资源配置本地匹配，不驱动Client随机",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 404,
+            "size": 4,
+            "name": "logical_volume",
+            "type": "f32",
+            "category": "权威",
+            "semantics": "最近Play写入的逻辑volume，不代表全部并存voice",
+            "synchronization": "不能当完整SFX快照；记录真实调用结果",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 408,
+            "size": 1,
+            "name": "loaded",
+            "type": "bool",
+            "category": "本地",
+            "semantics": "资源实际加载结果",
+            "synchronization": "本地owner维护",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 409,
+            "size": 1,
+            "name": "preload",
+            "type": "bool",
+            "category": "本地",
+            "semantics": "预加载策略",
+            "synchronization": "本地资源策略",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 410,
+            "size": 30,
+            "name": "unknown_19A_1B7",
+            "type": "bytes[30]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "未知"
+          }
+        ]
+      },
+      "SoundEffects": {
+        "name": "SoundEffects",
+        "native_size": 24,
+        "base_prefix": false,
+        "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+        "note": "SFXManager.zhl的size0是空壳声明；Manager+2A160..2A177实际SoundEffects18B，下一字段OptionsConfig+2A178。",
+        "ranges": [
+          {
+            "offset": 0,
+            "size": 12,
+            "name": "sounds",
+            "type": "vector<SoundEffect>",
+            "category": "本地",
+            "semantics": "实际SFXManager底层类型",
+            "synchronization": "本地资源池，不发地址/所有后端状态",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 12,
+            "size": 4,
+            "name": "load_count",
+            "type": "i32",
+            "category": "本地",
+            "semantics": "加载计数",
+            "synchronization": "不传",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 16,
+            "size": 4,
+            "name": "volume_modifier",
+            "type": "f32",
+            "category": "换算",
+            "semantics": "ClearVolumeModifier/Play消费的逻辑乘数",
+            "synchronization": "持续voice/事件记录有效逻辑音量，不复制全局混音设置",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "已核"
+          },
+          {
+            "offset": 20,
+            "size": 4,
+            "name": "unknown_14_17",
+            "type": "bytes[4]",
+            "category": "未知",
+            "semantics": "未取得字段用途或填充证明",
+            "synchronization": "不读取、不发送；保留具名缺口",
+            "evidence": "F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60",
+            "status": "未知"
+          }
+        ]
+      }
+    },
+    "direct_unknown_changes": {
+      "MusicStream": [
+        24,
+        4
+      ],
+      "MusicEntry": [
+        72,
+        2
+      ],
+      "SoundSample": [
+        16,
+        4
+      ],
+      "SoundEffect": [
+        30,
+        2
+      ],
+      "SoundEffects": [
+        4,
+        0
+      ]
+    },
+    "corrections": [
+      "MusicStream+0C是后端volume；pitch在+14",
+      "+2C正常Update计数不是游标",
+      "Music+360是背景ducking不是jingle gain",
+      "sample+30每次Play加载模式",
+      "MC_POST_SFX_PLAY不是启动确认",
+      "jingle官方ID可由未生效调用写入"
+    ],
+    "remaining": "音乐Options前全部writer、异步结束、视频音轨、精确seek/segment和重连相位未闭合；未接线/构建/测试"
+  },
+  "synchronization_review_revision": {
+    "revision": 5,
+    "date": "2026-11-10",
+    "production_layout_version": 57,
+    "document": "presentation-source-synchronization-review.md",
+    "previous_decisions": [
+      {
+        "type": "RoomTransition",
+        "offset": 0,
+        "name": "mode",
+        "previous_category": "换算",
+        "previous_synchronization": "发最终显示pass选择，不作为ChangeRoom命令"
+      },
+      {
+        "type": "RoomTransition",
+        "offset": 4,
+        "name": "progress_inputs",
+        "previous_category": "权威",
+        "previous_synchronization": "发最终遮罩/进度，不在Client推进FSM"
+      },
+      {
+        "type": "RoomTransition",
+        "offset": 12,
+        "name": "scroll_progress",
+        "previous_category": "换算",
+        "previous_synchronization": "最终遮罩/位移结果"
+      },
+      {
+        "type": "RoomTransition",
+        "offset": 16,
+        "name": "direction",
+        "previous_category": "换算",
+        "previous_synchronization": "最终pass参数，不驱动房间切换"
+      },
+      {
+        "type": "RoomTransition",
+        "offset": 28,
+        "name": "transition_style",
+        "previous_category": "换算",
+        "previous_synchronization": "最终pass选择/参数"
+      },
+      {
+        "type": "RoomTransition",
+        "offset": 556,
+        "name": "scroll_offset",
+        "previous_category": "状态",
+        "previous_synchronization": "同步最终两值或等价具名pass参数"
+      },
+      {
+        "type": "RoomTransition",
+        "offset": 568,
+        "name": "boss_intro",
+        "previous_category": "换算",
+        "previous_synchronization": "最终pass存在性，不调用StartBossIntro"
+      },
+      {
+        "type": "RoomTransition",
+        "offset": 20,
+        "name": "destination",
+        "previous_category": "权威",
+        "previous_synchronization": "结构owner单独接手；不把显示参数当加载命令"
+      },
+      {
+        "type": "RoomTransition",
+        "offset": 548,
+        "name": "extra_portraits",
+        "previous_category": "容器",
+        "previous_synchronization": "发具名逻辑项与Sprite，树节点本地；原生cos/sin旋转由帧参数派生，不另发随机偏移"
+      },
+      {
+        "type": "StageTransition",
+        "offset": 0,
+        "name": "mode",
+        "previous_category": "换算",
+        "previous_synchronization": "发最终遮罩有效性，不驱动FSM"
+      },
+      {
+        "type": "StageTransition",
+        "offset": 4,
+        "name": "progress_inputs",
+        "previous_category": "权威",
+        "previous_synchronization": "发最终alpha；分母零不能运行原链补值"
+      },
+      {
+        "type": "StageTransition",
+        "offset": 16,
+        "name": "render_kind",
+        "previous_category": "换算",
+        "previous_synchronization": "最终遮罩色/alpha；不能按SDK bool吞掉其余三字节"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 4,
+        "name": "display_frame",
+        "previous_category": "状态",
+        "previous_synchronization": "同步场景显示相位，不以GameFrame代替"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 860,
+        "name": "progress_alpha",
+        "previous_category": "状态",
+        "previous_synchronization": "同步最终值"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 868,
+        "name": "progress_stage",
+        "previous_category": "状态",
+        "previous_synchronization": "同步，不能从当前floor猜完整路线"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 872,
+        "name": "progress_flag",
+        "previous_category": "状态",
+        "previous_synchronization": "同步最终显示结果"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 876,
+        "name": "progress_map",
+        "previous_category": "状态",
+        "previous_synchronization": "同步有序14值，非全局生成器"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 1212,
+        "name": "bubble_visible",
+        "previous_category": "状态",
+        "previous_synchronization": "同步"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 1512,
+        "name": "dogma",
+        "previous_category": "状态",
+        "previous_synchronization": "同步实际显示分支"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 0,
+        "name": "active",
+        "previous_category": "换算",
+        "previous_synchronization": "同步最终存在性/场景阶段"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 32,
+        "name": "background",
+        "previous_category": "容器",
+        "previous_synchronization": "同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 308,
+        "name": "bubble",
+        "previous_category": "容器",
+        "previous_synchronization": "同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 584,
+        "name": "progress",
+        "previous_category": "容器",
+        "previous_synchronization": "同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 936,
+        "name": "extra_bubble_sprite",
+        "previous_category": "容器",
+        "previous_synchronization": "同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update"
+      },
+      {
+        "type": "NightmareScene",
+        "offset": 1236,
+        "name": "player_extra_portrait",
+        "previous_category": "容器",
+        "previous_synchronization": "同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update"
+      },
+      {
+        "type": "BossOverlay",
+        "offset": 0,
+        "name": "active",
+        "previous_category": "换算",
+        "previous_synchronization": "发当前显示存在性，不重放Show/Update"
+      },
+      {
+        "type": "MusicStream",
+        "offset": 24,
+        "name": "config_gain",
+        "previous_category": "资源",
+        "previous_synchronization": "资源投影/最终gain唯一承接，不重复实例"
+      },
+      {
+        "type": "MusicStream",
+        "offset": 28,
+        "name": "layer_gain",
+        "previous_category": "换算",
+        "previous_synchronization": "最终voice有效gain/权重承接"
+      },
+      {
+        "type": "MusicStream",
+        "offset": 40,
+        "name": "active",
+        "previous_category": "换算",
+        "previous_synchronization": "期望状态与本地就绪分开"
+      },
+      {
+        "type": "MusicStream",
+        "offset": 10,
+        "name": "paused",
+        "previous_category": "换算",
+        "previous_synchronization": "world暂停与本地设备/失焦分开"
+      },
+      {
+        "type": "MusicStreamSet",
+        "offset": 0,
+        "name": "streams",
+        "previous_category": "本地",
+        "previous_synchronization": "两组各7声部的实际资源/当前权重与gain；mask不能代替淡化中间值"
+      },
+      {
+        "type": "MusicStreamSet",
+        "offset": 364,
+        "name": "layers",
+        "previous_category": "换算",
+        "previous_synchronization": "发低6位最终mask，不局限旧无参getter"
+      },
+      {
+        "type": "MusicStreamSet",
+        "offset": 368,
+        "name": "mix_mode",
+        "previous_category": "换算",
+        "previous_synchronization": "纳入具名逻辑混音结果；不靠Client gameplay重算"
+      },
+      {
+        "type": "MusicStreamSet",
+        "offset": 372,
+        "name": "volume",
+        "previous_category": "换算",
+        "previous_synchronization": "从Options前来源及自有逻辑包络缓存承接；全部writer覆盖未完成"
+      },
+      {
+        "type": "Music",
+        "offset": 4,
+        "name": "stream_sets",
+        "previous_category": "容器",
+        "previous_synchronization": "逻辑两voice当前状态；旧currentId单值不足"
+      },
+      {
+        "type": "Music",
+        "offset": 780,
+        "name": "current_id",
+        "previous_category": "资源",
+        "previous_synchronization": "发资源身份；不把数值ID跨mod版本直接当路径"
+      },
+      {
+        "type": "Music",
+        "offset": 788,
+        "name": "pitch",
+        "previous_category": "状态",
+        "previous_synchronization": "同步；不是音量偏好"
+      },
+      {
+        "type": "Music",
+        "offset": 808,
+        "name": "enabled",
+        "previous_category": "换算",
+        "previous_synchronization": "不覆写Client本地静音/音量，发world期望"
+      },
+      {
+        "type": "Music",
+        "offset": 810,
+        "name": "jingle_id",
+        "previous_category": "资源",
+        "previous_synchronization": "不能单独作为voice存在/启动依据；绑定正常加载/Play结果"
+      },
+      {
+        "type": "Music",
+        "offset": 864,
+        "name": "background_ducking",
+        "previous_category": "换算",
+        "previous_synchronization": "当前混音结果承接；-100分支写入来源仍未知"
+      },
+      {
+        "type": "Music",
+        "offset": 868,
+        "name": "jingle_countdown",
+        "previous_category": "换算",
+        "previous_synchronization": "不作为精确播放游标；真实voice状态/结果承接"
+      },
+      {
+        "type": "MusicEntry",
+        "offset": 80,
+        "name": "gain",
+        "previous_category": "资源",
+        "previous_synchronization": "实际资源配置/最终gain承接"
+      },
+      {
+        "type": "MusicLayerDefinition",
+        "offset": 48,
+        "name": "gain",
+        "previous_category": "资源",
+        "previous_synchronization": "资源配置/最终voice gain承接"
+      },
+      {
+        "type": "SoundSample",
+        "offset": 32,
+        "name": "loop",
+        "previous_category": "换算",
+        "previous_synchronization": "当前voice有效loop"
+      },
+      {
+        "type": "SoundSample",
+        "offset": 40,
+        "name": "pan",
+        "previous_category": "换算",
+        "previous_synchronization": "必须保留有效分支，不能只截公开Adjust"
+      },
+      {
+        "type": "SoundEffects",
+        "offset": 16,
+        "name": "volume_modifier",
+        "previous_category": "换算",
+        "previous_synchronization": "实际Options前逻辑量及用途承接，不直接复制或当清空voice命令"
+      }
+    ],
+    "native_ranges_changed": false,
+    "unknown_ranges_changed": false,
+    "note": "结果路线移除重复生产输入；world意图与个人后端失败分离。旧原生事实/UNKNOWN及前四版历史保持"
   }
 }

@@ -107,6 +107,16 @@ struct CatalogAlias {
 };
 // 编码总预算与单字段count上限分别约束；超body预算只回ordinary，不截断状态。
 struct LayoutBudget { std::uint16_t layout; std::uint32_t record_bytes, body_bytes; };
+// 具名显示结果的来源、主体及共同提交范围由唯一源登记；这些是接线合同，
+// 不是已安装的Hook或可由报文提供的函数。依赖字段保持窄范围，不能扩成全world等待。
+struct PresentationContract {
+  std::uint16_t layout;
+  bool body;
+  const char *owner, *subject, *producer, *adapter, *dependencies, *atomic_scope;
+  const char *validity, *invalidation, *contribution_identity, *source_gap;
+};
+// 数字布局依赖与上面的窄字段语义同源；不把类型依赖解释为整个布局所有块都必须等待。
+struct PresentationDependency { std::uint16_t result_layout, dependency_layout; };
 // 这组只读视图由同一次布局生成提供给后续采集、解码、写入和 E2E 对照。
 // 布局版本与第 9 步帧头 layout_version 同为 u16，两端按整数直接比较。
 std::uint16_t LayoutVersion() noexcept;
@@ -130,6 +140,8 @@ std::span<const CatalogRow> CatalogRows() noexcept;
 std::span<const SupplementaryMember> SupplementaryMembers() noexcept;
 std::span<const CatalogAlias> CatalogAliases() noexcept;
 std::span<const LayoutBudget> LayoutBudgets() noexcept;
+std::span<const PresentationContract> PresentationContracts() noexcept;
+std::span<const PresentationDependency> PresentationDependencies() noexcept;
 const Layout *FindLayout(std::uint16_t id) noexcept;
 // 接收布局号和布局内索引，只索引可信生成表；网络不能提供任意原生偏移或处理器地址。
 const Field *FindField(std::uint16_t layout, std::uint16_t index) noexcept;

@@ -1,5 +1,7 @@
 # 7：Room、Level、RoomSave 与 Exploration
 
+**2026-11-10 第8步地图交接已登记，版本58**：[Minimap325与MapDisplaySprite355](implementation-8-presentation.md#地图唯一owner)复用300—303，承接两边框／icons／itemIcons、最终地图震动与world转场alpha；L0—L3与Room字段保持唯一owner。正常来源与确定性地图adapter仍待10／13步；下方旧待布局表述保留原时点。
+
 **2026-11-10 Room／Level影子状态描述生成层完成**：[接口与实现](room-level-description-implementation.md)。正式`ClientDescribeRoomLevel`提供Room／Level／Descriptor／双配置的类型化纯值与完整显示投影，检查同world根、L3／入口象限／有序成员、L2和八门关系；52个数字角色与图标帧界由布局源生成，旧输入明确改名Legacy。版本仍57、UNKNOWN保持；描述库及产品Release／Win32纯编译／链接通过，没有运行测试。实际解码调度与原生writer仍归12／13步。
 
 **2026-11-10 生产布局源与生成完成，版本57**：[实现说明](implementation-7-room-level.md)和[生成索引](layouts/README.md)。`state/room.json`／`state/level.json`正式登记71个布局239—309、四域597行目录、实际显示／资源固定值和生成支持；Room13个world块、L0／L1／L2／L3／D1及15B配置投影已生成。Room直属28B／静态内嵌递归613B、Level22B、保存体与外部UNKNOWN保持；正式来源缓存、完整资源协议、GPU ABI、reader／writer及显示adapter仍按后续步骤实施。状态库Release／Win32纯编译通过，没有运行测试。以下早先“未注册／未生成／版本56”条目保留原时点；当前生产合同以版本57唯一源为准。

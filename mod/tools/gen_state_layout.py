@@ -38,7 +38,8 @@ DOC_DOMAIN_STEPS = {
     'entity-text-dummy.json': '04-entity-classes', 'player.json': '05-player',
     'grid.json': '06-grid', 'grid-classes.json': '06-grid',
     'room.json': '07-room-level', 'level.json': '07-room-level',
-    'run.json': '08-run-presentation',
+    'run.json': '08-run-presentation', 'presentation.json': '08-run-presentation',
+    'random.json': '08-run-presentation',
 }
 # 正式布局源中的历史证据仍引用这两个旧路径，保留跳转页，不改写证据或布局版本。
 DOC_LEGACY_PATHS = {'EntitySaveState': '05-player', 'GridEntityDesc': '06-grid'}
@@ -814,6 +815,20 @@ class Compiler:
         self.make_variants()
         for name in self.expanded:
             self.plan(name)
+        # 合同跟随结果布局生成；声明依赖必须能解析到真实类型，且不能跨序列偷换提交范围。
+        for name, plan in self.plans.items():
+            contract = plan['entry'].get('presentation_contract')
+            if not contract:
+                continue
+            require(plan['fields'] and all(b['body'] == (contract['sequence'] == 'body')
+                                          for b in plan['blocks'] if b['max']),
+                    name, '显示合同与实际块序列不符或没有结果负载')
+            require(contract['atomic_scope'] == contract['sequence'] + '-target',
+                    name, '显示合同共同提交范围不符')
+            for dependency in contract['dependency_types']:
+                require(dependency in self.expanded and dependency != name,
+                        name, '显示依赖类型不存在或自依赖: ' + dependency)
+            require('record_limit' in plan['entry'], name, '显示结果必须声明总编码预算')
         self.catalogs()
         return sorted(self.plans.values(), key=lambda p: p['entry']['layout'])
 
@@ -997,6 +1012,11 @@ def emit(compiler, plans, out, docs):
             body += '**范围仅为已核前缀，不是动态对象分配大小；具体对象仍需完整布局。**\n\n'
         if e.get('notes'):
             body += e['notes'] + '\n\n'
+        contract = e.get('presentation_contract')
+        if contract:
+            body += '具名显示结果合同（接线声明，不表示运行实现）：\n\n'
+            body += table([f'{key}：{", ".join(value) if isinstance(value, list) else value}'
+                           for key, value in contract.items()]) + '\n'
         if e.get('record_limit'):
             body += f'记录编码预算≤{e["record_limit"]}B；body组≤{e.get("body_limit", 0)}B，超出body预算改ordinary body-joint，超记录或帧总预算报缺口，不截断。各块上限不能同时取满。\n\n'
         if e.get('variant_values'):
@@ -1105,6 +1125,21 @@ def emit(compiler, plans, out, docs):
         if 'record_limit' in e:
             wire.append(f'  {{{e["layout"]}, {e["record_limit"]}u, {e.get("body_limit", 0)}u}},\n')
     wire.append('}};\n')
+    contracts = [p for p in plans if p['entry'].get('presentation_contract')]
+    wire.append(array('PresentationContract', 'kStatePresentationContracts', len(contracts)))
+    for p in contracts:
+        c = p['entry']['presentation_contract']
+        values = [c[k] for k in ('owner', 'subject', 'producer', 'adapter', 'dependencies',
+                                 'atomic_scope', 'validity', 'invalidation', 'contribution_identity', 'source_gap')]
+        wire.append(f'  {{{p["entry"]["layout"]}, {str(c["sequence"] == "body").lower()}, ' +
+                    ', '.join(quote(v) for v in values) + '},\n')
+    wire.append('}};\n')
+    wire.append(array('PresentationDependency', 'kStatePresentationDependencies',
+                      sum(len(p['entry']['presentation_contract']['dependency_types']) for p in contracts)))
+    for p in contracts:
+        for dependency in p['entry']['presentation_contract']['dependency_types']:
+            wire.append(f'  {{{p["entry"]["layout"]}, {compiler.expanded[dependency]["layout"]}}},\n')
+    wire.append('}};\n')
     capture.append('}};\n')
     client += ['}};\n// 处理器名只在注册时绑定，热路径不比较成员名。\n', array('ClientField', 'kStateClientFields', count_fields)]
     for p in plans:
@@ -1196,6 +1231,8 @@ def catalog_doc_step(catalog, domain):
         return '08-run-presentation'
     if Path(catalog).stem == 'stream-catalog' and domain in {'room', 'level', 'room_save', 'exploration'}:
         return '07-room-level'
+    if Path(catalog).stem == 'stream-catalog' and domain in {'presentation', 'random'}:
+        return '08-run-presentation'
     raise ValueError(f'{catalog}:{domain}: 尚未登记公开目录的总计划步骤')
 
 

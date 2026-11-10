@@ -1,6 +1,6 @@
 # GridRockSprite
 
-由唯一布局源生成。布局编号 215；布局版本 57；原生大小 0x114；未知 14B；完整：否。
+由唯一布局源生成。布局编号 215；布局版本 58；原生大小 0x114；未知 14B；完整：否。
 
 版本52：Rock需要原Sprite颜色与Room地板色相乘，不能使用GridFloorSprite。主动画只在state!=2同步；碎块态按真实rubble资源/variant/顺序偏移派生。overlay保留，绘制中按Host源快照及碎块序号纯求值，不用Client帧推进；临时动画/selector/位置/颜色/事件位须恢复。
 

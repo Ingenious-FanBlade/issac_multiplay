@@ -1,5 +1,15 @@
 # 13：Client 原生应用
 
+**第8步版本58交接**：[地图、各端HUD及具名结果](implementation-8-presentation.md)已登记。Minimap325复用完整L0—L3与300—303；各端依ControlGroupHudSelection364选择本组详细HUD，其他组公共HUD保留。357／358只借用已确认alpha，屏幕／转场消费完整有序贡献，音频消费Options前逻辑参数；所有缺结果规则和既有UNKNOWN保持，具体writer／资源物化仍须本步实现。
+
+**2026-11-10 各端HUD与显示批次定稿交接**：[用户确定的方案B](presentation-result-batches.md)要求各端History／Stat等详细HUD默认跟随本端控制组，双角色按实际组内身体显示，其他组保留公共多人HUD。原生两槽不是全部Peer容量；不得继续以roster第0身体充当本端主体，也不修改PlayerIndex／设备／Online状态获取本地性。按明确owner、贡献身份及依赖共同提交，缺结果不安装／不ACK；CPU消费后恢复临时借用。现有逐身体动态HUD仅为窄实现，完整选择／布局／adapter仍待实施，版本57不变，无构建或测试。
+
+**2026-11-10来源同步职责复核交接**：[当前结果路线](presentation-source-synchronization-review.md)以屏幕／转场最终贡献及每voice最终参数驱动专用adapter。Client不再消费Nightmare路线／Scene帧／Dogma生产体或音乐mask／ducking／混音树重复计算；保留实际ANM2插值和已核局部坐标／视口语义。设备失效、个人Mute、后端抢占和普通one-shot自然播完由本地owner处理，不改world意图；明确world Stop仍执行。必要逻辑段落／起点及可靠恢复未核，精确硬件游标不作同步条件；版本57，未构建或测试。
+
+**2026-11-10 第8步音频来源交接**：[具名voice与非随机消费边界](presentation-audio-sources.md)提供已选文件／实际Start、参数更新与有范围停止、两音乐组／声部及jingle合同。Client使用专用音频adapter和自有本地source强引用，按本地music／SFX音量类别及对应混音规则执行；不调用随机SFX Play、环境音改号helper或整段Music Update。baseline不重播历史one-shot，重复状态不重启，旧voice控制不能命中新代次；未在本端开始的历史one-shot不因参数更新补播。具体后端构造／自然结束／seek、intro-main段相位及重连续接仍未闭合，不能将Update计数当游标或从头Play当原相位恢复；正式adapter未实施，版本57不变，无构建或测试。
+
+**2026-11-10 第8步资源／屏幕来源交接**：[具体结果和安全消费边界](presentation-resource-screen-sources.md)提供内置shader与实际图像、各屏幕pass、切房surface／versus／Nightmare条件贡献及BossOverlay。应用使用有界固定显示adapter和已就绪内容；不运行完整Game／Nightmare Render、BossOverlay Update、转场／Fadeout命令或旧Lua shader tracker来补源。保留本地视口／图形选项及提交后恢复，普通Image的本地自动shader模式不等于ShaderType；原版Deathmatch与Online密码显示排除。正式布局／typed解码／图形物化／writer仍未实施，版本57不变，无构建或测试。
+
 **2026-11-10 第7步正式描述已实现**：[Room／Level描述接口](room-level-description-implementation.md)提供固定值、独立双配置、L2、L3及完整显示投影。现有原生Prepare／Refresh显式使用LegacyClientNativeSceneDescription等旧输入，本步再实现新writer／owner／绘制消费；不提供从新描述补造seed、全配置、保存vector或背景RNG的兼容转换。
 
 状态：设计稿，未实施。上级：[总计划](README.md)。
@@ -131,7 +141,7 @@ Client 的原生对象可能偏离影子状态。Client 不运行原生 Update�
 | Run／时钟：[Run职责](run-synchronization-review.md)、13.6 | TimeCounter按同world F减基准还原i32；Entity／Room帧基准原值，Effect每新world还原Timeout。current颜色、两黑暗、64B分数及窄投影只给显示owner，种子／flags借用后恢复 | GameFrame、D0与对应显示批次，不以Client墙钟或本地tick推进；当前Game与冻结结算副本独立 | 新handler／实际计时与分数／资格显示，跳过Render内Calculate，不写进度或全树／模式对象 |
 | HUD／地图／UI：[Presentation](presentation-synchronization-review.md)、[地图设计](room-display-resource-design.md) | 实际内嵌／动态身体HUD、心格／Stat三值／History顺序／消息图像；自有地图合成L0—L3／两配置焦点／徽标／问号资源。展开／视口／音量本地，world显示限制独立 | 身体归组、Player／Run、地图／world／资源／显示修订匹配；每项徽标顺序绘制，非Sprite最后帧 | HUD／地图／屏幕／Prompt／过渡／死亡具名adapter及CPU队列／图形状态恢复；不运行混合Update／Refresh、提交／退出／健康或解锁生产器 |
 | D0／随机结果：[逐用途合同](room-random-handoff.md) | 只借Manager相位／paused，不写两全局RNG；Pickup用实际alpha，Familiar本地中性ColorMod对称push/pop，CPU消费完再恢复，不依赖本地遍历分配样本 | subject/use/shape、world/presentation、资源及pass／递归／调用身份；额外本地可见分支无源时报Gap | 正式结果缓存与具名分支替代／完整恢复；缺结果不装零、不额外Render／抽取或回退seed重放 |
-| 配置／图像／shader／音频：[资源设计](room-display-resource-design.md)、[音频职责](presentation-synchronization-review.md) | 15B配置仅显示承载，图像／完整recipe／精确像素由自有owner物化，保护FBO／shader／pixel-store／strong引用；声音使用已选sample／逻辑voice，不随机Play，crossfade两voice与jingle保留，重复state不播one-shot | 完整内容／依赖ready、对应资源epoch及目标批次；本地Options后乘，voice代次／开始停止clear与场景匹配 | GPU／字体／shader及非随机播放leaf ABI、加载／失败／退休与读回；资源表／描述生成成功均不代表应用成功 |
+| 配置／图像／shader／音频：[资源设计](room-display-resource-design.md)、[同步职责复核](presentation-source-synchronization-review.md) | 15B配置仅显示承载，图像采用完整recipe或精确内容，自有owner物化并保护图形状态；声音按已选sample／所有必要并存逻辑voice的最终参数执行，不随机Play或重复消费混音树；重复state不播历史one-shot | 内容／依赖ready、资源epoch与目标批次一致；按资源音量类别应用本地Options及对应clamp，实例／world事件／用途匹配；个人设备失败不改world意图，普通自然完成本地收尾 | GPU／字体／shader及非随机音频adapter、world用途／退休隔离和必要逻辑段／续接能力仍待落实；资源表／描述生成不等于应用成功，Host绝对屏幕坐标不直接跨端复用 |
 
 所有受控显示修改在正确主线程／图形／音频owner边界执行；临时字节、颜色栈、FBO与CPU待消费资源须完整恢复／安全退休，不能恢复已被原生SetAnimation释放的旧数组。漂移只对实际安装投影及同版本依赖比较，本地UI／scratch和Host生产输入不回填。缺source／ABI／资源／拓扑或应用失败不确认新target，后续性能与隔离统一留第15步。
 

@@ -1,5 +1,15 @@
 # 原生二进制状态同步重构：总计划
 
+**2026-11-10 第8步正式源，版本58**：[实现与后续交接](implementation-8-presentation.md)。Presentation74＋Random24个新增布局登记310—407；地图复用300—303，D0／逐用途随机alpha／药丸／预览、各组HUD及屏幕／转场／音频固定结果同源生成，28条具名结果合同与141＋54行目录已登记。正式外层封装、正常来源缓存及原生adapter继续由9—14步完成，UNKNOWN／来源Gap保持；本步不运行测试。下方历史版本与进度保留原时点。
+
+**2026-11-10 第8步显示结果批次与各端多角色HUD定稿**：[正式合同](presentation-result-batches.md)。用户确定“选 B；采用上述归属划分、明确贡献身份，并保持当前缺结果处理规则”：统一批次、按实际owner分组及依赖共同提交，保持world／body两序列；History／Stat等详细HUD默认跟随本端控制组，双角色语义与其他组公共多人HUD完整保留。Host原生两槽不作为全系统容量，各组合法来源仍须实施；缺必要结果不安装／不ACK。9—15步交接已同步，版本57未变，仅文档静态审阅，无构建或测试。
+
+**2026-11-10 第8步来源同步职责复核（版本仍57）**：[资源／屏幕／转场和音频53项决定](presentation-source-synchronization-review.md)、[逐项机器表](presentation-source-synchronization-review.json)。必要当前结果／world事件／资源与Host生产、本地派生、禁止跨端内容分开；删除Nightmare路线／场景帧等与最终贡献的重复表达，删除音乐mask／混音树／ducking／全局pitch与每voice参数的重复表达。个人设备失败／抢占不变成world Stop，硬件游标非必需状态。字节账本修订5仍50视图且UNKNOWN范围不变，旧决定留历史，正式布局／运行接线未实施，无构建或测试。
+
+**2026-11-10 第8步音频状态／事件来源补证（静态，版本仍57）**：[必要来源及未决](presentation-audio-sources.md)、[机器目录](presentation-audio-sources.json)。本地Wiki→官方SDK／源码→J273补证，落实实际sample／非随机leaf候选、并存voice更新／停止、环境声及sound460后续pan、两组音乐／六层与jingle有效分支。修订4共50类型／视图，纠正流volume／pitch／计数语义；MusicStream24→4B、MusicEntry72→2B、SoundSample16→4B、SoundEffect30→2B、SoundEffects4→0B直属未知，旧事实保存。Random另记BD0F50改号流，修订3共25视图。全部音乐逻辑包络writer、异步结束、seek／重连相位、视频音轨及其余孔仍未知；正式布局／运行接线未实施，无构建或测试。
+
+**2026-11-10 第8步资源／屏幕／转场必要来源补齐（静态，版本仍57）**：[来源证据](presentation-resource-screen-sources.md)、[机器目录](presentation-resource-screen-sources.json)。按本地Wiki→官方SDK／源码→缺项静态逆向的顺序，补齐实际图像／RGBA8内容、内置shader固定格式、主要屏幕pass、前后房间surface、versus逐层临时变换、Nightmare条件队列／原版程序道具及BossOverlay来源。模式4核为原版Deathmatch并排除，Pause只拆出Online密码显示1B；账本修订3共49类型／视图，Nightmare直属UNKNOWN61→37B，旧未知及其他孔保留。正式Presentation布局、Hook／缓存、图形物化／adapter未实施；无构建或测试。
+
 布局文档入口：[按总任务步骤归类的生成布局索引](layouts/README.md)。`layouts/02-base-types` 至 `08-run-presentation` 对应下方第 2—8 步，步骤内按布局编号排列；变体和附属类型随所属域，共享类型只保留一份。目录整理不改变布局版本、字节归属、未知项或各步完成状态。
 
 **2026-11-10 第7步影子描述生成层完成，版本仍57**：[实现与边界](room-level-description-implementation.md)。`ClientDescribeRoomLevel`生成Room／Level／Descriptor／独立双配置的自有不可变描述；52个数字字段角色及L2帧界同源生成，完整显示投影保留，同world结构／占用／八门依赖核定一次。旧场景／描述／背景配置输入明确改名Legacy，未构造新旧兼容桥。描述库及产品Release／Win32纯编译／链接通过，无测试；UNKNOWN及Host来源／GPU／第12解码调度／第13原生安装保持未完成。

@@ -202,6 +202,8 @@ Client构造正常本地vector，安装真实配置借用、count及704 cooldown
 
 ### 5.3 原始History与16个索引不上P8
 
+**2026-11-10 第8步定稿补充**：[方案B与各端详细HUD主体](presentation-result-batches.md)已由用户确定。下述两个HistoryHUD槽是单个原生owner内部的身体显示容量，不能当全部Peer的容量。各端详细History／Stat默认展示自己控制组的实际身体，其他组保留公共多人HUD；第8步须补齐全部必要组的最终结果来源／承载和明确贡献身份。原始History仍不上P8，缺组结果仍为Gap，不复制Host两槽代替其他身体，也不在Client运行重算器。
+
 | 来源／消费者 | 结论 |
 | --- | --- |
 | 原始History `+1DD8`，元素1Ch | 时间、是否饰品、ID、stage／stage type／room／pool是获得／玩法／保存历史；不再按旧I17整表下行 |

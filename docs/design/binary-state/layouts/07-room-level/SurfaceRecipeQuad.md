@@ -1,6 +1,6 @@
 # SurfaceRecipeQuad
 
-由唯一布局源生成。布局编号 309；布局版本 57；原生大小 0x0；未知 0B；完整：是。
+由唯一布局源生成。布局编号 309；布局版本 58；原生大小 0x0；未知 0B；完整：是。
 
 196B固定Quad值。shader/blend/sampler的具体已核枚举及上传leaf ABI仍归第9/13步，不把数值布局当成已实现GPU adapter。
 

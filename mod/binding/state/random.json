@@ -1,0 +1,1861 @@
+{
+  "types": [
+    {
+      "type": "PickupRenderRNG",
+      "layout": 384,
+      "native_size": 16,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host正常纯绘制流游标；当前产生的alpha由具体consumer承接；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 VABD0CA4；6E3784/6E379A读、6E37CC写；6E3805写this+684；6E3A0A/6E3A12只初始化(4,3,27)，四字直接引用仅对应Render",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "shift_1",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "首次合法本地初始化后固定为4；文件初值0不作为绘制算法；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 VABD0CA4；6E3784/6E379A读、6E37CC写；6E3805写this+684；6E3A0A/6E3A12只初始化(4,3,27)，四字直接引用仅对应Render",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "shift_2",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "首次合法本地初始化后固定为3；文件初值0不作为绘制算法；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 VABD0CA4；6E3784/6E379A读、6E37CC写；6E3805写this+684；6E3A0A/6E3A12只初始化(4,3,27)，四字直接引用仅对应Render",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "shift_3",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "首次合法本地初始化后固定为27；文件初值0不作为绘制算法；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 VABD0CA4；6E3784/6E379A读、6E37CC写；6E3805写this+684；6E3A0A/6E3A12只初始化(4,3,27)，四字直接引用仅对应Render",
+          "status": "已核"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "原生16B物理布局不变；旧D0 seed重放草稿已由room-random-handoff.md的逐用途结果替代 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "FamiliarRenderRNG",
+      "layout": 385,
+      "native_size": 16,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host正常纯绘制流游标；当前产生的alpha由具体consumer承接；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 VABD0674；61E533/61E549读、61E5A3写；61E604栈ColorMod.alpha；61F6A2/61F6AA只初始化(4,3,27)，四字直接引用仅对应Render",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "shift_1",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "首次合法本地初始化后固定为4；文件初值0不作为绘制算法；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 VABD0674；61E533/61E549读、61E5A3写；61E604栈ColorMod.alpha；61F6A2/61F6AA只初始化(4,3,27)，四字直接引用仅对应Render",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "shift_2",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "首次合法本地初始化后固定为3；文件初值0不作为绘制算法；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 VABD0674；61E533/61E549读、61E5A3写；61E604栈ColorMod.alpha；61F6A2/61F6AA只初始化(4,3,27)，四字直接引用仅对应Render",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "shift_3",
+          "type": "u32",
+          "category": "派生",
+          "semantics": "首次合法本地初始化后固定为27；文件初值0不作为绘制算法；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 VABD0674；61E533/61E549读、61E5A3写；61E604栈ColorMod.alpha；61F6A2/61F6AA只初始化(4,3,27)，四字直接引用仅对应Render",
+          "status": "已核"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "原生16B物理布局不变；旧D0 seed重放草稿已由room-random-handoff.md的逐用途结果替代 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "RenderRNGInitializationGuard",
+      "layout": 386,
+      "native_size": 4,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "local_static_guard",
+          "type": "i32",
+          "category": "本地",
+          "semantics": "C++线程安全静态初始化guard；含TLS/运行库协议；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 BEE364 / BED310；Render内_Init_thread_header/footer",
+          "status": "已核"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "只登记这4B独立变量，不把到RNG本体之间的地址空间当作对象 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "MTRNG",
+      "layout": 387,
+      "native_size": 2500,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 2496,
+          "name": "state_words",
+          "type": "u32[624]",
+          "category": "权威",
+          "semantics": "MT完整状态，不是一个seed；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "MTRNG.zhl；J273 VA8DA340 Init / 8DA390 Next",
+          "status": "已核"
+        },
+        {
+          "offset": 2496,
+          "size": 4,
+          "name": "current_index",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "624为twist边界，625为未初始化；不是网络序列；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "MTRNG.zhl；J273 VA8DA340 Init / 8DA390 Next",
+          "status": "已核"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": " 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "GlobalRandomMTWords",
+      "layout": 388,
+      "native_size": 2496,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 2496,
+          "name": "state_words",
+          "type": "u32[624]",
+          "category": "权威",
+          "semantics": "进程全局MT的624字；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 Random VA6EB4B0 / seed入口6EB470；global_random.cpp",
+          "status": "已核"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "与index及mode不连续，不得合成跨间隙memcpy 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "GlobalRandomMTIndex",
+      "layout": 389,
+      "native_size": 4,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "current_index",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "全局MT游标；625未初始化；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 Random VA6EB4B0 / seed入口6EB470；global_random.cpp",
+          "status": "已核"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": " 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "GlobalRandomMode",
+      "layout": 390,
+      "native_size": 1,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 1,
+          "name": "use_crt",
+          "type": "u8",
+          "category": "权威",
+          "semantics": "非零使全局Random走本线程CRT rand；不能为展示切模式；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273 Random VA6EB4B0 / seed入口6EB470；global_random.cpp",
+          "status": "已核"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": " 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "ItemPool_Item",
+      "layout": 391,
+      "native_size": 52,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "total_weight",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "当前权重和；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool_Item.zhl；ItemPoolManager.h；J273730F10/730C70逐31池",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 4,
+          "size": 12,
+          "name": "pool_list",
+          "type": "std::vector<PoolItem>",
+          "category": "权威",
+          "semantics": "Host有序池条目；外部元素见PoolItem；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool_Item.zhl；ItemPoolManager.h；J273730F10/730C70逐31池",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 16,
+          "size": 16,
+          "name": "rng_1",
+          "type": "RNG",
+          "category": "权威",
+          "semantics": "第一条池流；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool_Item.zhl；ItemPoolManager.h；J273730F10/730C70逐31池",
+          "status": "SDK声明",
+          "native_type": "RNG"
+        },
+        {
+          "offset": 32,
+          "size": 16,
+          "name": "rng_2",
+          "type": "RNG",
+          "category": "权威",
+          "semantics": "第二条池流；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool_Item.zhl；ItemPoolManager.h；J273730F10/730C70逐31池",
+          "status": "SDK声明",
+          "native_type": "RNG"
+        },
+        {
+          "offset": 48,
+          "size": 4,
+          "name": "bible_upgrade",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Bible加入/替换生产计数；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool_Item.zhl；ItemPoolManager.h；J273730F10/730C70逐31池",
+          "status": "SDK声明"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": " 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "PoolItem",
+      "layout": 392,
+      "native_size": 24,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "item_id",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "候选item身份；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "Global.zhl::PoolItem；J273730F10/730C70实际步长24",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "initial_weight",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "初始权重；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "Global.zhl::PoolItem；J273730F10/730C70实际步长24",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "weight",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "当前权重；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "Global.zhl::PoolItem；J273730F10/730C70实际步长24",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "decrease_by",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "抽选后权重递减量；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "Global.zhl::PoolItem；J273730F10/730C70实际步长24",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "remove_on",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "移除阈值；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "Global.zhl::PoolItem；J273730F10/730C70实际步长24",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 20,
+          "size": 1,
+          "name": "is_unlocked",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "Host候选资格；不能写访客进度；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "Global.zhl::PoolItem；J273730F10/730C70实际步长24",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 21,
+          "size": 1,
+          "name": "is_special",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "Host特殊候选标志；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "Global.zhl::PoolItem；J273730F10/730C70实际步长24",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 22,
+          "size": 2,
+          "name": "declared_pad",
+          "type": "bytes[2]",
+          "category": "填充",
+          "semantics": "官方源码显式_pad[2]；仅保留声明等级；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "Global.zhl::PoolItem；J273730F10/730C70实际步长24",
+          "status": "SDK声明"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": " 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "TrinketPoolItem",
+      "layout": 393,
+      "native_size": 8,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "id",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "饰品候选ID；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool_TrinketPoolItem.zhl；J27372E260 / 730C70",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 1,
+          "name": "in_pool",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "当前池成员位，保存体按bit记录；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool_TrinketPoolItem.zhl；J27372E260 / 730C70",
+          "status": "已核"
+        },
+        {
+          "offset": 5,
+          "size": 1,
+          "name": "is_available",
+          "type": "bool",
+          "category": "权威",
+          "semantics": "Host资格位；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool_TrinketPoolItem.zhl；J27372E260 / 730C70",
+          "status": "已核"
+        },
+        {
+          "offset": 6,
+          "size": 2,
+          "name": "unknown_6_7",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未解释的原生字节；不读取、不发送，不猜填充；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool_TrinketPoolItem.zhl；J27372E260 / 730C70",
+          "status": "未知"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": " 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "ItemPool",
+      "layout": 394,
+      "native_size": 2096,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "pool_seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "池开局seed；Init直接写、Store/Restore保存；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 1612,
+          "name": "pools",
+          "type": "ItemPool_Item[31]",
+          "category": "权威",
+          "semantics": "原生内嵌31池；不代表官方扩展总上限；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "已核",
+          "native_type": "ItemPool_Item",
+          "native_count": 31
+        },
+        {
+          "offset": 1616,
+          "size": 4,
+          "name": "last_pool",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "上次抽选池，非必须显示状态；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "已核"
+        },
+        {
+          "offset": 1620,
+          "size": 16,
+          "name": "item_pool_rng",
+          "type": "RNG",
+          "category": "权威",
+          "semantics": "全局池生成流；Init/Restore shifts=(1,9,29)；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "已核",
+          "native_type": "RNG"
+        },
+        {
+          "offset": 1636,
+          "size": 16,
+          "name": "trinket_pool_rng",
+          "type": "RNG",
+          "category": "权威",
+          "semantics": "SDK漏声明的独立饰品流；Init/Restore shifts=(1,5,19)；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "已核",
+          "native_type": "RNG"
+        },
+        {
+          "offset": 1652,
+          "size": 8,
+          "name": "unexplained_saved_values",
+          "type": "bytes[8]",
+          "category": "未知",
+          "semantics": "尚未解释的原生字节；不读取、不发送，不猜填充；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore；Init写两份1.0，保存/恢复；具体用途未知",
+          "status": "未知"
+        },
+        {
+          "offset": 1660,
+          "size": 16,
+          "name": "removed_collectibles",
+          "type": "MsvcVectorBool32",
+          "category": "权威",
+          "semantics": "Host全局移除位，外部bit存储不发；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "已核",
+          "native_type": "MsvcVectorBool32"
+        },
+        {
+          "offset": 1676,
+          "size": 16,
+          "name": "room_blacklist",
+          "type": "MsvcVectorBool32",
+          "category": "权威",
+          "semantics": "Host房间黑名单位；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "已核",
+          "native_type": "MsvcVectorBool32"
+        },
+        {
+          "offset": 1692,
+          "size": 248,
+          "name": "unknown_69c_793",
+          "type": "bytes[248]",
+          "category": "未知",
+          "semantics": "尚未解释的原生字节；不读取、不发送，不猜填充；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "未知"
+        },
+        {
+          "offset": 1940,
+          "size": 12,
+          "name": "trinket_items",
+          "type": "std::vector<TrinketPoolItem>",
+          "category": "权威",
+          "semantics": "Host饰品池条目，实际步长8；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "已核"
+        },
+        {
+          "offset": 1952,
+          "size": 4,
+          "name": "num_available_trinkets",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Host当前可用数量；GetTrinket可据此触发重置；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "已核"
+        },
+        {
+          "offset": 1956,
+          "size": 60,
+          "name": "pill_effects",
+          "type": "i32[15]",
+          "category": "权威",
+          "semantics": "基础药丸映射；身体/挑战/回调还能改变最终显示；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "已核"
+        },
+        {
+          "offset": 2016,
+          "size": 15,
+          "name": "identified_pill_effects",
+          "type": "bool[15]",
+          "category": "权威",
+          "semantics": "基础颜色鉴定位；不能泄露未知药丸；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore；83830A原生显示读取",
+          "status": "已核"
+        },
+        {
+          "offset": 2031,
+          "size": 1,
+          "name": "unknown_7ef",
+          "type": "bytes[1]",
+          "category": "未知",
+          "semantics": "尚未解释的原生字节；不读取、不发送，不猜填充；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "未知"
+        },
+        {
+          "offset": 2032,
+          "size": 62,
+          "name": "remaining_genesis_items",
+          "type": "u16[31]",
+          "category": "权威",
+          "semantics": "Host Genesis生产/保存额度；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "已核"
+        },
+        {
+          "offset": 2094,
+          "size": 2,
+          "name": "unknown_82e_82f",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未解释的原生字节；不读取、不发送，不猜填充；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "ItemPool.zhl；J27372F4E0 Init / 72E260 GetTrinket / 730F10 Store / 730C70 Restore",
+          "status": "未知"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "根直接UNKNOWN259B；未知并未因不发送而消失；31池及外部元素独立登记 原生地址／guard只作证据，不成为线上身份；本类型无发送块。",
+      "catalog_rows": [
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3396,
+          "id": "ItemPool.AddBibleUpgrade",
+          "owner": "ItemPool",
+          "parameters": " int Add, ItemPoolType PoolType ",
+          "returns": "void",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3397,
+          "id": "ItemPool.AddCollectible",
+          "owner": "ItemPool",
+          "parameters": " ItemPoolType PoolType, table | table[] PoolItems ",
+          "returns": "void",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3398,
+          "id": "ItemPool.AddRoomBlacklist",
+          "owner": "ItemPool",
+          "parameters": " CollectibleType Item ",
+          "returns": "void",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3399,
+          "id": "ItemPool.AddTemporaryCollectible",
+          "owner": "ItemPool",
+          "parameters": " ItemPoolType PoolType, table | table[] PoolItems ",
+          "returns": "void",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3400,
+          "id": "ItemPool.CanSpawnCollectible",
+          "owner": "ItemPool",
+          "parameters": " CollectibleType Collectible, boolean ignoreLocked ",
+          "returns": "boolean",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "没有已核必要原生显示消费者；池配置/权重/数量/过滤/历史留Host或诊断，不为旧目录原值相等复制给Client"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3401,
+          "id": "ItemPool.ForceAddPillEffect",
+          "owner": "ItemPool",
+          "parameters": " PillEffect ID ",
+          "returns": "PillColor",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3402,
+          "id": "ItemPool.GetBibleUpgrades",
+          "owner": "ItemPool",
+          "parameters": " ItemPoolType PoolType ",
+          "returns": "int",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "没有已核必要原生显示消费者；池配置/权重/数量/过滤/历史留Host或诊断，不为旧目录原值相等复制给Client"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3403,
+          "id": "ItemPool.GetCard",
+          "owner": "ItemPool",
+          "parameters": " int Seed, boolean Playing, boolean Rune, boolean OnlyRunes ",
+          "returns": "Card",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3404,
+          "id": "ItemPool.GetCardEx",
+          "owner": "ItemPool",
+          "parameters": " int Seed, int SpecialChance, int RuneChance, int SuitChance, boolean AllowNonCards ",
+          "returns": "Card",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3405,
+          "id": "ItemPool.GetCollectible",
+          "owner": "ItemPool",
+          "parameters": " ItemPoolType PoolType, boolean Decrease = false, int Seed = Random(), CollectibleType DefaultItem = CollectibleType.COLLECTIBLE_NULL ",
+          "returns": "CollectibleType",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3406,
+          "id": "ItemPool.GetCollectible",
+          "owner": "ItemPool",
+          "parameters": " ItemPoolType PoolType, boolean Decrease = false, int Seed = Random(), CollectibleType DefaultItem = CollectibleType.COLLECTIBLE_NULL, GetCollectibleFlag Flags = 0 ",
+          "returns": "CollectibleType",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3407,
+          "id": "ItemPool.GetCollectible",
+          "owner": "ItemPool",
+          "parameters": " ItemPoolType PoolType, boolean Decrease = false, int Seed = Random(), CollectibleType DefaultItem = CollectibleType.COLLECTIBLE_NULL, ItemPoolType BackupPoolType = ItemPoolType.POOL_NULL ",
+          "returns": "CollectibleType",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接；保留旧Rep+签名原文，但本地官方1.1.3只有flags版ABI，不声称该重载可调用"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3408,
+          "id": "ItemPool.GetCollectibleFromList",
+          "owner": "ItemPool",
+          "parameters": " CollectibleType[] ItemList, int Seed = Random(), CollectibleType DefaultItem = CollectibleType.COLLECTIBLE_BREAKFAST, boolean AddToBlacklist = true, boolean ExcludeActiveItems = false ",
+          "returns": "CollectibleType",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3409,
+          "id": "ItemPool.GetCollectiblesFromPool",
+          "owner": "ItemPool",
+          "parameters": " ItemPoolType PoolType ",
+          "returns": "table",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "没有已核必要原生显示消费者；池配置/权重/数量/过滤/历史留Host或诊断，不为旧目录原值相等复制给Client"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3410,
+          "id": "ItemPool.GetLastPool",
+          "owner": "ItemPool",
+          "parameters": " ",
+          "returns": "ItemPoolType",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "没有已核必要原生显示消费者；池配置/权重/数量/过滤/历史留Host或诊断，不为旧目录原值相等复制给Client"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3411,
+          "id": "ItemPool.GetNumAvailableTrinkets",
+          "owner": "ItemPool",
+          "parameters": " ",
+          "returns": "int",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "没有已核必要原生显示消费者；池配置/权重/数量/过滤/历史留Host或诊断，不为旧目录原值相等复制给Client"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3412,
+          "id": "ItemPool.GetNumItemPools",
+          "owner": "ItemPool",
+          "parameters": " ",
+          "returns": "int",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "没有已核必要原生显示消费者；池配置/权重/数量/过滤/历史留Host或诊断，不为旧目录原值相等复制给Client"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3413,
+          "id": "ItemPool.GetPill",
+          "owner": "ItemPool",
+          "parameters": " int Seed ",
+          "returns": "PillColor",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3416,
+          "id": "ItemPool.GetPoolForRoom",
+          "owner": "ItemPool",
+          "parameters": " RoomType RoomType, int Seed ",
+          "returns": "ItemPoolType",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3417,
+          "id": "ItemPool.GetRemovedCollectibles",
+          "owner": "ItemPool",
+          "parameters": " ",
+          "returns": "table",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "没有已核必要原生显示消费者；池配置/权重/数量/过滤/历史留Host或诊断，不为旧目录原值相等复制给Client"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3418,
+          "id": "ItemPool.GetRoomBlacklistedCollectibles",
+          "owner": "ItemPool",
+          "parameters": " ",
+          "returns": "table",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "没有已核必要原生显示消费者；池配置/权重/数量/过滤/历史留Host或诊断，不为旧目录原值相等复制给Client"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3419,
+          "id": "ItemPool.GetTrinket",
+          "owner": "ItemPool",
+          "parameters": " boolean DontAdvanceRNG = false ",
+          "returns": "TrinketType",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "DontAdvanceRNG=true不能作为全函数纯读合同：无可用项可先重置，仍有回调；只允许真实Host调用，最终饰品由实体/库存承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3420,
+          "id": "ItemPool.HasCollectible",
+          "owner": "ItemPool",
+          "parameters": " CollectibleType Collectible ",
+          "returns": "boolean",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "没有已核必要原生显示消费者；池配置/权重/数量/过滤/历史留Host或诊断，不为旧目录原值相等复制给Client"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3421,
+          "id": "ItemPool.HasTrinket",
+          "owner": "ItemPool",
+          "parameters": " TrinketType Trinket ",
+          "returns": "boolean",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "没有已核必要原生显示消费者；池配置/权重/数量/过滤/历史留Host或诊断，不为旧目录原值相等复制给Client"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3422,
+          "id": "ItemPool.IdentifyPill",
+          "owner": "ItemPool",
+          "parameters": " PillColor PillColor ",
+          "returns": "void",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3424,
+          "id": "ItemPool.PickCollectible",
+          "owner": "ItemPool",
+          "parameters": " ItemPoolType PoolType, boolean Decrease = false, RNG RNG = RNG(), GetCollectibleFlag Flags = 0 ",
+          "returns": "table",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "官方Lua实现推进传入RNG；未传则全局生成器提供临时seed；Decrease=false不消除选择/回调/默认求值副作用"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3425,
+          "id": "ItemPool.RemoveCollectible",
+          "owner": "ItemPool",
+          "parameters": " CollectibleType Collectible ",
+          "returns": "boolean",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3426,
+          "id": "ItemPool.RemoveTemporaryCollectible",
+          "owner": "ItemPool",
+          "parameters": " ItemPoolType PoolType, table | table[] PoolItems ",
+          "returns": "void",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3427,
+          "id": "ItemPool.RemoveTrinket",
+          "owner": "ItemPool",
+          "parameters": " TrinketType Trinket ",
+          "returns": "boolean",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3428,
+          "id": "ItemPool.ResetCollectible",
+          "owner": "ItemPool",
+          "parameters": " CollectibleType Collectible ",
+          "returns": "void",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3429,
+          "id": "ItemPool.ResetRoomBlacklist",
+          "owner": "ItemPool",
+          "parameters": " ",
+          "returns": "void",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3430,
+          "id": "ItemPool.ResetTrinkets",
+          "owner": "ItemPool",
+          "parameters": " ",
+          "returns": "void",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3431,
+          "id": "ItemPool.SetLastPool",
+          "owner": "ItemPool",
+          "parameters": " ItemPoolType ",
+          "returns": "void",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        },
+        {
+          "catalog": "docs/design/tx-04-21/stream-catalog.json",
+          "ordinal": 3432,
+          "id": "ItemPool.UnidentifyPill",
+          "owner": "ItemPool",
+          "parameters": " PillColor Pill ",
+          "returns": "void",
+          "disposition": "authority",
+          "fields": [],
+          "route": "HostOnly",
+          "reason": "Host抽选/修改/生成/恢复；不下发操作、池或随机状态，结果由实际Entity/资源/Presentation承接"
+        }
+      ]
+    },
+    {
+      "type": "BossPool_Entry",
+      "layout": 395,
+      "native_size": 20,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "id",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "候选Boss；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "initial_weight",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "初始权重；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "weight",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "当前权重；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "achievement_id",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Host解锁过滤输入；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "room_variant_start",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "候选房间变体范围起点；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": " 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "BossPool_Pool",
+      "layout": 396,
+      "native_size": 60,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 24,
+          "name": "name",
+          "type": "std::string",
+          "category": "权威",
+          "semantics": "池配置名；字节/字符均不上线；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 24,
+          "size": 12,
+          "name": "entries",
+          "type": "std::vector<BossPool_Entry>",
+          "category": "权威",
+          "semantics": "Host候选列表与顺序；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 36,
+          "size": 4,
+          "name": "total_weight",
+          "type": "f32",
+          "category": "权威",
+          "semantics": "候选权重和；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 40,
+          "size": 16,
+          "name": "rng",
+          "type": "RNG",
+          "category": "权威",
+          "semantics": "该池独立抽选流；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明",
+          "native_type": "RNG"
+        },
+        {
+          "offset": 56,
+          "size": 4,
+          "name": "double_trouble_variant_start",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "双Boss房间选择起点；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": " 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "BossPool",
+      "layout": 397,
+      "native_size": 2252,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 2220,
+          "name": "pools",
+          "type": "BossPool_Pool[37]",
+          "category": "权威",
+          "semantics": "37个原生内嵌池；生成结果另域承接；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明",
+          "native_type": "BossPool_Pool",
+          "native_count": 37
+        },
+        {
+          "offset": 2220,
+          "size": 16,
+          "name": "removed_bosses",
+          "type": "MsvcVectorBool32",
+          "category": "权威",
+          "semantics": "Host移除位；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明",
+          "native_type": "MsvcVectorBool32"
+        },
+        {
+          "offset": 2236,
+          "size": 16,
+          "name": "level_blacklist",
+          "type": "MsvcVectorBool32",
+          "category": "权威",
+          "semantics": "Host楼层黑名单位；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "BossPool.zhl / BossPool_Pool.zhl / BossPool_Entry.zhl",
+          "status": "SDK声明",
+          "native_type": "MsvcVectorBool32"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": " 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "GameStateItemPool",
+      "layout": 398,
+      "native_size": 692,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 372,
+          "name": "pool_item_weights",
+          "type": "std::vector<f32>[31]",
+          "category": "权威",
+          "semantics": "31池当前权重保存，各项外部f32；不含展示负载；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "已核"
+        },
+        {
+          "offset": 372,
+          "size": 124,
+          "name": "bible_upgrades",
+          "type": "u32[31]",
+          "category": "权威",
+          "semantics": "保存Bible计数；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "已核"
+        },
+        {
+          "offset": 496,
+          "size": 4,
+          "name": "pool_seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host保存/恢复值，不是Client baseline；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "已核"
+        },
+        {
+          "offset": 500,
+          "size": 4,
+          "name": "last_pool",
+          "type": "i32",
+          "category": "权威",
+          "semantics": "Host保存/恢复值，不是Client baseline；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "已核"
+        },
+        {
+          "offset": 504,
+          "size": 4,
+          "name": "item_pool_rng_seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host保存/恢复值，不是Client baseline；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "已核"
+        },
+        {
+          "offset": 508,
+          "size": 4,
+          "name": "trinket_pool_rng_seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host保存/恢复值，不是Client baseline；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "已核"
+        },
+        {
+          "offset": 512,
+          "size": 8,
+          "name": "unexplained_saved_values",
+          "type": "bytes[8]",
+          "category": "未知",
+          "semantics": "尚未解释的原生字节；不读取、不发送，不猜填充；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准；对应ItemPool+674/+678",
+          "status": "未知"
+        },
+        {
+          "offset": 520,
+          "size": 16,
+          "name": "removed_collectibles",
+          "type": "MsvcVectorBool32",
+          "category": "权威",
+          "semantics": "保存的移除位；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "已核",
+          "native_type": "MsvcVectorBool32"
+        },
+        {
+          "offset": 536,
+          "size": 16,
+          "name": "trinket_in_pool_bits",
+          "type": "MsvcVectorBool32",
+          "category": "权威",
+          "semantics": "实际保存每饰品inPool位；不是vector<TrinketPoolItem>；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "已核",
+          "native_type": "MsvcVectorBool32"
+        },
+        {
+          "offset": 552,
+          "size": 60,
+          "name": "pill_effects",
+          "type": "i32[15]",
+          "category": "权威",
+          "semantics": "Host基础效果保存；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "已核"
+        },
+        {
+          "offset": 612,
+          "size": 15,
+          "name": "identified_pill_effects",
+          "type": "bool[15]",
+          "category": "权威",
+          "semantics": "Host鉴定位保存；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "已核"
+        },
+        {
+          "offset": 627,
+          "size": 1,
+          "name": "unknown_273",
+          "type": "bytes[1]",
+          "category": "未知",
+          "semantics": "尚未解释的原生字节；不读取、不发送，不猜填充；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "未知"
+        },
+        {
+          "offset": 628,
+          "size": 62,
+          "name": "remaining_genesis_items",
+          "type": "u16[31]",
+          "category": "权威",
+          "semantics": "Host Genesis额度保存；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "已核"
+        },
+        {
+          "offset": 690,
+          "size": 2,
+          "name": "unknown_2b2_2b3",
+          "type": "bytes[2]",
+          "category": "未知",
+          "semantics": "尚未解释的原生字节；不读取、不发送，不猜填充；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "GameStateItemPool.zhl与J273730F10/730C70；+218声明错误，以指令逐bit存取为准",
+          "status": "未知"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "直接UNKNOWN11B；保存体不进入正式网络Baseline 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "WeightedOutcomePicker",
+      "layout": 399,
+      "native_size": 12,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 12,
+          "name": "outcomes",
+          "type": "std::vector<WeightedOutcomePicker_Outcome>",
+          "category": "权威",
+          "semantics": "Host候选列表；Lua选择后明确推进传入RNG；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "WeightedOutcomePicker.zhl / WeightedOutcomePicker_Outcome.zhl；LuaWeightedOutcomePicker.cpp",
+          "status": "SDK声明"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": " 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "WeightedOutcomePicker_Outcome",
+      "layout": 400,
+      "native_size": 8,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "value",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "候选结果；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "WeightedOutcomePicker.zhl / WeightedOutcomePicker_Outcome.zhl；LuaWeightedOutcomePicker.cpp",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "weight",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "整数权重；AddOutcomeFloat会缩放转换；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "WeightedOutcomePicker.zhl / WeightedOutcomePicker_Outcome.zhl；LuaWeightedOutcomePicker.cpp",
+          "status": "SDK声明"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": " 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "LootListEntry",
+      "layout": 401,
+      "native_size": 20,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "type",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "预生成实体类型；不是已创建实体身份；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "LootListEntry.zhl；LuaLootList.cpp / LuaLootListEntry.cpp",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "variant",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "预生成变体；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "LootListEntry.zhl；LuaLootList.cpp / LuaLootListEntry.cpp",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "subtype",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "预生成子类型；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "LootListEntry.zhl；LuaLootList.cpp / LuaLootListEntry.cpp",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host预生成seed；不在Client重新spawn；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "LootListEntry.zhl；LuaLootList.cpp / LuaLootListEntry.cpp",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 16,
+          "size": 4,
+          "name": "rng",
+          "type": "RNG*",
+          "category": "本地",
+          "semantics": "可空非拥有指针；官方Getter不确立owner/lifetime；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "LootListEntry.zhl；LuaLootList.cpp / LuaLootListEntry.cpp",
+          "status": "SDK声明"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "Loot deque/closure外壳不由本结构推导；预览与生成数据不可混为一谈 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "MsvcVectorBool32",
+      "layout": 402,
+      "native_size": 16,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 12,
+          "name": "word_storage",
+          "type": "std::vector<u32>",
+          "category": "权威",
+          "semantics": "Host bit存储头；指向外部bit words；仅工具链ABI模型，不作为目标DLL实际对象已核证明。；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273730F10/730C70对+0及+C读写；官方vector_bool；Win32发布ABI模型",
+          "status": "推断"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "bit_count",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "有效bit数量，原生保存/恢复使用；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "J273730F10/730C70对+0及+C读写；官方vector_bool；Win32发布ABI模型",
+          "status": "已核"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "不将此诊断ABI推广到任意STL编译版本；本次无reader或writer 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "RepentogonMsvcMTModel",
+      "layout": 403,
+      "native_size": 5000,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "index",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "现有诊断模型的双缓冲索引；仅工具链ABI模型，不作为目标DLL实际对象已核证明。；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "random_runtime_lua.cpp::FindMsvcEngine/ReadRandomWords；LuaInit.cpp::gen；旧诊断实现，非本轮DLL ABI核定",
+          "status": "推断"
+        },
+        {
+          "offset": 4,
+          "size": 4992,
+          "name": "words",
+          "type": "u32[1248]",
+          "category": "权威",
+          "semantics": "MSVC引擎双缓冲；不是原生MTRNG；仅工具链ABI模型，不作为目标DLL实际对象已核证明。；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "random_runtime_lua.cpp::FindMsvcEngine/ReadRandomWords；LuaInit.cpp::gen；旧诊断实现，非本轮DLL ABI核定",
+          "status": "推断"
+        },
+        {
+          "offset": 4996,
+          "size": 4,
+          "name": "mask",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "现有模型尾掩码0xFFFFFFFF；仅工具链ABI模型，不作为目标DLL实际对象已核证明。；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "random_runtime_lua.cpp::FindMsvcEngine/ReadRandomWords；LuaInit.cpp::gen；旧诊断实现，非本轮DLL ABI核定",
+          "status": "推断"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "动态来源；不写死官方DLL偏移，不升级为本轮实测 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "LuaMathRandomPayload",
+      "layout": 404,
+      "native_size": 32,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 8,
+          "name": "s0",
+          "type": "u64",
+          "category": "权威",
+          "semantics": "xoshiro256**内部状态字；closure实际upvalue所有；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "REPENTOGON libs/lua/lmathlib.c::RanState / math_random；random_runtime_lua.cpp实际closure payload reader",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 8,
+          "size": 8,
+          "name": "s1",
+          "type": "u64",
+          "category": "权威",
+          "semantics": "xoshiro256**内部状态字；closure实际upvalue所有；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "REPENTOGON libs/lua/lmathlib.c::RanState / math_random；random_runtime_lua.cpp实际closure payload reader",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 16,
+          "size": 8,
+          "name": "s2",
+          "type": "u64",
+          "category": "权威",
+          "semantics": "xoshiro256**内部状态字；closure实际upvalue所有；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "REPENTOGON libs/lua/lmathlib.c::RanState / math_random；random_runtime_lua.cpp实际closure payload reader",
+          "status": "SDK声明"
+        },
+        {
+          "offset": 24,
+          "size": 8,
+          "name": "s3",
+          "type": "u64",
+          "category": "权威",
+          "semantics": "xoshiro256**内部状态字；closure实际upvalue所有；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "REPENTOGON libs/lua/lmathlib.c::RanState / math_random；random_runtime_lua.cpp实际closure payload reader",
+          "status": "SDK声明"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "只登记32B payload；GC/Userdata头、closure、registry均不在该范围，不冒充完整Lua对象 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "CrtRandStateWord",
+      "layout": 405,
+      "native_size": 4,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "thread_state",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "CRT线程状态，PTD字段由当前实际正文解析；仅工具链ABI模型，不作为目标DLL实际对象已核证明。；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "random_runtime_lua.cpp::PrepareRuntimeRandomHook/CaptureRuntimeRandomWords；CRT IAT与PTD诊断reader",
+          "status": "推断"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "仅字段视图；不假设PTD总大小/固定偏移或跨线程共享 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "SFXSampleSelectionRNG",
+      "layout": 406,
+      "native_size": 16,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host选sample当前游标；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "907C60正常Play；907DA7写seed；907DBB按已选56B sample；shift初始(5,27,8)，guard C01050本地",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "shift_1",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "正常初始化写入5的shift参数；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "907C60正常Play；907DA7写seed；907DBB按已选56B sample；shift初始(5,27,8)，guard C01050本地",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "shift_2",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "正常初始化写入27的shift参数；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "907C60正常Play；907DA7写seed；907DBB按已选56B sample；shift初始(5,27,8)，guard C01050本地",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "shift_3",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "正常初始化写入8的shift参数；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "907C60正常Play；907DA7写seed；907DBB按已选56B sample；shift初始(5,27,8)，guard C01050本地",
+          "status": "已核"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "音效随机选sample的私有16B字段视图，不是SFXManager完整ABI，不是第三个D0流 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    },
+    {
+      "type": "SFXSeedSoundReplacementRNG",
+      "layout": 407,
+      "native_size": 16,
+      "parent": null,
+      "rtti": {
+        "name": "无RTTI（具名原生视图或自有不可变显示结果）",
+        "rva": 0
+      },
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host正常声音改号当前游标；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "92FAD0正常seed7改号；92FB91写seed；shift(2,7,7)，guard C01184本地；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "shift_1",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "正常初始化写入2的shift参数；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "92FAD0正常seed7改号；92FB91写seed；shift(2,7,7)，guard C01184本地；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "shift_2",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "正常初始化写入7的shift参数；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "92FAD0正常seed7改号；92FB91写seed；shift(2,7,7)，guard C01184本地；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "shift_3",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "正常初始化写入7的shift参数；Host随机／池／恢复来源不发送；实际药丸、预览、alpha、地图及音频结果各归Presentation唯一owner。",
+          "evidence": "92FAD0正常seed7改号；92FB91写seed；shift(2,7,7)，guard C01184本地；presentation-audio-sources.md",
+          "status": "已核"
+        }
+      ],
+      "blocks": [],
+      "conversions": {},
+      "validators": {},
+      "members": [],
+      "public_owners": [],
+      "notes": "声音改号37/301的独立16B字段视图，先于选sample；不与BD0F40合并，不进入D0 原生地址／guard只作证据，不成为线上身份；本类型无发送块。"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+# NightmareSnapshotQueue
+
+由唯一布局源生成。布局编号 349；布局版本 58；原生大小 0x14；未知 0B；完整：是。
+
+Host生产容器；一块32B仅一元素；未知外部对象完整ABI不由此核定。 原生字节事实保留；委派范围按本表具名结果承接，不按原生owner全量复制。
+
+原生字节归属：
+
+| 0x0 pointer proxy【本地】容器proxy，Show构造/交换并维护回指（4B；已核） | 0x4 pointer map【本地】本进程32B单元素块指针表（4B；已核） | 0x8 u32 map_size【权威】Host块指针表容量（4B；已核） | 0xC u32 offset【权威】Host队首偏移（4B；已核） | 0x10 u32 size【权威】Host队列元素数（4B；已核） |
+|---|---|---|---|---|
+
+状态二进制布局（总计 0—0B，不含第 9 步记录头）：
+
+| 无发送字节：该类型没有可复制状态 |
+|---|
+
+证据：
+
+- `proxy`：8FC0BD—8FC110
+- `map`：8FC112—8FC124；8FC90D—8FC929
+- `map_size`：8FC12A—8FC136；8FC8E7—8FC906
+- `offset`：8FC13C—8FC148；8FAF2B—8FAF3F
+- `size`：8FC14E—8FC154；8FC943

@@ -1,5 +1,7 @@
 # 第8步 Presentation：公开成员逐行回映射
 
+**2026-11-10修订2**：[来源同步职责](presentation-source-synchronization-review.md)收紧六行音乐／SFX映射：最终voice参数替代独立mask、全局pitch、Getter ID；个人后端状态不下行。旧决定保存在JSON，仍141行，无生产版本变更或测试。
+
 2026-11-10；源：[presentation-member-map.json](presentation-member-map.json)。结论见[同步职责核对](presentation-synchronization-review.md)，字节见[账本](presentation-byte-ledger.md)。
 
 原始stream目录共141行；旧标签：ReplicatedState 55、AuthorityOnly 70、NotReplicated 16。保留field、全局ordinal、签名、重载和null/空白；不按ID去重，不回写历史目录。决定列是当前同步必要性，不是公开API已可执行的声明。
@@ -104,12 +106,12 @@
 | 3446 / 3447 | MusicManager.Fadein ( Music ID, float Volume = 1, float FadeRate = 0.08 ) | AuthorityOnly | authority → Host正常生产／命令，不在Client重放 | 命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责 |
 | 3447 / 3448 | MusicManager.Fadein ( Music MusicId, float Volume = 1, float Volume = 0.08 ) | AuthorityOnly | authority → Host正常生产／命令，不在Client重放 | 命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责 |
 | 3448 / 3449 | MusicManager.Fadeout ( float FadeRate = 0.08 ) | AuthorityOnly | authority → Host正常生产／命令，不在Client重放 | 命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责 |
-| 3449 / 3450 | MusicManager.GetCurrentJingleID ( ) | ReplicatedState | projection → Music当前jingle逻辑voice | 官方+32A扩展ID及countdown条件，不等同全部后端播放状态 |
-| 3450 / 3451 | MusicManager.GetCurrentMusicID ( ) | ReplicatedState | projection → Music当前已选资源/voice | crossfade两voice需共同记录，不能只发一个ID |
-| 3451 / 3452 | MusicManager.GetCurrentPitch ( ) | ReplicatedState | field → Music.pitch | 当前有效pitch，目标/后端句柄留Host/本地 |
+| 3449 / 3450 | MusicManager.GetCurrentJingleID ( ) | ReplicatedState | projection → 实际world jingle资源/逻辑实例；无独立getter字段 | 官方ID可能由未生效调用更新；最终voice资源/事件承接，不单独发ID或倒计时 |
+| 3450 / 3451 | MusicManager.GetCurrentMusicID ( ) | ReplicatedState | projection → 实际并存逻辑voice的资源引用 | 两个crossfade组可能并存；voice已有资源时不另发currentId Getter |
+| 3451 / 3452 | MusicManager.GetCurrentPitch ( ) | ReplicatedState | authority → Host生产输入；最终每voice pitch承接 | 每voice最终pitch已有时不另发Music+314，不能重复全局/声部两套参数 |
 | 3452 / 3453 | MusicManager.GetQueuedMusicID ( ) | ReplicatedState | authority → Music.queued_id（不作下行状态） | 未来续播控制由Host实际决策/事件接管，不放行Client Gameplay选曲 |
-| 3453 / 3454 | MusicManager.IsEnabled ( ) | ReplicatedState | projection → world音乐期望＋本地用户静音 | 不以覆写本地Options求跨端Getter相等 |
-| 3454 / 3455 | MusicManager.IsLayerEnabled ( int LayerId = 0 ) | NotReplicated | projection → Music逻辑voice六位layer mask | 参数0..5仅访问已承载六位；不是任意查询字典 |
+| 3453 / 3454 | MusicManager.IsEnabled ( ) | ReplicatedState | projection → world voice最终gain/pause/存续；本地Mute独立 | 不复制混合enabled字段；没有单独网络getter或覆写个人静音 |
+| 3454 / 3455 | MusicManager.IsLayerEnabled ( int LayerId = 0 ) | NotReplicated | authority → Host分层混音输入；无独立下行mask | 最终每voice gain已承接分层权重/模式，撤销旧六位mask必发决定 |
 | 3455 / 3456 | MusicManager.MusicManager ( ) | AuthorityOnly | authority → Host正常生产／命令，不在Client重放 | 命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责 |
 | 3456 / 3457 | MusicManager.Pause ( ) | AuthorityOnly | authority → Host正常生产／命令，不在Client重放 | 命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责 |
 | 3457 / 3458 | MusicManager.PitchSlide ( float TargetPitch ) | AuthorityOnly | authority → Host正常生产／命令，不在Client重放 | 命令副作用不随状态重演；同步其已核最终显示结果，由具体Presentation owner负责 |
@@ -140,7 +142,7 @@
 | 3499 / 3500 | SFXManager.AdjustPitch ( SoundEffect ID, float Pitch ) | AuthorityOnly | authority → Host正常SFX控制／本地后端执行adapter | 不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟 |
 | 3500 / 3501 | SFXManager.AdjustVolume ( SoundEffect ID, float Volume ) | AuthorityOnly | authority → Host正常SFX控制／本地后端执行adapter | 不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟 |
 | 3501 / 3502 | SFXManager.GetAmbientSoundVolume ( SoundEffect ID ) | NotReplicated | not_applicable → 本地音频后端／具名持续voice目标视图 | 后端是否播放/音量含本地设置，不要求Host原始查询结果相等；持续声音目标另同步 |
-| 3502 / 3503 | SFXManager.IsPlaying ( SoundEffect ID ) | NotReplicated | not_applicable → 本地音频后端／具名持续voice目标视图 | 后端是否播放/音量含本地设置，不要求Host原始查询结果相等；持续声音目标另同步 |
+| 3502 / 3503 | SFXManager.IsPlaying ( SoundEffect ID ) | NotReplicated | not_applicable → 本地后端结果；world逻辑存续另有来源 | 不传播后端pending/设备失效/偷占成全体Stop；world用途与退休来源待核 |
 | 3503 / 3504 | SFXManager.Play ( SoundEffect ID, float Volume = 1, int FrameDelay = 2, boolean Loop = false, float Pitch = 1, float Pan = 0 ) | AuthorityOnly | authority → Host正常SFX控制／本地后端执行adapter | 不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟 |
 | 3504 / 3505 | SFXManager.Preload ( SoundEffect ID ) | AuthorityOnly | authority → Host正常SFX控制／本地后端执行adapter | 不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟 |
 | 3505 / 3506 | SFXManager.SFXManager ( ) | AuthorityOnly | authority → Host正常SFX控制／本地后端执行adapter | 不回放采集命令；已选sample事件及loop/ambient当前voice集合分别承接，FrameDelay不是启动延迟 |

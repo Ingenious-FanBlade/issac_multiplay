@@ -752,6 +752,9 @@
           "items": {
             "$ref": "#/$defs/catalog_alias"
           }
+        },
+        "presentation_contract": {
+          "$ref": "#/$defs/presentation_contract"
         }
       },
       "additionalProperties": false
@@ -936,6 +939,82 @@
         "target_ordinal": {
           "type": "integer",
           "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "presentation_contract": {
+      "type": "object",
+      "required": [
+        "owner",
+        "subject",
+        "producer",
+        "adapter",
+        "dependencies",
+        "validity",
+        "invalidation",
+        "contribution_identity",
+        "source_gap",
+        "sequence",
+        "atomic_scope",
+        "dependency_types"
+      ],
+      "properties": {
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "producer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "adapter": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dependencies": {
+          "type": "string",
+          "minLength": 1
+        },
+        "validity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "invalidation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contribution_identity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_gap": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sequence": {
+          "enum": [
+            "world",
+            "body"
+          ]
+        },
+        "atomic_scope": {
+          "enum": [
+            "world-target",
+            "body-target"
+          ]
+        },
+        "dependency_types": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       },
       "additionalProperties": false

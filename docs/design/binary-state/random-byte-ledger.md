@@ -1,5 +1,7 @@
 # 第8步 Random：原生字节单行账本
 
+**2026-11-10修订3**：[音频来源](presentation-audio-sources.md)新增BD0F50声音改号流字段视图，现25类型／视图；与BD0F40选sample流分开，均留Host。旧24类型和版本56段落保留原时点；生产版本仍57，未构建或测试。
+
 2026-11-10修订2；[职责](random-synchronization-review.md)；[第7步交接](room-random-handoff.md)；[机器源](random-byte-ledger.json)。设计排版，生产版本56未变，无测试。
 
 登记24个类型／字段视图；UNKNOWN与外层ABI边界保持，旧D0草稿保留在JSON wire_history。
@@ -268,6 +270,15 @@ random_runtime_lua.cpp::PrepareRuntimeRandomHook/CaptureRuntimeRandomWords；CRT
 | +0x0 `u32` `seed`【权威／已核】Host选sample当前游标（4B）；不上线；实际已选sample与逻辑voice另承接，不执行Client随机Play | +0x4 `u32` `shift_1`【权威／已核】正常初始化写入5的shift参数（4B）；不上线；实际已选sample与逻辑voice另承接，不执行Client随机Play | +0x8 `u32` `shift_2`【权威／已核】正常初始化写入27的shift参数（4B）；不上线；实际已选sample与逻辑voice另承接，不执行Client随机Play | +0xC `u32` `shift_3`【权威／已核】正常初始化写入8的shift参数（4B）；不上线；实际已选sample与逻辑voice另承接，不执行Client随机Play |
 |---|---|---|---|
 
+## SFXSeedSoundReplacementRNG
+
+声音改号37/301的独立16B字段视图，先于选sample；不与BD0F40合并，不进入D0
+
+依据：92FAD0正常seed7改号；92FB91写seed；shift(2,7,7)，guard C01184本地；presentation-audio-sources.md
+
+| 0x0—0x3 u32 seed【权威；已核】Host正常声音改号当前游标 → 留Host；只承接最终实际sound/sample与voice，不重放改号helper | 0x4—0x7 u32 shift_1【权威；已核】正常初始化写入2的shift参数 → 留Host；只承接最终实际sound/sample与voice，不重放改号helper | 0x8—0xB u32 shift_2【权威；已核】正常初始化写入7的shift参数 → 留Host；只承接最终实际sound/sample与voice，不重放改号helper | 0xC—0xF u32 shift_3【权威；已核】正常初始化写入7的shift参数 → 留Host；只承接最终实际sound/sample与voice，不重放改号helper |
+|---|---|---|---|
+
 ## 具名owner的随机字段视图
 
 只定位已核随机字段，不代表整块对象或所有私有动态ABI已解释。
@@ -295,6 +306,7 @@ random_runtime_lua.cpp::PrepareRuntimeRandomHook/CaptureRuntimeRandomWords；CRT
 | EntitySaveState / Player保存体 | 各自已核seed字段／字段视图 | Host-save | HostOnly；saved_random_state；entity/player字节账本；保存随机状态不等于Client展示输入 |
 | RNG stack / Lua userdata | owner-qualified field only／0x10 payload | native-call/Lua-owner | HostOnly；temporary_or_mod_stream；不能把地址/seed当身份；未知Mod由声明adapter负责 |
 | SFXManager::Play private static | VA0xBD0F40／0x10 | process; Host normal Play | HostOnly；sample_selection_rng；907C60正常Play；907DA7写seed；907DBB按已选56B sample；shift初始(5,27,8)，guard C01050本地 |
+| seed7 sound replacement private static | VA0xBD0F50／0x10 | process; Host normal sound request | HostOnly；seed_sound_replacement_rng；92FAD0／92FB91，shift2/7/7，guard C01184本地 |
 
 ## 未核完整ABI的外层owner
 

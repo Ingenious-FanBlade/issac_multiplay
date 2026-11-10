@@ -1,6 +1,6 @@
 # EntityDummy
 
-由唯一布局源生成。布局编号 147；布局版本 57；原生大小 0x410；未知 335B；完整：否。
+由唯一布局源生成。布局编号 147；布局版本 58；原生大小 0x410；未知 335B；完整：否。
 
 第4步版本44：独立RTTI的等大派生类，没有专有尾部或待传标签串，旧目录也没有NativeDummy专有成员owner。Render以公共Type/Variant格式化e%d.%d，经公共屏幕坐标与本地Font2绘制；公共E0—E9/Plus照常继承。公共Render仅在exists/visible为真时刷新屏幕cache，后续标签无同等判断；其历史/跨视口依赖须第13步闭合，缺来源报Gap，不能假称无条件派生。335B公共未知保留。Factory Create(964)取NPC，正式取得须真实Dummy预构造空槽owner，不能改vptr或假造自然来源。
 

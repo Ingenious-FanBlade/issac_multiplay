@@ -107,6 +107,8 @@ SDK `ItemPool+7A4`为15个i32基础effect，`+7E0`为15个鉴定位。`72F030 Ge
 - Dataminer的地址种子属于本进程确定的纹理选择，现有Grid已传最终2位；不发地址，不复制Host RNG，不在Client按自己地址再随机。程序道具／shader／音频等实际资源依赖同理。
 - CRT／Lua状态、原版Online与Isaac Sync、C/S会话状态彼此隔离。诊断观测流的完整状态不是正式下行负载，不把旧录制、random调用事件或未注册Mod RNG接进同步链。
 
+**音频后续补证（静态，2026-11-10）**：[音频来源](presentation-audio-sources.md)补核92FAD0在seed7正常分支将声音改为37／301，使用BD0F50的独立16B流（shift2／7／7，guard C01184），先于BD0F40实际sample选择。两流都留Host，最终sound／sample及voice由音频承接；不复制RNG、不在Client重放改号helper。Random账本修订3现25类型／视图，旧24类型／版本56事实保留原时点，生产版本57未变，无构建或测试。
+
 **第7步双向交接核对完成（静态，2026-11-10）**：15项决定、来源与消费者见[交接表](room-random-handoff.md)／[JSON](room-random-handoff.json)，第7步入口见[7.4](7-room-level.md#74-与randompresentation的交接)。当前决定：
 
 - Game/Level两条生成流、Backdrop流／seed、descriptor四seed／商店／保存随机字段留Host；真实结构、资源、Entity和地图后态仍须承接。

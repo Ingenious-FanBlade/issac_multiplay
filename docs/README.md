@@ -1,3 +1,13 @@
+> **2026-11-10 第8步正式源完成，版本58**：[实现与后续交接](design/binary-state/implementation-8-presentation.md)：地图唯一owner、随机显示最终结果及Presentation74＋Random24个新布局已登记310—407；28条具名结果合同、141＋54行目录和单行表同源生成。实际采集／资源／原生安装继续按9—14步接线，UNKNOWN和来源Gap保持；本步不运行测试。
+
+> **2026-11-10 第8步显示结果批次与各端HUD方案定稿**：[用户确定的方案B](design/binary-state/presentation-result-batches.md)：沿用world／body，按实际owner分组、明确贡献身份、按依赖共同提交；缺必要结果不安装／不ACK。各端History／Stat详细HUD默认跟随自身控制组，双角色及其他组公共多人HUD保留；Host原生两槽不是系统容量，各组合法结果来源仍待实施。9—15步交接已同步，生产版本57不变，仅文档静态审阅，无构建或测试。
+
+> **2026-11-10 第8步来源同步职责复核**：[53项同步决定及纠正](design/binary-state/presentation-source-synchronization-review.md)、[机器表](design/binary-state/presentation-source-synchronization-review.json)。只同步必要当前结果／world事件及按需资源；Nightmare生产体与最终贡献、音乐mask／混音树与最终voice参数不重复下发。个人设备失败／抢占不广播world Stop，硬件游标非必需world状态。账本修订5仍50视图，UNKNOWN和历史保持；生产版本57，未构建或测试。
+
+> **2026-11-10 第8步音频状态／事件来源补证（静态）**：[Wiki／SDK优先的具体来源及未决](design/binary-state/presentation-audio-sources.md)、[机器目录](design/binary-state/presentation-audio-sources.json)。补节流后实际sample、并存voice调整／停止、环境声／sound460内联pan、音乐两组声部及jingle；纠正流volume／pitch／计数语义。Presentation修订4共50类型／视图，五类直属未知缩减；Random新增BD0F50改号流至25视图。全部音乐逻辑包络writer、异步结束、seek／重连相位和视频音轨等UNKNOWN仍保留。版本57，正式布局／缓存／Hook／音频adapter未实施，无构建或测试。
+
+> **2026-11-10 第8步资源／屏幕／转场必要来源补齐（静态）**：[Wiki／SDK优先的具体来源与J273补证](design/binary-state/presentation-resource-screen-sources.md)、[机器目录](design/binary-state/presentation-resource-screen-sources.json)。明确RGBA8内容与内置shader、主要屏幕pass、切房surface／versus／Nightmare条件内容及BossOverlay；排除原版Deathmatch和Online密码显示。账本增49类型／视图，Nightmare直属UNKNOWN61→37B，其余未知保持；版本仍57，正式布局／缓存／Hook／图形adapter尚未实施，无构建或测试。
+
 > **2026-11-10 第7步Room／Level影子描述生成层完成**：[接口、失败方式与构建结果](design/binary-state/room-level-description-implementation.md)。新增正式完整影子记录→自有不可变Room／Level／Descriptor／双配置描述，52个角色及L2帧界同源生成；旧输入明确改名Legacy。描述库及产品Release／Win32纯编译／链接通过，版本仍57、UNKNOWN保持，无测试；实际采集、解码调度和原生安装仍按后续步骤实施。
 
 > **2026-11-10 第7步生产布局源与生成完成，版本57**：[实现与边界](design/binary-state/implementation-7-room-level.md)。正式room／level源新增71个布局239—309，含固定楼层／描述投影、15B配置、必要背景／FX／水光波纹／焦点及地图结果；四域597行、C++表与布局表已同源生成。状态库Release／Win32纯编译通过，UNKNOWN保持，正式来源缓存／协议／GPU ABI／reader／writer／adapter仍待后续；未运行任何测试。以下较早记录保留原时点。

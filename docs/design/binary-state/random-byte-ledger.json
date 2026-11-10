@@ -1,6 +1,6 @@
 {
   "format": "isaac.cs.random-native-review",
-  "revision": 2,
+  "revision": 3,
   "date": "2026-11-10",
   "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273 / Win32",
   "role": "静态设计核对；不是生产state/random.json，不改变layout_version=56",
@@ -1305,6 +1305,59 @@
         }
       ],
       "native_address": "0xBD0F40"
+    },
+    {
+      "name": "SFXSeedSoundReplacementRNG",
+      "native_size": 16,
+      "evidence": "92FAD0正常seed7改号；92FB91写seed；shift(2,7,7)，guard C01184本地；presentation-audio-sources.md",
+      "note": "声音改号37/301的独立16B字段视图，先于选sample；不与BD0F40合并，不进入D0",
+      "ranges": [
+        {
+          "offset": 0,
+          "size": 4,
+          "name": "seed",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "Host正常声音改号当前游标",
+          "synchronization": "留Host；只承接最终实际sound/sample与voice，不重放改号helper",
+          "evidence": "92FAD0正常seed7改号；92FB91写seed；shift(2,7,7)，guard C01184本地；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 4,
+          "size": 4,
+          "name": "shift_1",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "正常初始化写入2的shift参数",
+          "synchronization": "留Host；只承接最终实际sound/sample与voice，不重放改号helper",
+          "evidence": "92FAD0正常seed7改号；92FB91写seed；shift(2,7,7)，guard C01184本地；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 8,
+          "size": 4,
+          "name": "shift_2",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "正常初始化写入7的shift参数",
+          "synchronization": "留Host；只承接最终实际sound/sample与voice，不重放改号helper",
+          "evidence": "92FAD0正常seed7改号；92FB91写seed；shift(2,7,7)，guard C01184本地；presentation-audio-sources.md",
+          "status": "已核"
+        },
+        {
+          "offset": 12,
+          "size": 4,
+          "name": "shift_3",
+          "type": "u32",
+          "category": "权威",
+          "semantics": "正常初始化写入7的shift参数",
+          "synchronization": "留Host；只承接最终实际sound/sample与voice，不重放改号helper",
+          "evidence": "92FAD0正常seed7改号；92FB91写seed；shift(2,7,7)，guard C01184本地；presentation-audio-sources.md",
+          "status": "已核"
+        }
+      ],
+      "native_address": "0xBD0F50"
     }
   ],
   "owners": [
@@ -1496,6 +1549,15 @@
       "lifetime": "process; Host normal Play",
       "decision": "HostOnly",
       "evidence": "907C60正常Play；907DA7写seed；907DBB按已选56B sample；shift初始(5,27,8)，guard C01050本地"
+    },
+    {
+      "owner": "seed7 sound replacement private static",
+      "offset": "VA0xBD0F50",
+      "size": "0x10",
+      "purpose": "seed_sound_replacement_rng",
+      "lifetime": "process; Host normal sound request",
+      "decision": "HostOnly",
+      "evidence": "92FAD0正常seed7改号；92FB91写seed；shift(2,7,7)，guard C01184本地；presentation-audio-sources.md"
     }
   ],
   "unresolved_owners": [
@@ -1596,5 +1658,14 @@
       ],
       "status": "设计修订，正式Presentation布局/合法来源/绘制序列合同待实施"
     }
-  ]
+  ],
+  "audio_source_revision": {
+    "date": "2026-11-10",
+    "previous_revision": 2,
+    "previous_type_count": 24,
+    "current_type_count": 25,
+    "production_layout_version": 57,
+    "sources": "presentation-audio-sources.md",
+    "note": "只增BD0F50实际改号流字段视图；旧角色/范围说明保留原时点，不新增生产随机负载"
+  }
 }

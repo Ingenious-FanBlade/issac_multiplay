@@ -1,0 +1,855 @@
+{
+  "format": "isaac.cs.presentation-resource-screen-source-review",
+  "revision": 2,
+  "date": "2026-11-10",
+  "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273 / Win32",
+  "authoritative_document": "presentation-resource-screen-sources.md",
+  "role": "设计来源目录；非生产schema/Hook清单，不修改layout_version",
+  "production_layout_version": 57,
+  "evidence_order": [
+    "本地原版Wiki",
+    "本地REPENTOGON Wiki",
+    "官方1.1.3 ZHL及源码",
+    "J273只读静态反编译/指令"
+  ],
+  "runtime_status": "未接线；未构建或运行测试",
+  "sources": [
+    {
+      "id": "image.file",
+      "source": "正常文件加载及LayerState实际Image",
+      "points": [
+        {
+          "va": "0x931B30",
+          "rva": "0x531B30"
+        }
+      ],
+      "owner": "返回strong pair/当前LayerState+98",
+      "projection": "state=当前实际图像绑定；resources=被采用文件/ANM2的不可变声明，按需一次；host_only=旧路径比较历史/未选文件库；forbidden=Image*/control/loaded/GL句柄；unknown=无正常加载关联时实际文件来源",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "image.file",
+        "state": "当前实际图像绑定",
+        "events": "",
+        "resources": "被采用文件/ANM2的不可变声明，按需一次",
+        "derive_or_reuse": "",
+        "host_only": "旧路径比较历史/未选文件库",
+        "forbidden": "Image*/control/loaded/GL句柄",
+        "unknown": "无正常加载关联时实际文件来源",
+        "basis": "Image Wiki；931B30；LayerState+98"
+      }
+    },
+    {
+      "id": "image.procedural",
+      "source": "正常程序图/surface生产完成",
+      "points": [
+        {
+          "va": "0x9EF4F0",
+          "rva": "0x5EF4F0"
+        },
+        {
+          "va": "0xA4C840",
+          "rva": "0x64C840"
+        }
+      ],
+      "owner": "当前实际内容及完整图形状态保护",
+      "projection": "state=当前被消费内容引用/版本；resources=完整recipe或精确内容二选一；必要内容几何；host_only=未消费scratch/完整生产历史；forbidden=GPU/FBO/controller与整屏录制；unknown=纯world内容/跨分辨率映射/特殊格式",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "image.procedural",
+        "state": "当前被消费内容引用/版本",
+        "events": "",
+        "resources": "完整recipe或精确内容二选一；必要内容几何",
+        "derive_or_reuse": "",
+        "host_only": "未消费scratch/完整生产历史",
+        "forbidden": "GPU/FBO/controller与整屏录制",
+        "unknown": "纯world内容/跨分辨率映射/特殊格式",
+        "basis": "Image/Surface Wiki；9EF4F0/A4C840"
+      }
+    },
+    {
+      "id": "image.hud_message",
+      "source": "11个消息物理槽",
+      "points": [
+        {
+          "va": "0x831AD0",
+          "rva": "0x431AD0"
+        },
+        {
+          "va": "0x831D70",
+          "rva": "0x431D70"
+        },
+        {
+          "va": "0x831D7A",
+          "rva": "0x431D7A"
+        }
+      ],
+      "owner": "HUD+3CFC/3EF0/4AA8，各message+18",
+      "projection": "state=11槽实际图像/姿态/owner及可见结果；resources=被采用文字图内容或完整文字recipe；host_only=排版/自动隐藏生产器；无独立消费者的重复文本；forbidden=Font*/图形批次/额外Show",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "image.hud_message",
+        "state": "11槽实际图像/姿态/owner及可见结果",
+        "events": "",
+        "resources": "被采用文字图内容或完整文字recipe",
+        "derive_or_reuse": "",
+        "host_only": "排版/自动隐藏生产器；无独立消费者的重复文本",
+        "forbidden": "Font*/图形批次/额外Show",
+        "unknown": "",
+        "basis": "HUDMessage+18；831AD0完成生产"
+      }
+    },
+    {
+      "id": "image.fortune_inventory",
+      "source": "HUD图像owner",
+      "points": [],
+      "owner": "HUD+538C；PlayerHUD+6A4/+6B4",
+      "projection": "state=当前图像/有序列表/身体用途；resources=实际图像依赖；host_only=获得史/重复排版输入；forbidden=getter补采/原生指针；unknown=正式身体/槽位完整批次",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "image.fortune_inventory",
+        "state": "当前图像/有序列表/身体用途",
+        "events": "",
+        "resources": "实际图像依赖",
+        "derive_or_reuse": "",
+        "host_only": "获得史/重复排版输入",
+        "forbidden": "getter补采/原生指针",
+        "unknown": "正式身体/槽位完整批次",
+        "basis": "HUD+538C/PlayerHUD+6A4/+6B4"
+      }
+    },
+    {
+      "id": "shader.builtin",
+      "source": "SDK固定ShaderType及J273指针表",
+      "points": [
+        {
+          "va": "0x67DA3C",
+          "rva": "0x27DA3C"
+        },
+        {
+          "va": "0xAACAB0",
+          "rva": "0x6ACAB0"
+        }
+      ],
+      "owner": "GraphicsManager当前实际shader；临时Image格式恢复前的正常提交上下文",
+      "projection": "state=非隐含的实际world shader选择/参数；resources=固定类型/资源声明；不每帧发全表；derive_or_reuse=固定顶点格式/常量；已有Layer/pass选择；host_only=实际映射的本地登记；forbidden=AACAB0指针/任意stride/个人HQ4X选择/Mod旁表；unknown=未映射的受支持world用途",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "shader.builtin",
+        "state": "非隐含的实际world shader选择/参数",
+        "events": "",
+        "resources": "固定类型/资源声明；不每帧发全表",
+        "derive_or_reuse": "固定顶点格式/常量；已有Layer/pass选择",
+        "host_only": "实际映射的本地登记",
+        "forbidden": "AACAB0指针/任意stride/个人HQ4X选择/Mod旁表",
+        "unknown": "未映射的受支持world用途",
+        "basis": "ShaderType/ShaderUtils/ImageUtils；67DA3C/AACAB0"
+      }
+    },
+    {
+      "id": "screen.colormod",
+      "source": "Run current六值",
+      "points": [
+        {
+          "va": "0x6F7F76",
+          "rva": "0x2F7F76"
+        },
+        {
+          "va": "0x6F80BC",
+          "rva": "0x2F80BC"
+        }
+      ],
+      "owner": "Game+66920",
+      "projection": "derive_or_reuse=Run.current六值及同world版本；host_only=target/lerp；forbidden=重复current副本",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "screen.colormod",
+        "state": "",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "Run.current六值及同world版本",
+        "host_only": "target/lerp",
+        "forbidden": "重复current副本",
+        "unknown": "",
+        "basis": "6F7F76—6F80BC"
+      }
+    },
+    {
+      "id": "screen.bloom",
+      "source": "正常纯算式及提交后最终强度",
+      "points": [
+        {
+          "va": "0x6F8589",
+          "rva": "0x2F8589"
+        },
+        {
+          "va": "0x6F85E4",
+          "rva": "0x2F85E4"
+        },
+        {
+          "va": "0x6F85FF",
+          "rva": "0x2F85FF"
+        }
+      ],
+      "owner": "Game+25AA0/AA4/AA8正常投影",
+      "projection": "state=当前world有效性/最终BloomAmount；derive_or_reuse=本端padded尺寸派生Ratio；host_only=t/T/strength与包络生产；forbidden=Host个人画质开关/四顶点相同强度副本；unknown=逻辑分支/纯投影必须有效",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "screen.bloom",
+        "state": "当前world有效性/最终BloomAmount",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "本端padded尺寸派生Ratio",
+        "host_only": "t/T/strength与包络生产",
+        "forbidden": "Host个人画质开关/四顶点相同强度副本",
+        "unknown": "逻辑分支/纯投影必须有效",
+        "basis": "6F8589—6F8645"
+      }
+    },
+    {
+      "id": "screen.pixelation",
+      "source": "两转场正常进度形成的最终值",
+      "points": [
+        {
+          "va": "0x6F86E4",
+          "rva": "0x2F86E4"
+        },
+        {
+          "va": "0x6F87F3",
+          "rva": "0x2F87F3"
+        },
+        {
+          "va": "0x6F8820",
+          "rva": "0x2F8820"
+        }
+      ],
+      "owner": "当前有效pass",
+      "projection": "state=当前有效pass/最终强度；derive_or_reuse=本地ScreenSize；host_only=Room/Stage计时与FSM；forbidden=整个Render/转场命令",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "screen.pixelation",
+        "state": "当前有效pass/最终强度",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "本地ScreenSize",
+        "host_only": "Room/Stage计时与FSM",
+        "forbidden": "整个Render/转场命令",
+        "unknown": "",
+        "basis": "6F86E4—6F8820"
+      }
+    },
+    {
+      "id": "screen.hallucination",
+      "source": "正常包络/反馈提交",
+      "points": [
+        {
+          "va": "0x6F89DE",
+          "rva": "0x2F89DE"
+        },
+        {
+          "va": "0x6F8A33",
+          "rva": "0x2F8A33"
+        },
+        {
+          "va": "0x6F8C4F",
+          "rva": "0x2F8C4F"
+        },
+        {
+          "va": "0x6F8C88",
+          "rva": "0x2F8C88"
+        }
+      ],
+      "owner": "Game+25A98当前反馈图；D0 Manager相位",
+      "projection": "state=最终Amount/当前反馈引用/有序贡献；resources=真正被采用的反馈内容；derive_or_reuse=D0派生翻转，不再发selector；host_only=剩余/总时长/反馈字节；forbidden=ShowHallucination/夹带个人画面的整图；unknown=surface内容及坐标闭包",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "screen.hallucination",
+        "state": "最终Amount/当前反馈引用/有序贡献",
+        "events": "",
+        "resources": "真正被采用的反馈内容",
+        "derive_or_reuse": "D0派生翻转，不再发selector",
+        "host_only": "剩余/总时长/反馈字节",
+        "forbidden": "ShowHallucination/夹带个人画面的整图",
+        "unknown": "surface内容及坐标闭包",
+        "basis": "6F89DE/6F8C4F/6F8C88"
+      }
+    },
+    {
+      "id": "screen.hallucination_snapshot",
+      "source": "独立Snapshot的两次正常消费",
+      "points": [
+        {
+          "va": "0x6F7E92",
+          "rva": "0x2F7E92"
+        },
+        {
+          "va": "0x6F7F00",
+          "rva": "0x2F7F00"
+        },
+        {
+          "va": "0x6F8425",
+          "rva": "0x2F8425"
+        }
+      ],
+      "owner": "全局BE72B4实际pair",
+      "projection": "state=两次用途各自alpha/顺序/内容引用；resources=BE72B4实际world内容；host_only=生产计时；forbidden=最后alpha覆盖全部/额外Render；unknown=内容写入闭包",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "screen.hallucination_snapshot",
+        "state": "两次用途各自alpha/顺序/内容引用",
+        "events": "",
+        "resources": "BE72B4实际world内容",
+        "derive_or_reuse": "",
+        "host_only": "生产计时",
+        "forbidden": "最后alpha覆盖全部/额外Render",
+        "unknown": "内容写入闭包",
+        "basis": "6F7F00/6F8425"
+      }
+    },
+    {
+      "id": "screen.oldtv",
+      "source": "Run seed8及world GameFrame",
+      "points": [
+        {
+          "va": "0x6F8E18",
+          "rva": "0x2F8E18"
+        }
+      ],
+      "owner": "正常OldTV pass",
+      "projection": "derive_or_reuse=Run.seed8资格；GameFrame*0.05；host_only=种子树查找；forbidden=重复Time/另一bool/Host墙钟",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "screen.oldtv",
+        "state": "",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "Run.seed8资格；GameFrame*0.05",
+        "host_only": "种子树查找",
+        "forbidden": "重复Time/另一bool/Host墙钟",
+        "unknown": "",
+        "basis": "Run既有显示投影；6F8E18"
+      }
+    },
+    {
+      "id": "screen.retrovision",
+      "source": "正常Room pass最终输出",
+      "points": [
+        {
+          "va": "0x80454F",
+          "rva": "0x40454F"
+        },
+        {
+          "va": "0x8045EE",
+          "rva": "0x4045EE"
+        }
+      ],
+      "owner": "局部正常结果BE7704",
+      "projection": "state=最终强度，覆盖短暂药丸效果；derive_or_reuse=已下行seed78资格如有需要；host_only=剩余/总计时；forbidden=BE7704地址/只留seed78漏短暂效果",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "screen.retrovision",
+        "state": "最终强度，覆盖短暂药丸效果",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "已下行seed78资格如有需要",
+        "host_only": "剩余/总计时",
+        "forbidden": "BE7704地址/只留seed78漏短暂效果",
+        "unknown": "",
+        "basis": "80454F—8045EE"
+      }
+    },
+    {
+      "id": "screen.fade",
+      "source": "正常primary优先/secondary选择",
+      "points": [
+        {
+          "va": "0x6F8FFD",
+          "rva": "0x2F8FFD"
+        },
+        {
+          "va": "0x6F90B5",
+          "rva": "0x2F90B5"
+        },
+        {
+          "va": "0x9E8A50",
+          "rva": "0x5E8A50"
+        }
+      ],
+      "owner": "Game+25B04/+25B1C",
+      "projection": "state=最终选中solid颜色/alpha/顺序；derive_or_reuse=已有固定pass常量；host_only=primary/secondary选择、speed/target；forbidden=两套RGBA及selector重复传/退出命令",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "screen.fade",
+        "state": "最终选中solid颜色/alpha/顺序",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "已有固定pass常量",
+        "host_only": "primary/secondary选择、speed/target",
+        "forbidden": "两套RGBA及selector重复传/退出命令",
+        "unknown": "",
+        "basis": "6F8FFD/6F90B5/9E8A50"
+      }
+    },
+    {
+      "id": "screen.fade_icon",
+      "source": "正常world Fade中的loading插画；92B5C0实际loadimages文件加载来源",
+      "points": [
+        {
+          "va": "0x6F90A6",
+          "rva": "0x2F90A6"
+        },
+        {
+          "va": "0x92B914",
+          "rva": "0x52B914"
+        },
+        {
+          "va": "0x92B9D8",
+          "rva": "0x52B9D8"
+        },
+        {
+          "va": "0x92B5C0",
+          "rva": "0x52B5C0"
+        }
+      ],
+      "owner": "Manager+4A9F4/+4A9FC，ManagerFrame%16",
+      "projection": "state=仅共享world Fade的当前loading插画/alpha；resources=被采用loadimages文件；derive_or_reuse=本地中心；D0已有相位；host_only=原生加载生产/插画选择过程；forbidden=timeGetTime加载等待/个人网络缓冲UI/Manager写入；unknown=具体world/个人用途边界",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "screen.fade_icon",
+        "state": "仅共享world Fade的当前loading插画/alpha",
+        "events": "",
+        "resources": "被采用loadimages文件",
+        "derive_or_reuse": "本地中心；D0已有相位",
+        "host_only": "原生加载生产/插画选择过程",
+        "forbidden": "timeGetTime加载等待/个人网络缓冲UI/Manager写入",
+        "unknown": "具体world/个人用途边界",
+        "basis": "Wiki Fadein；92B5C0文件名/92B8B0；本轮新增静态补证"
+      }
+    },
+    {
+      "id": "screen.white_cover",
+      "source": "正常整屏白色覆盖",
+      "points": [
+        {
+          "va": "0x6F8F20",
+          "rva": "0x2F8F20"
+        },
+        {
+          "va": "0x6F8FBE",
+          "rva": "0x2F8FBE"
+        }
+      ],
+      "owner": "Game+669EC",
+      "projection": "state=最终alpha及顺序；derive_or_reuse=固定白色RGB；host_only=Game+669EC原值/转场生产；forbidden=alpha之外再发value/Update",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "screen.white_cover",
+        "state": "最终alpha及顺序",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "固定白色RGB",
+        "host_only": "Game+669EC原值/转场生产",
+        "forbidden": "alpha之外再发value/Update",
+        "unknown": "",
+        "basis": "6F8F20—6F8FBE"
+      }
+    },
+    {
+      "id": "transition.room",
+      "source": "正常前后surface及滑动/遮罩",
+      "points": [
+        {
+          "va": "0x8273C0",
+          "rva": "0x4273C0"
+        },
+        {
+          "va": "0x82780B",
+          "rva": "0x42780B"
+        },
+        {
+          "va": "0x8279CE",
+          "rva": "0x4279CE"
+        },
+        {
+          "va": "0x8279E3",
+          "rva": "0x4279E3"
+        },
+        {
+          "va": "0x827B30",
+          "rva": "0x427B30"
+        }
+      ],
+      "owner": "RoomTransition+28/+30/+0C/+22C/+230",
+      "projection": "state=前后内容引用/最终位移与alpha/有序遮罩；resources=实际world surface内容或完整recipe；derive_or_reuse=已有结构身份；已核本地视口锚定；host_only=mode/style/direction/s/smoothstep输入；forbidden=原生目标room重复owner/ChangeRoom/FSM；unknown=完整坐标及内容闭包",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "transition.room",
+        "state": "前后内容引用/最终位移与alpha/有序遮罩",
+        "events": "",
+        "resources": "实际world surface内容或完整recipe",
+        "derive_or_reuse": "已有结构身份；已核本地视口锚定",
+        "host_only": "mode/style/direction/s/smoothstep输入",
+        "forbidden": "原生目标room重复owner/ChangeRoom/FSM",
+        "unknown": "完整坐标及内容闭包",
+        "basis": "8273D0/8277D4—82780F/8279CE—8279E3"
+      }
+    },
+    {
+      "id": "transition.versus",
+      "source": "正常versus逐层及额外肖像",
+      "points": [
+        {
+          "va": "0x8274F6",
+          "rva": "0x4274F6"
+        },
+        {
+          "va": "0x827618",
+          "rva": "0x427618"
+        },
+        {
+          "va": "0x8276E0",
+          "rva": "0x4276E0"
+        },
+        {
+          "va": "0x82771E",
+          "rva": "0x42771E"
+        },
+        {
+          "va": "0x827741",
+          "rva": "0x427741"
+        }
+      ],
+      "owner": "RoomTransition+38/+224 map当前实际layer",
+      "projection": "state=每次layer主/叠加的最终姿态/颜色/顺序；resources=实际肖像Image/ANM2；derive_or_reuse=已核本地锚点/固定资源定义；host_only=map/变换生产输入；forbidden=原节点/只取最后Sprite/与完整生产体重复；unknown=完整贡献与坐标adapter待实施",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "transition.versus",
+        "state": "每次layer主/叠加的最终姿态/颜色/顺序",
+        "events": "",
+        "resources": "实际肖像Image/ANM2",
+        "derive_or_reuse": "已核本地锚点/固定资源定义",
+        "host_only": "map/变换生产输入",
+        "forbidden": "原节点/只取最后Sprite/与完整生产体重复",
+        "unknown": "完整贡献与坐标adapter待实施",
+        "basis": "8274F6—827741"
+      }
+    },
+    {
+      "id": "transition.stage_mask",
+      "source": "正常StageTransition颜色/alpha",
+      "points": [
+        {
+          "va": "0x909E60",
+          "rva": "0x509E60"
+        },
+        {
+          "va": "0x909F1A",
+          "rva": "0x509F1A"
+        },
+        {
+          "va": "0x909FC2",
+          "rva": "0x509FC2"
+        }
+      ],
+      "owner": "真实DWORD render_kind及正常显示分支",
+      "projection": "state=最终遮罩颜色/alpha/存在性/顺序；derive_or_reuse=有其他用途的Run.ascent；host_only=mode/计时/render_kind DWORD；forbidden=SDK bool或setter/完整StageTransition",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "transition.stage_mask",
+        "state": "最终遮罩颜色/alpha/存在性/顺序",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "有其他用途的Run.ascent",
+        "host_only": "mode/计时/render_kind DWORD",
+        "forbidden": "SDK bool或setter/完整StageTransition",
+        "unknown": "",
+        "basis": "909E60"
+      }
+    },
+    {
+      "id": "transition.nightmare",
+      "source": "正常Nightmare实际显示贡献",
+      "points": [
+        {
+          "va": "0x8FAC20",
+          "rva": "0x4FAC20"
+        },
+        {
+          "va": "0x8FAF87",
+          "rva": "0x4FAF87"
+        },
+        {
+          "va": "0x8FB0D6",
+          "rva": "0x4FB0D6"
+        },
+        {
+          "va": "0x8FB178",
+          "rva": "0x4FB178"
+        }
+      ],
+      "owner": "Manager+21498；4C0队首仅由正常Host消费",
+      "projection": "state=全部有序贡献含Connector/Levels/指示器/slot/辅助Sprite；resources=实际每次资源/姿态依赖；derive_or_reuse=通用ANM2必要插值字段仍按实际消费者；host_only=路线14值/stage/flag/Scene.frame/Dogma/bubble标记/队列/配置索引；forbidden=只发最后Sprite/同时发送完整生产体/Show命令；unknown=完整贡献捕获和局部坐标语义",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "transition.nightmare",
+        "state": "全部有序贡献含Connector/Levels/指示器/slot/辅助Sprite",
+        "events": "",
+        "resources": "实际每次资源/姿态依赖",
+        "derive_or_reuse": "通用ANM2必要插值字段仍按实际消费者",
+        "host_only": "路线14值/stage/flag/Scene.frame/Dogma/bubble标记/队列/配置索引",
+        "forbidden": "只发最后Sprite/同时发送完整生产体/Show命令",
+        "unknown": "完整贡献捕获和局部坐标语义",
+        "basis": "8FAC20反复SetFrame/临时绘制；本轮复读消费者"
+      }
+    },
+    {
+      "id": "transition.procedural_item",
+      "source": "正常程序道具及Default占位显示",
+      "points": [
+        {
+          "va": "0x8FB01A",
+          "rva": "0x4FB01A"
+        },
+        {
+          "va": "0x8D6021",
+          "rva": "0x4D6021"
+        },
+        {
+          "va": "0x8D60B3",
+          "rva": "0x4D60B3"
+        },
+        {
+          "va": "0x8D6189",
+          "rva": "0x4D6189"
+        }
+      ],
+      "owner": "实际已选Sprite/Layer/Image",
+      "projection": "state=实际选中图像/pose/颜色贡献；resources=原版程序道具实际内容/合法fallback；host_only=CreateProceduralItem/选择生产；forbidden=因Mod迁出而删原版内容/额外Create",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "transition.procedural_item",
+        "state": "实际选中图像/pose/颜色贡献",
+        "events": "",
+        "resources": "原版程序道具实际内容/合法fallback",
+        "derive_or_reuse": "",
+        "host_only": "CreateProceduralItem/选择生产",
+        "forbidden": "因Mod迁出而删原版内容/额外Create",
+        "unknown": "",
+        "basis": "8D5FD0/8D6021—8D6189"
+      }
+    },
+    {
+      "id": "screen.boss_overlay",
+      "source": "bossoverlays.xml当前显示对象",
+      "points": [
+        {
+          "va": "0x6F0F76",
+          "rva": "0x2F0F76"
+        },
+        {
+          "va": "0x41CD30",
+          "rva": "0x1CD30"
+        },
+        {
+          "va": "0x41CC80",
+          "rva": "0x1CC80"
+        }
+      ],
+      "owner": "Game+1D294的当前active/Sprite",
+      "projection": "state=有效贡献存在性/资源/pose；resources=当前实际Sprite；derive_or_reuse=本地480x270视口比例；host_only=selected_entry/五定义/persist；forbidden=41CB40进度/音乐/切房副作用",
+      "status": "静态来源已核，运行未实施",
+      "sync_decision": {
+        "source": "screen.boss_overlay",
+        "state": "有效贡献存在性/资源/pose",
+        "events": "",
+        "resources": "当前实际Sprite",
+        "derive_or_reuse": "本地480x270视口比例",
+        "host_only": "selected_entry/五定义/persist",
+        "forbidden": "41CB40进度/音乐/切房副作用",
+        "unknown": "",
+        "basis": "41CC80/41CB40"
+      }
+    },
+    {
+      "id": "excluded.pause_password",
+      "source": "原版Online密码显示切换",
+      "points": [
+        {
+          "va": "0x98DF32",
+          "rva": "0x58DF32"
+        },
+        {
+          "va": "0x98DF69",
+          "rva": "0x58DF69"
+        },
+        {
+          "va": "0x98D1AD",
+          "rva": "0x58D1AD"
+        }
+      ],
+      "owner": "PauseScreen+E04，仅已核1B",
+      "projection": "forbidden=Pause+E04原版Online密码显示不进C/S；unknown=其他Pause后缀仍UNKNOWN",
+      "status": "静态核定排除，不建立C/S运行适配",
+      "sync_decision": {
+        "source": "excluded.pause_password",
+        "state": "",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "",
+        "forbidden": "Pause+E04原版Online密码显示不进C/S",
+        "unknown": "其他Pause后缀仍UNKNOWN",
+        "basis": "98DF32/98E23D；既有隔离"
+      }
+    },
+    {
+      "id": "excluded.deathmatch",
+      "source": "原版Deathmatch虚拟owner",
+      "points": [
+        {
+          "va": "0x4257A0",
+          "rva": "0x257A0"
+        },
+        {
+          "va": "0x4258CB",
+          "rva": "0x258CB"
+        },
+        {
+          "va": "0x6F7AF7",
+          "rva": "0x2F7AF7"
+        },
+        {
+          "va": "0x6F811E",
+          "rva": "0x2F811E"
+        }
+      ],
+      "owner": "Game+25B8C==4/+25B98",
+      "projection": "forbidden=原版Deathmatch owner/绘制不进C/S；unknown=派生ABI未核不等于已知",
+      "status": "静态核定排除，不建立C/S运行适配",
+      "sync_decision": {
+        "source": "excluded.deathmatch",
+        "state": "",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "",
+        "forbidden": "原版Deathmatch owner/绘制不进C/S",
+        "unknown": "派生ABI未核不等于已知",
+        "basis": "4257A0 RTTI；既有隔离"
+      }
+    }
+  ],
+  "remaining_unknown": [
+    "自定义shader STL旁表物理ABI",
+    "派生Image完整大小/特殊像素格式",
+    "Pause其余后缀及后续UI owner",
+    "Nightmare剩余37B及指针后对象内部",
+    "RoomTransition直属228B及其他已有孔"
+  ],
+  "handoff": {
+    "step8": "正式结果布局",
+    "step9": "固定shader/结果批次/资源编码及预算",
+    "step10": "正常源封存",
+    "step12": "有界解码及依赖",
+    "step13": "图形物化/窄显示及恢复",
+    "step15": "唯一统一整体验收"
+  },
+  "synchronization_review": {
+    "document": "presentation-source-synchronization-review.md",
+    "decisions": "presentation-source-synchronization-review.json",
+    "previous_projections": [
+      {
+        "id": "image.file",
+        "projection": "不可变文件资源、实际图像选择与路径元数据独立"
+      },
+      {
+        "id": "image.procedural",
+        "projection": "完整已核recipe或精确RGBA8内容；未知特殊格式不量化"
+      },
+      {
+        "id": "image.hud_message",
+        "projection": "已完成文字图像与streak当前姿态；不额外排版"
+      },
+      {
+        "id": "image.fortune_inventory",
+        "projection": "当前图像与有序结果；身体/槽位正式批次另接"
+      },
+      {
+        "id": "shader.builtin",
+        "projection": "映射固定shader资源；不读取Mod STL旁表，不发送指针/任意stride"
+      },
+      {
+        "id": "screen.colormod",
+        "projection": "复用Run唯一字段；不发target/lerp"
+      },
+      {
+        "id": "screen.bloom",
+        "projection": "最终BloomAmount；Ratio由Client资源尺寸派生"
+      },
+      {
+        "id": "screen.pixelation",
+        "projection": "最终PixelationAmount，不推进FSM"
+      },
+      {
+        "id": "screen.hallucination",
+        "projection": "最终Amount、图像内容、逐用途翻转/alpha；有序贡献"
+      },
+      {
+        "id": "screen.hallucination_snapshot",
+        "projection": "逐用途alpha/内容/顺序；不合并最后值"
+      },
+      {
+        "id": "screen.oldtv",
+        "projection": "Time由已应用GameFrame*0.05派生"
+      },
+      {
+        "id": "screen.retrovision",
+        "projection": "复制最终强度；不把临时全局作为跨会话永久源"
+      },
+      {
+        "id": "screen.fade",
+        "projection": "最终被选择的solid颜色和顺序；不发target"
+      },
+      {
+        "id": "screen.fade_icon",
+        "projection": "实际图像及alpha；位置按Client尺寸派生"
+      },
+      {
+        "id": "screen.white_cover",
+        "projection": "clamp(value/90,0,1)最终alpha"
+      },
+      {
+        "id": "transition.room",
+        "projection": "两份实际内容及最终分支/确定参数/结构关联"
+      },
+      {
+        "id": "transition.versus",
+        "projection": "变换完成后的逐layer主/叠加有序Sprite贡献"
+      },
+      {
+        "id": "transition.stage_mask",
+        "projection": "最终遮罩；不按SDK bool重放setter"
+      },
+      {
+        "id": "transition.nightmare",
+        "projection": "真实slot/layer资源姿态/顺序，路线与场景帧保持"
+      },
+      {
+        "id": "transition.procedural_item",
+        "projection": "保留原版高道具ID内容，不额外CreateProceduralItem"
+      },
+      {
+        "id": "screen.boss_overlay",
+        "projection": "实际存在性/资源/姿态；本地480x270视口比例"
+      },
+      {
+        "id": "excluded.pause_password",
+        "projection": "本地/原版Online排除；其他后缀仍UNKNOWN"
+      },
+      {
+        "id": "excluded.deathmatch",
+        "projection": "按既有C/S隔离排除；派生ABI未核仍保留边界"
+      }
+    ],
+    "note": "旧projection是来源识别，不自动等于当前全部必发字段"
+  }
+}

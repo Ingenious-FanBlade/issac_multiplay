@@ -1,5 +1,15 @@
 # 8：Run、Presentation 与 Random
 
+**2026-11-10 第8步正式源已落地，版本58**：[实现与交接](implementation-8-presentation.md)。`presentation.json`74个布局与`random.json`24个Host原生视图登记310—407；地图唯一owner复用300—303，D0固定5B，两用途随机alpha各1—5B，药丸／预览与各控制组HUD纳入固定结果。28条来源／主体／依赖／失效合同、141＋54行目录与单行表同源生成。第9步外层封装及10—14步实际采集／安装继续实施，已有UNKNOWN和来源Gap保持；不表示运行功能已完成，本步不运行测试。下方较早记录保留原时点。
+
+**2026-11-10 显示结果批次与各端多角色HUD方案定稿**：用户确定**“选 B；采用上述归属划分、明确贡献身份，并保持当前缺结果处理规则”**，正式合同见[批次、归属与各端HUD](presentation-result-batches.md)。统一批次按实际owner分组、按依赖共同提交，沿用world／body两序列；History／Stat等详细HUD默认跟随本端控制组，双角色保留各自必要显示，其他参与者保留公共多人HUD。Host原生两槽不构成系统容量；必须补齐各组合法结果来源。必要结果不全不安装／不ACK，不挪用旧身体或其他贡献；正式布局／来源／adapter仍待实施，版本57不变，本次仅文档静态审阅，无构建或测试。
+
+**2026-11-10来源同步职责复核（版本仍57）**：[53项逐来源决定与纠正](presentation-source-synchronization-review.md)、[机器表](presentation-source-synchronization-review.json)。只发必要当前结果／world事件和按需资源；Nightmare最终贡献替代路线／场景帧／Dogma重复输入，音乐最终voice参数替代mask／混音树／ducking／全局pitch。个人后端失败／抢占不广播world Stop，硬件游标不是必需状态。账本修订5仍50视图、UNKNOWN范围不变；旧决定保留，正式布局／缓存／adapter未实施，无构建或测试。
+
+**2026-11-10 音频状态／事件来源补证（静态，版本仍57）**：[Wiki／SDK优先的来源与未决](presentation-audio-sources.md)、[机器目录](presentation-audio-sources.json)登记30项正常来源。补到节流后的实际sample、Options前SFX增益、持续声／并存voice调整与停止、sound460内联pan、两组音乐各7声部及jingle实际启动／ducking；POST回调和官方jingle ID均不能单独证明启动。账本修订4共50类型／视图，纠正MusicStream+0C为后端volume、pitch在+14、+2C非播放游标；五类直属UNKNOWN缩减，原范围保留。另核BD0F50声音改号流，Random修订3共25视图，均不复制随机流。音乐全部Options前writer／逻辑包络、异步结束、seek／重连相位、视频音轨及其余UNKNOWN仍未闭合；正式布局／缓存／Hook／adapter未实施，无构建或测试。
+
+**2026-11-10 资源／屏幕／转场必要来源补齐（静态，版本仍57）**：[证据与来源合同](presentation-resource-screen-sources.md)、[机器目录](presentation-resource-screen-sources.json)。先读本地Wiki和官方SDK／源码，再对缺项补J273静态证据；核定RGBA8读回、内置shader表与固定格式、各屏幕pass、前后surface及versus逐层临时变换、Nightmare条件队列／原版程序道具结果，并识别Game+1D294为BossOverlay。模式4虚拟owner核为原版Deathmatch，按既有隔离排除；Pause+E04只核为密码显示1B，不外推整个后缀。账本修订3增至49类型／视图，Nightmare直属UNKNOWN61→37B；其余孔、Mod shader旁表ABI及派生Image边界保持。正式Presentation布局／缓存／Hook／图形物化／adapter尚未实施，无构建或测试。下方较早来源缺口按各自时点保留。
+
 **2026-11-10 第7步版本57交接**：Room／Level及必要显示固定值已进入唯一源，详见[实现说明](implementation-7-room-level.md)。MapFocus300—301、MapBadgeList302、独立问号资源303已登记，Presentation后续复用这些布局与唯一owner；原生Minimap及其他Presentation布局／实际来源仍待本步实施。下方版本56及更早段落保留原时点。
 
 **2026-11-10 第7步必要显示／资源设计交接**：[补齐设计](room-display-resource-design.md)明确typed不可变配置／图像／surface recipe／内容资源及同world结果批次。Presentation用自有地图adapter消费完整L0—L3、两边框／icons／itemIcons资源、MapFocusResult和MapBadgeList；展开／视口／Options留本地，不调用混合Map Render内的分数重算。水光波纹／世界强制焦点归Room，地图资源／最终震动／转场显示归本步，不重复owner。Home条件为Data.StageId35且Type16；旧Door“type35”已更正。正式注册／source／图形adapter待实施，版本56，无构建或测试。
@@ -26,7 +36,7 @@
 
 **2026-11-10 第7步两域目录交接**：[RoomSave／Exploration核对](room-save-exploration-synchronization-review.md)要求Presentation唯一承接实际地图图标／边框资源、最终震动、world显示限制，以及966300产生的最多7项有序道具／诅咒徽标。MapBadgeList为`u8 count + i8[count]`，1—8B草稿；不能用Host地图展开状态、四个揭图bool或Sprite最后一帧替代整列。正式结果缓存／布局／资源与adapter待实施，版本56，无测试。
 
-状态：Run静态归属、布局源与191行回映射已完成；Presentation与Random静态字节及目录核对已完成；跨域委派／未知照实保留。Presentation正式布局及正式运行接线尚未完成；Mod适配已迁出当前范围。上级：[总计划](README.md)。
+状态：Run、Presentation与Random的正式源／生成表及191＋141＋54行回映射已经落实；第9步批次／贡献／事件封装与第10—14步正式运行接线尚待完成。音频未闭合来源及其他UNKNOWN照实保留，Mod适配在当前范围外。上级：[总计划](README.md)。
 
 ## 目标
 
@@ -114,6 +124,7 @@ Pickup、Familiar 等的原生 Render 还读写 Game 之外的四项全局值。
 **第5步P0—P2设计补充（2026-11-09，尚未实现）**：[具体消费者与职责](5-player-p0-p2.md)。P1不重复Player六项最终stats，属性栏由实际StatHUD五值缓存（value／delta／previous／threshold／countdown）、真实Player身份与资源承接；不调用83CFD0／83C860／83D210补值。P2保留83B160特殊健康显示需要的原始健康值，普通24心／动态PlayerHUD最终缓存仍须安装，EternalHearts与BoneHeartsMask的原存储不传。不能声称这些缓存会由原生HUD Update自然重建；已有单根缓存安装是窄先例，全部参与者／主备及真实布局owner仍归本步完成。P0另保留758850在Render内直接读取的五计数，不能只靠最终条Sprite删除它们。布局版本仍46，没有测试。
 
 - **HUD 与小地图**：以[逐项决定](presentation-synchronization-review.md#2-最终同步决定)为准。最终心格／实际图像／有序列表不能靠安装Player后自然获得；StatHUD只发value／delta／countdown，官方星象房行保留。地图本地展开／holdTime／视口不跟随Host输入，world标记／显示资格和最终震动另同步。965DB0含设备／Online／随机，禁止放行；965D60→9635B0缓存构建只在具体确定分支和来源完整时使用，挑战32须有Host最终标记。每项派生都有具体路径，不因“由状态决定”一概判本地。
+- **批次与各端主体**：采用[已定稿方案B](presentation-result-batches.md)，producer、subject及安装owner分别登记。各端History／Stat等详细主体取自身控制组，公共心量／主动等继续覆盖其他参与者；原生槽0／1不是Peer0／1。每份结果绑定真实来源／有效依赖，多layer／pass／递归贡献保留独立身份与顺序；分组不放宽共同提交及缺结果不安装／不ACK的规则。
 - **Sprite资源与颜色**：版本32按[动画／资源／颜色职责复核](animation-resource-synchronization-review.md)保留资源选择、实际Image／shader和最终完整ColorMod；不传ColorParams时间线或Host加载维护字节。资源存在性由可空文件资源号表示，等待／失败／成功由Client资源owner维护；路径变化不能替代实际Image变化。主／叠加事件掩码不上线，一次性音画仍由事件通道处理。本步尚未核定的HUD／UI资源owner须核实际绘制消费者，不把Entity四层直接调用的阴性检索外推为全域覆盖；is_playing／anim_frame／playback_speed的官方绘制插值依赖继续保留。
 - **ColorModState**：版本56核定只发`current`六值；target／lerp与开关属于Host生产输入。两个黑暗浮点仍因直接绘制依赖保留。具体证据见[Run核对](run-synchronization-review.md)。
 - **音乐音效**：以[意图／事件／本地后端边界](presentation-synchronization-review.md#7-音频意图事件与本地后端)为准。一次性声音走已选sample事件；持续loop／ambient及音乐crossfade／jingle还须当前voice状态供baseline／重连恢复，重复状态不重播。后端音量含Host Options乘数，不能直接下发或在静音时反除；Client保留自身音量／静音。FrameDelay是重复播放节流，不是启动延迟。
@@ -121,7 +132,7 @@ Pickup、Familiar 等的原生 Render 还读写 Game 之外的四项全局值。
 
 #### 8.2.1 绘制输入块 D0与逐用途随机结果
 
-2026-11-10按[第7步与Random交接](room-random-handoff.md)修订：当前D0仅5B，原37B／13B全局游标草稿已替代，生产版本仍56。具体原生结果点、资格和批次合同见交接第3节。
+2026-11-10按[第7步与Random交接](room-random-handoff.md)修订：D0仅5B，原37B／13B全局游标草稿已替代；现已注册为版本58的PresentationDrawClock356。具体原生结果点、资格和批次合同见交接第3节。
 
 | +0 u32 manager_frame（4B） | +4 u8 paused（1B） |
 |---|---|
@@ -131,7 +142,7 @@ Pickup、Familiar 等的原生 Render 还读写 Game 之外的四项全局值。
 - 标量记录`state:u8`，0为正常Host已确认无随机覆盖；1随后有alpha:f32，最大5B。外层身份／容器／批次另计，多个pass／递归不能折叠为一份最后值。缺源／未产生不填0或不适用。
 - 结果绑定真实world state revision、presentation revision及资源版本，不能从普通窗口seed或仅GameFrame猜消费相位。只捕获正常Host结果，不额外Render／抽取；Authority tick不等显示批次。
 - Client在两个具名随机／资格分支使用结果；Familiar本地颜色栈对称push/pop，Pickup临时Sprite与CPU消费后恢复。重复展示复用同一不可变批次，换房／use退休撤销，不依赖本地排序分配随机样本。
-- 未注册正式布局号、具体缓存／source／writer及预算仍待第9/10/12/13步，不将本草稿作为版本56记录接受。
+- 正式布局为356—358，结果内容预算分别5B／5B／5B；外层贡献身份／批次封装、实际缓存／source／writer仍待第9/10/12/13步，不将旧草稿当可接受报文。
 
 ### 8.3 Random
 
@@ -158,13 +169,13 @@ Pickup、Familiar 等的原生 Render 还读写 Game 之外的四项全局值。
 
 ## 完成内容
 
-- **字节归属与表格**：Run、Presentation 的字节归属完成，带证据；单行表由生成器产出。
+- **字节归属与表格**：Run、Presentation、Random的原生范围和UNKNOWN已登记生产源，带证据；单行表由生成器产出，未声称全部字节语义已知。
 - **回映射**：三个域的公开成员全部有回映射：
   - run 的 93 个、presentation 的 55 个 `ReplicatedState` 成员，各自映射到布局字段、某组字段的派生，或者说明为何归 Host 权威或不适用；
   - run 的 87 个、presentation 的 70 个 `AuthorityOnly` 成员，以及random的54个成员逐行审阅；Random已区分51条Host及3条实际显示结果交接，具名绘制实例单独登记，不按普通RNG归属丢掉画面；
 
 ## 未决问题
 
-- HUD（0x5C90）和Minimap（0x628）的声明范围与同步职责已登记；正式`state/presentation.json`和运行接线尚未实施。消息／程序图完整recipe、shader旁表物理ABI、Pause后缀、Nightmare条件payload、挑战32最终标记及音频已选sample／逻辑voice来源等仍按[具体缺口](presentation-synchronization-review.md)落实；UNKNOWN不补零，不以目录已回映射宣称完整。
+- HUD（0x5C90）和Minimap（0x628）的原生范围、正式`state/presentation.json`及生成表已登记；运行接线尚未实施。资源／屏幕／转场按[来源补证](presentation-resource-screen-sources.md)使用正常已完成内容／完整recipe、实际内置shader和最终有序贡献。具体缓存／Hook／图形物化、全部控制组合法HUD来源仍待落实；Mod shader旁表ABI、Pause其余后缀、Nightmare剩余孔与派生Image边界仍UNKNOWN。[音频补证](presentation-audio-sources.md)已核sample／并存voice／音乐声部和jingle分支，全部音乐Options前writer／逻辑包络、world用途退休、segment／seek恢复和视频音轨仍未闭合；不以正式值布局或静态来源已登记宣称运行完成。
 
 **版本39 Player／HUD装备依赖**：[装备与Plus复核](player-equipment-plus-synchronization-review.md)核定PlayerHUD::RenderActiveItem835B40直接／间接使用四主动槽六值、TemporaryEffects分类／count、ItemConfig、Player角色／库存及Game challenge；还在836093读首个slot0／1 Weapon的type12分支。Player758850的进度条依真实slot7／slot6公式与各内嵌Sprite，角色27另读704效果cooldown及配置cooldown；不得把有最终costume当作查询已经可用。HUD资源／image/bookImage／flash／布局等未核owner仍须本步准备，不放行832C10整个PlayerHUD Update刷新缓存。官方1072／1073等第三方回调结果及HUD回调适配已归[Mod后续方案](../mod-adaptation.md)，不作为当前原版实现条件；Client仍不能调用玩法Lua补齐显示。Plus公共覆盖由Scene415350的水面／反射分派实际消费，主体Room／Player依赖仍在；本轮不宣称完整HUD实现或测试通过。

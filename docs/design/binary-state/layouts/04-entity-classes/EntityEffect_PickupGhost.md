@@ -1,6 +1,6 @@
 # EntityEffect_PickupGhost
 
-由唯一布局源生成。布局编号 106；布局版本 57；原生大小 0x4C0；未知 382B；完整：否。
+由唯一布局源生成。布局编号 106；布局版本 58；原生大小 0x4C0；未知 382B；完整：否。
 
 版本38：六臂保留原布局号。六项公共更新输入、TearFlags全128位和136描述八成员归Host，FX2均预留；展示State／Timeout／LifeSpan／IsFollowing／ParentOffset／Rotation／Scale保留。MrMe／Trail／Ghost按具体RTTI投影；Ghost只发送有效Sprite前缀。基础复用区和原UNKNOWN继续保留，不能宣称全部变体完整。 版本40：已核VarData另分137—141，102保留54／126／167；共11布局，FX2始终预留。Rotation／Scale移FX0，FX0=16B／FX1=13B；Timeout每窗重算。非附属holder非空或错RTTI报Gap；Trail最多127节点。见docs/design/binary-state/effect-next-five-evidence.md 版本45仅处理残余：167独立148，+430生产语义核为Host伤害快照，+434常数槽及438后8B仍未知；19/71/194内部flags选149但不开放公开API；119尾部按callback复用，6FC690特例不覆盖全部119。三段41C/44C/4BC及465空白保持UNKNOWN。原五项（Timeout/分块/Trail/payload等）不重做，13个布局的正式接线与验收仍在第10/13/15步。
 

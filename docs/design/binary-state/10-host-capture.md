@@ -1,5 +1,15 @@
 # 10：Host 采集器
 
+**第8步版本58交接**：[正式源与来源合同](implementation-8-presentation.md)已经生成。按数字布局／字段与28条具名合同接正常生产缓存；地图复用300—303，心格可见payload353、Stat行354、D0 356、随机alpha357／358、Pill359及各组选择364。必须覆盖所有组合法来源，音乐逻辑gain／用途退休等Gap仍保留；不因布局已登记就额外执行getter／Render／随机／HUD重算。
+
+**2026-11-10 显示批次来源定稿交接**：[方案B及全部控制组来源合同](presentation-result-batches.md)要求正常生产／消费点封存真实owner、subject/use/shape、来源修订和独立贡献；瞬态结果不能在普通后态补采，持久缓存须有明确有效依赖。Host应提供全部组详细History／Stat及公共多人HUD所需结果，不能只采当前原生两槽或把个人HUD关闭当world缺席；未闭合组／视口来源仍记Gap，不额外getter／Lua／Update／Recompute／随机。仅自有不可变值交后台，Authority不等待；正式缓存／Hook未实施，版本57不变，无构建或测试。
+
+**2026-11-10来源同步职责复核交接**：[53项当前职责](presentation-source-synchronization-review.md)明确来源字段不等于全部下行。Nightmare只封存每次最终贡献，路线／Scene帧等留Host；音频采集Options前最终voice参数，mask／混音树不重复。world Start资格在正常逻辑接受／已选sample处分开保存，907E9D只是本地提交证据；后端重试不自动分配新实例，设备失败／抢占不广播Stop。world用途／退休、完整逻辑gain和surface内容／坐标闭包仍待落实，不能额外getter或Render补值；版本57，未构建或测试。
+
+**2026-11-10 第8步音频来源交接**：[实际分支／参数来源](presentation-audio-sources.md)明确907C60节流后的选sample与Play提交、同次pan完成、907F60／908070调整、908140／908210停止、908340重新混音、908530环境声与sound460内联pan，以及正常音乐两组／jingle生产。POST回调、公开ID或最后SoundEffect+194均不是完整采集；一次真实生效结果才更新自有voice／事件缓存，原函数执行一次，不为采集调用可清pending的IsPlaying。全部音乐Options前writer／逻辑平滑、SFX异步结束与world／个人UI用途分类仍需落实，不能补1／反除静音后端值或让Authority等待音频。Hook／缓存未实施，版本57不变，无构建或测试。
+
+**2026-11-10 第8步资源／屏幕来源交接**：[正常生产／消费点目录](presentation-resource-screen-sources.md)明确图像和各屏幕pass、versus逐layer临时变换、Nightmare实际Sprite／程序道具及BossOverlay。采集在正常Host已形成本次结果时封存，图形内容等正常提交消费后再物化；不能函数返回后只读最后Sprite值，也不额外调用Lua／Render／Show／随机。图形状态保护、世界／显示／资源代次、CPU队列与生命周期照合同处理；读回与资源分配属于图形资源物化阶段，不能塞入零分配world memcpy热路径或让Authority等待。实际Hook／缓存／读回仍未实施，版本57不变，无构建或测试。
+
 状态：设计稿，未实施。上级：[总计划](README.md)。
 
 **2026-11-10 各域交接统一整理**：现行入口为10.7“各域来源与采集交接清单”，按来源、特殊约束、版本依赖与待落实项登记全部相关域。本次静态审阅的布局源为57；布局入源、运行接线和第15步验收分别说明。本次只改本文档，不修改实现／布局源／生成表，不构建、不运行测试。
@@ -129,7 +139,7 @@ Slot／Projectile／Effect 的布局和公开回映射见[后续三类实现](im
 | HUD／地图／UI：[Presentation核对](presentation-synchronization-review.md)、[地图设计](room-display-resource-design.md) | 实际身体HUD、最终心格／Stat三值／有序图像、11消息槽和真实文字内容；地图全可显示事实、300—303两配置焦点／有序徽标／问号图。展开、视口、dirty与shakeDuration不采 | subject/use、显示归组、Player／Run／L0—L3、资源及显示修订关联，不能把Sprite最后帧当整列 | 未注册HUD/UI根的布局与正常缓存；历史／转场／屏幕图像及shader未知源逐项留Gap，不额外Update／Refresh／Recompute |
 | Random／D0：[逐用途交接](room-random-handoff.md) | D0只Manager相位＋paused5B；Pickup6E3805后、Familiar61E604后取实际alpha／资格，不发两seed或玩法／音频流。未产生不等于确认无覆盖 | world/presentation修订、subject/use/shape、pass／重复调用／递归及资源同批；相同GameFrame不够 | 正常栈／临时结果缓存、用途与调用身份及缺源表达；Authority不等待显示，不补抽样或复演全局顺序 |
 | 配置／图像／shader资源：[typed设计](room-display-resource-design.md)、[版本57](implementation-7-room-level.md) | 15B配置、文件、完整recipe或精确像素分别取源；RGBA8读回leaf依据A4C840由图形owner在正常提交／CPU消费完成后用，非普通memcpy／后台getter。保留pixel/UV／padding和图形状态 | 不可变内容身份、依赖闭包、同owner/use版本，Data/Override独立；冷连接缺历史不猜图片名 | 具体GPU ABI、shader旁表、图形物化缓存和有界自有缓冲；所有成本／blob纳入后续预算，不量化／降质补缺 |
-| Music／SFX／环境声：[音频边界](presentation-synchronization-review.md)、[采样来源](room-random-handoff.md) | 正常907C60选sample后取已选资源，正常逻辑Volume／907F60调整及pitch/pan点维护voice；不取含Options的后端值，也不从静音反除 | sample、逻辑voice代次／loop／相位、开始停止clear及场景生命周期；一次事件与持续状态分开 | 正式意图缓存／sample关联与注册布局，主线程封存后再交后台；不额外Play／SetAmbientSound补源 |
+| Music／SFX／环境声：[同步职责复核](presentation-source-synchronization-review.md)、[具体来源](presentation-audio-sources.md) | 正常逻辑资格通过且已选sample时保存world意图，封存每voice最终Options前gain／pitch／必要pan；不重复mask／混音树／ducking。907E9D仅证明本地提交，个人后端失败／重试不自动Stop／Start | 逻辑voice实例／资源／world用途、事件序号／时点／水位及真实退休关联；普通one-shot本地完成，硬件游标不上线；必要逻辑段／恢复另核 | 完整world用途／退休与音乐gain来源、自有意图缓存和正式布局未落实；主线程封存后交后台，不额外Play／SetAmbientSound／getter补源 |
 
 跨域交接使用自有不可变数据；失败不发布半记录或不完整world，不把“本轮没读到”推导成成员离开。低频轮转与正常显示生产来源需明确有效修订／失效条件和预算，不拼接不同world/use；退役旧源在第14步，运行正确性与性能仅第15步验收。本次清单静态整理不执行这些步骤。
 

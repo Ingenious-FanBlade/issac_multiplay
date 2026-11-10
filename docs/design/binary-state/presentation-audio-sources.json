@@ -1,0 +1,1029 @@
+{
+  "format": "isaac.cs.presentation-audio-source-review",
+  "revision": 2,
+  "date": "2026-11-10",
+  "target": "official REPENTOGON 1.1.3 / v1.9.7.12.J273 / Win32",
+  "authoritative_document": "presentation-audio-sources.md",
+  "role": "设计来源目录；非生产schema/Hook清单",
+  "production_layout_version": 57,
+  "evidence_order": [
+    "本地原版Wiki",
+    "本地REPENTOGON Wiki",
+    "官方1.1.3 ZHL/源码",
+    "J273只读静态反编译/指令"
+  ],
+  "runtime_status": "未接线；未构建或运行测试",
+  "sources": [
+    {
+      "id": "sfx.config",
+      "points": [
+        {
+          "va": "0x9070A0",
+          "rva": "0x5070A0"
+        },
+        {
+          "va": "0x906DE0",
+          "rva": "0x506DE0"
+        }
+      ],
+      "owner": "SoundEffects.sounds / SoundEffect+19C/+1A0",
+      "projection": "resources=实际选中文件及必要资源声明；host_only=sample_count/weight/全库/配置ID/名称；forbidden=原生string/vector",
+      "status": "静态已核；不是随机重放配方",
+      "sync_decision": {
+        "source": "sfx.config",
+        "state": "",
+        "events": "",
+        "resources": "实际选中文件及必要资源声明",
+        "derive_or_reuse": "",
+        "host_only": "sample_count/weight/全库/配置ID/名称",
+        "forbidden": "原生string/vector",
+        "unknown": "",
+        "basis": "sounds Wiki；9070A0"
+      }
+    },
+    {
+      "id": "sfx.selected_sample",
+      "points": [
+        {
+          "va": "0x907D2F",
+          "rva": "0x507D2F"
+        },
+        {
+          "va": "0x907D5D",
+          "rva": "0x507D5D"
+        },
+        {
+          "va": "0x907DC0",
+          "rva": "0x507DC0"
+        }
+      ],
+      "owner": "SoundEffect+8+index*38h",
+      "projection": "events=通过逻辑资格后的已选sample Start/明确重触发；resources=实际选中sample；host_only=节流帧/BD0F40；forbidden=客户端抽样/重放FrameDelay；unknown=world用途与完整逻辑资格",
+      "status": "静态已核，缓存未实施",
+      "sync_decision": {
+        "source": "sfx.selected_sample",
+        "state": "",
+        "events": "通过逻辑资格后的已选sample Start/明确重触发",
+        "resources": "实际选中sample",
+        "derive_or_reuse": "",
+        "host_only": "节流帧/BD0F40",
+        "forbidden": "客户端抽样/重放FrameDelay",
+        "unknown": "world用途与完整逻辑资格",
+        "basis": "907D2F—907DC0"
+      }
+    },
+    {
+      "id": "sfx.actual_load",
+      "points": [
+        {
+          "va": "0x906EF0",
+          "rva": "0x506EF0"
+        },
+        {
+          "va": "0x907DF7",
+          "rva": "0x507DF7"
+        },
+        {
+          "va": "0x9F8170",
+          "rva": "0x5F8170"
+        }
+      ],
+      "owner": "sample path与实际本地source强引用",
+      "projection": "resources=从正常加载关联取得实际文件；host_only=本地加载关联；forbidden=loaded/预载/设备状态当world资格；传source/control；unknown=无后端时仍取得world资源意图的具体路径",
+      "status": "静态已核；跨后端构造adapter未封装",
+      "sync_decision": {
+        "source": "sfx.actual_load",
+        "state": "",
+        "events": "",
+        "resources": "从正常加载关联取得实际文件",
+        "derive_or_reuse": "",
+        "host_only": "本地加载关联",
+        "forbidden": "loaded/预载/设备状态当world资格；传source/control",
+        "unknown": "无后端时仍取得world资源意图的具体路径",
+        "basis": "906EF0/907DF7"
+      }
+    },
+    {
+      "id": "sfx.start",
+      "points": [
+        {
+          "va": "0x907E21",
+          "rva": "0x507E21"
+        },
+        {
+          "va": "0x907E36",
+          "rva": "0x507E36"
+        },
+        {
+          "va": "0x907E69",
+          "rva": "0x507E69"
+        },
+        {
+          "va": "0x907E9D",
+          "rva": "0x507E9D"
+        },
+        {
+          "va": "0x907EA0",
+          "rva": "0x507EA0"
+        },
+        {
+          "va": "0x907EAE",
+          "rva": "0x507EAE"
+        }
+      ],
+      "owner": "已选sample本次voice",
+      "projection": "state=voice当前loop/gain/pitch/必要pan；events=world Start及顺序/实例代次；resources=已选文件；host_only=选样本/节流与本地提交关联；forbidden=907E9D后端成功作为唯一world Start资格；unknown=world接受与后端失败分离尚待接线",
+      "status": "静态本地执行事实已核；world意图/用途与个人后端分离仍待完整落实",
+      "sync_decision": {
+        "source": "sfx.start",
+        "state": "voice当前loop/gain/pitch/必要pan",
+        "events": "world Start及顺序/实例代次",
+        "resources": "已选文件",
+        "derive_or_reuse": "",
+        "host_only": "选样本/节流与本地提交关联",
+        "forbidden": "907E9D后端成功作为唯一world Start资格",
+        "unknown": "world接受与后端失败分离尚待接线",
+        "basis": "907D50/907E21—907EAE"
+      },
+      "previous_status": "静态已核，事件未实施"
+    },
+    {
+      "id": "sfx.volume",
+      "points": [
+        {
+          "va": "0x907F60",
+          "rva": "0x507F60"
+        }
+      ],
+      "owner": "该sound实际命中的活动sample集合",
+      "projection": "state=实际命中逻辑voice的当前最终gain；host_only=sound+194与modifier乘法；forbidden=Host Options/后端volume；同值每帧再发控制事件；unknown=Options前完整用途来源",
+      "status": "静态已核，缓存未实施",
+      "sync_decision": {
+        "source": "sfx.volume",
+        "state": "实际命中逻辑voice的当前最终gain",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "sound+194与modifier乘法",
+        "forbidden": "Host Options/后端volume；同值每帧再发控制事件",
+        "unknown": "Options前完整用途来源",
+        "basis": "907F60"
+      }
+    },
+    {
+      "id": "sfx.pitch",
+      "points": [
+        {
+          "va": "0x908070",
+          "rva": "0x508070"
+        }
+      ],
+      "owner": "该sound实际命中的活动sample集合",
+      "projection": "state=实际命中逻辑voice的当前pitch；host_only=原sample缓存；forbidden=重启voice来更新pitch",
+      "status": "静态已核，缓存未实施",
+      "sync_decision": {
+        "source": "sfx.pitch",
+        "state": "实际命中逻辑voice的当前pitch",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "原sample缓存",
+        "forbidden": "重启voice来更新pitch",
+        "unknown": "",
+        "basis": "908070"
+      }
+    },
+    {
+      "id": "sfx.stop",
+      "points": [
+        {
+          "va": "0x908140",
+          "rva": "0x508140"
+        }
+      ],
+      "owner": "该sound实际活动voice",
+      "projection": "events=明确world用途Stop/实例退休；host_only=节流重置；forbidden=本地设备失效传播Stop；unknown=完整调用用途分类",
+      "status": "静态已核，缓存未实施",
+      "sync_decision": {
+        "source": "sfx.stop",
+        "state": "",
+        "events": "明确world用途Stop/实例退休",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "节流重置",
+        "forbidden": "本地设备失效传播Stop",
+        "unknown": "完整调用用途分类",
+        "basis": "908140"
+      }
+    },
+    {
+      "id": "sfx.stop_loops",
+      "points": [
+        {
+          "va": "0x908210",
+          "rva": "0x508210"
+        }
+      ],
+      "owner": "所有sound中实际loop的活动voice",
+      "projection": "events=world StopLooping命中的逻辑voice集合；host_only=原生遍历/后端loop查询；forbidden=原进程全声音无差别Clear/夹带个人UI；unknown=逻辑集合与后端集合隔离",
+      "status": "静态已核，缓存未实施",
+      "sync_decision": {
+        "source": "sfx.stop_loops",
+        "state": "",
+        "events": "world StopLooping命中的逻辑voice集合",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "原生遍历/后端loop查询",
+        "forbidden": "原进程全声音无差别Clear/夹带个人UI",
+        "unknown": "逻辑集合与后端集合隔离",
+        "basis": "908210"
+      }
+    },
+    {
+      "id": "sfx.remix",
+      "points": [
+        {
+          "va": "0x908340",
+          "rva": "0x508340"
+        }
+      ],
+      "owner": "活动sample/本地Options与SoundEffects+10",
+      "projection": "state=world modifier变化造成的最终gain变化；host_only=乘数/不同路径clamp规则；forbidden=Options刷新当world事件/误作Clear voice；unknown=全部world/本地writer分类",
+      "status": "静态已核；全部modifier writer用途未闭合",
+      "sync_decision": {
+        "source": "sfx.remix",
+        "state": "world modifier变化造成的最终gain变化",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "乘数/不同路径clamp规则",
+        "forbidden": "Options刷新当world事件/误作Clear voice",
+        "unknown": "全部world/本地writer分类",
+        "basis": "908340/LuaOptions.cpp"
+      }
+    },
+    {
+      "id": "sfx.modifier_recovery",
+      "points": [
+        {
+          "va": "0x92A19E",
+          "rva": "0x52A19E"
+        },
+        {
+          "va": "0x92EB03",
+          "rva": "0x52EB03"
+        },
+        {
+          "va": "0x92EB39",
+          "rva": "0x52EB39"
+        }
+      ],
+      "owner": "Manager内SoundEffects+10/+14",
+      "projection": "state=只承接恢复后的最终voice gain；host_only=SoundEffects+10/+14原生平滑器；forbidden=步长/包络与最终gain同时下发",
+      "status": "静态已核，缓存未实施；原4B UNKNOWN已核为恢复步长",
+      "sync_decision": {
+        "source": "sfx.modifier_recovery",
+        "state": "只承接恢复后的最终voice gain",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "SoundEffects+10/+14原生平滑器",
+        "forbidden": "步长/包络与最终gain同时下发",
+        "unknown": "",
+        "basis": "92EAE4—92EB3E"
+      }
+    },
+    {
+      "id": "sfx.ambient",
+      "points": [
+        {
+          "va": "0x908530",
+          "rva": "0x508530"
+        }
+      ],
+      "owner": "实际分支对应voice",
+      "projection": "state=world持续用途的存续/资源/当前gain/pitch；events=用途真实建立/替换/结束；host_only=阈值/平滑/分支生产；forbidden=每次后端重试当新Start；unknown=用途身份与本地恢复分支分离",
+      "status": "静态已核，缓存未实施",
+      "sync_decision": {
+        "source": "sfx.ambient",
+        "state": "world持续用途的存续/资源/当前gain/pitch",
+        "events": "用途真实建立/替换/结束",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "阈值/平滑/分支生产",
+        "forbidden": "每次后端重试当新Start",
+        "unknown": "用途身份与本地恢复分支分离",
+        "basis": "908530"
+      }
+    },
+    {
+      "id": "sfx.seed_sound_replacement",
+      "points": [
+        {
+          "va": "0x92FAD0",
+          "rva": "0x52FAD0"
+        },
+        {
+          "va": "0x92FB91",
+          "rva": "0x52FB91"
+        }
+      ],
+      "owner": "BD0F50 / seed7正常改号",
+      "projection": "resources=最终实际sample；host_only=原sound改号过程/BD0F50；forbidden=RNG/改号helper/重复sound ID状态",
+      "status": "静态已核，额外16B字段视图已登记",
+      "sync_decision": {
+        "source": "sfx.seed_sound_replacement",
+        "state": "",
+        "events": "",
+        "resources": "最终实际sample",
+        "derive_or_reuse": "",
+        "host_only": "原sound改号过程/BD0F50",
+        "forbidden": "RNG/改号helper/重复sound ID状态",
+        "unknown": "",
+        "basis": "92FAD0"
+      }
+    },
+    {
+      "id": "sfx.room_ambient",
+      "points": [
+        {
+          "va": "0x7F5950",
+          "rva": "0x3F5950"
+        },
+        {
+          "va": "0x7E0880",
+          "rva": "0x3E0880"
+        },
+        {
+          "va": "0xAAD0E0",
+          "rva": "0x6AD0E0"
+        }
+      ],
+      "owner": "Room+7084及16路配置/正常提交",
+      "projection": "state=当前逻辑环境voice/gain/pitch/pan；events=明确world用途建立/结束；host_only=Room+7084平滑器/AAD0E0表；forbidden=整块Room音频缓存/每帧Play；unknown=完整world生命周期",
+      "status": "复用Room已核来源，运行未实施",
+      "sync_decision": {
+        "source": "sfx.room_ambient",
+        "state": "当前逻辑环境voice/gain/pitch/pan",
+        "events": "明确world用途建立/结束",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "Room+7084平滑器/AAD0E0表",
+        "forbidden": "整块Room音频缓存/每帧Play",
+        "unknown": "完整world生命周期",
+        "basis": "7F5950/7E0880"
+      }
+    },
+    {
+      "id": "sfx.room460_pan",
+      "points": [
+        {
+          "va": "0x7F5950",
+          "rva": "0x3F5950"
+        }
+      ],
+      "owner": "sound460所有实际活动sample",
+      "projection": "state=已存在one-shot voice的必要pan更新；host_only=Room+72FC计时/距离生产；forbidden=晚加入者补播历史Start/按room epoch强行截断",
+      "status": "静态已核，内联缓存未实施",
+      "sync_decision": {
+        "source": "sfx.room460_pan",
+        "state": "已存在one-shot voice的必要pan更新",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "Room+72FC计时/距离生产",
+        "forbidden": "晚加入者补播历史Start/按room epoch强行截断",
+        "unknown": "",
+        "basis": "7F5950末段内联"
+      }
+    },
+    {
+      "id": "sfx.playing_result",
+      "points": [
+        {
+          "va": "0x908470",
+          "rva": "0x508470"
+        }
+      ],
+      "owner": "正常查询/调整内的后端结果",
+      "projection": "host_only=Host正常控制生产可消费其结果；forbidden=后端playing/pending/偷占/设备失败网络化；unknown=后端结果污染意图生产的隔离及world退休来源",
+      "status": "静态本地执行事实已核；world意图/用途与个人后端分离仍待完整落实",
+      "sync_decision": {
+        "source": "sfx.playing_result",
+        "state": "",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "Host正常控制生产可消费其结果",
+        "forbidden": "后端playing/pending/偷占/设备失败网络化",
+        "unknown": "后端结果污染意图生产的隔离及world退休来源",
+        "basis": "908470；本轮职责纠正"
+      },
+      "previous_status": "完整自然结束/偷占/设备失效来源UNKNOWN"
+    },
+    {
+      "id": "sfx.pan_leaf",
+      "points": [
+        {
+          "va": "0x9F7970",
+          "rva": "0x5F7970"
+        }
+      ],
+      "owner": "本地source wrapper+10 / sample+28",
+      "projection": "state=world pan语义有用途时按资源规则承接；resources=必要mono通道规则；forbidden=后端请求/失败当跨端状态；unknown=资源通道/具体参数约束",
+      "status": "静态条件已核，完整后端语义未实测",
+      "sync_decision": {
+        "source": "sfx.pan_leaf",
+        "state": "world pan语义有用途时按资源规则承接",
+        "events": "",
+        "resources": "必要mono通道规则",
+        "derive_or_reuse": "",
+        "host_only": "",
+        "forbidden": "后端请求/失败当跨端状态",
+        "unknown": "资源通道/具体参数约束",
+        "basis": "9F7970"
+      }
+    },
+    {
+      "id": "music.config",
+      "points": [
+        {
+          "va": "0x7D60A0",
+          "rva": "0x3D60A0"
+        },
+        {
+          "va": "0x7D7763",
+          "rva": "0x3D7763"
+        },
+        {
+          "va": "0x7D776D",
+          "rva": "0x3D776D"
+        },
+        {
+          "va": "0x7D7776",
+          "rva": "0x3D7776"
+        },
+        {
+          "va": "0x7D7783",
+          "rva": "0x3D7783"
+        },
+        {
+          "va": "0x7D778C",
+          "rva": "0x3D778C"
+        },
+        {
+          "va": "0x7D7791",
+          "rva": "0x3D7791"
+        }
+      ],
+      "owner": "MusicEntry60h / MusicLayerDefinition34h",
+      "projection": "resources=实际被选文件与必要intro→main依赖/loop规则；host_only=全库/未选层/mul/layer_mode/fade_speed/ID；forbidden=重复乘配置mul到已合成gain",
+      "status": "静态字节已核，后端游标仍未知",
+      "sync_decision": {
+        "source": "music.config",
+        "state": "",
+        "events": "",
+        "resources": "实际被选文件与必要intro→main依赖/loop规则",
+        "derive_or_reuse": "",
+        "host_only": "全库/未选层/mul/layer_mode/fade_speed/ID",
+        "forbidden": "重复乘配置mul到已合成gain",
+        "unknown": "",
+        "basis": "music Wiki；7D60A0"
+      }
+    },
+    {
+      "id": "music.stream_values",
+      "points": [
+        {
+          "va": "0x9F76E0",
+          "rva": "0x5F76E0"
+        },
+        {
+          "va": "0x7D5860",
+          "rva": "0x3D5860"
+        },
+        {
+          "va": "0x7D7B90",
+          "rva": "0x3D7B90"
+        },
+        {
+          "va": "0x7D5C40",
+          "rva": "0x3D5C40"
+        }
+      ],
+      "owner": "MusicStream34h",
+      "projection": "state=有效逻辑voice的loop/最终gain/pitch/必要pan/pause；host_only=config mul/layer权重/目标/平滑/parent；forbidden=后端source/control/active/pending/volume/Update计数；unknown=独立world gain与生命周期来源",
+      "status": "纠正旧账本；4B直属UNKNOWN保持",
+      "sync_decision": {
+        "source": "music.stream_values",
+        "state": "有效逻辑voice的loop/最终gain/pitch/必要pan/pause",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "config mul/layer权重/目标/平滑/parent",
+        "forbidden": "后端source/control/active/pending/volume/Update计数",
+        "unknown": "独立world gain与生命周期来源",
+        "basis": "7D7B90/7D5C40"
+      }
+    },
+    {
+      "id": "music.play",
+      "points": [
+        {
+          "va": "0x7D8360",
+          "rva": "0x3D8360"
+        }
+      ],
+      "owner": "Music当前组新逻辑代次",
+      "projection": "events=实际world选曲/明确重播；新实例代次；resources=被选曲目文件；host_only=current_stream/current_id的原生维护；forbidden=全局ID之外再复制同一资源/设备成功当唯一资格；unknown=world选曲和个人UI用途分类",
+      "status": "静态已核，voice绑定未实施",
+      "sync_decision": {
+        "source": "music.play",
+        "state": "",
+        "events": "实际world选曲/明确重播；新实例代次",
+        "resources": "被选曲目文件",
+        "derive_or_reuse": "",
+        "host_only": "current_stream/current_id的原生维护",
+        "forbidden": "全局ID之外再复制同一资源/设备成功当唯一资格",
+        "unknown": "world选曲和个人UI用途分类",
+        "basis": "7D8360"
+      }
+    },
+    {
+      "id": "music.crossfade",
+      "points": [
+        {
+          "va": "0x7D8480",
+          "rva": "0x3D8480"
+        }
+      ],
+      "owner": "两组各7声部",
+      "projection": "state=所有并存声部各自最终参数；events=新曲选择/明确world退休；host_only=两组buffer/目标/速率；forbidden=固定两组x7空槽/原生槽身份/只发currentId",
+      "status": "静态已核，缓存未实施",
+      "sync_decision": {
+        "source": "music.crossfade",
+        "state": "所有并存声部各自最终参数",
+        "events": "新曲选择/明确world退休",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "两组buffer/目标/速率",
+        "forbidden": "固定两组x7空槽/原生槽身份/只发currentId",
+        "unknown": "",
+        "basis": "7D8480"
+      }
+    },
+    {
+      "id": "music.load_parts",
+      "points": [
+        {
+          "va": "0x7D5CC0",
+          "rva": "0x3D5CC0"
+        },
+        {
+          "va": "0x7D7A30",
+          "rva": "0x3D7A30"
+        },
+        {
+          "va": "0x7D5B60",
+          "rva": "0x3D5B60"
+        }
+      ],
+      "owner": "实际主流/6层及intro→main资源依赖",
+      "projection": "state=需共享的逻辑段/起点有来源时承接；resources=实际intro/main和必要顺序；host_only=后端load/queue细节；forbidden=原生后端队列/假游标；unknown=segment/seek/可靠续接",
+      "status": "静态已核；精确segment恢复UNKNOWN",
+      "sync_decision": {
+        "source": "music.load_parts",
+        "state": "需共享的逻辑段/起点有来源时承接",
+        "events": "",
+        "resources": "实际intro/main和必要顺序",
+        "derive_or_reuse": "",
+        "host_only": "后端load/queue细节",
+        "forbidden": "原生后端队列/假游标",
+        "unknown": "segment/seek/可靠续接",
+        "basis": "7D5CC0/7D7A30"
+      }
+    },
+    {
+      "id": "music.layers",
+      "points": [
+        {
+          "va": "0x7D8890",
+          "rva": "0x3D8890"
+        },
+        {
+          "va": "0x7D8A10",
+          "rva": "0x3D8A10"
+        },
+        {
+          "va": "0x7D5E90",
+          "rva": "0x3D5E90"
+        }
+      ],
+      "owner": "当前组mask/模式/层当前权重",
+      "projection": "state=最终每声部gain与逻辑存续；host_only=mask/mix_mode/目标/current权重/平滑；forbidden=最终gain之外再同步mask与混音树",
+      "status": "静态已核，意图缓存未实施",
+      "sync_decision": {
+        "source": "music.layers",
+        "state": "最终每声部gain与逻辑存续",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "mask/mix_mode/目标/current权重/平滑",
+        "forbidden": "最终gain之外再同步mask与混音树",
+        "unknown": "",
+        "basis": "7D5E90/7D8890"
+      }
+    },
+    {
+      "id": "music.update",
+      "points": [
+        {
+          "va": "0x92EB49",
+          "rva": "0x52EB49"
+        },
+        {
+          "va": "0x7D7DA0",
+          "rva": "0x3D7DA0"
+        },
+        {
+          "va": "0x7D7B90",
+          "rva": "0x3D7B90"
+        }
+      ],
+      "owner": "Manager内Music两组/jingle正常生产",
+      "projection": "state=正常Host产出的最终voice参数/实际选曲结果；host_only=全局pitch/queued/种子/ducking生产；forbidden=Client完整Update/Gameplay选曲；unknown=全部Options前writer/逻辑包络",
+      "status": "静态已核，全部writer未闭合",
+      "sync_decision": {
+        "source": "music.update",
+        "state": "正常Host产出的最终voice参数/实际选曲结果",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "全局pitch/queued/种子/ducking生产",
+        "forbidden": "Client完整Update/Gameplay选曲",
+        "unknown": "全部Options前writer/逻辑包络",
+        "basis": "7D7DA0"
+      }
+    },
+    {
+      "id": "music.pause_resume",
+      "points": [
+        {
+          "va": "0x7D8750",
+          "rva": "0x3D8750"
+        },
+        {
+          "va": "0x7D8800",
+          "rva": "0x3D8800"
+        }
+      ],
+      "owner": "当前组7声部",
+      "projection": "state=实际world用途命中的voice期望pause；host_only=当前组映射；forbidden=窗口失焦/个人暂停当world pause；unknown=调用用途覆盖",
+      "status": "静态已核，world/本地用途需落实",
+      "sync_decision": {
+        "source": "music.pause_resume",
+        "state": "实际world用途命中的voice期望pause",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "当前组映射",
+        "forbidden": "窗口失焦/个人暂停当world pause",
+        "unknown": "调用用途覆盖",
+        "basis": "7D8750/7D8800"
+      }
+    },
+    {
+      "id": "music.retire",
+      "points": [
+        {
+          "va": "0x7D5BB0",
+          "rva": "0x3D5BB0"
+        },
+        {
+          "va": "0x7D7D20",
+          "rva": "0x3D7D20"
+        }
+      ],
+      "owner": "实际组及其声部",
+      "projection": "events=明确world用途结束/曲目替换退休；host_only=原生流清理；forbidden=后端active=false/设备失效直接广播；unknown=逻辑退休与设备清理的完整区分",
+      "status": "静态本地执行事实已核；world意图/用途与个人后端分离仍待完整落实",
+      "sync_decision": {
+        "source": "music.retire",
+        "state": "",
+        "events": "明确world用途结束/曲目替换退休",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "原生流清理",
+        "forbidden": "后端active=false/设备失效直接广播",
+        "unknown": "逻辑退休与设备清理的完整区分",
+        "basis": "7D5BB0/7D7D20"
+      },
+      "previous_status": "静态已核，缓存未实施"
+    },
+    {
+      "id": "music.options_provenance",
+      "points": [
+        {
+          "va": "0x6F4B4B",
+          "rva": "0x2F4B4B"
+        },
+        {
+          "va": "0x7D8B10",
+          "rva": "0x3D8B10"
+        },
+        {
+          "va": "0x7D8B50",
+          "rva": "0x3D8B50"
+        },
+        {
+          "va": "0x938984",
+          "rva": "0x538984"
+        },
+        {
+          "va": "0x9389DD",
+          "rva": "0x5389DD"
+        },
+        {
+          "va": "0x7D8303",
+          "rva": "0x3D8303"
+        }
+      ],
+      "owner": "正常调用者/内联组target writer",
+      "projection": "state=Options前最终voice gain；host_only=逻辑目标/平滑/内联writer；forbidden=Host Options/raw volume/静音反除/补1；unknown=完整逻辑包络仍未闭合",
+      "status": "部分已核，全部writer/平滑意图缓存UNKNOWN",
+      "sync_decision": {
+        "source": "music.options_provenance",
+        "state": "Options前最终voice gain",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "逻辑目标/平滑/内联writer",
+        "forbidden": "Host Options/raw volume/静音反除/补1",
+        "unknown": "完整逻辑包络仍未闭合",
+        "basis": "6F4B4B/9389DD/7D8B10/7D8303"
+      }
+    },
+    {
+      "id": "music.jingle_start",
+      "points": [
+        {
+          "va": "0x7D8B80",
+          "rva": "0x3D8B80"
+        }
+      ],
+      "owner": "Music+32C独立流及实际entry",
+      "projection": "state=仍有共享意义的逻辑jingle当前参数；events=有效world jingle Start/重启；resources=实际文件；forbidden=仅+32A变化或countdown制造Start/历史瞬态从头补播；unknown=可靠中途恢复能力",
+      "status": "静态已核，不能只看官方+32A ID",
+      "sync_decision": {
+        "source": "music.jingle_start",
+        "state": "仍有共享意义的逻辑jingle当前参数",
+        "events": "有效world jingle Start/重启",
+        "resources": "实际文件",
+        "derive_or_reuse": "",
+        "host_only": "",
+        "forbidden": "仅+32A变化或countdown制造Start/历史瞬态从头补播",
+        "unknown": "可靠中途恢复能力",
+        "basis": "7D8B80"
+      }
+    },
+    {
+      "id": "music.jingle_official_stop",
+      "points": [],
+      "owner": "Music.zhl::StopJingle / LuaMusicManager.cpp",
+      "projection": "events=明确world StopJingle命中的逻辑实例；host_only=官方ID/countdown/原生Stop写入；forbidden=重放清原生offset/官方ID当声学确认",
+      "status": "官方源码已核；非J273原生字段身份",
+      "sync_decision": {
+        "source": "music.jingle_official_stop",
+        "state": "",
+        "events": "明确world StopJingle命中的逻辑实例",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "官方ID/countdown/原生Stop写入",
+        "forbidden": "重放清原生offset/官方ID当声学确认",
+        "unknown": "",
+        "basis": "Music.zhl/LuaMusicManager.cpp"
+      }
+    },
+    {
+      "id": "music.ducking",
+      "points": [
+        {
+          "va": "0x7D7DA0",
+          "rva": "0x3D7DA0"
+        },
+        {
+          "va": "0xBE49F8",
+          "rva": "0x7E49F8"
+        }
+      ],
+      "owner": "Music+360及正常临时mix全局",
+      "projection": "state=只由最终world voice gain承接其影响；host_only=Music+360/countdown/BE49F8临时混音；forbidden=重复ducking状态/Options音量；unknown=-100来源及完整逻辑gain生产",
+      "status": "当前结果已核；-100写入来源UNKNOWN",
+      "sync_decision": {
+        "source": "music.ducking",
+        "state": "只由最终world voice gain承接其影响",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "",
+        "host_only": "Music+360/countdown/BE49F8临时混音",
+        "forbidden": "重复ducking状态/Options音量",
+        "unknown": "-100来源及完整逻辑gain生产",
+        "basis": "7D7DA0"
+      }
+    },
+    {
+      "id": "audio.client_nonrandom_leaf",
+      "points": [
+        {
+          "va": "0x9F8170",
+          "rva": "0x5F8170"
+        },
+        {
+          "va": "0x9F7950",
+          "rva": "0x5F7950"
+        },
+        {
+          "va": "0x9F7970",
+          "rva": "0x5F7970"
+        }
+      ],
+      "owner": "Client本地source owner",
+      "projection": "derive_or_reuse=Client专用非随机adapter按当前描述执行；forbidden=函数地址/vtable/对象句柄网络化；Host后端镜像；unknown=本地构造/seek/恢复执行能力",
+      "status": "候选leaf；未封装、未实测，非完整后端ABI",
+      "sync_decision": {
+        "source": "audio.client_nonrandom_leaf",
+        "state": "",
+        "events": "",
+        "resources": "",
+        "derive_or_reuse": "Client专用非随机adapter按当前描述执行",
+        "host_only": "",
+        "forbidden": "函数地址/vtable/对象句柄网络化；Host后端镜像",
+        "unknown": "本地构造/seek/恢复执行能力",
+        "basis": "9F8170/9F7950/9F7970；只有调用点证据"
+      }
+    }
+  ],
+  "unresolved": [
+    "全部音乐Options前writer与完整逻辑gain包络",
+    "world音频用途/真实退休及本地后端结果污染生产的隔离",
+    "SetAmbientSound真实重播与后端恢复重试的区分",
+    "非mono资源规则及具体参数约束",
+    "必要逻辑segment/起点与可靠seek/恢复执行能力；硬件游标不属必需world状态",
+    "视频解码器独立音轨",
+    "原生未知孔与后端动态对象完整ABI保持"
+  ],
+  "event_contract": {
+    "identity": "C/S session/音频代次/单调voice实例；原生slot、指针与资源路径不是实例身份",
+    "start": "通过world逻辑资格且已选sample后记录完整逻辑Start；907E9D设备提交不是唯一资格",
+    "baseline": "当前持续用途/背景音乐逻辑资源与最终参数及事件水位；不补播历史one-shot，必要段落/续接未核",
+    "active_one_shot": "仍可接收参数/停止；新加入者没有该实例时不因控制事件补播",
+    "client": "按已选文件非随机执行并应用本地Options；设备失败/抢占/普通one-shot完成留本地",
+    "world_vs_backend": "world Stop/retrigger/用途结束同步；设备失败/后端重试不自动制造全体Stop/新Start",
+    "final_values": "每voice最终gain/pitch承接后，不另发mask/混音树/ducking/全局pitch"
+  },
+  "synchronization_review": {
+    "document": "presentation-source-synchronization-review.md",
+    "decisions": "presentation-source-synchronization-review.json",
+    "previous_projections": [
+      {
+        "id": "sfx.config",
+        "projection": "真实配置ID、名称、最多7个物理sample；weight按atoi存+34"
+      },
+      {
+        "id": "sfx.selected_sample",
+        "projection": "节流后的实际sample选择；BD0F40留Host"
+      },
+      {
+        "id": "sfx.actual_load",
+        "projection": "正常加载所得实际文件资源；预载和Play内加载分开"
+      },
+      {
+        "id": "sfx.start",
+        "projection": "loop/pitch/Options前gain/有效pan；同次完整Start，非声学确认"
+      },
+      {
+        "id": "sfx.volume",
+        "projection": "逻辑volume/gain更新；不只最后slot"
+      },
+      {
+        "id": "sfx.pitch",
+        "projection": "最终pitch更新，不重播"
+      },
+      {
+        "id": "sfx.stop",
+        "projection": "停止/退休及节流重置"
+      },
+      {
+        "id": "sfx.stop_loops",
+        "projection": "有范围的停止集合；不清掉one-shot"
+      },
+      {
+        "id": "sfx.remix",
+        "projection": "重新混音且无相同显式min；不是Clear voice"
+      },
+      {
+        "id": "sfx.modifier_recovery",
+        "projection": "未暂停时按+14步长将+10恢复向1并正常重新混音；只承接最终Options前乘数/gain"
+      },
+      {
+        "id": "sfx.ambient",
+        "projection": ">0.01调整或启动，否则停止；不每帧重播"
+      },
+      {
+        "id": "sfx.seed_sound_replacement",
+        "projection": "最终sound37/301及sample；不发送改号RNG"
+      },
+      {
+        "id": "sfx.room_ambient",
+        "projection": "当前真实环境voice；生产平滑器留Host"
+      },
+      {
+        "id": "sfx.room460_pan",
+        "projection": "loop=false声音的后续内联有效pan；不只Hook公开Adjust"
+      },
+      {
+        "id": "sfx.playing_result",
+        "projection": "不额外调用可清pending的getter"
+      },
+      {
+        "id": "sfx.pan_leaf",
+        "projection": "mono或pan0才提交；非mono请求可能未生效"
+      },
+      {
+        "id": "music.config",
+        "projection": "intro/main/layers/mul/loop；entry+4E未知2B"
+      },
+      {
+        "id": "music.stream_values",
+        "projection": "+0C volume/+10 pan/+14 pitch/+18 mul/+1C权重/+2C更新计数/+30父组"
+      },
+      {
+        "id": "music.play",
+        "projection": "实际生效后停止旧两组、加载并Play；请求失败不发Start"
+      },
+      {
+        "id": "music.crossfade",
+        "projection": "同ID只target；异ID保留旧曲及新曲独立voice/gain"
+      },
+      {
+        "id": "music.load_parts",
+        "projection": "正常选中资源并提交Play；自动切main时点未知"
+      },
+      {
+        "id": "music.layers",
+        "projection": "实际渐变中间值和模式2主流抑制；不按敌人数重算"
+      },
+      {
+        "id": "music.update",
+        "projection": "最终pitch/当前混音/queued实际接续；不Client整段Update"
+      },
+      {
+        "id": "music.pause_resume",
+        "projection": "实际暂停集合；不是整个音频进程/两组/jingle统一暂停"
+      },
+      {
+        "id": "music.retire",
+        "projection": "停止与本地强引用清理后退休"
+      },
+      {
+        "id": "music.options_provenance",
+        "projection": "Options前unity/2倍/0起步及VolumeSlide参数；禁止反除"
+      },
+      {
+        "id": "music.jingle_start",
+        "projection": "current52/118拒绝，非空资源正常加载/启动才有效"
+      },
+      {
+        "id": "music.jingle_official_stop",
+        "projection": "原生拒绝也可能写扩展ID；Stop清流状态/ducking/countdown"
+      },
+      {
+        "id": "music.ducking",
+        "projection": "先SFX Options更新jingle，再enabled×ducking更新音乐组"
+      },
+      {
+        "id": "audio.client_nonrandom_leaf",
+        "projection": "已选文件及Play/Stop/loop/volume/pan/pitch固定调用点"
+      }
+    ],
+    "note": "旧projection是来源识别，不自动等于当前全部必发字段",
+    "previous_unresolved": [
+      "全部音乐Options前writer与逻辑平滑包络",
+      "SFX自然结束/source偷占/设备失效统一来源",
+      "所有Play用途的world/个人UI分类与生命周期",
+      "非mono有效pan及完整后端参数约束",
+      "精确seek/当前segment/采样时基/重连续接",
+      "视频解码器独立音轨",
+      "Music+329、StreamSet+181..183、Stream+B/+29..2B、Entry+4E..4F、Sample+23/+31..33、Effect+19A..19B及后端对象ABI"
+    ],
+    "previous_event_contract": {
+      "identity": "C/S session/音频代次/单调voice实例；原生slot、指针与资源路径不是实例身份",
+      "start": "通过world逻辑资格且已选sample后记录完整逻辑Start；907E9D设备提交不是唯一资格",
+      "baseline": "当前持续用途/背景音乐逻辑资源与最终参数及事件水位；不补播历史one-shot，必要段落/续接未核",
+      "active_one_shot": "仍可接收参数/停止；新加入者没有该实例时不因控制事件补播",
+      "client": "按已选文件非随机执行并应用本地Options；设备失败/抢占/普通one-shot完成留本地",
+      "world_vs_backend": "world Stop/retrigger/用途结束同步；设备失败/后端重试不自动制造全体Stop/新Start",
+      "final_values": "每voice最终gain/pitch承接后，不另发mask/混音树/ducking/全局pitch"
+    }
+  }
+}

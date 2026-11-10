@@ -1,5 +1,13 @@
 # 第8步 Presentation：原生字节与同步职责核对
 
+**2026-11-10 批次及HUD主体定稿**：[正式方案B](presentation-result-batches.md)确定统一批次／实际owner分组／按依赖共同提交、明确贡献身份、保留现行Gap／Wait处理。各端History／Stat等详细HUD默认跟随本端控制组，其他参与者的公共多人HUD继续展示；Jacob／Esau等保留组内双角色语义。下文两个原生History／Stat槽只描述单个原生owner容量，不代表只支持两参与者或照搬Host主体；全部组的合法最终结果来源仍待实施。版本57不变，仅文档，无构建或测试。
+
+**2026-11-10同步职责修订5**：[资源／屏幕／转场与音频53项复核](presentation-source-synchronization-review.md)及[逐来源决定](presentation-source-synchronization-review.json)明确只发必要当前结果／事件和按需资源。最终Nightmare贡献替代路线／场景帧／Dogma等重复输入；最终voice gain替代layer mask／混音树／ducking，voice pitch替代全局pitch。world意图与后端失败分开，个人设备／抢占不广播Stop，精确硬件游标不作必需world状态。来源目录修订2、字节账本修订5仍50视图且UNKNOWN不变；旧决定保留JSON历史，生产版本57，未构建或测试。
+
+**2026-11-10 音频来源修订4**：[Wiki／SDK优先的具体来源、纠错与未决](presentation-audio-sources.md)、[机器目录](presentation-audio-sources.json)核定正常sample选择／Start提交、持续及并存voice更新／停止、sound460内联pan、两音乐组与jingle有效分支。MusicStream+0C为后端volume、+14为pitch、+2C为Update计数；Music+360是背景ducking。账本修订4共50类型／视图，MusicStream直属UNKNOWN24→4B、MusicEntry72→2B、SoundSample16→4B、SoundEffect30→2B、SoundEffects4→0B，新增分层定义34h；旧错误／范围存JSON历史。音乐全部Options前writer及逻辑包络、异步结束、seek／重连相位、视频音轨和其余孔仍未知，不能把本轮补证当完整音频采集已闭合。版本57，正式布局／缓存／Hook／adapter未实施，无构建或测试。
+
+**2026-11-10 资源／屏幕／转场来源修订3**：[本地Wiki→SDK／源码→J273静态补证](presentation-resource-screen-sources.md)及[机器来源目录](presentation-resource-screen-sources.json)落实当前原版必要来源。程序图按实际已完成内容承接，RGBA8与Image Wiki浮点描述的差异已说明；内置shader表AACAB0和主要固定pass格式已核，不再要求读Mod STL旁表作为原版来源。Nightmare条件队列20B头／32B元素、逐用途实际Sprite及程序道具分支已核；Game+1D294识别为BossOverlay，模式4识别为原版Deathmatch并排除，Pause+E04只拆出密码显示1B。账本增49类型／视图，Nightmare直属未知61→37B；旧未知／判断保留JSON修订历史。生产版本57不变，正式布局／Hook／缓存／图形物化／adapter仍未实施，无构建或测试。下述初版未核表述以本段及专门来源文档的具体范围修订。
+
 **2026-11-10 第7步显示／资源设计补齐**：[本轮设计](room-display-resource-design.md)替代下文“资源内容／地图adapter设计待补”的旧范围，具体实现仍待接线。地图采用完整事实＋本地纯合成，不复制Host裁剪FBO；Home隐藏读Data.StageId35且Type16。资源按不可变typed payload管理，程序图可用完整有序recipe或精确像素；SourceQuad保留pixel／UV空间，RGBA8读回依据及图形状态保护已明示。MapFocusResult／MapBadgeList／最终震动及实际资源由本步唯一拥有，水光波纹归Room；具体source／GPU ABI／正式布局未完成，除下述8B问号补证外其余UNKNOWN保持，版本56，无测试。
 
 同轮补证Minimap+614..61B为独立Lost问号ImageStrongPair：965BDE加载文件、965BFF..965C0C赋入+614，966680直接绘制，既有QuestionImage适配亦使用它。必须承接实际图像资源，不能只发icons／itemIcons；[账本修订2](presentation-byte-ledger.md)将本8B从UNKNOWN转资源，Minimap直属未知23→15B，旧记录留JSON，其余未知不变。
@@ -30,8 +38,8 @@
 | Minimap | 同world描述／探索／保存图标与有效curses、实际特殊标记结果、world强制显示资格、当前最终震动偏移、必要Sprite／图层外观 | Host的Map按住/释放历史、holdTime、窗口／分辨率、FBO、shakeDuration随机生产倒计时、原版Online输入；不直接运行Minimap::Update |
 | 颜色／屏幕效果 | Game当前ColorModState六值、当前闪电／眩晕、黑暗两输入、实际bloom／retrovision／fade／hallucination／整屏覆盖的最终有序pass参数与必要图像 | target／lerp／dizzyTarget／changeSpeed、窗口resize、原生feedback字节、计时／退出／转场FSM、ShowHallucination、玩法随机源 |
 | ItemOverlay | 最终可见性、overlay身份、实际主Sprite、MegaMush Sprite与真实身体锚点 | WAITING倒计时、47份静态配置表、Show／Update重放、SleepFillHP／解锁／切房 |
-| Music | 已选曲目／crossfade两voice的逻辑状态、六layer最终mask、有效pitch／逻辑增益、jingle当前voice与相位；真实开始/停止事件 | 后端stream/句柄/采样缓冲、本地音量／静音设置、原生buffer槽号、全量XML配置、复制queuedId后自行按玩法选曲 |
-| SFX | 一次性声音的已选sample事件；持续loop／ambient当前voice集合及pitch／逻辑增益／终止 | 随机sample选择器、节流历史、音频设备、后端playing/loaded、Host Options音量、只靠事件恢复全部声音 |
+| Music | 所有有逻辑用途的并存声部的实际资源、最终Options前gain／pitch／必要pan／loop／world pause及存续；world选曲／重触发／退休事件；必要逻辑段／时点 | mask／mix_mode／mul／层权重／组current／ducking与最终gain重复下发；全局pitch与每voice pitch重复；buffer空槽、Getter ID、queued／目标／计时；后端／个人Options／设备与硬件游标 |
+| SFX | 一次性world Start的实际sample与去重身份；持续用途当前参数／存续；已有one-shot的必要后续参数与明确world Stop | RNG／节流／音频设备、后端playing／pending／loaded／偷占／个人失败；每帧SetAmbientSound或后端重试当新Start、晚加入重播历史one-shot |
 | Font／Image／shader | 资源身份、实际选中图像、独立程序图像的内容或完整recipe、shader选择和布局定义；特定文字recipe的必要参数 | Font*/Image*/GL/FBO/引用计数、渲染批次、仅凭Image名字猜身份；不每帧发字体度量 |
 | Prompt／暂停／死亡／过渡 | 共享world Prompt的最终纸张/文字/选择外观、死亡界面最终显示结果、过渡最终pass和肖像结果；Host暂停语义在D0 | 本地菜单选择／确认提交、Host选项、邀请／踢人／Online面板、成就解锁／保存／排行榜请求；展示不执行Game::End或ChangeRoom |
 
@@ -57,6 +65,8 @@
 官方星象房显示资格还读Host进度406与本地`StatHUDPlanetarium`偏好。两者必须分开：Host已裁决的world资格与实际概率缓存由具名来源提供，本地显示偏好只决定本端是否显示；**不能用访客本地解锁替代Host资格，更不能为了显示写访客进度**。Host未产生／未取得合法来源时为具体Gap，不填false。旧“五值缓存”交接在本核对后由此三值投影替代，历史说明不回改为已实施。
 
 ### 3.3 C/S subject与本地排版
+
+主体与批次按[定稿合同第3—7节](presentation-result-batches.md)执行：房主及远端各取本端已确认控制组作为默认详细HUD主体，各组公共HUD保持完整。原生两个History／Stat显示槽用于组内实际身体选择，不能把槽号当Peer号；Host当前两槽采集不足时补各组具名来源，不能让Client重算或清空其他人。该选择不修改原生roster／PlayerIndex或设备绑定；多身体显示实例及原子范围必须明确，缺结果不早ACK。
 
 `97E4A0 GetPlayerHUDLayout`、`97EB40`和`834930`含原版NetplayManager分支。不能只安装Player*后调用它们并假设纯派生。C/S维护自己的参与者→身体→显示槽／显示组映射，实际subject/use/shape与目标状态、拓扑、资源版本共同提交；八个槽、动态HUD、History两列、StatHUD两列各按真实owner表达。四参与者不等于四身体或四列。
 
@@ -89,13 +99,13 @@
 
 `ImageBase`前缀、派生后端大小未知和本地batch/vertex缓存见账本；不把未知派生图像当0x80完整体读取。Font本身不是唯一全局单例：Manager内嵌九份，Lua可构造自己的Font。`.fnt`度量／字符／字距和本地loaded由资源重建，既有三个Font getter不要求Host原始字段跨进程相等。
 
-**官方shader旁表另有owner。** `Anm2Extras.cpp`的`anm2_extras`以ANM2*为key，包含default及layerID两级、普通／champion两种`optional<CustomShader>`。CustomShader是规范化路径＋本地shader*；Reset／destructor erase，Get不会创建项。线上只保存实际选择／必要显式覆盖关系和稳定shader资源，map节点、optional表示、key与shader*均本地。不能从ANM2+108／+10C猜shader，也不能对未指定layer丢掉default fallback。官方DLL里该STL旁表的物理ABI／合法直接读取尚未核定；不得把源码逻辑结构冒充已核二进制字节偏移。这是正式资源来源仍需落实的具体缺口。
+**官方shader旁表另有owner。** `Anm2Extras.cpp`的`anm2_extras`以ANM2*为key，包含default及layerID两级、普通／champion两种`optional<CustomShader>`。CustomShader是规范化路径＋本地shader*；Reset／destructor erase，Get不会创建项。线上只保存实际选择／必要显式覆盖关系和稳定shader资源，map节点、optional表示、key与shader*均本地。不能从ANM2+108／+10C猜shader，也不能对未指定layer丢掉default fallback。官方DLL里该STL旁表的物理ABI／合法直接读取尚未核定；不得把源码逻辑结构冒充已核二进制字节偏移。修订3已将当前原版必要来源落实为实际内置shader及具名固定pass，详见[来源第3节](presentation-resource-screen-sources.md#3-shader本轮原版来源与仍未核的旁表)；自定义shader的STL ABI仍保留UNKNOWN并归Mod后续适配。实际shader无法映射时报告具名Gap，不假设旁表为空或降级显示。
 
 ## 6. 屏幕、转场与菜单边界
 
 - `6F7F90`读Game+66920当前六值；`6F6DE8`和`7021A0`用target／lerp生产current。后两份及开关留Host；当前lightning／dizzy有Room/NPC/Light直接消费者，保留。darkness两值都有消费者，不机械裁掉第二值。GameFrame、TimeCounter、screenShakeOffset与Run已有唯一归属，不能重复发送或改用墙钟。
 - Game+25A98是实际前帧图像strong；25AA0/AA4/AA8是bloom输入；25AB0/AB4/AB8是hallucination生产／反馈。`701450 ShowHallucination`还使用`6EB4B0`随机、改Backdrop并处理实体，绝不能在Client调用。`6F7A80`中的sin振荡和四边形可按已核相位／资源／视口参数派生，不能误作随机或额外传顶点；前画面反馈仍须有实际内容或可证明的场景recipe，仅发时间和文件路径不够。
-- Game+25B04和+25B1C两组最终RGBA、实际被选择的pass需独立表达；+25B18后续分派不能随完整Render执行。`6F1640`把退出／转场target写+25B34并写生产速度／进度，target不上线。+669EC的当前整屏覆盖可换算为`clamp(value/90,0,1)`，不执行其Update转场。
+- Game+25B04和+25B1C是两组原生RGBA来源，网络只承接实际选中pass的颜色／alpha／顺序，不再额外发两组和selector；+25B18后续分派不能随完整Render执行。`6F1640`把退出／转场target写+25B34并写生产速度／进度，target不上线。+669EC由`clamp(value/90,0,1)`结果唯一承接，不重复value或执行Update转场。
 - `984660 ItemOverlay::Render`检查state>=2、overlayID和两Sprite；`984110 Update`含SleepFillHP、解锁及转场分支，不能放行。WAITING延迟只决定未来可见性，不作为持续状态重复发送；晚加入直接安装当前最终显示。
 - `8273C0 RoomTransition::Render`有前后surface、最终滑动／遮罩以及versus／额外肖像map；`412A90/412AC0`用于按帧参数旋转肖像，是cos/sin而非随机。`8FAC20 NightmareScene::Render`除四个公开Sprite外，还读+3A8辅助Sprite、14项路线图、场景帧、条件payload，并绘制实体／配置资源。+4B1是+3A8 Sprite的loaded，不能重复当外层字段。二者由具名显示pass维护已核确定变换和实际资源；只发公开Sprite不表示显示闭合，也不授权Update/Start/ChangeRoom。`909E60 StageTransition::Render`按+10的**DWORD==5**选色，不能把SDK `_sameStage` bool当已知全部语义。
 - `970C10 GameOver::Render`会选择本地／Online Player并遍历死亡物品历史，需Host最终死亡显示subject／有序项目／击杀者资源；不为重建这张图恢复完整Player获得史或本地Online。GameOver声明0x130，紧接Leaderboard；不套旧巨大结构。
@@ -103,9 +113,11 @@
 
 ### 已知边界缺口
 
-PauseScreen SDK只声明0xDF4，但`98DDA0`读相对+E04；因此只能登记这个声明前缀。Game `[2363C,25444)`的其余范围、`[1D294,1D4C8)`相邻UI及Game+66968..66993仍明确UNKNOWN，不能整片标成“菜单本地”“不存在”或padding。Nightmare未核deque／实体肖像payload、未知运行模式4的虚拟显示owner同样不能忽略。字节账本完成的是当前声明边界的归属核对，不声称这些未知已获语义或完整产品支持。
+初版将PauseScreen后缀、Game `[1D294,1D4C8)`、Nightmare条件队列及模式4虚拟owner记为未核；原记录保存在账本JSON修订历史。修订3已识别相邻UI为BossOverlay、队列头和32B元素及必要消费点、模式4为原版Deathmatch并按隔离排除；Pause+E04为Online密码显示切换，只有该1B归本地／排除。Pause其余后缀／后续owner、Game+66968..66993、Nightmare剩余37B及外部对象内部仍UNKNOWN，不能整片改成本地或padding。具体静态证据和显示结果交接见[来源第5—6节](presentation-resource-screen-sources.md#5-roomtransition与nightmare的内容来源)，不表示运行实现或完整产品支持已完成。
 
 ## 7. 音频：意图、事件与本地后端
+
+**当前同步职责以[复核第5节](presentation-source-synchronization-review.md#5-音频最终voice参数与事件生产混音树不上线)为准**，具体静态点位见[音频专篇](presentation-audio-sources.md)。MC_POST_SFX_PLAY不能证明通过world逻辑资格；官方jingle ID也可由原生拒绝请求写入。本地后端非空source的Play提交同样不是world Start唯一资格。逻辑缓存覆盖仍需控制的one-shot；完整world用途／退休与音乐逻辑gain来源未闭合，个人后端失败不属于必须同步的结束事件。
 
 官方Manager+29DF8内嵌`Music=0x368`，+2A160内嵌`SoundEffects=0x18`，下一字段OptionsConfig在+2A178。`SFXManager.zhl`的size0是空壳声明，**不能推导为没有原生字节**。`SoundEffect`实际stride0x1B8；`907C60`把ManagerFrame/2写+0、节流截止写+4，SDK `_id:+0`不能作为声音身份。声音资源身份是调用ID／实际资源目录选择。
 
@@ -118,11 +130,11 @@ Music有两组0x184 stream set，各为主流＋6层、mask与混音参数；Cro
 | 音频内容 | 传输与恢复语义 |
 |---|---|
 | 一次性声音 | 事件含独立序号／world时点／实际sample资源／逻辑参数；去重；baseline或重连不重播已经发生的历史one-shot |
-| 持续loop／ambient | 当前voice集合：稳定C/S voice身份、资源、loop、期望playing/pause、pitch、逻辑gain／pan及当前有效相位；baseline可恢复，消失/clear必须停止，重复state不重新Play |
-| Music／crossfade／jingle | 当前逻辑voice状态与真实开始/切换/结束事件共同维护；不中途自行按Gameplay选择queued曲目；后端资源准备和播放游标的本地实现另管 |
-| 采样精确播放游标 | 目前没有跨后端时基／seek ABI证据；不能把原生整数／句柄当游标发送，也不承诺样本级一致 |
+| 持续loop／ambient | 当前逻辑voice资源／实例／最终gain／pitch／必要pan／loop／world pause与存续；重复state不重启；明确world用途结束才退休，个人后端丢失不清全体voice |
+| Music／crossfade／jingle | 并存声部当前最终参数及world选曲／重播／退休事件；生产混音树留Host。必要逻辑段／起点及可靠续接能力仍待补，瞬态jingle不从头补播冒充恢复 |
+| 采样精确播放游标 | Host硬件游标／设备延迟／PCM队列不属于必需world状态；必要逻辑时间另有来源，不能以Update计数伪造，不承诺逐采样一致 |
 
-旧141行中SFX全部是命令/参数查询，不表示可以丢掉持续声音。最终sample来源leaf、逻辑增益缓存和持续voice维护尚需第8步正式源及第10/13步接线；不假称已经通过Play入口Hook完整取得。
+旧141行中SFX全部是命令/参数查询，不表示可以丢掉持续声音。[音频补证](presentation-audio-sources.md)已定位sample、正常分支和非随机leaf候选；修订5进一步分开world意图与本地执行。正式布局／缓存仍待第8／9／10／13步，音乐Options前全部writer、world用途／退休、视频音轨与必要逻辑段落／续接仍未闭合；不以Play入口或完整硬件完成通知冒充同步闭合。
 
 ## 8. 后续正式布局与唯一验收
 
@@ -155,6 +167,6 @@ Music有两组0x184 stream set，各为主流＋6层、mask与混音参数；Cro
 | +0 i32 visual_id | +4 u16 actual_image | +6 u8 tint_override | +7 f32 center_x | +11 f32 center_y |
 |---|---|---|---|---|
 
-其余HUD根、共享Prompt、程序图像资源、音频voice／event、屏幕／过渡有序pass及显示查询批次都需要上述具体owner与合法来源接入，不靠这五张小表宣称完整线格式。原生单行表已覆盖45个类型/连续视图，UNKNOWN按直属间隙列出，嵌套另计；未复核的派生Image、官方shader旁表物理ABI和UI后缀没有伪造大小。
+其余HUD根、共享Prompt、程序图像资源、音频voice／event、屏幕／过渡有序pass及显示查询批次都需要上述具体owner与合法来源接入，不靠这五张小表宣称完整线格式。初版原生表45个类型／视图，资源／屏幕来源修订3后为49个；UNKNOWN按直属间隙列出，嵌套另计。派生Image、Mod shader旁表物理ABI和UI其余后缀没有伪造大小；本轮已核必要来源不再笼统列为完全未核，实际封存与应用仍待实施。
 
 第15步唯一统一验收需覆盖：四参与者/多身体与动态HUD；普通及特殊健康、HolyMantle、低血闪隐、两列属性与星象房；11消息槽和fortune的空/非空程序图；History顺序/负ID/shader；挑战32地图、黑框、各端独立展开/视口；颜色渐变的最终状态、bloom/retrovision/hallucination/过渡/死亡/暂停；crossfade、jingle、Host或Client静音、持续loop中途加入/停止和one-shot去重。当前均未执行；不增加提前测试或新的tx编号。

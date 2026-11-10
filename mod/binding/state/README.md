@@ -120,3 +120,11 @@ Resource Context的头与typed固定值已登记，完整payload／blob／recipe
 ## 第7步影子描述视图（布局版本保持57）
 
 正式生成器同时产出`state_room_view.inc`：Room／Level／Descriptor／配置的52个语义角色映射、必需块、真实Grid／Door布局及L2动态帧bit／上限均取同一生产源。消费者是`client_room_description.h/.cpp`，只接完整已递归校验的影子记录，持有自有不可变负载；不执行Lua／SDK／网络调度或原生安装。接口和构建情况见`docs/design/binary-state/room-level-description-implementation.md`。没有改线字段或清除UNKNOWN；第15步前不运行测试。
+
+## 版本58：Presentation与Random正式源
+
+`presentation.json`登记74个布局，`random.json`登记24个Host／本地事实视图，共310—407。共享RNG8补17条目录行，其他基础类型不重复；141条Presentation与54条Random目录按原行完整生成。地图复用300—303，D0为356，逐用途随机alpha为357／358；各控制组选择364及其他最终结果见`docs/design/binary-state/implementation-8-presentation.md`。
+
+`presentation_contract`跟随结果布局声明owner／subject、正常producer／adapter、world/body序列、窄依赖／共同提交、有效／失效条件、贡献身份与来源Gap。生成28条`PresentationContracts()`及数字`PresentationDependencies()`；这些是接线声明，不是已安装Hook。资源空间新增`audio-table`，完整资源payload、批次／贡献／事件外层继续在第9步登记。
+
+可见心格353与Stat行354使用条件payload，未知／隐藏不读旧值；body组整体64KiB及world32MiB等既有总预算不变。Random无发送块，原生UNKNOWN／弱证据／模型边界保留。无测试、注入或部署，运行接线与唯一验收分别在第9—14／15步。

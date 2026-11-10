@@ -1,6 +1,6 @@
 # ColorMod
 
-由唯一布局源生成。布局编号 2；布局版本 57；原生大小 0x2C；未知 0B；完整：是。
+由唯一布局源生成。布局编号 2；布局版本 58；原生大小 0x2C；未知 0B；完整：是。
 
 Color 映射到 ColorMod。REP Lua 取色接口逐数组读 _tint、_colorize、_offset；39 个具名常量及 EmberFade 是全局静态颜色，均不映射为实例字段。
 

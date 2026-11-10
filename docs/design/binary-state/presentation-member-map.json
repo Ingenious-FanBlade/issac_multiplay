@@ -1,6 +1,6 @@
 {
   "format": "isaac.cs.presentation-member-review",
-  "revision": 1,
+  "revision": 2,
   "date": "2026-11-10",
   "source_catalog": "docs/design/tx-04-21/stream-catalog.json",
   "scope": "仅原始source_schema=isaac.cs.presentation逐行保留；补充接口另列，不声称已实现Getter兼容",
@@ -1906,8 +1906,8 @@
       "type": "Music",
       "old_ownership": "ReplicatedState",
       "decision": "projection",
-      "destination": "Music当前jingle逻辑voice",
-      "reason": "官方+32A扩展ID及countdown条件，不等同全部后端播放状态",
+      "destination": "实际world jingle资源/逻辑实例；无独立getter字段",
+      "reason": "官方ID可能由未生效调用更新；最终voice资源/事件承接，不单独发ID或倒计时",
       "sources": [
         {
           "wiki": "repentogon",
@@ -1925,8 +1925,8 @@
       "type": "Music",
       "old_ownership": "ReplicatedState",
       "decision": "projection",
-      "destination": "Music当前已选资源/voice",
-      "reason": "crossfade两voice需共同记录，不能只发一个ID",
+      "destination": "实际并存逻辑voice的资源引用",
+      "reason": "两个crossfade组可能并存；voice已有资源时不另发currentId Getter",
       "sources": [
         {
           "wiki": "vanilla",
@@ -1943,9 +1943,9 @@
       "parameters": " ",
       "type": "float",
       "old_ownership": "ReplicatedState",
-      "decision": "field",
-      "destination": "Music.pitch",
-      "reason": "当前有效pitch，目标/后端句柄留Host/本地",
+      "decision": "authority",
+      "destination": "Host生产输入；最终每voice pitch承接",
+      "reason": "每voice最终pitch已有时不另发Music+314，不能重复全局/声部两套参数",
       "sources": [
         {
           "wiki": "repentogon",
@@ -1982,8 +1982,8 @@
       "type": "boolean",
       "old_ownership": "ReplicatedState",
       "decision": "projection",
-      "destination": "world音乐期望＋本地用户静音",
-      "reason": "不以覆写本地Options求跨端Getter相等",
+      "destination": "world voice最终gain/pause/存续；本地Mute独立",
+      "reason": "不复制混合enabled字段；没有单独网络getter或覆写个人静音",
       "sources": [
         {
           "wiki": "vanilla",
@@ -2000,9 +2000,9 @@
       "parameters": " int LayerId = 0 ",
       "type": "boolean",
       "old_ownership": "NotReplicated",
-      "decision": "projection",
-      "destination": "Music逻辑voice六位layer mask",
-      "reason": "参数0..5仅访问已承载六位；不是任意查询字典",
+      "decision": "authority",
+      "destination": "Host分层混音输入；无独立下行mask",
+      "reason": "最终每voice gain已承接分层权重/模式，撤销旧六位mask必发决定",
       "sources": [
         {
           "wiki": "vanilla",
@@ -2590,8 +2590,8 @@
       "type": "boolean",
       "old_ownership": "NotReplicated",
       "decision": "not_applicable",
-      "destination": "本地音频后端／具名持续voice目标视图",
-      "reason": "后端是否播放/音量含本地设置，不要求Host原始查询结果相等；持续声音目标另同步",
+      "destination": "本地后端结果；world逻辑存续另有来源",
+      "reason": "不传播后端pending/设备失效/偷占成全体Stop；world用途与退休来源待核",
       "sources": [
         {
           "wiki": "vanilla",
@@ -2795,5 +2795,125 @@
       ],
       "destination": "具名原生/自有最终值owner；不是把旧目录数量当完整边界"
     }
-  ]
+  ],
+  "synchronization_review": {
+    "document": "presentation-source-synchronization-review.md",
+    "previous_members": [
+      {
+        "source_ordinal": 3449,
+        "field": 3450,
+        "wire_name": "run-catalog.json|MusicManager.GetCurrentJingleID| |Music",
+        "id": "MusicManager.GetCurrentJingleID",
+        "parameters": " ",
+        "type": "Music",
+        "old_ownership": "ReplicatedState",
+        "decision": "projection",
+        "destination": "Music当前jingle逻辑voice",
+        "reason": "官方+32A扩展ID及countdown条件，不等同全部后端播放状态",
+        "sources": [
+          {
+            "wiki": "repentogon",
+            "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/MusicManager.md",
+            "line": 27
+          }
+        ]
+      },
+      {
+        "source_ordinal": 3450,
+        "field": 3451,
+        "wire_name": "run-catalog.json|MusicManager.GetCurrentMusicID| |Music",
+        "id": "MusicManager.GetCurrentMusicID",
+        "parameters": " ",
+        "type": "Music",
+        "old_ownership": "ReplicatedState",
+        "decision": "projection",
+        "destination": "Music当前已选资源/voice",
+        "reason": "crossfade两voice需共同记录，不能只发一个ID",
+        "sources": [
+          {
+            "wiki": "vanilla",
+            "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+            "line": 70
+          }
+        ]
+      },
+      {
+        "source_ordinal": 3451,
+        "field": 3452,
+        "wire_name": "run-catalog.json|MusicManager.GetCurrentPitch| |float",
+        "id": "MusicManager.GetCurrentPitch",
+        "parameters": " ",
+        "type": "float",
+        "old_ownership": "ReplicatedState",
+        "decision": "field",
+        "destination": "Music.pitch",
+        "reason": "当前有效pitch，目标/后端句柄留Host/本地",
+        "sources": [
+          {
+            "wiki": "repentogon",
+            "path": "F:/projects_isaac/REPENTOGON-1.1.3/docs/docs/MusicManager.md",
+            "line": 32
+          }
+        ]
+      },
+      {
+        "source_ordinal": 3453,
+        "field": 3454,
+        "wire_name": "run-catalog.json|MusicManager.IsEnabled| |boolean",
+        "id": "MusicManager.IsEnabled",
+        "parameters": " ",
+        "type": "boolean",
+        "old_ownership": "ReplicatedState",
+        "decision": "projection",
+        "destination": "world音乐期望＋本地用户静音",
+        "reason": "不以覆写本地Options求跨端Getter相等",
+        "sources": [
+          {
+            "wiki": "vanilla",
+            "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+            "line": 80
+          }
+        ]
+      },
+      {
+        "source_ordinal": 3454,
+        "field": 3455,
+        "wire_name": "run-catalog.json|MusicManager.IsLayerEnabled| int LayerId = 0 |boolean",
+        "id": "MusicManager.IsLayerEnabled",
+        "parameters": " int LayerId = 0 ",
+        "type": "boolean",
+        "old_ownership": "NotReplicated",
+        "decision": "projection",
+        "destination": "Music逻辑voice六位layer mask",
+        "reason": "参数0..5仅访问已承载六位；不是任意查询字典",
+        "sources": [
+          {
+            "wiki": "vanilla",
+            "path": "F:/projects_isaac/IsaacDocs/docs/MusicManager.md",
+            "line": 85
+          }
+        ]
+      },
+      {
+        "source_ordinal": 3502,
+        "field": 3503,
+        "wire_name": "run-catalog.json|SFXManager.IsPlaying| SoundEffect ID |boolean",
+        "id": "SFXManager.IsPlaying",
+        "parameters": " SoundEffect ID ",
+        "type": "boolean",
+        "old_ownership": "NotReplicated",
+        "decision": "not_applicable",
+        "destination": "本地音频后端／具名持续voice目标视图",
+        "reason": "后端是否播放/音量含本地设置，不要求Host原始查询结果相等；持续声音目标另同步",
+        "sources": [
+          {
+            "wiki": "vanilla",
+            "path": "F:/projects_isaac/IsaacDocs/docs/SFXManager.md",
+            "line": 48
+          }
+        ]
+      }
+    ],
+    "note": "原141行身份/来源不变，仅修订六行网络职责"
+  }
 }

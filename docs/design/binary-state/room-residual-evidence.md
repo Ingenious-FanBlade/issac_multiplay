@@ -60,6 +60,8 @@ WORD表的正值会使`55BD00`拒绝NPC的目标格，`546130`择坑时也排除
 
 ## 4. 环境声音：原64B不发，声音不能消失
 
+**2026-11-10音频后续交接**：[正常来源与未决](presentation-audio-sources.md)补核908530实际调整／启动／停止分支、最终sample、Options前SFX增益及voice生命周期候选。seed7可能在92FAD0将声音改号37／301，不能保留原调用ID来猜sample。sound460实际loop=false，7F5950末段还直接更新其活动source的pan，因此仍在播放的一次性声音也需要实例控制；不把全部Room声限制为loop集合。全量异步结束与完整意图缓存未实施，既有UNKNOWN保持。
+
 静态表每行`{sound_id:u32, smoothing_step:f32, gain_scale:f32, preserve_on_room_reset:u32}`；Room从7084开始每项存一个current gain。`7E1550`只清最后标记最低位为0的对应项，`7E0880`则逐项清零并停止对应声音；它们不是统一生命周期的16个任意float。
 
 | Room偏移 | sound ID | 步长 | gain scale | 保留标记 |

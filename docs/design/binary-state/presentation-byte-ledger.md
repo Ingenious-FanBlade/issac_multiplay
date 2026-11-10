@@ -1,10 +1,16 @@
 # 第8步 Presentation：原生字节核对账本
 
+**2026-11-10修订5**：[同步职责复核](presentation-source-synchronization-review.md)逐来源区分状态／事件／资源、Host生产与本地隔离。最终贡献替代Nightmare路线／场景帧等重复输入；最终voice gain替代layer mask／混音树／ducking，全局pitch不重复。个人后端失败不广播world Stop。仍50类型／视图，所有原生范围与UNKNOWN数量保持，旧决定留JSON历史；生产版本57，未构建或测试。
+
+**2026-11-10修订4**：[音频来源与未决](presentation-audio-sources.md)补核sample、持续voice、两组音乐／层与jingle；纠正MusicStream+0C为后端volume、pitch在+14、+2C非游标。新增MusicLayerDefinition，共50类型／视图；直属UNKNOWN分别MusicStream24→4B、MusicEntry72→2B、SoundSample16→4B、SoundEffect30→2B、SoundEffects4→0B。旧范围／错误留JSON历史；其余孔及逻辑包络／异步结束／seek／视频音轨未知保持。生产版本57，未接线、构建或测试。
+
+**2026-11-10修订3**：[资源／屏幕／转场来源](presentation-resource-screen-sources.md)补齐正常Host来源合同；新增BossOverlay及定义、Nightmare队列及32B条目，49类型／视图。Nightmare直属UNKNOWN61→37B；新增BossOverlay直属0B、每定义3B未知；Pause外部只拆出密码显示1B。旧范围／判断保存在JSON修订历史。Image+20本地模式与实际shader资源分开。生产版本仍57，未构建或测试。
+
 **2026-11-10修订2**：[第7步显示／资源补证](room-display-resource-design.md)将Minimap+614..61B核为独立Lost问号ImageStrongPair，直属UNKNOWN23→15B；原8B未知记录保存在JSON的display_resource_revision，其余字节／未知不变。生产版本56，无测试。
 
-2026-11-10。源：[presentation-byte-ledger.json](presentation-byte-ledger.json)。判定依据与待办见[presentation-synchronization-review.md](presentation-synchronization-review.md)。
+2026-11-10。源：[presentation-byte-ledger.json](presentation-byte-ledger.json)。职责见[presentation-synchronization-review.md](presentation-synchronization-review.md)，新增来源见[presentation-resource-screen-sources.md](presentation-resource-screen-sources.md)。
 
-**设计核对表，未进入正式布局生成链。** 本轮不修改生产布局版本，不表示第8步整体、正式采集／安装或E2E完成。每个声明边界显式列出所有字节；UNKNOWN、SDK声明与前缀限制照实保留。外部容器元素及资源派生体不计入根的固定字节；被归Host／本地的外层不会因嵌套ANM2的通用归属而恢复发送。
+**设计核对表，未进入正式布局生成链。** 声明范围有表不表示语义完整或运行接线完成。外层Host／本地不因嵌套通用ANM2归属恢复传输；直属UNKNOWN不含嵌套或指针后对象。
 
 ## 类型范围
 
@@ -37,24 +43,29 @@
 | GenericPrompt | 0x134 | 4B（不含嵌套） | 已登记整个声明范围 |
 | ItemOverlayDefinition | 0x58 | 4B（不含嵌套） | 已登记整个声明范围 |
 | ItemOverlay | 0x1260 | 0B（不含嵌套） | 已登记整个声明范围 |
-| MusicStream | 0x34 | 24B（不含嵌套） | 已登记整个声明范围 |
+| MusicStream | 0x34 | 4B（不含嵌套） | 已登记整个声明范围 |
 | MusicStreamSet | 0x184 | 3B（不含嵌套） | 已登记整个声明范围 |
-| MusicEntry | 0x60 | 72B（不含嵌套） | 已登记整个声明范围 |
+| MusicEntry | 0x60 | 2B（不含嵌套） | 已登记整个声明范围 |
+| MusicLayerDefinition | 0x34 | 0B（不含嵌套） | 已登记整个声明范围 |
 | Music | 0x368 | 1B（不含嵌套） | 已登记整个声明范围 |
-| SoundSample | 0x38 | 16B（不含嵌套） | 已登记整个声明范围 |
-| SoundEffect | 0x1B8 | 30B（不含嵌套） | 已登记整个声明范围 |
-| SoundEffects | 0x18 | 4B（不含嵌套） | 已登记整个声明范围 |
+| SoundSample | 0x38 | 4B（不含嵌套） | 已登记整个声明范围 |
+| SoundEffect | 0x1B8 | 2B（不含嵌套） | 已登记整个声明范围 |
+| SoundEffects | 0x18 | 0B（不含嵌套） | 已登记整个声明范围 |
 | Font | 0x4C | 14B（不含嵌套） | 已登记整个声明范围 |
 | FontSettings | 0x1C | 8B（不含嵌套） | 已登记整个声明范围 |
 | ImageBase | 0x80 | 53B（不含嵌套） | 仅前缀 |
 | RoomTransition | 0x23C | 228B（不含嵌套） | 已登记整个声明范围 |
 | StageTransition | 0x20 | 16B（不含嵌套） | 已登记整个声明范围 |
-| NightmareScene | 0x5EC | 61B（不含嵌套） | 已登记整个声明范围 |
+| NightmareScene | 0x5EC | 37B（不含嵌套） | 已登记整个声明范围 |
 | GameOver | 0x130 | 20B（不含嵌套） | 已登记整个声明范围 |
 | PauseScreen | 0xDF4 | 1212B（不含嵌套） | 仅前缀 |
 | GameScreenEffects | 0x24 | 6B（不含嵌套） | 已登记整个声明范围 |
 | GameFadeView | 0x34 | 7B（不含嵌套） | 已登记整个声明范围 |
 | GameColorView | 0x90 | 47B（不含嵌套） | 已登记整个声明范围 |
+| NightmareSnapshotQueue | 0x14 | 0B（不含嵌套） | 已登记整个声明范围 |
+| NightmareSnapshot | 0x20 | 0B（不含嵌套） | 已登记整个声明范围 |
+| BossOverlayDefinition | 0x38 | 3B（不含嵌套） | 已登记整个声明范围 |
+| BossOverlay | 0x234 | 0B（不含嵌套） | 已登记整个声明范围 |
 
 ## Vector
 
@@ -112,8 +123,6 @@
 
 ## ImageStrongPair
 
-外层具体用途决定传输，以下为原生字节事实。
-
 依据：J273 smart-pointer helpers
 
 | 0x0—0x3 ImageBase* image【资源；已核】当前实际选中的图像 → 资源号／具名程序图像结果；不传地址 | 0x4—0x7 Control* control【本地；已核】引用计数、析构及所有权 → 不发送；本地正常owner |
@@ -130,16 +139,12 @@
 
 ## PlayerHUDActiveItem
 
-外层具体用途决定传输，以下为原生字节事实。
-
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/PlayerHUDActiveItem.zhl; J273 832C10/835B40
 
 | 0x0—0x3 i32 visual_id【状态；已核】已选择的主动道具显示身份，含负生成ID → 同步；不据此GiveItem | 0x4—0x7 i32 book_visual_id【权威；推断】第二图像选择的更新比较缓存 → 不发送；最终book_image承接 | 0x8—0xF ImageStrongPair item_image【资源；已核】实际Image与本地引用计数control → 发送实际图像资源身份，空与准备失败分开；本地重建strong持有 | 0x10—0x17 ImageStrongPair book_image【资源；已核】实际Image与本地引用计数control → 发送实际图像资源身份，空与准备失败分开；本地重建strong持有 | 0x18—0x1B i32 charge_flash【状态；已核】充能闪烁倒计时，RenderActiveItem读取 → 同步当前显示值／合法帧锚点；不自行充能 |
 |---|---|---|---|---|
 
 ## PlayerHUDTrinket
-
-外层具体用途决定传输，以下为原生字节事实。
 
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/PlayerHUDTrinket.zhl; J273 832C10/837720
 
@@ -148,16 +153,12 @@
 
 ## PlayerHUDPocket
 
-外层具体用途决定传输，以下为原生字节事实。
-
 依据：J273 832C10四槽实际284步长、+230/+234/+238；8378C0
 
 | 0x0—0x3 i32 cached_type【权威；已核】用于检测何时切换资源的类型 → 不传更新比较值；实际PocketItem属于Player P3 | 0x4—0x7 i32 cached_visual【权威；已核】已识别药丸／卡片资源选择比较值 → 不传；发送实际Sprite／显示决定 | 0x8—0x11B ANM2 sprite【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update |
 |---|---|---|
 
 ## InventoryVisual
-
-外层具体用途决定传输，以下为原生字节事实。
 
 依据：J273 832C10/839370/839A80；PlayerHUD+6A4 vector stride12
 
@@ -175,16 +176,12 @@
 
 ## StatHUDValue
 
-外层具体用途决定传输，以下为原生字节事实。
-
 依据：J273 83CFD0/83D210生产；83C9B0绘制；REPENTOGON ASMRender.cpp星象房补丁
 
 | 0x0—0x3 f32 value【状态；已核】当前显示值 → 同步实际可绘行 | 0x4—0x7 f32 delta【状态；已核】差值文字 → 同步实际可绘行 | 0x8—0xB f32 previous【权威；已核】更新时计算差值的历史值 → 不发；83C9B0不读此成员 | 0xC—0xF f32 threshold【权威；已核】更新时是否触发提示的阈值 → 不发；83C9B0不读此成员 | 0x10—0x13 i32 countdown【状态；已核】差值文字alpha／位移的当前相位 → 同步；不调用RecomputeStats |
 |---|---|---|---|---|
 
 ## StatHUDPlayer
-
-外层具体用途决定传输，以下为原生字节事实。
 
 依据：J273 83CFD0/83D210生产；83C9B0绘制；REPENTOGON ASMRender.cpp星象房补丁
 
@@ -211,16 +208,12 @@
 
 ## HistoryHUDItem
 
-外层具体用途决定传输，以下为原生字节事实。
-
 依据：J273 82FA10；REP LuaHistoryHUD.cpp；HistoryHUD*.zhl
 
 | 0x0—0x3 i32 visual_id【状态；已核】实际显示ID，含633、0x88000位和负ID → 同步真实有序值；决定shader/程序图像路径 | 0x4—0xB ImageStrongPair image【资源；已核】实际Image与本地引用计数control → 发送实际图像资源身份，空与准备失败分开；本地重建strong持有 | 0xC—0x27 History_HistoryItem history_origin【权威；已核】原始获得史：时间、来源池、关卡等 → 原生Render不消费；不传整条历史，不恢复Player原始History |
 |---|---|---|
 
 ## HistoryHUDPlayer
-
-外层具体用途决定传输，以下为原生字节事实。
 
 依据：J273 82FA10；REP LuaHistoryHUD.cpp；HistoryHUD*.zhl
 
@@ -229,16 +222,12 @@
 
 ## HistoryHUD
 
-外层具体用途决定传输，以下为原生字节事实。
-
 依据：J273 82FA10；REP LuaHistoryHUD.cpp；HistoryHUD*.zhl
 
 | 0x0—0x27 HistoryHUDPlayer[2] players【容器；已核】两个原生显示列 → 逐列owner和顺序；不简化成四参与者各一列 | 0x28—0x28 bool initialized【本地；已核】97AE90首次RecomputeAll维护标志 → 本地owner；不借它放行Recompute | 0x29—0x2B bytes[3] unknown_29_2B【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
 |---|---|---|
 
 ## HUD
-
-外层具体用途决定传输，以下为原生字节事实。
 
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/HUD.zhl; J273 979E10/97ACF0/97AE90/97C300/97E590/97F7A0/97FD50
 
@@ -256,16 +245,12 @@
 
 ## Minimap
 
-外层具体用途决定传输，以下为原生字节事实。
-
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Minimap.zhl; Wiki Minimap.md; J273 965DB0/965D60/9635B0/963540/966680
 
-| 0x0—0x3 i32 state【本地；已核】本地查看/展开状态 → 不同步Host按键；world强制隐藏由独立最终资格控制 | 0x4—0x4 bool hold_mode【本地；已核】本地map按住/释放转换历史 → 不发送，不读取原版Online输入 | 0x5—0x7 bytes[3] unknown_5_7【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x8—0xB u32 hold_time【本地；已核】Map动作长按时间 → 不发送；C/S本地UI采样 | 0xC—0xF f32 unknown_float【未知；未知】SDK仅给_unkFloat，没有语义证据 → 不发送；保留UNKNOWN | 0x10—0x17 bytes[8] unknown_10_17【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x18—0x2D7 MinimapConfig[2] configs【容器；已核】小/大地图两份缓存 → 分开最终资源、world事实和本地视口 | 0x2D8—0x3EB ANM2 item_icons【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x3EC—0x4FF ANM2 pickup_sprite【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → SDK称seems unused不是证明；保留字节事实，具体无消费者投影不发，不宣称可安全删除资源 | 0x500—0x613 ANM2 icons【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x614—0x61B ImageStrongPair question_image【资源；已核】Lost独立问号图像；965BDE加载minimap_questionmark.png，965BFF..965C0C赋入+614，966680直接消费 → Presentation实际可空图像资源引用；地址／control本地，不是iconsSprite某帧 | 0x61C—0x61F i32 shake_duration【权威；已核】965DB0用随机生成震动的控制倒计时 → 不发送；不调用其随机生产器 | 0x620—0x627 Vector shake_offset【状态；已核】Render直接使用的最终震动偏移 → 同步同world两值，不从Client RNG重算 |
+| 0x0—0x3 i32 state【本地；已核】本地查看/展开状态 → 不同步Host按键；world强制隐藏由独立最终资格控制 | 0x4—0x4 bool hold_mode【本地；已核】本地map按住/释放转换历史 → 不发送，不读取原版Online输入 | 0x5—0x7 bytes[3] unknown_5_7【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x8—0xB u32 hold_time【本地；已核】Map动作长按时间 → 不发送；C/S本地UI采样 | 0xC—0xF f32 unknown_float【未知；未知】SDK仅给_unkFloat，没有语义证据 → 不发送；保留UNKNOWN | 0x10—0x17 bytes[8] unknown_10_17【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x18—0x2D7 MinimapConfig[2] configs【容器；已核】小/大地图两份缓存 → 分开最终资源、world事实和本地视口 | 0x2D8—0x3EB ANM2 item_icons【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x3EC—0x4FF ANM2 pickup_sprite【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → SDK称seems unused不是证明；保留字节事实，具体无消费者投影不发，不宣称可安全删除资源 | 0x500—0x613 ANM2 icons【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x614—0x61B ImageStrongPair question_image【资源；已核】Curse of the Lost独立问号图像；默认gfx/ui/minimap_questionmark.png，不是iconsSprite某帧 → 实际可空图像资源u16引用归Presentation；地址/control本地；不传地图FBO或按固定文件掩盖实际内容变化 | 0x61C—0x61F i32 shake_duration【权威；已核】965DB0用随机生成震动的控制倒计时 → 不发送；不调用其随机生产器 | 0x620—0x627 Vector shake_offset【状态；已核】Render直接使用的最终震动偏移 → 同步同world两值，不从Client RNG重算 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## ColorModState
-
-外层具体用途决定传输，以下为原生字节事实。
 
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/ColorModState.zhl；J273 6F7F90/6F6DE8/7021A0
 
@@ -274,16 +259,12 @@
 
 ## GenericPrompt
 
-外层具体用途决定传输，以下为原生字节事实。
-
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/GenericPrompt.zhl；J273 82C5A0/82C440/82CBB0/82CB90
 
 | 0x0—0x113 ANM2 paper【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 共享world Prompt同步最终纸张资源/姿态；本地菜单Prompt整体本地 | 0x114—0x127 wchar_t*[5] text【容器；已核】五行实际文字：前二标题、后三说明 → 共享Prompt发送有界UTF16内容/最终图像；本地Prompt不上线，地址不传 | 0x128—0x12B i32 current_selection【换算；已核】未提交的Yes/No选中项 → 本地交互Prompt留本地；共享Prompt传Host最终显示选择，不能执行提交 | 0x12C—0x12F i32 submitted_selection【权威；已核】0未提交、1Yes、2No；可触发run决策 → 不作为状态应用写Client命令/回放输入 | 0x130—0x133 bytes[4] unknown_130_133【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
 |---|---|---|---|---|
 
 ## ItemOverlayDefinition
-
-外层具体用途决定传输，以下为原生字节事实。
 
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/ItemOverlay.zhl；J273 984660/984110/9848B0
 
@@ -301,65 +282,70 @@
 
 ## MusicStream
 
-外层具体用途决定传输，以下为原生字节事实。
+修订4撤销旧+0C=pitch及+2C播放游标推断；直属UNKNOWN24→4B，后端对象ABI另计。
 
-依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp
+依据：本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md
 
-| 0x0—0x3 AudioStream* audio_handle【本地；已核】本地音频后端对象 → 绝不发送 | 0x4—0x7 bytes[4] unknown_4_7【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x8—0xA u8[3] play_loop_pause【换算；已核】当前播放/循环/暂停控制状态 → 具名音乐/循环声音最终语义，不原样memcpy此组 | 0xB—0xB bytes[1] unknown_B_B【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0xC—0xF f32 pitch【换算；已核】当前音调 → 同步有效最终pitch，不传本地后端地址 | 0x10—0x1B bytes[12] unknown_10_1B【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x1C—0x1F f32 volume【换算；已核】当前流音量 → 只同步剥离本地Options音量后的逻辑增益 | 0x20—0x23 f32 target_volume【权威；已核】音量滑动目标 → 最终增益承接；原生值含本地设置，不直接发送 | 0x24—0x27 f32 fade_rate【权威；已核】增益生产速率 → 最终增益/具名事件承接 | 0x28—0x28 bool playing【换算；已核】本地流播放结果 → 期望播放语义与本地准备结果分开 | 0x29—0x2B bytes[3] unknown_29_2B【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x2C—0x2F u32 playback_counter【本地；推断】后端维护计数 → 不发送，精确时基尚无证明 | 0x30—0x33 bytes[4] unknown_30_33【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0x0—0x3 SoundSourceBase* audio_source【本地；已核】本地音频source强引用的对象指针 → 不发送；本地adapter管理 | 0x4—0x7 ReferenceCount* audio_control【本地；已核】强引用pair的本地control；9F76E0/9F7CA0建立 → 不发送；不当作播放身份 | 0x8—0x8 bool loop【换算；已核】当前source循环请求 → 对应具名voice的有效循环状态 | 0x9—0x9 bool pending_play【本地；已核】Play提交后置1，正常后端playing查询可清零；并非已出声 → 不发raw；记录实际提交及结果 | 0xA—0xA bool paused【换算；已核】正常Pause/Resume维护的source暂停标志 → 不复制后端paused镜像；仅承接有明确world用途的voice期望暂停 | 0xB—0xB bytes[1] unknown_B_B【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 | 0xC—0xF f32 backend_volume【本地；已核】后端音量缓存；旧pitch误名已撤销 → 不直接发送、不反除Options | 0x10—0x13 f32 pan【换算；已核】当前pan请求/缓存；非mono有效分支另核 → 只承接实际生效的voice参数 | 0x14—0x17 f32 pitch【换算；已核】真实source pitch；7D5C40写+14并调用vtable+58 → 当前有效pitch随voice承接 | 0x18—0x1B f32 config_gain【权威；已核】音乐/分层配置mul，参与最终混音 → 留Host；最终voice gain已经承接mul，不重复发或再乘一次 | 0x1C—0x1F f32 layer_gain【权威；已核】当前声部权重，不是后端最终volume → 留Host；最终voice gain已经承接层权重，不再发第二套混音输入 | 0x20—0x23 f32 target_layer_gain【权威；已核】声部权重目标；由layer mask等生产 → 不把目标当当前gain | 0x24—0x27 f32 layer_fade_rate【权威；已核】当前声部权重平滑速率 → 正常生产结果承接 | 0x28—0x28 bool active【本地；已核】流活动维护标志；不等价于后端已出声 → 后端活动维护缓存不上线；world逻辑存续/退休须由独立用途来源建立 | 0x29—0x2B bytes[3] unknown_29_2B【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 | 0x2C—0x2F u32 update_count【本地；已核】7D7B90正常Update计数；>10才查询后端活动状态 → 不上线；不能作为秒/采样游标 | 0x30—0x33 MusicStreamSet* parent_set【本地；已核】最终gain读取父组+174；无父时不乘组gain → 不发地址；自有voice组关系承接 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## MusicStreamSet
 
-外层具体用途决定传输，以下为原生字节事实。
+依据：本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md
 
-依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp
-
-| 0x0—0x16B MusicStream[7] streams【本地；已核】主流+六layer，各0x34 → 本地构造；线上用最终选中曲目/六层mask/逻辑增益 | 0x16C—0x16F u32 layers【换算；已核】六个layer开关，7D8A40实际读取 → 发低6位最终mask，不局限旧无参getter | 0x170—0x173 u32 mix_mode【换算；已核】layer影响主流的最终混音分支 → 纳入具名逻辑混音结果；不靠Client gameplay重算 | 0x174—0x177 f32 volume【换算；已核】流组当前最终音量，含本地Options乘数 → 不得直接发送；从真实控制调用记录逻辑增益，0音量不可反除 | 0x178—0x17B f32 target_volume【权威；已核】流组目标音量 → 不传，最终逻辑增益承接 | 0x17C—0x17F f32 fade_rate【权威；已核】流组淡入淡出生产速率 → 不传原生生产器值 | 0x180—0x180 bool playing【本地；已核】组播放维护状态 → 本地后端维护，逻辑期望另外承载 | 0x181—0x183 bytes[3] unknown_181_183【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
+| 0x0—0x16B MusicStream[7] streams【本地；已核】主流+六layer，各0x34 → 只保留有逻辑用途的并存voice最终资源/参数；不发送固定14个原生空槽 | 0x16C—0x16F u32 layers【权威；已核】六个layer开关，7D8A40实际读取 → 留Host；已发每voice最终gain时无需另发六位mask | 0x170—0x173 u32 mix_mode【权威；已核】layer影响主流的最终混音分支 → 留Host；最终voice gain承接模式效果，没有另行网络消费者 | 0x174—0x177 f32 volume【权威；已核】流组当前gain；多个正常writer已乘Options，不能反除恢复全部world意图 → Options前最终voice gain唯一承接；原生组current和混音树不下行，完整writer仍未闭合 | 0x178—0x17B f32 target_volume【权威；已核】流组目标音量 → 不传，最终逻辑增益承接 | 0x17C—0x17F f32 fade_rate【权威；已核】流组淡入淡出生产速率 → 不传原生生产器值 | 0x180—0x180 bool playing【本地；已核】组播放维护状态 → 本地后端维护，逻辑期望另外承载 | 0x181—0x183 bytes[3] unknown_181_183【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
 |---|---|---|---|---|---|---|---|
 
 ## MusicEntry
 
-除SDK名称外保持UNKNOWN；7D8360检验entry+44资源存在不等于已解出整条音频配置。
+修订4据7D60A0解析/实际存储及7D5CC0消费者补证；直属UNKNOWN72→2B。长解析函数bad-SP告警不作异常ABI闭合。
 
-依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp
+依据：本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md
 
-| 0x0—0x3 bytes[4] unknown_0_3【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x4—0x1B std::string name【本地；SDK声明】XML曲目名称 → 本地资源匹配 | 0x1C—0x5F bytes[68] unknown_1C_5F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
+| 0x0—0x3 u32 config_id【本地；已核】XML曲目ID，解析写入 → 实际资源/voice承接；不复制配置对象 | 0x4—0x1B std::string name【本地；已核】XML曲目名称 → 资源目录匹配 | 0x1C—0x33 std::string intro【资源；已核】已解析intro文件；存在时先播并排入main → 实际资源依赖；不发string对象 | 0x34—0x4B std::string main【资源；已核】已解析主文件路径；+44是该string长度成员 → 实际文件资源；不发string对象 | 0x4C—0x4C bool loop【资源；已核】主文件loop配置 → 当前voice有效循环语义 | 0x4D—0x4D u8 layer_mode【权威；已核】分层混音模式；模式2可抑制主声部 → 最终实际声部gain承接 | 0x4E—0x4F bytes[2] unknown_4E_4F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 | 0x50—0x53 f32 gain【权威；已核】XML mul；复制到主流+18 → 留Host；实际voice最终gain承接mul，不作为Client重复混音输入 | 0x54—0x57 f32 layer_fade_speed【权威；已核】XML layerfadespeed；复制到流+24 → 实际当前权重承接 | 0x58—0x5B MusicLayerDefinition* layer_defs【本地；已核】已分配34h步长层定义数组；含new[]计数头 → 只在合法配置owner存活期间读取；不发地址 | 0x5C—0x5F u32 layer_count【本地；已核】配置层数；消费端只处理6物理layer槽 → 不把任意数量当网络允许集 |
+|---|---|---|---|---|---|---|---|---|---|---|
+
+## MusicLayerDefinition
+
+音乐分层资源定义，不是MusicStream；两个24B字符串及mul，直属未知0B。
+
+依据：本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md
+
+| 0x0—0x17 std::string intro【资源；已核】分层intro路径 → 已选实际资源引用，不发原生string | 0x18—0x2F std::string main【资源；已核】分层main路径 → 已选实际资源引用，不发原生string | 0x30—0x33 f32 gain【权威；已核】分层mul，复制到对应MusicStream+18 → 留Host；实际voice最终gain已含该配置mul |
 |---|---|---|
 
 ## Music
 
-外层具体用途决定传输，以下为原生字节事实。
+依据：本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md
 
-依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/Music.zhl/MusicEntry.zhl；J273 7D8360/7D8480/7D5E90/7D8750；LuaMusicManager.cpp
-
-| 0x0—0x3 u32 current_stream【本地；已核】两组crossfade缓冲选择 → 不发后端槽号；发稳定逻辑voice身份 | 0x4—0x30B MusicStreamSet[2] stream_sets【容器；已核】两组0x184，crossfade时两者都可能发声 → 逻辑两voice当前状态；旧currentId单值不足 | 0x30C—0x30F u32 current_id【资源；已核】当前曲目资源身份 → 发资源身份；不把数值ID跨mod版本直接当路径 | 0x310—0x313 u32 queued_id【权威；已核】原生待播放控制 → 需要续播时记录Host实际选择/事件；不授权Client按游戏条件选曲 | 0x314—0x317 f32 pitch【状态；已核】当前有效pitch → 同步；不是音量偏好 | 0x318—0x31B f32 target_pitch【权威；已核】pitch滑动目标 → 不传；同步最终pitch/具名控制事件 | 0x31C—0x327 vector<MusicEntry> entries【本地；已核】曲目配置/后端资源池 → 不传容器地址/配置实例；资源目录匹配 | 0x328—0x328 bool enabled【换算；已核】游戏请求与用户MusicEnabled需分开 → 不覆写Client本地静音/音量，发world期望 | 0x329—0x329 bytes[1] unknown_329_329【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x32A—0x32B u16 jingle_id【资源；已核】官方Hook塞入原生空隙的jingle ID → 官方扩展，非原版字段；countdown<=0时公开ID为0 | 0x32C—0x35F MusicStream jingle_stream【本地；已核】独立jingle音频流 → 语义voice状态/开始事件；本地构造 | 0x360—0x363 f32 jingle_gain【换算；SDK声明】jingle混音有效量 → 只发逻辑增益，后端音量不等于Host意图 | 0x364—0x367 i32 jingle_countdown【换算；已核】jingle剩余保持相位 → 具名voice剩余时相；重复state不可重新PlayJingle |
+| 0x0—0x3 u32 current_stream【本地；已核】两组crossfade缓冲选择 → 不发后端槽号；发稳定逻辑voice身份 | 0x4—0x30B MusicStreamSet[2] stream_sets【容器；已核】两组0x184，crossfade时两者都可能发声 → 所有并存逻辑voice的最终参数；原生两组buffer及空槽不是网络结构 | 0x30C—0x30F u32 current_id【资源；已核】当前曲目资源身份 → 只作为Host绑定实际曲目文件的来源；最终voice资源已有时不另发currentId Getter | 0x310—0x313 u32 queued_id【权威；已核】原生待播放控制 → 需要续播时记录Host实际选择/事件；不授权Client按游戏条件选曲 | 0x314—0x317 f32 pitch【权威；已核】当前有效pitch → 留Host作生产输入；每voice最终pitch已承接时不另发全局pitch | 0x318—0x31B f32 target_pitch【权威；已核】pitch滑动目标 → 不传；同步最终pitch/具名控制事件 | 0x31C—0x327 vector<MusicEntry> entries【本地；已核】曲目配置/后端资源池 → 不传容器地址/配置实例；资源目录匹配 | 0x328—0x328 bool enabled【权威；已核】游戏请求与用户MusicEnabled需分开 → 不发混合enabled字段；明确world影响由voice最终gain/pause/存续承接，个人Mute独立 | 0x329—0x329 bytes[1] unknown_329_329【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x32A—0x32B u16 jingle_id【本地；已核】官方Hook在super后写的jingle ID；原生拒绝启动时也可能更新 → 本地官方诊断ID，不作独立网络状态；实际有效jingle资源/实例另承接 | 0x32C—0x35F MusicStream jingle_stream【本地；已核】独立jingle音频流 → 语义voice状态/开始事件；本地构造 | 0x360—0x363 f32 background_ducking【权威；已核】7D7DA0产生的背景音乐ducking当前量；非jingle流自身gain → 留Host；最终voice gain已承接ducking，不重复发送 | 0x364—0x367 i32 jingle_countdown【权威；已核】jingle保持倒计时；公开ID读它，<=0不证明淡出已停止 → 留Host倒计时，不发剩余值或当游标；逻辑事件时点/必要段落另核 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## SoundSample
 
-外层具体用途决定传输，以下为原生字节事实。
+修订4直属UNKNOWN16→4B；资源加载/声音实例身份分开，sample+28为pan，+34为配置weight。
 
-依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60
+依据：本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md
 
-| 0x0—0x17 std::string path【本地；已核】具体sample资源路径 → 事件须记录Host已选sample身份，不能在Client随机选 | 0x18—0x1B AudioStream* audio_handle【本地；已核】本地音频对象 → 不发送 | 0x1C—0x1F bytes[4] unknown_1C_1F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x20—0x20 bool loop【换算；已核】持续loop语义 → 循环集合记录当前状态 | 0x21—0x22 u8[2] play_pause【本地；已核】本地后端播放维护 → 不发送raw | 0x23—0x23 bytes[1] unknown_23_23【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x24—0x27 f32 volume【本地；已核】含Options SFX音量的后端最终音量 → 不发送raw；具名调用保留逻辑音量 | 0x28—0x2B bytes[4] unknown_28_2B【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x2C—0x2F f32 pitch【换算；已核】sample最终音调 → 事件/持续voice结果 | 0x30—0x30 bool streaming【本地；已核】是否按需加载的本地模式 → 不发送 | 0x31—0x37 bytes[7] unknown_31_37【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
-|---|---|---|---|---|---|---|---|---|---|---|
+| 0x0—0x17 std::string path【资源；已核】已选sample文件元数据；实际加载解析路径另绑定 → 实际文件资源身份；不发string或在Client随机 | 0x18—0x1B SoundSourceBase* audio_source【本地；已核】本地source强引用对象指针 → 本地adapter拥有 | 0x1C—0x1F ReferenceCount* audio_control【本地；已核】9F76E0/9F7CA0建立的本地强引用control → 不上线 | 0x20—0x20 bool loop【换算；已核】当前source循环请求；StopLooping还查后端有效loop → 只承接明确world用途voice的loop请求；不复制后端查询/缓存 | 0x21—0x21 bool pending_play【本地；已核】Play提交后置1；正常playing查询可清零 → 不作网络身份或声学确认 | 0x22—0x22 bool paused【本地；已核】与通用source wrapper相同的暂停缓存 → 本地/具名world暂停分开 | 0x23—0x23 bytes[1] unknown_23_23【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 | 0x24—0x27 f32 backend_volume【本地；已核】乘Host Options后后端音量；不同正常路径clamp不同 → 不直接发、不反除；Options前逻辑量及规则另记 | 0x28—0x2B f32 pan【换算；已核】9F7970及Room sound460内联路径写入；非mono可能不生效 → 有world用途时保留pan语义与资源规则；不传播后端失败/请求缓存为跨端事实 | 0x2C—0x2F f32 pitch【换算；已核】当前source pitch → voice参数/Start实际结果 | 0x30—0x30 bool load_on_play【本地；已核】1走Play内正常加载，0可预载；旧streaming名称撤销 → 加载策略及后端状态本地 | 0x31—0x33 bytes[3] unknown_31_33【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 | 0x34—0x37 i32 config_weight【权威；已核】907AA6将XML weight的atoi结果写此；907C60选样本未读本字 → 不重新按配置抽取，实际已选sample承接 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## SoundEffect
 
-外层具体用途决定传输，以下为原生字节事实。
+修订4直属UNKNOWN30→2B；+19C是真实配置ID，不撤销+0是最近Play帧的纠错。
 
-依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60
+依据：本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md
 
-| 0x0—0x3 i32 last_play_frame【本地；已核】907C60写ManagerFrame/2，SDK误名_id → 不作为SoundEffect ID同步 | 0x4—0x7 i32 next_allowed_frame【权威；已核】重复播放节流截止帧 → 不发；FrameDelay不是声音启动延迟 | 0x8—0x18F SoundSample[7] samples【本地；已核】七个物理sample槽，实际数量由+190限定 → 不发原生数组；选中资源由事件/持续voice结果承接 | 0x190—0x193 u32 sample_count【本地；已核】可选sample数 → 资源配置本地匹配，不驱动Client随机 | 0x194—0x197 f32 logical_volume【权威；已核】最近Play写入的逻辑volume，不代表全部并存voice → 不能当完整SFX快照；记录真实调用结果 | 0x198—0x198 bool loaded【本地；已核】资源实际加载结果 → 本地owner维护 | 0x199—0x199 bool preload【本地；已核】预加载策略 → 本地资源策略 | 0x19A—0x1B7 bytes[30] unknown_19A_1B7【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
-|---|---|---|---|---|---|---|---|
+| 0x0—0x3 i32 last_play_frame【本地；已核】907C60写ManagerFrame/2，SDK误名_id → 不作为SoundEffect ID同步 | 0x4—0x7 i32 next_allowed_frame【权威；已核】重复播放节流截止帧 → 不发；FrameDelay不是声音启动延迟 | 0x8—0x18F SoundSample[7] samples【本地；已核】七个物理sample槽，实际数量由+190限定 → 不发原生数组；选中资源由事件/持续voice结果承接 | 0x190—0x193 u32 sample_count【本地；已核】可选sample数 → 资源配置本地匹配，不驱动Client随机 | 0x194—0x197 f32 logical_volume【权威；已核】最近Play或AdjustVolume写入的sound级逻辑volume；不能表示不同slot历史 → 按实际命中voice缓存逻辑gain；不能当完整SFX快照 | 0x198—0x198 bool loaded【本地；已核】资源实际加载结果 → 本地owner维护 | 0x199—0x199 bool preload【本地；已核】预加载策略 → 本地资源策略 | 0x19A—0x19B bytes[2] unknown_19A_19B【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 | 0x19C—0x19F i32 config_id【本地；已核】真实配置ID；90783F解析写+19C，SDK+0误名 → 声音调用/资源身份匹配，不发本地对象 | 0x1A0—0x1B7 std::string name【本地；已核】XML sound名称，构造/解析/析构均有对应操作 → 资源目录匹配，不发原生string |
+|---|---|---|---|---|---|---|---|---|---|
 
 ## SoundEffects
 
-SFXManager.zhl的size0是空壳声明；Manager+2A160..2A177实际SoundEffects18B，下一字段OptionsConfig+2A178。
+SFXManager.zhl的size0是空壳声明；Manager+2A160..2A177实际SoundEffects18B，下一字段OptionsConfig+2A178。 修订4另核+14为modifier恢复步长；直属UNKNOWN4→0B。
 
-依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/SoundEffects.zhl/Manager.zhl；J273 907C60
+依据：本地Wiki MusicManager/SFXManager/xml/music/xml/sounds；官方Music.zhl/SoundEffects.zhl及LuaMusicManager.cpp；J273 7D5860/7D60A0/7D7A30/7D7B90/9070A0/907C60；presentation-audio-sources.md
 
-| 0x0—0xB vector<SoundEffect> sounds【本地；已核】实际SFXManager底层类型 → 本地资源池，不发地址/所有后端状态 | 0xC—0xF i32 load_count【本地；已核】加载计数 → 不传 | 0x10—0x13 f32 volume_modifier【换算；已核】ClearVolumeModifier/Play消费的逻辑乘数 → 持续voice/事件记录有效逻辑音量，不复制全局混音设置 | 0x14—0x17 bytes[4] unknown_14_17【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
+| 0x0—0xB vector<SoundEffect> sounds【本地；已核】实际SFXManager底层类型 → 本地资源池，不发地址/所有后端状态 | 0xC—0xF i32 load_count【本地；已核】加载计数 → 不传 | 0x10—0x13 f32 volume_modifier【权威；已核】Play/Adjust/ClearVolumeModifier消费的乘数；全部world/本地writer分类未闭合 → 最终world voice gain唯一承接；不再发乘数/平滑器，world/个人writer来源仍待分离 | 0x14—0x17 f32 modifier_recovery_step【权威；已核】Manager92EB03读取；未暂停时令+10向1恢复的步长，92A19E构造初值0.005 → 原生步长/平滑器留Host；正常恢复后的Options前乘数及voice实际gain承接 |
 |---|---|---|---|
 
 ## Font
@@ -386,35 +372,33 @@ SDK两个unk保留UNKNOWN；不把有DrawString API理解成自动捕获所有�
 
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/KAGE_Graphics_Image.zhl；ImagePatches.cpp；LuaRender.cpp:Renderer_CreateImage
 
-| 0x0—0x3 void** vtable【本地；SDK声明】原生Image类虚表 → 不传 | 0x4—0xF bytes[12] unknown_4_F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x10—0x17 u64 flags【换算；SDK声明】文件图/程序图等资源种类 → 具名资源类型，原始混合flags不整传 | 0x18—0x1F bytes[8] unknown_18_1F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x20—0x23 u32 shader【资源；SDK声明】预定义shader选择 → 稳定shader资源/布局身份，不发GL handle | 0x24—0x27 u32 min_filter【状态；SDK声明】实际图像采样参数 → 所在Layer已承载时不重复；独立Image需具名资源owner | 0x28—0x2B u32 mag_filter【状态；SDK声明】实际图像采样参数 → 所在Layer已承载时不重复；独立Image需具名资源owner | 0x2C—0x2F u32 wrap_s【状态；SDK声明】实际图像采样参数 → 所在Layer已承载时不重复；独立Image需具名资源owner | 0x30—0x33 u32 wrap_t【状态；SDK声明】实际图像采样参数 → 所在Layer已承载时不重复；独立Image需具名资源owner | 0x34—0x37 u8* vertex_format【本地；SDK声明】本地顶点格式数组 → 资源定义重建，不传地址 | 0x38—0x38 u8 attribute_count【派生；SDK声明】顶点格式属性数 → 本地shader定义 | 0x39—0x39 bytes[1] unknown_39_39【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x3A—0x3B u16 vertex_stride【派生；SDK声明】顶点宽度 → 本地shader定义 | 0x3C—0x3F char* name【资源；SDK声明】可能重复的图像名称 → 不能单凭名字唯一标识程序图像/动态内容 | 0x40—0x4B vector<RenderBatch*> batches【本地；SDK声明】绘制批次 → 本地renderer，不传 | 0x4C—0x4F RenderBatch* last_batch【本地；SDK声明】批次缓存 → 不传 | 0x50—0x5B vector<RenderBatch*> transparent_batches【本地；SDK声明】透明批次复用池 → 不传 | 0x5C—0x5F RenderBatch* last_transparent_batch【本地；SDK声明】最近透明批次 → 不传 | 0x60—0x7F bytes[32] unknown_60_7F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
+| 0x0—0x3 void** vtable【本地；SDK声明】原生Image类虚表 → 不传 | 0x4—0xF bytes[12] unknown_4_F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x10—0x17 u64 flags【换算；SDK声明】文件图/程序图等资源种类 → 具名资源类型，原始混合flags不整传 | 0x18—0x1F bytes[8] unknown_18_1F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x20—0x23 u32 shader【本地；已核】Image自动选择/抑制shader的本地模式；3用于抑制，不等于ShaderType枚举 → 不直接把模式原数当资源ID；实际固定pass/GraphicsManager.shader映射AACAB0内置表 | 0x24—0x27 u32 min_filter【状态；SDK声明】实际图像采样参数 → 所在Layer已承载时不重复；独立Image需具名资源owner | 0x28—0x2B u32 mag_filter【状态；SDK声明】实际图像采样参数 → 所在Layer已承载时不重复；独立Image需具名资源owner | 0x2C—0x2F u32 wrap_s【状态；SDK声明】实际图像采样参数 → 所在Layer已承载时不重复；独立Image需具名资源owner | 0x30—0x33 u32 wrap_t【状态；SDK声明】实际图像采样参数 → 所在Layer已承载时不重复；独立Image需具名资源owner | 0x34—0x37 u8* vertex_format【本地；SDK声明】本地顶点格式数组 → 资源定义重建，不传地址 | 0x38—0x38 u8 attribute_count【派生；SDK声明】顶点格式属性数 → 本地shader定义 | 0x39—0x39 bytes[1] unknown_39_39【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x3A—0x3B u16 vertex_stride【派生；SDK声明】顶点宽度 → 本地shader定义 | 0x3C—0x3F char* name【资源；SDK声明】可能重复的图像名称 → 不能单凭名字唯一标识程序图像/动态内容 | 0x40—0x4B vector<RenderBatch*> batches【本地；SDK声明】绘制批次 → 本地renderer，不传 | 0x4C—0x4F RenderBatch* last_batch【本地；SDK声明】批次缓存 → 不传 | 0x50—0x5B vector<RenderBatch*> transparent_batches【本地；SDK声明】透明批次复用池 → 不传 | 0x5C—0x5F RenderBatch* last_transparent_batch【本地；SDK声明】最近透明批次 → 不传 | 0x60—0x7F bytes[32] unknown_60_7F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## RoomTransition
 
-外层具体用途决定传输，以下为原生字节事实。
+ 修订3补正常surface内容来源与逐层额外肖像临时变换采集点；原生孔保持。
 
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/RoomTransition.zhl；J273 8273C0
 
-| 0x0—0x3 i32 mode【换算；已核】Render只处理2/3等阶段 → 发最终显示pass选择，不作为ChangeRoom命令 | 0x4—0xB u32[2] progress_inputs【权威；推断】过渡计数/总时长生产输入 → 发最终遮罩/进度，不在Client推进FSM | 0xC—0xF f32 scroll_progress【换算；已核】滑动绘制当前比例 → 最终遮罩/位移结果 | 0x10—0x13 i32 direction【换算；已核】转场可见滑动方向 → 最终pass参数，不驱动房间切换 | 0x14—0x1B i32[2] destination【权威；SDK声明】目标roomIndex/dimension → 结构owner单独接手；不把显示参数当加载命令 | 0x1C—0x1F i32 transition_style【换算；已核】Render遮罩样式选择 → 最终pass选择/参数 | 0x20—0x27 bytes[8] unknown_20_27【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x28—0x2F ImageStrongPair previous_surface【资源；已核】实际Image与本地引用计数control → 本地重建的前场景surface；不能只发Image名称，见来源缺口 | 0x30—0x37 ImageStrongPair next_surface【资源；已核】实际Image与本地引用计数control → 本地下个场景surface，结构版本共同准备 | 0x38—0x14B ANM2 versus【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x14C—0x223 bytes[216] unknown_14C_223【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x224—0x22B map<int,ANM2> extra_portraits【容器；已核】按层ID的额外肖像Sprite → 发具名逻辑项与Sprite，树节点本地；原生cos/sin旋转由帧参数派生，不另发随机偏移 | 0x22C—0x233 Vector scroll_offset【状态；已核】转场绘制偏移 → 同步最终两值或等价具名pass参数 | 0x234—0x237 bytes[4] unknown_234_237【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x238—0x23B i32 boss_intro【换算；已核】boss intro实际分支选择 → 最终pass存在性，不调用StartBossIntro |
+| 0x0—0x3 i32 mode【权威；已核】Render只处理2/3等阶段 → 留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度 | 0x4—0xB u32[2] progress_inputs【权威；推断】过渡计数/总时长生产输入 → 留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度 | 0xC—0xF f32 scroll_progress【权威；已核】滑动绘制当前比例 → 留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度 | 0x10—0x13 i32 direction【权威；已核】转场可见滑动方向 → 留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度 | 0x14—0x1B i32[2] destination【权威；SDK声明】目标roomIndex/dimension → 结构事务唯一接管；显示只引用已有结构身份，不发目标房间命令 | 0x1C—0x1F i32 transition_style【权威；已核】Render遮罩样式选择 → 留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度 | 0x20—0x27 bytes[8] unknown_20_27【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x28—0x2F ImageStrongPair previous_surface【资源；已核】实际Image与本地引用计数control → 正常Host已完成的实际surface内容或完整已核recipe；分别绑定结构/资源版本；见presentation-resource-screen-sources.md，不只靠名字或重新Render旧房 | 0x30—0x37 ImageStrongPair next_surface【资源；已核】实际Image与本地引用计数control → 正常Host已完成的实际surface内容或完整已核recipe；分别绑定结构/资源版本；见presentation-resource-screen-sources.md，不只靠名字或重新Render旧房 | 0x38—0x14B ANM2 versus【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x14C—0x223 bytes[216] unknown_14C_223【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x224—0x22B map<int,ANM2> extra_portraits【容器；已核】按层ID的额外肖像Sprite → 只发实际被采用的逐layer主/叠加最终贡献；原map/未经变换Sprite及变换生产输入不上线 | 0x22C—0x233 Vector scroll_offset【权威；已核】转场绘制偏移 → 留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度 | 0x234—0x237 bytes[4] unknown_234_237【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x238—0x23B i32 boss_intro【权威；已核】boss intro实际分支选择 → 留Host作最终贡献生产；网络只保留最终图像/位移/alpha/遮罩和顺序，不额外发原生selector/进度 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## StageTransition
 
-外层具体用途决定传输，以下为原生字节事实。
-
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/StageTransition.zhl；J273 909E60
 
-| 0x0—0x3 u32 mode【换算；已核】2淡入/3淡出等分支 → 发最终遮罩有效性，不驱动FSM | 0x4—0xB u32[2] progress_inputs【权威；已核】Render unsigned current/duration → 发最终alpha；分母零不能运行原链补值 | 0xC—0xF bytes[4] unknown_C_F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x10—0x13 i32 render_kind【换算；已核】909E60按DWORD==5决定白色；SDK只声明_sameStage bool → 最终遮罩色/alpha；不能按SDK bool吞掉其余三字节 | 0x14—0x1F bytes[12] unknown_14_1F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
+| 0x0—0x3 u32 mode【权威；已核】2淡入/3淡出等分支 → 本路线只发最终遮罩颜色/alpha/存在性；原mode/计时/render_kind留Host，不按SDK bool重放 | 0x4—0xB u32[2] progress_inputs【权威；已核】Render unsigned current/duration → 本路线只发最终遮罩颜色/alpha/存在性；原mode/计时/render_kind留Host，不按SDK bool重放 | 0xC—0xF bytes[4] unknown_C_F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x10—0x13 i32 render_kind【权威；已核】909E60按DWORD==5决定白色；SDK只声明_sameStage bool → 本路线只发最终遮罩颜色/alpha/存在性；原mode/计时/render_kind留Host，不按SDK bool重放 | 0x14—0x1F bytes[12] unknown_14_1F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
 |---|---|---|---|---|
 
 ## NightmareScene
 
-8FAC20含实体/配置绘制与未核payload；不能直接放行整函数或仅发四Sprite宣称完整。412A90/412AC0为cos/sin；+4B1属于+3A8 Sprite.loaded，不是独立外层字段。
+8FAC20含实体/配置绘制与未核payload；不能直接放行整函数或仅发四Sprite宣称完整。412A90/412AC0为cos/sin；+4B1属于+3A8 Sprite.loaded，不是独立外层字段。 修订3核定+360配置索引和+4C0队列头，直属未知61→37B；正常消费后的有序贡献取代未名payload交接，原始未知保留于修订历史。
 
 依据：F:/projects_isaac/REPENTOGON-1.1.3/libzhl/functions/NightmareScene.zhl；LuaNightmareScene.cpp；J273 8FAC20
 
-| 0x0—0x3 i32 active【换算；已核】实际绘制根开关 → 同步最终存在性/场景阶段 | 0x4—0x7 u32 display_frame【状态；已核】进度条/图标闪烁读本场景帧 → 同步场景显示相位，不以GameFrame代替 | 0x8—0x1F bytes[24] unknown_8_1F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x20—0x133 ANM2 background【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x134—0x247 ANM2 bubble【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x248—0x35B ANM2 progress【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x35C—0x35F f32 progress_alpha【状态；已核】进度背景当前透明量 → 同步最终值 | 0x360—0x363 bytes[4] unknown_360_363【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x364—0x367 i32 progress_stage【状态；已核】实际进度阶段选择 → 同步，不能从当前floor猜完整路线 | 0x368—0x368 bool progress_flag【状态；已核】进度路线绘制分支 → 同步最终显示结果 | 0x369—0x36B bytes[3] unknown_369_36B【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x36C—0x3A3 i32[14] progress_map【状态；已核】公开14项最终路线图 → 同步有序14值，非全局生成器 | 0x3A4—0x3A7 bytes[4] unknown_3A4_3A7【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x3A8—0x4BB ANM2 extra_bubble_sprite【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x4BC—0x4BC bool bubble_visible【状态；已核】bubble绘制开关 → 同步 | 0x4BD—0x4D3 bytes[23] unknown_4BD_4D3【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x4D4—0x5E7 ANM2 player_extra_portrait【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 同步实际资源／独立姿态；绘制前必覆写的量按具体pass派生，不调用Update | 0x5E8—0x5E8 bool dogma【状态；已核】Dogma nightmare显示类型 → 同步实际显示分支 | 0x5E9—0x5EB bytes[3] unknown_5E9_5EB【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0x0—0x3 i32 active【换算；已核】实际绘制根开关 → 只承接当前完整贡献批次的有效性/存在语义，不发原生流程状态或启动Show | 0x4—0x7 u32 display_frame【权威；已核】进度条/图标闪烁读本场景帧 → 留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发 | 0x8—0x1F bytes[24] unknown_8_1F【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x20—0x133 ANM2 background【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 只承接该Sprite每次实际主/叠加有序贡献的资源/姿态；保留必要ANM2插值字段，不复制完整生产owner | 0x134—0x247 ANM2 bubble【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 只承接该Sprite每次实际主/叠加有序贡献的资源/姿态；保留必要ANM2插值字段，不复制完整生产owner | 0x248—0x35B ANM2 progress【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 只承接该Sprite每次实际主/叠加有序贡献的资源/姿态；保留必要ANM2插值字段，不复制完整生产owner | 0x35C—0x35F f32 progress_alpha【权威；已核】进度背景当前透明量 → 留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发 | 0x360—0x363 i32 selected_config_index【权威；已核】Host选中Nightmare配置字符串条目的索引 → 留Host；同步实际可见Sprite/图像贡献 | 0x364—0x367 i32 progress_stage【权威；已核】实际进度阶段选择 → 留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发 | 0x368—0x368 bool progress_flag【权威；已核】进度路线绘制分支 → 留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发 | 0x369—0x36B bytes[3] unknown_369_36B【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x36C—0x3A3 i32[14] progress_map【权威；已核】公开14项最终路线图 → 留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发 | 0x3A4—0x3A7 bytes[4] unknown_3A4_3A7【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x3A8—0x4BB ANM2 extra_bubble_sprite【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 只承接该Sprite每次实际主/叠加有序贡献的资源/姿态；保留必要ANM2插值字段，不复制完整生产owner | 0x4BC—0x4BC bool bubble_visible【权威；已核】bubble绘制开关 → 留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发 | 0x4BD—0x4BF bytes[3] unknown_4BD_4BF【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x4C0—0x4D3 NightmareSnapshotQueue snapshot_queue【容器；已核】正常Show维护的Host条件显示队列；20B头及32B元素见独立表 → 不发原生队列/历史；8FAF1A—8FB178等正常消费后记录有序最终显示贡献 | 0x4D4—0x5E7 ANM2 player_extra_portrait【容器；已核】内嵌Sprite，递归见ANM2；原生指针／事件位／loaded不传 → 只承接该Sprite每次实际主/叠加有序贡献的资源/姿态；保留必要ANM2插值字段，不复制完整生产owner | 0x5E8—0x5E8 bool dogma【权威；已核】Dogma nightmare显示类型 → 留Host作有序最终贡献的生产输入；不与最终Connector/Levels/slot/Sprite/颜色结果重复下发 | 0x5E9—0x5EB bytes[3] unknown_5E9_5EB【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 ## GameOver
 
@@ -461,12 +445,50 @@ SDK两个unk保留UNKNOWN；不把有DrawString API理解成自动捕获所有�
 | 0x0—0x0 bool lerp_enabled【权威；已核】颜色渐变生产开关 → 不传 | 0x1—0x3 bytes[3] unknown_1_3【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x4—0x1B ColorModState current【状态；已核】Game+66920最终屏幕色调 → 同步六值 | 0x1C—0x33 ColorModState target【权威；已核】Game+66938渐变目标 → 整份留Host，不因嵌套通用类型标状态而恢复发送 | 0x34—0x4B ColorModState lerp【权威；已核】Game+66950渐变步长 → 整份留Host | 0x4C—0x77 bytes[44] unknown_4C_77【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 | 0x78—0x7F DebugRenderer debug_renderer【本地；SDK声明】Game+66994调试绘制owner → 不传，不开启debug玩法/绘图 | 0x80—0x83 f32 lightning【状态；已核】Game+6699C当前闪电强度 → 同步；NPC/Room/Light均有实际读取 | 0x84—0x87 f32 dizzy【状态；已核】Game+669A0当前眩晕强度 → 同步当前最终值 | 0x88—0x8B f32 dizzy_target【权威；已核】Game+669A4目标 → 不传 | 0x8C—0x8F f32 dizzy_speed【权威；已核】Game+669A8生产速度 → 不传 |
 |---|---|---|---|---|---|---|---|---|---|---|
 
+## NightmareSnapshotQueue
+
+Host生产容器；一块32B仅一元素；未知外部对象完整ABI不由此核定。
+
+依据：J273 Show8FBE00及Render8FAC20，目标版实布局，不由通用deque ABI外推
+
+| 0x0—0x3 pointer proxy【本地；已核】容器proxy，Show构造/交换并维护回指 → 不传 | 0x4—0x7 pointer map【本地；已核】本进程32B单元素块指针表 → 不传地址 | 0x8—0xB u32 map_size【权威；已核】Host块指针表容量 → 不传容器容量 | 0xC—0xF u32 offset【权威；已核】Host队首偏移 → 不传队列生产历史 | 0x10—0x13 u32 size【权威；已核】Host队列元素数 → 只消费正常已采用结果；不发送历史集合 |
+|---|---|---|---|---|
+
+## NightmareSnapshot
+
+只说明该32B记录的存储和用途，不宣称所指实体/配置对象内部完整。
+
+依据：J273 8FC916—8FC943分配/复制；8FAF1A—8FB178四slot消费
+
+| 0x0—0x17 std::string config_text【权威；已核】正常Show保存的配置字符串 → 不重放生产；最终已选资源/显示结果承接 | 0x18—0x1B pointer source0【本地；已核】第一个已选显示来源对象/配置；kind由实际Item/Boss slot决定 → 不发/不跨线程持有；正常消费后复制显示结果 | 0x1C—0x1F pointer source1【本地；已核】第二个已选显示来源对象/配置；含实体专用Sprite路径 → 不发/不跨线程持有；正常消费后复制显示结果 |
+|---|---|---|
+
+## BossOverlayDefinition
+
+五份静态生产定义不下行；每份3B未知不称padding。
+
+依据：J273 41C2F0构造/41C3D0解析/41CD30选择，Game ctor五份步长38h
+
+| 0x0—0x3 i32 id【权威；已核】bossoverlays.xml entry id → 生产配置留Host | 0x4—0x1B std::string anm2_path【权威；已核】配置选择的ANM2路径 → 只传当前实际Sprite资源，不发五份定义 | 0x1C—0x33 std::string animation_name【权威；已核】配置选择的动画名 → 只传当前实际姿态 | 0x34—0x34 bool persist【权威；已核】配置persist；Update据此决定结束 → 不运行Update生产 | 0x35—0x37 bytes[3] unknown_35_37【未知；未知】未取得字段用途或填充证明 → 不读取、不发送；保留具名缺口，不宣称语义完整 |
+|---|---|---|---|---|
+
+## BossOverlay
+
+静态识别的原生连续对象；并非SDK GenericPopup。直属0B未知，五份定义共15B未知、ANM2未知另计。
+
+依据：Game+1D294..1D4C7；6ED4B0构造；6F0F76加载bossoverlays.xml；41CC80绘制
+
+| 0x0—0x3 i32 active【换算；已核】当前Boss覆盖画面是否存在 → 当前有效贡献的存在性；已有贡献批次表达时不再重复active位 | 0x4—0x7 u32 selected_entry【权威；已核】当前0..4配置选择；entry3的Update有进度/切房副作用 → 当前实际Sprite承接；选择命令不上线 | 0x8—0x11B ANM2 sprite【容器；已核】当前实际Sprite/资源；Render重设视口比例 → 当前资源/姿态；比例按Client视口除480/270派生 | 0x11C—0x233 BossOverlayDefinition[5] definitions【容器；已核】从bossoverlays.xml解析的五份Host生产定义 → 不发送生产定义；嵌套未知保持 |
+|---|---|---|---|
+
 ## 外部范围与跨域唯一归属
 
-| owner | 原生半开区间 | 决定 | 理由 |
+| owner | 范围 | 归属 | 理由 |
 |---|---|---|---|
-| Game | [0x1D294,0x1D4C8) | UNKNOWN | 相邻UI owner与边界未核，不能套旧GenericPopup声明大小 |
-| Game | [0x24430,0x25444) | UNKNOWN | PauseScreen SDK前缀之后区域；98DDA0还有相对E04正面读取，不能宣称整个区域本地或padding |
+| Game | [0x1D294,0x1D4C8) | 已识别BossOverlay，见独立字节表 | 6F0F76加载bossoverlays.xml；直属未知0B，嵌套定义15B及ANM2未知另计 |
+| Game | [0x24430,0x24440) | UNKNOWN | PauseScreen SDK前缀外；本轮未核这16B的完整用途 |
+| Game | [0x24440,0x24441) | 本地/原版Online排除 | PauseScreen+E04；98DF32/98DF69和98E23D/98E2B9控制密码显示，98D1AD切换；不读取原版Online补C/S显示 |
+| Game | [0x24441,0x25444) | UNKNOWN | 其余Pause后缀及后续owner边界不能由已核密码1B外推，继续保留 |
 | Game | [0x25A84,0x25A8C) | 已有Run/Presentation唯一字段 | 最终screenShakeOffset8B；原生Render/压力板文字消费；不重复传输 |
 | Game | [0x25A90,0x25A98) | 已有Run/Room显示字段 | darkness两f32都有Render消费者，不因名称target裁掉 |
 | Game | [0x25F58,0x25F60) | 换算 | retrovision剩余/总时相；Room804500最终强度/seed78选择由具名pass结果承接，不在Client计时 |
